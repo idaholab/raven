@@ -4815,7 +4815,7 @@ The following is a list of acceptable sub-nodes:
 \subsubsection{Interfaced}
 \label{Interfaced}
 The \textbf{Interfaced} post-processor is a Post-Processor that allows the user
-to create new Post-Processor. While the External Post-Processor (see
+to create its own Post-Processor. While the External Post-Processor (see
 Section~\ref{External} allows the user to create case-dependent
 Post-Processors, with this new class the user can create new general
 purpose Post-Processors.
@@ -4858,15 +4858,15 @@ PostProcessorInterfaceBase class and the user must specify this set of
 methods:
 \begin{itemize}
   \item initialize: in this method, the internal parameters of the
-  post-processors. Mandatory elements that needs to be specified are the
-  following:
+  post-processor are initialized. Mandatory elements that needs to be specified
+  are the following:
 \begin{itemize}
   \item self.inputFormat: type of dataObject expected in input
   \item self.outputFormat: type of dataObject generated in output
 \end{itemize}
   \item readMoreXML: this method is in charge of reading the PostProcessor xml
   node, parse it and fill the PostProcessor internal variables.
-  \item run: this method performs the desired computation of the data object.
+  \item run: this method performs the desired computation of the dataObject.
 \end{itemize}
 
 \begin{lstlisting}[language=python]
@@ -4890,7 +4890,7 @@ inputDict = {'data':{}, 'metadata':{}}
 where:
 
 \begin{lstlisting}[language=python]
-inputDict = {'input':{}, 'output':{}}
+inputDict['data'] = {'input':{}, 'output':{}}
 \end{lstlisting}
 
 In the input dictonary, each input variable is listed as a dictionary that

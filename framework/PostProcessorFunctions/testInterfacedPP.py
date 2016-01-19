@@ -25,8 +25,9 @@ class testInterfacedPP(PostProcessorInterfaceBase):
      @ In, None,
 
     """
+    PostProcessorInterfaceBase.initialize(self)
     self.inputFormat  = 'HistorySet'
-    self.outputFormat = 'HistorySet'
+    #self.outputFormat = 'HistorySet'
 
   def run(self,inputDic):
     """

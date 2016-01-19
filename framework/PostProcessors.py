@@ -881,6 +881,11 @@ class InterfacedPostProcessor(BasePostProcessor):
     BasePostProcessor.initialize(self, runInfo, inputs, initDict)
     self.postProcessor.initialize()
 
+    if self.postProcessor.inputFormat not in set(['HistorySet','History','PointSet','Point']):
+      self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.inputFormat not correctly initialized')
+    if self.postProcessor.outputFormat not in set(['HistorySet','History','PointSet','Point']):
+      self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.outputFormat not correctly initialized')
+
   def _localReadMoreXML(self, xmlNode):
     """
       Function that reads elements this post-processor will use
