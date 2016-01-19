@@ -41,5 +41,5 @@ class testInterfacedPP(PostProcessorInterfaceBase):
       @ Out, None
     """
     for child in xmlNode:
-      if child.tag == 'testID':
-        self.testID = child.text
+      if child.tag == 'xmlNodeExample':
+        self.xmlNodeExample = child.text
