@@ -4878,10 +4878,10 @@ class testInterfacedPP(PostProcessorInterfaceBase):
 \end{lstlisting} 
 
 \paragraph{Data Format}
-The user is not allowed to modify directly the DataObjects, however their
-content is available in the form of a python dictionary. Similarly, the output
-of the PostProcessor is a python dictionary.
-These dictionaries are structured as follows:
+The user is not allowed to modify directly the DataObjects, however the
+content of the DataObjects is available in the form of a python dictionary.
+Both the dictionary give in input and the one generated in the putput of the 
+PostProcessor are structured as follows:
 
 \begin{lstlisting}[language=python]
 inputDict = {'data':{}, 'metadata':{}}
