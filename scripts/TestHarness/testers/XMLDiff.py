@@ -162,9 +162,19 @@ def compare_element(a,b,*args,**kwargs):
       #once all pruning done, error on any remaining structure
       if counter==0: #on head now, recursion is finished
         if len(a)>0:
-          message.append('Branches in gold not matching test...\n'+ET.tostring(a))
+          a_string = ET.tostring(a)
+          if len(a_string) > 80:
+            message.append('Branches in gold not matching test...\n'+path)
+          else:
+            message.append('Branches in gold not matching test...\n'+path+
+                           " "+a_string)
         if len(b)>0:
-          message.append('Branches in test not matching gold...\n'+ET.tostring(b))
+          b_string = ET.tostring(b)
+          if len(b_string) > 80:
+            message.append('Branches in test not matching gold...\n'+path)
+          else:
+            message.append('Branches in test not matching gold...\n'+path+
+                           " "+b_string)
   return (same,message)
 
 def isANumber(x):
