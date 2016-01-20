@@ -1540,22 +1540,26 @@ class BasicStatistics(BasePostProcessor):
       #  sumWeightsList[myIndex], sumSquareWeightsList[myIndex] = np.sum(weights[myIndex][:]), np.sum(np.square(weights[myIndex][:]))
       #sumWeights, sumSquareWeights = np.sum(productWeights[:]), np.sum(np.square(productWeights[:]))
       factList = np.ones((featuresNumber,featuresNumber), dtype = np.result_type(feature, np.float64))
+      w2       = np.ones((featuresNumber,featuresNumber,N), dtype = np.result_type(feature, np.float64))
       for myIndex in range(featuresNumber):
-        if not self.biased: factList[myIndex,myIndex] = self.__computeUnbiasedCorrection(2,weights[myIndex][:])
-        else              : factList[myIndex,myIndex] = 1.0/np.sum(weights[myIndex][:])
         for myIndexTwo in range(featuresNumber):
-          if myIndex != myIndexTwo:
-            sumWeights = weights[myIndex][:]+weights[myIndexTwo][:]
-            if not self.biased: factList[myIndex,myIndexTwo] = self.__computeUnbiasedCorrection(2,sumWeights/np.sum(sumWeights))
-            else              : factList[myIndex,myIndexTwo] = 1.0/np.sum(sumWeights)
-      print(factList)
+          jointWeights = (2.0*weights[myIndex][:]*weights[myIndexTwo][:])/(weights[myIndex][:]+weights[myIndexTwo][:])
+          w2[myIndex,myIndexTwo,:] = jointWeights[:]/np.sum(jointWeights)
+          if not self.biased: factList[myIndex,myIndexTwo] = self.__computeUnbiasedCorrection(2,jointWeights/np.sum(jointWeights))
+          else              : factList[myIndex,myIndexTwo] = 1.0/np.sum(jointWeights)
       diff = X - np.atleast_2d(np.average(X, axis = 1 - axis, weights = w)).T
+      
       # I personally think this approach could be correct. I did not cranch the equations since I di not have time so I am not 100% sure. Andrea
       #factList = np.zeros(featuresNumber, dtype = np.result_type(feature, np.float64))
       #if not self.biased: factList[:] = sumWeightsList[:] / ((sumWeightsList[:]*sumWeightsList[:] - sumSquareWeightsList[:]))
       #else              : factList[:] = 1.0 / sumWeightsList[:]
-      if not rowvar: covMatrix = (np.multiply(np.dot(diff.T, np.multiply(w, diff)), factList)).squeeze()
-      else         : covMatrix = (np.multiply(np.dot(np.multiply(w, diff), diff.T), factList)).squeeze()
+      covMatrix = np.ones((featuresNumber,featuresNumber), dtype = np.result_type(feature, np.float64))
+      for myIndex in range(featuresNumber):
+        for myIndexTwo in range(featuresNumber):
+          covMatrix[myIndex,myIndexTwo] = np.sum(diff[myIndex,:]*diff[myIndexTwo,:]*w2[myIndex,myIndexTwo,:]*factList[myIndex,myIndexTwo])
+          
+      #if not rowvar: covMatrix = (np.multiply(np.dot(diff.T, np.multiply(w, diff)), factList)).squeeze()
+      #else         : covMatrix = (np.multiply(np.dot(np.multiply(w, diff), diff.T), factList)).squeeze()
       # to prevent numerical instability
       #covMatrix[np.absolute(covMatrix) <= 1.e-15] = 1.e-15
       return covMatrix
