@@ -1503,14 +1503,12 @@ class Grid(Sampler):
                 self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.distDict[varName].cdf(midPlusValue) - self.distDict[varName].cdf(midMinusValue)
               if coordinatesMinusOne[varName] == -sys.maxsize:
                 midPlusValue   = (self.values[key]+coordinatesPlusOne[varName])/2.0
-                midMinusValue  = self.distDict[varName].lowerBound
-                self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.distDict[varName].cdf(midPlusValue) - self.distDict[varName].cdf(midMinusValue)
-                weight *= self.distDict[varName].cdf(midPlusValue) - self.distDict[varName].cdf(midMinusValue)
+                self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.distDict[varName].cdf(midPlusValue) - 0.0
+                weight *= self.distDict[varName].cdf(midPlusValue) - 0.0
               if coordinatesPlusOne[varName] == sys.maxsize:
-                midPlusValue   = self.distDict[varName].upperBound
                 midMinusValue  = (self.values[key]+coordinatesMinusOne[varName])/2.0
-                self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.distDict[varName].cdf(midPlusValue) - self.distDict[varName].cdf(midMinusValue)
-                weight *= self.distDict[varName].cdf(midPlusValue) - self.distDict[varName].cdf(midMinusValue)
+                self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = 1.0 - self.distDict[varName].cdf(midMinusValue)
+                weight *= 1.0 - self.distDict[varName].cdf(midMinusValue)
         # ND variable
         else:
           if self.variables2distributionsMapping[varName]['dim']==1:    # to avoid double count of weight for ND distribution; I need to count only one variable instaed of N
