@@ -29,4 +29,10 @@
   csv = 'ROM/testPrintPointSet_dump.csv ROM/testPrintPointSet_dump.csv'
  [../]
 
+ [./oneDim]
+  type = 'RavenFramework'
+  input = 'test_one_dim_pca.xml'
+  xml = 'oneDimPCA/testPrintPointSet_dump.xml'
+  csv = 'oneDimPCA/testPrintPointSet_dump.csv'
+ [../]
 []
