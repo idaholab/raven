@@ -124,6 +124,7 @@ class RavenFramework(Tester):
     xmlopts = {}
     if len(self.specs["rel_err"]) > 0: xmlopts['rel_err'] = float(self.specs["rel_err"])
     xmlopts['zero_threshold'] = float(self.specs["zero_threshold"])
+    xmlopts['unordered'] = False
     if len(self.specs['xmlopts'])>0: xmlopts['xmlopts'] = self.specs['xmlopts'].split(' ')
     xml_diff = XMLDiff(self.specs['test_dir'],self.xml_files,**xmlopts)
     (xml_same,xml_messages) = xml_diff.diff()
@@ -131,8 +132,9 @@ class RavenFramework(Tester):
       return (xml_messages,output)
 
     #unordered xml
-    uxmlopts = xmlopts + ['unordered']
-    uxml_diff = XMLDiff(self.specs['test_dir'],self.uxml_files,*uxmlopts)
+    uxmlopts = xmlopts
+    uxmlopts['unordered'] = True
+    uxml_diff = XMLDiff(self.specs['test_dir'],self.uxml_files,**uxmlopts)
     (uxml_same,uxml_messages) = uxml_diff.diff()
     if not uxml_same:
       return (uxml_messages,output)

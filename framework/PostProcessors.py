@@ -1406,14 +1406,11 @@ class BasicStatistics(BasePostProcessor):
           outputDict[what][myIndex] = np.zeros(len(parameterSet))
           for cnt, param in enumerate(parameterSet): outputDict[what][myIndex][cnt] = regressorsByTarget[param]
           # to avoid numerical instabilities
-          #outputDict[what][myIndex][np.absolute(outputDict[what][myIndex]) <= 1.e-15] = 1.e-15
       # VarianceDependentSensitivity matrix
       if what == 'VarianceDependentSensitivity':
         feat = np.zeros((len(Input['targets'].keys()), utils.first(Input['targets'].values()).size))
         pbWeightsList = [None]*len(Input['targets'].keys())
-        for myIndex, targetP in enumerate(parameterSet):
-          feat[myIndex, :] = Input['targets'][targetP][:]
-          pbWeightsList[myIndex] = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
+        for myIndex, targetP in enumerate(parameterSet): feat[myIndex, :], pbWeightsList[myIndex] = Input['targets'][targetP][:], pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
         covMatrix = self.covariance(feat, weights = pbWeightsList)
         variance = np.zeros(len(list(parameterSet)))
         for myIndex, targetP in enumerate(parameterSet):
@@ -1423,7 +1420,7 @@ class BasicStatistics(BasePostProcessor):
           if (variance[myIndex] == 0):
              self.raiseAWarning('Variance for the parameter: ' + parameterSet[myIndex] + ' is zero!...in PP: ' + self.name)
              variance[myIndex] = np.Infinity
-          outputDict[what][myIndex] = covMatrix[myIndex, :] / (variance[myIndex])
+          outputDict[what][myIndex] = covMatrix[myIndex, :] / variance[:]
       # Normalized sensitivity matrix: linear regression slopes normalized by the mean (% change)/(% change)
       if what == 'NormalizedSensitivity':
         feat = np.zeros((len(Input['targets'].keys()), utils.first(Input['targets'].values()).size))
@@ -1519,8 +1516,7 @@ class BasicStatistics(BasePostProcessor):
         @ Out, covMatrix, array-like, [#targets,#targets] the covariance matrix
       """
       X = np.array(feature, ndmin = 2, dtype = np.result_type(feature, np.float64))
-      diff = np.zeros(feature.shape, dtype = np.result_type(feature, np.float64))
-      w    = np.zeros(feature.shape, dtype = np.result_type(feature, np.float64))
+      w = np.zeros(feature.shape, dtype = np.result_type(feature, np.float64))
       if X.shape[0] == 1: rowvar = 1
       if rowvar:
         N, featuresNumber, axis = X.shape[1], X.shape[0], 0
@@ -1531,37 +1527,17 @@ class BasicStatistics(BasePostProcessor):
       if N <= 1:
         self.raiseAWarning("Degrees of freedom <= 0")
         return np.zeros((featuresNumber,featuresNumber), dtype = np.result_type(feature, np.float64))
-      #sumWeightsList, sumSquareWeightsList = np.zeros(featuresNumber, dtype = np.result_type(feature, np.float64)), np.zeros(featuresNumber, dtype = np.result_type(feature, np.float64))
-      #sumWeights, sumSquareWeights = 0.0, 0.0
-      #productWeights = np.ones(len(weights[0]), dtype = np.result_type(feature, np.float64))
-      #for myIndex in range(featuresNumber): productWeights[:] = weights[myIndex][:]*weights[myIndex][:]
-      #productWeights[:] = productWeights[:]/np.sum(productWeights[:])
-      #for myIndex in range(featuresNumber):
-      #  sumWeightsList[myIndex], sumSquareWeightsList[myIndex] = np.sum(weights[myIndex][:]), np.sum(np.square(weights[myIndex][:]))
-      #sumWeights, sumSquareWeights = np.sum(productWeights[:]), np.sum(np.square(productWeights[:]))
-      factList = np.ones((featuresNumber,featuresNumber), dtype = np.result_type(feature, np.float64))
-      w2       = np.ones((featuresNumber,featuresNumber,N), dtype = np.result_type(feature, np.float64))
-      for myIndex in range(featuresNumber):
-        for myIndexTwo in range(featuresNumber):
-          jointWeights = (2.0*weights[myIndex][:]*weights[myIndexTwo][:])/(weights[myIndex][:]+weights[myIndexTwo][:])
-          w2[myIndex,myIndexTwo,:] = jointWeights[:]/np.sum(jointWeights)
-          if not self.biased: factList[myIndex,myIndexTwo] = self.__computeUnbiasedCorrection(2,jointWeights/np.sum(jointWeights))
-          else              : factList[myIndex,myIndexTwo] = 1.0/np.sum(jointWeights)
       diff = X - np.atleast_2d(np.average(X, axis = 1 - axis, weights = w)).T
-      
-      # I personally think this approach could be correct. I did not cranch the equations since I di not have time so I am not 100% sure. Andrea
-      #factList = np.zeros(featuresNumber, dtype = np.result_type(feature, np.float64))
-      #if not self.biased: factList[:] = sumWeightsList[:] / ((sumWeightsList[:]*sumWeightsList[:] - sumSquareWeightsList[:]))
-      #else              : factList[:] = 1.0 / sumWeightsList[:]
       covMatrix = np.ones((featuresNumber,featuresNumber), dtype = np.result_type(feature, np.float64))
       for myIndex in range(featuresNumber):
         for myIndexTwo in range(featuresNumber):
-          covMatrix[myIndex,myIndexTwo] = np.sum(diff[myIndex,:]*diff[myIndexTwo,:]*w2[myIndex,myIndexTwo,:]*factList[myIndex,myIndexTwo])
-          
-      #if not rowvar: covMatrix = (np.multiply(np.dot(diff.T, np.multiply(w, diff)), factList)).squeeze()
-      #else         : covMatrix = (np.multiply(np.dot(np.multiply(w, diff), diff.T), factList)).squeeze()
-      # to prevent numerical instability
-      #covMatrix[np.absolute(covMatrix) <= 1.e-15] = 1.e-15
+          # The weights that are used here should represent the joint probability (P(x,y)). Since I have no way yet to compute the joint probability with weights only (eventually I can think to use an estimation of the
+          # P(x,y) computed through a 2D histogram construction and weighted a posteriori with the 1-D weights), I decide to construct a weighting fanction that is defined as Wi = (2.0*Wi,x*Wi,y)/(Wi,x+Wi,y) that respects the constrains of the
+          # covariance (symmetric and that the diagonal is == variance) but that is completely arbitrary. As already mentioned, I need the joint probability to compute the E[XY] = integral[xy*p(x,y)dxdy]. Andrea
+          jointWeights = (2.0*weights[myIndex][:]*weights[myIndexTwo][:])/(weights[myIndex][:]+weights[myIndexTwo][:])
+          jointWeights = jointWeights[:]/np.sum(jointWeights)
+          fact = self.__computeUnbiasedCorrection(2,jointWeights) if not self.biased else 1.0/np.sum(jointWeights)
+          covMatrix[myIndex,myIndexTwo] = np.sum(diff[:,myIndex]*diff[:,myIndexTwo]*jointWeights[:]*fact) if not rowvar else np.sum(diff[myIndex,:]*diff[myIndexTwo,:]*jointWeights[:]*fact)
       return covMatrix
 
 

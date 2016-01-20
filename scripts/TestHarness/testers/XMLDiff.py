@@ -143,7 +143,7 @@ def compare_element(a,b,*args,**kwargs):
       #WARNING: this will mangle the XML, so other testing should happen above this!
       found=[]
       for i in range(len(a)):
-        if 'unordered' in options:
+        if 'unordered' in options.keys() and options['unordered']:
           for j in range(len(b)):
             (same_child,message_child) = compare_element(a[i],b[j],*options,counter=counter+1,path=path)
             if same_child:
