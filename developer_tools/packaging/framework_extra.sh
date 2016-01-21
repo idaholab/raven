@@ -96,7 +96,7 @@ else
 fi
 
 
-if which glibtool;
+if which glibtool || libtool --version | grep 'GNU libtool';
 then
     echo glibtool already installed
 else
