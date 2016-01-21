@@ -56,7 +56,7 @@ def compareStringsWithFloats(a,b,num_tol = 1e-10, zero_threshold = sys.float_inf
   a: first string to use
   b: second string to use
   num_tol: the numerical tolerance.
-  zero_thershold: if a float is, in absolute value, below this threshold no comparison is performed
+  zero_thershold: it represents the value below which a float is considered zero (XML comparison only). For example, if zero_thershold = 0.1, a float = 0.01 will be considered as it was 0.0
   Return (succeeded, note) where succeeded is a boolean that is true if the
   strings match, and note is a comment on the comparison.
   """
@@ -246,4 +246,3 @@ class XMLDiff:
       self.__messages = self.__messages.replace('[','(')
       self.__messages = self.__messages.replace(']',')')
     return (self.__same,self.__messages)
-

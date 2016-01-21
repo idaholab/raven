@@ -39,11 +39,11 @@
     <Grid name="Grid_external">
       <variable name="x">
         <distribution>x0_distrib</distribution>
-        <grid construction="equal" steps="10" type="CDF">0.0001 0.9999</grid>
+        <grid construction="equal" steps="20" type="CDF">0.0013 0.998</grid>
       </variable>
       <variable name="y">
         <distribution>y0_distrib</distribution>
-        <grid construction="equal" steps="10" type="CDF">0.0001 0.9999</grid>
+        <grid construction="equal" steps="20" type="value">-0.5 2.5</grid>
       </variable>
     </Grid>
   </Samplers>
