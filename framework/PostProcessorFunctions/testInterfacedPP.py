@@ -6,9 +6,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
-import os
 from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
-import numpy as np
 
 class testInterfacedPP(PostProcessorInterfaceBase):
   """ This class represents the most basic interfaced post-processor
@@ -32,13 +30,16 @@ class testInterfacedPP(PostProcessorInterfaceBase):
   def run(self,inputDic):
     """
     This method is transparent: it passes the inputDic directly as output
+     @ In, inputDic, dict, dictionary which contains the data inside the input DataObject
+     @ Out, inputDic, dict, same inputDic dictionary
+
     """
     return inputDic
 
   def readMoreXML(self,xmlNode):
     """
       Function that reads elements this post-processor will use
-      @ In, xmlNode, Xml element node
+      @ In, xmlNode, ElementTree, Xml element node
       @ Out, None
     """
     for child in xmlNode:

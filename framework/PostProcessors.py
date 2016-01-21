@@ -29,6 +29,7 @@ import GridEntities
 import Files
 from RAVENiterators import ravenArrayIterator
 import unSupervisedLearning
+from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
 #Internal Modules End--------------------------------------------------------------------------------
 
 """
@@ -867,6 +868,7 @@ class InterfacedPostProcessor(BasePostProcessor):
     """
      Constructor
      @ In, messageHandler, message handler object
+     @ Out, None
     """
     BasePostProcessor.__init__(self, messageHandler)
     self.methodToRun = None
@@ -879,30 +881,38 @@ class InterfacedPostProcessor(BasePostProcessor):
      @ In, initDict, dict, dictionary with initialization options
     """
     BasePostProcessor.initialize(self, runInfo, inputs, initDict)
-    self.postProcessor.initialize()
-
-    if self.postProcessor.inputFormat not in set(['HistorySet','History','PointSet','Point']):
-      self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.inputFormat not correctly initialized')
-    if self.postProcessor.outputFormat not in set(['HistorySet','History','PointSet','Point']):
-      self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.outputFormat not correctly initialized')
+#     self.postProcessor.initialize()
+#
+#     if self.postProcessor.inputFormat not in set(['HistorySet','History','PointSet','Point']):
+#       self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.inputFormat not correctly initialized')
+#     if self.postProcessor.outputFormat not in set(['HistorySet','History','PointSet','Point']):
+#       self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.outputFormat not correctly initialized')
 
   def _localReadMoreXML(self, xmlNode):
     """
       Function that reads elements this post-processor will use
-      @ In, xmlNode, Xml element node
+      @ In, xmlNode, ElementTree, Xml element node
       @ Out, None
     """
     for child in xmlNode:
       if child.tag == 'method':
         self.methodToRun = child.text
     self.postProcessor = InterfacedPostProcessor.PostProcessorInterfaces.returnPostProcessorInterface(self.methodToRun,self)
+    if not isinstance(self.postProcessor,PostProcessorInterfaceBase):
+      self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : not correctly coded; it must inherit the PostProcessorInterfaceBase class')
+
+    self.postProcessor.initialize()
+    if self.postProcessor.inputFormat not in set(['HistorySet','History','PointSet','Point']):
+      self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.inputFormat not correctly initialized')
+    if self.postProcessor.outputFormat not in set(['HistorySet','History','PointSet','Point']):
+      self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.outputFormat not correctly initialized')
     self.postProcessor.readMoreXML(xmlNode)
 
   def run(self, InputIn):
     """
      This method executes the interfaced  post-processor action.
-     @ In , InputIn, dictionary, dictionary of data to process
-     @ Out, dictionary, Dictionary containing the post-processed results
+     @ In , InputIn, dict, dictionary of data to process
+     @ Out, dictionary, dict containing the post-processed results
     """
     inputDic= self.inputToInternal(InputIn)
     outputDic = self.postProcessor.run(inputDic)
@@ -915,8 +925,8 @@ class InterfacedPostProcessor(BasePostProcessor):
   def collectOutput(self, finishedjob, output):
     """
       Function that fills the computed data into the output dataObject
-      @ In, finishedJob: A JobHandler object that is in charge of running this post-processor
-      @ In, output: The dataObject where we want to place our computed results
+      @ In, finishedJob, A JobHandler object that is in charge of running this post-processor
+      @ In, jobHandler, jobHandler object, jobhandler instance
       @ Out, None
     """
     if finishedjob.returnEvaluation() == -1:
@@ -950,8 +960,8 @@ class InterfacedPostProcessor(BasePostProcessor):
     """
       Function to convert the received input into a format this object can
       understand
-      @ In, input     : data object handed to the post-processor
-      @ Out, inputDict: a dictionary this object can process
+      @ In, input, dataObject, data object handed to the post-processor
+      @ Out, inputDict, dict, a dictionary this object can process
     """
     inputDict = {'data':{}, 'metadata':{}}
     metadata = []
@@ -966,132 +976,6 @@ class InterfacedPostProcessor(BasePostProcessor):
     inputDict['metadata']=metadata
     return inputDict
 
-
-
-class DataConversion(BasePostProcessor):
-  """
-  Class which converts dataObjects into dataObjects
-  """
-  def __init__(self, messageHandler):
-    """
-     Constructor
-     @ In, messageHandler, message handler object
-    """
-    BasePostProcessor.__init__(self, messageHandler)
-    self.paramters = ['all']
-    self.inObj = None
-    self.workingDir = None
-    self.printTag = 'POSTPROCESSOR DATA_CONVERSION'
-
-    self.operator = None
-    self.sampling = {}
-
-    self.requiredAssObject = (True, (['Function'], [-1]))
-    self.externalFunction  = []                             #Pointer to an external Function
-
-
-  def inputToInternal(self, currentInput):
-    """
-     Method to convert an input object into the internal format that is understandable by this pp.
-     @ In, currentInput, object, an object that needs to be converted
-     @ Out, None, the resulting converted object is stored as an attribute of this class
-    """
-    return currentInput
-
-  def initialize(self, runInfo, inputs, initDict):
-    """
-     Method to initialize the PrintCSV pp. In here, the workingdir is collected and eventually created
-     @ In, runInfo, dict, dictionary of run info (e.g. working dir, etc)
-     @ In, inputs, list, list of inputs
-     @ In, initDict, dict, dictionary with initialization options
-    """
-    BasePostProcessor.initialize(self, runInfo, inputs, initDict)
-    #self.externalFunction = self.assemblerDict['Function'][0][3]
-
-  def _localReadMoreXML(self, xmlNode):
-    """
-    Function to read the portion of the xml input that belongs to this specialized class
-    and initialize some stuff based on the inputs got
-    @ In, xmlNode    : Xml element node
-    @ Out, None
-    """
-    for child in xmlNode:
-      if child.tag == 'operator':
-        self.operator = child.text
-        if self.operator != 'HS2HS' and self.operator != 'HS2PS' and self.operator != 'filter':
-          self.raiseAnError(IOError, 'DataConversion Post-Processor: function ' + str(self.operator) + ' is not valid (valid are HSS2HS,HS2PS and filter)')
-      elif child.tag == 'sampling':
-        self.sampling['pivot']      = child.text
-        self.sampling['type'] = child.attrib['type']
-        if self.operator == 'HS2HS':
-          if self.sampling['type'] == 'uniform' or self.sampling['type'] == 'firstDerivative' or self.sampling['type'] == 'secondDerivative':
-            self.sampling['interp'] = child.attrib['interp']
-            self.sampling['numSamples'] = float(child.attrib['numSamples'])
-          elif self.sampling['type'] == 'filteredFirstDerivative' or self.sampling['type'] == 'filteredSecondDerivative':
-            self.sampling['tolerance']  = float(child.attrib['tolerance'])
-        elif self.operator == 'HS2PS':
-          if self.sampling['type'] == 'uniform' or self.sampling['type'] == 'firstDerivative' or self.sampling['type'] == 'secondDerivative':
-            self.sampling['interp'] = child.attrib['interp']
-            self.sampling['numSamples'] = child.attrib['numSamples']
-            self.sampling['frame']     = child.attrib['frame']
-          elif self.sampling['type'] == 'min' or self.sampling['type'] == 'max':
-            pass
-          elif self.sampling['type'] == 'value':
-            self.sampling['varValue']     = float(child.attrib['varValue'])
-          elif self.sampling['type'] == 'average':
-            self.sampling['timeID']     = child.attrib['timeID']
-          else:
-            self.raiseAnError(IOError, 'DataConversion Post-Processor: sampling type ' + str(self.sampling['type']) + ' is not valid for HS2PS (valid are uniform, firstDerivative, secondDerivative, min, max, average and value)')
-      elif child.tag == 'Function':
-        if self.operator == 'filter':
-          pass # read Function node
-      else:
-        self.raiseAnError(IOError, 'DataConversion Post-Processor: node ' + str(self.operator) + ' is not valid')
-
-
-  def run(self, InputIn):
-    """
-     This method executes the postprocessor action.
-     @ In,  Input, object, object contained the data to process. (inputToInternal output)
-     @ Out, dictionary, Dictionary containing the evaluated data
-    """
-    Input = self.inputToInternal(InputIn)
-
-    if self.operator == 'HS2HS':
-      for i in Input:
-        for histID in i.getParametersValues('output'):
-          if self.sampling['type'] == 'uniform' or self.sampling['type'] == 'firstDerivative' or self.sampling['type'] == 'secondDerivative':
-            tempData = mathUtils.varsTimeInterp(self.sampling['numSamples'], self.sampling['pivot'], i.getParametersValues('output')[histID], self.sampling['type'],self.sampling['interp'])
-          elif self.sampling['type'] == 'filteredFirstDerivative' or self.sampling['type'] == 'filteredSecondDerivative':
-            tempData = mathUtils.timeSeriesFilter(self.sampling['pivot'], i.getParametersValues('output')[histID], self.sampling['type'], self.sampling['tolerance'])
-          else:
-            self.raiseAnError(IOError, 'DataConversion Post-Processor: sampling type ' + str(self.sampling['type']) + ' is not valid for HS2HS')
-          for key in tempData:
-            i.updateOutputValue(key,tempData[key])
-
-    elif self.operator == 'HS2PS':
-      if   self.sampling['type'] == 'uniform' or self.sampling['type'] == 'firstDerivative' or self.sampling['type'] == 'secondDerivative':
-        self.raiseAnError(IOError, 'DataConversion Post-Processor: sampling type ' + str(self.sampling['type']) + ' is not yet implemented for HS2PS')
-      elif self.sampling['type'] == 'min' or self.sampling['type'] == 'max' or self.sampling['type'] == 'value':
-        for key in outputDict:
-          outputDict[key]['output'] = mathUtils.historySnapShot(outputDict[key]['output'], self.sampling['pivot'], self.sampling['type'])
-      elif self.sampling['type'] == 'average':
-        for key in outputDict:
-          outputDict[key]['output'] = mathUtils.historySnapShot(outputDict[key]['output'], self.sampling['pivot'], self.sampling['type'], tempID=self.sampling['tempID'])
-      else:
-        self.raiseAnError(IOError, 'DataConversion Post-Processor: sampling type ' + str(self.sampling['type']) + ' is not valid for HS2PS')
-    elif self.operator == 'filter':
-      self.raiseAnError(IOError, 'DataConversion Post-Processor: sampling type ' + str(self.sampling['type']) + ' is not yet implemented for HS2PS')
-    else:
-      self.raiseAnError(IOError, 'DataConversion Post-Processor: ' + str(self.operator) + '  is not valid (available: HS2HS,HS2PS and filter)')
-
-  def collectOutput(self, finishedjob, output):
-    """
-      Function to place all of the computed data into the output object
-      @ In, finishedJob: A JobHandler object that is in charge of running this post-processor
-      @ In, output: The object where we want to place our computed results
-      @ Out, None
-    """
 #
 #
 #

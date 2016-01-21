@@ -4858,8 +4858,8 @@ PostProcessorInterfaceBase class and the user must specify this set of
 methods:
 \begin{itemize}
   \item initialize: in this method, the internal parameters of the
-  post-processor are initialized. Mandatory elements that needs to be specified
-  are the following:
+  post-processor are initialized. Mandatory variables that needs to be
+  specified are the following:
 \begin{itemize}
   \item self.inputFormat: type of dataObject expected in input
   \item self.outputFormat: type of dataObject generated in output
@@ -4880,7 +4880,7 @@ class testInterfacedPP(PostProcessorInterfaceBase):
 \paragraph{Data Format}
 The user is not allowed to modify directly the DataObjects, however the
 content of the DataObjects is available in the form of a python dictionary.
-Both the dictionary give in input and the one generated in the putput of the 
+Both the dictionary give in input and the one generated in the output of the 
 PostProcessor are structured as follows:
 
 \begin{lstlisting}[language=python]
