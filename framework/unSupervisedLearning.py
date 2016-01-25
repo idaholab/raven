@@ -20,7 +20,6 @@ unSuperVisedLearning: Include other algorithms, such as:
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-from test.test_heapq import LenOnly
 warnings.simplefilter('default', DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
@@ -441,10 +440,10 @@ class SciKitLearn(unSupervisedLearning):
 
 # FIXME, time dependent BasisStatistics is now a library of KDD. 
 #        Make changes if necessary. 
-class tBasicStatistics(unSupervisedLearning):
+class temporalBasicStatistics(unSupervisedLearning):
   def __init__(self, messageHandler, **kwargs):
     """
-    constructor for SciKitLearn class.
+    constructor for temporalBasicStatics class.
     @ In: messageHandler, Message handler object
     @ In: kwargs, arguments for the SciKitLearn algorithm
     """
@@ -468,12 +467,14 @@ class tBasicStatistics(unSupervisedLearning):
     self.method.biased = self.biased
     assert (self.parameters is not []), self.raiseAnError(IOError, 'I need parameters to work on! Please check your input for PP: ' + self.name)
     self.outputDict = {}
-    
+         
   def run(self, Input):
-        
+    
+    # FIXME, this needs to be changed for asynchronous HistorySet    
     if 'Time' in Input.getParam('output',1).keys(): Time = Input.getParam('output',1)['Time']
     else: self.raiseAnError(ValueError, 'Time not found in input historyset')
     self.outputDict['Time'] = Time
+    # end of FIXME
     
     historyKey = Input.getOutParametersValues().keys()
     noHistory = len(historyKey)
@@ -565,10 +566,175 @@ class tBasicStatistics(unSupervisedLearning):
   def __confidenceLocal__(self):
     pass
     
+class temporalSciKitLearn(unSupervisedLearning):
+  def __init__(self, messageHandler, **kwargs):
+    """
+    constructor for temporalSciKitLearn class.
+    @ In: messageHandler, Message handler object
+    @ In: kwargs, arguments for the SciKitLearn algorithm
+    """
+#     SciKitLearn.__init__(self,messageHandler,**kwargs)
+    unSupervisedLearning.__init__(self, messageHandler, **kwargs)    
+    self.printTag = 'TEMPORALSCIKITLEARN'
+    if 'SKLtype' not in self.initOptionDict.keys(): self.raiseAnError(IOError, ' to define a scikit learn unSupervisedLearning Method the SKLtype keyword is needed (from KDD ' + self.name + ')')
+    SKLtype, SKLsubType = self.initOptionDict['SKLtype'].split('|')
+    self.SKLtype = SKLtype
+    self.SKLsubType = SKLsubType
+    
+    # return a SciKitLearn instance as engine for SKL data mining
+    self.SKLEngine = returnInstance('SciKitLearn',self, **self.initOptionDict)
+    
+    self.normValues = None
+    self.outputDict = {}
+   
+  @staticmethod
+  def checkArrayConsistency(arrayin, shape):
+    """
+    This method checks the consistency of the in-array
+    @ In, object... It should be an array
+    @ Out, tuple, tuple[0] is a bool (True -> everything is ok, False -> something wrong), tuple[1], string ,the error mesg
+    """
+    if type(arrayin) != np.ndarray: return (False, ' The object is not a numpy array')
+    if arrayin.shape[0] != shape[0] or arrayin.shape[1] != shape[1]:
+      return (False, ' The object shape is not correct')
+    # The input data matrix kind is different for different clustering algorithms
+    # e.g. [n_samples, n_features] for MeanShift and KMeans
+    #     [n_samples,n_samples]   for AffinityPropogation and SpectralCLustering
+    # In other words, MeanShift and KMeans work with points in a vector space,
+    # whereas AffinityPropagation and SpectralClustering can work with arbitrary objects, as long as a similarity measure exists for such objects
+    # The input matrix supplied to unSupervisedLearning models as 1-D arrays of size [n_samples], (either n_features of or n_samples of them)
+#     if len(arrayin.shape) != 1: return(False, ' The array must be 1-d')
+    return (True, '')
+      
+  def _localNormalizeData(self, values, names, feat):
+    """
+    Method to normalize data based on the mean and standard deviation.  If undesired for a particular algorithm,
+    this method can be overloaded to simply pass.
+    @ In, values, list,  list of feature values (from tdict)
+    @ In, names,  list,  names of features (from tdict)
+    @ In, feat, list, list of features (from Model)
+    @ Out, None
+    """
+    normV = np.zeros(shape = values[names.index(feat)].shape) 
+    self.muAndSigmaFeatures[feat] = np.zeros(shape=(2,self.noTimeStep))
+    for t in range(self.noTimeStep):
+      self.muAndSigmaFeatures[feat][0,t] = np.average(values[names.index(feat)][:,t]) 
+      self.muAndSigmaFeatures[feat][1,t] = np.std(values[names.index(feat)][:,t])
+      if self.muAndSigmaFeatures[feat][1,t] == 0: 
+        self.muAndSigmaFeatures[feat][1,t] = np.max(np.absolute(values[names.index(feat)][:,t]))
+      if self.muAndSigmaFeatures[feat][1,t] == 0: 
+        self.muAndSigmaFeatures[feat][1,t] = 1.0
+    
+      normV[:, t] = (values[names.index(feat)][:,t] - self.muAndSigmaFeatures[feat][0,t]) / self.muAndSigmaFeatures[feat][1,t]
+    return normV
+        
+        
+  def train(self, tdict):
+    """
+      @ In, tdict, dictionary, training dictionary
+      @ Out, None
+    """
+    if type(tdict) != dict: self.raiseAnError(IOError, ' method "train". The training set needs to be provided through a dictionary. Type of the in-object is ' + str(type(tdict)))
+    names, values = list(tdict.keys()), list(tdict.values())
+    self.noSample, self.noTimeStep = values[0].shape[0], values[0].shape[1]
+    if self.labels in names:
+      self.labelValues = values[names.index(self.labels)]
+      resp = self.checkArrayConsistency(self.labelValues,[self.noSample, self.noTimeStep])
+      if not resp[0]: self.raiseAnError(IOError, 'In training set for ground truth labels ' + self.labels + ':' + resp[1])
+    else            : self.raiseAWarning(' The ground truth labels are not known appriori')
+    for cnt, feat in enumerate(self.features):
+      if feat not in names: self.raiseAnError(IOError, ' The feature sought ' + feat + ' is not in the training set')
+      else:
+        resp = self.checkArrayConsistency(values[names.index(feat)],[self.noSample, self.noTimeStep])
+        if not resp[0]: self.raiseAnError(IOError, ' In training set for feature ' + feat + ':' + resp[1])
+        if self.normValues is None: self.normValues = {}   
+        self.normValues[feat] = self._localNormalizeData(values, names, feat)
+    self.inputDict = tdict
+    self.__trainLocal__()
+    self.amITrained = True
+  
+  def __trainLocal__(self):
+    """
+    """
+    self.outputDict['outputs'] = {}
+    self.outputDict['inputs' ] = self.normValues
+    
+    Input = {}
+    for t in range(self.noTimeStep):
+      Input['Features'] ={}       
+      for feat in self.features.keys():
+        Input['Features'][feat] = self.inputDict[feat][:,t]      
+      self.SKLEngine.features = Input['Features']
+      self.SKLEngine.train(Input['Features'])
+      self.SKLEngine.confidence()
+      
+      if self.SKLtype in ['cluster']:
+        if hasattr(self.SKLEngine, 'n_clusters'):
+          if 'noClusters' not in self.outputDict.keys(): self.outputDict['noClusters'] = {}
+          self.outputDict['noClusters'][t] = self.SKLEngine.n_clusters
+        if hasattr(self.SKLEngine, 'labels_'):
+          if 'labels' not in self.outputDict.keys(): self.outputDict['labels'] = {} # np.zeros(shape=(self.noSample,self.noTimeStep))
+          self.outputDict['labels'][t] = self.SKLEngine.labels_
+        if hasattr(self.SKLEngine, 'cluster_centers_'):
+          if 'clusterCenters' not in self.outputDict.keys(): self.outputDict['clusterCenters'] = {}
+          self.outputDict['clusterCenters'][t] = self.SKLEngine.cluster_centers_
+        if hasattr(self.SKLEngine, 'cluster_centers_indices_'):
+          if 'clusterCentersIndices' not in self.outputDict.keys(): self.outputDict['clusterCentersIndices'] = {}
+          self.outputDict['clusterCentersIndices'][t] = self.SKLEngine.cluster_centers_indices_
+        if hasattr(self.SKLEngine, 'inertia_'):
+          if 'inertia' not in self.outputDict.keys(): self.outputDict['inertia'] = {}
+          self.outputDict['inertia'][t] = self.SKLEngine.inertia_
+      elif self.SKLtype in ['mixture']:
+        if hasattr(self.SKLEngine, 'weights_'):
+          if 'weights' not in self.outputDict.keys(): self.outputDict['weights'] = {}
+          self.outputDict['weights'][t] = self.SKLEngine.weights_
+        if hasattr(self.SKLEngine, 'means_'):
+          if 'means' not in self.outputDict.keys(): self.outputDict['means'] = {}
+          self.outputDict['means'][t] = self.SKLEngine.means_
+        if hasattr(self.SKLEngine, 'covars_'):
+          if 'covars' not in self.outputDict.keys(): self.outputDict['covars'] = {}
+          self.outputDict['covars'][t] = self.SKLEngine.covars_
+        if hasattr(self.SKLEngine, 'precs_'):
+          if 'precs' not in self.outputDict.keys(): self.outputDict['precs'] = {}
+          self.outputDict['precs'][t] = self.SKLEngine.precs_
+        if hasattr(self.SKLEngine, 'converged_'):
+          if 'converged' not in self.outputDict.keys(): self.outputDict['converged'] = {}
+          self.outputDict['converged'][t] = self.SKLEngine.converged_
+      elif self.SKLtype in ['manifold']:
+#         if 'noComponents' not in self.outputDict.keys(): self.outputDict['noComponents'] = {}
+#         self.outputDict['noComponents'][t] = self.noComponents_
+        if hasattr(self.SKLEngine, 'embedding_'):
+          if 'embeddingVectors' not in self.outputDict.keys(): self.outputDict['embeddingVectors'] = {}
+          self.outputDict['embeddingVectors'][t] = self.SKLEngine.embedding_
+        if hasattr(self.SKLEngine, 'reconstruction_error_'):
+          if 'reconstructionError' not in self.outputDict.keys(): self.outputDict['reconstructionError'] = {}
+          self.outputDict['reconstructionError'][t] = self.SKLEngine.reconstruction_error_
+      elif self.SKLtype in ['decomposition']:
+        if hasattr(self.SKLEngine, 'components_'):
+          if 'components' not in self.outputDict.keys(): self.outputDict['components'] = {}
+          self.outputDict['components'][t] = self.SKLEngine.components_
+        if hasattr(self.SKLEngine, 'means_'):
+          if 'means' not in self.outputDict.keys(): self.outputDict['means'] = {}
+          self.outputDict['means'][t] = self.SKLEngine.means_
+        if hasattr(self.SKLEngine, 'explained_variance_'):
+          if 'explainedVariance' not in self.outputDict.keys(): self.outputDict['explainedVariance'] = {}
+          self.outputDict['explainedVariance'][t] = self.SKLEngine.explained_variance_
+        if hasattr(self.SKLEngine, 'explained_variance_ratio_'):
+          if 'explainedVarianceRatio' not in self.outputDict.keys(): self.outputDict['explainedVarianceRatio'] = {}
+          self.outputDict['explainedVarianceRatio'][t] = self.explained_variance_ratio_
+      else: print ('Not Implemented yet!...', self.SKLtype)
+  
+  def __evaluateLocal__(self, featureVals):
+    pass # FIXME
+  
+  def __confidenceLocal__(self):
+    pass # FIXME
+
 
 __interfaceDict = {}
 __interfaceDict['SciKitLearn'] = SciKitLearn
-__interfaceDict['temporalBasicStatistics'] = tBasicStatistics
+__interfaceDict['temporalBasicStatistics'] = temporalBasicStatistics
+__interfaceDict['temporalSciKitLearn'] = temporalSciKitLearn
 __base = 'unSuperVisedLearning'
 
 def returnInstance(modelClass, caller, **kwargs):

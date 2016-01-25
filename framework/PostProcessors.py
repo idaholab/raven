@@ -2604,9 +2604,32 @@ class DataMining(BasePostProcessor):
     else                       : currentInput = currentInp
     
     # FIXME this is temporal codes
-    if self.type in ['temporalBasicStatistics', 'temporalSciKitLearn']: # for testing time dependent dm - BasicStatistics and time dependent clustering
+    if self.type in ['temporalBasicStatistics']: # for testing time dependent dm - BasicStatistics
       return currentInput
     
+    if self.type in ['temporalSciKitLearn']: # for testing time dependent dm - time dependent clustering
+      inputDict = {'Features':{}, 'parameters':{}, 'Labels':{}, 'metadata':{}}
+      if currentInput.type in ['HistorySet']:         
+        # FIXME, this needs to be changed for asynchronous HistorySet
+        if 'Time' in currentInput.getParam('output',1).keys(): self.Time = currentInput.getParam('output',1)['Time']
+        else: self.raiseAnError(ValueError, 'Time not found in input historyset')
+        # end of FIXME  
+        historyKey = currentInput.getOutParametersValues().keys()
+        noSample = len(historyKey)
+        noTimeStep = len(self.Time)
+        if self.initializationOptionDict['KDD']['Features'] == 'input':
+          self.raiseAnError(ValueError, 'To perform data mining over input please use SciKitLearn library')
+        elif self.initializationOptionDict['KDD']['Features'] in ['output', 'all']:
+          features = currentInput.getParaKeys('output')
+          features.remove('Time')
+        else:
+          features = self.initializationOptionDict['KDD']['Features'].split(',')        
+        for param in features:
+          inputDict['Features'][param] = np.zeros(shape=(noSample,noTimeStep)) 
+          for cnt, keyH in enumerate(historyKey):
+            inputDict['Features'][param][cnt,:] = currentInput.getParam('output', keyH)[param]                  
+      inputDict['metadata'] = currentInput.getAllMetadata()      
+      return inputDict    
     
     if type(currentInp) == dict:
       if 'Features' in currentInput.keys(): return
@@ -2630,8 +2653,6 @@ class DataMining(BasePostProcessor):
           if param in features: inputDict['Features'][param] = currentInput.getParam('output', param)
 
       inputDict['metadata'] = currentInput.getAllMetadata()
-
-
     return inputDict
 
   def initialize(self, runInfo, inputs, initDict):
@@ -2710,6 +2731,8 @@ class DataMining(BasePostProcessor):
         else:
           output.updateOutputValue(keyP, bsDict[keyP])  
       
+    elif self.type in ['temporalSciKitLearn']:
+      tlDict = finishedjob.returnEvaluation()[1]
       
       
   def run(self, InputIn):
@@ -2778,8 +2801,69 @@ class DataMining(BasePostProcessor):
       outputDict = self.unSupervisedEngine.outputDict
       
     elif self.type in ['temporalSciKitLearn']:
-      self.unSupervisedEngine.run(Input) 
-      pass
+      outputDict = {}
+      self.unSupervisedEngine.features = Input['Features']
+      self.unSupervisedEngine.Time = self.Time
+      if not self.unSupervisedEngine.amITrained:  self.unSupervisedEngine.train(Input['Features'])
+      self.unSupervisedEngine.confidence()
+      outputDict['output'] = {}
+      noTimeStep = self.unSupervisedEngine.noTimeStep
+      noSample = self.unSupervisedEngine.noSample
+      
+      if self.unSupervisedEngine.SKLtype in ['cluster']:
+        if 'labels' in self.unSupervisedEngine.outputDict.keys():
+          labels = np.zeros(shape=(noSample,noTimeStep))
+          for t in range(noTimeStep):
+            labels[:,t] = self.unSupervisedEngine.outputDict['labels'][t]
+          outputDict['output'][self.name+'Labels'] = labels
+        if 'noClusters' in self.unSupervisedEngine.outputDict.keys():
+          noClusters = self.unSupervisedEngine.outputDict['noClusters']
+        if 'clusterCentersIndices' in self.unSupervisedEngine.outputDict.keys():
+          clusterCentersIndices = self.unSupervisedEngine.outputDict['clusterCentersIndices']          
+        if 'clusterCenters' in self.unSupervisedEngine.outputDict.keys():
+          clusterCenters = self.unSupervisedEngine.outputDict['clusterCenters']
+        if 'inertia' in self.unSupervisedEngine.outputDict.keys():
+          inertia = self.unSupervisedEngine.outputDict['inertia']
+      elif self.unSupervisedEngine.SKLtype in ['mixture']:
+        mixtureLabels = self.unSupervisedEngine.evaluate(Input['Features'])
+        labels = np.zeros(shape=(noSample,noTimeStep))
+        for t in range(noTimeStep):
+          labels[:,t] = mixtureLabels[t]
+          outputDict['output'][self.name+'Labels'] = labels
+        if 'covars' in self.unSupervisedEngine.outputDict.keys(): 
+          mixtureCovars = self.unSupervisedEngine.outputDict['covars']
+        elif 'precs' in self.unSupervisedEngine.outputDict.keys(): 
+          mixtureCovars = self.unSupervisedEngine.outputDict['precs']
+        if 'means' in self.unSupervisedEngine.outputDict.keys(): 
+          mixtureMeans = self.unSupervisedEngine.outputDict['means']    
+      
+      elif self.unSupervisedEngine.SKLtype in ['manifold']:
+        pass
+      elif self.unSupervisedEngine.SKLtype in ['decomposition']:
+        pass      
+      else: 
+        print ('Not yet implemented!...', self.unSupervisedEngine.SKLtype)
+    
+      if 'manifold' == self.unSupervisedEngine.SKLtype:
+        manifoldValues = self.unSupervisedEngine.normValues
+        if hasattr(self.unSupervisedEngine, 'embeddingVectors_'): embeddingVectors = self.unSupervisedEngine.embeddingVectors_
+        if hasattr(self.unSupervisedEngine, 'reconstructionError_'): reconstructionError = self.unSupervisedEngine.reconstructionError_
+        if   'transform'     in dir(self.unSupervisedEngine.Method): embeddingVectors = self.unSupervisedEngine.Method.transform(manifoldValues)
+        elif 'fit_transform' in dir(self.unSupervisedEngine.Method): embeddingVectors = self.unSupervisedEngine.Method.fit_transform(manifoldValues)
+        for i in range(len(embeddingVectors[0, :])):
+          outputDict['output'][self.name+'EmbeddingVector' + str(i + 1)] =  embeddingVectors[:, i]
+      if 'decomposition' == self.unSupervisedEngine.SKLtype:
+        decompositionValues = self.unSupervisedEngine.normValues
+        if hasattr(self.unSupervisedEngine, 'noComponents_'): noComponents = self.unSupervisedEngine.noComponents_
+        if hasattr(self.unSupervisedEngine, 'components_'): components = self.unSupervisedEngine.components_
+        if hasattr(self.unSupervisedEngine, 'explainedVarianceRatio_'): explainedVarianceRatio = self.unSupervisedEngine.explainedVarianceRatio_
+        # SCORE method does not work for SciKit Learn 0.14
+        # if hasattr(self.unSupervisedEngine.Method, 'score'): score = self.unSupervisedEngine.Method.score(decompositionValues)
+        if   'transform'     in dir(self.unSupervisedEngine.Method): components = self.unSupervisedEngine.Method.transform(decompositionValues)
+        elif 'fit_transform' in dir(self.unSupervisedEngine.Method): components = self.unSupervisedEngine.Method.fit_transform(decompositionValues)
+        for i in range(noComponents):
+          outputDict['output'][self.name+'PCAComponent' + str(i + 1)] =  components[:, i]
+            
     
     return outputDict
 
