@@ -2713,7 +2713,6 @@ class DataMining(BasePostProcessor):
       @ Out, None
     """
     if finishedjob.returnEvaluation() == -1: self.raiseAnError(RuntimeError, 'No available Output to collect (Run probabably is not finished yet)')
-    self.raiseADebug(str(finishedjob.returnEvaluation()))
     
     if self.type in ['SciKitLearn']:
       dataMineDict = finishedjob.returnEvaluation()[1]
@@ -2732,7 +2731,15 @@ class DataMining(BasePostProcessor):
           output.updateOutputValue(keyP, bsDict[keyP])  
       
     elif self.type in ['temporalSciKitLearn']:
+      
       tlDict = finishedjob.returnEvaluation()[1]
+      historyKey = output.getOutParametersValues().keys()
+      for index, keyH in enumerate(historyKey):
+        for keyL in tlDict['output'].keys():
+          output.updateOutputValue([keyH,keyL], tlDict['output'][keyL][index,:])        
+        
+      self.raiseADebug(len(output.getOutParametersValues().keys()))
+      self.raiseAnError(IOError, 'hehe')
       
       
   def run(self, InputIn):
