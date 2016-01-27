@@ -29,6 +29,7 @@ from sklearn import metrics
 from sklearn.neighbors import kneighbors_graph
 import numpy as np
 import abc
+import ast
 #External Modules End--------------------------------------------------------------------------------
 #Internal Modules------------------------------------------------------------------------------------
 import utils
@@ -268,25 +269,25 @@ class SciKitLearn(unSupervisedLearning):
     self.SKLsubType = SKLsubType
     paramsDict = self.Method.get_params()
     if 'cluster' == SKLtype:
-        if 'n_clusters' in paramsDict.keys():
-            if 'n_clusters' not in self.initOptionDict.keys(): self.initOptionDict['n_clusters'] = 8
-        else:
-            if 'n_clusters' in self.initOptionDict.keys(): self.initOptionDict.pop('n_clusters')
-        if 'preference'   in paramsDict.keys(): self.initOptionDict['preference'  ] = None  # AffinityPropogation
-        if 'leaf_size'    in paramsDict.keys(): self.initOptionDict['leaf_size'   ] = 30  # DBSCAN
-        if 'eps'          in paramsDict.keys(): self.initOptionDict['eps'         ] = 0.2  # DBSCAN
-        if 'random_state' in paramsDict.keys(): self.initOptionDict['random_state'] = 0
+      if 'n_clusters' in paramsDict.keys():
+        if 'n_clusters' not in self.initOptionDict.keys(): self.initOptionDict['n_clusters'] = 8
+      else:
+        if 'n_clusters' in self.initOptionDict.keys(): self.initOptionDict.pop('n_clusters')
+      if 'preference'   in paramsDict.keys(): self.initOptionDict['preference'  ] = None  # AffinityPropogation
+      if 'leaf_size'    in paramsDict.keys(): self.initOptionDict['leaf_size'   ] = 30  # DBSCAN
+      if 'eps'          in paramsDict.keys(): self.initOptionDict['eps'         ] = 0.2  # DBSCAN
+      if 'random_state' in paramsDict.keys(): self.initOptionDict['random_state'] = 0
     # These parameters above and some more effects the quality of the Cardinality Reduction algorithms...Look at TODO list at the top of the source
 
     if 'mixture' == SKLtype:
-        if 'n_components' in paramsDict.keys():
-            if 'n_components' not in self.initOptionDict.keys(): self.initOptionDict['n_components'] = 5
-        else :
-            if 'n_components' in self.initOptionDict.keys(): self.initOptionDict.pop('n_components')
-        self.noComponents_ = self.initOptionDict['n_components']
+      if 'n_components' in paramsDict.keys():
+        if 'n_components' not in self.initOptionDict.keys(): self.initOptionDict['n_components'] = 5
+      else :
+        if 'n_components' in self.initOptionDict.keys(): self.initOptionDict.pop('n_components')
+      self.noComponents_ = self.initOptionDict['n_components']
     if 'decomposition' == SKLtype or 'manifold' == SKLtype: self.noComponents_ = self.initOptionDict['n_components']
     for key, value in self.initOptionDict.items():
-      try:self.initOptionDict[key] = ast.literal_eval(value)
+      try   : self.initOptionDict[key] = ast.literal_eval(value)
       except: pass
     self.Method.set_params(**self.initOptionDict)
     self.normValues = None

@@ -13,8 +13,6 @@
             <KDD lib='SciKitLearn'>
                 <Features>x1,x2</Features>
                 <SKLtype>cluster|SpectralClustering</SKLtype>
-                <!--eigen_solver>arpack</eigen_solver>
-                <affinity>nearest_neighbors</affinity-->
             </KDD>
         </PostProcessor>
 
