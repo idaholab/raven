@@ -237,16 +237,6 @@
   rel_err = 0.001
  [../]
 
- [./testBasicStatistics]
-  #REQUIREMENT_TEST
-  type = 'RavenFramework'
-  input = 'test_BasicStatistics.xml'
-  output = 'basicStatistics/PointSetPostProcTest_dump.csv basicStatistics/output_basicStatistics_PP1.csv basicStatistics/output_basicStatistics_PP2.csv basicStatistics/output_basicStatistics_PP3.csv basicStatistics/output_basicStatistics_PP4.csv basicStatistics/output_basicStatistics_PP5.csv'
-  csv = 'basicStatistics/PointSetPostProcTest_dump.csv'
-  max_time = 500
-  rel_err = 0.001
- [../]
-
  [./testLimitSurfacePostProcessor]
   #REQUIREMENT_TEST
   type = 'RavenFramework'
@@ -426,15 +416,6 @@
    output = 'dists_vars/PrintPointSet_dump.csv'
    csv = 'dists_vars/PrintPointSet_dump.csv'
  [../]
-
- [./adaptiveStochasticPoly]
-   type = 'RavenFramework'
-   input = 'test_adaptive_stochpoly.xml'
-   output = 'AdaptiveStochasticPoly/dump.xml'
-   xml = 'AdaptiveStochasticPoly/dump.xml'
-   csv = 'AdaptiveStochasticPoly/data.csv'
- [../]
-
 
  [./redundantInputs]
    type = 'RavenFramework'
