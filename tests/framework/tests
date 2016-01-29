@@ -423,6 +423,18 @@
    output = 'RedundantInputs/mc_out.xml RedundantInputs/grid_out.xml'
    csv = 'RedundantInputs/mc_out.csv RedundantInputs/grid_out.csv'
  [../]
+ [./redundantInputsSCgPC]
+   type = 'RavenFramework'
+   input = 'test_redundant_scgpc.xml'
+   output = 'RedundantInputs/sc_out.xml'
+   UnorderedCsv = 'RedundantInputs/sc_out.csv'
+ [../]
+ [./redundantInputsSobol]
+   type = 'RavenFramework'
+   input = 'test_redundant_sobol.xml'
+   output = 'RedundantInputs/hdmr_out.xml'
+   UnorderedCsv = 'RedundantInputs/hdmr_out.csv'
+ [../]
 
  [./dataObject_metadata]
    type = 'RavenFramework'
@@ -453,6 +465,13 @@
   output = 'NDGridPWvalue/testPrintPointSet_dump.csv'
   csv = 'NDGridPWvalue/testPrintPointSet_dump.csv'
  [../]
+
+  [./tRom]
+   type  = 'RavenFramework'
+   input = 'test_t_rom.xml'
+   output = 't_rom/PrintHistorySet_model.xml t_rom/PrintHistorySet_rom.xml'
+   csv = 't_rom/PrintHistorySet_rom_0.csv t_rom/PrintHistorySet_rom_1.csv t_rom/PrintHistorySet_rom_2.csv t_rom/PrintHistorySet_rom_3.csv t_rom/PrintHistorySet_rom_4.csv t_rom/PrintHistorySet_rom_5.csv t_rom/PrintHistorySet_rom_6.csv t_rom/PrintHistorySet_rom_7.csv'
+  [../]
 
  [./LHSVariables]
   type = 'RavenFramework'
