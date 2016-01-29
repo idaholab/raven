@@ -1,11 +1,19 @@
 [Tests]
+ [./pcaResponseSurface]
+  type = 'RavenFramework'
+  input = 'test_pca_responseSurface.xml'
+  csv = 'responseSurfacePCA/BoxBehnkenRespDesign_dump.csv responseSurfacePCA/CentralCompositeRespDesign_dump.csv'
+  max_time = 500
+  rel_err = 0.001
+ [../]
+
  [./simple_framework]
-   #REQUIREMENT_TEST
-   type = 'RavenFramework'
-   input = 'test_simple.xml'
-   output = 'revirD_tset/FirstMRun/out~1~ideal_pump revirD_tset/FirstMRun/out~6~ideal_pump'
-   csv = 'revirD_tset/FirstMRun/out~6~ideal_pump.csv'
-   required_executable = '../../RAVEN-%METHOD%'
+  #REQUIREMENT_TEST
+  type = 'RavenFramework'
+  input = 'test_simple.xml'
+  output = 'revirD_tset/FirstMRun/out~1~ideal_pump revirD_tset/FirstMRun/out~6~ideal_pump'
+  csv = 'revirD_tset/FirstMRun/out~6~ideal_pump.csv'
+  required_executable = '../../RAVEN-%METHOD%'
  [../]
 
  [./2steps_same_db]
@@ -129,7 +137,7 @@
   type = 'RavenFramework'
   input = 'test_multi_target_rom.xml'
   output = ''
-  csv = 'test_rom_trainer/outputMontecarloMultiTargetRom_dump.csv test_rom_trainer/outputMontecarloMultiTargetRomND_dump.csv test_rom_trainer/outputMontecarlo_dump.csv'
+  csv = 'test_rom_trainer/outputMontecarloMultiTargetRom_dump.csv test_rom_trainer/outputMontecarloMultiTargetRomND_dump.csv'
   max_time = 1500
   rel_err = 0.001
  [../]

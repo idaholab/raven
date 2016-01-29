@@ -1,0 +1,150 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
+    <WorkingDir>basicStatisticsGeneral</WorkingDir>
+    <Sequence>FirstMRun,PP1,PP2,PP3,PP4,PP5</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="basicStatisticsExternalModelTest.py" type="">basicStatisticsExternalModelTest.py</Input>
+    <Input name="output_basicStatistics_PP1.csv" type="">output_basicStatistics_PP1.csv</Input>
+    <Input name="output_basicStatistics_PP2.csv" type="">output_basicStatistics_PP2.csv</Input>
+    <Input name="output_basicStatistics_PP3.csv" type="">output_basicStatistics_PP3.csv</Input>
+    <Input name="output_basicStatistics_PP4.csv" type="">output_basicStatistics_PP4.csv</Input>
+    <Input name="output_basicStatistics_PP5.csv" type="">output_basicStatistics_PP5.csv</Input>
+  </Files>
+
+  <Models>
+    <ExternalModel ModuleToLoad="basicStatisticsGeneral/basicStatisticsExternalModelTest" name="PythonModule" subType="">
+      <variable>x</variable>
+      <variable>y</variable>
+      <variable>z</variable>
+      <variable>time</variable>
+      <variable>x0</variable>
+      <variable>x01</variable>
+      <variable>x02</variable>
+      <variable>y0</variable>
+      <variable>y02</variable>
+      <variable>y01</variable>
+      <variable>z0</variable>
+      <variable>z02</variable>
+      <variable>z01</variable>
+    </ExternalModel>
+    <PostProcessor name="autoCorrelationTest" subType="BasicStatistics" verbosity="debug">
+      <!--
+         =&gt; you can here specify what type of figure of merit you need to compute
+        <what>expectedValue,sigma,variance,kurtois,pearson,covariance</what>
+      -->
+      <what>expectedValue</what>
+      <parameters>x01,x02</parameters>
+      <methodsToRun>failureProbability</methodsToRun>
+    </PostProcessor>
+    <PostProcessor name="NotCorrellatedTest" subType="BasicStatistics" verbosity="debug">
+      <what>all</what>
+      <biased>true</biased>
+      <parameters>y01,y02</parameters>
+    </PostProcessor>
+    <PostProcessor name="InverseCorrelatedTest" subType="BasicStatistics" verbosity="debug">
+      <what>all</what>
+      <parameters>z01,z02</parameters>
+    </PostProcessor>
+    <PostProcessor name="InputOutput" subType="BasicStatistics" verbosity="debug">
+      <what>all</what>
+      <parameters>x0,x01,y0,y02</parameters>
+    </PostProcessor>
+    <PostProcessor name="CreateInfinity" subType="BasicStatistics" verbosity="debug">
+      <what>all</what>
+      <parameters>time,x0,y0,y02</parameters>
+    </PostProcessor>
+  </Models>
+
+  <Functions>
+    <External file="basicStatisticsGeneral/testFunctionComputeProbability" name="testFunctionComputeProbability">
+      <variable>x01</variable>
+    </External>
+  </Functions>
+
+  <Distributions>
+    <Normal name="x0_distrib">
+      <mean>4</mean>
+      <sigma>1</sigma>
+    </Normal>
+    <Normal name="y0_distrib">
+      <mean>100</mean>
+      <sigma>1</sigma>
+    </Normal>
+    <Normal name="z0_distrib">
+      <mean>4</mean>
+      <sigma>1</sigma>
+    </Normal>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="MC_external">
+      <samplerInit>
+        <limit>4</limit>
+      </samplerInit>
+      <variable name="x0">
+        <distribution>x0_distrib</distribution>
+      </variable>
+      <variable name="y0">
+        <distribution>y0_distrib</distribution>
+      </variable>
+      <variable name="z0">
+        <distribution>z0_distrib</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="FirstMRun" re-seeding="25061978">
+      <Input class="Files" type="">basicStatisticsExternalModelTest.py</Input>
+      <Model class="Models" type="ExternalModel">PythonModule</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
+      <Output class="DataObjects" type="PointSet">PointSetPostProcTest</Output>
+      <Output class="OutStreamManager" type="Print">PointSetPostProcTest_dump</Output>
+    </MultiRun>
+    <PostProcess name="PP1">
+      <Input class="DataObjects" type="PointSet">PointSetPostProcTest</Input>
+      <Function class="Functions" type="External">testFunctionComputeProbability</Function>
+      <Model class="Models" type="PostProcessor">autoCorrelationTest</Model>
+      <Output class="Files" type="">output_basicStatistics_PP1.csv</Output>
+    </PostProcess>
+    <PostProcess name="PP2">
+      <Input class="DataObjects" type="PointSet">PointSetPostProcTest</Input>
+      <Model class="Models" type="PostProcessor">NotCorrellatedTest</Model>
+      <Output class="Files" type="">output_basicStatistics_PP2.csv</Output>
+    </PostProcess>
+    <PostProcess name="PP3">
+      <Input class="DataObjects" type="PointSet">PointSetPostProcTest</Input>
+      <Model class="Models" type="PostProcessor">InverseCorrelatedTest</Model>
+      <Output class="Files" type="">output_basicStatistics_PP3.csv</Output>
+    </PostProcess>
+    <PostProcess name="PP4">
+      <Input class="DataObjects" type="PointSet">PointSetPostProcTest</Input>
+      <Model class="Models" type="PostProcessor">InputOutput</Model>
+      <Output class="Files" type="">output_basicStatistics_PP4.csv</Output>
+    </PostProcess>
+    <PostProcess name="PP5">
+      <Input class="DataObjects" type="PointSet">PointSetPostProcTest</Input>
+      <Model class="Models" type="PostProcessor">CreateInfinity</Model>
+      <Output class="Files" type="">output_basicStatistics_PP5.csv</Output>
+    </PostProcess>
+  </Steps>
+
+  <OutStreamManager>
+    <Print name="PointSetPostProcTest_dump">
+      <type>csv</type>
+      <source>PointSetPostProcTest</source>
+    </Print>
+  </OutStreamManager>
+
+  <DataObjects>
+    <PointSet name="PointSetPostProcTest">
+      <Input>x0,y0,z0</Input>
+      <Output>time,x02,y02,z02,x01,y01,z01,x,y,z</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>

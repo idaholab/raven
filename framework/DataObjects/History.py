@@ -38,8 +38,10 @@ class History(Data):
       This function adds in the _dataParameters dict the options needed for reading and constructing this class
     """
     self._dataParameters['type'] = self.type # store the type into the _dataParameters dictionary
-    try: sourceType = self._toLoadFromList[-1].type
-    except AttributeError: sourceType = None
+    if hasattr(self._toLoadFromList[-1],'type'):
+      sourceType = self._toLoadFromList[-1].type
+    else:
+      sourceType = None
     if('HDF5' == sourceType):
       if(not self._dataParameters['history']): self.raiseAnError(IOError,'In order to create a History data, history name must be provided')
       self._dataParameters['filter'] = 'whole'

@@ -2,7 +2,7 @@ import xml.etree.ElementTree as ET
 import xml.dom.minidom as pxml
 import os
 
-def convert(tree):
+def convert(tree,fileName=None):
   """
     Converts input files to be compatible with merge request #269 (wangc/nd_dist_dev).  Removes the <data_filename> and <workingDir> node
     from the <MultivariateNormal> block, add <covariance> child node to the parent node <MultivariateNormal>.

@@ -1,0 +1,134 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
+    <WorkingDir>responseSurfacePCA</WorkingDir>
+    <Sequence>BoxBehnkenRespDesignStep,CentralCompositeRespDesignStep</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Models>
+    <Dummy name="MyDummy1" subType=""/>
+    <Dummy name="MyDummy2" subType=""/>
+  </Models>
+
+  <Distributions>
+    <MultivariateNormal name='MVN' method='pca'>
+        <transformation>
+            <rank>3</rank>
+        </transformation>
+        <mu>0.0 1.0 2.0</mu>
+        <covariance type="abs">
+            1.0       0.6      -0.4
+            0.6       1.0      0.2
+            -0.4      0.2      0.8
+        </covariance>
+    </MultivariateNormal>
+  </Distributions>
+
+  <Samplers>
+    <ResponseSurfaceDesign name="BoxBehnkenRespDesign">
+      <ResponseSurfaceDesignSettings>
+        <algorithmType>BoxBehnken</algorithmType>
+        <ncenters>1</ncenters>
+      </ResponseSurfaceDesignSettings>
+      <variable name="z1">
+        <distribution dim="1">MVN</distribution>
+        <grid construction="custom" type="CDF">0.01 0.99</grid>
+      </variable>
+      <variable name="z2">
+        <distribution dim="2">MVN</distribution>
+        <grid construction="custom" type="value">0.1 1.5</grid>
+      </variable>
+      <variable name="z3">
+        <distribution dim="3">MVN</distribution>
+        <grid construction="custom" type="value">0.1 0.9</grid>
+      </variable>
+      <variablesTransformation model="MyDummy1">
+        <latentVariables>z1,z2,z3</latentVariables>
+        <manifestVariables>x1,x2,x3</manifestVariables>
+        <method>pca</method>
+      </variablesTransformation>
+    </ResponseSurfaceDesign>
+    <ResponseSurfaceDesign name="CentralCompositeRespDesign">
+      <ResponseSurfaceDesignSettings>
+        <algorithmType>CentralComposite</algorithmType>
+        <centers>1,2</centers>
+        <alpha>orthogonal</alpha>
+        <face>circumscribed</face>
+      </ResponseSurfaceDesignSettings>
+      <variable name="z1">
+        <distribution dim="1">MVN</distribution>
+        <grid construction="custom" type="CDF">0.01 0.99</grid>
+      </variable>
+      <variable name="z2">
+        <distribution dim="2">MVN</distribution>
+        <grid construction="custom" type="value">0.1 1.5</grid>
+      </variable>
+      <variable name="z3">
+        <distribution dim="3">MVN</distribution>
+        <grid construction="custom" type="value">0.1 0.9</grid>
+      </variable>
+      <variablesTransformation model="MyDummy2">
+        <latentVariables>z1,z2,z3</latentVariables>
+        <manifestVariables>x1,x2,x3</manifestVariables>
+        <method>pca</method>
+      </variablesTransformation>
+    </ResponseSurfaceDesign>
+  </Samplers>
+
+  <DataObjects>
+    <PointSet name="CentralCompositeRespDesignData">
+      <Input>z1,z2,z3,x1,x2,x3</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="CentralCompositeRespDesignDatadummyIN">
+      <Input>z1,z2,z3,x1,x2,x3</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="BoxBehnkenRespDesignData">
+      <Input>z1,z2,z3,x1,x2,x3</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="BoxBehnkenRespDesigndummyIN">
+      <Input>z1,z2,z3,x1,x2,x3</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreamManager>
+    <Print name="CentralCompositeRespDesign_dump">
+      <type>csv</type>
+      <source>CentralCompositeRespDesignData</source>
+      <what>Input|z2,Input|z1,Input|z3,Input|x1,Input|x2,Input|x3</what>
+    </Print>
+    <Print name="BoxBehnkenRespDesign_dump">
+      <type>csv</type>
+      <source>BoxBehnkenRespDesignData</source>
+      <what>Input|z2,Input|z1,Input|z3,Input|x1,Input|x2,Input|x3</what>
+    </Print>
+  </OutStreamManager>
+
+  <Steps>
+    <MultiRun name="BoxBehnkenRespDesignStep">
+      <Input class="DataObjects" type="PointSet">BoxBehnkenRespDesigndummyIN</Input>
+      <Model class="Models" type="Dummy">MyDummy1</Model>
+      <Sampler class="Samplers" type="ResponseSurfaceDesign">BoxBehnkenRespDesign</Sampler>
+      <Output class="DataObjects" type="PointSet">BoxBehnkenRespDesignData</Output>
+      <Output class="Databases" type="HDF5">test_DummyModelResponseSurfDesign_db</Output>
+      <Output class="OutStreamManager" type="Print">BoxBehnkenRespDesign_dump</Output>
+    </MultiRun>
+    <MultiRun name="CentralCompositeRespDesignStep">
+      <Input class="DataObjects" type="PointSet">CentralCompositeRespDesignDatadummyIN</Input>
+      <Model class="Models" type="Dummy">MyDummy2</Model>
+      <Sampler class="Samplers" type="ResponseSurfaceDesign">CentralCompositeRespDesign</Sampler>
+      <Output class="DataObjects" type="PointSet">CentralCompositeRespDesignData</Output>
+      <Output class="Databases" type="HDF5">test_DummyModelResponseSurfDesign_db</Output>
+      <Output class="OutStreamManager" type="Print">CentralCompositeRespDesign_dump</Output>
+    </MultiRun>
+  </Steps>
+
+  <Databases>
+    <HDF5 name="test_DummyModelResponseSurfDesign_db"/>
+  </Databases>
+
+</Simulation>

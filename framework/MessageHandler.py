@@ -130,8 +130,8 @@ class MessageUser(object):
       @ OPTIONAL In, default, the verbosity level to return if not found
       @ Out, string, verbosity type (e.g. 'all')
     """
-    try: return self.verbosity
-    except AttributeError: return default
+    if hasattr(self,'verbosity'): return self.verbosity
+    else: return default
 
 
 class MessageHandler(object):
@@ -144,7 +144,7 @@ class MessageHandler(object):
     """
       Init of class
       @In, None
-      @Out, None
+      @ Out, None
     """
     self.starttime    = time.time()
     self.printTag     = 'MESSAGE HANDLER'
@@ -186,9 +186,10 @@ class MessageHandler(object):
       @ Out, tag, string to print
     """
     if type(obj).__name__ in ['str','unicode']: return obj
-    try: obj.printTag
-    except AttributeError: tag = str(obj)
-    else: tag = str(obj.printTag)
+    if hasattr(obj,'printTag'):
+      tag = str(obj.printTag)
+    else:
+      tag = str(obj)
     return tag
 
   def getDesiredVerbosity(self,caller):
@@ -241,6 +242,7 @@ class MessageHandler(object):
     verbval = self.checkVerbosity(verbosity)
     okay,msg = self._printMessage(caller,message,tag,verbval)
     if okay: print(msg)
+    sys.stdout.flush()
 
   def _printMessage(self,caller,message,tag,verbval):
     """

@@ -1,4 +1,6 @@
-<data name="testPrintPointSet_dump" type="Pointset"><input>y0,x0,z0</input><output>y,x,z</output><inputFilename>testPrintPointSet_dump.csv</inputFilename><metadata><SamplerType>array([u'MC', u'MC', u'MC', u'MC', u'MC', u'MC', u'MC', u'MC', u'MC',
+<data name="testPrintPointSet_dump" type="Pointset"><input>y0,x0,z0</input><output>y,x,z</output><inputFilename>testPrintPointSet_dump.csv</inputFilename><metadata><transformation-MultivariateNormalPCAReduction>array([ {u'type': 'MultivariateNormal', u'transformationMatrix': array([[ 0.94468309, -0.23889767, -0.22472598],
+       [ 0.81864619,  0.53887447,  0.19857675],
+       [-0.25822618,  0.83440392, -0.19258593]])}], dtype=object)</transformation-MultivariateNormalPCAReduction><SamplerType>array([u'MC', u'MC', u'MC', u'MC', u'MC', u'MC', u'MC', u'MC', u'MC',
        u'MC', u'MC', u'MC', u'MC', u'MC', u'MC', u'MC', u'MC', u'MC',
        u'MC', u'MC'], 
       dtype='&lt;U2')</SamplerType><crowDist>array([ {u'y1': '{"type": "MultivariateNormalDistribution"}', u'x1': '{"type": "MultivariateNormalDistribution"}', u'z1': '{"type": "MultivariateNormalDistribution"}'},

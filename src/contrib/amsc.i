@@ -22,4 +22,5 @@ namespace std
   %template(vectorInt) vector<int>;
   %template(setInt) set<int>;
   %template(mapPartition) map< string, vector<int> >;
+  %template(mapManifolds) map< int, vector<int> >;
 }

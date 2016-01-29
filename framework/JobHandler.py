@@ -22,6 +22,7 @@ import sys
 import abc
 #import logging, logging.handlers
 import threading
+
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -187,7 +188,7 @@ class ExternalRunner(MessageHandler.MessageUser):
     os.chdir(self.__workingDir)
     localenv = dict(os.environ)
     outFile = open(self.output,'w', self.bufsize)
-    self.__process = subprocess.Popen(self.command,shell=True,stdout=outFile,stderr=outFile,cwd=self.__workingDir,env=localenv)
+    self.__process = utils.pickleSafeSubprocessPopen(self.command,shell=True,stdout=outFile,stderr=outFile,cwd=self.__workingDir,env=localenv)
     os.chdir(oldDir)
 
   def kill(self):
@@ -417,7 +418,7 @@ class JobHandler(MessageHandler.MessageUser):
         # get localHost and servers
         localHostName, ppservers = self.__runRemoteListeningSockets(randomPort)
         self.raiseADebug("Local host is "+ localHostName)
-        if len(ppservers) == 1:
+        if len(ppservers) == 0:
           # we are in a single node
           self.ppserver = pp.Server(ncpus=len(availableNodes))
         else:
@@ -480,7 +481,7 @@ class JobHandler(MessageHandler.MessageUser):
         #Next line is a direct execute of ppserver:
         #subprocess.Popen(['ssh', nodeid, "python2.7", ppserverScript,"-w",str(ntasks),"-i",remoteHostName,"-p",str(newPort),"-t","1000","-g",localenv["PYTHONPATH"],"-d"],shell=False,stdout=outFile,stderr=outFile,env=localenv)
         command=" ".join(["python",ppserverScript,"-w",str(ntasks),"-i",remoteHostName,"-p",str(newPort),"-t","1000","-g",localenv["PYTHONPATH"],"-d"])
-        subprocess.Popen(['ssh',nodeid,"COMMAND='"+command+"'",self.runInfoDict['RemoteRunCommand']],shell=False,stdout=outFile,stderr=outFile,env=localenv)
+        utils.pickleSafeSubprocessPopen(['ssh',nodeid,"COMMAND='"+command+"'",self.runInfoDict['RemoteRunCommand']],shell=False,stdout=outFile,stderr=outFile,env=localenv)
         #ssh nodeid COMMAND='python ppserverScript -w stuff'
         # update list of servers
         ppservers.append(nodeid+":"+str(newPort))
@@ -583,16 +584,23 @@ class JobHandler(MessageHandler.MessageUser):
           cntFreeSpots += 1
     return cntFreeSpots
 
-  def getFinished(self, removeFinished=True):
+  def getFinished(self, removeFinished=True, prefix=None):
     """
      Method to get the list of jobs that ended (list of objects)
      @ In, removeFinished, bool, optional, flag to control if the finished jobs need to be removed from the queue
-     @ Out, finished, list, list of finished jobs (InternalRunner or ExternalRunner objects)
+     @ In, prefix, string, optional, if specified only collects finished runs with a particular prefix.
+     @ Out, list, list of finished jobs (InternalRunner or ExternalRunner objects)
     """
     finished = []
     for i in range(len(self.__running)):
       if self.__running[i] and self.__running[i].isDone():
-        finished.append(self.__running[i])
+        if prefix is not None:
+          if self.__running[i].identifier.startswith(prefix):
+            finished.append(self.__running[i])
+          else:
+            continue
+        else:
+          finished.append(self.__running[i])
         if removeFinished:
           running = self.__running[i]
           returncode = running.getReturnCode()
@@ -640,7 +648,7 @@ class JobHandler(MessageHandler.MessageUser):
           command = command.replace("%NUM_CPUS%",str(self.runInfoDict['NumThreads']))
           item.command = command
         self.__running[i] = item
-        self.__running[i].start()
+        self.__running[i].start() #FIXME this call is really expensive; can it be reduced?
         self.__nextId += 1
 
   def getFinishedNoPop(self):
@@ -674,4 +682,13 @@ class JobHandler(MessageHandler.MessageUser):
      @ Out, None
     """
     while not self.__queue.empty(): self.__queue.get()
-    for i in range(len(self.__running)): self.__running[i].kill()
+    for i in range(len(self.__running)):
+      if self.__running[i] is not None: self.__running[i].kill()
+
+  def numRunning(self):
+    """
+    Returns the number of runs currently running.
+    @ In, None
+    @ Out, int, number of active runs
+    """
+    return sum(run is not None for run in self.__running)
