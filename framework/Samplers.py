@@ -3239,7 +3239,7 @@ class SparseGridCollocation(Grid):
 
     self.raiseADebug('Starting index set generation...')
     self.indexSet = IndexSets.returnInstance(SVL.indexSetType,self)
-    self.indexSet.initialize(self.dists,self.importanceDict,self.maxPolyOrder)
+    self.indexSet.initialize(self.features,self.importanceDict,self.maxPolyOrder)
     if self.indexSet.type=='Custom':
       self.indexSet.setPoints(SVL.indexSetVals)
 
@@ -3500,7 +3500,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     #create the index set
     self.raiseADebug('Starting index set generation...')
     self.indexSet = IndexSets.returnInstance('AdaptiveSet',self)
-    self.indexSet.initialize(self.dists,self.importanceDict,self.maxPolyOrder)
+    self.indexSet.initialize(self.features,self.importanceDict,self.maxPolyOrder)
     for pt in self.indexSet.active:
       self.inTraining.add(pt)
       for t in self.targets:
@@ -3808,7 +3808,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     """
     sparseGrid = Quadratures.SparseQuad()
     iset = IndexSets.returnInstance('Custom',self)
-    iset.initialize(self.dists,self.importanceDict,self.maxPolyOrder)
+    iset.initialize(self.features,self.importanceDict,self.maxPolyOrder)
     iset.setPoints(self.indexSet.points)
     iset.addPoints(points)
     sparseGrid.initialize(self.features,iset,self.dists,self.quadDict,self.jobHandler,self.messageHandler)
@@ -4007,7 +4007,7 @@ class Sobol(SparseGridCollocation):
         polyDict[c]=self.polyDict[c]
         imptDict[c]=self.importanceDict[c]
       iset=IndexSets.returnInstance(SVL.indexSetType,self)
-      iset.initialize(distDict,imptDict,SVL.maxPolyOrder)
+      iset.initialize(combo,imptDict,SVL.maxPolyOrder)
       self.SQs[combo] = Quadratures.SparseQuad()
       self.SQs[combo].initialize(combo,iset,distDict,quadDict,self.jobHandler,self.messageHandler)
       # initDict is for SVL.__init__()
@@ -4695,7 +4695,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
       imptDict[c] = self.importanceDict[c]
     #instantiate an adaptive index set for this ROM
     iset = IndexSets.returnInstance('AdaptiveSet',self)
-    iset.initialize(distDict,imptDict,self.maxPolyOrder)
+    iset.initialize(combo,imptDict,self.maxPolyOrder)
     iset.verbosity=verbosity
     #instantiate a sparse grid quadrature
     self.SQs[subset] = Quadratures.SparseQuad()
