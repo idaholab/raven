@@ -47,14 +47,14 @@
   type = 'RavenFramework'
   input = 'test_poly.xml'
   csv = 'polynomial/csv_database.csv'
-  xml = 'polynomial/stats_td1.xml'
+  xml = 'polynomial/stats_td1.xml'         #analytic, "Tensor Polynomial (First Order) with Multivariate Normal Distribution"
  [../]
 
  [./attenuationTest]
   type = 'RavenFramework'
   input = 'test_attenuation.xml'
   csv = 'attenuation/csv_database.csv'
-  xml = 'attenuation/stats_td1.xml'
+  xml = 'attenuation/stats_td1.xml'       #analytic, "Attenuation with Multivariate Normal Distribution"
  [../]
 
 []

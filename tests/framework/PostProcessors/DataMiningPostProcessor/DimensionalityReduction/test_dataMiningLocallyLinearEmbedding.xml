@@ -63,7 +63,6 @@
                     <SKLtype>cluster</SKLtype>
                     <x>DataSets|Output|PCAEmbeddingVector1</x>
                     <y>DataSets|Output|PCAEmbeddingVector2</y>
-                    <!-- clusterLabels>DataSets|Input|labels</clusterLabels -->
                     <kwargs>
                     </kwargs>
                 </plot>

@@ -1200,10 +1200,13 @@ Experience has shown order 2 Sobol decompositions to include the great majority 
 When Printing this ROM via an OutStreamManager (see \ref{sec:printing}), the available metrics are:
 \begin{itemize}
   \item \xmlString{mean}, the mean value of the ROM output within the input space it was trained,
-  \item \xmlString{variance}, the variance of the ROM output within the input space it was trained,
+  \item \xmlString{variance}, the roughly-approximated variance of the ROM output within the input space it
+    was trained.  It should be noted this is calculated as the sum of the variance of the constituent terms,
+    which neglects cross terms since cut-HDMR terms are not orthogonal.  Work is being done to fix this.
   \item \xmlString{numRuns}, the number of distinct model runs required to construct the ROM,
-  \item \xmlString{indices}, the total variance and the percent contribution of each subset to the total
-    variance (the Sobol sensitivity indices).
+  \item \xmlString{indices}, the relative impact parameter of each subset to the total
+    variance (these are not Sobol sensitivity indices, but relative impacts of the impact subspace on the
+    variance of the whole expansion).
 \end{itemize}
 
 %%%%% ROM Model - MSR  %%%%%%%

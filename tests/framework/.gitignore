@@ -36,3 +36,5 @@ Samplers/DynamicEventTrees/HybridDynamicEventTree/HybridDETrunTest/
 CodeInterfaceTests/DMInterfaceTest/testDummyStep/*dsin.txt
 CodeInterfaceTests/DMInterfaceTest/testDummyStep/rawout~DM*dsin
 ROM/Sobol/states.txt
+RedundantInputs/sim_py_SC/
+RedundantInputs/sobol_redundant/

@@ -4,7 +4,10 @@ import xml.etree.ElementTree as ET
 
 num_tol = 1e-10 #effectively zero for our purposes
 
-float_re = re.compile("([-+]?(?:\d*[.])?\d+(?:[eE][+-]\d+)?)")
+#A float consists of possibly a + or -, followed possibly by some digits
+# followed by one of ( digit. | .digit | or digit) possibly followed by some
+# more digits possibly followed by an exponent
+float_re = re.compile("([-+]?\d*(?:(?:\d[.])|(?:[.]\d)|(?:\d))\d*(?:[eE][+-]\d+)?)")
 
 def splitIntoParts(s):
   """Splits the string into floating parts and not float parts
@@ -47,12 +50,13 @@ def short_text(a,b):
   return prefix+a[start:first_diff+half_display]+" "+prefix+b[start:first_diff+half_display]
 
 
-def compareStringsWithFloats(a,b,num_tol = 1e-10):
+def compareStringsWithFloats(a,b,num_tol = 1e-10, zero_threshold = sys.float_info.min*4.0):
   """ Compares two strings that have floats inside them.  This searches for
   floating point numbers, and compares them with a numeric tolerance.
   a: first string to use
   b: second string to use
   num_tol: the numerical tolerance.
+  zero_thershold: it represents the value below which a float is considered zero (XML comparison only). For example, if zero_thershold = 0.1, a float = 0.01 will be considered as it was 0.0
   Return (succeeded, note) where succeeded is a boolean that is true if the
   strings match, and note is a comment on the comparison.
   """
@@ -64,8 +68,8 @@ def compareStringsWithFloats(a,b,num_tol = 1e-10):
   if len(aList) != len(bList):
     return (False,"Different numbers of float point numbers")
   for i in range(len(aList)):
-    aPart = aList[i]
-    bPart = bList[i]
+    aPart = aList[i].strip()
+    bPart = bList[i].strip()
     if i % 2 == 0:
       #In string
       if aPart != bPart:
@@ -74,8 +78,11 @@ def compareStringsWithFloats(a,b,num_tol = 1e-10):
       #In number
       aFloat = float(aPart)
       bFloat = float(bPart)
+      aFloat = aFloat if abs(aFloat) > zero_threshold else 0.0
+      bFloat = bFloat if abs(bFloat) > zero_threshold else 0.0
       if abs(aFloat - bFloat) > num_tol:
         return (False,"Numeric Mismatch of '"+aPart+"' and '"+bPart+"'")
+
   return (True, "Strings Match Floatwise")
 
 
@@ -94,7 +101,7 @@ def compare_element(a,b,*args,**kwargs):
   """
   same = True
   message = []
-  options = args
+  options = kwargs
   path = kwargs.get('path','')
   counter = kwargs.get('counter',0)
 
@@ -113,7 +120,7 @@ def compare_element(a,b,*args,**kwargs):
   else:
     path += a.tag + "/"
   if a.text != b.text:
-    succeeded, note = compareStringsWithFloats(a.text, b.text)
+    succeeded, note = compareStringsWithFloats(a.text, b.text, float(options.get("rel_err",1.e-10)), float(options.get("zero_threshold",sys.float_info.min*4.0)))
     if not succeeded:
       same = False
       fail_message(note)
@@ -136,7 +143,7 @@ def compare_element(a,b,*args,**kwargs):
       #WARNING: this will mangle the XML, so other testing should happen above this!
       found=[]
       for i in range(len(a)):
-        if 'unordered' in options:
+        if 'unordered' in options.keys() and options['unordered']:
           for j in range(len(b)):
             (same_child,message_child) = compare_element(a[i],b[j],*options,counter=counter+1,path=path)
             if same_child:
@@ -155,9 +162,19 @@ def compare_element(a,b,*args,**kwargs):
       #once all pruning done, error on any remaining structure
       if counter==0: #on head now, recursion is finished
         if len(a)>0:
-          message.append('Branches in gold not matching test...\n'+ET.tostring(a))
+          a_string = ET.tostring(a)
+          if len(a_string) > 80:
+            message.append('Branches in gold not matching test...\n'+path)
+          else:
+            message.append('Branches in gold not matching test...\n'+path+
+                           " "+a_string)
         if len(b)>0:
-          message.append('Branches in test not matching gold...\n'+ET.tostring(b))
+          b_string = ET.tostring(b)
+          if len(b_string) > 80:
+            message.append('Branches in test not matching gold...\n'+path)
+          else:
+            message.append('Branches in test not matching gold...\n'+path+
+                           " "+b_string)
   return (same,message)
 
 def isANumber(x):
@@ -174,7 +191,7 @@ def isANumber(x):
 class XMLDiff:
   """ XMLDiff is used for comparing a bunch of xml files.
   """
-  def __init__(self, test_dir, out_files,*args):
+  def __init__(self, test_dir, out_files,**kwargs):
     """ Create an XMLDiff class
     test_dir: the directory where the test takes place
     out_files: the files to be compared.  They will be in test_dir + out_files
@@ -186,7 +203,7 @@ class XMLDiff:
     self.__messages = ""
     self.__same = True
     self.__test_dir = test_dir
-    self.__options = args
+    self.__options = kwargs
 
   def diff(self):
     """ Run the comparison.
@@ -217,7 +234,7 @@ class XMLDiff:
           files_read = False
           self.__messages += 'Exception reading file '+gold_filename+': '+str(e.args)
         if files_read:
-          same,messages = compare_element(test_root, gold_root,*self.__options)
+          same,messages = compare_element(test_root, gold_root,**self.__options)
           if not same:
             self.__same = False
             separator = "\n"+" "*4
@@ -229,4 +246,3 @@ class XMLDiff:
       self.__messages = self.__messages.replace('[','(')
       self.__messages = self.__messages.replace(']',')')
     return (self.__same,self.__messages)
-
