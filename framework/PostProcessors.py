@@ -2731,16 +2731,11 @@ class DataMining(BasePostProcessor):
           output.updateOutputValue(keyP, bsDict[keyP])  
       
     elif self.type in ['temporalSciKitLearn']:
-      
       tlDict = finishedjob.returnEvaluation()[1]
       historyKey = output.getOutParametersValues().keys()
       for index, keyH in enumerate(historyKey):
         for keyL in tlDict['output'].keys():
-          output.updateOutputValue([keyH,keyL], tlDict['output'][keyL][index,:])        
-        
-      self.raiseADebug(len(output.getOutParametersValues().keys()))
-      self.raiseAnError(IOError, 'hehe')
-      
+          output.updateOutputValue([keyH,keyL], tlDict['output'][keyL][index,:])              
       
   def run(self, InputIn):
     """

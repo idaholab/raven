@@ -29,6 +29,8 @@ from sklearn import metrics
 from sklearn.neighbors import kneighbors_graph
 import numpy as np
 import abc
+import ast
+import copy
 #External Modules End--------------------------------------------------------------------------------
 #Internal Modules------------------------------------------------------------------------------------
 import utils
@@ -270,25 +272,25 @@ class SciKitLearn(unSupervisedLearning):
     self.SKLsubType = SKLsubType
     paramsDict = self.Method.get_params()
     if 'cluster' == SKLtype:
-        if 'n_clusters' in paramsDict.keys():
-            if 'n_clusters' not in self.initOptionDict.keys(): self.initOptionDict['n_clusters'] = 8
-        else:
-            if 'n_clusters' in self.initOptionDict.keys(): self.initOptionDict.pop('n_clusters')
-        if 'preference'   in paramsDict.keys(): self.initOptionDict['preference'  ] = None  # AffinityPropogation
-        if 'leaf_size'    in paramsDict.keys(): self.initOptionDict['leaf_size'   ] = 30  # DBSCAN
-        if 'eps'          in paramsDict.keys(): self.initOptionDict['eps'         ] = 0.2  # DBSCAN
-        if 'random_state' in paramsDict.keys(): self.initOptionDict['random_state'] = 0
+      if 'n_clusters' in paramsDict.keys():
+        if 'n_clusters' not in self.initOptionDict.keys(): self.initOptionDict['n_clusters'] = 8
+      else:
+        if 'n_clusters' in self.initOptionDict.keys(): self.initOptionDict.pop('n_clusters')
+      if 'preference'   in paramsDict.keys(): self.initOptionDict['preference'  ] = None  # AffinityPropogation
+      if 'leaf_size'    in paramsDict.keys(): self.initOptionDict['leaf_size'   ] = 30  # DBSCAN
+      if 'eps'          in paramsDict.keys(): self.initOptionDict['eps'         ] = 0.2  # DBSCAN
+      if 'random_state' in paramsDict.keys(): self.initOptionDict['random_state'] = 0
     # These parameters above and some more effects the quality of the Cardinality Reduction algorithms...Look at TODO list at the top of the source
 
     if 'mixture' == SKLtype:
-        if 'n_components' in paramsDict.keys():
-            if 'n_components' not in self.initOptionDict.keys(): self.initOptionDict['n_components'] = 5
-        else :
-            if 'n_components' in self.initOptionDict.keys(): self.initOptionDict.pop('n_components')
-        self.noComponents_ = self.initOptionDict['n_components']
+      if 'n_components' in paramsDict.keys():
+        if 'n_components' not in self.initOptionDict.keys(): self.initOptionDict['n_components'] = 5
+      else :
+        if 'n_components' in self.initOptionDict.keys(): self.initOptionDict.pop('n_components')
+      self.noComponents_ = self.initOptionDict['n_components']
     if 'decomposition' == SKLtype or 'manifold' == SKLtype: self.noComponents_ = self.initOptionDict['n_components']
     for key, value in self.initOptionDict.items():
-      try:self.initOptionDict[key] = ast.literal_eval(value)
+      try   : self.initOptionDict[key] = ast.literal_eval(value)
       except: pass
     self.Method.set_params(**self.initOptionDict)
     self.normValues = None
@@ -668,16 +670,34 @@ class temporalSciKitLearn(unSupervisedLearning):
       self.SKLEngine.train(Input['Features'])
       self.SKLEngine.confidence()
       
-      if self.SKLtype in ['cluster']:
-        if hasattr(self.SKLEngine, 'n_clusters'):
-          if 'noClusters' not in self.outputDict.keys(): self.outputDict['noClusters'] = {}
-          self.outputDict['noClusters'][t] = self.SKLEngine.n_clusters
-        if hasattr(self.SKLEngine, 'labels_'):
-          if 'labels' not in self.outputDict.keys(): self.outputDict['labels'] = {} # np.zeros(shape=(self.noSample,self.noTimeStep))
-          self.outputDict['labels'][t] = self.SKLEngine.labels_
-        if hasattr(self.SKLEngine, 'cluster_centers_'):
+      if self.SKLtype in ['cluster']: 
+        if hasattr(self.SKLEngine.Method, 'cluster_centers_'):
           if 'clusterCenters' not in self.outputDict.keys(): self.outputDict['clusterCenters'] = {}
-          self.outputDict['clusterCenters'][t] = self.SKLEngine.cluster_centers_
+          if t>0: self.outputDict['clusterCenters'][t], remap = self.__reMapCenter__(self.outputDict['clusterCenters'][t-1], self.SKLEngine.Method.cluster_centers_)
+          else:   self.outputDict['clusterCenters'][t] = self.SKLEngine.Method.cluster_centers_
+#           if t>0: 
+#             self.raiseADebug(remap)
+#           self.raiseADebug(self.outputDict['clusterCenters'][t])
+          self.raiseADebug(self.SKLEngine.Method.cluster_centers_)
+#           self.raiseAnError(IOError,'hh')
+          
+        if hasattr(self.SKLEngine.Method, 'n_clusters'):
+          if 'noClusters' not in self.outputDict.keys(): self.outputDict['noClusters'] = {}
+          self.outputDict['noClusters'][t] = self.SKLEngine.Method.n_clusters
+        if hasattr(self.SKLEngine.Method, 'labels_'):
+          if 'labels' not in self.outputDict.keys(): self.outputDict['labels'] = {} # np.zeros(shape=(self.noSample,self.noTimeStep))
+          self.outputDict['labels'][t] = self.SKLEngine.Method.labels_
+          if t>0:
+            self.raiseADebug(self.SKLEngine.Method.labels_[1])
+            for n in range(len(self.outputDict['labels'][t])):
+              self.outputDict['labels'][t][n] = remap[self.SKLEngine.Method.labels_[n]]
+            self.raiseADebug(remap)
+            self.raiseADebug(self.outputDict['labels'][t][1])
+            if t> 0 and not self.outputDict['labels'][t][1] == self.outputDict['labels'][t-1][1]:
+#               self.raiseADebug(self.outputDict['labels'][t-1][1],self.outputDict['labels'][t][1])
+#               self.raiseADebug(self.outputDict['clusterCenters'][t-1],self.outputDict['clusterCenters'][t])
+              self.raiseAnError(IOError,'hhh')
+          
         if hasattr(self.SKLEngine, 'cluster_centers_indices_'):
           if 'clusterCentersIndices' not in self.outputDict.keys(): self.outputDict['clusterCentersIndices'] = {}
           self.outputDict['clusterCentersIndices'][t] = self.SKLEngine.cluster_centers_indices_
@@ -723,7 +743,49 @@ class temporalSciKitLearn(unSupervisedLearning):
           if 'explainedVarianceRatio' not in self.outputDict.keys(): self.outputDict['explainedVarianceRatio'] = {}
           self.outputDict['explainedVarianceRatio'][t] = self.explained_variance_ratio_
       else: print ('Not Implemented yet!...', self.SKLtype)
-  
+
+  def __computeDist__(self,x1,x2):
+    return np.sqrt(np.dot(x1-x2,x1-x2))
+      
+  def __reMapCenter__(self,c1,c2):
+    N1, N2 = c1.shape[0], c2.shape[0]
+    f = [True]*N2
+    c = copy.deepcopy(c2)
+    remap = [np.inf]*N2
+#     self.raiseADebug(c2)  
+    for n1 in range(N1):
+      d = np.inf
+      i = -1
+      for n2 in range(N2):
+        if f[n2] and self.__computeDist__(c1[n1,:],c2[n2,:])<d: 
+          d = self.__computeDist__(c1[n1,:],c2[n2,:])
+          i = n2
+      remap[i] = n1
+      f[i] = False
+#       temp = copy.deepcopy(c[i,:])
+      c[n1,:] = copy.deepcopy(c2[i,:])
+#       c[n1,:] = copy.deepcopy(temp)
+      
+#       self.raiseADebug(n1,i)
+#       self.raiseADebug(c2)
+#       self.raiseADebug(c)
+#       self.raiseAnError(IOError,'tt')  
+    if N2 > N1: 
+      s = 1;
+      for n in range(N2):
+        if not np.isfinite(remap[n]):     
+          remap[n] = N1+s
+          s += 1          
+#     self.raiseADebug(c1)
+#     self.raiseADebug(c2)
+#     self.raiseADebug(c)
+#     self.raiseADebug(remap)
+# #     self.raiseAnError(IOError,'tt')      
+          
+    return c, remap
+    
+        
+      
   def __evaluateLocal__(self, featureVals):
     pass # FIXME
   

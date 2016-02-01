@@ -15,11 +15,10 @@
       <variable>x</variable>
       <variable>y</variable>
       <variable>x1</variable>
-      <variable>y1</variable>
     </ExternalModel>
     <PostProcessor name="analyticalTest" subType="BasicStatistics" verbosity="debug">
-      <what>all</what>
-      <parameters>x,y,x1,y1</parameters>
+      <what>expectedValue,sigma,variance,kurtosis,percentile_10%,percentile_99%,variationCoefficient,skewness,median</what>
+      <parameters>x,y,x1</parameters>
     </PostProcessor>
   </Models>
 
@@ -39,11 +38,11 @@
     <Grid name="Grid_external">
       <variable name="x">
         <distribution>x0_distrib</distribution>
-        <grid construction="equal" steps="10" type="CDF">0.0001 0.9999</grid>
+        <grid construction="equal" steps="20" type="CDF">0.0013 0.998</grid>
       </variable>
       <variable name="y">
         <distribution>y0_distrib</distribution>
-        <grid construction="equal" steps="10" type="CDF">0.0001 0.9999</grid>
+        <grid construction="equal" steps="20" type="value">-0.5 2.5</grid>
       </variable>
     </Grid>
   </Samplers>
@@ -79,7 +78,7 @@
       </Point>
     <PointSet name="outputDataGrid">
         <Input>x,y</Input>
-        <Output>x1,y1</Output>
+        <Output>x1</Output>
     </PointSet>
   </DataObjects>
 

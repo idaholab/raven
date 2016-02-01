@@ -2,7 +2,7 @@
 <Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>RedundantInputs</WorkingDir>
-    <Sequence>sim_py_SC</Sequence>
+    <Sequence>sobol_redundant</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
@@ -12,7 +12,7 @@
   </Files>
 
   <Steps>
-    <MultiRun name="sim_py_SC">
+    <MultiRun name="sobol_redundant">
       <Input class="Files" type="">input.py</Input>
       <Model class="Models" type="Code">py_script</Model>
       <Sampler class="Samplers" type="Sobol">sc</Sampler>
