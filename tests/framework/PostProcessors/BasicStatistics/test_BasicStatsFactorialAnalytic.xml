@@ -3,7 +3,7 @@
   <RunInfo>
     <WorkingDir>basicStatsFactorialAnalytic</WorkingDir>
     <Sequence>SamplingMirrowModel2levelFractFactorial,SamplingMirrowModelpbFactorial,PP12levelFractFactorial,PP1pbFactorial</Sequence>
-    <batchSize>32</batchSize>
+    <batchSize>1</batchSize>
   </RunInfo>
 
   <Files>
