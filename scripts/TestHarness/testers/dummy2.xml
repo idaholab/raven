@@ -1,0 +1,28 @@
+<?xml version="1.0" ?>
+<Root>
+  <MissingTree>
+    <AttributeNode second='second attribute'>
+    </AttributeNode>
+    <TextNode></TextNode>
+  </MissingTree>
+  <Not_MatchingTree>
+    <WrongNodeNameNode>
+    </WrongNodeNameNode>
+    <AttributeContentNode first='wrong attribute value' type='second attribute'>
+    </AttributeContentNode>
+    <AttributeValueNode first='0.9876543210' second='second attribute'>
+    </AttributeValueNode>
+    <AttributeNameNode wrongAttribute='first attribute' type='second attribute'>
+    </AttributeNameNode>
+    <TextNode>wrong text</TextNode>
+  </Not_MatchingTree>
+  <CorrectTree>
+    <NodeNode>
+    </NodeNode>
+    <AttributeContentNode first='first attribute' second='second attribute'>
+    </AttributeContentNode>
+    <AttributeValueNode first='0.12345678909' second='second attribute'>
+    </AttributeValueNode>
+    <TextNode>text</TextNode>
+  </CorrectTree>
+</Root>

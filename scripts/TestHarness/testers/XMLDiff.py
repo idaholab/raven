@@ -85,6 +85,128 @@ def compareStringsWithFloats(a,b,num_tol = 1e-10, zero_threshold = sys.float_inf
 
   return (True, "Strings Match Floatwise")
 
+def sort_children(node,path,finished):
+  """
+    Iterative process to convert XML tree into list of entries
+    node: ET.Element whose children need sorting
+    path: list(ET.Element) leading to node
+    finished: list(list(ET.Element)) full entries
+    returns list(list(ET.Element)) of full entries
+  """
+  for child in node:
+    npath = path[:]+[child]
+    if len(child)==0:
+      finished.append(npath)
+    else:
+      finished = sort_children(child,npath,finished)
+  return finished
+
+def tree_to_list(node):
+  """
+    Converts XML tree to list of entries.  Useful to start recursive search.
+    node: the xml tree root node to convert
+    retuns list(list(ET.Element)) of full paths to entries in xml tree
+  """
+  flattened = sort_children(node,[node],[])
+  return list(tuple(f) for f in flattened)
+
+def compare_list_entry(a_list,b_list):
+  """
+    Comparse flattened XML entries for equality
+    a_list: list(ET.Element)
+    b_list: list(ET.Element)
+    returns (bool,val)
+    bool is True if all tag, text, and attributes match, False otherwise
+    qual is percent of matching terms
+  """
+  num_match = 0       #number of matching points between entries
+  total_matchable = 0 #total tag, text, and attributes available to match
+  match = True
+  for i in range(len(a_list)):
+    if i > len(b_list) - 1:
+      match = False
+      total_matchable
+      total_matchable += 2 + len(a_list[i].attrib.keys())
+      continue
+    a = a_list[i]
+    b = b_list[i]
+    #match tag
+    same,note = compareStringsWithFloats(a.tag,b.tag)
+    total_matchable += 1
+    if not same: match = False
+    else: num_match += 1
+    #match text
+    same,note = compareStringsWithFloats(a.text,b.text)
+    total_matchable += 1
+    if not same: match = False
+    else: num_match += 1
+    #match attributes
+    for attrib in a.attrib.keys():
+      total_matchable += 1
+      if attrib not in b.attrib.keys():
+        match = False
+        continue
+      same,note = compareStringsWithFloats(a.attrib[attrib],b.attrib[attrib])
+      if not same: match = False
+      else: num_match += 1
+    #note attributes in b not in a
+    for attrib in b.attrib.keys():
+      if attrib not in a.attrib.keys():
+        match = False
+        total_matchable += 1
+  # note elements in b not in a
+  if len(b_list) > len(a_list):
+    match = False
+    for j in range(i,len(b_list)):
+      #count tag, text, and attributes
+      total_matchable += 2 + len(b_list[j].attrib.keys())
+  return (match,float(num_match)/float(total_matchable))
+
+def compare_elements_2(a,b,*args,**kwargs):
+  """
+    Compares two element trees and returns (same,message)
+    where same is true if they are the same,
+    and message is a list of the differences.
+    Uses list of tree entries to find best match, instead of climbing the tree
+    a: the first element tree
+    b: the second element tree
+  """
+  same = True
+  message = []
+  matchvals={}
+  def fail_message(*args):
+    """ adds the fail message to the list
+    args: The arguments to the fail message (will be converted with str())
+    """
+    print_args = [path]
+    print_args.extend(args)
+    args_expanded = " ".join([str(x) for x in print_args])
+    message.append(args_expanded)
+  a_list = tree_to_list(a.getroot())
+  b_list = tree_to_list(b.getroot())
+  #search a for matches in b
+  for a_entry in a_list:
+    matchvals[a_entry]={}
+    for b_entry in b_list:
+      same,matchval = compare_list_entry(a_entry,b_entry)
+      if same:
+        b_list.remove(b_entry)
+        del matchvals[a_entry]
+        break
+      else:
+        matchvals[a_entry][b_entry] = matchval
+  if len(matchvals)==0: #all matches found
+    return True,''
+  else:
+    note = ''
+    for unmatched,close in matchvals.items():
+      note+='No match for '+str(list(m.tag for m in unmatched))+'\n'
+      note+='  Nearest matches are:\n'
+      close = sorted(list(close.items()),key=lambda x:x[1],reverse=True)
+      for i in range(3):
+        if i>len(close)-1: break
+        note+='    '+str(list(c.tag for c in close[i][0]))+', %2.1f %% match' %(100*close[i][1])+'\n'
+    return False,note
 
 def compare_element(a,b,*args,**kwargs):
   """ Compares two element trees and returns (same,message)
