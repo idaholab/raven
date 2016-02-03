@@ -85,7 +85,7 @@ def compareStringsWithFloats(a,b,num_tol = 1e-10, zero_threshold = sys.float_inf
 
   return (True, "Strings Match Floatwise")
 
-def sort_children(node,path,finished):
+def find_branches(node,path,finished):
   """
     Iterative process to convert XML tree into list of entries
     node: ET.Element whose children need sorting
@@ -98,7 +98,7 @@ def sort_children(node,path,finished):
     if len(child)==0:
       finished.append(npath)
     else:
-      finished = sort_children(child,npath,finished)
+      finished = find_branches(child,npath,finished)
   return finished
 
 def tree_to_list(node):
@@ -107,7 +107,7 @@ def tree_to_list(node):
     node: the xml tree root node to convert
     retuns list(list(ET.Element)) of full paths to entries in xml tree
   """
-  flattened = sort_children(node,[node],[])
+  flattened = find_branches(node,[node],[])
   return list(tuple(f) for f in flattened)
 
 def compare_list_entry(a_list,b_list):
@@ -122,45 +122,63 @@ def compare_list_entry(a_list,b_list):
   num_match = 0       #number of matching points between entries
   total_matchable = 0 #total tag, text, and attributes available to match
   match = True
+  diff = []
   for i in range(len(a_list)):
     if i > len(b_list) - 1:
       match = False
-      total_matchable
-      total_matchable += 2 + len(a_list[i].attrib.keys())
+      diff.append((b_list[-1],'is missing child node',a_list[i].tag,None))
+      #could have matched the tag and attributes
+      total_matchable += 1 + len(a_list[i].attrib.keys())
+      #if text isn't empty, could have matched text, too
+      if a_list[i].text is not None and len(a_list[i].text.strip())>0: total_matchable+=1
       continue
     a = a_list[i]
     b = b_list[i]
     #match tag
     same,note = compareStringsWithFloats(a.tag,b.tag)
     total_matchable += 1
-    if not same: match = False
-    else: num_match += 1
+    if not same:
+      match = False
+      diff.append((b,'tag does not match',a.tag,b.tag))
+    else:
+      num_match += 1
     #match text
-    same,note = compareStringsWithFloats(a.text,b.text)
-    total_matchable += 1
-    if not same: match = False
-    else: num_match += 1
+    if (a.text is None or len(a.text.strip())>0) and (b.text is None or len(b.text.strip())>0):
+      same,note = compareStringsWithFloats(a.text,b.text)
+      total_matchable += 1
+      if not same:
+        match = False
+        diff.append((b,'text does not match',str(a.text),str(b.text)))
+      else: num_match += 1
     #match attributes
     for attrib in a.attrib.keys():
       total_matchable += 1
       if attrib not in b.attrib.keys():
         match = False
+        diff.append((b,'is missing attribute',attrib,None))
         continue
       same,note = compareStringsWithFloats(a.attrib[attrib],b.attrib[attrib])
-      if not same: match = False
-      else: num_match += 1
+      if not same:
+        match = False
+        diff.append((b,'attribute does not match',(a,attrib),(b,attrib)))
+      else:
+        num_match += 1
     #note attributes in b not in a
     for attrib in b.attrib.keys():
       if attrib not in a.attrib.keys():
         match = False
+        diff.append((b,'has extra attribute',attrib,None))
         total_matchable += 1
   # note elements in b not in a
   if len(b_list) > len(a_list):
     match = False
     for j in range(i,len(b_list)):
-      #count tag, text, and attributes
-      total_matchable += 2 + len(b_list[j].attrib.keys())
-  return (match,float(num_match)/float(total_matchable))
+      diff.append((a_list[-1],'has extra child node',b_list[j].tag,None))
+      #count tag and attributes
+      total_matchable += 1 + len(b_list[j].attrib.keys())
+      #if text isn't empty, count text, too
+      if b_list[i].text is not None and len(b_list[i].text.strip())>0: total_matchable+=1
+  return (match,float(num_match)/float(total_matchable),diff)
 
 def compare_elements_2(a,b,*args,**kwargs):
   """
@@ -173,7 +191,8 @@ def compare_elements_2(a,b,*args,**kwargs):
   """
   same = True
   message = []
-  matchvals={}
+  matchvals = {}
+  diffs = {}
   def fail_message(*args):
     """ adds the fail message to the list
     args: The arguments to the fail message (will be converted with str())
@@ -182,30 +201,58 @@ def compare_elements_2(a,b,*args,**kwargs):
     print_args.extend(args)
     args_expanded = " ".join([str(x) for x in print_args])
     message.append(args_expanded)
-  a_list = tree_to_list(a.getroot())
-  b_list = tree_to_list(b.getroot())
+  a_list = tree_to_list(a)
+  b_list = tree_to_list(b)
   #search a for matches in b
   for a_entry in a_list:
-    matchvals[a_entry]={}
+    matchvals[a_entry] = {}
+    diffs[a_entry] = {}
     for b_entry in b_list:
-      same,matchval = compare_list_entry(a_entry,b_entry)
+      same,matchval,diff = compare_list_entry(a_entry,b_entry)
       if same:
         b_list.remove(b_entry)
         del matchvals[a_entry]
+        del diffs[a_entry]
+        #since we found the match, remove from other near matches
+        for close_key in diffs.keys():
+          if b_entry in diffs[close_key].keys():
+            del diffs[close_key][b_entry]
+            del matchvals[close_key][b_entry]
         break
       else:
         matchvals[a_entry][b_entry] = matchval
+        diffs[a_entry][b_entry] = diff
   if len(matchvals)==0: #all matches found
     return True,''
   else:
     note = ''
     for unmatched,close in matchvals.items():
-      note+='No match for '+str(list(m.tag for m in unmatched))+'\n'
-      note+='  Nearest matches are:\n'
+      #print the path without a match
+      note+='No match for '+'/'.join(list(m.tag for m in unmatched))+'\n'
+      #print the tree of the nearest match
+      note+='  Nearest unused match:\n'
       close = sorted(list(close.items()),key=lambda x:x[1],reverse=True)
-      for i in range(3):
-        if i>len(close)-1: break
-        note+='    '+str(list(c.tag for c in close[i][0]))+', %2.1f %% match' %(100*close[i][1])+'\n'
+      note+='    '+'/'.join(list(c.tag for c in close[0][0]))+', %2.1f %% match' %(100*close[0][1])+'\n'
+      #print what was different between them
+      diff =  diffs[unmatched][close[0][0]]
+      for b,text,right,miss in diff:
+        if text == 'is missing child node':
+          note+='    <'+b.tag+'> '+text+': <'+right+'> vs <'+miss+'\n'
+        elif text == 'tag does not match':
+          note+='    <'+b.tag+'> '+text+': <'+right+'> vs <'+miss+'>\n'
+        elif text == 'text does not match':
+          note+='    <'+b.tag+'> '+text+': "'+right+'" vs "'+miss+'"\n'
+        elif text == 'is missing attribute':
+          note+='    <'+b.tag+'> '+text+': "'+right+'"\n'
+        elif text == 'attribute does not match':
+          note+='    <'+b.tag+'> '+text+': "'+right[1]+'" = "'+right[0].attrib[right[1]]+'" vs "'+miss[0].attrib[miss[1]]+'"\n'
+        elif text == 'has extra attribute':
+          note+='    <'+b.tag+'> '+text+': "'+right+'" = "'+b.attrib[right]+'"\n'
+        elif text == 'has extra child node':
+          note+='    <'+b.tag+'> '+text+': <'+right+'>\n'
+        else:
+          note+='     UNRECOGNIZED OPTION: "'+b.tag+'" "'+str(text)+'": "'+str(right)+'" vs "'+str(miss)+'"\n'
+
     return False,note
 
 def compare_element(a,b,*args,**kwargs):
@@ -285,14 +332,14 @@ def compare_element(a,b,*args,**kwargs):
       if counter==0: #on head now, recursion is finished
         if len(a)>0:
           a_string = ET.tostring(a)
-          if len(a_string) > 80:
+          if len(a_string) > 8000:
             message.append('Branches in gold not matching test...\n'+path)
           else:
             message.append('Branches in gold not matching test...\n'+path+
                            " "+a_string)
         if len(b)>0:
           b_string = ET.tostring(b)
-          if len(b_string) > 80:
+          if len(b_string) > 8000:
             message.append('Branches in test not matching gold...\n'+path)
           else:
             message.append('Branches in test not matching gold...\n'+path+
