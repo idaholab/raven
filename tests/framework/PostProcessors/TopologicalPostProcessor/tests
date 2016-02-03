@@ -4,7 +4,7 @@
     input = 'test_topology_simple.xml'
     csv = 'data/myDump1.csv data/myDump2.csv data/myDump3.csv data/myDump4.csv'
     output = 'data/myDump1.xml data/myDump2.xml data/myDump3.xml data/myDump4.xml'
-    required_libraries = 'amsc'
+    required_libraries = 'AMSC'
   [../]
 
   [./persistence_count]
@@ -12,7 +12,7 @@
     input = 'test_persistence_count.xml'
     csv = 'data/segCount.csv'
     output = 'data/segCount.xml'
-    required_libraries = 'amsc'
+    required_libraries = 'AMSC'
   [../]
 
   [./persistence_prob]
@@ -20,7 +20,7 @@
     input = 'test_persistence_prob.xml'
     csv = 'data/segProb.csv'
     output = 'data/segProb.xml'
-    required_libraries = 'amsc'
+    required_libraries = 'AMSC'
   [../]
 
   [./persistence_value]
@@ -28,7 +28,7 @@
     input = 'test_persistence_value.xml'
     csv = 'data/segValue.csv'
     output = 'data/segValue.xml'
-    required_libraries = 'amsc'
+    required_libraries = 'AMSC'
   [../]
 
   [./persistence_full]
@@ -36,7 +36,7 @@
     input = 'test_persistence_full.xml'
     csv = 'data/segFull.csv'
     output = 'data/segFull.xml'
-    required_libraries = 'amsc'
+    required_libraries = 'AMSC'
   [../]
 
   [./knn]
@@ -44,7 +44,7 @@
     input = 'test_graph_knn.xml'
     csv = 'data/segNN.csv'
     output = 'data/segNN.xml'
-    required_libraries = 'amsc'
+    required_libraries = 'AMSC'
   [../]
 
   [./beta_skeleton]
@@ -52,7 +52,7 @@
     input = 'test_graph_bs.xml'
     csv = 'data/segBS.csv'
     output = 'data/segBS.xml'
-    required_libraries = 'amsc'
+    required_libraries = 'AMSC'
   [../]
 
   [./realxed_beta_skeleton]
@@ -60,6 +60,6 @@
     input = 'test_graph_rbs.xml'
     csv = 'data/segRBS.csv'
     output = 'data/segRBS.xml'
-    required_libraries = 'amsc'
+    required_libraries = 'AMSC'
   [../]
 []
