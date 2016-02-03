@@ -334,18 +334,327 @@ This formulation introduces a phase space that is continuously growing over time
   to a Markovian one and therefore forced to use the whole history of the system to forecast its evolution at each 
   time step.
 \end{enumerate}
-Assumption 1 limits this cost by restraining it to the set of values assumed by the variable but would still lead to 
-very difficult to deal with situation. Assumption 2 would require an expansion of phase space to introduce the 
-time at which the transitions happens but the value that the parameter will assume at each sampling could be 
-treated as initial condition. Assumption 3 would instead require the expansion of the phase space for both the 
-time and the values of the transitioning variables.
+Assumption 1 limits this cost by restraining it to the set of values assumed by the 
+variable but would still lead to very difficult to deal with situation. Assumption 2 would 
+require an expansion of phase space to introduce the time at which the transitions 
+happens but the value that the parameter will assume at each sampling could be 
+treated as initial condition. Assumption 3 would instead require the expansion of the 
+phase space for both the time and the values of the 
+transitioning variables.
+\\Based on the this simplifications, the system of 
+equations~\ref{eq:systemThetaContAndDescreteStazAndBrow}, accounting also for $ \overline{\alpha}_{DS}$ can be casted into the form:
+\begin{equation}
+\label{eq:fullSystem}
+\begin{split}
+\left\{\begin{matrix}
+\frac{\partial  \overline{\theta}^{c}\left ( t \right )}{\partial t}=f\left ( \overline{\theta}^{c},\overline{\theta}^{d}, \overline{\alpha}_{staz} ,\overline{\alpha}_{brow},      t \right ) \\ 
+\frac{\partial  \overline{\theta}^{d}\left ( t \right )}{\partial t}=g\left ( \overline{\theta}^{c},\overline{\theta}^{d},\overline{\alpha}_{staz},\overline{\alpha}_{brow},t \right )\\
+\frac{\partial \overline{\alpha}_{brow} }{\partial t}=b\left ( \overline{\theta}^{c},\overline{\theta}^{d},\overline{\alpha}_{staz},\overline{\alpha}_{brow},t \right )\Gamma \left ( t \right ) \\
+\frac{\partial  \overline{\alpha }_{DS}\left ( t \right )}{\partial t}=  \overline{\delta}\left ( \overline{\alpha }_{DS}, \overline{\theta}^{c},\overline{\theta}^{d},\overline{\alpha}_{staz},\overline{\alpha}_{brow},t \right ) \times \overline{V}\left ( \overline{\alpha }_{DS}, \overline{\theta}^{c},\overline{\theta}^{d},\overline{\alpha}_{staz},\overline{\alpha}_{brow},t \right ) \times 
+\\ \times  \overline{p}\left ( \int_{t_{0}}^{t}  dt\;   \overline{\alpha }_{DS}, \overline{\theta}^{c},\overline{\theta}^{d},
+  \overline{ \alpha}_{staz},\overline{\alpha}_{brow},t \right )
+\\
+\Pi \left ( \overline{\theta}^{c},t_{0} \right ) \sim pdf\left ( \overline{\theta}^{c}_{0}|,\sigma_{c}^{2} \right )\\ 
+\Pi \left ( \overline{\theta}^{d},t_{0} \right ) \sim pdf\left ( \overline{\theta}^{d}_{0}|,\sigma_{d}^{2} \right ) \\
+\overline{\alpha}_{staz}\left ( t \right )=\overline{\alpha}_{staz}\left ( t_{0} \right ) \sim pdf\left ( \overline{\alpha}_{staz}^{0}|, \sigma_{staz}^{2} \right ) \\
+\overline{\alpha}_{brow}\left ( t_{0} \right ) \sim  \overline{\alpha}_{brow}^{0} \Gamma \left ( t_{0} \right ) \\
+\overline{\alpha}_{DS} \left ( t_{0} \right ) = \overline{\alpha}_{DS} ^{0}
+\end{matrix}\right.
+\end{split}
+\end{equation}
+Introducing the simplifications \textbf{1} and \textbf{3} ( the most 
+appropriated in this context), Eq.~\ref{eq:fullSystem} becomes:
+\begin{equation}
+\label{eq:fullSystemApprox1-3}
+\begin{split}
+\left\{\begin{matrix}
+\frac{\partial  \overline{\theta}^{c}\left ( t \right )}{\partial t}=f\left ( \overline{\theta}^{c},\overline{\theta}^{d}, \overline{\alpha}_{staz} ,\overline{\alpha}_{brow},      t \right ) \\ 
+\frac{\partial  \overline{\theta}^{d}\left ( t \right )}{\partial t}=g\left ( \overline{\theta}^{c},\overline{\theta}^{d},\overline{\alpha}_{staz},\overline{\alpha}_{brow},t \right )\\
+\frac{\partial \overline{\alpha}_{brow} }{\partial t}=b\left ( \overline{\theta}^{c},\overline{\theta}^{d},\overline{\alpha}_{staz},\overline{\alpha}_{brow},t \right )\Gamma \left ( t \right ) \\
+\frac{\partial  \overline{\alpha }_{DS}\left ( t \right )}{\partial t}=  \overline{\delta}\left ( \overline{\alpha }_{DS}, \overline{\theta}^{c},\overline{\theta}^{d},\overline{\alpha}_{staz},\overline{\alpha}_{brow},t \right ) \times \overline{V}\left ( \overline{\alpha }_{DS}, \overline{\theta}^{c},\overline{\theta}^{d},\overline{\alpha}_{staz},\overline{\alpha}_{brow},t \right ) \times 
+\\ \times  \overline{p}\left ( \overline{\alpha }_{DS}, \overline{\theta}^{c},\overline{\theta}^{d},\overline{\alpha}_{staz},\overline{\alpha}_{brow},t \right )
+\\
+\Pi \left ( \overline{\theta}^{c},t_{0} \right ) \sim pdf\left ( \overline{\theta}^{c}_{0}|,\sigma_{c}^{2} \right )\\ 
+\Pi \left ( \overline{\theta}^{d},t_{0} \right ) \sim pdf\left ( \overline{\theta}^{d}_{0}|,\sigma_{d}^{2} \right ) \\
+\overline{\alpha}_{staz}\left ( t \right )=\overline{\alpha}_{staz}\left ( t_{0} \right ) \sim pdf\left ( \overline{\alpha}_{staz}^{0}|, \sigma_{staz}^{2} \right ) \\
+\overline{\alpha}_{brow}\left ( t_{0} \right ) \sim  \overline{\alpha}_{brow}^{0} \Gamma \left ( t_{0} \right ) \\
+\overline{\alpha}_{DS} \left ( t_{0} \right ) = \overline{\alpha}_{DS} ^{0}
+\end{matrix}\right.
+\end{split}
+\end{equation}
+This dissertation does not cover all the possible phenomena, but it 
+provides a sufficient mathematical framework for extrapolating toward cases that are not explicitly treated. 
+\\ Given the presence of all these sources of stochastic behaviors, every 
+exploration of the uncertainties (through sampling strategies) only 
+represents a possible trajectory of the system in the phase space. Hence, 
+it is much more informative the assessment of the probability of a 
+particular response, rather than the response itself.
+\\The explanation of these concepts is demanded to next section.
+%
+%
+% Formulation of the equation set in a statistical framework
+%
+%
+\subsection{Formulation of the equation set in a statistical framework}
+Based on the premises reported in the previous sections and assuming 
+that at least one of the simplifications mentioned in 
+section~\ref{sub:discAndStochVars} is applicable (i.e. the system can be
+casted as Markovian), it is needed to investigate the system evolution 
+in terms of its probability density function in the global phase space 
+$\overline{\theta}$ via the Chapman-Kolmogorov 
+equation~\cite{ProbReactoDynamicsDevooght}.
+\\The integral form of the Chapman-Kolmogorov is the following: 
+\begin{equation}
+\label{eq:chapKolmogIntegralForm}
+\begin{matrix}
+\Pi \left (\overline{\theta}_{3},t_{3}|\overline{\theta}_{1},t_{1}  \right ) = \int 
+d\overline{\theta}_{2} \Pi\left (\overline{\theta}_{2},t_{2}|
+\overline{\theta}_{1},t_{1}  \right )   \Pi\left (\overline{\theta}_{3},t_{3}|
+\overline{\theta}_{2},t_{2}  \right )   & 
+where \: \:   t_{1} < t_{2} < t_{3}
+\end{matrix}
+\end{equation}
+while its differential form is:
+\begin{equation}
+\label{eq:chapKolmogDiffForm}
+\frac{\partial \Pi \left (\overline{\theta},t|\overline{\theta}_{0},t_{0}  \right )  }{\partial t} =
+\mathcal{L}_{CK}\left (   \Pi \left (\overline{\theta},t|\overline{\theta}_{0},t_{0}  \right ) \right )
+\end{equation}
+The transition from the integral to the differential form is possible under the following assumptions: 
+\begin{equation}
+\label{eq:chapKolmogAssump1}
+\lim_{\Delta t \to 0} \frac{1}{\Delta t}  \int_{|
+\overline{\theta}_{2}-\overline{\theta}_{1}|<\varepsilon }   \Pi \left 
+(\overline{\theta}_{2},t+\Delta t|\overline{\theta}_{1},t  \right ) 
+d\overline{\theta}_{2} = 0
+\end{equation}
 
-One of the most interesting cases from point of view of the analysis that RAVEN will be performing is a combination of approximation 1 and 3. Under such assumption the system is again Markovian once $\left \{  
-  \overline{\alpha}_{DS_{i}}\right \}, \left ( for\: i=1,...,n \right )$ is added to the phase space. An example of this case is a component whose probability to correctly act on demand depends on his failure/success at the last demand.
-When we combine approximation 1 and 3 we obtain the physical model corresponding to discrete jumps or collision. In fact once the phase space contains this additional variable the equation describing the trajectory of the systems along those dimensions present a discontinuity given either by the presence of an Heaviside function or by the speed function that could eventually be a distribution function.
-An example of this type of modeling is the scattering kernel of the transport equation where neutron suddenly change direction with a probability (memory-less) by unit of length (in our case in time) given by the cross sections.
+\begin{equation}
+\label{eq:chapKolmogAssump2}
+\lim_{\Delta t \to 0} \frac{1}{\Delta t} \Pi \left (\overline{\theta}_{2},t+\Delta t|
+\overline{\theta}_{1},t  \right ) = W\left ( \overline{\theta}_{2}|
+\overline{\theta}_{1},t \right )
+\end{equation}
 
+\begin{equation}
+\label{eq:chapKolmogAssump3}
+\lim_{\Delta t \to 0} \frac{1}{\Delta t}  \int_{|
+\overline{\theta}_{2}-\overline{\theta}_{1}|<\varepsilon }   
+\left ( \overline{\theta}_{2,i} - \overline{\theta}_{1,i} \right )
+\Pi \left (\overline{\theta}_{2},t+\Delta t|\overline{\theta}_{1},t  \right ) 
+d\overline{\theta}_{2} = A_{i}\left ( \overline{\theta}_{1},t \right ) + 
+\mathcal{O}\left ( \varepsilon \right )
+\end{equation}
 
+\begin{equation}
+\label{eq:chapKolmogAssump4}
+\lim_{\Delta t \to 0} \frac{1}{\Delta t}  \int_{|
+\overline{\theta}_{2}-\overline{\theta}_{1}|<\varepsilon }   
+\left ( \overline{\theta}_{2,i} - \overline{\theta}_{1,i} \right ) \left ( 
+\overline{\theta}_{2,j} - \overline{\theta}_{1,j} \right )
+\Pi \left (\overline{\theta}_{2},t+\Delta t|\overline{\theta}_{1},t  \right ) 
+d\overline{\theta}_{2} = B_{i,j}\left ( \overline{\theta}_{1},t \right ) + 
+\mathcal{O}\left ( \varepsilon \right )
+\end{equation}
+
+The first condition guarantees the continuity of $\Pi \left (\overline{\theta},t|\overline{\theta}_{0},t_{0}  \right )$, while the other three force the finite existence of three parameters that will be described in Section 8.1.3. 
+Equation 25 can be furthermore decomposed into the continuous and discrete components:
+
+\begin{equation}
+\label{eq:chapKolmogIntegralFormContDisct}
+\left\{\begin{matrix}
+\Pi \left (\overline{\theta}_{3}^{c},t_{3}|\overline{\theta}_{1}^{c},t_{1}  \right ) 
+= \int \Pi \left (\overline{\theta}_{2}^{c},t_{2}|\overline{\theta}_{1}^{c},t_{1}  
+\right ) \Pi \left (\overline{\theta}_{3}^{c},t_{3}|\overline{\theta}_{2}^{c},t_{2}  
+\right ) d\overline{\theta}_{2}^{c}
+\\ 
+\Pi \left (\overline{\theta}_{3}^{d},t_{3}|\overline{\theta}_{1}^{d},t_{1}  \right ) 
+= \int \Pi \left (\overline{\theta}_{2}^{d},t_{2}|\overline{\theta}_{1}^{d},t_{1}  
+\right ) \Pi \left (\overline{\theta}_{3}^{d},t_{3}|\overline{\theta}_{2}^{d},t_{2}  
+\right ) d\overline{\theta}_{2}^{d}
+\end{matrix}\right.
+\: \: \: where \:\:   t_{1}<t_{2}<t_{3}
+\end{equation}
+
+and its differential form is as follows:
+\begin{equation}
+\label{eq:chapKolmogDiffFormContDisct}
+\left\{\begin{matrix}
+\frac{\partial \Pi \left (\overline{\theta}^{c},t|\overline{\theta}_{0}^{c},t_{0}  
+\right ) }{\partial t} = \mathcal{L}_{CK}^{c}  \left (     \Pi \left 
+(\overline{\theta}^{c},t|\overline{\theta}_{0}^{c},t_{0} \right ), 
+\overline{\theta}^{d},\overline{\alpha}_{brow},\overline{\alpha}_{staz},
+\overline{\alpha}_{DS},t  \right )
+\\ 
+\frac{\partial \Pi \left (\overline{\theta}^{d},t|\overline{\theta}_{0}^{d},t_{0}  
+\right ) }{\partial t} = \mathcal{L}_{CK}^{d}  \left (     \Pi \left 
+(\overline{\theta}^{d},t|\overline{\theta}_{0}^{d},t_{0} \right ), 
+\overline{\theta}^{c},t  \right )
+\end{matrix}\right.
+\end{equation}
+where:
+\begin{itemize}
+ \item  $\Pi \left (\overline{\theta}^{c},t|\overline{\theta}_{0}^{c},t_{0} \right 
+ )$ of the system to be in state $\overline{\theta}^{c}$ at time $t$ given that 
+ the system was in $\overline{\theta}^{c}_{0}$ at time $t_{0}$;
+ \item $\Pi \left (\overline{\theta}^{d},t|\overline{\theta}_{0}^{d},t_{0} \right 
+ )$ of the system to be in state $\overline{\theta}^{d}$ at time $t$ given 
+ that the system was in $\overline{\theta}^{d}_{0}$ at time $t_{0}$;
+ \item $\mathcal{L}_{CK}^{c} \left ( \cdot  \right )$ and 
+ $\mathcal{L}_{CK}^{d} \left ( \cdot  \right )$  are specific Chapman-
+ Kolmogorov operators that will be described in the following section.
+\end{itemize}
+%
+%
+% The Chapman-Kolmogorov Equation
+%
+%
+% COPY FROM HERE
+%
+\subsection{The Chapman-Kolmogorov Equation}
+\label{sec:ChapmanKolmogorov }
+As mentioned in the previous paragraph, the system of equations~\ref{eq:thetaDecomposition}, written in integral 
+form, can be solved in a differential form through the Chapman-Kolmogorov (C-K) 
+operator~\cite{ProbReactoDynamicsDevooght}:
+
+\begin{equation}
+\label{eq:CK}
+\begin{matrix}
+\frac{\partial \Pi \left (\overline{\theta}^{c},t|\overline{\theta}_{0}^{c},t_{0}  
+\right ) }{\partial t} = - \sum_i \frac{\partial }{\partial \overline{\theta}_{i}^{c}} \left ( A_{i}\left (  \overline{\theta}^{c}, \overline{\theta}^{d}, t\right ) \Pi \left (\overline{\theta}^{c},t|\overline{\theta}_{0}^{c},t_{0}  
+\right )  \right ) + 
+\\
++ \frac{1}{2}\sum_{i,j} \frac{\partial^2 }{\partial \overline{\theta}^{c}_{i} \partial \overline{\theta}^{c}_{j}}\left ( B_{i,j}\left (  \overline{\theta}^{c}, \overline{\theta}^{d}, t\right ) \Pi \left (\overline{\theta}^{c},t|\overline{\theta}_{0}^{c},t_{0}  
+\right )  \right ) +
+\\
++ \bigintss \left (  W\left ( \overline{\theta}^{c}|
+\overline{\theta}^{'c},\overline{\theta}^{d},t \right )\Pi \left (\overline{\theta}^{'c},t|\overline{\theta}_{0}^{c},t_{0}  
+\right ) - W\left ( \overline{\theta}^{'c}|
+\overline{\theta}^{c},\overline{\theta}^{d},t \right )\Pi \left (\overline{\theta}^{c},t|\overline{\theta}_{0}^{c},t_{0}  
+\right )  \right )d\overline{\theta}^{'c}
+\end{matrix}
+\end{equation}
+
+\begin{equation}
+\frac{\partial \Pi \left (\overline{\theta}^{d},t|\overline{\theta}_{0}^{d},t_{0}  
+\right ) }{\partial t} =
+\sum_{i} W\left ( \overline{\theta}^{d}|
+\overline{\theta}^{d}_{i},\overline{\theta}^{c},t \right ) \Pi \left (\overline{\theta}^{d}_{i},t|\overline{\theta}^{d},t_{0}  
+\right ) - W\left ( \overline{\theta}^{d}_{i}|
+\overline{\theta}^{d},\overline{\theta}^{c},t \right ) \Pi \left (\overline{\theta}^{d},t|\overline{\theta}^{d}_{0},t_{0}  
+\right ) 
+\end{equation}
+where:
+\begin{equation}
+\begin{matrix}
+A_{i}\left ( \overline{\theta}, t \right ) = \left\{\begin{matrix}
+0 & \: \: if  \: \: \overline{\theta}_{i} \in \overline{\theta}^{d} 
+\\ 
+f\left ( \overline{\theta}^{c},\overline{\theta}^{d},\alpha_{staz},\alpha_{brow},t \right ) +\frac{1}{2}\frac{\partial b\left ( \overline{\theta}^{c},t \right )}{\partial \overline{\theta}^{c}}Qb\left ( \overline{\theta}^{c},t \right ) \: \: & if  \: \: \overline{\theta}_{i} \notin \overline{\theta}^{d} 
+\end{matrix}\right.
+\\ 
+B_{i,j}\left ( \overline{\theta}, t \right ) = \left\{\begin{matrix}
+0 & \: \: if  \: \: \overline{\theta}_{i} \: \: or \: \: \overline{\theta}_{j}  \in \overline{\theta}^{d} 
+\\ 
+b\left ( \overline{\theta}^{c},t \right )Qb^{T}\left (  \overline{\theta}^{c},t \right ) \: \: & \: \: if  \: \: \overline{\theta}_{i} \: \: or \: \: \overline{\theta}_{j}  \notin \overline{\theta}^{d} 
+\end{matrix}\right.
+\end{matrix}
+\end{equation}
+This system of equations is composed of four main terms that identify four different types of processes:
+\begin{itemize}
+  \item Drift process;
+  \item Diffusion process;
+  \item Jumps in continuous space;
+  \item Jumps in discrete space (component state transitions).
+\end{itemize}
+ These four processes are described in the following sub-sections.
+%
+%
+% Drift process
+%
+%
+\subsubsection{Drift process}
+\label{sec:CKDrift}
+The drift process is defined by the Lioville’s equation:
+\begin{equation}
+\label{eq:lioville}
+  \frac{\partial \, \Pi \left (\overline{\theta}^{c},t|\overline{\theta}^{c}_{0},t_{0}  \right ) }{\partial t} = \sum_{i}\frac{\partial }{\partial \overline{\theta}^{c}_{i}}\left ( A_{i}\left ( \overline{\theta}^{c},\overline{\theta}^{d},t \right ) \Pi \left (\overline{\theta}^{c},t|\overline{\theta}^{c}_{0},t_{0}  \right ) \right )
+\end{equation}
+It is important to notice that this equation describes a completely deterministic motion, indicated by the equation:
+\begin{equation}
+\label{eq:determLioville}
+   \frac{\partial \, \overline{\theta}^{c}\left ( t \right ) }{\partial t} = A_{i}\left ( \overline{\theta}^{c},\overline{\theta}^{d},t \right ) 
+\end{equation}
+If $\overline{\theta}^{c} \left (\overline{\theta}^{c}_{0},\overline{\theta}^{d},t  \right )$ is the solution of Eq.~\ref{eq:determLioville}, then then the solution of the Lioville's equation is:
+\begin{equation}
+\label{eq:solLioville}
+\Pi \left (\overline{\theta}^{c},t|\overline{\theta}^{c}_{0},t_{0}  \right ) = \delta\left ( \overline{\theta}^{c} - \overline{\theta}^{c}\left ( \overline{\theta}^{c}_{0},\overline{\theta}^{d},t \right ) \right )
+\end{equation}
+provided the initial condition:
+\begin{equation}
+\label{eq:solLiovilleInitCond}
+\Pi \left (\overline{\theta}^{c},t|\overline{\theta}^{c}_{0},t_{0}  \right ) = \delta\left ( \overline{\theta}^{c} - \overline{\theta}^{c}_{0} \right )
+\end{equation}
+%
+%
+% Diffusion process
+%
+%
+\subsubsection{Diffusion process}
+\label{subsec:CKDiffusion}
+This process is described by the Fokker-Plank equation:
+\begin{equation}
+\begin{matrix}
+\frac{\partial \, \Pi \left (\overline{\theta}^{c},t|\overline{\theta}^{c}_{0},t_{0}  \right ) }{\partial t} = 
+\sum_{i}\frac{\partial }{\partial \overline{\theta}^{c}_{i}}\left ( A_{i}\left ( \overline{\theta}^{c},\overline{\theta}^{d},t \right ) \Pi \left (\overline{\theta}^{c},t|\overline{\theta}^{c}_{0},t_{0}  \right ) \right ) +
+\\
++ \frac{1}{2}\sum_{i,j} \frac{\partial^2 }{\partial \overline{\theta}^{c}_{i} \partial \overline{\theta}^{c}_{j}}\left ( B_{i,j}\left (  \overline{\theta}^{c}, \overline{\theta}^{d}, t\right ) \Pi \left (\overline{\theta}^{c},t|\overline{\theta}_{0}^{c},t_{0}  
+\right )  \right ) 
+\end{matrix}
+\end{equation}
+where $A_{i}\left ( \overline{\theta}^{c},\overline{\theta}^{d},t \right )$ is the drift vector and $B_{i,j}\left (  \overline{\theta}^{c}, \overline{\theta}^{d}, t\right ) $  is the diffusion matrix. 
+\\Provided the initial condition in Eq.~\ref{eq:solLiovilleInitCond}, the Fokker-Plank equation describes a system moving with drift whose velocity is 
+ $A\left ( \overline{\theta}^{c},\overline{\theta}^{d},t \right )$ on which is imposed a Gaussian fluctuation with covariance matrix $B\left (  \overline{\theta}^{c}, \overline{\theta}^{d}, t\right ) $.
+%
+%
+% Jumps in continuous space 
+%
+%
+\subsubsection{Jumps in continuous space }
+\label{subsec:CKJumpsCont}
+This process is described by the Master equation:
+\begin{equation}
+\frac{\partial \, \Pi \left (\overline{\theta}^{c},t|\overline{\theta}^{c}_{0},t_{0}  \right ) }{\partial t} =  \int \left (  W\left ( \overline{\theta}^{c}|
+\overline{\theta}^{'c},\overline{\theta}^{d},t \right )\Pi \left (\overline{\theta}^{'c},t|\overline{\theta}_{0}^{c},t_{0}  
+\right ) - W\left ( \overline{\theta}^{'c}|
+\overline{\theta}^{c},\overline{\theta}^{d},t \right )\Pi \left (\overline{\theta}^{c},t|\overline{\theta}_{0}^{c},t_{0}  
+\right )  \right )d\overline{\theta}^{'c}
+\end{equation}
+Provided the initial condition  in Eq.~\ref{eq:solLiovilleInitCond}, it describes a process characterized by 
+straight lines interspersed with discontinuous jumps whose distribution is given by $W\left ( \overline{\theta}^{c}|
+\overline{\theta}^{'c},\overline{\theta}^{d},t \right )$
+
+%
+%
+% Jumps in discrete space 
+%
+%
+\subsubsection{Jumps in discrete space }
+\label{subsec:CKJumpsDiscrete}
+Transitions in the discrete space can occur in terms of jumps, then the formulation of 
+\begin{equation}
+\frac{\partial \, \Pi \left (\overline{\theta}^{d},t|\overline{\theta}^{d}_{0},t_{0}  \right ) }{\partial t} =  
+\mathcal{L}_{CK}^{d}\left ( \Pi \left (\overline{\theta}^{d},t|\overline{\theta}_{0}^{d},t_{0}  
+\right )  \right )
+\end{equation}
+is similar to the Master equation, recasted for a discrete phase space:
+\begin{equation}
+\frac{\partial \, \Pi \left (\overline{\theta}^{d},t|\overline{\theta}^{d}_{0},t_{0}  \right ) }{\partial t} =  \sum_{i} \left (  W\left ( \overline{\theta}^{d}|
+\overline{\theta}^{d}_{i},\overline{\theta}^{c},t \right )\Pi \left (\overline{\theta}^{d}_{i},t|\overline{\theta}^{d}_{0},t_{0}  
+\right ) - W\left ( \overline{\theta}^{d}_{i}|
+\overline{\theta}^{d},\overline{\theta}^{c},t \right )\Pi \left (\overline{\theta}^{d},t|\overline{\theta}_{0}^{d},t_{0}  
+\right )  \right ) 
+\end{equation}
 
 %
 %
