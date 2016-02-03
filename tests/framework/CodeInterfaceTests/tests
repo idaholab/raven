@@ -74,7 +74,14 @@
    input = 'test_generic_interface.xml'
    output = 'GenericInterface/samples.xml'
    csv = 'GenericInterface/samples.csv'
+ [../]
+ [./genericInterface2]
+   type = 'RavenFramework'
+   input = 'test_generic_interface.xml'
+   output = 'GenericInterface/samples.xml'
+   csv = 'GenericInterface/samples.csv'
    UnorderedXml = 'GenericInterface/sample/1~one.xml' #checks to make sure input is not being duplicated
+   prereq = genericInterface
  [../]
 
  [./genericInterfaceIO]
