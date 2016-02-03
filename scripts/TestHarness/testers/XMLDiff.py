@@ -223,7 +223,7 @@ def compare_unordered_element(a,b,*args,**kwargs):
         matchvals[a_entry][b_entry] = matchval
         diffs[a_entry][b_entry] = diff
   if len(matchvals)==0: #all matches found
-    return True,''
+    return (True,'')
   else:
     note = ''
     for unmatched,close in matchvals.items():
@@ -253,7 +253,7 @@ def compare_unordered_element(a,b,*args,**kwargs):
         else:
           note+='     UNRECOGNIZED OPTION: "'+b.tag+'" "'+str(code)+'": "'+str(right)+'" vs "'+str(miss)+'"\n'
 
-    return False,note
+    return (False,[note])
 
 def compare_ordered_element(a,b,*args,**kwargs):
   """ Compares two element trees and returns (same,message)
