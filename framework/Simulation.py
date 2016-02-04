@@ -430,7 +430,13 @@ class Simulation(MessageHandler.MessageUser):
           self.XMLpreprocess(xmlNode,xmlFileName)
 
   def XMLread(self,xmlNode,runInfoSkip = set(),xmlFilename=None):
-    """parses the xml input file, instances the classes need to represent all objects in the simulation"""
+    """
+      parses the xml input file, instances the classes need to represent all objects in the simulation
+      @ In, xmlNode, ElementTree.Element, xml node to read in
+      @ In, runInfoSkip, optional set, nodes to skip
+      @ In, xmlFilename, optional string, xml filename for relative directory
+      @ Out, None
+    """
     unknownAttribs = utils.checkIfUnknowElementsinList(['printTimeStamps','verbosity'],list(xmlNode.attrib.keys()))
     if len(unknownAttribs) > 0:
       errorMsg = 'The following attributes are unknown:'
@@ -444,6 +450,12 @@ class Simulation(MessageHandler.MessageUser):
     try:    runInfoNode = xmlNode.find('RunInfo')
     except: self.raiseAnError(IOError,'The run info node is mandatory')
     self.__readRunInfo(runInfoNode,runInfoSkip,xmlFilename)
+    # expand variable groups
+    varGroupNode = xmlNode.find('VariableGroups')
+    varGroups=[]
+    if varGroupNode is not None:
+      for child in varGroupNode:
+        if "name" not in child.attrib.keys(): self.raiseAnError(IOError,'VariableGroups each require a "name" attribute!')
     for child in xmlNode:
       if child.tag in list(self.whichDict.keys()):
         self.raiseADebug('-'*2+' Reading the block: {0:15}'.format(str(child.tag))+2*'-')
