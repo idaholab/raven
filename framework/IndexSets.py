@@ -129,9 +129,9 @@ class IndexSet(MessageHandler.MessageUser):
 
   def initialize(self,features,impList,maxPolyOrder):
     """Initialize everything index set needs
-    @ In , features    , list of input parameters
-    @ In , impList     , dictionary of {varName:float}, weights by dimension
-    @ In , maxPolyOrder, int, relative maximum polynomial order to be used for index set
+    @ In , features    , list(str)      , input parameters
+    @ In , impList     , dict{str:float}, weights by dimension
+    @ In , maxPolyOrder, int            , relative maximum polynomial order to be used for index set
     @ Out, None        , None
     """
     numDim = len(features)
@@ -173,9 +173,9 @@ class TensorProduct(IndexSet):
   """This Index Set requires only that the max poly order in the index point i is less than maxPolyOrder ( max(i)<=L )."""
   def initialize(self,features,impList,maxPolyOrder):
     """Initialize everything index set needs
-    @ In , features    , list of input parameters
-    @ In , impList     , dictionary of {varName:float}, weights by dimension
-    @ In , maxPolyOrder, int, relative maximum polynomial order to be used for index set
+    @ In , features    , list(str)      , input parameters
+    @ In , impList     , dict{str:float}, weights by dimension
+    @ In , maxPolyOrder, int            , relative maximum polynomial order to be used for index set
     @ Out, None        , None
     """
     IndexSet.initialize(self,features,impList,maxPolyOrder)
@@ -195,9 +195,9 @@ class TotalDegree(IndexSet):
   """This Index Set requires the sum of poly orders in the index point is less than maxPolyOrder ( sum(i)<=L )."""
   def initialize(self,features,impList,maxPolyOrder):
     """Initialize everything index set needs
-    @ In , features    , list of input parameters
-    @ In , impList     , dictionary of {varName:float}, weights by dimension
-    @ In , maxPolyOrder, int, relative maximum polynomial order to be used for index set
+    @ In , features    , list(str)      , input parameters
+    @ In , impList     , dict{str:float}, weights by dimension
+    @ In , maxPolyOrder, int            , relative maximum polynomial order to be used for index set
     @ Out, None        , None
     """
     IndexSet.initialize(self,features,impList,maxPolyOrder)
@@ -219,9 +219,9 @@ class HyperbolicCross(IndexSet):
   """This Index Set requires the product of poly orders in the index point is less than maxPolyOrder ( prod(i+1)<=L+1 )."""
   def initialize(self,features,impList,maxPolyOrder):
     """Initialize everything index set needs
-    @ In , features    , list of input parameters
-    @ In , impList     , dictionary of {varName:float}, weights by dimension
-    @ In , maxPolyOrder, int, relative maximum polynomial order to be used for index set
+    @ In , features    , list(str)      , input parameters
+    @ In , impList     , dict{str:float}, weights by dimension
+    @ In , maxPolyOrder, int            , relative maximum polynomial order to be used for index set
     @ Out, None        , None
     """
     IndexSet.initialize(self,features,impList,maxPolyOrder)
@@ -243,9 +243,9 @@ class Custom(IndexSet):
   """User-based index set point choices"""
   def initialize(self,features,impList,maxPolyOrder):
     """Initialize everything index set needs
-    @ In , features    , list of input parameters
-    @ In , impList     , dictionary of {varName:float}, weights by dimension
-    @ In , maxPolyOrder, int, relative maximum polynomial order to be used for index set
+    @ In , features    , list(str)      , input parameters
+    @ In , impList     , dict{str:float}, weights by dimension
+    @ In , maxPolyOrder, int            , relative maximum polynomial order to be used for index set
     @ Out, None        , None
     """
     IndexSet.initialize(self,features,impList,maxPolyOrder)
@@ -284,9 +284,9 @@ class AdaptiveSet(IndexSet):
   """Adaptive index set that can expand itself on call.  Used in conjunctoin with AdaptiveSparseGrid sampler."""
   def initialize(self,features,impList,maxPolyOrder):
     """Initialize everything index set needs
-    @ In , features    , list of input parameters
-    @ In , impList     , dictionary of {varName:float}, weights by dimension
-    @ In , maxPolyOrder, int, relative maximum polynomial order to be used for index set
+    @ In , features    , list(str)      , input parameters
+    @ In , impList     , dict{str:float}, weights by dimension
+    @ In , maxPolyOrder, int            , relative maximum polynomial order to be used for index set
     @ Out, None        , None
     """
     IndexSet.initialize(self,features,impList,maxPolyOrder)
