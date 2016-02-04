@@ -304,7 +304,7 @@ class SciKitLearn(unSupervisedLearning):
     """
     if hasattr(self.Method, 'bandwidth'):  # set bandwidth for MeanShift clustering
       self.initOptionDict['bandwidth'] = cluster.estimate_bandwidth(self.normValues,quantile=0.3)
-      self.Method.set_params(**self.initOptionDict)
+#       self.Method.set_params(**self.initOptionDict)
     if hasattr(self.Method, 'connectivity'):  # We need this connectivity if we want to use structured ward
       connectivity = kneighbors_graph(self.normValues, n_neighbors = 10)  # we should find a smart way to define the number of neighbors instead of default constant integer value(10)
       connectivity = 0.5 * (connectivity + connectivity.T)
@@ -582,7 +582,6 @@ class temporalSciKitLearn(unSupervisedLearning):
     SKLtype, SKLsubType = self.initOptionDict['SKLtype'].split('|')
     self.SKLtype = SKLtype
     self.SKLsubType = SKLsubType
-    
     # return a SciKitLearn instance as engine for SKL data mining
     self.SKLEngine = returnInstance('SciKitLearn',self, **self.initOptionDict)
     
@@ -666,6 +665,10 @@ class temporalSciKitLearn(unSupervisedLearning):
       Input['Features'] ={}       
       for feat in self.features.keys():
         Input['Features'][feat] = self.inputDict[feat][:,t]      
+        
+#       self.raiseADebug(Input['Features']['x1'])
+#       self.raiseADebug(Input['Features']['x2'])
+      
       self.SKLEngine.features = Input['Features']
       self.SKLEngine.train(Input['Features'])
       self.SKLEngine.confidence()
@@ -678,7 +681,7 @@ class temporalSciKitLearn(unSupervisedLearning):
 #           if t>0: 
 #             self.raiseADebug(remap)
 #           self.raiseADebug(self.outputDict['clusterCenters'][t])
-          self.raiseADebug(self.SKLEngine.Method.cluster_centers_)
+#           self.raiseADebug(self.SKLEngine.Method.cluster_centers_)
 #           self.raiseAnError(IOError,'hh')
           
         if hasattr(self.SKLEngine.Method, 'n_clusters'):
@@ -694,9 +697,9 @@ class temporalSciKitLearn(unSupervisedLearning):
             self.raiseADebug(remap)
             self.raiseADebug(self.outputDict['labels'][t][1])
             if t> 0 and not self.outputDict['labels'][t][1] == self.outputDict['labels'][t-1][1]:
-#               self.raiseADebug(self.outputDict['labels'][t-1][1],self.outputDict['labels'][t][1])
-#               self.raiseADebug(self.outputDict['clusterCenters'][t-1],self.outputDict['clusterCenters'][t])
-              self.raiseAnError(IOError,'hhh')
+              self.raiseADebug(self.outputDict['labels'][t-1][1],self.outputDict['labels'][t][1])
+              self.raiseADebug(self.outputDict['clusterCenters'][t-1],self.outputDict['clusterCenters'][t])
+#               self.raiseAnError(IOError,'hhh')
           
         if hasattr(self.SKLEngine, 'cluster_centers_indices_'):
           if 'clusterCentersIndices' not in self.outputDict.keys(): self.outputDict['clusterCentersIndices'] = {}
@@ -752,18 +755,22 @@ class temporalSciKitLearn(unSupervisedLearning):
     f = [True]*N2
     c = copy.deepcopy(c2)
     remap = [np.inf]*N2
-#     self.raiseADebug(c2)  
+    self.raiseADebug(c1)
+    self.raiseADebug(c2)  
+    noHasReGrouped = 0
     for n1 in range(N1):
       d = np.inf
       i = -1
-      for n2 in range(N2):
-        if f[n2] and self.__computeDist__(c1[n1,:],c2[n2,:])<d: 
-          d = self.__computeDist__(c1[n1,:],c2[n2,:])
-          i = n2
-      remap[i] = n1
-      f[i] = False
+      if noHasReGrouped < N2:
+        for n2 in range(N2):
+          if f[n2] and self.__computeDist__(c1[n1,:],c2[n2,:])<d: 
+            d = self.__computeDist__(c1[n1,:],c2[n2,:])
+            i = n2
+        remap[i] = n1
+        f[i] = False
 #       temp = copy.deepcopy(c[i,:])
-      c[n1,:] = copy.deepcopy(c2[i,:])
+        c[n1,:] = copy.deepcopy(c2[i,:])
+        noHasReGrouped += 1
 #       c[n1,:] = copy.deepcopy(temp)
       
 #       self.raiseADebug(n1,i)
