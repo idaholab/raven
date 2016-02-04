@@ -143,13 +143,16 @@ def compare_list_entry(a_list,b_list):
     else:
       num_match += 1
     #match text
-    if (a.text is None or len(a.text.strip())>0) and (b.text is None or len(b.text.strip())>0):
-      same,note = compareStringsWithFloats(a.text,b.text)
+    #if (a.text is None or len(a.text)>0) and (b.text is None or len(b.text)>0):
+    same,note = compareStringsWithFloats(a.text,b.text)
+    if not same:
+      match = False
+      diff.append((b,XMLDiff.not_match_text,str(a.text),str(b.text)))
       total_matchable += 1
-      if not same:
-        match = False
-        diff.append((b,XMLDiff.not_match_text,str(a.text),str(b.text)))
-      else: num_match += 1
+    else:
+      if not(a.text is None or a.text.strip()!=''):
+        num_match += 1
+        total_matchable += 1
     #match attributes
     for attrib in a.attrib.keys():
       total_matchable += 1
