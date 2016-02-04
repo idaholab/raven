@@ -409,6 +409,7 @@ class GaussPolynomialRom(superVisedLearning):
     @ Out, None
     """
     superVisedLearning.__init__(self,messageHandler,**kwargs)
+    self.initialized   = False #only True once self.initialize has been called
     self.interpolator  = None #FIXME what's this?
     self.printTag      = 'GAUSSgpcROM('+self.target+')'
     self.indexSetType  = None #string of index set type, TensorProduct or TotalDegree or HyperbolicCross
@@ -533,6 +534,7 @@ class GaussPolynomialRom(superVisedLearning):
     if self.quads      is None: self.raiseAnError(RuntimeError,'Tried to initialize without key object "quads"')
     if self.polys      is None: self.raiseAnError(RuntimeError,'Tried to initialize without key object "polys"')
     if self.indexSet   is None: self.raiseAnError(RuntimeError,'Tried to initialize without key object "iSet" ')
+    self.initialized = True
 
   def _multiDPolyBasisEval(self,orders,pts):
     """Evaluates each polynomial set at given orders and points, returns product.
@@ -551,6 +553,9 @@ class GaussPolynomialRom(superVisedLearning):
     @ In, featureVals, list, feature values
     @ In, targetVals, list, target values
     """
+    #check to make sure ROM was initialized
+    if not self.initialized:
+      self.raiseAnError(RuntimeError,'ROM has not yet been initialized!  Has the Sampler associated with this ROM been used?')
     self.raiseADebug('training',self.features,'->',self.target)
     self.featv, self.targv = featureVals,targetVals
     self.polyCoeffDict={}
@@ -707,6 +712,7 @@ class HDMRRom(GaussPolynomialRom):
     @ Out, None
     """
     GaussPolynomialRom.__init__(self,messageHandler,**kwargs)
+    self.initialized   = False #true only when self.initialize has been called
     self.printTag      = 'HDMR_ROM('+self.target+')'
     self.sobolOrder    = None #depth of HDMR/Sobol expansion
     self.ROMs          = {}   #dict of GaussPolyROM objects keyed by combination of vars that make them up
@@ -784,6 +790,7 @@ class HDMRRom(GaussPolynomialRom):
       elif key == 'polys'  : self.polys      = value
       elif key == 'refs'   : self.references = value
       elif key == 'numRuns': self.numRuns    = value
+    self.initialized = True
 
   def __trainLocal__(self,featureVals,targetVals):
     """
@@ -791,6 +798,8 @@ class HDMRRom(GaussPolynomialRom):
       @ In, tdict, training dictionary
       @ Out, None
     """
+    if not self.initialized:
+      self.raiseAnError(RuntimeError,'ROM has not yet been initialized!  Has the Sampler associated with this ROM been used?')
     ft={}
     for i in range(len(featureVals)):
       ft[tuple(featureVals[i])]=targetVals[i]

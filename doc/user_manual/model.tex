@@ -1010,6 +1010,9 @@ model faster than Monte Carlo for small-dimension uncertainty spaces ($N<15$).
 In order to use this ROM, the \xmlNode{ROM} attribute \xmlAttr{subType} needs to
 be \xmlString{GaussPolynomialRom} (see the example below).
 %
+The GaussPolynomialRom is dependent on specific sampling; thus, this ROM cannot be trained unless a
+SparseGridCollocation or similar Sampler specifies this ROM in its input and is sampled in a MultiRun step.
+%
 In addition to the common \xmlNode{Target} and \xmlNode{Features}, this ROM requires
 two more nodes and can accept multiple entries of a third optional node.
 \begin{itemize}
@@ -1145,6 +1148,9 @@ a model is approximated as as the sum of increasing-complexity interactions.  At
 %
 In order to use this ROM, the \xmlNode{ROM} attribute \xmlAttr{subType} needs to
 be \xmlString{HDMRRom} (see the example below).
+%
+The HDMRRom is dependent on specific sampling; thus, this ROM cannot be trained unless a
+Sobol or similar Sampler specifies this ROM in its input and is sampled in a MultiRun step.
 %
 In addition to the common \xmlNode{Target} and \xmlNode{Features}, this ROM requires
 the same nodes as the GaussPolynomialRom (see \ref{subsubsec:GaussPolynomialRom}.
