@@ -16,6 +16,7 @@ import copy
 import math
 from collections import OrderedDict
 from sklearn.linear_model import LinearRegression
+import importlib
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -29,6 +30,7 @@ import GridEntities
 import Files
 from RAVENiterators import ravenArrayIterator
 import unSupervisedLearning
+from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
 #Internal Modules End--------------------------------------------------------------------------------
 
 """
@@ -848,6 +850,133 @@ class ComparisonStatistics(BasePostProcessor):
       ret['omega'] = omega
       ret['xi'] = xi
       return ret
+#
+#
+#
+
+class InterfacedPostProcessor(BasePostProcessor):
+  """
+  This class allows to interface a general-purpose post-processor created ad-hoc by the user.
+  While the ExternalPostProcessor is designed for analysis-dependent cases, the InterfacedPostProcessor is designed more generic cases
+  The InterfacedPostProcessor parses (see PostProcessorInterfaces.py) and uses only the functions contained in the raven/framework/PostProcessorFunctions folder
+  The base class for the InterfacedPostProcessor that the user has to inherit to develop its own InterfacedPostProcessor is specified
+  in PostProcessorInterfaceBase.py
+  """
+
+  PostProcessorInterfaces = importlib.import_module("PostProcessorInterfaces")
+
+  def __init__(self, messageHandler):
+    """
+     Constructor
+     @ In, messageHandler, message handler object
+     @ Out, None
+    """
+    BasePostProcessor.__init__(self, messageHandler)
+    self.methodToRun = None
+
+  def initialize(self, runInfo, inputs, initDict):
+    """
+     Method to initialize the Interfaced Post-processor
+     @ In, runInfo, dict, dictionary of run info (e.g. working dir, etc)
+     @ In, inputs, list, list of inputs
+     @ In, initDict, dict, dictionary with initialization options
+    """
+    BasePostProcessor.initialize(self, runInfo, inputs, initDict)
+#     self.postProcessor.initialize()
+#
+#     if self.postProcessor.inputFormat not in set(['HistorySet','History','PointSet','Point']):
+#       self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.inputFormat not correctly initialized')
+#     if self.postProcessor.outputFormat not in set(['HistorySet','History','PointSet','Point']):
+#       self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.outputFormat not correctly initialized')
+
+  def _localReadMoreXML(self, xmlNode):
+    """
+      Function that reads elements this post-processor will use
+      @ In, xmlNode, ElementTree, Xml element node
+      @ Out, None
+    """
+    for child in xmlNode:
+      if child.tag == 'method':
+        self.methodToRun = child.text
+    self.postProcessor = InterfacedPostProcessor.PostProcessorInterfaces.returnPostProcessorInterface(self.methodToRun,self)
+    if not isinstance(self.postProcessor,PostProcessorInterfaceBase):
+      self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : not correctly coded; it must inherit the PostProcessorInterfaceBase class')
+
+    self.postProcessor.initialize()
+    if self.postProcessor.inputFormat not in set(['HistorySet','History','PointSet','Point']):
+      self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.inputFormat not correctly initialized')
+    if self.postProcessor.outputFormat not in set(['HistorySet','History','PointSet','Point']):
+      self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.outputFormat not correctly initialized')
+    self.postProcessor.readMoreXML(xmlNode)
+
+  def run(self, InputIn):
+    """
+     This method executes the interfaced  post-processor action.
+     @ In , InputIn, dict, dictionary of data to process
+     @ Out, dictionary, dict containing the post-processed results
+    """
+    inputDic= self.inputToInternal(InputIn)
+    outputDic = self.postProcessor.run(inputDic)
+    if self.postProcessor.checkGeneratedDicts(outputDic):
+      return outputDic
+    else:
+      self.raiseAnError(RuntimeError,'InterfacedPostProcessor Post-Processor: function has generated a not valid output dictionary')
+
+
+  def collectOutput(self, finishedjob, output):
+    """
+      Function that fills the computed data into the output dataObject
+      @ In, finishedJob, A JobHandler object that is in charge of running this post-processor
+      @ In, jobHandler, jobHandler object, jobhandler instance
+      @ Out, None
+    """
+    if finishedjob.returnEvaluation() == -1:
+      self.raiseAnError(RuntimeError, ' No available Output to collect (Run probably is not finished yet)')
+    evaluation = finishedjob.returnEvaluation()[1]
+    exportDict = {'inputSpaceParams':evaluation['data']['input'],'outputSpaceParams':evaluation['data']['output'],'metadata':evaluation['metadata']}
+
+    listInputParms   = output.getParaKeys('inputs')
+    listOutputParams = output.getParaKeys('outputs')
+
+    for hist in exportDict['inputSpaceParams']:
+      if type(exportDict['inputSpaceParams'].values()[0]).__name__ == "dict":
+        for key in listInputParms:
+          output.updateInputValue(key,exportDict['inputSpaceParams'][hist][key])
+        for key in listOutputParams:
+          output.updateOutputValue(key,exportDict['outputSpaceParams'][hist][key])
+        for key in exportDict['metadata'][0]:
+          output.updateMetadata(key,exportDict['metadata'][0][key])
+      else:
+        for key in exportDict['inputSpaceParams']:
+          if key in output.getParaKeys('inputs'):
+            output.updateInputValue(key,exportDict['inputSpaceParams'][key])
+        for key in exportDict['outputSpaceParams']:
+          if key in output.getParaKeys('outputs'):
+            output.updateOutputValue(key,exportDict['outputSpaceParams'][key])
+        for key in exportDict['metadata'][0]:
+          output.updateMetadata(key,exportDict['metadata'][0][key])
+
+
+  def inputToInternal(self,input):
+    """
+      Function to convert the received input into a format this object can
+      understand
+      @ In, input, dataObject, data object handed to the post-processor
+      @ Out, inputDict, dict, a dictionary this object can process
+    """
+    inputDict = {'data':{}, 'metadata':{}}
+    metadata = []
+    if type(input) == dict:
+      return input
+    else:
+      inputDict['data']['input']  = input[0].getInpParametersValues()
+      inputDict['data']['output'] = input[0].getOutParametersValues()
+    for item in input:
+      metadata.append(item.getAllMetadata())
+    metadata.append(item.getAllMetadata())
+    inputDict['metadata']=metadata
+    return inputDict
+
 #
 #
 #
@@ -1888,7 +2017,7 @@ class LimitSurface(BasePostProcessor):
       @ In, output: The object where we want to place our computed results
       @ Out, None
     """
-    if finishedjob.returnEvaluation() == -1: self.raiseAnError(RuntimeError, 'No available Output to collect (Run probabably is not finished yet)')
+    if finishedjob.returnEvaluation() == -1: self.raiseAnError(RuntimeError, 'No available Output to collect (Run probably is not finished yet)')
     self.raiseADebug(str(finishedjob.returnEvaluation()))
     limitSurf = finishedjob.returnEvaluation()[1]
     if limitSurf[0] is not None:
@@ -2756,6 +2885,7 @@ __interFaceDict['SafestPoint'              ] = SafestPoint
 __interFaceDict['LimitSurfaceIntegral'     ] = LimitSurfaceIntegral
 __interFaceDict['PrintCSV'                 ] = PrintCSV
 __interFaceDict['BasicStatistics'          ] = BasicStatistics
+__interFaceDict['InterfacedPostProcessor'  ] = InterfacedPostProcessor
 __interFaceDict['LoadCsvIntoInternalObject'] = LoadCsvIntoInternalObject
 __interFaceDict['LimitSurface'             ] = LimitSurface
 __interFaceDict['ComparisonStatistics'     ] = ComparisonStatistics
