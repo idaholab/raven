@@ -19,7 +19,7 @@
     </ExternalModel>
     <PostProcessor name="analyticalTest" subType="BasicStatistics" verbosity="debug">
       <what>all</what>
-      <parameters>x,y,x1,y1</parameters>
+      <parameters>x1,y1</parameters>
     </PostProcessor>
   </Models>
 
