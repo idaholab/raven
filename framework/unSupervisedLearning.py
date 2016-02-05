@@ -691,15 +691,16 @@ class temporalSciKitLearn(unSupervisedLearning):
           if 'labels' not in self.outputDict.keys(): self.outputDict['labels'] = {} # np.zeros(shape=(self.noSample,self.noTimeStep))
           self.outputDict['labels'][t] = self.SKLEngine.Method.labels_
           if t>0:
-            self.raiseADebug(self.SKLEngine.Method.labels_[1])
+#             self.raiseADebug(self.SKLEngine.Method.labels_[1])
             for n in range(len(self.outputDict['labels'][t])):
+#               pass
               self.outputDict['labels'][t][n] = remap[self.SKLEngine.Method.labels_[n]]
-            self.raiseADebug(remap)
-            self.raiseADebug(self.outputDict['labels'][t][1])
-            if t> 0 and not self.outputDict['labels'][t][1] == self.outputDict['labels'][t-1][1]:
-              self.raiseADebug(self.outputDict['labels'][t-1][1],self.outputDict['labels'][t][1])
-              self.raiseADebug(self.outputDict['clusterCenters'][t-1],self.outputDict['clusterCenters'][t])
-#               self.raiseAnError(IOError,'hhh')
+#             self.raiseADebug(remap)
+#             self.raiseADebug(self.outputDict['labels'][t][1])
+#             if t> 0 and not self.outputDict['labels'][t][1] == self.outputDict['labels'][t-1][1]:
+#               self.raiseADebug(self.outputDict['labels'][t-1][1],self.outputDict['labels'][t][1])
+#               self.raiseADebug(self.outputDict['clusterCenters'][t-1],self.outputDict['clusterCenters'][t])
+# #               self.raiseAnError(IOError,'hhh')
           
         if hasattr(self.SKLEngine, 'cluster_centers_indices_'):
           if 'clusterCentersIndices' not in self.outputDict.keys(): self.outputDict['clusterCentersIndices'] = {}
