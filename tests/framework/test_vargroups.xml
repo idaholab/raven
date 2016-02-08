@@ -7,14 +7,15 @@
   </RunInfo>
 
   <VariableGroups>
-      <Group name="x_group"    dependencies=""                >x1,x2,x3,x4,x5</Group>
-      <Group name="mix"        dependencies=""                >x1,x2,x3,y1</Group>
-      <Group name="y_group"    dependencies=""                >y1,y2,y3</Group>
-      <Group name="add_remove" dependencies="x_group"         base="x_group">-x2,-x4,+y2</Group>
-      <Group name="union"      dependencies="x_group,y_group" base="x_group">+y</Group>
-      <Group name="complement" dependencies="x_group,mix"     base="x_group">-xs</Group>
-      <Group name="intersect"  dependencies="x_group,mix"     base="x_group">^xs</Group>
-      <Group name="sym_diff"   dependencies="x_group,mix"     base="x_group">%xs</Group>
+      <Group name="x_odd"      dependencies=""                >x1,x3,x5</Group>
+      <Group name="x_even"     dependencies=""                >x2,x4,x6</Group>
+      <Group name="x_first"    dependencies=""                >x1,x2,x3</Group>
+      <Group name="y_group"    dependencies=""                >y1,y2</Group>
+      <Group name="add_remove" dependencies="x_first"         base="x_first">-x1,+ x4,+x5</Group>
+      <Group name="union"      dependencies="x_odd,x_even"    base="x_odd">+x_even</Group>
+      <Group name="complement" dependencies="x_odd,x_first"   base="x_odd">-x_first</Group>
+      <Group name="intersect"  dependencies="x_even,x_first"  base="x_even">^x_first</Group>
+      <Group name="sym_diff"   dependencies="x_odd,x_first"   base="x_odd">% x_first</Group>
   </VariableGroups>
 
   <Distributions>
@@ -45,26 +46,29 @@
       <variable name="x5">
         <distribution>NormDist</distribution>
       </variable>
+      <variable name="x6">
+        <distribution>NormDist</distribution>
+      </variable>
     </MonteCarlo>
   </Samplers>
 
   <Models>
     <Dummy name="MyDummy" subType=""/>
-    <ExternalModel ModuleToLoad="polynomial" name="polynomial" subType="">
-      <variable>x_group</variable>
+    <ExternalModel ModuleToLoad="extmod" name="extmod" subType="">
+      <variable>union</variable>
       <variable>y_group</variable>
     </ExternalModel>
     <ROM name="rom" subType="NDinvDistWeight">
-      <Target>x_group</Target>
+      <Target>x_first</Target>
       <Features>y_group</Features>
-      <p>2</p>
+      <p>3</p>
     </ROM>
   </Models>
 
   <Steps>
     <MultiRun name="sample">
       <Input class="DataObjects" type="PointSet">dummyIN</Input>
-      <Model class="Models" type="ExternalModel">sum</Model>
+      <Model class="Models" type="ExternalModel">extmod</Model>
       <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
       <Output class="DataObjects" type="PointSet">standard</Output>
       <Output class="DataObjects" type="PointSet">addrem</Output>
@@ -74,7 +78,7 @@
       <Output class="DataObjects" type="PointSet">sdiff</Output>
     </MultiRun>
     <RomTrainer name="train">
-      <Input class="DataObjects" type="PointSet">x_group</Input>
+      <Input class="DataObjects" type="PointSet">standard</Input>
       <Output class="Models" type="ROM">rom</Output>
     </RomTrainer>
     <MultiRun name="samprom">
@@ -102,14 +106,14 @@
   </Steps>
 
   <DataObjects>
-    <PointSet name="dummyIN" ><Input>x_group</Input>   <Output>OutputPlaceHolder</Output></PointSet>
-    <PointSet name="standard"><Input>x_group</Input>   <Output>y_group</Output></PointSet>
-    <PointSet name="romout"  ><Input>x_group</Input>   <Output>y_group</Output></PointSet>
-    <PointSet name="addrem"  ><Input>add_remove</Input><Output>OutputPlaceHolder</Output></PointSet>
-    <PointSet name="uni"     ><Input>union</Input>     <Output>OutputPlaceHolder</Output></PointSet>
-    <PointSet name="comp"    ><Input>complement</Input><Output>OutputPlaceHolder</Output></PointSet>
-    <PointSet name="intx"    ><Input>intersect</Input> <Output>OutputPlaceHolder</Output></PointSet>
-    <PointSet name="sdiff"   ><Input>sym_diff</Input>  <Output>OutputPlaceHolder</Output></PointSet>
+    <PointSet name="dummyIN" ><Input>union</Input>   <Output>OutputPlaceHolder</Output></PointSet>
+    <PointSet name="standard"><Input>union</Input>   <Output>y_group</Output></PointSet>
+    <PointSet name="romout"  ><Input>union</Input>   <Output>y_group</Output></PointSet>
+    <PointSet name="addrem"  ><Input>add_remove</Input><Output>y_group</Output></PointSet>
+    <PointSet name="uni"     ><Input>union</Input>     <Output>y_group</Output></PointSet>
+    <PointSet name="comp"    ><Input>complement</Input><Output>y_group</Output></PointSet>
+    <PointSet name="intx"    ><Input>intersect</Input> <Output>y_group</Output></PointSet>
+    <PointSet name="sdiff"   ><Input>sym_diff</Input>  <Output>y_group</Output></PointSet>
   </DataObjects>
 
   <OutStreamManager>

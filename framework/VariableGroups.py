@@ -88,15 +88,15 @@ class VariableGroup(BaseClasses.BaseType):
       modifiers = list(m.strip() for m in self._list)
       for mod in modifiers:
         #remove internal whitespace
-        mod.replace(' ','')
+        mod = mod.replace(' ','')
         #get operator and varname
         op = mod[0]
         varName = mod[1:]
         if op not in ['+','-','^','%']:
-          self.raiseAnError(IOError,'Unrecognized dependency operator:',op)
-        #if varName is another Group, we treat it differently than a variable
+          self.raiseAnError(IOError,'Unrecognized or missing dependency operator:',op,varName)
+        #if varName is a single variable, make it a set so it behaves like the rest
         if varName not in deps.keys():
-          modset = set(varName)
+          modset = set([varName])
         else:
           modset = deps[varName].getVars()
         if   op == '+': basevars.update(modset)

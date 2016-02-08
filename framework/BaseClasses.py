@@ -59,7 +59,7 @@ class BaseType(MessageHandler.MessageUser):
       if node.text is not None:
         stxt = node.text.strip()
         if stxt in variableGroups.keys():
-          node.text.replace(stxt,variableGroups[stxt].getVarsString())
+          node.text = node.text.replace(stxt,variableGroups[stxt].getVarsString())
           self.raiseADebug('Replaced text of <%s> with variable group "%s"' %(node.tag,stxt))
       for child in node:
         replaceVariableGroups(child)
