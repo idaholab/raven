@@ -7,7 +7,7 @@
   </RunInfo>
 
   <Steps>
-    <MultiRun name="make" verbosity="silent" sleepTime='1e-4'>
+    <MultiRun name="make" sleepTime="1e-4" verbosity="silent">
       <Input class="DataObjects" type="PointSet">dummyIN</Input>
       <Model class="Models" type="ExternalModel">poly</Model>
       <Sampler class="Samplers" type="AdaptiveSparseGrid">SG</Sampler>
@@ -54,10 +54,7 @@
   <Models>
     <Dummy name="MyDummy" print="true" subType=""/>
     <ExternalModel ModuleToLoad="polynomial" name="poly" subType="" verbosity="silent">
-      <variable>x1</variable>
-      <variable>x2</variable>
-      <variable>ans</variable>
-      <variable>ans2</variable>
+      <variables>x1,x2,ans,ans2</variables>
     </ExternalModel>
     <ROM name="rom" subType="GaussPolynomialRom" verbosity="silent">
       <Target>ans,ans2</Target>

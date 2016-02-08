@@ -12,26 +12,17 @@
 
   <Models>
     <ExternalModel ModuleToLoad="PCAReduction/lorentzAttractor_noK" name="PythonModule" subType="">
-      <variable>sigma</variable>
-      <variable>rho</variable>
-      <variable>beta</variable>
-      <variable>x</variable>
-      <variable>y</variable>
-      <variable>z</variable>
-      <variable>time</variable>
-      <variable>x0</variable>
-      <variable>y0</variable>
-      <variable>z0</variable>
+      <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0</variables>
     </ExternalModel>
   </Models>
 
   <Distributions>
-    <MultivariateNormal name='MultivariateNormalPCAReduction' method='pca'>
-        <transformation>
-            <rank>2</rank>
-        </transformation>
-        <mu>0.0 60.0 60.0</mu>
-        <covariance type="abs">
+    <MultivariateNormal method="pca" name="MultivariateNormalPCAReduction">
+      <transformation>
+        <rank>2</rank>
+      </transformation>
+      <mu>0.0 60.0 60.0</mu>
+      <covariance type="abs">
             1.0       0.8      -0.5
             0.8       1.0      0.3
             -0.5  0.3  0.8

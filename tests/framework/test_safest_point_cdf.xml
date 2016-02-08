@@ -110,10 +110,7 @@
 
   <Models>
     <ExternalModel ModuleToLoad="safest_point_test_xtr_mdl" name="xtr_mdl" subType="">
-      <variable>x1</variable>
-      <variable>x2</variable>
-      <variable>gammay</variable>
-      <variable>g</variable>
+      <variables>x1,x2,gammay,g</variables>
     </ExternalModel>
     <ROM name="accelerated_ROM" subType="SciKitLearn">
       <Features>x1,x2,gammay</Features>
