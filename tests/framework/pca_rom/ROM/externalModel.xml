@@ -1,4 +1,4 @@
-<?xml version="1.0" ?> 
+<?xml version="1.0" ?>
 <ExternalModel ModuleToLoad="Functions" name="PythonModule" subType="">
   <variable>x_0</variable>
   <variable>x_1</variable>
