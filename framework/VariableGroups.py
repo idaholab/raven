@@ -10,27 +10,32 @@ if not 'xrange' in dir(__builtins__):
 import sys
 import os
 import time
+import copy
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
 import utils
-import BaseClass
+import BaseClasses
 #Internal Modules End--------------------------------------------------------------------------------
 
 
-class VariableGroup(BaseClass):
+class VariableGroup(BaseClasses.BaseType):
   """
     Allows grouping of variables for ease of access
   """
-  def __init__(self,messageHandler):
+  def __init__(self):
     """
       Constructor
     """
-    self.messageHandler = messageHandler #message handling tool
-    self.name           = ''             #identifier
+    BaseClasses.BaseType.__init__(self)
+    self.printTag       = 'VariableGroup'
+    self._dependents    = []             #name of groups this group's construction is dependent on
+    self._base          = None           #if dependent, the name of base group to start from
+    self._list          = []             #text from node
     self.variables      = set()          #list of variable names
+    self.initialized    = False          #true when initialized
 
-  def readMoreXML(self,node):
+  def _readMoreXML(self,node):
     """
       reads XML for more information
       @ In, node, ET.Element, xml element to read data from
@@ -40,80 +45,91 @@ class VariableGroup(BaseClass):
     if 'name' not in node.attrib.keys():
       self.raiseAnError(IOError,'VariableGroups require a "name" attribute!')
     self.name = node.attrib['name']
-    #if a subset, figure that out
+    #dependents
+    deps = node.attrib.get('dependencies',None)
+    if deps is not None and len(deps)>0:
+      if 'base' not in node.attrib.keys():
+        self.raiseAnError(IOError,'VariableGroups with dependencies require a "base" group to start from!')
+      self._base = node.attrib.get('base')
+      self._dependents = list(g.strip() for g in deps.split(','))
+    self._list = node.text.split(',')
 
-  def intialize(self):
+  def initialize(self,varGroups):
     """
       Establish variable set.
       @ In, varGroups, list, VariableGroup classes
       @ Out, None
     """
-    self.variables = self.__listVars
+    if len(self._dependents)==0:
+      self.variables = set(l.strip() for l in self._list)
+    else:
+      #get base
+      base = None
+      for group in varGroups:
+        if group.name==self._base:
+          base = group
+          break
+      if base is None:
+        self.raiseAnError(IOError,'Base %s not found among variable groups!' %self._base)
+      #get dependencies
+      deps={}
+      for depName in self._dependents:
+        dep = None
+        for group in varGroups:
+          if group.name==depName:
+            dep = group
+            break
+        if dep is None:
+          self.raiseAnError(IOError,'Dependent %s not found among variable groups!' %depName)
+        deps[depName] = dep
+      #get base set
+      basevars = base.getVars()
+      #do modifiers to base
+      modifiers = list(m.strip() for m in self._list)
+      for mod in modifiers:
+        #remove internal whitespace
+        mod.replace(' ','')
+        #get operator and varname
+        op = mod[0]
+        varName = mod[1:]
+        if op not in ['+','-','^','%']:
+          self.raiseAnError(IOError,'Unrecognized dependency operator:',op)
+        #if varName is another Group, we treat it differently than a variable
+        if varName not in deps.keys():
+          modset = set(varName)
+        else:
+          modset = deps[varName].getVars()
+        if   op == '+': basevars.update(modset)
+        elif op == '-': basevars.difference_update(modset)
+        elif op == '^': basevars.intersection_update(modset)
+        elif op == '%': basevars.symmetric_difference_update(modset)
+        #set class variable
+      self.variables = basevars
+    self.initialized=True
 
-  def getVars(self,delim=','):
+  def getDependencies(self):
+    """
+      Returns list object of strings containing variable group names
+      @ In, None
+      @ Out, list(str), list of variable group names
+    """
+    return self._dependents[:]
+
+  def getVars(self):
+    """
+      Returns set object of strings containing variable names in group
+      @ In, None
+      @ Out, set(str), set of variable names
+    """
+    return self.variables.copy()
+
+  def getVarsString(self,delim=','):
     """
       Returns delim-separated list of variables in group
       @ In, delim, string, delimiter
     """
-    return ','.join(self.variables)
+    return ','.join(self.getVars())
 #
 #
 #
-#
-class Subset(VariableGroup):
-  """
-    Subset of a VariableGroup, only different in construction
-  """
-  def __init__(self,messageHandler):
-    """
-      Constructor
-    """
-    VariableGroup.__init__(self,messageHandler)
-    self.__supersetName = None           #name of set of whom this group is a subset, optional
-    self.__superset     = None           #set of whom this group is a subset, optional
-    self.__choice       = None           #method for constructing this subset, optional
-    self.__listVars     = None           #variables listed in input xml node
-
-  def readMoreXML(self,node):
-    """
-      reads XML for more information
-      @ In, node, ET.Element, xml element to read data from
-      @ Out, None
-    """
-    VariableGroup.readMoreXML(self,node)
-    if 'superset' not in node.attrib.keys():
-      self.raiseAnError(IOError,'No superset specified for subset variable group!')
-    if 'choice' not in node.attrib.keys():
-      self.raiseAnError(IOError,'No choice method specified for subset variable group!')
-    self.__supersetName = node.attrib['superset']
-    self.__choice       = node.attrib['choice']
-    if self.__choice not in ['include','exclude']:
-      self.raiseAnError(IOError,'Specified choice method not recognized:',self.__choice)
-    self.__listVars     = list(v.strip() for v in node.text.split(','))
-
-  def intialize(self,varGroups):
-    """
-      Establish variable set.
-      @ In, varGroups, list, VariableGroup classes
-      @ Out, None
-    """
-    #find superset
-    for group in varGroups:
-      if group.name == self.__supersetName:
-        self.__superset = group
-        break
-    if self.__superset is None:
-      self.raiseAnError(IOError,'No matching variable group found among Groups:',self.__supersetName)
-    #construct subset based on choice
-    if self.__choice == 'include': #note: this seems redundant with just making a new VariableGroup right now.  Does it have a use?
-      self.variables = self.__listVars
-    elif self.__choice == 'exclude':
-      self.variables = self.__superset.variables[:]
-      for v in self.__listVars:
-        while v in self.variables:
-          self.variables.remove(v)
-
-
-
-
-
+# end

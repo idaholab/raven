@@ -30,6 +30,7 @@ import Functions
 import OutStreamManager
 from JobHandler import JobHandler
 import MessageHandler
+import VariableGroups
 import utils
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -450,13 +451,35 @@ class Simulation(MessageHandler.MessageUser):
     try:    runInfoNode = xmlNode.find('RunInfo')
     except: self.raiseAnError(IOError,'The run info node is mandatory')
     self.__readRunInfo(runInfoNode,runInfoSkip,xmlFilename)
-    # expand variable groups
+    ### expand variable groups before continuing ###
+    ## build variable groups ##
     varGroupNode = xmlNode.find('VariableGroups')
-    varGroups=[]
+    varGroups={}
+    # init, read XML for variable groups
     if varGroupNode is not None:
       for child in varGroupNode:
-        if "name" not in child.attrib.keys(): self.raiseAnError(IOError,'VariableGroups each require a "name" attribute!')
+        varGroup = VariableGroups.VariableGroup()
+        varGroup.readXML(child,self.messageHandler)
+        varGroups[varGroup.name]=varGroup
+    # initialize independent variable groups
+    while any(not vg.initialized for vg in varGroups.values()):
+      numInit = 0 #new vargroups initialized this pass
+      for vg in varGroups.values():
+        if vg.initialized: continue
+        try: deps = list(varGroups[dp] for dp in vg.getDependencies())
+        except KeyError as e:
+          self.raiseAnError(IOError,'Dependency %s listed but not found in varGroups!' %e)
+        if all(varGroups[dp].initialized for dp in vg.getDependencies()):
+          vg.initialize(varGroups.values())
+          numInit+=1
+      if numInit == 0:
+        self.raiseAWarning('variable group status:')
+        for name,vg in varGroups.items():
+          self.raiseAWarning('   ',name,':',vg.initialized)
+        self.raiseAnError(RuntimeError,'There was an infinite loop building variable groups!')
+    # read other nodes
     for child in xmlNode:
+      if child.tag=='VariableGroups': continue #we did these before the for loop
       if child.tag in list(self.whichDict.keys()):
         self.raiseADebug('-'*2+' Reading the block: {0:15}'.format(str(child.tag))+2*'-')
         Class = child.tag
@@ -486,7 +509,7 @@ class Simulation(MessageHandler.MessageUser):
               #now we can read the info for this object
               #if globalAttributes and 'verbosity' in globalAttributes.keys(): localVerbosity = globalAttributes['verbosity']
               #else                                                      : localVerbosity = self.verbosity
-              if Class != 'OutStreamManager': self.whichDict[Class][name].readXML(childChild, self.messageHandler, globalAttributes=globalAttributes)
+              if Class != 'OutStreamManager': self.whichDict[Class][name].readXML(childChild, self.messageHandler, varGroups, globalAttributes=globalAttributes)
               else: self.whichDict[Class][subType][name].readXML(childChild, self.messageHandler, globalAttributes=globalAttributes)
             else: self.raiseAnError(IOError,'not found name attribute for one '+Class)
       else: self.raiseAnError(IOError,'the '+child.tag+' is not among the known simulation components '+ET.tostring(child))
