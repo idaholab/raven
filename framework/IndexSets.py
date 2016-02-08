@@ -127,24 +127,24 @@ class IndexSet(MessageHandler.MessageUser):
     """
     self.points.sort(key=operator.itemgetter(*range(len(self.points[0]))))
 
-  def initialize(self,distrList,impList,maxPolyOrder):
+  def initialize(self,features,impList,maxPolyOrder):
     """Initialize everything index set needs
-    @ In , distrList   , dictionary of {varName:Distribution}, distribution access
-    @ In , impList     , dictionary of {varName:float}, weights by dimension
-    @ In , maxPolyOrder, int, relative maximum polynomial order to be used for index set
+    @ In , features    , list(str)      , input parameters
+    @ In , impList     , dict{str:float}, weights by dimension
+    @ In , maxPolyOrder, int            , relative maximum polynomial order to be used for index set
     @ Out, None        , None
     """
-    numDim = len(distrList)
+    numDim = len(features)
     #set up and normalize weights
     #  this algorithm assures higher weight means more importance,
     #  and end product is normalized so smallest is 1
-    self.impWeights = np.array(list(impList[v] for v in distrList.keys()))
+    self.impWeights = np.array(list(impList[v] for v in features))
     self.impWeights/= np.max(self.impWeights)
     self.impWeights = 1.0/self.impWeights
     #establish max orders
     self.maxOrder=maxPolyOrder
     self.polyOrderList=[]
-    for distr in distrList.values():
+    for _ in features:
       self.polyOrderList.append(range(self.maxOrder+1))
 
   def generateMultiIndex(self,N,rule,I=None,MI=None):
@@ -171,14 +171,14 @@ class IndexSet(MessageHandler.MessageUser):
 
 class TensorProduct(IndexSet):
   """This Index Set requires only that the max poly order in the index point i is less than maxPolyOrder ( max(i)<=L )."""
-  def initialize(self,distrList,impList,maxPolyOrder):
+  def initialize(self,features,impList,maxPolyOrder):
     """Initialize everything index set needs
-    @ In , distrList   , dictionary of {varName:Distribution}, distribution access
-    @ In , impList     , dictionary of {varName:float}, weights by dimension
-    @ In , maxPolyOrder, int, relative maximum polynomial order to be used for index set
+    @ In , features    , list(str)      , input parameters
+    @ In , impList     , dict{str:float}, weights by dimension
+    @ In , maxPolyOrder, int            , relative maximum polynomial order to be used for index set
     @ Out, None        , None
     """
-    IndexSet.initialize(self,distrList,impList,maxPolyOrder)
+    IndexSet.initialize(self,features,impList,maxPolyOrder)
     self.type='Tensor Product'
     self.printTag='TensorProductIndexSet'
     target = sum(self.impWeights)/float(len(self.impWeights))*self.maxOrder
@@ -187,20 +187,20 @@ class TensorProduct(IndexSet):
       for j,p in enumerate(i):
         big=max(big,p*self.impWeights[j])
       return big <= target
-    self.points = self.generateMultiIndex(len(distrList),rule)
+    self.points = self.generateMultiIndex(len(features),rule)
 
 
 
 class TotalDegree(IndexSet):
   """This Index Set requires the sum of poly orders in the index point is less than maxPolyOrder ( sum(i)<=L )."""
-  def initialize(self,distrList,impList,maxPolyOrder):
+  def initialize(self,features,impList,maxPolyOrder):
     """Initialize everything index set needs
-    @ In , distrList   , dictionary of {varName:Distribution}, distribution access
-    @ In , impList     , dictionary of {varName:float}, weights by dimension
-    @ In , maxPolyOrder, int, relative maximum polynomial order to be used for index set
+    @ In , features    , list(str)      , input parameters
+    @ In , impList     , dict{str:float}, weights by dimension
+    @ In , maxPolyOrder, int            , relative maximum polynomial order to be used for index set
     @ Out, None        , None
     """
-    IndexSet.initialize(self,distrList,impList,maxPolyOrder)
+    IndexSet.initialize(self,features,impList,maxPolyOrder)
     self.type='Total Degree'
     self.printTag='TotalDegreeIndexSet'
     #TODO if user has set max poly orders (levels), make it so you never use more
@@ -211,20 +211,20 @@ class TotalDegree(IndexSet):
       for j,p in enumerate(i):
         tot+=p*self.impWeights[j]
       return tot<=target
-    self.points = self.generateMultiIndex(len(distrList),rule)
+    self.points = self.generateMultiIndex(len(features),rule)
 
 
 
 class HyperbolicCross(IndexSet):
   """This Index Set requires the product of poly orders in the index point is less than maxPolyOrder ( prod(i+1)<=L+1 )."""
-  def initialize(self,distrList,impList,maxPolyOrder):
+  def initialize(self,features,impList,maxPolyOrder):
     """Initialize everything index set needs
-    @ In , distrList   , dictionary of {varName:Distribution}, distribution access
-    @ In , impList     , dictionary of {varName:float}, weights by dimension
-    @ In , maxPolyOrder, int, relative maximum polynomial order to be used for index set
+    @ In , features    , list(str)      , input parameters
+    @ In , impList     , dict{str:float}, weights by dimension
+    @ In , maxPolyOrder, int            , relative maximum polynomial order to be used for index set
     @ Out, None        , None
     """
-    IndexSet.initialize(self,distrList,impList,maxPolyOrder)
+    IndexSet.initialize(self,features,impList,maxPolyOrder)
     self.type='Hyperbolic Cross'
     self.printTag='HyperbolicCrossIndexSet'
     #TODO if user has set max poly orders (levels), make it so you never use more
@@ -235,23 +235,23 @@ class HyperbolicCross(IndexSet):
       for e,val in enumerate(i):
         tot*=(val+1)**self.impWeights[e]
       return tot<=target
-    self.points = self.generateMultiIndex(len(distrList),rule)
+    self.points = self.generateMultiIndex(len(features),rule)
 
 
 
 class Custom(IndexSet):
   """User-based index set point choices"""
-  def initialize(self,distrList,impList,maxPolyOrder):
+  def initialize(self,features,impList,maxPolyOrder):
     """Initialize everything index set needs
-    @ In , distrList   , dictionary of {varName:Distribution}, distribution access
-    @ In , impList     , dictionary of {varName:float}, weights by dimension
-    @ In , maxPolyOrder, int, relative maximum polynomial order to be used for index set
+    @ In , features    , list(str)      , input parameters
+    @ In , impList     , dict{str:float}, weights by dimension
+    @ In , maxPolyOrder, int            , relative maximum polynomial order to be used for index set
     @ Out, None        , None
     """
-    IndexSet.initialize(self,distrList,impList,maxPolyOrder)
+    IndexSet.initialize(self,features,impList,maxPolyOrder)
     self.type     = 'Custom'
     self.printTag = 'CustomIndexSet'
-    self.N        = len(distrList)
+    self.N        = len(features)
     self.points   = []
 
   def setPoints(self,points):
@@ -282,17 +282,17 @@ class Custom(IndexSet):
 
 class AdaptiveSet(IndexSet):
   """Adaptive index set that can expand itself on call.  Used in conjunctoin with AdaptiveSparseGrid sampler."""
-  def initialize(self,distrList,impList,maxPolyOrder):
+  def initialize(self,features,impList,maxPolyOrder):
     """Initialize everything index set needs
-    @ In , distrList   , dictionary of {varName:Distribution}, distribution access
-    @ In , impList     , dictionary of {varName:float}, weights by dimension
-    @ In , maxPolyOrder, int, relative maximum polynomial order to be used for index set
+    @ In , features    , list(str)      , input parameters
+    @ In , impList     , dict{str:float}, weights by dimension
+    @ In , maxPolyOrder, int            , relative maximum polynomial order to be used for index set
     @ Out, None        , None
     """
-    IndexSet.initialize(self,distrList,impList,maxPolyOrder)
+    IndexSet.initialize(self,features,impList,maxPolyOrder)
     self.type     = 'Adaptive Index Set'
     self.printTag = self.type
-    self.N        = len(distrList)
+    self.N        = len(features)
     self.points   = [] #retained points in the index set
     #need 0, first-order polynomial in each dimension to start predictions
     firstpoint    = [0]*self.N #mean point polynomial
