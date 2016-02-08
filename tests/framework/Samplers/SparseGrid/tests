@@ -26,10 +26,11 @@
    input = 'test_index_custom.xml'
    csv = 'grid/Cdump.csv'
  [../]
- [./adaptiveGrid]
+ [./anisotropicGrid]
    type = 'RavenFramework'
-   input = 'test_index_adaptive.xml'
+   input = 'test_index_anisotropic.xml'
    csv = 'grid/Adump.csv'
+   UnorderedXML = 'grid/Adumprom.xml'
  [../]
 
  #ROM tests
