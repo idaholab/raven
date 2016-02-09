@@ -4025,7 +4025,7 @@ class Sobol(SparseGridCollocation):
         initDict['Target']     = SVL.target
         self.ROMs[name][combo] = SupervisedLearning.returnInstance('GaussPolynomialRom',self,**initDict)
         self.ROMs[name][combo].initialize(initializeDict)
-        self.ROMs[name][combo].setMessageHandler(self.messageHandler)
+        self.ROMs[name][combo].messageHandler = self.messageHandler
     #if restart, figure out what runs we need; else, all of them
     if self.restartData != None:
       inps = self.restartData.getInpParametersValues()
@@ -4712,7 +4712,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
                         'polys'    : polyDict,
                         'iSet'     : iset}
       self.ROMs[target][subset].initialize(initializeDict)
-      self.ROMs[target][subset].setMessageHandler(self.messageHandler)
+      self.ROMs[target][subset].messageHandler = self.messageHandler
       self.ROMs[target][subset].verbosity = verbosity
     #instantiate the shell ROM that contains the SVLs
     #   NOTE: the shell is only needed so we can call the train method with a data object.
