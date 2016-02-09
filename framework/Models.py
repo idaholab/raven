@@ -636,7 +636,7 @@ class ExternalModel(Dummy):
     # check if there are variables and, in case, load them
     for son in xmlNode:
       if son.tag=='variable':
-        self.raiseAWarning('"variable" node included but has been depreciated!  Please list variables in a "variables" node instead.  Remove this message by Dec 2016.')
+        self.raiseAnError(IOError,'"variable" node included but has been depreciated!  Please list variables in a "variables" node instead.  Remove this message by Dec 2016.')
       elif son.tag=='variables':
         if len(son.attrib.keys()) > 0: self.raiseAnError(IOError,'the block '+son.tag+' named '+son.text+' should not have attributes!!!!!')
         for var in son.text.split(','):

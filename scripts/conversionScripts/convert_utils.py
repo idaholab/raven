@@ -64,7 +64,11 @@ def standardMain(argv,convert):
   if '--tests' in argv:
     #get list of all 'tests' files
     import get_coverage_tests as gct
-    filelist = gct.returnTests()
+    fileDict = gct.getRegressionTests()
+    filelist = []
+    for dir,files in fileDict.items():
+      for f in files:
+        filelist.append(os.path.join(dir,f))
   else: #explicilty list files to run
     #remove the script name itself from the list
     filelist = argv[1:]
