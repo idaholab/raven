@@ -630,7 +630,7 @@ void AMSC<T>::ComputeMaximaPersistence(boost::numeric::ublas::matrix<int>
         //p should have the merging index in the first position and the parent
         // in the second
         int_pair p(e1,e2);
-        if( y(e1) > y(e2) )
+        if( y(e1) > y(e2) || (y(e1) == y(e2) && e1 > e2) )
         {
           p.first = e2;
           p.second = e1;
@@ -908,7 +908,7 @@ void AMSC<T>::ComputeMinimaPersistence(boost::numeric::ublas::matrix<int>
         //p should have the merging index in the first position and the parent
         // in the second
         int_pair p(e1,e2);
-        if( y(e1) < y(e2) )
+        if( y(e1) < y(e2) || (y(e1) == y(e2) && e1 < e2) )
         {
           p.first = e2;
           p.second = e1;
