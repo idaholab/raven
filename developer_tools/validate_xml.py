@@ -1,6 +1,6 @@
 import os,sys,subprocess
 import tempfile
-import get_cov2
+import get_coverage_tests
 
 scriptDir = os.path.dirname(os.path.abspath(__file__))
 conversionDir = os.path.join(scriptDir,'..','scripts','conversionScripts')
@@ -15,7 +15,7 @@ def validateTests():
     @ Out, None
   """
   print 'Beginning test validation...'
-  tests = get_cov2.getRegressionTests(skip_these='test_rom_trainer.xml',skipExpectedFails=True)
+  tests = get_coverage_tests.getRegressionTests(skip_these='test_rom_trainer.xml',skipExpectedFails=True)
   res=[0,0,0] #run, pass, fail
   failed={}
   for dir,files in tests.items():
