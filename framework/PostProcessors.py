@@ -1400,19 +1400,19 @@ class BasicStatistics(BasePostProcessor):
       result = np.median(arrayIn)
     return result
 
-  def run(self, InputIn):
+  def run(self, inputIn):
     """
      This method executes the postprocessor action. In this case, it computes all the requested statistical FOMs
-     @ In,  Input, object, object contained the data to process. (inputToInternal output)
+     @ In,  inputIn, object, object contained the data to process. (inputToInternal output)
      @ Out, dictionary, Dictionary containing the results
     """
-    Input = self.inputToInternal(InputIn)
+    input = self.inputToInternal(inputIn)
     outputDict = {}
     pbWeights, pbPresent  = {'realization':None}, False
     if self.externalFunction:
       # there is an external function
       for what in self.methodsToRun:
-        outputDict[what] = self.externalFunction.evaluate(what, Input['targets'])
+        outputDict[what] = self.externalFunction.evaluate(what, input['targets'])
         # check if "what" corresponds to an internal method
         if what in self.acceptedCalcParam:
           if what not in ['pearson', 'covariance', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity']:
@@ -1422,20 +1422,20 @@ class BasicStatistics(BasePostProcessor):
             if len(outputDict[what].shape) != 2:     self.raiseAnError(IOError, 'BasicStatistics postprocessor: You have overwritten the "' + what + '" method through an external function, it must be a 2D numpy.ndarray!!')
     # setting some convenience values
     parameterSet = list(set(list(self.parameters['targets'])))  # @Andrea I am using set to avoid the test: if targetP not in outputDict[what].keys()
-    if 'metadata' in Input.keys(): pbPresent = 'ProbabilityWeight' in Input['metadata'].keys() if 'metadata' in Input.keys() else False
+    if 'metadata' in input.keys(): pbPresent = 'ProbabilityWeight' in input['metadata'].keys() if 'metadata' in input.keys() else False
     if not pbPresent:
-      if 'metadata' in Input.keys():
-        if 'SamplerType' in Input['metadata'].keys():
-          if Input['metadata']['SamplerType'][0] != 'MC' : self.raiseAWarning('BasicStatistics postprocessor can not compute expectedValue without ProbabilityWeights. Use unit weight')
+      if 'metadata' in input.keys():
+        if 'SamplerType' in input['metadata'].keys():
+          if input['metadata']['SamplerType'][0] != 'MC' : self.raiseAWarning('BasicStatistics postprocessor can not compute expectedValue without ProbabilityWeights. Use unit weight')
         else: self.raiseAWarning('BasicStatistics can not compute expectedValue without ProbabilityWeights. Use unit weight')
-      pbWeights['realization'] = np.asarray([1.0 / len(Input['targets'][self.parameters['targets'][0]])]*len(Input['targets'][self.parameters['targets'][0]]))
-    else: pbWeights['realization'] = Input['metadata']['ProbabilityWeight']/np.sum(Input['metadata']['ProbabilityWeight'])
+      pbWeights['realization'] = np.asarray([1.0 / len(input['targets'][self.parameters['targets'][0]])]*len(input['targets'][self.parameters['targets'][0]]))
+    else: pbWeights['realization'] = input['metadata']['ProbabilityWeight']/np.sum(input['metadata']['ProbabilityWeight'])
 #   This section should take the probability weight for each sampling variable
     pbWeights['SampledVarsPbWeight'] = {'SampledVarsPbWeight':{}}
-    if 'metadata' in Input.keys():
+    if 'metadata' in input.keys():
       for target in parameterSet:
-        if 'ProbabilityWeight-'+target in Input['metadata'].keys():
-          pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target] = np.asarray(Input['metadata']['ProbabilityWeight-'+target])
+        if 'ProbabilityWeight-'+target in input['metadata'].keys():
+          pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target] = np.asarray(input['metadata']['ProbabilityWeight-'+target])
           pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target][:] = pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target][:]/np.sum(pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target])
     # if here because the user could have overwritten the method through the external function
     if 'expectedValue' not in outputDict.keys(): outputDict['expectedValue'] = {}
@@ -1443,8 +1443,8 @@ class BasicStatistics(BasePostProcessor):
     for myIndex, targetP in enumerate(parameterSet):
       if pbPresent: relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
       else        : relWeight  = None
-      if relWeight is None: outputDict['expectedValue'][targetP] = np.mean(Input['targets'][targetP])
-      else                : outputDict['expectedValue'][targetP] = np.average(Input['targets'][targetP], weights = relWeight)
+      if relWeight is None: outputDict['expectedValue'][targetP] = np.mean(input['targets'][targetP])
+      else                : outputDict['expectedValue'][targetP] = np.average(input['targets'][targetP], weights = relWeight)
       expValues[myIndex] = outputDict['expectedValue'][targetP]
     for what in self.what:
       if what not in outputDict.keys(): outputDict[what] = {}
@@ -1453,7 +1453,7 @@ class BasicStatistics(BasePostProcessor):
         for myIndex, targetP in enumerate(parameterSet):
           if pbPresent: relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
           else        : relWeight  = None
-          outputDict[what][targetP] = self._computeSigma(Input['targets'][targetP],expValues[myIndex],relWeight)
+          outputDict[what][targetP] = self._computeSigma(input['targets'][targetP],expValues[myIndex],relWeight)
           if (outputDict[what][targetP] == 0):
             self.raiseAWarning('The variable: ' + targetP + ' is not dispersed (sigma = 0)! Please check your input in PP: ' + self.name)
             outputDict[what][targetP] = np.Infinity
@@ -1462,7 +1462,7 @@ class BasicStatistics(BasePostProcessor):
         for myIndex, targetP in enumerate(parameterSet):
           if pbPresent: relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
           else        : relWeight  = None
-          outputDict[what][targetP] = self._computeVariance(Input['targets'][targetP],expValues[myIndex],pbWeight=relWeight)
+          outputDict[what][targetP] = self._computeVariance(input['targets'][targetP],expValues[myIndex],pbWeight=relWeight)
           if (outputDict[what][targetP] == 0):
             self.raiseAWarning('The variable: ' + targetP + ' has zero variance! Please check your input in PP: ' + self.name)
             outputDict[what][targetP] = np.Infinity
@@ -1471,7 +1471,7 @@ class BasicStatistics(BasePostProcessor):
         for myIndex, targetP in enumerate(parameterSet):
           if pbPresent: relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
           else        : relWeight  = None
-          sigma = self._computeSigma(Input['targets'][targetP],expValues[myIndex],relWeight)
+          sigma = self._computeSigma(input['targets'][targetP],expValues[myIndex],relWeight)
           if (outputDict['expectedValue'][targetP] == 0):
             self.raiseAWarning('Expected Value for ' + targetP + ' is zero! Variation Coefficient can not be calculated in PP: ' + self.name)
             outputDict['expectedValue'][targetP] = np.Infinity
@@ -1481,21 +1481,21 @@ class BasicStatistics(BasePostProcessor):
         for myIndex, targetP in enumerate(parameterSet):
           if pbPresent: relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
           else        : relWeight  = None
-          outputDict[what][targetP] = self._computeKurtosis(Input['targets'][targetP],expValues[myIndex],pbWeight=relWeight)
+          outputDict[what][targetP] = self._computeKurtosis(input['targets'][targetP],expValues[myIndex],pbWeight=relWeight)
       # skewness
       if what == 'skewness':
         for myIndex, targetP in enumerate(parameterSet):
           if pbPresent: relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
           else        : relWeight  = None
-          outputDict[what][targetP] = self._computeSkewness(Input['targets'][targetP],expValues[myIndex],pbWeight=relWeight)
+          outputDict[what][targetP] = self._computeSkewness(input['targets'][targetP],expValues[myIndex],pbWeight=relWeight)
       # median
       if what == 'median':
         if pbPresent:
           for targetP in parameterSet:
             relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
-            outputDict[what][targetP] = self._computeWeightedPercentile(Input['targets'][targetP],relWeight,percent=0.5)
+            outputDict[what][targetP] = self._computeWeightedPercentile(input['targets'][targetP],relWeight,percent=0.5)
         else:
-          for targetP in parameterSet: outputDict[what][targetP] = np.median(Input['targets'][targetP])
+          for targetP in parameterSet: outputDict[what][targetP] = np.median(input['targets'][targetP])
       # percentile
       if what.split("_")[0] == 'percentile':
         outputDict.pop(what)
@@ -1507,64 +1507,64 @@ class BasicStatistics(BasePostProcessor):
             if targetP not in outputDict[whatPerc].keys() :
               if pbPresent: relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
               integerPercentile             = utils.intConversion(whatPerc.split("_")[-1].replace("%",""))
-              outputDict[whatPerc][targetP] = np.percentile(Input['targets'][targetP], integerPercentile) if not pbPresent else self._computeWeightedPercentile(Input['targets'][targetP],relWeight,percent=float(integerPercentile)/100.0)
+              outputDict[whatPerc][targetP] = np.percentile(input['targets'][targetP], integerPercentile) if not pbPresent else self._computeWeightedPercentile(input['targets'][targetP],relWeight,percent=float(integerPercentile)/100.0)
       # cov matrix
       if what == 'covariance':
-        feat = np.zeros((len(Input['targets'].keys()), utils.first(Input['targets'].values()).size))
-        pbWeightsList = [None]*len(Input['targets'].keys())
+        feat = np.zeros((len(input['targets'].keys()), utils.first(input['targets'].values()).size))
+        pbWeightsList = [None]*len(input['targets'].keys())
         for myIndex, targetP in enumerate(parameterSet):
-          feat[myIndex, :] = Input['targets'][targetP][:]
+          feat[myIndex, :] = input['targets'][targetP][:]
           pbWeightsList[myIndex] = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
         pbWeightsList.append(pbWeights['realization'])
         outputDict[what] = self.covariance(feat, weights = pbWeightsList)
       # pearson matrix
       if what == 'pearson':
-        feat          = np.zeros((len(Input['targets'].keys()), utils.first(Input['targets'].values()).size))
-        pbWeightsList = [None]*len(Input['targets'].keys())
+        feat          = np.zeros((len(input['targets'].keys()), utils.first(input['targets'].values()).size))
+        pbWeightsList = [None]*len(input['targets'].keys())
         for myIndex, targetP in enumerate(parameterSet):
-          feat[myIndex, :] = Input['targets'][targetP][:]
+          feat[myIndex, :] = input['targets'][targetP][:]
           pbWeightsList[myIndex] = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
         outputDict[what] = self.corrCoeff(feat, weights = pbWeightsList)  # np.corrcoef(feat)
       # sensitivity matrix
       if what == 'sensitivity':
         for myIndex, target in enumerate(parameterSet):
-          values, targetCoefs = list(Input['targets'].values()), list(Input['targets'].keys())
-          values.pop(list(Input['targets'].keys()).index(target)), targetCoefs.pop(list(Input['targets'].keys()).index(target))
+          values, targetCoefs = list(input['targets'].values()), list(input['targets'].keys())
+          values.pop(list(input['targets'].keys()).index(target)), targetCoefs.pop(list(input['targets'].keys()).index(target))
           sampledMatrix = np.atleast_2d(np.asarray(values)).T
-          regressorsByTarget = dict(zip(targetCoefs, LinearRegression().fit(sampledMatrix, Input['targets'][target]).coef_))
+          regressorsByTarget = dict(zip(targetCoefs, LinearRegression().fit(sampledMatrix, input['targets'][target]).coef_))
           regressorsByTarget[target] = 1.0
           outputDict[what][myIndex] = np.zeros(len(parameterSet))
           for cnt, param in enumerate(parameterSet): outputDict[what][myIndex][cnt] = regressorsByTarget[param]
-          # to avoid numerical instabilities
       # VarianceDependentSensitivity matrix
       if what == 'VarianceDependentSensitivity':
-        feat = np.zeros((len(Input['targets'].keys()), utils.first(Input['targets'].values()).size))
-        pbWeightsList = [None]*len(Input['targets'].keys())
-        for myIndex, targetP in enumerate(parameterSet): feat[myIndex, :], pbWeightsList[myIndex] = Input['targets'][targetP][:], pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
+        feat = np.zeros((len(input['targets'].keys()), utils.first(input['targets'].values()).size))
+        pbWeightsList = [None]*len(input['targets'].keys())
+        for myIndex, targetP in enumerate(parameterSet): feat[myIndex, :], pbWeightsList[myIndex] = input['targets'][targetP][:], pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
         pbWeightsList.append(pbWeights['realization'])
         covMatrix = self.covariance(feat, weights = pbWeightsList)
         variance = np.zeros(len(list(parameterSet)))
         for myIndex, targetP in enumerate(parameterSet):
           relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
-          variance[myIndex] = self._computeVariance(Input['targets'][targetP],expValues[myIndex],pbWeight=relWeight)
+          variance[myIndex] = self._computeVariance(input['targets'][targetP],expValues[myIndex],pbWeight=relWeight)
         for myIndex in range(len(parameterSet)):
           if (variance[myIndex] == 0):
              self.raiseAWarning('Variance for the parameter: ' + parameterSet[myIndex] + ' is zero!...in PP: ' + self.name)
              variance[myIndex] = np.Infinity
+          inverseCov
           outputDict[what][myIndex] = covMatrix[myIndex, :] / variance[:]
       # Normalized sensitivity matrix: linear regression slopes normalized by the mean (% change)/(% change)
       if what == 'NormalizedSensitivity':
-        feat = np.zeros((len(Input['targets'].keys()), utils.first(Input['targets'].values()).size))
-        pbWeightsList = [None]*len(Input['targets'].keys())
+        feat = np.zeros((len(input['targets'].keys()), utils.first(input['targets'].values()).size))
+        pbWeightsList = [None]*len(input['targets'].keys())
         for myIndex, targetP in enumerate(parameterSet):
-          feat[myIndex, :] = Input['targets'][targetP][:]
+          feat[myIndex, :] = input['targets'][targetP][:]
           pbWeightsList[myIndex] = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
         pbWeightsList.append(pbWeights['realization'])
         covMatrix = self.covariance(feat, weights = pbWeightsList)
         variance = np.zeros(len(list(parameterSet)))
         for myIndex, targetP in enumerate(parameterSet):
           relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
-          variance[myIndex] = self._computeVariance(Input['targets'][targetP],expValues[myIndex],pbWeight=relWeight)
+          variance[myIndex] = self._computeVariance(input['targets'][targetP],expValues[myIndex],pbWeight=relWeight)
           if (variance[myIndex] is 0):
             self.raiseAWarning('Variance for the parameter: ' + parameterSet[myIndex] + ' is zero!...in PP: ' + self.name)
             variance[myIndex] = np.Infinity
