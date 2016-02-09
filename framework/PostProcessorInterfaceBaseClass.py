@@ -25,17 +25,17 @@ class PostProcessorInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object),Mess
       - run
       - readMoreXML
   """
-  
+
   def __init__(self, messageHandler):
     """
      Constructor
      @ In, messageHandler, message handler object
     """
-    self.type = self.__class__.__name__  
+    self.type = self.__class__.__name__
     self.name = self.__class__.__name__
     self.messageHandler = messageHandler
-    
-    
+
+
   def initialize(self):
     """
      Method to initialize the Interfaced Post-processor. Note that the user needs to specify two mandatory variables:
@@ -47,7 +47,7 @@ class PostProcessorInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object),Mess
      @ In, None,
 
     """
-    
+
     self.inputFormat  = None
     self.outputFormat = None
 
@@ -127,8 +127,8 @@ class PostProcessorInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object),Mess
     else:
       outcome = False
     return outcome
-  
-  
+
+
   def checkArrayMonotonicity(time):
     """
      This method checks that an array is increasing monotonically
@@ -140,6 +140,6 @@ class PostProcessorInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object),Mess
       if t != 0:
         if time[t] > time[t-1]:
           outcome = outcome and True
-        else: 
+        else:
           outcome = outcome and False
     return outcome

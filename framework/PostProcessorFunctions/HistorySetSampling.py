@@ -170,9 +170,9 @@ class HistorySetSampling(PostProcessorInterfaceBase):
 
     newTime = np.zeros(self.numberOfSamples)
     cumDerivative = np.zeros(var[self.timeID].size)
-    
+
     normalizedVar = {}
-    
+
     # data normalization
     for keys in var.keys():
       if keys != self.timeID:

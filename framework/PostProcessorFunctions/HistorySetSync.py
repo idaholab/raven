@@ -27,7 +27,7 @@ class HistorySetSync(PostProcessorInterfaceBase):
    @ Out: outputDict
   """
 
-  def initialize(self):
+  def initialize(self, numberOfSamples=None, timeID=None, extension=None):
     """
      Method to initialize the Interfaced Post-processor
      @ In, None,
@@ -37,10 +37,11 @@ class HistorySetSync(PostProcessorInterfaceBase):
     PostProcessorInterfaceBase.initialize(self)
     self.inputFormat  = 'HistorySet'
     self.outputFormat = 'HistorySet'
+
+    self.numberOfSamples = numberOfSamples
+    self.timeID          = timeID
+    self.extension       = extension
     
-    self.numberOfSamples = None
-    self.timeID          = None
-    self.interpolation   = None
 
   def readMoreXML(self,xmlNode):
     """
@@ -57,15 +58,15 @@ class HistorySetSync(PostProcessorInterfaceBase):
         self.extension = child.text
       elif child.tag !='method':
         self.raiseAnError(IOError, 'HistorySetSync Interfaced Post-Processor ' + str(self.name) + ' : XML node ' + str(child) + ' is not recognized')
-    
+
     if not isinstance(self.numberOfSamples, int):
       self.raiseAnError(IOError, 'HistorySetSync Interfaced Post-Processor ' + str(self.name) + ' : number of samples is not correctly specified (either not specified or not integer)')
     if self.timeID == None:
       self.raiseAnError(IOError, 'HistorySetSync Interfaced Post-Processor ' + str(self.name) + ' : timeID is not specified')
     if self.extension == None or not (self.extension == 'zeroed' or self.extension == 'extended'):
       self.raiseAnError(IOError, 'HistorySetSync Interfaced Post-Processor ' + str(self.name) + ' : extension type is not correctly specified (either not specified or not one of its possible allowed values: zeroed or extended)')
-    
-    
+
+
   def run(self,inputDic):
     """
     This method is transparent: it passes the inputDic directly as output
@@ -75,20 +76,20 @@ class HistorySetSync(PostProcessorInterfaceBase):
     outputDic['data'] = {}
     outputDic['data']['input'] = copy.deepcopy(inputDic['data']['input'])
     outputDic['data']['output'] = {}
-    
+
     maxEndTime = []
     minInitTime = []
     for hist in inputDic['data']['output']:
       maxEndTime.append(inputDic['data']['output'][hist][self.timeID][-1])
       minInitTime.append(inputDic['data']['output'][hist][self.timeID][0])
-    maxTime = max(maxEndTime)  
+    maxTime = max(maxEndTime)
     minTime = min(minInitTime)
-    
+
     newTime = np.linspace(minTime,maxTime,self.numberOfSamples)
-    
+
     for hist in inputDic['data']['output']:
-      outputDic['data']['output'][hist] = self.resampleHist(inputDic['data']['output'][hist],newTime)      
-      
+      outputDic['data']['output'][hist] = self.resampleHist(inputDic['data']['output'][hist],newTime)
+
     return outputDic
 
 
@@ -98,27 +99,27 @@ class HistorySetSync(PostProcessorInterfaceBase):
       if key != self.timeID:
         newVars[key]=np.zeros(newTime.size)
         pos=0
-        for newT in newTime:  
-          if newT<vars[self.timeID][0]: 
+        for newT in newTime:
+          if newT<vars[self.timeID][0]:
             if self.extension == 'extended':
-              newVars[key][pos] = vars[key][0] 
+              newVars[key][pos] = vars[key][0]
             elif self.extension == 'zeroed':
               newVars[key][pos] = 0.0
           elif newT>vars[self.timeID][-1]:
             if self.extension == 'extended':
-              newVars[key][pos] = vars[key][-1]             
+              newVars[key][pos] = vars[key][-1]
             elif self.extension == 'zeroed':
               newVars[key][pos] = 0.0
           else:
             index = np.searchsorted(vars[self.timeID],newT)
-            newVars[key][pos] = vars[key][index-1] + (vars[key][index]-vars[key][index-1])/(vars[self.timeID][index]-vars[self.timeID][index-1])*(newT-vars[self.timeID][index-1]) 
+            newVars[key][pos] = vars[key][index-1] + (vars[key][index]-vars[key][index-1])/(vars[self.timeID][index]-vars[self.timeID][index-1])*(newT-vars[self.timeID][index-1])
           pos=pos+1
-    
-    newVars[self.timeID] = copy.deepcopy(newTime)
-    return newVars 
-     
 
-      
-    
-    
-       
+    newVars[self.timeID] = copy.deepcopy(newTime)
+    return newVars
+
+
+
+
+
+

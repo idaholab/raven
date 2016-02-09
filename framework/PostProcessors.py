@@ -907,7 +907,7 @@ class InterfacedPostProcessor(BasePostProcessor):
     if self.postProcessor.outputFormat not in set(['HistorySet','History','PointSet','Point']):
       self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.outputFormat not correctly initialized')
     self.postProcessor.readMoreXML(xmlNode)
- 
+
 
   def run(self, InputIn):
     """
@@ -955,7 +955,7 @@ class InterfacedPostProcessor(BasePostProcessor):
             if key in output.getParaKeys('outputs'):
               output.updateOutputValue(key,exportDict['outputSpaceParams'][key])
           for key in exportDict['metadata'][0]:
-            output.updateMetadata(key,exportDict['metadata'][0][key])          
+            output.updateMetadata(key,exportDict['metadata'][0][key])
     elif output.type == 'PointSet':
       for key in exportDict['inputSpaceParams']:
         if key in output.getParaKeys('inputs'):
@@ -966,7 +966,7 @@ class InterfacedPostProcessor(BasePostProcessor):
           for value in exportDict['outputSpaceParams'][key]:
             output.updateOutputValue(key,value)
       for key in exportDict['metadata'][0]:
-        output.updateMetadata(key,exportDict['metadata'][0][key])       
+        output.updateMetadata(key,exportDict['metadata'][0][key])
 
   def inputToInternal(self,input):
     """
