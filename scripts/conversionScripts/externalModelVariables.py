@@ -11,23 +11,27 @@ def convert(tree,fileName=None):
     @Out, tree, xml.etree.ElementTree.ElementTree object, the modified RAVEN input file
   """
   simulation = tree.getroot()
-  if simulation.tag!='Simulation': return tree #this isn't an input file
-  models = simulation.find('Models')
-  if models is not None:
-    extmod = models.find('ExternalModel')
-    if extmod is not None:
-      vars = []
-      toRemove = []
-      for child in extmod:
-        if child.tag=='variable':
-          vars.append(child.text)
-          toRemove.append(child)
-      for child in toRemove:
-        extmod.remove(child)
-      if len(vars)>0:
-        variables = ET.Element('variables')
-        extmod.append(variables)
-        variables.text = ','.join(vars)
+  if simulation.tag!='Simulation' and simulation.tag!='ExternalModel': return tree #this isn't an input file
+  extmod = None
+  if simulation.tag=='Simulation':
+    models = simulation.find('Models')
+    if models is not None:
+      extmod = models.find('ExternalModel')
+  elif simulation.tag=='ExternalModel': #externalNode case
+    extmod = simulation
+  if extmod is not None:
+    vars = []
+    toRemove = []
+    for child in extmod:
+      if child.tag=='variable':
+        vars.append(child.text)
+        toRemove.append(child)
+    for child in toRemove:
+      extmod.remove(child)
+    if len(vars)>0:
+      variables = ET.Element('variables')
+      extmod.append(variables)
+      variables.text = ','.join(vars)
   return tree
 
 
