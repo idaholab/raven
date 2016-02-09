@@ -15,7 +15,7 @@ def validateTests():
     @ Out, None
   """
   print 'Beginning test validation...'
-  tests = get_coverage_tests.getRegressionTests(skip_these='test_rom_trainer.xml',skipExpectedFails=True)
+  tests = get_coverage_tests.getRegressionTests(skipThese=['test_rom_trainer.xml'],skipExpectedFails=True)
   res=[0,0,0] #run, pass, fail
   failed={}
   for dir,files in tests.items():
