@@ -169,5 +169,7 @@ class GenericParser():
     #now just write the files.
     for f,inFile in enumerate(origFiles):
       outfile = inFiles[f]
+      if outfile.isOpen(): outfile.close()
+      outfile.open('w')
       outfile.writelines(''.join(self.segments[inFile.getFilename()]))
       outfile.close()

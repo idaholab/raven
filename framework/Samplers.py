@@ -125,7 +125,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self._endJobRunnable               = sys.maxsize               # max number of inputs creatable by the sampler right after a job ends (e.g., infinite for MC, 1 for Adaptive, etc)
 
     ######
-    self.variables2distributionsMapping = {}                       # for each variable 'varName'  , the following informations are included:  'varName': {'dim': 1, 'totDim': 2, 'name': 'distName'} ; dim = dimension of the variable; totDim = total dimensionality of its associated distribution
+    self.variables2distributionsMapping = {}                       # for each variable 'varName'  , the following informations are included:  'varName': {'dim': 1, 'reducedTotDim': 2,'totDim': 2, 'name': 'distName'} ; dim = dimension of the variable; reducedTotDim = the total dimensionality in the transformed space; totDim = total dimensionality of its associated distribution
     self.distributions2variablesMapping = {}                       # for each variable 'distName' , the following informations are included: 'distName': [{'var1': 1}, {'var2': 2}]} where for each var it is indicated the var dimension
     self.NDSamplingParams               = {}                       # this dictionary contains a dictionary for each ND distribution (key). This latter dictionary contains the initialization parameters of the ND inverseCDF ('initialGridDisc' and 'tolerance')
     ######
@@ -278,12 +278,16 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       for var in listvar:
         if utils.first(var.values()) > maxDim:
           maxDim = utils.first(var.values())
-      self.variables2distributionsMapping[key]['totDim'] = maxDim #len(self.distributions2variablesMapping[self.variables2distributionsMapping[key]['name']])
+      self.variables2distributionsMapping[key]['reducedTotDim'] = maxDim #Dim for the parameters in the reduced space
+      self.variables2distributionsMapping[key]['totDim'] = maxDim # We will reset the value if the node <variablesTransformation> exist in the raven input file
 
     #Checking the variables transformation
     if self.variablesTransformationDict:
       for key,varsDict in self.variablesTransformationDict.items():
+        maxDim = len(varsDict['manifestVariables'])
         listLatentElement = varsDict['latentVariables']
+        for varName in listLatentElement:
+          self.variables2distributionsMapping[varName]['totDim'] = maxDim #reset the totDim to reflect the totDim of original input space
         varName = [variables for variables in self.variables2distributionsMapping.keys() if listLatentElement[0] in set(variables.strip().split(','))]
         if varName:
           distName = self.variables2distributionsMapping[varName[0]]['name']
@@ -292,8 +296,8 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         listElement = self.distributions2variablesMapping[distName]
         totDim = 1
         for var in listElement:
-          if var.values()[0] > totDim:
-            totDim = var.values()[0]
+          if utils.first(var.values()) > totDim:
+            totDim = utils.first(var.values())
         maxDim = len(listLatentElement)
         if totDim != maxDim: self.raiseAnError(IOError,'The maximum dim = ' + str(totDim) + ' is not consistnet with the dimension (i.e. ' + str(maxDim) +') of latent variable')
         tempListElement = {k:v for x in listElement for k,v in x.items()}
@@ -1331,7 +1335,8 @@ class MonteCarlo(Sampler):
         if dim == 1:
           rvsnum = self.distDict[key].rvs()
           coordinate = np.atleast_1d(rvsnum).tolist()
-          if len(coordinate) < totDim: self.raiseAnError(IOError,"The maximum dimension defined for variables drew the multivariate normal distribution is exceed the dimension used in Distribution (MultivariateNormal) ")
+          reducedTotDim = self.variables2distributionsMapping[key]['reducedTotDim']
+          if reducedTotDim > len(coordinate): self.raiseAnError(IOError,"The maximum dimension defined for variables drew from the multivariate normal distribution is exceeded by the dimension used in Distribution (MultivariateNormal) ")
           probabilityValue = self.distDict[key].pdf(coordinate)
           self.inputInfo['SampledVarsPb'][key] = probabilityValue
           for var in self.distributions2variablesMapping[dist]:
@@ -1481,24 +1486,34 @@ class Grid(Sampler):
           else:
             if self.gridInfo[varName]=='CDF':
               if coordinatesPlusOne[varName] != sys.maxsize and coordinatesMinusOne[varName] != -sys.maxsize:
-                self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(coordinatesPlusOne[varName]))/2.0) - self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(coordinatesMinusOne[varName]))/2.0)
-                weight *= self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(coordinatesPlusOne[varName]))/2.0) - self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(coordinatesMinusOne[varName]))/2.0)
+                midPlusCDF   = (coordinatesPlusOne[varName]+self.distDict[varName].cdf(self.values[key]))/2.0
+                midMinusCDF  = (coordinatesMinusOne[varName]+self.distDict[varName].cdf(self.values[key]))/2.0
+                self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = midPlusCDF - midMinusCDF
+                weight *= midPlusCDF - midMinusCDF
               if coordinatesMinusOne[varName] == -sys.maxsize:
-                self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(coordinatesPlusOne[varName]))/2.0) - self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(0))/2.0)
-                weight *= self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(coordinatesPlusOne[varName]))/2.0) - self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(0))/2.0)
+                midPlusCDF   = (coordinatesPlusOne[varName]+self.distDict[varName].cdf(self.values[key]))/2.0
+                midMinusCDF  = 0.0
+                self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = midPlusCDF - midMinusCDF
+                weight *= midPlusCDF - midMinusCDF
               if coordinatesPlusOne[varName] == sys.maxsize:
-                self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(1))/2.0) - self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(coordinatesMinusOne[varName]))/2.0)
-                weight *= self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(1))/2.0) - self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(coordinatesMinusOne[varName]))/2.0)
+                midPlusCDF   = 1.0
+                midMinusCDF  = (coordinatesMinusOne[varName]+self.distDict[varName].cdf(self.values[key]))/2.0
+                self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = midPlusCDF - midMinusCDF
+                weight *= midPlusCDF - midMinusCDF
             else:   # Value
               if coordinatesPlusOne[varName] != sys.maxsize and coordinatesMinusOne[varName] != -sys.maxsize:
-                weight *= self.distDict[varName].cdf((self.values[key]+coordinatesPlusOne[varName])/2.0) -self.distDict[varName].cdf((self.values[key]+coordinatesMinusOne[varName])/2.0)
-                self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.distDict[varName].cdf((self.values[key]+coordinatesPlusOne[varName])/2.0) -self.distDict[varName].cdf((self.values[key]+coordinatesMinusOne[varName])/2.0)
+                midPlusValue   = (self.values[key]+coordinatesPlusOne[varName])/2.0
+                midMinusValue  = (self.values[key]+coordinatesMinusOne[varName])/2.0
+                weight *= self.distDict[varName].cdf(midPlusValue) - self.distDict[varName].cdf(midMinusValue)
+                self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.distDict[varName].cdf(midPlusValue) - self.distDict[varName].cdf(midMinusValue)
               if coordinatesMinusOne[varName] == -sys.maxsize:
-                weight *= self.distDict[varName].cdf((self.values[key]+coordinatesPlusOne[varName])/2.0) -self.distDict[varName].cdf((self.values[key]+self.distDict[varName].lowerBound)/2.0)
-                self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.distDict[varName].cdf((self.values[key]+coordinatesPlusOne[varName])/2.0) -self.distDict[varName].cdf((self.values[key]+self.distDict[varName].lowerBound)/2.0)
+                midPlusValue   = (self.values[key]+coordinatesPlusOne[varName])/2.0
+                self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.distDict[varName].cdf(midPlusValue) - 0.0
+                weight *= self.distDict[varName].cdf(midPlusValue) - 0.0
               if coordinatesPlusOne[varName] == sys.maxsize:
-                weight *= self.distDict[varName].cdf((self.values[key]+self.distDict[varName].upperBound)/2.0) -self.distDict[varName].cdf((self.values[key]+coordinatesMinusOne[varName])/2.0)
-                self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.distDict[varName].cdf((self.values[key]+self.distDict[varName].upperBound)/2.0) -self.distDict[varName].cdf((self.values[key]+coordinatesMinusOne[varName])/2.0)
+                midMinusValue  = (self.values[key]+coordinatesMinusOne[varName])/2.0
+                self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = 1.0 - self.distDict[varName].cdf(midMinusValue)
+                weight *= 1.0 - self.distDict[varName].cdf(midMinusValue)
         # ND variable
         else:
           if self.variables2distributionsMapping[varName]['dim']==1:    # to avoid double count of weight for ND distribution; I need to count only one variable instaed of N
@@ -3224,7 +3239,7 @@ class SparseGridCollocation(Grid):
 
     self.raiseADebug('Starting index set generation...')
     self.indexSet = IndexSets.returnInstance(SVL.indexSetType,self)
-    self.indexSet.initialize(self.dists,self.importanceDict,self.maxPolyOrder)
+    self.indexSet.initialize(self.features,self.importanceDict,self.maxPolyOrder)
     if self.indexSet.type=='Custom':
       self.indexSet.setPoints(SVL.indexSetVals)
 
@@ -3485,7 +3500,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     #create the index set
     self.raiseADebug('Starting index set generation...')
     self.indexSet = IndexSets.returnInstance('AdaptiveSet',self)
-    self.indexSet.initialize(self.dists,self.importanceDict,self.maxPolyOrder)
+    self.indexSet.initialize(self.features,self.importanceDict,self.maxPolyOrder)
     for pt in self.indexSet.active:
       self.inTraining.add(pt)
       for t in self.targets:
@@ -3793,7 +3808,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     """
     sparseGrid = Quadratures.SparseQuad()
     iset = IndexSets.returnInstance('Custom',self)
-    iset.initialize(self.dists,self.importanceDict,self.maxPolyOrder)
+    iset.initialize(self.features,self.importanceDict,self.maxPolyOrder)
     iset.setPoints(self.indexSet.points)
     iset.addPoints(points)
     sparseGrid.initialize(self.features,iset,self.dists,self.quadDict,self.jobHandler,self.messageHandler)
@@ -3992,7 +4007,7 @@ class Sobol(SparseGridCollocation):
         polyDict[c]=self.polyDict[c]
         imptDict[c]=self.importanceDict[c]
       iset=IndexSets.returnInstance(SVL.indexSetType,self)
-      iset.initialize(distDict,imptDict,SVL.maxPolyOrder)
+      iset.initialize(combo,imptDict,SVL.maxPolyOrder)
       self.SQs[combo] = Quadratures.SparseQuad()
       self.SQs[combo].initialize(combo,iset,distDict,quadDict,self.jobHandler,self.messageHandler)
       # initDict is for SVL.__init__()
@@ -4680,7 +4695,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
       imptDict[c] = self.importanceDict[c]
     #instantiate an adaptive index set for this ROM
     iset = IndexSets.returnInstance('AdaptiveSet',self)
-    iset.initialize(distDict,imptDict,self.maxPolyOrder)
+    iset.initialize(subset,imptDict,self.maxPolyOrder)
     iset.verbosity=verbosity
     #instantiate a sparse grid quadrature
     self.SQs[subset] = Quadratures.SparseQuad()
