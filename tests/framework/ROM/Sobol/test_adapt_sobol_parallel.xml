@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="all">
   <RunInfo>
-    <WorkingDir>AdaptSobol</WorkingDir>
+    <WorkingDir>AdaptSobolParallel</WorkingDir>
     <Sequence>make,train,print</Sequence>
     <batchSize>8</batchSize>
     <internalParallel>True</internalParallel>
