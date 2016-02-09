@@ -8,7 +8,7 @@ SCRIPT_DIR=`(cd $SCRIPT_DIRNAME; pwd)`
 
 ORIGPYTHONPATH="$PYTHONPATH"
 
-maxlen=$(($(tput cols) < 100 ? $(tput cols) : 100))
+maxlen=$(($(tput cols) < 126 ? $(tput cols) : 126))
 
 # Not Mac-compatible:
 #TEST_DIRS="${SCRIPT_DIR}/../tests/cluster_tests "`find ${SCRIPT_DIR}/../tests/framework -name tests -printf "%h\n"`
@@ -24,10 +24,12 @@ passed_tests=0
 
 CONVERSION_SCRIPT_DIR="${SCRIPT_DIR}/../scripts/conversionScripts"
 
-for testdir in ${TEST_DIRS}
-do
-    echo -e "\033[1;32mValidating $testdir "
-    cd $testdir
+# get_coverage_tests.py now gets all the tests in all folders under raven/tests
+# for testdir in ${TEST_DIRS}
+# do
+#     echo -e "\033[1;32mValidating $testdir "
+#    cd $testdir
+    echo -e "\033[1;32mValidating tests... "
     for I in $(python ${SCRIPT_DIR}/get_coverage_tests.py)
     do
         # convert the input files contain the external xml to normal raven input files and then validate
@@ -53,8 +55,8 @@ do
         mv $I.bak $I
         # echo -e "\033[1;32m$I has been converted back!"
     done
-    echo -e "\033[0m--------------------------------------------------"
-done
+#    echo -e "\033[0m--------------------------------------------------"
+# done
 echo -e "\033[1;32mPassed $passed_tests \033[1;31mFailed $failed_tests\033[0m"
 
 # test_External_XML.xml should transformed back, this is the test that test the external xml input functionality
