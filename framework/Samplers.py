@@ -3988,8 +3988,8 @@ class Sobol(SparseGridCollocation):
     SVL = utils.first(SVLs)
     self.sobolOrder = SVL.sobolOrder
     self._generateQuadsAndPolys(SVL)
-    features = SVL.features
-    needCombos = itertools.chain.from_iterable(itertools.combinations(features,r) for r in range(self.sobolOrder+1))
+    self.features = SVL.features
+    needCombos = itertools.chain.from_iterable(itertools.combinations(self.features,r) for r in range(self.sobolOrder+1))
     self.SQs={}
     self.ROMs={} #keys are [target][combo]
     for t in self.targets: self.ROMs[t]={}
@@ -4032,13 +4032,12 @@ class Sobol(SparseGridCollocation):
       self.existing = zip(*list(v for v in inps.values()))
     #make combined sparse grids
     self.references={}
-    for var,dist in self.distDict.items():
-      self.references[var]=dist.untruncatedMean()
-    std = self.distDict.keys()
+    for var in self.features:
+      self.references[var]=self.distDict[var].untruncatedMean()
     self.pointsToRun=[]
     #make sure reference case gets in there
-    newpt = np.zeros(len(self.distDict))
-    for v,var in enumerate(self.distDict.keys()):
+    newpt = np.zeros(len(self.features))
+    for v,var in enumerate(self.features):
       newpt[v] = self.references[var]
     self.pointsToRun.append(tuple(newpt))
     self.distinctPoints.add(tuple(newpt))
@@ -4048,8 +4047,8 @@ class Sobol(SparseGridCollocation):
       SG._remap(combo)
       for l in range(len(SG)):
         pt,wt = SG[l]
-        newpt = np.zeros(len(std))
-        for v,var in enumerate(std):
+        newpt = np.zeros(len(self.features))
+        for v,var in enumerate(self.features):
           if var in combo: newpt[v] = pt[combo.index(var)]
           else: newpt[v] = self.references[var]
         newpt=tuple(newpt)
@@ -4060,7 +4059,7 @@ class Sobol(SparseGridCollocation):
     self.raiseADebug('Needed points: %i' %self.limit)
     self.raiseADebug('From Restart : %i' %utils.iter_len(self.existing))
     self.raiseADebug('Still Needed : %i' %(self.limit-utils.iter_len(self.existing)))
-    initdict={'ROMs':None, #self.ROMs,
+    initdict={'ROMs':None,
               'SG':self.SQs,
               'dists':self.distDict,
               'quads':self.quadDict,
@@ -4086,7 +4085,7 @@ class Sobol(SparseGridCollocation):
         if self.counter==self.limit: raise utils.NoMoreSamplesNeeded
         continue
       else: found=True
-      for v,varName in enumerate(self.distDict.keys()):
+      for v,varName in enumerate(self.features):
         self.values[varName] = pt[v]
         self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(self.values[varName])
         self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.inputInfo['SampledVarsPb'][varName]
