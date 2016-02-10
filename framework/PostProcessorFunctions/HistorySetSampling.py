@@ -16,7 +16,11 @@ import copy
 
 
 class HistorySetSampling(PostProcessorInterfaceBase):
-
+  """
+   This Post-Processor performs the conversion from HistorySet to HistorySet
+   The conversion is made so that each history H is re-sampled accordingly to a specific sampling strategy.
+   It can be used to reduce the amount of space required by the HistorySet.
+  """
   def initialize(self):
     """
      Method to initialize the Interfaced Post-processor
@@ -88,52 +92,9 @@ class HistorySetSampling(PostProcessorInterfaceBase):
       if self.samplingType == 'uniform' or self.samplingType == 'firstDerivative' or self.samplingType == 'secondDerivative':
         outputDic['data']['output'][hist] = self.varsTimeInterp(inputDic['data']['output'][hist])
       elif self.samplingType == 'filteredFirstDerivative' or self.samplingType == 'filteredSecondDerivative':
-        outputDic['data']['output'][hist] = self.timeSeriesFilter(inputDic['data']['output'][hist])
+        outputDic['data']['output'][hist] = timeSeriesFilter(self.timeID,inputDic['data']['output'][hist],self.samplingType,self.tolerance)
 
     return outputDic
-
-
-  def timeSeriesFilter(timeID, vars, filterType, filterValue):
-    """ This function sample a multi-variate temporal function
-    timeID      : the ID of the temporal variable
-    vars        : data set that contained the information of the multi-variate temporal function (this is supposed to be a
-                  dictionary: {'timeID':time_array, 'var1':var1_array, ..., 'varn':varn_array})
-    samplingType: type of sampling used to determine the coordinate of the numSamples samples ('firstDerivative', 'secondDerivative')
-    filterValue : value associated to the filter
-    """
-    derivative = np.zeros(time.size)
-
-    if filterType=='firstDerivative':
-      for t in range(1, time.size):
-        t_contrib=0.0
-        for keys in vars.keys():
-          t_contrib += abs(var[keys][t] - var[keys][t-1])/(time[t]-time[t-1])
-        derivative[t] = t_contrib
-
-    elif filterType=='secondDerivative':
-      for t in range(1, time.size-1):
-        t_contrib=0.0
-        for keys in vars.keys():
-          t_contrib += abs(var[keys][t+1] - 2.0 * var[keys][t+1] + var[keys][t-1])/(time[t]-time[t-1])**2
-        derivative[t] = t_contrib
-      derivative[-1] = derivative[time.shape[0]-2]
-
-    else:
-      self.raiseAnError(RuntimeError,'filter Type ' + filterType + ' is not a valid type. Function: timeSeriesFilter (mathUtils)')
-
-    newVars = {}
-    for key in vars:
-      newVars[key]=np.array(vars[key][0])
-
-    for t in range(derivative.size):
-      if secondDerivative[t] > filterValue:
-        for key in vars:
-          newVars[key]=np.append(newVars[key],vars[key][t])
-
-    for key in vars:
-      newVars[key]=np.append(newVars[key],vars[key][-1])
-
-    return newVars
 
   def varsTimeInterp(self, vars):
     """ This function sample a multi-variate temporal function
@@ -192,11 +153,11 @@ class HistorySetSampling(PostProcessorInterfaceBase):
       for t in range(1, normalizedVar[self.timeID].shape[0]-1):
         t_contrib=0.0
         for keys in normalizedVar.keys():
-          t_contrib += abs(normalizedVar[keys][t+1] - 2.0 * normalizedVar[keys][t+1] + normalizedVar[keys][t-1])/(normalizedVar[self.timeID][t]-normalizedVar[self.timeID][t-1])**2
+          t_contrib += abs(normalizedVar[keys][t+1] - 2.0 * normalizedVar[keys][t] + normalizedVar[keys][t-1])/(normalizedVar[self.timeID][t]-normalizedVar[self.timeID][t-1])**2
         cumDerivative[t] = cumDerivative[t-1] + t_contrib
       cumDerivative[-1] = cumDerivative[normalizedVar[self.timeID].shape[0]-2]
 
-    else:self.raiseAnError(RuntimeError,'type ' + self.samplingType + ' is not a valid type. Function: derivativeTimeValues (mathUtils)')
+    else:self.raiseAnError(RuntimeError,'type ' + self.samplingType + ' is not a valid type. Function: derivativeTimeValues')
 
     cumDamageInstant = np.linspace(0,cumDerivative[-1],self.numberOfSamples)
 
@@ -205,3 +166,41 @@ class HistorySetSampling(PostProcessorInterfaceBase):
       newTime[i] = normalizedVar[self.timeID][index]
     newTime[-1] = normalizedVar[self.timeID][-1]
     return newTime
+  
+def timeSeriesFilter(timeID, vars, filterType, filterValue):
+  """ This function sample a multi-variate temporal function
+  timeID      : the ID of the temporal variable
+  vars        : data set that contained the information of the multi-variate temporal function (this is supposed to be a
+                dictionary: {'timeID':time_array, 'var1':var1_array, ..., 'varn':varn_array})
+  samplingType: type of sampling used to determine the coordinate of the numSamples samples ('firstDerivative', 'secondDerivative')
+  filterValue : value associated to the filter
+  """
+  derivative = np.zeros(vars[timeID].size)
+
+  if filterType=='filteredFirstDerivative':
+    for t in range(1, len(vars[timeID])):
+      t_contrib=0.0
+      for keys in vars.keys():
+        t_contrib += abs((vars[keys][t] - vars[keys][t-1])/(vars[keys][t]))
+      derivative[t] = t_contrib
+  elif filterType=='filteredSecondDerivative':
+    for t in range(1, vars[timeID].size-1):
+      t_contrib=0.0
+      for keys in vars.keys():
+        t_contrib += abs((vars[keys][t+1] - 2.0 * vars[keys][t] + vars[keys][t-1])/(vars[keys][t]))
+      derivative[t] = t_contrib
+    derivative[-1] = derivative[len(vars[timeID])-2]
+
+  newVars = {}
+  for key in vars:
+    newVars[key]=np.array(vars[key][0])
+
+  for t in range(derivative.size):
+    if derivative[t] > filterValue:
+      for key in vars:
+        newVars[key]=np.append(newVars[key],vars[key][t])
+
+  for key in vars:
+    newVars[key]=np.append(newVars[key],vars[key][-1])
+
+  return newVars

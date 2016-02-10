@@ -23,7 +23,7 @@ class HistorySetSnapShot(PostProcessorInterfaceBase):
    The conversion is made so that each history H is converted to a single point P.
    Assume that each history H is a dict of n output variables x_1=[...],x_n=[...], then the resulting point P can be as follows accordingly to the specified type:
    - type = timeSlice: at time instant t: P=[x_1[t],...,x_n[t]]
-   - type = min, max, avg, value: 
+   - type = min, max, avg, value
    
   """
   
@@ -68,7 +68,7 @@ class HistorySetSnapShot(PostProcessorInterfaceBase):
       elif child.tag == 'pivotVar':
         self.pivotVar = child.text
       elif child.tag == 'pivotVal':
-        self.pivotVal = child.text
+        self.pivotVal = float(child.text)
       elif child.tag == 'timeInstant':
         self.timeInstant = int(child.text)
       elif child.tag !='method':
@@ -119,7 +119,8 @@ def historySnapShot(inputDic, pivotVar, snapShotType, pivotVal=None, tempID = No
   historiesID = inputDic['data']['output'].keys()
   inVars  = inputDic['data']['input'][historiesID[0]].keys()
   outVars = inputDic['data']['output'][historiesID[0]].keys()
-  outVars.remove(timeID)
+  #if tempID != None:
+  #  outVars.remove(tempID)
 
   for var in inVars:
     outputDic['data']['input'][var] = np.zeros(0) 
@@ -133,31 +134,32 @@ def historySnapShot(inputDic, pivotVar, snapShotType, pivotVal=None, tempID = No
   
   for history in inputDic['data']['output']:    
     if snapShotType == 'min':
-      index = np.argmin(outputDic['data']['output'][pivotVar])
+      idx = inputDic['data']['output'][history][pivotVar].returnIndexMin()
       for vars in outVars:
-        outputDic['data']['output'][var] = np.append(outputDic['data']['output'][var] , copy.deepcopy(inputDic['data']['output'][var][idx]))
+        outputDic['data']['output'][vars] = np.append(outputDic['data']['output'][vars] , copy.deepcopy(inputDic['data']['output'][history][vars][idx]))
     elif snapShotType == 'max':
-      index = np.argmax(outputDic['data']['output'][pivotVar])
+      idx = inputDic['data']['output'][history][pivotVar].returnIndexMax()
       for vars in outVars:
-        outputDic['data']['output'][var] = np.append(outputDic['data']['output'][var] , copy.deepcopy(inputDic['data']['output'][var][idx]))
+        outputDic['data']['output'][vars] = np.append(outputDic['data']['output'][vars] , copy.deepcopy(inputDic['data']['output'][history][vars][idx]))
     elif snapShotType == 'value':
-      idx = np.argmin(np.abs(outputDic['data']['output'][pivotVar] - pivotVal))
-      if outputDic['data']['output'][pivotVar][idx]>pivotVal:
-        intervalFraction = (val-outputDic['data']['output'][pivotVar][idx-1])/(outputDic['data']['output'][pivotVar][idx]-outputDic['data']['output'][pivotVar][idx-1])
+      idx = inputDic['data']['output'][history][pivotVar].returnIndex(pivotVal)
+      if inputDic['data']['output'][history][pivotVar][idx]>pivotVal:
+        intervalFraction = (pivotVal-inputDic['data']['output'][history][pivotVar][idx-1])/(outputDic['data']['output'][history][pivotVar][idx]-inputDic['data']['output'][history][pivotVar][idx-1])
         for keys in outVars:
-          value = outputDic['data']['output'][keys][idx-1] + (outputDic['data']['output'][keys][idx]-outputDic['data']['output'][keys][idx-1])*intervalFraction
-          outputDic['data']['output'][key] = np.append(outputDic['data']['output'][key],value)
+          value = inputDic['data']['output'][history][keys][idx-1] + (inputDic['data']['output'][history][keys][idx]-inputDic['data']['output'][history][keys][idx-1])*intervalFraction
+          outputDic['data']['output'][keys] = np.append(outputDic['data']['output'][keys],value)
       else:
-        intervalFraction = (pivotVal-outputDic['data']['output'][pivotVar][idx])/(outputDic['data']['output'][pivotVar][idx+1]-outputDic['data']['output'][pivotVar][idx])
+        intervalFraction = (pivotVal-inputDic['data']['output'][history][pivotVar][idx])/(inputDic['data']['output'][history][pivotVar][idx+1]-inputDic['data']['output'][history][pivotVar][idx])
         for keys in outVars:
-          value = outputDic['data']['output'][keys][idx] + (outputDic['data']['output'][keys][idx+1]-outputDic['data']['output'][keys][idx])*intervalFraction 
-          outputDic['data']['output'][key] = np.append(outputDic['data']['output'][key],value) 
+          value = inputDic['data']['output'][history][keys][idx] + (inputDic['data']['output'][history][keys][idx+1]-inputDic['data']['output'][history][keys][idx])*intervalFraction 
+          outputDic['data']['output'][keys] = np.append(outputDic['data']['output'][keys],value) 
     elif snapShotType == 'avg':
-       for keys in vars.keys():
+       for keys in outVars:
          cumulative=0.0
-         for t in range(1,vars[keys].shape()):
-           cumulative += (vars[keys][t] + vars[keys][t-1]) / 2.0 * (vars[tempID][t] - vars[tempID][t-1])
-         newVars[keys] = cumulative / (vars[tempID][-1] - vars[tempID][0])
+         for t in range(1,len(inputDic['data']['output'][history][tempID])):
+           cumulative += (inputDic['data']['output'][history][keys][t] + inputDic['data']['output'][history][keys][t-1]) / 2.0 * (inputDic['data']['output'][history][tempID][t] - inputDic['data']['output'][history][tempID][t-1])
+         value = cumulative / (inputDic['data']['output'][history][tempID][-1] - inputDic['data']['output'][history][tempID][0])         
+         outputDic['data']['output'][keys] = np.append(outputDic['data']['output'][keys],value) 
 
   return outputDic
 

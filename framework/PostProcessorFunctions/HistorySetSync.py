@@ -22,9 +22,9 @@ from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
 
 class HistorySetSync(PostProcessorInterfaceBase):
   """
-   This function does things.
-   @ In : inputDict
-   @ Out: outputDict
+   This Post-Processor performs the conversion from HistorySet to HistorySet
+   The conversion is made so that all histories are syncronized in time.
+   It can be used to allow the histories to be sampled at the same time instant.
   """
 
   def initialize(self, numberOfSamples=None, timeID=None, extension=None):

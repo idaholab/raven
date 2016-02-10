@@ -11,6 +11,7 @@ warnings.simplefilter('default',DeprecationWarning)
 #External Modules------------------------------------------------------------------------------------
 from numpy import ndarray
 import numpy as np
+import sys
 #External Modules End--------------------------------------------------------------------------------
 
 
@@ -77,6 +78,33 @@ class c1darray(object):
       #for index in range(x.size):
       self.values[self.size:self.size+x.size] = x[:]
       self.size  += x.size
+      
+  def returnIndex(self,value):
+    index=-1
+    dist = sys.float_info.max
+    for i in range(self.size):
+      if abs(self.values[i]-value)<dist:
+        dist = abs(self.values[i]-value)
+        index = i
+    return index
+  
+  def returnIndexMax(self):
+    index=-1
+    max = -sys.float_info.max
+    for i in range(self.size):
+      if self.values[i]>max:
+        max = self.values[i]
+        index = i
+    return index
+
+  def returnIndexMin(self):
+    index=-1
+    min = sys.float_info.max
+    for i in range(self.size):
+      if self.values[i]<min:
+        min = self.values[i]
+        index = i
+    return index
 
   def __add__(self, x):
     """

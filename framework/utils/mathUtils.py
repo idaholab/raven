@@ -192,7 +192,35 @@ def calculateStats(data):
   ret["kurtosis"] = kurtosis
   return ret
 
+def historySetWindow(vars,numberOfTimeStep):
+  """
+  Method do to compute
+  @ In, vars is an historySet
+  @ In, numberOfTimeStep, int, number of time samples of each history
+  @ Out, outDic, dictionary, it contains the temporal slice of all histories
+  """
 
+  outKeys = vars.getParaKeys('outputs')
+  inpKeys = vars.getParaKeys('inputs')
+
+  outDic = []
+
+  for t in range(numberOfTimeStep):
+    newVars={}
+    for key in inpKeys+outKeys:
+      newVars[key]=np.zeros(0)
+
+    hs = vars.getParametersValues('outputs')
+    for history in hs:
+      for key in inpKeys:
+        newVars[key] = np.append(newVars[key],vars.getParametersValues('inputs')[history][key])
+
+      for key in outKeys:
+        newVars[key] = np.append(newVars[key],vars.getParametersValues('outputs')[history][key][t])
+
+    outDic.append(newVars)
+
+  return outDic
 
 #
 # I need to convert it in multi-dimensional
