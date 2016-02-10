@@ -39,7 +39,8 @@ for moduleIndex in range(len(__moduleInterfaceList)):
   if 'class' in open(__moduleInterfaceList[moduleIndex]).read():
     __moduleImportedList.append(utils.importFromPath(__moduleInterfaceList[moduleIndex],False))
     for key,modClass in inspect.getmembers(__moduleImportedList[-1], inspect.isclass):
-      if 'createNewInput' in modClass.__dict__.keys():__interFaceDict[key.replace("Interface","")] = modClass
+      classMethods = [method for method in dir(modClass) if callable(getattr(modClass, method))]
+      if 'createNewInput' in classMethods:__interFaceDict[key.replace("Interface","")] = modClass
 __knownTypes      = list(__interFaceDict.keys())
 
 def knownTypes(): return __knownTypes
