@@ -3856,14 +3856,13 @@ to be aware of (i.e. the variables are going to directly be used by the code)
 and not the local variables that the user does not want to, for example, store
 in a RAVEN internal object.
 %
-These variables are specified within consecutive \xmlNode{variable} blocks:
+These variables are specified within a \xmlNode{variables} block:
 \begin{itemize}
-  \item \xmlNode{variable}, \xmlDesc{string, required parameter}.
+  \item \xmlNode{variables}, \xmlDesc{string, required parameter}.
   %
-  In the body of this XML node, the user needs to specify the name of the
-  variable.
+  Comma-separated list of variable names.
   %
-  This variable needs to match a variable used/defined in the external python
+  Each variable name needs to match a variable used/defined in the external python
   model.
   %
 \end{itemize}
@@ -3931,9 +3930,7 @@ Example XML:
   <Models>
      ...
     <ExternalModel name='AnExtModule' subType='' ModuleToLoad='path_to_external_module'>
-       <variable>sigma</variable>
-       <variable>rho</variable>
-       <variable>outcome</variable>
+       <variables>sigma,rho,outcome</variables>
        <!--
           here we define other XML nodes RAVEN does not read automatically.
           We need to implement, in the external module 'AnExtModule' the readMoreXML method

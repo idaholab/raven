@@ -28,9 +28,7 @@
   <Models>
     <Dummy name="MyDummy" subType=""/>
     <ExternalModel ModuleToLoad="polynomial" name="polynomial" subType="">
-      <variable>x1</variable>
-      <variable>x2</variable>
-      <variable>ans</variable>
+      <variables>x1,x2,ans</variables>
     </ExternalModel>
     <ROM name="AROM" subType="GaussPolynomialRom" verbosity="debug">
       <Target>ans</Target>
@@ -57,7 +55,9 @@
     </MultiRun>
     <IOStep name="Aprint">
       <Input class="DataObjects" type="PointSet">Atests</Input>
+      <Input class="Models" type="ROM">AROM</Input>
       <Output class="OutStreamManager" type="Print">Adump</Output>
+      <Output class="OutStreamManager" type="Print">Adumprom</Output>
     </IOStep>
     <RomTrainer name="Atrain">
       <Input class="DataObjects" type="PointSet">Asolns</Input>
@@ -84,6 +84,11 @@
     <Print name="Adump">
       <type>csv</type>
       <source>Atests</source>
+    </Print>
+    <Print name="Adumprom">
+      <type>xml</type>
+      <source>AROM</source>
+      <what>all</what>
     </Print>
   </OutStreamManager>
 
