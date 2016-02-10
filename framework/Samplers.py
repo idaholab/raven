@@ -4081,10 +4081,13 @@ class Sobol(SparseGridCollocation):
       try: pt = self.pointsToRun[self.counter-1]
       except IndexError: raise utils.NoMoreSamplesNeeded
       if pt in self.existing:
+        self.raiseADebug('point found in restart:',pt)
         self.counter+=1
         if self.counter==self.limit: raise utils.NoMoreSamplesNeeded
         continue
-      else: found=True
+      else:
+        self.raiseADebug('point found to run:',pt)
+        found=True
       for v,varName in enumerate(self.features):
         self.values[varName] = pt[v]
         self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(self.values[varName])
