@@ -2714,7 +2714,7 @@ class DataMining(BasePostProcessor):
     BasePostProcessor.__init__(self, messageHandler)
     self.printTag = 'POSTPROCESSOR DATAMINING'
     self.algorithms = []  # A list of Algorithms objects that contain definitions for all the algorithms the user wants
-    self.requiredAssObject = (True, (['Label'], ['-1']))  # The Label is optional for now....
+    self.requiredAssObject = (True, (['Label', 'DataObject'], ['-1','-1']))  # The Label is optional for now....
     self.initializationOptionDict = {}
     self.clusterLabels = None
     self.labelAlgorithms = []
@@ -2799,6 +2799,13 @@ class DataMining(BasePostProcessor):
         for _ in self.assemblerDict[key]:
           self.labelAlgorithms.append(self.assemblerDict[key][indice][3])
           indice += 1
+      # FIXME. Below for debug only
+      if 'DataObject' == key:
+        indice = 0
+        for value in self.assemblerDict[key]:
+          self.dataObjects.append(self.assemblerDict[key][indice][3])
+          indice += 1
+      # End of FIXME
 
   def _localReadMoreXML(self, xmlNode):
     """
@@ -2953,6 +2960,19 @@ class DataMining(BasePostProcessor):
           clusterCentersIndices = self.unSupervisedEngine.outputDict['clusterCentersIndices']          
         if 'clusterCenters' in self.unSupervisedEngine.outputDict.keys():
           clusterCenters = self.unSupervisedEngine.outputDict['clusterCenters']
+          # FIXME. Below for debug only
+          dataObject.updateOutputValue('Time', self.Time) 
+          temp = {}
+          for cnt, feat in enumerate(self.unSupervisedEngine.features): 
+            temp[feat] = np.zeros(shape=(noClusters[0],noTimeStep))
+            for c in range(noClusters[0]):
+              for t in range(noTimeStep):              
+                temp[feat][c,t] = copy.deepcopy(self.unSupervisedEngine.outputDict['clusterCenters'][t][c,cnt])
+                dataObject.updateOutputValue(self.name+'Centroid-'+feat+'-'+str(c), temp[feat][c,:])  
+              self.raiseADebug(temp[feat][c,0])
+              
+          # End of FIXME
+          
         if 'inertia' in self.unSupervisedEngine.outputDict.keys():
           inertia = self.unSupervisedEngine.outputDict['inertia']
       elif self.unSupervisedEngine.SKLtype in ['mixture']:

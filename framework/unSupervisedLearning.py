@@ -625,10 +625,17 @@ class temporalSciKitLearn(unSupervisedLearning):
         self.muAndSigmaFeatures[feat][1,t] = np.max(np.absolute(values[names.index(feat)][:,t]))
       if self.muAndSigmaFeatures[feat][1,t] == 0: 
         self.muAndSigmaFeatures[feat][1,t] = 1.0
-    
-      normV[:, t] = (values[names.index(feat)][:,t] - self.muAndSigmaFeatures[feat][0,t]) / self.muAndSigmaFeatures[feat][1,t]
+
+      normV[:, t] = 1.0 * (values[names.index(feat)][:,t] - self.muAndSigmaFeatures[feat][0,t]) / self.muAndSigmaFeatures[feat][1,t]
     return normV
-        
+
+  def __deNorm__(self,feat,t,c):  
+    N = c.shape[0]
+    r = np.zeros(shape=c.shape)
+    mu, sig = self.muAndSigmaFeatures[feat][0,t], self.muAndSigmaFeatures[feat][1,t]
+    for n in range(N):
+      r[n] = c[n]*sig+mu  
+    return r             
         
   def train(self, tdict):
     """
@@ -676,14 +683,10 @@ class temporalSciKitLearn(unSupervisedLearning):
       if self.SKLtype in ['cluster']: 
         if hasattr(self.SKLEngine.Method, 'cluster_centers_'):
           if 'clusterCenters' not in self.outputDict.keys(): self.outputDict['clusterCenters'] = {}
-          if t>0: self.outputDict['clusterCenters'][t], remap = self.__reMapCenter__(self.outputDict['clusterCenters'][t-1], self.SKLEngine.Method.cluster_centers_)
-          else:   self.outputDict['clusterCenters'][t] = self.SKLEngine.Method.cluster_centers_
-#           if t>0: 
-#             self.raiseADebug(remap)
-#           self.raiseADebug(self.outputDict['clusterCenters'][t])
-#           self.raiseADebug(self.SKLEngine.Method.cluster_centers_)
-#           self.raiseAnError(IOError,'hh')
-          
+          self.outputDict['clusterCenters'][t] = np.zeros(shape=self.SKLEngine.Method.cluster_centers_.shape)
+          for cnt, feat in enumerate(self.features):
+            self.outputDict['clusterCenters'][t][:,cnt] = self.__deNorm__(feat,t,self.SKLEngine.Method.cluster_centers_[:,cnt])        
+          if t>0: self.outputDict['clusterCenters'][t], remap = self.__reMapCluster__(t)         
         if hasattr(self.SKLEngine.Method, 'n_clusters'):
           if 'noClusters' not in self.outputDict.keys(): self.outputDict['noClusters'] = {}
           self.outputDict['noClusters'][t] = self.SKLEngine.Method.n_clusters
@@ -691,17 +694,8 @@ class temporalSciKitLearn(unSupervisedLearning):
           if 'labels' not in self.outputDict.keys(): self.outputDict['labels'] = {} # np.zeros(shape=(self.noSample,self.noTimeStep))
           self.outputDict['labels'][t] = self.SKLEngine.Method.labels_
           if t>0:
-#             self.raiseADebug(self.SKLEngine.Method.labels_[1])
             for n in range(len(self.outputDict['labels'][t])):
-#               pass
-              self.outputDict['labels'][t][n] = remap[self.SKLEngine.Method.labels_[n]]
-#             self.raiseADebug(remap)
-#             self.raiseADebug(self.outputDict['labels'][t][1])
-#             if t> 0 and not self.outputDict['labels'][t][1] == self.outputDict['labels'][t-1][1]:
-#               self.raiseADebug(self.outputDict['labels'][t-1][1],self.outputDict['labels'][t][1])
-#               self.raiseADebug(self.outputDict['clusterCenters'][t-1],self.outputDict['clusterCenters'][t])
-# #               self.raiseAnError(IOError,'hhh')
-          
+              self.outputDict['labels'][t][n] = remap[self.SKLEngine.Method.labels_[n]]          
         if hasattr(self.SKLEngine, 'cluster_centers_indices_'):
           if 'clusterCentersIndices' not in self.outputDict.keys(): self.outputDict['clusterCentersIndices'] = {}
           self.outputDict['clusterCentersIndices'][t] = self.SKLEngine.cluster_centers_indices_
@@ -748,50 +742,97 @@ class temporalSciKitLearn(unSupervisedLearning):
           self.outputDict['explainedVarianceRatio'][t] = self.explained_variance_ratio_
       else: print ('Not Implemented yet!...', self.SKLtype)
 
-  def __computeDist__(self,x1,x2):
-    return np.sqrt(np.dot(x1-x2,x1-x2))
+  def __computeDist__(self,t,n1,n2,opt): 
+    if opt in ['Distance']:
+      c1, c2 = self.outputDict['clusterCenters'][t-1], self.outputDict['clusterCenters'][t]
+      x1, x2 = c1[n1,:], c2[n2,:]          
+      return np.sqrt(np.dot(x1-x2,x1-x2))
+    if opt in ['Overlap']:
+      l1, l2 = self.outputDict['labels'][t-1], self.SKLEngine.Method.labels_
+      point1, point2 = [], []
+      for n in range(len(l1)):
+        if l1[n] == n1: point1.append(n)
+      for n in range(len(l2)):
+        if l2[n] == n2: point2.append(n)
+        
+#       if len(set(point1).intersection(point2)) > 0: 
+#         self.raiseADebug(len(set(point1).intersection(point2)))
+      return - len(set(point1).intersection(point2))  
       
-  def __reMapCenter__(self,c1,c2):
-    N1, N2 = c1.shape[0], c2.shape[0]
-    f = [True]*N2
-    c = copy.deepcopy(c2)
-    remap = [np.inf]*N2
-    self.raiseADebug(c1)
-    self.raiseADebug(c2)  
-    noHasReGrouped = 0
-    for n1 in range(N1):
-      d = np.inf
-      i = -1
-      if noHasReGrouped < N2:
-        for n2 in range(N2):
-          if f[n2] and self.__computeDist__(c1[n1,:],c2[n2,:])<d: 
-            d = self.__computeDist__(c1[n1,:],c2[n2,:])
-            i = n2
-        remap[i] = n1
-        f[i] = False
-#       temp = copy.deepcopy(c[i,:])
-        c[n1,:] = copy.deepcopy(c2[i,:])
-        noHasReGrouped += 1
-#       c[n1,:] = copy.deepcopy(temp)
+  
       
-#       self.raiseADebug(n1,i)
-#       self.raiseADebug(c2)
-#       self.raiseADebug(c)
-#       self.raiseAnError(IOError,'tt')  
-    if N2 > N1: 
-      s = 1;
-      for n in range(N2):
-        if not np.isfinite(remap[n]):     
-          remap[n] = N1+s
-          s += 1          
-#     self.raiseADebug(c1)
-#     self.raiseADebug(c2)
-#     self.raiseADebug(c)
-#     self.raiseADebug(remap)
-# #     self.raiseAnError(IOError,'tt')      
-          
-    return c, remap
+      
+      
+  def __reMapCluster__(self,t):
+    c1, c2 = self.outputDict['clusterCenters'][t-1], self.outputDict['clusterCenters'][t]
     
+    N1, N2 = c1.shape[0], c2.shape[0]
+    dMatrix = np.zeros(shape=(N1,N2))
+    for n1 in range(N1):
+      for n2 in range(N2):
+        dMatrix[n1,n2] = self.__computeDist__(t,n1,n2,'Overlap')    
+    _, mapping = self.__localReMap__(dMatrix, (range(N1), range(N2)))
+
+    
+    remap = [np.inf]*N2
+    f1, f2 = [False]*N1, [False]*N2
+    c = copy.deepcopy(c2)
+    for mp in mapping: 
+      i1, i2 = mp[0], mp[1]
+      if f1[i1] or f2[i2]: self.raiseAnError(ValueError, 'Mapping is overlapped. ')
+      remap[i2] = i1
+      f1[i1], f2[i2] = True, True
+      c[i1,:] = copy.deepcopy(c2[i2,:])
+      
+    if N2 > N1:
+      s = 0
+      for n2 in range(N2):
+        if not np.isfinite(remap[n2]):
+          remap[n2] = N1 + s
+          c[n2,:] = copy.deepcopy(N1+s)
+          s += 1
+          
+          
+    self.raiseADebug(dMatrix)
+    self.raiseADebug(mapping)
+    self.raiseADebug(c1,c2,c)
+              
+    return c, remap
+  
+  def __localReMap__(self, dMatrix,loc):
+    N1, N2 = len(loc[0]), len(loc[1])
+    if N1 == 1:
+      d, i = np.inf, -1
+      n1 = loc[0][0]
+      for n2 in loc[1]:
+        if dMatrix[n1,n2] < d:
+          d = dMatrix[n1,n2]
+          i = n2
+      return d, [(n1,i)]
+    elif N2 == 1:
+      d, i = np.inf, -1
+      n2 = loc[1][0]
+      for n1 in loc[0]:
+        if dMatrix[n1,n2] < d:
+          d = dMatrix[n1,n2]
+          i = n1
+      return d, [(i,n2)]
+    else:
+      d, i1, i2, i = np.inf, -1, -1, []
+      n1 = loc[0][0]    
+      temp1 = copy.deepcopy(loc[0])
+      temp1.remove(n1)
+      for n2 in loc[1]:
+        temp2 = copy.deepcopy(loc[1])
+        temp2.remove(n2)
+        d_temp, l = self.__localReMap__(dMatrix, (temp1,temp2))
+        if dMatrix[n1,n2] + d_temp < d:
+          d = dMatrix[n1,n2] + d_temp
+          i1, i2, i = n1, n2, l
+      i.append((i1,i2))
+      return d, i
+        
+        
         
       
   def __evaluateLocal__(self, featureVals):
