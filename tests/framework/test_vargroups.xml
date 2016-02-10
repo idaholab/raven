@@ -7,7 +7,7 @@
   </RunInfo>
 
   <VariableGroups>
-      <Group name="x_odd"      dependencies=""                >x1,x3,x5</Group>
+      <Group name="x_odd"                                     >x1,x3,x5</Group>
       <Group name="x_even"     dependencies=""                >x2,x4,x6</Group>
       <Group name="x_first"    dependencies=""                >x1,x2,x3</Group>
       <Group name="y_group"    dependencies=""                >y1,y2</Group>
@@ -26,7 +26,7 @@
   </Distributions>
 
   <Samplers>
-    <MonteCarlo name="mc" parallel="1">
+    <MonteCarlo name="mc">
       <samplerInit>
         <limit>3</limit>
         <initialSeed>42</initialSeed>
@@ -76,10 +76,6 @@
       <Output class="DataObjects" type="PointSet">intx</Output>
       <Output class="DataObjects" type="PointSet">sdiff</Output>
     </MultiRun>
-    <RomTrainer name="train">
-      <Input class="DataObjects" type="PointSet">standard</Input>
-      <Output class="Models" type="ROM">rom</Output>
-    </RomTrainer>
     <MultiRun name="samprom">
       <Input class="DataObjects" type="PointSet">dummyIN</Input>
       <Model class="Models" type="ROM">rom</Model>
@@ -102,6 +98,10 @@
       <Output class="OutStreamManager" type="Print">dump_sdiff</Output>
       <Output class="OutStreamManager" type="Print">dump_romout</Output>
     </IOStep>
+    <RomTrainer name="train">
+      <Input class="DataObjects" type="PointSet">standard</Input>
+      <Output class="Models" type="ROM">rom</Output>
+    </RomTrainer>
   </Steps>
 
   <DataObjects>
