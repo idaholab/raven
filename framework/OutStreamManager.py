@@ -66,6 +66,8 @@ class OutStreamManager(BaseType):
     self.numberAggregatedOS = 1
     self.printTag = 'OUTSTREAM MANAGER'
 
+    self.filename = ''
+
   def _readMoreXML(self, xmlNode):
     """
     Function to read the portion of the xml input that belongs to this specialized class
@@ -177,7 +179,6 @@ class OutStreamPlot(OutStreamManager):
     self.mixtureValues = None
     self.mixtureMeans = None
     self.mixtureCovars = None
-
 
   #####################
   #  PRIVATE METHODS  #
@@ -652,6 +653,7 @@ class OutStreamPlot(OutStreamManager):
     foundPlot = False
     for subnode in xmlNode:
       # if actions, read actions block
+      if subnode.tag == 'filename': self.filename = subnode.text
       if subnode.tag in ['actions']: self.__readPlotActions(subnode)
       if subnode.tag in ['plotSettings']:
         self.options[subnode.tag] = {}
@@ -1433,7 +1435,11 @@ class OutStreamPlot(OutStreamManager):
       if self.options['how']['how'].split(',')[i].lower() != 'screen':
         if not self.overwrite: prefix = str(self.counter) + '-'
         else: prefix = ''
-        self.plt.savefig(prefix + self.name + '_' + str(self.outStreamTypes).replace("'", "").replace("[", "").replace("]", "").replace(",", "-").replace(" ", "") + '.' + self.options['how']['how'].split(',')[i], format = self.options['how']['how'].split(',')[i])
+        if len(self.filename) > 0:
+          name = self.filename
+        else:
+          name = prefix + self.name + '_' + str(self.outStreamTypes).replace("'", "").replace("[", "").replace("]", "").replace(",", "-").replace(" ", "") + '.' + self.options['how']['how'].split(',')[i]
+        self.plt.savefig(name, format = self.options['how']['how'].split(',')[i])
 
 class OutStreamPrint(OutStreamManager):
   '''
@@ -1467,6 +1473,7 @@ class OutStreamPrint(OutStreamManager):
     self.type = 'OutStreamPrint'
     for subnode in xmlNode:
       if subnode.tag == 'source': self.sourceName = subnode.text.split(',')
+      elif subnode.tag == 'filename': self.filename = subnode.text
       else:self.options[subnode.tag] = subnode.text
     if 'type' not in self.options.keys(): self.raiseAnError(IOError, 'type tag not present in Print block called ' + self.name)
     if self.options['type'] not in self.availableOutStreamTypes : self.raiseAnError(TypeError, 'Print type ' + self.options['type'] + ' not available yet. ')
@@ -1478,9 +1485,19 @@ class OutStreamPrint(OutStreamManager):
       @ In, None
       @ Out, None
     '''
-    if self.what: dictOptions = {'filenameroot':self.name, 'what':self.what}
-    else             : dictOptions = {'filenameroot':self.name}
-    if 'target' in self.options.keys(): dictOptions['target'] = self.options['target']
+    dictOptions = {}
+
+    if len(self.filename) > 0:
+      dictOptions['filenameroot'] = self.filename
+    else:
+      dictOptions['filenameroot'] = self.name
+
+    if self.what:
+      dictOptions['what'] = self.what
+
+    if 'target' in self.options.keys():
+      dictOptions['target'] = self.options['target']
+
     for index in range(len(self.sourceName)):
       if self.options['type'] == 'csv':
         if type(self.sourceData[index]) == DataObjects.Data: empty = self.sourceData[index].isItEmpty()
