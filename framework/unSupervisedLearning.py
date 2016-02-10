@@ -754,12 +754,31 @@ class temporalSciKitLearn(unSupervisedLearning):
         if l1[n] == n1: point1.append(n)
       for n in range(len(l2)):
         if l2[n] == n2: point2.append(n)
-        
-#       if len(set(point1).intersection(point2)) > 0: 
-#         self.raiseADebug(len(set(point1).intersection(point2)))
       return - len(set(point1).intersection(point2))  
-      
-  
+    if opt in ['DistVariance']:
+      c1, c2 = self.outputDict['clusterCenters'][t-1], self.outputDict['clusterCenters'][t]
+      x1, x2 = c1[n1,:], c2[n2,:] 
+      d = np.sqrt(np.dot(x1-x2,x1-x2))
+      l1, l2 = self.outputDict['labels'][t-1], self.SKLEngine.Method.labels_
+      v1, v2 = 0, 0
+      N1, N2 = 0, 0
+      noFeat = len(self.features)
+      for n in range(len(l1)):
+        if l1[n] == n1:
+          x = np.zeros(shape=(noFeat,))
+          for cnt, feat in enumerate(self.features):
+            x[cnt] = self.inputDict[feat][n,t-1]             
+          v1 += np.sqrt(np.dot(x-x1,x-x1))**2
+          N1 += 1
+          
+      for n in range(len(l2)):
+        if l2[n] == n2: 
+          x = np.zeros(shape=(noFeat,))
+          for cnt, feat in enumerate(self.features):
+            x[cnt] = self.inputDict[feat][n,t] 
+          v2 += np.sqrt(np.dot(x-x2,x-x2))**2
+          N2 += 1
+      return d + np.abs(np.sqrt(v1/(N1-1)*1.0) - np.sqrt(v2/(N2-1)*1.0))
       
       
       
@@ -770,7 +789,7 @@ class temporalSciKitLearn(unSupervisedLearning):
     dMatrix = np.zeros(shape=(N1,N2))
     for n1 in range(N1):
       for n2 in range(N2):
-        dMatrix[n1,n2] = self.__computeDist__(t,n1,n2,'Overlap')    
+        dMatrix[n1,n2] = self.__computeDist__(t,n1,n2,'DistVariance')    
     _, mapping = self.__localReMap__(dMatrix, (range(N1), range(N2)))
 
     
