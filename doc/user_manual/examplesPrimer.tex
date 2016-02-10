@@ -34,16 +34,7 @@ This simple example is about the construction of a ``Lorentz attractor'', sampli
 <!-- MODELS -->
 <Models>
     <ExternalModel name='PythonModule' subType='' ModuleToLoad='externalModel/lorentzAttractor'>  
-       <variable>sigma</variable>
-       <variable>rho</variable>
-       <variable>beta</variable>
-       <variable>x</variable>
-       <variable>y</variable>
-       <variable>z</variable>
-       <variable>time</variable>
-       <variable>x0</variable>
-       <variable>y0</variable>
-       <variable>z0</variable>
+       <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0</variables>
     </ExternalModel>
 </Models>
 <!-- DISTRIBUTIONS -->
@@ -288,10 +279,7 @@ limit surface, which must be given as an input.
 <!-- MODELS -->
 <Models>  
   <ExternalModel name = 'xtr_mdl' subType = '' ModuleToLoad = 'SafestPointPP/safest_point_test_xtr_mdl'>
-    <variable>x1</variable>
-    <variable>x2</variable>
-    <variable>gammay</variable>
-    <variable>g</variable>
+    <variables>x1,x2,gammay,g</variables>
   </ExternalModel>
   
   <ROM name = 'accelerated_ROM' subType = 'SciKitLearn'>
