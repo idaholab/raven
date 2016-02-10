@@ -107,7 +107,7 @@ class HS2PS(PostProcessorInterfaceBase):
 
     for hist in inputDic['data']['output'].keys():
       for key in outputDic['data']['output'].keys():
-        outputDic['data']['output'][key] = np.append( outputDic['data']['output'][key], copy.deepcopy(tempDict[hist][key]))
+        outputDic['data']['output'][key] = np.append(outputDic['data']['output'][key], copy.deepcopy(tempDict[hist][int(key)]))
 
     return outputDic
 
