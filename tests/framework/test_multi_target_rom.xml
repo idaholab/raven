@@ -22,11 +22,7 @@
 
   <Models>
     <ExternalModel ModuleToLoad="TMI_fake" name="PythonModule" subType="">
-      <variable>DeltaTimeScramToAux</variable>
-      <variable>DG1recoveryTime</variable>
-      <variable>time</variable>
-      <variable>CladTempThreshold</variable>
-      <variable>UpperPlenumEnergy</variable>
+      <variables>DeltaTimeScramToAux,DG1recoveryTime,time,CladTempThreshold,UpperPlenumEnergy</variables>
     </ExternalModel>
     <Code name="MyRAVEN" subType="RAVEN">
       <executable>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</executable>
@@ -123,7 +119,9 @@
     <IOStep name="test_extract_for_rom_trainer" verbosity="debug">
       <Input class="Databases" type="HDF5">MC_TEST_EXTRACT_STEP_FOR_MULTI_ROM_TRAINER</Input>
       <Output class="DataObjects" type="PointSet">Pointset_from_database_for_rom_trainer</Output>
-      <!-- <Output class="OutStreamManager" type="Print">ciccio</Output> -->
+      <!--
+        <Output class="OutStreamManager" type="Print">ciccio</Output>
+      -->
     </IOStep>
     <RomTrainer name="test_rom_trainer" verbosity="debug">
       <Input class="DataObjects" type="PointSet">Pointset_from_database_for_rom_trainer</Input>
@@ -148,10 +146,12 @@
       <type>csv</type>
       <source>outputMontecarloRomND</source>
     </Print>
-    <!-- <Print name="ciccio">
-      <type>csv</type>
-      <source>Pointset_from_database_for_rom_trainer</source>
-    </Print> -->
+    <!--
+      <Print name="ciccio">
+        <type>csv</type>
+        <source>Pointset_from_database_for_rom_trainer</source>
+      </Print>
+    -->
   </OutStreamManager>
 
   <Databases>

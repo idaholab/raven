@@ -44,12 +44,12 @@
       <upperBound>5.0</upperBound>
     </Uniform>
     <Uniform name="testHybridEpistemicDist1">
-        <lowerBound>0.01</lowerBound>
-        <upperBound>0.1</upperBound>
+      <lowerBound>0.01</lowerBound>
+      <upperBound>0.1</upperBound>
     </Uniform>
     <Uniform name="testHybridEpistemicDist2">
-        <lowerBound>0.01</lowerBound>
-        <upperBound>0.1</upperBound>
+      <lowerBound>0.01</lowerBound>
+      <upperBound>0.1</upperBound>
     </Uniform>
   </Distributions>
 
@@ -67,20 +67,19 @@
         <distribution>depresSystemDist</distribution>
         <grid construction="custom" type="CDF">0.2 0.6</grid>
       </Distribution>
-      <!-- In case the type of the Hybrid Sampler is == LimitSurface, the epistemic uncertanties are treated into the LimitSurface search algorithm  
+      <!-- In case the type of the Hybrid Sampler is == LimitSurface, the epistemic uncertanties are treated into the LimitSurface search algorithm
            If this is the case, no other HybridSampler can be inputted.
            If the HybridSamplers (all of them) are of type != LimitSurface, the adaptive is going to be performed on the aleatory space only (for each
-           of the Hybrid Trees without considering the epistemic into the Limit Surface algorithm. The resulting LimitSurface is going to be convoluted 
+           of the Hybrid Trees without considering the epistemic into the Limit Surface algorithm. The resulting LimitSurface is going to be convoluted
            into one at the end of the sampling
        -->
-      
       <HybridSampler type="LimitSurface">
-          <variable name="Components|pipe1|f">
-              <distribution>testHybridEpistemicDist1</distribution>
-          </variable>
-          <variable name="Components|pipe2|f">
-              <distribution>testHybridEpistemicDist2</distribution>
-          </variable>
+        <variable name="Components|pipe1|f">
+          <distribution>testHybridEpistemicDist1</distribution>
+        </variable>
+        <variable name="Components|pipe2|f">
+          <distribution>testHybridEpistemicDist2</distribution>
+        </variable>
       </HybridSampler>
     </AdaptiveDynamicEventTree>
   </Samplers>
@@ -128,8 +127,8 @@
       <source>AdaptiveHybridDETPointset</source>
     </Print>
     <Print name="limitsurfaceDump">
-        <type>csv</type>
-        <source>LimitSurfSimple</source>
+      <type>csv</type>
+      <source>LimitSurfSimple</source>
     </Print>
     <Print name="adaptiveOutsimpleHier">
       <type>csv</type>

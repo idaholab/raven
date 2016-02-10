@@ -92,7 +92,7 @@
 
     <xsd:complexType name="ExternalModel">
         <xsd:sequence>
-            <xsd:element name="variable" type="xsd:string" minOccurs="1" maxOccurs="unbounded"/>
+            <xsd:element name="variables" type="xsd:string" minOccurs="1" maxOccurs="1"/>
         </xsd:sequence>
         <xsd:attribute name="name"         type="xsd:string"  use="required"/>
         <xsd:attribute name="subType"      type="xsd:string"  use="required" fixed=""/>
