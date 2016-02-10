@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" ?>
 <Simulation>
   <!-- A simple example of the approximate Morse-Smale complex (AMSC) interface
        where each of the examples will showcase different partitions using
@@ -12,13 +12,11 @@
   </RunInfo>
 
   <Models>
-    <ExternalModel name='testFunction' subType='' ModuleToLoad='../Schwefel'>
-      <variable>X</variable>
-      <variable>Y</variable>
-      <variable>Z</variable>
+    <ExternalModel ModuleToLoad="../Schwefel" name="testFunction" subType="">
+      <variables>X,Y,Z</variables>
     </ExternalModel>
     <!-- Persistence related to relative probability of each cluster -->
-    <PostProcessor name='AMSC_Probability' subType='TopologicalDecomposition'>
+    <PostProcessor name="AMSC_Probability" subType="TopologicalDecomposition">
       <graph>Beta Skeleton</graph>
       <gradient>steepest</gradient>
       <beta>1</beta>
@@ -26,7 +24,9 @@
       <normalization>None</normalization>
       <parameters>X,Y</parameters>
       <response>Z</response>
-      <!-- <simplification>0.1</simplification> -->
+      <!--
+        <simplification>0.1</simplification>
+      -->
       <simplification>9e-9</simplification>
       <weighted>true</weighted>
       <persistence>probability</persistence>
@@ -44,54 +44,55 @@
     <Grid name="gridSampler">
       <variable name="X">
         <distribution>NormDist</distribution>
-        <grid type='value' construction='equal' steps='25'>0 1</grid>
+        <grid construction="equal" steps="25" type="value">0 1</grid>
       </variable>
       <variable name="Y">
         <distribution>NormDist</distribution>
-        <grid type='value' construction='equal' steps='25'>0 1</grid>
+        <grid construction="equal" steps="25" type="value">0 1</grid>
       </variable>
     </Grid>
   </Samplers>
 
   <Steps>
-  <!-- Sample the test function as an External Model -->
-    <MultiRun name='sampleData' pauseAtEnd='False' sleepTime='1e-5'>
-      <Input   class='DataObjects' type='PointSet'     >dummyIN</Input>
-      <Model   class='Models'      type='ExternalModel'>testFunction</Model>
-      <Sampler class='Samplers'    type='Grid'         >gridSampler</Sampler>
-      <Output  class='DataObjects' type='PointSet'     >testData</Output>
+    <!-- Sample the test function as an External Model -->
+    <MultiRun name="sampleData" pauseAtEnd="False" sleepTime="1e-5">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">testFunction</Model>
+      <Sampler class="Samplers" type="Grid">gridSampler</Sampler>
+      <Output class="DataObjects" type="PointSet">testData</Output>
     </MultiRun>
-  <!-- Perform the topological decomposition -->
-    <PostProcess name='decomposeProbability'>
-      <Input   class='DataObjects'      type='PointSet'     >testData</Input>
-      <Model   class='Models'           type='PostProcessor'>AMSC_Probability</Model>
-      <Output  class='DataObjects'      type='PointSet'     >dataProb</Output>
-      <Output  class='OutStreamManager' type='Print'        >segProb</Output>
+    <!-- Perform the topological decomposition -->
+    <PostProcess name="decomposeProbability">
+      <Input class="DataObjects" type="PointSet">testData</Input>
+      <Model class="Models" type="PostProcessor">AMSC_Probability</Model>
+      <Output class="DataObjects" type="PointSet">dataProb</Output>
+      <Output class="OutStreamManager" type="Print">segProb</Output>
     </PostProcess>
   </Steps>
 
   <OutStreamManager>
-  <!-- A csv file containing the output of the example -->
-    <Print name='segProb'>
+    <!-- A csv file containing the output of the example -->
+    <Print name="segProb">
       <type>csv</type>
       <source>dataProb</source>
     </Print>
   </OutStreamManager>
 
   <DataObjects>
-  <!-- The input TimePointSet object -->
+    <!-- The input TimePointSet object -->
     <PointSet name="dummyIN">
       <Input>X,Y</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
-    <PointSet name='testData'>
+    <PointSet name="testData">
       <Input>X,Y</Input>
       <Output>Z</Output>
     </PointSet>
-  <!-- The output TimePointSet objects -->
-    <PointSet name='dataProb'>
+    <!-- The output TimePointSet objects -->
+    <PointSet name="dataProb">
       <Input>X,Y</Input>
       <Output>Z</Output>
     </PointSet>
   </DataObjects>
+
 </Simulation>

@@ -3,8 +3,6 @@
   type = 'RavenFramework'
   input = 'test_adapt_sobol.xml'
   output = 'AdaptSobol/out_10.pk AdaptSobol/out_20.pk AdaptSobol/out_30.pk'
-  # UnorderedXml = 'AdaptSobol/dumprom.xml'                                     #analytic, "Attenuation"
-  # xml = 'AdaptSobol/out_10.xml AdaptSobol/out_20.xml AdaptSobol/out_30.xml'   #consistency, convergence process
   UnorderedXml = 'AdaptSobol/dumprom.xml AdaptSobol/out_10.xml AdaptSobol/out_20.xml AdaptSobol/out_30.xml'   
   # dumprom.xml is analytic test for mean, variance
   # out*xml are consistency checks for convergence process
@@ -13,13 +11,13 @@
  [./AdaptiveSobolMaxRuns]
   type = 'RavenFramework'
   input = 'test_adapt_sobol_maxruns.xml'
-  xml = 'AdaptSobol/maxruns_dumprom.xml'       #analytic, "Attenuation"
-  UnorderedCsv = 'AdaptSobol/maxruns_dump.csv' #consistency
+  xml = 'AdaptSobolMax/maxruns_dumprom.xml'       #analytic, "Attenuation"
+  UnorderedCsv = 'AdaptSobolMax/maxruns_dump.csv' #consistency
  [../]
  [./AdaptiveSobolParallel]
   type = 'RavenFramework'
   input = 'test_adapt_sobol_parallel.xml'
-  UnorderedXml = 'AdaptSobol/par_dumprom.xml'           #analytic, "Attenuation"
-  UnorderedCsv = 'AdaptSobol/par_dump.csv'     #consistency
+  UnorderedXml = 'AdaptSobolParallel/par_dumprom.xml'           #analytic, "Attenuation"
+  UnorderedCsv = 'AdaptSobolParallel/par_dump.csv'     #consistency
   [../]
 []

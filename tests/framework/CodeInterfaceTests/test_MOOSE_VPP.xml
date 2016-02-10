@@ -12,8 +12,8 @@
   </RunInfo>
 
   <Files>
-    <Input name = "mooseInput"  type = "" >MooseVPP.i</Input>
-    <Input name = "mooseMesh"   type = "" >ellip_crack_4sym_norad_mm.e</Input>
+    <Input name="mooseInput" type="">MooseVPP.i</Input>
+    <Input name="mooseMesh" type="">ellip_crack_4sym_norad_mm.e</Input>
   </Files>
 
   <DataObjects>
@@ -50,25 +50,25 @@
   <Models>
     <Code name="MOOSETestApp" subType="MooseBasedApp">
       <executable>%FRAMEWORK_DIR%/../../moose/modules/combined/modules-%METHOD%</executable>
-      <fileargs type = "MooseVPP" arg = "_J_1_" />
-      <alias variable = "poissonsRatio" >Materials|stiffStuff|poissons_ratio</alias>
-      <alias variable = "youngModulus"  >Materials|stiffStuff|youngs_modulus</alias>
+      <fileargs arg="_J_1_" type="MooseVPP"/>
+      <alias variable="poissonsRatio">Materials|stiffStuff|poissons_ratio</alias>
+      <alias variable="youngModulus">Materials|stiffStuff|youngs_modulus</alias>
     </Code>
   </Models>
 
   <Steps>
     <MultiRun name="grid_run">
-      <Input   class = "Files"             type = ""         >mooseInput</Input>
-      <Input   class = "Files"             type = ""         >mooseMesh</Input>
-      <Model   class = "Models"            type = "Code"     >MOOSETestApp</Model>
-      <Sampler class = "Samplers"          type = "Grid"     >Grid_sampling</Sampler>
-      <Output  class = "DataObjects"       type = "PointSet" >collset</Output>
-      <Output  class = "OutStreamManager"  type = "Print"    >print_data</Output>
+      <Input class="Files" type="">mooseInput</Input>
+      <Input class="Files" type="">mooseMesh</Input>
+      <Model class="Models" type="Code">MOOSETestApp</Model>
+      <Sampler class="Samplers" type="Grid">Grid_sampling</Sampler>
+      <Output class="DataObjects" type="PointSet">collset</Output>
+      <Output class="OutStreamManager" type="Print">print_data</Output>
     </MultiRun>
   </Steps>
 
   <OutStreamManager>
-    <Print name = "print_data">
+    <Print name="print_data">
       <type>csv</type>
       <source>collset</source>
     </Print>

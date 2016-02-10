@@ -11,12 +11,7 @@
 
   <Models>
     <ExternalModel ModuleToLoad="pump_fake" name="PumpFake" subType="">
-      <variable>zeroToOne</variable>
-      <variable>time</variable>
-      <variable>pipe1_Hw</variable>
-      <variable>pipe1_Dh</variable>
-      <variable>pipe1_Area</variable>
-      <variable>pump_mass_flow_rate</variable>
+      <variables>zeroToOne,time,pipe1_Hw,pipe1_Dh,pipe1_Area,pump_mass_flow_rate</variables>
     </ExternalModel>
   </Models>
 
