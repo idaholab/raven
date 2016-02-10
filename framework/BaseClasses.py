@@ -53,7 +53,7 @@ class BaseType(MessageHandler.MessageUser):
     def replaceVariableGroups(node):
       """
         Replaces variables groups with variable entries in text of nodes
-        @ In, node, the node to search for replacement
+        @ In, node, ET.Element, the node to search for replacement
         @ Out, None
       """
       if node.text is not None:
