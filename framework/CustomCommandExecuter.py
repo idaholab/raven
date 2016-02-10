@@ -10,7 +10,4 @@ def execCommandReturn(commandString,self=None,object=None):
   return returnedCommand
 
 def execCommand(commandString,self=None,object=None):
-  print '\n\n\nDEBUG:\n',commandString
-  print 'self:',self
-  print 'object:',object
   exec(commandString)

@@ -515,9 +515,6 @@ class Simulation(MessageHandler.MessageUser):
       else: self.raiseAnError(IOError,'the '+child.tag+' is not among the known simulation components '+ET.tostring(child))
     if not set(self.stepSequenceList).issubset(set(self.stepsDict.keys())):
       self.raiseAnError(IOError,'The step list: '+str(self.stepSequenceList)+' contains steps that have not been declared: '+str(list(self.stepsDict.keys())))
-    # DEBUG print file out
-    debugfile = file('debug.xml','w')
-    debugfile.writelines(ET.tostring(xmlNode))
 
   def initialize(self):
     """check/created working directory, check/set up the parallel environment, call step consistency checker"""

@@ -55,12 +55,11 @@
   <Models>
     <Dummy name="MyDummy" subType=""/>
     <ExternalModel ModuleToLoad="extmod" name="extmod" subType="">
-      <variable>union</variable>
-      <variable>y_group</variable>
+      <variables>union,y_group</variables>
     </ExternalModel>
     <ROM name="rom" subType="NDinvDistWeight">
-      <Target>x_first</Target>
-      <Features>y_group</Features>
+      <Target>y_group</Target>
+      <Features>x_first</Features>
       <p>3</p>
     </ROM>
   </Models>
