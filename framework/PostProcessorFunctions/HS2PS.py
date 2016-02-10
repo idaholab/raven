@@ -25,7 +25,7 @@ class HS2PS(PostProcessorInterfaceBase):
    This Post-Processor performs the conversion from HistorySet to PointSet
    The conversion is made so that each history H is converted to a single point P.
    Assume that each history H is a dict of n output variables x_1=[...],x_n=[...], then the resulting point P is as follows; P=[x_1,...,x_n]
-   Note!!!! Here it is assumed that all histories have been sync so that they have the same length, start point and end point. 
+   Note!!!! Here it is assumed that all histories have been sync so that they have the same length, start point and end point.
             If you are not sure, do a pre-processing the the original history set
   """
 

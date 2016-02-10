@@ -21,6 +21,26 @@
       <Output  class="Databases"        type="HDF5"          >out_db</Output>
       <Output  class="OutStreamManager" type="Print"         >PrintHistorySet_dump</Output>
     </MultiRun>
+	  <IOStep name='plot1'>
+	    <Input   class='DataObjects'      type='PointSet'      >outMC_PP1</Input>
+	    <Input   class='DataObjects'      type='HistorySet'    >outMC</Input>
+	    <Output  class='OutStreamManager' type='Plot'          >plot1</Output>
+	  </IOStep>
+	  <IOStep name='plot2'>
+	    <Input   class='DataObjects'      type='PointSet'      >outMC_PP2</Input>
+	    <Input   class='DataObjects'      type='HistorySet'    >outMC</Input>
+	    <Output  class='OutStreamManager' type='Plot'          >plot2</Output>
+	  </IOStep>
+	  <IOStep name='plot3'>
+	    <Input   class='DataObjects'      type='PointSet'      >outMC_PP3</Input>
+	    <Input   class='DataObjects'      type='HistorySet'    >outMC</Input>
+	    <Output  class='OutStreamManager' type='Plot'          >plot3</Output>
+	  </IOStep>
+    <IOStep name='plot4'>
+      <Input   class='DataObjects'      type='PointSet'      >outMC_PP4</Input>
+      <Input   class='DataObjects'      type='HistorySet'    >outMC</Input>
+      <Output  class='OutStreamManager' type='Plot'          >plot4</Output>
+    </IOStep>	
     <PostProcess name="PP">
       <Input   class="DataObjects"      type="HistorySet"    >outMC</Input>
       <Model   class="Models"           type="PostProcessor" >historySamplingPP</Model>
@@ -33,44 +53,24 @@
       <Output  class="DataObjects"      type="PointSet"      >outMC_PP1</Output>
       <Output  class="OutStreamManager" type="Print"         >PrintPPpointSet_dump1</Output>
     </PostProcess>
-	  <IOStep name='plot1'>
-	    <Input   class='DataObjects'      type='PointSet'      >outMC_PP1</Input>
-	    <Input   class='DataObjects'      type='HistorySet'    >outMC</Input>
-	    <Output  class='OutStreamManager' type='Plot'          >plot1</Output>
-	  </IOStep>
     <PostProcess name="PP2">
       <Input   class="DataObjects"      type="HistorySet"    >outMC</Input>
       <Model   class="Models"           type="PostProcessor" >historySamplingMax</Model>
       <Output  class="DataObjects"      type="PointSet"      >outMC_PP2</Output>
       <Output  class="OutStreamManager" type="Print"         >PrintPPpointSet_dump2</Output>
-    </PostProcess>
-	  <IOStep name='plot2'>
-	    <Input   class='DataObjects'      type='PointSet'      >outMC_PP2</Input>
-	    <Input   class='DataObjects'      type='HistorySet'    >outMC</Input>
-	    <Output  class='OutStreamManager' type='Plot'          >plot2</Output>
-	  </IOStep>
+    </PostProcess> 
     <PostProcess name="PP3">
       <Input   class="DataObjects"      type="HistorySet"    >outMC</Input>
       <Model   class="Models"           type="PostProcessor" >historySamplingAvg</Model>
       <Output  class="DataObjects"      type="PointSet"      >outMC_PP3</Output>
       <Output  class="OutStreamManager" type="Print"         >PrintPPpointSet_dump3</Output>
-    </PostProcess>
-	  <IOStep name='plot3'>
-	    <Input   class='DataObjects'      type='PointSet'      >outMC_PP3</Input>
-	    <Input   class='DataObjects'      type='HistorySet'    >outMC</Input>
-	    <Output  class='OutStreamManager' type='Plot'          >plot3</Output>
-	  </IOStep>
+    </PostProcess> 
     <PostProcess name="PP4">
       <Input   class="DataObjects"      type="HistorySet"    >outMC</Input>
       <Model   class="Models"           type="PostProcessor" >historySamplingValue</Model>
       <Output  class="DataObjects"      type="PointSet"      >outMC_PP4</Output>
       <Output  class="OutStreamManager" type="Print"         >PrintPPpointSet_dump4</Output>
     </PostProcess>
-	  <IOStep name='plot4'>
-	    <Input   class='DataObjects'      type='PointSet'      >outMC_PP4</Input>
-	    <Input   class='DataObjects'      type='HistorySet'    >outMC</Input>
-	    <Output  class='OutStreamManager' type='Plot'          >plot4</Output>
-	  </IOStep>
 </Steps>
 
 
@@ -284,10 +284,6 @@
 
 
 <DataObjects>
-    <HistorySet name="outMC">
-      <Input>x0,y0,z0</Input>
-      <Output>time,x,y,z</Output>
-    </HistorySet>
     <PointSet name="outMC_PP">
       <Input>x0,y0,z0</Input>
       <Output>x,y,z</Output>
@@ -308,10 +304,10 @@
       <Input>x0,y0,z0</Input>
       <Output>x,y,z,time</Output>
     </PointSet>
-    <Point name="inputPlaceHolder">
+    <HistorySet name="outMC">
       <Input>x0,y0,z0</Input>
-      <Output>OutputPlaceHolder</Output>
-    </Point>
+      <Output>time,x,y,z</Output>
+    </HistorySet>
 </DataObjects>
 
 

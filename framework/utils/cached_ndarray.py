@@ -78,7 +78,7 @@ class c1darray(object):
       #for index in range(x.size):
       self.values[self.size:self.size+x.size] = x[:]
       self.size  += x.size
-      
+
   def returnIndex(self,value):
     index=-1
     dist = sys.float_info.max
@@ -87,7 +87,7 @@ class c1darray(object):
         dist = abs(self.values[i]-value)
         index = i
     return index
-  
+
   def returnIndexMax(self):
     index=-1
     max = -sys.float_info.max

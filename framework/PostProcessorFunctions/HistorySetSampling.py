@@ -166,7 +166,7 @@ class HistorySetSampling(PostProcessorInterfaceBase):
       newTime[i] = normalizedVar[self.timeID][index]
     newTime[-1] = normalizedVar[self.timeID][-1]
     return newTime
-  
+
 def timeSeriesFilter(timeID, vars, filterType, filterValue):
   """ This function sample a multi-variate temporal function
   timeID      : the ID of the temporal variable

@@ -126,18 +126,18 @@
 
 
 <DataObjects>
-    <HistorySet name="outMC">
-      <Input>x0,y0,z0</Input>
-      <Output>time,x,y,z</Output>
-    </HistorySet>
-    <PointSet name="outMC_PP">
-      <Input>x0,y0,z0</Input>
-      <Output>0,1,2,3,4,5</Output>
-    </PointSet>
     <Point name="inputPlaceHolder">
       <Input>x0,y0,z0</Input>
       <Output>OutputPlaceHolder</Output>
     </Point>
+    <PointSet name="outMC_PP">
+      <Input>x0,y0,z0</Input>
+      <Output>0,1,2,3,4,5</Output>
+    </PointSet>
+    <HistorySet name="outMC">
+      <Input>x0,y0,z0</Input>
+      <Output>time,x,y,z</Output>
+    </HistorySet>
 </DataObjects>
 
 

@@ -41,7 +41,7 @@ class HistorySetSync(PostProcessorInterfaceBase):
     self.numberOfSamples = numberOfSamples
     self.timeID          = timeID
     self.extension       = extension
-    
+
 
   def readMoreXML(self,xmlNode):
     """
