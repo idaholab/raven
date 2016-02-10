@@ -2,8 +2,6 @@ export https_proxy=$http_proxy
 export INSTALL_DIR=/opt/raven_libs
 
 rm -Rvf $INSTALL_DIR
-./framework_extra.sh
-ls $INSTALL_DIR/bin
 ../backend_raven_libs_script.sh
 ls $INSTALL_DIR/bin
 mkdir -p $HOME/raven_libs/root/opt
@@ -25,13 +23,13 @@ chmod +x $HOME/raven_libs/scripts/preflight
 
 cat - > $HOME/raven_libs/scripts/postinstall <<POSTINSTALL
 #!/bin/bash
-echo Running Raven libs postinstall 
+echo Running Raven libs postinstall
 echo HOME = \$HOME
-if grep '. /opt/raven_libs/environments/raven_libs_profile'  \$HOME/.bash_profile; then echo Already sourcing /opt/raven_libs/environments/raven_libs_profile; else  
+if grep '. /opt/raven_libs/environments/raven_libs_profile'  \$HOME/.bash_profile; then echo Already sourcing /opt/raven_libs/environments/raven_libs_profile; else
 cat - >> \$HOME/.bash_profile <<EOF
 #source raven libs environment
 if [ -f /opt/raven_libs/environments/raven_libs_profile ]; then
-        . /opt/raven_libs/environments/raven_libs_profile 
+        . /opt/raven_libs/environments/raven_libs_profile
 fi
 EOF
 fi
