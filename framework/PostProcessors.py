@@ -1870,7 +1870,7 @@ class LimitSurface(BasePostProcessor):
      @ In, currentInput, object, an object that needs to be converted
      @ Out, dict, the resulting dictionary containing features and response
     """
-    # each post processor knows how to handle the coming inputs. The BasicStatistics postprocessor accept all the input type (files (csv only), hdf5 and datas
+    # each post processor knows how to handle the coming inputs. The BasicStatistics postprocessor accept all the input type (files (csv only), hdf5 and dataobjects
     if type(currentInp) == list: currentInput = currentInp[-1]
     else                       : currentInput = currentInp
     if type(currentInp) == dict:
