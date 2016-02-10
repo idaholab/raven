@@ -76,16 +76,7 @@
 
 <Models>
     <ExternalModel ModuleToLoad="lorentzAttractor" name="PythonModule" subType="">
-      <variable>sigma</variable>
-      <variable>rho</variable>
-      <variable>beta</variable>
-      <variable>x</variable>
-      <variable>y</variable>
-      <variable>z</variable>
-      <variable>time</variable>
-      <variable>x0</variable>
-      <variable>y0</variable>
-      <variable>z0</variable>
+      <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0</variables>
     </ExternalModel>
     <PostProcessor name="historySamplingPP" subType="InterfacedPostProcessor">
        <method>HistorySetSnapShot</method>

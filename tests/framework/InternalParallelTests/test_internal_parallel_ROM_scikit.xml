@@ -9,26 +9,26 @@
 
   <Steps>
     <MultiRun name="step1" pauseAtEnd="false">
-      <Input   class="DataObjects" type="PointSet"     >Data1</Input>
-      <Model   class="Models"      type="ExternalModel">XM1</Model>
-      <Sampler class="Samplers"    type="Grid"         >grid1</Sampler>
-      <Output  class="DataObjects" type="PointSet"     >Data2</Output>
+      <Input class="DataObjects" type="PointSet">Data1</Input>
+      <Model class="Models" type="ExternalModel">XM1</Model>
+      <Sampler class="Samplers" type="Grid">grid1</Sampler>
+      <Output class="DataObjects" type="PointSet">Data2</Output>
     </MultiRun>
     <MultiRun name="step3" pauseAtEnd="false">
-      <Input   class="DataObjects"  type="PointSet"    >Data1</Input>
-      <Model   class="Models"       type="ROM"         >ROM1</Model>
-      <Sampler class="Samplers"     type="Grid"        >grid1</Sampler>
-      <Output  class="DataObjects"  type="PointSet"    >Data3</Output>
+      <Input class="DataObjects" type="PointSet">Data1</Input>
+      <Model class="Models" type="ROM">ROM1</Model>
+      <Sampler class="Samplers" type="Grid">grid1</Sampler>
+      <Output class="DataObjects" type="PointSet">Data3</Output>
     </MultiRun>
     <IOStep name="step4" pauseAtEnd="false">
-      <Input  class="DataObjects"      type="PointSet" >Data2</Input>
-      <Input  class="DataObjects"      type="PointSet" >Data3</Input>
-      <Output class="OutStreamManager" type="Print"    >PrintDataData2</Output>
-      <Output class="OutStreamManager" type="Print"    >PrintDataData3</Output>
+      <Input class="DataObjects" type="PointSet">Data2</Input>
+      <Input class="DataObjects" type="PointSet">Data3</Input>
+      <Output class="OutStreamManager" type="Print">PrintDataData2</Output>
+      <Output class="OutStreamManager" type="Print">PrintDataData3</Output>
     </IOStep>
     <RomTrainer name="step2">
-        <Input  class="DataObjects" type="PointSet"      >Data2</Input>
-        <Output class="Models"      type="ROM"           >ROM1</Output>
+      <Input class="DataObjects" type="PointSet">Data2</Input>
+      <Output class="Models" type="ROM">ROM1</Output>
     </RomTrainer>
   </Steps>
 
@@ -77,10 +77,7 @@
 
   <Models>
     <ExternalModel ModuleToLoad="InternalParallelScikit/XM1_model" name="XM1" subType="">
-      <variable>x1</variable>
-      <variable>x2</variable>
-      <variable>y</variable>
-      <variable>z</variable>
+      <variables>x1,x2,y,z</variables>
     </ExternalModel>
     <ROM name="ROM1" subType="SciKitLearn">
       <SKLtype>svm|SVC</SKLtype>

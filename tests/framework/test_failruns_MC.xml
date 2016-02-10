@@ -58,9 +58,7 @@
   <Models>
     <Dummy name="MyDummy" subType=""/>
     <ExternalModel ModuleToLoad="failer" name="failer" subType="">
-      <variable>x</variable>
-      <variable>y</variable>
-      <variable>ans</variable>
+      <variables>x,y,ans</variables>
     </ExternalModel>
     <Code name="codefailer" subType="GenericCode">
       <executable>RunFailures/codeFailer.py</executable>

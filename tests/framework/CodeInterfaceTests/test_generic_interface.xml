@@ -10,7 +10,7 @@
   <Files>
     <Input name="one.xml" type="">one.xml</Input>
     <Input name="inp.two" type="">inp.two</Input>
-    <Input name="mesh"    type="">dummy.e</Input>
+    <Input name="mesh" type="">dummy.e</Input>
   </Files>
 
   <Models>

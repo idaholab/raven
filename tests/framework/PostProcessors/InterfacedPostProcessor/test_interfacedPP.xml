@@ -1,54 +1,42 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" ?>
 <Simulation verbosity="debug">
-
-
-<RunInfo>
+  <RunInfo>
     <WorkingDir>interfacedPostProcessor</WorkingDir>
     <Sequence>FirstMRun,PP</Sequence>
     <batchSize>1</batchSize>
     <internalParallel>True</internalParallel>
-</RunInfo>
+  </RunInfo>
 
-<Files>
-  <Input name="lorentzAttractor.py" type="">lorentzAttractor.py</Input>
-</Files>
+  <Files>
+    <Input name="lorentzAttractor.py" type="">lorentzAttractor.py</Input>
+  </Files>
 
-<Steps>
+  <Steps>
     <MultiRun name="FirstMRun" pauseAtEnd="True">
-      <Input   class="DataObjects"      type="Point"         >inputPlaceHolder</Input>
-      <Model   class="Models"           type="ExternalModel" >PythonModule</Model>
-      <Sampler class="Samplers"         type="MonteCarlo"    >MC_external</Sampler>
-      <Output  class="DataObjects"      type="PointSet"      >outMC</Output>
-      <Output  class="Databases"        type="HDF5"          >out_db</Output>
-      <Output  class="OutStreamManager" type="Print"         >PrintHistorySet_dump</Output>
+      <Input class="DataObjects" type="Point">inputPlaceHolder</Input>
+      <Model class="Models" type="ExternalModel">PythonModule</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
+      <Output class="DataObjects" type="PointSet">outMC</Output>
+      <Output class="Databases" type="HDF5">out_db</Output>
+      <Output class="OutStreamManager" type="Print">PrintHistorySet_dump</Output>
     </MultiRun>
     <PostProcess name="PP">
-      <Input   class="DataObjects"      type="HistorySet"    >outMC</Input>
-      <Model   class="Models"           type="PostProcessor" >interfacedPP1</Model>
-      <Output  class="DataObjects"      type="HistorySet"    >outMC_PP</Output>
-      <Output  class="OutStreamManager" type="Print"         >PrintPPHistorySet_dump</Output>
+      <Input class="DataObjects" type="HistorySet">outMC</Input>
+      <Model class="Models" type="PostProcessor">interfacedPP1</Model>
+      <Output class="DataObjects" type="HistorySet">outMC_PP</Output>
+      <Output class="OutStreamManager" type="Print">PrintPPHistorySet_dump</Output>
     </PostProcess>
-</Steps>
+  </Steps>
 
-
-<Models>
+  <Models>
     <ExternalModel ModuleToLoad="lorentzAttractor" name="PythonModule" subType="">
-      <variable>sigma</variable>
-      <variable>rho</variable>
-      <variable>beta</variable>
-      <variable>x</variable>
-      <variable>y</variable>
-      <variable>z</variable>
-      <variable>time</variable>
-      <variable>x0</variable>
-      <variable>y0</variable>
-      <variable>z0</variable>
+      <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0</variables>
     </ExternalModel>
     <PostProcessor name="interfacedPP1" subType="InterfacedPostProcessor">
-       <method>testInterfacedPP</method>
-       <xmlNodeExample>9</xmlNodeExample>
+      <method>testInterfacedPP</method>
+      <xmlNodeExample>9</xmlNodeExample>
     </PostProcessor>
-</Models>
+  </Models>
 
 
 <Distributions>
@@ -101,8 +89,7 @@
   </Print>
 </OutStreamManager>
 
-
-<DataObjects>
+  <DataObjects>
     <Point name="inputPlaceHolder">
       <Input>x0,y0,z0</Input>
       <Output>OutputPlaceHolder</Output>
@@ -115,10 +102,6 @@
       <Input>x0,y0,z0</Input>
       <Output>time,x,y,z</Output>
     </HistorySet>
-</DataObjects>
-
+  </DataObjects>
 
 </Simulation>
-
-
-
