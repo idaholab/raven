@@ -86,6 +86,10 @@
   </OutStreamManager>
 
   <DataObjects>
+    <Point name="inputPlaceHolder">
+      <Input>x0,y0,z0</Input>
+      <Output>OutputPlaceHolder</Output>
+    </Point>
     <HistorySet name="outMC">
       <Input>x0,y0,z0</Input>
       <Output>time,x,y,z</Output>
@@ -94,10 +98,6 @@
       <Input>x0,y0,z0</Input>
       <Output>time,x,y,z</Output>
     </HistorySet>
-    <Point name="inputPlaceHolder">
-      <Input>x0,y0,z0</Input>
-      <Output>OutputPlaceHolder</Output>
-    </Point>
   </DataObjects>
 
 </Simulation>
