@@ -80,6 +80,11 @@ class c1darray(object):
       self.size  += x.size
 
   def returnIndex(self,value):
+    """
+      Function that return the index of the element in the array closest to value
+      @ In , value, double, query value
+      @ Out, index, int, index of the element in the array closest to value
+    """
     index=-1
     dist = sys.float_info.max
     for i in range(self.size):
@@ -89,6 +94,11 @@ class c1darray(object):
     return index
 
   def returnIndexMax(self):
+    """
+      Function that returns the index (i.e. the location) of the maximum value of the array
+      @ In , None ,
+      @ Out, index, int, index of the maximum value of the array
+    """
     index=-1
     max = -sys.float_info.max
     for i in range(self.size):
@@ -98,6 +108,11 @@ class c1darray(object):
     return index
 
   def returnIndexMin(self):
+    """
+      Function that returns the index (i.e. the location) of the minimum value of the array
+      @ In , None ,
+      @ Out, index, int, index of the minimum value of the array
+    """
     index=-1
     min = sys.float_info.max
     for i in range(self.size):

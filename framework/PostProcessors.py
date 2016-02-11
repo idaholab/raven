@@ -967,6 +967,9 @@ class InterfacedPostProcessor(BasePostProcessor):
             output.updateOutputValue(key,value)
       for key in exportDict['metadata'][0]:
         output.updateMetadata(key,exportDict['metadata'][0][key])
+    
+    #output.checkConsistency() 
+    
 
   def inputToInternal(self,input):
     """

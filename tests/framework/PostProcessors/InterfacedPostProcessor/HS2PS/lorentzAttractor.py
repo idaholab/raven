@@ -30,7 +30,7 @@ def run(self,Input):
   self.x[0] = Input['x0']
   self.y[0] = Input['y0']
   self.z[0] = Input['z0']
-  self.time[0]= self.x0/5
+  self.time[0]= 0
 
   for t in range (numberTimeSteps-1):
     self.time[t+1] = self.time[t] + t_step
