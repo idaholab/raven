@@ -7,7 +7,7 @@
   </RunInfo>
 
   <Files>
-    <Input name='csv' type=''>../mc/MCdump1.csv</Input>
+    <Input name="csv" type="">../mc/MCdump1.csv</Input>
   </Files>
 
   <Steps>
@@ -59,7 +59,7 @@
       <variable name="y">
         <distribution>u2</distribution>
       </variable>
-      <ROM class='Models' type='ROM'>rom1</ROM>
+      <ROM class="Models" type="ROM">rom1</ROM>
     </SparseGridCollocation>
     <SparseGridCollocation name="sc2">
       <variable name="x">
@@ -68,30 +68,27 @@
       <variable name="y">
         <distribution>u2</distribution>
       </variable>
-      <ROM class='Models' type='ROM'>rom2</ROM>
-      <Restart class='DataObjects' type='PointSet'>csolns2</Restart>
+      <ROM class="Models" type="ROM">rom2</ROM>
+      <Restart class="DataObjects" type="PointSet">csolns2</Restart>
     </SparseGridCollocation>
   </Samplers>
 
   <Models>
     <Dummy name="MyDummy" subType=""/>
     <ExternalModel ModuleToLoad="../polynomial" name="poly" subType="">
-      <variable>x1</variable>
-      <variable>x2</variable>
-      <variable>ans</variable>
-      <variable>ans2</variable>
+      <variables>x1,x2,ans,ans2</variables>
     </ExternalModel>
-    <ROM name='rom1' subType='GaussPolynomialRom'>
-        <Target>ans</Target>
-        <Features>x,y</Features>
-        <IndexSet>TotalDegree</IndexSet>
-        <PolynomialOrder>1</PolynomialOrder>
+    <ROM name="rom1" subType="GaussPolynomialRom">
+      <Target>ans</Target>
+      <Features>x,y</Features>
+      <IndexSet>TotalDegree</IndexSet>
+      <PolynomialOrder>1</PolynomialOrder>
     </ROM>
-    <ROM name='rom2' subType='GaussPolynomialRom'>
-        <Target>ans</Target>
-        <Features>x,y</Features>
-        <IndexSet>TotalDegree</IndexSet>
-        <PolynomialOrder>2</PolynomialOrder>
+    <ROM name="rom2" subType="GaussPolynomialRom">
+      <Target>ans</Target>
+      <Features>x,y</Features>
+      <IndexSet>TotalDegree</IndexSet>
+      <PolynomialOrder>2</PolynomialOrder>
     </ROM>
   </Models>
 

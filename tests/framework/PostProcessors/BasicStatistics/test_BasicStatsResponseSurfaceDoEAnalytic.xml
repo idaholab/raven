@@ -13,17 +13,13 @@
 
   <Models>
     <ExternalModel ModuleToLoad="simpleMirrowModel" name="mirrowModel" subType="">
-      <variable>x</variable>
-      <variable>y</variable>
-      <variable>z</variable>
-      <variable>x1</variable>
+      <variables>x,y,z,x1</variables>
     </ExternalModel>
     <PostProcessor name="analyticalTest" subType="BasicStatistics" verbosity="debug">
       <what>all</what>
       <parameters>x,y,z</parameters>
     </PostProcessor>
   </Models>
-
 
   <Distributions>
     <Normal name="x0_distrib">
@@ -41,7 +37,6 @@
   </Distributions>
 
   <Samplers>
-
     <ResponseSurfaceDesign name="BoxBehnkenRespDesign">
       <ResponseSurfaceDesignSettings>
         <algorithmType>BoxBehnken</algorithmType>
@@ -123,17 +118,17 @@
   </OutStreamManager>
 
   <DataObjects>
-      <Point name="inputPlaceHolder">
-          <Input>x,y,z</Input>
-          <Output>OutputPlaceHolder</Output>
-      </Point>
+    <Point name="inputPlaceHolder">
+      <Input>x,y,z</Input>
+      <Output>OutputPlaceHolder</Output>
+    </Point>
     <PointSet name="outputDataBoxBehnkenRespDesign">
-        <Input>x,y,z</Input>
-        <Output>x1</Output>
+      <Input>x,y,z</Input>
+      <Output>x1</Output>
     </PointSet>
     <PointSet name="outputDataCentralCompositeRespDesign">
-        <Input>x,y,z</Input>
-        <Output>x1</Output>
+      <Input>x,y,z</Input>
+      <Output>x1</Output>
     </PointSet>
   </DataObjects>
 

@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation verbosity='silent'>
+<Simulation verbosity="silent">
   <RunInfo>
     <WorkingDir>circle</WorkingDir>
     <Sequence>sample,adapt,dump</Sequence>
@@ -7,11 +7,11 @@
   </RunInfo>
 
   <Steps>
-    <MultiRun name="sample" sleepTime='1e-5'>
-      <Input   class="DataObjects"      type="PointSet"     >dummyIn</Input>
-      <Model   class="Models"           type="ExternalModel">function</Model>
-      <Sampler class="Samplers"         type="MonteCarlo"   >mcSampler</Sampler>
-      <Output  class="DataObjects"      type="PointSet"     >response</Output>
+    <MultiRun name="sample" sleepTime="1e-5">
+      <Input class="DataObjects" type="PointSet">dummyIn</Input>
+      <Model class="Models" type="ExternalModel">function</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mcSampler</Sampler>
+      <Output class="DataObjects" type="PointSet">response</Output>
     </MultiRun>
     <MultiRun name="adapt">
       <Input class="DataObjects" type="PointSet">response</Input>
@@ -64,25 +64,29 @@
       </variable>
     </MonteCarlo>
     <LimitSurfaceSearch name="adaptiveSearch">
-      <ROM      class="Models"    type="ROM"     >mySVM</ROM>
+      <ROM class="Models" type="ROM">mySVM</ROM>
       <Function class="Functions" type="External">label</Function>
       <TargetEvaluation class="DataObjects" type="PointSet">response</TargetEvaluation>
       <Convergence forceIteration="False" limit="16" persistence="25" weight="value">9e-5</Convergence>
-      <!--<generateCSVs />-->
+      <!--
+        <generateCSVs/>
+      -->
       <scoring>distance</scoring>
       <batchStrategy>none</batchStrategy>
       <thickness>4</thickness>
       <maxBatchSize>1</maxBatchSize>
-      <variable name="x1"><distribution>uniform</distribution></variable>
-      <variable name="x2"><distribution>uniform</distribution></variable>
+      <variable name="x1">
+        <distribution>uniform</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution>uniform</distribution>
+      </variable>
     </LimitSurfaceSearch>
   </Samplers>
 
   <Models>
     <ExternalModel ModuleToLoad="function" name="function" subType="">
-      <variable>x1</variable>
-      <variable>x2</variable>
-      <variable>y</variable>
+      <variables>x1,x2,y</variables>
     </ExternalModel>
     <ROM name="mySVM" subType="SciKitLearn">
       <Features>x1,x2</Features>
