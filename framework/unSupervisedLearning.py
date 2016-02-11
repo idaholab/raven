@@ -292,7 +292,7 @@ class SciKitLearn(unSupervisedLearning):
     self.Method.set_params(**self.initOptionDict)
     self.normValues = None
     self.outputDict = {}
-    
+
     self.requiredAssObject = (True,(['PostProcessor'],[-2]))
 
   def __trainLocal__(self):
