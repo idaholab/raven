@@ -1438,8 +1438,8 @@ class OutStreamPlot(OutStreamManager):
         if len(self.filename) > 0:
           name = self.filename
         else:
-          name = prefix + self.name + '_' + str(self.outStreamTypes).replace("'", "").replace("[", "").replace("]", "").replace(",", "-").replace(" ", "") + '.' + self.options['how']['how'].split(',')[i]
-        self.plt.savefig(name, format = self.options['how']['how'].split(',')[i])
+          name = prefix + self.name + '_' + str(self.outStreamTypes).replace("'", "").replace("[", "").replace("]", "").replace(",", "-").replace(" ", "")
+        self.plt.savefig(name + '.' + self.options['how']['how'].split(',')[i], format = self.options['how']['how'].split(',')[i])
 
 class OutStreamPrint(OutStreamManager):
   '''
