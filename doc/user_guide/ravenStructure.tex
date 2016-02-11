@@ -1,13 +1,12 @@
-\section{RAVEN concept}
+\section{RAVEN Concepts}
 \label{sec:RAVENconcept}
-This chapter is focused on introducing the concept of that is behind the RAVEN code. This introduction
-is performed through three sections:
+After the brief overview of the RAVEN code, it is necessary to focus on the main concepts that are behind the design of the framework, overall focalizing to the following key subjects:
 \begin{itemize}
-    \item Section ~\ref{sub:mathBackground} provides an description of the mathematical background of RAVEN, 
+    \item \textit{Mathematical Background}: Section ~\ref{sub:mathBackground} provides an description of the mathematical background of RAVEN, 
      overall focalizing on the probabilistic dynamics;
-    \item Section ~\ref{sub:EntitiesAndFlow} is aimed to provide an overview on how the different objects in
+    \item \textit{RAVEN entities}: Section ~\ref{sub:EntitiesAndFlow} is aimed to provide an overview on how the different objects in
     RAVEN can interact with each other, generating the user-dependent analysis flow;
-    \item Section ~\ref{sub:InputStructure} provides a brief introduction of the input structure, introducing
+    \item \textit{RAVEN input main components}: Section ~\ref{sub:InputStructure} provides a brief introduction of the input structure, introducing
     some of the input ``structure'' that are going to be used in this manual. A detailed explanation of the
     input structure and keywords is reported in the user manual ~\cite{RAVENuserManual}.
 \end{itemize}
@@ -668,14 +667,11 @@ is similar to the Master equation, recasted for a discrete phase space:
 %
 %
 %
-
-
-
-
 \subsection{RAVEN entities and analysis flow}
 \label{sub:EntitiesAndFlow}
 In the RAVEN code, the the number of analyses that can be performed is virtually ``infinite'',
 being the code highly modular and object oriented. 
+In the RAVEN code the number and types of possible analyses is potentially large (it is customization to many problem types).
 \\Each basic action (e.g. sampling, printing, etc.) is encapsulated in
 a dedicated object (named ``\textbf{Entity}''). Each object is inactive till it is connected with 
 other objects in order to perform a more complex process. For example,
@@ -845,99 +841,3 @@ The main input blocks are as follows:
 
 Each of these blocks are explained in dedicated sections in the user manual ~\cite{RAVENuserManual}.
 %
-\subsubsection{Comments}
-Even if a detail explanation of how comments can be added in the RAVEN input is already reported in the user manual~\cite{RAVENuserManual}, a brief introduction is anyhow here reported. 
-\\Comments may be included in the RAVEN input using standard XML comments,
-using \verb|<!--| and \verb|-->| as shown in the example below.
-\begin{lstlisting}[style=XML]
-<Simulation>
-  ...
-  <!-- An Example Comment -->
-  <Samplers>
-  ...
-\end{lstlisting}
-Comments may be placed anywhere \emph{except} before the \xmlNode{Simulation}
-node or after the \xmlNode{/Simulation} node.
-%
-Comments outside the root node will cause errors in maintaining input file
-compatability.
-%
-Additionally, comments must completely surround any nodes they comment out.
-%
-Comments are intended to completely remove blocks of code, or to add readability.
-%
-For instance, the following is INCORRECT usage:
-\begin{lstlisting}[style=XML]
-  <!--<Assembler> -->
-  <!--</Assembler> -->
-\end{lstlisting}
-%
-and the following is compatible usage for a code block:
-%
-\begin{lstlisting}[style=XML]
-  <!--<Samplers>
-    <Monte Carlo name='mc'>
-      ...
-    </Monte Carlo>
-    ...
-  </Samplers> -->
-\end{lstlisting}
-
-
-\subsubsection{Verbosity}
-\label{subsec:verbosity}
-Each block within RAVEN also makes use of a \xmlAttr{verbosity} system,
-which allows a user to control the level of output to the user interface.
-These settings are declared globally as attributes in the \xmlNode{Simulation} node,
-and locally in each block.  The verbosity levels are
-\begin{itemize}
-\item \xmlString{silent} - Only simulation-breaking errors are displayed.
-\item \xmlString{quiet} - Errors as well as warnings are displayed.
-\item \xmlString{all} (default) - Errors, warnings, and messages are displayed.
-\item \xmlString{debug} - For developers. All errors, warnings, messages, and debug messages are displayed.
-\end{itemize}
-Examples of verbosity usage are included in many examples throughout this manual.
-
-At the \xmlNode{Simulation} node, global variables can be set, including \xmlAttr{verbosity}.  In addition, the
-attribute \xmlAttr{printTimeStamps} can be used to either enable or disable prepending RAVEN output with time stamps
-by setting it to \xmlString{true} or \xmlString{false}.
-
-
-\subsubsection{External Input Files}
-The \xmlNode{ExternalXML} node defines external input file (XML format) that can be used to replace any XML nodes 
-under \xmlNode{Simulation} in the RAVEN input file. This node allows a user to load any external input file that contains 
-the required XML nodes into the RAVEN input file. Each \xmlNode{ExternalXML} node has the following attributes:
-\begin{itemize}
-\item \xmlAttr{node}, \xmlDesc{required string attribute}, user-defined XML node of RAVEN input file. 
-\item \xmlAttr{xmlToLoad}, \xmlDesc{required string attribute}, file name with its absolute or relative path. Note: if a 
-relative path is specified, it must be relative with respect to the RAVEN input file.
-\end{itemize}
-%
-For example, if the file \texttt{Models.xml} contain the required RAVEN input XML node \xmlNode{Models}, 
-the RAVEN input file might appear as: 
-%
-\begin{lstlisting}[style=XML,morekeywords={node,xmlToLoad}]  
-<Simulation>
-  ...
-  <Steps>
-    ...
-  </Steps>
-  ...
-  <ExternalXML node='Models' xmlToLoad='external_input/Models.xml'/>
-  ...
-</Simulation>
-\end{lstlisting}
-%
-Another example, if the file \texttt{MultiRun.xml} contain the required RAVEN input XML node \xmlNode{MultiRun} 
-under node \xmlNode{Steps}, the RAVEN input file might appear as:
-\begin{lstlisting}[style=XML,morekeywords={node,xmlToLoad}]  
-<Simulation>
-  ...
-  <Steps>
-    ...
-    <ExternalXML node='MultiRun' xmlToLoad='external_input/MultiRun.xml'/>
-    ...
-  </Steps>
-  ...
-</Simulation>
-\end{lstlisting}

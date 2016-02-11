@@ -33,6 +33,7 @@
 \usepackage{ifthen}          % For simple checking in newcommand blocks
 \usepackage{textcomp}
 \usepackage{mathtools} 
+\usepackage[toc,page]{appendix}
 %\usepackage[table,xcdraw]{xcolor}
 %\usepackage{authblk}         % For making the author list look prettier
 %\renewcommand\Authsep{,~\,}
@@ -238,7 +239,7 @@ showstringspaces=false            %
 %
 % Set the title, author, and date
 %
-\title{RAVEN Theory and User Guide}
+\title{RAVEN theory manual}
 %\author{%
 %\begin{tabular}{c} Author 1 \\ University1 \\ Mail1 \\ \\
 %Author 3 \\ University3 \\ Mail3 \end{tabular} \and
@@ -388,13 +389,14 @@ showstringspaces=false            %
     \SANDmain		% Start the main part of the report
 
 \input{introduction.tex}
-\input{manualFormats.tex}
-\input{HowToRun.tex}
+\input{ravenOverview.tex}
 \input{ravenStructure.tex}
+\input{manualFormats.tex}
 \input{manualStructure.tex}
 \input{singleRunAndPlot.tex}
-
-
+\begin{appendices}
+ \input{HowToRun.tex}
+\end{appendices}
 %\input{examplesPrimer.tex}
 
 
