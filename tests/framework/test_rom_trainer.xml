@@ -4,7 +4,9 @@
     <WorkingDir>test_rom_trainer</WorkingDir>
     <Sequence>MC_for_rom_trainer,test_extract_for_rom_trainer,test_rom_trainer,rom_MC,test_rom_trainer_nd_interp,rom_MC_nd_interpolator</Sequence>
     <batchSize>3</batchSize>
-    <!-- <internalParallel>True</internalParallel> -->
+    <!--
+      <internalParallel>True</internalParallel>
+    -->
   </RunInfo>
 
   <Files>
@@ -23,10 +25,7 @@
 
   <Models>
     <ExternalModel ModuleToLoad="TMI_fake" name="PythonModule" subType="">
-      <variable>DeltaTimeScramToAux</variable>
-      <variable>DG1recoveryTime</variable>
-      <variable>time</variable>
-      <variable>CladTempThreshold</variable>
+      <variables>DeltaTimeScramToAux,DG1recoveryTime,time,CladTempThreshold</variables>
     </ExternalModel>
     <ROM name="ROM1" subType="SciKitLearn">
       <Features>DeltaTimeScramToAux,DG1recoveryTime</Features>
@@ -66,7 +65,6 @@
         <distribution>DG1backup</distribution>
       </variable>
     </MonteCarlo>
-
     <MonteCarlo name="RAVENmcND">
       <samplerInit>
         <limit>3</limit>

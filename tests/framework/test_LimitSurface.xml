@@ -13,9 +13,7 @@
 
   <Models>
     <ExternalModel ModuleToLoad="limitSurfaceTestExternalModel" name="PythonModule" subType="">
-      <variable>z</variable>
-      <variable>x0</variable>
-      <variable>y0</variable>
+      <variables>z,x0,y0</variables>
     </ExternalModel>
     <PostProcessor name="computeLimitSurfacePositive" subType="LimitSurface">
       <parameters>x0,y0</parameters>

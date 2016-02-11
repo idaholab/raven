@@ -12,8 +12,6 @@
 
   <ExternalXML node="Distributions" xmlToLoad="ExternalXMLTest/external_distributions.xml"/>
   <ExternalXML node="Samplers" xmlToLoad="ExternalXMLTest/external_samplers.xml"/>
-
-
   <DataObjects>
     <ExternalXML node="PointSet" xmlToLoad="ExternalXMLTest/external_pointset1.xml"/>
     <PointSet name="dummyIN">

@@ -1,22 +1,22 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <RunInfo>
-    <WorkingDir></WorkingDir>
-    <Sequence></Sequence>
+    <WorkingDir/>
+    <Sequence/>
     <batchSize>1</batchSize>
   </RunInfo>
 
   <Steps>
     <MultiRun name="dridSample" pauseAtEnd="false">
-      <Input   class="DataObjects" type="PointSet"      >tmp</Input>
-      <Model   class="Models"      type="ExternalModel" >modelTH</Model>
-      <Sampler class="Samplers"    type="Grid"          >gridSampler</Sampler>
-      <Output  class="DataObjects" type="PointSet"      >modelHistories</Output>
+      <Input class="DataObjects" type="PointSet">tmp</Input>
+      <Model class="Models" type="ExternalModel">modelTH</Model>
+      <Sampler class="Samplers" type="Grid">gridSampler</Sampler>
+      <Output class="DataObjects" type="PointSet">modelHistories</Output>
     </MultiRun>
     <PostProcess name="pth3" pauseAtEnd="false">
-      <Input  class="DataObjects" type="PointSet"      >modelHistories</Input>
-      <Model  class="Models"      type="PostProcessor" >DataConversion</Model>
-      <Output class="DataObjects" type="PointSet"      >PPHistories</Output>
+      <Input class="DataObjects" type="PointSet">modelHistories</Input>
+      <Model class="Models" type="PostProcessor">DataConversion</Model>
+      <Output class="DataObjects" type="PointSet">PPHistories</Output>
     </PostProcess>
   </Steps>
 
@@ -60,13 +60,8 @@
   </Samplers>
 
   <Models>
-    <ExternalModel name="modelTH" ModuleToLoad="modelTH">
-      <variable>tSBO</variable>
-      <variable>tREC</variable>
-      <variable>t</variable>
-      <variable>P</variable>
-      <variable>T</variable>
-      <variable>heatRem</variable>
+    <ExternalModel ModuleToLoad="modelTH" name="modelTH">
+      <variables>tSBO,tREC,t,P,T,heatRem</variables>
     </ExternalModel>
     <PostProcessor name="HS_sampling" subType="DataConversion">
       <operator>HistorySetSampling</operator>
