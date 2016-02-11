@@ -25,7 +25,39 @@
   </Models>
 
   <ExternalXML node="Distributions" xmlToLoad="distributions.xml"/>
-  <ExternalXML node="Samplers" xmlToLoad="samplers.xml"/>
+
+  <Samplers>
+    <MonteCarlo name="mcSampler">
+      <samplerInit>
+        <!--The SVM implementation has a bit of uncontrollable randomness that
+            prevents uniform behavior across machines, so we will use more
+            training data to counteract the effects of the randomness imposed
+            by the cross-validation of the SVM which generates the probability
+            information that exhibits the non-deterministic behavior. -->
+        <limit>300</limit>
+        <initialSeed>888</initialSeed>
+      </samplerInit>
+      <variable name="X">
+        <distribution>smallUniformDist</distribution>
+      </variable>
+      <variable name="Y">
+        <distribution>largeUniformDist</distribution>
+      </variable>
+    </MonteCarlo>
+    <Grid name="gridSampler">
+      <!-- Try to place the grid samples away from the boundary in order to
+           reduce the chance of misclassification for this test case -->
+      <variable name="X">
+        <distribution>smallUniformDist</distribution>
+        <grid construction="equal" steps="10" type="value">2 3</grid>
+      </variable>
+      <variable name="Y">
+        <distribution>largeUniformDist</distribution>
+        <grid construction="equal" steps="10" type="value">-1000 1000</grid>
+      </variable>
+    </Grid>
+  </Samplers>
+
   <ExternalXML node="Steps" xmlToLoad="steps.xml"/>
 
   <OutStreamManager>
@@ -34,10 +66,6 @@
       <type>csv</type>
       <source>outData</source>
       <filename>outDataSVM</filename>
-    </Print>
-    <Print name="trainingData">
-      <type>csv</type>
-      <source>trainingData</source>
     </Print>
   </OutStreamManager>
 
