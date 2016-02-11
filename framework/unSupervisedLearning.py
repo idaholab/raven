@@ -791,7 +791,6 @@ class temporalSciKitLearn(unSupervisedLearning):
       for n2 in range(N2):
         dMatrix[n1,n2] = self.__computeDist__(t,n1,n2,'DistVariance')    
     _, mapping = self.__localReMap__(dMatrix, (range(N1), range(N2)))
-
     
     remap = [np.inf]*N2
     f1, f2 = [False]*N1, [False]*N2
@@ -811,11 +810,6 @@ class temporalSciKitLearn(unSupervisedLearning):
           c[n2,:] = copy.deepcopy(N1+s)
           s += 1
           
-          
-    self.raiseADebug(dMatrix)
-    self.raiseADebug(mapping)
-    self.raiseADebug(c1,c2,c)
-              
     return c, remap
   
   def __localReMap__(self, dMatrix,loc):
