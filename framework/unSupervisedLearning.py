@@ -293,8 +293,6 @@ class SciKitLearn(unSupervisedLearning):
     self.normValues = None
     self.outputDict = {}
 
-    self.requiredAssObject = (True,(['PostProcessor'],[-2]))
-
   def __trainLocal__(self):
     """
     Perform training on samples in self.normValues: array, shape = [n_samples, n_features] or [n_samples, n_samples]

@@ -948,12 +948,12 @@ class InterfacedPostProcessor(BasePostProcessor):
       else:
         for key in exportDict['inputSpaceParams']:
           if key in output.getParaKeys('inputs'):
-            for point in range(len(exportDict['inputSpaceParams'][key])):
-              output.updateInputValue(key,exportDict['inputSpaceParams'][key][point])
+            for value in exportDict['inputSpaceParams'][key]:
+              output.updateInputValue(key,value)
         for key in exportDict['outputSpaceParams']:
           if key in output.getParaKeys('outputs'):
-            for point in range(len(exportDict['outputSpaceParams'][key])):
-              output.updateOutputValue(key,exportDict['outputSpaceParams'][key][point])
+            for value in exportDict['outputSpaceParams'][key]:
+              output.updateInputValue(key,value)
         for key in exportDict['metadata'][0]:
           output.updateMetadata(key,exportDict['metadata'][0][key])
 
