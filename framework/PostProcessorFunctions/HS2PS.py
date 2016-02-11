@@ -40,8 +40,8 @@ class HS2PS(PostProcessorInterfaceBase):
     self.inputFormat  = 'HistorySet'
     self.outputFormat = 'PointSet'
 
-    self.timeID       = None   
-    ''' timeID identify the ID of the temporal variable in the data set; it is used so that in the 
+    self.timeID       = None
+    ''' timeID identify the ID of the temporal variable in the data set; it is used so that in the
     conversion the time array is not inserted since it is not needed (all histories have same length)'''
     self.features     = 'all'
 
@@ -89,7 +89,7 @@ class HS2PS(PostProcessorInterfaceBase):
       self.features = []
       historiesID = inputDic['data']['output'].keys()
       self.features = inputDic['data']['output'][historiesID[0]].keys()
-    
+
     referenceHistory = inputDic['data']['output'].keys()[0]
     referenceTimeAxis = inputDic['data']['output'][referenceHistory][self.timeID]
     for hist in inputDic['data']['output']:
