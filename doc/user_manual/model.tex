@@ -1010,6 +1010,9 @@ model faster than Monte Carlo for small-dimension uncertainty spaces ($N<15$).
 In order to use this ROM, the \xmlNode{ROM} attribute \xmlAttr{subType} needs to
 be \xmlString{GaussPolynomialRom} (see the example below).
 %
+The GaussPolynomialRom is dependent on specific sampling; thus, this ROM cannot be trained unless a
+SparseGridCollocation or similar Sampler specifies this ROM in its input and is sampled in a MultiRun step.
+%
 In addition to the common \xmlNode{Target} and \xmlNode{Features}, this ROM requires
 two more nodes and can accept multiple entries of a third optional node.
 \begin{itemize}
@@ -1146,6 +1149,9 @@ a model is approximated as as the sum of increasing-complexity interactions.  At
 In order to use this ROM, the \xmlNode{ROM} attribute \xmlAttr{subType} needs to
 be \xmlString{HDMRRom} (see the example below).
 %
+The HDMRRom is dependent on specific sampling; thus, this ROM cannot be trained unless a
+Sobol or similar Sampler specifies this ROM in its input and is sampled in a MultiRun step.
+%
 In addition to the common \xmlNode{Target} and \xmlNode{Features}, this ROM requires
 the same nodes as the GaussPolynomialRom (see \ref{subsubsec:GaussPolynomialRom}.
 Additionally, this ROM requires the \xmlNode{SobolOrder} node.
@@ -1200,10 +1206,13 @@ Experience has shown order 2 Sobol decompositions to include the great majority 
 When Printing this ROM via an OutStreamManager (see \ref{sec:printing}), the available metrics are:
 \begin{itemize}
   \item \xmlString{mean}, the mean value of the ROM output within the input space it was trained,
-  \item \xmlString{variance}, the variance of the ROM output within the input space it was trained,
+  \item \xmlString{variance}, the roughly-approximated variance of the ROM output within the input space it
+    was trained.  It should be noted this is calculated as the sum of the variance of the constituent terms,
+    which neglects cross terms since cut-HDMR terms are not orthogonal.  Work is being done to fix this.
   \item \xmlString{numRuns}, the number of distinct model runs required to construct the ROM,
-  \item \xmlString{indices}, the total variance and the percent contribution of each subset to the total
-    variance (the Sobol sensitivity indices).
+  \item \xmlString{indices}, the relative impact parameter of each subset to the total
+    variance (these are not Sobol sensitivity indices, but relative impacts of the impact subspace on the
+    variance of the whole expansion).
 \end{itemize}
 
 %%%%% ROM Model - MSR  %%%%%%%
@@ -3847,14 +3856,13 @@ to be aware of (i.e. the variables are going to directly be used by the code)
 and not the local variables that the user does not want to, for example, store
 in a RAVEN internal object.
 %
-These variables are specified within consecutive \xmlNode{variable} blocks:
+These variables are specified within a \xmlNode{variables} block:
 \begin{itemize}
-  \item \xmlNode{variable}, \xmlDesc{string, required parameter}.
+  \item \xmlNode{variables}, \xmlDesc{string, required parameter}.
   %
-  In the body of this XML node, the user needs to specify the name of the
-  variable.
+  Comma-separated list of variable names.
   %
-  This variable needs to match a variable used/defined in the external python
+  Each variable name needs to match a variable used/defined in the external python
   model.
   %
 \end{itemize}
@@ -3922,9 +3930,7 @@ Example XML:
   <Models>
      ...
     <ExternalModel name='AnExtModule' subType='' ModuleToLoad='path_to_external_module'>
-       <variable>sigma</variable>
-       <variable>rho</variable>
-       <variable>outcome</variable>
+       <variables>sigma,rho,outcome</variables>
        <!--
           here we define other XML nodes RAVEN does not read automatically.
           We need to implement, in the external module 'AnExtModule' the readMoreXML method
@@ -4125,6 +4131,7 @@ Currently, the following PPs are available in RAVEN:
   \item \textbf{LimitSurfaceIntegral}
   \item \textbf{External}
   \item \textbf{TopologicalDecomposition}
+  \item \textbf{DataMining}
   %\item \textbf{PrintCSV}
   %\item \textbf{LoadCsvIntoInternalObject}
 \end{itemize}
@@ -4703,6 +4710,7 @@ Section~\ref{sec:functions} for more details).
   ...
 </Simulation>
 \end{lstlisting}
+
 %%%%% PP TopologicalDecomposition %%%%%%%
 \subsubsection{TopologicalDecomposition}
 \label{TopologicalDecomposition}
@@ -4793,6 +4801,9 @@ The following is a list of acceptable sub-nodes:
 <Simulation>
 \end{lstlisting}
 
+%%%%% PP DataMining %%%%%%%
+\input{DataMining.tex}
+
 %%%%% PP PrintCSV %%%%%%%
 %\paragraph{PrintCSV}
 %\label{PrintCSV}
@@ -4802,3 +4813,123 @@ The following is a list of acceptable sub-nodes:
 %\label{LoadCsvIntoInternalObject}
 %TO BE MOVED TO STEP ``IOSTEP''
 %
+
+%%%%% PP External %%%%%%%
+\subsubsection{Interfaced}
+\label{Interfaced}
+The \textbf{Interfaced} post-processor is a Post-Processor that allows the user
+to create its own Post-Processor. While the External Post-Processor (see
+Section~\ref{External} allows the user to create case-dependent
+Post-Processors, with this new class the user can create new general
+purpose Post-Processors.
+%
+
+\ppType{Interfaced}{Interfaced}
+
+\begin{itemize}
+  \item \xmlNode{method}, \xmlDesc{comma separated string, required field},
+  lists the method names of a method that will be computed (each
+  returning a post-processing value). All available methods need to be included
+  in the ``/raven/framework/PostProcessorFunctions/'' folder
+
+\end{itemize}
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={subType,debug,name,class,type}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <PostProcessor name="example" subType='InterfacedPostProcessor'verbosity='debug'> 
+       <method>testInterfacedPP</method> 
+       <!--Here, the xml nodes required by the chosen method have to be
+       included.
+        -->
+    </PostProcessor>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+
+All the \textbf{Interfaced} post-processors need to be contained in the
+``/raven/framework/PostProcessorFunctions/'' folder. In fact, once the
+\textbf{Interfaced} post-processor is defined in the RAVEN input file, RAVEN
+search that the method of the post-processor is located in such folder.
+
+The class specified in the \textbf{Interfaced} post-processor has to inherit the
+PostProcessorInterfaceBase class and the user must specify this set of
+methods:
+\begin{itemize}
+  \item initialize: in this method, the internal parameters of the
+  post-processor are initialized. Mandatory variables that needs to be
+  specified are the following:
+\begin{itemize}
+  \item self.inputFormat: type of dataObject expected in input
+  \item self.outputFormat: type of dataObject generated in output
+\end{itemize}
+  \item readMoreXML: this method is in charge of reading the PostProcessor xml
+  node, parse it and fill the PostProcessor internal variables.
+  \item run: this method performs the desired computation of the dataObject.
+\end{itemize}
+
+\begin{lstlisting}[language=python]
+from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
+class testInterfacedPP(PostProcessorInterfaceBase):
+  def initialize(self)
+  def readMoreXML(self,xmlNode)
+  def run(self,inputDic)
+\end{lstlisting} 
+
+\paragraph{Data Format}
+The user is not allowed to modify directly the DataObjects, however the
+content of the DataObjects is available in the form of a python dictionary.
+Both the dictionary give in input and the one generated in the output of the 
+PostProcessor are structured as follows:
+
+\begin{lstlisting}[language=python]
+inputDict = {'data':{}, 'metadata':{}}
+\end{lstlisting} 
+
+where:
+
+\begin{lstlisting}[language=python]
+inputDict['data'] = {'input':{}, 'output':{}}
+\end{lstlisting}
+
+In the input dictonary, each input variable is listed as a dictionary that
+contains a numpy array with its own values as shown below for a simplified
+example
+
+\begin{lstlisting}[language=python]
+inputDict['input'] = {'inputVar1': array([ 1.,2.,3.]), 
+                      'inputVar2': array([4.,5.,6.])}
+\end{lstlisting}
+
+Similarly, if the dataObject is a PointSet then the output dictionary is
+structured as follows:
+
+\begin{lstlisting}[language=python]
+inputDict['output'] = {'outputVar1': array([ .1,.2,.3]), 
+                       'outputVar2':array([.4,.5,.6])}
+\end{lstlisting}
+
+Howevers, if the dataObject is a HistorySet then the output dictionary is
+structured as follows:
+
+\begin{lstlisting}[language=python]
+inputDict['output'] = {'hist1': {}, 'hist2':{}}
+\end{lstlisting}
+
+where
+
+\begin{lstlisting}[language=python]
+inputDict['output'][hist1] = {'time': array([ .1,.2,.3]),
+                              'outputVar1':array([ .4,.5,.6])}
+inputDict['output'][hist2] = {'time': array([ .1,.2,.3]),
+                              'outputVar1':array([ .14,.15,.16])}
+\end{lstlisting}
+
+
+
+
+

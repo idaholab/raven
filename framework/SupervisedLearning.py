@@ -409,6 +409,7 @@ class GaussPolynomialRom(superVisedLearning):
     @ Out, None
     """
     superVisedLearning.__init__(self,messageHandler,**kwargs)
+    self.initialized   = False #only True once self.initialize has been called
     self.interpolator  = None #FIXME what's this?
     self.printTag      = 'GAUSSgpcROM('+self.target+')'
     self.indexSetType  = None #string of index set type, TensorProduct or TotalDegree or HyperbolicCross
@@ -533,6 +534,7 @@ class GaussPolynomialRom(superVisedLearning):
     if self.quads      is None: self.raiseAnError(RuntimeError,'Tried to initialize without key object "quads"')
     if self.polys      is None: self.raiseAnError(RuntimeError,'Tried to initialize without key object "polys"')
     if self.indexSet   is None: self.raiseAnError(RuntimeError,'Tried to initialize without key object "iSet" ')
+    self.initialized = True
 
   def _multiDPolyBasisEval(self,orders,pts):
     """Evaluates each polynomial set at given orders and points, returns product.
@@ -551,6 +553,9 @@ class GaussPolynomialRom(superVisedLearning):
     @ In, featureVals, list, feature values
     @ In, targetVals, list, target values
     """
+    #check to make sure ROM was initialized
+    if not self.initialized:
+      self.raiseAnError(RuntimeError,'ROM has not yet been initialized!  Has the Sampler associated with this ROM been used?')
     self.raiseADebug('training',self.features,'->',self.target)
     self.featv, self.targv = featureVals,targetVals
     self.polyCoeffDict={}
@@ -707,6 +712,7 @@ class HDMRRom(GaussPolynomialRom):
     @ Out, None
     """
     GaussPolynomialRom.__init__(self,messageHandler,**kwargs)
+    self.initialized   = False #true only when self.initialize has been called
     self.printTag      = 'HDMR_ROM('+self.target+')'
     self.sobolOrder    = None #depth of HDMR/Sobol expansion
     self.ROMs          = {}   #dict of GaussPolyROM objects keyed by combination of vars that make them up
@@ -734,10 +740,12 @@ class HDMRRom(GaussPolynomialRom):
         request=request.strip()
         newnode = TreeStructure.Node(request)
         if request.lower() in ['mean','expectedvalue']: newnode.setText(self.__mean__())
-        elif request.lower() in ['variance']: newnode.setText(self.__variance__())
+        elif request.lower() in ['variance']:
+          newnode.setText(self.__variance__())
+          newnode.name = 'approx_variance'
         elif request.lower() in ['indices']:
           pcts,totpct,totvar = self.getPercentSensitivities(returnTotal=True)
-          vnode = TreeStructure.Node('total_variance')
+          vnode = TreeStructure.Node('approx_tot_variance')
           vnode.setText(totvar)
           newnode.appendBranch(vnode)
           #split into two sets, significant and insignificant
@@ -749,11 +757,11 @@ class HDMRRom(GaussPolynomialRom):
             else:
               insig.append((combo,sens))
           entries.sort(key=itemgetter(0))
-          entries.sort(key=itemgetter(1),reverse=True)
+          entries.sort(key=lambda x: abs(x[1]),reverse=True)
           insig.sort(key=itemgetter(0))
           def addSensBranch(combo,sens):
             snode = TreeStructure.Node('variables')
-            svnode = TreeStructure.Node('sensitivity')
+            svnode = TreeStructure.Node('impact_param')
             svnode.setText(sens)
             snode.appendBranch(svnode)
             snode.setText(','.join(combo))
@@ -762,6 +770,7 @@ class HDMRRom(GaussPolynomialRom):
             addSensBranch(combo,sens)
           for combo,sens in insig:
             addSensBranch(combo,sens)
+          newnode.name="impacts"
         elif request.lower() in ['numruns']:
           newnode.setText(self.numRuns)
         else:
@@ -781,6 +790,7 @@ class HDMRRom(GaussPolynomialRom):
       elif key == 'polys'  : self.polys      = value
       elif key == 'refs'   : self.references = value
       elif key == 'numRuns': self.numRuns    = value
+    self.initialized = True
 
   def __trainLocal__(self,featureVals,targetVals):
     """
@@ -788,6 +798,8 @@ class HDMRRom(GaussPolynomialRom):
       @ In, tdict, training dictionary
       @ Out, None
     """
+    if not self.initialized:
+      self.raiseAnError(RuntimeError,'ROM has not yet been initialized!  Has the Sampler associated with this ROM been used?')
     ft={}
     for i in range(len(featureVals)):
       ft[tuple(featureVals[i])]=targetVals[i]
@@ -859,6 +871,7 @@ class HDMRRom(GaussPolynomialRom):
 
   def __variance__(self):
     """The Cut-HDMR approximation can return its variance easily.
+    EXCEPT that's completely wrong, HDMR components aren't orthogonal and you can't do it this way. Fixme.
     @ In, None
     @ Out, float, the variance
     """
@@ -874,6 +887,7 @@ class HDMRRom(GaussPolynomialRom):
             if set(doneCombo).issubset(set(combo)):
               vals[combo] -= vals[doneCombo]
     tot = sum(vals.values())
+    #TODO FIXME this neglects cross-terms!
     self.variance = tot
     return tot
 
@@ -904,6 +918,7 @@ class HDMRRom(GaussPolynomialRom):
     """
       Generates dictionary of Sobol indices for the requested levels.
       Optionally the moment (r) to get sensitivity indices of can be requested.
+      FIXME these are not Sobol sensitivity indices!  This can't be done this way with cut-HDMR.
       @ In, levels, list, levels to obtain indices for. Defaults to all available.
       @ In, kind, string, the metric to use when calculating sensitivity indices. Defaults to variance.
     """
@@ -932,6 +947,7 @@ class HDMRRom(GaussPolynomialRom):
     """Calculates percent sensitivities.
     If variance specified, uses it as the bnechmark variance, otherwise uses ROM to calculate total variance approximately.
     If returnTotal specified, also returns percent of total variance and the total variance value.
+    FIXME these are not Sobol sensitivity indices!  This can't be done this way with cut-HDMR.
     @ In, variance, float to represent user-provided total variance
     @ In, returnTotal, boolean to turn on returning total percent and total variance
     @ Out, pcts, percent=based Sobol sensitivity indices

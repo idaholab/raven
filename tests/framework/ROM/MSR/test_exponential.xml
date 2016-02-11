@@ -14,9 +14,7 @@
 
   <Models>
     <ExternalModel ModuleToLoad="./testFunction" name="foo" subType="">
-      <variable>X</variable>
-      <variable>Y</variable>
-      <variable>Z</variable>
+      <variables>X,Y,Z</variables>
     </ExternalModel>
     <ROM name="exponential" subType="MSR">
       <Features>X,Y</Features>

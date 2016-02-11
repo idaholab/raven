@@ -1446,6 +1446,61 @@ nodes:
   %
 \end{itemize}
 
+\subsubsection{DataMining plots}
+In order to create a ``DataMining'' plot, the user needs to write in the 
+\xmlNode{type} body the keyword ``dataMining''.
+%
+``DataMining'' plots are based on 2D or 3D Scattering plots, depending on the method/algorithm
+used in the ``DataMining'' postprocessor [see  \ref{subsubsec:DataMining}]. These plots
+are created to ease the color labeling the clusters, etc parameters in the data.
+% 
+The following are the optional or required input parameters  that can be used in these plots
+additional to the coordinate inputs \xmlNode{x},  \xmlNode{y}, or \xmlNode{z} depending
+ on the dimension:
+\begin{itemize}
+  \item \xmlNode{type}, \xmlDesc{string, required field}, this block should read ``dataMining''
+  in order to create a data mining plot.
+  %
+  \item \xmlNode{SKLtype}, \xmlDesc{string, required field}, name of the algorithm used in the
+  ``dataMining'' postprocessor. It is one of:
+  \begin{itemize}
+	\item cluster: for clustering algorithms, such as KMeans clustering.
+	\item bicluster ( \nb{not implemented yet!})
+	\item mixture: for Gaussian mixture algorithms, such as GMM classifier
+	\item manifold: for Manifold Learning algorithms, such as Spectral Embedding
+	\item decomposition: for decomposing signals in components algorithms, such as Principal
+        Component Analysis (PCA)
+ \end{itemize}
+ \item \xmlNode{clusterLabels}, \xmlDesc{string, optional field}, defines the place where 
+ the labels of the clusters are located. As in the visual parameters (i.e., x,y,z and 
+ colorMap) this is also from a \textbf{DataObjects} object. Considering the structure of 
+ ``DataObjects'', the labels inputted as follows: \texttt{DataObjectName|Output|DataMiningPPNameLabels}.
+ \default{None}
+ \item \xmlNode{noClusters}, \xmlDesc{integer, optional field}, defines the number of 
+ clusters used in the ``dataMining'' postprocessor \default{1}
+
+ \item \xmlNode{kwargs}, within this block the user can specify optional
+  parameters with the following format:
+
+\begin{lstlisting}[style=XML]
+<kwargs>
+ <param1>value1</param1>
+ <param2>value2</param2>
+</kwargs>
+\end{lstlisting}
+
+  The kwargs block is able to convert whatever string into a python type (for
+  example \xmlNode{param1} \texttt{\{`1stKey':45\}}\xmlNode{/param1} will
+  be converted into a dictionary,
+  \xmlNode{param2} \texttt{[56,67]} \xmlNode{/param2} into a list, etc.).
+  % 
+
+  For reference regarding the other available kwargs, see
+  ``matplotlib.pyplot.scatter'' method in~\cite{MatPlotLib}.
+  %
+\end{itemize}
+
+
 %\subsubsection{Interpreted Plotting instruction \label{sec:Interpretedplotting}}
 
 \subsubsection{Example XML input}

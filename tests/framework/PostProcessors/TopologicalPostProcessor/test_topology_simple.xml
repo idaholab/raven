@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" ?>
 <Simulation>
   <!-- A simple example of the approximate Morse-Smale complex interface
        has four local minima surrounding a global maximum, and each of the
@@ -16,13 +16,11 @@
   </RunInfo>
 
   <Models>
-    <ExternalModel name='testFunction' subType='' ModuleToLoad = '../hill'>
-      <variable>X</variable>
-      <variable>Y</variable>
-      <variable>Z</variable>
+    <ExternalModel ModuleToLoad="../hill" name="testFunction" subType="">
+      <variables>X,Y,Z</variables>
     </ExternalModel>
     <!-- 4 Clusters (no simplification) -->
-    <PostProcessor name='AMSC1' subType='TopologicalDecomposition'>
+    <PostProcessor name="AMSC1" subType="TopologicalDecomposition">
       <graph>Beta Skeleton</graph>
       <gradient>steepest</gradient>
       <beta>1</beta>
@@ -33,7 +31,7 @@
       <response>Z</response>
     </PostProcessor>
     <!-- 3 Clusters -->
-    <PostProcessor name='AMSC2' subType='TopologicalDecomposition'>
+    <PostProcessor name="AMSC2" subType="TopologicalDecomposition">
       <graph>Beta Skeleton</graph>
       <gradient>steepest</gradient>
       <beta>1</beta>
@@ -45,7 +43,7 @@
       <persistence>difference</persistence>
     </PostProcessor>
     <!-- 2 Clusters -->
-    <PostProcessor name='AMSC3' subType='TopologicalDecomposition'>
+    <PostProcessor name="AMSC3" subType="TopologicalDecomposition">
       <graph>Beta Skeleton</graph>
       <gradient>steepest</gradient>
       <beta>1</beta>
@@ -57,7 +55,7 @@
       <persistence>difference</persistence>
     </PostProcessor>
     <!-- 1 Clusters -->
-    <PostProcessor name='AMSC4' subType='TopologicalDecomposition'>
+    <PostProcessor name="AMSC4" subType="TopologicalDecomposition">
       <graph>Beta Skeleton</graph>
       <gradient>steepest</gradient>
       <beta>1</beta>
@@ -91,36 +89,36 @@
 
   <Steps>
     <!-- Sample the data from the test function -->
-    <MultiRun name="sampleData" pauseAtEnd="false" sleepTime='1e-5'>
-      <Input   class="DataObjects" type="PointSet">dummyIN</Input>
-      <Model   class="Models"      type="ExternalModel">testFunction</Model>
-      <Sampler class="Samplers"    type="Grid">gridSampler</Sampler>
-      <Output  class="DataObjects" type="PointSet">testData</Output>
+    <MultiRun name="sampleData" pauseAtEnd="false" sleepTime="1e-5">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">testFunction</Model>
+      <Sampler class="Samplers" type="Grid">gridSampler</Sampler>
+      <Output class="DataObjects" type="PointSet">testData</Output>
     </MultiRun>
     <!-- Perform the topological decomposition -->
     <PostProcess name="decompose1">
-      <Input  class="DataObjects"      type="PointSet"     >testData</Input>
-      <Model  class="Models"           type="PostProcessor">AMSC1</Model>
-      <Output class="DataObjects"      type="PointSet"     >outTPS1</Output>
-      <Output class="OutStreamManager" type="Print"        >myDump1</Output>
+      <Input class="DataObjects" type="PointSet">testData</Input>
+      <Model class="Models" type="PostProcessor">AMSC1</Model>
+      <Output class="DataObjects" type="PointSet">outTPS1</Output>
+      <Output class="OutStreamManager" type="Print">myDump1</Output>
     </PostProcess>
     <PostProcess name="decompose2">
-      <Input  class="DataObjects"      type="PointSet"     >testData</Input>
-      <Model  class="Models"           type="PostProcessor">AMSC2</Model>
-      <Output class="DataObjects"      type="PointSet"     >outTPS2</Output>
-      <Output class="OutStreamManager" type="Print"        >myDump2</Output>
+      <Input class="DataObjects" type="PointSet">testData</Input>
+      <Model class="Models" type="PostProcessor">AMSC2</Model>
+      <Output class="DataObjects" type="PointSet">outTPS2</Output>
+      <Output class="OutStreamManager" type="Print">myDump2</Output>
     </PostProcess>
     <PostProcess name="decompose3">
-      <Input  class="DataObjects"      type="PointSet"     >testData</Input>
-      <Model  class="Models"           type="PostProcessor">AMSC3</Model>
-      <Output class="DataObjects"      type="PointSet"     >outTPS3</Output>
-      <Output class="OutStreamManager" type="Print"        >myDump3</Output>
+      <Input class="DataObjects" type="PointSet">testData</Input>
+      <Model class="Models" type="PostProcessor">AMSC3</Model>
+      <Output class="DataObjects" type="PointSet">outTPS3</Output>
+      <Output class="OutStreamManager" type="Print">myDump3</Output>
     </PostProcess>
     <PostProcess name="decompose4">
-      <Input  class="DataObjects"      type="PointSet"     >testData</Input>
-      <Model  class="Models"           type="PostProcessor">AMSC4</Model>
-      <Output class="DataObjects"      type="PointSet"     >outTPS4</Output>
-      <Output class="OutStreamManager" type="Print"        >myDump4</Output>
+      <Input class="DataObjects" type="PointSet">testData</Input>
+      <Model class="Models" type="PostProcessor">AMSC4</Model>
+      <Output class="DataObjects" type="PointSet">outTPS4</Output>
+      <Output class="OutStreamManager" type="Print">myDump4</Output>
     </PostProcess>
   </Steps>
 
@@ -172,4 +170,5 @@
       <Output>Z</Output>
     </PointSet>
   </DataObjects>
+
 </Simulation>

@@ -12,24 +12,15 @@
 
   <Models>
     <ExternalModel ModuleToLoad="MVNAbs/lorentzAttractor_noK" name="PythonModule" subType="">
-      <variable>sigma</variable>
-      <variable>rho</variable>
-      <variable>beta</variable>
-      <variable>x</variable>
-      <variable>y</variable>
-      <variable>z</variable>
-      <variable>time</variable>
-      <variable>x0</variable>
-      <variable>y0</variable>
-      <variable>z0</variable>
+      <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0</variables>
     </ExternalModel>
   </Models>
 
-<Distributions>
-    <MultivariateNormal name='MultivariateNormalAbs' method='pca'>
-        <mu>1.0 2.0</mu>
-        <covariance type='abs'>
-            1.0 0.8 
+  <Distributions>
+    <MultivariateNormal method="pca" name="MultivariateNormalAbs">
+      <mu>1.0 2.0</mu>
+      <covariance type="abs">
+            1.0 0.8
             0.8 1.0
         </covariance>
     </MultivariateNormal>
@@ -38,7 +29,7 @@
   <Samplers>
     <MonteCarlo name="MCExternalAbs">
       <samplerInit>
-          <limit>10</limit>
+        <limit>10</limit>
         <initialSeed>1234</initialSeed>
       </samplerInit>
       <variable name="x0">

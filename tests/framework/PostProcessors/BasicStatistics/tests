@@ -5,7 +5,8 @@
     UnorderedCsv = 'basicStatsGridAnalytic/outputDatagrid_dump.csv'
     output = 'basicStatsGridAnalytic/outputDatagrid_dump.csv basicStatsGridAnalytic/outputDatagrid_dump.xml'
     xml = 'basicStatsGridAnalytic/outputDatagrid_dump.xml'
-    rel_err = 1e-6
+    rel_err = 1e-1
+    zero_threshold= 1.0
   [../]
   [./basicStatsMC]
     type = 'RavenFramework'
