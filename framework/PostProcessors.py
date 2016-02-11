@@ -948,10 +948,12 @@ class InterfacedPostProcessor(BasePostProcessor):
       else:
         for key in exportDict['inputSpaceParams']:
           if key in output.getParaKeys('inputs'):
-            output.updateInputValue(key,exportDict['inputSpaceParams'][key])
+            for value in exportDict['inputSpaceParams'][key]:
+              output.updateInputValue(key,value)
         for key in exportDict['outputSpaceParams']:
           if key in output.getParaKeys('outputs'):
-            output.updateOutputValue(key,exportDict['outputSpaceParams'][key])
+            for value in exportDict['outputSpaceParams'][key]:
+              output.updateInputValue(key,value)
         for key in exportDict['metadata'][0]:
           output.updateMetadata(key,exportDict['metadata'][0][key])
 
@@ -1868,7 +1870,7 @@ class LimitSurface(BasePostProcessor):
      @ In, currentInput, object, an object that needs to be converted
      @ Out, dict, the resulting dictionary containing features and response
     """
-    # each post processor knows how to handle the coming inputs. The BasicStatistics postprocessor accept all the input type (files (csv only), hdf5 and datas
+    # each post processor knows how to handle the coming inputs. The BasicStatistics postprocessor accept all the input type (files (csv only), hdf5 and dataobjects
     if type(currentInp) == list: currentInput = currentInp[-1]
     else                       : currentInput = currentInp
     if type(currentInp) == dict:

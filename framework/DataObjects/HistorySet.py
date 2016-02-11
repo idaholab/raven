@@ -432,6 +432,9 @@ class HistorySet(Data):
       dataFilename = mainLineList[-1]
       subCSVFilename = os.path.join(filenameRoot,dataFilename)
       myDataFile = open(subCSVFilename, "rU")
+      subCSVFile = Files.returnInstance("CSV", self)
+      subCSVFile.setFilename(subCSVFilename)
+      self._toLoadFromList.append(subCSVFile)
       header = myDataFile.readline().rstrip()
       outKeys_h = header.split(",")
       outValues_h = [[] for a in range(len(outKeys_h))]
@@ -449,11 +452,13 @@ class HistorySet(Data):
       subInput = {}
       subOutput = {}
       for key,value in zip(inpKeys,inpValues[i]):
-        subInput[key] = c1darray(values=np.array([value]*len(outValues[0][0])))
+        #subInput[key] = c1darray(values=np.array([value]*len(outValues[0][0])))
+        subInput[key] = c1darray(values=np.array([value]))
       for key,value in zip(outKeys[i],outValues[i]):
         subOutput[key] = c1darray(values=np.array(value))
       self._dataContainer['inputs'][mainKey] = subInput
       self._dataContainer['outputs'][mainKey] = subOutput
+    self.checkConsistency()
 
   def __extractValueLocal__(self,myType,inOutType,varTyp,varName,varID=None,stepID=None,nodeid='root'):
     """
