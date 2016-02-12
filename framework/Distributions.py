@@ -1493,17 +1493,7 @@ class MultivariateNormal(NDimensionalDistributions):
     self.transformMatrix = None  # np.array stores the transform matrix
     self.dimension = None        # the dimension of given problem
     self.rank = None             # the effective rank for the PCA analysis
-    '''
-    self.inputVariables = {}     # dict of input variable: {'model'::varName,'latent':varName}, 'model' indicates the varName are provided by models,
-                                 # and 'latent' indicates the varName used in the reduced space
-    '''
     self.transformation = False       # flag for input reduction analysis
-    # for sparse grid collocation
-    self.disttype = 'Continuous'
-    self.compatibleQuadrature.append('Hermite')
-    self.compatibleQuadrature.append('CDF')
-    self.compatibleQuadrature.append('ClenshawCurtis')
-
 
   def _readMoreXML(self,xmlNode):
     #NDimensionalDistributions._readMoreXML(self, xmlNode)
@@ -1546,12 +1536,6 @@ class MultivariateNormal(NDimensionalDistributions):
       self._distribution = distribution1D.BasicMultivariateNormal(covariance, mu)
     elif self.method == 'pca':
       self._distribution = distribution1D.BasicMultivariateNormal(covariance, mu, str(self.covarianceType), self.rank)
-      # for sparse grid collocation method
-      if self.transformation:
-        self.lowerBound = -sys.float_info.max
-        self.upperBound =  sys.float_info.max
-        self.preferredQuadrature  = 'Hermite'
-        self.preferredPolynomials = 'Hermite'
 
   def cdf(self,x):
     if self.method == 'spline':
@@ -1641,7 +1625,7 @@ class MultivariateNormal(NDimensionalDistributions):
       dxs[i]=dx[i]
     if self.method == 'pca':
       if self.transformation: self.raiseAWarning("The ProbabilityWeighted is computed on the reduced transformed space")
-      else: self.raiseAWarning("The ProbabilityWeighted is computed on the transformed space")
+      else: self.raiseAWarning("The ProbabilityWeighted is computed on the full transformed space")
       return self._distribution.cellProbabilityWeight(coordinate,dxs)
     elif self.method == 'spline':
       return self._distribution.cellIntegral(coordinate,dxs)
