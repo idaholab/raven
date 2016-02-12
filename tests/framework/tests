@@ -470,12 +470,4 @@
   csv = 'LHStestVariables/outLHS_dump.csv'
   xml = 'LHStestVariables/outLHS_dump.xml'
  [../]
-
- [./testVariableGroups]
-  type = 'RavenFramework'
-  input = 'test_vargroups.xml'
-  UnorderedCsv = 'VariableGroups/dump_addrem.csv VariableGroups/dump_comp.csv VariableGroups/dump_intx.csv VariableGroups/dump_romout.csv VariableGroups/dump_sdiff.csv VariableGroups/dump_standard.csv VariableGroups/dump_uni.csv'
-  #this test might be improved in the future if we duplicate the input file in some kind of log.
-  #note that since sets are not stable, this test might cause issues with column ordering in csvs.
- [../]
 []

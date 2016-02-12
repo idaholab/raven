@@ -1,0 +1,70 @@
+<?xml version="1.0" ?>
+<Simulation verbosity='debug'>
+  <RunInfo>
+    <WorkingDir>ExternalNodes</WorkingDir>
+    <Sequence>sample,print</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <ExternalXML node="VariableGroups" xmlToLoad="ExternalNodes/vargroups.xml"/>
+  <ExternalXML node="DataObjects" xmlToLoad="ExternalNodes/dataobjects.xml"/>
+
+  <Distributions>
+    <Normal name="NormDist">
+      <mean>0</mean>
+      <sigma>1</sigma>
+    </Normal>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="mc">
+      <samplerInit>
+        <limit>3</limit>
+        <initialSeed>42</initialSeed>
+      </samplerInit>
+      <variable name="x1">
+        <distribution>NormDist</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution>NormDist</distribution>
+      </variable>
+      <variable name="x3">
+        <distribution>NormDist</distribution>
+      </variable>
+      <variable name="x4">
+        <distribution>NormDist</distribution>
+      </variable>
+      <variable name="x5">
+        <distribution>NormDist</distribution>
+      </variable>
+      <variable name="x6">
+        <distribution>NormDist</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Models>
+    <Dummy name="MyDummy" subType=""/>
+    <ExternalModel ModuleToLoad="extmod" name="extmod" subType="">
+      <variables>union,y_group</variables>
+    </ExternalModel>
+  </Models>
+
+  <Steps>
+    <MultiRun name="sample">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">extmod</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
+      <Output class="DataObjects" type="PointSet">standard</Output>
+    </MultiRun>
+    <IOStep name="print">
+      <Input class="DataObjects" type="PointSet">standard</Input>
+      <Output class="OutStreamManager" type="Print">dump_standard</Output>
+    </IOStep>
+  </Steps>
+
+  <OutStreamManager>
+    <Print name="dump_standard"><type>csv</type><source>standard</source></Print>
+  </OutStreamManager>
+
+</Simulation>
