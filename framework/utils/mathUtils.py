@@ -192,47 +192,6 @@ def calculateStats(data):
   ret["kurtosis"] = kurtosis
   return ret
 
-
-# def historySnapShot(vars, pivotVar, snapShotType, pivotVal=None, tempID = None):
-#   newVars={}
-#
-#   if   snapShotType == 'min':
-#     index = np.argmin(vars[pivotVar])
-#     for keys in vars.keys():
-#       newVars[keys] = var[keys][index]
-#
-#   elif snapShotType == 'max':
-#     index = np.argmax(vars[pivotVar])
-#     for keys in vars.keys():
-#       newVars[keys] = var[keys][index]
-#
-#   elif snapShotType == 'value':
-#     if pivotVal==None:
-#       self.raiseAnError(RuntimeError,'type ' + snapShotType + ' is not a valid type with variable pivotVal=None. Function: historySnapShot (mathUtils)')
-#     else:
-#       idx = np.argmin(np.abs(vars[pivotVar] - pivotVal))
-#       if pivotVar[idx]>pivotVal:
-#         intervalFraction = (val-var[pivotVar][idx-1])/(var[pivotVar][idx]-var[pivotVar][idx-1])
-#         for keys in vars.keys():
-#           newVars[keys] = var[keys][idx-1] + (var[keys][idx]-var[keys][idx-1])*intervalFraction
-#       else:
-#         intervalFraction = (val-var[pivotVar][idx])/(var[pivotVar][idx+1]-var[pivotVar][idx])
-#         for keys in vars.keys():
-#           newVars[keys] = var[keys][idx] + (var[keys][idx+1]-var[keys][idx])*intervalFraction
-#
-#   elif snapShotType == 'avg':
-#      for keys in vars.keys():
-#        cumulative=0.0
-#        for t in range(1,vars[keys].shape()):
-#          cumulative += (vars[keys][t] + vars[keys][t-1]) / 2.0 * (vars[tempID][t] - vars[tempID][t-1])
-#        newVars[keys] = cumulative / (vars[tempID][-1] - vars[tempID][0])
-#
-#   else:
-#     self.raiseAnError(RuntimeError,'type ' + snapShotType + ' is not a valid type. Function: historySnapShot (mathUtils)')
-#
-#   return newVars
-
-
 def historySetWindow(vars,numberOfTimeStep):
   """
   Method do to compute
