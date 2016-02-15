@@ -59,12 +59,12 @@ class BaseType(MessageHandler.MessageUser):
       if node.text is not None:
         #two cases, comma-separated or not
         if ',' in node.text: #comma-separated
-          text_entries = list(t.strip() for t in node.text.split(','))
-          for t,text in enumerate(text_entries):
+          textEntries = list(t.strip() for t in node.text.split(','))
+          for t,text in enumerate(textEntries):
             if text in variableGroups.keys():
-              text_entries[t] = variableGroups[text].getVarsString()
+              textEntries[t] = variableGroups[text].getVarsString()
               self.raiseADebug('Replaced text in <%s> with variable group "%s"' %(node.tag,text))
-          node.text = ','.join(text_entries)
+          node.text = ','.join(textEntries)
         else: #singular entry
           text = node.text.strip()
           if text in variableGroups.keys():
