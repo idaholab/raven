@@ -9,6 +9,82 @@
 \begin{document}
 \maketitle
 
+\section{Introduction}
+
+\subsection{System Purpose}
+
+The RAVEN code is a generic software framework to perform parametric
+and probabilistic analysis based on the response of complex system
+codes. RAVEN is capable of investigating the system response as well
+as the input space using Monte Carlo, Grid, or Latin Hyper Cube
+sampling schemes, but its strength is focused toward system feature
+discovery, such as limit surfaces, separating regions of the input
+space leading to system failure, using dynamic supervised learning
+techniques.
+
+The development of RAVEN started in 2012 to satisfy the need to
+provide a modern risk evaluation framework. RAVEN’s principal
+assignment is to provide the necessary software and algorithms in
+order to employ the concept developed by the Risk Informed Safety
+Margin Characterization (RISMC) program. RISMC is one of the pathways
+defined within the Light Water Reactor Sustainability (LWRS)
+program. In the RISMC approach, the goal is not just specifically
+identifying the frequency of an event potentially leading to a system
+failure, but the closeness (or not) to key safety-related events. This
+approach may be used in identifying and increasing the safety margins
+related to those events. A safety margin is a numerical value
+quantifying the probability that a safety metric (e.g. as peak
+pressure in a pipe) is exceeded under certain conditions. The initial
+development of RAVEN has been focused on providing dynamic risk
+assessment capability to RELAP-7, currently under development at the
+INL and, the likely future replacement of the RELAP5-3D code. Most of
+the capabilities implemented using RELAP-7 are easily deployable for
+other system codes.
+
+\subsection{System Scope}
+
+The product to be produced is the RAVEN software.  It is a computer
+code designed for probabilistic analysis.
+
+\subsection{System Overview}
+
+\subsubsection{User Characteristics}
+
+The users of the system are expected to be analysts performing
+analysis of simulations of systems.  The users will use the outputs
+for planning and design of the systems.
+
+\subsubsection{Assumptions and Dependencies}
+
+The software depends on the Python programming language being
+available.  The software depends on other software that is listed in
+the user manual.
+
+It is assumed that other methods will be used to provide security
+(such as running in a single user's account with the input and output
+of the program stored in that user's account).
+
+\section{References}
+
+\begin{flushleft}
+ASME NQA-1-2008 with the NQA-1a-2009 addenda, ``Quality Assurance
+Requirements for Nuclear Facility Applications,'' First Edition, August
+31, 2009.
+
+INL/EXT-15-34123, ``RAVEN User Manual,'' Rev 3, October 13, 2015
+
+LWP-13620, ``Managing Information Technology Assets,'' Rev. 16, December
+23, 2013.
+\end{flushleft}
+
+\section{Definitions and Acronyms}
+
+\begin{description}
+\item[CDF] cumulative distribution function
+\item[RAVEN] Risk Analysis Virtual Environment
+\item[PDF] probability distribution function
+\end{description}
+
 \section{Risk Evaluation}
 
 \begin{description}
