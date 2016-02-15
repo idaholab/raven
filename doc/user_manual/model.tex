@@ -1544,11 +1544,6 @@ The parameters are estimated by maximizing the marginal log likelihood.
   compute the objective function at each step of the model.
   \default{False}
   %
-  \item \xmlNode{threshold\_lambda}, \xmlDesc{float, optional field}, specifies
-  the threshold for removing (pruning) weights with high precision from the
-  computation.
-  \default{ 1.e+4}
-  %
   \item \fitInterceptDescription{True}
   \item \normalizeDescription{False}
   \item \verDescriptionA{False}
@@ -1561,7 +1556,7 @@ L2 priors as regularizers.
 %
 It minimizes the objective function:
 \begin{equation}
-1/(2*n_samples) *||y - Xw||^2_2+alpha*l1_ratio*||w||_1 + 0.5 *alpha*(1 - l1_ratio)*||w||^2_2
+1/(2*n_{samples}) *||y - Xw||^2_2+alpha*l1\_ratio*||w||_1 + 0.5 *alpha*(1 - l1\_ratio)*||w||^2_2
 \end{equation}
 
 \skltype{Elastic Net regressor}{linear\_model|ElasticNet}
@@ -1585,7 +1580,7 @@ It minimizes the objective function:
   \default{0.5}
   \item \fitInterceptDescription{True}
   \item \normalizeDescription{False}
-  \item \maxIterDescription{300}
+  \item \maxIterDescription{1000}
   \item \tolDescriptionB{1.e-4}
   \item \warmStartDescription{False}
   \item \positiveDescription{False}
@@ -1630,8 +1625,8 @@ The best model is selected by cross-validation.
   alphas along the regularization path used for each $l1\_ratio$.
   %
   \default{100}
-  \item \precomputeDescription{1.0}
-  \item \maxIterDescription{300}
+  \item \precomputeDescription{'auto'}
+  \item \maxIterDescription{1000}
   \item \tolDescriptionB{1.e-4}
   %
   \item \positiveDescription{False}
@@ -1656,8 +1651,8 @@ determined by a linear combination of a subset of potential covariates.
   \default{500}
   \item \fitInterceptDescription{True}
   \item \verDescriptionA{False}
-  \item \precomputeDescription{1.0}
-  \item \normalizeDescription{False}
+  \item \precomputeDescription{'auto'}
+  \item \normalizeDescription{True}
   \item \xmlNode{eps}, \xmlDesc{float, optional field}, represents the machine
   precision regularization in the computation of the Cholesky diagonal factors.
   %
@@ -1666,7 +1661,7 @@ determined by a linear combination of a subset of potential covariates.
   Unlike the \xmlNode{tol} parameter in some iterative optimization-based
   algorithms, this parameter does not control the tolerance of the optimization.
   %
-  \default{2.22e-16}
+  \default{2.2204460492503131e-16}
   \item \xmlNode{fit\_path}, \xmlDesc{boolean, optional field}, if True the
   full path is stored in the coef\_path\_attribute.
   %
@@ -1689,9 +1684,9 @@ cross-validation.
 \begin{itemize}
   \item \fitInterceptDescription{True}
   \item \verDescriptionA{False}
-  \item \normalizeDescription{False}
-  \item \precomputeDescription{1.0}
-  \item \maxIterDescription{300}
+  \item \normalizeDescription{True}
+  \item \precomputeDescription{'auto'}
+  \item \maxIterDescription{500}
   \item \nAlphasDescription{1000}
   \item \xmlNode{eps}, \xmlDesc{float, optional field}, represents the
   machine-precision regularization in the computation of the Cholesky diagonal
@@ -1702,7 +1697,7 @@ cross-validation.
   Unlike the \textit{tol} parameter in some iterative optimization-based
   algorithms, this parameter does not control the tolerance of the optimization.
   %
-  \default{2.22e-16}
+  \default{2.2204460492503131e-16}
 \end{itemize}
 \subparagraph{Linear Model trained with L1 prior as regularizer (aka the Lasso)}
 \mbox{}
@@ -1718,22 +1713,22 @@ absolute values of the coefficients.
   \item \xmlNode{alpha}, \xmlDesc{float, optional field}, sets a constant
   multiplier for the L1 term.
   %
-  \default{1.0}
-  %
   alpha = 0 is equivalent to an ordinary least square, solved by the
   LinearRegression object.
   %
   For numerical reasons, using alpha = 0 with the Lasso object is not advised
   and you should instead use the LinearRegression object.
   %
+  \default{1.0}
+  %
   \item \fitInterceptDescription{True}
   \item \normalizeDescription{False}
-  \item \precomputeDescription{}
+  \item \precomputeDescription{False}
   \nb For sparse input this option is always True to preserve sparsity.
-  \item \maxIterDescription{}
+  \item \maxIterDescription{1000}
   \item \tolDescriptionB{1.e-4}
-  \item \warmStartDescription{}
-  \item \positiveDescription{}
+  \item \warmStartDescription{False}
+  \item \positiveDescription{False}
 \end{itemize}
 
 \subparagraph{Lasso linear model with iterative fitting along a regularization
@@ -1752,39 +1747,55 @@ regressor}{linear\_model|LassoCV}
   %
   eps=1e-3 means that alpha\_min / alpha\_max = 1e-3.
   %
+  \default{1.0e-3}
+  %
   \item \xmlNode{n\_alphas}, \xmlDesc{int, optional field}, sets the number of
   alphas along the regularization path.
+  %
+  \default{100}
+  %
   \item \xmlNode{alphas}, \xmlDesc{numpy array, optional field}, lists the
   locations of the alphas used to compute the models.
   %
+  \default{None}
+  %
   If None, alphas are set automatically.
-  \item \precomputeDescription{}
-  \item \maxIterDescription{}
+  \item \precomputeDescription{'auto'}
+  \item \maxIterDescription{1000}
   \item \tolDescriptionB{1.e-4}
-  \item \verDescriptionB{}
-  \item \positiveDescription{}
+  \item \verDescriptionB{False}
+  \item \positiveDescription{False}
 \end{itemize}
 
 \subparagraph{Lasso model fit with Least Angle Regression}
 \mbox{}
 
-The \textit{Lasso model fit with Least Angle Regression} is a cross-validated
-least angle regression model.
+\textit{Lasso model fit with Least Angle Regression} (aka Lars) 
+It is a Linear Model trained with an L1 prior as regularizer.
+In order to use the \textit{Least Angle Regression model regressor}, the user needs to set the sub-node
 %
-\skltype{Cross-validated Least Angle Regression model
-regressor}{linear\_model|LarsCV}
+\skltype{Least Angle Regression model
+regressor}{linear\_model|LassoLars}
 
 \begin{itemize}
+  \item \xmlNode{alpha}, \xmlDesc{float, optional field}, specifies a constant
+  that multiplies the penalty terms.
+  %
+  $alpha = 0$ is equivalent to an ordinary least square, solved by the
+  \textbf{LinearRegression} object.
+  \default{1.0}
+  %
   \item \fitInterceptDescription{True}
-  \item \verDescriptionB{}
-  \item \normalizeDescription{False}
-  \item \precomputeDescription{}
-  \item \maxIterDescription{}
-  \item \nAlphasDescription{}
+  \item \verDescriptionB{False}
+  \item \normalizeDescription{True}
+  \item \precomputeDescription{'auto'}
+  \item \maxIterDescription{500}
   \item \xmlNode{eps}, \xmlDesc{float, optional field}, sets the machine
   precision regularization in the computation of the Cholesky diagonal factors.
   %
   Increase this for very ill-conditioned systems.
+  %
+  \default{2.2204460492503131e-16}
 \end{itemize}
 
 \subparagraph{Cross-validated Lasso, using the LARS algorithm}
@@ -1798,15 +1809,17 @@ regressor}{linear\_model|LassoLarsCV}
 
 \begin{itemize}
   \item \fitInterceptDescription{True}
-  \item \verDescriptionB{}
-  \item \normalizeDescription{False}
-  \item \precomputeDescription{}
-  \item \maxIterDescription{}
-  \item \nAlphasDescription{}
+  \item \verDescriptionB{False}
+  \item \normalizeDescription{True}
+  \item \precomputeDescription{'auto'}
+  \item \maxIterDescription{500}
+  \item \nAlphasDescription{1000}
   \item \xmlNode{eps}, \xmlDesc{float, optional field}, specifies the machine
   precision regularization in the computation of the Cholesky diagonal factors.
   %
   Increase this for very ill-conditioned systems.
+  %
+  \default{2.2204460492503131e-16}
 \end{itemize}
 
 \subparagraph{Lasso model fit with Lars using BIC or AIC for model selection}
@@ -1832,11 +1845,13 @@ A good model explains the data well while maintaining simplicity.
   \item \xmlNode{criterion}, \xmlDesc{`bic' | `aic' }, specifies the type of
   criterion to use.
   %
+  \default{'aic'}
+  %
   \item \fitInterceptDescription{True}
-  \item \verDescriptionB{}
-  \item \normalizeDescription{False}
-  \item \precomputeDescription{}
-  \item \maxIterDescription{}
+  \item \verDescriptionB{False}
+  \item \normalizeDescription{True}
+  \item \precomputeDescription{'auto'}
+  \item \maxIterDescription{500}
   \item \xmlNode{eps}, \xmlDesc{float, optional field}, represents the machine
   precision regularization in the computation of the Cholesky diagonal factors.
   %
@@ -1845,6 +1860,8 @@ A good model explains the data well while maintaining simplicity.
   Unlike the tol parameter in some iterative optimization-based algorithms, this
   parameter does not control the tolerance of the optimization.
   %
+  %
+  \default{2.2204460492503131e-16}
 \end{itemize}
 
 \subparagraph{Ordinary least squares Linear Regression}
@@ -1878,12 +1895,16 @@ for optimal performance; any other input format will be converted (and copied).
   \item \xmlNode{penalty}, \xmlDesc{string, `l1' or `l2'}, specifies the norm
   used in the penalization.
   %
+  \default{'l2'}
+  %}
   \item \xmlNode{dual}, \xmlDesc{boolean}, specifies the dual or primal
   formulation.
   %
   Dual formulation is only implemented for the l2 penalty.
   %
-  Prefer dual=False when n\_samples > n\_features.
+  Prefer dual=False when n\_samples $>$ n\_features.
+  %
+  \default{False}
   %
   \item \xmlNode{C}, \xmlDesc{float, optional field}, is the inverse of the
   regularization strength; must be a positive float.
@@ -1909,16 +1930,20 @@ for optimal performance; any other input format will be converted (and copied).
   To lessen the effect of regularization on synthetic feature weight (and
   therefore on the intercept) intercept\_scaling has to be increased.
   \default{1.0}
-  \item \xmlNode{class\_weight}, \xmlDesc{\{dict, `auto'\}, optional},
-  over-/undersamples the samples of each class according to the given weights.
+  \item \xmlNode{class\_weight}, \xmlDesc{dict, or 'balanced', optional}
+  Weights associated with classes in the form \{class\_label: weight\}. If not given, all classes are supposed to have weight one.
   %
-  If not given, all classes are supposed to have weight one.
+  The ``balanced'' mode uses the values of y to automatically adjust weights inversely proportional to class frequencies in the 
+  input data as n\_samples / (n\_classes * np.bincount(y))
   %
-  The `auto' mode selects weights inversely proportional to class frequencies
-  in the training set.
+  Note that these weights will be multiplied with sample\_weight (passed through the fit method) if sample\_weight is specified.
+  %
+  New in version 0.17: class\_weight=’balanced’ instead of deprecated class\_weight=’auto’.
+  %
+  \default{None}
   %
   \item \randomStateDescription{None}
-  \item \tolDescriptionC{}
+  \item \tolDescriptionC{0.0001}
 \end{itemize}
 
 \subparagraph{Multi-task Lasso model trained with L1/L2 mixed-norm as
@@ -1926,9 +1951,9 @@ for optimal performance; any other input format will be converted (and copied).
 \mbox{}
 \\The \textit{Multi-task Lasso model trained with L1/L2 mixed-norm as
   regularizer} is a regressor where the optimization objective for Lasso is:
-$(1 / (2 * n\_samples)) * ||Y - XW||^2_Fro + alpha * ||W||_21$
+$(1 / (2 * n\_samples)) * ||Y - XW||^2_{Fro} + alpha * ||W||_{21}$
 Where:
-$||W||_21 = \sum_i \sqrt{\sum_j w_{ij}^2}$
+$||W||_{21} = \sum_i \sqrt{\sum_j w_{ij}^2}$
 i.e. the sum of norm of each row.
 %
 \skltype{Multi-task Lasso model trained with L1/L2
@@ -1940,9 +1965,9 @@ i.e. the sum of norm of each row.
   \default{1.0}
   \item \fitInterceptDescription{True}
   \item \normalizeDescription{False}
-  \item \maxIterDescription{}
+  \item \maxIterDescription{1000}
   \item \tolDescriptionB{1.e-4}
-  \item \warmStartDescription{}
+  \item \warmStartDescription{False}
 \end{itemize}
 
 \subparagraph{Multi-task Elastic Net model trained with L1/L2 mixed-norm as
@@ -1952,11 +1977,11 @@ i.e. the sum of norm of each row.
 The \textit{Multi-task Elastic Net model trained with L1/L2 mixed-norm as
   regularizer} is a regressor where the optimization objective for
 MultiTaskElasticNet is:
-$(1 / (2 * n\_samples)) * ||Y - XW||^Fro_2
-+ alpha * l1\_ratio * ||W||_21
-+ 0.5 * alpha * (1 - l1\_ratio) * ||W||_Fro^2$
+$(1 / (2 * n\_samples)) * ||Y - XW||^{Fro}_2
++ alpha * l1\_ratio * ||W||_{21}
++ 0.5 * alpha * (1 - l1\_ratio) * ||W||_{Fro}^2$
 Where:
-$||W||_21 = \sum_i \sqrt{\sum_j w_{ij}^2}$
+$||W||_{21} = \sum_i \sqrt{\sum_j w_{ij}^2}$
 i.e. the sum of norm of each row.
 %
 \skltype{Multi-task ElasticNet model trained with L1/L2
@@ -1976,11 +2001,13 @@ i.e. the sum of norm of each row.
   For $0 < l1\_ratio < 1$, the penalty is a combination of L1/L2
   and L2.
   %
+  \default{0.5}
+  %
   \item \fitInterceptDescription{True}
   \item \normalizeDescription{False}
   \item \maxIterDescription{}
   \item \tolDescriptionB{1.e-4}
-  \item \warmStartDescription{}
+  \item \warmStartDescription{False}
 \end{itemize}
 
 \subparagraph{Orthogonal Mathching Pursuit model (OMP)}
@@ -2004,8 +2031,10 @@ regressor}{linear\_model|OrthogonalMatchingPursuit}
   %
   If not None, overrides n\_nonzero\_coefs.
   %
+  \default{None}
+  %
   \item \fitInterceptDescription{True}
-  \item \normalizeDescription{False}
+  \item \normalizeDescription{True}
   \item \xmlNode{precompute}, \xmlDesc{\{True, False, `auto'\}}, specifies
   whether to use a precomputed Gram and Xy matrix to speed up calculations.
   %
@@ -2027,8 +2056,8 @@ regressor similar to OMP which has good performance in sparse recovery.
 regressor}{linear\_model|OrthogonalMatchingPursuitCV}
 \begin{itemize}
   \item \fitInterceptDescription{True}
-  \item \normalizeDescription{False}
-  \item \maxIterDescription{}
+  \item \normalizeDescription{True}
+  \item \maxIterDescription{None}
   %
   Maximum number of iterations to perform, therefore maximum features to
   include 10\% of n\_features but at least 5 if available.
@@ -2037,8 +2066,8 @@ regressor}{linear\_model|OrthogonalMatchingPursuitCV}
   %
   see sklearn.cross\_validation.
   %
-  \default{5-fold strategy}
-  \item \verDescriptionB{}
+  \default{None}
+  \item \verDescriptionB{False}
 \end{itemize}
 
 \subparagraph{Passive Aggressive Classifier}
@@ -2057,18 +2086,19 @@ Classifier}{linear\_model|PassiveAggressiveClassifier}
   %
   \item \fitInterceptDescription{True}
   \item \nIterDescriptionB{5}
-  \item \shuffleDescription{False}
+  \item \shuffleDescription{True}
   \item \randomStateDescription{None}
-  \item \verDescriptionB{}
+  \item \verDescriptionB{0}
   \item \xmlNode{loss}, \xmlDesc{string, optional field}, the loss function to
   be used:
   \begin{itemize}
     \item hinge: equivalent to PA-I (http://jmlr.csail.mit.edu/papers/volume7/crammer06a/crammer06a.pdf)
     \item squared\_hinge: equivalent to PA-II (http://jmlr.csail.mit.edu/papers/volume7/crammer06a/crammer06a.pdf)
   \end{itemize}
-
   %
-  \item \warmStartDescription{}
+  \default{'hinge'}
+  %
+  \item \warmStartDescription{False}
 \end{itemize}
 
 \subparagraph{Passive Aggressive Regressor}
@@ -2090,11 +2120,13 @@ parameter, $C$.
   current prediction and the correct label is below this threshold, the model is
   not updated.
   %
+  \default{0.1}
+  %
   \item \fitInterceptDescription{True}
   \item \nIterDescriptionB{5}
-  \item \shuffleDescription{False}
+  \item \shuffleDescription{True}
   \item \randomStateDescription{None}
-  \item \verDescriptionB{}
+  \item \verDescriptionB{0}
   \item \xmlNode{loss}, \xmlDesc{string, optional field}, specifies the loss
   function to be used:
   \begin{itemize}
@@ -2104,7 +2136,9 @@ parameter, $C$.
     /volume7/crammer06a/crammer06a.pdf).
   \end{itemize}
   %
-  \item \warmStartDescription{}
+  \default{'epsilon\_insensitive'}
+  %
+  \item \warmStartDescription{False}
 \end{itemize}
 
 \subparagraph{Perceptron}
@@ -2133,25 +2167,23 @@ training set one at a time.
   \default{0.0001}
   \item \fitInterceptDescription{True}
   \item \nIterDescriptionB{5}
-  \item \shuffleDescription{False}
-  \item \randomStateDescription{None}
-  \item \verDescriptionB{}
+  \item \shuffleDescription{True}
+  \item \randomStateDescription{0}
+  \item \verDescriptionB{0}
   \item \xmlNode{eta0}, \xmlDesc{double, optional field}, defines the constant
   multiplier for the updates.
   %
   \default{1.0}
   %
-  \item \xmlNode{class\_weight}, \xmlDesc{dict, {class\_label}}, specifies the
-  preset for the class\_weight fit parameter.
+  \item \xmlNode{class\_weight}, \xmlDesc{dict, \{class\_label: weight\} or “balanced” or None, optional}
+  Preset for the class\_weight fit parameter.
   %
-  Weights associated with classes.
+  Weights associated with classes. If not given, all classes are supposed to have weight one.
   %
-  If not given, all classes are supposed to have weight one.
+  The “balanced” mode uses the values of y to automatically adjust weights inversely proportional to class 
+  frequencies in the input data as n\_samples / (n\_classes * np.bincount(y))
   %
-  The ``auto'' mode uses the values of y to automatically adjust weights
-  inversely proportional to class frequencies.
-  %
-  \item \warmStartDescription{}
+  \item \warmStartDescription{False}
 \end{itemize}
 
 \subparagraph{Randomized Lasso}
