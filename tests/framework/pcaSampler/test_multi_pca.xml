@@ -53,18 +53,18 @@
       <variable name="y1">
         <distribution dim="2">MVN1</distribution>
       </variable>
-      <variablesTransformation distribution="MVN1">
-        <latentVariables>x1,y1</latentVariables>
-        <manifestVariables>z0,y0,x0</manifestVariables>
-        <manifestVariablesIndex>3,2,1</manifestVariablesIndex>
-        <method>pca</method>
-      </variablesTransformation>
       <variable name="x2">
         <distribution dim="1">MVN2</distribution>
       </variable>
       <variable name="y2">
         <distribution dim="2">MVN2</distribution>
       </variable>
+      <variablesTransformation distribution="MVN1">
+        <latentVariables>x1,y1</latentVariables>
+        <manifestVariables>z0,y0,x0</manifestVariables>
+        <manifestVariablesIndex>3,2,1</manifestVariablesIndex>
+        <method>pca</method>
+      </variablesTransformation>
       <variablesTransformation distribution="MVN2">
         <latentVariables>x2,y2</latentVariables>
         <manifestVariables>sigma,rho,beta</manifestVariables>
