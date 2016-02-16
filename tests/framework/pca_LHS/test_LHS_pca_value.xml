@@ -52,7 +52,7 @@
         <distribution dim="3">MVNDist</distribution>
         <grid construction="equal" steps="10" type="value">-5.0 5.0</grid>
       </variable>
-      <variablesTransformation model="PythonModule">
+      <variablesTransformation distribution="MVNDist">
         <latentVariables>x1,y1,z1</latentVariables>
         <manifestVariables>x0,y0,z0</manifestVariables>
         <method>pca</method>
