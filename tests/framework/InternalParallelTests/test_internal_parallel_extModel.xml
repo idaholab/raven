@@ -11,29 +11,20 @@
   <!-- STEPS -->
   <Steps>
     <MultiRun name="ParalleMonteCarlo" re-seeding="25061978">
-      <Input   class="DataObjects"      type="Point"        >inputPlaceHolder</Input>
-      <Model   class="Models"           type="ExternalModel">PythonModule</Model>
-      <Sampler class="Samplers"         type="MonteCarlo"   >MC_external</Sampler>
-      <Output  class="DataObjects"      type="HistorySet"   >testPrintHistorySet</Output>
-      <Output  class="OutStreamManager" type="Print"        >testPrintHistorySet_dump</Output>
-      <Output  class="DataObjects"      type="PointSet"     >testPointSet</Output>
-      <Output  class="OutStreamManager" type="Print"        >testPointSet_dump</Output>
+      <Input class="DataObjects" type="Point">inputPlaceHolder</Input>
+      <Model class="Models" type="ExternalModel">PythonModule</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
+      <Output class="DataObjects" type="HistorySet">testPrintHistorySet</Output>
+      <Output class="OutStreamManager" type="Print">testPrintHistorySet_dump</Output>
+      <Output class="DataObjects" type="PointSet">testPointSet</Output>
+      <Output class="OutStreamManager" type="Print">testPointSet_dump</Output>
     </MultiRun>
   </Steps>
 
   <!-- MODELS -->
   <Models>
     <ExternalModel ModuleToLoad="lorentzAttractor" name="PythonModule" subType="">
-      <variable>sigma</variable>
-      <variable>rho</variable>
-      <variable>beta</variable>
-      <variable>x</variable>
-      <variable>y</variable>
-      <variable>z</variable>
-      <variable>time</variable>
-      <variable>x0</variable>
-      <variable>y0</variable>
-      <variable>z0</variable>
+      <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0</variables>
     </ExternalModel>
   </Models>
 

@@ -3,7 +3,6 @@ import xml.etree.ElementTree as ET
 import os
 import sys
 
-
 def createBackup(filename):
   """
     Creates a backup file based on the file at filename.  If it exists, prints an error message and returns.
@@ -53,17 +52,28 @@ def standardMain(argv,convert):
     --remove-comments , does not preserve comments in the file
   """
   #require a list of files to act on
-  if len(argv)==0:
-    raise IOError('No filenames listed to modify! Usage: python path/to/script.py infile1.xml infile2.xml infile3.xml')
+  if len(argv)<2:
+    raise IOError('No filenames listed to modify!\n    Usage: python path/to/script.py infile1.xml infile2.xml infile3.xml\n'+
+                                                  '       or: python path/to/script.py --tests')
   #keep comments?  True by default, turn off with argv '--remove-comments'
   if '--remove-comments' in argv:
     keep_comments=False
     argv.remove('--remove-comments')
   else: keep_comments = True
+  #offer option to apply to all framework tests
+  if '--tests' in argv:
+    #get list of all 'tests' files
+    import get_coverage_tests as gct
+    fileDict = gct.getRegressionTests()
+    filelist = []
+    for dir,files in fileDict.items():
+      for f in files:
+        filelist.append(os.path.join(dir,f))
+  else: #explicilty list files to run
+    #remove the script name itself from the list
+    filelist = argv[1:]
   #track the failed attempts
   failures = 0
-  #remove the script name itself from the list
-  filelist = argv[1:]
   maxname = max(len(fname) for fname in filelist)
   #iterate over files
   for fname in filelist:

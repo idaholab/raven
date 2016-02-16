@@ -7,23 +7,23 @@
   </RunInfo>
 
   <Files>
-      <Input name="Functions.py" type="">Functions.py</Input>
+    <Input name="Functions.py" type="">Functions.py</Input>
   </Files>
 
   <Models>
-      <ExternalXML node="ExternalModel" xmlToLoad="ROM/externalModel.xml"/>
+    <ExternalXML node="ExternalModel" xmlToLoad="ROM/externalModel.xml"/>
   </Models>
 
   <Distributions>
-      <MultivariateNormal name="MultivariateNormalReduction" method='pca'>
-          <ExternalXML node="transformation" xmlToLoad="ROM/reduction.xml"/>
-          <ExternalXML node="mu" xmlToLoad="ROM/mean.xml"/>
-          <ExternalXML node="covariance" xmlToLoad="ROM/covariance.xml"/>
-      </MultivariateNormal>
+    <MultivariateNormal method="pca" name="MultivariateNormalReduction">
+      <ExternalXML node="transformation" xmlToLoad="ROM/reduction.xml"/>
+      <ExternalXML node="mu" xmlToLoad="ROM/mean.xml"/>
+      <ExternalXML node="covariance" xmlToLoad="ROM/covariance.xml"/>
+    </MultivariateNormal>
   </Distributions>
 
   <Samplers>
-      <ExternalXML node="MonteCarlo" xmlToLoad="ROM/samplerMonteCarlo_latent.xml"/>
+    <ExternalXML node="MonteCarlo" xmlToLoad="ROM/samplerMonteCarlo_latent.xml"/>
   </Samplers>
 
   <Steps>
@@ -48,7 +48,7 @@
 
   <DataObjects>
     <Point name="inputPlaceHolder">
-      <ExternalXML node="Input" xmlToLoad="ROM/pointInput.xml"/>  
+      <ExternalXML node="Input" xmlToLoad="ROM/pointInput.xml"/>
       <Output>OutputPlaceHolder</Output>
     </Point>
     <PointSet name="testPrintPointSet">

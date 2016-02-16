@@ -165,6 +165,7 @@ work):
 \item scipy-0.12.0
 \item scikit-learn-0.14.1
 \item matplotlib-1.4.0
+\item swig-2.0.12
 \end{enumerate}
 
 You may install these dependencies yourself, or by running the
@@ -179,6 +180,14 @@ cd ..
 
 If the \texttt{raven\_libs\_script.sh} script is successful it will
 install the raven dependencies in \verb'~/raven_libs'
+
+If it needs to install swig or other tools, you may need to update
+your path. The command below can be used, and to make it run everytime
+it should be added to \texttt{.bash\_profile} or \texttt{.bashrc}
+file.
+\begin{lstlisting}[language=bash]
+export PATH="$HOME/raven_libs/pylibs/bin:$PATH"
+\end{lstlisting}
 
 \goToRavenInstallation
 
