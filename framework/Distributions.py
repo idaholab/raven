@@ -1573,7 +1573,7 @@ class MultivariateNormal(NDimensionalDistributions):
     if self.method == 'spline':
       self.raiseAnError(NotImplementedError,'ppfTransformedSpace not yet implemented for ' + self.method + ' method')
     elif self.method == 'pca':
-      if len(x) != self.rank: self.raiseAnError(IOError,'The dimension of the latent variables defined in <Samples> is not consistent with the rank defined in <Distributions>')
+      if len(x) > self.rank: self.raiseAnError(IOError,'The dimension of the latent variables defined in <Samples> is large than the rank defined in <Distributions>')
       coordinate = distribution1D.vectord_cxx(len(x))
       for i in range(len(x)):
         coordinate[i] = x[i]
