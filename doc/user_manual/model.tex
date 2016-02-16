@@ -276,7 +276,7 @@
   \xmlNode{gamma}, \xmlDesc{float, optional field}, sets the
   kernel coefficient for the kernels `rbf,' `poly,' and `sigmoid.'
   %
-  If gamma is 0.0 then 1/n\_features will be used instead.
+  If gamma is `auto' then 1/n\_features will be used instead.
   %
   \ifthenelse{\equal{#1}{}}{}{\default{#1}}
 }
@@ -2890,13 +2890,13 @@ handled according to a one-vs-the-rest scheme.
 \skltype{Linear Support Vector Classifier}{svm|LinearSVC}
 \begin{itemize}
   \item \CSVMDescription{1.0}
-  \item \xmlNode{loss}, \xmlDesc{string, `l1' or `l2'}, specifies the loss
+  \item \xmlNode{loss}, \xmlDesc{string, `hinge' or `squared\_hinge'}, specifies the loss
   function.
   %
-  `l1' is the hinge loss (standard SVM) while `l2' is the squared hinge
+  `hinge' is the hinge loss (standard SVM) while `squared\_hinge' is the squared hinge
   loss.
   %
-  \default{`l2'}
+  \default{`squared\_hinge'}
   %
   \item \xmlNode{penalty}, \xmlDesc{string, `l1' or `l2'}, specifies the norm
   used in the penalization.
@@ -2910,11 +2910,11 @@ handled according to a one-vs-the-rest scheme.
   \item \xmlNode{dual}, \xmlDesc{boolean}, selects the algorithm to either solve
   the dual or primal optimization problem.
   %
-  Prefer dual=False when n\_samples > n\_features.
+  Prefer dual=False when n\_samples $>$ n\_features.
   %
   \default{True}
   %
-  \item \tolSVMDescription{}
+  \item \tolSVMDescription{1e-4}
   %
   \item \xmlNode{multi\_class}, \xmlDesc{string, `ovr' or `crammer\_singer'},
   %
@@ -2950,7 +2950,7 @@ handled according to a one-vs-the-rest scheme.
   \default{1}
   %
   \item \classWeightDescription{}
-  \item \verDescriptionB{}
+  \item \verDescriptionB{0}
   %
   \nb This setting takes advantage of a per-process runtime setting in liblinear
   that, if enabled, may not work properly in a multithreaded context.
@@ -2972,15 +2972,16 @@ The multiclass support is handled according to a one-vs-one scheme.
   \item \CSVMDescription{1.0}
   \item \kernelDescription{`rbf'}
   \item \degreeDescription{3.0}
-  \item \gammaDescription{0.0}
+  \item \gammaDescription{`auto'}
   \item \coefZeroDescription{0.0}
   \item \probabilityDescription{False}
   \item \shrinkingDescription{True}
-  \item \tolSVMDescription{}
+  \item \tolSVMDescription{1e-3}
   \item \cacheSizeDescription{}
-  \item \classWeightDescription{}
+  \item \classWeightDescription{None}
   \item \verSVMDescription{False}
   \item \maxIterDescription{-1}
+    %TODO: Should decision_function_shape be documented?
   \item \randomStateSVMDescription{None}
   %
 \end{itemize}
@@ -3004,15 +3005,16 @@ The implementation is based on libsvm.
   \default{0.5}
   %
   \item \kernelDescription{`rbf'}
-  \item \degreeDescription{3.0}
-  \item \gammaDescription{0.0}
+  \item \degreeDescription{3}
+  \item \gammaDescription{`auto'}
   \item \coefZeroDescription{0.0}
   \item \probabilityDescription{False}
   \item \shrinkingDescription{True}
-  \item \tolSVMDescription{}
+  \item \tolSVMDescription{1e-3}
   \item \cacheSizeDescription{}
   \item \verSVMDescription{False}
   \item \maxIterDescription{-1}
+    %TODO document decision_function_shape
   \item \randomStateSVMDescription{None}
   %
 \end{itemize}
@@ -3038,15 +3040,13 @@ The implementations is a based on libsvm.
   %
   \item \kernelDescription{`rbf'}
   \item \degreeDescription{3.0}
-  \item \gammaDescription{0.0}
+  \item \gammaDescription{`auto'}
   \item \coefZeroDescription{0.0}
-  \item \probabilityDescription{False}
   \item \shrinkingDescription{True}
-  \item \tolSVMDescription{}
+  \item \tolSVMDescription{1e-3}
   \item \cacheSizeDescription{}
   \item \verSVMDescription{False}
   \item \maxIterDescription{-1}
-  \item \randomStateSVMDescription{None}
   %
 \end{itemize}
  %%%%% ROM Model - SciKitLearn: MultiClass %%%%%%%
