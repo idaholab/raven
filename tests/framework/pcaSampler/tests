@@ -1,0 +1,16 @@
+[Tests]
+ [./pcaIndex]
+  type = 'RavenFramework'
+  input = 'test_pca_index.xml'
+  xml = 'pcaIndex/testPrintPointSet_dump.xml'
+  csv = 'pcaIndex/testPrintPointSet_dump.csv'
+ [../]
+
+ [./multiPCA]
+  type = 'RavenFramework'
+  input = 'test_multi_pca.xml'
+  xml = 'multiPCA/testPrintPointSet_dump.xml'
+  csv = 'multiPCA/testPrintPointSet_dump.csv'
+ [../]
+
+[]
