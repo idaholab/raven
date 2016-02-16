@@ -1563,10 +1563,11 @@ class MultivariateNormal(NDimensionalDistributions):
       L = np.atleast_1d(transformation).reshape(row,column)
       return L
 
-  def pcaInverseTransform(self,x):
+  def pcaInverseTransform(self,x,index=None):
     """
       Transform latent parameters back to models' parameters
       @ In, x, list, input coordinate, list values for the latent variables
+      @ In, index, list, input coordinate index, list values for the index of the latent variables
       @ Out, values, list, return the values of manifest variables with type of list
     """
     if self.method == 'spline':
@@ -1576,7 +1577,13 @@ class MultivariateNormal(NDimensionalDistributions):
       coordinate = distribution1D.vectord_cxx(len(x))
       for i in range(len(x)):
         coordinate[i] = x[i]
-      originalCoordinate = self._distribution.coordinateInverseTransformed(coordinate)
+      if index is not None:
+        coordinateIndex = distribution1D.vectori_cxx(len(index))
+        for i in range(len(index)):
+          coordinateIndex[i] = index[i]
+        originalCoordinate = self._distribution.coordinateInverseTransformed(coordinate,coordinateIndex)
+      else:
+        originalCoordinate = self._distribution.coordinateInverseTransformed(coordinate)
       values = np.atleast_1d(originalCoordinate).tolist()
       return values
 

@@ -248,14 +248,22 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
           else: self.raiseAnError(IOError,'Unknown tag '+childChild.tag+' .Available are: limit, initialSeed, reseedEachIteration and distInit!')
       elif child.tag == "variablesTransformation":
         transformationDict = {}
+        listIndex = None
         for childChild in child:
           if childChild.tag == "latentVariables":
             transformationDict[childChild.tag] = list(inp.strip() for inp in childChild.text.strip().split(','))
           elif childChild.tag == "manifestVariables":
             transformationDict[childChild.tag] = list(inp.strip() for inp in childChild.text.strip().split(','))
+          elif childChild.tag == "manifestVariablesIndex":
+            # the index provided by the input file starts from 1, but the index used by the code starts from 0.
+            listIndex = list(int(inp.strip()) - 1  for inp in childChild.text.strip().split(','))
           elif childChild.tag == "method":
-            self.transformationMethod[child.attrib['model']] = childChild.text
-        self.variablesTransformationDict[child.attrib['model']] = transformationDict
+            self.transformationMethod[child.attrib['distribution']] = childChild.text
+        if listIndex == None:
+          self.raiseAWarning('Index is not provided for manifestVariables, default index will be used instead!')
+          listIndex = range(len(transformationDict["manifestVariables"]))
+        transformationDict["manifestVariablesIndex"] = listIndex
+        self.variablesTransformationDict[child.attrib['distribution']] = transformationDict
 
     if self.initSeed == None:
       self.initSeed = Distributions.randomIntegers(0,2**31,self)
@@ -283,29 +291,29 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
     #Checking the variables transformation
     if self.variablesTransformationDict:
-      for key,varsDict in self.variablesTransformationDict.items():
+      for dist,varsDict in self.variablesTransformationDict.items():
         maxDim = len(varsDict['manifestVariables'])
         listLatentElement = varsDict['latentVariables']
-        for varName in listLatentElement:
-          self.variables2distributionsMapping[varName]['totDim'] = maxDim #reset the totDim to reflect the totDim of original input space
-        varName = [variables for variables in self.variables2distributionsMapping.keys() if listLatentElement[0] in set(variables.strip().split(','))]
-        if varName:
-          distName = self.variables2distributionsMapping[varName[0]]['name']
-        else:
-          self.raiseAnError(IOError, 'There is no distribution defined for variable ' + listLatentElement[0])
-        listElement = self.distributions2variablesMapping[distName]
-        totDim = 1
+        if len(set(listLatentElement)) != len(listLatentElement):
+          self.raiseAnError(IOError,'There are replicated variables listed in the latentVariables!')
+        if len(set(varsDict['manifestVariables'])) != len(varsDict['manifestVariables']):
+          self.raiseAnError(IOError,'There are replicated variables listed in the manifestVariables!')
+        if len(set(varsDict['manifestVariablesIndex'])) != len(varsDict['manifestVariablesIndex']):
+          self.raiseAnError(IOError,'There are replicated variables indices listed in the manifestVariablesIndex!')
+        listElement = self.distributions2variablesMapping[dist]
         for var in listElement:
-          if utils.first(var.values()) > totDim:
-            totDim = utils.first(var.values())
-        maxDim = len(listLatentElement)
-        if totDim != maxDim: self.raiseAnError(IOError,'The maximum dim = ' + str(totDim) + ' is not consistnet with the dimension (i.e. ' + str(maxDim) +') of latent variable')
-        tempListElement = {k:v for x in listElement for k,v in x.items()}
-        for var,dim in tempListElement.items():
-          if dim > maxDim:
-            self.raiseAnError(IOError, 'The input variable: ' + var + ' is associated with dimension ' + str(dim) + ' is exceed the dimension of latent variables in PCA analysis')
-          if listLatentElement[dim -1] not in set(var.strip().split(',')):
-            self.raiseAnError(IOError, 'The dim: ' + str(dim) + ' should be assigned to the latent variable: ' + listLatentElement[dim-1] + ', However, it is assigned to variable: ' + var)
+          self.variables2distributionsMapping[var.keys()[0]]['totDim'] = maxDim #reset the totDim to reflect the totDim of original input space
+        tempListElement = {k.strip():v for x in listElement for ks,v in x.items() for k in list(ks.strip().split(','))}
+        listIndex = []
+        for var in listLatentElement:
+          if var not in set(tempListElement.keys()):
+            self.raiseAnError(IOError, 'The variable listed in latentVariables is not listed in the given distribution: ' + dist)
+          listIndex.append(tempListElement[var]-1)
+        if max(listIndex) > maxDim: self.raiseAnError(IOError,'The maximum dim = ' + str(max(listIndex)) + ' defined for latent variables is exceeded the dimension of the problem!')
+        if len(set(listIndex)) != len(listIndex):
+          self.raiseAnError(IOError,'There are at least two latent variables assigned with the same dimension!')
+        # update the index for latentVariables according to the 'dim' assigned for given var defined in Sampler
+        self.variablesTransformationDict[dist]['latentVariablesIndex'] = listIndex
 
   def readSamplerInit(self,xmlNode):
     """
@@ -510,29 +518,36 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.localGenerateInput(model,oldInput)
     # add latent variables and original variables to self.inputInfo
     if self.variablesTransformationDict:
-      for key,var in self.variablesTransformationDict.items():
-        if self.transformationMethod[key] == 'pca':
-          self.pcaTransform(var)
+      for dist,var in self.variablesTransformationDict.items():
+        if self.transformationMethod[dist] == 'pca':
+          self.pcaTransform(var,dist)
         else:
-          self.raiseAnError(NotImplementedError,'transformation method is not yet implemented for ' + self.transformationMethod[key] + ' method')
+          self.raiseAnError(NotImplementedError,'transformation method is not yet implemented for ' + self.transformationMethod[dist] + ' method')
     # generate the function variable values
     for var in self.dependentSample.keys():
       test=self.funcDict[var].evaluate(var,self.values)
       self.values[var] = test
     return model.createNewInput(oldInput,self.type,**self.inputInfo)
 
-  def pcaTransform(self,varsDict):
+  def pcaTransform(self,varsDict,dist):
     """
       This method is used to map latent variables with respect to the model input variables
       both the latent variables and the model input variables will be stored in the dict: self.inputInfo['SampledVars']
       @ In, varsDict, dict, dictionary contains latent and manifest variables {'latentVariables':[latentVar1,latentVar2,...], 'manifestVariables':[var1,var2,...]}
+      @ In, dist, string, the distribution name associated with given variable set
     """
     latentVariablesValues = []
-    for lvar in varsDict['latentVariables']:
+    listIndex = []
+    manifestVariablesValues = [None] * len(varsDict['manifestVariables'])
+    for index,lvar in enumerate(varsDict['latentVariables']):
       for var,value in self.values.items():
         if lvar == var:
           latentVariablesValues.append(value)
-    manifestVariablesValues = self.distDict[varsDict['latentVariables'][0]].pcaInverseTransform(latentVariablesValues)
+          listIndex.append(varsDict['latentVariablesIndex'][index])
+    varName = utils.first(utils.first(self.distributions2variablesMapping[dist]).keys())
+    varsValues = self.distDict[varName].pcaInverseTransform(latentVariablesValues,listIndex)
+    for index1,index2 in enumerate(varsDict['manifestVariablesIndex']):
+      manifestVariablesValues[index2] = varsValues[index1]
     manifestVariablesDict = dict(zip(varsDict['manifestVariables'],manifestVariablesValues))
     self.values.update(manifestVariablesDict)
 
