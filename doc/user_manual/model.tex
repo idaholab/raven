@@ -3083,6 +3083,7 @@ This is the most commonly used strategy and is a fair default choice.
 \begin{itemize}
   \item \estimatorDescription{}
 \end{itemize}
+%Should n_jobs be documented?
 
 %%%%%%%%%%%%
 \subparagraph{One-vs-one multiclass strategy}
@@ -3094,7 +3095,7 @@ per class pair.
 At prediction time, the class which received the most votes is selected.
 %
 Since it requires to fit n\_classes * (n\_classes - 1) / 2 classifiers, this
-method is usually slower than one-vs-the-rest, due to its O(n\_classes\^2)
+method is usually slower than one-vs-the-rest, due to its O(n\_classes$^2$)
 complexity.
 %
 However, this method may be advantageous for algorithms such as kernel
@@ -3108,6 +3109,7 @@ times.
 \begin{itemize}
   \item \estimatorDescription{}
 \end{itemize}
+%Should n_jobs be documented?
 
 %%%%%%%%%%%%%
 \subparagraph{Error-Correcting Output-Code multiclass strategy}
@@ -3135,6 +3137,8 @@ size < 1$) or for making the model more robust to errors ($code\_ size > 1$).
   A number greater than 1 will require more classifiers than one-vs-the-rest.
   %
 \end{itemize}
+%Should random_state and n_jobs be documented?
+
 %%%%%%%%%%%%%
 %\subparagraph{fit a one-vs-the-rest strategy}
 %pass
@@ -3265,7 +3269,7 @@ Lidstone smoothing.
 \skltype{Multinomial Naive Bayes strategy}{naiveBayes|MultinomialNB}
 \begin{itemize}
   \item \alphaBayesDescription{1.0}
-  \item \fitPriorDescription{False}
+  \item \fitPriorDescription{True}
   \item \classPriorDescription{None}
 \end{itemize}
 
@@ -3306,7 +3310,7 @@ It is advisable to evaluate both models, if time permits.
   %
   If None, input is presumed to already consist of binary vectors.
   %
-  \default{None}
+  \default{0.0}
   \item \fitPriorDescription{False}
   \item \classPriorDescription{None}
   %
