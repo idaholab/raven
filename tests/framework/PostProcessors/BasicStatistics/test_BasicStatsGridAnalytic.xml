@@ -3,7 +3,7 @@
   <RunInfo>
     <WorkingDir>basicStatsGridAnalytic</WorkingDir>
     <Sequence>SamplingMirrowModelGrid,PP1grid</Sequence>
-    <batchSize>32</batchSize>
+    <batchSize>1</batchSize>
   </RunInfo>
 
   <Files>
@@ -12,16 +12,13 @@
 
   <Models>
     <ExternalModel ModuleToLoad="simpleMirrowModel" name="mirrowModel" subType="">
-      <variable>x</variable>
-      <variable>y</variable>
-      <variable>x1</variable>
+      <variables>x,y,x1</variables>
     </ExternalModel>
     <PostProcessor name="analyticalTest" subType="BasicStatistics" verbosity="debug">
-      <what>all</what>
-      <parameters>x,y</parameters>
+      <what>expectedValue,sigma,variance,kurtosis,percentile_10%,percentile_99%,variationCoefficient,skewness,median</what>
+      <parameters>x,y,x1</parameters>
     </PostProcessor>
   </Models>
-
 
   <Distributions>
     <Normal name="x0_distrib">
@@ -35,23 +32,23 @@
   </Distributions>
 
   <Samplers>
-    <Stratified name="Grid_external">
+    <Grid name="Grid_external">
       <variable name="x">
         <distribution>x0_distrib</distribution>
-        <grid construction="equal" steps="500" type="CDF">0.0001 0.9999</grid>
+        <grid construction="equal" steps="20" type="CDF">0.0013 0.998</grid>
       </variable>
       <variable name="y">
         <distribution>y0_distrib</distribution>
-        <grid construction="equal" steps="500" type="CDF">0.0001 0.9999</grid>
+        <grid construction="equal" steps="20" type="value">-0.5 2.5</grid>
       </variable>
-    </Stratified>
+    </Grid>
   </Samplers>
 
   <Steps>
     <MultiRun name="SamplingMirrowModelGrid" re-seeding="20021986">
       <Input class="DataObjects" type="Point">inputPlaceHolder</Input>
       <Model class="Models" type="ExternalModel">mirrowModel</Model>
-      <Sampler class="Samplers" type="Stratified">Grid_external</Sampler>
+      <Sampler class="Samplers" type="Grid">Grid_external</Sampler>
       <Output class="DataObjects" type="PointSet">outputDataGrid</Output>
     </MultiRun>
     <PostProcess name="PP1grid">
@@ -63,7 +60,6 @@
     </PostProcess>
   </Steps>
 
-
   <OutStreamManager>
     <Print name="outputDatagrid_dump">
       <type>csv</type>
@@ -72,13 +68,13 @@
   </OutStreamManager>
 
   <DataObjects>
-      <Point name="inputPlaceHolder">
-          <Input>x,y</Input>
-          <Output>OutputPlaceHolder</Output>
-      </Point>
+    <Point name="inputPlaceHolder">
+      <Input>x,y</Input>
+      <Output>OutputPlaceHolder</Output>
+    </Point>
     <PointSet name="outputDataGrid">
-        <Input>x,y</Input>
-        <Output>x1</Output>
+      <Input>x,y</Input>
+      <Output>x1</Output>
     </PointSet>
   </DataObjects>
 

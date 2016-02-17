@@ -1,0 +1,7 @@
+[Tests]
+ [./missingSteps]
+        type = 'RavenErrors'
+        input = 'test_noSteps.xml'
+        expect_err = 'IOError: SIMULATION               : ERROR           -> The step list:'
+ [../]
+[]

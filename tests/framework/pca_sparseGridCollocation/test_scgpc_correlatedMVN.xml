@@ -7,14 +7,14 @@
   </RunInfo>
 
   <Distributions>
-    <MultivariateNormal name='MVNDist' method='pca'>
-        <transformation>
-            <rank>2</rank>
-        </transformation>
-        <mu>2.0 -1.0</mu>
-        <covariance type="abs">
+    <MultivariateNormal method="pca" name="MVNDist">
+      <transformation>
+        <rank>2</rank>
+      </transformation>
+      <mu>2.0 -1.0</mu>
+      <covariance type="abs">
             0.64       0.2
-            0.2         1.0 
+            0.2         1.0
         </covariance>
     </MultivariateNormal>
   </Distributions>
@@ -39,9 +39,7 @@
   <Models>
     <Dummy name="MyDummy" subType=""/>
     <ExternalModel ModuleToLoad="polynomial" name="polynomial" subType="">
-      <variable>x1</variable>
-      <variable>x2</variable>
-      <variable>ans</variable>
+      <variables>x1,x2,ans</variables>
     </ExternalModel>
     <ROM name="NROM" subType="GaussPolynomialRom">
       <Target>ans</Target>
@@ -98,7 +96,7 @@
       <Output>ans</Output>
     </PointSet>
   </DataObjects>
-  
+
   <OutStreamManager>
     <Print name="Ndump">
       <type>csv</type>

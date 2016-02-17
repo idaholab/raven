@@ -125,7 +125,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self._endJobRunnable               = sys.maxsize               # max number of inputs creatable by the sampler right after a job ends (e.g., infinite for MC, 1 for Adaptive, etc)
 
     ######
-    self.variables2distributionsMapping = {}                       # for each variable 'varName'  , the following informations are included:  'varName': {'dim': 1, 'totDim': 2, 'name': 'distName'} ; dim = dimension of the variable; totDim = total dimensionality of its associated distribution
+    self.variables2distributionsMapping = {}                       # for each variable 'varName'  , the following informations are included:  'varName': {'dim': 1, 'reducedTotDim': 2,'totDim': 2, 'name': 'distName'} ; dim = dimension of the variable; reducedTotDim = the total dimensionality in the transformed space; totDim = total dimensionality of its associated distribution
     self.distributions2variablesMapping = {}                       # for each variable 'distName' , the following informations are included: 'distName': [{'var1': 1}, {'var2': 2}]} where for each var it is indicated the var dimension
     self.NDSamplingParams               = {}                       # this dictionary contains a dictionary for each ND distribution (key). This latter dictionary contains the initialization parameters of the ND inverseCDF ('initialGridDisc' and 'tolerance')
     ######
@@ -278,12 +278,16 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       for var in listvar:
         if utils.first(var.values()) > maxDim:
           maxDim = utils.first(var.values())
-      self.variables2distributionsMapping[key]['totDim'] = maxDim #len(self.distributions2variablesMapping[self.variables2distributionsMapping[key]['name']])
+      self.variables2distributionsMapping[key]['reducedTotDim'] = maxDim #Dim for the parameters in the reduced space
+      self.variables2distributionsMapping[key]['totDim'] = maxDim # We will reset the value if the node <variablesTransformation> exist in the raven input file
 
     #Checking the variables transformation
     if self.variablesTransformationDict:
       for key,varsDict in self.variablesTransformationDict.items():
+        maxDim = len(varsDict['manifestVariables'])
         listLatentElement = varsDict['latentVariables']
+        for varName in listLatentElement:
+          self.variables2distributionsMapping[varName]['totDim'] = maxDim #reset the totDim to reflect the totDim of original input space
         varName = [variables for variables in self.variables2distributionsMapping.keys() if listLatentElement[0] in set(variables.strip().split(','))]
         if varName:
           distName = self.variables2distributionsMapping[varName[0]]['name']
@@ -292,8 +296,8 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         listElement = self.distributions2variablesMapping[distName]
         totDim = 1
         for var in listElement:
-          if var.values()[0] > totDim:
-            totDim = var.values()[0]
+          if utils.first(var.values()) > totDim:
+            totDim = utils.first(var.values())
         maxDim = len(listLatentElement)
         if totDim != maxDim: self.raiseAnError(IOError,'The maximum dim = ' + str(totDim) + ' is not consistnet with the dimension (i.e. ' + str(maxDim) +') of latent variable')
         tempListElement = {k:v for x in listElement for k,v in x.items()}
@@ -394,7 +398,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       self.distDict[key] = availableDist[self.toBeSampled[key]]
       self.inputInfo['crowDist'][key] = json.dumps(self.distDict[key].getCrowDistDict())
     for key,val in self.dependentSample.items():
-      if val not in availableFunc.keys(): self.raiseAnError('Function',val,'was not found amoung the available functions:',availableFunc.keys())
+      if val not in availableFunc.keys(): self.raiseAnError('Function',val,'was not found among the available functions:',availableFunc.keys())
       self.funcDict[key] = availableFunc[val]
 
   def initialize(self,externalSeeding=None,solutionExport=None):
@@ -1331,7 +1335,8 @@ class MonteCarlo(Sampler):
         if dim == 1:
           rvsnum = self.distDict[key].rvs()
           coordinate = np.atleast_1d(rvsnum).tolist()
-          if len(coordinate) < totDim: self.raiseAnError(IOError,"The maximum dimension defined for variables drew the multivariate normal distribution is exceed the dimension used in Distribution (MultivariateNormal) ")
+          reducedTotDim = self.variables2distributionsMapping[key]['reducedTotDim']
+          if reducedTotDim > len(coordinate): self.raiseAnError(IOError,"The maximum dimension defined for variables drew from the multivariate normal distribution is exceeded by the dimension used in Distribution (MultivariateNormal) ")
           probabilityValue = self.distDict[key].pdf(coordinate)
           self.inputInfo['SampledVarsPb'][key] = probabilityValue
           for var in self.distributions2variablesMapping[dist]:
@@ -1481,24 +1486,34 @@ class Grid(Sampler):
           else:
             if self.gridInfo[varName]=='CDF':
               if coordinatesPlusOne[varName] != sys.maxsize and coordinatesMinusOne[varName] != -sys.maxsize:
-                self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(coordinatesPlusOne[varName]))/2.0) - self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(coordinatesMinusOne[varName]))/2.0)
-                weight *= self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(coordinatesPlusOne[varName]))/2.0) - self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(coordinatesMinusOne[varName]))/2.0)
+                midPlusCDF   = (coordinatesPlusOne[varName]+self.distDict[varName].cdf(self.values[key]))/2.0
+                midMinusCDF  = (coordinatesMinusOne[varName]+self.distDict[varName].cdf(self.values[key]))/2.0
+                self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = midPlusCDF - midMinusCDF
+                weight *= midPlusCDF - midMinusCDF
               if coordinatesMinusOne[varName] == -sys.maxsize:
-                self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(coordinatesPlusOne[varName]))/2.0) - self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(0))/2.0)
-                weight *= self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(coordinatesPlusOne[varName]))/2.0) - self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(0))/2.0)
+                midPlusCDF   = (coordinatesPlusOne[varName]+self.distDict[varName].cdf(self.values[key]))/2.0
+                midMinusCDF  = 0.0
+                self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = midPlusCDF - midMinusCDF
+                weight *= midPlusCDF - midMinusCDF
               if coordinatesPlusOne[varName] == sys.maxsize:
-                self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(1))/2.0) - self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(coordinatesMinusOne[varName]))/2.0)
-                weight *= self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(1))/2.0) - self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(coordinatesMinusOne[varName]))/2.0)
+                midPlusCDF   = 1.0
+                midMinusCDF  = (coordinatesMinusOne[varName]+self.distDict[varName].cdf(self.values[key]))/2.0
+                self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = midPlusCDF - midMinusCDF
+                weight *= midPlusCDF - midMinusCDF
             else:   # Value
               if coordinatesPlusOne[varName] != sys.maxsize and coordinatesMinusOne[varName] != -sys.maxsize:
-                weight *= self.distDict[varName].cdf((self.values[key]+coordinatesPlusOne[varName])/2.0) -self.distDict[varName].cdf((self.values[key]+coordinatesMinusOne[varName])/2.0)
-                self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.distDict[varName].cdf((self.values[key]+coordinatesPlusOne[varName])/2.0) -self.distDict[varName].cdf((self.values[key]+coordinatesMinusOne[varName])/2.0)
+                midPlusValue   = (self.values[key]+coordinatesPlusOne[varName])/2.0
+                midMinusValue  = (self.values[key]+coordinatesMinusOne[varName])/2.0
+                weight *= self.distDict[varName].cdf(midPlusValue) - self.distDict[varName].cdf(midMinusValue)
+                self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.distDict[varName].cdf(midPlusValue) - self.distDict[varName].cdf(midMinusValue)
               if coordinatesMinusOne[varName] == -sys.maxsize:
-                weight *= self.distDict[varName].cdf((self.values[key]+coordinatesPlusOne[varName])/2.0) -self.distDict[varName].cdf((self.values[key]+self.distDict[varName].lowerBound)/2.0)
-                self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.distDict[varName].cdf((self.values[key]+coordinatesPlusOne[varName])/2.0) -self.distDict[varName].cdf((self.values[key]+self.distDict[varName].lowerBound)/2.0)
+                midPlusValue   = (self.values[key]+coordinatesPlusOne[varName])/2.0
+                self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.distDict[varName].cdf(midPlusValue) - 0.0
+                weight *= self.distDict[varName].cdf(midPlusValue) - 0.0
               if coordinatesPlusOne[varName] == sys.maxsize:
-                weight *= self.distDict[varName].cdf((self.values[key]+self.distDict[varName].upperBound)/2.0) -self.distDict[varName].cdf((self.values[key]+coordinatesMinusOne[varName])/2.0)
-                self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.distDict[varName].cdf((self.values[key]+self.distDict[varName].upperBound)/2.0) -self.distDict[varName].cdf((self.values[key]+coordinatesMinusOne[varName])/2.0)
+                midMinusValue  = (self.values[key]+coordinatesMinusOne[varName])/2.0
+                self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = 1.0 - self.distDict[varName].cdf(midMinusValue)
+                weight *= 1.0 - self.distDict[varName].cdf(midMinusValue)
         # ND variable
         else:
           if self.variables2distributionsMapping[varName]['dim']==1:    # to avoid double count of weight for ND distribution; I need to count only one variable instaed of N
@@ -3224,7 +3239,7 @@ class SparseGridCollocation(Grid):
 
     self.raiseADebug('Starting index set generation...')
     self.indexSet = IndexSets.returnInstance(SVL.indexSetType,self)
-    self.indexSet.initialize(self.dists,self.importanceDict,self.maxPolyOrder)
+    self.indexSet.initialize(self.features,self.importanceDict,self.maxPolyOrder)
     if self.indexSet.type=='Custom':
       self.indexSet.setPoints(SVL.indexSetVals)
 
@@ -3241,16 +3256,11 @@ class SparseGridCollocation(Grid):
 
     #if restart, figure out what runs we need; else, all of them
     if self.restartData != None:
-      inps = self.restartData.getInpParametersValues()
-      #make reorder map
-      reordmap=list(list(inps.keys()).index(i) for i in self.features)
-      solns = list(v for v in inps.values())
-      ordsolns = [solns[i] for i in reordmap]
-      self.existing = zip(*ordsolns)
+      self.solns = self.restartData
+      self._updateExisting()
 
     self.limit=len(self.sparseGrid)
     self.raiseADebug('Size of Sparse Grid  :'+str(self.limit))
-    self.raiseADebug('Number from Restart :'+str(utils.iter_len(self.existing)))
     self.raiseADebug('Number of Runs Needed :'+str(self.limit-utils.iter_len(self.existing)))
     self.raiseADebug('Finished sampler generation.')
 
@@ -3368,6 +3378,25 @@ class SparseGridCollocation(Grid):
         self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
         self.inputInfo['ProbabilityWeight'] = weight
         self.inputInfo['SamplerType'] = 'Sparse Grid Collocation'
+
+  def _updateExisting(self):
+    """
+      Goes through the stores solutions PointSet and pulls out solutions, ordering them
+      by the order the features we're evaluating.
+      @ In, None
+      @ Out, None
+    """
+    #TODO: only append new points instead of resorting everyone
+    if not self.solns.isItEmpty():
+      inps = self.solns.getInpParametersValues()
+      outs = self.solns.getOutParametersValues()
+      #make reorder map
+      reordmap=list(inps.keys().index(i) for i in self.features)
+      solns = list(v for v in inps.values())
+      ordsolns = [solns[i] for i in reordmap]
+      existinginps = zip(*ordsolns)
+      outvals = zip(*list(v for v in outs.values()))
+      self.existing = dict(zip(existinginps,outvals))
 #
 #
 #
@@ -3485,7 +3514,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     #create the index set
     self.raiseADebug('Starting index set generation...')
     self.indexSet = IndexSets.returnInstance('AdaptiveSet',self)
-    self.indexSet.initialize(self.dists,self.importanceDict,self.maxPolyOrder)
+    self.indexSet.initialize(self.features,self.importanceDict,self.maxPolyOrder)
     for pt in self.indexSet.active:
       self.inTraining.add(pt)
       for t in self.targets:
@@ -3793,7 +3822,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     """
     sparseGrid = Quadratures.SparseQuad()
     iset = IndexSets.returnInstance('Custom',self)
-    iset.initialize(self.dists,self.importanceDict,self.maxPolyOrder)
+    iset.initialize(self.features,self.importanceDict,self.maxPolyOrder)
     iset.setPoints(self.indexSet.points)
     iset.addPoints(points)
     sparseGrid.initialize(self.features,iset,self.dists,self.quadDict,self.jobHandler,self.messageHandler)
@@ -3834,25 +3863,6 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       f.writelines('\n')
     f.writelines('===================== END STEP =====================\n')
     f.close()
-
-  def _updateExisting(self):
-    """
-      Goes through the stores solutions PointSet and pulls out solutions, ordering them
-      by the order the features we're evaluating.
-      @ In, None
-      @ Out, None
-    """
-    #TODO: only append new points instead of resorting everyone
-    if not self.solns.isItEmpty():
-      inps = self.solns.getInpParametersValues()
-      outs = self.solns.getOutParametersValues()
-      #make reorder map
-      reordmap=list(inps.keys().index(i) for i in self.features)
-      solns = list(v for v in inps.values())
-      ordsolns = [solns[i] for i in reordmap]
-      existinginps = zip(*ordsolns)
-      outvals = zip(*list(v for v in outs.values()))
-      self.existing = dict(zip(existinginps,outvals))
 
   def _updateQoI(self):
     """
@@ -3975,8 +3985,8 @@ class Sobol(SparseGridCollocation):
     SVL = utils.first(SVLs)
     self.sobolOrder = SVL.sobolOrder
     self._generateQuadsAndPolys(SVL)
-    features = SVL.features
-    needCombos = itertools.chain.from_iterable(itertools.combinations(features,r) for r in range(self.sobolOrder+1))
+    self.features = SVL.features
+    needCombos = itertools.chain.from_iterable(itertools.combinations(self.features,r) for r in range(self.sobolOrder+1))
     self.SQs={}
     self.ROMs={} #keys are [target][combo]
     for t in self.targets: self.ROMs[t]={}
@@ -3994,7 +4004,7 @@ class Sobol(SparseGridCollocation):
         polyDict[c]=self.polyDict[c]
         imptDict[c]=self.importanceDict[c]
       iset=IndexSets.returnInstance(SVL.indexSetType,self)
-      iset.initialize(distDict,imptDict,SVL.maxPolyOrder)
+      iset.initialize(combo,imptDict,SVL.maxPolyOrder)
       self.SQs[combo] = Quadratures.SparseQuad()
       self.SQs[combo].initialize(combo,iset,distDict,quadDict,self.jobHandler,self.messageHandler)
       # initDict is for SVL.__init__()
@@ -4013,19 +4023,19 @@ class Sobol(SparseGridCollocation):
         initDict['Target']     = SVL.target
         self.ROMs[name][combo] = SupervisedLearning.returnInstance('GaussPolynomialRom',self,**initDict)
         self.ROMs[name][combo].initialize(initializeDict)
+        self.ROMs[name][combo].messageHandler = self.messageHandler
     #if restart, figure out what runs we need; else, all of them
     if self.restartData != None:
-      inps = self.restartData.getInpParametersValues()
-      self.existing = zip(*list(v for v in inps.values()))
+      self.solns = self.restartData
+      self._updateExisting()
     #make combined sparse grids
     self.references={}
-    for var,dist in self.dists.items():
-      self.references[var]=dist.untruncatedMean()
-    std = self.dists.keys()
+    for var in self.features:
+      self.references[var]=self.dists[var].untruncatedMean()
     self.pointsToRun=[]
     #make sure reference case gets in there
-    newpt = np.zeros(len(self.dists))
-    for v,var in enumerate(self.dists.keys()):
+    newpt = np.zeros(len(self.features))
+    for v,var in enumerate(self.features):
       newpt[v] = self.references[var]
     self.pointsToRun.append(tuple(newpt))
     self.distinctPoints.add(tuple(newpt))
@@ -4035,8 +4045,8 @@ class Sobol(SparseGridCollocation):
       SG._remap(combo)
       for l in range(len(SG)):
         pt,wt = SG[l]
-        newpt = np.zeros(len(std))
-        for v,var in enumerate(std):
+        newpt = np.zeros(len(self.features))
+        for v,var in enumerate(self.features):
           if var in combo: newpt[v] = pt[combo.index(var)]
           else: newpt[v] = self.references[var]
         newpt=tuple(newpt)
@@ -4045,9 +4055,7 @@ class Sobol(SparseGridCollocation):
           self.pointsToRun.append(newpt)
     self.limit = len(self.pointsToRun)
     self.raiseADebug('Needed points: %i' %self.limit)
-    self.raiseADebug('From Restart : %i' %utils.iter_len(self.existing))
-    self.raiseADebug('Still Needed : %i' %(self.limit-utils.iter_len(self.existing)))
-    initdict={'ROMs':None, #self.ROMs,
+    initdict={'ROMs':None,
               'SG':self.SQs,
               'dists':self.dists,
               'quads':self.quadDict,
@@ -4069,10 +4077,12 @@ class Sobol(SparseGridCollocation):
       try: pt = self.pointsToRun[self.counter-1]
       except IndexError: raise utils.NoMoreSamplesNeeded
       if pt in self.existing:
+        self.raiseADebug('point found in restart:',pt)
         self.counter+=1
         if self.counter==self.limit: raise utils.NoMoreSamplesNeeded
         continue
       else:
+        self.raiseADebug('point found to run:',pt)
         found=True
         # compute the maxDim in the given distribution
         for key in self.variables2distributionsMapping.keys():
@@ -4084,7 +4094,7 @@ class Sobol(SparseGridCollocation):
               maxDim = utils.first(var.values())
         if maxDim > 1: NDcoordinates = [0]*maxDim
 
-        for v,varName in enumerate(self.dists.keys()):
+        for v,varName in enumerate(self.features):
           # compute the SampledVarsPb for 1-D distribution
           if self.variables2distributionsMapping[varName]['totDim'] == 1:
             for key in varName.strip().split(','):
@@ -4729,7 +4739,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
       imptDict[c] = self.importanceDict[c]
     #instantiate an adaptive index set for this ROM
     iset = IndexSets.returnInstance('AdaptiveSet',self)
-    iset.initialize(distDict,imptDict,self.maxPolyOrder)
+    iset.initialize(subset,imptDict,self.maxPolyOrder)
     iset.verbosity=verbosity
     #instantiate a sparse grid quadrature
     self.SQs[subset] = Quadratures.SparseQuad()
@@ -4748,6 +4758,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
                         'polys'    : polyDict,
                         'iSet'     : iset}
       self.ROMs[target][subset].initialize(initializeDict)
+      self.ROMs[target][subset].messageHandler = self.messageHandler
       self.ROMs[target][subset].verbosity = verbosity
     #instantiate the shell ROM that contains the SVLs
     #   NOTE: the shell is only needed so we can call the train method with a data object.
