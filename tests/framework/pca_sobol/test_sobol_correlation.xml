@@ -18,13 +18,13 @@
   </DataObjects>
 
   <Distributions>
-    <MultivariateNormal name='MVNDist' method='pca'>
-        <transformation>
-            <rank>5</rank>
-        </transformation>
-        <mu>0.5 -0.4 0.3 -0.2 0.1</mu>
-        <covariance type="abs">
-            0.64     0.2     -0.002    0.03    -0.044 
+    <MultivariateNormal method="pca" name="MVNDist">
+      <transformation>
+        <rank>5</rank>
+      </transformation>
+      <mu>0.5 -0.4 0.3 -0.2 0.1</mu>
+      <covariance type="abs">
+            0.64     0.2     -0.002    0.03    -0.044
             0.2      0.49    0.001     -0.01   0.023
             -0.002   0.001   0.01      0.0015  -0.001
             0.03     -0.01   0.0015    0.16    0.08
@@ -69,12 +69,7 @@
       <PolynomialOrder>1</PolynomialOrder>
     </ROM>
     <ExternalModel ModuleToLoad="poly.py" name="poly" subType="">
-      <variable>x1</variable>
-      <variable>x2</variable>
-      <variable>x3</variable>
-      <variable>x4</variable>
-      <variable>x5</variable>
-      <variable>ans</variable>
+      <variables>x1,x2,x3,x4,x5,ans</variables>
     </ExternalModel>
   </Models>
 
@@ -86,10 +81,10 @@
       <Output class="DataObjects" type="PointSet">SobolSet</Output>
     </MultiRun>
     <IOStep name="print">
-        <Input class="DataObjects" type="PointSet">SobolSet</Input>
-        <Input class="Models" type="ROM">rom</Input>
-        <Output class="OutStreamManager" type="Print">csv_database</Output>
-        <Output class="OutStreamManager" type="Print">dumprom</Output>
+      <Input class="DataObjects" type="PointSet">SobolSet</Input>
+      <Input class="Models" type="ROM">rom</Input>
+      <Output class="OutStreamManager" type="Print">csv_database</Output>
+      <Output class="OutStreamManager" type="Print">dumprom</Output>
     </IOStep>
     <RomTrainer name="train">
       <Input class="DataObjects" type="PointSet">SobolSet</Input>
@@ -103,9 +98,9 @@
       <source>SobolSet</source>
     </Print>
     <Print name="dumprom">
-        <type>xml</type>
-        <source>rom</source>
-        <what>all</what>
+      <type>xml</type>
+      <source>rom</source>
+      <what>all</what>
     </Print>
   </OutStreamManager>
 

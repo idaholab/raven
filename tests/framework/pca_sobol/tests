@@ -20,7 +20,7 @@
   xml = 'AdaptSobol/dumprom.xml'
  [../]
 
- [./test_adaptive_sobol_poly_correlation]
+ [./test_sobol_poly_correlation]
   type = 'RavenFramework'
   input = 'test_sobol_correlation.xml'
   UnorderedCsv = 'sobolCorrelation/csv_database.csv'
