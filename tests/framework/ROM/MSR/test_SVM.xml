@@ -8,7 +8,7 @@
     <Sequence>
       sample,
       train,
-      resampleSVM
+      resample
     </Sequence>
   </RunInfo>
 
@@ -16,7 +16,7 @@
     <ExternalModel ModuleToLoad="./testFunction" name="foo" subType="">
       <variables>X,Y,Z</variables>
     </ExternalModel>
-    <ROM name="SVM" subType="MSR">
+    <ROM name="modelUnderTest" subType="MSR">
       <Features>X,Y</Features>
       <Target>Z</Target>
       <partitionPredictor>svm</partitionPredictor>
@@ -24,16 +24,7 @@
     </ROM>
   </Models>
 
-  <Distributions>
-    <Uniform name="smallUniformDist">
-      <lowerBound>2</lowerBound>
-      <upperBound>3</upperBound>
-    </Uniform>
-    <Uniform name="largeUniformDist">
-      <lowerBound>-1000</lowerBound>
-      <upperBound>1000</upperBound>
-    </Uniform>
-  </Distributions>
+  <ExternalXML node="Distributions" xmlToLoad="distributions.xml"/>
 
   <Samplers>
     <MonteCarlo name="mcSampler">
@@ -67,49 +58,16 @@
     </Grid>
   </Samplers>
 
-  <Steps>
-    <MultiRun name="sample" sleepTime="1e-5">
-      <Input class="DataObjects" type="PointSet">dummyIN</Input>
-      <Model class="Models" type="ExternalModel">foo</Model>
-      <Sampler class="Samplers" type="MonteCarlo">mcSampler</Sampler>
-      <Output class="DataObjects" type="PointSet">trainingData</Output>
-    </MultiRun>
-    <MultiRun name="resampleSVM" sleepTime="1e-5">
-      <Input class="DataObjects" type="PointSet">dummyIN</Input>
-      <Model class="Models" type="ROM">SVM</Model>
-      <Sampler class="Samplers" type="Grid">gridSampler</Sampler>
-      <Output class="DataObjects" type="PointSet">outDataSVM</Output>
-      <Output class="OutStreamManager" type="Print">outDataSVM</Output>
-    </MultiRun>
-    <RomTrainer name="train">
-      <Input class="DataObjects" type="PointSet">trainingData</Input>
-      <Output class="Models" type="ROM">SVM</Output>
-    </RomTrainer>
-  </Steps>
+  <ExternalXML node="Steps" xmlToLoad="steps.xml"/>
 
   <OutStreamManager>
     <!-- A csv file containing the output of the example -->
-    <Print name="outDataSVM">
+    <Print name="outData">
       <type>csv</type>
-      <source>outDataSVM</source>
+      <source>outData</source>
+      <filename>outDataSVM</filename>
     </Print>
   </OutStreamManager>
 
-  <DataObjects>
-    <!-- The input PointSet object -->
-    <PointSet name="dummyIN">
-      <Input>X,Y</Input>
-      <Output>OutputPlaceHolder</Output>
-    </PointSet>
-    <PointSet name="trainingData">
-      <Input>X,Y</Input>
-      <Output>Z</Output>
-    </PointSet>
-    <!-- The output PointSet objects -->
-    <PointSet name="outDataSVM">
-      <Input>X,Y</Input>
-      <Output>Z</Output>
-    </PointSet>
-  </DataObjects>
-
+  <ExternalXML node="DataObjects" xmlToLoad="dataObjects.xml"/>
 </Simulation>

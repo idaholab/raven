@@ -8,7 +8,7 @@
     <Sequence>
       sample,
       train,
-      resampleSmoothCosine
+      resample
     </Sequence>
   </RunInfo>
 
@@ -16,7 +16,7 @@
     <ExternalModel ModuleToLoad="./testFunction" name="foo" subType="">
       <variables>X,Y,Z</variables>
     </ExternalModel>
-    <ROM name="smoothCosine" subType="MSR">
+    <ROM name="modelUnderTest" subType="MSR">
       <Features>X,Y</Features>
       <Target>Z</Target>
       <partitionPredictor>kde</partitionPredictor>
@@ -27,68 +27,16 @@
     </ROM>
   </Models>
 
-  <Distributions>
-    <Uniform name="smallUniformDist">
-      <lowerBound>2</lowerBound>
-      <upperBound>3</upperBound>
-    </Uniform>
-    <Uniform name="largeUniformDist">
-      <lowerBound>-1000</lowerBound>
-      <upperBound>1000</upperBound>
-    </Uniform>
-  </Distributions>
-
-  <Samplers>
-    <MonteCarlo name="mcSampler">
-      <samplerInit>
-        <limit>200</limit>
-        <initialSeed>888</initialSeed>
-      </samplerInit>
-      <variable name="X">
-        <distribution>smallUniformDist</distribution>
-      </variable>
-      <variable name="Y">
-        <distribution>largeUniformDist</distribution>
-      </variable>
-    </MonteCarlo>
-    <Grid name="gridSampler">
-      <variable name="X">
-        <distribution>smallUniformDist</distribution>
-        <grid construction="equal" steps="20" type="value">2 3</grid>
-      </variable>
-      <variable name="Y">
-        <distribution>largeUniformDist</distribution>
-        <grid construction="equal" steps="20" type="value">-1000 1000</grid>
-      </variable>
-    </Grid>
-  </Samplers>
-
-  <Steps>
-    <MultiRun name="sample" sleepTime="1e-5">
-      <Input class="DataObjects" type="PointSet">dummyIN</Input>
-      <Model class="Models" type="ExternalModel">foo</Model>
-      <Sampler class="Samplers" type="MonteCarlo">mcSampler</Sampler>
-      <Output class="DataObjects" type="PointSet">trainingData</Output>
-      <Output class="OutStreamManager" type="Print">trainingData</Output>
-    </MultiRun>
-    <MultiRun name="resampleSmoothCosine" sleepTime="1e-5">
-      <Input class="DataObjects" type="PointSet">dummyIN</Input>
-      <Model class="Models" type="ROM">smoothCosine</Model>
-      <Sampler class="Samplers" type="Grid">gridSampler</Sampler>
-      <Output class="DataObjects" type="PointSet">outDataSmoothCosine</Output>
-      <Output class="OutStreamManager" type="Print">outDataSmoothCosine</Output>
-    </MultiRun>
-    <RomTrainer name="train">
-      <Input class="DataObjects" type="PointSet">trainingData</Input>
-      <Output class="Models" type="ROM">smoothCosine</Output>
-    </RomTrainer>
-  </Steps>
+  <ExternalXML node="Distributions" xmlToLoad="distributions.xml"/>
+  <ExternalXML node="Samplers" xmlToLoad="samplers.xml"/>
+  <ExternalXML node="Steps" xmlToLoad="steps.xml"/>
 
   <OutStreamManager>
     <!-- A csv file containing the output of the example -->
-    <Print name="outDataSmoothCosine">
+    <Print name="outData">
       <type>csv</type>
-      <source>outDataSmoothCosine</source>
+      <source>outData</source>
+      <filename>outDataSmoothCosine</filename>
     </Print>
     <Print name="trainingData">
       <type>csv</type>
@@ -96,21 +44,5 @@
     </Print>
   </OutStreamManager>
 
-  <DataObjects>
-    <!-- The input PointSet object -->
-    <PointSet name="dummyIN">
-      <Input>X,Y</Input>
-      <Output>OutputPlaceHolder</Output>
-    </PointSet>
-    <PointSet name="trainingData">
-      <Input>X,Y</Input>
-      <Output>Z</Output>
-    </PointSet>
-    <!-- The output PointSet objects -->
-    <PointSet name="outDataSmoothCosine">
-      <Input>X,Y</Input>
-      <Output>Z</Output>
-    </PointSet>
-  </DataObjects>
-
+  <ExternalXML node="DataObjects" xmlToLoad="dataObjects.xml"/>
 </Simulation>

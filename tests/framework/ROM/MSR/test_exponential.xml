@@ -1,14 +1,14 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="silent">
   <!-- A simple example of the approximate Morse-Smale complex being used for
-     regression on a 2D function with one single global maximum. This example
-     should thoroughly test all of the features associated to the MSR. -->
+       regression on a 2D function with one single global maximum. This example
+       should thoroughly test all of the features associated to the MSR. -->
   <RunInfo>
     <WorkingDir>data</WorkingDir>
     <Sequence>
       sample,
       train,
-      resampleExponential
+      resample
     </Sequence>
   </RunInfo>
 
@@ -16,7 +16,7 @@
     <ExternalModel ModuleToLoad="./testFunction" name="foo" subType="">
       <variables>X,Y,Z</variables>
     </ExternalModel>
-    <ROM name="exponential" subType="MSR">
+    <ROM name="modelUnderTest" subType="MSR">
       <Features>X,Y</Features>
       <Target>Z</Target>
       <partitionPredictor>kde</partitionPredictor>
@@ -26,68 +26,16 @@
     </ROM>
   </Models>
 
-  <Distributions>
-    <Uniform name="smallUniformDist">
-      <lowerBound>2</lowerBound>
-      <upperBound>3</upperBound>
-    </Uniform>
-    <Uniform name="largeUniformDist">
-      <lowerBound>-1000</lowerBound>
-      <upperBound>1000</upperBound>
-    </Uniform>
-  </Distributions>
-
-  <Samplers>
-    <MonteCarlo name="mcSampler">
-      <samplerInit>
-        <limit>200</limit>
-        <initialSeed>888</initialSeed>
-      </samplerInit>
-      <variable name="X">
-        <distribution>smallUniformDist</distribution>
-      </variable>
-      <variable name="Y">
-        <distribution>largeUniformDist</distribution>
-      </variable>
-    </MonteCarlo>
-    <Grid name="gridSampler">
-      <variable name="X">
-        <distribution>smallUniformDist</distribution>
-        <grid construction="equal" steps="20" type="value">2 3</grid>
-      </variable>
-      <variable name="Y">
-        <distribution>largeUniformDist</distribution>
-        <grid construction="equal" steps="20" type="value">-1000 1000</grid>
-      </variable>
-    </Grid>
-  </Samplers>
-
-  <Steps>
-    <MultiRun name="sample" sleepTime="1e-5">
-      <Input class="DataObjects" type="PointSet">dummyIN</Input>
-      <Model class="Models" type="ExternalModel">foo</Model>
-      <Sampler class="Samplers" type="MonteCarlo">mcSampler</Sampler>
-      <Output class="DataObjects" type="PointSet">trainingData</Output>
-      <Output class="OutStreamManager" type="Print">trainingData</Output>
-    </MultiRun>
-    <MultiRun name="resampleExponential" sleepTime="1e-5">
-      <Input class="DataObjects" type="PointSet">dummyIN</Input>
-      <Model class="Models" type="ROM">exponential</Model>
-      <Sampler class="Samplers" type="Grid">gridSampler</Sampler>
-      <Output class="DataObjects" type="PointSet">outDataExponential</Output>
-      <Output class="OutStreamManager" type="Print">outDataExponential</Output>
-    </MultiRun>
-    <RomTrainer name="train">
-      <Input class="DataObjects" type="PointSet">trainingData</Input>
-      <Output class="Models" type="ROM">exponential</Output>
-    </RomTrainer>
-  </Steps>
+  <ExternalXML node="Distributions" xmlToLoad="distributions.xml"/>
+  <ExternalXML node="Samplers" xmlToLoad="samplers.xml"/>
+  <ExternalXML node="Steps" xmlToLoad="steps.xml"/>
 
   <OutStreamManager>
     <!-- A csv file containing the output of the example -->
-    <Print name="outDataExponential">
+    <Print name="outData">
       <type>csv</type>
-      <source>outDataExponential</source>
+      <source>outData</source>
+      <filename>outDataExponential</filename>
     </Print>
     <Print name="trainingData">
       <type>csv</type>
@@ -95,21 +43,5 @@
     </Print>
   </OutStreamManager>
 
-  <DataObjects>
-    <!-- The input PointSet object -->
-    <PointSet name="dummyIN">
-      <Input>X,Y</Input>
-      <Output>OutputPlaceHolder</Output>
-    </PointSet>
-    <PointSet name="trainingData">
-      <Input>X,Y</Input>
-      <Output>Z</Output>
-    </PointSet>
-    <!-- The output PointSet objects -->
-    <PointSet name="outDataExponential">
-      <Input>X,Y</Input>
-      <Output>Z</Output>
-    </PointSet>
-  </DataObjects>
-
+  <ExternalXML node="DataObjects" xmlToLoad="dataObjects.xml"/>
 </Simulation>
