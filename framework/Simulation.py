@@ -703,6 +703,4 @@ class Simulation(MessageHandler.MessageUser):
         if "finalize" in dir(output):
           output.finalize()
       self.raiseAMessage('-'*2+' End step {0:50} '.format(stepName+' of type: '+stepInstance.type)+2*'-'+'\n')#,color='green')
-    self.raiseAWarning('This is just for color-picking purposes, and should be removed.')
-    self.raiseAnError(IOError,'This is just for color-picking purposes, and should be removed.')
     self.raiseAMessage('Run complete!')
