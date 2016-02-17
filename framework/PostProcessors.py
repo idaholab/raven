@@ -1129,6 +1129,45 @@ class PrintCSV(BasePostProcessor):
 #
 #
 #
+class ImportantRank(BasePostProcessor):
+  """
+    ImportantRank class. It compute the important rank for given input parameters
+  """
+  def __init__(self, messageHandler):
+    """
+     Constructor
+     @ In, messageHandler, message handler object
+    """
+    BasePostProcessor.__init__(self, messageHandler)
+
+  def initialize(self, runInfo, inputs, initDict) :
+    """
+     Method to initialize the pp.
+     @ In, runInfo, dict, dictionary of run info (e.g. working dir, etc)
+     @ In, inputs, list, list of inputs
+     @ In, initDict, dict, dictionary with initialization options
+    """
+    BasePostProcessor.initialize(self, runInfo, inputs, initDict)
+
+  def inputToInternal(self, currentInput):
+    """
+     Method to convert an input object into the internal format that is
+     understandable by this pp.
+     @ In, currentInput, object, an object that needs to be converted
+     @ Out, list, list of current inputs
+    """
+    return [(copy.deepcopy(currentInput))]
+
+  def run(self, Input):
+    """
+     This method executes the postprocessor action.
+     @ In,  Input, object, object contained the data to process. (inputToInternal output)
+     @ Out, dictionary, Dictionary containing the evaluated data
+    """
+    pass
+#
+#
+#
 class BasicStatistics(BasePostProcessor):
   """
     BasicStatistics filter class. It computes all the most popular statistics
