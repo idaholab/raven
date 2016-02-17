@@ -788,7 +788,7 @@ class temporalSciKitLearn(unSupervisedLearning):
           c1 = self.outputDict['clusterCenters'][t-k]
           if n1 < c1.shape[0]:
             x1 = c1[n1,:]
-            d += np.sqrt(np.dot(x1-x2,x1-x2))*np.exp(-(k-1))
+            d += np.sqrt(np.dot(x1-x2,x1-x2))*np.exp(-(k-1)*decR)
       return d  
       
   def __reMapCluster__(self,t):
