@@ -2964,12 +2964,12 @@ class DataMining(BasePostProcessor):
           dataObject.updateOutputValue('Time', self.Time) 
           temp = {}
           for cnt, feat in enumerate(self.unSupervisedEngine.features): 
-            temp[feat] = np.zeros(shape=(noClusters[0],noTimeStep))
-            for c in range(noClusters[0]):
-              for t in range(noTimeStep):              
+            temp[feat] = np.zeros(shape=(max(noClusters.values()),noTimeStep))
+            for t in range(noTimeStep):
+              for c in range(noClusters[t]):                            
                 temp[feat][c,t] = copy.deepcopy(self.unSupervisedEngine.outputDict['clusterCenters'][t][c,cnt])
                 dataObject.updateOutputValue(self.name+'Centroid-'+feat+'-'+str(c), temp[feat][c,:])  
-              self.raiseADebug(temp[feat][c,0])
+#               self.raiseADebug(temp[feat][c,0])
               
           # End of FIXME
           

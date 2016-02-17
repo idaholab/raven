@@ -671,11 +671,7 @@ class temporalSciKitLearn(unSupervisedLearning):
     for t in range(self.noTimeStep):
       Input['Features'] ={}       
       for feat in self.features.keys():
-        Input['Features'][feat] = self.inputDict[feat][:,t]      
-        
-#       self.raiseADebug(Input['Features']['x1'])
-#       self.raiseADebug(Input['Features']['x2'])
-      
+        Input['Features'][feat] = self.inputDict[feat][:,t]         
       self.SKLEngine.features = Input['Features']
       self.SKLEngine.train(Input['Features'])
       self.SKLEngine.confidence()
@@ -690,6 +686,9 @@ class temporalSciKitLearn(unSupervisedLearning):
         if hasattr(self.SKLEngine.Method, 'n_clusters'):
           if 'noClusters' not in self.outputDict.keys(): self.outputDict['noClusters'] = {}
           self.outputDict['noClusters'][t] = self.SKLEngine.Method.n_clusters
+        else:
+          if 'noClusters' not in self.outputDict.keys(): self.outputDict['noClusters'] = {}
+          self.outputDict['noClusters'][t] = max(self.SKLEngine.Method.labels_)+1
         if hasattr(self.SKLEngine.Method, 'labels_'):
           if 'labels' not in self.outputDict.keys(): self.outputDict['labels'] = {} # np.zeros(shape=(self.noSample,self.noTimeStep))
           self.outputDict['labels'][t] = self.SKLEngine.Method.labels_
@@ -779,8 +778,18 @@ class temporalSciKitLearn(unSupervisedLearning):
           v2 += np.sqrt(np.dot(x-x2,x-x2))**2
           N2 += 1
       return d + np.abs(np.sqrt(v1/(N1-1)*1.0) - np.sqrt(v2/(N2-1)*1.0))
-      
-      
+    if opt in ['DistanceWithDecay']:
+      K, decR = 5, 1
+      c2 = self.outputDict['clusterCenters'][t]
+      x2 = c2[n2,:]
+      d = 0
+      for k in range(1,K+1):
+        if t-k >= 0:
+          c1 = self.outputDict['clusterCenters'][t-k]
+          if n1 < c1.shape[0]:
+            x1 = c1[n1,:]
+            d += np.sqrt(np.dot(x1-x2,x1-x2))*np.exp(-(k-1))
+      return d  
       
   def __reMapCluster__(self,t):
     c1, c2 = self.outputDict['clusterCenters'][t-1], self.outputDict['clusterCenters'][t]
@@ -789,9 +798,15 @@ class temporalSciKitLearn(unSupervisedLearning):
     dMatrix = np.zeros(shape=(N1,N2))
     for n1 in range(N1):
       for n2 in range(N2):
-        dMatrix[n1,n2] = self.__computeDist__(t,n1,n2,'DistVariance')    
+        dMatrix[n1,n2] = self.__computeDist__(t,n1,n2,'DistanceWithDecay')  
+    self.raiseADebug(t, dMatrix.shape, dMatrix)      
     _, mapping = self.__localReMap__(dMatrix, (range(N1), range(N2)))
+    self.raiseADebug(mapping)
+    if N2 < N1:
+      pass
+#       self.raiseAnError(IOError,'ttt')
     
+#     return c2, range(N2)
     remap = [np.inf]*N2
     f1, f2 = [False]*N1, [False]*N2
     c = copy.deepcopy(c2)
@@ -803,12 +818,16 @@ class temporalSciKitLearn(unSupervisedLearning):
       c[i1,:] = copy.deepcopy(c2[i2,:])
       
     if N2 > N1:
-      s = 0
+      s1, s2 = 0, 0
       for n2 in range(N2):
         if not np.isfinite(remap[n2]):
-          remap[n2] = N1 + s
-          c[n2,:] = copy.deepcopy(N1+s)
-          s += 1
+          remap[n2] = N1 + s1
+          s1 += 1
+          for i2 in range(s2,N2):
+            if f2[i2] is False:
+              c[n2,:] = copy.deepcopy(c2[i2,:])
+              s2 = i2 +1
+              break
           
     return c, remap
   
