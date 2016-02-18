@@ -1483,17 +1483,22 @@ class Grid(Sampler):
         else:
             if self.variables2distributionsMapping[varName]['dim']==1:    # to avoid double count;
               distName = self.variables2distributionsMapping[varName]['name']
-              NDcoordinate=[0]*len(self.distributions2variablesMapping[distName])
+              ndCoordinate=[0]*len(self.distributions2variablesMapping[distName])
+              positionList = []
+              for var in self.distributions2variablesMapping[distName]:
+                position = utils.first(var.values())
+                positionList.append(position)
+              positionList.sort()
               for var in self.distributions2variablesMapping[distName]:
                 variable = utils.first(var.keys())
                 position = utils.first(var.values())
-                NDcoordinate[position-1] = float(coordinates[variable.strip()])
+                ndCoordinate[positionList.index(position)] = float(coordinates[variable.strip()])
                 for key in variable.strip().split(','):
                   self.inputInfo['distributionName'][key] = self.toBeSampled[variable]
                   self.inputInfo['distributionType'][key] = self.distDict[variable].type
                   self.values[key] = coordinates[variable]
               # Based on the discussion with Diego, we will use the following to compute SampledVarsPb.
-              self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(NDcoordinate)
+              self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(ndCoordinate)
         # Compute the ProbabilityWeight
         if ("<distribution>" in varName) or (self.variables2distributionsMapping[varName]['totDim']==1):
           if self.distDict[varName].getDisttype() == 'Discrete':
@@ -1533,29 +1538,34 @@ class Grid(Sampler):
         else:
           if self.variables2distributionsMapping[varName]['dim']==1:    # to avoid double count of weight for ND distribution; I need to count only one variable instaed of N
             distName = self.variables2distributionsMapping[varName]['name']
-            NDcoordinate=np.zeros(len(self.distributions2variablesMapping[distName]))
+            ndCoordinate=np.zeros(len(self.distributions2variablesMapping[distName]))
             dxs=np.zeros(len(self.distributions2variablesMapping[distName]))
+            positionList = []
+            for var in self.distributions2variablesMapping[distName]:
+              position = utils.first(var.values())
+              positionList.append(position)
+            positionList.sort()
             for var in self.distributions2variablesMapping[distName]:
               variable = utils.first(var.keys()).strip()
               position = utils.first(var.values())
-              NDcoordinate[position-1] = coordinates[variable.strip()]
+              ndCoordinate[positionList.index(position)] = coordinates[variable.strip()]
               if self.gridInfo[variable]=='CDF':
                 if coordinatesPlusOne[variable] != sys.maxsize and coordinatesMinusOne[variable] != -sys.maxsize:
-                  dxs[position-1] = (self.distDict[variable].inverseMarginalDistribution(coordinatesPlusOne[variable],self.variables2distributionsMapping[variable]['dim']-1)
+                  dxs[positionList.index(position)] = (self.distDict[variable].inverseMarginalDistribution(coordinatesPlusOne[variable],self.variables2distributionsMapping[variable]['dim']-1)
                       - self.distDict[variable].inverseMarginalDistribution(coordinatesMinusOne[variable],self.variables2distributionsMapping[variable]['dim']-1))/2.0
                 if coordinatesMinusOne[variable] == -sys.maxsize:
-                  dxs[position-1] = self.distDict[variable].inverseMarginalDistribution(coordinatesPlusOne[variable],self.variables2distributionsMapping[variable]['dim']-1) - coordinates[variable.strip()]
+                  dxs[positionList.index(position)] = self.distDict[variable].inverseMarginalDistribution(coordinatesPlusOne[variable],self.variables2distributionsMapping[variable]['dim']-1) - coordinates[variable.strip()]
                 if coordinatesPlusOne[variable] == sys.maxsize:
-                  dxs[position-1] = coordinates[variable.strip()] - self.distDict[variable].inverseMarginalDistribution(coordinatesMinusOne[variable],self.variables2distributionsMapping[variable]['dim']-1)
+                  dxs[positionList.index(position)] = coordinates[variable.strip()] - self.distDict[variable].inverseMarginalDistribution(coordinatesMinusOne[variable],self.variables2distributionsMapping[variable]['dim']-1)
               else:
                 if coordinatesPlusOne[variable] != sys.maxsize and coordinatesMinusOne[variable] != -sys.maxsize:
-                  dxs[position-1] = (coordinatesPlusOne[variable] - coordinatesMinusOne[variable])/2.0
+                  dxs[positionList.index(position)] = (coordinatesPlusOne[variable] - coordinatesMinusOne[variable])/2.0
                 if coordinatesMinusOne[variable] == -sys.maxsize:
-                  dxs[position-1] = coordinatesPlusOne[variable] - coordinates[variable.strip()]
+                  dxs[positionList.index(position)] = coordinatesPlusOne[variable] - coordinates[variable.strip()]
                 if coordinatesPlusOne[variable] == sys.maxsize:
-                  dxs[position-1] = coordinates[variable.strip()] - coordinatesMinusOne[variable]
-            self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")] = self.distDict[varName].cellIntegral(NDcoordinate,dxs)
-            weight *= self.distDict[varName].cellIntegral(NDcoordinate,dxs)
+                  dxs[positionList.index(position)] = coordinates[variable.strip()] - coordinatesMinusOne[variable]
+            self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")] = self.distDict[varName].cellIntegral(ndCoordinate,dxs)
+            weight *= self.distDict[varName].cellIntegral(ndCoordinate,dxs)
       newpoint = tuple(self.values[key] for key in self.values.keys())
       if newpoint not in self.existing:
         found=True
@@ -1668,9 +1678,14 @@ class Stratified(Grid):
               for kkey in utils.first(distVarName.keys()).strip().split(','):
                 self.inputInfo['distributionName'][kkey] = self.toBeSampled[varName]
                 self.inputInfo['distributionType'][kkey] = self.distDict[varName].type
-            NDcoordinate = np.zeros(len(self.distributions2variablesMapping[distName]))
+            ndCoordinate = np.zeros(len(self.distributions2variablesMapping[distName]))
             dxs = np.zeros(len(self.distributions2variablesMapping[distName]))
             centerCoordinate = np.zeros(len(self.distributions2variablesMapping[distName]))
+            positionList = []
+            for var in self.distributions2variablesMapping[distName]:
+              position = utils.first(var.values())
+              positionList.append(position)
+            positionList.sort()
             for var in self.distributions2variablesMapping[distName]:
               # if the varName is a comma separated list of strings the user wants to sample the comma separated variables with the same sampled value => link the value to all comma separated variables
               variable = utils.first(var.keys()).strip()
@@ -1680,26 +1695,26 @@ class Stratified(Grid):
               varCount += 1
               if self.gridInfo[variable] == 'CDF':
                 coordinate = lower + (upper-lower)*Distributions.random()
-                NDcoordinate[position-1] = self.distDict[variable].inverseMarginalDistribution(coordinate,variable)
-                dxs[position-1] = self.distDict[variable].inverseMarginalDistribution(max(upper,lower),variable)-self.distDict[variable].inverseMarginalDistribution(min(upper,lower),variable)
-                centerCoordinate[position-1] = (self.distDict[variable].inverseMarginalDistribution(upper,variable)+self.distDict[variable].inverseMarginalDistribution(lower,variable))/2.0
+                ndCoordinate[positionList.index(position)] = self.distDict[variable].inverseMarginalDistribution(coordinate,variable)
+                dxs[positionList.index(position)] = self.distDict[variable].inverseMarginalDistribution(max(upper,lower),variable)-self.distDict[variable].inverseMarginalDistribution(min(upper,lower),variable)
+                centerCoordinate[positionList.index(position)] = (self.distDict[variable].inverseMarginalDistribution(upper,variable)+self.distDict[variable].inverseMarginalDistribution(lower,variable))/2.0
                 for kkey in variable.strip().split(','):
-                  self.values[kkey] = NDcoordinate[position-1]
+                  self.values[kkey] = ndCoordinate[positionList.index(position)]
                   self.inputInfo['upper'][kkey] = self.distDict[variable].inverseMarginalDistribution(max(upper,lower),variable)
                   self.inputInfo['lower'][kkey] = self.distDict[variable].inverseMarginalDistribution(min(upper,lower),variable)
               elif self.gridInfo[variable] == 'value':
-                dxs[position-1] = max(upper,lower) - min(upper,lower)
-                centerCoordinate[position-1] = (upper + lower)/2.0
+                dxs[positionList.index(position)] = max(upper,lower) - min(upper,lower)
+                centerCoordinate[positionList.index(position)] = (upper + lower)/2.0
                 coordinateCdf = self.distDict[variable].marginalCdf(lower) + (self.distDict[variable].marginalCdf(upper) - self.distDict[variable].marginalCdf(lower))*Distributions.random()
                 coordinate = self.distDict[variable].inverseMarginalDistribution(coordinateCdf,variable)
-                NDcoordinate[position-1] = coordinate
+                ndCoordinate[positionList.index(position)] = coordinate
                 for kkey in variable.strip().split(','):
                   self.values[kkey] = coordinate
                   self.inputInfo['upper'][kkey] = max(upper,lower)
                   self.inputInfo['lower'][kkey] = min(upper,lower)
             self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")] = self.distDict[varName].cellIntegral(centerCoordinate,dxs)
             weight *= self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")]
-            self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(NDcoordinate)
+            self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(ndCoordinate)
           else:
             if self.gridInfo[varName] == 'CDF':
               upper = self.gridEntity.returnShiftedCoordinate(self.gridEntity.returnIteratorIndexes(),{varName:self.sampledCoordinate[self.counter-1][varCount]+1})[varName]
@@ -3368,16 +3383,6 @@ class SparseGridCollocation(Grid):
         continue
       else:
         found=True
-        # compute the maxDim in the given distribution
-        for key in self.variables2distributionsMapping.keys():
-          dist = self.variables2distributionsMapping[key]['name']
-          maxDim = 1
-          listvar = self.distributions2variablesMapping[dist]
-          for var in listvar:
-            if utils.first(var.values()) > maxDim:
-              maxDim = utils.first(var.values())
-        if maxDim > 1: NDcoordinates = [0]*maxDim
-
         for v,varName in enumerate(self.sparseGrid.varNames):
           # compute the SampledVarsPb for 1-D distribution
           if self.variables2distributionsMapping[varName]['totDim'] == 1:
@@ -3388,12 +3393,19 @@ class SparseGridCollocation(Grid):
           # compute the SampledVarsPb for N-D distribution
           # Assume only one N-D distribution is associated with sparse grid collocation method
           elif self.variables2distributionsMapping[varName]['totDim'] > 1:
+            dist = self.variables2distributionsMapping[varName]['name']
+            ndCoordinates = np.zeros(len(self.distributions2variablesMapping[dist]))
+            positionList = []
+            for var in self.distributions2variablesMapping[dist]:
+              position = utils.first(var.values())
+              positionList.append(position)
+            positionList.sort()
             for key in varName.strip().split(','):
               self.values[key] = pt[v]
-            NDcoordinates[self.variables2distributionsMapping[varName]['dim']-1] = pt[v]
+            ndCoordinates[positionList.index(self.variables2distributionsMapping[varName]['dim'])] = pt[v]
         for v,varName in enumerate(self.sparseGrid.varNames):
           if self.variables2distributionsMapping[varName]['totDim'] > 1 and self.variables2distributionsMapping[varName]['dim'] == 1:
-            self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(NDcoordinates)
+            self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(ndCoordinates)
             self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")] = self.inputInfo['SampledVarsPb'][varName]
         self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
         self.inputInfo['ProbabilityWeight'] = weight
@@ -3625,16 +3637,6 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       @ In, model, Model, unused
       @ In, myInput, list(str), unused
     """
-    # compute the maxDim in the given distribution
-    for key in self.variables2distributionsMapping.keys():
-      dist = self.variables2distributionsMapping[key]['name']
-      maxDim = 1
-      listvar = self.distributions2variablesMapping[dist]
-      for var in listvar:
-        if utils.first(var.values()) > maxDim:
-           maxDim = utils.first(var.values())
-    if maxDim > 1: NDcoordinates = [0]*maxDim
-
     pt = self.neededPoints.pop()
     self.submittedNotCollected.append(pt)
     for v,varName in enumerate(self.sparseGrid.varNames):
@@ -3647,12 +3649,19 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
         # compute the SampledVarsPb for N-D distribution
         # Assume only one N-D distribution is associated with sparse grid collocation method
       elif self.variables2distributionsMapping[varName]['totDim'] > 1:
+        dist = self.variables2distributionsMapping[varName]['name']
+        ndCoordinates = np.zeros(len(self.distributions2variablesMapping[dist]))
+        positionList = []
+        for var in self.distributions2variablesMapping[dist]:
+          position = utils.first(var.values())
+          positionList.append(position)
+        positionList.sort()
         for key in varName.strip().split(','):
           self.values[key] = pt[v]
-        NDcoordinates[self.variables2distributionsMapping[varName]['dim']-1] = pt[v]
+        ndCoordinates[positionList.index(self.variables2distributionsMapping[varName]['dim'])] = pt[v]
     for v,varName in enumerate(self.sparseGrid.varNames):
       if self.variables2distributionsMapping[varName]['totDim'] > 1 and self.variables2distributionsMapping[varName]['dim'] == 1:
-        self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(NDcoordinates)
+        self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(ndCoordinates)
         self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")] = self.inputInfo['SampledVarsPb'][varName]
     self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['SamplerType'] = self.type
