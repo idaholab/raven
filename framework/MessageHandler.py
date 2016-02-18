@@ -15,7 +15,6 @@ if not 'xrange' in dir(__builtins__):
 import sys
 import os
 import time
-import curses
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
