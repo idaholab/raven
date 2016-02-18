@@ -523,6 +523,16 @@
   \ifthenelse{\equal{#1}{}}{}{\default{#1}}
 }
 
+\newcommand{\criterionDescriptionDT}[1]
+{
+  \xmlNode{criterion}, \xmlDesc{string, optional field}, specifies the function
+  used to measure the quality of a split.
+  %
+  The only supported criterion is ``mse'' for mean squared error.
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+
 \newcommand{\splitterDescription}[1]
 {
   \xmlNode{splitter}, \xmlDesc{string, optional field}, specifies the strategy
@@ -3364,6 +3374,9 @@ BallTree, KDTree, and a brute-force algorithm.
   \item \algorithmDescription{auto}
   \item \leafSizeDescription{30}
   \item \pDescription{2}
+    %TODO document metric
+    %TODO document metric_params
+    %TODO should n_jobs be documented?
 \end{itemize}
 %%%%%%%%%%%%%%%
 \subparagraph{K Neighbors Classifier}
@@ -3383,11 +3396,12 @@ where $k$ is an integer value specified by the user.
 \begin{itemize}
   \item \nNeighborsDescription{5}
   \item \weightsDescription{uniform}
-  \item \radiusDescription{1.0}
   \item \algorithmDescription{auto}
-  \item \metricDescription{minkowski}
   \item \leafSizeDescription{30}
+  \item \metricDescription{minkowski}
   \item \pDescription{2}
+    %TODO document metric_params
+    %TODO document n_jobs?
 \end{itemize}
 %%%%%%%%%%%%%%%
 \subparagraph{Radius Neighbors Classifier}
@@ -3406,14 +3420,14 @@ user.
 
 \skltype{Radius Neighbors Classifier}{neighbors|RadiusNeighbors}
 \begin{itemize}
-  \item \nNeighborsDescription{5}
-  \item \weightsDescription{uniform}
   \item \radiusDescription{1.0}
+  \item \weightsDescription{uniform}
   \item \algorithmDescription{auto}
-  \item \metricDescription{minkowski}
   \item \leafSizeDescription{30}
+  \item \metricDescription{minkowski}
   \item \pDescription{2}
   \item \outlierLabelDescription{None}
+    %TODO document metric_params
 \end{itemize}
 
 %%%%%%%%%%%%%%%
@@ -3433,11 +3447,12 @@ where $k$ is an integer value specified by the user.
 \begin{itemize}
   \item \nNeighborsDescription{5}
   \item \weightsDescription{uniform}
-  \item \radiusDescription{1.0}
   \item \algorithmDescription{auto}
-  \item \metricDescription{minkowski}
   \item \leafSizeDescription{30}
+  \item \metricDescription{minkowski}
   \item \pDescription{2}
+    %TODO document metric_params
+    %TODO document n_jobs?
 \end{itemize}
 
 %%%%%%%%%%%%%%%
@@ -3455,14 +3470,13 @@ query point, where $r$ is a floating-point value specified by the user.
 
 \skltype{Radius Neighbors Regressor}{neighbors|RadiusNeighborsRegressor}
 \begin{itemize}
-  \item \nNeighborsDescription{5}
-  \item \weightsDescription{uniform}
   \item \radiusDescription{1.0}
+  \item \weightsDescription{uniform}
   \item \algorithmDescription{auto}
-  \item \metricDescription{minkowski}
   \item \leafSizeDescription{30}
+  \item \metricDescription{minkowski}
   \item \pDescription{2}
-  \item \outlierLabelDescription{None}
+    %TODO document metric_params
 \end{itemize}
 %%%%%%%%%%%%%%%
 \subparagraph{Nearest Centroid Classifier}
@@ -3483,6 +3497,7 @@ drastically different variances, as equal variance in all dimensions is assumed.
   %
   \default{None}
   %
+  %TODO document metric
 \end{itemize}
 %\subparagraph{Ball Tree}
 %pass
@@ -3616,7 +3631,11 @@ decision tree logic.
   \item \maxDepthDescription{None}
   \item \minSamplesSplitDescription{2}
   \item \minSamplesLeafDescription{1}
+    %TODO document min_weight_fraction_leaf
   \item \maxLeafNodesDescription{None}
+    %TODO document class_weight
+    %TODO document random_state
+    %TODO document presort
 \end{itemize}
 
 %%%%%%%%%%%%%%%%
@@ -3627,13 +3646,16 @@ decision tree logic.
 %
 \skltype{Decision Tree Regressor}{tree|DecisionTreeRegressor}
 \begin{itemize}
-  \item \criterionDescription{gini}
+  \item \criterionDescriptionDT{mse}
   \item \splitterDescription{best}
   \item \maxFeaturesDescription{None}
   \item \maxDepthDescription{None}
   \item \minSamplesSplitDescription{2}
   \item \minSamplesLeafDescription{1}
+    %TODO document min_weight_fraction_leaf
   \item \maxLeafNodesDescription{None}
+    %TODO document random_state
+    %TODO document presort
 \end{itemize}
 
 %%%%%%%%%%%%%%%%
@@ -3654,12 +3676,15 @@ tree.
 
 \begin{itemize}
   \item \criterionDescription{gini}
-  \item \splitterDescription{best}
-  \item \maxFeaturesDescription{None}
+  \item \splitterDescription{random}
+  \item \maxFeaturesDescription{auto}
   \item \maxDepthDescription{None}
   \item \minSamplesSplitDescription{2}
   \item \minSamplesLeafDescription{1}
+    %TODO document min_weight_fraction_leaf
   \item \maxLeafNodesDescription{None}
+    %TODO document random_state
+    %TODO document class_weight
   %
 \end{itemize}
 
@@ -3681,13 +3706,15 @@ tree.
 \skltype{Extra Tree Regressor}{tree|ExtraTreeRegressor}
 
 \begin{itemize}
-  \item \criterionDescription{gini}
-  \item \splitterDescription{best}
-  \item \maxFeaturesDescription{None}
+  \item \criterionDescriptionDT{mse}
+  \item \splitterDescription{random}
+  \item \maxFeaturesDescription{auto}
   \item \maxDepthDescription{None}
   \item \minSamplesSplitDescription{2}
   \item \minSamplesLeafDescription{1}
+    %TODO document min_weight_fraction_leaf
   \item \maxLeafNodesDescription{None}
+    %TODO document random_state
 \end{itemize}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -3754,7 +3781,7 @@ The disadvantages of Gaussian Processes for Machine Learning include:
   \item \xmlNode{beta0}, \xmlDesc{float, array-like, optional field}, specifies
   the regression weight vector to perform Ordinary Kriging (OK).
   %
-  \default{Universal Kriging}
+  \default{None}
   \item \xmlNode{storage\_mode}, \xmlDesc{string, optional field}, specifies
   whether the Cholesky decomposition of the correlation matrix should be stored
   in the class (storage\_mode = `full') or not (storage\_mode = `light').
@@ -3818,7 +3845,7 @@ The disadvantages of Gaussian Processes for Machine Learning include:
   \item \xmlNode{random\_state}, \xmlDesc{integer, optional field}, is the seed
   of the internal random number generator.
   %
-  \default{random}
+  \default{None}
   %
 \end{itemize}
 
