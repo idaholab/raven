@@ -94,7 +94,8 @@ class Distribution(BaseType):
     self.lowerBound       = pdict.pop('lowerBound'      )
     self.__adjustmentType = pdict.pop('adjustmentType'  )
     self.dimensionality   = pdict.pop('dimensionality'  )
-    self.type             = pdict.pop('type')
+    self.type             = pdict.pop('type'            )
+    self.messageHandler   = pdict.pop('messageHandler'  )
     self._localSetState(pdict)
     self.initializeDistribution()
 
@@ -136,6 +137,7 @@ class Distribution(BaseType):
     tempDict['lowerBound'      ] = self.lowerBound
     tempDict['adjustmentType'  ] = self.__adjustmentType
     tempDict['dimensionality'  ] = self.dimensionality
+    tempDict['messageHandler'  ] = self.messageHandler
 
   def rvsWithinCDFbounds(self,LowerBound,upperBound):
     """
@@ -325,11 +327,6 @@ class BoostDistribution(Distribution):
     @ In, x, float -> value to get the pdf at
     @ Out, float, requested pdf
    """
-#     value = 0.0
-#     for i in str(x).strip().split(','):
-#       value +=  self._distribution.Pdf(float(i))
-#
-#     return value
     return self._distribution.Pdf(x)
 
 
