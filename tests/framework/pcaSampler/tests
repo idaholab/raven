@@ -12,5 +12,12 @@
   xml = 'multiPCA/testPrintPointSet_dump.xml'
   csv = 'multiPCA/testPrintPointSet_dump.csv'
  [../]
+ 
+ [./gridPCA]
+  type = 'RavenFramework'
+  input = 'test_pca_index_grid.xml'
+  xml = 'gridPCAIndex/testPrintPointSet_dump.xml'
+  csv = 'gridPCAIndex/testPrintPointSet_dump.csv'
+ [../]
 
 []
