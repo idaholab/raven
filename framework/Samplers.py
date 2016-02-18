@@ -125,7 +125,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self._endJobRunnable               = sys.maxsize               # max number of inputs creatable by the sampler right after a job ends (e.g., infinite for MC, 1 for Adaptive, etc)
 
     ######
-    self.variables2distributionsMapping = {}                       # for each variable 'varName'  , the following informations are included:  'varName': {'dim': 1, 'reducedTotDim': 2,'totDim': 2, 'name': 'distName'} ; dim = dimension of the variable; reducedTotDim = the total dimensionality in the transformed space; totDim = total dimensionality of its associated distribution
+    self.variables2distributionsMapping = {}                       # for each variable 'varName'  , the following informations are included:  'varName': {'dim': 1, 'reducedDim': 1,'totDim': 2, 'name': 'distName'} ; dim = dimension of the variable; reducedDim = dimension of the variable in the transformed space; totDim = total dimensionality of its associated distribution
     self.distributions2variablesMapping = {}                       # for each variable 'distName' , the following informations are included: 'distName': [{'var1': 1}, {'var2': 2}]} where for each var it is indicated the var dimension
     self.NDSamplingParams               = {}                       # this dictionary contains a dictionary for each ND distribution (key). This latter dictionary contains the initialization parameters of the ND inverseCDF ('initialGridDisc' and 'tolerance')
     ######
@@ -279,15 +279,22 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       else:
         self.distributions2variablesMapping[distName]=[listElement]
 
+    # creation of the self.distributions2variablesIndexList dictionary:{'distName':[dim1,dim2,...,dimN]}
+    self.distributions2variablesIndexList = {}
+    for distName in self.distributions2variablesMapping.keys():
+      positionList = []
+      for var in self.distributions2variablesMapping[distName]:
+        position = utils.first(var.values())
+        positionList.append(position)
+      positionList.sort()
+      self.distributions2variablesIndexList[distName] = positionList
+
     for key in self.variables2distributionsMapping.keys():
-      dist = self.variables2distributionsMapping[key]['name']
-      maxDim=1
-      listvar = self.distributions2variablesMapping[dist]
-      for var in listvar:
-        if utils.first(var.values()) > maxDim:
-          maxDim = utils.first(var.values())
-      self.variables2distributionsMapping[key]['reducedTotDim'] = maxDim #Dim for the parameters in the reduced space
-      self.variables2distributionsMapping[key]['totDim'] = maxDim # We will reset the value if the node <variablesTransformation> exist in the raven input file
+      distName = self.variables2distributionsMapping[key]['name']
+      dim      = self.variables2distributionsMapping[key]['dim']
+      reducedDim = self.distributions2variablesIndexList[distName].index(dim)
+      self.variables2distributionsMapping[key]['reducedDim'] = reducedDim  # the dimension of variable in the transformed space
+      self.variables2distributionsMapping[key]['totDim'] = max(self.distributions2variablesIndexList[distName]) # We will reset the value if the node <variablesTransformation> exist in the raven input file
 
     #Checking the variables transformation
     if self.variablesTransformationDict:
@@ -1338,6 +1345,7 @@ class MonteCarlo(Sampler):
       dim    = self.variables2distributionsMapping[key]['dim']
       totDim = self.variables2distributionsMapping[key]['totDim']
       dist   = self.variables2distributionsMapping[key]['name']
+      reducedDim = self.variables2distributionsMapping[key]['reducedDim']
 
       if totDim == 1:
         for var in self.distributions2variablesMapping[dist]:
@@ -1347,11 +1355,10 @@ class MonteCarlo(Sampler):
           for kkey in varID.strip().split(','):
             self.values[kkey] = np.atleast_1d(rvsnum)[0]
       elif totDim > 1:
-        if dim == 1:
+        if reducedDim == 1:
           rvsnum = self.distDict[key].rvs()
           coordinate = np.atleast_1d(rvsnum).tolist()
-          reducedTotDim = self.variables2distributionsMapping[key]['reducedTotDim']
-          if reducedTotDim > len(coordinate): self.raiseAnError(IOError,"The maximum dimension defined for variables drew from the multivariate normal distribution is exceeded by the dimension used in Distribution (MultivariateNormal) ")
+          if reducedDim > len(coordinate): self.raiseAnError(IOError,"The dimension defined for variables drew from the multivariate normal distribution is exceeded by the dimension used in Distribution (MultivariateNormal) ")
           probabilityValue = self.distDict[key].pdf(coordinate)
           self.inputInfo['SampledVarsPb'][key] = probabilityValue
           for var in self.distributions2variablesMapping[dist]:
@@ -1481,14 +1488,10 @@ class Grid(Sampler):
             self.inputInfo['SampledVarsPb'][key] = self.distDict[varName].pdf(self.values[key])
         # compute the SampledVarsPb for N-D distribution
         else:
-            if self.variables2distributionsMapping[varName]['dim']==1:    # to avoid double count;
+            if self.variables2distributionsMapping[varName]['reducedDim']==1:    # to avoid double count;
               distName = self.variables2distributionsMapping[varName]['name']
               ndCoordinate=[0]*len(self.distributions2variablesMapping[distName])
-              positionList = []
-              for var in self.distributions2variablesMapping[distName]:
-                position = utils.first(var.values())
-                positionList.append(position)
-              positionList.sort()
+              positionList = self.distributions2variablesIndexList[distName]
               for var in self.distributions2variablesMapping[distName]:
                 variable = utils.first(var.keys())
                 position = utils.first(var.values())
@@ -1536,15 +1539,11 @@ class Grid(Sampler):
                 weight *= 1.0 - self.distDict[varName].cdf(midMinusValue)
         # ND variable
         else:
-          if self.variables2distributionsMapping[varName]['dim']==1:    # to avoid double count of weight for ND distribution; I need to count only one variable instaed of N
+          if self.variables2distributionsMapping[varName]['reducedDim']==1:    # to avoid double count of weight for ND distribution; I need to count only one variable instaed of N
             distName = self.variables2distributionsMapping[varName]['name']
             ndCoordinate=np.zeros(len(self.distributions2variablesMapping[distName]))
             dxs=np.zeros(len(self.distributions2variablesMapping[distName]))
-            positionList = []
-            for var in self.distributions2variablesMapping[distName]:
-              position = utils.first(var.values())
-              positionList.append(position)
-            positionList.sort()
+            positionList = self.distributions2variablesIndexList[distName]
             for var in self.distributions2variablesMapping[distName]:
               variable = utils.first(var.keys()).strip()
               position = utils.first(var.values())
@@ -1671,7 +1670,7 @@ class Stratified(Grid):
     for varName in self.axisName:
       # new implementation for ND LHS
       if not "<distribution>" in varName:
-        if self.variables2distributionsMapping[varName]['totDim']>1 and self.variables2distributionsMapping[varName]['dim'] == 1:    # to avoid double count of weight for ND distribution; I need to count only one variable instaed of N
+        if self.variables2distributionsMapping[varName]['totDim']>1 and self.variables2distributionsMapping[varName]['reducedDim'] == 1:    # to avoid double count of weight for ND distribution; I need to count only one variable instaed of N
           if self.variablesTransformationDict:
             distName = self.variables2distributionsMapping[varName]['name']
             for distVarName in self.distributions2variablesMapping[distName]:
@@ -1681,11 +1680,7 @@ class Stratified(Grid):
             ndCoordinate = np.zeros(len(self.distributions2variablesMapping[distName]))
             dxs = np.zeros(len(self.distributions2variablesMapping[distName]))
             centerCoordinate = np.zeros(len(self.distributions2variablesMapping[distName]))
-            positionList = []
-            for var in self.distributions2variablesMapping[distName]:
-              position = utils.first(var.values())
-              positionList.append(position)
-            positionList.sort()
+            positionList = self.distributions2variablesIndexList[distName]
             for var in self.distributions2variablesMapping[distName]:
               # if the varName is a comma separated list of strings the user wants to sample the comma separated variables with the same sampled value => link the value to all comma separated variables
               variable = utils.first(var.keys()).strip()
@@ -3383,6 +3378,7 @@ class SparseGridCollocation(Grid):
         continue
       else:
         found=True
+
         for v,varName in enumerate(self.sparseGrid.varNames):
           # compute the SampledVarsPb for 1-D distribution
           if self.variables2distributionsMapping[varName]['totDim'] == 1:
@@ -3392,23 +3388,29 @@ class SparseGridCollocation(Grid):
             self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.inputInfo['SampledVarsPb'][varName]
           # compute the SampledVarsPb for N-D distribution
           # Assume only one N-D distribution is associated with sparse grid collocation method
-          elif self.variables2distributionsMapping[varName]['totDim'] > 1:
+          elif self.variables2distributionsMapping[varName]['totDim'] > 1 and self.variables2distributionsMapping[varName]['reducedDim'] ==1:
             dist = self.variables2distributionsMapping[varName]['name']
             ndCoordinates = np.zeros(len(self.distributions2variablesMapping[dist]))
-            positionList = []
-            for var in self.distributions2variablesMapping[dist]:
-              position = utils.first(var.values())
-              positionList.append(position)
-            positionList.sort()
-            for key in varName.strip().split(','):
-              self.values[key] = pt[v]
-            ndCoordinates[positionList.index(self.variables2distributionsMapping[varName]['dim'])] = pt[v]
-        for v,varName in enumerate(self.sparseGrid.varNames):
-          if self.variables2distributionsMapping[varName]['totDim'] > 1 and self.variables2distributionsMapping[varName]['dim'] == 1:
+            positionList = self.distributions2variablesIndexList[dist]
+            for varDict in self.distributions2variablesMapping[dist]:
+              var = utils.first(varDict.keys())
+              position = utils.first(varDict.values())
+              location = -1
+              for key in var.strip().split(','):
+                if key in self.sparseGrid.varNames:
+                  location = self.sparseGrid.varNames.index(key)
+                  break
+              if location > -1:
+                ndCoordinates[positionList.index(position)] = pt[location]
+              else:
+                self.raiseAnError(IOError,'The variables ' + var + ' listed in sparse grid collocation sampler, but not used in the ROM!' )
+              for key in var.strip().split(','):
+                self.values[key] = pt[location]
             self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(ndCoordinates)
             self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")] = self.inputInfo['SampledVarsPb'][varName]
-        self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
+
         self.inputInfo['ProbabilityWeight'] = weight
+        self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
         self.inputInfo['SamplerType'] = 'Sparse Grid Collocation'
 #
 #
@@ -3647,22 +3649,27 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
         self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(pt[v])
         self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.inputInfo['SampledVarsPb'][varName]
         # compute the SampledVarsPb for N-D distribution
-        # Assume only one N-D distribution is associated with sparse grid collocation method
-      elif self.variables2distributionsMapping[varName]['totDim'] > 1:
+      elif self.variables2distributionsMapping[varName]['totDim'] > 1 and self.variables2distributionsMapping[varName]['reducedDim'] ==1:
         dist = self.variables2distributionsMapping[varName]['name']
         ndCoordinates = np.zeros(len(self.distributions2variablesMapping[dist]))
-        positionList = []
-        for var in self.distributions2variablesMapping[dist]:
-          position = utils.first(var.values())
-          positionList.append(position)
-        positionList.sort()
-        for key in varName.strip().split(','):
-          self.values[key] = pt[v]
-        ndCoordinates[positionList.index(self.variables2distributionsMapping[varName]['dim'])] = pt[v]
-    for v,varName in enumerate(self.sparseGrid.varNames):
-      if self.variables2distributionsMapping[varName]['totDim'] > 1 and self.variables2distributionsMapping[varName]['dim'] == 1:
+        positionList = self.distributions2variablesIndexList[dist]
+        for varDict in self.distributions2variablesMapping[dist]:
+          var = utils.first(varDict.keys())
+          position = utils.first(varDict.values())
+          location = -1
+          for key in var.strip().split(','):
+            if key in self.sparseGrid.varNames:
+              location = self.sparseGrid.varNames.index(key)
+              break
+          if location > -1:
+            ndCoordinates[positionList.index(position)] = pt[location]
+          else:
+            self.raiseAnError(IOError,'The variables ' + var + ' listed in sparse grid collocation sampler, but not used in the ROM!' )
+          for key in var.strip().split(','):
+            self.values[key] = pt[location]
         self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(ndCoordinates)
         self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")] = self.inputInfo['SampledVarsPb'][varName]
+
     self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['SamplerType'] = self.type
 
