@@ -2200,11 +2200,14 @@ It is also known as stability selection.
   \item \xmlNode{alpha}, \xmlDesc{float, `aic', or `bic', optional}, defines the
   regularization parameter $\alpha$ in the Lasso.
   %
+  \default{`aic'}
   %
   \item \xmlNode{scaling}, \xmlDesc{float, optional field}, specifies the alpha
   parameter used to randomly scale the
   %
   Should be between 0 and 1.
+  %
+  \default{0.5}
   %
   \item \xmlNode{sample\_fraction}, \xmlDesc{float, optional field}, defines
   the fraction of samples to be used in each randomized design.
@@ -2213,17 +2216,23 @@ It is also known as stability selection.
   %
   If 1, all samples are used.
   %
+  \default{0.75}
+  %
   \item \xmlNode{n\_resampling}, \xmlDesc{int, optional field}, is the number of
   randomized models used.
+  %
+  \default{200}
   %
   \item \xmlNode{selection\_threshold}, \xmlDesc{float, optional field}, sets
   the score above for which features should be selected.
   %
+  \default{0.25}
+  %
   \item \fitInterceptDescription{True}
-  \item \verDescriptionB{}
+  \item \verDescriptionB{False}
   \item \normalizeDescription{True}
-  \item \precomputeDescription{}
-  \item \maxIterDescription{}
+  \item \precomputeDescription{`auto'}
+  \item \maxIterDescription{500}
   \item \xmlNode{eps}, \xmlDesc{float, optional field}, defines the machine
   precision regularization in the computation of the Cholesky diagonal factors.
   %
@@ -2231,6 +2240,8 @@ It is also known as stability selection.
   %
   Unlike the `tol' parameter in some iterative optimization-based algorithms,
   this parameter does not control the tolerance of the optimization.
+  %
+  \default{2.2204460492503131e-16}
   %
   \item \xmlNode{random\_state}, \xmlDesc{int, RandomState instance or None,
   optional}, if int, random\_state is the seed used by the random number
@@ -2240,6 +2251,10 @@ It is also known as stability selection.
   %
   \default{None}
 \end{itemize}
+
+% TODO document n_jobs
+% TODO document pre_dispatch
+% TODO document memory
 
 \subparagraph{Randomized Logistic Regression}
 \mbox{}
