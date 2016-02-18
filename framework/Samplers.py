@@ -286,6 +286,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       for var in self.distributions2variablesMapping[distName]:
         position = utils.first(var.values())
         positionList.append(position)
+      positionList = list(set(positionList))
       positionList.sort()
       self.distributions2variablesIndexList[distName] = positionList
 
