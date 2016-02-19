@@ -2280,6 +2280,8 @@ Regressor}{linear\_model|RandomizedLogisticRegression}
   %
   Should be between 0 and 1.
   %
+  \default{0.5}
+  %
   \item \xmlNode{sample\_fraction}, \xmlDesc{float, optional field}, is the
   fraction of samples to be used in each randomized design.
   %
@@ -2301,8 +2303,8 @@ Regressor}{linear\_model|RandomizedLogisticRegression}
   %
   \item \fitInterceptDescription{True}
   %
-  \item \verDescriptionB{}
-  \item \normalizeDescription{False}
+  \item \verDescriptionB{False}
+  \item \normalizeDescription{True}
   \item \tolDescriptionC{}
   \default{1=e-3}
   %
@@ -2315,6 +2317,10 @@ Regressor}{linear\_model|RandomizedLogisticRegression}
   \default{None}
   %
 \end{itemize}
+
+% TODO document n_jobs
+% TODO document pre_dispatch
+% TODO document memory
 
 \subparagraph{Linear least squares with l2 regularization}
 \mbox{}
@@ -2341,11 +2347,18 @@ is a 2d-array of shape [n\_samples, n\_targets]).
   %
   Hence they must correspond in number.
   %
+  \default{1.0}
+  %
   \item \fitInterceptDescription{True}
   \item \maxIterDescription{determined by scipy.sparse.linalg.}
-  \item \normalizeDescription{True}
+  \item \normalizeDescription{False}
   \item \solverDescription
+  \default{`auto'}
 \end{itemize}
+
+%TODO document copy_X
+%TODO document tol
+%TODO document random_state
 
 \subparagraph{Classifier using Ridge regression}
 \mbox{}
@@ -2361,18 +2374,27 @@ least squares with l2 regularization.
   Alpha corresponds to $(2*C)^-1$ in other linear models such as
   LogisticRegression or LinearSVC.
   %
+  \default{1.0}
+  %
   \item \xmlNode{class\_weight}, \xmlDesc{dict, optional field}, specifies
   weights associated with classes in the form {class\_label: weight}.
   %
   If not given, all classes are assumed to have weight one.
   %
+  \default{None}
+  %
   \item \fitInterceptDescription{True}
   \item \maxIterDescription{determined by scipy.sparse.linalg.}
   \item \normalizeDescription{False}
   \item \solverDescription
+  \default{`auto'}
   \item \xmlNode{tol}, \xmlDesc{float}, defines the required precision of the
   solution.
+  \default{0.001}
 \end{itemize}
+
+%TODO document random_state
+%TODO document copy_X
 
 \subparagraph{Ridge classifier with built-in cross-validation}
 \mbox{}
@@ -2394,6 +2416,8 @@ classifier}{linear\_model|RidgeClassifierCV}
   Alpha corresponds to $(2*C)^{-1}$ in other linear models such as
   LogisticRegression or LinearSVC.
   %
+  \default{(0.1, 1.0, 10.0)}
+  %
   \item \fitInterceptDescription{True}
   \item \normalizeDescription{False}
   \item \xmlNode{scoring}, \xmlDesc{string, callable or None, optional}, is a
@@ -2405,10 +2429,14 @@ classifier}{linear\_model|RidgeClassifierCV}
   %
   If None, Generalized Cross-Validation (efficient leave-one-out) will be used.
   %
+  \default{None}
+  %
   \item \xmlNode{class\_weight}, \xmlDesc{dic, optional field}, specifies
   weights associated with classes in the form {class\_label:weight}.
   %
   If not given, all classes are supposed to have weight one.
+  %
+  \default{None}
   %
 \end{itemize}
 
@@ -2430,6 +2458,7 @@ cross-validation.
   Alpha corresponds to $(2*C)^{-1}$ in other linear models such as
   LogisticRegression or LinearSVC.
   %
+  \default{(0.1, 1.0, 10.0)}
   \item \fitInterceptDescription{True}
   \item \normalizeDescription{False}
   \item \xmlNode{scoring}, \xmlDesc{string, callable or None, optional}, is a
@@ -2440,6 +2469,8 @@ cross-validation.
   %
   \item \xmlNode{cv}, \xmlDesc{cross-validation generator, optional field}, if
   None, Generalized Cross-Validation (efficient leave-one-out) will be used.
+  %
+  \default{None}
   %
   \item \xmlNode{gcv\_mode}, \xmlDesc{\{None, `auto,' `svd,' `eigen'\}, optional
   field}, is a flag indicating which strategy to use when performing Generalized
@@ -2456,7 +2487,7 @@ cross-validation.
 	The `auto' mode is the default and is intended to pick the cheaper
   option of the two depending upon the shape and format of the training data.
   %
-  \default{`auto'}
+  \default{None}
   \item \xmlNode{store\_cv\_values}, \xmlDesc{boolean}, is a flag indicating if
   the cross-validation values corresponding to each alpha should be stored in
   the cv\_values\_attribute (see below).
@@ -2538,15 +2569,15 @@ training}{linear\_model|SGDClassifier}
   %
   \item \fitInterceptDescription{True}
   \item \nIterDescriptionB{5}
-  \item \shuffleDescription{False}
+  \item \shuffleDescription{True}
   \item \randomStateSVMDescription{None}
-  \item \verDescriptionB{}
+  \item \verDescriptionB{0}
   \item \xmlNode{epsilon}, \xmlDesc{int, optional field}, is the number of CPUs
   to use to do the OVA (One Versus All, for multi-class problems) computation.
   %
   -1 means `all CPUs.'
   %
-  \default{1}
+  \default{0.1}
   %
   \item \xmlNode{learning\_rate}, \xmlDesc{string, optional field}, specifies
   the learning rate:
@@ -2555,7 +2586,7 @@ training}{linear\_model|SGDClassifier}
     \item `optimal:' eta = 1.0 / (t + t0)
     \item `invscaling:' eta = eta0 / pow(t, power\_t)
   \end{itemize}
-  \default{invscaling}
+  \default{`optimal'}
   %
   \item \xmlNode{eta0}, \xmlDesc{double}, specifies the initial learning rate
   for the `constant' or `invscaling' schedules.
@@ -2580,9 +2611,13 @@ training}{linear\_model|SGDClassifier}
   The ``auto'' mode uses the values of y to automatically adjust weights
   inversely proportional to class frequencies.
   %
-  \item \warmStartDescription{}
+  \default{None}
+  %
+  \item \warmStartDescription{False}
   %
 \end{itemize}
+
+%TODO document average
 
 \subparagraph{Linear model fitted by minimizing a regularized empirical loss
 with SGD}
@@ -2603,7 +2638,7 @@ online feature selection.
 This implementation works with data represented as dense numpy arrays of
 floating point values for the features.
 %
-\skltype{Linear model fitted by minimizing a regularized empirical loss with SGD}{linear\_model|FW\_NAME}
+\skltype{Linear model fitted by minimizing a regularized empirical loss with SGD}{linear\_model|SGDRegressor}
 \begin{itemize}
   \item \xmlNode{loss}, \xmlDesc{str, `squared\_loss,' `huber,'
   `epsilon\_insensitive,' or `squared\_epsilon\_insensitive'}, specifies the
@@ -2645,9 +2680,9 @@ floating point values for the features.
   %
   \item \fitInterceptDescription{True}
   \item \nIterDescriptionB{5}
-  \item \shuffleDescription{False}
+  \item \shuffleDescription{True}
   \item \randomStateDescription{None}
-  \item \verDescriptionB{}
+  \item \verDescriptionB{0}
   %
   \item \xmlNode{epsilon}, \xmlDesc{float}, sets the epsilon in the
   epsilon-insensitive loss functions; only if loss is `huber,'
@@ -2658,6 +2693,8 @@ floating point values for the features.
   %
   For epsilon-insensitive, any differences between the current prediction and
   the correct label are ignored if they are less than this threshold.
+  %
+  \default{0.1}
   %
   \item \xmlNode{learning\_rate}, \xmlDesc{string, optional field},
   Learning rate:
@@ -2676,9 +2713,11 @@ floating point values for the features.
   %
   \default{0.25}
   %
-  \item \warmStartDescription{}
+  \item \warmStartDescription{False}
   %
 \end{itemize}
+
+%TODO document average
 
 \subparagraph{Compute Least Angle Regression or Lasso path using LARS algorithm}
 \mbox{}
@@ -2706,6 +2745,8 @@ regressor}{linear\_model|lars\_path}
   Precomputed Gram matrix (X' * X), if `auto', the Gram matrix is precomputed
   from the given X, if there are more samples than features.
   %
+  \default{None}
+  %
   \item \xmlNode{alpha\_min}, \xmlDesc{float, optional field}, sets the minimum
   correlation along the path.
   %
@@ -2727,8 +2768,15 @@ regressor}{linear\_model|lars\_path}
   %
   \default{``np.finfo(np.float).eps''}
   %
-  \item \verDescriptionB{}
+  \item \verDescriptionB{0}
 \end{itemize}
+
+%TODO document Xy
+%TODO document copy_X
+%TODO document copy_Gram
+%TODO document return_path
+%TODO document return_n_iter
+%TODO document positive
 
 \subparagraph{Compute Lasso path with coordinate descent}
 \mbox{}
@@ -2761,10 +2809,16 @@ i.e. the sum of norm of each row.
   eps=1e-3 means that alpha\_min / alpha\_max = 1e-3.
   \item \xmlNode{n\_alphas}, \xmlDesc{int, optional field}, is the number of
   alphas along the regularization path.
+  %
+  \default{100}
+  %
   \item \xmlNode{alphas}, \xmlDesc{ndarray, optional field}, lists the alphas
   where the models will be computed.
   %
   If None, alphas are set automatically.
+  %
+  \default{None}
+  %
   \item \xmlNode{precompute}, \xmlDesc{True | False | `auto' | array-like},
   decides whether to use a precomputed Gram matrix to speed up calculations or
   not.
@@ -2773,11 +2827,15 @@ i.e. the sum of norm of each row.
   %
   The Gram matrix can also be passed as argument.
   %
+  \default{`auto'}
+  %
   \item \xmlNode{Xy}, \xmlDesc{array-like, optional field},
   %
   Xy = np.dot(X.T, y) that can be precomputed.
   %
   It is useful only when the Gram matrix is precomputed.
+  %
+  \default{None}
   %
   \item \xmlNode{copy\_X}, \xmlDesc{boolean, optional field}, if True, X will be
   copied; else, it may be overwritten.
@@ -2787,8 +2845,12 @@ i.e. the sum of norm of each row.
   \item \xmlNode{coef\_init}, \xmlDesc{array, shape (n\_features, ) | None}, is
   the initial set of values of the coefficients.
   %
-  \item \verDescriptionB{}
+  \default{None}
+  \item \verDescriptionB{False}
 \end{itemize}
+
+%TODO document return_n_iter
+%TODO document positive
 
 \subparagraph{Stability path based on randomized Lasso estimates}
 \mbox{}
@@ -2807,9 +2869,13 @@ i.e. the sum of norm of each row.
   %
   Should be between 0 and 1.
   %
+  \default{0.5}
+  %
   \item \xmlNode{random\_state}, \xmlDesc{integer or
   numpy.random.RandomState, optional}, sets the generator used to randomize the
   design.
+  %
+  \default{None}
   %
   \item \xmlNode{n\_resampling}, \xmlDesc{int, optional}, sets the number of
   randomized models.
@@ -2835,8 +2901,13 @@ i.e. the sum of norm of each row.
   %
   \item \xmlNode{eps}, \xmlDesc{float, optional field}, is the smallest value of
   alpha / alpha\_max considered.
-  \item \verDescriptionB{}
+  %
+  \default{8.8817841970012523e-16}
+  %
+  \item \verDescriptionB{False}
 \end{itemize}
+
+%TODO document n_jobs
 
 \subparagraph{Gram Orthogonal Matching Pursuit (OMP)}
 \mbox{}
@@ -2861,10 +2932,19 @@ using only the Gram matrix, X.T * X, and the product, X.T * y.
   %
   If not None, overrides n\_nonzero\_coefs.
   %
+  \default{None}
+  %
   \item \xmlNode{norms\_squared}, \xmlDesc{array-like, shape(n\_targets)},
   %f\maljdan{needs description}
   %
+  \default{None}
+  %
 \end{itemize}
+
+%TODO document copy_Gram
+%TODO document copy_Xy
+%TODO document return_path
+%TODO document return_n_iter
 
 %%%%% ROM Model - SciKitLearn: Support Vector Machines %%%%%%%
 \paragraph{Support Vector Machines}
