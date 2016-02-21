@@ -946,10 +946,10 @@ class InterfacedPostProcessor(BasePostProcessor):
         for key in exportDict['metadata'][0]:
           output.updateMetadata(key,exportDict['metadata'][0][key])
       else:
-        for key in exportDict['inputSpaceParams']:
+        for key in exportDict['inputSpaceParams'].keys():
           if key in output.getParaKeys('inputs'):
             output.updateInputValue(key,exportDict['inputSpaceParams'][key])
-        for key in exportDict['outputSpaceParams']:
+        for key in exportDict['outputSpaceParams'].keys():
           if key in output.getParaKeys('outputs'):
             output.updateOutputValue(key,exportDict['outputSpaceParams'][key])
         for key in exportDict['metadata'][0]:

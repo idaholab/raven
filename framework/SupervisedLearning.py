@@ -1724,8 +1724,10 @@ class ARMA(superVisedLearning):
     superVisedLearning.__init__(self,messageHandler,**kwargs)
     self.printTag = 'ARMA'
     self.armaPara = {} 
-    self.armaPara['P'] = kwargs.get('P', 3)
-    self.armaPara['Q'] = kwargs.get('Q', 3)
+    self.armaPara['Pmax'] = kwargs.get('Pmax', 3)
+    self.armaPara['Pmin'] = kwargs.get('Pmin', 0)    
+    self.armaPara['Qmax'] = kwargs.get('Qmax', 3)
+    self.armaPara['Qmin'] = kwargs.get('Qmin', 0)    
     self.armaPara['dimension'] = len(self.features)
     
     if 'Fourier' not in self.initOptionDict.keys():
@@ -1805,7 +1807,7 @@ class ARMA(superVisedLearning):
     
   # For debug only; 
     self.raiseADebug('****************************************************************')
-    
+    self.raiseADebug(self.dataObject)
     self.armaPara['rDenorm'] = self.__denormalizeRes__(self.armaPara['rSeriesNorm'])
     self.dataObject.updateOutputValue('rDenorm', self.armaPara['rDenorm'][:,0])
     self.dataObject.updateOutputValue('rSeriesNorm', self.armaPara['rSeriesNorm'][:,0])
@@ -1857,36 +1859,38 @@ class ARMA(superVisedLearning):
     self.armaResult = {}
     
     # debug
-    self.armaResult['P'] = 1
-    self.armaResult['Q'] = 2
-    # 2004
-    self.armaResult['param'] = np.array([ 0.96716156, 0.31676405, 0.05270559, 0.035009831])    
-#     # 2005
-#     self.armaResult['param'] = np.array([ 0.969449, 0.35504431, 0.05031696, 0.03093883])  
-#     # 2006
-#     self.armaResult['param'] = np.array([ 0.96929539, 0.35903176, 0.04737716, 0.03107788])  
-    
-    p = self.armaResult['P'] 
-    q = self.armaResult['Q']
-    N = self.armaPara['dimension'] 
-    Phi, Theta, Cov = self.__armaParamAssemb__(self.armaResult['param'],p,q,N)
-    sig = np.zeros(shape=(1,N))
-    for n in range(N):
-      sig[0,n] = np.sqrt(Cov[n,n])      
-    self.armaResult['Phi'] = Phi
-    self.armaResult['Theta'] = Theta
-    self.armaResult['sig'] = sig
-    return 1
+#     self.armaResult['P'] = 1
+#     self.armaResult['Q'] = 2
+#     # 2004
+#     self.armaResult['param'] = np.array([ 0.96716156, 0.31676405, 0.05270559, 0.035009831])    
+# #     # 2005
+# #     self.armaResult['param'] = np.array([ 0.969449, 0.35504431, 0.05031696, 0.03093883])  
+# #     # 2006
+# #     self.armaResult['param'] = np.array([ 0.96929539, 0.35903176, 0.04737716, 0.03107788])  
+#     
+#     p = self.armaResult['P'] 
+#     q = self.armaResult['Q']
+#     N = self.armaPara['dimension'] 
+#     Phi, Theta, Cov = self.__armaParamAssemb__(self.armaResult['param'],p,q,N)
+#     sig = np.zeros(shape=(1,N))
+#     for n in range(N):
+#       sig[0,n] = np.sqrt(Cov[n,n])      
+#     self.armaResult['Phi'] = Phi
+#     self.armaResult['Theta'] = Theta
+#     self.armaResult['sig'] = sig
+#     return 1
     # end of debug
 #     
 #     self.__computeARMALikelihood__([0.1,0.2,0.3,0.4,0.5,1], *[2,3])
     
-    P = self.armaPara['P']
-    Q = self.armaPara['Q']
+    Pmax = self.armaPara['Pmax']
+    Pmin = self.armaPara['Pmin']
+    Qmax = self.armaPara['Qmax']
+    Qmin = self.armaPara['Qmin']
     
     criterionBest = np.inf
-    for p in range(0,P+1):
-      for q in range(0,Q+1):  
+    for p in range(Pmin,Pmax+1):
+      for q in range(Qmin,Qmax+1):  
         if p is 0 and q is 0:
           continue      
         init = [0.0]*(p+q)*self.armaPara['dimension']**2
