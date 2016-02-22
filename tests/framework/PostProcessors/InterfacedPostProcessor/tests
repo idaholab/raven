@@ -11,4 +11,34 @@
     csv    = 'interfacedPostProcessorParallel/PrintPPHistorySet_dump_0.csv'
     output = 'interfacedPostProcessorParallel/PrintPPHistorySet_dump.xml'
   [../]
+  [./historySampling]
+    type   = 'RavenFramework'
+    input  = 'test_historySetSamplingIPP.xml'
+    csv    = 'historySampling/PrintPPHistorySet_dump1_0.csv historySampling/PrintPPHistorySet_dump2_0.csv historySampling/PrintPPHistorySet_dump3_0.csv historySampling/PrintPPHistorySet_dump4_0.csv historySampling/PrintPPHistorySet_dump5_0.csv'
+    output = 'historySampling/PrintPPHistorySet_dump1.xml historySampling/PrintPPHistorySet_dump2.xml historySampling/PrintPPHistorySet_dump3.xml historySampling/PrintPPHistorySet_dump4.xml historySampling/PrintPPHistorySet_dump5.xml'
+  [../]
+  [./HistorySetSnapShot]
+    type   = 'RavenFramework'
+    input  = 'test_historySetSnapshot.xml'
+    csv    = 'HistorySetSnapShot/PrintPPpointSet_dump.csv HistorySetSnapShot/PrintPPpointSet_dump1.csv HistorySetSnapShot/PrintPPpointSet_dump2.csv HistorySetSnapShot/PrintPPpointSet_dump3.csv HistorySetSnapShot/PrintPPpointSet_dump4.csv'
+    output = 'HistorySetSnapShot/PrintPPpointSet_dump.xml'
+  [../]
+  [./historySetSync]
+    type   = 'RavenFramework'
+    input  = 'test_historySetSync.xml'
+    csv    = 'HistorySetSync/PrintPPHistorySet_dump1_0.csv HistorySetSync/PrintPPHistorySet_dump1_1.csv HistorySetSync/PrintPPHistorySet_dump2_0.csv HistorySetSync/PrintPPHistorySet_dump2_1.csv'
+    output = 'HistorySetSync/PrintPPHistorySet_dump1.xml HistorySetSync/PrintPPHistorySet_dump2.xml'
+  [../]
+  [./HS2PS]
+    type   = 'RavenFramework'
+    input  = 'test_HS2PS.xml'
+    csv    = 'HS2PS/PrintPPPointSet_dump.csv'
+    output = 'HS2PS/PrintPPPointSet_dump.xml'
+  [../]
+  [./interfacedPostProcessor_PointSet]
+    type   = 'RavenFramework'
+    input  = 'test_interfacedPP_pointset.xml'
+    csv    = 'interfacedPostProcessor_PointSet/PrintPPPointSetSet_dump.csv'
+    output = 'interfacedPostProcessor_PointSet/PrintPPPointSetSet_dump.xml'
+  [../]
 []

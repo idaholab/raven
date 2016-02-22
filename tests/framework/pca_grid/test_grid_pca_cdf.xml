@@ -12,26 +12,17 @@
 
   <Models>
     <ExternalModel ModuleToLoad="lorentzAttractor_noK" name="PythonModule" subType="">
-      <variable>sigma</variable>
-      <variable>rho</variable>
-      <variable>beta</variable>
-      <variable>x</variable>
-      <variable>y</variable>
-      <variable>z</variable>
-      <variable>time</variable>
-      <variable>x0</variable>
-      <variable>y0</variable>
-      <variable>z0</variable>
+      <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0</variables>
     </ExternalModel>
   </Models>
 
   <Distributions>
-    <MultivariateNormal name='MultivariateNormalPCA' method='pca'>
-        <transformation>
-            <rank>3</rank>
-        </transformation>
-        <mu>0.0 1.0 2.0</mu>
-        <covariance type="abs">
+    <MultivariateNormal method="pca" name="MultivariateNormalPCA">
+      <transformation>
+        <rank>3</rank>
+      </transformation>
+      <mu>0.0 1.0 2.0</mu>
+      <covariance type="abs">
             1.0       0.6      -0.4
             0.6       1.0      0.2
             -0.4      0.2      0.8
@@ -43,7 +34,7 @@
     <Grid name="myGrid">
       <variable name="x1">
         <distribution dim="1">MultivariateNormalPCA</distribution>
-        <grid construction="custom"  type="CDF">
+        <grid construction="custom" type="CDF">
             3.167124183311986334e-05
             1.028488312711138379e-02
             2.638310233953918282e-01
@@ -53,7 +44,7 @@
       </variable>
       <variable name="y1">
         <distribution dim="2">MultivariateNormalPCA</distribution>
-        <grid construction="custom"  type="CDF">
+        <grid construction="custom" type="CDF">
             3.167124183311986334e-05
             1.028488312711138379e-02
             2.638310233953918282e-01
@@ -63,7 +54,7 @@
       </variable>
       <variable name="z1">
         <distribution dim="3">MultivariateNormalPCA</distribution>
-        <grid construction="custom"  type="CDF">
+        <grid construction="custom" type="CDF">
             3.167124183311986334e-05
             1.028488312711138379e-02
             2.638310233953918282e-01

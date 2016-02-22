@@ -92,6 +92,48 @@ get_blas_and_lpack ()
 
 update_python_path
 
+if which pcre-config;
+then
+    echo Perl Compatible Regular Expressions already installed
+else
+    cd $BUILD_DIR
+    download_files a10e0040475644bfc97f7d0c0556988acfc52c6f http://downloads.sourceforge.net/project/pcre/pcre/8.35/pcre-8.35.tar.bz2
+    echo Extracting pcre
+    tar -xjf $DOWNLOAD_DIR/pcre-8.35.tar.bz2
+    cd pcre-8.35/
+    ./configure --prefix=$INSTALL_DIR
+    make -j $JOBS
+    make install
+fi
+
+if which swig;
+then
+    echo swig already installed
+else
+    cd $BUILD_DIR
+    download_files 4203c68f79012a2951f542018ff4358d838b5035 http://downloads.sourceforge.net/project/swig/swig/swig-2.0.12/swig-2.0.12.tar.gz
+    echo Extracting swig
+    tar -xzf $DOWNLOAD_DIR/swig-2.0.12.tar.gz
+    cd swig-2.0.12/
+    ./configure --prefix=$INSTALL_DIR
+    make -j $JOBS
+    make install
+fi
+
+if which glibtool || libtool --version | grep 'GNU libtool';
+then
+    echo glibtool already installed
+else
+    cd $BUILD_DIR
+    download_files 149e9d7a993b643d13149a94d07bbca1085e601c http://mirrors.kernel.org/gnu/libtool/libtool-2.4.tar.gz
+    echo Extracting libtool
+    tar -xzf $DOWNLOAD_DIR/libtool-2.4.tar.gz
+    cd libtool-2.4/
+    ./configure --prefix=$INSTALL_DIR --program-prefix=g
+    make -j $JOBS
+    make install
+fi
+
 if $PYTHON_CMD -c 'import setuptools';
 then
     echo setuptools already built

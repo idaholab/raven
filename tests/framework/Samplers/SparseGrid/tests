@@ -30,7 +30,7 @@
    type = 'RavenFramework'
    input = 'test_index_anisotropic.xml'
    csv = 'grid/Adump.csv'
-   UnorderedXML = 'grid/Adumprom.xml'
+   UnorderedXml = 'grid/Adumprom.xml'
  [../]
 
  #ROM tests

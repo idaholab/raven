@@ -909,6 +909,7 @@ class InterfacedPostProcessor(BasePostProcessor):
       self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.outputFormat not correctly initialized')
     self.postProcessor.readMoreXML(xmlNode)
 
+
   def run(self, InputIn):
     """
      This method executes the interfaced  post-processor action.
@@ -927,7 +928,7 @@ class InterfacedPostProcessor(BasePostProcessor):
     """
       Function that fills the computed data into the output dataObject
       @ In, finishedJob, A JobHandler object that is in charge of running this post-processor
-      @ In, jobHandler, jobHandler object, jobhandler instance
+      @ In, jobHandler, jobHandler object, jobHandler instance
       @ Out, None
     """
     if finishedjob.returnEvaluation() == -1:
@@ -938,23 +939,36 @@ class InterfacedPostProcessor(BasePostProcessor):
     listInputParms   = output.getParaKeys('inputs')
     listOutputParams = output.getParaKeys('outputs')
 
-    for hist in exportDict['inputSpaceParams']:
-      if type(exportDict['inputSpaceParams'].values()[0]).__name__ == "dict":
-        for key in listInputParms:
-          output.updateInputValue(key,exportDict['inputSpaceParams'][hist][key])
-        for key in listOutputParams:
-          output.updateOutputValue(key,exportDict['outputSpaceParams'][hist][key])
-        for key in exportDict['metadata'][0]:
-          output.updateMetadata(key,exportDict['metadata'][0][key])
-      else:
-        for key in exportDict['inputSpaceParams']:
-          if key in output.getParaKeys('inputs'):
-            output.updateInputValue(key,exportDict['inputSpaceParams'][key])
-        for key in exportDict['outputSpaceParams']:
-          if key in output.getParaKeys('outputs'):
-            output.updateOutputValue(key,exportDict['outputSpaceParams'][key])
-        for key in exportDict['metadata'][0]:
-          output.updateMetadata(key,exportDict['metadata'][0][key])
+    if output.type == 'HistorySet':
+      for hist in exportDict['inputSpaceParams']:
+        if type(exportDict['inputSpaceParams'].values()[0]).__name__ == "dict":
+          for key in listInputParms:
+            output.updateInputValue(key,exportDict['inputSpaceParams'][hist][key])
+          for key in listOutputParams:
+            output.updateOutputValue(key,exportDict['outputSpaceParams'][hist][key])
+          for key in exportDict['metadata'][0]:
+            output.updateMetadata(key,exportDict['metadata'][0][key])
+        else:
+          for key in exportDict['inputSpaceParams']:
+            if key in output.getParaKeys('inputs'):
+              output.updateInputValue(key,exportDict['inputSpaceParams'][key])
+          for key in exportDict['outputSpaceParams']:
+            if key in output.getParaKeys('outputs'):
+              output.updateOutputValue(key,exportDict['outputSpaceParams'][key])
+          for key in exportDict['metadata'][0]:
+            output.updateMetadata(key,exportDict['metadata'][0][key])
+    elif output.type == 'PointSet':
+      for key in exportDict['inputSpaceParams']:
+        if key in output.getParaKeys('inputs'):
+          for value in exportDict['inputSpaceParams'][key]:
+            output.updateInputValue(key,value)
+      for key in exportDict['outputSpaceParams']:
+        if key in output.getParaKeys('outputs'):
+          for value in exportDict['outputSpaceParams'][key]:
+            output.updateOutputValue(key,value)
+      for key in exportDict['metadata'][0]:
+        output.updateMetadata(key,exportDict['metadata'][0][key])
+
 
 
   def inputToInternal(self,input):
@@ -969,10 +983,10 @@ class InterfacedPostProcessor(BasePostProcessor):
     if type(input) == dict:
       return input
     else:
-      inputDict['data']['input']  = input[0].getInpParametersValues()
-      inputDict['data']['output'] = input[0].getOutParametersValues()
+      inputDict['data']['input']  = copy.deepcopy(input[0].getInpParametersValues())
+      inputDict['data']['output'] = copy.deepcopy(input[0].getOutParametersValues())
     for item in input:
-      metadata.append(item.getAllMetadata())
+      metadata.append(copy.deepcopy(item.getAllMetadata()))
     metadata.append(item.getAllMetadata())
     inputDict['metadata']=metadata
     return inputDict
@@ -1550,7 +1564,6 @@ class BasicStatistics(BasePostProcessor):
           if (variance[myIndex] == 0):
              self.raiseAWarning('Variance for the parameter: ' + parameterSet[myIndex] + ' is zero!...in PP: ' + self.name)
              variance[myIndex] = np.Infinity
-          inverseCov
           outputDict[what][myIndex] = covMatrix[myIndex, :] / variance[:]
       # Normalized sensitivity matrix: linear regression slopes normalized by the mean (% change)/(% change)
       if what == 'NormalizedSensitivity':
@@ -1839,7 +1852,7 @@ class LimitSurface(BasePostProcessor):
      @ In, currentInput, object, an object that needs to be converted
      @ Out, dict, the resulting dictionary containing features and response
     """
-    # each post processor knows how to handle the coming inputs. The BasicStatistics postprocessor accept all the input type (files (csv only), hdf5 and datas
+    # each post processor knows how to handle the coming inputs. The BasicStatistics postprocessor accept all the input type (files (csv only), hdf5 and dataobjects
     if type(currentInp) == list: currentInput = currentInp[-1]
     else                       : currentInput = currentInp
     if type(currentInp) == dict:
@@ -2780,7 +2793,7 @@ class DataMining(BasePostProcessor):
 
   def _localReadMoreXML(self, xmlNode):
     """
-      Method to read special input requuired for this post-processor
+      Method to read special input required for this post-processor
       @ In, xmlNode, Xml element node
       @ Out, None
     """
@@ -2819,7 +2832,7 @@ class DataMining(BasePostProcessor):
       @ In, output, object, The object where we want to place our computed results
       @ Out, None
     """
-    if finishedjob.returnEvaluation() == -1: self.raiseAnError(RuntimeError, 'No available Output to collect (Run probabably is not finished yet)')
+    if finishedjob.returnEvaluation() == -1: self.raiseAnError(RuntimeError, 'No available Output to collect (Run probably is not finished yet)')
     self.raiseADebug(str(finishedjob.returnEvaluation()))
     dataMineDict = finishedjob.returnEvaluation()[1]
     for key in dataMineDict['output']:
