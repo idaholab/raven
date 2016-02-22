@@ -58,18 +58,12 @@ class BaseType(MessageHandler.MessageUser):
       """
       if node.text is not None:
         #two cases, comma-separated or not
-        if ',' in node.text: #comma-separated
-          textEntries = list(t.strip() for t in node.text.split(','))
-          for t,text in enumerate(textEntries):
-            if text in variableGroups.keys():
-              textEntries[t] = variableGroups[text].getVarsString()
-              self.raiseADebug('Replaced text in <%s> with variable group "%s"' %(node.tag,text))
-          node.text = ','.join(textEntries)
-        else: #singular entry
-          text = node.text.strip()
+        textEntries = list(t.strip() for t in node.text.split(','))
+        for t,text in enumerate(textEntries):
           if text in variableGroups.keys():
-            node.text = node.text.replace(text,variableGroups[text].getVarsString())
-            self.raiseADebug('Replaced text of <%s> with variable group "%s"' %(node.tag,text))
+            textEntries[t] = variableGroups[text].getVarsString()
+            self.raiseADebug('Replaced text in <%s> with variable group "%s"' %(node.tag,text))
+        node.text = ','.join(textEntries)
       for child in node:
         replaceVariableGroups(child)
     replaceVariableGroups(xmlNode)
