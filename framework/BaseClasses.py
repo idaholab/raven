@@ -56,8 +56,8 @@ class BaseType(MessageHandler.MessageUser):
         @ In, node, ET.Element, the node to search for replacement
         @ Out, None
       """
-      if node.text is not None:
-        #two cases, comma-separated or not
+      #return
+      if node.text is not None and node.text.strip() != '':
         textEntries = list(t.strip() for t in node.text.split(','))
         for t,text in enumerate(textEntries):
           if text in variableGroups.keys():
