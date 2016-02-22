@@ -2960,15 +2960,18 @@ class DataMining(BasePostProcessor):
           clusterCentersIndices = self.unSupervisedEngine.outputDict['clusterCentersIndices']          
         if 'clusterCenters' in self.unSupervisedEngine.outputDict.keys():
           clusterCenters = self.unSupervisedEngine.outputDict['clusterCenters']
-          # FIXME. Below for debug only
-          dataObject.updateOutputValue('Time', self.Time) 
-          temp = {}
-          for cnt, feat in enumerate(self.unSupervisedEngine.features): 
-            temp[feat] = np.zeros(shape=(max(noClusters.values()),noTimeStep))
-            for t in range(noTimeStep):
-              for c in range(noClusters[t]):                            
-                temp[feat][c,t] = copy.deepcopy(self.unSupervisedEngine.outputDict['clusterCenters'][t][c,cnt])
-                dataObject.updateOutputValue(self.name+'Centroid-'+feat+'-'+str(c), temp[feat][c,:])  
+          # FIXME. Below for temporal solution to save centroid
+          if not dataObject == None:
+            self.raiseADebug('*** The number of cluster is ', np.max(labels)+1)
+            dataObject.updateOutputValue('Time', self.Time) 
+            temp = {}
+            for cnt, feat in enumerate(self.unSupervisedEngine.features): 
+              temp[feat] = np.zeros(shape=(np.max(labels)+1,noTimeStep))
+              temp[feat].fill(np.nan) # Alternative, try to fill with infty or zero. 
+              for t in range(noTimeStep):
+                for ind, c in enumerate(clusterCentersIndices[t]):                            
+                  temp[feat][c,t] = copy.deepcopy(self.unSupervisedEngine.outputDict['clusterCenters'][t][ind,cnt])
+                  dataObject.updateOutputValue(self.name+'Centroid-'+feat+'-'+str(c), temp[feat][c,:])  
 #               self.raiseADebug(temp[feat][c,0])
               
           # End of FIXME
@@ -2976,17 +2979,36 @@ class DataMining(BasePostProcessor):
         if 'inertia' in self.unSupervisedEngine.outputDict.keys():
           inertia = self.unSupervisedEngine.outputDict['inertia']
       elif self.unSupervisedEngine.SKLtype in ['mixture']:
-        mixtureLabels = self.unSupervisedEngine.evaluate(Input['Features'])
-        labels = np.zeros(shape=(noSample,noTimeStep))
-        for t in range(noTimeStep):
-          labels[:,t] = mixtureLabels[t]
+        if 'labels' in self.unSupervisedEngine.outputDict.keys(): 
+          labels = np.zeros(shape=(noSample,noTimeStep))
+          for t in range(noTimeStep):
+            labels[:,t] = self.unSupervisedEngine.outputDict['labels'][t]
           outputDict['output'][self.name+'Labels'] = labels
         if 'covars' in self.unSupervisedEngine.outputDict.keys(): 
           mixtureCovars = self.unSupervisedEngine.outputDict['covars']
         elif 'precs' in self.unSupervisedEngine.outputDict.keys(): 
           mixtureCovars = self.unSupervisedEngine.outputDict['precs']
+        if 'componentMeanIndices' in self.unSupervisedEngine.outputDict.keys():
+          componentMeanIndices = self.unSupervisedEngine.outputDict['componentMeanIndices']
         if 'means' in self.unSupervisedEngine.outputDict.keys(): 
           mixtureMeans = self.unSupervisedEngine.outputDict['means']    
+          # FIXME. Below for temporal solution to save centroid
+          if not dataObject == None:
+            self.raiseADebug('*** The number of component is ', max(max(componentMeanIndices.values()))+1)
+            dataObject.updateOutputValue('Time', self.Time) 
+            temp = {}
+            for cnt, feat in enumerate(self.unSupervisedEngine.features): 
+              temp[feat] = np.zeros(shape=(max(max(componentMeanIndices.values()))+1,noTimeStep))
+              temp[feat].fill(np.nan) # Alternative, try to fill with infty or zero. 
+              for t in range(noTimeStep):
+                for ind, c in enumerate(componentMeanIndices[t]): 
+                  self.raiseADebug(componentMeanIndices[t])                           
+                  temp[feat][c,t] = copy.deepcopy(self.unSupervisedEngine.outputDict['means'][t][ind,cnt])
+                  dataObject.updateOutputValue(self.name+'Mean-'+feat+'-'+str(c), temp[feat][c,:])  
+#               self.raiseADebug(temp[feat][c,0])
+              
+          # End of FIXME
+      
       
       elif self.unSupervisedEngine.SKLtype in ['manifold']:
         pass

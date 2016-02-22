@@ -677,37 +677,70 @@ class temporalSciKitLearn(unSupervisedLearning):
       self.SKLEngine.confidence()
       
       if self.SKLtype in ['cluster']: 
-        if hasattr(self.SKLEngine.Method, 'cluster_centers_'):
-          if 'clusterCenters' not in self.outputDict.keys(): self.outputDict['clusterCenters'] = {}
-          self.outputDict['clusterCenters'][t] = np.zeros(shape=self.SKLEngine.Method.cluster_centers_.shape)
-          for cnt, feat in enumerate(self.features):
-            self.outputDict['clusterCenters'][t][:,cnt] = self.__deNorm__(feat,t,self.SKLEngine.Method.cluster_centers_[:,cnt])        
-          if t>0: self.outputDict['clusterCenters'][t], remap = self.__reMapCluster__(t)         
-        if hasattr(self.SKLEngine.Method, 'n_clusters'):
-          if 'noClusters' not in self.outputDict.keys(): self.outputDict['noClusters'] = {}
-          self.outputDict['noClusters'][t] = self.SKLEngine.Method.n_clusters
-        else:
-          if 'noClusters' not in self.outputDict.keys(): self.outputDict['noClusters'] = {}
-          self.outputDict['noClusters'][t] = max(self.SKLEngine.Method.labels_)+1
+        # collect labels
         if hasattr(self.SKLEngine.Method, 'labels_'):
           if 'labels' not in self.outputDict.keys(): self.outputDict['labels'] = {} # np.zeros(shape=(self.noSample,self.noTimeStep))
           self.outputDict['labels'][t] = self.SKLEngine.Method.labels_
-          if t>0:
-            for n in range(len(self.outputDict['labels'][t])):
-              self.outputDict['labels'][t][n] = remap[self.SKLEngine.Method.labels_[n]]          
+        # collect cluster centers
+        if 'clusterCenters' not in self.outputDict.keys(): self.outputDict['clusterCenters'] = {}
+        if hasattr(self.SKLEngine.Method, 'cluster_centers_'):
+          self.outputDict['clusterCenters'][t] = np.zeros(shape=self.SKLEngine.Method.cluster_centers_.shape)
+          for cnt, feat in enumerate(self.features):
+            self.outputDict['clusterCenters'][t][:,cnt] = self.__deNorm__(feat,t,self.SKLEngine.Method.cluster_centers_[:,cnt])
+        else:
+          self.outputDict['clusterCenters'][t] = self.__computeCenter__(Input['Features'], self.outputDict['labels'][t])
+        # collect number of clusters
+        if 'noClusters' not in self.outputDict.keys(): self.outputDict['noClusters'] = {}
+        if hasattr(self.SKLEngine.Method, 'n_clusters'):           
+          self.outputDict['noClusters'][t] = self.SKLEngine.Method.n_clusters
+        else:
+          self.outputDict['noClusters'][t] = self.outputDict['clusterCenters'][t].shape[0]
+        # collect cluster indices
+        if 'clusterCentersIndices' not in self.outputDict.keys(): self.outputDict['clusterCentersIndices'] = {}
         if hasattr(self.SKLEngine, 'cluster_centers_indices_'):
-          if 'clusterCentersIndices' not in self.outputDict.keys(): self.outputDict['clusterCentersIndices'] = {}
           self.outputDict['clusterCentersIndices'][t] = self.SKLEngine.cluster_centers_indices_
+        else:
+          self.outputDict['clusterCentersIndices'][t] = range(self.outputDict['noClusters'][t])  # use list(set(self.SKLEngine.Method.labels_)) to collect outliers
+        # collect optional output
         if hasattr(self.SKLEngine, 'inertia_'):
           if 'inertia' not in self.outputDict.keys(): self.outputDict['inertia'] = {}
-          self.outputDict['inertia'][t] = self.SKLEngine.inertia_
-      elif self.SKLtype in ['mixture']:
+          self.outputDict['inertia'][t] = self.SKLEngine.inertia_    
+        
+        # re-order clusters
+        if t>0: 
+          remap = self.__reMapCluster__(t,'clusterCenters','clusterCentersIndices')
+          for n in range(len(self.outputDict['clusterCentersIndices'][t])):
+            self.outputDict['clusterCentersIndices'][t][n] = remap[self.outputDict['clusterCentersIndices'][t][n]] 
+          for n in range(len(self.outputDict['labels'][t])):
+            if self.outputDict['labels'][t][n] >=0:
+              self.outputDict['labels'][t][n] = remap[self.SKLEngine.Method.labels_[n]] 
+                   
+      elif self.SKLtype in ['mixture']: 
+        # collect component membership
+        if 'labels' not in self.outputDict.keys(): self.outputDict['labels'] = {}
+        self.outputDict['labels'][t] = self.SKLEngine.evaluate(Input['Features'])
+        # collect component means 
+        if 'means' not in self.outputDict.keys(): self.outputDict['means'] = {}
+        if hasattr(self.SKLEngine, 'means_'):
+          self.outputDict['means'][t] = np.zeros(shape=self.SKLEngine.means_.shape)
+          for cnt, feat in enumerate(self.features):
+            self.outputDict['means'][t][:,cnt] = self.__deNorm__(feat,t,self.SKLEngine.means_[:,cnt])
+        else:
+          self.outputDict['means'][t] = self.__computeCenterr__(Input['Features'], self.outputDict['labels'][t])
+        # collect number of components
+        if 'noComponents' not in self.outputDict.keys(): self.outputDict['noComponents'] = {}
+        if hasattr(self.SKLEngine.Method, 'n_components'):           
+          self.outputDict['noComponents'][t] = self.SKLEngine.Method.n_components
+        else:
+          self.outputDict['noComponents'][t] = self.outputDict['means'][t].shape[0]
+        # collect component indices
+        if 'componentMeanIndices' not in self.outputDict.keys(): self.outputDict['componentMeanIndices'] = {}
+        self.outputDict['componentMeanIndices'][t] = range(self.outputDict['noComponents'][t]) 
+        
+        # collect optional output
         if hasattr(self.SKLEngine, 'weights_'):
           if 'weights' not in self.outputDict.keys(): self.outputDict['weights'] = {}
-          self.outputDict['weights'][t] = self.SKLEngine.weights_
-        if hasattr(self.SKLEngine, 'means_'):
-          if 'means' not in self.outputDict.keys(): self.outputDict['means'] = {}
-          self.outputDict['means'][t] = self.SKLEngine.means_
+          self.outputDict['weights'][t] = self.SKLEngine.weights_      
         if hasattr(self.SKLEngine, 'covars_'):
           if 'covars' not in self.outputDict.keys(): self.outputDict['covars'] = {}
           self.outputDict['covars'][t] = self.SKLEngine.covars_
@@ -717,6 +750,17 @@ class temporalSciKitLearn(unSupervisedLearning):
         if hasattr(self.SKLEngine, 'converged_'):
           if 'converged' not in self.outputDict.keys(): self.outputDict['converged'] = {}
           self.outputDict['converged'][t] = self.SKLEngine.converged_
+      
+        # re-order components
+        if t>0: 
+          remap = self.__reMapCluster__(t,'means','componentMeanIndices')
+          for n in range(len(self.outputDict['componentMeanIndices'][t])):
+            self.outputDict['componentMeanIndices'][t][n] = remap[self.outputDict['componentMeanIndices'][t][n]] 
+          for n in range(len(self.outputDict['labels'][t])):
+            if self.outputDict['labels'][t][n] >=0:
+              self.outputDict['labels'][t][n] = remap[self.outputDict['labels'][t][n]] 
+      
+          
       elif self.SKLtype in ['manifold']:
 #         if 'noComponents' not in self.outputDict.keys(): self.outputDict['noComponents'] = {}
 #         self.outputDict['noComponents'][t] = self.noComponents_
@@ -741,9 +785,24 @@ class temporalSciKitLearn(unSupervisedLearning):
           self.outputDict['explainedVarianceRatio'][t] = self.explained_variance_ratio_
       else: print ('Not Implemented yet!...', self.SKLtype)
 
-  def __computeDist__(self,t,n1,n2,opt): 
+  def __computeCenter__(self, data, labels):
+    point = {}
+    for cnt, l in enumerate(labels):
+      if l >= 0:
+        if l not in point.keys():   point[l] = []
+        point[l].append(cnt)
+    noCluster = len(point.keys())
+    if noCluster == 0: self.raiseAnError(ValueError, 'number of cluster is 0!!!')
+    clusterCenter = np.zeros(shape=(noCluster,len(self.features)))
+    for cnt, feat in enumerate(self.features):
+      for ind, l in enumerate(point.keys()):
+        clusterCenter[ind,cnt] = np.average(data[feat][point[l]])
+    self.raiseADebug(clusterCenter)    
+    return clusterCenter
+  
+  def __computeDist__(self,t,n1,n2,opt,keyC): 
     if opt in ['Distance']:
-      c1, c2 = self.outputDict['clusterCenters'][t-1], self.outputDict['clusterCenters'][t]
+      c1, c2 = self.outputDict[keyC][t-1], self.outputDict[keyC][t]
       x1, x2 = c1[n1,:], c2[n2,:]          
       return np.sqrt(np.dot(x1-x2,x1-x2))
     if opt in ['Overlap']:
@@ -755,7 +814,7 @@ class temporalSciKitLearn(unSupervisedLearning):
         if l2[n] == n2: point2.append(n)
       return - len(set(point1).intersection(point2))  
     if opt in ['DistVariance']:
-      c1, c2 = self.outputDict['clusterCenters'][t-1], self.outputDict['clusterCenters'][t]
+      c1, c2 = self.outputDict[keyC][t-1], self.outputDict[keyC][t]
       x1, x2 = c1[n1,:], c2[n2,:] 
       d = np.sqrt(np.dot(x1-x2,x1-x2))
       l1, l2 = self.outputDict['labels'][t-1], self.SKLEngine.Method.labels_
@@ -768,8 +827,7 @@ class temporalSciKitLearn(unSupervisedLearning):
           for cnt, feat in enumerate(self.features):
             x[cnt] = self.inputDict[feat][n,t-1]             
           v1 += np.sqrt(np.dot(x-x1,x-x1))**2
-          N1 += 1
-          
+          N1 += 1          
       for n in range(len(l2)):
         if l2[n] == n2: 
           x = np.zeros(shape=(noFeat,))
@@ -780,56 +838,51 @@ class temporalSciKitLearn(unSupervisedLearning):
       return d + np.abs(np.sqrt(v1/(N1-1)*1.0) - np.sqrt(v2/(N2-1)*1.0))
     if opt in ['DistanceWithDecay']:
       K, decR = 5, 1
-      c2 = self.outputDict['clusterCenters'][t]
+      c2 = self.outputDict[keyC][t]
       x2 = c2[n2,:]
       d = 0
       for k in range(1,K+1):
         if t-k >= 0:
-          c1 = self.outputDict['clusterCenters'][t-k]
+          c1 = self.outputDict[keyC][t-k]
           if n1 < c1.shape[0]:
             x1 = c1[n1,:]
             d += np.sqrt(np.dot(x1-x2,x1-x2))*np.exp(-(k-1)*decR)
       return d  
       
-  def __reMapCluster__(self,t):
-    c1, c2 = self.outputDict['clusterCenters'][t-1], self.outputDict['clusterCenters'][t]
+  def __reMapCluster__(self,t,keyC,keyI):
+    c1, c2 = self.outputDict[keyC][t-1], self.outputDict[keyC][t]
+    indices1, indices2 = self.outputDict[keyI][t-1], self.outputDict[keyI][t]
     
     N1, N2 = c1.shape[0], c2.shape[0]
     dMatrix = np.zeros(shape=(N1,N2))
     for n1 in range(N1):
       for n2 in range(N2):
-        dMatrix[n1,n2] = self.__computeDist__(t,n1,n2,'DistanceWithDecay')  
-    self.raiseADebug(t, dMatrix.shape, dMatrix)      
+        dMatrix[n1,n2] = self.__computeDist__(t,n1,n2,'DistanceWithDecay',keyC)           
     _, mapping = self.__localReMap__(dMatrix, (range(N1), range(N2)))
-    self.raiseADebug(mapping)
-    if N2 < N1:
-      pass
-#       self.raiseAnError(IOError,'ttt')
     
-#     return c2, range(N2)
-    remap = [np.inf]*N2
+    # Debug
+#     self.raiseADebug(t, dMatrix.shape, dMatrix) 
+    self.raiseADebug(t)
+#     self.raiseADebug(mapping)
+#     self.raiseADebug(indices1,indices2)
+    # End of debug
+    
+    remap = {}
     f1, f2 = [False]*N1, [False]*N2
-    c = copy.deepcopy(c2)
-    for mp in mapping: 
+    for mp in mapping:
       i1, i2 = mp[0], mp[1]
       if f1[i1] or f2[i2]: self.raiseAnError(ValueError, 'Mapping is overlapped. ')
-      remap[i2] = i1
+      remap[indices2[i2]] = indices1[i1]
       f1[i1], f2[i2] = True, True
-      c[i1,:] = copy.deepcopy(c2[i2,:])
       
     if N2 > N1:
-      s1, s2 = 0, 0
+      tmp = 1
       for n2 in range(N2):
-        if not np.isfinite(remap[n2]):
-          remap[n2] = N1 + s1
-          s1 += 1
-          for i2 in range(s2,N2):
-            if f2[i2] is False:
-              c[n2,:] = copy.deepcopy(c2[i2,:])
-              s2 = i2 +1
-              break
+        if indices2[n2] not in remap.keys():
+          remap[indices2[n2]] = max(indices1)+tmp
+#          remap[indices2[n2]] = self.maxNoClusters + 1 # every discondinuity would introduce a new cluster index. 
           
-    return c, remap
+    return remap
   
   def __localReMap__(self, dMatrix,loc):
     N1, N2 = len(loc[0]), len(loc[1])
