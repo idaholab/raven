@@ -127,6 +127,7 @@ class VariableGroup(BaseClasses.BaseType):
     """
       Returns delim-separated list of variables in group
       @ In, delim, string, delimiter
+      @ Out, string, list of variables in comma-separated string
     """
     return ','.join(self.getVars())
 #
