@@ -12,10 +12,7 @@
 
   <Models>
     <ExternalModel ModuleToLoad="simpleMirrowModel" name="mirrowModel" subType="">
-      <variable>x</variable>
-      <variable>y</variable>
-      <variable>x1</variable>
-      <variable>y1</variable>
+      <variables>x,y,x1,y1</variables>
     </ExternalModel>
     <PostProcessor name="analyticalTest" subType="BasicStatistics" verbosity="debug">
       <what>covariance,pearson,sensitivity,VarianceDependentSensitivity,NormalizedSensitivity,variance</what>
