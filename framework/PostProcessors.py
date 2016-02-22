@@ -1553,18 +1553,23 @@ class BasicStatistics(BasePostProcessor):
       if what == 'VarianceDependentSensitivity':
         feat = np.zeros((len(input['targets'].keys()), utils.first(input['targets'].values()).size))
         pbWeightsList = [None]*len(input['targets'].keys())
-        for myIndex, targetP in enumerate(parameterSet): feat[myIndex, :], pbWeightsList[myIndex] = input['targets'][targetP][:], pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
+        for myIndex, targetP in enumerate(parameterSet):
+          feat[myIndex, :] = input['targets'][targetP][:]
+          pbWeightsList[myIndex] = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
         pbWeightsList.append(pbWeights['realization'])
         covMatrix = self.covariance(feat, weights = pbWeightsList)
-        variance = np.zeros(len(list(parameterSet)))
         for myIndex, targetP in enumerate(parameterSet):
-          relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
-          variance[myIndex] = self._computeVariance(input['targets'][targetP],expValues[myIndex],pbWeight=relWeight)
-        for myIndex in range(len(parameterSet)):
-          if (variance[myIndex] == 0):
-             self.raiseAWarning('Variance for the parameter: ' + parameterSet[myIndex] + ' is zero!...in PP: ' + self.name)
-             variance[myIndex] = np.Infinity
-          outputDict[what][myIndex] = covMatrix[myIndex, :] / variance[:]
+          targetCoefs = list(parameterSet)
+          targetCoefs.pop(myIndex)
+          inputParameters = np.delete(feat,myIndex,axis=0)
+          inputCovMatrix = np.delete(covMatrix,myIndex,axis=0)
+          inputCovMatrix = np.delete(inputCovMatrix,myIndex,axis=1)
+          outputInputCov = np.delete(covMatrix[myIndex,:],myIndex)
+          sensitivityCoeffDict = dict(zip(targetCoefs,np.dot(outputInputCov, np.linalg.pinv(inputCovMatrix))))
+          sensitivityCoeffDict[targetP] = 1.0
+          outputDict[what][myIndex] = np.zeros(len(parameterSet))
+          for cnt,param in enumerate(parameterSet):
+            outputDict[what][myIndex][cnt] = sensitivityCoeffDict[param]
       # Normalized sensitivity matrix: linear regression slopes normalized by the mean (% change)/(% change)
       if what == 'NormalizedSensitivity':
         feat = np.zeros((len(input['targets'].keys()), utils.first(input['targets'].values()).size))
@@ -1574,15 +1579,18 @@ class BasicStatistics(BasePostProcessor):
           pbWeightsList[myIndex] = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
         pbWeightsList.append(pbWeights['realization'])
         covMatrix = self.covariance(feat, weights = pbWeightsList)
-        variance = np.zeros(len(list(parameterSet)))
         for myIndex, targetP in enumerate(parameterSet):
-          relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
-          variance[myIndex] = self._computeVariance(input['targets'][targetP],expValues[myIndex],pbWeight=relWeight)
-          if (variance[myIndex] is 0):
-            self.raiseAWarning('Variance for the parameter: ' + parameterSet[myIndex] + ' is zero!...in PP: ' + self.name)
-            variance[myIndex] = np.Infinity
-        for myIndex in range(len(parameterSet)):
-          outputDict[what][myIndex] = ((covMatrix[myIndex, :] / variance) * expValues) / expValues[myIndex]
+          targetCoefs = list(parameterSet)
+          targetCoefs.pop(myIndex)
+          inputParameters = np.delete(feat,myIndex,axis=0)
+          inputCovMatrix = np.delete(covMatrix,myIndex,axis=0)
+          inputCovMatrix = np.delete(inputCovMatrix,myIndex,axis=1)
+          outputInputCov = np.delete(covMatrix[myIndex,:],myIndex)
+          sensitivityCoeffDict = dict(zip(targetCoefs,np.dot(outputInputCov, np.linalg.pinv(inputCovMatrix))))
+          sensitivityCoeffDict[targetP] = 1.0
+          outputDict[what][myIndex] = np.zeros(len(parameterSet))
+          for cnt,param in enumerate(parameterSet):
+            outputDict[what][myIndex][cnt] = sensitivityCoeffDict[param]*expValues[cnt]/expValues[myIndex]
     # print on screen
     self.raiseADebug('BasicStatistics ' + str(self.name) + 'pp outputs')
     methodToTest = []
@@ -1655,7 +1663,7 @@ class BasicStatistics(BasePostProcessor):
         Biased weighted covariance matrix,     weights is not None, bias is 1
         can be calcuated depending on the selection of the inputs.
         @ In,  feature, array-like, [#targets,#samples]  features' samples
-        @ In,  weights, list of array-like, optional, [#targets,#samples]  reliability weights. Default is None
+        @ In,  weights, list of array-like, optional, [#targets,#samples,realizationWeights]  reliability weights, and the last one in the list is the realization weights. Default is None
         @ In,  rowvar, int, optional, If rowvar is non-zero, then each row represents a variable,
                                       with samples in the columns. Otherwise, the relationship is transposed. Default=1
         @ Out, covMatrix, array-like, [#targets,#targets] the covariance matrix
