@@ -83,7 +83,7 @@ class VariableGroup(BaseClasses.BaseType):
           self.raiseAnError(IOError,'Dependent %s not found among variable groups!' %depName)
         deps[depName] = dep
       #get base set
-      basevars = base.getVars()
+      baseVars = base.getVars()
       #do modifiers to base
       modifiers = list(m.strip() for m in self._list)
       for mod in modifiers:
@@ -99,12 +99,12 @@ class VariableGroup(BaseClasses.BaseType):
           modset = set([varName])
         else:
           modset = deps[varName].getVars()
-        if   op == '+': basevars.update(modset)
-        elif op == '-': basevars.difference_update(modset)
-        elif op == '^': basevars.intersection_update(modset)
-        elif op == '%': basevars.symmetric_difference_update(modset)
+        if   op == '+': baseVars.update(modset)
+        elif op == '-': baseVars.difference_update(modset)
+        elif op == '^': baseVars.intersection_update(modset)
+        elif op == '%': baseVars.symmetric_difference_update(modset)
         #set class variable
-      self.variables = basevars
+      self.variables = baseVars
     self.initialized=True
 
   def getDependencies(self):
