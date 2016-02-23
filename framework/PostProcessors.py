@@ -1550,6 +1550,11 @@ class BasicStatistics(BasePostProcessor):
           outputDict[what][myIndex] = np.zeros(len(parameterSet))
           for cnt, param in enumerate(parameterSet): outputDict[what][myIndex][cnt] = regressorsByTarget[param]
       # VarianceDependentSensitivity matrix
+      # The formular for this calculation is coming from: http://www.math.uah.edu/stat/expect/Matrices.html
+      # The best linear predictor: L(Y|X) = expectedValue(Y) + cov(Y,X) * [vc(X)]^(-1) * [X-expectedValue(X)]
+      # where Y is a vector of outputs, and X is a vector of inputs, cov(Y,X) is the covariance matrix of Y and X,
+      # vc(X) is the covariance matrix of X with itself.
+      # The variance dependent sensitivity matrix is defined as: cov(Y,X) * [vc(X)]^(-1)
       if what == 'VarianceDependentSensitivity':
         feat = np.zeros((len(input['targets'].keys()), utils.first(input['targets'].values()).size))
         pbWeightsList = [None]*len(input['targets'].keys())
@@ -1570,7 +1575,7 @@ class BasicStatistics(BasePostProcessor):
           outputDict[what][myIndex] = np.zeros(len(parameterSet))
           for cnt,param in enumerate(parameterSet):
             outputDict[what][myIndex][cnt] = sensitivityCoeffDict[param]
-      # Normalized sensitivity matrix: linear regression slopes normalized by the mean (% change)/(% change)
+      # Normalized variance dependent sensitivity matrix: variance dependent sensitivity  normalized by the mean (% change of output)/(% change of input)
       if what == 'NormalizedSensitivity':
         feat = np.zeros((len(input['targets'].keys()), utils.first(input['targets'].values()).size))
         pbWeightsList = [None]*len(input['targets'].keys())
