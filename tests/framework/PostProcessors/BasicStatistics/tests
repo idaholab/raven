@@ -7,6 +7,7 @@
     xml = 'basicStatsGridAnalytic/outputDatagrid_dump.xml'
     rel_err = 0.00001
     zero_threshold = 1e-9
+    remove_whitespace = True
   [../]
   [./basicStatsGridInValue]
     type = 'RavenFramework'
