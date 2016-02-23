@@ -63,7 +63,8 @@ class BaseType(MessageHandler.MessageUser):
           if text in variableGroups.keys():
             textEntries[t] = variableGroups[text].getVarsString()
             self.raiseADebug('Replaced text in <%s> with variable group "%s"' %(node.tag,text))
-        node.text = ','.join(textEntries)
+        #note: if we don't explicitly convert to string, scikitlearn chokes on unicode type
+        node.text = str(','.join(textEntries))
       for child in node:
         replaceVariableGroups(child)
     replaceVariableGroups(xmlNode)
