@@ -1,8 +1,8 @@
 <data name="testPrintPointSet_dump" type="Pointset"><input>y0,x0,z0</input><output>y,x,z</output><inputFilename>testPrintPointSet_dump.csv</inputFilename><metadata><SamplerType>array([u'MC', u'MC', u'MC'], 
       dtype='&lt;U2')</SamplerType><crowDist>array([ {u'x0': '{"type": "MultivariateNormalDistribution"}', u'y0,z0': '{"type": "MultivariateNormalDistribution"}'},
        {u'x0': '{"type": "MultivariateNormalDistribution"}', u'y0,z0': '{"type": "MultivariateNormalDistribution"}'},
-       {u'x0': '{"type": "MultivariateNormalDistribution"}', u'y0,z0': '{"type": "MultivariateNormalDistribution"}'}], dtype=object)</crowDist><SampledVars>array([ {u'y0': 59.680027218584904, u'x0': -0.54072814173734063, u'z0': 59.680027218584904},
-       {u'y0': 61.111180700382953, u'x0': 0.88124045143491458, u'z0': 61.111180700382953},
-       {u'y0': 60.032658126965316, u'x0': 0.76109844401597337, u'z0': 60.032658126965316}], dtype=object)</SampledVars><prefix>array(['1', '2', '3'], 
-      dtype='|S1')</prefix><SampledVarsPb>array([{u'x0': 0.2251795179722282}, {u'x0': 0.14305942834438418},
-       {u'x0': 0.1252003610933935}], dtype=object)</SampledVarsPb><PointProbability>array([ 0.22517952,  0.14305943,  0.12520036])</PointProbability></metadata></data>
+       {u'x0': '{"type": "MultivariateNormalDistribution"}', u'y0,z0': '{"type": "MultivariateNormalDistribution"}'}], dtype=object)</crowDist><SampledVars>array([ {u'y0': 61.0840272185849, u'x0': -0.54072814173734063, u'z0': 61.0840272185849},
+       {u'y0': 59.707180700382956, u'x0': 0.44924045143491531, u'z0': 59.707180700382956},
+       {u'y0': 60.680658126965312, u'x0': -0.10290155598402585, u'z0': 60.680658126965312}], dtype=object)</SampledVars><prefix>array(['1', '2', '3'], 
+      dtype='|S1')</prefix><SampledVarsPb>array([{u'x0': 0.0093925797292504}, {u'x0': 0.1328193214264021},
+       {u'x0': 0.11755251095578696}], dtype=object)</SampledVarsPb><PointProbability>array([ 0.00939258,  0.13281932,  0.11755251])</PointProbability></metadata></data>
