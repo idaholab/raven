@@ -1295,8 +1295,8 @@ class NDimensionalDistributions(Distribution):
     self.type = 'NDimensionalDistributions'
     self.dimensionality  = None
 
-    self.RNGInitDisc = 10
-    self.RNGtolerance = 0.1
+    self.RNGInitDisc = 5
+    self.RNGtolerance = 0.2
 
   def _readMoreXML(self,xmlNode):
     Distribution._readMoreXML(self, xmlNode)
