@@ -1310,8 +1310,6 @@ class NDimensionalDistributions(Distribution):
 
   #######
   def updateRNGParam(self, dictParam):
-    self.RNGtolerance = 0.1
-    self.RNGInitDisc  = 10
     for key in dictParam:
       if key == 'tolerance':
         self.RNGtolerance = dictParam['tolerance']
