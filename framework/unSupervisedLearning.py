@@ -310,7 +310,6 @@ class SciKitLearn(unSupervisedLearning):
       connectivity = 0.5 * (connectivity + connectivity.T)
       self.initOptionDict['connectivity'] = connectivity
       self.Method.set_params(**self.initOptionDict)
-
     self.outputDict['outputs'] = {}
     self.outputDict['inputs' ] = self.normValues
     if   hasattr(self.Method, 'fit_predict'):
@@ -669,10 +668,12 @@ class temporalSciKitLearn(unSupervisedLearning):
     
     Input = {}
     for t in range(self.noTimeStep):
+      self.raiseADebug(t)
       Input['Features'] ={}       
       for feat in self.features.keys():
         Input['Features'][feat] = self.inputDict[feat][:,t]         
       self.SKLEngine.features = Input['Features']
+      
       self.SKLEngine.train(Input['Features'])
       self.SKLEngine.confidence()
       
@@ -697,14 +698,15 @@ class temporalSciKitLearn(unSupervisedLearning):
           self.outputDict['noClusters'][t] = self.outputDict['clusterCenters'][t].shape[0]
         # collect cluster indices
         if 'clusterCentersIndices' not in self.outputDict.keys(): self.outputDict['clusterCentersIndices'] = {}
-        if hasattr(self.SKLEngine, 'cluster_centers_indices_'):
-          self.outputDict['clusterCentersIndices'][t] = self.SKLEngine.cluster_centers_indices_
+        if hasattr(self.SKLEngine.Method, 'cluster_centers_indices_'):
+          self.outputDict['clusterCentersIndices'][t] = self.SKLEngine.Method.cluster_centers_indices_
+          self.outputDict['clusterCentersIndices'][t] = range(self.outputDict['noClusters'][t])
         else:
           self.outputDict['clusterCentersIndices'][t] = range(self.outputDict['noClusters'][t])  # use list(set(self.SKLEngine.Method.labels_)) to collect outliers
         # collect optional output
-        if hasattr(self.SKLEngine, 'inertia_'):
+        if hasattr(self.SKLEngine.Method, 'inertia_'):
           if 'inertia' not in self.outputDict.keys(): self.outputDict['inertia'] = {}
-          self.outputDict['inertia'][t] = self.SKLEngine.inertia_    
+          self.outputDict['inertia'][t] = self.SKLEngine.Method.inertia_    
         
         # re-order clusters
         if t>0: 
@@ -721,10 +723,10 @@ class temporalSciKitLearn(unSupervisedLearning):
         self.outputDict['labels'][t] = self.SKLEngine.evaluate(Input['Features'])
         # collect component means 
         if 'means' not in self.outputDict.keys(): self.outputDict['means'] = {}
-        if hasattr(self.SKLEngine, 'means_'):
-          self.outputDict['means'][t] = np.zeros(shape=self.SKLEngine.means_.shape)
+        if hasattr(self.SKLEngine.Method, 'means_'):
+          self.outputDict['means'][t] = np.zeros(shape=self.SKLEngine.Method.means_.shape)
           for cnt, feat in enumerate(self.features):
-            self.outputDict['means'][t][:,cnt] = self.__deNorm__(feat,t,self.SKLEngine.means_[:,cnt])
+            self.outputDict['means'][t][:,cnt] = self.__deNorm__(feat,t,self.SKLEngine.Method.means_[:,cnt])
         else:
           self.outputDict['means'][t] = self.__computeCenterr__(Input['Features'], self.outputDict['labels'][t])
         # collect number of components
@@ -862,7 +864,6 @@ class temporalSciKitLearn(unSupervisedLearning):
     
     # Debug
 #     self.raiseADebug(t, dMatrix.shape, dMatrix) 
-    self.raiseADebug(t)
 #     self.raiseADebug(mapping)
 #     self.raiseADebug(indices1,indices2)
     # End of debug
@@ -881,7 +882,7 @@ class temporalSciKitLearn(unSupervisedLearning):
         if indices2[n2] not in remap.keys():
           remap[indices2[n2]] = max(indices1)+tmp
 #          remap[indices2[n2]] = self.maxNoClusters + 1 # every discondinuity would introduce a new cluster index. 
-          
+#     self.raiseADebug(remap)
     return remap
   
   def __localReMap__(self, dMatrix,loc):
