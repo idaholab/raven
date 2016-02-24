@@ -3267,16 +3267,11 @@ class SparseGridCollocation(Grid):
 
     #if restart, figure out what runs we need; else, all of them
     if self.restartData != None:
-      inps = self.restartData.getInpParametersValues()
-      #make reorder map
-      reordmap=list(list(inps.keys()).index(i) for i in self.features)
-      solns = list(v for v in inps.values())
-      ordsolns = [solns[i] for i in reordmap]
-      self.existing = zip(*ordsolns)
+      self.solns = self.restartData
+      self._updateExisting()
 
     self.limit=len(self.sparseGrid)
     self.raiseADebug('Size of Sparse Grid  :'+str(self.limit))
-    self.raiseADebug('Number from Restart :'+str(utils.iter_len(self.existing)))
     self.raiseADebug('Number of Runs Needed :'+str(self.limit-utils.iter_len(self.existing)))
     self.raiseADebug('Finished sampler generation.')
 
@@ -3394,6 +3389,25 @@ class SparseGridCollocation(Grid):
         self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
         self.inputInfo['ProbabilityWeight'] = weight
         self.inputInfo['SamplerType'] = 'Sparse Grid Collocation'
+
+  def _updateExisting(self):
+    """
+      Goes through the stores solutions PointSet and pulls out solutions, ordering them
+      by the order the features we're evaluating.
+      @ In, None
+      @ Out, None
+    """
+    #TODO: only append new points instead of resorting everyone
+    if not self.solns.isItEmpty():
+      inps = self.solns.getInpParametersValues()
+      outs = self.solns.getOutParametersValues()
+      #make reorder map
+      reordmap=list(inps.keys().index(i) for i in self.features)
+      solns = list(v for v in inps.values())
+      ordsolns = [solns[i] for i in reordmap]
+      existinginps = zip(*ordsolns)
+      outvals = zip(*list(v for v in outs.values()))
+      self.existing = dict(zip(existinginps,outvals))
 #
 #
 #
@@ -3861,25 +3875,6 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     f.writelines('===================== END STEP =====================\n')
     f.close()
 
-  def _updateExisting(self):
-    """
-      Goes through the stores solutions PointSet and pulls out solutions, ordering them
-      by the order the features we're evaluating.
-      @ In, None
-      @ Out, None
-    """
-    #TODO: only append new points instead of resorting everyone
-    if not self.solns.isItEmpty():
-      inps = self.solns.getInpParametersValues()
-      outs = self.solns.getOutParametersValues()
-      #make reorder map
-      reordmap=list(inps.keys().index(i) for i in self.features)
-      solns = list(v for v in inps.values())
-      ordsolns = [solns[i] for i in reordmap]
-      existinginps = zip(*ordsolns)
-      outvals = zip(*list(v for v in outs.values()))
-      self.existing = dict(zip(existinginps,outvals))
-
   def _updateQoI(self):
     """
       Updates Reduced Order Models (ROMs) for Quantities of Interest (QoIs), as well as impact parameters and estimated error.
@@ -3999,8 +3994,8 @@ class Sobol(SparseGridCollocation):
     SVL = utils.first(SVLs)
     self.sobolOrder = SVL.sobolOrder
     self._generateQuadsAndPolys(SVL)
-    features = SVL.features
-    needCombos = itertools.chain.from_iterable(itertools.combinations(features,r) for r in range(self.sobolOrder+1))
+    self.features = SVL.features
+    needCombos = itertools.chain.from_iterable(itertools.combinations(self.features,r) for r in range(self.sobolOrder+1))
     self.SQs={}
     self.ROMs={} #keys are [target][combo]
     for t in self.targets: self.ROMs[t]={}
@@ -4037,19 +4032,19 @@ class Sobol(SparseGridCollocation):
         initDict['Target']     = SVL.target
         self.ROMs[name][combo] = SupervisedLearning.returnInstance('GaussPolynomialRom',self,**initDict)
         self.ROMs[name][combo].initialize(initializeDict)
+        self.ROMs[name][combo].messageHandler = self.messageHandler
     #if restart, figure out what runs we need; else, all of them
     if self.restartData != None:
-      inps = self.restartData.getInpParametersValues()
-      self.existing = zip(*list(v for v in inps.values()))
+      self.solns = self.restartData
+      self._updateExisting()
     #make combined sparse grids
     self.references={}
-    for var,dist in self.distDict.items():
-      self.references[var]=dist.untruncatedMean()
-    std = self.distDict.keys()
+    for var in self.features:
+      self.references[var]=self.distDict[var].untruncatedMean()
     self.pointsToRun=[]
     #make sure reference case gets in there
-    newpt = np.zeros(len(self.distDict))
-    for v,var in enumerate(self.distDict.keys()):
+    newpt = np.zeros(len(self.features))
+    for v,var in enumerate(self.features):
       newpt[v] = self.references[var]
     self.pointsToRun.append(tuple(newpt))
     self.distinctPoints.add(tuple(newpt))
@@ -4059,8 +4054,8 @@ class Sobol(SparseGridCollocation):
       SG._remap(combo)
       for l in range(len(SG)):
         pt,wt = SG[l]
-        newpt = np.zeros(len(std))
-        for v,var in enumerate(std):
+        newpt = np.zeros(len(self.features))
+        for v,var in enumerate(self.features):
           if var in combo: newpt[v] = pt[combo.index(var)]
           else: newpt[v] = self.references[var]
         newpt=tuple(newpt)
@@ -4069,9 +4064,7 @@ class Sobol(SparseGridCollocation):
           self.pointsToRun.append(newpt)
     self.limit = len(self.pointsToRun)
     self.raiseADebug('Needed points: %i' %self.limit)
-    self.raiseADebug('From Restart : %i' %utils.iter_len(self.existing))
-    self.raiseADebug('Still Needed : %i' %(self.limit-utils.iter_len(self.existing)))
-    initdict={'ROMs':None, #self.ROMs,
+    initdict={'ROMs':None,
               'SG':self.SQs,
               'dists':self.distDict,
               'quads':self.quadDict,
@@ -4093,11 +4086,14 @@ class Sobol(SparseGridCollocation):
       try: pt = self.pointsToRun[self.counter-1]
       except IndexError: raise utils.NoMoreSamplesNeeded
       if pt in self.existing:
+        self.raiseADebug('point found in restart:',pt)
         self.counter+=1
         if self.counter==self.limit: raise utils.NoMoreSamplesNeeded
         continue
-      else: found=True
-      for v,varName in enumerate(self.distDict.keys()):
+      else:
+        self.raiseADebug('point found to run:',pt)
+        found=True
+      for v,varName in enumerate(self.features):
         self.values[varName] = pt[v]
         self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(self.values[varName])
         self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.inputInfo['SampledVarsPb'][varName]
@@ -4725,6 +4721,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
                         'polys'    : polyDict,
                         'iSet'     : iset}
       self.ROMs[target][subset].initialize(initializeDict)
+      self.ROMs[target][subset].messageHandler = self.messageHandler
       self.ROMs[target][subset].verbosity = verbosity
     #instantiate the shell ROM that contains the SVLs
     #   NOTE: the shell is only needed so we can call the train method with a data object.

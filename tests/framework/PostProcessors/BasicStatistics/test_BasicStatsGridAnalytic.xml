@@ -12,11 +12,11 @@
 
   <Models>
     <ExternalModel ModuleToLoad="simpleMirrowModel" name="mirrowModel" subType="">
-      <variables>x,y,x1</variables>
+      <variables>x,y,x1,y1</variables>
     </ExternalModel>
     <PostProcessor name="analyticalTest" subType="BasicStatistics" verbosity="debug">
-      <what>expectedValue,sigma,variance,kurtosis,percentile_10%,percentile_99%,variationCoefficient,skewness,median</what>
-      <parameters>x,y,x1</parameters>
+      <what>all</what>
+      <parameters>x1,y1</parameters>
     </PostProcessor>
   </Models>
 
@@ -74,7 +74,7 @@
     </Point>
     <PointSet name="outputDataGrid">
       <Input>x,y</Input>
-      <Output>x1</Output>
+      <Output>x1,y1</Output>
     </PointSet>
   </DataObjects>
 

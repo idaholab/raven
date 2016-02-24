@@ -470,5 +470,4 @@
   csv = 'LHStestVariables/outLHS_dump.csv'
   xml = 'LHStestVariables/outLHS_dump.xml'
  [../]
-
 []
