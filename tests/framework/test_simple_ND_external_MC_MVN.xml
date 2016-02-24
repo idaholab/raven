@@ -35,7 +35,7 @@
   <Samplers>
     <MonteCarlo name="MC_external">
       <samplerInit>
-        <limit>10</limit>
+        <limit>3</limit>
         <initialSeed>123</initialSeed>
       </samplerInit>
       <variable name="x0">
