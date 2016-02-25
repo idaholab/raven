@@ -712,12 +712,13 @@ The following $N$-Dimensional Probability Distributions are available within RAV
 \end{itemize}
 For NDInverseWeight and NDCartesianSpline distributions, the user provides the sampled values of either CDF or PDF of the distribution. The sampled values can be scattered distributed (for NDInverseWeight) or over a cartesian grid (for NDCartesianSpline).
 
-The user can initialize, for each $N$-Dimensional distribution, the parameters of the random number generator function:
+The user could specify, for each $N$-Dimensional distribution, the parameters of the random number generator function:
 \begin{itemize}
-\item initial\textunderscore grid\textunderscore disc
-\item tolerance
+\item \xmlNode{initialGridDisc}, \xmlDesc{positive integer, optional field}, user-defined initial grid discretization. This parameter specifies the number of discretizations that need to be performed, initially, for each Dimension in 
+order to find N-Dimensional coordinate that corresponds to the CDF represented by a random number (0-1);
+\item \xmlNode{tolerance}, \xmlDesc{float, optional field}, user-defined tolerance in order to find the N-D coordinates corresponding to a random number. This tolerance is expressed in terms of CDF.
 \end{itemize}
-in the $<dist\textunderscore init>$ block defined in sampler block $<sampler\textunderscore init>$ (see Section~\ref{sec:Samplers}).
+in the \xmlNode{samplerInit} block defined in sampler block \xmlNode{samplerInit} (see Section~\ref{sec:Samplers}).
 
 \subsubsection{MultivariateNormal Distribution}
 \label{MultivariateNormal}
