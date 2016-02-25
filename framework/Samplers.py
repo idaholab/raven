@@ -1335,7 +1335,6 @@ class MonteCarlo(Sampler):
         if dim == 1:
           rvsnum = self.distDict[key].rvs()
           coordinate = np.atleast_1d(rvsnum).tolist()
-          print(coordinate)
           reducedTotDim = self.variables2distributionsMapping[key]['reducedTotDim']
           if reducedTotDim > len(coordinate): self.raiseAnError(IOError,"The maximum dimension defined for variables drew from the multivariate normal distribution is exceeded by the dimension used in Distribution (MultivariateNormal) ")
           probabilityValue = self.distDict[key].pdf(coordinate)
