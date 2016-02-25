@@ -58,8 +58,7 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
     for keyF in self.features:
       tempData['all'][keyF] = np.array([])
       for keyH in inputDict['output'].keys():
-        tempData['all'][keyF] = np.concatenate((tempData['all'][keyF],inputDict['output'][keyH][keyF]))
-#     print(inputDict['output'].keys())   
+        tempData['all'][keyF] = np.concatenate((tempData['all'][keyF],inputDict['output'][keyH][keyF]))  
     for keySub in subKeys:
       tempData[keySub] = {}
       extractCondition = (self.Time>=self.subsequence[keySub][0]) * (self.Time<self.subsequence[keySub][1])
@@ -92,11 +91,8 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
           FS += self.__computeDist(tempCDF['all'][keyF],tempCDF[keySub][keyF][cnt,:])
         if FS < d:
           d = FS
-          kkk = cnt # for debug
           for keyF in self.features:
             tempTyp[keySub][keyF] = tempData[keySub][keyF][cnt,:]
-      print(kkk, d) # for debug
-      print('sss') # for debug
     
     typicalTS = {'Time':np.array([])}  
     for keySub in subKeys:
@@ -107,8 +103,7 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
         
     for t in range(1,len(typicalTS['Time'])):
       if typicalTS['Time'][t] < typicalTS['Time'][t-1]: return None  
-    
-    print('sssssucessssss')
+
     outputDic ={'data':{'input':{},'output':{}}, 'metadata':{0:{}}}
     outputDic['data']['output'][1] = typicalTS    
     keyH = inputDict['input'].keys()[0] 
@@ -120,7 +115,7 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
   
     
   def __computeCDF(self, data, binEdgesIn):
-     """
+    """
      Method to generate empirical CDF of input data, with the bins given. 
      @ In, data, array, data for which empirical CDF is computed
      @ In, binEdgesIn, array, bins over which CDF value is computed
@@ -133,7 +128,6 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
     for n in range(numBins):
       Delta[n] = binEdges[n+1]-binEdges[n]
     delta = np.average(Delta)
-#     temp = np.cumsum(counts)*delta
     return np.cumsum(counts)*delta
     
   def __computeDist(self, x1, x2):
@@ -143,7 +137,6 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
     @ In, x2, array, input 2
     @ Out, , float, difference between x1 and x2
     """  
-    print(np.average(np.absolute(x1-x2))) # for debug
     return np.average(np.absolute(x1-x2))
 
   def readMoreXML(self,xmlNode):
@@ -156,7 +149,4 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
       if child.tag == 'subsequence':
         if child.text == 'Month': self.subseqP = child.text
         else:                     self.subseqP = int(child.text)
-#     print("*********************************")
-#     print(self.subsequence)
-#     self.raiseAnError(IOError, 'PP')
 
