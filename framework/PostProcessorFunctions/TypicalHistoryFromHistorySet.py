@@ -37,7 +37,7 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
     self.features = inputDict['output'][inputDict['output'].keys()[0]].keys()
     self.features.remove('Time')
     self.noHistory = len(inputDict['output'].keys())
-    self.Time = np.asarray(inputDict['output'][inputDict['output'].keys()[0]]['Time'])
+    self.Time = np.asarray(inputDict['output'][inputDict['output'].keys()[0]][self.timeID])
     
     if self.subseqP == 'Month':
       self.subsequence = {1:[0,2678400], 2:[2678400,5097600], 3:[5097600,7776000], 4:[7776000,10368000], 5:[10368000,13046400], 6:[13046400,15638400], 7:[15638400,18316800], 8:[18316800,20995200], 9:[20995200,23587200], 10:[23587200,26265600],11:[26265600,28857600],12:[28857600,31536000]}
@@ -64,7 +64,7 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
       extractCondition = (self.Time>=self.subsequence[keySub][0]) * (self.Time<self.subsequence[keySub][1])
       tempData[keySub]['Time'] = np.extract(extractCondition, self.Time)
       for keyF in self.features:
-        tempData[keySub][keyF] = np.zeros(shape=(self.noHistory,len(tempData[keySub]['Time'])))
+        tempData[keySub][keyF] = np.zeros(shape=(self.noHistory,len(tempData[keySub][self.timeID])))
         for cnt, keyH in enumerate(inputDict['output'].keys()):
           tempData[keySub][keyF][cnt,:] = np.extract(extractCondition, inputDict['output'][keyH][keyF])
     
@@ -84,7 +84,6 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
       tempTyp[keySub] = {}
       tempTyp[keySub]['Time'] = tempData[keySub]['Time']
       d = np.inf
-      kkk = -1 # for debug
       for cnt, keyH in enumerate(inputDict['output'].keys()):
         FS = 0        
         for keyF in self.features:
@@ -112,7 +111,6 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
       outputDic['data']['input'][1][keyIn] = np.array(inputDict['input'][keyH][keyIn][0])
       
     return outputDic
-  
     
   def __computeCDF(self, data, binEdgesIn):
     """
@@ -149,4 +147,6 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
       if child.tag == 'subsequence':
         if child.text == 'Month': self.subseqP = child.text
         else:                     self.subseqP = int(child.text)
+      elif child.tag == 'timeID':
+        self.timeID = child.text
 

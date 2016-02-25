@@ -1780,7 +1780,7 @@ regressor}{linear\_model|LassoCV}
 \subparagraph{Lasso model fit with Least Angle Regression}
 \mbox{}
 
-\textit{Lasso model fit with Least Angle Regression} (aka Lars) 
+\textit{Lasso model fit with Least Angle Regression} (aka Lars)
 It is a Linear Model trained with an L1 prior as regularizer.
 In order to use the \textit{Least Angle Regression model regressor}, the user needs to set the sub-node
 %
@@ -1943,7 +1943,7 @@ for optimal performance; any other input format will be converted (and copied).
   \item \xmlNode{class\_weight}, \xmlDesc{dict, or 'balanced', optional}
   Weights associated with classes in the form \{class\_label: weight\}. If not given, all classes are supposed to have weight one.
   %
-  The ``balanced'' mode uses the values of y to automatically adjust weights inversely proportional to class frequencies in the 
+  The ``balanced'' mode uses the values of y to automatically adjust weights inversely proportional to class frequencies in the
   input data as n\_samples / (n\_classes * np.bincount(y))
   %
   Note that these weights will be multiplied with sample\_weight (passed through the fit method) if sample\_weight is specified.
@@ -2190,7 +2190,7 @@ training set one at a time.
   %
   Weights associated with classes. If not given, all classes are supposed to have weight one.
   %
-  The “balanced” mode uses the values of y to automatically adjust weights inversely proportional to class 
+  The “balanced” mode uses the values of y to automatically adjust weights inversely proportional to class
   frequencies in the input data as n\_samples / (n\_classes * np.bincount(y))
   %
   \item \warmStartDescription{False}
@@ -4349,8 +4349,8 @@ to compute many of the most important statistical quantities.
     \item \textbf{skewness}: skewness
     \item \textbf{kurtosis}: excess kurtosis (also known as Fisher's kurtosis)
     \item \textbf{median}: median
-    \item \textbf{percentile}: the percentile. If this quantity is inputted as \textit{percentile} the $5\%$ and $95\%$ percentile(s) are going to be computed. 
-                               Otherwise the user can specify this quantity as \textit{percentile\_$X\%$}, where \textit{X} represents the requested 
+    \item \textbf{percentile}: the percentile. If this quantity is inputted as \textit{percentile} the $5\%$ and $95\%$ percentile(s) are going to be computed.
+                               Otherwise the user can specify this quantity as \textit{percentile\_$X\%$}, where \textit{X} represents the requested
                                percentile (an integer value between 1 and 100).
     %
   \end{itemize}
@@ -4997,8 +4997,8 @@ purpose Post-Processors.
   ...
   <Models>
     ...
-    <PostProcessor name="example" subType='InterfacedPostProcessor'verbosity='debug'> 
-       <method>testInterfacedPP</method> 
+    <PostProcessor name="example" subType='InterfacedPostProcessor'verbosity='debug'>
+       <method>testInterfacedPP</method>
        <!--Here, the xml nodes required by the chosen method have to be
        included.
         -->
@@ -5036,17 +5036,17 @@ class testInterfacedPP(PostProcessorInterfaceBase):
   def initialize(self)
   def readMoreXML(self,xmlNode)
   def run(self,inputDic)
-\end{lstlisting} 
+\end{lstlisting}
 
 \paragraph{Data Format}
 The user is not allowed to modify directly the DataObjects, however the
 content of the DataObjects is available in the form of a python dictionary.
-Both the dictionary give in input and the one generated in the output of the 
+Both the dictionary give in input and the one generated in the output of the
 PostProcessor are structured as follows:
 
 \begin{lstlisting}[language=python]
 inputDict = {'data':{}, 'metadata':{}}
-\end{lstlisting} 
+\end{lstlisting}
 
 where:
 
@@ -5059,7 +5059,7 @@ contains a numpy array with its own values as shown below for a simplified
 example
 
 \begin{lstlisting}[language=python]
-inputDict['input'] = {'inputVar1': array([ 1.,2.,3.]), 
+inputDict['input'] = {'inputVar1': array([ 1.,2.,3.]),
                       'inputVar2': array([4.,5.,6.])}
 \end{lstlisting}
 
@@ -5067,7 +5067,7 @@ Similarly, if the dataObject is a PointSet then the output dictionary is
 structured as follows:
 
 \begin{lstlisting}[language=python]
-inputDict['output'] = {'outputVar1': array([ .1,.2,.3]), 
+inputDict['output'] = {'outputVar1': array([ .1,.2,.3]),
                        'outputVar2':array([.4,.5,.6])}
 \end{lstlisting}
 
@@ -5106,7 +5106,7 @@ independent of the \xmlAttr{subType} specified:
    \item \xmlNode{tolerance}, \xmlDesc{string, optional field}, tolerance level (required only for the following sampling types: filteredFirstDerivative or filteredSecondDerivative)
 \end{itemize}
 
-\paragraph{Method: HistorySetSync}
+\paragraph{Method: HistorySetSync}\label{pp-historySetSync}
 This Post-Processor performs the conversion from HistorySet to HistorySet
 The conversion is made so that all histories are syncronized in time.
 It can be used to allow the histories to be sampled at the same time instant.
@@ -5115,7 +5115,7 @@ In the \xmlNode{PostProcessor} input block, the following XML sub-nodes are requ
 independent of the \xmlAttr{subType} specified:
 
 \begin{itemize}
-   \item \xmlNode{numberOfSamples}, \xmlDesc{integer, required field}, number of samples 
+   \item \xmlNode{numberOfSamples}, \xmlDesc{integer, required field}, number of samples
    \item \xmlNode{timeID}, \xmlDesc{string, required field}, ID of the temporal variable
    \item \xmlNode{extension}, \xmlDesc{string, required field}, type of extension when the sync process goes outside the boundaries of the history (zeroed or extended)
 \end{itemize}
@@ -5128,13 +5128,13 @@ Assume that each history H is a dict of n output variables $x_1=[...], x_n=[...]
   \item type = timeSlice: at time instant t: $P=[x_1[t],...,x_n[t]]$
   \item type = min, max, avg, value: it takes the min, max, avg or a specific value of a specific variable
 \end{itemize}
- 
+
 In the \xmlNode{PostProcessor} input block, the following XML sub-nodes are required,
 independent of the \xmlAttr{subType} specified (timeSlice case):
 
 \begin{itemize}
-   \item \xmlNode{type}, \xmlDesc{string, required field}, type of window (timeSlice) 
-   \item \xmlNode{timeInstant}, \xmlDesc{integer, required field}, location of the time slice 
+   \item \xmlNode{type}, \xmlDesc{string, required field}, type of window (timeSlice)
+   \item \xmlNode{timeInstant}, \xmlDesc{integer, required field}, location of the time slice
    \item \xmlNode{numberOfSamples}, \xmlDesc{integer, required field}, number of samples
    \item \xmlNode{timeID}, \xmlDesc{string, required field}, ID of the temporal variable
    \item \xmlNode{extension}, \xmlDesc{string, required field}, type of extension when the sync process goes outside the boundaries of the history (zeroed or extended)
@@ -5144,12 +5144,12 @@ In the \xmlNode{PostProcessor} input block, the following XML sub-nodes are requ
 independent of the \xmlAttr{subType} specified (min, max, avg and value case):
 
 \begin{itemize}
-   \item \xmlNode{type}, \xmlDesc{string, required field}, type of window ((min, max, avg or value) 
+   \item \xmlNode{type}, \xmlDesc{string, required field}, type of window ((min, max, avg or value)
    \item \xmlNode{pivotVar}, \xmlDesc{integer, optional field},  ID of the chosen variable
    \item \xmlNode{timeID}, \xmlDesc{string, optional field}, ID of the temporal variable (only for avg)
    \item \xmlNode{pivotVal}, \xmlDesc{integer, optional field},  value for the chosen variable (only for value)
 \end{itemize}
-   
+
 \paragraph{Method: HSPS}
 
 This Post-Processor performs the conversion from HistorySet to PointSet
@@ -5162,4 +5162,24 @@ independent of the \xmlAttr{subType} specified (min, max, avg and value case):
 
 \begin{itemize}
    \item \xmlNode{timeID}, \xmlDesc{string, optional field}, ID of the temporal variable (only for avg)
+\end{itemize}
+
+\paragraph{Method: TypicalHistoryFromHistorySet}
+This Post-Processor forms a ``typical'' history from the data in a HistorySet. The input should be a HistorySet, with each history in the HistorySet synchronized. For HistorySet that is not synchronized, use Post-Processor method \textbf{HistorySetSync} in \ref{pp-historySetSync} to synchronize the data before running this method. 
+
+Each history $H_i$ is divided into a set of subsequences $\{H_i^j\}$, and the division is guided by the ``subsequence'' node specified in the input XML. If the value of ``subsequence'' is \emph{Month}, then it is assumed that each history is one year long, and each subsequence $H_i^j$ is a month long. If the value of ``subsequence'' is nonnegative integer, say $l$, then the time span of each subsequence $H_i$ has equal length $l$. For each variable $x$, the method first computes the empirical CDF by using all the data values of $x$ in the HistorySet. This CDF is termed as long-term CDF for $x$. Then for each subsequence $H_i^j$, the method computes the empirical CDF by using all the data values of $x$ in $H_i^j$. This CDF is termed as subsequential CDF.
+
+For the first time window (i.e., $j=1$), the method computes the Finkelstein-Schafer (FS) statistics \cite{finkelstein1971improved} between the long term CDF and the subsequential CDF of $H_i^1$ for each $i$. The FS statistics is defined as following. 
+\begin{align*}
+FS & = \sum_x FS_x\\
+FS_x &= \frac{1}{N}\sum_{n=1}^N\delta_n
+\end{align*}
+where $N$ is the number of value reading in the empirical CDF and $\delta_n$ is the absolute difference between the long term CDF and the subsequential CDF at value $x_n$. The subsequence $H_i^1$ with minimal FS statistics will be selected as the typical subsequence for time window $j=1$. Such process repeats for $j=2,3,\dots$ until all subsequences have be processed. Then all the typical subsequences will be concatenated to form a complete history.
+
+In the \xmlNode{PostProcessor} input block, the following XML sub-nodes are required,
+independent of the \xmlAttr{subType} specified:
+
+\begin{itemize}
+   \item \xmlNode{timeID}, \xmlDesc{string, required field}, ID of the temporal variable (only for avg)
+   \item \xmlNode{subsequence}, \xmlDesc{integer or string (Month), required field}, approaches to select the typical subsequence (see above)
 \end{itemize}
