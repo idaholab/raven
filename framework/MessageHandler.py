@@ -168,18 +168,6 @@ class MessageHandler(object):
       'cyan'    : '\033[36m'}
     self.warnings     = [] #collection of warnings that were raised during this run
 
-  def __del__(self):
-    """
-      Destructor.
-      @ In, None
-      @ Out, None
-    """
-    if len(self.warnings)>0:
-      print('-'*50)
-      print('There were warnings during the simulation run:')
-      for w in self.warnings:
-        print(w)
-      print('-'*50)
 
   def initialize(self,initDict):
     """
@@ -191,6 +179,19 @@ class MessageHandler(object):
     self.callerLength  = initDict.get('callerLength',40)
     self.tagLength     = initDict.get('tagLength',30)
     self.suppressErrs  = initDict['suppressErrs'] in utils.stringsThatMeanTrue() if 'suppressErrs' in initDict.keys() else False
+
+  def printWarnings(self):
+    """
+      Destructor.
+      @ In, None
+      @ Out, None
+    """
+    if len(self.warnings)>0:
+      print('-'*50)
+      print('There were warnings during the simulation run:')
+      for w in self.warnings:
+        print(w)
+      print('-'*50)
 
   def paint(self,str,color):
     """

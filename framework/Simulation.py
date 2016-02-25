@@ -739,4 +739,4 @@ class Simulation(MessageHandler.MessageUser):
           output.finalize()
       self.raiseAMessage('-'*2+' End step {0:50} '.format(stepName+' of type: '+stepInstance.type)+2*'-'+'\n')#,color='green')
     self.raiseAMessage('Run complete!')
-    self.messageHandler.__del__()
+    self.messageHandler.printWarnings()
