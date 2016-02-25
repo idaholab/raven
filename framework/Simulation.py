@@ -372,6 +372,11 @@ class Simulation(MessageHandler.MessageUser):
     self.__modeHandler = SimulationMode(self)
     self.printTag = 'SIMULATION'
     self.raiseAMessage('Simulation started at',readtime,verbosity='silent')
+    # test error behaviours
+    try:
+      self.raiseAnError(RuntimeError,'This error should have been caught and ignored!')
+    except:
+      self.raiseAMessage('Error catching is working properly.')
 
   def setInputFiles(self,inputFiles):
     """Can be used to set the input files that the program received.
