@@ -225,10 +225,17 @@ class MessageHandler(object):
     okay,msg = self._printMessage(caller,message,tag,self.checkVerbosity(verbosity))
     verbval = max(self.getDesiredVerbosity(caller),self.checkVerbosity(self.verbosity))
     if okay:
-      if not self.suppressErrs and verbval==3: raise etype(msg) #DEBUG mode without suppression
-      print('\n'+etype.__name__+':',msg,file=sys.stderr)
-      if not self.suppressErrs: #exit after print
-        sys.exit(1)
+      if not self.suppressErrs:
+        # debug mode gets full traceback
+        if verbval==3:
+          raise etype(msg)
+        # all, quiet, silent only raise error, no traceback
+        sys.tracebacklimit=0
+        raise etype(msg)
+      # old error printing
+      #print('\n'+etype.__name__+':',msg,file=sys.stderr)
+      #if not self.suppressErrs:
+      #  sys.exit(1)
 
   def message(self,caller,message,tag,verbosity):
     """
