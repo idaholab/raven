@@ -279,11 +279,11 @@ class MessageHandler(object):
     self.message(caller,message,tag,verbosity,color)
     # if in debug mode, raise error so user gets trace
     if not self.suppressErrs and verbval==3:
-      self.__del__()
+      self.printWarnings()
       raise etype(message) #DEBUG mode without suppression
     #otherwise, just exit
     if not self.suppressErrs: #exit after print
-      self.__del__()
+      self.printWarnings()
       sys.exit(1)
 
   def message(self,caller,message,tag,verbosity,color=None):
