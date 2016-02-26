@@ -182,7 +182,7 @@ class MessageHandler(object):
 
   def printWarnings(self):
     """
-      Destructor.
+      Prints a summary of warnings collected during the run.
       @ In, None
       @ Out, None
     """
