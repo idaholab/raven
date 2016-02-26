@@ -265,7 +265,7 @@ XML node and the requirements for other attributes change:
     \begin{itemize}
       \item \xmlNode{Restart}, \xmlDesc{string, optional field}, the
         body of this XML node must contain the name of an appropriate \textbf{PointSet} defined in the
-        \xmlNode{DataObjects} block (see Section~\ref{subsec:models_ROM}).  It is used as a
+        \xmlNode{DataObjects} block (see Section~\ref{sec:DataObjects}).  It is used as a
         ``restart'' tool, where it accepts pre-existing solutions in the PointSet instead
         of recalculating solutions.
     \end{itemize}
@@ -748,16 +748,7 @@ are used by the \xmlNode{Models}.
 <Models>
     ...
     <ExternalModel ModuleToLoad="lorentzAttractor_noK" name="PythonModule" subType="">
-        <variable>sigma</variable>
-        <variable>rho</variable>
-        <variable>beta</variable>
-        <variable>x</variable>
-        <variable>y</variable>
-        <variable>z</variable>
-        <variable>time</variable>
-        <variable>x0</variable>
-        <variable>y0</variable>
-        <variable>z0</variable>
+        <variables>sigma,rho,beta,x,y,z,time,z0,y0,z0</variables>
     </ExternalModel>
     <ROM name="SCROM" subType="GaussPolynomialRom">
         <Target>and</Target>
@@ -981,16 +972,7 @@ are used by the \xmlNode{Models}. In addition, \xmlNode{globalGrid} will be not 
 <Models>
     ...
     <ExternalModel ModuleToLoad="lorentzAttractor_noK" name="PythonModule" subType="">
-        <variable>sigma</variable>
-        <variable>rho</variable>
-        <variable>beta</variable>
-        <variable>x</variable>
-        <variable>y</variable>
-        <variable>z</variable>
-        <variable>time</variable>
-        <variable>x0</variable>
-        <variable>y0</variable>
-        <variable>z0</variable>
+        <variables>sigma,rho,beta,x,y,z,time,z0,y0,z0</variables>
     </ExternalModel>
     ...
 </Models>
@@ -2442,16 +2424,7 @@ are used by the \xmlNode{Models}.
 <Models>
     ...
     <ExternalModel ModuleToLoad="lorentzAttractor_noK" name="PythonModule" subType="">
-        <variable>sigma</variable>
-        <variable>rho</variable>
-        <variable>beta</variable>
-        <variable>x</variable>
-        <variable>y</variable>
-        <variable>z</variable>
-        <variable>time</variable>
-        <variable>x0</variable>
-        <variable>y0</variable>
-        <variable>z0</variable>
+        <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0</variables>
     </ExternalModel>
     <ROM name="gausspolyrom" subType="GaussPolynomialRom">
         <Target>ans</Target>

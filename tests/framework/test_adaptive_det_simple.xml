@@ -43,10 +43,10 @@
 
   <Samplers>
     <AdaptiveDynamicEventTree name="AdaptiveDETsimple" printEndXmlSummary="yes">
-      <ROM              class="Models"         type="ROM"                                  >Acc</ROM>
-      <Function         class="Functions"      type="External"                             >relapFunctionSimple</Function>
-      <TargetEvaluation class="DataObjects"    type="PointSet"                             >adaptiveOutsimple</TargetEvaluation>
-      <Convergence      forceIteration="False" limit="1600"    persistence="7" weight="CDF">0.005</Convergence>
+      <ROM class="Models" type="ROM">Acc</ROM>
+      <Function class="Functions" type="External">relapFunctionSimple</Function>
+      <TargetEvaluation class="DataObjects" type="PointSet">adaptiveOutsimple</TargetEvaluation>
+      <Convergence forceIteration="False" limit="1600" persistence="7" weight="CDF">0.005</Convergence>
       <Distribution name="PressureFailureValue">
         <distribution>PressureFailureDist</distribution>
         <grid construction="custom" type="CDF">0.01 0.1 0.2 0.25 0.3 0.4 0.45 0.5 0.6 0.65 0.7 0.8 0.85 0.9 0.95</grid>
@@ -60,14 +60,14 @@
 
   <Steps>
     <MultiRun name="AdaptiveDETrunTest">
-      <Input              class="Files"            type=""                        >ideal_pump.i</Input>
-      <Input              class="Files"            type=""                        >ideal_pump_control.py</Input>
-      <Model              class="Models"           type="Code"                    >MyRAVEN</Model>
-      <Sampler            class="Samplers"         type="AdaptiveDynamicEventTree">AdaptiveDETsimple</Sampler>
-      <SolutionExport     class="DataObjects"      type="PointSet"                >LimitSurfSimple</SolutionExport>
-      <Output             class="DataObjects"      type="PointSet"                >adaptiveOutsimple</Output>
-      <Output             class="OutStreamManager" type="Print"                   >limitSurfDump</Output>
-      <Output             class="OutStreamManager" type="Print"                   >adaptiveOutsimpleDump</Output>
+      <Input class="Files" type="">ideal_pump.i</Input>
+      <Input class="Files" type="">ideal_pump_control.py</Input>
+      <Model class="Models" type="Code">MyRAVEN</Model>
+      <Sampler class="Samplers" type="AdaptiveDynamicEventTree">AdaptiveDETsimple</Sampler>
+      <SolutionExport class="DataObjects" type="PointSet">LimitSurfSimple</SolutionExport>
+      <Output class="DataObjects" type="PointSet">adaptiveOutsimple</Output>
+      <Output class="OutStreamManager" type="Print">limitSurfDump</Output>
+      <Output class="OutStreamManager" type="Print">adaptiveOutsimpleDump</Output>
     </MultiRun>
   </Steps>
 
@@ -77,8 +77,8 @@
       <source>LimitSurfSimple</source>
     </Print>
     <Print name="adaptiveOutsimpleDump">
-        <type>csv</type>
-        <source>adaptiveOutsimple</source>
+      <type>csv</type>
+      <source>adaptiveOutsimple</source>
     </Print>
   </OutStreamManager>
 

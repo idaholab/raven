@@ -30,9 +30,7 @@
   <Models>
     <Dummy name="MyDummy" subType=""/>
     <ExternalModel ModuleToLoad="polynomial" name="polynomial" subType="">
-      <variable>x1</variable>
-      <variable>x2</variable>
-      <variable>ans</variable>
+      <variables>x1,x2,ans</variables>
     </ExternalModel>
     <ROM name="BROM" subType="GaussPolynomialRom">
       <Target>ans</Target>

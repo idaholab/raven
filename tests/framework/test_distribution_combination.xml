@@ -13,9 +13,7 @@
 
   <Models>
     <ExternalModel ModuleToLoad="dist_var" name="PythonModule" subType="">
-      <variable>t1</variable>
-      <variable>t2</variable>
-      <variable>out</variable>
+      <variables>t1,t2,out</variables>
     </ExternalModel>
   </Models>
 

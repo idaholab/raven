@@ -665,8 +665,12 @@ class ExternalModel(Dummy):
     # check if there are variables and, in case, load them
     for son in xmlNode:
       if son.tag=='variable':
+        self.raiseAnError(IOError,'"variable" node included but has been depreciated!  Please list variables in a "variables" node instead.  Remove this message by Dec 2016.')
+      elif son.tag=='variables':
         if len(son.attrib.keys()) > 0: self.raiseAnError(IOError,'the block '+son.tag+' named '+son.text+' should not have attributes!!!!!')
-        self.modelVariableType[son.text] = None
+        for var in son.text.split(','):
+          var = var.strip()
+          self.modelVariableType[var] = None
     # check if there are other information that the external module wants to load
     if '_readMoreXML' in dir(self.sim): self.sim._readMoreXML(self,xmlNode)
 

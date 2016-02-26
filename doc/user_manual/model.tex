@@ -276,7 +276,7 @@
   \xmlNode{gamma}, \xmlDesc{float, optional field}, sets the
   kernel coefficient for the kernels `rbf,' `poly,' and `sigmoid.'
   %
-  If gamma is 0.0 then 1/n\_features will be used instead.
+  If gamma is `auto' then 1/n\_features will be used instead.
   %
   \ifthenelse{\equal{#1}{}}{}{\default{#1}}
 }
@@ -519,6 +519,16 @@
   %
   Supported criteria are ``gini'' for the Gini impurity and ``entropy'' for the
   information gain.
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+
+\newcommand{\criterionDescriptionDT}[1]
+{
+  \xmlNode{criterion}, \xmlDesc{string, optional field}, specifies the function
+  used to measure the quality of a split.
+  %
+  The only supported criterion is ``mse'' for mean squared error.
   %
   \ifthenelse{\equal{#1}{}}{}{\default{#1}}
 }
@@ -1544,11 +1554,6 @@ The parameters are estimated by maximizing the marginal log likelihood.
   compute the objective function at each step of the model.
   \default{False}
   %
-  \item \xmlNode{threshold\_lambda}, \xmlDesc{float, optional field}, specifies
-  the threshold for removing (pruning) weights with high precision from the
-  computation.
-  \default{ 1.e+4}
-  %
   \item \fitInterceptDescription{True}
   \item \normalizeDescription{False}
   \item \verDescriptionA{False}
@@ -1561,7 +1566,7 @@ L2 priors as regularizers.
 %
 It minimizes the objective function:
 \begin{equation}
-1/(2*n_samples) *||y - Xw||^2_2+alpha*l1_ratio*||w||_1 + 0.5 *alpha*(1 - l1_ratio)*||w||^2_2
+1/(2*n_{samples}) *||y - Xw||^2_2+alpha*l1\_ratio*||w||_1 + 0.5 *alpha*(1 - l1\_ratio)*||w||^2_2
 \end{equation}
 
 \skltype{Elastic Net regressor}{linear\_model|ElasticNet}
@@ -1585,7 +1590,7 @@ It minimizes the objective function:
   \default{0.5}
   \item \fitInterceptDescription{True}
   \item \normalizeDescription{False}
-  \item \maxIterDescription{300}
+  \item \maxIterDescription{1000}
   \item \tolDescriptionB{1.e-4}
   \item \warmStartDescription{False}
   \item \positiveDescription{False}
@@ -1630,8 +1635,8 @@ The best model is selected by cross-validation.
   alphas along the regularization path used for each $l1\_ratio$.
   %
   \default{100}
-  \item \precomputeDescription{1.0}
-  \item \maxIterDescription{300}
+  \item \precomputeDescription{'auto'}
+  \item \maxIterDescription{1000}
   \item \tolDescriptionB{1.e-4}
   %
   \item \positiveDescription{False}
@@ -1656,8 +1661,8 @@ determined by a linear combination of a subset of potential covariates.
   \default{500}
   \item \fitInterceptDescription{True}
   \item \verDescriptionA{False}
-  \item \precomputeDescription{1.0}
-  \item \normalizeDescription{False}
+  \item \precomputeDescription{'auto'}
+  \item \normalizeDescription{True}
   \item \xmlNode{eps}, \xmlDesc{float, optional field}, represents the machine
   precision regularization in the computation of the Cholesky diagonal factors.
   %
@@ -1666,7 +1671,7 @@ determined by a linear combination of a subset of potential covariates.
   Unlike the \xmlNode{tol} parameter in some iterative optimization-based
   algorithms, this parameter does not control the tolerance of the optimization.
   %
-  \default{2.22e-16}
+  \default{2.2204460492503131e-16}
   \item \xmlNode{fit\_path}, \xmlDesc{boolean, optional field}, if True the
   full path is stored in the coef\_path\_attribute.
   %
@@ -1689,9 +1694,9 @@ cross-validation.
 \begin{itemize}
   \item \fitInterceptDescription{True}
   \item \verDescriptionA{False}
-  \item \normalizeDescription{False}
-  \item \precomputeDescription{1.0}
-  \item \maxIterDescription{300}
+  \item \normalizeDescription{True}
+  \item \precomputeDescription{'auto'}
+  \item \maxIterDescription{500}
   \item \nAlphasDescription{1000}
   \item \xmlNode{eps}, \xmlDesc{float, optional field}, represents the
   machine-precision regularization in the computation of the Cholesky diagonal
@@ -1702,7 +1707,7 @@ cross-validation.
   Unlike the \textit{tol} parameter in some iterative optimization-based
   algorithms, this parameter does not control the tolerance of the optimization.
   %
-  \default{2.22e-16}
+  \default{2.2204460492503131e-16}
 \end{itemize}
 \subparagraph{Linear Model trained with L1 prior as regularizer (aka the Lasso)}
 \mbox{}
@@ -1718,22 +1723,22 @@ absolute values of the coefficients.
   \item \xmlNode{alpha}, \xmlDesc{float, optional field}, sets a constant
   multiplier for the L1 term.
   %
-  \default{1.0}
-  %
   alpha = 0 is equivalent to an ordinary least square, solved by the
   LinearRegression object.
   %
   For numerical reasons, using alpha = 0 with the Lasso object is not advised
   and you should instead use the LinearRegression object.
   %
+  \default{1.0}
+  %
   \item \fitInterceptDescription{True}
   \item \normalizeDescription{False}
-  \item \precomputeDescription{}
+  \item \precomputeDescription{False}
   \nb For sparse input this option is always True to preserve sparsity.
-  \item \maxIterDescription{}
+  \item \maxIterDescription{1000}
   \item \tolDescriptionB{1.e-4}
-  \item \warmStartDescription{}
-  \item \positiveDescription{}
+  \item \warmStartDescription{False}
+  \item \positiveDescription{False}
 \end{itemize}
 
 \subparagraph{Lasso linear model with iterative fitting along a regularization
@@ -1752,39 +1757,55 @@ regressor}{linear\_model|LassoCV}
   %
   eps=1e-3 means that alpha\_min / alpha\_max = 1e-3.
   %
+  \default{1.0e-3}
+  %
   \item \xmlNode{n\_alphas}, \xmlDesc{int, optional field}, sets the number of
   alphas along the regularization path.
+  %
+  \default{100}
+  %
   \item \xmlNode{alphas}, \xmlDesc{numpy array, optional field}, lists the
   locations of the alphas used to compute the models.
   %
+  \default{None}
+  %
   If None, alphas are set automatically.
-  \item \precomputeDescription{}
-  \item \maxIterDescription{}
+  \item \precomputeDescription{'auto'}
+  \item \maxIterDescription{1000}
   \item \tolDescriptionB{1.e-4}
-  \item \verDescriptionB{}
-  \item \positiveDescription{}
+  \item \verDescriptionB{False}
+  \item \positiveDescription{False}
 \end{itemize}
 
 \subparagraph{Lasso model fit with Least Angle Regression}
 \mbox{}
 
-The \textit{Lasso model fit with Least Angle Regression} is a cross-validated
-least angle regression model.
+\textit{Lasso model fit with Least Angle Regression} (aka Lars) 
+It is a Linear Model trained with an L1 prior as regularizer.
+In order to use the \textit{Least Angle Regression model regressor}, the user needs to set the sub-node
 %
-\skltype{Cross-validated Least Angle Regression model
-regressor}{linear\_model|LarsCV}
+\skltype{Least Angle Regression model
+regressor}{linear\_model|LassoLars}
 
 \begin{itemize}
+  \item \xmlNode{alpha}, \xmlDesc{float, optional field}, specifies a constant
+  that multiplies the penalty terms.
+  %
+  $alpha = 0$ is equivalent to an ordinary least square, solved by the
+  \textbf{LinearRegression} object.
+  \default{1.0}
+  %
   \item \fitInterceptDescription{True}
-  \item \verDescriptionB{}
-  \item \normalizeDescription{False}
-  \item \precomputeDescription{}
-  \item \maxIterDescription{}
-  \item \nAlphasDescription{}
+  \item \verDescriptionB{False}
+  \item \normalizeDescription{True}
+  \item \precomputeDescription{'auto'}
+  \item \maxIterDescription{500}
   \item \xmlNode{eps}, \xmlDesc{float, optional field}, sets the machine
   precision regularization in the computation of the Cholesky diagonal factors.
   %
   Increase this for very ill-conditioned systems.
+  %
+  \default{2.2204460492503131e-16}
 \end{itemize}
 
 \subparagraph{Cross-validated Lasso, using the LARS algorithm}
@@ -1798,15 +1819,17 @@ regressor}{linear\_model|LassoLarsCV}
 
 \begin{itemize}
   \item \fitInterceptDescription{True}
-  \item \verDescriptionB{}
-  \item \normalizeDescription{False}
-  \item \precomputeDescription{}
-  \item \maxIterDescription{}
-  \item \nAlphasDescription{}
+  \item \verDescriptionB{False}
+  \item \normalizeDescription{True}
+  \item \precomputeDescription{'auto'}
+  \item \maxIterDescription{500}
+  \item \nAlphasDescription{1000}
   \item \xmlNode{eps}, \xmlDesc{float, optional field}, specifies the machine
   precision regularization in the computation of the Cholesky diagonal factors.
   %
   Increase this for very ill-conditioned systems.
+  %
+  \default{2.2204460492503131e-16}
 \end{itemize}
 
 \subparagraph{Lasso model fit with Lars using BIC or AIC for model selection}
@@ -1832,11 +1855,13 @@ A good model explains the data well while maintaining simplicity.
   \item \xmlNode{criterion}, \xmlDesc{`bic' | `aic' }, specifies the type of
   criterion to use.
   %
+  \default{'aic'}
+  %
   \item \fitInterceptDescription{True}
-  \item \verDescriptionB{}
-  \item \normalizeDescription{False}
-  \item \precomputeDescription{}
-  \item \maxIterDescription{}
+  \item \verDescriptionB{False}
+  \item \normalizeDescription{True}
+  \item \precomputeDescription{'auto'}
+  \item \maxIterDescription{500}
   \item \xmlNode{eps}, \xmlDesc{float, optional field}, represents the machine
   precision regularization in the computation of the Cholesky diagonal factors.
   %
@@ -1845,6 +1870,8 @@ A good model explains the data well while maintaining simplicity.
   Unlike the tol parameter in some iterative optimization-based algorithms, this
   parameter does not control the tolerance of the optimization.
   %
+  %
+  \default{2.2204460492503131e-16}
 \end{itemize}
 
 \subparagraph{Ordinary least squares Linear Regression}
@@ -1878,12 +1905,16 @@ for optimal performance; any other input format will be converted (and copied).
   \item \xmlNode{penalty}, \xmlDesc{string, `l1' or `l2'}, specifies the norm
   used in the penalization.
   %
+  \default{'l2'}
+  %}
   \item \xmlNode{dual}, \xmlDesc{boolean}, specifies the dual or primal
   formulation.
   %
   Dual formulation is only implemented for the l2 penalty.
   %
-  Prefer dual=False when n\_samples > n\_features.
+  Prefer dual=False when n\_samples $>$ n\_features.
+  %
+  \default{False}
   %
   \item \xmlNode{C}, \xmlDesc{float, optional field}, is the inverse of the
   regularization strength; must be a positive float.
@@ -1909,16 +1940,20 @@ for optimal performance; any other input format will be converted (and copied).
   To lessen the effect of regularization on synthetic feature weight (and
   therefore on the intercept) intercept\_scaling has to be increased.
   \default{1.0}
-  \item \xmlNode{class\_weight}, \xmlDesc{\{dict, `auto'\}, optional},
-  over-/undersamples the samples of each class according to the given weights.
+  \item \xmlNode{class\_weight}, \xmlDesc{dict, or 'balanced', optional}
+  Weights associated with classes in the form \{class\_label: weight\}. If not given, all classes are supposed to have weight one.
   %
-  If not given, all classes are supposed to have weight one.
+  The ``balanced'' mode uses the values of y to automatically adjust weights inversely proportional to class frequencies in the 
+  input data as n\_samples / (n\_classes * np.bincount(y))
   %
-  The `auto' mode selects weights inversely proportional to class frequencies
-  in the training set.
+  Note that these weights will be multiplied with sample\_weight (passed through the fit method) if sample\_weight is specified.
+  %
+  New in version 0.17: class\_weight=’balanced’ instead of deprecated class\_weight=’auto’.
+  %
+  \default{None}
   %
   \item \randomStateDescription{None}
-  \item \tolDescriptionC{}
+  \item \tolDescriptionC{0.0001}
 \end{itemize}
 
 \subparagraph{Multi-task Lasso model trained with L1/L2 mixed-norm as
@@ -1926,9 +1961,9 @@ for optimal performance; any other input format will be converted (and copied).
 \mbox{}
 \\The \textit{Multi-task Lasso model trained with L1/L2 mixed-norm as
   regularizer} is a regressor where the optimization objective for Lasso is:
-$(1 / (2 * n\_samples)) * ||Y - XW||^2_Fro + alpha * ||W||_21$
+$(1 / (2 * n\_samples)) * ||Y - XW||^2_{Fro} + alpha * ||W||_{21}$
 Where:
-$||W||_21 = \sum_i \sqrt{\sum_j w_{ij}^2}$
+$||W||_{21} = \sum_i \sqrt{\sum_j w_{ij}^2}$
 i.e. the sum of norm of each row.
 %
 \skltype{Multi-task Lasso model trained with L1/L2
@@ -1940,9 +1975,9 @@ i.e. the sum of norm of each row.
   \default{1.0}
   \item \fitInterceptDescription{True}
   \item \normalizeDescription{False}
-  \item \maxIterDescription{}
+  \item \maxIterDescription{1000}
   \item \tolDescriptionB{1.e-4}
-  \item \warmStartDescription{}
+  \item \warmStartDescription{False}
 \end{itemize}
 
 \subparagraph{Multi-task Elastic Net model trained with L1/L2 mixed-norm as
@@ -1952,11 +1987,11 @@ i.e. the sum of norm of each row.
 The \textit{Multi-task Elastic Net model trained with L1/L2 mixed-norm as
   regularizer} is a regressor where the optimization objective for
 MultiTaskElasticNet is:
-$(1 / (2 * n\_samples)) * ||Y - XW||^Fro_2
-+ alpha * l1\_ratio * ||W||_21
-+ 0.5 * alpha * (1 - l1\_ratio) * ||W||_Fro^2$
+$(1 / (2 * n\_samples)) * ||Y - XW||^{Fro}_2
++ alpha * l1\_ratio * ||W||_{21}
++ 0.5 * alpha * (1 - l1\_ratio) * ||W||_{Fro}^2$
 Where:
-$||W||_21 = \sum_i \sqrt{\sum_j w_{ij}^2}$
+$||W||_{21} = \sum_i \sqrt{\sum_j w_{ij}^2}$
 i.e. the sum of norm of each row.
 %
 \skltype{Multi-task ElasticNet model trained with L1/L2
@@ -1976,11 +2011,13 @@ i.e. the sum of norm of each row.
   For $0 < l1\_ratio < 1$, the penalty is a combination of L1/L2
   and L2.
   %
+  \default{0.5}
+  %
   \item \fitInterceptDescription{True}
   \item \normalizeDescription{False}
   \item \maxIterDescription{}
   \item \tolDescriptionB{1.e-4}
-  \item \warmStartDescription{}
+  \item \warmStartDescription{False}
 \end{itemize}
 
 \subparagraph{Orthogonal Mathching Pursuit model (OMP)}
@@ -2004,8 +2041,10 @@ regressor}{linear\_model|OrthogonalMatchingPursuit}
   %
   If not None, overrides n\_nonzero\_coefs.
   %
+  \default{None}
+  %
   \item \fitInterceptDescription{True}
-  \item \normalizeDescription{False}
+  \item \normalizeDescription{True}
   \item \xmlNode{precompute}, \xmlDesc{\{True, False, `auto'\}}, specifies
   whether to use a precomputed Gram and Xy matrix to speed up calculations.
   %
@@ -2027,8 +2066,8 @@ regressor similar to OMP which has good performance in sparse recovery.
 regressor}{linear\_model|OrthogonalMatchingPursuitCV}
 \begin{itemize}
   \item \fitInterceptDescription{True}
-  \item \normalizeDescription{False}
-  \item \maxIterDescription{}
+  \item \normalizeDescription{True}
+  \item \maxIterDescription{None}
   %
   Maximum number of iterations to perform, therefore maximum features to
   include 10\% of n\_features but at least 5 if available.
@@ -2037,8 +2076,8 @@ regressor}{linear\_model|OrthogonalMatchingPursuitCV}
   %
   see sklearn.cross\_validation.
   %
-  \default{5-fold strategy}
-  \item \verDescriptionB{}
+  \default{None}
+  \item \verDescriptionB{False}
 \end{itemize}
 
 \subparagraph{Passive Aggressive Classifier}
@@ -2057,18 +2096,19 @@ Classifier}{linear\_model|PassiveAggressiveClassifier}
   %
   \item \fitInterceptDescription{True}
   \item \nIterDescriptionB{5}
-  \item \shuffleDescription{False}
+  \item \shuffleDescription{True}
   \item \randomStateDescription{None}
-  \item \verDescriptionB{}
+  \item \verDescriptionB{0}
   \item \xmlNode{loss}, \xmlDesc{string, optional field}, the loss function to
   be used:
   \begin{itemize}
     \item hinge: equivalent to PA-I (http://jmlr.csail.mit.edu/papers/volume7/crammer06a/crammer06a.pdf)
     \item squared\_hinge: equivalent to PA-II (http://jmlr.csail.mit.edu/papers/volume7/crammer06a/crammer06a.pdf)
   \end{itemize}
-
   %
-  \item \warmStartDescription{}
+  \default{'hinge'}
+  %
+  \item \warmStartDescription{False}
 \end{itemize}
 
 \subparagraph{Passive Aggressive Regressor}
@@ -2090,11 +2130,13 @@ parameter, $C$.
   current prediction and the correct label is below this threshold, the model is
   not updated.
   %
+  \default{0.1}
+  %
   \item \fitInterceptDescription{True}
   \item \nIterDescriptionB{5}
-  \item \shuffleDescription{False}
+  \item \shuffleDescription{True}
   \item \randomStateDescription{None}
-  \item \verDescriptionB{}
+  \item \verDescriptionB{0}
   \item \xmlNode{loss}, \xmlDesc{string, optional field}, specifies the loss
   function to be used:
   \begin{itemize}
@@ -2104,7 +2146,9 @@ parameter, $C$.
     /volume7/crammer06a/crammer06a.pdf).
   \end{itemize}
   %
-  \item \warmStartDescription{}
+  \default{'epsilon\_insensitive'}
+  %
+  \item \warmStartDescription{False}
 \end{itemize}
 
 \subparagraph{Perceptron}
@@ -2133,25 +2177,23 @@ training set one at a time.
   \default{0.0001}
   \item \fitInterceptDescription{True}
   \item \nIterDescriptionB{5}
-  \item \shuffleDescription{False}
-  \item \randomStateDescription{None}
-  \item \verDescriptionB{}
+  \item \shuffleDescription{True}
+  \item \randomStateDescription{0}
+  \item \verDescriptionB{0}
   \item \xmlNode{eta0}, \xmlDesc{double, optional field}, defines the constant
   multiplier for the updates.
   %
   \default{1.0}
   %
-  \item \xmlNode{class\_weight}, \xmlDesc{dict, {class\_label}}, specifies the
-  preset for the class\_weight fit parameter.
+  \item \xmlNode{class\_weight}, \xmlDesc{dict, \{class\_label: weight\} or “balanced” or None, optional}
+  Preset for the class\_weight fit parameter.
   %
-  Weights associated with classes.
+  Weights associated with classes. If not given, all classes are supposed to have weight one.
   %
-  If not given, all classes are supposed to have weight one.
+  The “balanced” mode uses the values of y to automatically adjust weights inversely proportional to class 
+  frequencies in the input data as n\_samples / (n\_classes * np.bincount(y))
   %
-  The ``auto'' mode uses the values of y to automatically adjust weights
-  inversely proportional to class frequencies.
-  %
-  \item \warmStartDescription{}
+  \item \warmStartDescription{False}
 \end{itemize}
 
 \subparagraph{Randomized Lasso}
@@ -2168,11 +2210,14 @@ It is also known as stability selection.
   \item \xmlNode{alpha}, \xmlDesc{float, `aic', or `bic', optional}, defines the
   regularization parameter $\alpha$ in the Lasso.
   %
+  \default{`aic'}
   %
   \item \xmlNode{scaling}, \xmlDesc{float, optional field}, specifies the alpha
   parameter used to randomly scale the
   %
   Should be between 0 and 1.
+  %
+  \default{0.5}
   %
   \item \xmlNode{sample\_fraction}, \xmlDesc{float, optional field}, defines
   the fraction of samples to be used in each randomized design.
@@ -2181,17 +2226,23 @@ It is also known as stability selection.
   %
   If 1, all samples are used.
   %
+  \default{0.75}
+  %
   \item \xmlNode{n\_resampling}, \xmlDesc{int, optional field}, is the number of
   randomized models used.
+  %
+  \default{200}
   %
   \item \xmlNode{selection\_threshold}, \xmlDesc{float, optional field}, sets
   the score above for which features should be selected.
   %
+  \default{0.25}
+  %
   \item \fitInterceptDescription{True}
-  \item \verDescriptionB{}
+  \item \verDescriptionB{False}
   \item \normalizeDescription{True}
-  \item \precomputeDescription{}
-  \item \maxIterDescription{}
+  \item \precomputeDescription{`auto'}
+  \item \maxIterDescription{500}
   \item \xmlNode{eps}, \xmlDesc{float, optional field}, defines the machine
   precision regularization in the computation of the Cholesky diagonal factors.
   %
@@ -2199,6 +2250,8 @@ It is also known as stability selection.
   %
   Unlike the `tol' parameter in some iterative optimization-based algorithms,
   this parameter does not control the tolerance of the optimization.
+  %
+  \default{2.2204460492503131e-16}
   %
   \item \xmlNode{random\_state}, \xmlDesc{int, RandomState instance or None,
   optional}, if int, random\_state is the seed used by the random number
@@ -2208,6 +2261,10 @@ It is also known as stability selection.
   %
   \default{None}
 \end{itemize}
+
+% TODO document n_jobs
+% TODO document pre_dispatch
+% TODO document memory
 
 \subparagraph{Randomized Logistic Regression}
 \mbox{}
@@ -2233,6 +2290,8 @@ Regressor}{linear\_model|RandomizedLogisticRegression}
   %
   Should be between 0 and 1.
   %
+  \default{0.5}
+  %
   \item \xmlNode{sample\_fraction}, \xmlDesc{float, optional field}, is the
   fraction of samples to be used in each randomized design.
   %
@@ -2254,8 +2313,8 @@ Regressor}{linear\_model|RandomizedLogisticRegression}
   %
   \item \fitInterceptDescription{True}
   %
-  \item \verDescriptionB{}
-  \item \normalizeDescription{False}
+  \item \verDescriptionB{False}
+  \item \normalizeDescription{True}
   \item \tolDescriptionC{}
   \default{1=e-3}
   %
@@ -2268,6 +2327,10 @@ Regressor}{linear\_model|RandomizedLogisticRegression}
   \default{None}
   %
 \end{itemize}
+
+% TODO document n_jobs
+% TODO document pre_dispatch
+% TODO document memory
 
 \subparagraph{Linear least squares with l2 regularization}
 \mbox{}
@@ -2294,11 +2357,18 @@ is a 2d-array of shape [n\_samples, n\_targets]).
   %
   Hence they must correspond in number.
   %
+  \default{1.0}
+  %
   \item \fitInterceptDescription{True}
   \item \maxIterDescription{determined by scipy.sparse.linalg.}
-  \item \normalizeDescription{True}
+  \item \normalizeDescription{False}
   \item \solverDescription
+  \default{`auto'}
 \end{itemize}
+
+%TODO document copy_X
+%TODO document tol
+%TODO document random_state
 
 \subparagraph{Classifier using Ridge regression}
 \mbox{}
@@ -2314,18 +2384,27 @@ least squares with l2 regularization.
   Alpha corresponds to $(2*C)^-1$ in other linear models such as
   LogisticRegression or LinearSVC.
   %
+  \default{1.0}
+  %
   \item \xmlNode{class\_weight}, \xmlDesc{dict, optional field}, specifies
   weights associated with classes in the form {class\_label: weight}.
   %
   If not given, all classes are assumed to have weight one.
   %
+  \default{None}
+  %
   \item \fitInterceptDescription{True}
   \item \maxIterDescription{determined by scipy.sparse.linalg.}
   \item \normalizeDescription{False}
   \item \solverDescription
+  \default{`auto'}
   \item \xmlNode{tol}, \xmlDesc{float}, defines the required precision of the
   solution.
+  \default{0.001}
 \end{itemize}
+
+%TODO document random_state
+%TODO document copy_X
 
 \subparagraph{Ridge classifier with built-in cross-validation}
 \mbox{}
@@ -2333,7 +2412,7 @@ least squares with l2 regularization.
 Generalized Cross-Validation, which is a form of efficient leave-one-out
 cross-validation.
 %
-Currently, only the n\_features > n\_samples case is handled efficiently.
+Currently, only the n\_features $>$ n\_samples case is handled efficiently.
 %
 \skltype{Ridge classifier with built-in cross-validation
 classifier}{linear\_model|RidgeClassifierCV}
@@ -2347,6 +2426,8 @@ classifier}{linear\_model|RidgeClassifierCV}
   Alpha corresponds to $(2*C)^{-1}$ in other linear models such as
   LogisticRegression or LinearSVC.
   %
+  \default{(0.1, 1.0, 10.0)}
+  %
   \item \fitInterceptDescription{True}
   \item \normalizeDescription{False}
   \item \xmlNode{scoring}, \xmlDesc{string, callable or None, optional}, is a
@@ -2358,10 +2439,14 @@ classifier}{linear\_model|RidgeClassifierCV}
   %
   If None, Generalized Cross-Validation (efficient leave-one-out) will be used.
   %
+  \default{None}
+  %
   \item \xmlNode{class\_weight}, \xmlDesc{dic, optional field}, specifies
   weights associated with classes in the form {class\_label:weight}.
   %
   If not given, all classes are supposed to have weight one.
+  %
+  \default{None}
   %
 \end{itemize}
 
@@ -2383,6 +2468,7 @@ cross-validation.
   Alpha corresponds to $(2*C)^{-1}$ in other linear models such as
   LogisticRegression or LinearSVC.
   %
+  \default{(0.1, 1.0, 10.0)}
   \item \fitInterceptDescription{True}
   \item \normalizeDescription{False}
   \item \xmlNode{scoring}, \xmlDesc{string, callable or None, optional}, is a
@@ -2393,6 +2479,8 @@ cross-validation.
   %
   \item \xmlNode{cv}, \xmlDesc{cross-validation generator, optional field}, if
   None, Generalized Cross-Validation (efficient leave-one-out) will be used.
+  %
+  \default{None}
   %
   \item \xmlNode{gcv\_mode}, \xmlDesc{\{None, `auto,' `svd,' `eigen'\}, optional
   field}, is a flag indicating which strategy to use when performing Generalized
@@ -2409,7 +2497,7 @@ cross-validation.
 	The `auto' mode is the default and is intended to pick the cheaper
   option of the two depending upon the shape and format of the training data.
   %
-  \default{`auto'}
+  \default{None}
   \item \xmlNode{store\_cv\_values}, \xmlDesc{boolean}, is a flag indicating if
   the cross-validation values corresponding to each alpha should be stored in
   the cv\_values\_attribute (see below).
@@ -2491,15 +2579,15 @@ training}{linear\_model|SGDClassifier}
   %
   \item \fitInterceptDescription{True}
   \item \nIterDescriptionB{5}
-  \item \shuffleDescription{False}
+  \item \shuffleDescription{True}
   \item \randomStateSVMDescription{None}
-  \item \verDescriptionB{}
+  \item \verDescriptionB{0}
   \item \xmlNode{epsilon}, \xmlDesc{int, optional field}, is the number of CPUs
   to use to do the OVA (One Versus All, for multi-class problems) computation.
   %
   -1 means `all CPUs.'
   %
-  \default{1}
+  \default{0.1}
   %
   \item \xmlNode{learning\_rate}, \xmlDesc{string, optional field}, specifies
   the learning rate:
@@ -2508,7 +2596,7 @@ training}{linear\_model|SGDClassifier}
     \item `optimal:' eta = 1.0 / (t + t0)
     \item `invscaling:' eta = eta0 / pow(t, power\_t)
   \end{itemize}
-  \default{invscaling}
+  \default{`optimal'}
   %
   \item \xmlNode{eta0}, \xmlDesc{double}, specifies the initial learning rate
   for the `constant' or `invscaling' schedules.
@@ -2533,9 +2621,13 @@ training}{linear\_model|SGDClassifier}
   The ``auto'' mode uses the values of y to automatically adjust weights
   inversely proportional to class frequencies.
   %
-  \item \warmStartDescription{}
+  \default{None}
+  %
+  \item \warmStartDescription{False}
   %
 \end{itemize}
+
+%TODO document average
 
 \subparagraph{Linear model fitted by minimizing a regularized empirical loss
 with SGD}
@@ -2556,7 +2648,7 @@ online feature selection.
 This implementation works with data represented as dense numpy arrays of
 floating point values for the features.
 %
-\skltype{Linear model fitted by minimizing a regularized empirical loss with SGD}{linear\_model|FW\_NAME}
+\skltype{Linear model fitted by minimizing a regularized empirical loss with SGD}{linear\_model|SGDRegressor}
 \begin{itemize}
   \item \xmlNode{loss}, \xmlDesc{str, `squared\_loss,' `huber,'
   `epsilon\_insensitive,' or `squared\_epsilon\_insensitive'}, specifies the
@@ -2598,9 +2690,9 @@ floating point values for the features.
   %
   \item \fitInterceptDescription{True}
   \item \nIterDescriptionB{5}
-  \item \shuffleDescription{False}
+  \item \shuffleDescription{True}
   \item \randomStateDescription{None}
-  \item \verDescriptionB{}
+  \item \verDescriptionB{0}
   %
   \item \xmlNode{epsilon}, \xmlDesc{float}, sets the epsilon in the
   epsilon-insensitive loss functions; only if loss is `huber,'
@@ -2611,6 +2703,8 @@ floating point values for the features.
   %
   For epsilon-insensitive, any differences between the current prediction and
   the correct label are ignored if they are less than this threshold.
+  %
+  \default{0.1}
   %
   \item \xmlNode{learning\_rate}, \xmlDesc{string, optional field},
   Learning rate:
@@ -2629,9 +2723,11 @@ floating point values for the features.
   %
   \default{0.25}
   %
-  \item \warmStartDescription{}
+  \item \warmStartDescription{False}
   %
 \end{itemize}
+
+%TODO document average
 
 \subparagraph{Compute Least Angle Regression or Lasso path using LARS algorithm}
 \mbox{}
@@ -2659,6 +2755,8 @@ regressor}{linear\_model|lars\_path}
   Precomputed Gram matrix (X' * X), if `auto', the Gram matrix is precomputed
   from the given X, if there are more samples than features.
   %
+  \default{None}
+  %
   \item \xmlNode{alpha\_min}, \xmlDesc{float, optional field}, sets the minimum
   correlation along the path.
   %
@@ -2680,8 +2778,15 @@ regressor}{linear\_model|lars\_path}
   %
   \default{``np.finfo(np.float).eps''}
   %
-  \item \verDescriptionB{}
+  \item \verDescriptionB{0}
 \end{itemize}
+
+%TODO document Xy
+%TODO document copy_X
+%TODO document copy_Gram
+%TODO document return_path
+%TODO document return_n_iter
+%TODO document positive
 
 \subparagraph{Compute Lasso path with coordinate descent}
 \mbox{}
@@ -2714,10 +2819,16 @@ i.e. the sum of norm of each row.
   eps=1e-3 means that alpha\_min / alpha\_max = 1e-3.
   \item \xmlNode{n\_alphas}, \xmlDesc{int, optional field}, is the number of
   alphas along the regularization path.
+  %
+  \default{100}
+  %
   \item \xmlNode{alphas}, \xmlDesc{ndarray, optional field}, lists the alphas
   where the models will be computed.
   %
   If None, alphas are set automatically.
+  %
+  \default{None}
+  %
   \item \xmlNode{precompute}, \xmlDesc{True | False | `auto' | array-like},
   decides whether to use a precomputed Gram matrix to speed up calculations or
   not.
@@ -2726,11 +2837,15 @@ i.e. the sum of norm of each row.
   %
   The Gram matrix can also be passed as argument.
   %
+  \default{`auto'}
+  %
   \item \xmlNode{Xy}, \xmlDesc{array-like, optional field},
   %
   Xy = np.dot(X.T, y) that can be precomputed.
   %
   It is useful only when the Gram matrix is precomputed.
+  %
+  \default{None}
   %
   \item \xmlNode{copy\_X}, \xmlDesc{boolean, optional field}, if True, X will be
   copied; else, it may be overwritten.
@@ -2740,8 +2855,12 @@ i.e. the sum of norm of each row.
   \item \xmlNode{coef\_init}, \xmlDesc{array, shape (n\_features, ) | None}, is
   the initial set of values of the coefficients.
   %
-  \item \verDescriptionB{}
+  \default{None}
+  \item \verDescriptionB{False}
 \end{itemize}
+
+%TODO document return_n_iter
+%TODO document positive
 
 \subparagraph{Stability path based on randomized Lasso estimates}
 \mbox{}
@@ -2760,9 +2879,13 @@ i.e. the sum of norm of each row.
   %
   Should be between 0 and 1.
   %
+  \default{0.5}
+  %
   \item \xmlNode{random\_state}, \xmlDesc{integer or
   numpy.random.RandomState, optional}, sets the generator used to randomize the
   design.
+  %
+  \default{None}
   %
   \item \xmlNode{n\_resampling}, \xmlDesc{int, optional}, sets the number of
   randomized models.
@@ -2788,8 +2911,13 @@ i.e. the sum of norm of each row.
   %
   \item \xmlNode{eps}, \xmlDesc{float, optional field}, is the smallest value of
   alpha / alpha\_max considered.
-  \item \verDescriptionB{}
+  %
+  \default{8.8817841970012523e-16}
+  %
+  \item \verDescriptionB{False}
 \end{itemize}
+
+%TODO document n_jobs
 
 \subparagraph{Gram Orthogonal Matching Pursuit (OMP)}
 \mbox{}
@@ -2814,10 +2942,19 @@ using only the Gram matrix, X.T * X, and the product, X.T * y.
   %
   If not None, overrides n\_nonzero\_coefs.
   %
+  \default{None}
+  %
   \item \xmlNode{norms\_squared}, \xmlDesc{array-like, shape(n\_targets)},
   %f\maljdan{needs description}
   %
+  \default{None}
+  %
 \end{itemize}
+
+%TODO document copy_Gram
+%TODO document copy_Xy
+%TODO document return_path
+%TODO document return_n_iter
 
 %%%%% ROM Model - SciKitLearn: Support Vector Machines %%%%%%%
 \paragraph{Support Vector Machines}
@@ -2858,13 +2995,13 @@ handled according to a one-vs-the-rest scheme.
 \skltype{Linear Support Vector Classifier}{svm|LinearSVC}
 \begin{itemize}
   \item \CSVMDescription{1.0}
-  \item \xmlNode{loss}, \xmlDesc{string, `l1' or `l2'}, specifies the loss
+  \item \xmlNode{loss}, \xmlDesc{string, `hinge' or `squared\_hinge'}, specifies the loss
   function.
   %
-  `l1' is the hinge loss (standard SVM) while `l2' is the squared hinge
+  `hinge' is the hinge loss (standard SVM) while `squared\_hinge' is the squared hinge
   loss.
   %
-  \default{`l2'}
+  \default{`squared\_hinge'}
   %
   \item \xmlNode{penalty}, \xmlDesc{string, `l1' or `l2'}, specifies the norm
   used in the penalization.
@@ -2878,11 +3015,11 @@ handled according to a one-vs-the-rest scheme.
   \item \xmlNode{dual}, \xmlDesc{boolean}, selects the algorithm to either solve
   the dual or primal optimization problem.
   %
-  Prefer dual=False when n\_samples > n\_features.
+  Prefer dual=False when n\_samples $>$ n\_features.
   %
   \default{True}
   %
-  \item \tolSVMDescription{}
+  \item \tolSVMDescription{1e-4}
   %
   \item \xmlNode{multi\_class}, \xmlDesc{string, `ovr' or `crammer\_singer'},
   %
@@ -2917,8 +3054,8 @@ handled according to a one-vs-the-rest scheme.
   %
   \default{1}
   %
-  \item \classWeightDescription{}
-  \item \verDescriptionB{}
+  \item \classWeightDescription{None}
+  \item \verDescriptionB{0}
   %
   \nb This setting takes advantage of a per-process runtime setting in liblinear
   that, if enabled, may not work properly in a multithreaded context.
@@ -2940,15 +3077,16 @@ The multiclass support is handled according to a one-vs-one scheme.
   \item \CSVMDescription{1.0}
   \item \kernelDescription{`rbf'}
   \item \degreeDescription{3.0}
-  \item \gammaDescription{0.0}
+  \item \gammaDescription{`auto'}
   \item \coefZeroDescription{0.0}
   \item \probabilityDescription{False}
   \item \shrinkingDescription{True}
-  \item \tolSVMDescription{}
+  \item \tolSVMDescription{1e-3}
   \item \cacheSizeDescription{}
-  \item \classWeightDescription{}
+  \item \classWeightDescription{None}
   \item \verSVMDescription{False}
   \item \maxIterDescription{-1}
+    %TODO: Should decision_function_shape be documented?
   \item \randomStateSVMDescription{None}
   %
 \end{itemize}
@@ -2972,15 +3110,16 @@ The implementation is based on libsvm.
   \default{0.5}
   %
   \item \kernelDescription{`rbf'}
-  \item \degreeDescription{3.0}
-  \item \gammaDescription{0.0}
+  \item \degreeDescription{3}
+  \item \gammaDescription{`auto'}
   \item \coefZeroDescription{0.0}
   \item \probabilityDescription{False}
   \item \shrinkingDescription{True}
-  \item \tolSVMDescription{}
+  \item \tolSVMDescription{1e-3}
   \item \cacheSizeDescription{}
   \item \verSVMDescription{False}
   \item \maxIterDescription{-1}
+    %TODO document decision_function_shape
   \item \randomStateSVMDescription{None}
   %
 \end{itemize}
@@ -3006,15 +3145,13 @@ The implementations is a based on libsvm.
   %
   \item \kernelDescription{`rbf'}
   \item \degreeDescription{3.0}
-  \item \gammaDescription{0.0}
+  \item \gammaDescription{`auto'}
   \item \coefZeroDescription{0.0}
-  \item \probabilityDescription{False}
   \item \shrinkingDescription{True}
-  \item \tolSVMDescription{}
+  \item \tolSVMDescription{1e-3}
   \item \cacheSizeDescription{}
   \item \verSVMDescription{False}
   \item \maxIterDescription{-1}
-  \item \randomStateSVMDescription{None}
   %
 \end{itemize}
  %%%%% ROM Model - SciKitLearn: MultiClass %%%%%%%
@@ -3051,6 +3188,7 @@ This is the most commonly used strategy and is a fair default choice.
 \begin{itemize}
   \item \estimatorDescription{}
 \end{itemize}
+%Should n_jobs be documented?
 
 %%%%%%%%%%%%
 \subparagraph{One-vs-one multiclass strategy}
@@ -3062,7 +3200,7 @@ per class pair.
 At prediction time, the class which received the most votes is selected.
 %
 Since it requires to fit n\_classes * (n\_classes - 1) / 2 classifiers, this
-method is usually slower than one-vs-the-rest, due to its O(n\_classes\^2)
+method is usually slower than one-vs-the-rest, due to its O(n\_classes$^2$)
 complexity.
 %
 However, this method may be advantageous for algorithms such as kernel
@@ -3076,6 +3214,7 @@ times.
 \begin{itemize}
   \item \estimatorDescription{}
 \end{itemize}
+%Should n_jobs be documented?
 
 %%%%%%%%%%%%%
 \subparagraph{Error-Correcting Output-Code multiclass strategy}
@@ -3103,6 +3242,8 @@ size < 1$) or for making the model more robust to errors ($code\_ size > 1$).
   A number greater than 1 will require more classifiers than one-vs-the-rest.
   %
 \end{itemize}
+%Should random_state and n_jobs be documented?
+
 %%%%%%%%%%%%%
 %\subparagraph{fit a one-vs-the-rest strategy}
 %pass
@@ -3233,7 +3374,7 @@ Lidstone smoothing.
 \skltype{Multinomial Naive Bayes strategy}{naiveBayes|MultinomialNB}
 \begin{itemize}
   \item \alphaBayesDescription{1.0}
-  \item \fitPriorDescription{False}
+  \item \fitPriorDescription{True}
   \item \classPriorDescription{None}
 \end{itemize}
 
@@ -3274,8 +3415,8 @@ It is advisable to evaluate both models, if time permits.
   %
   If None, input is presumed to already consist of binary vectors.
   %
-  \default{None}
-  \item \fitPriorDescription{False}
+  \default{0.0}
+  \item \fitPriorDescription{True}
   \item \classPriorDescription{None}
   %
 \end{itemize}
@@ -3328,6 +3469,9 @@ BallTree, KDTree, and a brute-force algorithm.
   \item \algorithmDescription{auto}
   \item \leafSizeDescription{30}
   \item \pDescription{2}
+    %TODO document metric
+    %TODO document metric_params
+    %TODO should n_jobs be documented?
 \end{itemize}
 %%%%%%%%%%%%%%%
 \subparagraph{K Neighbors Classifier}
@@ -3347,11 +3491,12 @@ where $k$ is an integer value specified by the user.
 \begin{itemize}
   \item \nNeighborsDescription{5}
   \item \weightsDescription{uniform}
-  \item \radiusDescription{1.0}
   \item \algorithmDescription{auto}
-  \item \metricDescription{minkowski}
   \item \leafSizeDescription{30}
+  \item \metricDescription{minkowski}
   \item \pDescription{2}
+    %TODO document metric_params
+    %TODO document n_jobs?
 \end{itemize}
 %%%%%%%%%%%%%%%
 \subparagraph{Radius Neighbors Classifier}
@@ -3370,14 +3515,14 @@ user.
 
 \skltype{Radius Neighbors Classifier}{neighbors|RadiusNeighbors}
 \begin{itemize}
-  \item \nNeighborsDescription{5}
-  \item \weightsDescription{uniform}
   \item \radiusDescription{1.0}
+  \item \weightsDescription{uniform}
   \item \algorithmDescription{auto}
-  \item \metricDescription{minkowski}
   \item \leafSizeDescription{30}
+  \item \metricDescription{minkowski}
   \item \pDescription{2}
   \item \outlierLabelDescription{None}
+    %TODO document metric_params
 \end{itemize}
 
 %%%%%%%%%%%%%%%
@@ -3397,11 +3542,12 @@ where $k$ is an integer value specified by the user.
 \begin{itemize}
   \item \nNeighborsDescription{5}
   \item \weightsDescription{uniform}
-  \item \radiusDescription{1.0}
   \item \algorithmDescription{auto}
-  \item \metricDescription{minkowski}
   \item \leafSizeDescription{30}
+  \item \metricDescription{minkowski}
   \item \pDescription{2}
+    %TODO document metric_params
+    %TODO document n_jobs?
 \end{itemize}
 
 %%%%%%%%%%%%%%%
@@ -3419,14 +3565,13 @@ query point, where $r$ is a floating-point value specified by the user.
 
 \skltype{Radius Neighbors Regressor}{neighbors|RadiusNeighborsRegressor}
 \begin{itemize}
-  \item \nNeighborsDescription{5}
-  \item \weightsDescription{uniform}
   \item \radiusDescription{1.0}
+  \item \weightsDescription{uniform}
   \item \algorithmDescription{auto}
-  \item \metricDescription{minkowski}
   \item \leafSizeDescription{30}
+  \item \metricDescription{minkowski}
   \item \pDescription{2}
-  \item \outlierLabelDescription{None}
+    %TODO document metric_params
 \end{itemize}
 %%%%%%%%%%%%%%%
 \subparagraph{Nearest Centroid Classifier}
@@ -3447,6 +3592,7 @@ drastically different variances, as equal variance in all dimensions is assumed.
   %
   \default{None}
   %
+  %TODO document metric
 \end{itemize}
 %\subparagraph{Ball Tree}
 %pass
@@ -3580,7 +3726,11 @@ decision tree logic.
   \item \maxDepthDescription{None}
   \item \minSamplesSplitDescription{2}
   \item \minSamplesLeafDescription{1}
+    %TODO document min_weight_fraction_leaf
   \item \maxLeafNodesDescription{None}
+    %TODO document class_weight
+    %TODO document random_state
+    %TODO document presort
 \end{itemize}
 
 %%%%%%%%%%%%%%%%
@@ -3591,13 +3741,16 @@ decision tree logic.
 %
 \skltype{Decision Tree Regressor}{tree|DecisionTreeRegressor}
 \begin{itemize}
-  \item \criterionDescription{gini}
+  \item \criterionDescriptionDT{mse}
   \item \splitterDescription{best}
   \item \maxFeaturesDescription{None}
   \item \maxDepthDescription{None}
   \item \minSamplesSplitDescription{2}
   \item \minSamplesLeafDescription{1}
+    %TODO document min_weight_fraction_leaf
   \item \maxLeafNodesDescription{None}
+    %TODO document random_state
+    %TODO document presort
 \end{itemize}
 
 %%%%%%%%%%%%%%%%
@@ -3618,12 +3771,15 @@ tree.
 
 \begin{itemize}
   \item \criterionDescription{gini}
-  \item \splitterDescription{best}
-  \item \maxFeaturesDescription{None}
+  \item \splitterDescription{random}
+  \item \maxFeaturesDescription{auto}
   \item \maxDepthDescription{None}
   \item \minSamplesSplitDescription{2}
   \item \minSamplesLeafDescription{1}
+    %TODO document min_weight_fraction_leaf
   \item \maxLeafNodesDescription{None}
+    %TODO document random_state
+    %TODO document class_weight
   %
 \end{itemize}
 
@@ -3645,13 +3801,15 @@ tree.
 \skltype{Extra Tree Regressor}{tree|ExtraTreeRegressor}
 
 \begin{itemize}
-  \item \criterionDescription{gini}
-  \item \splitterDescription{best}
-  \item \maxFeaturesDescription{None}
+  \item \criterionDescriptionDT{mse}
+  \item \splitterDescription{random}
+  \item \maxFeaturesDescription{auto}
   \item \maxDepthDescription{None}
   \item \minSamplesSplitDescription{2}
   \item \minSamplesLeafDescription{1}
+    %TODO document min_weight_fraction_leaf
   \item \maxLeafNodesDescription{None}
+    %TODO document random_state
 \end{itemize}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -3718,7 +3876,7 @@ The disadvantages of Gaussian Processes for Machine Learning include:
   \item \xmlNode{beta0}, \xmlDesc{float, array-like, optional field}, specifies
   the regression weight vector to perform Ordinary Kriging (OK).
   %
-  \default{Universal Kriging}
+  \default{None}
   \item \xmlNode{storage\_mode}, \xmlDesc{string, optional field}, specifies
   whether the Cholesky decomposition of the correlation matrix should be stored
   in the class (storage\_mode = `full') or not (storage\_mode = `light').
@@ -3782,7 +3940,7 @@ The disadvantages of Gaussian Processes for Machine Learning include:
   \item \xmlNode{random\_state}, \xmlDesc{integer, optional field}, is the seed
   of the internal random number generator.
   %
-  \default{random}
+  \default{None}
   %
 \end{itemize}
 
@@ -3856,14 +4014,13 @@ to be aware of (i.e. the variables are going to directly be used by the code)
 and not the local variables that the user does not want to, for example, store
 in a RAVEN internal object.
 %
-These variables are specified within consecutive \xmlNode{variable} blocks:
+These variables are specified within a \xmlNode{variables} block:
 \begin{itemize}
-  \item \xmlNode{variable}, \xmlDesc{string, required parameter}.
+  \item \xmlNode{variables}, \xmlDesc{string, required parameter}.
   %
-  In the body of this XML node, the user needs to specify the name of the
-  variable.
+  Comma-separated list of variable names.
   %
-  This variable needs to match a variable used/defined in the external python
+  Each variable name needs to match a variable used/defined in the external python
   model.
   %
 \end{itemize}
@@ -3931,9 +4088,7 @@ Example XML:
   <Models>
      ...
     <ExternalModel name='AnExtModule' subType='' ModuleToLoad='path_to_external_module'>
-       <variable>sigma</variable>
-       <variable>rho</variable>
-       <variable>outcome</variable>
+       <variables>sigma,rho,outcome</variables>
        <!--
           here we define other XML nodes RAVEN does not read automatically.
           We need to implement, in the external module 'AnExtModule' the readMoreXML method
@@ -4834,8 +4989,8 @@ purpose Post-Processors.
   lists the method names of a method that will be computed (each
   returning a post-processing value). All available methods need to be included
   in the ``/raven/framework/PostProcessorFunctions/'' folder
-
 \end{itemize}
+
 \textbf{Example:}
 \begin{lstlisting}[style=XML,morekeywords={subType,debug,name,class,type}]
 <Simulation>
@@ -4932,7 +5087,79 @@ inputDict['output'][hist2] = {'time': array([ .1,.2,.3]),
                               'outputVar1':array([ .14,.15,.16])}
 \end{lstlisting}
 
+\paragraph{Method: HistorySetSampling}
+This Post-Processor performs the conversion from HistorySet to HistorySet
+The conversion is made so that each history H is re-sampled accordingly  to a
+specific sampling strategy.
+It can be used to reduce the amount of space required by the HistorySet.
 
+In the \xmlNode{PostProcessor} input block, the following XML sub-nodes are required,
+independent of the \xmlAttr{subType} specified:
 
+\begin{itemize}
+   \item \xmlNode{samplingType}, \xmlDesc{string, required field}, specifies the type of sampling method to be used (uniform, firstDerivative secondDerivative, filteredFirstDerivative or
+   filteredSecondDerivative).
+   \item \xmlNode{numberOfSamples}, \xmlDesc{integer, optional field}, number of samples (required only for the following sampling types: uniform, firstDerivative secondDerivative)
+   \item \xmlNode{timeID}, \xmlDesc{string, required field}, ID of the temporal variable
+   \item \xmlNode{interpolation}, \xmlDesc{string, optional field}, type of interpolation to be employed for the history recostruction (required only for the following sampling types: uniform,
+   firstDerivative secondDerivative)
+   \item \xmlNode{tolerance}, \xmlDesc{string, optional field}, tolerance level (required only for the following sampling types: filteredFirstDerivative or filteredSecondDerivative)
+\end{itemize}
 
+\paragraph{Method: HistorySetSync}
+This Post-Processor performs the conversion from HistorySet to HistorySet
+The conversion is made so that all histories are syncronized in time.
+It can be used to allow the histories to be sampled at the same time instant.
 
+In the \xmlNode{PostProcessor} input block, the following XML sub-nodes are required,
+independent of the \xmlAttr{subType} specified:
+
+\begin{itemize}
+   \item \xmlNode{numberOfSamples}, \xmlDesc{integer, required field}, number of samples 
+   \item \xmlNode{timeID}, \xmlDesc{string, required field}, ID of the temporal variable
+   \item \xmlNode{extension}, \xmlDesc{string, required field}, type of extension when the sync process goes outside the boundaries of the history (zeroed or extended)
+\end{itemize}
+
+\paragraph{Method: HistorySetSnapShot}
+This Post-Processor performs the conversion from HistorySet to PointSet
+The conversion is made so that each history H is converted to a single point P.
+Assume that each history H is a dict of n output variables $x_1=[...], x_n=[...]$, then the resulting point P can be as follows accordingly to the specified type:
+\begin{itemize}
+  \item type = timeSlice: at time instant t: $P=[x_1[t],...,x_n[t]]$
+  \item type = min, max, avg, value: it takes the min, max, avg or a specific value of a specific variable
+\end{itemize}
+ 
+In the \xmlNode{PostProcessor} input block, the following XML sub-nodes are required,
+independent of the \xmlAttr{subType} specified (timeSlice case):
+
+\begin{itemize}
+   \item \xmlNode{type}, \xmlDesc{string, required field}, type of window (timeSlice) 
+   \item \xmlNode{timeInstant}, \xmlDesc{integer, required field}, location of the time slice 
+   \item \xmlNode{numberOfSamples}, \xmlDesc{integer, required field}, number of samples
+   \item \xmlNode{timeID}, \xmlDesc{string, required field}, ID of the temporal variable
+   \item \xmlNode{extension}, \xmlDesc{string, required field}, type of extension when the sync process goes outside the boundaries of the history (zeroed or extended)
+\end{itemize}
+
+In the \xmlNode{PostProcessor} input block, the following XML sub-nodes are required,
+independent of the \xmlAttr{subType} specified (min, max, avg and value case):
+
+\begin{itemize}
+   \item \xmlNode{type}, \xmlDesc{string, required field}, type of window ((min, max, avg or value) 
+   \item \xmlNode{pivotVar}, \xmlDesc{integer, optional field},  ID of the chosen variable
+   \item \xmlNode{timeID}, \xmlDesc{string, optional field}, ID of the temporal variable (only for avg)
+   \item \xmlNode{pivotVal}, \xmlDesc{integer, optional field},  value for the chosen variable (only for value)
+\end{itemize}
+   
+\paragraph{Method: HSPS}
+
+This Post-Processor performs the conversion from HistorySet to PointSet
+The conversion is made so that each history H is converted to a single point P.
+Assume that each history H is a dict of n output variables $x_1=[...],x_n=[...]$, then the resulting point P is as follows; $P=[x_1,...,x_n]$
+Note: it is here assumed that all histories have been sync so that they have the same length, start point and end point. If you are not sure, do a pre-processing the the original history set.
+
+In the \xmlNode{PostProcessor} input block, the following XML sub-nodes are required,
+independent of the \xmlAttr{subType} specified (min, max, avg and value case):
+
+\begin{itemize}
+   \item \xmlNode{timeID}, \xmlDesc{string, optional field}, ID of the temporal variable (only for avg)
+\end{itemize}

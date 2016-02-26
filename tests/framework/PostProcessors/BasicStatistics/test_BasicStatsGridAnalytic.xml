@@ -12,16 +12,13 @@
 
   <Models>
     <ExternalModel ModuleToLoad="simpleMirrowModel" name="mirrowModel" subType="">
-      <variable>x</variable>
-      <variable>y</variable>
-      <variable>x1</variable>
+      <variables>x,y,x1,y1</variables>
     </ExternalModel>
     <PostProcessor name="analyticalTest" subType="BasicStatistics" verbosity="debug">
-      <what>expectedValue,sigma,variance,kurtosis,percentile_10%,percentile_99%,variationCoefficient,skewness,median</what>
-      <parameters>x,y,x1</parameters>
+      <what>all</what>
+      <parameters>x1,y1</parameters>
     </PostProcessor>
   </Models>
-
 
   <Distributions>
     <Normal name="x0_distrib">
@@ -63,7 +60,6 @@
     </PostProcess>
   </Steps>
 
-
   <OutStreamManager>
     <Print name="outputDatagrid_dump">
       <type>csv</type>
@@ -72,13 +68,13 @@
   </OutStreamManager>
 
   <DataObjects>
-      <Point name="inputPlaceHolder">
-          <Input>x,y</Input>
-          <Output>OutputPlaceHolder</Output>
-      </Point>
+    <Point name="inputPlaceHolder">
+      <Input>x,y</Input>
+      <Output>OutputPlaceHolder</Output>
+    </Point>
     <PointSet name="outputDataGrid">
-        <Input>x,y</Input>
-        <Output>x1</Output>
+      <Input>x,y</Input>
+      <Output>x1,y1</Output>
     </PointSet>
   </DataObjects>
 
