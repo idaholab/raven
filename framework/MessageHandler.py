@@ -276,12 +276,10 @@ class MessageHandler(object):
     verbval = max(self.getDesiredVerbosity(caller),self.checkVerbosity(self.verbosity))
     if not self.suppressErrs:
       self.printWarnings()
-      # debug mode gets full traceback
-      if verbval==3:
-        raise etype(msg)
-      # all, quiet, silent only raise error, no traceback
-      sys.tracebacklimit=0
-      raise etype(msg)
+      # debug mode gets full traceback, others quieted
+      if verbval<3: #all, quiet, silent
+        sys.tracebacklimit=0
+      raise etype(message)
     else:
       print('\n'+etype.__name__+':',message,file=sys.stderr)
 
