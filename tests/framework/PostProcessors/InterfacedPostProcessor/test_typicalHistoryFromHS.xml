@@ -25,9 +25,8 @@
 		<PostProcess name='pp' pauseAtEnd = 'True'>
 			<Input    class = 'DataObjects'       type = 'HistorySet'       >windRawData</Input>
 			<Model   class='Models' 			  type = 'PostProcessor'    >TypicalHistory</Model>
-			<Output    class = 'DataObjects'       type = 'History'    	 >windTypicalData</Output>
+			<Output    class = 'DataObjects'       type = 'HistorySet'    	 >windTypicalData</Output>
 		</PostProcess>
-
         <IOStep name='writeOut' pauseAtEnd = 'True'>
 			<Input    class = 'DataObjects'       type = 'HistorySet'       >windRawData</Input>
 			<Input    class = 'DataObjects'       type = 'History'    	 >windTypicalData</Input>
@@ -67,10 +66,6 @@
 				</plot>
 			</plotSettings>
 			<actions>
-				<range>
-					<xmin>0</xmin><xmax>31536000</xmax>
-					<ymin>0</ymin><ymax>30</ymax>
-				</range>
 				<how>png</how>
 			</actions>
 	    </Plot>
