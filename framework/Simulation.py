@@ -278,7 +278,10 @@ class Simulation(MessageHandler.MessageUser):
     callerLength        = 25
     tagLength           = 15
     suppressErrs        = False
-    self.messageHandler.initialize({'verbosity':self.verbosity, 'callerLength':callerLength, 'tagLength':tagLength, 'suppressErrs':suppressErrs})
+    self.messageHandler.initialize({'verbosity':self.verbosity,
+                                    'callerLength':callerLength,
+                                    'tagLength':tagLength,
+                                    'suppressErrs':suppressErrs})
     readtime = datetime.datetime.fromtimestamp(self.messageHandler.starttime).strftime('%Y-%m-%d %H:%M:%S')
     sys.path.append(os.getcwd())
     #this dictionary contains the general info to run the simulation
@@ -438,7 +441,7 @@ class Simulation(MessageHandler.MessageUser):
       @ In, xmlFilename, optional string, xml filename for relative directory
       @ Out, None
     """
-    unknownAttribs = utils.checkIfUnknowElementsinList(['printTimeStamps','verbosity'],list(xmlNode.attrib.keys()))
+    unknownAttribs = utils.checkIfUnknowElementsinList(['printTimeStamps','verbosity','color'],list(xmlNode.attrib.keys()))
     if len(unknownAttribs) > 0:
       errorMsg = 'The following attributes are unknown:'
       for element in unknownAttribs: errorMsg += ' ' + element
@@ -447,6 +450,9 @@ class Simulation(MessageHandler.MessageUser):
     if 'printTimeStamps' in xmlNode.attrib.keys():
       self.raiseADebug('Setting "printTimeStamps" to',xmlNode.attrib['printTimeStamps'])
       self.messageHandler.setTimePrint(xmlNode.attrib['printTimeStamps'])
+    if 'color' in xmlNode.attrib.keys():
+      self.raiseADebug('Setting color output mode to',xmlNode.attrib['color'])
+      self.messageHandler.setColor(xmlNode.attrib['color'])
     self.messageHandler.verbosity = self.verbosity
     try:    runInfoNode = xmlNode.find('RunInfo')
     except: self.raiseAnError(IOError,'The run info node is mandatory')
@@ -669,7 +675,7 @@ class Simulation(MessageHandler.MessageUser):
     msg=__prntDict(self.OutStreamManagerPrintDict,msg)
     msg=__prntDict(self.addWhatDict,msg)
     msg=__prntDict(self.whichDict,msg)
-    self.raiseAMessage(msg)
+    self.raiseADebug(msg)
 
   def run(self):
     """run the simulation"""
@@ -684,8 +690,7 @@ class Simulation(MessageHandler.MessageUser):
     #loop over the steps of the simulation
     for stepName in self.stepSequenceList:
       stepInstance                     = self.stepsDict[stepName]   #retrieve the instance of the step
-      self.raiseAMessage('')
-      self.raiseAMessage('-'*2+' Beginning step {0:50}'.format(stepName+' of type: '+stepInstance.type)+2*'-')
+      self.raiseAMessage('-'*2+' Beginning step {0:50}'.format(stepName+' of type: '+stepInstance.type)+2*'-')#,color='green')
       self.runInfoDict['stepName']     = stepName                   #provide the name of the step to runInfoDict
       stepInputDict                    = {}                         #initialize the input dictionary for a step. Never use an old one!!!!!
       stepInputDict['Input' ]          = []                         #set the Input to an empty list
@@ -732,4 +737,6 @@ class Simulation(MessageHandler.MessageUser):
         if self.FIXME: self.raiseAMessage('This is for the filter, it needs to go when the filtering strategy is done')
         if "finalize" in dir(output):
           output.finalize()
-      self.raiseAMessage('-'*2+' End step {0:50} '.format(stepName+' of type: '+stepInstance.type)+2*'-')
+      self.raiseAMessage('-'*2+' End step {0:50} '.format(stepName+' of type: '+stepInstance.type)+2*'-'+'\n')#,color='green')
+    self.raiseAMessage('Run complete!')
+    self.messageHandler.printWarnings()

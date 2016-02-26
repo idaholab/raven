@@ -102,8 +102,9 @@
                 <xsd:element name="Databases"        type="DatabaseType"     minOccurs="0"/>
                 <xsd:element name="OutStreamManager" type="OutStreamData"    minOccurs="0"/>
             </xsd:all>
-            <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
+            <xsd:attribute name="verbosity"       type="verbosityAttr" default="all"/>
             <xsd:attribute name="printTimeStamps" type="RavenBool" />
+            <xsd:attribute name="color"           type="RavenBool" />
         </xsd:complexType>
         <xsd:key name="distName">
             <xsd:selector xpath="./Distributions/*"/>
