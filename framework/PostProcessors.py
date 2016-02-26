@@ -1129,23 +1129,25 @@ class PrintCSV(BasePostProcessor):
 #
 #
 #
-class ImportantRank(BasePostProcessor):
+class ImportanceRank(BasePostProcessor):
   """
-    ImportantRank class. It compute the important rank for given input parameters
+    ImportantRank class. It computes the important rank for given input parameters
+    1. The importance of input parameters can be ranked via their sensitivies (SI: sensitivity index)
+    2. The importance of input parameters can also be ranked via their sensitivies and covariances (II: importance index)
   """
   def __init__(self, messageHandler):
     """
-     Constructor
-     @ In, messageHandler, message handler object
+      Constructor
+      @ In, messageHandler, message handler object
     """
     BasePostProcessor.__init__(self, messageHandler)
     self.targets = []
     self.features = []
     self.dimensions = []
     self.mvnDistribution = None
-    self.acceptedMetric = ['all','sen','sen-cov']
+    self.acceptedMetric = ['all','SensitivityIndex','ImportanceIndex']
     self.what = self.acceptedMetric # what needs to be computed, default is all
-    self.printTag = 'POSTPROCESSOR IMPORTANT RANK'
+    self.printTag = 'POSTPROCESSOR IMPORTANTANCE RANK'
     self.requiredAssObject = (True,(['Distributions'],[-1]))
     self.transformation = False
 
@@ -1154,14 +1156,18 @@ class ImportantRank(BasePostProcessor):
       This method is local mirror of the general whatDoINeed method
       It is implemented by this postprocessor that need to request special objects
       @ In, None
-      @ Out, needDict, list of objects needed
+      @ Out, needDict, dict, list of objects needed
     """
     needDict = {'Distributions':[]}
     needDict['Distributions'].append((None,self.mvnDistribution))
     return needDict
 
   def _localGenerateAssembler(self,initDict):
-    """ see generateAssembler method in Assembler """
+    """
+      see generateAssembler method in Assembler
+      @ In, initDict, dict, dictionary ({'mainClassName':{'specializedObjectName':ObjectInstance}})
+      @ Out, None
+    """
     distName = self.mvnDistribution
     if not distName or distName not in initDict['Distributions'].keys():
       self.raiseAnError(IOError, 'distribution ' + distName + ' not found!')
@@ -1183,7 +1189,7 @@ class ImportantRank(BasePostProcessor):
           for metric in self.what.split(','):
             toCalculate.append(metric.strip())
             if metric not in self.acceptedMetric:
-              self.raiseAnError(IOError, 'Important rank postprocessor asked unknown operation ' + metric + '. Available ' + str(self.acceptedMetric))
+              self.raiseAnError(IOError, 'Importance rank postprocessor asked unknown operation ' + metric + '. Available ' + str(self.acceptedMetric))
           self.what = toCalculate
       if child.tag == 'targets':
         self.targets = list(inp.strip() for inp in child.text.strip().split(','))
@@ -1208,11 +1214,9 @@ class ImportantRank(BasePostProcessor):
   def collectOutput(self,finishedJob, output):
     """
       Function to place all of the computed data into the output object
-      @ In, finishedJob, JobHandler object that is in charge of running this post-processor
+      @ In, finishedJob, object, JobHandler object that is in charge of running this postprocessor
       @ In, output, object, the object where we want to place our computed results
       @ Out, None
-
-      put data into dataobjects
     """
     parameterSet = list(set(list(self.features)))
     if finishedJob.returnEvaluation() == -1: self.raiseAnError(RuntimeError, ' No available output to collect (Run probably is not finished yet)')
@@ -1234,16 +1238,15 @@ class ImportantRank(BasePostProcessor):
       maxLength = max(len(max(parameterSet, key = len)) + 5, 16)
       # Output all metrics to given file
       for what in outputDict.keys():
-        if what in ['sen-cov', 'sen']:
+        if what in ['SensitivityIndex', 'ImportanceIndex']:
           self.raiseADebug('Writing parameter rank for metric ' + what)
-          output.write(what + os.linesep)
           for target in self.targets:
             if outputExtension != 'csv':
               output.write('Parameters' + ' ' * maxLength + ''.join([str(item[0]) + ' ' * (maxLength - len(item)) for item in outputDict[what][target]]) + os.linesep)
-              output.write('ImportantWeights' + ' ' * maxLength + ''.join(['%.8E' % item[1] + ' ' * (maxLength -14) for item in outputDict[what][target]]) + os.linesep)
+              output.write(what + ' ' * maxLength + ''.join(['%.8E' % item[1] + ' ' * (maxLength -14) for item in outputDict[what][target]]) + os.linesep)
             else:
               output.write('Parameters'  + ''.join([separator + str(item[0])  for item in outputDict[what][target]]) + os.linesep)
-              output.write('ImportantWeights' + ''.join([separator + '%.8E' % item[1] for item in outputDict[what][target]]) + os.linesep)
+              output.write(what + ''.join([separator + '%.8E' % item[1] for item in outputDict[what][target]]) + os.linesep)
           output.write(os.linesep)
     # Output to DataObjects
     elif output.type in ['PointSet','Point','History','HistorySet']:
@@ -1258,22 +1261,20 @@ class ImportantRank(BasePostProcessor):
 
   def initialize(self, runInfo, inputs, initDict) :
     """
-     Method to initialize the pp.
-     @ In, runInfo, dict, dictionary of run info (e.g. working dir, etc)
-     @ In, inputs, list, list of inputs
-     @ In, initDict, dict, dictionary with initialization options
+      Method to initialize the pp.
+      @ In, runInfo, dict, dictionary of run info (e.g. working dir, etc)
+      @ In, inputs, list, list of inputs
+      @ In, initDict, dict, dictionary with initialization options
     """
     BasePostProcessor.initialize(self, runInfo, inputs, initDict)
     self.__workingDir = runInfo['WorkingDir']
 
   def inputToInternal(self, currentInp):
     """
-     Method to convert an input object into the internal format that is
-     understandable by this pp.
-     @ In, currentInput, object, an object that needs to be converted
-     @ Out, inputDict, dictionary of the converted data
+      Method to convert an input object into the internal format that is understandable by this pp.
+      @ In, currentInput, object, an object that needs to be converted
+      @ Out, inputDict, dictionary of the converted data
     """
-    # each post processor knows how to handle the coming inputs. The BasicStatistics postprocessor accept all the input type (files (csv only), hdf5 and datas
     if type(currentInp) == list  : currentInput = currentInp [-1]
     else                         : currentInput = currentInp
     if type(currentInput) == dict:
@@ -1309,12 +1310,9 @@ class ImportantRank(BasePostProcessor):
 
   def run(self, inputIn):
     """
-     This method executes the postprocessor action.
-     @ In,  inputIn, object, object contained the data to process. (inputToInternal output)
-     @ Out, dictionary, Dictionary containing the evaluated data
-
-     sensitivity calculation, singular value re-arrange, output, ...
-     model.run(inputIn)
+      This method executes the postprocessor action.
+      @ In,  inputIn, object, object contained the data to process. (inputToInternal output)
+      @ Out, dictionary, Dictionary containing the evaluated data
     """
     inputDict = self.inputToInternal(inputIn)
     outputDict = {}
@@ -1332,12 +1330,12 @@ class ImportantRank(BasePostProcessor):
       senCoeffDict[target] = featCoeffs
     for what in self.what:
       if what not in outputDict.keys(): outputDict[what] = {}
-      if what == 'sen':
+      if what == 'SensitivityIndex':
         for target in self.targets:
           entries = senWeightDict[target]
           entries.sort(key=lambda x: x[1],reverse=True)
           outputDict[what][target] = entries
-      if what == 'sen-cov':
+      if what == 'ImportanceIndex':
         for target in self.targets:
           featCoeffs = senCoeffDict[target]
           featWeights = []
@@ -3162,7 +3160,7 @@ __interFaceDict['ComparisonStatistics'     ] = ComparisonStatistics
 __interFaceDict['External'                 ] = ExternalPostProcessor
 __interFaceDict['TopologicalDecomposition' ] = TopologicalDecomposition
 __interFaceDict['DataMining'               ] = DataMining
-__interFaceDict['ImportantRank'            ] = ImportantRank
+__interFaceDict['ImportanceRank'            ] = ImportanceRank
 __knownTypes = __interFaceDict.keys()
 
 def knownTypes():
