@@ -273,18 +273,18 @@ class MessageHandler(object):
       @ In, color, optional string, color to apply to message
       @ Out, None
     """
-    #okay,msg = self._printMessage(caller,message,tag,self.checkVerbosity(verbosity))
     verbval = max(self.getDesiredVerbosity(caller),self.checkVerbosity(self.verbosity))
-    #if okay:
-    self.message(caller,message,tag,verbosity,color)
-    # if in debug mode, raise error so user gets trace
-    if not self.suppressErrs and verbval==3:
-      self.printWarnings()
-      raise etype(message) #DEBUG mode without suppression
-    #otherwise, just exit
-    if not self.suppressErrs: #exit after print
-      self.printWarnings()
-      sys.exit(1)
+    if okay:
+      if not self.suppressErrs:
+        self.printWarnings()
+        # debug mode gets full traceback
+        if verbval==3:
+          raise etype(msg)
+        # all, quiet, silent only raise error, no traceback
+        sys.tracebacklimit=0
+        raise etype(msg)
+      else:
+        print('\n'+etype.__name__+':',message,file=sys.stderr)
 
   def message(self,caller,message,tag,verbosity,color=None):
     """
