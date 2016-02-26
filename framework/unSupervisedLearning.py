@@ -798,8 +798,7 @@ class temporalSciKitLearn(unSupervisedLearning):
     clusterCenter = np.zeros(shape=(noCluster,len(self.features)))
     for cnt, feat in enumerate(self.features):
       for ind, l in enumerate(point.keys()):
-        clusterCenter[ind,cnt] = np.average(data[feat][point[l]])
-    self.raiseADebug(clusterCenter)    
+        clusterCenter[ind,cnt] = np.average(data[feat][point[l]])    
     return clusterCenter
   
   def __computeDist__(self,t,n1,n2,opt,keyC): 
