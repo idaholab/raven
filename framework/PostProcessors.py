@@ -1147,6 +1147,7 @@ class ImportantRank(BasePostProcessor):
     self.what = self.acceptedMetric # what needs to be computed, default is all
     self.printTag = 'POSTPROCESSOR IMPORTANT RANK'
     self.requiredAssObject = (True,(['Distributions'],[-1]))
+    self.transformation = False
 
   def _localWhatDoINeed(self):
     """
@@ -1187,6 +1188,14 @@ class ImportantRank(BasePostProcessor):
       if child.tag == 'targets':
         self.targets = list(inp.strip() for inp in child.text.strip().split(','))
       if child.tag == 'features':
+        if 'type' in child.attrib.keys():
+          featureType = child.attrib['type']
+          if featureType.strip() == 'latent':
+            self.transformation = True
+          elif featureType.strip() == '':
+            self.transformation = False
+          else:
+            self.raiseAnError(IOError,'type: ' + str(child.attrib['type']) + ' is unsupported for node: ' + str(child.tag) + '!')
         self.features = list(inp.strip() for inp in child.text.strip().split(','))
       if child.tag == 'dimensions':
         self.dimensions = list(int(inp.strip()) for inp in child.text.strip().split(','))
@@ -1222,19 +1231,20 @@ class ImportantRank(BasePostProcessor):
       output.setPath(self.__workingDir)
       self.raiseADebug('Dumping output in file named ' + output.getAbsFile())
       output.open('w')
-      output.write('ComputedQuantities'+separator+separator.join(parameterSet) + os.linesep)
-      quantitiesToWrite = {}
       maxLength = max(len(max(parameterSet, key = len)) + 5, 16)
       # Output all metrics to given file
       for what in outputDict.keys():
         if what in ['sen-cov', 'sen']:
           self.raiseADebug('Writing parameter rank for metric ' + what)
-          output.write(os.linesep)
           output.write(what + os.linesep)
-          if outputExtension !='csv': output.write('Parameters' + ' ' * maxLength + ''.join([str(item) + ' ' * (maxLength - len(item)) for item in parameterSet]) + os.linesep)
-          else: output.write('Parameters' + separator + ''.join([str(item) + separator for item in parameterSet]) + os.linesep)
-          if outputExtension != 'csv': output.write('ImportantWeights ' + ' ' * maxLength + ''.join(['%.8E' % item + ' ' * (maxLength -14) for item in outputDict[what]]) + os.linesep)
-          else: output.write('ImportantWeights ' + ''.join([separator + '%.8E' % item for item in outputDict[what]]) + os.linesep)
+          for target in self.targets:
+            if outputExtension != 'csv':
+              output.write('Parameters' + ' ' * maxLength + ''.join([str(item[0]) + ' ' * (maxLength - len(item)) for item in outputDict[what][target]]) + os.linesep)
+              output.write('ImportantWeights' + ' ' * maxLength + ''.join(['%.8E' % item[1] + ' ' * (maxLength -14) for item in outputDict[what][target]]) + os.linesep)
+            else:
+              output.write('Parameters'  + ''.join([separator + str(item[0])  for item in outputDict[what][target]]) + os.linesep)
+              output.write('ImportantWeights' + ''.join([separator + '%.8E' % item[1] for item in outputDict[what][target]]) + os.linesep)
+          output.write(os.linesep)
     # Output to DataObjects
     elif output.type in ['PointSet','Point','History','HistorySet']:
       self.raiseADebug('Dumping output in data object named ' + output.name)
@@ -1245,7 +1255,6 @@ class ImportantRank(BasePostProcessor):
         #output.updateMetadata(what.replace("|","-"), outputDict[what])
     elif output.type == 'HDF5' : self.raiseAWarning('Output type ' + str(output.type) + ' not yet implemented. Skip it !!!!!')
     else: self.raiseAnError(IOError, 'Output type ' + str(output.type) + ' unknown.')
-
 
   def initialize(self, runInfo, inputs, initDict) :
     """
@@ -1269,7 +1278,7 @@ class ImportantRank(BasePostProcessor):
     else                         : currentInput = currentInp
     if type(currentInput) == dict:
       if 'targets' in currentInput.keys(): return currentInput
-    inputDict = {'targets':{}, 'metadata':{}}
+    inputDict = {'targets':{}, 'metadata':{}, 'features':{}}
     if hasattr(currentInput,'type'):
       inType = currentInput.type
     else:
@@ -1280,12 +1289,16 @@ class ImportantRank(BasePostProcessor):
     if isinstance(inType,Files.File):
       if currentInput.subtype == 'csv': pass
     if inType in ['PointSet']:
-      for targetP in self.features:
-        if   targetP in currentInput.getParaKeys('input'):
-          inputDict['targets'][targetP] = currentInput.getParam('input' , targetP)
+      for feat in self.features:
+        if feat in currentInput.getParaKeys('input'):
+          inputDict['features'][feat] = currentInput.getParam('input', feat)
+        else:
+          self.raiseAError(IOError,'Parameter ' + str(feat) + ' is listed ImportantRank postprocessor features, but not found in the provided input!')
       for targetP in self.targets:
         if targetP in currentInput.getParaKeys('output'):
           inputDict['targets'][targetP] = currentInput.getParam('output', targetP)
+        else:
+          self.raiseAError(IOError,'Parameter ' + str(targetP) + ' is listed ImportantRank postprocessor targets, but not found in the provided input!')
       inputDict['metadata'] = currentInput.getAllMetadata()
       # now we check if the sampler that genereted the samples are from adaptive... in case... create the grid
       if 'SamplerType' in inputDict['metadata'].keys(): pass
@@ -1305,22 +1318,47 @@ class ImportantRank(BasePostProcessor):
     """
     inputDict = self.inputToInternal(inputIn)
     outputDict = {}
+    senCoeffDict = {}
+    senWeightDict = {}
+    # compute sensitivities of targets with respect to features
+    featValues = []
+    for feat in self.features:
+      featValues.append(inputDict['features'][feat])
+    sampledFeatMatrix = np.atleast_2d(np.asarray(featValues)).T
+    for target in self.targets:
+      featCoeffs = LinearRegression().fit(sampledFeatMatrix, inputDict['targets'][target]).coef_
+      featWeights = abs(featCoeffs)/np.sum(abs(featCoeffs))
+      senWeightDict[target] = list(zip(self.features,featWeights))
+      senCoeffDict[target] = featCoeffs
     for what in self.what:
-      if what not in outputDict.keys(): outputDict[what] = []
+      if what not in outputDict.keys(): outputDict[what] = {}
       if what == 'sen':
-        outputDict[what] = range(len(self.features))
-        pass
+        for target in self.targets:
+          entries = senWeightDict[target]
+          entries.sort(key=lambda x: x[1],reverse=True)
+          outputDict[what][target] = entries
       if what == 'sen-cov':
-        outputDict[what] = range(len(self.features))
-        pass
-
-    # print on screan
-    msg = os.linesep
-    maxLength = max(len(max(self.features,key = len)) + 5, 16)
-    if 'sen' in outputDict.keys():
-      msg += ' ' * maxLength + '***********************************' + os.linesep
-      msg += ' ' * maxLength + '        sensitivity weight         ' + os.linesep
-      msg += ' ' * maxLength + '***********************************' + os.linesep
+        for target in self.targets:
+          featCoeffs = senCoeffDict[target]
+          featWeights = []
+          if not self.transformation:
+            for index,feat in enumerate(self.features):
+              totDim = self.mvnDistribution.dimension
+              covIndex = totDim * (self.dimensions[index] - 1) + self.dimensions[index] - 1
+              if self.mvnDistribution.covarianceType == 'abs':
+                covTarget = featCoeffs[index] * self.mvnDistribution.covariance[covIndex] * featCoeffs[index]
+              else:
+                covFeature = self.mvnDistribution.covariance[covIndex]/self.mvnDistribution.mu[self.dimensions[index]-1]**2
+                covTarget = featCoeffs[index] * covFeature * featCoeffs[index]
+              featWeights.append(covTarget)
+            featWeights = featWeights/np.sum(featWeights)
+            entries = list(zip(self.features,featWeights))
+            entries.sort(key=lambda x: x[1],reverse=True)
+            outputDict[what][target] = entries
+          else:
+           entries = senWeightDict[target]
+           entries.sort(key=lambda x: x[1],reverse=True)
+           outputDict[what][target] = entries
 
     return outputDict
 #
