@@ -2550,5 +2550,4 @@
        {u'y': 'y0_distrib', u'x': 'x0_distrib'},
        {u'y': 'y0_distrib', u'x': 'x0_distrib'},
        {u'y': 'y0_distrib', u'x': 'x0_distrib'},
-       {u'y': 'y0_distrib', u'x': 'x0_distrib'}], dtype=object)</distributionName><x1-median>array([ 0.99956134])</x1-median><x1-percentile_10>array([ 0.36197805])</x1-percentile_10></metadata></data>
        {u'y': 'y0_distrib', u'x': 'x0_distrib'}], dtype=object)</distributionName><x1-median>array([ 2.49890335])</x1-median><y1-sigma>array([ 1.7559482])</y1-sigma></metadata></data>
