@@ -1,0 +1,51 @@
+[Tests]
+  [./KMeans]
+    type   = 'RavenFramework'
+    input  = 'test_tdmSKLearnKMeans.xml'
+    csv    = 'KMeans/centroid_0.csv KMeans/dummy_0.csv KMeans/dummy_1.csv KMeans/dummy_2.csv'
+	output = 'KMeans/dummy.xml KMeans/centroid.xml'
+    rel_err = 0.001
+  [../]
+  [./MiniBatchKMeans]
+	type   = 'RavenFramework'
+	input  = 'test_tdmSKLearnMiniBatchKMeans.xml'
+    csv    = 'MiniBatchKMeans/centroid_0.csv MiniBatchKMeans/dummy_0.csv MiniBatchKMeans/dummy_1.csv MiniBatchKMeans/dummy_2.csv'
+	output = 'MiniBatchKMeans/dummy.xml MiniBatchKMeans/centroid.xml'
+  [../] 
+  [./MeanShift]
+	type   = 'RavenFramework'
+	input  = 'test_tdmSKLearnMeanShift.xml'
+    csv    = 'MeanShift/centroid_0.csv MeanShift/dummy_0.csv MeanShift/dummy_1.csv MeanShift/dummy_2.csv'
+	output = 'MeanShift/dummy.xml MeanShift/centroid.xml'
+  [../] 
+  [./DBSCAN]
+	type   = 'RavenFramework'
+	input  = 'test_tdmSKLearnDBSCAN.xml'
+    csv    = 'DBSCAN/centroid_0.csv DBSCAN/dummy_0.csv DBSCAN/dummy_1.csv DBSCAN/dummy_2.csv'
+	output = 'DBSCAN/dummy.xml DBSCAN/centroid.xml'
+  [../] 
+  [./SpectralClustering]
+	type   = 'RavenFramework'
+	input  = 'test_tdmSKLearnSpectralClustering.xml'
+    csv    = 'SpectralClustering/centroid_0.csv SpectralClustering/dummy_0.csv SpectralClustering/dummy_1.csv SpectralClustering/dummy_2.csv'
+	output = 'SpectralClustering/dummy.xml SpectralClustering/centroid.xml'
+  [../] 
+  [./GaussianMixture]
+	type   = 'RavenFramework'
+	input  = 'test_tdmSKLearnGaussianMixture.xml'
+    csv    = 'GaussianMixture/centroid_0.csv GaussianMixture/dummy_0.csv GaussianMixture/dummy_1.csv GaussianMixture/dummy_2.csv'
+	output = 'GaussianMixture/dummy.xml GaussianMixture/centroid.xml'
+  [../] 
+  [./DirichletProcessGMM]
+	type   = 'RavenFramework'
+	input  = 'test_tdmSKLearnDirichletProcessGMM.xml'
+    csv    = 'DirichletProcessGMM/centroid_0.csv DirichletProcessGMM/dummy_0.csv DirichletProcessGMM/dummy_1.csv DirichletProcessGMM/dummy_2.csv'
+	output = 'DirichletProcessGMM/dummy.xml DirichletProcessGMM/centroid.xml'
+  [../] 
+  [./VariationalGMM]
+	type   = 'RavenFramework'
+	input  = 'test_tdmSKLearnVariationalGMM.xml'
+    csv    = 'VariationalGMM/centroid_0.csv VariationalGMM/dummy_0.csv VariationalGMM/dummy_1.csv VariationalGMM/dummy_2.csv'
+	output = 'VariationalGMM/dummy.xml VariationalGMM/centroid.xml'
+  [../] 
+[]

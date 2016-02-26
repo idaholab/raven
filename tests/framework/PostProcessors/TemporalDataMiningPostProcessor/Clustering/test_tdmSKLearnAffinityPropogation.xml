@@ -1,0 +1,265 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="silent">
+    <RunInfo>
+        <WorkingDir>AffinityPropogation</WorkingDir>
+		<Sequence>readIn,pp1,writeOut</Sequence>
+        <batchSize>100</batchSize>
+    </RunInfo>
+    <Files>
+        <Input name="rawDataFile">../SKLearnData/BB_dump.csv</Input>
+    </Files>
+    <Models>
+        <PostProcessor name='AffinityPropogation1' subType='DataMining'>
+            <KDD lib='temporalSciKitLearn'>
+				<SKLtype>cluster|AffinityPropogation</SKLtype>
+                <Features>x1,x2</Features>
+                <damping>0.99</damping>
+                <max_iter>2000</max_iter>
+                <convergence_iter>5</convergence_iter>
+                <preference>-50</preference>
+            </KDD>
+			<DataObject    class = 'DataObjects' type = 'History'>ppData</DataObject>
+        </PostProcessor>		
+    </Models>
+	
+    <Steps>
+        <IOStep name='readIn' pauseAtEnd = 'True'>
+            <Input    class = 'Files'             type = ''              >rawDataFile</Input>
+            <Output   class = 'DataObjects'       type = 'HistorySet'       >mData</Output>
+        </IOStep>
+					
+        <PostProcess name='pp1' pauseAtEnd = 'True'>
+            <Input   class = 'DataObjects'       type = 'HistorySet'      >mData</Input>
+            <Model   class = 'Models'            type = 'PostProcessor' >AffinityPropogation1</Model> 
+			<Output  class = 'DataObjects' type = 'HistorySet'>mData</Output>
+			<Output   class = 'OutStreamManager'  type = 'Print'         >dummy</Output>
+		</PostProcess> 
+		<IOStep name='writeOut' pauseAtEnd = 'True'>
+			<Input   class = 'DataObjects'       type = 'HistorySet'      >mData</Input>
+			<Input   class = 'DataObjects'       type = 'History'      	  >ppData</Input>
+			<Output   class = 'OutStreamManager'  type = 'Plot'          >plotRawData</Output>
+			<Output   class = 'OutStreamManager'  type = 'Plot'          >plotPPDataLabel</Output>
+			<Output   class = 'OutStreamManager'  type = 'Plot'          >plotPPDataCentroid</Output>
+			<Output   class = 'OutStreamManager'  type = 'Print'         >centroid</Output>
+		</IOStep>
+    </Steps>
+    <OutStreamManager>
+		<Print name = 'dummy'>
+            <type>csv</type>
+            <source>mData</source>
+        </Print>	
+		<Print name = 'centroid'>
+            <type>csv</type>
+            <source>ppData</source>
+        </Print>
+		<Plot dim="2" name="plotRawData" overwrite="True" >
+			<plotSettings>
+				<gridSpace>2 1</gridSpace>
+				<plot>
+					<type>line</type>
+					<x>mData|Output|Time</x>
+					<y>mData|Output|x1</y>
+					<interpPointsX>300</interpPointsX>	
+					<gridLocation>
+						<x>0</x>
+						<y>0</y>
+					</gridLocation>		
+					<xlabel>Time</xlabel>
+					<ylabel>x1</ylabel>					
+				</plot>
+				<plot>
+					<type>line</type>
+					<x>mData|Output|Time</x>
+					<y>mData|Output|x2</y>
+					<interpPointsX>300</interpPointsX>		
+					<gridLocation>
+						<x>1</x>
+						<y>0</y>
+					</gridLocation>	
+					<xlabel>Time</xlabel>
+					<ylabel>x2</ylabel>						
+				</plot>	  
+			</plotSettings>
+			<actions>
+				<how>png</how>
+			</actions>
+	    </Plot>
+		<Plot dim="2" name="plotPPDataLabel" overwrite="True" >
+			<plotSettings>
+				<plot>
+					<type>line</type>
+					<x>mData|Output|Time</x>
+					<y>mData|Output|AffinityPropogation1Labels</y>	
+					<interpPointsX>300</interpPointsX>						
+				</plot>					
+			</plotSettings>
+			<actions>
+				<how>png</how>
+			</actions>
+	    </Plot>
+		<Plot dim="2" name="plotPPDataCentroid" overwrite="True" >
+			<plotSettings>
+				<gridSpace>2 1</gridSpace>
+				<plot>
+					<type>line</type>
+					<x>ppData|Output|Time</x>
+					<y>ppData|Output|AffinityPropogation1Centroid-x1-0</y>
+					<interpPointsX>300</interpPointsX>	
+					<gridLocation>
+						<x>0</x>
+						<y>0</y>
+					</gridLocation>		
+					<xlabel>Time</xlabel>
+					<ylabel>x1</ylabel>					
+				</plot>
+				<plot>
+					<type>line</type>
+					<x>ppData|Output|Time</x>
+					<y>ppData|Output|AffinityPropogation1Centroid-x1-1</y>
+					<interpPointsX>300</interpPointsX>	
+					<gridLocation>
+						<x>0</x>
+						<y>0</y>
+					</gridLocation>		
+					<xlabel>Time</xlabel>
+					<ylabel>x1</ylabel>					
+				</plot>
+				<plot>
+					<type>line</type>
+					<x>ppData|Output|Time</x>
+					<y>ppData|Output|AffinityPropogation1Centroid-x1-2</y>
+					<interpPointsX>300</interpPointsX>	
+					<gridLocation>
+						<x>0</x>
+						<y>0</y>
+					</gridLocation>		
+					<xlabel>Time</xlabel>
+					<ylabel>x1</ylabel>					
+				</plot>
+				<plot>
+					<type>line</type>
+					<x>ppData|Output|Time</x>
+					<y>ppData|Output|AffinityPropogation1Centroid-x1-3</y>
+					<interpPointsX>300</interpPointsX>	
+					<gridLocation>
+						<x>0</x>
+						<y>0</y>
+					</gridLocation>		
+					<xlabel>Time</xlabel>
+					<ylabel>x1</ylabel>					
+				</plot>
+				<plot>
+					<type>line</type>
+					<x>ppData|Output|Time</x>
+					<y>ppData|Output|AffinityPropogation1Centroid-x1-4</y>
+					<interpPointsX>300</interpPointsX>	
+					<gridLocation>
+						<x>0</x>
+						<y>0</y>
+					</gridLocation>		
+					<xlabel>Time</xlabel>
+					<ylabel>x1</ylabel>					
+				</plot>
+				<plot>
+					<type>line</type>
+					<x>ppData|Output|Time</x>
+					<y>ppData|Output|AffinityPropogation1Centroid-x1-5</y>
+					<interpPointsX>300</interpPointsX>	
+					<gridLocation>
+						<x>0</x>
+						<y>0</y>
+					</gridLocation>		
+					<xlabel>Time</xlabel>
+					<ylabel>x1</ylabel>					
+				</plot>
+				<plot>
+					<type>line</type>
+					<x>ppData|Output|Time</x>
+					<y>ppData|Output|AffinityPropogation1Centroid-x2-0</y>
+					<interpPointsX>300</interpPointsX>		
+					<gridLocation>
+						<x>1</x>
+						<y>0</y>
+					</gridLocation>	
+					<xlabel>Time</xlabel>
+					<ylabel>x2</ylabel>						
+				</plot>
+				<plot>
+					<type>line</type>
+					<x>ppData|Output|Time</x>
+					<y>ppData|Output|AffinityPropogation1Centroid-x2-1</y>
+					<interpPointsX>300</interpPointsX>		
+					<gridLocation>
+						<x>1</x>
+						<y>0</y>
+					</gridLocation>	
+					<xlabel>Time</xlabel>
+					<ylabel>x2</ylabel>						
+				</plot>
+				<plot>
+					<type>line</type>
+					<x>ppData|Output|Time</x>
+					<y>ppData|Output|AffinityPropogation1Centroid-x2-2</y>
+					<interpPointsX>300</interpPointsX>		
+					<gridLocation>
+						<x>1</x>
+						<y>0</y>
+					</gridLocation>	
+					<xlabel>Time</xlabel>
+					<ylabel>x2</ylabel>						
+				</plot>
+				<plot>
+					<type>line</type>
+					<x>ppData|Output|Time</x>
+					<y>ppData|Output|AffinityPropogation1Centroid-x2-3</y>
+					<interpPointsX>300</interpPointsX>		
+					<gridLocation>
+						<x>1</x>
+						<y>0</y>
+					</gridLocation>	
+					<xlabel>Time</xlabel>
+					<ylabel>x2</ylabel>						
+				</plot>
+				<plot>
+					<type>line</type>
+					<x>ppData|Output|Time</x>
+					<y>ppData|Output|AffinityPropogation1Centroid-x2-4</y>
+					<interpPointsX>300</interpPointsX>		
+					<gridLocation>
+						<x>1</x>
+						<y>0</y>
+					</gridLocation>	
+					<xlabel>Time</xlabel>
+					<ylabel>x2</ylabel>						
+				</plot>
+				<plot>
+					<type>line</type>
+					<x>ppData|Output|Time</x>
+					<y>ppData|Output|AffinityPropogation1Centroid-x2-5</y>
+					<interpPointsX>300</interpPointsX>		
+					<gridLocation>
+						<x>1</x>
+						<y>0</y>
+					</gridLocation>	
+					<xlabel>Time</xlabel>
+					<ylabel>x2</ylabel>						
+				</plot>
+			</plotSettings>
+			<actions>
+				<how>png</how>
+			</actions>
+	    </Plot>		
+    </OutStreamManager>
+	
+    <DataObjects>
+        <HistorySet name="mData">
+            <Input>n</Input>
+            <Output>Time,x1,x2</Output>
+        </HistorySet>
+		<History name='ppData'>
+			<Input>n</Input>
+			<Output>Time</Output>
+		</History> 
+    </DataObjects>
+</Simulation>
+
