@@ -1139,6 +1139,113 @@ class ImportantRank(BasePostProcessor):
      @ In, messageHandler, message handler object
     """
     BasePostProcessor.__init__(self, messageHandler)
+    self.targets = []
+    self.features = []
+    self.dimensions = []
+    self.mvnDistribution = None
+    self.acceptedMetric = ['all','sen','sen-cov']
+    self.what = self.acceptedMetric # what needs to be computed, default is all
+    self.printTag = 'POSTPROCESSOR IMPORTANT RANK'
+    self.requiredAssObject = (True,(['Distributions'],[-1]))
+
+  def _localWhatDoINeed(self):
+    """
+      This method is local mirror of the general whatDoINeed method
+      It is implemented by this postprocessor that need to request special objects
+      @ In, None
+      @ Out, needDict, list of objects needed
+    """
+    needDict = {'Distributions':[]}
+    needDict['Distributions'].append((None,self.mvnDistribution))
+    return needDict
+
+  def _localGenerateAssembler(self,initDict):
+    """ see generateAssembler method in Assembler """
+    distName = self.mvnDistribution
+    if not distName or distName not in initDict['Distributions'].keys():
+      self.raiseAnError(IOError, 'distribution ' + distName + ' not found!')
+    self.mvnDistribution = initDict['Distributions'][distName]
+
+  def _localReadMoreXML(self,xmlNode):
+    """
+      Function to read the portion of the xml input that belongs to this specialized class
+      and initialize some stuff based on the inputs
+      @ In, xmlNode, xml.etree.ElementTree Element Objects, the xml element node that will be checked against the available options specific to this Sampler
+      @ Out, None
+    """
+    for child in xmlNode:
+      if child.tag == 'what':
+        self.what = child.text
+        if self.what == 'all': self.what = self.acceptedMetric
+        else:
+          toCalculate = []
+          for metric in self.what.split(','):
+            toCalculate.append(metric.strip())
+            if metric not in self.acceptedMetric:
+              self.raiseAnError(IOError, 'Important rank postprocessor asked unknown operation ' + metric + '. Available ' + str(self.acceptedMetric))
+          self.what = toCalculate
+      if child.tag == 'targets':
+        self.targets = list(inp.strip() for inp in child.text.strip().split(','))
+      if child.tag == 'features':
+        self.features = list(inp.strip() for inp in child.text.strip().split(','))
+      if child.tag == 'dimensions':
+        self.dimensions = list(int(inp.strip()) for inp in child.text.strip().split(','))
+      if child.tag == 'mvnDistribution':
+        self.mvnDistribution = child.text.strip()
+    if not self.dimensions:
+      self.dimensions = range(len(self.features))
+      self.raiseAWarning('The dimensions for given features: ' + str(self.features) + ' is not provided! Default dimensions will be used: ' + str(self.dimensions) + '!')
+
+  def collectOutput(self,finishedJob, output):
+    """
+      Function to place all of the computed data into the output object
+      @ In, finishedJob, JobHandler object that is in charge of running this post-processor
+      @ In, output, object, the object where we want to place our computed results
+      @ Out, None
+
+      put data into dataobjects
+    """
+    parameterSet = list(set(list(self.features)))
+    if finishedJob.returnEvaluation() == -1: self.raiseAnError(RuntimeError, ' No available output to collect (Run probably is not finished yet)')
+    outputDict = finishedJob.returnEvaluation()[-1]
+    # Output to file
+    if isinstance(output, Files.File):
+      availExtens = ['csv', 'txt']
+      outputExtension = output.getExt().lower()
+      if outputExtension not in availExtens:
+        self.raiseAWarning('Output extension you input is ' + outputExtension)
+        self.raiseAWarning('Available are ' + str(availExtens) + '. Converting extension to ' + str(availExtens[0]) + '!')
+        outputExtensions = availExtens[0]
+        output.setExtension(outputExtensions)
+      if outputExtension != 'csv': separator = ' '
+      else: separator = ','
+      output.setPath(self.__workingDir)
+      self.raiseADebug('Dumping output in file named ' + output.getAbsFile())
+      output.open('w')
+      output.write('ComputedQuantities'+separator+separator.join(parameterSet) + os.linesep)
+      quantitiesToWrite = {}
+      maxLength = max(len(max(parameterSet, key = len)) + 5, 16)
+      # Output all metrics to given file
+      for what in outputDict.keys():
+        if what in ['sen-cov', 'sen']:
+          self.raiseADebug('Writing parameter rank for metric ' + what)
+          output.write(os.linesep)
+          output.write(what + os.linesep)
+          if outputExtension !='csv': output.write('Parameters' + ' ' * maxLength + ''.join([str(item) + ' ' * (maxLength - len(item)) for item in parameterSet]) + os.linesep)
+          else: output.write('Parameters' + separator + ''.join([str(item) + separator for item in parameterSet]) + os.linesep)
+          if outputExtension != 'csv': output.write('ImportantWeights ' + ' ' * maxLength + ''.join(['%.8E' % item + ' ' * (maxLength -14) for item in outputDict[what]]) + os.linesep)
+          else: output.write('ImportantWeights ' + ''.join([separator + '%.8E' % item for item in outputDict[what]]) + os.linesep)
+    # Output to DataObjects
+    elif output.type in ['PointSet','Point','History','HistorySet']:
+      self.raiseADebug('Dumping output in data object named ' + output.name)
+      for what in outputDict.keys():
+        self.raiseADebug('Dumping ' + what + '. Metadata name = ' + what + '. Targets stored in ' + 'targets-' + what)
+        pass
+        #output.updateMetadata('targets-' + what, parameterSet)
+        #output.updateMetadata(what.replace("|","-"), outputDict[what])
+    elif output.type == 'HDF5' : self.raiseAWarning('Output type ' + str(output.type) + ' not yet implemented. Skip it !!!!!')
+    else: self.raiseAnError(IOError, 'Output type ' + str(output.type) + ' unknown.')
+
 
   def initialize(self, runInfo, inputs, initDict) :
     """
@@ -1148,23 +1255,74 @@ class ImportantRank(BasePostProcessor):
      @ In, initDict, dict, dictionary with initialization options
     """
     BasePostProcessor.initialize(self, runInfo, inputs, initDict)
+    self.__workingDir = runInfo['WorkingDir']
 
-  def inputToInternal(self, currentInput):
+  def inputToInternal(self, currentInp):
     """
      Method to convert an input object into the internal format that is
      understandable by this pp.
      @ In, currentInput, object, an object that needs to be converted
-     @ Out, list, list of current inputs
+     @ Out, inputDict, dictionary of the converted data
     """
-    return [(copy.deepcopy(currentInput))]
+    # each post processor knows how to handle the coming inputs. The BasicStatistics postprocessor accept all the input type (files (csv only), hdf5 and datas
+    if type(currentInp) == list  : currentInput = currentInp [-1]
+    else                         : currentInput = currentInp
+    if type(currentInput) == dict:
+      if 'targets' in currentInput.keys(): return currentInput
+    inputDict = {'targets':{}, 'metadata':{}}
+    if hasattr(currentInput,'type'):
+      inType = currentInput.type
+    else:
+      if type(currentInput).__name__ == 'list'    : inType = 'list'
+      else: self.raiseAnError(IOError, self, 'postprocessor accepts files,HDF5,Data(s) only! Got ' + str(type(currentInput)))
+    if inType not in ['HDF5', 'PointSet', 'list'] and not isinstance(inType,Files.File):
+      self.raiseAnError(IOError, self, 'postprocessor accepts files,HDF5,Data(s) only! Got ' + str(inType) + '!!!!')
+    if isinstance(inType,Files.File):
+      if currentInput.subtype == 'csv': pass
+    if inType in ['PointSet']:
+      for targetP in self.features:
+        if   targetP in currentInput.getParaKeys('input'):
+          inputDict['targets'][targetP] = currentInput.getParam('input' , targetP)
+      for targetP in self.targets:
+        if targetP in currentInput.getParaKeys('output'):
+          inputDict['targets'][targetP] = currentInput.getParam('output', targetP)
+      inputDict['metadata'] = currentInput.getAllMetadata()
+      # now we check if the sampler that genereted the samples are from adaptive... in case... create the grid
+      if 'SamplerType' in inputDict['metadata'].keys(): pass
 
-  def run(self, Input):
+    if inType == 'HDF5': pass  # to be implemented
+
+    return inputDict
+
+  def run(self, inputIn):
     """
      This method executes the postprocessor action.
-     @ In,  Input, object, object contained the data to process. (inputToInternal output)
+     @ In,  inputIn, object, object contained the data to process. (inputToInternal output)
      @ Out, dictionary, Dictionary containing the evaluated data
+
+     sensitivity calculation, singular value re-arrange, output, ...
+     model.run(inputIn)
     """
-    pass
+    inputDict = self.inputToInternal(inputIn)
+    outputDict = {}
+    for what in self.what:
+      if what not in outputDict.keys(): outputDict[what] = []
+      if what == 'sen':
+        outputDict[what] = range(len(self.features))
+        pass
+      if what == 'sen-cov':
+        outputDict[what] = range(len(self.features))
+        pass
+
+    # print on screan
+    msg = os.linesep
+    maxLength = max(len(max(self.features,key = len)) + 5, 16)
+    if 'sen' in outputDict.keys():
+      msg += ' ' * maxLength + '***********************************' + os.linesep
+      msg += ' ' * maxLength + '        sensitivity weight         ' + os.linesep
+      msg += ' ' * maxLength + '***********************************' + os.linesep
+
+    return outputDict
 #
 #
 #
@@ -2966,6 +3124,7 @@ __interFaceDict['ComparisonStatistics'     ] = ComparisonStatistics
 __interFaceDict['External'                 ] = ExternalPostProcessor
 __interFaceDict['TopologicalDecomposition' ] = TopologicalDecomposition
 __interFaceDict['DataMining'               ] = DataMining
+__interFaceDict['ImportantRank'            ] = ImportantRank
 __knownTypes = __interFaceDict.keys()
 
 def knownTypes():
