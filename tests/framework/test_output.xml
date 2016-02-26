@@ -11,12 +11,7 @@
 
   <Models>
     <ExternalModel ModuleToLoad="output_generator" name="PythonModule" subType="">
-      <variable>sine</variable>
-      <variable>square</variable>
-      <variable>cosine</variable>
-      <variable>time</variable>
-      <variable>var1</variable>
-      <variable>var2</variable>
+      <variables>sine,square,cosine,time,var1,var2</variables>
     </ExternalModel>
   </Models>
 
@@ -102,11 +97,11 @@
           <x>stories|Output|time</x>
           <y>stories|Output|sine</y>
           <range>
-         	 <xmin>0</xmin>
-	          <ymin>0</ymin>
-        	  <xmax>1</xmax>
-	          <ymax>1</ymax>
-	  </range>
+            <xmin>0</xmin>
+            <ymin>0</ymin>
+            <xmax>1</xmax>
+            <ymax>1</ymax>
+          </range>
           <kwargs>
             <color>blue</color>
             <label>time sine</label>
@@ -119,11 +114,11 @@
           <colorMap>stories|Output|square</colorMap>
           <cmap>gist_ncar</cmap>
           <range>
-         	 <xmin>0</xmin>
-	          <ymin>0</ymin>
-        	  <xmax>1</xmax>
-	          <ymax>1</ymax>
-	  </range>
+            <xmin>0</xmin>
+            <ymin>0</ymin>
+            <xmax>1</xmax>
+            <ymax>1</ymax>
+          </range>
           <kwargs>
         </kwargs>
         </plot>
@@ -169,14 +164,14 @@
           <x>stories|Input|var1</x>
           <z>stories|Input|var2</z>
           <y>stories|Output|square</y>
-        <range>
-          <xmin>0</xmin>
-          <ymin>1</ymin>
-          <zmin>0</zmin>
-          <xmax>1</xmax>
-          <ymax>2</ymax>
-          <zmax>2</zmax>
-        </range>
+          <range>
+            <xmin>0</xmin>
+            <ymin>1</ymin>
+            <zmin>0</zmin>
+            <xmax>1</xmax>
+            <ymax>2</ymax>
+            <zmax>2</zmax>
+          </range>
           <kwargs>
             <color>black</color>
             <label>square</label>
@@ -189,14 +184,14 @@
           <z>stories|Output|square</z>
           <colorMap>stories|Output|cosine</colorMap>
           <cmap>rainbow</cmap>
-        <range>
-          <xmin>0</xmin>
-          <ymin>1</ymin>
-          <zmin>0</zmin>
-          <xmax>1</xmax>
-          <ymax>2</ymax>
-          <zmax>2</zmax>
-        </range>
+          <range>
+            <xmin>0</xmin>
+            <ymin>1</ymin>
+            <zmin>0</zmin>
+            <xmax>1</xmax>
+            <ymax>2</ymax>
+            <zmax>2</zmax>
+          </range>
           <kwargs>
             <color>green</color>
             <label>square cosine</label>
@@ -648,7 +643,8 @@
         <zlabel>cosine</zlabel>
       </plotSettings>
     </Plot>
-    <Plot dim="2" name="2DHistoryPlot" overwrite="false" verbosity="debug">
+    <Plot dim="2" name="historyPlot2D" overwrite="false" verbosity="debug">
+      <filename>1-2DHistoryPlot_histogram</filename>
       <plotSettings>
         <plot>
           <type>histogram</type>
@@ -698,7 +694,7 @@
       <Input class="DataObjects" type="PointSet">PointSets</Input>
       <Input class="DataObjects" type="Point">Pointt</Input>
       <Input class="DataObjects" type="History">Historyy</Input>
-      <Output class="OutStreamManager" type="Plot">2DHistoryPlot</Output>
+      <Output class="OutStreamManager" type="Plot">historyPlot2D</Output>
       <Output class="OutStreamManager" type="Print">test</Output>
       <Output class="OutStreamManager" type="Print">fullprint_Pointset</Output>
       <Output class="OutStreamManager" type="Plot">2DHistoryPlot2</Output>

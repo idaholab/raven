@@ -12,16 +12,13 @@
 
   <Models>
     <ExternalModel ModuleToLoad="simpleMirrowModel" name="mirrowModel" subType="">
-      <variable>x</variable>
-      <variable>y</variable>
-      <variable>x1</variable>
+      <variables>x,y,x1</variables>
     </ExternalModel>
     <PostProcessor name="analyticalTest" subType="BasicStatistics" verbosity="debug">
       <what>all</what>
       <parameters>x,y</parameters>
     </PostProcessor>
   </Models>
-
 
   <Distributions>
     <Normal name="x0_distrib">
@@ -63,7 +60,6 @@
     </PostProcess>
   </Steps>
 
-
   <OutStreamManager>
     <Print name="outputDataStratified_dump">
       <type>csv</type>
@@ -72,15 +68,14 @@
   </OutStreamManager>
 
   <DataObjects>
-      <Point name="inputPlaceHolder">
-          <Input>x,y</Input>
-          <Output>OutputPlaceHolder</Output>
-      </Point>
+    <Point name="inputPlaceHolder">
+      <Input>x,y</Input>
+      <Output>OutputPlaceHolder</Output>
+    </Point>
     <PointSet name="outputDataStratified">
-        <Input>x,y</Input>
-        <Output>x1</Output>
+      <Input>x,y</Input>
+      <Output>x1</Output>
     </PointSet>
-
   </DataObjects>
 
 </Simulation>

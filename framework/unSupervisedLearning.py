@@ -104,7 +104,7 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
       self.labelValues = values[names.index(self.labels)]
       resp = self.checkArrayConsistency(self.labelValues)
       if not resp[0]: self.raiseAnError(IOError, 'In training set for ground truth labels ' + self.labels + ':' + resp[1])
-    else            : self.raiseAWarning(' The ground truth labels are not known appriori')
+    else            : self.raiseAWarning(' The ground truth labels are not known a priori')
     for cnt, feat in enumerate(self.features):
       if feat not in names: self.raiseAnError(IOError, ' The feature sought ' + feat + ' is not in the training set')
       else:

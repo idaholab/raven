@@ -5,8 +5,18 @@
     UnorderedCsv = 'basicStatsGridAnalytic/outputDatagrid_dump.csv'
     output = 'basicStatsGridAnalytic/outputDatagrid_dump.csv basicStatsGridAnalytic/outputDatagrid_dump.xml'
     xml = 'basicStatsGridAnalytic/outputDatagrid_dump.xml'
-    rel_err = 1e-1
-    zero_threshold= 1.0
+    rel_err = 0.00001
+    zero_threshold = 1e-9
+    remove_whitespace = True
+  [../]
+  [./basicStatsGridInValue]
+    type = 'RavenFramework'
+    input = 'test_BasicStatsGridInValueAnalytic.xml'
+    output = 'basicStatsGridInValueAnalytic/outputDatagrid_dump.csv basicStatsGridInValueAnalytic/outputDatagrid_dump.xml'
+    xml = 'basicStatsGridInValueAnalytic/outputDatagrid_dump.xml'
+    rel_err = 0.00001
+    zero_threshold = 1e-14
+    remove_whitespace = True
   [../]
   [./basicStatsMC]
     type = 'RavenFramework'

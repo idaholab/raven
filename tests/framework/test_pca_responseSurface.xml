@@ -12,12 +12,12 @@
   </Models>
 
   <Distributions>
-    <MultivariateNormal name='MVN' method='pca'>
-        <transformation>
-            <rank>3</rank>
-        </transformation>
-        <mu>0.0 1.0 2.0</mu>
-        <covariance type="abs">
+    <MultivariateNormal method="pca" name="MVN">
+      <transformation>
+        <rank>3</rank>
+      </transformation>
+      <mu>0.0 1.0 2.0</mu>
+      <covariance type="abs">
             1.0       0.6      -0.4
             0.6       1.0      0.2
             -0.4      0.2      0.8

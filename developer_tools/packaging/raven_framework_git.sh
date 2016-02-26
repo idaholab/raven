@@ -41,6 +41,10 @@ CROW_REV=`git submodule status crow | tr -d - | cut -d ' ' -f 1`
 MOOSE_REV=`git submodule status moose | tr -d - | cut -d ' ' -f 1`
 
 cd $MAIN_DIR/raven/
+echo RAVEN revision `git describe` > Version.txt
+echo RAVEN id `git rev-parse HEAD` >> Version.txt
+echo CROW id $CROW_REV >> Version.txt
+echo MOOSE id $MOOSE_REV >> Version.txt
 git clone --shared --no-checkout $PULL_DIRECTORY/crow
 cd crow
 git checkout $CROW_REV -- .

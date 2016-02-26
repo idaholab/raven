@@ -5,7 +5,7 @@
     input = 'test_biweight.xml'
     csv = 'data/outDataBiweight.csv'
     output = 'data/outDataBiweight.xml'
-    required_libraries = 'amsc'
+    required_libraries = 'AMSC'
   [../]
 
   [./cosine]
@@ -13,7 +13,7 @@
     input = 'test_cosine.xml'
     csv = 'data/outDataCosine.csv'
     output = 'data/outDataCosine.xml'
-    required_libraries = 'amsc'
+    required_libraries = 'AMSC'
   [../]
 
   [./Epanechnikov]
@@ -21,7 +21,7 @@
     input = 'test_Epanechnikov.xml'
     csv = 'data/outDataEpanechnikov.csv'
     output = 'data/outDataEpanechnikov.xml'
-    required_libraries = 'amsc'
+    required_libraries = 'AMSC'
   [../]
 
   [./exponential]
@@ -29,7 +29,7 @@
     input = 'test_exponential.xml'
     csv = 'data/outDataExponential.csv'
     output = 'data/outDataExponential.xml'
-    required_libraries = 'amsc'
+    required_libraries = 'AMSC'
   [../]
 
   [./Gaussian]
@@ -37,7 +37,7 @@
     input = 'test_Gaussian.xml'
     csv = 'data/outDataGaussian.csv'
     output = 'data/outDataGaussian.xml'
-    required_libraries = 'amsc'
+    required_libraries = 'AMSC'
   [../]
 
   [./logistic]
@@ -45,7 +45,7 @@
     input = 'test_logistic.xml'
     csv = 'data/outDataLogistic.csv'
     output = 'data/outDataLogistic.xml'
-    required_libraries = 'amsc'
+    required_libraries = 'AMSC'
   [../]
 
   [./Silverman]
@@ -53,7 +53,7 @@
     input = 'test_Silverman.xml'
     csv = 'data/outDataSilverman.csv'
     output = 'data/outDataSilverman.xml'
-    required_libraries = 'amsc'
+    required_libraries = 'AMSC'
   [../]
 
   [./triangular]
@@ -61,7 +61,7 @@
     input = 'test_triangular.xml'
     csv = 'data/outDataTriangular.csv'
     output = 'data/outDataTriangular.xml'
-    required_libraries = 'amsc'
+    required_libraries = 'AMSC'
   [../]
 
   [./tricube]
@@ -69,7 +69,7 @@
     input = 'test_tricube.xml'
     csv = 'data/outDataTricube.csv'
     output = 'data/outDataTricube.xml'
-    required_libraries = 'amsc'
+    required_libraries = 'AMSC'
   [../]
 
   [./triweight]
@@ -77,7 +77,7 @@
     input = 'test_triweight.xml'
     csv = 'data/outDataTriweight.csv'
     output = 'data/outDataTriweight.xml'
-    required_libraries = 'amsc'
+    required_libraries = 'AMSC'
   [../]
 
   [./uniform]
@@ -85,7 +85,7 @@
     input = 'test_uniform.xml'
     csv = 'data/outDataUniform.csv'
     output = 'data/outDataUniform.xml'
-    required_libraries = 'amsc'
+    required_libraries = 'AMSC'
   [../]
 
   [./SVM]
@@ -93,7 +93,7 @@
     input = 'test_SVM.xml'
     csv = 'data/outDataSVM.csv'
     output = 'data/outDataSVM.xml'
-    required_libraries = 'amsc'
+    required_libraries = 'AMSC'
     rel_err = 8e-2
   [../]
 
@@ -102,7 +102,7 @@
     input = 'test_smooth_SVM.xml'
     csv = 'data/outDataSmoothSVM.csv'
     output = 'data/outDataSmoothSVM.xml'
-    required_libraries = 'amsc'
+    required_libraries = 'AMSC'
     # This is the best we can do since there is non-deterministic behavior
     # occuring in the cross-valiadation of the SVM causing the predicted
     # probabilities to be variant across implementations presumably since
@@ -115,7 +115,7 @@
     input = 'test_smooth_biweight.xml'
     csv = 'data/outDataSmoothBiweight.csv'
     output = 'data/outDataSmoothBiweight.xml'
-    required_libraries = 'amsc'
+    required_libraries = 'AMSC'
   [../]
 
   [./smoothCosine]
@@ -123,7 +123,7 @@
     input = 'test_smooth_cosine.xml'
     csv = 'data/outDataSmoothCosine.csv'
     output = 'data/outDataSmoothCosine.xml'
-    required_libraries = 'amsc'
+    required_libraries = 'AMSC'
   [../]
 
   [./smoothEpanechnikov]
@@ -131,7 +131,7 @@
     input = 'test_smooth_Epanechnikov.xml'
     csv = 'data/outDataSmoothEpanechnikov.csv'
     output = 'data/outDataSmoothEpanechnikov.xml'
-    required_libraries = 'amsc'
+    required_libraries = 'AMSC'
   [../]
 
   [./smoothExponential]
@@ -139,7 +139,7 @@
     input = 'test_smooth_exponential.xml'
     csv = 'data/outDataSmoothExponential.csv'
     output = 'data/outDataSmoothExponential.xml'
-    required_libraries = 'amsc'
+    required_libraries = 'AMSC'
   [../]
 
   [./smoothGaussian]
@@ -147,7 +147,7 @@
     input = 'test_smooth_Gaussian.xml'
     csv = 'data/outDataSmoothGaussian.csv'
     output = 'data/outDataSmoothGaussian.xml'
-    required_libraries = 'amsc'
+    required_libraries = 'AMSC'
   [../]
 
   [./smoothLogistic]
@@ -155,7 +155,7 @@
     input = 'test_smooth_logistic.xml'
     csv = 'data/outDataSmoothLogistic.csv'
     output = 'data/outDataSmoothLogistic.xml'
-    required_libraries = 'amsc'
+    required_libraries = 'AMSC'
   [../]
 
   [./smoothSilverman]
@@ -163,7 +163,7 @@
     input = 'test_smooth_Silverman.xml'
     csv = 'data/outDataSmoothSilverman.csv'
     output = 'data/outDataSmoothSilverman.xml'
-    required_libraries = 'amsc'
+    required_libraries = 'AMSC'
   [../]
 
   [./smoothTriangular]
@@ -171,7 +171,7 @@
     input = 'test_smooth_triangular.xml'
     csv = 'data/outDataSmoothTriangular.csv'
     output = 'data/outDataSmoothTriangular.xml'
-    required_libraries = 'amsc'
+    required_libraries = 'AMSC'
   [../]
 
   [./smoothTricube]
@@ -179,7 +179,7 @@
     input = 'test_smooth_tricube.xml'
     csv = 'data/outDataSmoothTricube.csv'
     output = 'data/outDataSmoothTricube.xml'
-    required_libraries = 'amsc'
+    required_libraries = 'AMSC'
   [../]
 
   [./smoothTriweight]
@@ -187,7 +187,7 @@
     input = 'test_smooth_triweight.xml'
     csv = 'data/outDataSmoothTriweight.csv'
     output = 'data/outDataSmoothTriweight.xml'
-    required_libraries = 'amsc'
+    required_libraries = 'AMSC'
   [../]
 
   [./smoothUniform]
@@ -195,7 +195,7 @@
     input = 'test_smooth_uniform.xml'
     csv = 'data/outDataSmoothUniform.csv'
     output = 'data/outDataSmoothUniform.xml'
-    required_libraries = 'amsc'
+    required_libraries = 'AMSC'
   [../]
 
   [./parallel]
@@ -203,12 +203,12 @@
     input = 'test_local_parallel.xml'
     UnorderedCsv = 'data/outDataParallel.csv'
     output = 'data/outDataParallel.xml'
-    required_libraries = 'amsc'
+    required_libraries = 'AMSC'
   [../]
 
    #[./topology_MSR_failures]
    # type = 'RavenFramework'
    # input = 'test_MSR_failures.xml'
-   # required_libraries = 'amsc'
+   # required_libraries = 'AMSC'
    #[../]
 []

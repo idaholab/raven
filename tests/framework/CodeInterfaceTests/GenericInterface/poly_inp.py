@@ -1,5 +1,6 @@
 import numpy as np
 import os
+import xml.etree.ElementTree as ET
 
 def eval(x,y,z):
   """
@@ -25,15 +26,13 @@ def run(xin,yin,out):
     @ In, out, str, output file base name
     @ Out, None
   """
-  inx = file(xin,'r')
+  inx = ET.parse(xin)
+  root = inx.getroot()
   iny = file(yin,'r')
   if not os.path.isfile('dummy.e'):
     raise IOError('Missing dummy exodus file "dummy.e"!')
-  for line in inx:
-    if line.startswith('x ='):
-      x=float(line.split('=')[1])
-    elif line.startswith('z ='):
-      z=float(line.split('=')[1])
+  x = float(root.find('x').text)
+  z = float(root.find('z').text)
   for line in iny:
     if line.startswith('y ='):
       y=float(line.split('=')[1])

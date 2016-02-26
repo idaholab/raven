@@ -8,16 +8,16 @@
   </RunInfo>
 
   <Files>
-    <Input name="gen.one" type="">gen.one</Input>
+    <Input name="one.xml" type="">one.xml</Input>
     <Input name="inp.two" type="">inp.two</Input>
-    <Input name="mesh"    type="">dummy.e</Input>
+    <Input name="mesh" type="">dummy.e</Input>
   </Files>
 
   <Models>
     <Code name="poly" subType="GenericCode">
       <executable>GenericInterface/poly_inp.py</executable>
       <clargs arg="python" type="prepend"/>
-      <clargs arg="-i" extension=".one" type="input"/>
+      <clargs arg="-i" extension=".xml" type="input"/>
       <clargs arg="-a" extension=".two" type="input"/>
       <clargs arg="-o" type="output"/>
       <prepend>python</prepend>
@@ -51,7 +51,7 @@
   <Steps>
     <MultiRun name="sample">
       <Input class="Files" type="">inp.two</Input>
-      <Input class="Files" type="">gen.one</Input>
+      <Input class="Files" type="">one.xml</Input>
       <Input class="Files" type="">mesh</Input>
       <Model class="Models" type="Code">poly</Model>
       <Sampler class="Samplers" type="Grid">grid</Sampler>
