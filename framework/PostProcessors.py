@@ -1145,7 +1145,7 @@ class ImportanceRank(BasePostProcessor):
     self.features = []
     self.dimensions = []
     self.mvnDistribution = None
-    self.acceptedMetric = ['all','SensitivityIndex','ImportanceIndex']
+    self.acceptedMetric = ['SensitivityIndex','ImportanceIndex']
     self.what = self.acceptedMetric # what needs to be computed, default is all
     self.printTag = 'POSTPROCESSOR IMPORTANTANCE RANK'
     self.requiredAssObject = (True,(['Distributions'],[-1]))
@@ -1213,7 +1213,7 @@ class ImportanceRank(BasePostProcessor):
 
   def collectOutput(self,finishedJob, output):
     """
-      Function to place all of the computed data into the output object
+      Function to place all of the computed data into the output object, (Files or DataObjects)
       @ In, finishedJob, object, JobHandler object that is in charge of running this postprocessor
       @ In, output, object, the object where we want to place our computed results
       @ Out, None
@@ -1252,10 +1252,9 @@ class ImportanceRank(BasePostProcessor):
     elif output.type in ['PointSet','Point','History','HistorySet']:
       self.raiseADebug('Dumping output in data object named ' + output.name)
       for what in outputDict.keys():
-        self.raiseADebug('Dumping ' + what + '. Metadata name = ' + what + '. Targets stored in ' + 'targets-' + what)
-        pass
-        #output.updateMetadata('targets-' + what, parameterSet)
-        #output.updateMetadata(what.replace("|","-"), outputDict[what])
+        for target in self.targets:
+          self.raiseADebug('Dumping ' + target + '-' + what + '. Metadata name = ' + target + '-' + what + '. Targets stored in ' +  target + '-'  + what)
+          output.updateMetadata(target + '-'  + what, outputDict[what][target])
     elif output.type == 'HDF5' : self.raiseAWarning('Output type ' + str(output.type) + ' not yet implemented. Skip it !!!!!')
     else: self.raiseAnError(IOError, 'Output type ' + str(output.type) + ' unknown.')
 
@@ -1284,26 +1283,26 @@ class ImportanceRank(BasePostProcessor):
       inType = currentInput.type
     else:
       if type(currentInput).__name__ == 'list'    : inType = 'list'
-      else: self.raiseAnError(IOError, self, 'postprocessor accepts files,HDF5,Data(s) only! Got ' + str(type(currentInput)))
+      else: self.raiseAnError(IOError, self, 'ImportanceRank postprocessor accepts Files, HDF5, PointSet, DataObject(s) only! Got ' + str(type(currentInput)))
     if inType not in ['HDF5', 'PointSet', 'list'] and not isinstance(inType,Files.File):
-      self.raiseAnError(IOError, self, 'postprocessor accepts files,HDF5,Data(s) only! Got ' + str(inType) + '!!!!')
+      self.raiseAnError(IOError, self, 'ImportanceRank postprocessor accepts Files, HDF5, PointSet, DataObject(s) only! Got ' + str(inType) + '!!!!')
+    # get input from the external csv file
     if isinstance(inType,Files.File):
-      if currentInput.subtype == 'csv': pass
+      if currentInput.subtype == 'csv': pass # to be implemented
+    # get input from PointSet DataObject
     if inType in ['PointSet']:
       for feat in self.features:
         if feat in currentInput.getParaKeys('input'):
           inputDict['features'][feat] = currentInput.getParam('input', feat)
         else:
-          self.raiseAError(IOError,'Parameter ' + str(feat) + ' is listed ImportantRank postprocessor features, but not found in the provided input!')
+          self.raiseAError(IOError,'Parameter ' + str(feat) + ' is listed ImportanceRank postprocessor features, but not found in the provided input!')
       for targetP in self.targets:
         if targetP in currentInput.getParaKeys('output'):
           inputDict['targets'][targetP] = currentInput.getParam('output', targetP)
         else:
-          self.raiseAError(IOError,'Parameter ' + str(targetP) + ' is listed ImportantRank postprocessor targets, but not found in the provided input!')
+          self.raiseAError(IOError,'Parameter ' + str(targetP) + ' is listed ImportanceRank postprocessor targets, but not found in the provided input!')
       inputDict['metadata'] = currentInput.getAllMetadata()
-      # now we check if the sampler that genereted the samples are from adaptive... in case... create the grid
-      if 'SamplerType' in inputDict['metadata'].keys(): pass
-
+    # get input from HDF5 Database
     if inType == 'HDF5': pass  # to be implemented
 
     return inputDict
@@ -1328,6 +1327,7 @@ class ImportanceRank(BasePostProcessor):
       featWeights = abs(featCoeffs)/np.sum(abs(featCoeffs))
       senWeightDict[target] = list(zip(self.features,featWeights))
       senCoeffDict[target] = featCoeffs
+    # compute importance rank
     for what in self.what:
       if what not in outputDict.keys(): outputDict[what] = {}
       if what == 'SensitivityIndex':
@@ -1353,6 +1353,8 @@ class ImportanceRank(BasePostProcessor):
             entries = list(zip(self.features,featWeights))
             entries.sort(key=lambda x: x[1],reverse=True)
             outputDict[what][target] = entries
+          # if the features type is 'latent', since latentVariables are used to compute the sensitivities
+          # the covariance for latentVariances are identity matrix
           else:
            entries = senWeightDict[target]
            entries.sort(key=lambda x: x[1],reverse=True)
