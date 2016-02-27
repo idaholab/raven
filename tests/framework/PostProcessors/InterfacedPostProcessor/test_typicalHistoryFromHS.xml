@@ -29,7 +29,7 @@
 		</PostProcess>
         <IOStep name='writeOut' pauseAtEnd = 'True'>
 			<Input    class = 'DataObjects'       type = 'HistorySet'       >windRawData</Input>
-			<Input    class = 'DataObjects'       type = 'History'    	 >windTypicalData</Input>
+			<Input    class = 'DataObjects'       type = 'HistorySet'    	 >windTypicalData</Input>
 			<Output   class = 'OutStreamManager'  type = 'Print'         >writeTypDataOut</Output>	
 			<Output   class = 'OutStreamManager'  type = 'Plot'         >plotWindTypData</Output>			
 		</IOStep>	
