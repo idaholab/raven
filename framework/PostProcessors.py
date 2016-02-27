@@ -1134,6 +1134,8 @@ class ImportanceRank(BasePostProcessor):
     ImportantRank class. It computes the important rank for given input parameters
     1. The importance of input parameters can be ranked via their sensitivies (SI: sensitivity index)
     2. The importance of input parameters can also be ranked via their sensitivies and covariances (II: importance index)
+    3. CSI: Cumulative sensitive index
+    4. CII: Cumulative importance index
   """
   def __init__(self, messageHandler):
     """
@@ -1145,7 +1147,7 @@ class ImportanceRank(BasePostProcessor):
     self.features = []
     self.dimensions = []
     self.mvnDistribution = None
-    self.acceptedMetric = ['SensitivityIndex','ImportanceIndex']
+    self.acceptedMetric = ['SensitivityIndex','ImportanceIndex','CumulativeSensitivityIndex','CumulativeImportanceIndex']
     self.what = self.acceptedMetric # what needs to be computed, default is all
     self.printTag = 'POSTPROCESSOR IMPORTANTANCE RANK'
     self.requiredAssObject = (True,(['Distributions'],[-1]))
@@ -1359,6 +1361,10 @@ class ImportanceRank(BasePostProcessor):
            entries = senWeightDict[target]
            entries.sort(key=lambda x: x[1],reverse=True)
            outputDict[what][target] = entries
+      if what == 'CumulativeSenitivityIndex':
+        pass
+      if what == 'CumulativeImportanceIndex':
+        pass
 
     return outputDict
 #
