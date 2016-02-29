@@ -1,0 +1,72 @@
+[Tests]
+  [./ExactPCA]
+    	type   = 'RavenFramework'
+    	input  = 'test_tdmSKLearnExactPCA.xml'
+        csv    = 'ExactPCA/dummy_0.csv ExactPCA/dummy_1.csv ExactPCA/dummy_2.csv'
+		output = 'ExactPCA/dummy.csv ExactPCA/dummy.xml'
+  [../]
+  [./RandomizedPCA]
+		type   = 'RavenFramework'
+		input  = 'test_tdmSKLearnRandomizedPCA.xml'
+        csv    = 'RandomizedPCA/dummy_0.csv RandomizedPCA/dummy_1.csv RandomizedPCA/dummy_2.csv'
+		output = 'RandomizedPCA/dummy.csv RandomizedPCA/dummy.xml'
+  [../] 
+  [./KernelPCA]
+		type   = 'RavenFramework'
+		input  = 'test_tdmSKLearnKernelPCA.xml'
+        csv    = 'KernelPCA/dummy_0.csv KernelPCA/dummy_1.csv KernelPCA/dummy_2.csv'
+		output = 'KernelPCA/dummy.csv KernelPCA/dummy.xml'
+  [../] 
+  [./SparsePCA]
+		type   = 'RavenFramework'
+		input  = 'test_tdmSKLearnSparsePCA.xml'
+        csv    = 'SparsePCA/dummy_0.csv SparsePCA/dummy_1.csv SparsePCA/dummy_2.csv'
+		output = 'SparsePCA/dummy.csv SparsePCA/dummy.xml'
+  [../] 
+  [./MiniBatchSparsePCA]
+		type   = 'RavenFramework'
+		input  = 'test_tdmSKLearnMiniBatchSparsePCA.xml'
+        csv    = 'MiniBatchSparsePCA/dummy_0.csv MiniBatchSparsePCA/dummy_1.csv MiniBatchSparsePCA/dummy_2.csv'
+		output = 'MiniBatchSparsePCA/dummy.csv MiniBatchSparsePCA/dummy.xml'
+        rel_err = 0.001
+        skip    = 'Issue #376'
+  [../] 
+  [./TruncatedSVD]
+		type   = 'RavenFramework'
+		input  = 'test_tdmSKLearnTruncatedSVD.xml'
+        csv    = 'TruncatedSVD/dummy_0.csv TruncatedSVD/dummy_1.csv TruncatedSVD/dummy_2.csv'
+		output = 'TruncatedSVD/dummy.csv TruncatedSVD/dummy.xml'
+  [../] 
+  [./FastICA]
+		type   = 'RavenFramework'
+		input  = 'test_tdmSKLearnFastICA.xml'
+        csv    = 'FastICA/dummy_0.csv FastICA/dummy_1.csv FastICA/dummy_2.csv'
+		output = 'FastICA/dummy.csv FastICA/dummy.xml'
+  [../] 
+  [./Isomap]
+		type   = 'RavenFramework'
+		input  = 'test_tdmSKLearnIsomap.xml'
+        csv    = 'Isomap/dummy_0.csv Isomap/dummy_1.csv Isomap/dummy_2.csv'
+		output = 'Isomap/dummy.csv Isomap/dummy.xml'
+  [../] 
+  [./LocallyLinearEmbedding]
+		type   = 'RavenFramework'
+		input  = 'test_tdmSKLearnLocallyLinearEmbedding.xml'
+        csv    = 'LocallyLinearEmbedding/dummy_0.csv LocallyLinearEmbedding/dummy_1.csv LocallyLinearEmbedding/dummy_2.csv'
+		output = 'LocallyLinearEmbedding/dummy.csv LocallyLinearEmbedding/dummy.xml'
+		rel_err = 0.001
+        skip    = 'Issue #376'
+  [../] 
+  [./SpectralEmbedding]
+		type   = 'RavenFramework'
+		input  = 'test_tdmSKLearnSpectralEmbedding.xml'
+        csv    = 'SpectralEmbedding/dummy_0.csv SpectralEmbedding/dummy_1.csv SpectralEmbedding/dummy_2.csv'
+		output = 'SpectralEmbedding/dummy.csv SpectralEmbedding/dummy.xml'
+  [../] 
+  [./MultiDimensionalScaling]
+		type   = 'RavenFramework'
+		input  = 'test_tdmSKLearnMultiDimensionalScaling.xml'
+        csv    = 'MultiDimensionalScaling/dummy_0.csv MultiDimensionalScaling/dummy_1.csv MultiDimensionalScaling/dummy_2.csv'
+		output = 'MultiDimensionalScaling/dummy.csv MultiDimensionalScaling/dummy.xml'
+  [../] 
+[]
