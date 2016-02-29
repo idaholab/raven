@@ -31,7 +31,7 @@ class RavenFramework(Tester):
     params.addParam('xml','',"List of xml files to check")
     params.addParam('UnorderedXml','',"List of unordered xml files to check")
     params.addParam('xmlopts','',"Options for xml checking")
-    params.addParam('rel_err','','Relative Error for csv files')
+    params.addParam('rel_err','','Relative Error for csv files or floats in xml ones')
     params.addParam('required_executable','','Skip test if this executable is not found')
     params.addParam('required_libraries','','Skip test if any of these libraries are not found')
     params.addParam('skip_if_env','','Skip test if this environmental variable is defined')
