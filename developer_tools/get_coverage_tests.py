@@ -1,9 +1,9 @@
 import os
 import sys
 
-raven_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-test_dir = os.path.join(raven_dir,'tests')
-#print 'DEBUG raven_dir:',raven_dir
+ravenDir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+testDir = os.path.join(ravenDir,'tests')
+#print 'DEBUG ravenDir:',ravenDir
 
 def getRegressionTests(skipThese=[],skipExpectedFails=True):
   """
@@ -15,22 +15,22 @@ def getRegressionTests(skipThese=[],skipExpectedFails=True):
   """
   testsFilenames = []
   #search for all the 'tests' files
-  for root, dirs, files in os.walk(test_dir):
+  for root, dirs, files in os.walk(testDir):
     if skipExpectedFails and 'ErrorChecks' in root.split(os.sep):
       continue
     if 'tests' in files:
       testsFilenames.append((root,os.path.join(root, 'tests')))
   #read all "input" node files from "tests" files
-  do_tests = {}
+  doTests = {}
   for root,testFilename in testsFilenames:
     testsFile = file(testFilename,'r')
     for line in testsFile:
       if line.strip().startswith('input'):
         newtest = line.split('=')[1].strip().strip("'")
         if newtest not in skipThese and newtest.endswith('.xml'):
-          if root not in do_tests.keys(): do_tests[root]=[]
-          do_tests[root].append(newtest)
-  return do_tests
+          if root not in doTests.keys(): doTests[root]=[]
+          doTests[root].append(newtest)
+  return doTests
 
 def getRegressionList(skipThese=[],skipExpectedFails=True):
   """
@@ -51,9 +51,9 @@ if __name__ == '__main__':
   if '--skip-fails' in sys.argv: skipFails = True
   else: skipFails = False
   skipThese = ['test_rom_trainer.xml','../../framework/TestDistributions.py']
-  do_tests = getRegressionTests(skipThese,skipExpectedFails = skipFails)
-  #print do_tests
-  xml_tests = []
-  for key in do_tests:
-    xml_tests.extend([os.path.join(key,l) for l in do_tests[key]])
-  print ' '.join(xml_tests)
+  doTests = getRegressionTests(skipThese,skipExpectedFails = skipFails)
+  #print doTests
+  xmlTests = []
+  for key in doTests:
+    xmlTests.extend([os.path.join(key,l) for l in doTests[key]])
+  print ' '.join(xmlTests)
