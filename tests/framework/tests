@@ -470,4 +470,11 @@
   csv = 'LHStestVariables/outLHS_dump.csv'
   xml = 'LHStestVariables/outLHS_dump.xml'
  [../]
+
+ [./SimulationTags]
+  # this just tests that there aren't errors on the Simulation tags, no expected output.
+  type = 'RavenFramework'
+  input = 'test_sim_tags.xml'
+  output = 'SimulationTags/dump.csv'
+ [../]
 []
