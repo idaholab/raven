@@ -3,7 +3,7 @@ import sys
 
 raven_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 test_dir = os.path.join(raven_dir,'tests')
-print 'DEBUG raven_dir:',raven_dir
+#print 'DEBUG raven_dir:',raven_dir
 
 def getRegressionTests(skipThese=[],skipExpectedFails=True):
   """
@@ -52,4 +52,8 @@ if __name__ == '__main__':
   else: skipFails = False
   skipThese = ['test_rom_trainer.xml','../../framework/TestDistributions.py']
   do_tests = getRegressionTests(skipThese,skipExpectedFails = skipFails)
-  print ' '.join(do_tests)
+  #print do_tests
+  xml_tests = []
+  for key in do_tests:
+    xml_tests.extend([os.path.join(key,l) for l in do_tests[key]])
+  print ' '.join(xml_tests)
