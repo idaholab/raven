@@ -49,20 +49,35 @@ def shortText(a,b):
     prefix = ""
   return prefix+a[start:firstDiff+halfDisplay]+" "+prefix+b[start:firstDiff+halfDisplay]
 
+def removeWhitespaceChars(s):
+  """ Removes whitespace characters
+  s: string to remove characters from
+  """
+  s = s.replace(" ","")
+  s = s.replace("\t","")
+  s = s.replace("\n","")
+  #if this were python3 this would work:
+  #removeWhitespaceTrans = "".maketrans("",""," \t\n")
+  #s = s.translate(removeWhitespaceTrans)
+  return s
 
-def compareStringsWithFloats(a,b,numTol = 1e-10, zeroThreshold = sys.float_info.min*4.0):
+def compareStringsWithFloats(a,b,numTol = 1e-10, zeroThreshold = sys.float_info.min*4.0, removeWhitespace = False):
   """ Compares two strings that have floats inside them.  This searches for
   floating point numbers, and compares them with a numeric tolerance.
   a: first string to use
   b: second string to use
   numTol: the numerical tolerance.
   zeroThershold: it represents the value below which a float is considered zero (XML comparison only). For example, if zeroThershold = 0.1, a float = 0.01 will be considered as it was 0.0
+  removeWhitespace: if True, remove all whitespace before comparing.
   Return (succeeded, note) where succeeded is a boolean that is true if the
   strings match, and note is a comment on the comparison.
   """
   if a == b:
     return (True,"Strings Match")
   if a is None or b is None: return (False,"One of the strings contain a None")
+  if removeWhitespace:
+    a = removeWhitespaceChars(a)
+    b = removeWhitespaceChars(b)
   aList = splitIntoParts(a)
   bList = splitIntoParts(b)
   if len(aList) != len(bList):
@@ -291,7 +306,7 @@ def compareOrderedElement(a,b,*args,**kwargs):
   else:
     path += a.tag + "/"
   if a.text != b.text:
-    succeeded, note = compareStringsWithFloats(a.text, b.text, float(options.get("rel_err",1.e-10)), float(options.get("zero_threshold",sys.float_info.min*4.0)))
+    succeeded, note = compareStringsWithFloats(a.text, b.text, float(options.get("rel_err",1.e-10)), float(options.get("zero_threshold",sys.float_info.min*4.0)),options.get("remove_whitespace",False))
     if not succeeded:
       same = False
       failMessage(note)
@@ -314,7 +329,9 @@ def compareOrderedElement(a,b,*args,**kwargs):
       #WARNING: this will mangle the XML, so other testing should happen above this!
       found=[]
       for i in range(len(a)):
-        (sameChild,messageChild) = compareOrderedElement(a[i],b[i],*options,path=path)
+        subOptions = dict(options)
+        subOptions["path"] = path
+        (sameChild,messageChild) = compareOrderedElement(a[i],b[i],*args,**subOptions)
         if sameChild: found.append((a[i],b[i]))
         same = same and sameChild
       #prune matches from trees

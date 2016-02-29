@@ -101,9 +101,15 @@ and locally in each block.  The verbosity levels are
 \end{itemize}
 Examples of verbosity usage are included in many examples throughout this manual.
 
-At the \xmlNode{Simulation} node, global variables can be set, including \xmlAttr{verbosity}.  In addition, the
-attribute \xmlAttr{printTimeStamps} can be used to either enable or disable prepending RAVEN output with time stamps
-by setting it to \xmlString{true} or \xmlString{false}.
+At the \xmlNode{Simulation} node, the following global variables can be set:
+\begin{itemize}
+  \item \xmlAttr{verbosity}, optional string, determines the global verbosity level.  Defaults to
+    \xmlString{all}.
+  \item \xmlAttr{printTimeStamps}, optional boolean, determines whether time stamps will be added to printed
+    messages.  Defaults to true.
+  \item \xmlAttr{color}, optional boolean, determines whether ANSI color tags will be used in printed
+    messages.  Defaults to false.
+\end{itemize}
 
 
 \subsection{External Input Files}

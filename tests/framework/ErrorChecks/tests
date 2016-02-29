@@ -1,12 +1,7 @@
 [Tests]
- [./missing_python_file]
-        type = 'RunException'
-        input = 'file_with_missing_control.i'
-        expect_err = 'Unable to open file "./no_such_module.py"'
- [../]
  [./missingSteps]
         type = 'RavenErrors'
         input = 'test_noSteps.xml'
-        expect_err = 'IOError: SIMULATION               : ERROR           -> The step list:'
+        expect_err = 'IOError: The step list:'
  [../]
 []

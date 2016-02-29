@@ -30,6 +30,7 @@ import Functions
 import OutStreamManager
 from JobHandler import JobHandler
 import MessageHandler
+import VariableGroups
 import utils
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -277,7 +278,10 @@ class Simulation(MessageHandler.MessageUser):
     callerLength        = 25
     tagLength           = 15
     suppressErrs        = False
-    self.messageHandler.initialize({'verbosity':self.verbosity, 'callerLength':callerLength, 'tagLength':tagLength, 'suppressErrs':suppressErrs})
+    self.messageHandler.initialize({'verbosity':self.verbosity,
+                                    'callerLength':callerLength,
+                                    'tagLength':tagLength,
+                                    'suppressErrs':suppressErrs})
     readtime = datetime.datetime.fromtimestamp(self.messageHandler.starttime).strftime('%Y-%m-%d %H:%M:%S')
     sys.path.append(os.getcwd())
     #this dictionary contains the general info to run the simulation
@@ -430,8 +434,14 @@ class Simulation(MessageHandler.MessageUser):
           self.XMLpreprocess(xmlNode,xmlFileName)
 
   def XMLread(self,xmlNode,runInfoSkip = set(),xmlFilename=None):
-    """parses the xml input file, instances the classes need to represent all objects in the simulation"""
-    unknownAttribs = utils.checkIfUnknowElementsinList(['printTimeStamps','verbosity'],list(xmlNode.attrib.keys()))
+    """
+      parses the xml input file, instances the classes need to represent all objects in the simulation
+      @ In, xmlNode, ElementTree.Element, xml node to read in
+      @ In, runInfoSkip, optional set, nodes to skip
+      @ In, xmlFilename, optional string, xml filename for relative directory
+      @ Out, None
+    """
+    unknownAttribs = utils.checkIfUnknowElementsinList(['printTimeStamps','verbosity','color'],list(xmlNode.attrib.keys()))
     if len(unknownAttribs) > 0:
       errorMsg = 'The following attributes are unknown:'
       for element in unknownAttribs: errorMsg += ' ' + element
@@ -440,11 +450,42 @@ class Simulation(MessageHandler.MessageUser):
     if 'printTimeStamps' in xmlNode.attrib.keys():
       self.raiseADebug('Setting "printTimeStamps" to',xmlNode.attrib['printTimeStamps'])
       self.messageHandler.setTimePrint(xmlNode.attrib['printTimeStamps'])
+    if 'color' in xmlNode.attrib.keys():
+      self.raiseADebug('Setting color output mode to',xmlNode.attrib['color'])
+      self.messageHandler.setColor(xmlNode.attrib['color'])
     self.messageHandler.verbosity = self.verbosity
     try:    runInfoNode = xmlNode.find('RunInfo')
     except: self.raiseAnError(IOError,'The run info node is mandatory')
     self.__readRunInfo(runInfoNode,runInfoSkip,xmlFilename)
+    ### expand variable groups before continuing ###
+    ## build variable groups ##
+    varGroupNode = xmlNode.find('VariableGroups')
+    varGroups={}
+    # init, read XML for variable groups
+    if varGroupNode is not None:
+      for child in varGroupNode:
+        varGroup = VariableGroups.VariableGroup()
+        varGroup.readXML(child,self.messageHandler)
+        varGroups[varGroup.name]=varGroup
+    # initialize variable groups
+    while any(not vg.initialized for vg in varGroups.values()):
+      numInit = 0 #new vargroups initialized this pass
+      for vg in varGroups.values():
+        if vg.initialized: continue
+        try: deps = list(varGroups[dp] for dp in vg.getDependencies())
+        except KeyError as e:
+          self.raiseAnError(IOError,'Dependency %s listed but not found in varGroups!' %e)
+        if all(varGroups[dp].initialized for dp in vg.getDependencies()):
+          vg.initialize(varGroups.values())
+          numInit+=1
+      if numInit == 0:
+        self.raiseAWarning('variable group status:')
+        for name,vg in varGroups.items():
+          self.raiseAWarning('   ',name,':',vg.initialized)
+        self.raiseAnError(RuntimeError,'There was an infinite loop building variable groups!')
+    # read other nodes
     for child in xmlNode:
+      if child.tag=='VariableGroups': continue #we did these before the for loop
       if child.tag in list(self.whichDict.keys()):
         self.raiseADebug('-'*2+' Reading the block: {0:15}'.format(str(child.tag))+2*'-')
         Class = child.tag
@@ -474,7 +515,7 @@ class Simulation(MessageHandler.MessageUser):
               #now we can read the info for this object
               #if globalAttributes and 'verbosity' in globalAttributes.keys(): localVerbosity = globalAttributes['verbosity']
               #else                                                      : localVerbosity = self.verbosity
-              if Class != 'OutStreamManager': self.whichDict[Class][name].readXML(childChild, self.messageHandler, globalAttributes=globalAttributes)
+              if Class != 'OutStreamManager': self.whichDict[Class][name].readXML(childChild, self.messageHandler, varGroups, globalAttributes=globalAttributes)
               else: self.whichDict[Class][subType][name].readXML(childChild, self.messageHandler, globalAttributes=globalAttributes)
             else: self.raiseAnError(IOError,'not found name attribute for one '+Class)
       else: self.raiseAnError(IOError,'the '+child.tag+' is not among the known simulation components '+ET.tostring(child))
@@ -634,7 +675,7 @@ class Simulation(MessageHandler.MessageUser):
     msg=__prntDict(self.OutStreamManagerPrintDict,msg)
     msg=__prntDict(self.addWhatDict,msg)
     msg=__prntDict(self.whichDict,msg)
-    self.raiseAMessage(msg)
+    self.raiseADebug(msg)
 
   def run(self):
     """run the simulation"""
@@ -649,8 +690,7 @@ class Simulation(MessageHandler.MessageUser):
     #loop over the steps of the simulation
     for stepName in self.stepSequenceList:
       stepInstance                     = self.stepsDict[stepName]   #retrieve the instance of the step
-      self.raiseAMessage('')
-      self.raiseAMessage('-'*2+' Beginning step {0:50}'.format(stepName+' of type: '+stepInstance.type)+2*'-')
+      self.raiseAMessage('-'*2+' Beginning step {0:50}'.format(stepName+' of type: '+stepInstance.type)+2*'-')#,color='green')
       self.runInfoDict['stepName']     = stepName                   #provide the name of the step to runInfoDict
       stepInputDict                    = {}                         #initialize the input dictionary for a step. Never use an old one!!!!!
       stepInputDict['Input' ]          = []                         #set the Input to an empty list
@@ -697,4 +737,6 @@ class Simulation(MessageHandler.MessageUser):
         if self.FIXME: self.raiseAMessage('This is for the filter, it needs to go when the filtering strategy is done')
         if "finalize" in dir(output):
           output.finalize()
-      self.raiseAMessage('-'*2+' End step {0:50} '.format(stepName+' of type: '+stepInstance.type)+2*'-')
+      self.raiseAMessage('-'*2+' End step {0:50} '.format(stepName+' of type: '+stepInstance.type)+2*'-'+'\n')#,color='green')
+    self.raiseAMessage('Run complete!')
+    self.messageHandler.printWarnings()
