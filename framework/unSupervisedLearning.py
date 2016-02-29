@@ -586,6 +586,10 @@ class temporalSciKitLearn(unSupervisedLearning):
     
     self.normValues = None
     self.outputDict = {}
+    
+    if 'decomposition' == SKLtype or 'manifold' == SKLtype: self.noComponents_ = self.initOptionDict['n_components']
+
+    
    
   @staticmethod
   def checkArrayConsistency(arrayin, shape):
@@ -673,7 +677,6 @@ class temporalSciKitLearn(unSupervisedLearning):
       for feat in self.features.keys():
         Input['Features'][feat] = self.inputDict[feat][:,t]         
       self.SKLEngine.features = Input['Features']
-      
       self.SKLEngine.train(Input['Features'])
       self.SKLEngine.confidence()
       
@@ -760,32 +763,48 @@ class temporalSciKitLearn(unSupervisedLearning):
             self.outputDict['componentMeanIndices'][t][n] = remap[self.outputDict['componentMeanIndices'][t][n]] 
           for n in range(len(self.outputDict['labels'][t])):
             if self.outputDict['labels'][t][n] >=0:
-              self.outputDict['labels'][t][n] = remap[self.outputDict['labels'][t][n]] 
+              self.outputDict['labels'][t][n] = remap[self.outputDict['labels'][t][n]]       
       
+      elif 'manifold' == self.SKLtype:
+        if 'noComponents' not in self.outputDict.keys():
+          self.outputDict['noComponents'] = {}
+        if 'embeddingVectors_' not in self.outputDict.keys():
+          self.outputDict['embeddingVectors_'] = {}
+        
+        self.outputDict['noComponents'][t] = self.SKLEngine.noComponents_  
+        if hasattr(self.SKLEngine.Method, 'embedding_'):
+          self.outputDict['embeddingVectors_'][t] = self.SKLEngine.Method.embedding_
+        if   'transform'     in dir(self.SKLEngine.Method): 
+          self.outputDict['embeddingVectors_'][t] = self.SKLEngine.Method.transform(self.SKLEngine.normValues)
+        elif 'fit_transform' in dir(self.SKLEngine.Method): 
+          self.outputDict['embeddingVectors_'][t] = self.SKLEngine.Method.fit_transform(self.SKLEngine.normValues)           
+        if hasattr(self.SKLEngine.Method, 'reconstruction_error_'):
+            if 'reconstructionError_' not in self.outputDict.keys():
+              self.outputDict['reconstructionError_'] = {}
+            self.outputDict['reconstructionError_'][t] = self.SKLEngine.Method.reconstruction_error_
+      
+      elif 'decomposition' == self.SKLtype:
+        if 'noComponents' not in self.outputDict.keys():
+          self.outputDict['noComponents'] = {}
+        if 'components' not in self.outputDict.keys():
+          self.outputDict['components'] = {}
           
-      elif self.SKLtype in ['manifold']:
-#         if 'noComponents' not in self.outputDict.keys(): self.outputDict['noComponents'] = {}
-#         self.outputDict['noComponents'][t] = self.noComponents_
-        if hasattr(self.SKLEngine, 'embedding_'):
-          if 'embeddingVectors' not in self.outputDict.keys(): self.outputDict['embeddingVectors'] = {}
-          self.outputDict['embeddingVectors'][t] = self.SKLEngine.embedding_
-        if hasattr(self.SKLEngine, 'reconstruction_error_'):
-          if 'reconstructionError' not in self.outputDict.keys(): self.outputDict['reconstructionError'] = {}
-          self.outputDict['reconstructionError'][t] = self.SKLEngine.reconstruction_error_
-      elif self.SKLtype in ['decomposition']:
-        if hasattr(self.SKLEngine, 'components_'):
-          if 'components' not in self.outputDict.keys(): self.outputDict['components'] = {}
-          self.outputDict['components'][t] = self.SKLEngine.components_
-        if hasattr(self.SKLEngine, 'means_'):
-          if 'means' not in self.outputDict.keys(): self.outputDict['means'] = {}
-          self.outputDict['means'][t] = self.SKLEngine.means_
-        if hasattr(self.SKLEngine, 'explained_variance_'):
-          if 'explainedVariance' not in self.outputDict.keys(): self.outputDict['explainedVariance'] = {}
-          self.outputDict['explainedVariance'][t] = self.SKLEngine.explained_variance_
-        if hasattr(self.SKLEngine, 'explained_variance_ratio_'):
-          if 'explainedVarianceRatio' not in self.outputDict.keys(): self.outputDict['explainedVarianceRatio'] = {}
-          self.outputDict['explainedVarianceRatio'][t] = self.explained_variance_ratio_
+        self.outputDict['noComponents'][t] = self.SKLEngine.noComponents_
+        if hasattr(self.SKLEngine.Method, 'components_'):
+          self.outputDict['components'][t] = self.SKLEngine.Method.components_            
+        if   'transform'     in dir(self.SKLEngine.Method): 
+          self.outputDict['components'][t] = self.SKLEngine.Method.transform(self.SKLEngine.normValues)
+        elif 'fit_transform' in dir(self.SKLEngine.Method): 
+          self.outputDict['components'][t] = self.SKLEngine.Method.fit_transform(self.SKLEngine.normValues)
+        if hasattr(self.SKLEngine.Method, 'means_'):
+            self.outputDict['means'] = self.SKLEngine.Method.means_
+        if hasattr(self.SKLEngine.Method, 'explained_variance_'):
+            self.outputDict['explainedVariance'] = self.SKLEngine.Method.explained_variance_
+        if hasattr(self.SKLEngine.Method, 'explained_variance_ratio_'):
+            self.outputDict['explainedVarianceRatio'] = self.SKLEngine.Method.explained_variance_ratio_
+   
       else: print ('Not Implemented yet!...', self.SKLtype)
+
 
   def __computeCenter__(self, data, labels):
     point = {}

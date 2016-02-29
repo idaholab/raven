@@ -2996,7 +2996,6 @@ class DataMining(BasePostProcessor):
           clusterCenters = self.unSupervisedEngine.outputDict['clusterCenters']
           # FIXME. Below for temporal solution to save centroid
           if not dataObject == None:
-            self.raiseADebug('*** The number of cluster is ', np.max(labels)+1)
             dataObject.updateOutputValue('Time', self.Time) 
             temp = {}
             for cnt, feat in enumerate(self.unSupervisedEngine.features): 
@@ -3043,34 +3042,37 @@ class DataMining(BasePostProcessor):
           # End of FIXME
       
       
-      elif self.unSupervisedEngine.SKLtype in ['manifold']:
-        pass
+      elif self.unSupervisedEngine.SKLtype in ['manifold']:  
+        noComponents = self.unSupervisedEngine.outputDict['noComponents'][0]      
+        if 'embeddingVectors_' in self.unSupervisedEngine.outputDict.keys():
+          embeddingVectors = self.unSupervisedEngine.outputDict['embeddingVectors_']
+        if 'reconstructionError_' in self.unSupervisedEngine.outputDict.keys():
+          reconstructionError = self.unSupervisedEngine.outputDict['reconstructionError_']
+
+        for i in range(noComponents):
+          if self.name+'EmbeddingVector' + str(i + 1) not in outputDict['output'].keys():
+            outputDict['output'][self.name+'EmbeddingVector' + str(i + 1)] = np.zeros(shape=(noSample,noTimeStep))
+          for t in range(noTimeStep):
+            outputDict['output'][self.name+'EmbeddingVector' + str(i + 1)][:,t] =  embeddingVectors[t][:, i]
+            
       elif self.unSupervisedEngine.SKLtype in ['decomposition']:
-        pass      
+        noComponents = self.unSupervisedEngine.outputDict['noComponents'][0]
+        if 'components' in self.unSupervisedEngine.outputDict.keys():
+          components = self.unSupervisedEngine.outputDict['components']
+        if 'explainedVarianceRatio' in self.unSupervisedEngine.outputDict.keys():
+          explainedVarianceRatio = self.unSupervisedEngine.outputDict['explainedVarianceRatio']
+ 
+        for i in range(noComponents):
+          if self.name+'PCAComponent' + str(i + 1) not in outputDict['output'].keys():
+            outputDict['output'][self.name+'PCAComponent' + str(i + 1)] = np.zeros(shape=(noSample,noTimeStep))
+          for t in range(noTimeStep):
+            outputDict['output'][self.name+'PCAComponent' + str(i + 1)][:,t] =  components[t][:, i]
+     
       else: 
         print ('Not yet implemented!...', self.unSupervisedEngine.SKLtype)
     
-      if 'manifold' == self.unSupervisedEngine.SKLtype:
-        manifoldValues = self.unSupervisedEngine.normValues
-        if hasattr(self.unSupervisedEngine, 'embeddingVectors_'): embeddingVectors = self.unSupervisedEngine.embeddingVectors_
-        if hasattr(self.unSupervisedEngine, 'reconstructionError_'): reconstructionError = self.unSupervisedEngine.reconstructionError_
-        if   'transform'     in dir(self.unSupervisedEngine.Method): embeddingVectors = self.unSupervisedEngine.Method.transform(manifoldValues)
-        elif 'fit_transform' in dir(self.unSupervisedEngine.Method): embeddingVectors = self.unSupervisedEngine.Method.fit_transform(manifoldValues)
-        for i in range(len(embeddingVectors[0, :])):
-          outputDict['output'][self.name+'EmbeddingVector' + str(i + 1)] =  embeddingVectors[:, i]
-      if 'decomposition' == self.unSupervisedEngine.SKLtype:
-        decompositionValues = self.unSupervisedEngine.normValues
-        if hasattr(self.unSupervisedEngine, 'noComponents_'): noComponents = self.unSupervisedEngine.noComponents_
-        if hasattr(self.unSupervisedEngine, 'components_'): components = self.unSupervisedEngine.components_
-        if hasattr(self.unSupervisedEngine, 'explainedVarianceRatio_'): explainedVarianceRatio = self.unSupervisedEngine.explainedVarianceRatio_
-        # SCORE method does not work for SciKit Learn 0.14
-        # if hasattr(self.unSupervisedEngine.Method, 'score'): score = self.unSupervisedEngine.Method.score(decompositionValues)
-        if   'transform'     in dir(self.unSupervisedEngine.Method): components = self.unSupervisedEngine.Method.transform(decompositionValues)
-        elif 'fit_transform' in dir(self.unSupervisedEngine.Method): components = self.unSupervisedEngine.Method.fit_transform(decompositionValues)
-        for i in range(noComponents):
-          outputDict['output'][self.name+'PCAComponent' + str(i + 1)] =  components[:, i]
-            
-    
+
+
     return outputDict
 
 
