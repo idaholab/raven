@@ -41,10 +41,6 @@
     </Steps>
 	
     <OutStreamManager>
-        <Print name = 'writeDataOut'>
-            <type>csv</type>
-            <source>rawData</source>
-        </Print>
 		<Print name = 'dummy'>
             <type>csv</type>
             <source>ppData</source>

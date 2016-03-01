@@ -2772,7 +2772,7 @@ class DataMining(BasePostProcessor):
       inputDict = {'Features':{}, 'parameters':{}, 'Labels':{}, 'metadata':{}}
       if currentInput.type in ['HistorySet']:         
         # FIXME, this needs to be changed for asynchronous HistorySet
-        if 'Time' in currentInput.getParam('output',1).keys(): self.Time = currentInput.getParam('output',1)['Time']
+        if self.timeID in currentInput.getParam('output',1).keys(): self.Time = currentInput.getParam('output',1)[self.timeID]
         else: self.raiseAnError(ValueError, 'Time not found in input historyset')
         # end of FIXME  
         historyKey = currentInput.getOutParametersValues().keys()
@@ -2782,7 +2782,7 @@ class DataMining(BasePostProcessor):
           self.raiseAnError(ValueError, 'To perform data mining over input please use SciKitLearn library')
         elif self.initializationOptionDict['KDD']['Features'] in ['output', 'all']:
           features = currentInput.getParaKeys('output')
-          features.remove('Time')
+          features.remove(self.timeID)
         else:
           features = self.initializationOptionDict['KDD']['Features'].split(',')        
         for param in features:
@@ -2845,6 +2845,7 @@ class DataMining(BasePostProcessor):
       @ In, xmlNode, Xml element node
       @ Out, None
     """
+    
     for child in xmlNode:
       # FIXME is there anything that is a float that will raise an exception for int?
       if child.attrib:
@@ -2869,7 +2870,9 @@ class DataMining(BasePostProcessor):
             except ValueError:
               try: self.initializationOptionDict[child.tag][childChild.tag] = float(childChild.text)
               except ValueError: self.initializationOptionDict[child.tag][childChild.tag] = childChild.text
-
+      elif child.tag == 'timeID':
+        self.timeID = child.text
+    if not hasattr(self, 'timeID'):       self.timeID = 'Time'            
     if self.type: self.unSupervisedEngine = unSupervisedLearning.returnInstance(self.type, self, **self.initializationOptionDict['KDD'])
     else        : self.raiseAnError(IOError, 'No Data Mining Algorithm is supplied!')
 
