@@ -33,18 +33,68 @@ examples.
 \label{sub:MC}
 The Monte-Carlo method is probably one of the most used methodologies in several disciplines. In this section, a brief theoretical 
 background is reported. In addition,it is shown how to employ this methodology with RAVEN.
-\subsubsection{Monte-Carlo theory}
+\subsubsection{Monte-Carlo theory introduction}
 \label{subsub:MCtheory}
-The Monte-Carlo method is aimed to answer to two questions:
-\begin{itemize}
-  \item 
-  \item 
-\end{itemize}
+The Monte-Carlo method is aimed to approximate an expectation by the sample mean of a function of 
+simulated random variables. It is based on the laws of large numbers in order to approximate expectations. 
+In order words, it is aimed to approximate the average response of multiple FOMs 
+relying on multiple random sampling of the input space. 
+\\Let's consider a random variable (eventually multidimensional) $\bar{x}$ having probability mass function or probability density function $pdf_{X}(x)$,
+which is greater than zero on a set of values $\chi$. Then the expected value of a function $f$ of $X$ is as follows:
+\begin{equation}
+\begin{matrix}
+\mathbb{E}(f(X)) =\sum_{x \in \chi} f(x)pdf_{X}(x) & if X \, discrete \\ 
+\\ 
+\mathbb{E}(f(X)) =\int_{x \in \chi} f(x)pdf_{X}(x) & \, if X \, \, continuous
+\end{matrix}
+\end{equation}
+Let's now consider to take an $n$-sample of $X$, $(x_{1},...,x_{n})$, and compute the mean of $f(x)$ over the samples. This computation represents the Monte-Carlo estimate:
+\begin{equation}
+  \mathbb{E}(f(X)) \approx   \widetilde{f}_{n}(x) = \frac{1}{n} \sum_{i=1}^{n} f(x_{i})  
+\end{equation}
+If $\mathbb{E}(f(X))$ exists, then the law of large numbers determines that for any arbitrarily small $\varepsilon$:
+\begin{equation}
+  \lim_{n\rightarrow \, \infty} P( \left | \widetilde{f}_{n}(X) - \mathbb{E}(f(X))  \right |\geq \varepsilon) = 0
+\end{equation}
+The above equation suggests that as $n$ gets larger, then the probability that $\widetilde{f}_{n}(X)$ deviates 
+from the $\mathbb{E}(f(X))$ becomes smaller. In other words, more samples are spooned, more closer the Monte-Carlo estimate of $X$ gets to the real value.
+\\In addition $\widetilde{f}_{n}(X)$ represent an unbiased estimate for $\mathbb{E}(f(X))$:
+\begin{equation}
+\mathbb{E}(\widetilde{f}_{n}(X)) = \mathbb{E} \left ( \frac{1}{n} \sum_{i=1}^{n} f(x_{i})   \right ) = 
+\frac{1}{n} \sum_{i=1}^{n} \mathbb{E}(f(x_{i})) =   \mathbb{E}(f(X)) 
+\end{equation}
+After this brief introduction, it is important to understand how the Monte-Carlo method can be employed 
+for the analysis of Dynamic Stochastic system.
+\\Referencing to the nomenclature defined in section~\ref{sub:mathBackground}, given:
+\begin{equation}
+\frac{\partial  \overline{\theta}^{c}\left ( t \right )}{\partial t}=f\left ( \overline{\theta}^{c},\overline{\theta}^{d}_{i}, \overline{\alpha}_{staz} ,\overline{\alpha}_{brow}, t \right )
+\end{equation}
+let's define a function $g_{i}$ that represents the solution of the previous equation (the trajectory in the $ \overline{\theta}^{c}$ space for a fixed $ \overline{\theta}^{d}_{i}$ and initial condition $\overline{\theta}^{c}_{0}$) :
+\begin{equation}
+  \overline{\theta}^{c}(t) = g_{i}(t,\overline{\theta}^{c}_{0})
+\end{equation}
+The Monte-Carlo analysis is performed as following:
+\begin{enumerate}
+  \item Sample:
+  \begin{itemize}
+    \item $\overline{\alpha}_{staz} $,$\overline{\alpha}_{DS}$, $\overline{t}$ depending on which 
+    approximations are valid (see~\ref{sub:mathBackground});
+    \item The initial conditions $\overline{\theta}^{c}_{0}$,$\overline{\theta}^{d}_{0}$;
+    \item Transition conditions from $W(\overline{\theta}^{d}|\overline{\theta}^{d}_{i},\overline{\theta}^{c},t)$
+  \end{itemize}
+  \item Run the system simulator using the previously sampled values and affected by the intrinsic stochasticity 
+  represented by $\overline{\alpha}_{brow}$;
+  \item Pause the simulation when a transition condition is reached and move from the current $\overline{\theta}^{d}_{0}$ to the new $\overline{\theta}^{d}$ (e.g. $\overline{\theta}^{d}_{1}$);
+  \item Run the simulation as performed in step 3, starting from the new coordinate and pause the simulation when a new transition is reached;
+  \item Repeat steps 3 and 4 until a stopping condition is reached;
+  \item Repeat 1 through 4 for a large number of runs $n$.
+\end{enumerate}
+
+
+
 \subsubsection{Monte-Carlo sampling through RAVEN}
 \label{subsub:MCexample}
-
-
- \\ The goals of this section are about learning how to:
+The goals of this section are about learning how to:
  \begin{enumerate}
    \item Set up a simple Monte-Carlo sampling for perturbing the input space of a driven code;
    \item Load the outputs of the code into the RAVEN DataObjects system;
@@ -357,3 +407,11 @@ dumped out.
   \label{fig:historySubPlotLine}
  \end{figure}
 
+\subsection{Grid}
+\label{sub:Grid}
+The Grid sampling method (also known as Full Factorial Design of Experiment) represents one of the simplest methodologies that can be employed in order to explore the interaction of multiple random variables with respect
+selected FOMs.
+In this section, a brief theoretical 
+background is reported. In addition,it is shown how to employ this methodology with RAVEN.
+\subsubsection{Grid theory introduction}
+\label{subsub:Gridtheory}
