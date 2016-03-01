@@ -832,6 +832,34 @@ class HDMRRom(GaussPolynomialRom):
     for combo in self.ROMs.keys():
       self.combos[len(combo)].append(combo)
 
+    #list of term objects
+    self.terms = {():[]}  # each entry will look like 'x1,x2':('x1','x2'), missing the reference entry
+    for l in range(1,maxLevel+1):
+      for romName in self.combos[l]:
+        self.terms[romName] = []
+        # add subroms -> does this get referenece case, too?
+        for key in self.terms.keys():
+          if set(key).issubset(set(romName)) and key!=romName:
+            self.terms[romName].append(key)
+    #reduce terms
+    self.reducedTerms = {}
+    for term in self.terms.keys():
+      self.collectTerms(term)
+    #remove zero entries
+    toRemove=[]
+    for term,mult in self.reducedTerms.items():
+      if mult == 0: toRemove.append(term)
+    for rem in toRemove:
+      del self.reducedTerms[rem]
+
+    #self.raiseADebug('Terms:')
+    #for t,v in self.terms.items():
+    #  self.raiseADebug('  ',t,':',v)
+
+    self.raiseADebug('Reduced Terms, Multiplicity:')
+    for t,v in self.reducedTerms.items():
+      self.raiseADebug('  ',t,':',v)
+
     self.amITrained = True
 
   def __fillPointWithRef(self,combo,pt):
@@ -850,23 +878,43 @@ class HDMRRom(GaussPolynomialRom):
         newpt[v] = self.references[var]
     return newpt
 
+  def __fillIndexWithRef(self,combo,pt):
+    """Given a "combo" subset of the full input space and an index point
+       point within that space, fills the rest of space with zeros
+       @ In, combo, tuple(str), names of subset dimensions
+       @ In, pt, list(int), values of points in subset dimension
+       @ Out, newpt, tuple(int), full point in input dimension space on cut-hypervolume
+    """
+    newpt=np.zeros(len(self.features))
+    for v,var in enumerate(self.features):
+      if var in combo:
+        newpt[v] = pt[combo.index(var)]
+      else:
+        newpt[v] = 0
+    return tuple(newpt)
+
   def __mean__(self):
     """The Cut-HDMR approximation can return its mean easily.
     @ In, None
     @ Out, float, the mean
     """
     if self.mean != None: return self.mean
-    vals={'':self.refSoln}
-    for i,c in enumerate(self.combos):
-      for combo in c:
-        rom = self.ROMs[combo]
-        vals[combo] = rom.__evaluateMoment__(1) - vals['']
-        for cl in range(i):
-          for doneCombo in self.combos[cl]:
-            if set(doneCombo).issubset(set(combo)):
-              vals[combo] -= vals[doneCombo]
-    tot = sum(vals.values())
-    self.mean=tot
+    #vals = {():self.refSoln}
+    #for i,c in enumerate(self.combos):
+    #  for combo in c:
+    #    rom = self.ROMs[combo]
+    #    vals[combo] = rom.__evaluateMoment__(1)
+    #    subs = self.terms[combo]
+    #    for sub in subs:
+    #      vals[combo] -= vals[sub]
+    #tot = sum(vals.values())
+    #self.mean=tot
+    tot = 0
+    for term,mult in self.reducedTerms.items():
+      if term == ():
+        tot += self.refSoln
+      else:
+        tot += self.ROMs[term].__evaluateMoment__(1)*mult
     return tot
 
   def __variance__(self):
@@ -876,20 +924,86 @@ class HDMRRom(GaussPolynomialRom):
     @ Out, float, the variance
     """
     if self.variance != None: return self.variance
-    vals={}
-    for i,c in enumerate(self.combos):
-      for combo in c:
-        rom = self.ROMs[combo]
-        mean = rom.__evaluateMoment__(1)
-        vals[combo] = rom.__evaluateMoment__(2) - mean*mean
-        for cl in range(i):
-          for doneCombo in self.combos[cl]:
-            if set(doneCombo).issubset(set(combo)):
-              vals[combo] -= vals[doneCombo]
-    tot = sum(vals.values())
+    mean = self.__mean__()
+    ###############
+    #     OLD     #
+    ###############
+    #vals={}
+    #for i,c in enumerate(self.combos):
+    #  for combo in c:
+    #    rom = self.ROMs[combo]
+    #    mean = rom.__evaluateMoment__(1)
+    #    vals[combo] = rom.__evaluateMoment__(2) - mean*mean
+    #    for sub in self.terms[combo]:
+    #      vals[combo] -= vals[sub]
+        ##for cl in range(i):
+        ##  for doneCombo in self.combos[cl]:
+        ##    if set(doneCombo).issubset(set(combo)):
+        ##      vals[combo] -= vals[doneCombo]
+    #tot = sum(vals.values())
+    ###############
+    #   END OLD   #
+    ###############
     #TODO FIXME this neglects cross-terms!
-    self.variance = tot
-    return tot
+    #do cross terms
+    #first, get multiplicity of terms needed
+    varTerms = {}
+    #create cross-product of all terms, key is terms pair and value is multiplicity
+    for term1,mult1 in self.reducedTerms.items():
+      for term2,mult2 in  self.reducedTerms.items():
+        key = [term1,term2]
+        key.sort()
+        key = tuple(key)
+        val = mult1*mult2
+        if key not in varTerms.keys(): varTerms[key] = val
+        else: varTerms[key] += val
+    #remove unessential terms, -> TODO I don't think there can be zero terms, but perhaps
+    toRemove = []
+    for key,val in varTerms.items():
+      if val==0: toRemove.append(key)
+    for rem in toRemove:
+      del varTerms[rem]
+    # now calculate actual variance
+    variance = 0
+    for term,mult in varTerms.items():
+      term1 = term[0]
+      term2 = term[1]
+      ### CASE: h_r * h_r -> h_r**2
+      if term1 == () and term2 == ():
+        variance += self.refSoln * self.refSoln * mult
+        continue
+      ### CASE: h_r * gPC -> h_r * c_0
+      # sort so if term2 or term1 is (), then term1 is () and term2 is other
+      if term2 == ():
+        term2 = term1
+        term1 = ()
+      if term[0] == ():
+        variance += self.refSoln * self.ROMs[term2].__evaluateMoment__(1) * mult
+        continue
+      ### CASE: gPC * gPC -> c1_0*c2_0 + c_k^2 for each k in both index sets
+      rom1 = self.ROMs[term1]
+      rom2 = self.ROMs[term2]
+      for polyIndex1,coeff1 in rom1.polyCoeffDict.items():
+        polyIndex1 = self.__fillIndexWithRef(term1,polyIndex1)
+        for polyIndex2,coeff2 in rom2.polyCoeffDict.items():
+          polyIndex2 = self.__fillIndexWithRef(term2,polyIndex2)
+          if polyIndex1 == polyIndex2:
+            variance += coeff1 * coeff2 * mult
+    self.variance = variance - mean*mean
+    return variance
+
+  def collectTerms(self,a,sign=1,depth=0):
+    """
+    Adds main term multiplicity and subtracts sub term multiplicity for cross between terms
+    @ In, a, string, main combo key from self.terms
+    @ In, sign, int, gives the signs of the terms (1 for positive, -1 for negative)
+    @ In, depth, int, recursion depth
+    @ Out, None
+    """
+    if a not in self.reducedTerms.keys(): self.reducedTerms[a] = sign
+    else: self.reducedTerms[a] += sign
+    for sub in self.terms[a]:
+      self.collectTerms(sub,sign*-1,depth+1)
 
   def __evaluateLocal__(self,featureVals):
     """ Evaluates a point.
@@ -898,20 +1012,24 @@ class HDMRRom(GaussPolynomialRom):
     """
     #am I trained?
     if not self.amITrained: self.raiseAnError(IOError,'Cannot evaluate, as ROM is not trained!')
-    fvals=dict(zip(self.features,featureVals[0]))
-    vals={'':self.refSoln}
-    for i,c in enumerate(self.combos):
-      for combo in c:
-        myVals = [list(featureVals[0][self.features.index(j)] for j in combo)]
-        rom = self.ROMs[combo]
-        #check if rom is trained
-        if not rom.amITrained: self.raiseAnError(IOError,'ROM for subset %s is not trained!' %combo)
-        vals[combo] = rom.__evaluateLocal__(myVals) - vals['']
-        for cl in range(i):
-          for doneCombo in self.combos[cl]:
-            if set(doneCombo).issubset(set(combo)):
-              vals[combo] -= vals[doneCombo]
-    tot = sum(vals.values())
+    tot = 0
+    for term,mult in self.reducedTerms.items():
+      if term == ():
+        tot += self.refSoln
+      else:
+        cutVals = [list(featureVals[0][self.features.index(j)] for j in term)]
+        tot += self.ROMs[term].__evaluateLocal__(cutVals)*mult
+    #vals={():self.refSoln}
+    #for i,c in enumerate(self.combos):
+    #  for combo in c:
+    #    myVals = [list(featureVals[0][self.features.index(j)] for j in combo)]
+    #    rom = self.ROMs[combo]
+    #    #check if rom is trained
+    #    if not rom.amITrained: self.raiseAnError(IOError,'ROM for subset %s is not trained!' %combo)
+    #    vals[combo] = rom.__evaluateLocal__(myVals)
+    #    for sub in self.terms[combo]:
+    #      vals[combo] -= vals[sub]
+    #tot = sum(vals.values())
     return tot
 
   def getSensitivities(self,maxLevel=None,kind='variance'):
