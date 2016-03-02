@@ -1,0 +1,107 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+    <RunInfo>
+        <WorkingDir>ARMA</WorkingDir>
+		<Sequence>readIn,readInGhostData,windARMATrain,runARMA,writeOut</Sequence>
+        <batchSize>1</batchSize>
+    </RunInfo>
+    <Files>
+        <Input name="windRawDataFile">./dataSet.csv</Input>
+		<Input name="ghostDataFile">./ghostData.csv</Input>
+    </Files>
+    <Distributions>
+		<Uniform name="smallUniformDist">
+			<lowerBound>2</lowerBound>
+			<upperBound>3</upperBound>
+		</Uniform>
+	</Distributions>
+
+	<Samplers>
+		<MonteCarlo name="mcSampler">
+			<samplerInit>
+				<limit>1</limit>
+				<initialSeed>888</initialSeed>
+			</samplerInit>
+			<variable name="Speed">
+				<distribution>smallUniformDist</distribution>
+			</variable>
+		</MonteCarlo>
+	</Samplers> 
+	
+	<Models>			
+		<ROM name='windARMA' subType='ARMA'>
+			<Target>Time</Target>
+			<Features>Speed</Features>
+			<Pmax>2</Pmax>
+			<Pmin>2</Pmin>
+			<Qmax>1</Qmax>
+			<Qmin>1</Qmin>
+			<Fourier>31536000,604800,86400</Fourier>
+			<FourierOrder>6, 2, 2</FourierOrder>
+		</ROM>
+    </Models>
+    <Steps>
+        <IOStep name='readIn' pauseAtEnd = 'True'>
+            <Input    class = 'Files'             type = ''              >windRawDataFile</Input>
+            <Output   class = 'DataObjects'       type = 'HistorySet'       >windRawData</Output>          
+        </IOStep>
+		<IOStep name='readInGhostData' pauseAtEnd = 'True'>
+            <Input    class = 'Files'             type = ''              >ghostDataFile</Input>
+            <Output   class = 'DataObjects'       type = 'Point'       >ghostData</Output>           
+        </IOStep>
+		<RomTrainer name='windARMATrain'>
+			<Input    class = 'DataObjects'       type = 'History'       >windRawData</Input>
+			<Output   class='Models' 			  type ='ROM' 	 		 >windARMA</Output>
+		</RomTrainer>
+		<MultiRun name='runARMA'>
+			<Input    class = 'DataObjects'       type = 'PointSet'       >ghostData</Input>
+			<Sampler class="Samplers"  type="MonteCarlo"  >mcSampler</Sampler>
+			<Model   class='Models' 			  type = 'ROM' 	 		 >windARMA</Model>
+			<Output    class = 'DataObjects'       type = 'HistorySet'    >windSynData</Output> 
+		</MultiRun>
+        <IOStep name='writeOut' pauseAtEnd = 'True'>
+			<Input    class = 'DataObjects'       type = 'HistorySet'    >windSynData</Input>		 			
+			<Output   class = 'OutStreamManager'  type = 'Print'         >writeSynDataOut</Output>
+			<Output   class = 'OutStreamManager'  type = 'Plot'         >plotWindSynData</Output> 
+		</IOStep>	
+    </Steps>
+    <OutStreamManager>		
+        <Print name = 'writeSynDataOut'>
+            <type>csv</type>
+            <source>windSynData</source>
+        </Print>	
+		<Plot dim="2" name="plotWindSynData" overwrite="false" >
+			<plotSettings>
+				<plot>
+					<type>line</type>
+					<x>windSynData|Output|Time</x>
+					<y>windSynData|Output|Speed</y>
+					<interpPointsX>52560</interpPointsX>
+				</plot>
+			</plotSettings>
+			<actions>
+				<range>
+					<xmin>0</xmin><xmax>1209600</xmax>
+<!-- 					<ymin>0</ymin><ymax>30</ymax> -->
+				</range>
+				<how>png</how>
+			</actions>
+	    </Plot>
+	</OutStreamManager>
+	
+    <DataObjects>
+        <HistorySet name="windRawData">
+            <Input>x</Input>
+            <Output>Time,Speed</Output>
+        </HistorySet>
+		<Point name="ghostData">
+            <Input>Speed</Input>
+            <Output>y,z</Output>
+        </Point>
+		<HistorySet name="windSynData">
+            <Input>y</Input>
+            <Output>Time,Speed</Output>
+        </HistorySet>
+    </DataObjects>
+</Simulation>
+

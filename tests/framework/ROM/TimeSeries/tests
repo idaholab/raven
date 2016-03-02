@@ -1,0 +1,7 @@
+[Tests]
+ [./ARMA]
+  type = 'RavenFramework'
+  input = 'test_ARMA.xml'
+  output = 'ARMA/writeSynDataOut.csv ARMA/writeSynDataOut.xml'
+  csv = 'ARMA/writeSynDataOut_0.csv'
+[]

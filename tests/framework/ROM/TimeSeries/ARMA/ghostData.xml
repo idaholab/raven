@@ -1,0 +1,5 @@
+<data name="ghostData" type="Point">
+<input>Speed</input>
+<output>y,z</output>
+<inputFilename>ghostData.csv</inputFilename>
+</data>
