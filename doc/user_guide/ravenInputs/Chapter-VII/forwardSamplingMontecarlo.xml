@@ -1,9 +1,9 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <RunInfo>
-    <JobName>ChapterV-I/MonteCarlo</JobName>
+    <JobName>ChapterVII-I/MonteCarlo</JobName>
     <Sequence>sample,writeHistories</Sequence>
-    <WorkingDir>ChapterV-I/MonteCarlo</WorkingDir>
+    <WorkingDir>ChapterVII-I/MonteCarlo</WorkingDir>
     <batchSize>12</batchSize>
   </RunInfo>
 
@@ -71,15 +71,15 @@
       <Sampler 	class="Samplers" 		 type="MonteCarlo">monteCarlo</Sampler>
       <Output 	class="DataObjects" 	 type="PointSet">samples</Output>
       <Output 	class="DataObjects" 	 type="HistorySet">histories</Output>
-      <Output 	class="OutStreamManager" type="Print">samples</Output>
-      <Output 	class="OutStreamManager" type="Print">histories</Output>
+
     </MultiRun>
     <IOStep name="writeHistories" pauseAtEnd="True">
         <Input class="DataObjects" type="HistorySet">histories</Input>
         <Input class="DataObjects" type="PointSet">samples</Input>
-        <Output class="OutStreamManager" type="Print">histories</Output>
         <Output 	class="OutStreamManager" type="Plot">samplesPlot3D</Output>
         <Output 	class="OutStreamManager" type="Plot">historyPlot</Output>
+        <Output 	class="OutStreamManager" type="Print">samples</Output>
+        <Output 	class="OutStreamManager" type="Print">histories</Output>
     </IOStep>
   </Steps>
 
@@ -116,7 +116,7 @@
                   <y>0</y>
                 </gridLocation>
                 <xlabel>time (s)</xlabel>
-                <ylabel>evolution (kg)</ylabel>
+                <ylabel>evolution A(kg)</ylabel>
             </plot>
             <plot>
                 <type>line</type>
@@ -128,7 +128,7 @@
                     <y>0</y>
                 </gridLocation>
                 <xlabel>time (s)</xlabel>
-                <ylabel>evolution (kg)</ylabel>
+                <ylabel>evolution B(kg)</ylabel>
             </plot>
             <plot>
                 <type>line</type>
@@ -140,7 +140,7 @@
                     <y>1</y>
                 </gridLocation>
                 <xlabel>time (s)</xlabel>
-                <ylabel>evolution (kg)</ylabel>
+                <ylabel>evolution C(kg)</ylabel>
             </plot>
             <plot>
                 <type>line</type>
@@ -152,7 +152,7 @@
                     <y>1</y>
                 </gridLocation>
                 <xlabel>time (s)</xlabel>
-                <ylabel>evolution (kg)</ylabel>
+                <ylabel>evolution D(kg)</ylabel>
             </plot>
 
         </plotSettings>
@@ -179,7 +179,7 @@
                 </gridLocation>
                 <xlabel>sigma</xlabel>
                 <ylabel>decay</ylabel>
-                <zlabel>final response</zlabel>
+                <zlabel>final A</zlabel>
             </plot>
             <plot>
                 <type>scatter</type>
@@ -193,7 +193,7 @@
                 </gridLocation>
                 <xlabel>sigma</xlabel>
                 <ylabel>decay</ylabel>
-                <zlabel>final response</zlabel>
+                <zlabel>final B</zlabel>
             </plot>
             <plot>
                 <type>scatter</type>
@@ -208,7 +208,7 @@
                 </gridLocation>
                 <xlabel>sigma</xlabel>
                 <ylabel>decay</ylabel>
-                <zlabel>final response</zlabel>
+                <zlabel>final C</zlabel>
             </plot>
             <plot>
                 <type>scatter</type>
@@ -222,7 +222,7 @@
                 </gridLocation>
                 <xlabel>sigma</xlabel>
                 <ylabel>decay</ylabel>
-                <zlabel>final response</zlabel>
+                <zlabel>final D</zlabel>
             </plot>
             <xlabel>sigma</xlabel>
             <ylabel>decay</ylabel>

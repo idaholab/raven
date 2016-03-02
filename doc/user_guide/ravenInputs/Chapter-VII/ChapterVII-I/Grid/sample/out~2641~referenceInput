@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/Users/alfoa/projects/raven/doc/user_guide/ravenInputs/physicalCode/analyticalbateman/AnalyticalDplMain.py", line 34, in <module>
+    test.runDpl()
+  File "/Users/alfoa/projects/raven/doc/user_guide/ravenInputs/physicalCode/analyticalbateman/BatemanClass.py", line 128, in runDpl
+    self.result[N2type[0]][1][ts] = self.N2solution(N1type[2],N2type[2],N1type[3],N2type[3],N1type[4],N2type[4],flux,self.time_to_run[ts])
+  File "/Users/alfoa/projects/raven/doc/user_guide/ravenInputs/physicalCode/analyticalbateman/BatemanClass.py", line 146, in N2solution
+    N2 = (-A1*math.exp((-A2-flux*sigma2)*t)*N02+A2*math.exp((-A2-flux*sigma2)*t)*N02+math.exp((-A1-flux*sigma1)*t)*flux*N01*sigma1-math.exp((-A2-flux*sigma2)*t)*flux*N01*sigma1-math.exp((-A2-flux*sigma2)*t)*flux*N02*sigma1+math.exp((-A2-flux*sigma2)*t)*flux*N02*sigma2)/(-A1+A2-flux*sigma1+flux*sigma2)
+ZeroDivisionError: float division by zero
