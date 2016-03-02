@@ -44,7 +44,15 @@ other system codes.
 \subsection{System Scope}
 
 The product to be produced is the RAVEN software.  It is a computer
-code designed for probabilistic analysis.
+code designed for probabilistic analysis.  RAVEN is a statistical
+analysis tool that is used to estimate risk by computing real numbers
+to determine what can go wrong, how likely is it, and what are its
+consequences.  RAVEN takes in input (such as input files for
+subprograms, or CSV files of data) and then can run subprograms with
+perturbed input to calculate the result of physical simulations with
+varying input parameters.  Then RAVEN takes the output of those
+program or the data provided and performs statistical analysis on the
+data.
 
 \subsection{System Overview}
 
@@ -52,12 +60,18 @@ code designed for probabilistic analysis.
 
 The users of the system are expected to be analysts performing
 analysis of simulations of systems.  The users will use the outputs
-for planning and design of the systems.
+for planning and design of the systems.  The system can be whatever
+system the subprograms are simulating.  This can be a nuclear power
+plant, but there is nothing specific in RAVEN that requires that.  The
+system should have a simulation program that takes inputs and returns
+output data that can be read and written by RAVEN.  The users will
+need to understand both RAVEN and the subprogram(s) that are used.
 
 \subsubsection{Assumptions and Dependencies}
 
 The software depends on the Python programming language being
-available.  The software depends on other software:
+available.  The software uses C++ to compile some Python modules.  The
+software depends on other software:
 
 \begin{enumerate}
 \item MOOSE
@@ -70,6 +84,14 @@ available.  The software depends on other software:
 \item matplotlib
 \item swig
 \end{enumerate}
+
+The software uses subprograms to run simulations.  RAVEN lets the user
+write interfaces for this purpose.  There are existing interfaces for
+RELAP-5, RELAP-7, and generic MOOSE based applications.
+
+The software runs on Linux, Mac OSX, and Windows.  The computer system
+needs to have the necessary Python libraries and be able to compile
+the RAVEN Python modules.
 
 It is assumed that other methods will be used to provide security
 (such as running in a single user's account with the input and output
@@ -92,6 +114,7 @@ LWP-13620, ``Managing Information Technology Assets,'' Rev. 16, December
 
 \begin{description}
 \item[CDF] cumulative distribution function
+\item[CSV] comma separated variable (a simple spreadsheet format)
 \item[RAVEN] Risk Analysis Virtual Environment
 \item[PDF] probability distribution function
 \end{description}
@@ -176,7 +199,7 @@ LWP-13620, ``Managing Information Technology Assets,'' Rev. 16, December
 
 \requirement{R-IS-2}{RAVEN shall be able to run external codes by supplying them with the needed input files and collecting the output data.}
 {INL/EXT-15-34123 Rev 3 RAVEN User Manual 7 Files}
-{RAVEN runs external codes, and each instance may need a different input file that needs to be generated from the sampler choices.  RAVEN also may need to read the output files in. (possibly with application specific code that is user provided.)}
+{RAVEN runs external codes, and each instance may need a different input file that needs to be generated from the sampler choices.  RAVEN also may need to read the output files in. (possibly with application specific code that is user provided.)  The output files will often be CSV files.}
 {simple\_framework}
 
 \requirement{R-IS-3}{RAVEN shall support storing and retrieving data in a HDF5 database.}
