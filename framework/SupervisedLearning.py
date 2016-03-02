@@ -1930,7 +1930,7 @@ class ARMA(superVisedLearning):
   def __generateResCDF__(self):
     self.armaNormPara = {}
     self.armaNormPara['rCDF'] = {}
-    num_bins = [10000]*self.armaPara['dimension']
+    num_bins = [20000]*self.armaPara['dimension']
     
     for d in range(self.armaPara['dimension']):
       counts, binEdges = np.histogram(self.armaPara['rSeries'][:,d], bins = num_bins[d], normed = True)
