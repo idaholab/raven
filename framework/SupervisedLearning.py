@@ -1055,11 +1055,36 @@ class HDMRRom(GaussPolynomialRom):
       for combo in c:
         rom = self.ROMs[combo]
         mean = rom.__evaluateMoment__(1)
-        self.sdx[i][combo] = rom.__evaluateMoment__(2) - mean*mean
+        self.sdx[i][combo] = rom.__evaluateMoment__(2) - mean*mean #TODO FIXME
         for cl in range(i):
           for doneCombo in self.combos[cl]:
             if set(doneCombo).issubset(set(combo)):
               self.sdx[i][combo]-=self.sdx[cl][doneCombo]
+    self.raiseADebug('h_r:',self.refSoln,color='red')
+    self.raiseADebug('c_0:',color='red')
+    for subset,rom in self.ROMs.items():
+      self.raiseADebug('  ',subset,':',rom.__evaluateMoment__(1),color='red')
+    self.raiseADebug('c_k^2:',color='red')
+    for subset,rom in self.ROMs.items():
+      self.raiseADebug('  ',subset,':',sum(c*c for c in rom.polyCoeffDict.values()),color='red')
+    tot = 0
+    for cutIdx2,coeff2 in self.ROMs[('x1','x2')].polyCoeffDict.items():
+      idx2 = self.__fillIndexWithRef(('x1','x2'),cutIdx2)
+      for cutIdx1,coeff1 in self.ROMs[('x1',)].polyCoeffDict.items():
+        idx1 = self.__fillIndexWithRef(('x1'),cutIdx1)
+        if idx1 == idx2:
+          tot+=coeff2*coeff1
+    self.raiseADebug('cross x1,x2 with x1:',tot,color='red')
+    tot = 0
+    for cutIdx2,coeff2 in self.ROMs[('x1','x2')].polyCoeffDict.items():
+      idx2 = self.__fillIndexWithRef(('x1','x2'),cutIdx2)
+      for cutIdx1,coeff1 in self.ROMs[('x2',)].polyCoeffDict.items():
+        idx1 = self.__fillIndexWithRef(('x2'),cutIdx1)
+        if idx1 == idx2:
+          tot+=coeff2*coeff1
+    self.raiseADebug('cross x1,x2 with x2:',tot,color='red')
+
+
 
   def getPercentSensitivities(self,variance=None,returnTotal=False):
     """Calculates percent sensitivities.
@@ -1073,7 +1098,7 @@ class HDMRRom(GaussPolynomialRom):
     if self.sdx == None or len(self.sdx)<1:
       self.getSensitivities()
     if variance==None or variance==0:
-      variance = self.__variance__()
+      #variance = self.__variance__()
       variance = 0.0
       for c,combos in self.sdx.items():
         for combo in combos:
