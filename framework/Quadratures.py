@@ -28,11 +28,11 @@ import utils
 #Internal Modules End-----------------------------------------------------------------
 
 
-class SparseQuad(MessageHandler.MessageUser):
+class SparseGrid(MessageHandler.MessageUser):
   """Base class to produce sparse-grid multiple-dimension quadrature."""
   def __init__(self):
-    self.type           = 'SparseQuad'
-    self.printTag       = 'SparseQuad'                                            # FIXME use utility methods for right length
+    self.type           = 'BaseSparseQuad'
+    self.printTag       = 'BaseSparseQuad'
     self.c              = []                                                      # array of coefficient terms for component tensor grid entries
     self.oldsg          = []                                                      # storage space for re-ordered versions of sparse grid
     self.indexSet       = None                                                    # IndexSet object
@@ -44,6 +44,26 @@ class SparseQuad(MessageHandler.MessageUser):
     self.SG             = None                                                    # dict{ (point,point,point): weight}
     self.messageHandler = None                                                    # message handler
     self.mods           = utils.returnImportModuleString(inspect.getmodule(self)) # list of modules this class depends on (needed for automatic parallel python)
+
+  def initialize(self, varNames, indexSet, distDict, quadDict, handler, msgHandler):
+    """Initializes sparse quad to be functional. At the end of this method, all points and weights should be set.
+    @ In varNames, the ordered list of grid dimension names
+    @ In indexSet, IndexSet object, index set
+    @ In distDict, dict{varName,Distribution object}, distributions
+    @ In quadDict, dict{varName,Quadrature object}, quadratures
+    @ In handler, JobHandler, parallel processing tool
+    @ In msgHandler, MessageHandler, output tool
+    @ Out, None, None
+    """
+    self.origIndexSet   = indexSet
+    self.indexSet       = np.array(indexSet[:])
+    self.distDict       = distDict
+    self.quadDict       = quadDict
+    self.varNames       = varNames
+    self.N              = len(self.varNames)
+    self.SG             = collections.OrderedDict() #keys on points, values on weights
+    self.messageHandler = msgHandler
+    #add methods to construct grid here
 
   ##### OVERWRITTEN BUILTINS #####
   def __getitem__(self,n):
@@ -227,51 +247,6 @@ class SparseQuad(MessageHandler.MessageUser):
       self.raiseADebug(msg)
       msg=''
 
-  def initialize(self, varNames, indexSet, distDict, quadDict, handler, msgHandler):
-    """Initializes sparse quad to be functional.
-    @ In varNames, the ordered list of grid dimension names
-    @ In indexSet, IndexSet object, index set
-    @ In distDict, dict{varName,Distribution object}, distributions
-    @ In quadDict, dict{varName,Quadrature object}, quadratures
-    @ In handler, JobHandler, parallel processing tool
-    @ In msgHandler, MessageHandler, output tool
-    @ Out, None, None
-    """
-    self.origIndexSet = indexSet
-    self.indexSet = np.array(indexSet[:])
-    self.distDict = distDict
-    self.quadDict = quadDict
-    self.varNames = varNames
-    self.N        = len(self.varNames)
-    self.messageHandler = msgHandler
-    #we know how this ends if it's tensor product index set
-
-    if indexSet.type=='Tensor Product':
-      self.c=[1]
-      self.indexSet=[self.indexSet[-1]]
-    else:
-      if handler !=None:
-        self.parallelMakeCoeffs(handler)
-      else:
-        self.smarterMakeCoeffs()
-      survive = np.nonzero(self.c!=0)
-      self.c=self.c[survive]
-      self.indexSet=self.indexSet[survive]
-    self.SG=collections.OrderedDict() #keys on points, values on weights
-    if handler!=None: self.parallelSparseQuadGen(handler)
-    else:
-      for j,cof in enumerate(self.c):
-        idx = self.indexSet[j]
-        m = self.quadRule(idx)+1
-        new = self.tensorGrid(m,idx)
-        for i in range(len(new[0])):
-          newpt=tuple(new[0][i])
-          newwt=new[1][i]*cof
-          if newpt in self.SG.keys():
-            self.SG[newpt]+=newwt
-          else:
-            self.SG[newpt] = newwt
-
   def addInitParams(self,adict):
     adict['indexSet']=self.indexSet
     adict['distDict']=self.distDict
@@ -279,41 +254,6 @@ class SparseQuad(MessageHandler.MessageUser):
     adict['names'   ]=self.varNames
     adict['points'  ]=self.points()
     adict['weights' ]=self.weights()
-
-  def parallelSparseQuadGen(self,handler):
-    """Generates sparse quadrature points in parallel.
-    @ In handler, JobHandler, parallel processing tool
-    @ Out, None, None
-    """
-    numRunsNeeded=len(self.c)
-    j=-1
-    prefix = 'sparseTensor_'
-    while True:
-      finishedJobs = handler.getFinished(prefix=prefix) #FIXME this is by far the most expensive line in this method
-      for job in finishedJobs:
-        if job.getReturnCode() == 0:
-          new = job.returnEvaluation()[1]
-          for i in range(len(new[0])):
-            newpt = tuple(new[0][i])
-            newwt = new[1][i]*float(str(job.identifier).replace(prefix, ""))
-            if newpt in self.SG.keys():
-              self.SG[newpt]+= newwt
-            else:
-              self.SG[newpt] = newwt
-        else:
-          self.raiseAMessage('Sparse quad generation (tensor) '+job.identifier+' failed...')
-      if j<numRunsNeeded-1:
-        for _ in range(min(numRunsNeeded-1-j,handler.howManyFreeSpots())):
-          j+=1
-          cof=self.c[j]
-          idx = self.indexSet[j]
-          m=self.quadRule(idx)+1
-          handler.submitDict['Internal']((m,idx),self.tensorGrid,prefix+str(cof),modulesToImport = self.mods)
-      else:
-        if handler.isFinished() and len(handler.getFinishedNoPop())==0:break #FIXME this is significantly the second-most expensive line in this method
-      import time
-      time.sleep(0.005)
-
 
   def quadRule(self,idx):
     """Collects the cumulative effect of quadrature rules across the dimensions.i
@@ -345,6 +285,159 @@ class SparseQuad(MessageHandler.MessageUser):
     else:
       try: return self.SG[tuple(n)]
       except TypeError:  return list(self.SG.values())[n]
+
+  def tensorGrid(self, m):
+    """Creates a tensor itertools.product of quadrature points.
+    @ In m, list(int), number points
+    @ Out tuple(tuple(float),float), requisite points and weights
+    """
+    pointLists=[]
+    weightLists=[]
+    for n,var in enumerate(self.varNames):
+      distr = self.distDict[var]
+      quad = self.quadDict[var]
+      mn = m[n]
+      pts,wts=quad(mn)
+      pts=pts.real
+      wts=wts.real
+      pts = distr.convertToDistr(quad.type,pts)
+      pointLists.append(pts)
+      weightLists.append(wts)
+    points = list(itertools.product(*pointLists))
+    weights= list(itertools.product(*weightLists))
+    for k,wtset in enumerate(weights):
+      weights[k]=np.product(wtset)
+    return points,weights
+#
+#
+#
+#
+class TensorGrid(SparseGrid):
+  """
+  Not really a sparse grid; this is the naive full grid.
+  """
+  def __init__(self):
+    """
+    Constructor.
+    @ In, None
+    @ Out, None
+    """
+    SparseGrid.__init_(self)
+    self.type     = 'TensorGrid'
+    self.printTag = 'TensorGrid'
+
+  def initialize(self, varNames, indexSet, distDict, quadDict, handler, msgHandler):
+    """Initializes sparse quad to be functional.
+    @ In varNames, the ordered list of grid dimension names
+    @ In indexSet, IndexSet object, index set
+    @ In distDict, dict{varName,Distribution object}, distributions
+    @ In quadDict, dict{varName,Quadrature object}, quadratures
+    @ In handler, JobHandler, parallel processing tool
+    @ In msgHandler, MessageHandler, output tool
+    @ Out, None, None
+    """
+    SparseGrid.initialize(self, varNames, indexSet, distDict, quadDict, handler, msgHandler)
+    self.type           = 'BaseSparseQuad'
+    self.printTag       = 'BaseSparseQuad'
+    #find largest polynomial in each dimension
+    largest = np.zeros(len(self.indexSet[0]))
+    for idx in self.indexSet:
+      for i in range(len(idx)):
+        largest[i] = max(idx[i],largest[i])
+    #construct tensor grid using largest in each dimension
+    quadSizes = self.quadRule(largset)+1 #TODO give user access to this +1 rule
+    points,weights = self.tensorGrid(quadSizes)
+    for i,pt in enumerate(points):
+      self.SG[pt] = weights[i]
+
+#
+#
+#
+#
+class SmolyakSparseGrid(SparseGrid):
+  """
+  Uses Smolyak algorithm to construct reduced grids.
+  """
+  def __init__(self):
+    """
+    Constructor.
+    @ In, None
+    @ Out, None
+    """
+    SparseGrid.__init__(self)
+    self.type     = 'SmolyakSparseGrid'
+    self.printTag = 'SmolyakSparseGrid'
+
+  def initialize(self, varNames, indexSet, distDict, quadDict, handler, msgHandler):
+    """Initializes sparse quad to be functional.
+    @ In varNames, the ordered list of grid dimension names
+    @ In indexSet, IndexSet object, index set
+    @ In distDict, dict{varName,Distribution object}, distributions
+    @ In quadDict, dict{varName,Quadrature object}, quadratures
+    @ In handler, JobHandler, parallel processing tool
+    @ In msgHandler, MessageHandler, output tool
+    @ Out, None, None
+    """
+    SparseGrid.initialize(self, varNames, indexSet, distDict, quadDict, handler, msgHandler)
+    #we know how this ends if it's tensor product index set
+    if indexSet.type=='Tensor Product':
+      self.c=[1]
+      self.indexSet=[self.indexSet[-1]]
+    else:
+      if handler !=None:
+        self.parallelMakeCoeffs(handler)
+      else:
+        self.smarterMakeCoeffs()
+      survive = np.nonzero(self.c!=0)
+      self.c=self.c[survive]
+      self.indexSet=self.indexSet[survive]
+    if handler!=None: self.parallelSparseQuadGen(handler)
+    else:
+      for j,cof in enumerate(self.c):
+        idx = self.indexSet[j]
+        m = self.quadRule(idx)+1
+        new = self.tensorGrid(m)
+        for i in range(len(new[0])):
+          newpt=tuple(new[0][i])
+          newwt=new[1][i]*cof
+          if newpt in self.SG.keys():
+            self.SG[newpt]+=newwt
+          else:
+            self.SG[newpt] = newwt
+
+  def parallelSparseQuadGen(self,handler):
+    """Generates sparse quadrature points in parallel.
+    @ In handler, JobHandler, parallel processing tool
+    @ Out, None, None
+    """
+    numRunsNeeded=len(self.c)
+    j=-1
+    prefix = 'sparseTensor_'
+    while True:
+      finishedJobs = handler.getFinished(prefix=prefix) #FIXME this is by far the most expensive line in this method
+      for job in finishedJobs:
+        if job.getReturnCode() == 0:
+          new = job.returnEvaluation()[1]
+          for i in range(len(new[0])):
+            newpt = tuple(new[0][i])
+            newwt = new[1][i]*float(str(job.identifier).replace(prefix, ""))
+            if newpt in self.SG.keys():
+              self.SG[newpt]+= newwt
+            else:
+              self.SG[newpt] = newwt
+        else:
+          self.raiseAMessage('Sparse quad generation (tensor) '+job.identifier+' failed...')
+      if j<numRunsNeeded-1:
+        for _ in range(min(numRunsNeeded-1-j,handler.howManyFreeSpots())):
+          j+=1
+          cof=self.c[j]
+          idx = self.indexSet[j]
+          m=self.quadRule(idx)+1
+          handler.submitDict['Internal']((m,),self.tensorGrid,prefix+str(cof),modulesToImport = self.mods)
+      else:
+        if handler.isFinished() and len(handler.getFinishedNoPop())==0:break #FIXME this is significantly the second-most expensive line in this method
+      import time
+      time.sleep(0.005)
 
   def smarterMakeCoeffs(self):
     """Somewhat optimized method to create coefficients for each index set in the sparse grid approximation.
@@ -410,34 +503,12 @@ class SparseQuad(MessageHandler.MessageUser):
         c += (-1)**sum(d)
     return c
 
-  def tensorGrid(self, m, idx):
-    """Creates a tensor itertools.product of quadrature points.
-    @ In m, integer, number points
-    @ In idx, integer, index set point
-    @ Out tuple(tuple(float),float), requisite points and weights
-    """
-    #m,idx = args
-    pointLists=[]
-    weightLists=[]
-    #TODO FIXME nothing should be in the order of distDict
-    #for n,distr in enumerate(self.distDict.values()):
-    for n,var in enumerate(self.varNames):
-      distr = self.distDict[var]
-      quad = self.quadDict[var]
-      mn = m[n]
-      pts,wts=quad(mn)
-      pts=pts.real
-      wts=wts.real
-      pts = distr.convertToDistr(quad.type,pts)
-      pointLists.append(pts)
-      weightLists.append(wts)
-    points = list(itertools.product(*pointLists))
-    weights= list(itertools.product(*weightLists))
-    for k,wtset in enumerate(weights):
-      weights[k]=np.product(wtset)
-    return points,weights
 
 
+#
+#
+#
+#
 class QuadratureSet(MessageHandler.MessageUser):
   """Base class to produce standard quadrature points and weights.
      Points and weights are obtained as
@@ -605,13 +676,18 @@ def makeSingleCoeff(N,i,idx,iSet):
 """
 __base = 'QuadratureSet'
 __interFaceDict = {}
-__interFaceDict['Legendre'] = Legendre
-__interFaceDict['CDFLegendre'] = CDFLegendre
+__interFaceDict['Legendre'         ] = Legendre
+__interFaceDict['CDFLegendre'      ] = CDFLegendre
 __interFaceDict['CDFClenshawCurtis'] = CDFClenshawCurtis
-__interFaceDict['Hermite'] = Hermite
-__interFaceDict['Laguerre'] = Laguerre
-__interFaceDict['Jacobi'] = Jacobi
-__interFaceDict['ClenshawCurtis'] = ClenshawCurtis
+__interFaceDict['Hermite'          ] = Hermite
+__interFaceDict['Laguerre'         ] = Laguerre
+__interFaceDict['Jacobi'           ] = Jacobi
+__interFaceDict['ClenshawCurtis'   ] = ClenshawCurtis
+__interFaceDict['TensorGrid'       ] = TensorGrid
+__interFaceDict['SmolyakSparseGrid'] = SmolyakSparseGrid
+#keyword lookups for input use
+__interFaceDict['smolyak'          ] = SmolyakSparseGrid
+__interFaceDict['tensor'           ] = TensorGrid
 __knownTypes = __interFaceDict.keys()
 
 def knownTypes():
