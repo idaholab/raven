@@ -1,0 +1,150 @@
+\documentclass{article}
+\usepackage{hyperref}
+
+\title{RAVEN Test Plan-DRAFT}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+
+This document covers the various types of testing and reviews that are
+done on the RAVEN project. The two primary methods are the MOOSE
+regression testing system and the code reviews done on merge requests.
+
+The MOOSE testing system allows tests to be run on the code that check
+that the expected behavior occurs.  This system is designed to be
+extendable, and RAVEN extends it with two types of tests.  The first
+simply runs a python program, and checks the exit code.  The second
+run a RAVEN framework input file and checks the output files.
+
+The gitlab system allows for merge requests to be created and then
+commented on.  The system also shows the results of the regression
+tests and allows the difference between the current version's source
+code and the new versions.
+
+\section{Code Reviews}
+
+Gitlab is the configuration management system used by RAVEN. In the
+gitlab system, merge requests can be created.  Git allows different
+branches of configurations that include source code and associated
+files like the build system and regression tests.  A merge request is
+where a developer proposes merging a branch of development onto the
+main development branch.
+
+When a developer makes the merge request, a second developer will then
+review the merge, by looking at the differences, running tests and
+otherwise reviewing it.  There are mandatory reviews required that are
+documented in the review checklist that is on the wiki.  After the
+second developer reviews the merge request, they document that the
+results of their review, and then either accept the merge request, or
+explain why the merge request is not accepted.
+
+Sometimes during the review, the reviewer will fix things they find,
+and then add them to the merge request.  In this case, the fixes
+themselves need to be reviewed, so either the original developer can
+review them or a third developer can review them.  This preserves the
+requirement that changes be reviewed by someone besides the person
+that created the change.
+
+The review checklist includes reviewing all the code, documenting any
+input changes and following the coding standards.
+
+If the review checklist needs to be changed, the new review checklist
+is proposed on the RAVEN development mailing list.  If there are no
+unresolved objections to the proposed changes, the review checklist is
+updated.
+
+\section{Regression Test System}
+
+The MOOSE testing system allows tests to be run on the code that check
+that the expected behavior occurs.  RAVEN uses the MOOSE testing
+system to check for regressions.  As part of merge requests, if
+significant new functionality is created, the functionality needs to
+be tested by the regression test system.
+
+Besides the existing tests types available in the MOOSE testing
+system, RAVEN does three other kinds.  These are the RavenFramework
+tests, RavenPython tests, and cluster tests.
+
+\subsection{RavenFramework tests}
+
+RavenFramework tests are the most common tests used for testing
+RAVEN. They require a RAVEN framework input xml file, and they run and
+check that the expected output is created.  They can check that files
+are created, and they can also check that XML files and CSV files are
+generated and match expected files.
+
+They have the following options:
+
+\begin{description}
+    \item[input] The input file to use for this test.
+    \item[output] List of output files that the input should create.
+    \item[csv] List of csv files to check
+    \item[UnorderedCsv] List of unordered csv files to check
+    \item[xml] List of xml files to check
+    \item[UnorderedXml] List of unordered xml files to check
+    \item[xmlopts] Options for xml checking
+    \item[rel\_err] Relative Error for csv files or floats in xml ones
+    \item[required\_executable] Skip test if this executable is not found
+    \item[required\_libraries] Skip test if any of these libraries are not found
+    \item[skip\_if\_env] Skip test if this environmental variable is defined
+    \item[test\_interface\_only] Test the interface only (without running the driven code
+    \item[zero\_threshold] it represents the value below which a float is considered zero (XML comparison only)
+    \item[remove\_whitespace] Removes whitespace before comparing xml node text if True
+\end{description}
+
+\subsection{RavenPython tests}
+
+RavenPython tests run a python file, and then the test passes if it
+returns zero as the exit code (such as by exiting with
+\verb'sys.exit(0)' ).  These are used for unit tests.
+
+They have the following options:
+
+\begin{description}
+\item[input] The python file to use for this test.
+\item[python\_command] The command to use to run python.
+\item[requires\_swig2] If True requires swig2 for test.
+\end{description}
+
+\subsection{Cluster tests}
+
+The cluster tests are tests that use RAVEN's ability to use qsub, mpi,
+and psbdsh to run code on clusters.
+
+They are run by going into the \verb'tests/cluster_tests' and running
+the script \verb'./test_qsubs.sh'
+
+To add a new test, it needs to run the test, and block until the run
+finishes or fails, and then check that the output passes.  For
+blocking on PBSPro, adding \verb'-W block=true' will wait until the
+job is run before returning.
+
+There is a bash function in \verb'test_qsubs.sh' that checks that a
+certain number of files have been created called \verb'wait_lines'
+that can be used.  If more detailed checking is used, it should
+increment the variable \verb'num_fails' if the check fails so the
+script knows that a failure occurred.  The other tests can be used as
+examples for creating new tests.
+
+There are two reasons that cluster tests can fail that are not related
+to actual failures in RAVEN.  The first is that there might not be
+enough resources available to run the tests, and so they timeout
+instead of running.  The second is that sometimes the disk propagation
+is so slow that even though the remote machine is done running, the
+data is not available on the head node.  Because of these issues
+rerunning the test is sometimes required.
+
+\section{Requirements Tests}
+
+Some of the tests check that the requirements are satisfied.  These
+are marked with the comment \verb'#REQUIREMENT_TEST' to show that they
+test a requirement.  These tests are also listed in the requirements
+document.
+
+These tests have special requirements for changing.  The merge request
+must be approved by the lead developer or the project manager.
+
+
+\end{document}
