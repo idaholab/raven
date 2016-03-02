@@ -2,11 +2,11 @@
 <Simulation verbosity="debug">
     <RunInfo>
         <WorkingDir>ARMA</WorkingDir>
-		<Sequence>readIn,readInGhostData,windARMATrain,runARMA,writeOut</Sequence>
+		<Sequence>readIn,readInGhostData,ARMATrain,runARMA,writeOut</Sequence>
         <batchSize>1</batchSize>
     </RunInfo>
     <Files>
-        <Input name="windRawDataFile">./dataSet.csv</Input>
+        <Input name="rawDataFile">./dataSet.csv</Input>
 		<Input name="ghostDataFile">./ghostData.csv</Input>
     </Files>
     <Distributions>
@@ -29,7 +29,7 @@
 	</Samplers> 
 	
 	<Models>			
-		<ROM name='windARMA' subType='ARMA'>
+		<ROM name='ARMA' subType='ARMA'>
 			<Target>Time</Target>
 			<Features>Speed</Features>
 			<Pmax>2</Pmax>
@@ -42,47 +42,46 @@
     </Models>
     <Steps>
         <IOStep name='readIn' pauseAtEnd = 'True'>
-            <Input    class = 'Files'             type = ''              >windRawDataFile</Input>
-            <Output   class = 'DataObjects'       type = 'HistorySet'       >windRawData</Output>          
+            <Input    class = 'Files'             type = ''              >rawDataFile</Input>
+            <Output   class = 'DataObjects'       type = 'HistorySet'       >rawData</Output>          
         </IOStep>
 		<IOStep name='readInGhostData' pauseAtEnd = 'True'>
             <Input    class = 'Files'             type = ''              >ghostDataFile</Input>
             <Output   class = 'DataObjects'       type = 'Point'       >ghostData</Output>           
         </IOStep>
-		<RomTrainer name='windARMATrain'>
-			<Input    class = 'DataObjects'       type = 'History'       >windRawData</Input>
-			<Output   class='Models' 			  type ='ROM' 	 		 >windARMA</Output>
+		<RomTrainer name='ARMATrain'>
+			<Input    class = 'DataObjects'       type = 'History'       >rawData</Input>
+			<Output   class='Models' 			  type ='ROM' 	 		 >ARMA</Output>
 		</RomTrainer>
 		<MultiRun name='runARMA'>
 			<Input    class = 'DataObjects'       type = 'PointSet'       >ghostData</Input>
 			<Sampler class="Samplers"  type="MonteCarlo"  >mcSampler</Sampler>
-			<Model   class='Models' 			  type = 'ROM' 	 		 >windARMA</Model>
-			<Output    class = 'DataObjects'       type = 'HistorySet'    >windSynData</Output> 
+			<Model   class='Models' 			  type = 'ROM' 	 		 >ARMA</Model>
+			<Output    class = 'DataObjects'       type = 'HistorySet'    >synData</Output> 
 		</MultiRun>
         <IOStep name='writeOut' pauseAtEnd = 'True'>
-			<Input    class = 'DataObjects'       type = 'HistorySet'    >windSynData</Input>		 			
+			<Input    class = 'DataObjects'       type = 'HistorySet'    >synData</Input>		 			
 			<Output   class = 'OutStreamManager'  type = 'Print'         >writeSynDataOut</Output>
-			<Output   class = 'OutStreamManager'  type = 'Plot'         >plotWindSynData</Output> 
+			<Output   class = 'OutStreamManager'  type = 'Plot'         >plotSynData</Output> 
 		</IOStep>	
     </Steps>
     <OutStreamManager>		
         <Print name = 'writeSynDataOut'>
             <type>csv</type>
-            <source>windSynData</source>
+            <source>synData</source>
         </Print>	
-		<Plot dim="2" name="plotWindSynData" overwrite="false" >
+		<Plot dim="2" name="plotSynData" overwrite="false" >
 			<plotSettings>
 				<plot>
 					<type>line</type>
-					<x>windSynData|Output|Time</x>
-					<y>windSynData|Output|Speed</y>
+					<x>synData|Output|Time</x>
+					<y>synData|Output|Speed</y>
 					<interpPointsX>52560</interpPointsX>
 				</plot>
 			</plotSettings>
 			<actions>
 				<range>
 					<xmin>0</xmin><xmax>1209600</xmax>
-<!-- 					<ymin>0</ymin><ymax>30</ymax> -->
 				</range>
 				<how>png</how>
 			</actions>
@@ -90,7 +89,7 @@
 	</OutStreamManager>
 	
     <DataObjects>
-        <HistorySet name="windRawData">
+        <HistorySet name="rawData">
             <Input>x</Input>
             <Output>Time,Speed</Output>
         </HistorySet>
@@ -98,7 +97,7 @@
             <Input>Speed</Input>
             <Output>y,z</Output>
         </Point>
-		<HistorySet name="windSynData">
+		<HistorySet name="synData">
             <Input>y</Input>
             <Output>Time,Speed</Output>
         </HistorySet>
