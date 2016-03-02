@@ -1,0 +1,57 @@
+<?xml version="1.0" ?>
+<Simulation color='true' verbosity='debug' printTimeStamps='false'>
+  <RunInfo>
+    <WorkingDir>SimulationTags</WorkingDir>
+    <Sequence>sample</Sequence>
+  </RunInfo>
+
+  <Models>
+    <Dummy name="dummy" subType=""/>
+  </Models>
+
+  <Distributions>
+    <Uniform name="d">
+      <lowerBound>0.0</lowerBound>
+      <upperBound>1.0</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="MC">
+      <samplerInit>
+        <limit>5</limit>
+      </samplerInit>
+      <variable name="x">
+        <distribution>d</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="sample">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="Dummy">dummy</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC</Sampler>
+      <Output class="DataObjects" type="PointSet">data</Output>
+      <Output class="OutStreamManager" type="Print">dump</Output>
+    </MultiRun>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="dummyIN">
+      <Input>x</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="data">
+      <Input>x</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreamManager>
+    <Print name="dump">
+      <type>csv</type>
+      <source>data</source>
+    </Print>
+  </OutStreamManager>
+</Simulation>

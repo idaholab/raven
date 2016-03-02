@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<xsd:schema version="1.0" xmlns:xsd="http://www.w3.org/2001/XMLSchema"  elementFormDefault="qualified">
+<!-- *********************************************************************** -->
+<!--                          Variable Groups                                -->
+<!-- *********************************************************************** -->
+  <xsd:complexType name="VarGroupsType">
+    <xsd:sequence>
+      <xsd:element name="Group" type="VarGroupGroupType" minOccurs="0" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="VarGroupGroupType">
+        <xsd:simpleContent>
+          <xsd:extension base="BaseInput">
+            <xsd:attribute name="name"         type="xsd:string"/>
+            <xsd:attribute name="dependencies" type="xsd:string"/>
+            <xsd:attribute name="base"         type="xsd:string"/>
+          </xsd:extension>
+        </xsd:simpleContent>
+  </xsd:complexType>
+</xsd:schema>

@@ -1551,22 +1551,30 @@ class Grid(Sampler):
             for var in self.distributions2variablesMapping[distName]:
               variable = utils.first(var.keys()).strip()
               position = utils.first(var.values())
-              ndCoordinate[positionList.index(position)] = coordinates[variable.strip()]
               if self.gridInfo[variable]=='CDF':
                 if coordinatesPlusOne[variable] != sys.maxsize and coordinatesMinusOne[variable] != -sys.maxsize:
-                  dxs[positionList.index(position)] = (self.distDict[variable].inverseMarginalDistribution(coordinatesPlusOne[variable],self.variables2distributionsMapping[variable]['dim']-1)
-                      - self.distDict[variable].inverseMarginalDistribution(coordinatesMinusOne[variable],self.variables2distributionsMapping[variable]['dim']-1))/2.0
+                  up   = self.distDict[variable].inverseMarginalDistribution(coordinatesPlusOne[variable] ,self.variables2distributionsMapping[variable]['dim']-1)
+                  down = self.distDict[variable].inverseMarginalDistribution(coordinatesMinusOne[variable],self.variables2distributionsMapping[variable]['dim']-1)
+                  dxs[positionList.index(position)] = (up - down)/2.0
+                  ndCoordinate[positionList.index(position)] = coordinates[variable] - (coordinates[variable] - down)/2.0 + dxs[positionList.index(position)]/2.0
                 if coordinatesMinusOne[variable] == -sys.maxsize:
-                  dxs[positionList.index(position)] = self.distDict[variable].inverseMarginalDistribution(coordinatesPlusOne[variable],self.variables2distributionsMapping[variable]['dim']-1) - coordinates[variable.strip()]
+                  up = self.distDict[variable].inverseMarginalDistribution(coordinatesPlusOne[variable] ,self.variables2distributionsMapping[variable]['dim']-1)
+                  dxs[positionList.index(position)] = (coordinates[variable.strip()]+up)/2.0 - self.distDict[varName].returnLowerBound(positionList.index(position))
+                  ndCoordinate[positionList.index(position)] = ((coordinates[variable.strip()]+up)/2.0 + self.distDict[varName].returnLowerBound(positionList.index(position)))/2.0
                 if coordinatesPlusOne[variable] == sys.maxsize:
-                  dxs[positionList.index(position)] = coordinates[variable.strip()] - self.distDict[variable].inverseMarginalDistribution(coordinatesMinusOne[variable],self.variables2distributionsMapping[variable]['dim']-1)
+                  down = self.distDict[variable].inverseMarginalDistribution(coordinatesMinusOne[variable],self.variables2distributionsMapping[variable]['dim']-1)
+                  dxs[positionList.index(position)] = self.distDict[varName].returnUpperBound(positionList.index(position)) - (coordinates[variable.strip()]+down)/2.0
+                  ndCoordinate[positionList.index(position)] = (self.distDict[varName].returnUpperBound(positionList.index(position)) + (coordinates[variable.strip()]+down)/2.0) /2.0
               else:
                 if coordinatesPlusOne[variable] != sys.maxsize and coordinatesMinusOne[variable] != -sys.maxsize:
                   dxs[positionList.index(position)] = (coordinatesPlusOne[variable] - coordinatesMinusOne[variable])/2.0
+                  ndCoordinate[positionList.index(position)] = coordinates[variable.strip()] - (coordinates[variable.strip()]-coordinatesMinusOne[variable])/2.0 + dxs[positionList.index(position)]/2.0
                 if coordinatesMinusOne[variable] == -sys.maxsize:
-                  dxs[positionList.index(position)] = coordinatesPlusOne[variable] - coordinates[variable.strip()]
+                  dxs[positionList.index(position)]          =  (coordinates[variable.strip()]+coordinatesPlusOne[variable])/2.0 - self.distDict[varName].returnLowerBound(positionList.index(position))
+                  ndCoordinate[positionList.index(position)] = ((coordinates[variable.strip()]+coordinatesPlusOne[variable])/2.0 + self.distDict[varName].returnLowerBound(positionList.index(position)))/2.0
                 if coordinatesPlusOne[variable] == sys.maxsize:
-                  dxs[positionList.index(position)] = coordinates[variable.strip()] - coordinatesMinusOne[variable]
+                  dxs[positionList.index(position)]          =  self.distDict[varName].returnUpperBound(positionList.index(position)) - (coordinates[variable.strip()]+coordinatesMinusOne[variable])/2.0
+                  ndCoordinate[positionList.index(position)] = (self.distDict[varName].returnUpperBound(positionList.index(position)) + (coordinates[variable.strip()]+coordinatesMinusOne[variable])/2.0) /2.0
             self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")] = self.distDict[varName].cellIntegral(ndCoordinate,dxs)
             weight *= self.distDict[varName].cellIntegral(ndCoordinate,dxs)
       newpoint = tuple(self.values[key] for key in self.values.keys())

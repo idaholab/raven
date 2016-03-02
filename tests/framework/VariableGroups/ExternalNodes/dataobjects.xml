@@ -1,0 +1,11 @@
+<?xml version="1.0" ?>
+<DataObjects>
+    <PointSet name="dummyIN" >
+      <Input>union</Input>  
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="standard">
+      <Input>union</Input>   
+      <Output>y_group</Output>
+    </PointSet>
+</DataObjects>

@@ -1,0 +1,96 @@
+<?xml version="1.0" ?>
+<Simulation verbosity='debug'>
+  <!-- tests external model and ROM -->
+  <RunInfo>
+    <WorkingDir>ROMs</WorkingDir>
+    <Sequence>sample,train,samprom,print</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <VariableGroups>
+      <Group name="x_odd"                                     >x1,x3,x5</Group>
+      <Group name="x_even"     dependencies=""                >x2,x4,x6</Group>
+      <Group name="y_group"    dependencies=""                >y1,y2</Group>
+      <Group name="union"      dependencies="x_odd,x_even"    base="x_odd">+x_even</Group>
+  </VariableGroups>
+
+  <Distributions>
+    <Normal name="NormDist">
+      <mean>0</mean>
+      <sigma>1</sigma>
+    </Normal>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="mc">
+      <samplerInit>
+        <limit>3</limit>
+        <initialSeed>42</initialSeed>
+      </samplerInit>
+      <variable name="x1">
+        <distribution>NormDist</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution>NormDist</distribution>
+      </variable>
+      <variable name="x3">
+        <distribution>NormDist</distribution>
+      </variable>
+      <variable name="x4">
+        <distribution>NormDist</distribution>
+      </variable>
+      <variable name="x5">
+        <distribution>NormDist</distribution>
+      </variable>
+      <variable name="x6">
+        <distribution>NormDist</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Models>
+    <Dummy name="MyDummy" subType=""/>
+    <ExternalModel ModuleToLoad="extmod" name="extmod" subType="">
+      <variables>union,y_group</variables>
+    </ExternalModel>
+    <ROM name="rom" subType="NDinvDistWeight">
+      <Target>y_group</Target>
+      <Features>x_odd</Features>
+      <p>3</p>
+    </ROM>
+  </Models>
+
+  <Steps>
+    <MultiRun name="sample">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">extmod</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
+      <Output class="DataObjects" type="PointSet">standard</Output>
+    </MultiRun>
+    <MultiRun name="samprom">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ROM">rom</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
+      <Output class="DataObjects" type="PointSet">romout</Output>
+    </MultiRun>
+    <IOStep name="print">
+      <Input class="DataObjects" type="PointSet">romout</Input>
+      <Output class="OutStreamManager" type="Print">dump_romout</Output>
+    </IOStep>
+    <RomTrainer name="train">
+      <Input class="DataObjects" type="PointSet">standard</Input>
+      <Output class="Models" type="ROM">rom</Output>
+    </RomTrainer>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="dummyIN" ><Input>union</Input>   <Output>OutputPlaceHolder</Output></PointSet>
+    <PointSet name="standard"><Input>union</Input>   <Output>y_group</Output></PointSet>
+    <PointSet name="romout"  ><Input>union</Input>   <Output>y_group</Output></PointSet>
+  </DataObjects>
+
+  <OutStreamManager>
+    <Print name="dump_romout"  ><type>csv</type><source>romout</source></Print>
+  </OutStreamManager>
+
+</Simulation>

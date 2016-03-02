@@ -1292,8 +1292,8 @@ class NDimensionalDistributions(Distribution):
     self.type = 'NDimensionalDistributions'
     self.dimensionality  = None
 
-    self.RNGInitDisc = 10
-    self.RNGtolerance = 0.1
+    self.RNGInitDisc = 5
+    self.RNGtolerance = 0.2
 
   def _readMoreXML(self,xmlNode):
     Distribution._readMoreXML(self, xmlNode)
@@ -1307,8 +1307,6 @@ class NDimensionalDistributions(Distribution):
 
   #######
   def updateRNGParam(self, dictParam):
-    self.RNGtolerance = 0.1
-    self.RNGInitDisc  = 10
     for key in dictParam:
       if key == 'tolerance':
         self.RNGtolerance = dictParam['tolerance']
@@ -1318,7 +1316,25 @@ class NDimensionalDistributions(Distribution):
   ######
 
   def getDimensionality(self):
-    return  self._distribution.returnDimensionality()
+    return self._distribution.returnDimensionality()
+
+  def returnLowerBound(self, dimension):
+    """
+    Function that return the lower bound of the distribution for a particular dimension
+    @ In, dimension, int, dimension considered
+    @ Out, value, float, lower bound of the distribution
+    """
+    value = self._distribution.returnLowerBound(dimension)
+    return value
+
+  def returnUpperBound(self, dimension):
+    """
+    Function that return the upper bound of the distribution for a particular dimension
+    @ In, dimension, int, dimension considered
+    @ Out, value, float, upper bound of the distribution
+    """
+    value = self._distribution.returnUpperBound(dimension)
+    return value
 
 class NDInverseWeight(NDimensionalDistributions):
 
@@ -1423,7 +1439,7 @@ class NDCartesianSpline(NDimensionalDistributions):
     NDimensionalDistributions.addInitParams(self, tempDict)
 
   def initializeDistribution(self):
-    self.raiseAMessage('====== BasicMultiDimensional NDCartesianSpline initialize Distribution ======')
+    self.raiseAMessage('initialize Distribution')
     if self.functionType == 'CDF':
       self._distribution = distribution1D.BasicMultiDimensionalCartesianSpline(str(self.dataFilename),True)
     else:
@@ -1521,7 +1537,7 @@ class MultivariateNormal(NDimensionalDistributions):
     NDimensionalDistributions.addInitParams(self, tempDict)
 
   def initializeDistribution(self):
-    self.raiseAMessage('====== BasicMultiDimensional MultivariateNormal initialize distribution ======')
+    self.raiseAMessage('initialize distribution')
     mu = distribution1D.vectord_cxx(len(self.mu))
     for i in range(len(self.mu)):
       mu[i] = self.mu[i]
