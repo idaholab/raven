@@ -558,15 +558,9 @@ class IOStep(Step):
         #inDictionary['Input'][i] is a ROM, outputs[i] is Files
         fileobj = outputs[i]
         fileobj.open(mode='wb+')
-        self.raiseAWarning('dump|open?',fileobj.isOpen())
         cloudpickle.dump(inDictionary['Input'][i],fileobj)
         fileobj.flush()
         fileobj.close()
-        import os
-        self.raiseAWarning('dump|size:',os.path.getsize(fileobj.getAbsFile()))
-        self.raiseAWarning('dump|file:',fileobj.getAbsFile())
-        test=pickle.load(file(fileobj.getAbsFile(),'rb+'))
-        self.raiseAWarning('dump|loaded:',test)
       elif self.actionType[i] == 'FILES-ROM':
         #inDictionary['Input'][i] is a Files, outputs[i] is ROM
         fileobj = inDictionary['Input'][i]

@@ -62,7 +62,7 @@
             9.968983970672826711e-01
         </grid>
       </variable>
-      <variablesTransformation model="PythonModule">
+      <variablesTransformation distribution="MultivariateNormalPCA">
         <latentVariables>x1,y1,z1</latentVariables>
         <manifestVariables>x0,y0,z0</manifestVariables>
         <method>pca</method>

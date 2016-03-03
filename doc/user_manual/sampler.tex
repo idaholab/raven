@@ -266,7 +266,7 @@ XML node and the requirements for other attributes change:
     \begin{itemize}
       \item \xmlNode{Restart}, \xmlDesc{string, optional field}, the
         body of this XML node must contain the name of an appropriate \textbf{PointSet} defined in the
-        \xmlNode{DataObjects} block (see Section~\ref{subsec:models_ROM}).  It is used as a
+        \xmlNode{DataObjects} block (see Section~\ref{sec:DataObjects}).  It is used as a
         ``restart'' tool, where it accepts pre-existing solutions in the PointSet instead
         of recalculating solutions.
     \end{itemize}
@@ -277,15 +277,18 @@ XML node and the requirements for other attributes change:
     \begin{itemize}
       \item \xmlNode{variablesTransformation}, \xmlDesc{optional field}. this XML node accepts one attribute:
       \begin{itemize}
-        \item \xmlAttr{model}, \xmlDesc{required string attribute}, the name for the model defined in the XML node \xmlNode {Models}.
-        This attribute indicates the \xmlNode{manifestVariables} defined in the subnode will be used by the \xmlAttr{model}.
+        \item \xmlAttr{distribution}, \xmlDesc{required string attribute}, the name for the distribution defined in the XML node \xmlNode{Distributions}.
+        This attribute indicates the values of \xmlNode{manifestVariables} are drawn from \xmlAttr{distribution}.
       \end{itemize}
       In addition, this XML node also accepts three childen nodes:
       \begin{itemize}
         \item \xmlNode{latentVariables}, \xmlDesc{comma separated string, required field}, user-defined latent variables that
         are used for the variables transformation. All the variables listed under this node should be also mentioned in \xmlNode{variable}.
         \item \xmlNode{manifestVariables}, \xmlDesc{comma separated string, required field}, user-defined manifest variables
-        that are used by the \xmlAttr{model}.
+        that can be used by the \xmlAttr{model}.
+        \item \xmlNode{manifestVariablesIndex}, \xmlDesc{comma separated string, optional field}, user-defined manifest variables indices paired with \xmlNode{manifestVariables}.
+        These indices indicate the position of manifest variables associated with multivariate normal distribution defined in the XML node \xmlNode{Distributions}. 
+        The indices should be postive integer. If not provided, the code will use the positions of manifest variables listed in \xmlNode{manifestVariables} as the indices. 
         \item \xmlNode{method}, \xmlDesc{string, required field}, the method that is used for the variables transformation. The currently available method is '\textbf{pca}'.
       \end{itemize}
     \end{itemize}

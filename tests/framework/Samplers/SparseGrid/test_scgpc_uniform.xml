@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation printTimeStamps="false">
+<Simulation color="true" verbosity='debug'>
   <RunInfo>
     <WorkingDir>scgpc</WorkingDir>
     <Sequence>Umake,Utrain,Utest,Uprint</Sequence>
