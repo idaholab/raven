@@ -1,4 +1,4 @@
-\section{RAVEN Theory by way of Examples: Forward Sampling Strategies}
+\section{RAVEN Theory by way of Examples: Adaptive Sampling Strategies}
 In order to perform uncertainty quantification (UQ) and dynamic risk and
 probabilistic assessment (D-PRA),
 a sampling strategy needs to be employed. The sampling is aimed to
@@ -28,6 +28,905 @@ In addition, RAVEN posses advanced \textit{\textbf{Forward}} sampling strategies
 In the following subsections, the theory behind these sampling 
 methodologies are going to be explained by way of applied RAVEN 
 examples.
+
+
+
+
+
+
+%%%%%%%%%%%%%%%%
+
+\chapter{Adaptive Sampling: Limit Surface Search Method}
+\label{chap:AdaptiveSamplingLS}
+As already mentioned and easily inferable, the activities proposed and
+developed during this research work have been many. Among the 
+different methodologies, smart (and, consequentially, adaptive) 
+sampling methods have been thought 
+and deployed.
+%As already mentioned, the key subject of this report is the development of convergence acceleration schemes for the LS search algorithm. LS search is one of the adaptive (or smart) sampling strategies developed within the RAVEN framework.
+The motivation of adaptive sampling strategies is that physic 
+simulations are often computationally expensive, time consuming, and 
+with a large number of uncertain parameters. Thus, exploring the space 
+of all possible simulation outcomes is almost unfeasible using finite 
+computing resources. During simulation based PRA analysis, it is 
+important to discover the relationship between a potentially large 
+number of uncertain parameters and the response of a simulation using 
+as few simulation trials as possible.
+This is a typical context where ``goal'' oriented sampling could be 
+beneficial. In this research work, effort has been invested in the 
+determination of a goal oriented sampling strategy named ``Limit 
+Surface Search method'', a scheme  where few observations, obtained 
+from the model run, are used to build a simpler and faster evaluable 
+mathematical representation of the model, Reduced Order Model, also 
+known as Surrogate Model (ROM or SM). The ROM is then 
+used to predict where further exploration of the input space could be 
+most informative. This information is used to select new locations in the 
+input space for which a code run is executed (see 
+Figure~\ref{fig:ExampleLSschematic}). The new 
+observations are used to update the ROM and this process iterates 
+until, within a certain metric, it is converged.
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=1.0\textwidth]  {Pictures/ExampleLSschematic.png}
+  \caption{Example of limit surface in the uncertain space.}
+  \label{fig:ExampleLSschematic}
+\end{figure}
+\\To summarize, in the case of the ``Limit 
+Surface (LS) Search method'', a ROM is used to 
+determine which location in the input space further observations is most 
+informative, to establish the location of the LS, then code runs are 
+executed on those locations and the ROM updated. The process 
+continues until the location of the LS is established within a certain tolerance.
+
+%%%%%%%%%
+%%%%%%%%% Limit Surface Concept and Properties
+%%%%%%%%%
+\section{Limit Surface Concept and Properties}
+\label{sec:LSconcept}	
+%As already mentioned, this report describes the acceleration schemes implemented for the research of the LS.
+
+To properly explain the Limit Surface concept and relative properties, 
+it is necessary to analyze the idea behind the LSs, firstly, from a 
+mathematical and, secondly, from a practical point of view.
+Consider a dynamic system that is represented in the phase space by the Eq.~\ref{eq:dThetaOverDT} in chapter~\ref{chap:mathBackground}. 
+The equation, for simplicity, can be re-casted as follows:
+\begin{equation}
+\label{eq:ThetaXPT}
+\frac{\partial \overline{\theta} }{\partial t}=\overline{H}\left (  \overline{x},\overline{p},t \right )
+\end{equation}
+where:
+\begin{itemize}
+  \item $\overline{\theta}$ represents the coordinate of the system in the 
+  phase space;
+  \item $\left (  \overline{x},\overline{p},t \right )$ independent variables 
+  that are separated, respectively, in spatial, temporal, and parametric  
+  space (distinction between $\left (  \overline{x},\overline{p},t \right )$ is purely based on engineering considerations).
+\end{itemize}
+Now it is possible to introduce the concept of ``goal'' function, $C$. $C$ 
+is a binary function that, based on the response of the system, can 
+assume the value $0$ (false) to indicate that the system is properly 
+available (e.g., system success) and $1$ (true) to indicate that the 
+system is not available (e.g., failure of the system):
+\begin{equation}
+C\left (\overline{\theta}, \overline{x},\overline{p},t \right ) = C\left (H\left(\overline{x},\overline{p},t \right), \overline{x},\overline{p},t \right ) = C\left ( \overline{x},\overline{p},t \right ) 
+\end{equation}
+To simplify the dissertation  and without loss of generality, assume 
+that $C$ does not depend on time (e.g. $C\leftarrow 
+\bigintssss_{t_{0}}^{t_{end}}dtC\left(  \overline{x},\overline{p},t \right )$):
+\begin{equation}
+  \label{eq:goalFunction}
+  C = C\left (\overline{x},\overline{p}\right ) 
+\end{equation}
+To simplify the mathematical description of the LS concept, it is 
+possible to hypothesize that the 
+equation describing the PDF time evolution of the system in the phase 
+space is of type Gauss 
+Codazzi (in its Liouville’s derivation), which allows ensuring that all the 
+stochastic phenomena in 
+the system are representable as PDFs in the uncertain domain 
+(see~\ref{chap:mathBackground}),. This allows combining the 
+parametric space with the initial condition space:
+\begin{equation}
+  \label{eq:goalFunctionCodazzi}
+  \begin{matrix} 
+  \left ( \overline{x} \right ) \leftarrow \left ( \overline{x},\overline{p} \right ) \\
+  C\left ( \overline{x} \right ) \leftarrow C\left ( \overline{x},\overline{p} \right )
+  \end{matrix}
+\end{equation}
+
+This assumption is rarely violated, for example for those systems that 
+present an intrinsic 
+stochastic behavior (e.g., the dynamic of a particle of dust in the air 
+where it continuously and 
+randomly interacts with the molecules of air that ``move'' with different velocities and in different 
+and random directions). In most of the cases of interest in the safety analysis, the above 
+mentioned assumption is correct. The full heuristic approach to the characterization of system stochastic behaviors is reported in chapter~\ref{chap:mathBackground}.
+\\Under the above simplifications, it is possible to identify the region of the input space ($V$) 
+leading to a specific outcome of the ``goal'' function. In particular, it can be defined, for example, 
+the failure region $V_{F}$ as the region of the input space where $C=1$:
+\begin{equation}
+ \label{eq:failureRegion}
+V_{F}=\left \{ \forall \overline{x} | C\left ( \overline{x} \right ) = 1 \right \}
+\end{equation}
+The definition of the complementary of the failure region is obviously:
+\begin{equation}
+V_{F}^{c}=\left \{ \forall \overline{x} | C\left ( \overline{x} \right ) = 0 \right \}
+\end{equation}
+Its boundary is the named Limit Surface:
+\begin{equation}
+L_{S}= \partial V_{F}^{c}= \partial      \left \{ \forall \overline{x} | C\left ( \overline{x} \right ) = 1 \right \}
+\end{equation}
+
+The identification of the LS location is necessary to identify boundary regions for which the system under consideration will or will not exceed certain FOMs (e.g., operative margins).
+\\The LS location is extremely important for design optimization and issue mitigation and, in addition, its informative content can be used to analyze the system to characterize its behavior from a stochastic point of view. Consider $\overline{x} \in V$ and $\overline{x}\sim \overline{X}$,
+where $\overline{x}$ is the random variate realization of the stochastic variable $\overline{X}$.
+If $pdf_{\overline{X}}\left ( \overline{x} \right ) $ is the probability density function of $ \overline{X}$, the failure probability of the system $\left ( P_{F} \right )$ is:
+\begin{equation}
+\label{eq:probabilityFailure}
+P_{F} = \bigintssss_{V}d\overline{x}C\left ( \overline{x} \right )pdf_{\overline{X}}\left ( \overline{x} \right ) = \bigintssss_{V_{F}+V_{F}^{c}}d\overline{x}C\left ( \overline{x} \right )pdf_{\overline{X}}\left ( \overline{x} \right )
+\end{equation}
+And, based on the definition given in Equations~\ref{eq:goalFunctionCodazzi} and \ref{eq:failureRegion}:
+\begin{equation}
+ \label{eq:failureProbIntegral}
+ \bigintssss_{V_{F}}d\overline{x}pdf_{\overline{X}}\left ( \overline{x} \right ) 
+ \end{equation}
+Equations \ref{eq:probabilityFailure} and \ref{eq:failureProbIntegral} are summarized by stating that the system failure probability is 
+equivalent to the probability of the system being in the uncertain 
+subdomain (region of the input space) that leads to a failure pattern. 
+This probability is equal to the probability-weighted hyper-volume that is surrounded by the LS (see Fig.~\ref{fig:ProbabilityFailureLSExample}).
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=1.0\textwidth]  {Pictures/ProbabilityFailureLSExample.png}
+  \caption{Example of limit surface probability of failure region.}
+  \label{fig:ProbabilityFailureLSExample}
+\end{figure}
+\\It is beneficial for better understanding to assess the LS concept through an example related to the safety of an Nuclear Power Plant (NPP).
+As an example, consider a station black out (SBO) scenario in an NPP. Suppose that the only uncertain parameters are:
+\begin{itemize}
+  \item $t_{F}$: Temperature that would determine the failure of the fuel cladding;
+  \item $rt_{DGs}$: Recovery time of the diesel generators (DGs) that 
+  can guarantee, through the emergency core cooling system (ECCS), 
+  the removal of the decay heat.
+\end{itemize}
+And, the corresponding CDF (uniform) is:
+
+\begin{equation}
+t_{F}\sim pdf_{T_{F}}\left ( T_{F} \right )=\left\{\begin{matrix}
+0 & if \: t_{F}< t_{F_{min}} \\ 
+\frac{1}{\left ( t_{F_{max}}- t_{F_{min}} \right )=\Delta t_{F}} & \\ 
+0 & if \: t_{F}>  t_{F_{max}} 
+\end{matrix}\right.
+\end{equation}
+%
+%
+\begin{equation}
+rt_{DGs}\sim pdf_{RT_{DGs}}\left ( rt_{DGs} \right )=\left\{\begin{matrix}
+0 & if \: rt_{DGs}<rt_{DGs_{min}}   \\ 
+\frac{1}{\left ( rt_{DGs_{max}} - rt_{DGs_{min}} \right )=\Delta rt_{DGs}} & \\ 
+0 & if \: rt_{DGs}>rt_{DGs_{max}} 
+\end{matrix}\right.
+\end{equation}
+For simplicity, assume that the clad temperature is a quadratic function of the DG recovery time in an SBO scenario:
+\begin{equation}
+  t = t_{0}+\alpha \times rt_{DGs}^{2}
+\end{equation}
+and that the  $ t_{F_{min}} > t_{0}+\alpha \times rt_{DGs_{min}}^{2}$
+and $t_{F_{max}} < t_{0}+\alpha \times rt_{DGs_{max}}^{2}$.
+The LS, failure region, and active part of the failure region (failure region with non-zero probability) are illustrated, for example, in Figure~\ref{fig:ProbabilityFailureLSExample} (in agreement with the above assumptions).
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=1.0\textwidth]  {Pictures/ExampleLSwitRiskDirections.png}
+  \caption{Example of limit surface highlighting the risk directions.}
+  \label{fig:ExampleLSwitRiskDirections}
+\end{figure}
+In this case, the transition/failure probability is evaluated as follows:
+\begin{equation}
+\begin{matrix} 
+P_{F} = \bigintssss_{V_{F}}d\overline{x}\: pdf_{\overline{X}}\left ( \overline{x} \right ) 
+= \bigintssss_{0}^{+\infty }d\overline{t_{F}}\: pdf_{T_{F}}\left ( T_{F} \right )\: \: \bigintssss_{\sqrt{\frac{t_{F}-t_{0}}{\alpha}}}^{+\infty } d\, rt_{DGs} \: pdf_{RT_{DGs}}\left ( rt_{DGs} \right )  =
+\\
+= \bigintssss_{t_{F_{min}}}^{t_{F_{max}}} dt_{F}\frac{1}{t_{F_{max}}-t_{F_{min}}}\: \: \bigintssss_{\sqrt{\frac{t_{F}-t_{0}}{\alpha}}}^{ rt_{DGs_{max}}}\: d\, rt_{DGs} \frac{1}{rt_{DGs_{max}}-rt_{DGs_{min}}} =
+\\
+= \frac{rt_{DGs_{max}}}{\Delta rt_{DGs}} + \frac{2\alpha}{3\left ( \Delta rt_{DGs}\Delta t_{F} \right )}
+\left ( \sqrt[3/2]{\frac{t_{F_{min}}-t_{0}}{\alpha}} - \sqrt[3/2]{\frac{t_{F_{max}}-t_{0}}{\alpha}} \right )
+\end{matrix}
+\end{equation}
+
+This simple example is useful to understand how the LS is defined in a practical application (that is analyzed numerically in the results section) and how the hyper volume needs weighted with respect to the probability in the uncertain domain. An example of the LS computed is shown in Figure ~\ref{fig:ExampleLSwitRiskDirections}.
+In this figure the neutral and high risk directions are highlighted. 
+%%%%%%%%%
+%%%%%%%%% Reduced Order Models
+%%%%%%%%%
+\section{Reduced Order Models}
+\label{sec:ROMs}	
+As briefly and previously mentioned, a ROM, also called a surrogate 
+model, is a mathematical representation of a system, used to predict 
+a selected FOM of a physical system.
+\\The ``training'' is a process that, sampling the physical model 
+represented by the high fidelity simulator (e.g., RELAP 7, RELAP5 
+3D, PHISICS, etc.), is aimed to improve the prediction capability 
+(ability to predict the status of the system given a realization of the 
+uncertain domain) of the ROM. 
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=1.0\textwidth]  {Pictures/ROMexampleOfPhysicalSystem.png}
+  \caption{Example of reduced order model representation of physical system (regression).}
+  \label{fig:ROMexampleOfPhysicalSystem}
+\end{figure}
+\\Two characteristics of these models 
+are generally assumed (even if exceptions are possible):
+\begin{enumerate}
+  \item The higher the number of realizations in the training sets, the 
+higher the accuracy of the prediction performed by the ROM is. This 
+statement is true for most of the cases although some ROMs might be 
+subject to the over-fitting issues. The over-fitting phenomenon is not 
+analyzed in this thesis, since its occurrence highly depends on the 
+algorithm type, and, hence, the problem needs to be analyzed for all 
+the large number of ROM types available;
+  \item The smaller the size of the input (uncertain) domain with 
+  respect to the variability of the system response, the more likely the 
+  ROM is able to represent the system response space.
+\end{enumerate}
+
+To provide a very simple idea of a ROM, assume that the final 
+response space of a physical system is governed by the transfer 
+function $H \left (  \overline{x}\right)$ (see 
+\ref{chap:mathBackground}), which, from a practical point of 
+view, represents the outcome of the system, based on the initial 
+conditions  $\overline{x}$. Now, sample the domain of variability of the 
+initial conditions $\overline{x}$ to create a 
+set of $N$ realizations of the input and response space $ \left ( \left ( 
+\overline{x}_{i}, H \left (  \overline{x}_{i}\right) \right), i=1,N \right)$, 
+named ``training'' set. Based on the data set generated, it is possible 
+to construct a mathematical representation $G\left ( \overline{x}:
+\overline{x}_{i}\right)$ of the 
+real system $H \left (  \overline{x}\right)$, which will approximate its 
+response (see Figure~\ref{fig:ROMexampleOfPhysicalSystem}):
+\begin{equation}
+\label{eq:regressor}
+G\left ( \overline{x} \right ):\overline{x}_{i} \rightarrow G\left ( \overline{x}_{i} \right ) \cong H\left ( \overline{x}_{i} \right )
+\end{equation}
+The ROMs reported above are generally named ``regressors'', among 
+which all the most common data fitting algorithms are found (e.g., 
+least square for construction of linear models).
+\\An important class of ROMs for the work presented here after is the 
+one containing the so called ``classifiers''. A classifier is a ROM that is 
+capable of representing the system behavior from a binary point of 
+view (e.g., event happened/not happened or failure/success). It is a 
+model (set of equations) that identifies to which category an object 
+belongs in the feature (input) space. Referring to the example that 
+brought to Eq.~\ref{eq:regressor}, a classifier can be formally represented as follows (see 
+Figure~\ref{fig:ROMClassifierExampleOfPhysicalSystem}):
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=1.0\textwidth]  {Pictures/ROMClassifierExampleOfPhysicalSystem.png}
+  \caption{Example of reduced order model representation of physical system (classifier).}
+  \label{fig:ROMClassifierExampleOfPhysicalSystem}
+\end{figure}
+
+\begin{equation}
+\label{eq:classifier}
+G\left ( \overline{x} \right ):\overline{x}_{i} \rightarrow G\left ( \overline{x}_{i} \right ) \cong 
+C \left ( H\left ( \overline{x}_{i} \right ) \right )
+\end{equation}
+
+The function $C\left (  H\left ( \overline{x}_{i}  \right ) = \overline{\theta} 
+\right ) $ is the so called ``goal'' function that is able to recast the 
+response of the system $H\left ( \overline{x}_{i}  \right )$ into a binary 
+form (e.g., failure/success). As an example, referring to 
+Figure~\ref{fig:ROMClassifierExampleOfPhysicalSystem}, the 
+``goal'' function would be:
+\begin{equation}
+\label{eq:goalFunctionClassifier}
+C\left (   \overline{\theta}  \right ) = \left\{\begin{matrix}
+1 & if \: \overline{\theta}>1.0 \\ 
+0 &  if \: \overline{\theta} \leq 1.0
+\end{matrix}\right.
+\end{equation}
+Hence, the ROM of type classifier $G\left (  \overline{x} \right )$  will operate in the space transformed through the ``goal''  function $C\left (   \overline{\theta}  \right )$. 
+\\The classifiers and regressors can be categorized into two main classes:
+\begin{itemize}
+  \item Model based algorithms;
+  \item Data based algorithms.
+\end{itemize}
+In the first class, the created ROM aims to approximate the response 
+of the system as a function of the input parameters. These algorithms 
+construct a functional representation of the system. Examples of such ROM type are support vector machines (SVMs), Kriging-based interpolators, discriminant based models, and polynomial chaos.
+\\On the other side, data based algorithms do not build a response-
+function-based ROM but classify or predict the response of the 
+system from the neighborhood graph constructed from the training 
+data, without any dependencies on a particular prediction model.
+\\These algorithms directly build a neighborhood structure as the 
+ROM (e.g., a relaxed Gabriel graph) on the initial training data. Examples of such ROM type are nearest neighbors and decision trees.
+\\ In the following subsections some of the ROM types that have been
+the most used in this research are reported:
+%%%%%%%%%
+%%%%%%%%% KNN Classifier and KNR Regressor
+%%%%%%%%%
+\subsection{KNN Classifier and KNR Regressor}
+\label{subsec:KNNKNR}	
+The K Nearest Neighbor algorithm~\cite{KNNrom} is a non-parametric method 
+used for both regression and classification. The only input parameter 
+is the variable $K$ which indicates the number of neighbors to be 
+considered in the classification/regression process. The special case 
+where the class is predicted to be the class of the closest training 
+sample (i.e. when $K = 1$) is called the nearest neighbor algorithm. 
+In binary (two class) classification problems, it is helpful to choose k to 
+be an odd number as this avoids tied votes. The output depends on 
+whether KNN is used for classification or regression:
+\begin{itemize}
+  \item In KNN classification, the output is a class membership. An 
+  object is 
+  classified by a majority vote of its neighbors, with the object being 
+  assigned to the class most common among its $K$ nearest 
+  neighbors 
+  ($K$ is a positive integer, typically small). If $K = 1$, then the object 
+  is simply assigned to the class of that single nearest neighbor.
+  \item  In KNN regression, the output is the property value for the 
+  object. 
+  This value is the average of the values of its $K$ nearest neighbors.
+\end{itemize}
+Both for classification and regression, it can be useful to assign 
+weight to the contributions of the neighbors, so that the nearer 
+neighbors contribute more to the average than the more distant ones. 
+For example, a common weighting scheme consists in giving each 
+neighbor a weight of $1/d$, where d is the distance to the neighbor.
+
+%%%%%%%%%
+%%%%%%%%% Support Vector Machines- Classifier
+%%%%%%%%%
+\subsection{Support Vector Machines - Classifier}
+\label{subsec:SVC}	
+Given a set of $N$ multi-dimensional samples $x_{i}$ and their associated
+results $\theta_{i} = \pm 1$ (e.g., $\theta_{i} = + 1$ for system success and $\theta_{i} = - 1$ for system failure), the SVM 
+algorithm~\cite{SVMrom} finds the boundary (i.e., the decision 
+function) that separates the set of points having different $\theta_{i}$. 
+The decision function lies between the support hyper-planes, which 
+are required to:
+\begin{itemize}
+  \item Pass through at least one sample of each class (called support 
+vectors);
+  \item Not contain samples within them.
+\end{itemize}
+For the linear case, see Figure~\ref{fig:SVMdecisionFunction}, the 
+decision function is chosen 
+such that distance between the support
+hyper-planes is maximized.
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=1.0\textwidth]  {Pictures/SVMdecisionFunction.png}
+  \caption{Support Vector Machine decision function.}
+  \label{fig:SVMdecisionFunction}
+\end{figure}
+\\From a mathematical point of view, the hyper plane can be written in 
+this form:
+\begin{equation}
+\label{eq:SVMhyperPlane}
+  \overline{w}  \: \overline{x} - b = 0
+\end{equation}
+Given this formulation, the SVM algorithm aims to:
+\begin{equation}
+\label{eq:SVMalghoritm}
+\begin{matrix}
+minimize \: \: \left \| \overline{w} \right \| \\ 
+subject \: \: to \: \: \theta_{i}\left ( \left \langle \overline{w},\overline{x}_{i} \right \rangle- b \right )
+\end{matrix}
+\end{equation}
+Without going into the mathematical details, the determination of the 
+hyper-planes is performed recursively and updated every time a new 
+sample has been generated. Figure~\ref{fig:SVMdecisionFunction} 
+shows the SVM decision 
+function and the hyper-planes for a set of points in a 2-dimensional 
+space having two different outcomes: $\theta_{i}=+1$ (green) and 
+$\theta_{i}=-1$ (red).
+\\The transition from a linear to a generic non-linear hyper-plane is 
+performed using the kernel trick: i.e., by projecting of the original 
+samples into a higher dimensional space known as featured space 
+generated by kernel functions $K\left (\overline{x}_{i},\overline{x}_{j}  \right )$:
+\begin{equation}
+\label{eq:SVMalghoritmKernelTrick}
+K\left (\overline{x}_{i},\overline{x}_{j}  \right ) =  exp \left ( - \frac{\left \|  \overline{x}_{i} - \overline{x}_{j} \right \|}{2\sigma^{2} }  \right )
+\end{equation}
+
+%%%%%%%%%
+%%%%%%%%% Support Vector Machines- Regressor
+%%%%%%%%%
+\subsection{Support Vector Machines - Regressor}
+\label{subsec:SVR}
+ version of SVM for regression called support vector regression (SVR) 
+ was proposed in~\cite{SVRrom}. The model produced by support 
+ vector classification (as described above) depends only on a subset 
+ of the training data, because the cost function for building the model 
+ does not care about training points that lie beyond the margin. 
+ Analogously, the model produced by SVR depends only on a subset 
+ of the training data, because the cost function for building the model 
+ ignores any training data close to the model prediction.
+\\Training the original SVR means solving: 
+\begin{equation}
+\label{eq:SVRalghoritm}
+\begin{matrix} 
+minimize \: \:  \frac{1}{2}\left \| \overline{w}^{2} \right \|
+\\
+subject \: \:  to 
+\left\{\begin{matrix}
+\theta_{i} - \left \langle \overline{w}, \overline{x}_{i} \right \rangle - b \leq \varepsilon
+\\ 
+\left \langle \overline{w}, \overline{x}_{i} \right \rangle + b - \theta_{i}  \leq \varepsilon 
+\end{matrix}\right.
+\end{matrix}
+\end{equation}
+where $\overline{x}_{i}$ is a training sample with target value 
+$\theta_{i}$. The inner product  $\left \langle \overline{w},
+\overline{x}_{i} \right \rangle + b$ is the prediction for that sample, and 
+$\varepsilon $ is a free parameter that serves as a threshold: all 
+predictions have to be within an $\varepsilon $ range of the true 
+predictions.
+
+%%%%%%%%%
+%%%%%%%%% Gaussian Process Models
+%%%%%%%%%
+\subsection{Gaussian Process Models}
+\label{subsec:GPM}
+Gaussian processes (GPs) ~\cite{GPMrom} are algorithms that 
+extend multivariate Gaussian distributions to infinite dimensionality. A 
+Gaussian process generates a dataset located throughout some 
+domain such that any finite subset of the range follows a multivariate 
+Gaussian distribution. Now, the $N$ observations in an arbitrary data 
+set, $\overline{\theta} = \left \{ \theta_{i},..., \theta_{N} \right \}$, can 
+always be imagined as a single point sampled from some multivariate 
+(N-variate) Gaussian distribution.
+\\What relates one observation to another in such cases is just the covariance function, $k\left ( x,x' \right )$. A popular choice is the squared exponential:
+\begin{equation}
+\label{eq:GPMsquaredExponential}
+k\left ( x,x' \right ) = \sigma_{f}^{2}\: exp\left [ \frac{-\left ( x-x' \right )^{2}}{2l^{2}} \right ]
+\end{equation}
+where the maximum allowable covariance is defined as $\sigma_{f}^{2}$ - this should be high for functions which cover a broad range on the y axis. If $x \approx x'$, then $k\left ( x,x' \right )$
+approach this maximum meaning $f(x)$ is very correlated to $f(x')$.
+On the other hand, if  $x$ is very distant from $x'$, then $k\left ( x,x' \right ) \approx 0$, i.e. the two points cannot see each other. So, for example, during interpolation at new $x$ values, distant observations will have negligible effect. How much effect this separation has will depend on the length parameter $l$.
+\\ Each observation $\theta$ can be thought of as related to an underlying function $f(x)$ through a Gaussian noise model:
+\begin{equation}
+\label{eq:GPMsquaredExponential}
+\theta = f(x) + \mathcal{N}(0,\sigma_{n}^{2}) 
+\end{equation}
+The new kernel function can be written as:
+\begin{equation}
+\label{eq:GPMalgorithm}
+k\left ( x,x' \right ) = \sigma_{f}^{2}\: exp\left [ \frac{-\left ( x-x' \right )^{2}}{2l^{2}} \right ] + \sigma_{n}^{2} \delta(x,x')
+\end{equation}
+So given $N$ observation $\overline{\theta}$, the objective is to predict the value $\theta_{*}$ at the new point $x_{*}$. This process is performed by following this sequence of steps:
+\begin{enumerate}
+  \item Calculate three matrices:
+  \begin{equation}
+  \label{eq:GPMalgorithmMatrixK}
+  K = \begin{bmatrix}
+  k\left ( x_{1},x_{1} \right ) & \cdots  & k\left ( x_{1},x_{N} \right )\\ 
+  \vdots  & \ddots  & \vdots \\ 
+  k\left ( x_{N},x_{1} \right ) & \cdots  &  k\left ( x_{N},x_{N} \right )
+  \end{bmatrix}  
+  \end{equation}
+  \begin{equation}
+  \label{eq:GPMalgorithmMatrixKstar}
+  K_{*} = \left [ k\left ( x_{*},x_{1} \right ) \cdots  k\left ( x_{*},x_{N} 
+  \right ) \right ]
+  \end{equation}  
+  \begin{equation}
+  \label{eq:GPMalgorithmMatrixKstarstar}
+  K_{**} = k\left ( x_{*},x_{*} \right )
+  \end{equation}
+  \item The basic assumption of GPM is that:
+  \begin{equation}
+  \label{eq:GPMalgorithmAssumption}
+   \begin{bmatrix}
+   \overline{\theta}
+   \\ 
+   \theta_{*}
+   \end{bmatrix}
+   \sim  \mathcal{N} \left ( 0, \begin{bmatrix}
+   K & K_{*}^{T}\\ 
+   K_{*} & K_{**}
+   \end{bmatrix} \right )
+  \end{equation}
+   \item The estimate $\widetilde{\theta}_{*}$ for $\overline{\theta}_{*}$
+    is the mean of this distribution:
+   \begin{equation}
+   \label{eq:GPMalgorithmEstimate}    
+    \widetilde{\theta}_{*} = K_{*} K^{-1} \overline{\theta}
+    \end{equation}    
+    \item The uncertainty associated to the estimate 
+    $\widetilde{\theta}_{*} $ can be expressed in terms of variance of 
+    $\theta_{*} $:
+   \begin{equation}
+   \label{eq:GPMalgorithmEstimate}    
+    var(\theta_{*}) = K_{**} -  K_{*} K^{-1} K_{*}^{T}
+    \end{equation}      
+\end{enumerate}
+
+%%%%%%%%%
+%%%%%%%%% Limit Surface Search Algorithm
+%%%%%%%%%
+\section{Limit Surface Search Algorithm}
+\label{sec:LSSalgorithm}
+The identification of the LS location is extremely challenging, 
+depending on the particular physics/phenomena that are investigated. 
+To identify the real location of the LS, the evaluation of system 
+responses is needed, through the high fidelity code (e.g., RELAP 7, 
+RELAP5 3D, etc.), in the full domain of uncertainty (infinite number of 
+combinations of uncertainties represented by the respective PDFs). 
+Obviously, this is not a feasible approach, and a reasonable 
+approximation is to locate the LS on a Cartesian N-D grid, in the 
+uncertain domain.
+\\In reality, the location of the LS is not exactly determined but rather 
+bounded. The algorithm determines the set of grid nodes between 
+which the transition $0/1$ of the ``goal'' function happens. This set is 
+also classified with respect to the value of the ``goal'' function. With 
+reference to Figure~\ref{fig:LSgoalFunctionExample}, for example, 
+green is used for grid nodes with a 
+``goal'' function that equals $0$ and red when the ``goal'' function 
+equals $1$.
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=1.0\textwidth]  {Pictures/LSgoalFunctionExample.png}
+  \caption{Example of limit surface search evaluation grid (where $\overline{y}=\overline{\theta}$).}
+  \label{fig:LSgoalFunctionExample}
+\end{figure}
+Each evaluation of the ``goal'' function in one of the grid nodes implies 
+the evaluation of the high fidelity code (e.g. system simulator) for the 
+corresponding set of entries in the uncertain space. As already 
+mentioned, the evaluation of the high fidelity code is computationally 
+expensive and, in order to identify the LS, one should appraise 
+each point in the N-D grid covering the uncertainty space. 
+Discretization depends on the accuracy requested by the user. In 
+most cases, this approach is not feasible and, consequentially, the 
+process needs to be accelerated using ``predicting'' methods that are 
+represented by the employment of supervised learning algorithms 
+(ROMs presented in previous section).
+\\This approach is commonly referred to as an active learning process 
+that ultimately results in training of a ROM of type classifier capable of 
+predicting the outcome of the ``goal'' function for any given point of 
+the uncertain space.
+In an active learning process, a supervised learning algorithm is 
+combined with criteria to choose the next node in the N D grid that 
+needs explored, using the high fidelity physical model. This process is 
+repeated until, under a particular metric, the prediction capabilities of 
+the supervised learning algorithm do not improve by further increasing 
+the training set.
+\\In more detail, the iterative scheme, which has been defined in this 
+research work, could be summarized through the following steps:
+\begin{enumerate}
+  \item A limited number of points in the uncertain space $\left \{ 
+  \overline{x}_{k} \right \}$ are selected via one of the forward 
+  sampling strategies (e.g., stratified or MC);
+  \item The high fidelity code is used to compute the status of the 
+  system for the set of points in the input set: 
+  $
+  \left \{ \overline{\theta}(t)\right \}_{k} = H\left ( \left \{ \overline{x} \right 
+  \}_{k},t \right )
+  $
+  \item The ``goal'' function is evaluated at the phase space coordinate 
+  of the system:
+  $\left \{ c \right \}_{k} = C\left ( \left \{ \overline{\theta}(t)\right \}_{k} 
+  \right )$.
+   \item The set of pairs $\left \{ \left ( \overline{x},c \right )_{k} \right \}$
+   are used to train a ROM of type classifier, $G\left ( \left \{ 
+   \overline{x}_{k} \right \} \right )$.
+   \item The ROM classifier is used to predict the values of the ``goal''  
+   function for all the $N$ nodes of the N-D grid in the domain space:
+   \begin{equation}
+   \left (G\left ( \left \{ \overline{x} \right \}_{j} \right ) \sim \left \{ c \right 
+   \}_{j}, j=1,...,N  \right )
+    \end{equation}
+    \item The values of the ``goal''  function are used to determine the 
+    LS location based on the change of values of  $\left \{ c \right 
+    \}_{j}$:
+    \begin{equation}
+    \left \{ c \right \}_{j}\rightarrow \partial V_{F}
+     \end{equation}
+     \item A new point is chosen to increase the training set and a new 
+     pair is generated;
+     \item The procedure is repeated starting from Step 3 until 
+     convergence is achieved. The convergence is achieved when 
+     there are no changes in the location of the LS after a certain 
+     number of consecutive iterations.
+\end{enumerate}
+The iteration scheme is graphically shown in 
+Figure~\ref{fig:LimitSurfaceAlgoFlow}.
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=1.0\textwidth]  {Pictures/LimitSurfaceAlgoFlow.png}
+  \caption{Limit surface search algorithm conceptual scheme.}
+  \label{fig:LimitSurfaceAlgoFlow}
+\end{figure}
+It is important to notice that there is an additional requirement 
+regarding the LS search algorithm. It is required that the LS location 
+stays constant for a certain number (user defined) of consecutive 
+iterations. The reason for this choice is determined by the attempt to 
+mitigate the effect of the build of non-linear bias in the searching 
+pattern. Indeed, the searching algorithm might focus too much on a 
+certain region of the LS while putting too few points in other zones 
+and completely hiding undiscovered topological features of the LS.
+Regarding the strategy to choose the nodes on the N-D grid that 
+needs evaluated in the iterative process for the LS identification, it has
+been decided (in this research) to employ a metric based on the 
+distance between the predicted LS and the evaluations already 
+performed. The points on the LS are ranked based on the distance 
+from the closest training point already explored (the larger is the 
+distance the higher is the score for the candidate point), and based on 
+its persistence (the larger is the number of time the prediction of the 
+``goal'' function for that point have changed the higher is the score).
+Since this approach creates a queue of ranked candidates, it could be 
+used also in the parallel implementation of the algorithm. When 
+several training points are run in parallel, it is possible that the 
+evaluation of one additional point does not alter dramatically the 
+location of the LS. Consequently, it is possible that the candidate with 
+the highest score is already being submitted for evaluation and 
+possibly the simulation is not yet completed. In this case, to avoid 
+submitting the same evaluation point twice, the algorithm searches 
+among all the ranked candidates (in descending order) for the one 
+that was not submitted for evaluation. Even if it is extremely unlikely 
+that all the candidates were submitted, in this remote event, the 
+method will choose the next point employing a MC strategy.
+%%%%%%%%%
+%%%%%%%%% Acceleration through Multi-grid Approach
+%%%%%%%%%
+\section{Acceleration through Multi-grid Approach}
+\label{subsec:LSaccelerationMultiGrid}
+The location of the LS, being a numerical iterative process, can be 
+known given a certain tolerance. As already mentioned, the LS search 
+is done by constructing an evaluation grid, on which the acceleration 
+ROM is inquired. The tolerance of the iterative process determines how 
+the evaluation grid is discretized. Before addressing the acceleration 
+scheme that has been developed as part of this research, it is important 
+to introduce some concepts on the employed numerical process.
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=1.0\textwidth]  {Pictures/DiscretizationGrid.png}
+  \caption{Discretization grid.}
+  \label{fig:DiscretizationGrid}
+\end{figure}
+\\Assume that each of $D$ dimensions of the uncertain domain is 
+discretized with the same number of equally-spaced nodes $N$ (see 
+Figure~\ref{fig:DiscretizationGrid}), with discretization size indicated 
+by $h_{i}$. Hence, the Cartesian grid contains $N^{D}$ individual 
+nodes, indexed through the multi-index vector $\overline{j} = \left ( 
+j_{i=1\rightarrow D} \right ), j_{i} \leq N \forall i$. Introducing the 
+vectors  $\overline{I} = (1, ..., 1)$ and
+$\overline{N} = (N, ..., N)$, the ``goal'' function is expressed on this N-
+D grid as:
+\begin{equation}
+C\left ( \overline{x} \right ) = 
+\mathlarger{\sum}_{\overline{j}=\overline{I}}^{\overline{N}} \varphi_{\overline{j}}\left 
+( \overline{x} \right ) C\left ( \overline{x}_{\overline{j}} \right )
+\end{equation}
+where $\varphi_{\overline{j}}$ is the characteristic function of the hyper-volume $\Omega_{\overline{j}}$ surrounding the node 
+ $\overline{x}_{\overline{j}}$:
+ \begin{equation}
+ \varphi_{\overline{j}}\left ( \overline{x} \right ) = 
+\left\{\begin{matrix}
+1 & if \: \overline{x} \in \Omega_{\overline{j}} \\ 
+0 & if \: \overline{x} \notin \Omega_{\overline{j}} 
+\end{matrix}\right.
+\end{equation}
+where:
+ \begin{equation}
+ \label{eq:OmegaEq}
+ \Omega_{\overline{j}} = \prod_{i=1}^{D}\left [ x_{j_{i}} - \frac{h_{i}}{2}, 
+ x_{j_{i}} + \frac{h_{i}}{2}  \right ]
+ \end{equation}
+ The probability of the uncertain parameters is expressed as:
+ \begin{equation} 
+ pdf_{\overline{X}}\left ( \overline{x} \right ) = 
+\mathlarger{\sum}_{\overline{j}=\overline{I}}^{\overline{N}}
+\varphi_{\overline{j}}\left ( \overline{x} \right )
+pdf_{\overline{X}}\left ( \overline{x}_{\overline{j}} \right )
+ \end{equation}
+Following the approach briefly explained in section 
+\ref{sec:LSconcept}, the probability of the event (e.g., failure) could be 
+expressed as: 
+ \begin{equation} 
+ \label{eq:Pf}
+  P_{F}=\left ( \prod_{i=1}^{D}h_{i} \right ) 
+  \mathlarger{\sum}_{\overline{j}=
+  \overline{I}}^{\overline{N}}pdf_{\overline{X}}\left ( 
+  \overline{x_{\overline{j}}} \right )
+  C\left ( \overline{x}_{\overline{j}} \right )
+ \end{equation}
+Under certain assumptions, the concept of active hyper-volume 
+$V_{A}$ as the region of the input space identified by the support of 
+the uncertain parameters’ probability density functions 
+$pdf_{\overline{X}}\left ( \overline{x} \right )$ could be introduced; 
+Eq.~\ref{eq:Pf} is recast, using a Taylor expansion, as follows: 
+ \begin{equation} 
+P_{F}= \bigintssss_{V} C\left ( \overline{x} \right )\: pdf_{\overline{X}}\left ( 
+\overline{x}  \right )\: d\overline{x} =\bigintssss_{V_{A}}C\left ( \overline{x} 
+\right )\: 
+\left [  
+\mathlarger{\sum}_{\overline{j}=\overline{I}}^{\overline{N}}\varphi_{\overline{j}}\left ( 
+\overline{x} \right )
+\left ( pdf_{\overline{X}}\left ( \overline{x}_{\overline{j}} \right ) +
+\mathlarger{\sum}_{i=1}^{D} \frac{\partial pdf_{\overline{X}}}{\partial x_{i}}|
+_{\overline{x}_{\overline{j}}} \: \left ( x_{i} - x_{j_{i}} \right ) \right ) \right 
+] d\overline{x}
+ \end{equation}
+And, considering the evaluation grid as:
+\begin{equation}
+\label{eq:PfEq}
+P_{F}= \mathlarger{\sum}_{\begin{matrix}
+\overline{j}=\overline{I} \\ \overline{x}_{\overline{j}} \in V_{A} \end{matrix}}^{\overline{N}} 
+\bigintssss_{\overline{x}_{\overline{j}} - \overline{h}/2}^{\overline{x}_{\overline{j}} + \overline{h}/2} C\left ( \overline{x} \right )\: 
+\left [  \mathlarger{\sum}_{\overline{j}=\overline{I}}^{\overline{N}}\varphi_{\overline{j}}\left ( \overline{x} \right )
+\left ( pdf_{\overline{X}}\left ( \overline{x}_{\overline{j}} \right ) +
+\mathlarger{\sum}_{i=1}^{D} \frac{\partial pdf_{\overline{X}}}{\partial x_{i}}|_{\overline{x}_{\overline{j}}} \: \left ( x_{i} - x_{j_{i}} \right ) \right ) \right ] d\overline{x}
+\end{equation}
+At this point, it is possible to label, in the active hyper-volume, the sub-
+domain identified by the nodes where the ``goal'' function  
+$C(\overline{x})$ changes its value (the frontier nodes between the 
+region where $C(\overline{x})=1$ and $C(\overline{x})=0$) $V_{A} \cap 
+V_{\partial V_{F}}$.
+\\ Consequentially, it is possible to identify the sub-domains in which the  ``goal''  function $C(\overline{x})$ is equal to $0$ ($V_{A} \cap V_{\partial V_{C(\overline{x})=0}} \notin V_{A} \cap V_{\partial V_{F}}$):
+
+\begin{equation}
+\mathlarger{\sum}_{\begin{matrix}
+\overline{j}=\overline{I} \\ \overline{x}_{\overline{j}} \in V_{A} \cap V_{C(\overline{x})=0} \end{matrix}}^{\overline{N}} 
+\bigintssss_{\overline{x}_{\overline{j}} - \overline{h}/2}^{\overline{x}_{\overline{j}} + \overline{h}/2} C\left ( \overline{x} \right )\: 
+\left ( pdf_{\overline{X}}\left ( \overline{x}_{\overline{j}} \right ) +
+\mathlarger{\sum}_{i=1}^{D} \frac{\partial pdf_{\overline{X}}}{\partial x_{i}}|_{\overline{x}_{\overline{j}}} \: \left ( x_{i} - x_{j_{i}} \right ) \right )   d\overline{x}
+\end{equation}
+in which the  ``goal''  function $C(\overline{x})$ is equal to $1$ ($V_{A} \cap V_{\partial V_{C(\overline{x})=1}} \notin V_{A} \cap V_{\partial V_{F}}$):
+\begin{equation}
+\begin{matrix} 
+\mathlarger{\sum}_{\begin{matrix}
+\overline{j}=\overline{I} \\ \overline{x}_{\overline{j}} \in V_{A} \cap V_{C(\overline{x})=1} \end{matrix}}^{\overline{N}} 
+\bigintssss_{\overline{x}_{\overline{j}} - \overline{h}/2}^{\overline{x}_{\overline{j}} + \overline{h}/2} C\left ( \overline{x} \right )\: 
+\left ( pdf_{\overline{X}}\left ( \overline{x}_{\overline{j}} \right ) +
+\mathlarger{\sum}_{i=1}^{D} \frac{\partial pdf_{\overline{X}}}{\partial x_{i}}|_{\overline{x}_{\overline{j}}} \: \left ( x_{i} - x_{j_{i}} \right ) \right )   d\overline{x} =
+\\ 
+= \mathlarger{\sum}_{\begin{matrix}
+\overline{j}=\overline{I} \\ \overline{x}_{\overline{j}} \in V_{A} \cap V_{C(\overline{x})=1} \end{matrix}}^{\overline{N}} 
+\bigintssss_{\overline{x}_{\overline{j}} - \overline{h}/2}^{\overline{x}_{\overline{j}} + \overline{h}/2}
+\left ( pdf_{\overline{X}}\left ( \overline{x}_{\overline{j}} \right ) +
+\mathlarger{\sum}_{i=1}^{D} \frac{\partial pdf_{\overline{X}}}{\partial x_{i}}|_{\overline{x}_{\overline{j}}} \: \left ( x_{i} - x_{j_{i}} \right ) \right )   d\overline{x}
+\end{matrix}
+\end{equation}
+Eq.~\ref{eq:PfEq} is now expressed as:
+ \begin{equation}
+ \label{eq:PfEqFinal}
+ \begin{matrix}
+P_{F} = \mathlarger{\sum}_{\begin{matrix}
+\overline{j}=\overline{I} \\ \overline{x}_{\overline{j}} \in V_{A} \cap 
+V_{C(\overline{x})=1} \end{matrix}}^{\overline{N}} 
+\left ( \prod_{i=1}^{D} 
+ h_{i} \right ) 
+\: pdf_{\overline{X}} ( \overline{x}_{\overline{j}}) + O(h^{N+1}) +
+ \\
+ + \mathlarger{\sum}_{\begin{matrix}
+\overline{j}=\overline{I} \\ \overline{x}_{\overline{j}} \in V_{A} \cap 
+V_{\partial V_{f}} \end{matrix}}^{\overline{N}}
+\bigintssss_{\overline{x}_{\overline{j}} - 
+\overline{h}/2}^{\overline{x}_{\overline{j}} + \overline{h}/2} C\left ( 
+\overline{x} \right )\: \left ( pdf_{\overline{X}}\left ( 
+\overline{x}_{\overline{j}} \right ) +
+\mathlarger{\sum}_{i=1}^{D} \frac{\partial pdf_{\overline{X}}}{\partial 
+x_{i}}|_{\overline{x}_{\overline{j}}} \: \left ( x_{i} - x_{j_{i}} \right ) \right )   
+d\overline{x}
+\end{matrix} 
+ \end{equation} 
+As inferred from Eq.~\ref{eq:PfEqFinal}, the process is bounded if the 
+surface area to volume ratio (amount of surface area per unit volume) is 
+in favor of the volume:
+\begin{equation}
+\label{eq:convergenceCondition}
+\mathlarger{\sum}_{\begin{matrix}
+\overline{j}=\overline{I} \\ \overline{x}_{\overline{j}} \in V_{A} \cap 
+V_{C(\overline{x})=1} \end{matrix}}^{\overline{N}} 
+\left ( \prod_{i=1}^{D} 
+ h_{i} \right ) 
+\: pdf_{\overline{X}} ( \overline{x}_{\overline{j}})
+\gg 
+\sum_{\begin{matrix}
+\overline{j}=\overline{I} \\ \overline{x}_{\overline{j}} \in V_{A} \cap 
+V_{\partial V_{f}} \end{matrix}}^{\overline{N}}
+\left | \int_{\overline{x}_{\overline{j}} - 
+\overline{h}/2}^{\overline{x}_{\overline{j}} + \overline{h}/2}   pdf_{\overline{X}}\left ( 
+\overline{x}_{\overline{j}} \right )  \right |
+d\overline{x}
+\end{equation}
+If the grid is built in the transformed space of probability (i.e., replacing the measure $d\overline{x}$ with $d \overline{\mu }\: \: pdf_{\overline{X}}\left ( \overline{x}_{\overline{j}} \right )$, the condition expressed in Eq.~\ref{eq:convergenceCondition} is reduced:
+\begin{equation}
+number \: \:  nodes \in V_{A} \cap V_{C(\overline{x})=1} \gg number \: \:  nodes  \in V_{A} \cap V_{\partial V_{F}}
+\end{equation}
+This means that error is bounded by the total probability contained in the cells on the frontier of the LS.
+\\Based on this derivation, it is clear how important it is to keep the 
+content of the total probability on the frontier of the LS as low as 
+possible, and simultaneously, increase the importance of the volume of 
+the failure/event region as much as possible (to improve the surface 
+area to volume ratio).
+\\In order to do that, the step size in probability should be significantly 
+reduced ( $h_{i}^{p} \rightarrow 0^{+}$). Even if this is theoretically 
+feasible, it is computational inapplicable. To approach a similar result, it 
+is possible to learn from other numerical methods that use the 
+technique of adaptive meshing for the resolution of the partial 
+differential equation system (e.g., finite element methods).
+\\For this reason, an acceleration scheme was designed and developed 
+employing a multi-grid approach. The main idea, it is to recast the 
+iterative process in two different sub-sequential steps. Firstly, 
+performing the LS search on a coarse evaluation grid, and once 
+converged, adaptively refining the cells that lie on the frontier of the LS 
+($V_{A} \cap V_{\partial V_{F}}$) and, consequentially, converging on 
+the new refined grid.
+\\The iteration scheme is graphically shown in 
+Figure~\ref{fig:LimitSurfaceMultiGridAlgoFlow}.
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=1.0\textwidth]  {Pictures/LimitSurfaceMultiGridAlgoFlow.png}
+  \caption{Multi-grid limit surface search scheme.}
+  \label{fig:LimitSurfaceMultiGridAlgoFlow}
+\end{figure}
+In more detail, the iterative scheme could be summarized through the 
+following steps:
+\begin{enumerate}
+  \item The user specifies two tolerances in probability $(CDF):
+  \gamma^{g=1}$ for the initial coarse grid and $\gamma^{g=2}$
+  for the refined grid, where  $ \gamma^{g=1} >  \gamma^{g=2}$;
+  \item Following Eq.~\ref{eq:OmegaEq}, the initial coarse evaluation 
+  grid $\Omega^{1}$ is constructed ($N^{g=1}$ total nodes). The 
+  discretization of this grid is done to have cells with a content of 
+  probability equal to $\gamma^{g=1}$;
+  \item A limited number of points in the uncertain space $\left \{ 
+  \overline{x}_{k} \right \}$ are selected via one of the forward 
+  sampling strategies (e.g., stratified or MC);
+  \item The high fidelity code is used to compute the status of the 
+  system for the set of points in the input set: 
+  $
+  \left \{ \overline{\theta}(t)\right \}_{k} = H\left ( \left \{ \overline{x} \right 
+  \}_{k},t \right )
+  $
+  \item The ``goal'' function is evaluated at the phase space coordinate 
+  of the system:
+  $\left \{ c \right \}_{k} = C\left ( \left \{ \overline{\theta}(t)\right \}_{k} 
+  \right )$.
+   \item The set of pairs $\left \{ \left ( \overline{x},c \right )_{k} \right \}$
+   are used to train a ROM of type classifier, $G\left ( \left \{ 
+   \overline{x}_{k} \right \} \right )$.
+   \item The ROM classifier is used to predict the values of the ``goal''  
+   function for all the $N^{g=1}$ nodes of the N-D grid in the domain 
+   space:
+   \begin{equation}
+   \left (G\left ( \left \{ \overline{x} \right \}_{j} \right ) \sim \left \{ c \right 
+   \}_{j}, j=1,...,N^{g=1}  \right )
+    \end{equation}
+    \item The values of the ``goal''  function are used to determine the 
+    LS location based on the change of values of  $\left \{ c \right 
+    \}_{j}$:
+    \begin{equation}
+    \left \{ c \right \}_{j}\rightarrow \partial V_{F}
+     \end{equation}
+     \item A new point is chosen to increase the training set and a new 
+     pair is generated;     
+     \item The procedure is repeated starting from Step 5 until 
+     convergence is achieved on grid $\Omega^{g}$.The convergence 
+     is reached when there are no changes in the location of the LS 
+     after a certain number of consecutive iterations (user defined);
+     \item When the convergence is achieved on the coarse grid 
+     $\Omega^{g=1}$, all the cells that lie on the frontier of the LS 
+     ($V_{A} \cap V_{\partial V_{F}}$) are refined to contain an amount of 
+     probability equal to  $\gamma^{g=2}$;
+     \item Steps 7 through 9 are performed based on the new refined 
+     grid. Finally, the process starts again by performing Steps 5 
+     through 10, until the convergence is achieved in the refined grid.
+\end{enumerate}
+As shown in Figure~\ref{fig:LimitSurfaceMultiGridAlgoFlow}, the 
+algorithm consists in searching the location of the LS proceeding with 
+sub-sequential refinement of the sub-domain, in the active space, that 
+contains the LS. In this way, the computational burden is kept as low as 
+possible. In addition, another advantage of this approach is that, since 
+the refinement grid represents a constrained domain, the sub-
+sequential ROM training process can be regularized, since the LS 
+between an iteration and the other can move, at maximum, within the 
+refinement domain.
+
+%%%%%%%%%%%%%%%%
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%  MONTE-CARLO %%%%%%%% 
 %%%%%%%%%%%%%%%%%%%%%%%%%
