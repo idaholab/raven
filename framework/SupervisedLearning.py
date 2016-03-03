@@ -850,13 +850,14 @@ class HDMRRom(GaussPolynomialRom):
     #reduce terms
     self.reducedTerms = {}
     for term in self.terms.keys():
-      self.collectTerms(term)
+      self._collectTerms(term,self.reducedTerms)
     #remove zero entries
-    toRemove=[]
-    for term,mult in self.reducedTerms.items():
-      if mult == 0: toRemove.append(term)
-    for rem in toRemove:
-      del self.reducedTerms[rem]
+    self._removeZeroTerms(self.reducedTerms)
+    #toRemove=[]
+    #for term,mult in self.reducedTerms.items():
+    #  if mult == 0: toRemove.append(term)
+    #for rem in toRemove:
+    #  del self.reducedTerms[rem]
 
     #self.raiseADebug('Terms:')
     #for t,v in self.terms.items():
@@ -899,101 +900,6 @@ class HDMRRom(GaussPolynomialRom):
         newpt[v] = 0
     return tuple(newpt)
 
-  def __mean__(self):
-    """The Cut-HDMR approximation can return its mean easily.
-    @ In, None
-    @ Out, float, the mean
-    """
-    if self.mean != None: return self.mean
-    #vals = {():self.refSoln}
-    #for i,c in enumerate(self.combos):
-    #  for combo in c:
-    #    rom = self.ROMs[combo]
-    #    vals[combo] = rom.__evaluateMoment__(1)
-    #    subs = self.terms[combo]
-    #    for sub in subs:
-    #      vals[combo] -= vals[sub]
-    #tot = sum(vals.values())
-    #self.mean=tot
-    tot = 0
-    for term,mult in self.reducedTerms.items():
-      if term == ():
-        tot += self.refSoln
-      else:
-        tot += self.ROMs[term].__evaluateMoment__(1)*mult
-    return tot
-
-  def __variance__(self):
-    """The Cut-HDMR approximation can return its variance easily.
-    EXCEPT that's completely wrong, HDMR components aren't orthogonal and you can't do it this way. Fixme.
-    @ In, None
-    @ Out, float, the variance
-    """
-    if self.variance != None: return self.variance
-    mean = self.__mean__()
-    #do cross terms
-    #first, get multiplicity of terms needed
-    varTerms = {}
-    #create cross-product of all terms, key is terms pair and value is multiplicity
-    for term1,mult1 in self.reducedTerms.items():
-      for term2,mult2 in  self.reducedTerms.items():
-        key = [term1,term2]
-        key.sort()
-        key = tuple(key)
-        val = mult1*mult2
-        if key not in varTerms.keys(): varTerms[key] = val
-        else: varTerms[key] += val
-    #remove unessential terms, -> TODO I don't think there can be zero terms, but perhaps
-    toRemove = []
-    for key,val in varTerms.items():
-      if val==0: toRemove.append(key)
-    for rem in toRemove:
-      del varTerms[rem]
-    # now calculate actual variance
-    variance = 0
-    for term,mult in varTerms.items():
-      term1 = term[0]
-      term2 = term[1]
-      ### CASE: h_r * h_r -> h_r**2
-      if term1 == () and term2 == ():
-        variance += self.refSoln * self.refSoln * mult
-        continue
-      ### CASE: h_r * gPC -> h_r * c_0
-      # sort so if term2 or term1 is (), then term1 is () and term2 is other
-      if term2 == ():
-        term2 = term1
-        term1 = ()
-      if term[0] == ():
-        variance += self.refSoln * self.ROMs[term2].__evaluateMoment__(1) * mult
-        continue
-      ### CASE: gPC * gPC -> c1_0*c2_0 + c_k^2 for each k in both index sets
-      rom1 = self.ROMs[term1]
-      rom2 = self.ROMs[term2]
-      for polyIndex1,coeff1 in rom1.polyCoeffDict.items():
-        polyIndex1 = self.__fillIndexWithRef(term1,polyIndex1)
-        for polyIndex2,coeff2 in rom2.polyCoeffDict.items():
-          polyIndex2 = self.__fillIndexWithRef(term2,polyIndex2)
-          if polyIndex1 == polyIndex2:
-            variance += coeff1 * coeff2 * mult
-    self.variance = variance - mean*mean
-    return variance
-
-  def _subtermVariance(self,subset):
-    #combine
-
-  def collectTerms(self,a,sign=1,depth=0):
-    """
-    Adds main term multiplicity and subtracts sub term multiplicity for cross between terms
-    @ In, a, string, main combo key from self.terms
-    @ In, sign, int, gives the signs of the terms (1 for positive, -1 for negative)
-    @ In, depth, int, recursion depth
-    @ Out, None
-    """
-    if a not in self.reducedTerms.keys(): self.reducedTerms[a] = sign
-    else: self.reducedTerms[a] += sign
-    for sub in self.terms[a]:
-      self.collectTerms(sub,sign*-1,depth+1)
-
   def __evaluateLocal__(self,featureVals):
     """ Evaluates a point.
     @ In, featureVals, list of values at which to evaluate the ROM
@@ -1008,72 +914,184 @@ class HDMRRom(GaussPolynomialRom):
       else:
         cutVals = [list(featureVals[0][self.features.index(j)] for j in term)]
         tot += self.ROMs[term].__evaluateLocal__(cutVals)*mult
-    #vals={():self.refSoln}
-    #for i,c in enumerate(self.combos):
-    #  for combo in c:
-    #    myVals = [list(featureVals[0][self.features.index(j)] for j in combo)]
-    #    rom = self.ROMs[combo]
-    #    #check if rom is trained
-    #    if not rom.amITrained: self.raiseAnError(IOError,'ROM for subset %s is not trained!' %combo)
-    #    vals[combo] = rom.__evaluateLocal__(myVals)
-    #    for sub in self.terms[combo]:
-    #      vals[combo] -= vals[sub]
-    #tot = sum(vals.values())
     return tot
 
-  def getSensitivities(self,maxLevel=None,kind='variance'):
+  def __mean__(self):
+    """The Cut-HDMR approximation can return its mean easily.
+    @ In, None
+    @ Out, float, the mean
+    """
+    return self._calcMean(self.reducedTerms)
+
+  def __variance__(self):
+    """The Cut-HDMR approximation can return its variance somewhat easily.
+    @ In, None
+    @ Out, float, the variance
+    """
+    return self._calcVariance(self.reducedTerms)
+
+  def _calcMean(self,fromDict):
+    """
+    Given a subset, calculate mean from terms
+    @ In, fromDict, dict{string:int}, ROM subsets and their multiplicity
+    @ Out, tot, float, mean
+    """
+    tot = 0
+    for term,mult in fromDict.items():
+      if term == ():
+        tot += self.refSoln * mult
+      else:
+        tot += self.ROMs[term].__evaluateMoment__(1)*mult
+    return tot
+
+  def _calcSecondMoment(self,termDict):
+    """
+    Calculates the variance using a set of squared terms
+    @ In, termDict, dict{(string,string):int}, dict of squared terms
+    @ Out, tot, float, variance
+    """
+    tot = 0
+    for term,mult in termDict.items():
+      t1 = term[0]
+      t2 = term[1]
+      ### CASE: integrate(h_r * h_r) -> h_r**2
+      if t1 == () and t2 == ():
+        tot += self.refSoln * self.refSoln * mult
+        continue
+      ### CASE: integrate(h_r * gPC) -> h_r * c_0
+      # sort so if term2 or term1 is (), then term1 is () and term2 is other
+      if t2 == ():
+        t2 = t1
+        t1 = ()
+      if t1 == ():
+        tot += self.refSoln * self.ROMs[t2].__evaluateMoment__(1) * mult
+        continue
+      ### CASE: integrate(gPC * gPC) -> c1_0*c2_0 + c_k^2 for each k in both index sets
+      rom1 = self.ROMs[t1]
+      rom2 = self.ROMs[t2]
+      for polyIndex1,coeff1 in rom1.polyCoeffDict.items():
+        polyIndex1 = self.__fillIndexWithRef(t1,polyIndex1)
+        for polyIndex2,coeff2 in rom2.polyCoeffDict.items():
+          polyIndex2 = self.__fillIndexWithRef(t2,polyIndex2)
+          if polyIndex1 == polyIndex2:
+            tot += coeff1 * coeff2 * mult
+    return tot
+
+  def _calcVariance(self,fromDict):
+    """
+    Given a dictionary of terms and their multiplicity, calculates the expected value of the square of the term less the mean squared
+    @ In, fromDict, dict{string:int}, ROM subsets and their multiplicity
+    @ Out, float, float, variance
+    """
+    mean = self._calcMean(fromDict)
+    varTerms = self._squareTerms(fromDict)
+    self._removeZeroTerms(varTerms)
+    secondMoment = self._calcSecondMoment(varTerms)
+    return secondMoment - mean*mean
+
+  def _collectTerms(self,a,targetDict,sign=1,depth=0):
+    """
+    Adds main term multiplicity and subtracts sub term multiplicity for cross between terms
+    @ In, targetDict, dict, dictionary to pace terms in
+    @ In, a, string, main combo key from self.terms
+    @ In, sign, optional int, gives the signs of the terms (1 for positive, -1 for negative)
+    @ In, depth, optional int, recursion depth
+    @ Out, None
+    """
+    if a not in targetDict.keys(): targetDict[a] = sign
+    else: targetDict[a] += sign
+    for sub in self.terms[a]:
+      self._collectTerms(sub,targetDict,sign*-1,depth+1)
+
+  def _removeZeroTerms(self,d):
+    """
+    Removes keys from d that have zero value
+    @ In, d, dict, string:int
+    @ Out, None
+    """
+    toRemove=[]
+    for key,val in d.items():
+      if val == 0: toRemove.append(key)
+    for rem in toRemove:
+      del d[rem]
+
+  def _squareTerms(self,terms):
+    """
+    Squares terms algebraically
+    @ In, terms, dict{string:int}, original terms
+    @ Out, sterms, dict{(string,string):int}, squared terms
+    """
+    sTerms={}            #square term dict
+    for t1,m1 in terms.items():
+      for t2,m2 in terms.items():
+        key = [t1,t2]    #square term
+        key.sort()       #assures no duplication
+        key = tuple(key) #hashable object for dict
+        val = m1*m2      #positive/negative and number of occurances
+        if key not in sTerms.keys(): sTerms[key] = val
+        else: sTerms[key] += val
+    return sTerms
+
+  def _subtermVariance(self,subset):
+    """
+    Calculates the variance of a subset HDMR term.
+    @ In, subset, tuple(str), subset
+    @ Out, float, float, partial variance of term
+    """
+    #TODO someday do total variance of subset as well!
+    terms = self.terms[subset]
+    #reduce terms for subset
+    reduced = {}
+    self._collectTerms(subset,reduced)
+    #remove zero terms
+    self._removeZeroTerms(reduced)
+    #do tensor of terms recursively
+    return self._calcVariance(reduced)
+
+  def getSensitivities(self,maxLevel=None):
     """
       Generates dictionary of Sobol indices for the requested levels.
-      Optionally the moment (r) to get sensitivity indices of can be requested.
-      FIXME these are not Sobol sensitivity indices!  This can't be done this way with cut-HDMR.
       @ In, levels, list, levels to obtain indices for. Defaults to all available.
-      @ In, kind, string, the metric to use when calculating sensitivity indices. Defaults to variance.
     """
-    if kind.lower().strip() not in ['mean','variance']:
-      self.raiseAnError(IOError,'Requested sensitivity benchmark is %s, but expected "mean" or "variance".' %kind)
     avail = max(list(len(combo) for combo in self.ROMs.keys()))
-    if maxLevel==None: maxLevel = avail
-    else:
-      if maxLevel>avail: self.raiseAnError(IOError,'Requested level %i for sensitivity analyis, but this composition is at most %i order!' %(maxLevel,avail) )
-
+    if maxLevel>avail:
+        self.raiseAWarning('Requested level %i for sensitivity analysis, but this composition is at most %i order!' %(maxLevel,avail) )
+    if maxLevel==None or maxLevel > avail: maxLevel = avail
     self.sdx = {}
     for l in range(maxLevel+1):
       self.sdx[l]={}
     #put basic metric in
-    for i,c in enumerate(self.combos):
-      for combo in c:
-        rom = self.ROMs[combo]
-        mean = rom.__evaluateMoment__(1)
-        self.sdx[i][combo] = rom.__evaluateMoment__(2) - mean*mean #TODO FIXME
-        for cl in range(i):
-          for doneCombo in self.combos[cl]:
-            if set(doneCombo).issubset(set(combo)):
-              self.sdx[i][combo]-=self.sdx[cl][doneCombo]
-    self.raiseADebug('h_r:',self.refSoln,color='red')
-    self.raiseADebug('c_0:',color='red')
-    for subset,rom in self.ROMs.items():
-      self.raiseADebug('  ',subset,':',rom.__evaluateMoment__(1),color='red')
-    self.raiseADebug('c_k^2:',color='red')
-    for subset,rom in self.ROMs.items():
-      self.raiseADebug('  ',subset,':',sum(c*c for c in rom.polyCoeffDict.values()),color='red')
-    tot = 0
-    for cutIdx2,coeff2 in self.ROMs[('x1','x2')].polyCoeffDict.items():
-      idx2 = self.__fillIndexWithRef(('x1','x2'),cutIdx2)
-      for cutIdx1,coeff1 in self.ROMs[('x1',)].polyCoeffDict.items():
-        idx1 = self.__fillIndexWithRef(('x1'),cutIdx1)
-        if idx1 == idx2:
-          tot+=coeff2*coeff1
-    self.raiseADebug('cross x1,x2 with x1:',tot,color='red')
-    tot = 0
-    for cutIdx2,coeff2 in self.ROMs[('x1','x2')].polyCoeffDict.items():
-      idx2 = self.__fillIndexWithRef(('x1','x2'),cutIdx2)
-      for cutIdx1,coeff1 in self.ROMs[('x2',)].polyCoeffDict.items():
-        idx1 = self.__fillIndexWithRef(('x2'),cutIdx1)
-        if idx1 == idx2:
-          tot+=coeff2*coeff1
-    self.raiseADebug('cross x1,x2 with x2:',tot,color='red')
-
-
+    for level,subsets in enumerate(self.combos):
+      for subset in subsets:
+        #get variance of this term
+        self.sdx[level][subset] = self._subtermVariance(subset)
+    # DEBUG
+    #self.raiseADebug('h_r:',self.refSoln,color='red')
+    #self.raiseADebug('c_0:',color='red')
+    #for subset,rom in self.ROMs.items():
+    #  self.raiseADebug('  ',subset,':',rom.__evaluateMoment__(1),color='red')
+    #self.raiseADebug('c_k^2:',color='red')
+    #for subset,rom in self.ROMs.items():
+    #  self.raiseADebug('  ',subset,':',sum(c*c for c in rom.polyCoeffDict.values()),color='red')
+    #tot = 0
+    #for cutIdx2,coeff2 in self.ROMs[('x1','x2')].polyCoeffDict.items():
+    #  idx2 = self.__fillIndexWithRef(('x1','x2'),cutIdx2)
+    #  for cutIdx1,coeff1 in self.ROMs[('x1',)].polyCoeffDict.items():
+    #    idx1 = self.__fillIndexWithRef(('x1'),cutIdx1)
+    #    if idx1 == idx2:
+    #      tot+=coeff2*coeff1
+    #self.raiseADebug('cross x1,x2 with x1:',tot,color='red')
+    #tot = 0
+    #for cutIdx2,coeff2 in self.ROMs[('x1','x2')].polyCoeffDict.items():
+    #  idx2 = self.__fillIndexWithRef(('x1','x2'),cutIdx2)
+    #  for cutIdx1,coeff1 in self.ROMs[('x2',)].polyCoeffDict.items():
+    #    idx1 = self.__fillIndexWithRef(('x2'),cutIdx1)
+    #    if idx1 == idx2:
+    #      tot+=coeff2*coeff1
+    #self.raiseADebug('cross x1,x2 with x2:',tot,color='red')
+    # END DEBUG
+    #return a copy
+    return dict(self.sdx)
 
   def getPercentSensitivities(self,variance=None,returnTotal=False):
     """Calculates percent sensitivities.
@@ -1087,20 +1105,26 @@ class HDMRRom(GaussPolynomialRom):
     if self.sdx == None or len(self.sdx)<1:
       self.getSensitivities()
     if variance==None or variance==0:
-      #variance = self.__variance__()
       variance = 0.0
       for c,combos in self.sdx.items():
         for combo in combos:
           variance+=self.sdx[c][combo]
     tot=0.0
-    totvar=0.0
     pcts={}
     for c,combos in self.sdx.items():
       for combo in combos:
-        totvar+=self.sdx[c][combo]
         pcts[combo]=self.sdx[c][combo]/variance
         tot+=pcts[combo]
-    if returnTotal: return pcts,tot,totvar
+    #DEBUG
+    self.raiseADebug('percent sensitivities',color='red')
+    self.raiseADebug('  self-calculated variance:',self.__variance__(),color='red')
+    self.raiseADebug('  summed          variance:',variance           ,color='red')
+    self.raiseADebug('  Subset, Partial Variance, Percent Variance:'  ,color='red')
+    for level,subs in self.sdx.items():
+      for subset in subs:
+        self.raiseADebug('   ',subset,self.sdx[level][subset],pcts[subset])
+    #END DEBUG
+    if returnTotal: return pcts,tot,variance
     else: return pcts
 
 #
