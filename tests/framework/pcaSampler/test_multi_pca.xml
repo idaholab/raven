@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation>
   <RunInfo>
-    <WorkingDir>oneDimPCA</WorkingDir>
+    <WorkingDir>multiPCA</WorkingDir>
     <Sequence>FirstMRun,Dump</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
@@ -11,15 +11,15 @@
   </Files>
 
   <Models>
-    <ExternalModel ModuleToLoad="PCAReduction/lorentzAttractor_noK" name="PythonModule" subType="">
+    <ExternalModel ModuleToLoad="lorentzAttractor_noK" name="PythonModule" subType="">
       <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0</variables>
     </ExternalModel>
   </Models>
 
   <Distributions>
-    <MultivariateNormal method="pca" name="MultivariateNormalPCAReduction">
+    <MultivariateNormal method="pca" name="MVN1">
       <transformation>
-        <rank>1</rank>
+        <rank>2</rank>
       </transformation>
       <mu>0.0 60.0 60.0</mu>
       <covariance type="abs">
@@ -28,20 +28,46 @@
             -0.5  0.3  0.8
         </covariance>
     </MultivariateNormal>
+    <MultivariateNormal method="pca" name="MVN2">
+      <transformation>
+        <rank>2</rank>
+      </transformation>
+      <mu>0.0 60.0 60.0</mu>
+      <covariance type="abs">
+            1.0       0.8      -0.5
+            0.8       1.0      0.3
+            -0.5      0.3      0.8
+        </covariance>
+    </MultivariateNormal>
   </Distributions>
 
   <Samplers>
     <MonteCarlo name="MC_external">
       <samplerInit>
         <limit>20</limit>
-        <initialSeed>1234</initialSeed>
+        <initialSeed>103186</initialSeed>
       </samplerInit>
       <variable name="x1">
-        <distribution dim="1">MultivariateNormalPCAReduction</distribution>
+        <distribution dim="1">MVN1</distribution>
       </variable>
-      <variablesTransformation distribution="MultivariateNormalPCAReduction">
-        <latentVariables>x1</latentVariables>
-        <manifestVariables>x0,y0,z0</manifestVariables>
+      <variable name="y1">
+        <distribution dim="2">MVN1</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution dim="1">MVN2</distribution>
+      </variable>
+      <variable name="y2">
+        <distribution dim="2">MVN2</distribution>
+      </variable>
+      <variablesTransformation distribution="MVN1">
+        <latentVariables>x1,y1</latentVariables>
+        <manifestVariables>z0,y0,x0</manifestVariables>
+        <manifestVariablesIndex>3,2,1</manifestVariablesIndex>
+        <method>pca</method>
+      </variablesTransformation>
+      <variablesTransformation distribution="MVN2">
+        <latentVariables>x2,y2</latentVariables>
+        <manifestVariables>sigma,rho,beta</manifestVariables>
         <method>pca</method>
       </variablesTransformation>
     </MonteCarlo>
@@ -69,11 +95,11 @@
 
   <DataObjects>
     <PointSet name="testPrintPointSet">
-      <Input>x0,y0,z0</Input>
+      <Input>x0,y0,z0,sigma,rho,beta</Input>
       <Output>x,y,z</Output>
     </PointSet>
     <PointSet name="inputPlaceHolder">
-      <Input>x0,y0,z0</Input>
+      <Input>x0,y0,z0,sigma,rho,beta</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
   </DataObjects>

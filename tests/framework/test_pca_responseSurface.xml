@@ -43,7 +43,7 @@
         <distribution dim="3">MVN</distribution>
         <grid construction="custom" type="value">0.1 0.9</grid>
       </variable>
-      <variablesTransformation model="MyDummy1">
+      <variablesTransformation distribution="MVN">
         <latentVariables>z1,z2,z3</latentVariables>
         <manifestVariables>x1,x2,x3</manifestVariables>
         <method>pca</method>
@@ -68,7 +68,7 @@
         <distribution dim="3">MVN</distribution>
         <grid construction="custom" type="value">0.1 0.9</grid>
       </variable>
-      <variablesTransformation model="MyDummy2">
+      <variablesTransformation distribution="MVN">
         <latentVariables>z1,z2,z3</latentVariables>
         <manifestVariables>x1,x2,x3</manifestVariables>
         <method>pca</method>

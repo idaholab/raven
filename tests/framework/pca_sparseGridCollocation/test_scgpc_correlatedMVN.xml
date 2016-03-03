@@ -27,7 +27,7 @@
       <variable name="y2">
         <distribution dim="2">MVNDist</distribution>
       </variable>
-      <variablesTransformation model="polynomial">
+      <variablesTransformation distribution="MVNDist">
         <latentVariables>y1,y2</latentVariables>
         <manifestVariables>x1,x2</manifestVariables>
         <method>pca</method>

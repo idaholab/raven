@@ -62,9 +62,10 @@
         <xsd:all>
           <xsd:element name="latentVariables" type="xsd:string" minOccurs="1"/>
           <xsd:element name="manifestVariables" type="xsd:string" minOccurs="1"/>
+          <xsd:element name="manifestVariablesIndex" type="xsd:string" minOccurs="0"/>
           <xsd:element name="method" type="xsd:string" minOccurs="1"/>
         </xsd:all>
-        <xsd:attribute name="model"  type="xsd:string" use="required"/>
+        <xsd:attribute name="distribution"  type="xsd:string" use="required"/>
     </xsd:complexType>
 
     <xsd:complexType name="gridType">

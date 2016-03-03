@@ -1,8 +1,8 @@
 <?xml version="1.0" ?>
 <Simulation>
   <RunInfo>
-    <WorkingDir>gridPCAValue</WorkingDir>
-    <Sequence>gridRun,Dump</Sequence>
+    <WorkingDir>pcaIndex</WorkingDir>
+    <Sequence>FirstMRun,Dump</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
@@ -17,46 +17,45 @@
   </Models>
 
   <Distributions>
-    <MultivariateNormal method="pca" name="MVNDist">
+    <MultivariateNormal method="pca" name="MVN">
       <transformation>
-        <rank>3</rank>
+        <rank>2</rank>
       </transformation>
-      <mu>0.0 1.0 2.0</mu>
+      <mu>0.0 60.0 60.0</mu>
       <covariance type="abs">
-            1.0       0.6      -0.4
-            0.6       1.0      0.2
-            -0.4      0.2      0.8
+            1.0       0.8      -0.5
+            0.8       1.0      0.3
+            -0.5  0.3  0.8
         </covariance>
     </MultivariateNormal>
   </Distributions>
 
   <Samplers>
-    <Grid name="myGrid">
-      <variable name="x1">
-        <distribution dim="1">MVNDist</distribution>
-        <grid construction="equal" steps="4" type="value">-4.0 4.0</grid>
+    <MonteCarlo name="MC_external">
+      <samplerInit>
+        <limit>20</limit>
+        <initialSeed>103186</initialSeed>
+      </samplerInit>
+      <variable name="x1,z1">
+        <distribution dim="1">MVN</distribution>
       </variable>
       <variable name="y1">
-        <distribution dim="2">MVNDist</distribution>
-        <grid construction="equal" steps="4" type="value">-4.0 4.0</grid>
+        <distribution dim="2">MVN</distribution>
       </variable>
-      <variable name="z1">
-        <distribution dim="3">MVNDist</distribution>
-        <grid construction="equal" steps="4" type="value">-4.0 4.0</grid>
-      </variable>
-      <variablesTransformation distribution="MVNDist">
-        <latentVariables>x1,y1,z1</latentVariables>
+      <variablesTransformation distribution="MVN">
+        <latentVariables>y1</latentVariables>
         <manifestVariables>x0,y0,z0</manifestVariables>
+        <manifestVariablesIndex>3,2,1</manifestVariablesIndex>
         <method>pca</method>
       </variablesTransformation>
-    </Grid>
+    </MonteCarlo>
   </Samplers>
 
   <Steps>
-    <MultiRun name="gridRun">
+    <MultiRun name="FirstMRun">
       <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
       <Model class="Models" type="ExternalModel">PythonModule</Model>
-      <Sampler class="Samplers" type="Grid">myGrid</Sampler>
+      <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
       <Output class="DataObjects" type="PointSet">testPrintPointSet</Output>
     </MultiRun>
     <IOStep name="Dump">
@@ -69,13 +68,12 @@
     <Print name="testPrintPointSet_dump">
       <type>csv</type>
       <source>testPrintPointSet</source>
-      <what>Input|x1,Input|y1,Input|z1,Input|x0,Input|y0,Input|z0,Output|x,Output|y,Output|z,Input|PointProbability,Input|ProbabilityWeight</what>
     </Print>
   </OutStreamManager>
 
   <DataObjects>
     <PointSet name="testPrintPointSet">
-      <Input>x0,y0,z0,x1,y1,z1</Input>
+      <Input>x0,y0,z0</Input>
       <Output>x,y,z</Output>
     </PointSet>
     <PointSet name="inputPlaceHolder">
