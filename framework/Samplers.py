@@ -3231,12 +3231,7 @@ class SparseGridCollocation(Grid):
     @ In, None
     @ Out, None
     """
-    for key in self.assemblerDict.keys():
-      if 'ROM' in key:
-        for value in self.assemblerDict[key]: self.ROM = value[3]
-    SVLs = self.ROM.SupervisedEngine.values()
-    SVL = utils.first(SVLs) #often need only one
-    self.features = SVL.features
+    SVL = self.readFromROM()
     self._generateQuadsAndPolys(SVL)
     #print out the setup for each variable.
     msg=self.printTag+' INTERPOLATION INFO:\n'
@@ -3253,9 +3248,8 @@ class SparseGridCollocation(Grid):
     if self.indexSet.type=='Custom':
       self.indexSet.setPoints(SVL.indexSetVals)
 
-    self.raiseADebug('Starting sparse grid generation...')
-    self.sparseGrid = Quadratures.SparseQuad()
-    # NOTE this is the most expensive step thus far; try to do checks before here
+    self.sparseGrid = Quadratures.returnInstance(self.sparseGridType,self)
+    self.raiseADebug('Starting %s sparse grid generation...' %self.sparseGridType)
     self.sparseGrid.initialize(self.features,self.indexSet,self.dists,self.quadDict,self.jobHandler,self.messageHandler)
 
     if self.writeOut != None:
@@ -3407,6 +3401,19 @@ class SparseGridCollocation(Grid):
       existinginps = zip(*ordsolns)
       outvals = zip(*list(v for v in outs.values()))
       self.existing = dict(zip(existinginps,outvals))
+
+  def readFromROM(self):
+    """
+    Reads in required information from ROM and returns a sample supervisedLearning object.
+    @ In, None
+    @ Out, SVL, supervisedLearning object, SVL object
+    """
+    self.ROM = self.assemblerDict['ROM'][0][3]
+    SVLs = self.ROM.SupervisedEngine.values()
+    SVL = utils.first(SVLs)
+    self.features = SVL.features
+    self.sparseGridType = SVL.sparseGridType.lower()
+    return SVL
 #
 #
 #
@@ -3497,14 +3504,10 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       @ In, None
       @ Out, None
     """
-    #set a pointer to the end-product ROM
-    self.ROM = self.assemblerDict['ROM'][0][3]
     #obtain the DataObject that contains evaluations of the model
     self.solns = self.assemblerDict['TargetEvaluation'][0][3]
     #set a pointer to the GaussPolynomialROM object
-    SVLs = self.ROM.SupervisedEngine.values()
-    SVL = utils.first(SVLs) #sampler doesn't always care about which target
-    self.features=SVL.features #the input space variables
+    SVL = self.readFromROM()
     self.targets = self.ROM.initializationOptionDict['Target'].split(',') #the output space variables
     #initialize impact dictionaries by target
     for t in self.targets:
@@ -3830,7 +3833,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       @ In, points, list(tuple(int)), points
       @ Out, SparseGrid
     """
-    sparseGrid = Quadratures.SparseQuad()
+    sparseGrid = Quadratures.returnInstance('SmolyakSparseGrid',self) #TODO give option to user
     iset = IndexSets.returnInstance('Custom',self)
     iset.initialize(self.features,self.importanceDict,self.maxPolyOrder)
     iset.setPoints(self.indexSet.points)
@@ -3951,6 +3954,7 @@ class Sobol(SparseGridCollocation):
     self.doInParallel   = True  #compute sparse grid in parallel flag, recommended True
     self.existing       = []
     self.distinctPoints = set() #tracks distinct points used in creating this ROM
+    self.sparseGridType = 'smolyak'
 
     self._addAssObject('ROM','1')
 
@@ -3981,16 +3985,10 @@ class Sobol(SparseGridCollocation):
       @ In, None
       @ Out, None
     """
-    for key in self.assemblerDict.keys():
-      if 'ROM' in key:
-        indice = 0
-        for value in self.assemblerDict[key]:
-          self.ROM = self.assemblerDict[key][indice][3]
-          indice += 1
+    SVL = self.readFromROM()
     #make combination of ROMs that we need
     self.targets  = self.ROM.SupervisedEngine.keys()
     SVLs = self.ROM.SupervisedEngine.values()
-    SVL = utils.first(SVLs)
     self.sobolOrder = SVL.sobolOrder
     self._generateQuadsAndPolys(SVL)
     self.features = SVL.features
@@ -4013,7 +4011,7 @@ class Sobol(SparseGridCollocation):
         imptDict[c]=self.importanceDict[c]
       iset=IndexSets.returnInstance(SVL.indexSetType,self)
       iset.initialize(combo,imptDict,SVL.maxPolyOrder)
-      self.SQs[combo] = Quadratures.SparseQuad()
+      self.SQs[combo] = Quadratures.returnInstance(self.sparseGridType,self)
       self.SQs[combo].initialize(combo,iset,distDict,quadDict,self.jobHandler,self.messageHandler)
       # initDict is for SVL.__init__()
       initDict={'IndexSet'       :iset.type,        # type of index set
@@ -4704,7 +4702,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     iset.initialize(subset,imptDict,self.maxPolyOrder)
     iset.verbosity=verbosity
     #instantiate a sparse grid quadrature
-    self.SQs[subset] = Quadratures.SparseQuad()
+    self.SQs[subset] = Quadratures.returnInstance(self.sparseGridType,self)
     self.SQs[subset].initialize(subset,iset,distDict,quadDict,self.jobHandler,self.messageHandler)
     #instantiate the SVLs.  Note that we need to call both __init__ and initialize with dictionaries.
     for target in self.targets:

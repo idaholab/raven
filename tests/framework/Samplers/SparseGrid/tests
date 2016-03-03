@@ -1,8 +1,13 @@
 [Tests]
- [./sparseGridTest]
+ [./SmolyakGridTest]
    type = 'RavenFramework'
    input = 'test_sparse_grid.xml'
    csv = 'grid/testTPSG.csv grid/testTDSG.csv grid/testHCSG.csv'
+ [../]
+ [./TensorGridTest]
+   type = 'RavenFramework'
+   input = 'test_tensor_grid.xml'
+   csv = 'tensor/testTPTG.csv tensor/testTDTG.csv tensor/testHCTG.csv'
  [../]
 
  #index set tests
