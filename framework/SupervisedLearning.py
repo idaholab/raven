@@ -931,26 +931,6 @@ class HDMRRom(GaussPolynomialRom):
     """
     if self.variance != None: return self.variance
     mean = self.__mean__()
-    ###############
-    #     OLD     #
-    ###############
-    #vals={}
-    #for i,c in enumerate(self.combos):
-    #  for combo in c:
-    #    rom = self.ROMs[combo]
-    #    mean = rom.__evaluateMoment__(1)
-    #    vals[combo] = rom.__evaluateMoment__(2) - mean*mean
-    #    for sub in self.terms[combo]:
-    #      vals[combo] -= vals[sub]
-        ##for cl in range(i):
-        ##  for doneCombo in self.combos[cl]:
-        ##    if set(doneCombo).issubset(set(combo)):
-        ##      vals[combo] -= vals[doneCombo]
-    #tot = sum(vals.values())
-    ###############
-    #   END OLD   #
-    ###############
-    #TODO FIXME this neglects cross-terms!
     #do cross terms
     #first, get multiplicity of terms needed
     varTerms = {}
@@ -997,6 +977,9 @@ class HDMRRom(GaussPolynomialRom):
             variance += coeff1 * coeff2 * mult
     self.variance = variance - mean*mean
     return variance
+
+  def _subtermVariance(self,subset):
+    #combine
 
   def collectTerms(self,a,sign=1,depth=0):
     """
