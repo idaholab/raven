@@ -4,7 +4,7 @@
     <JobName>ChapterVII-I/Grid</JobName>
     <Sequence>sample,writeHistories</Sequence>
     <WorkingDir>ChapterVII-I/Grid</WorkingDir>
-    <batchSize>40</batchSize>
+    <batchSize>12</batchSize>
   </RunInfo>
 
   <Files>
@@ -110,6 +110,7 @@
     <Plot dim="2" name="historyPlot" overwrite="false" verbosity="debug">
         <plotSettings>
             <gridSpace>2 2</gridSpace>
+            <interpPointsX>60</interpPointsX>
             <plot>
                 <type>line</type>
                 <x>histories|Output|time</x>
