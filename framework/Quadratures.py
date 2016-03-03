@@ -322,7 +322,7 @@ class TensorGrid(SparseGrid):
     @ In, None
     @ Out, None
     """
-    SparseGrid.__init_(self)
+    SparseGrid.__init__(self)
     self.type     = 'TensorGrid'
     self.printTag = 'TensorGrid'
 
@@ -345,7 +345,7 @@ class TensorGrid(SparseGrid):
       for i in range(len(idx)):
         largest[i] = max(idx[i],largest[i])
     #construct tensor grid using largest in each dimension
-    quadSizes = self.quadRule(largset)+1 #TODO give user access to this +1 rule
+    quadSizes = self.quadRule(largest)+1 #TODO give user access to this +1 rule
     points,weights = self.tensorGrid(quadSizes)
     for i,pt in enumerate(points):
       self.SG[pt] = weights[i]
