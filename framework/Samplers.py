@@ -3231,12 +3231,6 @@ class SparseGridCollocation(Grid):
     @ In, None
     @ Out, None
     """
-    #for key in self.assemblerDict.keys():
-      #  if 'ROM' in key:
-        #    for value in self.assemblerDict[key]: self.ROM = value[3]
-    #SVLs = self.ROM.SupervisedEngine.values()
-    #SVL = utils.first(SVLs) #often need only one
-    #self.features = SVL.features
     SVL = self.readFromROM()
     self._generateQuadsAndPolys(SVL)
     #print out the setup for each variable.
@@ -3514,10 +3508,6 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     self.solns = self.assemblerDict['TargetEvaluation'][0][3]
     #set a pointer to the GaussPolynomialROM object
     SVL = self.readFromROM()
-    #self.ROM = self.assemblerDict['ROM'][0][3]
-    #SVLs = self.ROM.SupervisedEngine.values()
-    #SVL = utils.first(SVLs) #sampler doesn't always care about which target
-    #self.features=SVL.features #the input space variables
     self.targets = self.ROM.initializationOptionDict['Target'].split(',') #the output space variables
     #initialize impact dictionaries by target
     for t in self.targets:
@@ -3996,16 +3986,9 @@ class Sobol(SparseGridCollocation):
       @ Out, None
     """
     SVL = self.readFromROM()
-    #for key in self.assemblerDict.keys():
-    # #  if 'ROM' in key:
-    #   #    indice = 0
-    #    for value in self.assemblerDict[key]:
-    #     #      self.ROM = self.assemblerDict[key][indice][3]
-    #      indice += 1
     #make combination of ROMs that we need
     self.targets  = self.ROM.SupervisedEngine.keys()
     SVLs = self.ROM.SupervisedEngine.values()
-    SVL = utils.first(SVLs)
     self.sobolOrder = SVL.sobolOrder
     self._generateQuadsAndPolys(SVL)
     self.features = SVL.features
