@@ -3833,7 +3833,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       @ In, points, list(tuple(int)), points
       @ Out, SparseGrid
     """
-    sparseGrid = Quadratures.returnInstance('SmolyakSparseGrid',self) #TODO give option to user
+    sparseGrid = Quadratures.returnInstance(self.sparseGridType,self)
     iset = IndexSets.returnInstance('Custom',self)
     iset.initialize(self.features,self.importanceDict,self.maxPolyOrder)
     iset.setPoints(self.indexSet.points)
