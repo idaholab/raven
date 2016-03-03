@@ -4,7 +4,7 @@ import os
 
 def convert(tree,fileName=None):
   """
-    Converts input files to be compatible with merge request ....
+    Converts input files to be compatible with merge request !462
     change the attribute of node <variablesTransformation> from 'model' to 'distribution'
     @ In, tree, xml.etree.ElementTree.ElementTree object, the contents of a RAVEN input file
     @ Out, tree, xml.etree.ElementTree.ElementTree object, the modified RAVEN input file

@@ -1509,6 +1509,11 @@ class MultivariateNormal(NDimensionalDistributions):
     self.transformation = False       # flag for input reduction analysis
 
   def _readMoreXML(self,xmlNode):
+    """
+      read the the xml node of the MultivariateNormal distribution
+      @ In, xmlNode,xml.etree.ElementTree.ElementTree object, the contents of MultivariateNormal node.
+      @ Out, None
+    """
     #NDimensionalDistributions._readMoreXML(self, xmlNode)
     if xmlNode.attrib['method'] == 'pca':
       self.method = 'pca'
@@ -1551,6 +1556,11 @@ class MultivariateNormal(NDimensionalDistributions):
       self._distribution = distribution1D.BasicMultivariateNormal(covariance, mu, str(self.covarianceType), self.rank)
 
   def cdf(self,x):
+    """
+      calculate the cdf value for given coordinate x
+      @ In, x, List, list of variable coordinate
+      @ Out, self._distribution.Cdf(coordinate), float, cdf value
+    """
     if self.method == 'spline':
       coordinate = distribution1D.vectord_cxx(len(x))
       for i in range(len(x)):
