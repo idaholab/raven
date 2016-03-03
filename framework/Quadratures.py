@@ -248,6 +248,11 @@ class SparseGrid(MessageHandler.MessageUser):
       msg=''
 
   def addInitParams(self,adict):
+    """
+    Adds params required to initialize an instance of this object to a dictionary.
+    @ In, adict, dict, dictionary
+    @ Out, None
+    """
     adict['indexSet']=self.indexSet
     adict['distDict']=self.distDict
     adict['quadDict']=self.quadDict
