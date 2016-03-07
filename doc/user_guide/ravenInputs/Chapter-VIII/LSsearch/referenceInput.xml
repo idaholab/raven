@@ -2,7 +2,7 @@
 <AnalyticalBateman>
   <totalTime>300</totalTime>
   <powerHistory>1 1 1</powerHistory>
-  <flux>10000 10000 10000</flux>
+  <flux>1e14 1e14 1e14</flux>
   <stepDays>0 100 200 400</stepDays>
   <timeSteps>100 100 100</timeSteps>
   <nuclides>

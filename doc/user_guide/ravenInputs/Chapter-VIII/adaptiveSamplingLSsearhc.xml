@@ -2,8 +2,7 @@
 <Simulation verbosity="debug">
   <RunInfo>
     <JobName>LSsearch</JobName>
-    <!-- <Sequence>sample,computeLSintegral,writeHistories</Sequence> -->
-    <Sequence>sample,writeHistories</Sequence>
+    <Sequence>sample,computeLSintegral,writeHistories</Sequence>
     <WorkingDir>LSsearch</WorkingDir>
     <batchSize>12</batchSize>
   </RunInfo>
@@ -45,34 +44,33 @@
   <Distributions>
       <Uniform name="sigmaA">
           <lowerBound>0</lowerBound>
-          <upperBound>100</upperBound>
+          <upperBound>1000</upperBound>
       </Uniform>
       <Uniform name="decayConstantA">
-          <lowerBound>0.00000000</lowerBound>
-          <upperBound>0.00000062</upperBound>
+          <lowerBound>0.00000001</lowerBound>
+          <upperBound>0.0000001</upperBound>
       </Uniform>
   </Distributions>
 
   <Samplers>
-      <LimitSurfaceSearch name="LSsearchSampler">
-          <ROM              class="Models"      type="ROM">AccelerationROM</ROM>
-          <Function         class="Functions"   type="External">goalFunction</Function>
-          <TargetEvaluation class="DataObjects" type="PointSet">samples</TargetEvaluation>
-          <Convergence forceIteration="False" limit="50000" persistence="20"  weight="CDF">0.0001</Convergence>
-          <variable name="sigma-A">
-              <distribution>sigmaA</distribution>
-          </variable>
-          <variable name="decay-A">
-              <distribution>decayConstantA</distribution>
-          </variable>
-      </LimitSurfaceSearch>
+    <LimitSurfaceSearch name="LSsearchSampler">
+      <ROM              class="Models"      type="ROM">AccelerationROM</ROM>
+      <Function         class="Functions"   type="External">goalFunction</Function>
+      <TargetEvaluation class="DataObjects" type="PointSet">samples</TargetEvaluation>
+      <Convergence forceIteration="False" limit="50000" persistence="20"  weight="CDF">0.00001</Convergence>
+      <variable name="sigma-A">
+        <distribution>sigmaA</distribution>
+      </variable>
+      <variable name="decay-A">
+        <distribution>decayConstantA</distribution>
+      </variable>
+    </LimitSurfaceSearch>
   </Samplers>
 
 <Functions>
-    <External file="goalFunction" name="goalFunction">
-        <variable>A</variable>
-        <variable>B</variable>
-    </External>
+  <External file="goalFunction" name="goalFunction">
+    <variable>A</variable>
+  </External>
 </Functions>
 
   <Steps>
@@ -83,23 +81,22 @@
       <SolutionExport class="DataObjects" type="PointSet">limitSurface</SolutionExport>
       <Output         class="DataObjects" type="PointSet">samples</Output>
       <Output         class="DataObjects" type="HistorySet">histories</Output>
-      <Output         class="OutStreamManager" type="Plot">limitSurfacePlot</Output>
     </MultiRun>
     <PostProcess name="computeLSintegral">
-        <Input  class="DataObjects" type="PointSet"     >limitSurface</Input>
-        <Model  class="Models"      type="PostProcessor">integralLS</Model>
-        <Output class="DataObjects" type="PointSet"     >limitSurface</Output>
-        <Output class="Files"       type=""             >LSintegral.csv</Output>
+      <Input  class="DataObjects" type="PointSet"     >limitSurface</Input>
+      <Model  class="Models"      type="PostProcessor">integralLS</Model>
+      <Output class="DataObjects" type="PointSet"     >limitSurface</Output>
+      <Output class="Files"       type=""             >LSintegral.csv</Output>
     </PostProcess>
     <IOStep name="writeHistories" pauseAtEnd="True">
-        <Input  class="DataObjects"      type="HistorySet">histories</Input>
-        <Input  class="DataObjects"      type="PointSet">samples</Input>
-        <Input  class="DataObjects"      type="PointSet">limitSurface</Input>
-        <Output class="OutStreamManager" type="Plot">samplesPlot3D</Output>
-        <Output class="OutStreamManager" type="Plot">historyPlot</Output>
-        <Output class="OutStreamManager" type="Print">samples</Output>
-        <Output class="OutStreamManager" type="Plot">limitSurfacePlot</Output>
-        <Output class="OutStreamManager" type="Print">histories</Output>
+      <Input  class="DataObjects"      type="HistorySet">histories</Input>
+      <Input  class="DataObjects"      type="PointSet">samples</Input>
+      <Input  class="DataObjects"      type="PointSet">limitSurface</Input>
+      <Output class="OutStreamManager" type="Plot">samplesPlot3D</Output>
+      <Output class="OutStreamManager" type="Plot">historyPlot</Output>
+      <Output class="OutStreamManager" type="Print">samples</Output>
+      <Output class="OutStreamManager" type="Plot">limitSurfacePlot</Output>
+      <Output class="OutStreamManager" type="Print">histories</Output>
     </IOStep>
   </Steps>
 
@@ -198,7 +195,6 @@
                 <type>scatter</type>
                 <x>limitSurface|Input|decay-A</x>
                 <y>limitSurface|Input|sigma-A</y>
-                <colorMap>limitSurface|Output|goalFunction</colorMap>
             </plot>
             <xlabel>decay-A</xlabel>
             <ylabel>sigma-A</ylabel>
@@ -207,7 +203,7 @@
             <how>screen</how>
             <range>
               <xmin>0.00000000</xmin>
-              <xmax>0.00000062</xmax>
+              <xmax>0.0000001</xmax>
             </range>
             <title>
                 <text> </text>
