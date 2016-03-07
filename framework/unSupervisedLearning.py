@@ -645,6 +645,7 @@ class temporalSciKitLearn(unSupervisedLearning):
       @ In, tdict, dictionary, training dictionary
       @ Out, None
     """
+    # need to overwrite train method because time dependent data mining requires different treatment of input
     if type(tdict) != dict: self.raiseAnError(IOError, ' method "train". The training set needs to be provided through a dictionary. Type of the in-object is ' + str(type(tdict)))
     names, values = list(tdict.keys()), list(tdict.values())
     self.noSample, self.noTimeStep = values[0].shape[0], values[0].shape[1]

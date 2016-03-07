@@ -2831,13 +2831,12 @@ class DataMining(BasePostProcessor):
         for _ in self.assemblerDict[key]:
           self.labelAlgorithms.append(self.assemblerDict[key][indice][3])
           indice += 1
-      # FIXME. Below for debug only
+      # Assemble dataObject to output cluster centroid
       if 'DataObject' == key:
         indice = 0
         for value in self.assemblerDict[key]:
           self.dataObjects.append(self.assemblerDict[key][indice][3])
           indice += 1
-      # End of FIXME
 
   def _localReadMoreXML(self, xmlNode):
     """
@@ -2997,7 +2996,7 @@ class DataMining(BasePostProcessor):
           clusterCentersIndices = self.unSupervisedEngine.outputDict['clusterCentersIndices']          
         if 'clusterCenters' in self.unSupervisedEngine.outputDict.keys():
           clusterCenters = self.unSupervisedEngine.outputDict['clusterCenters']
-          # FIXME. Below for temporal solution to save centroid
+          # Output cluster centroid to dataObject
           if not dataObject == None:
             dataObject.updateOutputValue('Time', self.Time) 
             temp = {}
@@ -3007,9 +3006,7 @@ class DataMining(BasePostProcessor):
               for t in range(noTimeStep):
                 for ind, c in enumerate(clusterCentersIndices[t]):                            
                   temp[feat][c,t] = copy.deepcopy(self.unSupervisedEngine.outputDict['clusterCenters'][t][ind,cnt])
-                  dataObject.updateOutputValue(self.name+'Centroid-'+feat+'-'+str(c), temp[feat][c,:])  
-#               self.raiseADebug(temp[feat][c,0])              
-          # End of FIXME          
+                  dataObject.updateOutputValue(self.name+'Centroid-'+feat+'-'+str(c), temp[feat][c,:])                      
         if 'inertia' in self.unSupervisedEngine.outputDict.keys():
           inertia = self.unSupervisedEngine.outputDict['inertia']
           
@@ -3027,23 +3024,17 @@ class DataMining(BasePostProcessor):
           componentMeanIndices = self.unSupervisedEngine.outputDict['componentMeanIndices']
         if 'means' in self.unSupervisedEngine.outputDict.keys(): 
           mixtureMeans = self.unSupervisedEngine.outputDict['means']    
-          # FIXME. Below for temporal solution to save centroid
+          # Output cluster centroid to dataObject
           if not dataObject == None:
-#             self.raiseADebug('*** The number of component is ', max(max(componentMeanIndices.values()))+1)
             dataObject.updateOutputValue('Time', self.Time) 
             temp = {}
             for cnt, feat in enumerate(self.unSupervisedEngine.features): 
               temp[feat] = np.zeros(shape=(max(max(componentMeanIndices.values()))+1,noTimeStep))
               temp[feat].fill(np.nan) # Alternative, try to fill with infty or zero. 
               for t in range(noTimeStep):
-                for ind, c in enumerate(componentMeanIndices[t]): 
-#                   self.raiseADebug(componentMeanIndices[t])                           
+                for ind, c in enumerate(componentMeanIndices[t]):                          
                   temp[feat][c,t] = copy.deepcopy(self.unSupervisedEngine.outputDict['means'][t][ind,cnt])
                   dataObject.updateOutputValue(self.name+'Mean-'+feat+'-'+str(c), temp[feat][c,:])  
-#               self.raiseADebug(temp[feat][c,0])
-              
-          # End of FIXME
-      
       
       elif self.unSupervisedEngine.SKLtype in ['manifold']:  
         noComponents = self.unSupervisedEngine.outputDict['noComponents'][0]      
