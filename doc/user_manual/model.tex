@@ -1044,6 +1044,9 @@ two more nodes and can accept multiple entries of a third optional node.
   importance might exceed this value; however, this value is still used to limit the
   relative overall order.
   %
+  \item \xmlNode{SparseGrid},\xmlDesc{string, optional field}, allows specification of the multidimensional
+    quadrature construction strategy.  Options are \xmlString{smolyak} and \xmlString{tensor}.  Default is
+    \xmlString{smolyak}.
   \item \xmlNode{IndexPoints}, \xmlDesc{list of tuples, required field},
   used to specify the index set points in a \xmlString{Custom} index set.  The tuples are
   entered as comma-seprated values between parenthesis, with each tuple separated by a comma.
