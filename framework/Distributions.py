@@ -94,7 +94,8 @@ class Distribution(BaseType):
     self.lowerBound       = pdict.pop('lowerBound'      )
     self.__adjustmentType = pdict.pop('adjustmentType'  )
     self.dimensionality   = pdict.pop('dimensionality'  )
-    self.type             = pdict.pop('type')
+    self.type             = pdict.pop('type'            )
+    self.messageHandler   = pdict.pop('messageHandler'  )
     self._localSetState(pdict)
     self.initializeDistribution()
 
@@ -136,6 +137,7 @@ class Distribution(BaseType):
     tempDict['lowerBound'      ] = self.lowerBound
     tempDict['adjustmentType'  ] = self.__adjustmentType
     tempDict['dimensionality'  ] = self.dimensionality
+    tempDict['messageHandler'  ] = self.messageHandler
 
   def rvsWithinCDFbounds(self,LowerBound,upperBound):
     """
@@ -325,11 +327,6 @@ class BoostDistribution(Distribution):
     @ In, x, float -> value to get the pdf at
     @ Out, float, requested pdf
    """
-#     value = 0.0
-#     for i in str(x).strip().split(','):
-#       value +=  self._distribution.Pdf(float(i))
-#
-#     return value
     return self._distribution.Pdf(x)
 
 
@@ -1295,8 +1292,8 @@ class NDimensionalDistributions(Distribution):
     self.type = 'NDimensionalDistributions'
     self.dimensionality  = None
 
-    self.RNGInitDisc = 10
-    self.RNGtolerance = 0.1
+    self.RNGInitDisc = 5
+    self.RNGtolerance = 0.2
 
   def _readMoreXML(self,xmlNode):
     Distribution._readMoreXML(self, xmlNode)
@@ -1310,8 +1307,6 @@ class NDimensionalDistributions(Distribution):
 
   #######
   def updateRNGParam(self, dictParam):
-    self.RNGtolerance = 0.1
-    self.RNGInitDisc  = 10
     for key in dictParam:
       if key == 'tolerance':
         self.RNGtolerance = dictParam['tolerance']
@@ -1321,7 +1316,25 @@ class NDimensionalDistributions(Distribution):
   ######
 
   def getDimensionality(self):
-    return  self._distribution.returnDimensionality()
+    return self._distribution.returnDimensionality()
+
+  def returnLowerBound(self, dimension):
+    """
+    Function that return the lower bound of the distribution for a particular dimension
+    @ In, dimension, int, dimension considered
+    @ Out, value, float, lower bound of the distribution
+    """
+    value = self._distribution.returnLowerBound(dimension)
+    return value
+
+  def returnUpperBound(self, dimension):
+    """
+    Function that return the upper bound of the distribution for a particular dimension
+    @ In, dimension, int, dimension considered
+    @ Out, value, float, upper bound of the distribution
+    """
+    value = self._distribution.returnUpperBound(dimension)
+    return value
 
 class NDInverseWeight(NDimensionalDistributions):
 
@@ -1426,7 +1439,7 @@ class NDCartesianSpline(NDimensionalDistributions):
     NDimensionalDistributions.addInitParams(self, tempDict)
 
   def initializeDistribution(self):
-    self.raiseAMessage('====== BasicMultiDimensional NDCartesianSpline initialize Distribution ======')
+    self.raiseAMessage('initialize Distribution')
     if self.functionType == 'CDF':
       self._distribution = distribution1D.BasicMultiDimensionalCartesianSpline(str(self.dataFilename),True)
     else:
@@ -1493,19 +1506,14 @@ class MultivariateNormal(NDimensionalDistributions):
     self.transformMatrix = None  # np.array stores the transform matrix
     self.dimension = None        # the dimension of given problem
     self.rank = None             # the effective rank for the PCA analysis
-    '''
-    self.inputVariables = {}     # dict of input variable: {'model'::varName,'latent':varName}, 'model' indicates the varName are provided by models,
-                                 # and 'latent' indicates the varName used in the reduced space
-    '''
     self.transformation = False       # flag for input reduction analysis
-    # for sparse grid collocation
-    self.disttype = 'Continuous'
-    self.compatibleQuadrature.append('Hermite')
-    self.compatibleQuadrature.append('CDF')
-    self.compatibleQuadrature.append('ClenshawCurtis')
-
 
   def _readMoreXML(self,xmlNode):
+    """
+      read the the xml node of the MultivariateNormal distribution
+      @ In, xmlNode,xml.etree.ElementTree.ElementTree object, the contents of MultivariateNormal node.
+      @ Out, None
+    """
     #NDimensionalDistributions._readMoreXML(self, xmlNode)
     if xmlNode.attrib['method'] == 'pca':
       self.method = 'pca'
@@ -1534,7 +1542,7 @@ class MultivariateNormal(NDimensionalDistributions):
     NDimensionalDistributions.addInitParams(self, tempDict)
 
   def initializeDistribution(self):
-    self.raiseAMessage('====== BasicMultiDimensional MultivariateNormal initialize distribution ======')
+    self.raiseAMessage('initialize distribution')
     mu = distribution1D.vectord_cxx(len(self.mu))
     for i in range(len(self.mu)):
       mu[i] = self.mu[i]
@@ -1546,14 +1554,13 @@ class MultivariateNormal(NDimensionalDistributions):
       self._distribution = distribution1D.BasicMultivariateNormal(covariance, mu)
     elif self.method == 'pca':
       self._distribution = distribution1D.BasicMultivariateNormal(covariance, mu, str(self.covarianceType), self.rank)
-      # for sparse grid collocation method
-      if self.transformation:
-        self.lowerBound = -sys.float_info.max
-        self.upperBound =  sys.float_info.max
-        self.preferredQuadrature  = 'Hermite'
-        self.preferredPolynomials = 'Hermite'
 
   def cdf(self,x):
+    """
+      calculate the cdf value for given coordinate x
+      @ In, x, List, list of variable coordinate
+      @ Out, self._distribution.Cdf(coordinate), float, cdf value
+    """
     if self.method == 'spline':
       coordinate = distribution1D.vectord_cxx(len(x))
       for i in range(len(x)):
@@ -1579,20 +1586,27 @@ class MultivariateNormal(NDimensionalDistributions):
       L = np.atleast_1d(transformation).reshape(row,column)
       return L
 
-  def pcaInverseTransform(self,x):
+  def pcaInverseTransform(self,x,index=None):
     """
       Transform latent parameters back to models' parameters
       @ In, x, list, input coordinate, list values for the latent variables
+      @ In, index, list, input coordinate index, list values for the index of the latent variables
       @ Out, values, list, return the values of manifest variables with type of list
     """
     if self.method == 'spline':
       self.raiseAnError(NotImplementedError,'ppfTransformedSpace not yet implemented for ' + self.method + ' method')
     elif self.method == 'pca':
-      if len(x) != self.rank: self.raiseAnError(IOError,'The dimension of the latent variables defined in <Samples> is not consistent with the rank defined in <Distributions>')
+      if len(x) > self.rank: self.raiseAnError(IOError,'The dimension of the latent variables defined in <Samples> is large than the rank defined in <Distributions>')
       coordinate = distribution1D.vectord_cxx(len(x))
       for i in range(len(x)):
         coordinate[i] = x[i]
-      originalCoordinate = self._distribution.coordinateInverseTransformed(coordinate)
+      if index is not None:
+        coordinateIndex = distribution1D.vectori_cxx(len(index))
+        for i in range(len(index)):
+          coordinateIndex[i] = index[i]
+        originalCoordinate = self._distribution.coordinateInverseTransformed(coordinate,coordinateIndex)
+      else:
+        originalCoordinate = self._distribution.coordinateInverseTransformed(coordinate)
       values = np.atleast_1d(originalCoordinate).tolist()
       return values
 
@@ -1641,7 +1655,7 @@ class MultivariateNormal(NDimensionalDistributions):
       dxs[i]=dx[i]
     if self.method == 'pca':
       if self.transformation: self.raiseAWarning("The ProbabilityWeighted is computed on the reduced transformed space")
-      else: self.raiseAWarning("The ProbabilityWeighted is computed on the transformed space")
+      else: self.raiseAWarning("The ProbabilityWeighted is computed on the full transformed space")
       return self._distribution.cellProbabilityWeight(coordinate,dxs)
     elif self.method == 'spline':
       return self._distribution.cellIntegral(coordinate,dxs)

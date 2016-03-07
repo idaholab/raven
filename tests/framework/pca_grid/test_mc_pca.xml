@@ -46,7 +46,7 @@
       <variable name="z1">
         <distribution dim="3">MultivariateNormalPCAReduction</distribution>
       </variable>
-      <variablesTransformation model="PythonModule">
+      <variablesTransformation distribution="MultivariateNormalPCAReduction">
         <latentVariables>x1,y1,z1</latentVariables>
         <manifestVariables>x0,y0,z0</manifestVariables>
         <method>pca</method>

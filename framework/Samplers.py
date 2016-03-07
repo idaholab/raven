@@ -125,7 +125,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self._endJobRunnable               = sys.maxsize               # max number of inputs creatable by the sampler right after a job ends (e.g., infinite for MC, 1 for Adaptive, etc)
 
     ######
-    self.variables2distributionsMapping = {}                       # for each variable 'varName'  , the following informations are included:  'varName': {'dim': 1, 'reducedTotDim': 2,'totDim': 2, 'name': 'distName'} ; dim = dimension of the variable; reducedTotDim = the total dimensionality in the transformed space; totDim = total dimensionality of its associated distribution
+    self.variables2distributionsMapping = {}                       # for each variable 'varName'  , the following informations are included:  'varName': {'dim': 1, 'reducedDim': 1,'totDim': 2, 'name': 'distName'} ; dim = dimension of the variable; reducedDim = dimension of the variable in the transformed space; totDim = total dimensionality of its associated distribution
     self.distributions2variablesMapping = {}                       # for each variable 'distName' , the following informations are included: 'distName': [{'var1': 1}, {'var2': 2}]} where for each var it is indicated the var dimension
     self.NDSamplingParams               = {}                       # this dictionary contains a dictionary for each ND distribution (key). This latter dictionary contains the initialization parameters of the ND inverseCDF ('initialGridDisc' and 'tolerance')
     ######
@@ -248,14 +248,22 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
           else: self.raiseAnError(IOError,'Unknown tag '+childChild.tag+' .Available are: limit, initialSeed, reseedEachIteration and distInit!')
       elif child.tag == "variablesTransformation":
         transformationDict = {}
+        listIndex = None
         for childChild in child:
           if childChild.tag == "latentVariables":
             transformationDict[childChild.tag] = list(inp.strip() for inp in childChild.text.strip().split(','))
           elif childChild.tag == "manifestVariables":
             transformationDict[childChild.tag] = list(inp.strip() for inp in childChild.text.strip().split(','))
+          elif childChild.tag == "manifestVariablesIndex":
+            # the index provided by the input file starts from 1, but the index used by the code starts from 0.
+            listIndex = list(int(inp.strip()) - 1  for inp in childChild.text.strip().split(','))
           elif childChild.tag == "method":
-            self.transformationMethod[child.attrib['model']] = childChild.text
-        self.variablesTransformationDict[child.attrib['model']] = transformationDict
+            self.transformationMethod[child.attrib['distribution']] = childChild.text
+        if listIndex == None:
+          self.raiseAWarning('Index is not provided for manifestVariables, default index will be used instead!')
+          listIndex = range(len(transformationDict["manifestVariables"]))
+        transformationDict["manifestVariablesIndex"] = listIndex
+        self.variablesTransformationDict[child.attrib['distribution']] = transformationDict
 
     if self.initSeed == None:
       self.initSeed = Distributions.randomIntegers(0,2**31,self)
@@ -271,41 +279,52 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       else:
         self.distributions2variablesMapping[distName]=[listElement]
 
+    # creation of the self.distributions2variablesIndexList dictionary:{'distName':[dim1,dim2,...,dimN]}
+    self.distributions2variablesIndexList = {}
+    for distName in self.distributions2variablesMapping.keys():
+      positionList = []
+      for var in self.distributions2variablesMapping[distName]:
+        position = utils.first(var.values())
+        positionList.append(position)
+      positionList = list(set(positionList))
+      positionList.sort()
+      self.distributions2variablesIndexList[distName] = positionList
+
     for key in self.variables2distributionsMapping.keys():
-      dist = self.variables2distributionsMapping[key]['name']
-      maxDim=1
-      listvar = self.distributions2variablesMapping[dist]
-      for var in listvar:
-        if utils.first(var.values()) > maxDim:
-          maxDim = utils.first(var.values())
-      self.variables2distributionsMapping[key]['reducedTotDim'] = maxDim #Dim for the parameters in the reduced space
-      self.variables2distributionsMapping[key]['totDim'] = maxDim # We will reset the value if the node <variablesTransformation> exist in the raven input file
+      distName = self.variables2distributionsMapping[key]['name']
+      dim      = self.variables2distributionsMapping[key]['dim']
+      reducedDim = self.distributions2variablesIndexList[distName].index(dim) + 1
+      self.variables2distributionsMapping[key]['reducedDim'] = reducedDim  # the dimension of variable in the transformed space
+      self.variables2distributionsMapping[key]['totDim'] = max(self.distributions2variablesIndexList[distName]) # We will reset the value if the node <variablesTransformation> exist in the raven input file
+      if not self.variablesTransformationDict and self.variables2distributionsMapping[key]['totDim'] > 1:
+        if self.variables2distributionsMapping[key]['totDim'] != len(self.distributions2variablesIndexList[distName]):
+          self.raiseAnError(IOError,'The "dim" assigned to the variables insider Sampler are not correct! the "dim" should start from 1, and end with the full dimension of given distribution')
 
     #Checking the variables transformation
     if self.variablesTransformationDict:
-      for key,varsDict in self.variablesTransformationDict.items():
+      for dist,varsDict in self.variablesTransformationDict.items():
         maxDim = len(varsDict['manifestVariables'])
         listLatentElement = varsDict['latentVariables']
-        for varName in listLatentElement:
-          self.variables2distributionsMapping[varName]['totDim'] = maxDim #reset the totDim to reflect the totDim of original input space
-        varName = [variables for variables in self.variables2distributionsMapping.keys() if listLatentElement[0] in set(variables.strip().split(','))]
-        if varName:
-          distName = self.variables2distributionsMapping[varName[0]]['name']
-        else:
-          self.raiseAnError(IOError, 'There is no distribution defined for variable ' + listLatentElement[0])
-        listElement = self.distributions2variablesMapping[distName]
-        totDim = 1
+        if len(set(listLatentElement)) != len(listLatentElement):
+          self.raiseAnError(IOError,'There are replicated variables listed in the latentVariables!')
+        if len(set(varsDict['manifestVariables'])) != len(varsDict['manifestVariables']):
+          self.raiseAnError(IOError,'There are replicated variables listed in the manifestVariables!')
+        if len(set(varsDict['manifestVariablesIndex'])) != len(varsDict['manifestVariablesIndex']):
+          self.raiseAnError(IOError,'There are replicated variables indices listed in the manifestVariablesIndex!')
+        listElement = self.distributions2variablesMapping[dist]
         for var in listElement:
-          if utils.first(var.values()) > totDim:
-            totDim = utils.first(var.values())
-        maxDim = len(listLatentElement)
-        if totDim != maxDim: self.raiseAnError(IOError,'The maximum dim = ' + str(totDim) + ' is not consistnet with the dimension (i.e. ' + str(maxDim) +') of latent variable')
-        tempListElement = {k:v for x in listElement for k,v in x.items()}
-        for var,dim in tempListElement.items():
-          if dim > maxDim:
-            self.raiseAnError(IOError, 'The input variable: ' + var + ' is associated with dimension ' + str(dim) + ' is exceed the dimension of latent variables in PCA analysis')
-          if listLatentElement[dim -1] not in set(var.strip().split(',')):
-            self.raiseAnError(IOError, 'The dim: ' + str(dim) + ' should be assigned to the latent variable: ' + listLatentElement[dim-1] + ', However, it is assigned to variable: ' + var)
+          self.variables2distributionsMapping[var.keys()[0]]['totDim'] = maxDim #reset the totDim to reflect the totDim of original input space
+        tempListElement = {k.strip():v for x in listElement for ks,v in x.items() for k in list(ks.strip().split(','))}
+        listIndex = []
+        for var in listLatentElement:
+          if var not in set(tempListElement.keys()):
+            self.raiseAnError(IOError, 'The variable listed in latentVariables is not listed in the given distribution: ' + dist)
+          listIndex.append(tempListElement[var]-1)
+        if max(listIndex) > maxDim: self.raiseAnError(IOError,'The maximum dim = ' + str(max(listIndex)) + ' defined for latent variables is exceeded the dimension of the problem!')
+        if len(set(listIndex)) != len(listIndex):
+          self.raiseAnError(IOError,'There are at least two latent variables assigned with the same dimension!')
+        # update the index for latentVariables according to the 'dim' assigned for given var defined in Sampler
+        self.variablesTransformationDict[dist]['latentVariablesIndex'] = listIndex
 
   def readSamplerInit(self,xmlNode):
     """
@@ -510,29 +529,36 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.localGenerateInput(model,oldInput)
     # add latent variables and original variables to self.inputInfo
     if self.variablesTransformationDict:
-      for key,var in self.variablesTransformationDict.items():
-        if self.transformationMethod[key] == 'pca':
-          self.pcaTransform(var)
+      for dist,var in self.variablesTransformationDict.items():
+        if self.transformationMethod[dist] == 'pca':
+          self.pcaTransform(var,dist)
         else:
-          self.raiseAnError(NotImplementedError,'transformation method is not yet implemented for ' + self.transformationMethod[key] + ' method')
+          self.raiseAnError(NotImplementedError,'transformation method is not yet implemented for ' + self.transformationMethod[dist] + ' method')
     # generate the function variable values
     for var in self.dependentSample.keys():
       test=self.funcDict[var].evaluate(var,self.values)
       self.values[var] = test
     return model.createNewInput(oldInput,self.type,**self.inputInfo)
 
-  def pcaTransform(self,varsDict):
+  def pcaTransform(self,varsDict,dist):
     """
       This method is used to map latent variables with respect to the model input variables
       both the latent variables and the model input variables will be stored in the dict: self.inputInfo['SampledVars']
       @ In, varsDict, dict, dictionary contains latent and manifest variables {'latentVariables':[latentVar1,latentVar2,...], 'manifestVariables':[var1,var2,...]}
+      @ In, dist, string, the distribution name associated with given variable set
     """
     latentVariablesValues = []
-    for lvar in varsDict['latentVariables']:
+    listIndex = []
+    manifestVariablesValues = [None] * len(varsDict['manifestVariables'])
+    for index,lvar in enumerate(varsDict['latentVariables']):
       for var,value in self.values.items():
         if lvar == var:
           latentVariablesValues.append(value)
-    manifestVariablesValues = self.distDict[varsDict['latentVariables'][0]].pcaInverseTransform(latentVariablesValues)
+          listIndex.append(varsDict['latentVariablesIndex'][index])
+    varName = utils.first(utils.first(self.distributions2variablesMapping[dist]).keys())
+    varsValues = self.distDict[varName].pcaInverseTransform(latentVariablesValues,listIndex)
+    for index1,index2 in enumerate(varsDict['manifestVariablesIndex']):
+      manifestVariablesValues[index2] = varsValues[index1]
     manifestVariablesDict = dict(zip(varsDict['manifestVariables'],manifestVariablesValues))
     self.values.update(manifestVariablesDict)
 
@@ -1323,6 +1349,7 @@ class MonteCarlo(Sampler):
       dim    = self.variables2distributionsMapping[key]['dim']
       totDim = self.variables2distributionsMapping[key]['totDim']
       dist   = self.variables2distributionsMapping[key]['name']
+      reducedDim = self.variables2distributionsMapping[key]['reducedDim']
 
       if totDim == 1:
         for var in self.distributions2variablesMapping[dist]:
@@ -1332,11 +1359,10 @@ class MonteCarlo(Sampler):
           for kkey in varID.strip().split(','):
             self.values[kkey] = np.atleast_1d(rvsnum)[0]
       elif totDim > 1:
-        if dim == 1:
+        if reducedDim == 1:
           rvsnum = self.distDict[key].rvs()
           coordinate = np.atleast_1d(rvsnum).tolist()
-          reducedTotDim = self.variables2distributionsMapping[key]['reducedTotDim']
-          if reducedTotDim > len(coordinate): self.raiseAnError(IOError,"The maximum dimension defined for variables drew from the multivariate normal distribution is exceeded by the dimension used in Distribution (MultivariateNormal) ")
+          if reducedDim > len(coordinate): self.raiseAnError(IOError,"The dimension defined for variables drew from the multivariate normal distribution is exceeded by the dimension used in Distribution (MultivariateNormal) ")
           probabilityValue = self.distDict[key].pdf(coordinate)
           self.inputInfo['SampledVarsPb'][key] = probabilityValue
           for var in self.distributions2variablesMapping[dist]:
@@ -1466,19 +1492,20 @@ class Grid(Sampler):
             self.inputInfo['SampledVarsPb'][key] = self.distDict[varName].pdf(self.values[key])
         # compute the SampledVarsPb for N-D distribution
         else:
-            if self.variables2distributionsMapping[varName]['dim']==1:    # to avoid double count;
+            if self.variables2distributionsMapping[varName]['reducedDim']==1:    # to avoid double count;
               distName = self.variables2distributionsMapping[varName]['name']
-              NDcoordinate=[0]*len(self.distributions2variablesMapping[distName])
+              ndCoordinate=[0]*len(self.distributions2variablesMapping[distName])
+              positionList = self.distributions2variablesIndexList[distName]
               for var in self.distributions2variablesMapping[distName]:
                 variable = utils.first(var.keys())
                 position = utils.first(var.values())
-                NDcoordinate[position-1] = float(coordinates[variable.strip()])
+                ndCoordinate[positionList.index(position)] = float(coordinates[variable.strip()])
                 for key in variable.strip().split(','):
                   self.inputInfo['distributionName'][key] = self.toBeSampled[variable]
                   self.inputInfo['distributionType'][key] = self.distDict[variable].type
                   self.values[key] = coordinates[variable]
               # Based on the discussion with Diego, we will use the following to compute SampledVarsPb.
-              self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(NDcoordinate)
+              self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(ndCoordinate)
         # Compute the ProbabilityWeight
         if ("<distribution>" in varName) or (self.variables2distributionsMapping[varName]['totDim']==1):
           if self.distDict[varName].getDisttype() == 'Discrete':
@@ -1516,31 +1543,40 @@ class Grid(Sampler):
                 weight *= 1.0 - self.distDict[varName].cdf(midMinusValue)
         # ND variable
         else:
-          if self.variables2distributionsMapping[varName]['dim']==1:    # to avoid double count of weight for ND distribution; I need to count only one variable instaed of N
+          if self.variables2distributionsMapping[varName]['reducedDim']==1:    # to avoid double count of weight for ND distribution; I need to count only one variable instaed of N
             distName = self.variables2distributionsMapping[varName]['name']
-            NDcoordinate=np.zeros(len(self.distributions2variablesMapping[distName]))
+            ndCoordinate=np.zeros(len(self.distributions2variablesMapping[distName]))
             dxs=np.zeros(len(self.distributions2variablesMapping[distName]))
+            positionList = self.distributions2variablesIndexList[distName]
             for var in self.distributions2variablesMapping[distName]:
               variable = utils.first(var.keys()).strip()
               position = utils.first(var.values())
-              NDcoordinate[position-1] = coordinates[variable.strip()]
               if self.gridInfo[variable]=='CDF':
                 if coordinatesPlusOne[variable] != sys.maxsize and coordinatesMinusOne[variable] != -sys.maxsize:
-                  dxs[position-1] = (self.distDict[variable].inverseMarginalDistribution(coordinatesPlusOne[variable],self.variables2distributionsMapping[variable]['dim']-1)
-                      - self.distDict[variable].inverseMarginalDistribution(coordinatesMinusOne[variable],self.variables2distributionsMapping[variable]['dim']-1))/2.0
+                  up   = self.distDict[variable].inverseMarginalDistribution(coordinatesPlusOne[variable] ,self.variables2distributionsMapping[variable]['dim']-1)
+                  down = self.distDict[variable].inverseMarginalDistribution(coordinatesMinusOne[variable],self.variables2distributionsMapping[variable]['dim']-1)
+                  dxs[positionList.index(position)] = (up - down)/2.0
+                  ndCoordinate[positionList.index(position)] = coordinates[variable] - (coordinates[variable] - down)/2.0 + dxs[positionList.index(position)]/2.0
                 if coordinatesMinusOne[variable] == -sys.maxsize:
-                  dxs[position-1] = self.distDict[variable].inverseMarginalDistribution(coordinatesPlusOne[variable],self.variables2distributionsMapping[variable]['dim']-1) - coordinates[variable.strip()]
+                  up = self.distDict[variable].inverseMarginalDistribution(coordinatesPlusOne[variable] ,self.variables2distributionsMapping[variable]['dim']-1)
+                  dxs[positionList.index(position)] = (coordinates[variable.strip()]+up)/2.0 - self.distDict[varName].returnLowerBound(positionList.index(position))
+                  ndCoordinate[positionList.index(position)] = ((coordinates[variable.strip()]+up)/2.0 + self.distDict[varName].returnLowerBound(positionList.index(position)))/2.0
                 if coordinatesPlusOne[variable] == sys.maxsize:
-                  dxs[position-1] = coordinates[variable.strip()] - self.distDict[variable].inverseMarginalDistribution(coordinatesMinusOne[variable],self.variables2distributionsMapping[variable]['dim']-1)
+                  down = self.distDict[variable].inverseMarginalDistribution(coordinatesMinusOne[variable],self.variables2distributionsMapping[variable]['dim']-1)
+                  dxs[positionList.index(position)] = self.distDict[varName].returnUpperBound(positionList.index(position)) - (coordinates[variable.strip()]+down)/2.0
+                  ndCoordinate[positionList.index(position)] = (self.distDict[varName].returnUpperBound(positionList.index(position)) + (coordinates[variable.strip()]+down)/2.0) /2.0
               else:
                 if coordinatesPlusOne[variable] != sys.maxsize and coordinatesMinusOne[variable] != -sys.maxsize:
-                  dxs[position-1] = (coordinatesPlusOne[variable] - coordinatesMinusOne[variable])/2.0
+                  dxs[positionList.index(position)] = (coordinatesPlusOne[variable] - coordinatesMinusOne[variable])/2.0
+                  ndCoordinate[positionList.index(position)] = coordinates[variable.strip()] - (coordinates[variable.strip()]-coordinatesMinusOne[variable])/2.0 + dxs[positionList.index(position)]/2.0
                 if coordinatesMinusOne[variable] == -sys.maxsize:
-                  dxs[position-1] = coordinatesPlusOne[variable] - coordinates[variable.strip()]
+                  dxs[positionList.index(position)]          =  (coordinates[variable.strip()]+coordinatesPlusOne[variable])/2.0 - self.distDict[varName].returnLowerBound(positionList.index(position))
+                  ndCoordinate[positionList.index(position)] = ((coordinates[variable.strip()]+coordinatesPlusOne[variable])/2.0 + self.distDict[varName].returnLowerBound(positionList.index(position)))/2.0
                 if coordinatesPlusOne[variable] == sys.maxsize:
-                  dxs[position-1] = coordinates[variable.strip()] - coordinatesMinusOne[variable]
-            self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")] = self.distDict[varName].cellIntegral(NDcoordinate,dxs)
-            weight *= self.distDict[varName].cellIntegral(NDcoordinate,dxs)
+                  dxs[positionList.index(position)]          =  self.distDict[varName].returnUpperBound(positionList.index(position)) - (coordinates[variable.strip()]+coordinatesMinusOne[variable])/2.0
+                  ndCoordinate[positionList.index(position)] = (self.distDict[varName].returnUpperBound(positionList.index(position)) + (coordinates[variable.strip()]+coordinatesMinusOne[variable])/2.0) /2.0
+            self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")] = self.distDict[varName].cellIntegral(ndCoordinate,dxs)
+            weight *= self.distDict[varName].cellIntegral(ndCoordinate,dxs)
       newpoint = tuple(self.values[key] for key in self.values.keys())
       if newpoint not in self.existing:
         found=True
@@ -1646,16 +1682,17 @@ class Stratified(Grid):
     for varName in self.axisName:
       # new implementation for ND LHS
       if not "<distribution>" in varName:
-        if self.variables2distributionsMapping[varName]['totDim']>1 and self.variables2distributionsMapping[varName]['dim'] == 1:    # to avoid double count of weight for ND distribution; I need to count only one variable instaed of N
+        if self.variables2distributionsMapping[varName]['totDim']>1 and self.variables2distributionsMapping[varName]['reducedDim'] == 1:    # to avoid double count of weight for ND distribution; I need to count only one variable instaed of N
           if self.variablesTransformationDict:
             distName = self.variables2distributionsMapping[varName]['name']
             for distVarName in self.distributions2variablesMapping[distName]:
               for kkey in utils.first(distVarName.keys()).strip().split(','):
                 self.inputInfo['distributionName'][kkey] = self.toBeSampled[varName]
                 self.inputInfo['distributionType'][kkey] = self.distDict[varName].type
-            NDcoordinate = np.zeros(len(self.distributions2variablesMapping[distName]))
+            ndCoordinate = np.zeros(len(self.distributions2variablesMapping[distName]))
             dxs = np.zeros(len(self.distributions2variablesMapping[distName]))
             centerCoordinate = np.zeros(len(self.distributions2variablesMapping[distName]))
+            positionList = self.distributions2variablesIndexList[distName]
             for var in self.distributions2variablesMapping[distName]:
               # if the varName is a comma separated list of strings the user wants to sample the comma separated variables with the same sampled value => link the value to all comma separated variables
               variable = utils.first(var.keys()).strip()
@@ -1665,26 +1702,26 @@ class Stratified(Grid):
               varCount += 1
               if self.gridInfo[variable] == 'CDF':
                 coordinate = lower + (upper-lower)*Distributions.random()
-                NDcoordinate[position-1] = self.distDict[variable].inverseMarginalDistribution(coordinate,variable)
-                dxs[position-1] = self.distDict[variable].inverseMarginalDistribution(max(upper,lower),variable)-self.distDict[variable].inverseMarginalDistribution(min(upper,lower),variable)
-                centerCoordinate[position-1] = (self.distDict[variable].inverseMarginalDistribution(upper,variable)+self.distDict[variable].inverseMarginalDistribution(lower,variable))/2.0
+                ndCoordinate[positionList.index(position)] = self.distDict[variable].inverseMarginalDistribution(coordinate,variable)
+                dxs[positionList.index(position)] = self.distDict[variable].inverseMarginalDistribution(max(upper,lower),variable)-self.distDict[variable].inverseMarginalDistribution(min(upper,lower),variable)
+                centerCoordinate[positionList.index(position)] = (self.distDict[variable].inverseMarginalDistribution(upper,variable)+self.distDict[variable].inverseMarginalDistribution(lower,variable))/2.0
                 for kkey in variable.strip().split(','):
-                  self.values[kkey] = NDcoordinate[position-1]
+                  self.values[kkey] = ndCoordinate[positionList.index(position)]
                   self.inputInfo['upper'][kkey] = self.distDict[variable].inverseMarginalDistribution(max(upper,lower),variable)
                   self.inputInfo['lower'][kkey] = self.distDict[variable].inverseMarginalDistribution(min(upper,lower),variable)
               elif self.gridInfo[variable] == 'value':
-                dxs[position-1] = max(upper,lower) - min(upper,lower)
-                centerCoordinate[position-1] = (upper + lower)/2.0
+                dxs[positionList.index(position)] = max(upper,lower) - min(upper,lower)
+                centerCoordinate[positionList.index(position)] = (upper + lower)/2.0
                 coordinateCdf = self.distDict[variable].marginalCdf(lower) + (self.distDict[variable].marginalCdf(upper) - self.distDict[variable].marginalCdf(lower))*Distributions.random()
                 coordinate = self.distDict[variable].inverseMarginalDistribution(coordinateCdf,variable)
-                NDcoordinate[position-1] = coordinate
+                ndCoordinate[positionList.index(position)] = coordinate
                 for kkey in variable.strip().split(','):
                   self.values[kkey] = coordinate
                   self.inputInfo['upper'][kkey] = max(upper,lower)
                   self.inputInfo['lower'][kkey] = min(upper,lower)
             self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")] = self.distDict[varName].cellIntegral(centerCoordinate,dxs)
             weight *= self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")]
-            self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(NDcoordinate)
+            self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(ndCoordinate)
           else:
             if self.gridInfo[varName] == 'CDF':
               upper = self.gridEntity.returnShiftedCoordinate(self.gridEntity.returnIteratorIndexes(),{varName:self.sampledCoordinate[self.counter-1][varCount]+1})[varName]
@@ -3221,12 +3258,7 @@ class SparseGridCollocation(Grid):
     @ In, None
     @ Out, None
     """
-    for key in self.assemblerDict.keys():
-      if 'ROM' in key:
-        for value in self.assemblerDict[key]: self.ROM = value[3]
-    SVLs = self.ROM.SupervisedEngine.values()
-    SVL = utils.first(SVLs) #often need only one
-    self.features = SVL.features
+    SVL = self.readFromROM()
     self._generateQuadsAndPolys(SVL)
     #print out the setup for each variable.
     msg=self.printTag+' INTERPOLATION INFO:\n'
@@ -3243,9 +3275,8 @@ class SparseGridCollocation(Grid):
     if self.indexSet.type=='Custom':
       self.indexSet.setPoints(SVL.indexSetVals)
 
-    self.raiseADebug('Starting sparse grid generation...')
-    self.sparseGrid = Quadratures.SparseQuad()
-    # NOTE this is the most expensive step thus far; try to do checks before here
+    self.sparseGrid = Quadratures.returnInstance(self.sparseGridType,self)
+    self.raiseADebug('Starting %s sparse grid generation...' %self.sparseGridType)
     self.sparseGrid.initialize(self.features,self.indexSet,self.dists,self.quadDict,self.jobHandler,self.messageHandler)
 
     if self.writeOut != None:
@@ -3256,16 +3287,11 @@ class SparseGridCollocation(Grid):
 
     #if restart, figure out what runs we need; else, all of them
     if self.restartData != None:
-      inps = self.restartData.getInpParametersValues()
-      #make reorder map
-      reordmap=list(list(inps.keys()).index(i) for i in self.features)
-      solns = list(v for v in inps.values())
-      ordsolns = [solns[i] for i in reordmap]
-      self.existing = zip(*ordsolns)
+      self.solns = self.restartData
+      self._updateExisting()
 
     self.limit=len(self.sparseGrid)
     self.raiseADebug('Size of Sparse Grid  :'+str(self.limit))
-    self.raiseADebug('Number from Restart :'+str(utils.iter_len(self.existing)))
     self.raiseADebug('Number of Runs Needed :'+str(self.limit-utils.iter_len(self.existing)))
     self.raiseADebug('Finished sampler generation.')
 
@@ -3353,15 +3379,6 @@ class SparseGridCollocation(Grid):
         continue
       else:
         found=True
-        # compute the maxDim in the given distribution
-        for key in self.variables2distributionsMapping.keys():
-          dist = self.variables2distributionsMapping[key]['name']
-          maxDim = 1
-          listvar = self.distributions2variablesMapping[dist]
-          for var in listvar:
-            if utils.first(var.values()) > maxDim:
-              maxDim = utils.first(var.values())
-        if maxDim > 1: NDcoordinates = [0]*maxDim
 
         for v,varName in enumerate(self.sparseGrid.varNames):
           # compute the SampledVarsPb for 1-D distribution
@@ -3372,17 +3389,62 @@ class SparseGridCollocation(Grid):
             self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.inputInfo['SampledVarsPb'][varName]
           # compute the SampledVarsPb for N-D distribution
           # Assume only one N-D distribution is associated with sparse grid collocation method
-          elif self.variables2distributionsMapping[varName]['totDim'] > 1:
-            for key in varName.strip().split(','):
-              self.values[key] = pt[v]
-            NDcoordinates[self.variables2distributionsMapping[varName]['dim']-1] = pt[v]
-        for v,varName in enumerate(self.sparseGrid.varNames):
-          if self.variables2distributionsMapping[varName]['totDim'] > 1 and self.variables2distributionsMapping[varName]['dim'] == 1:
-            self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(NDcoordinates)
+          elif self.variables2distributionsMapping[varName]['totDim'] > 1 and self.variables2distributionsMapping[varName]['reducedDim'] ==1:
+            dist = self.variables2distributionsMapping[varName]['name']
+            ndCoordinates = np.zeros(len(self.distributions2variablesMapping[dist]))
+            positionList = self.distributions2variablesIndexList[dist]
+            for varDict in self.distributions2variablesMapping[dist]:
+              var = utils.first(varDict.keys())
+              position = utils.first(varDict.values())
+              location = -1
+              for key in var.strip().split(','):
+                if key in self.sparseGrid.varNames:
+                  location = self.sparseGrid.varNames.index(key)
+                  break
+              if location > -1:
+                ndCoordinates[positionList.index(position)] = pt[location]
+              else:
+                self.raiseAnError(IOError,'The variables ' + var + ' listed in sparse grid collocation sampler, but not used in the ROM!' )
+              for key in var.strip().split(','):
+                self.values[key] = pt[location]
+            self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(ndCoordinates)
             self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")] = self.inputInfo['SampledVarsPb'][varName]
-        self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
+
         self.inputInfo['ProbabilityWeight'] = weight
+        self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
         self.inputInfo['SamplerType'] = 'Sparse Grid Collocation'
+
+  def _updateExisting(self):
+    """
+      Goes through the stores solutions PointSet and pulls out solutions, ordering them
+      by the order the features we're evaluating.
+      @ In, None
+      @ Out, None
+    """
+    #TODO: only append new points instead of resorting everyone
+    if not self.solns.isItEmpty():
+      inps = self.solns.getInpParametersValues()
+      outs = self.solns.getOutParametersValues()
+      #make reorder map
+      reordmap=list(inps.keys().index(i) for i in self.features)
+      solns = list(v for v in inps.values())
+      ordsolns = [solns[i] for i in reordmap]
+      existinginps = zip(*ordsolns)
+      outvals = zip(*list(v for v in outs.values()))
+      self.existing = dict(zip(existinginps,outvals))
+
+  def readFromROM(self):
+    """
+    Reads in required information from ROM and returns a sample supervisedLearning object.
+    @ In, None
+    @ Out, SVL, supervisedLearning object, SVL object
+    """
+    self.ROM = self.assemblerDict['ROM'][0][3]
+    SVLs = self.ROM.SupervisedEngine.values()
+    SVL = utils.first(SVLs)
+    self.features = SVL.features
+    self.sparseGridType = SVL.sparseGridType.lower()
+    return SVL
 #
 #
 #
@@ -3473,14 +3535,10 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       @ In, None
       @ Out, None
     """
-    #set a pointer to the end-product ROM
-    self.ROM = self.assemblerDict['ROM'][0][3]
     #obtain the DataObject that contains evaluations of the model
     self.solns = self.assemblerDict['TargetEvaluation'][0][3]
     #set a pointer to the GaussPolynomialROM object
-    SVLs = self.ROM.SupervisedEngine.values()
-    SVL = utils.first(SVLs) #sampler doesn't always care about which target
-    self.features=SVL.features #the input space variables
+    SVL = self.readFromROM()
     self.targets = self.ROM.initializationOptionDict['Target'].split(',') #the output space variables
     #initialize impact dictionaries by target
     for t in self.targets:
@@ -3610,16 +3668,6 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       @ In, model, Model, unused
       @ In, myInput, list(str), unused
     """
-    # compute the maxDim in the given distribution
-    for key in self.variables2distributionsMapping.keys():
-      dist = self.variables2distributionsMapping[key]['name']
-      maxDim = 1
-      listvar = self.distributions2variablesMapping[dist]
-      for var in listvar:
-        if utils.first(var.values()) > maxDim:
-           maxDim = utils.first(var.values())
-    if maxDim > 1: NDcoordinates = [0]*maxDim
-
     pt = self.neededPoints.pop()
     self.submittedNotCollected.append(pt)
     for v,varName in enumerate(self.sparseGrid.varNames):
@@ -3630,15 +3678,27 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
         self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(pt[v])
         self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.inputInfo['SampledVarsPb'][varName]
         # compute the SampledVarsPb for N-D distribution
-        # Assume only one N-D distribution is associated with sparse grid collocation method
-      elif self.variables2distributionsMapping[varName]['totDim'] > 1:
-        for key in varName.strip().split(','):
-          self.values[key] = pt[v]
-        NDcoordinates[self.variables2distributionsMapping[varName]['dim']-1] = pt[v]
-    for v,varName in enumerate(self.sparseGrid.varNames):
-      if self.variables2distributionsMapping[varName]['totDim'] > 1 and self.variables2distributionsMapping[varName]['dim'] == 1:
-        self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(NDcoordinates)
+      elif self.variables2distributionsMapping[varName]['totDim'] > 1 and self.variables2distributionsMapping[varName]['reducedDim'] ==1:
+        dist = self.variables2distributionsMapping[varName]['name']
+        ndCoordinates = np.zeros(len(self.distributions2variablesMapping[dist]))
+        positionList = self.distributions2variablesIndexList[dist]
+        for varDict in self.distributions2variablesMapping[dist]:
+          var = utils.first(varDict.keys())
+          position = utils.first(varDict.values())
+          location = -1
+          for key in var.strip().split(','):
+            if key in self.sparseGrid.varNames:
+              location = self.sparseGrid.varNames.index(key)
+              break
+          if location > -1:
+            ndCoordinates[positionList.index(position)] = pt[location]
+          else:
+            self.raiseAnError(IOError,'The variables ' + var + ' listed in sparse grid collocation sampler, but not used in the ROM!' )
+          for key in var.strip().split(','):
+            self.values[key] = pt[location]
+        self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(ndCoordinates)
         self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")] = self.inputInfo['SampledVarsPb'][varName]
+
     self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['SamplerType'] = self.type
 
@@ -3806,7 +3866,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       @ In, points, list(tuple(int)), points
       @ Out, SparseGrid
     """
-    sparseGrid = Quadratures.SparseQuad()
+    sparseGrid = Quadratures.returnInstance(self.sparseGridType,self)
     iset = IndexSets.returnInstance('Custom',self)
     iset.initialize(self.features,self.importanceDict,self.maxPolyOrder)
     iset.setPoints(self.indexSet.points)
@@ -3849,25 +3909,6 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       f.writelines('\n')
     f.writelines('===================== END STEP =====================\n')
     f.close()
-
-  def _updateExisting(self):
-    """
-      Goes through the stores solutions PointSet and pulls out solutions, ordering them
-      by the order the features we're evaluating.
-      @ In, None
-      @ Out, None
-    """
-    #TODO: only append new points instead of resorting everyone
-    if not self.solns.isItEmpty():
-      inps = self.solns.getInpParametersValues()
-      outs = self.solns.getOutParametersValues()
-      #make reorder map
-      reordmap=list(inps.keys().index(i) for i in self.features)
-      solns = list(v for v in inps.values())
-      ordsolns = [solns[i] for i in reordmap]
-      existinginps = zip(*ordsolns)
-      outvals = zip(*list(v for v in outs.values()))
-      self.existing = dict(zip(existinginps,outvals))
 
   def _updateQoI(self):
     """
@@ -3946,6 +3987,7 @@ class Sobol(SparseGridCollocation):
     self.doInParallel   = True  #compute sparse grid in parallel flag, recommended True
     self.existing       = []
     self.distinctPoints = set() #tracks distinct points used in creating this ROM
+    self.sparseGridType = 'smolyak'
 
     self._addAssObject('ROM','1')
 
@@ -3976,20 +4018,14 @@ class Sobol(SparseGridCollocation):
       @ In, None
       @ Out, None
     """
-    for key in self.assemblerDict.keys():
-      if 'ROM' in key:
-        indice = 0
-        for value in self.assemblerDict[key]:
-          self.ROM = self.assemblerDict[key][indice][3]
-          indice += 1
+    SVL = self.readFromROM()
     #make combination of ROMs that we need
     self.targets  = self.ROM.SupervisedEngine.keys()
     SVLs = self.ROM.SupervisedEngine.values()
-    SVL = utils.first(SVLs)
     self.sobolOrder = SVL.sobolOrder
     self._generateQuadsAndPolys(SVL)
-    features = SVL.features
-    needCombos = itertools.chain.from_iterable(itertools.combinations(features,r) for r in range(self.sobolOrder+1))
+    self.features = SVL.features
+    needCombos = itertools.chain.from_iterable(itertools.combinations(self.features,r) for r in range(self.sobolOrder+1))
     self.SQs={}
     self.ROMs={} #keys are [target][combo]
     for t in self.targets: self.ROMs[t]={}
@@ -4008,7 +4044,7 @@ class Sobol(SparseGridCollocation):
         imptDict[c]=self.importanceDict[c]
       iset=IndexSets.returnInstance(SVL.indexSetType,self)
       iset.initialize(combo,imptDict,SVL.maxPolyOrder)
-      self.SQs[combo] = Quadratures.SparseQuad()
+      self.SQs[combo] = Quadratures.returnInstance(self.sparseGridType,self)
       self.SQs[combo].initialize(combo,iset,distDict,quadDict,self.jobHandler,self.messageHandler)
       # initDict is for SVL.__init__()
       initDict={'IndexSet'       :iset.type,        # type of index set
@@ -4026,19 +4062,19 @@ class Sobol(SparseGridCollocation):
         initDict['Target']     = SVL.target
         self.ROMs[name][combo] = SupervisedLearning.returnInstance('GaussPolynomialRom',self,**initDict)
         self.ROMs[name][combo].initialize(initializeDict)
+        self.ROMs[name][combo].messageHandler = self.messageHandler
     #if restart, figure out what runs we need; else, all of them
     if self.restartData != None:
-      inps = self.restartData.getInpParametersValues()
-      self.existing = zip(*list(v for v in inps.values()))
+      self.solns = self.restartData
+      self._updateExisting()
     #make combined sparse grids
     self.references={}
-    for var,dist in self.distDict.items():
-      self.references[var]=dist.untruncatedMean()
-    std = self.distDict.keys()
+    for var in self.features:
+      self.references[var]=self.distDict[var].untruncatedMean()
     self.pointsToRun=[]
     #make sure reference case gets in there
-    newpt = np.zeros(len(self.distDict))
-    for v,var in enumerate(self.distDict.keys()):
+    newpt = np.zeros(len(self.features))
+    for v,var in enumerate(self.features):
       newpt[v] = self.references[var]
     self.pointsToRun.append(tuple(newpt))
     self.distinctPoints.add(tuple(newpt))
@@ -4048,8 +4084,8 @@ class Sobol(SparseGridCollocation):
       SG._remap(combo)
       for l in range(len(SG)):
         pt,wt = SG[l]
-        newpt = np.zeros(len(std))
-        for v,var in enumerate(std):
+        newpt = np.zeros(len(self.features))
+        for v,var in enumerate(self.features):
           if var in combo: newpt[v] = pt[combo.index(var)]
           else: newpt[v] = self.references[var]
         newpt=tuple(newpt)
@@ -4058,9 +4094,7 @@ class Sobol(SparseGridCollocation):
           self.pointsToRun.append(newpt)
     self.limit = len(self.pointsToRun)
     self.raiseADebug('Needed points: %i' %self.limit)
-    self.raiseADebug('From Restart : %i' %utils.iter_len(self.existing))
-    self.raiseADebug('Still Needed : %i' %(self.limit-utils.iter_len(self.existing)))
-    initdict={'ROMs':None, #self.ROMs,
+    initdict={'ROMs':None,
               'SG':self.SQs,
               'dists':self.distDict,
               'quads':self.quadDict,
@@ -4082,11 +4116,14 @@ class Sobol(SparseGridCollocation):
       try: pt = self.pointsToRun[self.counter-1]
       except IndexError: raise utils.NoMoreSamplesNeeded
       if pt in self.existing:
+        self.raiseADebug('point found in restart:',pt)
         self.counter+=1
         if self.counter==self.limit: raise utils.NoMoreSamplesNeeded
         continue
-      else: found=True
-      for v,varName in enumerate(self.distDict.keys()):
+      else:
+        self.raiseADebug('point found to run:',pt)
+        found=True
+      for v,varName in enumerate(self.features):
         self.values[varName] = pt[v]
         self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(self.values[varName])
         self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.inputInfo['SampledVarsPb'][varName]
@@ -4698,7 +4735,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     iset.initialize(subset,imptDict,self.maxPolyOrder)
     iset.verbosity=verbosity
     #instantiate a sparse grid quadrature
-    self.SQs[subset] = Quadratures.SparseQuad()
+    self.SQs[subset] = Quadratures.returnInstance(self.sparseGridType,self)
     self.SQs[subset].initialize(subset,iset,distDict,quadDict,self.jobHandler,self.messageHandler)
     #instantiate the SVLs.  Note that we need to call both __init__ and initialize with dictionaries.
     for target in self.targets:
@@ -4714,6 +4751,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
                         'polys'    : polyDict,
                         'iSet'     : iset}
       self.ROMs[target][subset].initialize(initializeDict)
+      self.ROMs[target][subset].messageHandler = self.messageHandler
       self.ROMs[target][subset].verbosity = verbosity
     #instantiate the shell ROM that contains the SVLs
     #   NOTE: the shell is only needed so we can call the train method with a data object.

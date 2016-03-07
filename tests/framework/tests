@@ -343,14 +343,6 @@
   csv = 'IO_ROM_PICKLE/PrintData_Pickle.csv IO_ROM_PICKLE/PrintData.csv'
  [../]
 
- [./sobolRomTest]
-  type = 'RavenFramework'
-  input = 'test_sobol_rom.xml'
-  output = 'SobolRom/dump.xml SobolRom/dumprom.xml'
-  xml = 'SobolRom/dumprom.xml'
-  csv = 'SobolRom/dump.csv'
- [../]
-
  [./stochPolyPickleTest]
   type = 'RavenFramework'
   input = 'test_stochpoly_pickle.xml'
@@ -487,4 +479,10 @@
    input = 'test_calc_and_transfer.xml'
    csv = 'calc_and_transfer/output_RawPointSet_outputs_out1_ROM1PointSet_outputs_out1_0.csv calc_and_transfer/output_RawPointSet_outputs_out1_ROM1PointSet_outputs_out1_1.csv calc_and_transfer/output_RawPointSet_outputs_out2_ROM1PointSet_outputs_out2_0.csv calc_and_transfer/output_RawPointSet_outputs_out2_ROM1PointSet_outputs_out2_1.csv calc_and_transfer/PrintROM1PointSet.csv calc_and_transfer/PrintRawPointSet.csv'
   [../]
+ [./SimulationTags]
+  # this just tests that there aren't errors on the Simulation tags, no expected output.
+  type = 'RavenFramework'
+  input = 'test_sim_tags.xml'
+  output = 'SimulationTags/dump.csv'
+ [../]
 []
