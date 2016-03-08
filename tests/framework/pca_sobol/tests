@@ -1,30 +1,30 @@
 [Tests]
- [./test_adaptive_sobol_poly_analytic]
+ [./test_adaptive_sobol_poly]
   type = 'RavenFramework'
-  input = 'test_adapt_sobol_poly_analytic.xml'
+  input = 'test_adapt_sobol_poly.xml'
   UnorderedCsv = 'polynomial/csv_database.csv'
-  xml = 'polynomial/stats_td1.xml'
+  UnorderedXml = 'polynomial/stats_td1.xml'
  [../]
  
  [./test_adaptive_sobol_attenuation]
   type = 'RavenFramework'
   input = 'test_adapt_sobol_attenu.xml'
   UnorderedCsv = 'attenuation/csv_database.csv'
-  xml = 'attenuation/stats_td1.xml'
+  UnorderedXml = 'attenuation/stats_td1.xml'
  [../]
  
  [./test_adaptive_sobol_attenu_correlation]
   type = 'RavenFramework'
   input = 'test_adapt_sobol_correlation.xml'
   UnorderedCsv = 'AdaptSobol/dump.csv'
-  xml = 'AdaptSobol/dumprom.xml'
+  UnorderedXml = 'AdaptSobol/dumprom.xml'
  [../]
 
  [./test_sobol_poly_correlation]
   type = 'RavenFramework'
   input = 'test_sobol_correlation.xml'
   UnorderedCsv = 'sobolCorrelation/csv_database.csv'
-  xml = 'sobolCorrelation/dumprom.xml'
+  UnorderedXml = 'sobolCorrelation/dumprom.xml'
  [../]
 
 
