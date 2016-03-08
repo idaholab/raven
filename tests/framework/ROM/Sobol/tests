@@ -4,14 +4,14 @@
      type = 'RavenFramework'
      input = 'test_sobol_rom.xml'
      output = 'SobolSmolyak/dump.xml'
-     xml = 'SobolSmolyak/dumprom.xml'
+     UnorderedXml = 'SobolSmolyak/dumprom.xml'
      csv = 'SobolSmolyak/dump.csv'
    [../]
    [./staticSobolRomTensor]
      type = 'RavenFramework'
      input = 'test_sobol_tensor.xml'
      output = 'SobolTensor/dump.xml'
-     xml = 'SobolTensor/dumprom.xml'
+     UnorderedXml = 'SobolTensor/dumprom.xml'
      csv = 'SobolTensor/dump.csv'
    [../]
 
@@ -21,7 +21,7 @@
     input = 'test_sobol_sudret.xml'
     output = 'SobolAnalyticSudret/dump.xml'
     # dumprom is analytic test in mean, variance, and sensitivity indices
-    xml = 'SobolAnalyticSudret/dumprom.xml'
+    UnorderedXml = 'SobolAnalyticSudret/dumprom.xml'
     # csv is consistency test
     csv = 'SobolAnalyticSudret/dump.csv'
   [../]

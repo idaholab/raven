@@ -755,10 +755,10 @@ class HDMRRom(GaussPolynomialRom):
         if request.lower() in ['mean','expectedvalue']: newnode.setText(self.__mean__())
         elif request.lower() in ['variance']:
           newnode.setText(self.__variance__())
-          newnode.name = 'approx_variance'
+          newnode.name = 'variance'
         elif request.lower() in ['indices']:
           pcts,totpct,totvar = self.getPercentSensitivities(returnTotal=True)
-          vnode = TreeStructure.Node('approx_tot_variance')
+          vnode = TreeStructure.Node('tot_variance')
           vnode.setText(totvar)
           newnode.appendBranch(vnode)
           #split into two sets, significant and insignificant
@@ -774,7 +774,7 @@ class HDMRRom(GaussPolynomialRom):
           insig.sort(key=itemgetter(0))
           def addSensBranch(combo,sens):
             snode = TreeStructure.Node('variables')
-            svnode = TreeStructure.Node('impact_param')
+            svnode = TreeStructure.Node('Sobol_sensitivity_index')
             svnode.setText(sens)
             snode.appendBranch(svnode)
             snode.setText(','.join(combo))
