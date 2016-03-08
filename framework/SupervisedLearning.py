@@ -373,7 +373,10 @@ class NDinterpolatorRom(superVisedLearning):
   def __returnCurrentSettingLocal__(self):
     """ Exposes access to the current settings of this ROM object """
     self.raiseAnError(NotImplementedError,'NDinterpRom   : __returnCurrentSettingLocal__ method must be implemented!')
-
+#
+#
+#
+#
 class GaussPolynomialRom(superVisedLearning):
   def __confidenceLocal__(self,edict):
     """Require by inheritance, unused.
@@ -688,7 +691,10 @@ class GaussPolynomialRom(superVisedLearning):
     @ Out, None
     """
     return {}
-
+#
+#
+#
+#
 class HDMRRom(GaussPolynomialRom):
   """High-Dimention Model Reduction reduced order model.  Constructs model based on subsets of the input space."""
   def __confidenceLocal__(self,edict):
@@ -725,7 +731,7 @@ class HDMRRom(GaussPolynomialRom):
     self.sdx           = None #dict of sobol sensitivity coeffs, keyed on order and tuple(varnames)
     self.mean          = None #mean, store to avoid recalculation
     self.variance      = None #variance, store to avoid recalculation
-    self.anova         = None #converted true ANOVA terms
+    self.anova         = None #converted true ANOVA terms, stores coefficients not polynomials
 
     for key,val in kwargs.items():
       if key=='SobolOrder': self.sobolOrder = int(val)
@@ -802,7 +808,8 @@ class HDMRRom(GaussPolynomialRom):
   def __trainLocal__(self,featureVals,targetVals):
     """
       Because HDMR rom is a collection of sub-roms, we call sub-rom "train" to do what we need it do.
-      @ In, tdict, training dictionary
+      @ In, featureVals, dict, training feature values
+      @ In, targetVals, dict, training target values
       @ Out, None
     """
     if not self.initialized:
@@ -829,7 +836,6 @@ class HDMRRom(GaussPolynomialRom):
         subtdict[c] = fvals[:,i]
       subtdict[self.target] = tvals
       rom.train(subtdict)
-      #rom.__trainLocal__(fvals,tvals)
 
     #make ordered list of combos for use later
     maxLevel = max(list(len(combo) for combo in self.ROMs.keys()))
@@ -855,10 +861,6 @@ class HDMRRom(GaussPolynomialRom):
     #remove zero entries
     self._removeZeroTerms(self.reducedTerms)
 
-    self.raiseADebug('Reduced Terms, Multiplicity:')
-    for t,v in self.reducedTerms.items():
-      self.raiseADebug('  ',t,':',v)
-
     self.amITrained = True
 
   def __fillPointWithRef(self,combo,pt):
@@ -876,21 +878,6 @@ class HDMRRom(GaussPolynomialRom):
       else:
         newpt[v] = self.references[var]
     return newpt
-
-  def __fillIndexWithRef(self,combo,pt):
-    """Given a "combo" subset of the full input space and an index point
-       point within that space, fills the rest of space with zeros
-       @ In, combo, tuple(str), names of subset dimensions
-       @ In, pt, list(int), values of points in subset dimension
-       @ Out, newpt, tuple(int), full point in input dimension space on cut-hypervolume
-    """
-    newpt=np.zeros(len(self.features))
-    for v,var in enumerate(self.features):
-      if var in combo:
-        newpt[v] = pt[combo.index(var)]
-      else:
-        newpt[v] = 0
-    return tuple(newpt)
 
   def __evaluateLocal__(self,featureVals):
     """ Evaluates a point.
@@ -913,6 +900,7 @@ class HDMRRom(GaussPolynomialRom):
     @ In, None
     @ Out, float, the mean
     """
+    if not self.amITrained: self.raiseAnError(IOError,'Cannot evaluate mean, as ROM is not trained!')
     return self._calcMean(self.reducedTerms)
 
   def __variance__(self):
@@ -920,7 +908,9 @@ class HDMRRom(GaussPolynomialRom):
     @ In, None
     @ Out, float, the variance
     """
-    return self._calcVariance(self.reducedTerms)
+    if not self.amITrained: self.raiseAnError(IOError,'Cannot evaluate variance, as ROM is not trained!')
+    self.getSensitivities()
+    return sum(val for val in self.sdx.values())
 
   def _calcMean(self,fromDict):
     """
@@ -932,34 +922,6 @@ class HDMRRom(GaussPolynomialRom):
     for term,mult in fromDict.items():
       tot += self._evaluateIntegral(term)*mult
     return tot
-
-  def _calcSecondMoment(self,termDict):
-    """
-    Calculates the variance using a set of squared terms
-    @ In, termDict, dict{(string,string):int}, dict of squared terms
-    @ Out, tot, float, variance
-    """
-    tot = 0
-    for term,mult in termDict.items():
-      t1 = term[0]
-      t2 = term[1]
-      tot += self._evaluateSquareIntegral(t1,t2)*mult
-    return tot
-
-  def _calcVariance(self,fromDict):
-    """
-    Given a dictionary of terms and their multiplicity, calculates the expected value of the square of the term less the mean squared
-    @ In, fromDict, dict{string:int}, ROM subsets and their multiplicity
-    @ Out, float, float, variance
-    """
-    mean = self._calcMean(fromDict)
-    varTerms = self._squareTerms(fromDict)
-    self._removeZeroTerms(varTerms)
-    #self.raiseADebug('  SQUARED:')
-    #for key,val in varTerms:
-    #  self.raiseADebug('    ',key,val)
-    secondMoment = self._calcSecondMoment(varTerms)
-    return secondMoment - mean*mean
 
   def _collectTerms(self,a,targetDict,sign=1,depth=0):
     """
@@ -987,40 +949,63 @@ class HDMRRom(GaussPolynomialRom):
     else:
       return self.ROMs[term].__evaluateMoment__(1)
 
-  def _evaluateSquareIntegral(self,t1,t2):
+  def _getANOVATerms(self):
     """
-    Uses properties of orthonormal gPC to algebraically evaluate integrals of products of two gPCs
-    This does assume the integral is over all the constituent variables in the the terms
-    @ In, t1, string, first term in product
-    @ In, t2, string, second term in product
-    @ Out, float, float, evaluation
+    Converts cut-HDMR into ANOVA terms
+    @ In, None
+    @ Out, None
     """
-    ### CASE: integrate(h_r * h_r) -> h_r**2
-    ### CASE: integrate(h_r * gPC) -> h_r * c_0
-    if t1 == () or t2 == ():
-      return self._evaluateIntegral(t1)*self._evaluateIntegral(t2)
-    ### CASE: integrate(gPC * gPC) -> c1_0*c2_0 + c_k^2 for each k in both index sets
-    #zero unless identical polynomials
-    tot = 0
-    rom1 = self.ROMs[t1]
-    rom2 = self.ROMs[t2]
-    for polyIndex1,coeff1 in rom1.polyCoeffDict.items():
-      polyIndex1 = self.__fillIndexWithRef(t1,polyIndex1)
-      for polyIndex2,coeff2 in rom2.polyCoeffDict.items():
-        polyIndex2 = self.__fillIndexWithRef(t2,polyIndex2)
-        if polyIndex1 == polyIndex2:
-          tot += coeff1 * coeff2
-    return tot
+    self.raiseADebug('Constructing ANOVA representation...')
+    self.anova = {}
+    for level, combos in enumerate(self.combos):
+      if level == 0:
+        self.anova[level]={():{'values':self.__mean__(),'functionals':{}}}
+      else:
+        self.anova[level] = {}
+      for subset in combos:
+        self.anova[level][subset] = {'values':0,'functionals':{}}
+        #integrate out everything but subset
+        self._partialIntegrate(self.reducedTerms,subset,self.anova[level][subset])
 
-  def _evaluateTwoTermIntegral(self,t1,t2):
+  def _partialIntegrate(self,termDict,subset,storeDict):
     """
-    Uses properties of orthonormal gPC to algebraically evaluate integrals of products of two individual polynomials
-    This does assume the integral is over all the constituent variables in the the terms
-    @ In, t1, string, first term in product
-    @ In, t2, string, second term in product
-    @ Out, float, float, evaluation
+    Agebraically integrates with respect to all terms except those in subset, using gPC orthogonality
+    @ In, termDict, dict{string:int}, terms in integrand and multiplicity
+    @ In, subset, tuple(string), subsets not to integrate with respect to
+    @ In, storeDict, dict, dict in which results are placed, has keys 'values' and 'functionals' that are both dicts
+    @ Out, None
     """
-    pass
+    # comments will consider the case of integrating f(x,y) dx dy (x,y are integration variables)
+    # P_i(s) are orthonormal polynomials of order i with argument s
+    # gPC would be given as sum_k c_k P_i(x) P_j(y) with k=(i,j)
+    # int( f(x) ) dx indicated integrating f(x) w.r.t. x weighted by the appropriate PDF so that int( 1 ) dx = 1
+    for term,mult in termDict.items():
+      wrt = set(set(self.features) - set(subset))
+      varInWRT = set(term) & wrt
+      ### CASE integrating with respect to all of elements in term
+      #     for example, int( sum_k c_k P_i(x) P_j(y) ) dx dy = c_(0,0)
+      if len(varInWRT) == len(term): #all variables in "term" are integration variables
+        storeDict['values'] += self._evaluateIntegral(term)*mult
+      else:
+        for termPoly,coeff in self.ROMs[term].polyCoeffDict.items():
+          ### CASE coeff is nearly zero, leave it out
+          #if abs(coeff) < 1e-12: continue #TODO this could result in a speedup, but might not be worth accuracy
+          ### CASE any of k_t is nonzero for polynomials of integration variables, then integral is zero
+          #     for example, int( sum_k c_k P_i(x) P_j(y) ) dy dz = 0 for every j > 0
+          foundNonzeroIntegrated = False
+          for var in varInWRT:
+            idxInRom = self.ROMs[term].features.index(var)
+            if termPoly[idxInRom] > 0:
+              foundNonzeroIntegrated = True
+              break
+          if foundNonzeroIntegrated: continue
+          ### CASE all the non-zero-order polynomials are with respect to non-integration variables
+          #     then after integrating, we have the non-integration polys as a function
+          #     for example, int( sum_k c_k P_i(x) P_0(y) ) dy = c_k P_i(x) for every i
+          #     BUT since we will be integrating the square of this later, we only store coeff*mult, not the polynomial
+          if term not in storeDict['functionals'].keys():
+            storeDict['functionals'][term] = []
+          storeDict['functionals'][term].append( coeff*mult )
 
   def _removeZeroTerms(self,d):
     """
@@ -1034,71 +1019,15 @@ class HDMRRom(GaussPolynomialRom):
     for rem in toRemove:
       del d[rem]
 
-  def _squareTerms(self,terms):
-    """
-    Squares terms algebraically
-    @ In, terms, dict{string:int}, original terms
-    @ Out, sterms, dict{(string,string):int}, squared terms
-    """
-    sTerms={}            #square term dict
-    for t1,m1 in terms.items():
-      for t2,m2 in terms.items():
-        key = [t1,t2]    #square term
-        key.sort()       #assures no duplication
-        key = tuple(key) #hashable object for dict
-        val = m1*m2      #positive/negative and number of occurances
-        if key not in sTerms.keys(): sTerms[key] = val
-        else: sTerms[key] += val
-    return sTerms
-
-  def _subtermVariance(self,subset):
-    """
-    Calculates the variance of a subset HDMR term.
-    @ In, subset, tuple(str), subset
-    @ Out, float, float, partial variance of term
-    """
-    self.raiseADebug('DEBUG Subset Variance for',subset)
-    #TODO someday do total contribution to variance by subset as well!
-    terms = self.terms[subset]
-    self.raiseADebug('  TERMS:')
-    for term in terms:
-      self.raiseADebug('    ',term)
-    #reduce terms for subset
-    reduced = {}
-    self._collectTerms(subset,reduced)
-    #remove zero terms
-    self._removeZeroTerms(reduced)
-    self.raiseADebug('  REDUCED:')
-    for term,val in reduced.items():
-      self.raiseADebug('    ',term,val)
-    #do tensor of terms recursively
-    return self._calcVariance(reduced)
-
-  def getSensitivities(self,maxLevel=None):
+  def getSensitivities(self):
     """
       Generates dictionary of Sobol indices for the requested levels.
-      @ In, levels, list, levels to obtain indices for. Defaults to all available.
+      @ In, None
+      @ Out, self.sdx, dict{tuple(str):float}, sensitivity indices
     """
-    debug = True
-    avail = max(list(len(combo) for combo in self.ROMs.keys()))
-    #if maxLevel>avail:
-      #    self.raiseAWarning('Requested level %i for sensitivity analysis, but this composition is at most %i order!' %(maxLevel,avail) )
-    #if maxLevel==None or maxLevel > avail:
-    maxLevel = avail #TODO is this actually accessible by user?
-    self.getANOVATerms()
+    maxLevel = max(list(len(combo) for combo in self.ROMs.keys()))
+    self._getANOVATerms()
     # calculate partial variance contribution of each term in ANOVA
-    if debug:
-      for level in self.anova.keys():
-        self.raiseADebug('What is in level %s?' %str(level))
-        for subset in self.anova[level].keys():
-          self.raiseADebug('  What is in subset %s?' %str(subset))
-          self.raiseADebug('    value:', self.anova[level][subset]['values'])
-          self.raiseADebug('    funcs:')
-          for term in self.anova[level][subset]['functionals'].keys():
-            self.raiseADebug('      term:',term)
-            for value in self.anova[level][subset]['functionals'][term]:
-              self.raiseADebug('        ',value)
-    self.sdx = {}
     tempSensIdx = {} #sorted by level then subset; not necessary for eventual indices
     for level,subsets in self.anova.items():
       tempSensIdx[level]={}
@@ -1112,11 +1041,11 @@ class HDMRRom(GaussPolynomialRom):
         for subLevel in range(level):
           for subSubset in tempSensIdx[subLevel]:
             if set(subSubset).issubset(subset): tempSensIdx[level][subset] -= tempSensIdx[subLevel][subSubset]
-    self.raiseADebug('Variance of Partial Terms:')
+    #set indices
+    self.sdx = {}
     for level,subsets in tempSensIdx.items():
       for subset in subsets:
         self.sdx[subset] = tempSensIdx[level][subset]
-        self.raiseADebug('  ',subset,self.sdx[subset])
     self.sdx[()] = 0
     return dict(self.sdx)
 
@@ -1131,7 +1060,6 @@ class HDMRRom(GaussPolynomialRom):
     """
     if self.sdx == None or len(self.sdx)<1:
       self.getSensitivities()
-    variance = self.__variance__() #FIXME not possible soon
     sumVar = 0.0
     for subset,partialVariance in self.sdx.items():
       sumVar += self.sdx[subset]
@@ -1141,88 +1069,15 @@ class HDMRRom(GaussPolynomialRom):
       pcts[subset]=self.sdx[subset]/sumVar
       tot+=pcts[subset]
     #DEBUG
-    self.raiseADebug('percent sensitivities',color='red')
-    self.raiseADebug('  cutHDMR guessed variance:',self.__variance__(),color='red')
-    self.raiseADebug('  ANOVA summed variance   :',sumVar             ,color='red')
-    self.raiseADebug('  Subset, Partial Variance, Percent Variance:'  ,color='red')
+    self.raiseADebug('percent sensitivities')
+    self.raiseADebug('  ANOVA summed variance:',sumVar)
+    self.raiseADebug('  Subset, Partial Variance, Percent Variance:')
     for subset,sens in self.sdx.items():
       self.raiseADebug('   ',subset,sens,pcts[subset])
-    self.raiseADebug('  total percent variance  :',tot             ,color='red')
+    self.raiseADebug('  total percent variance  :',tot)
     #END DEBUG
     if returnTotal: return pcts,tot,variance
     else: return pcts
-
-  def getANOVATerms(self):
-    """
-    Converts cut-HDMR into ANOVA terms
-    @ In, None
-    @ Out, None
-    """
-    self.anova = {}
-    #first the reference case
-    for level, combos in enumerate(self.combos):
-      if level == 0:
-        self.anova[level]={():{'values':self.__mean__(),'functionals':{}}}
-      else:
-        self.anova[level] = {}
-      for subset in combos:
-        self.anova[level][subset] = {'values':0,'functionals':{}}
-        #integrate with respect to subset
-        self._partialIntegrate(self.reducedTerms,subset,self.anova[level][subset])
-
-  def _partialIntegrate(self,termDict,subset,storeDict):
-    """
-    Agebraically integrates with respect to all terms except those in subset, using gPC orthogonality
-    @ In, termDict, dict{string:int}, terms in integrand and multiplicity
-    @ In, subset, tuple(string), subsets not to integrate with respect to
-    @ In, storeDict, dict, dict in which results are placed, has keys 'values' and 'functionals' that are both dicts
-    @ Out, None
-    """
-    debug = False
-    # comments will consider the case of integrating f(x,y,z) w.r.t. y and z (y and z are integration variables)
-    # P_i(s) are orthonormal polynomials of order i with argument s
-    # int( f(x) ) dx indicated integrating f(x) w.r.t. x weighted by the appropriate PDF so that int( 1 ) dx = 1
-    for term,mult in termDict.items():
-      if debug: self.raiseADebug('Integrating term',term,'with respect to everything but subset',subset,'...')
-      wrt = set(set(self.features) - set(subset))
-      if debug: self.raiseADebug('-- Integrating wrt',wrt)
-      varInWRT = set(term) & wrt
-      if debug: self.raiseADebug('--','varInWRT',varInWRT)
-      ### CASE integrating with respect to all of elements in term
-      #     for example, int( sum_k c_k P_i(y) ) dy dz = c_0
-      if len(varInWRT) == len(term): #all variables in "term" are integration variables
-        if debug: self.raiseADebug('    CASE EXCLUSIVE')
-        storeDict['values'] += self._evaluateIntegral(term)*mult
-      else:
-        for termPoly,coeff in self.ROMs[term].polyCoeffDict.items():
-          ### CASE coeff is nearly zero, leave it out
-          if abs(coeff) < 2e-14:
-            #if debug: self.raiseADebug('    CASE 0 COEFF')
-            continue
-          if debug: self.raiseADebug('    Integrating',termPoly,coeff)
-          ### CASE any of k_t is nonzero for polynomials of integration variables, then integral is zero
-          #     for example, int( c_k P_i(x) P_j(y) ) dy dz = 0 for every j > 0 and for every i
-          foundNonzeroIntegrated = False
-          for var in varInWRT:
-            idxInRom = self.ROMs[term].features.index(var)
-            if termPoly[idxInRom] > 0:
-              foundNonzeroIntegrated = True
-              break
-          if foundNonzeroIntegrated:
-            if debug: self.raiseADebug('    CASE NONZERO INTEGRATED POLY')
-            continue
-          ### CASE all the non-zero-order polynomials are with respect to non-integration variables
-          #     then after integrating, we have the non-integration polys as a function
-          #     for example, int( sum_k c_k P_i(x) P_0(y) ) dy dz = c_k P_i(x) for every i
-          if debug: self.raiseADebug('    CASE MIXED')
-          if term not in storeDict['functionals'].keys():
-            storeDict['functionals'][term] = []
-          storeDict['functionals'][term].append( coeff*mult )
-          if debug: self.raiseADebug('      ',term,termPoly,coeff,mult,coeff*mult)
-    if debug: self.raiseADebug('End result:')
-    if debug: self.raiseADebug('  Values:',storeDict['values'])
-    if debug: self.raiseADebug('  Funcs:',storeDict['functionals'])
-
 
 #
 #
