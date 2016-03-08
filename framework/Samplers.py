@@ -4011,7 +4011,7 @@ class Sobol(SparseGridCollocation):
     self.jobHandler = initDict['internal']['jobHandler']
     self.dists = self.transformDistDict()
     for dist in self.dists.values():
-      if isinstance(dist,Distributions.NDimensionalDistributions): self.raiseAnError(IOError,'ND Dists contain the variables in the original input space are  not supported for this sampler!')
+      if isinstance(dist,Distributions.NDimensionalDistributions): self.raiseAnError(IOError,'ND Distributions containing the variables in the original input space are  not supported for this sampler!')
 
   def localInitialize(self):
     """
