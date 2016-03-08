@@ -25,6 +25,24 @@
     # csv is consistency test
     csv = 'SobolAnalyticSudret/dump.csv'
   [../]
+  [./sobolIshigamiAnalytic]
+    type = 'RavenFramework'
+    input = 'test_sobol_ishigami.xml'
+    output = 'SobolIshigami/dump.xml'
+    # dumprom is analytic test in mean, variance, and sensitivity indices
+    UnorderedXml = 'SobolIshigami/dumprom.xml'
+    # csv is consistency test
+    csv = 'SobolIshigami/dump.csv'
+  [../]
+  [./sobolGFunction]
+    type = 'RavenFramework'
+    input = 'test_sobol_gfunc.xml'
+    output = 'SobolGFunc/dump.xml'
+    # dumprom is analytic, but does not converge well on the true solution
+    UnorderedXml = 'SobolGFunc/dumprom.xml'
+    # csv is consistency test
+    csv = 'SobolGFunc/dump.csv'
+  [../]
 
   # adaptive tests
   [./AdaptiveSobol]

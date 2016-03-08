@@ -751,16 +751,16 @@ class HDMRRom(GaussPolynomialRom):
       if 'all' in requests: requests = canDo
       for request in requests:
         request=request.strip()
-        newnode = TreeStructure.Node(request)
-        if request.lower() in ['mean','expectedvalue']: newnode.setText(self.__mean__())
+        newNode = TreeStructure.Node(request)
+        if request.lower() in ['mean','expectedvalue']: newNode.setText(self.__mean__())
         elif request.lower() in ['variance']:
-          newnode.setText(self.__variance__())
-          newnode.name = 'variance'
+          newNode.setText(self.__variance__())
+          newNode.name = 'variance'
         elif request.lower() in ['indices']:
-          pcts,totpct,totvar = self.getPercentSensitivities(returnTotal=True)
-          vnode = TreeStructure.Node('tot_variance')
-          vnode.setText(totvar)
-          newnode.appendBranch(vnode)
+          pcts,totPct,totVar = self.getPercentSensitivities(returnTotal=True)
+          vNode = TreeStructure.Node('tot_variance')
+          vNode.setText(totVar)
+          newNode.appendBranch(vNode)
           #split into two sets, significant and insignificant
           entries = []
           insig = []
@@ -772,24 +772,33 @@ class HDMRRom(GaussPolynomialRom):
           entries.sort(key=itemgetter(0))
           entries.sort(key=lambda x: abs(x[1]),reverse=True)
           insig.sort(key=itemgetter(0))
+          #trim (insignificat and less than zero) to zero
+          for e,entry in enumerate(insig):
+            if entry[1]<0:
+              insig[e][1] = 0.0
           def addSensBranch(combo,sens):
-            snode = TreeStructure.Node('variables')
-            svnode = TreeStructure.Node('Sobol_sensitivity_index')
-            svnode.setText(sens)
-            snode.appendBranch(svnode)
-            snode.setText(','.join(combo))
-            newnode.appendBranch(snode)
+            """
+            Adds a sensitivity branch to the printed XML tree
+            @ In, combo, tuple(str), the subset dimensions
+            @ In, sens, float, the sensitivity
+            """
+            sNode = TreeStructure.Node('variables')
+            svNode = TreeStructure.Node('Sobol_sensitivity_index')
+            svNode.setText(sens)
+            sNode.appendBranch(svNode)
+            sNode.setText(','.join(combo))
+            newNode.appendBranch(sNode)
           for combo,sens in entries:
             addSensBranch(combo,sens)
           for combo,sens in insig:
             addSensBranch(combo,sens)
-          newnode.name="impacts"
+          newNode.name="impacts"
         elif request.lower() in ['numruns']:
-          newnode.setText(self.numRuns)
+          newNode.setText(self.numRuns)
         else:
           self.raiseAWarning('ROM does not know how to return '+request)
-          newnode.setText('not found')
-        node.appendBranch(newnode)
+          newNode.setText('not found')
+        node.appendBranch(newNode)
 
   def initialize(self,idict):
     """Initializes the instance.
