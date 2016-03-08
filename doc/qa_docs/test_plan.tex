@@ -6,11 +6,13 @@
 \begin{document}
 \maketitle
 
-\section{Introduction}
+\section{Test Scope}
 
 This document covers the various types of testing and reviews that are
 done on the RAVEN project. The two primary methods are the MOOSE
 regression testing system and the code reviews done on merge requests.
+
+\subsection{Dynamic Testing}
 
 The MOOSE testing system allows tests to be run on the code that check
 that the expected behavior occurs.  This system is designed to be
@@ -18,12 +20,36 @@ extendable, and RAVEN extends it with two types of tests.  The first
 simply runs a python program, and checks the exit code.  The second
 run a RAVEN framework input file and checks the output files.
 
+In order to test on clusters, a script has been created that runs
+tests in a PBS environment to test the parallel code.
+
+\subsection{Static Testing}
+
 The gitlab system allows for merge requests to be created and then
 commented on.  The system also shows the results of the regression
 tests and allows the difference between the current version's source
 code and the new versions.
 
-\section{Code Reviews}
+\section{Test Objectives}
+
+The dynamic tests have a variety of objectives.  First of all since
+they are run before any merge requests are approved, they catch many
+changes in the code that cause unexpected failures.  Second of all,
+the dynamic tests detect many changes in the underlying libraries or
+environments.  Both of these help find potential issues close to when
+they first appear, instead of later when they are harder to find the
+cause of, or worse, by users.
+
+The static testing or reviews have somewhat different purposes.  Like
+the dynamic reviews they include the goal of finding potential
+issues. In addition, the reviews check that the code is documented and
+formatted according to the standard methods.  The reviews also check
+that the user documentation is updated.  These checks help find things
+that are not part of the dynamic code.
+
+\section{Types of Tests}
+
+\subsection{Code Reviews}
 
 Gitlab is the configuration management system used by RAVEN. In the
 gitlab system, merge requests can be created.  Git allows different
@@ -55,7 +81,7 @@ is proposed on the RAVEN development mailing list.  If there are no
 unresolved objections to the proposed changes, the review checklist is
 updated.
 
-\section{Regression Test System}
+\subsection{Regression Test System}
 
 The MOOSE testing system allows tests to be run on the code that check
 that the expected behavior occurs.  RAVEN uses the MOOSE testing
@@ -67,7 +93,7 @@ Besides the existing tests types available in the MOOSE testing
 system, RAVEN does three other kinds.  These are the RavenFramework
 tests, RavenPython tests, and cluster tests.
 
-\subsection{RavenFramework tests}
+\subsubsection{RavenFramework tests}
 
 RavenFramework tests are the most common tests used for testing
 RAVEN. They require a RAVEN framework input xml file, and they run and
@@ -94,7 +120,7 @@ They have the following options:
     \item[remove\_whitespace] Removes whitespace before comparing xml node text if True
 \end{description}
 
-\subsection{RavenPython tests}
+\subsubsection{RavenPython tests}
 
 RavenPython tests run a python file, and then the test passes if it
 returns zero as the exit code (such as by exiting with
@@ -136,7 +162,7 @@ is so slow that even though the remote machine is done running, the
 data is not available on the head node.  Because of these issues
 rerunning the test is sometimes required.
 
-\section{Requirements Tests}
+\subsection{Requirements Tests}
 
 Some of the tests check that the requirements are satisfied.  These
 are marked with the comment \verb'#REQUIREMENT_TEST' to show that they
@@ -146,5 +172,21 @@ document.
 These tests have special requirements for changing.  The merge request
 must be approved by the lead developer or the project manager.
 
+\section{Approval Requirements}
+
+Changing or adding a test needs to be reviewed by a second developer
+besides the one who changed or added the test.  Changing or adding a
+requirements test must be reviewed by the lead developer or the
+project manager in addition to a second developer.
+
+\section{Test Automation}
+
+Tools will be used to automate as many of the dynamic tests as
+possible.  The MOOSE testing framework will be used for automating as
+many as practical.  BASH or Python scripts will be used for others.
+The scripts for automation will be stored in the RAVEN, Crow or MOOSE
+source code repository.  Some of the scripts that only run other
+scripts (such as the scripts that compile RAVEN and then run the
+testing scripts) will be stored in CIVIT on moosebuild.inl.gov.
 
 \end{document}
