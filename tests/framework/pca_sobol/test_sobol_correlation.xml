@@ -1,0 +1,107 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
+    <WorkingDir>sobolCorrelation</WorkingDir>
+    <batchSize>1</batchSize>
+    <Sequence>sample,train,print</Sequence>
+  </RunInfo>
+
+  <DataObjects>
+    <PointSet name="dummyIN">
+      <Input>x1,x2,x3,x4,x5</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="SobolSet">
+      <Input>x1,x2,x3,x4,x5,y1,y2,y3,y4,y5</Input>
+      <Output>ans</Output>
+    </PointSet>
+  </DataObjects>
+
+  <Distributions>
+    <MultivariateNormal method="pca" name="MVNDist">
+      <transformation>
+        <rank>5</rank>
+      </transformation>
+      <mu>0.5 -0.4 0.3 -0.2 0.1</mu>
+      <covariance type="abs">
+            0.64     0.2     -0.002    0.03    -0.044
+            0.2      0.49    0.001     -0.01   0.023
+            -0.002   0.001   0.01      0.0015  -0.001
+            0.03     -0.01   0.0015    0.16    0.08
+            -0.044   0.023   -0.001    0.08    0.25
+        </covariance>
+    </MultivariateNormal>
+  </Distributions>
+
+  <Samplers>
+    <Sobol name="sobol">
+      <variable name="y1">
+        <distribution dim="1">MVNDist</distribution>
+      </variable>
+      <variable name="y2">
+        <distribution dim="2">MVNDist</distribution>
+      </variable>
+      <variable name="y3">
+        <distribution dim="3">MVNDist</distribution>
+      </variable>
+      <variable name="y4">
+        <distribution dim="4">MVNDist</distribution>
+      </variable>
+      <variable name="y5">
+        <distribution dim="5">MVNDist</distribution>
+      </variable>
+      <variablesTransformation distribution="MVNDist">
+        <latentVariables>y1,y2,y3,y4,y5</latentVariables>
+        <manifestVariables>x1,x2,x3,x4,x5</manifestVariables>
+        <method>pca</method>
+      </variablesTransformation>
+      <ROM class="Models" type="ROM">rom</ROM>
+    </Sobol>
+  </Samplers>
+
+  <Models>
+    <Dummy name="MyDummy" subType=""/>
+    <ROM name="rom" subType="HDMRRom">
+      <SobolOrder>1</SobolOrder>
+      <Target>ans</Target>
+      <Features>y1,y2,y3,y4,y5</Features>
+      <IndexSet>TotalDegree</IndexSet>
+      <PolynomialOrder>1</PolynomialOrder>
+    </ROM>
+    <ExternalModel ModuleToLoad="../../AnalyticModels/attenuate" name="poly" subType="">
+      <variables>x1,x2,x3,x4,x5,ans</variables>
+    </ExternalModel>
+  </Models>
+
+  <Steps>
+    <MultiRun name="sample" sleepTime="1e-4">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">poly</Model>
+      <Sampler class="Samplers" type="Sobol">sobol</Sampler>
+      <Output class="DataObjects" type="PointSet">SobolSet</Output>
+    </MultiRun>
+    <IOStep name="print">
+      <Input class="DataObjects" type="PointSet">SobolSet</Input>
+      <Input class="Models" type="ROM">rom</Input>
+      <Output class="OutStreamManager" type="Print">csv_database</Output>
+      <Output class="OutStreamManager" type="Print">dumprom</Output>
+    </IOStep>
+    <RomTrainer name="train">
+      <Input class="DataObjects" type="PointSet">SobolSet</Input>
+      <Output class="Models" type="ROM">rom</Output>
+    </RomTrainer>
+  </Steps>
+
+  <OutStreamManager>
+    <Print name="csv_database">
+      <type>csv</type>
+      <source>SobolSet</source>
+    </Print>
+    <Print name="dumprom">
+      <type>xml</type>
+      <source>rom</source>
+      <what>all</what>
+    </Print>
+  </OutStreamManager>
+
+</Simulation>
