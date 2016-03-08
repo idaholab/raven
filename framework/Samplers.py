@@ -4010,6 +4010,8 @@ class Sobol(SparseGridCollocation):
     Grid._localGenerateAssembler(self, initDict)
     self.jobHandler = initDict['internal']['jobHandler']
     self.dists = self.transformDistDict()
+    for dist in self.dists.values():
+      if isinstance(dist,Distributions.NDimensionalDistributions): self.raiseAnError(IOError,'ND Distributions containing the variables in the original input space are  not supported for this sampler!')
 
   def localInitialize(self):
     """
@@ -4038,7 +4040,7 @@ class Sobol(SparseGridCollocation):
       imptDict={}
       limit=0
       for c in combo:
-        distDict[c]=self.distDict[c]
+        distDict[c]=self.dists[c]
         quadDict[c]=self.quadDict[c]
         polyDict[c]=self.polyDict[c]
         imptDict[c]=self.importanceDict[c]
@@ -4070,7 +4072,7 @@ class Sobol(SparseGridCollocation):
     #make combined sparse grids
     self.references={}
     for var in self.features:
-      self.references[var]=self.distDict[var].untruncatedMean()
+      self.references[var]=self.dists[var].untruncatedMean()
     self.pointsToRun=[]
     #make sure reference case gets in there
     newpt = np.zeros(len(self.features))
@@ -4096,7 +4098,7 @@ class Sobol(SparseGridCollocation):
     self.raiseADebug('Needed points: %i' %self.limit)
     initdict={'ROMs':None,
               'SG':self.SQs,
-              'dists':self.distDict,
+              'dists':self.dists,
               'quads':self.quadDict,
               'polys':self.polyDict,
               'refs':self.references,
@@ -4123,13 +4125,37 @@ class Sobol(SparseGridCollocation):
       else:
         self.raiseADebug('point found to run:',pt)
         found=True
-      for v,varName in enumerate(self.features):
-        self.values[varName] = pt[v]
-        self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(self.values[varName])
-        self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.inputInfo['SampledVarsPb'][varName]
-      self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
-      #self.inputInfo['ProbabilityWeight'] =  N/A
-      self.inputInfo['SamplerType'] = 'Sparse Grids for Sobol'
+        for v,varName in enumerate(self.features):
+          # compute the SampledVarsPb for 1-D distribution
+          if self.variables2distributionsMapping[varName]['totDim'] == 1:
+            for key in varName.strip().split(','):
+              self.values[key] = pt[v]
+            self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(pt[v])
+            self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.inputInfo['SampledVarsPb'][varName]
+          # compute the SampledVarsPb for N-D distribution
+          elif self.variables2distributionsMapping[varName]['totDim'] > 1 and self.variables2distributionsMapping[varName]['reducedDim'] == 1:
+            dist = self.variables2distributionsMapping[varName]['name']
+            ndCoordinates = np.zeros(len(self.distributions2variablesMapping[dist]))
+            positionList = self.distributions2variablesIndexList[dist]
+            for varDict in self.distributions2variablesMapping[dist]:
+              var = utils.first(varDict.keys())
+              position = utils.first(varDict.values())
+              location = -1
+              for key in var.strip().split(','):
+                if key in self.features:
+                  location = self.features.index(key)
+                  break
+              if location > -1:
+                ndCoordinates[positionList.index(position)] = pt[location]
+              else:
+                self.raiseAnError(IOError,'The variables ' + var + ' listed in sobol sampler, but not used in the ROM!' )
+              for key in var.strip().split(','):
+                self.values[key] = pt[location]
+            self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(ndCoordinates)
+            self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")] = self.inputInfo['SampledVarsPb'][varName]
+
+        self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
+        self.inputInfo['SamplerType'] = 'Sparse Grids for Sobol'
 #
 #
 #
@@ -4263,7 +4289,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     #generate quadratures and polynomials
     self._generateQuadsAndPolys(SVL)
     #set up reference case
-    for var,dist in self.distDict.items():
+    for var,dist in self.dists.items():
       self.references[var] = dist.untruncatedMean()
     #set up first subsets, the mono-dimensionals
     self.firstCombos = list(itertools.chain.from_iterable(itertools.combinations(self.features,r) for r in [0,1]))
@@ -4398,12 +4424,37 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
         self.raiseAnError(RuntimeError,'No point was found to generate!  This should not be possible...')
     #add the number of necessary distinct points to a set (so no duplicates).
     self.distinctPoints.add(pt)
-    #set up the run.
     for v,varName in enumerate(self.features):
-      self.values[varName] = pt[v]
-      self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(self.values[varName])
-    self.inputInfo['PointsProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
-    self.inputInfo['SamplerType'] = 'Adaptive Sobol Sparse Grids'
+      # compute the SampledVarsPb for 1-D distribution
+      if self.variables2distributionsMapping[varName]['totDim'] == 1:
+        for key in varName.strip().split(','):
+          self.values[key] = pt[v]
+        self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(pt[v])
+        self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.inputInfo['SampledVarsPb'][varName]
+      # compute the SampledVarsPb for N-D distribution
+      elif self.variables2distributionsMapping[varName]['totDim'] > 1 and self.variables2distributionsMapping[varName]['reducedDim'] == 1:
+        dist = self.variables2distributionsMapping[varName]['name']
+        ndCoordinates = np.zeros(len(self.distributions2variablesMapping[dist]))
+        positionList = self.distributions2variablesIndexList[dist]
+        for varDict in self.distributions2variablesMapping[dist]:
+          var = utils.first(varDict.keys())
+          position = utils.first(varDict.values())
+          location = -1
+          for key in var.strip().split(','):
+            if key in self.features:
+              location = self.features.index(key)
+              break
+          if location > -1:
+            ndCoordinates[positionList.index(position)] = pt[location]
+          else:
+            self.raiseAnError(IOError,'The variables ' + var + ' listed in adaptive sobol sampler, but not used in the ROM!' )
+          for key in var.strip().split(','):
+            self.values[key] = pt[location]
+        self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(ndCoordinates)
+        self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")] = self.inputInfo['SampledVarsPb'][varName]
+
+    self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
+    self.inputInfo['SamplerType'] = 'Adaptive Sparse Grids for Sobol'
 
   def _addPointToDataObject(self,subset,point):
     """
@@ -4539,7 +4590,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     if rom == None: rom = self.ROM
     initDict = {'ROMs':None, # multitarget requires setting individually, below
                 'SG':self.SQs,
-                'dists':self.distDict,
+                'dists':self.dists,
                 'quads':self.quadDict,
                 'polys':self.polyDict,
                 'refs':self.references,
@@ -4725,7 +4776,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     dists = {}
     #make use of the keys to get the distributions, quadratures, polynomials, importances we want
     for c in subset:
-      distDict[c] = self.distDict[c]
+      distDict[c] = self.dists[c]
       dists[c] = self.dists[c]
       quadDict[c] = self.quadDict[c]
       polyDict[c] = self.polyDict[c]
