@@ -29,7 +29,7 @@
     type = 'RavenFramework'
     input = 'test_sobol_ishigami.xml'
     output = 'SobolIshigami/dump.xml'
-    # dumprom is analytic test in mean, variance, and sensitivity indices
+    # dumprom is analytic, but does not converge well on the true solution until poly order 9
     UnorderedXml = 'SobolIshigami/dumprom.xml'
     # csv is consistency test
     csv = 'SobolIshigami/dump.csv'
@@ -38,7 +38,7 @@
     type = 'RavenFramework'
     input = 'test_sobol_gfunc.xml'
     output = 'SobolGFunc/dump.xml'
-    # dumprom is analytic, but does not converge well on the true solution
+    # dumprom is analytic, but does not converge well on the true solution until at least poly order 4
     UnorderedXml = 'SobolGFunc/dumprom.xml'
     # csv is consistency test
     csv = 'SobolGFunc/dump.csv'

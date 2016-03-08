@@ -775,7 +775,7 @@ class HDMRRom(GaussPolynomialRom):
           #trim (insignificat and less than zero) to zero
           for e,entry in enumerate(insig):
             if entry[1]<0:
-              insig[e][1] = 0.0
+              insig[e] = (insig[e][0],0.0)
           def addSensBranch(combo,sens):
             """
             Adds a sensitivity branch to the printed XML tree
