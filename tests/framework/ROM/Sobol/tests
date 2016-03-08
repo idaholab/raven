@@ -23,7 +23,7 @@
     # dumprom is analytic test in mean, variance, and sensitivity indices
     xml = 'SobolAnalyticSudret/dumprom.xml'
     # csv is consistency test
-    csv = 'SobolAnalyticSudret/dump.xml'
+    csv = 'SobolAnalyticSudret/dump.csv'
   [../]
 
   # adaptive tests
