@@ -1,0 +1,34 @@
+<ReducedOrderModel>
+  <ans>
+    <mean>1.0</mean>
+    <variance>0.728</variance>
+    <impacts>
+      <tot_variance>None</tot_variance>
+      <variables>x1
+        <Sobol_sensitivity_index>0.274725274725</Sobol_sensitivity_index>
+      </variables>
+      <variables>x2
+        <Sobol_sensitivity_index>0.274725274725</Sobol_sensitivity_index>
+      </variables>
+      <variables>x3
+        <Sobol_sensitivity_index>0.274725274725</Sobol_sensitivity_index>
+      </variables>
+      <variables>x2,x3
+        <Sobol_sensitivity_index>0.0549450549451</Sobol_sensitivity_index>
+      </variables>
+      <variables>x1,x2
+        <Sobol_sensitivity_index>0.0549450549451</Sobol_sensitivity_index>
+      </variables>
+      <variables>x1,x3
+        <Sobol_sensitivity_index>0.0549450549451</Sobol_sensitivity_index>
+      </variables>
+      <variables>x1,x2,x3
+        <Sobol_sensitivity_index>0.010989010989</Sobol_sensitivity_index>
+      </variables>
+      <variables>
+        <Sobol_sensitivity_index>0.0</Sobol_sensitivity_index>
+      </variables>
+    </impacts>
+    <numRuns>343</numRuns>
+  </ans>
+</ReducedOrderModel>
