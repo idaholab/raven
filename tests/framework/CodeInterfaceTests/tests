@@ -26,7 +26,7 @@
  [../]
 
  [./testLHSBisonParallel]
-   #REQUIREMENT_TEST
+   #REQUIREMENT_TEST R-IS-1
   type = 'RavenFramework'
   input = 'test_LHS_Sampler_Bison_parallel.xml'
   output = 'LHStestBisonParallel/myLHS/out~1~gap_perfect_transfer_test LHStestBisonParallel/LHS_Bison_dump.csv'

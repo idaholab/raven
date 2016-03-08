@@ -25,7 +25,7 @@ wait_lines ()
 
 rm -Rf FirstMQRun/
 
-#REQUIREMENT_TEST
+#REQUIREMENT_TEST R-IS-7
 python ../../framework/Driver.py test_mpiqsub_local.xml
 
 wait_lines 'FirstMQRun/*eqn.csv' 6 mpiqsub
@@ -49,7 +49,7 @@ wait_lines 'FirstPRun/*eqn.csv' 6 pbsdsh
 cd InternalParallel/
 rm -Rf InternalParallelExtModel/*.csv
 
-#REQUIREMENT_TEST
+#REQUIREMENT_TEST R-IS-8
 python ../../../framework/Driver.py test_internal_parallel_extModel.xml
 
 wait_lines 'InternalParallelExtModel/*.csv' 28 paralExtModel
@@ -60,7 +60,7 @@ cd ..
 cd InternalParallel/
 rm -Rf InternalParallelScikit/*.csv
 
-#REQUIREMENT_TEST
+#REQUIREMENT_TEST R-IS-9
 python ../../../framework/Driver.py test_internal_parallel_ROM_scikit.xml
 
 wait_lines 'InternalParallelScikit/*.csv' 2 paralROM
