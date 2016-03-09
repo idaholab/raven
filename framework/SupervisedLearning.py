@@ -966,6 +966,14 @@ class HDMRRom(GaussPolynomialRom):
     @ Out, None
     """
     self.raiseADebug('Constructing ANOVA representation...')
+    self.raiseADebug('Reduced terms are:')
+    for key,val in self.reducedTerms.items():
+      self.raiseADebug('   ',key,val)
+    self.raiseADebug('subset gPC:')
+    for key,rom in self.ROMs.items():
+      self.raiseADebug('    for subset:',key)
+      for poly,coeff in rom.polyCoeffDict.items():
+        self.raiseADebug('      ',poly,coeff)
     self.anova = {}
     for level, combos in enumerate(self.combos):
       if level == 0:
@@ -975,6 +983,7 @@ class HDMRRom(GaussPolynomialRom):
       for subset in combos:
         self.anova[level][subset] = {'values':0,'functionals':{}}
         #integrate out everything but subset
+        self.raiseADebug('Integrating for subset',subset)
         self._partialIntegrate(self.reducedTerms,subset,self.anova[level][subset])
 
   def _partialIntegrate(self,termDict,subset,storeDict):
@@ -989,18 +998,19 @@ class HDMRRom(GaussPolynomialRom):
     # P_i(s) are orthonormal polynomials of order i with argument s
     # gPC would be given as sum_k c_k P_i(x) P_j(y) with k=(i,j)
     # int( f(x) ) dx indicated integrating f(x) w.r.t. x weighted by the appropriate PDF so that int( 1 ) dx = 1
-    debug = True
+    debug = False # left for future debug work
     for term,mult in termDict.items():
       wrt = set(set(self.features) - set(subset))
       varInWRT = set(term) & wrt
-      if debug: self.raiseADebug('Integrating',term,'wrt',wrt)
+      if debug: self.raiseADebug('| Integrating',term,'wrt',wrt)
       ### CASE integrating with respect to all of elements in term
       #     for example, int( sum_k c_k P_i(x) P_j(y) ) dx dy = c_(0,0)
       if len(varInWRT) == len(term): #all variables in "term" are integration variables
         storeDict['values'] += self._evaluateIntegral(term)*mult
-        if debug: self.raiseADebug('  Expected Value Case:',self._evaluateIntegral(term))
+        if debug: self.raiseADebug('|   Expected Value Case:',self._evaluateIntegral(term))
       else:
         for termPoly,coeff in self.ROMs[term].polyCoeffDict.items():
+          if debug: self.raiseADebug('|      Integrating poly',termPoly)
           ### CASE coeff is nearly zero, leave it out
           #if abs(coeff) < 1e-12: continue #TODO this could result in a speedup, but might not be worth accuracy
           ### CASE any of k_t is nonzero for polynomials of integration variables, then integral is zero
@@ -1012,16 +1022,16 @@ class HDMRRom(GaussPolynomialRom):
               foundNonzeroIntegrated = True
               break
           if foundNonzeroIntegrated:
-            if debug: self.raiseADebug('  Nonzero Poly Being Integrated!')
-            break
+            if debug: self.raiseADebug('|        Nonzero Poly Being Integrated!')
+            continue
           ### CASE all the non-zero-order polynomials are with respect to non-integration variables
           #     then after integrating, we have the non-integration polys as a function
           #     for example, int( sum_k c_k P_i(x) P_0(y) ) dy = c_k P_i(x) for every i
           #     BUT since we will be integrating the square of this later, we only store coeff*mult, not the polynomial
           if term not in storeDict['functionals'].keys():
             storeDict['functionals'][term] = []
-          storeDict['functionals'][term].append( coeff*mult )
-          if debug: self.raiseADebug('  Adding functional coeff term:',coeff)
+          storeDict['functionals'][term].append( (coeff,mult) )
+          if debug: self.raiseADebug('|        Adding functional coeff term:',coeff)
 
   def _removeZeroTerms(self,d):
     """
@@ -1050,7 +1060,8 @@ class HDMRRom(GaussPolynomialRom):
       for subset in subsets:
         tempSensIdx[level][subset] = self.anova[level][subset]['values']**2
         for parts in self.anova[level][subset]['functionals'].values():
-          tempSensIdx[level][subset] += sum(p*p for p in parts)
+          #each term is (coeff**2 * multiplicity, and multiplicity might be negative)
+          tempSensIdx[level][subset] += sum(p[0]*p[0]*p[1] for p in parts)
     #subtract off subset contributions
     for level in tempSensIdx.keys():
       for subset in tempSensIdx[level].keys():
