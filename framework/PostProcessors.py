@@ -1147,7 +1147,8 @@ class ImportanceRank(BasePostProcessor):
     self.features = []
     self.dimensions = []
     self.mvnDistribution = None
-    self.acceptedMetric = ['SensitivityIndex','ImportanceIndex','CumulativeSensitivityIndex','CumulativeImportanceIndex']
+    self.acceptedMetric = ['SensitivityIndex','ImportanceIndex']
+    #self.acceptedMetric = ['SensitivityIndex','ImportanceIndex','CumulativeSensitivityIndex','CumulativeImportanceIndex'] # This will be used in the future
     self.what = self.acceptedMetric # what needs to be computed, default is all
     self.printTag = 'POSTPROCESSOR IMPORTANTANCE RANK'
     self.requiredAssObject = (True,(['Distributions'],[-1]))
@@ -1348,7 +1349,7 @@ class ImportanceRank(BasePostProcessor):
               if self.mvnDistribution.covarianceType == 'abs':
                 covTarget = featCoeffs[index] * self.mvnDistribution.covariance[covIndex] * featCoeffs[index]
               else:
-                covFeature = self.mvnDistribution.covariance[covIndex]/self.mvnDistribution.mu[self.dimensions[index]-1]**2
+                covFeature = self.mvnDistribution.covariance[covIndex]*self.mvnDistribution.mu[self.dimensions[index]-1]**2
                 covTarget = featCoeffs[index] * covFeature * featCoeffs[index]
               featWeights.append(covTarget)
             featWeights = featWeights/np.sum(featWeights)
@@ -1362,9 +1363,9 @@ class ImportanceRank(BasePostProcessor):
            entries.sort(key=lambda x: x[1],reverse=True)
            outputDict[what][target] = entries
       if what == 'CumulativeSenitivityIndex':
-        pass
+        pass # To be implemented
       if what == 'CumulativeImportanceIndex':
-        pass
+        pass # To be implemented
 
     return outputDict
 #
