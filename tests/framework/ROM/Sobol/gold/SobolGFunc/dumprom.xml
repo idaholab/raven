@@ -1,121 +1,118 @@
 <ReducedOrderModel>
   <ans>
-    <mean>0.973586441818</mean>
-    <variance>48.4036932955</variance>
-    <impacts>
-      <tot_variance>None</tot_variance>
+    <mean>0.994589483003</mean>
+    <variance>55.6157172729</variance>
+    <Sobol_indices>
+      <tot_variance>55.6157172729</tot_variance>
       <variables>x1
-        <Sobol_sensitivity_index>0.204299082548</Sobol_sensitivity_index>
+        <index>0.216793550665</index>
       </variables>
       <variables>x2
-        <Sobol_sensitivity_index>0.105955916441</Sobol_sensitivity_index>
+        <index>0.113671268188</index>
       </variables>
       <variables>x3
-        <Sobol_sensitivity_index>0.0601786722247</Sobol_sensitivity_index>
-      </variables>
-      <variables>x4
-        <Sobol_sensitivity_index>0.0475270701105</Sobol_sensitivity_index>
+        <index>0.0655178158917</index>
       </variables>
       <variables>x5
-        <Sobol_sensitivity_index>0.0417269617234</Sobol_sensitivity_index>
+        <index>0.046036309268</index>
       </variables>
       <variables>x6
-        <Sobol_sensitivity_index>0.0384197652145</Sobol_sensitivity_index>
+        <index>0.0425365917584</index>
       </variables>
       <variables>x7
-        <Sobol_sensitivity_index>0.0373465629831</Sobol_sensitivity_index>
+        <index>0.0414002333727</index>
       </variables>
       <variables>x8
-        <Sobol_sensitivity_index>0.0364985857277</Sobol_sensitivity_index>
+        <index>0.0405020994854</index>
       </variables>
-      <variables>x3,x4
-        <Sobol_sensitivity_index>0.0166549165004</Sobol_sensitivity_index>
+      <variables>x4
+        <index>0.0402790916155</index>
       </variables>
       <variables>x3,x5
-        <Sobol_sensitivity_index>0.0165464677864</Sobol_sensitivity_index>
+        <index>0.0154974136143</index>
       </variables>
       <variables>x3,x6
-        <Sobol_sensitivity_index>0.0164563808232</Sobol_sensitivity_index>
+        <index>0.0154408401153</index>
       </variables>
       <variables>x3,x7
-        <Sobol_sensitivity_index>0.0164220716456</Sobol_sensitivity_index>
+        <index>0.0154177335989</index>
       </variables>
       <variables>x3,x8
-        <Sobol_sensitivity_index>0.0163930622061</Sobol_sensitivity_index>
+        <index>0.0153976965037</index>
       </variables>
-      <variables>x4,x5
-        <Sobol_sensitivity_index>0.0163576367827</Sobol_sensitivity_index>
-      </variables>
-      <variables>x4,x6
-        <Sobol_sensitivity_index>0.0162467468604</Sobol_sensitivity_index>
-      </variables>
-      <variables>x4,x7
-        <Sobol_sensitivity_index>0.0162057603447</Sobol_sensitivity_index>
-      </variables>
-      <variables>x2,x5
-        <Sobol_sensitivity_index>0.0161779543666</Sobol_sensitivity_index>
-      </variables>
-      <variables>x4,x8
-        <Sobol_sensitivity_index>0.0161715033795</Sobol_sensitivity_index>
-      </variables>
-      <variables>x2,x6
-        <Sobol_sensitivity_index>0.0161687308872</Sobol_sensitivity_index>
-      </variables>
-      <variables>x2,x7
-        <Sobol_sensitivity_index>0.0161607324359</Sobol_sensitivity_index>
-      </variables>
-      <variables>x2,x8
-        <Sobol_sensitivity_index>0.0161525343268</Sobol_sensitivity_index>
-      </variables>
-      <variables>x2,x4
-        <Sobol_sensitivity_index>0.016145479072</Sobol_sensitivity_index>
+      <variables>x3,x4
+        <index>0.015392470397</index>
       </variables>
       <variables>x5,x6
-        <Sobol_sensitivity_index>0.016075889269</Sobol_sensitivity_index>
+        <index>0.0152018961241</index>
       </variables>
       <variables>x5,x7
-        <Sobol_sensitivity_index>0.0160320459249</Sobol_sensitivity_index>
+        <index>0.0151679086832</index>
       </variables>
       <variables>x5,x8
-        <Sobol_sensitivity_index>0.0159955535309</Sobol_sensitivity_index>
+        <index>0.0151393068388</index>
       </variables>
-      <variables>x2,x3
-        <Sobol_sensitivity_index>0.0159115380501</Sobol_sensitivity_index>
+      <variables>x4,x5
+        <index>0.0151319591552</index>
       </variables>
       <variables>x6,x7
-        <Sobol_sensitivity_index>0.0159057291293</Sobol_sensitivity_index>
+        <index>0.0150699876711</index>
       </variables>
       <variables>x6,x8
-        <Sobol_sensitivity_index>0.0158680289016</Sobol_sensitivity_index>
+        <index>0.0150399528575</index>
+      </variables>
+      <variables>x4,x6
+        <index>0.0150322511551</index>
       </variables>
       <variables>x7,x8
-        <Sobol_sensitivity_index>0.01582176989</Sobol_sensitivity_index>
+        <index>0.0150030994783</index>
       </variables>
-      <variables>x1,x8
-        <Sobol_sensitivity_index>0.0136511240441</Sobol_sensitivity_index>
+      <variables>x4,x7
+        <index>0.0149952854009</index>
       </variables>
-      <variables>x1,x7
-        <Sobol_sensitivity_index>0.0136153713602</Sobol_sensitivity_index>
+      <variables>x4,x8
+        <index>0.0149643515871</index>
       </variables>
-      <variables>x1,x6
-        <Sobol_sensitivity_index>0.0135681278133</Sobol_sensitivity_index>
+      <variables>x2,x4
+        <index>0.0148967762334</index>
       </variables>
-      <variables>x1,x5
-        <Sobol_sensitivity_index>0.0134096782234</Sobol_sensitivity_index>
+      <variables>x2,x8
+        <index>0.0148963633813</index>
+      </variables>
+      <variables>x2,x7
+        <index>0.0148937178908</index>
+      </variables>
+      <variables>x2,x6
+        <index>0.0148881890007</index>
+      </variables>
+      <variables>x2,x5
+        <index>0.0148570233314</index>
+      </variables>
+      <variables>x2,x3
+        <index>0.0143940539764</index>
       </variables>
       <variables>x1,x4
-        <Sobol_sensitivity_index>0.0130917344777</Sobol_sensitivity_index>
+        <index>0.0120751365701</index>
+      </variables>
+      <variables>x1,x8
+        <index>0.0120633102728</index>
+      </variables>
+      <variables>x1,x7
+        <index>0.012014889037</index>
+      </variables>
+      <variables>x1,x6
+        <index>0.0119518710677</index>
+      </variables>
+      <variables>x1,x5
+        <index>0.0117465225342</index>
       </variables>
       <variables>x1,x3
-        <Sobol_sensitivity_index>0.0122678833898</Sobol_sensitivity_index>
+        <index>0.0103811940765</index>
       </variables>
       <variables>x1,x2
-        <Sobol_sensitivity_index>0.00857293160528</Sobol_sensitivity_index>
+        <index>0.00631183920315</index>
       </variables>
-      <variables>
-        <Sobol_sensitivity_index>0.0</Sobol_sensitivity_index>
-      </variables>
-    </impacts>
+    </Sobol_indices>
     <numRuns>481</numRuns>
   </ans>
 </ReducedOrderModel>

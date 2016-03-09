@@ -783,16 +783,17 @@ class HDMRRom(GaussPolynomialRom):
             @ In, sens, float, the sensitivity
             """
             sNode = TreeStructure.Node('variables')
-            svNode = TreeStructure.Node('Sobol_sensitivity_index')
+            svNode = TreeStructure.Node('index')
             svNode.setText(sens)
             sNode.appendBranch(svNode)
             sNode.setText(','.join(combo))
             newNode.appendBranch(sNode)
+          # end method
           for combo,sens in entries:
             addSensBranch(combo,sens)
           for combo,sens in insig:
             addSensBranch(combo,sens)
-          newNode.name="impacts"
+          newNode.name="Sobol_indices"
         elif request.lower() in ['numruns']:
           newNode.setText(self.numRuns)
         else:
@@ -1075,17 +1076,18 @@ class HDMRRom(GaussPolynomialRom):
     tot=0.0
     pcts={}
     for subset,partialVariance in self.sdx.items():
+      if subset == (): continue
       pcts[subset]=self.sdx[subset]/sumVar
       tot+=pcts[subset]
     #DEBUG
     self.raiseADebug('percent sensitivities')
     self.raiseADebug('  ANOVA summed variance:',sumVar)
     self.raiseADebug('  Subset, Partial Variance, Percent Variance:')
-    for subset,sens in self.sdx.items():
-      self.raiseADebug('   ',subset,sens,pcts[subset])
+    for subset,sens in pcts.items():
+      self.raiseADebug('   ',subset,self.sdx[subset],sens)
     self.raiseADebug('  total percent variance  :',tot)
     #END DEBUG
-    if returnTotal: return pcts,tot,variance
+    if returnTotal: return pcts,tot,sumVar
     else: return pcts
 
 #
