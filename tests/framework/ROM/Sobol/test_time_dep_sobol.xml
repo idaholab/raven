@@ -2,7 +2,7 @@
 <Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>SobolTime</WorkingDir>
-    <Sequence>sample,train,test,print</Sequence>
+    <Sequence>sample,train,print</Sequence>
     <batchSize>1</batchSize>
     <internalParallel>True</internalParallel>
   </RunInfo>
@@ -18,17 +18,9 @@
       <Sampler class="Samplers" type="SparseGridCollocation">samp</Sampler>
       <Output class="DataObjects" type="HistorySet">trainset</Output>
     </MultiRun>
-    <MultiRun name="test">
-      <Input class="DataObjects" type="Point">dummyIN</Input>
-      <Model class="Models" type="ROM">rom</Model>
-      <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
-      <Output class="DataObjects" type="HistorySet">testset</Output>
-    </MultiRun>
     <IOStep name="print">
-      <Input class="DataObjects" type="HistorySet">testset</Input>
       <Input class="DataObjects" type="HistorySet">trainset</Input>
       <Input class="Models" type="ROM">rom</Input>
-      <Output class="OutStreamManager" type="Print">test_data</Output>
       <Output class="OutStreamManager" type="Print">train_data</Output>
       <Output class="OutStreamManager" type="Print">trom_dump</Output>
     </IOStep>
@@ -86,10 +78,6 @@
       <type>csv</type>
       <source>trainset</source>
     </Print>
-    <Print name="test_data">
-      <type>csv</type>
-      <source>testset</source>
-    </Print>
     <Print name="trom_dump">
       <type>xml</type>
       <source>rom</source>
@@ -103,10 +91,6 @@
       <Output>OutputPlaceHolder</Output>
     </Point>
     <HistorySet name="trainset">
-      <Input>x0,y0,z0</Input>
-      <Output>time,x,y,z</Output>
-    </HistorySet>
-    <HistorySet name="testset">
       <Input>x0,y0,z0</Input>
       <Output>time,x,y,z</Output>
     </HistorySet>
