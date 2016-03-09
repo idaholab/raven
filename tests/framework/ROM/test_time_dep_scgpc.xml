@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <RunInfo>
-    <WorkingDir>TimeDepSobol</WorkingDir>
+    <WorkingDir>scgpc</WorkingDir>
     <Sequence>sample,train,test,print</Sequence>
     <batchSize>1</batchSize>
     <internalParallel>True</internalParallel>
@@ -24,10 +24,6 @@
       <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
       <Output class="DataObjects" type="HistorySet">testset</Output>
     </MultiRun>
-    <RomTrainer name="train">
-      <Input class="DataObjects" type="HistorySet">trainset</Input>
-      <Output class="Models" type="ROM">rom</Output>
-    </RomTrainer>
     <IOStep name="print">
       <Input class="DataObjects" type="HistorySet">testset</Input>
       <Input class="DataObjects" type="HistorySet">trainset</Input>
@@ -36,14 +32,17 @@
       <Output class="OutStreamManager" type="Print">train_data</Output>
       <Output class="OutStreamManager" type="Print">trom_dump</Output>
     </IOStep>
+    <RomTrainer name="train">
+      <Input class="DataObjects" type="HistorySet">trainset</Input>
+      <Output class="Models" type="ROM">rom</Output>
+    </RomTrainer>
   </Steps>
 
   <Models>
-    <ExternalModel ModuleToLoad="externalModel/lorentzAttractor" name="lorentz" subType="">
+    <ExternalModel ModuleToLoad="../externalModel/lorentzAttractor" name="lorentz" subType="">
       <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0</variables>
     </ExternalModel>
-    <ROM name="rom" subType="HDMRRom">
-      <SobolOrder>2</SobolOrder>
+    <ROM name="rom" subType="GaussPolynomialRom">
       <Features>x0,y0,z0</Features>
       <Target>time,x,y,z</Target>
       <IndexSet>TotalDegree</IndexSet>
@@ -82,7 +81,7 @@
         <initialSeed>42</initialSeed>
       </samplerInit>
     </MonteCarlo>
-    <Sobol name="samp">
+    <SparseGridCollocation name="samp">
       <variable name="x0">
         <distribution>x0_distrib</distribution>
       </variable>
@@ -93,7 +92,7 @@
         <distribution>z0_distrib</distribution>
       </variable>
       <ROM class="Models" type="ROM">rom</ROM>
-    </Sobol>
+    </SparseGridCollocation>
   </Samplers>
 
   <OutStreamManager>

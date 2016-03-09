@@ -141,7 +141,6 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     """
     if type(tdict) != dict: self.raiseAnError(TypeError,'In method "train", the training set needs to be provided through a dictionary. Type of the in-object is ' + str(type(tdict)))
     names, values  = list(tdict.keys()), list(tdict.values())
-    print('DEBUGGG names:',names)
     if self.target in names: targetValues = values[names.index(self.target)]
     else                   : self.raiseAnError(IOError,'The output sought '+self.target+' is not in the training set')
     # check if the targetValues are consistent with the expected structure
