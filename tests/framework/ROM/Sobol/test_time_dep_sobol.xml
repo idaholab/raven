@@ -24,10 +24,6 @@
       <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
       <Output class="DataObjects" type="HistorySet">testset</Output>
     </MultiRun>
-    <RomTrainer name="train">
-      <Input class="DataObjects" type="HistorySet">trainset</Input>
-      <Output class="Models" type="ROM">rom</Output>
-    </RomTrainer>
     <IOStep name="print">
       <Input class="DataObjects" type="HistorySet">testset</Input>
       <Input class="DataObjects" type="HistorySet">trainset</Input>
@@ -36,6 +32,10 @@
       <Output class="OutStreamManager" type="Print">train_data</Output>
       <Output class="OutStreamManager" type="Print">trom_dump</Output>
     </IOStep>
+    <RomTrainer name="train">
+      <Input class="DataObjects" type="HistorySet">trainset</Input>
+      <Output class="Models" type="ROM">rom</Output>
+    </RomTrainer>
   </Steps>
 
   <Models>
@@ -67,21 +67,6 @@
   </Distributions>
 
   <Samplers>
-    <MonteCarlo name="mc">
-      <variable name="x0">
-        <distribution>x0_distrib</distribution>
-      </variable>
-      <variable name="y0">
-        <distribution>y0_distrib</distribution>
-      </variable>
-      <variable name="z0">
-        <distribution>z0_distrib</distribution>
-      </variable>
-      <samplerInit>
-        <limit>5</limit>
-        <initialSeed>42</initialSeed>
-      </samplerInit>
-    </MonteCarlo>
     <Sobol name="samp">
       <variable name="x0">
         <distribution>x0_distrib</distribution>

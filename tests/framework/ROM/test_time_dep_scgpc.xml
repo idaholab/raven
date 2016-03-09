@@ -66,21 +66,6 @@
   </Distributions>
 
   <Samplers>
-    <MonteCarlo name="mc">
-      <variable name="x0">
-        <distribution>x0_distrib</distribution>
-      </variable>
-      <variable name="y0">
-        <distribution>y0_distrib</distribution>
-      </variable>
-      <variable name="z0">
-        <distribution>z0_distrib</distribution>
-      </variable>
-      <samplerInit>
-        <limit>5</limit>
-        <initialSeed>42</initialSeed>
-      </samplerInit>
-    </MonteCarlo>
     <SparseGridCollocation name="samp">
       <variable name="x0">
         <distribution>x0_distrib</distribution>
