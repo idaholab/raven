@@ -41,7 +41,7 @@
     # dumprom is analytic, but does not converge well on the true solution until at least poly order 4
     UnorderedXml = 'SobolGFunc/dumprom.xml'
     # csv is consistency test
-    csv = 'SobolGFunc/dump.csv'
+    UnorderedCsv = 'SobolGFunc/dump.csv'
   [../]
 
   # adaptive tests
