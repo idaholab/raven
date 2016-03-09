@@ -50,7 +50,7 @@
       <variable name="y5">
         <distribution dim="5">MVNDist</distribution>
       </variable>
-      <variablesTransformation model="polynomial">
+      <variablesTransformation distribution="MVNDist">
         <latentVariables>y1,y2,y3,y4,y5</latentVariables>
         <manifestVariables>x1,x2,x3,x4,x5</manifestVariables>
         <method>pca</method>
