@@ -478,6 +478,7 @@
    type = 'RavenFramework'
    input = 'test_calc_and_transfer.xml'
    csv = 'calc_and_transfer/output_RawPointSet_outputs_out1_ROM1PointSet_outputs_out1_0.csv calc_and_transfer/output_RawPointSet_outputs_out1_ROM1PointSet_outputs_out1_1.csv calc_and_transfer/output_RawPointSet_outputs_out2_ROM1PointSet_outputs_out2_0.csv calc_and_transfer/output_RawPointSet_outputs_out2_ROM1PointSet_outputs_out2_1.csv calc_and_transfer/PrintROM1PointSet.csv calc_and_transfer/PrintRawPointSet.csv'
+   rel_err = 0.001
   [../]
  [./SimulationTags]
   # this just tests that there aren't errors on the Simulation tags, no expected output.
