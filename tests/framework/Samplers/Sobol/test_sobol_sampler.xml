@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation>
   <RunInfo>
-    <WorkingDir>Sobol</WorkingDir>
+    <WorkingDir>Sample</WorkingDir>
     <Sequence>make,print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
