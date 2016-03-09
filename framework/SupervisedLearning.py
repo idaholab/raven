@@ -116,7 +116,20 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
   #   self.printTag           = newState.pop('printTag'          )
 
   def initialize(self,idict):
-    pass #Overloaded by (at least) GaussPolynomialRom
+    """Initializes the instance.  Overload as needed.
+    @ In, idict, dict of objects needed to initalize
+    @ Out, None
+    """
+    pass
+
+  def getInitializeDict(self):
+    """
+    Returns a copy of the dictionary necessary to initialize a copy of this ROM.
+    Overload as needed.
+    @ In, None
+    @ Out, dict, initialize dict
+    """
+    return {}
 
   def train(self,tdict):
     """
@@ -128,6 +141,7 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     """
     if type(tdict) != dict: self.raiseAnError(TypeError,'In method "train", the training set needs to be provided through a dictionary. Type of the in-object is ' + str(type(tdict)))
     names, values  = list(tdict.keys()), list(tdict.values())
+    print('DEBUGGG names:',names)
     if self.target in names: targetValues = values[names.index(self.target)]
     else                   : self.raiseAnError(IOError,'The output sought '+self.target+' is not in the training set')
     # check if the targetValues are consistent with the expected structure
@@ -475,6 +489,9 @@ class GaussPolynomialRom(superVisedLearning):
       Adds requested entries to XML node.
       @ In, node, XML node to which entries will be added
       @ In, options, dict (optional), list of requests and options
+      May include:
+        'what': comma-separated string list, the qualities to print out
+        'time': the time stamp for this printout
       @ Out, None
     """
     if not self.amITrained: self.raiseAnError(RuntimeError,'ROM is not yet trained!')
@@ -483,32 +500,35 @@ class GaussPolynomialRom(superVisedLearning):
     if 'what' in options.keys():
       requests = list(o.strip() for o in options['what'].split(','))
       if 'all' in requests: requests = canDo
+      if 'timeStep' in options.keys(): requests = ['timeStep'] + requests
       for request in requests:
         request=request.strip()
-        newnode = TreeStructure.Node(request)
-        if   request.lower() in ['mean','expectedvalue']:
+        newNode = TreeStructure.Node(request)
+        if   request.lower() in ['timestep']:
+          newNode.setText(options['timeStep'])
+        elif request.lower() in ['mean','expectedvalue']:
           if self.mean == None: self.mean = self.__evaluateMoment__(1)
-          newnode.setText(self.mean)
+          newNode.setText(self.mean)
         elif request.lower() in ['variance']:
           if self.mean == None: self.mean = self.__evaluateMoment__(1)
-          newnode.setText(self.__evaluateMoment__(2) - self.mean*self.mean)
+          newNode.setText(self.__evaluateMoment__(2) - self.mean*self.mean)
         elif request.lower() in ['numruns']:
-          if self.numRuns!=None: newnode.setText(self.numRuns)
-          else: newnode.setText(len(self.sparseGrid))
+          if self.numRuns!=None: newNode.setText(self.numRuns)
+          else: newNode.setText(len(self.sparseGrid))
         elif request.lower() in ['polycoeffs']:
-          vnode = TreeStructure.Node('inputVariables')
-          vnode.text = ','.join(self.features)
-          newnode.appendBranch(vnode)
+          vNode = TreeStructure.Node('inputVariables')
+          vNode.text = ','.join(self.features)
+          newNode.appendBranch(vNode)
           keys = self.polyCoeffDict.keys()
           keys.sort()
           for key in keys:
-            cnode = TreeStructure.Node('_'+'_'.join(str(k) for k in key)+'_')
-            cnode.setText(self.polyCoeffDict[key])
-            newnode.appendBranch(cnode)
+            cNode = TreeStructure.Node('_'+'_'.join(str(k) for k in key)+'_')
+            cNode.setText(self.polyCoeffDict[key])
+            newNode.appendBranch(cNode)
         else:
           self.raiseAWarning('ROM does not know how to return '+request)
-          newnode.setText('not found')
-        node.appendBranch(newnode)
+          newNode.setText('not found')
+        node.appendBranch(newNode)
 
   def _localNormalizeData(self,values,names,feat):
     """Overwrites default normalization procedure.
@@ -525,6 +545,23 @@ class GaussPolynomialRom(superVisedLearning):
     @ Out, dictionary of interpolation information
     """
     return dict(self.itpDict)
+
+  def getInitializeDict(self):
+    """
+    Returns a copy of the dictionary necessary to initialize a copy of this ROM.
+    @ In, None
+    @ Out, dict, initialize dict
+    """
+    if not self.initialized:
+      self.raiseAnError(RuntimeError,'Attempted to build initialize dict, but rom not yet initialized!')
+    iDict = {}
+    iDict['SG'     ] = self.sparseGrid
+    iDict['dists'  ] = self.distDict
+    iDict['quads'  ] = self.quads
+    iDict['polys'  ] = self.polys
+    iDict['iSet'   ] = self.indexSet
+    iDict['numRuns'] = self.numRuns
+    return iDict
 
   def initialize(self,idict):
     """Initializes the instance.
@@ -742,6 +779,9 @@ class HDMRRom(GaussPolynomialRom):
       Adds requested entries to XML node.
       @ In, node, XML node to which entries will be added
       @ In, options, dict (optional), list of requests and options
+      May include:
+        'what': comma-separated string list, the qualities to print out
+        'time': the time stamp for this printout
       @ Out, None
     """
     if not self.amITrained: self.raiseAnError(RuntimeError,'ROM is not yet trained!')
@@ -750,10 +790,13 @@ class HDMRRom(GaussPolynomialRom):
     if 'what' in options.keys():
       requests = list(o.strip() for o in options['what'].split(','))
       if 'all' in requests: requests = canDo
+      if 'timeStep' in options.keys(): requests = ['timeStep'] + requests
       for request in requests:
         request=request.strip()
         newNode = TreeStructure.Node(request)
-        if request.lower() in ['mean','expectedvalue']: newNode.setText(self.__mean__())
+        if request.lower() in ['timestep']:
+          newNode.setText(options['timeStep'])
+        elif request.lower() in ['mean','expectedvalue']: newNode.setText(self.__mean__())
         elif request.lower() in ['variance']:
           newNode.setText(self.__variance__())
           newNode.name = 'variance'
@@ -801,6 +844,7 @@ class HDMRRom(GaussPolynomialRom):
           self.raiseAWarning('ROM does not know how to return '+request)
           newNode.setText('not found')
         node.appendBranch(newNode)
+
 
   def initialize(self,idict):
     """Initializes the instance.

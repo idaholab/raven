@@ -414,16 +414,32 @@ class ROM(Dummy):
   def _localBuildPrintTree(self,options=None):
     node = TreeStructure.Node('ReducedOrderModel')
     tree = TreeStructure.NodeTree(node)
-    #tree._setrootnode(node)
     if 'target' in options.keys():
       targets = options['target'].split(',')
     else:
       targets = 'all'
+    if type(self.SupervisedEngine) == list: timeDep = True
+    elif type(self.SupervisedEngine) == dict: timeDep = False
+    else:
+      self.raiseAnError(RuntimeError,'Unrecognized structure for self.SupervisedEngine:',type(self.SupervisedEnging))
     if 'all' in targets:
-      targets = list(key for key in self.SupervisedEngine.keys())
-    for key,target in self.SupervisedEngine.items():
-      if key in targets:
-        target.printXML(node,options)
+      #case: time-dependent
+      if timeDep:
+        targets = list(key for key in self.SupervisedEngine[0].keys())
+        for s,step in enumerate(self.SupervisedEngine):
+          #get the time step
+          timeStep = range(self.numberOfTimeStep)[s]
+          options['timeStep'] = timeStep
+          for key,target in step.items():
+            if key == 'time': continue
+            if key in targets:
+              target.printXML(node,options)
+      #case: not time-dependent
+      else:
+        targets = list(key for key in self.SupervisedEngine.keys())
+        for key,target in self.SupervisedEngine.items():
+          if key in targets:
+            target.printXML(node,options)
     return tree
 
   def reset(self):
@@ -463,6 +479,10 @@ class ROM(Dummy):
       self.SupervisedEngine         = copy.deepcopy(trainingSet.SupervisedEngine)
     else:
       if 'HistorySet' in type(trainingSet).__name__:
+        #get initialization dictionary before wiping engines
+        initializeDicts = {}
+        for target, SVL in self.SupervisedEngine.items():
+          initializeDicts[target] = SVL.getInitializeDict()
         self.SupervisedEngine = []
         outKeys = trainingSet.getParaKeys('outputs')
         targets = self.initializationOptionDict['Target'].split(',')
@@ -483,7 +503,10 @@ class ROM(Dummy):
           for target in targets:
             tempinitializationOptionDict['Target'] = target
             newRom[target] =  SupervisedLearning.returnInstance(self.subType,self,**tempinitializationOptionDict)
-          for instrom in newRom.values():
+          for target,instrom in newRom.items():
+            # initialize the ROM
+            instrom.initialize(initializeDicts[target])
+            # train the ROM
             instrom.train(self.trainingSet[ts])
             self.amITrained = self.amITrained and instrom.amITrained
           self.SupervisedEngine.append(newRom)
