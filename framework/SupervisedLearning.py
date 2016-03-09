@@ -989,13 +989,16 @@ class HDMRRom(GaussPolynomialRom):
     # P_i(s) are orthonormal polynomials of order i with argument s
     # gPC would be given as sum_k c_k P_i(x) P_j(y) with k=(i,j)
     # int( f(x) ) dx indicated integrating f(x) w.r.t. x weighted by the appropriate PDF so that int( 1 ) dx = 1
+    debug = True
     for term,mult in termDict.items():
       wrt = set(set(self.features) - set(subset))
       varInWRT = set(term) & wrt
+      if debug: self.raiseADebug('Integrating',term,'wrt',wrt)
       ### CASE integrating with respect to all of elements in term
       #     for example, int( sum_k c_k P_i(x) P_j(y) ) dx dy = c_(0,0)
       if len(varInWRT) == len(term): #all variables in "term" are integration variables
         storeDict['values'] += self._evaluateIntegral(term)*mult
+        if debug: self.raiseADebug('  Expected Value Case:',self._evaluateIntegral(term))
       else:
         for termPoly,coeff in self.ROMs[term].polyCoeffDict.items():
           ### CASE coeff is nearly zero, leave it out
@@ -1008,7 +1011,9 @@ class HDMRRom(GaussPolynomialRom):
             if termPoly[idxInRom] > 0:
               foundNonzeroIntegrated = True
               break
-          if foundNonzeroIntegrated: continue
+          if foundNonzeroIntegrated:
+            if debug: self.raiseADebug('  Nonzero Poly Being Integrated!')
+            break
           ### CASE all the non-zero-order polynomials are with respect to non-integration variables
           #     then after integrating, we have the non-integration polys as a function
           #     for example, int( sum_k c_k P_i(x) P_0(y) ) dy = c_k P_i(x) for every i
@@ -1016,6 +1021,7 @@ class HDMRRom(GaussPolynomialRom):
           if term not in storeDict['functionals'].keys():
             storeDict['functionals'][term] = []
           storeDict['functionals'][term].append( coeff*mult )
+          if debug: self.raiseADebug('  Adding functional coeff term:',coeff)
 
   def _removeZeroTerms(self,d):
     """
