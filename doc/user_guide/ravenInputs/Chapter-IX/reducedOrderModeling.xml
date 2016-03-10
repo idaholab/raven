@@ -2,7 +2,11 @@
 <Simulation verbosity="debug">
   <RunInfo>
     <JobName>ROMConstruction</JobName>
-    <Sequence>sample,trainROMGaussianProcess,trainROMsvm,trainROMinverse,sampleROMGaussianProcess,sampleROMInverse,sampleROMsvm,writeHistories</Sequence>
+    <Sequence>
+        sample,trainROMGaussianProcess,trainROMsvm,
+        trainROMinverse,sampleROMGaussianProcess,
+        sampleROMInverse,sampleROMsvm,writeHistories
+    </Sequence>
     <WorkingDir>ROMConstruction</WorkingDir>
     <batchSize>12</batchSize>
   </RunInfo>
@@ -24,7 +28,7 @@
       <Target>A,B</Target>
       <SKLtype>GaussianProcess|GaussianProcess</SKLtype>
       <regr>quadratic</regr>
-      
+      <theta0>10</theta0>
     </ROM>
     <ROM name="ROMsvm" subType="SciKitLearn">
       <Features>sigma-A,sigma-B,decay-A,decay-B</Features>
@@ -112,18 +116,18 @@
       <Output class="Models" type="ROM">ROMinverse</Output>
     </RomTrainer>
     <IOStep name="writeHistories" pauseAtEnd="True">
-        <Input class="DataObjects" type="HistorySet">histories</Input>
-        <Input class="DataObjects" type="PointSet">samples</Input>
-        <Input class="DataObjects" type="PointSet">samplesGP</Input>
-        <Input class="DataObjects" type="PointSet">samplesInverse</Input>
-        <Input class="DataObjects" type="PointSet">samplesSVM</Input>
-        <Output 	class="OutStreamManager" type="Plot">samplesPlot3D</Output>
-        <Output 	class="OutStreamManager" type="Plot">samplesPlot3DROMgp</Output>
-        <Output 	class="OutStreamManager" type="Plot">samplesPlot3DROMsvm</Output>
-        <Output 	class="OutStreamManager" type="Plot">samplesPlot3DROMinverse</Output>
-        <Output 	class="OutStreamManager" type="Plot">historyPlot</Output>
-        <Output 	class="OutStreamManager" type="Print">samples</Output>
-        <Output 	class="OutStreamManager" type="Print">histories</Output>
+        <Input  class="DataObjects"      type="HistorySet">histories</Input>
+        <Input  class="DataObjects"      type="PointSet">samples</Input>
+        <Input  class="DataObjects"      type="PointSet">samplesGP</Input>
+        <Input  class="DataObjects"      type="PointSet">samplesInverse</Input>
+        <Input  class="DataObjects"      type="PointSet">samplesSVM</Input>
+        <Output class="OutStreamManager" type="Plot">samplesPlot3D</Output>
+        <Output class="OutStreamManager" type="Plot">samplesPlot3DROMgp</Output>
+        <Output class="OutStreamManager" type="Plot">samplesPlot3DROMsvm</Output>
+        <Output class="OutStreamManager" type="Plot">samplesPlot3DROMinverse</Output>
+        <Output class="OutStreamManager" type="Plot">historyPlot</Output>
+        <Output class="OutStreamManager" type="Print">samples</Output>
+        <Output class="OutStreamManager" type="Print">histories</Output>
     </IOStep>
   </Steps>
 

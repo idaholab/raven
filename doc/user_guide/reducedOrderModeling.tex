@@ -32,7 +32,6 @@ such as:
 In this section only few of them are going to be analyzed, explaining the theory behind it
 by way of applied RAVEN examples.
 
-
 As briefly and previously mentioned, a ROM, also called a surrogate 
 model, is a mathematical representation of a system, used to predict 
 a selected FOM of a physical system.
@@ -61,6 +60,8 @@ the large number of ROM types available;
   respect to the variability of the system response, the more likely the 
   ROM is able to represent the system response space.
 \end{enumerate}
+
+\subsection{Reduced Order Model theory}
 
 To provide a very simple idea of a ROM, assume that the final 
 response space of a physical system is governed by the transfer 
@@ -133,7 +134,7 @@ data, without any dependencies on a particular prediction model.
 \\These algorithms directly build a neighborhood structure as the 
 ROM (e.g., a relaxed Gabriel graph) on the initial training data. Examples of such ROM type are nearest neighbors and decision trees.
 
-\subsection{Gaussian Process Models}
+\subsubsection{Gaussian Process Models}
 \label{sec:GPM}
 Gaussian processes (GPs)~\cite{Rasmussen_GPM} are algorithms that extend multivariate Gaussian distributions to infinite dimensionality. A Gaussian process generates a data set located throughout some domain such that any finite subset of the range follows a multivariate Gaussian distribution. Now, the n observations in an arbitrary data set, $y={y_1,\ldots,y_n}$, can always be imagined as a single point sampled from some multivariate ($n$-variate) Gaussian distribution.
 What relates one observation to another in such cases is just the covariance function, $k(x,x')$. A popular choice is the squared exponential:
@@ -189,7 +190,7 @@ var(y_*)=K_{**}-k_* K^{-1} K_{*}^{T}
 \end{equation}
 \end{enumerate}
 
-\subsection{Support Vector Machines}
+\subsubsection{Support Vector Machines}
 \label{sec:SVM}
 The Support Vector Machine~\cite{SVM_Burges} classifier is a methodology that aims to determine the optimal separation hyperplane between data sets having different labels.
 The training data consist of $N$ data points $(x_i,y_i)$ $i=1,\ldots,N$ where $x_i \in \mathbb{R}^M$ and $y_i \in {-1,1}$.
@@ -213,7 +214,7 @@ G(\bar{x})=sign(\bar{x}^T\beta+\beta_0)
 \end{equation}
 
 
-\subsection{KNN Classifier and KNR Regressor}
+\subsubsection{KNN Classifier and KNR Regressor}
 \label{sec:KNN_KNR}
 The K Nearest Neighbor algorithm~\cite{altman_KNN} (KNN) is a non-parametric method used for both regression and classification. The only input parameter is the variable $K$ which indicates the number of neighbors to be considered in the classification/regression process. The special case where the class is predicted to be the class of the closest training sample (i.e. when $K = 1$) is called the nearest neighbor algorithm. In binary (two class) classification problems, it is helpful to choose k to be an odd number as this avoids tied votes. The output depends on whether KNN is used for classification or regression:
 \begin{itemize}
@@ -222,14 +223,11 @@ The K Nearest Neighbor algorithm~\cite{altman_KNN} (KNN) is a non-parametric met
 \end{itemize}
 Both for classification and regression, it can be useful to assign weight to the contributions of the neighbors, so that the nearer neighbors contribute more to the average than the more distant ones. For example, a common weighting scheme consists in giving each neighbor a weight of $1/d$, where $d$ is the distance to the neighbor.
 
-
-
-\section{Multi-Dimensional Interpolation}
-\label{sec:MD_interp}
-
+\subsubsection{Multi-Dimensional Interpolation}
+\label{sec:ND_interp}
 This section covers the methods that have been implemented in the CROW statistical library:
 \begin{itemize}
-\item Sheppard Method (see Section~\ref{sec:sheppard})
+\item Shepard's Method (see Section~\ref{sec:sheppard})
 \item Multi-Dimensional Spline method (see Section~\ref{sec:ND_spline})
 \end{itemize}
 
@@ -242,7 +240,7 @@ In RAVEN they are employed in two major applications:
 For both applications, given a set of $N$ data points $ (x_i,u_i )$  $i=1,\ldots,N$ where $x_i$ are the coordinate in the input space $D \subset \mathbb{R}^M$ and $u_i \in \mathbb{R}$ is the outcome, the methods predicts the outcome $\tilde{u}$ for a new coordinate $\tilde{x}\in \mathbb{R}^n$.
 
 
-\subsection{Shepard Method}
+\paragraph{Shepard's Method}
 \label{sec:shepard}
 The Shepard interpolator~\cite{Shepard} isalso know as Inverse Distance Weighting (IDW) interpolator. 
 The starting point is a set of $N$ data points $ (x_i,u_i )$ for $i=1,\ldots,N$. 
@@ -271,7 +269,7 @@ w_i = \left ( \frac{1}{d(x,x_i)} \right )^p
 \end{equation}
 Large values of $p$ assign greater weight $w_i$ to data points $x_i$ closest to $x$, with the result turning into a mosaic of tiles (i.e., Voronoi diagram) with nearly constant interpolated value.
 
-\subsection{Multi-Dimensional Spline}
+\paragraph{Multi-Dimensional Spline}
 \label{sec:ND_spline}
 The Multi-Dimensional Spline (MDS)~\cite{MD_spline} is a method which requires the sampled points $x_i$ to be lying in multi-dimensional cartesian grid.
 A generic grid $\Delta_m$ for each dimension $m$ will be indicated as follows:
@@ -302,205 +300,183 @@ The cubic kernel $\Phi(t)$ is defined as:
 
 The set of $\prod_{m=1}^{M}(p_m+3)$ coefficients $c_{i_1,i_2,\ldots,i_p}$  is determined when the interpolator is initialized.
 
-
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%  Limit Surface Search %%%%%%%% 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Limit Surface Search Method}
-\label{sub:LS}
-sssssss
-
-
 %%%%%%%%%%%%%%%%
-\subsubsection{Limit Surface Search sampling through RAVEN}
-\label{subsub:LSsamplingExample}
+\subsection{Reduced Order Modeling through RAVEN}
+\label{subsub:ROMraven}
 The goals of this section are about learning how to:
  \begin{enumerate}
-   \item Set up a Limit Surface Search sampling for efficiently perturb a driven code;
-   \item Use the Limit Surface Integral Post-processor for computing the probability of failure of the system subject to the same 
-   ``goal'' function;
-   \item Plot the obtained Limit Surface.
+   \item Set up a sampling strategy to construct multiple ROMs, perturbing a driven code;
+   \item Train the different ROMs with the data-set obtained by the applied sampling strategy; 
+   \item Use the same sampling strategy, perturbing the ROMs;
+   \item Plot the responses of the driven code and ROMs, respectively.
 \end{enumerate}  
 In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in the input files) need to be defined:
 \begin{enumerate}
    \item \textbf{\textit{RunInfo}}:
 \begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
   <RunInfo>
-    <JobName>LSsearch</JobName>
+    <JobName>Chapter-IX/ROMConstruction</JobName>
     <Sequence>
-      sample,computeLSintegral,writeHistories
+        sample,trainROMGaussianProcess,trainROMsvm,
+        trainROMinverse,sampleROMGaussianProcess,
+        sampleROMInverse,sampleROMsvm,writeHistories
     </Sequence>
-    <WorkingDir>LSsearch</WorkingDir>
-    <batchSize>8</batchSize>
+    <WorkingDir>ROMConstruction</WorkingDir>
+    <batchSize>12</batchSize>
   </RunInfo>
-\end{lstlisting}   
-   As reported in section~\ref{sub:EntitiesAndFlow}, the \textit{RunInfo} \textbf{Entity} is intended to set up the analysis 
-   that the user wants to perform. In this specific case, three steps (\xmlNode{Sequence}) are going to be sequentially run 
+\end{lstlisting}
+   As in the other examples, the the \textit{RunInfo} \textbf{Entity} is intended  to set up the analysis sequence that
+   needs to be performed. In this specific case, eight steps  (\xmlNode{Sequence}) are going to be sequentially run 
    using 8 processors (\xmlNode{batchSize}). 
+   \\In the first step, the original physical model is going to be sampled. The obtained results are going to be used to
+   train 3 different ROMs.These ROMs are sampled by the same strategy used in the first step in order to compare the
+   ROMs' responses with the ones coming from the original physical model.
    \item \textbf{\textit{Files}}:
 \begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
   <Files>
     <Input name="referenceInput.xml" type="input">referenceInput.xml</Input>
-    <Input name="LSintegral.csv" type="">LSintegral.csv</Input>
   </Files>
 \end{lstlisting}
    Since the driven code uses a single input file, in this section the original input is placed. As detailed in the user manual
    the attribute  \xmlAttr{name} represents the alias that is going to be 
    used in all the other input blocks in order to refer to this file. 
-   \\In addition the output file used in \xmlNode{Sequence} 
-   \textit{computeLSintegral} is here inputted.
    \item \textbf{\textit{Models}}:
 \begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
   <Models>
     <Code name="testModel" subType="GenericCode">
       <executable>
-      ../physicalCode/analyticalbateman/AnalyticalDplMain.py
+       ../physicalCode/analyticalbateman/AnalyticalDplMain.py
       </executable>
       <clargs arg="python" type="prepend"/>
       <clargs arg="" extension=".xml" type="input"/>
       <clargs arg="" extension=".csv" type="output"/>
       <prepend>python</prepend>
     </Code>
-    <ROM name="AccelerationROM" subType="SciKitLearn">
-      <Features>sigma-A,decay-A</Features>
-      <Target>goalFunction</Target>
-      <SKLtype>neighbors|KNeighborsClassifier</SKLtype>
-      <n_neighbors>1</n_neighbors>
+    <ROM name="ROMGaussianProcess" subType="SciKitLearn">
+      <Features>sigma-A,sigma-B,decay-A,decay-B</Features>
+      <Target>A,B</Target>
+      <SKLtype>GaussianProcess|GaussianProcess</SKLtype>
+      <regr>quadratic</regr>
+      <theta0>10</theta0>
     </ROM>
-    <PostProcessor name="integralLS" subType="LimitSurfaceIntegral">
-      <tolerance>0.001</tolerance>
-      <integralType>MonteCarlo</integralType>
-      <seed>20021986</seed>
-      <target>goalFunction</target>
-      <variable name="sigma-A">
-        <distribution>sigmaA</distribution>
-      </variable>
-      <variable name="decay-A">
-        <distribution>decayConstantA</distribution>
-      </variable>
-    </PostProcessor>
+    <ROM name="ROMsvm" subType="SciKitLearn">
+      <Features>sigma-A,sigma-B,decay-A,decay-B</Features>
+      <Target>A,B</Target>
+      <SKLtype>svm|SVR</SKLtype>
+      <kernel>rbf</kernel>
+      <C>50.0</C>
+      <tol>0.000001</tol>
+    </ROM>
+    <ROM name="ROMinverse" subType="NDinvDistWeight">
+      <Features>sigma-A,sigma-B,decay-A,decay-B</Features>
+      <Target>A,B</Target>
+      <p>3</p>
+    </ROM>
   </Models>
 \end{lstlisting}
  As mentioned above, the goal of this example is the employment of 
- an efficient sampling strategy, having as goal the determination of the
- failure of a system.
+ a sampling strategy in order to construct multiple types of Reduced Order Models. 
  \\Indeed, in addition to the previously explained Code 
  model,
- the ROM of type \textit{SciKitLearn} is here specified. The ROM will be
- used in the adaptive sampling strategy \textit{LimitSurfaceSearch} in
- order to accelerate the convergence of the method. As it can be seen,
- a nearest neighbor classifier is used, targeting only two uncertainties 
- $sigma-A and decay-A$.
- \\ For the computation of the probability of failure (see the following), a 
- Post-Processor (PP) of type \textit{LimitSurfaceIntegral} is here 
- specified.This PP is aimed to perform an integral of the Limit Surface 
- generated by the adaptive sampling technique. 
+ 3 different ROMs (Guassian Process, Support Vector Machine and Inverse Distance Weight) are here specified. The ROMs will be
+ constructed (``trained'') through the data-set generated by the sampling of the physical model. Once trained, they are going
+ to be used in place of the original physical model. 
+ \\As it can be seen,
+ the ROMs will be constructed considering four features ($sigma-A,\,sigma-B,\, decay-A \, and \, decay-B$) and two targets 
+ ($A \, and \, B$).
    \item \textbf{\textit{Distributions}}:
 \begin{lstlisting}[style=XML]
   <Distributions>
-      <Uniform name="sigmaA">
+      <Uniform name="sigma">
           <lowerBound>0</lowerBound>
           <upperBound>1000</upperBound>
       </Uniform>
-      <Uniform name="decayConstantA">
+      <Uniform name="decayConstant">
           <lowerBound>0.00000001</lowerBound>
           <upperBound>0.0000001</upperBound>
       </Uniform>
   </Distributions>
 \end{lstlisting}
   In the Distributions XML section, the stochastic model for the 
-  uncertainties  treated by the LS search sampling are reported. In 
+  uncertainties are reported. In 
   this case 2 distributions are defined: 
   \begin{itemize}
-    \item $sigmaA \sim \mathbb{U}(0,1000)$, used to model the uncertainty 
-    associated with  the Model \textit{sigma-A};
-    \item  $decayConstantA \sim \mathbb{U}(1e-8,1e-7)$,  used to 
-    model the uncertainty 
-    associated with  the Model \textit{decay-A}.
+    \item $sigma \sim \mathbb{U}(0,1000)$, used to model the uncertainties 
+    associated with  the Model \textit{sigma-A} and \textit{sigma-B};
+    \item  $decayConstant \sim \mathbb{U}(1e-8,1e-7)$,  used to 
+    model the uncertainties 
+    associated with  the Model \textit{decay-A} and \textit{decay-B}.
   \end{itemize}
    \item \textbf{\textit{Samplers}}:
 \begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
   <Samplers>
-    <LimitSurfaceSearch name="LSsearchSampler">
-      <ROM              class="Models"      type="ROM">AccelerationROM</ROM>
-      <Function         class="Functions"   type="External">goalFunction</Function>
-      <TargetEvaluation class="DataObjects" type="PointSet">samples</TargetEvaluation>
-      <Convergence forceIteration="False" limit="50000" persistence="20"  weight="CDF">0.00001</Convergence>
+    <Grid name="grid">
       <variable name="sigma-A">
-        <distribution>sigmaA</distribution>
+        <distribution>sigma</distribution>
+        <grid construction="equal" steps="5" type="CDF">0.01 0.99</grid>
       </variable>
       <variable name="decay-A">
-        <distribution>decayConstantA</distribution>
+        <distribution>decayConstant</distribution>
+        <grid construction="equal" steps="5" type="CDF">0.01 0.99</grid>
       </variable>
-    </LimitSurfaceSearch>
+      <variable name="sigma-B">
+          <distribution>sigma</distribution>
+          <grid construction="equal" steps="5" type="CDF">0.01 0.99</grid>
+      </variable>
+      <variable name="decay-B">
+          <distribution>decayConstant</distribution>
+          <grid construction="equal" steps="5" type="CDF">0.01 0.99</grid>
+      </variable>
+    </Grid>
   </Samplers>
 \end{lstlisting}
-  In order to employ the Limit Surface search sampling strategy, a 
-  \xmlNode{LimitSurfaceSearch} node needs to be inputted. 
-  As it can be
-  seen from above, each variable is associated to a different distribution,
-  defined in the  \xmlNode{Distributions} block.
-  In addition, the \textit{AccelerationROM}  \xmlNode{ROM} is inputted.
-  As already mentioned, this ROM (of type classifier) is used to 
-  accelerate the convergence of the Limit Surface Search method.
-  In addition, the goal function \textit{goalFunction}  and the 
-  \textit{samples} are here reported.
-  \\For this example, a convergence criterion of $1.0e-5$ is set. In 
-  order to reach such a confidence with a Monte-Carlo, millions of 
-  samples would be needed.
-   \item \textbf{\textit{Functions}}:
-\begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
- <Functions>
-   <External file="goalFunction" name="goalFunction">
-     <variable>A</variable>
-   </External>
- </Functions>
-\end{lstlisting}
- As already mentioned, the Limit Surface search sampling strategy uses
- a goal function in order to identify the regions of the uncertain space 
- that are more informative. The \textit{goalFunction} used for this 
- example is reported below. As it can be seen, if the final response $A$ 
- is $<=$ of $0.3$ , the system is considered to be in a ``safe'' condition.
-\begin{lstlisting}[language=python]
-def __residuumSign(self):
-  returnValue = 1.0
-  if self.A  <= 0.3:
-    returnValue = -1.0
-  return returnValue
-\end{lstlisting}
-
+  In order to obtained the data-set through which the ROMs are going to be
+  constructed, a \textit{Grid} sampling approach is here employed.
    \item \textbf{\textit{DataObjects}}:
 \begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
   <DataObjects>
-    <PointSet name="limitSurface">
-      <Input>sigma-A,decay-A</Input>
-      <Output>goalFunction</Output>
-    </PointSet>
     <PointSet name="samples">
-      <Input>sigma-A,decay-A</Input>
-      <Output>A,B,C,D,time</Output>
+      <Input>sigma-A,sigma-B,decay-A,decay-B</Input>
+      <Output>A,B,C,D</Output>
     </PointSet>
     <HistorySet name="histories">
-      <Input>sigma-A,decay-A</Input>
-      <Output>A,B,C,D,time</Output>
+        <Input>sigma-A,sigma-B,decay-A,decay-B</Input>
+        <Output>A,B,C,D,time</Output>
     </HistorySet>
+    <PointSet name="inputPlaceHolder">
+      <Input>sigma-A,sigma-B,decay-A,decay-B</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet> 
+    <PointSet name="samplesGP">
+      <Input>sigma-A,sigma-B,decay-A,decay-B</Input>
+      <Output>A,B</Output>
+    </PointSet>
+    <PointSet name="samplesInverse">
+      <Input>sigma-A,sigma-B,decay-A,decay-B</Input>
+      <Output>A,B</Output>
+    </PointSet>
+    <PointSet name="samplesSVM">
+      <Input>sigma-A,sigma-B,decay-A,decay-B</Input>
+      <Output>A,B</Output>
+    </PointSet>
   </DataObjects>
 \end{lstlisting}
-  Int this block, three \textit{DataObjects} are defined: 1) PointSet 
+  Int this block, six \textit{DataObjects} are defined: 1) PointSet 
   named ``samples'' used to collect the final outcomes of the code, 2) 
   HistorySet named ``histories'' in which the full time responses of the 
   variables $A,B,C,D$ are going to be stored, 3) PointSet named    
-  ``limitSurface'' used  to export the Limit Surface location (in the uncertain space) during the employment of the sampling strategy.
+  ``inputPlaceHolder'' used in the \textit{role} of \xmlNode{Input} for the ROMs sampling;
+  4) PointSet named ``samplesGP'' used to collect the final outcomes (sampling) of the Guassian Process ROM;
+  5) PointSet named ``samplesInverse'' used to collect the final outcomes (sampling) of the Inverse Distance Weight ROM;
+  6) PointSet named ``samplesSVM'' used to collect the final outcomes (sampling) of the Support Vector Machine ROM.
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  %figure samples
  \begin{figure}[h!]
   \centering
-  \includegraphics[scale=0.7]{pics/LS_pointsets.png}
-  \caption{Plot of the samples generated by the LS search sampling for variables $A,B$.}
-  \label{fig:LS_pointsets}
+  \includegraphics[scale=0.7]{pics/samplesPlot3D_scatter-scatter.png}
+  \caption{Plot of the samples generated by the Grid sampling for variables $A,B$.}
+  \label{fig:ROMgrid_pointsets}
  \end{figure}
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
@@ -508,28 +484,55 @@ def __residuumSign(self):
 \begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
   <Steps>
     <MultiRun name="sample">
-      <Input          class="Files"       type="input">referenceInput.xml</Input>
-      <Model          class="Models"      type="Code">testModel</Model>
-      <Sampler        class="Samplers"    type="LimitSurfaceSearch">LSsearchSampler</Sampler>
-      <SolutionExport class="DataObjects" type="PointSet">limitSurface</SolutionExport>
-      <Output         class="DataObjects" type="PointSet">samples</Output>
-      <Output         class="DataObjects" type="HistorySet">histories</Output>
+      <Input class="Files" type="input">referenceInput.xml</Input>
+      <Model class="Models" type="Code">testModel</Model>
+      <Sampler class="Samplers" type="Grid">grid</Sampler>
+      <Output class="DataObjects" type="PointSet">samples</Output>
+      <Output class="DataObjects" type="HistorySet">histories</Output>
     </MultiRun>
-    <PostProcess name="computeLSintegral">
-      <Input  class="DataObjects" type="PointSet"     >limitSurface</Input>
-      <Model  class="Models"      type="PostProcessor">integralLS</Model>
-      <Output class="DataObjects" type="PointSet"     >limitSurface</Output>
-      <Output class="Files"       type=""             >LSintegral.csv</Output>
-    </PostProcess>
+    <MultiRun name="sampleROMGaussianProcess">
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
+      <Model class="Models" type="ROM">ROMGaussianProcess</Model>
+      <Sampler class="Samplers" type="Grid">grid</Sampler>
+      <Output class="DataObjects" type="PointSet">samplesGP</Output>
+    </MultiRun>
+    <MultiRun name="sampleROMInverse">
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
+      <Model class="Models" type="ROM">ROMinverse</Model>
+      <Sampler class="Samplers" type="Grid">grid</Sampler>
+      <Output class="DataObjects" type="PointSet">samplesInverse</Output>
+    </MultiRun>
+    <MultiRun name="sampleROMsvm">
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
+      <Model class="Models" type="ROM">ROMsvm</Model>
+      <Sampler class="Samplers" type="Grid">grid</Sampler>
+      <Output class="DataObjects" type="PointSet">samplesSVM</Output>
+    </MultiRun>
+    <RomTrainer name="trainROMGaussianProcess">
+      <Input class="DataObjects" type="PointSet">samples</Input>
+      <Output class="Models" type="ROM">ROMGaussianProcess</Output>
+    </RomTrainer>
+    <RomTrainer name="trainROMsvm">
+      <Input class="DataObjects" type="PointSet">samples</Input>
+      <Output class="Models" type="ROM">ROMsvm</Output>
+    </RomTrainer>
+    <RomTrainer name="trainROMinverse">
+      <Input class="DataObjects" type="PointSet">samples</Input>
+      <Output class="Models" type="ROM">ROMinverse</Output>
+    </RomTrainer>
     <IOStep name="writeHistories" pauseAtEnd="True">
-      <Input  class="DataObjects"      type="HistorySet">histories</Input>
-      <Input  class="DataObjects"      type="PointSet">samples</Input>
-      <Input  class="DataObjects"      type="PointSet">limitSurface</Input>
-      <Output class="OutStreamManager" type="Plot">samplesPlot3D</Output>
-      <Output class="OutStreamManager" type="Plot">historyPlot</Output>
-      <Output class="OutStreamManager" type="Print">samples</Output>
-      <Output class="OutStreamManager" type="Plot">limitSurfacePlot</Output>
-      <Output class="OutStreamManager" type="Print">histories</Output>
+        <Input   class="DataObjects"      type="HistorySet">histories</Input>
+        <Input   class="DataObjects"      type="PointSet">samples</Input>
+        <Input   class="DataObjects"      type="PointSet">samplesGP</Input>
+        <Input   class="DataObjects"      type="PointSet">samplesInverse</Input>
+        <Input   class="DataObjects"      type="PointSet">samplesSVM</Input>
+        <Output class="OutStreamManager" type="Plot">samplesPlot3D</Output>
+        <Output class="OutStreamManager" type="Plot">samplesPlot3DROMgp</Output>
+        <Output class="OutStreamManager" type="Plot">samplesPlot3DROMsvm</Output>
+        <Output class="OutStreamManager" type="Plot">samplesPlot3DROMinverse</Output>
+        <Output class="OutStreamManager" type="Plot">historyPlot</Output>
+        <Output class="OutStreamManager" type="Print">samples</Output>
+        <Output class="OutStreamManager" type="Print">histories</Output>
     </IOStep>
   </Steps>
 \end{lstlisting}
@@ -537,50 +540,79 @@ def __residuumSign(self):
  %figure samples
  \begin{figure}[h!]
   \centering
-  \includegraphics[scale=0.7]{pics/LS_histories.png}
-  \caption{Plot of the histories generated by the LS search method for variables $A,B,C,D$.}
-  \label{fig:LS_histories}
+  \includegraphics[scale=0.7]{pics/reducedOrderModelingHistoriesPhysicalModel.png}
+  \caption{Plot of the histories generated by the Grid method for variables $A,B,C,D$.}
+  \label{fig:ROMgrid_histories}
  \end{figure}
+   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ %figure samples
+ \begin{figure}[h!]
+  \centering
+  \includegraphics[scale=0.7]{pics/samplesPlot3DROMgp_scatter-scatter.png}
+  \caption{Plot of the samples generated by the Grid sampling applied on the Gaussian Process ROM for variables $A,B$}
+  \label{fig:ROMgp_samples}
+ \end{figure}
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
    Finally, all the previously defined \textbf{Entities} can be combined in 
    the \xmlNode{Steps} block. As inferable, 
-   3 \xmlNode{Steps} have been inputted:
+   8 \xmlNode{Steps} have been inputted:
    \begin{itemize}
      \item \xmlNode{MultiRun} named ``sample'', used to run the multiple  
      instances of the driven code and 
      collect the outputs in the two \textit{DataObjects}. As it can be
      seen, the \xmlNode{Sampler} is inputted to communicate to the 
      \textit{Step} that the driven code needs to
-     be perturbed through the LS search sampling strategy;
-     \item \xmlNode{PostProcess} named ``computeLSintegral'', used to 
-     compute the probability of failure of the system based on the Limit
-     Surface generated employing the LS search strategy. This 
-     probability is computed integrating the LS with a Monte-Carlo 
-     method. 
+     be perturbed through the Grid sampling strategy;
+     \item \xmlNode{RomTrainer} named ``trainROMGaussianProcess'', used to construct (``train'')
+     the Gaussian Process ROM, based on the data-set generated in the  ``sample'' \textbf{Step};
+     \item \xmlNode{RomTrainer} named ``trainROMsvm'', used to construct (``train'')
+     the Support Vector Machine ROM, based on the data-set generated in the  ``sample'' \textbf{Step};
+     \item \xmlNode{RomTrainer} named ``trainROMinverse'', used to construct (``train'')
+     the Inverse Distance Weight ROM, based on the data-set generated in the  ``sample'' \textbf{Step};
+     \item \xmlNode{MultiRun} named ``sampleROMGaussianProcess'', used to run the multiple  
+     instances of the previously constructed Gaussian Process ROM and 
+     collect the outputs in the PointSet \textit{DataObject}. As it can be
+     seen, the same \xmlNode{Sampler} used for perturbing the original model is here used. 
+     \item \xmlNode{MultiRun} named ``sampleROMsvm'', used to run the multiple  
+     instances of the previously constructed Support Vector Machine ROM and 
+     collect the outputs in the PointSet \textit{DataObject}. As it can be
+     seen, the same \xmlNode{Sampler} used for perturbing the original model is here used.
+     \item \xmlNode{MultiRun} named ``sampleROMInverse'', used to run the multiple  
+     instances of the previously constructed Inverse Distance Weight ROM and 
+     collect the outputs in the PointSet \textit{DataObject}. As it can be
+     seen, the same \xmlNode{Sampler} used for perturbing the original model is here used.
      \item  \xmlNode{IOStep} named ``writeHistories'', used to 1) dump 
      the ``histories'' and ``samples''  \textit{DataObjects} 
-     \textbf{Entity} in a CSV file and 2) plot the data and the Limit Surface 
-     in  PNG files and on the screen.
+     \textbf{Entity} in a CSV file and 2) plot the responses of the sampling performed on the physical model, Gaussian Process ROM,
+     Support Vector Machine ROM and Inverse Distance Weight ROM in  PNG files and on the screen.
    \end{itemize}
 \end{enumerate} 
- Figure~\ref{fig:LS_histories} 
- shows the evolution of the outputs $A,B,C,D$ under uncertainties. 
- Figure~\ref{fig:LS_pointsets} shows the final responses  of $A and B$
- of the sampling employed using the driven code. 
- Figure~\ref{fig:LSplot}  shows the limit surface for this particular 
- example. Only $367$ samples were needed in order to reach the full 
- convergence.
- \\The integration of the LS determines a probability of failure of 
- $~3.45e-2$.
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- %figure samples
+
+  %figure samples
  \begin{figure}[h!]
   \centering
-  \includegraphics[scale=0.7]{pics/LimitSurfacePlot.png}
-  \caption{Limit Surface generated by the LS search method.}
-  \label{fig:LSplot}
+  \includegraphics[scale=0.7]{pics/samplesPlot3DROMsvm_scatter-scatter.png}
+  \caption{Plot of the samples generated by the Grid sampling applied on the Support Vector Machine ROM for variables $A,B$}
+  \label{fig:ROMsvm_samples}
  \end{figure}
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  %figure samples
+ \begin{figure}[h!]
+  \centering
+  \includegraphics[scale=0.7]{pics/samplesPlot3DROMinverse_scatter-scatter.png}
+  \caption{Plot of the samples generated by the Grid sampling applied on the Inverse Distance Weight ROM for variables $A,B$}
+  \label{fig:ROMinverse_samples}
+ \end{figure}
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ Figure \ref{fig:ROMgrid_histories} 
+ shows the evolution of the outputs $A,B,C,D$ under uncertainties. 
+ Figure \ref{fig:ROMgrid_pointsets} shows the final responses  of $A and B$
+ of the sampling employed using the driven code. 
+
+ Figures \ref{fig:ROMgp_samples},\ref{fig:ROMsvm_samples} and \ref{fig:ROMinverse_samples}  show the final responses  of $A and B$ of the sampling employed using the Gaussian Process, Support Vector Machines and Inverse Distance Weight ROMs, respectively. 
+It can be clearly noticed that the responses of the ROMs perfectly match the outcomes coming from the original model (see Fig. \ref{fig:ROMgrid_pointsets}).
 
 
 

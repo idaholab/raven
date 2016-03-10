@@ -1,0 +1,127 @@
+\section{RAVEN Theory by way of Examples: Statistical analysis}
+In order to perform a complete analysis of a system under uncertanties,
+it is crucial to be able to compute all the statistical moments of multiple
+Figures of Merit (FOMs). In addition, it is essential to identify the correlation
+among different FOMs toward a specific input space. 
+\\RAVEN is able to compute all the most important statistical FOMs, which
+represent the base of each sensitivity and uncertainty quantification analysis,
+such as:
+\begin{enumerate}
+  \item \textit{Expected Value};
+  \item \textit{Standard Deviation};
+  \item \textit{Variance};
+  \item \textit{variationCoefficient}; 
+  \item \textit{Skewness};
+  \item \textit{Kurtosis};  
+  \item \textit{Median}; 
+  \item \textit{Percentile}.
+\end{enumerate} 
+In addition, RAVEN fully supports the computation of all the FOMs that are aimed to
+``measure'' the correlation among variables/parameters:
+\begin{enumerate}
+  \item \textit{Covariance matrix};
+  \item \textit{Normalized Sensitivity  matrix};
+  \item \textit{Variance Dependent Sensitivity  matrix};
+  \item \textit{Sensitivity matrix}; 
+  \item \textit{Pearson matrix}.
+\end{enumerate} 
+In this section all of these features are going to be analyzed, explaining the theory behind it
+by way of applied RAVEN examples.
+\subsection{Statistical analysis theory}
+One of the most assessed way to investigate the impact of the intrinsic variation of the input space, is through the computation of 
+statistical moments and linear correlation figure of merits. 
+\\As stated in the previous chapters, RAVEN employs several different sampling methodologies in order to explore
+the response of a physical (and not) model under uncertainties. Hence, in order to correctly compute the statistical FOMs, subject
+of this section, a weighting approach needs to be used. Each \textit{Sampler} in RAVEN is able to attribute to each ``sample'' (i.e.
+realization in the input/uncertain space) a \textbf{weight} that is aimed to represent the \textit{importance} of the particular
+combination of input values from a statistical point of view (e.g. reliability weights). These weights are then used in sub-sequential
+steps in order to compute the previously listed statistical moments and correlation metrics.
+\\In the following sub-sections, the formulation of these statistical moments is reported.
+\subsubsection{Expected Value}
+The expected value concept represents one of the most fundamental metrics in probability theory. The expected value of a 
+real-valued random variable represents a measurement of the center of the distribution (mean) of the random variable. 
+From a practical point of view, the expected value of a discrete random variable is the probability-weighted average of all possible values of the subjected variable. Formally, the expected value of a random variable $X$
+\begin{equation}
+\begin{matrix}
+\mathbb{E}(X) = \mu = \sum_{x \in \chi} x \times pdf_{X}(x) & if X \, discrete \\ 
+\\ 
+\mathbb{E}(X) = \mu = \int_{x \in \chi} x \times pdf_{X}(x) & \, if X \, \, continuous
+\end{matrix}
+\end{equation}
+In RAVEN, the expected value (i.e. first central moment) is computed as follows:
+\begin{equation}
+\begin{matrix}
+\mathbb{E}(X) = \mu \approx \overline{x} = \frac{1}{n} \sum_{i=1}^{n}  x_{i} & if \: random \: sampling \\ 
+\\ 
+\mathbb{E}(X) = \mu \approx \overline{x} = \frac{1}{V_{1}} \sum_{i=1}^{n} w_{i} \times x_{i}  & \, otherwise
+\end{matrix}
+\end{equation}
+where 
+\begin{itemize}
+  \item $w_{i}$ is the weight associated with the sample $i$;
+  \item $n$ are the total number of samples;
+  \item $V_{i} = \sum_{i=1}^{n} w_{i}$.
+\end{itemize}
+\subsubsection{Standard Deviation and Variance}
+The variance ($\sigma^{2}$) and standard deviation ($\sigma$) of $X$ are both measures of the spread of the distribution of the random variable about the 
+mean. Simplistically, the variance measures how far a set of realizations of a random variable are spread out.
+An equivalent measure is the square root of the variance, called the standard deviation. The standard deviation has the same dimension as the data, and hence is comparable to deviations from the mean.
+\\Formally:
+\begin{equation}
+  \begin{matrix}
+  \sigma^{2}(X)= \mathbb{E}\left(\left[X - \mathbb{E}(X)\right]^{2}\right) = \int_{x \in \chi} (x - \mu)^2 pdf(x) dx  & \, if X \, \, continuous \\
+  \sigma^{2}(X)= \mathbb{E}\left(\left[X - \mathbb{E}(X)\right]^{2}\right)  = \sum_{x \in \chi} (x - \mu)^2 pdf(x)  & if X \, discrete
+  \\
+  \\ 
+  sigma(X)= \mathbb{E}\left(\left[X - \mathbb{E}(X)\right]\right)  = \sqrt{\sigma^{2}(X)}
+  \end{matrix}
+\end{equation}
+In RAVEN, the variance (i.e. second central moment) and standard deviation are computed as follows:
+\begin{equation}
+\begin{matrix}
+\mathbb{E}\left(\left[X - \mathbb{E}(X)\right]^{2}\right)  \approx  m_{2} = \frac{1}{n} \sum_{i=1}^{n}  (x_{i} - \overline{x})^{2} & if \: random \: sampling \\ 
+\\ 
+\mathbb{E}\left(\left[X - \mathbb{E}(X)\right]^{2}\right)  \approx m_{2}  = \frac{1}{V_{1}} \sum_{i=1}^{n} w_{i} \times (x_{i} - \overline{x})^{2}  & \, otherwise
+\\
+\\
+\mathbb{E}\left(\left[X - \mathbb{E}(X)\right]^{2}\right)  \approx \sqrt{m_{2}}  =  \sqrt{m_{2}}
+\end{matrix}
+\end{equation}
+where 
+\begin{itemize}
+  \item $w_{i}$ is the weight associated with the sample $i$;
+  \item $n$ are the total number of samples;
+  \item $V_{i} = \sum_{i=1}^{n} w_{i}$.
+\end{itemize}
+RAVEN performs an additional correction of variance to obtain an unbiased estimation  with respect to the sample-size~\cite{RimoldiniUnbiased}:
+\begin{equation}
+\begin{matrix}
+\mathbb{E}\left(\left[X - \mathbb{E}(X)\right]^{2}\right)  \approx  m_{2} = \frac{1}{n} \sum_{i=1}^{n}  (x_{i} - \overline{x})^{2} & if \: random \: sampling \\ 
+\\ 
+\mathbb{E}\left(\left[X - \mathbb{E}(X)\right]^{2}\right)  \approx m_{2}  = \frac{1}{V_{1}} \sum_{i=1}^{n} w_{i} \times (x_{i} - \overline{x})^{2}  & \, otherwise
+\\
+\\
+\mathbb{E}\left(\left[X - \mathbb{E}(X)\right]^{2}\right)  \approx \sqrt{m_{2}}  =  \sqrt{m_{2}}
+\end{matrix}
+\end{equation}
+
+
+
+
+\subsubsection{Skewness}
+aaaa
+\subsubsection{Kurtosis}
+
+aaaa
+\subsubsection{Median}
+
+aaaa
+\subsubsection{Median}
+aaaa
+\subsubsection{Percentile}
+
+
+aaaa
+\subsubsection{Percentile}
+
+
