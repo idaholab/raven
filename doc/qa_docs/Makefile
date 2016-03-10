@@ -9,6 +9,9 @@ test_plan.pdf : test_plan.tex
 
 raven_sdd.pdf : raven_sdd.tex
 	pdflatex raven_sdd.tex
+	bibtex raven_sdd
+	pdflatex raven_sdd.tex
+
 
 requirements.odt : requirements.tex
 	mk4ht oolatex requirements.tex
