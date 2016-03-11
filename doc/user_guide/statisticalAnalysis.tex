@@ -60,7 +60,7 @@ where
 \begin{itemize}
   \item $w_{i}$ is the weight associated with the sample $i$;
   \item $n$ are the total number of samples;
-  \item $V_{i} = \sum_{i=1}^{n} w_{i}$.
+  \item $V_{1} = \sum_{i=1}^{n} w_{i}$.
 \end{itemize}
 \subsubsection{Standard Deviation and Variance}
 The variance ($\sigma^{2}$) and standard deviation ($\sigma$) of $X$ are both measures of the spread of the distribution of the random variable about the 
@@ -73,7 +73,7 @@ An equivalent measure is the square root of the variance, called the standard de
   \sigma^{2}(X)= \mathbb{E}\left(\left[X - \mathbb{E}(X)\right]^{2}\right)  = \sum_{x \in \chi} (x - \mu)^2 pdf(x)  & if X \, discrete
   \\
   \\ 
-  sigma(X)= \mathbb{E}\left(\left[X - \mathbb{E}(X)\right]\right)  = \sqrt{\sigma^{2}(X)}
+  \sigma(X)= \mathbb{E}\left(\left[X - \mathbb{E}(X)\right]\right)  = \sqrt{\sigma^{2}(X)}
   \end{matrix}
 \end{equation}
 In RAVEN, the variance (i.e. second central moment) and standard deviation are computed as follows:
@@ -81,35 +81,43 @@ In RAVEN, the variance (i.e. second central moment) and standard deviation are c
 \begin{matrix}
 \mathbb{E}\left(\left[X - \mathbb{E}(X)\right]^{2}\right)  \approx  m_{2} = \frac{1}{n} \sum_{i=1}^{n}  (x_{i} - \overline{x})^{2} & if \: random \: sampling \\ 
 \\ 
+\\
 \mathbb{E}\left(\left[X - \mathbb{E}(X)\right]^{2}\right)  \approx m_{2}  = \frac{1}{V_{1}} \sum_{i=1}^{n} w_{i} \times (x_{i} - \overline{x})^{2}  & \, otherwise
 \\
 \\
-\mathbb{E}\left(\left[X - \mathbb{E}(X)\right]^{2}\right)  \approx \sqrt{m_{2}}  =  \sqrt{m_{2}}
+\mathbb{E}\left(\left[X - \mathbb{E}(X)\right]^{2}\right)  \approx s  =  \sqrt{m_{2}}
 \end{matrix}
 \end{equation}
-where 
+where:
 \begin{itemize}
   \item $w_{i}$ is the weight associated with the sample $i$;
   \item $n$ are the total number of samples;
-  \item $V_{i} = \sum_{i=1}^{n} w_{i}$.
+  \item $V_{1} = \sum_{i=1}^{n} w_{i}$.
 \end{itemize}
 RAVEN performs an additional correction of variance to obtain an unbiased estimation  with respect to the sample-size~\cite{RimoldiniUnbiased}:
 \begin{equation}
 \begin{matrix}
-\mathbb{E}\left(\left[X - \mathbb{E}(X)\right]^{2}\right)  \approx  m_{2} = \frac{1}{n} \sum_{i=1}^{n}  (x_{i} - \overline{x})^{2} & if \: random \: sampling \\ 
-\\ 
-\mathbb{E}\left(\left[X - \mathbb{E}(X)\right]^{2}\right)  \approx m_{2}  = \frac{1}{V_{1}} \sum_{i=1}^{n} w_{i} \times (x_{i} - \overline{x})^{2}  & \, otherwise
+M_{2} = \frac{V_{1}^{2}}{V_{1}^{2} - V_{2}}m_{2}
 \\
 \\
-\mathbb{E}\left(\left[X - \mathbb{E}(X)\right]^{2}\right)  \approx \sqrt{m_{2}}  =  \sqrt{m_{2}}
+S = \sqrt{M_{2}}
 \end{matrix}
 \end{equation}
-
-
-
+where:
+\begin{itemize}
+  \item $V_{2} = \sum_{i=1}^{n} w_{i}^{2}$.
+\end{itemize}
+It is important to notice that $S$ is not an unbiased estimator.
 
 \subsubsection{Skewness}
-aaaa
+The Skewness is a measure of the asymmetry of the distribution of a 
+real-valued random variable about its mean. Negative skewness 
+indicates that the tail on the left side of the distribution is longer or fatter 
+than the right side.  Positive skewness indicates that the tail on the right 
+side is longer or fatter than the left side.
+\\Formally, 
+
+
 \subsubsection{Kurtosis}
 
 aaaa
