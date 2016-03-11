@@ -15,7 +15,7 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
       The methodology can be found at:
       S. WIlcox and W. Marion, "User Manual for TMY3 Data Sets," Technical Report, NREL/TP-581-43156,
         National Renewable Energy Laboratory Golden, CO, May 2008
-      
+
   """
 
   def initialize(self):
