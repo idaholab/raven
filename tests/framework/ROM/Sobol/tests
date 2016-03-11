@@ -43,6 +43,12 @@
     # csv is consistency test
     UnorderedCsv = 'SobolGFunc/dump.csv'
   [../]
+  [./AnovaOnCutHDMR]
+    type = 'RavenFramework'
+    input = 'test_anova_cut.xml'
+    # mean, variance, Sobol sensitivity indices are all analytic in dumprom.xml
+    UnorderedXml = 'AnovaCut/dumprom.xml'
+  [../]
 
   # adaptive tests
   [./AdaptiveSobol]
