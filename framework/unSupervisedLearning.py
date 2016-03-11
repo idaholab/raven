@@ -891,7 +891,6 @@ class temporalSciKitLearn(unSupervisedLearning):
         if indices2[n2] not in remap.keys():
           remap[indices2[n2]] = max(indices1)+tmp
 #          remap[indices2[n2]] = self.maxNoClusters + 1 # every discondinuity would introduce a new cluster index. 
-#     self.raiseADebug(remap)
     return remap
   
   def __localReMap__(self, dMatrix,loc):
