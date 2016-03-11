@@ -1,5 +1,6 @@
 '''
 Created on Feb 17, 2016
+Created by chenj
 
 '''
 from __future__ import division, print_function, unicode_literals, absolute_import
@@ -14,6 +15,7 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
       The methodology can be found at:
       S. WIlcox and W. Marion, "User Manual for TMY3 Data Sets," Technical Report, NREL/TP-581-43156,
         National Renewable Energy Laboratory Golden, CO, May 2008
+      
   """
 
   def initialize(self):
@@ -70,12 +72,11 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
   
     tempCDF = {'all':{}}
     for keyF in self.features:
-      # compute bin size and number of bins according to Freedman–Diaconis rule
-      # https://en.wikipedia.org/wiki/Freedman%E2%80%93Diaconis_rule
+#       Bin size and number of bins determined by Freedman Diaconis rule 
+#       https://en.wikipedia.org/wiki/Freedman%E2%80%93Diaconis_rule
       IQR = np.percentile(tempData['all'][keyF], 75) - np.percentile(tempData['all'][keyF], 25)
-      binSize = 2.0*IQR*(tempData['all'][keyF].size**(1.0/3.0))
+      binSize = 2.0*IQR*(tempData['all'][keyF].size**(-1.0/3.0))
       numBins = int((max(tempData['all'][keyF])-min(tempData['all'][keyF]))/binSize)
-      
       binEdges = np.linspace(start=min(tempData['all'][keyF]),stop=max(tempData['all'][keyF]),num=numBins+1)
       tempCDF['all'][keyF] = self.__computeCDF(tempData['all'][keyF],binEdges)
       for keySub in subKeys:
@@ -93,6 +94,7 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
         FS = 0
         for keyF in self.features:
           FS += self.__computeDist(tempCDF['all'][keyF],tempCDF[keySub][keyF][cnt,:])
+          print(FS)
         if FS < d:
           d = FS
           for keyF in self.features:
