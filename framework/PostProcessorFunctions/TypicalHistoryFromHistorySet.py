@@ -1,6 +1,5 @@
 '''
 Created on Feb 17, 2016
-Created by chenj
 
 '''
 from __future__ import division, print_function, unicode_literals, absolute_import
@@ -28,6 +27,7 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
     PostProcessorInterfaceBase.initialize(self)
     self.inputFormat  = 'HistorySet'
     self.outputFormat = 'History'
+    if not hasattr(self, 'timeID'):   self.timeID = 'Time'
 
   def run(self,inputDic):
     """
