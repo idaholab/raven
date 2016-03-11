@@ -69,10 +69,10 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
         tempData[keySub][keyF] = np.zeros(shape=(self.noHistory,len(tempData[keySub][self.timeID])))
         for cnt, keyH in enumerate(inputDict['output'].keys()):
           tempData[keySub][keyF][cnt,:] = np.extract(extractCondition, inputDict['output'][keyH][keyF])
-  
+
     tempCDF = {'all':{}}
     for keyF in self.features:
-#       Bin size and number of bins determined by Freedman Diaconis rule 
+#       Bin size and number of bins determined by Freedman Diaconis rule
 #       https://en.wikipedia.org/wiki/Freedman%E2%80%93Diaconis_rule
       IQR = np.percentile(tempData['all'][keyF], 75) - np.percentile(tempData['all'][keyF], 25)
       binSize = 2.0*IQR*(tempData['all'][keyF].size**(-1.0/3.0))
