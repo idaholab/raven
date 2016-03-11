@@ -425,8 +425,10 @@ class GaussPolynomialRom(superVisedLearning):
     self.polyCoeffDict = None #dict{index set point, float}, polynomial combination coefficients for each combination
     self.numRuns       = None #number of runs to generate ROM; default is len(self.sparseGrid)
     self.itpDict       = {}   #dict{varName: dict{attribName:value} }
-    self.featv        = None  # list of feature variables
-    self.targv        = None  # list of target variables
+    self.featv         = None  # list of feature variables
+    self.targv         = None  # list of target variables
+    self.sparseGridType    = 'smolyak' #type of sparse quadrature to use,default smolyak
+    self.sparseQuadOptions = ['smolyak','tensor'] # choice of sparse quadrature construction methods
 
     for key,val in kwargs.items():
       if key=='IndexSet':self.indexSetType = val
@@ -448,6 +450,10 @@ class GaussPolynomialRom(superVisedLearning):
           for atrName,atrVal in val.items():
             if atrName in ['poly','quad','weight']: self.itpDict[var][atrName]=atrVal
             else: self.raiseAnError(IOError,'Unrecognized option: '+atrName)
+      elif key == 'SparseGrid':
+        if val.lower() not in self.sparseQuadOptions:
+          self.raiseAnError(IOError,'No such sparse quadrature implemented: %s.  Options are %s.' %(val,str(self.sparseQuadOptions)))
+        self.sparseGridType = val
 
     if not self.indexSetType:
       self.raiseAnError(IOError,'No IndexSet specified!')
@@ -522,12 +528,12 @@ class GaussPolynomialRom(superVisedLearning):
     @ In, idict, dict of objects needed to initalize
     @ Out, None
     """
-    self.sparseGrid = idict.get('SG'     ,None)
-    self.distDict   = idict.get('dists'  ,None)
-    self.quads      = idict.get('quads'  ,None)
-    self.polys      = idict.get('polys'  ,None)
-    self.indexSet   = idict.get('iSet'   ,None)
-    self.numRuns    = idict.get('numRuns',None)
+    self.sparseGrid     = idict.get('SG'        ,None)
+    self.distDict       = idict.get('dists'     ,None)
+    self.quads          = idict.get('quads'     ,None)
+    self.polys          = idict.get('polys'     ,None)
+    self.indexSet       = idict.get('iSet'      ,None)
+    self.numRuns        = idict.get('numRuns'   ,None)
     #make sure requireds are not None
     if self.sparseGrid is None: self.raiseAnError(RuntimeError,'Tried to initialize without key object "SG"   ')
     if self.distDict   is None: self.raiseAnError(RuntimeError,'Tried to initialize without key object "dists"')

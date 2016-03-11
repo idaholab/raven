@@ -79,8 +79,9 @@ class MessageUser(object):
     """
     verbosity = kwargs.get('verbosity','silent')
     tag       = kwargs.get('tag'      ,'ERROR' )
+    color     = kwargs.get('color'    ,None     )
     msg = ' '.join(str(a) for a in args)
-    self.messageHandler.error(self,etype,msg,str(tag),verbosity)
+    self.messageHandler.error(self,etype,msg,str(tag),verbosity,color)
 
   def raiseAWarning(self,*args,**kwargs):
     """
@@ -93,8 +94,9 @@ class MessageUser(object):
     """
     verbosity = kwargs.get('verbosity','quiet'  )
     tag       = kwargs.get('tag'      ,'Warning')
+    color     = kwargs.get('color'    ,None     )
     msg = ' '.join(str(a) for a in args)
-    self.messageHandler.message(self,msg,str(tag),verbosity)
+    self.messageHandler.message(self,msg,str(tag),verbosity,color)
 
   def raiseAMessage(self,*args,**kwargs):
     """
@@ -107,8 +109,9 @@ class MessageUser(object):
     """
     verbosity = kwargs.get('verbosity','all'    )
     tag       = kwargs.get('tag'      ,'Message')
+    color     = kwargs.get('color'    ,None     )
     msg = ' '.join(str(a) for a in args)
-    self.messageHandler.message(self,msg,str(tag),verbosity)
+    self.messageHandler.message(self,msg,str(tag),verbosity,color)
 
   def raiseADebug(self,*args,**kwargs):
     """
@@ -121,8 +124,9 @@ class MessageUser(object):
     """
     verbosity = kwargs.get('verbosity','debug')
     tag       = kwargs.get('tag'      ,'DEBUG')
+    color     = kwargs.get('color'    ,None   )
     msg = ' '.join(str(a) for a in args)
-    self.messageHandler.message(self,msg,str(tag),verbosity)
+    self.messageHandler.message(self,msg,str(tag),verbosity,color)
 
   def getLocalVerbosity(self,default=None):
     """
@@ -151,7 +155,19 @@ class MessageHandler(object):
     self.verbosity    = None
     self.suppressErrs = False
     self.printTime    = True
+    self.inColor      = False
     self.verbCode     = {'silent':0, 'quiet':1, 'all':2, 'debug':3}
+    self.colorDict    = {'debug':'yellow', 'message':'neutral', 'warning':'magenta', 'error':'red'}
+    self.colors={
+      'neutral' : '\033[0m',
+      'red'     : '\033[31m',
+      'green'   : '\033[32m',
+      'yellow'  : '\033[33m',
+      'blue'    : '\033[34m',
+      'magenta' : '\033[35m',
+      'cyan'    : '\033[36m'}
+    self.warnings     = [] #collection of warnings that were raised during this run
+
 
   def initialize(self,initDict):
     """
@@ -163,6 +179,31 @@ class MessageHandler(object):
     self.callerLength  = initDict.get('callerLength',40)
     self.tagLength     = initDict.get('tagLength',30)
     self.suppressErrs  = initDict['suppressErrs'] in utils.stringsThatMeanTrue() if 'suppressErrs' in initDict.keys() else False
+
+  def printWarnings(self):
+    """
+      Prints a summary of warnings collected during the run.
+      @ In, None
+      @ Out, None
+    """
+    if len(self.warnings)>0:
+      print('-'*50)
+      print('There were warnings during the simulation run:')
+      for w in self.warnings:
+        print(w)
+      print('-'*50)
+
+  def paint(self,str,color):
+    """
+      Formats string with color
+      @ In, str, string, string
+      @ In, color, string, color name
+      @ Out, string, formatted string
+    """
+    if color.lower() not in self.colors.keys():
+      self.messaage(self,'Requested color %s not recognized!  Skipping...' %color,'Warning','quiet')
+      return str
+    return self.colors[color.lower()]+str+self.colors['neutral']
 
   def setTimePrint(self,msg):
       '''
@@ -178,6 +219,15 @@ class MessageHandler(object):
           self.callerLength = 25
           self.tagLength = 15
           self.printTime = False
+
+  def setColor(self,inColor):
+    """
+      Allows output to screen to be colorized.
+      @ In, inColor, string, boolean value
+      @ Out, None
+    """
+    if inColor.lower() in utils.stringsThatMeanTrue():
+      self.inColor = True
 
   def getStringFromCaller(self,obj):
     """
@@ -212,47 +262,54 @@ class MessageHandler(object):
       raise IOError('Verbosity key '+str(verb)+' not recognized!  Options are '+str(self.verbCode.keys()+[None]),'ERROR','silent')
     return self.verbCode[str(verb).strip().lower()]
 
-  def error(self,caller,etype,message,tag='ERROR',verbosity='silent'):
+  def error(self,caller,etype,message,tag='ERROR',verbosity='silent',color=None):
     """
       Raise an error message, unless errors are suppressed.
-      @ In, caller, the entity desiring to raise an error
-      @ In, etype, the type of error to throw
-      @ In, message, the accompanying message for the error
-      @ OPTIONAL In, tag, the printed error type (default ERROR)
-      @ OPTIONAL In, verbosity, the print priority of the message (default 'silent', highest priority)
+      @ In, caller, object, the entity desiring to print a message
+      @ In, etype, Error, the type of error to throw
+      @ In, message, string, the message to print
+      @ In, tag, string, the printed message type (usually Message, Debug, or Warning, and sometimes FIXME)
+      @ In, verbosity, string, the print priority of the message
+      @ In, color, optional string, color to apply to message
       @ Out, None
     """
-    okay,msg = self._printMessage(caller,message,tag,self.checkVerbosity(verbosity))
     verbval = max(self.getDesiredVerbosity(caller),self.checkVerbosity(self.verbosity))
-    if okay:
-      if not self.suppressErrs and verbval==3: raise etype(msg) #DEBUG mode without suppression
-      print('\n'+etype.__name__+':',msg,file=sys.stderr)
-      if not self.suppressErrs: #exit after print
-        sys.exit(1)
+    if not self.suppressErrs:
+      self.printWarnings()
+      # debug mode gets full traceback, others quieted
+      if verbval<3: #all, quiet, silent
+        sys.tracebacklimit=0
+      raise etype(message)
+    else:
+      print('\n'+etype.__name__+':',message,file=sys.stderr)
 
-  def message(self,caller,message,tag,verbosity):
+  def message(self,caller,message,tag,verbosity,color=None):
     """
       Print a message
-      @ In, caller, the entity desiring to print a message
-      @ In, message, the message to print
-      @ In, tag, the printed message type (usually Message, Debug, or Warning, and sometimes FIXME)
-      @ In, verbosity, the print priority of the message
+      @ In, caller, object, the entity desiring to print a message
+      @ In, message, string, the message to print
+      @ In, tag, string, the printed message type (usually Message, Debug, or Warning, and sometimes FIXME)
+      @ In, verbosity, string, the print priority of the message
+      @ In, color, optional string, color to apply to message
       @ Out, None
     """
     verbval = self.checkVerbosity(verbosity)
-    okay,msg = self._printMessage(caller,message,tag,verbval)
-    if okay: print(msg)
+    okay,msg = self._printMessage(caller,message,tag,verbval,color)
+    if tag.lower().strip() == 'warning': self.warnings.append(msg)
+    if okay:
+      print(msg)
     sys.stdout.flush()
 
-  def _printMessage(self,caller,message,tag,verbval):
+  def _printMessage(self,caller,message,tag,verbval,color=None):
     """
       Checks verbosity to determine whether something should be printed, and formats message
-      @ In, caller, the entity desiring to print a message
-      @ In, message, the message to print
-      @ In, tag, the printed message type (usually Message, Debug, or Warning, and sometimes FIXME)
-      @ In, verbval, the print priority of the message
-      @ Out, bool, indication if the print should be allowed
-      @ Out, msg, the formatted message
+      @ In, caller , object, the entity desiring to print a message
+      @ In, message, string, the message to print
+      @ In, tag    , string, the printed message type (usually Message, Debug, or Warning, and sometimes FIXME)
+      @ In, verbval, int   , the print priority of the message
+      @ In, color  , optional string, color to apply to message
+      @ Out, bool  , indication if the print should be allowed
+      @ Out, msg   , the formatted message
     """
     #allows raising standardized messages
     shouldIPrint = False
@@ -260,22 +317,28 @@ class MessageHandler(object):
     if verbval <= desired: shouldIPrint=True
     if not shouldIPrint: return False,''
     ctag = self.getStringFromCaller(caller)
-    msg=self.stdMessage(ctag,tag,message)
+    msg=self.stdMessage(ctag,tag,message,color)
     return shouldIPrint,msg
 
-  def stdMessage(self,pre,tag,post):
+  def stdMessage(self,pre,tag,post,color=None):
     """
       Formats string for pretty printing
-      @ In, pre, string of who is printing the message
-      @ In, tag, the type of message being printed (Error, Warning, Message, Debug, FIXME, etc)
-      @ In, post, the actual message body
+      @ In, pre  , string, who is printing the message
+      @ In, tag  , string, the type of message being printed (Error, Warning, Message, Debug, FIXME, etc)
+      @ In, post , string, the actual message body
+      @ In, color, optional string, the color to apply to the message
       @ Out, string, formatted message
     """
     msg = ''
     if self.printTime:
       curtime = time.time()-self.starttime
       msg+='('+'{:8.2f}'.format(curtime)+' sec) '
-    msg+=pre.ljust(self.callerLength)[0:self.callerLength] + ': '
-    msg+=tag.ljust(self.tagLength)[0:self.tagLength]+' -> '
-    msg+=post
+      if self.inColor: msg = self.paint(msg,'cyan')
+    msgend = pre.ljust(self.callerLength)[0:self.callerLength] + ': '+tag.ljust(self.tagLength)[0:self.tagLength]+' -> ' + post
+    if self.inColor:
+      if color is not None: #overrides other options
+        msgend = self.paint(msgend,color)
+      elif tag.lower() in self.colorDict.keys():
+        msgend = self.paint(msgend,self.colorDict[tag.lower()])
+    msg+=msgend
     return msg

@@ -1,4 +1,19 @@
 [Tests]
+  [./staticSobolRomSmolyak]
+    type = 'RavenFramework'
+    input = 'test_sobol_rom.xml'
+    output = 'SobolSmolyak/dump.xml'
+    xml = 'SobolSmolyak/dumprom.xml'
+    csv = 'SobolSmolyak/dump.csv'
+  [../]
+  [./staticSobolRomTensor]
+    type = 'RavenFramework'
+    input = 'test_sobol_tensor.xml'
+    output = 'SobolTensor/dump.xml'
+    xml = 'SobolTensor/dumprom.xml'
+    csv = 'SobolTensor/dump.csv'
+  [../]
+
  [./AdaptiveSobol]
   type = 'RavenFramework'
   input = 'test_adapt_sobol.xml'
