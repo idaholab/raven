@@ -686,22 +686,31 @@ class ExternalModel(Dummy):
     for key,value in self.initExtSelf.__dict__.items():
       CustomCommandExecuter.execCommand('self.'+ key +' = copy.copy(object)',self=externalSelf,object=value)  # exec('externalSelf.'+ key +' = copy.copy(value)')
       modelVariableValues[key] = copy.copy(value)
-    for key in Input.keys(): modelVariableValues[key] = copy.copy(Input[key])
+    for key in Input.keys():
+      if key in modelVariableValues.keys():
+        modelVariableValues[key] = copy.copy(Input[key])
     if 'createNewInput' not in dir(self.sim):
-      for key in Input.keys(): modelVariableValues[key] = copy.copy(Input[key])
+      for key in Input.keys():
+        if key in modelVariables.keys():
+          modelVariableValues[key] = copy.copy(Input[key])
       for key in self.modelVariableType.keys() : CustomCommandExecuter.execCommand('self.'+ key +' = copy.copy(object["'+key+'"])',self=externalSelf,object=modelVariableValues) #exec('externalSelf.'+ key +' = copy.copy(modelVariableValues[key])')  #self.__uploadSolution()
-    self.sim.run(externalSelf, Input)
+    # only pass the variables and their values according to the model itself.
+    InputDict = {}
+    for key in Input.keys():
+      if key in self.modelVariableType.keys():
+        InputDict[key] = Input[key]
+    self.sim.run(externalSelf, InputDict)
     for key in self.modelVariableType.keys()   : CustomCommandExecuter.execCommand('object["'+key+'"]  = copy.copy(self.'+key+')',self=externalSelf,object=modelVariableValues) #exec('modelVariableValues[key]  = copy.copy(externalSelf.'+key+')') #self.__pointSolution()
     for key in self.initExtSelf.__dict__.keys(): CustomCommandExecuter.execCommand('self.' +key+' = copy.copy(object.'+key+')',self=self.initExtSelf,object=externalSelf) #exec('self.initExtSelf.' +key+' = copy.copy(externalSelf.'+key+')')
     if None in self.modelVariableType.values():
-      errorfound = False
+      errorFound = False
       for key in self.modelVariableType.keys():
         self.modelVariableType[key] = type(modelVariableValues[key]).__name__
         if self.modelVariableType[key] not in self._availableVariableTypes:
-          if not errorfound: self.raiseADebug('Unsupported type found. Available ones are: '+ str(self._availableVariableTypes).replace('[','').replace(']', ''),verbosity='silent')
-          errorfound = True
+          if not errorFound: self.raiseADebug('Unsupported type found. Available ones are: '+ str(self._availableVariableTypes).replace('[','').replace(']', ''),verbosity='silent')
+          errorFound = True
           self.raiseADebug('variable '+ key+' has an unsupported type -> '+ self.modelVariableType[key],verbosity='silent')
-      if errorfound: self.raiseAnError(RuntimeError,'Errors detected. See above!!')
+      if errorFound: self.raiseAnError(RuntimeError,'Errors detected. See above!!')
     return copy.copy(modelVariableValues),self
 
   def run(self,Input,jobHandler):

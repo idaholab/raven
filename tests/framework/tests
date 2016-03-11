@@ -333,14 +333,6 @@
   csv = 'IO_ROM_PICKLE/PrintData_Pickle.csv IO_ROM_PICKLE/PrintData.csv'
  [../]
 
- [./sobolRomTest]
-  type = 'RavenFramework'
-  input = 'test_sobol_rom.xml'
-  output = 'SobolRom/dump.xml SobolRom/dumprom.xml'
-  xml = 'SobolRom/dumprom.xml'
-  csv = 'SobolRom/dump.csv'
- [../]
-
  [./stochPolyPickleTest]
   type = 'RavenFramework'
   input = 'test_stochpoly_pickle.xml'

@@ -62,9 +62,10 @@
         <xsd:all>
           <xsd:element name="latentVariables" type="xsd:string" minOccurs="1"/>
           <xsd:element name="manifestVariables" type="xsd:string" minOccurs="1"/>
+          <xsd:element name="manifestVariablesIndex" type="xsd:string" minOccurs="0"/>
           <xsd:element name="method" type="xsd:string" minOccurs="1"/>
         </xsd:all>
-        <xsd:attribute name="model"  type="xsd:string" use="required"/>
+        <xsd:attribute name="distribution"  type="xsd:string" use="required"/>
     </xsd:complexType>
 
     <xsd:complexType name="gridType">
@@ -271,6 +272,7 @@
         <xsd:element name="Convergence"      type="adaptiveSobolConvergence" minOccurs="1" maxOccurs="unbounded"/>
         <xsd:element name="convergenceStudy" type="convergenceStudyType" minOccurs="0"/>
         <xsd:element name="variable"         type="variableType"             minOccurs="1" maxOccurs="unbounded"/>
+        <xsd:element name="variablesTransformation" type="variablesTransformationType" minOccurs="0" maxOccurs="unbounded"/>
         <xsd:element name="ROM"              type="AssemblerObjectType"      minOccurs="1" maxOccurs="unbounded"/>
         <xsd:element name="TargetEvaluation" type="AssemblerObjectType"      minOccurs="1" maxOccurs="unbounded"/>
       </xsd:sequence>
