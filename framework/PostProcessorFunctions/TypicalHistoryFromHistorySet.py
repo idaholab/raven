@@ -37,7 +37,7 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
     """
     inputDict = inputDic['data']
     self.features = inputDict['output'][inputDict['output'].keys()[0]].keys()
-    self.features.remove('Time')
+    self.features.remove(self.timeID)
     self.noHistory = len(inputDict['output'].keys())
     self.Time = np.asarray(inputDict['output'][inputDict['output'].keys()[0]][self.timeID])
 
@@ -64,7 +64,7 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
     for keySub in subKeys:
       tempData[keySub] = {}
       extractCondition = (self.Time>=self.subsequence[keySub][0]) * (self.Time<self.subsequence[keySub][1])
-      tempData[keySub]['Time'] = np.extract(extractCondition, self.Time)
+      tempData[keySub][self.timeID] = np.extract(extractCondition, self.Time)
       for keyF in self.features:
         tempData[keySub][keyF] = np.zeros(shape=(self.noHistory,len(tempData[keySub][self.timeID])))
         for cnt, keyH in enumerate(inputDict['output'].keys()):
@@ -88,7 +88,7 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
     tempTyp = {}
     for keySub in subKeys:
       tempTyp[keySub] = {}
-      tempTyp[keySub]['Time'] = tempData[keySub]['Time']
+      tempTyp[keySub][self.timeID] = tempData[keySub][self.timeID]
       d = np.inf
       for cnt, keyH in enumerate(inputDict['output'].keys()):
         FS = 0
@@ -100,15 +100,15 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
           for keyF in self.features:
             tempTyp[keySub][keyF] = tempData[keySub][keyF][cnt,:]
 
-    typicalTS = {'Time':np.array([])}
+    typicalTS = {self.timeID:np.array([])}
     for keySub in subKeys:
-      typicalTS['Time'] = np.concatenate((typicalTS['Time'], tempTyp[keySub]['Time']))
+      typicalTS[self.timeID] = np.concatenate((typicalTS[self.timeID], tempTyp[keySub][self.timeID]))
       for keyF in self.features:
         if keyF not in typicalTS.keys():  typicalTS[keyF] = np.array([])
         typicalTS[keyF] = np.concatenate((typicalTS[keyF], tempTyp[keySub][keyF]))
 
-    for t in range(1,len(typicalTS['Time'])):
-      if typicalTS['Time'][t] < typicalTS['Time'][t-1]: return None
+    for t in range(1,len(typicalTS[self.timeID])):
+      if typicalTS[self.timeID][t] < typicalTS[self.timeID][t-1]: return None
 
     outputDic ={'data':{'input':{},'output':{}}, 'metadata':{0:{}}}
     outputDic['data']['output'][1] = typicalTS
