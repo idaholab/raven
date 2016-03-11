@@ -225,22 +225,27 @@ Formally, the Covariance can be expressed as
 Based on the previous equation, in RAVEN the Covariance is computed as follows:
 \begin{equation}
 \begin{matrix}
- \mathbb{E} \left [ \left ( X- \mathbb{E}\left [ X \right ] \right ) \left ( Y- \mathbb{E}\left [ Y \right ] \right )\right ]  \approx \displaystyle \frac{n^{2}}{(n-1)(n-2)}m_{3}\times \frac{1}{\left ( \displaystyle \frac{n}{n-1}m_{2}  \right )^{3/2}} & if \: random \: sampling  
+ \mathbb{E} \left [ \left ( X- \mathbb{E}\left [ X \right ] \right ) \left ( Y- \mathbb{E}\left [ Y \right ] \right )\right ] \approx
+ \frac{1}{n}\sum_{i=1}^{n} (x_{i} - \overline{x})(y_{i} - \overline{y})  & if \: random \: sampling  
 \\
 \\
-\mathbb{E} \left [ \left ( \frac{X-\mu}{\sigma} \right )^{3} \right ]  \approx \frac{M_{3}}{M_{2}^{3/2}}  = \displaystyle \frac{V_{1}^{3}}{V_{1}^{3}-3V_{1}V_{2}+2V_{3}}m_{3} \times \frac{1}{\left ( \displaystyle \frac{V_{1}^{2}}{V_{1}^{2}-V_{2}}m_{2}  \right )^{3/2}} &  \, otherwise
+ \mathbb{E} \left [ \left ( X- \mathbb{E}\left [ X \right ] \right ) \left ( Y- \mathbb{E}\left [ Y \right ] \right )\right ] \approx
+\frac{1}{V_{1}} \sum_{i=1}^{n} w_{i} \times (x_{i} - \overline{x})(y_{i} - \overline{y}) &  \, otherwise
 \end{matrix}
 \end{equation}
-
-
-
-\subsubsection{Correlation}
-aaaa
-
-aaaa
+where:
+\begin{itemize}
+  \item $w_{i}$ is the weight associated with the sample $i$;
+  \item $n$ are the total number of samples;
+  \item $V_{1} = \sum_{i=1}^{n} w_{i}$.
+\end{itemize}
+The correlation matrix (Pearson product-moment correlation coefficient) can be obtained by the Covariance matrix, as follows:
+\begin{equation}
+\rho(X,Y) = \frac{cov(X,Y)}{\sigma_{X}\sigma_{Y}}
+\end{equation}
 \subsubsection{Variance Dependent Sensitivity matrix}
+The variance dependent sensitivity matrix is the matrix of the sensitivity coefficients 
 
-aaaa
 \subsubsection{Sensitivity matrix}
 
 
