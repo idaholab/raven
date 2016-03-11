@@ -110,7 +110,8 @@ XML node and the requirements for other attributes change:
   \xmlNode{distribution}, \xmlDesc{string,
   required field}, name of the distribution that is associated to this variable.
   Its name needs to be contained in the \xmlNode{Distributions} block explained
-  in Section \ref{sec:distributions}. \nb{Alternatively, this node must be ommitted
+  in Section \ref{sec:distributions}. In addition, if NDDistribution is used,
+  the attribute \xmlAttr{dim} is required. \nb{Alternatively, this node must be ommitted
   if the \xmlNode{function} node is supplied.}
 }
 \newcommand{\functionDescription}
@@ -811,10 +812,9 @@ interactions.  At its lowest level (order 1), it treats the function as a sum of
 order 2, it adds functionals to consider the pairing of each dimension with each other dimension.  The benefit to this approach is considering several functions
 of small input cardinality instead of a single function with large input cardinality.  This allows reduced order models like generalized polynomial chaos
 (see \ref{subsubsec:GaussPolynomialRom}) to approximate the functionals accurately with few computations runs.  This Sobol sampler uses the associated HDMRRom
-(see \ref{subsubsec:HDMRRom}) to determine at what points the input space need be evaluated.
+(see \ref{subsubsec:HDMRRom}) to determine at what points the input space need be evaluated. Since Sobol sampler relies on SparseGridCollocation, it is also compatible with
+multivariate normal distribution objects. The \xmlNode{Sobol} node supports the following attributes: 
 
-\nb{Sobol sampler relies on SparseGridCollocation, which requires uncorrelated input dimensions; thus, for the present,
-it is not compatible with NDDistribution objects.}
 \begin{itemize}
 \itemsep0em
 \item \nameDescription
@@ -829,6 +829,10 @@ it is not compatible with NDDistribution objects.}
     \item \distributionDescription
     \item \functionDescription
  \end{itemize} \end{itemize}
+
+Like the \textbf{SparseGridCollocation}, if multivariate normal distribution is provided, the following node need to be specified:
+\variablesTransformationDescription{Sobol}
+
 Because of the tight coupling between the Sobol sampler and the HDMRRom, the Sampler needs access to the ROM via the assembler do determine the polynomials, quadratures, Sobol order, and importance weights to use in each dimension (see \ref{subsubsec:HDMRRom}).
 
   % Assembler Objects
@@ -2547,6 +2551,9 @@ In addition to the \xmlNode{variable} nodes, the main XML node
     In summary, this XML node contains the information that is needed in order
     to control this sampler's convergence criterion.
   \item \convergenceStudyDescription
+  Like the \textbf{Sobol}, if multivariate normal distribution is provided, the following node need to be specified:
+  \item \variablesTransformationDescription{AdaptiveSobol}
+
 \end{itemize}
   % Adaptive Sobol
   \assemblerDescription{AdaptiveSobol}
