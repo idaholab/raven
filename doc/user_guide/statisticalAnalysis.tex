@@ -97,15 +97,19 @@ where:
 RAVEN performs an additional correction of variance to obtain an unbiased estimation  with respect to the sample-size~\cite{RimoldiniUnbiased}:
 \begin{equation}
 \begin{matrix}
-M_{2} = \frac{V_{1}^{2}}{V_{1}^{2} - V_{2}}m_{2}
+\mathbb{E}\left(\left[X - \mathbb{E}(X)\right]^{2}\right)  \approx M_{2} = \displaystyle \frac{n}{n-1}m_{2} & & if \: random \: sampling
 \\
-\\
-S = \sqrt{M_{2}}
+\mathbb{E}\left(\left[X - \mathbb{E}(X)\right]^{2}\right)  \approx M_{2} = \frac{V_{1}^{2}}{V_{1}^{2} - V_{2}}m_{2} & \: otherwise
 \end{matrix}
+\end{equation}
+\begin{equation}
+S = \sqrt{M_{2}} 
 \end{equation}
 where:
 \begin{itemize}
-  \item $V_{2} = \sum_{i=1}^{n} w_{i}^{2}$.
+  \item $w_{i}$ is the weight associated with the sample $i$;
+  \item $n$ are the total number of samples;
+  \item $V_{1} = \sum_{i=1}^{n} w_{i}^{2}$;
 \end{itemize}
 It is important to notice that $S$ is not an unbiased estimator.
 
@@ -114,22 +118,130 @@ The Skewness is a measure of the asymmetry of the distribution of a
 real-valued random variable about its mean. Negative skewness 
 indicates that the tail on the left side of the distribution is longer or fatter 
 than the right side.  Positive skewness indicates that the tail on the right 
-side is longer or fatter than the left side.
+side is longer or fatter than the left side. From a practical point of view, the 
+skewness is useful to identify distortion  of the random variable with respect to
+the Normal distribution function.
 \\Formally, 
+\begin{equation}
+\gamma_{1} = \mathbb{E} \left [ \left ( \frac{X-\mu}{\sigma} \right )^{3} \right ] = \frac{ \mathbb{E}\left [ \left ( X-\mu \right )^{3} \right ]}{\left ( \mathbb{E}\left [ \left ( X-\mu \right )^{2} \right ] \right )^{3/2}}
+\end{equation}
+In RAVEN, the skewness is computed as follows:
+\begin{equation}
+\begin{matrix}
+\mathbb{E} \left [ \left ( \frac{X-\mu}{\sigma} \right )^{3} \right ]  \approx \frac{m_{3}}{m_{2}^{3/2}} = \frac{  \frac{1}{n} \sum_{i=1}^{n}  (x_{i} - \overline{x})^{3} }{\left ( \frac{1}{n} \sum_{i=1}^{n}  (x_{i} - \overline{x})^{2} \right )^{3/2}} & if \: random \: sampling  
+\\
+\\
+\mathbb{E} \left [ \left ( \frac{X-\mu}{\sigma} \right )^{3} \right ]  \approx \frac{m_{3}}{m_{2}^{3/2}} = \frac{  \frac{1}{V_{1}} \sum_{i=1}^{n} w_{i} \times (x_{i} - \overline{x})^{3} }{\left ( \frac{1}{V_{1}} \sum_{i=1}^{n}  w_{i} \times (x_{i} - \overline{x})^{2} \right )^{3/2}} &  \, otherwise
+\end{matrix}
+\end{equation}
+where:
+\begin{itemize}
+  \item $w_{i}$ is the weight associated with the sample $i$;
+  \item $n$ are the total number of samples;
+  \item $V_{1} = \sum_{i=1}^{n} w_{i}$.
+\end{itemize}
+RAVEN performs an additional correction of skewness to obtain an unbiased estimation  with respect to the sample-size~\cite{RimoldiniUnbiased}:
+\begin{equation}
+\begin{matrix}
+\mathbb{E} \left [ \left ( \frac{X-\mu}{\sigma} \right )^{3} \right ]  \approx \frac{M_{3}}{M_{2}^{3/2}}  = \displaystyle \frac{n^{2}}{(n-1)(n-2)}m_{3}\times \frac{1}{\left ( \displaystyle \frac{n}{n-1}m_{2}  \right )^{3/2}} & if \: random \: sampling  
+\\
+\\
+\mathbb{E} \left [ \left ( \frac{X-\mu}{\sigma} \right )^{3} \right ]  \approx \frac{M_{3}}{M_{2}^{3/2}}  = \displaystyle \frac{V_{1}^{3}}{V_{1}^{3}-3V_{1}V_{2}+2V_{3}}m_{3} \times \frac{1}{\left ( \displaystyle \frac{V_{1}^{2}}{V_{1}^{2}-V_{2}}m_{2}  \right )^{3/2}} &  \, otherwise
+\end{matrix}
+\end{equation}
+where:
+\begin{itemize}
+  \item $w_{i}$ is the weight associated with the sample $i$;
+  \item $n$ are the total number of samples;
+  \item $V_{1} = \sum_{i=1}^{n} w_{i}^{2}$;
+  \item $V_{2} = \sum_{i=1}^{n} w_{i}^{2}$;
+  \item $V_{3} = \sum_{i=1}^{n} w_{i}^{3}$.
+\end{itemize}
 
+\subsubsection{Excess Kurtosis}
+The  Kurtosis~\cite{Abramowitz}  is the degree of peakedness of a distribution of a real-valued random variable. In a similar way to the concept of skewness, kurtosis describes the shape of the distribution. The Kurtosis is defined in order to
+obtain a value of $0$ for a Normal distribution. If it is greater than zero, it indicates that the distribution is high peak; If it is smaller 
+that zero, it testifies that the distribution is flat-topped.
+\\Formally, the Kurtosis can be expressed as follows:
+\begin{equation}
+\gamma_{2} = \frac{ \mathbb{E}\left [ \left ( X-\mu \right )^{4} \right ]}{\left ( \mathbb{E}\left [ \left ( X-\mu \right )^{2} \right ] \right )^{2}} 
+\end{equation}
+In RAVEN, the kurtosis (excess) is computed as follows:
+\begin{equation}
+\begin{matrix}
+\frac{ \mathbb{E}\left [ \left ( X-\mu \right )^{4} \right ]}{\left ( \mathbb{E}\left [ \left ( X-\mu \right )^{2} \right ] \right )^{2}}   \approx \frac{m_{4}-3m_{2}^{2}}{m_{2}^{2}} = \displaystyle  \frac{  \frac{1}{n} \sum_{i=1}^{n}  (x_{i} - \overline{x})^{4} -3\left ( \frac{1}{n} \sum_{i=1}^{n}  (x_{i} - \overline{x})^{2} \right )^{2}}{\left ( \frac{1}{n} \sum_{i=1}^{n}  (x_{i} - \overline{x})^{2} \right )^{2}} & if \: random \: sampling  
+\\
+\\
+\frac{ \mathbb{E}\left [ \left ( X-\mu \right )^{4} \right ]}{\left ( \mathbb{E}\left [ \left ( X-\mu \right )^{2} \right ] \right )^{2}}   \approx \frac{m_{4}-3m_{2}^{2}}{m_{2}^{2}} = \displaystyle  \frac{  \frac{1}{V_{1}} \sum_{i=1}^{n} w_{i} \times (x_{i} - \overline{x})^{4} -3\left ( \frac{1}{V_{1}} \sum_{i=1}^{n}  w_{i} \times (x_{i} - \overline{x})^{2} \right )^{2}}{\left ( \frac{1}{V_{1}} \sum_{i=1}^{n}  w_{i} \times (x_{i} - \overline{x})^{2} \right )^{2}} &  \, otherwise
+\end{matrix}
+\end{equation}
+where:
+\begin{itemize}
+  \item $w_{i}$ is the weight associated with the sample $i$;
+  \item $n$ are the total number of samples;
+  \item $V_{1} = \sum_{i=1}^{n} w_{i}$.
+\end{itemize}
+RAVEN performs an additional correction of kurtosis (excess) to obtain an unbiased estimation  with respect to the sample-size~\cite{RimoldiniUnbiased}:
+\begin{equation}
+\begin{matrix}
+\frac{ \mathbb{E}\left [ \left ( X-\mu \right )^{4} \right ]}{\left ( \mathbb{E}\left [ \left ( X-\mu \right )^{2} \right ] \right )^{2}}   \approx \frac{M_{4}-3M_{2}^{2}}{M_{2}^{2}}  = \displaystyle \frac{n^{2}(n+1)}{(n-1)(n-2)(n-3)}m_{4}-\frac{3n^{2}}{(n-2)(n-3)}m_{2}^{2} & if \: random \: sampling  
+\\
+\\
+\frac{ \mathbb{E}\left [ \left ( X-\mu \right )^{4} \right ]}{\left ( \mathbb{E}\left [ \left ( X-\mu \right )^{2} \right ] \right )^{2}}    \approx \frac{M_{4}-3M_{2}^{2}}{M_{2}^{2}}  = \displaystyle  \frac{V_{1}^{2}(V_{1}^{4}-4V_{1}V_{3}+3V_{2}^{2})}{(V_{1}^{2}-V_{2})(V_{1}^{4}-6V_{1}^{2}V_{2}+8V_{1}V_{3}+3V_{2}^{2}-6V_{4})}m_{4}
+-\displaystyle \frac{3V_{1}^{2}(V_{1}^{4}-2V_{1}^{2}V_{2}+4V_{1}V_{3}-3V_{2}^{2})}{(V_{1}^{2}-V_{2})(V_{1}^{4}-6V_{1}^{2}V_{2}+8V_{1}V_{3}+3V_{2}^{2}-6V_{4})}m_{2}^{2} &  \, otherwise
+\end{matrix}
+\end{equation}
+where:
+\begin{itemize}
+  \item $w_{i}$ is the weight associated with the sample $i$;
+  \item $n$ are the total number of samples;
+  \item $V_{1} = \sum_{i=1}^{n} w_{i}^{2}$;
+  \item $V_{2} = \sum_{i=1}^{n} w_{i}^{2}$;
+  \item $V_{3} = \sum_{i=1}^{n} w_{i}^{3}$;
+  \item $V_{4} = \sum_{i=1}^{n} w_{i}^{4}$.
+\end{itemize}
 
-\subsubsection{Kurtosis}
-
-aaaa
 \subsubsection{Median}
+The median of the distribution of a real-valued random variable is the number separating the higher half from the lower half of all
+the possible values. The median of a finite list of numbers can be found by arranging all the observations from lowest value to highest value and picking the middle one.
+\\Formally, the median $m$ can be cast as the number that satisfy the following relation:
+\begin{equation}
+  P(X\leq m) = P(X \geq m) = \int_{-\infty}^{m} pdf(x) dx=\frac{1}{2}
+\end{equation}
 
-aaaa
-\subsubsection{Median}
-aaaa
 \subsubsection{Percentile}
+A percentile (or a centile) is a measure indicating the value below which a given percentage of observations in a group of observations fall. 
 
+\subsubsection{Covariance and Correlation matrices}
+Simplistically, the Covariance is a measure of how much two random variables variate together. In other words, It represents a 
+measurement of the correlation, in terms of variance,  among different variables. If the greater values of one variable mainly 
+correspond with the greater values of the other variable, and the same holds for the lesser values, i.e., the variables tend to show 
+similar behavior, the covariance is positive. In the opposite case, when the greater values of one variable mainly correspond to the 
+lesser values of the other, i.e., the variables tend to show opposite behavior, the covariance is negative. 
+Formally, the Covariance can be expressed as
+\begin{equation}
+ cov(X,Y) = \mathbb{E} \left [ \left ( X- \mathbb{E}\left [ X \right ] \right ) \left ( Y- \mathbb{E}\left [ Y \right ] \right )\right ]
+\end{equation}
+Based on the previous equation, in RAVEN the Covariance is computed as follows:
+\begin{equation}
+\begin{matrix}
+ \mathbb{E} \left [ \left ( X- \mathbb{E}\left [ X \right ] \right ) \left ( Y- \mathbb{E}\left [ Y \right ] \right )\right ]  \approx \displaystyle \frac{n^{2}}{(n-1)(n-2)}m_{3}\times \frac{1}{\left ( \displaystyle \frac{n}{n-1}m_{2}  \right )^{3/2}} & if \: random \: sampling  
+\\
+\\
+\mathbb{E} \left [ \left ( \frac{X-\mu}{\sigma} \right )^{3} \right ]  \approx \frac{M_{3}}{M_{2}^{3/2}}  = \displaystyle \frac{V_{1}^{3}}{V_{1}^{3}-3V_{1}V_{2}+2V_{3}}m_{3} \times \frac{1}{\left ( \displaystyle \frac{V_{1}^{2}}{V_{1}^{2}-V_{2}}m_{2}  \right )^{3/2}} &  \, otherwise
+\end{matrix}
+\end{equation}
+
+
+
+\subsubsection{Correlation}
+aaaa
 
 aaaa
-\subsubsection{Percentile}
+\subsubsection{Variance Dependent Sensitivity matrix}
+
+aaaa
+\subsubsection{Sensitivity matrix}
 
 
+aaaaa
