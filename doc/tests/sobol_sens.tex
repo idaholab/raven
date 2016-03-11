@@ -97,16 +97,12 @@ and similarly for the remaining terms.  We evaluate the necessary integrals in t
 \begin{align}
   h_{yz} &=\int_0^1 T[f](x,y,z)\ dx - h_y - h_z - h_0,\nonumber\\
   &= \frac{119}{512} + \frac{105}{128}(y^2+z^2)+ \frac{63}{32}y^2z^2 - \nonumber\\
-    &\hspace{30pt} \left(-\frac{63}{128}+\frac{189}{128}y^2\right) - \left(-\frac{63}{128}+\frac{189}{128}z^2\right) -
-    \frac{511}{512}, \nonumber \\
   &=\frac{7}{32} - \frac{21}{32}(y^2+z^2) + \frac{63}{32}y^2z^2.
 \end{align}
 The other terms are obtained similarly, and are symmetric.  In summary,
 \begin{align}
   h_0 &= \frac{511}{512}, \\
   h_x &= -\frac{63}{128} + \frac{189}{128}x^2, \\
-  h_y &= -\frac{63}{128} + \frac{189}{128}y^2, \\
-  h_z &= -\frac{63}{128} + \frac{189}{128}z^2, \\
   h_{xy} &= \frac{7}{32} - \frac{21}{32}(x^2+y^2) + \frac{63}{32}x^2y^2, \\
   h_{xz} &= \frac{7}{32} - \frac{21}{32}(x^2+z^2) + \frac{63}{32}x^2z^2, \\
   h_{yz} &= \frac{7}{32} - \frac{21}{32}(y^2+z^2) + \frac{63}{32}y^2z^2.
@@ -125,7 +121,7 @@ To obtain the variance $\sigma_\text{tot}^2$, we subtract the square of the mean
 \end{equation}
 The partial variance $\sigma_k^2$ of any subset $k$ is the integral of the square of that ANOVA term.
 \begin{equation}
-  \sigma_x^2 = \sigma_y^2 = \sigma_z^2 = \frac{3969}{20480} \approx0.1776855,
+  \sigma_x^2 = \sigma_y^2 = \sigma_z^2 = \frac{3969}{20480} \approx0.19379883,
 \end{equation}
 \begin{equation}
   \sigma_{xy}^2 = \sigma_{xz}^2 = \sigma_{yz}^2 = \frac{49}{1600} =0.030625.
@@ -133,7 +129,7 @@ The partial variance $\sigma_k^2$ of any subset $k$ is the integral of the squar
 The total variance is a sum of the partial variances,
 \begin{equation}
   \sigma_\text{tot}^2 = 3\left(\frac{3969}{20480}\right) + 3\left(\frac{49}{1600}\right) =
-  \frac{68943}{102400} \approx 0.6732724.
+  \frac{68943}{102400} \approx 0.67327.
 \end{equation}
 
 The Sobol indices are the ratio of the partial variance to the total,
