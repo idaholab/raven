@@ -15,6 +15,135 @@ as follows, to 12 digits of accuracy:
 \end{align}
 The mean is 1.0 and the variance is 0.72*.
 
+\subsection{Second-Order ANOVA of Second-Order Cut-HDMR Expansion of Sudret}
+One particular analytic tests involves calculating Sobol sensitivities for the second-order cut-HDMR expansion
+of the Sudret.  We use three variables and equate $u(Y) = f(x,y,z)$.  The reference cut point is $(\bar
+x,\bar y, \bar z) = (\frac{1}{2},\frac{1}{2},\frac{1}{2})$.
+
+The first step is to construct the second-order cut-HDMR expansion $T$,
+\begin{equation}
+  f(x,y,z) \approx T[f](x,y,z) = t_r + t_x + t_y + t_z + t_{xy} + t_{xz} + t_{yz},
+\end{equation}
+\begin{equation}
+  t_r \equiv f(\bar x,\bar y,\bar z),
+\end{equation}
+\begin{equation}
+  t_x \equiv f(x,\bar y,\bar z) -t_r,
+\end{equation}
+\begin{equation}
+  t_{xy} \equiv f(x,y,\bar z) - t_x - t_y - t_r.
+\end{equation}
+Symmetry between $x,y,z$ provides similar expressions for the remaining terms.
+The cut-plane evaluations are
+\begin{equation}
+  f_0 = t_r \equiv f(\bar x,\bar y,\bar z) = \frac{343}{512},
+\end{equation}
+\begin{equation}
+  f_x \equiv f(x,\bar y, \bar z) = \frac{49}{128}(3x^2+1),
+\end{equation}
+\begin{equation}
+  f_{xy} \equiv f(x,y, \bar z) = \frac{7}{32}(3x^2+1)(3y^2+1),
+\end{equation}
+and similar for the remaining terms.  Expanding the cut-HDMR expression,
+\begin{align}
+  T[f](x,y,z) = t_r &+ (f_x-t_r) + (f_y-t_r) + (f_y-t_r) +\nonumber\\
+  &[f_{xy} - (f_x-t_r) - (f_y-t_r) - t_r]+ \nonumber\\
+  &[f_{xz} - (f_x-t_r) - (f_z-t_r) - t_r]+ \nonumber\\
+  &[f_{yz} - (f_y-t_r) - (f_z-t_r) - t_r],
+\end{align}
+and collecting terms
+\begin{equation}
+  T[f](x,y,z) = t_r - f_x - f_y - f_z + f_{xy} + f_{xz} + f_{yz}. 
+\end{equation}
+The ANOVA terms are recovered by integration of the cut-HDMR expansion.  The ANOVA expansion $H$ is similar in
+appearance to the cut-HDMR but uses different definitions; in fact, cut-HDMR is a coarse approximation of the
+ANOVA expansion.  Here we use ANOVA to approximate the cut-HDMR expansion, instead of the original model.
+
+\begin{equation}
+  H[T](x,y,z) = h_0 + h_x + h_y + h_z + h_{xy} + h_{xz} + h_{yz},
+\end{equation}
+\begin{equation}
+  h_0 \equiv \int_0^1\int_0^1\int_0^1 T[f](x,y,z)\ dx\ dy\ dz,
+\end{equation}
+\begin{equation}
+  h_x \equiv \int_0^1\int_0^1 T[f](x,y,z)\ dy\ dz - h_0,
+\end{equation}
+\begin{equation}
+  h_{xy} \equiv \int_0^1 T[f](x,y,z)\ dz - h_x - h_y - h_0,
+\end{equation}
+and similarly for the remaining terms.  We evaluate the necessary integrals in the expansion.
+\begin{align}
+  \int_0^1\int_0^1\int_0^1 T[f](x,y,z)\ dxdydz &= \int_0^1\int_0^1\int_0^1 t_r - f_x - f_y - f_z + f_{xy} +
+    f_{xz} + f_{yz}\ dxdydz,\nonumber \\
+    &= \frac{343}{512} - 3\left(\frac{49}{64}\right) + 3\left(\frac{7}{8}\right), \nonumber\\
+    &= \frac{511}{512}.\nonumber
+\end{align}
+\begin{equation}
+  h_0 = \int_0^1\int_0^1\int_0^1 T[f](x,y,z)\ dxdydz = \frac{511}{512}.
+\end{equation}
+\begin{align}
+  \int_0^1\int_0^1 T[f](x,y,z)\ dxdy &= \int_0^1\int_0^1 t_r - f_x - f_y - f_z + f_{xy} +
+    f_{xz} + f_{yz}\ dxdy, \nonumber\\
+    &= \frac{259}{512} + \frac{189}{128}z^2. \nonumber
+\end{align}
+\begin{equation}
+  h_z = \int_0^1\int_0^1 T[f](x,y,z)\ dxdy - h_0 = \frac{259}{512} + \frac{189}{128}z^2 - \frac{511}{512} =
+  -\frac{63}{128} + \frac{189}{128}z^2.
+\end{equation}
+\begin{align}
+  \int_0^1 T[f](x,y,z)\ dx &= \int_0^1 t_r - f_x - f_y - f_z + f_{xy} + f_{xz} + f_{yz}\ dx, \nonumber\\
+  &= \frac{119}{512} + \frac{105}{128}(y^2+z^2)+ \frac{63}{32}y^2z^2,\nonumber
+\end{align}
+\begin{align}
+  h_{yz} &=\int_0^1 T[f](x,y,z)\ dx - h_y - h_z - h_0,\nonumber\\
+  &= \frac{119}{512} + \frac{105}{128}(y^2+z^2)+ \frac{63}{32}y^2z^2 - \nonumber\\
+    &\hspace{30pt} \left(-\frac{63}{128}+\frac{189}{128}y^2\right) - \left(-\frac{63}{128}+\frac{189}{128}z^2\right) -
+    \frac{511}{512}, \nonumber \\
+  &=\frac{7}{32} - \frac{21}{32}(y^2+z^2) + \frac{63}{32}y^2z^2.
+\end{align}
+The other terms are obtained similarly, and are symmetric.  In summary,
+\begin{align}
+  h_0 &= \frac{511}{512}, \\
+  h_x &= -\frac{63}{128} + \frac{189}{128}x^2, \\
+  h_y &= -\frac{63}{128} + \frac{189}{128}y^2, \\
+  h_z &= -\frac{63}{128} + \frac{189}{128}z^2, \\
+  h_{xy} &= \frac{7}{32} - \frac{21}{32}(x^2+y^2) + \frac{63}{32}x^2y^2, \\
+  h_{xz} &= \frac{7}{32} - \frac{21}{32}(x^2+z^2) + \frac{63}{32}x^2z^2, \\
+  h_{yz} &= \frac{7}{32} - \frac{21}{32}(y^2+z^2) + \frac{63}{32}y^2z^2.
+\end{align}
+It can be shown that the expectation value of any ANOVA expansion term is zero, with the exception of the
+first term $h_0$.  Additionally, each term is orthogonal to each other term.  The second moment can thus be
+calculated as
+\begin{align}
+  \langle H[T](x,y,z)^2\rangle &\equiv \int_0^1\int_0^1\int_0^1 (h_0+h_x+h_y+h_z+h_{xy}+h_{xz}+h_{yz})^2\
+  dxdydz, \nonumber\\
+  &= h_0^2+\int_0^1\int_0^1\int_0^1 h_x^2+h_y^2+h_z^2+h_{xy}^2+h_{xz}^2+h_{yz}^2\ dxdydz.
+\end{align}
+To obtain the variance $\sigma_\text{tot}^2$, we subtract the square of the mean,
+\begin{equation}
+  \sigma_\text{tot}^2 = \int_0^1\int_0^1\int_0^1 h_x^2+h_y^2+h_z^2+h_{xy}^2+h_{xz}^2+h_{yz}^2\ dxdydz.
+\end{equation}
+The partial variance $\sigma_k^2$ of any subset $k$ is the integral of the square of that ANOVA term.
+\begin{equation}
+  \sigma_x^2 = \sigma_y^2 = \sigma_z^2 = \frac{3969}{20480} \approx0.1776855,
+\end{equation}
+\begin{equation}
+  \sigma_{xy}^2 = \sigma_{xz}^2 = \sigma_{yz}^2 = \frac{49}{1600} =0.030625.
+\end{equation}
+The total variance is a sum of the partial variances,
+\begin{equation}
+  \sigma_\text{tot}^2 = 3\left(\frac{3969}{20480}\right) + 3\left(\frac{49}{1600}\right) =
+  \frac{68943}{102400} \approx 0.6732724.
+\end{equation}
+
+The Sobol indices are the ratio of the partial variance to the total,
+
+\begin{equation}
+  \mathcal{S}_x =\mathcal{S}_y = \mathcal{S}_z = \frac{135}{469} \approx 0.287846482, 
+\end{equation}
+\begin{equation}
+  \mathcal{S}_{xy} =\mathcal{S}_{xz} = \mathcal{S}_{yz} = \frac{64}{1407} \approx 0.045486851. 
+\end{equation}
 %
 %
 %
