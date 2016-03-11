@@ -1757,7 +1757,7 @@ class ARMA(superVisedLearning):
         self.raiseAnError(ValueError, 'Length of FourierOrder should be ' + str(len(self.fourierPara['basePeriod'])))
       
       
-      self.fourierEngine = linear_model.LinearRegression()
+      
     
     # Instantiate a normal distribution for data conversion
     self.normTransEngine = Distributions.returnInstance('Normal',self)
@@ -1793,7 +1793,6 @@ class ARMA(superVisedLearning):
     # Fit fourier seires
     if self.hasFourierSeries:
       self.__trainFourier__()   
-      self.fourierResult['predict'] = self.fourierEngine.predict(self.fourierResult['fSeries'])
       self.armaPara['rSeries'] = self.TimeSeriesDatabase - self.fourierResult['predict']
     else:
       self.armaPara['rSeries'] = self.TimeSeriesDatabase
@@ -1809,7 +1808,11 @@ class ARMA(superVisedLearning):
     # Fit ARMA model: x_t = \sum_{i=1}^P \phi_i*x_{t-i} + \alpha_t + \sum_{j=1}^Q \theta_j*\alpha_{t-j}
     self.__trainARMA__()
     
-   
+    self.raiseADebug(self.__dict__.keys())
+    self.raiseADebug(self.__dict__['armaResult']['param'])
+#     self.raiseAnError(IOError, 't')
+    del self.TimeSeriesDatabase
+    del self.dataObject
     
   # For debug only; 
 #     self.raiseADebug('****************************************************************')
@@ -1818,7 +1821,7 @@ class ARMA(superVisedLearning):
 #     self.dataObject.updateOutputValue('rDenorm', self.armaPara['rDenorm'][:,0])
 #     self.dataObject.updateOutputValue('rSeriesNorm', self.armaPara['rSeriesNorm'][:,0])
 #     for index,feat in enumerate(self.features):
-#       temp = self.fourierEngine.predict(self.fourierResult['fSeries'])
+#       temp = fourierEngine.predict(self.fourierResult['fSeries'])
 #       self.raiseADebug(index,feat)
 #       self.dataObject.updateOutputValue('fTrend-' + feat, temp[:,index])
 #       self.dataObject.updateOutputValue(feat + '-deTrend', self.armaPara['rSeries'][:,index])
@@ -1826,7 +1829,8 @@ class ARMA(superVisedLearning):
     ##########################################################################################
     
   def __trainFourier__(self):
-    self.__generateFourier__()    
+    fourierSeriesAll = self.__generateFourier__()  
+    fourierEngine = linear_model.LinearRegression()  
     temp = {}
     for bp in self.fourierPara['FourierOrder'].keys():
       temp[bp] = range(1,self.fourierPara['FourierOrder'][bp]+1)    
@@ -1836,28 +1840,29 @@ class ARMA(superVisedLearning):
     self.fourierResult={}
     self.fourierResult['basePeriod'] = self.fourierPara['basePeriod']
     self.fourierResult['residues'] = 0
-    self.fourierResult['fSeries'] = []
+    fSeriesBest = []
     self.fourierResult['fOrder'] = []    
       
     for fOrder in fourOrders: 
       fSeries = np.zeros(shape=(self.Time.size,2*sum(fOrder)))
       indexTemp = 0
       for index,bp in enumerate(self.fourierPara['FourierOrder'].keys()):
-        fSeries[:,indexTemp:indexTemp+fOrder[index]*2] = self.fourierPara['series'][bp][:,0:fOrder[index]*2]
+        fSeries[:,indexTemp:indexTemp+fOrder[index]*2] = fourierSeriesAll[bp][:,0:fOrder[index]*2]
         indexTemp += fOrder[index]*2
-      self.fourierEngine.fit(fSeries,self.TimeSeriesDatabase)
+      fourierEngine.fit(fSeries,self.TimeSeriesDatabase)
       
-      r = (self.fourierEngine.predict(fSeries)-self.TimeSeriesDatabase)**2
+      r = (fourierEngine.predict(fSeries)-self.TimeSeriesDatabase)**2
       if r.size > 1:    r = sum(r)
       r = r/self.Time.size
       criterionCurrent = r #self.__computeAICorBIC(r,noPara=sum(fOrder)*2,cType='None',obj='min')
       if  criterionCurrent< criterionBest:
         self.fourierResult['fOrder'] = fOrder
-        self.fourierResult['fSeries'] = fSeries
+        fSeriesBest = copy.deepcopy(fSeries)
         self.fourierResult['residues'] = r
         criterionBest = criterionCurrent 
     
-    self.fourierEngine.fit(self.fourierResult['fSeries'],self.TimeSeriesDatabase)
+    fourierEngine.fit(fSeriesBest,self.TimeSeriesDatabase)
+    self.fourierResult['predict'] = fourierEngine.predict(fSeriesBest)
     
   def __trainARMA__(self):
     # Fit ARMA model: x_t = \sum_{i=1}^P \phi_i*x_{t-i} + \alpha_t + \sum_{j=1}^Q \theta_j*\alpha_{t-j}
@@ -1921,7 +1926,7 @@ class ARMA(superVisedLearning):
           
     self.raiseADebug(self.armaResult['P'],self.armaResult['Q'],self.armaResult['param'],criterionBest)
     
-    # sving training results
+    # saving training results
     p = self.armaResult['P'] 
     q = self.armaResult['Q']
     N = self.armaPara['dimension'] 
@@ -1936,9 +1941,10 @@ class ARMA(superVisedLearning):
   def __generateResCDF__(self):
     self.armaNormPara = {}
     self.armaNormPara['rCDF'] = {}
-    num_bins = [20000]*self.armaPara['dimension']
+    num_bins = [0]*self.armaPara['dimension']
     
     for d in range(self.armaPara['dimension']):
+      num_bins[d] = self.__computeNumberBins__(self.armaPara['rSeries'][:,d])
       counts, binEdges = np.histogram(self.armaPara['rSeries'][:,d], bins = num_bins[d], normed = True)
       Delta = np.zeros(shape=(num_bins[d],1))
       for n in range(num_bins[d]):
@@ -1957,6 +1963,16 @@ class ARMA(superVisedLearning):
       self.armaNormPara['rCDF'][d]['CDFMin'] = min(rCdf)
       self.armaNormPara['rCDF'][d]['binSearchEng'] = neighbors.NearestNeighbors(n_neighbors=2).fit([[b] for b in binEdges])
       self.armaNormPara['rCDF'][d]['cdfSearchEng'] = neighbors.NearestNeighbors(n_neighbors=2).fit([[c] for c in rCdf])
+
+  def __computeNumberBins__(self, data):
+    """
+    Compute number of bins determined by Freedman Diaconis rule
+    https://en.wikipedia.org/wiki/Freedman%E2%80%93Diaconis_rule
+    
+    """
+    IQR = np.percentile(data, 75) - np.percentile(data, 25)
+    binSize = 2.0*IQR*(data.size**(-1.0/3.0))
+    return int((max(data)-min(data))/binSize)
   
   def __getRCDF__(self,d,x):
     if x <= self.armaNormPara['rCDF'][d]['binsMin']:
@@ -2030,17 +2046,13 @@ class ARMA(superVisedLearning):
   def __generateFourier__(self):
     Time = self.Time
     
-    self.fourierPara['series']={}
+    fourierSeriesAll = {}
     for bp in self.fourierPara['basePeriod']:
-      self.fourierPara['series'][bp] = np.zeros(shape=(Time.size,2*self.fourierPara['FourierOrder'][bp]))
+      fourierSeriesAll[bp] = np.zeros(shape=(Time.size,2*self.fourierPara['FourierOrder'][bp]))
       for orderBp in range(self.fourierPara['FourierOrder'][bp]):       
-        self.fourierPara['series'][bp][:,2*orderBp] = np.sin(2*np.pi*(orderBp+1)/bp*Time)
-        self.fourierPara['series'][bp][:,2*orderBp+1] = np.cos(2*np.pi*(orderBp+1)/bp*Time)
-        # For debug only
-#         vName = 'f-' + str(int(bp)) + '-' + str(int(orderBp+1)) + '-sin'
-#         self.dataObject.updateOutputValue(vName,self.fourierPara['series'][bp][:,2*orderBp])
-#         vName = 'f-' + str(int(bp)) + '-' + str(int(orderBp+1)) + '-cos'
-#         self.dataObject.updateOutputValue(vName,self.fourierPara['series'][bp][:,2*orderBp+1])
+        fourierSeriesAll[bp][:,2*orderBp] = np.sin(2*np.pi*(orderBp+1)/bp*Time)
+        fourierSeriesAll[bp][:,2*orderBp+1] = np.cos(2*np.pi*(orderBp+1)/bp*Time)
+    return fourierSeriesAll
     
   def __armaParamAssemb__(self,x,p,q,N):  
     Phi = {}

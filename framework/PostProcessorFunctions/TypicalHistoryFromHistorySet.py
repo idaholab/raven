@@ -94,7 +94,6 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
         FS = 0
         for keyF in self.features:
           FS += self.__computeDist(tempCDF['all'][keyF],tempCDF[keySub][keyF][cnt,:])
-          print(FS)
         if FS < d:
           d = FS
           for keyF in self.features:
