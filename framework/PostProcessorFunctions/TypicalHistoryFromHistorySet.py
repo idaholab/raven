@@ -27,6 +27,7 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
     PostProcessorInterfaceBase.initialize(self)
     self.inputFormat  = 'HistorySet'
     self.outputFormat = 'History'
+    if not hasattr(self, 'timeID'):   self.timeID = 'Time'
 
   def run(self,inputDic):
     """
