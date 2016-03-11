@@ -1796,7 +1796,7 @@ class ARMA(superVisedLearning):
 #     J.M.Morales, R.Minguez, A.J.Conejo "A methodology to generate statistically dependent wind speed scenarios," 
 #     Applied Energy, 87(2010) 843-855
     self.__generateResCDF__()
-    self.__getRCDF__(0,5)
+#     self.__getRCDF__(0,5)
        
     self.armaPara['rSeriesNorm'] = self.__normalizeRes__(self.armaPara['rSeries'])
     
@@ -1806,16 +1806,16 @@ class ARMA(superVisedLearning):
    
     
   # For debug only; 
-    self.raiseADebug('****************************************************************')
-    self.raiseADebug(self.dataObject)
-    self.armaPara['rDenorm'] = self.__denormalizeRes__(self.armaPara['rSeriesNorm'])
-    self.dataObject.updateOutputValue('rDenorm', self.armaPara['rDenorm'][:,0])
-    self.dataObject.updateOutputValue('rSeriesNorm', self.armaPara['rSeriesNorm'][:,0])
-    for index,feat in enumerate(self.features):
-      temp = self.fourierEngine.predict(self.fourierResult['fSeries'])
-      self.raiseADebug(index,feat)
-      self.dataObject.updateOutputValue('fTrend-' + feat, temp[:,index])
-      self.dataObject.updateOutputValue(feat + '-deTrend', self.armaPara['rSeries'][:,index])
+#     self.raiseADebug('****************************************************************')
+#     self.raiseADebug(self.dataObject)
+#     self.armaPara['rDenorm'] = self.__denormalizeRes__(self.armaPara['rSeriesNorm'])
+#     self.dataObject.updateOutputValue('rDenorm', self.armaPara['rDenorm'][:,0])
+#     self.dataObject.updateOutputValue('rSeriesNorm', self.armaPara['rSeriesNorm'][:,0])
+#     for index,feat in enumerate(self.features):
+#       temp = self.fourierEngine.predict(self.fourierResult['fSeries'])
+#       self.raiseADebug(index,feat)
+#       self.dataObject.updateOutputValue('fTrend-' + feat, temp[:,index])
+#       self.dataObject.updateOutputValue(feat + '-deTrend', self.armaPara['rSeries'][:,index])
 
     ##########################################################################################
     
@@ -2031,10 +2031,10 @@ class ARMA(superVisedLearning):
         self.fourierPara['series'][bp][:,2*orderBp] = np.sin(2*np.pi*(orderBp+1)/bp*Time)
         self.fourierPara['series'][bp][:,2*orderBp+1] = np.cos(2*np.pi*(orderBp+1)/bp*Time)
         # For debug only
-        vName = 'f-' + str(int(bp)) + '-' + str(int(orderBp+1)) + '-sin'
-        self.dataObject.updateOutputValue(vName,self.fourierPara['series'][bp][:,2*orderBp])
-        vName = 'f-' + str(int(bp)) + '-' + str(int(orderBp+1)) + '-cos'
-        self.dataObject.updateOutputValue(vName,self.fourierPara['series'][bp][:,2*orderBp+1])
+#         vName = 'f-' + str(int(bp)) + '-' + str(int(orderBp+1)) + '-sin'
+#         self.dataObject.updateOutputValue(vName,self.fourierPara['series'][bp][:,2*orderBp])
+#         vName = 'f-' + str(int(bp)) + '-' + str(int(orderBp+1)) + '-cos'
+#         self.dataObject.updateOutputValue(vName,self.fourierPara['series'][bp][:,2*orderBp+1])
     
   def __armaParamAssemb__(self,x,p,q,N):  
     Phi = {}
