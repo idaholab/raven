@@ -574,7 +574,6 @@ class temporalSciKitLearn(unSupervisedLearning):
     @ In: messageHandler, Message handler object
     @ In: kwargs, arguments for the SciKitLearn algorithm
     """
-#     SciKitLearn.__init__(self,messageHandler,**kwargs)
     unSupervisedLearning.__init__(self, messageHandler, **kwargs)    
     self.printTag = 'TEMPORALSCIKITLEARN'
     if 'SKLtype' not in self.initOptionDict.keys(): self.raiseAnError(IOError, ' to define a scikit learn unSupervisedLearning Method the SKLtype keyword is needed (from KDD ' + self.name + ')')
@@ -585,11 +584,8 @@ class temporalSciKitLearn(unSupervisedLearning):
     self.SKLEngine = returnInstance('SciKitLearn',self, **self.initOptionDict)
     
     self.normValues = None
-    self.outputDict = {}
-    
+    self.outputDict = {}    
     if 'decomposition' == SKLtype or 'manifold' == SKLtype: self.noComponents_ = self.initOptionDict['n_components']
-
-    
    
   @staticmethod
   def checkArrayConsistency(arrayin, shape):
@@ -880,13 +876,7 @@ class temporalSciKitLearn(unSupervisedLearning):
       for n2 in range(N2):
         dMatrix[n1,n2] = self.__computeDist__(t,n1,n2,'DistanceWithDecay',keyC)           
     _, mapping = self.__localReMap__(dMatrix, (range(N1), range(N2)))
-    
-    # Debug
-#     self.raiseADebug(t, dMatrix.shape, dMatrix) 
-#     self.raiseADebug(mapping)
-#     self.raiseADebug(indices1,indices2)
-    # End of debug
-    
+        
     remap = {}
     f1, f2 = [False]*N1, [False]*N2
     for mp in mapping:
@@ -935,17 +925,13 @@ class temporalSciKitLearn(unSupervisedLearning):
           d = dMatrix[n1,n2] + d_temp
           i1, i2, i = n1, n2, l
       i.append((i1,i2))
-      return d, i
-        
-        
-        
+      return d, i       
       
   def __evaluateLocal__(self, featureVals):
     pass # FIXME
   
   def __confidenceLocal__(self):
     pass # FIXME
-
 
 __interfaceDict = {}
 __interfaceDict['SciKitLearn'] = SciKitLearn
