@@ -35,8 +35,6 @@
 \usepackage{mathtools} 
 \usepackage{relsize} 
 \usepackage[toc,page]{appendix}
-\newtheorem{mydef}{Definition}
-\newcommand{\norm}[1]{\lVert#1\rVert}
 %\usepackage[table,xcdraw]{xcolor}
 %\usepackage{authblk}         % For making the author list look prettier
 %\renewcommand\Authsep{,~\,}
@@ -54,7 +52,6 @@
   basicstyle=\ttfamily,
   frame=single
 }
-
 
 \setcounter{secnumdepth}{5}
 \lstdefinestyle{XML} {
@@ -182,7 +179,8 @@ showstringspaces=false            %
 % obsolete.  Also, \boldsymbol doesn't even seem to work with
 % the fonts used in this particular document...
 \usepackage{bm}
-
+\newtheorem{mydef}{Definition}
+\newcommand{\norm}[1]{\lVert#1\rVert}
 
 % Define tensors to be in bold math font.
 \newcommand{\tensor}[1]{{\bm{#1}}}
@@ -243,7 +241,7 @@ showstringspaces=false            %
 %
 % Set the title, author, and date
 %
-\title{RAVEN theory manual}
+\title{RAVEN Theory Manual}
 %\author{%
 %\begin{tabular}{c} Author 1 \\ University1 \\ Mail1 \\ \\
 %Author 3 \\ University3 \\ Mail3 \end{tabular} \and
@@ -275,7 +273,7 @@ showstringspaces=false            %
 % Set some things we need for SAND reports. These are mandatory
 %
 \SANDnum{INL/MIS-16-38178}
-\SANDprintDate{January 2016}
+\SANDprintDate{March 2016}
 \SANDauthor{Andrea Alfonsi, Cristian Rabiti, Diego Mandelli, Joshua Cogliati, Congjian Wang, Paul W. Talbot, Daniel P. Maljovec, Curtis Smith}
 \SANDreleaseType{Revision 0 Draft}
 
@@ -295,7 +293,9 @@ showstringspaces=false            %
 % Added by Sonat 
 \usepackage{placeins}
 \usepackage{array}
-
+\usepackage[normalem]{ulem}
+\useunder{\uline}{\ul}{}
+\usepackage{pdflscape}
 \newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
 \newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
 \newcolumntype{R}[1]{>{\raggedleft\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
