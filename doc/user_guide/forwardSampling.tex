@@ -1,13 +1,13 @@
-\section{RAVEN Theory by way of Examples: Forward Sampling Strategies}
-In order to perform uncertainty quantification (UQ) and dynamic risk and
-probabilistic assessment (D-PRA),
-a sampling strategy needs to be employed. The sampling is aimed to
+\section{Forward Sampling Strategies}
+In order to perform uncertainty quantification (UQ) and dynamic
+probabilistic risk assessment (D-PRA),
+a sampling strategy needs to be employed. The sampling strategy aims to
 perturb the input space (domain of the uncertainties) in order to explore
 the response of a complex system in relation to selected Figures of 
 Merits (FOMs). 
 \\The most widely used strategies to perform UQ and PRA are generally
-collected into the category that, in RAVEN, is named \textit{\textbf{Forward}} samplers. The \textit{\textbf{Forward}} sampler category collects all the strategies that perform the sampling of the input space without exploiting, through dynamic learning approaches, the information made available from the outcomes of evaluation previously performed (adaptive sampling) and the common system evolution (patterns) that different sampled calculations can generate in the phase space (dynamic event tree). 
-\\As mentioned in section \ref{par:ForwardSamplers}, RAVEN owns
+collected into the category that, in RAVEN, is named \textit{\textbf{Forward}} samplers. The \textit{\textbf{Forward}} sampler category collects all the strategies that perform the sampling of the input space without exploiting, through learning approaches, the information made available from the outcomes of evaluation previously performed (adaptive sampling) and the common system evolution (patterns) that different sampled calculations can generate in the phase space (Dynamic Event Tree). 
+\\As mentioned in section \ref{par:ForwardSamplers}, RAVEN has
 different \textit{\textbf{Forward}} samplers, among which the most 
 common are:
 \begin{itemize}
@@ -37,7 +37,7 @@ The Monte-Carlo method is probably one of the most used methodologies in several
 background is reported. In addition,it is shown how to employ this methodology with RAVEN.
 \subsubsection{Monte-Carlo theory introduction}
 \label{subsub:MCtheory}
-The Monte-Carlo method is aimed to approximate an expectation by the sample mean of a function of 
+The Monte-Carlo method aims to approximate an expectation by the sample mean of a function of 
 simulated random variables. It is based on the laws of large numbers in order to approximate expectations. 
 In order words, it is aimed to approximate the average response of multiple FOMs 
 relying on multiple random sampling of the input space. 
@@ -45,12 +45,12 @@ relying on multiple random sampling of the input space.
 which is greater than zero on a set of values $\chi$. Then the expected value of a function $f$ of $X$ is as follows:
 \begin{equation}
 \begin{matrix}
-\mathbb{E}(f(X)) =\sum_{x \in \chi} f(x)pdf_{X}(x) & if X \, discrete \\ 
+\mathbb{E}(f(X)) =\sum_{x \in \chi} f(x)pdf_{X}(x) & \text{if} X \, discrete \\ 
 \\ 
-\mathbb{E}(f(X)) =\int_{x \in \chi} f(x)pdf_{X}(x) & \, if X \, \, continuous
+\mathbb{E}(f(X)) =\int_{x \in \chi} f(x)pdf_{X}(x) & \, \text{if} X \, \, continuous
 \end{matrix}
 \end{equation}
-Let's now consider to take an $n$-sample of $X$, $(x_{1},...,x_{n})$, and compute the mean of $f(x)$ over the samples. This computation represents the Monte-Carlo estimate:
+Let's now consider $n$ samples of $X$, $(x_{1},...,x_{n})$, and compute the mean of $f(x)$ over the samples. This computation represents the Monte-Carlo estimate:
 \begin{equation}
   \mathbb{E}(f(X)) \approx   \widetilde{f}_{n}(x) = \frac{1}{n} \sum_{i=1}^{n} f(x_{i})  
 \end{equation}
@@ -115,8 +115,8 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
 \end{lstlisting}   
    As reported in section~\ref{sub:EntitiesAndFlow}, the \textit{RunInfo} \textbf{Entity} is intended to set up the analysis 
    that the user wants to perform. In this specific case, two steps (\xmlNode{Sequence}) are going to be sequentially run 
-   using 	12 processors (\xmlNode{batchSize}). This means that
-   12 instances of the driven code are going to be run simultaneously. 
+   using 12 processors (\xmlNode{batchSize}). This means that
+   12 instances of the driven code are run simultaneously. 
    Every time a simulation ends, a new one is launched.
    \item \textbf{\textit{Files}}:
 \begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]

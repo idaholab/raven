@@ -3,13 +3,13 @@ RAVEN (\textit{Risk Analysis Virtual Environment}) is a generic software framewo
 
 \subsection{RAVEN initial development}
 The development of RAVEN started in 2012, when, within the Nuclear Energy Advanced Modeling and Simulation (NEAMS) program, the need to provide a modern risk evaluation framework became stronger. RAVEN’s principal assignment is to provide the necessary software and algorithms in order to employ the concept developed by the Risk Informed Safety Margin Characterization (RISMC) program. RISMC is one of the pathways defined within the Light Water Reactor Sustainability (LWRS) program. In the RISMC approach, the goal is not just specifically identifying the frequency of an event potentially leading to a system failure, but the closeness (or not) to key safety-related events. This approach may be used in identifying and increasing the safety margins related to those events. A safety margin is a numerical value quantifying the probability that a safety metric (e.g. as peak pressure in a pipe) is exceeded under certain conditions.
-\\The initial development of RAVEN has been focused on providing dynamic risk assessment capability to RELAP-7, currently under development at the INL and, likely, future replacement of the RELAP5-3D code.
-Most of the capabilities implemented having RELAP-7 as principal focus are easily deployable for other system codes. For this reason, several side activities have been ongoing for coupling RAVEN with software such as BISON, fuel performance, RELAP5-3D, etc. This section is focused on the RAVEN software infrastructure and its functionality.
+\\The initial development of RAVEN has focused on providing dynamic risk assessment capability to RELAP-7, currently under development at the INL.
+Most of the capabilities implemented for RELAP-7 are easily deployable for other system codes. For this reason, several side activities have been ongoing for coupling RAVEN with software such as BISON, fuel performance, RELAP5-3D, etc. This section is focused on the RAVEN software infrastructure and its functionality.
 
 
 \subsection{Software infrastructure}
 \subsubsection{Outlines}
-RAVEN has been developed in a highly modular and pluggable way in order to enable easy integration of different programming languages (i.e., C++, Python) and, as already mentioned, coupling with any system code.  
+RAVEN has been developed in a highly modular way in order to enable easy integration of different programming languages (i.e., \texttt{C++} \texttt{Python}) and, as already mentioned, coupling with any system code.  
 RAVEN is composed of three main software systems that can operate either in coupled or stand-alone mode:
 \begin{itemize}
   \item Control Logic System
@@ -20,8 +20,7 @@ The control logic system and the Graphical User Interface are currently availabl
 
 \subsubsection{Probabilistic and Parametric framework}
 The probabilistic and parametric framework represents the core of the RAVEN analysis capabilities. The main idea behind the design of the system is the creation of a multipurpose framework characterized by high flexibility with respect to the possible performable analysis. The framework must be capable of constructing the analysis/calculation flow at run-time, interpreting the user-defined instructions and assembling the different analysis tasks following a user specified scheme. 
-In order to achieve such flexibility, combined with reasonably fast development, a programming language naturally suitable for this kind of approach was needed: $Python$.  
-
+In order to achieve such flexibility, combined with reasonably fast development, a programming language naturally suitable for this kind of approach was needed: \texttt{Python}.  
 
 \begin{figure}[ht]
   \centering
@@ -30,7 +29,7 @@ In order to achieve such flexibility, combined with reasonably fast development,
   \label{fig:RAVENframeworkLayout}
 \end{figure}
 
-Hence, RAVEN is coded in $Python$ and is characterized by an object-oriented design. The core of the analysis performable through RAVEN is represented by a set of basic components (objects) the user can combine, in order to create a custom analysis flow. A list of these components and a summary of their most important functionalities are reported as follows:
+Hence, RAVEN is coded in \texttt{Python} and is characterized by an object-oriented design. The core of the analysis performable through RAVEN is represented by a set of basic components (objects) the user can combine, in order to create a custom analysis flow. A list of these components and a summary of their most important functionalities are reported as follows:
 \begin{itemize}
 \item	Distribution: In order to explore the input/output space, RAVEN requires the capability to perturb the input space (initial conditions and/or model coefficients of a system code). The input space is generally characterized by probability distribution functions (PDFs), which might need to be considered when a perturbation is applied. In this respect, a large library of PDFs is available.
 \item Sampler: A proper approach to sample the input space is fundamental for the optimization of the computational time. In RAVEN, a ``sampler'' employs a unique perturbation strategy that is applied to the input space of a system. The input space is defined through the connection of uncertain variables and their relative probability distributions. 
@@ -42,14 +41,14 @@ The list above is not comprehensive of all the RAVEN framework components (visua
 \\ Figure~\ref{fig:RAVENframeworkLayout} shows a schematic representation of the whole framework, highlighting the communication pipes among the different modules and engines. As can be seen, in the figure all the components reported above are schematically shown. In addition the data management, mining and processing modules are shown.
 
 \subsubsection{Distribution}
-As already mentioned, the perturbation of the input space, through the initial conditions (parameters) affected by uncertainties, needs to be performed by the proper distribution functions. RAVEN provides, through an interface to the BOOST library, the following variate (truncated and not) distributions: Bernoulli, Binomial, Exponential, Logistic, Lognormal, Normal, Poisson, Triangular, Uniform, Weibull, Gamma, and Beta.
+As already mentioned, the perturbation of the input space, through the initial conditions (parameters) affected by uncertainties, needs to be performed by the proper distribution functions. RAVEN provides, through an interface to the \texttt{Boost} library, the following variate (truncated and not) distributions: Bernoulli, Binomial, Exponential, Logistic, Lognormal, Normal, Poisson, Triangular, Uniform, Weibull, Gamma, and Beta.
 \\The usage of uni-variate distributions for sampling initial conditions is based on the assumption that the uncertain parameters are not correlated with each other. Quite often uncertain parameters are subject to correlations and thus the uni-variate approach is not applicable. This happens when a generic outcome is dependent on different phenomena simultaneously (i.e. the outcome dependency description can not be collapsed to a function of a single variable). RAVEN currently supports both N-dimensional (N-D) PDFs. The user can provide the distribution values on either Cartesian or sparse grid, which determines the interpolation algorithm used in the evaluation of the imported CDF/PDF:
 \begin{enumerate}
 \item N-Dimensional Spline, for Cartesian grids
 \item Inverse weight, for sparse grids
 \end{enumerate}
 Internally, RAVEN provides the needed N-D differentiation and integration algorithms to compute the PDF from the CDF and vice-versa. 
-\\As already mentioned, the sampling methods use the distributions in order to perform probability-weighted perturbations. For example, in the Monte Carlo approach, a random number $\in [0,1]$ is generated (probability threshold) and the CDF, corresponding to that probability, is inverted in order to retrieve the parameter value usable in the simulation. The existence of the inverse for variate distributions is guaranteed by the monotonicity of the CDF. For N-D distributions this condition is not sufficient since the $CDF(X)\longrightarrow [0,1],X \in  R^{N} $ and therefore it could not be a bijective function. From an application point of view, this means the inverse of a N-D CDF is not unique. 
+\\As already mentioned, the sampling methods use the distributions in order to perform probability-weighted perturbations. For example, in the Monte Carlo approach, a random number $\in [0,1]$ is generated (probability threshold) and the CDF, corresponding to that probability, is inverted in order to retrieve the parameter value usable in the simulation. The existence of the inverse for variate distributions is guaranteed by the monotonicity of the CDF. For N-D distributions this condition is not sufficient since the $CDF:X\longrightarrow [0,1],X \in  R^{N} $ and therefore it could not be a bijective function. From an application point of view, this means the inverse of a N-D CDF is not unique. 
 \\As an example, the Figure~\ref{fig:NDDistributionExample} shows a multivariate normal distribution for a pipe failure as function of the pressure and temperature. The plane identifies an isoprobability surface (in this case, a line) that represents a probability threshold of 50 \% in this example.  Hence, the inverse of this CDF is an infinite number of points.
  \\As easily inferable, the standard sampling approach cannot directly be employed. When multivariate distributions are used, RAVEN implements a surface search algorithm for identifying the iso-probability surface location. Once the location of the surface has been found, RAVEN chooses, randomly, one point on it.
 
