@@ -3,7 +3,7 @@ This manual is intended to provide an overview of the RAVEN capabilities through
 In order to speed up the learning process, the examples are organized in an ascending complexity order, from simple data manipulation and visualization to
 full Probabilistic Risk Assessment and Uncertainty Quantification analysis. In addition, each example is followed by a brief explanation of the theoretical background of the methods that have been used.
 \\ It is important to notice that this document is intended to be consulted in conjunction with the user manual ~\cite{RAVENuserManual}.
-\\ In order to generalize the examples to any driven software, a simple \textit{Python} code (conventionally called \textbf{AnalyticBateman}) has been developed (located at ``\textit{doc/user\textunderscore guide/ravenInputs/physicalCode}''). It solves a system of ordinary differential equations (ODEs), of the form:
+\\ In order to generalize the examples to any driven software, a simple \texttt{Python} code (conventionally called \textbf{AnalyticBateman}) has been developed (located at ``\textit{doc/user\textunderscore guide/ravenInputs/physicalCode}''). It solves a system of ordinary differential equations (ODEs), of the form:
 
 \begin{equation}
 \begin{dcases}
@@ -94,4 +94,4 @@ The code outputs the time evolution of the 4 variables $A,B,C,D$ in a Comma Sepa
 \end{tabular}
 \end{table}
 
-RAVEN is able to directly retrieve CSV outputs; for this reason, the \textit{\textbf{GenericInterface}} (see ~\cite{RAVENuserManual}-Chapter ``Existing Interfaces'') is going to be used to drive the code. 
+RAVEN is able to directly retrieve CSV files as output; for this reason, the \textit{\textbf{GenericInterface}} (see ~\cite{RAVENuserManual}-Chapter ``Existing Interfaces'') is going to be used to drive the code. 

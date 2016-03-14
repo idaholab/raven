@@ -1,6 +1,6 @@
 \section{RAVEN Concepts}
 \label{sec:RAVENconcept}
-After the brief overview of the RAVEN code, it is necessary to focus on the main concepts that are behind the design of the framework, overall focalizing to the following key subjects:
+After the brief overview of the RAVEN code, it is necessary to focus on the main concepts that are behind the design of the framework:
 \begin{itemize}
     \item \textit{Mathematical Background}: Section ~\ref{sub:mathBackground} provides an description of the mathematical background of RAVEN, 
      overall focalizing on the probabilistic dynamics;
@@ -10,8 +10,10 @@ After the brief overview of the RAVEN code, it is necessary to focus on the main
     some of the input ``structure'' that are going to be used in this manual. A detailed explanation of the
     input structure and keywords is reported in the user manual ~\cite{RAVENuserManual}.
 \end{itemize}
+
 \subsection{RAVEN mathematical background}
 \label{sub:mathBackground}
+
 \subsubsection{System and Control model}
 \label{subsub:controlAndSystem}
 The first step is the derivation of the mathematical model representing, with a high 
@@ -71,7 +73,7 @@ justify this decision:
   applied to Uncertainty Quantification (UQ).
 \end{itemize}
 
-\paragraph{ Splitting Approach for the Simulation of the Control System}
+\paragraph{Splitting Approach for the Simulation of the Control System}
 Equation~\ref{eq:controlVars} represents a fully coupled system of Partial Differential 
 Equations(PDEs). In order to solve this system, an  \textit{operator splitting} approach 
 is employed. This method is preferable in this context for several reasons, among which the following:
@@ -115,11 +117,12 @@ choice unique. $\overline{C}$ is chosen such that:
   \overline{x},\overline{v}_{t_{i-1}}, t \right )  $. This requirement determines  the maximum  information contraction from  $\overline{x}$ to  $\overline{C}$.
 \end{itemize}
 The intersection of the two sub-spaces defined above create a minimal unique set.
+
 \paragraph{Definition of the auxiliary variable space}
 In the previous sections, it has been determined that the needed information to model the dynamic system
 is contained in the solution vectors $\overline{x}$ and $\overline{v}$. Even if $\overline{x}$ and $\overline{v}$ 
 are sufficient to assess the system status at every point in time, it can result in an unpractical way to model
-the eventual control system:
+the eventual control system.
 Let's suppose to model a component of a particular system that presents different behavior depending on 
 other systems or operation behaviors. In order to define the status of this component in every point in time, the 
 whole history of the system needs to be tracked. In order to remove these inefficiency, a set of auxiliary variables 
@@ -141,15 +144,15 @@ way only the previous time-step information is needed to determine the status of
 \subsubsection{Dynamic Systems stochastic modeling}
 %
 \paragraph{General system of equations and variable classification}
-In section ~\ref{subsub:controlAndSystem} the derivation of the governing equations for a controllable system
+In Section ~\ref{subsub:controlAndSystem} the derivation of the governing equations for a controllable system
 have been reported. In this section, the mathematical framework of the modeling of dynamic stochastic systems,
-under uncertainties,  is derived. 
+under uncertainties, is derived. 
 \\ Dynamic stochastic systems are the ones whose dynamic is characterized by intrinsic randomness. Random 
 behaviors, although present in nature, are often artificially introduced into physical models to account for 
 incapability of fully modeling part of the nature of the system behavior and/or of the phenomena bounding the
 physical problem.
 \\The distinction between variables that are artificially considered aleatory and the ones intrinsically aleatory 
-corresponds with the classical definition of epistemic (artificial) and aleatory (intrinsic) uncertainties. From a 
+corresponds with the classical definition of epistemic and aleatory uncertainties. From a 
 system simulation point of view it is more relevant how these variables, the sources of aleatory behavior, change 
 in time.
 Possible examples of random elements are:
@@ -190,7 +193,7 @@ Consequentially, Eq.~\ref{eq:dThetaOverDTWithBoundary} assumes the following for
  \overline{\theta}^{d}\left ( t_{0} \right ) = \overline{\theta}^{d}_{0}
 \end{matrix}\right.
 \end{equation}
-As it can be noticed, the time derivative operator has been also used for the time discontinuous variables, even
+Note that the time derivative operator has been also used for the time discontinuous variables, even
 if this is allowed only introducing complex extension of the time derivative operator. In this context, the $\frac{\partial  }{\partial t}$ on the discontinuous space is employed for simplifying the notation only.
 
 \paragraph{Probabilistic Nature of the Parameters Characterizing the Equation}
@@ -397,7 +400,7 @@ particular response, rather than the response itself.
 \subsubsection{Formulation of the equation set in a statistical framework}
 Based on the premises reported in the previous sections and assuming 
 that at least one of the simplifications mentioned in 
-section~\ref{sub:discAndStochVars} is applicable (i.e. the system can be
+Section~\ref{sub:discAndStochVars} is applicable (i.e. the system can be
 casted as Markovian), it is needed to investigate the system evolution 
 in terms of its probability density function in the global phase space 
 $\overline{\theta}$ via the Chapman-Kolmogorov 
@@ -512,7 +515,7 @@ where:
 %
 \subsubsection{The Chapman-Kolmogorov Equation}
 \label{sec:ChapmanKolmogorov }
-As mentioned in the previous paragraph, the system of equations~\ref{eq:thetaDecomposition}, written in integral 
+The system of equations~\ref{eq:thetaDecomposition}, written in integral 
 form, can be solved in a differential form through the Chapman-Kolmogorov (C-K) 
 operator~\cite{ProbReactoDynamicsDevooght}:
 
@@ -579,7 +582,7 @@ The drift process is defined by the Lioville’s equation:
 \label{eq:lioville}
   \frac{\partial \, \Pi \left (\overline{\theta}^{c},t|\overline{\theta}^{c}_{0},t_{0}  \right ) }{\partial t} = \sum_{i}\frac{\partial }{\partial \overline{\theta}^{c}_{i}}\left ( A_{i}\left ( \overline{\theta}^{c},\overline{\theta}^{d},t \right ) \Pi \left (\overline{\theta}^{c},t|\overline{\theta}^{c}_{0},t_{0}  \right ) \right )
 \end{equation}
-It is important to notice that this equation describes a completely deterministic motion, indicated by the equation:
+It is important to note that this equation describes a completely deterministic motion, indicated by the equation:
 \begin{equation}
 \label{eq:determLioville}
    \frac{\partial \, \overline{\theta}^{c}\left ( t \right ) }{\partial t} = A_{i}\left ( \overline{\theta}^{c},\overline{\theta}^{d},t \right ) 
@@ -669,26 +672,24 @@ is similar to the Master equation, recasted for a discrete phase space:
 %
 \subsection{RAVEN entities and analysis flow}
 \label{sub:EntitiesAndFlow}
-In the RAVEN code, the the number of analyses that can be performed is virtually ``infinite'',
-being the code highly modular and object oriented. 
 In the RAVEN code the number and types of possible analyses is potentially large (it is customization to many problem types).
 \\Each basic action (e.g. sampling, printing, etc.) is encapsulated in
-a dedicated object (named ``\textbf{Entity}''). Each object is inactive till it is connected with 
+a dedicated object (named ``\textbf{Entity}''). Each object is inactive unttil it is connected with 
 other objects in order to perform a more complex process. For example,
-the \textit{Sampler} entity, aimed to employ a perturbation action, becomes active only in case
-it gets associated with a \textit{Model}, that is the internal representation of a physical model (e.g. a system code).
+the \textit{Sampler} entity, designed to perform a perturbation action, becomes active only in case
+it gets associated with a \textit{Model}, that is the internal representation of a physical model (e.g., a system code).
 \\RAVEN provides support for several \textbf{Entities}, which branch in several different categories/algorithms:
 \begin{itemize}
   \item \textit{\textbf{RunInfo}}: 
-    \\The RunInfo \textbf{Entity} represents the container of the information regarding how the overall computation should
+    \\The RunInfo \textbf{Entity} is an information container which describes how the overall computation should
       be performed. This \textbf{Entity}  accepts several input settings that define how to drive the calculation and set up, 
-      when needed, particular settings for the machine the code needs to run on (e.g. queue system, if not PBS, etc.).  
+      when needed, particular settings for the machine the code needs to run on (e.g., queue system, if not PBS, etc.).  
   \item \textit{\textbf{Files}}: 
   \\ The Files \textbf{Entity}  defines any files that might be needed within the RAVEN run. This could include inputs to the   
       Model, pickled ROM files, or CSV files for post-processors, to name a few.
   \item \textit{\textbf{DataObjects}}: 
     \\The DataObjects system is a container of data objects of various types that can be constructed during the execution of 
-     a particular calculation flow. These data objects can be used as input or output for a particular \textit{Model} 
+    desired calculation flow. These data objects can be used as input or output for a particular \textit{Model} 
      \textbf{Entity}. Currently, RAVEN supports 4 different data types, each with a particular conceptual meaning:
      \begin{itemize}
         \item \textit{Point}, describes the state of the system at a certain point (e.g. in time). In other words, it can be
@@ -698,7 +699,7 @@ it gets associated with a \textit{Model}, that is the internal representation of
                                             sets of parameters in the input space and the resulting sets of outcomes in the output space
                                             at a particular point (e.g. in time);
         \item \textit{History},  describes the temporal evolution of the state of the system within a certain input domain;
-        \item \textit{HistorySet}, is a collection of individual History objects. It can be considered a map- ping between
+        \item \textit{HistorySet}, is a collection of individual History objects. It can be considered a mapping between
                                                multiple sets of parameters in the input space and the resulting sets of temporal evolution
                                                in the output space.
      \end{itemize}
@@ -709,7 +710,7 @@ it gets associated with a \textit{Model}, that is the internal representation of
        only a database type called \textit{HDF5}. This database, depending on the data format it is receiving, will 
        organize itself in a ``parallel'' or ``hierarchical'' fashion. The user can create as many database \textbf{Entities} as needed. 
   \item \textit{\textbf{Samplers}}:
-  \\ The Samplers  \textbf{Entity} is the container of all the algorithms to perform the perturbation of the input space.
+  \\ The Samplers  \textbf{Entity} is the container of all the algorithms designed to perform the perturbation of the input space.
       The Samplers can be categorized into 3 main classes:
       \begin{itemize}
         \item  \textit{Forward} : Sampling strategies that do not leverage the information coming from already evaluated 
@@ -839,5 +840,5 @@ The main input blocks are as follows:
   %
 \end{itemize}
 
-Each of these blocks are explained in dedicated sections in the user manual ~\cite{RAVENuserManual}.
+Each of these blocks are explained in dedicated sections of the user manual ~\cite{RAVENuserManual}.
 %
