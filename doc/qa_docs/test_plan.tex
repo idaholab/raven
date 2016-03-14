@@ -1,7 +1,7 @@
 \documentclass{article}
 \usepackage{hyperref}
 
-\title{RAVEN Test Plan-DRAFT}
+\title{RAVEN Test Plan}
 
 \begin{document}
 \maketitle
@@ -80,14 +80,20 @@ that created the change.
 The review checklist includes reviewing all the new and changed code,
 documenting any input changes and following the coding standards.
 
+There is a stable version that does not typically have new features
+added.  This version is provided for users that value stability.
+Defect fixes that are created in the development version are
+considered for the stable version.  There is an extra review for merge
+requests in the stable version.
+
 If the review checklist needs to be changed, the new review checklist
 is proposed on the RAVEN development mailing list.  If there are no
 unresolved objections to the proposed changes, the review checklist is
 updated.
 
-\subsubsection{Development Checklist}
+\subsubsection{Development Merge Checklist}
 
-This is stored on \url{https://hpcgitlab.inl.gov/idaholab/raven/wikis/development-checklists}
+This and the other checklists are stored on \url{https://hpcgitlab.inl.gov/idaholab/raven/wikis/development-checklists}
 
 \begin{enumerate}
 \item    Review all computer code.
@@ -95,14 +101,56 @@ This is stored on \url{https://hpcgitlab.inl.gov/idaholab/raven/wikis/developmen
 \item    Make sure the Python code standards are respected (camelBack, etc.) - See in this page for details.
 \item    Tests should pass.
 \item    If significant functionality is added, there should be tests added to check this. Tests should cover all possible options. Multiple short tests are preferred over one large test.
-\item    If it is a bug fix, tests should be added to prevent the bug from recurring, or the merge request should explain why tests are not added (such as an existing test would have caught it, but had an incorrect output).
 \item    All new functions and new classes should have comments. For C++ they should be in doxygen format, and for python they should be docstrings.
 \item    Tests should pass against the xsd schema and the schema should build.
 \item    If the manual is changed, it should build.
 \item    If there are changes to Simulation.py or JobHandler.py, check that the cluster tests pass.
 \item    If in the new development the internal jobhandeler parallel system is used, a cluster test must be added setting, in XML block, the node $<$internalParallel$>$ to True.
-\item    If the change modifies a requirement based test case, the Change Control Board's Chair or designee also needs to approve the change.
-\item    The merge request must reference an issue.
+\item If the change modifies or adds a requirement or a requirement based test case, the Change Control Board's Chair or designee also needs to approve the change. The requirements and the requirements test shall be in sync.
+\item The merge request must reference an issue. If the issue is closed, the issue close checklist shall be done.
+\end{enumerate}
+
+\subsubsection{Stable Merge Checklist}
+
+This checklist is for any merge requests to any stable branches.
+
+\begin{enumerate}
+\item  The regular merge checklist must pass on this merge request.
+\item  If this merge request changes input files, it must be discussed on the mailing list and agreed that this is needed on the stable branch.
+\item  If this merge request changes computer code not needed for fixing a defect, it must be discussed on the mailing list and agreed that this is needed on the stable branch.
+\item  Has this been properly adapted to stable? (For example, does documentation changes remove mention of features not on the stable branch.)
+\item  Explain why this is being added to stable:
+\end{enumerate}
+
+\subsection{Issue Reviews}
+
+In order to classify issues and to make sure that users are aware of
+errors, there are some reviews that are done on issues.  The initial
+issue review is done soon after the issue is created in the gitlab
+issue tracking system.  The issue close review is done when the issue
+is closed by a merge request or if the issue is closed manually.
+
+\subsubsection{Issue Review Checklist}
+
+This checklist is for initial adding of an issue.
+
+\begin{enumerate}
+\item  Is it tagged with a type: defect or improvement?
+\item  Is it tagged with a priority: critical, normal or minor?
+\item  If it will impact requirements or requirements tests, is it tagged with requirements?
+\item  If it is a defect, can it cause wrong results for users? If so an email needs to be sent to the users.
+\end{enumerate}
+
+\subsubsection{Issue Close Checklist}
+
+This is for anytime an issue is closed.
+
+\begin{enumerate}
+\item  If the issue is a defect, is the defect fixed?
+\item  If the issue is a defect, is the defect tested for in the regression test system? (If not explain why not.)
+\item  If the issue can impact users, has a email to the users group been written (the email should specify if the defect impacts stable or master)?
+\item  If the issue is a defect, does it impact the latest stable branch? If yes, is there any issue tagged with stable (create if needed)?
+\item  If the issue is being closed without a merge request, has an explanation of why it is being closed been provided?
 \end{enumerate}
 
 
