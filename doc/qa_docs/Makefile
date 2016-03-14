@@ -1,7 +1,7 @@
 
 all: requirements.pdf test_plan.pdf raven_sdd.pdf
 
-requirements.pdf : requirements.tex
+requirements.pdf : requirements.tex version.tex
 	pdflatex requirements.tex
 
 test_plan.pdf : test_plan.tex version.tex
