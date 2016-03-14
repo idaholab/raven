@@ -67,10 +67,10 @@
         <index>0.00892857142857</index>
       </variables>
       <variables>x2,x4
-        <index>3.20553002756e-30</index>
+        <index>0.0</index>
       </variables>
       <variables>x3,x4
-        <index>3.20553002756e-30</index>
+        <index>0.0</index>
       </variables>
     </Sobol_indices>
     <numRuns>33</numRuns>

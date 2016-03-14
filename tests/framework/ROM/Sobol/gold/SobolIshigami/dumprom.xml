@@ -1,20 +1,20 @@
 <ReducedOrderModel>
   <ans>
-    <mean>3.50497836262</mean>
-    <variance>10.6022840641</variance>
+    <mean>1.64513423719</mean>
+    <variance>4.92150313721</variance>
     <Sobol_indices>
-      <tot_variance>10.6022840641</tot_variance>
+      <tot_variance>4.92150313721</tot_variance>
+      <variables>x2
+        <index>0.439941470389</index>
+      </variables>
       <variables>x1
-        <index>0.410484150614</index>
+        <index>0.415063039528</index>
       </variables>
       <variables>x1,x3
-        <index>0.305538260287</index>
-      </variables>
-      <variables>x2
-        <index>0.283977589099</index>
+        <index>0.144995490083</index>
       </variables>
       <variables>x1,x2
-        <index>3.3508946349e-16</index>
+        <index>0.0</index>
       </variables>
       <variables>x1,x2,x3
         <index>0.0</index>
@@ -26,6 +26,6 @@
         <index>0.0</index>
       </variables>
     </Sobol_indices>
-    <numRuns>343</numRuns>
+    <numRuns>27</numRuns>
   </ans>
 </ReducedOrderModel>

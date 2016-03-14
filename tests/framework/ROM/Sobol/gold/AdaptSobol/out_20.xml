@@ -48,29 +48,29 @@
       <variables>x2
         <index>0.247706422018</index>
       </variables>
-      <variables>x4
+      <variables>x1
         <index>0.247706422018</index>
       </variables>
-      <variables>x1
+      <variables>x4
         <index>0.247706422018</index>
       </variables>
       <variables>x1,x3
         <index>0.00917431192661</index>
       </variables>
       <variables>x1,x2
-        <index>3.29375562465e-30</index>
+        <index>0.0</index>
       </variables>
       <variables>x1,x4
-        <index>3.29375562465e-30</index>
+        <index>0.0</index>
       </variables>
       <variables>x2,x3
-        <index>3.29375562465e-30</index>
+        <index>0.0</index>
       </variables>
       <variables>x2,x4
-        <index>3.29375562465e-30</index>
+        <index>0.0</index>
       </variables>
       <variables>x3,x4
-        <index>3.29375562465e-30</index>
+        <index>0.0</index>
       </variables>
     </Sobol_indices>
     <numRuns>21</numRuns>

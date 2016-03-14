@@ -42,10 +42,10 @@
     <variance>3.796875</variance>
     <Sobol_indices>
       <tot_variance>3.796875</tot_variance>
-      <variables>x1
+      <variables>x4
         <index>0.25</index>
       </variables>
-      <variables>x4
+      <variables>x1
         <index>0.25</index>
       </variables>
       <variables>x2

@@ -13,19 +13,19 @@
       <variables>x3
         <index>0.274725274725</index>
       </variables>
-      <variables>x2,x3
-        <index>0.0549450549451</index>
-      </variables>
       <variables>x1,x2
         <index>0.0549450549451</index>
       </variables>
       <variables>x1,x3
         <index>0.0549450549451</index>
       </variables>
+      <variables>x2,x3
+        <index>0.0549450549451</index>
+      </variables>
       <variables>x1,x2,x3
         <index>0.010989010989</index>
       </variables>
     </Sobol_indices>
-    <numRuns>343</numRuns>
+    <numRuns>27</numRuns>
   </ans>
 </ReducedOrderModel>
