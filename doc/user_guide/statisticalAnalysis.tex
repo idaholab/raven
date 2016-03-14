@@ -1,10 +1,10 @@
-\section{RAVEN Theory by way of Examples: Statistical analysis}
-In order to perform a complete analysis of a system under uncertanties,
-it is crucial to be able to compute all the statistical moments of multiple
+\section{Statistical Analysis}
+\label{sec:statisticalAnalysis}
+In order to perform a complete analysis of a system under uncertainties,
+it is crucial to be able to compute all the statistical moments of one or even multiple
 Figures of Merit (FOMs). In addition, it is essential to identify the correlation
 among different FOMs toward a specific input space. 
-\\RAVEN is able to compute all the most important statistical FOMs, which
-represent the base of each sensitivity and uncertainty quantification analysis,
+\\RAVEN is able to compute the most important statistical moments:
 such as:
 \begin{enumerate}
   \item \textit{Expected Value};
@@ -16,8 +16,8 @@ such as:
   \item \textit{Median}; 
   \item \textit{Percentile}.
 \end{enumerate} 
-In addition, RAVEN fully supports the computation of all the FOMs that are aimed to
-``measure'' the correlation among variables/parameters:
+In addition, RAVEN fully supports the computation of all the statistical moments defined to
+``measure'' the correlation among variables/parameters/FOMs:
 \begin{enumerate}
   \item \textit{Covariance matrix};
   \item \textit{Normalized Sensitivity  matrix};
@@ -25,38 +25,36 @@ In addition, RAVEN fully supports the computation of all the FOMs that are aimed
   \item \textit{Sensitivity matrix}; 
   \item \textit{Pearson matrix}.
 \end{enumerate} 
-In this section all of these features are going to be analyzed, explaining the theory behind it
-by way of applied RAVEN examples.
+In this section all of these features are analyzed, by showing the theory behind it
+using a set of RAVEN examples.
 \subsection{Statistical analysis theory}
 One of the most assessed way to investigate the impact of the intrinsic variation of the input space, is through the computation of 
-statistical moments and linear correlation figure of merits. 
-\\As stated in the previous chapters, RAVEN employs several different sampling methodologies in order to explore
-the response of a physical (and not) model under uncertainties. Hence, in order to correctly compute the statistical FOMs, subject
-of this section, a weighting approach needs to be used. Each \textit{Sampler} in RAVEN is able to attribute to each ``sample'' (i.e.
-realization in the input/uncertain space) a \textbf{weight} that is aimed to represent the \textit{importance} of the particular
-combination of input values from a statistical point of view (e.g. reliability weights). These weights are then used in sub-sequential
+statistical moments and linear correlation among variables/parameters/FOMs. 
+\\As shown in Section~\ref{sec:forwardSamplingStrategies}, RAVEN employs several different sampling methodologies in order to explore the response of a model subject to uncertainties. In order to correctly compute the statistical moments a weight-based approach is used. Each \textit{Sampler} in RAVEN associate to each ``sample'' (i.e.
+realization in the input/uncertain space) a \textbf{weight}  to represent the \textit{importance} of the particular
+combination of input values from a statistical point of view (e.g., reliability weights). These weights are used in sub-sequential
 steps in order to compute the previously listed statistical moments and correlation metrics.
 \\In the following sub-sections, the formulation of these statistical moments is reported.
 \subsubsection{Expected Value}
-The expected value concept represents one of the most fundamental metrics in probability theory. The expected value of a 
+The expected value represents one of the most fundamental metrics in probability theory. The expected value of a 
 real-valued random variable represents a measurement of the center of the distribution (mean) of the random variable. 
 From a practical point of view, the expected value of a discrete random variable is the probability-weighted average of all possible values of the subjected variable. Formally, the expected value of a random variable $X$
 \begin{equation}
 \begin{matrix}
-\mathbb{E}(X) = \mu = \sum_{x \in \chi} x \times pdf_{X}(x) & if X \, discrete \\ 
+\mathbb{E}(X) = \mu = \sum_{x \in \chi} x  pdf_{X}(x) & \text{if  $X$  discrete} \\ 
 \\ 
-\mathbb{E}(X) = \mu = \int_{x \in \chi} x \times pdf_{X}(x) & \, if X \, \, continuous
+\mathbb{E}(X) = \mu = \int_{x \in \chi} x pdf_{X}(x) & \, \text{if $X$ continuous}
 \end{matrix}
 \end{equation}
 In RAVEN, the expected value (i.e. first central moment) is computed as follows:
 \begin{equation}
 \begin{matrix}
-\mathbb{E}(X) = \mu \approx \overline{x} = \frac{1}{n} \sum_{i=1}^{n}  x_{i} & if \: random \: sampling \\ 
+\mathbb{E}(X) = \mu \approx \overline{x} = \frac{1}{n} \sum_{i=1}^{n}  x_{i} & \text{if  random sampling} \\ 
 \\ 
-\mathbb{E}(X) = \mu \approx \overline{x} = \frac{1}{V_{1}} \sum_{i=1}^{n} w_{i} \times x_{i}  & \, otherwise
+\mathbb{E}(X) = \mu \approx \overline{x} = \frac{1}{V_{1}} \sum_{i=1}^{n} w_{i}  x_{i}  & \, \text{otherwise}
 \end{matrix}
 \end{equation}
-where 
+where:
 \begin{itemize}
   \item $w_{i}$ is the weight associated with the sample $i$;
   \item $n$ are the total number of samples;
@@ -65,24 +63,24 @@ where
 \subsubsection{Standard Deviation and Variance}
 The variance ($\sigma^{2}$) and standard deviation ($\sigma$) of $X$ are both measures of the spread of the distribution of the random variable about the 
 mean. Simplistically, the variance measures how far a set of realizations of a random variable are spread out.
-An equivalent measure is the square root of the variance, called the standard deviation. The standard deviation has the same dimension as the data, and hence is comparable to deviations from the mean.
+The standard deviation is the square root of the variance. The standard deviation has the same unit of the original data, and hence is comparable to deviations from the mean.
 \\Formally:
 \begin{equation}
   \begin{matrix}
-  \sigma^{2}(X)= \mathbb{E}\left(\left[X - \mathbb{E}(X)\right]^{2}\right) = \int_{x \in \chi} (x - \mu)^2 pdf(x) dx  & \, if X \, \, continuous \\
-  \sigma^{2}(X)= \mathbb{E}\left(\left[X - \mathbb{E}(X)\right]^{2}\right)  = \sum_{x \in \chi} (x - \mu)^2 pdf(x)  & if X \, discrete
+  \sigma^{2}(X)= \mathbb{E}\left(\left[X - \mathbb{E}(X)\right]^{2}\right) = \int_{x \in \chi} (x - \mu)^2 pdf(x) dx  & \,\text{if $X$ continuous} \\
+  \sigma^{2}(X)= \mathbb{E}\left(\left[X - \mathbb{E}(X)\right]^{2}\right)  = \sum_{x \in \chi} (x - \mu)^2 pdf(x)  & \text{if  $X$ discrete}
   \\
   \\ 
   \sigma(X)= \mathbb{E}\left(\left[X - \mathbb{E}(X)\right]\right)  = \sqrt{\sigma^{2}(X)}
   \end{matrix}
 \end{equation}
-In RAVEN, the variance (i.e. second central moment) and standard deviation are computed as follows:
+In RAVEN, variance (i.e. second central moment) and standard deviation are computed as follows:
 \begin{equation}
 \begin{matrix}
-\mathbb{E}\left(\left[X - \mathbb{E}(X)\right]^{2}\right)  \approx  m_{2} = \frac{1}{n} \sum_{i=1}^{n}  (x_{i} - \overline{x})^{2} & if \: random \: sampling \\ 
+\mathbb{E}\left(\left[X - \mathbb{E}(X)\right]^{2}\right)  \approx  m_{2} = \frac{1}{n} \sum_{i=1}^{n}  (x_{i} - \overline{x})^{2} & \text{if  random sampling} \\ 
 \\ 
 \\
-\mathbb{E}\left(\left[X - \mathbb{E}(X)\right]^{2}\right)  \approx m_{2}  = \frac{1}{V_{1}} \sum_{i=1}^{n} w_{i} \times (x_{i} - \overline{x})^{2}  & \, otherwise
+\mathbb{E}\left(\left[X - \mathbb{E}(X)\right]^{2}\right)  \approx m_{2}  = \frac{1}{V_{1}} \sum_{i=1}^{n} w_{i}  (x_{i} - \overline{x})^{2}  & \, \text{otherwise}
 \\
 \\
 \mathbb{E}\left(\left[X - \mathbb{E}(X)\right]^{2}\right)  \approx s  =  \sqrt{m_{2}}
@@ -97,9 +95,9 @@ where:
 RAVEN performs an additional correction of variance to obtain an unbiased estimation  with respect to the sample-size~\cite{RimoldiniUnbiased}:
 \begin{equation}
 \begin{matrix}
-\mathbb{E}\left(\left[X - \mathbb{E}(X)\right]^{2}\right)  \approx M_{2} = \displaystyle \frac{n}{n-1}m_{2} & & if \: random \: sampling
+\mathbb{E}\left(\left[X - \mathbb{E}(X)\right]^{2}\right)  \approx M_{2} = \displaystyle \frac{n}{n-1}m_{2} & & \text{if random sampling}
 \\
-\mathbb{E}\left(\left[X - \mathbb{E}(X)\right]^{2}\right)  \approx M_{2} = \frac{V_{1}^{2}}{V_{1}^{2} - V_{2}}m_{2} & \: otherwise
+\mathbb{E}\left(\left[X - \mathbb{E}(X)\right]^{2}\right)  \approx M_{2} = \frac{V_{1}^{2}}{V_{1}^{2} - V_{2}}m_{2} &  text{otherwise}
 \end{matrix}
 \end{equation}
 \begin{equation}
@@ -128,10 +126,10 @@ the Normal distribution function.
 In RAVEN, the skewness is computed as follows:
 \begin{equation}
 \begin{matrix}
-\mathbb{E} \left [ \left ( \frac{X-\mu}{\sigma} \right )^{3} \right ]  \approx \frac{m_{3}}{m_{2}^{3/2}} = \frac{  \frac{1}{n} \sum_{i=1}^{n}  (x_{i} - \overline{x})^{3} }{\left ( \frac{1}{n} \sum_{i=1}^{n}  (x_{i} - \overline{x})^{2} \right )^{3/2}} & if \: random \: sampling  
+\mathbb{E} \left [ \left ( \frac{X-\mu}{\sigma} \right )^{3} \right ]  \approx \frac{m_{3}}{m_{2}^{3/2}} = \frac{  \frac{1}{n} \sum_{i=1}^{n}  (x_{i} - \overline{x})^{3} }{\left ( \frac{1}{n} \sum_{i=1}^{n}  (x_{i} - \overline{x})^{2} \right )^{3/2}} & \text{if random sampling}
 \\
 \\
-\mathbb{E} \left [ \left ( \frac{X-\mu}{\sigma} \right )^{3} \right ]  \approx \frac{m_{3}}{m_{2}^{3/2}} = \frac{  \frac{1}{V_{1}} \sum_{i=1}^{n} w_{i} \times (x_{i} - \overline{x})^{3} }{\left ( \frac{1}{V_{1}} \sum_{i=1}^{n}  w_{i} \times (x_{i} - \overline{x})^{2} \right )^{3/2}} &  \, otherwise
+\mathbb{E} \left [ \left ( \frac{X-\mu}{\sigma} \right )^{3} \right ]  \approx \frac{m_{3}}{m_{2}^{3/2}} = \frac{  \frac{1}{V_{1}} \sum_{i=1}^{n} w_{i} \times (x_{i} - \overline{x})^{3} }{\left ( \frac{1}{V_{1}} \sum_{i=1}^{n}  w_{i} \times (x_{i} - \overline{x})^{2} \right )^{3/2}} &  \, \text{otherwise}
 \end{matrix}
 \end{equation}
 where:
@@ -143,10 +141,10 @@ where:
 RAVEN performs an additional correction of skewness to obtain an unbiased estimation  with respect to the sample-size~\cite{RimoldiniUnbiased}:
 \begin{equation}
 \begin{matrix}
-\mathbb{E} \left [ \left ( \frac{X-\mu}{\sigma} \right )^{3} \right ]  \approx \frac{M_{3}}{M_{2}^{3/2}}  = \displaystyle \frac{n^{2}}{(n-1)(n-2)}m_{3}\times \frac{1}{\left ( \displaystyle \frac{n}{n-1}m_{2}  \right )^{3/2}} & if \: random \: sampling  
+\mathbb{E} \left [ \left ( \frac{X-\mu}{\sigma} \right )^{3} \right ]  \approx \frac{M_{3}}{M_{2}^{3/2}}  = \displaystyle \frac{n^{2}}{(n-1)(n-2)}m_{3}\times \frac{1}{\left ( \displaystyle \frac{n}{n-1}m_{2}  \right )^{3/2}} & \text{if random sampling}  
 \\
 \\
-\mathbb{E} \left [ \left ( \frac{X-\mu}{\sigma} \right )^{3} \right ]  \approx \frac{M_{3}}{M_{2}^{3/2}}  = \displaystyle \frac{V_{1}^{3}}{V_{1}^{3}-3V_{1}V_{2}+2V_{3}}m_{3} \times \frac{1}{\left ( \displaystyle \frac{V_{1}^{2}}{V_{1}^{2}-V_{2}}m_{2}  \right )^{3/2}} &  \, otherwise
+\mathbb{E} \left [ \left ( \frac{X-\mu}{\sigma} \right )^{3} \right ]  \approx \frac{M_{3}}{M_{2}^{3/2}}  = \displaystyle \frac{V_{1}^{3}}{V_{1}^{3}-3V_{1}V_{2}+2V_{3}}m_{3} \times \frac{1}{\left ( \displaystyle \frac{V_{1}^{2}}{V_{1}^{2}-V_{2}}m_{2}  \right )^{3/2}} &  \,  \text{otherwise}
 \end{matrix}
 \end{equation}
 where:
@@ -160,7 +158,7 @@ where:
 
 \subsubsection{Excess Kurtosis}
 The  Kurtosis~\cite{Abramowitz}  is the degree of peakedness of a distribution of a real-valued random variable. In a similar way to the concept of skewness, kurtosis describes the shape of the distribution. The Kurtosis is defined in order to
-obtain a value of $0$ for a Normal distribution. If it is greater than zero, it indicates that the distribution is high peak; If it is smaller 
+obtain a value of $0$ for a Normal distribution. If it is greater than zero, it indicates that the distribution is high peaked; If it is smaller 
 that zero, it testifies that the distribution is flat-topped.
 \\Formally, the Kurtosis can be expressed as follows:
 \begin{equation}
@@ -169,10 +167,10 @@ that zero, it testifies that the distribution is flat-topped.
 In RAVEN, the kurtosis (excess) is computed as follows:
 \begin{equation}
 \begin{matrix}
-\frac{ \mathbb{E}\left [ \left ( X-\mu \right )^{4} \right ]}{\left ( \mathbb{E}\left [ \left ( X-\mu \right )^{2} \right ] \right )^{2}}   \approx \frac{m_{4}-3m_{2}^{2}}{m_{2}^{2}} = \displaystyle  \frac{  \frac{1}{n} \sum_{i=1}^{n}  (x_{i} - \overline{x})^{4} -3\left ( \frac{1}{n} \sum_{i=1}^{n}  (x_{i} - \overline{x})^{2} \right )^{2}}{\left ( \frac{1}{n} \sum_{i=1}^{n}  (x_{i} - \overline{x})^{2} \right )^{2}} & if \: random \: sampling  
+\frac{ \mathbb{E}\left [ \left ( X-\mu \right )^{4} \right ]}{\left ( \mathbb{E}\left [ \left ( X-\mu \right )^{2} \right ] \right )^{2}}   \approx \frac{m_{4}-3m_{2}^{2}}{m_{2}^{2}} = \displaystyle  \frac{  \frac{1}{n} \sum_{i=1}^{n}  (x_{i} - \overline{x})^{4} -3\left ( \frac{1}{n} \sum_{i=1}^{n}  (x_{i} - \overline{x})^{2} \right )^{2}}{\left ( \frac{1}{n} \sum_{i=1}^{n}  (x_{i} - \overline{x})^{2} \right )^{2}} & \text{if random sampling}    
 \\
 \\
-\frac{ \mathbb{E}\left [ \left ( X-\mu \right )^{4} \right ]}{\left ( \mathbb{E}\left [ \left ( X-\mu \right )^{2} \right ] \right )^{2}}   \approx \frac{m_{4}-3m_{2}^{2}}{m_{2}^{2}} = \displaystyle  \frac{  \frac{1}{V_{1}} \sum_{i=1}^{n} w_{i} \times (x_{i} - \overline{x})^{4} -3\left ( \frac{1}{V_{1}} \sum_{i=1}^{n}  w_{i} \times (x_{i} - \overline{x})^{2} \right )^{2}}{\left ( \frac{1}{V_{1}} \sum_{i=1}^{n}  w_{i} \times (x_{i} - \overline{x})^{2} \right )^{2}} &  \, otherwise
+\frac{ \mathbb{E}\left [ \left ( X-\mu \right )^{4} \right ]}{\left ( \mathbb{E}\left [ \left ( X-\mu \right )^{2} \right ] \right )^{2}}   \approx \frac{m_{4}-3m_{2}^{2}}{m_{2}^{2}} = \displaystyle  \frac{  \frac{1}{V_{1}} \sum_{i=1}^{n} w_{i} \times (x_{i} - \overline{x})^{4} -3\left ( \frac{1}{V_{1}} \sum_{i=1}^{n}  w_{i} \times (x_{i} - \overline{x})^{2} \right )^{2}}{\left ( \frac{1}{V_{1}} \sum_{i=1}^{n}  w_{i} \times (x_{i} - \overline{x})^{2} \right )^{2}} &   \text{otherwise}
 \end{matrix}
 \end{equation}
 where:
@@ -183,13 +181,16 @@ where:
 \end{itemize}
 RAVEN performs an additional correction of kurtosis (excess) to obtain an unbiased estimation  with respect to the sample-size~\cite{RimoldiniUnbiased}:
 \begin{equation}
+\begin{split}
 \begin{matrix}
-\frac{ \mathbb{E}\left [ \left ( X-\mu \right )^{4} \right ]}{\left ( \mathbb{E}\left [ \left ( X-\mu \right )^{2} \right ] \right )^{2}}   \approx \frac{M_{4}-3M_{2}^{2}}{M_{2}^{2}}  = \displaystyle \frac{n^{2}(n+1)}{(n-1)(n-2)(n-3)}m_{4}-\frac{3n^{2}}{(n-2)(n-3)}m_{2}^{2} & if \: random \: sampling  
+\frac{ \mathbb{E}\left [ \left ( X-\mu \right )^{4} \right ]}{\left ( \mathbb{E}\left [ \left ( X-\mu \right )^{2} \right ] \right )^{2}}   \approx \frac{M_{4}-3M_{2}^{2}}{M_{2}^{2}}  = \displaystyle \frac{n^{2}(n+1)}{(n-1)(n-2)(n-3)}m_{4}-\frac{3n^{2}}{(n-2)(n-3)}m_{2}^{2} & \text{if random sampling}  
 \\
 \\
 \frac{ \mathbb{E}\left [ \left ( X-\mu \right )^{4} \right ]}{\left ( \mathbb{E}\left [ \left ( X-\mu \right )^{2} \right ] \right )^{2}}    \approx \frac{M_{4}-3M_{2}^{2}}{M_{2}^{2}}  = \displaystyle  \frac{V_{1}^{2}(V_{1}^{4}-4V_{1}V_{3}+3V_{2}^{2})}{(V_{1}^{2}-V_{2})(V_{1}^{4}-6V_{1}^{2}V_{2}+8V_{1}V_{3}+3V_{2}^{2}-6V_{4})}m_{4}
--\displaystyle \frac{3V_{1}^{2}(V_{1}^{4}-2V_{1}^{2}V_{2}+4V_{1}V_{3}-3V_{2}^{2})}{(V_{1}^{2}-V_{2})(V_{1}^{4}-6V_{1}^{2}V_{2}+8V_{1}V_{3}+3V_{2}^{2}-6V_{4})}m_{2}^{2} &  \, otherwise
+- \\
+\displaystyle \frac{3V_{1}^{2}(V_{1}^{4}-2V_{1}^{2}V_{2}+4V_{1}V_{3}-3V_{2}^{2})}{(V_{1}^{2}-V_{2})(V_{1}^{4}-6V_{1}^{2}V_{2}+8V_{1}V_{3}+3V_{2}^{2}-6V_{4})}m_{2}^{2} & \text{otherwise}
 \end{matrix}
+\end{split}
 \end{equation}
 where:
 \begin{itemize}
@@ -226,11 +227,11 @@ Based on the previous equation, in RAVEN each entry of the Covariance matrix is 
 \begin{equation}
 \begin{matrix}
  \mathbb{E} \left [ \left ( X- \mathbb{E}\left [ X \right ] \right ) \left ( Y- \mathbb{E}\left [ Y \right ] \right )\right ] \approx
- \frac{1}{n}\sum_{i=1}^{n} (x_{i} - \overline{x})(y_{i} - \overline{y})  & if \: random \: sampling  
+ \frac{1}{n}\sum_{i=1}^{n} (x_{i} - \mu_{x})(y_{i} -  \mu_{y})  & \text{if random sampling}  
 \\
 \\
  \mathbb{E} \left [ \left ( X- \mathbb{E}\left [ X \right ] \right ) \left ( Y- \mathbb{E}\left [ Y \right ] \right )\right ] \approx
-\frac{1}{V_{1}} \sum_{i=1}^{n} w_{i} \times (x_{i} - \overline{x})(y_{i} - \overline{y}) &  \, otherwise
+\frac{1}{V_{1}} \sum_{i=1}^{n} w_{i} \times (x_{i} -  \mu_{x})(y_{i} -  \mu_{y}) &   \text{otherwise}
 \end{matrix}
 \end{equation}
 where:
@@ -241,7 +242,7 @@ where:
 \end{itemize}
 The correlation matrix (Pearson product-moment correlation coefficient matrix) can be obtained through the Covariance matrix, as follows:
 \begin{equation}
-\boldsymbol{\Gamma}(\boldsymbol{X},\boldsymbol{Y}) = \frac{\boldsymbol{\Sigma}(\boldsymbol{X},\boldsymbol{Y})}{\sqrt{diag(\boldsymbol{\Sigma}(\boldsymbol{X},\boldsymbol{Y}))diag(\boldsymbol{\Sigma}(\boldsymbol{X},\boldsymbol{Y}))}}
+\boldsymbol{\Gamma}(\boldsymbol{X},\boldsymbol{Y}) = \frac{\boldsymbol{\Sigma}(\boldsymbol{X},\boldsymbol{Y})}{\sigma_{x} \sigma_{y}}
 \end{equation}
 As it can be seen, The correlation between $X$ and $Y$ is the 
 covariance of the corresponding standard scores.
@@ -263,12 +264,12 @@ where:
 
 \subsection{Statistical analysis through RAVEN}
 \label{subsub:SAraven}
-The goals of this section are about learning how to:
+The goals of this section is to show how to:
  \begin{enumerate}
    \item Set up a sampling strategy to perform a final statistical analysis 
-   perturbing a driven code;
+   perturbing a driven code
    \item Compute all the statistical moments and correlation/covariance 
-   metrics.
+   metrics
 \end{enumerate}  
 In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in the input files) need to be defined:
 \begin{enumerate}
@@ -283,10 +284,9 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
     <batchSize>40</batchSize>
   </RunInfo>
 \end{lstlisting}
-   As in the other examples, the the \textit{RunInfo} \textbf{Entity} is intended  to set up the analysis sequence that
-   needs to be performed. In this specific case, two steps  (\xmlNode{Sequence}) are going to be sequentially run 
+   As shown in the other examples, the \textit{RunInfo} \textbf{Entity} is intended  to set up the desired analysis . In this specific case, two steps  (\xmlNode{Sequence}) are  sequentially run 
    using 40 processors (\xmlNode{batchSize}). 
-   \\In the first step, the original physical model is going to be sampled. The obtained results are going to be analyzed with the Statistical Post-Processor. 
+   \\In the first step, the original physical model is sampled. The obtained results are  analyzed with the Statistical Post-Processor. 
    \item \textbf{\textit{Files}}:
 \begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
   <Files>
@@ -315,11 +315,11 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
     </PostProcessor>
   </Models>
 \end{lstlisting}
- As mentioned above, the goal of this example is to show how the 
- principal statistical Figure of Merits can be computed through RAVEN.
+ The goal of this example is to show how the 
+ principal statistical FOMs can be computed through RAVEN.
  \\Indeed, in addition to the previously explained Code 
  model, a Post-Processor model (BasicStatistics) is here specified. 
-As it can be noticed, the post-processing process is going to be
+Note that the post-process step is
 performed on all the variables/parameters used in this example ( $sigma-A,\,sigma-B,\, decay-A, \, decay-B,\, A,\, B,\, C \, and \, D$). 
    \item \textbf{\textit{Distributions}}:
 \begin{lstlisting}[style=XML]
@@ -334,7 +334,7 @@ performed on all the variables/parameters used in this example ( $sigma-A,\,sigm
       </Uniform>
   </Distributions>
 \end{lstlisting}
-  In the Distributions XML section, the stochastic model for the 
+  In the Distributions XML section, the stochastic models for the 
   uncertainties are reported. In 
   this case 2 distributions are defined: 
   \begin{itemize}
