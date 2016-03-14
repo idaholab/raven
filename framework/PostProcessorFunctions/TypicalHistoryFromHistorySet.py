@@ -40,18 +40,18 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
     self.features.remove(self.timeID)
     self.noHistory = len(inputDict['output'].keys())
     self.Time = np.asarray(inputDict['output'][inputDict['output'].keys()[0]][self.timeID])
-  
+
     self.subsequence = {}
     startLocation, n = 0, 0
     while True:
-      subsequenceLength = self.subseqP[n % len(self.subseqP)]
+      subsequenceLength = self.subseqLen[n % len(self.subseqLen)]
       if startLocation + subsequenceLength < self.Time[-1]:
         self.subsequence[n] = [startLocation, startLocation+subsequenceLength]
       else:
         self.subsequence[n] = [startLocation, self.Time[-1]]
-        break  
+        break
       startLocation += subsequenceLength
-      n+= 1      
+      n+= 1
     subKeys = self.subsequence.keys()
     subKeys.sort()
 
@@ -149,8 +149,8 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
       @ Out, None
     """
     for child in xmlNode:
-      if child.tag == 'subsequence':
-        self.subseqP = map(int, child.text.split(','))
+      if child.tag == 'subseqLen':
+        self.subseqLen = map(int, child.text.split(','))
       elif child.tag == 'timeID':
         self.timeID = child.text
 
