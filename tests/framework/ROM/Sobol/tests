@@ -63,7 +63,7 @@
   [./AdaptiveSobolMaxRuns]
    type = 'RavenFramework'
    input = 'test_adapt_sobol_maxruns.xml'
-   xml = 'AdaptSobolMax/maxruns_dumprom.xml'       #analytic, "Attenuation"
+   UnorderedXml = 'AdaptSobolMax/maxruns_dumprom.xml'       #analytic, "Attenuation"
    UnorderedCsv = 'AdaptSobolMax/maxruns_dump.csv' #consistency
   [../]
   [./AdaptiveSobolParallel]

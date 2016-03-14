@@ -1003,50 +1003,44 @@ class HDMRRom(GaussPolynomialRom):
         integrals[level][subset] = {}
         #integrate out everything but subset
         self._partialIntegrate(self.reducedTerms,subset,integrals[level][subset])
-    #subtract off subset parts
+    #subtract off contributing subsets (subsubsets)
     anovaByLevel = {}
     for level in integrals.keys():
-      if level == 0:continue
+      anovaByLevel[level] = {}
       for subset in integrals[level].keys():
-        anovaByLevel[subset] = dict(integrals[level][subset])
+        anovaByLevel[level][subset] = dict(integrals[level][subset])
         #subtract subsubset terms
         for sublevel in range(level):
           for subsubset in integrals[sublevel].keys():
             if set(subsubset).issubset(set(subset)):
-              for cut,contrib in integrals[sublevel][subsubset].items():
+              for cut,contrib in anovaByLevel[sublevel][subsubset].items():
                 #if level == 2 and sublevel == 1:
-                  #print('DEBUG removing subsub',subsubset,'from subset',subset)
-                if cut not in anovaByLevel[subset].keys():
-                  anovaByLevel[subset][cut] = []
+                if cut not in anovaByLevel[level][subset].keys():
+                  anovaByLevel[level][subset][cut] = []
                 if type(contrib)==list:
                   for c in contrib:
-                    #print('DEBUG   ',(c[0],c[1]*-1,c[2]))
-                    anovaByLevel[subset][cut].append( (c[0],c[1]*-1,c[2]) )
+                    anovaByLevel[level][subset][cut].append( (c[0],c[1]*-1,c[2]) )
                 else:
-                  #print('DEBUG   ',(contrib[0],contrib[1]*-1,contrib[2]))
-                  anovaByLevel[subset][cut].append( (contrib[0],contrib[1]*-1,contrib[2]) )
+                  anovaByLevel[level][subset][cut].append( (contrib[0],contrib[1]*-1,contrib[2]) )
+    #clear mean squared from variance
+    del anovaByLevel[0]
     #collect terms of same index set (collect polynomial terms)
     self.raiseADebug('collecting ANOVA terms...')
     self.anova = {}
-    for subset in anovaByLevel.keys():
-      self.anova[subset] = {} #dictionary of subterms
-      for cut,sublist in anovaByLevel[subset].items():
-        for coeff,mult,idx in sublist:
-          fullIdx = self.__fillIndexWithRef(cut,idx)
-          if fullIdx not in self.anova[subset].keys():
-            #small coeffs already removed
-            self.anova[subset][fullIdx] = coeff*mult
-          else:
-            #if the new sum is zero, clear it
-            self.anova[subset][fullIdx] += coeff*mult
-            if abs(self.anova[subset][fullIdx]) < 1e-12:
-              del self.anova[subset][fullIdx]
-
-    #debug reporting
-    for subset in self.anova.keys():
-      print('DEBUG subset:',subset)
-      for fullIdx,coeff in self.anova[subset].items():
-        print('DEBUG   ',fullIdx,coeff)
+    for level in anovaByLevel.keys():
+      for subset in anovaByLevel[level].keys():
+        self.anova[subset] = {} #dictionary of subterms
+        for cut,sublist in anovaByLevel[level][subset].items():
+          for coeff,mult,idx in sublist:
+            fullIdx = self.__fillIndexWithRef(cut,idx)
+            if fullIdx not in self.anova[subset].keys():
+              #small coeffs already removed
+              self.anova[subset][fullIdx] = coeff*mult
+            else:
+              #if the new sum is zero, clear it
+              self.anova[subset][fullIdx] += coeff*mult
+              if abs(self.anova[subset][fullIdx]) < 1e-12:
+                del self.anova[subset][fullIdx]
 
   def _partialIntegrate(self,termDict,subset,storeDict):
     """
