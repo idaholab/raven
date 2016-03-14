@@ -204,12 +204,21 @@ requirements document.
 These tests have special requirements for changing.  The merge request
 must be approved by the lead developer or the project manager.
 
+These tests are stored in the RAVEN gitlab repository, and the same
+git version can be used to retrieve both the tests and the
+requirements document.
+
 \section{Approval Requirements}
 
 Changing or adding a test needs to be reviewed by a second developer
 besides the one who changed or added the test.  Changing or adding a
-requirements test must be reviewed by the lead developer or the
-project manager in addition to a second developer.
+requirements test must be reviewed by one of the master developers in
+addition to a second developer.  The developers allowed to review
+merge requests and the master developers are listed on the team roles
+list:
+\url{https://hpcgitlab.inl.gov/idaholab/raven/wikis/team_and_roles}
+
+
 
 \section{Test Automation}
 
@@ -219,7 +228,8 @@ many as practical.  BASH or Python scripts will be used for others.
 The scripts for automation will be stored in the RAVEN, Crow or MOOSE
 source code repository.  Some of the scripts that only run other
 scripts (such as the scripts that compile RAVEN and then run the
-testing scripts) will be stored in CIVIT on moosebuild.inl.gov.
+testing scripts) will be stored in CIVIT on moosebuild.inl.gov.  CIVIT
+stores the results of the passing or failing of tests.
 
 \section*{Document Version Information}
 
