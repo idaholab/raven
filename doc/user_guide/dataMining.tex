@@ -125,45 +125,45 @@ The procedure to determine the centroids $\vec{\mu_{i}}$ of \emph{K} clusters ($
 
 \emph{K}-Means algorithm is one of the most popular and used methodologies also due to the fact that is very easy to implement and the computational time is directly proportional to the cardinality of data points (i.e., $\mathcal{O}(I)$ where \emph{I} is the number of data points). The main disadvantage is that the algorithm is sensitive to the choice of the initial partition and may converge to a local minimum of the error squared function~\cite{JainAlgor88}. Another disadvantage of this algorithm is that is only able to identify clusters having spherical or ellipsoidal geometry. Thus, \emph{K}-Means is not able to identify clusters of points having arbitrary shapes. Moreover, the number of cluster \emph{K} to be obtained is specified by the user prior the clustering process.
 
-\subsubsection{Fuzzy C-Means}
-\label{FuzzyCMeansn}
-
-Fuzzy \emph{C}-Means clustering is a clustering methodology that is based on fuzzy sets and, hence, it allows a data point to belong to more that one cluster~\cite{FuzzyBezdek,DunnFuzzy}. Similar to the \emph{K}-Means clustering, the objective is to find a partition of $C$ fuzzy centers to minimize the function $J$ defined as following:
-
-\begin{equation}
-    J = \displaystyle \sum_{i=1}^I \displaystyle \sum_{j=1}^C u_{ij}^{m}|\vec{x_{i}}-\vec{\mu_{j}}|^{2}
-\end{equation}
-
-where:
- \begin{itemize}
-   \item $u_{ij}^{m}\in[0,1]$ is the membership coefficient of the data point $\vec{x_{i}}$ for the $j^{th}$ cluster having centroid $\vec{\mu_{j}}$,
-   \item $m\in[0,\infty)$ is the fuzzification parameter (usually set to $m=2$), and,
-   \item $\mu_{j}$ is the centroid of the $j^{th}$ cluster center
- \end{itemize}
-
-The procedure to determine the centroids (or, equivalently, cluster centers)
-$ \vec{\mu_{j}}$ $(j=1,\ldots,C)$ of $C$ clusters is the following:
-
-\begin{enumerate}
-  \item Initialize the $U=[u_{ij}^{m}]$ matrix
-  \item Calculate the set of $C$ centroids  as following:
-
-          \begin{equation}
-            \mu_{j}=\frac{\sum_{i=1}^N u_{ij}^{m}x_{i}}{\sum_{i=1}^N u_{ij}^{m}}
-          \end{equation}
-
-  \item Update the matrix $U=[u_{ij}^{m}]$ as following:
-
-          \begin{equation}
-            u_{ij}^{m}=\frac{1}{\sum_{k=1}^C (\frac{|x_{i}-\mu_{j}|}{|x_{i}-\mu_{k}|})^{\frac{2}{m-1}}}
-          \end{equation}
-
-  \item Repeat Steps 2 and 3 until convergence, i.e. if \begin{math} |U^{(K+1)}-U^{(K)}|<\epsilon \end{math}
-\end{enumerate}
-
-Fuzzy \emph{C}-Means clustering is very similar to the \emph{K}-Means. As seen for the \emph{K}-Means, Fuzzy \emph{C}-Means can also converge to a local minima of the convergence criterion function~\cite{FuzzyBezdek}.
-Like \emph{K}-Means, it is not able to identify cluster of points having arbitrary shapes but only clusters having ellipsoidal or spherical geometry and the number of clusters \emph{C} to be obtained is specified by the user prior the clustering process.
-Fuzzy \emph{C}-Means algorithms can be useful when the boundaries among clusters are ambiguous and not well defined.
+%\subsubsection{Fuzzy C-Means}
+%\label{FuzzyCMeansn}
+%
+%Fuzzy \emph{C}-Means clustering is a clustering methodology that is based on fuzzy sets and, hence, it allows a data point to belong to more that one cluster~\cite{FuzzyBezdek,DunnFuzzy}. Similar to the \emph{K}-Means clustering, the objective is to find a partition of $C$ fuzzy centers to minimize the function $J$ defined as following:
+%
+%\begin{equation}
+%    J = \displaystyle \sum_{i=1}^I \displaystyle \sum_{j=1}^C u_{ij}^{m}|\vec{x_{i}}-\vec{\mu_{j}}|^{2}
+%\end{equation}
+%
+%where:
+% \begin{itemize}
+%   \item $u_{ij}^{m}\in[0,1]$ is the membership coefficient of the data point $\vec{x_{i}}$ for the $j^{th}$ cluster having centroid $\vec{\mu_{j}}$,
+%   \item $m\in[0,\infty)$ is the fuzzification parameter (usually set to $m=2$), and,
+%   \item $\mu_{j}$ is the centroid of the $j^{th}$ cluster center
+% \end{itemize}
+%
+%The procedure to determine the centroids (or, equivalently, cluster centers)
+%$ \vec{\mu_{j}}$ $(j=1,\ldots,C)$ of $C$ clusters is the following:
+%
+%\begin{enumerate}
+%  \item Initialize the $U=[u_{ij}^{m}]$ matrix
+%  \item Calculate the set of $C$ centroids  as following:
+%
+%          \begin{equation}
+%            \mu_{j}=\frac{\sum_{i=1}^N u_{ij}^{m}x_{i}}{\sum_{i=1}^N u_{ij}^{m}}
+%          \end{equation}
+%
+%  \item Update the matrix $U=[u_{ij}^{m}]$ as following:
+%
+%          \begin{equation}
+%            u_{ij}^{m}=\frac{1}{\sum_{k=1}^C (\frac{|x_{i}-\mu_{j}|}{|x_{i}-\mu_{k}|})^{\frac{2}{m-1}}}
+%          \end{equation}
+%
+%  \item Repeat Steps 2 and 3 until convergence, i.e. if \begin{math} |U^{(K+1)}-U^{(K)}|<\epsilon \end{math}
+%\end{enumerate}
+%
+%Fuzzy \emph{C}-Means clustering is very similar to the \emph{K}-Means. As seen for the \emph{K}-Means, Fuzzy \emph{C}-Means can also converge to a local minima of the convergence criterion function~\cite{FuzzyBezdek}.
+%Like \emph{K}-Means, it is not able to identify cluster of points having arbitrary shapes but only clusters having ellipsoidal or spherical geometry and the number of clusters \emph{C} to be obtained is specified by the user prior the clustering process.
+%Fuzzy \emph{C}-Means algorithms can be useful when the boundaries among clusters are ambiguous and not well defined.
 
 \subsubsection{Mean-Shift}
 \label{Mean-Shift}
@@ -213,7 +213,7 @@ The main element of the DBSCAN algorithm is the concept of core samples, which a
 A cluster is a set of core samples, that can be built by recursively by taking a core sample, finding all of its neighbors that are core samples, finding all of their neighbors that are core samples, and so on. A cluster also has a set of non-core samples, which are samples that are neighbors of a core sample in the cluster but are not themselves core samples; these are on the borders of a cluster. 
 The DBSCAN algorithm finds core samples of high density and expands clusters from them. It is good for data, which contains clusters of similar density. 
 
-\subsubsection{Dimensionality Reduction: an Overview}
+\subsubsection{Dimensionality Reduction}
 \label{sec:6DimRed.section}
 
 The dimensionality $\delta$ of each data point (i.e., each scenario) is equal to the product of the number of variables (i.e., $M$) chosen to represent each scenario multiplied by the number of times each variable has been sampled.
@@ -246,17 +246,6 @@ The main idea behind PCA~\cite{JolliffePCA} is to perform a linear mapping of th
 This is accomplished by determining the eigenvectors and their corresponding eigenvalues of the data covariance matrix\footnote{Given a data set in form of a vector $Z$, rows correspond to data dimensions ($D$) and columns correspond to data observations ($\Lambda$), the covariance matrix $S$ is determined as: $S=\frac{1}{\Lambda-1}Z'Z$.}
 $S$.
 The eigenvectors that correspond to the largest eigenvalues (i.e., the principal components) can be used as a set of basis functions. Thus, the original space is reduced to the space spanned by a few eigenvectors.
-
-%The algorithm works as following:
-
-%\begin{algorithmic}[1]
-%\STATE $S \leftarrow 0$
-%\STATE $\Sigma$ $\leftarrow 0$ Create $N \times d$ data matrix, with one row vector $x_{n}$ per data point
-%\STATE X  subtract mean x from each row vector $x_{n}$ in X
-%\STATE S $S \leftarrow 0$ covariance matrix of X
-%\STATE Find eigenvectors and eigenvalues of $\Sigma$
-%\STATE PCs $S \leftarrow 0$ the $M$ eigenvectors with largest eigenvalues
-%\end{algorithmic}
 
 
 The algorithm is very easy to implement but, on the other hand, PCA is not able to identify non-linear correlations of more complex data sets.
@@ -296,8 +285,8 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
     <batchSize>40</batchSize>
   </RunInfo>
 \end{lstlisting}
-   As in the other examples, the the \textit{RunInfo} \textbf{Entity} is intended  to set up the analysis sequence that
-   needs to be performed. In this specific case, two steps  (\xmlNode{Sequence}) are going to be sequentially run 
+   The the \textit{RunInfo} \textbf{Entity} is intended  to set up the analysis sequence that
+   needs to be performed. In this specific case, two steps  (\xmlNode{Sequence}) are sequentially run 
    using 40 processors (\xmlNode{batchSize}). 
    \\In the first step, the original physical model is going to be sampled. 
    The obtained results are going to be analyzed with data mining 
@@ -308,8 +297,7 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
     <Input name="referenceInput.xml" type="input">referenceInput.xml</Input>
   </Files>
 \end{lstlisting}
-   Since the driven code uses a single input file, in this section the original input is placed. As detailed in the user manual
-   the attribute  \xmlAttr{name} represents the alias that is going to be 
+   Since the driven code uses a single input file, in this section the original input is placed. The attribute  \xmlAttr{name} represents the alias that is going to be 
    used in all the other input blocks in order to refer to this file. 
    \item \textbf{\textit{Models}}:
 \begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
@@ -343,11 +331,11 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
     </PostProcessor>
   </Models>
 \end{lstlisting}
- As mentioned above, the goal of this example is to show how the 
+ The goal of this example is to show how the 
  data mining algorithms in RAVEN can be useful to analyze large data set.
  \\Indeed, in addition to the previously explained Code 
  model, two Post-Processor models ($DataMining|cluster|KMeans$ and $DataMining|decomposition|PCA$) are here specified. 
-As it can be noticed, the post-processing process is going to be
+Note that the post-processing  is
 performed on all the output FOMs used in this example ( $A,\, B,\, C \, and \, D$). 
    \item \textbf{\textit{Distributions}}:
 \begin{lstlisting}[style=XML]
@@ -445,19 +433,18 @@ performed on all the output FOMs used in this example ( $A,\, B,\, C \, and \, D
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
    Finally, all the previously defined \textbf{Entities} can be combined in 
-   the \xmlNode{Steps} block. As inferable, 
+   the \xmlNode{Steps} block; 
    3 \xmlNode{Steps} have been inputted:
    \begin{itemize}
      \item \xmlNode{MultiRun} named ``sampleMC'', used to run the 
      multiple  
      instances of the driven code and 
-     collect the outputs in the two \textit{DataObjects}. As it can be
-     seen, the \xmlNode{Sampler} is inputted to communicate to the 
+     collect the outputs in the two \textit{DataObjects}.The \xmlNode{Sampler} is inputted to communicate to the 
      \textit{Step} that the driven code needs to
      be perturbed through the Grid sampling strategy;
      \item \xmlNode{PostProcess} named ``kmeans'', used
      to analyze the data obtained through the sampling strategy. In
-     this Step, a K-Means algorithm is going to be employed, plotting
+     this step, a K-Means algorithm is going to be employed, plotting
      the clustering results;
      \textit{Step} that the driven code needs to
      be perturbed through the Grid sampling strategy;
@@ -467,12 +454,12 @@ performed on all the output FOMs used in this example ( $A,\, B,\, C \, and \, D
      the decomposition results.
    \end{itemize}
 \end{enumerate} 
-Figure \ref{fig:KmeanOrigData} shows the clustering on the original
+Figure~\ref{fig:KmeanOrigData} shows the clustering on the original
 input space. 
-\\Figure \ref{fig:KmeanProjected} shows the clustering on the projected
+\\Figure~\ref{fig:KmeanProjected} shows the clustering on the projected
 input space. It can be noticed, that the algorithm fully capture the fact
 that the parameter $sigma-B$ does not impact the response $A$ (being completely independent).
-\\Figure \ref{fig:PCAplot} shows the PCA decomposition on the data set.
+\\Figure~\ref{fig:PCAplot} shows the PCA decomposition on the data set.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  %figure samples
  \begin{figure}[h!]
