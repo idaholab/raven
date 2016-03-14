@@ -1003,7 +1003,7 @@ class HDMRRom(GaussPolynomialRom):
         integrals[level][subset] = {}
         #integrate out everything but subset
         self._partialIntegrate(self.reducedTerms,subset,integrals[level][subset])
-        #subtract off subset parts
+    #subtract off subset parts
     anovaByLevel = {}
     for level in integrals.keys():
       if level == 0:continue
@@ -1014,12 +1014,16 @@ class HDMRRom(GaussPolynomialRom):
           for subsubset in integrals[sublevel].keys():
             if set(subsubset).issubset(set(subset)):
               for cut,contrib in integrals[sublevel][subsubset].items():
+                #if level == 2 and sublevel == 1:
+                  #print('DEBUG removing subsub',subsubset,'from subset',subset)
                 if cut not in anovaByLevel[subset].keys():
                   anovaByLevel[subset][cut] = []
                 if type(contrib)==list:
                   for c in contrib:
+                    #print('DEBUG   ',(c[0],c[1]*-1,c[2]))
                     anovaByLevel[subset][cut].append( (c[0],c[1]*-1,c[2]) )
                 else:
+                  #print('DEBUG   ',(contrib[0],contrib[1]*-1,contrib[2]))
                   anovaByLevel[subset][cut].append( (contrib[0],contrib[1]*-1,contrib[2]) )
     #collect terms of same index set (collect polynomial terms)
     self.raiseADebug('collecting ANOVA terms...')
@@ -1030,9 +1034,19 @@ class HDMRRom(GaussPolynomialRom):
         for coeff,mult,idx in sublist:
           fullIdx = self.__fillIndexWithRef(cut,idx)
           if fullIdx not in self.anova[subset].keys():
+            #small coeffs already removed
             self.anova[subset][fullIdx] = coeff*mult
           else:
+            #if the new sum is zero, clear it
             self.anova[subset][fullIdx] += coeff*mult
+            if abs(self.anova[subset][fullIdx]) < 1e-12:
+              del self.anova[subset][fullIdx]
+
+    #debug reporting
+    for subset in self.anova.keys():
+      print('DEBUG subset:',subset)
+      for fullIdx,coeff in self.anova[subset].items():
+        print('DEBUG   ',fullIdx,coeff)
 
   def _partialIntegrate(self,termDict,subset,storeDict):
     """
@@ -1063,7 +1077,7 @@ class HDMRRom(GaussPolynomialRom):
         for termPoly,coeff in self.ROMs[term].polyCoeffDict.items():
           if debug: self.raiseADebug('|      Integrating poly',termPoly)
           ### CASE coeff is nearly zero, leave it out
-          #if abs(coeff) < 1e-12: continue #TODO this could result in a speedup, but might not be worth accuracy
+          if abs(coeff) < 1e-12: continue #TODO this could result in a speedup, but might not be worth accuracy
           ### CASE any of k_t is nonzero for polynomials of integration variables, then integral is zero
           #     for example, int( sum_k c_k P_i(x) P_j(y) ) dy dz = 0 for every j > 0
           foundNonzeroIntegrated = False
@@ -1132,7 +1146,6 @@ class HDMRRom(GaussPolynomialRom):
             #  self.raiseADebug('|   nothing added.',color='red')
     self.raiseADebug('| Total for terms is',tot,color='red')
     return tot
-
 
   def getSensitivities(self):
     """

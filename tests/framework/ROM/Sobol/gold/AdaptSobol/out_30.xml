@@ -1,76 +1,76 @@
 <ReducedOrderModel>
   <ans2>
     <mean>0.612868446285</mean>
-    <variance>8.95240746288</variance>
+    <variance>0.00780894099287</variance>
     <Sobol_indices>
-      <tot_variance>8.95240746288</tot_variance>
+      <tot_variance>0.00780894099287</tot_variance>
       <variables>x1
-        <index>0.24934935706</index>
+        <index>0.250247617673</index>
       </variables>
       <variables>x2
-        <index>0.249347006735</index>
+        <index>0.248359121629</index>
       </variables>
       <variables>x3
-        <index>0.249346484832</index>
+        <index>0.248272342629</index>
       </variables>
       <variables>x4
-        <index>0.249345428987</index>
-      </variables>
-      <variables>x2,x3
-        <index>0.000435509219491</index>
+        <index>0.247991375761</index>
       </variables>
       <variables>x1,x2
-        <index>0.000435437780408</index>
+        <index>0.00128238557673</index>
       </variables>
       <variables>x1,x3
-        <index>0.000435437780408</index>
+        <index>0.00128238557673</index>
       </variables>
       <variables>x1,x4
-        <index>0.000435434865144</index>
+        <index>0.00128238557673</index>
       </variables>
-      <variables>x3,x4
-        <index>0.000434951370331</index>
+      <variables>x2,x3
+        <index>0.00128238557673</index>
       </variables>
       <variables>x2,x4
-        <index>0.000434951370331</index>
+        <index>0.0</index>
+      </variables>
+      <variables>x3,x4
+        <index>0.0</index>
       </variables>
     </Sobol_indices>
     <numRuns>33</numRuns>
   </ans2>
   <ans>
     <mean>5.0625</mean>
-    <variance>641.8125</variance>
+    <variance>3.9375</variance>
     <Sobol_indices>
-      <tot_variance>641.8125</tot_variance>
-      <variables>x1
-        <index>0.249945223488</index>
+      <tot_variance>3.9375</tot_variance>
+      <variables>x3
+        <index>0.241071428571</index>
       </variables>
       <variables>x2
-        <index>0.249945223488</index>
+        <index>0.241071428571</index>
       </variables>
-      <variables>x3
-        <index>0.249945223488</index>
+      <variables>x1
+        <index>0.241071428571</index>
       </variables>
       <variables>x4
-        <index>0.249945223488</index>
-      </variables>
-      <variables>x1,x4
-        <index>5.47765118318e-05</index>
+        <index>0.241071428571</index>
       </variables>
       <variables>x1,x2
-        <index>5.47765118317e-05</index>
+        <index>0.00892857142857</index>
       </variables>
       <variables>x1,x3
-        <index>5.47765118317e-05</index>
+        <index>0.00892857142857</index>
+      </variables>
+      <variables>x1,x4
+        <index>0.00892857142857</index>
       </variables>
       <variables>x2,x3
-        <index>5.47765118317e-05</index>
+        <index>0.00892857142857</index>
       </variables>
       <variables>x2,x4
-        <index>4.42835087045e-17</index>
+        <index>3.20553002756e-30</index>
       </variables>
       <variables>x3,x4
-        <index>4.42835087045e-17</index>
+        <index>3.20553002756e-30</index>
       </variables>
     </Sobol_indices>
     <numRuns>33</numRuns>

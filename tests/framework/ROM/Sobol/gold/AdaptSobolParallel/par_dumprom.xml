@@ -1,51 +1,51 @@
 <ReducedOrderModel>
   <ans2>
     <mean>0.61285033268</mean>
-    <variance>8.95211459147</variance>
+    <variance>0.00768013893552</variance>
     <Sobol_indices>
-      <tot_variance>8.95211459147</tot_variance>
+      <tot_variance>0.00768013893552</tot_variance>
       <variables>x1
-        <index>0.249352942908</index>
+        <index>0.250260624467</index>
       </variables>
       <variables>x2
-        <index>0.249350560147</index>
+        <index>0.249913125178</index>
       </variables>
       <variables>x3
-        <index>0.249350560147</index>
+        <index>0.249913125178</index>
       </variables>
       <variables>x4
-        <index>0.249350560147</index>
-      </variables>
-      <variables>x2,x3
-        <index>0.000432563162793</index>
-      </variables>
-      <variables>x2,x4
-        <index>0.000432563162793</index>
-      </variables>
-      <variables>x3,x4
-        <index>0.000432563162793</index>
+        <index>0.249913125178</index>
       </variables>
       <variables>x1,x2
-        <index>0.000432562387949</index>
+        <index>0.0</index>
       </variables>
       <variables>x1,x3
-        <index>0.000432562387949</index>
+        <index>0.0</index>
       </variables>
       <variables>x1,x4
-        <index>0.000432562387949</index>
+        <index>0.0</index>
+      </variables>
+      <variables>x2,x3
+        <index>0.0</index>
+      </variables>
+      <variables>x2,x4
+        <index>0.0</index>
+      </variables>
+      <variables>x3,x4
+        <index>0.0</index>
       </variables>
     </Sobol_indices>
     <numRuns>11</numRuns>
   </ans2>
   <ans>
     <mean>5.0625</mean>
-    <variance>641.671875</variance>
+    <variance>3.796875</variance>
     <Sobol_indices>
-      <tot_variance>641.671875</tot_variance>
-      <variables>x4
+      <tot_variance>3.796875</tot_variance>
+      <variables>x1
         <index>0.25</index>
       </variables>
-      <variables>x1
+      <variables>x4
         <index>0.25</index>
       </variables>
       <variables>x2
