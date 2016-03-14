@@ -188,6 +188,11 @@ least, the two required tags:
   defined in the \xmlNode{DataObjects} block.
 \end{itemize}
 \vspace{-5mm}
+
+An optional tag \xmlNode{filename} can be used to specify the filename for the
+output. If this is not defined, then the default name will be the \xmlAttr{name}
+identifier of the tag.
+
 If only these two tags are provided (as in the ``first-example'' below), the
 output file will be filled with the whole content of the ``d-name''
 \textit{Data} object.
@@ -212,6 +217,11 @@ output file will be filled with the whole content of the ``d-name''
     <type>csv</type>
     <source>d-name</source>
     <what>Input|var-name-in,Output|var-name-out</what>
+  </Print>
+  <Print name='fifth-example'>
+    <type>csv</type>
+    <source>d-name</source>
+    <filename>example5</filename>
   </Print>
 </OutStreamManager>
 \end{lstlisting}
@@ -354,6 +364,11 @@ In addition, the Plot block accepts the following attributes:
   %
 \end{itemize}
 \vspace{-5mm}
+
+An optional tag \xmlNode{filename} can be used to specify the filename for
+the output. If this is not defined, then the default base name will be the
+\xmlAttr{name} identifier of the tag prepended and appended with extra
+information that identifies the plot further.
 
 As shown, in the XML input example below, the body of the Plot XML input
 contains two main sub-nodes:
@@ -850,8 +865,8 @@ combined in the same figure.
 \end{lstlisting}
 
 The axis labels  are conditionally optional nodes
-that can be defined under the \xmlNode{plotSetting}. If the plot does not contain any sub-plots, 
-i.e. \xmlNode{gridSpace} is not defined then the axis labels are global parameters for the figure 
+that can be defined under the \xmlNode{plotSetting}. If the plot does not contain any sub-plots,
+i.e. \xmlNode{gridSpace} is not defined then the axis labels are global parameters for the figure
 which are deifned under \xmlNode{plotSettings}, otherwise the axis labels can be defined under \xmlNode{plot}
 for each sub-plot seperately.
 \begin{itemize}
@@ -890,16 +905,16 @@ Under the \xmlNode{plot} sub-block other optional keywords can be specified, suc
   label.
   \item \xmlNode{zlabel}, \xmlDesc{string, optional parameter (3D plots only)},
   the z axis label.
-  \item \xmlNode{gridLocation}, \xmlDesc{xmlNode, optional xmlNode (depending on the 
+  \item \xmlNode{gridLocation}, \xmlDesc{xmlNode, optional xmlNode (depending on the
   grid geometry)}
   \begin{itemize}
 	\item \xmlNode{x}, \xmlDesc{integer, required parameter}, the position of the subPlot in the grid Space.
 	if this node has a single value then the subplot occupies a single node at the specified location, otherwise
-        the second integer represents the number of nodes that this subplot occupies, i.e. in the example above the 
+        the second integer represents the number of nodes that this subplot occupies, i.e. in the example above the
         first subplot occupies 2 nodes starting from the zero node in x direction.
 	\item \xmlNode{y}, \xmlDesc{integer, required parameter}, the position of the subPlot in the grid Space.
 	if this node has a single value then the subplot occupies a single node at the specified location, otherwise
-        the second integer represents the number of nodes that this subplot occupies, i.e. in the example above the 
+        the second integer represents the number of nodes that this subplot occupies, i.e. in the example above the
         first subplot occupies a single node at the zero node in y direction.
   \end{itemize}
   \item \xmlNode{colorMap}, \xmlDesc{string, optional parameter}, this parameter will be used to
@@ -1447,13 +1462,13 @@ nodes:
 \end{itemize}
 
 \subsubsection{DataMining plots}
-In order to create a ``DataMining'' plot, the user needs to write in the 
+In order to create a ``DataMining'' plot, the user needs to write in the
 \xmlNode{type} body the keyword ``dataMining''.
 %
 ``DataMining'' plots are based on 2D or 3D Scattering plots, depending on the method/algorithm
 used in the ``DataMining'' postprocessor [see  \ref{subsubsec:DataMining}]. These plots
 are created to ease the color labeling the clusters, etc parameters in the data.
-% 
+%
 The following are the optional or required input parameters  that can be used in these plots
 additional to the coordinate inputs \xmlNode{x},  \xmlNode{y}, or \xmlNode{z} depending
  on the dimension:
@@ -1471,12 +1486,12 @@ additional to the coordinate inputs \xmlNode{x},  \xmlNode{y}, or \xmlNode{z} de
 	\item decomposition: for decomposing signals in components algorithms, such as Principal
         Component Analysis (PCA)
  \end{itemize}
- \item \xmlNode{clusterLabels}, \xmlDesc{string, optional field}, defines the place where 
- the labels of the clusters are located. As in the visual parameters (i.e., x,y,z and 
- colorMap) this is also from a \textbf{DataObjects} object. Considering the structure of 
+ \item \xmlNode{clusterLabels}, \xmlDesc{string, optional field}, defines the place where
+ the labels of the clusters are located. As in the visual parameters (i.e., x,y,z and
+ colorMap) this is also from a \textbf{DataObjects} object. Considering the structure of
  ``DataObjects'', the labels inputted as follows: \texttt{DataObjectName|Output|DataMiningPPNameLabels}.
  \default{None}
- \item \xmlNode{noClusters}, \xmlDesc{integer, optional field}, defines the number of 
+ \item \xmlNode{noClusters}, \xmlDesc{integer, optional field}, defines the number of
  clusters used in the ``dataMining'' postprocessor \default{1}
 
  \item \xmlNode{kwargs}, within this block the user can specify optional
@@ -1493,7 +1508,7 @@ additional to the coordinate inputs \xmlNode{x},  \xmlNode{y}, or \xmlNode{z} de
   example \xmlNode{param1} \texttt{\{`1stKey':45\}}\xmlNode{/param1} will
   be converted into a dictionary,
   \xmlNode{param2} \texttt{[56,67]} \xmlNode{/param2} into a list, etc.).
-  % 
+  %
 
   For reference regarding the other available kwargs, see
   ``matplotlib.pyplot.scatter'' method in~\cite{MatPlotLib}.

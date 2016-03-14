@@ -6,6 +6,7 @@
     <xsd:include schemaLocation="Models.xsd"/>
     <xsd:include schemaLocation="Functions.xsd"/>
     <xsd:include schemaLocation="Files.xsd"/>
+    <xsd:include schemaLocation="VarGroups.xsd"/>
     <xsd:include schemaLocation="OutstreamManager.xsd"/>
     <xsd:include schemaLocation="Steps.xsd"/>
     <xsd:include schemaLocation="Databases.xsd"/>
@@ -93,6 +94,7 @@
                 <xsd:element name="Steps"            type="StepType"         minOccurs="1"/>
                 <xsd:element name="Models"           type="ModelsData"       minOccurs="0"/>
                 <xsd:element name="Files"            type="FilesType"        minOccurs="0"/>
+                <xsd:element name="VariableGroups"   type="VarGroupsType"    minOccurs="0"/>
                 <xsd:element name="Samplers"         type="SamplerData"      minOccurs="0"/>
                 <xsd:element name="DataObjects"      type="DataObjectsData"  minOccurs="0"/>
                 <xsd:element name="Distributions"    type="DistributionData" minOccurs="0"/>
@@ -100,8 +102,9 @@
                 <xsd:element name="Databases"        type="DatabaseType"     minOccurs="0"/>
                 <xsd:element name="OutStreamManager" type="OutStreamData"    minOccurs="0"/>
             </xsd:all>
-            <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
+            <xsd:attribute name="verbosity"       type="verbosityAttr" default="all"/>
             <xsd:attribute name="printTimeStamps" type="RavenBool" />
+            <xsd:attribute name="color"           type="RavenBool" />
         </xsd:complexType>
         <xsd:key name="distName">
             <xsd:selector xpath="./Distributions/*"/>

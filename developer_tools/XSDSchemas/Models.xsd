@@ -119,6 +119,13 @@
         </xsd:restriction>
     </xsd:simpleType>
 
+    <xsd:simpleType  name="SparseGridType">
+        <xsd:restriction   base="xsd:string">
+            <xsd:enumeration value="tensor" />
+            <xsd:enumeration value="smolyak" />
+        </xsd:restriction>
+    </xsd:simpleType>
+
     <xsd:simpleType  name="QuadratureType">
         <xsd:restriction   base="xsd:string">
             <xsd:enumeration value="Legendre" />
@@ -145,31 +152,33 @@
                     <xsd:element name="PolynomialOrder"  type="xsd:integer" minOccurs="1"/>
                     <!-- TODO: Do we want to test if this is a list of tuples? -->
                      <xsd:element name="IndexPoints"  type="xsd:string" minOccurs="1"/>
+                     <xsd:element name="SparseGrid"  type="SparseGridType" minOccurs="0"/>
                      <xsd:element name="Interpolation">
-                     <xsd:complexType>
-                     <xsd:simpleContent>
-                     <xsd:extension base="xsd:string">
-                     <xsd:attribute name="quad" type="QuadratureType" />
-                     <xsd:attribute name="poly" type="PolynomialType" />
-                     <xsd:attribute name="weight" type="xsd:float" default="1" />
-                     </xsd:extension>
-                     </xsd:simpleContent>
-                     </xsd:complexType>
+                       <xsd:complexType>
+                         <xsd:simpleContent>
+                           <xsd:extension base="xsd:string">
+                             <xsd:attribute name="quad" type="QuadratureType" />
+                             <xsd:attribute name="poly" type="PolynomialType" />
+                             <xsd:attribute name="weight" type="xsd:float" default="1" />
+                           </xsd:extension>
+                         </xsd:simpleContent>
+                       </xsd:complexType>
                      </xsd:element>
-                     </xsd:sequence>
-                     </xsd:extension>
-                     </xsd:complexContent>
-                     </xsd:complexType>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
 
-                     <xsd:complexType name="HDMRRom">
-                     <xsd:complexContent>
-                     <xsd:extension base="ROM">
-                     <xsd:sequence>
-                     <xsd:element name="SobolOrder"  type="xsd:integer" minOccurs="1"/>
-                     </xsd:sequence>
-                     </xsd:extension>
-                     </xsd:complexContent>
-                     </xsd:complexType>
+    <xsd:complexType name="HDMRRom">
+      <xsd:complexContent>
+        <xsd:extension base="ROM">
+          <xsd:sequence>
+            <xsd:element name="SobolOrder"  type="xsd:integer" minOccurs="1"/>
+            <xsd:element name="SparseGrid"  type="SparseGridType" minOccurs="0"/>
+          </xsd:sequence>
+        </xsd:extension>
+      </xsd:complexContent>
+    </xsd:complexType>
 
                      <xsd:simpleType  name="positiveInteger">
                      <xsd:restriction   base="xsd:integer">

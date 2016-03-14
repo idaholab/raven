@@ -643,7 +643,8 @@
         <zlabel>cosine</zlabel>
       </plotSettings>
     </Plot>
-    <Plot dim="2" name="2DHistoryPlot" overwrite="false" verbosity="debug">
+    <Plot dim="2" name="historyPlot2D" overwrite="false" verbosity="debug">
+      <filename>1-2DHistoryPlot_histogram</filename>
       <plotSettings>
         <plot>
           <type>histogram</type>
@@ -693,7 +694,7 @@
       <Input class="DataObjects" type="PointSet">PointSets</Input>
       <Input class="DataObjects" type="Point">Pointt</Input>
       <Input class="DataObjects" type="History">Historyy</Input>
-      <Output class="OutStreamManager" type="Plot">2DHistoryPlot</Output>
+      <Output class="OutStreamManager" type="Plot">historyPlot2D</Output>
       <Output class="OutStreamManager" type="Print">test</Output>
       <Output class="OutStreamManager" type="Print">fullprint_Pointset</Output>
       <Output class="OutStreamManager" type="Plot">2DHistoryPlot2</Output>

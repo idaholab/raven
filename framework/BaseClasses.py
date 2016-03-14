@@ -30,11 +30,16 @@ class BaseType(MessageHandler.MessageUser):
     self.messageHandler   = None                                                        # message handling object
     self.mods             = utils.returnImportModuleString(inspect.getmodule(BaseType)) #list of modules this class depends on (needed for automatic parallel python)
     self.mods.extend(utils.returnImportModuleString(inspect.getmodule(self),True))
-  def readXML(self,xmlNode,messageHandler,globalAttributes=None):
+
+  def readXML(self,xmlNode,messageHandler,variableGroups={},globalAttributes=None):
     """
     provide a basic reading capability from the xml input file for what is common to all types in the simulation than calls _readMoreXML
     that needs to be overloaded and used as API. Each type supported by the simulation should have: name (xml attribute), type (xml tag),
     verbosity (xml attribute)
+    @ In, xmlNode, ET.Element, input xml
+    @ In, messageHandler, MessageHandler object, message handler
+    @ In, variableGroups, optional dict{str:VariableGroup}, variable groups container
+    @ In, globalAttributes, optional dict{str:object}, global attributes
     """
     self.setMessageHandler(messageHandler)
     if 'name' in xmlNode.attrib.keys(): self.name = xmlNode.attrib['name']
@@ -44,6 +49,24 @@ class BaseType(MessageHandler.MessageUser):
     if 'verbosity' in xmlNode.attrib.keys():
       self.verbosity = xmlNode.attrib['verbosity']
       self.raiseADebug('Set verbosity for '+str(self)+' to '+str(self.verbosity))
+    #search and replace variableGroups where found in texts
+    def replaceVariableGroups(node):
+      """
+        Replaces variables groups with variable entries in text of nodes
+        @ In, node, ET.Element, the node to search for replacement
+        @ Out, None
+      """
+      if node.text is not None and node.text.strip() != '':
+        textEntries = list(t.strip() for t in node.text.split(','))
+        for t,text in enumerate(textEntries):
+          if text in variableGroups.keys():
+            textEntries[t] = variableGroups[text].getVarsString()
+            self.raiseADebug('Replaced text in <%s> with variable group "%s"' %(node.tag,text))
+        #note: if we don't explicitly convert to string, scikitlearn chokes on unicode type
+        node.text = str(','.join(textEntries))
+      for child in node:
+        replaceVariableGroups(child)
+    replaceVariableGroups(xmlNode)
     self._readMoreXML(xmlNode)
     self.raiseADebug('------Reading Completed for:')
     self.printMe()

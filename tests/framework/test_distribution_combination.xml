@@ -13,7 +13,7 @@
 
   <Models>
     <ExternalModel ModuleToLoad="dist_var" name="PythonModule" subType="">
-      <variables>t1,t2,out</variables>
+      <variables>t1,t2,t3,t4,x0,y0,z0,x1,y1,z1,out</variables>
     </ExternalModel>
   </Models>
 
@@ -80,7 +80,7 @@
 
   <DataObjects>
     <Point name="inputPlaceHolder">
-      <Input>t1,t2</Input>
+      <Input>t1,t2,t3,t4,x0,y0,z0,x1,y1,z1</Input>
       <Output>out</Output>
     </Point>
     <PointSet name="PointSet">

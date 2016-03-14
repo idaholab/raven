@@ -12,7 +12,7 @@ def validateTests():
   """
     Runs validation tests on regression tests and displays results.
     @ In, None
-    @ Out, None
+    @ Out, int, number of failed tests.
   """
   print 'Beginning test validation...'
   tests = get_coverage_tests.getRegressionTests(skipThese=['test_rom_trainer.xml'],skipExpectedFails=True)
@@ -62,6 +62,7 @@ def validateTests():
       print colors.fail+os.path.join(dir,f)
   print colors.neutral+''
   print 'Validated: '+colors.ok+str(res[1])+colors.neutral+' Failed: '+colors.fail+str(res[2])+colors.neutral+' Run:',res[0]
+  return res[2]
 
 class colors:
   ok       = '\033[92m'
@@ -69,4 +70,4 @@ class colors:
   neutral  = '\033[0m'
 
 if __name__=='__main__':
-  validateTests()
+  sys.exit(validateTests())

@@ -522,7 +522,7 @@ class IOStep(Step):
         elif isinstance(outputs[i],Data): self.actionType.append('FILES-dataObjects')
         else: self.raiseAnError(IOError,'In Step named ' + self.name + '. This step accepts A ROM as Output only, when the Input is a Files. Got ' + inDictionary['Output'][i].type)
       else: self.raiseAnError(IOError,'In Step named ' + self.name + '. This step accepts DataObjects, HDF5, ROM and Files as Input only. Got ' + inDictionary['Input'][i].type)
-
+    if self.fromDirectory and len(self.actionType) == 0: self.raiseAnError(IOError,'In Step named ' + self.name + '. "fromDirectory" attribute provided but not conversion action is found (remove this atttribute for OutStream actions only"')
     #Initialize all the HDF5 outputs.
     for i in range(len(outputs)):
       #if type(outputs[i]).__name__ not in ['str','bytes','unicode']:
@@ -558,15 +558,9 @@ class IOStep(Step):
         #inDictionary['Input'][i] is a ROM, outputs[i] is Files
         fileobj = outputs[i]
         fileobj.open(mode='wb+')
-        self.raiseAWarning('dump|open?',fileobj.isOpen())
         cloudpickle.dump(inDictionary['Input'][i],fileobj)
         fileobj.flush()
         fileobj.close()
-        import os
-        self.raiseAWarning('dump|size:',os.path.getsize(fileobj.getAbsFile()))
-        self.raiseAWarning('dump|file:',fileobj.getAbsFile())
-        test=pickle.load(file(fileobj.getAbsFile(),'rb+'))
-        self.raiseAWarning('dump|loaded:',test)
       elif self.actionType[i] == 'FILES-ROM':
         #inDictionary['Input'][i] is a Files, outputs[i] is ROM
         fileobj = inDictionary['Input'][i]

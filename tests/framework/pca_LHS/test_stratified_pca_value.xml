@@ -47,7 +47,7 @@
         <distribution dim="3">MVNDist</distribution>
         <grid construction="custom" type="value">-4.0 -3.5 -2.2 -1.7 0.0 1.2 2.9 3.7 4.0</grid>
       </variable>
-      <variablesTransformation model="PythonModule">
+      <variablesTransformation distribution="MVNDist">
         <latentVariables>x1,y1,z1</latentVariables>
         <manifestVariables>x0,y0,z0</manifestVariables>
         <method>pca</method>

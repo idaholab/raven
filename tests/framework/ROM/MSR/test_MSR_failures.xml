@@ -115,41 +115,8 @@
     </ROM>
   </Models>
 
-  <Distributions>
-    <Uniform name="smallUniformDist">
-      <lowerBound>2</lowerBound>
-      <upperBound>3</upperBound>
-    </Uniform>
-    <Uniform name="largeUniformDist">
-      <lowerBound>-1000</lowerBound>
-      <upperBound>1000</upperBound>
-    </Uniform>
-  </Distributions>
-
-  <Samplers>
-    <Grid name="gridSampler">
-      <variable name="X">
-        <distribution>smallUniformDist</distribution>
-        <grid construction="equal" steps="20" type="value">2 3</grid>
-      </variable>
-      <variable name="Y">
-        <distribution>largeUniformDist</distribution>
-        <grid construction="equal" steps="20" type="value">-1000 1000</grid>
-      </variable>
-    </Grid>
-    <MonteCarlo name="mcSampler">
-      <sampler_init>
-        <limit>300</limit>
-        <initial_seed>888</initial_seed>
-      </sampler_init>
-      <variable name="X">
-        <distribution>smallUniformDist</distribution>
-      </variable>
-      <variable name="Y">
-        <distribution>largeUniformDist</distribution>
-      </variable>
-    </MonteCarlo>
-  </Samplers>
+  <ExternalXML node="Distributions" xmlToLoad="distributions.xml"/>
+  <ExternalXML node="Samplers" xmlToLoad="samplers.xml"/>
 
   <Steps>
     <MultiRun name="sample" sleepTime="1e-5">
