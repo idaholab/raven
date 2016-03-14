@@ -13,7 +13,7 @@
 	<Models>
 		<PostProcessor name = 'TypicalHistory' subType = 'InterfacedPostProcessor'>
 			<method>TypicalHistoryFromHistorySet</method>
-			<subsequence>Month</subsequence>
+			<subsequence>2678400,2419200,2678400,2592000,2678400,2592000,2678400,2678400,2592000,2678400,2592000,2678400</subsequence>
 			<timeID>Time</timeID>
 		</PostProcessor>			
     </Models>
