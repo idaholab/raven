@@ -33,11 +33,14 @@ Alfonsi, Andrea (alfoa)
 Rabiti, Cristian (crisr)
 Mandelli, Diego (mandd)
 Cogliati, Joshua J (cogljj)
-Sen, Ramazan S (senrs)
 Wang, Congjian (wangc)
 Maljovec, Daniel P (maljdan)
 Talbot, Paul W (talbpw)
 Kinoshita, Robert A (bobk)
+
+Past developers:
+Sen, Ramazan S (senrs)
+
 
 A list of other contributors can be obtained with the following command:
 ```git shortlog -sn```
