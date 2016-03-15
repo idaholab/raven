@@ -1,4 +1,4 @@
-\section{Run a single instance of a code and load the outputs}
+\section{Run a Single Instance of a Code and Load the Outputs}
 The simplest exercise that can be performed is to run the driven code (\textbf{AnalyticBateman}  in our example), loading the results of a single run into RAVEN, printing and plotting some variables.
 \\ As detailed in the RAVEN user manual (~\cite{RAVENuserManual}-Chapters ``DataObjects''  and ``Databases'') and in Chapter~/ref{sub:EntitiesAndFlow} RAVEN uses two classes of objects to store the data coming from a driven code (outputs):
 \begin{itemize}
@@ -8,13 +8,13 @@ The simplest exercise that can be performed is to run the driven code (\textbf{A
   \item \textbf{Databases}.
 \end{itemize}
 
-As esaly inferable from the user manual (~\cite{RAVENuserManual}-Chapter ``OutStream''), the DataObjects can be dumped in a CSV file and plotted (2-D and 3-D plots) linking them into the OutStream system.
+As esaly inferable from the user manual (~\cite{RAVENuserManual}-Chapter ``OutStream''), the DataObjects can be exported into a CSV file and plotted (2-D and 3-D plots) linking them into the OutStream system.
 \\ The following subsections report examples on how to use these systems running a single instance of the driven code.
 \subsection{Single Run using the OutStream system for printing and create basic plots}
 \label{sub:SingleRunBasicPlots}
- In this section, the user can learn how to use RAVEN to run a single instance of a driven code, plotting and printing the 
+ In this Section, the user can learn how to use RAVEN to run a single instance of a driven code, plotting and printing the 
  results.
- \\ The goal of this section is to learn how to:
+ \\ The goal of this Section is to learn how to:
  \begin{enumerate}
    \item Set up a simple RAVEN input for running a driven code;
    \item Load the output of the code into the RAVEN DataObjects system;
@@ -27,7 +27,7 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
 \begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
     <RunInfo>
       <Sequence>Single, write-History</Sequence>
-      <WorkingDir>sectionVI.I</WorkingDir>
+      <WorkingDir>SectionVI.I</WorkingDir>
       <batchSize>1</batchSize>
     </RunInfo>   
 \end{lstlisting}   
@@ -41,7 +41,7 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
     <Input name="referenceInput.xml" type="input">referenceInput.xml</Input>
   </Files>
 \end{lstlisting}
-   Since the driven code uses a single input file, in this section the original input is placed. As described in the user manual~\cite{}
+   Since the driven code uses a single input file, in this Section the original input is placed. As described in the user manual~\cite{}
    the attribute  \xmlAttr{name} represents the alias that is going to be used in all the other input blocks in order to 
    refer to this file.
    \item \textbf{\textit{Models}}:
@@ -173,13 +173,13 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
      \item \xmlNode{SingleRun} named ``Single'', used to run the single instance of the driven code and collect 
      the outputs in the two \textit{DataObjects}. In addition, it can be seen that an additional object has been  
      placed among the \xmlNode{Output}(s). Indeed, an  \textit{OutStreamManager} can be an \xmlNode{Output} in 
-     any Step type (as long as the linked \textit{DataObjects} plays a whatever role in the Step);
+     any Step type (as long as the linked \textit{DataObjects} plays a whatever role in the Step)
      \item  \xmlNode{IOStep} named ``writeHistory'', used to 1) dump the ``history'' \textit{DataObjects} 
      \textbf{Entity} in a CSV file and 2) plot the data in the PNG file and on the screen.
    \end{itemize}
 \end{enumerate} 
- Tables~\ref{pointValuesVI.I} and \ref{historyVI.I} show the results dumped by the OutStreams \textit{Print}.
- As previously mentioned, Figure~\ref{fig:historyPlotLine} reports the 4 plots (4 variables) drawn in the same picture. 
+ Tables~\ref{historyVI.I} and \ref{pointValuesVI.I} show the results dumped by the OutStreams \textit{Print}.
+ As previously mentioned, Figure~\ref{fig:historyPlotLine} reports the four plots (four variables) drawn in the same picture. 
  % table history set
 \begin{table}[h!]
 \centering
@@ -217,16 +217,16 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
 \end{table}
 
 
-\subsection{Single Run using the OutStream system to sub-plot and selectively print.}
-This section shows how to use RAVEN to create sub-plots (multiple plots in the same figure) and 
+\subSection{Single Run using the OutStream System to Sub-plot and Selectively print.}
+This Section shows how to use RAVEN to create sub-plots (multiple plots in the same figure) and 
 how to select only some variable from the \textit{DataObjects} in the \textit{Print} OutStream.
- \\ The goals of this section are about learning how to:
+ \\ The goals of this Section are about learning how to:
  \begin{enumerate}
    \item Print out what contained in the DataObjects, selecting only few variables
    \item Generate sub-plots (multiple plots in the same figure) of the code results
 \end{enumerate}  
 
-In order to accomplish these tasks, the \textit{OutStreamManager} \textbf{Entity} in the input defined in the previous section (~\ref{sub:SingleRunBasicPlots}) needs to be modified as follows:
+To accomplish these tasks, the \textit{OutStreamManager} \textbf{Entity} in the input defined in the previous Section (~\ref{sub:SingleRunBasicPlots}) needs to be modified as follows:
 \begin{enumerate}
    \item \textbf{\textit{Print}}:
    \begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
@@ -241,7 +241,7 @@ In order to accomplish these tasks, the \textit{OutStreamManager} \textbf{Entity
         <what>Output|A,Output|D</what>
     </Print>
    \end{lstlisting}   
-   With respect to the \textit{Print} nodes defined in the previous section (~\ref{sub:SingleRunBasicPlots}), it can
+   With respect to the \textit{Print} nodes defined in the previous Section (~\ref{sub:SingleRunBasicPlots}), it can
    be noticed that an additional node has been added: \xmlNode{what}. The \textit{Print} \textbf{Entity}  
    ``pointValues'' is going to extract and dump only the variables that are part of the Output space 
    ($A,B,C,D$ and not $InputPlaceHolder$).  The \textit{Print} \textbf{Entity} ``history'' is instead going to print 
@@ -316,14 +316,14 @@ In order to accomplish these tasks, the \textit{OutStreamManager} \textbf{Entity
    </gridLocation>
    \end{lstlisting}   
  \end{enumerate}
-The CSV tables generated by the \textit{Print} \textbf{Entities} are not reported, since the only differences with respect to Tables~\ref{pointValuesVI.I} and \ref{historyVI.I} are related to the number of columns (variables)
+The CSV tables generated by the \textit{Print} \textbf{Entities} are not reported, since the only differences with respect to Tables ~\ref{historyVI.I} and ~\ref{pointValuesVI.I} are related to the number of columns (variables)
 dumped out. 
-\\Figure~\ref{fig:historySubPlotLine} reports the 4 plots (4 variables) drawn in the same picture. 
+\\Figure~\ref{fig:historySubPlotLine} reports the four plots (four variables) drawn in the same picture. 
  %figure history sublots
  \begin{figure}[h!]
   \centering
   \includegraphics[scale=0.7]{pics/1-historyPlot_line-line-line-line-subPlots.png}
-  \caption{Sub-plot of the history for variables $A,B,C,D$.}
+  \caption{Subplot of the history for variables $A,B,C,D$.}
   \label{fig:historySubPlotLine}
  \end{figure}
 

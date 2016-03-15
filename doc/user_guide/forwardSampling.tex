@@ -1,32 +1,31 @@
 \section{Forward Sampling Strategies}
 \label{sec:forwardSamplingStrategies}
-In order to perform uncertainty quantification (UQ) and dynamic
+In order to perform UQ and dynamic
 probabilistic risk assessment (D-PRA),
 a sampling strategy needs to be employed. The sampling strategy aims to
-perturb the input space (domain of the uncertainties) in order to explore
-the response of a complex system in relation to selected Figures of 
-Merits (FOMs). 
+perturb the input space (domain of the uncertainties) to explore
+the response of a complex system in relation to selected FOMs. 
 \\The most widely used strategies to perform UQ and PRA are generally
 collected into the category that, in RAVEN, is called \textit{\textbf{Forward}} samplers. The \textit{\textbf{Forward}} sampler category collects all the strategies that perform the sampling of the input space without exploiting, through learning approaches, the information made available from the outcomes of evaluation previously performed (adaptive sampling) and the common system evolution (patterns) that different sampled calculations can generate in the phase space (Dynamic Event Tree). 
 \\As mentioned in Section~\ref{par:ForwardSamplers}, RAVEN has
 different \textit{\textbf{Forward}} samplers:
 \begin{itemize}
-  \item \textit{Monte-Carlo};
-  \item \textit{Grid-based};
+  \item \textit{Monte-Carlo}
+  \item \textit{Grid-based}
   \item \textit{Stratified} and its specialization, i.e. \textit{Latin Hyper Cube}.
 \end{itemize}
 In addition, RAVEN posses advanced \textit{\textbf{Forward}} sampling strategies that:
 \begin{itemize}
-  \item build a grid in the input space selecting evaluation points 
+  \item Build a grid in the input space selecting evaluation points 
   based on characteristic quadratures as part of stochastic collocation 
   for generalized polynomial chaos method (\textit{Sparse 
   Grid Collocation} sampler);
-  \item use high-density model reduction (HDMR) a.k.a. Sobol 
-  decomposition to approximate a function as the sum of increasing-
+  \item Use high-density model reduction (HDMR) a.k.a. Sobol 
+  decomposition to approximate a function as the sum of increasing
   complexity interactions (\textit{Sobol} sampler).
 \end{itemize} 
 In the following subsections, the theory behind these sampling 
-methodologies are going to be explained by way of applied RAVEN 
+methodologies is going to be explained by way of applied RAVEN 
 examples.
 %%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%  MONTE-CARLO %%%%%%%% 
@@ -41,7 +40,7 @@ The Monte-Carlo method approximates an expectation by the sample mean of a funct
 simulated random variables. It is based on the laws of large numbers in order to approximate expectations. 
 In order words, it approximates the average response of multiple FOMs 
 relying on multiple random sampling of the input space. 
-\\Let's consider a random variable (eventually multidimensional) $X$ having probability mass function or probability density function $pdf_{X}(x)$,
+\\Consider a random variable (eventually multidimensional) $X$ having probability mass function or probability density function $pdf_{X}(x)$,
 which is greater than zero on a set of values $\chi$. Then the expected value of a function $f$ of $X$ is as follows:
 \begin{equation}
 \begin{matrix}
@@ -50,7 +49,7 @@ which is greater than zero on a set of values $\chi$. Then the expected value of
 \mathbb{E}(f(X)) =\int_{x \in \chi} f(x)pdf_{X}(x) & \, \text{if} X \, \, continuous
 \end{matrix}
 \end{equation}
-Let's now consider $n$ samples of $X$, $(x_{1},...,x_{n})$, and compute the mean of $f(x)$ over the samples. This computation represents the Monte-Carlo estimate:
+Now consider $n$ samples of $X$, $(x_{1},...,x_{n})$, and compute the mean of $f(x)$ over the samples. This computation represents the Monte-Carlo estimate:
 \begin{equation}
   \mathbb{E}(f(X)) \approx   \widetilde{f}_{n}(x) = \frac{1}{n} \sum_{i=1}^{n} f(x_{i})  
 \end{equation}
@@ -59,8 +58,8 @@ If $\mathbb{E}(f(X))$ exists, then the law of large numbers determines that for 
   \lim_{n\rightarrow \, \infty} P( \left | \widetilde{f}_{n}(X) - \mathbb{E}(f(X))  \right |\geq \varepsilon) = 0
 \end{equation}
 The above equation suggests that as $n$ gets larger, then the probability that $\widetilde{f}_{n}(X)$ deviates 
-from the $\mathbb{E}(f(X))$ becomes smaller. In other words, more samples are spooned, more closer the Monte-Carlo estimate of $X$ gets to the real value.
-\\In addition $\widetilde{f}_{n}(X)$ represent an unbiased estimate for $\mathbb{E}(f(X))$:
+from the $\mathbb{E}(f(X))$ becomes smaller. In other words, the more samples are spooned, the more closer the Monte-Carlo estimate of $X$ gets to the real value.
+\\In addition, $\widetilde{f}_{n}(X)$ represent an unbiased estimate for $\mathbb{E}(f(X))$:
 \begin{equation}
 \mathbb{E}(\widetilde{f}_{n}(X)) = \mathbb{E} \left ( \frac{1}{n} \sum_{i=1}^{n} f(x_{i})   \right ) = 
 \frac{1}{n} \sum_{i=1}^{n} \mathbb{E}(f(x_{i})) =   \mathbb{E}(f(X)) 
@@ -100,7 +99,7 @@ The goals of this section are about learning how to:
    \item Load the outputs of the code into the RAVEN DataObjects 
    system (HistorySet and PointSet)
    \item Print on file what contained in the DataObjects
-   \item Generate plots of the code results
+   \item Generate plots of the code results.
 \end{enumerate}  
 In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in the input files) are needed:
 \begin{enumerate}
@@ -141,7 +140,7 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
     <Models>
 \end{lstlisting}
  The Model here is represented by the 
- \textbf{AnalyticalBateman}, which already dumps its output file in a 
+ \textbf{AnalyticalBateman}, which already exports its output file in a 
  CSV format (standard format that RAVEN can read). For this reason,
  the \textit{GenericCode} interface is used.
    \item \textbf{\textit{Distributions}}:
@@ -162,7 +161,7 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
   this case two distributions are defined: 
   \begin{itemize}
     \item $sigma \sim \mathbb{U}(1,10)$, used to model the uncertainties 
-    associated with  the Model \textit{sigma}(s);
+    associated with  the Model \textit{sigma}(s)
     \item  $decayConstant \sim \mathbb{U}(0.5e-8,1e-8)$,  used to 
     model the uncertainties 
     associated with  the Model \textit{decay constants}.
@@ -201,9 +200,9 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
     </MonteCarlo>
   </Samplers>   
 \end{lstlisting}
-  In order to employ the Monte-Carlo sampling strategy ($100$ samples), a 
+  To employ the Monte-Carlo sampling strategy ($100$ samples), a 
   \xmlNode{MonteCarlo} node needs to be inputted.  The 
-  Monte-Carlo method is going to be employed on $8$ model variables.
+  Monte-Carlo method is going to be employed on $eight$ model variables.
   Note that all the \textit{decay-\%} and 
   \textit{sigma-\%} variables are associated with the same distributions 
   $decayConstant$ and $sigma$, respectively.  
@@ -381,7 +380,7 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
  \begin{figure}[h!]
   \centering
   \includegraphics[scale=0.7]{pics/MC_histories.png}
-  \caption{Plot of the histories generated by the MC sampling for variables $A,B,C,D$.}
+  \caption{Plot of the histories generated by the Monte Carlo sampling for variables $A,B,C,D$.}
   \label{fig:historiesMCPlotLine}
  \end{figure}
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -395,7 +394,7 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
      \end{itemize}         
       When these objects get used, all the information contained in the 
       linked  \textit{DataObjects} are going 
-    to be dumped in CSV files (\xmlNode{type}).
+    to be exported in CSV files (\xmlNode{type}).
     \item \textit{Plot}: 
     \begin{itemize}
       \item named ``historiesPlot'' connected with the  \textit{DataObjects} 
@@ -814,7 +813,7 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
      \end{itemize}         
       When these objects get used, all the information contained in the 
       linked  \textit{DataObjects} are going 
-    to be dumped in CSV files (\xmlNode{type}).
+    to be exported in CSV files (\xmlNode{type}).
     \item \textit{Plot}: 
     \begin{itemize}
       \item named ``historiesPlot'' connected with the  \textit{DataObjects} 
@@ -873,7 +872,7 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
      on the screen.
    \end{itemize}
 \end{enumerate} 
- As previously mentioned, Figures~\ref{fig:historiesGridPlotLine} and ~\ref{fig:samplesGridPlotLine}  report the evolution of the 
+ Figures~\ref{fig:historiesGridPlotLine} and ~\ref{fig:samplesGridPlotLine}  report the evolution of the 
  variables $A,B,C,D$ and their final values, respectively.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1228,7 +1227,7 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
      \end{itemize}         
       When these objects get used, all the information contained in the 
       linked  \textit{DataObjects} are going 
-    to be dumped in CSV files (\xmlNode{type}).
+    to be exported in CSV files (\xmlNode{type}).
     \item \textit{Plot}: 
     \begin{itemize}
       \item named ``historiesPlot'' connected with the  \textit{DataObjects} 

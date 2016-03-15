@@ -563,9 +563,9 @@ b\left ( \overline{\theta}^{c},t \right )Qb^{T}\left (  \overline{\theta}^{c},t 
 \end{equation}
 This system of equations is composed of four main terms that identify four different types of processes:
 \begin{itemize}
-  \item Drift process;
-  \item Diffusion process;
-  \item Jumps in continuous space;
+  \item Drift process
+  \item Diffusion process
+  \item Jumps in continuous space
   \item Jumps in discrete space (component state transitions).
 \end{itemize}
  These four processes are described in the following sub-sections.
@@ -574,7 +574,7 @@ This system of equations is composed of four main terms that identify four diffe
 % Drift process
 %
 %
-\paragraph{Drift process}
+\paragraph{Drift Process}
 \label{sec:CKDrift}
 The drift process is defined by the Lioville’s equation:
 \begin{equation}
@@ -601,7 +601,7 @@ provided the initial condition:
 % Diffusion process
 %
 %
-\paragraph{Diffusion process}
+\paragraph{Diffusion Process}
 \label{subsec:CKDiffusion}
 This process is described by the Fokker-Plank equation:
 \begin{equation}
@@ -621,7 +621,7 @@ where $A_{i}\left ( \overline{\theta}^{c},\overline{\theta}^{d},t \right )$ is t
 % Jumps in continuous space 
 %
 %
-\paragraph{Jumps in continuous space }
+\paragraph{Jumps in Continuous Space }
 \label{subsec:CKJumpsCont}
 This process is described by the Master equation:
 \begin{equation}
@@ -640,7 +640,7 @@ straight lines interspersed with discontinuous jumps whose distribution is given
 % Jumps in discrete space 
 %
 %
-\paragraph{Jumps in discrete space }
+\paragraph{Jumps in Discrete Space}
 \label{subsec:CKJumpsDiscrete}
 Transitions in the discrete space can occur in terms of jumps, then the formulation of 
 \begin{equation}
@@ -669,10 +669,10 @@ is similar to the Master equation, recasted for a discrete phase space:
 %
 %
 %
-\subsection{RAVEN entities and analysis flow}
+\subsection{RAVEN Entities and Analysis Flow}
 \label{sub:EntitiesAndFlow}
 In the RAVEN code the number and types of possible analyses is potentially large (it is customization to many problem types).
-\\Each basic action (e.g.,sampling, printing, etc.) is encapsulated in
+\\Each basic action (sampling, printing, etc.) is encapsulated in
 a dedicated object (named ``\textbf{Entity}''). Each object is inactive till it is connected with 
 other objects in order to perform a more complex process. For example,
 the \textit{Sampler} entity, aimed to employ a perturbation action, becomes active only in case
@@ -682,23 +682,23 @@ it gets associated with a \textit{Model}, that is the internal representation of
   \item \textit{\textbf{RunInfo}}: 
     \\The RunInfo \textbf{Entity} is an information container which describes how the overall computation should
       be performed. This \textbf{Entity}  accepts several input settings that define how to drive the calculation and set up, 
-      when needed, particular settings for the machine the code needs to run on (e.g.,queue system, if not PBS, etc.).  
+      when needed, particular settings for the machine the code needs to run on (queue system, if not Portable Batch System-PBS, etc.).  
   \item \textit{\textbf{Files}}: 
   \\ The Files \textbf{Entity}  defines any files that might be needed within the RAVEN run. This could include inputs to the   
-      Model, pickled ROM files, or CSV files for post-processors, to name a few.
+      Model, pickled ROM files, or Comma Separated Value (CSV) files for post-processors, to name a few.
   \item \textit{\textbf{DataObjects}}: 
     \\The DataObjects system is a container of data objects of various types that can be constructed during the execution of 
     desired calculation flow. These data objects can be used as input or output for a particular \textit{Model} 
-     \textbf{Entity}. Currently, RAVEN supports 4 different data types, each with a particular conceptual meaning:
+     \textbf{Entity}. Currently RAVEN supports four different data types, each with a particular conceptual meaning:
      \begin{itemize}
-        \item \textit{Point}, describes the state of the system at a certain point (e.g.,in time). In other words, it can be
+        \item \textit{Point} describes the state of the system at a certain point (e.g.,in time). In other words, it can be
                                        considered a mapping between a set of parameters in the input space and the resulting
-                                       outcomes in the output space at a particular point in the phase space (e.g.,in time);
-        \item \textit{PointSet}, is a collection of individual Point objects. It can be considered a mapping between multiple
+                                       outcomes in the output space at a particular point in the phase space (e.g.,in time).
+        \item \textit{PointSet} is a collection of individual Point objects. It can be considered a mapping between multiple
                                             sets of parameters in the input space and the resulting sets of outcomes in the output space
-                                            at a particular point (e.g.,in time);
-        \item \textit{History},  describes the temporal evolution of the state of the system within a certain input domain;
-        \item \textit{HistorySet}, is a collection of individual History objects. It can be considered a mapping between
+                                            at a particular point (e.g., in time).
+        \item \textit{History} describes the temporal evolution of the state of the system within a certain input domain;
+        \item \textit{HistorySet} is a collection of individual History objects. It can be considered a mapping between
                                                multiple sets of parameters in the input space and the resulting sets of temporal evolution
                                                in the output space.
      \end{itemize}
@@ -710,15 +710,15 @@ it gets associated with a \textit{Model}, that is the internal representation of
        organize itself in a ``parallel'' or ``hierarchical'' fashion. The user can create as many database \textbf{Entities} as needed. 
   \item \textit{\textbf{Samplers}}:
   \\ The Samplers  \textbf{Entity} is the container of all the algorithms designed to perform the perturbation of the input space.
-      The Samplers can be categorized into 3 main classes:
+      The Samplers can be categorized into three main classes:
       \begin{itemize}
-        \item  \textit{Forward} : Sampling strategies that do not leverage the information coming from already evaluated 
+        \item  \textit{Forward}. Sampling strategies that do not leverage the information coming from already evaluated 
         realizations in the input space. For example, Monte-Carlo, Stratified (LHS), Grid, Response Surface, Factorial Design, 
         Sparse Grid, etc.
-        \item  \textit{Adaptive}:  Sampling strategies that take advantages of the information coming from already evaluated 
+        \item  \textit{Adaptive}. Sampling strategies that take advantages of the information coming from already evaluated 
         realizations of the input space, adapting the sampling strategies to key figures of merits. For example, Limit Surface 
         search, Adaptive HDMR, etc.
-        \item \textit{Dynamic Event Tree}: Sampling strategies that perform the exploration of the input space based on the 
+        \item \textit{Dynamic Event Tree}. Sampling strategies that perform the exploration of the input space based on the 
         dynamic evolution of the system, employing branching techniques. For example, Dynamic Event Tree, Hybrid 
         Dynamic Event Tree, etc.
       \end{itemize}
@@ -726,14 +726,14 @@ it gets associated with a \textit{Model}, that is the internal representation of
   \\ The OutStreamManager is the \textbf{Entity} used  for data exporting and dumping. The OutStreamManager supports
    2 actions:
       \begin{itemize}
-       \item \textit{Print}: This Out-Stream is able to print out (in a Comma Separated Value format) all the information 
+       \item \textit{Print}. This Out-Stream is able to print out (in a Comma Separated Value format) all the information 
          contained in:
          \begin{itemize}
           \item DataObjects
-          \item Reduced Order Models
+          \item Reduced Order Models.
          \end{itemize}
-       \item \textit{Plot}: This Out-Stream is able to plot 2-Dimensional, 3-Dimensional, 4-Dimensional (using color 
-       mapping), 5-Dimensional (using marker size). Several types of plot are available, such as scatter, line, surfaces, 
+       \item \textit{Plot}. This Out-Stream is able to plot 2-Dimensional, 3-Dimensional, 4-Dimensional (using color 
+       mapping) and 5-Dimensional (using marker size). Several types of plot are available, such as scatter, line, surfaces, 
        histograms, pseudo-colors, contours, etc. 
       \end{itemize}
   \item \textit{\textbf{Distributions}}:
@@ -764,7 +764,7 @@ it gets associated with a \textit{Model}, that is the internal representation of
    \\ The Functions \textbf{Entity} is the container of all the user-defined functions, such as Goal Functions in adaptive 
    sampling strategies, etc.
 \end{itemize}
-All these action-objects are combined together in order to create a peculiar analysis flow, which is specified
+All these action-objects are combined together to create a peculiar analysis flow, which is specified
 by the user in an additional \textbf{Entity} named \textit{\textbf{Steps}}. This \textbf{Entity} represents the core of the analysis, since it is the location where the multiple objects get finally linked in order to perform a combined action on a certain \textit{Model} (see Fig.~\ref{fig:ExampleStepEntity}). In order to perform this linking, each \textbf{Entity} defined in the Step needs to ``play'' a Role:
 \begin{itemize}
   \item \textit{Input}
@@ -795,7 +795,7 @@ Currently, RAVEN supports 4 different types of \textit{\textbf{Steps}}:
 The RAVEN code does not have a fixed calculation flow, since all of its basic
 objects can be combined in order to create a user-defined calculation flow.
 %
-Thus, its input (XML format) is organized in different XML blocks, each with a
+Thus, its input, eXtensible Markup Language (XML) format, is organized in different XML blocks, each with a
 different functionality.
 %
 The main input blocks are as follows:

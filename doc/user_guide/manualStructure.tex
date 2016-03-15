@@ -1,9 +1,9 @@
 \section{Manual Structure}
 This manual is intended to provide an overview of the RAVEN capabilities through the explanation of multiple commented examples. 
-In order to speed up the learning process, the examples are organized in an ascending complexity order, from simple data manipulation and visualization to
+To speed up the learning process, the examples are organized in an ascending complexity order, from simple data manipulation and visualization to
 full Probabilistic Risk Assessment and Uncertainty Quantification analysis. In addition, each example is followed by a brief explanation of the theoretical background of the methods that have been used.
 \\ It is important to notice that this document is intended to be consulted in conjunction with the user manual ~\cite{RAVENuserManual}.
-\\ In order to generalize the examples to any driven software, a simple \texttt{Python} code (conventionally called \textbf{AnalyticBateman}) has been developed (located at ``\textit{doc/user\textunderscore guide/ravenInputs/physicalCode}''). It solves a system of ordinary differential equations (ODEs), of the form:
+\\To generalize the examples to any driven software, a simple \texttt{Python} code (conventionally called \textbf{AnalyticBateman}) has been developed (located at ``\textit{doc/user\textunderscore guide/ravenInputs/physicalCode}''). It solves a system of ordinary differential equations (ODEs), of the form:
 
 \begin{equation}
 \begin{dcases}
@@ -28,8 +28,8 @@ For example, this  code is able to solve a system of equations as follows:
   \end{dcases}
 \end{equation}
 
-The input of the \textbf{AnalyticBateman} code is in E\textbf{X}tensible \textbf{M}arkup \textbf{L}anguage (XML) format. 
-For example, the following is the reference input for a system of 4 ODEs that is going to be used for all the examples reported in this manual: 
+The input of the \textbf{AnalyticBateman} code is in XML format. 
+For example, the following is the reference input for a system of 4 Ordinary Differential Equations (ODEs) that is going to be used for all the examples reported in this manual: 
 
 \begin{lstlisting}[style=XML]
 <AnalyticBateman>
@@ -70,7 +70,7 @@ For example, the following is the reference input for a system of 4 ODEs that is
   </nuclides>
 </AnalyticBateman>
 \end{lstlisting}
-The code outputs the time evolution of the 4 variables $A,B,C,D$ in a Comma Separated Value (CSV) file, producing the following output:
+The code outputs the time evolution of the 4 variables ($A,B,C,D$) in a CSV file, producing the following output:
 \begin{table}[ht]
 \centering
 \caption{Reference case sample results.}
