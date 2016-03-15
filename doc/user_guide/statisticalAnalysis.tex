@@ -4,7 +4,8 @@ In order to perform a complete analysis of a system under uncertainties,
 it is crucial to be able to compute all the statistical moments of one or even multiple
 Figures of Merit (FOMs). In addition, it is essential to identify the correlation
 among different FOMs toward a specific input space. 
-\\RAVEN is able to compute the most important statistical moments:
+
+RAVEN is able to compute the most important statistical moments:
 such as:
 \begin{enumerate}
   \item \textit{Expected Value};
@@ -30,14 +31,14 @@ using a set of RAVEN examples.
 \subsection{Statistical analysis theory}
 One of the most assessed way to investigate the impact of the intrinsic variation of the input space, is through the computation of 
 statistical moments and linear correlation among variables/parameters/FOMs. 
-\\As shown in Section~\ref{sec:forwardSamplingStrategies}, RAVEN employs several different sampling methodologies in order to explore the response of a model subject to uncertainties. In order to correctly compute the statistical moments a weight-based approach is used. Each \textit{Sampler} in RAVEN associate to each ``sample'' (i.e.
+
+As shown in Section~\ref{sec:forwardSamplingStrategies}, RAVEN employs several different sampling methodologies in order to explore the response of a model subject to uncertainties. In order to correctly compute the statistical moments a weight-based approach is used. Each \textit{Sampler} in RAVEN associate to each ``sample'' (i.e.
 realization in the input/uncertain space) a \textbf{weight}  to represent the \textit{importance} of the particular
 combination of input values from a statistical point of view (e.g., reliability weights). These weights are used in sub-sequential
 steps in order to compute the previously listed statistical moments and correlation metrics.
 \\In the following sub-sections, the formulation of these statistical moments is reported.
 \subsubsection{Expected Value}
-The expected value represents one of the most fundamental metrics in probability theory. The expected value of a 
-real-valued random variable represents a measurement of the center of the distribution (mean) of the random variable. 
+The expected value represents one of the most fundamental metrics in probability theory: it represents a measurement of the center of the distribution (mean) of the random variable. 
 From a practical point of view, the expected value of a discrete random variable is the probability-weighted average of all possible values of the subjected variable. Formally, the expected value of a random variable $X$
 \begin{equation}
 \begin{matrix}
