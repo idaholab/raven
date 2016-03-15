@@ -59,7 +59,6 @@
         <distribution>UniDist</distribution>
       </variable>
       <ROM class="Models" type="ROM">rom</ROM>
-      <TargetEvaluation class="DataObjects" type="PointSet">solns</TargetEvaluation>
     </Sobol>
   </Samplers>
 
