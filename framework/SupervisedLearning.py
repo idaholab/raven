@@ -983,16 +983,6 @@ class HDMRRom(GaussPolynomialRom):
     @ Out, None
     """
     self.raiseADebug('Constructing ANOVA representation...')
-    #self.raiseADebug('Reduced terms:')
-    #for term,mult in self.reducedTerms.items():
-    #  self.raiseADebug(term,self._evaluateIntegral(term),mult)
-    #self.raiseADebug('ROMs:')
-    #for term in self.reducedTerms.keys():
-    #  self.raiseADebug('| Term:',term)
-    #  if term == (): continue
-    #  for poly,coeff in self.ROMs[term].polyCoeffDict.items():
-    #    self.raiseADebug('| | ',poly,coeff)
-    #self.raiseADebug('refSoln:',self.refSoln)
     integrals = {}
     for level, combos in enumerate(self.combos):
       #self.combos doesn't include the mean case
@@ -1086,7 +1076,7 @@ class HDMRRom(GaussPolynomialRom):
           ### CASE all the non-zero-order polynomials are with respect to non-integration variables
           #     then after integrating, we have the non-integration polys as a function
           #     for example, int( sum_k c_k P_i(x) P_0(y) ) dy = c_k P_i(x) for every i
-          #     BUT since we will be integrating the square of this later, we only store coeff*mult, not the polynomial
+          #     BUT since we will be integrating the square of this later, we only store (coeff,mult), not the polynomial
           if term not in storeDict.keys():
             storeDict[term] = []
           storeDict[term].append( (coeff,mult,termPoly) )
@@ -1110,35 +1100,23 @@ class HDMRRom(GaussPolynomialRom):
     @ In, terms, dict{ tuple(string):list[tuple(float,int,tuple(int))]}, subset:list[tuple(coefficient,multiplicity,source polynomial orders)]}
     @ Out, float, value of integral of square
     """
-    #self.raiseADebug('evaluating square integral',color='red')
     #tensor combinations
     tot = 0
     #mult = terms.values()[0][0][2]
-    #print('mult:',mult)
     for term in terms.keys():
       pass
     for sourceGPC1,polyTupleList1 in terms.items():
-      #self.raiseADebug('| first source:',sourceGPC1,color='red')
       for sourceGPC2,polyTupleList2 in terms.items():
-        #self.raiseADebug('| | second source:',sourceGPC2,color='red')
         ### CASE: no overlapping variables, then only keep (0,0,...,0) polynomial coeff
         ### CASE: some overlapping variables, then keep only identical indices
         ### CASE: all overlapping variables, still keep only identical indices
         # any way you look at it, only keep identical indices
         for coeff1,mult1,oidx1 in polyTupleList1:
           idx1 = self.__fillIndexWithRef(sourceGPC1,oidx1)
-          #print('A: gPC,mult,idx:',sourceGPC1,mult1,oidx1)
           for coeff2,mult2,oidx2 in polyTupleList2:
             idx2 = self.__fillIndexWithRef(sourceGPC2,oidx2)
-            #print('    B: gPC,mult,idx:',sourceGPC2,mult2,oidx2)
-            #self.raiseADebug('| | | | coeff2,idx:',coeff2,idx2,color='red')
-            #print('| gPC1',sourceGPC1,'idx1',oidx1,'times','gPC2',sourceGPC2,'idx2',oidx2)
             if idx1 == idx2:
-              #print('      added to tot:',coeff1*coeff2*mult1*mult2)
               tot += coeff1*coeff2*mult1*mult2
-            #else:
-            #  self.raiseADebug('|   nothing added.',color='red')
-    self.raiseADebug('| Total for terms is',tot,color='red')
     return tot
 
   def getSensitivities(self):
@@ -1177,14 +1155,6 @@ class HDMRRom(GaussPolynomialRom):
       if subset == (): continue
       self.sdx[subset]=partialVariance/sumVar
       tot+=self.sdx[subset]
-    #DEBUG
-    self.raiseADebug('percent sensitivities')
-    self.raiseADebug('  ANOVA summed variance:',sumVar)
-    self.raiseADebug('  Subset, Partial Variance, Percent Variance:')
-    for subset in self.sdx.keys():
-      self.raiseADebug('   ',subset,self.partialVariances[subset],self.sdx[subset])
-    self.raiseADebug('  total percent variance  :',tot)
-    #END DEBUG
     if returnTotal: return self.sdx,tot,sumVar
     else: return self.sdx
 
