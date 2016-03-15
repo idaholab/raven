@@ -1,12 +1,13 @@
-\section{RAVEN Theory by way of Examples: Reduced Order Modeling}
+\section{Reduced Order Modeling}
 The development of high-fidelity codes, for thermal-hydraulic systems 
 and integrated multi-physics, has undergone a significant acceleration 
-in the last years. Multi-physics codes involve simulations that treat 
+in the last years. Multi-physics codes simulate 
 multiple physical models or multiple simultaneous physical phenomena, 
-in a integrated solving environment. Multi-physics typically involves 
-solving coupled systems of partial differential equations, generally 
+in a integrated solving environment. Multi-physics typically 
+solves coupled systems of partial differential equations, generally 
 characterized by several different geometrical and time scales. 
-\\The new multi-physics codes are characterized by remarkable 
+
+The new multi-physics codes are characterized by remarkable 
 improvements 
 in the approximation of physics (high approximation order and reduced 
 use of empirical correlations). This greater fidelity is generally 
@@ -15,13 +16,15 @@ increased). This peculiarity is an
 obstacle in the application of  computational techniques of 
 quantification of uncertainty and risk associated with the operation of 
 particular industrial plant (for example, a nuclear reactor). 
-\\As already reported, a solution to this problem is represented by the 
+
+A solution to this problem is represented by the 
 usage
 of highly effective sampling strategies. Sometimes also these 
 approaches is not enough
 in order to perform a comprehensive UQ and PRA analysis. In these 
 cases the help of reduced order modeling is essential.
-\\RAVEN has support of several different reduced order model (ROM), 
+
+RAVEN has support of several different reduced order model (ROM), 
 such as:
 \begin{enumerate}
   \item \textit{Nearest Neighbors approaches};
@@ -32,21 +35,22 @@ such as:
 In this section only few of them are going to be analyzed, explaining the theory behind it
 by way of applied RAVEN examples.
 
-As briefly and previously mentioned, a ROM, also called a surrogate 
+A ROM, also known a surrogate 
 model, is a mathematical representation of a system, used to predict 
-a selected FOM of a physical system.
-\\The ``training'' is a process that, sampling the physical model 
-represented by the high fidelity simulator (e.g., RELAP 7, RELAP5 
-3D, PHISICS, etc.), is aimed to improve the prediction capability 
-(ability to predict the status of the system given a realization of the 
-uncertain domain) of the ROM. 
+a FOM of a physical system.
+
+The ``training'' is a process of setting the internal parameters of the ROM from a set
+of samples generated the physical model, .e.,  
+ the high fidelity simulator (e.g., RELAP-7, RELAP5 
+3D, PHISICS, etc.),
 \begin{figure}[h!]
   \centering
   \includegraphics[width=1.0\textwidth]  {pics/ROMexampleOfPhysicalSystem.png}
   \caption{Example of reduced order model representation of physical system (regression).}
   \label{fig:ROMexampleOfPhysicalSystem}
 \end{figure}
-\\Two characteristics of these models 
+
+Two characteristics of these models 
 are generally assumed (even if exceptions are possible):
 \begin{enumerate}
   \item The higher the number of realizations in the training sets, the 
@@ -61,7 +65,7 @@ the large number of ROM types available;
   ROM is able to represent the system response space.
 \end{enumerate}
 
-\subsection{Reduced Order Model theory}
+\subsection{Reduced Order Modeling: Theory}
 
 To provide a very simple idea of a ROM, assume that the final 
 response space of a physical system is governed by the transfer 
@@ -84,7 +88,8 @@ G\left ( \overline{x} \right ):\overline{x}_{i} \rightarrow G\left ( \overline{x
 The ROMs reported above are generally named ``regressors'', among 
 which all the most common data fitting algorithms are found (e.g., 
 least square for construction of linear models).
-\\An important class of ROMs for the work presented here after is the 
+
+An important class of ROMs for the work presented here after is the 
 one containing the so called ``classifiers''. A classifier is a ROM that is 
 capable of representing the system behavior from a binary point of 
 view (e.g., event happened/not happened or failure/success). It is a 
@@ -121,17 +126,18 @@ C\left (   \overline{\theta}  \right ) = \left\{\begin{matrix}
 Hence, the ROM of type classifier $G\left (  \overline{x} \right )$  will operate in the space transformed through the ``goal''  function $C\left (   \overline{\theta}  \right )$. 
 \\The classifiers and regressors can be categorized into two main classes:
 \begin{itemize}
-  \item Model based algorithms;
-  \item Data based algorithms.
+  \item Model based algorithms
+  \item Data based algorithms
 \end{itemize}
 In the first class, the created ROM aims to approximate the response 
 of the system as a function of the input parameters. These algorithms 
-construct a functional representation of the system. Examples of such ROM type are support vector machines (SVMs), Kriging-based interpolators, discriminant based models, and polynomial chaos.
-\\On the other side, data based algorithms do not build a response-
+construct a functional representation of the system. Examples of such ROM type are Support Vector Machines (SVMs), Kriging-based regressors, discriminant based models, and polynomial chaos.
+
+On the other side, data based algorithms do not build a response-
 function-based ROM but classify or predict the response of the 
 system from the neighborhood graph constructed from the training 
 data, without any dependencies on a particular prediction model.
-\\These algorithms directly build a neighborhood structure as the 
+These algorithms directly build a neighborhood structure as the 
 ROM (e.g., a relaxed Gabriel graph) on the initial training data. Examples of such ROM type are nearest neighbors and decision trees.
 
 \subsubsection{Gaussian Process Models}
@@ -227,7 +233,7 @@ Both for classification and regression, it can be useful to assign weight to the
 \label{sec:ND_interp}
 This section covers the methods that have been implemented in the CROW statistical library:
 \begin{itemize}
-\item Shepard's Method (see Section~\ref{sec:sheppard})
+\item Shepard's Method (see Section~\ref{sec:shepard})
 \item Multi-Dimensional Spline method (see Section~\ref{sec:ND_spline})
 \end{itemize}
 
@@ -242,7 +248,7 @@ For both applications, given a set of $N$ data points $ (x_i,u_i )$  $i=1,\ldots
 
 \paragraph{Shepard's Method}
 \label{sec:shepard}
-The Shepard interpolator~\cite{Shepard} isalso know as Inverse Distance Weighting (IDW) interpolator. 
+The Shepard interpolator~\cite{Shepard} is also know as Inverse Distance Weighting (IDW) interpolator. 
 The starting point is a set of $N$ data points $ (x_i,u_i )$ for $i=1,\ldots,N$. 
 The Inverse-Weight interpolator can be represented as a function $f_{IDW}(x)$ that, given a new coordinate in the input space $x$, generates a prediction on $u$ such that 
 \begin{equation}

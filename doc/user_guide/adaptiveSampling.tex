@@ -1,11 +1,12 @@
-\section{RAVEN Theory by way of Examples: Adaptive Sampling Strategies}
-As already mentioned and well-known, performing UQ e Dynamic PRA can be
-challenging from, and not only, a computational point of view. The \textit{Forward}
-sampling strategies reported in the previous section can lead to a number of
-requested evaluations of the physical model that can lead to unacceptable resource expenses (CPU time).
+\section{Adaptive Sampling Strategies}
+Performing UQ e Dynamic PRA can be
+challenging from a computational point of view. The \textit{Forward}
+sampling strategies reported in the previous section can lead to a large number of
+unnecessary evaluations of the physical model leading to an unacceptable resource expenses (CPU time).
 In addition, the \textit{Forward} methodologies are not designed to leverage the information
 content that is extract-able from the simulations already concluded.
-\\In order to overcome these limitations, in RAVEN several adaptive algorithms are available:
+
+In order to overcome these limitations, in RAVEN several adaptive algorithms are available:
 \begin{enumerate}
   \item \textit{Limit Surface Search};
   \item \textit{Adaptive Dynamic Event Tree};
@@ -14,29 +15,27 @@ content that is extract-able from the simulations already concluded.
   \item \textit{Adaptive Sobol Decomposition}.
 \end{enumerate}
 In this section only the first one is going to be reported, explaining the theory behind it
-by way of applied RAVEN examples.
+and providing RAVEN examples.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%  Limit Surface Search %%%%%%%% 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Limit Surface Search Method}
 \label{sub:LS}
-Among the different usable methodologies, smart (and, consequentially, adaptive) 
-sampling methods are available.
-The motivation of adaptive sampling strategies is that physic 
+The motivation behind the choice of adaptive sampling strategies is that numerical 
 simulations are often computationally expensive, time consuming, and 
 with a large number of uncertain parameters. Thus, exploring the space 
 of all possible simulation outcomes is almost unfeasible using finite 
-computing resources. During simulation based PRA analysis, it is 
+computing resources. During DPRA analysis, it is 
 important to discover the relationship between a potentially large 
 number of uncertain parameters and the response of a simulation using 
 as few simulation trials as possible.
 This is a typical context where ``goal'' oriented sampling could be 
 beneficial. The ``Limit 
 Surface Search method'' is a scheme  where few observations, obtained 
-from the model run, are used to build a simpler and faster evaluable 
+from the model run, are used to build a simpler and computationally faster 
 mathematical representation of the model, Reduced Order Model, also 
-known as Surrogate Model (ROM or SM). The ROM (see section \ref{}) is then 
+known as Surrogate Model (ROM or SM). The ROM (see Section \ref{}) is then 
 used to predict where further exploration of the input space could be 
 most informative. This information is used to select new locations in the 
 input space for which a code run is executed (see 
@@ -49,7 +48,8 @@ until, within a certain metric, it is converged.
   \caption{Example of limit surface in the uncertain space.}
   \label{fig:ExampleLSschematic}
 \end{figure}
-\\To summarize, in the case of the ``Limit 
+
+In the case of the ``Limit 
 Surface (LS) Search method'', a ROM is used to 
 determine which location in the input space further observations is most 
 informative, to establish the location of the LS, then code runs are 
@@ -61,13 +61,12 @@ continues until the location of the LS is established within a certain tolerance
 %%%%%%%%%
 \subsubsection{Limit Surface theory}
 \label{sec:LSconcept}	
-%As already mentioned, this report describes the acceleration schemes implemented for the research of the LS.
 
-To properly explain the Limit Surface concept and relative properties, 
+To properly explain the LS concept and relative properties, 
 it is necessary to analyze the idea behind the LSs, firstly, from a 
 mathematical and, secondly, from a practical point of view.
-Consider a dynamic system that is represented in the phase space by the Eq.~\ref{eq:dThetaOverDT} in chapter~\ref{sec:RAVENconcept}. 
-The equation, for simplicity, can be recast as follows:
+Consider a dynamic system that is represented in the phase space by the Eq.~\ref{eq:dThetaOverDT} in Section~\ref{sec:RAVENconcept}. 
+The equation can be rewritten as follows:
 \begin{equation}
 \label{eq:ThetaXPT}
 \frac{\partial \overline{\theta} }{\partial t}=\overline{H}\left (  \overline{x},\overline{p},t \right )
@@ -88,7 +87,7 @@ system is not available (e.g., failure of the system):
 \begin{equation}
 C\left (\overline{\theta}, \overline{x},\overline{p},t \right ) = C\left (H\left(\overline{x},\overline{p},t \right), \overline{x},\overline{p},t \right ) = C\left ( \overline{x},\overline{p},t \right ) 
 \end{equation}
-To simplify the dissertation  and without loss of generality, assume 
+Without loss of generality, lets assume 
 that $C$ does not depend on time (e.g. $C\leftarrow 
 \bigintssss_{t_{0}}^{t_{end}}dtC\left(  \overline{x},\overline{p},t \right )$):
 \begin{equation}
@@ -136,7 +135,7 @@ L_{S}= \partial V_{F}^{c}= \partial      \left \{ \forall \overline{x} | C\left 
 \end{equation}
 
 The identification of the LS location is necessary to identify boundary regions for which the system under consideration will or will not exceed certain FOMs (e.g., operative margins).
-\\The LS location is extremely important for design optimization and issue mitigation and, in addition, its informative content can be used to analyze the system to characterize its behavior from a stochastic point of view. Consider $\overline{x} \in V$ and $\overline{x}\sim \overline{X}$,
+\\The LS location is extremely important for design optimization and, in addition, its informative content can be used to analyze the system to characterize its behavior from a stochastic point of view. Consider $\overline{x} \in V$ and $\overline{x}\sim \overline{X}$,
 where $\overline{x}$ is the random variate realization of the stochastic variable $\overline{X}$.
 If $pdf_{\overline{X}}\left ( \overline{x} \right ) $ is the probability density function of $ \overline{X}$, the failure probability of the system $\left ( P_{F} \right )$ is:
 \begin{equation}
@@ -227,7 +226,8 @@ combinations of uncertainties represented by the respective PDFs).
 Obviously, this is not a feasible approach, and a reasonable 
 approximation is to locate the LS on a Cartesian N-D grid, in the 
 uncertain domain.
-\\In reality, the location of the LS is not exactly determined but rather 
+
+In reality, the location of the LS is not exactly determined but rather 
 bounded. The algorithm determines the set of grid nodes between 
 which the transition $0/1$ of the ``goal'' function happens. This set is 
 also classified with respect to the value of the ``goal'' function. With 
@@ -251,8 +251,9 @@ Discretization depends on the accuracy requested by the user. In
 most cases, this approach is not feasible and, consequentially, the 
 process needs to be accelerated using ``predicting'' methods that are 
 represented by the employment of supervised learning algorithms 
-(ROMs).
-\\This approach is commonly referred to as an active learning process 
+(i.e., ROMs).
+
+This approach is commonly referred to as an active learning process 
 that ultimately results in training of a ROM of type classifier capable of 
 predicting the outcome of the ``goal'' function for any given point of 
 the uncertain space.
@@ -262,7 +263,8 @@ needs explored, using the high fidelity physical model. This process is
 repeated until, under a particular metric, the prediction capabilities of 
 the supervised learning algorithm do not improve by further increasing 
 the training set.
-\\In more detail, the iterative scheme could be summarized through the following steps:
+
+In more detail, the iterative scheme could be summarized through the following steps:
 \begin{enumerate}
   \item A limited number of points in the uncertain space $\left \{ 
   \overline{x}_{k} \right \}$ are selected via one of the forward 
@@ -307,9 +309,9 @@ Figure~\ref{fig:LimitSurfaceAlgoFlow}.
   \caption{Limit surface search algorithm conceptual scheme.}
   \label{fig:LimitSurfaceAlgoFlow}
 \end{figure}
-It is important to notice that there is an additional requirement 
-regarding the LS search algorithm. It is required that the LS location 
-stays constant for a certain number (user defined) of consecutive 
+Note that there is an additional requirement 
+regarding the LS search algorithm:the LS location 
+has to stay constant for a certain number (user defined) of consecutive 
 iterations. The reason for this choice is determined by the attempt to 
 mitigate the effect of the build of non-linear bias in the searching 
 pattern. Indeed, the searching algorithm might focus too much on a 
@@ -506,18 +508,21 @@ If the grid is built in the transformed space of probability (i.e., replacing th
 number \: \:  nodes \in V_{A} \cap V_{C(\overline{x})=1} \gg number \: \:  nodes  \in V_{A} \cap V_{\partial V_{F}}
 \end{equation}
 This means that error is bounded by the total probability contained in the cells on the frontier of the LS.
-\\Based on this derivation, it is clear how important it is to keep the 
+
+Based on this derivation, it is clear how important it is to keep the 
 content of the total probability on the frontier of the LS as low as 
 possible, and simultaneously, increase the importance of the volume of 
 the failure/event region as much as possible (to improve the surface 
 area to volume ratio).
-\\In order to do that, the step size in probability should be significantly 
+
+In order to do that, the step size in probability should be significantly 
 reduced ( $h_{i}^{p} \rightarrow 0^{+}$). Even if this is theoretically 
 feasible, it is computational inapplicable. To approach a similar result, it 
 is possible to learn from other numerical methods that use the 
 technique of adaptive meshing for the resolution of the partial 
 differential equation system (e.g., finite element methods).
-\\For this reason, an acceleration scheme was designed and developed 
+
+For this reason, an acceleration scheme was designed and developed 
 employing a multi-grid approach. The main idea, it is to recast the 
 iterative process in two different sub-sequential steps. Firstly, 
 performing the LS search on a coarse evaluation grid, and once 
@@ -598,14 +603,14 @@ refinement domain.
 %%%%%%%%%%%%%%%%
 \subsubsection{Limit Surface Search sampling through RAVEN}
 \label{subsub:LSsamplingExample}
-The goals of this section are about learning how to:
+The goal of this section is to learn how to:
  \begin{enumerate}
-   \item Set up a Limit Surface Search sampling for efficiently perturb a driven code;
-   \item Use the Limit Surface Integral Post-processor for computing the probability of failure of the system subject to the same 
-   ``goal'' function;
-   \item Plot the obtained Limit Surface.
+   \item Set up a LS Search sampling for efficiently perturb a driven code
+   \item Use the LS Integral Post-processor for computing the probability of failure of the system subject to the same 
+   ``goal'' function
+   \item Plot the obtained LS.
 \end{enumerate}  
-In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in the input files) need to be defined:
+In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in the input files) are defined:
 \begin{enumerate}
    \item \textbf{\textit{RunInfo}}:
 \begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
@@ -618,8 +623,8 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
     <batchSize>8</batchSize>
   </RunInfo>
 \end{lstlisting}   
-   As reported in section~\ref{sub:EntitiesAndFlow}, the \textit{RunInfo} \textbf{Entity} is intended to set up the analysis 
-   that the user wants to perform. In this specific case, three steps (\xmlNode{Sequence}) are going to be sequentially run 
+   As shown in Section~\ref{sub:EntitiesAndFlow}, the \textit{RunInfo} \textbf{Entity} is intended to set up the analysis 
+   that the user wants to perform. In this specific case, three steps (\xmlNode{Sequence}) are  sequentially run 
    using 8 processors (\xmlNode{batchSize}). 
    \item \textbf{\textit{Files}}:
 \begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
@@ -668,7 +673,8 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
  As mentioned above, the goal of this example is the employment of 
  an efficient sampling strategy, having as goal the determination of the
  failure of a system.
- \\Indeed, in addition to the previously explained Code 
+ 
+ In addition to the previously explained Code 
  model,
  the ROM of type \textit{SciKitLearn} is here specified. The ROM will be
  used in the adaptive sampling strategy \textit{LimitSurfaceSearch} in
@@ -677,7 +683,7 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
  $sigma-A and decay-A$.
  \\ For the computation of the probability of failure (see the following), a 
  Post-Processor (PP) of type \textit{LimitSurfaceIntegral} is here 
- specified.This PP is aimed to perform an integral of the Limit Surface 
+ specified.This PP performs an integral of the LS 
  generated by the adaptive sampling technique. 
    \item \textbf{\textit{Distributions}}:
 \begin{lstlisting}[style=XML]
@@ -719,14 +725,14 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
     </LimitSurfaceSearch>
   </Samplers>
 \end{lstlisting}
-  In order to employ the Limit Surface search sampling strategy, a 
+  In order to employ the LS search sampling strategy, a 
   \xmlNode{LimitSurfaceSearch} node needs to be inputted. 
   As it can be
   seen from above, each variable is associated to a different distribution,
   defined in the  \xmlNode{Distributions} block.
   In addition, the \textit{AccelerationROM}  \xmlNode{ROM} is inputted.
   As already mentioned, this ROM (of type classifier) is used to 
-  accelerate the convergence of the Limit Surface Search method.
+  accelerate the convergence of the LS Search method.
   In addition, the goal function \textit{goalFunction}  and the 
   \textit{samples} are here reported.
   \\For this example, a convergence criterion of $1.0e-5$ is set. In 
@@ -740,7 +746,7 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
    </External>
  </Functions>
 \end{lstlisting}
- As already mentioned, the Limit Surface search sampling strategy uses
+ As already mentioned, the LS search sampling strategy uses
  a goal function in order to identify the regions of the uncertain space 
  that are more informative. The \textit{goalFunction} used for this 
  example is reported below. As it can be seen, if the final response $A$ 
@@ -835,8 +841,7 @@ def __residuumSign(self):
      \textit{Step} that the driven code needs to
      be perturbed through the LS search sampling strategy;
      \item \xmlNode{PostProcess} named ``computeLSintegral'', used to 
-     compute the probability of failure of the system based on the Limit
-     Surface generated employing the LS search strategy. This 
+     compute the probability of failure of the system based on the LS generated employing the LS search strategy. This 
      probability is computed integrating the LS with a Monte-Carlo 
      method. 
      \item  \xmlNode{IOStep} named ``writeHistories'', used to 1) dump 
