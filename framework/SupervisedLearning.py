@@ -547,9 +547,9 @@ class GaussPolynomialRom(superVisedLearning):
 
   def getInitializeDict(self):
     """
-    Returns a copy of the dictionary necessary to initialize a copy of this ROM.
-    @ In, None
-    @ Out, dict, initialize dict
+      Returns a copy of the dictionary necessary to initialize a copy of this ROM.
+      @ In, None
+      @ Out, dict, initialize dict
     """
     if not self.initialized:
       self.raiseAnError(RuntimeError,'Attempted to build initialize dict, but rom not yet initialized!')
@@ -843,7 +843,6 @@ class HDMRRom(GaussPolynomialRom):
           self.raiseAWarning('ROM does not know how to return '+request)
           newNode.setText('not found')
         node.appendBranch(newNode)
-
 
   def initialize(self,idict):
     """Initializes the instance.
