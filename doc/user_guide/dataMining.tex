@@ -4,20 +4,20 @@ Data mining is the computational process of discovering patterns in large data s
 \\RAVEN has support of several different data mining algorithms, 
 such as:
 \begin{enumerate}
-  \item \textit{Hierarchical methodologies};
-  \item \textit{K-Means};
+  \item \textit{Hierarchical methodologies}
+  \item \textit{K-Means}
   \item \textit{Mean-Shift}, etc.
 \end{enumerate}
-In this section only few of them are going to be analyzed, explaining the theory behind it
+In this section only few algorithms will be analyzed, explaining the theory behind them
 by way of applied RAVEN examples.
 
-\subsection{Data Mining theory}
+\subsection{Data Mining Theory}
 \label{sec:dataMining}
 
 \subsubsection{Clustering}
 \label{clustering}
 A loose definition of clustering is the process of organizing objects into groups whose members are, in some way, similar.
-A cluster is therefore a collection of objects which are similar to each other and are dissimilar to the objects belonging to other clusters~\cite{SurveyClustering,MandelliClusteringRESS}.
+Therefore, a cluster is a collection of objects that are similar to each other and are dissimilar to the objects belonging to other clusters~\cite{SurveyClustering,MandelliClusteringRESS}.
 
 The similarity criterion is distance. Two or more objects belong to the same cluster if they are ``close'' according to a specified distance. The approach of using distance metrics to clustering is called distance-based clustering and is used in this work.
 
@@ -78,7 +78,7 @@ $ \sum_{i=1}^{K}u_{i,j}=1,  \text{ and }  \sum_{j=1}^{N}u_{i,j}<N, \forall j $}:
         \end{cases}
     \end{equation}
 
-\subsubsection{Hierarchical methodologies}
+\subsubsection{Hierarchical Methodologies}
 \label{Hierarchical}
 
 These methodologies organize the data set into a hierarchical structure according to a proximity matrix. Each element $d(i,j)$ of this matrix contains the distance between the the $i^{th}$ and the $j^{th}$ cluster center. The final results of this technique is a tree commonly called a dendrogram. This kind of representation has the advantages of providing a very informative description and visualization of the data structure even for high values of dimensionality.
@@ -176,7 +176,7 @@ The underlying idea is to treat each point $\vec{x_{i}}$ $(i=1,\ldots, I)$ of th
 \end{equation}
 where $\vec{x}\in \mathbb{R}^{M\cdot K}$ and $h$ is often referred as the bandwidth associated with the kernel.
 
-The kernel in Eq.~\ref{eq:density:estimate} serves as a weighting function~\cite{CacoullosEstimation} associated with each data point and is expressed as:
+The kernel in Equation ~\ref{eq:density:estimate} serves as a weighting function~\cite{CacoullosEstimation} associated with each data point and is expressed as:
 \begin{equation}
     K(\vec{x})=c_{k} k(\norm{\vec{x}}^{2})
 \end{equation}
@@ -268,10 +268,10 @@ As in PCA analysis, the algorithm can be easily implemented but it is not able t
 \label{subsub:DMraven}
 The goals of this section are about learning how to:
  \begin{enumerate}
-   \item Set up a sampling strategy to apply clustering algorithms, perturbing a driven code;
+   \item Set up a sampling strategy to apply clustering algorithms, perturbing a driven code
   \item Analyze the data using clustering algorithms.
 \end{enumerate}  
-In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in the input files) need to be defined:
+To accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in the input files) need to be defined:
 \begin{enumerate}
    \item \textbf{\textit{RunInfo}}:
 \begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
@@ -286,7 +286,7 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
 \end{lstlisting}
    The the \textit{RunInfo} \textbf{Entity} is intended  to set up the analysis sequence that
    needs to be performed. In this specific case, two steps  (\xmlNode{Sequence}) are sequentially run 
-   using 40 processors (\xmlNode{batchSize}). 
+   using forty processors (\xmlNode{batchSize}). 
    \\In the first step, the original physical model is going to be sampled. 
    The obtained results are going to be analyzed with data mining 
    algorithms. 

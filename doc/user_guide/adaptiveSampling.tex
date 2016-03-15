@@ -1,20 +1,20 @@
 \section{Adaptive Sampling Strategies}
-Performing UQ e Dynamic PRA can be
+Performing UQ and Dynamic PRA can be
 challenging from a computational point of view. The \textit{Forward}
-sampling strategies reported in the previous section can lead to a large number of
+sampling strategies reported in the previous Section can lead to a large number of
 unnecessary evaluations of the physical model leading to an unacceptable resource expenses (CPU time).
 In addition, the \textit{Forward} methodologies are not designed to leverage the information
-content that is extract-able from the simulations already concluded.
+content that is extractable from the simulations already concluded.
 
-In order to overcome these limitations, in RAVEN several adaptive algorithms are available:
+To overcome these limitations, in RAVEN several adaptive algorithms are available:
 \begin{enumerate}
-  \item \textit{Limit Surface Search};
-  \item \textit{Adaptive Dynamic Event Tree};
-  \item \textit{Adaptive Hybrid Dynamic Event Tree};
-  \item \textit{Adaptive Sparse Grid};
+  \item \textit{Limit Surface Search}
+  \item \textit{Adaptive Dynamic Event Tree}
+  \item \textit{Adaptive Hybrid Dynamic Event Tree}
+  \item \textit{Adaptive Sparse Grid}
   \item \textit{Adaptive Sobol Decomposition}.
 \end{enumerate}
-In this section only the first one is going to be reported, explaining the theory behind it
+In this Section, only the first algorithm is going to be reported, explaining the theory behind it
 and providing RAVEN examples.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -34,7 +34,7 @@ This is a typical context where ``goal'' oriented sampling could be
 beneficial. The ``Limit 
 Surface Search method'' is a scheme  where few observations, obtained 
 from the model run, are used to build a simpler and computationally faster 
-mathematical representation of the model, Reduced Order Model, also 
+mathematical representation of the model, ROM, also 
 known as Surrogate Model (ROM or SM). The ROM (see Section \ref{}) is then 
 used to predict where further exploration of the input space could be 
 most informative. This information is used to select new locations in the 
@@ -51,15 +51,15 @@ until, within a certain metric, it is converged.
 
 In the case of the ``Limit 
 Surface (LS) Search method'', a ROM is used to 
-determine which location in the input space further observations is most 
-informative, to establish the location of the LS, then code runs are 
+determine the location in the input space where further observations are most 
+informative to establish the location of the LS, then code runs are 
 executed on those locations and the ROM updated. The process 
 continues until the location of the LS is established within a certain tolerance.
 
 %%%%%%%%%
 %%%%%%%%% Limit Surface Concept and Properties
 %%%%%%%%%
-\subsubsection{Limit Surface theory}
+\subsubsection{Limit Surface Theory}
 \label{sec:LSconcept}	
 
 To properly explain the LS concept and relative properties, 
@@ -74,7 +74,7 @@ The equation can be rewritten as follows:
 where:
 \begin{itemize}
   \item $\overline{\theta}$ represents the coordinate of the system in the 
-  phase space;
+  phase space
   \item $\left (  \overline{x},\overline{p},t \right )$ independent variables 
   that are separated, respectively, in spatial, temporal, and parametric  
   space (distinction between $\left (  \overline{x},\overline{p},t \right )$ is purely based on engineering considerations).
@@ -98,10 +98,10 @@ To simplify the mathematical description of the LS concept, it is
 possible to hypothesize that the 
 equation describing the PDF time evolution of the system in the phase 
 space is of type Gauss 
-Codazzi (in its Liouville’s derivation)~\cite{}, which allows ensuring that all the 
+Codazzi (in its Liouville’s derivation)~\cite{MathFrameworkMC2013}, which allows ensuring that all the 
 stochastic phenomena in 
 the system are representable as PDFs in the uncertain domain 
-(see~\ref{sec:RAVENconcept}),. This allows combining the 
+(see Section~\ref{sec:RAVENconcept}),. This allows combining the 
 parametric space with the initial condition space:
 \begin{equation}
   \label{eq:goalFunctionCodazzi}
@@ -117,9 +117,9 @@ stochastic behavior (e.g., the dynamic of a particle of dust in the air
 where it continuously and 
 randomly interacts with the molecules of air that ``move'' with different velocities and in different 
 and random directions). In most of the cases of interest in the safety analysis, the above 
-mentioned assumption is correct. The full heuristic approach to the characterization of system stochastic behaviors is reported in chapter~\ref{sec:RAVENconcept}.
+mentioned assumption is correct. The full heuristic approach to the characterization of system stochastic behaviors is reported in Section~\ref{sec:RAVENconcept}.
 \\Under the above simplifications, it is possible to identify the region of the input space ($V$) 
-leading to a specific outcome of the ``goal'' function. In particular, it can be defined, for example, 
+leading to a specific outcome of the ``goal'' function. For example, it can be defined 
 the failure region $V_{F}$ as the region of the input space where $C=1$:
 \begin{equation}
  \label{eq:failureRegion}
@@ -129,7 +129,7 @@ The definition of the complementary of the failure region is obviously:
 \begin{equation}
 V_{F}^{c}=\left \{ \forall \overline{x} | C\left ( \overline{x} \right ) = 0 \right \}
 \end{equation}
-Its boundary is the named Limit Surface:
+Its boundary is the named LS:
 \begin{equation}
 L_{S}= \partial V_{F}^{c}= \partial      \left \{ \forall \overline{x} | C\left ( \overline{x} \right ) = 1 \right \}
 \end{equation}
@@ -150,7 +150,7 @@ And, based on the definition given in Equations~\ref{eq:goalFunctionCodazzi} and
 Equations \ref{eq:probabilityFailure} and \ref{eq:failureProbIntegral} are summarized by stating that the system failure probability is 
 equivalent to the probability of the system being in the uncertain 
 subdomain (region of the input space) that leads to a failure pattern. 
-This probability is equal to the probability-weighted hyper-volume that is surrounded by the LS (see Fig.~\ref{fig:ProbabilityFailureLSExample}).
+This probability is equal to the probability-weighted hyper-volume that is surrounded by the LS (see Figure ~\ref{fig:ProbabilityFailureLSExample}).
 \begin{figure}[h!]
   \centering
   \includegraphics[width=1.0\textwidth]  {pics/ProbabilityFailureLSExample.png}
@@ -160,7 +160,7 @@ This probability is equal to the probability-weighted hyper-volume that is surro
 \\It is beneficial for better understanding to assess the LS concept through an example related to the safety of an Nuclear Power Plant (NPP).
 As an example, consider a station black out (SBO) scenario in an NPP. Suppose that the only uncertain parameters are:
 \begin{itemize}
-  \item $t_{F}$: Temperature that would determine the failure of the fuel cladding;
+  \item $t_{F}$: Temperature that would determine the failure of the fuel cladding
   \item $rt_{DGs}$: Recovery time of the diesel generators (DGs) that 
   can guarantee, through the emergency core cooling system (ECCS), 
   the removal of the decay heat.
@@ -209,7 +209,7 @@ P_{F} = \bigintssss_{V_{F}}d\overline{x}\: pdf_{\overline{X}}\left ( \overline{x
 \end{matrix}
 \end{equation}
 
-This simple example is useful to understand how the LS is defined in a practical application (that is analyzed numerically in the results section) and how the hyper volume needs weighted with respect to the probability in the uncertain domain. An example of the LS computed is shown in Figure ~\ref{fig:ExampleLSwitRiskDirections}.
+This simple example is useful to understand how the LS is defined in a practical application (that is analyzed numerically in the results Section) and how the hyper volume needs weighted with respect to the probability in the uncertain domain. An example of the computed LS is shown in Figure ~\ref{fig:ExampleLSwitRiskDirections}.
 In this figure the neutral and high risk directions are highlighted. 
 
 %%%%%%%%%
@@ -220,8 +220,8 @@ In this figure the neutral and high risk directions are highlighted.
 The identification of the LS location is extremely challenging, 
 depending on the particular physics/phenomena that are investigated. 
 To identify the real location of the LS, the evaluation of system 
-responses is needed, through the high fidelity code (e.g., RELAP 7, 
-RELAP5 3D, etc.), in the full domain of uncertainty (infinite number of 
+responses is needed, through the high-fidelity code (RELAP 7, 
+RELAP5-3D, etc.), in the full domain of uncertainty (infinite number of 
 combinations of uncertainties represented by the respective PDFs). 
 Obviously, this is not a feasible approach, and a reasonable 
 approximation is to locate the LS on a Cartesian N-D grid, in the 
@@ -242,7 +242,7 @@ equals $1$.
   \label{fig:LSgoalFunctionExample}
 \end{figure}
 Each evaluation of the ``goal'' function in one of the grid nodes implies 
-the evaluation of the high fidelity code (e.g. system simulator) for the 
+the evaluation of the high-fidelity code (e.g. system simulator) for the 
 corresponding set of entries in the uncertain space. As already 
 mentioned, the evaluation of the high fidelity code is computationally 
 expensive and, in order to identify the LS, one should appraise 
@@ -268,20 +268,20 @@ In more detail, the iterative scheme could be summarized through the following s
 \begin{enumerate}
   \item A limited number of points in the uncertain space $\left \{ 
   \overline{x}_{k} \right \}$ are selected via one of the forward 
-  sampling strategies (e.g., stratified or MC);
+  sampling strategies (e.g., stratified or Monte Carlo)
   \item The high fidelity code is used to compute the status of the 
   system for the set of points in the input set: 
   $
   \left \{ \overline{\theta}(t)\right \}_{k} = H\left ( \left \{ \overline{x} \right 
   \}_{k},t \right )
-  $
+  $.
   \item The ``goal'' function is evaluated at the phase space coordinate 
   of the system:
   $\left \{ c \right \}_{k} = C\left ( \left \{ \overline{\theta}(t)\right \}_{k} 
-  \right )$.
+  \right )$
    \item The set of pairs $\left \{ \left ( \overline{x},c \right )_{k} \right \}$
    are used to train a ROM of type classifier, $G\left ( \left \{ 
-   \overline{x}_{k} \right \} \right )$.
+   \overline{x}_{k} \right \} \right )$
    \item The ROM classifier is used to predict the values of the ``goal''  
    function for all the $N$ nodes of the N-D grid in the domain space:
    \begin{equation}
@@ -295,7 +295,7 @@ In more detail, the iterative scheme could be summarized through the following s
     \left \{ c \right \}_{j}\rightarrow \partial V_{F}
      \end{equation}
      \item A new point is chosen to increase the training set and a new 
-     pair is generated;
+     pair is generated
      \item The procedure is repeated starting from Step 3 until 
      convergence is achieved. The convergence is achieved when 
      there are no changes in the location of the LS after a certain 
@@ -337,7 +337,7 @@ submitting the same evaluation point twice, the algorithm searches
 among all the ranked candidates (in descending order) for the one 
 that was not submitted for evaluation. Even if it is extremely unlikely 
 that all the candidates were submitted, in this remote event, the 
-method will choose the next point employing a MC strategy.
+method will choose the next point employing a Monte Carlo strategy.
 %%%%%%%%%
 %%%%%%%%% Acceleration through Multi-grid Approach
 %%%%%%%%%
@@ -345,7 +345,7 @@ method will choose the next point employing a MC strategy.
 \label{par:LSaccelerationMultiGrid}
 The location of the LS, being a numerical iterative process, can be 
 known given a certain tolerance. As already mentioned, the LS search 
-is done by constructing an evaluation grid, on which the acceleration 
+is done by constructing an evaluation grid on which the acceleration 
 ROM is inquired. The tolerance of the iterative process determines how 
 the evaluation grid is discretized. Before addressing the acceleration 
 scheme, it is important 
@@ -392,7 +392,7 @@ where:
 \varphi_{\overline{j}}\left ( \overline{x} \right )
 pdf_{\overline{X}}\left ( \overline{x}_{\overline{j}} \right )
  \end{equation}
-Following the approach briefly explained in section 
+Following the approach briefly explained in Section 
 \ref{sec:LSconcept}, the probability of the event (e.g., failure) could be 
 expressed as: 
  \begin{equation} 
@@ -407,7 +407,7 @@ Under certain assumptions, the concept of active hyper-volume
 $V_{A}$ as the region of the input space identified by the support of 
 the uncertain parameters’ probability density functions 
 $pdf_{\overline{X}}\left ( \overline{x} \right )$ could be introduced; 
-Eq.~\ref{eq:Pf} is recast, using a Taylor expansion, as follows: 
+Equation ~\ref{eq:Pf} is recast, using a Taylor expansion, as follows: 
  \begin{equation} 
 P_{F}= \bigintssss_{V} C\left ( \overline{x} \right )\: pdf_{\overline{X}}\left ( 
 \overline{x}  \right )\: d\overline{x} =\bigintssss_{V_{A}}C\left ( \overline{x} 
@@ -460,7 +460,7 @@ in which the  ``goal''  function $C(\overline{x})$ is equal to $1$ ($V_{A} \cap 
 \mathlarger{\sum}_{i=1}^{D} \frac{\partial pdf_{\overline{X}}}{\partial x_{i}}|_{\overline{x}_{\overline{j}}} \: \left ( x_{i} - x_{j_{i}} \right ) \right )   d\overline{x}
 \end{matrix}
 \end{equation}
-Eq.~\ref{eq:PfEq} is now expressed as:
+Equation ~\ref{eq:PfEq} is now expressed as:
  \begin{equation}
  \label{eq:PfEqFinal}
  \begin{matrix}
@@ -483,8 +483,8 @@ x_{i}}|_{\overline{x}_{\overline{j}}} \: \left ( x_{i} - x_{j_{i}} \right ) \rig
 d\overline{x}
 \end{matrix} 
  \end{equation} 
-As inferred from Eq.~\ref{eq:PfEqFinal}, the process is bounded if the 
-surface area to volume ratio (amount of surface area per unit volume) is 
+As inferred from Equation ~\ref{eq:PfEqFinal}, the process is bounded if the 
+surface area-to-volume ratio (amount of surface area per unit volume) is 
 in favor of the volume:
 \begin{equation}
 \label{eq:convergenceCondition}
@@ -503,7 +503,7 @@ V_{\partial V_{f}} \end{matrix}}^{\overline{N}}
 \overline{x}_{\overline{j}} \right )  \right |
 d\overline{x}
 \end{equation}
-If the grid is built in the transformed space of probability (i.e., replacing the measure $d\overline{x}$ with $d \overline{\mu }\: \: pdf_{\overline{X}}\left ( \overline{x}_{\overline{j}} \right )$, the condition expressed in Eq.~\ref{eq:convergenceCondition} is reduced:
+If the grid is built in the transformed space of probability (i.e., replacing the measure $d\overline{x}$ with $d \overline{\mu }\: \: pdf_{\overline{X}}\left ( \overline{x}_{\overline{j}} \right )$ the condition expressed in Equation ~\ref{eq:convergenceCondition} is reduced:
 \begin{equation}
 number \: \:  nodes \in V_{A} \cap V_{C(\overline{x})=1} \gg number \: \:  nodes  \in V_{A} \cap V_{\partial V_{F}}
 \end{equation}
@@ -513,9 +513,9 @@ Based on this derivation, it is clear how important it is to keep the
 content of the total probability on the frontier of the LS as low as 
 possible, and simultaneously, increase the importance of the volume of 
 the failure/event region as much as possible (to improve the surface 
-area to volume ratio).
+area-to-volume ratio).
 
-In order to do that, the step size in probability should be significantly 
+To do that, the step size in probability should be significantly 
 reduced ( $h_{i}^{p} \rightarrow 0^{+}$). Even if this is theoretically 
 feasible, it is computational inapplicable. To approach a similar result, it 
 is possible to learn from other numerical methods that use the 
@@ -543,19 +543,19 @@ following steps:
   \item The user specifies two tolerances in probability $(CDF):
   \gamma^{g=1}$ for the initial coarse grid and $\gamma^{g=2}$
   for the refined grid, where  $ \gamma^{g=1} >  \gamma^{g=2}$;
-  \item Following Eq.~\ref{eq:OmegaEq}, the initial coarse evaluation 
+  \item Following Equation ~\ref{eq:OmegaEq}, the initial coarse evaluation 
   grid $\Omega^{1}$ is constructed ($N^{g=1}$ total nodes). The 
   discretization of this grid is done to have cells with a content of 
-  probability equal to $\gamma^{g=1}$;
+  probability equal to $\gamma^{g=1}$.
   \item A limited number of points in the uncertain space $\left \{ 
   \overline{x}_{k} \right \}$ are selected via one of the forward 
-  sampling strategies (e.g., stratified or MC);
+  sampling strategies (e.g., stratified or Monte Carlo).
   \item The high fidelity code is used to compute the status of the 
   system for the set of points in the input set: 
   $
   \left \{ \overline{\theta}(t)\right \}_{k} = H\left ( \left \{ \overline{x} \right 
   \}_{k},t \right )
-  $
+  $.
   \item The ``goal'' function is evaluated at the phase space coordinate 
   of the system:
   $\left \{ c \right \}_{k} = C\left ( \left \{ \overline{\theta}(t)\right \}_{k} 
@@ -577,22 +577,22 @@ following steps:
     \left \{ c \right \}_{j}\rightarrow \partial V_{F}
      \end{equation}
      \item A new point is chosen to increase the training set and a new 
-     pair is generated;     
+     pair is generated.    
      \item The procedure is repeated starting from Step 5 until 
      convergence is achieved on grid $\Omega^{g}$.The convergence 
      is reached when there are no changes in the location of the LS 
-     after a certain number of consecutive iterations (user defined);
+     after a certain number of consecutive iterations (user defined).
      \item When the convergence is achieved on the coarse grid 
      $\Omega^{g=1}$, all the cells that lie on the frontier of the LS 
      ($V_{A} \cap V_{\partial V_{F}}$) are refined to contain an amount of 
-     probability equal to  $\gamma^{g=2}$;
+     probability equal to  $\gamma^{g=2}$.
      \item Steps 7 through 9 are performed based on the new refined 
      grid. Finally, the process starts again by performing Steps 5 
      through 10, until the convergence is achieved in the refined grid.
 \end{enumerate}
 As shown in Figure~\ref{fig:LimitSurfaceMultiGridAlgoFlow}, the 
 algorithm consists in searching the location of the LS proceeding with 
-sub-sequential refinement of the sub-domain, in the active space, that 
+subsequential refinement of the sub-domain, in the active space, that 
 contains the LS. In this way, the computational burden is kept as low as 
 possible. In addition, another advantage of this approach is that, since 
 the refinement grid represents a constrained domain, the sub-
@@ -603,7 +603,7 @@ refinement domain.
 %%%%%%%%%%%%%%%%
 \subsubsection{Limit Surface Search sampling through RAVEN}
 \label{subsub:LSsamplingExample}
-The goal of this section is to learn how to:
+The goal of this Section is to learn how to:
  \begin{enumerate}
    \item Set up a LS Search sampling for efficiently perturb a driven code
    \item Use the LS Integral Post-processor for computing the probability of failure of the system subject to the same 
@@ -625,7 +625,7 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
 \end{lstlisting}   
    As shown in Section~\ref{sub:EntitiesAndFlow}, the \textit{RunInfo} \textbf{Entity} is intended to set up the analysis 
    that the user wants to perform. In this specific case, three steps (\xmlNode{Sequence}) are  sequentially run 
-   using 8 processors (\xmlNode{batchSize}). 
+   using eight processors (\xmlNode{batchSize}). 
    \item \textbf{\textit{Files}}:
 \begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
   <Files>
@@ -633,7 +633,7 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
     <Input name="LSintegral.csv" type="">LSintegral.csv</Input>
   </Files>
 \end{lstlisting}
-   Since the driven code uses a single input file, in this section the original input is placed. As detailed in the user manual
+   Since the driven code uses a single input file, in this Section the original input is placed. As detailed in the user manual
    the attribute  \xmlAttr{name} represents the alias that is going to be 
    used in all the other input blocks in order to refer to this file. 
    \\In addition the output file used in \xmlNode{Sequence} 
@@ -698,12 +698,12 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
       </Uniform>
   </Distributions>
 \end{lstlisting}
-  In the Distributions XML section, the stochastic model for the 
+  In the Distributions XML Section, the stochastic model for the 
   uncertainties  treated by the LS search sampling are reported. In 
-  this case 2 distributions are defined: 
+  this case two distributions are defined: 
   \begin{itemize}
     \item $sigmaA \sim \mathbb{U}(0,1000)$, used to model the uncertainty 
-    associated with  the Model \textit{sigma-A};
+    associated with  the Model \textit{sigma-A}
     \item  $decayConstantA \sim \mathbb{U}(1e-8,1e-7)$,  used to 
     model the uncertainty 
     associated with  the Model \textit{decay-A}.
@@ -728,15 +728,14 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
   In order to employ the LS search sampling strategy, a 
   \xmlNode{LimitSurfaceSearch} node needs to be inputted. 
   As it can be
-  seen from above, each variable is associated to a different distribution,
+  seen from above, each variable is associated to a different distribution
   defined in the  \xmlNode{Distributions} block.
   In addition, the \textit{AccelerationROM}  \xmlNode{ROM} is inputted.
   As already mentioned, this ROM (of type classifier) is used to 
   accelerate the convergence of the LS Search method.
   In addition, the goal function \textit{goalFunction}  and the 
   \textit{samples} are here reported.
-  \\For this example, a convergence criterion of $1.0e-5$ is set. In 
-  order to reach such a confidence with a Monte-Carlo, millions of 
+  \\For this example, a convergence criterion of $1.0e-5$ is set. To reach such a confidence with a Monte-Carlo, millions of 
   samples would be needed.
    \item \textbf{\textit{Functions}}:
 \begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
@@ -776,11 +775,11 @@ def __residuumSign(self):
     </HistorySet>
   </DataObjects>
 \end{lstlisting}
-  Int this block, three \textit{DataObjects} are defined: 1) PointSet 
+  In this block, three \textit{DataObjects} are defined: 1) PointSet 
   named ``samples'' used to collect the final outcomes of the code, 2) 
   HistorySet named ``histories'' in which the full time responses of the 
   variables $A,B,C,D$ are going to be stored, 3) PointSet named    
-  ``limitSurface'' used  to export the Limit Surface location (in the uncertain space) during the employment of the sampling strategy.
+  ``limitSurface'' used  to export the LS location (in the uncertain space) during the employment of the sampling strategy.
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  %figure samples
@@ -832,7 +831,7 @@ def __residuumSign(self):
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
    Finally, all the previously defined \textbf{Entities} can be combined in 
    the \xmlNode{Steps} block. As inferable, 
-   3 \xmlNode{Steps} have been inputted:
+   three \xmlNode{Steps} have been inputted:
    \begin{itemize}
      \item \xmlNode{MultiRun} named ``sample'', used to run the multiple  
      instances of the driven code and 
@@ -844,7 +843,7 @@ def __residuumSign(self):
      compute the probability of failure of the system based on the LS generated employing the LS search strategy. This 
      probability is computed integrating the LS with a Monte-Carlo 
      method. 
-     \item  \xmlNode{IOStep} named ``writeHistories'', used to 1) dump 
+     \item  \xmlNode{IOStep} named ``writeHistories'', used to 1) export 
      the ``histories'' and ``samples''  \textit{DataObjects} 
      \textbf{Entity} in a CSV file and 2) plot the data and the Limit Surface 
      in  PNG files and on the screen.

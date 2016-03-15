@@ -12,7 +12,7 @@ different \textit{\textbf{Forward}} samplers:
 \begin{itemize}
   \item \textit{Monte-Carlo}
   \item \textit{Grid-based}
-  \item \textit{Stratified} and its specialization, i.e. \textit{Latin Hyper Cube}.
+  \item \textit{Stratified} and its specialization, i.e.,\textit{Latin Hyper Cube}.
 \end{itemize}
 In addition, RAVEN posses advanced \textit{\textbf{Forward}} sampling strategies that:
 \begin{itemize}
@@ -70,7 +70,7 @@ from the $\mathbb{E}(f(X))$ becomes smaller. In other words, the more samples ar
 %\begin{equation}
 %\frac{\partial  \overline{\theta}^{c}\left ( t \right )}{\partial t}=f\left ( \overline{\theta}^{c},\overline{\theta}^{d}_{i}, \overline{\alpha}_{staz} ,\overline{\alpha}_{brow}, t \right )
 %\end{equation}
-%let's define a function $g_{i}$ that represents the solution of the previous equation (the trajectory in the $ \overline{\theta}^{c}$ space for a fixed $ \overline{\theta}^{d}_{i}$ and initial condition $\overline{\theta}^{c}_{0}$) :
+% define a function $g_{i}$ that represents the solution of the previous equation (the trajectory in the $ \overline{\theta}^{c}$ space for a fixed $ \overline{\theta}^{d}_{i}$ and initial condition $\overline{\theta}^{c}_{0}$) :
 %\begin{equation}
 %  \overline{\theta}^{c}(t) = g_{i}(t,\overline{\theta}^{c}_{0})
 %\end{equation}
@@ -293,7 +293,6 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
                 <xlabel>time (s)</xlabel>
                 <ylabel>evolution D(kg)</ylabel>
             </plot>
-
         </plotSettings>
         <actions>
             <how>png,screen</how>
@@ -334,7 +333,6 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
                 <zlabel>final B</zlabel>
             </plot>
             <plot>
-                <type>scatter</type>
                 <type>scatter</type>
                 <x>samples|Input|sigma-C</x>
                 <y>samples|Input|decay-C</y>
@@ -467,11 +465,11 @@ background is reported. In addition,it is shown how to employ this methodology w
 \subsubsection{Grid theory introduction}
 \label{subsub:Gridtheory}
 The goal of the Grid-based sampling strategy is to explore the interaction of multiple random 
-variables (i.e. uncertainties) with respect to selected FOMs. Indeed, this method is mainly used to perform 
+variables (i.e.,uncertainties) with respect to selected FOMs. Indeed, this method is mainly used to perform 
 parametric analysis of the system response rather than a probabilistic one. This method discretizes the
-domain of the uncertainties in a user-defined number of intervals (see Fig.~\ref{fig:GridDiscretization}) and 
+domain of the uncertainties in a user-defined number of intervals (see Figure~\ref{fig:GridDiscretization}) and 
 record the response of the model (e.g. a system code) at each coordinate (i.e., combination of the uncertainties) of the grid.
-\\ This method starts from the assumption that each coordinate on the grid is representative, with respect to the FOMs of interest, of the surrounding grid cell. In other words, it is assumed that the response of a system does not significantly change within the hyper-volume surrounding each grid coordinate (red square in Fig.~\ref{fig:GridDiscretization}).
+\\ This method starts from the assumption that each coordinate on the grid is representative, with respect to the FOMs of interest, of the surrounding grid cell. In other words, it is assumed that the response of a system does not significantly change within the hyper-volume surrounding each grid coordinate (red square in Figure~\ref{fig:GridDiscretization}).
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  %figure history
  \begin{figure}[h!]
@@ -482,7 +480,7 @@ record the response of the model (e.g. a system code) at each coordinate (i.e., 
  \end{figure}
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-Similarly to what has been already reported for the Monte-Carlo sampling, let's consider a random variable $X$ having PDF $pdf_{X}(x)$ and, consequentially, CDF $cdf_{X}(x)$ in the domain $\chi$. Then the expected value of a function $f$ of $X$ is as follows:
+Similarly to what has been already reported for the Monte-Carlo sampling, consider a random variable $X$ having PDF $pdf_{X}(x)$ and, consequentially, CDF $cdf_{X}(x)$ in the domain $\chi$. Then the expected value of a function $f$ of $X$ is as follows:
 \begin{equation}
 \begin{matrix}
 \mathbb{E}(f(X)) =\sum_{x \in \chi} f(x)pdf_{X}(x) & if X \, discrete \\ 
@@ -498,7 +496,7 @@ needs to be associated with each coordinate of the resulting grid:
   w_{i}= cdf_{X}(x_{i+1/2}) - cdf_{X}(x_{i-1/2})
 \end{matrix}  
 \end{equation}
-Let's now consider 
+Now consider 
 a $n-$discretization of the domain of  $X$, $(x_{1},...,x_{n})$ and compute the mean of $f(x)$ over the discretization. Based on the previous equation, the computation of the expected value of $f(x)$ is as follows:
 \begin{equation}
  \mathbb{E}(f(X)) \approx   \widetilde{f}_{n}(x) = \frac{1}{\sum_{i=1}^{n}w_{i}} \sum_{i=1}^{n} f(x_{i}) \times w_{i}
@@ -513,9 +511,9 @@ becomes:
 \label{subsub:Gridexample}
 The goal of this section is to show how to:
  \begin{enumerate}
-   \item Set up a simple Grid sampling for performing a parametric analysis of a driven code;
-   \item Load the outputs of the code into the RAVEN DataObjects system;
-   \item Print out what contained in the DataObjects;
+   \item Set up a simple Grid sampling for performing a parametric analysis of a driven code
+   \item Load the outputs of the code into the RAVEN DataObjects system
+   \item Print out what contained in the DataObjects
    \item Generate basic plots of the code result.
 \end{enumerate}  
 In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in the input files) are required:
@@ -540,7 +538,7 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
     <Input name="referenceInput.xml" type="input">referenceInput.xml</Input>
   </Files>
 \end{lstlisting}
-   Since the driven code uses a single input file, in this section the original input is placed. As described in the user manual~\cite{}
+   Since the driven code uses a single input file, in this section the original input is placed. As described in the user manual~\cite{RAVENuserManual}
    the attribute  \xmlAttr{name} represents the alias that is used in all the other input blocks in order to refer to this file.
    \item \textbf{\textit{Models}}:
 \begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
@@ -578,7 +576,7 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
   this case two distributions are defined: 
   \begin{itemize}
     \item $sigma \sim \mathbb{U}(1,10)$, used to model the uncertainties 
-    associated with  the Model \textit{sigma}(s);
+    associated with  the Model \textit{sigma}(s)
     \item  $decayConstant \sim \mathbb{U}(0.5e-8,1e-8)$,  used to 
     model the uncertainties 
     associated with  the Model \textit{decay constants}.
@@ -622,7 +620,7 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
     </Grid>
   </Samplers>  
 \end{lstlisting}
-  In order to employ the Grid sampling strategy, a 
+  To employ the Grid sampling strategy, a 
   \xmlNode{Grid} node needs to be specified. As shown above, in each variable section, the  \xmlNode{grid} is defined. 
   The number of samples finally requested are equal to $n_{samples} = \prod_{i=1}^{n} n_{steps_{i}+1} = 256$.
   Note that, for each variable, can be defined either in probability (CDF) or in absolute value.  
@@ -754,7 +752,6 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
             </plot>
             <plot>
                 <type>scatter</type>
-                <type>scatter</type>
                 <x>samples|Input|sigma-C</x>
                 <y>samples|Input|decay-C</y>
                 <z>samples|Output|C</z>
@@ -809,7 +806,7 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
      \begin{itemize}
        \item named ``samples'' connected with the \textit{DataObjects} \textbf{Entity} ``samples'' 
                 (\xmlNode{source})
-       \item named ``histories'' connected with the \textit{DataObjects} \textbf{Entity} ``histories'' (\xmlNode{source})          
+       \item named ``histories'' connected with the \textit{DataObjects} \textbf{Entity} ``histories'' (\xmlNode{source}).
      \end{itemize}         
       When these objects get used, all the information contained in the 
       linked  \textit{DataObjects} are going 
@@ -819,10 +816,10 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
       \item named ``historiesPlot'' connected with the  \textit{DataObjects} 
       \textbf{Entity} ``samples''.  This plot will draw the final state of the
       variables $A,B,C,D$ with respect to the input variables $sigma$(s) 
-      and $decay$(s) . 
+      and $decay$(s).
       \item named ``samplesPlot3D'' connected with the  
       \textit{DataObjects} \textbf{Entity} ``histories''. This plot will draw the 
-      evolution of the variables $A,B,C,D$;
+      evolution of the variables $A,B,C,D$.
     \end{itemize}
      As it can be noticed, both plots are of type \textit{SubPlot}. Four plots
      are placed in each of the figures.
@@ -865,7 +862,7 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
      collect the outputs in the two \textit{DataObjects}. As it can be
      seen, the \xmlNode{Sampler} is inputted to communicate to the 
      \textit{Step} that the driven code needs to
-     be perturbed through the Grid sampling;
+     be perturbed through the Grid sampling
      \item  \xmlNode{IOStep} named ``writeHistories'', used to 1) dump 
      the ``histories'' and ``samples'' \textit{DataObjects} 
      \textbf{Entity} in a CSV file and 2) plot the data in the PNG file and 
@@ -880,12 +877,12 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
 %%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Stratified}
 \label{sub:Stratified}
-The Stratified sampling is a class of methods that relies on the assumption that the input space (i.e. uncertainties) 
+The Stratified sampling is a class of methods that relies on the assumption that the input space (i.e.,uncertainties) 
 can be separated in regions (strata) based on similarity of the response of the system for input set within the
 same strata. Following this assumption, the most rewarding (in terms of computational cost vs. knowledge gain) 
 sampling strategy would be to place one sample for each region. In this way, the same information is not 
 collected more than once and all the prototypical behavior are sampled at least once. In 
-Fig.~\ref{fig:StratifiedSamplingExample}, the Stratified sampling approach is exemplified. 
+Figure~\ref{fig:StratifiedSamplingExample}, the Stratified sampling approach is exemplified. 
  \begin{figure}[h!]
   \centering
   \includegraphics[scale=0.55]{pics/StratifiedSamplingExample.png}
@@ -898,11 +895,11 @@ background is reported. In addition,it is shown how to employ this methodology w
 \label{subsub:Stratifiedtheory}
 The Stratified sampling approach is a method for the exploration of the input space that consists of dividing the uncertain domain into subgroups before sampling. In the Stratified sampling, these subgroups must be:
 \begin{itemize}
-  \item mutually exclusive: every element in the population must be assigned to only one stratum (subgroup)
-  \item collectively exhaustive: no population element can be excluded
+  \item Mutually exclusive: every element in the population must be assigned to only one stratum (subgroup)
+  \item Collectively exhaustive: no population element can be excluded.
 \end{itemize}
 Then, simple random sampling or systematic sampling is applied within each stratum. The Latin Hyper-Cube sampling represents a specialized version of the stratified approach, when the domain strata are constructed in equally-probable CDF bins.
-\\Similarly to what has been already reported for the Grid sampling, let's consider a set of  $m$ random variables $X_{j}, \, j=1,..,m$ having PDFs $pdf_{X_{j}}(x_{j})$ and, consequentially, CDF $cdf_{X_{j}}(x_{j})$ in the domain $\chi_{j}$. Then the expected value of a function $f$ of $X_{j}, \, j=1,..,m$ is as follows:
+\\Similarly to what has been already reported for the Grid sampling, consider a set of  $m$ random variables $X_{j}, \, j=1,..,m$ having PDFs $pdf_{X_{j}}(x_{j})$ and, consequentially, CDF $cdf_{X_{j}}(x_{j})$ in the domain $\chi_{j}$. Then the expected value of a function $f$ of $X_{j}, \, j=1,..,m$ is as follows:
 \begin{equation}
 \begin{matrix}
 \mathbb{E}(f(\overline{X})) =\sum f(x)   \prod_{j=1}^{m} pdf_{X_{j}}(x_{j}) & if \overline{X} \, discrete \\ 
@@ -917,8 +914,8 @@ In the Stratified approach, the domain of $\overline{X}$ is discretized in a set
 \end{matrix}  
 \end{equation}
 Each realization carries a weight representative of each stratum.
-\\Let's now consider 
-to take a $n-$strata of the domain of  $\overline{X}$, and compute the expected value of $f(x)$ over the discretization. Based on the previous equation, the computation of the expected value of $f(x)$ is as follows:
+\\Now consider 
+an $n-$strata of the domain of  $\overline{X}$, and compute the expected value of $f(x)$ over the discretization. Based on the previous equation, the computation of the expected value of $f(x)$ is as follows:
 \begin{equation}
  \mathbb{E}(f(\overline{X})) \approx   \widetilde{f}_{n}(\overline{x}) = \frac{1}{\sum_{i=1}^{n}w_{i}} \sum_{i=1}^{n} f(\overline{x}_{i}) \times w_{i}
 \end{equation}
@@ -929,9 +926,9 @@ The goal of this section is to show how to:
    \item Set up a simple Stratified sampling in order to perform a parametric analysis on a driven code
    \item Load the outputs of the code into the RAVEN DataObjects system
    \item Print out what contained in the DataObjects
-   \item Generate basic plots of the code result
+   \item Generate basic plots of the code result.
 \end{enumerate}  
-In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in the input files) are defined:
+To accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in the input files) are defined:
 \begin{enumerate}
    \item \textbf{\textit{RunInfo}}:
 \begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
@@ -991,7 +988,7 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
   this case two distributions are defined: 
   \begin{itemize}
     \item $sigma \sim \mathbb{U}(1,10)$, used to model the uncertainties 
-    associated with  the Model \textit{sigma}(s);
+    associated with  the Model \textit{sigma}(s)
     \item  $decayConstant \sim \mathbb{U}(0.5e-8,1e-8)$,  used to 
     model the uncertainties 
     associated with  the Model \textit{decay constants}.
@@ -1033,7 +1030,7 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
       </variable>
     </Stratified> 
 \end{lstlisting}
-  In order to employ the Stratified sampling strategy, a 
+  To employ the Stratified sampling strategy, a 
   \xmlNode{Stratified} node needs to be specified. In each variable section, the  \xmlNode{grid} is defined. 
   It is important to mention that the number of \xmlAttr{steps} needs to be the same for each of the variables,
   since, as reported in previous section, the Stratified sampling strategy it discretizes the domain in strata. 
@@ -1223,7 +1220,7 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
      \begin{itemize}
        \item named ``samples'' connected with the \textit{DataObjects} \textbf{Entity} ``samples'' 
                 (\xmlNode{source})
-       \item named ``histories'' connected with the \textit{DataObjects} \textbf{Entity} ``histories'' (\xmlNode{source})          
+       \item named ``histories'' connected with the \textit{DataObjects} \textbf{Entity} ``histories'' (\xmlNode{source}).
      \end{itemize}         
       When these objects get used, all the information contained in the 
       linked  \textit{DataObjects} are going 
@@ -1233,10 +1230,10 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
       \item named ``historiesPlot'' connected with the  \textit{DataObjects} 
       \textbf{Entity} ``samples''.  This plot will draw the final state of the
       variables $A,B,C,D$ with respect to the input variables $sigma$(s) 
-      and $decay$(s) . 
+      and $decay$(s)
       \item named ``samplesPlot3D'' connected with the  
       \textit{DataObjects} \textbf{Entity} ``histories''. This plot will draw the 
-      evolution of the variables $A,B,C,D$;
+      evolution of the variables $A,B,C,D$.
     \end{itemize}
      As it can be noticed, both plots are of type \textit{SubPlot}. Four plots
      are going to be placed in each of the figures.
@@ -1279,7 +1276,7 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
      collect the outputs in the two \textit{DataObjects}. As it can be
      seen, the \xmlNode{Sampler} is inputted to communicate to the 
      \textit{Step} that the driven code needs to
-     be perturbed through the Stratified sampling;
+     be perturbed through the Stratified sampling.
      \item  \xmlNode{IOStep} named ``writeHistories'', used to 1) dump 
      the ``histories'' and ``samples'' \textit{DataObjects} 
      \textbf{Entity} in a CSV file and 2) plot the data in the PNG file and 
@@ -1294,10 +1291,10 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
 \subsection{Sparse Grid Collocation}
 \label{sub:Stratified}
 The Sparse Grid Collocation sampler represents an advanced methodology to perform Uncertainty Quantification. They aim
-to explore the input space leveraging the information contained in the associated probability density functions. It builds on generic Grid sampling by selecting evaluation points based on characteristic quadratures as part of stochastic collocation for generalized polynomial chaos uncertainty quantification. In collocation an N-dimensional grid is constructed, with each uncertain variable providing an axis. Along each axis, the points of evaluation correspond to quadrature points necessary to integrate polynomials. In the simplest (and most naive) case, a N-Dimensional tensor product of all possible combinations of points from each dimension’s quadrature is constructed as sampling points. The number of necessary samples can be reduced by employing Smolyak-like sparse grid algorithms, which use reduced combinations of polynomial orders to reduce the necessary sampling space.
-\\In this section, a brief theoretical 
-background is reported. In addition,it is shown how to employ this methodology with RAVEN.
-\subsubsection{Sparse Grid Collocation theory introduction}
+to explore the input space leveraging the information contained in the associated probability density functions. It builds on generic Grid sampling by selecting evaluation points based on characteristic quadratures as part of stochastic collocation for generalized polynomial chaos uncertainty quantification. In collocation an N-D grid is constructed, with each uncertain variable providing an axis. Along each axis, the points of evaluation correspond to quadrature points necessary to integrate polynomials. In the simplest (and most naive) case, a N-D tensor product of all possible combinations of points from each dimension’s quadrature is constructed as sampling points. The number of necessary samples can be reduced by employing Smolyak-like sparse grid algorithms, which use reduced combinations of polynomial orders to reduce the necessary sampling space.
+\\In this Section, a brief theoretical 
+background is reported. In addition, it is shown how to employ this methodology with RAVEN.
+\subsubsection{Sparse Grid Collocation Theory Introduction}
 \label{subsub:SGctheory}
 \paragraph{Generalized Polynomial Chaos}
 In general, polynomial chaos expansion (PCE) methods seek to interpolate the simulation code as a combination of
@@ -1318,7 +1315,7 @@ methodologies have grown from gPC application.  The first makes use of Lagrange 
 original function or simulation code, as they can be made orthogonal over the same domain as the
 distributions~\cite{SCLagrange}; the other uses the Wiener-Askey polynomials~\cite{xiu}. 
 
-Let's consider a simulation code that produces a quantity of interest $u$ as a function $u(Y)$ whose arguments are
+Consider a simulation code that produces a quantity of interest $u$ as a function $u(Y)$ whose arguments are
 the uncertain, distributed input
 parameters $Y=(Y_1,\ldots,Y_n,\ldots,Y_N)$.  A particular realization $\omega$ of $Y_n$ is expressed by
 $Y_n(\omega)$, and a single realization of the entire input space results in a solution to the function as
@@ -1348,7 +1345,7 @@ Using the orthonormal properties of the Wiener-Askey polynomials,
   \int_\Omega \Phi_k(Y)\Phi_{\hat k}(Y) \rho(Y) dY = \delta_{k\hat k},
 \end{equation}
 where $\rho(Y)$ is the combined PDF of $Y$, $\Omega$ is the multidimensional domain of $Y$, and $\delta_{nm}$
-is the Dirac delta, we can isolate an expression of the polynomial expansion coefficients.
+is the Dirac delta, an expression of the polynomial expansion coefficients can be isolated.
 We multiply both sides of Eq. \ref{eq:gPC} by
 $\Phi_{\hat k}(Y)$, integrate both sides over the probability-weighted input domain, and sum over all $\hat k$
 to obtain the coefficients, sometimes referred to as polynomial expansion moments,
@@ -1362,8 +1359,8 @@ where we use the angled bracket notation to denote the probability-weighted inne
 \end{equation}
 When $u(Y)$ has an analytic form, these coefficients can be solved by integration; however, in general other
 methods must be applied to numerically perform the integral.  While tools such as Monte Carlo integration can
-be used to evaluate the integral, we can harness the properties of Gaussian quadratures because of the
-probability weights and domain.  This stochastic collocation method is discussed in section \ref{sec:stoch
+be used to evaluate the integral, the properties of Gaussian quadratures, because of the
+probability weights and domain, can be harnessed.  This stochastic collocation method is discussed in section \ref{sec:stoch
 coll}.
 \paragraph{Polynomial Index Set Construction}\label{sec:index sets}
 The main concern in expanding a function in interpolating multidimensional polynomials is choosing appropriate polynomials to
@@ -1371,13 +1368,13 @@ make up the expansion.
 There are many generic ways by which a polynomial set can be constructed.  Here  three static
 approaches are presented: 
 \begin{itemize}
-  \item tensor product;
-  \item total degree;
-  \item hyperbolic cross.
+  \item Tensor Product
+  \item Total Degree
+  \item Hyperbolic Cross.
 \end{itemize}
 In the nominal tensor
 product case, $\Lambda(L)$ contains all possible combinations of polynomial indices up to truncation order $L$ in each
-dimension, as
+dimension, as:
 \begin{equation}
   \Lambda_\text{TP}(L)=\Big\{\bar p=(p_1,\cdots,p_N): \max_{1\leq n\leq N}p_n\leq L
 \Big\}.
@@ -1395,7 +1392,7 @@ and second order in $Y_2$.
     (1,0) & (1,1) & (1,2) & (1,3) \\
     (0,0) & (0,1) & (0,2) & (0,3)
   \end{tabular}
-  \caption{Tensor Product Index Set, $N=2,L=3$}
+  \caption{Tensor Product Index Set, $N=2,L=3$.}
   \label{tab:TP}
 \end{table}
 
@@ -1430,7 +1427,7 @@ dimensions much more slowly than TP.  For the same $N=2,L=3$ case above, the TD 
 
 In HC, the \emph{product} of polynomial orders is used to restrict allowed polynomials in the index set.  This
 tends to polarize the expansion, emphasizing higher-order polynomials in each dimension but lower-order
-polynomials in combinations of dimensions, as
+polynomials in combinations of dimensions, as:
 \begin{equation}
   \Lambda_\text{HC}(L)=\Big\{\bar p=(p_1,\ldots,p_N):\prod_{n=1}^N p_n+1 \leq L+1
 \Big\}.
@@ -1464,13 +1461,13 @@ and HC construction rules as follows, where $|\alpha|_1$ is the one-norm of $\al
 \begin{equation}
   \tilde\Lambda_{TD}(L)=\Big\{\bar p=(p_1,\ldots,p_N):\sum_{n=1}^{N} \alpha_n p_{n} \leq |\vec\alpha|_1 L\Big\},
 \end{equation}
-agagaag
+
 \begin{equation}
   \tilde\Lambda_\text{HC}(L)=\Big\{\bar p=(p_1,\cdots,p_N):\prod_{n=1}^N (p_n+1)^{\alpha_n} \leq
   (L+1)^{|\vec\alpha|_1} \Big\}
 \end{equation}
-As it is desirable to obtain the isotropic case from a reduction of the anisotropic cases, let's define the
-one-norm for the weights as
+As it is desirable to obtain the isotropic case from a reduction of the anisotropic cases, define the
+one-norm for the weights is defined as:
 \begin{equation}
   |\alpha|_1 = \frac{\sum_{n=1}^N \alpha_n}{N}.
 \end{equation}
@@ -1484,7 +1481,7 @@ sets are Tables \ref{tab:aniTD} (TD) and \ref{tab:aniHC} (HC).
     (1,0) & (1,1) & (1,2) &       & \\
     (0,0) & (0,1) & (0,2) & (0,3) & (0,4)
   \end{tabular}
-  \caption{Anisotropic Total Degree Index Set, $N=2,L=3$}
+  \caption{Anisotropic Total Degree Index Set, $N=2,L=3$.}
   \label{tab:aniTD}
 \end{table}
 
@@ -1494,7 +1491,7 @@ sets are Tables \ref{tab:aniTD} (TD) and \ref{tab:aniHC} (HC).
     (1,0) &       &       &       \\
     (0,0) & (0,1) & (0,2) & (0,3)
   \end{tabular}
-  \caption{Anisotropic Hyperbolic Cross Index Set, $N=2,L=3$}
+  \caption{Anisotropic Hyperbolic Cross Index Set, $N=2,L=3$.}
   \label{tab:aniHC}
 \end{table}
 
@@ -1509,9 +1506,9 @@ dimensions.
 
 \paragraph{Stochastic Collocation}\label{sec:stoch coll}
 Stochastic collocation is the process of using collocated points to approximate integrals of stochastic space
-numerically.  In particular let's consider using Gaussian quadratures (Legendre, Hermite, Laguerre, and Jacobi)
+numerically.  In particular consider using Gaussian quadratures (Legendre, Hermite, Laguerre, and Jacobi)
 corresponding to the polynomial expansion polynomials for numerical integration.  Quadrature integration takes
-the form
+the form:
 \begin{align}
   \int_a^b f(x)\rho(x) &= \sum_{\ell=1}^\infty w_\ell f(x_\ell),\\
   &\approx \sum_{\ell=1}^{\hat L} w_\ell f(x_\ell),
@@ -1527,13 +1524,13 @@ individual quadrature weights and points, and can be written
   Q^{(\vec{L})} &= q^{(\hat L_1)}_1 \otimes q^{(\hat L_2)}_2 \otimes \cdots,\\
                      &= \bigotimes_{n=1}^N q^{(\hat L_n)}_n.
 \end{align}
-It is worth noting each quadrature may have distinct points and weights; they need to not be constructed using
+It is worth noting that each quadrature may have distinct points and weights; they need to not be constructed using
 the same quadrature rule.
 In general, one-dimensional Gaussian
 quadrature excels in exactly integrating polynomials of order $2p-1$ using $p$ points and weights;
 equivalently, it requires $(p+1)/2$ points to integrate an order $p$ polynomial. 
  
-For convenience the coefficient integral to be evaluated is here reported again, Eq.
+For convenience, the coefficient integral to be evaluated is here reported again, Eq.
 \ref{eq:polycoeff}.
 \begin{equation}
   u_k = \langle u(Y)\Phi_k(Y) \rangle.
@@ -1549,7 +1546,7 @@ it is assumed a one-dimensional problem, which extrapolates as expected into the
   u_k &\approx q^{(\hat L)}[u(Y)\Phi_k(Y)],\\
       &= \sum_{\ell=1}^{\hat L} w_\ell u(Y_\ell)\Phi_k(Y_\ell).
 \end{align}
-In order to determine the quadrature order $\hat L$ needed to accurately integrate this expression, let's consider the
+To determine the quadrature order $\hat L$ needed to accurately integrate this expression, consider the
 gPC formulation for $u(Y)$ in Eq. \ref{eq:gPC} and replace it in the sum,
 \begin{equation}
   u_k\approx \sum_{\ell=1}^{\hat L} w_\ell \Phi_k(Y_\ell) \sum_{k\in\Lambda(L)}u_{\hat k}\Phi_{\hat k}(Y_\ell).
@@ -1559,7 +1556,7 @@ Using orthogonal properties of the polynomials, this reduces as $\hat L\to\infty
   u_k\approx \sum_{\ell=1}^{\hat L} w_\ell u_k \Phi_k(Y_\ell)^2.
 \end{equation}
 Thus, the integral, to the same error introduced by truncating the  gPC expansion, the quadrature is
-approximating an integral of order $2k$. As a result, the quadrature order should be order 
+approximating an integral of order $2k$. As a result, the quadrature order should be ordered: 
 \begin{equation}
   p=\frac{2k+1}{2}=k+\frac{1}{2}<k+1,
 \end{equation}
@@ -1587,7 +1584,7 @@ or
   Q^{(\Lambda(L))} = \bigotimes_{k\in\Lambda}Q^{(k)}.
 \end{equation}
 Smolyak sparse grids consolidate this tensor form by adding together the points from tensor products of subset
-quadrature sets.  Returning momentarily to a one-dimensional problem, let's introduce the notation
+quadrature sets.  Returning momentarily to a one-dimensional problem, introduce the notation
 \begin{equation}
   \Delta_k^{(\hat L)}[f(x)] \equiv (q_k^{(\hat L)} - q_{k-1}^{(\hat L)})[f(x)],
 \end{equation}
@@ -1624,7 +1621,7 @@ The goals of this section are about learning how to:
    \item Construct a GaussPolynomialRom surrogate model (training stage);
    \item Use the constructed GaussPolynomialRom surrogate model instead of the driven code.
 \end{enumerate}  
-In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in the input files) need to be defined:
+To accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in the input files) need to be defined:
 \begin{enumerate}
    \item \textbf{\textit{RunInfo}}:
 \begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
@@ -1637,7 +1634,7 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
 \end{lstlisting}   
    As reported in section~\ref{sub:EntitiesAndFlow}, the \textit{RunInfo} \textbf{Entity} is intended to set up the analysis 
    that the user wants to perform. In this specific case, four steps (\xmlNode{Sequence}) are going to be sequentially run 
-   using 12 processors (\xmlNode{batchSize}). 
+   using twelve processors (\xmlNode{batchSize}). 
    \item \textbf{\textit{Files}}:
 \begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
   <Files>
@@ -1716,25 +1713,25 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
 \end{lstlisting}
   In the Distributions XML section, the stochastic model for the 
   uncertainties  treated by the Sparse Grid Collocation sampling are reported. In 
-  this case 8 distributions are defined: 
+  this case eight distributions are defined: 
   \begin{itemize}
     \item $sigmaA \sim \mathbb{U}(6.9,8.1)$, used to model the uncertainty 
-    associated with  the Model \textit{sigma-A};
+    associated with  the Model \textit{sigma-A}
     \item $sigmaB \sim \mathbb{U}(3.9,5.1)$, used to model the uncertainty 
-    associated with  the Model \textit{sigma-B};
+    associated with  the Model \textit{sigma-B}
     \item $sigmaC \sim \mathbb{U}(1.9,3.1)$, used to model the uncertainty 
-    associated with  the Model \textit{sigma-C};
+    associated with  the Model \textit{sigma-C}
     \item $sigmaD \sim \mathbb{U}(0.9,1.1)$, used to model the uncertainty 
-    associated with  the Model \textit{sigma-D};
+    associated with  the Model \textit{sigma-D}
     \item  $decayConstantA \sim \mathbb{U}(3.8e-9,5.2e-9)$,  used to 
     model the uncertainty 
-    associated with  the Model \textit{decay-A}.
+    associated with  the Model \textit{decay-A}
     \item  $decayConstantB \sim \mathbb{U}(5.8e-9,7.2e-9)$,  used to 
     model the uncertainty 
-    associated with  the Model \textit{decay-B}.
+    associated with  the Model \textit{decay-B}
     \item  $decayConstantC \sim \mathbb{U}(6.8e-9,8.2e-9)$,  used to 
     model the uncertainty 
-    associated with  the Model \textit{decay-C}.
+    associated with  the Model \textit{decay-C}
     \item  $decayConstantD \sim \mathbb{U}(7.8e-9,9.2e-9)$,  used to 
     model the uncertainty 
     associated with  the Model \textit{decay-D}.
@@ -1799,7 +1796,7 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
     </HistorySet>
   </DataObjects>
 \end{lstlisting}
-  Int this block, four \textit{DataObjects} are defined: 1) PointSet named 
+  In this block, four \textit{DataObjects} are defined: 1) PointSet named 
   ``samples'' used to collect the final outcomes of the code, 2) HistorySet named ``histories'' in which the full time responses of the variables $A,B,C,D$ are going to be stored, 3) PointSet named    
   ``inputPlaceHolder'' used as input of the sampling applied on the constructed ROM and 4) PointSet named ``samplesROM'' used to collect the final outcomes of the ROM perturbations.
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1855,9 +1852,9 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
   \label{fig:samplesSparseGridPlotLine}
  \end{figure}
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-   Finally, all the previously defined \textbf{Entities} can be combined in 
+   Finally, the previously defined \textbf{Entities} can be combined in 
    the \xmlNode{Steps} block. As inferable, 
-   4 \xmlNode{Steps} have been inputted:
+   four \xmlNode{Steps} have been inputted:
    \begin{itemize}
      \item \xmlNode{MultiRun} named ``sample'', used to run the multiple  
      instances of the driven code and 
@@ -1865,8 +1862,8 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
      seen, the \xmlNode{Sampler} is inputted to communicate to the 
      \textit{Step} that the driven code needs to
      be perturbed through the Sparse Grid Collocation  sampling;
-     \item \xmlNode{RomTrainer} named ``Ntrain'', used to train (i.e. 
-     construct) the Gauss Polynomial ROM. This step is essential if the
+     \item \xmlNode{RomTrainer} named ``Ntrain'', used to train (i.e.,
+     construct) the GaussPolynomial ROM. This step is essential if the
      user want to use the ROM in later steps;
      \item \xmlNode{MultiRun} named ``sampleROM'', used to run the multiple  
      instances of the previously constructed ROM and 

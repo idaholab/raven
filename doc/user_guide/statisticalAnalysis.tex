@@ -2,44 +2,44 @@
 \label{sec:statisticalAnalysis}
 In order to perform a complete analysis of a system under uncertainties,
 it is crucial to be able to compute all the statistical moments of one or even multiple
-Figures of Merit (FOMs). In addition, it is essential to identify the correlation
+FOMs. In addition, it is essential to identify the correlation
 among different FOMs toward a specific input space. 
 
 RAVEN is able to compute the most important statistical moments:
 such as:
 \begin{enumerate}
-  \item \textit{Expected Value};
-  \item \textit{Standard Deviation};
-  \item \textit{Variance};
-  \item \textit{variationCoefficient}; 
-  \item \textit{Skewness};
-  \item \textit{Kurtosis};  
-  \item \textit{Median}; 
+  \item \textit{Expected Value}
+  \item \textit{Standard Deviation}
+  \item \textit{Variance}
+  \item \textit{variationCoefficient}
+  \item \textit{Skewness}
+  \item \textit{Kurtosis}
+  \item \textit{Median}
   \item \textit{Percentile}.
 \end{enumerate} 
-In addition, RAVEN fully supports the computation of all the statistical moments defined to
+In addition, RAVEN fully supports the computation of all of the statistical moments defined to
 ``measure'' the correlation among variables/parameters/FOMs:
 \begin{enumerate}
-  \item \textit{Covariance matrix};
-  \item \textit{Normalized Sensitivity  matrix};
-  \item \textit{Variance Dependent Sensitivity  matrix};
-  \item \textit{Sensitivity matrix}; 
+  \item \textit{Covariance matrix}
+  \item \textit{Normalized Sensitivity  matrix}
+  \item \textit{Variance Dependent Sensitivity  matrix}
+  \item \textit{Sensitivity matrix}
   \item \textit{Pearson matrix}.
 \end{enumerate} 
-In this section all of these features are analyzed, by showing the theory behind it
+In this section these features are analyzed, by showing the theory behind it
 using a set of RAVEN examples.
-\subsection{Statistical analysis theory}
-One of the most assessed way to investigate the impact of the intrinsic variation of the input space, is through the computation of 
+\subsection{Statistical Analysis Theory}
+One of the most assessed ways to investigate the impact of the intrinsic variation of the input space is through the computation of 
 statistical moments and linear correlation among variables/parameters/FOMs. 
 
-As shown in Section~\ref{sec:forwardSamplingStrategies}, RAVEN employs several different sampling methodologies in order to explore the response of a model subject to uncertainties. In order to correctly compute the statistical moments a weight-based approach is used. Each \textit{Sampler} in RAVEN associate to each ``sample'' (i.e.
+As shown in Section~\ref{sec:forwardSamplingStrategies}, RAVEN employs several different sampling methodologies to explore the response of a model subject to uncertainties. In order to correctly compute the statistical moments a weight-based approach is used. Each \textit{Sampler} in RAVEN associate to each ``sample'' (i.e.
 realization in the input/uncertain space) a \textbf{weight}  to represent the \textit{importance} of the particular
-combination of input values from a statistical point of view (e.g., reliability weights). These weights are used in sub-sequential
+combination of input values from a statistical point of view (e.g., reliability weights). These weights are used in subsequential
 steps in order to compute the previously listed statistical moments and correlation metrics.
-\\In the following sub-sections, the formulation of these statistical moments is reported.
+\\In the following subsections, the formulation of these statistical moments is reported.
 \subsubsection{Expected Value}
 The expected value represents one of the most fundamental metrics in probability theory: it represents a measurement of the center of the distribution (mean) of the random variable. 
-From a practical point of view, the expected value of a discrete random variable is the probability-weighted average of all possible values of the subjected variable. Formally, the expected value of a random variable $X$
+From a practical point of view, the expected value of a discrete random variable is the probability-weighted average of all possible values of the subjected variable. Formally, the expected value of a random variable $X$:
 \begin{equation}
 \begin{matrix}
 \mathbb{E}(X) = \mu = \sum_{x \in \chi} x  pdf_{X}(x) & \text{if  $X$  discrete} \\ 
@@ -57,8 +57,8 @@ In RAVEN, the expected value (i.e. first central moment) is computed as follows:
 \end{equation}
 where:
 \begin{itemize}
-  \item $w_{i}$ is the weight associated with the sample $i$;
-  \item $n$ are the total number of samples;
+  \item $w_{i}$ is the weight associated with the sample $i$
+  \item $n$ are the total number of samples
   \item $V_{1} = \sum_{i=1}^{n} w_{i}$.
 \end{itemize}
 \subsubsection{Standard Deviation and Variance}
@@ -75,7 +75,7 @@ The standard deviation is the square root of the variance. The standard deviatio
   \sigma(X)= \mathbb{E}\left(\left[X - \mathbb{E}(X)\right]\right)  = \sqrt{\sigma^{2}(X)}
   \end{matrix}
 \end{equation}
-In RAVEN, variance (i.e. second central moment) and standard deviation are computed as follows:
+In RAVEN, variance (i.e., second central moment) and standard deviation are computed as follows:
 \begin{equation}
 \begin{matrix}
 \mathbb{E}\left(\left[X - \mathbb{E}(X)\right]^{2}\right)  \approx  m_{2} = \frac{1}{n} \sum_{i=1}^{n}  (x_{i} - \overline{x})^{2} & \text{if  random sampling} \\ 
@@ -89,8 +89,8 @@ In RAVEN, variance (i.e. second central moment) and standard deviation are compu
 \end{equation}
 where:
 \begin{itemize}
-  \item $w_{i}$ is the weight associated with the sample $i$;
-  \item $n$ are the total number of samples;
+  \item $w_{i}$ is the weight associated with the sample $i$
+  \item $n$ are the total number of samples
   \item $V_{1} = \sum_{i=1}^{n} w_{i}$.
 \end{itemize}
 RAVEN performs an additional correction of variance to obtain an unbiased estimation  with respect to the sample-size~\cite{RimoldiniUnbiased}:
@@ -106,9 +106,9 @@ S = \sqrt{M_{2}}
 \end{equation}
 where:
 \begin{itemize}
-  \item $w_{i}$ is the weight associated with the sample $i$;
-  \item $n$ are the total number of samples;
-  \item $V_{1} = \sum_{i=1}^{n} w_{i}^{2}$;
+  \item $w_{i}$ is the weight associated with the sample $i$
+  \item $n$ are the total number of samples
+  \item $V_{1} = \sum_{i=1}^{n} w_{i}^{2}$.
 \end{itemize}
 It is important to notice that $S$ is not an unbiased estimator.
 
@@ -135,8 +135,8 @@ In RAVEN, the skewness is computed as follows:
 \end{equation}
 where:
 \begin{itemize}
-  \item $w_{i}$ is the weight associated with the sample $i$;
-  \item $n$ are the total number of samples;
+  \item $w_{i}$ is the weight associated with the sample $i$
+  \item $n$ are the total number of samples
   \item $V_{1} = \sum_{i=1}^{n} w_{i}$.
 \end{itemize}
 RAVEN performs an additional correction of skewness to obtain an unbiased estimation  with respect to the sample-size~\cite{RimoldiniUnbiased}:
@@ -150,10 +150,10 @@ RAVEN performs an additional correction of skewness to obtain an unbiased estima
 \end{equation}
 where:
 \begin{itemize}
-  \item $w_{i}$ is the weight associated with the sample $i$;
-  \item $n$ are the total number of samples;
-  \item $V_{1} = \sum_{i=1}^{n} w_{i}^{2}$;
-  \item $V_{2} = \sum_{i=1}^{n} w_{i}^{2}$;
+  \item $w_{i}$ is the weight associated with the sample $i$
+  \item $n$ are the total number of samples
+  \item $V_{1} = \sum_{i=1}^{n} w_{i}^{2}$
+  \item $V_{2} = \sum_{i=1}^{n} w_{i}^{2}$
   \item $V_{3} = \sum_{i=1}^{n} w_{i}^{3}$.
 \end{itemize}
 
@@ -176,8 +176,8 @@ In RAVEN, the kurtosis (excess) is computed as follows:
 \end{equation}
 where:
 \begin{itemize}
-  \item $w_{i}$ is the weight associated with the sample $i$;
-  \item $n$ are the total number of samples;
+  \item $w_{i}$ is the weight associated with the sample $i$
+  \item $n$ are the total number of samples
   \item $V_{1} = \sum_{i=1}^{n} w_{i}$.
 \end{itemize}
 RAVEN performs an additional correction of kurtosis (excess) to obtain an unbiased estimation  with respect to the sample-size~\cite{RimoldiniUnbiased}:
@@ -195,17 +195,17 @@ RAVEN performs an additional correction of kurtosis (excess) to obtain an unbias
 \end{equation}
 where:
 \begin{itemize}
-  \item $w_{i}$ is the weight associated with the sample $i$;
-  \item $n$ are the total number of samples;
-  \item $V_{1} = \sum_{i=1}^{n} w_{i}^{2}$;
-  \item $V_{2} = \sum_{i=1}^{n} w_{i}^{2}$;
-  \item $V_{3} = \sum_{i=1}^{n} w_{i}^{3}$;
+  \item $w_{i}$ is the weight associated with the sample $i$
+  \item $n$ are the total number of samples
+  \item $V_{1} = \sum_{i=1}^{n} w_{i}^{2}$
+  \item $V_{2} = \sum_{i=1}^{n} w_{i}^{2}$
+  \item $V_{3} = \sum_{i=1}^{n} w_{i}^{3}$
   \item $V_{4} = \sum_{i=1}^{n} w_{i}^{4}$.
 \end{itemize}
 
 \subsubsection{Median}
 The median of the distribution of a real-valued random variable is the number separating the higher half from the lower half of all
-the possible values. The median of a finite list of numbers can be found by arranging all the observations from lowest value to highest value and picking the middle one.
+the possible values. The median of a finite list of numbers can be found by arranging all the observations from lowest value to highest value and picking the middle value.
 \\Formally, the median $m$ can be cast as the number that satisfy the following relation:
 \begin{equation}
   P(X\leq m) = P(X \geq m) = \int_{-\infty}^{m} pdf(x) dx=\frac{1}{2}
@@ -214,12 +214,12 @@ the possible values. The median of a finite list of numbers can be found by arra
 \subsubsection{Percentile}
 A percentile (or a centile) is a measure indicating the value below which a given percentage of observations in a group of observations fall. 
 
-\subsubsection{Covariance and Correlation matrices}
+\subsubsection{Covariance and Correlation Matrices}
 Simplistically, the Covariance is a measure of how much two random variables variate together. In other words, It represents a 
 measurement of the correlation, in terms of variance,  among different variables. If the greater values of one variable mainly 
-correspond with the greater values of the other variable, and the same holds for the lesser values, i.e., the variables tend to show 
-similar behavior, the covariance is positive. In the opposite case, when the greater values of one variable mainly correspond to the 
-lesser values of the other, i.e., the variables tend to show opposite behavior, the covariance is negative. 
+correspond with the greater values of the other variable, and the same holds for the lesser values (i.e., the variables tend to show 
+similar behavior) the covariance is positive. In the opposite case, when the greater values of one variable mainly correspond to the 
+lesser values of the other (i.e., the variables tend to show opposite behavior) the covariance is negative. 
 Formally, the Covariance can be expressed as
 \begin{equation}
  \boldsymbol{\Sigma}(\boldsymbol{X},\boldsymbol{Y})  = \mathbb{E} \left [ \left ( \boldsymbol{X}- \mathbb{E}\left [ \boldsymbol{X} \right ] \right ) \left ( \boldsymbol{Y}- \mathbb{E}\left [ \boldsymbol{Y} \right ] \right )^{T}\right ]
@@ -237,8 +237,8 @@ Based on the previous equation, in RAVEN each entry of the Covariance matrix is 
 \end{equation}
 where:
 \begin{itemize}
-  \item $w_{i}$ is the weight associated with the sample $i$;
-  \item $n$ are the total number of samples;
+  \item $w_{i}$ is the weight associated with the sample $i$
+  \item $n$ are the total number of samples
   \item $V_{1} = \sum_{i=1}^{n} w_{i}$.
 \end{itemize}
 The correlation matrix (Pearson product-moment correlation coefficient matrix) can be obtained through the Covariance matrix, as follows:
@@ -248,7 +248,7 @@ The correlation matrix (Pearson product-moment correlation coefficient matrix) c
 As it can be seen, The correlation between $X$ and $Y$ is the 
 covariance of the corresponding standard scores.
 
-\subsubsection{Variance Dependent Sensitivity matrix}
+\subsubsection{Variance-Dependent Sensitivity Matrix}
 The variance dependent sensitivity matrix is the matrix of the sensitivity 
 coefficients that show the relationship of the individual uncertainty 
 component to the standard deviation of the reported value for a test 
@@ -263,14 +263,14 @@ where:
   input space.
 \end{itemize}
 
-\subsection{Statistical analysis through RAVEN}
+\subsection{Statistical Analysis through RAVEN}
 \label{subsub:SAraven}
 The goals of this section is to show how to:
  \begin{enumerate}
    \item Set up a sampling strategy to perform a final statistical analysis 
    perturbing a driven code
    \item Compute all the statistical moments and correlation/covariance 
-   metrics
+   metrics.
 \end{enumerate}  
 In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in the input files) need to be defined:
 \begin{enumerate}
@@ -286,7 +286,7 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
   </RunInfo>
 \end{lstlisting}
    As shown in the other examples, the \textit{RunInfo} \textbf{Entity} is intended  to set up the desired analysis . In this specific case, two steps  (\xmlNode{Sequence}) are  sequentially run 
-   using 40 processors (\xmlNode{batchSize}). 
+   using forty processors (\xmlNode{batchSize}). 
    \\In the first step, the original physical model is sampled. The obtained results are  analyzed with the Statistical Post-Processor. 
    \item \textbf{\textit{Files}}:
 \begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
@@ -340,7 +340,7 @@ performed on all the variables/parameters used in this example ( $sigma-A,\,sigm
   this case 2 distributions are defined: 
   \begin{itemize}
     \item $sigma \sim \mathbb{U}(0,1000)$, used to model the uncertainties 
-    associated with  the Model \textit{sigma-A} and \textit{sigma-B};
+    associated with  the Model \textit{sigma-A} and \textit{sigma-B}
     \item  $decayConstant \sim \mathbb{U}(1e-8,1e-7)$,  used to 
     model the uncertainties 
     associated with  the Model \textit{decay-A} and \textit{decay-B}.
@@ -417,7 +417,7 @@ performed on all the variables/parameters used in this example ( $sigma-A,\,sigm
      collect the outputs in the two \textit{DataObjects}. As it can be
      seen, the \xmlNode{Sampler} is inputted to communicate to the 
      \textit{Step} that the driven code needs to
-     be perturbed through the Grid sampling strategy;
+     be perturbed through the Grid sampling strategy.
      \item \xmlNode{PostProcess} named ``statisticalAnalysisMC'', used
      compute all the statistical moments and FOMs based on the
      data obtained through the sampling strategy. As it can be noticed, 
@@ -426,14 +426,14 @@ performed on all the variables/parameters used in this example ( $sigma-A,\,sigm
    \end{itemize}
 \end{enumerate} 
 
-Tables \ref{ScalarMoments},\ref{covarianceComputed}, \ref{pearsonComputed},\ref{VarDepSensitivityComputed},\ref{SensitivityComputed} show all the results of the \textit{PostProcess} 
+Tables \ref{ScalarMoments}-\ref{SensitivityComputed} show all the results of the \textit{PostProcess} 
 step.
 
 
 \begin{landscape}
 \begin{table}[h!]
 \centering
-\caption{Computed Moments and Cumulants}
+\caption{Computed Moments and Cumulants.}
 \label{ScalarMoments}
 \begin{tabular}{|c|c|c|c|c|c|c|c|c|}
 \hline
@@ -451,7 +451,7 @@ step.
 \end{table}
 \begin{table}[h!]
 \centering
-\caption{Covariance matrix}
+\caption{Covariance matrix.}
 \label{covarianceComputed}
 \begin{tabular}{|c|c|c|c|c|c|c|c|c|}
 \hline
@@ -468,7 +468,7 @@ step.
 \end{table}
 \begin{table}[h!]
 \centering
-\caption{Correlation matrix}
+\caption{Correlation matrix.}
 \label{pearsonComputed}
 \begin{tabular}{|c|c|c|c|c|c|c|c|c|}
 \hline
@@ -485,7 +485,7 @@ step.
 \end{table}
 \begin{table}[h!]
 \centering
-\caption{Variance Dependent Sensitivity matrix}
+\caption{Variance Dependent Sensitivity matrix.}
 \label{VarDepSensitivityComputed}
 \begin{tabular}{|c|c|c|c|c|c|c|c|c|}
 \hline
@@ -502,7 +502,7 @@ step.
 \end{table}
 \begin{table}[h!]
 \centering
-\caption{Sensitivity matrix}
+\caption{Sensitivity matrix.}
 \label{SensitivityComputed}
 \begin{tabular}{|c|c|c|c|c|}
 \hline
