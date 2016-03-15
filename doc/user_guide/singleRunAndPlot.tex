@@ -14,14 +14,14 @@ As esaly inferable from the user manual (~\cite{RAVENuserManual}-Chapter ``OutSt
 \label{sub:SingleRunBasicPlots}
  In this section, the user can learn how to use RAVEN to run a single instance of a driven code, plotting and printing the 
  results.
- \\ The goals of this section are about learning how to:
+ \\ The goal of this section is to learn how to:
  \begin{enumerate}
    \item Set up a simple RAVEN input for running a driven code;
    \item Load the output of the code into the RAVEN DataObjects system;
    \item Print out what contained in the DataObjects;
    \item Generate basic plots of the code results.
 \end{enumerate}  
-In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in the input files) need to be defined:
+In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in the input files) are needed:
  \begin{enumerate}
    \item \textbf{\textit{RunInfo}}:
 \begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
@@ -31,7 +31,7 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
       <batchSize>1</batchSize>
     </RunInfo>   
 \end{lstlisting}   
-   As reported in section~\ref{sub:EntitiesAndFlow}, the \textit{RunInfo} \textbf{Entity} is intended to set up the analysis 
+   As reported in Section~\ref{sub:EntitiesAndFlow}, the \textit{RunInfo} \textbf{Entity} is intended to set up the analysis 
    that the user wants to perform. In this specific case, two steps (\xmlNode{Sequence}) are going to be sequentially run 
    using a single processor (\xmlNode{batchSize}).
    
@@ -41,7 +41,7 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
     <Input name="referenceInput.xml" type="input">referenceInput.xml</Input>
   </Files>
 \end{lstlisting}
-   Since the driven code uses a single input file, in this section the original input is placed. As detailed in the user manual
+   Since the driven code uses a single input file, in this section the original input is placed. As described in the user manual~\cite{}
    the attribute  \xmlAttr{name} represents the alias that is going to be used in all the other input blocks in order to 
    refer to this file.
    \item \textbf{\textit{Models}}:
@@ -58,9 +58,9 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
       </Code>
     <Models>
 \end{lstlisting}
-  As already mentioned, since the driven code already dumps its outputs in CSV format, there is no need to create
-  an ad-hoc code interface and the GenericCode interface can be directly used. Since the \textbf{AnalyticBateman} code
-  is written in python, it is necessary to specify that the code needs to be run pre-pending the expression ``python''. 
+  Since the driven code already dumps its outputs in CSV format, there is no need to create
+  an ad-hoc code interface and the GenericCode interface can be directly used. In additiom, since the \textbf{AnalyticBateman} code
+  is written in \texttt{Python}, it is necessary to specify that the code needs to be run pre-pending the expression ``\texttt{Python}''. 
    \item \textbf{\textit{DataObjects}}:
 \begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
   <DataObjects>
@@ -75,7 +75,7 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
   </DataObjects>
 \end{lstlisting}
   Int this block, two \textit{DataObjects} are defined: 1) PointSet named ``pointValues'', 2) HistorySet named ``history''.
-  As it can be noticed, a special keyword is inputted in the \xmlNode{Input} node. This keyword is used when a \textit{DataObjects}  \textbf{Entity} needs to be constructed without any linking with respect to the input space. Indeed, in 
+  Note that a special keyword is inputted in the \xmlNode{Input} node. This keyword is used when a \textit{DataObjects}  \textbf{Entity} needs to be constructed without any linking with respect to the input space. Indeed, in 
   this case, the model input space is not perturbed though a sampling strategies; the code is executed through the original
    input file   (``referenceInput.xml''). In the \xmlNode{Output} node all the requested variables are inputted.
    \item \textbf{\textit{OutStreamManager}}:   
@@ -138,7 +138,7 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
       When this objects get used, all the information contained in the linked  \textit{DataObjects} are going 
     to be dumped in CSV files (\xmlNode{type}).
     \item \textit{Plot}: a single \xmlNode{Plot} \textbf{Entity} is defined, containing the line plots of the 4 output variables 
-    ($A,B,C,D$) in the same figure. As it can be seen, this object is going to generate a PNG file and an interactive Plot on 
+    ($A,B,C,D$) in the same figure. This object is going to generate a PNG file and an interactive Plot on 
     the screen.
   \end{itemize}   
    \item \textbf{\textit{Steps}}:   
@@ -167,12 +167,12 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
   \label{fig:historyPlotLine}
  \end{figure}
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-   Finally, all the previously defined \textbf{Entities} can be combined in the \xmlNode{Steps} block. As inferable, 
+   Finally, all the previously defined \textbf{Entities} can be combined in the \xmlNode{Steps} block. Thus, 
    two \xmlNode{Steps} have been inputted:
    \begin{itemize}
      \item \xmlNode{SingleRun} named ``Single'', used to run the single instance of the driven code and collect 
      the outputs in the two \textit{DataObjects}. In addition, it can be seen that an additional object has been  
-     placed among the \xmlNode{Output}(s).Indeed, an  \textit{OutStreamManager} can be an \xmlNode{Output} in 
+     placed among the \xmlNode{Output}(s). Indeed, an  \textit{OutStreamManager} can be an \xmlNode{Output} in 
      any Step type (as long as the linked \textit{DataObjects} plays a whatever role in the Step);
      \item  \xmlNode{IOStep} named ``writeHistory'', used to 1) dump the ``history'' \textit{DataObjects} 
      \textbf{Entity} in a CSV file and 2) plot the data in the PNG file and on the screen.
@@ -218,12 +218,12 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
 
 
 \subsection{Single Run using the OutStream system to sub-plot and selectively print.}
-In this section, the user can learn how to use RAVEN to create sub-plots (multiple plots in the same figure) and 
+This section shows how to use RAVEN to create sub-plots (multiple plots in the same figure) and 
 how to select only some variable from the \textit{DataObjects} in the \textit{Print} OutStream.
  \\ The goals of this section are about learning how to:
  \begin{enumerate}
-   \item Print out what contained in the DataObjects, selecting only few variables;
-   \item Generate sub-plots (multiple plots in the same figure) of the code results.
+   \item Print out what contained in the DataObjects, selecting only few variables
+   \item Generate sub-plots (multiple plots in the same figure) of the code results
 \end{enumerate}  
 
 In order to accomplish these tasks, the \textit{OutStreamManager} \textbf{Entity} in the input defined in the previous section (~\ref{sub:SingleRunBasicPlots}) needs to be modified as follows:
@@ -303,10 +303,10 @@ In order to accomplish these tasks, the \textit{OutStreamManager} \textbf{Entity
         </actions>
     </Plot>
 \end{lstlisting}   
- As it can be noticed, the  \textit{Plot} \textbf{Entity} does not differ much with respect to the one in 
- section~\ref{sub:SingleRunBasicPlots}: 1) the additional sub-node \xmlNode{gridSpace}  has been added. 
+ Note that the  \textit{Plot} \textbf{Entity} does not differ much with respect to the one in 
+ Section~\ref{sub:SingleRunBasicPlots}: 1) the additional sub-node \xmlNode{gridSpace}  has been added. 
  This node is needed to define how the figure needs to be partitioned (discretization of the grid). In this case
- a 2 by 2 grid is requested. 2) in each \xmlNode{plot} the node \xmlNode{gridLocation} needs to be placed in 
+ a 2 by 2 grid is requested. 2) in each \xmlNode{plot} the node \xmlNode{gridLocation} is placed in 
  order to specify in which position the relative plot needs to be placed. For example, in the following grid 
  location, the relative plot is going to be placed at the bottom-right corner.
   \begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
@@ -316,7 +316,7 @@ In order to accomplish these tasks, the \textit{OutStreamManager} \textbf{Entity
    </gridLocation>
    \end{lstlisting}   
  \end{enumerate}
-The CSV tables generated by the \textit{Print} \textbf{Entities} are not reported, since the only differences with respect to the  tables~\ref{pointValuesVI.I} and \ref{historyVI.I} are related to the number of columns (variables)
+The CSV tables generated by the \textit{Print} \textbf{Entities} are not reported, since the only differences with respect to Tables~\ref{pointValuesVI.I} and \ref{historyVI.I} are related to the number of columns (variables)
 dumped out. 
 \\Figure~\ref{fig:historySubPlotLine} reports the 4 plots (4 variables) drawn in the same picture. 
  %figure history sublots
