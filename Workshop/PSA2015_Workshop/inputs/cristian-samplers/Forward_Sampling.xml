@@ -1,15 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Simulation debug="False">
+<Simulation verbosity="debug">
 
 
 <RunInfo>
     <WorkingDir>.</WorkingDir>
-    <Files>workshop_function.py,output_basicStatistics.csv</Files>
     <!--runGrid,runStratified,runDoE,OutstreamDoE,runMC,OutstreamMC,PP-->
     <Sequence>runGrid,runStratified,runDoE,OutstreamDoE,runMC,OutstreamMC,PP</Sequence>
     <batchSize>100</batchSize>
 </RunInfo>
 
+
+<Files>
+    <Input name="output_basicStatistics.csv"       type="">output_basicStatistics.csv</Input>
+</Files>
 
 <Distributions>
     <Normal name='x1_distrib'>
@@ -32,11 +35,11 @@
   <Grid name='GridSampler'>
     <variable name='x1' >
       <distribution>x1_distrib</distribution>
-      <grid type='CDF' lowerBound='0.0' construction='equal' steps='10'>0.1</grid>
+      <grid type='CDF' construction='equal' steps='10'>0.0 1.0</grid>
     </variable>
     <variable name='x2'>
       <distribution>x2_distrib</distribution>
-      <grid type='value' upperBound='0.9' construction='equal' steps='8'>0.1</grid>
+      <grid type='value' construction='equal' steps='8'>0 0.9</grid>
     </variable>
     <variable name='x3'>
       <distribution>x3_distrib</distribution>
@@ -46,15 +49,15 @@
   <Stratified name='StratifiedSampler'>
     <variable name='x1'>
       <distribution>x1_distrib</distribution>
-      <grid type='CDF' lowerBound='0.0' construction='equal' steps='500'>0.002</grid>
+      <grid type='CDF' construction='equal' steps='500'>0.0 1.0</grid>
     </variable>
     <variable name='x2'>
       <distribution>x2_distrib</distribution>
-      <grid type='CDF' upperBound='1.0' construction='equal' steps='500'>0.002</grid>
+      <grid type='CDF' construction='equal' steps='500'>0.0 1.0</grid>
     </variable>
     <variable name='x3'>
       <distribution>x3_distrib</distribution>
-      <grid type='value' lowerBound='1.0' construction='equal' steps='500'>0.006</grid>
+      <grid type='value' construction='equal' steps='500'>1.0 4.0</grid>
     </variable>
   </Stratified>
   <ResponseSurfaceDesign name='DoESampler'>
@@ -64,24 +67,15 @@
     </ResponseSurfaceDesignSettings>
     <variable name='x1' >
       <distribution >x1_distrib</distribution>
-      <boundaries type="CDF">
-        <lower>0</lower>
-        <upper>1</upper>
-      </boundaries>
+      <grid construction="custom" type="CDF">0.0 1.0</grid>
     </variable>
     <variable name='x2' >
       <distribution  >x2_distrib</distribution>
-      <boundaries type="value">
-        <lower>-5</lower>
-        <upper>7</upper>
-      </boundaries>
+      <grid construction="custom" type="value">-5 7</grid>
     </variable>
     <variable name='x3'>
       <distribution  >x3_distrib</distribution>
-      <boundaries type="CDF">
-        <lower>0.1</lower>
-        <upper>0.9</upper>
-      </boundaries>
+      <grid construction="custom" type="CDF">0.1 0.9</grid>
     </variable>
   </ResponseSurfaceDesign>
   <MonteCarlo name='MCsampler'>
@@ -124,14 +118,7 @@
 
 <Models>
   <ExternalModel name='PythonModule' subType='' ModuleToLoad='./workshop_model' >
-    <variable>x1</variable>
-    <variable>x2</variable>
-    <variable>x3</variable>
-    <variable>y1</variable>
-    <variable>y2</variable>
-    <variable>y3</variable>
-    <variable>y4</variable>
-    <variable>y5</variable>
+    <variables>x1,x2,x3,y1,y2,y3,y4,y5</variables>
   </ExternalModel>
   <PostProcessor name="StatisticsOutput" subType='BasicStatistics'>
     <what>all</what>
@@ -269,11 +256,6 @@
     </actions>
   </Plot>
 </OutStreamManager>
-
-
-
-
-
 </Simulation>
 
 
