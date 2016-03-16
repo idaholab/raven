@@ -3,14 +3,14 @@ SRCFILE = raven_user_guide
 #all: raven_user_guide.pdf
 all: tidy
 
-tidy: database_data.tex OutStreamSystem.tex sampler.tex existing_interfaces.tex ProbabilityDistributions.tex  step.tex functions.tex ravenStructure.tex Summary.tex introduction.tex raven_user_guide.tex model.tex runInfo.tex install.tex
+tidy: raven_user_guide.tex statisticalAnalysis.tex forwardSampling.tex singleRunAndPlot.tex adaptiveSampling.tex dataMining.tex reducedOrderModeling.tex ravenStructure.tex ravenOverview.tex introduction.tex manualStructure.tex manualFormats.tex HowToRun.tex
 
 	pdflatex $(SRCFILE).tex
 	bibtex $(SRCFILE)
 	pdflatex $(SRCFILE).tex
 	pdflatex $(SRCFILE).tex
 
-draft: database_data.tex OutStreamSystem.tex sampler.tex existing_interfaces.tex ProbabilityDistributions.tex  step.tex functions.tex ravenStructure.tex Summary.tex introduction.tex raven_user_guide.tex model.tex runInfo.tex install.tex
+draft: raven_user_guide.tex statisticalAnalysis.tex forwardSampling.tex singleRunAndPlot.tex adaptiveSampling.tex dataMining.tex reducedOrderModeling.tex ravenStructure.tex ravenOverview.tex introduction.tex manualStructure.tex manualFormats.tex HowToRun.tex
 
 	pdflatex "\def\DRAFT{1}\input{$(SRCFILE).tex}"
 	bibtex $(SRCFILE)
