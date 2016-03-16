@@ -10,6 +10,8 @@ fi
 SCRIPT_DIR=`(cd $SCRIPT_DIRNAME; pwd)`
 cd $SCRIPT_DIR
 
+rm -Rvf pdfs
+
 for DIR in user_manual qa_docs tests; do
     cd $DIR
     if make; then
@@ -21,7 +23,6 @@ for DIR in user_manual qa_docs tests; do
     cd $SCRIPT_DIR
 done
 
-rm -Rvf pdfs
 mkdir pdfs
 for DOC in qa_docs/raven_sdd.pdf qa_docs/test_plan.pdf qa_docs/requirements.pdf  user_manual/raven_user_manual.pdf tests/analytic_tests.pdf; do
     cp $DOC pdfs/
