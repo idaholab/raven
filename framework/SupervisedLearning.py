@@ -1018,8 +1018,8 @@ class HDMRRom(GaussPolynomialRom):
     for level in anovaByLevel.keys():
       for subset in anovaByLevel[level].keys():
         self.anova[subset] = {} #dictionary of subterms
-        for cut,sublist in anovaByLevel[level][subset].items():
-          for coeff,mult,idx in sublist:
+        for cut,subList in anovaByLevel[level][subset].items():
+          for coeff,mult,idx in subList:
             fullIdx = self.__fillIndexWithRef(cut,idx)
             if fullIdx not in self.anova[subset].keys():
               #small coeffs already removed
