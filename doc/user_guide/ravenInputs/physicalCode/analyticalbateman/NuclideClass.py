@@ -18,4 +18,4 @@ class NulclideClass():
         self.decayTargetIsotope = ''
         self.crossSection  = []
         self.crossSectionTargetIsotope = ''
-        
+

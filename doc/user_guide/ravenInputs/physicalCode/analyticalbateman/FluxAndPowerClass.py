@@ -32,13 +32,13 @@ class FluxAndPowerClass():
         if self.flux.get(groupID):
             return self.flux.get(groupID)
         else:
-            print('flux corresponding to groupID ' + str(groupID) + 'not found')        
+            print('flux corresponding to groupID ' + str(groupID) + 'not found')
     def returnFluxByGroupIdAndBuStep(self,groupID,BUStep):
         if self.flux.get(groupID):
             return self.flux.get(groupID)[BUStep-1]
         else:
             print('flux corresponding to groupID ' + str(groupID) + 'not found')
     def returnPowerHistoryByBuStep(self,BUStep):
-        return self.powerHistory[BUStep-1]   
-    
-    
+        return self.powerHistory[BUStep-1]
+
+
