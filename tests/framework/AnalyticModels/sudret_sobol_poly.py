@@ -3,7 +3,7 @@
 #***************************************
 # This test is used to compute the global sensitivities:
 # The analytic solution for 5 input variables is:
-# mean = 1.0, variance = 0.72*
+# mean = 1.0, variance = 0.728
 # S1 = S2 = S3 = 0.2747
 # S12 = S23 = S31 = 0.0549
 # S123 = 0.0110
