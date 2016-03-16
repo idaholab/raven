@@ -7,7 +7,7 @@ requirements.pdf : requirements.tex version.tex
 test_plan.pdf : test_plan.tex version.tex
 	pdflatex test_plan.tex
 
-raven_sdd.pdf : raven_sdd.tex raven_sdd.bib ravenOverview.tex ravenStructure.tex version.tex
+raven_sdd.pdf : raven_sdd.tex raven_sdd.bib ravenOverview.tex ravenStructure.tex version.tex ravenIntro.tex
 	pdflatex raven_sdd.tex
 	bibtex raven_sdd
 	pdflatex raven_sdd.tex
