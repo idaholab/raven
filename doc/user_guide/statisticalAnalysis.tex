@@ -304,15 +304,19 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
 \begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
   <Models>
     <Code name="testModel" subType="GenericCode">
-      <executable>../physicalCode/analyticalbateman/AnalyticalDplMain.py</executable>
+      <executable>
+     ../physicalCode/analyticalbateman/AnalyticalDplMain.py
+      </executable>
       <clargs arg="python" type="prepend"/>
       <clargs arg="" extension=".xml" type="input"/>
-      <clargs arg=" " extension=".csv" type="output"/>
+      <clargs arg="" extension=".csv" type="output"/>
       <prepend>python</prepend>
     </Code>
     <PostProcessor name="statisticalAnalysis" subType="BasicStatistics">
       <what>all</what>
-      <parameters>sigma-A,sigma-B,decay-A,decay-B,A,B,C,D</parameters>
+      <parameters>
+        sigma-A,sigma-B,decay-A,decay-B,A,B,C,D
+      </parameters>
     </PostProcessor>
   </Models>
 \end{lstlisting}

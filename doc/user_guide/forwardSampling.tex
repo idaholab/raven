@@ -130,7 +130,7 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
    <Models>
       <Code name="testModel" subType="GenericCode">
         <executable>
-          ../physicalCode/analyticalbateman/AnalyticalDplMain.py
+    ../physicalCode/analyticalbateman/AnalyticalDplMain.py
         </executable>
         <clargs arg="python" type="prepend"/>
         <clargs arg="" extension=".xml" type="input"/>
@@ -545,7 +545,7 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
    <Models>
       <Code name="testModel" subType="GenericCode">
         <executable>
-          ../physicalCode/analyticalbateman/AnalyticalDplMain.py
+    ../physicalCode/analyticalbateman/AnalyticalDplMain.py
         </executable>
         <clargs arg="python" type="prepend"/>
         <clargs arg="" extension=".xml" type="input"/>
@@ -957,7 +957,7 @@ To accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in 
    <Models>
       <Code name="testModel" subType="GenericCode">
         <executable>
-          ../physicalCode/analyticalbateman/AnalyticalDplMain.py
+    ../physicalCode/analyticalbateman/AnalyticalDplMain.py
         </executable>
         <clargs arg="python" type="prepend"/>
         <clargs arg="" extension=".xml" type="input"/>
@@ -1617,8 +1617,8 @@ analysis in an algorithmic manner is obtained.
 \label{subsub:SGcsamplingExample}
 The goals of this section are about learning how to:
  \begin{enumerate}
-   \item Set up a Sparse Grid Collocation sampling for the construction of a suitable surrogate model of a driven code;
-   \item Construct a GaussPolynomialRom surrogate model (training stage);
+   \item Set up a Sparse Grid Collocation sampling for the construction of a suitable surrogate model of a driven code
+   \item Construct a GaussPolynomialRom surrogate model (training stage)
    \item Use the constructed GaussPolynomialRom surrogate model instead of the driven code.
 \end{enumerate}  
 To accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in the input files) need to be defined:
@@ -1627,7 +1627,9 @@ To accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in 
 \begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
   <RunInfo>
     <JobName>ChapterVII-I/SparseGrid</JobName>
-    <Sequence>sample,Ntrain,sampleROM,writeHistories</Sequence>
+    <Sequence>
+      sample,Ntrain,sampleROM,writeHistories
+    </Sequence>
     <WorkingDir>ChapterVII-I/SparseGrid</WorkingDir>
     <batchSize>12</batchSize>
   </RunInfo>
@@ -1647,7 +1649,9 @@ To accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in 
 \begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
   <Models>
     <Code name="testModel" subType="GenericCode">
-      <executable>../physicalCode/analyticalbateman/AnalyticalDplMain.py</executable>
+      <executable>
+    ../physicalCode/analyticalbateman/AnalyticalDplMain.py
+      </executable>
       <clargs arg="python" type="prepend"/>
       <clargs arg="" extension=".xml" type="input"/>
       <clargs arg=" " extension=".csv" type="output"/>
@@ -1655,7 +1659,11 @@ To accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in 
     </Code>
     <ROM name="NROM" subType="GaussPolynomialRom">
         <Target>A,B,C,D</Target>
-        <Features>sigma-A,sigma-B,sigma-C,sigma-D,decay-A,decay-B,decay-C,decay-D</Features>
+        <Features>
+          sigma-A,sigma-B,sigma-C,
+          sigma-D,decay-A,decay-B,
+          decay-C,decay-D
+        </Features>
         <IndexSet>TotalDegree</IndexSet>
         <PolynomialOrder>3</PolynomialOrder>
         <Interpolation poly="Legendre" quad="Legendre">sigma-A</Interpolation>
@@ -1779,19 +1787,39 @@ To accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in 
 \begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
   <DataObjects>
     <PointSet name="inputPlaceHolder">
-      <Input>sigma-A,sigma-B,sigma-C,sigma-D,decay-A,decay-B,decay-C,decay-D</Input>
+      <Input>
+        sigma-A,sigma-B,
+        sigma-C,sigma-D,
+        decay-A,decay-B,decay-C,
+        decay-D
+      </Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="samples">
-      <Input>sigma-A,sigma-B,sigma-C,sigma-D,decay-A,decay-B,decay-C,decay-D</Input>
+      <Input>
+        sigma-A,sigma-B,
+        sigma-C,sigma-D,
+        decay-A,decay-B,decay-C,
+        decay-D
+      </Input>
       <Output>A,B,C,D,time</Output>
     </PointSet>
     <PointSet name="samplesROM">
-        <Input>sigma-A,sigma-B,sigma-C,sigma-D,decay-A,decay-B,decay-C,decay-D</Input>
+      <Input>
+        sigma-A,sigma-B,
+        sigma-C,sigma-D,
+        decay-A,decay-B,decay-C,
+        decay-D
+      </Input>
         <Output>A,B,C,D</Output>
     </PointSet>
     <HistorySet name="histories">
-        <Input>sigma-A,sigma-B,sigma-C,sigma-D,decay-A,decay-B,decay-C,decay-D</Input>
+      <Input>
+        sigma-A,sigma-B,
+        sigma-C,sigma-D,
+        decay-A,decay-B,decay-C,
+        decay-D
+      </Input>
         <Output>A,B,C,D,time</Output>
     </HistorySet>
   </DataObjects>
