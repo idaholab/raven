@@ -1,18 +1,18 @@
 \section{Forward Sampling Strategies}
 \label{sec:forwardSamplingStrategies}
 In order to perform UQ and dynamic
-probabilistic risk assessment (D-PRA),
+probabilistic risk assessment (DPRA),
 a sampling strategy needs to be employed. The sampling strategy aims to
 perturb the input space (domain of the uncertainties) to explore
 the response of a complex system in relation to selected FOMs. 
 \\The most widely used strategies to perform UQ and PRA are generally
 collected into the category that, in RAVEN, is called \textit{\textbf{Forward}} samplers. The \textit{\textbf{Forward}} sampler category collects all the strategies that perform the sampling of the input space without exploiting, through learning approaches, the information made available from the outcomes of evaluation previously performed (adaptive sampling) and the common system evolution (patterns) that different sampled calculations can generate in the phase space (Dynamic Event Tree). 
-\\As mentioned in Section~\ref{par:ForwardSamplers}, RAVEN has
+\\As mentioned in Section~\ref{susub:OverviewSamplers}, RAVEN has
 different \textit{\textbf{Forward}} samplers:
 \begin{itemize}
   \item \textit{Monte-Carlo}
   \item \textit{Grid-based}
-  \item \textit{Stratified} and its specialization, i.e.,\textit{Latin Hyper Cube}.
+  \item \textit{Stratified} and its specialization named \textit{Latin Hyper Cube}.
 \end{itemize}
 In addition, RAVEN posses advanced \textit{\textbf{Forward}} sampling strategies that:
 \begin{itemize}
@@ -1289,7 +1289,7 @@ To accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in 
 %%%%%%%%%%%%%%%%%%%%%%%%%
 
 \subsection{Sparse Grid Collocation}
-\label{sub:Stratified}
+\label{sub:SGC}
 The Sparse Grid Collocation sampler represents an advanced methodology to perform Uncertainty Quantification. They aim
 to explore the input space leveraging the information contained in the associated probability density functions. It builds on generic Grid sampling by selecting evaluation points based on characteristic quadratures as part of stochastic collocation for generalized polynomial chaos uncertainty quantification. In collocation an N-D grid is constructed, with each uncertain variable providing an axis. Along each axis, the points of evaluation correspond to quadrature points necessary to integrate polynomials. In the simplest (and most naive) case, a N-D tensor product of all possible combinations of points from each dimension’s quadrature is constructed as sampling points. The number of necessary samples can be reduced by employing Smolyak-like sparse grid algorithms, which use reduced combinations of polynomial orders to reduce the necessary sampling space.
 \\In this Section, a brief theoretical 
@@ -1362,7 +1362,7 @@ methods must be applied to numerically perform the integral.  While tools such a
 be used to evaluate the integral, the properties of Gaussian quadratures, because of the
 probability weights and domain, can be harnessed.  This stochastic collocation method is discussed in section \ref{sec:stoch
 coll}.
-\paragraph{Polynomial Index Set Construction}\label{sec:index sets}
+\paragraph{Polynomial Index Set Construction}\label{sec:indexSets}
 The main concern in expanding a function in interpolating multidimensional polynomials is choosing appropriate polynomials to
 make up the expansion.
 There are many generic ways by which a polynomial set can be constructed.  Here  three static

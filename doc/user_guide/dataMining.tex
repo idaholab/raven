@@ -122,7 +122,7 @@ The procedure to determine the centroids $\vec{\mu_{i}}$ of \emph{K} clusters ($
   \item Repeat Steps 2 and 3 until convergence is met (i.e., until a minima of the $\chi$ function is reached)
 \end{enumerate}
 
-\emph{K}-Means algorithm is one of the most popular and used methodologies also due to the fact that is very easy to implement and the computational time is directly proportional to the cardinality of data points (i.e., $\mathcal{O}(I)$ where \emph{I} is the number of data points). The main disadvantage is that the algorithm is sensitive to the choice of the initial partition and may converge to a local minimum of the error squared function~\cite{JainAlgor88}. Another disadvantage of this algorithm is that is only able to identify clusters having spherical or ellipsoidal geometry. Thus, \emph{K}-Means is not able to identify clusters of points having arbitrary shapes. Moreover, the number of cluster \emph{K} to be obtained is specified by the user prior the clustering process.
+\emph{K}-Means algorithm is one of the most popular and used methodologies also due to the fact that is very straightforward to implement and the computational time is directly proportional to the cardinality of data points (i.e., $\mathcal{O}(I)$ where \emph{I} is the number of data points). The main disadvantage is that the algorithm is sensitive to the choice of the initial partition and may converge to a local minimum of the error squared function~\cite{JainAlgor88}. Another disadvantage of this algorithm is that is only able to identify clusters having spherical or ellipsoidal geometry. Thus, \emph{K}-Means is not able to identify clusters of points having arbitrary shapes. Moreover, the number of cluster \emph{K} to be obtained is specified by the user prior the clustering process.
 
 %\subsubsection{Fuzzy C-Means}
 %\label{FuzzyCMeansn}
@@ -247,7 +247,7 @@ $S$.
 The eigenvectors that correspond to the largest eigenvalues (i.e., the principal components) can be used as a set of basis functions. Thus, the original space is reduced to the space spanned by a few eigenvectors.
 
 
-The algorithm is very easy to implement but, on the other hand, PCA is not able to identify non-linear correlations of more complex data sets.
+The algorithm is very straightforward to implement but, on the other hand, PCA is not able to identify non-linear correlations of more complex data sets.
 
 
 \subsubsection{Multidimensional Scaling (MDS)}

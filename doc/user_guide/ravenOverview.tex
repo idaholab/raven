@@ -1,5 +1,5 @@
 \section{RAVEN overview}
-RAVEN is a multi-purpose software framework designed to perform parametric and stochastic analysis based on the response of complex system codes. The initial development was designed to provide dynamic probabilistic risk analysis capabilities (DPRA) to the thermo-hydraulic code RELAP-7, currently under development
+RAVEN is a multi-purpose software framework designed to perform parametric and stochastic analysis based on the response of complex system codes. The initial development was designed to provide dynamic probabilistic risk analysis capabilities (DPRA) to the thermal-hydraulic code RELAP-7, currently under development
 at Idaho National Laboratory (INL). 
 
 Now, RAVEN is not only a framework to perform DPRA but it is a multi-purpose stochastic and uncertainty quantification platform, capable of communicating with any system code through the provided  Application Programming Interfaces (APIs). These APIs allow RAVEN to interact with any code as long as all the parameters that need to be perturbed are accessible through input files or via  \texttt{Python} interfaces. RAVEN is capable of investigating the system response as well as the input space using sampling schemes, such as Monte Carlo, Grid, Latin Hyper Cube. However, RAVEN strength is the set of system feature discovery capabilities. This section presents an overview of the software capabilities and their implementation schemes. 
@@ -63,13 +63,13 @@ Note that the standard inverse CDF approach cannot directly be employed. When mu
 
 \begin{figure}
   \centering
-  \includegraphics[width=0.5\textwidth]  {pics/NDimensionalDistributionExample.png}
+  \includegraphics[width=0.7\textwidth]  {pics/NDimensionalDistributionExample.png}
   \caption{2-D CDF, function of pressure and temperature.}
   \label{fig:NDDistributionExample}
 \end{figure}
 
 \subsubsection{Sampler}
-
+\label{susub:OverviewSamplers}
 The sampler is probably the most important entity in the RAVEN framework. Indeed, it performs the driving of the specific sampling strategy and, hence, determines the effectiveness of the analysis, from both an accuracy and computational point of view.  The samplers, that are available in RAVEN, can be categorized in three main classes:
 \begin{itemize}
  \item Forward
@@ -119,7 +119,7 @@ In the RAVEN framework, several different DET-based samplers are available:
 
 \begin{figure}
   \centering
-  \includegraphics[width=0.7\textwidth]  {pics/DETscheme.png}
+  \includegraphics[width=0.8\textwidth]  {pics/DETscheme.png}
   \caption{Dynamic Event Tree simulation pattern}
   \label{fig:DETschemeExample}
 \end{figure}
@@ -150,7 +150,7 @@ The \textit{Code} model represents the communication pipe between the RAVEN fram
 
 \begin{figure}
   \centering
-  \includegraphics[width=0.8\textwidth]  {pics/CodeInterfaceLocation.png}
+  \includegraphics[width=1\textwidth]  {pics/CodeInterfaceLocation.png}
   \caption{Code Interface Location.}
   \label{fig:CodeInterfaceLocation}
 \end{figure}
