@@ -1,9 +1,10 @@
 \section{RAVEN Concepts}
 \label{sec:RAVENconcept}
-After the brief overview of the RAVEN code, it is necessary to focus on the main concepts that are behind the design of the framework, overall focalizing to the following key subjects:
+After the brief overview of the RAVEN code, it is necessary to focus on the main concepts that are behind the
+design of the framework, overall focusing to the following key subjects:
 \begin{itemize}
     \item \textit{Mathematical Background}: Section ~\ref{sub:mathBackground} provides an description of the mathematical background of RAVEN, 
-     overall focalizing on the probabilistic dynamics;
+     overall focusing on the probabilistic dynamics;
     \item \textit{RAVEN entities}: Section ~\ref{sub:EntitiesAndFlow} is aimed to provide an overview on how the different objects in
     RAVEN can interact with each other, generating the user-dependent analysis flow;
     \item \textit{RAVEN input main components}: Section ~\ref{sub:InputStructure} provides a brief introduction of the input structure, introducing
@@ -64,7 +65,7 @@ justify this decision:
 \begin{itemize}
   \item the definition of signals is tight to the definition of the 
   control logic for each component and, therefore, relative rather than absolute in the 
-  overall system analysis. For example, it is possible the the \textit{signals} for a 
+  overall system analysis. For example, it is possible the \textit{signals} for a 
   component represent \textit{status} of another one, determining an in-unique 
   definition;
   \item the standard nomenclature becomes meaningless when this derivation is 
@@ -173,7 +174,7 @@ Eq.~\ref{eq:dThetaOverDT}, adding the initial conditions:
 At this point, each source of uncertainty or stochastic behavior is considered and progressively added in 
 Eq.~\ref{eq:dThetaOverDTWithBoundary}.
 For the scope of this derivation, it is convenient to split the phase space into \textit{continuous} (e.g. temperature,
-pressure, hentalpy, etc.) and discrete (e.g. status of components, such as operational and failure states) variables
+pressure, enthalpy, etc.) and discrete (e.g. status of components, such as operational and failure states) variables
 as follows: 
 \begin{itemize}
  \item $ \overline{\theta}^{c} \in \Phi \subseteq \mathbb{R}^{C}$, the set of continuous variables;
@@ -574,7 +575,7 @@ This system of equations is composed of four main terms that identify four diffe
 %
 \paragraph{Drift process}
 \label{sec:CKDrift}
-The drift process is defined by the Lioville’s equation:
+The drift process is defined by the Liouville’s equation:
 \begin{equation}
 \label{eq:lioville}
   \frac{\partial \, \Pi \left (\overline{\theta}^{c},t|\overline{\theta}^{c}_{0},t_{0}  \right ) }{\partial t} = \sum_{i}\frac{\partial }{\partial \overline{\theta}^{c}_{i}}\left ( A_{i}\left ( \overline{\theta}^{c},\overline{\theta}^{d},t \right ) \Pi \left (\overline{\theta}^{c},t|\overline{\theta}^{c}_{0},t_{0}  \right ) \right )
@@ -584,7 +585,8 @@ It is important to notice that this equation describes a completely deterministi
 \label{eq:determLioville}
    \frac{\partial \, \overline{\theta}^{c}\left ( t \right ) }{\partial t} = A_{i}\left ( \overline{\theta}^{c},\overline{\theta}^{d},t \right ) 
 \end{equation}
-If $\overline{\theta}^{c} \left (\overline{\theta}^{c}_{0},\overline{\theta}^{d},t  \right )$ is the solution of Eq.~\ref{eq:determLioville}, then then the solution of the Lioville's equation is:
+If $\overline{\theta}^{c} \left (\overline{\theta}^{c}_{0},\overline{\theta}^{d},t  \right )$ is the solution
+of Eq.~\ref{eq:determLioville}, then then the solution of the Liouville's equation is:
 \begin{equation}
 \label{eq:solLioville}
 \Pi \left (\overline{\theta}^{c},t|\overline{\theta}^{c}_{0},t_{0}  \right ) = \delta\left ( \overline{\theta}^{c} - \overline{\theta}^{c}\left ( \overline{\theta}^{c}_{0},\overline{\theta}^{d},t \right ) \right )
@@ -646,7 +648,7 @@ Transitions in the discrete space can occur in terms of jumps, then the formulat
 \mathcal{L}_{CK}^{d}\left ( \Pi \left (\overline{\theta}^{d},t|\overline{\theta}_{0}^{d},t_{0}  
 \right )  \right )
 \end{equation}
-is similar to the Master equation, recasted for a discrete phase space:
+is similar to the Master equation, recast for a discrete phase space:
 \begin{equation}
 \frac{\partial \, \Pi \left (\overline{\theta}^{d},t|\overline{\theta}^{d}_{0},t_{0}  \right ) }{\partial t} =  \sum_{i} \left (  W\left ( \overline{\theta}^{d}|
 \overline{\theta}^{d}_{i},\overline{\theta}^{c},t \right )\Pi \left (\overline{\theta}^{d}_{i},t|\overline{\theta}^{d}_{0},t_{0}  
