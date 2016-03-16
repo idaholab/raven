@@ -1,17 +1,18 @@
+LATEX_FLAGS=-interaction=nonstopmode
 
 all: requirements.pdf test_plan.pdf raven_sdd.pdf
 
 requirements.pdf : requirements.tex version.tex
-	pdflatex requirements.tex
+	pdflatex $(LATEX_FLAGS) requirements.tex
 
 test_plan.pdf : test_plan.tex version.tex
-	pdflatex test_plan.tex
+	pdflatex $(LATEX_FLAGS) test_plan.tex
 
 raven_sdd.pdf : raven_sdd.tex raven_sdd.bib ravenOverview.tex ravenStructure.tex version.tex ravenIntro.tex
-	pdflatex raven_sdd.tex
+	pdflatex $(LATEX_FLAGS) raven_sdd.tex
 	bibtex raven_sdd
-	pdflatex raven_sdd.tex
-	pdflatex raven_sdd.tex
+	pdflatex $(LATEX_FLAGS) raven_sdd.tex
+	pdflatex $(LATEX_FLAGS) raven_sdd.tex
 
 
 requirements.odt : requirements.tex version.tex
