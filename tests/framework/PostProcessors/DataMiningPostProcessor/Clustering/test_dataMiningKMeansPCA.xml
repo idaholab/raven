@@ -75,13 +75,11 @@
           <z>bisonData|Input|thermal_expansion</z>
           <noClusters>3</noClusters>
           <clusterLabels>bisonData|Output|KMeans1Labels</clusterLabels>
-          <kwargs>
-                    </kwargs>
+          <kwargs></kwargs>
         </plot>
         <xlabel>Power Scaling Factor</xlabel>
         <ylabel>Grain Radius Factor</ylabel>
-        <zlabel>Thermal Expansion
-Factor</zlabel>
+        <zlabel>Thermal Expansion Factor</zlabel>
       </plotSettings>
       <actions>
         <how>png</how>

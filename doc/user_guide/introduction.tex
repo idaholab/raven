@@ -1,0 +1,46 @@
+\section{Introduction}
+% High-level RAVEN description
+RAVEN~\cite{alfonsiMC} ~\cite{alfonsiPSA}~\cite{RAVENFY13}~\cite{ESREL2014} is a software framework that allows the user to perform parametric and stochastic
+analysis based on the response of complex system codes.
+The initial development was designed to provide dynamic probabilistic risk analysis
+capabilities (DPRA) to the thermal-hydraulic code RELAP-7~\cite{relap7FY12}, currently under development
+at Idaho National Laboratory (INL).
+Now, RAVEN is not only a framework to perform DPRA but it is a
+multi-purpose stochastic and uncertainty quantification platform, capable of communicating with any system code.
+
+The provided Application Programming
+Interfaces (APIs) allow RAVEN to interact with any code as long as all the parameters
+that need to be perturbed are accessible by input files or via python
+interfaces.
+RAVEN is capable of investigating system response and explore input space using various
+sampling schemes such as Monte Carlo, grid, or Latin Hypercube.
+However, RAVEN strength lies in its system feature discovery capabilities such as: constructing
+limit surfaces, separating regions of the input space leading to system failure,
+and using dynamic supervised learning techniques.
+
+The development of RAVEN started in 2012 when, within the Nuclear Energy
+Advanced Modeling and Simulation (NEAMS) program~\cite{neams}, the need of a modern
+risk evaluation framework arose.
+RAVEN's principal assignment is to provide the necessary software and algorithms
+in order to employ the concepts developed by the Risk Informed Safety Margin
+Characterization (RISMC) Pathway.
+RISMC is one of the pathways defined within the Light Water Reactor
+Sustainability (LWRS) program~\cite{lwrs}.
+
+The goal of the RISMC approach is  the identification not only of the frequency of an
+event which can potentially lead to system failure, but also the proximity (or lack
+thereof) to key safety-related events: the safety margin.
+Hence, the approach is interested in identifying and increasing the safety
+margins related to those events.
+A safety margin is a numerical value quantifying the probability that a safety
+metric (e.g. peak pressure in a pipe) is exceeded under certain conditions.
+% Conclusion
+Most of the capabilities, implemented having Reactor Excursion and Leak Analysis Program v.7 
+(RELAP-7) as a principal focus, are
+easily deployable to other system codes.
+%
+For this reason, several side activates have been employed (e.g.  RELAP5-3D~\cite{RELAP5userManual}, any Multiphysics Object Oriented 
+Simulation Environment-based App, etc.)
+or are currently ongoing for coupling RAVEN with several different software.
+%
+The aim of this document is to provide a set of detailed examples that can help the user to become familiar with the RAVEN code and to understand the theory behind key concepts.
