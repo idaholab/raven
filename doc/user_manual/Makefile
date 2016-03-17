@@ -1,20 +1,21 @@
 SRCFILE = raven_user_manual
 MANUAL_FILES = database_data.tex OutStreamSystem.tex sampler.tex existing_interfaces.tex ProbabilityDistributions.tex  step.tex functions.tex ravenStructure.tex Summary.tex introduction.tex raven_user_manual.tex model.tex runInfo.tex install.tex version.tex
+LATEX_FLAGS=-interaction=nonstopmode
 
 #all: raven_user_manual.pdf
 all: tidy
 
 tidy: $(MANUAL_FILES)
-	pdflatex $(SRCFILE).tex
+	pdflatex $(LATEX_FLAGS) $(SRCFILE).tex
 	bibtex $(SRCFILE)
-	pdflatex $(SRCFILE).tex
-	pdflatex $(SRCFILE).tex
+	pdflatex $(LATEX_FLAGS) $(SRCFILE).tex
+	pdflatex $(LATEX_FLAGS) $(SRCFILE).tex
 
 draft: $(MANUAL_FILES)
-	pdflatex "\def\DRAFT{1}\input{$(SRCFILE).tex}"
+	pdflatex $(LATEX_FLAGS) "\def\DRAFT{1}\input{$(SRCFILE).tex}"
 	bibtex $(SRCFILE)
-	pdflatex "\def\DRAFT{1}\input{$(SRCFILE).tex}"
-	pdflatex "\def\DRAFT{1}\input{$(SRCFILE).tex}"
+	pdflatex $(LATEX_FLAGS) "\def\DRAFT{1}\input{$(SRCFILE).tex}"
+	pdflatex $(LATEX_FLAGS) "\def\DRAFT{1}\input{$(SRCFILE).tex}"
 
 .PHONY: clean
 

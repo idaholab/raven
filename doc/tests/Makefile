@@ -1,21 +1,22 @@
 SRCFILE = analytic_tests
+LATEX_FLAGS=-interaction=nonstopmode
 
 #all: raven_user_manual.pdf
 all: tidy
 
 tidy: analytic_tests.tex attenuate.tex tensor_poly.tex
 
-	pdflatex $(SRCFILE).tex
+	pdflatex $(LATEX_FLAGS) $(SRCFILE).tex
 	bibtex $(SRCFILE)
-	pdflatex $(SRCFILE).tex
-	pdflatex $(SRCFILE).tex
+	pdflatex $(LATEX_FLAGS) $(SRCFILE).tex
+	pdflatex $(LATEX_FLAGS) $(SRCFILE).tex
 
 draft: analytic_tests.tex attenuate.tex tensor_poly.tex
 
-	pdflatex "\def\DRAFT{1}\input{$(SRCFILE).tex}"
+	pdflatex $(LATEX_FLAGS) "\def\DRAFT{1}\input{$(SRCFILE).tex}"
 	bibtex $(SRCFILE)
-	pdflatex "\def\DRAFT{1}\input{$(SRCFILE).tex}"
-	pdflatex "\def\DRAFT{1}\input{$(SRCFILE).tex}"
+	pdflatex $(LATEX_FLAGS) "\def\DRAFT{1}\input{$(SRCFILE).tex}"
+	pdflatex $(LATEX_FLAGS) "\def\DRAFT{1}\input{$(SRCFILE).tex}"
 
 .PHONY: clean
 

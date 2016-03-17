@@ -11,3 +11,5 @@ new_version.tex
 *.toc
 doxygen/html/
 doxygen/latex/
+analytic_tests.pdf
+pdfs/
