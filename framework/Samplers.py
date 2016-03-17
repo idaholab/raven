@@ -4491,6 +4491,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     for s in self.useSet.keys():
       totvar += self.ROMs[target][s].__variance__()
     # TODO FIXME use actual sensitivity coefficients!
+    #  can I construct a fake version of myself?
     #avoid div by 0 error
     if totvar > 0:
       return self.ROMs[target][subset].__variance__()/totvar

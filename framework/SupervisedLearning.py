@@ -980,7 +980,15 @@ class HDMRRom(GaussPolynomialRom):
     @ In, None
     @ Out, None
     """
-    self.raiseADebug('Constructing ANOVA representation...')
+    self.raiseADebug('Constructing ANOVA terms...')
+    self.anova = {}
+    allFalse = tuple(False for _ in self.features)
+    for level,combos in enumerate(self.combos):
+      for subset in combos:
+
+
+
+
     integrals = {}
     for level, combos in enumerate(self.combos):
       #self.combos doesn't include the mean case
