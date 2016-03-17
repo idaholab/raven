@@ -1498,19 +1498,19 @@ Example:
   <DynamicEventTree name='DETname'>
     <variable name='var1'>
       <distribution>aDistributionNameDefinedInDistributionBlock1 </distribution>
-      <grid type='value' construction='equal' steps='100' lowerBound='1.0'>0.2</grid>
+      <grid type='value' construction='equal' steps='100' >1.0 201.0</grid>
     </variable>
     <variable name='var2'>
       <distribution>aDistributionNameDefinedInDistributionBlock2 </distribution>
-      <grid type='CDF' construction='equal' steps='5' lowerBound='0.0'>0.2</grid>
+      <grid type='CDF' construction='equal' steps='5'>0 1</grid>
     </variable>
     <variable name='var3'>
       <distribution>aDistributionNameDefinedInDistributionBlock3 </distribution>
-      <grid type='value' construction='equal' steps='100' upperBound='21.0'>0.2</grid>
+      <grid type='value' construction='equal' steps='10' >11.0 21.0</grid>
     </variable>
     <variable name='var4'>
       <distribution>aDistributionNameDefinedInDistributionBlock4 </distribution>
-      <grid type='CDF' construction='equal' steps='5' upperBound='1.0'>0.2</grid>
+      <grid type='CDF' construction='equal' steps='5' >0.0 1.0</grid>
     </variable>
     <variable name='var5'>
       <distribution>aDistributionNameDefinedInDistributionBlock5 </distribution>
