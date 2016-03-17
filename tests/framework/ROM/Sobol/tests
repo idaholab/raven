@@ -21,7 +21,7 @@
     input = 'test_sobol_sudret.xml'
     output = 'SobolAnalyticSudret/dump.xml'
     # dumprom is analytic test in mean, variance, and sensitivity indices
-    UnorderedXml = 'SobolAnalyticSudret/dumprom.xml'
+    UnorderedXml = 'SobolAnalyticSudret/dumprom.xml' #analytic, "Global Sobol Sensitivity: Sudret"
     # csv is consistency test
     csv = 'SobolAnalyticSudret/dump.csv'
   [../]
@@ -30,7 +30,7 @@
     input = 'test_sobol_ishigami.xml'
     output = 'SobolIshigami/dump.xml'
     # dumprom is analytic, but does not converge well on the true solution until poly order 9
-    UnorderedXml = 'SobolIshigami/dumprom.xml'
+    UnorderedXml = 'SobolIshigami/dumprom.xml' #analytic, "Global Sobol Sensitivity: Ishigami"
     # csv is consistency test
     csv = 'SobolIshigami/dump.csv'
   [../]
@@ -39,7 +39,7 @@
     input = 'test_sobol_gfunc.xml'
     output = 'SobolGFunc/dump.xml'
     # dumprom is analytic, but does not converge well on the true solution until at least poly order 4
-    UnorderedXml = 'SobolGFunc/dumprom.xml'
+    UnorderedXml = 'SobolGFunc/dumprom.xml' #analytic, "Sobol G-Function"
     # csv is consistency test
     UnorderedCsv = 'SobolGFunc/dump.csv'
   [../]
@@ -47,7 +47,7 @@
     type = 'RavenFramework'
     input = 'test_anova_cut.xml'
     # mean, variance, Sobol sensitivity indices are all analytic in dumprom.xml
-    UnorderedXml = 'AnovaCut/dumprom.xml'
+    UnorderedXml = 'AnovaCut/dumprom.xml' #analytic, "Second-Order ANOVA of Second-Order Cut-HDMR Expansion of Sudret"
   [../]
 
   # adaptive tests
