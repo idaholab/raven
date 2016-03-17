@@ -1,28 +1,34 @@
 <?xml version="1.0" ?>
-<Simulation>
+<Simulation verbosity="debug" color='true'>
   <RunInfo>
-    <WorkingDir>Sobol</WorkingDir>
-    <Sequence>make,print</Sequence>
+    <WorkingDir>SobolIshigami</WorkingDir>
+    <Sequence>make,train,print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
   <Steps>
-    <MultiRun name="make" pauseAtEnd="false">
+    <MultiRun name="make" pauseAtEnd="False">
       <Input class="DataObjects" type="PointSet">dummyIN</Input>
-      <Model class="Models" type="Dummy">MyDummy</Model>
+      <Model class="Models" type="ExternalModel">poly</Model>
       <Sampler class="Samplers" type="Sobol">sobol</Sampler>
       <Output class="DataObjects" type="PointSet">solns</Output>
     </MultiRun>
     <IOStep name="print">
       <Input class="DataObjects" type="PointSet">solns</Input>
+      <Input class="Models" type="ROM">rom</Input>
       <Output class="OutStreamManager" type="Print">dump</Output>
+      <Output class="OutStreamManager" type="Print">dumprom</Output>
     </IOStep>
+    <RomTrainer name="train">
+      <Input class="DataObjects" type="PointSet">solns</Input>
+      <Output class="Models" type="ROM">rom</Output>
+    </RomTrainer>
   </Steps>
 
   <Distributions>
     <Uniform name="UniDist">
-      <lowerBound>1</lowerBound>
-      <upperBound>5</upperBound>
+      <lowerBound>-3.1415926535897932384626</lowerBound>
+      <upperBound>3.1415926535897932384626</upperBound>
     </Uniform>
   </Distributions>
 
@@ -37,44 +43,33 @@
       <variable name="x3">
         <distribution>UniDist</distribution>
       </variable>
-      <variable name="x4">
-        <distribution>UniDist</distribution>
-      </variable>
-      <variable name="x5">
-        <distribution>UniDist</distribution>
-      </variable>
-      <variable name="x6">
-        <distribution>UniDist</distribution>
-      </variable>
       <ROM class="Models" type="ROM">rom</ROM>
     </Sobol>
   </Samplers>
 
   <Models>
-    <Dummy name="MyDummy" subType=""/>
+    <Dummy name="MyDummy" print="True" subType=""/>
+    <ExternalModel ModuleToLoad="../../../AnalyticModels/ishigami" name="poly" subType="">
+      <variables>x1,x2,x3,ans</variables>
+    </ExternalModel>
     <ROM name="rom" subType="HDMRRom">
-      <SobolOrder>2</SobolOrder>
+      <SobolOrder>3</SobolOrder>
       <Target>ans</Target>
-      <Features>x1,x2,x3,x4,x5,x6</Features>
+      <Features>x1,x2,x3</Features>
+      <SparseGrid>tensor</SparseGrid>
       <IndexSet>TensorProduct</IndexSet>
-      <PolynomialOrder>1</PolynomialOrder>
-      <Interpolation poly="Legendre" quad="Legendre" weight="1">x1</Interpolation>
-      <Interpolation poly="Legendre" quad="Legendre" weight="1">x2</Interpolation>
-      <Interpolation poly="Legendre" quad="Legendre" weight="1">x3</Interpolation>
-      <Interpolation poly="Legendre" quad="Legendre" weight="1">x4</Interpolation>
-      <Interpolation poly="Legendre" quad="Legendre" weight="1">x5</Interpolation>
-      <Interpolation poly="Legendre" quad="Legendre" weight="1">x6</Interpolation>
+      <PolynomialOrder>2</PolynomialOrder>
     </ROM>
   </Models>
 
   <DataObjects>
     <PointSet name="dummyIN">
-      <Input>x1,x2,x3,x4,x5,x6</Input>
+      <Input>x1,x2,x3</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="solns">
-      <Input>x1,x2,x3,x4,x5,x6</Input>
-      <Output>OutputPlaceHolder</Output>
+      <Input>x1,x2,x3</Input>
+      <Output>ans</Output>
     </PointSet>
   </DataObjects>
 
@@ -82,6 +77,11 @@
     <Print name="dump">
       <type>csv</type>
       <source>solns</source>
+    </Print>
+    <Print name="dumprom">
+      <type>xml</type>
+      <source>rom</source>
+      <what>all</what>
     </Print>
   </OutStreamManager>
 

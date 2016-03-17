@@ -1,40 +1,40 @@
 <ReducedOrderModel>
   <ans>
     <mean>1.0296</mean>
-    <approx_variance>3.493306984</approx_variance>
-    <impacts>
-      <approx_tot_variance>3.493306984</approx_tot_variance>
+    <variance>3.493306984</variance>
+    <Sobol_indices>
+      <tot_variance>3.493306984</tot_variance>
       <variables>y2
-        <impact_param>0.413041695622</impact_param>
+        <index>0.413041695622</index>
       </variables>
       <variables>y1,y2
-        <impact_param>0.117487415644</impact_param>
+        <index>0.117487415644</index>
       </variables>
       <variables>y2,y4
-        <impact_param>0.103260423906</impact_param>
+        <index>0.103260423906</index>
       </variables>
       <variables>y1
-        <impact_param>0.0863172849627</impact_param>
+        <index>0.0863172849627</index>
       </variables>
       <variables>y2,y3
-        <impact_param>0.0853391933104</impact_param>
+        <index>0.0853391933104</index>
       </variables>
       <variables>y4
-        <impact_param>0.0758648012367</impact_param>
+        <index>0.0758648012367</index>
       </variables>
       <variables>y3
-        <impact_param>0.0626981828403</impact_param>
+        <index>0.0626981828403</index>
       </variables>
       <variables>y2,y5
-        <impact_param>0.0219963033172</impact_param>
+        <index>0.0219963033172</index>
       </variables>
       <variables>y1,y3
-        <impact_param>0.0178341497857</impact_param>
+        <index>0.0178341497857</index>
       </variables>
       <variables>y5
-        <impact_param>0.0161605493759</impact_param>
+        <index>0.0161605493759</index>
       </variables>
-    </impacts>
+    </Sobol_indices>
     <numRuns>41</numRuns>
   </ans>
 </ReducedOrderModel>

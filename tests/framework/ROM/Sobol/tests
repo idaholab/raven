@@ -1,38 +1,75 @@
 [Tests]
-  [./staticSobolRomSmolyak]
+   # sparse grid tests
+   [./staticSobolRomSmolyak]
+     type = 'RavenFramework'
+     input = 'test_sobol_rom.xml'
+     output = 'SobolSmolyak/dump.xml'
+     UnorderedXml = 'SobolSmolyak/dumprom.xml'
+     csv = 'SobolSmolyak/dump.csv'
+   [../]
+   [./staticSobolRomTensor]
+     type = 'RavenFramework'
+     input = 'test_sobol_tensor.xml'
+     output = 'SobolTensor/dump.xml'
+     UnorderedXml = 'SobolTensor/dumprom.xml'
+     csv = 'SobolTensor/dump.csv'
+   [../]
+
+  # analytic tests
+  [./sobolSudretAnalytic]
     type = 'RavenFramework'
-    input = 'test_sobol_rom.xml'
-    output = 'SobolSmolyak/dump.xml'
-    xml = 'SobolSmolyak/dumprom.xml'
-    csv = 'SobolSmolyak/dump.csv'
+    input = 'test_sobol_sudret.xml'
+    output = 'SobolAnalyticSudret/dump.xml'
+    # dumprom is analytic test in mean, variance, and sensitivity indices
+    UnorderedXml = 'SobolAnalyticSudret/dumprom.xml' #analytic, "Global Sobol Sensitivity: Sudret"
+    # csv is consistency test
+    csv = 'SobolAnalyticSudret/dump.csv'
   [../]
-  [./staticSobolRomTensor]
+  [./sobolIshigamiAnalytic]
     type = 'RavenFramework'
-    input = 'test_sobol_tensor.xml'
-    output = 'SobolTensor/dump.xml'
-    xml = 'SobolTensor/dumprom.xml'
-    csv = 'SobolTensor/dump.csv'
+    input = 'test_sobol_ishigami.xml'
+    output = 'SobolIshigami/dump.xml'
+    # dumprom is analytic, but does not converge well on the true solution until poly order 9
+    UnorderedXml = 'SobolIshigami/dumprom.xml' #analytic, "Global Sobol Sensitivity: Ishigami"
+    # csv is consistency test
+    csv = 'SobolIshigami/dump.csv'
+  [../]
+  [./sobolGFunction]
+    type = 'RavenFramework'
+    input = 'test_sobol_gfunc.xml'
+    output = 'SobolGFunc/dump.xml'
+    # dumprom is analytic, but does not converge well on the true solution until at least poly order 4
+    UnorderedXml = 'SobolGFunc/dumprom.xml' #analytic, "Sobol G-Function"
+    # csv is consistency test
+    UnorderedCsv = 'SobolGFunc/dump.csv'
+  [../]
+  [./AnovaOnCutHDMR]
+    type = 'RavenFramework'
+    input = 'test_anova_cut.xml'
+    # mean, variance, Sobol sensitivity indices are all analytic in dumprom.xml
+    UnorderedXml = 'AnovaCut/dumprom.xml' #analytic, "Second-Order ANOVA of Second-Order Cut-HDMR Expansion of Sudret"
   [../]
 
- [./AdaptiveSobol]
-  type = 'RavenFramework'
-  input = 'test_adapt_sobol.xml'
-  output = 'AdaptSobol/out_10.pk AdaptSobol/out_20.pk AdaptSobol/out_30.pk'
-  UnorderedXml = 'AdaptSobol/dumprom.xml AdaptSobol/out_10.xml AdaptSobol/out_20.xml AdaptSobol/out_30.xml'   
-  # dumprom.xml is analytic test for mean, variance
-  # out*xml are consistency checks for convergence process
-  UnorderedCsv = 'AdaptSobol/dump.csv'                                        #consistency, quadrature points and solns
- [../]
- [./AdaptiveSobolMaxRuns]
-  type = 'RavenFramework'
-  input = 'test_adapt_sobol_maxruns.xml'
-  xml = 'AdaptSobolMax/maxruns_dumprom.xml'       #analytic, "Attenuation"
-  UnorderedCsv = 'AdaptSobolMax/maxruns_dump.csv' #consistency
- [../]
- [./AdaptiveSobolParallel]
-  type = 'RavenFramework'
-  input = 'test_adapt_sobol_parallel.xml'
-  UnorderedXml = 'AdaptSobolParallel/par_dumprom.xml'           #analytic, "Attenuation"
-  UnorderedCsv = 'AdaptSobolParallel/par_dump.csv'     #consistency
+  # adaptive tests
+  [./AdaptiveSobol]
+   type = 'RavenFramework'
+   input = 'test_adapt_sobol.xml'
+   output = 'AdaptSobol/out_10.pk AdaptSobol/out_20.pk AdaptSobol/out_30.pk'
+   UnorderedXml = 'AdaptSobol/dumprom.xml AdaptSobol/out_10.xml AdaptSobol/out_20.xml AdaptSobol/out_30.xml'   
+   # dumprom.xml is analytic test for mean, variance
+   # out*xml are consistency checks for convergence process
+   UnorderedCsv = 'AdaptSobol/dump.csv'                                        #consistency, quadrature points and solns
   [../]
+  [./AdaptiveSobolMaxRuns]
+   type = 'RavenFramework'
+   input = 'test_adapt_sobol_maxruns.xml'
+   UnorderedXml = 'AdaptSobolMax/maxruns_dumprom.xml'       #analytic, "Attenuation"
+   UnorderedCsv = 'AdaptSobolMax/maxruns_dump.csv' #consistency
+  [../]
+  [./AdaptiveSobolParallel]
+   type = 'RavenFramework'
+   input = 'test_adapt_sobol_parallel.xml'
+   UnorderedXml = 'AdaptSobolParallel/par_dumprom.xml'           #analytic, "Attenuation"
+   UnorderedCsv = 'AdaptSobolParallel/par_dump.csv'     #consistency
+   [../]
 []
