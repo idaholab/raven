@@ -891,19 +891,17 @@ class HDMRRom(GaussPolynomialRom):
     return newpt
 
   def __fillIndexWithRef(self,combo,pt):
-    """Given a "combo" subset of the full input space and a partially-filled
+    """
+       Given a "combo" subset of the full input space and a partially-filled
        polynomial order index within that space, fills the rest of index with zeros.
        @ In, combo, tuple of strings, names of subset dimensions
        @ In, pt, list of floats, values of points in subset dimension
-       @ Out, newpt, full index in input dimension space on cut-hypervolume
+       @ Out, full index in input dimension space on cut-hypervolume
     """
-    #print('Expanding:',combo,pt,self.features)
     newpt=np.zeros(len(self.features),dtype=int)
-    #if combo == (): return tuple(newpt)
     for v,var in enumerate(self.features):
       if var in combo:
         newpt[v] = pt[combo.index(var)]
-    #print('  Arrived at:',newpt)
     return tuple(newpt)
 
   def __evaluateLocal__(self,featureVals):
@@ -993,7 +991,7 @@ class HDMRRom(GaussPolynomialRom):
         integrals[level][subset] = {}
         #integrate out everything but subset
         self._partialIntegrate(self.reducedTerms,subset,integrals[level][subset])
-    #subtract off contributing subsets (subsubsets)
+    #subtract off contributing subsets (subSubsets)
     anovaByLevel = {}
     for level in integrals.keys():
       anovaByLevel[level] = {}
@@ -1001,9 +999,9 @@ class HDMRRom(GaussPolynomialRom):
         anovaByLevel[level][subset] = dict(integrals[level][subset])
         #subtract subsubset terms
         for sublevel in range(level):
-          for subsubset in integrals[sublevel].keys():
-            if set(subsubset).issubset(set(subset)):
-              for cut,contrib in anovaByLevel[sublevel][subsubset].items():
+          for subSubset in integrals[sublevel].keys():
+            if set(subSubset).issubset(set(subset)):
+              for cut,contrib in anovaByLevel[sublevel][subSubset].items():
                 #if level == 2 and sublevel == 1:
                 if cut not in anovaByLevel[level][subset].keys():
                   anovaByLevel[level][subset][cut] = []
@@ -1020,8 +1018,8 @@ class HDMRRom(GaussPolynomialRom):
     for level in anovaByLevel.keys():
       for subset in anovaByLevel[level].keys():
         self.anova[subset] = {} #dictionary of subterms
-        for cut,sublist in anovaByLevel[level][subset].items():
-          for coeff,mult,idx in sublist:
+        for cut,subList in anovaByLevel[level][subset].items():
+          for coeff,mult,idx in subList:
             fullIdx = self.__fillIndexWithRef(cut,idx)
             if fullIdx not in self.anova[subset].keys():
               #small coeffs already removed
