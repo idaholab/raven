@@ -485,32 +485,32 @@ class GaussPolynomialRom(superVisedLearning):
       if 'all' in requests: requests = canDo
       for request in requests:
         request=request.strip()
-        newnode = TreeStructure.Node(request)
+        newNode = TreeStructure.Node(request)
         if   request.lower() in ['mean','expectedvalue']:
-          if self.mean == None: self.mean = self.__evaluateMoment__(1)
-          newnode.setText(self.mean)
+          if self.mean == None: self.mean = self.__mean__()
+          newNode.setText(self.mean)
         elif request.lower() in ['variance']:
-          if self.mean == None: self.mean = self.__evaluateMoment__(1)
-          newnode.setText(self.__evaluateMoment__(2) - self.mean*self.mean)
+          if self.mean == None: self.mean = self.__mean__()
+          newNode.setText(self.__variance__())
         elif request.lower() in ['numruns']:
-          if self.numRuns!=None: newnode.setText(self.numRuns)
-          else: newnode.setText(len(self.sparseGrid))
+          if self.numRuns!=None: newNode.setText(self.numRuns)
+          else: newNode.setText(len(self.sparseGrid))
         elif request.lower() in ['polycoeffs']:
-          vnode = TreeStructure.Node('inputVariables')
-          vnode.text = ','.join(self.features)
-          newnode.appendBranch(vnode)
+          vNode = TreeStructure.Node('inputVariables')
+          vNode.text = ','.join(self.features)
+          newNode.appendBranch(vNode)
           keys = self.polyCoeffDict.keys()
           keys.sort()
           for key in keys:
             cnode = TreeStructure.Node('_'+'_'.join(str(k) for k in key)+'_')
             cnode.setText(self.polyCoeffDict[key])
-            newnode.appendBranch(cnode)
+            newNode.appendBranch(cnode)
         elif request.lower() in ['indices']:
           indices,partials = self.getSensitivities()
           #provide variance
           varNode = TreeStructure.Node('tot_variance')
           varNode.setText(self.__variance__())
-          newnode.appendBranch(varNode)
+          newNode.appendBranch(varNode)
           #sort by value then alphanumeric
           entries = []
           for key in indices.keys():
@@ -527,11 +527,11 @@ class GaussPolynomialRom(superVisedLearning):
             vNode = TreeStructure.Node('Sobol_index')
             vNode.setText(entry[2])
             subNode.appendBranch(vNode)
-            newnode.appendBranch(subNode)
+            newNode.appendBranch(subNode)
         else:
           self.raiseAWarning('ROM does not know how to return '+request)
-          newnode.setText('not found')
-        node.appendBranch(newnode)
+          newNode.setText('not found')
+        node.appendBranch(newNode)
 
   def _localNormalizeData(self,values,names,feat):
     """Overwrites default normalization procedure.
@@ -797,63 +797,19 @@ class HDMRRom(GaussPolynomialRom):
       @ In, options, dict (optional), list of requests and options
       @ Out, None
     """
+    #inherit from GaussPolynomialRom
     if not self.amITrained: self.raiseAnError(RuntimeError,'ROM is not yet trained!')
     self.mean=None
-    canDo = ['mean','variance','indices','numRuns']
+    canDo = ['mean','variance','numRuns','indices']
     if 'what' in options.keys():
       requests = list(o.strip() for o in options['what'].split(','))
       if 'all' in requests: requests = canDo
-      for request in requests:
-        request=request.strip()
-        newNode = TreeStructure.Node(request)
-        if request.lower() in ['mean','expectedvalue']: newNode.setText(self.__mean__())
-        elif request.lower() in ['variance']:
-          newNode.setText(self.__variance__())
-          newNode.name = 'variance'
-        elif request.lower() in ['indices']:
-          pcts,totPct,totVar = self.getPercentSensitivities(returnTotal=True)
-          vNode = TreeStructure.Node('tot_variance')
-          vNode.setText(totVar)
-          newNode.appendBranch(vNode)
-          #split into two sets, significant and insignificant
-          entries = []
-          insig = []
-          for combo,sens in pcts.items():
-            if abs(sens)>1e-10:
-              entries.append((combo,sens))
-            else:
-              insig.append((combo,sens))
-          entries.sort(key=itemgetter(0))
-          entries.sort(key=lambda x: abs(x[1]),reverse=True)
-          insig.sort(key=itemgetter(0))
-          #trim (insignificat and less than zero) to zero
-          for e,entry in enumerate(insig):
-            if entry[1]<0:
-              insig[e] = (insig[e][0],0.0)
-          def addSensBranch(combo,sens):
-            """
-            Adds a sensitivity branch to the printed XML tree
-            @ In, combo, tuple(str), the subset dimensions
-            @ In, sens, float, the sensitivity
-            """
-            sNode = TreeStructure.Node('variables')
-            svNode = TreeStructure.Node('index')
-            svNode.setText(sens)
-            sNode.appendBranch(svNode)
-            sNode.setText(','.join(combo))
-            newNode.appendBranch(sNode)
-          # end method
-          for combo,sens in entries:
-            addSensBranch(combo,sens)
-          for combo,sens in insig:
-            addSensBranch(combo,sens)
-          newNode.name="Sobol_indices"
-        elif request.lower() in ['numruns']:
-          newNode.setText(self.numRuns)
-        else:
-          self.raiseAWarning('ROM does not know how to return '+request)
-          newNode.setText('not found')
-        node.appendBranch(newNode)
+      #protect against things SCgPC can do that HDMR can't
+      if 'polyCoeffs' in requests:
+        self.raiseAWarning('HDMRRom cannot currently print polynomial coefficients.  Skipping...')
+        requests.remove('polyCoeffs')
+      options['what'] = ','.join(requests)
+    GaussPolynomialRom._localPrintXML(self,node,options)
 
   def initialize(self,idict):
     """Initializes the instance.
@@ -1033,11 +989,11 @@ class HDMRRom(GaussPolynomialRom):
     @ In, None
     @ Out, None
     """
-    self.raiseADebug('Constructing ANOVA terms...')
-    self.anova = {}
-    allFalse = tuple(False for _ in self.features)
-    for level,combos in enumerate(self.combos):
-      for subset in combos:
+    #self.raiseADebug('Constructing ANOVA terms...')
+    #self.anova = {}
+    #allFalse = tuple(False for _ in self.features)
+    #for level,combos in enumerate(self.combos):
+    #  for subset in combos:
 
 
 
@@ -1180,43 +1136,24 @@ class HDMRRom(GaussPolynomialRom):
 
   def getSensitivities(self):
     """
-      Generates dictionary of Sobol indices for the requested levels.
+      Calculates the Sobol indices (percent partial variances) of the terms in this expansion.
       @ In, None
-      @ Out, self.sdx, dict{tuple(str):float}, sensitivity indices
+      @ Out, tuple(dict), Sobol indices and partial variances keyed by subset
     """
     self.raiseADebug('Calculating sensitivities...')
     maxLevel = max(list(len(combo) for combo in self.ROMs.keys()))
     self._getANOVATerms()
     # calculate partial variance contribution of each term in ANOVA
-    self.sdx = {}
     self.partialVariances = {}
     # need to consider all combinations of terms within each term
+    sumVar = 0.0
     for subset in self.anova.keys():
       self.partialVariances[subset] = sum(c*c for c in self.anova[subset].values())
-
-  def getPercentSensitivities(self,variance=None,returnTotal=False):
-    """Calculates percent sensitivities.
-    If variance specified, uses it as the bnechmark variance, otherwise uses ROM to calculate total variance approximately.
-    If returnTotal specified, also returns percent of total variance and the total variance value.
-    FIXME these are not Sobol sensitivity indices!  This can't be done this way with cut-HDMR.
-    @ In, variance, float to represent user-provided total variance
-    @ In, returnTotal, boolean to turn on returning total percent and total variance
-    @ Out, pcts, percent=based Sobol sensitivity indices
-    """
-    if self.partialVariances == None or len(self.partialVariances)<1:
-      self.getSensitivities()
-    sumVar = 0.0
+      sumVar += self.partialVariances[subset]
+    self.sdx = {}
     for subset,partialVariance in self.partialVariances.items():
-      sumVar += partialVariance
-    tot=0.0
-    self.sdx={}
-    for subset,partialVariance in self.partialVariances.items():
-      if subset == (): continue
-      self.sdx[subset]=partialVariance/sumVar
-      tot+=self.sdx[subset]
-    if returnTotal: return self.sdx,tot,sumVar
-    else: return self.sdx
-
+      self.sdx[subset] = partialVariance/sumVar
+    return (self.sdx,self.partialVariances)
 #
 #
 #
