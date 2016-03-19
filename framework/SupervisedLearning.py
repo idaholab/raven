@@ -479,7 +479,7 @@ class GaussPolynomialRom(superVisedLearning):
     """
     if not self.amITrained: self.raiseAnError(RuntimeError,'ROM is not yet trained!')
     self.mean=None
-    canDo = ['mean','variance','numRuns','polyCoeffs']
+    canDo = ['mean','variance','numRuns','polyCoeffs','indices']
     if 'what' in options.keys():
       requests = list(o.strip() for o in options['what'].split(','))
       if 'all' in requests: requests = canDo
@@ -505,6 +505,29 @@ class GaussPolynomialRom(superVisedLearning):
             cnode = TreeStructure.Node('_'+'_'.join(str(k) for k in key)+'_')
             cnode.setText(self.polyCoeffDict[key])
             newnode.appendBranch(cnode)
+        elif request.lower() in ['indices']:
+          indices,partials = self.getSensitivities()
+          #provide variance
+          varNode = TreeStructure.Node('tot_variance')
+          varNode.setText(self.__variance__())
+          newnode.appendBranch(varNode)
+          #sort by value then alphanumeric
+          entries = []
+          for key in indices.keys():
+            entries.append( (key,partials[key],indices[key]) )
+          entries.sort(key=itemgetter(0))
+          entries.sort(key=lambda x: abs(x[1]),reverse=True)
+          #add to tree
+          for entry in entries:
+            subNode = TreeStructure.Node('variables')
+            subNode.setText(entry[0])
+            vNode = TreeStructure.Node('partial_variance')
+            vNode.setText(entry[1])
+            subNode.appendBranch(vNode)
+            vNode = TreeStructure.Node('Sobol_index')
+            vNode.setText(entry[2])
+            subNode.appendBranch(vNode)
+            newnode.appendBranch(subNode)
         else:
           self.raiseAWarning('ROM does not know how to return '+request)
           newnode.setText('not found')
@@ -691,6 +714,36 @@ class GaussPolynomialRom(superVisedLearning):
     @ Out, None
     """
     return {}
+
+  def getSensitivities(self):
+    """
+      Calculates the Sobol indices (percent partial variances) of the terms in this expansion.
+      @ In, None
+      @ Out, tuple(dict), Sobol indices and partial variances keyed by subset
+    """
+    totVar = self.__variance__()
+    partials = {}
+    #calculate partial variances
+    self.raiseADebug('Calculating partial variances...')
+    for poly,coeff in self.polyCoeffDict.items():
+      #use poly to determine subset
+      boolRep = tuple(False if poly[i]==0 else True for i in range(len(poly)))
+      subset = []
+      for i,p in enumerate(boolRep):
+        if p:
+          subset.append(self.features[i])
+      # skip mean
+      if len(subset) < 1: continue
+      subset = tuple(subset)
+      if subset not in partials.keys():
+        partials[subset] = 0
+      partials[subset] += coeff*coeff
+    #calculate Sobol indices
+    indices = {}
+    for subset,partial in partials.items():
+      indices[subset] = partial / totVar
+    return (indices,partials)
+
 #
 #
 #

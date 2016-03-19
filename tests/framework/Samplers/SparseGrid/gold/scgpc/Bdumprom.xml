@@ -15,5 +15,20 @@
       <_2_1_>1.21972744405e-16</_2_1_>
       <_2_2_>0.0</_2_2_>
     </polyCoeffs>
+    <indices>
+      <tot_variance>0.0510204081633</tot_variance>
+      <variables>(u'x1',)
+        <partial_variance>0.0255102040816</partial_variance>
+        <Sobol_index>0.5</Sobol_index>
+      </variables>
+      <variables>(u'x2',)
+        <partial_variance>0.0255102040816</partial_variance>
+        <Sobol_index>0.5</Sobol_index>
+      </variables>
+      <variables>(u'x1', u'x2')
+        <partial_variance>1.01761076583e-31</partial_variance>
+        <Sobol_index>1.99451710102e-30</Sobol_index>
+      </variables>
+    </indices>
   </ans>
 </ReducedOrderModel>
