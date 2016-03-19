@@ -511,11 +511,10 @@ class GaussPolynomialRom(superVisedLearning):
           varNode = TreeStructure.Node('tot_variance')
           varNode.setText(self.__variance__())
           newNode.appendBranch(varNode)
-          #sort by value then alphanumeric
+          #sort by value
           entries = []
           for key in indices.keys():
-            entries.append( (key,partials[key],indices[key]) )
-          entries.sort(key=itemgetter(0))
+            entries.append( (','.join(key),partials[key],indices[key]) )
           entries.sort(key=lambda x: abs(x[1]),reverse=True)
           #add to tree
           for entry in entries:
@@ -727,11 +726,7 @@ class GaussPolynomialRom(superVisedLearning):
     self.raiseADebug('Calculating partial variances...')
     for poly,coeff in self.polyCoeffDict.items():
       #use poly to determine subset
-      boolRep = tuple(False if poly[i]==0 else True for i in range(len(poly)))
-      subset = []
-      for i,p in enumerate(boolRep):
-        if p:
-          subset.append(self.features[i])
+      subset = self._polyToSubset(poly)
       # skip mean
       if len(subset) < 1: continue
       subset = tuple(subset)
@@ -743,6 +738,19 @@ class GaussPolynomialRom(superVisedLearning):
     for subset,partial in partials.items():
       indices[subset] = partial / totVar
     return (indices,partials)
+
+  def _polyToSubset(self,poly):
+    """
+      Given a tuple with polynomial orders, returns the subset it belongs exclusively to
+      @ In, poly, tuple(int), polynomial index set entry
+      @ Out, tuple(str), subset
+    """
+    boolRep = tuple(False if poly[i]==0 else True for i in range(len(poly)))
+    subset = []
+    for i,p in enumerate(boolRep):
+      if p:
+        subset.append(self.features[i])
+    return tuple(subset)
 
 #
 #
@@ -983,120 +991,6 @@ class HDMRRom(GaussPolynomialRom):
     else:
       return self.ROMs[term].__evaluateMoment__(1)
 
-  def _getANOVATerms(self):
-    """
-    Converts cut-HDMR into ANOVA terms
-    @ In, None
-    @ Out, None
-    """
-    #self.raiseADebug('Constructing ANOVA terms...')
-    #self.anova = {}
-    #allFalse = tuple(False for _ in self.features)
-    #for level,combos in enumerate(self.combos):
-    #  for subset in combos:
-
-
-
-
-    integrals = {}
-    for level, combos in enumerate(self.combos):
-      #self.combos doesn't include the mean case
-      integrals[level] = {}
-      if level == 0:
-        integrals[level][()] = {():[(self.__mean__(),1,())]}
-      for subset in combos:
-        integrals[level][subset] = {}
-        #integrate out everything but subset
-        self._partialIntegrate(self.reducedTerms,subset,integrals[level][subset])
-    #subtract off contributing subsets (subSubsets)
-    anovaByLevel = {}
-    for level in integrals.keys():
-      anovaByLevel[level] = {}
-      for subset in integrals[level].keys():
-        anovaByLevel[level][subset] = dict(integrals[level][subset])
-        #subtract subsubset terms
-        for sublevel in range(level):
-          for subSubset in integrals[sublevel].keys():
-            if set(subSubset).issubset(set(subset)):
-              for cut,contrib in anovaByLevel[sublevel][subSubset].items():
-                #if level == 2 and sublevel == 1:
-                if cut not in anovaByLevel[level][subset].keys():
-                  anovaByLevel[level][subset][cut] = []
-                if type(contrib)==list:
-                  for c in contrib:
-                    anovaByLevel[level][subset][cut].append( (c[0],c[1]*-1,c[2]) )
-                else:
-                  anovaByLevel[level][subset][cut].append( (contrib[0],contrib[1]*-1,contrib[2]) )
-    #clear mean squared from variance
-    del anovaByLevel[0]
-    #collect terms of same index set (collect polynomial terms)
-    self.raiseADebug('collecting ANOVA terms...')
-    self.anova = {}
-    for level in anovaByLevel.keys():
-      for subset in anovaByLevel[level].keys():
-        self.anova[subset] = {} #dictionary of subterms
-        for cut,subList in anovaByLevel[level][subset].items():
-          for coeff,mult,idx in subList:
-            fullIdx = self.__fillIndexWithRef(cut,idx)
-            if fullIdx not in self.anova[subset].keys():
-              #small coeffs already removed
-              self.anova[subset][fullIdx] = coeff*mult
-            else:
-              #if the new sum is zero, clear it
-              self.anova[subset][fullIdx] += coeff*mult
-              if abs(self.anova[subset][fullIdx]) < 1e-12:
-                del self.anova[subset][fullIdx]
-
-  def _partialIntegrate(self,termDict,subset,storeDict):
-    """
-    Agebraically integrates with respect to all terms except those in subset, using gPC orthogonality
-    @ In, termDict, dict{string:int}, terms in integrand and multiplicity
-    @ In, subset, tuple(string), subsets not to integrate with respect to
-    @ In, storeDict, dict, dict in which results are placed, by term as list[(value,multiplicity,polynomial order tuple)]
-    @ Out, None
-    """
-    # comments will consider the case of integrating f(x,y) dx dy (x,y are integration variables)
-    # P_i(s) are orthonormal polynomials of order i with argument s
-    # gPC would be given as sum_k c_k P_i(x) P_j(y) with k=(i,j)
-    # int( f(x) ) dx indicated integrating f(x) w.r.t. x weighted by the appropriate PDF so that int( 1 ) dx = 1
-    debug = False # left for future debug work
-    for term,mult in termDict.items():
-      wrt = set(set(self.features) - set(subset))
-      varInWRT = set(term) & wrt
-      if debug: self.raiseADebug('| Integrating',term,'wrt',wrt)
-      ### CASE integrating with respect to all of elements in term
-      #     for example, int( sum_k c_k P_i(x) P_j(y) ) dx dy = c_(0,0)
-      if len(varInWRT) == len(term): #all variables in "term" are integration variables
-        if term not in storeDict.keys():
-          storeDict[term] = []
-        tup = tuple(list(0 for i in range(len(term))))
-        storeDict[term].append( (self._evaluateIntegral(term),mult,tup) )
-        if debug: self.raiseADebug('|   Expected Value Case:',self._evaluateIntegral(term))
-      else:
-        for termPoly,coeff in self.ROMs[term].polyCoeffDict.items():
-          if debug: self.raiseADebug('|      Integrating poly',termPoly)
-          ### CASE coeff is nearly zero, leave it out
-          if abs(coeff) < 1e-12: continue #TODO this could result in a speedup, but might not be worth accuracy
-          ### CASE any of k_t is nonzero for polynomials of integration variables, then integral is zero
-          #     for example, int( sum_k c_k P_i(x) P_j(y) ) dy dz = 0 for every j > 0
-          foundNonzeroIntegrated = False
-          for var in varInWRT:
-            idxInRom = self.ROMs[term].features.index(var)
-            if termPoly[idxInRom] > 0:
-              foundNonzeroIntegrated = True
-              break
-          if foundNonzeroIntegrated:
-            if debug: self.raiseADebug('|        Nonzero Poly Being Integrated!')
-            continue
-          ### CASE all the non-zero-order polynomials are with respect to non-integration variables
-          #     then after integrating, we have the non-integration polys as a function
-          #     for example, int( sum_k c_k P_i(x) P_0(y) ) dy = c_k P_i(x) for every i
-          #     BUT since we will be integrating the square of this later, we only store (coeff,mult), not the polynomial
-          if term not in storeDict.keys():
-            storeDict[term] = []
-          storeDict[term].append( (coeff,mult,termPoly) )
-          if debug: self.raiseADebug('|        Adding functional coeff term:',coeff)
-
   def _removeZeroTerms(self,d):
     """
     Removes keys from d that have zero value
@@ -1105,34 +999,9 @@ class HDMRRom(GaussPolynomialRom):
     """
     toRemove=[]
     for key,val in d.items():
-      if val == 0: toRemove.append(key)
+      if abs(val) < 1e-15: toRemove.append(key)
     for rem in toRemove:
       del d[rem]
-
-  def _evaluateSquareIntegral(self,terms):
-    """
-    Algebraically evaluates the integral of the square of the sum of terms listed in "terms" over the full domain.
-    @ In, terms, dict{ tuple(string):list[tuple(float,int,tuple(int))]}, subset:list[tuple(coefficient,multiplicity,source polynomial orders)]}
-    @ Out, float, value of integral of square
-    """
-    #tensor combinations
-    tot = 0
-    #mult = terms.values()[0][0][2]
-    for term in terms.keys():
-      pass
-    for sourceGPC1,polyTupleList1 in terms.items():
-      for sourceGPC2,polyTupleList2 in terms.items():
-        ### CASE: no overlapping variables, then only keep (0,0,...,0) polynomial coeff
-        ### CASE: some overlapping variables, then keep only identical indices
-        ### CASE: all overlapping variables, still keep only identical indices
-        # any way you look at it, only keep identical indices
-        for coeff1,mult1,oidx1 in polyTupleList1:
-          idx1 = self.__fillIndexWithRef(sourceGPC1,oidx1)
-          for coeff2,mult2,oidx2 in polyTupleList2:
-            idx2 = self.__fillIndexWithRef(sourceGPC2,oidx2)
-            if idx1 == idx2:
-              tot += coeff1*coeff2*mult1*mult2
-    return tot
 
   def getSensitivities(self):
     """
@@ -1140,20 +1009,34 @@ class HDMRRom(GaussPolynomialRom):
       @ In, None
       @ Out, tuple(dict), Sobol indices and partial variances keyed by subset
     """
-    self.raiseADebug('Calculating sensitivities...')
-    maxLevel = max(list(len(combo) for combo in self.ROMs.keys()))
-    self._getANOVATerms()
-    # calculate partial variance contribution of each term in ANOVA
+    if self.sdx is not None and self.partialVariances is not None:
+      return self.sdx,self.partialVariances
+    self.raiseADebug('Constructing ANOVA terms...')
+    #collect terms
+    terms = {}
+    allFalse = tuple(False for _ in self.features)
+    for subset,mult in self.reducedTerms.items():
+      #skip mean, since it will be subtracted off in the end
+      if subset == (): continue
+      for poly,coeff in self.ROMs[subset].polyCoeffDict.items():
+        #skip mean terms
+        if sum(poly) == 0: continue
+        poly = self.__fillIndexWithRef(subset,poly)
+        polySubset = self._polyToSubset(poly)
+        if polySubset not in terms.keys(): terms[polySubset] = {}
+        if poly not in terms[polySubset].keys(): terms[polySubset][poly] = 0
+        terms[polySubset][poly] += coeff*mult
+    #calculate partial variances
     self.partialVariances = {}
-    # need to consider all combinations of terms within each term
-    sumVar = 0.0
-    for subset in self.anova.keys():
-      self.partialVariances[subset] = sum(c*c for c in self.anova[subset].values())
-      sumVar += self.partialVariances[subset]
+    for subset in terms.keys():
+      self.partialVariances[subset] = sum(v*v for v in terms[subset].values())
+    #calculate indices
+    totVar = sum(self.partialVariances.values())
     self.sdx = {}
-    for subset,partialVariance in self.partialVariances.items():
-      self.sdx[subset] = partialVariance/sumVar
-    return (self.sdx,self.partialVariances)
+    for subset,value in self.partialVariances.items():
+      self.sdx[subset] = value / totVar
+    return self.sdx,self.partialVariances
+
 #
 #
 #
