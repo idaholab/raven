@@ -430,8 +430,13 @@ class GaussPolynomialRom(superVisedLearning):
     self.itpDict       = {}   #dict{varName: dict{attribName:value} }
     self.featv         = None  # list of feature variables
     self.targv         = None  # list of target variables
+    self.mean          = None
+    self.variance      = None
+    self.sdx           = None
+    self.partialVariances = None
     self.sparseGridType    = 'smolyak' #type of sparse quadrature to use,default smolyak
     self.sparseQuadOptions = ['smolyak','tensor'] # choice of sparse quadrature construction methods
+
 
     for key,val in kwargs.items():
       if key=='IndexSet':self.indexSetType = val
@@ -656,6 +661,14 @@ class GaussPolynomialRom(superVisedLearning):
       if round(val,11) !=0:
         data.append([idx,val])
     return data
+
+  def __mean__(self):
+    """
+      Returns the mean of the ROM.
+      @ In, None
+      @ Out, float, the mean
+    """
+    return self.__evaluateMoment__(1)
 
   def __variance__(self):
     """returns the variance of the ROM.

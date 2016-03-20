@@ -4487,16 +4487,24 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     if subset not in self.useSet.keys(): self.useSet[subset] = {}
     self.useSet[subset][target] = self.ROMs[target][subset]
     #compute the impact as the contribution to the variance
-    totvar = 0
-    for s in self.useSet.keys():
-      totvar += self.ROMs[target][s].__variance__()
+    #  do this by making a copy of the target ROM and calculating partial variances
+    copyShell = copy.deepcopy(self.ROM)
+    copyROM = copy.deepcopy(self.ROM.SupervisedEngine[target])
+    copyShell.SupervisedEngine = {target:copyROM}
+    self._finalizeROM(copyShell)
+    copyShell.train(self.solns)
+    sens,partVar = copyROM.getSensitivities()
+    return sens[subset]
+    #totvar = 0
+    #for s in self.useSet.keys():
+    #  totvar += self.ROMs[target][s].__variance__()
     # TODO FIXME use actual sensitivity coefficients!
     #  can I construct a fake version of myself?
     #avoid div by 0 error
-    if totvar > 0:
-      return self.ROMs[target][subset].__variance__()/totvar
-    else:
-      return self.ROMs[target][subset].__variance__()
+    #if totvar > 0:
+    #  return self.ROMs[target][subset].__variance__()/totvar
+    #else:
+    #  return self.ROMs[target][subset].__variance__()
 
   def _calcExpImpact(self,subset,target):
     """
