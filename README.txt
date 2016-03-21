@@ -28,14 +28,11 @@ for other system codes.
 
 Principal Investigator: Rabiti, Cristian (crisr)  
 
-Raven developers are:
+Raven copyright holders are:
 Alfonsi, Andrea (alfoa)
 Rabiti, Cristian (crisr)
 Mandelli, Diego (mandd)
 Cogliati, Joshua J (cogljj)
-Wang, Congjian (wangc)
-Maljovec, Daniel P (maljdan)
-Talbot, Paul W (talbpw)
 Kinoshita, Robert A (bobk)
 
 Past developers:
