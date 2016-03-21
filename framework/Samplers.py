@@ -4487,24 +4487,30 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     if subset not in self.useSet.keys(): self.useSet[subset] = {}
     self.useSet[subset][target] = self.ROMs[target][subset]
     #compute the impact as the contribution to the variance
-    #  do this by making a copy of the target ROM and calculating partial variances
-    copyShell = copy.deepcopy(self.ROM)
-    copyROM = copy.deepcopy(self.ROM.SupervisedEngine[target])
-    copyShell.SupervisedEngine = {target:copyROM}
-    self._finalizeROM(copyShell)
-    copyShell.train(self.solns)
-    sens,partVar = copyROM.getSensitivities()
-    return sens[subset]
-    #totvar = 0
-    #for s in self.useSet.keys():
-    #  totvar += self.ROMs[target][s].__variance__()
-    # TODO FIXME use actual sensitivity coefficients!
-    #  can I construct a fake version of myself?
+    ### SAVING for FUTURE: attempt at improving Adaptive Sobol algorithm.
+    # The problem is, until the (1,1,1,...,1) point is in the index set, it
+    # claims a sensitivity of 0 for that subset (rightfully so), but that leads
+    # into a problem searching unless you start with tensor [0,1] indices.
+    #copyShell = copy.deepcopy(self.ROM)
+    #copyShell.SupervisedEngine = {}
+    #for targ,rom in self.ROM.SupervisedEngine.items():
+    #  copyShell.SupervisedEngine[targ] = copy.deepcopy(rom)
+    #copyROM =  copyShell.SupervisedEngine[target]
+    #self._finalizeROM(rom=copyShell,include=[subset])
+    #copyShell.train(self.solns)
+    #sens,partVar = copyROM.getSensitivities()
+    #if subset not in sens.keys(): return 0 #TODO will this result in a bad search?
+    #TODO FIXME why is this not working, since I'm using "full" as the index set starter?
+    #return sens[subset]
+    ### END SAVING
+    totvar = 0
+    for s in self.useSet.keys():
+      totvar += self.ROMs[target][s].__variance__()
     #avoid div by 0 error
-    #if totvar > 0:
-    #  return self.ROMs[target][subset].__variance__()/totvar
-    #else:
-    #  return self.ROMs[target][subset].__variance__()
+    if totvar > 0:
+      return self.ROMs[target][subset].__variance__()/totvar
+    else:
+      return self.ROMs[target][subset].__variance__()
 
   def _calcExpImpact(self,subset,target):
     """
@@ -4591,10 +4597,11 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     #set up HDMRRom for training
     self._finalizeROM()
 
-  def _finalizeROM(self,rom=None):
+  def _finalizeROM(self,rom=None,include=[]):
     """
     Delivers necessary structures to the HDMRRom object
     @ In, rom, optional HDMRRom object, rom to finalize before training, defaults to target rom
+    @ In, include, optional list[str], subsets to optionally exclude from trimming
     @ Out, None
     """
     if rom == None: rom = self.ROM
@@ -4610,7 +4617,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
       initDict['ROMs'] = copy.deepcopy(self.ROMs[target])
       #remove unfinished subsets
       for subset in self.ROMs.values()[0]:
-        if subset not in self.useSet.keys():
+        if subset not in self.useSet.keys() and subset not in include:
           del initDict['ROMs'][subset]
       rom.SupervisedEngine[target].initialize(initDict)
 
@@ -4793,7 +4800,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
       imptDict[c] = self.importanceDict[c]
     #instantiate an adaptive index set for this ROM
     iset = IndexSets.returnInstance('AdaptiveSet',self)
-    iset.initialize(subset,imptDict,self.maxPolyOrder)
+    iset.initialize(subset,imptDict,self.maxPolyOrder,full=True)
     iset.verbosity=verbosity
     #instantiate a sparse grid quadrature
     self.SQs[subset] = Quadratures.returnInstance(self.sparseGridType,self)

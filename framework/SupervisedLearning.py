@@ -1023,6 +1023,7 @@ class HDMRRom(GaussPolynomialRom):
       @ Out, tuple(dict), Sobol indices and partial variances keyed by subset
     """
     if self.sdx is not None and self.partialVariances is not None:
+      self.raiseADebug('Using previously-constructed ANOVA terms...')
       return self.sdx,self.partialVariances
     self.raiseADebug('Constructing ANOVA terms...')
     #collect terms

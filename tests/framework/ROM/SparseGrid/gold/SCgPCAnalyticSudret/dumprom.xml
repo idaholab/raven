@@ -35,31 +35,31 @@
     </polyCoeffs>
     <indices>
       <tot_variance>0.728</tot_variance>
-      <variables>(u'x1',)
+      <variables>x1
         <partial_variance>0.2</partial_variance>
         <Sobol_index>0.274725274725</Sobol_index>
       </variables>
-      <variables>(u'x2',)
+      <variables>x2
         <partial_variance>0.2</partial_variance>
         <Sobol_index>0.274725274725</Sobol_index>
       </variables>
-      <variables>(u'x3',)
+      <variables>x3
         <partial_variance>0.2</partial_variance>
         <Sobol_index>0.274725274725</Sobol_index>
       </variables>
-      <variables>(u'x1', u'x2')
+      <variables>x1,x2
         <partial_variance>0.04</partial_variance>
         <Sobol_index>0.0549450549451</Sobol_index>
       </variables>
-      <variables>(u'x1', u'x3')
+      <variables>x1,x3
         <partial_variance>0.04</partial_variance>
         <Sobol_index>0.0549450549451</Sobol_index>
       </variables>
-      <variables>(u'x2', u'x3')
+      <variables>x2,x3
         <partial_variance>0.04</partial_variance>
         <Sobol_index>0.0549450549451</Sobol_index>
       </variables>
-      <variables>(u'x1', u'x2', u'x3')
+      <variables>x1,x2,x3
         <partial_variance>0.008</partial_variance>
         <Sobol_index>0.010989010989</Sobol_index>
       </variables>

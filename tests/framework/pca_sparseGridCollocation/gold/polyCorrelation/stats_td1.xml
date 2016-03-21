@@ -251,127 +251,127 @@
     </polyCoeffs>
     <indices>
       <tot_variance>6.28228023988</tot_variance>
-      <variables>(u'y1',)
+      <variables>y1
         <partial_variance>2.58273857248</partial_variance>
         <Sobol_index>0.411114829945</Sobol_index>
       </variables>
-      <variables>(u'y1', u'y3')
+      <variables>y1,y3
         <partial_variance>1.14906287581</partial_variance>
         <Sobol_index>0.182905383386</Sobol_index>
       </variables>
-      <variables>(u'y2',)
+      <variables>y2
         <partial_variance>0.858676318301</partial_variance>
         <Sobol_index>0.136682269099</Sobol_index>
       </variables>
-      <variables>(u'y3',)
+      <variables>y3
         <partial_variance>0.592077675759</partial_variance>
         <Sobol_index>0.0942456644962</Sobol_index>
       </variables>
-      <variables>(u'y2', u'y3')
+      <variables>y2,y3
         <partial_variance>0.432607111599</partial_variance>
         <Sobol_index>0.0688614794438</Sobol_index>
       </variables>
-      <variables>(u'y1', u'y2')
+      <variables>y1,y2
         <partial_variance>0.317782525539</partial_variance>
         <Sobol_index>0.0505839461796</Sobol_index>
       </variables>
-      <variables>(u'y4',)
+      <variables>y4
         <partial_variance>0.0872476823636</partial_variance>
         <Sobol_index>0.0138879004171</Sobol_index>
       </variables>
-      <variables>(u'y1', u'y4')
+      <variables>y1,y4
         <partial_variance>0.0771864543859</partial_variance>
         <Sobol_index>0.0122863755577</Sobol_index>
       </variables>
-      <variables>(u'y1', u'y2', u'y3')
+      <variables>y1,y2,y3
         <partial_variance>0.0702742949829</partial_variance>
         <Sobol_index>0.0111861127329</Sobol_index>
       </variables>
-      <variables>(u'y2', u'y4')
+      <variables>y2,y4
         <partial_variance>0.0251085102907</partial_variance>
         <Sobol_index>0.00399671923759</Sobol_index>
       </variables>
-      <variables>(u'y1', u'y2', u'y4')
+      <variables>y1,y2,y4
         <partial_variance>0.0170172646866</partial_variance>
         <Sobol_index>0.00270877198037</Sobol_index>
       </variables>
-      <variables>(u'y1', u'y5')
+      <variables>y1,y5
         <partial_variance>0.0148143777374</partial_variance>
         <Sobol_index>0.0023581211235</Sobol_index>
       </variables>
-      <variables>(u'y1', u'y3', u'y4')
+      <variables>y1,y3,y4
         <partial_variance>0.0121215677907</partial_variance>
         <Sobol_index>0.00192948536643</Sobol_index>
       </variables>
-      <variables>(u'y3', u'y4')
+      <variables>y3,y4
         <partial_variance>0.0121196124068</partial_variance>
         <Sobol_index>0.00192917411259</Sobol_index>
       </variables>
-      <variables>(u'y5',)
+      <variables>y5
         <partial_variance>0.0108758201477</partial_variance>
         <Sobol_index>0.00173118990755</Sobol_index>
       </variables>
-      <variables>(u'y1', u'y3', u'y5')
+      <variables>y1,y3,y5
         <partial_variance>0.00667753861032</partial_variance>
         <Sobol_index>0.0010629163863</Sobol_index>
       </variables>
-      <variables>(u'y2', u'y5')
+      <variables>y2,y5
         <partial_variance>0.00493330326305</partial_variance>
         <Sobol_index>0.000785272715427</Sobol_index>
       </variables>
-      <variables>(u'y3', u'y5')
+      <variables>y3,y5
         <partial_variance>0.00336790118882</partial_variance>
         <Sobol_index>0.000536095344401</Sobol_index>
       </variables>
-      <variables>(u'y2', u'y3', u'y5')
+      <variables>y2,y3,y5
         <partial_variance>0.00254749131331</partial_variance>
         <Sobol_index>0.000405504246234</Sobol_index>
       </variables>
-      <variables>(u'y1', u'y2', u'y5')
+      <variables>y1,y2,y5
         <partial_variance>0.00177809189319</partial_variance>
         <Sobol_index>0.000283032883808</Sobol_index>
       </variables>
-      <variables>(u'y2', u'y3', u'y4')
+      <variables>y2,y3,y4
         <partial_variance>0.00132038710003</partial_variance>
         <Sobol_index>0.000210176408822</Sobol_index>
       </variables>
-      <variables>(u'y4', u'y5')
+      <variables>y4,y5
         <partial_variance>0.00052584816767</partial_variance>
         <Sobol_index>8.37033923337e-05</Sobol_index>
       </variables>
-      <variables>(u'y1', u'y4', u'y5')
+      <variables>y1,y4,y5
         <partial_variance>0.000472008939631</partial_variance>
         <Sobol_index>7.51333785835e-05</Sobol_index>
       </variables>
-      <variables>(u'y1', u'y2', u'y3', u'y5')
+      <variables>y1,y2,y3,y5
         <partial_variance>0.000407335577195</partial_variance>
         <Sobol_index>6.48388103747e-05</Sobol_index>
       </variables>
-      <variables>(u'y1', u'y2', u'y3', u'y4')
+      <variables>y1,y2,y3,y4
         <partial_variance>0.000156553336144</partial_variance>
         <Sobol_index>2.49198269046e-05</Sobol_index>
       </variables>
-      <variables>(u'y2', u'y4', u'y5')
+      <variables>y2,y4,y5
         <partial_variance>0.000151672046596</partial_variance>
         <Sobol_index>2.41428336216e-05</Sobol_index>
       </variables>
-      <variables>(u'y1', u'y2', u'y4', u'y5')
+      <variables>y1,y2,y4,y5
         <partial_variance>9.72673778947e-05</partial_variance>
         <Sobol_index>1.548281423e-05</Sobol_index>
       </variables>
-      <variables>(u'y1', u'y3', u'y4', u'y5')
+      <variables>y1,y3,y4,y5
         <partial_variance>6.34289105394e-05</partial_variance>
         <Sobol_index>1.0096479004e-05</Sobol_index>
       </variables>
-      <variables>(u'y3', u'y4', u'y5')
+      <variables>y3,y4,y5
         <partial_variance>6.30537320883e-05</partial_variance>
         <Sobol_index>1.00367588966e-05</Sobol_index>
       </variables>
-      <variables>(u'y2', u'y3', u'y4', u'y5')
+      <variables>y2,y3,y4,y5
         <partial_variance>6.98519773371e-06</partial_variance>
         <Sobol_index>1.11188891087e-06</Sobol_index>
       </variables>
-      <variables>(u'y1', u'y2', u'y3', u'y4', u'y5')
+      <variables>y1,y2,y3,y4,y5
         <partial_variance>7.08941109236e-07</partial_variance>
         <Sobol_index>1.12847737154e-07</Sobol_index>
       </variables>

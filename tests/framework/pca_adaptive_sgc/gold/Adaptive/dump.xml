@@ -16,15 +16,15 @@
     </polyCoeffs>
     <indices>
       <tot_variance>1.6465</tot_variance>
-      <variables>(u'y2',)
+      <variables>y2
         <partial_variance>1.1025</partial_variance>
         <Sobol_index>0.669602186456</Sobol_index>
       </variables>
-      <variables>(u'y1', u'y2')
+      <variables>y1,y2
         <partial_variance>0.3136</partial_variance>
         <Sobol_index>0.190464621925</Sobol_index>
       </variables>
-      <variables>(u'y1',)
+      <variables>y1
         <partial_variance>0.2304</partial_variance>
         <Sobol_index>0.139933191619</Sobol_index>
       </variables>
@@ -47,15 +47,15 @@
     </polyCoeffs>
     <indices>
       <tot_variance>5.671249</tot_variance>
-      <variables>(u'y2',)
+      <variables>y2
         <partial_variance>2.798929</partial_variance>
         <Sobol_index>0.493529555835</Sobol_index>
       </variables>
-      <variables>(u'y1', u'y2')
+      <variables>y1,y2
         <partial_variance>1.655808</partial_variance>
         <Sobol_index>0.291965314872</Sobol_index>
       </variables>
-      <variables>(u'y1',)
+      <variables>y1
         <partial_variance>1.216512</partial_variance>
         <Sobol_index>0.214505129293</Sobol_index>
       </variables>
