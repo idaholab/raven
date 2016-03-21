@@ -72,7 +72,7 @@ tests - The tests for the test harness (run by run_tests)
 work_in_progress - Extra code or examples that might be useful in the future.
 
 
-COPYING:
+COPYRIGHT:
 
 NOTICE: This computer software, “Risk Analysis Virtual ENvironment
 (RAVEN)”, was prepared by Battelle Energy Alliance, LLC, hereinafter
