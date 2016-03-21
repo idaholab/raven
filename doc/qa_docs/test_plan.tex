@@ -1,0 +1,289 @@
+\documentclass{article}
+\usepackage{hyperref}
+
+\title{RAVEN Test Plan-DRAFT}
+
+\begin{document}
+\maketitle
+
+\section{Test Scope}
+
+This document covers the various types of testing and reviews that are
+done on the RAVEN project. The two primary methods are the MOOSE
+regression testing system and the code reviews done on merge requests.
+
+\subsection{Automatic Testing}
+
+The MOOSE testing system allows dynamic tests to be run on the code
+that check that the expected behavior occurs.  This system is designed
+to be extendable, and RAVEN extends it with two types of tests.  The
+first test type simply runs a python program, and checks the exit code
+returned by \verb'sys.exit'.  The second run a RAVEN framework input
+file and checks the output files.
+
+In order to test on clusters, a script has been created that runs
+tests in a PBS environment to test the parallel implementation of the
+code.
+
+\subsection{Procedure Based Testing}
+
+The gitlab system allows for merge requests to be created and then
+commented on.  This allows for static testing to be done at that time.
+The system also shows the results of the regression tests and allows
+assessing the difference between the current version's source code and
+the new versions.
+
+\section{Test Objectives}
+
+The automatic tests have a variety of objectives.  First of all since
+they are run before any merge requests are approved, they catch
+changes in the expected behavior of the code from unexpected failures
+from differences in the code answers.  Second of all, the dynamic
+tests detect many changes in the underlying libraries or environments.
+Both of these help find potential issues close to when they first
+appear, instead of later when they are harder to find the cause of, or
+worse, by users.
+
+The static testing or reviews have somewhat different purposes.  Like
+the dynamic reviews they include the goal of finding potential
+issues. In addition, the reviews check that the code is documented and
+formatted according to the standard methods.  The reviews also check
+that the user documentation is updated.  These checks help find things
+that are not part of the dynamic code.
+
+\section{Types of Tests}
+
+\subsection{Code Reviews}
+
+Gitlab is the configuration management system used by RAVEN. In the
+gitlab system, merge requests can be created.  Git allows different
+branches of configurations that include source code and associated
+files like the build system and regression tests.  A merge request is
+where a developer proposes merging a branch of development onto the
+main development branch.
+
+When a developer makes the merge request, a second developer will then
+review the merge, by looking at the differences, running tests and
+otherwise reviewing it.  There are mandatory reviews required that are
+documented in the review checklist that is on the wiki.  After the
+second developer reviews the merge request, they document the
+results of their review, and then either accept the merge request, or
+explain why the merge request is not accepted.
+
+Sometimes during the review, the reviewer will fix things they find,
+and then add them to the merge request.  In this case, the fixes
+themselves need to be reviewed, so either the original developer can
+review them or a third developer can review them.  This preserves the
+requirement that changes be reviewed by someone besides the person
+that created the change.
+
+The review checklist includes reviewing all the new and changed code,
+documenting any input changes and following the coding standards.
+
+There is a stable version that does not typically have new features
+added.  This version is provided for users that value stability.
+Defect fixes that are created in the development version are
+considered for the stable version.  There is an extra review for merge
+requests in the stable version.
+
+If the review checklist needs to be changed, the new review checklist
+is proposed on the RAVEN development mailing list.  If there are no
+unresolved objections to the proposed changes, the review checklist is
+updated.
+
+\subsubsection{Development Merge Checklist}
+
+This and the other checklists are stored on \url{https://hpcgitlab.inl.gov/idaholab/raven/wikis/development-checklists}
+
+\begin{enumerate}
+\item    Review all computer code.
+\item    If any changes occur to the input syntax, there must be an accompanying change to the user manual and xsd schema. If the input syntax change deprecates existing input files, a conversion script needs to be added (see Conversion Scripts).
+\item    Make sure the Python code standards are respected (camelBack, etc.) - See in this page for details.
+\item    Tests should pass.
+\item    If significant functionality is added, there should be tests added to check this. Tests should cover all possible options. Multiple short tests are preferred over one large test.
+\item    All new functions and new classes should have comments. For C++ they should be in doxygen format, and for python they should be docstrings.
+\item    Tests should pass against the xsd schema and the schema should build.
+\item    If the manual is changed, it should build.
+\item    If there are changes to Simulation.py or JobHandler.py, check that the cluster tests pass.
+\item    If in the new development the internal jobhandeler parallel system is used, a cluster test must be added setting, in XML block, the node $<$internalParallel$>$ to True.
+\item If the change modifies or adds a requirement or a requirement based test case, the Change Control Board's Chair or designee also needs to approve the change. The requirements and the requirements test shall be in sync.
+\item The merge request must reference an issue. If the issue is closed, the issue close checklist shall be done.
+\end{enumerate}
+
+\subsubsection{Stable Merge Checklist}
+
+This checklist is for any merge requests to any stable branches.
+
+\begin{enumerate}
+\item  The regular merge checklist must pass on this merge request.
+\item  If this merge request changes input files, it must be discussed on the mailing list and agreed that this is needed on the stable branch.
+\item  If this merge request changes computer code not needed for fixing a defect, it must be discussed on the mailing list and agreed that this is needed on the stable branch.
+\item  Has this been properly adapted to stable? (For example, does documentation changes remove mention of features not on the stable branch.)
+\item  Explain why this is being added to stable:
+\end{enumerate}
+
+\subsection{Issue Reviews}
+
+In order to classify issues and to make sure that users are aware of
+errors, there are some reviews that are done on issues.  The initial
+issue review is done soon after the issue is created in the gitlab
+issue tracking system.  The issue close review is done when the issue
+is closed by a merge request or if the issue is closed manually.
+
+\subsubsection{Issue Review Checklist}
+
+This checklist is for initial adding of an issue.
+
+\begin{enumerate}
+\item  Is it tagged with a type: defect or improvement?
+\item  Is it tagged with a priority: critical, normal or minor?
+\item  If it will impact requirements or requirements tests, is it tagged with requirements?
+\item  If it is a defect, can it cause wrong results for users? If so an email needs to be sent to the users.
+\item  Is a rationale provided? (Such as explaining why the improvement is needed or why current code is wrong.)
+\end{enumerate}
+
+\subsubsection{Issue Close Checklist}
+
+This is for anytime an issue is closed.
+
+\begin{enumerate}
+\item  If the issue is a defect, is the defect fixed?
+\item  If the issue is a defect, is the defect tested for in the regression test system? (If not explain why not.)
+\item  If the issue can impact users, has a email to the users group been written (the email should specify if the defect impacts stable or master)?
+\item  If the issue is a defect, does it impact the latest stable branch? If yes, is there any issue tagged with stable (create if needed)?
+\item  If the issue is being closed without a merge request, has an explanation of why it is being closed been provided?
+\end{enumerate}
+
+
+\subsection{Regression Test System}
+
+%Cristian suggested that ``if
+%significant new functionality is created'' should be ``if
+%a new functionality is created''
+
+The MOOSE testing system allows tests to be run on the code that check
+that the expected behavior occurs.  RAVEN uses the MOOSE testing
+system to check for regressions.  As part of merge requests, if
+significant new functionality is created, the functionality needs to
+be tested by the regression test system.
+
+Besides the existing tests types available in the MOOSE testing
+system, RAVEN does three other kinds.  These are the RavenFramework
+tests, RavenPython tests, and cluster tests.
+
+\subsubsection{RavenFramework tests}
+
+RavenFramework tests are the most common tests used for testing
+RAVEN. They require a RAVEN framework input xml file, and they run and
+check that the expected output is created.  They can check that files
+are created, and they can also check that XML files and CSV files are
+generated and match expected files.
+
+They have the following options:
+
+\begin{description}
+    \item[input] The input file to use for this test.
+    \item[output] List of output files that the input should create.
+    \item[csv] List of csv files to check
+    \item[UnorderedCsv] List of unordered csv files to check
+    \item[xml] List of xml files to check
+    \item[UnorderedXml] List of unordered xml files to check
+    \item[xmlopts] Options for xml checking
+    \item[rel\_err] Relative Error for csv files or floats in xml ones
+    \item[required\_executable] Skip test if this executable is not found
+    \item[required\_libraries] Skip test if any of these libraries are not found
+    \item[skip\_if\_env] Skip test if this environmental variable is defined
+    \item[test\_interface\_only] Test the interface only (without running the driven code
+    \item[zero\_threshold] it represents the value below which a float is considered zero (XML comparison only)
+    \item[remove\_whitespace] Removes whitespace before comparing xml node text if True
+\end{description}
+
+\subsubsection{RavenPython tests}
+
+RavenPython tests run a python file, and then the test passes if it
+returns zero as the exit code (such as by exiting with
+\verb'sys.exit(0)' ).  These are used for unit tests.
+
+They have the following options:
+
+\begin{description}
+\item[input] The python file to use for this test.
+\item[python\_command] The command to use to run python.
+\item[requires\_swig2] If True requires swig2 for test.
+\end{description}
+
+\subsection{Cluster tests}
+
+%Cristian asks: ``Are those automatic NO/YES if NO frequency?''
+
+The cluster tests are tests that use RAVEN's ability to use qsub, mpi,
+and psbdsh to run code on clusters.
+
+They are run by going into the \verb'tests/cluster_tests' and running
+the script \verb'./test_qsubs.sh'
+
+To add a new test, the script needs to be modified to run the new
+test, and block until the run finishes or fails, and then check that
+the output passes.  For blocking on PBSPro, adding
+\verb'-W block=true' will wait until the job is run before returning.
+
+There is a bash function in \verb'test_qsubs.sh' that checks that a
+certain number of files have been created called \verb'wait_lines'
+that can be used.  If more detailed checking is used, it should
+increment the variable \verb'num_fails' if the check fails so the
+script knows that a failure occurred.  The other tests can be used as
+examples for creating new tests.
+
+There are two reasons that cluster tests can fail that are not related
+to actual failures in RAVEN.  The first is that there might not be
+enough resources available to run the tests, and so they timeout
+instead of running.  The second is that sometimes the disk propagation
+is so slow that even though the remote machine is done running, the
+data is not available on the head node.  Because of these issues
+rerunning the test is sometimes required.
+
+\subsection{Requirements Tests}
+
+Some of the tests check that the requirements are satisfied (The
+requirements are listed in ``RAVEN Requirements'' ( requirements.pdf
+)).  These are marked with the comment \verb'#REQUIREMENT_TEST' to show
+that they test a requirement.  These tests are also listed in the
+requirements document.
+
+These tests have special requirements for changing.  The merge request
+must be approved by the lead developer or the project manager.
+
+These tests are stored in the RAVEN gitlab repository, and the same
+git version can be used to retrieve both the tests and the
+requirements document.
+
+\section{Approval Requirements}
+
+Changing or adding a test needs to be reviewed by a second developer
+besides the one who changed or added the test.  Changing or adding a
+requirements test must be reviewed by one of the master developers in
+addition to a second developer.  The developers allowed to review
+merge requests and the master developers are listed on the team roles
+list:
+\url{https://hpcgitlab.inl.gov/idaholab/raven/wikis/team_and_roles}
+
+
+
+\section{Test Automation}
+
+Tools will be used to automate as many of the dynamic tests as
+possible.  The MOOSE testing framework will be used for automating as
+many as practical.  BASH or Python scripts will be used for others.
+The scripts for automation will be stored in the RAVEN, Crow or MOOSE
+source code repository.  The test parameters and expected output will
+be stored in the RAVEN or Crow source code repository. Some of the
+scripts that only run other scripts (such as the scripts that compile
+RAVEN and then run the testing scripts) will be stored in CIVET on
+moosebuild.inl.gov.  CIVET stores the results of the passing or
+failing of tests.
+
+\section*{Document Version Information}
+
+\input{version.tex}
+
+\end{document}

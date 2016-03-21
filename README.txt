@@ -33,11 +33,14 @@ Alfonsi, Andrea (alfoa)
 Rabiti, Cristian (crisr)
 Mandelli, Diego (mandd)
 Cogliati, Joshua J (cogljj)
-Sen, Ramazan S (senrs)
 Wang, Congjian (wangc)
 Maljovec, Daniel P (maljdan)
 Talbot, Paul W (talbpw)
 Kinoshita, Robert A (bobk)
+
+Past developers:
+Sen, Ramazan S (senrs)
+
 
 A list of other contributors can be obtained with the following command:
 ```git shortlog -sn```
@@ -69,7 +72,7 @@ tests - The tests for the test harness (run by run_tests)
 work_in_progress - Extra code or examples that might be useful in the future.
 
 
-COPYING:
+COPYRIGHT:
 
 NOTICE: This computer software, “Risk Analysis Virtual ENvironment
 (RAVEN)”, was prepared by Battelle Energy Alliance, LLC, hereinafter

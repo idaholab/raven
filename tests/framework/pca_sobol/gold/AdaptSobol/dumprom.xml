@@ -1,48 +1,48 @@
 <ReducedOrderModel>
   <ans2>
     <mean>0.981905773532</mean>
-    <approx_variance>0.0800718010664</approx_variance>
-    <impacts>
-      <approx_tot_variance>0.0800718010664</approx_tot_variance>
+    <variance>0.0800718010664</variance>
+    <Sobol_indices>
+      <tot_variance>0.0800718010664</tot_variance>
       <variables>y1
-        <impact_param>0.711384726168</impact_param>
+        <index>0.711384726168</index>
       </variables>
       <variables>y3
-        <impact_param>0.208352994243</impact_param>
+        <index>0.208352994243</index>
       </variables>
       <variables>y2
-        <impact_param>0.070939538991</impact_param>
+        <index>0.070939538991</index>
       </variables>
       <variables>y4
-        <impact_param>0.00496388821056</impact_param>
+        <index>0.00496388821056</index>
       </variables>
       <variables>y5
-        <impact_param>0.00435885238678</impact_param>
+        <index>0.00435885238678</index>
       </variables>
-    </impacts>
+    </Sobol_indices>
     <numRuns>49</numRuns>
   </ans2>
   <ans>
     <mean>1.35589720456</mean>
-    <approx_variance>2.9723302863</approx_variance>
-    <impacts>
-      <approx_tot_variance>2.9723302863</approx_tot_variance>
+    <variance>2.9723302863</variance>
+    <Sobol_indices>
+      <tot_variance>2.9723302863</tot_variance>
       <variables>y1
-        <impact_param>0.714972542969</impact_param>
+        <index>0.714972542969</index>
       </variables>
       <variables>y2
-        <impact_param>0.177312989711</impact_param>
+        <index>0.177312989711</index>
       </variables>
       <variables>y3
-        <impact_param>0.0870142662177</impact_param>
+        <index>0.0870142662177</index>
       </variables>
       <variables>y4
-        <impact_param>0.0186950111912</impact_param>
+        <index>0.0186950111912</index>
       </variables>
       <variables>y5
-        <impact_param>0.00200518991091</impact_param>
+        <index>0.00200518991091</index>
       </variables>
-    </impacts>
+    </Sobol_indices>
     <numRuns>49</numRuns>
   </ans>
 </ReducedOrderModel>

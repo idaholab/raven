@@ -1,60 +1,60 @@
 <ReducedOrderModel>
   <ans2>
     <mean>15.0</mean>
-    <approx_variance>54.9333333333</approx_variance>
-    <impacts>
-      <approx_tot_variance>54.9333333333</approx_tot_variance>
+    <variance>54.9333333333</variance>
+    <Sobol_indices>
+      <tot_variance>54.9333333333</tot_variance>
       <variables>x2
-        <impact_param>0.899676375405</impact_param>
+        <index>0.899676375405</index>
       </variables>
       <variables>x3
-        <impact_param>0.0987055016181</impact_param>
+        <index>0.0987055016181</index>
       </variables>
       <variables>x1
-        <impact_param>0.00161812297735</impact_param>
+        <index>0.00161812297735</index>
       </variables>
       <variables>x1,x2
-        <impact_param>-2.06954194882e-15</impact_param>
+        <index>0.0</index>
       </variables>
       <variables>x1,x2,x3
-        <impact_param>1.55215646161e-15</impact_param>
+        <index>0.0</index>
       </variables>
       <variables>x1,x3
-        <impact_param>0.0</impact_param>
+        <index>0.0</index>
       </variables>
       <variables>x2,x3
-        <impact_param>-1.55215646161e-15</impact_param>
+        <index>0.0</index>
       </variables>
-    </impacts>
+    </Sobol_indices>
     <numRuns>69</numRuns>
   </ans2>
   <ans>
     <mean>5.5</mean>
-    <approx_variance>1.75</approx_variance>
-    <impacts>
-      <approx_tot_variance>1.75</approx_tot_variance>
+    <variance>1.75</variance>
+    <Sobol_indices>
+      <tot_variance>1.75</tot_variance>
       <variables>x2
-        <impact_param>0.761904761905</impact_param>
+        <index>0.761904761905</index>
       </variables>
       <variables>x3
-        <impact_param>0.190476190476</impact_param>
+        <index>0.190476190476</index>
       </variables>
       <variables>x1
-        <impact_param>0.047619047619</impact_param>
+        <index>0.047619047619</index>
       </variables>
       <variables>x1,x2
-        <impact_param>0.0</impact_param>
+        <index>0.0</index>
       </variables>
       <variables>x1,x2,x3
-        <impact_param>0.0</impact_param>
+        <index>0.0</index>
       </variables>
       <variables>x1,x3
-        <impact_param>0.0</impact_param>
+        <index>0.0</index>
       </variables>
       <variables>x2,x3
-        <impact_param>0.0</impact_param>
+        <index>0.0</index>
       </variables>
-    </impacts>
+    </Sobol_indices>
     <numRuns>69</numRuns>
   </ans>
 </ReducedOrderModel>
