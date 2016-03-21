@@ -122,15 +122,6 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     """
     pass
 
-  def getInitializeDict(self):
-    """
-    Returns a copy of the dictionary necessary to initialize a copy of this ROM.
-    Overload as needed.
-    @ In, None
-    @ Out, dict, initialize dict
-    """
-    return {}
-
   def train(self,tdict):
     """
       Method to perform the training of the superVisedLearning algorithm
@@ -332,12 +323,13 @@ class NDinterpolatorRom(superVisedLearning):
 
   def __setstate__(self, newstate):
     """
-    Initialize the ROM with the data contained in newstate
-    @ In, newstate, dic, it contains all the information needed by the ROM to be initialized
-    @ Out, None
+      Initialize the ROM with the data contained in newstate
+      @ In, newstate, dic, it contains all the information needed by the ROM to be initialized
+      @ Out, None
     """
     self.__dict__.update(newstate)
     self.__initLocal__()
+    #only train if the original copy was trained
     if self.amITrained:
       self.__trainLocal__(self.featv,self.targv)
 
@@ -545,23 +537,6 @@ class GaussPolynomialRom(superVisedLearning):
     @ Out, dictionary of interpolation information
     """
     return dict(self.itpDict)
-
-  def getInitializeDict(self):
-    """
-      Returns a copy of the dictionary necessary to initialize a copy of this ROM.
-      @ In, None
-      @ Out, dict, initialize dict
-    """
-    if not self.initialized:
-      self.raiseAnError(RuntimeError,'Attempted to build initialize dict, but rom not yet initialized!')
-    iDict = {}
-    iDict['SG'     ] = self.sparseGrid
-    iDict['dists'  ] = self.distDict
-    iDict['quads'  ] = self.quads
-    iDict['polys'  ] = self.polys
-    iDict['iSet'   ] = self.indexSet
-    iDict['numRuns'] = self.numRuns
-    return iDict
 
   def initialize(self,idict):
     """Initializes the instance.

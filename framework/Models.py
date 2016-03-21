@@ -483,10 +483,6 @@ class ROM(Dummy):
       self.SupervisedEngine         = copy.deepcopy(trainingSet.SupervisedEngine)
     else:
       if 'HistorySet' in type(trainingSet).__name__:
-        #get initialization dictionary before wiping engines
-        #initializeDicts = {}
-        #for target, SVL in self.SupervisedEngine.items():
-        #  initializeDicts[target] = SVL.getInitializeDict()
         #store originals for future copying
         origRomCopies = {}
         for target,engine in self.SupervisedEngine.items():
@@ -495,7 +491,6 @@ class ROM(Dummy):
         self.SupervisedEngine = []
         outKeys = trainingSet.getParaKeys('outputs')
         targets = origRomCopies.keys()
-        #targets = self.initializationOptionDict['Target'].split(',')
         # check that all histories have the same length
         tmp = trainingSet.getParametersValues('outputs')
         for t in tmp:
@@ -508,14 +503,9 @@ class ROM(Dummy):
         self.trainingSet = mathUtils.historySetWindow(trainingSet,self.numberOfTimeStep)
         for ts in range(self.numberOfTimeStep):
           newRom = {}
-          #tempinitializationOptionDict = copy.deepcopy(self.initializationOptionDict)
           for target in targets:
-            #tempinitializationOptionDict['Target'] = target
             newRom[target] =  copy.deepcopy(origRomCopies[target])
-            #SupervisedLearning.returnInstance(self.subType,self,**tempinitializationOptionDict)
           for target,instrom in newRom.items():
-            # initialize the ROM
-            #instrom.initialize(initializeDicts[target])
             # train the ROM
             instrom.train(self.trainingSet[ts])
             self.amITrained = self.amITrained and instrom.amITrained

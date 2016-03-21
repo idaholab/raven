@@ -39,7 +39,7 @@
   </Steps>
 
   <Models>
-    <ExternalModel ModuleToLoad="../externalModel/lorentzAttractor" name="PythonModule" subType="">
+    <ExternalModel ModuleToLoad="../../externalModel/lorentzAttractor" name="PythonModule" subType="">
       <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0</variables>
     </ExternalModel>
     <ROM name="t_ROM" subType="NDinvDistWeight">
