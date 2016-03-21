@@ -4599,10 +4599,10 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
 
   def _finalizeROM(self,rom=None,include=[]):
     """
-    Delivers necessary structures to the HDMRRom object
-    @ In, rom, optional HDMRRom object, rom to finalize before training, defaults to target rom
-    @ In, include, optional list[str], subsets to optionally exclude from trimming
-    @ Out, None
+      Delivers necessary structures to the HDMRRom object
+      @ In, rom, optional HDMRRom object, rom to finalize before training, defaults to target rom
+      @ In, include, optional list[str], subsets to optionally exclude from trimming
+      @ Out, None
     """
     if rom == None: rom = self.ROM
     initDict = {'ROMs':None, # multitarget requires setting individually, below

@@ -283,12 +283,13 @@ class Custom(IndexSet):
 class AdaptiveSet(IndexSet):
   """Adaptive index set that can expand itself on call.  Used in conjunctoin with AdaptiveSparseGrid sampler."""
   def initialize(self,features,impList,maxPolyOrder,full=False):
-    """Initialize everything index set needs
-    @ In , features    , list(str)      , input parameters
-    @ In , impList     , dict{str:float}, weights by dimension
-    @ In , maxPolyOrder, int            , relative maximum polynomial order to be used for index set
-    @ In, full, optional bool, if True will do all perturbations of {0,1}^N, else only 1 in any axis at a time
-    @ Out, None        , None
+    """
+      Initialize everything index set needs
+      @ In , features, list(str), input parameters
+      @ In , impList, dict{str:float}, weights by dimension
+      @ In , maxPolyOrder, int, relative maximum polynomial order to be used for index set
+      @ In, full, optional bool, if True will do all perturbations of {0,1}^N, else only 1 in any axis at a time
+      @ Out, None
     """
     IndexSet.initialize(self,features,impList,maxPolyOrder)
     self.type     = 'Adaptive Index Set'
