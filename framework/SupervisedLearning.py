@@ -483,7 +483,6 @@ class GaussPolynomialRom(superVisedLearning):
       @ In, options, dict (optional), list of requests and options
       May include:
         'what': comma-separated string list, the qualities to print out
-        'time': the time stamp for this printout
       @ Out, None
     """
     if not self.amITrained: self.raiseAnError(RuntimeError,'ROM is not yet trained!')
@@ -492,13 +491,10 @@ class GaussPolynomialRom(superVisedLearning):
     if 'what' in options.keys():
       requests = list(o.strip() for o in options['what'].split(','))
       if 'all' in requests: requests = canDo
-      if 'timeStep' in options.keys(): requests = ['timeStep'] + requests
       for request in requests:
         request=request.strip()
         newNode = TreeStructure.Node(request)
-        if   request.lower() in ['timestep']:
-          newNode.setText(options['timeStep'])
-        elif request.lower() in ['mean','expectedvalue']:
+        if request.lower() in ['mean','expectedvalue']:
           if self.mean == None: self.mean = self.__evaluateMoment__(1)
           newNode.setText(self.mean)
         elif request.lower() in ['variance']:
@@ -756,7 +752,6 @@ class HDMRRom(GaussPolynomialRom):
       @ In, options, dict (optional), list of requests and options
       May include:
         'what': comma-separated string list, the qualities to print out
-        'time': the time stamp for this printout
       @ Out, None
     """
     if not self.amITrained: self.raiseAnError(RuntimeError,'ROM is not yet trained!')
@@ -765,7 +760,6 @@ class HDMRRom(GaussPolynomialRom):
     if 'what' in options.keys():
       requests = list(o.strip() for o in options['what'].split(','))
       if 'all' in requests: requests = canDo
-      if 'timeStep' in options.keys(): requests = ['timeStep'] + requests
       for request in requests:
         request=request.strip()
         newNode = TreeStructure.Node(request)

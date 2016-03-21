@@ -433,11 +433,14 @@ class ROM(Dummy):
         for s,step in enumerate(self.SupervisedEngine):
           #get the time step
           timeStep = range(self.numberOfTimeStep)[s]
-          options['timeStep'] = timeStep
+          timeNode = TreeStructure.Node('time_step')
+          timeNode.setText(timeStep)
+          node.appendBranch(timeNode)
           for key,target in step.items():
-            if key == 'time': continue
+            #TODO how do we determine what the time-stepping variable is?
+            # answer: currently, there's no way to do this
             if key in targets:
-              target.printXML(node,options)
+              target.printXML(timeNode,options)
       #case: not time-dependent
       else:
         targets = list(key for key in self.SupervisedEngine.keys())
