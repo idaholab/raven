@@ -357,7 +357,6 @@ class ROM(Dummy):
             tempSupervisedEngine[target] =  SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
             self.initializationOptionDict['Target'] = ','.join(targets)
           self.SupervisedEngine.append(tempSupervisedEngine)
-
       else:
         #this can't be accurate, since in readXML the 'Target' keyword is set to a single target
         targets = self.initializationOptionDict['Target'].split(',')
@@ -485,12 +484,18 @@ class ROM(Dummy):
     else:
       if 'HistorySet' in type(trainingSet).__name__:
         #get initialization dictionary before wiping engines
-        initializeDicts = {}
-        for target, SVL in self.SupervisedEngine.items():
-          initializeDicts[target] = SVL.getInitializeDict()
+        #initializeDicts = {}
+        #for target, SVL in self.SupervisedEngine.items():
+        #  initializeDicts[target] = SVL.getInitializeDict()
+        #store originals for future copying
+        origRomCopies = {}
+        for target,engine in self.SupervisedEngine.items():
+          origRomCopies[target] = copy.deepcopy(engine)
+        #clear engines for time-based storage
         self.SupervisedEngine = []
         outKeys = trainingSet.getParaKeys('outputs')
-        targets = self.initializationOptionDict['Target'].split(',')
+        targets = origRomCopies.keys()
+        #targets = self.initializationOptionDict['Target'].split(',')
         # check that all histories have the same length
         tmp = trainingSet.getParametersValues('outputs')
         for t in tmp:
@@ -500,21 +505,22 @@ class ROM(Dummy):
             if self.numberOfTimeStep != len(tmp[t][outKeys[0]]):
               self.raiseAnError(IOError,'DataObject can not be used to train a ROM: length of HistorySet is not consistent')
         # train the ROM
-        self.amITrained = True
         self.trainingSet = mathUtils.historySetWindow(trainingSet,self.numberOfTimeStep)
         for ts in range(self.numberOfTimeStep):
           newRom = {}
-          tempinitializationOptionDict = copy.deepcopy(self.initializationOptionDict)
+          #tempinitializationOptionDict = copy.deepcopy(self.initializationOptionDict)
           for target in targets:
-            tempinitializationOptionDict['Target'] = target
-            newRom[target] =  SupervisedLearning.returnInstance(self.subType,self,**tempinitializationOptionDict)
+            #tempinitializationOptionDict['Target'] = target
+            newRom[target] =  copy.deepcopy(origRomCopies[target])
+            #SupervisedLearning.returnInstance(self.subType,self,**tempinitializationOptionDict)
           for target,instrom in newRom.items():
             # initialize the ROM
-            instrom.initialize(initializeDicts[target])
+            #instrom.initialize(initializeDicts[target])
             # train the ROM
             instrom.train(self.trainingSet[ts])
             self.amITrained = self.amITrained and instrom.amITrained
           self.SupervisedEngine.append(newRom)
+        self.amITrained = True
       else:
         self.trainingSet = copy.copy(self._inputToInternal(trainingSet,full=True))
         if type(self.trainingSet) is dict:

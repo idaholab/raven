@@ -338,7 +338,8 @@ class NDinterpolatorRom(superVisedLearning):
     """
     self.__dict__.update(newstate)
     self.__initLocal__()
-    self.__trainLocal__(self.featv,self.targv)
+    if self.amITrained:
+      self.__trainLocal__(self.featv,self.targv)
 
   def __trainLocal__(self,featureVals,targetVals):
     """
