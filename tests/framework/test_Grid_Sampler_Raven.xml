@@ -7,8 +7,8 @@
   </RunInfo>
 
   <Files>
-    <Input name="simple_flow_3eqn.i" type="">simple_flow_3eqn.i</Input>
-    <Input name="simple_flow_3eqn_control.py" type="">simple_flow_3eqn_control.py</Input>
+    <Input name="clg_massflowrate_3eqn.i" type="">clg_massflowrate_3eqn.i</Input>
+    <Input name="clg_massflowrate_3eqn_control.py" type="">clg_massflowrate_3eqn_control.py</Input>
   </Files>
 
   <Models>
@@ -48,8 +48,8 @@
 
   <Steps>
     <MultiRun name="FirstMRun">
-      <Input class="Files" type="">simple_flow_3eqn.i</Input>
-      <Input class="Files" type="">simple_flow_3eqn_control.py</Input>
+      <Input class="Files" type="">clg_massflowrate_3eqn.i</Input>
+      <Input class="Files" type="">clg_massflowrate_3eqn_control.py</Input>
       <Model class="Models" type="Code">MyRAVEN</Model>
       <Sampler class="Samplers" type="Grid">myGrid</Sampler>
       <!--
