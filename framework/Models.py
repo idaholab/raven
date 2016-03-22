@@ -324,7 +324,7 @@ class ROM(Dummy):
     self.SupervisedEngine          = {}         # dict of ROM instances (== number of targets => keys are the targets)
     self.printTag = 'ROM MODEL'
     self.numberOfTimeStep          = 1
-    self.historyPivotParameter     = None       #time-like pivot parameter for data object on which ROM was trained
+    self.historyPivotParameter     = 'none'     #time-like pivot parameter for data object on which ROM was trained
 
   def __getstate__(self):
     """
@@ -438,12 +438,6 @@ class ROM(Dummy):
           pivotNode.setText(pivotStep)
           node.appendBranch(pivotNode)
           pivotRom = self.SupervisedEngine[s][self.historyPivotParameter]
-          #print('DEBUG SVL:')
-          #for item in dir(pivotRom):
-          #  print('DEBUG    ',item)
-          #print('DEBUG',pivotRom.evaluate(dict(zip(pivotRom.features,[np.array([0])]*len(pivotRom.features)))))
-          #import sys
-          #sys.exit()
           pivotValue = pivotRom.evaluate(dict(zip(pivotRom.features,[np.array([0])]*len(pivotRom.features))))
           pivotValNode = TreeStructure.Node(self.historyPivotParameter)
           pivotValNode.setText(pivotValue)
@@ -497,7 +491,7 @@ class ROM(Dummy):
       self.trainingSet              = copy.copy(trainingSet.trainingSet)
       self.amITrained               = copy.deepcopy(trainingSet.amITrained)
       self.SupervisedEngine         = copy.deepcopy(trainingSet.SupervisedEngine)
-      self.historyPivotParameter    = copy.deepcopy(getattr(trainingSet,historyPivotParameter,'time'))
+      self.historyPivotParameter    = copy.deepcopy(getattr(trainingSet,self.historyPivotParameter,'time'))
     else:
       if 'HistorySet' in type(trainingSet).__name__:
         #get the pivot parameter if specified
