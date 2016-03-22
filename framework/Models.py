@@ -324,6 +324,7 @@ class ROM(Dummy):
     self.SupervisedEngine          = {}         # dict of ROM instances (== number of targets => keys are the targets)
     self.printTag = 'ROM MODEL'
     self.numberOfTimeStep          = 1
+    self.historyPivotParameter     = None       #time-like pivot parameter for data object on which ROM was trained
 
   def __getstate__(self):
     """
@@ -432,15 +433,27 @@ class ROM(Dummy):
         targets = list(key for key in self.SupervisedEngine[0].keys())
         for s,step in enumerate(self.SupervisedEngine):
           #get the time step
-          timeStep = range(self.numberOfTimeStep)[s]
-          timeNode = TreeStructure.Node('time_step')
-          timeNode.setText(timeStep)
-          node.appendBranch(timeNode)
+          pivotStep = range(1,self.numberOfTimeStep+1)[s]
+          pivotNode = TreeStructure.Node(self.historyPivotParameter+'_step')
+          pivotNode.setText(pivotStep)
+          node.appendBranch(pivotNode)
+          pivotRom = self.SupervisedEngine[s][self.historyPivotParameter]
+          #print('DEBUG SVL:')
+          #for item in dir(pivotRom):
+          #  print('DEBUG    ',item)
+          #print('DEBUG',pivotRom.evaluate(dict(zip(pivotRom.features,[np.array([0])]*len(pivotRom.features)))))
+          #import sys
+          #sys.exit()
+          pivotValue = pivotRom.evaluate(dict(zip(pivotRom.features,[np.array([0])]*len(pivotRom.features))))
+          pivotValNode = TreeStructure.Node(self.historyPivotParameter)
+          pivotValNode.setText(pivotValue)
+          pivotNode.appendBranch(pivotValNode)
           for key,target in step.items():
-            #TODO how do we determine what the time-stepping variable is?
-            # answer: currently, there's no way to do this
+            #skip time marching parameter
+            if key == self.historyPivotParameter:
+              continue
             if key in targets:
-              target.printXML(timeNode,options)
+              target.printXML(pivotNode,options)
       #case: not time-dependent
       else:
         targets = list(key for key in self.SupervisedEngine.keys())
@@ -484,8 +497,14 @@ class ROM(Dummy):
       self.trainingSet              = copy.copy(trainingSet.trainingSet)
       self.amITrained               = copy.deepcopy(trainingSet.amITrained)
       self.SupervisedEngine         = copy.deepcopy(trainingSet.SupervisedEngine)
+      self.historyPivotParameter    = copy.deepcopy(getattr(trainingSet,historyPivotParameter,'time'))
     else:
       if 'HistorySet' in type(trainingSet).__name__:
+        #get the pivot parameter if specified
+        if 'options' in trainingSet._dataParameters.keys():
+          self.historyPivotParameter = trainingSet._dataParameters['options'].get('pivotParameter','time')
+        else:
+          self.historyPivotParameter = 'time'
         #store originals for future copying
         origRomCopies = {}
         for target,engine in self.SupervisedEngine.items():
