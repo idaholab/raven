@@ -285,9 +285,9 @@ class AdaptiveSet(IndexSet):
   def initialize(self,features,impList,maxPolyOrder,full=False):
     """
       Initialize everything index set needs
-      @ In , features, list(str), input parameters
-      @ In , impList, dict{str:float}, weights by dimension
-      @ In , maxPolyOrder, int, relative maximum polynomial order to be used for index set
+      @ In, features, list(str), input parameters
+      @ In, impList, dict{str:float}, weights by dimension
+      @ In, maxPolyOrder, int, relative maximum polynomial order to be used for index set
       @ In, full, optional bool, if True will do all perturbations of {0,1}^N, else only 1 in any axis at a time
       @ Out, None
     """
@@ -297,15 +297,15 @@ class AdaptiveSet(IndexSet):
     self.N        = len(features)
     self.points   = [] #retained points in the index set
     #need 0, first-order polynomial in each dimension to start predictions
-    firstpoint    = [0]*self.N #mean point polynomial
-    self.active   = [tuple(firstpoint)] #stores the polynomial indices being actively trained
+    firstPoint    = [0]*self.N #mean point polynomial
+    self.active   = [tuple(firstPoint)] #stores the polynomial indices being actively trained
     if full:
       for pt in list(itertools.product([0,1],repeat=self.N)):
         self.active.append(pt)
     else:
       for i in range(self.N): #add first-order polynomial along each axis -> this isn't enough though, necessarily
         #adaptive sobol really needs an estimate that involves the (1,1,...,1) point
-        pt = firstpoint[:]
+        pt = firstPoint[:]
         pt[i]+=1
         self.active.append(tuple(pt))
     self.history  = [] #list of tuples, index set point and its impact parameter

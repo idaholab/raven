@@ -437,7 +437,6 @@ class GaussPolynomialRom(superVisedLearning):
     self.sparseGridType    = 'smolyak' #type of sparse quadrature to use,default smolyak
     self.sparseQuadOptions = ['smolyak','tensor'] # choice of sparse quadrature construction methods
 
-
     for key,val in kwargs.items():
       if key=='IndexSet':self.indexSetType = val
       elif key=='IndexPoints':
@@ -666,7 +665,7 @@ class GaussPolynomialRom(superVisedLearning):
     """
       Returns the mean of the ROM.
       @ In, None
-      @ Out, float, the mean
+      @ Out, __mean__, float, the mean
     """
     return self.__evaluateMoment__(1)
 
@@ -731,7 +730,7 @@ class GaussPolynomialRom(superVisedLearning):
     """
       Calculates the Sobol indices (percent partial variances) of the terms in this expansion.
       @ In, None
-      @ Out, tuple(dict), Sobol indices and partial variances keyed by subset
+      @ Out, getSensitivities, tuple(dict), Sobol indices and partial variances keyed by subset
     """
     totVar = self.__variance__()
     partials = {}
@@ -756,7 +755,7 @@ class GaussPolynomialRom(superVisedLearning):
     """
       Given a tuple with polynomial orders, returns the subset it belongs exclusively to
       @ In, poly, tuple(int), polynomial index set entry
-      @ Out, tuple(str), subset
+      @ Out, _polyToSubset, tuple(str), subset
     """
     boolRep = tuple(False if poly[i]==0 else True for i in range(len(poly)))
     subset = []
@@ -994,10 +993,10 @@ class HDMRRom(GaussPolynomialRom):
 
   def _evaluateIntegral(self,term):
     """
-    Uses properties of orthonormal gPC to algebraically evaluate integrals gPC
-    This does assume the integral is over all the constituent variables in the the term
-    @ In, term, string, subset term to integrate
-    @ Out, float, float, evaluation
+      Uses properties of orthonormal gPC to algebraically evaluate integrals gPC
+      This does assume the integral is over all the constituent variables in the the term
+      @ In, term, string, subset term to integrate
+      @ Out, _evaluateIntegral, float, evaluation
     """
     if term in [(),'',None]:
       return self.refSoln
@@ -1020,7 +1019,7 @@ class HDMRRom(GaussPolynomialRom):
     """
       Calculates the Sobol indices (percent partial variances) of the terms in this expansion.
       @ In, None
-      @ Out, tuple(dict), Sobol indices and partial variances keyed by subset
+      @ Out, getSensitivities, tuple(dict), Sobol indices and partial variances keyed by subset
     """
     if self.sdx is not None and self.partialVariances is not None:
       self.raiseADebug('Using previously-constructed ANOVA terms...')

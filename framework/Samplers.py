@@ -4799,15 +4799,15 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
       polyDict[c] = self.polyDict[c]
       imptDict[c] = self.importanceDict[c]
     #instantiate an adaptive index set for this ROM
-    iset = IndexSets.returnInstance('AdaptiveSet',self)
-    iset.initialize(subset,imptDict,self.maxPolyOrder,full=True)
-    iset.verbosity=verbosity
+    iSet = IndexSets.returnInstance('AdaptiveSet',self)
+    iSet.initialize(subset,imptDict,self.maxPolyOrder,full=True)
+    iSet.verbosity=verbosity
     #instantiate a sparse grid quadrature
     self.SQs[subset] = Quadratures.returnInstance(self.sparseGridType,self)
-    self.SQs[subset].initialize(subset,iset,distDict,quadDict,self.jobHandler,self.messageHandler)
+    self.SQs[subset].initialize(subset,iSet,distDict,quadDict,self.jobHandler,self.messageHandler)
     #instantiate the SVLs.  Note that we need to call both __init__ and initialize with dictionaries.
     for target in self.targets:
-      initDict = {'IndexSet'       : iset.type,
+      initDict = {'IndexSet'       : iSet.type,
                   'PolynomialOrder': SVL.maxPolyOrder,
                   'Interpolation'  : SVL.itpDict,
                   'Features'       : ','.join(subset),
@@ -4817,7 +4817,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
                         'dists'    : distDict,
                         'quads'    : quadDict,
                         'polys'    : polyDict,
-                        'iSet'     : iset}
+                        'iSet'     : iSet}
       self.ROMs[target][subset].initialize(initializeDict)
       self.ROMs[target][subset].messageHandler = self.messageHandler
       self.ROMs[target][subset].verbosity = verbosity
