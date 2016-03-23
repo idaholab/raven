@@ -87,34 +87,6 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     #these need to be declared in the child classes!!!!
     self.amITrained         = False
 
-  # def addInitParams(self,tempDict):
-  #   tempDict['messageHandler'] = self.messageHandler
-  #   tempDict['printTag'] = self.printTag
-  #   tempDict['features'] = self.features
-  #   tempDict['target'] = self.target
-  #   tempDict['verbosity'] = self.verbosity
-  #   tempDict['amITrained'] = self.amITrained
-  #   tempDict['muAndSigmaFeatures'] = self.muAndSigmaFeatures
-  #   tempDict['returnType'] = self.returnType
-  #   tempDict['qualityEstType'] = self.qualityEstType
-  #   tempDict['ROMtype'] = self.ROMtype
-
-  # def __getstate__(self):
-  #   state = {}
-  #   self.addInitParams(state)
-  #   return state
-
-  # def __setstate__(self,newState):
-  #   self.features           = newState.pop('features'          )
-  #   self.target             = newState.pop('target'            )
-  #   self.verbosity          = newState.pop('verbosity'         )
-  #   self.amITrained         = newState.pop('amITrained'        )
-  #   self.muAndSigmaFeatures = newState.pop('muAndSigmaFeatures')
-  #   self.returnType         = newState.pop('returnType'        )
-  #   self.qualityEstType     = newState.pop('qualityEstType'    )
-  #   self.ROMtype            = newState.pop('ROMtype'           )
-  #   self.printTag           = newState.pop('printTag'          )
-
   def initialize(self,idict):
     pass #Overloaded by (at least) GaussPolynomialRom
 
