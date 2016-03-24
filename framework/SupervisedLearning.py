@@ -1714,18 +1714,19 @@ class SciKitLearn(superVisedLearning):
 
 class ARMA(superVisedLearning):
   """
-  Autoregressive Moving Average model for time series analysis. First train then evaluate. 
-  Specify a Fourier node if detrending by Fourier series is needed. 
-  
-  Time series Y: Y = X + \sum_{i}\sum_k [\delta_ki1*sin(2pi*k/basePeriod_i)+\delta_ki2*cos(2pi*k/basePeriod_i)]
-  ARMA series X: x_t = \sum_{i=1}^P \phi_i*x_{t-i} + \alpha_t + \sum_{j=1}^Q \theta_j*\alpha_{t-j}
+    Autoregressive Moving Average model for time series analysis. First train then evaluate. 
+    Specify a Fourier node in input file if detrending by Fourier series is needed. 
+    
+    Time series Y: Y = X + \sum_{i}\sum_k [\delta_ki1*sin(2pi*k/basePeriod_i)+\delta_ki2*cos(2pi*k/basePeriod_i)]
+    ARMA series X: x_t = \sum_{i=1}^P \phi_i*x_{t-i} + \alpha_t + \sum_{j=1}^Q \theta_j*\alpha_{t-j}
+    FIXME, this note marks successful pull and push with the forced devel
   """
   def __init__(self,messageHandler,**kwargs):
     """
-    A constructor that will appropriately intialize a supervised learning object
-    @In, messageHandler: a MessageHandler object in charge of raising errors,
-                         and printing messages
-    @In, kwargs: an arbitrary dictionary of keywords and values
+      A constructor that will appropriately intialize a supervised learning object
+      @In, messageHandler: a MessageHandler object in charge of raising errors,
+                           and printing messages
+      @In, kwargs: an arbitrary dictionary of keywords and values
     """
     superVisedLearning.__init__(self,messageHandler,**kwargs)
     self.printTag = 'ARMA'
@@ -1736,88 +1737,65 @@ class ARMA(superVisedLearning):
     self.armaPara['Qmin'] = kwargs.get('Qmin', 0)    
     self.armaPara['dimension'] = len(self.features)
     
+    # Initialize parameters for Fourier detrending
     if 'Fourier' not in self.initOptionDict.keys():
       self.hasFourierSeries = False
     else:
       self.hasFourierSeries = True
-      # ADD self.fourier = INSTANCE_OF_LINEAR_REGRESSION_MODEL
       self.fourierPara = {}
       self.fourierPara['basePeriod'] = [float(temp) for temp in self.initOptionDict['Fourier'].split(',')]
-      
       self.fourierPara['FourierOrder'] = {}           
       if 'FourierOrder' not in self.initOptionDict.keys():
         for basePeriod in self.fourierPara['basePeriod']:
-          self.fourierPara['FourierOrder'][basePeriod] = 3
+          self.fourierPara['FourierOrder'][basePeriod] = 4
       else:
         temps = self.initOptionDict['FourierOrder'].split(',')
         for index, basePeriod in enumerate(self.fourierPara['basePeriod']):
           self.fourierPara['FourierOrder'][basePeriod] = int(temps[index])
-
       if len(self.fourierPara['basePeriod']) != len(self.fourierPara['FourierOrder']):
         self.raiseAnError(ValueError, 'Length of FourierOrder should be ' + str(len(self.fourierPara['basePeriod'])))
-      
-      
-      
-    
-    # Instantiate a normal distribution for data conversion
-    self.normTransEngine = Distributions.returnInstance('Normal',self)
-    self.normTransEngine.mean, self.normTransEngine.sigma = 0, 1
-    self.normTransEngine.upperBoundUsed, self.normTransEngine.lowerBoundUsed = False, False
-    self.normTransEngine.initializeDistribution()
-    
-    # Instantiate a normal distribution for time series synthesis
-    self.normEvaluateEngine = copy.deepcopy(self.normTransEngine)
     
   def _localNormalizeData(self,values,names,feat):
-    """Overwrites default normalization procedure.
-    @ In, values, unused
-    @ In, names, unused
-    @ In, feat, feature to (not) normalize
-    @ Out, None
+    """
+      Overwrites default normalization procedure.
+      @ In, values, unused
+      @ In, names, unused
+      @ In, feat, feature to normalize
+      @ Out, None
     """
     self.muAndSigmaFeatures[feat] = (0.0,1.0)
 
   def __trainLocal__(self,featureVals,targetVals):
     """
-    Perform training on samples in featureVals with responses y.
-    For an one-class model, +1 or -1 is returned.
-
-    @In, featureVals, {array-like, sparse matrix}, shape=[n_samples, n_features],
-      an array of input feature values
-    @ Out, targetVals, array, shape = [n_samples], an array of output target
-      associated with the corresponding points in featureVals
+      Perform training on input database stored in featureVals.
+  
+      @In, featureVals, array, shape=[n_timeStep, n_dimensions], an array of input data
+      @In, targetVals, array, shape = [n_timeStep], data for time variable
     """
-    self.Time = copy.deepcopy(targetVals)
-    self.TimeSeriesDatabase = featureVals
+    self.time = copy.deepcopy(targetVals)
+    self.timeSeriesDatabase = featureVals
 
     # Fit fourier seires
     if self.hasFourierSeries:
       self.__trainFourier__()   
-      self.armaPara['rSeries'] = self.TimeSeriesDatabase - self.fourierResult['predict']
+      self.armaPara['rSeries'] = self.timeSeriesDatabase - self.fourierResult['predict']
     else:
-      self.armaPara['rSeries'] = self.TimeSeriesDatabase
+      self.armaPara['rSeries'] = self.timeSeriesDatabase
 
 #     Transform data to obatain normal distrbuted series. See 
 #     J.M.Morales, R.Minguez, A.J.Conejo "A methodology to generate statistically dependent wind speed scenarios," 
 #     Applied Energy, 87(2010) 843-855
-    self.__generateResCDF__()
-#     self.__getRCDF__(0,5)
-       
-    self.armaPara['rSeriesNorm'] = self.__normalizeRes__(self.armaPara['rSeries'])
-    
-    # Fit ARMA model: x_t = \sum_{i=1}^P \phi_i*x_{t-i} + \alpha_t + \sum_{j=1}^Q \theta_j*\alpha_{t-j}
-    self.__trainARMA__()
-    
-    self.raiseADebug(self.__dict__.keys())
-    self.raiseADebug(self.__dict__['armaResult']['param'])
-#     self.raiseAnError(IOError, 't')
-    del self.TimeSeriesDatabase
-    del self.dataObject
+    self.__generateCDF__(self.armaPara['rSeries'])       
+    self.armaPara['rSeriesNorm'] = self.__dataConversion__(self.armaPara['rSeries'], obj='normalize')
+
+    self.__trainARMA__() # Fit ARMA model: x_t = \sum_{i=1}^P \phi_i*x_{t-i} + \alpha_t + \sum_{j=1}^Q \theta_j*\alpha_{t-j}
     
   # For debug only; 
+    del self.timeSeriesDatabase
+    del self.dataObject
 #     self.raiseADebug('****************************************************************')
 #     self.raiseADebug(self.dataObject)
-#     self.armaPara['rDenorm'] = self.__denormalizeRes__(self.armaPara['rSeriesNorm'])
+#     self.armaPara['rDenorm'] = self.__denormalizeRes__(self.armaPara['rSeriesNorm'], obj='denormalize') 
 #     self.dataObject.updateOutputValue('rDenorm', self.armaPara['rDenorm'][:,0])
 #     self.dataObject.updateOutputValue('rSeriesNorm', self.armaPara['rSeriesNorm'][:,0])
 #     for index,feat in enumerate(self.features):
@@ -1825,35 +1803,37 @@ class ARMA(superVisedLearning):
 #       self.raiseADebug(index,feat)
 #       self.dataObject.updateOutputValue('fTrend-' + feat, temp[:,index])
 #       self.dataObject.updateOutputValue(feat + '-deTrend', self.armaPara['rSeries'][:,index])
-
     ##########################################################################################
     
   def __trainFourier__(self):
-    fourierSeriesAll = self.__generateFourier__()  
+    """
+      Perform fitting of Fourier series on self.timeSeriesDatabase
+      @In, none, 
+      @Out, none, 
+    """    
+    fourierSeriesAll = self.__generateFourierSignal__(self.time, self.fourierPara['basePeriod'], self.fourierPara['FourierOrder'])  
     fourierEngine = linear_model.LinearRegression()  
     temp = {}
     for bp in self.fourierPara['FourierOrder'].keys():
       temp[bp] = range(1,self.fourierPara['FourierOrder'][bp]+1)    
-    fourOrders = list(itertools.product(*temp.values()))
+    fourOrders = list(itertools.product(*temp.values())) # generate the set of combinations of the Fourier order
     
     criterionBest = np.inf
-    self.fourierResult={}
-    self.fourierResult['basePeriod'] = self.fourierPara['basePeriod']
-    self.fourierResult['residues'] = 0
     fSeriesBest = []
+    self.fourierResult={}
+    self.fourierResult['residues'] = 0
     self.fourierResult['fOrder'] = []    
       
     for fOrder in fourOrders: 
-      fSeries = np.zeros(shape=(self.Time.size,2*sum(fOrder)))
+      fSeries = np.zeros(shape=(self.time.size,2*sum(fOrder)))
       indexTemp = 0
       for index,bp in enumerate(self.fourierPara['FourierOrder'].keys()):
         fSeries[:,indexTemp:indexTemp+fOrder[index]*2] = fourierSeriesAll[bp][:,0:fOrder[index]*2]
         indexTemp += fOrder[index]*2
-      fourierEngine.fit(fSeries,self.TimeSeriesDatabase)
-      
-      r = (fourierEngine.predict(fSeries)-self.TimeSeriesDatabase)**2
+      fourierEngine.fit(fSeries,self.timeSeriesDatabase)      
+      r = (fourierEngine.predict(fSeries)-self.timeSeriesDatabase)**2
       if r.size > 1:    r = sum(r)
-      r = r/self.Time.size
+      r = r/self.time.size
       criterionCurrent = r #self.__computeAICorBIC(r,noPara=sum(fOrder)*2,cType='None',obj='min')
       if  criterionCurrent< criterionBest:
         self.fourierResult['fOrder'] = fOrder
@@ -1861,12 +1841,16 @@ class ARMA(superVisedLearning):
         self.fourierResult['residues'] = r
         criterionBest = criterionCurrent 
     
-    fourierEngine.fit(fSeriesBest,self.TimeSeriesDatabase)
+    fourierEngine.fit(fSeriesBest,self.timeSeriesDatabase)
     self.fourierResult['predict'] = fourierEngine.predict(fSeriesBest)
     
   def __trainARMA__(self):
-    # Fit ARMA model: x_t = \sum_{i=1}^P \phi_i*x_{t-i} + \alpha_t + \sum_{j=1}^Q \theta_j*\alpha_{t-j}
-    # Data series to this function has been normalized so that it is standard gaussian
+    """
+      Fit ARMA model: x_t = \sum_{i=1}^P \phi_i*x_{t-i} + \alpha_t + \sum_{j=1}^Q \theta_j*\alpha_{t-j}
+      Data series to this function has been normalized so that it is standard gaussian
+      @In, none, 
+      @Out, none,
+    """
     self.armaResult = {}
     
     # debug
@@ -1891,8 +1875,6 @@ class ARMA(superVisedLearning):
 #     self.armaResult['sig'] = sig
 #     return 1
     # end of debug
-#     
-#     self.__computeARMALikelihood__([0.1,0.2,0.3,0.4,0.5,1], *[2,3])
     
     Pmax = self.armaPara['Pmax']
     Pmin = self.armaPara['Pmin']
@@ -1902,299 +1884,301 @@ class ARMA(superVisedLearning):
     criterionBest = np.inf
     for p in range(Pmin,Pmax+1):
       for q in range(Qmin,Qmax+1):  
-        if p is 0 and q is 0:
-          continue      
+        if p is 0 and q is 0:     continue
         init = [0.0]*(p+q)*self.armaPara['dimension']**2
         init_S = np.identity(self.armaPara['dimension'])
-        for n1 in range(self.armaPara['dimension']):
-          init.append(init_S[n1,n1])
+        for n1 in range(self.armaPara['dimension']):      init.append(init_S[n1,n1])
         
         rOpt = {}
-        rOpt = optimize.fmin(self.__computeARMALikelihood__,init, args=(p,q) ,full_output = True)    
-        
-        tmp = (p+q)*self.armaPara['dimension']**2/self.Time.size
+        rOpt = optimize.fmin(self.__computeARMALikelihood__,init, args=(p,q) ,full_output = True)
+        tmp = (p+q)*self.armaPara['dimension']**2/self.time.size
         criterionCurrent = self.__computeAICorBIC(self.armaResult['sigHat'],noPara=tmp,cType='BIC',obj='min')
-        if criterionCurrent< criterionBest or 'P' not in self.armaResult.keys(): # to save the first iteration results
+        if criterionCurrent < criterionBest or 'P' not in self.armaResult.keys(): # to save the first iteration results
           self.armaResult['P'] = p
           self.armaResult['Q'] = q
           self.armaResult['param'] = rOpt[0]
           criterionBest = criterionCurrent 
         
-        # Debug  
+    # Debug  
         self.raiseADebug(p,q,rOpt[0], rOpt[1], self.armaResult['sigHat'], criterionCurrent)  
-        self.raiseADebug(self.armaResult['P'],self.armaResult['Q'],self.armaResult['param'],criterionBest)
-          
+        self.raiseADebug(self.armaResult['P'],self.armaResult['Q'],self.armaResult['param'],criterionBest)  
     self.raiseADebug(self.armaResult['P'],self.armaResult['Q'],self.armaResult['param'],criterionBest)
+    # end of debug
     
     # saving training results
-    p = self.armaResult['P'] 
-    q = self.armaResult['Q']
-    N = self.armaPara['dimension'] 
-    Phi, Theta, Cov = self.__armaParamAssemb__(self.armaResult['param'],p,q,N)
-    sig = np.zeros(shape=(1,N))
-    for n in range(N):
-      sig[0,n] = np.sqrt(Cov[n,n])      
+    Phi, Theta, Cov = self.__armaParamAssemb__(self.armaResult['param'],self.armaResult['P'],self.armaResult['Q'],self.armaPara['dimension'] )   
     self.armaResult['Phi'] = Phi
     self.armaResult['Theta'] = Theta
-    self.armaResult['sig'] = sig
+    self.armaResult['sig'] = np.zeros(shape=(1, self.armaPara['dimension'] ))
+    for n in range(self.armaPara['dimension'] ):      self.armaResult['sig'][0,n] = np.sqrt(Cov[n,n]) 
     
-  def __generateResCDF__(self):
+  def __generateCDF__(self, data):
+    """
+      Generate empirical CDF function of the input data, and save the results in self  
+      @In, data, array, shape = [n_timeSteps, n_dimension]
+      @Out, none, 
+    """     
     self.armaNormPara = {}
-    self.armaNormPara['rCDF'] = {}
-    num_bins = [0]*self.armaPara['dimension']
+    self.armaNormPara['resCDF'] = {}
+    num_bins = [0]*data.shape[1] # initialize num_bins, which will be calculated later by Freedman Diacoins rule
     
-    for d in range(self.armaPara['dimension']):
-      num_bins[d] = self.__computeNumberBins__(self.armaPara['rSeries'][:,d])
-      counts, binEdges = np.histogram(self.armaPara['rSeries'][:,d], bins = num_bins[d], normed = True)
+    for d in range(data.shape[1]):
+      num_bins[d] = self.__computeNumberBins__(data[:,d])
+      counts, binEdges = np.histogram(data[:,d], bins = num_bins[d], normed = True)
       Delta = np.zeros(shape=(num_bins[d],1))
-      for n in range(num_bins[d]):
-        Delta[n,0] = binEdges[n+1]-binEdges[n]
-      delta = average(Delta)       
-      temp = np.cumsum(counts)*delta
-      rCdf = np.zeros(shape=binEdges.shape)
-      rCdf[1:] = temp
-      rCdf[0] = temp[0] # To avoid numerical issues                
-      self.armaNormPara['rCDF'][d] = {}
-      self.armaNormPara['rCDF'][d]['bins'] = copy.deepcopy(binEdges)
-      self.armaNormPara['rCDF'][d]['binsMax'] = max(binEdges)
-      self.armaNormPara['rCDF'][d]['binsMin'] = min(binEdges)
-      self.armaNormPara['rCDF'][d]['CDF'] = copy.deepcopy(rCdf)
-      self.armaNormPara['rCDF'][d]['CDFMax'] = max(rCdf)
-      self.armaNormPara['rCDF'][d]['CDFMin'] = min(rCdf)
-      self.armaNormPara['rCDF'][d]['binSearchEng'] = neighbors.NearestNeighbors(n_neighbors=2).fit([[b] for b in binEdges])
-      self.armaNormPara['rCDF'][d]['cdfSearchEng'] = neighbors.NearestNeighbors(n_neighbors=2).fit([[c] for c in rCdf])
+      for n in range(num_bins[d]):      Delta[n,0] = binEdges[n+1]-binEdges[n]     
+      temp = np.cumsum(counts)*average(Delta) 
+      cdf = np.insert(temp, 0, temp[0]) # minimum of CDF is set to temp[0] instead of 0 to avoid numerical issues                
+      self.armaNormPara['resCDF'][d] = {}
+      self.armaNormPara['resCDF'][d]['bins'] = copy.deepcopy(binEdges)
+      self.armaNormPara['resCDF'][d]['binsMax'] = max(binEdges)
+      self.armaNormPara['resCDF'][d]['binsMin'] = min(binEdges)
+      self.armaNormPara['resCDF'][d]['CDF'] = copy.deepcopy(cdf)
+      self.armaNormPara['resCDF'][d]['CDFMax'] = max(cdf)
+      self.armaNormPara['resCDF'][d]['CDFMin'] = min(cdf)
+      self.armaNormPara['resCDF'][d]['binSearchEng'] = neighbors.NearestNeighbors(n_neighbors=2).fit([[b] for b in binEdges])
+      self.armaNormPara['resCDF'][d]['cdfSearchEng'] = neighbors.NearestNeighbors(n_neighbors=2).fit([[c] for c in cdf])
 
   def __computeNumberBins__(self, data):
     """
-    Compute number of bins determined by Freedman Diaconis rule
-    https://en.wikipedia.org/wiki/Freedman%E2%80%93Diaconis_rule
-    
+      Compute number of bins determined by Freedman Diaconis rule
+      https://en.wikipedia.org/wiki/Freedman%E2%80%93Diaconis_rule
+      @In, data, shape = [n_sample]
+      @Out, noBin, number of bins
     """
     IQR = np.percentile(data, 75) - np.percentile(data, 25)
     binSize = 2.0*IQR*(data.size**(-1.0/3.0))
-    return int((max(data)-min(data))/binSize)
+    noBin = int((max(data)-min(data))/binSize)
+    return noBin
   
-  def __getRCDF__(self,d,x):
-    if x <= self.armaNormPara['rCDF'][d]['binsMin']:
-      y = self.armaNormPara['rCDF'][d]['CDF'][0]
-    elif x >= self.armaNormPara['rCDF'][d]['binsMax']:
-      y = self.armaNormPara['rCDF'][d]['CDF'][-1]
+  def __getCDF__(self,d,x):
+    """
+      Get residue CDF value at point x for d-th dimension      
+      @In, d, dimension id
+      @In, x, variable value
+      @Out, y, CDF value
+    """    
+    if x <= self.armaNormPara['resCDF'][d]['binsMin']:    y = self.armaNormPara['resCDF'][d]['CDF'][0]
+    elif x >= self.armaNormPara['resCDF'][d]['binsMax']:  y = self.armaNormPara['resCDF'][d]['CDF'][-1]
     else:
-      ind = self.armaNormPara['rCDF'][d]['binSearchEng'].kneighbors(x, return_distance=False)
-      X = self.armaNormPara['rCDF'][d]['bins'][ind]
-      Y = self.armaNormPara['rCDF'][d]['CDF'][ind]
-      x1, x2 = min(X.T), max(X.T)
-
-      if X[0,0] <= X[0,1]:                  
-        x1, x2 = X[0,0], X[0,1]
-        y1, y2 = Y[0,0], Y[0,1]
-      else:                                 
-        x1, x2 = X[0,1], X[0,0]
-        y1, y2 = Y[0,1], Y[0,0]
-      
-      if x1 == x2:
-        y = (y1+y2)/2.0
-      else:
-        y = y1 + 1.0*(y2-y1)/(x2-x1)*(x-x1)
+      ind = self.armaNormPara['resCDF'][d]['binSearchEng'].kneighbors(x, return_distance=False)
+      X, Y = self.armaNormPara['resCDF'][d]['bins'][ind], self.armaNormPara['resCDF'][d]['CDF'][ind]
+      if X[0,0] <= X[0,1]:        x1, x2, y1, y2 = X[0,0], X[0,1], Y[0,0], Y[0,1]
+      else:                       x1, x2, y1, y2 = X[0,1], X[0,0], Y[0,1], Y[0,0]
+      if x1 == x2:                y = (y1+y2)/2.0
+      else:                       y = y1 + 1.0*(y2-y1)/(x2-x1)*(x-x1)
     return y
   
-  def __getRInvCDF__(self,d,x):      
+  def __getInvCDF__(self,d,x):   
+    """
+      Get inverse residue CDF at point x for d-th dimension      
+      @In, d, dimension id
+      @In, x, CDF value
+      @Out, y, variable value
+    """ 
     if x < 0 or x > 1:    self.raiseAnError(ValueError, 'Input to __getRInvCDF__ is not in unit interval' )
-    elif x <= self.armaNormPara['rCDF'][d]['CDFMin']:
-      y = self.armaNormPara['rCDF'][d]['bins'][0]
-    elif x >= self.armaNormPara['rCDF'][d]['CDFMax']:
-      y = self.armaNormPara['rCDF'][d]['bins'][-1]
+    elif x <= self.armaNormPara['resCDF'][d]['CDFMin']:   y = self.armaNormPara['resCDF'][d]['bins'][0]
+    elif x >= self.armaNormPara['resCDF'][d]['CDFMax']:   y = self.armaNormPara['resCDF'][d]['bins'][-1]
     else:
-      ind = self.armaNormPara['rCDF'][d]['cdfSearchEng'].kneighbors(x, return_distance=False)
-      X = self.armaNormPara['rCDF'][d]['CDF'][ind]
-      Y = self.armaNormPara['rCDF'][d]['bins'][ind]
-      x1, x2 = min(X.T), max(X.T)
-      if X[0,0] <= X[0,1]:                  
-        x1, x2 = X[0,0], X[0,1]
-        y1, y2 = Y[0,0], Y[0,1]
-      else:                                 
-        x1, x2 = X[0,1], X[0,0]
-        y1, y2 = Y[0,1], Y[0,0]
-      
-      if x1 == x2:
-        y = (y1+y2)/2.0
-      else:
-        y = y1 + 1.0*(y2-y1)/(x2-x1)*(x-x1)    
-    
+      ind = self.armaNormPara['resCDF'][d]['cdfSearchEng'].kneighbors(x, return_distance=False)
+      X, Y = self.armaNormPara['resCDF'][d]['CDF'][ind], self.armaNormPara['resCDF'][d]['bins'][ind]
+#       x1, x2 = min(X.T), max(X.T)
+      if X[0,0] <= X[0,1]:        x1, x2, y1, y2 = X[0,0], X[0,1], Y[0,0], Y[0,1]
+      else:                       x1, x2, y1, y2 = X[0,1], X[0,0], Y[0,1], Y[0,0]
+      if x1 == x2:                y = (y1+y2)/2.0
+      else:                       y = y1 + 1.0*(y2-y1)/(x2-x1)*(x-x1)
     return y
   
-  def __normalizeRes__(self,Res):
-    normRes = np.zeros(shape=Res.shape)
-    for n1 in range(Res.shape[0]):
-      for n2 in range(Res.shape[1]):
-        temp = self.__getRCDF__(n2,Res[n1,n2])
-        # for numerical issues, value less than 1 returned by __geetRCDF__ can be greater than 1 when stored in temp 
-        if temp >= 1:                temp = 1 - np.finfo(float).eps
-        elif temp <= 0:              temp = np.finfo(float).eps
-        normRes[n1,n2] = self.normTransEngine.ppf(temp)
-    return normRes
-  
-  def __denormalizeRes__(self,normRes):
-    Res = np.zeros(shape=normRes.shape)
-    for n1 in range(normRes.shape[0]):
-      for n2 in range(normRes.shape[1]):        
-        temp = self.normTransEngine.cdf(normRes[n1, n2])      
-        Res[n1,n2] = self.__getRInvCDF__(n2, temp)        
-        
-    return Res
-  
-  def __generateFourier__(self):
-    Time = self.Time
+  def __dataConversion__(self, data, obj):
+    """
+      Transform input data to a Normal/empirical distribution data set. 
+      @In, data, array, shape=[n_timeStep, n_dimension], input data to be transformed
+      @In, obj, string, specify whether to normalize or denormalize the data
+      @Out, transformedData, array, shape = [n_timeStep, n_dimension], output transformed data that has normal/empirical distribution   
     
+    """
+    # Instantiate a normal distribution for data conversion
+    normTransEngine = Distributions.returnInstance('Normal',self)
+    normTransEngine.mean, normTransEngine.sigma = 0, 1
+    normTransEngine.upperBoundUsed, normTransEngine.lowerBoundUsed = False, False
+    normTransEngine.initializeDistribution()
+    
+    # Transform data
+    transformedData = np.zeros(shape=data.shape)
+    for n1 in range(data.shape[0]):
+      for n2 in range(data.shape[1]):
+        if obj in ['normalize']:    
+          temp = self.__getCDF__(n2, data[n1,n2])
+          # for numerical issues, value less than 1 returned by __getCDF__ can be greater than 1 when stored in temp 
+          if temp >= 1:                temp = 1 - np.finfo(float).eps
+          elif temp <= 0:              temp = np.finfo(float).eps
+          transformedData[n1,n2] = normTransEngine.ppf(temp)
+        elif obj in ['denormalize']:
+          temp = normTransEngine.cdf(data[n1, n2])      
+          transformedData[n1,n2] = self.__getInvCDF__(n2, temp)
+        else:       self.raiseAnError(ValueError, 'Input obj to __dataConversion__ is not properly set')
+    return transformedData        
+        
+  def __generateFourierSignal__(self, Time, basePeriod, fourierOrder):
+    """
+      Generate fourier signal as specified by the input file  
+      @In, basePeriod, list, list of base periods
+      @In, fourierOrder, dict, order for each base period 
+      @Out, fourierSeriesAll, array, shape = [n_timeStep, n_basePeriod]
+    """  
     fourierSeriesAll = {}
-    for bp in self.fourierPara['basePeriod']:
-      fourierSeriesAll[bp] = np.zeros(shape=(Time.size,2*self.fourierPara['FourierOrder'][bp]))
-      for orderBp in range(self.fourierPara['FourierOrder'][bp]):       
-        fourierSeriesAll[bp][:,2*orderBp] = np.sin(2*np.pi*(orderBp+1)/bp*Time)
-        fourierSeriesAll[bp][:,2*orderBp+1] = np.cos(2*np.pi*(orderBp+1)/bp*Time)
+    for bp in basePeriod:
+      fourierSeriesAll[bp] = np.zeros(shape=(Time.size, 2*fourierOrder[bp]))
+      for orderBp in range(fourierOrder[bp]):       
+        fourierSeriesAll[bp][:, 2*orderBp] = np.sin(2*np.pi*(orderBp+1)/bp*Time)
+        fourierSeriesAll[bp][:, 2*orderBp+1] = np.cos(2*np.pi*(orderBp+1)/bp*Time)
     return fourierSeriesAll
     
-  def __armaParamAssemb__(self,x,p,q,N):  
-    Phi = {}
+  def __armaParamAssemb__(self,x,p,q,N): 
+    """
+      Assemble ARMA parameter into matrices      
+      @In, x, ARMA parameter stored as vector
+      @In, p, AR order
+      @In, q, MA order
+      @In, N, dimensionality
+      @Out Phi, AR parameter
+      @Out Theta, MA parameter
+      @Out Cov, covariance matrix of the noise
+    """
+    Phi, Theta, Cov = {}, {}, np.identity(N)
     for i in range(1,p+1):
       Phi[i] = np.zeros(shape=(N,N))
-      for n in range(N):
-        Phi[i][n,:] = x[N**2*(i-1)+n*N:N**2*(i-1)+(n+1)*N]
-      
-    Theta = {}
+      for n in range(N):      Phi[i][n,:] = x[N**2*(i-1)+n*N:N**2*(i-1)+(n+1)*N]
     for j in range(1,q+1):
       Theta[j] = np.zeros(shape=(N,N))
-      for n in range(N):
-        Theta[j][n,:] = x[N**2*(p+j-1)+n*N:N**2*(p+j-1)+(n+1)*N]
-    
-    Cov = np.identity(N)
-    for n in range(N):
-      Cov[n,n] = x[N**2*(p+q)+n]
-      
+      for n in range(N):      Theta[j][n,:] = x[N**2*(p+j-1)+n*N:N**2*(p+j-1)+(n+1)*N]
+    for n in range(N):        Cov[n,n] = x[N**2*(p+q)+n]      
     return Phi, Theta, Cov
     
   def __computeARMALikelihood__(self,x,*args):
-    if len(args) != 2: 
-      self.raiseAnError(ValueError, 'args to __computeARMALikelihood__ should have exactly 2 elements')
+    """
+      Compute the likelihood given a ARMA model
+      @In, x, ARMA parameter stored as vector
+      @In, args, additional argument
+      @Out, lkHood, output likelihood
+  
+    """  
+    if len(args) != 2:    self.raiseAnError(ValueError, 'args to __computeARMALikelihood__ should have exactly 2 elements')
     
-    p,q = args[0],args[1]
-    N = self.armaPara['dimension']
-    if len(x) != N**2*(p+q)+N:
-      self.raiseAnError(ValueError, 'input to __computeARMALikelihood__ has wrong dimension')
-    
-    Phi, Theta, Cov = self.__armaParamAssemb__(x,p,q,N)
-    
+    p, q, N = args[0], args[1], self.armaPara['dimension']
+    if len(x) != N**2*(p+q)+N:    self.raiseAnError(ValueError, 'input to __computeARMALikelihood__ has wrong dimension')
+    Phi, Theta, Cov = self.__armaParamAssemb__(x,p,q,N)    
     for n1 in range(N):
       for n2 in range(N):
         if Cov[n1,n2] <0: 
-          return sys.float_info.max
-    CovInv = np.linalg.inv(Cov)
-
-    
+          lkHood = sys.float_info.max
+          return lkHood
+        
+    CovInv = np.linalg.inv(Cov)    
     d = self.armaPara['rSeriesNorm']
     noTimeStep = d.shape[0]  
     alpha = np.zeros(shape=d.shape)
     L = -N*noTimeStep/2.0*np.log(2*np.pi) - noTimeStep/2.0*np.log(np.linalg.det(Cov))
     for t in range(noTimeStep):
       alpha[t,:] = d[t,:]
-      for i in range(1,min(p,t)+1):
-        alpha[t,:] -= np.dot(Phi[i],d[t-i,:])
-      for j in range(1,min(q,t)+1):
-        alpha[t,:] -= np.dot(Theta[j],alpha[t-j,:])
+      for i in range(1,min(p,t)+1):     alpha[t,:] -= np.dot(Phi[i],d[t-i,:])
+      for j in range(1,min(q,t)+1):     alpha[t,:] -= np.dot(Theta[j],alpha[t-j,:])
       L -= 1/2.0*np.dot(np.dot(alpha[t,:].T,CovInv),alpha[t,:])
-                
+       
     sigHat = np.dot(alpha.T,alpha)
     while sigHat.size > 1:
       sigHat = sum(sigHat)
       sigHat = sum(sigHat.T)
     sigHat = sigHat / noTimeStep
-      
     self.armaResult['sigHat'] = sigHat[0,0]
-    return -L
-    
-      
-    
-    
+    lkHood = -L
+    return lkHood
+        
   def __computeAICorBIC(self,maxL,noPara,cType,obj='max'):
+    """
+      Compute the AIC or BIC criteria for model selection. 
+      @In, maxL, float, likelihood of given parameters
+      @In, noPara, int, number of parameters
+      @In, cType, string, specify whether AIC or BIC should be returned
+      @In, obj, string, specify the optimization is for maximum or minimum. 
+      @Out, criterionValue, float, value of AIC/BIC
+    """
     if obj == 'min':        flag = -1
     else:                   flag = 1
-    if cType == 'BIC':
-      return -1*flag*np.log(maxL)+noPara*np.log(self.Time.size)
-    elif cType == 'AIC':
-      return -1*flag*np.log(maxL)+noPara*2
-    else:
-      return maxL
-
-  def __confidenceLocal__(self,featureVals):
-    """
-    This should return an estimation of the quality of the prediction.
-    This could be distance or probability or anything else, the type needs to be declared in the variable cls.qualityEstType
-    @ In, featureVals, 2-D numpy array [n_samples,n_features]
-    @ Out, float, the confidence
-    """
-    pass
+    if cType == 'BIC':      criterionValue = -1*flag*np.log(maxL)+noPara*np.log(self.time.size)
+    elif cType == 'AIC':    criterionValue = -1*flag*np.log(maxL)+noPara*2
+    else:                   criterionValue = maxL
+    return criterionValue
 
   def __evaluateLocal__(self,featureVals):
     """
-    @ In,  featureVals, 2-D numpy array [n_samples,n_features]
-    @ Out, targetVals , 1-D numpy array [n_samples]
+      @ In,  
+      @ Out, generatedData , n-D numpy array [n_timeStep, n_dimension+1]
     """
-    # FIXME. The use of dataobject is to prevent the model from performing colectOutput, which is not suitable for ARMA
-    # end of FIXME
-    p = self.armaResult['P'] 
-    q = self.armaResult['Q']
-    N = self.armaPara['dimension'] 
-    Phi = self.armaResult['Phi']
-    Theta = self.armaResult['Theta']
-    sig =self.armaResult['sig'] 
+    # FIXME, featureVals is not needed for ARMA __evaluateLocal__
+    # End of FIXME 
+
+    # Instantiate a normal distribution for time series synthesis (noise part)
+    normEvaluateEngine = Distributions.returnInstance('Normal',self)
+    normEvaluateEngine.mean, normEvaluateEngine.sigma = 0, 1
+    normEvaluateEngine.upperBoundUsed, normEvaluateEngine.lowerBoundUsed = False, False
+    normEvaluateEngine.initializeDistribution()
     
-    noTimeStep = len(self.Time)
-    tSeriesNorm = np.zeros(shape=self.armaPara['rSeriesNorm'].shape)
-    tSeriesNorm[0,:] = self.armaPara['rSeriesNorm'][0,:]
+    noTimeStep = len(self.time)
     tSeriesNoise = np.zeros(shape=self.armaPara['rSeriesNorm'].shape)
-    
     for t in range(noTimeStep):
-      for n in range(N):
-        tSeriesNoise[t,n] = self.normEvaluateEngine.rvs()*sig[0,n]
-    
+      for n in range(self.armaPara['dimension']):
+        tSeriesNoise[t,n] = normEvaluateEngine.rvs()*self.armaResult['sig'] [0,n]
+
+    tSeriesNorm = np.zeros(shape=self.armaPara['rSeriesNorm'].shape)
+    tSeriesNorm[0,:] = self.armaPara['rSeriesNorm'][0,:]    
     for t in range(noTimeStep):
-      for i in range(1,min(p,t)+1):
-        tSeriesNorm[t,:] += np.dot(tSeriesNorm[t-i,:],Phi[i])
-      for j in range(1,min(q,t)+1):
-        tSeriesNorm[t,:] += np.dot(tSeriesNoise[t-j,:],Theta[j])
+      for i in range(1,min(self.armaResult['P'], t)+1):
+        tSeriesNorm[t,:] += np.dot(tSeriesNorm[t-i,:], self.armaResult['Phi'][i])
+      for j in range(1,min(self.armaResult['Q'], t)+1):
+        tSeriesNorm[t,:] += np.dot(tSeriesNoise[t-j,:], self.armaResult['Theta'][j])
       tSeriesNorm[t,:] += tSeriesNoise[t,:] 
     
-    tSeries = self.__denormalizeRes__(tSeriesNorm)
-    
-
-    
+    # Convert data back to empirically distributed
+    tSeries = self.__dataConversion__(tSeriesNorm, obj='denormalize')       
     # Add fourier trends
-    if self.hasFourierSeries:
-      tSeries += self.fourierResult['predict']
-    
+    if self.hasFourierSeries:     tSeries += self.fourierResult['predict']    
     # Ensure positivity --- FIXME
     tSeries = np.absolute(tSeries)
         
     # debug
     self.raiseADebug('mean', np.mean(tSeries), 'std', np.std(tSeries))
-  
-    eval = np.zeros(shape=[noTimeStep,N+1])
-    eval[:,0] = self.Time
-    eval[:,1:] = tSeries
-    return eval
-  
+    # end of debug
+    generatedData = np.zeros(shape=[noTimeStep,self.armaPara['dimension']+1])
+    generatedData[:,0] = self.time
+    generatedData[:,1:] = tSeries
+    return generatedData
 
+  def __confidenceLocal__(self,featureVals):
+    """
+      This method is currently not needed for ARMA
+    """
+    pass
+  
   def __resetLocal__(self,featureVals):
-    """After this method the ROM should be described only by the initial parameter settings"""
+    """
+      After this method the ROM should be described only by the initial parameter settings
+      Currently not implemented for ARMA
+    """
     pass
 
   def __returnInitialParametersLocal__(self):
-    """there are no possible default parameters to report"""
+    """
+      there are no possible default parameters to report
+    """
     localInitParam = {}
     return localInitParam
 
   def __returnCurrentSettingLocal__(self):
-    """override this method to pass the set of parameters of the ROM that can change during simulation"""
+    """
+      override this method to pass the set of parameters of the ROM that can change during simulation
+      Currently not implemented for ARMA
+    """
     pass
 
 __interfaceDict                         = {}
