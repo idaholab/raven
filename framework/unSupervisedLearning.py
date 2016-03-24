@@ -445,6 +445,8 @@ class temporalBasicStatistics(unSupervisedLearning):
   """
     Data mining library to compute basic statistics along temporal data
   """
+  whatThatReturnsMatrix = ['pearson', 'covariance', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity']
+  
   def __init__(self, messageHandler, **kwargs):
     """
       constructor for temporalBasicStatics class.
@@ -475,32 +477,24 @@ class temporalBasicStatistics(unSupervisedLearning):
     self.outputDict = {}
          
   def run(self, Input):
-    
-    # FIXME, this needs to be changed for asynchronous HistorySet    
-#     if 'Time' in Input.getParam('output',1).keys(): Time = Input.getParam('output',1)['Time']
-#     else: self.raiseAnError(ValueError, 'Time not found in input historyset')
-#     self.outputDict['Time'] = Time
-    # end of FIXME
-    
+    """
+      This method compute the basic statistics according to the 'what' node of the input file
+      @In, Input, historySet
+      @Out, self.outputDict, history
+    """    
     timeVar = Input.getParam('output',1)[self.timeID]
     self.outputDict[self.timeID] = timeVar 
-    
     historyKey = Input.getOutParametersValues().keys()
     noHistory = len(historyKey)
-    noTimeStep = len(timeVar)
-    
-    parameterSet = list(set(list(self.method.parameters['targets'])))  # This is to keep consistent with BasicStatistics PP
-    
-    whatThatReturnsMatrix = ['pearson', 'covariance', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity']
-    if len(set(whatThatReturnsMatrix) & set(self.method.what)):
-      pass # FIXME Place holder for meta data. self.outputDict['metadata'] = {}
+    noTimeStep = len(timeVar)    
+
+    # Initialize output dict
+    parameterSet = list(set(list(self.method.parameters['targets'])))  # This is to keep consistent with BasicStatistics PP     
     for whatc in self.method.what:
-      if whatc in whatThatReturnsMatrix:
+      if whatc in self.__class__.whatThatReturnsMatrix:
         for tar1 in parameterSet:
           for tar2 in parameterSet:
             self.outputDict[whatc + '-' + tar1 + '-' + tar2] = []
-            
-#         self.outputDict['metadata']['targets-' + whatc] = []
       else:
         for tar in parameterSet:         
           if whatc.split("_")[0] == 'percentile':
@@ -517,40 +511,30 @@ class temporalBasicStatistics(unSupervisedLearning):
     for tar in parameterSet:
       InputV[tar] = np.zeros(shape=(noTimeStep,noHistory))
       if tar in Input.getParaKeys('input'):
-        for cnt, keyH in enumerate(historyKey):
-          InputV[tar][:,cnt] = Input.getParam('input',keyH)[tar]
+        for cnt, keyH in enumerate(historyKey):       InputV[tar][:,cnt] = Input.getParam('input',keyH)[tar]
       else:
-        for cnt, keyH in enumerate(historyKey):
-          InputV[tar][:,cnt] = Input.getParam('output',keyH)[tar]
-    if Input.getAllMetadata():
-      InputV['metadata'] = Input.getAllMetadata()
+        for cnt, keyH in enumerate(historyKey):       InputV[tar][:,cnt] = Input.getParam('output',keyH)[tar]
+    if Input.getAllMetadata():                        InputV['metadata'] = Input.getAllMetadata()
     
     inp = DataObjects.returnInstance('PointSet', self)
     for tStep in range(noTimeStep):    
       # construct input PointSet for BasicStatistics postprocessor 
       inp.__init__() # Reset the inp at each time step
       if 'metadata' in InputV.keys():
-        for keyM in InputV['metadata'].keys():
-          inp.updateMetadata(keyM, InputV['metadata'][keyM])        
+        for keyM in InputV['metadata'].keys():        inp.updateMetadata(keyM, InputV['metadata'][keyM])        
       for tar in parameterSet:        
-        for cnt, keyH in enumerate(historyKey):
-          inp.updateOutputValue(tar, InputV[tar][tStep,cnt])
-      
-      # run BasicStatistics postprocessor 
-      outp = self.method.run(inp) 
+        for cnt, keyH in enumerate(historyKey):       inp.updateOutputValue(tar, InputV[tar][tStep,cnt])
+      outp = self.method.run(inp)  # run BasicStatistics postprocessor 
       
       # collect output from BasicStatistics postprocessor 
       for whatc in self.method.what:
-        if whatc in whatThatReturnsMatrix:
+        if whatc in self.__class__.whatThatReturnsMatrix:
           for index1,tar1 in enumerate(parameterSet):
             for index2,tar2 in enumerate(parameterSet):
-#               if whatc == 'sensitivity': self.raiseAnError(IOError,'sensitivity')
               if whatc in ['pearson', 'covariance']:
                 self.outputDict[whatc + '-' + tar1 + '-' + tar2].append(outp[whatc][index1,index2])
               elif whatc in ['sensitivity','NormalizedSensitivity', 'VarianceDependentSensitivity']:
                 self.outputDict[whatc + '-' + tar1 + '-' + tar2].append(outp[whatc][index1][index2])
-                                                                          
-#           self.outputDict['metadata']['targets-' + whatc].append(outp[whatc])
         else:        
           for tar in parameterSet:
             if whatc.split("_")[0] == 'percentile':
@@ -561,18 +545,24 @@ class temporalBasicStatistics(unSupervisedLearning):
                 self.outputDict[tar + '-' + whatc.replace('%','')].append(outp[whatc.replace('%','')][tar])
             else:
               self.outputDict[tar + '-' + whatc].append(outp[whatc][tar])
-  
-#     self.raiseADebug('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
-#     self.raiseADebug(self.outputDict['v-sigma'][-1])
     return self.outputDict
   
   def __trainLocal__(self):
-    pass # BasicStatics doesn't need train. 
+    """
+      Not needed for this class
+    """
+    pass
     
   def __evaluateLocal__(self, featureVals):
+    """
+      Not needed for this class
+    """
     pass
 
   def __confidenceLocal__(self):
+    """
+      Not needed for this class
+    """
     pass
     
 class temporalSciKitLearn(unSupervisedLearning):
