@@ -1,7 +1,4 @@
-"""
-Created on October 28, 2015
 
-"""
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings

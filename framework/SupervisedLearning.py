@@ -63,9 +63,8 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
 
   def __init__(self,messageHandler,**kwargs):
     """
-    A constructor that will appropriately intialize a supervised learning object
-    @In, messageHandler: a MessageHandler object in charge of raising errors,
-                         and printing messages
+    A constructor that will appropriately initialize a supervised learning object
+    @In, messageHandler: a MessageHandler object in charge of raising errors, and printing messages
     @In, kwargs: an arbitrary list of kwargs
     """
     self.printTag = 'Supervised'
@@ -123,7 +122,7 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
       Method to perform the training of the superVisedLearning algorithm
       NB.the superVisedLearning object is committed to convert the dictionary that is passed (in), into the local format
       the interface with the kernels requires. So far the base class will do the translation into numpy
-      @ In, tdict, training dictionary
+      @ In, tdict, dict, training dictionary
       @ Out, None
     """
     if type(tdict) != dict: self.raiseAnError(TypeError,'In method "train", the training set needs to be provided through a dictionary. Type of the in-object is ' + str(type(tdict)))
@@ -696,7 +695,7 @@ class GaussPolynomialRom(superVisedLearning):
 #
 #
 class HDMRRom(GaussPolynomialRom):
-  """High-Dimention Model Reduction reduced order model.  Constructs model based on subsets of the input space."""
+  """High-Dimension Model Reduction reduced order model.  Constructs model based on subsets of the input space."""
   def __confidenceLocal__(self,edict):
     """Require by inheritance, unused.
     @ In, edict, unused
@@ -1783,10 +1782,9 @@ class SciKitLearn(superVisedLearning):
 
   def __init__(self,messageHandler,**kwargs):
     """
-    A constructor that will appropriately intialize a supervised learning object
-    @In, messageHandler: a MessageHandler object in charge of raising errors,
-                         and printing messages
-    @In, kwargs: an arbitrary dictionary of keywords and values
+    A constructor that will appropriately initialize a supervised learning object
+    @In, messageHandler, a MessageHandler object in charge of raising errors and printing messages
+    @In, kwargs, dict, an arbitrary dictionary of keywords and values
     """
     superVisedLearning.__init__(self,messageHandler,**kwargs)
     self.printTag = 'SCIKITLEARN'

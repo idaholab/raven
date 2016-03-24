@@ -273,13 +273,13 @@ class SafestPoint(BasePostProcessor):
      @ In, messageHandler, message handler object
     """
     BasePostProcessor.__init__(self, messageHandler)
-    self.controllableDist = {}  # dictionary created upon the .xml input file reading. It stores the distributions for each controllale variable.
-    self.nonControllableDist = {}  # dictionary created upon the .xml input file reading. It stores the distributions for each non-controllale variable.
+    self.controllableDist = {}  # dictionary created upon the .xml input file reading. It stores the distributions for each controllable variable.
+    self.nonControllableDist = {}  # dictionary created upon the .xml input file reading. It stores the distributions for each non-controllable variable.
     self.controllableGrid = {}  # dictionary created upon the .xml input file reading. It stores the grid type ('value' or 'CDF'), the number of steps and the step length for each controllale variable.
     self.nonControllableGrid = {}  # dictionary created upon the .xml input file reading. It stores the grid type ('value' or 'CDF'), the number of steps and the step length for each non-controllale variable.
-    self.gridInfo = {}  # dictionary contaning the grid type ('value' or 'CDF'), the grid construction type ('equal', set by default) and the list of sampled points for each variable.
-    self.controllableOrd = []  # list contaning the controllable variables' names in the same order as they appear inside the controllable space (self.controllableSpace)
-    self.nonControllableOrd = []  # list contaning the controllable variables' names in the same order as they appear inside the non-controllable space (self.nonControllableSpace)
+    self.gridInfo = {}  # dictionary containing the grid type ('value' or 'CDF'), the grid construction type ('equal', set by default) and the list of sampled points for each variable.
+    self.controllableOrd = []  # list containing the controllable variables' names in the same order as they appear inside the controllable space (self.controllableSpace)
+    self.nonControllableOrd = []  # list containing the controllable variables' names in the same order as they appear inside the non-controllable space (self.nonControllableSpace)
     self.surfPointsMatrix = None  # 2D-matrix containing the coordinates of the points belonging to the failure boundary (coordinates are derived from both the controllable and non-controllable space)
     self.stat = returnInstance('BasicStatistics', self)  # instantiation of the 'BasicStatistics' processor, which is used to compute the expected value of the safest point through the coordinates and probability values collected in the 'run' function
     self.stat.what = ['expectedValue']
@@ -882,12 +882,6 @@ class InterfacedPostProcessor(BasePostProcessor):
      @ In, initDict, dict, dictionary with initialization options
     """
     BasePostProcessor.initialize(self, runInfo, inputs, initDict)
-#     self.postProcessor.initialize()
-#
-#     if self.postProcessor.inputFormat not in set(['HistorySet','History','PointSet','Point']):
-#       self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.inputFormat not correctly initialized')
-#     if self.postProcessor.outputFormat not in set(['HistorySet','History','PointSet','Point']):
-#       self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.outputFormat not correctly initialized')
 
   def _localReadMoreXML(self, xmlNode):
     """
@@ -903,12 +897,8 @@ class InterfacedPostProcessor(BasePostProcessor):
       self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : not correctly coded; it must inherit the PostProcessorInterfaceBase class')
 
     self.postProcessor.initialize()
-    if self.postProcessor.inputFormat not in set(['HistorySet','History','PointSet','Point']):
-      self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.inputFormat not correctly initialized')
-    if self.postProcessor.outputFormat not in set(['HistorySet','History','PointSet','Point']):
-      self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.outputFormat not correctly initialized')
+    
     self.postProcessor.readMoreXML(xmlNode)
-
 
   def run(self, InputIn):
     """
@@ -916,12 +906,18 @@ class InterfacedPostProcessor(BasePostProcessor):
      @ In , InputIn, dict, dictionary of data to process
      @ Out, dictionary, dict containing the post-processed results
     """
+    
+    if self.postProcessor.inputFormat not in set(['HistorySet','History','PointSet','Point']):
+      self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.inputFormat not correctly initialized')
+    if self.postProcessor.outputFormat not in set(['HistorySet','History','PointSet','Point']):
+      self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.outputFormat not correctly initialized')
+ 
     inputDic= self.inputToInternal(InputIn)
     outputDic = self.postProcessor.run(inputDic)
     if self.postProcessor.checkGeneratedDicts(outputDic):
       return outputDic
     else:
-      self.raiseAnError(RuntimeError,'InterfacedPostProcessor Post-Processor: function has generated a not valid output dictionary')
+      self.raiseAnError(RuntimeError,'InterfacedPostProcessor Post-Processor '+ self.name +' : function has generated a not valid output dictionary')
 
 
   def collectOutput(self, finishedjob, output):
@@ -931,9 +927,11 @@ class InterfacedPostProcessor(BasePostProcessor):
       @ In, jobHandler, jobHandler object, jobHandler instance
       @ Out, None
     """
+    
     if finishedjob.returnEvaluation() == -1:
       self.raiseAnError(RuntimeError, ' No available Output to collect (Run probably is not finished yet)')
     evaluation = finishedjob.returnEvaluation()[1]
+    
     exportDict = {'inputSpaceParams':evaluation['data']['input'],'outputSpaceParams':evaluation['data']['output'],'metadata':evaluation['metadata']}
 
     listInputParms   = output.getParaKeys('inputs')
@@ -956,8 +954,8 @@ class InterfacedPostProcessor(BasePostProcessor):
             if key in output.getParaKeys('outputs'):
               output.updateOutputValue(key,exportDict['outputSpaceParams'][key])
           for key in exportDict['metadata'][0]:
-            output.updateMetadata(key,exportDict['metadata'][0][key])
-    elif output.type == 'PointSet':
+            output.updateMetadata(key,exportDict['metadata'][0][key]) 
+    else:   # output.type == 'PointSet':
       for key in exportDict['inputSpaceParams']:
         if key in output.getParaKeys('inputs'):
           for value in exportDict['inputSpaceParams'][key]:
@@ -968,8 +966,8 @@ class InterfacedPostProcessor(BasePostProcessor):
             output.updateOutputValue(key,value)
       for key in exportDict['metadata'][0]:
         output.updateMetadata(key,exportDict['metadata'][0][key])
-
-
+    
+     
 
   def inputToInternal(self,input):
     """
@@ -989,6 +987,7 @@ class InterfacedPostProcessor(BasePostProcessor):
       metadata.append(copy.deepcopy(item.getAllMetadata()))
     metadata.append(item.getAllMetadata())
     inputDict['metadata']=metadata
+    
     return inputDict
 
 #
@@ -1831,7 +1830,7 @@ class LimitSurface(BasePostProcessor):
     self.functionValue     = {}               #This a dictionary that contains np vectors with the value for each variable and for the goal function
     self.ROM               = None             #Pointer to a ROM
     self.externalFunction  = None             #Pointer to an external Function
-    self.tolerance         = 1.0e-4           #SubGrid tollerance
+    self.tolerance         = 1.0e-4           #SubGrid tolerance
     self.gridFromOutside   = False            #The grid has been passed from outside (self._initFromDict)?
     self.lsSide            = "negative"       # Limit surface side to compute the LS for (negative,positive,both)
     self.gridEntity        = None
@@ -1929,7 +1928,7 @@ class LimitSurface(BasePostProcessor):
 
   def _initializeLSppROM(self, inp, raiseErrorIfNotFound = True):
     """
-     Method to initialize the LS accelleration rom
+     Method to initialize the LS acceleration rom
      @ In, inp, Data(s) object, data object containing the training set
      @ In, raiseErrorIfNotFound, bool, throw an error if the limit surface is not found
     """
@@ -2746,28 +2745,74 @@ class DataMining(BasePostProcessor):
     BasePostProcessor.__init__(self, messageHandler)
     self.printTag = 'POSTPROCESSOR DATAMINING'
     self.algorithms = []  # A list of Algorithms objects that contain definitions for all the algorithms the user wants
-    self.requiredAssObject = (True, (['Label'], ['-1']))  # The Label is optional for now....
+    self.requiredAssObject = (True, (['Label','PreProcessor'], ['-1','-1']))  # The Label is optional for now....
     self.initializationOptionDict = {}
     self.clusterLabels = None
     self.labelAlgorithms = []
     self.dataObjects = []
+    self.PreProcessor = None
+  
+  def _localWhatDoINeed(self):
+    """
+    This method is a local mirror of the general whatDoINeed method.
+    It is implemented by the samplers that need to request special objects
+    @ In , None, None
+    @ Out, dict, dictionary of objects needed
+    """
+    return {'internal':[(None,'jobHandler')]}
+
+  def _localGenerateAssembler(self,initDict):
+    """Generates the assembler.
+    @ In, initDict, dict, init objects
+    @ Out, None
+    """
+    self.jobHandler = initDict['internal']['jobHandler']  
 
   def inputToInternal(self, currentInp):
     """
       Function to convert the received input into a format this object can
       understand
-      @ In, currentInp, Some form of data object or list of data objects handed
-                        to the post-processor
+      @ In, currentInp, Some form of data object or list of data objects handed to the post-processor
       @ Out, inputdict, dict, An input dictionary this object can process
     """
     if type(currentInp) == list: currentInput = currentInp[-1]
     else                       : currentInput = currentInp
     if type(currentInp) == dict:
       if 'Features' in currentInput.keys(): return
-    inputDict = {'Features':{}, 'parameters':{}, 'Labels':{}, 'metadata':{}}
+      
     if isinstance(currentInp, Files.File):
-      if currentInput.subtype == 'csv': self.raiseAnError(IOError, 'CSV File received as an input!')
-    if currentInput.type == 'HDF5': self.raiseAnError(IOError, 'HDF5 Object received as an input!')
+      if currentInput.subtype == 'csv': 
+        self.raiseAnError(IOError, 'CSV File received as an input!')
+    if currentInput.type == 'HDF5': 
+      self.raiseAnError(IOError, 'HDF5 Object received as an input!')
+          
+    if self.PreProcessor != None:
+      inputDict = {'Features':{}, 'parameters':{}, 'Labels':{}, 'metadata':{}}
+      if self.initializationOptionDict['KDD']['Features'] == 'input':
+        features = currentInput.getParaKeys('input')
+      elif self.initializationOptionDict['KDD']['Features'] == 'output':
+        features = currentInput.getParaKeys('output')
+      else:
+        features = self.initializationOptionDict['KDD']['Features'].split(',')
+      tempData = self.PreProcessor.interface.inputToInternal(currentInp)
+      preProcessedData = self.PreProcessor.interface.run(tempData)
+      if self.initializationOptionDict['KDD']['Features'] == 'input':
+        inputDict['Features'] = copy.deepcopy(preProcessedData['data']['input'])
+      elif self.initializationOptionDict['KDD']['Features'] == 'output':
+        inputDict['Features'] = copy.deepcopy(preProcessedData['data']['output'])
+      else:  
+        features = self.initializationOptionDict['KDD']['Features'].split(',')
+        for param in currentInput.getParaKeys('input'):
+           if param in features:
+             inputDict['Features'][param] = copy.deepcopy(preProcessedData['data']['input'][param])
+        for param in currentInput.getParaKeys('output'):
+           if param in features:
+             inputDict['Features'][param] = copy.deepcopy(preProcessedData['data']['output'][param])
+                          
+      inputDict['metadata'] = currentInput.getAllMetadata()
+      return inputDict
+      
+    inputDict = {'Features':{}, 'parameters':{}, 'Labels':{}, 'metadata':{}}
     if currentInput.type in ['PointSet']:
       if self.initializationOptionDict['KDD']['Features'] == 'input':
         for param in currentInput.getParaKeys('input'): inputDict['Features'][param] = currentInput.getParam('input', param)
@@ -2784,7 +2829,6 @@ class DataMining(BasePostProcessor):
           if param in features: inputDict['Features'][param] = currentInput.getParam('output', param)
 
       inputDict['metadata'] = currentInput.getAllMetadata()
-
 
     return inputDict
 
@@ -2803,6 +2847,8 @@ class DataMining(BasePostProcessor):
         for _ in self.assemblerDict[key]:
           self.labelAlgorithms.append(self.assemblerDict[key][indice][3])
           indice += 1
+      elif 'PreProcessor' == key:
+        self.PreProcessor = self.assemblerDict['PreProcessor'][0][3]
 
   def _localReadMoreXML(self, xmlNode):
     """
@@ -2826,7 +2872,7 @@ class DataMining(BasePostProcessor):
             self.type = child.attrib.values()[0]
             self.initializationOptionDict[child.tag].pop('lib')
         for childChild in child:
-          if childChild.attrib:
+          if childChild.attrib and not childChild.tag == 'PreProcessor':
             self.initializationOptionDict[child.tag][childChild.tag] = {}
             self.initializationOptionDict[child.tag][childChild.tag].update(childChild.attrib)
           else:
@@ -2851,7 +2897,16 @@ class DataMining(BasePostProcessor):
     for key in dataMineDict['output']:
       for param in output.getParaKeys('output'):
         if key == param: output.removeOutputValue(key)
-      for value in dataMineDict['output'][key]: output.updateOutputValue(key, copy.copy(value))
+      if output.type == 'PointSet':
+        for value in dataMineDict['output'][key]: 
+          output.updateOutputValue(key, copy.copy(value))
+      elif output.type == 'HistorySet':
+        for index,value in np.ndenumerate(dataMineDict['output'][key]):
+          firstHist = output._dataContainer['outputs'].keys()[0]
+          firstVar  = output._dataContainer['outputs'][firstHist].keys()[0]
+          timeLength = output._dataContainer['outputs'][firstHist][firstVar].size
+          arrayBase = value * np.ones(timeLength)
+          output.updateOutputValue([index[0]+1,key], arrayBase)   
 
   def run(self, InputIn):
     """
@@ -2859,6 +2914,7 @@ class DataMining(BasePostProcessor):
      @ In , InputIn, dict, dictionary of data to process
      @ Out, outputdict, dict, dictionary containing the post-processed results
     """
+          
     if len(self.dataObjects) is not 0:
       if type(self.dataObjects) == list: dataObject = self.dataObjects[-1]
       else                             : dataObject = self.dataObjects

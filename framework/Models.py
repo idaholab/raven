@@ -391,7 +391,7 @@ class ROM(Dummy):
     for target in targets:
       self.initializationOptionDict['Target'] = target
       self.SupervisedEngine[target] =  SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
-    # extend the list of modules this ROM depen on
+    # extend the list of modules this ROM depend on
     self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(utils.first(self.SupervisedEngine.values())),True)) - set(self.mods))
     self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(SupervisedLearning),True)) - set(self.mods))
     #restore targets to initialization option dict
@@ -1047,10 +1047,7 @@ class PostProcessor(Model, Assembler):
        directory with the starting input files"""
     self.workingDir               = os.path.join(runInfo['WorkingDir'],runInfo['stepName']) #generate current working dir
     self.interface.initialize(runInfo, inputs, initDict)
-    #aaaaa = utils.returnImportModuleString(inspect.getmodule(PostProcessors),True)
-    #bbbbb = utils.returnImportModuleString(inspect.getmodule(PostProcessors))
     self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(PostProcessors),True)) - set(self.mods))
-    #self.mods.extend(utils.returnImportModuleString(inspect.getmodule(PostProcessors),True))
 
   def run(self,Input,jobHandler):
     """run calls the interface finalizer"""

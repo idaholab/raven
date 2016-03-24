@@ -8,6 +8,7 @@ import numpy as np
 import bisect
 import sys, os
 from scipy.interpolate import Rbf, griddata
+from scipy import interpolate
 import copy
 import inspect
 import subprocess
@@ -468,7 +469,7 @@ def metaclass_insert(metaclass,*base_classes):
   namespace={}
   return metaclass("NewMiddleClass",base_classes,namespace)
 
-def interpolateFunction(x,y,option,z = None,returnCoordinate=False):
+def interpolateFunction(x,y,option,z=None,returnCoordinate=False):
   """
     Method to interpolate 2D/3D points
     @ In, x, ndarray or cached_ndarray, the array of x coordinates
@@ -486,7 +487,8 @@ def interpolateFunction(x,y,option,z = None,returnCoordinate=False):
     xig, yig = np.meshgrid(xi, yi)
     try:
       if ['nearest','linear','cubic'].count(options['interpolationType']) > 0 or z.size <= 3:
-        if options['interpolationType'] != 'nearest' and z.size > 3: zi = griddata((x,y), z, (xi[None,:], yi[:,None]), method=options['interpolationType'])
+        if options['interpolationType'] != 'nearest' and z.size > 3: 
+          zi = griddata((x,y), z, (xi[None,:], yi[:,None]), method=options['interpolationType'])
         else: zi = griddata((x,y), z, (xi[None,:], yi[:,None]), method='nearest')
       else:
         rbf = Rbf(x,y,z,function=str(str(options['interpolationType']).replace('Rbf', '')), epsilon=int(options.pop('epsilon',2)), smooth=float(options.pop('smooth',0.0)))
@@ -516,6 +518,21 @@ def interpolateFunction(x,y,option,z = None,returnCoordinate=False):
       else: raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('ERROR') + '-> Interpolation failed with error: ' +  str(ae))
     if returnCoordinate: return xi,yi
     else               : return yi
+
+def line3DInterpolation(x,y,z,nPoints):
+  """
+    Method to interpolate 3D points on a line
+    @ In, x, ndarray or cached_ndarray, the array of x coordinates
+    @ In, y, ndarray or cached_ndarray, the array of y coordinates
+    @ In, z, ndarray or cached_ndarray, the array of z coordinates
+    @ In, nPoints, int, number of desired inteporlation points
+    @ Out, i, ndarray or cached_ndarray or tuple, the interpolated values
+  """
+  options = copy.copy(option)
+  data = np.vstack((x,y,z))
+  tck , u= interpolate.splprep(data, s=1e-6, k=3)
+  new = interpolate.splev(np.linspace(0,1,nPoints), tck)
+  return new[0], new[1], new[2]
 
 class abstractstatic(staticmethod):
   """

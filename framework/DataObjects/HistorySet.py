@@ -43,7 +43,7 @@ class HistorySet(Data):
 
   def addSpecializedReadingSettings(self):
     """
-      This function adds in the _dataParameters dict the options needed for reading and constructing this class
+      This function adds in the _dataParameters dictionary the options needed for reading and constructing this class
       @ In,  None
       @ Out, None
     """
@@ -59,7 +59,7 @@ class HistorySet(Data):
 
   def checkConsistency(self):
     """
-      Here we perform the consistency check for the structured data HistorySet
+      This method performs the consistency check for the structured data HistorySet
       @ In,  None
       @ Out, None
     """
@@ -81,7 +81,6 @@ class HistorySet(Data):
           self.raiseAnError(NotConsistentData,'The output parameter value, for key ' + key + ' has not a consistent shape for History in HistorySet ' + self.name + '!! It should be an 1D array since we are in hierarchical mode.' + '.Actual dimension is ' + str(self._dataContainer['outputs'][key].ndim))
     else:
       if('HDF5' == sourceType):
-        #eg = self._toLoadFromList[-1].getEndingGroupNames()
         if(lenMustHave != len(self._dataContainer['inputs'].keys())):
           self.raiseAnError(NotConsistentData,'Number of HistorySet contained in HistorySet data ' + self.name + ' != number of loading sources!!! ' + str(lenMustHave) + ' !=' + str(len(self._dataContainer['inputs'].keys())))
       else:
@@ -250,14 +249,11 @@ class HistorySet(Data):
       self._dataContainer['outputs'][namep] = c1darray(values=np.atleast_1d(np.array(value,dtype=float))) #np.atleast_1d(np.array(value))
       self.addNodeInTreeMode(tsnode,options)
     else:
-      if type(name) == list:
-        # there are info regarding the history number
+      if type(name) == list:      # there are info regarding the history number
         if name[0] in self._dataContainer['outputs'].keys():
           gethistory = self._dataContainer['outputs'].pop(name[0])
-          popped = gethistory[name[1]]
-          if name[1] in popped.keys():
-            gethistory[name[1]] = np.atleast_1d(np.array(value))
-            self._dataContainer['outputs'][name[0]] =gethistory
+          gethistory[name[1]] = np.atleast_1d(np.array(value))
+          self._dataContainer['outputs'][name[0]] =gethistory
         else:
           self._dataContainer['outputs'][name[0]] = {name[1]:c1darray(values=np.atleast_1d(np.array(value,dtype=float)))} #np.atleast_1d(np.array(value))}
       else:
@@ -273,7 +269,7 @@ class HistorySet(Data):
   def specializedPrintCSV(self,filenameLocal,options):
     """
       This function prints a CSV file with the content of this class (Input and Output space)
-      @ In,  filenameLocal, string, filename root (for example, 'homo_homini_lupus' -> the final file name is gonna be called 'homo_homini_lupus.csv')
+      @ In,  filenameLocal, string, filename root (for example, 'homo_homini_lupus' -> the final file name is going to be called 'homo_homini_lupus.csv')
       @ In,  options, dictionary, dictionary of printing options
       @ Out, None (a csv is gonna be printed)
     """

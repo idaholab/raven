@@ -6,7 +6,7 @@ Created on Feb 13, 2015
 
 TODO:
 For Clustering:
-1) paralleization: n_jobs parameter to some of the algorithms
+1) parallelization: n_jobs parameter to some of the algorithms
 2) find a smarter way to choose the parameters that are used as default, eg:
    number of clusters, init, leaf_size, etc.
 3) dimensionality reduction: maybe using PCA
@@ -64,7 +64,7 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
   def __init__(self, messageHandler, **kwargs):
     """
      constructor for unSupervisedLearning class.
-     @ In, messageHandler, objcet, Message handler object
+     @ In, messageHandler, object, Message handler object
      @ In, kwargs, dict, arguments for the unsupervised learning algorithm
     """
     self.printTag = 'unSupervised'
@@ -72,7 +72,7 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
     # booleanFlag that controls the normalization procedure. If true, the normalization is performed. Default = True
     if kwargs != None: self.initOptionDict = kwargs
     else             : self.initOptionDict = {}
-    if 'Labels'       in self.initOptionDict.keys():  # Labels are passed, if known appriori (optional), they used in quality estimate
+    if 'Labels'       in self.initOptionDict.keys():  # Labels are passed, if known a priori (optional), they used in quality estimate
       self.labels = self.initOptionDict['Labels'  ]
       self.initOptionDict.pop('Labels')
     else: self.labels = None
@@ -86,6 +86,7 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
     self.muAndSigmaFeatures = {}
     #these need to be declared in the child classes!!!!
     self.amITrained = False
+  
 
   def train(self, tdict):
     """
@@ -102,6 +103,8 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
       resp = self.checkArrayConsistency(self.labelValues)
       if not resp[0]: self.raiseAnError(IOError, 'In training set for ground truth labels ' + self.labels + ':' + resp[1])
     else            : self.raiseAWarning(' The ground truth labels are not known a priori')
+    
+    
     for cnt, feat in enumerate(self.features):
       if feat not in names: self.raiseAnError(IOError, ' The feature sought ' + feat + ' is not in the training set')
       else:
@@ -292,6 +295,7 @@ class SciKitLearn(unSupervisedLearning):
     self.Method.set_params(**self.initOptionDict)
     self.normValues = None
     self.outputDict = {}
+
 
   def __trainLocal__(self):
     """
