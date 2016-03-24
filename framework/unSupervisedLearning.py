@@ -444,9 +444,9 @@ class SciKitLearn(unSupervisedLearning):
 class temporalBasicStatistics(unSupervisedLearning):
   def __init__(self, messageHandler, **kwargs):
     """
-    constructor for temporalBasicStatics class.
-    @ In: messageHandler, Message handler object
-    @ In: kwargs, arguments for the SciKitLearn algorithm
+      constructor for temporalBasicStatics class.
+      @ In: messageHandler, Message handler object
+      @ In: kwargs, arguments for the SciKitLearn algorithm
     """
     unSupervisedLearning.__init__(self, messageHandler, **kwargs)
     self.printTag = 'BASICSTATISTICS-TIME'
