@@ -14,24 +14,36 @@
   <Models>
     <Code name="MyRELAP" subType="Relap5">
       <executable>
+        <!--  /home/alfoa/Phisics_and_Relap_Repos/RELAP5_Src_for_PHISICS/r3d403is/relap/relap5.x -->
         <!-- here we should put the executable. Since we want to test the interface only, it is going to be empty -->
       </executable>
     </Code>
   </Models>
 
   <Distributions>
-    <Normal name="Prim_Pres">
-      <mean>69.618</mean>
-      <sigma>14.5037</sigma>
-      <lowerBound>67</lowerBound>
-      <!--
-        <upperBound>84</upperBound>
-      -->
+    <Normal name="heat_capacity_154">
+      <mean>44.5</mean>
+      <sigma>0.5</sigma>
+      <upperBound>40</upperBound>
+      <lowerBound>49</lowerBound>
     </Normal>
-    <Normal name="Core_Power">
-      <mean>0.0327</mean>
-      <sigma>0.001</sigma>
-      <upperBound>0.034</upperBound>
+    <Normal name="heat_capacity_155">
+        <mean>45.5</mean>
+        <sigma>0.5</sigma>
+        <upperBound>41</upperBound>
+        <lowerBound>50</lowerBound>
+    </Normal>
+    <Normal name="heat_capacity_156">
+        <mean>41.5</mean>
+        <sigma>0.5</sigma>
+        <upperBound>37</upperBound>
+        <lowerBound>46</lowerBound>
+    </Normal>
+    <Normal name="heat_capacity_157">
+        <mean>42.5</mean>
+        <sigma>0.5</sigma>
+        <upperBound>28</upperBound>
+        <lowerBound>37</lowerBound>
     </Normal>
   </Distributions>
 
@@ -40,11 +52,17 @@
       <samplerInit>
         <limit>5</limit>
       </samplerInit>
-      <variable name="9890201:2">
-        <distribution>Prim_Pres</distribution>
+      <variable name="20100154:2">
+          <distribution>heat_capacity_154</distribution>
       </variable>
-      <variable name="20290000:4">
-        <distribution>Core_Power</distribution>
+      <variable name="20100155:2">
+          <distribution>heat_capacity_155</distribution>
+      </variable>
+      <variable name="20100156:2">
+        <distribution>heat_capacity_156</distribution>
+      </variable>
+      <variable name="20100157:2">
+          <distribution>heat_capacity_157</distribution>
       </variable>
     </MonteCarlo>
   </Samplers>
