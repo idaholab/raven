@@ -566,31 +566,33 @@ class temporalBasicStatistics(unSupervisedLearning):
     pass
     
 class temporalSciKitLearn(unSupervisedLearning):
+  """
+    Data mining library to perform SciKitLearn algorithms along temporal data
+  """
+  
   def __init__(self, messageHandler, **kwargs):
     """
-    constructor for temporalSciKitLearn class.
-    @ In: messageHandler, Message handler object
-    @ In: kwargs, arguments for the SciKitLearn algorithm
+      constructor for temporalSciKitLearn class.
+      @ In: messageHandler, Message handler object
+      @ In: kwargs, arguments for the SciKitLearn algorithm
     """
     unSupervisedLearning.__init__(self, messageHandler, **kwargs)    
     self.printTag = 'TEMPORALSCIKITLEARN'
     if 'SKLtype' not in self.initOptionDict.keys(): self.raiseAnError(IOError, ' to define a scikit learn unSupervisedLearning Method the SKLtype keyword is needed (from KDD ' + self.name + ')')
-    SKLtype, SKLsubType = self.initOptionDict['SKLtype'].split('|')
-    self.SKLtype = SKLtype
-    self.SKLsubType = SKLsubType
+    self.SKLtype, self.SKLsubType = self.initOptionDict['SKLtype'].split('|')
+    self.timeID = self.initOptionDict.get('timeID', 'Time')
     # return a SciKitLearn instance as engine for SKL data mining
     self.SKLEngine = returnInstance('SciKitLearn',self, **self.initOptionDict)
-    
     self.normValues = None
     self.outputDict = {}    
-    if 'decomposition' == SKLtype or 'manifold' == SKLtype: self.noComponents_ = self.initOptionDict['n_components']
+    if 'decomposition' == self.SKLtype or 'manifold' == self.SKLtype: self.noComponents_ = self.initOptionDict['n_components']
    
   @staticmethod
   def checkArrayConsistency(arrayin, shape):
     """
-    This method checks the consistency of the in-array
-    @ In, object... It should be an array
-    @ Out, tuple, tuple[0] is a bool (True -> everything is ok, False -> something wrong), tuple[1], string ,the error mesg
+      This method checks the consistency of the in-array
+      @ In, object... It should be an array
+      @ Out, tuple, tuple[0] is a bool (True -> everything is ok, False -> something wrong), tuple[1], string ,the error mesg
     """
     if type(arrayin) != np.ndarray: return (False, ' The object is not a numpy array')
     if arrayin.shape[0] != shape[0] or arrayin.shape[1] != shape[1]:
@@ -606,36 +608,41 @@ class temporalSciKitLearn(unSupervisedLearning):
       
   def _localNormalizeData(self, values, names, feat):
     """
-    Method to normalize data based on the mean and standard deviation.  If undesired for a particular algorithm,
-    this method can be overloaded to simply pass.
-    @ In, values, list,  list of feature values (from tdict)
-    @ In, names,  list,  names of features (from tdict)
-    @ In, feat, list, list of features (from Model)
-    @ Out, None
+      Method to normalize data based on the mean and standard deviation.  If undesired for a particular algorithm,
+      this method can be overloaded to simply pass.
+      @ In, values, dict, each value of values is an array with shape = [no_history, no_timeStep], feature values
+      @ In, names,  list,  names of features (from tdict)
+      @ In, feat, string, the feature for which value is to be normalized
+      @ Out, normV, array, shape = [no_history, no_timeStep], normalized values
     """
     normV = np.zeros(shape = values[names.index(feat)].shape) 
     self.muAndSigmaFeatures[feat] = np.zeros(shape=(2,self.noTimeStep))
     for t in range(self.noTimeStep):
       self.muAndSigmaFeatures[feat][0,t] = np.average(values[names.index(feat)][:,t]) 
       self.muAndSigmaFeatures[feat][1,t] = np.std(values[names.index(feat)][:,t])
-      if self.muAndSigmaFeatures[feat][1,t] == 0: 
-        self.muAndSigmaFeatures[feat][1,t] = np.max(np.absolute(values[names.index(feat)][:,t]))
-      if self.muAndSigmaFeatures[feat][1,t] == 0: 
-        self.muAndSigmaFeatures[feat][1,t] = 1.0
-
+      if self.muAndSigmaFeatures[feat][1,t] == 0: self.muAndSigmaFeatures[feat][1,t] = np.max(np.absolute(values[names.index(feat)][:,t]))
+      if self.muAndSigmaFeatures[feat][1,t] == 0: self.muAndSigmaFeatures[feat][1,t] = 1.0
       normV[:, t] = 1.0 * (values[names.index(feat)][:,t] - self.muAndSigmaFeatures[feat][0,t]) / self.muAndSigmaFeatures[feat][1,t]
     return normV
 
-  def __deNorm__(self,feat,t,c):  
-    N = c.shape[0]
-    r = np.zeros(shape=c.shape)
+  def __deNormalizeData__(self,feat,t,data):
+    """
+      Method to denormalize data based on the mean and standard deviation stored in self. 
+      @In, feat, string, the feature for which the input is to be denormalized
+      @In, t, float, time step identifier
+      @In, data, list, input values to be denormalized
+      @Out, deNormData, list, output values after denormalization
+    """
+    N = data.shape[0]
+    deNormData = np.zeros(shape=data.shape)
     mu, sig = self.muAndSigmaFeatures[feat][0,t], self.muAndSigmaFeatures[feat][1,t]
     for n in range(N):
-      r[n] = c[n]*sig+mu  
-    return r             
+      deNormData[n] = data[n]*sig+mu  
+    return deNormData             
         
   def train(self, tdict):
     """
+      Method to train this class. 
       @ In, tdict, dictionary, training dictionary
       @ Out, None
     """
@@ -648,7 +655,8 @@ class temporalSciKitLearn(unSupervisedLearning):
       resp = self.checkArrayConsistency(self.labelValues,[self.noSample, self.noTimeStep])
       if not resp[0]: self.raiseAnError(IOError, 'In training set for ground truth labels ' + self.labels + ':' + resp[1])
     else            : self.raiseAWarning(' The ground truth labels are not known appriori')
-    for cnt, feat in enumerate(self.features):
+#     for cnt, feat in enumerate(self.features):
+    for feat in self.features:
       if feat not in names: self.raiseAnError(IOError, ' The feature sought ' + feat + ' is not in the training set')
       else:
         resp = self.checkArrayConsistency(values[names.index(feat)],[self.noSample, self.noTimeStep])
@@ -661,6 +669,7 @@ class temporalSciKitLearn(unSupervisedLearning):
   
   def __trainLocal__(self):
     """
+      Method to train this class. 
     """
     self.outputDict['outputs'] = {}
     self.outputDict['inputs' ] = self.normValues
@@ -685,7 +694,7 @@ class temporalSciKitLearn(unSupervisedLearning):
         if hasattr(self.SKLEngine.Method, 'cluster_centers_'):
           self.outputDict['clusterCenters'][t] = np.zeros(shape=self.SKLEngine.Method.cluster_centers_.shape)
           for cnt, feat in enumerate(self.features):
-            self.outputDict['clusterCenters'][t][:,cnt] = self.__deNorm__(feat,t,self.SKLEngine.Method.cluster_centers_[:,cnt])
+            self.outputDict['clusterCenters'][t][:,cnt] = self.__deNormalizeData__(feat,t,self.SKLEngine.Method.cluster_centers_[:,cnt])
         else:
           self.outputDict['clusterCenters'][t] = self.__computeCenter__(Input['Features'], self.outputDict['labels'][t])
         # collect number of clusters
@@ -724,7 +733,7 @@ class temporalSciKitLearn(unSupervisedLearning):
         if hasattr(self.SKLEngine.Method, 'means_'):
           self.outputDict['means'][t] = np.zeros(shape=self.SKLEngine.Method.means_.shape)
           for cnt, feat in enumerate(self.features):
-            self.outputDict['means'][t][:,cnt] = self.__deNorm__(feat,t,self.SKLEngine.Method.means_[:,cnt])
+            self.outputDict['means'][t][:,cnt] = self.__deNormalizeData__(feat,t,self.SKLEngine.Method.means_[:,cnt])
         else:
           self.outputDict['means'][t] = self.__computeCenterr__(Input['Features'], self.outputDict['labels'][t])
         # collect number of components
