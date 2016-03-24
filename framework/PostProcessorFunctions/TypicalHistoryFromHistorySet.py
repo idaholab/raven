@@ -41,18 +41,17 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
     self.noHistory = len(inputDict['output'].keys())
     self.Time = np.asarray(inputDict['output'][inputDict['output'].keys()[0]][self.timeID])
 
-    if self.subseqP == 'Month':
-      self.subsequence = {1:[0,2678400], 2:[2678400,5097600], 3:[5097600,7776000], 4:[7776000,10368000], 5:[10368000,13046400], 6:[13046400,15638400], 7:[15638400,18316800], 8:[18316800,20995200], 9:[20995200,23587200], 10:[23587200,26265600],11:[26265600,28857600],12:[28857600,31536000]}
-    else:
-      self.subsequence = {}
-      n = 1;
-      while True:
-        if n*self.subseqP<self.Time[-1]:
-          self.subsequence[n] = [(n-1)*self.subseqP,n*self.subseqP]
-          n += 1
-        else:
-          self.subsequence[n] = [(n-1)*self.subseqP,self.Time[-1]]
-          break
+    self.subsequence = {}
+    startLocation, n = 0, 0
+    while True:
+      subsequenceLength = self.subseqLen[n % len(self.subseqLen)]
+      if startLocation + subsequenceLength < self.Time[-1]:
+        self.subsequence[n] = [startLocation, startLocation+subsequenceLength]
+      else:
+        self.subsequence[n] = [startLocation, self.Time[-1]]
+        break
+      startLocation += subsequenceLength
+      n+= 1
     subKeys = self.subsequence.keys()
     subKeys.sort()
 
@@ -150,8 +149,7 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
       @ Out, None
     """
     for child in xmlNode:
-      if child.tag == 'subsequence':
-        if child.text == 'Month': self.subseqP = child.text
-        else:                     self.subseqP = int(child.text)
+      if child.tag == 'subseqLen':
+        self.subseqLen = map(int, child.text.split(','))
       elif child.tag == 'timeID':
         self.timeID = child.text
