@@ -676,35 +676,32 @@ class temporalSciKitLearn(unSupervisedLearning):
     
     Input = {}
     for t in range(self.noTimeStep):
-      self.raiseADebug(t)
-      Input['Features'] ={}       
-      for feat in self.features.keys():
-        Input['Features'][feat] = self.inputDict[feat][:,t]         
+      Input['Features'] ={}
+      for feat in self.features.keys():     Input['Features'][feat] = self.inputDict[feat][:,t]         
       self.SKLEngine.features = Input['Features']
       self.SKLEngine.train(Input['Features'])
       self.SKLEngine.confidence()
       
       if self.SKLtype in ['cluster']: 
+        if 'labels' not in self.outputDict.keys():                  self.outputDict['labels'] = {}
+        if 'clusterCenters' not in self.outputDict.keys():          self.outputDict['clusterCenters'] = {}
+        if 'noClusters' not in self.outputDict.keys():              self.outputDict['noClusters'] = {}
+        if 'clusterCentersIndices' not in self.outputDict.keys():   self.outputDict['clusterCentersIndices'] = {}
         # collect labels
-        if hasattr(self.SKLEngine.Method, 'labels_'):
-          if 'labels' not in self.outputDict.keys(): self.outputDict['labels'] = {} # np.zeros(shape=(self.noSample,self.noTimeStep))
-          self.outputDict['labels'][t] = self.SKLEngine.Method.labels_
-        # collect cluster centers
-        if 'clusterCenters' not in self.outputDict.keys(): self.outputDict['clusterCenters'] = {}
+        if hasattr(self.SKLEngine.Method, 'labels_'):   self.outputDict['labels'][t] = self.SKLEngine.Method.labels_
+        # collect cluster centers        
         if hasattr(self.SKLEngine.Method, 'cluster_centers_'):
           self.outputDict['clusterCenters'][t] = np.zeros(shape=self.SKLEngine.Method.cluster_centers_.shape)
           for cnt, feat in enumerate(self.features):
             self.outputDict['clusterCenters'][t][:,cnt] = self.__deNormalizeData__(feat,t,self.SKLEngine.Method.cluster_centers_[:,cnt])
         else:
           self.outputDict['clusterCenters'][t] = self.__computeCenter__(Input['Features'], self.outputDict['labels'][t])
-        # collect number of clusters
-        if 'noClusters' not in self.outputDict.keys(): self.outputDict['noClusters'] = {}
+        # collect number of clusters        
         if hasattr(self.SKLEngine.Method, 'n_clusters'):           
           self.outputDict['noClusters'][t] = self.SKLEngine.Method.n_clusters
         else:
           self.outputDict['noClusters'][t] = self.outputDict['clusterCenters'][t].shape[0]
-        # collect cluster indices
-        if 'clusterCentersIndices' not in self.outputDict.keys(): self.outputDict['clusterCentersIndices'] = {}
+        # collect cluster indices       
         if hasattr(self.SKLEngine.Method, 'cluster_centers_indices_'):
           self.outputDict['clusterCentersIndices'][t] = self.SKLEngine.Method.cluster_centers_indices_
           self.outputDict['clusterCentersIndices'][t] = range(self.outputDict['noClusters'][t])
@@ -714,22 +711,22 @@ class temporalSciKitLearn(unSupervisedLearning):
         if hasattr(self.SKLEngine.Method, 'inertia_'):
           if 'inertia' not in self.outputDict.keys(): self.outputDict['inertia'] = {}
           self.outputDict['inertia'][t] = self.SKLEngine.Method.inertia_    
-        
         # re-order clusters
-        if t>0: 
-          remap = self.__reMapCluster__(t,'clusterCenters','clusterCentersIndices')
+        if t > 0: 
+          remap = self.__reMapCluster__(t, 'clusterCenters', 'clusterCentersIndices')
           for n in range(len(self.outputDict['clusterCentersIndices'][t])):
             self.outputDict['clusterCentersIndices'][t][n] = remap[self.outputDict['clusterCentersIndices'][t][n]] 
           for n in range(len(self.outputDict['labels'][t])):
-            if self.outputDict['labels'][t][n] >=0:
-              self.outputDict['labels'][t][n] = remap[self.SKLEngine.Method.labels_[n]] 
+            if self.outputDict['labels'][t][n] >=0: self.outputDict['labels'][t][n] = remap[self.SKLEngine.Method.labels_[n]] 
                    
       elif self.SKLtype in ['mixture']: 
+        if 'labels' not in self.outputDict.keys():                  self.outputDict['labels'] = {}
+        if 'means' not in self.outputDict.keys():                   self.outputDict['means'] = {}
+        if 'noComponents' not in self.outputDict.keys():            self.outputDict['noComponents'] = {} 
+        if 'componentMeanIndices' not in self.outputDict.keys():    self.outputDict['componentMeanIndices'] = {}       
         # collect component membership
-        if 'labels' not in self.outputDict.keys(): self.outputDict['labels'] = {}
         self.outputDict['labels'][t] = self.SKLEngine.evaluate(Input['Features'])
         # collect component means 
-        if 'means' not in self.outputDict.keys(): self.outputDict['means'] = {}
         if hasattr(self.SKLEngine.Method, 'means_'):
           self.outputDict['means'][t] = np.zeros(shape=self.SKLEngine.Method.means_.shape)
           for cnt, feat in enumerate(self.features):
@@ -737,15 +734,12 @@ class temporalSciKitLearn(unSupervisedLearning):
         else:
           self.outputDict['means'][t] = self.__computeCenterr__(Input['Features'], self.outputDict['labels'][t])
         # collect number of components
-        if 'noComponents' not in self.outputDict.keys(): self.outputDict['noComponents'] = {}
         if hasattr(self.SKLEngine.Method, 'n_components'):           
           self.outputDict['noComponents'][t] = self.SKLEngine.Method.n_components
         else:
           self.outputDict['noComponents'][t] = self.outputDict['means'][t].shape[0]
         # collect component indices
-        if 'componentMeanIndices' not in self.outputDict.keys(): self.outputDict['componentMeanIndices'] = {}
         self.outputDict['componentMeanIndices'][t] = range(self.outputDict['noComponents'][t]) 
-        
         # collect optional output
         if hasattr(self.SKLEngine, 'weights_'):
           if 'weights' not in self.outputDict.keys(): self.outputDict['weights'] = {}
@@ -759,21 +753,17 @@ class temporalSciKitLearn(unSupervisedLearning):
         if hasattr(self.SKLEngine, 'converged_'):
           if 'converged' not in self.outputDict.keys(): self.outputDict['converged'] = {}
           self.outputDict['converged'][t] = self.SKLEngine.converged_
-      
         # re-order components
-        if t>0: 
-          remap = self.__reMapCluster__(t,'means','componentMeanIndices')
+        if t > 0: 
+          remap = self.__reMapCluster__(t, 'means', 'componentMeanIndices')
           for n in range(len(self.outputDict['componentMeanIndices'][t])):
             self.outputDict['componentMeanIndices'][t][n] = remap[self.outputDict['componentMeanIndices'][t][n]] 
           for n in range(len(self.outputDict['labels'][t])):
-            if self.outputDict['labels'][t][n] >=0:
-              self.outputDict['labels'][t][n] = remap[self.outputDict['labels'][t][n]]       
+            if self.outputDict['labels'][t][n] >=0: self.outputDict['labels'][t][n] = remap[self.outputDict['labels'][t][n]]       
       
       elif 'manifold' == self.SKLtype:
-        if 'noComponents' not in self.outputDict.keys():
-          self.outputDict['noComponents'] = {}
-        if 'embeddingVectors_' not in self.outputDict.keys():
-          self.outputDict['embeddingVectors_'] = {}
+        if 'noComponents' not in self.outputDict.keys():        self.outputDict['noComponents'] = {}
+        if 'embeddingVectors_' not in self.outputDict.keys():   self.outputDict['embeddingVectors_'] = {}
         
         self.outputDict['noComponents'][t] = self.SKLEngine.noComponents_  
         if hasattr(self.SKLEngine.Method, 'embedding_'):
@@ -783,15 +773,13 @@ class temporalSciKitLearn(unSupervisedLearning):
         elif 'fit_transform' in dir(self.SKLEngine.Method): 
           self.outputDict['embeddingVectors_'][t] = self.SKLEngine.Method.fit_transform(self.SKLEngine.normValues)           
         if hasattr(self.SKLEngine.Method, 'reconstruction_error_'):
-            if 'reconstructionError_' not in self.outputDict.keys():
-              self.outputDict['reconstructionError_'] = {}
+            if 'reconstructionError_' not in self.outputDict.keys():  self.outputDict['reconstructionError_'] = {}
             self.outputDict['reconstructionError_'][t] = self.SKLEngine.Method.reconstruction_error_
       
       elif 'decomposition' == self.SKLtype:
-        if 'noComponents' not in self.outputDict.keys():
-          self.outputDict['noComponents'] = {}
-        if 'components' not in self.outputDict.keys():
-          self.outputDict['components'] = {}
+        
+        if 'noComponents' not in self.outputDict.keys():      self.outputDict['noComponents'] = {}
+        if 'components' not in self.outputDict.keys():        self.outputDict['components'] = {}
           
         self.outputDict['noComponents'][t] = self.SKLEngine.noComponents_
         if hasattr(self.SKLEngine.Method, 'components_'):
@@ -808,7 +796,6 @@ class temporalSciKitLearn(unSupervisedLearning):
             self.outputDict['explainedVarianceRatio'] = self.SKLEngine.Method.explained_variance_ratio_
    
       else: print ('Not Implemented yet!...', self.SKLtype)
-
 
   def __computeCenter__(self, data, labels):
     point = {}
