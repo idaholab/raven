@@ -14,7 +14,7 @@
   <Models>
     <Code name="MyRELAP" subType="Relap5">
       <executable>
-        <!--  /home/alfoa/Phisics_and_Relap_Repos/RELAP5_Src_for_PHISICS/r3d403is/relap/relap5.x -->
+        <!--  /path/to/relap/executable/relap5.x -->
         <!-- here we should put the executable. Since we want to test the interface only, it is going to be empty -->
       </executable>
     </Code>
