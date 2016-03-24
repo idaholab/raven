@@ -32,6 +32,9 @@ from JobHandler import JobHandler
 import MessageHandler
 import VariableGroups
 import utils
+from Application import __PySideAvailable
+if __PySideAvailable:
+  from Application import InteractiveApplication
 #Internal Modules End--------------------------------------------------------------------------------
 
 #----------------------------------------------------------------------------------------------------
@@ -270,7 +273,7 @@ class Simulation(MessageHandler.MessageUser):
   Using the attribute in the xml node <MyType> type discouraged to avoid confusion
   """
 
-  def __init__(self,frameworkDir,verbosity='all'):
+  def __init__(self,frameworkDir,verbosity='all',interactive=False):
     self.FIXME          = False
     #establish message handling: the error, warning, message, and debug print handler
     self.messageHandler = MessageHandler.MessageHandler()
@@ -369,6 +372,13 @@ class Simulation(MessageHandler.MessageUser):
     self.whichDict['OutStreamManager'] = {}
     self.whichDict['OutStreamManager']['Plot' ] = self.OutStreamManagerPlotDict
     self.whichDict['OutStreamManager']['Print'] = self.OutStreamManagerPrintDict
+
+    # The QApplication
+    if interactive:
+      self.app = InteractiveApplication([],self.messageHandler)
+    else:
+      self.app = None
+
     #the handler of the runs within each step
     self.jobHandler    = JobHandler()
     #handle the setting of how the jobHandler act
