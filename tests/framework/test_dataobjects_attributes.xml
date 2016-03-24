@@ -159,7 +159,7 @@
         <inputRow>-1</inputRow>
         <operator>max</operator>
       </options>
-      <Input>pipe_Area,pipe_Dh,Dummy1</Input>
+      <Input>pipe_Area,Dummy1</Input>
       <Output>pipe_Hw,pipe_Tw,time</Output>
     </Point>
     <Point historyName="2" name="outGridTP_from_DB">
@@ -167,7 +167,7 @@
         <inputRow>-1</inputRow>
         <operator>max</operator>
       </options>
-      <Input>pipe_Area,pipe_Dh,Dummy1</Input>
+      <Input>pipe_Area,Dummy1</Input>
       <Output>pipe_Hw,pipe_Tw,time</Output>
     </Point>
     <PointSet name="outGridTPS1">
@@ -175,7 +175,7 @@
         <inputRow>1</inputRow>
         <outputRow>-1</outputRow>
       </options>
-      <Input>pipe_Area,pipe_Dh,Dummy1</Input>
+      <Input>pipe_Area,Dummy1</Input>
       <Output>pipe_Hw,pipe_Tw,time</Output>
     </PointSet>
     <PointSet name="outGridTPS2">
@@ -184,7 +184,7 @@
         <pivotParameter>time</pivotParameter>
         <outputPivotValue>0.00012345</outputPivotValue>
       </options>
-      <Input>pipe_Area,pipe_Dh,Dummy1</Input>
+      <Input>pipe_Area,Dummy1</Input>
       <Output>pipe_Hw,pipe_Tw,time</Output>
     </PointSet>
     <PointSet name="outGridTPS1_from_DB">
@@ -192,7 +192,7 @@
         <inputRow>1</inputRow>
         <outputRow>-1</outputRow>
       </options>
-      <Input>pipe_Area,pipe_Dh,Dummy1</Input>
+      <Input>pipe_Area,Dummy1</Input>
       <Output>pipe_Hw,pipe_Tw,time</Output>
     </PointSet>
     <PointSet name="outGridTPS2_from_DB">
@@ -201,14 +201,14 @@
         <pivotParameter>time</pivotParameter>
         <outputPivotValue>0.00012345</outputPivotValue>
       </options>
-      <Input>pipe_Area,pipe_Dh,Dummy1</Input>
+      <Input>pipe_Area,Dummy1</Input>
       <Output>pipe_Hw,pipe_Tw,time</Output>
     </PointSet>
     <History name="hst1">
       <options>
         <inputRow>1</inputRow>
       </options>
-      <Input>pipe_Area,pipe_Dh</Input>
+      <Input>pipe_Area</Input>
       <Output>pipe_Hw,pipe_Tw,time</Output>
     </History>
     <History name="hst2">
@@ -217,14 +217,14 @@
         <pivotParameter>time</pivotParameter>
         <outputPivotValue>0.0002 0.0003 0.0004</outputPivotValue>
       </options>
-      <Input>pipe_Area,pipe_Dh</Input>
+      <Input>pipe_Area</Input>
       <Output>pipe_Hw,pipe_Tw,time</Output>
     </History>
     <History historyName="1" name="hst1_from_DB">
       <options>
         <inputRow>1</inputRow>
       </options>
-      <Input>pipe_Area,pipe_Dh</Input>
+      <Input>pipe_Area</Input>
       <Output>pipe_Hw,pipe_Tw,time</Output>
     </History>
     <History historyName="2" name="hst2_from_DB">
@@ -233,14 +233,14 @@
         <pivotParameter>time</pivotParameter>
         <outputPivotValue>0.0002 0.0003 0.0004</outputPivotValue>
       </options>
-      <Input>pipe_Area,pipe_Dh</Input>
+      <Input>pipe_Area</Input>
       <Output>pipe_Hw,pipe_Tw,time</Output>
     </History>
     <HistorySet name="stories1">
       <options>
         <inputRow>1</inputRow>
       </options>
-      <Input>pipe_Area,pipe_Dh</Input>
+      <Input>pipe_Area</Input>
       <Output>pipe_Hw,pipe_Tw,time</Output>
     </HistorySet>
     <HistorySet name="stories2">
@@ -249,14 +249,14 @@
         <pivotParameter>time</pivotParameter>
         <outputPivotValue>0.0002 0.0003 0.0004</outputPivotValue>
       </options>
-      <Input>pipe_Area,pipe_Dh</Input>
+      <Input>pipe_Area</Input>
       <Output>pipe_Hw,pipe_Tw,time</Output>
     </HistorySet>
     <HistorySet name="stories1_from_DB">
       <options>
         <inputRow>1</inputRow>
       </options>
-      <Input>pipe_Area,pipe_Dh</Input>
+      <Input>pipe_Area</Input>
       <Output>pipe_Hw,pipe_Tw,time</Output>
     </HistorySet>
     <HistorySet name="stories2_from_DB">
@@ -265,7 +265,7 @@
         <pivotParameter>time</pivotParameter>
         <outputPivotValue>0.0002 0.0003 0.0004</outputPivotValue>
       </options>
-      <Input>pipe_Area,pipe_Dh</Input>
+      <Input>pipe_Area</Input>
       <Output>pipe_Hw,pipe_Tw,time</Output>
     </HistorySet>
   </DataObjects>

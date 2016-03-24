@@ -89,11 +89,11 @@
 
   <DataObjects>
     <PointSet name="outGrid">
-      <Input>pipe_Area,pipe_Dh,Dummy1</Input>
+      <Input>pipe_Area,Dummy1</Input>
       <Output>pipe_Hw,pipe_Tw,time</Output>
     </PointSet>
     <HistorySet name="stories">
-      <Input>pipe_Area,pipe_Dh</Input>
+      <Input>pipe_Area</Input>
       <Output>pipe_Hw,pipe_Tw,time</Output>
     </HistorySet>
   </DataObjects>

@@ -73,7 +73,7 @@
 
   l_tol = 1e-3
   l_max_its = 100
-
+  dump_raven_init = False
   start_time = 0.0
   num_steps = 1 # The number of timesteps in a transient run
 
@@ -88,12 +88,6 @@
     print_csv = true
     component_name = pipe
     property_name = Area
-    data_type = double
-  [../]
-  [./pipe_Dh]
-    print_csv = true
-    component_name = pipe
-    property_name = Dh
     data_type = double
   [../]
   [./pipe_Hw]

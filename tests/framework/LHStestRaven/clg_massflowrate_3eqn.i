@@ -90,12 +90,6 @@
     property_name = Area
     data_type = double
   [../]
-  [./pipe_Dh]
-    print_csv = true
-    component_name = pipe
-    property_name = Dh
-    data_type = double
-  [../]
   [./pipe_Hw]
     print_csv = true
     component_name = pipe
