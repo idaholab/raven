@@ -442,6 +442,9 @@ class SciKitLearn(unSupervisedLearning):
 # FIXME, time dependent BasisStatistics is now a library of KDD. 
 #        Make changes if necessary. 
 class temporalBasicStatistics(unSupervisedLearning):
+  """
+    Data mining library to compute basic statistics along temporal data
+  """
   def __init__(self, messageHandler, **kwargs):
     """
       constructor for temporalBasicStatics class.
@@ -456,15 +459,17 @@ class temporalBasicStatistics(unSupervisedLearning):
     self.parameters['targets'] = self.initOptionDict.get('parameters',[])
     self.methodsToRun = self.initOptionDict.get('methodsToRun',[])
     self.biased = self.initOptionDict.get('biased',False)
+    self.timeID = self.initOptionDict.get('timeID', 'Time')
     self.method = PostProcessors.returnInstance('BasicStatistics',self)
-    if self.what == 'all': self.method.what = self.method.acceptedCalcParam
+    if self.what == 'all':
+      self.method.what = self.method.acceptedCalcParam
     else:
       for whatc in self.what.split(','):
-            if whatc not in self.method.acceptedCalcParam: 
-              if whatc.split("_")[0] != 'percentile': self.raiseAnError(IOError, 'TDM-BasicStatistics postprocessor asked unknown operation ' + whatc + '. Available ' + str(self.method.acceptedCalcParam))
+        if whatc not in self.method.acceptedCalcParam: 
+          if whatc.split("_")[0] != 'percentile': self.raiseAnError(IOError, 'TDM-BasicStatistics postprocessor asked unknown operation ' + whatc + '. Available ' + str(self.method.acceptedCalcParam))
       self.method.what = self.what.split(',')
-    if self.parameters['targets']: self.method.parameters['targets'] = self.parameters['targets'].split(',')
-    if self.methodsToRun: self.method.methodsToRun = self.methodsToRun.split(',')
+    if self.parameters['targets']:    self.method.parameters['targets'] = self.parameters['targets'].split(',')
+    if self.methodsToRun:             self.method.methodsToRun = self.methodsToRun.split(',')
     self.method.biased = self.biased
     assert (self.parameters is not []), self.raiseAnError(IOError, 'I need parameters to work on! Please check your input for PP: ' + self.name)
     self.outputDict = {}
@@ -472,14 +477,17 @@ class temporalBasicStatistics(unSupervisedLearning):
   def run(self, Input):
     
     # FIXME, this needs to be changed for asynchronous HistorySet    
-    if 'Time' in Input.getParam('output',1).keys(): Time = Input.getParam('output',1)['Time']
-    else: self.raiseAnError(ValueError, 'Time not found in input historyset')
-    self.outputDict['Time'] = Time
+#     if 'Time' in Input.getParam('output',1).keys(): Time = Input.getParam('output',1)['Time']
+#     else: self.raiseAnError(ValueError, 'Time not found in input historyset')
+#     self.outputDict['Time'] = Time
     # end of FIXME
+    
+    timeVar = Input.getParam('output',1)[self.timeID]
+    self.outputDict[self.timeID] = timeVar 
     
     historyKey = Input.getOutParametersValues().keys()
     noHistory = len(historyKey)
-    noTimeStep = len(Time)
+    noTimeStep = len(timeVar)
     
     parameterSet = list(set(list(self.method.parameters['targets'])))  # This is to keep consistent with BasicStatistics PP
     

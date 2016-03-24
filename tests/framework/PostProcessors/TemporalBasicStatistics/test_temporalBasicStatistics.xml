@@ -11,6 +11,7 @@
     <Models>
         <PostProcessor name='tbs' subType='DataMining'>
             <KDD lib='temporalBasicStatistics'>
+				<timeID>Time</timeID>
                 <parameters>x1,x2</parameters>
 				<what>all</what>
             </KDD>
