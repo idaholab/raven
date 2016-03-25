@@ -1219,13 +1219,10 @@ Experience has shown order 2 Sobol decompositions to include the great majority 
 When Printing this ROM via an OutStreamManager (see \ref{sec:printing}), the available metrics are:
 \begin{itemize}
   \item \xmlString{mean}, the mean value of the ROM output within the input space it was trained,
-  \item \xmlString{variance}, the roughly-approximated variance of the ROM output within the input space it
-    was trained.  It should be noted this is calculated as the sum of the variance of the constituent terms,
-    which neglects cross terms since cut-HDMR terms are not orthogonal.  Work is being done to fix this.
+  \item \xmlString{variance}, the ANOVA-calculated variance of the ROM output within the input space it
+    was trained.
   \item \xmlString{numRuns}, the number of distinct model runs required to construct the ROM,
-  \item \xmlString{indices}, the relative impact parameter of each subset to the total
-    variance (these are not Sobol sensitivity indices, but relative impacts of the impact subspace on the
-    variance of the whole expansion).
+  \item \xmlString{indices}, the Sobol sensitivity indices (in percent).
 \end{itemize}
 
 %%%%% ROM Model - MSR  %%%%%%%
@@ -4340,15 +4337,15 @@ to compute many of the most important statistical quantities.
   \begin{itemize}
     \item \textbf{covariance}: covariance matrix
     \item \textbf{NormalizedSensitivity}: matrix of normalized sensitivity
-    coefficients
+    coefficients. \nb{It is the matrix of normalized VarianceDependentSensitivity}
     \item \textbf{VarianceDependentSensitivity}: matrix of sensitivity coefficients dependent on the variance of the variables
-    \item \textbf{sensitivity}: matrix of sensitivity coefficients of output space to input space
+    \item \textbf{sensitivity}: matrix of sensitivity coefficients, computed via linear regression method.
     \item \textbf{pearson}: matrix of correlation coefficients
     \item \textbf{expectedValue}: expected value or mean
     \item \textbf{sigma}: standard deviation
     \item \textbf{variationCoefficient}: coefficient of variation
     (sigma/expected value)
-    \item \textbf{variance}:  variance
+    \item \textbf{variance}: variance
     \item \textbf{skewness}: skewness
     \item \textbf{kurtosis}: excess kurtosis (also known as Fisher's kurtosis)
     \item \textbf{median}: median

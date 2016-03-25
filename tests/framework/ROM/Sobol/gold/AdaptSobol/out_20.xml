@@ -1,78 +1,78 @@
 <ReducedOrderModel>
   <ans2>
     <mean>0.612853900845</mean>
-    <approx_variance>0.00768602528029</approx_variance>
-    <impacts>
-      <approx_tot_variance>0.00768602528029</approx_tot_variance>
+    <variance>0.00773322508479</variance>
+    <Sobol_indices>
+      <tot_variance>0.00773322508479</tot_variance>
       <variables>x1
-        <impact_param>0.250328718816</impact_param>
-      </variables>
-      <variables>x2
-        <impact_param>0.250328718816</impact_param>
+        <index>0.249896108814</index>
       </variables>
       <variables>x3
-        <impact_param>0.250328718816</impact_param>
+        <index>0.24983580973</index>
       </variables>
       <variables>x4
-        <impact_param>0.250328718816</impact_param>
+        <index>0.249812018296</index>
+      </variables>
+      <variables>x2
+        <index>0.249161121763</index>
       </variables>
       <variables>x1,x3
-        <impact_param>0.00330259466314</impact_param>
-      </variables>
-      <variables>x2,x4
-        <impact_param>-0.00121397936158</impact_param>
+        <index>0.00129494139754</index>
       </variables>
       <variables>x1,x2
-        <impact_param>-0.000850872641649</impact_param>
+        <index>0.0</index>
       </variables>
       <variables>x1,x4
-        <impact_param>-0.000850872641649</impact_param>
+        <index>0.0</index>
       </variables>
       <variables>x2,x3
-        <impact_param>-0.000850872641649</impact_param>
+        <index>0.0</index>
+      </variables>
+      <variables>x2,x4
+        <index>0.0</index>
       </variables>
       <variables>x3,x4
-        <impact_param>-0.000850872641649</impact_param>
+        <index>0.0</index>
       </variables>
-    </impacts>
+    </Sobol_indices>
     <numRuns>21</numRuns>
   </ans2>
   <ans>
     <mean>5.0625</mean>
-    <approx_variance>3.83203125</approx_variance>
-    <impacts>
-      <approx_tot_variance>3.83203125</approx_tot_variance>
-      <variables>x1
-        <impact_param>0.247706422018</impact_param>
+    <variance>3.83203125</variance>
+    <Sobol_indices>
+      <tot_variance>3.83203125</tot_variance>
+      <variables>x3
+        <index>0.247706422018</index>
       </variables>
       <variables>x2
-        <impact_param>0.247706422018</impact_param>
+        <index>0.247706422018</index>
       </variables>
-      <variables>x3
-        <impact_param>0.247706422018</impact_param>
+      <variables>x1
+        <index>0.247706422018</index>
       </variables>
       <variables>x4
-        <impact_param>0.247706422018</impact_param>
+        <index>0.247706422018</index>
       </variables>
       <variables>x1,x3
-        <impact_param>0.00917431192661</impact_param>
+        <index>0.00917431192661</index>
       </variables>
       <variables>x1,x2
-        <impact_param>0.0</impact_param>
+        <index>0.0</index>
       </variables>
       <variables>x1,x4
-        <impact_param>9.2710978774e-16</impact_param>
+        <index>0.0</index>
       </variables>
       <variables>x2,x3
-        <impact_param>0.0</impact_param>
+        <index>0.0</index>
       </variables>
       <variables>x2,x4
-        <impact_param>1.85421957548e-15</impact_param>
+        <index>0.0</index>
       </variables>
       <variables>x3,x4
-        <impact_param>9.2710978774e-16</impact_param>
+        <index>0.0</index>
       </variables>
-    </impacts>
+    </Sobol_indices>
     <numRuns>21</numRuns>
   </ans>
 </ReducedOrderModel>

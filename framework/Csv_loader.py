@@ -162,7 +162,7 @@ class CsvLoader(MessageHandler.MessageUser):
       else:
         if SampledVars != None:
           if key in SampledVars.keys(): inDict[key], ix = copy.deepcopy(np.atleast_1d(np.array(SampledVars[key]))), 0
-      if ix == None: self.raiseAnError(IOError,"the parameter " + key + " has not been found")
+      if ix == None and key != 'InputPlaceHolder': self.raiseAnError(IOError,"the parameter " + key + " has not been found")
     # outputPivotVal end case
     if outputPivotValEnd:
       lastRow = data[:,0].size - 1
@@ -277,7 +277,7 @@ class CsvLoader(MessageHandler.MessageUser):
         else:
           if SampledVars != None:
             if key in SampledVars.keys(): inDict[key][i], ix = copy.deepcopy(SampledVars[key]), 0
-        if ix == None: self.raiseAnError(IOError,"the parameter " + key + " has not been found")
+        if ix == None and key != 'InputPlaceHolder': self.raiseAnError(IOError,"the parameter " + key + " has not been found")
       # outputPivotVal end case
       if outputPivotValEnd:
         lastRow = data[:,0].size - 1
@@ -382,6 +382,7 @@ class CsvLoader(MessageHandler.MessageUser):
 
     #fill input param dictionary
     for key in inParam:
+      inDict[key] = np.zeros(1)
       ix = self.allFieldNames.index(key) if key in self.allFieldNames else None
       if ix != None:
         if inputPivotVal != None:
@@ -391,7 +392,7 @@ class CsvLoader(MessageHandler.MessageUser):
       else:
         if SampledVars != None:
           if key in SampledVars.keys(): inDict[key], ix = copy.deepcopy(np.atleast_1d(SampledVars[key])), 0
-      if ix == None: self.raiseAnError(IOError,"the parameter " + key + " has not been found")
+      if ix == None and key != 'InputPlaceHolder': self.raiseAnError(IOError,"the parameter " + key + " has not been found")
 
     # outputPivotVal all case
     if outputPivotValAll:
