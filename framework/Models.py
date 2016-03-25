@@ -414,8 +414,8 @@ class ROM(Dummy):
   def _localBuildPrintTree(self,options=None):
     """
       Constructs XML for printing of poperties of this Model.
-      @ In, options, dict, options by keyword
-      @ Out, TreeStructure.NodeTree, xml-like tree with desired data
+      @ In, options, dict, optional, options by keyword
+      @ Out, node, TreeStructure.NodeTree, xml-like tree with desired data
     """
     node = TreeStructure.Node('ReducedOrderModel')
     tree = TreeStructure.NodeTree(node)
