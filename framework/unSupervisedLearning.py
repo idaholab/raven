@@ -713,7 +713,7 @@ class temporalSciKitLearn(unSupervisedLearning):
           self.outputDict['inertia'][t] = self.SKLEngine.Method.inertia_    
         # re-order clusters
         if t > 0: 
-          remap = self.__reMapCluster__(t, 'clusterCenters', 'clusterCentersIndices')
+          remap = self.__reMapCluster__(t, self.outputDict['clusterCenters'], self.outputDict['clusterCentersIndices'])
           for n in range(len(self.outputDict['clusterCentersIndices'][t])):
             self.outputDict['clusterCentersIndices'][t][n] = remap[self.outputDict['clusterCentersIndices'][t][n]] 
           for n in range(len(self.outputDict['labels'][t])):
@@ -755,7 +755,7 @@ class temporalSciKitLearn(unSupervisedLearning):
           self.outputDict['converged'][t] = self.SKLEngine.converged_
         # re-order components
         if t > 0: 
-          remap = self.__reMapCluster__(t, 'means', 'componentMeanIndices')
+          remap = self.__reMapCluster__(t, self.outputDict['means'], self.outputDict['componentMeanIndices'])
           for n in range(len(self.outputDict['componentMeanIndices'][t])):
             self.outputDict['componentMeanIndices'][t][n] = remap[self.outputDict['componentMeanIndices'][t][n]] 
           for n in range(len(self.outputDict['labels'][t])):
@@ -798,115 +798,133 @@ class temporalSciKitLearn(unSupervisedLearning):
       else: print ('Not Implemented yet!...', self.SKLtype)
 
   def __computeCenter__(self, data, labels):
+    """
+      Method to compute cluster center for clustering algorithms that do not return such information. 
+      This is needed to re-order cluster number
+      @In, data, dict, each value of the dict is a 1-d array of data
+      @In, labels, list, list of label for each sample
+      @Out, clusterCenter, array, shape = [no_clusters, no_features], center coordinate 
+    """
     point = {}
     for cnt, l in enumerate(labels):
-      if l >= 0:
-        if l not in point.keys():   point[l] = []
-        point[l].append(cnt)
+      if l >= 0 and l not in point.keys():    point[l] = []
+      if l >= 0:                              point[l].append(cnt)
     noCluster = len(point.keys())
-    if noCluster == 0: self.raiseAnError(ValueError, 'number of cluster is 0!!!')
+    if noCluster == 0:                        self.raiseAnError(ValueError, 'number of cluster is 0!!!')
     clusterCenter = np.zeros(shape=(noCluster,len(self.features)))
     for cnt, feat in enumerate(self.features):
-      for ind, l in enumerate(point.keys()):
-        clusterCenter[ind,cnt] = np.average(data[feat][point[l]])    
+      for ind, l in enumerate(point.keys()):  clusterCenter[ind,cnt] = np.average(data[feat][point[l]])    
     return clusterCenter
   
-  def __computeDist__(self,t,n1,n2,opt,keyC): 
-    if opt in ['Distance']:
-      c1, c2 = self.outputDict[keyC][t-1], self.outputDict[keyC][t]
-      x1, x2 = c1[n1,:], c2[n2,:]          
-      return np.sqrt(np.dot(x1-x2,x1-x2))
-    if opt in ['Overlap']:
+  def __computeDist__(self,t,n1,n2,dataCenter,opt):
+    """
+      Computes the distance between two cluster centers. 
+      Four different distance metrics are implemented, which can be specified by input opt
+      @In, t, float, current time
+      @In, n1, integer, center index 1
+      @In, n2, integer, center index 2
+      @In, dataCenter, dict, each value contains the center coordinate at each time step
+      @In, opt, string, specifies which distance metric to use
+      @Out, dist, float, distance between center n1 and center n2
+    """
+    x1, x2 = dataCenter[t-1][n1,:], dataCenter[t][n2,:]
+    if opt in ['Distance']:      
+      dist = np.sqrt(np.dot(x1-x2,x1-x2))        
+      return dist
+    if opt in ['Overlap']:      
       l1, l2 = self.outputDict['labels'][t-1], self.SKLEngine.Method.labels_
       point1, point2 = [], []
       for n in range(len(l1)):
         if l1[n] == n1: point1.append(n)
       for n in range(len(l2)):
         if l2[n] == n2: point2.append(n)
-      return - len(set(point1).intersection(point2))  
+      dist = - len(set(point1).intersection(point2))
+      return dist
     if opt in ['DistVariance']:
-      c1, c2 = self.outputDict[keyC][t-1], self.outputDict[keyC][t]
-      x1, x2 = c1[n1,:], c2[n2,:] 
-      d = np.sqrt(np.dot(x1-x2,x1-x2))
       l1, l2 = self.outputDict['labels'][t-1], self.SKLEngine.Method.labels_
-      v1, v2 = 0, 0
-      N1, N2 = 0, 0
+      dist = np.sqrt(np.dot(x1-x2,x1-x2))
+      v1, v2, N1, N2 = 0, 0, 0, 0
       noFeat = len(self.features)
-      for n in range(len(l1)):
+      for n in range(len(l1)): # compute variance of points with label l1
         if l1[n] == n1:
           x = np.zeros(shape=(noFeat,))
-          for cnt, feat in enumerate(self.features):
-            x[cnt] = self.inputDict[feat][n,t-1]             
+          for cnt, feat in enumerate(self.features):    x[cnt] = self.inputDict[feat][n,t-1]             
           v1 += np.sqrt(np.dot(x-x1,x-x1))**2
           N1 += 1          
-      for n in range(len(l2)):
+      for n in range(len(l2)): # compute variance of points with label l2
         if l2[n] == n2: 
           x = np.zeros(shape=(noFeat,))
-          for cnt, feat in enumerate(self.features):
-            x[cnt] = self.inputDict[feat][n,t] 
+          for cnt, feat in enumerate(self.features):    x[cnt] = self.inputDict[feat][n,t] 
           v2 += np.sqrt(np.dot(x-x2,x-x2))**2
           N2 += 1
-      return d + np.abs(np.sqrt(v1/(N1-1)*1.0) - np.sqrt(v2/(N2-1)*1.0))
+      dist += np.abs(np.sqrt(v1/(N1-1)*1.0) - np.sqrt(v2/(N2-1)*1.0))
+      return dist
     if opt in ['DistanceWithDecay']:
-      K, decR = 5, 1
-      c2 = self.outputDict[keyC][t]
-      x2 = c2[n2,:]
-      d = 0
+      K, decR, dist = 5, 1, 0
       for k in range(1,K+1):
         if t-k >= 0:
-          c1 = self.outputDict[keyC][t-k]
-          if n1 < c1.shape[0]:
-            x1 = c1[n1,:]
-            d += np.sqrt(np.dot(x1-x2,x1-x2))*np.exp(-(k-1)*decR)
-      return d  
+          if n1 < dataCenter[t-k].shape[0]:
+            x1 = dataCenter[t-k][n1,:]
+            dist += np.sqrt(np.dot(x1-x2,x1-x2))*np.exp(-(k-1)*decR)
+      return dist
       
-  def __reMapCluster__(self,t,keyC,keyI):
-    c1, c2 = self.outputDict[keyC][t-1], self.outputDict[keyC][t]
-    indices1, indices2 = self.outputDict[keyI][t-1], self.outputDict[keyI][t]
-    
-    N1, N2 = c1.shape[0], c2.shape[0]
+  def __reMapCluster__(self,t,dataCenter,dataCenterIndex):
+    """
+      Computes the remapping relationship between the current time step cluster and the previous time step
+      @In, t, float, current time
+      @In, dataCenter, dict, each value contains the center coordinate at each time step
+      @In, dataCenterIndex, dict, each value contains the center index at each time step
+      @Out, remap, list, remapping relation between the current time step cluster and the previous time step
+    """
+    indices1, indices2 = dataCenterIndex[t-1], dataCenterIndex[t]  
+    N1, N2 = dataCenter[t-1].shape[0], dataCenter[t].shape[0]
     dMatrix = np.zeros(shape=(N1,N2))
     for n1 in range(N1):
       for n2 in range(N2):
-        dMatrix[n1,n2] = self.__computeDist__(t,n1,n2,'DistanceWithDecay',keyC)           
+        dMatrix[n1,n2] = self.__computeDist__(t,n1,n2,dataCenter,'DistanceWithDecay')           
     _, mapping = self.__localReMap__(dMatrix, (range(N1), range(N2)))
         
     remap = {}
     f1, f2 = [False]*N1, [False]*N2
     for mp in mapping:
       i1, i2 = mp[0], mp[1]
-      if f1[i1] or f2[i2]: self.raiseAnError(ValueError, 'Mapping is overlapped. ')
+      if f1[i1] or f2[i2]:      self.raiseAnError(ValueError, 'Mapping is overlapped. ')
       remap[indices2[i2]] = indices1[i1]
       f1[i1], f2[i2] = True, True
-      
-    if N2 > N1:
+
+    if N2 > N1: # for the case the new cluster comes up
       tmp = 1
       for n2 in range(N2):
-        if indices2[n2] not in remap.keys():
-          remap[indices2[n2]] = max(indices1)+tmp
-#          remap[indices2[n2]] = self.maxNoClusters + 1 # every discondinuity would introduce a new cluster index. 
+        if indices2[n2] not in remap.keys():    remap[indices2[n2]] = max(indices1)+tmp # remap[indices2[n2]] = self.maxNoClusters + 1 # every discondinuity would introduce a new cluster index. 
     return remap
   
   def __localReMap__(self, dMatrix,loc):
-    N1, N2 = len(loc[0]), len(loc[1])
-    if N1 == 1:
-      d, i = np.inf, -1
+    """
+      Method to return the mapping based on distance stored in dMatrix, the returned mapping shall minimize the global sum of distance
+      This function is recursively called to find the global minimum, so is computationally expensive --- FIXME
+      @In, dMatrix, array, shape = (no_clusterAtPreviousTimeStep, no_clusterAtCurrentTimeStep)
+      @In, loc, tuple, the first element is the cluster indeces for previous time step and the second one is for the current time step
+      @Out, sumDist, float, global sum of distance
+      @Out, localReMap, list, remapping relation between the row and column identifier of dMatrix
+    """
+    if len(loc[0]) == 1:
+      sumDist, localReMap = np.inf, -1
       n1 = loc[0][0]
       for n2 in loc[1]:
-        if dMatrix[n1,n2] < d:
-          d = dMatrix[n1,n2]
-          i = n2
-      return d, [(n1,i)]
-    elif N2 == 1:
-      d, i = np.inf, -1
+        if dMatrix[n1,n2] < sumDist:
+          sumDist = dMatrix[n1,n2]
+          localReMap = n2
+      return sumDist, [(n1,localReMap)]
+    elif len(loc[1]) == 1:
+      sumDist, localReMap = np.inf, -1
       n2 = loc[1][0]
       for n1 in loc[0]:
-        if dMatrix[n1,n2] < d:
-          d = dMatrix[n1,n2]
-          i = n1
-      return d, [(i,n2)]
+        if dMatrix[n1,n2] < sumDist:
+          sumDist = dMatrix[n1,n2]
+          localReMap = n1
+      return sumDist, [(localReMap,n2)]
     else:
-      d, i1, i2, i = np.inf, -1, -1, []
+      sumDist, i1, i2, localReMap = np.inf, -1, -1, []
       n1 = loc[0][0]    
       temp1 = copy.deepcopy(loc[0])
       temp1.remove(n1)
@@ -914,17 +932,23 @@ class temporalSciKitLearn(unSupervisedLearning):
         temp2 = copy.deepcopy(loc[1])
         temp2.remove(n2)
         d_temp, l = self.__localReMap__(dMatrix, (temp1,temp2))
-        if dMatrix[n1,n2] + d_temp < d:
-          d = dMatrix[n1,n2] + d_temp
-          i1, i2, i = n1, n2, l
-      i.append((i1,i2))
-      return d, i       
+        if dMatrix[n1,n2] + d_temp < sumDist:
+          sumDist = dMatrix[n1,n2] + d_temp
+          i1, i2, localReMap = n1, n2, l
+      localReMap.append((i1,i2))
+      return sumDist, localReMap       
       
   def __evaluateLocal__(self, featureVals):
-    pass # FIXME
+    """
+      Not implemented for this class
+    """
+    pass
   
   def __confidenceLocal__(self):
-    pass # FIXME
+    """
+      Not implemented for this class
+    """    
+    pass
 
 __interfaceDict = {}
 __interfaceDict['SciKitLearn'] = SciKitLearn
