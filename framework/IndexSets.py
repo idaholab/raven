@@ -288,7 +288,7 @@ class AdaptiveSet(IndexSet):
       @ In, features, list(str), input parameters
       @ In, impList, dict{str:float}, weights by dimension
       @ In, maxPolyOrder, int, relative maximum polynomial order to be used for index set
-      @ In, full, optional bool, if True will do all perturbations of {0,1}^N, else only 1 in any axis at a time
+      @ In, full, bool, optional, if True will do all perturbations of {0,1}^N, else only 1 in any axis at a time
       @ Out, None
     """
     IndexSet.initialize(self,features,impList,maxPolyOrder)
