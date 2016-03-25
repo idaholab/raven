@@ -1,12 +1,24 @@
-<Simulation debug="True">
+<Simulation verbosity="debug">
 	
 
 <RunInfo>
   <WorkingDir>results</WorkingDir>
-  <Sequence>extract_data_adapt,rom_train_classifier,rom_sample_pb,montecarlo_sample_ext_model,plot_results,PostProcessorComputeROMPb,PostProcessorComputePbExtModel</Sequence>
+  <Sequence>
+      extract_data_adapt,
+      rom_train_classifier,
+      rom_sample_pb,
+      montecarlo_sample_ext_model,
+      plot_results,
+      PostProcessorComputeROMPb,
+      PostProcessorComputePbExtModel
+  </Sequence>
   <batchSize>50</batchSize>
-  <Files>output_failure_pb_ExtModel_changedDist.csv,output_failure_pb_ROM_from_Adapt_changedDist.csv</Files>
 </RunInfo>
+
+<Files>
+    <Input name="output_failure_pb_ExtModel_changedDist.csv"       type="">output_failure_pb_ExtModel_changedDist.csv</Input>
+    <Input name="output_failure_pb_ROM_from_Adapt_changedDist.csv"             type="">output_failure_pb_ROM_from_Adapt_changedDist.csv</Input>
+</Files>
 
 <Databases>
     <HDF5 name="out_db_montecarlo" directory="DatabaseStorage"/>
@@ -19,20 +31,12 @@
         <Target>failure</Target>
         <SKLtype>svm|SVC</SKLtype>
         <kernel>rbf</kernel>
-        <gamma>10</gamma>
-        <tol>1e-5</tol>
+        <gamma>0.5</gamma>
+        <tol>1e-6</tol>
         <C>50</C>
     </ROM>
     <ExternalModel name="PythonModule" subType="" ModuleToLoad="workshop_model">
-        <variable>x1</variable>
-        <variable>x2</variable>
-        <variable>x3</variable>
-        <variable>y1</variable>
-        <variable>y2</variable>
-        <variable>y3</variable>
-        <variable>y4</variable>
-        <variable>y5</variable>
-        <variable>failure</variable>
+        <variables>x1,x2,x3,y1,y2,y3,y4,y5,failure</variables>
     </ExternalModel>
     <PostProcessor name="computePb" subType='BasicStatistics'>
         <what>expectedValue</what>
@@ -44,15 +48,15 @@
     <Grid name='Grid_sampling'>
         <variable name='x1' >
             <distribution>normal_trunc</distribution>
-            <grid type='value' lowerBound='0.0' construction='equal' steps='25'>0.04</grid>
+            <grid type='value' construction='equal' steps='25'>0.0 1.0</grid>
         </variable>
         <variable name='x2' >
             <distribution>normal</distribution>
-            <grid type='value' lowerBound='1.5' construction='equal' steps='25'>0.04</grid>
+            <grid type='value' construction='equal' steps='25'>1.5 2.5</grid>
         </variable>
         <variable name='x3' >
             <distribution>uniform</distribution>
-            <grid type='value' lowerBound='1.0' construction='equal' steps='25'>0.12</grid>
+            <grid type='value' construction='equal' steps='25'>1.0 3</grid>
         </variable>
     </Grid>
     <MonteCarlo name='Montecarlo_sampling'>
@@ -74,37 +78,37 @@
 <Steps>
     <IOStep name='extract_data_adapt'>
         <Input   class='Databases'   type='HDF5'               >out_db_adaptive</Input>
-        <Output  class='DataObjects' type='PointSet'       >outAdapt_failure</Output>
+        <Output  class='DataObjects' type='PointSet'           >outAdapt_failure</Output>
     </IOStep>
     <RomTrainer name='rom_train_classifier'>
-        <Input   class='DataObjects' type='PointSet'       >outAdapt_failure</Input>
+        <Input   class='DataObjects' type='PointSet'           >outAdapt_failure</Input>
         <Output  class='Models'      type='ROM'                >ProbabilityROM</Output>
     </RomTrainer>
-    <MultiRun name='rom_sample_pb' sleepTime="0.005" re-seeding="200286">
-        <Input   class='DataObjects'      type='Point'     >inputPlaceHolder</Input>
-        <Model   class='Models'           type='ExternalModel' >PythonModule</Model>
+    <MultiRun name='rom_sample_pb' re-seeding="200286">
+        <Input   class='DataObjects'      type='Point'         >inputPlaceHolder</Input>
+        <Model   class='Models'           type='ExternalModel' >ProbabilityROM</Model>
         <Sampler class='Samplers'         type='MonteCarlo'    >Montecarlo_sampling</Sampler>
-        <Output  class='DataObjects'      type='PointSet'  >outGrid_failure</Output>
+        <Output  class='DataObjects'      type='PointSet'      >outGrid_failure</Output>
     </MultiRun>
-    <MultiRun name='montecarlo_sample_ext_model' sleepTime="0.005" re-seeding="200286">
-        <Input   class='DataObjects'      type='Point'     >inputPlaceHolder</Input>
+    <MultiRun name='montecarlo_sample_ext_model' re-seeding="200286">
+        <Input   class='DataObjects'      type='Point'         >inputPlaceHolder</Input>
         <Model   class='Models'           type='ExternalModel' >PythonModule</Model>
         <Sampler class='Samplers'         type='MonteCarlo'    >Montecarlo_sampling</Sampler>
-        <Output  class='DataObjects'      type='PointSet'  >outMC_failure</Output>
+        <Output  class='DataObjects'      type='PointSet'      >outMC_failure</Output>
     </MultiRun>
     <PostProcess name='PostProcessorComputeROMPb'>
-        <Input   class='DataObjects'      type='PointSet'  >outGrid_failure</Input>
+        <Input   class='DataObjects'      type='PointSet'      >outGrid_failure</Input>
         <Model   class='Models'           type='PostProcessor' >computePb</Model>
         <Output  class='Files'            type=''              >output_failure_pb_ROM_from_Adapt_changedDist.csv</Output>
     </PostProcess>
     <PostProcess name='PostProcessorComputePbExtModel'>
-        <Input   class='DataObjects'      type='PointSet'  >outMC_failure</Input>
+        <Input   class='DataObjects'      type='PointSet'      >outMC_failure</Input>
         <Model   class='Models'           type='PostProcessor' >computePb</Model>
         <Output  class='Files'            type=''              >output_failure_pb_ExtModel_changedDist.csv</Output>
     </PostProcess>
     <IOStep name='plot_results' pauseAtEnd="True">
-        <Input   class='DataObjects'      type='PointSet' >outGrid_failure</Input>
-        <Input   class='DataObjects'      type='PointSet' >outMC_failure</Input>
+        <Input   class='DataObjects'      type='PointSet'     >outGrid_failure</Input>
+        <Input   class='DataObjects'      type='PointSet'     >outMC_failure</Input>
         <Output  class='OutStreamManager' type='Plot'         >plotGridFailureROMFromAdapt</Output>
         <Output  class='OutStreamManager' type='Plot'         >plotGridFailureMCExternalModel</Output>
     </IOStep>
@@ -176,7 +180,7 @@
     <!-- ORIGINAL DISTRIBUTIONS -->
     <Normal name="normal_trunc_original">
         <mean>0.5</mean>
-        <sigma>0.1</sigma>
+        <sigma>0.2</sigma>
         <lowerBound>0.0</lowerBound>
         <upperBound>1.0</upperBound>
     </Normal>
@@ -193,19 +197,19 @@
     <!-- CHANGED DISTRIBUTIONS -->
     <Normal name="normal_trunc">
         <mean>0.5</mean>
-        <sigma>0.2</sigma>
+        <sigma>0.1</sigma>
         <lowerBound>0.0</lowerBound>
         <upperBound>1.0</upperBound>
     </Normal>
     <Normal name="normal">
-        <mean>1.5</mean>
-        <sigma>0.2</sigma>
+        <mean>1.9</mean>
+        <sigma>0.1</sigma>
         <lowerBound>0.0</lowerBound>
         <upperBound>4.0</upperBound>
     </Normal>
     <Uniform name="uniform">
-        <upperBound>4.0</upperBound>
-        <lowerBound>1.5</lowerBound>
+        <upperBound>3.8</upperBound>
+        <lowerBound>1.0</lowerBound>
     </Uniform>
 </Distributions>
 

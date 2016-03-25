@@ -1,13 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Simulation debug="True">
+<Simulation verbosity="debug">
     
 <RunInfo>
     <WorkingDir>./results</WorkingDir>
-    <Files>ROM3pk,ROM4pk,ROM5pk</Files>
     <Sequence>extract_data3,rom_trainer3,pkDump3</Sequence>
     <batchSize>1</batchSize>
 </RunInfo>
 
+<Files>
+    <Input name="ROM3pk" type="">ROM3pk</Input>
+    <Input name="ROM4pk" type="">ROM4pk</Input>
+    <Input name="ROM5pk" type="">ROM5pk</Input>
+</Files>
 
 <Models>
     <ROM name='ROM3' subType='SciKitLearn'>
