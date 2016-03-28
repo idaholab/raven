@@ -1,32 +1,31 @@
-'''
+"""
 Created on Mar 10, 2015
 
 @author: talbpaul
-'''
+"""
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
 if not 'xrange' in dir(__builtins__):
   xrange = range
 
-import xml.etree.ElementTree as ET
 import os
 import sys
-import copy
-from utils import toStrish, compare
 
 class GenericParser():
-  '''import the user-edited input file, build list of strings with replacable parts'''
+  """
+    import the user-edited input file, build list of strings with replacable parts
+  """
   def __init__(self,inputFiles,prefix='$RAVEN-',postfix='$',defaultDelim=':', formatDelim='|'):
-    '''
-    Accept the input file and parse it by the prefix-postfix breaks. Someday might be able to change prefix,postfix,defaultDelim from input file, but not yet.
-    @ In, inputFiles, string list of input filenames that might need parsing.
-    @ In, prefix, the string prefix to find input variables within the input files
-    @ In, postfix, the string postfix signifying hte end of an input variable within an input file
-    @ In, defaultDelim, the string used between prefix and postfix to set default values
-    @ In, formatDelim, the string used between prefix and postfix to set the format of the value
-    @Out, None.
-    '''
+    """
+      Accept the input file and parse it by the prefix-postfix breaks. Someday might be able to change prefix,postfix,defaultDelim from input file, but not yet.
+      @ In, inputFiles, list, string list of input filenames that might need parsing.
+      @ In, prefix, string, optional, the string prefix to find input variables within the input files
+      @ In, postfix, string, optional, the string postfix signifying hte end of an input variable within an input file
+      @ In, defaultDelim, string, optional, the string used between prefix and postfix to set default values
+      @ In, formatDelim, string, optional, the string used between prefix and postfix to set the format of the value
+      @ Out, None
+    """
     self.inputFiles = inputFiles
     self.prefixKey=prefix
     self.postfixKey=postfix
@@ -40,7 +39,6 @@ class GenericParser():
       infileName = inputFile.getFilename()#os.path.basename(inputFile)
       self.segments[infileName] = []
       if not os.path.exists(inputFile.getAbsFile()): raise IOError('Input file not found: '+inputFile)
-      foundSome = False
       seg = ''
       lines = inputFile.readlines()
       inputFile.close()
@@ -90,15 +88,15 @@ class GenericParser():
       self.segments[infileName].append(seg)
 
   def modifyInternalDictionary(self,**Kwargs):
-    '''
-    Edits the parsed file stored in self.segments to enter new variable values preperatory to a new run.
-    @ In, **Kwargs, dict including moddit (the dictionary of variable:value to replace) and additionalEdits.
-    @Out, None.
-    '''
+    """
+      Edits the parsed file stored in self.segments to enter new variable values preperatory to a new run.
+      @ In, **Kwargs, dict, dict including moddit (the dictionary of variable:value to replace) and additionalEdits.
+      @ Out, None
+    """
     moddict = Kwargs['SampledVars']
     self.adldict = Kwargs['additionalEdits']
     iovars = []
-    for key,value in self.adldict.items():
+    for value in self.adldict.values():
       if type(value)==dict:
         for k in value.keys():
           iovars.append(k)
@@ -107,7 +105,6 @@ class GenericParser():
           iovars.append(v)
       else:
         iovars.append(value)
-    newFileStrings={}
     for var in self.varPlaces.keys():
       for inputFile in self.segments.keys():
         for place in self.varPlaces[var][inputFile] if inputFile in self.varPlaces[var].keys() else []:
@@ -131,21 +128,22 @@ class GenericParser():
           else: raise IOError('Generic Parser: Variable '+var+' was not sampled and no default given!')
 
   def writeNewInput(self,inFiles,origFiles):
-    '''
-    Generates a new input file with the existing parsed dictionary.
-    @ In, inFiles, Files list of new input files to return
-    @ In, origFiles, the original list of Files, used for key names
-    @Out, None.
-    '''
+    """
+      Generates a new input file with the existing parsed dictionary.
+      @ In, inFiles, list, Files list of new input files to return
+      @ In, origFiles, list, the original list of Files, used for key names
+      @ Out, None
+    """
     #get the right IO names put in
     case = 'out~'+inFiles[0].getBase() #FIXME the first entry? This is bad! Forces order somewhere in input file
     # however, I can't seem to generate an error with this, so maybe it's okay
     def getFileWithExtension(fileList,ext):
-      '''
-      Just a script to get the file with extension ext from the fileList.
-      @ In, fileList, the Files list of files to pick from.
-      @Out, ext, the string extension that the desired filename ends with.
-      '''
+      """
+        Just a script to get the file with extension ext from the fileList.
+        @ In, fileList, list, the Files list of files to pick from.
+        @ In, ext, string, the string extension that the desired filename ends with.
+        @ Out, None
+      """
       found=False
       for index,inputFile in enumerate(fileList):
         if inputFile.getExt() == ext:

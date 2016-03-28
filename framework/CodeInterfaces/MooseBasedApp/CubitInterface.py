@@ -9,28 +9,26 @@ warnings.simplefilter('default', DeprecationWarning)
 
 import os
 import copy
-import sys
-import re
 from subprocess import Popen
-import collections
-from utils import toBytes, toStrish, compare
 from CodeInterfaceBaseClass import CodeInterfaceBase
 
 class CubitInterface(CodeInterfaceBase):
-  """This class is used to couple raven to Cubit journal files for input to generate
-     meshes (usually to run in another simulation)"""
-
+  """
+    This class is used to couple raven to Cubit journal files for input to generate
+    meshes (usually to run in another simulation)
+  """
   def generateCommand(self, inputFiles, executable, clargs=None, fargs=None):
-    """Generate a command to run cubit using an input with sampled variables to output
-       the perturbed mesh as an exodus file.
-    See base class.  Collects all the clargs and the executable to produce the command-line call.
-    Returns tuple of commands and base file name for run.
-    Commands are a list of tuples, indicating parallel/serial and the execution command to use.
-    @ In, inputFiles, the input files to be used for the run
-    @ In, executable, the executable to be run
-    @ In, clargs, command-line arguments to be used
-    @ In, fargs, in-file changes to be made
-    @Out, tuple( list(tuple(serial/parallel, exec_command)), outFileRoot string)
+    """
+      Generate a command to run cubit using an input with sampled variables to output
+      the perturbed mesh as an exodus file.
+      See base class.  Collects all the clargs and the executable to produce the command-line call.
+      Returns tuple of commands and base file name for run.
+      Commands are a list of tuples, indicating parallel/serial and the execution command to use.
+      @ In , inputFiles, list, List of input files (lenght of the list depends on the number of inputs have been added in the Step is running this code)
+      @ In , executable, string, executable name with absolute path (e.g. /home/path_to_executable/code.exe)
+      @ In , clargs, dict, dictionary containing the command-line flags the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 i0extension =0 .inp0/ >< /Code >)
+      @ In , fargs, dict, a dictionary containing the axuiliary input file variables the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 aux0extension =0 .aux0/ >< /Code >)
+      @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the code (string), returnCommand[1] is the name of the output root
     """
     found = False
     for index, inputFile in enumerate(inputFiles):
@@ -38,16 +36,18 @@ class CubitInterface(CodeInterfaceBase):
         found = True
         break
     if not found: raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
-    executeCommand = [('serial',executable+ ' -batch ' + inputFiles[index].getFilename())]
-    return executeCommand, self.outputfile
+    returnCommand = [('serial',executable+ ' -batch ' + inputFiles[index].getFilename())], self.outputfile
+    return returnCommand
 
   def createNewInput(self, currentInputFiles, oriInputFiles, samplerType, **Kwargs):
-    """Generates new perturbed input files.
-       @ In, currentInputFiles, list of Files objects, most recently perturbed files
-       @ In, originInputFiles, the template input files originally shown
-       @ In, samplerType, the sampler type used (not used in this algorithm)
-       @ In, Kwargs, dictionary of key-val pairs
-       @Out, list of perturbed files
+    """
+      This method is used to generate an input based on the information passed in.
+      @ In , currentInputFiles, list,  list of current input files (input files from last this method call)
+      @ In , oriInputFiles, list, list of the original input files
+      @ In , samplerType, string, Sampler type (e.g. MonteCarlo, Adaptive, etc. see manual Samplers section)
+      @ In , Kwargs, dictionary, kwarded dictionary of parameters. In this dictionary there is another dictionary called "SampledVars"
+             where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
+      @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
     """
     import CUBITparser
     for index, inputFile in enumerate(oriInputFiles):
@@ -71,15 +71,20 @@ class CubitInterface(CodeInterfaceBase):
     return newInputFiles
 
   def getInputExtension(self):
-    """Returns the output extension of input files to be perturbed as a string."""
+    """
+      This method returns a list of extension the code interface accepts for the input file (the main one)
+      @ In , None
+      @ Out, tuple, tuple of strings containing accepted input extension (e.g.(".i",".inp"]) )
+    """
     return("jou")
 
   def finalizeCodeOutput(self, command, output, workingDir):
-    """Cleans up files in the working directory that are not needed after the run
-       @ In, command, (string), command used to run the just ended job
-       @ In, output, (string), the Output name root
-       @ In, workingDir, (string), the current working directory
-       @Out, None
+    """
+      Cleans up files in the working directory that are not needed after the run
+      @ In, command, string, the command used to run the just ended job
+      @ In, output, string, the Output name root
+      @ In, workingDir, string, current working dir
+      @ Out, output, string, optional, present in case the root of the output file gets changed in this method. (not in case)
     """
     # Append wildcard strings to workingDir for files wanted to be removed
     cubitjour_files = os.path.join(workingDir,'cubit*')
@@ -88,12 +93,13 @@ class CubitInterface(CodeInterfaceBase):
     # Remove Cubit generated journal files
     self.rmUnwantedFiles(cubitjour_files)
 
-  def rmUnwantedFiles(self, path_to_files):
-    """Method to remove unwanted files after completing the run
-       @ In, path_to_files, (string), path to the files to be removed
-       @Out, None
+  def rmUnwantedFiles(self, pathToFiles):
+    """
+      Method to remove unwanted files after completing the run
+      @ In, pathToFiles, string, path to the files to be removed
+      @ Out, None
     """
     try:
-      p = Popen('rm '+path_to_files)
+      p = Popen('rm '+pathToFiles)
     except OSError as e:
-      print('  ...',"There was an error removing ",path_to_files,'<',e,'>','but continuing onward...')
+      print('  ...',"There was an error removing ",pathToFiles,'<',e,'>','but continuing onward...')

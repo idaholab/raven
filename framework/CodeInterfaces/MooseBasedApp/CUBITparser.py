@@ -10,31 +10,28 @@ if not 'xrange' in dir(__builtins__):
   xrange = range
 
 import os
-import sys
-import copy
 import re
 import collections
-from utils import toBytes, toStrish, compare
 
 class CUBITparser():
-  """Import Cubit journal file input, provide methods to add/change entries and print input back"""
-
+  """
+    Import Cubit journal file input, provide methods to add/change entries and print input back
+  """
   def __init__(self,inputFile):
-    """Open and read file content into an ordered dictionary
-       @ In, inputFile, object with information about the template input file
+    """
+      Open and read file content into an ordered dictionary
+      @ In, inputFile, File object, object with information about the template input file
+      @ Out, None
     """
     self.printTag = 'CUBIT_PARSER'
     if not os.path.exists(inputFile.getAbsFile()): raise IOError('Input file not found: '+inputFile.getAbsFile())
     # Initialize file dictionary, storage order, and internal variables
     self.keywordDictionary = collections.OrderedDict()
     self.fileOrderStorage = []
-
     between_str = ''
     dict_stored = False
-
     # Open file
     self.inputfile = inputFile.getAbsFile()
-
     # Generate Global Input Dictionary
     for line in inputFile:
       clear_ws = line.replace(" ", "")
@@ -51,7 +48,7 @@ class CUBITparser():
           elif splitline_clear_ws[1] == splitline[1].strip():
             if len(between_str) > 0: self.fileOrderStorage.append(between_str); between_str = ''
             if dict_stored == False: self.fileOrderStorage.append(['dict_location']); dict_stored = True
-            beg_garb, keywordAndValue, end_garb = re.split('#{|}',clear_ws)
+            _, keywordAndValue, _ = re.split('#{|}',clear_ws)
             varname, varvalue = keywordAndValue.split('=')
             self.keywordDictionary[varname] = varvalue
       else:
@@ -59,20 +56,24 @@ class CUBITparser():
     if len(between_str) > 0: self.fileOrderStorage.append(between_str)
 
   def modifyInternalDictionary(self,**inDictionary):
-    """Parse the input dictionary and replace matching keywords in internal dictionary.
-       @ In, inDictionary, Dictionary containing full longform name and raven sampled var value
+    """
+      Parse the input dictionary and replace matching keywords in internal dictionary.
+      @ In, inDictionary, dict, dictionary containing full longform name and raven sampled var value
+      @ Out, None
     """
     for keyword, newvalue in inDictionary.items():
-      garb, keyword = keyword.split('|')
+      _, keyword = keyword.split('|')
       self.keywordDictionary[keyword] = newvalue
 
   def writeNewInput(self,outfile=None):
-    """Using the fileOrderStorage list, reconstruct the template input with modified
-       keywordDictionary.
+    """
+      Using the fileOrderStorage list, reconstruct the template input with modified keywordDictionary.
+      @ In, outfile, string, outfile name
+      @ Out, None
     """
     if outfile == None: outfile = self.inputfile
     IOfile = open(outfile,'w')
-    for e, entry in enumerate(self.fileOrderStorage):
+    for entry in self.fileOrderStorage:
       if type(entry) == unicode:
         IOfile.writelines(entry)
       elif type(entry) == list:

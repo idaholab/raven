@@ -9,27 +9,25 @@ warnings.simplefilter('default',DeprecationWarning)
 
 import os
 import copy
-import sys
-import re
-import collections
 from subprocess import Popen
-from utils import toBytes, toStrish, compare
 from CodeInterfaceBaseClass import CodeInterfaceBase
 
 class BisonMeshScriptInterface(CodeInterfaceBase):
-  """This class is used to couple raven to the Bison Mesh Generation Script using cubit (python syntax, NOT Cubit journal file)"""
-
+  """
+    This class is used to couple raven to the Bison Mesh Generation Script using cubit (python syntax, NOT Cubit journal file)
+  """
   def generateCommand(self, inputFiles, executable, clargs=None, fargs=None):
-    """Generate a command to run cubit using an input with sampled variables to output
-       the perturbed mesh as an exodus file.
-    See base class.  Collects all the clargs and the executable to produce the command-line call.
-    Returns tuple of commands and base file name for run.
-    Commands are a list of tuples, indicating parallel/serial and the execution command to use.
-    @ In, inputFiles, the input files to be used for the run
-    @ In, executable, the executable to be run
-    @ In, clargs, command-line arguments to be used
-    @ In, fargs, in-file changes to be made
-    @Out, tuple( list(tuple(serial/parallel, exec_command)), outFileRoot string)
+    """
+      Generate a command to run cubit using an input with sampled variables to output
+      the perturbed mesh as an exodus file.
+      See base class.  Collects all the clargs and the executable to produce the command-line call.
+      Returns tuple of commands and base file name for run.
+      Commands are a list of tuples, indicating parallel/serial and the execution command to use.
+      @ In , inputFiles, list, List of input files (lenght of the list depends on the number of inputs have been added in the Step is running this code)
+      @ In , executable, string, executable name with absolute path (e.g. /home/path_to_executable/code.exe)
+      @ In , clargs, dict, dictionary containing the command-line flags the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 i0extension =0 .inp0/ >< /Code >)
+      @ In , fargs, dict, a dictionary containing the axuiliary input file variables the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 aux0extension =0 .aux0/ >< /Code >)
+      @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the code (string), returnCommand[1] is the name of the output root
     """
     found = False
     for index, inputFile in enumerate(inputFiles):
@@ -38,16 +36,18 @@ class BisonMeshScriptInterface(CodeInterfaceBase):
         break
     if not found: raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
     outputfile = 'mesh~'+inputFiles[index].getBase()
-    executeCommand = [('serial','python '+executable+ ' -i ' +inputFiles[index].getFilename()+' -o '+outputfile+'.e')]
-    return executeCommand,outputfile
+    returnCommand = [('serial','python '+executable+ ' -i ' +inputFiles[index].getFilename()+' -o '+outputfile+'.e')], outputfile
+    return returnCommand
 
   def createNewInput(self, currentInputFiles, oriInputFiles, samplerType, **Kwargs):
-    """Generates new perturbed input files.
-       @ In, currentInputFiles, list of Files objects, most recently perturbed files
-       @ In, originInputFiles, the template input files originally shown
-       @ In, samplerType, the sampler type used (not used in this algorithm)
-       @ In, Kwargs, dictionary of key-val pairs
-       @Out, list of perturbed files
+    """
+      Generates new perturbed input files.
+      @ In , currentInputFiles, list,  list of current input files (input files from last this method call)
+      @ In , oriInputFiles, list, list of the original input files
+      @ In , samplerType, string, Sampler type (e.g. MonteCarlo, Adaptive, etc. see manual Samplers section)
+      @ In , Kwargs, dictionary, kwarded dictionary of parameters. In this dictionary there is another dictionary called "SampledVars"
+             where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
+      @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
     """
     import BISONMESHSCRIPTparser
     for index, inputFile in enumerate(oriInputFiles):
@@ -61,7 +61,6 @@ class BisonMeshScriptInterface(CodeInterfaceBase):
       del sampledDict[alias]
     parser.modifyInternalDictionary(**sampledDict)
     # Copy original mesh generation input file and write new input from sampled vars
-    temp = str(oriInputFiles[index])[:]
     newInputFiles = copy.deepcopy(currentInputFiles)
     newInputFiles[index].close()
     newInputFiles[index].setBase(currentInputFiles[index].getBase()+'_'+Kwargs['prefix'])
@@ -69,14 +68,22 @@ class BisonMeshScriptInterface(CodeInterfaceBase):
     return newInputFiles
 
   def addDefaultExtension(self):
-    """Adds the given extension to list of input file extensions."""
+    """
+      This method sets a list of default extensions a specific code interface accepts for the input files.
+      This method should be overwritten if these are not acceptable defaults.
+      @ In , None
+      @ Out, None
+    """
     self.addInputExtension(['py'])
 
   def finalizeCodeOutput(self, command, output, workingDir):
-    """Cleans up files in the working directory that are not needed after the run
-       @ In, command, (string), command used to run the just ended job
-       @ In, output, (string), the Output name root
-       @ In, workingDir, (string), the current working directory
+    """
+      this method is called by the RAVEN code at the end of each run (if the method is present).
+      Cleans up files in the working directory that are not needed after the run
+      @ In, command, string, the command used to run the just ended job
+      @ In, output, string, the Output name root
+      @ In, workingDir, string, current working dir
+      @ Out, output, string, optional, present in case the root of the output file gets changed in this method (in this case None)
     """
     # Append wildcard strings to workingDir for files wanted to be removed
     cubitjour_files = os.path.join(workingDir,'cubit*')
@@ -88,11 +95,13 @@ class BisonMeshScriptInterface(CodeInterfaceBase):
     # Remove .pyc files created when running BMS python inputs
     self.rmUnwantedFiles(pyc_files)
 
-  def rmUnwantedFiles(self, path_to_files):
-    """Method to remove unwanted files after completing the run
-       @ In, path_to_files, (string), path to the files to be removed
+  def rmUnwantedFiles(self, pathToFiles):
+    """
+      Method to remove unwanted files after completing the run
+      @ In, pathToFiles, string, path to the files to be removed
+      @ Out, None
     """
     try:
-      p = Popen('rm '+path_to_files)
+      p = Popen('rm '+pathToFiles)
     except OSError as e:
-      print('    ...',"There was an error removing ",path_to_files,'<',e,'> but continuing onward...')
+      print('    ...',"There was an error removing ",pathToFiles,'<',e,'> but continuing onward...')

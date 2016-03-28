@@ -10,28 +10,55 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
 import math
-from utils import printCsv, printCsvPart
 from scipy import interpolate
-from scipy.spatial import Delaunay
 import numpy as np
-import itertools
 
 def normal(x,mu=0.0,sigma=1.0):
-  return (1.0/(sigma*math.sqrt(2*math.pi)))*math.exp(-(x - mu)**2/(2.0*sigma**2))
+  """
+    Computation of normal cdf
+    @ In, x, list or np.array, x values
+    @ In, mu, float, optional, mean
+    @ In, sigma, float, optional, sigma
+    @ Out, returnNormal, list or np.array, pdf
+  """
+  returnNormal = (1.0/(sigma*math.sqrt(2*math.pi)))*math.exp(-(x - mu)**2/(2.0*sigma**2))
+  return returnNormal
 
 def normalCdf(x,mu=0.0,sigma=1.0):
-  return 0.5*(1.0+math.erf((x-mu)/(sigma*math.sqrt(2.0))))
+  """
+    Computation of normal cdf
+    @ In, x, list or np.array, x values
+    @ In, mu, float, optional, mean
+    @ In, sigma, float, optional, sigma
+    @ Out, cdfReturn, list or np.array, cdf
+  """
+  cdfReturn = 0.5*(1.0+math.erf((x-mu)/(sigma*math.sqrt(2.0))))
+  return cdfReturn
 
 def skewNormal(x,alphafactor,xi,omega):
-  def phi(x):
-    return (1.0/math.sqrt(2*math.pi))*math.exp(-(x**2)/2.0)
-
-  def Phi(x):
-    return 0.5*(1+math.erf(x/math.sqrt(2)))
-
-  return (2.0/omega)*phi((x-xi)/omega)*Phi(alphafactor*(x-xi)/omega)
+  """
+    Computation of skewness normal
+    @ In, x, list or np.array, x values
+    @ In, alphafactor, float, the alpha factor
+    @ In, xi, float, xi
+    @ In, omega, float, omega factor
+    @ Out, returnSkew, float, skew
+  """
+  def phi(x): return (1.0/math.sqrt(2*math.pi))*math.exp(-(x**2)/2.0)
+  def Phi(x): return 0.5*(1+math.erf(x/math.sqrt(2)))
+  returnSkew = (2.0/omega)*phi((x-xi)/omega)*Phi(alphafactor*(x-xi)/omega)
+  return returnSkew
 
 def createInterp(x, y, low_fill, high_fill, kind='linear'):
+  """
+    Simpson integration rule
+    @ In, x, list or np.array, x values
+    @ In, y, list or np.array, y values
+    @ In, low_fill, float, minimum interpolated value
+    @ In, high_fill, float, maximum interpolated value
+    @ In, kind, string, interpolation type
+    @ Out, sumVar, float, integral
+  """
   interp = interpolate.interp1d(x, y, kind)
   low = x[0]
   def myInterp(x):
@@ -45,22 +72,33 @@ def createInterp(x, y, low_fill, high_fill, kind='linear'):
   return myInterp
 
 def simpson(f, a, b, n):
+  """
+    Simpson integration rule
+    @ In, f, instance, the function to integrate
+    @ In, a, float, lower bound
+    @ In, b, float, upper bound
+    @ In, n, int, number of integration steps
+    @ Out, sumVar, float, integral
+  """
   h = (b - a) / float(n)
   sumVar = f(a) + f(b)
   for i in range(1,n, 2):
     sumVar += 4*f(a + i*h)
   for i in range(2, n-1, 2):
     sumVar += 2*f(a + i*h)
-  return sumVar * h / 3.0
+  sumVar = sumVar * h / 3.0
+  return sumVar
 
 def getGraphs(functions, f_z_stats = False):
-  """returns the graphs of the functions.
-  The functions are a list of (data_stats_dict, cdf_function, pdf_function,name)
-  It returns a dictionary with the graphs and other statistics calculated.
   """
-
+    Returns the graphs of the functions.
+    The functions are a list of (data_stats_dict, cdf_function, pdf_function,name)
+    It returns a dictionary with the graphs and other statistics calculated.
+    @ In, functions, list, list of functions (data_stats_dict, cdf_function, pdf_function,name)
+    @ In, f_z_stats, bool, true if the F(z) (cdf) needs to be computed
+    @ Out, retDict, dict, the return dictionary
+  """
   retDict = {}
-
   dataStats = [x[0] for x in functions]
   means = [x["mean"] for x in dataStats]
   stddevs = [x["stdev"] for x in dataStats]
@@ -138,10 +176,14 @@ def getGraphs(functions, f_z_stats = False):
 
 
 def countBins(sortedData, binBoundaries):
-  """counts the number of data items in the sorted_data
-  Returns an array with the number.  ret[0] is the number of data
-  points <= bin_boundaries[0], ret[len(bin_boundaries)] is the number
-  of points > bin_boundaries[len(bin_boundaries)-1]
+  """
+    counts the number of data items in the sorted_data
+    Returns an array with the number.  ret[0] is the number of data
+    points <= binBoundaries[0], ret[len(binBoundaries)] is the number
+    of points > binBoundaries[len(binBoundaries)-1]
+    @ In, sortedData, list or np.array,the data to be analyzed
+    @ In, binBoundaries, list or np.array, the bin boundaries
+    @ Out, ret, list, the list containing the number of bins
   """
   binIndex = 0
   sortedIndex = 0
@@ -155,11 +197,21 @@ def countBins(sortedData, binBoundaries):
   return ret
 
 def log2(x):
-  return math.log(x)/math.log(2.0)
+  """
+   Compute log2
+   @ In, x, float, the coordinate x
+   @ Out, logTwo, float, log2
+  """
+  logTwo = math.log(x)/math.log(2.0)
+  return logTwo
 
 def calculateStats(data):
-  """Calculate statistics on a numeric array data
-  and return them in a dictionary"""
+  """
+    Calculate statistics on a numeric array data
+    and return them in a dictionary
+    @ In, data, list or numpy.array, the data
+    @ Out, ret, dict, the dictionary containing the stats
+  """
 
   sum1 = 0.0
   sum2 = 0.0
@@ -194,10 +246,10 @@ def calculateStats(data):
 
 def historySetWindow(vars,numberOfTimeStep):
   """
-  Method do to compute
-  @ In, vars is an historySet
-  @ In, numberOfTimeStep, int, number of time samples of each history
-  @ Out, outDic, dictionary, it contains the temporal slice of all histories
+    Method do to compute
+    @ In, vars, HistorySet, is an historySet
+    @ In, numberOfTimeStep, int, number of time samples of each history
+    @ Out, outDic, dict, it contains the temporal slice of all histories
   """
 
   outKeys = vars.getParaKeys('outputs')

@@ -21,12 +21,12 @@ class NoMoreSamplesNeeded(GeneratorExit): pass
 
 def identifyIfExternalModelExists(caller, moduleIn, workingDir):
   """
-   Method to check if a external module exists and in case return the module that needs to be loaded with
-   the correct path
-   @ In, caller,object, the RAVEN caller (i.e. self)
-   @ In, moduleIn, string, module read from the XML file
-   @ In, workingDir, string, the path of the working directory
-   @ Out, (moduleToLoad, fileName), tuple, a tuple containing the module to load (that should be used in method importFromPath) and the filename (no path)
+    Method to check if a external module exists and in case return the module that needs to be loaded with
+    the correct path
+    @ In, caller,object, the RAVEN caller (i.e. self)
+    @ In, moduleIn, string, module read from the XML file
+    @ In, workingDir, string, the path of the working directory
+    @ Out, (moduleToLoad, fileName), tuple, a tuple containing the module to load (that should be used in method importFromPath) and the filename (no path)
   """
   if moduleIn.endswith('.py') : moduleToLoadString = moduleIn[:-3]
   else                        : moduleToLoadString = moduleIn
@@ -66,20 +66,21 @@ def checkIfPathAreAccessedByAnotherProgram(pathname, timelapse = 10.0):
     Probably there is a better way.
     @ In, pathname, string containing the all path
     @ In, timelapse, float, tollerance on time modification
-    @ Out, boolean, True if it is used by another program, False otherwise
+    @ Out, boolReturn, bool, True if it is used by another program, False otherwise
   """
   import stat
   import time
   mode = os.stat(pathname).st_mode
   if not (stat.S_ISREG(mode) or stat.S_ISDIR(mode)): raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('ERROR') + '->  path '+pathname+ ' is neither a file nor a dir!')
-  return abs(os.stat(pathname).st_mtime - time.time()) < timelapse
+  boolReturn = abs(os.stat(pathname).st_mtime - time.time()) < timelapse
+  return boolReturn
 
 def checkIfLockedRavenFileIsPresent(pathname,filename="ravenLockedKey.raven"):
   """
     Method to check if a path (directory) contains an hidden raven file
-    @ In, pathname, string containing the path
-    @ In, filename, string containing the file name
-    @ Out, boolean, True if it is present, False otherwise
+    @ In, pathname, string, string containing the path
+    @ In, filename, string, optional, string containing the file name
+    @ Out, filePresent, bool, True if it is present, False otherwise
   """
   filePresent = os.path.isfile(os.path.join(pathname,filename))
   open(os.path.join(pathname,filename), 'w')
@@ -92,7 +93,7 @@ def returnImportModuleString(obj,moduleOnly=False):
     the 'import' statement or the 'from x import y'
     @ In, obj, instance, the object that needs to be inquired
     @ In, moduleOnly, bool, optional, get the modules only (True) or also the function dependencies(False)
-    @ Out, list, list of string containing the modules
+    @ Out, mods, list, list of string containing the modules
   """
   mods = []
   for key, value in dict(inspect.getmembers(obj)).items():
@@ -110,9 +111,10 @@ def getPrintTagLenght():
   """
     Method to return the length of the strings used for Screen output
     @ In, None,
-    @ Out, int, the default tag length
+    @ Out, tagLenght, int, the default tag length
   """
-  return 25
+  tagLenght = 25
+  return tagLenght
 
 def UreturnPrintTag(intag):
   """
@@ -121,7 +123,8 @@ def UreturnPrintTag(intag):
     @ In, intag, string, string that needs to be formatted
     @ Out, returnString, string, the formatted string
   """
-  return intag.ljust(getPrintTagLenght())[0:getPrintTagLenght()]
+  returnString = intag.ljust(getPrintTagLenght())[0:getPrintTagLenght()]
+  return returnString
 
 def UreturnPrintPostTag(intag):
   """
@@ -130,7 +133,8 @@ def UreturnPrintPostTag(intag):
     @ In, intag, string, string that needs to be formatted
     @ Out, returnString, string, the formatted string
   """
-  return intag.ljust(getPrintTagLenght()-15)[0:(getPrintTagLenght()-15)]
+  returnString = intag.ljust(getPrintTagLenght()-15)[0:(getPrintTagLenght()-15)]
+  return returnString
 
 def convertMultipleToBytes(sizeString):
   """
@@ -150,47 +154,52 @@ def stringsThatMeanTrue():
   """
     Return list of strings with the meaning of true in RAVEN (eng,ita,roman,french,german,chinese,latin, turkish, bool)
     @ In, None
-    @ Out, listofstrings, list of strings that mean True in RAVEN
+    @ Out, listofstrings, list, list of strings that mean True in RAVEN
   """
-  return list(['yes','y','true','t','si','vero','dajie','oui','ja','yao','verum', 'evet', 'dogru', '1', 'on'])
+  listofstrings = list(['yes','y','true','t','si','vero','dajie','oui','ja','yao','verum', 'evet', 'dogru', '1', 'on'])
+  return listofstrings
 
 def stringsThatMeanFalse():
   """
     Return list of strings with the meaning of true in RAVEN (eng,ita,roman,french,german,chinese,latin, turkish, bool)
     @ In, None
-    @ Out, listofstrings, list of strings that mean False in RAVEN
+    @ Out, listofstrings, list, list of strings that mean False in RAVEN
   """
-  return list(['no','n','false','f','nono','falso','nahh','non','nicht','bu','falsus', 'hayir', 'yanlis', '0', 'off'])
+  listofstrings = list(['no','n','false','f','nono','falso','nahh','non','nicht','bu','falsus', 'hayir', 'yanlis', '0', 'off'])
+  return listofstrings
 
 def stringsThatMeanSilent():
   """
     Return list of strings that indicate a verbosity of the lowest level (just errors). You linguists add what you wish
     @ In, None
-    @ Out, listofstrings, list of strings that mean Silent in RAVEN
+    @ Out, listofstrings, list, list of strings that mean Silent in RAVEN
   """
-  return list(['0','silent','false','f','n','no','none'])
+  listofstrings = list(['0','silent','false','f','n','no','none'])
+  return listofstrings
 
 def stringsThatMeanPartiallyVerbose():
   """
     Return list of strings that indicate a verbosity of the medium level (errors and warnings). You linguists add what you wish.
     @ In, None
-    @ Out, listofstrings, list of strings that mean Quiet in RAVEN
+    @ Out, listofstrings, list, list of strings that mean Quiet in RAVEN
   """
-  return list(['1','quiet','some'])
+  listofstrings = list(['1','quiet','some'])
+  return listofstrings
 
 def stringsThatMeanVerbose():
   """
     Return list of strings that indicate full verbosity (errors warnings, messages). You linguists add what you wish.
     @ In, None
-    @ Out, listofstrings, list of strings that mean Full Verbosity in RAVEN
+    @ Out, listofstrings, list, list of strings that mean Full Verbosity in RAVEN
   """
-  return list(['2','loud','true','t','y','yes','all'])
+  listofstrings = list(['2','loud','true','t','y','yes','all'])
+  return listofstrings
 
 def interpretBoolean(inarg):
   """
     Utility method to convert an inarg into a boolean.
     The inarg can be either a string or integer
-    @ In, object, object to convert
+    @ In, inarg, object, object to convert
     @ Out, interpretedObject, bool, the interpreted boolean
   """
   if type(inarg).__name__ == "bool": return inarg
@@ -259,7 +268,7 @@ def toString(s):
   """
     Method aimed to convert a string in type str
     @ In, s, string,  string to be converted
-    @ Out, response, str, the casted value
+    @ Out, response, string, the casted value
   """
   if type(s) == type(""): return s
   else                  : return s.decode()
@@ -464,6 +473,9 @@ def metaclass_insert(metaclass,*base_classes):
     Example use:
     class Foo(metaclass_insert(Metaclass)):
     This function is based on the method used in Benjamin Peterson's six.py
+    @ In, metaclass, abc, the metaclass
+    @ In, base_classes, args*, base classes
+    @ Out, metaclass, class, the new metaclass
   """
   namespace={}
   return metaclass("NewMiddleClass",base_classes,namespace)
@@ -474,7 +486,7 @@ def interpolateFunction(x,y,option,z = None,returnCoordinate=False):
     @ In, x, ndarray or cached_ndarray, the array of x coordinates
     @ In, y, ndarray or cached_ndarray, the array of y coordinates
     @ In, z, ndarray or cached_ndarray, optional, the array of z coordinates
-    @ In, returnCoordinate, boolean, optional, true if the new coordinates need to be returned
+    @ In, returnCoordinate, bool, optional, true if the new coordinates need to be returned
     @ Out, i, ndarray or cached_ndarray or tuple, the interpolated values
   """
   options = copy.copy(option)
@@ -531,6 +543,11 @@ class abstractstatic(staticmethod):
         return 5
   """
   def __init__(self, function):
+    """
+      Constructor
+      @ In, function, pointer, the function to 'abstract'
+      @ Out, None
+    """
     super(abstractstatic, self).__init__(function)
     function.__isabstractmethod__ = True
   __isabstractmethod__ = True
@@ -579,7 +596,7 @@ def find_distribution1D():
   """
     Method to find the crow distribution1D module and return it.
     @ In, None
-    @ Out, module, the module of distribution1D
+    @ Out, module, instance, the module of distribution1D
   """
   if sys.version_info.major > 2:
     try:
@@ -604,7 +621,7 @@ def find_interpolationND():
   """
     Method to find the crow interpolationND module and return it.
     @ In, None
-    @ Out, module, the module of interpolationND
+    @ Out, module, instance, the module of interpolationND
   """
   if sys.version_info.major > 2:
     try:
@@ -628,8 +645,9 @@ def find_interpolationND():
 def printCsv(csv,*args):
     """
       Writes the values contained in args to a csv file specified by csv
-      @ In, csv, an open file object to which we will be writing
-      @ In, args, an arbitrary collection of values to write to the file
+      @ In, csv, File instance, an open file object to which we will be writing
+      @ In, args, dict, an arbitrary collection of values to write to the file
+      @ Out, None
     """
     print(*args,file=csv,sep=',')
 
@@ -637,25 +655,27 @@ def printCsvPart(csv,*args):
     """
       Writes the values contained in args to a csv file specified by csv appending a comma
       to the end to allow more data to be written to the line.
-      @ In, csv, an open file object to which we will be writing
-      @ In, args, an arbitrary collection of values to write to the file
+      @ In, csv, File instance, an open file object to which we will be writing
+      @ In, args, dict, an arbitrary collection of values to write to the file
+      @ Out, None
     """
     print(*args,file=csv,sep=',',end=',')
 
 def numpyNearestMatch(findIn,val):
   """
     Given an array, find the entry that most nearly matches the given value.
-    @ In, findIn, the array to look in
-    @ In, val, the value for which to find a match
-    @ Out, tuple, index where match is and the match itself
+    @ In, findIn, np.array, the array to look in
+    @ In, val, float or other compatible type, the value for which to find a match
+    @ Out, returnMatch, tuple, index where match is and the match itself
   """
   idx = (np.abs(findIn-val)).argmin()
-  return idx,findIn[idx]
+  returnMatch = idx,findIn[idx]
+  return returnMatch
 
 def NDInArray(findIn,val,tol=1e-12):
   """
     checks a numpy array of numpy arrays for a near match, then returns info.
-    @ In, findIn, numpy array of numpy arrays (both arrays can be any length)
+    @ In, findIn, np.array, numpy array of numpy arrays (both arrays can be any length)
     @ In, val, tuple/list/numpy array, entry to look for in findIn
     @ In, tol, float, tolerance to check match within
     @ Out, (bool,idx,val) -> (found/not found, index where found or None, findIn entry or None)
@@ -683,6 +703,8 @@ class pickleSafeSubprocessPopen(subprocess.Popen):
       """
       Returns a dictionary of the object state for pickling/deep copying.  Omits member '_handle',
       which cannot be deep copied when non-None.
+      @ In, None
+      @ Out, result, dict, the get state dict
       """
       result = self.__dict__.copy()
       del result['_handle']
@@ -692,7 +714,8 @@ class pickleSafeSubprocessPopen(subprocess.Popen):
       """
       Used to load an object dictionary when unpickling.  Since member '_handle' could not be
       deep copied, load it back as value None.
-      @ In, d, dictionary object, previously stored namespace to restore
+      @ In, d, dict, previously stored namespace to restore
+      @ Out, None
       """
       self.__dict__ = d
       self._handle = None

@@ -1,8 +1,8 @@
-'''
+"""
 Created March 17th, 2015
 
 @author: talbpaul
-'''
+"""
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
@@ -12,41 +12,44 @@ import copy
 from CodeInterfaceBaseClass import CodeInterfaceBase
 
 class GenericCodeInterface(CodeInterfaceBase):
-  '''This class is used as a generic code interface for Model.Code in Raven.  It expects
-     input paremeters to be specified by input file, input files be specified by either
-     command line or in a main input file, and produce a csv output.  It makes significant
-     use of the 'clargs', 'fileargs', 'prepend', 'text', and 'postpend' nodes in the input
-     XML file.  See base class for more details.
-  '''
+  """
+    This class is used as a generic code interface for Model.Code in Raven.  It expects
+    input paremeters to be specified by input file, input files be specified by either
+    command line or in a main input file, and produce a csv output.  It makes significant
+    use of the 'clargs', 'fileargs', 'prepend', 'text', and 'postpend' nodes in the input
+    XML file.  See base class for more details.
+  """
   def __init__(self):
-    '''Initializes the GenericCode Interface.
-       @ In, None
-       @Out, None
-    '''
-    CodeInterfaceBase.__init__(self) #The base class doesn't actually implement this, but futureproofing.
-    self.inputExtensions  = [] #list of extensions for RAVEN to edit as inputs
-    self.outputExtensions = [] #list of extensions for RAVEN to gather data from?
-    self.execPrefix       = '' #executioner command prefix (e.g., 'python ')
-    self.execPostfix      = '' #executioner command postfix (e.g. -zcvf)
-    self.caseName         = None #base label for outgoing files, should default to inputFileName
+    """
+      Initializes the GenericCode Interface.
+      @ In, None
+      @ Out, None
+    """
+    CodeInterfaceBase.__init__(self) # The base class doesn't actually implement this, but futureproofing.
+    self.inputExtensions  = []       # list of extensions for RAVEN to edit as inputs
+    self.outputExtensions = []       # list of extensions for RAVEN to gather data from?
+    self.execPrefix       = ''       # executioner command prefix (e.g., 'python ')
+    self.execPostfix      = ''       # executioner command postfix (e.g. -zcvf)
+    self.caseName         = None     # base label for outgoing files, should default to inputFileName
 
   def addDefaultExtension(self):
-    '''The Generic code interface does not accept any default input types.
-    @ In, None
-    @Out, None
-    '''
+    """
+      The Generic code interface does not accept any default input types.
+      @ In, None
+      @ Out, None
+    """
     pass
 
   def generateCommand(self,inputFiles,executable,clargs=None, fargs=None):
     """
-    See base class.  Collects all the clargs and the executable to produce the command-line call.
-    Returns tuple of commands and base file name for run.
-    Commands are a list of tuples, indicating parallel/serial and the execution command to use.
-    @ In, inputFiles, the input files to be used for the run
-    @ In, executable, the executable to be run
-    @ In, clargs, command-line arguments to be used
-    @ In, fargs, in-file changes to be made
-    @Out, tuple( list(tuple(serial/parallel, exec_command)), outFileRoot string)
+      See base class.  Collects all the clargs and the executable to produce the command-line call.
+      Returns tuple of commands and base file name for run.
+      Commands are a list of tuples, indicating parallel/serial and the execution command to use.
+      @ In , inputFiles, list, List of input files (lenght of the list depends on the number of inputs have been added in the Step is running this code)
+      @ In , executable, string, executable name with absolute path (e.g. /home/path_to_executable/code.exe)
+      @ In , clargs, dict, dictionary containing the command-line flags the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 i0extension =0 .inp0/ >< /Code >)
+      @ In , fargs, dict, a dictionary containing the axuiliary input file variables the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 aux0extension =0 .aux0/ >< /Code >)
+      @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the code (string), returnCommand[1] is the name of the output root
     """
     if clargs==None:
       raise IOError('No input file was specified in clargs!')
@@ -74,11 +77,11 @@ class GenericCodeInterface(CodeInterfaceBase):
 
     #PROBLEM this is limited, since we can't figure out which .xml goes to -i and which to -d, for example.
     def getFileWithExtension(fileList,ext):
-      '''
+      """
       Just a script to get the file with extension ext from the fileList.
       @ In, fileList, the string list of filenames to pick from.
       @Out, ext, the string extension that the desired filename ends with.
-      '''
+      """
       found = False
       for index,inputFile in enumerate(fileList):
         if inputFile.getExt() == ext:
@@ -115,14 +118,20 @@ class GenericCodeInterface(CodeInterfaceBase):
     todo+=' '+clargs['text']
     #postpend
     todo+=' '+clargs['post']
-    executeCommand = [('parallel',todo)]
-    print('Execution Command: '+str(executeCommand))
-    return executeCommand,outfile
+    returnCommand = [('parallel',todo)],outfile
+    print('Execution Command: '+str(returnCommand[0]))
+    return returnCommand
 
   def createNewInput(self,currentInputFiles,origInputFiles,samplerType,**Kwargs):
-    '''
-    See base class.  Loops over all input files to edit as many as needed to cover the input variables.
-    '''
+    """
+      This method is used to generate an input based on the information passed in.
+      @ In , currentInputFiles, list,  list of current input files (input files from last this method call)
+      @ In , oriInputFiles, list, list of the original input files
+      @ In , samplerType, string, Sampler type (e.g. MonteCarlo, Adaptive, etc. see manual Samplers section)
+      @ In , Kwargs, dictionary, kwarded dictionary of parameters. In this dictionary there is another dictionary called "SampledVars"
+            where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
+      @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
+    """
     import GenericParser
     indexes=[]
     infiles=[]
@@ -137,8 +146,8 @@ class GenericCodeInterface(CodeInterfaceBase):
         origfiles.append(inputFile)
     parser = GenericParser.GenericParser(infiles)
     parser.modifyInternalDictionary(**Kwargs)
-    newInFiles = copy.deepcopy(currentInputFiles)
+    newInputFiles = copy.deepcopy(currentInputFiles)
     for i in indexes:
-      newInFiles[i].setBase(Kwargs['prefix']+'~'+newInFiles[i].getBase())
-    parser.writeNewInput(newInFiles,origfiles)
-    return newInFiles
+      newInputFiles[i].setBase(Kwargs['prefix']+'~'+newInputFiles[i].getBase())
+    parser.writeNewInput(newInputFiles,origfiles)
+    return newInputFiles
