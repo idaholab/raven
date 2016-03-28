@@ -52,20 +52,12 @@ if __name__ == '__main__':
         x = [0, 0, 1, 1, 2, 4, 2, 1, 2, 0]
         y = [1, 1, 1, 2, 2, 2, 2, 3, 2, 0]
         dist_fun = manhattan_distances
-    elif 0: # 2-D numeric
+    else : # 2-D numeric
         from sklearn.metrics.pairwise import euclidean_distances
         x = [[0, 0], [0, 1], [1, 1], [1, 2], [2, 2], [4, 3], [2, 3], [1, 1], [2, 2], [0, 1]]
         y = [[1, 0], [1, 1], [1, 1], [2, 1], [4, 3], [4, 3], [2, 3], [3, 1], [1, 2], [1, 0]]
         dist_fun = euclidean_distances
-    else: # 1-D list of strings
-        from nltk.metrics.distance import edit_distance
-        #x = ['we', 'shelled', 'clams', 'for', 'the', 'chowder']
-        #y = ['class', 'too']
-        x = ['i', 'soon', 'found', 'myself', 'muttering', 'to', 'the', 'walls']
-        y = ['see', 'drown', 'himself']
-        #x = 'we talked about the situation'.split()
-        #y = 'we talked about the situation'.split()
-        dist_fun = edit_distance
+
     dist, cost, acc, path = dtw(x, y, dist_fun)
 
     # vizualize
