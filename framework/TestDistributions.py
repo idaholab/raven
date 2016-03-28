@@ -1,3 +1,8 @@
+"""
+  This Module performs Unit Tests for the Distribution class.
+  It can not be considered part of the active code but of the regression test system
+"""
+
 #For future compatibility with Python 3
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
