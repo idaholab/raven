@@ -27,17 +27,22 @@ import Files
 
 class HistorySet(Data):
   """
-  HistorySet is an object that stores multiple sets of inputs and associated history for output parameters.
+    HistorySet is an object that stores multiple sets of inputs and associated history for output parameters.
   """
   def __init__(self):
+    """
+      Constructor
+      @ In, None
+      @ Out, None
+    """
     Data.__init__(self)
     self.acceptHierarchy = True
 
   def _specializedInputCheck(self,xmlNode):
     """
-     Here we check if the parameters read by the global reader are compatible with this type of Data
-     @ In, ElementTree object, xmlNode
-     @ Out, None
+      Here we check if the parameters read by the global reader are compatible with this type of Data
+      @ In, xmlNode, xml.ElementTree.Element, xml node
+      @ Out, None
     """
     if set(self._dataParameters.keys()).issubset(['operator','outputRow']): self.raiseAnError(IOError,"Inputted operator or outputRow attributes are available for Point and PointSet only!")
 
@@ -404,6 +409,13 @@ class HistorySet(Data):
       myFile.close()
 
   def _specializedLoadXMLandCSV(self, filenameRoot, options):
+    """
+      Function to load the xml additional file of the csv for data
+      (it contains metadata, etc). It must be implemented by the specialized classes
+      @ In, filenameRoot, string, file name root
+      @ In, options, dict,, dictionary -> options for loading
+      @ Out, None
+    """
     #For HistorySet, create an XML file, and multiple CSV
     #files.  The first CSV file has a header with the input names,
     #and a column for the filenames.  There is one CSV file for each
@@ -460,12 +472,24 @@ class HistorySet(Data):
       self._dataContainer['outputs'][mainKey] = subOutput
     self.checkConsistency()
 
-  def __extractValueLocal__(self,myType,inOutType,varTyp,varName,varID=None,stepID=None,nodeid='root'):
+  def __extractValueLocal__(self,inOutType,varTyp,varName,varID=None,stepID=None,nodeid='root'):
     """
-      override of the method in the base class DataObjects
-      @ In,  myType, string, unused
-      @ In,  inOutType
-      IMPLEMENT COMMENT HERE
+      specialization of extractValue for this data type
+      @ inOutType, string, the type of data to extract (input or output)
+      @ In, varTyp, string, is the requested type of the variable to be returned (bool, int, float, numpy.ndarray, etc)
+      @ In, varName, string, is the name of the variable that should be recovered
+      @ In, varID, tuple or int, optional, is the ID of the value that should be retrieved within a set
+        if varID.type!=tuple only one point along sampling of that variable is retrieved
+          else:
+            if varID=(int,int) the slicing is [varID[0]:varID[1]]
+            if varID=(int,None) the slicing is [varID[0]:]
+      @ In, stepID, tuple or int, optional, it  determines the slicing of an history.
+          if stepID.type!=tuple only one point along the history is retrieved
+          else:
+            if stepID=(int,int) the slicing is [stepID[0]:stepID[1]]
+            if stepID=(int,None) the slicing is [stepID[0]:]
+      @ In, nodeid, string, in hierarchical mode, is the node from which the value needs to be extracted... by default is the root
+      @ Out, value, varTyp, the requested value
     """
     if varTyp!='numpy.ndarray':
       if varName in self._dataParameters['inParam']:
