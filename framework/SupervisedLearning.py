@@ -116,7 +116,11 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
   #   self.printTag           = newState.pop('printTag'          )
 
   def initialize(self,idict):
-    pass #Overloaded by (at least) GaussPolynomialRom
+    """Initializes the instance.  Overload as needed.
+    @ In, idict, dict of objects needed to initalize
+    @ Out, None
+    """
+    pass
 
   def train(self,tdict):
     """
@@ -319,13 +323,15 @@ class NDinterpolatorRom(superVisedLearning):
 
   def __setstate__(self, newstate):
     """
-    Initialize the ROM with the data contained in newstate
-    @ In, newstate, dic, it contains all the information needed by the ROM to be initialized
-    @ Out, None
+      Initialize the ROM with the data contained in newstate
+      @ In, newstate, dic, it contains all the information needed by the ROM to be initialized
+      @ Out, None
     """
     self.__dict__.update(newstate)
     self.__initLocal__()
-    self.__trainLocal__(self.featv,self.targv)
+    #only train if the original copy was trained
+    if self.amITrained:
+      self.__trainLocal__(self.featv,self.targv)
 
   def __trainLocal__(self,featureVals,targetVals):
     """
@@ -479,6 +485,8 @@ class GaussPolynomialRom(superVisedLearning):
       Adds requested entries to XML node.
       @ In, node, XML node to which entries will be added
       @ In, options, dict (optional), list of requests and options
+      May include:
+        'what': comma-separated string list, the qualities to print out
       @ Out, None
     """
     if not self.amITrained: self.raiseAnError(RuntimeError,'ROM is not yet trained!')
@@ -490,11 +498,10 @@ class GaussPolynomialRom(superVisedLearning):
       for request in requests:
         request=request.strip()
         newNode = TreeStructure.Node(request)
-        if   request.lower() in ['mean','expectedvalue']:
+        if request.lower() in ['mean','expectedvalue']:
           if self.mean == None: self.mean = self.__mean__()
           newNode.setText(self.mean)
         elif request.lower() in ['variance']:
-          if self.mean == None: self.mean = self.__mean__()
           newNode.setText(self.__variance__())
         elif request.lower() in ['numruns']:
           if self.numRuns!=None: newNode.setText(self.numRuns)
@@ -506,9 +513,9 @@ class GaussPolynomialRom(superVisedLearning):
           keys = self.polyCoeffDict.keys()
           keys.sort()
           for key in keys:
-            cnode = TreeStructure.Node('_'+'_'.join(str(k) for k in key)+'_')
-            cnode.setText(self.polyCoeffDict[key])
-            newNode.appendBranch(cnode)
+            cNode = TreeStructure.Node('_'+'_'.join(str(k) for k in key)+'_')
+            cNode.setText(self.polyCoeffDict[key])
+            newNode.appendBranch(cNode)
         elif request.lower() in ['indices']:
           indices,partials = self.getSensitivities()
           #provide variance
@@ -815,6 +822,8 @@ class HDMRRom(GaussPolynomialRom):
       Adds requested entries to XML node.
       @ In, node, XML node to which entries will be added
       @ In, options, dict (optional), list of requests and options
+      May include:
+        'what': comma-separated string list, the qualities to print out
       @ Out, None
     """
     #inherit from GaussPolynomialRom
