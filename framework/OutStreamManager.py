@@ -52,6 +52,8 @@ class OutStreamManager(BaseType):
   def __init__(self):
     """
       Init of Base class
+      @ In, None
+      @ Out, None
     """
     BaseType.__init__(self)
     # outstreaming options
@@ -65,15 +67,16 @@ class OutStreamManager(BaseType):
     # number of agregated outstreams
     self.numberAggregatedOS = 1
     self.printTag = 'OUTSTREAM MANAGER'
-
     self.filename = ''
 
   def _readMoreXML(self, xmlNode):
     """
-    Function to read the portion of the xml input that belongs to this specialized class
-    and initialize some stuff based on the got inputs
-    @ In, xmlNode    : Xml element node
-    @ Out, None
+      Function to read the portion of the xml input that belongs to this specialized class
+      and initialize some stuff based on the inputs got
+      @ In, xmlNode, xml.etree.Element, Xml element node
+      @ Out, None
+      The text is supposed to contain the info where and which variable to change.
+      In case of a code the syntax is specified by the code interface itself
     """
     if 'overwrite' in xmlNode.attrib.keys():
       if xmlNode.attrib['overwrite'].lower() in utils.stringsThatMeanTrue(): self.overwrite = True
@@ -82,9 +85,11 @@ class OutStreamManager(BaseType):
 
   def addInitParams(self, tempDict):
     """
-    Function adds the initial parameter in a temporary dictionary
-    @ In, tempDict
-    @ Out, tempDict
+      This function is called from the base class to print some of the information inside the class.
+      Whatever is permanent in the class and not inherited from the parent class should be mentioned here
+      The information is passed back in the dictionary. No information about values that change during the simulation are allowed
+      @ In, tempDict, dict, dictionary to be updated. {'attribute name':value}
+      @ Out, tempDict, dict, dictionary to be updated. {'attribute name':value}
     """
     tempDict[                     'Global Class Type                 '] = 'OutStreamManager'
     tempDict[                     'Specialized Class Type            '] = self.type
@@ -96,17 +101,17 @@ class OutStreamManager(BaseType):
 
   def addOutput(self):
     """
-    Function to add a new output source (for example a CSV file or a HDF5 object)
-    @ In, toLoadFrom, source object
-    @ Out, None
+      Function to add a new output source (for example a CSV file or a HDF5 object)
+      @ In, None
+      @ Out, None
     """
     self.raiseAnError(NotImplementedError, 'method addOutput must be implemented by derived classes!!!!')
 
   def initialize(self, inDict):
     """
-    Function to initialize the OutStream. It basically looks for the "data" object and link it to the system
-    @ In, inDict, dictionary, It contains all the Object are going to be used in the current step. The sources are searched into this.
-    @ Out, None
+      Function to initialize the OutStream. It basically looks for the "data" object and link it to the system
+      @ In, inDict, dict, It contains all the Object are going to be used in the current step. The sources are searched into this.
+      @ Out, None
     """
     self.sourceData = []
     for agrosindex in range(self.numberAggregatedOS):
@@ -137,7 +142,15 @@ class OutStreamManager(BaseType):
 #
 #
 class OutStreamPlot(OutStreamManager):
+  """
+    OutStream of type Plot
+  """
   def __init__(self):
+    """
+      Init of Base class
+      @ In, None
+      @ Out, None
+    """
     OutStreamManager.__init__(self)
     self.type = 'OutStreamPlot'
     self.printTag = 'OUTSTREAM PLOT'
@@ -187,8 +200,9 @@ class OutStreamPlot(OutStreamManager):
   def __splitVariableNames(self, what, where):
     """
       Function to split the variable names
-      @ In, what => x,y,z or colorMap
-      @ In, where, tuple => pos 0 = plotIndex, pos 1 = variable Index
+      @ In, what, string,  x,y,z or colorMap
+      @ In, where, tuple, where[0] = plotIndex, where[1] = variable Index
+      @ Out, result, list, splitted variable
     """
     if   what == 'x'                : var = self.xCoordinates [where[0]][where[1]]
     elif what == 'y'                : var = self.yCoordinates [where[0]][where[1]]
@@ -216,7 +230,8 @@ class OutStreamPlot(OutStreamManager):
   def __readPlotActions(self, snode):
     """
       Function to read, from the xml input, the actions that are required to be performed on the Plot
-      @ In, snode => xml node
+      @ In, snode, xml.etree.Element, xml node containing the action XML node
+      @ Out, None
     """
     for node in snode:
       self.options[node.tag] = {}
@@ -239,7 +254,7 @@ class OutStreamPlot(OutStreamManager):
     """
       Function to retrieve the pointers of the data values (x,y,z)
       @ In, None
-      @ Out, boolean, true if the data are filled, false otherwise
+      @ Out, True/False, bool, true if the data are filled, false otherwise
     """
     self.xValues = []
     if self.yCoordinates : self.yValues = []
@@ -407,6 +422,7 @@ class OutStreamPlot(OutStreamManager):
     """
       Function to execute the actions must be performed on the Plot(for example, set the x,y,z axis ranges, etc)
       @ In, None
+      @ Out, None
     """
     if 'labelFormat' not in self.options.keys():
       if self.dim == 2:
@@ -558,22 +574,28 @@ class OutStreamPlot(OutStreamManager):
   def localAddInitParams(self, tempDict):
     """
       This method is called from the base function. It adds the initial characteristic intial params that need to be seen by the whole enviroment
-      @ In, tempDict
-      @ Out, tempDict
+      @ In, tempDict, dict, the dict to be updated
+      @ Out, None
     """
     tempDict['Plot is '] = str(self.dim) + 'D'
     for index in range(len(self.sourceName)): tempDict['Source Name ' + str(index) + ' :'] = self.sourceName[index]
 
   def endInstructions(self, instructionString):
+    """
+      Method to execute instructions at end of a step (this is applied when an interactive mode is activated)
+      @ In, instructionString, string, the instruction to execute
+      @ Out, None
+    """
     if instructionString == 'interactive' and 'screen' in self.options['how']['how'].split(',') and disAvail:
       self.plt.figure(self.name)
       self.fig.ginput(n = -1, timeout = -1, show_clicks = False)
 
   def initialize(self, inDict):
     """
-    Function called to initialize the OutStream, linking it to the proper Data
-    @ In, inDict -> Dictionary that contains all the instantiaced classes needed for the actual step
+      Function called to initialize the OutStream, linking it to the proper Data
+      @ In, inDict, dict, dictionary that contains all the instantiaced classes needed for the actual step
                     In this dictionary the data are looked for
+      @ Out, None
     """
     self.xCoordinates = []
     self.sourceName = []
@@ -644,8 +666,8 @@ class OutStreamPlot(OutStreamManager):
   def localReadXML(self, xmlNode):
     """
       This Function is called from the base class, It reads the parameters that belong to a plot block
-      @ In, xmlNode
-      @ Out, filled data structure (self)
+      @ In, xmlNode, xml.etree.Element, Xml element node
+      @ Out, None (filled data structure (self))
     """
     if not 'dim' in xmlNode.attrib.keys(): self.dim = 2
     else:                                  self.dim = int(xmlNode.attrib['dim'])
@@ -712,9 +734,9 @@ class OutStreamPlot(OutStreamManager):
 
   def addOutput(self):
     """
-    Function to show and/or save a plot
-    @ In,  None
-    @ Out, None (Plot on the screen or on file/s)
+      Function to show and/or save a plot
+      @ In,  None
+      @ Out, None (Plot on the screen or on file/s)
     """
     # reactivate the figure
     self.fig = self.plt.figure(self.name)
@@ -1442,15 +1464,15 @@ class OutStreamPlot(OutStreamManager):
         self.plt.savefig(name + '.' + self.options['how']['how'].split(',')[i], format = self.options['how']['how'].split(',')[i])
 
 class OutStreamPrint(OutStreamManager):
-  '''
+  """
     Class for managing the printing of files as outstream.
-  '''
+  """
   def __init__(self):
-    '''
-      Initializes.
+    """
+      Constructor
       @ In, None
       @ Out, None
-    '''
+    """
     OutStreamManager.__init__(self)
     self.type = 'OutStreamPrint'
     self.availableOutStreamTypes = ['csv', 'xml']
@@ -1461,15 +1483,30 @@ class OutStreamPrint(OutStreamManager):
     self.what = None
 
   def localAddInitParams(self, tempDict):
+    """
+      This method is called from the base function. It adds the initial characteristic intial params that need to be seen by the whole enviroment
+      @ In, tempDict, dict, the dict to be updated
+      @ Out, None
+    """
     for index in range(len(self.sourceName)): tempDict['Source Name ' + str(index) + ' :'] = self.sourceName[index]
     if self.what:
       for index in range(len(self.what)): tempDict['Variable Name ' + str(index) + ' :'] = self.what[index]
 
   def initialize(self, inDict):
+    """
+      Function to initialize the OutStream. It basically looks for the "data" object and link it to the system
+      @ In, inDict, dict, It contains all the Object are going to be used in the current step. The sources are searched into this.
+      @ Out, None
+    """
     # the linking to the source is performed in the base class initialize method
     OutStreamManager.initialize(self, inDict)
 
   def localReadXML(self, xmlNode):
+    """
+      This Function is called from the base class, It reads the parameters that belong to a plot block
+      @ In, xmlNode, xml.etree.Element, Xml element node
+      @ Out, None (filled data structure (self))
+    """
     self.type = 'OutStreamPrint'
     for subnode in xmlNode:
       if subnode.tag == 'source': self.sourceName = subnode.text.split(',')
@@ -1480,13 +1517,12 @@ class OutStreamPrint(OutStreamManager):
     if 'what' in self.options.keys(): self.what = self.options['what']
 
   def addOutput(self):
-    '''
-      Calls output functions on desired instances
+    """
+      Calls output functions on desired instances in order to print out the linked dataObjects
       @ In, None
       @ Out, None
-    '''
+    """
     dictOptions = {}
-
     if len(self.filename) > 0:
       dictOptions['filenameroot'] = self.filename
     else:
@@ -1525,14 +1561,19 @@ __interFaceDict['Print'  ] = OutStreamPrint
 __knownTypes = __interFaceDict.keys()
 
 def knownTypes():
+  """
+    Return the known types
+    @ In, None
+    @ Out, knownTypes, list, list of known types
+  """
   return __knownTypes
 
 
 def returnInstance(Type, caller):
   """
-  function used to generate a OutStream class
-  @ In, Type : OutStream type
-  @ Out,Instance of the Specialized OutStream class
+    function used to generate a OutStream class
+    @ In, Type, string, Sampler type
+    @ Out, returnInstance, instance, Instance of the Specialized OutStream class
   """
   try: return __interFaceDict[Type]()
   except KeyError: caller.raiseAnError(NameError, 'not known ' + __base + ' type ' + Type)
