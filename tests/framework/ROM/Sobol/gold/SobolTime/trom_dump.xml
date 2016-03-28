@@ -4,80 +4,62 @@
     <y>
       <mean>4.0</mean>
       <variance>1.0</variance>
-      <Sobol_indices>
+      <numRuns>7</numRuns>
+      <indices>
         <tot_variance>1.0</tot_variance>
         <variables>y0
-          <index>1.0</index>
+          <partial_variance>1.0</partial_variance>
+          <Sobol_index>1.0</Sobol_index>
         </variables>
         <variables>x0
-          <index>0.0</index>
-        </variables>
-        <variables>x0,y0
-          <index>0.0</index>
-        </variables>
-        <variables>x0,z0
-          <index>0.0</index>
-        </variables>
-        <variables>y0,z0
-          <index>0.0</index>
+          <partial_variance>0.0</partial_variance>
+          <Sobol_index>0.0</Sobol_index>
         </variables>
         <variables>z0
-          <index>0.0</index>
+          <partial_variance>0.0</partial_variance>
+          <Sobol_index>0.0</Sobol_index>
         </variables>
-      </Sobol_indices>
-      <numRuns>7</numRuns>
+      </indices>
     </y>
     <x>
       <mean>4.0</mean>
       <variance>1.0</variance>
-      <Sobol_indices>
+      <numRuns>7</numRuns>
+      <indices>
         <tot_variance>1.0</tot_variance>
         <variables>x0
-          <index>1.0</index>
-        </variables>
-        <variables>x0,y0
-          <index>0.0</index>
-        </variables>
-        <variables>x0,z0
-          <index>0.0</index>
+          <partial_variance>1.0</partial_variance>
+          <Sobol_index>1.0</Sobol_index>
         </variables>
         <variables>y0
-          <index>0.0</index>
-        </variables>
-        <variables>y0,z0
-          <index>0.0</index>
+          <partial_variance>0.0</partial_variance>
+          <Sobol_index>0.0</Sobol_index>
         </variables>
         <variables>z0
-          <index>0.0</index>
+          <partial_variance>0.0</partial_variance>
+          <Sobol_index>0.0</Sobol_index>
         </variables>
-      </Sobol_indices>
-      <numRuns>7</numRuns>
+      </indices>
     </x>
     <z>
       <mean>4.0</mean>
       <variance>1.0</variance>
-      <Sobol_indices>
+      <numRuns>7</numRuns>
+      <indices>
         <tot_variance>1.0</tot_variance>
         <variables>z0
-          <index>1.0</index>
+          <partial_variance>1.0</partial_variance>
+          <Sobol_index>1.0</Sobol_index>
         </variables>
         <variables>x0
-          <index>0.0</index>
-        </variables>
-        <variables>x0,y0
-          <index>0.0</index>
-        </variables>
-        <variables>x0,z0
-          <index>0.0</index>
+          <partial_variance>0.0</partial_variance>
+          <Sobol_index>0.0</Sobol_index>
         </variables>
         <variables>y0
-          <index>0.0</index>
+          <partial_variance>0.0</partial_variance>
+          <Sobol_index>0.0</Sobol_index>
         </variables>
-        <variables>y0,z0
-          <index>0.0</index>
-        </variables>
-      </Sobol_indices>
-      <numRuns>7</numRuns>
+      </indices>
     </z>
   </time_step>
   <time_step>2
@@ -85,80 +67,62 @@
     <y>
       <mean>4.92</mean>
       <variance>1.0393</variance>
-      <Sobol_indices>
+      <numRuns>7</numRuns>
+      <indices>
         <tot_variance>1.0393</tot_variance>
         <variables>y0
-          <index>0.943038583662</index>
+          <partial_variance>0.9801</partial_variance>
+          <Sobol_index>0.943038583662</Sobol_index>
         </variables>
         <variables>x0
-          <index>0.0554219185991</index>
+          <partial_variance>0.0576</partial_variance>
+          <Sobol_index>0.0554219185991</Sobol_index>
         </variables>
         <variables>z0
-          <index>0.00153949773886</index>
+          <partial_variance>0.0016</partial_variance>
+          <Sobol_index>0.00153949773886</Sobol_index>
         </variables>
-        <variables>x0,y0
-          <index>0.0</index>
-        </variables>
-        <variables>x0,z0
-          <index>0.0</index>
-        </variables>
-        <variables>y0,z0
-          <index>0.0</index>
-        </variables>
-      </Sobol_indices>
-      <numRuns>7</numRuns>
+      </indices>
     </y>
     <x>
       <mean>4.0</mean>
       <variance>0.82</variance>
-      <Sobol_indices>
+      <numRuns>7</numRuns>
+      <indices>
         <tot_variance>0.82</tot_variance>
         <variables>x0
-          <index>0.987804878049</index>
+          <partial_variance>0.81</partial_variance>
+          <Sobol_index>0.987804878049</Sobol_index>
         </variables>
         <variables>y0
-          <index>0.0121951219512</index>
-        </variables>
-        <variables>x0,y0
-          <index>0.0</index>
-        </variables>
-        <variables>x0,z0
-          <index>0.0</index>
-        </variables>
-        <variables>y0,z0
-          <index>0.0</index>
+          <partial_variance>0.01</partial_variance>
+          <Sobol_index>0.0121951219512</Sobol_index>
         </variables>
         <variables>z0
-          <index>0.0</index>
+          <partial_variance>0.0</partial_variance>
+          <Sobol_index>0.0</Sobol_index>
         </variables>
-      </Sobol_indices>
-      <numRuns>7</numRuns>
+      </indices>
     </x>
     <z>
       <mean>4.05333333333</mean>
       <variance>0.950577777778</variance>
-      <Sobol_indices>
+      <numRuns>7</numRuns>
+      <indices>
         <tot_variance>0.950577777778</tot_variance>
         <variables>z0
-          <index>0.996633626333</index>
+          <partial_variance>0.947377777778</partial_variance>
+          <Sobol_index>0.996633626333</Sobol_index>
         </variables>
         <variables>x0
-          <index>0.00168318683374</index>
+          <partial_variance>0.0016</partial_variance>
+          <Sobol_index>0.00168318683374</Sobol_index>
         </variables>
         <variables>y0
-          <index>0.00168318683374</index>
+          <partial_variance>0.0016</partial_variance>
+          <Sobol_index>0.00168318683374</Sobol_index>
         </variables>
-        <variables>x0,y0
-          <index>0.0</index>
-        </variables>
-        <variables>x0,z0
-          <index>0.0</index>
-        </variables>
-        <variables>y0,z0
-          <index>0.0</index>
-        </variables>
-      </Sobol_indices>
-      <numRuns>7</numRuns>
+      </indices>
     </z>
   </time_step>
   <time_step>3
@@ -166,80 +130,62 @@
     <y>
       <mean>5.82826666667</mean>
       <variance>1.21493711436</variance>
-      <Sobol_indices>
+      <numRuns>7</numRuns>
+      <indices>
         <tot_variance>1.21493711436</tot_variance>
         <variables>y0
-          <index>0.827120439105</index>
+          <partial_variance>1.00489931951</partial_variance>
+          <Sobol_index>0.827120439105</Sobol_index>
         </variables>
         <variables>x0
-          <index>0.167803179268</index>
+          <partial_variance>0.2038703104</partial_variance>
+          <Sobol_index>0.167803179268</Sobol_index>
         </variables>
         <variables>z0
-          <index>0.00507638162632</index>
+          <partial_variance>0.00616748444444</partial_variance>
+          <Sobol_index>0.00507638162632</Sobol_index>
         </variables>
-        <variables>x0,y0
-          <index>0.0</index>
-        </variables>
-        <variables>x0,z0
-          <index>0.0</index>
-        </variables>
-        <variables>y0,z0
-          <index>0.0</index>
-        </variables>
-      </Sobol_indices>
-      <numRuns>7</numRuns>
+      </indices>
     </y>
     <x>
       <mean>4.092</mean>
       <variance>0.731293</variance>
-      <Sobol_indices>
+      <numRuns>7</numRuns>
+      <indices>
         <tot_variance>0.731293</tot_variance>
         <variables>x0
-          <index>0.951131762508</index>
+          <partial_variance>0.695556</partial_variance>
+          <Sobol_index>0.951131762508</Sobol_index>
         </variables>
         <variables>y0
-          <index>0.0488463584364</index>
+          <partial_variance>0.035721</partial_variance>
+          <Sobol_index>0.0488463584364</Sobol_index>
         </variables>
         <variables>z0
-          <index>2.18790553171e-05</index>
+          <partial_variance>1.6e-05</partial_variance>
+          <Sobol_index>2.18790553171e-05</Sobol_index>
         </variables>
-        <variables>x0,y0
-          <index>0.0</index>
-        </variables>
-        <variables>x0,z0
-          <index>0.0</index>
-        </variables>
-        <variables>y0,z0
-          <index>0.0</index>
-        </variables>
-      </Sobol_indices>
-      <numRuns>7</numRuns>
+      </indices>
     </x>
     <z>
       <mean>4.14519444444</mean>
       <variance>0.910074378627</variance>
-      <Sobol_indices>
+      <numRuns>7</numRuns>
+      <indices>
         <tot_variance>0.910074378627</tot_variance>
         <variables>z0
-          <index>0.98288186762</index>
+          <partial_variance>0.894495604938</partial_variance>
+          <Sobol_index>0.98288186762</Sobol_index>
         </variables>
         <variables>x0
-          <index>0.00946550638799</index>
+          <partial_variance>0.00861431484444</partial_variance>
+          <Sobol_index>0.00946550638799</Sobol_index>
         </variables>
         <variables>y0
-          <index>0.0076526259919</index>
+          <partial_variance>0.00696445884444</partial_variance>
+          <Sobol_index>0.0076526259919</Sobol_index>
         </variables>
-        <variables>x0,y0
-          <index>0.0</index>
-        </variables>
-        <variables>x0,z0
-          <index>0.0</index>
-        </variables>
-        <variables>y0,z0
-          <index>0.0</index>
-        </variables>
-      </Sobol_indices>
-      <numRuns>7</numRuns>
+      </indices>
     </z>
   </time_step>
 </ReducedOrderModel>
