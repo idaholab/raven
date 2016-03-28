@@ -1,9 +1,18 @@
 import os
-import re
 import csv
 class mooseData:
-  """   class that parses output of Moose Vector PP output files and reads in trip, minor block and write a csv file """
+  """
+    class that parses output of Moose Vector PP output files and reads in trip, minor block and write a csv file
+  """
   def __init__(self,filen,workingDir,outputFile,integralName):
+    """
+      Constructor
+      @ In, filen, list, list of files that needs to be merged for Moose Vector PP
+      @ In, workingDir, string, current working directory
+      @ In, outputFile, string, output file name
+      @ In, integralName, string, name of the integral that has been applied
+      @ Out, None
+    """
     self.vppFiles = []
     csvfiles = []
     csvreaders=[]
@@ -16,21 +25,23 @@ class mooseData:
     self.__write_csv(writeDict,workingDir,outputFile)
 
   def __read(self,csvreaders):
-    """ This method reads the VectorPostProcessor outputs send in as a list of csv.DictReader objects
-    @csvreaders, input, list of csv.DictReader objects
-    @tempDict, output, temporary dictionary of the data in the outputs (not sorted)
+    """
+      This method reads the VectorPostProcessor outputs send in as a list of csv.DictReader objects
+      @ In, csvreaders, list, list of csv.DictReader objects
+      @ Out, tempDict, dict, temporary dictionary of the data in the outputs (not sorted)
     """
     tempDict = {}
     for icsv, csvdictread in enumerate(csvreaders):
       tempDict[icsv] = {}
-      for row in csvdictread:
-        tempDict[icsv][row['id']] = row
+      for row in csvdictread: tempDict[icsv][row['id']] = row
     return tempDict
 
   def __sortDict(self, tempDict):
-    """ This method returns the sorted Dictionary
-    @tempDict, input, temporary dictionary of the data in the outputs (not sorted)
-    @sortedDict, output, sorted Dictionary """
+    """
+      This method returns the sorted Dictionary
+      @ In, tempDict, dict, temporary dictionary of the data in the outputs (not sorted)
+      @ Out, sortedDict, dict, sorted Dictionary
+    """
     sortedDict ={}
     time = tempDict.keys()
     for location in tempDict[time[0]].keys():
@@ -48,9 +59,12 @@ class mooseData:
     return sortedDict
 
   def __write_csv(self,writeDict,workingDir,baseName):
-    """   writes the csv file using the input Dictionary
-    @writeDict, input, data to write
-    @filen, input filename
+    """
+      Writes the csv file using the input Dictionary
+      @ In, writeDict, dict, dictionary containing data to write
+      @ In, workingDir, string, current working directory
+      @ In, baseName, string, base name (root)
+      @ Out, None
     """
     self.vppFiles = os.path.join(workingDir,str(baseName+'_VPP'))
     IOcsvfile=open(os.path.join(workingDir,str(baseName+'_VPP.csv')),'w')

@@ -1,8 +1,8 @@
-'''
+"""
 Created on April 14, 2014
 
 @author: alfoa
-'''
+"""
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
@@ -12,24 +12,24 @@ import sys
 import copy
 import utils
 from utils import toString
-import xml.etree.ElementTree as ET
 import json
 uppath = lambda _path, n: os.sep.join(_path.split(os.sep)[:-n])
-import Distributions
 from CodeInterfaceBaseClass import CodeInterfaceBase
 
 class RAVENInterface(CodeInterfaceBase):
-  '''this class is used as part of a code dictionary to specialize Model.Code for RAVEN'''
+  """
+    This class is used as part of a code dictionary to specialize Model.Code for RAVEN
+  """
   def generateCommand(self,inputFiles,executable,clargs=None,fargs=None):
     """
-    See base class.  Collects all the clargs and the executable to produce the command-line call.
-    Returns tuple of commands and base file name for run.
-    Commands are a list of tuples, indicating parallel/serial and the execution command to use.
-    @ In, inputFiles, the input files to be used for the run
-    @ In, executable, the executable to be run
-    @ In, clargs, command-line arguments to be used
-    @ In, fargs, in-file changes to be made
-    @Out, tuple( list(tuple(serial/parallel, exec_command)), outFileRoot string)
+      See base class.  Collects all the clargs and the executable to produce the command-line call.
+      Returns tuple of commands and base file name for run.
+      Commands are a list of tuples, indicating parallel/serial and the execution command to use.
+      @ In , inputFiles, list, List of input files (lenght of the list depends on the number of inputs have been added in the Step is running this code)
+      @ In , executable, string, executable name with absolute path (e.g. /home/path_to_executable/code.exe)
+      @ In , clargs, dict, dictionary containing the command-line flags the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 i0extension =0 .inp0/ >< /Code >)
+      @ In , fargs, dict, a dictionary containing the axuiliary input file variables the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 aux0extension =0 .aux0/ >< /Code >)
+      @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the code (string), returnCommand[1] is the name of the output root
     """
     found = False
     for index, inputFile in enumerate(inputFiles):
@@ -37,30 +37,36 @@ class RAVENInterface(CodeInterfaceBase):
         found = True
         break
     if not found: raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
-
     outputfile = 'out~'+inputFiles[index].getBase()
     if clargs: precommand = executable + clargs['text']
     else     : precommand = executable
-    executeCommand = [('parallel',precommand + ' -i '+inputFiles[index].getFilename() +
-                      ' Outputs/file_base='+ outputfile +
-                      ' Outputs/csv=false' +
-                      ' Outputs/checkpoint=true'+
-                      ' Outputs/tail/type=ControlLogicBranchingInfo'+
+    executeCommand = [('parallel',precommand + ' -i '+inputFiles[index].getFilename() + ' Outputs/file_base='+ outputfile +
+                      ' Outputs/csv=false' + ' Outputs/checkpoint=true'+ ' Outputs/tail/type=ControlLogicBranchingInfo'+
                       ' Outputs/ravenCSV/type=CSVRaven')]
-    return executeCommand,outputfile
+    returnCommand = executeCommand,outputfile
+    return returnCommand
 
   def finalizeCodeOutput(self,currentInputFiles,output,workingDir):
-    ''' this method is called by the RAVEN code at the end of each run (if the method is present).
-        It can be used for those codes, that do not create CSV files to convert the whaterver output formato into a csv
-        @ currentInputFiles, Input, the current input files (list)
-        @ output, Input, the Output name root (string)
-        @ workingDir, Input, actual working dir (string)
-        @ return is optional, in case the root of the output file gets changed in this method.
-    '''
+    """
+      this method is called by the RAVEN code at the end of each run (if the method is present).
+      It can be used for those codes, that do not create CSV files to convert the whaterver output formato into a csv
+      @ In, command, string, the command used to run the just ended job
+      @ In, output, string, the Output name root
+      @ In, workingDir, string, current working dir
+      @ Out, output, string, optional, present in case the root of the output file gets changed in this method.
+    """
     return output
 
   def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
-    '''this generate a new input file depending on which sampler has been chosen'''
+    """
+      This method is used to generate an input based on the information passed in.
+      @ In , currentInputFiles, list,  list of current input files (input files from last this method call)
+      @ In , oriInputFiles, list, list of the original input files
+      @ In , samplerType, string, Sampler type (e.g. MonteCarlo, Adaptive, etc. see manual Samplers section)
+      @ In , Kwargs, dictionary, kwarded dictionary of parameters. In this dictionary there is another dictionary called "SampledVars"
+             where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
+      @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
+    """
     MOOSEparser = utils.importFromPath(os.path.join(os.path.join(uppath(os.path.dirname(__file__),1),'MooseBasedApp'),'MOOSEparser.py'),False)
     self._samplersDictionary                             = {}
     self._samplersDictionary['MonteCarlo'              ] = self.monteCarloForRAVEN
@@ -91,6 +97,13 @@ class RAVENInterface(CodeInterfaceBase):
     return newInputFiles
 
   def monteCarloForRAVEN(self,**Kwargs):
+    """
+      This method is used to create a list of dictionaries that can be interpreted by the input Parser
+      in order to change the input file based on the information present in the Kwargs dictionary.
+      This is specific for Monte Carlo sampler
+      @ In, **Kwargs, dict, kwared dictionary containing the values of the parameters to be changed
+      @ Out, listDict, list, list of dictionaries used by the parser to change the input file
+    """
     if 'prefix' in Kwargs: counter = Kwargs['prefix']
     else: raise IOError('a counter is needed for the Monte Carlo sampler for RAVEN')
     if 'initialSeed' in Kwargs: initSeed = Kwargs['initialSeed']
@@ -104,10 +117,24 @@ class RAVENInterface(CodeInterfaceBase):
     listDict.append(modifDict)
     return listDict
 
-  def adaptiveDynamicEventTreeForRAVEN(self,**Kwargs): return self.dynamicEventTreeForRAVEN(**Kwargs)
+  def adaptiveDynamicEventTreeForRAVEN(self,**Kwargs):
+    """
+      This method is used to create a list of dictionaries that can be interpreted by the input Parser
+      in order to change the input file based on the information present in the Kwargs dictionary.
+      This is specific for Adaptive DET sampler
+      @ In, **Kwargs, dict, kwared dictionary containing the values of the parameters to be changed
+      @ Out, listDict, list, list of dictionaries used by the parser to change the input file
+    """
+    return self.dynamicEventTreeForRAVEN(**Kwargs)
 
   def dynamicEventTreeForRAVEN(self,**Kwargs):
-
+    """
+      This method is used to create a list of dictionaries that can be interpreted by the input Parser
+      in order to change the input file based on the information present in the Kwargs dictionary.
+      This is specific for DET sampler
+      @ In, **Kwargs, dict, kwared dictionary containing the values of the parameters to be changed
+      @ Out, listDict, list, list of dictionaries used by the parser to change the input file
+    """
     listDict = []
     if 'hybridsamplerCoordinate' in Kwargs.keys():
       for preconditioner in Kwargs['hybridsamplerCoordinate']:
@@ -119,7 +146,6 @@ class RAVENInterface(CodeInterfaceBase):
         elif 'Stratified' in preconditioner['SamplerType'] or 'Stratified' in preconditioner['SamplerType']: listDict.extend(self.latinHyperCubeForRAVEN(**preconditioner))
     # Check the initiator distributions and add the next threshold
     if 'initiatorDistribution' in Kwargs.keys():
-      print("figaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
       for i in range(len(Kwargs['initiatorDistribution'])):
         modifDict = {}
         modifDict['name'] = ['Distributions',Kwargs['initiatorDistribution'][i]]
@@ -184,45 +210,45 @@ class RAVENInterface(CodeInterfaceBase):
     return listDict
 
   def __genBasePointSampler(self,**Kwargs):
-    """Figure out which distributions need to be handled by
-    the grid or Stratified samplers by modifying distributions in the .i file.
-    Let the regular moose point sampler take care of the rest.
-    Returns (distributions,listDict) where listDict is the
-    start of the listDict that tells how to modify the input, and
-    distributions is a dictionary with keys that are the 'variable name'
-    and values of [computedValue,distribution name in .i file]
-    Note that the key has "<distribution>" in front of the variable name.
-    The actual variable can be gotten from the full key by:
-    key[len('<distribution>'):]
-    TODO This should check that the distributions in the .i file (if
-    they exist) are consistent with the ones in the .xml file.
-    TODO For variables, it should add them to the .csv file.
     """
-    #print("Kwargs",Kwargs,"SampledVars",Kwargs["SampledVars"])
+      Figure out which distributions need to be handled by
+      the grid or Stratified samplers by modifying distributions in the .i file.
+      Let the regular moose point sampler take care of the rest.
+      Returns (distributions,listDict) where listDict is the
+      start of the listDict that tells how to modify the input, and
+      distributions is a dictionary with keys that are the 'variable name'
+      and values of [computedValue,distribution name in .i file]
+      Note that the key has "<distribution>" in front of the variable name.
+      The actual variable can be gotten from the full key by:
+      key[len('<distribution>'):]
+      TODO This should check that the distributions in the .i file (if
+      they exist) are consistent with the ones in the .xml file.
+      TODO For variables, it should add them to the .csv file.
+      @ In, **Kwargs, dict, kwared dictionary containing the values of the parameters to be changed
+      @ Out, returnTuple, tuple, returnTuple[0] distributions dictionaries returnTuple[0] modified dictionary
+    """
     distributionKeys = [key for key in Kwargs["SampledVars"] if key.startswith("<distribution>")]
     distributions = {}
-    #distributionNodeRoot = Kwargs["distributionNode"]
-    #print(ET.tostring(distributionNodeRoot))
     for key in distributionKeys:
       distributionName = Kwargs['distributionName'][key]
       distributionType = Kwargs['distributionType'][key]
       crowDistribution = json.loads(Kwargs['crowDist'][key])
-      distributions[key] = [Kwargs["SampledVars"].pop(key),distributionName,
-                            distributionType,crowDistribution]
-      #distributionNode = distributionNodeRoot.find(distributionName)
-      #distributionInstance = Distributions.returnInstance(distributionType)
-      #distributionInstance._readMoreXML(distributionNode)
-      #print(key,distributions[key],distributionNode,crowDistribution)
+      distributions[key] = [Kwargs["SampledVars"].pop(key),distributionName, distributionType,crowDistribution]
     mooseInterface = utils.importFromPath(os.path.join(os.path.join(uppath(os.path.dirname(__file__),1),'MooseBasedApp'),'MooseBasedAppInterface.py'),False)
-
     mooseApp = mooseInterface.MooseBasedAppInterface()
-    listDict = mooseApp.pointSamplerForMooseBasedApp(**Kwargs)
-    return distributions,listDict
+    returnTuple = distributions, mooseApp.pointSamplerForMooseBasedApp(**Kwargs)
+    return returnTuple
 
   def gridForRAVEN(self,**Kwargs):
-    """Uses point sampler to generate variable points, and
-    modifies distributions to be a zerowidth (constant) distribution
-    at the grid point.
+    """
+      This method is used to create a list of dictionaries that can be interpreted by the input Parser
+      in order to change the input file based on the information present in the Kwargs dictionary.
+      This is specific for Grid sampler.
+      Uses point sampler to generate variable points, and
+      modifies distributions to be a zerowidth (constant) distribution
+      at the grid point.
+      @ In, **Kwargs, dict, kwared dictionary containing the values of the parameters to be changed
+      @ Out, listDict, list, list of dictionaries used by the parser to change the input file
     """
     distributions,listDict = self.__genBasePointSampler(**Kwargs)
     for key in distributions.keys():
@@ -246,9 +272,15 @@ class RAVENInterface(CodeInterfaceBase):
     return listDict
 
   def latinHyperCubeForRAVEN(self,**Kwargs):
-    """Uses point sampler to generate variable points, and truncates
-    distribution to be inside of the latin hyper cube upper and lower
-    bounds.
+    """
+      This method is used to create a list of dictionaries that can be interpreted by the input Parser
+      in order to change the input file based on the information present in the Kwargs dictionary.
+      This is specific for Stratified sampler
+      Uses point sampler to generate variable points, and truncates
+      distribution to be inside of the latin hyper cube upper and lower
+      bounds.
+      @ In, **Kwargs, dict, kwared dictionary containing the values of the parameters to be changed
+      @ Out, listDict, list, list of dictionaries used by the parser to change the input file
     """
     distributions,listDict = self.__genBasePointSampler(**Kwargs)
     for key in distributions.keys():

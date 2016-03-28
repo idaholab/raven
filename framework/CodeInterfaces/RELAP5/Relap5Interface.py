@@ -1,8 +1,8 @@
-'''
+"""
 Created on April 14, 2014
 
 @author: alfoa
-'''
+"""
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
@@ -14,17 +14,20 @@ import re
 from CodeInterfaceBaseClass import CodeInterfaceBase
 
 class Relap5(CodeInterfaceBase):
-  '''this class is used a part of a code dictionary to specialize Model.Code for RELAP5-3D Version 4.0.3'''
+  """
+    this class is used a part of a code dictionary to specialize Model.Code for RELAP5-3D Version 4.0.3
+  """
   def generateCommand(self,inputFiles,executable,clargs=None,fargs=None):
     """
-    See base class.  Collects all the clargs and the executable to produce the command-line call.
-    Returns tuple of commands and base file name for run.
-    Commands are a list of tuples, indicating parallel/serial and the execution command to use.
-    @ In, inputFiles, the input files to be used for the run
-    @ In, executable, the executable to be run
-    @ In, clargs, command-line arguments to be used
-    @ In, fargs, in-file changes to be made
-    @Out, tuple( list(tuple(serial/parallel, exec_command)), outFileRoot string)
+      This method is used to retrieve the command (in tuple format) needed to launch the Code.
+      See base class.  Collects all the clargs and the executable to produce the command-line call.
+      Returns tuple of commands and base file name for run.
+      Commands are a list of tuples, indicating parallel/serial and the execution command to use.
+      @ In , inputFiles, list, List of input files (lenght of the list depends on the number of inputs have been added in the Step is running this code)
+      @ In , executable, string, executable name with absolute path (e.g. /home/path_to_executable/code.exe)
+      @ In , clargs, dict, dictionary containing the command-line flags the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 i0extension =0 .inp0/ >< /Code >)
+      @ In , fargs, dict, a dictionary containing the axuiliary input file variables the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 aux0extension =0 .aux0/ >< /Code >)
+      @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the code (string), returnCommand[1] is the name of the output root
     """
     found = False
     for index, inputFile in enumerate(inputFiles):
@@ -38,17 +41,18 @@ class Relap5(CodeInterfaceBase):
     commandToRun = executable + ' -i ' + inputFiles[index].getFilename() + ' -o ' + outputfile  + '.o' + ' -r ' + outputfile  + '.r' + addflags
     commandToRun = commandToRun.replace("\n"," ")
     commandToRun  = re.sub("\s\s+" , " ", commandToRun )
-    executeCommand = [('parallel',commandToRun)]
-    return executeCommand,outputfile
+    returnCommand = [('parallel',commandToRun)], outputfile
+    return returnCommand
 
   def finalizeCodeOutput(self,command,output,workingDir):
-    ''' this method is called by the RAVEN code at the end of each run (if the method is present, since it is optional).
-        It can be used for those codes, that do not create CSV files to convert the whaterver output formato into a csv
-        @ command, Input, the command used to run the just ended job
-        @ output, Input, the Output name root (string)
-        @ workingDir, Input, actual working dir (string)
-        @ return is optional, in case the root of the output file gets changed in this method.
-    '''
+    """
+      This method is called by the RAVEN code at the end of each run (if the method is present, since it is optional).
+      It can be used for those codes, that do not create CSV files to convert the whaterver output formato into a csv
+      @ In, command, string, the command used to run the just ended job
+      @ In, output, string, the Output name root
+      @ In, workingDir, string, current working dir
+      @ Out, output, string, optional, present in case the root of the output file gets changed in this method.
+    """
     outfile = os.path.join(workingDir,output+'.o')
     outputobj=relapdata.relapdata(outfile)
     if outputobj.hasAtLeastMinorData(): outputobj.write_csv(os.path.join(workingDir,output+'.csv'))
@@ -56,24 +60,33 @@ class Relap5(CodeInterfaceBase):
 
   def checkForOutputFailure(self,output,workingDir):
     """
-    this method is called by the RAVEN code at the end of each run  if the return code is == 0.
-    This method needs to be implemented by the codes that, if the run fails, return a return code that is 0
-    This can happen in those codes that record the failure of the job (e.g. not converged, etc.) as normal termination (returncode == 0)
-    This method can be used, for example, to parse the outputfile looking for a special keyword that testifies that a particular job got failed
-    (e.g. in RELAP5 would be the keyword "********")
-    @ currentInputFiles, currentInputFiles, list,  list of current input files (input files from last this method call)
-    @ output, Input, the Output name root (string)
-    @ workingDir, Input, actual working dir (string)
-    @ return bool, required, True if the job is failed, False otherwise
+      This method is called by the RAVEN code at the end of each run  if the return code is == 0.
+      This method needs to be implemented by the codes that, if the run fails, return a return code that is 0
+      This can happen in those codes that record the failure of the job (e.g. not converged, etc.) as normal termination (returncode == 0)
+      This method can be used, for example, to parse the outputfile looking for a special keyword that testifies that a particular job got failed
+      (e.g. in RELAP5 would be the keyword "********")
+      @ In, output, string, the Output name root
+      @ In, workingDir, string, current working dir
+      @ Out, failure, bool, True if the job is failed, False otherwise
     """
     from  __builtin__ import any as b_any
+    failure = True
     errorWord = "Transient terminated by end of time step cards"
     try   : outputToRead = open(os.path.join(workingDir,output+'.o'),"r")
-    except: return True
-    return not b_any(errorWord in x.strip() for x in outputToRead.readlines())
+    except: return failure
+    failure = not b_any(errorWord in x.strip() for x in outputToRead.readlines())
+    return failure
 
   def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
-    '''this generate a new input file depending on which sampler is chosen'''
+    """
+      this generate a new input file depending on which sampler is chosen
+      @ In , currentInputFiles, list,  list of current input files (input files from last this method call)
+      @ In , oriInputFiles, list, list of the original input files
+      @ In , samplerType, string, Sampler type (e.g. MonteCarlo, Adaptive, etc. see manual Samplers section)
+      @ In , Kwargs, dictionary, kwarded dictionary of parameters. In this dictionary there is another dictionary called "SampledVars"
+             where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
+      @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
+    """
     import RELAPparser
     self._samplersDictionary                          = {}
     self._samplersDictionary['MonteCarlo'           ] = self.pointSamplerForRELAP5
@@ -100,6 +113,13 @@ class Relap5(CodeInterfaceBase):
     return newInputFiles
 
   def pointSamplerForRELAP5(self,**Kwargs):
+    """
+      This method is used to create a list of dictionaries that can be interpreted by the input Parser
+      in order to change the input file based on the information present in the Kwargs dictionary.
+      This is specific for Point samplers (Grid, Stratified, Monte Carlo, etc.).
+      @ In, **Kwargs, dict, kwared dictionary containing the values of the parameters to be changed
+      @ Out, listDict, list, list of dictionaries used by the parser to change the input file
+    """
     listDict = []
     modifDict = {}
     cardList = {}
@@ -114,6 +134,13 @@ class Relap5(CodeInterfaceBase):
     return listDict
 
   def DynamicEventTreeForRELAP5(self,**Kwargs):
+    """
+      This method is used to create a list of dictionaries that can be interpreted by the input Parser
+      in order to change the input file based on the information present in the Kwargs dictionary.
+      This is specific for DET-based samplers.
+      @ In, **Kwargs, dict, kwared dictionary containing the values of the parameters to be changed
+      @ Out, listDict, list, list of dictionaries used by the parser to change the input file
+    """
     listDict =[]
     cardList={}   #  List of cards to be modified in RELAP5 Input File
     # Check the initiator distributions and add the next threshold
@@ -137,7 +164,6 @@ class Relap5(CodeInterfaceBase):
     # in order to restart the calc from the last point in time
     if 'end_ts' in Kwargs.keys():
       #if Kwargs['end_ts'] != 0 or Kwargs['end_ts'] == 0:
-
       if str(Kwargs['startTime']) != 'Initial':
         modifDict = {}
         #restart_parent = Kwargs['parentID']+'~restart.r'

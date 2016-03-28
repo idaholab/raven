@@ -1,4 +1,4 @@
-'''
+"""
 Created on May 22, 2015
 
 @author: bobk
@@ -107,7 +107,7 @@ To use RAVEN, we need to be able to perturb the input and output files from the 
 form of this is: (Where the output file will be of the type originally configured)
 
   <executable> -f <init file xml> -r <outputfile>
-'''
+"""
 
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
@@ -124,37 +124,37 @@ import xml.etree.ElementTree as ET
 from CodeInterfaceBaseClass import CodeInterfaceBase
 
 class OpenModelicaInterface(CodeInterfaceBase):
-  '''Provides code to interface RAVEN to OpenModelica'''
-
+  """
+    Provides code to interface RAVEN to OpenModelica
+  """
   def __init__(self):
-    '''Initializes the GenericCode Interface.
-       @ In, None
-       @Out, None
-    '''
-
-
-  #  Generate the command to run OpenModelica.  The form of the command is:
-  #
-  #    <executable> -f <init file xml> -r <outputfile>
-  #
-  #  Where:
-  #     <executable>     The executable generated from the Modelica model file (.mo extension)
-  #     <init file xml>  XML file containing the initial model parameters.  We will perturb this from the
-  #                          one originally generated as part of the model build process, which is
-  #                          typically called <model name>_init.xml.
-  #     <outputfile>     The simulation output.  We will use the model generation process to set the format
-  #                          of this to CSV, though there are other formats available.
-  #
-  def generateCommand(self, inputFiles, executable, clargs, fargs=None):
     """
-    See base class.  Collects all the clargs and the executable to produce the command-line call.
-    Returns tuple of commands and base file name for run.
-    Commands are a list of tuples, indicating parallel/serial and the execution command to use.
-    @ In, inputFiles, the input files to be used for the run
-    @ In, executable, the executable to be run
-    @ In, clargs, command-line arguments to be used
-    @ In, fargs, in-file changes to be made
-    @Out, tuple( list(tuple(serial/parallel, exec_command)), outFileRoot string)
+      Initializes the GenericCode Interface.
+      @ In, None
+      @ Out, None
+    """
+    #  Generate the command to run OpenModelica.  The form of the command is:
+    #
+    #    <executable> -f <init file xml> -r <outputfile>
+    #
+    #  Where:
+    #     <executable>     The executable generated from the Modelica model file (.mo extension)
+    #     <init file xml>  XML file containing the initial model parameters.  We will perturb this from the
+    #                          one originally generated as part of the model build process, which is
+    #                          typically called <model name>_init.xml.
+    #     <outputfile>     The simulation output.  We will use the model generation process to set the format
+    #                          of this to CSV, though there are other formats available.
+
+  def generateCommand(self, inputFiles, executable, clargs=None,fargs=None):
+    """
+      See base class.  Collects all the clargs and the executable to produce the command-line call.
+      Returns tuple of commands and base file name for run.
+      Commands are a list of tuples, indicating parallel/serial and the execution command to use.
+      @ In , inputFiles, list, List of input files (lenght of the list depends on the number of inputs have been added in the Step is running this code)
+      @ In , executable, string, executable name with absolute path (e.g. /home/path_to_executable/code.exe)
+      @ In , clargs, dict, dictionary containing the command-line flags the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 i0extension =0 .inp0/ >< /Code >)
+      @ In , fargs, dict, a dictionary containing the axuiliary input file variables the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 aux0extension =0 .aux0/ >< /Code >)
+      @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the code (string), returnCommand[1] is the name of the output root
     """
     found = False
     # Find the first file in the inputFiles that is an XML, which is what we need to work with.
@@ -162,31 +162,44 @@ class OpenModelicaInterface(CodeInterfaceBase):
       if self._isValidInput(inputFile):
         found = True
         break
-    if not found:
-      raise Exception('OpenModelica INTERFACE ERROR -> An XML file was not found in the input files!')
-
-    #
+    if not found: raise Exception('OpenModelica INTERFACE ERROR -> An XML file was not found in the input files!')
     # Build an output file name of the form: rawout~<Base Name>, where base name is generated from the
     #   input file passed in: /path/to/file/<Base Name>.ext.  'rawout' indicates that this is the direct
     #   output from running the OpenModelica executable.
-    #
     outputfile = 'rawout~' + inputFiles[index].getBase() #os.path.splitext(os.path.basename(inputFiles[index]))[0]
-    executeCommand = [('parallel',executable+' -f '+inputFiles[index].getFilename() + ' -r '+ outputfile + '.csv')]
-
-    return executeCommand, outputfile
+    returnCommand = [('parallel',executable+' -f '+inputFiles[index].getFilename() + ' -r '+ outputfile + '.csv')], outputfile
+    return returnCommand
 
   def _isValidInput(self, inputFile):
-    if inputFile.getExt() in ('xml', 'XML', 'Xml'):
-      return True
-    return False
+    """
+      Check if an input file is a text file, with an extension of .txt or .TXT.
+      @ In, inputFile, string, the file name to be checked
+      @ Out, valid, bool, 'True' if an input file has an extenstion of .'xml', 'XML' or 'Xml', otherwise 'False'.
+    """
+    valid = False
+    if inputFile.getExt() in ('xml', 'XML', 'Xml'): valid = True
+    return valid
 
   def getInputExtension(self):
-    return ('xml', 'XML', 'Xml')
+    """
+      Return a tuple of possible file extensions for a simulation initialization file (i.e., dsin.txt).
+      @ In, None
+      @ Out, validExtensions, tuple, tuple of valid extensions
+    """
+    validExtensions = ('xml', 'XML', 'Xml')
+    return validExtensions
 
   def createNewInput(self, currentInputFiles, oriInputFiles, samplerType, **Kwargs):
-    '''Generate a new OpenModelica input file (XML format) from the original, changing parameters
-       as specified in Kwargs['SampledVars']'''
-
+    """
+      Generate a new OpenModelica input file (XML format) from the original, changing parameters
+      as specified in Kwargs['SampledVars']
+      @ In , currentInputFiles, list,  list of current input files (input files from last this method call)
+      @ In , oriInputFiles, list, list of the original input files
+      @ In , samplerType, string, Sampler type (e.g. MonteCarlo, Adaptive, etc. see manual Samplers section)
+      @ In , Kwargs, dictionary, kwarded dictionary of parameters. In this dictionary there is another dictionary called "SampledVars"
+            where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
+      @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
+    """
     # Since OpenModelica provides a way to do this (the setInitXmlStartValue described above), we'll
     #   use that.  However, since it can only change one value at a time we'll have to apply it multiple
     #   times.  Start with the original input file, which we have to find first.
@@ -195,8 +208,7 @@ class OpenModelicaInterface(CodeInterfaceBase):
       if self._isValidInput(inputFile):
         found = True
         break
-    if not found:
-      raise Exception('OpenModelica INTERFACE ERROR -> An XML file was not found in the input files!')
+    if not found: raise Exception('OpenModelica INTERFACE ERROR -> An XML file was not found in the input files!')
 
     # Figure out the new file name and put it into the proper place in the return list
     newInputFiles = copy.deepcopy(currentInputFiles)
@@ -221,20 +233,20 @@ class OpenModelicaInterface(CodeInterfaceBase):
             subelem.set('start', str(varDict[elem.attrib['name']]))
     # Now write out the modified file
     tree.write(newPath)
-
     return newInputFiles
 
 
   def finalizeCodeOutput(self, command, output, workingDir):
-    '''Called by RAVEN to modify output files (if needed) so that they are in a proper form.
-       In this case, OpenModelica CSV output comes with trailing commas that RAVEN doesn't
-       like.  So we have to strip them.  Also, the first line (with the variable names)
-       has those names enclosed in double quotes (which we have to remove)
-       @ currentInputFiles, Input, the current input files (list)
-       @ output, Input, the Output name root (string)
-       @ workingDir, Input, actual working dir (string)
-       @ return is optional, in case the root of the output file gets changed in this method.
-    '''
+    """
+      Called by RAVEN to modify output files (if needed) so that they are in a proper form.
+      In this case, OpenModelica CSV output comes with trailing commas that RAVEN doesn't
+      like.  So we have to strip them.  Also, the first line (with the variable names)
+      has those names enclosed in double quotes (which we have to remove)
+      @ In, command, string, the command used to run the just ended job
+      @ In, output, string, the Output name root
+      @ In, workingDir, string, current working dir
+      @ Out, destFileName, string, present in case the root of the output file gets changed in this method.
+    """
     # Make a new temporary file in the working directory and read the lines from the original CSV
     #   to it, stripping trailing commas in the process.
     tempOutputFD, tempOutputFileName = tempfile.mkstemp(dir = workingDir, text = True)
@@ -249,6 +261,5 @@ class OpenModelicaInterface(CodeInterfaceBase):
       os.write(tempOutputFD, utils.toBytes(line.replace('"','').strip().strip(',') + '\n'))
     inputFile.close()
     os.close(tempOutputFD)
-
     shutil.move(tempOutputFileName, destFileName + '.csv')
     return destFileName   # Return the name without the .csv on it...RAVEN will add it
