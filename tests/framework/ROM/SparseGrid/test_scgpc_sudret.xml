@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="debug">
+<Simulation verbosity="debug" color='true'>
   <RunInfo>
-    <WorkingDir>AdaptSobol</WorkingDir>
+    <WorkingDir>SCgPCAnalyticSudret</WorkingDir>
     <Sequence>make,train,print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
@@ -10,7 +10,7 @@
     <MultiRun name="make" pauseAtEnd="False">
       <Input class="DataObjects" type="PointSet">dummyIN</Input>
       <Model class="Models" type="ExternalModel">poly</Model>
-      <Sampler class="Samplers" type="AdaptiveSobol">sobol</Sampler>
+      <Sampler class="Samplers" type="SparseGridCollocation">samp</Sampler>
       <Output class="DataObjects" type="PointSet">solns</Output>
     </MultiRun>
     <IOStep name="print">
@@ -33,19 +33,7 @@
   </Distributions>
 
   <Samplers>
-    <AdaptiveSobol name="sobol">
-      <Convergence>
-        <relTolerance>1e-4</relTolerance>
-        <maxRuns>50</maxRuns>
-        <maxSobolOrder>2</maxSobolOrder>
-        <progressParam>1</progressParam>
-        <logFile>states.txt</logFile>
-        <subsetVerbosity>silent</subsetVerbosity>
-      </Convergence>
-      <convergenceStudy>
-        <runStatePoints>10,20,30</runStatePoints>
-        <pickle/>
-      </convergenceStudy>
+    <SparseGridCollocation name="samp">
       <variable name="x1">
         <distribution>UniDist</distribution>
       </variable>
@@ -55,36 +43,32 @@
       <variable name="x3">
         <distribution>UniDist</distribution>
       </variable>
-      <variable name="x4">
-        <distribution>UniDist</distribution>
-      </variable>
       <ROM class="Models" type="ROM">rom</ROM>
-      <TargetEvaluation class="DataObjects" type="PointSet">solns</TargetEvaluation>
-    </AdaptiveSobol>
+    </SparseGridCollocation>
   </Samplers>
 
   <Models>
     <Dummy name="MyDummy" print="True" subType=""/>
-    <ExternalModel ModuleToLoad="../../../AnalyticModels/atten_and_poly" name="poly" subType="">
-      <variables>x1,x2,x3,x4,ans,ans2</variables>
+    <ExternalModel ModuleToLoad="../../../AnalyticModels/sudret_sobol_poly" name="poly" subType="">
+      <variables>x1,x2,x3,ans</variables>
     </ExternalModel>
-    <ROM name="rom" subType="HDMRRom">
-      <SobolOrder>2</SobolOrder>
-      <Target>ans,ans2</Target>
-      <Features>x1,x2,x3,x4</Features>
-      <IndexSet>HyperbolicCross</IndexSet>
+    <ROM name="rom" subType="GaussPolynomialRom">
+      <Target>ans</Target>
+      <Features>x1,x2,x3</Features>
+      <SparseGrid>tensor</SparseGrid>
+      <IndexSet>TensorProduct</IndexSet>
       <PolynomialOrder>2</PolynomialOrder>
     </ROM>
   </Models>
 
   <DataObjects>
     <PointSet name="dummyIN">
-      <Input>x1,x2,x3,x4</Input>
+      <Input>x1,x2,x3</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="solns">
-      <Input>x1,x2,x3,x4</Input>
-      <Output>ans,ans2</Output>
+      <Input>x1,x2,x3</Input>
+      <Output>ans</Output>
     </PointSet>
   </DataObjects>
 

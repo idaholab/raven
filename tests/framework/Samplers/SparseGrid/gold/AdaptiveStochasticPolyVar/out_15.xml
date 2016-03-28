@@ -13,6 +13,21 @@
       <_2_0_>-5.55111512313e-16</_2_0_>
       <_2_1_>4.4408920985e-16</_2_1_>
     </polyCoeffs>
+    <indices>
+      <tot_variance>0.777777777778</tot_variance>
+      <variables>(u'x1',)
+        <partial_variance>0.333333333333</partial_variance>
+        <Sobol_index>0.428571428571</Sobol_index>
+      </variables>
+      <variables>(u'x2',)
+        <partial_variance>0.333333333333</partial_variance>
+        <Sobol_index>0.428571428571</Sobol_index>
+      </variables>
+      <variables>(u'x1', u'x2')
+        <partial_variance>0.111111111111</partial_variance>
+        <Sobol_index>0.142857142857</Sobol_index>
+      </variables>
+    </indices>
   </ans2>
   <ans>
     <mean>1.33333333333</mean>
@@ -28,5 +43,20 @@
       <_2_0_>0.298142397</_2_0_>
       <_2_1_>0.172132593165</_2_1_>
     </polyCoeffs>
+    <indices>
+      <tot_variance>1.15555555556</tot_variance>
+      <variables>(u'x2',)
+        <partial_variance>0.592592592593</partial_variance>
+        <Sobol_index>0.512820512821</Sobol_index>
+      </variables>
+      <variables>(u'x1',)
+        <partial_variance>0.422222222222</partial_variance>
+        <Sobol_index>0.365384615385</Sobol_index>
+      </variables>
+      <variables>(u'x1', u'x2')
+        <partial_variance>0.140740740741</partial_variance>
+        <Sobol_index>0.121794871795</Sobol_index>
+      </variables>
+    </indices>
   </ans>
 </ReducedOrderModel>
