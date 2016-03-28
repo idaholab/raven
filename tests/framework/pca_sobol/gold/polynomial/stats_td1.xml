@@ -2,39 +2,49 @@
   <ans>
     <mean>1.0296</mean>
     <variance>3.493306984</variance>
-    <Sobol_indices>
+    <numRuns>41</numRuns>
+    <indices>
       <tot_variance>3.493306984</tot_variance>
       <variables>y2
-        <index>0.413041695622</index>
+        <partial_variance>1.44288144</partial_variance>
+        <Sobol_index>0.413041695622</Sobol_index>
       </variables>
       <variables>y1,y2
-        <index>0.117487415644</index>
+        <partial_variance>0.4104196096</partial_variance>
+        <Sobol_index>0.117487415644</Sobol_index>
       </variables>
       <variables>y2,y4
-        <index>0.103260423906</index>
+        <partial_variance>0.36072036</partial_variance>
+        <Sobol_index>0.103260423906</Sobol_index>
       </variables>
       <variables>y1
-        <index>0.0863172849627</index>
+        <partial_variance>0.3015327744</partial_variance>
+        <Sobol_index>0.0863172849627</Sobol_index>
       </variables>
       <variables>y2,y3
-        <index>0.0853391933104</index>
+        <partial_variance>0.298116</partial_variance>
+        <Sobol_index>0.0853391933104</Sobol_index>
       </variables>
       <variables>y4
-        <index>0.0758648012367</index>
+        <partial_variance>0.26501904</partial_variance>
+        <Sobol_index>0.0758648012367</Sobol_index>
       </variables>
       <variables>y3
-        <index>0.0626981828403</index>
+        <partial_variance>0.219024</partial_variance>
+        <Sobol_index>0.0626981828403</Sobol_index>
       </variables>
       <variables>y2,y5
-        <index>0.0219963033172</index>
+        <partial_variance>0.07683984</partial_variance>
+        <Sobol_index>0.0219963033172</Sobol_index>
       </variables>
       <variables>y1,y3
-        <index>0.0178341497857</index>
+        <partial_variance>0.06230016</partial_variance>
+        <Sobol_index>0.0178341497857</Sobol_index>
       </variables>
       <variables>y5
-        <index>0.0161605493759</index>
+        <partial_variance>0.05645376</partial_variance>
+        <Sobol_index>0.0161605493759</Sobol_index>
       </variables>
-    </Sobol_indices>
-    <numRuns>41</numRuns>
+    </indices>
   </ans>
 </ReducedOrderModel>
