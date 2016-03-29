@@ -368,7 +368,7 @@ class NodeTree(object):
     """
       Method to find the first toplevel node with a given name
       @ In, path, string, the path or name
-      @ Out, node, Node, first matching node or None if no node was found
+      @ Out, find, Node, first matching node or None if no node was found
     """
     if self._rootnode.name == path: return self.getrootnode()
     if path[:1] == "/":
@@ -467,6 +467,6 @@ def isnode(node):
   """
     Method to create an iterator starting from a matching node for all the nodes
     @ In, node, object, the node that needs to be checked
-    @ Out, isinstance, bool, is a node instance?
+    @ Out, isnode, bool, is a node instance?
   """
   return isinstance(node, Node) or hasattr(node, "name")
