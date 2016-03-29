@@ -398,6 +398,7 @@ class ROM(Dummy):
     self.SupervisedEngine          = {}         # dict of ROM instances (== number of targets => keys are the targets)
     self.printTag = 'ROM MODEL'
     self.numberOfTimeStep          = 1
+    self.historyPivotParameter     = 'none'     #time-like pivot parameter for data object on which ROM was trained
 
   def __getstate__(self):
     """
@@ -431,7 +432,6 @@ class ROM(Dummy):
             tempSupervisedEngine[target] =  SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
             self.initializationOptionDict['Target'] = ','.join(targets)
           self.SupervisedEngine.append(tempSupervisedEngine)
-
       else:
         #this can't be accurate, since in readXML the 'Target' keyword is set to a single target
         targets = self.initializationOptionDict['Target'].split(',')
@@ -494,22 +494,47 @@ class ROM(Dummy):
 
   def _localBuildPrintTree(self,options=None):
     """
-      Print the tree of ROMs
-      @ In, options, dict, optional, the set of options
-      @ Out, tree, Node, the tree node
+      Constructs XML for printing of poperties of this Model.
+      @ In, options, dict, optional, options by keyword
+      @ Out, node, TreeStructure.NodeTree, xml-like tree with desired data
     """
     node = TreeStructure.Node('ReducedOrderModel')
     tree = TreeStructure.NodeTree(node)
-    #tree._setrootnode(node)
     if 'target' in options.keys():
       targets = options['target'].split(',')
     else:
       targets = 'all'
+    if type(self.SupervisedEngine) == list: timeDep = True
+    elif type(self.SupervisedEngine) == dict: timeDep = False
+    else:
+      self.raiseAnError(RuntimeError,'Unrecognized structure for self.SupervisedEngine:',type(self.SupervisedEnging))
     if 'all' in targets:
-      targets = list(key for key in self.SupervisedEngine.keys())
-    for key,target in self.SupervisedEngine.items():
-      if key in targets:
-        target.printXML(node,options)
+      #case: time-dependent
+      if timeDep:
+        targets = list(key for key in self.SupervisedEngine[0].keys())
+        for s,step in enumerate(self.SupervisedEngine):
+          #get the time step
+          pivotStep = range(1,self.numberOfTimeStep+1)[s]
+          pivotNode = TreeStructure.Node(self.historyPivotParameter+'_step')
+          pivotNode.setText(pivotStep)
+          node.appendBranch(pivotNode)
+          pivotRom = self.SupervisedEngine[s][self.historyPivotParameter]
+          pivotValue = pivotRom.evaluate(dict(zip(pivotRom.features,[np.array([0])]*len(pivotRom.features))))
+          pivotValNode = TreeStructure.Node(self.historyPivotParameter)
+          pivotValNode.setText(pivotValue)
+          pivotNode.appendBranch(pivotValNode)
+          for key,target in step.items():
+            #skip time marching parameter
+            if key == self.historyPivotParameter:
+              continue
+            if key in targets:
+              target.printXML(pivotNode,options)
+      #case: not time-dependent
+      else:
+        targets = list(key for key in self.SupervisedEngine.keys())
+        for key,target in self.SupervisedEngine.items():
+          if key in targets:
+            target.printXML(node,options)
     return tree
 
   def reset(self):
@@ -553,11 +578,22 @@ class ROM(Dummy):
       self.trainingSet              = copy.copy(trainingSet.trainingSet)
       self.amITrained               = copy.deepcopy(trainingSet.amITrained)
       self.SupervisedEngine         = copy.deepcopy(trainingSet.SupervisedEngine)
+      self.historyPivotParameter    = copy.deepcopy(getattr(trainingSet,self.historyPivotParameter,'time'))
     else:
       if 'HistorySet' in type(trainingSet).__name__:
+        #get the pivot parameter if specified
+        if 'options' in trainingSet._dataParameters.keys():
+          self.historyPivotParameter = trainingSet._dataParameters['options'].get('pivotParameter','time')
+        else:
+          self.historyPivotParameter = 'time'
+        #store originals for future copying
+        origRomCopies = {}
+        for target,engine in self.SupervisedEngine.items():
+          origRomCopies[target] = copy.deepcopy(engine)
+        #clear engines for time-based storage
         self.SupervisedEngine = []
         outKeys = trainingSet.getParaKeys('outputs')
-        targets = self.initializationOptionDict['Target'].split(',')
+        targets = origRomCopies.keys()
         # check that all histories have the same length
         tmp = trainingSet.getParametersValues('outputs')
         for t in tmp:
@@ -567,18 +603,17 @@ class ROM(Dummy):
             if self.numberOfTimeStep != len(tmp[t][outKeys[0]]):
               self.raiseAnError(IOError,'DataObject can not be used to train a ROM: length of HistorySet is not consistent')
         # train the ROM
-        self.amITrained = True
         self.trainingSet = mathUtils.historySetWindow(trainingSet,self.numberOfTimeStep)
         for ts in range(self.numberOfTimeStep):
           newRom = {}
-          tempinitializationOptionDict = copy.deepcopy(self.initializationOptionDict)
           for target in targets:
-            tempinitializationOptionDict['Target'] = target
-            newRom[target] =  SupervisedLearning.returnInstance(self.subType,self,**tempinitializationOptionDict)
-          for instrom in newRom.values():
+            newRom[target] =  copy.deepcopy(origRomCopies[target])
+          for target,instrom in newRom.items():
+            # train the ROM
             instrom.train(self.trainingSet[ts])
             self.amITrained = self.amITrained and instrom.amITrained
           self.SupervisedEngine.append(newRom)
+        self.amITrained = True
       else:
         self.trainingSet = copy.copy(self._inputToInternal(trainingSet,full=True))
         if type(self.trainingSet) is dict:

@@ -826,3 +826,4 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
         if 'parentID' in options.keys(): parentID = options['parentID']
       if not parentID: self.raiseAnError(ConstructError,'the parentID must be provided if a new node needs to be appended')
       self.retrieveNodeInTreeMode(parentID).appendBranch(tsnode)
+
