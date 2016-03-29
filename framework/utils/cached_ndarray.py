@@ -96,7 +96,7 @@ class c1darray(object):
   def returnIndex(self,value):
     """
       Function that return the index of the element in the array closest to value
-      @ In , value, double, query value
+      @ In, value, double, query value
       @ Out, index, int, index of the element in the array closest to value
     """
     index=-1
@@ -110,7 +110,7 @@ class c1darray(object):
   def returnIndexMax(self):
     """
       Function that returns the index (i.e. the location) of the maximum value of the array
-      @ In , None
+      @ In, None
       @ Out, index, int, index of the maximum value of the array
     """
     index=-1
@@ -124,7 +124,7 @@ class c1darray(object):
   def returnIndexMin(self):
     """
       Function that returns the index (i.e. the location) of the minimum value of the array
-      @ In , None ,
+      @ In, None ,
       @ Out, index, int, index of the minimum value of the array
     """
     index=-1

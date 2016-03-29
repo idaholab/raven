@@ -597,7 +597,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       the value is returned without link to the original
       @ In, varTyp, string, is the requested type of the variable to be returned (bool, int, float, numpy.ndarray, etc)
       @ In, varName, string, is the name of the variable that should be recovered
-      @ In, varID, tuple or int, optional,  is the ID of the value that should be retrieved within a set
+      @ In, varID, tuple or int, optional, is the ID of the value that should be retrieved within a set
         if varID.type!=tuple only one point along sampling of that variable is retrieved
           else:
             if varID=(int,int) the slicing is [varID[0]:varID[1]]

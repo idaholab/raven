@@ -65,14 +65,14 @@ class CUBITparser():
       _, keyword = keyword.split('|')
       self.keywordDictionary[keyword] = newvalue
 
-  def writeNewInput(self,outfile=None):
+  def writeNewInput(self,outFile=None):
     """
       Using the fileOrderStorage list, reconstruct the template input with modified keywordDictionary.
-      @ In, outfile, string, outfile name
+      @ In, outFile, string, optional, outFile name
       @ Out, None
     """
-    if outfile == None: outfile = self.inputfile
-    IOfile = open(outfile,'w')
+    if outFile == None: outFile = self.inputfile
+    IOfile = open(outFile,'w')
     for entry in self.fileOrderStorage:
       if type(entry) == unicode:
         IOfile.writelines(entry)

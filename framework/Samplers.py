@@ -145,7 +145,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
       It is used for sending to the instanciated class, which is implementing the method, the objects that have been requested through "whatDoINeed" method
       It is an abstract method -> It must be implemented in the derived class!
-      @ In , initDict, dict, dictionary ({'mainClassName(e.g., Databases):{specializedObjectName(e.g.,DatabaseForSystemCodeNamedWolf):ObjectInstance}'})
+      @ In, initDict, dict, dictionary ({'mainClassName(e.g., Databases):{specializedObjectName(e.g.,DatabaseForSystemCodeNamedWolf):ObjectInstance}'})
       @ Out, None
     """
     availableDist = initDict['Distributions']
@@ -166,7 +166,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
       This method is a local mirror of the general whatDoINeed method.
       It is implemented by the samplers that need to request special objects
-      @ In , None
+      @ In, None
       @ Out, needDict, dict, list of objects needed
     """
     needDict = {}
@@ -1894,7 +1894,7 @@ class DynamicEventTree(Grid):
     """
       This method is a local mirror of the general whatDoINeed method.
       It is implmented here because this Sampler requests special objects
-      @ In , None
+      @ In, None
       @ Out, needDict, dict, dictionary of objects needed
     """
     needDict = Sampler._localWhatDoINeed(self)
@@ -2578,7 +2578,7 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
     """
       This method is a local mirror of the general whatDoINeed method.
       It is implmented by the samplers that need to request special objects
-      @ In , None
+      @ In, None
       @ Out, needDict, dict, dictionary listing needed objects
     """
     #adaptNeedInst = self.limitSurfaceInstances.values()[-1]._localWhatDoINeed()
