@@ -32,7 +32,7 @@ class Point(Data):
   def _specializedInputCheck(self,xmlNode):
     """
       Here we check if the parameters read by the global reader are compatible with this type of Data
-      @ In, xmlNode, xml.ElementTree.Element, xml node
+      @ In, xmlNode, xml.etree.ElementTree.Element, xml node
       @ Out, None
     """
     if "historyName" in xmlNode.attrib.keys(): self._dataParameters['history'] = xmlNode.attrib['historyName']
@@ -185,10 +185,10 @@ class Point(Data):
     for key in xmlData["outKeys"]:
       self._dataContainer["outputs"][key] = c1darray(values=np.array([inoutDict[key]]))
 
-  def __extractValueLocal__(self,inOutType,varTyp,varName,varID=None,stepID=None,nodeid='root'):
+  def __extractValueLocal__(self,inOutType,varTyp,varName,varID=None,stepID=None,nodeId='root'):
     """
       specialization of extractValue for this data type
-      @ inOutType, string, the type of data to extract (input or output)
+      @ In, inOutType, string, the type of data to extract (input or output)
       @ In, varTyp, string, is the requested type of the variable to be returned (bool, int, float, numpy.ndarray, etc)
       @ In, varName, string, is the name of the variable that should be recovered
       @ In, varID, tuple or int, optional, is the ID of the value that should be retrieved within a set
@@ -201,7 +201,7 @@ class Point(Data):
           else:
             if stepID=(int,int) the slicing is [stepID[0]:stepID[1]]
             if stepID=(int,None) the slicing is [stepID[0]:]
-      @ In, nodeid, string, in hierarchical mode, is the node from which the value needs to be extracted... by default is the root
+      @ In, nodeId, string, in hierarchical mode, is the node from which the value needs to be extracted... by default is the root
       @ Out, value, varTyp, the requested value
     """
     if varID!=None or stepID!=None: self.raiseAnError(RuntimeError,'seeking to extract a slice from a Point type of data is not possible. Data name: '+self.name+' variable: '+varName)

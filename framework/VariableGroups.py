@@ -34,7 +34,7 @@ class VariableGroup(BaseClasses.BaseType):
   def _readMoreXML(self,node):
     """
       reads XML for more information
-      @ In, node, xml.ElementTree.Element, xml element to read data from
+      @ In, node, xml.etree.ElementTree.Element, xml element to read data from
       @ Out, None
     """
     #establish the name

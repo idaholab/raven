@@ -280,7 +280,7 @@ class OutStreamPlot(OutStreamManager):
         if self.colorMapCoordinates[pltindex] != None: self.colorMapValues[pltindex] = {1:[]}
         for i in range(len(self.xCoordinates [pltindex])):
           xsplit = self.__splitVariableNames('x', (pltindex, i))
-          parame = self.sourceData[pltindex].getParam(xsplit[1], xsplit[2], nodeid = 'ending')
+          parame = self.sourceData[pltindex].getParam(xsplit[1], xsplit[2], nodeId = 'ending')
           if type(parame) in [np.ndarray, c1darray]: self.xValues[pltindex][1].append(np.asarray(parame))
           else:
             conarr = np.zeros(len(parame.keys()))
@@ -290,7 +290,7 @@ class OutStreamPlot(OutStreamManager):
         if self.yCoordinates :
           for i in range(len(self.yCoordinates [pltindex])):
             ysplit = self.__splitVariableNames('y', (pltindex, i))
-            parame = self.sourceData[pltindex].getParam(ysplit[1], ysplit[2], nodeid = 'ending')
+            parame = self.sourceData[pltindex].getParam(ysplit[1], ysplit[2], nodeId = 'ending')
             if type(parame) in [np.ndarray, c1darray]: self.yValues[pltindex][1].append(np.asarray(parame))
             else:
               conarr = np.zeros(len(parame.keys()))
@@ -300,7 +300,7 @@ class OutStreamPlot(OutStreamManager):
         if self.zCoordinates  and self.dim > 2:
           for i in range(len(self.zCoordinates [pltindex])):
             zsplit = self.__splitVariableNames('z', (pltindex, i))
-            parame = self.sourceData[pltindex].getParam(zsplit[1], zsplit[2], nodeid = 'ending')
+            parame = self.sourceData[pltindex].getParam(zsplit[1], zsplit[2], nodeId = 'ending')
             if type(parame) in [np.ndarray, c1darray]: self.zValues[pltindex][1].append(np.asarray(parame))
             else:
               conarr = np.zeros(len(parame.keys()))
@@ -309,7 +309,7 @@ class OutStreamPlot(OutStreamManager):
         if self.clusterLabels:
           for i in range(len(self.clusterLabels [pltindex])):
             clustersplit = self.__splitVariableNames('clusterLabels', (pltindex, i))
-            parame = self.sourceData[pltindex].getParam(clustersplit[1], clustersplit[2], nodeid = 'ending')
+            parame = self.sourceData[pltindex].getParam(clustersplit[1], clustersplit[2], nodeId = 'ending')
             if type(parame) in [np.ndarray, c1darray]: self.clusterValues[pltindex][1].append(np.asarray(parame))
             else:
               conarr = np.zeros(len(parame.keys()))
@@ -318,7 +318,7 @@ class OutStreamPlot(OutStreamManager):
         if self.mixtureLabels:
           for i in range(len(self.mixtureLabels [pltindex])):
             mixturesplit = self.__splitVariableNames('mixtureLabels', (pltindex, i))
-            parame = self.sourceData[pltindex].getParam(mixturesplit[1], mixturesplit[2], nodeid = 'ending')
+            parame = self.sourceData[pltindex].getParam(mixturesplit[1], mixturesplit[2], nodeId = 'ending')
             if type(parame) in [np.ndarray, c1darray]: self.mixtureValues[pltindex][1].append(np.asarray(parame))
             else:
               conarr = np.zeros(len(parame.keys()))
@@ -327,7 +327,7 @@ class OutStreamPlot(OutStreamManager):
         if self.colorMapCoordinates[pltindex] != None:
           for i in range(len(self.colorMapCoordinates[pltindex])):
             zsplit = self.__splitVariableNames('colorMap', (pltindex, i))
-            parame = self.sourceData[pltindex].getParam(zsplit[1], zsplit[2], nodeid = 'ending')
+            parame = self.sourceData[pltindex].getParam(zsplit[1], zsplit[2], nodeId = 'ending')
             if type(parame) in [np.ndarray, c1darray]: self.colorMapValues[pltindex][1].append(np.asarray(parame))
             else:
               conarr = np.zeros(len(parame.keys()))
@@ -339,7 +339,7 @@ class OutStreamPlot(OutStreamManager):
         if self.yCoordinates : self.yValues[pltindex] = {}
         if self.zCoordinates   and self.dim > 2: self.zValues[pltindex] = {}
         if self.colorMapCoordinates[pltindex] != None: self.colorMapValues[pltindex] = {}
-        for cnt, key in enumerate(self.sourceData[pltindex].getInpParametersValues(nodeid = 'RecontructEnding').keys()):
+        for cnt, key in enumerate(self.sourceData[pltindex].getInpParametersValues(nodeId = 'RecontructEnding').keys()):
           # the key is the actual history number (ie 1, 2 , 3 etc)
           self.xValues[pltindex][cnt] = []
           if self.yCoordinates : self.yValues[pltindex][cnt] = []
@@ -347,25 +347,25 @@ class OutStreamPlot(OutStreamManager):
           if self.colorMapCoordinates[pltindex] != None: self.colorMapValues[pltindex][cnt] = []
           for i in range(len(self.xCoordinates [pltindex])):
             xsplit = self.__splitVariableNames('x', (pltindex, i))
-            datax = self.sourceData[pltindex].getParam(xsplit[1], cnt + 1, nodeid = 'RecontructEnding')
+            datax = self.sourceData[pltindex].getParam(xsplit[1], cnt + 1, nodeId = 'RecontructEnding')
             if xsplit[2] not in datax.keys(): self.raiseAnError(IOError, "Parameter " + xsplit[2] + " not found as " + xsplit[1] + " in DataObject " + xsplit[0])
             self.xValues[pltindex][cnt].append(np.asarray(datax[xsplit[2]]))
           if self.yCoordinates :
             for i in range(len(self.yCoordinates [pltindex])):
               ysplit = self.__splitVariableNames('y', (pltindex, i))
-              datay = self.sourceData[pltindex].getParam(ysplit[1], cnt + 1, nodeid = 'RecontructEnding')
+              datay = self.sourceData[pltindex].getParam(ysplit[1], cnt + 1, nodeId = 'RecontructEnding')
               if ysplit[2] not in datay.keys(): self.raiseAnError(IOError, "Parameter " + ysplit[2] + " not found as " + ysplit[1] + " in DataObject " + ysplit[0])
               self.yValues[pltindex][cnt].append(np.asarray(datay[ysplit[2]]))
           if self.zCoordinates  and self.dim > 2:
             for i in range(len(self.zCoordinates [pltindex])):
               zsplit = self.__splitVariableNames('z', (pltindex, i))
-              dataz = self.sourceData[pltindex].getParam(zsplit[1], cnt + 1, nodeid = 'RecontructEnding')
+              dataz = self.sourceData[pltindex].getParam(zsplit[1], cnt + 1, nodeId = 'RecontructEnding')
               if zsplit[2] not in dataz.keys(): self.raiseAnError(IOError, "Parameter " + zsplit[2] + " not found as " + zsplit[1] + " in DataObject " + zsplit[0])
               self.zValues[pltindex][cnt].append(np.asarray(dataz[zsplit[2]]))
           if self.colorMapCoordinates[pltindex] != None:
             for i in range(len(self.colorMapCoordinates[pltindex])):
               colorSplit = self.__splitVariableNames('colorMap', (pltindex, i))
-              dataColor = self.sourceData[pltindex].getParam(colorSplit[1], cnt + 1, nodeid = 'RecontructEnding')
+              dataColor = self.sourceData[pltindex].getParam(colorSplit[1], cnt + 1, nodeId = 'RecontructEnding')
               if colorSplit[2] not in dataColor.keys(): self.raiseAnError(IOError, "Parameter " + colorSplit[2] + " not found as " + colorSplit[1] + " in DataObject " + colorSplit[0])
               self.colorMapValues[pltindex][cnt].append(np.asarray(dataColor[colorSplit[2]]))
       # check if something has been got or not
@@ -1343,12 +1343,12 @@ class OutStreamPlot(OutStreamManager):
                 clusterDict[pltindex]['mixtureValues'][:, 1] = self.yValues[pltindex][key][yIndex]
                 if 'mixtureCovars' in self.options['plotSettings']['plot'][pltindex].get('attributes', {}).keys():
                   split = self.__splitVariableNames('mixtureCovars', (pltindex, 0))
-                  mixtureCovars = self.sourceData[pltindex].getParam(split[1], split[2], nodeid = 'ending')
+                  mixtureCovars = self.sourceData[pltindex].getParam(split[1], split[2], nodeId = 'ending')
                   self.options['plotSettings']['plot'][pltindex].get('attributes', {}).pop('mixtureCovars')
                 else: mixtureCovars = None
                 if 'mixtureMeans' in self.options['plotSettings']['plot'][pltindex].get('attributes', {}).keys():
                   split = self.__splitVariableNames('mixtureMeans', (pltindex, 0))
-                  mixtureMeans = self.sourceData[pltindex].getParam(split[1], split[2], nodeid = 'ending')
+                  mixtureMeans = self.sourceData[pltindex].getParam(split[1], split[2], nodeId = 'ending')
                   self.options['plotSettings']['plot'][pltindex].get('attributes', {}).pop('mixtureMeans')
                 else: mixtureMeans = None
                 # mixtureCovars.reshape(3, 4)
@@ -1367,7 +1367,7 @@ class OutStreamPlot(OutStreamManager):
                 manifoldValues[:, 1] = self.yValues[pltindex][key][yIndex]
                 if 'clusterLabels' in self.options['plotSettings']['plot'][pltindex].get('attributes', {}).keys():
                   split = self.__splitVariableNames('clusterLabels', (pltindex, 0))
-                  clusterDict[pltindex]['clusterLabels'] = self.sourceData[pltindex].getParam(split[1], split[2], nodeid = 'ending')
+                  clusterDict[pltindex]['clusterLabels'] = self.sourceData[pltindex].getParam(split[1], split[2], nodeId = 'ending')
                   self.options['plotSettings']['plot'][pltindex].get('attributes', {}).pop('clusterLabels')
                 else: clusterDict[pltindex]['clusterLabels'] = None
                 if 'noClusters' in self.options['plotSettings']['plot'][pltindex].get('attributes', {}).keys():

@@ -41,7 +41,7 @@ class HistorySet(Data):
   def _specializedInputCheck(self,xmlNode):
     """
       Here we check if the parameters read by the global reader are compatible with this type of Data
-      @ In, xmlNode, xml.ElementTree.Element, xml node
+      @ In, xmlNode, xml.etree.ElementTree.Element, xml node
       @ Out, None
     """
     if set(self._dataParameters.keys()).issubset(['operator','outputRow']): self.raiseAnError(IOError,"Inputted operator or outputRow attributes are available for Point and PointSet only!")
@@ -120,24 +120,24 @@ class HistorySet(Data):
       parentID = None
       if type(name) == list:
         namep = name[1]
-        if type(name[0]) == str: nodeid = name[0]
+        if type(name[0]) == str: nodeId = name[0]
         else:
           if 'metadata' in options.keys():
-            nodeid = options['metadata']['prefix']
+            nodeId = options['metadata']['prefix']
             if 'parentID' in options['metadata'].keys(): parentID = options['metadata']['parentID']
           else:
-            nodeid = options['prefix']
+            nodeId = options['prefix']
             if 'parentID' in options.keys(): parentID = options['parentID']
       else:
         if 'metadata' in options.keys():
-          nodeid = options['metadata']['prefix']
+          nodeId = options['metadata']['prefix']
           if 'parentID' in options['metadata'].keys(): parentID = options['metadata']['parentID']
         else:
-          nodeid = options['prefix']
+          nodeId = options['prefix']
           if 'parentID' in options.keys(): parentID = options['parentID']
         namep = name
-      if parentID: tsnode = self.retrieveNodeInTreeMode(nodeid, parentID)
-      else:         tsnode = self.retrieveNodeInTreeMode(nodeid)
+      if parentID: tsnode = self.retrieveNodeInTreeMode(nodeId, parentID)
+      else:         tsnode = self.retrieveNodeInTreeMode(nodeId)
       self._dataContainer = tsnode.get('dataContainer')
       if not self._dataContainer:
         tsnode.add('dataContainer',{'inputs':{},'outputs':{}})
@@ -180,22 +180,22 @@ class HistorySet(Data):
       # we retrieve the node in which the specialized 'Point' has been stored
       parentID = None
       if type(name) == list:
-        if type(name[0]) == str: nodeid = name[0]
+        if type(name[0]) == str: nodeId = name[0]
         else:
           if 'metadata' in options.keys():
-            nodeid = options['metadata']['prefix']
+            nodeId = options['metadata']['prefix']
             if 'parentID' in options['metadata'].keys(): parentID = options['metadata']['parentID']
           else:
-            nodeid = options['prefix']
+            nodeId = options['prefix']
             if 'parentID' in options.keys(): parentID = options['parentID']
       else:
         if 'metadata' in options.keys():
-          nodeid = options['metadata']['prefix']
+          nodeId = options['metadata']['prefix']
           if 'parentID' in options['metadata'].keys(): parentID = options['metadata']['parentID']
         else:
-          nodeid = options['prefix']
+          nodeId = options['prefix']
           if 'parentID' in options.keys(): parentID = options['parentID']
-      if parentID: tsnode = self.retrieveNodeInTreeMode(nodeid, parentID)
+      if parentID: tsnode = self.retrieveNodeInTreeMode(nodeId, parentID)
       #if 'parentID' in options.keys(): tsnode = self.retrieveNodeInTreeMode(options['prefix'], options['parentID'])
       #else:                             tsnode = self.retrieveNodeInTreeMode(options['prefix'])
       self._dataContainer = tsnode.get('dataContainer')
@@ -227,23 +227,23 @@ class HistorySet(Data):
       parentID = None
       if type(name) == list:
         namep = name[1]
-        if type(name[0]) == str: nodeid = name[0]
+        if type(name[0]) == str: nodeId = name[0]
         else:
           if 'metadata' in options.keys():
-            nodeid = options['metadata']['prefix']
+            nodeId = options['metadata']['prefix']
             if 'parentID' in options['metadata'].keys(): parentID = options['metadata']['parentID']
           else:
-            nodeid = options['prefix']
+            nodeId = options['prefix']
             if 'parentID' in options.keys(): parentID = options['parentID']
       else:
         if 'metadata' in options.keys():
-          nodeid = options['metadata']['prefix']
+          nodeId = options['metadata']['prefix']
           if 'parentID' in options['metadata'].keys(): parentID = options['metadata']['parentID']
         else:
-          nodeid = options['prefix']
+          nodeId = options['prefix']
           if 'parentID' in options.keys(): parentID = options['parentID']
         namep = name
-      if parentID: tsnode = self.retrieveNodeInTreeMode(nodeid, parentID)
+      if parentID: tsnode = self.retrieveNodeInTreeMode(nodeId, parentID)
 
       # we store the pointer to the container in the self._dataContainer because checkConsistency acts on this
       self._dataContainer = tsnode.get('dataContainer')
@@ -413,7 +413,7 @@ class HistorySet(Data):
       Function to load the xml additional file of the csv for data
       (it contains metadata, etc). It must be implemented by the specialized classes
       @ In, filenameRoot, string, file name root
-      @ In, options, dict,, dictionary -> options for loading
+      @ In, options, dict, dictionary -> options for loading
       @ Out, None
     """
     #For HistorySet, create an XML file, and multiple CSV
@@ -472,10 +472,10 @@ class HistorySet(Data):
       self._dataContainer['outputs'][mainKey] = subOutput
     self.checkConsistency()
 
-  def __extractValueLocal__(self,inOutType,varTyp,varName,varID=None,stepID=None,nodeid='root'):
+  def __extractValueLocal__(self,inOutType,varTyp,varName,varID=None,stepID=None,nodeId='root'):
     """
       specialization of extractValue for this data type
-      @ inOutType, string, the type of data to extract (input or output)
+      @ In, inOutType, string, the type of data to extract (input or output)
       @ In, varTyp, string, is the requested type of the variable to be returned (bool, int, float, numpy.ndarray, etc)
       @ In, varName, string, is the name of the variable that should be recovered
       @ In, varID, tuple or int, optional, is the ID of the value that should be retrieved within a set
@@ -488,7 +488,7 @@ class HistorySet(Data):
           else:
             if stepID=(int,int) the slicing is [stepID[0]:stepID[1]]
             if stepID=(int,None) the slicing is [stepID[0]:]
-      @ In, nodeid, string, in hierarchical mode, is the node from which the value needs to be extracted... by default is the root
+      @ In, nodeId, string, in hierarchical mode, is the node from which the value needs to be extracted... by default is the root
       @ Out, value, varTyp, the requested value
     """
     if varTyp!='numpy.ndarray':

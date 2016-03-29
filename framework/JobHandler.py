@@ -421,7 +421,7 @@ class JobHandler(MessageHandler.MessageUser):
     if self.runInfoDict['internalParallel']:
       import random
       if len(self.runInfoDict['Nodes']) > 0:
-        availableNodes            = [nodeid.strip() for nodeid in self.runInfoDict['Nodes']]
+        availableNodes            = [nodeId.strip() for nodeId in self.runInfoDict['Nodes']]
         # set initial port randomly among the user accessable ones
         randomPort = random.randint(1024,65535)
         # get localHost and servers
@@ -451,9 +451,9 @@ class JobHandler(MessageHandler.MessageUser):
     hostNameMapping['local'] =  str(socket.getfqdn()).strip()
     self.raiseADebug("Local Host is " + hostNameMapping['local'])
     # collect the qualified hostnames
-    for nodeid in list(set(self.runInfoDict['Nodes'])):
-      hostNameMapping['remote'][nodeid.strip()] = socket.gethostbyname(nodeid.strip())
-      self.raiseADebug("Remote Host identified " + hostNameMapping['remote'][nodeid.strip()])
+    for nodeId in list(set(self.runInfoDict['Nodes'])):
+      hostNameMapping['remote'][nodeId.strip()] = socket.gethostbyname(nodeId.strip())
+      self.raiseADebug("Remote Host identified " + hostNameMapping['remote'][nodeId.strip()])
     return hostNameMapping
 
   def __runRemoteListeningSockets(self,newPort):
@@ -481,19 +481,19 @@ class JobHandler(MessageHandler.MessageUser):
       # modify the python path
       pathSeparator = os.pathsep
       localenv["PYTHONPATH"] = pathSeparator.join(sys.path)
-      for nodeid in list(set(availableNodes)):
-        outFile = open(os.path.join(self.runInfoDict['WorkingDir'],nodeid.strip()+"_port:"+str(newPort)+"_server_out.log"),'w')
+      for nodeId in list(set(availableNodes)):
+        outFile = open(os.path.join(self.runInfoDict['WorkingDir'],nodeId.strip()+"_port:"+str(newPort)+"_server_out.log"),'w')
         # check how many processors are available in the node
-        ntasks = availableNodes.count(nodeid)
-        remoteHostName =  remoteNodesIP[nodeid]
+        ntasks = availableNodes.count(nodeId)
+        remoteHostName =  remoteNodesIP[nodeId]
         # activate the remote socketing system
         #Next line is a direct execute of ppserver:
-        #subprocess.Popen(['ssh', nodeid, "python2.7", ppserverScript,"-w",str(ntasks),"-i",remoteHostName,"-p",str(newPort),"-t","1000","-g",localenv["PYTHONPATH"],"-d"],shell=False,stdout=outFile,stderr=outFile,env=localenv)
+        #subprocess.Popen(['ssh', nodeId, "python2.7", ppserverScript,"-w",str(ntasks),"-i",remoteHostName,"-p",str(newPort),"-t","1000","-g",localenv["PYTHONPATH"],"-d"],shell=False,stdout=outFile,stderr=outFile,env=localenv)
         command=" ".join(["python",ppserverScript,"-w",str(ntasks),"-i",remoteHostName,"-p",str(newPort),"-t","1000","-g",localenv["PYTHONPATH"],"-d"])
-        utils.pickleSafeSubprocessPopen(['ssh',nodeid,"COMMAND='"+command+"'",self.runInfoDict['RemoteRunCommand']],shell=False,stdout=outFile,stderr=outFile,env=localenv)
-        #ssh nodeid COMMAND='python ppserverScript -w stuff'
+        utils.pickleSafeSubprocessPopen(['ssh',nodeId,"COMMAND='"+command+"'",self.runInfoDict['RemoteRunCommand']],shell=False,stdout=outFile,stderr=outFile,env=localenv)
+        #ssh nodeId COMMAND='python ppserverScript -w stuff'
         # update list of servers
-        ppservers.append(nodeid+":"+str(newPort))
+        ppservers.append(nodeId+":"+str(newPort))
     return qualifiedHostName, ppservers
 
   def addExternal(self,executeCommands,outputFile,workingDir,metadata=None,codePointer=None):

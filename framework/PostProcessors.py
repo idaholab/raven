@@ -1973,7 +1973,7 @@ class LimitSurface(BasePostProcessor):
         else:                self.paramType[param] = 'outputs'
     if self.bounds == None:
       self.bounds = {"lowerBounds":{},"upperBounds":{}}
-      for key in self.parameters['targets']: self.bounds["lowerBounds"][key], self.bounds["upperBounds"][key] = min(self.inputs[self.indexes].getParam(self.paramType[key],key,nodeid = 'RecontructEnding')), max(self.inputs[self.indexes].getParam(self.paramType[key],key,nodeid = 'RecontructEnding'))
+      for key in self.parameters['targets']: self.bounds["lowerBounds"][key], self.bounds["upperBounds"][key] = min(self.inputs[self.indexes].getParam(self.paramType[key],key,nodeId = 'RecontructEnding')), max(self.inputs[self.indexes].getParam(self.paramType[key],key,nodeId = 'RecontructEnding'))
     self.gridEntity.initialize(initDictionary={"rootName":self.name,'constructTensor':True, "computeCells":initDict['computeCells'] if 'computeCells' in initDict.keys() else False,
                                                "dimensionNames":self.parameters['targets'], "lowerBounds":self.bounds["lowerBounds"],"upperBounds":self.bounds["upperBounds"],
                                                "volumetricRatio":self.tolerance   ,"transformationMethods":self.transfMethods})
@@ -1993,8 +1993,8 @@ class LimitSurface(BasePostProcessor):
       self.functionValue.update(inp['inputs' ])
       self.functionValue.update(inp['outputs'])
     else:
-      self.functionValue.update(inp.getParametersValues('inputs', nodeid = 'RecontructEnding'))
-      self.functionValue.update(inp.getParametersValues('outputs', nodeid = 'RecontructEnding'))
+      self.functionValue.update(inp.getParametersValues('inputs', nodeId = 'RecontructEnding'))
+      self.functionValue.update(inp.getParametersValues('outputs', nodeId = 'RecontructEnding'))
     # recovery the index of the last function evaluation performed
     if self.externalFunction.name in self.functionValue.keys(): indexLast = len(self.functionValue[self.externalFunction.name]) - 1
     else                                                      : indexLast = -1
