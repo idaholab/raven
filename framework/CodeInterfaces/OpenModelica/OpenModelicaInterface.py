@@ -150,7 +150,7 @@ class OpenModelicaInterface(CodeInterfaceBase):
       See base class.  Collects all the clargs and the executable to produce the command-line call.
       Returns tuple of commands and base file name for run.
       Commands are a list of tuples, indicating parallel/serial and the execution command to use.
-      @ In, inputFiles, list, List of input files (lenght of the list depends on the number of inputs have been added in the Step is running this code)
+      @ In, inputFiles, list, List of input files (length of the list depends on the number of inputs have been added in the Step is running this code)
       @ In, executable, string, executable name with absolute path (e.g. /home/path_to_executable/code.exe)
       @ In, clargs, dict, optional, dictionary containing the command-line flags the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 i0extension =0 .inp0/ >< /Code >)
       @ In, fargs, dict, optional, a dictionary containing the axuiliary input file variables the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 aux0extension =0 .aux0/ >< /Code >)
@@ -172,9 +172,9 @@ class OpenModelicaInterface(CodeInterfaceBase):
 
   def _isValidInput(self, inputFile):
     """
-      Check if an input file is a text file, with an extension of .txt or .TXT.
+      Check if an input file is a xml file, with an extension of .xml, .XML or .Xml .
       @ In, inputFile, string, the file name to be checked
-      @ Out, valid, bool, 'True' if an input file has an extenstion of .'xml', 'XML' or 'Xml', otherwise 'False'.
+      @ Out, valid, bool, 'True' if an input file has an extension of .'xml', 'XML' or 'Xml', otherwise 'False'.
     """
     valid = False
     if inputFile.getExt() in ('xml', 'XML', 'Xml'): valid = True
@@ -193,10 +193,10 @@ class OpenModelicaInterface(CodeInterfaceBase):
     """
       Generate a new OpenModelica input file (XML format) from the original, changing parameters
       as specified in Kwargs['SampledVars']
-      @ In, currentInputFiles, list,  list of current input files (input files from last this method call)
-      @ In, oriInputFiles, list, list of the original input files
-      @ In, samplerType, string, Sampler type (e.g. MonteCarlo, Adaptive, etc. see manual Samplers section)
-      @ In, Kwargs, dictionary, kwarded dictionary of parameters. In this dictionary there is another dictionary called "SampledVars"
+      @ In , currentInputFiles, list,  list of current input files (input files from last this method call)
+      @ In , oriInputFiles, list, list of the original input files
+      @ In , samplerType, string, Sampler type (e.g. MonteCarlo, Adaptive, etc. see manual Samplers section)
+      @ In , Kwargs, dictionary, kwarded dictionary of parameters. In this dictionary there is another dictionary called "SampledVars"
             where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
       @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
     """

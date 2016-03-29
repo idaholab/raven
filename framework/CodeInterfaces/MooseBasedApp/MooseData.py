@@ -26,7 +26,7 @@ class mooseData:
 
   def __read(self,csvreaders):
     """
-      This method reads the VectorPostProcessor outputs send in as a list of csv.DictReader objects
+      This method reads the VectorPostProcessor outputs sent in as a list of csv.DictReader objects
       @ In, csvreaders, list, list of csv.DictReader objects
       @ Out, tempDict, dict, temporary dictionary of the data in the outputs (not sorted)
     """

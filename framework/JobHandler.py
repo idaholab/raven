@@ -45,7 +45,7 @@ class ExternalRunner(MessageHandler.MessageUser):
     """
       Initialize command variable
       @ In, messageHandler, MessageHandler instance, the global RAVEN message handler instance
-      @ In, command, list, list of command that needs to be executed
+      @ In, command, list, list of commands that needs to be executed
       @ In, workingDir, string, absolute path of the working directory
       @ In, bufsize, int, buffer size for logger
       @ In, output, string, optional, output filename root
@@ -153,7 +153,7 @@ class ExternalRunner(MessageHandler.MessageUser):
       => sub-sequential calls to getReturnCode will not inquire the codePointer anymore but
       just return the stored value
       @ In, None
-      @ Out, returnCode, int, return code
+      @ Out, returnCode, int, return code.  1 if the checkForOutputFailure is true, otherwise the process return code.
     """
     returnCode = self.__process.returncode
     if self.codePointer != None:
@@ -499,7 +499,7 @@ class JobHandler(MessageHandler.MessageUser):
   def addExternal(self,executeCommands,outputFile,workingDir,metadata=None,codePointer=None):
     """
       Method to add an external runner (an external code) in the handler list
-      @ In, executeCommands, tuple(string), ('parallel'/'serial', <execution command>)
+      @ In, executeCommands, list of tuple(string), ('parallel'/'serial', <execution command>)
       @ In, outputFile, string, output file name
       @ In, workingDir, string, working directory
       @ In, metadata, dict, optional, dictionary of metadata
@@ -563,9 +563,9 @@ class JobHandler(MessageHandler.MessageUser):
 
   def getNumberOfFailures(self):
     """
-      Method to get the number of execution that failed
+      Method to get the number of executions that failed
       @ In, None
-      @ Out, __numFailed, int, number of failure
+      @ Out, __numFailed, int, number of failures
     """
     return self.__numFailed
 
@@ -597,7 +597,7 @@ class JobHandler(MessageHandler.MessageUser):
     """
       Method to get the list of jobs that ended (list of objects)
       @ In, removeFinished, bool, optional, flag to control if the finished jobs need to be removed from the queue
-      @ In, prefix, string, optional, if specified only collects finished runs with a particular prefix.
+      @ In, prefix, string, optional, if specified, only collects finished runs with a particular prefix.
       @ Out, finished, list, list of finished jobs (InternalRunner or ExternalRunner objects)
     """
     finished = []
@@ -636,7 +636,8 @@ class JobHandler(MessageHandler.MessageUser):
 
   def addRuns(self):
     """
-      Method to start running the jobs in queue
+      Method to start running the jobs in queue.  If there are empty slots
+      takes jobs out of the queue and starts running them.
       @ In, None
       @ Out, None
     """
@@ -679,7 +680,7 @@ class JobHandler(MessageHandler.MessageUser):
 
   def startingNewStep(self):
     """
-      Method to reset the __numSubmitted counter
+      Method to reset the __numSubmitted counter to zero.
       @ In, None
       @ Out, None
     """
@@ -687,7 +688,7 @@ class JobHandler(MessageHandler.MessageUser):
 
   def terminateAll(self):
     """
-      Method to clear out the queue
+      Method to clear out the queue by killing all running processes.
       @ In, None
       @ Out, None
     """

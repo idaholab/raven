@@ -84,6 +84,7 @@ class CsvLoader(MessageHandler.MessageUser):
       General interface function to call the private methods for loading the different dataObjects!
       @ In, fileIn, string, csv file name
       @ In, options, dict, dictionary of options
+      @ Out, csvLoadData, tuple, tuple of (listhistIn,listhistOut)
     """
     if   options['type'] == 'Point'   : return self.__csvLoaderForPoint(fileIn[0],options)
     elif options['type'] == 'PointSet': return self.__csvLoaderForPointSet(fileIn,options)

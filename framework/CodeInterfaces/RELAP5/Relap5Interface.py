@@ -23,7 +23,7 @@ class Relap5(CodeInterfaceBase):
       See base class.  Collects all the clargs and the executable to produce the command-line call.
       Returns tuple of commands and base file name for run.
       Commands are a list of tuples, indicating parallel/serial and the execution command to use.
-      @ In, inputFiles, list, List of input files (lenght of the list depends on the number of inputs have been added in the Step is running this code)
+      @ In, inputFiles, list, List of input files (length of the list depends on the number of inputs have been added in the Step is running this code)
       @ In, executable, string, executable name with absolute path (e.g. /home/path_to_executable/code.exe)
       @ In, clargs, dict, optional, dictionary containing the command-line flags the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 i0extension =0 .inp0/ >< /Code >)
       @ In, fargs, dict, optional, a dictionary containing the axuiliary input file variables the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 aux0extension =0 .aux0/ >< /Code >)
@@ -47,7 +47,7 @@ class Relap5(CodeInterfaceBase):
   def finalizeCodeOutput(self,command,output,workingDir):
     """
       This method is called by the RAVEN code at the end of each run (if the method is present, since it is optional).
-      It can be used for those codes, that do not create CSV files to convert the whaterver output formato into a csv
+      It can be used for those codes, that do not create CSV files to convert the whatever output format into a csv
       @ In, command, string, the command used to run the just ended job
       @ In, output, string, the Output name root
       @ In, workingDir, string, current working dir
