@@ -46,17 +46,6 @@ class RAVENInterface(CodeInterfaceBase):
     returnCommand = executeCommand,outputfile
     return returnCommand
 
-  def finalizeCodeOutput(self,currentInputFiles,output,workingDir):
-    """
-      this method is called by the RAVEN code at the end of each run (if the method is present).
-      It can be used for those codes, that do not create CSV files to convert the whaterver output formato into a csv
-      @ In, command, string, the command used to run the just ended job
-      @ In, output, string, the Output name root
-      @ In, workingDir, string, current working dir
-      @ Out, output, string, optional, present in case the root of the output file gets changed in this method.
-    """
-    return output
-
   def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
     """
       This method is used to generate an input based on the information passed in.
@@ -125,7 +114,8 @@ class RAVENInterface(CodeInterfaceBase):
       @ In, **Kwargs, dict, kwared dictionary containing the values of the parameters to be changed
       @ Out, listDict, list, list of dictionaries used by the parser to change the input file
     """
-    return self.dynamicEventTreeForRAVEN(**Kwargs)
+    listDict = self.dynamicEventTreeForRAVEN(**Kwargs)
+    return listDict
 
   def dynamicEventTreeForRAVEN(self,**Kwargs):
     """
