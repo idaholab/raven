@@ -439,6 +439,9 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     for key,val in self.dependentSample.items():
       if val not in availableFunc.keys(): self.raiseAnError('Function',val,'was not found among the available functions:',availableFunc.keys())
       self.funcDict[key] = availableFunc[val]
+      # check if the correct method is present
+      if "evaluate" not in self.funcDict[key].availableMethods():
+        self.raiseAnError(IOError,'Function '+self.funcDict[key].name+' does not contain a method named "evaluate". It must be present if this needs to be used in a Sampler!')
 
   def initialize(self,externalSeeding=None,solutionExport=None):
     """
@@ -564,7 +567,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
           self.raiseAnError(NotImplementedError,'transformation method is not yet implemented for ' + self.transformationMethod[dist] + ' method')
     # generate the function variable values
     for var in self.dependentSample.keys():
-      test=self.funcDict[var].evaluate(var,self.values)
+      test=self.funcDict[var].evaluate("evaluate",self.values)
       self.values[var] = test
     return model.createNewInput(oldInput,self.type,**self.inputInfo)
 

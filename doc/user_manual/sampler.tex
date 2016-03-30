@@ -119,7 +119,8 @@ XML node and the requirements for other attributes change:
   \xmlNode{function}, \xmlDesc{string, required field}, name of the function that
   defines the calculation of this variable from other distributed variables.  Its name
   needs to be contained in the \xmlNode{Functions} block explained in Section
-  \ref{sec:functions}.  \nb{Alternatively, this node must be ommitted
+  \ref{sec:functions}. This function must implement a method named ``evaluate''. 
+ \nb{Alternatively, this node must be ommitted
   if the \xmlNode{distribution} node is supplied.}
 }
 
@@ -407,8 +408,8 @@ is actually derived from the previous two, as \xmlString{thickness} = \xmlString
 RAVEN supports this type of redundant input through a Function entity.  In this case,
 instead of a \xmlNode{distribution} node in the \xmlNode{variable} block, there is a
 \xmlNode{Function} node, specifying the name of the function (defined in the \xmlNode{Functions} block).
-In order to work properly, this function must have a method that is identical to the variable name
-that returns a single python float object.  For example,
+In order to work properly, this function must have a method named ``evaluate''
+that returns a single python float object. In this way, multiple variables can be associated with the same Function.  For example,
 \begin{lstlisting}[style=XML]
 ...
 <Functions>
@@ -434,7 +435,7 @@ that returns a single python float object.  For example,
 \end{lstlisting}
 The corresponding function file \xmlString{torus\_calcs.py} needs the following method:
 \begin{lstlisting}
-def thickness(self):
+def evaluate(self):
   return self.outer_radius - self.inner_radius
 \end{lstlisting}
 The \xmlString{thickness} parameter will still be treated as an input for the sake of csv
