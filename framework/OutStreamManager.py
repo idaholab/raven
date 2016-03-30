@@ -42,12 +42,12 @@ else:
 
 class OutStreamManager(BaseType):
   """
-  ********************************************************************
-  *                          OUTSTREAM CLASS                         *
-  ********************************************************************
-  *  This class is a general base class for outstream action classes *
-  *  For example, a matplotlib interface class or Print class, etc.  *
-  ********************************************************************
+    ********************************************************************
+    *                          OUTSTREAM CLASS                         *
+    ********************************************************************
+    *  This class is a general base class for outstream action classes *
+    *  For example, a matplotlib interface class or Print class, etc.  *
+    ********************************************************************
   """
   def __init__(self):
     """
@@ -1494,7 +1494,7 @@ class OutStreamPrint(OutStreamManager):
 
   def initialize(self, inDict):
     """
-      Function to initialize the OutStream. It basically looks for the "data" object and link it to the system
+      Function to initialize the OutStream. It basically looks for the "data" object and links it to the system
       @ In, inDict, dict, It contains all the Object are going to be used in the current step. The sources are searched into this.
       @ Out, None
     """

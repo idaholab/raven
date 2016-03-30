@@ -78,7 +78,7 @@ class GridBase(metaclass_insert(abc.ABCMeta,BaseType)):
   @classmethod
   def retrieveCellIds(self,listOfPoints):
     """
-      This method is aimed to retrieve the cell IDs that are contained in certain bounaried provided as list of points
+      This method is aimed to retrieve the cell IDs that are contained in certain boundaries provided as list of points
       @ In, listOfPoints, list, list of points that represent the boundaries ([listOfFirstBound, listOfSecondBound])
       @ Out, setOfCells, list, list of cells' ids
     """
@@ -465,7 +465,7 @@ class GridEntity(GridBase):
 
   def retrieveCellIds(self,listOfPoints,containedOnly=False):
     """
-      This method is aimed to retrieve the cell IDs that are contained in certain bounaried provided as list of points
+      This method is aimed to retrieve the cell IDs that are contained in certain boundaries provided as list of points
       @ In, listOfPoints, list, list of points that represent the boundaries ([listOfFirstBound, listOfSecondBound])
       @ In, containedOnly, bool, optional, flag to ask for cells contained in the listOfPoints or just cells that touch the listOfPoints, default False
       @ Out, previousSet, list, list of cell ids
@@ -597,7 +597,7 @@ class MultiGridEntity(GridBase):
   """
     This class is dedicated to the creation and handling of N-Dimensional Grid.
     In addition, it handles an hierarchical multi-grid approach (creating a mapping from coarse and finer grids in
-    an adaptive meshing approach). The strategy for mesh(grid) refining is driven from outside.
+    an adaptive meshing approach). The strategy for mesh (grid) refining is driven from outside.
   """
   def __init__(self,messageHandler):
     """
@@ -947,19 +947,19 @@ __knownTypes                       = __interFaceDict.keys()
 
 def knownTypes():
   """
-   Method to return the types known by this module
-   @ In, None
-   @ Out, __knownTypes, dict, dictionary of known types (e.g. [GridEntity, MultiGridEntity, etc.])
+    Method to return the types known by this module
+    @ In, None
+    @ Out, __knownTypes, dict, dictionary of known types (e.g. [GridEntity, MultiGridEntity, etc.])
   """
   return __knownTypes
 
 def returnInstance(Type,caller,messageHandler=None):
   """
-   Method to return an instance of a class defined in this module
-   @ In, Type, string, Class name (e.g. GridEntity)
-   @ In, caller, instance, instance of the caller object
-   @ In, messageHandler, optional instance, instance of the messageHandler system
-   @ Out, __interFaceDict[Type], instance, instance of the requested class
+    Method to return an instance of a class defined in this module
+    @ In, Type, string, Class name (e.g. GridEntity)
+    @ In, caller, instance, instance of the caller object
+    @ In, messageHandler, optional instance, instance of the messageHandler system
+    @ Out, __interFaceDict[Type], instance, instance of the requested class
   """
   try: return __interFaceDict[Type](messageHandler)
   except KeyError: caller.raiseAnError(NameError,'not known '+__base+' type '+Type)

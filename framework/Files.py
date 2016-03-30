@@ -143,9 +143,9 @@ class File(BaseType):
 
   def getExt(self):
     """
-      Retriever for file base.
+      Retriever for file extension.
       @ In, None
-      @ Out, __ext, string, path
+      @ Out, __ext, string, extension of the file name (e.g. txt, csv)
     """
     return self.__ext
 
@@ -303,7 +303,7 @@ class File(BaseType):
     """
       Provides access to the python file method of the same name.
       @  In, None
-      @ Out, isatty, bool, true of file connected to tty-like device
+      @ Out, isatty, bool, true if file connected to tty-like device
     """
     return self.__file.isatty()
 
