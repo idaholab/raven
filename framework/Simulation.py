@@ -452,9 +452,10 @@ class Simulation(MessageHandler.MessageUser):
     """
       Returns the default input file to read
       @ In, None
-      @ Out, DefaultInputFile, string, default input file
+      @ Out, defaultInputFile, string, default input file
     """
-    return self.runInfoDict['DefaultInputFile']
+    defaultInputFile = self.runInfoDict['DefaultInputFile']
+    return defaultInputFile
 
   def __createAbsPath(self,fileIn):
     """
