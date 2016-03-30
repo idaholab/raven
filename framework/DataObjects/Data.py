@@ -34,12 +34,17 @@ class ConstructError(Exception)   : pass
 
 class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
   """
-  The Data object is the base class for constructing derived data object classes.
-  It provides the common interfaces to access and to add data values into the RAVEN internal object format.
-  This object is "understood" by all the "active" modules (e.g. postprocessors, models, etc) and represents the way
-  RAVEN shares the information among the framework
+    The Data object is the base class for constructing derived data object classes.
+    It provides the common interfaces to access and to add data values into the RAVEN internal object format.
+    This object is "understood" by all the "active" modules (e.g. postprocessors, models, etc) and represents the way
+    RAVEN shares the information among the framework
   """
   def __init__(self):
+    """
+      Constructor
+      @ In, None
+      @ Out, None
+    """
     BaseType.__init__(self)
     self._dataParameters                 = {}                         # in here we store all the data parameters (inputs params, output params,etc)
     self._dataParameters['inParam'     ] = []                         # inParam list
@@ -67,8 +72,9 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
 
   def _readMoreXML(self,xmlNode):
     """
-    Function to read the xml input block.
-    @ In, xmlNode, xml node
+      Function to read the xml input block.
+      @ In, xmlNode, xml.etree.ElementTree.Element, xml node
+      @ Out, None
     """
     # retrieve input/outputs parameters' keywords
     self._dataParameters['inParam']  = list(inp.strip() for inp in xmlNode.find('Input' ).text.strip().split(','))
@@ -95,16 +101,17 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
 
   def _specializedInputCheck(self,xmlNode):
     """
-    Function to check the input parameters that have been read for each DataObject subtype
-    @ In, None
-    @ Out, None
+      Function to check the input parameters that have been read for each DataObject subtype
+      @ In, xmlNode, xml.etree.ElementTree.Element, xml node
+      @ Out, None
     """
     pass
 
   def addInitParams(self,tempDict):
     """
-    Function to get the input params that belong to this class
-    @ In, tempDict, temporary dictionary
+      Function to get the input params that belong to this class
+      @ In, tempDict, dict, temporary dictionary to be updated
+      @ Out, tempDict, dict, temporary dictionary updated
     """
     for i in range(len(self._dataParameters['inParam' ])):  tempDict['Input_'+str(i)]  = self._dataParameters['inParam' ][i]
     for i in range(len(self._dataParameters['outParam'])):  tempDict['Output_'+str(i)] = self._dataParameters['outParam'][i]
@@ -113,8 +120,9 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
 
   def removeInputValue(self,name):
     """
-    Function to remove a value from the dictionary inpParametersValues
-    @ In, name, parameter name
+      Function to remove a value from the dictionary inpParametersValues
+      @ In, name, string, parameter name
+      @ Out, None
     """
     if self._dataParameters['hierarchical']:
       for TSData in self.TSData.values():
@@ -125,8 +133,9 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
 
   def removeOutputValue(self,name):
     """
-    Function to remove a value from the dictionary outParametersValues
-    @ In, name, parameter name
+      Function to remove a value from the dictionary outParametersValues
+      @ In, name, string, parameter name
+      @ Out, None
     """
     if self._dataParameters['hierarchical']:
       for TSData in self.TSData.values():
@@ -137,54 +146,57 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
 
   def updateInputValue(self,name,value,options=None):
     """
-    Function to update a value from the input dictionary
-    @ In, name, parameter name
-    @ In, value, the new value
-    @ In, parentID, optional, parent identifier in case Hierarchical fashion has been requested
+      Function to update a value from the input dictionary
+      @ In, name, string, parameter name
+      @ In, value, float, the new value
+      @ In, options, dict, optional, the dictionary of options to update the value (e.g. parentId, etc.)
+      @ Out, None
     """
     self._updateSpecializedInputValue(name,value,options)
 
   def updateOutputValue(self,name,value,options=None):
     """
-    Function to update a value from the output dictionary
-    @ In, name, parameter name
-    @ In, value, the new value
-    @ In, parentID, optional, parent identifier in case Hierarchical fashion has been requested
+      Function to update a value from the output dictionary
+      @ In, name, string, parameter name
+      @ In, value, float, the new value
+      @ In, options, dict, optional,  the dictionary of options to update the value (e.g. parentId, etc.)
+      @ Out, None
     """
     self._updateSpecializedOutputValue(name,value,options)
 
   def updateMetadata(self,name,value,options=None):
     """
-    Function to update a value from the dictionary metadata
-    @ In, name, parameter name
-    @ In, value, the new value
-    @ In, parentID, optional, parent identifier in case Hierarchical fashion has been requested
+      Function to update a value from the dictionary metadata
+      @ In, name, string, parameter name
+      @ In, value, float, the new value
+      @ In, options, dict, optional, dictionary of options
+      @ Out, None
     """
     self._updateSpecializedMetadata(name,value,options)
 
-  def getMetadata(self,keyword,nodeid=None,serialize=False):
+  def getMetadata(self,keyword,nodeId=None,serialize=False):
     """
-    Function to get a value from the dictionary metadata
-    @ In, keyword, parameter name
-    @ In, nodeid, optional, id of the node if hierarchical
-    @ In, serialize, optional, serialize the tree if in hierarchical mode
-    @ Out, return the metadata
+      Function to get a value from the dictionary metadata
+      @ In, keyword, string, parameter name
+      @ In, nodeId, string, optional, id of the node if hierarchical
+      @ In, serialize, bool, optional, serialize the tree if in hierarchical mode
+      @ Out, dictionary, dict, return the metadata dictionary
     """
     if self._dataParameters['hierarchical']:
-      if type(keyword) == int: return list(self.getHierParam('metadata',nodeid,None,serialize).values())[keyword-1]
-      else: return self.getHierParam('metadata',nodeid,keyword,serialize)
+      if type(keyword) == int: return list(self.getHierParam('metadata',nodeId,None,serialize).values())[keyword-1]
+      else: return self.getHierParam('metadata',nodeId,keyword,serialize)
     else:
       if keyword in self._dataContainer['metadata'].keys(): return self._dataContainer ['metadata'][keyword]
       else: self.raiseAnError(RuntimeError,'parameter ' + str(keyword) + ' not found in metadata dictionary. Available keys are '+str(self._dataContainer['metadata'].keys())+'.Function: Data.getMetadata')
 
-  def getAllMetadata(self,nodeid=None,serialize=False):
+  def getAllMetadata(self,nodeId=None,serialize=False):
     """
-    Function to get all the metadata
-    @ In, nodeid, optional, id of the node if hierarchical
-    @ In, serialize, optional, serialize the tree if in hierarchical mode
-    @ Out, return the metadata (s)
+      Function to get all the metadata
+      @ In, nodeId, string, optional, id of the node if hierarchical
+      @ In, serialize, bool, optional, serialize the tree if in hierarchical mode
+      @ Out, dictionary, dict, return the metadata dictionary
     """
-    if self._dataParameters['hierarchical']: return self.getHierParam('metadata',nodeid,None,serialize)
+    if self._dataParameters['hierarchical']: return self.getHierParam('metadata',nodeId,None,serialize)
     else                                   : return self._dataContainer['metadata']
 
   @abc.abstractmethod
@@ -192,6 +204,8 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     """
       This function is used to add specialized attributes to the data in order to retrieve the data properly.
       Every specialized data needs to overwrite it!!!!!!!!
+      @ In, None
+      @ Out, None
     """
     pass
 
@@ -199,20 +213,27 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
   def checkConsistency(self):
     """
       This function checks the consistency of the data structure... every specialized data needs to overwrite it!!!!!
+      @ In, None
+      @ Out, None
     """
     pass
 
   def acceptHierarchical(self):
     """
       This function returns a boolean. True if the specialized Data accepts the hierarchical structure
+      @ In, None
+      @ Out, acceptHierarchy, bool, flag is True if this class accepts the hierarchical structure
     """
     return self.acceptHierarchy
 
   def __getVariablesToPrint(self,var,inOrOut):
     """
-    Returns a list of variables to print.
-    Takes the variable and either 'input' or 'output'
-    In addition, if the variable belong to the metadata and metaAdditionalInOrOut, it will also return to print
+      Returns a list of variables to print.
+      Takes the variable and either 'input' or 'output'
+      In addition, if the variable belong to the metadata and metaAdditionalInOrOut, it will also return to print
+      @ In, var, string, variable name
+      @ In, inOrOut, string, type of variable (input or output)
+      @ Out, variablesToPrint, list, list of variables to print
     """
     variablesToPrint = []
     lvar = var.lower()
@@ -240,10 +261,11 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
 
   def printCSV(self,options=None):
     """
-    Function used to dump the data into a csv file
-    Every class must implement the specializedPrintCSV method
-    that is going to be called from here
-    @ In, OPTIONAL, options, dictionary of options... it can contain the filename to be used, the parameters need to be printed....
+      Function used to dump the data into a csv file
+      Every class must implement the specializedPrintCSV method
+      that is going to be called from here
+      @ In, options, dict, optional, dictionary of options... it can contain the filename to be used, the parameters need to be printed.
+      @ Out, None
     """
     optionsInt = {}
     # print content of data in a .csv format
@@ -263,35 +285,37 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
             variablesToPrint.extend(self.__getVariablesToPrint(var,'output'))
           else: self.raiseAnError(RuntimeError,'variable ' + var + ' is unknown in Data ' + self.name + '. You need to specify an input or a output')
         optionsInt['what'] = variablesToPrint
-    else:   filenameLocal = self.name + '_dump'
-
+    else: filenameLocal = self.name + '_dump'
     self.specializedPrintCSV(filenameLocal,optionsInt)
 
   def loadXMLandCSV(self,filenameRoot,options=None):
     """
-    Function to load the xml additional file of the csv for data
-    (it contains metadata, etc)
-    @ In, filenameRoot, file name
-    @ In, options, optional, dictionary -> options for loading
+      Function to load the xml additional file of the csv for data
+      (it contains metadata, etc)
+      @ In, filenameRoot, string, file name root
+      @ In, options, dict, optional, dictionary -> options for loading
+      @ Out, None
     """
     self._specializedLoadXMLandCSV(filenameRoot,options)
 
   def _specializedLoadXMLandCSV(self,filenameRoot,options):
     """
-    Function to load the xml additional file of the csv for data
-    (it contains metadata, etc). It must be implemented by the specialized classes
-    @ In, filenameRoot, file name
-    @ In, options, optional, dictionary -> options for loading
+      Function to load the xml additional file of the csv for data
+      (it contains metadata, etc). It must be implemented by the specialized classes
+      @ In, filenameRoot, string, file name root
+      @ In, options, dict, dictionary -> options for loading
+      @ Out, None
     """
     self.raiseAnError(RuntimeError,"specializedloadXMLandCSV not implemented "+str(self))
 
   def _createXMLFile(self,filenameLocal,fileType,inpKeys,outKeys):
     """
-    Creates an XML file to contain the input and output data list
-    @ In, filenameLocal, file name
-    @ In, fileType, file type (csv, xml)
-    @ In, inpKeys, list, input keys
-    @ In, outKeys, list, output keys
+      Creates an XML file to contain the input and output data list
+      @ In, filenameLocal, string, file name
+      @ In, fileType, string, file type (csv, xml)
+      @ In, inpKeys, list, input keys
+      @ In, outKeys, list, output keys
+      @ Out, None
     """
     myXMLFile = open(filenameLocal + '.xml', 'w')
     root = ET.Element('data',{'name':filenameLocal,'type':fileType})
@@ -314,9 +338,10 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
 
   def _loadXMLFile(self, filenameLocal):
     """
-    Function to load the xml additional file of the csv for data
-    (it contains metadata, etc). It must be implemented by the specialized classes
-    @ In, filenameRoot, file name
+      Function to load the xml additional file of the csv for data
+      (it contains metadata, etc). It must be implemented by the specialized classes
+      @ In, filenameLocal, string, file name
+      @ Out, retDict, dict, dictionary of keys, fileType etc.
     """
     myXMLFile = open(filenameLocal + '.xml', 'r')
     root = ET.fromstring(myXMLFile.read())
@@ -365,9 +390,10 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
   def addOutput(self,toLoadFrom,options=None):
     """
       Function to construct a data from a source
-      @ In, toLoadFrom, loading source, it can be an HDF5 database, a csv file and in the future a xml file
-      @ In, options, it's a dictionary of options. For example useful for metadata storing or,
+      @ In, toLoadFrom, string, loading source, it can be an HDF5 database, a csv file and in the future a xml file
+      @ In, options, dict, optional, it is a dictionary of options. For example useful for metadata storing or,
                      in case an hierarchical fashion has been requested, it must contain the parentID and the name of the actual 'branch'
+      @ Out, None
     """
     self._toLoadFromList.append(toLoadFrom)
     self.addSpecializedReadingSettings()
@@ -417,40 +443,43 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
         else:
           if tupleVar[2][hist]: self.raiseAnError(IOError,'unknown type for metadata adding process. Relevant type = '+ str(type(tupleVar[2][hist])))
     self.checkConsistency()
-    return
 
-  def getParametersValues(self,typeVar,nodeid=None, serialize=False):
+  def getParametersValues(self,typeVar,nodeId=None, serialize=False):
     """
-    Functions to get the parameter values
-    @ In, variable type (input or output)
+      Functions to get the parameter values
+      @ In, typeVar, string, variable type (input or output)
+      @ In, nodeId, string, optional, id of the node if hierarchical
+      @ In, serialize, bool, optional, serialize the tree if in hierarchical mode
+      @ Out, dictionary, dict, dictionary of parameter values
     """
-    if    typeVar.lower() in 'inputs' : return self.getInpParametersValues(nodeid,serialize)
-    elif  typeVar.lower() in 'outputs': return self.getOutParametersValues(nodeid,serialize)
+    if    typeVar.lower() in 'inputs' : return self.getInpParametersValues(nodeId,serialize)
+    elif  typeVar.lower() in 'outputs': return self.getOutParametersValues(nodeId,serialize)
     else: self.raiseAnError(RuntimeError,'type ' + typeVar + ' is not a valid type. Function: Data.getParametersValues')
 
   def getParaKeys(self,typePara):
     """
-    Functions to get the parameter keys
-    @ In, typePara, variable type (input or output)
+      Functions to get the parameter keys
+      @ In, typePara, string, variable type (input or output)
+      @ Out, keys, list, list of requested keys
     """
-    if   typePara.lower() in 'inputs' : return self._dataParameters['inParam' ]
-    elif typePara.lower() in 'outputs': return self._dataParameters['outParam']
-    else: self.raiseAnError(RuntimeError,'type ' + typePara + ' is not a valid type. Function: Data.getParaKeys')
-
+    if typePara.lower() not in ['input','inputs','output','outputs']: self.raiseAnError(RuntimeError,'type ' + typePara + ' is not a valid type. Function: Data.getParaKeys')
+    keys = self._dataParameters['inParam' ] if typePara.lower() in 'inputs' else self._dataParameters['outParam']
+    return keys
   def isItEmpty(self):
     """
-    Function to check if the data is empty
-    @ In, None
+      Function to check if the data is empty
+      @ In, None
+      @ Out, empty, bool, True if this instance is empty
     """
-    if len(self.getInpParametersValues().keys()) == 0 and len(self.getOutParametersValues()) == 0: return True
-    else:                                                                                          return False
+    empty = True if len(self.getInpParametersValues().keys()) == 0 and len(self.getOutParametersValues()) == 0 else False
+    return empty
 
   def __len__(self):
     """
-    Overriding of the __len__ method for data.
-    len(dataobject) is going to return the size of the first output element found in the self._dataParameters['outParams']
-    @ In, None
-    @ Out, integer, size of first output element
+      Overriding of the __len__ method for data.
+      len(dataobject) is going to return the size of the first output element found in the self._dataParameters['outParams']
+      @ In, None
+      @ Out, __len__, integer, size of first output element
     """
     if len(self._dataParameters['outParam']) == 0:
       return 0
@@ -460,67 +489,71 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       else:
         return self.sizeData('output',keyword=1)[1]
 
-  def sizeData(self,typeVar,keyword=None,nodeid=None,serialize=False):
+  def sizeData(self,typeVar,keyword=None,nodeId=None,serialize=False):
     """
-    Function to get the size of the Data.
-    @ In, typeVar, string, required, variable type (input/inputs, output/outputs, metadata)
-    @ In, keyword, string, optional, variable keyword. If None, the sizes of each variables are returned
-    @ In, nodeid, string, optional, id of the node if hierarchical
-    @ In, serialize, string, optional, serialize the tree if in hierarchical mode
-    @ Out, dictionary, keyword:size
+      Function to get the size of the Data.
+      @ In, typeVar, string, required, variable type (input/inputs, output/outputs, metadata)
+      @ In, keyword, string, optional, variable keyword. If None, the sizes of each variables are returned
+      @ In, nodeId, string, optional, id of the node if hierarchical
+      @ In, serialize, bool, optional, serialize the tree if in hierarchical mode
+      @ Out, outcome, dict, {keyword:size}
     """
     outcome   = {}
     emptyData = False
     if self.isItEmpty(): emptyData = True
     if typeVar.lower() in ['input','inputs','output','outputs']:
       if keyword != None:
-        if not emptyData: outcome[keyword] = len(self.getParam(typeVar,keyword,nodeid,serialize))
+        if not emptyData: outcome[keyword] = len(self.getParam(typeVar,keyword,nodeId,serialize))
         else            : outcome[keyword] = 0
       else:
         for key in self.getParaKeys(typeVar):
-          if not emptyData: outcome[key] = len(self.getParam(typeVar,key,nodeid,serialize))
+          if not emptyData: outcome[key] = len(self.getParam(typeVar,key,nodeId,serialize))
           else            : outcome[key] = 0
     elif typeVar.lower() == 'metadata':
       if keyword != None:
-        if not emptyData: outcome[keyword] = len(self.getMetadata(keyword,nodeid,serialize))
+        if not emptyData: outcome[keyword] = len(self.getMetadata(keyword,nodeId,serialize))
         else            : outcome[keyword] = 0
       else:
-        for key,value in self.getAllMetadata(nodeid,serialize):
+        for key,value in self.getAllMetadata(nodeId,serialize):
           if not emptyData: outcome[key] = len(value)
           else            : outcome[key] = 0
     else: self.raiseAnError(RuntimeError,'type ' + typeVar + ' is not a valid type. Function: Data.sizeData')
     return outcome
 
-  def getInpParametersValues(self,nodeid=None,serialize=False):
+  def getInpParametersValues(self,nodeId=None,serialize=False):
     """
-    Function to get a reference to the input parameter dictionary
-    @, In, nodeid, optional, in hierarchical mode, if nodeid is provided, the data for that node is returned,
-                             otherwise check explanation for getHierParam
-    @, In, serialize, optional, in hierarchical mode, if serialize is provided and is true a serialized data is returned
-                                PLEASE check explanation for getHierParam
-    @, Out, Reference to self._dataContainer['inputs'] or something else in hierarchical
+      Function to get a reference to the input parameter dictionary
+      @, In, nodeId, string, optional, in hierarchical mode, if nodeId is provided, the data for that node is returned,
+                                  otherwise check explanation for getHierParam
+      @ In, serialize, bool, optional, in hierarchical mode, if serialize is provided and is true a serialized data is returned
+                                  PLEASE check explanation for getHierParam
+      @, Out, dictionary, dict, Reference to self._dataContainer['inputs'] or something else in hierarchical
     """
-    if self._dataParameters['hierarchical']: return self.getHierParam('inputs',nodeid,serialize=serialize)
+    if self._dataParameters['hierarchical']: return self.getHierParam('inputs',nodeId,serialize=serialize)
     else:                                    return self._dataContainer['inputs']
 
-  def getOutParametersValues(self,nodeid=None,serialize=False):
+  def getOutParametersValues(self,nodeId=None,serialize=False):
     """
-    Function to get a reference to the output parameter dictionary
-    @, In, nodeid, optional, in hierarchical mode, if nodeid is provided, the data for that node is returned,
-                             otherwise check explanation for getHierParam
-    @, In, serialize, optional, in hierarchical mode, if serialize is provided and is true a serialized data is returned
-                                PLEASE check explanation for getHierParam
-    @, Out, Reference to self._dataContainer['outputs'] or something else in hierarchical
+      Function to get a reference to the output parameter dictionary
+      @, In, nodeId, string, optional, in hierarchical mode, if nodeId is provided, the data for that node is returned,
+                                  otherwise check explanation for getHierParam
+      @ In, serialize, bool, optional, in hierarchical mode, if serialize is provided and is true a serialized data is returned
+                                  PLEASE check explanation for getHierParam
+      @, Out, dictionary, dict, Reference to self._dataContainer['outputs'] or something else in hierarchical
     """
-    if self._dataParameters['hierarchical']: return self.getHierParam('outputs',nodeid,serialize=serialize)
+    if self._dataParameters['hierarchical']: return self.getHierParam('outputs',nodeId,serialize=serialize)
     else:                                    return self._dataContainer['outputs']
 
-  def getParam(self,typeVar,keyword,nodeid=None,serialize=False):
+  def getParam(self,typeVar,keyword,nodeId=None,serialize=False):
     """
-    Function to get a reference to an output or input parameter
-    @ In, typeVar, input or output
-    @ In, keyword, keyword
-    @ Out, Reference to the parameter
+      Function to get a reference to an output or input parameter
+      @ In, typeVar, string, input or output
+      @ In, keyword, string, keyword
+      @, In, nodeId, string, optional, in hierarchical mode, if nodeId is provided, the data for that node is returned,
+                                  otherwise check explanation for getHierParam
+      @ In, serialize, bool, optional, in hierarchical mode, if serialize is provided and is true a serialized data is returned
+                                  PLEASE check explanation for getHierParam
+      @ Out, value, float, Reference to the parameter
     """
     if self.type == 'HistorySet':
       acceptedType = ['str','unicode','bytes','int']
@@ -533,13 +566,13 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     if type(typeVar).__name__ not in ['str','unicode','bytes'] : self.raiseAnError(RuntimeError,'type of parameter typeVar needs to be a string. Function: Data.getParam')
     if type(keyword).__name__ not in acceptedType        :
       self.raiseAnError(RuntimeError,'type of parameter keyword needs to be '+str(acceptedType)+' . Function: Data.getParam')
-    if nodeid:
-      if type(nodeid).__name__ not in ['str','unicode','bytes']  : self.raiseAnError(RuntimeError,'type of parameter nodeid needs to be a string. Function: Data.getParam')
+    if nodeId:
+      if type(nodeId).__name__ not in ['str','unicode','bytes']  : self.raiseAnError(RuntimeError,'type of parameter nodeId needs to be a string. Function: Data.getParam')
     if typeVar.lower() not in ['input','inout','inputs','output','outputs']: self.raiseAnError(RuntimeError,'type ' + typeVar + ' is not a valid type. Function: Data.getParam')
     if self._dataParameters['hierarchical']:
       if type(keyword) == int:
-        return list(self.getHierParam(typeVar.lower(),nodeid,None,serialize).values())[keyword-1]
-      else: return self.getHierParam(typeVar.lower(),nodeid,keyword,serialize)
+        return list(self.getHierParam(typeVar.lower(),nodeId,None,serialize).values())[keyword-1]
+      else: return self.getHierParam(typeVar.lower(),nodeId,keyword,serialize)
     else:
       if typeVar.lower() in ['input','inputs']:
         returnDict = {}
@@ -558,53 +591,68 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
         if keyword in self._dataContainer['outputs'].keys(): return convertArr(self._dataContainer['outputs'][keyword])
         else: self.raiseAnError(RuntimeError,self.name+' : parameter ' + str(keyword) + ' not found in outParametersValues dictionary. Available keys are '+str(self._dataContainer['outputs'].keys())+'.Function: Data.getParam')
 
-  def extractValue(self,varTyp,varName,varID=None,stepID=None,nodeid='root'):
+  def extractValue(self,varTyp,varName,varID=None,stepID=None,nodeId='root'):
     """
-    this a method that is used to extract a value (both array or scalar) attempting an implicit conversion for scalars
-    the value is returned without link to the original
-    @in varType is the requested type of the variable to be returned (bool, int, float, numpy.ndarray, etc)
-    @in varName is the name of the variable that should be recovered
-    @in varID is the ID of the value that should be retrieved within a set
-      if varID.type!=tuple only one point along sampling of that variable is retrieved
-        else:
-          if varID=(int,int) the slicing is [varID[0]:varID[1]]
-          if varID=(int,None) the slicing is [varID[0]:]
-    @in stepID determine the slicing of an history.
-        if stepID.type!=tuple only one point along the history is retrieved
-        else:
-          if stepID=(int,int) the slicing is [stepID[0]:stepID[1]]
-          if stepID=(int,None) the slicing is [stepID[0]:]
-    @in nodeid , in hierarchical mode, is the node from which the value needs to be extracted... by default is the root
+      this a method that is used to extract a value (both array or scalar) attempting an implicit conversion for scalars
+      the value is returned without link to the original
+      @ In, varTyp, string, is the requested type of the variable to be returned (bool, int, float, numpy.ndarray, etc)
+      @ In, varName, string, is the name of the variable that should be recovered
+      @ In, varID, tuple or int, optional, is the ID of the value that should be retrieved within a set
+        if varID.type!=tuple only one point along sampling of that variable is retrieved
+          else:
+            if varID=(int,int) the slicing is [varID[0]:varID[1]]
+            if varID=(int,None) the slicing is [varID[0]:]
+      @ In, stepID, tuple or int, optional, it  determines the slicing of an history.
+          if stepID.type!=tuple only one point along the history is retrieved
+          else:
+            if stepID=(int,int) the slicing is [stepID[0]:stepID[1]]
+            if stepID=(int,None) the slicing is [stepID[0]:]
+      @ In, nodeId , string, optional, in hierarchical mode, is the node from which the value needs to be extracted... by default is the root
+      @ Out, value, the requested value
     """
 
-    myType=self.type
     if   varName in self._dataParameters['inParam' ]: inOutType = 'input'
     elif varName in self._dataParameters['outParam']: inOutType = 'output'
     else: self.raiseAnError(RuntimeError,'the variable named '+varName+' was not found in the data: '+self.name)
-    return self.__extractValueLocal__(myType,inOutType,varTyp,varName,varID,stepID,nodeid)
+    return self.__extractValueLocal__(inOutType,varTyp,varName,varID,stepID,nodeId)
 
   @abc.abstractmethod
-  def __extractValueLocal__(self,myType,inOutType,varTyp,varName,varID=None,stepID=None,nodeid='root'):
+  def __extractValueLocal__(self,inOutType,varTyp,varName,varID=None,stepID=None,nodeId='root'):
     """
-      this method has to be override to implement the specialization of extractValue for each data class
+      This method has to be override to implement the specialization of extractValue for each data class
+      @ In, inOutType, string, the type of data to extract (input or output)
+      @ In, varTyp, string, is the requested type of the variable to be returned (bool, int, float, numpy.ndarray, etc)
+      @ In, varName, string, is the name of the variable that should be recovered
+      @ In, varID, tuple or int, optional,  is the ID of the value that should be retrieved within a set
+        if varID.type!=tuple only one point along sampling of that variable is retrieved
+          else:
+            if varID=(int,int) the slicing is [varID[0]:varID[1]]
+            if varID=(int,None) the slicing is [varID[0]:]
+      @ In, stepID, tuple or int, optional, it  determines the slicing of an history.
+          if stepID.type!=tuple only one point along the history is retrieved
+          else:
+            if stepID=(int,int) the slicing is [stepID[0]:stepID[1]]
+            if stepID=(int,None) the slicing is [stepID[0]:]
+      @ In, nodeId, string, optional, in hierarchical mode, is the node from which the value needs to be extracted... by default is the root
+      @ Out, value, the requested value
     """
     pass
 
-  def getHierParam(self,typeVar,nodeid,keyword=None,serialize=False):
+  def getHierParam(self,typeVar,nodeId,keyword=None,serialize=False):
     """
       This function get a parameter when we are in hierarchical mode
       @ In,  typeVar,  string, it's the variable type... input,output, or inout
-      @ In,  nodeid,   string, it's the node name... if == None or *, a dictionary of of data is returned, otherwise the actual node data is returned in a dict as well (see serialize attribute)
+      @ In,  nodeId,   string, it's the node name... if == None or *, a dictionary of of data is returned, otherwise the actual node data is returned in a dict as well (see serialize attribute)
       @ In, keyword,   string, it's a parameter name (for example, cladTemperature), if None, the whole dict is returned, otherwise the parameter value is got (see serialize attribute)
       @ In, serialize, bool  , if true a sequence of PointSet is generated (a dictionary where the keys are the 'ending' branches and the values are a sorted list of _dataContainers (from first branch to the ending ones)
-                               if false see explanation for nodeid
-      @ Out, a dictionary of data (see above)
+                               if false see explanation for nodeId
+      @ Out, nodesDict, dict, a dictionary of data (see above)
     """
     if type(keyword).__name__ in ['str','unicode','bytes']:
       if keyword == 'none': keyword = None
     nodesDict = {}
     if not self.TSData: return nodesDict
-    if not nodeid or nodeid=='*':
+    if not nodeId or nodeId=='*':
       # we want all the nodes
       if serialize:
         # we want all the nodes and serialize them
@@ -629,7 +677,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
             elif typeVar in ['inputs','input']   and     keyword: nodesDict[node.name] = np.asarray(node.get('dataContainer')['inputs'  ][keyword])
             elif typeVar in ['output','outputs'] and     keyword: nodesDict[node.name] = np.asarray(node.get('dataContainer')['outputs' ][keyword])
             elif typeVar in 'metadata'           and     keyword: nodesDict[node.name] = np.asarray(node.get('dataContainer')['metadata'][keyword])
-    elif nodeid == 'ending':
+    elif nodeId == 'ending':
       for TSDat in self.TSData.values():
         for ending in TSDat.iterEnding():
           if typeVar   in 'inout'              and not keyword: nodesDict[ending.name] = ending.get('dataContainer')
@@ -639,7 +687,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
           elif typeVar in ['inputs','input']   and     keyword: nodesDict[ending.name] = np.asarray(ending.get('dataContainer')['inputs'  ][keyword])
           elif typeVar in ['output','outputs'] and     keyword: nodesDict[ending.name] = np.asarray(ending.get('dataContainer')['outputs' ][keyword])
           elif typeVar in 'metadata'           and     keyword: nodesDict[ending.name] = np.asarray(ending.get('dataContainer')['metadata'][keyword])
-    elif nodeid == 'RecontructEnding':
+    elif nodeId == 'RecontructEnding':
       # if history, reconstruct the history... if Point set take the last one (see below)
       backTrace = {}
       for TSData in self.TSData.values():
@@ -701,22 +749,22 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       # we want a particular node
       found = False
       for TSDat in self.TSData.values():
-        #a = TSDat.iter(nodeid)
+        #a = TSDat.iter(nodeId)
         #b = TSDat.iterWholeBackTrace(a)
         nodelist = []
-        for node in TSDat.iter(nodeid):
+        for node in TSDat.iter(nodeId):
           if serialize:
             for se in list(TSDat.iterWholeBackTrace(node)): nodelist.append(se)
           else: nodelist.append(node)
           break
-        #nodelist = list(TSDat.iterWholeBackTrace(TSDat.iter(nodeid)[0]))
+        #nodelist = list(TSDat.iterWholeBackTrace(TSDat.iter(nodeId)[0]))
         if len(nodelist) > 0:
           found = True
           break
-      if not found: self.raiseAnError(RuntimeError,'Starting node called '+ nodeid+ ' not found!')
+      if not found: self.raiseAnError(RuntimeError,'Starting node called '+ nodeId+ ' not found!')
       if serialize:
         # we want a particular node and serialize it
-        nodesDict[nodeid] = []
+        nodesDict[nodeId] = []
         for se in nodelist:
           if typeVar   in 'inout' and not keyword             : nodesDict[node.name].append( se.get('dataContainer'))
           elif typeVar in ['inputs','input'] and not keyword  : nodesDict[node.name].append( se.get('dataContainer')['inputs'  ])
@@ -726,13 +774,13 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
           elif typeVar in ['output','outputs'] and keyword    : nodesDict[node.name].append( np.asarray(se.get('dataContainer')['outputs' ][keyword]))
           elif typeVar in 'metadata' and keyword              : nodesDict[node.name].append( np.asarray(se.get('dataContainer')['metadata'][keyword]))
       else:
-        if typeVar   in 'inout'              and not keyword: nodesDict[nodeid] = nodelist[-1].get('dataContainer')
-        elif typeVar in ['inputs','input']   and not keyword: nodesDict[nodeid] = nodelist[-1].get('dataContainer')['inputs'  ]
-        elif typeVar in ['output','outputs'] and not keyword: nodesDict[nodeid] = nodelist[-1].get('dataContainer')['outputs' ]
-        elif typeVar in 'metadata'           and not keyword: nodesDict[nodeid] = nodelist[-1].get('dataContainer')['metadata']
-        elif typeVar in ['inputs','input']   and     keyword: nodesDict[nodeid] = np.asarray(nodelist[-1].get('dataContainer')['inputs'  ][keyword])
-        elif typeVar in ['output','outputs'] and     keyword: nodesDict[nodeid] = np.asarray(nodelist[-1].get('dataContainer')['outputs' ][keyword])
-        elif typeVar in 'metadata'           and     keyword: nodesDict[nodeid] = np.asarray(nodelist[-1].get('dataContainer')['metadata'][keyword])
+        if typeVar   in 'inout'              and not keyword: nodesDict[nodeId] = nodelist[-1].get('dataContainer')
+        elif typeVar in ['inputs','input']   and not keyword: nodesDict[nodeId] = nodelist[-1].get('dataContainer')['inputs'  ]
+        elif typeVar in ['output','outputs'] and not keyword: nodesDict[nodeId] = nodelist[-1].get('dataContainer')['outputs' ]
+        elif typeVar in 'metadata'           and not keyword: nodesDict[nodeId] = nodelist[-1].get('dataContainer')['metadata']
+        elif typeVar in ['inputs','input']   and     keyword: nodesDict[nodeId] = np.asarray(nodelist[-1].get('dataContainer')['inputs'  ][keyword])
+        elif typeVar in ['output','outputs'] and     keyword: nodesDict[nodeId] = np.asarray(nodelist[-1].get('dataContainer')['outputs' ][keyword])
+        elif typeVar in 'metadata'           and     keyword: nodesDict[nodeId] = np.asarray(nodelist[-1].get('dataContainer')['metadata'][keyword])
     return nodesDict
 
   def retrieveNodeInTreeMode(self,nodeName,parentName=None):
@@ -742,6 +790,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ In, nodeName, string, is the node we want to retrieve
       @ In, parentName, string, optional, is the parent name... It's possible that multiple nodes have the same name.
                                           With the parentName, it's possible to perform a double check
+      @ Out, foundNodes, TreeStructure.Node, the found nodes
     """
     if not self.TSData: # there is no tree yet
       self.TSData = {nodeName:TS.NodeTree(TS.Node(nodeName))}
@@ -767,8 +816,8 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     """
       This Method is used to add a node into the tree when the hierarchical mode is requested
       If the node has not been found, Create a new one
-      @ In, tsnode, the node
-      @ In, options, dict, parentID must be present if newer node
+      @ In, tsnode, TreeStructure.Node, the node
+      @ In, options, dict, dictionary of options. parentID must be present if newer node
     """
     if not tsnode.getParentName():
       parentID = None

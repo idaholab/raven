@@ -1,8 +1,8 @@
-'''
+"""
 Created on Apr 20, 2015
 
 @author: talbpaul
-'''
+"""
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
@@ -13,7 +13,6 @@ if not 'xrange' in dir(__builtins__):
 
 #External Modules------------------------------------------------------------------------------------
 import sys
-import os
 import time
 #External Modules End--------------------------------------------------------------------------------
 
@@ -25,7 +24,7 @@ import utils
 #custom exceptions
 class NoMoreSamplesNeeded(GeneratorExit): pass
 
-'''
+"""
 HOW THIS MODULE WORKS
 
 The intention is for a single instance of the MessageHandler class to exist in any simulation.
@@ -59,7 +58,7 @@ all other levels.
 
 TL;DR: MessageUser is a superclass that gives access to hooks to the simulation's MessageHandler
 instance, while the MessageHandler is an output stream control tool.
-'''
+"""
 
 class MessageUser(object):
   """
@@ -70,11 +69,11 @@ class MessageUser(object):
   def raiseAnError(self,etype,*args,**kwargs):
     """
       Raises an error. By default shows in all verbosity levels.
-      @ In, etype, Exception class to raise (e.g. IOError)
-      @ In, *args, comma-seperated list of things to put in message (as print() function)
-      @ In, **kwargs, optional arguments, which can be:
-                      verbosity, the priority of the message (default 'silent')
-                      tag, the message label (default 'ERROR')
+      @ In, etype, Exception, Exception class to raise (e.g. IOError)
+      @ In, *args, dict, comma-seperated list of things to put in message (as print() function)
+      @ In, **kwargs, dict, optional arguments, which can be:
+                            verbosity, the priority of the message (default 'silent')
+                            tag, the message label (default 'ERROR')
       @ Out, None
     """
     verbosity = kwargs.get('verbosity','silent')
@@ -86,10 +85,10 @@ class MessageUser(object):
   def raiseAWarning(self,*args,**kwargs):
     """
       Prints a warning. By default shows in 'quiet', 'all', and 'debug'
-      @ In, *args, comma-seperated list of things to put in message (as print() function)
-      @ In, **kwargs, optional arguments, which can be:
-                      verbosity, the priority of the message (default 'quiet')
-                      tag, the message label (default 'Warning')
+      @ In, *args, dict, comma-seperated list of things to put in message (as print() function)
+      @ In, **kwargs, dict, optional arguments, which can be:
+                            verbosity, the priority of the message (default 'quiet')
+                            tag, the message label (default 'Warning')
       @ Out, None
     """
     verbosity = kwargs.get('verbosity','quiet'  )
@@ -101,10 +100,10 @@ class MessageUser(object):
   def raiseAMessage(self,*args,**kwargs):
     """
       Prints a message. By default shows in 'all' and 'debug'
-      @ In, *args, comma-seperated list of things to put in message (as print() function)
-      @ In, **kwargs, optional arguments, which can be:
-                      verbosity, the priority of the message (default 'all')
-                      tag, the message label (default 'Message')
+      @ In, *args, dict, comma-seperated list of things to put in message (as print() function)
+      @ In, **kwargs, dict, optional arguments, which can be:
+                            verbosity, the priority of the message (default 'all')
+                            tag, the message label (default 'Message')
       @ Out, None
     """
     verbosity = kwargs.get('verbosity','all'    )
@@ -116,10 +115,10 @@ class MessageUser(object):
   def raiseADebug(self,*args,**kwargs):
     """
       Prints a debug message. By default shows only in 'debug'
-      @ In, *args, comma-seperated list of things to put in message (as print() function)
-      @ In, **kwargs, optional arguments, which can be:
-                      verbosity, the priority of the message (default 'debug')
-                      tag, the message label (default 'DEBUG')
+      @ In, *args, dict, comma-seperated list of things to put in message (as print() function)
+      @ In, **kwargs, dict, optional arguments, which can be:
+                            verbosity, the priority of the message (default 'debug')
+                            tag, the message label (default 'DEBUG')
       @ Out, None
     """
     verbosity = kwargs.get('verbosity','debug')
@@ -131,8 +130,8 @@ class MessageUser(object):
   def getLocalVerbosity(self,default=None):
     """
       Attempts to learn the local verbosity level of itself
-      @ OPTIONAL In, default, the verbosity level to return if not found
-      @ Out, string, verbosity type (e.g. 'all')
+      @ In, default, string, optional, the verbosity level to return if not found
+      @ Out, verbosity, string, verbosity type (e.g. 'all')
     """
     if hasattr(self,'verbosity'): return self.verbosity
     else: return default
@@ -140,14 +139,14 @@ class MessageUser(object):
 
 class MessageHandler(object):
   """
-  Class for handling messages, warnings, and errors in RAVEN.  One instance of this
-  class should be created at the start of the Simulation and propagated through
-  the readMoreXML function of the BaseClass, and initialization of other classes.
+    Class for handling messages, warnings, and errors in RAVEN.  One instance of this
+    class should be created at the start of the Simulation and propagated through
+    the readMoreXML function of the BaseClass, and initialization of other classes.
   """
   def __init__(self):
     """
       Init of class
-      @In, None
+      @ In, None
       @ Out, None
     """
     self.starttime    = time.time()
@@ -168,11 +167,10 @@ class MessageHandler(object):
       'cyan'    : '\033[36m'}
     self.warnings     = [] #collection of warnings that were raised during this run
 
-
   def initialize(self,initDict):
     """
       Initializes basic instance attributes
-      @ In, initDict, dictionary of global options
+      @ In, initDict, dict, dictionary of global options
       @ Out, None
     """
     self.verbosity     = initDict.get('verbosity','all')
@@ -198,7 +196,7 @@ class MessageHandler(object):
       Formats string with color
       @ In, str, string, string
       @ In, color, string, color name
-      @ Out, string, formatted string
+      @ Out, paint, string, formatted string
     """
     if color.lower() not in self.colors.keys():
       self.messaage(self,'Requested color %s not recognized!  Skipping...' %color,'Warning','quiet')
@@ -206,19 +204,19 @@ class MessageHandler(object):
     return self.colors[color.lower()]+str+self.colors['neutral']
 
   def setTimePrint(self,msg):
-      '''
-        Allows the code to toggle timestamp printing.
-        @ In, msg, the string that means true or false
-        @ Out, None
-      '''
-      if msg.lower() in utils.stringsThatMeanTrue():
-          self.callerLength = 40
-          self.tagLength = 30
-          self.printTime = True
-      elif msg.lower() in utils.stringsThatMeanFalse():
-          self.callerLength = 25
-          self.tagLength = 15
-          self.printTime = False
+    """
+      Allows the code to toggle timestamp printing.
+      @ In, msg, string, the string that means true or false
+      @ Out, None
+    """
+    if msg.lower() in utils.stringsThatMeanTrue():
+      self.callerLength = 40
+      self.tagLength = 30
+      self.printTime = True
+    elif msg.lower() in utils.stringsThatMeanFalse():
+      self.callerLength = 25
+      self.tagLength = 15
+      self.printTime = False
 
   def setColor(self,inColor):
     """
@@ -232,8 +230,8 @@ class MessageHandler(object):
   def getStringFromCaller(self,obj):
     """
       Determines the appropriate print string from an object
-      @ In, obj, preferably an object with a printTag method; otherwise, a string or an object
-      @ Out, tag, string to print
+      @ In, obj, instance, preferably an object with a printTag method; otherwise, a string or an object
+      @ Out, tag, string, string to print
     """
     if type(obj).__name__ in ['str','unicode']: return obj
     if hasattr(obj,'printTag'):
@@ -245,22 +243,24 @@ class MessageHandler(object):
   def getDesiredVerbosity(self,caller):
     """
       Tries to use local verbosity; otherwise uses global
-      @ In, caller, the object desiring to print
-      @ Out, integer, integer equivalent to verbosity level
+      @ In, caller, instance, the object desiring to print
+      @ Out, desVerbosity, int, integer equivalent to verbosity level
     """
     localVerb = caller.getLocalVerbosity(default=self.verbosity)
     if localVerb == None: localVerb = self.verbosity
-    return self.checkVerbosity(localVerb) #self.verbCode[str(localVerb).strip().lower()]
+    desVerbosity = self.checkVerbosity(localVerb)
+    return desVerbosity
 
   def checkVerbosity(self,verb):
     """
       Converts English-readable verbosity to computer-legible integer
-      @ In, verb, the string verbosity equivalent
-      @ Out, integer, integer equivalent to verbosity level
+      @ In, verb, string, the string verbosity equivalent
+      @ Out, currentVerb, int, integer equivalent to verbosity level
     """
     if str(verb).strip().lower() not in self.verbCode.keys():
       raise IOError('Verbosity key '+str(verb)+' not recognized!  Options are '+str(self.verbCode.keys()+[None]),'ERROR','silent')
-    return self.verbCode[str(verb).strip().lower()]
+    currentVerb = self.verbCode[str(verb).strip().lower()]
+    return currentVerb
 
   def error(self,caller,etype,message,tag='ERROR',verbosity='silent',color=None):
     """
@@ -268,9 +268,9 @@ class MessageHandler(object):
       @ In, caller, object, the entity desiring to print a message
       @ In, etype, Error, the type of error to throw
       @ In, message, string, the message to print
-      @ In, tag, string, the printed message type (usually Message, Debug, or Warning, and sometimes FIXME)
-      @ In, verbosity, string, the print priority of the message
-      @ In, color, optional string, color to apply to message
+      @ In, tag, string, optional, the printed message type (usually Message, Debug, or Warning, and sometimes FIXME)
+      @ In, verbosity, string, optional, the print priority of the message
+      @ In, color, string, optional, color to apply to message
       @ Out, None
     """
     verbval = max(self.getDesiredVerbosity(caller),self.checkVerbosity(self.verbosity))
@@ -290,7 +290,7 @@ class MessageHandler(object):
       @ In, message, string, the message to print
       @ In, tag, string, the printed message type (usually Message, Debug, or Warning, and sometimes FIXME)
       @ In, verbosity, string, the print priority of the message
-      @ In, color, optional string, color to apply to message
+      @ In, color, string, optional, color to apply to message
       @ Out, None
     """
     verbval = self.checkVerbosity(verbosity)
@@ -307,9 +307,9 @@ class MessageHandler(object):
       @ In, message, string, the message to print
       @ In, tag    , string, the printed message type (usually Message, Debug, or Warning, and sometimes FIXME)
       @ In, verbval, int   , the print priority of the message
-      @ In, color  , optional string, color to apply to message
-      @ Out, bool  , indication if the print should be allowed
-      @ Out, msg   , the formatted message
+      @ In, color, string, optional, color to apply to message
+      @ Out, (shouldIPrint,msg), tuple, shouldIPrint -> bool, indication if the print should be allowed
+                                        msg          -> string, the formatted message
     """
     #allows raising standardized messages
     shouldIPrint = False
@@ -326,8 +326,8 @@ class MessageHandler(object):
       @ In, pre  , string, who is printing the message
       @ In, tag  , string, the type of message being printed (Error, Warning, Message, Debug, FIXME, etc)
       @ In, post , string, the actual message body
-      @ In, color, optional string, the color to apply to the message
-      @ Out, string, formatted message
+      @ In, color, string, optional, color to apply to message
+      @ Out, msg, string, formatted message
     """
     msg = ''
     if self.printTime:

@@ -7,17 +7,11 @@ if not 'xrange' in dir(__builtins__):
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
-import sys
-import os
-import time
-import copy
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-import utils
 import BaseClasses
 #Internal Modules End--------------------------------------------------------------------------------
-
 
 class VariableGroup(BaseClasses.BaseType):
   """
@@ -26,6 +20,8 @@ class VariableGroup(BaseClasses.BaseType):
   def __init__(self):
     """
       Constructor
+      @ In, None
+      @ Out, None
     """
     BaseClasses.BaseType.__init__(self)
     self.printTag       = 'VariableGroup'
@@ -38,7 +34,7 @@ class VariableGroup(BaseClasses.BaseType):
   def _readMoreXML(self,node):
     """
       reads XML for more information
-      @ In, node, ET.Element, xml element to read data from
+      @ In, node, xml.etree.ElementTree.Element, xml element to read data from
       @ Out, None
     """
     #establish the name
@@ -111,7 +107,7 @@ class VariableGroup(BaseClasses.BaseType):
     """
       Returns list object of strings containing variable group names
       @ In, None
-      @ Out, list(str), list of variable group names
+      @ Out, _dependents, list(str), list of variable group names
     """
     return self._dependents[:]
 
@@ -119,17 +115,18 @@ class VariableGroup(BaseClasses.BaseType):
     """
       Returns set object of strings containing variable names in group
       @ In, None
-      @ Out, set(str), set of variable names
+      @ Out, variables, set(str), set of variable names
     """
     return self.variables.copy()
 
   def getVarsString(self,delim=','):
     """
       Returns delim-separated list of variables in group
-      @ In, delim, string, delimiter
-      @ Out, string, list of variables in comma-separated string
+      @ In, delim, string, optional, delimiter (default = ',')
+      @ Out, csvVariablesString, string, list of variables in comma-separated string
     """
-    return ','.join(self.getVars())
+    csvVariablesString = ','.join(self.getVars())
+    return csvVariablesString
 #
 #
 #

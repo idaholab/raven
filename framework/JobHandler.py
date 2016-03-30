@@ -14,7 +14,6 @@ if not 'xrange' in dir(__builtins__):
 #External Modules------------------------------------------------------------------------------------
 try               : import Queue as queue
 except ImportError: import queue
-import subprocess
 import os
 import signal
 import copy
@@ -40,19 +39,19 @@ import MessageHandler
 
 class ExternalRunner(MessageHandler.MessageUser):
   """
-  Class for running external codes
+    Class for running external codes
   """
   def __init__(self,messageHandler,command,workingDir,bufsize,output=None,metadata=None,codePointer=None):
     """
-     Initialize command variable
-     @ In, messageHandler, MessageHandler instance, the global RAVEN message handler instance
-     @ In, command, list, list of command that needs to be executed
-     @ In, workingDir, string, absolute path of the working directory
-     @ In, bufsize, int, buffer size for logger
-     @ In, output, string, optional, output filename root
-     @ In, metadata, dict, optional, dictionary of metadata associated with this ExternalRunner
-     @ In, codePointer, CodeInterface instance, optional, instance of the code interface associated with this ExternalRunner
-     @ Out, None
+      Initialize command variable
+      @ In, messageHandler, MessageHandler instance, the global RAVEN message handler instance
+      @ In, command, list, list of commands that needs to be executed
+      @ In, workingDir, string, absolute path of the working directory
+      @ In, bufsize, int, buffer size for logger
+      @ In, output, string, optional, output filename root
+      @ In, metadata, dict, optional, dictionary of metadata associated with this ExternalRunner
+      @ In, codePointer, CodeInterface instance, optional, instance of the code interface associated with this ExternalRunner
+      @ Out, None
     """
     self.codePointerFailed = None
     self.messageHandler = messageHandler
@@ -137,23 +136,24 @@ class ExternalRunner(MessageHandler.MessageUser):
 
   def isDone(self):
     """
-     Function to inquire the process to check if the calculation is finished
-     @ In, None
-     @ Out, finished, bool, is this run finished?
+      Function to inquire the process to check if the calculation is finished
+      @ In, None
+      @ Out, finished, bool, is this run finished?
     """
     self.__process.poll()
-    return self.__process.returncode != None
+    finished = self.__process.returncode != None
+    return finished
 
   def getReturnCode(self):
     """
-     Function to inquire the process to get the return code
-     If the self.codePointer is available (!= None), this method
-     inquires it to check if the process return code is a false negative (or positive).
-     The first time the codePointer is inquired, it calls the function and store the result
-     => sub-sequential calls to getReturnCode will not inquire the codePointer anymore but
-     just return the stored value
-     @ In, None
-     @ Out, returnCode, int, return code
+      Function to inquire the process to get the return code
+      If the self.codePointer is available (!= None), this method
+      inquires it to check if the process return code is a false negative (or positive).
+      The first time the codePointer is inquired, it calls the function and store the result
+      => sub-sequential calls to getReturnCode will not inquire the codePointer anymore but
+      just return the stored value
+      @ In, None
+      @ Out, returnCode, int, return code.  1 if the checkForOutputFailure is true, otherwise the process return code.
     """
     returnCode = self.__process.returncode
     if self.codePointer != None:
@@ -164,25 +164,25 @@ class ExternalRunner(MessageHandler.MessageUser):
 
   def returnEvaluation(self):
     """
-     Function to return the External runner evaluation (outcome/s). Since in process, return None
-     @ In, None
-     @ Out, None
+      Function to return the External runner evaluation (outcome/s). Since in process, return None
+      @ In, None
+      @ Out, evaluation, tuple, the evaluation or None if run failed
     """
     return None
 
   def returnMetadata(self):
     """
-     Function to return the External runner metadata
-     @ In, None
-     @ Out, __metadata, dict, return the dictionary of metadata associated with this ExternalRunner
+      Function to return the External runner metadata
+      @ In, None
+      @ Out, __metadata, dict, return the dictionary of metadata associated with this ExternalRunner
     """
     return self.__metadata
 
   def start(self):
     """
-     Function to run the driven code
-     @ In, None
-     @ Out, None
+      Function to run the driven code
+      @ In, None
+      @ Out, None
     """
     oldDir = os.getcwd()
     os.chdir(self.__workingDir)
@@ -193,26 +193,26 @@ class ExternalRunner(MessageHandler.MessageUser):
 
   def kill(self):
     """
-     Function to kill the subprocess of the driven code
-     @ In, None
-     @ Out, None
+      Function to kill the subprocess of the driven code
+      @ In, None
+      @ Out, None
     """
     self.raiseAMessage("Terminating "+self.__process.pid+' '+self.command)
     self.__process.terminate()
 
   def getWorkingDir(self):
     """
-     Function to get the working directory path
-     @ In, None
-     @ Out, __workingDir, string, working directory
+      Function to get the working directory path
+      @ In, None
+      @ Out, __workingDir, string, working directory
     """
     return self.__workingDir
 
   def getOutputFilename(self):
     """
-     Function to get the output filenames
-     @ In, None
-     @ Out, self.output, string, output filename root
+      Function to get the output filenames
+      @ In, None
+      @ Out, self.output, string, output filename root
     """
     return os.path.join(self.__workingDir,self.output)
 #
@@ -221,22 +221,22 @@ class ExternalRunner(MessageHandler.MessageUser):
 #
 class InternalRunner(MessageHandler.MessageUser):
   """
-  Class for running internal objects
+    Class for running internal objects
   """
   def __init__(self,messageHandler,ppserver, Input, functionToRun, frameworkModules = [], identifier=None, metadata=None, functionToSkip = None, forceUseThreads = False):
     """
-     Init method
-     @ In, messageHandler, MessageHandler object, the global RAVEN message handler object
-     @ In, ppserver, ppserver, instance of the ppserver object
-     @ In, Input, list, list of inputs that are going to be passed to the function as *args
-     @ In, functionToRun, method or function, function that needs to be run
-     @ In, frameworkModules, list, optional, list of modules that need to be imported for internal parallelization (parallel python).
+      Init method
+      @ In, messageHandler, MessageHandler object, the global RAVEN message handler object
+      @ In, ppserver, ppserver, instance of the ppserver object
+      @ In, Input, list, list of inputs that are going to be passed to the function as *args
+      @ In, functionToRun, method or function, function that needs to be run
+      @ In, frameworkModules, list, optional, list of modules that need to be imported for internal parallelization (parallel python).
                                              this list should be generated with the method returnImportModuleString in utils.py
-     @ In, identifier, string, optional, id of this job
-     @ In, metadata, dict, optional, dictionary of metadata associated with this run
-     @ In, functionToSkip, list, optional, list of functions, classes and modules that need to be skipped in pickling the function dependencies
-     @ In, forceUseThreads, bool, optional, flag that, if True, is going to force the usage of multi-threading even if parallel python is activated
-     @ Out, None
+      @ In, identifier, string, optional, id of this job
+      @ In, metadata, dict, optional, dictionary of metadata associated with this run
+      @ In, functionToSkip, list, optional, list of functions, classes and modules that need to be skipped in pickling the function dependencies
+      @ In, forceUseThreads, bool, optional, flag that, if True, is going to force the usage of multi-threading even if parallel python is activated
+      @ Out, None
     """
     # we keep the command here, in order to have the hook for running exec code into internal models
     self.command  = "internal"
@@ -262,9 +262,9 @@ class InternalRunner(MessageHandler.MessageUser):
 
   def __deepcopy__(self,memo):
     """
-     This is the method called with copy.deepcopy.  Overwritten to remove some keys.
-     @ In, memo, dict, dictionary required by deepcopy method
-     @ Out, newobj, object, deep copy of this object
+      This is the method called with copy.deepcopy.  Overwritten to remove some keys.
+      @ In, memo, dict, dictionary required by deepcopy method
+      @ Out, newobj, object, deep copy of this object
     """
     cls = self.__class__
     newobj = cls.__new__(cls)
@@ -279,9 +279,9 @@ class InternalRunner(MessageHandler.MessageUser):
 
   def startParallelPython(self):
     """
-     Method to start the calculation associated with this InternalRunner is finished
-     @ In, None
-     @ Out, None
+      Method to start the calculation associated with this InternalRunner is finished
+      @ In, None
+      @ Out, None
     """
     if self.ppserver != None and not self.__forceUseThreads:
       if len(self.__input) == 1: self.__thread = self.ppserver.submit(self.functionToRun, args= (self.__input[0],), depfuncs=(), modules = tuple(list(set(self.__frameworkMods))),functionToSkip=self._functionToSkip)
@@ -294,9 +294,9 @@ class InternalRunner(MessageHandler.MessageUser):
 
   def isDone(self):
     """
-     Method to check if the calculation associated with this InternalRunner is finished
-     @ In, None
-     @ Out, finished, bool, is it finished?
+      Method to check if the calculation associated with this InternalRunner is finished
+      @ In, None
+      @ Out, finished, bool, is it finished?
     """
     if self.__thread == None: return True
     else:
@@ -305,9 +305,9 @@ class InternalRunner(MessageHandler.MessageUser):
 
   def getReturnCode(self):
     """
-     Returns the return code from running the code.  If return code not yet set, set it.
-     @ In, None
-     @ Out, return code, int,  the return code of this evaluation
+      Returns the return code from running the code.  If return code not yet set, set it.
+      @ In, None
+      @ Out, retcode, int,  the return code of this evaluation
     """
     if self.ppserver is None and hasattr(self,'subque'):
       if self.subque.empty(): #is this necessary and sufficient for all failed runs?
@@ -317,9 +317,9 @@ class InternalRunner(MessageHandler.MessageUser):
 
   def returnEvaluation(self):
     """
-     Method to return the results of the function evaluation associated with this InternalRunner
-     @ In, None
-     @ Out, (Input,response), tuple, tuple containing the results of the evaluation (list of Inputs, function return value)
+      Method to return the results of the function evaluation associated with this InternalRunner
+      @ In, None
+      @ Out, (Input,response), tuple, tuple containing the results of the evaluation (list of Inputs, function return value)
     """
     if self.isDone():
       if not self.__hasBeenAdded:
@@ -336,13 +336,19 @@ class InternalRunner(MessageHandler.MessageUser):
       return (self.__input[0],self.__runReturn)
     else: return -1 #control return code
 
-  def returnMetadata(self): return self.__metadata
+  def returnMetadata(self):
+    """
+      Function to return the Internal runner metadata
+      @ In, None
+      @ Out, __metadata, dict, return the dictionary of metadata associated with this ExternalRunner
+    """
+    return self.__metadata
 
   def start(self):
     """
-     Method to start the job associated to this InternalRunner
-     @ In, None
-     @ Out, None
+      Method to start the job associated to this InternalRunner
+      @ In, None
+      @ Out, None
     """
     try: self.startParallelPython()
     except Exception as ae:
@@ -351,20 +357,23 @@ class InternalRunner(MessageHandler.MessageUser):
 
   def kill(self):
     """
-     Method to kill the job associated to this InternalRunner
-     @ In, None
-     @ Out, None
+      Method to kill the job associated to this InternalRunner
+      @ In, None
+      @ Out, None
     """
     self.raiseAMessage("Terminating "+self.__thread.pid+ " Identifier " + self.identifier)
     if self.ppserver != None and not self.__forceUseThreads: os.kill(self.__thread.tid,signal.SIGTERM)
     else                                                   : os.kill(self.__thread.pid,signal.SIGTERM)
 
 class JobHandler(MessageHandler.MessageUser):
+  """
+    JobHandler class. This handles the execution of any job in the RAVEN framework
+  """
   def __init__(self):
     """
-     Init method
-     @ In, None
-     @ Out, None
+      Init method
+      @ In, None
+      @ Out, None
     """
     self.printTag               = 'Job Handler'
     self.runInfoDict            = {}
@@ -385,10 +394,10 @@ class JobHandler(MessageHandler.MessageUser):
 
   def initialize(self,runInfoDict,messageHandler):
     """
-     Method to initialize the JobHandler
-     @ In, runInfoDict, dict, dictionary of run info settings
-     @ In, messageHandler, MessageHandler object, instance of the global RAVEN message handler
-     @ Out, None
+      Method to initialize the JobHandler
+      @ In, runInfoDict, dict, dictionary of run info settings
+      @ In, messageHandler, MessageHandler object, instance of the global RAVEN message handler
+      @ Out, None
     """
     self.runInfoDict = runInfoDict
     self.messageHandler = messageHandler
@@ -412,7 +421,7 @@ class JobHandler(MessageHandler.MessageUser):
     if self.runInfoDict['internalParallel']:
       import random
       if len(self.runInfoDict['Nodes']) > 0:
-        availableNodes            = [nodeid.strip() for nodeid in self.runInfoDict['Nodes']]
+        availableNodes            = [nodeId.strip() for nodeId in self.runInfoDict['Nodes']]
         # set initial port randomly among the user accessable ones
         randomPort = random.randint(1024,65535)
         # get localHost and servers
@@ -442,9 +451,9 @@ class JobHandler(MessageHandler.MessageUser):
     hostNameMapping['local'] =  str(socket.getfqdn()).strip()
     self.raiseADebug("Local Host is " + hostNameMapping['local'])
     # collect the qualified hostnames
-    for nodeid in list(set(self.runInfoDict['Nodes'])):
-      hostNameMapping['remote'][nodeid.strip()] = socket.gethostbyname(nodeid.strip())
-      self.raiseADebug("Remote Host identified " + hostNameMapping['remote'][nodeid.strip()])
+    for nodeId in list(set(self.runInfoDict['Nodes'])):
+      hostNameMapping['remote'][nodeId.strip()] = socket.gethostbyname(nodeId.strip())
+      self.raiseADebug("Remote Host identified " + hostNameMapping['remote'][nodeId.strip()])
     return hostNameMapping
 
   def __runRemoteListeningSockets(self,newPort):
@@ -472,25 +481,25 @@ class JobHandler(MessageHandler.MessageUser):
       # modify the python path
       pathSeparator = os.pathsep
       localenv["PYTHONPATH"] = pathSeparator.join(sys.path)
-      for nodeid in list(set(availableNodes)):
-        outFile = open(os.path.join(self.runInfoDict['WorkingDir'],nodeid.strip()+"_port:"+str(newPort)+"_server_out.log"),'w')
+      for nodeId in list(set(availableNodes)):
+        outFile = open(os.path.join(self.runInfoDict['WorkingDir'],nodeId.strip()+"_port:"+str(newPort)+"_server_out.log"),'w')
         # check how many processors are available in the node
-        ntasks = availableNodes.count(nodeid)
-        remoteHostName =  remoteNodesIP[nodeid]
+        ntasks = availableNodes.count(nodeId)
+        remoteHostName =  remoteNodesIP[nodeId]
         # activate the remote socketing system
         #Next line is a direct execute of ppserver:
-        #subprocess.Popen(['ssh', nodeid, "python2.7", ppserverScript,"-w",str(ntasks),"-i",remoteHostName,"-p",str(newPort),"-t","1000","-g",localenv["PYTHONPATH"],"-d"],shell=False,stdout=outFile,stderr=outFile,env=localenv)
+        #subprocess.Popen(['ssh', nodeId, "python2.7", ppserverScript,"-w",str(ntasks),"-i",remoteHostName,"-p",str(newPort),"-t","1000","-g",localenv["PYTHONPATH"],"-d"],shell=False,stdout=outFile,stderr=outFile,env=localenv)
         command=" ".join(["python",ppserverScript,"-w",str(ntasks),"-i",remoteHostName,"-p",str(newPort),"-t","1000","-g",localenv["PYTHONPATH"],"-d"])
-        utils.pickleSafeSubprocessPopen(['ssh',nodeid,"COMMAND='"+command+"'",self.runInfoDict['RemoteRunCommand']],shell=False,stdout=outFile,stderr=outFile,env=localenv)
-        #ssh nodeid COMMAND='python ppserverScript -w stuff'
+        utils.pickleSafeSubprocessPopen(['ssh',nodeId,"COMMAND='"+command+"'",self.runInfoDict['RemoteRunCommand']],shell=False,stdout=outFile,stderr=outFile,env=localenv)
+        #ssh nodeId COMMAND='python ppserverScript -w stuff'
         # update list of servers
-        ppservers.append(nodeid+":"+str(newPort))
+        ppservers.append(nodeId+":"+str(newPort))
     return qualifiedHostName, ppservers
 
   def addExternal(self,executeCommands,outputFile,workingDir,metadata=None,codePointer=None):
     """
       Method to add an external runner (an external code) in the handler list
-      @ In, executeCommands, tuple(string), ('parallel'/'serial', <execution command>)
+      @ In, executeCommands, list of tuple(string), ('parallel'/'serial', <execution command>)
       @ In, outputFile, string, output file name
       @ In, workingDir, string, working directory
       @ In, metadata, dict, optional, dictionary of metadata
@@ -523,15 +532,15 @@ class JobHandler(MessageHandler.MessageUser):
 
   def addInternal(self,Input,functionToRun,identifier,metadata=None, modulesToImport = [], forceUseThreads = False):
     """
-     Method to add an internal run (function execution)
-     @ In, Input, list, list of Inputs that are going to be passed to the function to be executed as *args
-     @ In, functionToRun,function or method, the function that needs to be executed
-     @ In, identifier, string, the job identifier
-     @ In, metadata, dict, optional, dictionary of metadata associated to this run
-     @ In, modulesToImport, list, optional, list of modules that need to be imported for internal parallelization (parallel python).
-                                            this list should be generated with the method returnImportModuleString in utils.py
-     @ In, forceUseThreads, bool, optional, flag that, if True, is going to force the usage of multi-threading even if parallel python is activated
-     @ Out, None
+      Method to add an internal run (function execution)
+      @ In, Input, list, list of Inputs that are going to be passed to the function to be executed as *args
+      @ In, functionToRun,function or method, the function that needs to be executed
+      @ In, identifier, string, the job identifier
+      @ In, metadata, dict, optional, dictionary of metadata associated to this run
+      @ In, modulesToImport, list, optional, list of modules that need to be imported for internal parallelization (parallel python).
+                                             this list should be generated with the method returnImportModuleString in utils.py
+      @ In, forceUseThreads, bool, optional, flag that, if True, is going to force the usage of multi-threading even if parallel python is activated
+      @ Out, None
     """
     #internal serve is initialized only in case an internal calc is requested
     if not self.initParallelPython: self.__initializeParallelPython()
@@ -541,9 +550,9 @@ class JobHandler(MessageHandler.MessageUser):
 
   def isFinished(self):
     """
-     Method to check if all the runs in queue are finished
-     @ In, None
-     @ Out, isFinished, bool, True all the runs in the queue are finished
+      Method to check if all the runs in queue are finished
+      @ In, None
+      @ Out, isFinished, bool, True all the runs in the queue are finished
     """
     if not self.__queue.empty():
       return False
@@ -554,25 +563,25 @@ class JobHandler(MessageHandler.MessageUser):
 
   def getNumberOfFailures(self):
     """
-     Method to get the number of execution that failed
-     @ In, None
-     @ Out, __numFailed, int, number of failure
+      Method to get the number of executions that failed
+      @ In, None
+      @ Out, __numFailed, int, number of failures
     """
     return self.__numFailed
 
   def getListOfFailedJobs(self):
     """
-     Method to get list of failed jobs
-     @ In, None
-     @ Out, __failedJobs, list, list of the identifiers (jobs) that failed
+      Method to get list of failed jobs
+      @ In, None
+      @ Out, __failedJobs, list, list of the identifiers (jobs) that failed
     """
     return self.__failedJobs
 
   def howManyFreeSpots(self):
     """
-     Method to get the number of free spots in the running queue
-     @ In, None
-     @ Out, cnt_free_spots, int, number of free spots
+      Method to get the number of free spots in the running queue
+      @ In, None
+      @ Out, cntFreeSpots, int, number of free spots
     """
     cntFreeSpots = 0
     if self.__queue.empty():
@@ -586,10 +595,10 @@ class JobHandler(MessageHandler.MessageUser):
 
   def getFinished(self, removeFinished=True, prefix=None):
     """
-     Method to get the list of jobs that ended (list of objects)
-     @ In, removeFinished, bool, optional, flag to control if the finished jobs need to be removed from the queue
-     @ In, prefix, string, optional, if specified only collects finished runs with a particular prefix.
-     @ Out, list, list of finished jobs (InternalRunner or ExternalRunner objects)
+      Method to get the list of jobs that ended (list of objects)
+      @ In, removeFinished, bool, optional, flag to control if the finished jobs need to be removed from the queue
+      @ In, prefix, string, optional, if specified, only collects finished runs with a particular prefix.
+      @ Out, finished, list, list of finished jobs (InternalRunner or ExternalRunner objects)
     """
     finished = []
     for i in range(len(self.__running)):
@@ -627,9 +636,10 @@ class JobHandler(MessageHandler.MessageUser):
 
   def addRuns(self):
     """
-     Method to start running the jobs in queue
-     @ In, None
-     @ Out, None
+      Method to start running the jobs in queue.  If there are empty slots
+      takes jobs out of the queue and starts running them.
+      @ In, None
+      @ Out, None
     """
     for i in range(len(self.__running)):
       if self.__running[i] == None and not self.__queue.empty():
@@ -653,33 +663,34 @@ class JobHandler(MessageHandler.MessageUser):
 
   def getFinishedNoPop(self):
     """
-     Method to get the list of jobs that ended (list of objects) without removing them from the queue
-     @ In, None
-     @ Out, finished, list, list of finished jobs (InternalRunner or ExternalRunner objects)
+      Method to get the list of jobs that ended (list of objects) without removing them from the queue
+      @ In, None
+      @ Out, finished, list, list of finished jobs (InternalRunner or ExternalRunner objects)
     """
-    return self.getFinished(False)
+    finished = self.getFinished(False)
+    return finished
 
   def getNumSubmitted(self):
     """
-     Method to get the number of submitted jobs
-     @ In, None
-     @ Out, __numSubmitted, int, number of submitted jobs
+      Method to get the number of submitted jobs
+      @ In, None
+      @ Out, __numSubmitted, int, number of submitted jobs
     """
     return self.__numSubmitted
 
   def startingNewStep(self):
     """
-     Method to reset the __numSubmitted counter
-     @ In, None
-     @ Out, None
+      Method to reset the __numSubmitted counter to zero.
+      @ In, None
+      @ Out, None
     """
     self.__numSubmitted = 0
 
   def terminateAll(self):
     """
-     Method to clear out the queue
-     @ In, None
-     @ Out, None
+      Method to clear out the queue by killing all running processes.
+      @ In, None
+      @ Out, None
     """
     while not self.__queue.empty(): self.__queue.get()
     for i in range(len(self.__running)):
@@ -687,8 +698,9 @@ class JobHandler(MessageHandler.MessageUser):
 
   def numRunning(self):
     """
-    Returns the number of runs currently running.
-    @ In, None
-    @ Out, int, number of active runs
+      Returns the number of runs currently running.
+      @ In, None
+      @ Out, activeRuns, int, number of active runs
     """
-    return sum(run is not None for run in self.__running)
+    activeRuns = sum(run is not None for run in self.__running)
+    return activeRuns
