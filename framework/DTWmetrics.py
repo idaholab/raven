@@ -1,4 +1,6 @@
 from numpy import array, zeros, argmin, inf
+import math
+from matplotlib import pyplot as plt
 
 def dtw(x, y, dist):
     """
@@ -46,28 +48,54 @@ def _traceback(D):
         q.insert(0, j)
     return array(p), array(q)
 
-if __name__ == '__main__':
-    if 0: # 1-D numeric
-        from sklearn.metrics.pairwise import manhattan_distances
-        x = [0, 0, 1, 1, 2, 4, 2, 1, 2, 0]
-        y = [1, 1, 1, 2, 2, 2, 2, 3, 2, 0]
-        dist_fun = manhattan_distances
-    else : # 2-D numeric
-        from sklearn.metrics.pairwise import euclidean_distances
-        x = [[0, 0], [0, 1], [1, 1], [1, 2], [2, 2], [4, 3], [2, 3], [1, 1], [2, 2], [0, 1]]
-        y = [[1, 0], [1, 1], [1, 1], [2, 1], [4, 3], [4, 3], [2, 3], [3, 1], [1, 2], [1, 0]]
-        dist_fun = euclidean_distances
+from sklearn.metrics.pairwise import *
 
-    dist, cost, acc, path = dtw(x, y, dist_fun)
+#x = [0, 0, 1, 1, 2, 4, 2, 1, 2, 0]
+#y = [1, 1, 1, 2, 2, 2, 2, 3, 2, 0]
+#dist_fun = manhattan_distances
+timex=np.linspace(0,6.28,80)
+x=np.zeros(80)
+for i in range(80):
+  x[i] = math.sin(timex[i]/3.141*2)
 
-    # vizualize
-    from matplotlib import pyplot as plt
-    plt.imshow(cost.T, origin='lower', cmap=plt.cm.Reds, interpolation='nearest')
-    plt.plot(path[0], path[1], '-o') # relation
-    plt.xticks(range(len(x)), x)
-    plt.yticks(range(len(y)), y)
-    plt.xlabel('x')
-    plt.ylabel('y')
-    plt.axis('tight')
-    plt.title('Minimum distance: {}'.format(dist))
-    plt.show()
+timey=np.linspace(0,5.78,80)  
+y=np.zeros(80)
+for i in range(80):
+  y[i] = math.sin(1.0*timey[i]/3.141*2)*1.2
+
+#x = [[0, 0], [0, 1], [1, 1], [1, 2], [2, 2], [4, 3], [2, 3], [1, 1], [2, 2]]
+#y = [[1, 0], [1, 1], [1, 1], [2, 1], [4, 3], [4, 3], [2, 3], [3, 1], [1, 2], [1, 0]]
+dist_fun = euclidean_distances
+
+#x = np.array([1, 1, 2, 3, 2, 0])
+#y = np.array([0, 1, 1, 2, 3, 2, 1])
+
+#idx = np.linspace(0, 6.28, 100)
+#x = np.sin(idx)
+#y = np.cos(idx)
+
+dist, cost, acc, path = dtw(x, y, dist_fun)
+
+plt.imshow(acc.T, origin='lower', cmap=plt.cm.Reds, interpolation='nearest')
+plt.plot(path[0], path[1], '-o') # relation
+plt.xlabel('x')
+plt.ylabel('y')
+plt.axis('tight')
+plt.show()
+
+plt.plot(timex, x, 'r',linewidth=3)
+plt.plot(timey, y, 'g',linewidth=3)
+
+#plt.plot(idx, x, 'r',linewidth=3)
+#plt.plot(idx, y, 'g',linewidth=3)
+
+xCoor = np.zeros(2)
+yCoor = np.zeros(2)
+pathLength=path[0].size
+for i in range(pathLength):
+  xCoor[0] = timex[path[0][i]]
+  xCoor[1] = timey[path[1][i]]
+  yCoor[0] = x[path[0][i]]
+  yCoor[1] = y[path[1][i]]
+  plt.plot(xCoor,yCoor,'k')
+plt.show()

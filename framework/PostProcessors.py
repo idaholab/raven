@@ -2884,7 +2884,7 @@ class DataMining(BasePostProcessor):
       if child.tag == 'Metric':
         for childChild in child:
           self.initializationOptionDict[child.tag][childChild.tag] = {}
-          self.initializationOptionDict[child.tag][childChild.tag].update(childChild.attrib)
+          self.initializationOptionDict[child.tag][childChild.tag] = childChild.text
 
     if self.type: self.unSupervisedEngine = unSupervisedLearning.returnInstance(self.type, self, **self.initializationOptionDict['KDD'])
     else        : self.raiseAnError(IOError, 'No Data Mining Algorithm is supplied!')

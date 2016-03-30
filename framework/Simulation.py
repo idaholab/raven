@@ -23,6 +23,7 @@ import DataObjects
 import Files
 import Samplers
 import Models
+import Metrics
 import Tests
 import Distributions
 import Databases
@@ -325,6 +326,7 @@ class Simulation(MessageHandler.MessageUser):
     self.dataBasesDict        = {}
     self.functionsDict        = {}
     self.filesDict            = {} #  for each file returns an instance of a Files class
+    self.metricsDict          = {}
     self.OutStreamManagerPlotDict  = {}
     self.OutStreamManagerPrintDict = {}
     self.stepSequenceList     = [] #the list of step of the simulation
@@ -350,6 +352,7 @@ class Simulation(MessageHandler.MessageUser):
     self.addWhatDict['Databases'        ] = Databases
     self.addWhatDict['Functions'        ] = Functions
     self.addWhatDict['Files'            ] = Files
+    self.addWhatDict['Metrics'          ] = Metrics
     self.addWhatDict['OutStreamManager' ] = {}
     self.addWhatDict['OutStreamManager' ]['Plot' ] = OutStreamManager
     self.addWhatDict['OutStreamManager' ]['Print'] = OutStreamManager
@@ -366,6 +369,7 @@ class Simulation(MessageHandler.MessageUser):
     self.whichDict['Distributions'   ] = self.distributionsDict
     self.whichDict['Databases'       ] = self.dataBasesDict
     self.whichDict['Functions'       ] = self.functionsDict
+    self.whichDict['Metrics'         ] = self.metricsDict
     self.whichDict['OutStreamManager'] = {}
     self.whichDict['OutStreamManager']['Plot' ] = self.OutStreamManagerPlotDict
     self.whichDict['OutStreamManager']['Print'] = self.OutStreamManagerPrintDict
@@ -668,6 +672,7 @@ class Simulation(MessageHandler.MessageUser):
     msg=__prntDict(self.dataDict,msg)
     msg=__prntDict(self.samplersDict,msg)
     msg=__prntDict(self.modelsDict,msg)
+    msg=__prntDict(self.metricsDict,msg)
     msg=__prntDict(self.testsDict,msg)
     msg=__prntDict(self.filesDict,msg)
     msg=__prntDict(self.dataBasesDict,msg)
