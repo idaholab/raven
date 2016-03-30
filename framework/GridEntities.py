@@ -959,7 +959,7 @@ def returnInstance(Type,caller,messageHandler=None):
     @ In, Type, string, Class name (e.g. GridEntity)
     @ In, caller, instance, instance of the caller object
     @ In, messageHandler, optional instance, instance of the messageHandler system
-    @ Out, __interFaceDict[Type], instance, instance of the requested class
+    @ Out, returnInstance, instance, instance of the requested class
   """
   try: return __interFaceDict[Type](messageHandler)
   except KeyError: caller.raiseAnError(NameError,'not known '+__base+' type '+Type)

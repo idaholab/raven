@@ -658,7 +658,7 @@ def returnInstance(Type,runInfoDict,caller):
   @ In, Type, string, class type
   @ In, runInfoDict, dict, the runInfo Dictionary
   @ In, caller, instance, the caller instance
-  @ Out, __interFaceDict[Type], instance, instance of the class
+  @ Out, returnInstance, instance, instance of the class
   """
   try: return __interFaceDict[Type](runInfoDict)
   except KeyError: caller.raiseAnError(NameError,'not known '+__base+' type '+Type)
