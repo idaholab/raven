@@ -243,8 +243,8 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
 #
 class Dummy(Model):
   """
-  this is a dummy model that just return the effect of the sampler. The values reported as input in the output
-  are the output of the sampler and the output is the counter of the performed sampling
+    This is a dummy model that just return the effect of the sampler. The values reported as input in the output
+    are the output of the sampler and the output is the counter of the performed sampling
   """
   def __init__(self,runInfoDict):
     """
@@ -333,10 +333,10 @@ class Dummy(Model):
 
   def run(self,Input,jobHandler):
     """
-     This method executes the model .
-     @ In,  Input, object, object contained the data to process. (inputToInternal output)
-     @ In,  jobHandler, JobHandler instance, the global job handler instance
-     @ Out, None
+      This method executes the model .
+      @ In,  Input, object, object contained the data to process. (inputToInternal output)
+      @ In,  jobHandler, JobHandler instance, the global job handler instance
+      @ Out, None
     """
     #this set of test is performed to avoid that if used in a single run we come in with the wrong input structure since the self.createNewInput is not called
     inRun = self._manipulateInput(Input[0])
@@ -402,9 +402,9 @@ class ROM(Dummy):
 
   def __getstate__(self):
     """
-    This function return the state of the ROM
-    @ In, None
-    @ Out, state, dict, it contains all the information needed by the ROM to be initialized
+      This function return the state of the ROM
+      @ In, None
+      @ Out, state, dict, it contains all the information needed by the ROM to be initialized
     """
     # capture what is normally pickled
     state = self.__dict__.copy()
@@ -415,9 +415,9 @@ class ROM(Dummy):
 
   def __setstate__(self, newstate):
     """
-    Initialize the ROM with the data contained in newstate
-    @ In, newstate, dict, it contains all the information needed by the ROM to be initialized
-    @ Out, None
+      Initialize the ROM with the data contained in newstate
+      @ In, newstate, dict, it contains all the information needed by the ROM to be initialized
+      @ Out, None
     """
     self.__dict__.update(newstate)
     if not self.amITrained:
@@ -864,7 +864,7 @@ class ExternalModel(Dummy):
 #
 class Code(Model):
   """
-    this is the generic class that import an external code into the framework
+    This is the generic class that import an external code into the framework
   """
   CodeInterfaces = importlib.import_module("CodeInterfaces")
   @classmethod

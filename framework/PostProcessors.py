@@ -77,10 +77,10 @@ class BasePostProcessor(Assembler, MessageHandler.MessageUser):
     """
     return [(copy.deepcopy(currentInput))]
 
-  def run(self, Input):
+  def run(self, input):
     """
       This method executes the postprocessor action.
-      @ In,  Input, object, object contained the data to process. (inputToInternal output)
+      @ In,  input, object, object contained the data to process. (inputToInternal output)
       @ Out, None
     """
     pass
@@ -218,10 +218,10 @@ class LimitSurfaceIntegral(BasePostProcessor):
         self.matrixDict[self.target] = outputarr
       else: self.raiseAnError(IOError, 'Only PointSet is accepted as input!!!!')
 
-  def run(self, Input):
+  def run(self, input):
     """
       This method executes the postprocessor action. In this case, it performs the computation of the LS integral
-      @ In,  Input, object, object contained the data to process. (inputToInternal output)
+      @ In,  input, object, object contained the data to process. (inputToInternal output)
       @ Out, pb, float, integral outcome (probability of the event)
     """
     pb = None
@@ -499,10 +499,10 @@ class SafestPoint(BasePostProcessor):
           k += 1
         self.surfPointsMatrix[:, k] = item.getParam('output', item.getParaKeys('outputs')[-1])
 
-  def run(self, Input):
+  def run(self, input):
     """
       This method executes the postprocessor action. In this case, it computes the safest point
-      @ In,  Input, object, object contained the data to process. (inputToInternal output)
+      @ In,  input, object, object contained the data to process. (inputToInternal output)
       @ Out, dataCollector, PointSet, PointSet containing the elaborated data
     """
     nearestPointsInd = []
@@ -687,14 +687,14 @@ class ComparisonStatistics(BasePostProcessor):
     """
     self.distributions = initDict.get('Distributions', {})
 
-  def run(self, Input):  # inObj,workingDir=None):
+  def run(self, input):  # inObj,workingDir=None):
     """
       This method executes the postprocessor action. In this case, it just returns the inputs
-      @ In,  Input, object, object contained the data to process. (inputToInternal output)
+      @ In,  input, object, object contained the data to process. (inputToInternal output)
       @ Out, dataDict, dict, Dictionary containing the inputs
     """
     dataDict = {}
-    for aInput in Input: dataDict[aInput.name] = aInput
+    for aInput in input: dataDict[aInput.name] = aInput
     return dataDict
 
   def collectOutput(self, finishedJob, output):
@@ -1107,7 +1107,7 @@ class PrintCSV(BasePostProcessor):
     if finishedJob.returnEvaluation() == -1: self.raiseAnError(RuntimeError, 'No available Output to collect (Run probabably is not finished yet)')
     self.inObj = finishedJob.returnEvaluation()[1]
     if(self.inObj.type == "HDF5"):
-      #  Input source is a database (HDF5)
+      #  input source is a database (HDF5)
       #  Retrieve the ending groups' names
       endGroupNames = self.inObj.getEndingGroupNames()
       HistorySet = {}
@@ -1169,13 +1169,13 @@ class PrintCSV(BasePostProcessor):
         addfile.write(os.linesep)
     else: self.raiseAnError(NotImplementedError, 'for input type ' + self.inObj.type + ' not yet implemented.')
 
-  def run(self, Input):
+  def run(self, input):
     """
      This method executes the postprocessor action. In this case, it just returns the input
-     @ In,  Input, object, object contained the data to process. (inputToInternal output)
-     @ Out, Input, object, the input
+     @ In,  input, object, object contained the data to process. (inputToInternal output)
+     @ Out, input, object, the input
     """
-    return Input[-1]
+    return input[-1]
 #
 #
 #
@@ -1203,7 +1203,7 @@ class BasicStatistics(BasePostProcessor):
     """
       Method to convert an input object into the internal format that is
       understandable by this pp.
-      @ In, currentInput, object, an object that needs to be converted
+      @ In, currentInp, object, an object that needs to be converted
       @ Out, inputDict, dict, dictionary of the converted data
     """
     # each post processor knows how to handle the coming inputs. The BasicStatistics postprocessor accept all the input type (files (csv only), hdf5 and datas
@@ -2455,10 +2455,10 @@ class ExternalPostProcessor(BasePostProcessor):
     """
       This method executes the postprocessor action. In this case it performs the action defined int
       the external pp
-      @ In, inputIn, dictionary, dictionary of data to process
+      @ In, inputIn, dict, dictionary of data to process
       @ Out, outputDict, dict, Dictionary containing the post-processed results
     """
-    Input = self.inputToInternal(inputIn)
+    input = self.inputToInternal(inputIn)
     outputDict = {'qualifiedNames' : {}}
     # # This will map the name to its appropriate interface and method
     # # in the case of a function being defined in two separate files, we
@@ -2489,8 +2489,8 @@ class ExternalPostProcessor(BasePostProcessor):
     # # Evaluate the method and add it to the outputDict, also if the method
     # # adjusts the input data, then you should update it as well.
     for methodName, (interface, method) in methodMap.iteritems():
-      outputDict[methodName] = interface.evaluate(method, Input['targets'])
-      for target in Input['targets']:
+      outputDict[methodName] = interface.evaluate(method, input['targets'])
+      for target in input['targets']:
         if hasattr(interface, target):
           outputDict[target] = getattr(interface, target)
 
@@ -2709,11 +2709,11 @@ class TopologicalDecomposition(BasePostProcessor):
     # # only errors if they try to use it?
     from AMSC_Object import AMSC_Object
 
-    Input = self.inputToInternal(inputIn)
+    input = self.inputToInternal(inputIn)
     outputDict = {}
 
-    myDataIn = Input['features']
-    myDataOut = Input['targets']
+    myDataIn = input['features']
+    myDataOut = input['targets']
     outputData = myDataOut[self.parameters['targets'].encode('UTF-8')]
     self.pointCount = len(outputData)
     self.dimensionCount = len(self.parameters['features'])
@@ -2928,11 +2928,11 @@ class DataMining(BasePostProcessor):
       if type(self.dataObjects) == list: dataObject = self.dataObjects[-1]
       else                             : dataObject = self.dataObjects
     else: dataObject = None
-    Input = self.inputToInternal(inputIn)
+    input = self.inputToInternal(inputIn)
 
     outputDict = {}
-    self.unSupervisedEngine.features = Input['Features']
-    if not self.unSupervisedEngine.amITrained:  self.unSupervisedEngine.train(Input['Features'])
+    self.unSupervisedEngine.features = input['Features']
+    if not self.unSupervisedEngine.amITrained:  self.unSupervisedEngine.train(input['Features'])
 
     self.unSupervisedEngine.confidence()
     outputDict['output'] = {}
@@ -2953,7 +2953,7 @@ class DataMining(BasePostProcessor):
         elif hasattr(self.unSupervisedEngine, 'precs_'): mixtureCovars = self.unSupervisedEngine.precs_
         mixtureValues = self.unSupervisedEngine.normValues
         mixtureMeans = self.unSupervisedEngine.means_
-        mixtureLabels = self.unSupervisedEngine.evaluate(Input['Features'])
+        mixtureLabels = self.unSupervisedEngine.evaluate(input['Features'])
         outputDict['output'][self.name+'Labels'] = mixtureLabels
     if 'manifold' == self.unSupervisedEngine.SKLtype:
         manifoldValues = self.unSupervisedEngine.normValues

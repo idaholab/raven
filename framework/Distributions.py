@@ -121,7 +121,7 @@ class Distribution(BaseType):
   def _readMoreXML(self,xmlNode):
     """
       Function to read the portion of the xml input that belongs to this specialized class
-      and initialize some variables based on the inputs got.
+      and initialize some variables based on the inputs received.
       @ In, xmlNode, xml.etree.ElementTree.Element, XML element node that represents the portion of the input that belongs to this class
       @ Out, None
     """
@@ -259,7 +259,7 @@ class Distribution(BaseType):
   def CDFconvertToDistr(self,pts):
     """
       Converts all the way from [-1,1] quadrature domain to distribution domain.
-      @ In pts, array of floats, points to convert
+      @ In, pts, array of floats, points to convert
       @ Out, distr, float/array of floats, converted points
     """
     return self._convertCdfPointsToDistr(self._convertStdPointsToCdf(pts))
@@ -479,7 +479,7 @@ class Uniform(BoostDistribution):
   def _readMoreXML(self,xmlNode):
     """
       Read the the xml node of the MultivariateNormal distribution
-      @ In, xmlNode,xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
+      @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
       @ Out, None
     """
     BoostDistribution._readMoreXML(self,xmlNode)
@@ -490,7 +490,7 @@ class Uniform(BoostDistribution):
 
   def stdProbabilityNorm(self):
     """Returns the factor to scale error norm by so that norm(probability)=1.
-    @ In None, None
+    @ In, None, None
     @ Out float, norm
     """
     return 0.5
@@ -521,14 +521,14 @@ class Uniform(BoostDistribution):
 
   def convertUniformToLegendre(self,y):
     """Converts from distribution domain to standard Legendre [-1,1].
-    @ In y, float/array of floats, points to convert
+    @ In, y, float/array of floats, points to convert
     @ Out float/array of floats, converted points
     """
     return (y-self.untruncatedMean())/(self.range/2.)
 
   def convertLegendreToUniform(self,x):
     """Converts from standard Legendre [-1,1] to distribution domain.
-    @ In y, float/array of floats, points to convert
+    @ In, y, float/array of floats, points to convert
     @ Out float/array of floats, converted points
     """
     return self.range/2.*x+self.untruncatedMean()
@@ -581,7 +581,7 @@ class Normal(BoostDistribution):
   def _readMoreXML(self,xmlNode):
     """
       Read the the xml node of the MultivariateNormal distribution
-      @ In, xmlNode,xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
+      @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
       @ Out, None
     """
     BoostDistribution._readMoreXML(self, xmlNode)
@@ -636,7 +636,7 @@ class Normal(BoostDistribution):
 
   def stdProbabilityNorm(self,std=False):
     """Returns the factor to scale error norm by so that norm(probability)=1.
-    @ In None, None
+    @ In, None, None
     @ Out float, norm
     """
     sv = str(scipy.__version__).split('.')
@@ -649,14 +649,14 @@ class Normal(BoostDistribution):
 
   def convertNormalToHermite(self,y):
     """Converts from distribution domain to standard Hermite [-inf,inf].
-    @ In y, float/array of floats, points to convert
+    @ In, y, float/array of floats, points to convert
     @ Out float/array of floats, converted points
     """
     return (y-self.untruncatedMean())/(self.sigma)
 
   def convertHermiteToNormal(self,x):
     """Converts from standard Hermite [-inf,inf] to distribution domain.
-    @ In y, float/array of floats, points to convert
+    @ In, y, float/array of floats, points to convert
     @ Out float/array of floats, converted points
     """
     return self.sigma*x+self.untruncatedMean()
@@ -709,7 +709,7 @@ class Gamma(BoostDistribution):
   def _readMoreXML(self,xmlNode):
     """
       Read the the xml node of the MultivariateNormal distribution
-      @ In, xmlNode,xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
+      @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
       @ Out, None
     """
     BoostDistribution._readMoreXML(self,xmlNode)
@@ -767,21 +767,21 @@ class Gamma(BoostDistribution):
 
   def convertGammaToLaguerre(self,y):
     """Converts from distribution domain to standard Laguerre [0,inf].
-    @ In y, float/array of floats, points to convert
+    @ In, y, float/array of floats, points to convert
     @ Out float/array of floats, converted points
     """
     return (y-self.low)*(self.beta)
 
   def convertLaguerreToGamma(self,x):
     """Converts from standard Laguerre [0,inf] to distribution domain.
-    @ In y, float/array of floats, points to convert
+    @ In, y, float/array of floats, points to convert
     @ Out float/array of floats, converted points
     """
     return x/self.beta+self.low
 
   def stdProbabilityNorm(self):
     """Returns the factor to scale error norm by so that norm(probability)=1.
-    @ In None, None
+    @ In, None, None
     @ Out float, norm
     """
     #return self.beta**self.alpha/factorial(self.alpha-1.)
@@ -839,7 +839,7 @@ class Beta(BoostDistribution):
   def _readMoreXML(self,xmlNode):
     """
       Read the the xml node of the MultivariateNormal distribution
-      @ In, xmlNode,xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
+      @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
       @ Out, None
     """
     BoostDistribution._readMoreXML(self,xmlNode)
@@ -904,27 +904,30 @@ class Beta(BoostDistribution):
     self.compatibleQuadrature.append('ClenshawCurtis')
 
   def convertBetaToJacobi(self,y):
-    """Converts from distribution domain to standard Beta [0,1].
-    @ In y, float/array of floats, points to convert
-    @ Out float/array of floats, converted points
+    """
+      Converts from distribution domain to standard Beta [0,1].
+      @ In, y, float/array of floats, points to convert
+      @ Out, convertBetaToJacobi, float/array of floats, converted points
     """
     u = 0.5*(self.high+self.low)
     s = 0.5*(self.high-self.low)
     return (y-u)/(s)
 
   def convertJacobiToBeta(self,x):
-    """Converts from standard Jacobi [0,1] to distribution domain.
-    @ In y, float/array of floats, points to convert
-    @ Out float/array of floats, converted points
+    """
+      Converts from standard Jacobi [0,1] to distribution domain.
+      @ In, y, float/array of floats, points to convert
+      @ Out, convertJacobiToBeta, float/array of floats, converted points
     """
     u = 0.5*(self.high+self.low)
     s = 0.5*(self.high-self.low)
     return s*x+u
 
   def stdProbabilityNorm(self):
-    """Returns the factor to scale error norm by so that norm(probability)=1.
-    @ In None, None
-    @ Out float, norm
+    """
+      Returns the factor to scale error norm by so that norm(probability)=1.
+      @ In, None
+      @ Out, norm, float, norm
     """
     B = factorial(self.alpha-1)*factorial(self.beta-1)/factorial(self.alpha+self.beta-1)
     norm = 1.0/(2**(self.alpha+self.beta-1)*B)
@@ -978,7 +981,7 @@ class Triangular(BoostDistribution):
   def _readMoreXML(self,xmlNode):
     """
       Read the the xml node of the MultivariateNormal distribution
-      @ In, xmlNode,xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
+      @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
       @ Out, None
     """
     BoostDistribution._readMoreXML(self, xmlNode)
@@ -1065,7 +1068,7 @@ class Poisson(BoostDistribution):
   def _readMoreXML(self,xmlNode):
     """
       Read the the xml node of the MultivariateNormal distribution
-      @ In, xmlNode,xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
+      @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
       @ Out, None
     """
     BoostDistribution._readMoreXML(self, xmlNode)
@@ -1141,7 +1144,7 @@ class Binomial(BoostDistribution):
   def _readMoreXML(self,xmlNode):
     """
       Read the the xml node of the MultivariateNormal distribution
-      @ In, xmlNode,xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
+      @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
       @ Out, None
     """
     BoostDistribution._readMoreXML(self, xmlNode)
@@ -1217,7 +1220,7 @@ class Bernoulli(BoostDistribution):
   def _readMoreXML(self,xmlNode):
     """
       Read the the xml node of the MultivariateNormal distribution
-      @ In, xmlNode,xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
+      @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
       @ Out, None
     """
     BoostDistribution._readMoreXML(self, xmlNode)
@@ -1248,16 +1251,16 @@ class Bernoulli(BoostDistribution):
 
 class Categorical(Distribution):
   """
-  Class for the categorical distribution also called " generalized Bernoulli distribution"
-  Note: this distribution can have only numerical (float) outcome; in the future we might want to include also the possibility to give symbolic outcome
+    Class for the categorical distribution also called " generalized Bernoulli distribution"
+    Note: this distribution can have only numerical (float) outcome; in the future we might want to include also the possibility to give symbolic outcome
   """
 
   def __init__(self):
     """
-    Function that initializes the categorical distribution
-    @ In, None
-    @ Out, none
-   """
+      Function that initializes the categorical distribution
+      @ In, None
+      @ Out, none
+    """
     Distribution.__init__(self)
     self.mapping = {}
     self.values = set()
@@ -1266,10 +1269,10 @@ class Categorical(Distribution):
 
   def _readMoreXML(self,xmlNode):
     """
-    Function that retrive data to initialize the categorical distribution from the xmlNode
-    @ In, None
-    @ Out, None
-   """
+      Function that retrive data to initialize the categorical distribution from the xmlNode
+      @ In, None
+      @ Out, None
+    """
     Distribution._readMoreXML(self, xmlNode)
 
     for child in xmlNode:
@@ -1297,9 +1300,9 @@ class Categorical(Distribution):
 
   def initializeDistribution(self):
     """
-    Function that initializes the distribution and checks that the sum of all state probabilities is equal to 1
-    @ In, None
-    @ Out, None
+      Function that initializes the distribution and checks that the sum of all state probabilities is equal to 1
+      @ In, None
+      @ Out, None
     """
     totPsum = 0.0
     for element in self.mapping:
@@ -1397,7 +1400,7 @@ class Logistic(BoostDistribution):
   def _readMoreXML(self,xmlNode):
     """
       Read the the xml node of the MultivariateNormal distribution
-      @ In, xmlNode,xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
+      @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
       @ Out, None
     """
     BoostDistribution._readMoreXML(self, xmlNode)
@@ -1479,7 +1482,7 @@ class Exponential(BoostDistribution):
   def _readMoreXML(self,xmlNode):
     """
       Read the the xml node of the MultivariateNormal distribution
-      @ In, xmlNode,xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
+      @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
       @ Out, None
     """
     BoostDistribution._readMoreXML(self, xmlNode)
@@ -1594,7 +1597,7 @@ class LogNormal(BoostDistribution):
   def _readMoreXML(self,xmlNode):
     """
       Read the the xml node of the MultivariateNormal distribution
-      @ In, xmlNode,xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
+      @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
       @ Out, None
     """
     BoostDistribution._readMoreXML(self, xmlNode)
@@ -1688,7 +1691,7 @@ class Weibull(BoostDistribution):
   def _readMoreXML(self,xmlNode):
     """
       Read the the xml node of the MultivariateNormal distribution
-      @ In, xmlNode,xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
+      @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
       @ Out, None
     """
     BoostDistribution._readMoreXML(self, xmlNode)
@@ -1762,7 +1765,7 @@ class NDimensionalDistributions(Distribution):
   def _readMoreXML(self,xmlNode):
     """
       Read the the xml node of the MultivariateNormal distribution
-      @ In, xmlNode,xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
+      @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
       @ Out, None
     """
     Distribution._readMoreXML(self, xmlNode)
@@ -1838,7 +1841,7 @@ class NDInverseWeight(NDimensionalDistributions):
   def _readMoreXML(self,xmlNode):
     """
       Read the the xml node of the MultivariateNormal distribution
-      @ In, xmlNode,xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
+      @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
       @ Out, None
     """
     NDimensionalDistributions._readMoreXML(self, xmlNode)
@@ -1922,7 +1925,7 @@ class NDInverseWeight(NDimensionalDistributions):
     integralReturn = self._distribution.cellIntegral(coordinate,dxs)
     return integralReturn
 
-  def inverseMarginalDistribution (self, x, variable):
+  def inverseMarginalDistribution(self, x, variable):
     """
       Compute the inverse of the Margina distribution
       @ In, x, float, the coordinate for at which the inverse marginal distribution needs to be computed
@@ -2000,7 +2003,7 @@ class NDCartesianSpline(NDimensionalDistributions):
   def _readMoreXML(self,xmlNode):
     """
       Read the the xml node of the MultivariateNormal distribution
-      @ In, xmlNode,xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
+      @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
       @ Out, None
     """
     NDimensionalDistributions._readMoreXML(self, xmlNode)
@@ -2080,7 +2083,7 @@ class NDCartesianSpline(NDimensionalDistributions):
     integralReturn = self._distribution.cellIntegral(coordinate,dxs)
     return integralReturn
 
-  def inverseMarginalDistribution (self, x, variable):
+  def inverseMarginalDistribution(self, x, variable):
     """
       Compute the inverse of the Margina distribution
       @ In, x, float, the coordinate for at which the inverse marginal distribution needs to be computed
@@ -2167,7 +2170,7 @@ class MultivariateNormal(NDimensionalDistributions):
   def _readMoreXML(self,xmlNode):
     """
       Read the the xml node of the MultivariateNormal distribution
-      @ In, xmlNode,xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
+      @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
       @ Out, None
     """
     #NDimensionalDistributions._readMoreXML(self, xmlNode)
@@ -2473,7 +2476,7 @@ def returnInstance(Type,caller):
     Function interface for creating an instance to a database specialized class (for example, HDF5)
     @ In, Type, string, class type
     @ In, caller, instance, the caller instance
-    @ Out, __interFaceDict[Type], instance, instance of the class
+    @ Out, returnInstance, instance, instance of the class
     Note: Interface function
   """
   try: return __interFaceDict[Type]()

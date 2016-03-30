@@ -25,10 +25,11 @@ from CustomCommandExecuter import execCommand
 
 class Function(BaseType):
   """
-    This class is the base class for different wrapper for external functions
-    provide the tools to solve
-    F(x)=0 where at least one of the component of the output space of a model (F is a vector as x)
-    plus a series of inequality in the input space that are considered by the supportBoundingTest
+    This class is the base class for different wrappers for external functions
+    providing the tools to solve F(x)=0 where at least one of the components of
+    the output space of a model (F is a vector as x) plus a series of
+    inequalities in the input space that are considered by the
+    supportBoundingTest
   """
   def __init__(self,runInfoDict):
     """
@@ -50,8 +51,9 @@ class Function(BaseType):
 
   def _readMoreXML(self,xmlNode):
     """
-      Function to read the portion of the xml input that belongs to this specialized class
-      and initialize some variables based on the inputs got.
+      Function to read the portion of the xml input that belongs to this
+      specialized class and initialize some variables based on the inputs
+      received.
       @ In, xmlNode, xml.etree.ElementTree.Element, XML element node that represents the portion of the input that belongs to this class
       @ Out, None
     """
@@ -166,7 +168,7 @@ class Function(BaseType):
   def __inputFromDict(self,myInputDict):
     """
       This is meant to be used to collect the input directly from a sampler generated input or simply from a generic dictionary
-      In case the input come from a sampler the expected structure is myInputDict['SampledVars'][variable name] = value
+      In case the input comes from a sampler the expected structure is myInputDict['SampledVars'][variable name] = value
       In case it is a generic dictionary the expected structure is myInputDict[variable name] = value
       @ In, myInputDict, dict, dict from which the data need to be imported
       @ Out, None
