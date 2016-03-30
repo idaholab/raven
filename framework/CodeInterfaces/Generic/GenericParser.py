@@ -93,29 +93,29 @@ class GenericParser():
       @ In, **Kwargs, dict, dict including moddit (the dictionary of variable:value to replace) and additionalEdits.
       @ Out, None
     """
-    moddict = Kwargs['SampledVars']
-    self.adldict = Kwargs['additionalEdits']
-    iovars = []
-    for value in self.adldict.values():
+    modDict = Kwargs['SampledVars']
+    self.adlDict = Kwargs['additionalEdits']
+    ioVars = []
+    for value in self.adlDict.values():
       if type(value)==dict:
         for k in value.keys():
-          iovars.append(k)
+          ioVars.append(k)
       elif type(value)==list:
         for v in value:
-          iovars.append(v)
+          ioVars.append(v)
       else:
-        iovars.append(value)
+        ioVars.append(value)
     for var in self.varPlaces.keys():
       for inputFile in self.segments.keys():
         for place in self.varPlaces[var][inputFile] if inputFile in self.varPlaces[var].keys() else []:
-          if var in moddict.keys():
+          if var in modDict.keys():
             if var in self.formats.keys():
               if inputFile in self.formats[var].keys():
                 if any(formVal in self.formats[var][inputFile][0] for formVal in self.acceptFormats.keys()):
                   formatstringc = "{:"+self.formats[var][inputFile][0].strip()+"}"
-                  self.segments[inputFile][place] = formatstringc.format(self.formats[var][inputFile][1](moddict[var]))
-                else: self.segments[inputFile][place] = str(moddict[var]).strip().rjust(self.formats[var][inputFile][1](self.formats[var][inputFile][0]))
-            else: self.segments[inputFile][place] = str(moddict[var])
+                  self.segments[inputFile][place] = formatstringc.format(self.formats[var][inputFile][1](modDict[var]))
+                else: self.segments[inputFile][place] = str(modDict[var]).strip().rjust(self.formats[var][inputFile][1](self.formats[var][inputFile][0]))
+            else: self.segments[inputFile][place] = str(modDict[var])
           elif var in self.defaults.keys():
             if var in self.formats.keys():
               if inputFile in self.formats[var].keys():
@@ -124,7 +124,7 @@ class GenericParser():
                   self.segments[inputFile][place] = formatstringc.format(self.formats[var][inputFile][1](self.defaults[var][inputFile]))
                 else: self.segments[inputFile][place] = str(self.defaults[var][inputFile]).strip().rjust(self.formats[var][inputFile][1](self.formats[var][inputFile][0]))
             else: self.segments[inputFile][place] = self.defaults[var][inputFile]
-          elif var in iovars: continue #this gets handled in writeNewInput
+          elif var in ioVars: continue #this gets handled in writeNewInput
           else: raise IOError('Generic Parser: Variable '+var+' was not sampled and no default given!')
 
   def writeNewInput(self,inFiles,origFiles):
@@ -155,14 +155,14 @@ class GenericParser():
     for var in self.varPlaces.keys():
       for inputFile in self.segments.keys():
         for place in self.varPlaces[var][inputFile] if inputFile in self.varPlaces[var].keys() else []:
-          for iotype,adlvar in self.adldict.items():
+          for iotype,adlvar in self.adlDict.items():
             if iotype=='output':
-              if var==self.adldict[iotype]:
+              if var==self.adlDict[iotype]:
                 self.segments[inputFile][place] = case
                 break
             elif iotype=='input':
-              if var in self.adldict[iotype].keys():
-                self.segments[inputFile][place] = getFileWithExtension(inFiles,self.adldict[iotype][var][0].strip('.'))[1].getAbsFile()
+              if var in self.adlDict[iotype].keys():
+                self.segments[inputFile][place] = getFileWithExtension(inFiles,self.adlDict[iotype][var][0].strip('.'))[1].getAbsFile()
                 break
     #now just write the files.
     for f,inFile in enumerate(origFiles):

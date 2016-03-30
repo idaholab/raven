@@ -32,21 +32,21 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
     """
     self.inputExtensions = []
 
-  def genCommand(self,inputFiles,executable,flags=None, fileargs=None, preexec=None):
+  def genCommand(self,inputFiles,executable,flags=None, fileArgs=None, preExec=None):
     """
       This method is used to retrieve the command (in tuple format) needed to launch the Code.
       This method checks a bolean enviroment variable called 'RAVENinterfaceCheck':
       if true, the subcodeCommand is going to be overwritten with an empty string. In this way we can check the functionality of the interface without having an executable.
       See Driver.py to understand how this Env variable is set
-      @ In , inputFiles, list, List of input files (lenght of the list depends on the number of inputs have been added in the Step is running this code)
-      @ In , executable, string, executable name with absolute path (e.g. /home/path_to_executable/code.exe)
-      @ In , flags, dict, dictionary containing the command-line flags the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 i0extension =0 .inp0/ >< /Code >)
-      @ In , fileargs, dict, a dictionary containing the axuiliary input file variables the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 aux0extension =0 .aux0/ >< /Code >)
-      @ In , preexec, string, a string the command that needs to be pre-executed before the actual command here defined
+      @ In, inputFiles, list, List of input files (lenght of the list depends on the number of inputs have been added in the Step is running this code)
+      @ In, executable, string, executable name with absolute path (e.g. /home/path_to_executable/code.exe)
+      @ In, flags, dict, optional, dictionary containing the command-line flags the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 i0extension =0 .inp0/ >< /Code >)
+      @ In, fileArgs, dict, optional, a dictionary containing the axuiliary input file variables the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 aux0extension =0 .aux0/ >< /Code >)
+      @ In, preExec, string, optional, a string the command that needs to be pre-executed before the actual command here defined
       @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the code (string), returnCommand[1] is the name of the output root
     """
-    if preexec is None: subcodeCommand,outputfileroot = self.generateCommand(inputFiles,executable,clargs=flags,fargs=fileargs)
-    else: subcodeCommand,outputfileroot = self.generateCommand(inputFiles,executable,clargs=flags,fargs=fileargs,preexec=preexec)
+    if preExec is None: subcodeCommand,outputfileroot = self.generateCommand(inputFiles,executable,clargs=flags,fargs=fileArgs)
+    else: subcodeCommand,outputfileroot = self.generateCommand(inputFiles,executable,clargs=flags,fargs=fileArgs,preExec=preExec)
     if os.environ['RAVENinterfaceCheck'].lower() in utils.stringsThatMeanTrue(): return [('parallel','')],outputfileroot
     returnCommand = subcodeCommand,outputfileroot
     return returnCommand
@@ -71,14 +71,14 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
     pass #afaik, this is only used in GenericCodeInterface currently.
 
   @abc.abstractmethod
-  def generateCommand(self,inputFiles,executable,clargs=None,fargs=None, preexec=None):
+  def generateCommand(self,inputFiles,executable,clargs=None,fargs=None, preExec=None):
     """
       This method is used to retrieve the command (in tuple format) needed to launch the Code.
-      @ In , inputFiles, list, List of input files (lenght of the list depends on the number of inputs have been added in the Step is running this code)
-      @ In , executable, string, executable name with absolute path (e.g. /home/path_to_executable/code.exe)
-      @ In , clargs, dict, dictionary containing the command-line flags the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 i0extension =0 .inp0/ >< /Code >)
-      @ In , fargs, dict, a dictionary containing the axuiliary input file variables the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 aux0extension =0 .aux0/ >< /Code >)
-      @ In , preexec, string, a string the command that needs to be pre-executed before the actual command here defined
+      @ In, inputFiles, list, List of input files (lenght of the list depends on the number of inputs have been added in the Step is running this code)
+      @ In, executable, string, executable name with absolute path (e.g. /home/path_to_executable/code.exe)
+      @ In, clargs, dict, optional, dictionary containing the command-line flags the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 i0extension =0 .inp0/ >< /Code >)
+      @ In, fargs, dict, optional, a dictionary containing the axuiliary input file variables the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 aux0extension =0 .aux0/ >< /Code >)
+      @ In, preExec, string, optional, a string the command that needs to be pre-executed before the actual command here defined
       @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the code (string), returnCommand[1] is the name of the output root
     """
     return
@@ -87,10 +87,10 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
   def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
     """
       This method is used to generate an input based on the information passed in.
-      @ In , currentInputFiles, list,  list of current input files (input files from last this method call)
-      @ In , oriInputFiles, list, list of the original input files
-      @ In , samplerType, string, Sampler type (e.g. MonteCarlo, Adaptive, etc. see manual Samplers section)
-      @ In , Kwargs, dictionary, kwarded dictionary of parameters. In this dictionary there is another dictionary called "SampledVars"
+      @ In, currentInputFiles, list,  list of current input files (input files from last this method call)
+      @ In, oriInputFiles, list, list of the original input files
+      @ In, samplerType, string, Sampler type (e.g. MonteCarlo, Adaptive, etc. see manual Samplers section)
+      @ In, Kwargs, dictionary, kwarded dictionary of parameters. In this dictionary there is another dictionary called "SampledVars"
              where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
       @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
     """
@@ -103,7 +103,7 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
   def getInputExtension(self):
     """
       This method returns a list of extension the code interface accepts for the input file (the main one)
-      @ In , None
+      @ In, None
       @ Out, tuple, tuple of strings containing accepted input extension (e.g.(".i",".inp"]) )
     """
     return tuple(self.inputExtensions)
@@ -111,7 +111,7 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
   def setInputExtension(self,exts):
     """
       This method sets a list of extension the code interface accepts for the input files
-      @ In , exts, list, list or other array containing accepted input extension (e.g.[".i",".inp"])
+      @ In, exts, list, list or other array containing accepted input extension (e.g.[".i",".inp"])
       @ Out, None
     """
     self.inputExtensions = exts[:]
@@ -119,7 +119,7 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
   def addInputExtension(self,exts):
     """
       This method adds a list of extension the code interface accepts for the input files
-      @ In , exts, list, list or other array containing accepted input extension (e.g.[".i",".inp"])
+      @ In, exts, list, list or other array containing accepted input extension (e.g.[".i",".inp"])
       @ Out, None
     """
     for e in exts:self.inputExtensions.append(e)
@@ -128,7 +128,7 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
     """
       This method sets a list of default extensions a specific code interface accepts for the input files.
       This method should be overwritten if these are not acceptable defaults.
-      @ In , None
+      @ In, None
       @ Out, None
     """
     self.addInputExtension(['i','inp','in'])

@@ -51,23 +51,23 @@ class CubitMooseInterface(CodeInterfaceBase): #MooseBasedAppInterface,CubitInter
     if not foundCubitInp: raise IOError('None of the input Files has the type "CubitInput"! CubitMoose interface requires one.')
     return mooseInp,cubitInp
 
-  def generateCommand(self,inputFiles,executable,clargs=None,fargs=None, preexec = None):
+  def generateCommand(self,inputFiles,executable,clargs=None,fargs=None, preExec = None):
     """
       Generate a multi-line command that runs both the Cubit mesh generator and then the desired MOOSE run.
       See base class.  Collects all the clargs and the executable to produce the command-line call.
       Returns tuple of commands and base file name for run.
       Commands are a list of tuples, indicating parallel/serial and the execution command to use.
-      @ In , inputFiles, list, List of input files (lenght of the list depends on the number of inputs have been added in the Step is running this code)
-      @ In , executable, string, executable name with absolute path (e.g. /home/path_to_executable/code.exe)
-      @ In , clargs, dict, dictionary containing the command-line flags the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 i0extension =0 .inp0/ >< /Code >)
-      @ In , fargs, dict, a dictionary containing the axuiliary input file variables the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 aux0extension =0 .aux0/ >< /Code >)
-      @ In , preexec, string, a string the command that needs to be pre-executed before the actual command here defined
+      @ In, inputFiles, list, List of input files (lenght of the list depends on the number of inputs have been added in the Step is running this code)
+      @ In, executable, string, executable name with absolute path (e.g. /home/path_to_executable/code.exe)
+      @ In, clargs, dict, optional, dictionary containing the command-line flags the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 i0extension =0 .inp0/ >< /Code >)
+      @ In, fargs, dict, optional, a dictionary containing the axuiliary input file variables the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 aux0extension =0 .aux0/ >< /Code >)
+      @ In, preExec, string, a string the command that needs to be pre-executed before the actual command here defined
       @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the code (string), returnCommand[1] is the name of the output root
     """
-    if preexec is None: raise IOError('No preexec listed in input!  Use MooseBasedAppInterface if mesh is not perturbed.  Exiting...')
+    if preExec is None: raise IOError('No preExec listed in input!  Use MooseBasedAppInterface if mesh is not perturbed.  Exiting...')
     mooseInp,cubitInp = self.findInps(inputFiles)
     #get the cubit part
-    cubitCommand,_ = self.CubitInterface.generateCommand([cubitInp],preexec,clargs,fargs)
+    cubitCommand,_ = self.CubitInterface.generateCommand([cubitInp],preExec,clargs,fargs)
     #get the moose part
     mooseCommand,mooseOut = self.MooseInterface.generateCommand([mooseInp],executable,clargs,fargs)
     #combine them
@@ -78,10 +78,10 @@ class CubitMooseInterface(CodeInterfaceBase): #MooseBasedAppInterface,CubitInter
   def createNewInput(self,currentInputFiles,origInputFiles,samplerType,**Kwargs):
     """
       Generates new perturbed input files.
-      @ In , currentInputFiles, list,  list of current input files (input files from last this method call)
-      @ In , oriInputFiles, list, list of the original input files
-      @ In , samplerType, string, Sampler type (e.g. MonteCarlo, Adaptive, etc. see manual Samplers section)
-      @ In , Kwargs, dictionary, kwarded dictionary of parameters. In this dictionary there is another dictionary called "SampledVars"
+      @ In, currentInputFiles, list,  list of current input files (input files from last this method call)
+      @ In, oriInputFiles, list, list of the original input files
+      @ In, samplerType, string, Sampler type (e.g. MonteCarlo, Adaptive, etc. see manual Samplers section)
+      @ In, Kwargs, dictionary, kwarded dictionary of parameters. In this dictionary there is another dictionary called "SampledVars"
              where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
       @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
     """

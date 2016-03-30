@@ -55,7 +55,7 @@ class SparseGrid(MessageHandler.MessageUser):
   def initialize(self, varNames, indexSet, distDict, quadDict, handler, msgHandler):
     """
       Initializes sparse quad to be functional. At the end of this method, all points and weights should be set.
-      @ In, varNames, the ordered list of grid dimension names
+      @ In, varNames, list, the ordered list of grid dimension names
       @ In, indexSet, IndexSet object, index set
       @ In, distDict, dict{varName,Distribution object}, distributions
       @ In, quadDict, dict{varName,Quadrature object}, quadratures
@@ -304,7 +304,7 @@ class SparseGrid(MessageHandler.MessageUser):
   def weights(self,n=None):
     """
       Either returns the list of weights, or the weight indexed at n, or the weight corresponding to point n.
-      @ In, n, string, splice instruction
+      @ In, n, string, optional, splice instruction
       @ Out, weights, float or tuple(float), requested weights
     """
     if n==None:
@@ -601,12 +601,15 @@ class QuadratureSet(MessageHandler.MessageUser):
     """
       Quadrature rule to use for order.  Defaults to Gauss, CC should set its own.
       @ In, i, int, quadrature level
-      @ Out, int, quadrature order
+      @ Out, quadRule, int, quadrature order
     """
     return GaussQuadRule(i)
 
 
 class Legendre(QuadratureSet):
+  """
+    Legendre quadrature
+  """
   def initialize(self,distr,msgHandler):
     """
       Initializes specific settings for quadratures.
@@ -620,6 +623,9 @@ class Legendre(QuadratureSet):
     self.pointRule = GaussQuadRule
 
 class Hermite(QuadratureSet):
+  """
+    Hermite quadrature
+  """
   def initialize(self,distr,msgHandler):
     """
       Initializes specific settings for quadratures.
@@ -633,6 +639,9 @@ class Hermite(QuadratureSet):
     self.pointRule = GaussQuadRule
 
 class Laguerre(QuadratureSet):
+  """
+    Laguerre quadrature
+  """
   def initialize(self,distr,msgHandler):
     """
       Initializes specific settings for quadratures.
@@ -649,6 +658,9 @@ class Laguerre(QuadratureSet):
       self.raiseAnError(IOError,'No implementation for Laguerre quadrature on '+distr.type+' distribution!')
 
 class Jacobi(QuadratureSet):
+  """
+    Jacobi quadrature
+  """
   def initialize(self,distr,msgHandler):
     """
       Initializes specific settings for quadratures.
@@ -669,6 +681,9 @@ class Jacobi(QuadratureSet):
       self.raiseAnError(IOError,'No implementation for Jacobi quadrature on '+distr.type+' distribution!')
 
 class ClenshawCurtis(QuadratureSet):
+  """
+    ClenshawCurtis quadrature
+  """
   def initialize(self,distr,msgHandler):
     """
       Initializes specific settings for quadratures.
@@ -704,10 +719,16 @@ class ClenshawCurtis(QuadratureSet):
     return x,w
 
 
-class CDFLegendre(Legendre): #added just for name distinguish; equiv to Legendre
+class CDFLegendre(Legendre):
+  """
+    Added just for name distinguish; equiv to Legendre
+  """
   pass
 
-class CDFClenshawCurtis(ClenshawCurtis): #added just for name distinguish; equiv to ClenshawCurtis
+class CDFClenshawCurtis(ClenshawCurtis):
+  """
+    Added just for name distinguish; equiv to ClenshawCurtis
+  """
   pass
 
 
@@ -716,7 +737,7 @@ def CCQuadRule(i):
     In order to get nested points, we need 2**i on Clenshaw-Curtis points instead of just i.
      For example, i=2 is not nested in i==1, but i==2**2 is.
     @ In, i, int, level desired
-    @ Out, i, int,desired quad order
+    @ Out, CCQuadRule, int, desired quad order
   """
   try: return np.array(list((0 if p==0 else 2**p) for p in i))
   except TypeError: return 0 if i==0 else 2**i

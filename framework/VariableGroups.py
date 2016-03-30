@@ -34,7 +34,7 @@ class VariableGroup(BaseClasses.BaseType):
   def _readMoreXML(self,node):
     """
       reads XML for more information
-      @ In, node, xml.ElementTree.Element, xml element to read data from
+      @ In, node, xml.etree.ElementTree.Element, xml element to read data from
       @ Out, None
     """
     #establish the name
@@ -122,7 +122,7 @@ class VariableGroup(BaseClasses.BaseType):
   def getVarsString(self,delim=','):
     """
       Returns delim-separated list of variables in group
-      @ In, delim, string, delimiter
+      @ In, delim, string, optional, delimiter (default = ',')
       @ Out, csvVariablesString, string, list of variables in comma-separated string
     """
     csvVariablesString = ','.join(self.getVars())

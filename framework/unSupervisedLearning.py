@@ -44,20 +44,20 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
   modelType = ''  # the broad class of the interpolator
 
   @staticmethod
-  def checkArrayConsistency(arrayin):
+  def checkArrayConsistency(arrayIn):
     """
       This method checks the consistency of the in-array
-      @ In, arrayin, object,  It should be an array
+      @ In, arrayIn, object,  It should be an array
       @ Out, (consistent, 'error msg'), tuple, tuple[0] is a bool (True -> everything is ok, False -> something wrong), tuple[1], string ,the error mesg
     """
-    if type(arrayin) != np.ndarray: return (False, ' The object is not a numpy array')
+    if type(arrayIn) != np.ndarray: return (False, ' The object is not a numpy array')
     # The input data matrix kind is different for different clustering algorithms
     # e.g. [n_samples, n_features] for MeanShift and KMeans
     #     [n_samples,n_samples]   for AffinityPropogation and SpectralCLustering
     # In other words, MeanShift and KMeans work with points in a vector space,
     # whereas AffinityPropagation and SpectralClustering can work with arbitrary objects, as long as a similarity measure exists for such objects
     # The input matrix supplied to unSupervisedLearning models as 1-D arrays of size [n_samples], (either n_features of or n_samples of them)
-    if len(arrayin.shape) != 1: return(False, ' The array must be 1-d')
+    if len(arrayIn.shape) != 1: return(False, ' The array must be 1-d')
     return (True, '')
 
   def __init__(self, messageHandler, **kwargs):

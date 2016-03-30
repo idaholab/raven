@@ -82,7 +82,7 @@ class Node(object):
     """
       updates the 'depth' parameter throughout the tree
       @In, None
-      @Out, None
+      @ Out, None
     """
     if self.parent=='root': self.depth=0
     else: self.depth = self.parent.depth+1

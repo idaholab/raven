@@ -9,7 +9,7 @@ def execCommandReturn(commandString,self=None,object=None):
   """
     Method to execute a command, compiled at run time, returning the response
     @ In, commandString, string, the command to execute
-    @ In, self, instance, optional, self instnace
+    @ In, self, instance, optional, self instance
     @ In, object, instance, optional, object instance
     @ Out, returnedCommand, object, whatever the command needs to return
   """
@@ -20,7 +20,7 @@ def execCommand(commandString,self=None,object=None):
   """
     Method to execute a command, compiled at run time, without returning the response
     @ In, commandString, string, the command to execute
-    @ In, self, instance, optional, self instnace
+    @ In, self, instance, optional, self instance
     @ In, object, instance, optional, object instance
     @ Out, None
   """

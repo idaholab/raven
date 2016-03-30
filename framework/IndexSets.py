@@ -90,7 +90,7 @@ class IndexSet(MessageHandler.MessageUser):
   def __ne__(self,other):
     """
       Checks non-equivalency of index set
-      @ In , other, object, object to compare to
+      @ In, other, object, object to compare to
       @ Out, isNotEqual, bool, non-equivalency
     """
     isNotEqual = not self.__eq__(other)

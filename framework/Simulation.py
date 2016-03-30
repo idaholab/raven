@@ -89,7 +89,7 @@ class SimulationMode(MessageHandler.MessageUser):
     """
       XMLread is called with the mode node, and can be used to
       get extra parameters needed for the simulation mode.
-      @ In, xmlNode, xml.ElementTree.Element, the xml node that belongs to this class instance
+      @ In, xmlNode, xml.etree.ElementTree.Element, the xml node that belongs to this class instance
       @ Out, None
     """
     pass
@@ -267,7 +267,7 @@ class MPISimulationMode(SimulationMode):
     """
       XMLread is called with the mode node, and is used here to
       get extra parameters needed for the simulation mode MPI.
-      @ In, xmlNode, xml.ElementTree.Element, the xml node that belongs to this class instance
+      @ In, xmlNode, xml.etree.ElementTree.Element, the xml node that belongs to this class instance
       @ Out, None
     """
     for child in xmlNode:
@@ -452,9 +452,10 @@ class Simulation(MessageHandler.MessageUser):
     """
       Returns the default input file to read
       @ In, None
-      @ Out, DefaultInputFile, string, default input file
+      @ Out, defaultInputFile, string, default input file
     """
-    return self.runInfoDict['DefaultInputFile']
+    defaultInputFile = self.runInfoDict['DefaultInputFile']
+    return defaultInputFile
 
   def __createAbsPath(self,fileIn):
     """

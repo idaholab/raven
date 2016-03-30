@@ -75,15 +75,15 @@ def checkIfPathAreAccessedByAnotherProgram(pathname, timelapse = 10.0):
   boolReturn = abs(os.stat(pathname).st_mtime - time.time()) < timelapse
   return boolReturn
 
-def checkIfLockedRavenFileIsPresent(pathname,filename="ravenLockedKey.raven"):
+def checkIfLockedRavenFileIsPresent(pathName,fileName="ravenLockedKey.raven"):
   """
     Method to check if a path (directory) contains an hidden raven file
-    @ In, pathname, string, string containing the path
-    @ In, filename, string, optional, string containing the file name
+    @ In, pathName, string, string containing the path
+    @ In, fileName, string, optional, string containing the file name
     @ Out, filePresent, bool, True if it is present, False otherwise
   """
-  filePresent = os.path.isfile(os.path.join(pathname,filename))
-  open(os.path.join(pathname,filename), 'w')
+  filePresent = os.path.isfile(os.path.join(pathName,fileName))
+  open(os.path.join(pathName,fileName), 'w')
   return filePresent
 
 def returnImportModuleString(obj,moduleOnly=False):
@@ -141,7 +141,7 @@ def convertMultipleToBytes(sizeString):
     Convert multiple (e.g. Mbytes, Gbytes,Kbytes) in bytes
     International system type (e.g., 1 Mb = 10^6)
     @ In, sizeString, string, string that needs to be converted in bytes
-    @ Out, bytes, integer, the number of bytes
+    @ Out, convertMultipleToBytes, integer, the number of bytes
   """
   if   'mb' in sizeString: return int(sizeString.replace("mb",""))*10**6
   elif 'kb' in sizeString: return int(sizeString.replace("kb",""))*10**3
@@ -154,63 +154,63 @@ def stringsThatMeanTrue():
   """
     Return list of strings with the meaning of true in RAVEN (eng,ita,roman,french,german,chinese,latin, turkish, bool)
     @ In, None
-    @ Out, listofstrings, list, list of strings that mean True in RAVEN
+    @ Out, listOfStrings, list, list of strings that mean True in RAVEN
   """
-  listofstrings = list(['yes','y','true','t','si','vero','dajie','oui','ja','yao','verum', 'evet', 'dogru', '1', 'on'])
-  return listofstrings
+  listOfStrings = list(['yes','y','true','t','si','vero','dajie','oui','ja','yao','verum', 'evet', 'dogru', '1', 'on'])
+  return listOfStrings
 
 def stringsThatMeanFalse():
   """
     Return list of strings with the meaning of true in RAVEN (eng,ita,roman,french,german,chinese,latin, turkish, bool)
     @ In, None
-    @ Out, listofstrings, list, list of strings that mean False in RAVEN
+    @ Out, listOfStrings, list, list of strings that mean False in RAVEN
   """
-  listofstrings = list(['no','n','false','f','nono','falso','nahh','non','nicht','bu','falsus', 'hayir', 'yanlis', '0', 'off'])
-  return listofstrings
+  listOfStrings = list(['no','n','false','f','nono','falso','nahh','non','nicht','bu','falsus', 'hayir', 'yanlis', '0', 'off'])
+  return listOfStrings
 
 def stringsThatMeanSilent():
   """
     Return list of strings that indicate a verbosity of the lowest level (just errors). You linguists add what you wish
     @ In, None
-    @ Out, listofstrings, list, list of strings that mean Silent in RAVEN
+    @ Out, listOfStrings, list, list of strings that mean Silent in RAVEN
   """
-  listofstrings = list(['0','silent','false','f','n','no','none'])
-  return listofstrings
+  listOfStrings = list(['0','silent','false','f','n','no','none'])
+  return listOfStrings
 
 def stringsThatMeanPartiallyVerbose():
   """
     Return list of strings that indicate a verbosity of the medium level (errors and warnings). You linguists add what you wish.
     @ In, None
-    @ Out, listofstrings, list, list of strings that mean Quiet in RAVEN
+    @ Out, listOfStrings, list, list of strings that mean Quiet in RAVEN
   """
-  listofstrings = list(['1','quiet','some'])
-  return listofstrings
+  listOfStrings = list(['1','quiet','some'])
+  return listOfStrings
 
 def stringsThatMeanVerbose():
   """
     Return list of strings that indicate full verbosity (errors warnings, messages). You linguists add what you wish.
     @ In, None
-    @ Out, listofstrings, list, list of strings that mean Full Verbosity in RAVEN
+    @ Out, listOfStrings, list, list of strings that mean Full Verbosity in RAVEN
   """
-  listofstrings = list(['2','loud','true','t','y','yes','all'])
-  return listofstrings
+  listOfStrings = list(['2','loud','true','t','y','yes','all'])
+  return listOfStrings
 
-def interpretBoolean(inarg):
+def interpretBoolean(inArg):
   """
-    Utility method to convert an inarg into a boolean.
-    The inarg can be either a string or integer
-    @ In, inarg, object, object to convert
+    Utility method to convert an inArg into a boolean.
+    The inArg can be either a string or integer
+    @ In, inArg, object, object to convert
     @ Out, interpretedObject, bool, the interpreted boolean
   """
-  if type(inarg).__name__ == "bool": return inarg
-  elif type(inarg).__name__ == "integer":
-    if inarg == 0: return False
+  if type(inArg).__name__ == "bool": return inArg
+  elif type(inArg).__name__ == "integer":
+    if inArg == 0: return False
     else         : return True
-  elif type(inarg).__name__ in ['str','bytes','unicode']:
-      if inarg.lower().strip() in stringsThatMeanTrue()   : return True
-      elif inarg.lower().strip() in stringsThatMeanFalse(): return False
+  elif type(inArg).__name__ in ['str','bytes','unicode']:
+      if inArg.lower().strip() in stringsThatMeanTrue()   : return True
+      elif inArg.lower().strip() in stringsThatMeanFalse(): return False
       else                                                : raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag("ERROR") + '-> can not convert string to boolean in method interpretBoolean!!!!')
-  else: raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag("ERROR") + '-> type unknown in method interpretBoolean. Got' + type(inarg).__name__)
+  else: raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag("ERROR") + '-> type unknown in method interpretBoolean. Got' + type(inArg).__name__)
 
 def compare(s1,s2,sig_fig = 6):
   """
@@ -464,7 +464,7 @@ def find_ge(a, x):
 #   self.__dict__.update(newstate)
 #   self.exist    = True
 
-def metaclass_insert(metaclass,*base_classes):
+def metaclass_insert(metaclass,*baseClasses):
   """
     This allows a metaclass to be inserted as a base class.
     Metaclasses substitute in as a type(name,bases,namespace) function,
@@ -474,11 +474,11 @@ def metaclass_insert(metaclass,*base_classes):
     class Foo(metaclass_insert(Metaclass)):
     This function is based on the method used in Benjamin Peterson's six.py
     @ In, metaclass, abc, the metaclass
-    @ In, base_classes, args*, base classes
+    @ In, baseClasses, args*, base classes
     @ Out, metaclass, class, the new metaclass
   """
   namespace={}
-  return metaclass("NewMiddleClass",base_classes,namespace)
+  return metaclass("NewMiddleClass",baseClasses,namespace)
 
 def interpolateFunction(x,y,option,z = None,returnCoordinate=False):
   """
@@ -677,7 +677,7 @@ def NDInArray(findIn,val,tol=1e-12):
     checks a numpy array of numpy arrays for a near match, then returns info.
     @ In, findIn, np.array, numpy array of numpy arrays (both arrays can be any length)
     @ In, val, tuple/list/numpy array, entry to look for in findIn
-    @ In, tol, float, tolerance to check match within
+    @ In, tol, float, optional, tolerance to check match within
     @ Out, (bool,idx,val) -> (found/not found, index where found or None, findIn entry or None)
   """
   loc = np.where(np.all(np.abs(findIn-val)<tol,axis=1)==1)

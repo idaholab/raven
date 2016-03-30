@@ -49,14 +49,14 @@ def skewNormal(x,alphafactor,xi,omega):
   returnSkew = (2.0/omega)*phi((x-xi)/omega)*Phi(alphafactor*(x-xi)/omega)
   return returnSkew
 
-def createInterp(x, y, low_fill, high_fill, kind='linear'):
+def createInterp(x, y, lowFill, highFill, kind='linear'):
   """
     Simpson integration rule
     @ In, x, list or np.array, x values
     @ In, y, list or np.array, y values
-    @ In, low_fill, float, minimum interpolated value
-    @ In, high_fill, float, maximum interpolated value
-    @ In, kind, string, interpolation type
+    @ In, lowFill, float, minimum interpolated value
+    @ In, highFill, float, maximum interpolated value
+    @ In, kind, string, optional, interpolation type (default=linear)
     @ Out, sumVar, float, integral
   """
   interp = interpolate.interp1d(x, y, kind)
@@ -66,9 +66,9 @@ def createInterp(x, y, low_fill, high_fill, kind='linear'):
       return interp(x)+0.0
     except ValueError:
       if x <= low:
-        return low_fill
+        return lowFill
       else:
-        return high_fill
+        return highFill
   return myInterp
 
 def simpson(f, a, b, n):
@@ -89,13 +89,13 @@ def simpson(f, a, b, n):
   sumVar = sumVar * h / 3.0
   return sumVar
 
-def getGraphs(functions, f_z_stats = False):
+def getGraphs(functions, fZStats = False):
   """
     Returns the graphs of the functions.
-    The functions are a list of (data_stats_dict, cdf_function, pdf_function,name)
+    The functions are a list of (dataStats, cdf_function, pdf_function,name)
     It returns a dictionary with the graphs and other statistics calculated.
     @ In, functions, list, list of functions (data_stats_dict, cdf_function, pdf_function,name)
-    @ In, f_z_stats, bool, true if the F(z) (cdf) needs to be computed
+    @ In, fZStats, bool, optional, true if the F(z) (cdf) needs to be computed
     @ Out, retDict, dict, the return dictionary
   """
   retDict = {}
@@ -115,23 +115,28 @@ def getGraphs(functions, f_z_stats = False):
   interval = (high - low)/n
 
   #Print the cdfs and pdfs of the data to be compared.
-  orig_cdf_and_pdf_array = []
-  orig_cdf_and_pdf_array.append(["x"])
+  origCdfAndPdfArray = []
+  origCdfAndPdfArray.append(["x"])
   for name in names:
-    orig_cdf_and_pdf_array.append([name+'_cdf'])
-    orig_cdf_and_pdf_array.append([name+'_pdf'])
+    origCdfAndPdfArray.append([name+'_cdf'])
+    origCdfAndPdfArray.append([name+'_pdf'])
 
   for i in range(n):
     x = low+interval*i
-    orig_cdf_and_pdf_array[0].append(x)
+    origCdfAndPdfArray[0].append(x)
     k = 1
     for stats, cdf, pdf, name in functions:
-      orig_cdf_and_pdf_array[k].append(cdf(x))
-      orig_cdf_and_pdf_array[k+1].append(pdf(x))
+      origCdfAndPdfArray[k].append(cdf(x))
+      origCdfAndPdfArray[k+1].append(pdf(x))
       k += 2
-  retDict["cdf_and_pdf_arrays"] = orig_cdf_and_pdf_array
+  retDict["cdf_and_pdf_arrays"] = origCdfAndPdfArray
 
   def fZ(z):
+    """
+      Compute f(z) with a simpson rule
+      @ In, z, float, the coordinate
+      @ Out, fZ, the f(z)
+    """
     return simpson(lambda x: pdfs[0](x)*pdfs[1](x-z), lowLow, highHigh, 1000)
 
   if len(means) < 2:
@@ -141,17 +146,25 @@ def getGraphs(functions, f_z_stats = False):
   highZ = midZ + 3.0*max(stddevs[0],stddevs[1])
 
   #print the difference function table.
-  f_z_table = [["z"],["f_z(z)"]]
+  fZTable = [["z"],["f_z(z)"]]
   zN = 20
   intervalZ = (highZ - lowZ)/zN
   for i in range(zN):
     z = lowZ + intervalZ*i
-    f_z_table[0].append(z)
-    f_z_table[1].append(fZ(z))
+    fZTable[0].append(z)
+    fZTable[1].append(fZ(z))
   cdfAreaDifference = simpson(lambda x:abs(cdfs[1](x)-cdfs[0](x)),lowLow,highHigh,100000)
-  retDict["f_z_table"] = f_z_table
+  retDict["f_z_table"] = fZTable
 
   def firstMomentSimpson(f, a, b, n):
+    """
+      Compute the first simpson method
+      @ In, f, method, the function f(x)
+      @ In, a, float, lower bound
+      @ In, b, float, upper bound
+      @ In, n, int, the number of discretizations
+      @ Out, firstMomentSimpson, float, the moment
+    """
     return simpson(lambda x:x*f(x), a, b, n)
 
   #print a bunch of comparison statistics
@@ -165,7 +178,7 @@ def getGraphs(functions, f_z_stats = False):
   retDict['pdf_common_area'] = pdfCommonArea
   dataStats[0]["cdf_area_difference"] = cdfAreaDifference
   dataStats[0]["pdf_common_area"] = pdfCommonArea
-  if f_z_stats:
+  if fZStats:
     sumFunctionDiff = simpson(fZ, lowZ, highZ, 1000)
     firstMomentFunctionDiff = firstMomentSimpson(fZ, lowZ,highZ, 1000)
     varianceFunctionDiff = simpson(lambda x:((x-firstMomentFunctionDiff)**2)*fZ(x),lowZ,highZ, 1000)
@@ -177,7 +190,7 @@ def getGraphs(functions, f_z_stats = False):
 
 def countBins(sortedData, binBoundaries):
   """
-    counts the number of data items in the sorted_data
+    This method counts the number of data items in the sorted_data
     Returns an array with the number.  ret[0] is the number of data
     points <= binBoundaries[0], ret[len(binBoundaries)] is the number
     of points > binBoundaries[len(binBoundaries)-1]

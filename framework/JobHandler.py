@@ -45,7 +45,7 @@ class ExternalRunner(MessageHandler.MessageUser):
     """
       Initialize command variable
       @ In, messageHandler, MessageHandler instance, the global RAVEN message handler instance
-      @ In, command, list, list of command that needs to be executed
+      @ In, command, list, list of commands that needs to be executed
       @ In, workingDir, string, absolute path of the working directory
       @ In, bufsize, int, buffer size for logger
       @ In, output, string, optional, output filename root
@@ -153,7 +153,7 @@ class ExternalRunner(MessageHandler.MessageUser):
       => sub-sequential calls to getReturnCode will not inquire the codePointer anymore but
       just return the stored value
       @ In, None
-      @ Out, returnCode, int, return code
+      @ Out, returnCode, int, return code.  1 if the checkForOutputFailure is true, otherwise the process return code.
     """
     returnCode = self.__process.returncode
     if self.codePointer != None:
@@ -421,7 +421,7 @@ class JobHandler(MessageHandler.MessageUser):
     if self.runInfoDict['internalParallel']:
       import random
       if len(self.runInfoDict['Nodes']) > 0:
-        availableNodes            = [nodeid.strip() for nodeid in self.runInfoDict['Nodes']]
+        availableNodes            = [nodeId.strip() for nodeId in self.runInfoDict['Nodes']]
         # set initial port randomly among the user accessable ones
         randomPort = random.randint(1024,65535)
         # get localHost and servers
@@ -451,9 +451,9 @@ class JobHandler(MessageHandler.MessageUser):
     hostNameMapping['local'] =  str(socket.getfqdn()).strip()
     self.raiseADebug("Local Host is " + hostNameMapping['local'])
     # collect the qualified hostnames
-    for nodeid in list(set(self.runInfoDict['Nodes'])):
-      hostNameMapping['remote'][nodeid.strip()] = socket.gethostbyname(nodeid.strip())
-      self.raiseADebug("Remote Host identified " + hostNameMapping['remote'][nodeid.strip()])
+    for nodeId in list(set(self.runInfoDict['Nodes'])):
+      hostNameMapping['remote'][nodeId.strip()] = socket.gethostbyname(nodeId.strip())
+      self.raiseADebug("Remote Host identified " + hostNameMapping['remote'][nodeId.strip()])
     return hostNameMapping
 
   def __runRemoteListeningSockets(self,newPort):
@@ -481,25 +481,25 @@ class JobHandler(MessageHandler.MessageUser):
       # modify the python path
       pathSeparator = os.pathsep
       localenv["PYTHONPATH"] = pathSeparator.join(sys.path)
-      for nodeid in list(set(availableNodes)):
-        outFile = open(os.path.join(self.runInfoDict['WorkingDir'],nodeid.strip()+"_port:"+str(newPort)+"_server_out.log"),'w')
+      for nodeId in list(set(availableNodes)):
+        outFile = open(os.path.join(self.runInfoDict['WorkingDir'],nodeId.strip()+"_port:"+str(newPort)+"_server_out.log"),'w')
         # check how many processors are available in the node
-        ntasks = availableNodes.count(nodeid)
-        remoteHostName =  remoteNodesIP[nodeid]
+        ntasks = availableNodes.count(nodeId)
+        remoteHostName =  remoteNodesIP[nodeId]
         # activate the remote socketing system
         #Next line is a direct execute of ppserver:
-        #subprocess.Popen(['ssh', nodeid, "python2.7", ppserverScript,"-w",str(ntasks),"-i",remoteHostName,"-p",str(newPort),"-t","1000","-g",localenv["PYTHONPATH"],"-d"],shell=False,stdout=outFile,stderr=outFile,env=localenv)
+        #subprocess.Popen(['ssh', nodeId, "python2.7", ppserverScript,"-w",str(ntasks),"-i",remoteHostName,"-p",str(newPort),"-t","1000","-g",localenv["PYTHONPATH"],"-d"],shell=False,stdout=outFile,stderr=outFile,env=localenv)
         command=" ".join(["python",ppserverScript,"-w",str(ntasks),"-i",remoteHostName,"-p",str(newPort),"-t","1000","-g",localenv["PYTHONPATH"],"-d"])
-        utils.pickleSafeSubprocessPopen(['ssh',nodeid,"COMMAND='"+command+"'",self.runInfoDict['RemoteRunCommand']],shell=False,stdout=outFile,stderr=outFile,env=localenv)
-        #ssh nodeid COMMAND='python ppserverScript -w stuff'
+        utils.pickleSafeSubprocessPopen(['ssh',nodeId,"COMMAND='"+command+"'",self.runInfoDict['RemoteRunCommand']],shell=False,stdout=outFile,stderr=outFile,env=localenv)
+        #ssh nodeId COMMAND='python ppserverScript -w stuff'
         # update list of servers
-        ppservers.append(nodeid+":"+str(newPort))
+        ppservers.append(nodeId+":"+str(newPort))
     return qualifiedHostName, ppservers
 
   def addExternal(self,executeCommands,outputFile,workingDir,metadata=None,codePointer=None):
     """
       Method to add an external runner (an external code) in the handler list
-      @ In, executeCommands, tuple(string), ('parallel'/'serial', <execution command>)
+      @ In, executeCommands, list of tuple(string), ('parallel'/'serial', <execution command>)
       @ In, outputFile, string, output file name
       @ In, workingDir, string, working directory
       @ In, metadata, dict, optional, dictionary of metadata
@@ -563,9 +563,9 @@ class JobHandler(MessageHandler.MessageUser):
 
   def getNumberOfFailures(self):
     """
-      Method to get the number of execution that failed
+      Method to get the number of executions that failed
       @ In, None
-      @ Out, __numFailed, int, number of failure
+      @ Out, __numFailed, int, number of failures
     """
     return self.__numFailed
 
@@ -597,7 +597,7 @@ class JobHandler(MessageHandler.MessageUser):
     """
       Method to get the list of jobs that ended (list of objects)
       @ In, removeFinished, bool, optional, flag to control if the finished jobs need to be removed from the queue
-      @ In, prefix, string, optional, if specified only collects finished runs with a particular prefix.
+      @ In, prefix, string, optional, if specified, only collects finished runs with a particular prefix.
       @ Out, finished, list, list of finished jobs (InternalRunner or ExternalRunner objects)
     """
     finished = []
@@ -636,7 +636,8 @@ class JobHandler(MessageHandler.MessageUser):
 
   def addRuns(self):
     """
-      Method to start running the jobs in queue
+      Method to start running the jobs in queue.  If there are empty slots
+      takes jobs out of the queue and starts running them.
       @ In, None
       @ Out, None
     """
@@ -679,7 +680,7 @@ class JobHandler(MessageHandler.MessageUser):
 
   def startingNewStep(self):
     """
-      Method to reset the __numSubmitted counter
+      Method to reset the __numSubmitted counter to zero.
       @ In, None
       @ Out, None
     """
@@ -687,7 +688,7 @@ class JobHandler(MessageHandler.MessageUser):
 
   def terminateAll(self):
     """
-      Method to clear out the queue
+      Method to clear out the queue by killing all running processes.
       @ In, None
       @ Out, None
     """

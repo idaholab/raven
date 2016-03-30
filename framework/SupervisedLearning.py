@@ -233,7 +233,7 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
   def printXML(self,rootnode,options=None):
     """
       Allows the SVE to put whatever it wants into an XML to print to file.
-      @ In, rootnode, xml.ElementTree.Element, the root node of an XML tree to print to
+      @ In, rootnode, xml.etree.ElementTree.Element, the root node of an XML tree to print to
       @ In, options, dict, optional, dict of string-based options to use, including filename, things to print, etc
       @ Out, None
     """
@@ -1877,7 +1877,7 @@ def returnInstance(ROMclass,caller,**kwargs):
   """
     This function return an instance of the request model type
     @ In, ROMclass, string, string representing the instance to create
-    @ In, caller, instnace, object that will share its messageHandler instance
+    @ In, caller, instance, object that will share its messageHandler instance
     @ In, kwargs, dict, a dictionary specifying the keywords and values needed to create the instance.
     @ Out, returnInstance, instance, an instance of a ROM
   """

@@ -885,7 +885,7 @@ class Code(Model):
     """
     Model.__init__(self,runInfoDict)
     self.executable         = ''   #name of the executable (abs path)
-    self.preexec            = None   #name of the pre-executable, if any
+    self.preExec            = None   #name of the pre-executable, if any
     self.oriInputFiles      = []   #list of the original input files (abs path)
     self.workingDir         = ''   #location where the code is currently running
     self.outFileRoot        = ''   #root to be used to generate the sequence of output files
@@ -911,7 +911,7 @@ class Code(Model):
       if child.tag =='executable':
         self.executable = str(child.text)
       if child.tag =='preexec':
-        self.preexec = str(child.text)
+        self.preExec = str(child.text)
       elif child.tag =='alias':
         # the input would be <alias variable='internal_variable_name'>Material|Fuel|thermal_conductivity</alias>
         if 'variable' in child.attrib.keys(): self.alias[child.attrib['variable']] = child.text
@@ -967,12 +967,12 @@ class Code(Model):
     if os.path.exists(abspath):
       self.executable = abspath
     else: self.raiseAMessage('not found executable '+self.executable,'ExceptedError')
-    if self.preexec is not None:
-      if '~' in self.preexec: self.preexec = os.path.expanduser(self.preexec)
-      abspath = os.path.abspath(self.preexec)
+    if self.preExec is not None:
+      if '~' in self.preExec: self.preExec = os.path.expanduser(self.preExec)
+      abspath = os.path.abspath(self.preExec)
       if os.path.exists(abspath):
-        self.preexec = abspath
-      else: self.raiseAMessage('not found preexec '+self.preexec,'ExceptedError')
+        self.preExec = abspath
+      else: self.raiseAMessage('not found preexec '+self.preExec,'ExceptedError')
     self.code = Code.CodeInterfaces.returnCodeInterface(self.subType,self)
     self.code.readMoreXML(xmlNode)
     self.code.setInputExtension(list(a.strip('.') for b in (c for c in self.clargs['input'].values()) for a in b))
@@ -1074,7 +1074,7 @@ class Code(Model):
       @ Out, None
     """
     self.currentInputFiles, metaData = (copy.deepcopy(inputFiles[0]),inputFiles[1]) if type(inputFiles).__name__ == 'tuple' else (inputFiles, None)
-    returnedCommand = self.code.genCommand(self.currentInputFiles,self.executable, flags=self.clargs, fileargs=self.fargs, preexec=self.preexec)
+    returnedCommand = self.code.genCommand(self.currentInputFiles,self.executable, flags=self.clargs, fileArgs=self.fargs, preExec=self.preExec)
     if type(returnedCommand).__name__ != 'tuple'  : self.raiseAnError(IOError, "the generateCommand method in code interface must return a tuple")
     if type(returnedCommand[0]).__name__ != 'list': self.raiseAnError(IOError, "the first entry in tuple returned by generateCommand method needs to be a list of tuples!")
     executeCommand, self.outFileRoot = returnedCommand
@@ -1264,7 +1264,7 @@ class PostProcessor(Model, Assembler):
       It is used for inquiring the class, which is implementing the method, about the kind of objects the class needs to
       be initialize. It is an abstract method -> It must be implemented in the derived class!
       NB. In this implementation, the method only calls the self.interface.whatDoINeed() method
-      @ In , None
+      @ In, None
       @ Out, needDict, dict, dictionary of objects needed (class:tuple(object type{if None, Simulation does not check the type}, object name))
     """
     return self.interface.whatDoINeed()
@@ -1275,7 +1275,7 @@ class PostProcessor(Model, Assembler):
       It is used for sending to the instanciated class, which is implementing the method, the objects that have been requested through "whatDoINeed" method
       It is an abstract method -> It must be implemented in the derived class!
       NB. In this implementation, the method only calls the self.interface.generateAssembler(initDict) method
-      @ In , initDict, dict, dictionary ({'mainClassName(e.g., Databases):{specializedObjectName(e.g.,DatabaseForSystemCodeNamedWolf):ObjectInstance}'})
+      @ In, initDict, dict, dictionary ({'mainClassName(e.g., Databases):{specializedObjectName(e.g.,DatabaseForSystemCodeNamedWolf):ObjectInstance}'})
       @ Out, None
     """
     self.interface.generateAssembler(initDict)

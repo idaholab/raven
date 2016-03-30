@@ -145,7 +145,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
       It is used for sending to the instanciated class, which is implementing the method, the objects that have been requested through "whatDoINeed" method
       It is an abstract method -> It must be implemented in the derived class!
-      @ In , initDict, dict, dictionary ({'mainClassName(e.g., Databases):{specializedObjectName(e.g.,DatabaseForSystemCodeNamedWolf):ObjectInstance}'})
+      @ In, initDict, dict, dictionary ({'mainClassName(e.g., Databases):{specializedObjectName(e.g.,DatabaseForSystemCodeNamedWolf):ObjectInstance}'})
       @ Out, None
     """
     availableDist = initDict['Distributions']
@@ -166,7 +166,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
       This method is a local mirror of the general whatDoINeed method.
       It is implemented by the samplers that need to request special objects
-      @ In , None
+      @ In, None
       @ Out, needDict, dict, list of objects needed
     """
     needDict = {}
@@ -780,11 +780,11 @@ class LimitSurfaceSearch(AdaptiveSampler):
       This method is a local mirror of the general whatDoINeed method.
       It is implemented by the samplers that need to request special objects
       @ In, None
-      @ Out, LSDict, list, list of objects needed
+      @ Out, limitSurfaceDict, dict, list of objects needed
     """
-    LSDict = AdaptiveSampler._localWhatDoINeed(self)
-    LSDict['internal'] = [(None,'jobHandler')]
-    return LSDict
+    limitSurfaceDict = AdaptiveSampler._localWhatDoINeed(self)
+    limitSurfaceDict['internal'] = [(None,'jobHandler')]
+    return limitSurfaceDict
 
   def _localGenerateAssembler(self,initDict):
     """
@@ -1362,7 +1362,7 @@ class MonteCarlo(Sampler):
       creating an empty container to hold the identified surface points, error
       checking the optionally provided solution export and other preset values,
       and initializing the limit surface Post-Processor used by this sampler.
-      @ In, solutionExport, DataObjects, optional, a PointSet to hold the solution (a list of limit surface points)
+      @ In, None
       @ Out, None
     """
     if self.restartData:
@@ -1378,7 +1378,7 @@ class MonteCarlo(Sampler):
       After this method is called, the self.inputInfo should be ready to be sent
       to the model
       @ In, model, model instance, an instance of a model
-      @ In, oldInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
+      @ In, myInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
     """
     # create values dictionary
@@ -1491,7 +1491,7 @@ class Grid(Sampler):
       creating an empty container to hold the identified surface points, error
       checking the optionally provided solution export and other preset values,
       and initializing the limit surface Post-Processor used by this sampler.
-      @ In, solutionExport, DataObjects, optional, a PointSet to hold the solution (a list of limit surface points)
+      @ In, None
       @ Out, None
     """
     self.gridEntity.initialize()
@@ -1507,7 +1507,7 @@ class Grid(Sampler):
       After this method is called, the self.inputInfo should be ready to be sent
       to the model
       @ In, model, model instance, an instance of a model
-      @ In, oldInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
+      @ In, myInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
     """
     self.inputInfo['distributionName'] = {} #Used to determine which distribution to change if needed.
@@ -1675,7 +1675,7 @@ class Stratified(Grid):
       creating an empty container to hold the identified surface points, error
       checking the optionally provided solution export and other preset values,
       and initializing the limit surface Post-Processor used by this sampler.
-      @ In, solutionExport, DataObjects, optional, a PointSet to hold the solution (a list of limit surface points)
+      @ In, None
       @ Out, None
     """
     Grid.localInitialize(self)
@@ -1722,7 +1722,7 @@ class Stratified(Grid):
       After this method is called, the self.inputInfo should be ready to be sent
       to the model
       @ In, model, model instance, an instance of a model
-      @ In, oldInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
+      @ In, myInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
     """
     varCount = 0
@@ -1894,7 +1894,7 @@ class DynamicEventTree(Grid):
     """
       This method is a local mirror of the general whatDoINeed method.
       It is implmented here because this Sampler requests special objects
-      @ In , None
+      @ In, None
       @ Out, needDict, dict, dictionary of objects needed
     """
     needDict = Sampler._localWhatDoINeed(self)
@@ -2295,7 +2295,7 @@ class DynamicEventTree(Grid):
       @ Out, None
     """
     if self.counter >= 1:
-      # The first DET calculatgion branch has already been run
+      # The first DET calculation branch has already been run
       # Start the manipulation:
       #  Pop out the last endInfo information and the branchedLevel
       self._createRunningQueueBranch(model, myInput, forceEvent)
@@ -2346,7 +2346,7 @@ class DynamicEventTree(Grid):
       After this method is called, the self.inputInfo should be ready to be sent
       to the model
       @ In, model, model instance, an instance of a model
-      @ In, oldInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
+      @ In, myInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, newerInput, list, list of new inputs
     """
     #self._endJobRunnable = max([len(self.RunQueue['queue']),1])
@@ -2468,7 +2468,7 @@ class DynamicEventTree(Grid):
       creating an empty container to hold the identified surface points, error
       checking the optionally provided solution export and other preset values,
       and initializing the limit surface Post-Processor used by this sampler.
-      @ In, solutionExport, DataObjects, optional, a PointSet to hold the solution (a list of limit surface points)
+      @ In, None
       @ Out, None
     """
     if len(self.hybridStrategyToApply.keys()) > 0: hybridlistoflist = []
@@ -2578,7 +2578,7 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
     """
       This method is a local mirror of the general whatDoINeed method.
       It is implmented by the samplers that need to request special objects
-      @ In , None
+      @ In, None
       @ Out, needDict, dict, dictionary listing needed objects
     """
     #adaptNeedInst = self.limitSurfaceInstances.values()[-1]._localWhatDoINeed()
@@ -2818,7 +2818,7 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
       hybridTrees = self.TreeInfo.values() if self.hybridDETstrategy in [1,None] else [self.TreeInfo[self.actualHybridTree]]
       for treer in hybridTrees: # this needs to be solved
         for ending in treer.iterProvidedFunction(self._checkCompleteHistory):
-          completedHistNames.append(self.lastOutput.getParam(typeVar='inout',keyword='none',nodeid=ending.get('name'),serialize=False))
+          completedHistNames.append(self.lastOutput.getParam(typeVar='inout',keyword='none',nodeId=ending.get('name'),serialize=False))
           finishedHistNames.append(utils.first(completedHistNames[-1].keys()))
       # assemble a dictionary
       if len(completedHistNames) > self.completedHistCnt:
@@ -2856,7 +2856,7 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
       After this method is called, the self.inputInfo should be ready to be sent
       to the model
       @ In, model, model instance, an instance of a model
-      @ In, oldInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
+      @ In, myInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
     """
     if self.startAdaptive == True and self.adaptiveReady == True:
@@ -2968,7 +2968,7 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
     """
       Generates the distrbutions and functions.
       @ In, availDist, dict, dict of distributions
-      @ In, availDist, dict, dict of functions
+      @ In, availableFunc, dict, dict of functions
       @ Out, None
     """
     DynamicEventTree._generateDistributions(self,availableDist,availableFunc)
@@ -3112,7 +3112,7 @@ class FactorialDesign(Grid):
       creating an empty container to hold the identified surface points, error
       checking the optionally provided solution export and other preset values,
       and initializing the limit surface Post-Processor used by this sampler.
-      @ In, solutionExport, DataObjects, optional, a PointSet to hold the solution (a list of limit surface points)
+      @ In, None
       @ Out, None
     """
     Grid.localInitialize(self)
@@ -3129,7 +3129,7 @@ class FactorialDesign(Grid):
       After this method is called, the self.inputInfo should be ready to be sent
       to the model
       @ In, model, model instance, an instance of a model
-      @ In, oldInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
+      @ In, myInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
     """
     if self.factOpt['algorithmType'] == 'full':  Grid.localGenerateInput(self,model, myInput)
@@ -3225,7 +3225,7 @@ class ResponseSurfaceDesign(Grid):
       creating an empty container to hold the identified surface points, error
       checking the optionally provided solution export and other preset values,
       and initializing the limit surface Post-Processor used by this sampler.
-      @ In, solutionExport, DataObjects, optional, a PointSet to hold the solution (a list of limit surface points)
+      @ In, None
       @ Out, None
     """
     if   self.respOpt['algorithmType'] == 'boxbehnken'      : self.designMatrix = doe.bbdesign(len(self.gridInfo.keys()),center=self.respOpt['options']['ncenters'])
@@ -3249,7 +3249,7 @@ class ResponseSurfaceDesign(Grid):
       After this method is called, the self.inputInfo should be ready to be sent
       to the model
       @ In, model, model instance, an instance of a model
-      @ In, oldInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
+      @ In, myInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
     """
     gridcoordinate = self.designMatrix[self.counter - 1][:].tolist()
@@ -3362,7 +3362,7 @@ class SparseGridCollocation(Grid):
       creating an empty container to hold the identified surface points, error
       checking the optionally provided solution export and other preset values,
       and initializing the limit surface Post-Processor used by this sampler.
-      @ In, solutionExport, DataObjects, optional, a PointSet to hold the solution (a list of limit surface points)
+      @ In, None
       @ Out, None
     """
     SVL = self.readFromROM()
@@ -3476,7 +3476,7 @@ class SparseGridCollocation(Grid):
       After this method is called, the self.inputInfo should be ready to be sent
       to the model
       @ In, model, model instance, an instance of a model
-      @ In, oldInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
+      @ In, myInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
     """
     found=False
@@ -3649,7 +3649,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       creating an empty container to hold the identified surface points, error
       checking the optionally provided solution export and other preset values,
       and initializing the limit surface Post-Processor used by this sampler.
-      @ In, solutionExport, DataObjects, optional, a PointSet to hold the solution (a list of limit surface points)
+      @ In, None
       @ Out, None
     """
     #obtain the DataObject that contains evaluations of the model
@@ -3788,7 +3788,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
       After this method is called, the self.inputInfo should be ready to be sent
       to the model
       @ In, model, model instance, an instance of a model
-      @ In, oldInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
+      @ In, myInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
     """
     pt = self.neededPoints.pop()
@@ -4148,7 +4148,7 @@ class Sobol(SparseGridCollocation):
       creating an empty container to hold the identified surface points, error
       checking the optionally provided solution export and other preset values,
       and initializing the limit surface Post-Processor used by this sampler.
-      @ In, solutionExport, DataObjects, optional, a PointSet to hold the solution (a list of limit surface points)
+      @ In, None
       @ Out, None
     """
     SVL = self.readFromROM()
@@ -4245,7 +4245,7 @@ class Sobol(SparseGridCollocation):
       After this method is called, the self.inputInfo should be ready to be sent
       to the model
       @ In, model, model instance, an instance of a model
-      @ In, oldInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
+      @ In, myInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
     """
     found=False
@@ -4411,7 +4411,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
       creating an empty container to hold the identified surface points, error
       checking the optionally provided solution export and other preset values,
       and initializing the limit surface Post-Processor used by this sampler.
-      @ In, solutionExport, DataObjects, optional, a PointSet to hold the solution (a list of limit surface points)
+      @ In, None
       @ Out, None
     """
     #set up assembly-based objects
@@ -4490,9 +4490,9 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
         self._earlyExit()
         return False
       #get next-most influential poly/subset to add, update global error estimate
-      which, todoSub, poly = self._getLargestImpact()
-      self.raiseAMessage('Next: %6s %8s%12s' %(which,','.join(todoSub),str(poly)),'| error: %1.4e' %self.error,'| runs: %i' %len(self.distinctPoints))
-      if self.statesFile is not None: self._printState(which,todoSub,poly)
+      which, toDoSub, poly = self._getLargestImpact()
+      self.raiseAMessage('Next: %6s %8s%12s' %(which,','.join(toDoSub),str(poly)),'| error: %1.4e' %self.error,'| runs: %i' %len(self.distinctPoints))
+      if self.statesFile is not None: self._printState(which,toDoSub,poly)
       #if doing a study and past a statepoint, record the statepoint
       if self.doingStudy:
         while len(self.studyPoints)>0 and len(self.distinctPoints) > self.studyPoints[0]:
@@ -4509,21 +4509,21 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
       #otherwise, we're not done...
       #  -> use the information from _getLargestImpact to add either a poly or a subset
       if which == 'poly':
-        self.inTraining.append(('poly',todoSub,self.samplers[todoSub]._findHighestImpactIndex()))
-        samp = self.samplers[todoSub]
+        self.inTraining.append(('poly',toDoSub,self.samplers[toDoSub]._findHighestImpactIndex()))
+        samp = self.samplers[toDoSub]
         #add the poly to the subset sampler's training queue
         samp.inTraining.add(self.inTraining[-1][2])
         #add new necessary points to subset sampler
         samp._addNewPoints(samp._makeSparseQuad([self.inTraining[-1][2]]))
         #get those new needed points and store them locally
-        self._retrieveNeededPoints(todoSub)
+        self._retrieveNeededPoints(toDoSub)
       elif which == 'subset':
-        self._makeSubsetRom(todoSub)
+        self._makeSubsetRom(toDoSub)
         for t in self.targets: #TODO might be redundant, if you're cleaning up code.
-          self.ROMs[t][todoSub] = self.romShell[todoSub].SupervisedEngine[t]
-        self.inTraining.append(('subset',todoSub,self.romShell[todoSub]))
+          self.ROMs[t][toDoSub] = self.romShell[toDoSub].SupervisedEngine[t]
+        self.inTraining.append(('subset',toDoSub,self.romShell[toDoSub]))
         #get initial needed points and store them locally
-        self._retrieveNeededPoints(todoSub)
+        self._retrieveNeededPoints(toDoSub)
     #END while loop
     #if all the points we need are currently submitted but not collected, we have no points to offer
     if not self._havePointsToRun(): return False
@@ -5015,11 +5015,11 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     if len(self.pointsNeeded[subset])<1:
       self._updateSubset(subset)
 
-  def _printState(self,which,todoSub,poly):
+  def _printState(self,which,toDoSub,poly):
     """
       Debugging tool.  Prints status of adaptive steps. Togglable in input by specifying logFile.
       @ In, which, string, the type of the next addition to make by the adaptive sampler: poly, or subset
-      @ In, todoSub, tuple(str), the next subset that will be resolved as part of the adaptive sampling
+      @ In, toDoSub, tuple(str), the next subset that will be resolved as part of the adaptive sampling
       @ In, poly, tuple(int), the polynomial within the next subset that will be added to resolve it
       @ Out, None
     """
@@ -5028,7 +5028,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     self.statesFile.writelines('==================== STEP %s ====================\n' %self.stateCounter)
     #write error, next adaptive move to make in this step
     self.statesFile.writelines('\n\nError: %1.9e\n' %self.error)
-    self.statesFile.writelines('Next: %6s %8s %12s\n' %(which,','.join(todoSub),str(poly)))
+    self.statesFile.writelines('Next: %6s %8s %12s\n' %(which,','.join(toDoSub),str(poly)))
     #write a summary of the state of each subset sampler: existing points, training points, yet-to-try points, and their impacts on each target
     for sub in self.useSet.keys():
       self.statesFile.writelines('-'*50)

@@ -168,7 +168,7 @@ class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
   def _localInitializeStep(self,inDictionary):
     """
       This is the API for the local initialization of the children classes of step
-      The inDictionary contains the for each possible role supported in the step (dictionary keywords) the instances of the objects in list if more than one is allowed
+      The inDictionary contains the instances for each possible role supported in the step (dictionary keywords) the instances of the objects in list if more than one is allowed
       The role of _localInitializeStep is to call the initialize method instance if needed
       Remember after each initialization to put:
       self.raiseADebug('for the role "+key+" the item of class '+inDictionary['key'].type+' and name '+inDictionary['key'].name+' has been initialized')
@@ -263,7 +263,7 @@ class SingleRun(Step):
   def _localInitializeStep(self,inDictionary):
     """
       This is the API for the local initialization of the children classes of step
-      The inDictionary contains the for each possible role supported in the step (dictionary keywords) the instances of the objects in list if more than one is allowed
+      The inDictionary contains the instances for each possible role supported in the step (dictionary keywords) the instances of the objects in list if more than one is allowed
       The role of _localInitializeStep is to call the initialize method instance if needed
       Remember after each initialization to put:
       self.raiseADebug('for the role "+key+" the item of class '+inDictionary['key'].type+' and name '+inDictionary['key'].name+' has been initialized')
@@ -323,7 +323,9 @@ class SingleRun(Step):
 #
 #
 class MultiRun(SingleRun):
-  """this class implement one step of the simulation pattern' where several runs are needed without being adaptive"""
+  """
+    this class implements one step of the simulation pattern' where several runs are needed
+  """
   def __init__(self):
     """
       Constructor
@@ -360,7 +362,7 @@ class MultiRun(SingleRun):
   def _localInitializeStep(self,inDictionary):
     """
       This is the API for the local initialization of the children classes of step
-      The inDictionary contains the for each possible role supported in the step (dictionary keywords) the instances of the objects in list if more than one is allowed
+      The inDictionary contains the instances for each possible role supported in the step (dictionary keywords) the instances of the objects in list if more than one is allowed
       The role of _localInitializeStep is to call the initialize method instance if needed
       Remember after each initialization to put:
       self.raiseADebug('for the role "+key+" the item of class '+inDictionary['key'].type+' and name '+inDictionary['key'].name+' has been initialized')
@@ -526,7 +528,7 @@ class RomTrainer(Step):
   def _localInitializeStep(self,inDictionary):
     """
       This is the API for the local initialization of the children classes of step
-      The inDictionary contains the for each possible role supported in the step (dictionary keywords) the instances of the objects in list if more than one is allowed
+      The inDictionary contains the instances for each possible role supported in the step (dictionary keywords) the instances of the objects in list if more than one is allowed
       The role of _localInitializeStep is to call the initialize method instance if needed
       Remember after each initialization to put:
       self.raiseADebug('for the role "+key+" the item of class '+inDictionary['key'].type+' and name '+inDictionary['key'].name+' has been initialized')
@@ -634,7 +636,7 @@ class IOStep(Step):
   def _localInitializeStep(self,inDictionary):
     """
       This is the API for the local initialization of the children classes of step
-      The inDictionary contains the for each possible role supported in the step (dictionary keywords) the instances of the objects in list if more than one is allowed
+      The inDictionary contains the instances for each possible role supported in the step (dictionary keywords) the instances of the objects in list if more than one is allowed
       The role of _localInitializeStep is to call the initialize method instance if needed
       Remember after each initialization to put:
       self.raiseADebug('for the role "+key+" the item of class '+inDictionary['key'].type+' and name '+inDictionary['key'].name+' has been initialized')
