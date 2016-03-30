@@ -45,18 +45,18 @@ __knownTypes = list(__interFaceDict.keys())
 
 def knownTypes():
   """
-  This function returns the types of interfaced post-processors available
-  @ In, None,
-  @ Out, __knownTypes, list, list of recognized post-processors
+    This function returns the types of interfaced post-processors available
+    @ In, None,
+    @ Out, __knownTypes, list, list of recognized post-processors
   """
   return __knownTypes
 
 def returnPostProcessorInterface(Type,caller):
   """
-  This function returns interfaced post-processors interface
-  @ In, Type, string, type of Interfaced PostProcessor to run
-  @ In, caller, instance of the PostProcessor class
-  @ Out, __interFaceDict[Type](), dict, interfaced PostProcessor dictionary
+    This function returns interfaced post-processors interface
+    @ In, Type, string, type of Interfaced PostProcessor to run
+    @ In, caller, instance of the PostProcessor class
+    @ Out, __interFaceDict[Type](), dict, interfaced PostProcessor dictionary
   """
   if Type not in knownTypes():
     caller.raiseAnError(NameError,'not known '+__base+' type '+Type)
