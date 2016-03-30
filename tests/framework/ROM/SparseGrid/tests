@@ -1,0 +1,12 @@
+[Tests]
+  # analytic tests
+  [./scgpcSudretAnalytic]
+    type = 'RavenFramework'
+    input = 'test_scgpc_sudret.xml'
+    output = 'SCgPCAnalyticSudret/dump.xml'
+    # dumprom is analytic test in mean, variance, and sensitivity indices
+    UnorderedXml = 'SCgPCAnalyticSudret/dumprom.xml' #analytic, "Global Sobol Sensitivity: Sudret"
+    # csv is consistency test
+    csv = 'SCgPCAnalyticSudret/dump.csv'
+  [../]
+[]
