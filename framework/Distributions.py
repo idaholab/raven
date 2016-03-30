@@ -121,7 +121,7 @@ class Distribution(BaseType):
   def _readMoreXML(self,xmlNode):
     """
       Function to read the portion of the xml input that belongs to this specialized class
-      and initialize some variables based on the inputs got.
+      and initialize some variables based on the inputs received.
       @ In, xmlNode, xml.etree.ElementTree.Element, XML element node that represents the portion of the input that belongs to this class
       @ Out, None
     """
@@ -904,27 +904,30 @@ class Beta(BoostDistribution):
     self.compatibleQuadrature.append('ClenshawCurtis')
 
   def convertBetaToJacobi(self,y):
-    """Converts from distribution domain to standard Beta [0,1].
-    @ In y, float/array of floats, points to convert
-    @ Out float/array of floats, converted points
+    """
+      Converts from distribution domain to standard Beta [0,1].
+      @ In y, float/array of floats, points to convert
+      @ Out float/array of floats, converted points
     """
     u = 0.5*(self.high+self.low)
     s = 0.5*(self.high-self.low)
     return (y-u)/(s)
 
   def convertJacobiToBeta(self,x):
-    """Converts from standard Jacobi [0,1] to distribution domain.
-    @ In y, float/array of floats, points to convert
-    @ Out float/array of floats, converted points
+    """
+      Converts from standard Jacobi [0,1] to distribution domain.
+      @ In y, float/array of floats, points to convert
+      @ Out float/array of floats, converted points
     """
     u = 0.5*(self.high+self.low)
     s = 0.5*(self.high-self.low)
     return s*x+u
 
   def stdProbabilityNorm(self):
-    """Returns the factor to scale error norm by so that norm(probability)=1.
-    @ In None, None
-    @ Out float, norm
+    """
+      Returns the factor to scale error norm by so that norm(probability)=1.
+      @ In None, None
+      @ Out float, norm
     """
     B = factorial(self.alpha-1)*factorial(self.beta-1)/factorial(self.alpha+self.beta-1)
     norm = 1.0/(2**(self.alpha+self.beta-1)*B)
@@ -1248,16 +1251,16 @@ class Bernoulli(BoostDistribution):
 
 class Categorical(Distribution):
   """
-  Class for the categorical distribution also called " generalized Bernoulli distribution"
-  Note: this distribution can have only numerical (float) outcome; in the future we might want to include also the possibility to give symbolic outcome
+    Class for the categorical distribution also called " generalized Bernoulli distribution"
+    Note: this distribution can have only numerical (float) outcome; in the future we might want to include also the possibility to give symbolic outcome
   """
 
   def __init__(self):
     """
-    Function that initializes the categorical distribution
-    @ In, None
-    @ Out, none
-   """
+      Function that initializes the categorical distribution
+      @ In, None
+      @ Out, none
+    """
     Distribution.__init__(self)
     self.mapping = {}
     self.values = set()
@@ -1266,10 +1269,10 @@ class Categorical(Distribution):
 
   def _readMoreXML(self,xmlNode):
     """
-    Function that retrive data to initialize the categorical distribution from the xmlNode
-    @ In, None
-    @ Out, None
-   """
+      Function that retrive data to initialize the categorical distribution from the xmlNode
+      @ In, None
+      @ Out, None
+    """
     Distribution._readMoreXML(self, xmlNode)
 
     for child in xmlNode:
@@ -1297,9 +1300,9 @@ class Categorical(Distribution):
 
   def initializeDistribution(self):
     """
-    Function that initializes the distribution and checks that the sum of all state probabilities is equal to 1
-    @ In, None
-    @ Out, None
+      Function that initializes the distribution and checks that the sum of all state probabilities is equal to 1
+      @ In, None
+      @ Out, None
     """
     totPsum = 0.0
     for element in self.mapping:
