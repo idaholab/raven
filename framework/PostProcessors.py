@@ -1173,9 +1173,9 @@ class PrintCSV(BasePostProcessor):
     """
      This method executes the postprocessor action. In this case, it just returns the input
      @ In,  Input, object, object contained the data to process. (inputToInternal output)
-     @ Out, Input, object, the input
+     @ Out, input, object, the input
     """
-    return Input[-1]
+    return input[-1]
 #
 #
 #
@@ -1203,7 +1203,7 @@ class BasicStatistics(BasePostProcessor):
     """
       Method to convert an input object into the internal format that is
       understandable by this pp.
-      @ In, currentInput, object, an object that needs to be converted
+      @ In, currentInp, object, an object that needs to be converted
       @ Out, inputDict, dict, dictionary of the converted data
     """
     # each post processor knows how to handle the coming inputs. The BasicStatistics postprocessor accept all the input type (files (csv only), hdf5 and datas

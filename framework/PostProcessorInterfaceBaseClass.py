@@ -20,7 +20,7 @@ import MessageHandler
 
 class PostProcessorInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object),MessageHandler.MessageUser):
   """
-    This class is the base interfaced post-processor clas
+    This class is the base interfaced post-processor class
     It contains the three methods that need to be implemented:
       - initialize
       - run
