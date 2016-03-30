@@ -1172,8 +1172,6 @@ class ImportanceRank(BasePostProcessor):
       @ Out, None
     """
     distName = self.mvnDistribution
-    if not distName or distName not in initDict['Distributions'].keys():
-      self.raiseAnError(IOError, 'distribution ' + distName + ' not found!')
     self.mvnDistribution = initDict['Distributions'][distName]
 
   def _localReadMoreXML(self,xmlNode):
@@ -1314,7 +1312,7 @@ class ImportanceRank(BasePostProcessor):
     """
       This method executes the postprocessor action.
       @ In,  inputIn, object, object contained the data to process. (inputToInternal output)
-      @ Out, dictionary, Dictionary containing the evaluated data
+      @ Out, outputDict, dict, Dictionary containing the evaluated data
     """
     inputDict = self.inputToInternal(inputIn)
     outputDict = {}
@@ -1362,10 +1360,12 @@ class ImportanceRank(BasePostProcessor):
            entries = senWeightDict[target]
            entries.sort(key=lambda x: x[1],reverse=True)
            outputDict[what][target] = entries
-      if what == 'CumulativeSenitivityIndex':
-        pass # To be implemented
-      if what == 'CumulativeImportanceIndex':
-        pass # To be implemented
+
+      # To be implemented
+      #if what == 'CumulativeSenitivityIndex':
+      #  self.raiseAnError(NotImplementedError,'CumulativeSensitivityIndex is not yet implemented for ' + self.printTag)
+      #if what == 'CumulativeImportanceIndex':
+      #  self.raiseAnError(NotImplementedError,'CumulativeImportanceIndex is not yet implemented for ' + self.printTag)
 
     return outputDict
 #
