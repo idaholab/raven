@@ -25,7 +25,7 @@ from scipy import spatial
 from BaseClasses import BaseType
 from Assembler import Assembler
 import SupervisedLearning
-import PostProcessors #import returnFilterInterface
+import PostProcessors
 import CustomCommandExecuter
 import utils
 import mathUtils
@@ -340,7 +340,14 @@ class Dummy(Model):
     """
     #this set of test is performed to avoid that if used in a single run we come in with the wrong input structure since the self.createNewInput is not called
     inRun = self._manipulateInput(Input[0])
-    def lambdaReturnOut(inRun,prefix): return {'OutputPlaceHolder':np.atleast_1d(np.float(prefix))}
+    def lambdaReturnOut(inRun,prefix):
+      """
+        This method is the one is going to be submitted through the jobHandler
+        @ In, inRun, dict, the input
+        @ In, prefix, string, the string identifying this job
+        @ Out, lambdaReturnOut, dict, the return dictionary
+      """
+      return {'OutputPlaceHolder':np.atleast_1d(np.float(prefix))}
     #lambdaReturnOut = lambda inRun: {'OutputPlaceHolder':np.atleast_1d(np.float(Input[1]['prefix']))}
     jobHandler.submitDict['Internal']((inRun,Input[1]['prefix']),lambdaReturnOut,str(Input[1]['prefix']),metadata=Input[1], modulesToImport = self.mods)
 
@@ -849,6 +856,12 @@ class ExternalModel(Dummy):
       #is it still possible for the run to not be finished yet?  Should we be erroring out if so?
       self.raiseAnError(RuntimeError,"No available Output to collect (Run probably failed or is not finished yet)")
     def typeMatch(var,varTypeStr):
+      """
+        This method is aimed to check if a variable changed datatype
+        @ In, var, python datatype, the first variable to compare
+        @ In, varTypeStr, string, the type that this variable should have
+        @ Out, typeMatch, bool, is the datatype changed?
+      """
       typeVar = type(var)
       return typeVar.__name__ == varTypeStr or \
         typeVar.__module__+"."+typeVar.__name__ == varTypeStr

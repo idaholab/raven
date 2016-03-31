@@ -287,6 +287,12 @@ class GridEntity(GridBase):
     self.gridContainer['dimInfo'] = dimInfo
 
   def _readGridStructure(self,child,parent):
+    """
+      This method is aimed to read the grid structure in the xml node
+      @ In, child, xml.etree.ElementTree.Element, the xml node containg the grid info
+      @ In, parent, xml.etree.ElementTree.Element, the xml node that contains the node in which the grid info are defined
+      @ Out, gridStruct, tuple, the grid structure read ((type, construction type, upper and lower bounds), gridName)
+    """
     if child.tag =='grid':
       gridStruct, gridName = self._fillGrid(child)
       if self.dimName == None: self.dimName = str(len(self.gridInitDict['dimensionNames'])+1)
@@ -297,6 +303,11 @@ class GridEntity(GridBase):
       return gridStruct
 
   def _fillGrid(self,child):
+    """
+      This method is aimed to fill the grid structure from an XML node
+      @ In, child, xml.etree.ElementTree.Element, the xml node containg the grid info
+      @ Out, gridStruct, tuple, the grid structure read ((type, construction type, upper and lower bounds), gridName)
+    """
     constrType = None
     if 'construction' in child.attrib.keys(): constrType = child.attrib['construction']
     if 'type' not in child.attrib.keys()    : self.raiseAnError(IOError,"Each <grid> XML node needs to have the attribute type!!!!")
@@ -306,13 +317,14 @@ class GridEntity(GridBase):
       bounds.sort()
       lower, upper = min(bounds), max(bounds)
       if 'name' in child.attrib.keys(): nameGrid = child.attrib['name']
-    if constrType == 'custom': return (child.attrib['type'],constrType,bounds),nameGrid
+    if constrType == 'custom': gridStruct = (child.attrib['type'],constrType,bounds),nameGrid
     elif constrType == 'equal':
       if len(bounds) != 2: self.raiseAnError(IOError,'body of grid XML node needs to contain 2 values (lower and upper bounds).Tag = '+child.tag)
       if 'steps' not in child.attrib.keys(): self.raiseAnError(IOError,'the attribute step needs to be inputted when "construction" attribute == equal!')
-      return (child.attrib['type'],constrType,np.linspace(lower,upper,partialEval(child.attrib['steps'])+1)),nameGrid
-    elif child.attrib['type'] == 'globalGrid': return (child.attrib['type'],constrType,child.text),nameGrid
+      gridStruct = (child.attrib['type'],constrType,np.linspace(lower,upper,partialEval(child.attrib['steps'])+1)),nameGrid
+    elif child.attrib['type'] == 'globalGrid': gridStruct = (child.attrib['type'],constrType,child.text),nameGrid
     else: self.raiseAnError(IOError,'construction type unknown! Got: ' + str(constrType))
+    return gridStruct
 
   def initialize(self,initDictionary=None):
     """

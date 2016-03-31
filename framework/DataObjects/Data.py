@@ -29,8 +29,16 @@ import utils
 #Internal Modules End--------------------------------------------------------------------------------
 
 # Custom exceptions
-class NotConsistentData(Exception): pass
-class ConstructError(Exception)   : pass
+class NotConsistentData(Exception):
+  """
+    Custom exception class for NotConsistentData
+  """
+  pass
+class ConstructError(Exception):
+  """
+    Custom exception class for ConstructError
+  """
+  pass
 
 class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
   """

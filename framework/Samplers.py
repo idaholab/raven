@@ -2525,6 +2525,9 @@ class DynamicEventTree(Grid):
 #
 #
 class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
+  """
+    This class is aimed to perform a supervised Adaptive Dynamic Event Tree sampling strategy
+  """
   def __init__(self):
     """
       Default Constructor that will initialize member variables with reasonable
@@ -5195,15 +5198,10 @@ def addKnownTypes(newDict):
 
 def returnInstance(Type,caller):
   """
-    function used to generate a Sampler class
+    Function used to generate a Sampler class
     @ In, Type, string, Sampler type
     @ Out, returnInstance, instance, Instance of the Specialized Sampler class
   """
   try: return __interFaceDict[Type]()
   except KeyError: caller.raiseAnError(NameError,'not known '+__base+' type '+Type)
 
-def optionalInputs(Type):
-  pass
-
-def mandatoryInputs(Type):
-  pass

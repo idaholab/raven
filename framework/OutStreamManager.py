@@ -1448,6 +1448,11 @@ class OutStreamPlot(OutStreamManager):
         # XXX For some reason, this is required on Linux, but causes
         # OSX to fail.  Which is correct for windows has not been determined.
         def handle_close(event):
+          """
+            This method is aimed to handle the closing of figures (overall when in interactive mode)
+            @ In, event, instance, the event to close
+            @ Out, None
+          """
           self.fig.canvas.stop_event_loop()
           self.raiseAMessage('Closed Figure')
         self.fig.canvas.mpl_connect('close_event', handle_close)

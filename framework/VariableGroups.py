@@ -1,3 +1,9 @@
+"""
+Created on Feb 4, 2016
+
+Module aimed to define the methods to group variables in the RAVEN frameworl
+"""
+
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings

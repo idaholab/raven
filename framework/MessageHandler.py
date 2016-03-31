@@ -22,7 +22,11 @@ import utils
 
 
 #custom exceptions
-class NoMoreSamplesNeeded(GeneratorExit): pass
+class NoMoreSamplesNeeded(GeneratorExit):
+  """
+    Custom exception class for no more samples
+  """
+  pass
 
 """
 HOW THIS MODULE WORKS

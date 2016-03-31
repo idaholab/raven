@@ -1,4 +1,6 @@
 """
+  Created on July 10, 2013
+
   Module containing all supported type of ROM aka Surrogate Models etc
   here we intend ROM as super-visioned learning,
   where we try to understand the underlying model by a set of labeled sample
@@ -405,6 +407,9 @@ class NDinterpolatorRom(superVisedLearning):
 #
 #
 class GaussPolynomialRom(superVisedLearning):
+  """
+    Gauss Polynomial Rom Class
+  """
   def __confidenceLocal__(self,featureVals):
     """
       This should return an estimation of the quality of the prediction.
@@ -816,7 +821,9 @@ class GaussPolynomialRom(superVisedLearning):
 #
 #
 class HDMRRom(GaussPolynomialRom):
-  """High-Dimention Model Reduction reduced order model.  Constructs model based on subsets of the input space."""
+  """
+    High-Dimention Model Reduction reduced order model.  Constructs model based on subsets of the input space.
+  """
   def __confidenceLocal__(self,featureVals):
     """
       This should return an estimation of the quality of the prediction.
@@ -1379,6 +1386,11 @@ class MSR(NDinterpolatorRom):
     # inversely proportional to the distance between two points, and scaled by
     # a bandwidth parameter (either the user will fix, or we will compute)
     def indicator(u):
+      """
+        Method to return the indicator (see explaination above)
+        @ In, u, float, the value to inquire
+        @ Out, indicator, float, the abs of u
+      """
       return np.abs(u)<1
 
     if self.kernel == 'uniform':
@@ -1387,6 +1399,11 @@ class MSR(NDinterpolatorRom):
         self.raiseAWarning('automatic bandwidth not yet implemented for the'
                            + self.kernel + ' kernel.')
       def kernel(u):
+        """
+          Uniform kernel
+          @ In, u, float, the support
+          @ Out, kernel, float, the kernel
+        """
         return 0.5*indicator(u)
     elif self.kernel == 'triangular':
       if self.bandwidth == 'auto':
@@ -1394,6 +1411,11 @@ class MSR(NDinterpolatorRom):
         self.raiseAWarning('automatic bandwidth not yet implemented for the'
                            + self.kernel + ' kernel.')
       def kernel(u):
+        """
+          Triangular kernel
+          @ In, u, float, the support
+          @ Out, kernel, float, the kernel
+        """
         return (1-abs(u))*indicator(u)
     elif self.kernel == 'epanechnikov':
       if self.bandwidth == 'auto':
@@ -1401,6 +1423,11 @@ class MSR(NDinterpolatorRom):
         self.raiseAWarning('automatic bandwidth not yet implemented for the'
                            + self.kernel + ' kernel.')
       def kernel(u):
+        """
+          Epanechnikov kernel
+          @ In, u, float, the support
+          @ Out, kernel, float, the kernel
+        """
         return ( 3./4. )*(1-u**2)*indicator(u)
     elif self.kernel == 'biweight' or self.kernel == 'quartic':
       if self.bandwidth == 'auto':
@@ -1408,6 +1435,11 @@ class MSR(NDinterpolatorRom):
         self.raiseAWarning('automatic bandwidth not yet implemented for the'
                            + self.kernel + ' kernel.')
       def kernel(u):
+        """
+          Biweight kernel
+          @ In, u, float, the support
+          @ Out, kernel, float, the kernel
+        """
         return (15./16.)*(1-u**2)**2*indicator(u)
     elif self.kernel == 'triweight':
       if self.bandwidth == 'auto':
@@ -1415,6 +1447,11 @@ class MSR(NDinterpolatorRom):
         self.raiseAWarning('automatic bandwidth not yet implemented for the'
                            + self.kernel + ' kernel.')
       def kernel(u):
+        """
+          Triweight kernel
+          @ In, u, float, the support
+          @ Out, kernel, float, the kernel
+        """
         return (35./32.)*(1-u**2)**3*indicator(u)
     elif self.kernel == 'tricube':
       if self.bandwidth == 'auto':
@@ -1422,6 +1459,11 @@ class MSR(NDinterpolatorRom):
         self.raiseAWarning('automatic bandwidth not yet implemented for the'
                            + self.kernel + ' kernel.')
       def kernel(u):
+        """
+          Tricube kernel
+          @ In, u, float, the support
+          @ Out, kernel, float, the kernel
+        """
         return (70./81.)*(1-abs(u)**3)**3*indicator(u)
     elif self.kernel == 'gaussian':
       if self.bandwidth == 'auto':
@@ -1429,6 +1471,11 @@ class MSR(NDinterpolatorRom):
         self.raiseAWarning('automatic bandwidth not yet implemented for the'
                            + self.kernel + ' kernel.')
       def kernel(u):
+        """
+          Gaussian kernel
+          @ In, u, float, the support
+          @ Out, kernel, float, the kernel
+        """
         return 1./np.sqrt(2*math.pi)*np.exp(-0.5*u**2)
     elif self.kernel == 'cosine':
       if self.bandwidth == 'auto':
@@ -1436,6 +1483,11 @@ class MSR(NDinterpolatorRom):
         self.raiseAWarning('automatic bandwidth not yet implemented for the'
                            + self.kernel + ' kernel.')
       def kernel(u):
+        """
+          Cosine kernel
+          @ In, u, float, the support
+          @ Out, kernel, float, the kernel
+        """
         return math.pi/4.*math.cos(u*math.pi/2.)*indicator(u)
     elif self.kernel == 'logistic':
       if self.bandwidth == 'auto':
@@ -1443,6 +1495,11 @@ class MSR(NDinterpolatorRom):
         self.raiseAWarning('automatic bandwidth not yet implemented for the'
                            + self.kernel + ' kernel.')
       def kernel(u):
+        """
+          Logistic kernel
+          @ In, u, float, the support
+          @ Out, kernel, float, the kernel
+        """
         return 1./(np.exp(u)+2+np.exp(-u))
     elif self.kernel == 'silverman':
       if self.bandwidth == 'auto':
@@ -1450,6 +1507,11 @@ class MSR(NDinterpolatorRom):
         self.raiseAWarning('automatic bandwidth not yet implemented for the'
                            + self.kernel + ' kernel.')
       def kernel(u):
+        """
+          Silverman kernel
+          @ In, u, float, the support
+          @ Out, kernel, float, the kernel
+        """
         sqrt2 = math.sqrt(2)
         return 0.5 * np.exp(-abs(u)/sqrt2) * np.sin(abs(u)/sqrt2+math.pi/4.)
     elif self.kernel == 'exponential':
@@ -1458,6 +1520,11 @@ class MSR(NDinterpolatorRom):
         self.raiseAWarning('automatic bandwidth not yet implemented for the'
                            + self.kernel + ' kernel.')
       def kernel(u):
+        """
+          Exponential kernel
+          @ In, u, float, the support
+          @ Out, kernel, float, the kernel
+        """
         return np.exp(-abs(u))
     self.__kernel = kernel
 

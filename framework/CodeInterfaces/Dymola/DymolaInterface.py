@@ -1,4 +1,4 @@
-'''
+"""
 Created on Nov 24, 2015
 
 @author: Jong Suk Kim
@@ -77,7 +77,7 @@ To use RAVEN, we need to be able to perturb the input and output files from the 
 of this is:
 
   <executable> -s <dsin file text> <outputfile>
-'''
+"""
 
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings

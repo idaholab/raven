@@ -1,4 +1,4 @@
-'''
+"""
 Created on April 14, 2014
 
 @author: alfoa
@@ -6,7 +6,7 @@ Created on April 14, 2014
 comment: The CodeInterface Module is an Handler.
          It inquires all the modules contained in the folder './CodeInterfaces'
          and load them, constructing a '__interFaceDict' on the fly
-'''
+"""
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
@@ -30,9 +30,9 @@ for dirr,_,_ in os.walk(startDir):
   utils.add_path(dirr)
 __moduleImportedList = []
 
-'''
+"""
  Interface Dictionary (factory) (private)
-'''
+"""
 __base                          = 'Code'
 __interFaceDict                 = {}
 for moduleIndex in range(len(__moduleInterfaceList)):
@@ -44,10 +44,20 @@ for moduleIndex in range(len(__moduleInterfaceList)):
       if 'createNewInput' in classMethods:__interFaceDict[key.replace("Interface","")] = modClass
 __knownTypes      = list(__interFaceDict.keys())
 
-def knownTypes(): return __knownTypes
+def knownTypes():
+  """
+    Method to retunr the list of known code interfaces' type
+    @ In, None
+    @ Out, __knownTypes, list, the list of known types
+  """
+  return __knownTypes
 
 def returnCodeInterface(Type,caller):
-  '''this allow to the code(model) class to interact with a specific
-     code for which the interface is present in the CodeInterfaces module'''
+  """
+    this allow to the code(model) class to interact with a specific
+     code for which the interface is present in the CodeInterfaces module
+    @ In, Type, string, the type of code interface to instanciate
+    @ In, caller, instance, instance of the caller
+  """
   if Type not in knownTypes(): caller.raiseAnError(NameError,'not known '+__base+' type '+Type)
   return __interFaceDict[Type]()
