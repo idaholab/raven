@@ -46,10 +46,10 @@ results = {"pass":0,"fail":0}
 def checkAnswer(comment,value,expected,tol=1e-10):
   """
     This method is aimed to compare two floats given a certain tolerance
-    @ In, comment, string, a comment
+    @ In, comment, string, a comment printed out if it fails
     @ In, value, float, the value to compare
     @ In, expected, float, the expected value
-    @ In, tol, float, the tolerance
+    @ In, tol, float, optional, the tolerance
     @ Out, None
   """
   if abs(value - expected) > tol:
@@ -76,7 +76,7 @@ def checkCrowDist(comment,dist,expectedCrowDist):
 def checkIntegral(name,dist,low,high,numpts=1e4,tol=1e-3):
   """
     Check the consistency of the pdf integral (cdf)
-    @ In, name, string, the name
+    @ In, name, string, the name printed out if it fails
     @ In, dist, instance, the distrubtion to inquire
     @ In, low, float, the lower bound of the dist
     @ In, high, float, the uppper bound of the dist

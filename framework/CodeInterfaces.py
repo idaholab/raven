@@ -46,7 +46,7 @@ __knownTypes      = list(__interFaceDict.keys())
 
 def knownTypes():
   """
-    Method to retunr the list of known code interfaces' type
+    Method to return the list of known code interfaces' type
     @ In, None
     @ Out, __knownTypes, list, the list of known types
   """
@@ -54,7 +54,7 @@ def knownTypes():
 
 def returnCodeInterface(Type,caller):
   """
-    this allow to the code(model) class to interact with a specific
+    this allows the code(model) class to interact with a specific
      code for which the interface is present in the CodeInterfaces module
     @ In, Type, string, the type of code interface to instanciate
     @ In, caller, instance, instance of the caller
