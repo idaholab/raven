@@ -76,13 +76,15 @@ dist_fun = euclidean_distances
 
 dist, cost, acc, path = dtw(x, y, dist_fun)
 
+f = plt.figure(1)
 plt.imshow(acc.T, origin='lower', cmap=plt.cm.Reds, interpolation='nearest')
 plt.plot(path[0], path[1], '-o') # relation
 plt.xlabel('x')
 plt.ylabel('y')
 plt.axis('tight')
-plt.show()
+f.show()
 
+g = plt.figure(2)
 plt.plot(timex, x, 'r',linewidth=3)
 plt.plot(timey, y, 'g',linewidth=3)
 
@@ -98,4 +100,6 @@ for i in range(pathLength):
   yCoor[0] = x[path[0][i]]
   yCoor[1] = y[path[1][i]]
   plt.plot(xCoor,yCoor,'k')
-plt.show()
+g.show()
+
+raw_input()
