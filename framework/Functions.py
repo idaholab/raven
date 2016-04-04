@@ -20,7 +20,6 @@ warnings.simplefilter('default',DeprecationWarning)
 from BaseClasses import BaseType
 import utils
 from CustomCommandExecuter import execCommand
-#import DataObjects
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Function(BaseType):

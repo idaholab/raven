@@ -67,19 +67,24 @@ class ExternalRunner(MessageHandler.MessageUser):
         # try to find the identifier in the folder name
         # to eliminate when the identifier is passed from outside
         def splitall(path):
-          allparts = []
+          """
+            Method to split a path into its components
+            @ In, path, string, the path to be splitted
+            @ Out, allParts, list, the list of the path components
+          """
+          allParts = []
           while 1:
             parts = os.path.split(path)
             if parts[0] == path:  # sentinel for absolute paths
-              allparts.insert(0, parts[0])
+              allParts.insert(0, parts[0])
               break
             elif parts[1] == path: # sentinel for relative paths
-              allparts.insert(0, parts[1])
+              allParts.insert(0, parts[1])
               break
             else:
               path = parts[0]
-              allparts.insert(0, parts[1])
-          return allparts
+              allParts.insert(0, parts[1])
+          return allParts
         splitted = splitall(str(output))
         if len(splitted) >= 2: self.identifier= splitted[-2]
         else: self.identifier= 'generalOut'
