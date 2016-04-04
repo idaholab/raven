@@ -1,22 +1,35 @@
-'''
+"""
 Created on Jun 5, 2015
 
 @author: alfoa
-'''
+"""
+#for future compatibility with Python 3--------------------------------------------------------------
+from __future__ import division, print_function, absolute_import
+# WARNING if you import unicode_literals here, we fail tests (e.g. framework.testFactorials).  This may be a future-proofing problem. 2015-04.
+import warnings
+warnings.simplefilter('default',DeprecationWarning)
+#End compatibility block for Python 3----------------------------------------------------------------
+
+#External Modules------------------------------------------------------------------------------------
 import os
 from glob import glob
+from sklearn import neighbors
 import numpy as np
+#External Modules End--------------------------------------------------------------------------------
+
+#Internal Modules------------------------------------------------------------------------------------
+#Internal Modules End--------------------------------------------------------------------------------
 
 class csvUtilityClass(object):
   """
-  This utility class is aimed to provide utilities for CSV handling.
+    This utility class is aimed to provide utilities for CSV handling.
   """
   def __init__(self, listOfFiles):
     """
-    Constructor
-    @ In, list, required param, listOfFiles, list of CSV files that need to be merged. If in one or more "filenames" the special symbol $*$ is present, the class will use the filename as root name and look for all the files with that root. For example:
+      Constructor
+      @ In, listOfFiles, list, required param, listOfFiles, list of CSV files that need to be merged. If in one or more "filenames" the special symbol $*$ is present, the class will use the filename as root name and look for all the files with that root. For example:
                                              if  listOfFiles[1] == "aPath/outputChannel$*$": the code will inquire the directory "aPath" to look for all the files starting with the name "outputChannel" => at end we will have a list of files like "outputChannel_1.csv,outputChannel_ab.csv, etc"
-
+      @ Out, None
     """
     if len(listOfFiles) == 0: raise IOError("MergeCSV class ERROR: the number of CSV files provided is equal to 0!! it can not merge anything!")
     self.listOfFiles    = []   # list of files
@@ -48,16 +61,13 @@ class csvUtilityClass(object):
     print("file read")
 
   def mergeCSV(self,outputFileName,options = {}):
-    from sklearn import neighbors
-
     """
-    Method that is going to merge multiple csvs in a single one.
-    @ In, string, required param, outputFileName, full path of the resulting merged CSV (output file name, eg. /users/userName/output.csv)
-    @ In, dict, optional param. options, dictionary of options: {
-                                                                 "variablesToExpandFrom":"aVariable" (a variable through which the "shorter" CSVs need to be expanded)
-                                                                 "sameKeySuffix":"integerCounter or filename (default)" (if in the CSVs that need to be merged there are
-                                                                 multiple occurrences of the same key, the code will append either a letter (A,B,C,D,etc) or an integer counter (1,2,3,etc)
-                                                                 }
+      Method that is going to merge multiple csvs in a single one.
+      @ In, outputFileName, string, full path of the resulting merged CSV (output file name, eg. /users/userName/output.csv)
+      @ In, options, dict, optional, dictionary of options: { "variablesToExpandFrom":"aVariable" (a variable through which the "shorter" CSVs need to be expanded)
+                                                              "sameKeySuffix":"integerCounter or filename (default)" (if in the CSVs that need to be merged there are
+                                                              multiple occurrences of the same key, the code will append either a letter (A,B,C,D,etc) or an integer counter (1,2,3,etc) }
+      @ Out, None
     """
     if len(outputFileName.strip()) == 0: raise IOError("MergeCSV class ERROR: the outputFileName string is empty!")
     # set some default
