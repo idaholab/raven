@@ -581,6 +581,7 @@ class temporalSciKitLearn(unSupervisedLearning):
     if 'SKLtype' not in self.initOptionDict.keys(): self.raiseAnError(IOError, ' to define a scikit learn unSupervisedLearning Method the SKLtype keyword is needed (from KDD ' + self.name + ')')
     self.SKLtype, self.SKLsubType = self.initOptionDict['SKLtype'].split('|')
     self.timeID = self.initOptionDict.get('timeID', 'Time')
+    self.reOrderStep = int(self.initOptionDict.get('reOrderStep', 5))
     # return a SciKitLearn instance as engine for SKL data mining
     self.SKLEngine = returnInstance('SciKitLearn',self, **self.initOptionDict)
     self.normValues = None
@@ -860,7 +861,7 @@ class temporalSciKitLearn(unSupervisedLearning):
       dist += np.abs(np.sqrt(v1/(N1-1)*1.0) - np.sqrt(v2/(N2-1)*1.0))
       return dist
     if opt in ['DistanceWithDecay']:
-      K, decR, dist = 5, 1, 0
+      K, decR, dist = self.reOrderStep, 1, 0
       for k in range(1,K+1):
         if t-k >= 0:
           if n1 < dataCenter[t-k].shape[0]:

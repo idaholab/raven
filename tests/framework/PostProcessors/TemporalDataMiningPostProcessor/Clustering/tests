@@ -23,7 +23,14 @@
 	input  = 'test_tdmSKLearnDBSCAN.xml'
     csv    = 'DBSCAN/centroid_0.csv DBSCAN/dummy_0.csv DBSCAN/dummy_1.csv DBSCAN/dummy_2.csv'
 	output = 'DBSCAN/dummy.xml DBSCAN/centroid.xml'
-  [../] 
+  [../]
+  [./AffinityPropogation]
+	type   = 'RavenFramework'
+	input  = 'test_tdmSKLearnAffinityPropogation.xml'
+    csv    = 'AffinityPropogation/centroid_0.csv DBSCAN/dummy_0.csv AffinityPropogation/dummy_1.csv AffinityPropogation/dummy_2.csv'
+	output = 'AffinityPropogation/dummy.xml AffinityPropogation/centroid.xml'
+	skip   = 'Timing issue -- FIXME'
+  [../]  
   [./SpectralClustering]
 	type   = 'RavenFramework'
 	input  = 'test_tdmSKLearnSpectralClustering.xml'
