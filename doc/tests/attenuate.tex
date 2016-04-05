@@ -7,7 +7,7 @@ u(Y) = \prod_{n=1}^N e^{-y_n/N}.
 \end{equation}
 This is the solution to the exit strength of a monodirectional, single-energy beam of neutral particles
 incident on a unit length material divided into $N$ sections with independently-varying absorption cross
-sections.  This test is useful for its analytic statistical moments as well as difficulty to represent 
+sections.  This test is useful for its analytic statistical moments as well as difficulty to represent
 exactly using polynomial representations.
 
 \subsection{Uniform}
@@ -55,13 +55,13 @@ with $N$-dimensional mean vector $\mu=[\mu_{y_1},\mu_{y_2},\ldots,\mu_{y_N}]$, a
 To be simplicity, we assume there are no correlations between the input parameters. Then, the covariance matrix can be written
 as:
 \begin{equation}
-\Sigma = 
-\begin{pmatrix} 
-\sigma_{y_1}^2 & 0 &\ldots & 0 \\ 
-0 & \sigma_{y_2}^2 &\ldots & 0 \\ 
-\vdots &\vdots &\ddots & \vdots \\ 
-0 & 0 & \ldots & \sigma_{y_N}^2\\ 
-\end{pmatrix} 
+\Sigma =
+\begin{pmatrix}
+\sigma_{y_1}^2 & 0 &\ldots & 0 \\
+0 & \sigma_{y_2}^2 &\ldots & 0 \\
+\vdots &\vdots &\ddots & \vdots \\
+0 & 0 & \ldots & \sigma_{y_N}^2\\
+\end{pmatrix}
 \end{equation}
 where $\sigma_{y_i}^2 = Cov[y_i,y_i]$, for $i = 1,2,\ldots,N$. Based on this assumption, the first two statistical moments are:
 \subsubsection{mean}
@@ -78,16 +78,16 @@ where $\sigma_{y_i}^2 = Cov[y_i,y_i]$, for $i = 1,2,\ldots,N$. Based on this ass
   &=\prod_{n=1}^N e^{\frac{2 \sigma_{y_i}^2}{n^2}-\frac{2\mu_{y_i}}{n}}. \notag
 \end{align}
 \subsubsection{numeric values}
-For example, for given mean $\mu = [0.5, -0.4, 0.3, -0.2, 0.1]$, and covariance 
+For example, for given mean $\mu = [0.5, -0.4, 0.3, -0.2, 0.1]$, and covariance
 \begin{equation}
-\Sigma = 
-\begin{pmatrix} 
-0.64 & 0 & 0 & 0 & 0 \\ 
-0 & 0.49 & 0 & 0 & 0 \\ 
-0 & 0 & 0.09 & 0 & 0 \\ 
-0 & 0 & 0 & 0.16 & 0 \\ 
-0 & 0 & 0 & 0 & 0.25 \\ 
-\end{pmatrix} 
+\Sigma =
+\begin{pmatrix}
+0.64 & 0 & 0 & 0 & 0 \\
+0 & 0.49 & 0 & 0 & 0 \\
+0 & 0 & 0.09 & 0 & 0 \\
+0 & 0 & 0 & 0.16 & 0 \\
+0 & 0 & 0 & 0 & 0.25 \\
+\end{pmatrix}
 \end{equation}
 The mean and variance can computed using previous equation, and the results are:
 \begin{equation}

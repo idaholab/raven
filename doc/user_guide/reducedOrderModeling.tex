@@ -1,31 +1,31 @@
 \section{Reduced Order Modeling}
 \label{sec:ROMs}
-The development of high-fidelity codes, for thermal-hydraulic systems 
-and integrated multi-physics, has undergone a significant acceleration 
-in the last years. Multi-physics codes simulate 
-multiple physical models or multiple simultaneous physical phenomena, 
-in a integrated solving environment. Multi-physics typically 
-solves coupled systems of partial differential equations, generally 
-characterized by several different geometrical and time scales. 
+The development of high-fidelity codes, for thermal-hydraulic systems
+and integrated multi-physics, has undergone a significant acceleration
+in the last years. Multi-physics codes simulate
+multiple physical models or multiple simultaneous physical phenomena,
+in a integrated solving environment. Multi-physics typically
+solves coupled systems of partial differential equations, generally
+characterized by several different geometrical and time scales.
 
-The new multi-physics codes are characterized by remarkable 
-improvements 
-in the approximation of physics (high approximation order and reduced 
-use of empirical correlations). This greater fidelity is generally 
-accompanied by a greater computational effort (calculation time 
-increased). This peculiarity is an 
-obstacle in the application of  computational techniques of 
-quantification of uncertainty and risk associated with the operation of 
-particular industrial plant (e.g., a nuclear reactor). 
+The new multi-physics codes are characterized by remarkable
+improvements
+in the approximation of physics (high approximation order and reduced
+use of empirical correlations). This greater fidelity is generally
+accompanied by a greater computational effort (calculation time
+increased). This peculiarity is an
+obstacle in the application of  computational techniques of
+quantification of uncertainty and risk associated with the operation of
+particular industrial plant (e.g., a nuclear reactor).
 
-A solution to this problem is represented by the 
+A solution to this problem is represented by the
 usage
-of highly effective sampling strategies. Sometimes also these 
+of highly effective sampling strategies. Sometimes also these
 approaches is not enough
-in order to perform a comprehensive UQ and PRA analysis. In these 
+in order to perform a comprehensive UQ and PRA analysis. In these
 cases the help of reduced order modeling is essential.
 
-RAVEN has support of several different ROMs, 
+RAVEN has support of several different ROMs,
 such as:
 \begin{enumerate}
   \item \textit{Nearest Neighbors approaches}
@@ -36,13 +36,13 @@ such as:
 In this section only few of them are going to be analyzed, explaining the theory behind it
 by way of applied RAVEN examples.
 
-A ROM, also known a surrogate 
-model, is a mathematical representation of a system, used to predict 
+A ROM, also known a surrogate
+model, is a mathematical representation of a system, used to predict
 a FOM of a physical system.
 
 The ``training'' is a process of setting the internal parameters of the ROM from a set
-of samples generated the physical model, .e.,  
- the high-fidelity simulator (RELAP-7, RELAP5 
+of samples generated the physical model, .e.,
+ the high-fidelity simulator (RELAP-7, RELAP5
 3D, PHISICS, etc.),
 \begin{figure}[h!]
   \centering
@@ -51,52 +51,52 @@ of samples generated the physical model, .e.,
   \label{fig:ROMexampleOfPhysicalSystem}
 \end{figure}
 
-Two characteristics of these models 
+Two characteristics of these models
 are generally assumed (even if exceptions are possible):
 \begin{enumerate}
-  \item The higher the number of realizations in the training sets, the 
-higher is the accuracy of the prediction performed by the ROM is. This 
-statement is true for most of the cases, although some ROMs might be 
-subject to the over-fitting issues. The over-fitting phenomenon is not 
-analyzed in this thesis, since its occurrence highly depends on the 
-algorithm type, and, hence, the problem needs to be analyzed for all 
+  \item The higher the number of realizations in the training sets, the
+higher is the accuracy of the prediction performed by the ROM is. This
+statement is true for most of the cases, although some ROMs might be
+subject to the over-fitting issues. The over-fitting phenomenon is not
+analyzed in this thesis, since its occurrence highly depends on the
+algorithm type, and, hence, the problem needs to be analyzed for all
 the large number of ROM types available;
-  \item The smaller the size of the input (uncertain) domain with 
-  respect to the variability of the system response, the more likely the 
+  \item The smaller the size of the input (uncertain) domain with
+  respect to the variability of the system response, the more likely the
   ROM is able to represent the system response space.
 \end{enumerate}
 
 \subsection{Reduced Order Modeling: Theory}
 \label{sec:ROMsTheory}
-To provide a very simple idea of a ROM, assume that the final 
-response space of a physical system is governed by the transfer 
+To provide a very simple idea of a ROM, assume that the final
+response space of a physical system is governed by the transfer
 function $H \left (  \overline{x}\right)$ (see Section
-~\ref{sub:mathBackground}), which, from a practical point of 
-view, represents the outcome of the system based on the initial 
-conditions  $\overline{x}$. Now, sample the domain of variability of the 
-initial conditions $\overline{x}$ to create a 
-set of $N$ realizations of the input and response space $ \left ( \left ( 
-\overline{x}_{i}, H \left (  \overline{x}_{i}\right) \right), i=1,N \right)$, 
-named ``training'' set. Based on the data set generated, it is possible 
+~\ref{sub:mathBackground}), which, from a practical point of
+view, represents the outcome of the system based on the initial
+conditions  $\overline{x}$. Now, sample the domain of variability of the
+initial conditions $\overline{x}$ to create a
+set of $N$ realizations of the input and response space $ \left ( \left (
+\overline{x}_{i}, H \left (  \overline{x}_{i}\right) \right), i=1,N \right)$,
+named ``training'' set. Based on the data set generated, it is possible
 to construct a mathematical representation $G\left ( \overline{x}:
-\overline{x}_{i}\right)$ of the 
-real system $H \left (  \overline{x}\right)$, which will approximate its 
+\overline{x}_{i}\right)$ of the
+real system $H \left (  \overline{x}\right)$, which will approximate its
 response (see Figure~\ref{fig:ROMexampleOfPhysicalSystem}):
 \begin{equation}
 \label{eq:regressor}
 G\left ( \overline{x} \right ):\overline{x}_{i} \rightarrow G\left ( \overline{x}_{i} \right ) \cong H\left ( \overline{x}_{i} \right )
 \end{equation}
-The ROMs reported above are generally named ``regressors'', among 
-which all the most common data fitting algorithms are found (e.g., 
+The ROMs reported above are generally named ``regressors'', among
+which all the most common data fitting algorithms are found (e.g.,
 least square for construction of linear models).
 
-An important class of ROMs for the work presented here after is the 
-one containing the so called ``classifiers''. A classifier is a ROM that is 
-capable of representing the system behavior from a binary point of 
-view (e.g., event happened/not happened or failure/success). It is a 
-model (set of equations) that identifies to which category an object 
-belongs in the feature (input) space. Referring to the example that 
-brought to Equation ~\ref{eq:regressor}, a classifier can be formally represented as follows (see 
+An important class of ROMs for the work presented here after is the
+one containing the so called ``classifiers''. A classifier is a ROM that is
+capable of representing the system behavior from a binary point of
+view (e.g., event happened/not happened or failure/success). It is a
+model (set of equations) that identifies to which category an object
+belongs in the feature (input) space. Referring to the example that
+brought to Equation ~\ref{eq:regressor}, a classifier can be formally represented as follows (see
 Figure~\ref{fig:ROMClassifierExampleOfPhysicalSystem}):
 \begin{figure}[h!]
   \centering
@@ -107,38 +107,38 @@ Figure~\ref{fig:ROMClassifierExampleOfPhysicalSystem}):
 
 \begin{equation}
 \label{eq:classifier}
-G\left ( \overline{x} \right ):\overline{x}_{i} \rightarrow G\left ( \overline{x}_{i} \right ) \cong 
+G\left ( \overline{x} \right ):\overline{x}_{i} \rightarrow G\left ( \overline{x}_{i} \right ) \cong
 C \left ( H\left ( \overline{x}_{i} \right ) \right )
 \end{equation}
 
-The function $C\left (  H\left ( \overline{x}_{i}  \right ) = \overline{\theta} 
-\right ) $ is the so called ``goal'' function that is able to recast the 
-response of the system $H\left ( \overline{x}_{i}  \right )$ into a binary 
-form (e.g., failure/success). As an example, referring to 
-Figure~\ref{fig:ROMClassifierExampleOfPhysicalSystem}, the 
+The function $C\left (  H\left ( \overline{x}_{i}  \right ) = \overline{\theta}
+\right ) $ is the so called ``goal'' function that is able to recast the
+response of the system $H\left ( \overline{x}_{i}  \right )$ into a binary
+form (e.g., failure/success). As an example, referring to
+Figure~\ref{fig:ROMClassifierExampleOfPhysicalSystem}, the
 ``goal'' function would be:
 \begin{equation}
 \label{eq:goalFunctionClassifier}
 C\left (   \overline{\theta}  \right ) = \left\{\begin{matrix}
-1 & if \: \overline{\theta}>1.0 \\ 
+1 & if \: \overline{\theta}>1.0 \\
 0 &  if \: \overline{\theta} \leq 1.0
 \end{matrix}\right.
 \end{equation}
-Hence, the ROM of type classifier $G\left (  \overline{x} \right )$  will operate in the space transformed through the ``goal''  function $C\left (   \overline{\theta}  \right )$. 
+Hence, the ROM of type classifier $G\left (  \overline{x} \right )$  will operate in the space transformed through the ``goal''  function $C\left (   \overline{\theta}  \right )$.
 \\The classifiers and regressors can be categorized into two main classes:
 \begin{itemize}
   \item Model-based algorithms
   \item Data-based algorithms
 \end{itemize}
-In the first class, the created ROM aims to approximate the response 
-of the system as a function of the input parameters. These algorithms 
+In the first class, the created ROM aims to approximate the response
+of the system as a function of the input parameters. These algorithms
 construct a functional representation of the system. Examples of such ROM type are Support Vector Machines (SVMs), Kriging-based regressors, discriminant-based models, and polynomial chaos.
 
 On the other side, data-based algorithms do not build a response-
-function-based ROM but classify or predict the response of the 
-system from the neighborhood graph constructed from the training 
+function-based ROM but classify or predict the response of the
+system from the neighborhood graph constructed from the training
 data, without any dependencies on a particular prediction model.
-These algorithms directly build a neighborhood structure as the 
+These algorithms directly build a neighborhood structure as the
 ROM (e.g., a relaxed Gabriel graph) on the initial training data. Examples of such ROM type are nearest neighbors and decision trees.
 
 \subsubsection{Gaussian Process Models}
@@ -148,7 +148,7 @@ What relates one observation to another in such cases is just the covariance fun
 \begin{equation}
 k(x,x')=\sigma_{f}^{2}  exp \left [ \frac{-(x-x')^2}{2 l^2} \right ]
 \end{equation}
-where the maximum allowable covariance is defined as $\sigma_{f}^{2}$; this should be high for functions that cover a broad range on the y axis. If $x \simeq x'$, then $k(x,x')$ approach this maximum meaning $f(x)$ is very correlated to $f(x')$. On the other hand, if $x$ is very distant from $x'$, then $k(x,x' ) \simeq 0$ (i.e., the two points cannot see each other. 
+where the maximum allowable covariance is defined as $\sigma_{f}^{2}$; this should be high for functions that cover a broad range on the y axis. If $x \simeq x'$, then $k(x,x')$ approach this maximum meaning $f(x)$ is very correlated to $f(x')$. On the other hand, if $x$ is very distant from $x'$, then $k(x,x' ) \simeq 0$ (i.e., the two points cannot see each other.
 So, for example, during interpolation at new $x$ values, distant observations will have negligible effect). How much effect this separation has will depend on the length parameter $l$.
 Each observation $y$ can be thought of as related to an underlying function $f(x)$ through a Gaussian noise model:
 \begin{equation}
@@ -163,8 +163,8 @@ So given $n$ observations $y$, the objective is to predict the value $y_*$ at th
 \item Calculate three matrices:
 \begin{equation}
 K=\begin{bmatrix}
-k(x_1,x_1) &  \ldots & k(x_1,x_n)\\ 
-\vdots  & \ddots &\vdots  \\ 
+k(x_1,x_1) &  \ldots & k(x_1,x_n)\\
+\vdots  & \ddots &\vdots  \\
 k(x_n,x_1) &  \ldots & k(x_n,x_n)
 \end{bmatrix}
 \end{equation}
@@ -180,10 +180,10 @@ K_{**}=k(x_*,x_*)
 \begin{equation}
 \begin{bmatrix}
 y\\
-y_* 
+y_*
 \end{bmatrix}
 =\mathcal{N}(0,\begin{bmatrix}
-K & K_{*}^{T}\\ 
+K & K_{*}^{T}\\
 K_* & K_{**}
 \end{bmatrix})
 \end{equation}
@@ -205,12 +205,12 @@ Assuming a linear property of the hyperplane  then its definition is:
 \begin{equation}
 \left \{ x: f(x)=x^T\beta+\beta_0=0 \right \}
 \end{equation}
-where $\beta$ is a unit vector. 
+where $\beta$ is a unit vector.
 
 The SVM parameters $\beta$ and $\beta_0$  are determined by solving this optimization problem:
 \begin{equation}
 \left\{\begin{matrix}
-\underset{\beta,\beta_0}{min} \left \| \beta \right \|\\ 
+\underset{\beta,\beta_0}{min} \left \| \beta \right \|\\
 \text{subject to } y_i(x_{i}^{T}\beta+\beta_0)\geq 1 , \quad i=1,\dots,N
 \end{matrix}\right.
 \end{equation}
@@ -249,9 +249,9 @@ For both applications, given a set of $N$ data points $ (x_i,u_i )$  $i=1,\ldots
 
 \paragraph{Shepard's Method}
 \label{sec:shepard}
-The Shepard interpolator~\cite{Shepard} is also know as Inverse Distance Weighting (IDW) interpolator. 
-The starting point is a set of $N$ data points $ (x_i,u_i )$ for $i=1,\ldots,N$. 
-The Inverse-Weight interpolator can be represented as a function $f_{IDW}(x)$ that, given a new coordinate in the input space $x$, generates a prediction on $u$ such that 
+The Shepard interpolator~\cite{Shepard} is also know as Inverse Distance Weighting (IDW) interpolator.
+The starting point is a set of $N$ data points $ (x_i,u_i )$ for $i=1,\ldots,N$.
+The Inverse-Weight interpolator can be represented as a function $f_{IDW}(x)$ that, given a new coordinate in the input space $x$, generates a prediction on $u$ such that
 \begin{equation}
 u:x \in \mathbb{R}^M \rightarrow f_{IDW}(x) \in \mathbb{R}
 \end{equation}
@@ -259,7 +259,7 @@ based on the distance $d(x,x_i)$ in the euclidean space between $x$ and $x_i$.
 
 Such prediction $u=f_{IDW}(x)$ is performed by summing all data points $x_i$ $i=1,\ldots,N$ weighted by a weighting parameter $w_i (x)$ as follows:
 \begin{equation}
-f_{IDW}(x) = 
+f_{IDW}(x) =
 \left\{
 \begin{matrix}
 \sum_{i=1}^{N} w(x_i) u_i &  \text{if } d(x,x_i) \neq 0 \\
@@ -283,7 +283,7 @@ A generic grid $\Delta_m$ for each dimension $m$ will be indicated as follows:
 \begin{equation}
 \Delta_m = \{x_{0_m},x_{1_m},\ldots,x_{p_m}\} \text{ for } m=1,\ldots,M
 \end{equation}
-This methods construct a $M$-dimensional cubic spline so that, given a coordinate in the input space $x=(x_1,x_2,\ldots,x_M)$, generates a prediction on $u$ such that 
+This methods construct a $M$-dimensional cubic spline so that, given a coordinate in the input space $x=(x_1,x_2,\ldots,x_M)$, generates a prediction on $u$ such that
 \begin{equation}
 u:x \in \mathbb{R}^M \rightarrow f_{MDS}(x) \in \mathbb{R}
 \end{equation}
@@ -291,7 +291,7 @@ where
 \begin{equation}
 f_{MDS}(x)=\sum_{i_1=1}^{p_1+3} \sum_{i_2=1}^{p_2+3} \ldots \sum_{i_M=1}^{p_M+3} c_{i_1,i_2,\ldots,i_p} \prod_{m=1}^{M} u_{i_j} (x_m)
 \end{equation}
-where 
+where
 \begin{equation}
 u_{i_j} (x_m) = \Phi\left ( \frac{x_m-x_{0_m}}{h_j}+2-i_j  \right )
 \end{equation}
@@ -300,7 +300,7 @@ The cubic kernel $\Phi(t)$ is defined as:
 \begin{equation}
 \Phi(t) = \left\{\begin{matrix}
 (2-\left | t \right |)^3 & 1\leq \left | t \right |\leq 2 \\
-4-6\left | t \right |^2+3\left | t \right |^3 & \left | t \right |\leq 1\\ 
+4-6\left | t \right |^2+3\left | t \right |^3 & \left | t \right |\leq 1\\
 0 & \text{elsewhere}
 \end{matrix}\right.
 \end{equation}
@@ -316,7 +316,7 @@ The goals of this section are about learning how to:
    \item Train the different ROMs with the data-set obtained by the applied sampling strategy;
    \item Use the same sampling strategy, perturbing the ROMs
    \item Plot the responses of the driven code and ROMs, respectively.
-\end{enumerate}  
+\end{enumerate}
 In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in the input files) need to be defined:
 \begin{enumerate}
    \item \textbf{\textit{RunInfo}}:
@@ -333,8 +333,8 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
   </RunInfo>
 \end{lstlisting}
    As in the other examples, the the \textit{RunInfo} \textbf{Entity} is intended  to set up the analysis sequence that
-   needs to be performed. In this specific case, eight steps  (\xmlNode{Sequence}) are going to be sequentially run 
-   using eight processors (\xmlNode{batchSize}). 
+   needs to be performed. In this specific case, eight steps  (\xmlNode{Sequence}) are going to be sequentially run
+   using eight processors (\xmlNode{batchSize}).
    \\In the first step, the original physical model is going to be sampled. The obtained results are going to be used to
    train three different ROMs.These ROMs are sampled by the same strategy used in the first step in order to compare the
    ROMs' responses with the ones coming from the original physical model.
@@ -345,8 +345,8 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
   </Files>
 \end{lstlisting}
    Since the driven code uses a single input file, the original input is placed in this section. As detailed in the user manual
-   the attribute  \xmlAttr{name} represents the alias that is going to be 
-   used in all the other input blocks in order to refer to this file. 
+   the attribute  \xmlAttr{name} represents the alias that is going to be
+   used in all the other input blocks in order to refer to this file.
    \item \textbf{\textit{Models}}:
 \begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
   <Models>
@@ -381,15 +381,15 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
     </ROM>
   </Models>
 \end{lstlisting}
- As mentioned above, the goal of this example is the employment of 
- a sampling strategy in order to construct multiple types of ROMs. 
- \\Indeed, in addition to the previously explained Code 
+ As mentioned above, the goal of this example is the employment of
+ a sampling strategy in order to construct multiple types of ROMs.
+ \\Indeed, in addition to the previously explained Code
  model,
  three different ROMs (GP, SVM and IDW) are here specified. The ROMs will be
  constructed (``trained'') through the data-set generated by the sampling of the physical model. Once trained, they are going
- to be used in place of the original physical model. 
+ to be used in place of the original physical model.
  \\As it can be seen,
- the ROMs will be constructed considering four features ($sigma-A,\,sigma-B,\, decay-A \,,and \, decay-B$) and two targets 
+ the ROMs will be constructed considering four features ($sigma-A,\,sigma-B,\, decay-A \,,and \, decay-B$) and two targets
  ($A \, and \, B$).
    \item \textbf{\textit{Distributions}}:
 \begin{lstlisting}[style=XML]
@@ -404,14 +404,14 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
       </Uniform>
   </Distributions>
 \end{lstlisting}
-  In the Distributions XML section, the stochastic model for the 
-  uncertainties are reported. In 
-  this case two distributions are defined: 
+  In the Distributions XML section, the stochastic model for the
+  uncertainties are reported. In
+  this case two distributions are defined:
   \begin{itemize}
-    \item $sigma \sim \mathbb{U}(0,1000)$, used to model the uncertainties 
+    \item $sigma \sim \mathbb{U}(0,1000)$, used to model the uncertainties
     associated with  the Model \textit{sigma-A} and \textit{sigma-B};
-    \item  $decayConstant \sim \mathbb{U}(1e-8,1e-7)$,  used to 
-    model the uncertainties 
+    \item  $decayConstant \sim \mathbb{U}(1e-8,1e-7)$,  used to
+    model the uncertainties
     associated with  the Model \textit{decay-A} and \textit{decay-B}.
   \end{itemize}
    \item \textbf{\textit{Samplers}}:
@@ -453,7 +453,7 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
     <PointSet name="inputPlaceHolder">
       <Input>sigma-A,sigma-B,decay-A,decay-B</Input>
       <Output>OutputPlaceHolder</Output>
-    </PointSet> 
+    </PointSet>
     <PointSet name="samplesGP">
       <Input>sigma-A,sigma-B,decay-A,decay-B</Input>
       <Output>A,B</Output>
@@ -468,10 +468,10 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
     </PointSet>
   </DataObjects>
 \end{lstlisting}
-  Int this block, six \textit{DataObjects} are defined: 1) PointSet 
-  named ``samples'' used to collect the final outcomes of the code, 2) 
-  HistorySet named ``histories'' in which the full time responses of the 
-  variables $A,B,C,D$ are going to be stored, 3) PointSet named    
+  Int this block, six \textit{DataObjects} are defined: 1) PointSet
+  named ``samples'' used to collect the final outcomes of the code, 2)
+  HistorySet named ``histories'' in which the full time responses of the
+  variables $A,B,C,D$ are going to be stored, 3) PointSet named
   ``inputPlaceHolder'' used in the \textit{role} of \xmlNode{Input} for the ROMs sampling;
   4) PointSet named ``samplesGP'' used to collect the final outcomes (sampling) of the GP ROM;
   5) PointSet named ``samplesInverse'' used to collect the final outcomes (sampling) of the IDW ROM;
@@ -486,8 +486,8 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
   \label{fig:ROMgrid_pointsets}
  \end{figure}
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
-   \item \textbf{\textit{Steps}}:   
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+   \item \textbf{\textit{Steps}}:
 \begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
   <Steps>
     <MultiRun name="sample">
@@ -561,14 +561,14 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
  \end{figure}
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-   Finally, all the previously defined \textbf{Entities} can be combined in 
-   the \xmlNode{Steps} block. As inferable, 
+   Finally, all the previously defined \textbf{Entities} can be combined in
+   the \xmlNode{Steps} block. As inferable,
    eight \xmlNode{Steps} have been inputted:
    \begin{itemize}
-     \item \xmlNode{MultiRun} named ``sample'', used to run the multiple  
-     instances of the driven code and 
+     \item \xmlNode{MultiRun} named ``sample'', used to run the multiple
+     instances of the driven code and
      collect the outputs in the two \textit{DataObjects}. As it can be
-     seen, the \xmlNode{Sampler} is inputted to communicate to the 
+     seen, the \xmlNode{Sampler} is inputted to communicate to the
      \textit{Step} that the driven code needs to
      be perturbed through the Grid sampling strategy;
      \item \xmlNode{RomTrainer} named ``trainROMGaussianProcess'', used to construct (``train'')
@@ -577,24 +577,24 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
      the SVM ROM, based on the data-set generated in the  ``sample'' \textbf{Step};
      \item \xmlNode{RomTrainer} named ``trainROMinverse'', used to construct (``train'')
      the IDW ROM, based on the data-set generated in the  ``sample'' \textbf{Step};
-     \item \xmlNode{MultiRun} named ``sampleROMGaussianProcess'', used to run the multiple  
-     instances of the previously constructed GP ROM and 
-     collect the outputs in the PointSet \textit{DataObject}. As it can be
-     seen, the same \xmlNode{Sampler} used for perturbing the original model is here used. 
-     \item \xmlNode{MultiRun} named ``sampleROMsvm'', used to run the multiple  
-     instances of the previously constructed Support Vector Machine ROM and 
+     \item \xmlNode{MultiRun} named ``sampleROMGaussianProcess'', used to run the multiple
+     instances of the previously constructed GP ROM and
      collect the outputs in the PointSet \textit{DataObject}. As it can be
      seen, the same \xmlNode{Sampler} used for perturbing the original model is here used.
-     \item \xmlNode{MultiRun} named ``sampleROMInverse'', used to run the multiple  
-     instances of the previously constructed Inverse Distance Weight ROM and 
+     \item \xmlNode{MultiRun} named ``sampleROMsvm'', used to run the multiple
+     instances of the previously constructed Support Vector Machine ROM and
      collect the outputs in the PointSet \textit{DataObject}. As it can be
      seen, the same \xmlNode{Sampler} used for perturbing the original model is here used.
-     \item  \xmlNode{IOStep} named ``writeHistories'', used to 1) export 
-     the ``histories'' and ``samples''  \textit{DataObjects} 
+     \item \xmlNode{MultiRun} named ``sampleROMInverse'', used to run the multiple
+     instances of the previously constructed Inverse Distance Weight ROM and
+     collect the outputs in the PointSet \textit{DataObject}. As it can be
+     seen, the same \xmlNode{Sampler} used for perturbing the original model is here used.
+     \item  \xmlNode{IOStep} named ``writeHistories'', used to 1) export
+     the ``histories'' and ``samples''  \textit{DataObjects}
      \textbf{Entity} in a CSV file and 2) plot the responses of the sampling performed on the physical model, GP ROM,
      SVM ROM and IDW ROM in  PNG files and on the screen.
    \end{itemize}
-\end{enumerate} 
+\end{enumerate}
 
   %figure samples
  \begin{figure}[h!]
@@ -613,12 +613,12 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
   \label{fig:ROMinverse_samples}
  \end{figure}
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- Figure \ref{fig:ROMgrid_histories} 
- shows the evolution of the outputs $A,B,C,D$ under uncertainties. 
+ Figure \ref{fig:ROMgrid_histories}
+ shows the evolution of the outputs $A,B,C,D$ under uncertainties.
  Figure \ref{fig:ROMgrid_pointsets} shows the final responses  of $A and B$
- of the sampling employed using the driven code. 
+ of the sampling employed using the driven code.
 
-Figures \ref{fig:ROMgp_samples}, \ref{fig:ROMsvm_samples} and \ref{fig:ROMinverse_samples}  show the final responses  of $A and B$ of the sampling employed using the Gaussian Process, Support Vector Machines and Inverse Distance Weight ROMs, respectively. 
+Figures \ref{fig:ROMgp_samples}, \ref{fig:ROMsvm_samples} and \ref{fig:ROMinverse_samples}  show the final responses  of $A and B$ of the sampling employed using the Gaussian Process, Support Vector Machines and Inverse Distance Weight ROMs, respectively.
 It can be clearly noticed that the responses of the ROMs perfectly match the outcomes coming from the original model (see Figure   \ref{fig:ROMgrid_pointsets}).
 
 
