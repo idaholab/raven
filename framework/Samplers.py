@@ -121,6 +121,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.FIXME                         = False                     # FIXME flag
     self.printTag                      = self.type                 # prefix for all prints (sampler type)
     self.restartData                   = None                      # presampled points to restart from
+    self.restartTolerance              = 1e-15                     # strictness with which to find matches in the restart data
 
     self._endJobRunnable               = sys.maxsize               # max number of inputs creatable by the sampler right after a job ends (e.g., infinite for MC, 1 for Adaptive, etc)
 
@@ -267,6 +268,8 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
           listIndex = range(len(transformationDict["manifestVariables"]))
         transformationDict["manifestVariablesIndex"] = listIndex
         self.variablesTransformationDict[child.attrib['distribution']] = transformationDict
+      elif child.tag == "restartTolerance":
+        self.restartTolerance = float(child.text)
 
     if self.initSeed == None:
       self.initSeed = Distributions.randomIntegers(0,2**31,self)
@@ -481,6 +484,12 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         self.raiseAWarning("No CROW distribution available in restart -",e)
     else:
       self.raiseAMessage('No restart for '+self.printTag)
+
+    #load restart data into existing points
+    if self.restartData is not None:
+      inps = self.restartData.getInpParametersValues()
+      self.existing = zip(*list(v for v in inps.values()))
+      self.existing = np.array(self.existing)
 
     #specializing the self.localInitialize() to account for adaptive sampling
     if solutionExport != None : self.localInitialize(solutionExport=solutionExport)
@@ -1372,7 +1381,6 @@ class MonteCarlo(Sampler):
       self.counter+=len(self.restartData)
       self.raiseAMessage('Number of points from restart: %i' %self.counter)
       self.raiseAMessage('Number of points needed:       %i' %(self.limit-self.counter))
-    #pass #TODO fix the limit based on restartData
 
   def localGenerateInput(self,model,myInput):
     """
@@ -1446,11 +1454,11 @@ class Grid(Sampler):
     """
     Sampler.__init__(self)
     self.printTag = 'SAMPLER GRID'
-    self.axisName             = []    # the name of each axis (variable)
-    self.gridInfo             = {}    # {'name of the variable':Type}  --> Type: CDF/Value
-    self.externalgGridCoord   = False # boolean attribute. True if the coordinate list has been filled by external source (see factorial sampler)
-    self.gridCoordinate       = []    # current grid coordinates
-    self.existing             = []    # restart points
+    self.axisName             = []           # the name of each axis (variable)
+    self.gridInfo             = {}           # {'name of the variable':Type}  --> Type: CDF/Value
+    self.externalgGridCoord   = False        # boolean attribute. True if the coordinate list has been filled by external source (see factorial sampler)
+    self.gridCoordinate       = []           # current grid coordinates
+    self.existing             = np.array([]) # restart points
     self.gridEntity           = GridEntities.returnInstance('GridEntity',self)
 
   def localInputAndChecks(self,xmlNode):
@@ -1499,9 +1507,6 @@ class Grid(Sampler):
     """
     self.gridEntity.initialize()
     self.limit = len(self.gridEntity)
-    if self.restartData is not None:
-      inps = self.restartData.getInpParametersValues()
-      self.existing = zip(*list(v for v in inps.values()))
 
   def localGenerateInput(self,model,myInput):
     """
@@ -1627,7 +1632,9 @@ class Grid(Sampler):
             self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")] = self.distDict[varName].cellIntegral(ndCoordinate,dxs)
             weight *= self.distDict[varName].cellIntegral(ndCoordinate,dxs)
       newpoint = tuple(self.values[key] for key in self.values.keys())
-      if newpoint not in self.existing:
+      inExisting,_,_ = utils.NDInArray(self.existing,newpoint,tol=self.restartTolerance)
+      #if newpoint not in self.existing:
+      if not inExisting:
         found=True
         self.raiseADebug('New point found: '+str(newpoint))
       else:
