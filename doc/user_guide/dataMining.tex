@@ -416,15 +416,15 @@ performed on all the output FOMs used in this example ( $A,\, B,\, C \, and \, D
       <Input class="DataObjects" type="PointSet">samplesMC</Input>
       <Model class="Models" type="PostProcessor">KMeans1</Model>
       <Output class="DataObjects" type="PointSet">samplesMC</Output>
-      <Output class="OutStreamManager" type="Plot">PlotKMeans1</Output>
-      <Output class="OutStreamManager" type="Plot">PlotAll</Output>
-      <Output class="OutStreamManager" type="Print">samplesMCdump</Output>
+      <Output class="OutStreams" type="Plot">PlotKMeans1</Output>
+      <Output class="OutStreams" type="Plot">PlotAll</Output>
+      <Output class="OutStreams" type="Print">samplesMCdump</Output>
     </PostProcess>
     <PostProcess name="pca" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">samplesMC</Input>
       <Model class="Models" type="PostProcessor">PCA1</Model>
       <Output class="DataObjects" type="PointSet">samplesMC</Output>
-      <Output class="OutStreamManager" type="Plot">PlotPCA1</Output>
+      <Output class="OutStreams" type="Plot">PlotPCA1</Output>
     </PostProcess>
   </Steps>
 \end{lstlisting}

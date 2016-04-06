@@ -720,14 +720,14 @@ So the user needs to input the following:
 \end{lstlisting}
 As listed before, this will create two DataObjects that can be used in sub-sequential post-processing.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsubsection{OutStreamManager}
+\subsubsection{OutStreams}
 As fully explained in section~\ref{sec:outstream}, if the user want to print out or plot the content of a \textbf{DataObjects},
-he needs to create an \textbf{OutStream} in the \xmlNode{OutStreamManager} XML block.
+he needs to create an \textbf{OutStream} in the \xmlNode{OutStreams} XML block.
 \\As it shown in the example below, for MooseBasedApp (and any other Code interface that might use the symbol $|$
 for the Sampler's variable syntax), in the Plot \xmlNode{x} and \xmlNode{y} specification, the user needs to
 utilize curly brackets.
 \begin{lstlisting}[style=XML]
-<OutStreamManager>
+<OutStreams>
   <Print name='gridOutDataDumpCSV'>
     <type>csv</type>
     <source>gridOutData</source>
@@ -743,7 +743,7 @@ utilize curly brackets.
     </plotSettings>
     <actions><how>screen,png</how></actions>
   </Plot>
-</OutStreamManager>
+</OutStreams>
 \end{lstlisting}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1183,8 +1183,8 @@ defined in \xmlNode{Models}).
 \end{lstlisting}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\paragraph{Steps,OutStreamManager,DataObjects}
-This interface's \xmlNode{Steps}, \xmlNode{OutStreamManager}, and
+\paragraph{Steps,OutStreams,DataObjects}
+This interface's \xmlNode{Steps}, \xmlNode{OutStreams}, and
 \xmlNode{DataObjects} blocks do not deviate significantly from
 other interfaces' respective nodes.  Please refer to previous
 entries for these blocks if needed.
@@ -1200,7 +1200,7 @@ directory is not kept clean; thus these files are removed.  In addition, some us
 may wish to remove Exodus files after the RAVEN run is complete as
 the typical size of each file is quite large and it is assumed that any
 output quantities of interest will be collected by appropriate postprocessors
-and the OutStreamManager.  Exodus files are not automatically removed,
+and the OutStreams.  Exodus files are not automatically removed,
 but by using the \xmlNode{deleteOutExtension} node in \xmlNode{RunInfo}, one
 may specify the Exodus extension to save a fair amount of storage space
 after RAVEN completes a sequence. For example:
@@ -1330,8 +1330,8 @@ defined in \xmlNode{Models}).
 \end{lstlisting}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\paragraph{Steps,OutStreamManager,DataObjects}
-This interface's \xmlNode{Steps}, \xmlNode{OutStreamManager}, and
+\paragraph{Steps,OutStreams,DataObjects}
+This interface's \xmlNode{Steps}, \xmlNode{OutStreams}, and
 \xmlNode{DataObjects} blocks do not deviate significantly from
 other interfaces' respective nodes.  Please refer to previous
 entries for these blocks if needed.
@@ -1351,7 +1351,7 @@ files are removed.  Some users
 may wish to remove Exodus files after the RAVEN run is complete as
 the typical size of each file is quite large and it is assumed that any
 output quantities of interest will be collected by appropriate postprocessors
-and the OutStreamManager.  Exodus files are not automatically removed,
+and the OutStreams.  Exodus files are not automatically removed,
 but by using the \xmlNode{deleteOutExtension} node in \xmlNode{RunInfo}, one
 may specify the Exodus extension (*.e) to save a fair amount of storage space
 after RAVEN completes a sequence. For example:

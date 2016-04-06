@@ -231,9 +231,9 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
   perturbed through the Monte-Carlo strategy are listed. By this, any
   realization in the input space is linked to the outputs listed in the 
   \xmlNode{Output} node.
-   \item \textbf{\textit{OutStreamManager}}:   
+   \item \textbf{\textit{OutStreams}}:   
 \begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
-  <OutStreamManager>
+  <OutStreams>
     <Print name="samples">
       <type>csv</type>
       <source>samples</source>
@@ -371,7 +371,7 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
             </title>
         </actions>
     </Plot>
-  </OutStreamManager>
+  </OutStreams>
 \end{lstlisting}
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  %figure histories
@@ -419,10 +419,10 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
     <IOStep name="writeHistories" pauseAtEnd="True">
         <Input class="DataObjects" type="HistorySet">histories</Input>
         <Input class="DataObjects" type="PointSet">samples</Input>
-        <Output 	class="OutStreamManager" type="Plot">samplesPlot3D</Output>
-        <Output 	class="OutStreamManager" type="Plot">historyPlot</Output>
-        <Output 	class="OutStreamManager" type="Print">samples</Output>
-        <Output 	class="OutStreamManager" type="Print">histories</Output>
+        <Output 	class="OutStreams" type="Plot">samplesPlot3D</Output>
+        <Output 	class="OutStreams" type="Plot">historyPlot</Output>
+        <Output 	class="OutStreams" type="Print">samples</Output>
+        <Output 	class="OutStreams" type="Print">histories</Output>
     </IOStep>
   </Steps>
 \end{lstlisting}
@@ -649,9 +649,9 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
   perturbed through the Grid strategy are listed. In this way, any
   realization in the input space is linked to the outputs listed in  the 
   \xmlNode{Output} node.
-   \item \textbf{\textit{OutStreamManager}}:   
+   \item \textbf{\textit{OutStreams}}:   
 \begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
-  <OutStreamManager>
+  <OutStreams>
     <Print name="samples">
       <type>csv</type>
       <source>samples</source>
@@ -789,7 +789,7 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
             </title>
         </actions>
     </Plot>
-  </OutStreamManager>
+  </OutStreams>
 \end{lstlisting}
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  %figure histories
@@ -837,10 +837,10 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
     <IOStep name="writeHistories" pauseAtEnd="True">
         <Input class="DataObjects" type="HistorySet">histories</Input>
         <Input class="DataObjects" type="PointSet">samples</Input>
-        <Output 	class="OutStreamManager" type="Plot">samplesPlot3D</Output>
-        <Output 	class="OutStreamManager" type="Plot">historyPlot</Output>
-        <Output 	class="OutStreamManager" type="Print">samples</Output>
-        <Output 	class="OutStreamManager" type="Print">histories</Output>
+        <Output 	class="OutStreams" type="Plot">samplesPlot3D</Output>
+        <Output 	class="OutStreams" type="Plot">historyPlot</Output>
+        <Output 	class="OutStreams" type="Print">samples</Output>
+        <Output 	class="OutStreams" type="Print">histories</Output>
     </IOStep>
   </Steps>
 \end{lstlisting}
@@ -1062,9 +1062,9 @@ To accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in 
   perturbed through the Stratified strategy are listed. In this way, any
   realization in the input space is linked to the outputs listed in  the 
   \xmlNode{Output} node.
-   \item \textbf{\textit{OutStreamManager}}:   
+   \item \textbf{\textit{OutStreams}}:   
 \begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
-  <OutStreamManager>
+  <OutStreams>
     <Print name="samples">
       <type>csv</type>
       <source>samples</source>
@@ -1203,7 +1203,7 @@ To accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in 
             </title>
         </actions>
     </Plot>
-  </OutStreamManager>
+  </OutStreams>
 \end{lstlisting}
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  %figure histories
@@ -1251,10 +1251,10 @@ To accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in 
     <IOStep name="writeHistories" pauseAtEnd="True">
         <Input class="DataObjects" type="HistorySet">histories</Input>
         <Input class="DataObjects" type="PointSet">samples</Input>
-        <Output 	class="OutStreamManager" type="Plot">samplesPlot3D</Output>
-        <Output 	class="OutStreamManager" type="Plot">historyPlot</Output>
-        <Output 	class="OutStreamManager" type="Print">samples</Output>
-        <Output 	class="OutStreamManager" type="Print">histories</Output>
+        <Output 	class="OutStreams" type="Plot">samplesPlot3D</Output>
+        <Output 	class="OutStreams" type="Plot">historyPlot</Output>
+        <Output 	class="OutStreams" type="Print">samples</Output>
+        <Output 	class="OutStreams" type="Print">histories</Output>
     </IOStep>
   </Steps>
 \end{lstlisting}
@@ -1862,12 +1862,12 @@ To accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in 
         <Input class="DataObjects" type="HistorySet">histories</Input>
         <Input class="DataObjects" type="PointSet">samples</Input>
         <Input class="DataObjects" type="PointSet">samplesROM</Input>
-        <Output 	class="OutStreamManager" type="Plot">samplesPlot3D</Output>
-        <Output 	class="OutStreamManager" type="Plot">historyPlot</Output>
-        <Output 	class="OutStreamManager" type="Plot">samplesROMPlot3D</Output>
-        <Output 	class="OutStreamManager" type="Print">samples</Output>
-        <Output 	class="OutStreamManager" type="Print">samplesROM</Output>
-        <Output 	class="OutStreamManager" type="Print">histories</Output>
+        <Output 	class="OutStreams" type="Plot">samplesPlot3D</Output>
+        <Output 	class="OutStreams" type="Plot">historyPlot</Output>
+        <Output 	class="OutStreams" type="Plot">samplesROMPlot3D</Output>
+        <Output 	class="OutStreams" type="Print">samples</Output>
+        <Output 	class="OutStreams" type="Print">samplesROM</Output>
+        <Output 	class="OutStreams" type="Print">histories</Output>
     </IOStep>
   </Steps>
 \end{lstlisting}

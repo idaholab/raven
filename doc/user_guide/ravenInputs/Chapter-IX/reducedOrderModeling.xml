@@ -121,13 +121,13 @@
         <Input  class="DataObjects"      type="PointSet">samplesGP</Input>
         <Input  class="DataObjects"      type="PointSet">samplesInverse</Input>
         <Input  class="DataObjects"      type="PointSet">samplesSVM</Input>
-        <Output class="OutStreamManager" type="Plot">samplesPlot3D</Output>
-        <Output class="OutStreamManager" type="Plot">samplesPlot3DROMgp</Output>
-        <Output class="OutStreamManager" type="Plot">samplesPlot3DROMsvm</Output>
-        <Output class="OutStreamManager" type="Plot">samplesPlot3DROMinverse</Output>
-        <Output class="OutStreamManager" type="Plot">historyPlot</Output>
-        <Output class="OutStreamManager" type="Print">samples</Output>
-        <Output class="OutStreamManager" type="Print">histories</Output>
+        <Output class="OutStreams" type="Plot">samplesPlot3D</Output>
+        <Output class="OutStreams" type="Plot">samplesPlot3DROMgp</Output>
+        <Output class="OutStreams" type="Plot">samplesPlot3DROMsvm</Output>
+        <Output class="OutStreams" type="Plot">samplesPlot3DROMinverse</Output>
+        <Output class="OutStreams" type="Plot">historyPlot</Output>
+        <Output class="OutStreams" type="Print">samples</Output>
+        <Output class="OutStreams" type="Print">histories</Output>
     </IOStep>
   </Steps>
 
@@ -158,7 +158,7 @@
     </HistorySet>
   </DataObjects>
 
-<OutStreamManager>
+<OutStreams>
     <Print name="samples">
         <type>csv</type>
         <source>samples</source>
@@ -384,6 +384,6 @@
             </title>
         </actions>
     </Plot>
-</OutStreamManager>
+</OutStreams>
 
 </Simulation>
