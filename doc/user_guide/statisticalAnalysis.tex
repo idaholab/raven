@@ -3,7 +3,7 @@
 In order to perform a complete analysis of a system under uncertainties,
 it is crucial to be able to compute all the statistical moments of one or even multiple
 FOMs. In addition, it is essential to identify the correlation
-among different FOMs toward a specific input space. 
+among different FOMs toward a specific input space.
 
 RAVEN is able to compute the most important statistical moments:
 such as:
@@ -16,7 +16,7 @@ such as:
   \item \textit{Kurtosis}
   \item \textit{Median}
   \item \textit{Percentile}.
-\end{enumerate} 
+\end{enumerate}
 In addition, RAVEN fully supports the computation of all of the statistical moments defined to
 ``measure'' the correlation among variables/parameters/FOMs:
 \begin{enumerate}
@@ -25,12 +25,12 @@ In addition, RAVEN fully supports the computation of all of the statistical mome
   \item \textit{Variance Dependent Sensitivity  matrix}
   \item \textit{Sensitivity matrix}
   \item \textit{Pearson matrix}.
-\end{enumerate} 
+\end{enumerate}
 In this section these features are analyzed, by showing the theory behind it
 using a set of RAVEN examples.
 \subsection{Statistical Analysis Theory}
-One of the most assessed ways to investigate the impact of the intrinsic variation of the input space is through the computation of 
-statistical moments and linear correlation among variables/parameters/FOMs. 
+One of the most assessed ways to investigate the impact of the intrinsic variation of the input space is through the computation of
+statistical moments and linear correlation among variables/parameters/FOMs.
 
 As shown in Section~\ref{sec:forwardSamplingStrategies}, RAVEN employs several different sampling methodologies to explore the response of a model subject to uncertainties. In order to correctly compute the statistical moments a weight-based approach is used. Each \textit{Sampler} in RAVEN associate to each ``sample'' (i.e.
 realization in the input/uncertain space) a \textbf{weight}  to represent the \textit{importance} of the particular
@@ -38,20 +38,20 @@ combination of input values from a statistical point of view (e.g., reliability 
 steps in order to compute the previously listed statistical moments and correlation metrics.
 \\In the following subsections, the formulation of these statistical moments is reported.
 \subsubsection{Expected Value}
-The expected value represents one of the most fundamental metrics in probability theory: it represents a measurement of the center of the distribution (mean) of the random variable. 
+The expected value represents one of the most fundamental metrics in probability theory: it represents a measurement of the center of the distribution (mean) of the random variable.
 From a practical point of view, the expected value of a discrete random variable is the probability-weighted average of all possible values of the subjected variable. Formally, the expected value of a random variable $X$:
 \begin{equation}
 \begin{matrix}
-\mathbb{E}(X) = \mu = \sum_{x \in \chi} x  pdf_{X}(x) & \text{if  $X$  discrete} \\ 
-\\ 
+\mathbb{E}(X) = \mu = \sum_{x \in \chi} x  pdf_{X}(x) & \text{if  $X$  discrete} \\
+\\
 \mathbb{E}(X) = \mu = \int_{x \in \chi} x pdf_{X}(x) & \, \text{if $X$ continuous}
 \end{matrix}
 \end{equation}
 In RAVEN, the expected value (i.e. first central moment) is computed as follows:
 \begin{equation}
 \begin{matrix}
-\mathbb{E}(X) = \mu \approx \overline{x} = \frac{1}{n} \sum_{i=1}^{n}  x_{i} & \text{if  random sampling} \\ 
-\\ 
+\mathbb{E}(X) = \mu \approx \overline{x} = \frac{1}{n} \sum_{i=1}^{n}  x_{i} & \text{if  random sampling} \\
+\\
 \mathbb{E}(X) = \mu \approx \overline{x} = \frac{1}{V_{1}} \sum_{i=1}^{n} w_{i}  x_{i}  & \, \text{otherwise}
 \end{matrix}
 \end{equation}
@@ -62,7 +62,7 @@ where:
   \item $V_{1} = \sum_{i=1}^{n} w_{i}$.
 \end{itemize}
 \subsubsection{Standard Deviation and Variance}
-The variance ($\sigma^{2}$) and standard deviation ($\sigma$) of $X$ are both measures of the spread of the distribution of the random variable about the 
+The variance ($\sigma^{2}$) and standard deviation ($\sigma$) of $X$ are both measures of the spread of the distribution of the random variable about the
 mean. Simplistically, the variance measures how far a set of realizations of a random variable are spread out.
 The standard deviation is the square root of the variance. The standard deviation has the same unit of the original data, and hence is comparable to deviations from the mean.
 \\Formally:
@@ -71,15 +71,15 @@ The standard deviation is the square root of the variance. The standard deviatio
   \sigma^{2}(X)= \mathbb{E}\left(\left[X - \mathbb{E}(X)\right]^{2}\right) = \int_{x \in \chi} (x - \mu)^2 pdf(x) dx  & \,\text{if $X$ continuous} \\
   \sigma^{2}(X)= \mathbb{E}\left(\left[X - \mathbb{E}(X)\right]^{2}\right)  = \sum_{x \in \chi} (x - \mu)^2 pdf(x)  & \text{if  $X$ discrete}
   \\
-  \\ 
+  \\
   \sigma(X)= \mathbb{E}\left(\left[X - \mathbb{E}(X)\right]\right)  = \sqrt{\sigma^{2}(X)}
   \end{matrix}
 \end{equation}
 In RAVEN, variance (i.e., second central moment) and standard deviation are computed as follows:
 \begin{equation}
 \begin{matrix}
-\mathbb{E}\left(\left[X - \mathbb{E}(X)\right]^{2}\right)  \approx  m_{2} = \frac{1}{n} \sum_{i=1}^{n}  (x_{i} - \overline{x})^{2} & \text{if  random sampling} \\ 
-\\ 
+\mathbb{E}\left(\left[X - \mathbb{E}(X)\right]^{2}\right)  \approx  m_{2} = \frac{1}{n} \sum_{i=1}^{n}  (x_{i} - \overline{x})^{2} & \text{if  random sampling} \\
+\\
 \\
 \mathbb{E}\left(\left[X - \mathbb{E}(X)\right]^{2}\right)  \approx m_{2}  = \frac{1}{V_{1}} \sum_{i=1}^{n} w_{i}  (x_{i} - \overline{x})^{2}  & \, \text{otherwise}
 \\
@@ -102,7 +102,7 @@ RAVEN performs an additional correction of variance to obtain an unbiased estima
 \end{matrix}
 \end{equation}
 \begin{equation}
-S = \sqrt{M_{2}} 
+S = \sqrt{M_{2}}
 \end{equation}
 where:
 \begin{itemize}
@@ -113,14 +113,14 @@ where:
 It is important to notice that $S$ is not an unbiased estimator.
 
 \subsubsection{Skewness}
-The Skewness is a measure of the asymmetry of the distribution of a 
-real-valued random variable about its mean. Negative skewness 
-indicates that the tail on the left side of the distribution is longer or fatter 
-than the right side.  Positive skewness indicates that the tail on the right 
-side is longer or fatter than the left side. From a practical point of view, the 
+The Skewness is a measure of the asymmetry of the distribution of a
+real-valued random variable about its mean. Negative skewness
+indicates that the tail on the left side of the distribution is longer or fatter
+than the right side.  Positive skewness indicates that the tail on the right
+side is longer or fatter than the left side. From a practical point of view, the
 skewness is useful to identify distortion  of the random variable with respect to
 the Normal distribution function.
-\\Formally, 
+\\Formally,
 \begin{equation}
 \gamma_{1} = \mathbb{E} \left [ \left ( \frac{X-\mu}{\sigma} \right )^{3} \right ] = \frac{ \mathbb{E}\left [ \left ( X-\mu \right )^{3} \right ]}{\left ( \mathbb{E}\left [ \left ( X-\mu \right )^{2} \right ] \right )^{3/2}}
 \end{equation}
@@ -142,7 +142,7 @@ where:
 RAVEN performs an additional correction of skewness to obtain an unbiased estimation  with respect to the sample-size~\cite{RimoldiniUnbiased}:
 \begin{equation}
 \begin{matrix}
-\mathbb{E} \left [ \left ( \frac{X-\mu}{\sigma} \right )^{3} \right ]  \approx \frac{M_{3}}{M_{2}^{3/2}}  = \displaystyle \frac{n^{2}}{(n-1)(n-2)}m_{3}\times \frac{1}{\left ( \displaystyle \frac{n}{n-1}m_{2}  \right )^{3/2}} & \text{if random sampling}  
+\mathbb{E} \left [ \left ( \frac{X-\mu}{\sigma} \right )^{3} \right ]  \approx \frac{M_{3}}{M_{2}^{3/2}}  = \displaystyle \frac{n^{2}}{(n-1)(n-2)}m_{3}\times \frac{1}{\left ( \displaystyle \frac{n}{n-1}m_{2}  \right )^{3/2}} & \text{if random sampling}
 \\
 \\
 \mathbb{E} \left [ \left ( \frac{X-\mu}{\sigma} \right )^{3} \right ]  \approx \frac{M_{3}}{M_{2}^{3/2}}  = \displaystyle \frac{V_{1}^{3}}{V_{1}^{3}-3V_{1}V_{2}+2V_{3}}m_{3} \times \frac{1}{\left ( \displaystyle \frac{V_{1}^{2}}{V_{1}^{2}-V_{2}}m_{2}  \right )^{3/2}} &  \,  \text{otherwise}
@@ -159,16 +159,16 @@ where:
 
 \subsubsection{Excess Kurtosis}
 The  Kurtosis~\cite{Abramowitz}  is the degree of peakedness of a distribution of a real-valued random variable. In a similar way to the concept of skewness, kurtosis describes the shape of the distribution. The Kurtosis is defined in order to
-obtain a value of $0$ for a Normal distribution. If it is greater than zero, it indicates that the distribution is high peaked; If it is smaller 
+obtain a value of $0$ for a Normal distribution. If it is greater than zero, it indicates that the distribution is high peaked; If it is smaller
 that zero, it testifies that the distribution is flat-topped.
 \\Formally, the Kurtosis can be expressed as follows:
 \begin{equation}
-\gamma_{2} = \frac{ \mathbb{E}\left [ \left ( X-\mu \right )^{4} \right ]}{\left ( \mathbb{E}\left [ \left ( X-\mu \right )^{2} \right ] \right )^{2}} 
+\gamma_{2} = \frac{ \mathbb{E}\left [ \left ( X-\mu \right )^{4} \right ]}{\left ( \mathbb{E}\left [ \left ( X-\mu \right )^{2} \right ] \right )^{2}}
 \end{equation}
 In RAVEN, the kurtosis (excess) is computed as follows:
 \begin{equation}
 \begin{matrix}
-\frac{ \mathbb{E}\left [ \left ( X-\mu \right )^{4} \right ]}{\left ( \mathbb{E}\left [ \left ( X-\mu \right )^{2} \right ] \right )^{2}}   \approx \frac{m_{4}-3m_{2}^{2}}{m_{2}^{2}} = \displaystyle  \frac{  \frac{1}{n} \sum_{i=1}^{n}  (x_{i} - \overline{x})^{4} -3\left ( \frac{1}{n} \sum_{i=1}^{n}  (x_{i} - \overline{x})^{2} \right )^{2}}{\left ( \frac{1}{n} \sum_{i=1}^{n}  (x_{i} - \overline{x})^{2} \right )^{2}} & \text{if random sampling}    
+\frac{ \mathbb{E}\left [ \left ( X-\mu \right )^{4} \right ]}{\left ( \mathbb{E}\left [ \left ( X-\mu \right )^{2} \right ] \right )^{2}}   \approx \frac{m_{4}-3m_{2}^{2}}{m_{2}^{2}} = \displaystyle  \frac{  \frac{1}{n} \sum_{i=1}^{n}  (x_{i} - \overline{x})^{4} -3\left ( \frac{1}{n} \sum_{i=1}^{n}  (x_{i} - \overline{x})^{2} \right )^{2}}{\left ( \frac{1}{n} \sum_{i=1}^{n}  (x_{i} - \overline{x})^{2} \right )^{2}} & \text{if random sampling}
 \\
 \\
 \frac{ \mathbb{E}\left [ \left ( X-\mu \right )^{4} \right ]}{\left ( \mathbb{E}\left [ \left ( X-\mu \right )^{2} \right ] \right )^{2}}   \approx \frac{m_{4}-3m_{2}^{2}}{m_{2}^{2}} = \displaystyle  \frac{  \frac{1}{V_{1}} \sum_{i=1}^{n} w_{i} \times (x_{i} - \overline{x})^{4} -3\left ( \frac{1}{V_{1}} \sum_{i=1}^{n}  w_{i} \times (x_{i} - \overline{x})^{2} \right )^{2}}{\left ( \frac{1}{V_{1}} \sum_{i=1}^{n}  w_{i} \times (x_{i} - \overline{x})^{2} \right )^{2}} &   \text{otherwise}
@@ -184,7 +184,7 @@ RAVEN performs an additional correction of kurtosis (excess) to obtain an unbias
 \begin{equation}
 \begin{split}
 \begin{matrix}
-\frac{ \mathbb{E}\left [ \left ( X-\mu \right )^{4} \right ]}{\left ( \mathbb{E}\left [ \left ( X-\mu \right )^{2} \right ] \right )^{2}}   \approx \frac{M_{4}-3M_{2}^{2}}{M_{2}^{2}}  = \displaystyle \frac{n^{2}(n+1)}{(n-1)(n-2)(n-3)}m_{4}-\frac{3n^{2}}{(n-2)(n-3)}m_{2}^{2} & \text{if random sampling}  
+\frac{ \mathbb{E}\left [ \left ( X-\mu \right )^{4} \right ]}{\left ( \mathbb{E}\left [ \left ( X-\mu \right )^{2} \right ] \right )^{2}}   \approx \frac{M_{4}-3M_{2}^{2}}{M_{2}^{2}}  = \displaystyle \frac{n^{2}(n+1)}{(n-1)(n-2)(n-3)}m_{4}-\frac{3n^{2}}{(n-2)(n-3)}m_{2}^{2} & \text{if random sampling}
 \\
 \\
 \frac{ \mathbb{E}\left [ \left ( X-\mu \right )^{4} \right ]}{\left ( \mathbb{E}\left [ \left ( X-\mu \right )^{2} \right ] \right )^{2}}    \approx \frac{M_{4}-3M_{2}^{2}}{M_{2}^{2}}  = \displaystyle  \frac{V_{1}^{2}(V_{1}^{4}-4V_{1}V_{3}+3V_{2}^{2})}{(V_{1}^{2}-V_{2})(V_{1}^{4}-6V_{1}^{2}V_{2}+8V_{1}V_{3}+3V_{2}^{2}-6V_{4})}m_{4}
@@ -212,14 +212,14 @@ the possible values. The median of a finite list of numbers can be found by arra
 \end{equation}
 
 \subsubsection{Percentile}
-A percentile (or a centile) is a measure indicating the value below which a given percentage of observations in a group of observations fall. 
+A percentile (or a centile) is a measure indicating the value below which a given percentage of observations in a group of observations fall.
 
 \subsubsection{Covariance and Correlation Matrices}
-Simplistically, the Covariance is a measure of how much two random variables variate together. In other words, It represents a 
-measurement of the correlation, in terms of variance,  among different variables. If the greater values of one variable mainly 
-correspond with the greater values of the other variable, and the same holds for the lesser values (i.e., the variables tend to show 
-similar behavior) the covariance is positive. In the opposite case, when the greater values of one variable mainly correspond to the 
-lesser values of the other (i.e., the variables tend to show opposite behavior) the covariance is negative. 
+Simplistically, the Covariance is a measure of how much two random variables variate together. In other words, It represents a
+measurement of the correlation, in terms of variance,  among different variables. If the greater values of one variable mainly
+correspond with the greater values of the other variable, and the same holds for the lesser values (i.e., the variables tend to show
+similar behavior) the covariance is positive. In the opposite case, when the greater values of one variable mainly correspond to the
+lesser values of the other (i.e., the variables tend to show opposite behavior) the covariance is negative.
 Formally, the Covariance can be expressed as
 \begin{equation}
  \boldsymbol{\Sigma}(\boldsymbol{X},\boldsymbol{Y})  = \mathbb{E} \left [ \left ( \boldsymbol{X}- \mathbb{E}\left [ \boldsymbol{X} \right ] \right ) \left ( \boldsymbol{Y}- \mathbb{E}\left [ \boldsymbol{Y} \right ] \right )^{T}\right ]
@@ -228,7 +228,7 @@ Based on the previous equation, in RAVEN each entry of the Covariance matrix is 
 \begin{equation}
 \begin{matrix}
  \mathbb{E} \left [ \left ( X- \mathbb{E}\left [ X \right ] \right ) \left ( Y- \mathbb{E}\left [ Y \right ] \right )\right ] \approx
- \frac{1}{n}\sum_{i=1}^{n} (x_{i} - \mu_{x})(y_{i} -  \mu_{y})  & \text{if random sampling}  
+ \frac{1}{n}\sum_{i=1}^{n} (x_{i} - \mu_{x})(y_{i} -  \mu_{y})  & \text{if random sampling}
 \\
 \\
  \mathbb{E} \left [ \left ( X- \mathbb{E}\left [ X \right ] \right ) \left ( Y- \mathbb{E}\left [ Y \right ] \right )\right ] \approx
@@ -245,21 +245,21 @@ The correlation matrix (Pearson product-moment correlation coefficient matrix) c
 \begin{equation}
 \boldsymbol{\Gamma}(\boldsymbol{X},\boldsymbol{Y}) = \frac{\boldsymbol{\Sigma}(\boldsymbol{X},\boldsymbol{Y})}{\sigma_{x} \sigma_{y}}
 \end{equation}
-As it can be seen, The correlation between $X$ and $Y$ is the 
+As it can be seen, The correlation between $X$ and $Y$ is the
 covariance of the corresponding standard scores.
 
 \subsubsection{Variance-Dependent Sensitivity Matrix}
-The variance dependent sensitivity matrix is the matrix of the sensitivity 
-coefficients that show the relationship of the individual uncertainty 
-component to the standard deviation of the reported value for a test 
-item. 
+The variance dependent sensitivity matrix is the matrix of the sensitivity
+coefficients that show the relationship of the individual uncertainty
+component to the standard deviation of the reported value for a test
+item.
 \\ Formally:
 \begin{equation}
 \boldsymbol{\Lambda}= \boldsymbol{\Sigma}(\boldsymbol{X},\boldsymbol{Y})  vc^{-1}(\boldsymbol{Y})
 \end{equation}
 where:
 \begin{itemize}
-  \item $vc^{-1}(\boldsymbol{Y})$ is the inverse of the covariance of the 
+  \item $vc^{-1}(\boldsymbol{Y})$ is the inverse of the covariance of the
   input space.
 \end{itemize}
 
@@ -267,11 +267,11 @@ where:
 \label{subsub:SAraven}
 The goals of this section is to show how to:
  \begin{enumerate}
-   \item Set up a sampling strategy to perform a final statistical analysis 
+   \item Set up a sampling strategy to perform a final statistical analysis
    perturbing a driven code
-   \item Compute all the statistical moments and correlation/covariance 
+   \item Compute all the statistical moments and correlation/covariance
    metrics.
-\end{enumerate}  
+\end{enumerate}
 In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in the input files) need to be defined:
 \begin{enumerate}
    \item \textbf{\textit{RunInfo}}:
@@ -285,9 +285,9 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
     <batchSize>40</batchSize>
   </RunInfo>
 \end{lstlisting}
-   As shown in the other examples, the \textit{RunInfo} \textbf{Entity} is intended  to set up the desired analysis . In this specific case, two steps  (\xmlNode{Sequence}) are  sequentially run 
-   using forty processors (\xmlNode{batchSize}). 
-   \\In the first step, the original physical model is sampled. The obtained results are  analyzed with the Statistical Post-Processor. 
+   As shown in the other examples, the \textit{RunInfo} \textbf{Entity} is intended  to set up the desired analysis . In this specific case, two steps  (\xmlNode{Sequence}) are  sequentially run
+   using forty processors (\xmlNode{batchSize}).
+   \\In the first step, the original physical model is sampled. The obtained results are  analyzed with the Statistical Post-Processor.
    \item \textbf{\textit{Files}}:
 \begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
   <Files>
@@ -296,8 +296,8 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
   </Files>
 \end{lstlisting}
    Since the driven code uses a single input file, in this section the original input is placed. As detailed in the user manual
-   the attribute  \xmlAttr{name} represents the alias that is going to be 
-   used in all the other input blocks in order to refer to this file. 
+   the attribute  \xmlAttr{name} represents the alias that is going to be
+   used in all the other input blocks in order to refer to this file.
    \\In addition, the output file of the \textit{PostProcess} \textbf{Step} is
    here defined (CSV).
    \item \textbf{\textit{Models}}:
@@ -320,12 +320,12 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
     </PostProcessor>
   </Models>
 \end{lstlisting}
- The goal of this example is to show how the 
+ The goal of this example is to show how the
  principal statistical FOMs can be computed through RAVEN.
- \\Indeed, in addition to the previously explained Code 
- model, a Post-Processor model (BasicStatistics) is here specified. 
+ \\Indeed, in addition to the previously explained Code
+ model, a Post-Processor model (BasicStatistics) is here specified.
 Note that the post-process step is
-performed on all the variables/parameters used in this example ( $sigma-A,\,sigma-B,\, decay-A, \, decay-B,\, A,\, B,\, C \, and \, D$). 
+performed on all the variables/parameters used in this example ( $sigma-A,\,sigma-B,\, decay-A, \, decay-B,\, A,\, B,\, C \, and \, D$).
    \item \textbf{\textit{Distributions}}:
 \begin{lstlisting}[style=XML]
   <Distributions>
@@ -339,14 +339,14 @@ performed on all the variables/parameters used in this example ( $sigma-A,\,sigm
       </Uniform>
   </Distributions>
 \end{lstlisting}
-  In the Distributions XML section, the stochastic models for the 
-  uncertainties are reported. In 
-  this case 2 distributions are defined: 
+  In the Distributions XML section, the stochastic models for the
+  uncertainties are reported. In
+  this case 2 distributions are defined:
   \begin{itemize}
-    \item $sigma \sim \mathbb{U}(0,1000)$, used to model the uncertainties 
+    \item $sigma \sim \mathbb{U}(0,1000)$, used to model the uncertainties
     associated with  the Model \textit{sigma-A} and \textit{sigma-B}
-    \item  $decayConstant \sim \mathbb{U}(1e-8,1e-7)$,  used to 
-    model the uncertainties 
+    \item  $decayConstant \sim \mathbb{U}(1e-8,1e-7)$,  used to
+    model the uncertainties
     associated with  the Model \textit{decay-A} and \textit{decay-B}.
   \end{itemize}
    \item \textbf{\textit{Samplers}}:
@@ -385,13 +385,13 @@ performed on all the variables/parameters used in this example ( $sigma-A,\,sigm
     </HistorySet>
   </DataObjects>
 \end{lstlisting}
-  Int this block, two \textit{DataObjects} are defined: 
-  1) PointSet named ``samplesMC'' used to collect the final outcomes of 
-  the code, 
-  2) HistorySet named ``histories'' in which the full time responses of the 
+  Int this block, two \textit{DataObjects} are defined:
+  1) PointSet named ``samplesMC'' used to collect the final outcomes of
+  the code,
+  2) HistorySet named ``histories'' in which the full time responses of the
   variables $A,B,C,D$ are going to be stored.
 
-   \item \textbf{\textit{Steps}}:   
+   \item \textbf{\textit{Steps}}:
 \begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
   <Steps>
     <MultiRun name="sampleMC">
@@ -411,26 +411,26 @@ performed on all the variables/parameters used in this example ( $sigma-A,\,sigm
 
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-   Finally, all the previously defined \textbf{Entities} can be combined in 
-   the \xmlNode{Steps} block. As inferable, 
+   Finally, all the previously defined \textbf{Entities} can be combined in
+   the \xmlNode{Steps} block. As inferable,
    2 \xmlNode{Steps} have been inputted:
    \begin{itemize}
-     \item \xmlNode{MultiRun} named ``sampleMC'', used to run the 
-     multiple  
-     instances of the driven code and 
+     \item \xmlNode{MultiRun} named ``sampleMC'', used to run the
+     multiple
+     instances of the driven code and
      collect the outputs in the two \textit{DataObjects}. As it can be
-     seen, the \xmlNode{Sampler} is inputted to communicate to the 
+     seen, the \xmlNode{Sampler} is inputted to communicate to the
      \textit{Step} that the driven code needs to
      be perturbed through the Grid sampling strategy.
      \item \xmlNode{PostProcess} named ``statisticalAnalysisMC'', used
      compute all the statistical moments and FOMs based on the
-     data obtained through the sampling strategy. As it can be noticed, 
-     the \xmlNode{Output} of the ``sampleMC'' \textit{Step} is the  
+     data obtained through the sampling strategy. As it can be noticed,
+     the \xmlNode{Output} of the ``sampleMC'' \textit{Step} is the
      \xmlNode{Input} of the ``statisticalAnalysisMC''  \textit{Step}.
    \end{itemize}
-\end{enumerate} 
+\end{enumerate}
 
-Tables \ref{ScalarMoments}-\ref{SensitivityComputed} show all the results of the \textit{PostProcess} 
+Tables \ref{ScalarMoments}-\ref{SensitivityComputed} show all the results of the \textit{PostProcess}
 step.
 
 
