@@ -3865,7 +3865,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     for pt in SG.points()[:]:
       self.pointsNeededToMakeROM.add(pt) #sets won't store redundancies
       #if pt isn't already in needed, and it hasn't already been solved, add it to the queue
-      if pt not in self.neededPoints and not utils.NDInArray(np.array(self.existing.keys()),pt,tol=self.restartTolerance):
+      if pt not in self.neededPoints and not utils.NDInArray(np.array(self.existing.keys()),pt,tol=self.restartTolerance)[0]:
           self.newSolutionSizeShouldBe+=1
           self.neededPoints.append(pt)
 
