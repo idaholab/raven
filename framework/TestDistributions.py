@@ -1,3 +1,8 @@
+"""
+  This Module performs Unit Tests for the Distribution class.
+  It can not be considered part of the active code but of the regression test system
+"""
+
 #For future compatibility with Python 3
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
@@ -23,6 +28,12 @@ mh.initialize({'verbosity':'debug'})
 
 print (Distributions)
 def createElement(tag,attrib={},text={}):
+  """
+    Method to create a dummy xml element readable by the distribution classes
+    @ In, tag, string, the node tag
+    @ In, attrib, dict, optional, the attribute of the xml node
+    @ In, text, dict, optional, the dict containig what should be in the xml text
+  """
   element = ET.Element(tag,attrib)
   element.text = text
   return element
@@ -33,6 +44,14 @@ results = {"pass":0,"fail":0}
 #  return abs(a - b) > 1e-10
 
 def checkAnswer(comment,value,expected,tol=1e-10):
+  """
+    This method is aimed to compare two floats given a certain tolerance
+    @ In, comment, string, a comment printed out if it fails
+    @ In, value, float, the value to compare
+    @ In, expected, float, the expected value
+    @ In, tol, float, optional, the tolerance
+    @ Out, None
+  """
   if abs(value - expected) > tol:
     print("checking answer",comment,value,"!=",expected)
     results["fail"] += 1
@@ -40,6 +59,13 @@ def checkAnswer(comment,value,expected,tol=1e-10):
     results["pass"] += 1
 
 def checkCrowDist(comment,dist,expectedCrowDist):
+  """
+    Check the consistency of the crow distributions
+    @ In, comment, string, a comment
+    @ In, dist, instance, the distrubtion to inquire
+    @ In, expectedCrowDist, dict, the dictionary of the expected distrubution (with all the parameters)
+    @ Out, None
+  """
   crowDist = dist.getCrowDistDict()
   if crowDist != expectedCrowDist:
     results["fail"] += 1
@@ -48,6 +74,16 @@ def checkCrowDist(comment,dist,expectedCrowDist):
     results["pass"] += 1
 
 def checkIntegral(name,dist,low,high,numpts=1e4,tol=1e-3):
+  """
+    Check the consistency of the pdf integral (cdf)
+    @ In, name, string, the name printed out if it fails
+    @ In, dist, instance, the distrubtion to inquire
+    @ In, low, float, the lower bound of the dist
+    @ In, high, float, the uppper bound of the dist
+    @ In, numpts, int, optional, the number of integration points
+    @ In, tol, float, optional, the tolerance
+    @ Out, None
+  """
   xs=np.linspace(low,high,numpts)
   dx = (high-low)/float(numpts)
   tot = sum(dist.pdf(x)*dx for x in xs)

@@ -42,16 +42,18 @@ else:
 
 class OutStreamManager(BaseType):
   """
-  ********************************************************************
-  *                          OUTSTREAM CLASS                         *
-  ********************************************************************
-  *  This class is a general base class for outstream action classes *
-  *  For example, a matplotlib interface class or Print class, etc.  *
-  ********************************************************************
+    ********************************************************************
+    *                          OUTSTREAM CLASS                         *
+    ********************************************************************
+    *  This class is a general base class for outstream action classes *
+    *  For example, a matplotlib interface class or Print class, etc.  *
+    ********************************************************************
   """
   def __init__(self):
     """
       Init of Base class
+      @ In, None
+      @ Out, None
     """
     BaseType.__init__(self)
     # outstreaming options
@@ -65,15 +67,16 @@ class OutStreamManager(BaseType):
     # number of agregated outstreams
     self.numberAggregatedOS = 1
     self.printTag = 'OUTSTREAM MANAGER'
-
     self.filename = ''
 
   def _readMoreXML(self, xmlNode):
     """
-    Function to read the portion of the xml input that belongs to this specialized class
-    and initialize some stuff based on the got inputs
-    @ In, xmlNode    : Xml element node
-    @ Out, None
+      Function to read the portion of the xml input that belongs to this specialized class
+      and initialize some stuff based on the inputs got
+      @ In, xmlNode, xml.etree.Element, Xml element node
+      @ Out, None
+      The text is supposed to contain the info where and which variable to change.
+      In case of a code the syntax is specified by the code interface itself
     """
     if 'overwrite' in xmlNode.attrib.keys():
       if xmlNode.attrib['overwrite'].lower() in utils.stringsThatMeanTrue(): self.overwrite = True
@@ -82,9 +85,11 @@ class OutStreamManager(BaseType):
 
   def addInitParams(self, tempDict):
     """
-    Function adds the initial parameter in a temporary dictionary
-    @ In, tempDict
-    @ Out, tempDict
+      This function is called from the base class to print some of the information inside the class.
+      Whatever is permanent in the class and not inherited from the parent class should be mentioned here
+      The information is passed back in the dictionary. No information about values that change during the simulation are allowed
+      @ In, tempDict, dict, dictionary to be updated. {'attribute name':value}
+      @ Out, tempDict, dict, dictionary to be updated. {'attribute name':value}
     """
     tempDict[                     'Global Class Type                 '] = 'OutStreamManager'
     tempDict[                     'Specialized Class Type            '] = self.type
@@ -96,17 +101,17 @@ class OutStreamManager(BaseType):
 
   def addOutput(self):
     """
-    Function to add a new output source (for example a CSV file or a HDF5 object)
-    @ In, toLoadFrom, source object
-    @ Out, None
+      Function to add a new output source (for example a CSV file or a HDF5 object)
+      @ In, None
+      @ Out, None
     """
     self.raiseAnError(NotImplementedError, 'method addOutput must be implemented by derived classes!!!!')
 
   def initialize(self, inDict):
     """
-    Function to initialize the OutStream. It basically looks for the "data" object and link it to the system
-    @ In, inDict, dictionary, It contains all the Object are going to be used in the current step. The sources are searched into this.
-    @ Out, None
+      Function to initialize the OutStream. It basically looks for the "data" object and link it to the system
+      @ In, inDict, dict, It contains all the Object are going to be used in the current step. The sources are searched into this.
+      @ Out, None
     """
     self.sourceData = []
     for agrosindex in range(self.numberAggregatedOS):
@@ -137,7 +142,15 @@ class OutStreamManager(BaseType):
 #
 #
 class OutStreamPlot(OutStreamManager):
+  """
+    OutStream of type Plot
+  """
   def __init__(self):
+    """
+      Init of Base class
+      @ In, None
+      @ Out, None
+    """
     OutStreamManager.__init__(self)
     self.type = 'OutStreamPlot'
     self.printTag = 'OUTSTREAM PLOT'
@@ -187,8 +200,9 @@ class OutStreamPlot(OutStreamManager):
   def __splitVariableNames(self, what, where):
     """
       Function to split the variable names
-      @ In, what => x,y,z or colorMap
-      @ In, where, tuple => pos 0 = plotIndex, pos 1 = variable Index
+      @ In, what, string,  x,y,z or colorMap
+      @ In, where, tuple, where[0] = plotIndex, where[1] = variable Index
+      @ Out, result, list, splitted variable
     """
     if   what == 'x'                : var = self.xCoordinates [where[0]][where[1]]
     elif what == 'y'                : var = self.yCoordinates [where[0]][where[1]]
@@ -216,7 +230,8 @@ class OutStreamPlot(OutStreamManager):
   def __readPlotActions(self, snode):
     """
       Function to read, from the xml input, the actions that are required to be performed on the Plot
-      @ In, snode => xml node
+      @ In, snode, xml.etree.Element, xml node containing the action XML node
+      @ Out, None
     """
     for node in snode:
       self.options[node.tag] = {}
@@ -239,7 +254,7 @@ class OutStreamPlot(OutStreamManager):
     """
       Function to retrieve the pointers of the data values (x,y,z)
       @ In, None
-      @ Out, boolean, true if the data are filled, false otherwise
+      @ Out, True/False, bool, true if the data are filled, false otherwise
     """
     self.xValues = []
     if self.yCoordinates : self.yValues = []
@@ -265,7 +280,7 @@ class OutStreamPlot(OutStreamManager):
         if self.colorMapCoordinates[pltindex] != None: self.colorMapValues[pltindex] = {1:[]}
         for i in range(len(self.xCoordinates [pltindex])):
           xsplit = self.__splitVariableNames('x', (pltindex, i))
-          parame = self.sourceData[pltindex].getParam(xsplit[1], xsplit[2], nodeid = 'ending')
+          parame = self.sourceData[pltindex].getParam(xsplit[1], xsplit[2], nodeId = 'ending')
           if type(parame) in [np.ndarray, c1darray]: self.xValues[pltindex][1].append(np.asarray(parame))
           else:
             conarr = np.zeros(len(parame.keys()))
@@ -275,7 +290,7 @@ class OutStreamPlot(OutStreamManager):
         if self.yCoordinates :
           for i in range(len(self.yCoordinates [pltindex])):
             ysplit = self.__splitVariableNames('y', (pltindex, i))
-            parame = self.sourceData[pltindex].getParam(ysplit[1], ysplit[2], nodeid = 'ending')
+            parame = self.sourceData[pltindex].getParam(ysplit[1], ysplit[2], nodeId = 'ending')
             if type(parame) in [np.ndarray, c1darray]: self.yValues[pltindex][1].append(np.asarray(parame))
             else:
               conarr = np.zeros(len(parame.keys()))
@@ -285,7 +300,7 @@ class OutStreamPlot(OutStreamManager):
         if self.zCoordinates  and self.dim > 2:
           for i in range(len(self.zCoordinates [pltindex])):
             zsplit = self.__splitVariableNames('z', (pltindex, i))
-            parame = self.sourceData[pltindex].getParam(zsplit[1], zsplit[2], nodeid = 'ending')
+            parame = self.sourceData[pltindex].getParam(zsplit[1], zsplit[2], nodeId = 'ending')
             if type(parame) in [np.ndarray, c1darray]: self.zValues[pltindex][1].append(np.asarray(parame))
             else:
               conarr = np.zeros(len(parame.keys()))
@@ -294,7 +309,7 @@ class OutStreamPlot(OutStreamManager):
         if self.clusterLabels:
           for i in range(len(self.clusterLabels [pltindex])):
             clustersplit = self.__splitVariableNames('clusterLabels', (pltindex, i))
-            parame = self.sourceData[pltindex].getParam(clustersplit[1], clustersplit[2], nodeid = 'ending')
+            parame = self.sourceData[pltindex].getParam(clustersplit[1], clustersplit[2], nodeId = 'ending')
             if type(parame) in [np.ndarray, c1darray]: self.clusterValues[pltindex][1].append(np.asarray(parame))
             else:
               conarr = np.zeros(len(parame.keys()))
@@ -303,7 +318,7 @@ class OutStreamPlot(OutStreamManager):
         if self.mixtureLabels:
           for i in range(len(self.mixtureLabels [pltindex])):
             mixturesplit = self.__splitVariableNames('mixtureLabels', (pltindex, i))
-            parame = self.sourceData[pltindex].getParam(mixturesplit[1], mixturesplit[2], nodeid = 'ending')
+            parame = self.sourceData[pltindex].getParam(mixturesplit[1], mixturesplit[2], nodeId = 'ending')
             if type(parame) in [np.ndarray, c1darray]: self.mixtureValues[pltindex][1].append(np.asarray(parame))
             else:
               conarr = np.zeros(len(parame.keys()))
@@ -312,7 +327,7 @@ class OutStreamPlot(OutStreamManager):
         if self.colorMapCoordinates[pltindex] != None:
           for i in range(len(self.colorMapCoordinates[pltindex])):
             zsplit = self.__splitVariableNames('colorMap', (pltindex, i))
-            parame = self.sourceData[pltindex].getParam(zsplit[1], zsplit[2], nodeid = 'ending')
+            parame = self.sourceData[pltindex].getParam(zsplit[1], zsplit[2], nodeId = 'ending')
             if type(parame) in [np.ndarray, c1darray]: self.colorMapValues[pltindex][1].append(np.asarray(parame))
             else:
               conarr = np.zeros(len(parame.keys()))
@@ -324,7 +339,7 @@ class OutStreamPlot(OutStreamManager):
         if self.yCoordinates : self.yValues[pltindex] = {}
         if self.zCoordinates   and self.dim > 2: self.zValues[pltindex] = {}
         if self.colorMapCoordinates[pltindex] != None: self.colorMapValues[pltindex] = {}
-        for cnt, key in enumerate(self.sourceData[pltindex].getInpParametersValues(nodeid = 'RecontructEnding').keys()):
+        for cnt, key in enumerate(self.sourceData[pltindex].getInpParametersValues(nodeId = 'RecontructEnding').keys()):
           # the key is the actual history number (ie 1, 2 , 3 etc)
           self.xValues[pltindex][cnt] = []
           if self.yCoordinates : self.yValues[pltindex][cnt] = []
@@ -332,25 +347,25 @@ class OutStreamPlot(OutStreamManager):
           if self.colorMapCoordinates[pltindex] != None: self.colorMapValues[pltindex][cnt] = []
           for i in range(len(self.xCoordinates [pltindex])):
             xsplit = self.__splitVariableNames('x', (pltindex, i))
-            datax = self.sourceData[pltindex].getParam(xsplit[1], cnt + 1, nodeid = 'RecontructEnding')
+            datax = self.sourceData[pltindex].getParam(xsplit[1], cnt + 1, nodeId = 'RecontructEnding')
             if xsplit[2] not in datax.keys(): self.raiseAnError(IOError, "Parameter " + xsplit[2] + " not found as " + xsplit[1] + " in DataObject " + xsplit[0])
             self.xValues[pltindex][cnt].append(np.asarray(datax[xsplit[2]]))
           if self.yCoordinates :
             for i in range(len(self.yCoordinates [pltindex])):
               ysplit = self.__splitVariableNames('y', (pltindex, i))
-              datay = self.sourceData[pltindex].getParam(ysplit[1], cnt + 1, nodeid = 'RecontructEnding')
+              datay = self.sourceData[pltindex].getParam(ysplit[1], cnt + 1, nodeId = 'RecontructEnding')
               if ysplit[2] not in datay.keys(): self.raiseAnError(IOError, "Parameter " + ysplit[2] + " not found as " + ysplit[1] + " in DataObject " + ysplit[0])
               self.yValues[pltindex][cnt].append(np.asarray(datay[ysplit[2]]))
           if self.zCoordinates  and self.dim > 2:
             for i in range(len(self.zCoordinates [pltindex])):
               zsplit = self.__splitVariableNames('z', (pltindex, i))
-              dataz = self.sourceData[pltindex].getParam(zsplit[1], cnt + 1, nodeid = 'RecontructEnding')
+              dataz = self.sourceData[pltindex].getParam(zsplit[1], cnt + 1, nodeId = 'RecontructEnding')
               if zsplit[2] not in dataz.keys(): self.raiseAnError(IOError, "Parameter " + zsplit[2] + " not found as " + zsplit[1] + " in DataObject " + zsplit[0])
               self.zValues[pltindex][cnt].append(np.asarray(dataz[zsplit[2]]))
           if self.colorMapCoordinates[pltindex] != None:
             for i in range(len(self.colorMapCoordinates[pltindex])):
               colorSplit = self.__splitVariableNames('colorMap', (pltindex, i))
-              dataColor = self.sourceData[pltindex].getParam(colorSplit[1], cnt + 1, nodeid = 'RecontructEnding')
+              dataColor = self.sourceData[pltindex].getParam(colorSplit[1], cnt + 1, nodeId = 'RecontructEnding')
               if colorSplit[2] not in dataColor.keys(): self.raiseAnError(IOError, "Parameter " + colorSplit[2] + " not found as " + colorSplit[1] + " in DataObject " + colorSplit[0])
               self.colorMapValues[pltindex][cnt].append(np.asarray(dataColor[colorSplit[2]]))
       # check if something has been got or not
@@ -407,6 +422,7 @@ class OutStreamPlot(OutStreamManager):
     """
       Function to execute the actions must be performed on the Plot(for example, set the x,y,z axis ranges, etc)
       @ In, None
+      @ Out, None
     """
     if 'labelFormat' not in self.options.keys():
       if self.dim == 2:
@@ -558,22 +574,28 @@ class OutStreamPlot(OutStreamManager):
   def localAddInitParams(self, tempDict):
     """
       This method is called from the base function. It adds the initial characteristic intial params that need to be seen by the whole enviroment
-      @ In, tempDict
-      @ Out, tempDict
+      @ In, tempDict, dict, the dict to be updated
+      @ Out, None
     """
     tempDict['Plot is '] = str(self.dim) + 'D'
     for index in range(len(self.sourceName)): tempDict['Source Name ' + str(index) + ' :'] = self.sourceName[index]
 
   def endInstructions(self, instructionString):
+    """
+      Method to execute instructions at end of a step (this is applied when an interactive mode is activated)
+      @ In, instructionString, string, the instruction to execute
+      @ Out, None
+    """
     if instructionString == 'interactive' and 'screen' in self.options['how']['how'].split(',') and disAvail:
       self.plt.figure(self.name)
       self.fig.ginput(n = -1, timeout = -1, show_clicks = False)
 
   def initialize(self, inDict):
     """
-    Function called to initialize the OutStream, linking it to the proper Data
-    @ In, inDict -> Dictionary that contains all the instantiaced classes needed for the actual step
+      Function called to initialize the OutStream, linking it to the proper Data
+      @ In, inDict, dict, dictionary that contains all the instantiaced classes needed for the actual step
                     In this dictionary the data are looked for
+      @ Out, None
     """
     self.xCoordinates = []
     self.sourceName = []
@@ -644,8 +666,8 @@ class OutStreamPlot(OutStreamManager):
   def localReadXML(self, xmlNode):
     """
       This Function is called from the base class, It reads the parameters that belong to a plot block
-      @ In, xmlNode
-      @ Out, filled data structure (self)
+      @ In, xmlNode, xml.etree.Element, Xml element node
+      @ Out, None (filled data structure (self))
     """
     if not 'dim' in xmlNode.attrib.keys(): self.dim = 2
     else:                                  self.dim = int(xmlNode.attrib['dim'])
@@ -712,9 +734,9 @@ class OutStreamPlot(OutStreamManager):
 
   def addOutput(self):
     """
-    Function to show and/or save a plot
-    @ In,  None
-    @ Out, None (Plot on the screen or on file/s)
+      Function to show and/or save a plot
+      @ In,  None
+      @ Out, None (Plot on the screen or on file/s)
     """
     # reactivate the figure
     self.fig = self.plt.figure(self.name)
@@ -1321,12 +1343,12 @@ class OutStreamPlot(OutStreamManager):
                 clusterDict[pltindex]['mixtureValues'][:, 1] = self.yValues[pltindex][key][yIndex]
                 if 'mixtureCovars' in self.options['plotSettings']['plot'][pltindex].get('attributes', {}).keys():
                   split = self.__splitVariableNames('mixtureCovars', (pltindex, 0))
-                  mixtureCovars = self.sourceData[pltindex].getParam(split[1], split[2], nodeid = 'ending')
+                  mixtureCovars = self.sourceData[pltindex].getParam(split[1], split[2], nodeId = 'ending')
                   self.options['plotSettings']['plot'][pltindex].get('attributes', {}).pop('mixtureCovars')
                 else: mixtureCovars = None
                 if 'mixtureMeans' in self.options['plotSettings']['plot'][pltindex].get('attributes', {}).keys():
                   split = self.__splitVariableNames('mixtureMeans', (pltindex, 0))
-                  mixtureMeans = self.sourceData[pltindex].getParam(split[1], split[2], nodeid = 'ending')
+                  mixtureMeans = self.sourceData[pltindex].getParam(split[1], split[2], nodeId = 'ending')
                   self.options['plotSettings']['plot'][pltindex].get('attributes', {}).pop('mixtureMeans')
                 else: mixtureMeans = None
                 # mixtureCovars.reshape(3, 4)
@@ -1345,7 +1367,7 @@ class OutStreamPlot(OutStreamManager):
                 manifoldValues[:, 1] = self.yValues[pltindex][key][yIndex]
                 if 'clusterLabels' in self.options['plotSettings']['plot'][pltindex].get('attributes', {}).keys():
                   split = self.__splitVariableNames('clusterLabels', (pltindex, 0))
-                  clusterDict[pltindex]['clusterLabels'] = self.sourceData[pltindex].getParam(split[1], split[2], nodeid = 'ending')
+                  clusterDict[pltindex]['clusterLabels'] = self.sourceData[pltindex].getParam(split[1], split[2], nodeId = 'ending')
                   self.options['plotSettings']['plot'][pltindex].get('attributes', {}).pop('clusterLabels')
                 else: clusterDict[pltindex]['clusterLabels'] = None
                 if 'noClusters' in self.options['plotSettings']['plot'][pltindex].get('attributes', {}).keys():
@@ -1426,6 +1448,11 @@ class OutStreamPlot(OutStreamManager):
         # XXX For some reason, this is required on Linux, but causes
         # OSX to fail.  Which is correct for windows has not been determined.
         def handle_close(event):
+          """
+            This method is aimed to handle the closing of figures (overall when in interactive mode)
+            @ In, event, instance, the event to close
+            @ Out, None
+          """
           self.fig.canvas.stop_event_loop()
           self.raiseAMessage('Closed Figure')
         self.fig.canvas.mpl_connect('close_event', handle_close)
@@ -1442,15 +1469,15 @@ class OutStreamPlot(OutStreamManager):
         self.plt.savefig(name + '.' + self.options['how']['how'].split(',')[i], format = self.options['how']['how'].split(',')[i])
 
 class OutStreamPrint(OutStreamManager):
-  '''
+  """
     Class for managing the printing of files as outstream.
-  '''
+  """
   def __init__(self):
-    '''
-      Initializes.
+    """
+      Constructor
       @ In, None
       @ Out, None
-    '''
+    """
     OutStreamManager.__init__(self)
     self.type = 'OutStreamPrint'
     self.availableOutStreamTypes = ['csv', 'xml']
@@ -1461,15 +1488,30 @@ class OutStreamPrint(OutStreamManager):
     self.what = None
 
   def localAddInitParams(self, tempDict):
+    """
+      This method is called from the base function. It adds the initial characteristic intial params that need to be seen by the whole enviroment
+      @ In, tempDict, dict, the dict to be updated
+      @ Out, None
+    """
     for index in range(len(self.sourceName)): tempDict['Source Name ' + str(index) + ' :'] = self.sourceName[index]
     if self.what:
       for index in range(len(self.what)): tempDict['Variable Name ' + str(index) + ' :'] = self.what[index]
 
   def initialize(self, inDict):
+    """
+      Function to initialize the OutStream. It basically looks for the "data" object and links it to the system
+      @ In, inDict, dict, It contains all the Object are going to be used in the current step. The sources are searched into this.
+      @ Out, None
+    """
     # the linking to the source is performed in the base class initialize method
     OutStreamManager.initialize(self, inDict)
 
   def localReadXML(self, xmlNode):
+    """
+      This Function is called from the base class, It reads the parameters that belong to a plot block
+      @ In, xmlNode, xml.etree.Element, Xml element node
+      @ Out, None (filled data structure (self))
+    """
     self.type = 'OutStreamPrint'
     for subnode in xmlNode:
       if subnode.tag == 'source': self.sourceName = subnode.text.split(',')
@@ -1480,13 +1522,12 @@ class OutStreamPrint(OutStreamManager):
     if 'what' in self.options.keys(): self.what = self.options['what']
 
   def addOutput(self):
-    '''
-      Calls output functions on desired instances
+    """
+      Calls output functions on desired instances in order to print out the linked dataObjects
       @ In, None
       @ Out, None
-    '''
+    """
     dictOptions = {}
-
     if len(self.filename) > 0:
       dictOptions['filenameroot'] = self.filename
     else:
@@ -1525,14 +1566,19 @@ __interFaceDict['Print'  ] = OutStreamPrint
 __knownTypes = __interFaceDict.keys()
 
 def knownTypes():
+  """
+    Return the known types
+    @ In, None
+    @ Out, knownTypes, list, list of known types
+  """
   return __knownTypes
 
 
 def returnInstance(Type, caller):
   """
-  function used to generate a OutStream class
-  @ In, Type : OutStream type
-  @ Out,Instance of the Specialized OutStream class
+    function used to generate a OutStream class
+    @ In, Type, string, Sampler type
+    @ Out, returnInstance, instance, Instance of the Specialized OutStream class
   """
   try: return __interFaceDict[Type]()
   except KeyError: caller.raiseAnError(NameError, 'not known ' + __base + ' type ' + Type)

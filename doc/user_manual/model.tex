@@ -1146,6 +1146,7 @@ When Printing this ROM via an OutStreamManager (see \ref{sec:printing}), the ava
   \item \xmlString{mean}, the mean value of the ROM output within the input space it was trained,
   \item \xmlString{variance}, the variance of the ROM output within the input space it was trained,
   \item \xmlString{numRuns}, the number of distinct model runs required to construct the ROM,
+  \item \xmlString{indices}, the Sobol sensitivity indices (in percent) and partial variances,
   \item \xmlString{polyCoeffs}, the polynomial expansion coefficients (PCE moments) of the ROM.  These are
     listed by each polynomial combination, with the polynomial order tags listed in the order of the variables
     shown in the XML print.
@@ -1222,7 +1223,7 @@ When Printing this ROM via an OutStreamManager (see \ref{sec:printing}), the ava
   \item \xmlString{variance}, the ANOVA-calculated variance of the ROM output within the input space it
     was trained.
   \item \xmlString{numRuns}, the number of distinct model runs required to construct the ROM,
-  \item \xmlString{indices}, the Sobol sensitivity indices (in percent).
+  \item \xmlString{indices}, the Sobol sensitivity indices (in percent) and partial variances.
 \end{itemize}
 
 %%%%% ROM Model - MSR  %%%%%%%
@@ -1780,7 +1781,7 @@ regressor}{linear\_model|LassoCV}
 \subparagraph{Lasso model fit with Least Angle Regression}
 \mbox{}
 
-\textit{Lasso model fit with Least Angle Regression} (aka Lars) 
+\textit{Lasso model fit with Least Angle Regression} (aka Lars)
 It is a Linear Model trained with an L1 prior as regularizer.
 In order to use the \textit{Least Angle Regression model regressor}, the user needs to set the sub-node
 %
@@ -1943,7 +1944,7 @@ for optimal performance; any other input format will be converted (and copied).
   \item \xmlNode{class\_weight}, \xmlDesc{dict, or 'balanced', optional}
   Weights associated with classes in the form \{class\_label: weight\}. If not given, all classes are supposed to have weight one.
   %
-  The ``balanced'' mode uses the values of y to automatically adjust weights inversely proportional to class frequencies in the 
+  The ``balanced'' mode uses the values of y to automatically adjust weights inversely proportional to class frequencies in the
   input data as n\_samples / (n\_classes * np.bincount(y))
   %
   Note that these weights will be multiplied with sample\_weight (passed through the fit method) if sample\_weight is specified.
@@ -2190,7 +2191,7 @@ training set one at a time.
   %
   Weights associated with classes. If not given, all classes are supposed to have weight one.
   %
-  The “balanced” mode uses the values of y to automatically adjust weights inversely proportional to class 
+  The “balanced” mode uses the values of y to automatically adjust weights inversely proportional to class
   frequencies in the input data as n\_samples / (n\_classes * np.bincount(y))
   %
   \item \warmStartDescription{False}
@@ -4349,8 +4350,8 @@ to compute many of the most important statistical quantities.
     \item \textbf{skewness}: skewness
     \item \textbf{kurtosis}: excess kurtosis (also known as Fisher's kurtosis)
     \item \textbf{median}: median
-    \item \textbf{percentile}: the percentile. If this quantity is inputted as \textit{percentile} the $5\%$ and $95\%$ percentile(s) are going to be computed. 
-                               Otherwise the user can specify this quantity as \textit{percentile\_$X\%$}, where \textit{X} represents the requested 
+    \item \textbf{percentile}: the percentile. If this quantity is inputted as \textit{percentile} the $5\%$ and $95\%$ percentile(s) are going to be computed.
+                               Otherwise the user can specify this quantity as \textit{percentile\_$X\%$}, where \textit{X} represents the requested
                                percentile (an integer value between 1 and 100).
     %
   \end{itemize}
@@ -4997,8 +4998,8 @@ purpose Post-Processors.
   ...
   <Models>
     ...
-    <PostProcessor name="example" subType='InterfacedPostProcessor'verbosity='debug'> 
-       <method>testInterfacedPP</method> 
+    <PostProcessor name="example" subType='InterfacedPostProcessor'verbosity='debug'>
+       <method>testInterfacedPP</method>
        <!--Here, the xml nodes required by the chosen method have to be
        included.
         -->
@@ -5036,17 +5037,17 @@ class testInterfacedPP(PostProcessorInterfaceBase):
   def initialize(self)
   def readMoreXML(self,xmlNode)
   def run(self,inputDic)
-\end{lstlisting} 
+\end{lstlisting}
 
 \paragraph{Data Format}
 The user is not allowed to modify directly the DataObjects, however the
 content of the DataObjects is available in the form of a python dictionary.
-Both the dictionary give in input and the one generated in the output of the 
+Both the dictionary give in input and the one generated in the output of the
 PostProcessor are structured as follows:
 
 \begin{lstlisting}[language=python]
 inputDict = {'data':{}, 'metadata':{}}
-\end{lstlisting} 
+\end{lstlisting}
 
 where:
 
@@ -5059,7 +5060,7 @@ contains a numpy array with its own values as shown below for a simplified
 example
 
 \begin{lstlisting}[language=python]
-inputDict['input'] = {'inputVar1': array([ 1.,2.,3.]), 
+inputDict['input'] = {'inputVar1': array([ 1.,2.,3.]),
                       'inputVar2': array([4.,5.,6.])}
 \end{lstlisting}
 
@@ -5067,7 +5068,7 @@ Similarly, if the dataObject is a PointSet then the output dictionary is
 structured as follows:
 
 \begin{lstlisting}[language=python]
-inputDict['output'] = {'outputVar1': array([ .1,.2,.3]), 
+inputDict['output'] = {'outputVar1': array([ .1,.2,.3]),
                        'outputVar2':array([.4,.5,.6])}
 \end{lstlisting}
 
@@ -5115,7 +5116,7 @@ In the \xmlNode{PostProcessor} input block, the following XML sub-nodes are requ
 independent of the \xmlAttr{subType} specified:
 
 \begin{itemize}
-   \item \xmlNode{numberOfSamples}, \xmlDesc{integer, required field}, number of samples 
+   \item \xmlNode{numberOfSamples}, \xmlDesc{integer, required field}, number of samples
    \item \xmlNode{timeID}, \xmlDesc{string, required field}, ID of the temporal variable
    \item \xmlNode{extension}, \xmlDesc{string, required field}, type of extension when the sync process goes outside the boundaries of the history (zeroed or extended)
 \end{itemize}
@@ -5128,13 +5129,13 @@ Assume that each history H is a dict of n output variables $x_1=[...], x_n=[...]
   \item type = timeSlice: at time instant t: $P=[x_1[t],...,x_n[t]]$
   \item type = min, max, avg, value: it takes the min, max, avg or a specific value of a specific variable
 \end{itemize}
- 
+
 In the \xmlNode{PostProcessor} input block, the following XML sub-nodes are required,
 independent of the \xmlAttr{subType} specified (timeSlice case):
 
 \begin{itemize}
-   \item \xmlNode{type}, \xmlDesc{string, required field}, type of window (timeSlice) 
-   \item \xmlNode{timeInstant}, \xmlDesc{integer, required field}, location of the time slice 
+   \item \xmlNode{type}, \xmlDesc{string, required field}, type of window (timeSlice)
+   \item \xmlNode{timeInstant}, \xmlDesc{integer, required field}, location of the time slice
    \item \xmlNode{numberOfSamples}, \xmlDesc{integer, required field}, number of samples
    \item \xmlNode{timeID}, \xmlDesc{string, required field}, ID of the temporal variable
    \item \xmlNode{extension}, \xmlDesc{string, required field}, type of extension when the sync process goes outside the boundaries of the history (zeroed or extended)
@@ -5144,12 +5145,12 @@ In the \xmlNode{PostProcessor} input block, the following XML sub-nodes are requ
 independent of the \xmlAttr{subType} specified (min, max, avg and value case):
 
 \begin{itemize}
-   \item \xmlNode{type}, \xmlDesc{string, required field}, type of window ((min, max, avg or value) 
+   \item \xmlNode{type}, \xmlDesc{string, required field}, type of window ((min, max, avg or value)
    \item \xmlNode{pivotVar}, \xmlDesc{integer, optional field},  ID of the chosen variable
    \item \xmlNode{timeID}, \xmlDesc{string, optional field}, ID of the temporal variable (only for avg)
    \item \xmlNode{pivotVal}, \xmlDesc{integer, optional field},  value for the chosen variable (only for value)
 \end{itemize}
-   
+
 \paragraph{Method: HSPS}
 
 This Post-Processor performs the conversion from HistorySet to PointSet

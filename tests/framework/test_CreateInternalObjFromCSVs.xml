@@ -38,7 +38,7 @@
   <DataObjects>
     <PointSet name="PointSetPostProcTest">
       <Input>Dummy1</Input>
-      <Output>time,pipe_Dh,pipe_Tw</Output>
+      <Output>time,pipe_Tw</Output>
     </PointSet>
   </DataObjects>
 

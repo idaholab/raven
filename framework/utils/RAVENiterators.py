@@ -18,7 +18,6 @@ class ravenArrayIterator(object):
   """
    This class implements a custom RAVEN iterator, that avoids creating the cartesian product for N-Dimensional Grids
   """
-
   def __init__(self, shape = None, arrayIn = None):
     """
      Init method.
@@ -46,10 +45,10 @@ class ravenArrayIterator(object):
 
   def iternext(self):
     """
-     This method checks whether iterations are left, and perform a
-     single internal iteration without returning the result.
-     @ In, None
-     @ Out, self.finished, bool, return if the iteration finished
+      This method checks whether iterations are left, and perform a
+      single internal iteration without returning the result.
+      @ In, None
+      @ Out, self.finished, bool, return if the iteration finished
     """
     self.cnt += 1
     #if self.cnt != 1:
@@ -72,9 +71,9 @@ class ravenArrayIterator(object):
 
   def reset(self):
     """
-     This method resets the iterator to its initial status
-     @ In, None
-     @ Out, None
+      This method resets the iterator to its initial status
+      @ In, None
+      @ Out, None
     """
     self.cnt, self.finished = 0, False
     if type(self.iterator).__name__ == 'list': self.iterator = [0]*self.ndim
@@ -84,25 +83,25 @@ class ravenArrayIterator(object):
 
   def __iter__(self):
     """
-     Method that returns the iterator object and is implicitly called at the start of loops.
-     @ In, None
-     @ Out, self, iterator object
+      Method that returns the iterator object and is implicitly called at the start of loops.
+      @ In, None
+      @ Out, self, iterator object
     """
     return self
 
   def next(self):
     """
-     Method to get the next pointer (value), if finished, raise a StopIteration exception
-     @ In, None
-     @ Out, iterator, tuple, the n-d iterator
+      Method to get the next pointer (value), if finished, raise a StopIteration exception
+      @ In, None
+      @ Out, iterator, tuple, the n-d iterator
     """
     return self.__next__()
 
   def __next__(self):
     """
-     See next(self)
-     @ In, None
-     @ Out, iterator, tuple, the n-d iterator
+      See next(self)
+      @ In, None
+      @ Out, iterator, tuple, the n-d iterator
     """
     self.iternext()
     if self.finished: raise StopIteration

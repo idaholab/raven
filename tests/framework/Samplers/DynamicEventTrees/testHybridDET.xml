@@ -181,11 +181,11 @@
   <DataObjects>
     <PointSet hierarchical="true" name="Pointset">
       <Input>dummy_for_branch</Input>
-      <Output>pump_mass_flow_rate,outlet_TDV_T_bc,outlet_TDV_p_bc,inlet_TDV_T_bc,pipe2_f,inlet_TDV_p_bc,time</Output>
+      <Output>pump_mass_flow_rate,outlet_TDV_T_bc,outlet_TDV_p_bc,inlet_TDV_T_bc,inlet_TDV_p_bc,time</Output>
     </PointSet>
     <HistorySet hierarchical="true" name="stories">
       <Input>dummy_for_branch</Input>
-      <Output>pump_mass_flow_rate,outlet_TDV_T_bc,outlet_TDV_p_bc,inlet_TDV_T_bc,pipe2_f,inlet_TDV_p_bc,time</Output>
+      <Output>pump_mass_flow_rate,outlet_TDV_T_bc,outlet_TDV_p_bc,inlet_TDV_T_bc,inlet_TDV_p_bc,time</Output>
     </HistorySet>
   </DataObjects>
 

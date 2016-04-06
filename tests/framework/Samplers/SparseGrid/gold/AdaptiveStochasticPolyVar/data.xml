@@ -58,7 +58,6 @@
        {u'x2': 0.5, u'x1': 0.5}, {u'x2': 0.5, u'x1': 0.5},
        {u'x2': 0.5, u'x1': 0.5}, {u'x2': 0.5, u'x1': 0.5},
        {u'x2': 0.5, u'x1': 0.5}, {u'x2': 0.5, u'x1': 0.5},
-       {u'x2': 0.5, u'x1': 0.5}], dtype=object)</SampledVarsPb><PointProbability>array([None, None, None, None, None, None, None, None, None, None, None,
-       None, None, None, None, None, None, None, None, None, None], dtype=object)</PointProbability><PointsProbability>array([ 0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.25,
+       {u'x2': 0.5, u'x1': 0.5}], dtype=object)</SampledVarsPb><PointProbability>array([ 0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.25,
         0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.25,
-        0.25,  0.25,  0.25])</PointsProbability></metadata></data>
+        0.25,  0.25,  0.25])</PointProbability></metadata></data>

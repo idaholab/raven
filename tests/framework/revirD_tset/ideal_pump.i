@@ -1,13 +1,9 @@
+  # End preconditioning block
+  # close Executioner section
 [GlobalParams]
-  # 2=2 eqn, 1D isothermal flow
-  # 3=3 eqn, 1D non-isothermal flow
-  # 7=7 eqn, 1D 2-phase flow
-  global_init_P = 1.e5
-  global_init_V = 0.0
-  global_init_T = 300.
-  model_type = 3
-  stabilization_type = NONE
-  scaling_factor_1phase = '1e4 1e1 1e-2'
+  initial_p = 1.e5
+  initial_v = 0.0
+  initial_T = 300.
 []
 [FluidProperties]
   [./eos]
@@ -23,7 +19,6 @@
 []
 [Components]
   # Pipes
-  active = 'pipe1 pipe2 pump inlet_TDV outlet_TDV'
   [./pipe1]
     # geometry
     type = Pipe
@@ -35,7 +30,7 @@
     f = 0.01
     Hw = 0.0 # not setting Hw means that Hw is calculated by models, need set 0 for no heat transfer
     length = 1
-    n_elems = 50
+    n_elems = 20
   [../]
   [./pipe2]
     # geometry
@@ -48,16 +43,14 @@
     f = 0.01
     Hw = 0.0
     length = 1
-    n_elems = 50
+    n_elems = 20
   [../]
   [./pump]
-    # now no-used but still required parameters, give them some whatever values
     type = IdealPump
     fp = eos
     inputs = 'pipe1(out)'
     outputs = 'pipe2(in)'
     mass_flow_rate = 0.3141159265 # rho * u * A (kg/s)
-    Initial_pressure = 151.7e5
   [../]
   [./inlet_TDV]
     type = TimeDependentVolume
@@ -73,64 +66,26 @@
   [../]
 []
 [Preconditioning]
-  # Uncomment one of the lines below to activate one of the blocks...
-  # active = 'SMP_Newton'
-  # active = 'FDP_PJFNK'
-  # active = 'FDP_Newton'
-  # The definitions of the above-named blocks follow.
-  # End preconditioning block
-  active = 'SMP_PJFNK'
   [./SMP_PJFNK]
-    # Preconditioned JFNK (default)
     type = SMP
     full = true
     solve_type = PJFNK
     line_search = basic
   [../]
-  [./SMP_Newton]
-    type = SMP
-    full = true
-    solve_type = NEWTON
-  [../]
-  [./FDP_PJFNK]
-    # Preconditioned JFNK (default)
-    # petsc_options_iname = '-mat_fd_type'
-    # petsc_options_value = 'ds'
-    type = FDP
-    full = true
-    solve_type = PJFNK
-    petsc_options_iname = '-mat_fd_coloring_err'
-    petsc_options_value = 1.e-10
-  [../]
-  [./FDP_Newton]
-    # petsc_options_iname = '-mat_fd_type'
-    # petsc_options_value = 'ds'
-    type = FDP
-    full = true
-    solve_type = NEWTON
-    petsc_options_iname = '-mat_fd_coloring_err'
-    petsc_options_value = 1.e-10
-  [../]
 []
 [Executioner]
-  # These options *should* append to any options set in Preconditioning blocks above
-  # nl_abs_step_tol = 1e-15
-  # close Executioner section
   type = RavenExecutioner
-  control_logic_file = 'ideal_pump_control.py'
   dt = 1.e-1
   dtmin = 1.e-5
-  petsc_options_iname = '-ksp_gmres_restart -pc_type'
-  petsc_options_value = '300 lu'
-  nl_rel_tol = 1e-6
+  nl_rel_tol = 1e-10
   nl_abs_tol = 1e-8
   nl_max_its = 10
-  l_tol = 1e-8 # Relative linear tolerance for each Krylov solve
+  l_tol = 1e-3 # Relative linear tolerance for each Krylov solve
   l_max_its = 100 # Number of linear iterations for each Krylov solve
   start_time = 0.0
   num_steps = 10 # The number of timesteps in a transient run
+  control_logic_file = 'ideal_pump_control.py'
   [./Quadrature]
-    # Specify the order as FIRST, otherwise you will get warnings in DEBUG mode...
     type = TRAP
     order = FIRST
   [../]
@@ -157,11 +112,6 @@
     property_name = Hw
     data_type = double
   [../]
-  [./pipe1_f]
-    component_name = pipe1
-    property_name = f
-    data_type = double
-  [../]
   [./pipe2_Area]
     component_name = pipe2
     property_name = Area
@@ -170,11 +120,6 @@
   [./pipe2_Hw]
     component_name = pipe2
     property_name = Hw
-    data_type = double
-  [../]
-  [./pipe2_f]
-    component_name = pipe2
-    property_name = f
     data_type = double
   [../]
   [./pump_mass_flow_rate]
