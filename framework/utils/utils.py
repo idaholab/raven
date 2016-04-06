@@ -680,7 +680,15 @@ def NDInArray(findIn,val,tol=1e-12):
     @ In, tol, float, optional, tolerance to check match within
     @ Out, (bool,idx,val) -> (found/not found, index where found or None, findIn entry or None)
   """
-  loc = np.where(np.all(np.abs(findIn-val)<tol,axis=1)==1)
+  #print ('DEBUG',findIn,type(findIn))
+  if len(findIn)<1:
+    return False,None,None
+  targ = []
+  for v in val:
+    #div 0 issue
+    if abs(v) < 1e-15: v = 1e-15
+    targ.append(abs(v)*tol)
+  loc = np.where(np.all(np.abs(findIn-val)<targ,axis=1)==1)
   if len(loc[0])>0:
     found = True
     idx = loc[0][0]
