@@ -46,14 +46,16 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
   ROMtype         = '' #the broad class of the interpolator
 
   @staticmethod
-  def checkArrayConsistency(arrayin):
+  def checkArrayConsistency(arrayIn):
     """
       This method checks the consistency of the in-array
-      @ In, arrayin, object,  It should be an array
+      @ In, arrayIn, object,  It should be an array
       @ Out, (consistent, 'error msg'), tuple, tuple[0] is a bool (True -> everything is ok, False -> something wrong), tuple[1], string ,the error mesg
     """
-    if type(arrayin) != np.ndarray: return (False,' The object is not a numpy array')
-    if len(arrayin.shape) > 1: return(False, ' The array must be 1-d')
+    #checking if None provides a more clear message about the problem
+    if arrayIn is None: return (False,' The object is None, and contains no entries!')
+    if type(arrayIn) != np.ndarray: return (False,' The object is not a numpy array')
+    if len(arrayIn.shape) > 1: return(False, ' The array must be 1-d')
     return (True,'')
 
   def __init__(self,messageHandler,**kwargs):
