@@ -4,9 +4,9 @@ In order to perform UQ and dynamic
 probabilistic risk assessment (DPRA),
 a sampling strategy needs to be employed. The sampling strategy aims to
 perturb the input space (domain of the uncertainties) to explore
-the response of a complex system in relation to selected FOMs. 
+the response of a complex system in relation to selected FOMs.
 \\The most widely used strategies to perform UQ and PRA are generally
-collected into the category that, in RAVEN, is called \textit{\textbf{Forward}} samplers. The \textit{\textbf{Forward}} sampler category collects all the strategies that perform the sampling of the input space without exploiting, through learning approaches, the information made available from the outcomes of evaluation previously performed (adaptive sampling) and the common system evolution (patterns) that different sampled calculations can generate in the phase space (Dynamic Event Tree). 
+collected into the category that, in RAVEN, is called \textit{\textbf{Forward}} samplers. The \textit{\textbf{Forward}} sampler category collects all the strategies that perform the sampling of the input space without exploiting, through learning approaches, the information made available from the outcomes of evaluation previously performed (adaptive sampling) and the common system evolution (patterns) that different sampled calculations can generate in the phase space (Dynamic Event Tree).
 \\As mentioned in Section~\ref{susub:OverviewSamplers}, RAVEN has
 different \textit{\textbf{Forward}} samplers:
 \begin{itemize}
@@ -16,55 +16,55 @@ different \textit{\textbf{Forward}} samplers:
 \end{itemize}
 In addition, RAVEN posses advanced \textit{\textbf{Forward}} sampling strategies that:
 \begin{itemize}
-  \item Build a grid in the input space selecting evaluation points 
-  based on characteristic quadratures as part of stochastic collocation 
-  for generalized polynomial chaos method (\textit{Sparse 
+  \item Build a grid in the input space selecting evaluation points
+  based on characteristic quadratures as part of stochastic collocation
+  for generalized polynomial chaos method (\textit{Sparse
   Grid Collocation} sampler);
-  \item Use high-density model reduction (HDMR) a.k.a. Sobol 
+  \item Use high-density model reduction (HDMR) a.k.a. Sobol
   decomposition to approximate a function as the sum of increasing
   complexity interactions (\textit{Sobol} sampler).
-\end{itemize} 
-In the following subsections, the theory behind these sampling 
-methodologies is going to be explained by way of applied RAVEN 
+\end{itemize}
+In the following subsections, the theory behind these sampling
+methodologies is going to be explained by way of applied RAVEN
 examples.
 %%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%  MONTE-CARLO %%%%%%%% 
+%%%%%%%%  MONTE-CARLO %%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Monte-Carlo}
 \label{sub:MC}
-The Monte-Carlo method is probably one of the most used methodologies in several disciplines. In this section, a brief theoretical 
+The Monte-Carlo method is probably one of the most used methodologies in several disciplines. In this section, a brief theoretical
 background is reported. In addition,it is shown how to employ this methodology with RAVEN.
 \subsubsection{Monte-Carlo}
 \label{subsub:MCtheory}
-The Monte-Carlo method approximates an expectation by the sample mean of a function of 
-simulated random variables. It is based on the laws of large numbers in order to approximate expectations. 
-In order words, it approximates the average response of multiple FOMs 
-relying on multiple random sampling of the input space. 
+The Monte-Carlo method approximates an expectation by the sample mean of a function of
+simulated random variables. It is based on the laws of large numbers in order to approximate expectations.
+In order words, it approximates the average response of multiple FOMs
+relying on multiple random sampling of the input space.
 \\Consider a random variable (eventually multidimensional) $X$ having probability mass function or probability density function $pdf_{X}(x)$,
 which is greater than zero on a set of values $\chi$. Then the expected value of a function $f$ of $X$ is as follows:
 \begin{equation}
 \begin{matrix}
-\mathbb{E}(f(X)) =\sum_{x \in \chi} f(x)pdf_{X}(x) & \text{if} X \, discrete \\ 
-\\ 
+\mathbb{E}(f(X)) =\sum_{x \in \chi} f(x)pdf_{X}(x) & \text{if} X \, discrete \\
+\\
 \mathbb{E}(f(X)) =\int_{x \in \chi} f(x)pdf_{X}(x) & \, \text{if} X \, \, continuous
 \end{matrix}
 \end{equation}
 Now consider $n$ samples of $X$, $(x_{1},...,x_{n})$, and compute the mean of $f(x)$ over the samples. This computation represents the Monte-Carlo estimate:
 \begin{equation}
-  \mathbb{E}(f(X)) \approx   \widetilde{f}_{n}(x) = \frac{1}{n} \sum_{i=1}^{n} f(x_{i})  
+  \mathbb{E}(f(X)) \approx   \widetilde{f}_{n}(x) = \frac{1}{n} \sum_{i=1}^{n} f(x_{i})
 \end{equation}
 If $\mathbb{E}(f(X))$ exists, then the law of large numbers determines that for any arbitrarily small $\varepsilon$:
 \begin{equation}
   \lim_{n\rightarrow \, \infty} P( \left | \widetilde{f}_{n}(X) - \mathbb{E}(f(X))  \right |\geq \varepsilon) = 0
 \end{equation}
-The above equation suggests that as $n$ gets larger, then the probability that $\widetilde{f}_{n}(X)$ deviates 
+The above equation suggests that as $n$ gets larger, then the probability that $\widetilde{f}_{n}(X)$ deviates
 from the $\mathbb{E}(f(X))$ becomes smaller. In other words, the more samples are spooned, the more closer the Monte-Carlo estimate of $X$ gets to the real value.
 \\In addition, $\widetilde{f}_{n}(X)$ represent an unbiased estimate for $\mathbb{E}(f(X))$:
 \begin{equation}
-\mathbb{E}(\widetilde{f}_{n}(X)) = \mathbb{E} \left ( \frac{1}{n} \sum_{i=1}^{n} f(x_{i})   \right ) = 
-\frac{1}{n} \sum_{i=1}^{n} \mathbb{E}(f(x_{i})) =   \mathbb{E}(f(X)) 
+\mathbb{E}(\widetilde{f}_{n}(X)) = \mathbb{E} \left ( \frac{1}{n} \sum_{i=1}^{n} f(x_{i})   \right ) =
+\frac{1}{n} \sum_{i=1}^{n} \mathbb{E}(f(x_{i})) =   \mathbb{E}(f(X))
 \end{equation}
-%After this brief introduction, it is important to understand how the Monte-Carlo method can be employed 
+%After this brief introduction, it is important to understand how the Monte-Carlo method can be employed
 %for the analysis of Dynamic Stochastic system.
 %\\Referencing to the nomenclature defined in section~\ref{sub:mathBackground}, given:
 %\begin{equation}
@@ -78,12 +78,12 @@ from the $\mathbb{E}(f(X))$ becomes smaller. In other words, the more samples ar
 %\begin{enumerate}
 %  \item Sample:
 %  \begin{itemize}
-%    \item $\overline{\alpha}_{staz} $,$\overline{\alpha}_{DS}$, $\overline{t}$ depending on which 
+%    \item $\overline{\alpha}_{staz} $,$\overline{\alpha}_{DS}$, $\overline{t}$ depending on which
 %    approximations are valid (see~\ref{sub:mathBackground});
 %    \item The initial conditions $\overline{\theta}^{c}_{0}$,$\overline{\theta}^{d}_{0}$;
 %    \item Transition conditions from $W(\overline{\theta}^{d}|\overline{\theta}^{d}_{i},\overline{\theta}^{c},t)$
 %  \end{itemize}
-%  \item Run the system simulator using the previously sampled values and affected by the intrinsic stochasticity 
+%  \item Run the system simulator using the previously sampled values and affected by the intrinsic stochasticity
 %  represented by $\overline{\alpha}_{brow}$;
 %  \item Pause the simulation when a transition condition is reached and move from the current $\overline{\theta}^{d}_{0}$ to the new $\overline{\theta}^{d}$ (e.g. $\overline{\theta}^{d}_{1}$);
 %  \item Run the simulation as performed in step 3, starting from the new coordinate and pause the simulation when a new transition is reached;
@@ -94,13 +94,13 @@ from the $\mathbb{E}(f(X))$ becomes smaller. In other words, the more samples ar
 \label{subsub:MCexample}
 The goals of this section are about learning how to:
  \begin{enumerate}
-   \item Set up a simple Monte-Carlo sampling for perturbing the input 
+   \item Set up a simple Monte-Carlo sampling for perturbing the input
    space of a driven code
-   \item Load the outputs of the code into the RAVEN DataObjects 
+   \item Load the outputs of the code into the RAVEN DataObjects
    system (HistorySet and PointSet)
    \item Print on file what contained in the DataObjects
    \item Generate plots of the code results.
-\end{enumerate}  
+\end{enumerate}
 In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in the input files) are needed:
 \begin{enumerate}
    \item \textbf{\textit{RunInfo}}:
@@ -111,11 +111,11 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
     <WorkingDir>ChapterVII-I/MonteCarlo</WorkingDir>
     <batchSize>12</batchSize>
   </RunInfo>
-\end{lstlisting}   
-   As reported in Section~\ref{sub:EntitiesAndFlow}, the \textit{RunInfo} \textbf{Entity} is intended to set up the analysis 
-   that the user wants to perform. In this specific case, two steps (\xmlNode{Sequence}) are sequentially run 
+\end{lstlisting}
+   As reported in Section~\ref{sub:EntitiesAndFlow}, the \textit{RunInfo} \textbf{Entity} is intended to set up the analysis
+   that the user wants to perform. In this specific case, two steps (\xmlNode{Sequence}) are sequentially run
    using 12 processors (\xmlNode{batchSize}). This means that
-   12 instances of the driven code are run simultaneously. 
+   12 instances of the driven code are run simultaneously.
    Every time a simulation ends, a new one is launched.
    \item \textbf{\textit{Files}}:
 \begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
@@ -139,8 +139,8 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
       </Code>
     <Models>
 \end{lstlisting}
- The Model here is represented by the 
- \textbf{AnalyticalBateman}, which already exports its output file in a 
+ The Model here is represented by the
+ \textbf{AnalyticalBateman}, which already exports its output file in a
  CSV format (standard format that RAVEN can read). For this reason,
  the \textit{GenericCode} interface is used.
    \item \textbf{\textit{Distributions}}:
@@ -154,16 +154,16 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
           <lowerBound>0.000000005</lowerBound>
           <upperBound>0.000000010</upperBound>
       </Uniform>
-  </Distributions>   
+  </Distributions>
 \end{lstlisting}
-  In the Distributions XML section, the stochastic model for the 
-  uncertainties  treated by the Monte-Carlo sampling is reported. In 
-  this case two distributions are defined: 
+  In the Distributions XML section, the stochastic model for the
+  uncertainties  treated by the Monte-Carlo sampling is reported. In
+  this case two distributions are defined:
   \begin{itemize}
-    \item $sigma \sim \mathbb{U}(1,10)$, used to model the uncertainties 
+    \item $sigma \sim \mathbb{U}(1,10)$, used to model the uncertainties
     associated with  the Model \textit{sigma}(s)
-    \item  $decayConstant \sim \mathbb{U}(0.5e-8,1e-8)$,  used to 
-    model the uncertainties 
+    \item  $decayConstant \sim \mathbb{U}(0.5e-8,1e-8)$,  used to
+    model the uncertainties
     associated with  the Model \textit{decay constants}.
   \end{itemize}
    \item \textbf{\textit{Samplers}}:
@@ -198,14 +198,14 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
           <distribution>decayConstant</distribution>
       </variable>
     </MonteCarlo>
-  </Samplers>   
+  </Samplers>
 \end{lstlisting}
-  To employ the Monte-Carlo sampling strategy ($100$ samples), a 
-  \xmlNode{MonteCarlo} node needs to be inputted.  The 
+  To employ the Monte-Carlo sampling strategy ($100$ samples), a
+  \xmlNode{MonteCarlo} node needs to be inputted.  The
   Monte-Carlo method is going to be employed on $eight$ model variables.
-  Note that all the \textit{decay-\%} and 
-  \textit{sigma-\%} variables are associated with the same distributions 
-  $decayConstant$ and $sigma$, respectively.  
+  Note that all the \textit{decay-\%} and
+  \textit{sigma-\%} variables are associated with the same distributions
+  $decayConstant$ and $sigma$, respectively.
    \item \textbf{\textit{DataObjects}}:
 \begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
   <DataObjects>
@@ -225,13 +225,13 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
     </HistorySet>
   </DataObjects>
 \end{lstlisting}
-  Int this block, two \textit{DataObjects} are defined: 1) PointSet named 
+  Int this block, two \textit{DataObjects} are defined: 1) PointSet named
   ``samples'', 2) HistorySet named ``histories''.
-  Note that in the \xmlNode{Input} node all the uncertainties 
+  Note that in the \xmlNode{Input} node all the uncertainties
   perturbed through the Monte-Carlo strategy are listed. By this, any
-  realization in the input space is linked to the outputs listed in the 
+  realization in the input space is linked to the outputs listed in the
   \xmlNode{Output} node.
-   \item \textbf{\textit{OutStreamManager}}:   
+   \item \textbf{\textit{OutStreamManager}}:
 \begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
   <OutStreamManager>
     <Print name="samples">
@@ -382,31 +382,31 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
   \label{fig:historiesMCPlotLine}
  \end{figure}
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  In this block, both the Out-Stream types are constructed: 
+  In this block, both the Out-Stream types are constructed:
   \begin{itemize}
-    \item \textit{Print}: 
+    \item \textit{Print}:
      \begin{itemize}
-       \item named ``samples'' connected with the \textit{DataObjects} \textbf{Entity} ``samples'' 
+       \item named ``samples'' connected with the \textit{DataObjects} \textbf{Entity} ``samples''
                 (\xmlNode{source})
-       \item named ``histories'' connected with the \textit{DataObjects} \textbf{Entity} ``histories'' (\xmlNode{source})          
-     \end{itemize}         
-      When these objects get used, all the information contained in the 
-      linked  \textit{DataObjects} are going 
+       \item named ``histories'' connected with the \textit{DataObjects} \textbf{Entity} ``histories'' (\xmlNode{source})
+     \end{itemize}
+      When these objects get used, all the information contained in the
+      linked  \textit{DataObjects} are going
     to be exported in CSV files (\xmlNode{type}).
-    \item \textit{Plot}: 
+    \item \textit{Plot}:
     \begin{itemize}
-      \item named ``historiesPlot'' connected with the  \textit{DataObjects} 
+      \item named ``historiesPlot'' connected with the  \textit{DataObjects}
       \textbf{Entity} ``samples''.  This plot will draw the final state of the
-      variables $A,B,C,D$ with respect to the input variables $sigma$(s) 
-      and $decay$(s) . 
-      \item named ``samplesPlot3D'' connected with the  
-      \textit{DataObjects} \textbf{Entity} ``histories''. This plot will draw the 
+      variables $A,B,C,D$ with respect to the input variables $sigma$(s)
+      and $decay$(s) .
+      \item named ``samplesPlot3D'' connected with the
+      \textit{DataObjects} \textbf{Entity} ``histories''. This plot will draw the
       evolution of the variables $A,B,C,D$;
     \end{itemize}
      Note that both plots are of type \textit{SubPlot}. Four plots
      are going to be placed in each of the figures.
-  \end{itemize}   
-   \item \textbf{\textit{Steps}}:   
+  \end{itemize}
+   \item \textbf{\textit{Steps}}:
 \begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
   <Steps>
     <MultiRun name="sample">
@@ -435,39 +435,39 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
   \label{fig:samplesMCPlotLine}
  \end{figure}
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-   Finally, all the previously defined \textbf{Entities} can be combined in 
-   the \xmlNode{Steps} block. As inferable, 
+   Finally, all the previously defined \textbf{Entities} can be combined in
+   the \xmlNode{Steps} block. As inferable,
    two \xmlNode{Steps} have been inputted:
    \begin{itemize}
-     \item \xmlNode{MultiRun} named ``sample'', used to run the multiple  
-     instances of the driven code and 
+     \item \xmlNode{MultiRun} named ``sample'', used to run the multiple
+     instances of the driven code and
      collect the outputs in the two \textit{DataObjects}. As it can be
-     seen, the \xmlNode{Sampler} is inputted to communicate to the 
+     seen, the \xmlNode{Sampler} is inputted to communicate to the
      \textit{Step} that the driven code needs to
      be perturbed through the Monte-Carlo sampling;
-     \item  \xmlNode{IOStep} named ``writeHistories'', used to 1) dump 
-     the ``histories'' and ``samples'' \textit{DataObjects} 
-     \textbf{Entity} in a CSV file and 2) plot the data in the PNG file and 
+     \item  \xmlNode{IOStep} named ``writeHistories'', used to 1) dump
+     the ``histories'' and ``samples'' \textit{DataObjects}
+     \textbf{Entity} in a CSV file and 2) plot the data in the PNG file and
      on the screen.
    \end{itemize}
-\end{enumerate} 
- Figures~\ref{fig:historiesMCPlotLine} and ~\ref{fig:samplesMCPlotLine}  report the evolution of the 
+\end{enumerate}
+ Figures~\ref{fig:historiesMCPlotLine} and ~\ref{fig:samplesMCPlotLine}  report the evolution of the
  variables $A,B,C,D$ and their final values, respectively.
 %%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%          GRID          %%%%%%%% 
+%%%%%%%%          GRID          %%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Grid}
 \label{sub:Grid}
 The Grid sampling method (also known as Full Factorial Design of Experiment) represents one of the simplest methodologies that can be employed in order to explore the interaction of multiple random variables with respect
 selected FOMs.
-In this section, a brief theoretical 
+In this section, a brief theoretical
 background is reported. In addition,it is shown how to employ this methodology with RAVEN.
 \subsubsection{Grid theory introduction}
 \label{subsub:Gridtheory}
-The goal of the Grid-based sampling strategy is to explore the interaction of multiple random 
-variables (i.e.,uncertainties) with respect to selected FOMs. Indeed, this method is mainly used to perform 
+The goal of the Grid-based sampling strategy is to explore the interaction of multiple random
+variables (i.e.,uncertainties) with respect to selected FOMs. Indeed, this method is mainly used to perform
 parametric analysis of the system response rather than a probabilistic one. This method discretizes the
-domain of the uncertainties in a user-defined number of intervals (see Figure~\ref{fig:GridDiscretization}) and 
+domain of the uncertainties in a user-defined number of intervals (see Figure~\ref{fig:GridDiscretization}) and
 record the response of the model (e.g. a system code) at each coordinate (i.e., combination of the uncertainties) of the grid.
 \\ This method starts from the assumption that each coordinate on the grid is representative, with respect to the FOMs of interest, of the surrounding grid cell. In other words, it is assumed that the response of a system does not significantly change within the hyper-volume surrounding each grid coordinate (red square in Figure~\ref{fig:GridDiscretization}).
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -483,20 +483,20 @@ record the response of the model (e.g. a system code) at each coordinate (i.e., 
 Similarly to what has been already reported for the Monte-Carlo sampling, consider a random variable $X$ having PDF $pdf_{X}(x)$ and, consequentially, CDF $cdf_{X}(x)$ in the domain $\chi$. Then the expected value of a function $f$ of $X$ is as follows:
 \begin{equation}
 \begin{matrix}
-\mathbb{E}(f(X)) =\sum_{x \in \chi} f(x)pdf_{X}(x) & if X \, discrete \\ 
-\\ 
+\mathbb{E}(f(X)) =\sum_{x \in \chi} f(x)pdf_{X}(x) & if X \, discrete \\
+\\
 \mathbb{E}(f(X)) =\int_{x \in \chi} f(x)pdf_{X}(x) & \, if X \, \, continuous
 \end{matrix}
 \end{equation}
-In the Grid approach, the domain of $X$ is discretized in a finite number of intervals. Recall that 
-each node of this discretization is representative of the surrounding hyper-volume. This means that a weight 
+In the Grid approach, the domain of $X$ is discretized in a finite number of intervals. Recall that
+each node of this discretization is representative of the surrounding hyper-volume. This means that a weight
 needs to be associated with each coordinate of the resulting grid:
 \begin{equation}
 \begin{matrix}
   w_{i}= cdf_{X}(x_{i+1/2}) - cdf_{X}(x_{i-1/2})
-\end{matrix}  
+\end{matrix}
 \end{equation}
-Now consider 
+Now consider
 a $n-$discretization of the domain of  $X$, $(x_{1},...,x_{n})$ and compute the mean of $f(x)$ over the discretization. Based on the previous equation, the computation of the expected value of $f(x)$ is as follows:
 \begin{equation}
  \mathbb{E}(f(X)) \approx   \widetilde{f}_{n}(x) = \frac{1}{\sum_{i=1}^{n}w_{i}} \sum_{i=1}^{n} f(x_{i}) \times w_{i}
@@ -515,7 +515,7 @@ The goal of this section is to show how to:
    \item Load the outputs of the code into the RAVEN DataObjects system
    \item Print out what contained in the DataObjects
    \item Generate basic plots of the code result.
-\end{enumerate}  
+\end{enumerate}
 In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in the input files) are required:
 \begin{enumerate}
    \item \textbf{\textit{RunInfo}}:
@@ -526,11 +526,11 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
     <WorkingDir>ChapterVII-I/Grid</WorkingDir>
     <batchSize>12</batchSize>
   </RunInfo>
-\end{lstlisting}   
+\end{lstlisting}
    As shown in Section~\ref{sub:EntitiesAndFlow}, the \textit{RunInfo} \textbf{Entity} is intended to set up the desired analysis.
-   In this specific case, two steps (\xmlNode{Sequence}) are sequentially run 
+   In this specific case, two steps (\xmlNode{Sequence}) are sequentially run
    using 12 processors (\xmlNode{batchSize}). This means that
-   12 instances of the driven code are  run simultaneously. 
+   12 instances of the driven code are  run simultaneously.
    Every time a simulation ends, a new one is launched.
    \item \textbf{\textit{Files}}:
 \begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
@@ -554,8 +554,8 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
       </Code>
     <Models>
 \end{lstlisting}
- The Model here is represented by the 
- \textbf{AnalyticalBateman}, which already dumps its output file in a 
+ The Model here is represented by the
+ \textbf{AnalyticalBateman}, which already dumps its output file in a
  CSV format (standard format that RAVEN can read). For this reason,
  the \textit{GenericCode} interface is used.
    \item \textbf{\textit{Distributions}}:
@@ -569,16 +569,16 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
           <lowerBound>0.000000005</lowerBound>
           <upperBound>0.000000010</upperBound>
       </Uniform>
-  </Distributions>   
+  </Distributions>
 \end{lstlisting}
-  In the Distributions XML section, the stochastic model for the 
-  uncertainties  treated by the Grid sampling are reported. In 
-  this case two distributions are defined: 
+  In the Distributions XML section, the stochastic model for the
+  uncertainties  treated by the Grid sampling are reported. In
+  this case two distributions are defined:
   \begin{itemize}
-    \item $sigma \sim \mathbb{U}(1,10)$, used to model the uncertainties 
+    \item $sigma \sim \mathbb{U}(1,10)$, used to model the uncertainties
     associated with  the Model \textit{sigma}(s)
-    \item  $decayConstant \sim \mathbb{U}(0.5e-8,1e-8)$,  used to 
-    model the uncertainties 
+    \item  $decayConstant \sim \mathbb{U}(0.5e-8,1e-8)$,  used to
+    model the uncertainties
     associated with  the Model \textit{decay constants}.
   \end{itemize}
    \item \textbf{\textit{Samplers}}:
@@ -618,12 +618,12 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
           <grid construction="equal" steps="1" type="CDF">0.1 0.8</grid>
       </variable>
     </Grid>
-  </Samplers>  
+  </Samplers>
 \end{lstlisting}
-  To employ the Grid sampling strategy, a 
-  \xmlNode{Grid} node needs to be specified. As shown above, in each variable section, the  \xmlNode{grid} is defined. 
+  To employ the Grid sampling strategy, a
+  \xmlNode{Grid} node needs to be specified. As shown above, in each variable section, the  \xmlNode{grid} is defined.
   The number of samples finally requested are equal to $n_{samples} = \prod_{i=1}^{n} n_{steps_{i}+1} = 256$.
-  Note that, for each variable, can be defined either in probability (CDF) or in absolute value.  
+  Note that, for each variable, can be defined either in probability (CDF) or in absolute value.
    \item \textbf{\textit{DataObjects}}:
 \begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
   <DataObjects>
@@ -643,13 +643,13 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
     </HistorySet>
   </DataObjects>
 \end{lstlisting}
-  Int this block, two \textit{DataObjects} are defined: 1) PointSet named 
+  Int this block, two \textit{DataObjects} are defined: 1) PointSet named
   ``samples'', and 2) HistorySet named ``histories''.
-  In the \xmlNode{Input} node all the variables 
+  In the \xmlNode{Input} node all the variables
   perturbed through the Grid strategy are listed. In this way, any
-  realization in the input space is linked to the outputs listed in  the 
+  realization in the input space is linked to the outputs listed in  the
   \xmlNode{Output} node.
-   \item \textbf{\textit{OutStreamManager}}:   
+   \item \textbf{\textit{OutStreamManager}}:
 \begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
   <OutStreamManager>
     <Print name="samples">
@@ -800,31 +800,31 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
   \label{fig:historiesGridPlotLine}
  \end{figure}
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  In this block, both the Out-Stream types are constructed: 
+  In this block, both the Out-Stream types are constructed:
   \begin{itemize}
-    \item \textit{Print}: 
+    \item \textit{Print}:
      \begin{itemize}
-       \item named ``samples'' connected with the \textit{DataObjects} \textbf{Entity} ``samples'' 
+       \item named ``samples'' connected with the \textit{DataObjects} \textbf{Entity} ``samples''
                 (\xmlNode{source})
        \item named ``histories'' connected with the \textit{DataObjects} \textbf{Entity} ``histories'' (\xmlNode{source}).
-     \end{itemize}         
-      When these objects get used, all the information contained in the 
-      linked  \textit{DataObjects} are going 
+     \end{itemize}
+      When these objects get used, all the information contained in the
+      linked  \textit{DataObjects} are going
     to be exported in CSV files (\xmlNode{type}).
-    \item \textit{Plot}: 
+    \item \textit{Plot}:
     \begin{itemize}
-      \item named ``historiesPlot'' connected with the  \textit{DataObjects} 
+      \item named ``historiesPlot'' connected with the  \textit{DataObjects}
       \textbf{Entity} ``samples''.  This plot will draw the final state of the
-      variables $A,B,C,D$ with respect to the input variables $sigma$(s) 
+      variables $A,B,C,D$ with respect to the input variables $sigma$(s)
       and $decay$(s).
-      \item named ``samplesPlot3D'' connected with the  
-      \textit{DataObjects} \textbf{Entity} ``histories''. This plot will draw the 
+      \item named ``samplesPlot3D'' connected with the
+      \textit{DataObjects} \textbf{Entity} ``histories''. This plot will draw the
       evolution of the variables $A,B,C,D$.
     \end{itemize}
      As it can be noticed, both plots are of type \textit{SubPlot}. Four plots
      are placed in each of the figures.
-  \end{itemize}   
-   \item \textbf{\textit{Steps}}:   
+  \end{itemize}
+   \item \textbf{\textit{Steps}}:
 \begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
   <Steps>
     <MultiRun name="sample">
@@ -853,43 +853,43 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
   \label{fig:samplesGridPlotLine}
  \end{figure}
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-   Finally, all the previously defined \textbf{Entities} can be combined in 
-   the \xmlNode{Steps} block. As inferable, 
+   Finally, all the previously defined \textbf{Entities} can be combined in
+   the \xmlNode{Steps} block. As inferable,
    two \xmlNode{Steps} have been inputted:
    \begin{itemize}
-     \item \xmlNode{MultiRun} named ``sample'', is used to run the multiple  
-     instances of the code and 
+     \item \xmlNode{MultiRun} named ``sample'', is used to run the multiple
+     instances of the code and
      collect the outputs in the two \textit{DataObjects}. As it can be
-     seen, the \xmlNode{Sampler} is inputted to communicate to the 
+     seen, the \xmlNode{Sampler} is inputted to communicate to the
      \textit{Step} that the driven code needs to
      be perturbed through the Grid sampling
-     \item  \xmlNode{IOStep} named ``writeHistories'', used to 1) dump 
-     the ``histories'' and ``samples'' \textit{DataObjects} 
-     \textbf{Entity} in a CSV file and 2) plot the data in the PNG file and 
+     \item  \xmlNode{IOStep} named ``writeHistories'', used to 1) dump
+     the ``histories'' and ``samples'' \textit{DataObjects}
+     \textbf{Entity} in a CSV file and 2) plot the data in the PNG file and
      on the screen.
    \end{itemize}
-\end{enumerate} 
- Figures~\ref{fig:historiesGridPlotLine} and ~\ref{fig:samplesGridPlotLine}  report the evolution of the 
+\end{enumerate}
+ Figures~\ref{fig:historiesGridPlotLine} and ~\ref{fig:samplesGridPlotLine}  report the evolution of the
  variables $A,B,C,D$ and their final values, respectively.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%    STRATIFIED    %%%%%%%% 
+%%%%%%%%    STRATIFIED    %%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Stratified}
 \label{sub:Stratified}
-The Stratified sampling is a class of methods that relies on the assumption that the input space (i.e.,uncertainties) 
+The Stratified sampling is a class of methods that relies on the assumption that the input space (i.e.,uncertainties)
 can be separated in regions (strata) based on similarity of the response of the system for input set within the
-same strata. Following this assumption, the most rewarding (in terms of computational cost vs. knowledge gain) 
-sampling strategy would be to place one sample for each region. In this way, the same information is not 
-collected more than once and all the prototypical behavior are sampled at least once. In 
-Figure~\ref{fig:StratifiedSamplingExample}, the Stratified sampling approach is exemplified. 
+same strata. Following this assumption, the most rewarding (in terms of computational cost vs. knowledge gain)
+sampling strategy would be to place one sample for each region. In this way, the same information is not
+collected more than once and all the prototypical behavior are sampled at least once. In
+Figure~\ref{fig:StratifiedSamplingExample}, the Stratified sampling approach is exemplified.
  \begin{figure}[h!]
   \centering
   \includegraphics[scale=0.55]{pics/StratifiedSamplingExample.png}
   \caption{Example of Stratified sampling approach.}
   \label{fig:StratifiedSamplingExample}
  \end{figure}
-\\In this section, a brief theoretical 
+\\In this section, a brief theoretical
 background is reported. In addition,it is shown how to employ this methodology with RAVEN.
 \subsubsection{Stratified theory introduction}
 \label{subsub:Stratifiedtheory}
@@ -902,8 +902,8 @@ Then, simple random sampling or systematic sampling is applied within each strat
 \\Similarly to what has been already reported for the Grid sampling, consider a set of  $m$ random variables $X_{j}, \, j=1,..,m$ having PDFs $pdf_{X_{j}}(x_{j})$ and, consequentially, CDF $cdf_{X_{j}}(x_{j})$ in the domain $\chi_{j}$. Then the expected value of a function $f$ of $X_{j}, \, j=1,..,m$ is as follows:
 \begin{equation}
 \begin{matrix}
-\mathbb{E}(f(\overline{X})) =\sum f(x)   \prod_{j=1}^{m} pdf_{X_{j}}(x_{j}) & if \overline{X} \, discrete \\ 
-\\ 
+\mathbb{E}(f(\overline{X})) =\sum f(x)   \prod_{j=1}^{m} pdf_{X_{j}}(x_{j}) & if \overline{X} \, discrete \\
+\\
 \mathbb{E}(f(\overline{X})) =\int f(x)\prod_{j=1}^{m} pdf_{X_{j}}(x_{j}) & \, if \overline{X} \, \, continuous
 \end{matrix}
 \end{equation}
@@ -911,10 +911,10 @@ In the Stratified approach, the domain of $\overline{X}$ is discretized in a set
 \begin{equation}
 \begin{matrix}
   w_{i}= \frac{\prod_{j=1}^{m} \left [  cdf_{X_{j}}(x_{i,j+1}) - cdf_{X_{j}}(x_{i,j}) \right ]}{\sum_{points}\prod_{j=1}^{m} \left [  cdf_{X_{j}}(x_{i,j+1}) - cdf_{X_{j}}(x_{i,j}) \right ]}
-\end{matrix}  
+\end{matrix}
 \end{equation}
 Each realization carries a weight representative of each stratum.
-\\Now consider 
+\\Now consider
 an $n-$strata of the domain of  $\overline{X}$, and compute the expected value of $f(x)$ over the discretization. Based on the previous equation, the computation of the expected value of $f(x)$ is as follows:
 \begin{equation}
  \mathbb{E}(f(\overline{X})) \approx   \widetilde{f}_{n}(\overline{x}) = \frac{1}{\sum_{i=1}^{n}w_{i}} \sum_{i=1}^{n} f(\overline{x}_{i}) \times w_{i}
@@ -927,7 +927,7 @@ The goal of this section is to show how to:
    \item Load the outputs of the code into the RAVEN DataObjects system
    \item Print out what contained in the DataObjects
    \item Generate basic plots of the code result.
-\end{enumerate}  
+\end{enumerate}
 To accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in the input files) are defined:
 \begin{enumerate}
    \item \textbf{\textit{RunInfo}}:
@@ -938,11 +938,11 @@ To accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in 
     <WorkingDir>ChapterVII-I/Stratified</WorkingDir>
     <batchSize>12</batchSize>
   </RunInfo>
-\end{lstlisting}   
-   As reported in Section~\ref{sub:EntitiesAndFlow}, the \textit{RunInfo} \textbf{Entity} is intended to set up the analysis 
-   that the user wants to perform. In this specific case, two steps (\xmlNode{Sequence}) are  run 
+\end{lstlisting}
+   As reported in Section~\ref{sub:EntitiesAndFlow}, the \textit{RunInfo} \textbf{Entity} is intended to set up the analysis
+   that the user wants to perform. In this specific case, two steps (\xmlNode{Sequence}) are  run
    using 12 processors (\xmlNode{batchSize}). This means that
-   12 instances of the driven code are run simultaneously. 
+   12 instances of the driven code are run simultaneously.
    Every time a simulation ends, a new one is launched.
    \item \textbf{\textit{Files}}:
 \begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
@@ -950,7 +950,7 @@ To accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in 
     <Input name="referenceInput.xml" type="input">referenceInput.xml</Input>
   </Files>
 \end{lstlisting}
-   Since the considered code uses a single input file, in this section the original input is placed. 
+   Since the considered code uses a single input file, in this section the original input is placed.
    The attribute  \xmlAttr{name} represents the alias that is going to be used in all the other input blocks in order to refer to this file.
    \item \textbf{\textit{Models}}:
 \begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
@@ -966,8 +966,8 @@ To accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in 
       </Code>
     <Models>
 \end{lstlisting}
- The Model here is represented by the 
- \textbf{AnalyticalBateman}, which already dumps its output file in a 
+ The Model here is represented by the
+ \textbf{AnalyticalBateman}, which already dumps its output file in a
  CSV format (standard format that RAVEN can read). For this reason,
  the \textit{GenericCode} interface is used.
    \item \textbf{\textit{Distributions}}:
@@ -981,16 +981,16 @@ To accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in 
           <lowerBound>0.000000005</lowerBound>
           <upperBound>0.000000010</upperBound>
       </Uniform>
-  </Distributions>   
+  </Distributions>
 \end{lstlisting}
-  In the Distributions XML section, the stochastic model for the 
-  uncertainties  treated by the Stratified sampling are reported. In 
-  this case two distributions are defined: 
+  In the Distributions XML section, the stochastic model for the
+  uncertainties  treated by the Stratified sampling are reported. In
+  this case two distributions are defined:
   \begin{itemize}
-    \item $sigma \sim \mathbb{U}(1,10)$, used to model the uncertainties 
+    \item $sigma \sim \mathbb{U}(1,10)$, used to model the uncertainties
     associated with  the Model \textit{sigma}(s)
-    \item  $decayConstant \sim \mathbb{U}(0.5e-8,1e-8)$,  used to 
-    model the uncertainties 
+    \item  $decayConstant \sim \mathbb{U}(0.5e-8,1e-8)$,  used to
+    model the uncertainties
     associated with  the Model \textit{decay constants}.
   \end{itemize}
    \item \textbf{\textit{Samplers}}:
@@ -1028,12 +1028,12 @@ To accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in 
           <distribution>decayConstant</distribution>
           <grid construction="equal" steps="100" type="CDF">0.1 0.8</grid>
       </variable>
-    </Stratified> 
+    </Stratified>
 \end{lstlisting}
-  To employ the Stratified sampling strategy, a 
-  \xmlNode{Stratified} node needs to be specified. In each variable section, the  \xmlNode{grid} is defined. 
+  To employ the Stratified sampling strategy, a
+  \xmlNode{Stratified} node needs to be specified. In each variable section, the  \xmlNode{grid} is defined.
   It is important to mention that the number of \xmlAttr{steps} needs to be the same for each of the variables,
-  since, as reported in previous section, the Stratified sampling strategy it discretizes the domain in strata. 
+  since, as reported in previous section, the Stratified sampling strategy it discretizes the domain in strata.
   The number of samples finally requested is equal to $n_{samples} = n_{steps} = 100$.
   If the grid for each variables is defined in CDF and of  \xmlAttr{type} = ``equal'', the Stratified
   sampling corresponds to the well-known Latin Hyper Cube sampling.
@@ -1056,13 +1056,13 @@ To accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in 
     </HistorySet>
   </DataObjects>
 \end{lstlisting}
-  In this block, two \textit{DataObjects} are defined: 1) PointSet named 
+  In this block, two \textit{DataObjects} are defined: 1) PointSet named
   ``samples'', 2) HistorySet named ``histories''.
-  In the \xmlNode{Input} node all the variables 
+  In the \xmlNode{Input} node all the variables
   perturbed through the Stratified strategy are listed. In this way, any
-  realization in the input space is linked to the outputs listed in  the 
+  realization in the input space is linked to the outputs listed in  the
   \xmlNode{Output} node.
-   \item \textbf{\textit{OutStreamManager}}:   
+   \item \textbf{\textit{OutStreamManager}}:
 \begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
   <OutStreamManager>
     <Print name="samples">
@@ -1214,31 +1214,31 @@ To accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in 
   \label{fig:historiesStratifiedPlotLine}
  \end{figure}
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  In this block, both the Out-Stream types are constructed: 
+  In this block, both the Out-Stream types are constructed:
   \begin{itemize}
-    \item \textit{Print}: 
+    \item \textit{Print}:
      \begin{itemize}
-       \item named ``samples'' connected with the \textit{DataObjects} \textbf{Entity} ``samples'' 
+       \item named ``samples'' connected with the \textit{DataObjects} \textbf{Entity} ``samples''
                 (\xmlNode{source})
        \item named ``histories'' connected with the \textit{DataObjects} \textbf{Entity} ``histories'' (\xmlNode{source}).
-     \end{itemize}         
-      When these objects get used, all the information contained in the 
-      linked  \textit{DataObjects} are going 
+     \end{itemize}
+      When these objects get used, all the information contained in the
+      linked  \textit{DataObjects} are going
     to be exported in CSV files (\xmlNode{type}).
-    \item \textit{Plot}: 
+    \item \textit{Plot}:
     \begin{itemize}
-      \item named ``historiesPlot'' connected with the  \textit{DataObjects} 
+      \item named ``historiesPlot'' connected with the  \textit{DataObjects}
       \textbf{Entity} ``samples''.  This plot will draw the final state of the
-      variables $A,B,C,D$ with respect to the input variables $sigma$(s) 
+      variables $A,B,C,D$ with respect to the input variables $sigma$(s)
       and $decay$(s)
-      \item named ``samplesPlot3D'' connected with the  
-      \textit{DataObjects} \textbf{Entity} ``histories''. This plot will draw the 
+      \item named ``samplesPlot3D'' connected with the
+      \textit{DataObjects} \textbf{Entity} ``histories''. This plot will draw the
       evolution of the variables $A,B,C,D$.
     \end{itemize}
      As it can be noticed, both plots are of type \textit{SubPlot}. Four plots
      are going to be placed in each of the figures.
-  \end{itemize}   
-   \item \textbf{\textit{Steps}}:   
+  \end{itemize}
+   \item \textbf{\textit{Steps}}:
 \begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
   <Steps>
     <MultiRun name="sample">
@@ -1267,23 +1267,23 @@ To accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in 
   \label{fig:samplesStratifiedPlotLine}
  \end{figure}
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-   Finally, all the previously defined \textbf{Entities} can be combined in 
-   the \xmlNode{Steps} block. As inferable, 
+   Finally, all the previously defined \textbf{Entities} can be combined in
+   the \xmlNode{Steps} block. As inferable,
    two \xmlNode{Steps} have been inputted:
    \begin{itemize}
-     \item \xmlNode{MultiRun} named ``sample'', used to run the multiple  
-     instances of the driven code and 
+     \item \xmlNode{MultiRun} named ``sample'', used to run the multiple
+     instances of the driven code and
      collect the outputs in the two \textit{DataObjects}. As it can be
-     seen, the \xmlNode{Sampler} is inputted to communicate to the 
+     seen, the \xmlNode{Sampler} is inputted to communicate to the
      \textit{Step} that the driven code needs to
      be perturbed through the Stratified sampling.
-     \item  \xmlNode{IOStep} named ``writeHistories'', used to 1) dump 
-     the ``histories'' and ``samples'' \textit{DataObjects} 
-     \textbf{Entity} in a CSV file and 2) plot the data in the PNG file and 
+     \item  \xmlNode{IOStep} named ``writeHistories'', used to 1) dump
+     the ``histories'' and ``samples'' \textit{DataObjects}
+     \textbf{Entity} in a CSV file and 2) plot the data in the PNG file and
      on the screen.
    \end{itemize}
-\end{enumerate} 
- As previously mentioned, Figures~\ref{fig:historiesStratifiedPlotLine} and ~\ref{fig:samplesStratifiedPlotLine}  report the evolution of the 
+\end{enumerate}
+ As previously mentioned, Figures~\ref{fig:historiesStratifiedPlotLine} and ~\ref{fig:samplesStratifiedPlotLine}  report the evolution of the
  variables $A,B,C,D$ and their final values, respectively.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1292,7 +1292,7 @@ To accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in 
 \label{sub:SGC}
 The Sparse Grid Collocation sampler represents an advanced methodology to perform Uncertainty Quantification. They aim
 to explore the input space leveraging the information contained in the associated probability density functions. It builds on generic Grid sampling by selecting evaluation points based on characteristic quadratures as part of stochastic collocation for generalized polynomial chaos uncertainty quantification. In collocation an N-D grid is constructed, with each uncertain variable providing an axis. Along each axis, the points of evaluation correspond to quadrature points necessary to integrate polynomials. In the simplest (and most naive) case, a N-D tensor product of all possible combinations of points from each dimension’s quadrature is constructed as sampling points. The number of necessary samples can be reduced by employing Smolyak-like sparse grid algorithms, which use reduced combinations of polynomial orders to reduce the necessary sampling space.
-\\In this Section, a brief theoretical 
+\\In this Section, a brief theoretical
 background is reported. In addition, it is shown how to employ this methodology with RAVEN.
 \subsubsection{Sparse Grid Collocation Theory Introduction}
 \label{subsub:SGctheory}
@@ -1313,7 +1313,7 @@ the generalized polynomial chaos expansion method (gPC), including a transformat
 method to arbitrary distributions (as long as they have a known inverse CDF)~\cite{xiu}.  Two significant
 methodologies have grown from gPC application.  The first makes use of Lagrange polynomials to expand the
 original function or simulation code, as they can be made orthogonal over the same domain as the
-distributions~\cite{SCLagrange}; the other uses the Wiener-Askey polynomials~\cite{xiu}. 
+distributions~\cite{SCLagrange}; the other uses the Wiener-Askey polynomials~\cite{xiu}.
 
 Consider a simulation code that produces a quantity of interest $u$ as a function $u(Y)$ whose arguments are
 the uncertain, distributed input
@@ -1327,7 +1327,7 @@ the polynomial order in each axis of the polynomial Hilbert space, and $\Phi_k(Y
   \Phi_k(Y) = \prod_{n=1}^N \phi_{k_n}(Y_n),
 \end{equation}
 where $\phi_{k_n}(Y_n)$ is a single-dimension Wiener-Askey orthonormal polynomial of order $k_n$ and
-$k=(k_1,\ldots,k_n,\ldots,k_N)$, $k_n\in\mathbb{N}^0$.  For example, given $u(y_1,y_2,y_3)$, $k=(2,1,4)$ 
+$k=(k_1,\ldots,k_n,\ldots,k_N)$, $k_n\in\mathbb{N}^0$.  For example, given $u(y_1,y_2,y_3)$, $k=(2,1,4)$
 is the multi-index of the
 product of a second-order polynomial in $y_1$, a first-order polynomial in $y_2$, and a fourth-order
 polynomial in $y_4$. The gPC for $u(Y)$ using this notation is
@@ -1366,7 +1366,7 @@ coll}.
 The main concern in expanding a function in interpolating multidimensional polynomials is choosing appropriate polynomials to
 make up the expansion.
 There are many generic ways by which a polynomial set can be constructed.  Here  three static
-approaches are presented: 
+approaches are presented:
 \begin{itemize}
   \item Tensor Product
   \item Total Degree
@@ -1411,7 +1411,7 @@ In TD, only multidimensional polynomials whose \emph{total} order at most $L$ ar
 \end{equation}
 The cardinality of this index set is $|\Lambda_\text{TD}(L)|={L+N\choose N}$, which grows with increasing
 dimensions much more slowly than TP.  For the same $N=2,L=3$ case above, the TD index set is given in Table
-\ref{tab:TD}. 
+\ref{tab:TD}.
 
 \begin{table}[h]
   \centering
@@ -1495,7 +1495,7 @@ sets are Tables \ref{tab:aniTD} (TD) and \ref{tab:aniHC} (HC).
   \label{tab:aniHC}
 \end{table}
 
-There are many methods by which anisotropy weights can be assigned.  Often, if a problem is well-known to an 
+There are many methods by which anisotropy weights can be assigned.  Often, if a problem is well-known to an
 analyst, it may be enough to use heuristics to assign importance arbitrarily.  Otherwise, a smaller
 uncertainty quantification solve can be used to roughly determine sensitivity coefficients (such as Pearson
 coefficients), and the inverse of those can then be applied as anisotropy weights.  Sobol coefficients
@@ -1528,8 +1528,8 @@ It is worth noting that each quadrature may have distinct points and weights; th
 the same quadrature rule.
 In general, one-dimensional Gaussian
 quadrature excels in exactly integrating polynomials of order $2p-1$ using $p$ points and weights;
-equivalently, it requires $(p+1)/2$ points to integrate an order $p$ polynomial. 
- 
+equivalently, it requires $(p+1)/2$ points to integrate an order $p$ polynomial.
+
 For convenience, the coefficient integral to be evaluated is here reported again, Eq.
 \ref{eq:polycoeff}.
 \begin{equation}
@@ -1556,7 +1556,7 @@ Using orthogonal properties of the polynomials, this reduces as $\hat L\to\infty
   u_k\approx \sum_{\ell=1}^{\hat L} w_\ell u_k \Phi_k(Y_\ell)^2.
 \end{equation}
 Thus, the integral, to the same error introduced by truncating the  gPC expansion, the quadrature is
-approximating an integral of order $2k$. As a result, the quadrature order should be ordered: 
+approximating an integral of order $2k$. As a result, the quadrature order should be ordered:
 \begin{equation}
   p=\frac{2k+1}{2}=k+\frac{1}{2}<k+1,
 \end{equation}
@@ -1620,7 +1620,7 @@ The goals of this section are about learning how to:
    \item Set up a Sparse Grid Collocation sampling for the construction of a suitable surrogate model of a driven code
    \item Construct a GaussPolynomialRom surrogate model (training stage)
    \item Use the constructed GaussPolynomialRom surrogate model instead of the driven code.
-\end{enumerate}  
+\end{enumerate}
 To accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in the input files) need to be defined:
 \begin{enumerate}
    \item \textbf{\textit{RunInfo}}:
@@ -1633,10 +1633,10 @@ To accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in 
     <WorkingDir>ChapterVII-I/SparseGrid</WorkingDir>
     <batchSize>12</batchSize>
   </RunInfo>
-\end{lstlisting}   
-   As reported in section~\ref{sub:EntitiesAndFlow}, the \textit{RunInfo} \textbf{Entity} is intended to set up the analysis 
-   that the user wants to perform. In this specific case, four steps (\xmlNode{Sequence}) are going to be sequentially run 
-   using twelve processors (\xmlNode{batchSize}). 
+\end{lstlisting}
+   As reported in section~\ref{sub:EntitiesAndFlow}, the \textit{RunInfo} \textbf{Entity} is intended to set up the analysis
+   that the user wants to perform. In this specific case, four steps (\xmlNode{Sequence}) are going to be sequentially run
+   using twelve processors (\xmlNode{batchSize}).
    \item \textbf{\textit{Files}}:
 \begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
   <Files>
@@ -1677,7 +1677,7 @@ To accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in 
     </ROM>
   </Models>
 \end{lstlisting}
- As mentioned above, the goal of this example is the generation of a \text{GaussPolynomialRom} 
+ As mentioned above, the goal of this example is the generation of a \text{GaussPolynomialRom}
  for sub-sequential usage instead of the original code. Indeed, in addition to the previously explained Code model,
  the ROM of type \textit{GaussPolynomialRom} is here specified. The ROM will be generated through a Sparse Grid
  Collocation sampling strategy. All the 4 targets $A,B,C,D$ are going to be modeled through this ROM as function
@@ -1719,29 +1719,29 @@ To accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in 
       </Uniform>
   </Distributions>
 \end{lstlisting}
-  In the Distributions XML section, the stochastic model for the 
-  uncertainties  treated by the Sparse Grid Collocation sampling are reported. In 
-  this case eight distributions are defined: 
+  In the Distributions XML section, the stochastic model for the
+  uncertainties  treated by the Sparse Grid Collocation sampling are reported. In
+  this case eight distributions are defined:
   \begin{itemize}
-    \item $sigmaA \sim \mathbb{U}(6.9,8.1)$, used to model the uncertainty 
+    \item $sigmaA \sim \mathbb{U}(6.9,8.1)$, used to model the uncertainty
     associated with  the Model \textit{sigma-A}
-    \item $sigmaB \sim \mathbb{U}(3.9,5.1)$, used to model the uncertainty 
+    \item $sigmaB \sim \mathbb{U}(3.9,5.1)$, used to model the uncertainty
     associated with  the Model \textit{sigma-B}
-    \item $sigmaC \sim \mathbb{U}(1.9,3.1)$, used to model the uncertainty 
+    \item $sigmaC \sim \mathbb{U}(1.9,3.1)$, used to model the uncertainty
     associated with  the Model \textit{sigma-C}
-    \item $sigmaD \sim \mathbb{U}(0.9,1.1)$, used to model the uncertainty 
+    \item $sigmaD \sim \mathbb{U}(0.9,1.1)$, used to model the uncertainty
     associated with  the Model \textit{sigma-D}
-    \item  $decayConstantA \sim \mathbb{U}(3.8e-9,5.2e-9)$,  used to 
-    model the uncertainty 
+    \item  $decayConstantA \sim \mathbb{U}(3.8e-9,5.2e-9)$,  used to
+    model the uncertainty
     associated with  the Model \textit{decay-A}
-    \item  $decayConstantB \sim \mathbb{U}(5.8e-9,7.2e-9)$,  used to 
-    model the uncertainty 
+    \item  $decayConstantB \sim \mathbb{U}(5.8e-9,7.2e-9)$,  used to
+    model the uncertainty
     associated with  the Model \textit{decay-B}
-    \item  $decayConstantC \sim \mathbb{U}(6.8e-9,8.2e-9)$,  used to 
-    model the uncertainty 
+    \item  $decayConstantC \sim \mathbb{U}(6.8e-9,8.2e-9)$,  used to
+    model the uncertainty
     associated with  the Model \textit{decay-C}
-    \item  $decayConstantD \sim \mathbb{U}(7.8e-9,9.2e-9)$,  used to 
-    model the uncertainty 
+    \item  $decayConstantD \sim \mathbb{U}(7.8e-9,9.2e-9)$,  used to
+    model the uncertainty
     associated with  the Model \textit{decay-D}.
   \end{itemize}
    \item \textbf{\textit{Samplers}}:
@@ -1774,14 +1774,14 @@ To accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in 
       </variable>
       <ROM class="Models" type="ROM">NROM</ROM>
     </SparseGridCollocation>
-  </Samplers> 
+  </Samplers>
 \end{lstlisting}
-  In order to employ the Sparse Grid Collocation sampling strategy, a 
-  \xmlNode{SparseGridCollocation} node needs to be inputted. 
+  In order to employ the Sparse Grid Collocation sampling strategy, a
+  \xmlNode{SparseGridCollocation} node needs to be inputted.
   As it can be
   seen from above, each variable is associated to a different distribution,
   defined in the  \xmlNode{Distributions} block.
-  In addition, the \textit{GaussPolynomialRom}  \xmlNode{ROM} is inputted. The setting of this ROM (e.g. polynomial order, Index set method, etc.) determines how the Stochastic Collocation Method is 
+  In addition, the \textit{GaussPolynomialRom}  \xmlNode{ROM} is inputted. The setting of this ROM (e.g. polynomial order, Index set method, etc.) determines how the Stochastic Collocation Method is
   employed.
    \item \textbf{\textit{DataObjects}}:
 \begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
@@ -1824,8 +1824,8 @@ To accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in 
     </HistorySet>
   </DataObjects>
 \end{lstlisting}
-  In this block, four \textit{DataObjects} are defined: 1) PointSet named 
-  ``samples'' used to collect the final outcomes of the code, 2) HistorySet named ``histories'' in which the full time responses of the variables $A,B,C,D$ are going to be stored, 3) PointSet named    
+  In this block, four \textit{DataObjects} are defined: 1) PointSet named
+  ``samples'' used to collect the final outcomes of the code, 2) HistorySet named ``histories'' in which the full time responses of the variables $A,B,C,D$ are going to be stored, 3) PointSet named
   ``inputPlaceHolder'' used as input of the sampling applied on the constructed ROM and 4) PointSet named ``samplesROM'' used to collect the final outcomes of the ROM perturbations.
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1837,8 +1837,8 @@ To accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in 
   \label{fig:historiesSparseGridPlotLine}
  \end{figure}
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
-   \item \textbf{\textit{Steps}}:   
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+   \item \textbf{\textit{Steps}}:
 \begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
   <Steps>
     <MultiRun name="sample">
@@ -1880,40 +1880,40 @@ To accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in 
   \label{fig:samplesSparseGridPlotLine}
  \end{figure}
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-   Finally, the previously defined \textbf{Entities} can be combined in 
-   the \xmlNode{Steps} block. As inferable, 
+   Finally, the previously defined \textbf{Entities} can be combined in
+   the \xmlNode{Steps} block. As inferable,
    four \xmlNode{Steps} have been inputted:
    \begin{itemize}
-     \item \xmlNode{MultiRun} named ``sample'', used to run the multiple  
-     instances of the driven code and 
+     \item \xmlNode{MultiRun} named ``sample'', used to run the multiple
+     instances of the driven code and
      collect the outputs in the two \textit{DataObjects}. As it can be
-     seen, the \xmlNode{Sampler} is inputted to communicate to the 
+     seen, the \xmlNode{Sampler} is inputted to communicate to the
      \textit{Step} that the driven code needs to
      be perturbed through the Sparse Grid Collocation  sampling;
      \item \xmlNode{RomTrainer} named ``Ntrain'', used to train (i.e.,
      construct) the GaussPolynomial ROM. This step is essential if the
      user want to use the ROM in later steps;
-     \item \xmlNode{MultiRun} named ``sampleROM'', used to run the multiple  
-     instances of the previously constructed ROM and 
-     collect the outputs in the \textit{samplesROM} \textit{DataObjects}.  
+     \item \xmlNode{MultiRun} named ``sampleROM'', used to run the multiple
+     instances of the previously constructed ROM and
+     collect the outputs in the \textit{samplesROM} \textit{DataObjects}.
      As it can be seen, the same Sparse Grid Collocation sampler is
      here used.
-     \item  \xmlNode{IOStep} named ``writeHistories'', used to 1) dump 
-     the ``histories'', ``samples'' and ``samplesROM'' \textit{DataObjects} 
-     \textbf{Entity} in a CSV file and 2) plot the data in the PNG file and 
+     \item  \xmlNode{IOStep} named ``writeHistories'', used to 1) dump
+     the ``histories'', ``samples'' and ``samplesROM'' \textit{DataObjects}
+     \textbf{Entity} in a CSV file and 2) plot the data in the PNG file and
      on the screen.
    \end{itemize}
-\end{enumerate} 
- As previously mentioned, Figure~\ref{fig:historiesSparseGridPlotLine} 
- shows the evolution of the outputs $A,B,C,D$ under uncertainties. 
- Figures~\ref{fig:samplesSparseGridPlotLine} and 
- \ref{fig:samplesROMSparseGridPlotLine} show the final responses 
- of the sampling employed using the driven code and the ROM, 
+\end{enumerate}
+ As previously mentioned, Figure~\ref{fig:historiesSparseGridPlotLine}
+ shows the evolution of the outputs $A,B,C,D$ under uncertainties.
+ Figures~\ref{fig:samplesSparseGridPlotLine} and
+ \ref{fig:samplesROMSparseGridPlotLine} show the final responses
+ of the sampling employed using the driven code and the ROM,
  respectively. As it can be seen, the constructed ROM can perfectly
  represent the response of the driven code. This example shows the
- potential of reduced order modeling, in general, and of the 
+ potential of reduced order modeling, in general, and of the
  \textit{GaussPolynomialRom}, in particular.
- 
+
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  %figure samples
  \begin{figure}[h!]
