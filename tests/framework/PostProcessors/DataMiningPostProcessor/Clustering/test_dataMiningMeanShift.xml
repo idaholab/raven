@@ -43,29 +43,29 @@
     </IOStep>
     <IOStep name="output" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">DataSets</Input>
-      <Output class="OutStreamManager" type="Plot">PlotMeanShift</Output>
+      <Output class="OutStreams" type="Plot">PlotMeanShift</Output>
     </IOStep>
     <PostProcess name="MeanShiftBlobs" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">DataSets</Input>
       <Model class="Models" type="PostProcessor">MeanShiftBlobs</Model>
       <Output class="DataObjects" type="PointSet">DataSets</Output>
-      <Output class="OutStreamManager" type="Print">dummy</Output>
+      <Output class="OutStreams" type="Print">dummy</Output>
     </PostProcess>
     <PostProcess name="MeanShiftCircles" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">DataSets</Input>
       <Model class="Models" type="PostProcessor">MeanShiftCircles</Model>
       <Output class="DataObjects" type="PointSet">DataSets</Output>
-      <Output class="OutStreamManager" type="Print">dummy</Output>
+      <Output class="OutStreams" type="Print">dummy</Output>
     </PostProcess>
     <PostProcess name="MeanShiftMoons" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">DataSets</Input>
       <Model class="Models" type="PostProcessor">MeanShiftMoons</Model>
       <Output class="DataObjects" type="PointSet">DataSets</Output>
-      <Output class="OutStreamManager" type="Print">dummy</Output>
+      <Output class="OutStreams" type="Print">dummy</Output>
     </PostProcess>
   </Steps>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="dummy">
       <type>csv</type>
       <source>DataSets</source>
@@ -138,7 +138,7 @@
         <how>png</how>
       </actions>
     </Plot>
-  </OutStreamManager>
+  </OutStreams>
 
   <DataObjects>
     <PointSet name="DataSets">

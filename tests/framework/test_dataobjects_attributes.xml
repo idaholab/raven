@@ -57,13 +57,13 @@
       <Output class="DataObjects" type="PointSet">outGridTPS1</Output>
       <Output class="DataObjects" type="PointSet">outGridTPS2</Output>
       <Output class="DataObjects" type="Point">outGridTP</Output>
-      <Output class="OutStreamManager" type="Print">stories1_dump</Output>
-      <Output class="OutStreamManager" type="Print">stories2_dump</Output>
-      <Output class="OutStreamManager" type="Print">hst1_dump</Output>
-      <Output class="OutStreamManager" type="Print">hst2_dump</Output>
-      <Output class="OutStreamManager" type="Print">outGridTPS1_dump</Output>
-      <Output class="OutStreamManager" type="Print">outGridTPS2_dump</Output>
-      <Output class="OutStreamManager" type="Print">outGridTP_dump</Output>
+      <Output class="OutStreams" type="Print">stories1_dump</Output>
+      <Output class="OutStreams" type="Print">stories2_dump</Output>
+      <Output class="OutStreams" type="Print">hst1_dump</Output>
+      <Output class="OutStreams" type="Print">hst2_dump</Output>
+      <Output class="OutStreams" type="Print">outGridTPS1_dump</Output>
+      <Output class="OutStreams" type="Print">outGridTPS2_dump</Output>
+      <Output class="OutStreams" type="Print">outGridTP_dump</Output>
     </MultiRun>
     <IOStep name="TestDataObjectAttributesFromDataBase">
       <Input class="Databases" type="HDF5">testGridRavenDatabase</Input>
@@ -80,13 +80,13 @@
       <Output class="DataObjects" type="PointSet">outGridTPS1_from_DB</Output>
       <Output class="DataObjects" type="PointSet">outGridTPS2_from_DB</Output>
       <Output class="DataObjects" type="Point">outGridTP_from_DB</Output>
-      <Output class="OutStreamManager" type="Print">stories1_from_DB_dump</Output>
-      <Output class="OutStreamManager" type="Print">stories2_from_DB_dump</Output>
-      <Output class="OutStreamManager" type="Print">hst1_from_DB_dump</Output>
-      <Output class="OutStreamManager" type="Print">hst2_from_DB_dump</Output>
-      <Output class="OutStreamManager" type="Print">outGridTPS1_from_DB_dump</Output>
-      <Output class="OutStreamManager" type="Print">outGridTPS2_from_DB_dump</Output>
-      <Output class="OutStreamManager" type="Print">outGridTP_from_DB_dump</Output>
+      <Output class="OutStreams" type="Print">stories1_from_DB_dump</Output>
+      <Output class="OutStreams" type="Print">stories2_from_DB_dump</Output>
+      <Output class="OutStreams" type="Print">hst1_from_DB_dump</Output>
+      <Output class="OutStreams" type="Print">hst2_from_DB_dump</Output>
+      <Output class="OutStreams" type="Print">outGridTPS1_from_DB_dump</Output>
+      <Output class="OutStreams" type="Print">outGridTPS2_from_DB_dump</Output>
+      <Output class="OutStreams" type="Print">outGridTP_from_DB_dump</Output>
     </IOStep>
   </Steps>
 
@@ -94,7 +94,7 @@
     <HDF5 name="testGridRavenDatabase"/>
   </Databases>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="stories1_from_DB_dump">
       <type>csv</type>
       <source>stories1_from_DB</source>
@@ -151,7 +151,7 @@
       <type>csv</type>
       <source>outGridTP</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
   <DataObjects>
     <Point name="outGridTP">

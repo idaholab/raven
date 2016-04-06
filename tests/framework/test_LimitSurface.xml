@@ -87,29 +87,29 @@
       <Model class="Models" type="ExternalModel">PythonModule</Model>
       <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
       <Output class="DataObjects" type="PointSet">PointSetPostProcTest</Output>
-      <Output class="OutStreamManager" type="Print">PointSetPostProcTest_dump</Output>
+      <Output class="OutStreams" type="Print">PointSetPostProcTest_dump</Output>
     </MultiRun>
     <PostProcess name="ComputeLimitSurfacePositive">
       <Input class="DataObjects" type="PointSet">PointSetPostProcTest</Input>
       <Model class="Models" type="PostProcessor">computeLimitSurfacePositive</Model>
       <Output class="DataObjects" type="PointSet">LimitSurfacePositive</Output>
-      <Output class="OutStreamManager" type="Print">LimitSurfacePositive_dump</Output>
+      <Output class="OutStreams" type="Print">LimitSurfacePositive_dump</Output>
     </PostProcess>
     <PostProcess name="ComputeLimitSurfaceNegative">
       <Input class="DataObjects" type="PointSet">PointSetPostProcTest</Input>
       <Model class="Models" type="PostProcessor">computeLimitSurfaceNegative</Model>
       <Output class="DataObjects" type="PointSet">LimitSurfaceNegative</Output>
-      <Output class="OutStreamManager" type="Print">LimitSurfaceNegative_dump</Output>
+      <Output class="OutStreams" type="Print">LimitSurfaceNegative_dump</Output>
     </PostProcess>
     <PostProcess name="ComputeLimitSurfacePositiveNegative">
       <Input class="DataObjects" type="PointSet">PointSetPostProcTest</Input>
       <Model class="Models" type="PostProcessor">computeLimitSurfacePositiveNegative</Model>
       <Output class="DataObjects" type="PointSet">LimitSurfacePositiveNegative</Output>
-      <Output class="OutStreamManager" type="Print">LimitSurfacePositiveNegative_dump</Output>
+      <Output class="OutStreams" type="Print">LimitSurfacePositiveNegative_dump</Output>
     </PostProcess>
   </Steps>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="PointSetPostProcTest_dump">
       <type>csv</type>
       <source>PointSetPostProcTest</source>
@@ -126,7 +126,7 @@
       <type>csv</type>
       <source>LimitSurfacePositiveNegative</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
   <DataObjects>
     <PointSet name="PointSetPostProcTest">

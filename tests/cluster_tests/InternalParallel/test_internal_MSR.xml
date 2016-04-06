@@ -82,7 +82,7 @@
       <Model class="Models" type="ROM">uniform</Model>
       <Sampler class="Samplers" type="Grid">gridSampler</Sampler>
       <Output class="DataObjects" type="PointSet">outDataUniform</Output>
-      <Output class="OutStreamManager" type="Print">outDataParallel</Output>
+      <Output class="OutStreams" type="Print">outDataParallel</Output>
     </MultiRun>
     <RomTrainer name="train">
       <Input class="DataObjects" type="PointSet">trainingData</Input>
@@ -90,13 +90,13 @@
     </RomTrainer>
   </Steps>
 
-  <OutStreamManager>
+  <OutStreams>
     <!-- A csv file containing the output of the example -->
     <Print name="outDataParallel">
       <type>csv</type>
       <source>outDataUniform</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
   <DataObjects>
     <!-- The input PointSet object -->
