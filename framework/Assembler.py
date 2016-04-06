@@ -89,7 +89,7 @@ class Assembler(MessageHandler.MessageUser):
             for token in self.requiredAssObject[1][0]:
                 if subNode.tag in token:
                     found = True
-                    if 'class' not in subNode.attrib.keys(): self.raiseAnError(IOError,'In '+self.type + ' ' + self.name+ ', block ' + subNode.tag + ' does not have the attribute class!!')
+                    if 'class' not in subNode.attrib.keys(): self.raiseAnError(IOError,'In '+self.type + ' ' + self.name+ ', block ' + subNode.tag + ' does not have the attribute "class"!')
                     if  subNode.tag not in self.assemblerObjects.keys(): self.assemblerObjects[subNode.tag] = []
                     self.assemblerObjects[subNode.tag].append([subNode.attrib['class'],subNode.attrib['type'],subNode.text])
                     testObjects[token] += 1

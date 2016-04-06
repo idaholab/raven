@@ -33,12 +33,6 @@
   output = 'grid/GRIDdump1.xml grid/GRIDdump2.xml grid/GRIDdump3.xml'
   csv = 'grid/GRIDdump1.csv grid/GRIDdump2.csv grid/GRIDdump3.csv'
  [../]
- [./TruncatedGrid]
-   type = 'RavenFramework'
-   input = 'test_restart_Grid_truncated.xml'
-   output = 'trunc_grid/GRIDdump1.xml trunc_grid/GRIDdump2.xml trunc_grid/GRIDdump3.xml'
-   csv = 'trunc_grid/GRIDdump1.csv trunc_grid/GRIDdump2.csv trunc_grid/GRIDdump3.csv'
- [../]
 
  [./CSV]
   type = 'RavenFramework'

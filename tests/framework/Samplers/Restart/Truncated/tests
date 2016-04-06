@@ -1,0 +1,20 @@
+[Tests]
+ [./Grid]
+   type = 'RavenFramework'
+   input = 'grid.xml'
+   output = 'grid/GRIDdump1.xml grid/GRIDdump2.xml grid/GRIDdump3.xml'
+   csv = 'grid/GRIDdump1.csv grid/GRIDdump2.csv grid/GRIDdump3.csv'
+ [../]
+ [./SparseGridCollocation]
+   type = 'RavenFramework'
+   input = 'sparse_grid_collocation.xml'
+   output = 'sparse_grid_collocation/dump1.xml sparse_grid_collocation/dump2.xml sparse_grid_collocation/dump3.xml'
+   csv = 'sparse_grid_collocation/dump1.csv sparse_grid_collocation/dump2.csv sparse_grid_collocation/dump3.csv'
+ [../]
+ [./Sobol]
+   type = 'RavenFramework'
+   input = 'sobol.xml'
+   output = 'sobol/dump1.xml sobol/dump2.xml sobol/dump3.xml'
+   csv = 'sobol/dump1.csv sobol/dump2.csv sobol/dump3.csv'
+ [../]
+[]
