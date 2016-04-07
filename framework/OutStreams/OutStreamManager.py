@@ -12,10 +12,10 @@ if not 'xrange' in dir(__builtins__):
 #End compatibility block for Python 3-------------------------------------------
 
 #External Modules---------------------------------------------------------------
-from BaseClasses import BaseType
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
+from BaseClasses import BaseType
 import DataObjects
 import Models
 import utils
