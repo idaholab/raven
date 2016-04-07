@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="debug">
+<Simulation verbosity="silent">
   <RunInfo>
     <WorkingDir>grid</WorkingDir>
     <Sequence>make1,print1,load,make2,print2,print3</Sequence>
