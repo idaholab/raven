@@ -54,7 +54,7 @@ class OutStreamManager(BaseType):
     """
       Function to read the portion of the xml input that belongs to this
       specialized class and initialize some stuff based on the inputs received
-      @ In, xmlNode, xml.etree.Element, Xml element node
+      @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None
       The text is supposed to contain the info where and which variable to change.
       In case of a code the syntax is specified by the code interface itself
