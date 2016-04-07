@@ -2745,12 +2745,13 @@ class DataMining(BasePostProcessor):
     BasePostProcessor.__init__(self, messageHandler)
     self.printTag = 'POSTPROCESSOR DATAMINING'
     self.algorithms = []  # A list of Algorithms objects that contain definitions for all the algorithms the user wants
-    self.requiredAssObject = (True, (['Label','PreProcessor'], ['-1','-1']))  # The Label is optional for now....
+    self.requiredAssObject = (True, (['Label','PreProcessor','Metric'], ['-1','-1','-1']))  
     self.initializationOptionDict = {}
     self.clusterLabels = None
     self.labelAlgorithms = []
     self.dataObjects = []
     self.PreProcessor = None
+    self.metric = None
   
   def _localWhatDoINeed(self):
     """
@@ -2827,8 +2828,16 @@ class DataMining(BasePostProcessor):
           if param in features: inputDict['Features'][param] = currentInput.getParam('input', param)
         for param in currentInput.getParaKeys('output'):
           if param in features: inputDict['Features'][param] = currentInput.getParam('output', param)
-
       inputDict['metadata'] = currentInput.getAllMetadata()
+      
+    elif currentInput.type in ['HistorySet']:
+      if self.initializationOptionDict['KDD']['Features'] == 'input':
+        for param in currentInput.getParaKeys('input'): 
+          inputDict['Features'][param] = currentInput.getParam('input', param)  
+      elif self.initializationOptionDict['KDD']['Features'] == 'output': 
+        inputDict['Features'] = currentInput.getOutParametersValues()        
+      inputDict['metadata'] = currentInput.getAllMetadata()
+      
 
     return inputDict
 
@@ -2847,8 +2856,10 @@ class DataMining(BasePostProcessor):
         for _ in self.assemblerDict[key]:
           self.labelAlgorithms.append(self.assemblerDict[key][indice][3])
           indice += 1
-      elif 'PreProcessor' == key:
+      if 'PreProcessor' == key:
         self.PreProcessor = self.assemblerDict['PreProcessor'][0][3]
+      if 'Metric' == key:
+        self.metric = self.assemblerDict['Metric'][0][3]
 
   def _localReadMoreXML(self, xmlNode):
     """
@@ -2880,11 +2891,6 @@ class DataMining(BasePostProcessor):
             except ValueError:
               try: self.initializationOptionDict[child.tag][childChild.tag] = float(childChild.text)
               except ValueError: self.initializationOptionDict[child.tag][childChild.tag] = childChild.text
-      
-      if child.tag == 'Metric':
-        for childChild in child:
-          self.initializationOptionDict[child.tag][childChild.tag] = {}
-          self.initializationOptionDict[child.tag][childChild.tag] = childChild.text
 
     if self.type: self.unSupervisedEngine = unSupervisedLearning.returnInstance(self.type, self, **self.initializationOptionDict['KDD'])
     else        : self.raiseAnError(IOError, 'No Data Mining Algorithm is supplied!')
@@ -2925,10 +2931,13 @@ class DataMining(BasePostProcessor):
       else                             : dataObject = self.dataObjects
     else: dataObject = None
     Input = self.inputToInternal(InputIn)
-
     outputDict = {}
     self.unSupervisedEngine.features = Input['Features']
-    if not self.unSupervisedEngine.amITrained:  self.unSupervisedEngine.train(Input['Features'])
+    if not self.unSupervisedEngine.amITrained:  
+      if self.metric == None:
+        self.unSupervisedEngine.train(Input['Features'])
+      else:
+        self.unSupervisedEngine.train(Input['Features'], self.metric)
 
     self.unSupervisedEngine.confidence()
     outputDict['output'] = {}

@@ -2,7 +2,7 @@
 <Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>time_dep_clustering_filtered</WorkingDir>
-    <Sequence>FirstMRun,pp1,filter0,filter1</Sequence>
+    <Sequence>FirstMRun,plotAllHists,pp1,filter0,filter1</Sequence>
     <batchSize>20</batchSize>
   </RunInfo>
   
@@ -18,6 +18,10 @@
       <Output  class="DataObjects"      type="HistorySet"    >outMC</Output>
       <Output  class="Databases"        type="HDF5"          >out_db</Output>
     </MultiRun>
+    <IOStep name="plotAllHists" pauseAtEnd="false">
+      <Input   class="DataObjects"      type="HistorySet"   >outMC</Input>
+      <Output  class="OutStreamManager" type="Plot"         >plot1</Output>
+    </IOStep>
     <PostProcess name="pp1" pauseAtEnd="True">
       <Input  class="DataObjects"      type="HistorySet"     >outMC</Input>
       <Model  class="Models"           type="PostProcessor"  >KMeans1</Model>
@@ -105,7 +109,6 @@
     <PostProcessor name="dataPreProc" subType="InterfacedPostProcessor">
        <method>HS2PS</method>
        <timeID>time</timeID>
-       <features>x</features>
     </PostProcessor>
     <ExternalModel ModuleToLoad="lorentzAttractor_disc" name="PythonModule" subType="">
       <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0</variables>
@@ -168,6 +171,24 @@
 	    <type>csv</type>
 	    <source>outMC</source>
 	  </Print>
+
+    <Plot dim="3" name="plot1" overwrite="false" verbosity="debug">
+      <plotSettings>
+        <plot>
+          <type>line</type>
+          <interpolationType>cubic</interpolationType>
+          <interpPointsX>100</interpPointsX>
+          <x>outMC|Output|time</x>
+          <y>outMC|Output|y</y>
+          <z>outMC|Output|z</z>
+        </plot>
+        <xlabel>time</xlabel>
+        <ylabel>x</ylabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>
 	  
     <Plot dim="2" name="plot3" overwrite="false" verbosity="debug">
       <plotSettings>

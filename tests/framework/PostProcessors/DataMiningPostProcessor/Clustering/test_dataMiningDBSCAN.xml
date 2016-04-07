@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="silent">
+<Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>DBSCAN</WorkingDir>
     <Sequence>readIn,DBSCANBlobs,output</Sequence>
@@ -22,18 +22,18 @@
 
   <Steps>
     <IOStep name="readIn" pauseAtEnd="True">
-      <Input class="Files" type="">DataSetsFile</Input>
-      <Output class="DataObjects" type="PointSet">DataSets</Output>
+      <Input  class="Files" type=""               >DataSetsFile</Input>
+      <Output class="DataObjects" type="PointSet" >DataSets</Output>
     </IOStep>
     <IOStep name="output" pauseAtEnd="True">
-      <Input class="DataObjects" type="PointSet">DataSets</Input>
-      <Output class="OutStreamManager" type="Plot">PlotDBSCANBlobs</Output>
+      <Input  class="DataObjects" type="PointSet"  >DataSets</Input>
+      <Output class="OutStreamManager" type="Plot" >PlotDBSCANBlobs</Output>
     </IOStep>
     <PostProcess name="DBSCANBlobs" pauseAtEnd="True">
-      <Input class="DataObjects" type="PointSet">DataSets</Input>
-      <Model class="Models" type="PostProcessor">DBSCANBlobs</Model>
-      <Output class="DataObjects" type="PointSet">DataSets</Output>
-      <Output class="OutStreamManager" type="Print">dummy</Output>
+      <Input  class="DataObjects" type="PointSet"   >DataSets</Input>
+      <Model  class="Models" type="PostProcessor"   >DBSCANBlobs</Model>
+      <Output class="DataObjects" type="PointSet"   >DataSets</Output>
+      <Output class="OutStreamManager" type="Print" >dummy</Output>
     </PostProcess>
   </Steps>
 

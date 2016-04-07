@@ -2,6 +2,7 @@
 import os
 import copy
 import shutil
+import math
 import numpy as np
 import abc
 import importlib
@@ -31,7 +32,10 @@ class Metric(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     
   def initialize(self,inputDict):
     pass
-    
+  
+  def _readMoreXML(self,xmlNode):
+    pass    
+  
   def readMoreXML(self,xmlNode):
     pass
     
@@ -45,18 +49,37 @@ class Test(Metric):
     self.param1 = inputDict[param1]
     self.p = None
   
-  def readMoreXML(self,xmlNode):
+  def _readMoreXML(self,xmlNode):
     for child in xmlNode:
       if child.tag == 'p':
-        self.p = child.text
+        self.p = float(child.text)
   
-  def distance(self,x,y):
-    value = 0
-    for i in range(x.size):
-      value += (x[i]-y[i])**self.p
-    return math.sqrt(value)
-    
-    
+  def distance(self,x,y):    
+    if isinstance(x,np.ndarray) and isinstance(y,np.ndarray):
+      value = 0
+      for i in range(x.size):
+        value += (x[i]-y[i])**self.p
+      return math.sqrt(value)
+    elif isinstance(x,dict) and isinstance(y,dict):
+      if x.keys() == y.keys():
+         value = 0
+         for key in x.keys():
+           for i in range(x[key].size):
+             value += (x[key][i]-y[key][i])**self.p 
+         return math.sqrt(value)       
+      else:
+        print('error')
+    else:
+      print('error')
+
+       
+# class DTW(Metric):  
+#   def initialize(self,inputDict):
+#   
+#   def readMoreXML(self,xmlNode):
+#   
+#   def distance(self,x,y):  
+
 
 """
  Factory......
@@ -64,6 +87,7 @@ class Test(Metric):
 __base = 'metric'
 __interFaceDict = {}
 __interFaceDict['Test'          ] = Test
+#__interFaceDict['DTW'           ] = DTW
 __knownTypes                      = list(__interFaceDict.keys())
 
 #for classType in __interFaceDict.values():

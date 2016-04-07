@@ -87,7 +87,6 @@
     <PostProcessor name="dataPreProc" subType="InterfacedPostProcessor">
        <method>HS2PS</method>
        <timeID>time</timeID>
-       <features>x</features>
     </PostProcessor>
     <ExternalModel ModuleToLoad="lorentzAttractor_disc" name="PythonModule" subType="">
       <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0</variables>
