@@ -113,19 +113,19 @@ At the \xmlNode{Simulation} node, the following global variables can be set:
 
 
 \subsection{External Input Files}
-The \xmlNode{ExternalXML} node defines external input file (XML format) that can be used to replace any XML nodes 
-under \xmlNode{Simulation} in the RAVEN input file. This node allows a user to load any external input file that contains 
+The \xmlNode{ExternalXML} node defines external input file (XML format) that can be used to replace any XML nodes
+under \xmlNode{Simulation} in the RAVEN input file. This node allows a user to load any external input file that contains
 the required XML nodes into the RAVEN input file. Each \xmlNode{ExternalXML} node has the following attributes:
 \begin{itemize}
-\item \xmlAttr{node}, \xmlDesc{required string attribute}, user-defined XML node of RAVEN input file. 
-\item \xmlAttr{xmlToLoad}, \xmlDesc{required string attribute}, file name with its absolute or relative path. Note: if a 
+\item \xmlAttr{node}, \xmlDesc{required string attribute}, user-defined XML node of RAVEN input file.
+\item \xmlAttr{xmlToLoad}, \xmlDesc{required string attribute}, file name with its absolute or relative path. Note: if a
 relative path is specified, it must be relative with respect to the RAVEN input file.
 \end{itemize}
 %
-For example, if the file \texttt{Models.xml} contain the required RAVEN input XML node \xmlNode{Models}, 
-the RAVEN input file might appear as: 
+For example, if the file \texttt{Models.xml} contain the required RAVEN input XML node \xmlNode{Models},
+the RAVEN input file might appear as:
 %
-\begin{lstlisting}[style=XML,morekeywords={node,xmlToLoad}]  
+\begin{lstlisting}[style=XML,morekeywords={node,xmlToLoad}]
 <Simulation>
   ...
   <Steps>
@@ -137,9 +137,9 @@ the RAVEN input file might appear as:
 </Simulation>
 \end{lstlisting}
 %
-Another example, if the file \texttt{MultiRun.xml} contain the required RAVEN input XML node \xmlNode{MultiRun} 
+Another example, if the file \texttt{MultiRun.xml} contain the required RAVEN input XML node \xmlNode{MultiRun}
 under node \xmlNode{Steps}, the RAVEN input file might appear as:
-\begin{lstlisting}[style=XML,morekeywords={node,xmlToLoad}]  
+\begin{lstlisting}[style=XML,morekeywords={node,xmlToLoad}]
 <Simulation>
   ...
   <Steps>
