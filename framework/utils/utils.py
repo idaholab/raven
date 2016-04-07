@@ -680,7 +680,6 @@ def NDInArray(findIn,val,tol=1e-12):
     @ In, tol, float, optional, tolerance to check match within
     @ Out, (bool,idx,val) -> (found/not found, index where found or None, findIn entry or None)
   """
-  #print ('DEBUG',findIn,type(findIn))
   if len(findIn)<1:
     return False,None,None
   targ = []

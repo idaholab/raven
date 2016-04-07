@@ -4000,7 +4000,6 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
                       'iSet' :iset
                       })
     #while the training won't always need all of solns, it is smart enough to take what it needs
-    self.raiseADebug('What ROM are we making?',rom.SupervisedEngine.values()[0].features,rom.SupervisedEngine.keys())
     rom.train(self.solns)
     return rom
 
