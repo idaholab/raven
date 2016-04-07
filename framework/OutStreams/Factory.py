@@ -1,7 +1,7 @@
 """
-Created on April 5, 2016
-@author: maljdp
-extracted from alfoa (11/14/2013) OutStreamManager.py
+  Created on April 5, 2016
+  @author: maljdp
+  extracted from alfoa (11/14/2013) OutStreamManager.py
 """
 #for future compatibility with Python 3-----------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
@@ -22,7 +22,7 @@ from .OutStreamPrint import OutStreamPrint
 ################################################################################
 
 """
- Interface Dictionary (factory) (private)
+  Interface Dictionary (factory) (private)
 """
 # This machinery will automatically populate the "knownTypes" given the
 # imports defined above.
@@ -38,19 +38,20 @@ for classObj in eval(__base).__subclasses__():
 
 def knownTypes():
   """
-  Returns a list of strings that define the types of instantiable objects for
-  this base factory.
+    Returns a list of strings that define the types of instantiable objects for
+    this base factory.
   """
   return __interFaceDict.keys()
 
 def returnInstance(Type,caller):
   """
-  Attempts to create and return an instance of a particular type of object
-  available to this factory.
-  @ In, Type, string should be one of the knownTypes.
-  @ In, caller, the object requesting the instance
-                (used for error/debug messaging).
-  @ Out, subclass object constructed with no arguments
+    Attempts to create and return an instance of a particular type of object
+    available to this factory.
+    @ In, Type, string should be one of the knownTypes.
+    @ In, caller, MessageUser, the object requesting the instance
+                  (used for error/debug messaging).
+    @ Out, __interFaceDict[Type], instance of OutStreamManager subclass,
+      a subclass object constructed with no arguments
   """
   try:
     return __interFaceDict[Type]()
@@ -61,11 +62,11 @@ def returnInstance(Type,caller):
 
 def returnClass(Type,caller):
   """
-  Attempts to return a particular class type available to this factory.
-  @ In, Type, string should be one of the knownTypes.
-  @ In, caller, the object requesting the class
-                (used for error/debug messaging).
-  @ Out, reference to the subclass
+    Attempts to return a particular class type available to this factory.
+    @ In, Type, string should be one of the knownTypes.
+    @ In, caller, the object requesting the class
+                  (used for error/debug messaging).
+    @ Out, reference to the subclass
   """
   try:
     return __interFaceDict[Type]
