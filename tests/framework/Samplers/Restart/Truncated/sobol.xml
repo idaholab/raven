@@ -2,12 +2,13 @@
 <Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>sobol</WorkingDir>
-    <Sequence>make1,print1,make2,print2,print3</Sequence>
+    <Sequence>make1,print1,load,make2,print2,print3</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
   <Files>
       <Input name="inp" type="">input_truncated.i</Input>
+      <Input name="csv" type="">dump1.csv</Input>
   </Files>
 
   <Steps>
@@ -27,6 +28,10 @@
     <IOStep name="print1">
       <Input class="DataObjects" type="PointSet">solns</Input>
       <Output class="OutStreamManager" type="Print">dump1</Output>
+    </IOStep>
+    <IOStep name="load">
+      <Input class="Files" type="">csv</Input>
+      <Output class="DataObjects" type="PointSet">restart</Output>
     </IOStep>
     <IOStep name="print2">
       <Input class="DataObjects" type="PointSet">solns2</Input>
@@ -53,26 +58,22 @@
     <Sobol name="1">
       <variable name="x">
         <distribution>u1</distribution>
-        <grid construction="equal" steps="1" type="CDF">0.0 1.0</grid>
       </variable>
       <variable name="y">
         <distribution>u2</distribution>
-        <grid construction="equal" steps="1" type="CDF">0.0 1.0</grid>
       </variable>
       <ROM class="Models" type="ROM">rom</ROM>
     </Sobol>
     <Sobol name="2">
-      <restartTolerance>1e-2</restartTolerance>
       <variable name="x">
         <distribution>u1</distribution>
-        <grid construction="equal" steps="2" type="CDF">0.0 1.0</grid>
       </variable>
       <variable name="y">
         <distribution>u2</distribution>
-        <grid construction="equal" steps="2" type="CDF">0.0 1.0</grid>
       </variable>
       <ROM class="Models" type="ROM">rom2</ROM>
-      <Restart class="DataObjects" type="PointSet">solns</Restart>
+      <Restart class="DataObjects" type="PointSet">restart</Restart>
+      <restartTolerance>1e-3</restartTolerance>
     </Sobol>
   </Samplers>
 
@@ -106,6 +107,10 @@
       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="solns">
+      <Input>x,y</Input>
+      <Output>a,b</Output>
+    </PointSet>
+    <PointSet name="restart">
       <Input>x,y</Input>
       <Output>a,b</Output>
     </PointSet>

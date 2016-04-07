@@ -1644,7 +1644,7 @@ class Grid(Sampler):
       else:
         self.counter+=1
         if self.counter>=self.limit: raise utils.NoMoreSamplesNeeded
-        self.raiseADebug('Existing point: '+str(newpoint))
+        self.raiseADebug('Point',newpoint,'found in restart.')
       self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
       self.inputInfo['ProbabilityWeight'] = copy.deepcopy(weight)
       self.inputInfo['SamplerType'] = 'Grid'
@@ -3500,6 +3500,7 @@ class SparseGridCollocation(Grid):
       except IndexError: raise utils.NoMoreSamplesNeeded
       inExisting,_,_ = utils.NDInArray(np.array(self.existing.keys()),pt,tol=self.restartTolerance)
       if inExisting:
+        self.raiseADebug('Found pt',pt,'in restart.')
         self.counter+=1
         if self.counter==self.limit: raise utils.NoMoreSamplesNeeded
         continue

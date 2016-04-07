@@ -2,8 +2,8 @@
  [./Grid]
    type = 'RavenFramework'
    input = 'grid.xml'
-   output = 'grid/GRIDdump1.xml grid/GRIDdump2.xml grid/GRIDdump3.xml'
-   csv = 'grid/GRIDdump1.csv grid/GRIDdump2.csv grid/GRIDdump3.csv'
+   output = 'grid/dump1.xml grid/dump2.xml grid/dump3.xml'
+   csv = 'grid/dump1.csv grid/dump2.csv grid/dump3.csv'
  [../]
  [./SparseGridCollocation]
    type = 'RavenFramework'

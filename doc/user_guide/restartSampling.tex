@@ -25,6 +25,7 @@ interface.  Within the run the following steps occur:
 \begin{enumerate}
   \item A grid is sampled that includes only the endpoints in each dimension.
   \item The results of the first sampling are written to file.
+  \item The results in the CSV are read back in to a new \xmlNode{DataObject} called \xmlString{restart}.
   \item A second, more dense grid is sampled that requires the points of the first sampling, plus several
     more.  The results are added both to the original \xmlNode{DataObject} as well as a new one, for
     demonstration purposes.
@@ -39,9 +40,6 @@ corresponding to the endpoints of the distributions.  \texttt{GRIDdump3.csv} con
 to include the midpoints of the distributions as well as the endpoints.  \texttt{GRIDdump2.csv} contains only
 those points that were not already obtained in the first sampling, but still needed for the more dense
 sampling.
-
-\nb This example does not include loading existing external data into an internal \xmlNode{DataObject}, but
-this can be performed in the usual manner before being used as a restart.
 
 
 \footnotesize
