@@ -100,7 +100,7 @@
             <xsd:element name="samplerInit" type="samplerInitType" minOccurs="1"/>
             <xsd:element name="variable"     type="variableType"    minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="Restart"      type="AssemblerObjectType"   minOccurs="0"  maxOccurs="unbounded"/>
-            <xsd:element name="restartTolerance" type="xsd:float"   minOccurs="0"  maxOccurs="unbounded"/>
+            <xsd:element name="restartTolerance" type="xsd:float"   minOccurs="0"  maxOccurs="1"/>
             <xsd:element name="variablesTransformation" type="variablesTransformationType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
@@ -127,7 +127,7 @@
                 </xsd:complexType>
             </xsd:element>
             <xsd:element name="Restart"         type="AssemblerObjectType"   minOccurs="0"  maxOccurs="unbounded"/>
-            <xsd:element name="restartTolerance" type="xsd:float"   minOccurs="0"  maxOccurs="unbounded"/>
+            <xsd:element name="restartTolerance" type="xsd:float"   minOccurs="0"  maxOccurs="1"/>
             <xsd:element name="variablesTransformation" type="variablesTransformationType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
@@ -140,7 +140,7 @@
             <!--xsd:element name="Distribution" type="variableType"          minOccurs="0" maxOccurs="unbounded"/-->
             <xsd:element name="ROM"             type="AssemblerObjectType"   minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="Restart"         type="AssemblerObjectType"   minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="restartTolerance" type="xsd:float"   minOccurs="0"  maxOccurs="unbounded"/>
+            <xsd:element name="restartTolerance" type="xsd:float"   minOccurs="0"  maxOccurs="1"/>
         </xsd:sequence>
         <xsd:attribute name="name"     type="xsd:string" use="required"/>
         <xsd:attribute name="parallel" type="xsd:string"/>
@@ -272,7 +272,7 @@
     </xsd:complexType>
     <xsd:complexType name="AdaptiveSobolSampler">
       <xsd:sequence>
-        <xsd:element name="restartTolerance" type="xsd:float"   minOccurs="0"  maxOccurs="unbounded"/>
+        <xsd:element name="restartTolerance" type="xsd:float"   minOccurs="0"  maxOccurs="1"/>
         <xsd:element name="Convergence"      type="adaptiveSobolConvergence" minOccurs="1" maxOccurs="unbounded"/>
         <xsd:element name="convergenceStudy" type="convergenceStudyType" minOccurs="0"/>
         <xsd:element name="variable"         type="variableType"             minOccurs="1" maxOccurs="unbounded"/>
@@ -292,7 +292,7 @@
                     <xsd:attribute name="persistence"    type="xsd:integer"/>
                 </xsd:complexType>
             </xsd:element>
-            <xsd:element name="restartTolerance" type="xsd:float"   minOccurs="0"  maxOccurs="unbounded"/>
+            <xsd:element name="restartTolerance" type="xsd:float"   minOccurs="0"  maxOccurs="1"/>
             <xsd:element name="convergenceStudy" type="convergenceStudyType" minOccurs="0"/>
             <xsd:element name="variable"         type="variableType"             minOccurs="1" maxOccurs="unbounded"/>
             <xsd:element name="variablesTransformation" type="variablesTransformationType" minOccurs="0" maxOccurs="unbounded"/>
