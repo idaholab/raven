@@ -24,6 +24,7 @@ import re
 
 #Internal Modules---------------------------------------------------------------
 import utils
+import mathUtils
 from cached_ndarray import c1darray
 from .OutStreamManager import OutStreamManager
 #Internal Modules End-----------------------------------------------------------
@@ -823,7 +824,7 @@ class OutStreamPlot(OutStreamManager):
             for yIndex in range(len(self.yValues[pltindex][key])):
               if self.dim == 2:
                 if self.yValues[pltindex][key][yIndex].size < 2: return
-                xi, yi = utils.interpolateFunction(self.xValues[pltindex][key][xIndex], self.yValues[pltindex][key][yIndex], self.options['plotSettings']['plot'][pltindex], returnCoordinate = True)
+                xi, yi = mathUtils.interpolateFunction(self.xValues[pltindex][key][xIndex], self.yValues[pltindex][key][yIndex], self.options['plotSettings']['plot'][pltindex], returnCoordinate = True)
                 if self.colorMapCoordinates[pltindex] != None:
                   # if a color map has been added, we use a scattered plot instead...
                   if self.actcm: first = False
@@ -946,7 +947,7 @@ class OutStreamPlot(OutStreamManager):
               else: xi = np.linspace(self.xValues[pltindex][key][xIndex].min(), self.xValues[pltindex][key][xIndex].max(), ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['interpPointsX']))
               for yIndex in range(len(self.yValues[pltindex][key])):
                 if self.yValues[pltindex][key][yIndex].size <= 3: return
-                yi = utils.interpolateFunction(self.xValues[pltindex][key][xIndex], self.yValues[pltindex][key][yIndex], self.options['plotSettings']['plot'][pltindex])
+                yi = mathUtils.interpolateFunction(self.xValues[pltindex][key][xIndex], self.yValues[pltindex][key][yIndex], self.options['plotSettings']['plot'][pltindex])
                 self.actPlot = self.plt.step(xi, yi, where = self.options['plotSettings']['plot'][pltindex]['where'], **self.options['plotSettings']['plot'][pltindex].get('attributes', {}))
         elif self.dim == 3:
           self.raiseAWarning('step Plot not available in 3D')
@@ -964,7 +965,7 @@ class OutStreamPlot(OutStreamManager):
                   return
                 for zIndex in range(len(self.colorMapValues[pltindex][key])):
                   if self.colorMapValues[pltindex][key][zIndex].size <= 3: return
-                  xig, yig, Ci = utils.interpolateFunction(self.xValues[pltindex][key][xIndex], self.yValues[pltindex][key][yIndex], self.options['plotSettings']['plot'][pltindex], z = self.colorMapValues[pltindex][key][zIndex], returnCoordinate = True)
+                  xig, yig, Ci = mathUtils.interpolateFunction(self.xValues[pltindex][key][xIndex], self.yValues[pltindex][key][yIndex], self.options['plotSettings']['plot'][pltindex], z = self.colorMapValues[pltindex][key][zIndex], returnCoordinate = True)
                   if self.options['plotSettings']['plot'][pltindex]['cmap'] == 'None':
                       self.actPlot = self.plt.pcolormesh(xig, yig, ma.masked_where(np.isnan(Ci), Ci), **self.options['plotSettings']['plot'][pltindex].get('attributes', {}))
                       m = self.mpl.cm.ScalarMappable(norm = self.actPlot.norm)
@@ -994,8 +995,8 @@ class OutStreamPlot(OutStreamManager):
               for yIndex in range(len(self.yValues[pltindex][key])):
                 for zIndex in range(len(self.zValues[pltindex][key])):
                   if self.zValues[pltindex][key][zIndex].size <= 3: return
-                  if self.colorMapCoordinates[pltindex] != None: xig, yig, Ci = utils.interpolateFunction(self.xValues[pltindex][key][xIndex], self.yValues[pltindex][key][yIndex], self.options['plotSettings']['plot'][pltindex], z = self.colorMapValues[pltindex][key][zIndex], returnCoordinate = True)
-                  xig, yig, zi = utils.interpolateFunction(self.xValues[pltindex][key][xIndex], self.yValues[pltindex][key][yIndex], self.options['plotSettings']['plot'][pltindex], z = self.zValues[pltindex][key][zIndex], returnCoordinate = True)
+                  if self.colorMapCoordinates[pltindex] != None: xig, yig, Ci = mathUtils.interpolateFunction(self.xValues[pltindex][key][xIndex], self.yValues[pltindex][key][yIndex], self.options['plotSettings']['plot'][pltindex], z = self.colorMapValues[pltindex][key][zIndex], returnCoordinate = True)
+                  xig, yig, zi = mathUtils.interpolateFunction(self.xValues[pltindex][key][xIndex], self.yValues[pltindex][key][yIndex], self.options['plotSettings']['plot'][pltindex], z = self.zValues[pltindex][key][zIndex], returnCoordinate = True)
                   if self.colorMapCoordinates[pltindex] != None:
                     if self.actcm: first = False
                     else         : first = True
@@ -1080,8 +1081,8 @@ class OutStreamPlot(OutStreamManager):
               for yIndex in range(len(self.yValues[pltindex][key])):
                 for zIndex in range(len(self.zValues[pltindex][key])):
                   if self.zValues[pltindex][key][zIndex].size <= 3: return
-                  if self.colorMapCoordinates[pltindex] != None: xig, yig, Ci = utils.interpolateFunction(self.xValues[pltindex][key][xIndex], self.yValues[pltindex][key][yIndex], self.options['plotSettings']['plot'][pltindex], z = self.colorMapValues[pltindex][key][zIndex], returnCoordinate = True)
-                  xig, yig, zi = utils.interpolateFunction(self.xValues[pltindex][key][xIndex], self.yValues[pltindex][key][yIndex], self.options['plotSettings']['plot'][pltindex], z = self.zValues[pltindex][key][zIndex], returnCoordinate = True)
+                  if self.colorMapCoordinates[pltindex] != None: xig, yig, Ci = mathUtils.interpolateFunction(self.xValues[pltindex][key][xIndex], self.yValues[pltindex][key][yIndex], self.options['plotSettings']['plot'][pltindex], z = self.colorMapValues[pltindex][key][zIndex], returnCoordinate = True)
+                  xig, yig, zi = mathUtils.interpolateFunction(self.xValues[pltindex][key][xIndex], self.yValues[pltindex][key][yIndex], self.options['plotSettings']['plot'][pltindex], z = self.zValues[pltindex][key][zIndex], returnCoordinate = True)
                   if self.colorMapCoordinates[pltindex] != None:
                     self.raiseAWarning('Currently, ax.plot_wireframe() in MatPlotLib version: ' + self.mpl.__version__ + ' does not support a colormap! Wireframe plotted on a surface plot...')
                     if self.actcm: first = False
@@ -1123,7 +1124,7 @@ class OutStreamPlot(OutStreamManager):
                 for zIndex in range(len(self.colorMapValues[pltindex][key])):
                   if self.actcm: first = False
                   else         : first = True
-                  xig, yig, Ci = utils.interpolateFunction(self.xValues[pltindex][key][xIndex], self.yValues[pltindex][key][yIndex], self.options['plotSettings']['plot'][pltindex], z = self.colorMapValues[pltindex][key][zIndex], returnCoordinate = True)
+                  xig, yig, Ci = mathUtils.interpolateFunction(self.xValues[pltindex][key][xIndex], self.yValues[pltindex][key][yIndex], self.options['plotSettings']['plot'][pltindex], z = self.colorMapValues[pltindex][key][zIndex], returnCoordinate = True)
                   if self.outStreamTypes[pltindex] == 'contour':
                       if self.options['plotSettings']['plot'][pltindex]['cmap'] == 'None':
                           if 'color' in self.options['plotSettings']['plot'][pltindex].get('attributes', {}).keys():
@@ -1161,7 +1162,7 @@ class OutStreamPlot(OutStreamManager):
                 for zIndex in range(len(self.colorMapValues[pltindex][key])):
                   if self.actcm: first = False
                   else         : first = True
-                  xig, yig, Ci = utils.interpolateFunction(self.xValues[pltindex][key][xIndex], self.yValues[pltindex][key][yIndex], self.options['plotSettings']['plot'][pltindex], z = self.colorMapValues[pltindex][key][zIndex], returnCoordinate = True)
+                  xig, yig, Ci = mathUtils.interpolateFunction(self.xValues[pltindex][key][xIndex], self.yValues[pltindex][key][yIndex], self.options['plotSettings']['plot'][pltindex], z = self.colorMapValues[pltindex][key][zIndex], returnCoordinate = True)
                   if self.outStreamTypes[pltindex] == 'contour3D':
                       if self.options['plotSettings']['plot'][pltindex]['cmap'] == 'None':
                           if 'color' in self.options['plotSettings']['plot'][pltindex].get('attributes', {}).keys():

@@ -31,6 +31,7 @@ import math
 
 #Internal Modules------------------------------------------------------------------------------------
 import utils
+import mathUtils
 import MessageHandler
 import TreeStructure
 interpolationND = utils.find_interpolationND()
@@ -619,7 +620,7 @@ class GaussPolynomialRom(superVisedLearning):
     sgs = list(self.sparseGrid.points())
     missing=[]
     for pt in sgs:
-      found,idx,point = utils.NDInArray(featureVals,pt)
+      found,idx,point = mathUtils.NDInArray(featureVals,pt)
       if found:
         fvs.append(point)
         tvs.append(targetVals[idx])

@@ -4,11 +4,10 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
 
-import numpy as np
+#import numpy as np
 import bisect
 import sys, os
-from scipy.interpolate import Rbf, griddata
-import copy
+#from scipy.interpolate import Rbf, griddata
 import inspect
 import subprocess
 import platform
@@ -311,22 +310,6 @@ def toStrish(s):
   else:
     return str(s)
 
-def convertNumpyToLists(inputDict):
-  """
-    Method aimed to convert a dictionary containing numpy
-    arrays or a single numpy array in list
-    @ In, inputDict, dict or numpy array,  object whose content needs to be converted
-    @ Out, response, dict or list, same object with its content converted
-  """
-  returnDict = inputDict
-  if type(inputDict) == dict:
-    for key, value in inputDict.items():
-      if   type(value) == np.ndarray: returnDict[key] = value.tolist()
-      elif type(value) == dict      : returnDict[key] = (convertNumpyToLists(value))
-      else                          : returnDict[key] = value
-  elif type(inputDict) == np.ndarray: returnDict = inputDict.tolist()
-  return returnDict
-
 def keyIn(dictionary,key):
   """
     Method that return the key or toBytes key if in, else returns None.
@@ -480,55 +463,6 @@ def metaclass_insert(metaclass,*baseClasses):
   namespace={}
   return metaclass("NewMiddleClass",baseClasses,namespace)
 
-def interpolateFunction(x,y,option,z = None,returnCoordinate=False):
-  """
-    Method to interpolate 2D/3D points
-    @ In, x, ndarray or cached_ndarray, the array of x coordinates
-    @ In, y, ndarray or cached_ndarray, the array of y coordinates
-    @ In, z, ndarray or cached_ndarray, optional, the array of z coordinates
-    @ In, returnCoordinate, bool, optional, true if the new coordinates need to be returned
-    @ Out, i, ndarray or cached_ndarray or tuple, the interpolated values
-  """
-  options = copy.copy(option)
-  if x.size <= 2: xi = x
-  else          : xi = np.linspace(x.min(),x.max(),int(options['interpPointsX']))
-  if z != None:
-    if y.size <= 2: yi = y
-    else          : yi = np.linspace(y.min(),y.max(),int(options['interpPointsY']))
-    xig, yig = np.meshgrid(xi, yi)
-    try:
-      if ['nearest','linear','cubic'].count(options['interpolationType']) > 0 or z.size <= 3:
-        if options['interpolationType'] != 'nearest' and z.size > 3: zi = griddata((x,y), z, (xi[None,:], yi[:,None]), method=options['interpolationType'])
-        else: zi = griddata((x,y), z, (xi[None,:], yi[:,None]), method='nearest')
-      else:
-        rbf = Rbf(x,y,z,function=str(str(options['interpolationType']).replace('Rbf', '')), epsilon=int(options.pop('epsilon',2)), smooth=float(options.pop('smooth',0.0)))
-        zi  = rbf(xig, yig)
-    except Exception as ae:
-      if 'interpolationTypeBackUp' in options.keys():
-        print(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('Warning') + '->   The interpolation process failed with error : ' + str(ae) + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ options['interpolationTypeBackUp'])
-        options['interpolationTypeBackUp'] = options.pop('interpolationTypeBackUp')
-        zi = interpolateFunction(x,y,z,options)
-      else: raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('ERROR') + '-> Interpolation failed with error: ' +  str(ae))
-    if returnCoordinate: return xig,yig,zi
-    else               : return zi
-  else:
-    try:
-      if ['nearest','linear','cubic'].count(options['interpolationType']) > 0 or y.size <= 3:
-        if options['interpolationType'] != 'nearest' and y.size > 3: yi = griddata((x), y, (xi[:]), method=options['interpolationType'])
-        else: yi = griddata((x), y, (xi[:]), method='nearest')
-      else:
-        xig, yig = np.meshgrid(xi, yi)
-        rbf = Rbf(x, y,function=str(str(options['interpolationType']).replace('Rbf', '')),epsilon=int(options.pop('epsilon',2)), smooth=float(options.pop('smooth',0.0)))
-        yi  = rbf(xi)
-    except Exception as ae:
-      if 'interpolationTypeBackUp' in options.keys():
-        print(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('Warning') + '->   The interpolation process failed with error : ' + str(ae) + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ options['interpolationTypeBackUp'])
-        options['interpolationTypeBackUp'] = options.pop('interpolationTypeBackUp')
-        yi = interpolateFunction(x,y,options)
-      else: raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('ERROR') + '-> Interpolation failed with error: ' +  str(ae))
-    if returnCoordinate: return xi,yi
-    else               : return yi
-
 class abstractstatic(staticmethod):
   """
     This can be make an abstract static method
@@ -660,48 +594,6 @@ def printCsvPart(csv,*args):
       @ Out, None
     """
     print(*args,file=csv,sep=',',end=',')
-
-def numpyNearestMatch(findIn,val):
-  """
-    Given an array, find the entry that most nearly matches the given value.
-    @ In, findIn, np.array, the array to look in
-    @ In, val, float or other compatible type, the value for which to find a match
-    @ Out, returnMatch, tuple, index where match is and the match itself
-  """
-  idx = (np.abs(findIn-val)).argmin()
-  returnMatch = idx,findIn[idx]
-  return returnMatch
-
-def NDInArray(findIn,val,tol=1e-12):
-  """
-    checks a numpy array of numpy arrays for a near match, then returns info.
-    @ In, findIn, np.array, numpy array of numpy arrays (both arrays can be any length)
-    @ In, val, tuple/list/numpy array, entry to look for in findIn
-    @ In, tol, float, optional, tolerance to check match within
-    @ Out, (bool,idx,looking) -> (found/not found, index where found or None, findIn entry or None)
-  """
-  if len(findIn)<1:
-    return False,None,None
-  targ = []
-  found = False
-  for idx,looking in enumerate(findIn):
-    num = looking - val
-    den = np.array(val)
-    #div 0 error
-    for i,v in enumerate(den):
-      if v == 0.0:
-        if looking[i] != 0:
-          den[i] = looking[i]
-        elif looking[i] + den[i] != 0.0:
-          den[i] = 0.5*(looking[i] + den[i])
-        else:
-          den[i] = 1
-    if np.all(abs(num / den)<tol):
-      found = True
-      break
-  if not found:
-    return False,None,None
-  return found,idx,looking
 
 
 class pickleSafeSubprocessPopen(subprocess.Popen):
