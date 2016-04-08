@@ -590,6 +590,9 @@ class ComparisonStatistics(BasePostProcessor):
   """
 
   class CompareGroup:
+    """
+      Class aimed to compare two group of data
+    """
     def __init__(self):
       """
         Constructor
@@ -817,6 +820,11 @@ class ComparisonStatistics(BasePostProcessor):
         for i in range(len(graphData)):
           dataStat = graphData[i][0]
           def delist(l):
+            """
+              Method to create a string out of a list l
+              @ In, l, list, the list to be 'stringed' out
+              @ Out, delist, string, the string representing the list
+            """
             if type(l).__name__ == 'list':
               return '_'.join([delist(x) for x in l])
             else:

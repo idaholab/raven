@@ -29,10 +29,10 @@ Each \xmlNode{Group} node has the following attributes:
 \begin{itemize}
   \itemsep0em
   \item \xmlAttr{name}, \xmlDesc{required string attribute}, user-defined name
-  of the group. This is the identifier that will be used elsewhere in the RAVEN input. 
+  of the group. This is the identifier that will be used elsewhere in the RAVEN input.
   %
-  \item \xmlAttr{dependencies}, \xmlDesc{optional comma-separated string attribute}, the other variable groups 
-    on which this group is dependent for construction.  If listed, all entries in the text of this node must 
+  \item \xmlAttr{dependencies}, \xmlDesc{optional comma-separated string attribute}, the other variable groups
+    on which this group is dependent for construction.  If listed, all entries in the text of this node must
     be proceeded by one of the set operators above.  Defaults to an empty string.
   \item \xmlAttr{base}, \xmlDesc{optional string attribute}, the starting set for constructing a dependent
     variable group.  This attribute is required if any dependencies are listed.  Set operations are performed
@@ -41,9 +41,9 @@ Each \xmlNode{Group} node has the following attributes:
 \end{itemize}
 \vspace{-5mm}
 
-An example of constructing and using variable groups is listed here.  The variable groups \xmlString{x\_odd}, 
-\xmlString{x\_even}, \xmlString{x\_first},  and  \xmlString{y\_group} are constructed independently, and the 
-remainder are examples of other operations. 
+An example of constructing and using variable groups is listed here.  The variable groups \xmlString{x\_odd},
+\xmlString{x\_even}, \xmlString{x\_first},  and  \xmlString{y\_group} are constructed independently, and the
+remainder are examples of other operations.
 \begin{lstlisting}[style=XML,morekeywords={name,file}] %moreemph={name,file}]
 <Simulation>
   ...

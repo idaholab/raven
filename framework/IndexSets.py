@@ -1,3 +1,9 @@
+"""
+Created on December 14, 2014
+
+This module is aimed to manage the createion of index Set (set of all combinations of polynomial orders
+that are needed to represent the original model)
+"""
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
@@ -204,6 +210,11 @@ class TensorProduct(IndexSet):
     self.printTag='TensorProductIndexSet'
     target = sum(self.impWeights)/float(len(self.impWeights))*self.maxOrder
     def rule(i):
+      """
+        Method to define the index rule
+        @ In, i, list, list of points
+        @ Out, rule, bool, if big is <= target
+      """
       big=0
       for j,p in enumerate(i):
         big=max(big,p*self.impWeights[j])
@@ -231,12 +242,16 @@ class TotalDegree(IndexSet):
     #  - right now is only limited by the maximum overall level (and importance weight)
     target = sum(self.impWeights)/float(len(self.impWeights))*self.maxOrder
     def rule(i):
+      """
+        Method to define the index rule
+        @ In, i, list, list of points
+        @ Out, rule, bool, if tot is <= target
+      """
       tot=0
       for j,p in enumerate(i):
         tot+=p*self.impWeights[j]
       return tot<=target
     self.points = self.generateMultiIndex(len(features),rule)
-
 
 
 class HyperbolicCross(IndexSet):
@@ -258,6 +273,11 @@ class HyperbolicCross(IndexSet):
     #  - right now is only limited by the maximum overall level (and importance weight)
     target = (self.maxOrder+1)**(sum(self.impWeights)/max(1,float(len(self.impWeights))))
     def rule(i):
+      """
+        Method to define the index rule
+        @ In, i, list, list of points
+        @ Out, rule, bool, if big is <= target
+      """
       tot=1
       for e,val in enumerate(i):
         tot*=(val+1)**self.impWeights[e]

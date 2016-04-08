@@ -1,6 +1,22 @@
 #!/usr/bin/env python
+"""
+Created on November 13, 2013
 
+@author: cogljj
+
+This module is used to employ QSUB commands when the PBS protocol is available
+"""
+from __future__ import division, print_function , unicode_literals, absolute_import
+import warnings
+warnings.simplefilter('default', DeprecationWarning)
+
+#External Modules------------------------------------------------------------------------------------
 import os,subprocess,sys
+#External Modules End--------------------------------------------------------------------------------
+
+#Internal Modules------------------------------------------------------------------------------------
+#Internal Modules End--------------------------------------------------------------------------------
+
 
 moduleCommand = False
 for possibleModuleCommand in ["/apps/local/modules/bin/modulecmd","/usr/bin/modulecmd"]:
