@@ -678,17 +678,30 @@ def NDInArray(findIn,val,tol=1e-12):
     @ In, findIn, np.array, numpy array of numpy arrays (both arrays can be any length)
     @ In, val, tuple/list/numpy array, entry to look for in findIn
     @ In, tol, float, optional, tolerance to check match within
-    @ Out, (bool,idx,val) -> (found/not found, index where found or None, findIn entry or None)
+    @ Out, (bool,idx,looking) -> (found/not found, index where found or None, findIn entry or None)
   """
-  loc = np.where(np.all(np.abs(findIn-val)<tol,axis=1)==1)
-  if len(loc[0])>0:
-    found = True
-    idx = loc[0][0]
-    val = findIn[idx]
-  else:
-    found = False
-    idx = val = None
-  return found,idx,val
+  if len(findIn)<1:
+    return False,None,None
+  targ = []
+  found = False
+  for idx,looking in enumerate(findIn):
+    num = looking - val
+    den = np.array(val)
+    #div 0 error
+    for i,v in enumerate(den):
+      if v == 0.0:
+        if looking[i] != 0:
+          den[i] = looking[i]
+        elif looking[i] + den[i] != 0.0:
+          den[i] = 0.5*(looking[i] + den[i])
+        else:
+          den[i] = 1
+    if np.all(abs(num / den)<tol):
+      found = True
+      break
+  if not found:
+    return False,None,None
+  return found,idx,looking
 
 
 class pickleSafeSubprocessPopen(subprocess.Popen):
