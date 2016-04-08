@@ -74,16 +74,16 @@
       <Model class="Models" type="ExternalModel">PythonModule</Model>
       <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
       <Output class="DataObjects" type="PointSet">testPrintPointSet</Output>
-      <Output class="OutStreamManager" type="Print">testPrintPointSet_dump</Output>
+      <Output class="OutStreams" type="Print">testPrintPointSet_dump</Output>
     </MultiRun>
   </Steps>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="testPrintPointSet_dump">
       <type>csv</type>
       <source>testPrintPointSet</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
   <DataObjects>
     <PointSet name="testPrintPointSet">

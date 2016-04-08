@@ -70,7 +70,7 @@
     </PostProcessor>
   </Models>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="printHistories">
       <type>csv</type>
       <source>modelHistories</source>
@@ -79,6 +79,6 @@
       <type>csv</type>
       <source>PPHistories</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
 </Simulation>

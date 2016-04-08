@@ -29,10 +29,12 @@
         </covariance>
     </MultivariateNormal>
   </Distributions>
+
   <!-- This test is used to test the input flexibility for multivariate normal distribution.
        One can choose a subset from the original input space, and then using the multivariate
        normal distribution to generate the perturbed data
   -->
+
   <Samplers>
     <Grid name="myGrid">
       <variable name="y1">
@@ -72,17 +74,17 @@
     </MultiRun>
     <IOStep name="Dump">
       <Input class="DataObjects" type="PointSet">testPrintPointSet</Input>
-      <Output class="OutStreamManager" type="Print">testPrintPointSet_dump</Output>
+      <Output class="OutStreams" type="Print">testPrintPointSet_dump</Output>
     </IOStep>
   </Steps>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="testPrintPointSet_dump">
       <type>csv</type>
       <source>testPrintPointSet</source>
       <what>Input|y1,Input|z1,Input|x0,Input|y0,Input|z0,output|x,Output|y,Output|z,Input|PointProbability,Input|ProbabilityWeight</what>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
   <DataObjects>
     <PointSet name="testPrintPointSet">

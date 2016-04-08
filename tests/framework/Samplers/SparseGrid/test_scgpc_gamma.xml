@@ -56,8 +56,8 @@
     <IOStep name="Gprint">
       <Input class="DataObjects" type="PointSet">Gtests</Input>
       <Input class="Models" type="ROM">GROM</Input>
-      <Output class="OutStreamManager" type="Print">Gdump</Output>
-      <Output class="OutStreamManager" type="Print">Gdumprom</Output>
+      <Output class="OutStreams" type="Print">Gdump</Output>
+      <Output class="OutStreams" type="Print">Gdumprom</Output>
     </IOStep>
     <RomTrainer name="Gtrain">
       <Input class="DataObjects" type="PointSet">Gsolns</Input>
@@ -80,7 +80,7 @@
     </PointSet>
   </DataObjects>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="Gdump">
       <type>csv</type>
       <source>Gtests</source>
@@ -90,6 +90,6 @@
       <source>GROM</source>
       <what>all</what>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
 </Simulation>

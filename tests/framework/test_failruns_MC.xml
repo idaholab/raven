@@ -25,11 +25,11 @@
     </MultiRun>
     <IOStep name="print">
       <Input class="DataObjects" type="PointSet">solns</Input>
-      <Output class="OutStreamManager" type="Print">MCdump</Output>
+      <Output class="OutStreams" type="Print">MCdump</Output>
     </IOStep>
     <IOStep name="cprint">
       <Input class="DataObjects" type="PointSet">csolns</Input>
-      <Output class="OutStreamManager" type="Print">MCdumpC</Output>
+      <Output class="OutStreams" type="Print">MCdumpC</Output>
     </IOStep>
   </Steps>
 
@@ -85,7 +85,7 @@
     </PointSet>
   </DataObjects>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="MCdump">
       <type>csv</type>
       <source>solns</source>
@@ -94,6 +94,6 @@
       <type>csv</type>
       <source>csolns</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
 </Simulation>

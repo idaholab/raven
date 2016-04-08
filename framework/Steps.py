@@ -30,7 +30,7 @@ from BaseClasses import BaseType
 import Files
 import utils
 import Models
-from OutStreamManager import OutStreamManager
+from OutStreams import OutStreamManager
 from DataObjects import Data
 #Internal Modules End--------------------------------------------------------------------------------
 
