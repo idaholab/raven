@@ -61,8 +61,8 @@ class OutStreamPrint(OutStreamManager):
     """
       This Function is called from the base class, It reads the parameters that
       belong to a plot block
-      @ In, xmlNode, xml.etree.Element, Xml element node
-      @ Out, None (filled data structure (self))
+      @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
+      @ Out, None
     """
     self.type = 'OutStreamPrint'
     for subnode in xmlNode:

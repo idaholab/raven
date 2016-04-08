@@ -125,7 +125,7 @@ class OutStreamPlot(OutStreamManager):
     """
       Function to read, from the xml input, the actions that are required to be
       performed on this plot
-      @ In, snode, xml.etree.Element, xml node containing the action XML node
+      @ In, snode, xml.etree.ElementTree.Element, xml node containing the action XML node
       @ Out, None
     """
     for node in snode:
@@ -149,7 +149,7 @@ class OutStreamPlot(OutStreamManager):
     """
       Function to retrieve the pointers of the data values (x,y,z)
       @ In, None
-      @ Out, True/False, bool, true if the data are filled, false otherwise
+      @ Out, __fillCoordinatesFromSource, bool, true if the data are filled, false otherwise
     """
     self.xValues = []
     if self.yCoordinates : self.yValues = []
@@ -565,8 +565,8 @@ class OutStreamPlot(OutStreamManager):
     """
       This Function is called from the base class, It reads the parameters that
       belong to a plot block
-      @ In, xmlNode, xml.etree.Element, Xml element node
-      @ Out, None (filled data structure (self))
+      @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
+      @ Out, None
     """
     if not 'dim' in xmlNode.attrib.keys(): self.dim = 2
     else:                                  self.dim = int(xmlNode.attrib['dim'])
@@ -635,7 +635,7 @@ class OutStreamPlot(OutStreamManager):
     """
       Function to show and/or save a plot
       @ In,  None
-      @ Out, None (Plot on the screen or on file/s)
+      @ Out, None
     """
     # reactivate the figure
     self.fig = self.plt.figure(self.name)

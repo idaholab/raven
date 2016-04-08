@@ -23,12 +23,9 @@ import utils
 
 class OutStreamManager(BaseType):
   """
-    ********************************************************************
-    *                          OUTSTREAM CLASS                         *
-    ********************************************************************
-    *  This class is a general base class for outstream action classes *
-    *  For example, a matplotlib interface class or Print class, etc.  *
-    ********************************************************************
+    OUTSTREAM CLASS
+    This class is a general base class for outstream action classes
+    For example, a matplotlib interface class or Print class, etc.
   """
   def __init__(self):
     """
