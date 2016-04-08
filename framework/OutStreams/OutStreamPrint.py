@@ -60,7 +60,7 @@ class OutStreamPrint(OutStreamManager):
   def localReadXML(self, xmlNode):
     """
       This Function is called from the base class, It reads the parameters that
-      belong to a plot block
+      belong to a plot block (outputs by filling data structure (self))
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None
     """

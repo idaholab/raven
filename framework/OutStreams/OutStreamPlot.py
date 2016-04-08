@@ -633,7 +633,7 @@ class OutStreamPlot(OutStreamManager):
 
   def addOutput(self):
     """
-      Function to show and/or save a plot
+      Function to show and/or save a plot (outputs Plot on the screen or on file/s)
       @ In,  None
       @ Out, None
     """
