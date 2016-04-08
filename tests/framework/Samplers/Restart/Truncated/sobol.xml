@@ -7,8 +7,8 @@
   </RunInfo>
 
   <Files>
-      <Input name="inp" type="">input_truncated.i</Input>
-      <Input name="csv" type="">dump1.csv</Input>
+    <Input name="inp" type="">input_truncated.i</Input>
+    <Input name="csv" type="">dump1.csv</Input>
   </Files>
 
   <Steps>
@@ -27,7 +27,7 @@
     </MultiRun>
     <IOStep name="print1">
       <Input class="DataObjects" type="PointSet">solns</Input>
-      <Output class="OutStreamManager" type="Print">dump1</Output>
+      <Output class="OutStreams" type="Print">dump1</Output>
     </IOStep>
     <IOStep name="load">
       <Input class="Files" type="">csv</Input>
@@ -35,11 +35,11 @@
     </IOStep>
     <IOStep name="print2">
       <Input class="DataObjects" type="PointSet">solns2</Input>
-      <Output class="OutStreamManager" type="Print">dump2</Output>
+      <Output class="OutStreams" type="Print">dump2</Output>
     </IOStep>
     <IOStep name="print3">
       <Input class="DataObjects" type="PointSet">solns</Input>
-      <Output class="OutStreamManager" type="Print">dump3</Output>
+      <Output class="OutStreams" type="Print">dump3</Output>
     </IOStep>
   </Steps>
 
@@ -120,7 +120,7 @@
     </PointSet>
   </DataObjects>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="dump1">
       <type>csv</type>
       <source>solns</source>
@@ -133,6 +133,6 @@
       <type>csv</type>
       <source>solns</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
 </Simulation>
