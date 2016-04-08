@@ -80,10 +80,10 @@
     <IOStep name="writeHistories" pauseAtEnd="True">
         <Input class="DataObjects" type="HistorySet">histories</Input>
         <Input class="DataObjects" type="PointSet">samples</Input>
-        <Output 	class="OutStreamManager" type="Plot">samplesPlot3D</Output>
-        <Output 	class="OutStreamManager" type="Plot">historyPlot</Output>
-        <Output 	class="OutStreamManager" type="Print">samples</Output>
-        <Output 	class="OutStreamManager" type="Print">histories</Output>
+        <Output 	class="OutStreams" type="Plot">samplesPlot3D</Output>
+        <Output 	class="OutStreams" type="Plot">historyPlot</Output>
+        <Output 	class="OutStreams" type="Print">samples</Output>
+        <Output 	class="OutStreams" type="Print">histories</Output>
     </IOStep>
   </Steps>
 
@@ -98,7 +98,7 @@
     </HistorySet>
   </DataObjects>
 
-<OutStreamManager>
+<OutStreams>
     <Print name="samples">
         <type>csv</type>
         <source>samples</source>
@@ -239,6 +239,6 @@
             </title>
         </actions>
     </Plot>
-</OutStreamManager>
+</OutStreams>
 
 </Simulation>

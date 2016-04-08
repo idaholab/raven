@@ -100,29 +100,29 @@
       <Input class="DataObjects" type="PointSet">testData</Input>
       <Model class="Models" type="PostProcessor">AMSC1</Model>
       <Output class="DataObjects" type="PointSet">outTPS1</Output>
-      <Output class="OutStreamManager" type="Print">myDump1</Output>
+      <Output class="OutStreams" type="Print">myDump1</Output>
     </PostProcess>
     <PostProcess name="decompose2">
       <Input class="DataObjects" type="PointSet">testData</Input>
       <Model class="Models" type="PostProcessor">AMSC2</Model>
       <Output class="DataObjects" type="PointSet">outTPS2</Output>
-      <Output class="OutStreamManager" type="Print">myDump2</Output>
+      <Output class="OutStreams" type="Print">myDump2</Output>
     </PostProcess>
     <PostProcess name="decompose3">
       <Input class="DataObjects" type="PointSet">testData</Input>
       <Model class="Models" type="PostProcessor">AMSC3</Model>
       <Output class="DataObjects" type="PointSet">outTPS3</Output>
-      <Output class="OutStreamManager" type="Print">myDump3</Output>
+      <Output class="OutStreams" type="Print">myDump3</Output>
     </PostProcess>
     <PostProcess name="decompose4">
       <Input class="DataObjects" type="PointSet">testData</Input>
       <Model class="Models" type="PostProcessor">AMSC4</Model>
       <Output class="DataObjects" type="PointSet">outTPS4</Output>
-      <Output class="OutStreamManager" type="Print">myDump4</Output>
+      <Output class="OutStreams" type="Print">myDump4</Output>
     </PostProcess>
   </Steps>
 
-  <OutStreamManager>
+  <OutStreams>
     <!-- A csv file containing the output of the example -->
     <Print name="myDump1">
       <type>csv</type>
@@ -140,7 +140,7 @@
       <type>csv</type>
       <source>outTPS4</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
   <DataObjects>
     <!-- The input PointSet object -->
