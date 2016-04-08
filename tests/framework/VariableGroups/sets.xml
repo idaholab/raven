@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation verbosity='debug'>
+<Simulation verbosity="debug">
   <!-- tests set operations and data objects -->
   <RunInfo>
     <WorkingDir>Sets</WorkingDir>
@@ -8,15 +8,15 @@
   </RunInfo>
 
   <VariableGroups>
-      <Group name="x_odd"                                     >x1,x3,x5</Group>
-      <Group name="x_even"     dependencies=""                >x2,x4,x6</Group>
-      <Group name="x_first"    dependencies=""                >x1,x2,x3</Group>
-      <Group name="y_group"    dependencies=""                >y1,y2</Group>
-      <Group name="add_remove" dependencies="x_first"         base="x_first">-x1,+ x4,+x5</Group>
-      <Group name="union"      dependencies="x_odd,x_even"    base="x_odd">+x_even</Group>
-      <Group name="complement" dependencies="x_odd,x_first"   base="x_odd">-x_first</Group>
-      <Group name="intersect"  dependencies="x_even,x_first"  base="x_even">^x_first</Group>
-      <Group name="sym_diff"   dependencies="x_odd,x_first"   base="x_odd">% x_first</Group>
+    <Group name="x_odd">x1,x3,x5</Group>
+    <Group dependencies="" name="x_even">x2,x4,x6</Group>
+    <Group dependencies="" name="x_first">x1,x2,x3</Group>
+    <Group dependencies="" name="y_group">y1,y2</Group>
+    <Group base="x_first" dependencies="x_first" name="add_remove">-x1,+ x4,+x5</Group>
+    <Group base="x_odd" dependencies="x_odd,x_even" name="union">+x_even</Group>
+    <Group base="x_odd" dependencies="x_odd,x_first" name="complement">-x_first</Group>
+    <Group base="x_even" dependencies="x_even,x_first" name="intersect">^x_first</Group>
+    <Group base="x_odd" dependencies="x_odd,x_first" name="sym_diff">% x_first</Group>
   </VariableGroups>
 
   <Distributions>
@@ -76,32 +76,71 @@
       <Input class="DataObjects" type="PointSet">comp</Input>
       <Input class="DataObjects" type="PointSet">intx</Input>
       <Input class="DataObjects" type="PointSet">sdiff</Input>
-      <Output class="OutStreamManager" type="Print">dump_standard</Output>
-      <Output class="OutStreamManager" type="Print">dump_addrem</Output>
-      <Output class="OutStreamManager" type="Print">dump_uni</Output>
-      <Output class="OutStreamManager" type="Print">dump_comp</Output>
-      <Output class="OutStreamManager" type="Print">dump_intx</Output>
-      <Output class="OutStreamManager" type="Print">dump_sdiff</Output>
+      <Output class="OutStreams" type="Print">dump_standard</Output>
+      <Output class="OutStreams" type="Print">dump_addrem</Output>
+      <Output class="OutStreams" type="Print">dump_uni</Output>
+      <Output class="OutStreams" type="Print">dump_comp</Output>
+      <Output class="OutStreams" type="Print">dump_intx</Output>
+      <Output class="OutStreams" type="Print">dump_sdiff</Output>
     </IOStep>
   </Steps>
 
   <DataObjects>
-    <PointSet name="dummyIN" ><Input>union</Input>   <Output>OutputPlaceHolder</Output></PointSet>
-    <PointSet name="standard"><Input>union</Input>   <Output>OutputPlaceHolder</Output></PointSet>
-    <PointSet name="addrem"  ><Input>add_remove</Input><Output>OutputPlaceHolder</Output></PointSet>
-    <PointSet name="uni"     ><Input>union</Input>     <Output>OutputPlaceHolder</Output></PointSet>
-    <PointSet name="comp"    ><Input>complement</Input><Output>OutputPlaceHolder</Output></PointSet>
-    <PointSet name="intx"    ><Input>intersect</Input> <Output>OutputPlaceHolder</Output></PointSet>
-    <PointSet name="sdiff"   ><Input>sym_diff</Input>  <Output>OutputPlaceHolder</Output></PointSet>
+    <PointSet name="dummyIN">
+      <Input>union</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="standard">
+      <Input>union</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="addrem">
+      <Input>add_remove</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="uni">
+      <Input>union</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="comp">
+      <Input>complement</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="intx">
+      <Input>intersect</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="sdiff">
+      <Input>sym_diff</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
   </DataObjects>
 
-  <OutStreamManager>
-    <Print name="dump_standard"><type>csv</type><source>standard</source></Print>
-    <Print name="dump_addrem"  ><type>csv</type><source>addrem</source></Print>
-    <Print name="dump_uni"     ><type>csv</type><source>uni</source></Print>
-    <Print name="dump_comp"    ><type>csv</type><source>comp</source></Print>
-    <Print name="dump_intx"    ><type>csv</type><source>intx</source></Print>
-    <Print name="dump_sdiff"   ><type>csv</type><source>sdiff</source></Print>
-  </OutStreamManager>
+  <OutStreams>
+    <Print name="dump_standard">
+      <type>csv</type>
+      <source>standard</source>
+    </Print>
+    <Print name="dump_addrem">
+      <type>csv</type>
+      <source>addrem</source>
+    </Print>
+    <Print name="dump_uni">
+      <type>csv</type>
+      <source>uni</source>
+    </Print>
+    <Print name="dump_comp">
+      <type>csv</type>
+      <source>comp</source>
+    </Print>
+    <Print name="dump_intx">
+      <type>csv</type>
+      <source>intx</source>
+    </Print>
+    <Print name="dump_sdiff">
+      <type>csv</type>
+      <source>sdiff</source>
+    </Print>
+  </OutStreams>
 
 </Simulation>

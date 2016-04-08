@@ -57,7 +57,7 @@
       <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
       <Output class="DataObjects" type="HistorySet">testPrintHistorySet</Output>
       <Output class="Databases" type="HDF5">test_external_db</Output>
-      <Output class="OutStreamManager" type="Print">testPrintHistorySet_dump</Output>
+      <Output class="OutStreams" type="Print">testPrintHistorySet_dump</Output>
     </MultiRun>
   </Steps>
 
@@ -65,12 +65,12 @@
     <HDF5 name="test_external_db"/>
   </Databases>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="testPrintHistorySet_dump">
       <type>csv</type>
       <source>testPrintHistorySet</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
   <DataObjects>
     <Point name="inputPlaceHolder">

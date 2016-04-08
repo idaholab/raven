@@ -32,9 +32,9 @@
     <IOStep name="writehistory" pauseAtEnd="True">
         <Input  class="DataObjects"      type="PointSet">pointValues</Input>
         <Input  class="DataObjects"      type="HistorySet">history</Input>
-        <Output class="OutStreamManager" type="Print">history</Output>
-        <Output class="OutStreamManager" type="Plot">historyPlot</Output>
-        <Output class="OutStreamManager" type="Print">pointValues</Output>
+        <Output class="OutStreams" type="Print">history</Output>
+        <Output class="OutStreams" type="Plot">historyPlot</Output>
+        <Output class="OutStreams" type="Print">pointValues</Output>
     </IOStep>
   </Steps>
 
@@ -49,7 +49,7 @@
     </HistorySet>
   </DataObjects>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="pointValues">
       <type>csv</type>
       <source>pointValues</source>
@@ -113,6 +113,6 @@
             </title>
         </actions>
     </Plot>
-  </OutStreamManager>
+  </OutStreams>
 
 </Simulation>

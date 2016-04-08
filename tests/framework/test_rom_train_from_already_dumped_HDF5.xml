@@ -52,7 +52,7 @@
       <Model class="Models" type="ROM">ROM1</Model>
       <Sampler class="Samplers" type="MonteCarlo">RAVENmc3</Sampler>
       <Output class="DataObjects" type="PointSet">outputMontecarloRom</Output>
-      <Output class="OutStreamManager" type="Print">outputMontecarloRom_dump2</Output>
+      <Output class="OutStreams" type="Print">outputMontecarloRom_dump2</Output>
     </MultiRun>
     <IOStep name="test_extract_for_rom_trainer">
       <Input class="Databases" type="HDF5">MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER</Input>
@@ -64,12 +64,12 @@
     </RomTrainer>
   </Steps>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="outputMontecarloRom_dump2">
       <type>csv</type>
       <source>outputMontecarloRom</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
   <Databases>
     <HDF5 directory="test_rom_trainer/DatabaseStorage" filename="MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER.h5" name="MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER"/>

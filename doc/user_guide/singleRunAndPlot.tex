@@ -78,9 +78,9 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
   Note that a special keyword is inputted in the \xmlNode{Input} node. This keyword is used when a \textit{DataObjects}  \textbf{Entity} needs to be constructed without any linking with respect to the input space. Indeed, in
   this case, the model input space is not perturbed though a sampling strategies; the code is executed through the original
    input file   (``referenceInput.xml''). In the \xmlNode{Output} node all the requested variables are inputted.
-   \item \textbf{\textit{OutStreamManager}}:
+   \item \textbf{\textit{OutStreams}}:
 \begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]
-  <OutStreamManager>
+  <OutStreams>
     <Print name="pointValues">
       <type>csv</type>
       <source>pointValues</source>
@@ -125,7 +125,7 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
             </title>
         </actions>
     </Plot>
-  </OutStreamManager>
+  </OutStreams>
 \end{lstlisting}
   In this block, both the Out-Stream types are constructed:
   \begin{itemize}
@@ -149,12 +149,12 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
       <Model  class="Models"                    type="Code">testModel</Model>
       <Output class="DataObjects"            type="PointSet">pointValues</Output>
       <Output class="DataObjects"            type="HistorySet">history</Output>
-      <Output class="OutStreamManager" type="Print">pointValues</Output>
+      <Output class="OutStreams" type="Print">pointValues</Output>
     </SingleRun>
     <IOStep name="writeHistory" pauseAtEnd="True">
         <Input    class="DataObjects"            type="HistorySet">history</Input>
-        <Output class="OutStreamManager" type="Print">history</Output>
-        <Output class="OutStreamManager" type="Plot">historyPlot</Output>
+        <Output class="OutStreams" type="Print">history</Output>
+        <Output class="OutStreams" type="Plot">historyPlot</Output>
     </IOStep>
   </Steps>
 \end{lstlisting}
@@ -172,7 +172,7 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
    \begin{itemize}
      \item \xmlNode{SingleRun} named ``Single'', used to run the single instance of the driven code and collect
      the outputs in the two \textit{DataObjects}. In addition, it can be seen that an additional object has been
-     placed among the \xmlNode{Output}(s). Indeed, an  \textit{OutStreamManager} can be an \xmlNode{Output} in
+     placed among the \xmlNode{Output}(s). Indeed, an  \textit{OutStreams} can be an \xmlNode{Output} in
      any Step type (as long as the linked \textit{DataObjects} plays a whatever role in the Step)
      \item  \xmlNode{IOStep} named ``writeHistory'', used to 1) dump the ``history'' \textit{DataObjects}
      \textbf{Entity} in a CSV file and 2) plot the data in the PNG file and on the screen.
@@ -226,7 +226,7 @@ how to select only some variable from the \textit{DataObjects} in the \textit{Pr
    \item Generate sub-plots (multiple plots in the same figure) of the code results
 \end{enumerate}
 
-To accomplish these tasks, the \textit{OutStreamManager} \textbf{Entity} in the input defined in the previous Section (~\ref{sub:SingleRunBasicPlots}) needs to be modified as follows:
+To accomplish these tasks, the \textit{OutStreams} \textbf{Entity} in the input defined in the previous Section (~\ref{sub:SingleRunBasicPlots}) needs to be modified as follows:
 \begin{enumerate}
    \item \textbf{\textit{Print}}:
    \begin{lstlisting}[style=XML,morekeywords={arg,extension,pauseAtEnd,overwrite}]

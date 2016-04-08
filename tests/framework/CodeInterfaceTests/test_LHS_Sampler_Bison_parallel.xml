@@ -67,8 +67,8 @@
       <Output class="Databases" type="HDF5">test_bison_lhs</Output>
       <Output class="DataObjects" type="HistorySet">stories</Output>
       <Output class="DataObjects" type="PointSet">LHSTS</Output>
-      <Output class="OutStreamManager" type="Plot">test</Output>
-      <Output class="OutStreamManager" type="Print">LHS_Bison_dump</Output>
+      <Output class="OutStreams" type="Plot">test</Output>
+      <Output class="OutStreams" type="Print">LHS_Bison_dump</Output>
     </MultiRun>
   </Steps>
 
@@ -76,7 +76,7 @@
     <HDF5 name="test_bison_lhs"/>
   </Databases>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="LHS_Bison_dump">
       <type>csv</type>
       <source>LHSTS</source>
@@ -93,6 +93,6 @@
         <how>png</how>
       </actions>
     </Plot>
-  </OutStreamManager>
+  </OutStreams>
 
 </Simulation>

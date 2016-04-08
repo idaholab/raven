@@ -17,7 +17,7 @@
       <Model class="Models" type="Code">py_script</Model>
       <Sampler class="Samplers" type="Sobol">sc</Sampler>
       <Output class="DataObjects" type="PointSet">scset</Output>
-      <Output class="OutStreamManager" type="Print">hdmr_out</Output>
+      <Output class="OutStreams" type="Print">hdmr_out</Output>
     </MultiRun>
   </Steps>
 
@@ -93,11 +93,11 @@
     </PointSet>
   </DataObjects>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="hdmr_out">
       <type>csv</type>
       <source>scset</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
 </Simulation>

@@ -22,15 +22,15 @@
     </MultiRun>
     <IOStep name="print1">
       <Input class="DataObjects" type="PointSet">solns</Input>
-      <Output class="OutStreamManager" type="Print">STRATdump1</Output>
+      <Output class="OutStreams" type="Print">STRATdump1</Output>
     </IOStep>
     <IOStep name="print2">
       <Input class="DataObjects" type="PointSet">solns2</Input>
-      <Output class="OutStreamManager" type="Print">STRATdump2</Output>
+      <Output class="OutStreams" type="Print">STRATdump2</Output>
     </IOStep>
     <IOStep name="print3">
       <Input class="DataObjects" type="PointSet">solns</Input>
-      <Output class="OutStreamManager" type="Print">STRATdump3</Output>
+      <Output class="OutStreams" type="Print">STRATdump3</Output>
     </IOStep>
   </Steps>
 
@@ -91,7 +91,7 @@
     </PointSet>
   </DataObjects>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="STRATdump1">
       <type>csv</type>
       <source>solns</source>
@@ -104,6 +104,6 @@
       <type>csv</type>
       <source>solns</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
 </Simulation>
