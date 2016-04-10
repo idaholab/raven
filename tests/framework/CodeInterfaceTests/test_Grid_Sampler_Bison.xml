@@ -54,12 +54,12 @@
     </Grid>
   </Samplers>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="outGrid_dump">
       <type>csv</type>
       <source>outGrid</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
   <DataObjects>
     <PointSet name="outGrid">
@@ -89,7 +89,7 @@
       <Output class="Databases" type="HDF5">test_bison_grid</Output>
       <Output class="DataObjects" type="HistorySet">stories</Output>
       <Output class="DataObjects" type="PointSet">outGrid</Output>
-      <Output class="OutStreamManager" type="Print">outGrid_dump</Output>
+      <Output class="OutStreams" type="Print">outGrid_dump</Output>
     </MultiRun>
     <IOStep name="IOStepTest">
       <Input class="Databases" type="HDF5">test_bison_grid</Input>

@@ -70,7 +70,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
   validateDict['Output' ][1]['required'    ] = False
   validateDict['Output' ][1]['multiplicity'] = 'n'
   validateDict['Output'].append(testDict.copy())
-  validateDict['Output' ][2]['class'       ] = 'OutStreamManager'
+  validateDict['Output' ][2]['class'       ] = 'OutStreams'
   validateDict['Output' ][2]['type'        ] = ['Plot','Print']
   validateDict['Output' ][2]['required'    ] = False
   validateDict['Output' ][2]['multiplicity'] = 'n'
@@ -1239,7 +1239,7 @@ class PostProcessor(Model, Assembler):
     cls.validateDict['Output' ][2]['required'    ] = False
     cls.validateDict['Output' ][2]['multiplicity'] = 'n'
     cls.validateDict['Output'].append(cls.testDict.copy())
-    cls.validateDict['Output' ][3]['class'       ] = 'OutStreamManager'
+    cls.validateDict['Output' ][3]['class'       ] = 'OutStreams'
     cls.validateDict['Output' ][3]['type'        ] = ['Plot','Print']
     cls.validateDict['Output' ][3]['required'    ] = False
     cls.validateDict['Output' ][3]['multiplicity'] = 'n'

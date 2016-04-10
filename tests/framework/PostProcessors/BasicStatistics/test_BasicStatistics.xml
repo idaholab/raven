@@ -91,7 +91,7 @@
       <Model class="Models" type="ExternalModel">PythonModule</Model>
       <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
       <Output class="DataObjects" type="PointSet">PointSetPostProcTest</Output>
-      <Output class="OutStreamManager" type="Print">PointSetPostProcTest_dump</Output>
+      <Output class="OutStreams" type="Print">PointSetPostProcTest_dump</Output>
     </MultiRun>
     <PostProcess name="PP1">
       <Input class="DataObjects" type="PointSet">PointSetPostProcTest</Input>
@@ -121,12 +121,12 @@
     </PostProcess>
   </Steps>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="PointSetPostProcTest_dump">
       <type>csv</type>
       <source>PointSetPostProcTest</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
   <DataObjects>
     <PointSet name="PointSetPostProcTest">

@@ -92,7 +92,7 @@
       <Sampler class="Samplers" type="MonteCarlo">RAVENmc2</Sampler>
       <Output class="Databases" type="HDF5">test2StepsDatabase</Output>
       <Output class="DataObjects" type="HistorySet">stories</Output>
-      <Output class="OutStreamManager" type="Print">fullprint_HistorySet</Output>
+      <Output class="OutStreams" type="Print">fullprint_HistorySet</Output>
     </MultiRun>
   </Steps>
 
@@ -111,11 +111,11 @@
     </HistorySet>
   </DataObjects>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="fullprint_HistorySet">
       <type>csv</type>
       <source>stories</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
 </Simulation>

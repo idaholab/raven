@@ -118,12 +118,12 @@
     <HDF5 name="testAdaptiveBranchDatabase"/>
   </Databases>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="stories_from_database_dump">
       <type>csv</type>
       <source>stories_from_database</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
   <DataObjects>
     <HistorySet name="stories">

@@ -23,7 +23,7 @@
     </IOStep>
     <IOStep name="print">
       <Input class="DataObjects" type="PointSet">solns</Input>
-      <Output class="OutStreamManager" type="Print">CSVdump</Output>
+      <Output class="OutStreams" type="Print">CSVdump</Output>
     </IOStep>
   </Steps>
 
@@ -107,11 +107,11 @@
     </PointSet>
   </DataObjects>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="CSVdump">
       <type>csv</type>
       <source>solns</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
 </Simulation>

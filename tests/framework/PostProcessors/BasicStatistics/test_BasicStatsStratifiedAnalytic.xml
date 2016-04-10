@@ -56,16 +56,16 @@
       <Model class="Models" type="PostProcessor">analyticalTest</Model>
       <Output class="Files" type="">output_basicStatistics_PP1Stratified.csv</Output>
       <Output class="DataObjects" type="PointSet">outputDataStratified</Output>
-      <Output class="OutStreamManager" type="Print">outputDataStratified_dump</Output>
+      <Output class="OutStreams" type="Print">outputDataStratified_dump</Output>
     </PostProcess>
   </Steps>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="outputDataStratified_dump">
       <type>csv</type>
       <source>outputDataStratified</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
   <DataObjects>
     <Point name="inputPlaceHolder">
