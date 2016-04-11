@@ -15,7 +15,7 @@ import numpy as np
 
 def normal(x,mu=0.0,sigma=1.0):
   """
-    Computation of normal cdf
+    Computation of normal pdf
     @ In, x, list or np.array, x values
     @ In, mu, float, optional, mean
     @ In, sigma, float, optional, sigma
@@ -39,25 +39,25 @@ def skewNormal(x,alphafactor,xi,omega):
   """
     Computation of skewness normal
     @ In, x, list or np.array, x values
-    @ In, alphafactor, float, the alpha factor
-    @ In, xi, float, xi
-    @ In, omega, float, omega factor
+    @ In, alphafactor, float, the alpha factor (shape)
+    @ In, xi, float, xi (location)
+    @ In, omega, float, omega factor (scale)
     @ Out, returnSkew, float, skew
   """
-  def phi(x): return (1.0/math.sqrt(2*math.pi))*math.exp(-(x**2)/2.0)
-  def Phi(x): return 0.5*(1+math.erf(x/math.sqrt(2)))
+  def phi(x): return (1.0/math.sqrt(2*math.pi))*math.exp(-(x**2)/2.0) #FIXME shouldn't this use normal() above?
+  def Phi(x): return 0.5*(1+math.erf(x/math.sqrt(2))) #FIXME same, shouldn't this use the above?
   returnSkew = (2.0/omega)*phi((x-xi)/omega)*Phi(alphafactor*(x-xi)/omega)
   return returnSkew
 
 def createInterp(x, y, lowFill, highFill, kind='linear'):
   """
-    Simpson integration rule
+    Simpson integration rule #FIXME this is not an accurate docstring, and I don't know what this method does
     @ In, x, list or np.array, x values
     @ In, y, list or np.array, y values
     @ In, lowFill, float, minimum interpolated value
     @ In, highFill, float, maximum interpolated value
     @ In, kind, string, optional, interpolation type (default=linear)
-    @ Out, sumVar, float, integral
+    @ Out, sumVar, float, integral #FIXME incorrect
   """
   interp = interpolate.interp1d(x, y, kind)
   low = x[0]
