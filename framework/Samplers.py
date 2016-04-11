@@ -33,6 +33,7 @@ else: import cPickle as pickle
 
 #Internal Modules------------------------------------------------------------------------------------
 import utils
+import mathUtils
 from BaseClasses import BaseType
 from Assembler import Assembler
 import Distributions
@@ -1637,7 +1638,7 @@ class Grid(Sampler):
             self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")] = self.distDict[varName].cellIntegral(ndCoordinate,dxs)
             weight *= self.distDict[varName].cellIntegral(ndCoordinate,dxs)
       newpoint = tuple(self.values[key] for key in self.values.keys())
-      inExisting,_,_ = utils.NDInArray(np.array(self.existing.keys()),newpoint,tol=self.restartTolerance)
+      inExisting,_,_ = mathUtils.NDInArray(np.array(self.existing.keys()),newpoint,tol=self.restartTolerance)
       if not inExisting:
         found=True
         self.raiseADebug('New point found: '+str(newpoint))
@@ -3498,7 +3499,7 @@ class SparseGridCollocation(Grid):
     while not found:
       try: pt,weight = self.sparseGrid[self.counter-1]
       except IndexError: raise utils.NoMoreSamplesNeeded
-      inExisting,_,_ = utils.NDInArray(np.array(self.existing.keys()),pt,tol=self.restartTolerance)
+      inExisting,_,_ = mathUtils.NDInArray(np.array(self.existing.keys()),pt,tol=self.restartTolerance)
       if inExisting:
         self.raiseADebug('Found pt',pt,'in restart.')
         self.counter+=1
@@ -3866,7 +3867,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     for pt in SG.points()[:]:
       self.pointsNeededToMakeROM.add(pt) #sets won't store redundancies
       #if pt isn't already in needed, and it hasn't already been solved, add it to the queue
-      if pt not in self.neededPoints and not utils.NDInArray(np.array(self.existing.keys()),pt,tol=self.restartTolerance)[0]:
+      if pt not in self.neededPoints and not mathUtils.NDInArray(np.array(self.existing.keys()),pt,tol=self.restartTolerance)[0]:
           self.newSolutionSizeShouldBe+=1
           self.neededPoints.append(pt)
 
@@ -3971,7 +3972,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     tot=0
     for n in range(len(sg)):
       pt,wt = sg[n]
-      inExisting,_,_ = utils.NDInArray(np.array(self.existing.keys()),pt,tol=self.restartTolerance)
+      inExisting,_,_ = mathUtils.NDInArray(np.array(self.existing.keys()),pt,tol=self.restartTolerance)
       if not inExisting:
         self.raiseAnError(RuntimeError,'Trying to integrate with point',pt,'but it is not in the solutions!')
       tot+=self.existing[pt][i]**r*wt
@@ -4269,7 +4270,7 @@ class Sobol(SparseGridCollocation):
     while not found:
       try: pt = self.pointsToRun[self.counter-1]
       except IndexError: raise utils.NoMoreSamplesNeeded
-      inExisting,_,_ = utils.NDInArray(np.array(self.existing.keys()),pt,tol=self.restartTolerance)
+      inExisting,_,_ = mathUtils.NDInArray(np.array(self.existing.keys()),pt,tol=self.restartTolerance)
       if inExisting:
         self.raiseADebug('point found in restart:',pt)
         self.counter+=1
@@ -4623,7 +4624,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     """
     pointSet = self.samplers[subset].solns
     #first, check if the output is in the subset's existing solution set already
-    inExisting,_,_ = utils.NDInArray(np.array(self.samplers[subset].existing.keys()),point,tol=self.restartTolerance)
+    inExisting,_,_ = mathUtils.NDInArray(np.array(self.samplers[subset].existing.keys()),point,tol=self.restartTolerance)
     if inExisting:
       output = self.samplers[subset].existing[point]
     #if not, get it locally, but it costs more because we have to expand the cut point
@@ -5095,7 +5096,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
       cutpt = sampler.neededPoints.pop()
       fullPoint = self._expandCutPoint(subset,cutpt)
       #if this point already in local existing, put it straight into collected and sampler existing
-      inExisting,_,_ = utils.NDInArray(np.array(self.existing.keys()),fullPoint,tol=self.restartTolerance)
+      inExisting,_,_ = mathUtils.NDInArray(np.array(self.existing.keys()),fullPoint,tol=self.restartTolerance)
       if inExisting:
         self.pointsCollected[subset].append(cutpt)
         self._addPointToDataObject(subset,cutpt)
@@ -5128,7 +5129,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
           self._addPointToDataObject(subset,cutInp)
           sampler = self.samplers[subset]
           #if needed or not, still add it to the sampler's existing points
-          inExisting,_,_ = utils.NDInArray(np.array(sampler.existing.keys()),cutInp,tol=self.restartTolerance)
+          inExisting,_,_ = mathUtils.NDInArray(np.array(sampler.existing.keys()),cutInp,tol=self.restartTolerance)
           if not inExisting:
             sampler.existing[cutInp] = soln
           #check if it was requested
