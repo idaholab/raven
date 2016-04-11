@@ -4,10 +4,11 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
 
-#import numpy as np
+#Do not import numpy or scipy or other libraries that are not
+# built into python.  Otherwise the import can fail, and since utils
+# are used by --library-report, this can cause diagnostic messages to fail.
 import bisect
 import sys, os
-#from scipy.interpolate import Rbf, griddata
 import inspect
 import subprocess
 import platform
