@@ -1,0 +1,7 @@
+<outer>
+  <ordered>
+    <sub_2>sub_value_2</sub_2>
+    <sub_3>24</sub_3>
+  </ordered>
+  <inner required_string="bye" />
+</outer>

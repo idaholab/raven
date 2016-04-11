@@ -1,0 +1,87 @@
+"""
+Created on 2016-Apr-7
+
+@author: cogljj
+
+This is common classes for testing the xsd program.
+"""
+
+
+from __future__ import division, print_function, unicode_literals, absolute_import
+import xml.etree.ElementTree as ET
+
+import InputData
+
+class Sub1Input(InputData.ParameterInput):
+  """
+    Test class
+  """
+  pass
+
+Sub1Input.createClass("sub_1")
+Sub1Input.setContentType(InputData.StringType)
+
+class Sub2Input(InputData.ParameterInput):
+  """
+    Test class
+  """
+  pass
+
+Sub2Input.createClass("sub_2")
+Sub2Input.setContentType(InputData.StringType)
+
+class Sub3Input(InputData.ParameterInput):
+  """
+    Test class
+  """
+  pass
+
+Sub3Input.createClass("sub_3")
+Sub3Input.setContentType(InputData.IntegerType)
+
+class InnerInput(InputData.ParameterInput):
+  """
+    Test class
+  """
+  pass
+
+InnerInput.createClass("inner")
+
+InnerInput.addParam("data_1")
+InnerInput.addParam("int_value", InputData.IntegerType)
+InnerInput.addParam("required_string", InputData.StringType, True)
+InnerInput.addSub(Sub1Input)
+InnerInput.addSub(Sub2Input)
+InnerInput.addSub(Sub3Input)
+
+class SubBool(InputData.ParameterInput):
+  """
+    Test class
+  """
+  pass
+
+SubBool.createClass("sub_bool")
+SubBool.setContentType(InputData.BoolType)
+
+class OrderedInput(InputData.ParameterInput):
+  """
+    Test class
+  """
+  pass
+
+OrderedInput.createClass("ordered", True)
+OrderedInput.addSub(Sub1Input, InputData.Quantity.zero_to_one)
+OrderedInput.addSub(Sub2Input, InputData.Quantity.one)
+OrderedInput.addSub(Sub3Input, InputData.Quantity.one_to_infinity)
+OrderedInput.addSub(SubBool, InputData.Quantity.zero_to_infinity)
+
+
+class OuterInput(InputData.ParameterInput):
+  """
+    Test class
+  """
+  pass
+
+OuterInput.createClass("outer", True)
+OuterInput.addSub(InnerInput)
+OuterInput.addSub(OrderedInput)

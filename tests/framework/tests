@@ -300,6 +300,18 @@
   input = '../../framework/utils/testCachedNDArray.py'
  [../]
 
+ [./test_xsd_input_data]
+  type = 'RavenPython'
+  input = 'TestXSD/TestDataRead.py'
+  requires_swig2 = True
+ [../]
+
+ [./test_xsd_input_fails]
+  type = 'RavenPython'
+  input = 'TestXSD/TestFails.py'
+  requires_swig2 = True
+ [../]
+
  [./test_iostep_load]
    #REQUIREMENT_TEST R-RA-2
    type = 'RavenFramework'
