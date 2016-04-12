@@ -304,6 +304,11 @@
   requires_swig2 = True
  [../]
 
+ [./test_mathUtils]
+  type = 'RavenPython'
+  input = '../../framework/utils/testMathUtils.py'
+ [../]
+
  [./test_iostep_load]
    #REQUIREMENT_TEST R-RA-2
    type = 'RavenFramework'
