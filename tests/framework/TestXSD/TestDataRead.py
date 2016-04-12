@@ -56,6 +56,9 @@ for i in range(len(firstInner.subparts)):
     sub3Index = i
 checkAnswer(23, firstInner.subparts[sub3Index].text)
 
+checkAnswer(23, firstInner.findFirst('sub_3').text)
+checkAnswer(None, firstInner.findFirst('no_such_sub'))
+
 print('sub_value_2', repr(outerInput.subparts[2].subparts[0].text),
       repr(outerInput.subparts[2].subparts[0].name))
 checkAnswer('sub_value_2', outerInput.subparts[2].subparts[0].text)

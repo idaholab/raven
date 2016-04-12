@@ -250,6 +250,19 @@ class ParameterInput(object):
           subInstance.parseNode(subNode)
           self.subparts.append(subInstance)
 
+  def findFirst(self, name):
+    """
+      Finds the first subpart with name.  Note that if this node is not ordered,
+      and there are multiple subparts with the name, it is undefined which node
+      will be found first.
+      @ In, name, string, the name of the node to search for
+      @ Out, findFirst, ParameterInput, the first node found, or None if none found.
+    """
+    for sub in self.subparts:
+      if sub.getName() == name:
+        return sub
+    return None
+
   @classmethod
   def generateXSD(cls, xsdNode, definedDict):
     """
