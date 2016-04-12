@@ -115,16 +115,25 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     """
     pass
 
-  def addInitParams(self,tempDict):
+  def getInitParams(self):
     """
-      Function to get the input params that belong to this class
-      @ In, tempDict, dict, temporary dictionary to be updated
-      @ Out, tempDict, dict, temporary dictionary updated
+      Function to get the initial values of the input parameters that belong to
+      this class
+      @ In, None
+      @ Out, paramDict, dict, dictionary containg the parameter names as keys
+        and each parameter's initial value as the dictionary values
     """
-    for i in range(len(self._dataParameters['inParam' ])):  tempDict['Input_'+str(i)]  = self._dataParameters['inParam' ][i]
-    for i in range(len(self._dataParameters['outParam'])):  tempDict['Output_'+str(i)] = self._dataParameters['outParam'][i]
-    for key,value in self._dataParameters.items(): tempDict[key] = value
-    return tempDict
+    paramDict = {}
+    for i,inParam in enumerate(self._dataParameters['inParam' ]):
+      paramDict['Input_'+str(i)]  = inParam
+
+    for i,outParam in enumerate(self._dataParameters['outParam']):
+      paramDict['Output_'+str(i)] = outParam
+
+    for key,value in self._dataParameters.items():
+      paramDict[key] = value
+
+    return paramDict
 
   def removeInputValue(self,name):
     """

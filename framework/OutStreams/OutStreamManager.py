@@ -61,23 +61,28 @@ class OutStreamManager(BaseType):
       else: self.overwrite = False
     self.localReadXML(xmlNode)
 
-  def addInitParams(self, tempDict):
+  def getInitParams(self):
     """
       This function is called from the base class to print some of the
       information inside the class. Whatever is permanent in the class and not
       inherited from the parent class should be mentioned here. The information
       is passed back in the dictionary. No information about values that change
       during the simulation are allowed.
-      @ In, tempDict, dict, dictionary to be updated. {'attribute name':value}
-      @ Out, tempDict, dict, dictionary to be updated. {'attribute name':value}
+      @ In, None
+      @ Out, paramDict, dict, dictionary containg the parameter names as keys
+        and each parameter's initial value as the dictionary values
     """
-    tempDict[                     'Global Class Type                 '] = 'OutStreamManager'
-    tempDict[                     'Specialized Class Type            '] = self.type
-    if self.overwrite:   tempDict['Overwrite output everytime called '] = 'True'
-    else:                tempDict['Overwrite output everytime called '] = 'False'
-    for index in range(len((self.availableOutStreamType))) : tempDict['OutStream Available #' + str(index + 1) + '   :'] = self.availableOutStreamType[index]
-    self.localAddInitParams(tempDict)
-    return tempDict
+    paramDict = {}
+    paramDict['Global Class Type                 '] = 'OutStreamManager'
+    paramDict['Specialized Class Type            '] = self.type
+    if self.overwrite:
+      paramDict['Overwrite output everytime called '] = 'True'
+    else:
+      paramDict['Overwrite output everytime called '] = 'False'
+    for index in range(len((self.availableOutStreamType))):
+      paramDict['OutStream Available #' + str(index + 1) + '   :'] = self.availableOutStreamType[index]
+    paramDict.update(self.localGetInitParams())
+    return paramDict
 
   def addOutput(self):
     """

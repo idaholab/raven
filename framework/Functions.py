@@ -98,32 +98,40 @@ class Function(BaseType):
         if len(child.attrib.keys()) > 0: self.raiseAnError(IOError,'variable block in the definition of the function '+self.name + ' should not have any attribute!')
     if cnt == 0: self.raiseAnError(IOError,'not variable found in the definition of the function '+self.name)
 
-  def addInitParams(self,tempDict):
+  def getInitParams(self):
     """
       This function is called from the base class to print some of the information inside the class.
       Whatever is permanent in the class and not inherited from the parent class should be mentioned here
       The information is passed back in the dictionary. No information about values that change during the simulation are allowed
-      @ In, tempDict, dict, dictionary like {'attribute name':value}
-      @ Out, tempDict, dict, updated dictionary like {'attribute name':value}
+      @ In, None
+      @ Out, paramDict, dict, dictionary containg the parameter names as keys
+        and each parameter's initial value as the dictionary values
     """
-    tempDict['Module file name'                    ] = self.functionFile
-    tempDict['The residuum is provided'            ] = self.__actionImplemented['residuum']
-    tempDict['The sign of the residuum is provided'] = self.__actionImplemented['residuumSign']
-    tempDict['The gradient is provided'            ] = self.__actionImplemented['gradient']
-    tempDict['The support bonding is provided'     ] = self.__actionImplemented['supportBoundingTest']
+    paramDict = {}
+    paramDict['Module file name'                    ] = self.functionFile
+    paramDict['The residuum is provided'            ] = self.__actionImplemented['residuum']
+    paramDict['The sign of the residuum is provided'] = self.__actionImplemented['residuumSign']
+    paramDict['The gradient is provided'            ] = self.__actionImplemented['gradient']
+    paramDict['The support bonding is provided'     ] = self.__actionImplemented['supportBoundingTest']
     for key,value in enumerate(self.__actionImplemented):
-      if key not in ['residualSign','supportBoundingTest','residual','gradient']: tempDict['Custom Function'] = value
+      if key not in ['residualSign','supportBoundingTest','residual','gradient']:
+        paramDict['Custom Function'] = value
+    return paramDict
 
-  def addCurrentSetting(self,tempDict):
+  def getCurrentSetting(self):
     """
       This function is called from the base class to print some of the information inside the class.
       Whatever is a temporary value in the class and not inherited from the parent class should be mentioned here
       The information is passed back in the dictionary
       Function adds the current settings in a temporary dictionary
-      @ In, tempDict, dict, dictionary like {'attribute name':value}
-      @ Out, tempDict, dict, updated dictionary like {'attribute name':value}
+      @ In, None
+      @ Out, paramDict, dict, dictionary containg the parameter names as keys
+        and each parameter's initial value as the dictionary values
     """
-    for key in self.__inputVariables: execCommand("object['variable "+str(key)+" has value']=self."+key,self=self,object=tempDict)
+    paramDict = {}
+    for key in self.__inputVariables:
+      execCommand("object['variable "+str(key)+" has value']=self."+key,self=self,object=paramDict)
+    return paramDict
 
   def __importValues(self,myInput):
     """

@@ -55,15 +55,6 @@ class DateBase(BaseType):
     if 'directory' in xmlNode.attrib.keys(): self.databaseDir = copy.copy(xmlNode.attrib['directory'])
     else:                                    self.databaseDir = os.path.join(self.workingDir,'DatabaseStorage')
 
-  def addInitParams(self,tempDict):
-    """
-      Function to be overloaded to inject the name and values of the initial
-      parameters
-      @ In, originalDict, dict, original dictionary containg the initial parameters. This is the dictionary that needs to be updated
-      @ Out, tempDict, dict, the updated dictionary
-    """
-    return tempDict
-
   @abc.abstractmethod
   def addGroup(self,attributes,loadFrom):
     """
@@ -163,15 +154,16 @@ class HDF5(DateBase):
       self.database  = h5Data(self.name,self.databaseDir,self.messageHandler)
       self.exist     = False
 
-  def addInitParams(self,tempDict):
+  def getInitParams(self):
     """
-      Function to be overloaded to inject the name and values of the initial parameters
-      @ In, tempDict, dict, original dictionary containg the initial parameters. This is the dictionary that needs to be updated
-      @ Out, temDict, dict, the updated dictionary
+      Function to get the initial values of the input parameters that belong to
+      this class
+      @ Out, paramDict, dict, dictionary containg the parameter names as keys
+        and each parameter's initial value as the dictionary values
     """
-    tempDict = DateBase.addInitParams(self,tempDict)
-    tempDict['exist'] = self.exist
-    return tempDict
+    paramDict = DateBase.getInitParams(self)
+    paramDict['exist'] = self.exist
+    return paramDict
 
   def getEndingGroupPaths(self):
     """

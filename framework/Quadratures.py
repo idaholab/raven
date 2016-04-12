@@ -131,8 +131,7 @@ class SparseGrid(MessageHandler.MessageUser):
       @ In, None
       @ Out, pdict, dict, points and weights
     """
-    pdict={}
-    self.addInitParams(pdict)
+    pdict = self.getInitParams()
     return pdict
 
   def __setstate__(self,pdict):
@@ -266,18 +265,22 @@ class SparseGrid(MessageHandler.MessageUser):
       self.raiseADebug(msg)
       msg=''
 
-  def addInitParams(self,adict):
+  def getInitParams(self):
     """
-      Adds params required to initialize an instance of this object to a dictionary.
-      @ In, adict, dict, dictionary
-      @ Out, None
+      Adds params required to initialize an instance of this object to a
+      dictionary.
+      @ In, None
+      @ Out, paramDict, dict, dictionary containg the parameter names as keys
+        and each parameter's initial value as the dictionary values
     """
-    adict['indexSet']=self.indexSet
-    adict['distDict']=self.distDict
-    adict['quadDict']=self.quadDict
-    adict['names'   ]=self.varNames
-    adict['points'  ]=self.points()
-    adict['weights' ]=self.weights()
+    paramDict = {}
+    paramDict['indexSet']=self.indexSet
+    paramDict['distDict']=self.distDict
+    paramDict['quadDict']=self.quadDict
+    paramDict['names'   ]=self.varNames
+    paramDict['points'  ]=self.points()
+    paramDict['weights' ]=self.weights()
+    return paramDict
 
   def quadRule(self,idx):
     """

@@ -74,7 +74,6 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
     --Other inherited methods--
     myInstance.whoAreYou()                            -see BaseType class-
-    myInstance.myInitializzationParams()              -see BaseType class-
     myInstance.myCurrentSetting()                     -see BaseType class-
 
     --Adding a new Sampler subclass--
@@ -89,8 +88,8 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
     the following methods could be overrode:
     self.localInputAndChecks(xmlNode)
-    self.localAddInitParams(tempDict)
-    self.localAddCurrentSetting(tempDict)
+    self.localGetInitParams()
+    self.localGetCurrentSetting()
     self.localInitialize()
     self.localStillReady(ready)
     self.localFinalizeActualSampling(jobObject,model,myInput)
@@ -375,58 +374,68 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
   def localInputAndChecks(self,xmlNode):
     """
-      Local method. Place here the additional reading, remember to add initial parameters in the method localAddInitParams
+      Local method. Place here the additional reading, remember to add initial parameters in the method localGetInitParams
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None
     """
     pass
 
-  def addInitParams(self,tempDict):
+  def getInitParams(self):
     """
       This function is called from the base class to print some of the information inside the class.
       Whatever is permanent in the class and not inherited from the parent class should be mentioned here
       The information is passed back in the dictionary. No information about values that change during the simulation are allowed
-      @ In, tempDict, dict, dictionary to be updated. {'attribute name':value}
-      @ Out, None
+      @ In, None
+      @ Out, paramDict, dict, dictionary containg the parameter names as keys
+        and each parameter's initial value as the dictionary values
     """
+    paramDict = {}
     for variable in self.toBeSampled.items():
-      tempDict[variable[0]] = 'is sampled using the distribution ' +variable[1]
-    tempDict['limit' ]        = self.limit
-    tempDict['initial seed' ] = self.initSeed
-    self.localAddInitParams(tempDict)
+      paramDict[variable[0]] = 'is sampled using the distribution ' +variable[1]
+    paramDict['limit' ]        = self.limit
+    paramDict['initial seed' ] = self.initSeed
+    paramDict.update(self.localGetInitParams())
+    return paramDict
 
-  def localAddInitParams(self,tempDict):
+  def localGetInitParams(self):
     """
       Method used to export to the printer in the base class the additional PERMANENT your local class have
-      @ In, tempDict, dict, dictionary to be updated. {'attribute name':value}
-      @ Out, None
+      @ In, None
+      @ Out, paramDict, dict, dictionary containg the parameter names as keys
+        and each parameter's initial value as the dictionary values
     """
+    return {}
 
-  def addCurrentSetting(self,tempDict):
+  def getCurrentSetting(self):
     """
       This function is called from the base class to print some of the information inside the class.
       Whatever is a temporary value in the class and not inherited from the parent class should be mentioned here
       The information is passed back in the dictionary
-      Function adds the current settings in a temporary dictionary
-      @ In, tempDict, dict, dictionary to be updated. {'attribute name':value}
-      @ Out, None
+      @ In, None
+      @ Out, paramDict, dict, dictionary containg the parameter names as keys
+        and each parameter's initial value as the dictionary values
     """
-    tempDict['counter'       ] = self.counter
-    tempDict['initial seed'  ] = self.initSeed
+    paramDict = {}
+    paramDict['counter'       ] = self.counter
+    paramDict['initial seed'  ] = self.initSeed
     for key in self.inputInfo:
-      if key!='SampledVars': tempDict[key] = self.inputInfo[key]
+      if key!='SampledVars':
+        paramDict[key] = self.inputInfo[key]
       else:
-        for var in self.inputInfo['SampledVars'].keys(): tempDict['Variable: '+var+' has value'] = tempDict[key][var]
-    self.localAddCurrentSetting(tempDict)
+        for var in self.inputInfo['SampledVars'].keys():
+          paramDict['Variable: '+var+' has value'] = paramDict[key][var]
+    paramDict.update(self.localGetCurrentSetting())
+    return paramDict
 
-  def localAddCurrentSetting(self,tempDict):
+  def localGetCurrentSetting(self):
     """
-      Appends a given dictionary with class specific information regarding the
+      Returns a dictionary with class specific information regarding the
       current status of the object.
-      @ In, tempDict, dict, The dictionary where we will add the initialization parameters specific to this Sampler.
-      @ Out, None
+      @ In, None
+      @ Out, paramDict, dict, dictionary containg the parameter names as keys
+        and each parameter's initial value as the dictionary values
     """
-    pass
+    return {}
 
   def _generateDistributions(self,availableDist,availableFunc):
     """
@@ -896,34 +905,42 @@ class LimitSurfaceSearch(AdaptiveSampler):
           self.raiseAWarning('Requested an invalid threshold level: ', self.threshold, '. Defaulting to 0.')
           self.threshold = 0
 
-  def localAddInitParams(self,tempDict):
+  def localGetInitParams(self):
     """
       Appends a given dictionary with class specific member variables and their
       associated initialized values.
-      @ In, tempDict, dict, The dictionary where we will add the initialization parameters specific to this Sampler.
-      @ Out, None
+      @ In, None
+      @ Out, paramDict, dict, dictionary containg the parameter names as keys
+        and each parameter's initial value as the dictionary values
     """
-    tempDict['Iter. forced'    ] = str(self.forceIteration)
-    tempDict['Norm tolerance'  ] = str(self.tolerance)
-    tempDict['Sub grid size'   ] = str(self.subGridTol)
-    tempDict['Error Weight'    ] = str(self.toleranceWeight)
-    tempDict['Persistence'     ] = str(self.repetition)
-    tempDict['batchStrategy'   ] = self.batchStrategy
-    tempDict['maxBatchSize'    ] = self.maxBatchSize
-    tempDict['scoring'         ] = str(self.scoringMethod)
-    tempDict['simplification'  ] = self.simplification
-    tempDict['thickness'       ] = self.thickness
-    tempDict['threshold'       ] = self.threshold
+    paramDict = {}
+    paramDict['Iter. forced'    ] = str(self.forceIteration)
+    paramDict['Norm tolerance'  ] = str(self.tolerance)
+    paramDict['Sub grid size'   ] = str(self.subGridTol)
+    paramDict['Error Weight'    ] = str(self.toleranceWeight)
+    paramDict['Persistence'     ] = str(self.repetition)
+    paramDict['batchStrategy'   ] = self.batchStrategy
+    paramDict['maxBatchSize'    ] = self.maxBatchSize
+    paramDict['scoring'         ] = str(self.scoringMethod)
+    paramDict['simplification'  ] = self.simplification
+    paramDict['thickness'       ] = self.thickness
+    paramDict['threshold'       ] = self.threshold
+    return paramDict
 
-  def localAddCurrentSetting(self,tempDict):
+  def localGetCurrentSetting(self):
     """
       Appends a given dictionary with class specific information regarding the
       current status of the object.
-      @ In, tempDict, dict, The dictionary where we will add the initialization parameters specific to this Sampler.
-      @ Out, None
+      @ In, None
+      @ Out, paramDict, dict, dictionary containg the parameter names as keys
+        and each parameter's initial value as the dictionary values
     """
-    if self.solutionExport!=None: tempDict['The solution is exported in '    ] = 'Name: ' + self.solutionExport.name + 'Type: ' + self.solutionExport.type
-    if self.goalFunction!=None  : tempDict['The function used is '] = self.goalFunction.name
+    paramDict = {}
+    if self.solutionExport!=None:
+      paramDict['The solution is exported in '    ] = 'Name: ' + self.solutionExport.name + 'Type: ' + self.solutionExport.type
+    if self.goalFunction!=None  :
+      paramDict['The function used is '] = self.goalFunction.name
+    return paramDict
 
   def localInitialize(self,solutionExport=None):
     """
@@ -1482,25 +1499,31 @@ class Grid(Sampler):
     self.axisName = list(grdInfo.keys())
     self.axisName.sort()
 
-  def localAddInitParams(self,tempDict):
+  def localGetInitParams(self):
     """
       Appends a given dictionary with class specific member variables and their
       associated initialized values.
-      @ In, tempDict, dict, The dictionary where we will add the initialization parameters specific to this Sampler.
-      @ Out, None
+      @ In, None
+      @ Out, paramDict, dict, dictionary containg the parameter names as keys
+        and each parameter's initial value as the dictionary values
     """
+    paramDict = {}
     for variable,value in self.gridInfo.items():
-      tempDict[variable+' is sampled using a grid in '] = value
+      paramDict[variable+' is sampled using a grid in '] = value
+    return paramDict
 
-  def localAddCurrentSetting(self,tempDict):
+  def localGetCurrentSetting(self):
     """
       Appends a given dictionary with class specific information regarding the
       current status of the object.
-      @ In, tempDict, dict, The dictionary where we will add the initialization parameters specific to this Sampler.
-      @ Out, None
+      @ In, None
+      @ Out, paramDict, dict, dictionary containg the parameter names as keys
+        and each parameter's initial value as the dictionary values
     """
+    paramDict = {}
     for var, value in self.values.items():
-      tempDict['coordinate '+var+' has value'] = value
+      paramDict['coordinate '+var+' has value'] = value
+    return paramDict
 
   def localInitialize(self):
     """
@@ -2458,24 +2481,32 @@ class DynamicEventTree(Grid):
         # store the variables that represent the epistemic space
         self.epistemicVariables.update(dict.fromkeys(self.hybridStrategyToApply[child.attrib['type']].toBeSampled.keys(),{}))
 
-  def localAddInitParams(self,tempDict):
+  def localGetInitParams(self):
     """
       Appends a given dictionary with class specific member variables and their
       associated initialized values.
-      @ In, tempDict, dict, The dictionary where we will add the initialization parameters specific to this Sampler.
-      @ Out, None
+      @ In, None
+      @ Out, paramDict, dict, dictionary containg the parameter names as keys
+        and each parameter's initial value as the dictionary values
     """
-    for key in self.branchProbabilities.keys(): tempDict['Probability Thresholds for dist ' + str(key) + ' are: '] = [str(x) for x in self.branchProbabilities[key]]
-    for key in self.branchValues.keys()       : tempDict['Values Thresholds for dist ' + str(key) + ' are: '] = [str(x) for x in self.branchValues[key]]
+    paramDict = {}
+    for key in self.branchProbabilities.keys():
+      paramDict['Probability Thresholds for dist ' + str(key) + ' are: '] = [str(x) for x in self.branchProbabilities[key]]
+    for key in self.branchValues.keys()       :
+      paramDict['Values Thresholds for dist ' + str(key) + ' are: '] = [str(x) for x in self.branchValues[key]]
+    return paramDict
 
-  def localAddCurrentSetting(self,tempDict):
+  def localGetCurrentSetting(self):
     """
       Appends a given dictionary with class specific information regarding the
       current status of the object.
-      @ In, tempDict, dict, The dictionary where we will add the initialization parameters specific to this Sampler.
-      @ Out, None
+      @ In, None
+      @ Out, paramDict, dict, dictionary containg the parameter names as keys
+        and each parameter's initial value as the dictionary values
     """
-    tempDict['actual threshold levels are '] = self.branchedLevel[0]
+    paramDict = {}
+    paramDict['actual threshold levels are '] = self.branchedLevel[0]
+    return paramDict
 
   def localInitialize(self):
     """
@@ -3111,18 +3142,22 @@ class FactorialDesign(Grid):
                         str(len(self.gridEntity.returnParameter("gridInfo")[varname][2])))
     else: self.externalgGridCoord = False
 
-  def localAddInitParams(self,tempDict):
+  def localGetInitParams(self):
     """
       Appends a given dictionary with class specific member variables and their
       associated initialized values.
-      @ In, tempDict, dict, The dictionary where we will add the initialization parameters specific to this Sampler.
-      @ Out, None
+      @ In, None
+      @ Out, paramDict, dict, dictionary containg the parameter names as keys
+        and each parameter's initial value as the dictionary values
     """
-    Grid.localAddInitParams(self,tempDict)
+    paramDict = Grid.localGetInitParams(self)
     for key,value in self.factOpt.items():
-      if key != 'options': tempDict['Factorial '+key] = value
+      if key != 'options':
+        paramDict['Factorial '+key] = value
       else:
-        for kk,val in value.items(): tempDict['Factorial options '+kk] = val
+        for kk,val in value.items():
+          paramDict['Factorial options '+kk] = val
+    return paramDict
 
   def localInitialize(self):
     """
@@ -3224,18 +3259,22 @@ class ResponseSurfaceDesign(Grid):
     if len(self.gridCoordinate) < self.minNumbVars[self.respOpt['algorithmType']]: self.raiseAnError(IOError,'minimum number of variables for type "'+ self.respOpt['type'] +'" is '+str(self.minNumbVars[self.respOpt['type']])+'!!')
     self.externalgGridCoord = True
 
-  def localAddInitParams(self,tempDict):
+  def localGetInitParams(self):
     """
       Appends a given dictionary with class specific member variables and their
       associated initialized values.
-      @ In, tempDict, dict, The dictionary where we will add the initialization parameters specific to this Sampler.
-      @ Out, None
+      @ In, None
+      @ Out, paramDict, dict, dictionary containg the parameter names as keys
+        and each parameter's initial value as the dictionary values
     """
-    Grid.localAddInitParams(self,tempDict)
+    paramDict = Grid.localGetInitParams(self)
     for key,value in self.respOpt.items():
-      if key != 'options': tempDict['Response Design '+key] = value
+      if key != 'options':
+        paramDict['Response Design '+key] = value
       else:
-        for kk,val in value.items(): tempDict['Response Design options '+kk] = val
+        for kk,val in value.items():
+          paramDict['Response Design options '+kk] = val
+    return paramDict
 
   def localInitialize(self):
     """
