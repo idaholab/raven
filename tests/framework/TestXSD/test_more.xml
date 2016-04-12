@@ -3,6 +3,7 @@
     <sub_1>sub_value_1</sub_1>
     <sub_2>sub_value_2</sub_2>
     <sub_3>23</sub_3>
+    <sub_4>3.09e13</sub_4>
   </inner>
   <inner required_string="bye" />
   <ordered>

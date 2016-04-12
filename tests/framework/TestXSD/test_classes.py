@@ -39,6 +39,15 @@ class Sub3Input(InputData.ParameterInput):
 Sub3Input.createClass("sub_3")
 Sub3Input.setContentType(InputData.IntegerType)
 
+class Sub4Input(InputData.ParameterInput):
+  """
+    Test class
+  """
+  pass
+
+Sub4Input.createClass("sub_4")
+Sub4Input.setContentType(InputData.FloatType)
+
 class InnerInput(InputData.ParameterInput):
   """
     Test class
@@ -53,6 +62,7 @@ InnerInput.addParam("required_string", InputData.StringType, True)
 InnerInput.addSub(Sub1Input)
 InnerInput.addSub(Sub2Input)
 InnerInput.addSub(Sub3Input)
+InnerInput.addSub(Sub4Input)
 
 class SubBool(InputData.ParameterInput):
   """

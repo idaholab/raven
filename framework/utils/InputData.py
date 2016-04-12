@@ -88,6 +88,22 @@ class IntegerType(InputType):
 
 IntegerType.createClass("integer","xsd:integer")
 
+class FloatType(InputType):
+  """
+    A type for floating point data.
+  """
+
+  @classmethod
+  def convert(cls, value):
+    """
+      Converts value from string to a float.
+      @ In, value, string, the value to convert
+      @ Out, convert, float, the converted value
+    """
+    return float(value)
+
+FloatType.createClass("float","xsd:double")
+
 class EnumBaseType(InputType):
   """
     A type that allows a set list of strings
