@@ -178,21 +178,34 @@ class ParameterInput(object):
     self.value = ""
 
   @classmethod
-  def createClass(cls, name, ordered=False):
+  def createClass(cls, name, ordered=False, contentType=None, baseNode=None):
     """
       Initializes a new class.
       @ In, name, string, The name of the node.
       @ In, ordered, bool, optional, If True, then the subnodes are checked to make sure they are in the same order.
+      @ In, contentType, InputType, optional, If not None, set contentType.
+      @ In, baseNode, ParameterInput, optional, If not None, copy parameters and subnodes, subOrder, and contentType from baseNode.
       @ Out, None
     """
     cls.name = name
-    cls.parameters = {}
-    cls.subs = set()
-    if ordered:
-      cls.subOrder = []
+    if baseNode is not None:
+      #Make new copies of data from baseNode
+      cls.parameters = dict(baseNode.parameters)
+      cls.subs = set(baseNode.subs)
+      if ordered:
+        cls.subOrder = list(baseNode.subOrder)
+      else:
+        cls.subOrder = None
+      if contentType is None:
+        cls.contentType = baseNode.contentType
     else:
-      cls.subOrder = None
-    cls.contentType = None
+      cls.parameters = {}
+      cls.subs = set()
+      if ordered:
+        cls.subOrder = []
+      else:
+        cls.subOrder = None
+      cls.contentType = contentType
 
   @classmethod
   def getName(cls):
