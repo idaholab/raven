@@ -25,6 +25,7 @@ from scipy.interpolate import UnivariateSpline
 from BaseClasses import BaseType
 import utils
 distribution1D = utils.find_distribution1D()
+import InputData
 #Internal Modules End--------------------------------------------------------------------------------
 
 def factorial(x):
@@ -58,6 +59,18 @@ _FrameworkToCrowDistNames = { 'Uniform':'UniformDistribution',
                               'NDInverseWeight': 'NDInverseWeightDistribution',
                               'NDCartesianSpline': 'NDCartesianSplineDistribution',
                               'MultivariateNormal' : 'MultivariateNormalDistribution'}
+
+UpperBoundInput = InputData.parameterInputFactory('upperBound',contentType=InputData.FloatType)
+LowerBoundInput = InputData.parameterInputFactory('lowerBound', contentType=InputData.FloatType)
+
+class DistributionInput(InputData.ParameterInput):
+  """
+    Class for reading in distribution input
+  """
+
+DistributionInput.createClass("DistributionInput")
+DistributionInput.addSub(UpperBoundInput)
+DistributionInput.addSub(LowerBoundInput)
 
 
 class Distribution(BaseType):
@@ -137,6 +150,21 @@ class Distribution(BaseType):
       self.lowerBoundUsed = True
     if xmlNode.find('adjustment') !=None: self.__adjustment = xmlNode.find('adjustment').text
     else: self.__adjustment = 'scaling'
+
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the common parts of the distribution parameter input.
+      @ In, paramInput, ParameterInput, the already parsed input.
+      @ Out, None
+    """
+    upperBound = paramInput.findFirst('upperBound')
+    if upperBound !=None:
+      self.upperBound = upperBound.value
+      self.upperBoundUsed = True
+    lowerBound = paramInput.findFirst('lowerBound')
+    if lowerBound !=None:
+      self.lowerBound = lowerBound.value
+      self.lowerBoundUsed = True
 
   def getCrowDistDict(self):
     """
@@ -442,6 +470,13 @@ class BoostDistribution(Distribution):
     else             : rvsValue = [self.rvs() for _ in range(args[0])]
     return rvsValue
 
+class UniformDistributionInput(InputData.ParameterInput):
+  """
+    Class for reading in uniform distribution input.
+  """
+
+UniformDistributionInput.createClass("Uniform", False, baseNode=DistributionInput)
+
 class Uniform(BoostDistribution):
   """
     Uniform univariate distribution
@@ -490,7 +525,9 @@ class Uniform(BoostDistribution):
       @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
       @ Out, None
     """
-    BoostDistribution._readMoreXML(self,xmlNode)
+    paramInput = UniformDistributionInput()
+    paramInput.parseNode(xmlNode)
+    BoostDistribution._handleInput(self, paramInput)
     if not self.upperBoundUsed or not self.lowerBoundUsed:
       self.raiseAnError(IOError,'the Uniform distribution needs both upperBound and lowerBound attributes. Got upperBound? '+ str(self.upperBoundUsed) + '. Got lowerBound? '+str(self.lowerBoundUsed))
     self.range = self.upperBound - self.lowerBound
@@ -544,6 +581,17 @@ class Uniform(BoostDistribution):
     """
     return self.range/2.*x+self.untruncatedMean()
 
+MeanParameterInput = InputData.parameterInputFactory("mean", contentType=InputData.FloatType)
+SigmaParameterInput = InputData.parameterInputFactory("sigma", contentType=InputData.FloatType)
+
+class NormalDistributionInput(InputData.ParameterInput):
+  """
+    Class for reading in normal distribution input
+  """
+
+NormalDistributionInput.createClass("Normal", False, baseNode=DistributionInput)
+NormalDistributionInput.addSub(MeanParameterInput)
+NormalDistributionInput.addSub(SigmaParameterInput)
 
 
 class Normal(BoostDistribution):
@@ -595,12 +643,14 @@ class Normal(BoostDistribution):
       @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
       @ Out, None
     """
-    BoostDistribution._readMoreXML(self, xmlNode)
-    meanFind = xmlNode.find('mean' )
-    if meanFind != None: self.mean  = float(meanFind.text)
+    paramInput = NormalDistributionInput()
+    paramInput.parseNode(xmlNode)
+    BoostDistribution._handleInput(self, paramInput)
+    meanFind = paramInput.findFirst('mean' )
+    if meanFind != None: self.mean  = meanFind.value
     else: self.raiseAnError(IOError,'mean value needed for normal distribution')
-    sigmaFind = xmlNode.find('sigma')
-    if sigmaFind != None: self.sigma = float(sigmaFind.text)
+    sigmaFind = paramInput.findFirst('sigma')
+    if sigmaFind != None: self.sigma = sigmaFind.value
     else: self.raiseAnError(IOError,'sigma value needed for normal distribution')
     self.initializeDistribution() #FIXME no other distros have this...needed?
 
@@ -675,6 +725,21 @@ class Normal(BoostDistribution):
     """
     return self.sigma*x+self.untruncatedMean()
 
+LowParameterInput = InputData.parameterInputFactory("low", contentType=InputData.FloatType)
+AlphaParameterInput = InputData.parameterInputFactory("alpha", contentType=InputData.FloatType)
+BetaParameterInput = InputData.parameterInputFactory("beta", contentType=InputData.FloatType)
+
+class GammaDistributionInput(InputData.ParameterInput):
+  """
+    Class for reading in gamma distribution input.
+  """
+
+GammaDistributionInput.createClass("Gamma", False, baseNode=DistributionInput)
+GammaDistributionInput.addSub(LowParameterInput)
+GammaDistributionInput.addSub(AlphaParameterInput)
+GammaDistributionInput.addSub(BetaParameterInput)
+
+
 class Gamma(BoostDistribution):
   """
     Gamma univariate distribution
@@ -726,14 +791,16 @@ class Gamma(BoostDistribution):
       @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
       @ Out, None
     """
-    BoostDistribution._readMoreXML(self,xmlNode)
-    lowFind = xmlNode.find('low')
-    if lowFind != None: self.low = float(lowFind.text)
-    alphaFind = xmlNode.find('alpha')
-    if alphaFind != None: self.alpha = float(alphaFind.text)
+    paramInput = GammaDistributionInput()
+    paramInput.parseNode(xmlNode)
+    BoostDistribution._handleInput(self, paramInput)
+    lowFind = paramInput.findFirst('low')
+    if lowFind != None: self.low = lowFind.value
+    alphaFind = paramInput.findFirst('alpha')
+    if alphaFind != None: self.alpha = alphaFind.value
     else: self.raiseAnError(IOError,'alpha value needed for Gamma distribution')
-    betaFind = xmlNode.find('beta')
-    if betaFind != None: self.beta = float(betaFind.text)
+    betaFind = paramInput.findFirst('beta')
+    if betaFind != None: self.beta = betaFind.value
     # check if lower bound are set, otherwise default
     if not self.lowerBoundUsed:
       self.lowerBoundUsed = True
@@ -804,6 +871,20 @@ class Gamma(BoostDistribution):
     #return self.beta**self.alpha/factorial(self.alpha-1.)
     return 1./factorial(self.alpha-1)
 
+HighParameterInput = InputData.parameterInputFactory("high", contentType=InputData.FloatType)
+PeakFactorParameterInput = InputData.parameterInputFactory("peakFactor", contentType=InputData.FloatType)
+
+class BetaDistributionInput(InputData.ParameterInput):
+  """
+    Class for reading in beta distribution input.
+  """
+
+BetaDistributionInput.createClass("Beta", False, baseNode=DistributionInput)
+BetaDistributionInput.addSub(LowParameterInput)
+BetaDistributionInput.addSub(HighParameterInput)
+BetaDistributionInput.addSub(AlphaParameterInput)
+BetaDistributionInput.addSub(BetaParameterInput)
+BetaDistributionInput.addSub(PeakFactorParameterInput)
 
 class Beta(BoostDistribution):
   """
@@ -859,19 +940,21 @@ class Beta(BoostDistribution):
       @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
       @ Out, None
     """
-    BoostDistribution._readMoreXML(self,xmlNode)
-    lowFind = xmlNode.find('low')
-    if lowFind != None: self.low = float(lowFind.text)
-    hiFind = xmlNode.find('high')
-    if hiFind != None: self.high = float(hiFind.text)
-    alphaFind = xmlNode.find('alpha')
-    betaFind = xmlNode.find('beta')
-    peakFind = xmlNode.find('peakFactor')
+    paramInput = BetaDistributionInput()
+    paramInput.parseNode(xmlNode)
+    BoostDistribution._handleInput(self, paramInput)
+    lowFind = paramInput.findFirst('low')
+    if lowFind != None: self.low = lowFind.value
+    hiFind = paramInput.findFirst('high')
+    if hiFind != None: self.high = hiFind.value
+    alphaFind = paramInput.findFirst('alpha')
+    betaFind = paramInput.findFirst('beta')
+    peakFind = paramInput.findFirst('peakFactor')
     if alphaFind != None and betaFind != None and peakFind == None:
-      self.alpha = float(alphaFind.text)
-      self.beta  = float(betaFind.text)
+      self.alpha = alphaFind.value
+      self.beta  = betaFind.value
     elif (alphaFind == None and betaFind == None) and peakFind != None:
-      peakFactor = float(peakFind.text)
+      peakFactor = peakFind.value
       if not 0 <= peakFactor <= 1: self.raiseAnError(IOError,'peakFactor must be from 0 to 1, inclusive!')
       #this empirical formula is used to make it so factor->alpha: 0->1, 0.5~7.5, 1->99
       self.alpha = 0.5*23.818**(5.*peakFactor/3.) + 0.5
@@ -953,7 +1036,19 @@ class Beta(BoostDistribution):
     norm = 1.0/(2**(self.alpha+self.beta-1)*B)
     return norm
 
+ApexParameterInput = InputData.parameterInputFactory("apex", contentType=InputData.FloatType)
+MinParameterInput = InputData.parameterInputFactory("min", contentType=InputData.FloatType)
+MaxParameterInput = InputData.parameterInputFactory("max", contentType=InputData.FloatType)
 
+class TriangularDistributionInput(InputData.ParameterInput):
+  """
+    Class for reading in the triangular distribution input.
+  """
+
+TriangularDistributionInput.createClass("Triangular", False, baseNode=DistributionInput)
+TriangularDistributionInput.addSub(ApexParameterInput)
+TriangularDistributionInput.addSub(MinParameterInput)
+TriangularDistributionInput.addSub(MaxParameterInput)
 
 class Triangular(BoostDistribution):
   """
@@ -1004,15 +1099,17 @@ class Triangular(BoostDistribution):
       @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
       @ Out, None
     """
-    BoostDistribution._readMoreXML(self, xmlNode)
-    apexFind = xmlNode.find('apex')
-    if apexFind != None: self.apex = float(apexFind.text)
+    paramInput = TriangularDistributionInput()
+    paramInput.parseNode(xmlNode)
+    BoostDistribution._handleInput(self, paramInput)
+    apexFind = paramInput.findFirst('apex')
+    if apexFind != None: self.apex = apexFind.value
     else: self.raiseAnError(IOError,'apex value needed for normal distribution')
-    minFind = xmlNode.find('min')
-    if minFind != None: self.min = float(minFind.text)
+    minFind = paramInput.findFirst('min')
+    if minFind != None: self.min = minFind.value
     else: self.raiseAnError(IOError,'min value needed for normal distribution')
-    maxFind = xmlNode.find('max')
-    if maxFind != None: self.max = float(maxFind.text)
+    maxFind = paramInput.findFirst('max')
+    if maxFind != None: self.max = maxFind.value
     else: self.raiseAnError(IOError,'max value needed for normal distribution')
     # check if lower or upper bounds are set, otherwise default
     if not self.upperBoundUsed:
@@ -1048,7 +1145,15 @@ class Triangular(BoostDistribution):
     else:
       self.raiseAnError(IOError,'Truncated triangular not yet implemented')
 
+MuParameterInput = InputData.parameterInputFactory("mu", contentType=InputData.FloatType)
 
+class PoissonDistributionInput(InputData.ParameterInput):
+  """
+    Class for reading in poisson distribution input.
+  """
+
+PoissonDistributionInput.createClass("Poisson", False, baseNode=DistributionInput)
+PoissonDistributionInput.addSub(MuParameterInput)
 
 class Poisson(BoostDistribution):
   """
@@ -1094,9 +1199,11 @@ class Poisson(BoostDistribution):
       @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
       @ Out, None
     """
-    BoostDistribution._readMoreXML(self, xmlNode)
-    muFind = xmlNode.find('mu')
-    if muFind != None: self.mu = float(muFind.text)
+    paramInput = PoissonDistributionInput()
+    paramInput.parseNode(xmlNode)
+    BoostDistribution._handleInput(self, paramInput)
+    muFind = paramInput.findFirst('mu')
+    if muFind != None: self.mu = muFind.value
     else: self.raiseAnError(IOError,'mu value needed for poisson distribution')
     self.initializeDistribution()
 
@@ -1125,6 +1232,17 @@ class Poisson(BoostDistribution):
     else:
       self.raiseAnError(IOError,'Truncated poisson not yet implemented')
 
+NParameterInput = InputData.parameterInputFactory("n", contentType=InputData.IntegerType)
+PParameterInput = InputData.parameterInputFactory("p", contentType=InputData.FloatType)
+
+class BinomialDistributionInput(InputData.ParameterInput):
+  """
+    Class for reading in binomial distribution input.
+  """
+
+BinomialDistributionInput.createClass("Binomial", False, baseNode=DistributionInput)
+BinomialDistributionInput.addSub(NParameterInput)
+BinomialDistributionInput.addSub(PParameterInput)
 
 class Binomial(BoostDistribution):
   """
@@ -1173,12 +1291,14 @@ class Binomial(BoostDistribution):
       @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
       @ Out, None
     """
-    BoostDistribution._readMoreXML(self, xmlNode)
-    nFind = xmlNode.find('n')
-    if nFind != None: self.n = float(nFind.text)
+    paramInput = BinomialDistributionInput()
+    paramInput.parseNode(xmlNode)
+    BoostDistribution._handleInput(self, paramInput)
+    nFind = paramInput.findFirst('n')
+    if nFind != None: self.n = nFind.value
     else: self.raiseAnError(IOError,'n value needed for Binomial distribution')
-    pFind = xmlNode.find('p')
-    if pFind != None: self.p = float(pFind.text)
+    pFind = paramInput.findFirst('p')
+    if pFind != None: self.p = pFind.value
     else: self.raiseAnError(IOError,'p value needed for Binomial distribution')
     self.initializeDistribution()
 
@@ -1207,6 +1327,14 @@ class Binomial(BoostDistribution):
 #
 #
 #
+class BernoulliDistributionInput(InputData.ParameterInput):
+  """
+    Class for reading in bernoulli distribution input.
+  """
+
+BernoulliDistributionInput.createClass("Bernoulli", False, baseNode=DistributionInput)
+BernoulliDistributionInput.addSub(PParameterInput)
+
 class Bernoulli(BoostDistribution):
   """
     Bernoulli univariate distribution
@@ -1252,9 +1380,11 @@ class Bernoulli(BoostDistribution):
       @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
       @ Out, None
     """
-    BoostDistribution._readMoreXML(self, xmlNode)
-    pFind = xmlNode.find('p')
-    if pFind != None: self.p = float(pFind.text)
+    paramInput = BernoulliDistributionInput()
+    paramInput.parseNode(xmlNode)
+    BoostDistribution._handleInput(self, paramInput)
+    pFind = paramInput.findFirst('p')
+    if pFind != None: self.p = pFind.value
     else: self.raiseAnError(IOError,'p value needed for Bernoulli distribution')
     self.initializeDistribution()
 
@@ -1280,6 +1410,21 @@ class Bernoulli(BoostDistribution):
       self._distribution = distribution1D.BasicBernoulliDistribution(self.p)
     else:  self.raiseAnError(IOError,'Truncated Bernoulli not yet implemented')
 
+class StatePartInput(InputData.ParameterInput):
+  """
+    Class for reading the state part of a categorical distribution.
+  """
+
+StatePartInput.createClass("state", contentType=InputData.FloatType)
+StatePartInput.addParam("outcome", InputData.StringType, True)
+
+class CategoricalDistributionInput(InputData.ParameterInput):
+  """
+    Class for reading in a Categorical distribution
+  """
+
+CategoricalDistributionInput.createClass("Categorical", True)
+CategoricalDistributionInput.addSub(StatePartInput, InputData.Quantity.one_to_infinity)
 
 class Categorical(Distribution):
   """
@@ -1305,19 +1450,22 @@ class Categorical(Distribution):
       @ In, None
       @ Out, None
     """
-    Distribution._readMoreXML(self, xmlNode)
+    #Distribution._readMoreXML(self, xmlNode)
 
-    for child in xmlNode:
-      if child.tag == "state":
-        outcome = child.attrib['outcome']
-        self.mapping[outcome] = float(child.text)
+    paramInput = CategoricalDistributionInput()
+    paramInput.parseNode(xmlNode)
+
+    for child in paramInput.subparts:
+      if child.getName() == "state":
+        outcome = child.parameterValues["outcome"]
+        value = child.value
+        self.mapping[outcome] = value
         if float(outcome) in self.values:
           self.raiseAnError(IOError,'Categorical distribution has identical outcomes')
         else:
           self.values.add(float(outcome))
       else:
         self.raiseAnError(IOError,'Invalid xml node for Categorical distribution; only "state" is allowed')
-
     self.initializeDistribution()
 
   def getInitParams(self):
@@ -1391,6 +1539,18 @@ class Categorical(Distribution):
     rvsValue = self.ppf(random())
     return rvsValue
 
+LocationParameterInput = InputData.parameterInputFactory("location", contentType=InputData.FloatType)
+ScaleParameterInput = InputData.parameterInputFactory("scale", contentType=InputData.FloatType)
+
+class LogisticDistributionInput(InputData.ParameterInput):
+  """
+    Class for reading in logistic distribution input
+  """
+
+LogisticDistributionInput.createClass("Logistic", False, baseNode=DistributionInput)
+LogisticDistributionInput.addSub(LocationParameterInput)
+LogisticDistributionInput.addSub(ScaleParameterInput)
+
 class Logistic(BoostDistribution):
   """
     Logistic univariate distribution
@@ -1438,12 +1598,14 @@ class Logistic(BoostDistribution):
       @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
       @ Out, None
     """
-    BoostDistribution._readMoreXML(self, xmlNode)
-    locationFind = xmlNode.find('location')
-    if locationFind != None: self.location = float(locationFind.text)
+    paramInput = LogisticDistributionInput()
+    paramInput.parseNode(xmlNode)
+    BoostDistribution._handleInput(self, paramInput)
+    locationFind = paramInput.findFirst('location')
+    if locationFind != None: self.location = locationFind.value
     else: self.raiseAnError(IOError,'location value needed for Logistic distribution')
-    scaleFind = xmlNode.find('scale')
-    if scaleFind != None: self.scale = float(scaleFind.text)
+    scaleFind = paramInput.findFirst('scale')
+    if scaleFind != None: self.scale = scaleFind.value
     else: self.raiseAnError(IOError,'scale value needed for Logistic distribution')
     self.initializeDistribution()
 
@@ -1474,6 +1636,19 @@ class Logistic(BoostDistribution):
       if self.upperBoundUsed == False: b = sys.float_info.max
       else:b = self.upperBound
       self._distribution = distribution1D.BasicLogisticDistribution(self.location,self.scale,a,b)
+
+LambdaParameterInput = InputData.parameterInputFactory("lambda", contentType=InputData.FloatType)
+
+
+class ExponentialDistributionInput(InputData.ParameterInput):
+  """
+    Class for reading in exponential distribution input.
+  """
+
+ExponentialDistributionInput.createClass("Exponential", False, baseNode=DistributionInput)
+ExponentialDistributionInput.addSub(LambdaParameterInput)
+ExponentialDistributionInput.addSub(LowParameterInput)
+
 
 
 class Exponential(BoostDistribution):
@@ -1523,12 +1698,14 @@ class Exponential(BoostDistribution):
       @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
       @ Out, None
     """
-    BoostDistribution._readMoreXML(self, xmlNode)
-    lambdaFind = xmlNode.find('lambda')
-    if lambdaFind != None: self.lambdaVar = float(lambdaFind.text)
+    paramInput = ExponentialDistributionInput()
+    paramInput.parseNode(xmlNode)
+    BoostDistribution._handleInput(self, paramInput)
+    lambdaFind = paramInput.findFirst('lambda')
+    if lambdaFind != None: self.lambdaVar = lambdaFind.value
     else: self.raiseAnError(IOError,'lambda value needed for Exponential distribution')
-    low  = xmlNode.find('low')
-    if low != None: self.low = float(low.text)
+    low  = paramInput.findFirst('low')
+    if low != None: self.low = low.value
     else: self.low = 0.0
     # check if lower bound is set, otherwise default
     if not self.lowerBoundUsed:
@@ -1592,6 +1769,16 @@ class Exponential(BoostDistribution):
     else: converted = Distribution.convertStdPointsToDistr(self,x)
     return converted
 
+class LogNormalDistributionInput(InputData.ParameterInput):
+  """
+    Class for reading in lognormal distribution input.
+  """
+
+LogNormalDistributionInput.createClass("LogNormal", False, baseNode=DistributionInput)
+LogNormalDistributionInput.addSub(MeanParameterInput)
+LogNormalDistributionInput.addSub(SigmaParameterInput)
+LogNormalDistributionInput.addSub(LowParameterInput)
+
 class LogNormal(BoostDistribution):
   """
     LogNormal univariate distribution
@@ -1641,15 +1828,17 @@ class LogNormal(BoostDistribution):
       @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
       @ Out, None
     """
-    BoostDistribution._readMoreXML(self, xmlNode)
-    meanFind = xmlNode.find('mean')
-    if meanFind != None: self.mean = float(meanFind.text)
+    paramInput = LogNormalDistributionInput()
+    paramInput.parseNode(xmlNode)
+    BoostDistribution._handleInput(self, paramInput)
+    meanFind = paramInput.findFirst('mean')
+    if meanFind != None: self.mean = meanFind.value
     else: self.raiseAnError(IOError,'mean value needed for LogNormal distribution')
-    sigmaFind = xmlNode.find('sigma')
-    if sigmaFind != None: self.sigma = float(sigmaFind.text)
+    sigmaFind = paramInput.findFirst('sigma')
+    if sigmaFind != None: self.sigma = sigmaFind.value
     else: self.raiseAnError(IOError,'sigma value needed for LogNormal distribution')
-    lowFind = xmlNode.find('low')
-    if lowFind != None: self.low = float(lowFind.text)
+    lowFind = paramInput.findFirst('low')
+    if lowFind != None: self.low = lowFind.value
     else: self.low = 0.0
     self.initializeDistribution()
 
@@ -1688,6 +1877,17 @@ class LogNormal(BoostDistribution):
       else:b = self.upperBound
       self._distribution = distribution1D.BasicLogNormalDistribution(self.mean,self.sigma,self.low,a,b)
 
+KParameterInput = InputData.parameterInputFactory("k", contentType=InputData.FloatType)
+
+class WeibullDistributionInput(InputData.ParameterInput):
+  """
+    Class for reading in weibull distribution input.
+  """
+
+WeibullDistributionInput.createClass("Weibull", False, baseNode=DistributionInput)
+WeibullDistributionInput.addSub(LambdaParameterInput)
+WeibullDistributionInput.addSub(KParameterInput)
+WeibullDistributionInput.addSub(LowParameterInput)
 
 class Weibull(BoostDistribution):
   """
@@ -1738,15 +1938,17 @@ class Weibull(BoostDistribution):
       @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
       @ Out, None
     """
-    BoostDistribution._readMoreXML(self, xmlNode)
-    lambdaFind = xmlNode.find('lambda')
-    if lambdaFind != None: self.lambdaVar = float(lambdaFind.text)
+    paramInput = WeibullDistributionInput()
+    paramInput.parseNode(xmlNode)
+    BoostDistribution._handleInput(self, paramInput)
+    lambdaFind = paramInput.findFirst('lambda')
+    if lambdaFind != None: self.lambdaVar = lambdaFind.value
     else: self.raiseAnError(IOError,'lambda (scale) value needed for Weibull distribution')
-    kFind = xmlNode.find('k')
-    if kFind != None: self.k = float(kFind.text)
+    kFind = paramInput.findFirst('k')
+    if kFind != None: self.k = kFind.value
     else: self.raiseAnError(IOError,'k (shape) value needed for Weibull distribution')
-    lowFind = xmlNode.find('low')
-    if lowFind != None: self.low = float(lowFind.text)
+    lowFind = paramInput.findFirst('low')
+    if lowFind != None: self.low = lowFind.value
     else: self.low = 0.0
     # check if lower  bound is set, otherwise default
     #if not self.lowerBoundUsed:
@@ -1788,6 +1990,16 @@ class Weibull(BoostDistribution):
       else:b = self.upperBound
       self._distribution = distribution1D.BasicWeibullDistribution(self.k,self.lambdaVar,a,b,self.low)
 
+WorkingDirInput = InputData.parameterInputFactory("workingDir", contentType=InputData.StringType)
+
+class NDimensionalDistributionInput(InputData.ParameterInput):
+  """
+    Base class for reading N-Dimensional distribution input
+  """
+
+NDimensionalDistributionInput.createClass("NDimensionalDistribution", False,
+                                          baseNode=DistributionInput)
+NDimensionalDistributionInput.addSub(WorkingDirInput)
 
 class Custom1D(Distribution):
   """
@@ -1932,15 +2144,26 @@ class NDimensionalDistributions(Distribution):
     self.RNGInitDisc = 5
     self.RNGtolerance = 0.2
 
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the common parts of the distribution parameter input.
+      @ In, paramInput, ParameterInput, the already parsed input.
+      @ Out, None
+    """
+    Distribution._handleInput(self, paramInput)
+    workingDir = paramInput.findFirst('workingDir')
+    if workingDir != None: self.workingDir = workingDir.value
+
+
   def _readMoreXML(self,xmlNode):
     """
       Read the the xml node of the MultivariateNormal distribution
       @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
       @ Out, None
     """
-    Distribution._readMoreXML(self, xmlNode)
-    workingDir = xmlNode.find('workingDir')
-    if workingDir != None: self.workingDir = workingDir.text
+    paramInput = NDimensionalDistributionInput()
+    paramInput.parseNode(xmlNode)
+    self._handleInput(paramInput)
 
   def getInitParams(self):
     """
@@ -1998,6 +2221,17 @@ class NDimensionalDistributions(Distribution):
     return value
 
 
+DataFilenameParameterInput = InputData.parameterInputFactory("dataFilename", contentType=InputData.StringType)
+DataFilenameParameterInput.addParam("type", InputData.StringType, True)
+
+class NDInverseWeightInput(InputData.ParameterInput):
+  """
+    Class for reading in N-D inverse weight input
+  """
+
+NDInverseWeightInput.createClass("NDInverseWeight", False, baseNode=NDimensionalDistributionInput)
+NDInverseWeightInput.addSub(PParameterInput)
+NDInverseWeightInput.addSub(DataFilenameParameterInput)
 
 class NDInverseWeight(NDimensionalDistributions):
   """
@@ -2019,16 +2253,18 @@ class NDInverseWeight(NDimensionalDistributions):
       @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
       @ Out, None
     """
-    NDimensionalDistributions._readMoreXML(self, xmlNode)
-    pFind = xmlNode.find('p')
-    if pFind != None: self.p = float(pFind.text)
+    paramInput = NDInverseWeightInput()
+    paramInput.parseNode(xmlNode)
+    NDimensionalDistributions._handleInput(self, paramInput)
+    pFind = paramInput.findFirst('p')
+    if pFind != None: self.p = pFind.value
     else: self.raiseAnError(IOError,'Minkowski distance parameter <p> not found in NDInverseWeight distribution')
 
-    dataFilename = xmlNode.find('dataFilename')
-    if dataFilename != None: self.dataFilename = os.path.join(self.workingDir,dataFilename.text)
+    dataFilename = paramInput.findFirst('dataFilename')
+    if dataFilename != None: self.dataFilename = os.path.join(self.workingDir,dataFilename.value)
     else: self.raiseAnError(IOError,'<dataFilename> parameter needed for MultiDimensional Distributions!!!!')
 
-    functionType = dataFilename.attrib['type']
+    functionType = dataFilename.parameterValues['type']
     if functionType != None: self.functionType = functionType
     else: self.raiseAnError(IOError,'<functionType> parameter needed for MultiDimensional Distributions!!!!')
 
@@ -2165,6 +2401,14 @@ class NDInverseWeight(NDimensionalDistributions):
     rvsValue = self._distribution.InverseCdf(random(),random())
     return rvsValue
 
+class NDCartesianSplineInput(InputData.ParameterInput):
+  """
+    Class for reading in N-D Cartesian Spline distribution input.
+  """
+
+NDCartesianSplineInput.createClass("NDCartesianSpline", False, baseNode=NDimensionalDistributionInput)
+NDCartesianSplineInput.addSub(DataFilenameParameterInput)
+
 class NDCartesianSpline(NDimensionalDistributions):
   """
     NDCartesianSpline multi-variate distribution (cubic spline interpolation)
@@ -2184,12 +2428,14 @@ class NDCartesianSpline(NDimensionalDistributions):
       @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
       @ Out, None
     """
-    NDimensionalDistributions._readMoreXML(self, xmlNode)
-    dataFilename = xmlNode.find('dataFilename')
-    if dataFilename != None: self.dataFilename = os.path.join(self.workingDir,dataFilename.text)
+    paramInput = NDCartesianSplineInput()
+    paramInput.parseNode(xmlNode)
+    NDimensionalDistributions._handleInput(self, paramInput)
+    dataFilename = paramInput.findFirst('dataFilename')
+    if dataFilename != None: self.dataFilename = os.path.join(self.workingDir,dataFilename.value)
     else: self.raiseAnError(IOError,'<dataFilename> parameter needed for MultiDimensional Distributions!!!!')
 
-    functionType = dataFilename.attrib['type']
+    functionType = dataFilename.parameterValues['type']
     if functionType != None: self.functionType = functionType
     else: self.raiseAnError(IOError,'<functionType> parameter needed for MultiDimensional Distributions!!!!')
 
@@ -2326,6 +2572,31 @@ class NDCartesianSpline(NDimensionalDistributions):
     rvsValue = self._distribution.InverseCdf(random(),random())
     return rvsValue
 
+MuListParameterInput = InputData.parameterInputFactory("mu", contentType=InputData.StringType)
+CovarianceListParameterInput = InputData.parameterInputFactory("covariance", contentType=InputData.StringType)
+CovarianceListParameterInput.addParam("type", InputData.StringType, False)
+TransformationParameterInput = InputData.parameterInputFactory("transformation")
+RankParameterInput = InputData.parameterInputFactory("rank", contentType=InputData.IntegerType)
+TransformationParameterInput.addSub(RankParameterInput)
+
+class MultivariateNormalInput(InputData.ParameterInput):
+  """
+    Class for reanding in Multivariate normal input
+  """
+
+MultivariateNormalInput.createClass("MultivariateNormal", False)
+class MultivariateMethodType(InputData.EnumBaseType):
+  """
+    A type for the multivariate method
+  """
+
+MultivariateMethodType.createClass("multivariateMethod","multivariateMethodType",["pca","spline"])
+
+MultivariateNormalInput.addParam("method", MultivariateMethodType, True)
+MultivariateNormalInput.addSub(MuListParameterInput)
+MultivariateNormalInput.addSub(CovarianceListParameterInput)
+MultivariateNormalInput.addSub(TransformationParameterInput)
+
 class MultivariateNormal(NDimensionalDistributions):
   """
     MultivariateNormal multi-variate distribution (analytic)
@@ -2355,23 +2626,25 @@ class MultivariateNormal(NDimensionalDistributions):
       @ Out, None
     """
     #NDimensionalDistributions._readMoreXML(self, xmlNode)
-    if xmlNode.attrib['method'] == 'pca':
+    paramInput = MultivariateNormalInput()
+    paramInput.parseNode(xmlNode)
+    if paramInput.parameterValues['method'] == 'pca':
       self.method = 'pca'
-    elif xmlNode.attrib['method'] == 'spline':
+    elif paramInput.parameterValues['method'] == 'spline':
       self.method = 'spline'
     else: self.raiseAnError(IOError,'The method attribute for the MultivariateNormal Distribution is not correct, choose "pca" or "spline"')
-    for child in xmlNode:
-      if child.tag == 'mu':
-        mu = [float(value) for value in child.text.split()]
+    for child in paramInput.subparts:
+      if child.getName() == 'mu':
+        mu = [float(value) for value in child.value.split()]
         self.dimension = len(mu)
-      elif child.tag == 'covariance':
-        covariance = [float(value) for value in child.text.split()]
-        if 'type' in child.attrib.keys(): self.covarianceType = child.attrib['type']
-      elif child.tag == 'transformation':
+      elif child.getName() == 'covariance':
+        covariance = [float(value) for value in child.value.split()]
+        if 'type' in child.parameterValues: self.covarianceType = child.parameterValues['type']
+      elif child.getName() == 'transformation':
         self.transformation = True
-        for childChild in child:
-          if childChild.tag == 'rank':
-            self.rank = int(childChild.text)
+        for childChild in child.subparts:
+          if childChild.getName() == 'rank':
+            self.rank = childChild.value
 
     if self.rank == None: self.rank = self.dimension
     self.mu = mu
