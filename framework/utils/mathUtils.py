@@ -17,7 +17,7 @@ from scipy.interpolate import Rbf, griddata
 
 def normal(x,mu=0.0,sigma=1.0):
   """
-    Computation of normal cdf
+    Computation of normal pdf
     @ In, x, list or np.array, x values
     @ In, mu, float, optional, mean
     @ In, sigma, float, optional, sigma
@@ -41,33 +41,39 @@ def skewNormal(x,alphafactor,xi,omega):
   """
     Computation of skewness normal
     @ In, x, list or np.array, x values
-    @ In, alphafactor, float, the alpha factor
-    @ In, xi, float, xi
-    @ In, omega, float, omega factor
+    @ In, alphafactor, float, the alpha factor (shape)
+    @ In, xi, float, xi (location)
+    @ In, omega, float, omega factor (scale)
     @ Out, returnSkew, float, skew
   """
-  def phi(x): return (1.0/math.sqrt(2*math.pi))*math.exp(-(x**2)/2.0)
-  def Phi(x): return 0.5*(1+math.erf(x/math.sqrt(2)))
-  returnSkew = (2.0/omega)*phi((x-xi)/omega)*Phi(alphafactor*(x-xi)/omega)
+  returnSkew = (2.0/omega)*normal((x-xi)/omega)*normalCdf(alphafactor*(x-xi)/omega)
   return returnSkew
 
 def createInterp(x, y, lowFill, highFill, kind='linear'):
   """
-    Simpson integration rule
-    @ In, x, list or np.array, x values
-    @ In, y, list or np.array, y values
-    @ In, lowFill, float, minimum interpolated value
-    @ In, highFill, float, maximum interpolated value
-    @ In, kind, string, optional, interpolation type (default=linear)
-    @ Out, sumVar, float, integral
+    Creates an interpolation function that uses lowFill and highFill whenever a value is requested that lies outside of the range specified by x.
+     @ In, x, list or np.array, x values
+     @ In, y, list or np.array, y values
+     @ In, lowFill, float, minimum interpolated value
+     @ In, highFill, float, maximum interpolated value
+     @ In, kind, string, optional, interpolation type (default=linear)
+     @ Out, interp, function(float) returns float, an interpolation function that takes a single float value and return its interpolated value using lowFill or highFill when the input value is outside of the interpolation range.
   """
   interp = interpolate.interp1d(x, y, kind)
   low = x[0]
-  def myInterp(x):
+  def myInterp(value):
+    """
+      @ In, value, float, value to interpolate
+      @ Out, interpolatedValue, float, interpolated value corresponding to value
+    """
     try:
-      return interp(x)+0.0
+      return interp(value)+0.0 ## why plus 0.0? Could this be done by casting as a float?
+                               ## maljdp: I believe this is catching edge cases
+                               ## in order to throw them into the except clause
+                               ## below, but I am not sure it is the best
+                               ## solution here.
     except ValueError:
-      if x <= low:
+      if value <= low:
         return lowFill
       else:
         return highFill
@@ -365,6 +371,7 @@ def interpolateFunction(x,y,option,z = None,returnCoordinate=False):
     Method to interpolate 2D/3D points
     @ In, x, ndarray or cached_ndarray, the array of x coordinates
     @ In, y, ndarray or cached_ndarray, the array of y coordinates
+    #FIXME missing option
     @ In, z, ndarray or cached_ndarray, optional, the array of z coordinates
     @ In, returnCoordinate, bool, optional, true if the new coordinates need to be returned
     @ Out, i, ndarray or cached_ndarray or tuple, the interpolated values
@@ -409,6 +416,15 @@ def interpolateFunction(x,y,option,z = None,returnCoordinate=False):
     if returnCoordinate: return xi,yi
     else               : return yi
 
+def distance(points,pt):
+  """
+    Calculates the Euclidean distances between the points in "points" and the point "pt".
+    @ In, points, np.array(tuple/list/array), list of points
+    @ In, pt, tuple/list/array(int/float), point of distance
+    @ Out, distance, np.array(float), distances
+  """
+  return np.sqrt(np.sum(np.square(points-pt),axis=1))
+
 def numpyNearestMatch(findIn,val):
   """
     Given an array, find the entry that most nearly matches the given value.
@@ -416,7 +432,9 @@ def numpyNearestMatch(findIn,val):
     @ In, val, float or other compatible type, the value for which to find a match
     @ Out, returnMatch, tuple, index where match is and the match itself
   """
-  idx = (np.abs(findIn-val)).argmin()
+  dist = distance(findIn,val)
+  idx = dist.argmin()
+  #idx = np.sum(np.abs(findIn-val),axis=0).argmin()
   returnMatch = idx,findIn[idx]
   return returnMatch
 
