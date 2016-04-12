@@ -175,7 +175,7 @@ class ParameterInput(object):
     """
     self.parameterValues = {}
     self.subparts = []
-    self.text = ""
+    self.value = ""
 
   @classmethod
   def createClass(cls, name, ordered=False):
@@ -240,7 +240,7 @@ class ParameterInput(object):
   def parseNode(self,node):
     """
       Parses the xml node and puts the results in self.parameterValues and
-      self.subparts
+      self.subparts and self.value
       @ In, node, xml.etree.ElementTree.Element, The node to parse.
       @ Out, None
     """
@@ -248,9 +248,9 @@ class ParameterInput(object):
       print(node.tag,"!=",self.name)
     else:
       if self.contentType:
-        self.text = self.contentType.convert(node.text)
+        self.value = self.contentType.convert(node.text)
       else:
-        self.text = node.text
+        self.value = node.text
       for parameter in self.parameters:
         if parameter in node.attrib:
           param_type = self.parameters[parameter]["type"]

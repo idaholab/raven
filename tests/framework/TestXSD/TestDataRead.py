@@ -54,14 +54,14 @@ sub3Index = None
 for i in range(len(firstInner.subparts)):
   if firstInner.subparts[i].name == 'sub_3':
     sub3Index = i
-checkAnswer(23, firstInner.subparts[sub3Index].text)
+checkAnswer(23, firstInner.subparts[sub3Index].value)
 
-checkAnswer(23, firstInner.findFirst('sub_3').text)
+checkAnswer(23, firstInner.findFirst('sub_3').value)
 checkAnswer(None, firstInner.findFirst('no_such_sub'))
 
-print('sub_value_2', repr(outerInput.subparts[2].subparts[0].text),
+print('sub_value_2', repr(outerInput.subparts[2].subparts[0].value),
       repr(outerInput.subparts[2].subparts[0].name))
-checkAnswer('sub_value_2', outerInput.subparts[2].subparts[0].text)
+checkAnswer('sub_value_2', outerInput.subparts[2].subparts[0].value)
 
 
 outside = InputData.createXSD(test_classes.OuterInput)
