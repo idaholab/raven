@@ -51,21 +51,29 @@ def skewNormal(x,alphafactor,xi,omega):
 
 def createInterp(x, y, lowFill, highFill, kind='linear'):
   """
-    Simpson integration rule #FIXME this is not an accurate docstring, and I don't know what this method does
-    @ In, x, list or np.array, x values
-    @ In, y, list or np.array, y values
-    @ In, lowFill, float, minimum interpolated value
-    @ In, highFill, float, maximum interpolated value
-    @ In, kind, string, optional, interpolation type (default=linear)
-    @ Out, sumVar, float, integral #FIXME incorrect
+    Creates an interpolation function that uses lowFill and highFill whenever a value is requested that lies outside of the range specified by x.
+     @ In, x, list or np.array, x values
+     @ In, y, list or np.array, y values
+     @ In, lowFill, float, minimum interpolated value
+     @ In, highFill, float, maximum interpolated value
+     @ In, kind, string, optional, interpolation type (default=linear)
+     @ Out, interp, function(float) returns float, an interpolation function that takes a single float value and return its interpolated value using lowFill or highFill when the input value is outside of the interpolation range.
   """
   interp = interpolate.interp1d(x, y, kind)
   low = x[0]
-  def myInterp(x):
+  def myInterp(value):
+    """
+      @ In, value, float, value to interpolate
+      @ Out, interpolatedValue, float, interpolated value corresponding to value
+    """
     try:
-      return interp(x)+0.0 #why plus 0.0? Could this be done by casting as a float?
+      return interp(value)+0.0 ## why plus 0.0? Could this be done by casting as a float?
+                               ## maljdp: I believe this is catching edge cases 
+                               ## in order to throw them into the except clause
+                               ## below, but I am not sure it is the best
+                               ## solution here.
     except ValueError:
-      if x <= low:
+      if value <= low:
         return lowFill
       else:
         return highFill
