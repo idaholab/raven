@@ -360,6 +360,20 @@ class ParameterInput(object):
       if parameterData["required"]:
         attributeNode.set('use','required')
 
+def parameterInputFactory(*paramList, **paramDict):
+  """
+    Creates a new ParameterInput class with the same parameters as ParameterInput.createClass
+    @ In, same parameters as ParameterInput.createClass
+    @ Out, newClass, ParameterInput, the newly created class.
+  """
+  class newClass(ParameterInput):
+    """
+      The new class to be created by the factory
+    """
+
+  newClass.createClass(*paramList, **paramDict)
+  return newClass
+
 def createXSD(outerElement):
   """
     Creates an XSD element.
