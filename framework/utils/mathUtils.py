@@ -65,7 +65,7 @@ def createInterp(x, y, lowFill, highFill, kind='linear'):
   low = x[0]
   def myInterp(x):
     try:
-      return interp(x)+0.0
+      return interp(x)+0.0 #why plus 0.0? Could this be done by casting as a float?
     except ValueError:
       if x <= low:
         return lowFill
@@ -365,6 +365,7 @@ def interpolateFunction(x,y,option,z = None,returnCoordinate=False):
     Method to interpolate 2D/3D points
     @ In, x, ndarray or cached_ndarray, the array of x coordinates
     @ In, y, ndarray or cached_ndarray, the array of y coordinates
+    #FIXME missing option
     @ In, z, ndarray or cached_ndarray, optional, the array of z coordinates
     @ In, returnCoordinate, bool, optional, true if the new coordinates need to be returned
     @ Out, i, ndarray or cached_ndarray or tuple, the interpolated values
@@ -409,6 +410,15 @@ def interpolateFunction(x,y,option,z = None,returnCoordinate=False):
     if returnCoordinate: return xi,yi
     else               : return yi
 
+def distance(points,pt):
+  """
+    Calculates the Euclidean distances between the points in "points" and the point "pt".
+    @ In, points, np.array(tuple/list/array), list of points
+    @ In, pt, tuple/list/array(int/float), point of distance
+    @ Out, distance, np.array(float), distances
+  """
+  return np.sqrt(np.sum(np.square(points-pt),axis=1))
+
 def numpyNearestMatch(findIn,val):
   """
     Given an array, find the entry that most nearly matches the given value.
@@ -416,7 +426,9 @@ def numpyNearestMatch(findIn,val):
     @ In, val, float or other compatible type, the value for which to find a match
     @ Out, returnMatch, tuple, index where match is and the match itself
   """
-  idx = (np.abs(findIn-val)).argmin()
+  dist = distance(findIn,val)
+  idx = dist.argmin()
+  #idx = np.sum(np.abs(findIn-val),axis=0).argmin()
   returnMatch = idx,findIn[idx]
   return returnMatch
 
