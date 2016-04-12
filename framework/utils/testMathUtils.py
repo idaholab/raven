@@ -61,7 +61,7 @@ def checkArray(comment,check,expected,tol=1e-10):
 
 def checkType(comment,value,expected,updateResults=True):
   """
-    This method is aimed to compare two floats given a certain tolerance
+    This method compares the data type of two values
     @ In, comment, string, a comment printed out if it fails
     @ In, value, float, the value to compare
     @ In, expected, float, the expected value
