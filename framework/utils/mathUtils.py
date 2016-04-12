@@ -68,7 +68,7 @@ def createInterp(x, y, lowFill, highFill, kind='linear'):
     """
     try:
       return interp(value)+0.0 ## why plus 0.0? Could this be done by casting as a float?
-                               ## maljdp: I believe this is catching edge cases 
+                               ## maljdp: I believe this is catching edge cases
                                ## in order to throw them into the except clause
                                ## below, but I am not sure it is the best
                                ## solution here.
