@@ -46,9 +46,7 @@ def skewNormal(x,alphafactor,xi,omega):
     @ In, omega, float, omega factor (scale)
     @ Out, returnSkew, float, skew
   """
-  def phi(x): return (1.0/math.sqrt(2*math.pi))*math.exp(-(x**2)/2.0) #FIXME shouldn't this use normal() above?
-  def Phi(x): return 0.5*(1+math.erf(x/math.sqrt(2))) #FIXME same, shouldn't this use the above?
-  returnSkew = (2.0/omega)*phi((x-xi)/omega)*Phi(alphafactor*(x-xi)/omega)
+  returnSkew = (2.0/omega)*normal((x-xi)/omega)*normalCdf(alphafactor*(x-xi)/omega)
   return returnSkew
 
 def createInterp(x, y, lowFill, highFill, kind='linear'):
