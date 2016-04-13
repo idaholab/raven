@@ -49,12 +49,9 @@
     </ExternalModel>
     <PostProcessor name="historySamplingPP1" subType="InterfacedPostProcessor">
       <method>HistorySetSync</method>
-      <syncMethod>grid</syncMethod>
       <numberOfSamples>20</numberOfSamples>
       <timeID>time</timeID>
       <extension>zeroed</extension>
-      <syncMethod>grid</syncMethod>
-      <syncMethod>grid</syncMethod>
       <syncMethod>grid</syncMethod>
     </PostProcessor>
     <PostProcessor name="historySamplingPP2" subType="InterfacedPostProcessor">
