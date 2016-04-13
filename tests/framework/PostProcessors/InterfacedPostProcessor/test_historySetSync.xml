@@ -61,8 +61,6 @@
       <timeID>time</timeID>
       <extension>extended</extension>
       <syncMethod>grid</syncMethod>
-      <syncMethod>grid</syncMethod>
-      <syncMethod>grid</syncMethod>
     </PostProcessor>
   </Models>
 
