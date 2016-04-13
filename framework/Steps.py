@@ -134,7 +134,7 @@ class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       Whatever is permanent in the class and not inherited from the parent class should be mentioned here
       The information is passed back in the dictionary. No information about values that change during the simulation are allowed
       @ In, None
-      @ Out, paramDict, dict, dictionary containg the parameter names as keys
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
     """
     paramDict = {}
@@ -151,7 +151,7 @@ class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       Place here a specialization of the exporting of what in the step is added to the initial parameters
       the printing format of paramDict is key: paramDict[key]
       @ In, None
-      @ Out, paramDict, dict, dictionary containg the parameter names as keys
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
     """
     return {}
@@ -320,7 +320,7 @@ class SingleRun(Step):
       Place here a specialization of the exporting of what in the step is added to the initial parameters
       the printing format of paramDict is key: paramDict[key]
       @ In, None
-      @ Out, paramDict, dict, dictionary containg the parameter names as keys
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
     """
     return {}
@@ -526,7 +526,7 @@ class RomTrainer(Step):
       Place here a specialization of the exporting of what in the step is added to the initial parameters
       the printing format of paramDict is key: paramDict[key]
       @ In, None
-      @ Out, paramDict, dict, dictionary containg the parameter names as keys
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
     """
     return {}
@@ -742,7 +742,7 @@ class IOStep(Step):
       Place here a specialization of the exporting of what in the step is added to the initial parameters
       the printing format of paramDict is key: paramDict[key]
       @ In, None
-      @ Out, paramDict, dict, dictionary containg the parameter names as keys
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
     """
     paramDict = {}

@@ -473,7 +473,7 @@ class OutStreamPlot(OutStreamManager):
       This method is called from the base function. It retrieves the initial
       characteristic params that need to be seen by the whole enviroment
       @ In, None
-      @ Out, paramDict, dict, dictionary containg the parameter names as keys
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
     """
     paramDict = {}

@@ -386,7 +386,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       Whatever is permanent in the class and not inherited from the parent class should be mentioned here
       The information is passed back in the dictionary. No information about values that change during the simulation are allowed
       @ In, None
-      @ Out, paramDict, dict, dictionary containg the parameter names as keys
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
     """
     paramDict = {}
@@ -401,7 +401,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
       Method used to export to the printer in the base class the additional PERMANENT your local class have
       @ In, None
-      @ Out, paramDict, dict, dictionary containg the parameter names as keys
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
     """
     return {}
@@ -412,7 +412,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       Whatever is a temporary value in the class and not inherited from the parent class should be mentioned here
       The information is passed back in the dictionary
       @ In, None
-      @ Out, paramDict, dict, dictionary containg the parameter names as keys
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
     """
     paramDict = {}
@@ -432,7 +432,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       Returns a dictionary with class specific information regarding the
       current status of the object.
       @ In, None
-      @ Out, paramDict, dict, dictionary containg the parameter names as keys
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
     """
     return {}
@@ -910,7 +910,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
       Appends a given dictionary with class specific member variables and their
       associated initialized values.
       @ In, None
-      @ Out, paramDict, dict, dictionary containg the parameter names as keys
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
     """
     paramDict = {}
@@ -932,7 +932,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
       Appends a given dictionary with class specific information regarding the
       current status of the object.
       @ In, None
-      @ Out, paramDict, dict, dictionary containg the parameter names as keys
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
     """
     paramDict = {}
@@ -1504,7 +1504,7 @@ class Grid(Sampler):
       Appends a given dictionary with class specific member variables and their
       associated initialized values.
       @ In, None
-      @ Out, paramDict, dict, dictionary containg the parameter names as keys
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
     """
     paramDict = {}
@@ -1517,7 +1517,7 @@ class Grid(Sampler):
       Appends a given dictionary with class specific information regarding the
       current status of the object.
       @ In, None
-      @ Out, paramDict, dict, dictionary containg the parameter names as keys
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
     """
     paramDict = {}
@@ -2486,7 +2486,7 @@ class DynamicEventTree(Grid):
       Appends a given dictionary with class specific member variables and their
       associated initialized values.
       @ In, None
-      @ Out, paramDict, dict, dictionary containg the parameter names as keys
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
     """
     paramDict = {}
@@ -2501,7 +2501,7 @@ class DynamicEventTree(Grid):
       Appends a given dictionary with class specific information regarding the
       current status of the object.
       @ In, None
-      @ Out, paramDict, dict, dictionary containg the parameter names as keys
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
     """
     paramDict = {}
@@ -3147,7 +3147,7 @@ class FactorialDesign(Grid):
       Appends a given dictionary with class specific member variables and their
       associated initialized values.
       @ In, None
-      @ Out, paramDict, dict, dictionary containg the parameter names as keys
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
     """
     paramDict = Grid.localGetInitParams(self)
@@ -3264,7 +3264,7 @@ class ResponseSurfaceDesign(Grid):
       Appends a given dictionary with class specific member variables and their
       associated initialized values.
       @ In, None
-      @ Out, paramDict, dict, dictionary containg the parameter names as keys
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
     """
     paramDict = Grid.localGetInitParams(self)

@@ -69,7 +69,7 @@ class OutStreamManager(BaseType):
       is passed back in the dictionary. No information about values that change
       during the simulation are allowed.
       @ In, None
-      @ Out, paramDict, dict, dictionary containg the parameter names as keys
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
     """
     paramDict = {}

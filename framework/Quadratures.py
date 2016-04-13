@@ -270,7 +270,7 @@ class SparseGrid(MessageHandler.MessageUser):
       Adds params required to initialize an instance of this object to a
       dictionary.
       @ In, None
-      @ Out, paramDict, dict, dictionary containg the parameter names as keys
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
     """
     paramDict = {}

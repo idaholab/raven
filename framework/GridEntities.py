@@ -289,7 +289,7 @@ class GridEntity(GridBase):
   def _readGridStructure(self,child,parent):
     """
       This method is aimed to read the grid structure in the xml node
-      @ In, child, xml.etree.ElementTree.Element, the xml node containg the grid info
+      @ In, child, xml.etree.ElementTree.Element, the xml node containing the grid info
       @ In, parent, xml.etree.ElementTree.Element, the xml node that contains the node in which the grid info are defined
       @ Out, gridStruct, tuple, the grid structure read ((type, construction type, upper and lower bounds), gridName)
     """
@@ -305,7 +305,7 @@ class GridEntity(GridBase):
   def _fillGrid(self,child):
     """
       This method is aimed to fill the grid structure from an XML node
-      @ In, child, xml.etree.ElementTree.Element, the xml node containg the grid info
+      @ In, child, xml.etree.ElementTree.Element, the xml node containing the grid info
       @ Out, gridStruct, tuple, the grid structure read ((type, construction type, upper and lower bounds), gridName)
     """
     constrType = None
