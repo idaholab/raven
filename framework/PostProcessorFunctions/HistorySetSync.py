@@ -63,7 +63,7 @@ class HistorySetSync(PostProcessorInterfaceBase):
         self.raiseAnError(IOError, 'HistorySetSync Interfaced Post-Processor ' + str(self.name) + ' : XML node ' + str(child) + ' is not recognized')
 
     validSyncMethods = ['all','grid']
-    if self.syncMethod self.syncMethod not in validSyncMethods:
+    if self.syncMethod not in validSyncMethods:
       self.raiseAnError(NotImplementedError,'Method for syncing was not recognised: \"',self.syncMethod,'\". Options are:',validSyncMethods)
     if self.syncMethod is 'grid' and not isinstance(self.numberOfSamples, int):
       self.raiseAnError(IOError, 'HistorySetSync Interfaced Post-Processor ' + str(self.name) + ' : number of samples is not correctly specified (either not specified or not integer)')
