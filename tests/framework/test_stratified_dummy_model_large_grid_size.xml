@@ -1,0 +1,230 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
+    <WorkingDir>stratifiedLargeGridSize</WorkingDir>
+    <Sequence>2x16,16x1,16x160,write_results</Sequence>
+    <batchSize>8</batchSize>
+  </RunInfo>
+
+  <Models>
+    <Dummy name="MyDummy" subType=""/>
+  </Models>
+
+  <Distributions>
+    <Normal name="norm">
+      <mean>1</mean>
+      <sigma>0.4</sigma>
+    </Normal>
+  </Distributions>
+
+  <Samplers>
+    <Stratified name="2var160step">
+      <variable name="x1">
+        <distribution>norm</distribution>
+        <grid construction="equal" type="CDF" steps='160'>0.01 0.99</grid>
+      </variable>
+      <variable name="x2">
+        <distribution>norm</distribution>
+        <grid construction="equal" type="CDF" steps='160'>0.01 0.99</grid>
+      </variable>
+    </Stratified>
+    <Stratified name="16var1step">
+      <variable name="x1">
+        <distribution>norm</distribution>
+        <grid construction="equal" type="CDF" steps='1'>0.01 0.99</grid>
+      </variable>
+      <variable name="x2">
+        <distribution>norm</distribution>
+        <grid construction="equal" type="CDF" steps='1'>0.01 0.99</grid>
+      </variable>
+      <variable name="x3">
+        <distribution>norm</distribution>
+        <grid construction="equal" type="CDF" steps='1'>0.01 0.99</grid>
+      </variable>
+      <variable name="x4">
+        <distribution>norm</distribution>
+        <grid construction="equal" type="CDF" steps='1'>0.01 0.99</grid>
+      </variable>
+      <variable name="x5">
+        <distribution>norm</distribution>
+        <grid construction="equal" type="CDF" steps='1'>0.01 0.99</grid>
+      </variable>
+      <variable name="x6">
+        <distribution>norm</distribution>
+        <grid construction="equal" type="CDF" steps='1'>0.01 0.99</grid>
+      </variable>
+      <variable name="x7">
+        <distribution>norm</distribution>
+        <grid construction="equal" type="CDF" steps='1'>0.01 0.99</grid>
+      </variable>
+      <variable name="x8">
+        <distribution>norm</distribution>
+        <grid construction="equal" type="CDF" steps='1'>0.01 0.99</grid>
+      </variable>
+      <variable name="x9">
+        <distribution>norm</distribution>
+        <grid construction="equal" type="CDF" steps='1'>0.01 0.99</grid>
+      </variable>
+      <variable name="x10">
+        <distribution>norm</distribution>
+        <grid construction="equal" type="CDF" steps='1'>0.01 0.99</grid>
+      </variable>
+      <variable name="x11">
+        <distribution>norm</distribution>
+        <grid construction="equal" type="CDF" steps='1'>0.01 0.99</grid>
+      </variable>
+      <variable name="x12">
+        <distribution>norm</distribution>
+        <grid construction="equal" type="CDF" steps='1'>0.01 0.99</grid>
+      </variable>
+      <variable name="x13">
+        <distribution>norm</distribution>
+        <grid construction="equal" type="CDF" steps='1'>0.01 0.99</grid>
+      </variable>
+      <variable name="x14">
+        <distribution>norm</distribution>
+        <grid construction="equal" type="CDF" steps='1'>0.01 0.99</grid>
+      </variable>
+      <variable name="x15">
+        <distribution>norm</distribution>
+        <grid construction="equal" type="CDF" steps='1'>0.01 0.99</grid>
+      </variable>
+      <variable name="x16">
+        <distribution>norm</distribution>
+        <grid construction="equal" type="CDF" steps='1'>0.01 0.99</grid>
+      </variable>
+    </Stratified>
+    <Stratified name="16var160step">
+      <variable name="x1">
+        <distribution>norm</distribution>
+        <grid construction="equal" type="CDF" steps='160'>0.01 0.99</grid>
+      </variable>
+      <variable name="x2">
+        <distribution>norm</distribution>
+        <grid construction="equal" type="CDF" steps='160'>0.01 0.99</grid>
+      </variable>
+      <variable name="x3">
+        <distribution>norm</distribution>
+        <grid construction="equal" type="CDF" steps='160'>0.01 0.99</grid>
+      </variable>
+      <variable name="x4">
+        <distribution>norm</distribution>
+        <grid construction="equal" type="CDF" steps='160'>0.01 0.99</grid>
+      </variable>
+      <variable name="x5">
+        <distribution>norm</distribution>
+        <grid construction="equal" type="CDF" steps='160'>0.01 0.99</grid>
+      </variable>
+      <variable name="x6">
+        <distribution>norm</distribution>
+        <grid construction="equal" type="CDF" steps='160'>0.01 0.99</grid>
+      </variable>
+      <variable name="x7">
+        <distribution>norm</distribution>
+        <grid construction="equal" type="CDF" steps='160'>0.01 0.99</grid>
+      </variable>
+      <variable name="x8">
+        <distribution>norm</distribution>
+        <grid construction="equal" type="CDF" steps='160'>0.01 0.99</grid>
+      </variable>
+      <variable name="x9">
+        <distribution>norm</distribution>
+        <grid construction="equal" type="CDF" steps='160'>0.01 0.99</grid>
+      </variable>
+      <variable name="x10">
+        <distribution>norm</distribution>
+        <grid construction="equal" type="CDF" steps='160'>0.01 0.99</grid>
+      </variable>
+      <variable name="x11">
+        <distribution>norm</distribution>
+        <grid construction="equal" type="CDF" steps='160'>0.01 0.99</grid>
+      </variable>
+      <variable name="x12">
+        <distribution>norm</distribution>
+        <grid construction="equal" type="CDF" steps='160'>0.01 0.99</grid>
+      </variable>
+      <variable name="x13">
+        <distribution>norm</distribution>
+        <grid construction="equal" type="CDF" steps='160'>0.01 0.99</grid>
+      </variable>
+      <variable name="x14">
+        <distribution>norm</distribution>
+        <grid construction="equal" type="CDF" steps='160'>0.01 0.99</grid>
+      </variable>
+      <variable name="x15">
+        <distribution>norm</distribution>
+        <grid construction="equal" type="CDF" steps='160'>0.01 0.99</grid>
+      </variable>
+      <variable name="x16">
+        <distribution>norm</distribution>
+        <grid construction="equal" type="CDF" steps='160'>0.01 0.99</grid>
+      </variable>
+    </Stratified>
+  </Samplers>
+
+  <DataObjects>
+    <PointSet name="2var">
+      <Input>x1,x2</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="16var">
+      <Input>x1,x2,x3,x4,x5,x6,x7,x8,x9,x10,x11,x12,x13,x14,x15,x16</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="16var2">
+      <Input>x1,x2,x3,x4,x5,x6,x7,x8,x9,x10,x11,x12,x13,x14,x15,x16</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="dummyIN2">
+      <Input>x1,x2</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="dummyIN16">
+      <Input>x1,x2,x3,x4,x5,x6,x7,x8,x9,x10,x11,x12,x13,x14,x15,x16</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+  </DataObjects>
+
+  <Steps>
+    <MultiRun name="2x16">
+      <Input class="DataObjects" type="PointSet">dummyIN2</Input>
+      <Model class="Models" type="Dummy">MyDummy</Model>
+      <Sampler class="Samplers" type="Stratified">2var160step</Sampler>
+      <Output class="DataObjects" type="PointSet">2var</Output>
+    </MultiRun>
+    <MultiRun name="16x1">
+      <Input class="DataObjects" type="PointSet">dummyIN16</Input>
+      <Model class="Models" type="Dummy">MyDummy</Model>
+      <Sampler class="Samplers" type="Stratified">16var1step</Sampler>
+      <Output class="DataObjects" type="PointSet">16var</Output>
+    </MultiRun>
+    <MultiRun name="16x160">
+      <Input class="DataObjects" type="PointSet">dummyIN16</Input>
+      <Model class="Models" type="Dummy">MyDummy</Model>
+      <Sampler class="Samplers" type="Stratified">16var160step</Sampler>
+      <Output class="DataObjects" type="PointSet">16var2</Output>
+    </MultiRun>
+    <IOStep name="write_results">
+      <Input class="DataObjects" type="PointSet">16var2</Input>
+      <Input class="DataObjects" type="PointSet">16var</Input>
+      <Input class="DataObjects" type="PointSet">2var</Input>
+      <Output class="OutStreams" type="Print">reprint_16var2</Output>
+      <Output class="OutStreams" type="Print">reprint_16var</Output>
+      <Output class="OutStreams" type="Print">reprint_2var</Output>
+    </IOStep>
+  </Steps>
+  <OutStreams>
+    <Print name="reprint_16var2">
+      <type>csv</type>
+      <source>16var2</source>
+    </Print>
+    <Print name="reprint_16var">
+      <type>csv</type>
+      <source>16var</source>
+    </Print>
+    <Print name="reprint_2var">
+      <type>csv</type>
+      <source>2var</source>
+    </Print>
+  </OutStreams>
+</Simulation>
