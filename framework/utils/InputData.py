@@ -259,6 +259,7 @@ class ParameterInput(object):
     """
     if node.tag != self.name:
       print(node.tag,"!=",self.name)
+      raise IOError
     else:
       if self.contentType:
         self.value = self.contentType.convert(node.text)
