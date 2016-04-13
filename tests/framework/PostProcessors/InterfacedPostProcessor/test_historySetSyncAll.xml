@@ -84,7 +84,7 @@
     </PostProcessor>
     <ROM name="rom" subType="HDMRRom">
       <SobolOrder>1</SobolOrder>
-      <Target>a,b</Target>
+      <Target>a,b,t</Target>
       <Features>x,y</Features>
       <IndexSet>TotalDegree</IndexSet>
       <PolynomialOrder>2</PolynomialOrder>
@@ -95,12 +95,16 @@
     <HistorySet name="solns">
       <Input>x,y</Input>
       <Output>a,b,t</Output>
-      <pivotParameter>t</pivotParameter>
+      <options>
+        <pivotParameter>t</pivotParameter>
+      </options>
     </HistorySet>
     <HistorySet name="synced">
       <Input>x,y</Input>
       <Output>a,b,t</Output>
-      <pivotParameter>t</pivotParameter>
+      <options>
+        <pivotParameter>t</pivotParameter>
+      </options>
     </HistorySet>
   </DataObjects>
 
@@ -116,6 +120,7 @@
     <Print name="rom">
       <type>xml</type>
       <source>rom</source>
+      <what>all</what>
     </Print>
   </OutStreams>
 

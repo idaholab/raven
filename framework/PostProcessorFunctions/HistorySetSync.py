@@ -95,7 +95,7 @@ class HistorySetSync(PostProcessorInterfaceBase):
     elif self.syncMethod.lower() == 'all':
       times = set()
       for hist in inputDic['data']['output']:
-        for value in inputDic['data']['output']:
+        for value in inputDic['data']['output'][hist][self.timeID]:
           times.add(value)
       times = list(times)
       times.sort()
