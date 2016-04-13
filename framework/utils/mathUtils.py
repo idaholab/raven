@@ -234,7 +234,7 @@ def calculateStats(data):
   ret["mean"] = np.mean(data)
   ret["variance"] = np.var(data)
   ret["sampleVariance"] = stats.tvar(data)
-  ret["stdev"] = np.std(data)
+  ret["stdev"] = stats.tstd(data)
   ret["skewness"] = stats.skew(data)
   ret["kurtosis"] = stats.kurtosis(data)
   return ret
