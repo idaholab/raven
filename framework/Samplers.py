@@ -1512,7 +1512,8 @@ class Grid(Sampler):
       @ Out, None
     """
     self.gridEntity.initialize()
-    self.limit = len(self.gridEntity)
+    self.limit = self.gridEntity.len()
+
 
   def localGenerateInput(self,model,myInput):
     """
