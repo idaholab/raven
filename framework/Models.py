@@ -586,7 +586,7 @@ class ROM(Dummy):
       self.amITrained               = copy.deepcopy(trainingSet.amITrained)
       self.SupervisedEngine         = copy.deepcopy(trainingSet.SupervisedEngine)
       self.historyPivotParameter    = copy.deepcopy(getattr(trainingSet,self.historyPivotParameter,'time'))
-      self.historySteps             = copy.deepcopy(getattr(trainingSet,self.historySteps,[]))
+      self.historySteps             = copy.deepcopy(trainingSet.historySteps)
     else:
       if 'HistorySet' in type(trainingSet).__name__:
         #get the pivot parameter if specified
