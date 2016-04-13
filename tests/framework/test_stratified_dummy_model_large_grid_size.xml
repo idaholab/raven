@@ -208,12 +208,12 @@
       <Input class="DataObjects" type="PointSet">16var2</Input>
       <Input class="DataObjects" type="PointSet">16var</Input>
       <Input class="DataObjects" type="PointSet">2var</Input>
-      <Output class="OutStreamManager" type="Print">reprint_16var2</Output>
-      <Output class="OutStreamManager" type="Print">reprint_16var</Output>
-      <Output class="OutStreamManager" type="Print">reprint_2var</Output>
+      <Output class="OutStreams" type="Print">reprint_16var2</Output>
+      <Output class="OutStreams" type="Print">reprint_16var</Output>
+      <Output class="OutStreams" type="Print">reprint_2var</Output>
     </IOStep>
   </Steps>
-  <OutStreamManager>
+  <OutStreams>
     <Print name="reprint_16var2">
       <type>csv</type>
       <source>16var2</source>
@@ -226,5 +226,5 @@
       <type>csv</type>
       <source>2var</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 </Simulation>
