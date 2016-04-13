@@ -484,4 +484,11 @@
   input = 'test_sim_tags.xml'
   output = 'SimulationTags/dump.csv'
  [../]
+ [./testStratifiedLargeSize]
+   type = 'RavenFramework'
+   input = 'test_stratified_dummy_model_large_grid_size.xml'
+   output = 'stratifiedLargeGridSize/reprint_16var.csv stratifiedLargeGridSize/reprint_16var.xml stratifiedLargeGridSize/reprint_16var2.csv stratifiedLargeGridSize/reprint_16var2.xml stratifiedLargeGridSize/reprint_2var.csv stratifiedLargeGridSize/reprint_2var.xml'
+ [../]
 []
+
+
