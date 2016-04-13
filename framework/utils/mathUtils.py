@@ -10,12 +10,14 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
 import math
+import copy
 from scipy import interpolate
 import numpy as np
+from scipy.interpolate import Rbf, griddata
 
 def normal(x,mu=0.0,sigma=1.0):
   """
-    Computation of normal cdf
+    Computation of normal pdf
     @ In, x, list or np.array, x values
     @ In, mu, float, optional, mean
     @ In, sigma, float, optional, sigma
@@ -39,33 +41,39 @@ def skewNormal(x,alphafactor,xi,omega):
   """
     Computation of skewness normal
     @ In, x, list or np.array, x values
-    @ In, alphafactor, float, the alpha factor
-    @ In, xi, float, xi
-    @ In, omega, float, omega factor
+    @ In, alphafactor, float, the alpha factor (shape)
+    @ In, xi, float, xi (location)
+    @ In, omega, float, omega factor (scale)
     @ Out, returnSkew, float, skew
   """
-  def phi(x): return (1.0/math.sqrt(2*math.pi))*math.exp(-(x**2)/2.0)
-  def Phi(x): return 0.5*(1+math.erf(x/math.sqrt(2)))
-  returnSkew = (2.0/omega)*phi((x-xi)/omega)*Phi(alphafactor*(x-xi)/omega)
+  returnSkew = (2.0/omega)*normal((x-xi)/omega)*normalCdf(alphafactor*(x-xi)/omega)
   return returnSkew
 
 def createInterp(x, y, lowFill, highFill, kind='linear'):
   """
-    Simpson integration rule
-    @ In, x, list or np.array, x values
-    @ In, y, list or np.array, y values
-    @ In, lowFill, float, minimum interpolated value
-    @ In, highFill, float, maximum interpolated value
-    @ In, kind, string, optional, interpolation type (default=linear)
-    @ Out, sumVar, float, integral
+    Creates an interpolation function that uses lowFill and highFill whenever a value is requested that lies outside of the range specified by x.
+     @ In, x, list or np.array, x values
+     @ In, y, list or np.array, y values
+     @ In, lowFill, float, minimum interpolated value
+     @ In, highFill, float, maximum interpolated value
+     @ In, kind, string, optional, interpolation type (default=linear)
+     @ Out, interp, function(float) returns float, an interpolation function that takes a single float value and return its interpolated value using lowFill or highFill when the input value is outside of the interpolation range.
   """
   interp = interpolate.interp1d(x, y, kind)
   low = x[0]
-  def myInterp(x):
+  def myInterp(value):
+    """
+      @ In, value, float, value to interpolate
+      @ Out, interpolatedValue, float, interpolated value corresponding to value
+    """
     try:
-      return interp(x)+0.0
+      return interp(value)+0.0 ## why plus 0.0? Could this be done by casting as a float?
+                               ## maljdp: I believe this is catching edge cases
+                               ## in order to throw them into the except clause
+                               ## below, but I am not sure it is the best
+                               ## solution here.
     except ValueError:
-      if x <= low:
+      if value <= low:
         return lowFill
       else:
         return highFill
@@ -341,3 +349,123 @@ def historySetWindow(vars,numberOfTimeStep):
 #   m = geometry.MultiLineString(edge_points)
 #   triangles = list(polygonize(m))
 #   return cascaded_union(triangles), edge_points
+
+def convertNumpyToLists(inputDict):
+  """
+    Method aimed to convert a dictionary containing numpy
+    arrays or a single numpy array in list
+    @ In, inputDict, dict or numpy array,  object whose content needs to be converted
+    @ Out, response, dict or list, same object with its content converted
+  """
+  returnDict = inputDict
+  if type(inputDict) == dict:
+    for key, value in inputDict.items():
+      if   type(value) == np.ndarray: returnDict[key] = value.tolist()
+      elif type(value) == dict      : returnDict[key] = (convertNumpyToLists(value))
+      else                          : returnDict[key] = value
+  elif type(inputDict) == np.ndarray: returnDict = inputDict.tolist()
+  return returnDict
+
+def interpolateFunction(x,y,option,z = None,returnCoordinate=False):
+  """
+    Method to interpolate 2D/3D points
+    @ In, x, ndarray or cached_ndarray, the array of x coordinates
+    @ In, y, ndarray or cached_ndarray, the array of y coordinates
+    #FIXME missing option
+    @ In, z, ndarray or cached_ndarray, optional, the array of z coordinates
+    @ In, returnCoordinate, bool, optional, true if the new coordinates need to be returned
+    @ Out, i, ndarray or cached_ndarray or tuple, the interpolated values
+  """
+  options = copy.copy(option)
+  if x.size <= 2: xi = x
+  else          : xi = np.linspace(x.min(),x.max(),int(options['interpPointsX']))
+  if z != None:
+    if y.size <= 2: yi = y
+    else          : yi = np.linspace(y.min(),y.max(),int(options['interpPointsY']))
+    xig, yig = np.meshgrid(xi, yi)
+    try:
+      if ['nearest','linear','cubic'].count(options['interpolationType']) > 0 or z.size <= 3:
+        if options['interpolationType'] != 'nearest' and z.size > 3: zi = griddata((x,y), z, (xi[None,:], yi[:,None]), method=options['interpolationType'])
+        else: zi = griddata((x,y), z, (xi[None,:], yi[:,None]), method='nearest')
+      else:
+        rbf = Rbf(x,y,z,function=str(str(options['interpolationType']).replace('Rbf', '')), epsilon=int(options.pop('epsilon',2)), smooth=float(options.pop('smooth',0.0)))
+        zi  = rbf(xig, yig)
+    except Exception as ae:
+      if 'interpolationTypeBackUp' in options.keys():
+        print(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('Warning') + '->   The interpolation process failed with error : ' + str(ae) + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ options['interpolationTypeBackUp'])
+        options['interpolationTypeBackUp'] = options.pop('interpolationTypeBackUp')
+        zi = interpolateFunction(x,y,z,options)
+      else: raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('ERROR') + '-> Interpolation failed with error: ' +  str(ae))
+    if returnCoordinate: return xig,yig,zi
+    else               : return zi
+  else:
+    try:
+      if ['nearest','linear','cubic'].count(options['interpolationType']) > 0 or y.size <= 3:
+        if options['interpolationType'] != 'nearest' and y.size > 3: yi = griddata((x), y, (xi[:]), method=options['interpolationType'])
+        else: yi = griddata((x), y, (xi[:]), method='nearest')
+      else:
+        xig, yig = np.meshgrid(xi, yi)
+        rbf = Rbf(x, y,function=str(str(options['interpolationType']).replace('Rbf', '')),epsilon=int(options.pop('epsilon',2)), smooth=float(options.pop('smooth',0.0)))
+        yi  = rbf(xi)
+    except Exception as ae:
+      if 'interpolationTypeBackUp' in options.keys():
+        print(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('Warning') + '->   The interpolation process failed with error : ' + str(ae) + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ options['interpolationTypeBackUp'])
+        options['interpolationTypeBackUp'] = options.pop('interpolationTypeBackUp')
+        yi = interpolateFunction(x,y,options)
+      else: raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('ERROR') + '-> Interpolation failed with error: ' +  str(ae))
+    if returnCoordinate: return xi,yi
+    else               : return yi
+
+def distance(points,pt):
+  """
+    Calculates the Euclidean distances between the points in "points" and the point "pt".
+    @ In, points, np.array(tuple/list/array), list of points
+    @ In, pt, tuple/list/array(int/float), point of distance
+    @ Out, distance, np.array(float), distances
+  """
+  return np.sqrt(np.sum(np.square(points-pt),axis=1))
+
+def numpyNearestMatch(findIn,val):
+  """
+    Given an array, find the entry that most nearly matches the given value.
+    @ In, findIn, np.array, the array to look in
+    @ In, val, float or other compatible type, the value for which to find a match
+    @ Out, returnMatch, tuple, index where match is and the match itself
+  """
+  dist = distance(findIn,val)
+  idx = dist.argmin()
+  #idx = np.sum(np.abs(findIn-val),axis=0).argmin()
+  returnMatch = idx,findIn[idx]
+  return returnMatch
+
+def NDInArray(findIn,val,tol=1e-12):
+  """
+    checks a numpy array of numpy arrays for a near match, then returns info.
+    @ In, findIn, np.array, numpy array of numpy arrays (both arrays can be any length)
+    @ In, val, tuple/list/numpy array, entry to look for in findIn
+    @ In, tol, float, optional, tolerance to check match within
+    @ Out, (bool,idx,looking) -> (found/not found, index where found or None, findIn entry or None)
+  """
+  if len(findIn)<1:
+    return False,None,None
+  targ = []
+  found = False
+  for idx,looking in enumerate(findIn):
+    num = looking - val
+    den = np.array(val)
+    #div 0 error
+    for i,v in enumerate(den):
+      if v == 0.0:
+        if looking[i] != 0:
+          den[i] = looking[i]
+        elif looking[i] + den[i] != 0.0:
+          den[i] = 0.5*(looking[i] + den[i])
+        else:
+          den[i] = 1
+    if np.all(abs(num / den)<tol):
+      found = True
+      break
+  if not found:
+    return False,None,None
+  return found,idx,looking
+

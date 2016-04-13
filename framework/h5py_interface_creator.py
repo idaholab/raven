@@ -21,6 +21,7 @@ import json
 
 #Internal Modules------------------------------------------------------------------------------------
 import utils
+import mathUtils
 import MessageHandler
 import Files
 #Internal Modules End--------------------------------------------------------------------------------
@@ -265,7 +266,7 @@ class hdf5Database(MessageHandler.MessageUser):
             if len(inpHeaders) > 0:
               grp.attrs[b'inputSpaceHeaders'] = inpHeaders
               grp.attrs[b'inputSpaceValues' ] = inpValues
-        objectToConvert = utils.convertNumpyToLists(attributes[attr])
+        objectToConvert = mathUtils.convertNumpyToLists(attributes[attr])
         for o,obj in enumerate(objectToConvert):
           if isinstance(obj,Files.File): objectToConvert[o]=obj.getFilename()
         converted = json.dumps(objectToConvert)
@@ -348,7 +349,7 @@ class hdf5Database(MessageHandler.MessageUser):
       groups.create_dataset(groupName + "_data", dtype="float", data=dataout)
       # add metadata if present
       for attr in attributes.keys():
-        objectToConvert = utils.convertNumpyToLists(attributes[attr])
+        objectToConvert = mathUtils.convertNumpyToLists(attributes[attr])
         converted = json.dumps(objectToConvert)
         if converted and attr != 'name': groups.attrs[utils.toBytes(attr)]=converted
       if parentGroupName != "/":
@@ -403,12 +404,12 @@ class hdf5Database(MessageHandler.MessageUser):
             groups[run].create_dataset(groupName +'|' +str(run)+"_data", dtype="float", data=dataout)
           # add metadata if present
           for attr in attributes.keys():
-            objectToConvert = utils.convertNumpyToLists(attributes[attr])
+            objectToConvert = mathUtils.convertNumpyToLists(attributes[attr])
             converted = json.dumps(objectToConvert)
             if converted and attr != 'name': groups[run].attrs[utils.toBytes(attr)]=converted
           for attr in metadata.keys():
-            if len(metadata[attr]) == nruns: objectToConvert = utils.convertNumpyToLists(metadata[attr][run])
-            else                           : objectToConvert = utils.convertNumpyToLists(metadata[attr])
+            if len(metadata[attr]) == nruns: objectToConvert = mathUtils.convertNumpyToLists(metadata[attr][run])
+            else                           : objectToConvert = mathUtils.convertNumpyToLists(metadata[attr])
             converted = json.dumps(objectToConvert)
             if converted and attr != 'name': groups[run].attrs[utils.toBytes(attr)]=converted
 
@@ -438,11 +439,11 @@ class hdf5Database(MessageHandler.MessageUser):
         groups.create_dataset(groupName + "_data", dtype="float", data=dataout)
         # add metadata if present
         for attr in attributes.keys():
-          objectToConvert = utils.convertNumpyToLists(attributes[attr])
+          objectToConvert = mathUtils.convertNumpyToLists(attributes[attr])
           converted = json.dumps(objectToConvert)
           if converted and attr != 'name': groups.attrs[utils.toBytes(attr)]=converted
         for attr in metadata.keys():
-          objectToConvert = utils.convertNumpyToLists(metadata[attr])
+          objectToConvert = mathUtils.convertNumpyToLists(metadata[attr])
           converted = json.dumps(objectToConvert)
           if converted and attr != 'name': groups.attrs[utils.toBytes(attr)]=converted
 
@@ -529,7 +530,7 @@ class hdf5Database(MessageHandler.MessageUser):
         if attr == 'inputFile' and isinstance(attributes[attr][0],Files.File):
           objectToConvert = list(a.__getstate__() for a in attributes[attr])
         else:
-          objectToConvert = utils.convertNumpyToLists(attributes[attr])
+          objectToConvert = mathUtils.convertNumpyToLists(attributes[attr])
         converted = json.dumps(objectToConvert)
         if converted and attr != 'name': sgrp.attrs[utils.toBytes(attr)]=converted
     else: pass
