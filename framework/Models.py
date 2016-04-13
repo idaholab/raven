@@ -177,7 +177,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       Whatever is permanent in the class and not inherited from the parent class should be mentioned here
       The information is passed back in the dictionary. No information about values that change during the simulation are allowed
       @ In, None
-      @ Out, paramDict, dict, dictionary containg the parameter names as keys
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
     """
     paramDict = {}
@@ -188,7 +188,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     """
       Method used to export to the printer in the base class the additional PERMANENT your local class have
       @ In, None
-      @ Out, paramDict, dict, dictionary containg the parameter names as keys
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
     """
     paramDict = {}
@@ -571,7 +571,7 @@ class ROM(Dummy):
       Whatever is permanent in the class and not inherited from the parent class should be mentioned here
       The information is passed back in the dictionary. No information about values that change during the simulation are allowed
       @ In, None
-      @ Out, paramDict, dict, dictionary containg the parameter names as keys
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
     """
     paramDict = {}
@@ -1004,7 +1004,7 @@ class Code(Model):
       Whatever is permanent in the class and not inherited from the parent class should be mentioned here
       The information is passed back in the dictionary. No information about values that change during the simulation are allowed
       @ In, None
-      @ Out, paramDict, dict, dictionary containg the parameter names as keys
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
     """
     paramDict = Model.getInitParams(self)
@@ -1021,7 +1021,7 @@ class Code(Model):
       Whatever is permanent in the class and not inherited from the parent class should be mentioned here
       The information is passed back in the dictionary. No information about values that change during the simulation are allowed
       @ In, None
-      @ Out, paramDict, dict, dictionary containg the parameter names as keys
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
     """
     paramDict = {}
@@ -1180,7 +1180,7 @@ class Projector(Model):
       Whatever is permanent in the class and not inherited from the parent class should be mentioned here
       The information is passed back in the dictionary. No information about values that change during the simulation are allowed
       @ In, None
-      @ Out, paramDict, dict, dictionary containg the parameter names as keys
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
     """
     paramDict = Model.getInitParams(self)
@@ -1324,7 +1324,7 @@ class PostProcessor(Model, Assembler):
       Whatever is permanent in the class and not inherited from the parent class should be mentioned here
       The information is passed back in the dictionary. No information about values that change during the simulation are allowed
       @ In, None
-      @ Out, paramDict, dict, dictionary containg the parameter names as keys
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
     """
     paramDict = Model.getInitParams(self)
