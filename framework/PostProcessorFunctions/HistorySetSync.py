@@ -91,7 +91,8 @@ class HistorySetSync(PostProcessorInterfaceBase):
     maxTime = max(maxEndTime)
     minTime = min(minInitTime)
 
-    if self.syncMethod is 'grid':
+    newTime = []
+    if self.syncMethod.lower() == 'grid':
       newTime = np.linspace(minTime,maxTime,self.numberOfSamples)
     elif self.syncMethod.lower() == 'all':
       times = set()
