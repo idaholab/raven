@@ -406,6 +406,7 @@ class ROM(Dummy):
     self.printTag = 'ROM MODEL'
     self.numberOfTimeStep          = 1
     self.historyPivotParameter     = 'none'     #time-like pivot parameter for data object on which ROM was trained
+    self.historySteps              = []
 
   def __getstate__(self):
     """
