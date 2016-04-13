@@ -62,9 +62,10 @@ class HistorySetSync(PostProcessorInterfaceBase):
       elif child.tag !='method':
         self.raiseAnError(IOError, 'HistorySetSync Interfaced Post-Processor ' + str(self.name) + ' : XML node ' + str(child) + ' is not recognized')
 
-    if self.syncMethod is not None and self.syncMethod not in ['all']:
-      self.raiseAnError(NotImplementedError,'Method for syncing was not recognised: \"',self.syncMethod,'\". If not needed, remove node from input!')
-    if self.syncMethod is None and not isinstance(self.numberOfSamples, int):
+    validSyncMethods = ['all','grid']
+    if self.syncMethod self.syncMethod not in validSyncMethods:
+      self.raiseAnError(NotImplementedError,'Method for syncing was not recognised: \"',self.syncMethod,'\". Options are:',validSyncMethods)
+    if self.syncMethod is 'grid' and not isinstance(self.numberOfSamples, int):
       self.raiseAnError(IOError, 'HistorySetSync Interfaced Post-Processor ' + str(self.name) + ' : number of samples is not correctly specified (either not specified or not integer)')
     if self.timeID == None:
       self.raiseAnError(IOError, 'HistorySetSync Interfaced Post-Processor ' + str(self.name) + ' : timeID is not specified')
@@ -90,7 +91,7 @@ class HistorySetSync(PostProcessorInterfaceBase):
     maxTime = max(maxEndTime)
     minTime = min(minInitTime)
 
-    if self.syncMethod is None:
+    if self.syncMethod is 'grid':
       newTime = np.linspace(minTime,maxTime,self.numberOfSamples)
     elif self.syncMethod.lower() == 'all':
       times = set()

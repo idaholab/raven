@@ -3,7 +3,7 @@ import sys
 
 ravenDir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 testDir = os.path.join(ravenDir,'tests')
-#print 'DEBUG ravenDir:',ravenDir
+print 'DEBUG ravenDir:',ravenDir
 
 def getRegressionTests(skipThese=[],skipExpectedFails=True):
   """

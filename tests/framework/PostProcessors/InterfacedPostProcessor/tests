@@ -32,7 +32,7 @@
   [./historySetSyncAll]
     type   = 'RavenFramework'
     input  = 'test_historySetSyncAll.xml'
-    UnorderedCsv = 'hs_sync_all/original.csv hs_sync_all/original_0.csv hs_sync_all/original_1.csv hs_sync_all/original_2.csv hs_sync_all/original_3.csv hs_sync_all/original_4.csv hs_sync_all/synced_.csv hs_sync_all/synced.csv hs_sync_all/synced_1.csv hs_sync_all/synced_2.csv hs_sync_all/synced_3.csv hs_sync_all/synced_4.csv'
+    UnorderedCsv = 'hs_sync_all/original.csv hs_sync_all/original_0.csv hs_sync_all/original_1.csv hs_sync_all/original_2.csv hs_sync_all/original_3.csv hs_sync_all/original_4.csv hs_sync_all/synced.csv hs_sync_all/synced_0.csv hs_sync_all/synced_1.csv hs_sync_all/synced_2.csv hs_sync_all/synced_3.csv hs_sync_all/synced_4.csv'
     UnorderedXml = 'hs_sync_all/rom.xml'
   [../]
   [./HS2PS]
