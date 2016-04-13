@@ -17,20 +17,20 @@
       <Model class="Models" type="ExternalModel">PythonModule</Model>
       <Sampler class="Samplers" type="Grid">myGrid</Sampler>
       <Output class="DataObjects" type="HistorySet">HistorySet_model</Output>
-      <Output class="OutStreamManager" type="Print">PrintHistorySet_model</Output>
+      <Output class="OutStreams" type="Print">PrintHistorySet_model</Output>
     </MultiRun>
     <MultiRun name="ROM_MRun">
       <Input class="DataObjects" type="Point">inputPlaceHolder</Input>
       <Model class="Models" type="ROM">t_ROM</Model>
       <Sampler class="Samplers" type="Grid">myGrid</Sampler>
       <Output class="DataObjects" type="HistorySet">HistorySet_ROM</Output>
-      <Output class="OutStreamManager" type="Print">PrintHistorySet_rom</Output>
+      <Output class="OutStreams" type="Print">PrintHistorySet_rom</Output>
     </MultiRun>
     <IOStep name="plot_data">
       <Input class="DataObjects" type="HistorySet">HistorySet_model</Input>
       <Input class="DataObjects" type="HistorySet">HistorySet_ROM</Input>
-      <Output class="OutStreamManager" type="Plot">plot_ROM</Output>
-      <Output class="OutStreamManager" type="Plot">plot_model</Output>
+      <Output class="OutStreams" type="Plot">plot_ROM</Output>
+      <Output class="OutStreams" type="Plot">plot_model</Output>
     </IOStep>
     <RomTrainer name="test_rom_trainer" verbosity="debug">
       <Input class="DataObjects" type="HistorySet">HistorySet_model</Input>
@@ -81,7 +81,7 @@
     </Grid>
   </Samplers>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="PrintHistorySet_model">
       <type>csv</type>
       <source>HistorySet_model</source>
@@ -136,7 +136,7 @@
         </camera>
       </actions>
     </Plot>
-  </OutStreamManager>
+  </OutStreams>
 
   <DataObjects>
     <Point name="inputPlaceHolder">

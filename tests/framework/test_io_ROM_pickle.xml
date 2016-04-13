@@ -41,9 +41,9 @@
       <Input class="DataObjects" type="PointSet">Data2</Input>
       <Input class="DataObjects" type="PointSet">Data3</Input>
       <Input class="DataObjects" type="PointSet">Data4</Input>
-      <Output class="OutStreamManager" type="Print">PrintData_data2</Output>
-      <Output class="OutStreamManager" type="Print">PrintData</Output>
-      <Output class="OutStreamManager" type="Print">PrintData_Pickle</Output>
+      <Output class="OutStreams" type="Print">PrintData_data2</Output>
+      <Output class="OutStreams" type="Print">PrintData</Output>
+      <Output class="OutStreams" type="Print">PrintData_Pickle</Output>
     </IOStep>
     <RomTrainer name="step2">
       <Input class="DataObjects" type="PointSet">Data2</Input>
@@ -114,7 +114,7 @@
     </ROM>
   </Models>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="PrintData_data2">
       <type>csv</type>
       <source>Data2</source>
@@ -131,6 +131,6 @@
       <type>csv</type>
       <source>Data4</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
 </Simulation>

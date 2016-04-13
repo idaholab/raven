@@ -41,12 +41,12 @@
     </Stratified>
   </Samplers>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="outLHS_dump">
       <type>csv</type>
       <source>outLHS</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
   <DataObjects>
     <PointSet name="outLHS">
@@ -65,7 +65,7 @@
       <Model class="Models" type="Dummy">MyDummy</Model>
       <Sampler class="Samplers" type="Stratified">LHS</Sampler>
       <Output class="DataObjects" type="PointSet">outLHS</Output>
-      <Output class="OutStreamManager" type="Print">outLHS_dump</Output>
+      <Output class="OutStreams" type="Print">outLHS_dump</Output>
     </MultiRun>
   </Steps>
 

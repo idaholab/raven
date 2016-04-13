@@ -119,7 +119,7 @@ XML node and the requirements for other attributes change:
   \xmlNode{function}, \xmlDesc{string, required field}, name of the function that
   defines the calculation of this variable from other distributed variables.  Its name
   needs to be contained in the \xmlNode{Functions} block explained in Section
-  \ref{sec:functions}. This function must implement a method named ``evaluate''. 
+  \ref{sec:functions}. This function must implement a method named ``evaluate''.
  \nb{Alternatively, this node must be ommitted
   if the \xmlNode{distribution} node is supplied.}
 }
@@ -271,6 +271,14 @@ XML node and the requirements for other attributes change:
         ``restart'' tool, where it accepts pre-existing solutions in the PointSet instead
         of recalculating solutions.
     \end{itemize}
+    \begin{itemize}
+      \item \xmlNode{restartTolerance}, \xmlDesc{float, optional field}, the
+        body of this XML node must contain a valid floating point value.  If a \xmlNode{Restart} node is
+        supplied for this \xmlNode{Sampler}, this node offers a way to determine how strictly matching points
+        are determined.  Given a point in the input space, if all the points in a restart point are within
+        the relative tolerance listed in this node to the given point, the restart point will be used instead
+        of recalculated.  \default{1e-15}
+    \end{itemize}
 }
 
 \newcommand{\variablesTransformationDescription}[1]
@@ -288,8 +296,8 @@ XML node and the requirements for other attributes change:
         \item \xmlNode{manifestVariables}, \xmlDesc{comma separated string, required field}, user-defined manifest variables
         that can be used by the \xmlAttr{model}.
         \item \xmlNode{manifestVariablesIndex}, \xmlDesc{comma separated string, optional field}, user-defined manifest variables indices paired with \xmlNode{manifestVariables}.
-        These indices indicate the position of manifest variables associated with multivariate normal distribution defined in the XML node \xmlNode{Distributions}. 
-        The indices should be postive integer. If not provided, the code will use the positions of manifest variables listed in \xmlNode{manifestVariables} as the indices. 
+        These indices indicate the position of manifest variables associated with multivariate normal distribution defined in the XML node \xmlNode{Distributions}.
+        The indices should be postive integer. If not provided, the code will use the positions of manifest variables listed in \xmlNode{manifestVariables} as the indices.
         \item \xmlNode{method}, \xmlDesc{string, required field}, the method that is used for the variables transformation. The currently available method is '\textbf{pca}'.
       \end{itemize}
     \end{itemize}
@@ -300,7 +308,7 @@ XML node and the requirements for other attributes change:
     \xmlNode{convergenceStudy}, \xmlDesc{optional node},
     if included, triggers writing state points at particular numbers of model solves for the purpose of
     a convergence study.  The study is performed by writing XML output files as described in the
-    OutStreamManager for ROMs at the state points requested, using \xmlString{all} as the requested
+    OutStreams for ROMs at the state points requested, using \xmlString{all} as the requested
     \xmlNode{what} values.
     The state points are identified when a certain
     number of model runs is passed, as specified by the \xmlNode{runStatePoints} node.
@@ -673,10 +681,13 @@ Example:
       </distribution>
       <grid type='CDF' construction='custom'>0.2 0.5 1.0</grid>
     </variable>
+    <Restart class='DataObject' type='PointSet'>data</Restart>
+    <restartTolerance>1e-6</restartTolerance>
   </Grid>
   ...
 </Samplers>
 \end{lstlisting}
+\nb A restart example is included here but is not necessary in general.
 
 %%% Forward Samplers: Sparse Grid Collocation
 \subsubsection{Sparse Grid Collocation}
@@ -732,17 +743,17 @@ Example:
 \end{lstlisting}
  \normalsize
 
-In general, \textbf{SparseGridCollocation} requires uncorrelated input parameters. If the input parameters are correlated, one can transform the 
+In general, \textbf{SparseGridCollocation} requires uncorrelated input parameters. If the input parameters are correlated, one can transform the
 correlated parameters into uncorrelated parameters; the \textbf{SparseGridCollocation} can also be used with the uncorrelated parameters
-in the transformed space. Like in the \textbf{Grid} sampler, if the covariance matrix is provided 
+in the transformed space. Like in the \textbf{Grid} sampler, if the covariance matrix is provided
 and the input parameters are assumed to have the multivariate normal distribution, the \textbf{SparseGridCollocation} can be used.
-This means one creates the sparse grids of variables listed by \xmlNode{latentVariables} in the transformed space. If this is 
-the case, the user needs to provide additional information, i.e. the \xmlNode{transformation} under \xmlNode{MultivariateNormal} 
-of \xmlNode{Distributions} (more information can be found in Section \ref{subsec:NdDist}). In addition, the node 
-\xmlNode{variablesTransformation} is also required for \textbf{SparseGridCollocation} sampler. This node is used to tranform 
-the variables specified by \xmlNode{latentVariables} in the transformed space of input into variables spefified by 
-\xmlNode{manifestVariables} in the input space. The variables listed in \xmlNode{latentVariables} should be predefined 
-in \xmlNode{variable}, and the variables listed in \xmlNode{manifestVariables} 
+This means one creates the sparse grids of variables listed by \xmlNode{latentVariables} in the transformed space. If this is
+the case, the user needs to provide additional information, i.e. the \xmlNode{transformation} under \xmlNode{MultivariateNormal}
+of \xmlNode{Distributions} (more information can be found in Section \ref{subsec:NdDist}). In addition, the node
+\xmlNode{variablesTransformation} is also required for \textbf{SparseGridCollocation} sampler. This node is used to tranform
+the variables specified by \xmlNode{latentVariables} in the transformed space of input into variables spefified by
+\xmlNode{manifestVariables} in the input space. The variables listed in \xmlNode{latentVariables} should be predefined
+in \xmlNode{variable}, and the variables listed in \xmlNode{manifestVariables}
 are used by the \xmlNode{Models}.
 
 \variablesTransformationDescription{SparseGridCollocation}
@@ -814,7 +825,7 @@ order 2, it adds functionals to consider the pairing of each dimension with each
 of small input cardinality instead of a single function with large input cardinality.  This allows reduced order models like generalized polynomial chaos
 (see \ref{subsubsec:GaussPolynomialRom}) to approximate the functionals accurately with few computations runs.  This Sobol sampler uses the associated HDMRRom
 (see \ref{subsubsec:HDMRRom}) to determine at what points the input space need be evaluated. Since Sobol sampler relies on SparseGridCollocation, it is also compatible with
-multivariate normal distribution objects. The \xmlNode{Sobol} node supports the following attributes: 
+multivariate normal distribution objects. The \xmlNode{Sobol} node supports the following attributes:
 
 \begin{itemize}
 \itemsep0em
@@ -934,10 +945,10 @@ Example:
 </Samplers>
 \end{lstlisting}
 
-For N-dimensional  (ND) distributions, there are two different approahes to perform the stratified sampling. In the first approach, 
-the subgroups is determined by the joint CDF of given multivariate distributions. If this approach is used, the sampling is performed 
+For N-dimensional  (ND) distributions, there are two different approahes to perform the stratified sampling. In the first approach,
+the subgroups is determined by the joint CDF of given multivariate distributions. If this approach is used, the sampling is performed
 on a grid on a CDF, while the user is required to specify the same CDF grid for all the dimensions of the ND distribution.
-This is possible by defining a \xmlNode{globalGrid} node and associate such \xmlNode{globalGrid} to each variable belonging to the 
+This is possible by defining a \xmlNode{globalGrid} node and associate such \xmlNode{globalGrid} to each variable belonging to the
 ND distribution as follows.
 
 \begin{lstlisting}[style=XML,morekeywords={ND,grid}]
@@ -961,15 +972,15 @@ ND distribution as follows.
 ...
 \end{lstlisting}
 
-The second approach is different than the first approach. Like in the \textbf{Grid} sampling, if the covariance matrix is provided 
-and the input parameters is assumed to have the multivariate normal distribution, one can also use \textbf{Stratified} approach to 
+The second approach is different than the first approach. Like in the \textbf{Grid} sampling, if the covariance matrix is provided
+and the input parameters is assumed to have the multivariate normal distribution, one can also use \textbf{Stratified} approach to
 sample the input parameters in the transformed space (aka subspace, reduced space). This means one creates
-the grids of variables listed by \xmlNode{latentVariables} in the transformed space. If this is the case, the user needs to 
-provide additional information, i.e. the \xmlNode{transformation} under \xmlNode{MultivariateNormal} of \xmlNode{Distributions} 
-(more information can be found in Section \ref{subsec:NdDist}). In addition, the node \xmlNode{variablesTransformation} is also 
-required for \textbf{Stratified} sampler. This node is used to tranform the variables specified by \xmlNode{latentVariables} in the 
-transformed space of input into variables spefified by \xmlNode{manifestVariables} in the input space. The variables listed 
-in \xmlNode{latentVariables} should be predefined in \xmlNode{variable}, and the variables listed in \xmlNode{manifestVariables} 
+the grids of variables listed by \xmlNode{latentVariables} in the transformed space. If this is the case, the user needs to
+provide additional information, i.e. the \xmlNode{transformation} under \xmlNode{MultivariateNormal} of \xmlNode{Distributions}
+(more information can be found in Section \ref{subsec:NdDist}). In addition, the node \xmlNode{variablesTransformation} is also
+required for \textbf{Stratified} sampler. This node is used to tranform the variables specified by \xmlNode{latentVariables} in the
+transformed space of input into variables spefified by \xmlNode{manifestVariables} in the input space. The variables listed
+in \xmlNode{latentVariables} should be predefined in \xmlNode{variable}, and the variables listed in \xmlNode{manifestVariables}
 are used by the \xmlNode{Models}. In addition, \xmlNode{globalGrid} will be not used for approach.
 
 \variablesTransformationDescription{Stratified}
@@ -2413,15 +2424,15 @@ Example:
 </Samplers>
 \end{lstlisting}
 
-Like in the \textbf{SparseGridCollocation} sampler, if the covariance matrix is provided 
+Like in the \textbf{SparseGridCollocation} sampler, if the covariance matrix is provided
 and the input parameters are assumed to have the multivariate normal distribution, the \textbf{AdaptiveSparseGrid} can be also used.
-This means one creates the sparse grids of variables listed by \xmlNode{latentVariables} in the transformed space. If this is 
-the case, the user needs to provide additional information, i.e. the \xmlNode{transformation} under \xmlNode{MultivariateNormal} 
-of \xmlNode{Distributions} (more information can be found in Section \ref{subsec:NdDist}). In addition, the node 
-\xmlNode{variablesTransformation} is also required for \textbf{AdaptiveSparseGrid} sampler. This node is used to tranform 
-the variables specified by \xmlNode{latentVariables} in the transformed space of input into variables spefified by 
-\xmlNode{manifestVariables} in the input space. The variables listed in \xmlNode{latentVariables} should be predefined 
-in \xmlNode{variable}, and the variables listed in \xmlNode{manifestVariables} 
+This means one creates the sparse grids of variables listed by \xmlNode{latentVariables} in the transformed space. If this is
+the case, the user needs to provide additional information, i.e. the \xmlNode{transformation} under \xmlNode{MultivariateNormal}
+of \xmlNode{Distributions} (more information can be found in Section \ref{subsec:NdDist}). In addition, the node
+\xmlNode{variablesTransformation} is also required for \textbf{AdaptiveSparseGrid} sampler. This node is used to tranform
+the variables specified by \xmlNode{latentVariables} in the transformed space of input into variables spefified by
+\xmlNode{manifestVariables} in the input space. The variables listed in \xmlNode{latentVariables} should be predefined
+in \xmlNode{variable}, and the variables listed in \xmlNode{manifestVariables}
 are used by the \xmlNode{Models}.
 
 \variablesTransformationDescription{AdaptiveSparseGrid}

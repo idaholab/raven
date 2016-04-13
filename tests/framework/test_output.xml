@@ -39,7 +39,7 @@
     </Grid>
   </Samplers>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="test">
       <type>csv</type>
       <source>stories</source>
@@ -676,7 +676,7 @@
         </title>
       </actions>
     </Plot>
-  </OutStreamManager>
+  </OutStreams>
 
   <Steps>
     <MultiRun name="FirstMRun" pauseAtEnd="false">
@@ -694,39 +694,39 @@
       <Input class="DataObjects" type="PointSet">PointSets</Input>
       <Input class="DataObjects" type="Point">Pointt</Input>
       <Input class="DataObjects" type="History">Historyy</Input>
-      <Output class="OutStreamManager" type="Plot">historyPlot2D</Output>
-      <Output class="OutStreamManager" type="Print">test</Output>
-      <Output class="OutStreamManager" type="Print">fullprint_Pointset</Output>
-      <Output class="OutStreamManager" type="Plot">2DHistoryPlot2</Output>
-      <Output class="OutStreamManager" type="Plot">test</Output>
-      <Output class="OutStreamManager" type="Plot">plot2</Output>
-      <Output class="OutStreamManager" type="Plot">plot3</Output>
-      <Output class="OutStreamManager" type="Plot">plot4</Output>
-      <Output class="OutStreamManager" type="Plot">plot5</Output>
-      <Output class="OutStreamManager" type="Plot">plot6</Output>
-      <Output class="OutStreamManager" type="Plot">plot7</Output>
-      <Output class="OutStreamManager" type="Plot">plot8</Output>
-      <Output class="OutStreamManager" type="Plot">plot9</Output>
-      <Output class="OutStreamManager" type="Plot">plot10</Output>
-      <Output class="OutStreamManager" type="Plot">plot11</Output>
-      <Output class="OutStreamManager" type="Plot">plot12</Output>
-      <Output class="OutStreamManager" type="Plot">plot13</Output>
-      <Output class="OutStreamManager" type="Plot">plot14</Output>
-      <Output class="OutStreamManager" type="Plot">plot15</Output>
-      <Output class="OutStreamManager" type="Plot">plot16</Output>
-      <Output class="OutStreamManager" type="Plot">plot17</Output>
-      <Output class="OutStreamManager" type="Plot">plot18</Output>
-      <Output class="OutStreamManager" type="Plot">plot19</Output>
-      <Output class="OutStreamManager" type="Plot">plot20</Output>
-      <Output class="OutStreamManager" type="Print">testprint_selective_hist1</Output>
-      <Output class="OutStreamManager" type="Print">testprint_selective_hist2</Output>
-      <Output class="OutStreamManager" type="Print">testprint_selective_hist3</Output>
-      <Output class="OutStreamManager" type="Print">testprint_selective_Pointset</Output>
-      <Output class="OutStreamManager" type="Print">testprint_selective_Point</Output>
-      <Output class="OutStreamManager" type="Print">testprint_selective_history</Output>
-      <Output class="OutStreamManager" type="Print">fullprint_HistorySet</Output>
-      <Output class="OutStreamManager" type="Print">fullprint_history</Output>
-      <Output class="OutStreamManager" type="Print">fullprint_Point</Output>
+      <Output class="OutStreams" type="Plot">historyPlot2D</Output>
+      <Output class="OutStreams" type="Print">test</Output>
+      <Output class="OutStreams" type="Print">fullprint_Pointset</Output>
+      <Output class="OutStreams" type="Plot">2DHistoryPlot2</Output>
+      <Output class="OutStreams" type="Plot">test</Output>
+      <Output class="OutStreams" type="Plot">plot2</Output>
+      <Output class="OutStreams" type="Plot">plot3</Output>
+      <Output class="OutStreams" type="Plot">plot4</Output>
+      <Output class="OutStreams" type="Plot">plot5</Output>
+      <Output class="OutStreams" type="Plot">plot6</Output>
+      <Output class="OutStreams" type="Plot">plot7</Output>
+      <Output class="OutStreams" type="Plot">plot8</Output>
+      <Output class="OutStreams" type="Plot">plot9</Output>
+      <Output class="OutStreams" type="Plot">plot10</Output>
+      <Output class="OutStreams" type="Plot">plot11</Output>
+      <Output class="OutStreams" type="Plot">plot12</Output>
+      <Output class="OutStreams" type="Plot">plot13</Output>
+      <Output class="OutStreams" type="Plot">plot14</Output>
+      <Output class="OutStreams" type="Plot">plot15</Output>
+      <Output class="OutStreams" type="Plot">plot16</Output>
+      <Output class="OutStreams" type="Plot">plot17</Output>
+      <Output class="OutStreams" type="Plot">plot18</Output>
+      <Output class="OutStreams" type="Plot">plot19</Output>
+      <Output class="OutStreams" type="Plot">plot20</Output>
+      <Output class="OutStreams" type="Print">testprint_selective_hist1</Output>
+      <Output class="OutStreams" type="Print">testprint_selective_hist2</Output>
+      <Output class="OutStreams" type="Print">testprint_selective_hist3</Output>
+      <Output class="OutStreams" type="Print">testprint_selective_Pointset</Output>
+      <Output class="OutStreams" type="Print">testprint_selective_Point</Output>
+      <Output class="OutStreams" type="Print">testprint_selective_history</Output>
+      <Output class="OutStreams" type="Print">fullprint_HistorySet</Output>
+      <Output class="OutStreams" type="Print">fullprint_history</Output>
+      <Output class="OutStreams" type="Print">fullprint_Point</Output>
     </IOStep>
   </Steps>
 

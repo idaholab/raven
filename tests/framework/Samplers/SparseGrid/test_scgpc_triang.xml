@@ -57,8 +57,8 @@
     <IOStep name="Tprint">
       <Input class="DataObjects" type="PointSet">Ttests</Input>
       <Input class="Models" type="ROM">TROM</Input>
-      <Output class="OutStreamManager" type="Print">Tdump</Output>
-      <Output class="OutStreamManager" type="Print">Tdumprom</Output>
+      <Output class="OutStreams" type="Print">Tdump</Output>
+      <Output class="OutStreams" type="Print">Tdumprom</Output>
     </IOStep>
     <RomTrainer name="Ttrain">
       <Input class="DataObjects" type="PointSet">Tsolns</Input>
@@ -81,7 +81,7 @@
     </PointSet>
   </DataObjects>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="Tdump">
       <type>csv</type>
       <source>Ttests</source>
@@ -91,6 +91,6 @@
       <source>TROM</source>
       <what>all</what>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
 </Simulation>

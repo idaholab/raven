@@ -16,8 +16,8 @@
     <IOStep name="print">
       <Input class="DataObjects" type="PointSet">solns</Input>
       <Input class="Models" type="ROM">rom</Input>
-      <Output class="OutStreamManager" type="Print">maxruns_dump</Output>
-      <Output class="OutStreamManager" type="Print">maxruns_dumprom</Output>
+      <Output class="OutStreams" type="Print">maxruns_dump</Output>
+      <Output class="OutStreams" type="Print">maxruns_dumprom</Output>
     </IOStep>
     <RomTrainer name="train">
       <Input class="DataObjects" type="PointSet">solns</Input>
@@ -82,7 +82,7 @@
     </PointSet>
   </DataObjects>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="maxruns_dump">
       <type>csv</type>
       <source>solns</source>
@@ -92,6 +92,6 @@
       <source>rom</source>
       <what>all</what>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
 </Simulation>

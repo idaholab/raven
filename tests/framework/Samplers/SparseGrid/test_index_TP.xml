@@ -55,7 +55,7 @@
     </MultiRun>
     <IOStep name="TPprint">
       <Input class="DataObjects" type="PointSet">TPtests</Input>
-      <Output class="OutStreamManager" type="Print">TPdump</Output>
+      <Output class="OutStreams" type="Print">TPdump</Output>
     </IOStep>
     <RomTrainer name="TPtrain">
       <Input class="DataObjects" type="PointSet">TPsolns</Input>
@@ -78,11 +78,11 @@
     </PointSet>
   </DataObjects>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="TPdump">
       <type>csv</type>
       <source>TPtests</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
 </Simulation>

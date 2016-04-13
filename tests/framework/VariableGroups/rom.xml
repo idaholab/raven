@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation verbosity='debug'>
+<Simulation verbosity="debug">
   <!-- tests external model and ROM -->
   <RunInfo>
     <WorkingDir>ROMs</WorkingDir>
@@ -8,10 +8,10 @@
   </RunInfo>
 
   <VariableGroups>
-      <Group name="x_odd"                                     >x1,x3,x5</Group>
-      <Group name="x_even"     dependencies=""                >x2,x4,x6</Group>
-      <Group name="y_group"    dependencies=""                >y1,y2</Group>
-      <Group name="union"      dependencies="x_odd,x_even"    base="x_odd">+x_even</Group>
+    <Group name="x_odd">x1,x3,x5</Group>
+    <Group dependencies="" name="x_even">x2,x4,x6</Group>
+    <Group dependencies="" name="y_group">y1,y2</Group>
+    <Group base="x_odd" dependencies="x_odd,x_even" name="union">+x_even</Group>
   </VariableGroups>
 
   <Distributions>
@@ -75,7 +75,7 @@
     </MultiRun>
     <IOStep name="print">
       <Input class="DataObjects" type="PointSet">romout</Input>
-      <Output class="OutStreamManager" type="Print">dump_romout</Output>
+      <Output class="OutStreams" type="Print">dump_romout</Output>
     </IOStep>
     <RomTrainer name="train">
       <Input class="DataObjects" type="PointSet">standard</Input>
@@ -84,13 +84,25 @@
   </Steps>
 
   <DataObjects>
-    <PointSet name="dummyIN" ><Input>union</Input>   <Output>OutputPlaceHolder</Output></PointSet>
-    <PointSet name="standard"><Input>union</Input>   <Output>y_group</Output></PointSet>
-    <PointSet name="romout"  ><Input>union</Input>   <Output>y_group</Output></PointSet>
+    <PointSet name="dummyIN">
+      <Input>union</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="standard">
+      <Input>union</Input>
+      <Output>y_group</Output>
+    </PointSet>
+    <PointSet name="romout">
+      <Input>union</Input>
+      <Output>y_group</Output>
+    </PointSet>
   </DataObjects>
 
-  <OutStreamManager>
-    <Print name="dump_romout"  ><type>csv</type><source>romout</source></Print>
-  </OutStreamManager>
+  <OutStreams>
+    <Print name="dump_romout">
+      <type>csv</type>
+      <source>romout</source>
+    </Print>
+  </OutStreams>
 
 </Simulation>
