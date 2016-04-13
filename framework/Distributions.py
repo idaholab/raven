@@ -153,7 +153,7 @@ class Distribution(BaseType):
       Function to get the initial values of the input parameters that belong to
       this class
       @ In, None
-      @ Out, paramDict, dict, dictionary containg the parameter names as keys
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
     """
     paramDict = {}
