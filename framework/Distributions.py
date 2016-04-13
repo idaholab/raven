@@ -503,7 +503,7 @@ class Uniform(BoostDistribution):
       Function to get the initial values of the input parameters that belong to
       this class
       @ In, None
-      @ Out, paramDict, dict, dictionary containg the parameter names as keys
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
     """
     paramDict = BoostDistribution.getInitParams(self)
@@ -604,7 +604,7 @@ class Normal(BoostDistribution):
       Function to get the initial values of the input parameters that belong to
       this class
       @ In, None
-      @ Out, paramDict, dict, dictionary containg the parameter names as keys
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
     """
     paramDict = BoostDistribution.getInitParams(self)
@@ -740,7 +740,7 @@ class Gamma(BoostDistribution):
       Function to get the initial values of the input parameters that belong to
       this class
       @ In, None
-      @ Out, paramDict, dict, dictionary containg the parameter names as keys
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
     """
     paramDict = BoostDistribution.getInitParams(self)
@@ -886,7 +886,7 @@ class Beta(BoostDistribution):
       Function to get the initial values of the input parameters that belong to
       this class
       @ In, None
-      @ Out, paramDict, dict, dictionary containg the parameter names as keys
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
     """
     paramDict = BoostDistribution.getInitParams(self)
@@ -1023,7 +1023,7 @@ class Triangular(BoostDistribution):
       Function to get the initial values of the input parameters that belong to
       this class
       @ In, None
-      @ Out, paramDict, dict, dictionary containg the parameter names as keys
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
     """
     paramDict = BoostDistribution.getInitParams(self)
@@ -1100,7 +1100,7 @@ class Poisson(BoostDistribution):
       Function to get the initial values of the input parameters that belong to
       this class
       @ In, None
-      @ Out, paramDict, dict, dictionary containg the parameter names as keys
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
     """
     paramDict = BoostDistribution.getInitParams(self)
@@ -1182,7 +1182,7 @@ class Binomial(BoostDistribution):
       Function to get the initial values of the input parameters that belong to
       this class
       @ In, None
-      @ Out, paramDict, dict, dictionary containg the parameter names as keys
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
     """
     paramDict = BoostDistribution.getInitParams(self)
@@ -1258,7 +1258,7 @@ class Bernoulli(BoostDistribution):
       Function to get the initial values of the input parameters that belong to
       this class
       @ In, None
-      @ Out, paramDict, dict, dictionary containg the parameter names as keys
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
     """
     paramDict = BoostDistribution.getInitParams(self)
@@ -1320,7 +1320,7 @@ class Categorical(Distribution):
       Function to get the initial values of the input parameters that belong to
       this class
       @ In, None
-      @ Out, paramDict, dict, dictionary containg the parameter names as keys
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
     """
     paramDict = Distribution.getInitParams(self)
@@ -1447,7 +1447,7 @@ class Logistic(BoostDistribution):
       Function to get the initial values of the input parameters that belong to
       this class
       @ In, None
-      @ Out, paramDict, dict, dictionary containg the parameter names as keys
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
     """
     paramDict = BoostDistribution.getInitParams(self)
@@ -1536,7 +1536,7 @@ class Exponential(BoostDistribution):
       Function to get the initial values of the input parameters that belong to
       this class
       @ In, None
-      @ Out, paramDict, dict, dictionary containg the parameter names as keys
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
     """
     paramDict = BoostDistribution.getInitParams(self)
@@ -1653,7 +1653,7 @@ class LogNormal(BoostDistribution):
       Function to get the initial values of the input parameters that belong to
       this class
       @ In, None
-      @ Out, paramDict, dict, dictionary containg the parameter names as keys
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
     """
     paramDict = BoostDistribution.getInitParams(self)
@@ -1755,7 +1755,7 @@ class Weibull(BoostDistribution):
       Function to get the initial values of the input parameters that belong to
       this class
       @ In, None
-      @ Out, paramDict, dict, dictionary containg the parameter names as keys
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
     """
     paramDict = BoostDistribution.getInitParams(self)
@@ -1819,7 +1819,7 @@ class NDimensionalDistributions(Distribution):
       Function to get the initial values of the input parameters that belong to
       this class
       @ In, None
-      @ Out, paramDict, dict, dictionary containg the parameter names as keys
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
     """
     paramDict = Distribution.getInitParams(self)
@@ -1909,7 +1909,7 @@ class NDInverseWeight(NDimensionalDistributions):
       Function to get the initial values of the input parameters that belong to
       this class
       @ In, None
-      @ Out, paramDict, dict, dictionary containg the parameter names as keys
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
     """
     paramDict = NDimensionalDistributions.getInitParams(self)
@@ -2070,7 +2070,7 @@ class NDCartesianSpline(NDimensionalDistributions):
       Function to get the initial values of the input parameters that belong to
       this class
       @ In, None
-      @ Out, paramDict, dict, dictionary containg the parameter names as keys
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
     """
     paramDict = NDimensionalDistributions.getInitParams(self)
@@ -2253,7 +2253,7 @@ class MultivariateNormal(NDimensionalDistributions):
       Function to get the initial values of the input parameters that belong to
       this class
       @ In, None
-      @ Out, paramDict, dict, dictionary containg the parameter names as keys
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
     """
     paramDict = NDimensionalDistributions.getInitParams(self)
