@@ -122,7 +122,7 @@ def f(x):
   return x*x
 
 simp = mathUtils.simpson(f,-1,1,5)
-checkAnswer('simpson',simp,0.490666667,1e-5)
+checkAnswer('simpson',simp,0.677333333333,1e-5)
 
 ### check "getGraphs"
 # TODO I don't know what this does.  Documentation is poor.
@@ -152,7 +152,7 @@ for d in data:
 data = [0.6752,0.0610,0.1172,0.5233,0.0056]
 moms = mathUtils.calculateStats(data)
 checkAnswer('calculateStats.mean'          ,moms['mean'          ], 0.27646 ,1e-5)
-checkAnswer('calculateStats.stdev'         ,moms['stdev'         ], 0.30211 ,1e-5)
+checkAnswer('calculateStats.stdev'         ,moms['stdev'         ], 0.27021 ,1e-5)
 checkAnswer('calculateStats.variance'      ,moms['variance'      ], 0.073015,1e-5)
 checkAnswer('calculateStats.skewness'      ,moms['skewness'      ], 0.45134 ,1e-5)
 checkAnswer('calculateStats.kurtosis'      ,moms['kurtosis'      ],-1.60548 ,1e-5)

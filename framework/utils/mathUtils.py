@@ -11,9 +11,8 @@ warnings.simplefilter('default',DeprecationWarning)
 
 import math
 import copy
-from scipy import interpolate
+from scipy import interpolate, stats, integrate
 import numpy as np
-from scipy.interpolate import Rbf, griddata
 
 def normal(x,mu=0.0,sigma=1.0):
   """
@@ -23,8 +22,7 @@ def normal(x,mu=0.0,sigma=1.0):
     @ In, sigma, float, optional, sigma
     @ Out, returnNormal, list or np.array, pdf
   """
-  returnNormal = (1.0/(sigma*math.sqrt(2*math.pi)))*math.exp(-(x - mu)**2/(2.0*sigma**2))
-  return returnNormal
+  return stats.norm.pdf(x,mu,sigma)
 
 def normalCdf(x,mu=0.0,sigma=1.0):
   """
@@ -34,8 +32,7 @@ def normalCdf(x,mu=0.0,sigma=1.0):
     @ In, sigma, float, optional, sigma
     @ Out, cdfReturn, list or np.array, cdf
   """
-  cdfReturn = 0.5*(1.0+math.erf((x-mu)/(sigma*math.sqrt(2.0))))
-  return cdfReturn
+  return stats.norm.cdf(x,mu,sigma)
 
 def skewNormal(x,alphafactor,xi,omega):
   """
@@ -60,6 +57,7 @@ def createInterp(x, y, lowFill, highFill, kind='linear'):
      @ Out, interp, function(float) returns float, an interpolation function that takes a single float value and return its interpolated value using lowFill or highFill when the input value is outside of the interpolation range.
   """
   interp = interpolate.interp1d(x, y, kind)
+  # interp = interpolate.interp1d(x, y, kind, bounds_error=False, fill_value=lowFill)
   low = x[0]
   def myInterp(value):
     """
@@ -89,13 +87,12 @@ def simpson(f, a, b, n):
     @ Out, sumVar, float, integral
   """
   h = (b - a) / float(n)
-  sumVar = f(a) + f(b)
-  for i in range(1,n, 2):
-    sumVar += 4*f(a + i*h)
-  for i in range(2, n-1, 2):
-    sumVar += 2*f(a + i*h)
-  sumVar = sumVar * h / 3.0
-  return sumVar
+  y = np.zeros(n+1)
+  x = np.zeros(n+1)
+  for i in range(0, n+1):
+    x[i] = a + i*h
+    y[i] = f(x[i])
+  return integrate.simps(y, x)
 
 def getGraphs(functions, fZStats = False):
   """
@@ -223,7 +220,7 @@ def log2(x):
    @ In, x, float, the coordinate x
    @ Out, logTwo, float, log2
   """
-  logTwo = math.log(x)/math.log(2.0)
+  logTwo = math.log(x,2)
   return logTwo
 
 def calculateStats(data):
@@ -233,36 +230,13 @@ def calculateStats(data):
     @ In, data, list or numpy.array, the data
     @ Out, ret, dict, the dictionary containing the stats
   """
-
-  sum1 = 0.0
-  sum2 = 0.0
-  n = len(data)
-  for value in data:
-    sum1 += value
-    sum2 += value**2
-
-  mean = sum1/n
-  variance = (1.0/n)*sum2-mean**2
-  sampleVariance = (n/(n-1.0))*variance
-  stdev = math.sqrt(sampleVariance)
-
-  m4 = 0.0
-  m3 = 0.0
-  for value in data:
-    m3 += (value - mean)**3
-    m4 += (value - mean)**4
-  m3 = m3/n
-  m4 = m4/n
-  skewness = m3/(variance**(3.0/2.0))
-  kurtosis = m4/variance**2 - 3.0
-
   ret = {}
-  ret["mean"] = mean
-  ret["variance"] = variance
-  ret["sampleVariance"] = sampleVariance
-  ret["stdev"] = stdev
-  ret["skewness"] = skewness
-  ret["kurtosis"] = kurtosis
+  ret["mean"] = np.mean(data)
+  ret["variance"] = np.var(data)
+  ret["sampleVariance"] = stats.tvar(data)
+  ret["stdev"] = np.std(data)
+  ret["skewness"] = stats.skew(data)
+  ret["kurtosis"] = stats.kurtosis(data)
   return ret
 
 def historySetWindow(vars,numberOfTimeStep):
@@ -385,10 +359,10 @@ def interpolateFunction(x,y,option,z = None,returnCoordinate=False):
     xig, yig = np.meshgrid(xi, yi)
     try:
       if ['nearest','linear','cubic'].count(options['interpolationType']) > 0 or z.size <= 3:
-        if options['interpolationType'] != 'nearest' and z.size > 3: zi = griddata((x,y), z, (xi[None,:], yi[:,None]), method=options['interpolationType'])
-        else: zi = griddata((x,y), z, (xi[None,:], yi[:,None]), method='nearest')
+        if options['interpolationType'] != 'nearest' and z.size > 3: zi = interpolate.griddata((x,y), z, (xi[None,:], yi[:,None]), method=options['interpolationType'])
+        else: zi = interpolate.griddata((x,y), z, (xi[None,:], yi[:,None]), method='nearest')
       else:
-        rbf = Rbf(x,y,z,function=str(str(options['interpolationType']).replace('Rbf', '')), epsilon=int(options.pop('epsilon',2)), smooth=float(options.pop('smooth',0.0)))
+        rbf = interpolate.Rbf(x,y,z,function=str(str(options['interpolationType']).replace('Rbf', '')), epsilon=int(options.pop('epsilon',2)), smooth=float(options.pop('smooth',0.0)))
         zi  = rbf(xig, yig)
     except Exception as ae:
       if 'interpolationTypeBackUp' in options.keys():
@@ -401,11 +375,11 @@ def interpolateFunction(x,y,option,z = None,returnCoordinate=False):
   else:
     try:
       if ['nearest','linear','cubic'].count(options['interpolationType']) > 0 or y.size <= 3:
-        if options['interpolationType'] != 'nearest' and y.size > 3: yi = griddata((x), y, (xi[:]), method=options['interpolationType'])
-        else: yi = griddata((x), y, (xi[:]), method='nearest')
+        if options['interpolationType'] != 'nearest' and y.size > 3: yi = interpolate.griddata((x), y, (xi[:]), method=options['interpolationType'])
+        else: yi = interpolate.griddata((x), y, (xi[:]), method='nearest')
       else:
         xig, yig = np.meshgrid(xi, yi)
-        rbf = Rbf(x, y,function=str(str(options['interpolationType']).replace('Rbf', '')),epsilon=int(options.pop('epsilon',2)), smooth=float(options.pop('smooth',0.0)))
+        rbf = interpolate.Rbf(x, y,function=str(str(options['interpolationType']).replace('Rbf', '')),epsilon=int(options.pop('epsilon',2)), smooth=float(options.pop('smooth',0.0)))
         yi  = rbf(xi)
     except Exception as ae:
       if 'interpolationTypeBackUp' in options.keys():
@@ -423,7 +397,7 @@ def distance(points,pt):
     @ In, pt, tuple/list/array(int/float), point of distance
     @ Out, distance, np.array(float), distances
   """
-  return np.sqrt(np.sum(np.square(points-pt),axis=1))
+  return np.linalg.norm(points-pt,axis=1)
 
 def numpyNearestMatch(findIn,val):
   """
