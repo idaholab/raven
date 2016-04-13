@@ -109,7 +109,7 @@ class BaseType(MessageHandler.MessageUser):
     """
       Function to be overloaded to get a dictionary of the name and values of the initial parameters associated with any class
       @ In, None
-      @ Out, paramDict, dict, dictionary containg the parameter names as keys and each parameter's initial value as the dictionary values
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys and each parameter's initial value as the dictionary values
     """
     return {}
 
@@ -127,7 +127,7 @@ class BaseType(MessageHandler.MessageUser):
     """
       Function to be overloaded to inject the name and values of the parameters that might change during the simulation
       @ In, None
-      @ Out, paramDict, dict, dictionary containg the parameter names as keys and each parameter's initial value as the dictionary values
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys and each parameter's initial value as the dictionary values
     """
     return {}
 
