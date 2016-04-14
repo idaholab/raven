@@ -1,4 +1,4 @@
-from util import *
+from util import * #Not conformant to code standards.
 from Tester import Tester
 from CSVDiffer import CSVDiffer
 from UnorderedCSVDiffer import UnorderedCSVDiffer
@@ -38,6 +38,7 @@ class RavenFramework(Tester):
     params.addParam('test_interface_only','False','Test the interface only (without running the driven code')
     params.addParam('zero_threshold',sys.float_info.min*4.0,'it represents the value below which a float is considered zero (XML comparison only)')
     params.addParam('remove_whitespace','False','Removes whitespace before comparing xml node text if True')
+    params.addParam('expected_fail', 'False', 'if true, then the test should fails, and if it passes, it fails.')
     return params
 
   def getCommand(self, options):
@@ -97,7 +98,18 @@ class RavenFramework(Tester):
       if os.path.exists(filename):
         os.remove(filename)
 
-  def processResults(self, moose_dir,retcode, options, output):
+  def processResults(self, moose_dir, retcode, options, output):
+    expectedFail = self.specs['expected_fail'].lower().strip() == 'true'
+    if not expectedFail:
+      return self.rawProcessResults(moose_dir, retcode, options, output)
+    else:
+      reason, output = self.rawProcessResults(moose_dir, retcode, options, output)
+      if reason == '':
+        return ('Unexpected success', output)
+      else:
+        return ('', output)
+
+  def rawProcessResults(self, moose_dir, retcode, options, output):
     missing = []
     for filename in self.check_files:
       if not os.path.exists(filename):
