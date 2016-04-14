@@ -540,34 +540,38 @@ class Server(object):
                     self.__accurate_stats = False
                     stat.time = 0.0
         return self.__stats
-
-    def print_stats(self):
-        """Prints job execution statistics. Useful for benchmarking on
+    
+    def collect_stats_in_list(self):
+        """collect job execution statistics in list. Useful for benchmarking on
            clusters"""
-
-        print "Job execution statistics:"
+        returnList = []
+        returnList.append("Job execution statistics:")
         walltime = time.time() - self.__creation_time
         statistics = self.get_stats().items()
         totaljobs = 0.0
         for ppserver, stat in statistics:
             totaljobs += stat.njobs
-        print " job count | % of all jobs | job time sum | " \
-                "time per job | job server"
+        returnList.append(" job count | % of all jobs | job time sum | time per job | job server")
         for ppserver, stat in statistics:
             if stat.njobs:
-                print "    %6i |        %6.2f |     %8.4f |  %11.6f | %s" \
+                returnList.append("    %6i |        %6.2f |     %8.4f |  %11.6f | %s" \
                         % (stat.njobs, 100.0*stat.njobs/totaljobs, stat.time,
-                        stat.time/stat.njobs, ppserver, )
-        print "Time elapsed since server creation", walltime
-        print self.__active_tasks, "active tasks,", self.get_ncpus(), "cores"
+                        stat.time/stat.njobs, ppserver, )) 
+        returnList.append("Time elapsed since server creation " + str(walltime))
+        returnList.append(str(self.__active_tasks)+ " active tasks," +  str(self.get_ncpus()) + " cores")
+        #print self.__active_tasks, "active tasks,", self.get_ncpus(), "cores"
 
         if not self.__accurate_stats:
-            print "WARNING: statistics provided above is not accurate" \
-                  " due to job rescheduling"
-        print
+            returnList.append("WARNING: statistics provided above is not accurate due to job rescheduling")      
+        return returnList
+    
+
+    def print_stats(self):
+        """Prints job execution statistics. Useful for benchmarking on
+           clusters"""
+        for row in self.collect_stats_in_list(): print(row)
 
     # all methods below are for internal use only
-
     def insert(self, sfunc, sargs, task=None):
         """Inserts function into the execution queue. It's intended for
            internal use only (ppserver.py).

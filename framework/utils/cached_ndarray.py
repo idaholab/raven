@@ -12,6 +12,8 @@ warnings.simplefilter('default',DeprecationWarning)
 from numpy import ndarray
 import numpy as np
 import sys
+import threading
+lock = threading.Lock()
 #External Modules End--------------------------------------------------------------------------------
 
 
@@ -74,24 +76,32 @@ class c1darray(object):
       @ In, x, element or array, the value or array to append
       @ Out, None (appending in place)
     """
-    if type(x).__name__ != 'ndarray':
-      if self.size  == self.capacity:
-        self.capacity *= 4
-        newdata = np.zeros((self.capacity,),dtype=self.values.dtype)
-        newdata[:self.size] = self.values[:]
-        self.values = newdata
-      self.values[self.size] = x
-      self.size  += 1
-    else:
-      if (self.capacity - self.size) < x.size:
-        # to be safer
-        self.capacity += max(self.capacity*4,x.size) #self.capacity + x.size*4
-        newdata = np.zeros((self.capacity,),dtype=self.values.dtype)
-        newdata[:self.size] = self.values[:]
-        self.values = newdata
-      #for index in range(x.size):
-      self.values[self.size:self.size+x.size] = x[:]
-      self.size  += x.size
+
+    #lock.acquire()
+    try:
+      if type(x).__name__ != 'ndarray':
+        if self.size  == self.capacity:
+          self.capacity *= 4
+          newdata = np.zeros((self.capacity,),dtype=self.values.dtype)
+          newdata[:self.size] = self.values[:]
+          self.values = newdata
+        self.values[self.size] = x
+        self.size  += 1
+      else:
+        if (self.capacity - self.size) < x.size:
+          # to be safer
+          self.capacity += max(self.capacity*4,x.size) #self.capacity + x.size*4
+          newdata = np.zeros((self.capacity,),dtype=self.values.dtype)
+          try: newdata[:self.size] = self.values[:]
+          except:
+            pass
+          self.values = newdata
+        #for index in range(x.size):
+        self.values[self.size:self.size+x.size] = x[:]
+        self.size  += x.size
+    finally:
+      #lock.release()
+      pass
 
   def returnIndex(self,value):
     """

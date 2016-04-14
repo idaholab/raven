@@ -12,6 +12,9 @@ if not 'xrange' in dir(__builtins__):
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
+import time
+import collections
+import subprocess
 try               : import Queue as queue
 except ImportError: import queue
 import os
@@ -41,28 +44,32 @@ class ExternalRunner(MessageHandler.MessageUser):
   """
     Class for running external codes
   """
-  def __init__(self,messageHandler,command,workingDir,bufsize,output=None,metadata=None,codePointer=None):
+  def __init__(self,messageHandler, command, workingDir, bufsize, identifier = None, output = None ,metadata = None, codePointer = None, uniqueHandler = "any"):
     """
       Initialize command variable
       @ In, messageHandler, MessageHandler instance, the global RAVEN message handler instance
       @ In, command, list, list of commands that needs to be executed
       @ In, workingDir, string, absolute path of the working directory
       @ In, bufsize, int, buffer size for logger
+      @ In, identifier, string, optional, id of this job
       @ In, output, string, optional, output filename root
       @ In, metadata, dict, optional, dictionary of metadata associated with this ExternalRunner
       @ In, codePointer, CodeInterface instance, optional, instance of the code interface associated with this ExternalRunner
+      @ In, uniqueHandler, string, optional, it is a special keyword attached to this runner. For example, if present, to retrieve this runner using the method jobHandler.getFinished, the uniqueHandler needs to be provided.
+                                             if uniqueHandler == 'any', every "client" can get this runner
       @ Out, None
     """
+    self.uniqueHandler     = uniqueHandler
     self.codePointerFailed = None
-    self.messageHandler = messageHandler
-    self.command    = command
-    self.bufsize    = bufsize
-    workingDirI     = None
-    if    output!=None:
+    self.messageHandler    = messageHandler
+    self.command           = command
+    self.bufsize           = bufsize
+    workingDirI            = None
+    if output is not None:
       self.output   = output
       if os.path.split(output)[0] != workingDir: workingDirI = os.path.split(output)[0]
-      if len(str(output).split("~")) > 1:
-        self.identifier =  str(output).split("~")[1]
+      if identifier != None:
+        self.identifier = identifier
       else:
         # try to find the identifier in the folder name
         # to eliminate when the identifier is passed from outside
@@ -228,7 +235,7 @@ class InternalRunner(MessageHandler.MessageUser):
   """
     Class for running internal objects
   """
-  def __init__(self,messageHandler,ppserver, Input, functionToRun, frameworkModules = [], identifier=None, metadata=None, functionToSkip = None, forceUseThreads = False):
+  def __init__(self,messageHandler,ppserver, Input, functionToRun, frameworkModules = [], identifier=None, metadata=None, functionToSkip = None, forceUseThreads = False, uniqueHandler = "any"):
     """
       Init method
       @ In, messageHandler, MessageHandler object, the global RAVEN message handler object
@@ -241,20 +248,23 @@ class InternalRunner(MessageHandler.MessageUser):
       @ In, metadata, dict, optional, dictionary of metadata associated with this run
       @ In, functionToSkip, list, optional, list of functions, classes and modules that need to be skipped in pickling the function dependencies
       @ In, forceUseThreads, bool, optional, flag that, if True, is going to force the usage of multi-threading even if parallel python is activated
+      @ In, uniqueHandler, string, optional, it is a special keyword attached to this runner. For example, if present, to retrieve this runner using the method jobHandler.getFinished, the uniqueHandler needs to be provided.
+                                            if uniqueHandler == 'any', every "client" can get this runner
       @ Out, None
     """
     # we keep the command here, in order to have the hook for running exec code into internal models
-    self.command  = "internal"
-    self.messageHandler = messageHandler
-    self.ppserver = ppserver
-    self.__thread = None
+    self.uniqueHandler     = uniqueHandler
+    self.command           = "internal"
+    self.messageHandler    = messageHandler
+    self.ppserver          = ppserver
+    self.__thread          = None
     if    identifier!=None:
       if "~" in identifier: self.identifier =  str(identifier).split("~")[1]
       else                : self.identifier =  str(identifier)
     else: self.identifier = 'generalOut'
     if type(Input) != tuple: self.raiseAnError(IOError,"The input for InternalRunner needs to be a tuple!!!!")
     #the Input needs to be a tuple. The first entry is the actual input (what is going to be stored here), the others are other arg the function needs
-    if self.ppserver == None or forceUseThreads: self.subque = queue.Queue()
+    if self.ppserver == None or forceUseThreads: self.subque = collections.deque() #self.subque = queue.Queue()
     self.functionToRun    = functionToRun
     self.__runReturn      = None
     self.__hasBeenAdded   = False
@@ -276,7 +286,7 @@ class InternalRunner(MessageHandler.MessageUser):
     memo[id(self)] = newobj
     copydict = self.__dict__
     ### these things can't be deepcopied ###
-    toRemove = ['functionToRun','subque','_InternalRunner__thread']
+    toRemove = ['functionToRun','subque','_InternalRunner__thread','__queueLock']
     for k,v in copydict.items():
       if k in toRemove: continue
       setattr(newobj,k,copy.deepcopy(v,memo))
@@ -292,8 +302,8 @@ class InternalRunner(MessageHandler.MessageUser):
       if len(self.__input) == 1: self.__thread = self.ppserver.submit(self.functionToRun, args= (self.__input[0],), depfuncs=(), modules = tuple(list(set(self.__frameworkMods))),functionToSkip=self._functionToSkip)
       else                     : self.__thread = self.ppserver.submit(self.functionToRun, args= self.__input, depfuncs=(), modules = tuple(list(set(self.__frameworkMods))),functionToSkip=self._functionToSkip)
     else:
-      if len(self.__input) == 1: self.__thread = threading.Thread(target = lambda q,  arg : q.put(self.functionToRun(arg)), name = self.identifier, args=(self.subque,self.__input[0]))
-      else                     : self.__thread = threading.Thread(target = lambda q, *arg : q.put(self.functionToRun(*arg)), name = self.identifier, args=(self.subque,)+tuple(self.__input))
+      if len(self.__input) == 1: self.__thread = threading.Thread(target = lambda q,  arg : q.append(self.functionToRun(arg)), name = self.identifier, args=(self.subque,self.__input[0]))
+      else                     : self.__thread = threading.Thread(target = lambda q, *arg : q.append(self.functionToRun(*arg)), name = self.identifier, args=(self.subque,)+tuple(self.__input))
       self.__thread.daemon = True
       self.__thread.start()
 
@@ -315,10 +325,28 @@ class InternalRunner(MessageHandler.MessageUser):
       @ Out, retcode, int,  the return code of this evaluation
     """
     if self.ppserver is None and hasattr(self,'subque'):
-      if self.subque.empty(): #is this necessary and sufficient for all failed runs?
-        self.__runReturn = -1
-        self.retcode = -1
+      if not self.__hasBeenAdded:
+        self.__collectRunnerResponse()
+      if len(self.subque) == 0 and self.__runReturn is None: #is this necessary and sufficient for all failed runs?
+        self.__runReturn = None
+        self.retcode     = -1
     return self.retcode
+
+  def __collectRunnerResponse(self):
+    """
+     Method to add the process response in the internal variable (pointer) self.__runReturn
+     @ In, None
+     @ Out, None
+    """
+    if not self.__hasBeenAdded:
+      if self.ppserver is not None and not self.__forceUseThreads:
+        for row in self.ppserver.collect_stats_in_list(): self.raiseADebug(row)
+        self.__runReturn = self.__thread()
+      else:
+        if len(self.subque) == 0:
+          self.__runReturn = None #queue is empty!
+        else: self.__runReturn = self.subque.popleft()
+      self.__hasBeenAdded = True
 
   def returnEvaluation(self):
     """
@@ -327,17 +355,10 @@ class InternalRunner(MessageHandler.MessageUser):
       @ Out, (Input,response), tuple, tuple containing the results of the evaluation (list of Inputs, function return value)
     """
     if self.isDone():
-      if not self.__hasBeenAdded:
-        if self.ppserver is not None and not self.__forceUseThreads:
-          self.ppserver.print_stats()
-          self.__runReturn = self.__thread()
-        else:
-          if self.subque.empty(): self.__runReturn = None #queue is empty!
-          else: self.__runReturn = self.subque.get(timeout=1)
-        self.__hasBeenAdded = True
-        if self.__runReturn is None:
-          self.retcode = -1
-          return self.retcode
+      self.__collectRunnerResponse()
+      if self.__runReturn is None:
+        self.retcode = -1
+        return self.retcode
       return (self.__input[0],self.__runReturn)
     else: return -1 #control return code
 
@@ -380,22 +401,28 @@ class JobHandler(MessageHandler.MessageUser):
       @ In, None
       @ Out, None
     """
-    self.printTag               = 'Job Handler'
-    self.runInfoDict            = {}
-    self.mpiCommand             = ''
-    self.threadingCommand       = ''
-    self.initParallelPython     = False
-    self.submitDict             = {}
-    self.submitDict['External'] = self.addExternal
-    self.submitDict['Internal'] = self.addInternal
-    self.externalRunning        = []
-    self.internalRunning        = []
-    self.__running              = []
-    self.__queue                = queue.Queue()
-    self.__nextId               = 0
-    self.__numSubmitted         = 0
-    self.__numFailed            = 0
-    self.__failedJobs           = {} #dict of failed jobs, keyed on identifer, valued on metadata
+    self.printTag                     = 'Job Handler'
+    self.runInfoDict                  = {}
+    self.mpiCommand                   = ''
+    self.threadingCommand             = ''
+    self.initParallelPython           = False
+    self.submitDict                   = {}
+    self.submitDict['External'      ] = self.addExternal
+    self.submitDict['Internal'      ] = self.addInternal
+    self.submitDict['InternalClient'] = self.addInternalClient
+    #__running,__queue,__clientQueue,__clientRunning and __nextId
+    # are protected by the __queueLock
+    self.__running                    = []
+    self.__queue                      = collections.deque() #queue.Queue()
+    self.__clientQueue                = collections.deque()
+    self.__clientRunning              = collections.deque()
+    self.__nextId                     = 0
+    #__queueLock protects above five variables
+    self.__queueLock                  = threading.RLock()
+    self.__numSubmitted               = 0
+    self.__numFailed                  = 0
+    self.__failedJobs                 = {} #dict of failed jobs, keyed on identifer, valued on metadata
+    #self.__noResourcesJobs            = []
 
   def initialize(self,runInfoDict,messageHandler):
     """
@@ -411,7 +438,9 @@ class JobHandler(MessageHandler.MessageUser):
     if self.runInfoDict['NumThreads'] !=1 and len(self.runInfoDict['ThreadingCommand']) > 0:
       self.threadingCommand = self.runInfoDict['ThreadingCommand'] +' '+str(self.runInfoDict['NumThreads'])
     #initialize PBS
-    self.__running = [None]*self.runInfoDict['batchSize']
+    with self.__queueLock:
+      self.__running       = [None]*self.runInfoDict['batchSize']
+      self.__clientRunning = [None]*self.runInfoDict['batchSize']
 
   def __initializeParallelPython(self):
     """
@@ -501,14 +530,18 @@ class JobHandler(MessageHandler.MessageUser):
         ppservers.append(nodeId+":"+str(newPort))
     return qualifiedHostName, ppservers
 
-  def addExternal(self,executeCommands,outputFile,workingDir,metadata=None,codePointer=None):
+  def addExternal(self,executeCommands,outputFile,workingDir,identifier = None, metadata=None,codePointer=None,uniqueHandler="any"):
     """
       Method to add an external runner (an external code) in the handler list
       @ In, executeCommands, list of tuple(string), ('parallel'/'serial', <execution command>)
       @ In, outputFile, string, output file name
       @ In, workingDir, string, working directory
+      @ In, identifier, string, optional, the job identifier
       @ In, metadata, dict, optional, dictionary of metadata
       @ In, codePointer, derived CodeInterfaceBaseClass object, optional, pointer to code interface
+      @ In, uniqueHandler, string, optional, it is a special keyword attached to this runner.
+                                             For example, if present, to retrieve this runner using the method jobHandler.getFinished,
+                                             the uniqueHandler needs to be provided. if uniqueHandler == 'any', every "client" can get this runner
       @ Out, None
     """
     precommand = self.runInfoDict['precommand'] #FIXME what uses this?  Still precommand for whole line if multiapp case?
@@ -530,12 +563,14 @@ class JobHandler(MessageHandler.MessageUser):
       else:
         self.raiseAnError(IOError,'For execution command <'+cmd+'> the run type was neither "serial" nor "parallel"!  Instead got:',runtype,'\nCheck the code interface.')
     command= ' && '.join(commands)+' '
-    self.__queue.put(ExternalRunner(self.messageHandler,command,workingDir,self.runInfoDict['logfileBuffer'],outputFile,metadata,codePointer))
+    with self.__queueLock:
+      self.__queue.append(ExternalRunner(self.messageHandler,command,workingDir,self.runInfoDict['logfileBuffer'],identifier, outputFile,metadata,codePointer,uniqueHandler))
     self.raiseAMessage('Execution command submitted:',command)
     self.__numSubmitted += 1
-    if self.howManyFreeSpots()>0: self.addRuns()
+    self.addRuns()
+    #if self.howManyFreeSpots()>0: self.addRuns()
 
-  def addInternal(self,Input,functionToRun,identifier,metadata=None, modulesToImport = [], forceUseThreads = False):
+  def addInternal(self,Input,functionToRun,identifier,metadata=None, modulesToImport = [], forceUseThreads = False, uniqueHandler="any",clientQueue = False):
     """
       Method to add an internal run (function execution)
       @ In, Input, list, list of Inputs that are going to be passed to the function to be executed as *args
@@ -545,13 +580,40 @@ class JobHandler(MessageHandler.MessageUser):
       @ In, modulesToImport, list, optional, list of modules that need to be imported for internal parallelization (parallel python).
                                              this list should be generated with the method returnImportModuleString in utils.py
       @ In, forceUseThreads, bool, optional, flag that, if True, is going to force the usage of multi-threading even if parallel python is activated
+      @ In, uniqueHandler, string, optional, it is a special keyword attached to this runner.
+                                             For example, if present, to retrieve this runner using the method jobHandler.getFinished,
+                                             the uniqueHandler needs to be provided. if uniqueHandler == 'any', every "client" can get this runne
+      @ In, clientQueue, boolean, optional, if this run needs to be added in the clientQueue
       @ Out, None
     """
     #internal serve is initialized only in case an internal calc is requested
     if not self.initParallelPython: self.__initializeParallelPython()
-    self.__queue.put(InternalRunner(self.messageHandler,self.ppserver, Input, functionToRun, modulesToImport, identifier, metadata, functionToSkip=[utils.metaclass_insert(abc.ABCMeta,BaseType)],forceUseThreads = forceUseThreads))
+    internalJob = InternalRunner(self.messageHandler,self.ppserver, Input, functionToRun, modulesToImport,
+                                       identifier, metadata, functionToSkip=[utils.metaclass_insert(abc.ABCMeta,BaseType)],
+                                       forceUseThreads = forceUseThreads,uniqueHandler = uniqueHandler)
+    with self.__queueLock:
+      if not clientQueue: self.__queue.append(internalJob)
+      else              : self.__clientQueue.append(internalJob)
     self.__numSubmitted += 1
-    if self.howManyFreeSpots()>0: self.addRuns()
+    self.addRuns()
+    #if self.howManyFreeSpots()>0: self.addRuns()
+
+  def addInternalClient(self,Input,functionToRun,identifier,metadata=None, uniqueHandler="any"):
+    """
+      Method to add an internal run (function execution), without consuming resources (free spots). This can be used for client handling (see metamodel)
+      @ In, Input, list, list of Inputs that are going to be passed to the function to be executed as *args
+      @ In, functionToRun,function or method, the function that needs to be executed
+      @ In, identifier, string, the job identifier
+      @ In, metadata, dict, optional, dictionary of metadata associated to this run
+      @ In, uniqueHandler, string, optional, it is a special keyword attached to this runner.
+                                             For example, if present, to retrieve this runner using the method jobHandler.getFinished,
+                                             the uniqueHandler needs to be provided. if uniqueHandler == 'any', every "client" can get this runner
+      @ Out, None
+    """
+    #self.__clientQueue.append()
+    #self.__running.append(None)
+    self.addInternal(Input,functionToRun, identifier,metadata, forceUseThreads = True, uniqueHandler=uniqueHandler, clientQueue = True)
+    #self.__noResourcesJobs.append(identifier)
 
   def isFinished(self):
     """
@@ -559,12 +621,35 @@ class JobHandler(MessageHandler.MessageUser):
       @ In, None
       @ Out, isFinished, bool, True all the runs in the queue are finished
     """
-    if not self.__queue.empty():
-      return False
-    for i in range(len(self.__running)):
-      if self.__running[i] and not self.__running[i].isDone():
-        return False
+    with self.__queueLock:
+      if not len(self.__queue) == 0: return False
+      for i in range(len(self.__running)):
+        if self.__running[i] and not self.__running[i].isDone():
+          return False
+      for elem in self.__clientRunning:
+        if elem and not elem.isDone(): return False
     return True
+
+  def isThisJobFinished(self,identifier):
+    """
+     Method to check if the run identified by "identifier" is finished
+     @ In, identifier, string, identifier
+     @ Out, isFinished, bool, True if the job identified by "identifier" is finished
+    """
+    isFinished = None
+    with self.__queueLock:
+      for i in range(len(self.__running)):
+        if self.__running[i] is not None and self.__running[i].identifier.strip() == identifier.strip():
+          isFinished = self.__running[i].isDone()
+          break
+      if isFinished is None:
+        for elem in self.__clientRunning:
+          if elem is not None:
+            if elem.identifier.strip() == identifier.strip():
+              isFinished = elem.isDone()
+              break
+    if isFinished is None: self.raiseAnError(RuntimeError,"The identifier job "+identifier+" in unknown!")
+    return isFinished
 
   def getNumberOfFailures(self):
     """
@@ -589,55 +674,104 @@ class JobHandler(MessageHandler.MessageUser):
       @ Out, cntFreeSpots, int, number of free spots
     """
     cntFreeSpots = 0
-    if self.__queue.empty():
+    #if len(self.__queue) == 0:
+    with self.__queueLock:
       for i in range(len(self.__running)):
-        if self.__running[i]:
-          if self.__running[i].isDone():
+        if self.__running[i] is not None and self.__running[i].isDone():
+          cntFreeSpots += 1
+        else:
+          cntFreeSpots += 1
+    #cntFreeSpots-=len(self.__queue)
+    return cntFreeSpots
+
+  def howManyFreeSpotsForClients(self):
+    """
+     Method to get the number of free spots in the client queue (same size of __running queue)
+     @ In, None
+     @ Out, cnt_free_spots, int, number of free spots
+    """
+    cntFreeSpots = 0
+    #if len(self.__queue) == 0:
+    with self.__queueLock:
+      for i in range(len(self.__clientRunning)):
+        if self.__clientRunning[i] and self.__clientRunning[i].isDone():
             cntFreeSpots += 1
         else:
           cntFreeSpots += 1
     return cntFreeSpots
 
-  def getFinished(self, removeFinished=True, prefix=None):
+  def getFinished(self, removeFinished=True, jobIdentifier = None, uniqueHandler = "any"):
     """
       Method to get the list of jobs that ended (list of objects)
       @ In, removeFinished, bool, optional, flag to control if the finished jobs need to be removed from the queue
       @ In, prefix, string, optional, if specified, only collects finished runs with a particular prefix.
-      @ Out, finished, list, list of finished jobs (InternalRunner or ExternalRunner objects)
+      @ In, uniqueHandler, string, optional, it is a special keyword attached to each runner. If provided, just the jobs that have the uniqueIdentifier will be retrieved.
+                                             by default uniqueHandler = 'any' => all the jobs for which no uniqueIdentifier has been set up are going to be retrieved
+      @ Out, finished, list, list of finished jobs (InternalRunner or ExternalRunner objects) (if jobIdentifier is None), else the finished job identified by jobIdentifier
     """
-    finished = []
-    for i in range(len(self.__running)):
-      if self.__running[i] and self.__running[i].isDone():
-        if prefix is not None:
-          if self.__running[i].identifier.startswith(prefix):
-            finished.append(self.__running[i])
-          else:
-            continue
-        else:
-          finished.append(self.__running[i])
-        if removeFinished:
-          running = self.__running[i]
-          returncode = running.getReturnCode()
-          if returncode != 0:
-            self.raiseAMessage(" Process Failed "+str(running)+' '+str(running.command)+" returncode "+str(returncode))
-            self.__numFailed += 1
-            self.__failedJobs[running.identifier]=(returncode,copy.deepcopy(running.returnMetadata()))
-            if type(running).__name__ == "External":
-              outputFilename = running.getOutputFilename()
-              if os.path.exists(outputFilename): self.raiseAMessage(open(outputFilename,"r").read())
-              else: self.raiseAMessage(" No output "+outputFilename)
-          else:
-            if self.runInfoDict['delSucLogFiles'] and running.__class__.__name__ != 'InternalRunner':
-              self.raiseAMessage(' Run "' +running.identifier+'" ended smoothly, removing log file!')
-              if os.path.exists(running.getOutputFilename()): os.remove(running.getOutputFilename())
-            if len(self.runInfoDict['deleteOutExtension']) >= 1 and running.__class__.__name__ != 'InternalRunner':
-              for fileExt in self.runInfoDict['deleteOutExtension']:
-                if not fileExt.startswith("."): fileExt = "." + fileExt
-                filelist = [ f for f in os.listdir(running.getWorkingDir()) if f.endswith(fileExt) ]
-                for f in filelist: os.remove(f)
-          self.__running[i] = None
-    if not self.__queue.empty(): self.addRuns()
+    finished             = [] #if jobIdentifier is None else None
+    clientRunToBeRemoved = []
+    with self.__queueLock:
+      for i in range(len(self.__running)):
+        if self.__running[i] is not None:
+          if self.__running[i].isDone():
+            goOn = True
+            if jobIdentifier is not None:
+              #if self.__running[i].identifier != jobIdentifier : goOn = False
+              if self.__running[i] is None or not self.__running[i].identifier.startswith(jobIdentifier): goOn = False
+            if self.__running[i] is None or uniqueHandler != self.__running[i].uniqueHandler: goOn = False
+            if goOn:
+              if jobIdentifier is not None:
+                #if self.__running[i].identifier != jobIdentifier: continue
+                if not self.__running[i].identifier.startswith(jobIdentifier): continue
+              finished.append(self.__running[i])
+              if removeFinished:
+                self.__checkAndRemoveFinished(self.__running[i])
+                self.__running[i] = None
+      for i in range(len(self.__clientRunning)):
+        if self.__clientRunning[i] and self.__clientRunning[i].isDone():
+          goOn = True
+          if jobIdentifier is not None:
+            #if clientRun.identifier != jobIdentifier : goOn = False
+            if not self.__clientRunning[i].identifier.startswith(jobIdentifier) : goOn = False
+          if uniqueHandler != self.__clientRunning[i].uniqueHandler: goOn = False
+          if goOn:
+            if jobIdentifier is not None:
+              if not self.__clientRunning[i].identifier.startswith(jobIdentifier): continue
+            finished.append(self.__clientRunning[i])
+            if removeFinished:
+              self.__checkAndRemoveFinished(self.__clientRunning[i])
+              clientRunToBeRemoved.append(i)
+      for i in clientRunToBeRemoved: self.__clientRunning[i] = None
+      self.addRuns()
+    #end with self.__queueLock
     return finished
+
+  def __checkAndRemoveFinished(self, running):
+    """
+      Method to check if a run is finished and remove it from the queque
+      @ In, running, instance, the job instance (InternalRunner or ExternalRunner)
+      @ Out, None
+    """
+    with self.__queueLock:
+      returncode = running.getReturnCode()
+      if returncode != 0:
+        self.raiseAMessage(" Process Failed "+str(running)+' '+str(running.command)+" returncode "+str(returncode))
+        self.__numFailed += 1
+        self.__failedJobs[running.identifier]=(returncode,copy.deepcopy(running.returnMetadata()))
+        if type(running).__name__ == "External":
+          outputFilename = running.getOutputFilename()
+          if os.path.exists(outputFilename): self.raiseAMessage(open(outputFilename,"r").read())
+          else: self.raiseAMessage(" No output "+outputFilename)
+      else:
+        if self.runInfoDict['delSucLogFiles'] and running.__class__.__name__ != 'InternalRunner':
+          self.raiseAMessage(' Run "' +running.identifier+'" ended smoothly, removing log file!')
+          if os.path.exists(running.getOutputFilename()): os.remove(running.getOutputFilename())
+        if len(self.runInfoDict['deleteOutExtension']) >= 1 and running.__class__.__name__ != 'InternalRunner':
+          for fileExt in self.runInfoDict['deleteOutExtension']:
+            if not fileExt.startswith("."): fileExt = "." + fileExt
+            filelist = [ f for f in os.listdir(running.getWorkingDir()) if f.endswith(fileExt) ]
+            for f in filelist: os.remove(f)
 
   def addRuns(self):
     """
@@ -646,25 +780,37 @@ class JobHandler(MessageHandler.MessageUser):
       @ In, None
       @ Out, None
     """
-    for i in range(len(self.__running)):
-      if self.__running[i] == None and not self.__queue.empty():
-        item = self.__queue.get()
-        if "External" in item.__class__.__name__ :
-          command = item.command
-          command = command.replace("%INDEX%",str(i))
-          command = command.replace("%INDEX1%",str(i+1))
-          command = command.replace("%CURRENT_ID%",str(self.__nextId))
-          command = command.replace("%CURRENT_ID1%",str(self.__nextId+1))
-          command = command.replace("%SCRIPT_DIR%",self.runInfoDict['ScriptDir'])
-          command = command.replace("%FRAMEWORK_DIR%",self.runInfoDict['FrameworkDir'])
-          command = command.replace("%WORKING_DIR%",item.getWorkingDir())
-          command = command.replace("%BASE_WORKING_DIR%",self.runInfoDict['WorkingDir'])
-          command = command.replace("%METHOD%",os.environ.get("METHOD","opt"))
-          command = command.replace("%NUM_CPUS%",str(self.runInfoDict['NumThreads']))
-          item.command = command
-        self.__running[i] = item
-        self.__running[i].start() #FIXME this call is really expensive; can it be reduced?
-        self.__nextId += 1
+    with self.__queueLock:
+      if self.howManyFreeSpots() > 0:
+        for i in range(len(self.__running)):
+          if self.__running[i] == None and not len(self.__queue) == 0:
+            item = self.__queue.popleft()
+            if "External" in item.__class__.__name__ :
+              command = item.command
+              command = command.replace("%INDEX%",str(i))
+              command = command.replace("%INDEX1%",str(i+1))
+              command = command.replace("%CURRENT_ID%",str(self.__nextId))
+              command = command.replace("%CURRENT_ID1%",str(self.__nextId+1))
+              command = command.replace("%SCRIPT_DIR%",self.runInfoDict['ScriptDir'])
+              command = command.replace("%FRAMEWORK_DIR%",self.runInfoDict['FrameworkDir'])
+              command = command.replace("%WORKING_DIR%",item.getWorkingDir())
+              command = command.replace("%BASE_WORKING_DIR%",self.runInfoDict['WorkingDir'])
+              command = command.replace("%METHOD%",os.environ.get("METHOD","opt"))
+              command = command.replace("%NUM_CPUS%",str(self.runInfoDict['NumThreads']))
+              item.command = command
+            self.__running[i] = item
+            self.__running[i].start() #FIXME this call is really expensive; can it be reduced?
+            self.__nextId += 1
+    #while len(self.__clientQueue) !=0:
+    with self.__queueLock:
+      if self.__clientRunning.count(None) > 0 and len(self.__clientQueue) !=0:
+        for i in range(len(self.__clientRunning)):
+          if len(self.__clientQueue) == 0   : break
+          if self.__clientRunning[i] is None:
+            self.__clientRunning[i] = self.__clientQueue.popleft()
+            self.__clientRunning[i].start()
+            self.__nextId += 1
+
 
   def getFinishedNoPop(self):
     """
@@ -697,9 +843,14 @@ class JobHandler(MessageHandler.MessageUser):
       @ In, None
       @ Out, None
     """
-    while not self.__queue.empty(): self.__queue.get()
-    for i in range(len(self.__running)):
-      if self.__running[i] is not None: self.__running[i].kill()
+    with self.__queueLock:
+      while not len(self.__queue) == 0        : self.__queue.popleft()
+      while not len(self.__clientQueue) == 0  : self.__clientQueue.popleft()
+      for i in range(len(self.__running))     :
+        if self.__running[i] is not None: self.__running[i].kill()
+      if self.__clientRunning.count(None) != len(self.__clientRunning):
+        for i in range(len(self.__clientRunning))     :
+          if self.__running[i] is not None: self.__clientRunning[i].kill()
 
   def numRunning(self):
     """

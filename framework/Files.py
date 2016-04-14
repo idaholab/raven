@@ -30,12 +30,13 @@ class File(BaseType):
       @ Out, None
     """
     BaseType.__init__(self)
-    self.__file   = None  #when open, refers to open file, else None
-    self.__path=''
-    self.__base=''
-    self.__ext=None
-    self.subtype=None
-    self.perturbable=False
+    self.__file             = None  # when open, refers to open file, else None
+    self.__path             = ''    # file path
+    self.__base             = ''    # file base
+    self.__ext              = None  # file extension
+    self.__linkedModel      = None  # hard link to a certain Code subtype (e.g. RELAP-7, MooseBasedApp, etc,)
+    self.subtype            = None  # subtype ("type" in the input) to label a file to any particular subcode in the code interface
+    self.perturbable        = False # is this file perturbable by a sampling strategy?
 
   def __del__(self):
     """
@@ -148,6 +149,13 @@ class File(BaseType):
       @ Out, __ext, string, extension of the file name (e.g. txt, csv)
     """
     return self.__ext
+
+  def getLinkedCode(self):
+    """Retriever for code name associated with this file.
+    @ In, None
+    @ Out, string path
+    """
+    return self.__linkedModel
 
   # setting tools #
   def setPath(self,path):
@@ -481,9 +489,10 @@ class UserGenerated(File):
     self.type = node.tag #XSD should confirm valid types
     self.printTag = self.type+' File'
     self.setAbsFile(node.text.strip())
-    self.perturbed = node.attrib.get('perturbable',True)
-    self.subtype   = node.attrib.get('type'       ,None)
-    self.alias     = node.attrib.get('name'       ,self.getFilename())
+    self.__linkedModel = node.attrib.get('linkedCode' ,None)
+    self.perturbed     = node.attrib.get('perturbable',True)
+    self.subtype       = node.attrib.get('type'       ,None)
+    self.alias         = node.attrib.get('name'       ,self.getFilename())
 
 #
 #

@@ -323,8 +323,8 @@ class hdf5Database(MessageHandler.MessageUser):
       groups.attrs[b'sourceType'] = b'Dictionary'
       # I keep this structure here because I want to maintain the possibility to add a whatever dictionary even if not prepared and divided into output and input sub-sets. A.A.
       if set(['inputSpaceParams']).issubset(set(source['name'].keys())):
-        groups.attrs[b'inputSpaceHeaders' ] = utils.toBytesIterative(list(source['name']['inputSpaceParams'].keys()))
-        groups.attrs[b'inputSpaceValues'  ] = utils.toBytesIterative(list(source['name']['inputSpaceParams'].values()))
+        groups.attrs[b'inputSpaceHeaders' ] = list(utils.toBytesIterative(source['name']['inputSpaceParams'].keys()))
+        groups.attrs[b'inputSpaceValues'  ] = list(utils.toBytesIterative(source['name']['inputSpaceParams'].values()))
       if set(['outputSpaceParams']).issubset(set(source['name'].keys())): outDict = source['name']['outputSpaceParams']
       else: outDict = dict((key,value) for (key,value) in source['name'].iteritems() if key not in ['inputSpaceParams'])
       outHeaders = utils.toBytesIterative(list(outDict.keys()))
@@ -335,15 +335,15 @@ class hdf5Database(MessageHandler.MessageUser):
       groups.attrs[b'parentID'  ] = parentName
       maxsize = 0
       for value in outValues:
-        if type(value) == np.ndarray:
-          if maxsize < value.size : actualone = value.size
+        if type(value) == np.ndarray or type(value).__name__ == 'c1darray':
+          if maxsize < value.size : actualone = np.asarray(value).size
         elif type(value) in [int,float,bool,np.float64,np.float32,np.float16,np.int64,np.int32,np.int16,np.int8,np.bool8]: actualone = 1
-        else: self.raiseAnError(IOError,'The type of the dictionary parameters must be within float,bool,int,numpy.ndarray')
+        else: self.raiseAnError(IOError,'The type of the dictionary parameters must be within float,bool,int,numpy.ndarray.Got '+type(value).__name__)
         if maxsize < actualone: maxsize = actualone
       groups.attrs[b'nTimeSteps'  ] = maxsize
       dataout = np.zeros((maxsize,len(outHeaders)))
       for index in range(len(outHeaders)):
-        if type(outValues[index]) == np.ndarray:  dataout[0:outValues[index].size,index] =  outValues[index][:]
+        if type(outValues[index]) == np.ndarray or type(value).__name__ == 'c1darray':  dataout[0:outValues[index].size,index] =  outValues[index][:]
         else: dataout[0,index] = outValues[index]
       # create the data set
       groups.create_dataset(groupName + "_data", dtype="float", data=dataout)

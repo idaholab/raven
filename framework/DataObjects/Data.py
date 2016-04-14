@@ -87,9 +87,16 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     # retrieve input/outputs parameters' keywords
     self._dataParameters['inParam']  = list(inp.strip() for inp in xmlNode.find('Input' ).text.strip().split(','))
     self._dataParameters['outParam'] = list(out.strip() for out in xmlNode.find('Output').text.strip().split(','))
+    if '' in self._dataParameters['inParam'] : self.raiseAnError(IOError, 'In DataObject  ' +self.name+' there is a trailing comma in the "Input" XML block!')
+    if '' in self._dataParameters['outParam']: self.raiseAnError(IOError, 'In DataObject  ' +self.name+' there is a trailing comma in the "Output" XML block!')
     #test for keywords not allowed
     if len(set(self._dataParameters['inParam'])&set(self.notAllowedInputs))!=0  : self.raiseAnError(IOError,'the keyword '+str(set(self._dataParameters['inParam'])&set(self.notAllowedInputs))+' is not allowed among inputs')
     if len(set(self._dataParameters['outParam'])&set(self.notAllowedOutputs))!=0: self.raiseAnError(IOError,'the keyword '+str(set(self._dataParameters['outParam'])&set(self.notAllowedOutputs))+' is not allowed among inputs')
+    # test if some parameters are repeated
+    for inp in self._dataParameters['inParam']:
+      if self._dataParameters['inParam'].count(inp) > 1: self.raiseAnError(IOError,'the keyword '+inp+' is listed, in <Input> block, more then once!')
+    for out in self._dataParameters['outParam']:
+      if self._dataParameters['outParam'].count(out) > 1: self.raiseAnError(IOError,'the keyword '+inp+' is listed, in <Output> block, more then once!')
     #test for same input/output variables name
     if len(set(self._dataParameters['inParam'])&set(self._dataParameters['outParam']))!=0: self.raiseAnError(IOError,'It is not allowed to have the same name of input/output variables in the data '+self.name+' of type '+self.type)
     optionsData = xmlNode.find('options')
@@ -160,6 +167,18 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
           if name in node.get('dataContainer')['outputs'].keys(): node.get('dataContainer')['outputs'].pop(name)
     else:
       if name in self._dataContainer['outputs'].keys(): self._dataContainer['outputs'].pop(name)
+
+  def resetData(self):
+    """
+    Function to remove all the data in this dataobject
+    @ In, None
+    @ Out, None
+    """
+    if self._dataParameters['hierarchical']:
+      self.TSData, self.rootToBranch = None, {}
+    else:
+      self._dataContainer                  = {'inputs':{},'outputs':{}}
+      self._dataContainer['metadata'     ] = {}
 
   def updateInputValue(self,name,value,options=None):
     """
@@ -289,11 +308,11 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     self.raiseADebug(' '*len(self.printTag)+':=============================')
     self.raiseADebug(' '*len(self.printTag)+':DataObjects: print on file(s)')
     self.raiseADebug(' '*len(self.printTag)+':=============================')
+    variablesToPrint = []
     if options:
       if ('filenameroot' in options.keys()): filenameLocal = options['filenameroot']
       else: filenameLocal = self.name + '_dump'
       if 'what' in options.keys():
-        variablesToPrint = []
         for var in options['what'].split(','):
           lvar = var.lower()
           if lvar.startswith('input'):
@@ -303,6 +322,10 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
           else: self.raiseAnError(RuntimeError,'variable ' + var + ' is unknown in Data ' + self.name + '. You need to specify an input or a output')
         optionsInt['what'] = variablesToPrint
     else: filenameLocal = self.name + '_dump'
+    if 'what' not in optionsInt.keys():
+      inputKeys, outputKeys = sorted(self.getParaKeys('inputs')), sorted(self.getParaKeys('outputs'))
+      for inKey in inputKeys  : variablesToPrint.append('input|'+inKey)
+      for outKey in outputKeys: variablesToPrint.append('output|'+outKey)
     self.specializedPrintCSV(filenameLocal,optionsInt)
 
   def loadXMLandCSV(self,filenameRoot,options=None):
@@ -498,13 +521,10 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ In, None
       @ Out, __len__, integer, size of first output element
     """
-    if len(self._dataParameters['outParam']) == 0:
-      return 0
+    if len(self._dataParameters['outParam']) == 0: return 0
     else:
-      if self.type != "HistorySet":
-        return self.sizeData('output',keyword=self._dataParameters['outParam'][0])[self._dataParameters['outParam'][0]]
-      else:
-        return self.sizeData('output',keyword=1)[1]
+      if self.type != "HistorySet": return self.sizeData('output',keyword=self._dataParameters['outParam'][0])[self._dataParameters['outParam'][0]]
+      else                        : return self.sizeData('output',keyword=1)[1]
 
   def sizeData(self,typeVar,keyword=None,nodeId=None,serialize=False):
     """

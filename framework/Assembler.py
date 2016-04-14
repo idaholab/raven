@@ -2,6 +2,7 @@
 Created on Jan 20, 2015
 
 @author: senrs
+based on alfoa design
 '''
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
@@ -29,11 +30,10 @@ class Assembler(MessageHandler.MessageUser):
     self.type               = self.__class__.__name__  # type
     self.name               = self.__class__.__name__  # name
     self.assemblerObjects   = {}                       # {MainClassName(e.g.Distributions):[class(e.g.Models),type(e.g.ROM),objectName]}
-    # tuple. first entry boolean flag. True if the XML parser must look for objects;
+    # list. first entry boolean flag. True if the XML parser must look for objects;
     # second entry tuple.first entry list of object can be retrieved, second entry multiplicity (-1,-2,-n means optional (max 1 object,2 object, no number limit))
-    self.requiredAssObjects = (False,([],[]))
+    self.requiredAssObject = [False,([],[])]
     self.assemblerDict      = {}                       # {'class':[['subtype','name',instance]]}
-
 
   def whatDoINeed(self):
     """
@@ -61,12 +61,30 @@ class Assembler(MessageHandler.MessageUser):
       @ In, initDict, dict, dictionary ({'mainClassName(e.g., Databases):{specializedObjectName(e.g.,DatabaseForSystemCodeNamedWolf):ObjectInstance}'})
       @ Out, None
     """
-    if '_localGenerateAssembler' in dir(self):
-      self._localGenerateAssembler(initDict)
+    if '_localGenerateAssembler' in dir(self): self._localGenerateAssembler(initDict)
     for key, value in self.assemblerObjects.items():
       self.assemblerDict[key] =  []
-      for interface in value:
-        self.assemblerDict[key].append([interface[0],interface[1],interface[2],initDict[interface[0]][interface[2]]])
+      for interface in value: self.assemblerDict[key].append([interface[0],interface[1],interface[2],initDict[interface[0]][interface[2]]])
+
+  def _readAssemblerObjects(self,subXmlNode, found, testObjects):
+    """
+    This method is used to look for the assemble objects in an subNodes of an xmlNode
+    @ In , subXmlNode, ET, the XML node that needs to be inquired
+    @ In , found, dict, a dictionary that check if all the tokens (requested) are found
+    @ In , testObjects, dict, a dictionary that contains the number of time a token (requested) has been found
+    @ In , tuple(found, testObjects), tuple, tuple containig in [0], found       ->  a dictionary that check if all the tokens (requested) are found ;
+                                                                [1], testObjects ->  a dictionary that contains the number of time a token (requested) has been found
+    @ In , testObjects, dict, a dictionary that contains the number of time a token (requested) has been found
+    """
+    for subNode in subXmlNode:
+      for token in self.requiredAssObject[1][0]:
+        if subNode.tag in token:
+          found[token] = True
+          if 'class' not in subNode.attrib.keys(): self.raiseAnError(IOError,'In '+self.type+' Object ' + self.name+ ', block ' + subNode.tag + ' does not have the attribute class!!')
+          if  subNode.tag not in self.assemblerObjects.keys(): self.assemblerObjects[subNode.tag.strip()] = []
+          self.assemblerObjects[subNode.tag.strip()].append([subNode.attrib['class'],subNode.attrib['type'],subNode.text.strip()])
+          testObjects[token] += 1
+    return found, testObjects
 
   def _readMoreXML(self,xmlNode):
     """
@@ -81,36 +99,44 @@ class Assembler(MessageHandler.MessageUser):
     self.printTag = self.type
     if 'verbosity' in xmlNode.attrib.keys(): self.verbosity = xmlNode.attrib['verbosity']
     if self.requiredAssObject[0]:
-        testObjects = {}
-        for token in self.requiredAssObject[1][0]:
-            testObjects[token] = 0
-        found = False
-        for subNode in xmlNode:
-            for token in self.requiredAssObject[1][0]:
-                if subNode.tag in token:
-                    found = True
-                    if 'class' not in subNode.attrib.keys(): self.raiseAnError(IOError,'In '+self.type + ' ' + self.name+ ', block ' + subNode.tag + ' does not have the attribute \"class\"!')
-                    if  subNode.tag not in self.assemblerObjects.keys(): self.assemblerObjects[subNode.tag] = []
-                    self.assemblerObjects[subNode.tag].append([subNode.attrib['class'],subNode.attrib['type'],subNode.text])
-                    testObjects[token] += 1
-        if not found:
-            for tofto in self.requiredAssObject[1][0]:
-                if not str(self.requiredAssObject[1][1][0]).strip().startswith('-'):
-                    self.raiseAnError(IOError,'the required object ' +tofto+ ' is missed in the definition of the '+ self.type + ' ' + self.name)
-        # test the objects found
-        else:
-            for cnt,tofto in enumerate(self.requiredAssObject[1][0]):
-                numerosity = str(self.requiredAssObject[1][1][cnt])
-                if numerosity.strip().startswith('-'):
-                # optional
-                    if tofto in testObjects.keys():
-                        if testObjects[tofto] is not 0:
-                          numerosity = numerosity.replace('-', '').replace('n',str(testObjects[tofto]))
-                          if testObjects[tofto] != int(numerosity): self.raiseAnError(IOError,'Only '+numerosity+' '+tofto+' object/s is/are optionally required. '+self.name + ' got '+str(testObjects[tofto]) + '!')
-                else:
-                # required
-                    if tofto not in testObjects.keys(): self.raiseAnError(IOError,'Required object/s "'+tofto+'" not found. '+self.name + '!')
-                    else:
-                        numerosity = numerosity.replace('n',str(testObjects[tofto]))
-                        if testObjects[tofto] != int(numerosity): self.raiseAnError(IOError,'Only '+numerosity+' '+tofto+' object/s is/are required. '+self.name + ' got '+str(testObjects[tofto]) + '!')
+      testObjects = {}
+      for token in self.requiredAssObject[1][0]:
+        testObjects[token] = 0
+      found = dict.fromkeys(testObjects.keys(),False)
+      found, testObjects = self._readAssemblerObjects(xmlNode, found, testObjects)
+      for subNode in xmlNode: found, testObjects = self._readAssemblerObjects(subNode, found, testObjects)
+      for token in self.requiredAssObject[1][0]:
+        if not found[token] and not str(self.requiredAssObject[1][1][self.requiredAssObject[1][0].index(token)]).strip().startswith('-'): self.raiseAnError(IOError,'the required object ' +token+ ' is missed in the definition of the '+self.type+' Object! Required objects number are :'+str(self.requiredAssObject[1][1][self.requiredAssObject[1][0].index(token)]))
+      # test the objects found
+      else:
+        for cnt,tofto in enumerate(self.requiredAssObject[1][0]):
+          numerosity = str(self.requiredAssObject[1][1][cnt])
+          if numerosity.strip().startswith('-'):
+          # optional
+            if tofto in testObjects.keys():
+              if testObjects[tofto] is not 0:
+                numerosity = numerosity.replace('-', '').replace('n',str(testObjects[tofto]))
+                if testObjects[tofto] != int(numerosity): self.raiseAnError(IOError,'Only '+numerosity+' '+tofto+' object/s is/are optionally required. Block '+self.name + ' got '+str(testObjects[tofto]) + '!')
+          else:
+            # required
+            if tofto not in testObjects.keys(): self.raiseAnError(IOError,'Required object/s "'+tofto+'" not found. Block '+self.name + '!')
+            else:
+              numerosity = numerosity.replace('n',str(testObjects[tofto]))
+              if testObjects[tofto] != int(numerosity): self.raiseAnError(IOError,'Only '+numerosity+' '+tofto+' object/s is/are required. Block '+self.name + ' got '+str(testObjects[tofto]) + '!')
     if '_localReadMoreXML' in dir(self): self._localReadMoreXML(xmlNode)
+
+  def addAsseblerObject(self,name,flag, newXmlFlg = None):
+    """
+      Method to add required assembler objects to the requiredAssObject dictionary.
+      @ In, name, string, the node name to search for (e.g. Function, Model)
+      @ In, flag, string, the number of nodes to look for (- means optional, n means any number).
+                                          For example, "2" means 2 nodes of type "name" are required!
+      @ In, newXmlFlg, boolean, optional, if passed in, the first entry of the tuple self.requiredAssObject is going to updated with the new value
+                                          For example, if newXmlFlg == True, the self.requiredAssObject[0] is set to True
+      @ Out, None
+    """
+    if newXmlFlg is not None: self.requiredAssObject[0] = newXmlFlg
+    self.requiredAssObject[1][0].append(name)
+    self.requiredAssObject[1][1].append(flag)
+
+
