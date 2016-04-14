@@ -15,13 +15,13 @@
 
   <Models>
     <Code name="testModel" subType="GenericCode">
-      <executable>/Users/alfoa/projects/raven/tests/framework/metaModelsTests/metaModelWithCode/AnalyticalDplMain.py</executable>
+      <executable>metaModelWithCode/AnalyticalDplMain.py</executable>
       <clargs arg="python" type="prepend"/>
       <clargs arg="" extension=".xml" type="input"/>
       <clargs arg=" " extension=".csv" type="output"/>
       <prepend>python</prepend>
     </Code>
-    <ExternalModel ModuleToLoad="/Users/alfoa/projects/raven/tests/framework/metaModelsTests/metaModelWithCode/ABCDsum" name="sumOfABCD" subType="">
+    <ExternalModel ModuleToLoad="ABCDsum" name="sumOfABCD" subType="">
       <variables>A,B,C,D,sum</variables>
     </ExternalModel>
     <EnsembleModel name="codeAndExtModel" subType="">
