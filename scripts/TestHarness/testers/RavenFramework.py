@@ -1,4 +1,3 @@
-from util import * #Not conformant to code standards.
 from Tester import Tester
 from CSVDiffer import CSVDiffer
 from UnorderedCSVDiffer import UnorderedCSVDiffer
