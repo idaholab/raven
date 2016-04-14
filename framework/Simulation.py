@@ -297,7 +297,6 @@ class Simulation(MessageHandler.MessageUser):
      myInstance.getDefaultInputFile                     !return the default name of the input file read by the simulation
     Inherited from the BaseType class:
      myInstance.whoAreYou()                             !inherited from BaseType class-
-     myInstance.myInitializzationParams()               !see BaseType class-
      myInstance.myClassmyCurrentSetting()               !see BaseType class-
 
     --how to add a new entity <myClass> to the simulation--

@@ -468,15 +468,19 @@ class OutStreamPlot(OutStreamManager):
   ####################
   #  PUBLIC METHODS  #
   ####################
-  def localAddInitParams(self, tempDict):
+  def localGetInitParams(self):
     """
-      This method is called from the base function. It adds the initial
+      This method is called from the base function. It retrieves the initial
       characteristic params that need to be seen by the whole enviroment
-      @ In, tempDict, dict, the dict to be updated
-      @ Out, None
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
     """
-    tempDict['Plot is '] = str(self.dim) + 'D'
-    for index in range(len(self.sourceName)): tempDict['Source Name ' + str(index) + ' :'] = self.sourceName[index]
+    paramDict = {}
+    paramDict['Plot is '] = str(self.dim) + 'D'
+    for index in range(len(self.sourceName)):
+      paramDict['Source Name ' + str(index) + ' :'] = self.sourceName[index]
+    return paramDict
 
   def endInstructions(self, instructionString):
     """

@@ -105,43 +105,31 @@ class BaseType(MessageHandler.MessageUser):
     tempDict['Name' ] = self.name
     return tempDict
 
-  def myInitializzationParams(self):
+  def getInitParams(self):
     """
-      This is a generic interface that will return the name and value of the initialization parameters of any class that inherits this base class.
-      In reality it is just empty and will fill the dictionary calling addInitParams that is the function to be overloaded used as API
+      Function to be overloaded to get a dictionary of the name and values of the initial parameters associated with any class
       @ In, None
-      @ Out, tempDict, dict, dictionary containing the initialization parameters of this instanciated object
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys and each parameter's initial value as the dictionary values
     """
-    tempDict = {}
-    self.addInitParams(tempDict)
-    return tempDict
-
-  def addInitParams(self,originalDict):
-    """
-      Function to be overloaded to inject the name and values of the initial parameters
-      @ In, originalDict, dict, original dictionary containg the initial parameters. This is the dictionary that needs to be updated
-      @ Out, None
-    """
-    pass
+    return {}
 
   def myCurrentSetting(self):
     """
       This is a generic interface that will return the name and value of the parameters that change during the simulation of any class that inherits this base class.
-      In reality it is just empty and will fill the dictionary calling addCurrentSetting that is the function to be overloaded used as API
+      In reality it is just empty and will fill the dictionary calling getCurrentSetting that is the function to be overloaded used as API
       @ In, None
-      @ Out, tempDict, dict, dictionary containing the current parameters of this instanciated object
+      @ Out, paramDict, dict, dictionary containing the current parameters of this instantiated object
     """
-    tempDict = {}
-    self.addCurrentSetting(tempDict)
-    return tempDict
+    paramDict = self.getCurrentSetting()
+    return paramDict
 
-  def addCurrentSetting(self,originalDict):
+  def getCurrentSetting(self):
     """
       Function to be overloaded to inject the name and values of the parameters that might change during the simulation
-      @ In, originalDict, dict, original dictionary containg the current parameters. This is the dictionary that needs to be updated
-      @ Out, None
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys and each parameter's initial value as the dictionary values
     """
-    pass
+    return {}
 
   def printMe(self):
     """
@@ -152,7 +140,7 @@ class BaseType(MessageHandler.MessageUser):
     """
     tempDict = self.whoAreYou()
     for key in tempDict.keys(): self.raiseADebug('       {0:15}: {1}'.format(key,str(tempDict[key])))
-    tempDict = self.myInitializzationParams()
+    tempDict = self.getInitParams()
     self.raiseADebug('       Initialization Parameters:')
     for key in tempDict.keys(): self.raiseADebug('       {0:15}: {1}'.format(key,str(tempDict[key])))
     tempDict = self.myCurrentSetting()
