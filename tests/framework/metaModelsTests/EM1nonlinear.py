@@ -11,7 +11,7 @@ def initialize(self, runInfo, inputs):
   self.N                       = 10 # number of points to discretize
   self.L                       = 1.0 # lenght of the rod
   self.X                       = np.linspace(0, self.L, self.N) # position along the rod
-  self.h                       = self.L / (self.N - 1) # discretization step 
+  self.h                       = self.L / (self.N - 1) # discretization step
   self.initialTemperatures     = 600.0 * np.ones(self.X.shape) # initial temperature
   self.timeDiscretization      = np.linspace(0.0, 100.0, 11)
 

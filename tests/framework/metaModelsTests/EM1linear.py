@@ -13,13 +13,13 @@ def initialize(self, runInfo, inputs):
   self.N                       = 10 # number of points to discretize
   self.L                       = 1.0 # lenght of the rod
   self.X                       = np.linspace(0, self.L, self.N) # position along the rod
-  self.h                       = self.L / (self.N - 1) # discretization step 
+  self.h                       = self.L / (self.N - 1) # discretization step
   self.initialTemperatures     = 150.0 * np.ones(self.X.shape) # initial temperature
   self.shapeToUse              = copy.deepcopy(self.X.shape)
   self.timeDiscretization      = np.linspace(0.0, 100.0, 10)
 
 def odeFuncion(u, t, xshape, N, h, k):
-  dudt     = np.zeros(xshape)    
+  dudt     = np.zeros(xshape)
   dudt[0] = 0 # constant at boundary condition
   dudt[-1] = 0
   # now for the internal nodes
