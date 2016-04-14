@@ -55,8 +55,8 @@
     <IOStep name="Eprint">
       <Input class="DataObjects" type="PointSet">Etests</Input>
       <Input class="Models" type="ROM">EROM</Input>
-      <Output class="OutStreamManager" type="Print">Edump</Output>
-      <Output class="OutStreamManager" type="Print">Edumprom</Output>
+      <Output class="OutStreams" type="Print">Edump</Output>
+      <Output class="OutStreams" type="Print">Edumprom</Output>
     </IOStep>
     <RomTrainer name="Etrain">
       <Input class="DataObjects" type="PointSet">Esolns</Input>
@@ -79,7 +79,7 @@
     </PointSet>
   </DataObjects>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="Edump">
       <type>csv</type>
       <source>Etests</source>
@@ -89,6 +89,6 @@
       <source>EROM</source>
       <what>all</what>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
 </Simulation>

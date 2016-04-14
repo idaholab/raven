@@ -55,7 +55,7 @@
     </MultiRun>
     <IOStep name="TDprint">
       <Input class="DataObjects" type="PointSet">TDtests</Input>
-      <Output class="OutStreamManager" type="Print">TDdump</Output>
+      <Output class="OutStreams" type="Print">TDdump</Output>
     </IOStep>
     <RomTrainer name="TDtrain">
       <Input class="DataObjects" type="PointSet">TDsolns</Input>
@@ -78,11 +78,11 @@
     </PointSet>
   </DataObjects>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="TDdump">
       <type>csv</type>
       <source>TDtests</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
 </Simulation>

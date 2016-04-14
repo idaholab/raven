@@ -304,6 +304,11 @@
   requires_swig2 = True
  [../]
 
+ [./test_mathUtils]
+  type = 'RavenPython'
+  input = '../../framework/utils/testMathUtils.py'
+ [../]
+
  [./test_iostep_load]
    #REQUIREMENT_TEST R-RA-2
    type = 'RavenFramework'
@@ -479,4 +484,11 @@
   input = 'test_sim_tags.xml'
   output = 'SimulationTags/dump.csv'
  [../]
+ [./testStratifiedLargeSize]
+   type = 'RavenFramework'
+   input = 'test_stratified_dummy_model_large_grid_size.xml'
+   output = 'stratifiedLargeGridSize/reprint_16var.csv stratifiedLargeGridSize/reprint_16var.xml stratifiedLargeGridSize/reprint_16var2.csv stratifiedLargeGridSize/reprint_16var2.xml stratifiedLargeGridSize/reprint_2var.csv stratifiedLargeGridSize/reprint_2var.xml'
+ [../]
 []
+
+

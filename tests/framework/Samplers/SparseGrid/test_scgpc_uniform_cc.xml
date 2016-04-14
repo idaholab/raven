@@ -56,8 +56,8 @@
     <IOStep name="UCprint">
       <Input class="DataObjects" type="PointSet">UCtests</Input>
       <Input class="Models" type="ROM">UCROM</Input>
-      <Output class="OutStreamManager" type="Print">UCdump</Output>
-      <Output class="OutStreamManager" type="Print">UCdumprom</Output>
+      <Output class="OutStreams" type="Print">UCdump</Output>
+      <Output class="OutStreams" type="Print">UCdumprom</Output>
     </IOStep>
     <RomTrainer name="UCtrain">
       <Input class="DataObjects" type="PointSet">UCsolns</Input>
@@ -80,7 +80,7 @@
     </PointSet>
   </DataObjects>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="UCdump">
       <type>csv</type>
       <source>UCtests</source>
@@ -90,6 +90,6 @@
       <source>UCROM</source>
       <what>all</what>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
 </Simulation>

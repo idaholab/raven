@@ -26,7 +26,7 @@ import Models
 import Distributions
 import Databases
 import Functions
-import OutStreamManager
+import OutStreams
 from JobHandler import JobHandler
 import MessageHandler
 import VariableGroups
@@ -297,7 +297,6 @@ class Simulation(MessageHandler.MessageUser):
      myInstance.getDefaultInputFile                     !return the default name of the input file read by the simulation
     Inherited from the BaseType class:
      myInstance.whoAreYou()                             !inherited from BaseType class-
-     myInstance.myInitializzationParams()               !see BaseType class-
      myInstance.myClassmyCurrentSetting()               !see BaseType class-
 
     --how to add a new entity <myClass> to the simulation--
@@ -413,9 +412,9 @@ class Simulation(MessageHandler.MessageUser):
     self.addWhatDict['Databases'        ] = Databases
     self.addWhatDict['Functions'        ] = Functions
     self.addWhatDict['Files'            ] = Files
-    self.addWhatDict['OutStreamManager' ] = {}
-    self.addWhatDict['OutStreamManager' ]['Plot' ] = OutStreamManager
-    self.addWhatDict['OutStreamManager' ]['Print'] = OutStreamManager
+    self.addWhatDict['OutStreams' ] = {}
+    self.addWhatDict['OutStreams' ]['Plot' ] = OutStreams
+    self.addWhatDict['OutStreams' ]['Print'] = OutStreams
 
     #Mapping between an entity type and the dictionary containing the instances for the simulation
     self.whichDict = {}
@@ -428,9 +427,9 @@ class Simulation(MessageHandler.MessageUser):
     self.whichDict['Distributions'   ] = self.distributionsDict
     self.whichDict['Databases'       ] = self.dataBasesDict
     self.whichDict['Functions'       ] = self.functionsDict
-    self.whichDict['OutStreamManager'] = {}
-    self.whichDict['OutStreamManager']['Plot' ] = self.OutStreamManagerPlotDict
-    self.whichDict['OutStreamManager']['Print'] = self.OutStreamManagerPrintDict
+    self.whichDict['OutStreams'] = {}
+    self.whichDict['OutStreams']['Plot' ] = self.OutStreamManagerPlotDict
+    self.whichDict['OutStreams']['Print'] = self.OutStreamManagerPrintDict
     #the handler of the runs within each step
     self.jobHandler    = JobHandler()
     #handle the setting of how the jobHandler act
@@ -578,7 +577,7 @@ class Simulation(MessageHandler.MessageUser):
               #place the instance in the proper dictionary (self.whichDict[Type]) under his name as key,
               #the type is the general class (sampler, data, etc) while childChild.tag is the sub type
               #if name not in self.whichDict[Class].keys():  self.whichDict[Class][name] = self.addWhatDict[Class].returnInstance(childChild.tag,self)
-              if Class != 'OutStreamManager':
+              if Class != 'OutStreams':
                   if name not in self.whichDict[Class].keys():
                     if "needsRunInfo" in self.addWhatDict[Class].__dict__:
                       self.whichDict[Class][name] = self.addWhatDict[Class].returnInstance(childChild.tag,self.runInfoDict,self)
@@ -586,12 +585,13 @@ class Simulation(MessageHandler.MessageUser):
                       self.whichDict[Class][name] = self.addWhatDict[Class].returnInstance(childChild.tag,self)
                   else: self.raiseAnError(IOError,'Redundant naming in the input for class '+Class+' and name '+name)
               else:
-                  if name not in self.whichDict[Class][subType].keys():  self.whichDict[Class][subType][name] = self.addWhatDict[Class][subType].returnInstance(childChild.tag,self)
+                  if name not in self.whichDict[Class][subType].keys():
+                    self.whichDict[Class][subType][name] = self.addWhatDict[Class][subType].returnInstance(childChild.tag,self)
                   else: self.raiseAnError(IOError,'Redundant  naming in the input for class '+Class+' and sub Type'+subType+' and name '+name)
               #now we can read the info for this object
               #if globalAttributes and 'verbosity' in globalAttributes.keys(): localVerbosity = globalAttributes['verbosity']
               #else                                                      : localVerbosity = self.verbosity
-              if Class != 'OutStreamManager': self.whichDict[Class][name].readXML(childChild, self.messageHandler, varGroups, globalAttributes=globalAttributes)
+              if Class != 'OutStreams': self.whichDict[Class][name].readXML(childChild, self.messageHandler, varGroups, globalAttributes=globalAttributes)
               else: self.whichDict[Class][subType][name].readXML(childChild, self.messageHandler, globalAttributes=globalAttributes)
             else: self.raiseAnError(IOError,'not found name attribute for one '+Class)
       else: self.raiseAnError(IOError,'the '+child.tag+' is not among the known simulation components '+ET.tostring(child))
@@ -640,7 +640,7 @@ class Simulation(MessageHandler.MessageUser):
     for [role,myClass,objectType,name] in stepInstance.parList:
       if myClass!= 'Step' and myClass not in list(self.whichDict.keys()):
         self.raiseAnError(IOError,'For step named '+stepName+' the role '+role+' has been assigned to an unknown class type '+myClass)
-      if myClass != 'OutStreamManager':
+      if myClass != 'OutStreams':
           if name not in list(self.whichDict[myClass].keys()):
             self.raiseADebug('name:',name)
             self.raiseADebug('myClass:',myClass)
@@ -655,7 +655,7 @@ class Simulation(MessageHandler.MessageUser):
             self.raiseAnError(IOError,'In step '+stepName+' the class '+myClass+' named '+name+' supposed to be used for the role '+role+' has not been found')
 
       if myClass != 'Files':  # check if object type is consistent
-        if myClass != 'OutStreamManager': objtype = self.whichDict[myClass][name].type
+        if myClass != 'OutStreams': objtype = self.whichDict[myClass][name].type
         else:                             objtype = self.whichDict[myClass][objectType][name].type
         if objectType != objtype.replace("OutStream",""):
           objtype = self.whichDict[myClass][name].type
@@ -797,7 +797,7 @@ class Simulation(MessageHandler.MessageUser):
       for [key,b,c,d] in stepInstance.parList:
         #Only for input and output we allow more than one object passed to the step, so for those we build a list
         if key == 'Input' or key == 'Output':
-            if b == 'OutStreamManager':
+            if b == 'OutStreams':
               stepInputDict[key].append(self.whichDict[b][c][d])
             else:
               stepInputDict[key].append(self.whichDict[b][d])

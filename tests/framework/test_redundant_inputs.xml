@@ -17,14 +17,14 @@
       <Model class="Models" type="Code">py_script</Model>
       <Sampler class="Samplers" type="MonteCarlo">5factMC</Sampler>
       <Output class="DataObjects" type="PointSet">mcset</Output>
-      <Output class="OutStreamManager" type="Print">mc_out</Output>
+      <Output class="OutStreams" type="Print">mc_out</Output>
     </MultiRun>
     <MultiRun name="sim_py_grid">
       <Input class="Files" type="">input.py</Input>
       <Model class="Models" type="Code">py_script</Model>
       <Sampler class="Samplers" type="Grid">grid</Sampler>
       <Output class="DataObjects" type="PointSet">gridset</Output>
-      <Output class="OutStreamManager" type="Print">grid_out</Output>
+      <Output class="OutStreams" type="Print">grid_out</Output>
     </MultiRun>
   </Steps>
 
@@ -121,7 +121,7 @@
     </PointSet>
   </DataObjects>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="mc_out">
       <type>csv</type>
       <source>mcset</source>
@@ -130,6 +130,6 @@
       <type>csv</type>
       <source>gridset</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
 </Simulation>
