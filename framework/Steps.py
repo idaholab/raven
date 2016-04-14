@@ -51,7 +51,6 @@ class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
                      -->self._endStepActions()
     --Other external methods--
     myInstance.whoAreYou()                 -see BaseType class-
-    myInstance.myInitializzationParams()   -see BaseType class-
     myInstance.myCurrentSetting()          -see BaseType class-
     myInstance.printMe()                   -see BaseType class-
 
@@ -62,7 +61,7 @@ class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
 
     Overriding the following methods overriding unless you inherit from one of the already existing methods:
     self._localInputAndChecks(xmlNode)      : used to specialize the xml reading and the checks
-    self._localAddInitParams(tempDict)      : used to add the local parameters and values to be printed
+    self._localGetInitParams()              : used to retrieve the local parameters and values to be printed
     self._localInitializeStep(inDictionary) : called after this call the step should be able the accept the call self.takeAstep(inDictionary):
     self._localTakeAstepRun(inDictionary)   : this is where the step happens, after this call the output is ready
   """
@@ -128,30 +127,34 @@ class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     """
     pass
 
-  def addInitParams(self,tempDict):
+  def getInitParams(self):
     """
-      Export to tempDict the information that will stay constant during the existence of the instance of this class. Overloaded from BaseType
+      Exports a dictionary with the information that will stay constant during the existence of the instance of this class. Overloaded from BaseType
       This function is called from the base class to print some of the information inside the class.
       Whatever is permanent in the class and not inherited from the parent class should be mentioned here
       The information is passed back in the dictionary. No information about values that change during the simulation are allowed
-      @ In, tempDict, dict, dictionary like {'attribute name':value}
-      @ Out, None
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
     """
-    tempDict['Sleep time'  ] = str(self.sleepTime)
-    tempDict['Initial seed'] = str(self.initSeed)
+    paramDict = {}
+    paramDict['Sleep time'  ] = str(self.sleepTime)
+    paramDict['Initial seed'] = str(self.initSeed)
     for List in self.parList:
-      tempDict[List[0]] = 'Class: '+str(List[1]) +' Type: '+str(List[2]) + '  Global name: '+str(List[3])
-    self._localAddInitParams(tempDict)
+      paramDict[List[0]] = 'Class: '+str(List[1]) +' Type: '+str(List[2]) + '  Global name: '+str(List[3])
+    paramDict.update(self._localGetInitParams())
+    return paramDict
 
   @abc.abstractmethod
-  def _localAddInitParams(self,tempDict):
+  def _localGetInitParams(self):
     """
       Place here a specialization of the exporting of what in the step is added to the initial parameters
-      the printing format of tempDict is key: tempDict[key]
-      @ In, tempDict, dict, dictionary like {'attribute name':value}
-      @ Out, None
+      the printing format of paramDict is key: paramDict[key]
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
     """
-    pass
+    return {}
 
   def _initializeStep(self,inDictionary):
     """
@@ -312,13 +315,15 @@ class SingleRun(Step):
       if len(self.failedRuns)>0: self.raiseAWarning('There were %i failed runs!' %len(self.failedRuns))
 
 
-  def _localAddInitParams(self,tempDict):
+  def _localGetInitParams(self):
     """
       Place here a specialization of the exporting of what in the step is added to the initial parameters
-      the printing format of tempDict is key: tempDict[key]
-      @ In, tempDict, dict, dictionary like {'attribute name':value}
-      @ Out, None
+      the printing format of paramDict is key: paramDict[key]
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
     """
+    return {}
 #
 #
 #
@@ -516,14 +521,15 @@ class RomTrainer(Step):
       if item[0]=='Output' and item[2] not in ['ROM']:
         self.raiseAnError(IOError,'Only ROM output class are allowed in a training step. Step name: '+str(self.name))
 
-  def _localAddInitParams(self,tempDict):
+  def _localGetInitParams(self):
     """
       Place here a specialization of the exporting of what in the step is added to the initial parameters
-      the printing format of tempDict is key: tempDict[key]
-      @ In, tempDict, dict, dictionary like {'attribute name':value}
-      @ Out, None
+      the printing format of paramDict is key: paramDict[key]
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
     """
-    del tempDict['Initial seed'] #this entry in not meaningful for a training step
+    return {}
 
   def _localInitializeStep(self,inDictionary):
     """
@@ -731,14 +737,16 @@ class IOStep(Step):
     for output in inDictionary['Output']:
       if output.type in ['OutStreamPrint','OutStreamPlot']: output.addOutput()
 
-  def _localAddInitParams(self,tempDict):
+  def _localGetInitParams(self):
     """
       Place here a specialization of the exporting of what in the step is added to the initial parameters
-      the printing format of tempDict is key: tempDict[key]
-      @ In, tempDict, dict, dictionary like {'attribute name':value}
-      @ Out, None
+      the printing format of paramDict is key: paramDict[key]
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
     """
-    return tempDict # no inputs
+    paramDict = {}
+    return paramDict # no inputs
 
   def _localInputAndChecks(self,xmlNode):
     """
