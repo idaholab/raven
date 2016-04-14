@@ -1,0 +1,16 @@
+[Tests]
+  [./timeDepRom]
+    type  = 'RavenFramework'
+    input = 'test_t_rom.xml'
+    output = 't_rom/PrintHistorySet_model.xml t_rom/PrintHistorySet_rom.xml'
+    csv = 't_rom/PrintHistorySet_rom_0.csv t_rom/PrintHistorySet_rom_1.csv t_rom/PrintHistorySet_rom_2.csv t_rom/PrintHistorySet_rom_3.csv t_rom/PrintHistorySet_rom_4.csv t_rom/PrintHistorySet_rom_5.csv t_rom/PrintHistorySet_rom_6.csv t_rom/PrintHistorySet_rom_7.csv'
+  [../]
+
+  [./timeDepGaussPoly]
+    type  = 'RavenFramework'
+    input = 'test_time_dep_scgpc.xml'
+    output = 'scgpc/train_data.xml'
+    csv = 'scgpc/train_data_0.csv scgpc/train_data_1.csv scgpc/train_data_2.csv scgpc/train_data_3.csv scgpc/train_data_4.csv scgpc/train_data_5.csv scgpc/train_data_6.csv'
+    UnorderedXml = 'scgpc/trom_dump.xml'
+  [../]
+[]

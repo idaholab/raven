@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="debug" color='true'>
+<Simulation color="true" verbosity="debug">
   <RunInfo>
     <WorkingDir>SobolGFunc</WorkingDir>
     <Sequence>make,train,print</Sequence>
@@ -16,8 +16,8 @@
     <IOStep name="print">
       <Input class="DataObjects" type="PointSet">solns</Input>
       <Input class="Models" type="ROM">rom</Input>
-      <Output class="OutStreamManager" type="Print">dump</Output>
-      <Output class="OutStreamManager" type="Print">dumprom</Output>
+      <Output class="OutStreams" type="Print">dump</Output>
+      <Output class="OutStreams" type="Print">dumprom</Output>
     </IOStep>
     <RomTrainer name="train">
       <Input class="DataObjects" type="PointSet">solns</Input>
@@ -88,7 +88,7 @@
     </PointSet>
   </DataObjects>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="dump">
       <type>csv</type>
       <source>solns</source>
@@ -98,6 +98,6 @@
       <source>rom</source>
       <what>all</what>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
 </Simulation>

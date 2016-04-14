@@ -55,10 +55,8 @@
    type = 'RavenFramework'
    input = 'test_adapt_sobol.xml'
    output = 'AdaptSobol/out_10.pk AdaptSobol/out_20.pk AdaptSobol/out_30.pk'
-   UnorderedXml = 'AdaptSobol/dumprom.xml AdaptSobol/out_10.xml AdaptSobol/out_20.xml AdaptSobol/out_30.xml'   
-   # dumprom.xml is analytic test for mean, variance
-   # out*xml are consistency checks for convergence process
-   UnorderedCsv = 'AdaptSobol/dump.csv'                                        #consistency, quadrature points and solns
+   UnorderedXml = 'AdaptSobol/dumprom.xml AdaptSobol/out_10.xml AdaptSobol/out_20.xml AdaptSobol/out_30.xml'  # dumprom.xml is analytic test for mean, variance, "Attenuation" case # out*xml are consistency checks for convergence process
+   UnorderedCsv = 'AdaptSobol/dump.csv'                      #consistency, quadrature points and solns
   [../]
   [./AdaptiveSobolMaxRuns]
    type = 'RavenFramework'
@@ -73,4 +71,12 @@
    UnorderedCsv = 'AdaptSobolParallel/par_dump.csv'     #consistency
    skip = 'Occasionally times out; work in progress'
    [../]
+
+  [./TimeDependent]
+    type  = 'RavenFramework'
+    input = 'test_time_dep_sobol.xml'
+    output = 'SobolTime/train_data.xml'
+    csv = 'SobolTime/train_data_0.csv SobolTime/train_data_1.csv SobolTime/train_data_2.csv SobolTime/train_data_3.csv SobolTime/train_data_4.csv SobolTime/train_data_5.csv SobolTime/train_data_6.csv'
+    UnorderedXml = 'SobolTime/trom_dump.xml'
+  [../]
 []

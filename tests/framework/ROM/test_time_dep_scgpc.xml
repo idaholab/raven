@@ -1,0 +1,98 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
+    <WorkingDir>scgpc</WorkingDir>
+    <Sequence>sample,train,print</Sequence>
+    <batchSize>1</batchSize>
+    <internalParallel>True</internalParallel>
+  </RunInfo>
+
+  <Files>
+    <Input name="lorentzAttractor.py" type="">lorentzAttractor.py</Input>
+  </Files>
+
+  <Steps>
+    <MultiRun name="sample">
+      <Input class="DataObjects" type="Point">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">lorentz</Model>
+      <Sampler class="Samplers" type="SparseGridCollocation">samp</Sampler>
+      <Output class="DataObjects" type="HistorySet">trainset</Output>
+    </MultiRun>
+    <IOStep name="print">
+      <Input class="DataObjects" type="HistorySet">trainset</Input>
+      <Input class="Models" type="ROM">rom</Input>
+      <Output class="OutStreams" type="Print">train_data</Output>
+      <Output class="OutStreams" type="Print">trom_dump</Output>
+    </IOStep>
+    <RomTrainer name="train">
+      <Input class="DataObjects" type="HistorySet">trainset</Input>
+      <Output class="Models" type="ROM">rom</Output>
+    </RomTrainer>
+  </Steps>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../externalModel/lorentzAttractor" name="lorentz" subType="">
+      <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0</variables>
+    </ExternalModel>
+    <ROM name="rom" subType="GaussPolynomialRom">
+      <Features>x0,y0,z0</Features>
+      <Target>time,x,y,z</Target>
+      <IndexSet>TotalDegree</IndexSet>
+      <PolynomialOrder>1</PolynomialOrder>
+    </ROM>
+  </Models>
+
+  <Distributions>
+    <Normal name="x0_distrib">
+      <mean>4</mean>
+      <sigma>1</sigma>
+    </Normal>
+    <Normal name="y0_distrib">
+      <mean>4</mean>
+      <sigma>1</sigma>
+    </Normal>
+    <Normal name="z0_distrib">
+      <mean>4</mean>
+      <sigma>1</sigma>
+    </Normal>
+  </Distributions>
+
+  <Samplers>
+    <SparseGridCollocation name="samp">
+      <variable name="x0">
+        <distribution>x0_distrib</distribution>
+      </variable>
+      <variable name="y0">
+        <distribution>y0_distrib</distribution>
+      </variable>
+      <variable name="z0">
+        <distribution>z0_distrib</distribution>
+      </variable>
+      <ROM class="Models" type="ROM">rom</ROM>
+    </SparseGridCollocation>
+  </Samplers>
+
+  <OutStreams>
+    <Print name="train_data">
+      <type>csv</type>
+      <source>trainset</source>
+    </Print>
+    <Print name="trom_dump">
+      <type>xml</type>
+      <source>rom</source>
+      <what>all</what>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <Point name="dummyIN">
+      <Input>x0,y0,z0</Input>
+      <Output>OutputPlaceHolder</Output>
+    </Point>
+    <HistorySet name="trainset">
+      <Input>x0,y0,z0</Input>
+      <Output>time,x,y,z</Output>
+    </HistorySet>
+  </DataObjects>
+
+</Simulation>

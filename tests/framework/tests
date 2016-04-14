@@ -204,7 +204,7 @@
  [./testLHSRaven]
    type = 'RavenFramework'
    input = 'test_LHS_Sampler_Raven.xml'
-   output = 'LHStestRaven/FirstMRun/out~1~simple_flow_3eqn'
+   output = 'LHStestRaven/FirstMRun/out~1~clg_massflowrate_3eqn'
    csv = 'LHStestRaven/outGrid_dump.csv'
    method = 'devel opt'
    required_executable = '../../RAVEN-%METHOD%'
@@ -213,7 +213,7 @@
  [./testGridRaven]
    type = 'RavenFramework'
    input = 'test_Grid_Sampler_Raven.xml'
-   output = 'GridTestRaven/FirstMRun/out~1~simple_flow_3eqn'
+   output = 'GridTestRaven/FirstMRun/out~1~clg_massflowrate_3eqn'
    UnorderedCsv = 'GridTestRaven/outGrid_dump.csv'
    method = 'devel opt'
    required_executable = '../../RAVEN-%METHOD%'
@@ -302,6 +302,11 @@
   #python_command = python3
   input = '../../framework/TestDistributions.py'
   requires_swig2 = True
+ [../]
+
+ [./test_mathUtils]
+  type = 'RavenPython'
+  input = '../../framework/utils/testMathUtils.py'
  [../]
 
  [./test_iostep_load]
@@ -458,13 +463,6 @@
   csv = 'NDGridPWvalue/testPrintPointSet_dump.csv'
  [../]
 
-  [./tRom]
-   type  = 'RavenFramework'
-   input = 'test_t_rom.xml'
-   output = 't_rom/PrintHistorySet_model.xml t_rom/PrintHistorySet_rom.xml'
-   csv = 't_rom/PrintHistorySet_rom_0.csv t_rom/PrintHistorySet_rom_1.csv t_rom/PrintHistorySet_rom_2.csv t_rom/PrintHistorySet_rom_3.csv t_rom/PrintHistorySet_rom_4.csv t_rom/PrintHistorySet_rom_5.csv t_rom/PrintHistorySet_rom_6.csv t_rom/PrintHistorySet_rom_7.csv'
-  [../]
-
  [./LHSVariables]
   type = 'RavenFramework'
   input = 'test_LHS_variables.xml'
@@ -486,4 +484,11 @@
   input = 'test_sim_tags.xml'
   output = 'SimulationTags/dump.csv'
  [../]
+ [./testStratifiedLargeSize]
+   type = 'RavenFramework'
+   input = 'test_stratified_dummy_model_large_grid_size.xml'
+   output = 'stratifiedLargeGridSize/reprint_16var.csv stratifiedLargeGridSize/reprint_16var.xml stratifiedLargeGridSize/reprint_16var2.csv stratifiedLargeGridSize/reprint_16var2.xml stratifiedLargeGridSize/reprint_2var.csv stratifiedLargeGridSize/reprint_2var.xml'
+ [../]
 []
+
+

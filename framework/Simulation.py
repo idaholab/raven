@@ -23,11 +23,10 @@ import DataObjects
 import Files
 import Samplers
 import Models
-import Tests
 import Distributions
 import Databases
 import Functions
-import OutStreamManager
+import OutStreams
 from JobHandler import JobHandler
 import MessageHandler
 import VariableGroups
@@ -36,31 +35,48 @@ import utils
 
 #----------------------------------------------------------------------------------------------------
 class SimulationMode(MessageHandler.MessageUser):
-  """SimulationMode allows changes to the how the simulation
-  runs are done.  modifySimulation lets the mode change runInfoDict
-  and other parameters.  runOverride lets the mode do the running instead
-  of simulation. """
+  """
+    SimulationMode allows changes to the how the simulation
+    runs are done.  modifySimulation lets the mode change runInfoDict
+    and other parameters.  runOverride lets the mode do the running instead
+    of simulation.
+  """
   def __init__(self,simulation):
+    """
+      Constructor
+      @ In, simulation, instance, instance of the simulation class
+      @ Out, None
+    """
     self.__simulation = simulation
     self.messageHandler = simulation.messageHandler
     self.printTag = 'SIMULATION MODE'
 
   def doOverrideRun(self):
-    """If doOverrideRun is true, then use runOverride instead of
-    running the simulation normally.  This method should call
-    simulation.run somehow
+    """
+      If doOverrideRun is true, then use runOverride instead of
+      running the simulation normally.  This method should call
+      simulation.run somehow
+      @ In, None
+      @ Out, doOverrideRun, bool, does the override?
     """
     return False
 
   def runOverride(self):
-    """this can completely override the Simulation's run method"""
+    """
+      This  method can completely override the Simulation's run method
+      @ In, None
+      @ Out, None
+    """
     pass
 
   def modifySimulation(self):
-    """modifySimulation is called after the runInfoDict has been setup.
-    This allows the mode to change any parameters that need changing.
-    This typically modifies the precommand and the postcommand that
-    are put infront of the command and after the command.
+    """
+      modifySimulation is called after the runInfoDict has been setup.
+      This allows the mode to change any parameters that need changing.
+      This typically modifies the precommand and the postcommand that
+      are put infront of the command and after the command.
+      @ In, None
+      @ Out, None
     """
     import multiprocessing
     try:
@@ -70,16 +86,22 @@ class SimulationMode(MessageHandler.MessageUser):
       pass
 
   def XMLread(self,xmlNode):
-    """XMLread is called with the mode node, and can be used to
-    get extra parameters needed for the simulation mode.
+    """
+      XMLread is called with the mode node, and can be used to
+      get extra parameters needed for the simulation mode.
+      @ In, xmlNode, xml.etree.ElementTree.Element, the xml node that belongs to this class instance
+      @ Out, None
     """
     pass
 
 def splitCommand(s):
-  """Splits the string s into a list that can be used for the command
-  So for example splitCommand("ab bc c 'el f' \"bar foo\" ") ->
-  ['ab', 'bc', 'c', 'el f', 'bar foo']
-  Bugs: Does not handle quoted strings with different kinds of quotes
+  """
+    Splits the string s into a list that can be used for the command
+    So for example splitCommand("ab bc c 'el f' \"bar foo\" ") ->
+    ['ab', 'bc', 'c', 'el f', 'bar foo']
+    Bugs: Does not handle quoted strings with different kinds of quotes
+    @ In, s, string, the command to split
+    @ Out, retList, list, the list of splitted command
   """
   n = 0
   retList = []
@@ -104,7 +126,11 @@ def splitCommand(s):
   return retList
 
 def createAndRunQSUB(simulation):
-  """Generates a PBS qsub command to run the simulation"""
+  """
+    Generates a PBS qsub command to run the simulation
+    @ In, simulation, instance, instance of the simulation class
+    @ Out, None
+  """
   # Check if the simulation has been run in PBS mode and, in case, construct the proper command
   #while true, this is not the number that we want to select
   coresNeeded = simulation.runInfoDict['batchSize']*simulation.runInfoDict['NumMPI']
@@ -139,7 +165,16 @@ def createAndRunQSUB(simulation):
 #----------------------------------------------------------------------
 
 class MPISimulationMode(SimulationMode):
+  """
+    MPISimulationMode is a specialized class of SimulationMode.
+    It is aimed to distribute the runs using the MPI protocol
+  """
   def __init__(self,simulation):
+    """
+      Constructor
+      @ In, simulation, instance, instance of the simulation class
+      @ Out, None
+    """
     SimulationMode.__init__(self,simulation)
     self.__simulation = simulation
     self.messageHandler = simulation.messageHandler
@@ -150,6 +185,12 @@ class MPISimulationMode(SimulationMode):
     self.printTag = 'MPI SIMULATION MODE'
 
   def modifySimulation(self):
+    """
+      This method is aimed to modify the Simulation instance in
+      order to distribute the jobs using the MPI protocol
+      @ In, None
+      @ Out, None
+    """
     if self.__nodefile or self.__inPbs:
       if not self.__nodefile:
         #Figure out number of nodes and use for batchsize
@@ -200,17 +241,35 @@ class MPISimulationMode(SimulationMode):
     self.raiseAMessage("precommand: "+self.__simulation.runInfoDict['precommand']+", postcommand: "+self.__simulation.runInfoDict['postcommand'])
 
   def doOverrideRun(self):
+    """
+      If doOverrideRun is true, then use runOverride instead of
+      running the simulation normally.  This method should call
+      simulation.run
+      @ In, None
+      @ Out, doOverrRun, bool, does the override?
+    """
     # Check if the simulation has been run in PBS mode and if run QSUB
     # has been requested, in case, construct the proper command
-    return (not self.__inPbs) and self.__runQsub
+    doOverrRun = (not self.__inPbs) and self.__runQsub
+    return doOverrRun
 
   def runOverride(self):
+    """
+      This  method completely overrides the Simulation's run method
+      @ In, None
+      @ Out, None
+    """
     #Check and see if this is being accidently run
     assert self.__runQsub and not self.__inPbs
     createAndRunQSUB(self.__simulation)
 
-
   def XMLread(self, xmlNode):
+    """
+      XMLread is called with the mode node, and is used here to
+      get extra parameters needed for the simulation mode MPI.
+      @ In, xmlNode, xml.etree.ElementTree.Element, the xml node that belongs to this class instance
+      @ Out, None
+    """
     for child in xmlNode:
       if child.tag == "nodefileenv":
         self.__nodefile = os.environ[child.text.strip()]
@@ -220,57 +279,62 @@ class MPISimulationMode(SimulationMode):
         self.__runQsub = True
       else:
         self.raiseADebug("We should do something with child "+str(child))
-    return
-
-
+#
+#
+#
 #-----------------------------------------------------------------------------------------------------
 class Simulation(MessageHandler.MessageUser):
   """
-  This is a class that contain all the object needed to run the simulation
-  Usage:
-  myInstance = Simulation()                          !Generate the instance
-  myInstance.XMLread(xml.etree.ElementTree.Element)  !This method generate all the objects living in the simulation
-  myInstance.initialize()                            !This method takes care of setting up the directory/file environment with proper checks
-  myInstance.run()                                   !This method run the simulation
-  Utility methods:
-   myInstance.printDicts                              !prints the dictionaries representing the whole simulation
-   myInstance.setInputFiles                           !re-associate the set of files owned by the simulation
-   myInstance.getDefaultInputFile                     !return the default name of the input file read by the simulation
-  Inherited from the BaseType class:
-   myInstance.whoAreYou()                             !inherited from BaseType class-
-   myInstance.myInitializzationParams()               !see BaseType class-
-   myInstance.myClassmyCurrentSetting()               !see BaseType class-
+    This is a class that contain all the object needed to run the simulation
+    Usage:
+    myInstance = Simulation()                          !Generate the instance
+    myInstance.XMLread(xml.etree.ElementTree.Element)  !This method generate all the objects living in the simulation
+    myInstance.initialize()                            !This method takes care of setting up the directory/file environment with proper checks
+    myInstance.run()                                   !This method run the simulation
+    Utility methods:
+     myInstance.printDicts                              !prints the dictionaries representing the whole simulation
+     myInstance.setInputFiles                           !re-associate the set of files owned by the simulation
+     myInstance.getDefaultInputFile                     !return the default name of the input file read by the simulation
+    Inherited from the BaseType class:
+     myInstance.whoAreYou()                             !inherited from BaseType class-
+     myInstance.myClassmyCurrentSetting()               !see BaseType class-
 
-  --how to add a new entity <myClass> to the simulation--
-  Add an import for the module where it is defined. Convention is that the module is named with the plural
-   of the base class of the module: <MyModule>=<myClass>+'s'.
-   The base class of the module is by convention named as the new type of simulation component <myClass>.
-   The module should contain a set of classes named <myType> that are child of the base class <myClass>.
-   The module should possess a function <MyModule>.returnInstance('<myType>',caller) that returns a pointer to the class <myType>.
-  Add in Simulation.__init__ the following
-   self.<myClass>Dict = {}
-   self.addWhatDict['<myClass>'] = <MyModule>
-   self.whichDict['<myClass>'  ] = self.<myClass>+'Dict'
-  The XML describing the new entity should be organized as it follows:
-   <MyModule (camelback with first letter capital)>
-     <MyType (camelback with first letter capital) name='here a user given name' subType='here additional specialization'>
-       <if needed more xml nodes>
-     </MyType>
-   </MyModule>
+    --how to add a new entity <myClass> to the simulation--
+    Add an import for the module where it is defined. Convention is that the module is named with the plural
+     of the base class of the module: <MyModule>=<myClass>+'s'.
+     The base class of the module is by convention named as the new type of simulation component <myClass>.
+     The module should contain a set of classes named <myType> that are child of the base class <myClass>.
+     The module should possess a function <MyModule>.returnInstance('<myType>',caller) that returns a pointer to the class <myType>.
+    Add in Simulation.__init__ the following
+     self.<myClass>Dict = {}
+     self.addWhatDict['<myClass>'] = <MyModule>
+     self.whichDict['<myClass>'  ] = self.<myClass>+'Dict'
+    The XML describing the new entity should be organized as it follows:
+     <MyModule (camelback with first letter capital)>
+       <MyType (camelback with first letter capital) name='here a user given name' subType='here additional specialization'>
+         <if needed more xml nodes>
+       </MyType>
+     </MyModule>
 
-  --Comments on the simulation environment--
-  every type of element living in the simulation should be uniquely identified by type and name not by sub-type
-  !!!!Wrong!!!!!!!!!!!!!!!!:
-  Class: distribution, type: normal,     name: myDistribution
-  Class: distribution, type: triangular, name: myDistribution
-  Correct:
-  type: distribution, type: normal,      name: myNormalDist
-  type: distribution, type: triangular,  name: myTriDist
+    --Comments on the simulation environment--
+    every type of element living in the simulation should be uniquely identified by type and name not by sub-type
+    !!!!Wrong!!!!!!!!!!!!!!!!:
+    Class: distribution, type: normal,     name: myDistribution
+    Class: distribution, type: triangular, name: myDistribution
+    Correct:
+    type: distribution, type: normal,      name: myNormalDist
+    type: distribution, type: triangular,  name: myTriDist
 
-  Using the attribute in the xml node <MyType> type discouraged to avoid confusion
+    Using the attribute in the xml node <MyType> type discouraged to avoid confusion
   """
 
   def __init__(self,frameworkDir,verbosity='all'):
+    """
+      Constructor
+      @ In, frameworkDir, string, absolute path to framework directory
+      @ In, verbosity, string, optional, general verbosity level
+      @ Out, None
+    """
     self.FIXME          = False
     #establish message handling: the error, warning, message, and debug print handler
     self.messageHandler = MessageHandler.MessageHandler()
@@ -320,7 +384,6 @@ class Simulation(MessageHandler.MessageUser):
     self.dataDict             = {}
     self.samplersDict         = {}
     self.modelsDict           = {}
-    self.testsDict            = {}
     self.distributionsDict    = {}
     self.dataBasesDict        = {}
     self.functionsDict        = {}
@@ -345,14 +408,13 @@ class Simulation(MessageHandler.MessageUser):
     self.addWhatDict['DataObjects'      ] = DataObjects
     self.addWhatDict['Samplers'         ] = Samplers
     self.addWhatDict['Models'           ] = Models
-    self.addWhatDict['Tests'            ] = Tests
     self.addWhatDict['Distributions'    ] = Distributions
     self.addWhatDict['Databases'        ] = Databases
     self.addWhatDict['Functions'        ] = Functions
     self.addWhatDict['Files'            ] = Files
-    self.addWhatDict['OutStreamManager' ] = {}
-    self.addWhatDict['OutStreamManager' ]['Plot' ] = OutStreamManager
-    self.addWhatDict['OutStreamManager' ]['Print'] = OutStreamManager
+    self.addWhatDict['OutStreams' ] = {}
+    self.addWhatDict['OutStreams' ]['Plot' ] = OutStreams
+    self.addWhatDict['OutStreams' ]['Print'] = OutStreams
 
     #Mapping between an entity type and the dictionary containing the instances for the simulation
     self.whichDict = {}
@@ -360,15 +422,14 @@ class Simulation(MessageHandler.MessageUser):
     self.whichDict['DataObjects'     ] = self.dataDict
     self.whichDict['Samplers'        ] = self.samplersDict
     self.whichDict['Models'          ] = self.modelsDict
-    self.whichDict['Tests'           ] = self.testsDict
     self.whichDict['RunInfo'         ] = self.runInfoDict
     self.whichDict['Files'           ] = self.filesDict
     self.whichDict['Distributions'   ] = self.distributionsDict
     self.whichDict['Databases'       ] = self.dataBasesDict
     self.whichDict['Functions'       ] = self.functionsDict
-    self.whichDict['OutStreamManager'] = {}
-    self.whichDict['OutStreamManager']['Plot' ] = self.OutStreamManagerPlotDict
-    self.whichDict['OutStreamManager']['Print'] = self.OutStreamManagerPrintDict
+    self.whichDict['OutStreams'] = {}
+    self.whichDict['OutStreams']['Plot' ] = self.OutStreamManagerPlotDict
+    self.whichDict['OutStreams']['Print'] = self.OutStreamManagerPrintDict
     #the handler of the runs within each step
     self.jobHandler    = JobHandler()
     #handle the setting of how the jobHandler act
@@ -377,28 +438,41 @@ class Simulation(MessageHandler.MessageUser):
     self.raiseAMessage('Simulation started at',readtime,verbosity='silent')
 
   def setInputFiles(self,inputFiles):
-    """Can be used to set the input files that the program received.
-    These are currently used for cluster running where the program
-    needs to be restarted on a different node."""
+    """
+      Method that can be used to set the input files that the program received.
+      These are currently used for cluster running where the program
+      needs to be restarted on a different node.
+      @ In, inputFiles, list, input files list
+      @ Out, None
+    """
     self.runInfoDict['SimulationFiles'   ] = inputFiles
 
   def getDefaultInputFile(self):
-    """Returns the default input file to read"""
-    return self.runInfoDict['DefaultInputFile']
+    """
+      Returns the default input file to read
+      @ In, None
+      @ Out, defaultInputFile, string, default input file
+    """
+    defaultInputFile = self.runInfoDict['DefaultInputFile']
+    return defaultInputFile
 
-  def __createAbsPath(self,filein):
-    """assuming that the file in is already in the self.filesDict it places, as value, the absolute path"""
-    curfile = self.filesDict[filein]
+  def __createAbsPath(self,fileIn):
+    """
+      Assuming that the file in is already in the self.filesDict it places, as value, the absolute path
+      @ In, fileIn, string, the file name that needs to be made "absolute"
+      @ Out, None
+    """
+    curfile = self.filesDict[fileIn]
     path = os.path.normpath(self.runInfoDict['WorkingDir'])
     curfile.prependPath(path) #this respects existing path from the user input, if any
 
   def ExternalXMLread(self,externalXMLFile,externalXMLNode,xmlFileName=None):
     """
-    parses the external xml input file
-    @ In, externalXMLFile, the filename for the external xml file that will be loaded
-    @ In, externalXMLNode, decribes which node will be loaded to raven input file
-    @ In, xmlFileName, the raven input file name
-    @ Out, externalElemment, xml.etree.ElementTree object that will be added to the current tree of raven input
+      parses the external xml input file
+      @ In, externalXMLFile, string, the filename for the external xml file that will be loaded
+      @ In, externalXMLNode, string, decribes which node will be loaded to raven input file
+      @ In, xmlFileName, string, optional, the raven input file name
+      @ Out, externalElemment, xml.etree.ElementTree.Element, object that will be added to the current tree of raven input
     """
     if '~' in externalXMLFile: externalXMLFile = os.path.expanduser(externalXMLFile)
     if not os.path.isabs(externalXMLFile):
@@ -417,9 +491,10 @@ class Simulation(MessageHandler.MessageUser):
 
   def XMLpreprocess(self,xmlNode,xmlFileName=None):
     """
-    Preprocess the xml input file, load external xml files into the main ET
-    @ In, xmlNode, xml.etree.ElementTree object, root element of RAVEN input file
-    @ In, xmlFileName, the raven input file name
+      Preprocess the xml input file, load external xml files into the main ET
+      @ In, xmlNode, xml.etree.ElementTree.Element, root element of RAVEN input file
+      @ In, xmlFileName, string, optional, the raven input file name
+      @ Out, None
     """
     self.verbosity = xmlNode.attrib.get('verbosity','all')
     for element in xmlNode.iter():
@@ -437,8 +512,8 @@ class Simulation(MessageHandler.MessageUser):
     """
       parses the xml input file, instances the classes need to represent all objects in the simulation
       @ In, xmlNode, ElementTree.Element, xml node to read in
-      @ In, runInfoSkip, optional set, nodes to skip
-      @ In, xmlFilename, optional string, xml filename for relative directory
+      @ In, runInfoSkip, set, optional, nodes to skip
+      @ In, xmlFilename, string, optional, xml filename for relative directory
       @ Out, None
     """
     unknownAttribs = utils.checkIfUnknowElementsinList(['printTimeStamps','verbosity','color'],list(xmlNode.attrib.keys()))
@@ -502,7 +577,7 @@ class Simulation(MessageHandler.MessageUser):
               #place the instance in the proper dictionary (self.whichDict[Type]) under his name as key,
               #the type is the general class (sampler, data, etc) while childChild.tag is the sub type
               #if name not in self.whichDict[Class].keys():  self.whichDict[Class][name] = self.addWhatDict[Class].returnInstance(childChild.tag,self)
-              if Class != 'OutStreamManager':
+              if Class != 'OutStreams':
                   if name not in self.whichDict[Class].keys():
                     if "needsRunInfo" in self.addWhatDict[Class].__dict__:
                       self.whichDict[Class][name] = self.addWhatDict[Class].returnInstance(childChild.tag,self.runInfoDict,self)
@@ -510,12 +585,13 @@ class Simulation(MessageHandler.MessageUser):
                       self.whichDict[Class][name] = self.addWhatDict[Class].returnInstance(childChild.tag,self)
                   else: self.raiseAnError(IOError,'Redundant naming in the input for class '+Class+' and name '+name)
               else:
-                  if name not in self.whichDict[Class][subType].keys():  self.whichDict[Class][subType][name] = self.addWhatDict[Class][subType].returnInstance(childChild.tag,self)
+                  if name not in self.whichDict[Class][subType].keys():
+                    self.whichDict[Class][subType][name] = self.addWhatDict[Class][subType].returnInstance(childChild.tag,self)
                   else: self.raiseAnError(IOError,'Redundant  naming in the input for class '+Class+' and sub Type'+subType+' and name '+name)
               #now we can read the info for this object
               #if globalAttributes and 'verbosity' in globalAttributes.keys(): localVerbosity = globalAttributes['verbosity']
               #else                                                      : localVerbosity = self.verbosity
-              if Class != 'OutStreamManager': self.whichDict[Class][name].readXML(childChild, self.messageHandler, varGroups, globalAttributes=globalAttributes)
+              if Class != 'OutStreams': self.whichDict[Class][name].readXML(childChild, self.messageHandler, varGroups, globalAttributes=globalAttributes)
               else: self.whichDict[Class][subType][name].readXML(childChild, self.messageHandler, globalAttributes=globalAttributes)
             else: self.raiseAnError(IOError,'not found name attribute for one '+Class)
       else: self.raiseAnError(IOError,'the '+child.tag+' is not among the known simulation components '+ET.tostring(child))
@@ -523,7 +599,12 @@ class Simulation(MessageHandler.MessageUser):
       self.raiseAnError(IOError,'The step list: '+str(self.stepSequenceList)+' contains steps that have not been declared: '+str(list(self.stepsDict.keys())))
 
   def initialize(self):
-    """check/created working directory, check/set up the parallel environment, call step consistency checker"""
+    """
+      Method to intialize the simulation.
+      Check/created working directory, check/set up the parallel environment, call step consistency checker
+      @ In, None
+      @ Out, None
+    """
     #check/generate the existence of the working directory
     if not os.path.exists(self.runInfoDict['WorkingDir']): os.makedirs(self.runInfoDict['WorkingDir'])
     #move the full simulation environment in the working directory
@@ -550,11 +631,16 @@ class Simulation(MessageHandler.MessageUser):
       self.checkStep(stepInstance,stepName)
 
   def checkStep(self,stepInstance,stepName):
-    """This method checks the coherence of the simulation step by step"""
+    """
+      This method checks the coherence of the simulation step by step
+      @ In, stepInstance, instance, instance of the step
+      @ In, stepName, string, the name of the step to check
+      @ Out, None
+    """
     for [role,myClass,objectType,name] in stepInstance.parList:
       if myClass!= 'Step' and myClass not in list(self.whichDict.keys()):
         self.raiseAnError(IOError,'For step named '+stepName+' the role '+role+' has been assigned to an unknown class type '+myClass)
-      if myClass != 'OutStreamManager':
+      if myClass != 'OutStreams':
           if name not in list(self.whichDict[myClass].keys()):
             self.raiseADebug('name:',name)
             self.raiseADebug('myClass:',myClass)
@@ -569,14 +655,20 @@ class Simulation(MessageHandler.MessageUser):
             self.raiseAnError(IOError,'In step '+stepName+' the class '+myClass+' named '+name+' supposed to be used for the role '+role+' has not been found')
 
       if myClass != 'Files':  # check if object type is consistent
-        if myClass != 'OutStreamManager': objtype = self.whichDict[myClass][name].type
+        if myClass != 'OutStreams': objtype = self.whichDict[myClass][name].type
         else:                             objtype = self.whichDict[myClass][objectType][name].type
         if objectType != objtype.replace("OutStream",""):
           objtype = self.whichDict[myClass][name].type
           #self.raiseAnError(IOError,'In step '+stepName+' the class '+myClass+' named '+name+' used for role '+role+' has mismatching type. Type is "'+objtype.replace("OutStream","")+'" != inputted one "'+objectType+'"!')
 
   def __readRunInfo(self,xmlNode,runInfoSkip,xmlFilename):
-    """reads the xml input file for the RunInfo block"""
+    """
+      Method that reads the xml input file for the RunInfo block
+      @ In, xmlNode, xml.etree.Element, the xml node that belongs to Simulation
+      @ In, runInfoSkip, string, the runInfo step to skip
+      @ In, xmlFilename, string, xml input file name
+      @ Out, None
+    """
     if 'verbosity' in xmlNode.attrib.keys(): self.verbosity = xmlNode.attrib['verbosity']
     #FIXME temporarily create an error to prevent users from using the 'debug' attribute - remove it by end of June 2015 (Sonat)
     if 'debug' in xmlNode.attrib.keys(): self.raiseAnError(IOError,'"debug" attribute found, but has been deprecated.  Please change it to "verbosity."')
@@ -656,7 +748,11 @@ class Simulation(MessageHandler.MessageUser):
         self.raiseAnError(IOError,'RunInfo element "'+element.tag +'" unknown!')
 
   def printDicts(self):
-    """utility function capable to print a summary of the dictionaries"""
+    """
+      utility function capable to print a summary of the dictionaries
+      @ In, None
+      @ Out, None
+    """
     def __prntDict(Dict,msg):
       """utility function capable to print a dictionary"""
       for key in Dict:
@@ -668,7 +764,6 @@ class Simulation(MessageHandler.MessageUser):
     msg=__prntDict(self.dataDict,msg)
     msg=__prntDict(self.samplersDict,msg)
     msg=__prntDict(self.modelsDict,msg)
-    msg=__prntDict(self.testsDict,msg)
     msg=__prntDict(self.filesDict,msg)
     msg=__prntDict(self.dataBasesDict,msg)
     msg=__prntDict(self.OutStreamManagerPlotDict,msg)
@@ -678,10 +773,13 @@ class Simulation(MessageHandler.MessageUser):
     self.raiseADebug(msg)
 
   def run(self):
-    """run the simulation"""
+    """
+      Run the simulation
+      @ In, None
+      @ Out, None
+    """
     #to do list
     #can we remove the check on the esistence of the file, it might make more sense just to check in case they are input and before the step they are used
-    #
     self.raiseADebug('entering the run')
     #controlling the PBS environment
     if self.__modeHandler.doOverrideRun():
@@ -699,7 +797,7 @@ class Simulation(MessageHandler.MessageUser):
       for [key,b,c,d] in stepInstance.parList:
         #Only for input and output we allow more than one object passed to the step, so for those we build a list
         if key == 'Input' or key == 'Output':
-            if b == 'OutStreamManager':
+            if b == 'OutStreams':
               stepInputDict[key].append(self.whichDict[b][c][d])
             else:
               stepInputDict[key].append(self.whichDict[b][d])

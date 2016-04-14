@@ -57,8 +57,8 @@
     <IOStep name="BNprint">
       <Input class="DataObjects" type="PointSet">BNtests</Input>
       <Input class="Models" type="ROM">BNROM</Input>
-      <Output class="OutStreamManager" type="Print">BNdump</Output>
-      <Output class="OutStreamManager" type="Print">BNdumprom</Output>
+      <Output class="OutStreams" type="Print">BNdump</Output>
+      <Output class="OutStreams" type="Print">BNdumprom</Output>
     </IOStep>
     <RomTrainer name="BNtrain">
       <Input class="DataObjects" type="PointSet">BNsolns</Input>
@@ -81,7 +81,7 @@
     </PointSet>
   </DataObjects>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="BNdump">
       <type>csv</type>
       <source>BNtests</source>
@@ -91,6 +91,6 @@
       <source>BNROM</source>
       <what>all</what>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
 </Simulation>

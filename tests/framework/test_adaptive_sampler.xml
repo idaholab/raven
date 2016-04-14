@@ -16,7 +16,7 @@
     </MultiRun>
     <IOStep name="adaptdump" pauseAtEnd="true">
       <Input class="DataObjects" type="PointSet">lmt_srf_dt</Input>
-      <Output class="OutStreamManager" type="Print">limitSurfaceDump</Output>
+      <Output class="OutStreams" type="Print">limitSurfaceDump</Output>
     </IOStep>
   </Steps>
 
@@ -95,11 +95,11 @@
     </External>
   </Functions>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="limitSurfaceDump">
       <type>csv</type>
       <source>lmt_srf_dt</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
 </Simulation>

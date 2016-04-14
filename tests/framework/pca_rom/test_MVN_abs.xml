@@ -47,16 +47,16 @@
       <Model class="Models" type="ExternalModel">PythonModule</Model>
       <Sampler class="Samplers" type="MonteCarlo">MCExternalAbs</Sampler>
       <Output class="DataObjects" type="PointSet">testPrintPointSetAbs</Output>
-      <Output class="OutStreamManager" type="Print">testPrintPointSetAbs_dump</Output>
+      <Output class="OutStreams" type="Print">testPrintPointSetAbs_dump</Output>
     </MultiRun>
   </Steps>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="testPrintPointSetAbs_dump">
       <type>csv</type>
       <source>testPrintPointSetAbs</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
   <DataObjects>
     <PointSet name="inputPlaceHolder">

@@ -1,4 +1,4 @@
-'''
+"""
 Created on Nov 24, 2015
 
 @author: Jong Suk Kim
@@ -77,14 +77,13 @@ To use RAVEN, we need to be able to perturb the input and output files from the 
 of this is:
 
   <executable> -s <dsin file text> <outputfile>
-'''
+"""
 
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
 import os
-import sys
 import math
 import scipy.io
 import csv
@@ -98,9 +97,10 @@ class DymolaInterface(CodeInterfaceBase):
   """Provides code to interface RAVEN to Dymola"""
 
   def __init__(self):
-    """Initializes the GenericCode Interface.
-       @ In, None
-       @Out, None
+    """
+      Initializes the GenericCode Interface.
+      @ In, None
+      @ Out, None
     """
 
   #  Generate the command to run Dymola. The form of the command is:
@@ -115,14 +115,15 @@ class DymolaInterface(CodeInterfaceBase):
   #     <outputfile>     The simulation output, which is .mat file.
 
   def generateCommand(self, inputFiles, executable, clargs=None, fargs=None):
-    """See base class.  Collects all the clargs and the executable to produce the command-line call.
-       Returns tuple of commands and base file name for run.
-       Commands are a list of tuples, indicating parallel/serial and the execution command to use.
-       @ In, inputFiles, list, list of input files to be used for the run
-       @ In, executable, string, the executable name with absolute path
-       @ In, clargs, dictionary, command-line arguments to be used
-       @ In, fargs, dictionary, in-file changes to be made
-       @Out, tuple( list(tuple(serial/parallel, exec_command)), outFileRoot string)
+    """
+      See base class.  Collects all the clargs and the executable to produce the command-line call.
+      Returns tuple of commands and base file name for run.
+      Commands are a list of tuples, indicating parallel/serial and the execution command to use.
+      @ In, inputFiles, list, List of input files (lenght of the list depends on the number of inputs have been added in the Step is running this code)
+      @ In, executable, string, executable name with absolute path (e.g. /home/path_to_executable/code.exe)
+      @ In, clargs, dict, optional, dictionary containing the command-line flags the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 i0extension =0 .inp0/ >< /Code >)
+      @ In, fargs, dict, optional, a dictionary containing the axuiliary input file variables the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 aux0extension =0 .aux0/ >< /Code >)
+      @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the code (string), returnCommand[1] is the name of the output root
     """
 
     # Find the first file in the inputFiles that is a text file, which is what we need to work with.
@@ -131,43 +132,45 @@ class DymolaInterface(CodeInterfaceBase):
       if self._isValidInput(inputFile):
         found = True
         break
-    if not found:
-      raise Exception('Dymola INTERFACE ERROR -> A TEXT file was not found in the input files!')
-
+    if not found: raise Exception('Dymola INTERFACE ERROR -> A TEXT file was not found in the input files!')
     # Build an output file name of the form: rawout~<Base Name>, where base name is generated from the
     #   input file passed in: /path/to/file/<Base Name>.ext. 'rawout' indicates that this is the direct
     #   output from running the Dymola executable.
     outputfile = 'rawout~' + inputFiles[index].getBase()
     executeCommand = [('parallel', executable +' -s '+ inputFiles[index].getFilename() +' '+ outputfile+ '.mat')]
-
-    return executeCommand, outputfile
+    returnCommand = executeCommand, outputfile
+    return returnCommand
 
   def _isValidInput(self, inputFile):
-    """Check if an input file is a text file, with an extension of .txt or .TXT.
-       @ In, inputFile, string, the file name to be checked
-       @out, boolean: 'True' if an input file has an extenstion of .txt or .TXT., otherwise 'False'.
     """
-
-    if inputFile.getExt() in ('txt', 'TXT'):
-      return True
-    return False
+      Check if an input file is a text file, with an extension of .txt or .TXT.
+      @ In, inputFile, string, the file name to be checked
+      @ Out, valid, bool, 'True' if an input file has an extenstion of .txt or .TXT., otherwise 'False'.
+    """
+    valid = False
+    if inputFile.getExt() in ('txt', 'TXT'): valid = True
+    return valid
 
   def getInputExtension(self):
-    """Return a tuple of possible file extensions for a simulation initialization file (i.e., dsin.txt).
-       @out, tuple('txt', 'TXT')
     """
-
-    return ('txt', 'TXT')
+      Return a tuple of possible file extensions for a simulation initialization file (i.e., dsin.txt).
+      @ In, None
+      @ Out, validExtensions, tuple, tuple of valid extensions
+    """
+    validExtensions = ('txt', 'TXT')
+    return validExtensions
 
   def createNewInput(self, currentInputFiles, oriInputFiles, samplerType, **Kwargs):
-    """Generate a new Dymola input file (txt format) from the original, changing parameters
-       as specified in Kwargs['SampledVars']
-       @ In, currentInputFiles, list, list of current input files (input files from last this method call)
-       @ In, oriInputFiles, list, list of original input files
-       @ In, samplerType, string, sampler type (e.g., MonteCarlo, Adaptive, etc.). 'None' if no sampler has been used.
-       @ In, Kwargs, dictionary, dictionary of parameters.
     """
-
+      Generate a new Dymola input file (txt format) from the original, changing parameters
+      as specified in Kwargs['SampledVars']
+      @ In, currentInputFiles, list,  list of current input files (input files from last this method call)
+      @ In, oriInputFiles, list, list of the original input files
+      @ In, samplerType, string, Sampler type (e.g. MonteCarlo, Adaptive, etc. see manual Samplers section)
+      @ In, Kwargs, dictionary, kwarded dictionary of parameters. In this dictionary there is another dictionary called "SampledVars"
+            where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
+      @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
+    """
     # Start with the original input file, which we have to find first.
     found = False
     for index, inputFile in enumerate(oriInputFiles):
@@ -176,14 +179,11 @@ class DymolaInterface(CodeInterfaceBase):
         break
     if not found:
       raise Exception('Dymola INTERFACE ERROR -> An text (.txt) file was not found in the input files!')
-
     # Figure out the new file name and put it into the proper place in the return list
     newInputFiles = copy.deepcopy(currentInputFiles)
     originalPath = oriInputFiles[index].getAbsFile()
-    newPath = os.path.join(os.path.split(originalPath)[0],
-                           "DM" + Kwargs['prefix'] + os.path.split(originalPath)[1])
+    newPath = os.path.join(os.path.split(originalPath)[0], "DM" + Kwargs['prefix'] + os.path.split(originalPath)[1])
     newInputFiles[index].setAbsFile(newPath)
-
     # Define dictionary of parameters and pre-process the values.
     # Each key is a parameter name (including the full model path in Modelica_ dot notation) and
     #   each entry is a parameter value. The parameter name includes array indices (if any) in
@@ -270,15 +270,15 @@ class DymolaInterface(CodeInterfaceBase):
     return newInputFiles
 
   def finalizeCodeOutput(self, command, output, workingDir):
-    """Called by RAVEN to modify output files (if needed) so that they are in a proper form.
-       In this case, the default .mat output needs to be converted to .csv output, which is the
-       format that RAVEN can communicate with.
-       @ In, command, string, the command used to run the just ended job
-       @ In, output, string, the output name root
-       @ In, workingDir, string, current (actual) working directory
-       @ Return is optional, in case the root of the output file gets changed as in this method.
     """
-
+      Called by RAVEN to modify output files (if needed) so that they are in a proper form.
+      In this case, the default .mat output needs to be converted to .csv output, which is the
+      format that RAVEN can communicate with.
+      @ In, command, string, the command used to run the just ended job
+      @ In, output, string, the Output name root
+      @ In, workingDir, string, current working dir
+      @ Out, output, string, optional, present in case the root of the output file gets changed in this method.
+    """
     self._vars = {}
     self._blocks = []
     self._namesData1 = []
@@ -384,5 +384,4 @@ class DymolaInterface(CodeInterfaceBase):
         resultsWriter.writerows(varTrajectories)
     else:
       raise Exception('File structure not supported!')
-
     return os.path.splitext(destFileName)[0]   # Return the name without the .csv on it as RAVEN will add it later.
