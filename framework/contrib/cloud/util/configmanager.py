@@ -16,7 +16,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 Lesser General Public License for more details.
 
 You should have received a copy of the GNU Lesser General Public
-License along with this package; if not, see 
+License along with this package; if not, see
 http://www.gnu.org/licenses/lgpl-2.1.html
 """
 
@@ -40,27 +40,27 @@ extraInfo = {
 
 
 class ConfigManager(object):
-        
+
     backend = None
     hiddenSets = []
-    
+
     @staticmethod
     def getCommentStr(section, option):
         return option.lower()
-    
+
     def __init__(self, defaults=None):
         self.sections = {}
         self.optioncomment = {}
-    
+
     def read(self, fname):
         """Return True on successful read"""
         import os
         import sys
         dir = os.path.dirname(fname)
         conf = os.path.basename(fname)
-        pyfile = os.path.splitext(conf)[0]                   
+        pyfile = os.path.splitext(conf)[0]
         addedEntry = False
-                
+
         try:
             if dir not in sys.path:
                 sys.path.append(dir)
@@ -73,7 +73,7 @@ class ConfigManager(object):
                 import types
                 self.backend = types.ModuleType('cloudconf')
                 return False #force rewrite
-            else:                    
+            else:
                 try:
                     if pyfile in sys.modules:
                         self.backend = sys.modules[pyfile]
@@ -82,12 +82,12 @@ class ConfigManager(object):
                 except ImportError, e:
                     import types
                     sys.stderr.write('CLOUD ERROR: Malformed cloudconf.py:\n %s\nUsing default settings.\n' % str(e))
-                    self.backend = types.ModuleType('cloudconf')            
-        finally:    
+                    self.backend = types.ModuleType('cloudconf')
+        finally:
             if addedEntry:
                 sys.path.remove(dir)
         return True
-    
+
     def get(self, section, option, comment = None):
         if not hasattr(self.backend, option):
             raise NoOptionError(option)
@@ -96,31 +96,31 @@ class ConfigManager(object):
         if comment:
             self.optioncomment[self.getCommentStr(section, option)] = comment
         return value
-    
-    def hiddenset(self, *args): 
+
+    def hiddenset(self, *args):
         """Defer set commands"""
         self.hiddenSets.append(args)
-        
+
     def showHidden(self):
         """Do all deferred (hidden) sets -- not thread safe"""
         for hiddenSet in self.hiddenSets:
             self.set(*hiddenSet)
         self.hiddenSets = []
-    
-    def set(self, section, option, value, comment = None):        
-        self.sections.setdefault(section, {})[option] = value    
+
+    def set(self, section, option, value, comment = None):
+        self.sections.setdefault(section, {})[option] = value
         if comment:
             self.optioncomment[self.getCommentStr(section, option)] = comment
         #print 'setting backend %s to %s' % (option, value)
         setattr(self.backend,option,value)
-            
+
     def write(self, fp):
         """Write configuration file with defaults
-        Include any comments"""        
+        Include any comments"""
         #hack to ensure account comes first:
         sections = self.sections.keys()
         sections.sort()
-        
+
         for section in sections:
             cmt = '"' * 3
             fp.write('%s\n%s\n' % (cmt, section))
@@ -130,9 +130,9 @@ class ConfigManager(object):
             else:
                 fp.write('%s\n' % cmt)
             started = False
-            for (key, value) in self.sections[section].items():                
-                if key != "__name__":                    
-                    comment = self.optioncomment.get(self.getCommentStr(section, key))                  
+            for (key, value) in self.sections[section].items():
+                if key != "__name__":
+                    comment = self.optioncomment.get(self.getCommentStr(section, key))
                     if comment:
                         if started:
                             fp.write('\n')
@@ -145,20 +145,20 @@ class ConfigManager(object):
             fp.write("\n\n")
 
 class ConfigSettings(object):
-    """This object provides the ability to programmatically edit the cloud configuration (found in cloudconf.py).   
-    ``commit()`` must be called to update the cloud module with new settings - and restart all active clouds    
+    """This object provides the ability to programmatically edit the cloud configuration (found in cloudconf.py).
+    ``commit()`` must be called to update the cloud module with new settings - and restart all active clouds
     """
-    
-    
+
+
     @staticmethod
-    def _loader(path,prefix, do_reload):        
-        """Bind """               
+    def _loader(path,prefix, do_reload):
+        """Bind """
         files = os.listdir(path)
         delayed = []
         for f in files:
             if f.endswith('.py'):
                 endname = f[:-3]
-                if endname == 'cloudconfig' or endname == 'configmanager' or endname == 'setup' or endname == 'writeconfig' or endname == 'cli':                    
+                if endname == 'cloudconfig' or endname == 'configmanager' or endname == 'setup' or endname == 'writeconfig' or endname == 'cli':
                     continue
                 if endname == '__init__':
                     delayed.append(prefix[:-1])  #do not load __init__ until submodules reloaded
@@ -166,9 +166,9 @@ class ConfigSettings(object):
                 elif endname == 'mp':
                     modname = prefix + endname
                     delayed.append(modname)
-                else:                
+                else:
                     modname = prefix + endname
-                #print modname #LOG ME   
+                #print modname #LOG ME
                 if do_reload:
                     if modname in sys.modules:
                         try:
@@ -179,7 +179,7 @@ class ConfigSettings(object):
                     try:
                         __import__(modname)
                     except ImportError:
-                        pass                    
+                        pass
             elif os.path.isdir(path + f):
                 newpath = path + f + os.sep
                 ConfigSettings._loader(newpath,prefix + f + '.',do_reload)
@@ -187,60 +187,60 @@ class ConfigSettings(object):
             if '__init__' in delayed: #must come last
                 delayed.remove('__init__')
                 delayed.append('__init__')
-                
+
             for delay_mod in delayed:
                 if do_reload:
                     if delay_mod in sys.modules:
                         try:
                             reload(sys.modules[delay_mod])
                         except ImportError:
-                            pass                            
+                            pass
                 else:
                     try:
                         __import__(delay_mod)
                     except ImportError:
                         pass
             delayed = []
-                                        
-            
-    
+
+
+
     def _showhidden(self):
         """Show hidden variables"""
         self.__confmanager.showHidden()
         self.__init__(self.__confmanager) #restart
-        
-    
+
+
     def commit(self):
-        """Update cloud with new settings.  
-        
+        """Update cloud with new settings.
+
          .. warning::
-            
+
             This will restart any active cloud instances, wiping mp/simulated jobs and setkey information
-        """                
-        import cloud        
+        """
+        import cloud
         setattr(cloud,'__immutable', False)
         cloud.cloudinterface._setcloud(cloud, type=None)
         if hasattr(cloud,'mp'):
             setattr(cloud.mp,'__immutable', False)
             cloud.cloudinterface._setcloud(cloud.mp, type=None)
-        
+
         #Reload cloud modules in correct order
         mods = cloud._modHook.mods[:]
-        
+
         for modstr in mods:
             mod = sys.modules.get(modstr)
             if mod and modstr not in ['cloud.util.configmanager', 'cloud.cloudconfig']:
                 try:
                     reload(mod)
                 except ImportError:
-                    pass       
-        reload(cloud)        
+                    pass
+        reload(cloud)
         cloud._modHook.mods = mods #restore mods after it is wiped
-        
+
     def __init__(self, confmanager, do_reload=False):
         backend = confmanager.backend
         self.__confmanager = confmanager
-        
+
         def _set_prop(item):
             if hasattr(backend, item):
                 typ = type(getattr(backend, option))
@@ -255,20 +255,20 @@ class ConfigSettings(object):
                         k = typ(value)
                         setattr(backend,item, k)
                     except ValueError, e:
-                        raise ValueError('Configuration option %s must have type %s.' % (option, typ.__name__))                    
-                
+                        raise ValueError('Configuration option %s must have type %s.' % (option, typ.__name__))
+
             return __inner__
-            
+
         def _get_prop(item):
             def __inner__(self):
                 return getattr(backend, item)
             return __inner__
-        
+
         import cloud
-        ConfigSettings._loader(cloud.__path__[0] + os.sep ,'cloud.',do_reload)        
+        ConfigSettings._loader(cloud.__path__[0] + os.sep ,'cloud.',do_reload)
         for options in confmanager.sections.values():
             for option in options:
                 prop = property(_get_prop(option), _set_prop(option), None, confmanager.optioncomment.get(ConfigManager.getCommentStr("",option)))
                 setattr(self.__class__, option, prop)
-                        
-        
+
+

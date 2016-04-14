@@ -60,7 +60,7 @@ SHOW_EXPECTED_EXCEPTIONS = False
 try:
     set
 except NameError:
-    from sets import Set as set 
+    from sets import Set as set
 
 _USE_SUBPROCESS = False
 try:
@@ -200,8 +200,8 @@ class _RWorker(pptransport.CSocketTransport):
         """Connects to a remote server"""
         while True and not self.server._exiting:
             try:
-                pptransport.SocketTransport.__init__(self, None, self.socket_timeout) 
-                self._connect(self.host, self.port)                
+                pptransport.SocketTransport.__init__(self, None, self.socket_timeout)
+                self._connect(self.host, self.port)
                 if not self.authenticate(self.secret):
                     self.server.logger.error("Authentication failed for host=%s, port=%s"
                             % (self.host, self.port))
@@ -294,7 +294,7 @@ class Server(object):
                    custom passphrase for all network connections.
            restart - whether to restart worker process after each task completion
            proto - protocol number for pickle module
-           socket_timeout - socket timeout in seconds which is also the maximum 
+           socket_timeout - socket timeout in seconds which is also the maximum
                    time a remote job could be executed. Increase this value
                    if you have long running jobs or decrease if connectivity
                    to remote ppservers is often lost.
@@ -458,9 +458,9 @@ class Server(object):
                       clshierstr = [str(elem) for elem in clshier] # we use string in order to avoid baseclass identity!
                       functionToSkipSet = set([str(elem) for elem in functionToSkip])
                       for cnt, clshierfun in enumerate(clshierstr):
-                        if clshierfun not in functionToSkipSet: tempclshier.append(clshier[cnt])                    
+                        if clshierfun not in functionToSkipSet: tempclshier.append(clshier[cnt])
                       clshier = tempclshier
-                    depfuncs += tuple(clshier) 
+                    depfuncs += tuple(clshier)
         # if there is a function in the arguments add this
         # function to dependancies
         for arg in args:
@@ -513,7 +513,7 @@ class Server(object):
         if ncpus < 0:
             raise ValueError("ncpus must be an integer > 0")
         if ncpus > len(self.__workers):
-            self.__workers.extend([_Worker(self.__restart_on_free, 
+            self.__workers.extend([_Worker(self.__restart_on_free,
                     self.__pickle_proto) for x in\
                     range(ncpus - len(self.__workers))])
         self.__stats["local"].ncpus = ncpus
@@ -540,7 +540,7 @@ class Server(object):
                     self.__accurate_stats = False
                     stat.time = 0.0
         return self.__stats
-    
+
     def collect_stats_in_list(self):
         """collect job execution statistics in list. Useful for benchmarking on
            clusters"""
@@ -556,15 +556,15 @@ class Server(object):
             if stat.njobs:
                 returnList.append("    %6i |        %6.2f |     %8.4f |  %11.6f | %s" \
                         % (stat.njobs, 100.0*stat.njobs/totaljobs, stat.time,
-                        stat.time/stat.njobs, ppserver, )) 
+                        stat.time/stat.njobs, ppserver, ))
         returnList.append("Time elapsed since server creation " + str(walltime))
         returnList.append(str(self.__active_tasks)+ " active tasks," +  str(self.get_ncpus()) + " cores")
         #print self.__active_tasks, "active tasks,", self.get_ncpus(), "cores"
 
         if not self.__accurate_stats:
-            returnList.append("WARNING: statistics provided above is not accurate due to job rescheduling")      
+            returnList.append("WARNING: statistics provided above is not accurate due to job rescheduling")
         return returnList
-    
+
 
     def print_stats(self):
         """Prints job execution statistics. Useful for benchmarking on
@@ -588,7 +588,7 @@ class Server(object):
         return task
 
     def connect1(self, host, port, persistent=True):
-        """Conects to a remote ppserver specified by host and port"""        
+        """Conects to a remote ppserver specified by host and port"""
         hostid = host+":"+str(port)
         lock = self.__connect_locks.setdefault(hostid, threading.Lock())
         lock.acquire()
@@ -705,7 +705,7 @@ class Server(object):
                                 rworker.is_free = False
                                 task = self.__queue.pop(0)
                                 self.__stats[rworker.id].njobs += 1
-                                ppcommon.start_thread("run_remote",  self._run_remote, task+(rworker, ))                                
+                                ppcommon.start_thread("run_remote",  self._run_remote, task+(rworker, ))
                                 break
                         else:
                                 break
@@ -847,5 +847,5 @@ class Server(object):
 
 class DestroyedServerError(RuntimeError):
     pass
-    
+
 # Parallel Python Software: http://www.parallelpython.com
