@@ -33,4 +33,3 @@ def run(self, Input):
   self.averageTemperature = (self.leftTemperature + self.rightTemperature)/2.0
   self.linearHeat = self.k*(max(self.leftTemperature,self.rightTemperature)-min(self.leftTemperature,self.rightTemperature))
   print("mid value is "+str(self.solution))
-

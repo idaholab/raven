@@ -33,4 +33,3 @@ def run(self, Input):
   with localLock:
     solution = odeint(odeFuncion, self.initialTemperatures, self.timeDiscretization, args=copy.deepcopy((self.shapeToUse,self.N,self.h,self.k)),full_output = 1)
     self.solution = solution[0][-1,5]
-
