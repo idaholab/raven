@@ -94,9 +94,8 @@ class Distribution(BaseType):
       @ In, None
       @ Out, pdict, dict, the namespace state
     """
-    pdict={}
-    self.addInitParams(pdict)
-    pdict['type']=self.type
+    pdict = self.getInitParams()
+    pdict['type'] = self.type
     return pdict
 
   def __setstate__(self,pdict):
@@ -149,20 +148,24 @@ class Distribution(BaseType):
       retDict['xMax'] = self.upperBound
     return retDict
 
-  def addInitParams(self,tempDict):
+  def getInitParams(self):
     """
-      Function to be overloaded to inject the name and values of the initial parameters
-      @ In, tempDict, dict, original dictionary containg the initial parameters. This is the dictionary that needs to be updated
-      @ Out, None
+      Function to get the initial values of the input parameters that belong to
+      this class
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
     """
-    tempDict['upperBoundUsed'  ] = self.upperBoundUsed
-    tempDict['lowerBoundUsed'  ] = self.lowerBoundUsed
-    tempDict['hasInfiniteBound'] = self.hasInfiniteBound
-    tempDict['upperBound'      ] = self.upperBound
-    tempDict['lowerBound'      ] = self.lowerBound
-    tempDict['adjustmentType'  ] = self.__adjustmentType
-    tempDict['dimensionality'  ] = self.dimensionality
-    tempDict['messageHandler'  ] = self.messageHandler
+    paramDict = {}
+    paramDict['upperBoundUsed'  ] = self.upperBoundUsed
+    paramDict['lowerBoundUsed'  ] = self.lowerBoundUsed
+    paramDict['hasInfiniteBound'] = self.hasInfiniteBound
+    paramDict['upperBound'      ] = self.upperBound
+    paramDict['lowerBound'      ] = self.lowerBound
+    paramDict['adjustmentType'  ] = self.__adjustmentType
+    paramDict['dimensionality'  ] = self.dimensionality
+    paramDict['messageHandler'  ] = self.messageHandler
+    return paramDict
 
   def rvsWithinCDFbounds(self,lowerBound,upperBound):
     """
@@ -495,14 +498,17 @@ class Uniform(BoostDistribution):
     """
     return 0.5
 
-  def addInitParams(self,tempDict):
+  def getInitParams(self):
     """
-      Function to get the input params that belong to this class
-      @ In, tempDict, dict, temporary dictionary
-      @ Out, None
+      Function to get the initial values of the input parameters that belong to
+      this class
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
     """
-    BoostDistribution.addInitParams(self,tempDict)
-    tempDict['range'] = self.range
+    paramDict = BoostDistribution.getInitParams(self)
+    paramDict['range'] = self.range
+    return paramDict
     # no other additional parameters required
 
   def initializeDistribution(self):
@@ -593,15 +599,18 @@ class Normal(BoostDistribution):
     else: self.raiseAnError(IOError,'sigma value needed for normal distribution')
     self.initializeDistribution() #FIXME no other distros have this...needed?
 
-  def addInitParams(self,tempDict):
+  def getInitParams(self):
     """
-      Function to get the input params that belong to this class
-      @ In, tempDict, dict, temporary dictionary
-      @ Out, None
+      Function to get the initial values of the input parameters that belong to
+      this class
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
     """
-    BoostDistribution.addInitParams(self, tempDict)
-    tempDict['mean' ] = self.mean
-    tempDict['sigma'] = self.sigma
+    paramDict = BoostDistribution.getInitParams(self)
+    paramDict['mean' ] = self.mean
+    paramDict['sigma'] = self.sigma
+    return paramDict
 
   def initializeDistribution(self):
     """
@@ -726,16 +735,19 @@ class Gamma(BoostDistribution):
       self.lowerBound     = self.low
     self.initializeDistribution() #TODO this exists in a couple classes; does it really need to be here and not in Simulation? - No. - Andrea
 
-  def addInitParams(self,tempDict):
+  def getInitParams(self):
     """
-      Function to get the input params that belong to this class
-      @ In, tempDict, dict, temporary dictionary
-      @ Out, None
+      Function to get the initial values of the input parameters that belong to
+      this class
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
     """
-    BoostDistribution.addInitParams(self,tempDict)
-    tempDict['low'] = self.low
-    tempDict['alpha'] = self.alpha
-    tempDict['beta'] = self.beta
+    paramDict = BoostDistribution.getInitParams(self)
+    paramDict['low'] = self.low
+    paramDict['alpha'] = self.alpha
+    paramDict['beta'] = self.beta
+    return paramDict
 
   def initializeDistribution(self):
     """
@@ -869,17 +881,20 @@ class Beta(BoostDistribution):
       self.lowerBound     = self.low
     self.initializeDistribution()
 
-  def addInitParams(self,tempDict):
+  def getInitParams(self):
     """
-      Function to get the input params that belong to this class
-      @ In, tempDict, dict, temporary dictionary
-      @ Out, None
+      Function to get the initial values of the input parameters that belong to
+      this class
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
     """
-    BoostDistribution.addInitParams(self,tempDict)
-    tempDict['low'  ] = self.low
-    tempDict['high' ] = self.high
-    tempDict['alpha'] = self.alpha
-    tempDict['beta' ] = self.beta
+    paramDict = BoostDistribution.getInitParams(self)
+    paramDict['low'  ] = self.low
+    paramDict['high' ] = self.high
+    paramDict['alpha'] = self.alpha
+    paramDict['beta' ] = self.beta
+    return paramDict
 
   def initializeDistribution(self):
     """
@@ -1003,16 +1018,19 @@ class Triangular(BoostDistribution):
       self.lowerBound     = self.min
     self.initializeDistribution()
 
-  def addInitParams(self,tempDict):
+  def getInitParams(self):
     """
-      Function to get the input params that belong to this class
-      @ In, tempDict, dict, temporary dictionary
-      @ Out, None
+      Function to get the initial values of the input parameters that belong to
+      this class
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
     """
-    BoostDistribution.addInitParams(self, tempDict)
-    tempDict['apex' ] = self.apex
-    tempDict['min'  ] = self.min
-    tempDict['max'  ] = self.max
+    paramDict = BoostDistribution.getInitParams(self)
+    paramDict['apex' ] = self.apex
+    paramDict['min'  ] = self.min
+    paramDict['max'  ] = self.max
+    return paramDict
 
   def initializeDistribution(self):
     """
@@ -1077,14 +1095,17 @@ class Poisson(BoostDistribution):
     else: self.raiseAnError(IOError,'mu value needed for poisson distribution')
     self.initializeDistribution()
 
-  def addInitParams(self,tempDict):
+  def getInitParams(self):
     """
-      Function to get the input params that belong to this class
-      @ In, tempDict, dict, temporary dictionary
-      @ Out, None
+      Function to get the initial values of the input parameters that belong to
+      this class
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
     """
-    BoostDistribution.addInitParams(self, tempDict)
-    tempDict['mu'  ] = self.mu
+    paramDict = BoostDistribution.getInitParams(self)
+    paramDict['mu'  ] = self.mu
+    return paramDict
 
   def initializeDistribution(self):
     """
@@ -1156,15 +1177,18 @@ class Binomial(BoostDistribution):
     else: self.raiseAnError(IOError,'p value needed for Binomial distribution')
     self.initializeDistribution()
 
-  def addInitParams(self,tempDict):
+  def getInitParams(self):
     """
-      Function to get the input params that belong to this class
-      @ In, tempDict, dict, temporary dictionary
-      @ Out, None
+      Function to get the initial values of the input parameters that belong to
+      this class
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
     """
-    BoostDistribution.addInitParams(self, tempDict)
-    tempDict['n'  ] = self.n
-    tempDict['p'  ] = self.p
+    paramDict = BoostDistribution.getInitParams(self)
+    paramDict['n'  ] = self.n
+    paramDict['p'  ] = self.p
+    return paramDict
 
   def initializeDistribution(self):
     """
@@ -1229,14 +1253,17 @@ class Bernoulli(BoostDistribution):
     else: self.raiseAnError(IOError,'p value needed for Bernoulli distribution')
     self.initializeDistribution()
 
-  def addInitParams(self,tempDict):
+  def getInitParams(self):
     """
-      Function to get the input params that belong to this class
-      @ In, tempDict, dict, temporary dictionary
-      @ Out, None
+      Function to get the initial values of the input parameters that belong to
+      this class
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
     """
-    BoostDistribution.addInitParams(self, tempDict)
-    tempDict['p'  ] = self.p
+    paramDict = BoostDistribution.getInitParams(self)
+    paramDict['p'] = self.p
+    return paramDict
 
   def initializeDistribution(self):
     """
@@ -1288,15 +1315,18 @@ class Categorical(Distribution):
 
     self.initializeDistribution()
 
-  def addInitParams(self,tempDict):
+  def getInitParams(self):
     """
-      Function to get the input params that belong to this class
-      @ In, tempDict, dict, temporary dictionary
-      @ Out, None
+      Function to get the initial values of the input parameters that belong to
+      this class
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
     """
-    Distribution.addInitParams(self, tempDict)
-    tempDict['mapping'] = self.mapping
-    tempDict['values'] = self.values
+    paramDict = Distribution.getInitParams(self)
+    paramDict['mapping'] = self.mapping
+    paramDict['values'] = self.values
+    return paramDict
 
   def initializeDistribution(self):
     """
@@ -1412,15 +1442,18 @@ class Logistic(BoostDistribution):
     else: self.raiseAnError(IOError,'scale value needed for Logistic distribution')
     self.initializeDistribution()
 
-  def addInitParams(self,tempDict):
+  def getInitParams(self):
     """
-      Function to get the input params that belong to this class
-      @ In, tempDict, dict, temporary dictionary
-      @ Out, None
+      Function to get the initial values of the input parameters that belong to
+      this class
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
     """
-    BoostDistribution.addInitParams(self, tempDict)
-    tempDict['location'] = self.location
-    tempDict['scale'   ] = self.scale
+    paramDict = BoostDistribution.getInitParams(self)
+    paramDict['location'] = self.location
+    paramDict['scale'   ] = self.scale
+    return paramDict
 
   def initializeDistribution(self):
     """
@@ -1498,15 +1531,18 @@ class Exponential(BoostDistribution):
       self.lowerBound     = self.low
     self.initializeDistribution()
 
-  def addInitParams(self,tempDict):
+  def getInitParams(self):
     """
-      Function to get the input params that belong to this class
-      @ In, tempDict, dict, temporary dictionary
-      @ Out, None
+      Function to get the initial values of the input parameters that belong to
+      this class
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
     """
-    BoostDistribution.addInitParams(self, tempDict)
-    tempDict['lambda'] = self.lambdaVar
-    tempDict['low'] = self.low
+    paramDict = BoostDistribution.getInitParams(self)
+    paramDict['lambda'] = self.lambdaVar
+    paramDict['low'   ] = self.low
+    return paramDict
 
   def initializeDistribution(self):
     """
@@ -1612,16 +1648,19 @@ class LogNormal(BoostDistribution):
     else: self.low = 0.0
     self.initializeDistribution()
 
-  def addInitParams(self,tempDict):
+  def getInitParams(self):
     """
-      Function to get the input params that belong to this class
-      @ In, tempDict, dict, temporary dictionary
-      @ Out, None
+      Function to get the initial values of the input parameters that belong to
+      this class
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
     """
-    BoostDistribution.addInitParams(self, tempDict)
-    tempDict['mean' ] = self.mean
-    tempDict['sigma'] = self.sigma
-    tempDict['low'] = self.low
+    paramDict = BoostDistribution.getInitParams(self)
+    paramDict['mean' ] = self.mean
+    paramDict['sigma'] = self.sigma
+    paramDict['low'] = self.low
+    return paramDict
 
   def initializeDistribution(self):
     """
@@ -1711,16 +1750,19 @@ class Weibull(BoostDistribution):
     #  self.lowerBound     = 0.0
     self.initializeDistribution()
 
-  def addInitParams(self,tempDict):
+  def getInitParams(self):
     """
-      Function to get the input params that belong to this class
-      @ In, tempDict, dict, temporary dictionary
-      @ Out, None
+      Function to get the initial values of the input parameters that belong to
+      this class
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
     """
-    BoostDistribution.addInitParams(self, tempDict)
-    tempDict['lambda'] = self.lambdaVar
-    tempDict['k'     ] = self.k
-    tempDict['low'   ] = self.low
+    paramDict = BoostDistribution.getInitParams(self)
+    paramDict['lambda'] = self.lambdaVar
+    paramDict['k'     ] = self.k
+    paramDict['low'   ] = self.low
+    return paramDict
 
   def initializeDistribution(self):
     """
@@ -1772,15 +1814,18 @@ class NDimensionalDistributions(Distribution):
     workingDir = xmlNode.find('workingDir')
     if workingDir != None: self.workingDir = workingDir.text
 
-  def addInitParams(self,tempDict):
+  def getInitParams(self):
     """
-      Function to get the input params that belong to this class
-      @ In, tempDict, dict, temporary dictionary
-      @ Out, None
+      Function to get the initial values of the input parameters that belong to
+      this class
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
     """
-    Distribution.addInitParams(self, tempDict)
-    tempDict['functionType'] = self.functionType
-    tempDict['dataFilename'] = self.dataFilename
+    paramDict = Distribution.getInitParams(self)
+    paramDict['functionType'] = self.functionType
+    paramDict['dataFilename'] = self.dataFilename
+    return paramDict
 
   #######
   def updateRNGParam(self, dictParam):
@@ -1859,14 +1904,17 @@ class NDInverseWeight(NDimensionalDistributions):
 
     self.initializeDistribution()
 
-  def addInitParams(self,tempDict):
+  def getInitParams(self):
     """
-      Function to get the input params that belong to this class
-      @ In, tempDict, dict, temporary dictionary
-      @ Out, None
+      Function to get the initial values of the input parameters that belong to
+      this class
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
     """
-    NDimensionalDistributions.addInitParams(self, tempDict)
-    tempDict['p'] = self.p
+    paramDict = NDimensionalDistributions.getInitParams(self)
+    paramDict['p'] = self.p
+    return paramDict
 
   def initializeDistribution(self):
     """
@@ -2017,13 +2065,16 @@ class NDCartesianSpline(NDimensionalDistributions):
 
     self.initializeDistribution()
 
-  def addInitParams(self,tempDict):
+  def getInitParams(self):
     """
-      Function to get the input params that belong to this class
-      @ In, tempDict, dict, temporary dictionary
-      @ Out, None
+      Function to get the initial values of the input parameters that belong to
+      this class
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
     """
-    NDimensionalDistributions.addInitParams(self, tempDict)
+    paramDict = NDimensionalDistributions.getInitParams(self)
+    return paramDict
 
   def initializeDistribution(self):
     """
@@ -2197,13 +2248,16 @@ class MultivariateNormal(NDimensionalDistributions):
     self.covariance = covariance
     self.initializeDistribution()
 
-  def addInitParams(self,tempDict):
+  def getInitParams(self):
     """
-      Function to get the input params that belong to this class
-      @ In, tempDict, dict, temporary dictionary
-      @ Out, None
+      Function to get the initial values of the input parameters that belong to
+      this class
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
     """
-    NDimensionalDistributions.addInitParams(self, tempDict)
+    paramDict = NDimensionalDistributions.getInitParams(self)
+    return paramDict
 
   def initializeDistribution(self):
     """
