@@ -35,14 +35,20 @@ def run(x,y,z):
   a=[]
   b=[]
   c=[]
-  if -0.33 > x: numSteps = 5
-  elif 0.33 > x: numSteps = 4
-  else: numSteps = 3
+  if -0.33 > x:
+    numSteps = 5
+    dt = 0.1
+  elif 0.33 > x:
+    numSteps = 4
+    dt = 0.11
+  else:
+    numSteps = 3
+    dt = 0.3
   for t in range(numSteps):
-    ts.append(0.1*t)
-    xs.append(x + t*0.1)
-    ys.append(y + t*0.1)
-    zs.append(z + t*0.1)
+    ts.append(dt*t)
+    xs.append(x + t*dt)
+    ys.append(y + t*dt)
+    zs.append(z + t*dt)
     a.append(xs[-1]*(ys[-1]+zs[-1]))
     b.append(ys[-1]*(xs[-1]+zs[-1]))
     c.append(zs[-1]*(xs[-1]+ys[-1]))
