@@ -12,8 +12,8 @@ Random sampling strategies, such as the \xmlNode{MonteCarlo} and \xmlNode{Strati
 random number generator by the number of samples in the restart data, then continue sampling as normal.
 
 Grid-based sampling strategies, such as \xmlNode{Grid}, \xmlNode{SparseGridCollocation}, and \xmlNode{Sobol},
-require specific sampling points.  As each required point in the input space is determined, the sampler will 
-check the restart data for a match.  If a match is found, the corresponding output values are used instead of 
+require specific sampling points.  As each required point in the input space is determined, the sampler will
+check the restart data for a match.  If a match is found, the corresponding output values are used instead of
 sampling the \xmlNode{Model} for that point in the input space.  In order to determine a match, all of the
 values in the restart point must be within a relative tolerance of the corresponding point required by the
 sampler.  While RAVEN has a default tolerance of 1e-15, the user can adjust this tolerance using the
