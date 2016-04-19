@@ -2831,21 +2831,21 @@ class DataMining(BasePostProcessor):
       @ In, currentInp, list or DataObjects, Some form of data object or list of data objects handed to the post-processor
       @ Out, inputDict, dict, An input dictionary this object can process
     """
-    
+
     if type(currentInp) == list: currentInput = currentInp[-1]
     else                       : currentInput = currentInp
-    
+
     # FIXME this is temporal codes
     if self.type in ['temporalBasicStatistics']: # for testing time dependent dm - BasicStatistics
       return currentInput
-    
+
     if self.type in ['temporalSciKitLearn']: # for testing time dependent dm - time dependent clustering
       inputDict = {'Features':{}, 'parameters':{}, 'Labels':{}, 'metadata':{}}
-      if currentInput.type in ['HistorySet']:         
+      if currentInput.type in ['HistorySet']:
         # FIXME, this needs to be changed for asynchronous HistorySet
         if self.timeID in currentInput.getParam('output',1).keys(): self.Time = currentInput.getParam('output',1)[self.timeID]
         else: self.raiseAnError(ValueError, 'Time not found in input historyset')
-        # end of FIXME  
+        # end of FIXME
         historyKey = currentInput.getOutParametersValues().keys()
         noSample = len(historyKey)
         noTimeStep = len(self.Time)
@@ -2855,14 +2855,14 @@ class DataMining(BasePostProcessor):
           features = currentInput.getParaKeys('output')
           features.remove(self.timeID)
         else:
-          features = self.initializationOptionDict['KDD']['Features'].split(',')        
+          features = self.initializationOptionDict['KDD']['Features'].split(',')
         for param in features:
-          inputDict['Features'][param] = np.zeros(shape=(noSample,noTimeStep)) 
+          inputDict['Features'][param] = np.zeros(shape=(noSample,noTimeStep))
           for cnt, keyH in enumerate(historyKey):
-            inputDict['Features'][param][cnt,:] = currentInput.getParam('output', keyH)[param]                  
-      inputDict['metadata'] = currentInput.getAllMetadata()      
-      return inputDict    
-    
+            inputDict['Features'][param][cnt,:] = currentInput.getParam('output', keyH)[param]
+      inputDict['metadata'] = currentInput.getAllMetadata()
+      return inputDict
+
     if type(currentInp) == dict:
       if 'Features' in currentInput.keys(): return
     inputDict = {'Features':{}, 'parameters':{}, 'Labels':{}, 'metadata':{}}
@@ -2917,7 +2917,7 @@ class DataMining(BasePostProcessor):
       @ In, xmlNode, xml.etree.Element, Xml element node
       @ Out, None
     """
-    
+
     for child in xmlNode:
       # FIXME is there anything that is a float that will raise an exception for int?
       if child.attrib:
@@ -2944,7 +2944,7 @@ class DataMining(BasePostProcessor):
               except ValueError: self.initializationOptionDict[child.tag][childChild.tag] = childChild.text
       elif child.tag == 'timeID':
         self.timeID = child.text
-    if not hasattr(self, 'timeID'):       self.timeID = 'Time'            
+    if not hasattr(self, 'timeID'):       self.timeID = 'Time'
     if self.type: self.unSupervisedEngine = unSupervisedLearning.returnInstance(self.type, self, **self.initializationOptionDict['KDD'])
     else        : self.raiseAnError(IOError, 'No Data Mining Algorithm is supplied!')
 
@@ -2956,7 +2956,7 @@ class DataMining(BasePostProcessor):
       @ Out, None
     """
     if finishedJob.returnEvaluation() == -1: self.raiseAnError(RuntimeError, 'No available Output to collect (Run probabably is not finished yet)')
-    
+
     if self.type in ['SciKitLearn']:
       self.raiseADebug(str(finishedJob.returnEvaluation()))
       dataMineDict = finishedJob.returnEvaluation()[1]
@@ -2964,7 +2964,7 @@ class DataMining(BasePostProcessor):
         for param in output.getParaKeys('output'):
           if key == param: output.removeOutputValue(key)
         for value in dataMineDict['output'][key]: output.updateOutputValue(key, copy.copy(value))
-      
+
     elif self.type in ['temporalBasicStatistics']:
       bsDict = finishedJob.returnEvaluation()[1]
       for keyP in bsDict.keys():
@@ -2972,15 +2972,15 @@ class DataMining(BasePostProcessor):
           for keyM in bsDict[keyP].keys():
             output.updateMetadata(keyM, bsDict[keyP][keyM])
         else:
-          output.updateOutputValue(keyP, bsDict[keyP])  
-      
+          output.updateOutputValue(keyP, bsDict[keyP])
+
     elif self.type in ['temporalSciKitLearn']:
       tlDict = finishedJob.returnEvaluation()[1]
       historyKey = output.getOutParametersValues().keys()
       for index, keyH in enumerate(historyKey):
         for keyL in tlDict['output'].keys():
-          output.updateOutputValue([keyH,keyL], tlDict['output'][keyL][index,:])              
-      
+          output.updateOutputValue([keyH,keyL], tlDict['output'][keyL][index,:])
+
   def run(self, inputIn):
     """
       This method executes the postprocessor action. In this case it loads the results to specified dataObject
@@ -2993,11 +2993,11 @@ class DataMining(BasePostProcessor):
     else: dataObject = None
     Input = self.inputToInternal(inputIn)
 
-    if self.type in ['SciKitLearn']:       
+    if self.type in ['SciKitLearn']:
       outputDict = {}
       self.unSupervisedEngine.features = Input['Features']
       if not self.unSupervisedEngine.amITrained:  self.unSupervisedEngine.train(Input['Features'])
-  
+
       self.unSupervisedEngine.confidence()
       outputDict['output'] = {}
       noClusters = 1
@@ -3039,14 +3039,14 @@ class DataMining(BasePostProcessor):
           elif 'fit_transform' in dir(self.unSupervisedEngine.Method): components = self.unSupervisedEngine.Method.fit_transform(decompositionValues)
           for i in range(noComponents):
             outputDict['output'][self.name+'PCAComponent' + str(i + 1)] =  components[:, i]
-    
-    # FIXME, time dependent BasisStatistics is now a library of KDD, and the codes are placed 
-    #        in the unSupervisedLearning module. 
-    #        Make changes if necessary. 
+
+    # FIXME, time dependent BasisStatistics is now a library of KDD, and the codes are placed
+    #        in the unSupervisedLearning module.
+    #        Make changes if necessary.
     elif self.type in ['temporalBasicStatistics']:
-      self.unSupervisedEngine.run(Input)    
+      self.unSupervisedEngine.run(Input)
       outputDict = self.unSupervisedEngine.outputDict
-      
+
     elif self.type in ['temporalSciKitLearn']:
       outputDict = {}
       self.unSupervisedEngine.features = Input['Features']
@@ -3056,7 +3056,7 @@ class DataMining(BasePostProcessor):
       outputDict['output'] = {}
       noTimeStep = self.unSupervisedEngine.noTimeStep
       noSample = self.unSupervisedEngine.noSample
-      
+
       if self.unSupervisedEngine.SKLtype in ['cluster']:
         if 'labels' in self.unSupervisedEngine.outputDict.keys():
           labels = np.zeros(shape=(noSample,noTimeStep))
@@ -3066,51 +3066,51 @@ class DataMining(BasePostProcessor):
         if 'noClusters' in self.unSupervisedEngine.outputDict.keys():
           noClusters = self.unSupervisedEngine.outputDict['noClusters']
         if 'clusterCentersIndices' in self.unSupervisedEngine.outputDict.keys():
-          clusterCentersIndices = self.unSupervisedEngine.outputDict['clusterCentersIndices']          
+          clusterCentersIndices = self.unSupervisedEngine.outputDict['clusterCentersIndices']
         if 'clusterCenters' in self.unSupervisedEngine.outputDict.keys():
           clusterCenters = self.unSupervisedEngine.outputDict['clusterCenters']
           # Output cluster centroid to dataObject
           if not dataObject == None:
-            dataObject.updateOutputValue('Time', self.Time) 
+            dataObject.updateOutputValue('Time', self.Time)
             temp = {}
-            for cnt, feat in enumerate(self.unSupervisedEngine.features): 
+            for cnt, feat in enumerate(self.unSupervisedEngine.features):
               temp[feat] = np.zeros(shape=(np.max(labels)+1,noTimeStep))
-              temp[feat].fill(np.nan) # Alternative, try to fill with infty or zero. 
+              temp[feat].fill(np.nan) # Alternative, try to fill with infty or zero.
               for t in range(noTimeStep):
-                for ind, c in enumerate(clusterCentersIndices[t]):                            
+                for ind, c in enumerate(clusterCentersIndices[t]):
                   temp[feat][c,t] = copy.deepcopy(self.unSupervisedEngine.outputDict['clusterCenters'][t][ind,cnt])
-                  dataObject.updateOutputValue(self.name+'Centroid-'+feat+'-'+str(c), temp[feat][c,:])                      
+                  dataObject.updateOutputValue(self.name+'Centroid-'+feat+'-'+str(c), temp[feat][c,:])
         if 'inertia' in self.unSupervisedEngine.outputDict.keys():
           inertia = self.unSupervisedEngine.outputDict['inertia']
-          
+
       elif self.unSupervisedEngine.SKLtype in ['mixture']:
-        if 'labels' in self.unSupervisedEngine.outputDict.keys(): 
+        if 'labels' in self.unSupervisedEngine.outputDict.keys():
           labels = np.zeros(shape=(noSample,noTimeStep))
           for t in range(noTimeStep):
             labels[:,t] = self.unSupervisedEngine.outputDict['labels'][t]
           outputDict['output'][self.name+'Labels'] = labels
-        if 'covars' in self.unSupervisedEngine.outputDict.keys(): 
+        if 'covars' in self.unSupervisedEngine.outputDict.keys():
           mixtureCovars = self.unSupervisedEngine.outputDict['covars']
-        elif 'precs' in self.unSupervisedEngine.outputDict.keys(): 
+        elif 'precs' in self.unSupervisedEngine.outputDict.keys():
           mixtureCovars = self.unSupervisedEngine.outputDict['precs']
         if 'componentMeanIndices' in self.unSupervisedEngine.outputDict.keys():
           componentMeanIndices = self.unSupervisedEngine.outputDict['componentMeanIndices']
-        if 'means' in self.unSupervisedEngine.outputDict.keys(): 
-          mixtureMeans = self.unSupervisedEngine.outputDict['means']    
+        if 'means' in self.unSupervisedEngine.outputDict.keys():
+          mixtureMeans = self.unSupervisedEngine.outputDict['means']
           # Output cluster centroid to dataObject
           if not dataObject == None:
-            dataObject.updateOutputValue('Time', self.Time) 
+            dataObject.updateOutputValue('Time', self.Time)
             temp = {}
-            for cnt, feat in enumerate(self.unSupervisedEngine.features): 
+            for cnt, feat in enumerate(self.unSupervisedEngine.features):
               temp[feat] = np.zeros(shape=(max(max(componentMeanIndices.values()))+1,noTimeStep))
-              temp[feat].fill(np.nan) # Alternative, try to fill with infty or zero. 
+              temp[feat].fill(np.nan) # Alternative, try to fill with infty or zero.
               for t in range(noTimeStep):
-                for ind, c in enumerate(componentMeanIndices[t]):                          
+                for ind, c in enumerate(componentMeanIndices[t]):
                   temp[feat][c,t] = copy.deepcopy(self.unSupervisedEngine.outputDict['means'][t][ind,cnt])
-                  dataObject.updateOutputValue(self.name+'Mean-'+feat+'-'+str(c), temp[feat][c,:])  
-      
-      elif self.unSupervisedEngine.SKLtype in ['manifold']:  
-        noComponents = self.unSupervisedEngine.outputDict['noComponents'][0]      
+                  dataObject.updateOutputValue(self.name+'Mean-'+feat+'-'+str(c), temp[feat][c,:])
+
+      elif self.unSupervisedEngine.SKLtype in ['manifold']:
+        noComponents = self.unSupervisedEngine.outputDict['noComponents'][0]
         if 'embeddingVectors_' in self.unSupervisedEngine.outputDict.keys():
           embeddingVectors = self.unSupervisedEngine.outputDict['embeddingVectors_']
         if 'reconstructionError_' in self.unSupervisedEngine.outputDict.keys():
@@ -3121,21 +3121,21 @@ class DataMining(BasePostProcessor):
             outputDict['output'][self.name+'EmbeddingVector' + str(i + 1)] = np.zeros(shape=(noSample,noTimeStep))
           for t in range(noTimeStep):
             outputDict['output'][self.name+'EmbeddingVector' + str(i + 1)][:,t] =  embeddingVectors[t][:, i]
-            
+
       elif self.unSupervisedEngine.SKLtype in ['decomposition']:
         noComponents = self.unSupervisedEngine.outputDict['noComponents'][0]
         if 'components' in self.unSupervisedEngine.outputDict.keys():
           components = self.unSupervisedEngine.outputDict['components']
         if 'explainedVarianceRatio' in self.unSupervisedEngine.outputDict.keys():
           explainedVarianceRatio = self.unSupervisedEngine.outputDict['explainedVarianceRatio']
- 
+
         for i in range(noComponents):
           if self.name+'PCAComponent' + str(i + 1) not in outputDict['output'].keys():
             outputDict['output'][self.name+'PCAComponent' + str(i + 1)] = np.zeros(shape=(noSample,noTimeStep))
           for t in range(noTimeStep):
             outputDict['output'][self.name+'PCAComponent' + str(i + 1)][:,t] =  components[t][:, i]
-     
-      else: 
+
+      else:
         print ('Not yet implemented!...', self.unSupervisedEngine.SKLtype)
 
     return outputDict
