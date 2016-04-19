@@ -66,12 +66,12 @@
       <Sampler class="Samplers" type="AdaptiveDynamicEventTree">AdaptiveDETsimple</Sampler>
       <SolutionExport class="DataObjects" type="PointSet">LimitSurfSimple</SolutionExport>
       <Output class="DataObjects" type="PointSet">adaptiveOutsimple</Output>
-      <Output class="OutStreamManager" type="Print">limitSurfDump</Output>
-      <Output class="OutStreamManager" type="Print">adaptiveOutsimpleDump</Output>
+      <Output class="OutStreams" type="Print">limitSurfDump</Output>
+      <Output class="OutStreams" type="Print">adaptiveOutsimpleDump</Output>
     </MultiRun>
   </Steps>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="limitSurfDump">
       <type>csv</type>
       <source>LimitSurfSimple</source>
@@ -80,7 +80,7 @@
       <type>csv</type>
       <source>adaptiveOutsimple</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
   <DataObjects>
     <PointSet name="LimitSurfSimple">

@@ -27,11 +27,11 @@
             <Input   class = 'DataObjects'       type = 'HistorySet'      >mData</Input>
             <Model   class = 'Models'            type = 'PostProcessor' >PCA</Model> 
 			<Output  class = 'DataObjects' type = 'HistorySet'>mData</Output>
-			<Output   class = 'OutStreamManager'  type = 'Print'         >dummy</Output>
-			<Output   class = 'OutStreamManager'  type = 'Plot'          >plotPCAData</Output>
+			<Output   class = 'OutStreams'  type = 'Print'         >dummy</Output>
+			<Output   class = 'OutStreams'  type = 'Plot'          >plotPCAData</Output>
 		</PostProcess> 	
     </Steps>
-    <OutStreamManager>
+    <OutStreams>
 		<Print name = 'dummy'>
             <type>csv</type>
             <source>mData</source>
@@ -68,7 +68,7 @@
 				<how>png</how>
 			</actions>
 	    </Plot>
-    </OutStreamManager>
+    </OutStreams>
 	
     <DataObjects>
         <HistorySet name="mData">

@@ -21,6 +21,11 @@ class Assembler(MessageHandler.MessageUser):
   to get pointers (links) of other objects at the Simulation stage (Simulation.run() method)
   """
   def __init__(self):
+    """
+      Constructor
+      @ In, None
+      @ Out, None
+    """
     self.type               = self.__class__.__name__  # type
     self.name               = self.__class__.__name__  # name
     self.assemblerObjects   = {}                       # {MainClassName(e.g.Distributions):[class(e.g.Models),type(e.g.ROM),objectName]}
@@ -32,11 +37,11 @@ class Assembler(MessageHandler.MessageUser):
 
   def whatDoINeed(self):
     """
-    This method is used mainly by the Simulation class at the Step construction stage.
-    It is used for inquiring the class, which is implementing the method, about the kind of objects the class needs to
-    be initialize.
-    @ In , None
-    @ Out, needDict, dict, dictionary of objects needed (class:tuple(object type{if None, Simulation does not check the type}, object name))
+      This method is used mainly by the Simulation class at the Step construction stage.
+      It is used for inquiring the class, which is implementing the method, about the kind of objects the class needs to
+      be initialize.
+      @ In, None
+      @ Out, needDict, dict, dictionary of objects needed (class:tuple(object type{if None, Simulation does not check the type}, object name))
     """
     if '_localWhatDoINeed' in dir(self):
       needDict = self._localWhatDoINeed()
@@ -50,11 +55,11 @@ class Assembler(MessageHandler.MessageUser):
 
   def generateAssembler(self,initDict):
     """
-    This method is used mainly by the Simulation class at the Step construction stage.
-    It is used for sending to the instanciated class, which is implementing the method, the objects that have been requested through "whatDoINeed" method
-    It is an abstract method -> It must be implemented in the derived class!
-    @ In , initDict, dict, dictionary ({'mainClassName(e.g., Databases):{specializedObjectName(e.g.,DatabaseForSystemCodeNamedWolf):ObjectInstance}'})
-    @ Out, None
+      This method is used mainly by the Simulation class at the Step construction stage.
+      It is used for sending to the instanciated class, which is implementing the method, the objects that have been requested through "whatDoINeed" method
+      It is an abstract method -> It must be implemented in the derived class!
+      @ In, initDict, dict, dictionary ({'mainClassName(e.g., Databases):{specializedObjectName(e.g.,DatabaseForSystemCodeNamedWolf):ObjectInstance}'})
+      @ Out, None
     """
     if '_localGenerateAssembler' in dir(self):
       self._localGenerateAssembler(initDict)
@@ -64,6 +69,13 @@ class Assembler(MessageHandler.MessageUser):
         self.assemblerDict[key].append([interface[0],interface[1],interface[2],initDict[interface[0]][interface[2]]])
 
   def _readMoreXML(self,xmlNode):
+    """
+      Function to read the portion of the xml input that belongs to this specialized class
+      and initialize some variables based on the inputs got. This method is used to automatically generate the Assembler 'request'
+      based on the input of the daughter class.
+      @ In, xmlNode, xml.etree.ElementTree.Element, XML element node that represents the portion of the input that belongs to this class
+      @ Out, None
+    """
     self.type = xmlNode.tag
     if 'name' in xmlNode.attrib: self.name = xmlNode.attrib['name']
     self.printTag = self.type
@@ -77,7 +89,7 @@ class Assembler(MessageHandler.MessageUser):
             for token in self.requiredAssObject[1][0]:
                 if subNode.tag in token:
                     found = True
-                    if 'class' not in subNode.attrib.keys(): self.raiseAnError(IOError,'In '+self.type + ' ' + self.name+ ', block ' + subNode.tag + ' does not have the attribute class!!')
+                    if 'class' not in subNode.attrib.keys(): self.raiseAnError(IOError,'In '+self.type + ' ' + self.name+ ', block ' + subNode.tag + ' does not have the attribute \"class\"!')
                     if  subNode.tag not in self.assemblerObjects.keys(): self.assemblerObjects[subNode.tag] = []
                     self.assemblerObjects[subNode.tag].append([subNode.attrib['class'],subNode.attrib['type'],subNode.text])
                     testObjects[token] += 1

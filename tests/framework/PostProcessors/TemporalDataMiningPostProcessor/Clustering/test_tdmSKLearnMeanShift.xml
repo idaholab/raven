@@ -30,18 +30,18 @@
             <Input   class = 'DataObjects'       type = 'HistorySet'      >mData</Input>
             <Model   class = 'Models'            type = 'PostProcessor' >MeanShift1</Model> 
 			<Output  class = 'DataObjects' type = 'HistorySet'>mData</Output>
-			<Output   class = 'OutStreamManager'  type = 'Print'         >dummy</Output>
+			<Output   class = 'OutStreams'  type = 'Print'         >dummy</Output>
 		</PostProcess> 		
 		<IOStep name='writeOut' pauseAtEnd = 'True'>
 			<Input   class = 'DataObjects'       type = 'HistorySet'      >mData</Input>
 			<Input   class = 'DataObjects'       type = 'History'      	  >ppData</Input>
-			<Output   class = 'OutStreamManager'  type = 'Print'         >centroid</Output>			
-			<Output   class = 'OutStreamManager'  type = 'Plot'          >plotRawData</Output>
-			<Output   class = 'OutStreamManager'  type = 'Plot'          >plotPPDataLabel</Output>
-			<Output   class = 'OutStreamManager'  type = 'Plot'          >plotPPDataCentroid</Output>
+			<Output   class = 'OutStreams'  type = 'Print'         >centroid</Output>			
+			<Output   class = 'OutStreams'  type = 'Plot'          >plotRawData</Output>
+			<Output   class = 'OutStreams'  type = 'Plot'          >plotPPDataLabel</Output>
+			<Output   class = 'OutStreams'  type = 'Plot'          >plotPPDataCentroid</Output>
 		</IOStep>
     </Steps>
-    <OutStreamManager>
+    <OutStreams>
 		<Print name = 'dummy'>
             <type>csv</type>
             <source>mData</source>
@@ -176,7 +176,7 @@
 			</actions>
 	    </Plot>
 		
-    </OutStreamManager>
+    </OutStreams>
 	
     <DataObjects>
         <HistorySet name="mData">

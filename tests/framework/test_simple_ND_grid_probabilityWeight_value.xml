@@ -46,21 +46,21 @@
 
   <Steps>
     <MultiRun name="FirstMRun" re-seeding="1">
-      <Input   class="Files"            type=""             >lorentzAttractor.py</Input>
-      <Model   class="Models"           type="ExternalModel">PythonModule</Model>
-      <Sampler class="Samplers"         type="Grid"         >grid_value_SP</Sampler>
-      <Output  class="DataObjects"      type="PointSet"     >testPrintPointSet</Output>
-      <Output  class="OutStreamManager" type="Print"        >testPrintPointSet_dump</Output>
+      <Input class="Files" type="">lorentzAttractor.py</Input>
+      <Model class="Models" type="ExternalModel">PythonModule</Model>
+      <Sampler class="Samplers" type="Grid">grid_value_SP</Sampler>
+      <Output class="DataObjects" type="PointSet">testPrintPointSet</Output>
+      <Output class="OutStreams" type="Print">testPrintPointSet_dump</Output>
     </MultiRun>
   </Steps>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="testPrintPointSet_dump">
       <type>csv</type>
       <source>testPrintPointSet</source>
       <what>Input,Output,Input|ProbabilityWeight</what>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
   <DataObjects>
     <PointSet name="testPrintPointSet">

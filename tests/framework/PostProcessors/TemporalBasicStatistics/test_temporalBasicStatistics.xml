@@ -29,19 +29,19 @@
             <Input   class = 'DataObjects'       type = 'HistorySet'      >rawData</Input>
             <Model   class = 'Models'            type = 'PostProcessor' >tbs</Model> 
 			<Output  class = 'DataObjects' 		 type = 'History'>ppData</Output>
-			<Output   class = 'OutStreamManager'  type = 'Print'         >dummy</Output>
-			<Output   class = 'OutStreamManager'  type = 'Plot'          >plotPPDataMean</Output>
-			<Output   class = 'OutStreamManager'  type = 'Plot'          >plotPPDataSigma</Output>
-			<Output   class = 'OutStreamManager'  type = 'Plot'          >plotPPDataSkewKurtosis</Output>
-			<Output   class = 'OutStreamManager'  type = 'Plot'          >plotPPDataCov</Output>
-			<Output   class = 'OutStreamManager'  type = 'Plot'          >plotPPDataCorr</Output>
-			<Output   class = 'OutStreamManager'  type = 'Plot'          >plotPPDataNSens</Output>
-			<Output   class = 'OutStreamManager'  type = 'Plot'          >plotPPDataVDSens</Output>
-			<Output   class = 'OutStreamManager'  type = 'Plot'          >plotPPDataSens</Output>
+			<Output   class = 'OutStreams'  type = 'Print'         >dummy</Output>
+			<Output   class = 'OutStreams'  type = 'Plot'          >plotPPDataMean</Output>
+			<Output   class = 'OutStreams'  type = 'Plot'          >plotPPDataSigma</Output>
+			<Output   class = 'OutStreams'  type = 'Plot'          >plotPPDataSkewKurtosis</Output>
+			<Output   class = 'OutStreams'  type = 'Plot'          >plotPPDataCov</Output>
+			<Output   class = 'OutStreams'  type = 'Plot'          >plotPPDataCorr</Output>
+			<Output   class = 'OutStreams'  type = 'Plot'          >plotPPDataNSens</Output>
+			<Output   class = 'OutStreams'  type = 'Plot'          >plotPPDataVDSens</Output>
+			<Output   class = 'OutStreams'  type = 'Plot'          >plotPPDataSens</Output>
 		</PostProcess> 
     </Steps>
 	
-    <OutStreamManager>
+    <OutStreams>
 		<Print name = 'dummy'>
             <type>csv</type>
             <source>ppData</source>
@@ -402,7 +402,7 @@
 			</actions>
 	    </Plot>	
 
-    </OutStreamManager>
+    </OutStreams>
     <DataObjects>
         <HistorySet name="rawData">
             <Input>n</Input>

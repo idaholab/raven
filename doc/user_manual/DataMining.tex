@@ -40,14 +40,13 @@ The following is a list of acceptable sub-nodes:
 \end{itemize}
 
 \paragraph{temporalBasicStatistics}
-The library \xmlString{temporalBasicStatistics} performs the exact same functionality as \xmlString{BasicProcessor} post-processor (see Section \ref{BasicStatistics}), but over HistorySet as opposed to PointSet. The use instruction of \xmlString{temporalBasicStatistics} is also same as that of \xmlString{BasicProcessor}, and so is omitted here. For detail, please see Section \ref{BasicStatistics}. Note that \xmlString{temporalBasicStatistics} performs the task given in \xmlNode{what} for each time step, and so only synchronized HistorySet can be used as input to this model. For unsynchronized HistorySet, use \xmlString{HistorySetSync} method in \xmlString{Interfaced} post-processor to synchronize the input data before using \xmlString{temporalBasicStatistics}. 
+The library \xmlString{temporalBasicStatistics} performs the exact same functionality as \xmlString{BasicProcessor} post-processor (see Section \ref{BasicStatistics}), but over HistorySet as opposed to PointSet. The use instruction of \xmlString{temporalBasicStatistics} is also same as that of \xmlString{BasicProcessor}, and so is omitted here. For detail, please see Section \ref{BasicStatistics}. Note that \xmlString{temporalBasicStatistics} performs the task given in \xmlNode{what} for each time step, and so only synchronized HistorySet can be used as input to this model. For unsynchronized HistorySet, use \xmlString{HistorySetSync} method in \xmlString{Interfaced} post-processor to synchronize the input data before using \xmlString{temporalBasicStatistics}.
 \paragraph{SciKitLearn and temporalSciKitLearn}
-Both \xmlString{SciKitLearn} and \xmlString{temporalSciKitLearn} are based on algorithms in SciKit-Learn library, where the former performs data mining over PointSet while the latter on HistorySet. Note that \xmlString{temporalSciKitLearn} performs the task given in \xmlNode{SKLType} (see below) for each time step, and so only synchronized HistorySet can be used as input to this model. For unsynchronized HistorySet, use \xmlString{HistorySetSync} method in \xmlString{Interfaced} post-processor to synchronize the input data before using \xmlString{temporalSciKitLearn}. The rest of this subsection and following subsection are dedicated to \xmlString{SciKitLearn} and \xmlString{temporalSciKitLearn} libraries. 
+Both \xmlString{SciKitLearn} and \xmlString{temporalSciKitLearn} are based on algorithms in SciKit-Learn library, where the former performs data mining over PointSet while the latter on HistorySet. Note that \xmlString{temporalSciKitLearn} performs the task given in \xmlNode{SKLType} (see below) for each time step, and so only synchronized HistorySet can be used as input to this model. For unsynchronized HistorySet, use \xmlString{HistorySetSync} method in \xmlString{Interfaced} post-processor to synchronize the input data before using \xmlString{temporalSciKitLearn}. The rest of this subsection and following subsection are dedicated to \xmlString{SciKitLearn} and \xmlString{temporalSciKitLearn} libraries.
 
-The algorithm for the dataMining is chosen by the subnode
-\xmlNode{SKLType} under the parent node \xmlNode{KDD}. The format is
-same as in \ref{subsubsec:SciKitLearn}. However, for the completeness sake
-, it is repeated here.
+The algorithm for the dataMining is chosen by the subnode \xmlNode{SKLType} under the parent node
+\xmlNode{KDD}. The format is same as in \ref{subsubsec:SciKitLearn}. However, for the completeness
+sake , it is repeated here.
 
 The data that are used in the training of the \textbf{DataMining}
 postprocessor are suplied with subnode \xmlNode{Features} in the parent node
@@ -509,10 +508,10 @@ installed.
 		\item ‘arpack’,
 		\item ‘lobpcg’, or
 		\item ‘amg’
-	\end{itemize}	
+	\end{itemize}
 	\nb{AMG requires pyamg to be installed. It can be faster on very large, sparse
 	problems, but may also lead to instabilities}
-	%	
+	%
 	\item \xmlNode{random\_state}, \xmlDesc{integer seed, RandomState instance,
 	 or None, optional field}, A pseudo random number generator used for the
 	initialization of the lobpcg eigen vectors decomposition when $eigen_solver == ‘amg’$
@@ -662,7 +661,7 @@ The Silhouette Coefficient for a set of samples is given as the mean of the
 		 signal (the relative variance scales of the components) but can
 		sometime improve the predictive accuracy of the downstream estimators
 		 by making there data respect some hard-wired assumptions. \default{False}
-	\end{itemize}		
+	\end{itemize}
 \textbf{Example:}
 \begin{lstlisting}[style=XML,morekeywords={subType}]
 <Simulation>
@@ -836,7 +835,7 @@ The Silhouette Coefficient for a set of samples is given as the mean of the
 		Lars will be faster if the estimated components are sparse. \default{lars}
 		\item \xmlNode{random\_state}, \xmlDesc{integer or Random State, optional field},
 		 Pseudo number generator state used for random sampling. \default{None}
-	\end{itemize}	
+	\end{itemize}
 \end{itemize}
 
 \subparagraph{Truncated singular value decomposition} \hfil \\
