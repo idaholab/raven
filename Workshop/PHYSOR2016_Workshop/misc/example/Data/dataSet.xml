@@ -1,0 +1,5 @@
+<data name="cluster_data" type="HistorySet">
+<input>n</input>
+<output>Time,x,y</output>
+<inputFilename>dataSet.csv</inputFilename>
+</data>
