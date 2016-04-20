@@ -71,14 +71,14 @@
     </OutStreams>
 	
     <DataObjects>
+      <History name='ppData'>
+	<Input>n</Input>
+	<Output>Time</Output>
+      </History>
         <HistorySet name="mData">
             <Input>n</Input>
             <Output>Time,x1,x2,x3,x4</Output>
         </HistorySet>
-		<History name='ppData'>
-			<Input>n</Input>
-			<Output>Time</Output>
-		</History> 
     </DataObjects>
 </Simulation>
 
