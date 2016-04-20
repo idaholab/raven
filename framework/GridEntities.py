@@ -209,11 +209,11 @@ class GridEntity(GridBase):
     """
     return interp1d(x, np.linspace(0.0, 1.0, len(x)), kind='nearest')
 
-  def __len__(self):
+  def len(self):
     """
-      Overload __len__ method.
+      Size of the grid
       @ In, None
-      @ Out, __len__, int, total number of nodes
+      @ Out, len, np.int64, total number of nodes
     """
     return self.gridContainer['gridLength'] if 'gridLength' in self.gridContainer.keys() else 0
 
@@ -289,7 +289,7 @@ class GridEntity(GridBase):
   def _readGridStructure(self,child,parent):
     """
       This method is aimed to read the grid structure in the xml node
-      @ In, child, xml.etree.ElementTree.Element, the xml node containg the grid info
+      @ In, child, xml.etree.ElementTree.Element, the xml node containing the grid info
       @ In, parent, xml.etree.ElementTree.Element, the xml node that contains the node in which the grid info are defined
       @ Out, gridStruct, tuple, the grid structure read ((type, construction type, upper and lower bounds), gridName)
     """
@@ -305,7 +305,7 @@ class GridEntity(GridBase):
   def _fillGrid(self,child):
     """
       This method is aimed to fill the grid structure from an XML node
-      @ In, child, xml.etree.ElementTree.Element, the xml node containg the grid info
+      @ In, child, xml.etree.ElementTree.Element, the xml node containing the grid info
       @ Out, gridStruct, tuple, the grid structure read ((type, construction type, upper and lower bounds), gridName)
     """
     constrType = None
@@ -436,11 +436,11 @@ class GridEntity(GridBase):
       if self.gridContainer['transformationMethods'] != None:
         if varName in self.gridContainer['transformationMethods'].keys():
           self.gridContainer['gridVectors'][varName]    = np.asarray([self.gridContainer['transformationMethods'][varName][0](coor) for coor in self.gridContainer['gridVectors'][varName]])
-      pointByVar[varId]                                 = np.shape(self.gridContainer['gridVectors'][varName])[0]
-    self.gridContainer['gridShape']                     = tuple   (pointByVar)                            # tuple of the grid shape
-    self.gridContainer['gridLength']                    = np.prod (pointByVar)                            # total number of point on the grid
-    #self.gridContainer['gridMatrix']                = np.zeros(self.gridContainer['gridShape'])       # grid where the values of the goalfunction are stored
+      pointByVar[varId]                                 = np.int(np.shape(self.gridContainer['gridVectors'][varName])[0])
+    self.gridContainer['gridShape']                     = tuple   (pointByVar)                             # tuple of the grid shape
+    self.gridContainer['gridLength']                    = np.int(np.prod (np.asarray(pointByVar, dtype=np.float128))) # total number of point on the grid
     self.gridContainer['gridCoorShape']                 = tuple   (pointByVar+[self.nVar])                # shape of the matrix containing all coordinate of all points in the grid
+    print(self.gridContainer['gridLength'])
     if self.constructTensor: self.gridContainer['gridCoord'] = np.zeros(self.gridContainer['gridCoorShape'])   # the matrix containing all coordinate of all points in the grid
     self.uniqueCellNumber                               = np.prod ([element-1 for element in pointByVar]) # number of unique cells
     #filling the coordinate on the grid
