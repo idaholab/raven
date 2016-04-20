@@ -65,6 +65,7 @@ class MooseBasedAppInterface(CodeInterfaceBase):
     self._samplersDictionary['ResponseSurfaceDesign'] = self.pointSamplerForMooseBasedApp
     self._samplersDictionary['Adaptive']              = self.pointSamplerForMooseBasedApp
     self._samplersDictionary['SparseGridCollocation'] = self.pointSamplerForMooseBasedApp
+    self._samplersDictionary['EnsembleForward'      ] = self.pointSamplerForMooseBasedApp
     found = False
     for index, inputFile in enumerate(currentInputFiles):
       inputFile = inputFile.getAbsFile()

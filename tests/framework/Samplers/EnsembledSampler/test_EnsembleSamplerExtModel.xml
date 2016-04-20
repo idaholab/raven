@@ -1,13 +1,15 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <RunInfo>
-    <WorkingDir>/Users/alfoa/projects/raven/tests/framework/Samplers/EnsembledSampler</WorkingDir>
+    <WorkingDir>EnsembleForwardTestExt</WorkingDir>
     <Sequence>EnsembleForwardStep,EnsembleForwardOutstreamStep</Sequence>
-    <batchSize>4</batchSize>
+    <batchSize>1</batchSize>
   </RunInfo>
 
   <Models>
-    <Dummy name="MyDummy1" subType=""/>
+      <ExternalModel ModuleToLoad="lorentzAttractor" name="extModel" subType="">
+          <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0</variables>
+      </ExternalModel>
   </Models>
 
   <Distributions>
@@ -31,34 +33,27 @@
   <Samplers>
     <EnsembleForward name="testEnsembleForward">
       <Grid>
-        <variable name="x1">
+        <variable name="x0">
           <distribution>unif</distribution>
           <grid construction="custom" type="value">0.02 0.5 0.6</grid>
         </variable>
-        <variable name="x2">
-          <distribution>norm</distribution>
-          <grid construction="custom" type="CDF">0.0 0.5 1.0</grid>
-        </variable>
       </Grid>
       <Stratified>
-        <variable name="x3">
+        <variable name="z0">
           <distribution>tri</distribution>
           <grid construction="equal" steps="2" type="CDF">0.2 0.8</grid>
         </variable>
-        <variable name="x4">
+        <variable name="y0">
           <distribution>unif</distribution>
           <grid construction="equal" steps="2" type="value">0.5 0.8</grid>
         </variable>
       </Stratified>
       <MonteCarlo>
         <samplerInit>
-          <limit>3</limit>
+          <limit>4</limit>
         </samplerInit>
-        <variable name="x5">
+        <variable name="sigma">
           <distribution>norm</distribution>
-        </variable>
-        <variable name="x6">
-          <distribution>unif</distribution>
         </variable>
       </MonteCarlo>
       <ResponseSurfaceDesign>
@@ -68,55 +63,46 @@
           <alpha>orthogonal</alpha>
           <face>circumscribed</face>
         </ResponseSurfaceDesignSettings>
-        <variable name="x7">
+        <variable name="rho">
           <distribution>unif</distribution>
           <grid construction="custom" type="CDF">0.0 1.0</grid>
         </variable>
-        <variable name="x8">
+        <variable name="beta">
           <distribution>tri</distribution>
           <grid construction="custom" type="value">0.1 1.5</grid>
         </variable>
       </ResponseSurfaceDesign>
-      <FactorialDesign>
-        <FactorialSettings>
-          <algorithmType>pb</algorithmType>
-        </FactorialSettings>
-        <variable name="x9">
-          <distribution>norm</distribution>
-          <grid construction="custom" type="value">0.02 0.5</grid>
-        </variable>
-        <variable name="x10">
-          <distribution>tri</distribution>
-          <grid construction="custom" type="CDF">0.5 1.0</grid>
-        </variable>
-      </FactorialDesign>
     </EnsembleForward>
   </Samplers>
 
-  <OutStreamManager>
-    <Print name="PointsetEnsembleForward">
+  <OutStreams>
+    <Print name="PointsetEnsembleForwardExtModel">
       <type>csv</type>
       <source>PointsetEnsembleForward</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
   <Steps>
-    <MultiRun name="EnsembleForwardStep">
-      <Input   class="DataObjects" type="PointSet"       >PointsetEnsembleForward</Input>
-      <Model   class="Models"      type="Dummy"          >MyDummy1</Model>
+    <MultiRun name="EnsembleForwardStep" sleepTime="0.0000001">
+      <Input   class="DataObjects" type="PointSet"       >inputPlaceHolder</Input>
+      <Model   class="Models"      type="ExternalModel"  >extModel</Model>
       <Sampler class="Samplers"    type="EnsembleForward">testEnsembleForward</Sampler>
       <Output  class="DataObjects" type="PointSet"       >PointsetEnsembleForward</Output>
     </MultiRun>
     <IOStep name="EnsembleForwardOutstreamStep">
       <Input   class="DataObjects"      type="PointSet">PointsetEnsembleForward</Input>
-      <Output  class="OutStreamManager" type="Print"   >PointsetEnsembleForward</Output>
+      <Output  class="OutStreams"       type="Print"   >PointsetEnsembleForwardExtModel</Output>
     </IOStep>
   </Steps>
 
   <DataObjects>
     <PointSet name="PointsetEnsembleForward">
-      <Input>x1,x2,x3,x4,x5,x6,x7,x8,x9,x10</Input>
-      <Output>OutputPlaceHolder</Output>
+      <Input>sigma,rho,beta,x0,y0,z0</Input>
+      <Output>x,y,z,time</Output>
+    </PointSet>
+    <PointSet name="inputPlaceHolder">
+        <Input>x0,y0,z0,sigma,rho,beta</Input>
+        <Output>OutputPlaceHolder</Output>
     </PointSet>
   </DataObjects>
 

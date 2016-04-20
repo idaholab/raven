@@ -3,7 +3,7 @@
   <RunInfo>
     <WorkingDir>EnsembleForwardTest</WorkingDir>
     <Sequence>EnsembleForwardStep,EnsembleForwardOutstreamStep</Sequence>
-    <batchSize>4</batchSize>
+    <batchSize>1</batchSize>
   </RunInfo>
 
   <Models>
@@ -52,7 +52,7 @@
       </Stratified>
       <MonteCarlo>
         <samplerInit>
-          <limit>3</limit>
+          <limit>2</limit>
         </samplerInit>
         <variable name="x5">
           <distribution>norm</distribution>
@@ -93,15 +93,15 @@
     </EnsembleForward>
   </Samplers>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="PointsetEnsembleForward">
       <type>csv</type>
       <source>PointsetEnsembleForward</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
   <Steps>
-    <MultiRun name="EnsembleForwardStep">
+    <MultiRun name="EnsembleForwardStep" sleepTime="0.0000001">
       <Input   class="DataObjects" type="PointSet"       >PointsetEnsembleForward</Input>
       <Model   class="Models"      type="Dummy"          >MyDummy1</Model>
       <Sampler class="Samplers"    type="EnsembleForward">testEnsembleForward</Sampler>
@@ -109,7 +109,7 @@
     </MultiRun>
     <IOStep name="EnsembleForwardOutstreamStep">
       <Input   class="DataObjects"      type="PointSet">PointsetEnsembleForward</Input>
-      <Output  class="OutStreamManager" type="Print"   >PointsetEnsembleForward</Output>
+      <Output  class="OutStreams" type="Print"   >PointsetEnsembleForward</Output>
     </IOStep>
   </Steps>
 
