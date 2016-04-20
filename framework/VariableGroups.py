@@ -89,6 +89,7 @@ class VariableGroup(BaseClasses.BaseType):
       baseVars = set(base.getVars())
       #do modifiers to base
       modifiers = list(m.strip() for m in self._list)
+      orderOps = [] #order of operations that occurred, just var names and dep lists
       for mod in modifiers:
         #remove internal whitespace
         mod = mod.replace(' ','')
@@ -101,25 +102,28 @@ class VariableGroup(BaseClasses.BaseType):
         if varName not in deps.keys():
           modSet = set([varName])
         else:
-          modSet = deps[varName].getVars()
+          modSet = set(deps[varName].getVars())
+        orderOps.append(modSet.copy())
         if   op == '+': baseVars.update(modSet)
         elif op == '-': baseVars.difference_update(modSet)
         elif op == '^': baseVars.intersection_update(modSet)
         elif op == '%': baseVars.symmetric_difference_update(modSet)
       #sort variable list into self.variables
       #  -> first, sort through top-level vars
-      for var in self.getVars():
+      for var in base.getVars():
         if var in baseVars:
           self.variables.append(var)
           baseVars.remove(var)
-      #  -> then, sort through deps in order
-      for depName,dep in deps.items():
-        for var in dep.getVats():
+      #  -> then, sort through deps/operations in order
+      for mod in orderOps:
+        for var in mod:
           if var in baseVars:
             self.variables.append(var)
             baseVars.remove(var)
       #  -> baseVars better be empty now!
       if len(baseVars) > 0:
+        self.raiseAWarning('    End vars    :',self.variables)
+        self.raiseAWarning('    End BaseVars:',baseVars)
         self.raiseAnError(RuntimeError, 'Not all variableGroup entries were accounted for!  The operations were not performed correctly')
     self.initialized=True
 
@@ -137,7 +141,7 @@ class VariableGroup(BaseClasses.BaseType):
       @ In, None
       @ Out, variables, list(str), set of variable names
     """
-    return self.variables.copy()
+    return self.variables[:]
 
   def getVarsString(self,delim=','):
     """
