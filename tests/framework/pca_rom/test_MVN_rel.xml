@@ -47,16 +47,16 @@
       <Model class="Models" type="ExternalModel">PythonModule</Model>
       <Sampler class="Samplers" type="MonteCarlo">MCExternalRel</Sampler>
       <Output class="DataObjects" type="PointSet">testPrintPointSetRel</Output>
-      <Output class="OutStreamManager" type="Print">testPrintPointSetRel_dump</Output>
+      <Output class="OutStreams" type="Print">testPrintPointSetRel_dump</Output>
     </MultiRun>
   </Steps>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="testPrintPointSetRel_dump">
       <type>csv</type>
       <source>testPrintPointSetRel</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
   <DataObjects>
     <PointSet name="inputPlaceHolder">

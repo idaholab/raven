@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation color="true" verbosity='debug'>
+<Simulation color="true" verbosity="debug">
   <RunInfo>
     <WorkingDir>scgpc</WorkingDir>
     <Sequence>Umake,Utrain,Utest,Uprint</Sequence>
@@ -56,8 +56,8 @@
     <IOStep name="Uprint">
       <Input class="DataObjects" type="PointSet">Utests</Input>
       <Input class="Models" type="ROM">UROM</Input>
-      <Output class="OutStreamManager" type="Print">Udump</Output>
-      <Output class="OutStreamManager" type="Print">Udumprom</Output>
+      <Output class="OutStreams" type="Print">Udump</Output>
+      <Output class="OutStreams" type="Print">Udumprom</Output>
     </IOStep>
     <RomTrainer name="Utrain">
       <Input class="DataObjects" type="PointSet">Usolns</Input>
@@ -80,7 +80,7 @@
     </PointSet>
   </DataObjects>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="Udump">
       <type>csv</type>
       <source>Utests</source>
@@ -90,6 +90,6 @@
       <source>UROM</source>
       <what>all</what>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
 </Simulation>

@@ -70,7 +70,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
   validateDict['Output' ][1]['required'    ] = False
   validateDict['Output' ][1]['multiplicity'] = 'n'
   validateDict['Output'].append(testDict.copy())
-  validateDict['Output' ][2]['class'       ] = 'OutStreamManager'
+  validateDict['Output' ][2]['class'       ] = 'OutStreams'
   validateDict['Output' ][2]['type'        ] = ['Plot','Print']
   validateDict['Output' ][2]['required'    ] = False
   validateDict['Output' ][2]['multiplicity'] = 'n'
@@ -171,22 +171,28 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       self.raiseAnError(IOError,'missed subType for the model '+self.name)
     del(xmlNode.attrib['subType'])
 
-  def addInitParams(self,tempDict):
+  def getInitParams(self):
     """
       This function is called from the base class to print some of the information inside the class.
       Whatever is permanent in the class and not inherited from the parent class should be mentioned here
       The information is passed back in the dictionary. No information about values that change during the simulation are allowed
-      @ In, tempDict, dict, dictionary to be updated. {'attribute name':value}
-      @ Out, None
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
     """
-    tempDict['subType'] = self.subType
+    paramDict = {}
+    paramDict['subType'] = self.subType
+    return paramDict
 
-  def localAddInitParams(self,tempDict):
+  def localGetInitParams(self):
     """
       Method used to export to the printer in the base class the additional PERMANENT your local class have
-      @ In, tempDict, dict, dictionary to be updated. {'attribute name':value}
-      @ Out, None
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
     """
+    paramDict = {}
+    return paramDict
 
   def initialize(self,runInfo,inputs,initDict=None):
     """
@@ -559,19 +565,19 @@ class ROM(Dummy):
         instrom.reset()
       self.amITrained   = False
 
-  def addInitParams(self,originalDict):
+  def getInitParams(self):
     """
       This function is called from the base class to print some of the information inside the class.
       Whatever is permanent in the class and not inherited from the parent class should be mentioned here
       The information is passed back in the dictionary. No information about values that change during the simulation are allowed
-      @ In, originalDict, dict, dictionary to be updated. {'attribute name':value}
-      @ Out, None
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
     """
-    ROMdict = {}
+    paramDict = {}
     for target, instrom in self.SupervisedEngine.items():
-      ROMdict[self.name + '|' + target] = instrom.returnInitialParameters()
-    for key in ROMdict.keys():
-      originalDict[key] = ROMdict[key]
+      paramDict[self.name + '|' + target] = instrom.returnInitialParameters()
+    return paramDict
 
   def train(self,trainingSet):
     """
@@ -992,32 +998,38 @@ class Code(Model):
     self.code.addInputExtension(list(a.strip('.') for b in (c for c in self.fargs ['input'].values()) for a in b))
     self.code.addDefaultExtension()
 
-  def addInitParams(self,tempDict):
+  def getInitParams(self):
     """
       This function is called from the base class to print some of the information inside the class.
       Whatever is permanent in the class and not inherited from the parent class should be mentioned here
       The information is passed back in the dictionary. No information about values that change during the simulation are allowed
-      @ In, tempDict, dict, dictionary to be updated. {'attribute name':value}
-      @ Out, None
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
     """
-    Model.addInitParams(self, tempDict)
-    tempDict['executable']=self.executable
+    paramDict = Model.getInitParams(self)
+    paramDict['executable']=self.executable
     for key, value in self.alias.items():
-      tempDict['The code variable '+str(value)+' it is filled using the framework variable '] = key
+      paramDict['The code variable '+str(value)+' it is filled using the framework variable '] = key
+    return paramDict
 
-  def addCurrentSetting(self,originalDict):
+  def getCurrentSetting(self):
     """
-      extension of addInitParams for the Code(model)
-      to print some of the information inside the class.
+      This can be seen as an extension of getInitParams for the Code(model)
+      that will return some information regarding the current settings of the
+      code.
       Whatever is permanent in the class and not inherited from the parent class should be mentioned here
       The information is passed back in the dictionary. No information about values that change during the simulation are allowed
-      @ In, originalDict, dict, dictionary to be updated. {'attribute name':value}
-      @ Out, None
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
     """
-    originalDict['current working directory'] = self.workingDir
-    originalDict['current output file root' ] = self.outFileRoot
-    originalDict['current input file'       ] = self.currentInputFiles
-    originalDict['original input file'      ] = self.oriInputFiles
+    paramDict = {}
+    paramDict['current working directory'] = self.workingDir
+    paramDict['current output file root' ] = self.outFileRoot
+    paramDict['current input file'       ] = self.currentInputFiles
+    paramDict['original input file'      ] = self.oriInputFiles
+    return paramDict
 
   def getAdditionalInputEdits(self,inputInfo):
     """
@@ -1162,15 +1174,17 @@ class Projector(Model):
     self.code = PostProcessors.returnInstance(self.subType,self)
     self.code._readMoreXML(xmlNode)
 
-  def addInitParams(self,tempDict):
+  def getInitParams(self):
     """
       This function is called from the base class to print some of the information inside the class.
       Whatever is permanent in the class and not inherited from the parent class should be mentioned here
       The information is passed back in the dictionary. No information about values that change during the simulation are allowed
-      @ In, tempDict, dict, dictionary to be updated. {'attribute name':value}
-      @ Out, None
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
     """
-    Model.addInitParams(self, tempDict)
+    paramDict = Model.getInitParams(self)
+    return paramDict
 
   def initialize(self,runInfoDict,myInput,initDict=None):
     """
@@ -1239,7 +1253,7 @@ class PostProcessor(Model, Assembler):
     cls.validateDict['Output' ][2]['required'    ] = False
     cls.validateDict['Output' ][2]['multiplicity'] = 'n'
     cls.validateDict['Output'].append(cls.testDict.copy())
-    cls.validateDict['Output' ][3]['class'       ] = 'OutStreamManager'
+    cls.validateDict['Output' ][3]['class'       ] = 'OutStreams'
     cls.validateDict['Output' ][3]['type'        ] = ['Plot','Print']
     cls.validateDict['Output' ][3]['required'    ] = False
     cls.validateDict['Output' ][3]['multiplicity'] = 'n'
@@ -1304,15 +1318,17 @@ class PostProcessor(Model, Assembler):
     self.interface = PostProcessors.returnInstance(self.subType,self)
     self.interface._readMoreXML(xmlNode)
 
-  def addInitParams(self,tempDict):
+  def getInitParams(self):
     """
       This function is called from the base class to print some of the information inside the class.
       Whatever is permanent in the class and not inherited from the parent class should be mentioned here
       The information is passed back in the dictionary. No information about values that change during the simulation are allowed
-      @ In, tempDict, dict, dictionary to be updated. {'attribute name':value}
-      @ Out, None
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
     """
-    Model.addInitParams(self, tempDict)
+    paramDict = Model.getInitParams(self)
+    return paramDict
 
   def initialize(self,runInfo,inputs, initDict=None):
     """

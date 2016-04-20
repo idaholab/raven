@@ -271,6 +271,14 @@ XML node and the requirements for other attributes change:
         ``restart'' tool, where it accepts pre-existing solutions in the PointSet instead
         of recalculating solutions.
     \end{itemize}
+    \begin{itemize}
+      \item \xmlNode{restartTolerance}, \xmlDesc{float, optional field}, the
+        body of this XML node must contain a valid floating point value.  If a \xmlNode{Restart} node is
+        supplied for this \xmlNode{Sampler}, this node offers a way to determine how strictly matching points
+        are determined.  Given a point in the input space, if all the points in a restart point are within
+        the relative tolerance listed in this node to the given point, the restart point will be used instead
+        of recalculated.  \default{1e-15}
+    \end{itemize}
 }
 
 \newcommand{\variablesTransformationDescription}[1]
@@ -300,7 +308,7 @@ XML node and the requirements for other attributes change:
     \xmlNode{convergenceStudy}, \xmlDesc{optional node},
     if included, triggers writing state points at particular numbers of model solves for the purpose of
     a convergence study.  The study is performed by writing XML output files as described in the
-    OutStreamManager for ROMs at the state points requested, using \xmlString{all} as the requested
+    OutStreams for ROMs at the state points requested, using \xmlString{all} as the requested
     \xmlNode{what} values.
     The state points are identified when a certain
     number of model runs is passed, as specified by the \xmlNode{runStatePoints} node.
@@ -673,10 +681,13 @@ Example:
       </distribution>
       <grid type='CDF' construction='custom'>0.2 0.5 1.0</grid>
     </variable>
+    <Restart class='DataObject' type='PointSet'>data</Restart>
+    <restartTolerance>1e-6</restartTolerance>
   </Grid>
   ...
 </Samplers>
 \end{lstlisting}
+\nb A restart example is included here but is not necessary in general.
 
 %%% Forward Samplers: Sparse Grid Collocation
 \subsubsection{Sparse Grid Collocation}

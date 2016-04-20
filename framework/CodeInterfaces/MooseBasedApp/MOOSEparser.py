@@ -49,9 +49,18 @@ class MOOSEparser():
           if b'#' in line[line.index(b']'):]: current.tail.append(line[line.index(b']')+1:].strip(b'\n').lstrip())
       elif len(line)!=0:
         if not line.startswith(b'#'):
-          listline = line.split(b'=')
-          if b'#' not in listline[0]: current.attrib[listline[0].strip()]=listline[1].strip()
-          else: current.attrib[listline[0].strip()]=listline[1][:listline[1].index('#')].strip()
+          ind = line.find(b'=')
+          if ind != -1:
+            listLine = line.split(b'=')
+            attribName = listLine[0].strip()
+            if b'#' not in listLine[1]: attribValue = listLine[1].strip()
+            else: attribValue = listLine[1][:listLine[1].index('#')]
+            current.attrib[attribName] = attribValue
+          else:
+            if b'#' not in line:
+              attribValue = attribValue + '\n' + line
+            else: attribValue = attribValue + '\n' + line[:line.index('#')]
+            current.attrib[attribName] = attribValue
         else:
           current.tail.append(line)
 

@@ -1,0 +1,49 @@
+\section{Sampling from Restart}
+\label{sec:samplingFromRestart}
+In some instances, there are existing solutions stored that are useful to a new sampling calculation.  For
+example, if a Monte Carlo run collects 1000 runs, then later the user decides to expand to 1500 runs, the
+original 1000 should not be wasted.  In this case, it is desirable to restart sampling.
+
+All \xmlNode{Sampler} entities in RAVEN accept the \xmlNode{Restart} node, which allows the user to provide a
+\xmlNode{DataObject} from which sampling can draw.  The way each sampler interacts with this restart data is
+dependent on the sampling strategy.
+
+Random sampling strategies, such as the \xmlNode{MonteCarlo} and \xmlNode{Stratified} samplers, increment the
+random number generator by the number of samples in the restart data, then continue sampling as normal.
+
+Grid-based sampling strategies, such as \xmlNode{Grid}, \xmlNode{SparseGridCollocation}, and \xmlNode{Sobol},
+require specific sampling points.  As each required point in the input space is determined, the sampler will
+check the restart data for a match.  If a match is found, the corresponding output values are used instead of
+sampling the \xmlNode{Model} for that point in the input space.  In order to determine a match, all of the
+values in the restart point must be within a relative tolerance of the corresponding point required by the
+sampler.  While RAVEN has a default tolerance of 1e-15, the user can adjust this tolerance using the
+\xmlNode{restartNode} node in the \xmlNode{Sampler} block.
+
+In order to demonstrate this restart method, we include here an example of restarting a \xmlNode{Grid}
+sampler.  This example runs a simple example Python code from the command line using the \xmlNode{GenericCode}
+interface.  Within the run the following steps occur:
+\begin{enumerate}
+  \item A grid is sampled that includes only the endpoints in each dimension.
+  \item The results of the first sampling are written to file.
+  \item The results in the CSV are read back in to a new \xmlNode{DataObject} called \xmlString{restart}.
+  \item A second, more dense grid is sampled that requires the points of the first sampling, plus several
+    more.  The results are added both to the original \xmlNode{DataObject} as well as a new one, for
+    demonstration purposes.
+  \item The results of only the new sampling can be written to CSV because we added the second data object in
+    the last step.
+  \item Lastly, the complete \xmlNode{DataObject} is written to file, including both the original and more
+    dense sampling.
+\end{enumerate}
+By looking at the contents of \texttt{GRIDdump1.csv}, \texttt{GRIDdump2.csv}, and \texttt{GRIDdump3.csv}, the
+progressive construction of the data object becomes clear.  \texttt{GRIDdump1.csv} contains only a few samples
+corresponding to the endpoints of the distributions.  \texttt{GRIDdump3.csv} contains all the points necessary
+to include the midpoints of the distributions as well as the endpoints.  \texttt{GRIDdump2.csv} contains only
+those points that were not already obtained in the first sampling, but still needed for the more dense
+sampling.
+
+
+\footnotesize
+\lstinputlisting[style=XML,title=\texttt{raven/tests/framework/Samplers/Restart/Truncated/grid.xml}]
+  {../../tests/framework/Samplers/Restart/Truncated/grid.xml}
+\normalsize
+

@@ -27,17 +27,17 @@
     </IOStep>
     <IOStep name="output" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">DataSets</Input>
-      <Output class="OutStreamManager" type="Plot">PlotDBSCANBlobs</Output>
+      <Output class="OutStreams" type="Plot">PlotDBSCANBlobs</Output>
     </IOStep>
     <PostProcess name="DBSCANBlobs" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">DataSets</Input>
       <Model class="Models" type="PostProcessor">DBSCANBlobs</Model>
       <Output class="DataObjects" type="PointSet">DataSets</Output>
-      <Output class="OutStreamManager" type="Print">dummy</Output>
+      <Output class="OutStreams" type="Print">dummy</Output>
     </PostProcess>
   </Steps>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="dummy">
       <type>csv</type>
       <source>DataSets</source>
@@ -59,7 +59,7 @@
         <how>png</how>
       </actions>
     </Plot>
-  </OutStreamManager>
+  </OutStreams>
 
   <DataObjects>
     <PointSet name="DataSets">

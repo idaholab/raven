@@ -70,7 +70,7 @@
       <Model class="Models" type="Code">testModel</Model>
       <Sampler class="Samplers" type="MonteCarlo">monteCarlo</Sampler>
       <Output class="DataObjects" type="PointSet">samples</Output>
-      <Output class="OutStreamManager" type="Print">samples</Output>
+      <Output class="OutStreams" type="Print">samples</Output>
     </MultiRun>
   </Steps>
 
@@ -81,11 +81,11 @@
     </PointSet>
   </DataObjects>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="samples">
       <type>csv</type>
       <source>samples</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
 </Simulation>

@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation color='true' verbosity='debug' printTimeStamps='false'>
+<Simulation color="true" printTimeStamps="false" verbosity="debug">
   <RunInfo>
     <WorkingDir>SimulationTags</WorkingDir>
     <Sequence>sample</Sequence>
@@ -33,7 +33,7 @@
       <Model class="Models" type="Dummy">dummy</Model>
       <Sampler class="Samplers" type="MonteCarlo">MC</Sampler>
       <Output class="DataObjects" type="PointSet">data</Output>
-      <Output class="OutStreamManager" type="Print">dump</Output>
+      <Output class="OutStreams" type="Print">dump</Output>
     </MultiRun>
   </Steps>
 
@@ -48,10 +48,11 @@
     </PointSet>
   </DataObjects>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="dump">
       <type>csv</type>
       <source>data</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
+
 </Simulation>

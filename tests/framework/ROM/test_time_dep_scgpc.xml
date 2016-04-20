@@ -21,8 +21,8 @@
     <IOStep name="print">
       <Input class="DataObjects" type="HistorySet">trainset</Input>
       <Input class="Models" type="ROM">rom</Input>
-      <Output class="OutStreamManager" type="Print">train_data</Output>
-      <Output class="OutStreamManager" type="Print">trom_dump</Output>
+      <Output class="OutStreams" type="Print">train_data</Output>
+      <Output class="OutStreams" type="Print">trom_dump</Output>
     </IOStep>
     <RomTrainer name="train">
       <Input class="DataObjects" type="HistorySet">trainset</Input>
@@ -72,7 +72,7 @@
     </SparseGridCollocation>
   </Samplers>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="train_data">
       <type>csv</type>
       <source>trainset</source>
@@ -82,7 +82,7 @@
       <source>rom</source>
       <what>all</what>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
   <DataObjects>
     <Point name="dummyIN">

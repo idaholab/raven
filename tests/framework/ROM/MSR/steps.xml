@@ -5,14 +5,14 @@
     <Model class="Models" type="ExternalModel">foo</Model>
     <Sampler class="Samplers" type="MonteCarlo">mcSampler</Sampler>
     <Output class="DataObjects" type="PointSet">trainingData</Output>
-    <!-- <Output class="OutStreamManager" type="Print">trainingData</Output> -->
+    <!-- <Output class="OutStreams" type="Print">trainingData</Output> -->
   </MultiRun>
   <MultiRun name="resample" sleepTime="1e-5">
     <Input class="DataObjects" type="PointSet">dummyIN</Input>
     <Model class="Models" type="ROM">modelUnderTest</Model>
     <Sampler class="Samplers" type="Grid">gridSampler</Sampler>
     <Output class="DataObjects" type="PointSet">outData</Output>
-    <Output class="OutStreamManager" type="Print">outData</Output>
+    <Output class="OutStreams" type="Print">outData</Output>
   </MultiRun>
   <RomTrainer name="train">
     <Input class="DataObjects" type="PointSet">trainingData</Input>

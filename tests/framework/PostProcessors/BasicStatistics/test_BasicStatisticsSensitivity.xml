@@ -91,15 +91,15 @@
       <Model class="Models" type="PostProcessor">InputOutput</Model>
       <Output class="Files" type="">output_basicStatistics.csv</Output>
       <Output class="DataObjects" type="PointSet">collset</Output>
-      <Output class="OutStreamManager" type="Print">csv_database</Output>
+      <Output class="OutStreams" type="Print">csv_database</Output>
     </PostProcess>
   </Steps>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="csv_database">
       <type>csv</type>
       <source>collset</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
 </Simulation>

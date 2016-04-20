@@ -44,7 +44,7 @@ The allowable input objects depend on the type of \textbf{Model} in the
 \item \textbf{Output} defines where to collect the results of an action
 performed by the \textbf{Model}.
 It is generally one of the following types: \textbf{DataObjects}, \textbf{Databases},
-or \textbf{OutStreamManager}.
+or \textbf{OutStreams}.
 \item \textbf{Model} represents a physical or mathematical system or behavior.
 The object used in this role defines the allowable types of
 \textbf{Inputs} and \textbf{Outputs} usable in this step.
@@ -104,8 +104,8 @@ going to be performed.
 \item \xmlAttr{pauseAtEnd}, \xmlDesc{optional boolean/string attribute (case insensitive)}, if True
 (True values = True, yes, y, t), the code will pause at the end of
 the step, waiting for a user signal to continue. This is used in case one or
-more of the \textbf{Outputs} are of type \textbf{OutStreamManager}.
-For example, it can be used when an \textbf{OutStreamManager} of type
+more of the \textbf{Outputs} are of type \textbf{OutStreams}.
+For example, it can be used when an \textbf{OutStreams} of type
 \textbf{Plot} is output to the screen. Thus, allowing the user to interact with
 the \textbf{Plot} (e.g. rotate the figure, change the scale, etc.).
 \default{False}.
@@ -163,7 +163,7 @@ This XML node recognizes the following attributes:
   \item \xmlAttr{class}, \xmlDesc{required string attribute}, main object class
     type.
     For this role, only \xmlString{DataObjects}, \xmlString{Databases}, and
-    \xmlString{OutStreamManager} can be used.
+    \xmlString{OutStreams} can be used.
   \item \xmlAttr{type}, \xmlDesc{required string attribute}, the actual entity
     type.
     This attribute needs to specify the object type within the main object
@@ -216,8 +216,8 @@ going to be performed.
 \item \xmlAttr{pauseAtEnd}, \xmlDesc{optional boolean/string attribute}, if True
 (True values = True, yes, y, t), the code will pause at the end of
 the step, waiting for a user signal to continue. This is used in case one or
-more of the \textbf{Outputs} are of type \textbf{OutStreamManager}.
-For example, it can be used when an \textbf{OutStreamManager} of type
+more of the \textbf{Outputs} are of type \textbf{OutStreams}.
+For example, it can be used when an \textbf{OutStreams} of type
 \textbf{Plot} is output to the screen. Thus, allowing the user to interact with
 the \textbf{Plot} (e.g. rotate the figure, change the scale, etc.).
 \item \xmlAttr{sleepTime}, \xmlDesc{optional float attribute}, in this attribute
@@ -321,7 +321,7 @@ This XML node recognizes the following attributes:
     This string corresponds to the tag of the main object's type used in the
     input.
     For this role, only \xmlString{DataObjects}, \xmlString{Databases}, and
-    \xmlString{OutStreamManager} may be used.
+    \xmlString{OutStreams} may be used.
   \item \xmlAttr{type}, \xmlDesc{required string attribute}, the actual entity
     type.
     This attribute specifies the object type within the main object class.
@@ -399,8 +399,8 @@ This XML node can accept the following attributes:
 \item \xmlAttr{pauseAtEnd}, \xmlDesc{optional boolean/string attribute (case insensitive)}, if True
   (True values = True, yes, y, t), the code will pause at the end of
   the step, waiting for a user signal to continue. This is used in case one or
-  more of the \textbf{Outputs} are of type \textbf{OutStreamManager}.
-  For example, it can be used when an \textbf{OutStreamManager} of type
+  more of the \textbf{Outputs} are of type \textbf{OutStreams}.
+  For example, it can be used when an \textbf{OutStreams} of type
   \textbf{Plot} is output to the screen. Thus, allowing the user to interact
   with the \textbf{Plot} (e.g. rotate the figure, change the scale, etc.).
 \default{False}.
@@ -439,12 +439,12 @@ This step accepts the following roles:
     type.
     This string corresponds to the tag of the main object's type used in the
     input.
-    The allowable main classes are \xmlString{DataObjects}, \xmlString{Databases}, \xmlString{OutStreamManager}, \xmlString{Models} and \xmlString{Files}.
+    The allowable main classes are \xmlString{DataObjects}, \xmlString{Databases}, \xmlString{OutStreams}, \xmlString{Models} and \xmlString{Files}.
   \item \xmlAttr{type}, \xmlDesc{required string attribute}, the actual entity
     type.
     This attribute specifies the object type within the main object class.
     For example, if the \xmlAttr{class} attribute is
-    \xmlString{OutStreamManager}, the \xmlAttr{type} attribute might be
+    \xmlString{OutStreams}, the \xmlAttr{type} attribute might be
     \xmlString{Plot}.
 \end{itemize}
 \end{itemize}
@@ -458,11 +458,11 @@ This step assumes a 1-to-1 mapping (e.g. first \xmlNode{Input} is going to be
 used for the first \xmlNode{Output}, etc.).
 \\
 \nb This 1-to-1 mapping is not present when \xmlNode{Output} nodes are of
-\xmlAttr{class}\\\xmlString{OutStreamManager}, since  \textbf{OutStreamManager}
+\xmlAttr{class}\\\xmlString{OutStreams}, since  \textbf{OutStreams}
 objects are already linked to a Data object in the relative RAVEN input block.
 
 In this case, the user needs to provide in the \xmlNode{Input} nodes, all of the
-``DataObjects'' objects linked to the OutStreamManager objects (see the example
+``DataObjects'' objects linked to the OutStreams objects (see the example
 below):
 \begin{lstlisting}[style=XML,morekeywords={class}]
 <Steps>
@@ -470,13 +470,13 @@ below):
   <IOStep name='OutStreamStep'>
     <Input class='DataObjects' type='HistorySet'>aHistorySet</Input>
     <Input class='DataObjects' type='PointSet'>aTPS</Input>
-    <Output class='OutStreamManager' type='Plot'>plot_hist
+    <Output class='OutStreams' type='Plot'>plot_hist
     </Output>
-    <Output class='OutStreamManager' type='Print'>print_hist
+    <Output class='OutStreams' type='Print'>print_hist
     </Output>
-    <Output class='OutStreamManager' type='Print'>print_tps
+    <Output class='OutStreams' type='Print'>print_tps
     </Output>
-    <Output class='OutStreamManager' type='Print'>print_tp
+    <Output class='OutStreams' type='Print'>print_tp
     </Output>
   </IOStep>
   <IOStep name='PushDataObjectsIntoDatabase'>
@@ -625,8 +625,8 @@ This XML node specifies the following attributes:
 \item \xmlAttr{pauseAtEnd}, \xmlDesc{optional boolean/string attribute (case insensitive)}, if True
   (True values = True, yes, y, t), the code will pause at the end of
   the step, waiting for a user signal to continue. This is used in case one or
-  more of the \textbf{Outputs} are of type \textbf{OutStreamManager}.
-  For example, it can be used when an \textbf{OutStreamManager} of type
+  more of the \textbf{Outputs} are of type \textbf{OutStreams}.
+  For example, it can be used when an \textbf{OutStreams} of type
   \textbf{Plot} is output to the screen. Thus, allowing the user to interact
   with the \textbf{Plot} (e.g. rotate the figure, change the scale, etc.).
   \default{False}.
