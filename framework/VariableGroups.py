@@ -13,6 +13,7 @@ if not 'xrange' in dir(__builtins__):
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
+from collections import OrderedDict
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -34,7 +35,7 @@ class VariableGroup(BaseClasses.BaseType):
     self._dependents    = []             #name of groups this group's construction is dependent on
     self._base          = None           #if dependent, the name of base group to start from
     self._list          = []             #text from node
-    self.variables      = set()          #list of variable names
+    self.variables      = []             #list of variable names
     self.initialized    = False          #true when initialized
 
   def _readMoreXML(self,node):
@@ -63,7 +64,7 @@ class VariableGroup(BaseClasses.BaseType):
       @ Out, None
     """
     if len(self._dependents)==0:
-      self.variables = set(l.strip() for l in self._list)
+      self.variables = list(l.strip() for l in self._list) #set(l.strip() for l in self._list) #don't use sets, since they destroy order
     else:
       #get base
       base = None
@@ -74,7 +75,7 @@ class VariableGroup(BaseClasses.BaseType):
       if base is None:
         self.raiseAnError(IOError,'Base %s not found among variable groups!' %self._base)
       #get dependencies
-      deps={}
+      deps=OrderedDict()
       for depName in self._dependents:
         dep = None
         for group in varGroups:
@@ -85,7 +86,7 @@ class VariableGroup(BaseClasses.BaseType):
           self.raiseAnError(IOError,'Dependent %s not found among variable groups!' %depName)
         deps[depName] = dep
       #get base set
-      baseVars = base.getVars()
+      baseVars = set(base.getVars())
       #do modifiers to base
       modifiers = list(m.strip() for m in self._list)
       for mod in modifiers:
@@ -105,8 +106,21 @@ class VariableGroup(BaseClasses.BaseType):
         elif op == '-': baseVars.difference_update(modSet)
         elif op == '^': baseVars.intersection_update(modSet)
         elif op == '%': baseVars.symmetric_difference_update(modSet)
-        #set class variable
-      self.variables = baseVars
+      #sort variable list into self.variables
+      #  -> first, sort through top-level vars
+      for var in self.getVars():
+        if var in baseVars:
+          self.variables.append(var)
+          baseVars.remove(var)
+      #  -> then, sort through deps in order
+      for depName,dep in deps.items():
+        for var in dep.getVats():
+          if var in baseVars:
+            self.variables.append(var)
+            baseVars.remove(var)
+      #  -> baseVars better be empty now!
+      if len(baseVars) > 0:
+        self.raiseAnError(RuntimeError, 'Not all variableGroup entries were accounted for!  The operations were not performed correctly')
     self.initialized=True
 
   def getDependencies(self):
@@ -121,7 +135,7 @@ class VariableGroup(BaseClasses.BaseType):
     """
       Returns set object of strings containing variable names in group
       @ In, None
-      @ Out, variables, set(str), set of variable names
+      @ Out, variables, list(str), set of variable names
     """
     return self.variables.copy()
 
