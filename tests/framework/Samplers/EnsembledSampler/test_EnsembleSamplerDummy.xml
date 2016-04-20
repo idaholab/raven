@@ -30,7 +30,18 @@
 
   <Samplers>
     <EnsembleForward name="testEnsembleForward">
-      <Grid>
+        <MonteCarlo name="notNeeded">
+            <samplerInit>
+                <limit>2</limit>
+            </samplerInit>
+            <variable name="x5">
+                <distribution>norm</distribution>
+            </variable>
+            <variable name="x6">
+                <distribution>unif</distribution>
+            </variable>
+        </MonteCarlo>
+      <Grid name="notNeeded">
         <variable name="x1">
           <distribution>unif</distribution>
           <grid construction="custom" type="value">0.02 0.5 0.6</grid>
@@ -40,7 +51,7 @@
           <grid construction="custom" type="CDF">0.0 0.5 1.0</grid>
         </variable>
       </Grid>
-      <Stratified>
+      <Stratified name="notNeeded">
         <variable name="x3">
           <distribution>tri</distribution>
           <grid construction="equal" steps="2" type="CDF">0.2 0.8</grid>
@@ -50,18 +61,8 @@
           <grid construction="equal" steps="2" type="value">0.5 0.8</grid>
         </variable>
       </Stratified>
-      <MonteCarlo>
-        <samplerInit>
-          <limit>2</limit>
-        </samplerInit>
-        <variable name="x5">
-          <distribution>norm</distribution>
-        </variable>
-        <variable name="x6">
-          <distribution>unif</distribution>
-        </variable>
-      </MonteCarlo>
-      <ResponseSurfaceDesign>
+
+      <ResponseSurfaceDesign name="notNeeded">
         <ResponseSurfaceDesignSettings>
           <algorithmType>CentralComposite</algorithmType>
           <centers>1,2</centers>
@@ -77,7 +78,7 @@
           <grid construction="custom" type="value">0.1 1.5</grid>
         </variable>
       </ResponseSurfaceDesign>
-      <FactorialDesign>
+      <FactorialDesign name="notNeeded">
         <FactorialSettings>
           <algorithmType>pb</algorithmType>
         </FactorialSettings>
