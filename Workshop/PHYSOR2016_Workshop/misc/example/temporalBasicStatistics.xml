@@ -1,0 +1,52 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+    <RunInfo>
+      <WorkingDir>Data</WorkingDir>
+      <Sequence>readIn,stats</Sequence>
+    </RunInfo>
+
+    <Files>
+      <Input name="rawDataFile">dataSet.csv</Input>
+    </Files>
+
+    <Models>
+      <PostProcessor name='TDS' subType='DataMining'>
+        <KDD lib='temporalBasicStatistics'>
+          <timeID>time</timeID>
+          <parameters>x,y</parameters>
+          <what>all</what>
+        </KDD>
+      </PostProcessor>
+    </Models>
+
+    <Steps>
+      <IOStep name='readIn'>
+        <Input class='Files' type=''>rawDataFile</Input>
+        <Output class='DataObjects' type='HistorySet'>rawData</Output>
+      </IOStep>
+      <PostProcess name='stats'>
+        <Input class='DataObjects' type='HistorySet'>rawData</Input>
+        <Model class='Models' type='PostProcessor'>TDS</Model>
+        <Output class='DataObjects' type='History'>ppData</Output>
+        <Output class='OutStreams' type='Print'>dummy</Output>
+      </PostProcess>
+    </Steps>
+
+    <OutStreams>
+      <Print name='dummy'>
+        <type>csv</type>
+        <source>ppData</source>
+      </Print>
+    </OutStreams>
+
+    <DataObjects>
+      <History name='ppData'>
+        <Input>n</Input>
+        <Output>time</Output>
+      </History>
+      <HistorySet name='rawData'>
+        <Input>n</Input>
+        <Output>time,x,y</Output>
+      </HistorySet>
+    </DataObjects>
+</Simulation>
