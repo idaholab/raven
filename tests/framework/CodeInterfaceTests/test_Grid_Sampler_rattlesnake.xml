@@ -54,12 +54,12 @@
     </Grid>
   </Samplers>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="outGrid_dump">
       <type>csv</type>
       <source>outGrid</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
   <DataObjects>
     <PointSet name="outGrid">
@@ -75,7 +75,7 @@
       <Model class="Models" type="Code">Rattlesnake</Model>
       <Sampler class="Samplers" type="Grid">myGrid</Sampler>
       <Output class="DataObjects" type="PointSet">outGrid</Output>
-      <Output class="OutStreamManager" type="Print">outGrid_dump</Output>
+      <Output class="OutStreams" type="Print">outGrid_dump</Output>
     </MultiRun>
   </Steps>
 
