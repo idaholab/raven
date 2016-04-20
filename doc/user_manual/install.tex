@@ -70,15 +70,16 @@ sudo apt-get install texlive-latex-base texlive-extra-utils \
 Install the dependencies:
 
 \begin{lstlisting}[language=bash]
-dnf install swig libtool gcc-c++ python-devel python3-devel \
+dnf install swig libtool gcc-c++ redhat-rpm-config python-devel python3-devel \
  numpy h5py scipy python-scikit-learn python-matplotlib-qt4
 \end{lstlisting}
 
 Optionally, if you want to be able to edit and rebuild the manual, you can
 install \TeX~Live and its related packages:
 \begin{lstlisting}[language=bash]
-dnf install texlive texlive-subfigure texlive-stmaryrd \
-  texlive-titlesec texlive-preprint texlive-placeins
+dnf install texlive texlive-subfigure texlive-stmaryrd texlive-titlesec \
+texlive-preprint texlive-placeins texlive-bigints texlive-relsize \
+texlive-appendix
 \end{lstlisting}
 
 \goToRavenInstallation

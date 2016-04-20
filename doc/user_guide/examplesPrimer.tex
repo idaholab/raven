@@ -28,7 +28,7 @@ This simple example is about the construction of a ``Lorentz attractor'', sampli
         <Sampler class='Samplers'  type='MonteCarlo'     >MC_external</Sampler>
         <Output  class='DataObjects'     type='HistorySet'      >testPrintHistorySet</Output>
         <Output  class='Databases' type='HDF5'           >test_external_db</Output>
-        <Output  class='OutStreamManager' type='Print'   >testPrintHistorySet_dump</Output>
+        <Output  class='OutStreams' type='Print'   >testPrintHistorySet_dump</Output>
     </MultiRun >
 </Steps>
 <!-- MODELS -->
@@ -83,12 +83,12 @@ This simple example is about the construction of a ``Lorentz attractor'', sampli
   <HDF5 name="test_external_db"/>
 </Databases>
 <!-- OUTSTREAMS -->
-<OutStreamManager>
+<OutStreams>
   <Print name='testPrintHistorySet_dump'>
     <type>csv</type>
     <source>testPrintHistorySet</source>
   </Print>
-</OutStreamManager>
+</OutStreams>
 <!-- DATA OBJECTS -->
 <DataObjects>
     <HistorySet name='testPrintHistorySet'>
@@ -193,9 +193,9 @@ limit surface, which must be given as an input.
 
   <OutStreamStep name = 'pth4' pauseAtEnd = 'True'>
   	<Input  class = 'DataObjects'            type = 'PointSet'  >lmt_srf_dt</Input>
-  	<Output class = 'OutStreamManager' type = 'Print'         >lmt_srf_dmp</Output>
+  	<Output class = 'OutStreams' type = 'Print'         >lmt_srf_dmp</Output>
     <Input  class = 'DataObjects'            type = 'PointSet'  >sfs_pnt_dt</Input>
-  	<Output class = 'OutStreamManager' type = 'Print'         >sfs_pnt_dmp</Output>
+  	<Output class = 'OutStreams' type = 'Print'         >sfs_pnt_dmp</Output>
   </OutStreamStep>
 </Steps>
 
@@ -337,7 +337,7 @@ limit surface, which must be given as an input.
 </Functions>
 
 <!-- OUT-STREAMS -->
-<OutStreamManager>
+<OutStreams>
   <Print name = 'lmt_srf_dmp'>
   	<type>csv</type>
   	<source>lmt_srf_dt</source>
@@ -347,7 +347,7 @@ limit surface, which must be given as an input.
   	<type>csv</type>
   	<source>sfs_pnt_dt</source>
   </Print>
-</OutStreamManager>
+</OutStreams>
 
 </Simulation>
 \end{lstlisting}

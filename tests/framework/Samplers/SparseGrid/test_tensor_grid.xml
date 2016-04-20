@@ -112,7 +112,7 @@
     </PointSet>
   </DataObjects>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="TDdump">
       <type>csv</type>
       <source>TDsolns</source>
@@ -121,6 +121,6 @@
       <type>csv</type>
       <source>HCsolns</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
 </Simulation>

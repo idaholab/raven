@@ -82,11 +82,11 @@
     </MultiRun>
     <IOStep name="print">
       <Input class="DataObjects" type="PointSet">collset</Input>
-      <Output class="OutStreamManager" type="Print">csv_database</Output>
+      <Output class="OutStreams" type="Print">csv_database</Output>
     </IOStep>
     <IOStep name="stats">
       <Input class="Models" type="ROM">rom</Input>
-      <Output class="OutStreamManager" type="Print">stats_td1</Output>
+      <Output class="OutStreams" type="Print">stats_td1</Output>
     </IOStep>
     <RomTrainer name="train">
       <Input class="DataObjects" type="PointSet">collset</Input>
@@ -94,7 +94,7 @@
     </RomTrainer>
   </Steps>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="csv_database">
       <type>csv</type>
       <source>collset</source>
@@ -105,6 +105,6 @@
       <source>rom</source>
       <what>mean,variance</what>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
 </Simulation>

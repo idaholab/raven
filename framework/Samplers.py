@@ -33,6 +33,7 @@ else: import cPickle as pickle
 
 #Internal Modules------------------------------------------------------------------------------------
 import utils
+import mathUtils
 from BaseClasses import BaseType
 from Assembler import Assembler
 import Distributions
@@ -73,7 +74,6 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
     --Other inherited methods--
     myInstance.whoAreYou()                            -see BaseType class-
-    myInstance.myInitializzationParams()              -see BaseType class-
     myInstance.myCurrentSetting()                     -see BaseType class-
 
     --Adding a new Sampler subclass--
@@ -88,8 +88,8 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
     the following methods could be overrode:
     self.localInputAndChecks(xmlNode)
-    self.localAddInitParams(tempDict)
-    self.localAddCurrentSetting(tempDict)
+    self.localGetInitParams()
+    self.localGetCurrentSetting()
     self.localInitialize()
     self.localStillReady(ready)
     self.localFinalizeActualSampling(jobObject,model,myInput)
@@ -121,6 +121,8 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.FIXME                         = False                     # FIXME flag
     self.printTag                      = self.type                 # prefix for all prints (sampler type)
     self.restartData                   = None                      # presampled points to restart from
+    self.restartTolerance              = 1e-15                     # strictness with which to find matches in the restart data
+    self.existing                      = {}                        # restart data points, inputs:outputs
 
     self._endJobRunnable               = sys.maxsize               # max number of inputs creatable by the sampler right after a job ends (e.g., infinite for MC, 1 for Adaptive, etc)
 
@@ -267,6 +269,8 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
           listIndex = range(len(transformationDict["manifestVariables"]))
         transformationDict["manifestVariablesIndex"] = listIndex
         self.variablesTransformationDict[child.attrib['distribution']] = transformationDict
+      elif child.tag == "restartTolerance":
+        self.restartTolerance = float(child.text)
 
     if self.initSeed == None:
       self.initSeed = Distributions.randomIntegers(0,2**31,self)
@@ -370,58 +374,68 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
   def localInputAndChecks(self,xmlNode):
     """
-      Local method. Place here the additional reading, remember to add initial parameters in the method localAddInitParams
+      Local method. Place here the additional reading, remember to add initial parameters in the method localGetInitParams
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None
     """
     pass
 
-  def addInitParams(self,tempDict):
+  def getInitParams(self):
     """
       This function is called from the base class to print some of the information inside the class.
       Whatever is permanent in the class and not inherited from the parent class should be mentioned here
       The information is passed back in the dictionary. No information about values that change during the simulation are allowed
-      @ In, tempDict, dict, dictionary to be updated. {'attribute name':value}
-      @ Out, None
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
     """
+    paramDict = {}
     for variable in self.toBeSampled.items():
-      tempDict[variable[0]] = 'is sampled using the distribution ' +variable[1]
-    tempDict['limit' ]        = self.limit
-    tempDict['initial seed' ] = self.initSeed
-    self.localAddInitParams(tempDict)
+      paramDict[variable[0]] = 'is sampled using the distribution ' +variable[1]
+    paramDict['limit' ]        = self.limit
+    paramDict['initial seed' ] = self.initSeed
+    paramDict.update(self.localGetInitParams())
+    return paramDict
 
-  def localAddInitParams(self,tempDict):
+  def localGetInitParams(self):
     """
       Method used to export to the printer in the base class the additional PERMANENT your local class have
-      @ In, tempDict, dict, dictionary to be updated. {'attribute name':value}
-      @ Out, None
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
     """
+    return {}
 
-  def addCurrentSetting(self,tempDict):
+  def getCurrentSetting(self):
     """
       This function is called from the base class to print some of the information inside the class.
       Whatever is a temporary value in the class and not inherited from the parent class should be mentioned here
       The information is passed back in the dictionary
-      Function adds the current settings in a temporary dictionary
-      @ In, tempDict, dict, dictionary to be updated. {'attribute name':value}
-      @ Out, None
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
     """
-    tempDict['counter'       ] = self.counter
-    tempDict['initial seed'  ] = self.initSeed
+    paramDict = {}
+    paramDict['counter'       ] = self.counter
+    paramDict['initial seed'  ] = self.initSeed
     for key in self.inputInfo:
-      if key!='SampledVars': tempDict[key] = self.inputInfo[key]
+      if key!='SampledVars':
+        paramDict[key] = self.inputInfo[key]
       else:
-        for var in self.inputInfo['SampledVars'].keys(): tempDict['Variable: '+var+' has value'] = tempDict[key][var]
-    self.localAddCurrentSetting(tempDict)
+        for var in self.inputInfo['SampledVars'].keys():
+          paramDict['Variable: '+var+' has value'] = paramDict[key][var]
+    paramDict.update(self.localGetCurrentSetting())
+    return paramDict
 
-  def localAddCurrentSetting(self,tempDict):
+  def localGetCurrentSetting(self):
     """
-      Appends a given dictionary with class specific information regarding the
+      Returns a dictionary with class specific information regarding the
       current status of the object.
-      @ In, tempDict, dict, The dictionary where we will add the initialization parameters specific to this Sampler.
-      @ Out, None
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
     """
-    pass
+    return {}
 
   def _generateDistributions(self,availableDist,availableFunc):
     """
@@ -481,6 +495,17 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         self.raiseAWarning("No CROW distribution available in restart -",e)
     else:
       self.raiseAMessage('No restart for '+self.printTag)
+
+    #load restart data into existing points
+    if self.restartData is not None:
+      if not self.restartData.isItEmpty():
+        inps = self.restartData.getInpParametersValues()
+        outs = self.restartData.getOutParametersValues()
+        #FIXME there is no guarantee ordering is accurate between restart data and sampler
+        inputs = list(v for v in inps.values())
+        existingInps = zip(*inputs)
+        outVals = zip(*list(v for v in outs.values()))
+        self.existing = dict(zip(existingInps,outVals))
 
     #specializing the self.localInitialize() to account for adaptive sampling
     if solutionExport != None : self.localInitialize(solutionExport=solutionExport)
@@ -880,34 +905,42 @@ class LimitSurfaceSearch(AdaptiveSampler):
           self.raiseAWarning('Requested an invalid threshold level: ', self.threshold, '. Defaulting to 0.')
           self.threshold = 0
 
-  def localAddInitParams(self,tempDict):
+  def localGetInitParams(self):
     """
       Appends a given dictionary with class specific member variables and their
       associated initialized values.
-      @ In, tempDict, dict, The dictionary where we will add the initialization parameters specific to this Sampler.
-      @ Out, None
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
     """
-    tempDict['Iter. forced'    ] = str(self.forceIteration)
-    tempDict['Norm tolerance'  ] = str(self.tolerance)
-    tempDict['Sub grid size'   ] = str(self.subGridTol)
-    tempDict['Error Weight'    ] = str(self.toleranceWeight)
-    tempDict['Persistence'     ] = str(self.repetition)
-    tempDict['batchStrategy'   ] = self.batchStrategy
-    tempDict['maxBatchSize'    ] = self.maxBatchSize
-    tempDict['scoring'         ] = str(self.scoringMethod)
-    tempDict['simplification'  ] = self.simplification
-    tempDict['thickness'       ] = self.thickness
-    tempDict['threshold'       ] = self.threshold
+    paramDict = {}
+    paramDict['Iter. forced'    ] = str(self.forceIteration)
+    paramDict['Norm tolerance'  ] = str(self.tolerance)
+    paramDict['Sub grid size'   ] = str(self.subGridTol)
+    paramDict['Error Weight'    ] = str(self.toleranceWeight)
+    paramDict['Persistence'     ] = str(self.repetition)
+    paramDict['batchStrategy'   ] = self.batchStrategy
+    paramDict['maxBatchSize'    ] = self.maxBatchSize
+    paramDict['scoring'         ] = str(self.scoringMethod)
+    paramDict['simplification'  ] = self.simplification
+    paramDict['thickness'       ] = self.thickness
+    paramDict['threshold'       ] = self.threshold
+    return paramDict
 
-  def localAddCurrentSetting(self,tempDict):
+  def localGetCurrentSetting(self):
     """
       Appends a given dictionary with class specific information regarding the
       current status of the object.
-      @ In, tempDict, dict, The dictionary where we will add the initialization parameters specific to this Sampler.
-      @ Out, None
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
     """
-    if self.solutionExport!=None: tempDict['The solution is exported in '    ] = 'Name: ' + self.solutionExport.name + 'Type: ' + self.solutionExport.type
-    if self.goalFunction!=None  : tempDict['The function used is '] = self.goalFunction.name
+    paramDict = {}
+    if self.solutionExport!=None:
+      paramDict['The solution is exported in '    ] = 'Name: ' + self.solutionExport.name + 'Type: ' + self.solutionExport.type
+    if self.goalFunction!=None  :
+      paramDict['The function used is '] = self.goalFunction.name
+    return paramDict
 
   def localInitialize(self,solutionExport=None):
     """
@@ -1372,7 +1405,6 @@ class MonteCarlo(Sampler):
       self.counter+=len(self.restartData)
       self.raiseAMessage('Number of points from restart: %i' %self.counter)
       self.raiseAMessage('Number of points needed:       %i' %(self.limit-self.counter))
-    #pass #TODO fix the limit based on restartData
 
   def localGenerateInput(self,model,myInput):
     """
@@ -1446,11 +1478,10 @@ class Grid(Sampler):
     """
     Sampler.__init__(self)
     self.printTag = 'SAMPLER GRID'
-    self.axisName             = []    # the name of each axis (variable)
-    self.gridInfo             = {}    # {'name of the variable':Type}  --> Type: CDF/Value
-    self.externalgGridCoord   = False # boolean attribute. True if the coordinate list has been filled by external source (see factorial sampler)
-    self.gridCoordinate       = []    # current grid coordinates
-    self.existing             = []    # restart points
+    self.axisName             = []           # the name of each axis (variable)
+    self.gridInfo             = {}           # {'name of the variable':Type}  --> Type: CDF/Value
+    self.externalgGridCoord   = False        # boolean attribute. True if the coordinate list has been filled by external source (see factorial sampler)
+    self.gridCoordinate       = []           # current grid coordinates
     self.gridEntity           = GridEntities.returnInstance('GridEntity',self)
 
   def localInputAndChecks(self,xmlNode):
@@ -1468,25 +1499,31 @@ class Grid(Sampler):
     self.axisName = list(grdInfo.keys())
     self.axisName.sort()
 
-  def localAddInitParams(self,tempDict):
+  def localGetInitParams(self):
     """
       Appends a given dictionary with class specific member variables and their
       associated initialized values.
-      @ In, tempDict, dict, The dictionary where we will add the initialization parameters specific to this Sampler.
-      @ Out, None
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
     """
+    paramDict = {}
     for variable,value in self.gridInfo.items():
-      tempDict[variable+' is sampled using a grid in '] = value
+      paramDict[variable+' is sampled using a grid in '] = value
+    return paramDict
 
-  def localAddCurrentSetting(self,tempDict):
+  def localGetCurrentSetting(self):
     """
       Appends a given dictionary with class specific information regarding the
       current status of the object.
-      @ In, tempDict, dict, The dictionary where we will add the initialization parameters specific to this Sampler.
-      @ Out, None
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
     """
+    paramDict = {}
     for var, value in self.values.items():
-      tempDict['coordinate '+var+' has value'] = value
+      paramDict['coordinate '+var+' has value'] = value
+    return paramDict
 
   def localInitialize(self):
     """
@@ -1498,10 +1535,8 @@ class Grid(Sampler):
       @ Out, None
     """
     self.gridEntity.initialize()
-    self.limit = len(self.gridEntity)
-    if self.restartData is not None:
-      inps = self.restartData.getInpParametersValues()
-      self.existing = zip(*list(v for v in inps.values()))
+    self.limit = self.gridEntity.len()
+
 
   def localGenerateInput(self,model,myInput):
     """
@@ -1627,13 +1662,14 @@ class Grid(Sampler):
             self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")] = self.distDict[varName].cellIntegral(ndCoordinate,dxs)
             weight *= self.distDict[varName].cellIntegral(ndCoordinate,dxs)
       newpoint = tuple(self.values[key] for key in self.values.keys())
-      if newpoint not in self.existing:
+      inExisting,_,_ = mathUtils.NDInArray(np.array(self.existing.keys()),newpoint,tol=self.restartTolerance)
+      if not inExisting:
         found=True
         self.raiseADebug('New point found: '+str(newpoint))
       else:
         self.counter+=1
         if self.counter>=self.limit: raise utils.NoMoreSamplesNeeded
-        self.raiseADebug('Existing point: '+str(newpoint))
+        self.raiseADebug('Point',newpoint,'found in restart.')
       self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
       self.inputInfo['ProbabilityWeight'] = copy.deepcopy(weight)
       self.inputInfo['SamplerType'] = 'Grid'
@@ -2446,24 +2482,32 @@ class DynamicEventTree(Grid):
         # store the variables that represent the epistemic space
         self.epistemicVariables.update(dict.fromkeys(self.hybridStrategyToApply[child.attrib['type']].toBeSampled.keys(),{}))
 
-  def localAddInitParams(self,tempDict):
+  def localGetInitParams(self):
     """
       Appends a given dictionary with class specific member variables and their
       associated initialized values.
-      @ In, tempDict, dict, The dictionary where we will add the initialization parameters specific to this Sampler.
-      @ Out, None
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
     """
-    for key in self.branchProbabilities.keys(): tempDict['Probability Thresholds for dist ' + str(key) + ' are: '] = [str(x) for x in self.branchProbabilities[key]]
-    for key in self.branchValues.keys()       : tempDict['Values Thresholds for dist ' + str(key) + ' are: '] = [str(x) for x in self.branchValues[key]]
+    paramDict = {}
+    for key in self.branchProbabilities.keys():
+      paramDict['Probability Thresholds for dist ' + str(key) + ' are: '] = [str(x) for x in self.branchProbabilities[key]]
+    for key in self.branchValues.keys()       :
+      paramDict['Values Thresholds for dist ' + str(key) + ' are: '] = [str(x) for x in self.branchValues[key]]
+    return paramDict
 
-  def localAddCurrentSetting(self,tempDict):
+  def localGetCurrentSetting(self):
     """
       Appends a given dictionary with class specific information regarding the
       current status of the object.
-      @ In, tempDict, dict, The dictionary where we will add the initialization parameters specific to this Sampler.
-      @ Out, None
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
     """
-    tempDict['actual threshold levels are '] = self.branchedLevel[0]
+    paramDict = {}
+    paramDict['actual threshold levels are '] = self.branchedLevel[0]
+    return paramDict
 
   def localInitialize(self):
     """
@@ -3099,18 +3143,22 @@ class FactorialDesign(Grid):
                         str(len(self.gridEntity.returnParameter("gridInfo")[varname][2])))
     else: self.externalgGridCoord = False
 
-  def localAddInitParams(self,tempDict):
+  def localGetInitParams(self):
     """
       Appends a given dictionary with class specific member variables and their
       associated initialized values.
-      @ In, tempDict, dict, The dictionary where we will add the initialization parameters specific to this Sampler.
-      @ Out, None
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
     """
-    Grid.localAddInitParams(self,tempDict)
+    paramDict = Grid.localGetInitParams(self)
     for key,value in self.factOpt.items():
-      if key != 'options': tempDict['Factorial '+key] = value
+      if key != 'options':
+        paramDict['Factorial '+key] = value
       else:
-        for kk,val in value.items(): tempDict['Factorial options '+kk] = val
+        for kk,val in value.items():
+          paramDict['Factorial options '+kk] = val
+    return paramDict
 
   def localInitialize(self):
     """
@@ -3212,18 +3260,22 @@ class ResponseSurfaceDesign(Grid):
     if len(self.gridCoordinate) < self.minNumbVars[self.respOpt['algorithmType']]: self.raiseAnError(IOError,'minimum number of variables for type "'+ self.respOpt['type'] +'" is '+str(self.minNumbVars[self.respOpt['type']])+'!!')
     self.externalgGridCoord = True
 
-  def localAddInitParams(self,tempDict):
+  def localGetInitParams(self):
     """
       Appends a given dictionary with class specific member variables and their
       associated initialized values.
-      @ In, tempDict, dict, The dictionary where we will add the initialization parameters specific to this Sampler.
-      @ Out, None
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
     """
-    Grid.localAddInitParams(self,tempDict)
+    paramDict = Grid.localGetInitParams(self)
     for key,value in self.respOpt.items():
-      if key != 'options': tempDict['Response Design '+key] = value
+      if key != 'options':
+        paramDict['Response Design '+key] = value
       else:
-        for kk,val in value.items(): tempDict['Response Design options '+kk] = val
+        for kk,val in value.items():
+          paramDict['Response Design options '+kk] = val
+    return paramDict
 
   def localInitialize(self):
     """
@@ -3290,7 +3342,6 @@ class SparseGridCollocation(Grid):
     self.ROM            = None  #pointer to ROM
     self.jobHandler     = None  #pointer to job handler for parallel runs
     self.doInParallel   = True  #compute sparse grid in parallel flag, recommended True
-    self.existing       = []    #restart data points
     self.dists          = {}    #Contains the instance of the distribution to be used. keys are the variable names
     self._addAssObject('ROM','1')
 
@@ -3405,7 +3456,6 @@ class SparseGridCollocation(Grid):
 
     self.limit=len(self.sparseGrid)
     self.raiseADebug('Size of Sparse Grid  :'+str(self.limit))
-    self.raiseADebug('Number of Runs Needed :'+str(self.limit-utils.iter_len(self.existing)))
     self.raiseADebug('Finished sampler generation.')
 
     self.raiseADebug('indexset:',self.indexSet)
@@ -3489,7 +3539,9 @@ class SparseGridCollocation(Grid):
     while not found:
       try: pt,weight = self.sparseGrid[self.counter-1]
       except IndexError: raise utils.NoMoreSamplesNeeded
-      if pt in self.existing:
+      inExisting,_,_ = mathUtils.NDInArray(np.array(self.existing.keys()),pt,tol=self.restartTolerance)
+      if inExisting:
+        self.raiseADebug('Found pt',pt,'in restart.')
         self.counter+=1
         if self.counter==self.limit: raise utils.NoMoreSamplesNeeded
         continue
@@ -3601,7 +3653,6 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     self.studyPoints             = []     #list of ints, runs at which to record a state
     self.studyPickle             = False  #if true, dumps ROM to pickle at each step
     #solution storage
-    self.existing                = {}     #rolling list of sampled points
     self.neededPoints            = []     #queue of points to submit
     self.submittedNotCollected   = []     #list of points submitted but not yet collected and used
     self.pointsNeededToMakeROM   = set()  #list of distinct points needed in this process
@@ -3855,9 +3906,10 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     if SG is None: SG = self.sparseGrid
     for pt in SG.points()[:]:
       self.pointsNeededToMakeROM.add(pt) #sets won't store redundancies
-      if pt not in self.neededPoints and pt not in self.existing.keys():
-        self.newSolutionSizeShouldBe+=1
-        self.neededPoints.append(pt)
+      #if pt isn't already in needed, and it hasn't already been solved, add it to the queue
+      if pt not in self.neededPoints and not mathUtils.NDInArray(np.array(self.existing.keys()),pt,tol=self.restartTolerance)[0]:
+          self.newSolutionSizeShouldBe+=1
+          self.neededPoints.append(pt)
 
   def _convergence(self,poly,rom,target):
     """
@@ -3960,7 +4012,8 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     tot=0
     for n in range(len(sg)):
       pt,wt = sg[n]
-      if pt not in self.existing.keys():
+      inExisting,_,_ = mathUtils.NDInArray(np.array(self.existing.keys()),pt,tol=self.restartTolerance)
+      if not inExisting:
         self.raiseAnError(RuntimeError,'Trying to integrate with point',pt,'but it is not in the solutions!')
       tot+=self.existing[pt][i]**r*wt
     return tot
@@ -4120,7 +4173,6 @@ class Sobol(SparseGridCollocation):
     self.ROM            = None  #pointer to sobol ROM
     self.jobHandler     = None  #pointer to job handler for parallel runs
     self.doInParallel   = True  #compute sparse grid in parallel flag, recommended True
-    self.existing       = []
     self.distinctPoints = set() #tracks distinct points used in creating this ROM
     self.sparseGridType = 'smolyak'
 
@@ -4229,7 +4281,7 @@ class Sobol(SparseGridCollocation):
           else: newpt[v] = self.references[var]
         newpt=tuple(newpt)
         self.distinctPoints.add(newpt)
-        if newpt not in self.pointsToRun:# and newpt not in existing: #the second half used to be commented...
+        if newpt not in self.pointsToRun:
           self.pointsToRun.append(newpt)
     self.limit = len(self.pointsToRun)
     self.raiseADebug('Needed points: %i' %self.limit)
@@ -4258,7 +4310,8 @@ class Sobol(SparseGridCollocation):
     while not found:
       try: pt = self.pointsToRun[self.counter-1]
       except IndexError: raise utils.NoMoreSamplesNeeded
-      if pt in self.existing:
+      inExisting,_,_ = mathUtils.NDInArray(np.array(self.existing.keys()),pt,tol=self.restartTolerance)
+      if inExisting:
         self.raiseADebug('point found in restart:',pt)
         self.counter+=1
         if self.counter==self.limit: raise utils.NoMoreSamplesNeeded
@@ -4362,7 +4415,6 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     self.targets         = None #ROM outputs of interest
 
     #point lists
-    self.existing        = {}       #points from restart and calculations, and their solutions
     self.sorted          = []       #points that have been sorted into appropriate objects
     self.submittedNotCollected = [] #list of points that have been generated but not collected
     self.inTraining      = []       #usually just one tuple, unless multiple items in simultaneous training
@@ -4612,7 +4664,8 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     """
     pointSet = self.samplers[subset].solns
     #first, check if the output is in the subset's existing solution set already
-    if point in self.samplers[subset].existing.keys():
+    inExisting,_,_ = mathUtils.NDInArray(np.array(self.samplers[subset].existing.keys()),point,tol=self.restartTolerance)
+    if inExisting:
       output = self.samplers[subset].existing[point]
     #if not, get it locally, but it costs more because we have to expand the cut point
     else:
@@ -5083,7 +5136,8 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
       cutpt = sampler.neededPoints.pop()
       fullPoint = self._expandCutPoint(subset,cutpt)
       #if this point already in local existing, put it straight into collected and sampler existing
-      if fullPoint in self.existing.keys():
+      inExisting,_,_ = mathUtils.NDInArray(np.array(self.existing.keys()),fullPoint,tol=self.restartTolerance)
+      if inExisting:
         self.pointsCollected[subset].append(cutpt)
         self._addPointToDataObject(subset,cutpt)
         #add solutions, too
@@ -5115,7 +5169,8 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
           self._addPointToDataObject(subset,cutInp)
           sampler = self.samplers[subset]
           #if needed or not, still add it to the sampler's existing points
-          if cutInp not in sampler.existing.keys():
+          inExisting,_,_ = mathUtils.NDInArray(np.array(sampler.existing.keys()),cutInp,tol=self.restartTolerance)
+          if not inExisting:
             sampler.existing[cutInp] = soln
           #check if it was requested
           if cutInp in needs:

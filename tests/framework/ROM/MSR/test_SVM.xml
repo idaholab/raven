@@ -25,7 +25,6 @@
   </Models>
 
   <ExternalXML node="Distributions" xmlToLoad="distributions.xml"/>
-
   <Samplers>
     <MonteCarlo name="mcSampler">
       <samplerInit>
@@ -59,15 +58,14 @@
   </Samplers>
 
   <ExternalXML node="Steps" xmlToLoad="steps.xml"/>
-
-  <OutStreamManager>
+  <OutStreams>
     <!-- A csv file containing the output of the example -->
     <Print name="outData">
       <type>csv</type>
       <source>outData</source>
       <filename>outDataSVM</filename>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
   <ExternalXML node="DataObjects" xmlToLoad="dataObjects.xml"/>
 </Simulation>

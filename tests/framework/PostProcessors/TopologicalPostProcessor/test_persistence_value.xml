@@ -62,17 +62,17 @@
       <Input class="DataObjects" type="PointSet">testData</Input>
       <Model class="Models" type="PostProcessor">AMSC_Value</Model>
       <Output class="DataObjects" type="PointSet">dataValue</Output>
-      <Output class="OutStreamManager" type="Print">segValue</Output>
+      <Output class="OutStreams" type="Print">segValue</Output>
     </PostProcess>
   </Steps>
 
-  <OutStreamManager>
+  <OutStreams>
     <!-- A csv file containing the output of the example -->
     <Print name="segValue">
       <type>csv</type>
       <source>dataValue</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
   <DataObjects>
     <!-- The input TimePointSet object -->

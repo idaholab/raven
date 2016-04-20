@@ -93,18 +93,18 @@
       <Model class="Models" type="PostProcessor">analyticalTest</Model>
       <Output class="Files" type="">output_basicStatistics_PP12levelFractFactorial.csv</Output>
       <Output class="DataObjects" type="PointSet">outputData2levelFractFactorial</Output>
-      <Output class="OutStreamManager" type="Print">outputData2levelFractFactorial_dump</Output>
+      <Output class="OutStreams" type="Print">outputData2levelFractFactorial_dump</Output>
     </PostProcess>
     <PostProcess name="PP1pbFactorial">
       <Input class="DataObjects" type="PointSet">outputDatapbFactorial</Input>
       <Model class="Models" type="PostProcessor">analyticalTest</Model>
       <Output class="Files" type="">output_basicStatistics_PP1pbFactorial.csv</Output>
       <Output class="DataObjects" type="PointSet">outputDatapbFactorial</Output>
-      <Output class="OutStreamManager" type="Print">outputDatapbFactorial_dump</Output>
+      <Output class="OutStreams" type="Print">outputDatapbFactorial_dump</Output>
     </PostProcess>
   </Steps>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="outputData2levelFractFactorial_dump">
       <type>csv</type>
       <source>outputData2levelFractFactorial</source>
@@ -113,7 +113,7 @@
       <type>csv</type>
       <source>outputDatapbFactorial</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
   <DataObjects>
     <Point name="inputPlaceHolder">

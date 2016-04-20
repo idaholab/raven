@@ -17,7 +17,7 @@
       <Model class="Models" type="Code">py_script</Model>
       <Sampler class="Samplers" type="SparseGridCollocation">sc</Sampler>
       <Output class="DataObjects" type="PointSet">scset</Output>
-      <Output class="OutStreamManager" type="Print">sc_out</Output>
+      <Output class="OutStreams" type="Print">sc_out</Output>
     </MultiRun>
   </Steps>
 
@@ -92,11 +92,11 @@
     </PointSet>
   </DataObjects>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="sc_out">
       <type>csv</type>
       <source>scset</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
 </Simulation>
