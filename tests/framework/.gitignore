@@ -38,3 +38,12 @@ CodeInterfaceTests/DMInterfaceTest/testDummyStep/rawout~DM*dsin
 ROM/Sobol/states.txt
 RedundantInputs/sim_py_SC/
 RedundantInputs/sobol_redundant/
+pca_sobol/states.txt
+CodeInterfaceTests/RELAP5interfaceTest/testDummyStep/snc01.i
+ROM/Sobol/AdaptSobol/
+Samplers/Restart/Truncated/grid/make1/
+Samplers/Restart/Truncated/grid/make2/
+Samplers/Restart/Truncated/sobol/make1/
+Samplers/Restart/Truncated/sobol/make2/
+Samplers/Restart/Truncated/sparse_grid_collocation/make1/
+Samplers/Restart/Truncated/sparse_grid_collocation/make2/
