@@ -13,6 +13,18 @@
    # test often does not work in debug mode because of the problem.
    method = 'devel opt'
  [../]
+ 
+ [./testGridRattlesnake]
+   type = 'RavenFramework'
+   input = 'test_Grid_Sampler_rattlesnake.xml'
+   output = 'GridTestTwigl/CustomSampler/out~18~twigl_mixing.csv GridTestTwigl/CustomSampler/out~1~twigl_mixing.csv GridTestTwigl/CustomSampler/out~10~twigl_mixing.csv'
+   csv = 'GridTestTwigl/outGrid_dump.csv'
+   max_time = 500
+   rel_err = 0.001
+   required_executable = '../../../../rattlesnake/rattlesnake-%METHOD%'
+   skip_if_env = BUILD_ROOT
+   method = 'devel opt'
+ [../]
 
  [./testLHSBison]
   type = 'RavenFramework'

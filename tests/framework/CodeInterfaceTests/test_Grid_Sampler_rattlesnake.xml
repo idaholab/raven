@@ -1,0 +1,82 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
+    <WorkingDir>GridTestTwigl</WorkingDir>
+    <Sequence>CustomSampler</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="twigl_mixing.i" type="">twigl_mixing.i</Input>
+    <Input name="xs.xml" type="">xs.xml</Input>
+  </Files>
+
+  <Models>
+    <Code name="Rattlesnake" subType="MooseBasedApp">
+      <executable>%FRAMEWORK_DIR%/../../rattlesnake/rattlesnake-%METHOD%</executable>
+    </Code>
+  </Models>
+
+  <Distributions>
+    <Normal name="Gauss1">
+      <mean>1</mean>
+      <sigma>0.001</sigma>
+      <lowerBound>0.5</lowerBound>
+      <upperBound>1.5</upperBound>
+    </Normal>
+    <Normal name="Gauss2">
+      <mean>1</mean>
+      <sigma>0.4</sigma>
+      <lowerBound>0.5</lowerBound>
+      <upperBound>1.5</upperBound>
+    </Normal>
+    <Triangular name="DistTri1">
+      <apex>1</apex>
+      <min>0.1</min>
+      <max>4</max>
+    </Triangular>
+  </Distributions>
+
+  <Samplers>
+    <Grid name="myGrid">
+      <variable name="Materials|seed11|densities">
+        <distribution>Gauss1</distribution>
+        <grid construction="custom" type="value">0.6 0.7 0.8</grid>
+      </variable>
+      <variable name="Materials|seed21|densities">
+        <distribution>Gauss2</distribution>
+        <grid construction="custom" type="CDF">0.5 1.0 0.0</grid>
+      </variable>
+      <variable name="Materials|blanket1|densities">
+        <distribution>DistTri1</distribution>
+        <grid construction="equal" steps="1" type="value">3.5 4.0</grid>
+      </variable>
+    </Grid>
+  </Samplers>
+
+  <OutStreamManager>
+    <Print name="outGrid_dump">
+      <type>csv</type>
+      <source>outGrid</source>
+    </Print>
+  </OutStreamManager>
+
+  <DataObjects>
+    <PointSet name="outGrid">
+      <Input>Materials|seed11|densities,Materials|seed21|densities,Materials|blanket1|densities</Input>
+      <Output>eigenvalue</Output>
+    </PointSet>
+  </DataObjects>
+
+  <Steps>
+    <MultiRun name="CustomSampler">
+      <Input class="Files" type="">twigl_mixing.i</Input>
+      <Input class="Files" type="">xs.xml</Input>
+      <Model class="Models" type="Code">Rattlesnake</Model>
+      <Sampler class="Samplers" type="Grid">myGrid</Sampler>
+      <Output class="DataObjects" type="PointSet">outGrid</Output>
+      <Output class="OutStreamManager" type="Print">outGrid_dump</Output>
+    </MultiRun>
+  </Steps>
+
+</Simulation>
