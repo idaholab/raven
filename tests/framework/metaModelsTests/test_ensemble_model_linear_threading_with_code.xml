@@ -6,7 +6,7 @@
         sampleMC
     </Sequence>
     <WorkingDir>metaModelWithCode</WorkingDir>
-    <batchSize>4</batchSize>
+    <batchSize>2</batchSize>
   </RunInfo>
 
   <Files>

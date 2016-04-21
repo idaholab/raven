@@ -3,7 +3,7 @@
   <RunInfo>
     <WorkingDir>metaModelNonLinearParallel</WorkingDir>
     <Sequence>testMetamodelHeatTransfer,dumpResults</Sequence>
-    <batchSize>4</batchSize>
+    <batchSize>2</batchSize>
     <internalParallel>True</internalParallel>
   </RunInfo>
 
