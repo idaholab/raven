@@ -95,7 +95,7 @@
     </PointSet>
   </DataObjects>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="CentralCompositeRespDesign_dump">
       <type>csv</type>
       <source>CentralCompositeRespDesignData</source>
@@ -106,7 +106,7 @@
       <source>BoxBehnkenRespDesignData</source>
       <what>Input|z2,Input|z1,Input|z3,Input|x1,Input|x2,Input|x3</what>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
   <Steps>
     <MultiRun name="BoxBehnkenRespDesignStep">
@@ -115,7 +115,7 @@
       <Sampler class="Samplers" type="ResponseSurfaceDesign">BoxBehnkenRespDesign</Sampler>
       <Output class="DataObjects" type="PointSet">BoxBehnkenRespDesignData</Output>
       <Output class="Databases" type="HDF5">test_DummyModelResponseSurfDesign_db</Output>
-      <Output class="OutStreamManager" type="Print">BoxBehnkenRespDesign_dump</Output>
+      <Output class="OutStreams" type="Print">BoxBehnkenRespDesign_dump</Output>
     </MultiRun>
     <MultiRun name="CentralCompositeRespDesignStep">
       <Input class="DataObjects" type="PointSet">CentralCompositeRespDesignDatadummyIN</Input>
@@ -123,7 +123,7 @@
       <Sampler class="Samplers" type="ResponseSurfaceDesign">CentralCompositeRespDesign</Sampler>
       <Output class="DataObjects" type="PointSet">CentralCompositeRespDesignData</Output>
       <Output class="Databases" type="HDF5">test_DummyModelResponseSurfDesign_db</Output>
-      <Output class="OutStreamManager" type="Print">CentralCompositeRespDesign_dump</Output>
+      <Output class="OutStreams" type="Print">CentralCompositeRespDesign_dump</Output>
     </MultiRun>
   </Steps>
 

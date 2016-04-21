@@ -16,7 +16,7 @@
     </MultiRun>
     <IOStep name="dumpLSout" pauseAtEnd="False">
       <Input class="DataObjects" type="PointSet">limitSurface</Input>
-      <Output class="OutStreamManager" type="Print">limitSurfaceTwoIslandsCSV</Output>
+      <Output class="OutStreams" type="Print">limitSurfaceTwoIslandsCSV</Output>
     </IOStep>
   </Steps>
 
@@ -89,11 +89,11 @@
     </External>
   </Functions>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="limitSurfaceTwoIslandsCSV">
       <type>csv</type>
       <source>limitSurface</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
 </Simulation>

@@ -4,12 +4,11 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
 
-import numpy as np
+#Do not import numpy or scipy or other libraries that are not
+# built into python.  Otherwise the import can fail, and since utils
+# are used by --library-report, this can cause diagnostic messages to fail.
 import bisect
 import sys, os
-from scipy.interpolate import Rbf, griddata
-from scipy import interpolate
-import copy
 import inspect
 import subprocess
 import platform
@@ -22,12 +21,12 @@ class NoMoreSamplesNeeded(GeneratorExit): pass
 
 def identifyIfExternalModelExists(caller, moduleIn, workingDir):
   """
-   Method to check if a external module exists and in case return the module that needs to be loaded with
-   the correct path
-   @ In, caller,object, the RAVEN caller (i.e. self)
-   @ In, moduleIn, string, module read from the XML file
-   @ In, workingDir, string, the path of the working directory
-   @ Out, (moduleToLoad, fileName), tuple, a tuple containing the module to load (that should be used in method importFromPath) and the filename (no path)
+    Method to check if a external module exists and in case return the module that needs to be loaded with
+    the correct path
+    @ In, caller,object, the RAVEN caller (i.e. self)
+    @ In, moduleIn, string, module read from the XML file
+    @ In, workingDir, string, the path of the working directory
+    @ Out, (moduleToLoad, fileName), tuple, a tuple containing the module to load (that should be used in method importFromPath) and the filename (no path)
   """
   if moduleIn.endswith('.py') : moduleToLoadString = moduleIn[:-3]
   else                        : moduleToLoadString = moduleIn
@@ -67,23 +66,24 @@ def checkIfPathAreAccessedByAnotherProgram(pathname, timelapse = 10.0):
     Probably there is a better way.
     @ In, pathname, string containing the all path
     @ In, timelapse, float, tollerance on time modification
-    @ Out, boolean, True if it is used by another program, False otherwise
+    @ Out, boolReturn, bool, True if it is used by another program, False otherwise
   """
   import stat
   import time
   mode = os.stat(pathname).st_mode
   if not (stat.S_ISREG(mode) or stat.S_ISDIR(mode)): raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('ERROR') + '->  path '+pathname+ ' is neither a file nor a dir!')
-  return abs(os.stat(pathname).st_mtime - time.time()) < timelapse
+  boolReturn = abs(os.stat(pathname).st_mtime - time.time()) < timelapse
+  return boolReturn
 
-def checkIfLockedRavenFileIsPresent(pathname,filename="ravenLockedKey.raven"):
+def checkIfLockedRavenFileIsPresent(pathName,fileName="ravenLockedKey.raven"):
   """
     Method to check if a path (directory) contains an hidden raven file
-    @ In, pathname, string containing the path
-    @ In, filename, string containing the file name
-    @ Out, boolean, True if it is present, False otherwise
+    @ In, pathName, string, string containing the path
+    @ In, fileName, string, optional, string containing the file name
+    @ Out, filePresent, bool, True if it is present, False otherwise
   """
-  filePresent = os.path.isfile(os.path.join(pathname,filename))
-  open(os.path.join(pathname,filename), 'w')
+  filePresent = os.path.isfile(os.path.join(pathName,fileName))
+  open(os.path.join(pathName,fileName), 'w')
   return filePresent
 
 def returnImportModuleString(obj,moduleOnly=False):
@@ -93,7 +93,7 @@ def returnImportModuleString(obj,moduleOnly=False):
     the 'import' statement or the 'from x import y'
     @ In, obj, instance, the object that needs to be inquired
     @ In, moduleOnly, bool, optional, get the modules only (True) or also the function dependencies(False)
-    @ Out, list, list of string containing the modules
+    @ Out, mods, list, list of string containing the modules
   """
   mods = []
   for key, value in dict(inspect.getmembers(obj)).items():
@@ -111,9 +111,10 @@ def getPrintTagLenght():
   """
     Method to return the length of the strings used for Screen output
     @ In, None,
-    @ Out, int, the default tag length
+    @ Out, tagLenght, int, the default tag length
   """
-  return 25
+  tagLenght = 25
+  return tagLenght
 
 def UreturnPrintTag(intag):
   """
@@ -122,7 +123,8 @@ def UreturnPrintTag(intag):
     @ In, intag, string, string that needs to be formatted
     @ Out, returnString, string, the formatted string
   """
-  return intag.ljust(getPrintTagLenght())[0:getPrintTagLenght()]
+  returnString = intag.ljust(getPrintTagLenght())[0:getPrintTagLenght()]
+  return returnString
 
 def UreturnPrintPostTag(intag):
   """
@@ -131,14 +133,15 @@ def UreturnPrintPostTag(intag):
     @ In, intag, string, string that needs to be formatted
     @ Out, returnString, string, the formatted string
   """
-  return intag.ljust(getPrintTagLenght()-15)[0:(getPrintTagLenght()-15)]
+  returnString = intag.ljust(getPrintTagLenght()-15)[0:(getPrintTagLenght()-15)]
+  return returnString
 
 def convertMultipleToBytes(sizeString):
   """
     Convert multiple (e.g. Mbytes, Gbytes,Kbytes) in bytes
     International system type (e.g., 1 Mb = 10^6)
     @ In, sizeString, string, string that needs to be converted in bytes
-    @ Out, bytes, integer, the number of bytes
+    @ Out, convertMultipleToBytes, integer, the number of bytes
   """
   if   'mb' in sizeString: return int(sizeString.replace("mb",""))*10**6
   elif 'kb' in sizeString: return int(sizeString.replace("kb",""))*10**3
@@ -151,58 +154,63 @@ def stringsThatMeanTrue():
   """
     Return list of strings with the meaning of true in RAVEN (eng,ita,roman,french,german,chinese,latin, turkish, bool)
     @ In, None
-    @ Out, listofstrings, list of strings that mean True in RAVEN
+    @ Out, listOfStrings, list, list of strings that mean True in RAVEN
   """
-  return list(['yes','y','true','t','si','vero','dajie','oui','ja','yao','verum', 'evet', 'dogru', '1', 'on'])
+  listOfStrings = list(['yes','y','true','t','si','vero','dajie','oui','ja','yao','verum', 'evet', 'dogru', '1', 'on'])
+  return listOfStrings
 
 def stringsThatMeanFalse():
   """
     Return list of strings with the meaning of true in RAVEN (eng,ita,roman,french,german,chinese,latin, turkish, bool)
     @ In, None
-    @ Out, listofstrings, list of strings that mean False in RAVEN
+    @ Out, listOfStrings, list, list of strings that mean False in RAVEN
   """
-  return list(['no','n','false','f','nono','falso','nahh','non','nicht','bu','falsus', 'hayir', 'yanlis', '0', 'off'])
+  listOfStrings = list(['no','n','false','f','nono','falso','nahh','non','nicht','bu','falsus', 'hayir', 'yanlis', '0', 'off'])
+  return listOfStrings
 
 def stringsThatMeanSilent():
   """
     Return list of strings that indicate a verbosity of the lowest level (just errors). You linguists add what you wish
     @ In, None
-    @ Out, listofstrings, list of strings that mean Silent in RAVEN
+    @ Out, listOfStrings, list, list of strings that mean Silent in RAVEN
   """
-  return list(['0','silent','false','f','n','no','none'])
+  listOfStrings = list(['0','silent','false','f','n','no','none'])
+  return listOfStrings
 
 def stringsThatMeanPartiallyVerbose():
   """
     Return list of strings that indicate a verbosity of the medium level (errors and warnings). You linguists add what you wish.
     @ In, None
-    @ Out, listofstrings, list of strings that mean Quiet in RAVEN
+    @ Out, listOfStrings, list, list of strings that mean Quiet in RAVEN
   """
-  return list(['1','quiet','some'])
+  listOfStrings = list(['1','quiet','some'])
+  return listOfStrings
 
 def stringsThatMeanVerbose():
   """
     Return list of strings that indicate full verbosity (errors warnings, messages). You linguists add what you wish.
     @ In, None
-    @ Out, listofstrings, list of strings that mean Full Verbosity in RAVEN
+    @ Out, listOfStrings, list, list of strings that mean Full Verbosity in RAVEN
   """
-  return list(['2','loud','true','t','y','yes','all'])
+  listOfStrings = list(['2','loud','true','t','y','yes','all'])
+  return listOfStrings
 
-def interpretBoolean(inarg):
+def interpretBoolean(inArg):
   """
-    Utility method to convert an inarg into a boolean.
-    The inarg can be either a string or integer
-    @ In, object, object to convert
+    Utility method to convert an inArg into a boolean.
+    The inArg can be either a string or integer
+    @ In, inArg, object, object to convert
     @ Out, interpretedObject, bool, the interpreted boolean
   """
-  if type(inarg).__name__ == "bool": return inarg
-  elif type(inarg).__name__ == "integer":
-    if inarg == 0: return False
+  if type(inArg).__name__ == "bool": return inArg
+  elif type(inArg).__name__ == "integer":
+    if inArg == 0: return False
     else         : return True
-  elif type(inarg).__name__ in ['str','bytes','unicode']:
-      if inarg.lower().strip() in stringsThatMeanTrue()   : return True
-      elif inarg.lower().strip() in stringsThatMeanFalse(): return False
+  elif type(inArg).__name__ in ['str','bytes','unicode']:
+      if inArg.lower().strip() in stringsThatMeanTrue()   : return True
+      elif inArg.lower().strip() in stringsThatMeanFalse(): return False
       else                                                : raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag("ERROR") + '-> can not convert string to boolean in method interpretBoolean!!!!')
-  else: raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag("ERROR") + '-> type unknown in method interpretBoolean. Got' + type(inarg).__name__)
+  else: raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag("ERROR") + '-> type unknown in method interpretBoolean. Got' + type(inArg).__name__)
 
 def compare(s1,s2,sig_fig = 6):
   """
@@ -260,7 +268,7 @@ def toString(s):
   """
     Method aimed to convert a string in type str
     @ In, s, string,  string to be converted
-    @ Out, response, str, the casted value
+    @ Out, response, string, the casted value
   """
   if type(s) == type(""): return s
   else                  : return s.decode()
@@ -302,22 +310,6 @@ def toStrish(s):
     return s
   else:
     return str(s)
-
-def convertNumpyToLists(inputDict):
-  """
-    Method aimed to convert a dictionary containing numpy
-    arrays or a single numpy array in list
-    @ In, inputDict, dict or numpy array,  object whose content needs to be converted
-    @ Out, response, dict or list, same object with its content converted
-  """
-  returnDict = inputDict
-  if type(inputDict) == dict:
-    for key, value in inputDict.items():
-      if   type(value) == np.ndarray: returnDict[key] = value.tolist()
-      elif type(value) == dict      : returnDict[key] = (convertNumpyToLists(value))
-      else                          : returnDict[key] = value
-  elif type(inputDict) == np.ndarray: returnDict = inputDict.tolist()
-  return returnDict
 
 def keyIn(dictionary,key):
   """
@@ -456,7 +448,7 @@ def find_ge(a, x):
 #   self.__dict__.update(newstate)
 #   self.exist    = True
 
-def metaclass_insert(metaclass,*base_classes):
+def metaclass_insert(metaclass,*baseClasses):
   """
     This allows a metaclass to be inserted as a base class.
     Metaclasses substitute in as a type(name,bases,namespace) function,
@@ -465,6 +457,9 @@ def metaclass_insert(metaclass,*base_classes):
     Example use:
     class Foo(metaclass_insert(Metaclass)):
     This function is based on the method used in Benjamin Peterson's six.py
+    @ In, metaclass, abc, the metaclass
+    @ In, baseClasses, args*, base classes
+    @ Out, metaclass, class, the new metaclass
   """
   namespace={}
   return metaclass("NewMiddleClass",base_classes,namespace)
@@ -548,6 +543,11 @@ class abstractstatic(staticmethod):
         return 5
   """
   def __init__(self, function):
+    """
+      Constructor
+      @ In, function, pointer, the function to 'abstract'
+      @ Out, None
+    """
     super(abstractstatic, self).__init__(function)
     function.__isabstractmethod__ = True
   __isabstractmethod__ = True
@@ -596,7 +596,7 @@ def find_distribution1D():
   """
     Method to find the crow distribution1D module and return it.
     @ In, None
-    @ Out, module, the module of distribution1D
+    @ Out, module, instance, the module of distribution1D
   """
   if sys.version_info.major > 2:
     try:
@@ -621,7 +621,7 @@ def find_interpolationND():
   """
     Method to find the crow interpolationND module and return it.
     @ In, None
-    @ Out, module, the module of interpolationND
+    @ Out, module, instance, the module of interpolationND
   """
   if sys.version_info.major > 2:
     try:
@@ -645,8 +645,9 @@ def find_interpolationND():
 def printCsv(csv,*args):
     """
       Writes the values contained in args to a csv file specified by csv
-      @ In, csv, an open file object to which we will be writing
-      @ In, args, an arbitrary collection of values to write to the file
+      @ In, csv, File instance, an open file object to which we will be writing
+      @ In, args, dict, an arbitrary collection of values to write to the file
+      @ Out, None
     """
     print(*args,file=csv,sep=',')
 
@@ -654,38 +655,11 @@ def printCsvPart(csv,*args):
     """
       Writes the values contained in args to a csv file specified by csv appending a comma
       to the end to allow more data to be written to the line.
-      @ In, csv, an open file object to which we will be writing
-      @ In, args, an arbitrary collection of values to write to the file
+      @ In, csv, File instance, an open file object to which we will be writing
+      @ In, args, dict, an arbitrary collection of values to write to the file
+      @ Out, None
     """
     print(*args,file=csv,sep=',',end=',')
-
-def numpyNearestMatch(findIn,val):
-  """
-    Given an array, find the entry that most nearly matches the given value.
-    @ In, findIn, the array to look in
-    @ In, val, the value for which to find a match
-    @ Out, tuple, index where match is and the match itself
-  """
-  idx = (np.abs(findIn-val)).argmin()
-  return idx,findIn[idx]
-
-def NDInArray(findIn,val,tol=1e-12):
-  """
-    checks a numpy array of numpy arrays for a near match, then returns info.
-    @ In, findIn, numpy array of numpy arrays (both arrays can be any length)
-    @ In, val, tuple/list/numpy array, entry to look for in findIn
-    @ In, tol, float, tolerance to check match within
-    @ Out, (bool,idx,val) -> (found/not found, index where found or None, findIn entry or None)
-  """
-  loc = np.where(np.all(np.abs(findIn-val)<tol,axis=1)==1)
-  if len(loc[0])>0:
-    found = True
-    idx = loc[0][0]
-    val = findIn[idx]
-  else:
-    found = False
-    idx = val = None
-  return found,idx,val
 
 
 class pickleSafeSubprocessPopen(subprocess.Popen):
@@ -700,6 +674,8 @@ class pickleSafeSubprocessPopen(subprocess.Popen):
       """
       Returns a dictionary of the object state for pickling/deep copying.  Omits member '_handle',
       which cannot be deep copied when non-None.
+      @ In, None
+      @ Out, result, dict, the get state dict
       """
       result = self.__dict__.copy()
       del result['_handle']
@@ -709,7 +685,8 @@ class pickleSafeSubprocessPopen(subprocess.Popen):
       """
       Used to load an object dictionary when unpickling.  Since member '_handle' could not be
       deep copied, load it back as value None.
-      @ In, d, dictionary object, previously stored namespace to restore
+      @ In, d, dict, previously stored namespace to restore
+      @ Out, None
       """
       self.__dict__ = d
       self._handle = None

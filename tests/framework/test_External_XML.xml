@@ -20,12 +20,12 @@
     </PointSet>
   </DataObjects>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="outGrid_dump">
       <ExternalXML node="type" xmlToLoad="ExternalXMLTest/external_printtype.xml"/>
       <ExternalXML node="source" xmlToLoad="ExternalXMLTest/external_printsource.xml"/>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
   <Steps>
     <ExternalXML node="MultiRun" xmlToLoad="ExternalXMLTest/external_multirun.xml"/>

@@ -10,7 +10,7 @@ def initial_function(monitored, controlled, auxiliary):
     # Hybrid Grid (RAVEN way)
     controlled.inlet_TDV_p_bc = controlled.inlet_TDV_p_bc + controlled.inlet_TDV_p_bc*0.1*distributions.testHybridGridDist2.getDistributionRandom()
     # Hybrid LHS (RAVEN way)
-    controlled.pipe2_f = controlled.pipe2_f + controlled.pipe2_f*0.1*distributions.testHybridLHSDist2.getDistributionRandom()
+    #controlled.pipe2_f = controlled.pipe2_f + controlled.pipe2_f*0.1*distributions.testHybridLHSDist2.getDistributionRandom()
     # Hybrid MonteCarlo (Sampled Variable directly from RAVEN FRAMEWORK)
     controlled.inlet_TDV_T_bc = controlled.inlet_TDV_T_bc + controlled.inlet_TDV_T_bc*0.1*auxiliary.testMCHybrid1
     # Hybrid Grid (Sampled Variable directly from RAVEN FRAMEWORK)

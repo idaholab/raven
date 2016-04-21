@@ -30,8 +30,7 @@
   <ExternalXML node="Distributions" xmlToLoad="distributions.xml"/>
   <ExternalXML node="Samplers" xmlToLoad="samplers.xml"/>
   <ExternalXML node="Steps" xmlToLoad="steps.xml"/>
-
-  <OutStreamManager>
+  <OutStreams>
     <!-- A csv file containing the output of the example -->
     <Print name="outData">
       <type>csv</type>
@@ -42,7 +41,7 @@
       <type>csv</type>
       <source>trainingData</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
   <ExternalXML node="DataObjects" xmlToLoad="dataObjects.xml"/>
 </Simulation>

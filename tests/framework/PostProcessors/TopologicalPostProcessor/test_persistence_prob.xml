@@ -66,17 +66,17 @@
       <Input class="DataObjects" type="PointSet">testData</Input>
       <Model class="Models" type="PostProcessor">AMSC_Probability</Model>
       <Output class="DataObjects" type="PointSet">dataProb</Output>
-      <Output class="OutStreamManager" type="Print">segProb</Output>
+      <Output class="OutStreams" type="Print">segProb</Output>
     </PostProcess>
   </Steps>
 
-  <OutStreamManager>
+  <OutStreams>
     <!-- A csv file containing the output of the example -->
     <Print name="segProb">
       <type>csv</type>
       <source>dataProb</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
   <DataObjects>
     <!-- The input TimePointSet object -->
