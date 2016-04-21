@@ -462,7 +462,7 @@ def metaclass_insert(metaclass,*baseClasses):
     @ Out, metaclass, class, the new metaclass
   """
   namespace={}
-  return metaclass("NewMiddleClass",base_classes,namespace)
+  return metaclass("NewMiddleClass",baseClasses,namespace)
 
 def interpolateFunction(x,y,option,z=None,returnCoordinate=False):
   """

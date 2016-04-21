@@ -772,7 +772,7 @@ class Simulation(MessageHandler.MessageUser):
     msg=__prntDict(self.samplersDict,msg)
     msg=__prntDict(self.modelsDict,msg)
     msg=__prntDict(self.metricsDict,msg)
-    msg=__prntDict(self.testsDict,msg)
+    #msg=__prntDict(self.testsDict,msg)
     msg=__prntDict(self.filesDict,msg)
     msg=__prntDict(self.dataBasesDict,msg)
     msg=__prntDict(self.OutStreamManagerPlotDict,msg)

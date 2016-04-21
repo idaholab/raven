@@ -22,11 +22,11 @@
       <Input  class="DataObjects"      type="HistorySet"     >outMC</Input>
       <Model  class="Models"           type="PostProcessor"  >KMeans1</Model>
       <Output class="DataObjects"      type="HistorySet"     >outMC</Output>
-      <Output class="OutStreamManager" type="Plot"           >plot3</Output>
-      <Output class="OutStreamManager" type="Plot"           >plot4</Output>
-      <Output class="OutStreamManager" type="Plot"           >plot5</Output>
-      <Output class="OutStreamManager" type="Plot"           >plot6</Output>
-      <Output class="OutStreamManager" type="Plot"           >plot7</Output>
+      <Output class="OutStreams" type="Plot"                 >plot3</Output>
+      <Output class="OutStreams" type="Plot"                 >plot4</Output>
+      <Output class="OutStreams" type="Plot"                 >plot5</Output>
+      <Output class="OutStreams" type="Plot"                 >plot6</Output>
+      <Output class="OutStreams" type="Plot"                 >plot7</Output>
     </PostProcess>
   </Steps>
   

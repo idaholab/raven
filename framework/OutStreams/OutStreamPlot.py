@@ -20,12 +20,7 @@ import importlib  # it is used in exec code so it might be detected as unused
 import platform
 import os
 import re
-<<<<<<< HEAD:framework/OutStreamManager.py
-import copy
-#External Modules End--------------------------------------------------------------------------------
-=======
 #External Modules End-----------------------------------------------------------
->>>>>>> origin/devel:framework/OutStreams/OutStreamPlot.py
 
 #Internal Modules---------------------------------------------------------------
 import utils

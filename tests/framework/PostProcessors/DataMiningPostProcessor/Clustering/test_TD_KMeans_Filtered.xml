@@ -20,35 +20,35 @@
     </MultiRun>
     <IOStep name="plotAllHists" pauseAtEnd="false">
       <Input   class="DataObjects"      type="HistorySet"   >outMC</Input>
-      <Output  class="OutStreamManager" type="Plot"         >plot1</Output>
+      <Output  class="OutStreams" type="Plot"         >plot1</Output>
     </IOStep>
     <PostProcess name="pp1" pauseAtEnd="True">
       <Input  class="DataObjects"      type="HistorySet"     >outMC</Input>
       <Model  class="Models"           type="PostProcessor"  >KMeans1</Model>
       <Output class="DataObjects"      type="HistorySet"     >outMC</Output>
-      <Output class="OutStreamManager" type="Plot"           >plot3</Output>
-      <Output class="OutStreamManager" type="Plot"           >Clustered_HS</Output>
-      <Output class="OutStreamManager" type="Plot"           >plot5</Output>
-      <Output class="OutStreamManager" type="Plot"           >plot6</Output>
-      <Output class="OutStreamManager" type="Plot"           >plot7</Output>
+      <Output class="OutStreams" type="Plot"           >plot3</Output>
+      <Output class="OutStreams" type="Plot"           >Clustered_HS</Output>
+      <Output class="OutStreams" type="Plot"           >plot5</Output>
+      <Output class="OutStreams" type="Plot"           >plot6</Output>
+      <Output class="OutStreams" type="Plot"           >plot7</Output>
     </PostProcess>
     <PostProcess name="filter0" pauseAtEnd="True">
       <Input  class="DataObjects"      type="HistorySet"     >outMC</Input>
       <Model  class="Models"           type="PostProcessor"  >filter0</Model>
       <Output class="DataObjects"      type="HistorySet"     >outMC0</Output>
-      <Output class="OutStreamManager" type="Plot"           >Cluster_0</Output>
-      <Output class="OutStreamManager" type="Plot"           >hist0x</Output>
-      <Output class="OutStreamManager" type="Plot"           >hist0y</Output>
-      <Output class="OutStreamManager" type="Plot"           >hist0z</Output>
+      <Output class="OutStreams" type="Plot"           >Cluster_0</Output>
+      <Output class="OutStreams" type="Plot"           >hist0x</Output>
+      <Output class="OutStreams" type="Plot"           >hist0y</Output>
+      <Output class="OutStreams" type="Plot"           >hist0z</Output>
     </PostProcess>
     <PostProcess name="filter1" pauseAtEnd="True">
       <Input  class="DataObjects"      type="HistorySet"     >outMC</Input>
       <Model  class="Models"           type="PostProcessor"  >filter1</Model>
       <Output class="DataObjects"      type="HistorySet"     >outMC1</Output>
-      <Output class="OutStreamManager" type="Plot"           >Cluster_1</Output>
-      <Output class="OutStreamManager" type="Plot"           >hist1x</Output>
-      <Output class="OutStreamManager" type="Plot"           >hist1y</Output>
-      <Output class="OutStreamManager" type="Plot"           >hist1z</Output>
+      <Output class="OutStreams" type="Plot"           >Cluster_1</Output>
+      <Output class="OutStreams" type="Plot"           >hist1x</Output>
+      <Output class="OutStreams" type="Plot"           >hist1y</Output>
+      <Output class="OutStreams" type="Plot"           >hist1z</Output>
     </PostProcess>
   </Steps>
   
@@ -166,7 +166,7 @@
       </HistorySet>
 	</DataObjects>
 
-	<OutStreamManager>
+	<OutStreams>
 	  <Print name="PrintHistorySet_dump">
 	    <type>csv</type>
 	    <source>outMC</source>
@@ -544,5 +544,5 @@
       </actions>
     </Plot>
                                      
-  </OutStreamManager>  
+  </OutStreams>  
 </Simulation>

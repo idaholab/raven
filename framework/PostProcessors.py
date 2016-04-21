@@ -3015,7 +3015,7 @@ class DataMining(BasePostProcessor):
       else                             : dataObject = self.dataObjects
     else: dataObject = None
 
-    Input = self.inputToInternal(inputIn)
+    input = self.inputToInternal(inputIn)
     outputDict = {}
     self.unSupervisedEngine.features = input['Features']
     if not self.unSupervisedEngine.amITrained:  
