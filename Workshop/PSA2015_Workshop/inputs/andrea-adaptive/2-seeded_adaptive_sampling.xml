@@ -31,7 +31,7 @@
   <IOStep name="push_limitsurface_in_database">
     <Input   class="DataObjects"        type="PointSet"  >limitSurface</Input>
     <Output  class="Databases"          type="HDF5"          >out_db_ls</Output>
-    <Output  class='OutStreams'   type='Print'         >limitSurfaceCSV</Output>
+    <Output  class='OutStreams'         type='Print'         >limitSurfaceCSV</Output>
   </IOStep>
 
 </Steps>
