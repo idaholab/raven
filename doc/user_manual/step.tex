@@ -162,7 +162,7 @@ This XML node recognizes the following attributes:
 \begin{itemize}
   \item \xmlAttr{class}, \xmlDesc{required string attribute}, main object class
     type.
-    For this role, only \xmlString{DataObjects}, \xmlString{Databases}, and 
+    For this role, only \xmlString{DataObjects}, \xmlString{Databases}, and
     \xmlString{OutStreams} can be used.
   \item \xmlAttr{type}, \xmlDesc{required string attribute}, the actual entity
     type.
@@ -320,7 +320,7 @@ This XML node recognizes the following attributes:
     type.
     This string corresponds to the tag of the main object's type used in the
     input.
-    For this role, only \xmlString{DataObjects}, \xmlString{Databases}, and 
+    For this role, only \xmlString{DataObjects}, \xmlString{Databases}, and
     \xmlString{OutStreams} may be used.
   \item \xmlAttr{type}, \xmlDesc{required string attribute}, the actual entity
     type.
@@ -443,7 +443,7 @@ This step accepts the following roles:
   \item \xmlAttr{type}, \xmlDesc{required string attribute}, the actual entity
     type.
     This attribute specifies the object type within the main object class.
-    For example, if the \xmlAttr{class} attribute is 
+    For example, if the \xmlAttr{class} attribute is
     \xmlString{OutStreams}, the \xmlAttr{type} attribute might be
     \xmlString{Plot}.
 \end{itemize}
@@ -461,8 +461,8 @@ used for the first \xmlNode{Output}, etc.).
 \xmlAttr{class}\\\xmlString{OutStreams}, since  \textbf{OutStreams}
 objects are already linked to a Data object in the relative RAVEN input block.
 
-In this case, the user needs to provide in the \xmlNode{Input} nodes, all of the 
-``DataObjects'' objects linked to the OutStreams objects (see the example 
+In this case, the user needs to provide in the \xmlNode{Input} nodes, all of the
+``DataObjects'' objects linked to the OutStreams objects (see the example
 below):
 \begin{lstlisting}[style=XML,morekeywords={class}]
 <Steps>
