@@ -100,10 +100,11 @@ class VariableGroup(BaseClasses.BaseType):
           self.raiseAnError(IOError,'Unrecognized or missing dependency operator:',op,varName)
         #if varName is a single variable, make it a set so it behaves like the rest
         if varName not in deps.keys():
-          modSet = set([varName])
+          modSet = [varName]
         else:
-          modSet = set(deps[varName].getVars())
-        orderOps.append(modSet.copy())
+          modSet = deps[varName].getVars()
+        orderOps.append(modSet[:])
+        modSet = set(modSet)
         if   op == '+': baseVars.update(modSet)
         elif op == '-': baseVars.difference_update(modSet)
         elif op == '^': baseVars.intersection_update(modSet)
