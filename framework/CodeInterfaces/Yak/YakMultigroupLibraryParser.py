@@ -29,6 +29,7 @@ class YakMultigroupLibraryParser():
     self.libs           = {} #dictionaries for libraries of tabulated xs values
     self.xmlsDict       = {} #connects libraries name and tree objects: {libraryName:objectTree}
     self.filesDict      = {} #connects names of files  and libraries name: {fileName:librariesName}
+    self.filesMap      = {} #connects names of files  and libraries name: {fileName:librariesName}
     self.files          = {}
     self.matLibMaps     = {} #connects material id and libraries name: {matID:librariesName}
     self.matTreeMaps    = {} #connects material id and xml objects: {matID:objectTree}
@@ -46,13 +47,14 @@ class YakMultigroupLibraryParser():
 
     #read in cross-section files, unperturbed files
     for xmlFile in inputFiles:
-      if not os.path.exists(xmlFile): raise IOError('The following Yak multigroup cross section library file: ' + xmlFile + ' is not found')
-      tree = ET.parse(xmlFile)
+      if not os.path.exists(xmlFile.getPath()): raise IOError('The following Yak multigroup cross section library file: ' + xmlFile + ' is not found')
+      tree = ET.parse(xmlFile.getFilename())
       root = tree.getroot()
       if root.tag == self.level0Element:
         self.xmlsDict[root.attrib['Name']] = tree
         self.files[root.attrib['Name']] = xmlFile
         self.filesDict[xmlFile] = root.attrib['Name']
+        self.filesMap[xmlFile.getFilename()] = root.attrib['Name']
         self.libs[root.attrib['Name']] = {}
         self.libsKeys[root.attrib['Name']] = {}
         mgDict = self.libs[root.attrib['Name']]
@@ -84,8 +86,8 @@ class YakMultigroupLibraryParser():
     self.aliasesNGroup = {}
     self.aliasesType = {}
     for xmlFile in aliasFiles:
-      if not os.path.exists(xmlFile): raise IOError('The following Yak cross section alias file: ' + xmlFile + ' is not found!')
-      aliasTree = ET.parse(xmlFile)
+      if not os.path.exists(xmlFile.getPath()): raise IOError('The following Yak cross section alias file: ' + xmlFile + ' is not found!')
+      aliasTree = ET.parse(xmlFile.getFilename())
       root = aliasTree.getroot()
       if root.tag != self.level0Element:
         raise IOError('Invalid root tag: ' + root.tag +' is provided.' + ' The valid root tag should be: ' + self.level0Element)
@@ -136,8 +138,8 @@ class YakMultigroupLibraryParser():
           groups = self._stringSpacesToListInt(groupIndex)
           if len(groups) != len(pertList):
             raise IOError('The group indices is not consistent with the perturbed variables list')
-          for g in groups:
-            varsList[g-1] = pertList[g-1]
+          for i,g in enumerate(groups):
+            varsList[g-1] = pertList[i]
           aliasXS[grid][mat][mt] = varsList
       else:
         raise IOError('The reaction ' + child.tag + ' can not be perturbed!')
@@ -405,6 +407,12 @@ class YakMultigroupLibraryParser():
         reactionDict['Absorption'] = reactionDict['Total'] - reactionDict['TotalScattering']
       else:
         raise IOError('Total cross section is required for this interface, but not provide!')
+      #recalculate capture cross sections
+      if 'Capture' not in reactionList:
+        if 'nuFission' in reactionList:
+          reactionDict['Capture'] = reactionDict['Absorption'] - reactionDict['Fission']
+        else:
+          reactionDict['Capture'] = reactionDict['Absorption']
     else:
       #recalculate capture cross sections
       if 'Capture' not in reactionList:
@@ -451,7 +459,16 @@ class YakMultigroupLibraryParser():
       if type(libValue) == dict:
         self._computePerturbations(libValue,lib[libKey],aliasType)
       elif type(libValue) == list:
-        groupValues = np.asarray(list(self.modDict[var] for var in libValue))
+        groupValues = []
+        for var in libValue:
+          if var in self.modDict.keys():
+            groupValues.append(self.modDict[var])
+          else:
+            if aliasType == 'rel':
+              groupValues.append(1.0)
+            elif aliasType == 'abs':
+              groupValues.append(0.0)
+        groupValues = np.asarray(groupValues)
         factors[libKey] = groupValues
         if aliasType == 'rel':
           lib[libKey] *= groupValues
@@ -590,17 +607,22 @@ class YakMultigroupLibraryParser():
     outFiles = {}
     if inFiles == None:
       for fileName,libKey in self.filesDict.items():
-        outFile.setBase('perturb'+'~'+outFile.getBase())
+        outFile = copy.deepcopy(fileName)
+        outFile.setBase('perturb'+'~'+fileName.getBase())
         #outFile = 'perturb~'+fileName
-        #outFiles[outFile] = libKey
+        outFiles[outFile] = libKey
     else:
       for inFile in inFiles:
-        if inFile in self.filesDict.keys():
-          libsKey = self.filesDict[inFile]
+        if inFile.getFilename() in self.filesMap.keys():
+          print('-----------------')
+          print(inFile)
+          libsKey = self.filesMap[inFile.getFilename()]
           if type(Kwargs['prefix']) in [str,type("")]:
             inFile.setBase(Kwargs['prefix']+'~'+inFile.getBase())
           else:
             inFile.setBase(str(Kwargs['prefix'][1][0])+'~'+inFile.getBase())
+          print('-----------------')
+          print(inFile)
           outFiles[inFile.getAbsFile()] = libsKey
 
     for fileName,libsKey in outFiles.items():

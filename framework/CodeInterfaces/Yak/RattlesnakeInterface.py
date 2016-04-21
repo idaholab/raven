@@ -38,13 +38,13 @@ class RattlesnakeInterface(CodeInterfaceBase):
     rattlesnakeInput = []
     aliasInput = []
     for inputFile in inputFiles:
-      if inputFile.getType() == "YakInput":
+      if inputFile.getType().lower() == "yakxsinput":
         inputDict['FoundYakXSInput'] = True
         yakInput.append(inputFile)
-      elif inputFile.getType() == "RattlesnakeInput":
+      elif inputFile.getType().lower() == "rattlesnakeinput":
         inputDict['FoundRattlesnakeInput'] = True
-        rattlesnakeInput.append[inputFile]
-      elif inputFile.getType() == "YakMultigroupLibraryInput":
+        rattlesnakeInput.append(inputFile)
+      elif inputFile.getType().lower() == "yakxsaliasinput":
         inputDict['FoundYakXSAliasInput'] = True
         aliasInput.append(inputFile)
     if inputDict['FoundYakXSInput']: inputDict['YakXSInput'] = yakInput
@@ -130,18 +130,20 @@ class RattlesnakeInterface(CodeInterfaceBase):
       Update the rattlesnake inputs with the updated cross section library names
     """
     for mooseInp in mooseInps:
-      if not os.path.isfile(mooseInp):
+      if not os.path.isfile(mooseInp.getAbsFile()):
         raise IOError("Error on replaceWord, not a regular file: " + mooseInp.getFilename())
-      mooseFile = open(mooseInp,'r')
-      mooseFileData = mooseFile.read()
-      for fileIndex, yakInp in yakInps:
+      mooseInp.open('r')
+      mooseFileData = mooseInp.read()
+      for fileIndex, yakInp in enumerate(yakInps):
         oldYakName = yakInp.getFilename()
         newYakName = newYakInps[fileIndex].getFilename()
-        mooseFileData.repalce(oldYakName,newYakName)
-      mooseFile.close()
-      mooseFile.open(mooseInp,'w')
-      mooseFile.write(mooseFileData)
-      mooseFile.close()
+        print(type(oldYakName))
+        print(newYakName)
+        newData = mooseFileData.replace(oldYakName,newYakName)
+      mooseInp.close()
+      mooseInp.open('w')
+      mooseInp.write(newData)
+      mooseInp.close()
 
   def finalizeCodeOutput(self, command, output, workingDir):
     """
