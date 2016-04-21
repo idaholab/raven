@@ -109,14 +109,15 @@ class RattlesnakeInterface(CodeInterfaceBase):
     origRattlesnakeInputs = copy.deepcopy(rattlesnakeInputs)
     newMooseInputs = self.MooseInterface.createNewInput(rattlesnakeInputs,origRattlesnakeInputs,samplerType,**Kwargs)
     #replace the library name in the rattlesnake inputs
-    self._updateRattlesnakeInputs(newMooseInputs,yakInputs,newYakInputs)
+    if foundAlias and foundXS:
+      self._updateRattlesnakeInputs(newMooseInputs,yakInputs,newYakInputs)
     #replace old with new perturbed files.
     for f in currentInputFiles:
       if f.isOpen(): f.close()
     newInputFiles = copy.deepcopy(currentInputFiles)
     #replace old with new perturbed files, in place
     newInputDict = self.findInps(newInputFiles)
-    if foundXS:
+    if foundXS and foundAlias:
       newYaks = newInputDict['YakXSInput']
       for fileIndex, newYakFile in enumerate(newYaks):
         newYakFile.setAbsFile(newYakInputs[fileIndex].getAbsFile())
