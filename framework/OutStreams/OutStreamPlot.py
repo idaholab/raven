@@ -827,7 +827,6 @@ class OutStreamPlot(OutStreamManager):
         maxV = 0
         if bool(self.colorMapValues):
           for key in self.xValues[pltindex].keys():
-            print(self.colorMapValues)
             minV = min(minV,self.colorMapValues[pltindex][key][-1][-1])
             maxV = max(maxV,self.colorMapValues[pltindex][key][-1][-1])
         for key in self.xValues[pltindex].keys():
