@@ -5131,7 +5131,7 @@ independent of the \xmlAttr{subType} specified:
    \item \xmlNode{timeID}, \xmlDesc{string, required field}, ID of the temporal variable
    \item \xmlNode{extension}, \xmlDesc{string, required field}, type of extension when the sync process goes outside the boundaries of the history (zeroed or extended)
    \item \xmlNode{syncMethod}, \xmlDesc{string, required field}, synchronization strategy to employ (see
-     description above)
+     description above).  Options are \xmlString{grid}, \xmlString{all}, \xmlString{max}, \xmlString{min}. 
    \item \xmlNode{numberOfSamples}, \xmlDesc{integer, optional field}, required if \xmlNode{syncMethod} is
      \xmlString{grid}, number of new time samples
 \end{itemize}
