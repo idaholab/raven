@@ -4571,9 +4571,8 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
         samp = self.samplers[toDoSub]
         #add the poly to the subset sampler's training queue
         samp.inTraining.add(self.inTraining[-1][2])
-        #add new necessary points to subset sampler -> both the training point and it's prereqs
-        addlPoints = samp.indexSet.getSubPoints(self.inTraining[-1][2])
-        samp._addNewPoints(samp._makeSparseQuad([self.inTraining[-1][2]]+addlPoints))
+        #add new necessary points to subset sampler
+        samp._addNewPoints(samp._makeSparseQuad([self.inTraining[-1][2]]))
         #get those new needed points and store them locally
         self._retrieveNeededPoints(toDoSub)
       elif which == 'subset':
