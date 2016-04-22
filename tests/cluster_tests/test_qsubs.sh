@@ -30,6 +30,12 @@ python ../../framework/Driver.py test_mpiqsub_local.xml
 
 wait_lines 'FirstMQRun/*eqn.csv' 6 mpiqsub
 
+rm -Rf FirstMNRun/
+
+python ../../framework/Driver.py test_mpiqsub_nosplit.xml
+
+wait_lines 'FirstMNRun/*eqn.csv' 6 mpiqsub_nosplit
+
 rm -Rf FirstMRun/
 
 qsub -l select=6:ncpus=4:mpiprocs=1 -l walltime=10:00:00 -l place=free -W block=true ./run_mpi_test.sh
