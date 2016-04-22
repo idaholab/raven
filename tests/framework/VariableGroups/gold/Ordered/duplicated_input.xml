@@ -1,0 +1,106 @@
+<Simulation verbosity="debug">
+  
+  <RunInfo>
+    <WorkingDir>Ordered</WorkingDir>
+    <printInput />
+    <Sequence>sample,print</Sequence>
+  </RunInfo>
+
+  <VariableGroups>
+    <Group name="x_odd">x1,x3,x5</Group>
+    <Group name="x_even">x2,x4,x6</Group>
+    <Group base="x_odd" dependencies="x_odd,x_even" name="union">+x_even</Group>
+  </VariableGroups>
+
+  <Distributions>
+    <Normal name="NormDist">
+      <mean>0</mean>
+      <sigma>1</sigma>
+    </Normal>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="mc">
+      <samplerInit>
+        <limit>3</limit>
+        <initialSeed>42</initialSeed>
+      </samplerInit>
+      <variable name="x1">
+        <distribution>NormDist</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution>NormDist</distribution>
+      </variable>
+      <variable name="x3">
+        <distribution>NormDist</distribution>
+      </variable>
+      <variable name="x4">
+        <distribution>NormDist</distribution>
+      </variable>
+      <variable name="x5">
+        <distribution>NormDist</distribution>
+      </variable>
+      <variable name="x6">
+        <distribution>NormDist</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Models>
+    <Dummy name="MyDummy" />
+  </Models>
+
+  <Steps>
+    <MultiRun name="sample">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="Dummy">MyDummy</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
+      <Output class="DataObjects" type="PointSet">uni</Output>
+      <Output class="DataObjects" type="PointSet">odd</Output>
+      <Output class="DataObjects" type="PointSet">even</Output>
+    </MultiRun>
+    <IOStep name="print">
+      <Input class="DataObjects" type="PointSet">uni</Input>
+      <Input class="DataObjects" type="PointSet">odd</Input>
+      <Input class="DataObjects" type="PointSet">even</Input>
+      <Output class="OutStreams" type="Print">dump_uni</Output>
+      <Output class="OutStreams" type="Print">dump_odd</Output>
+      <Output class="OutStreams" type="Print">dump_even</Output>
+    </IOStep>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="dummyIN">
+      <Input>x1,x3,x5,x2,x4,x6</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="uni">
+      <Input>x1,x3,x5,x2,x4,x6</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="odd">
+      <Input>x1,x3,x5</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="even">
+      <Input>x2,x4,x6</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="dump_uni">
+      <type>csv</type>
+      <source>uni</source>
+    </Print>
+    <Print name="dump_odd">
+      <type>csv</type>
+      <source>odd</source>
+    </Print>
+    <Print name="dump_even">
+      <type>csv</type>
+      <source>even</source>
+    </Print>
+  </OutStreams>
+
+</Simulation>
