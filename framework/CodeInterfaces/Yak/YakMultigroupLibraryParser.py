@@ -37,7 +37,9 @@ class YakMultigroupLibraryParser():
     self.defaultKappa   = 195*1.6*10**(-13) #Energy release per fission
     self.aliases        = {} #alias to XML node dict
     self.validReactions = ['Total','Fission','Removal','Transport','Scattering','nuFission','kappaFission',
-                           'FissionSpectrum','DNFraction','DNSpectrum','NeutronVelocity','DNPlambda'] #These are all valid reactions for Yak XS format
+                           'FissionSpectrum','DNFraction','DNSpectrum','NeutronVelocity','DNPlambda','Absorption',
+                           'Capture','Nalpha','NGamma','Flux','N2Alpha','N2N','N3N','N4N','NNProton','NProton',
+                           'NDeuteron','NTriton'] #These are all valid reactions for Yak XS format
     self.perturbableReactions = ['Fission','Capture','TotalScattering','Nu','Kappa'] #These are all valid perturbable reactions for RAVEN
     self.level0Element  = 'Multigroup_Cross_Section_Libraries' #root element tag is always the same for Yak XS format
     self.level1Element  = 'Multigroup_Cross_Section_Library'   #level 1 element tag is always Multigroup_Cross_Section_Library
@@ -400,13 +402,33 @@ class YakMultigroupLibraryParser():
           else:
             kappa.append(self.defaultKappa)
         reactionDict['Kappa'] = np.asarray(kappa)
-    # calculate absoption
-    hasTotal = False
+    #check and calculate total or  transport cross sections
+    if 'Total' not in reactionList:
+      if 'Transport' not in reactionList:
+        raise IOError('Total and Transport cross sections are not found in the cross section input file, at least one of them should be provided!')
+      else:
+        #recalculate total cross sections
+        if 'Scattering' not in reactionList:
+          reactionDict['Total'] = reactionDict['Transport']
+        elif reactionDict['ScatteringOrder'] == 0:
+          reactionDict['Total'] = reactionDict['Transport']
+        else:
+          reactionDict['Total'] = reactionDict['Transport'] + np.sum(reactionDict['Scattering'][self.nGroup:2*self.nGroup-1],1)
+    else:
+      if 'Transport' not in reactionList:
+        #recalculate transport cross sections
+        if 'Scattering' not in reactionList:
+          reactionDict['Transport'] = reactionDict['Total']
+        elif reactionDict['ScatteringOrder'] == 0:
+          reactionDict['Transport'] = reactionDict['Total']
+        else:
+          reactionDict['Transport'] = reactionDict['Total'] - np.sum(reactionDict['Scattering'][self.nGroup:2*self.nGroup-1],1)
+    #calculate absoption
     if 'Absorption' not in  reactionList:
-      if 'Total' in reactionList:
+      if 'Scattering' in reactionList:
         reactionDict['Absorption'] = reactionDict['Total'] - reactionDict['TotalScattering']
       else:
-        raise IOError('Total cross section is required for this interface, but not provide!')
+        reactionDict['Absorption'] = reactionDict['Total']
       #recalculate capture cross sections
       if 'Capture' not in reactionList:
         if 'nuFission' in reactionList:
@@ -420,8 +442,12 @@ class YakMultigroupLibraryParser():
           reactionDict['Capture'] = reactionDict['Absorption'] - reactionDict['Fission']
         else:
           reactionDict['Capture'] = reactionDict['Absorption']
-    #we may also need to consider to recalculate Removal and DiffusionCoefficient XS.
-    #we will implement in the future.
+      #recalculate scattering cross sections
+      if 'Scattering' not in reactionList and self.nGroup == 1:
+        reactionDict['Scattering'] = reactionDict['Total'] - reactionDict['Absorption']
+        reactionDict['TotalScattering'] = reactionDict['Scattering']
+      else:
+        raise IOError('The Scattering is not provided, and it could not be recalculated based on given information! ')
 
   #Functions used to perturb the yak multigroup cross section libraries
   ##################################################
@@ -527,6 +553,11 @@ class YakMultigroupLibraryParser():
           reactionDict['Scattering'][g] += factor
     #calculate Removal cross sections
     reactionDict['Removal'] = np.asarray(list(reactionDict['Total'][g] - reactionDict['Scattering'][g][g] for g in range(self.nGroup)))
+    #calculate Transport cross sections
+    if reactionDict['Scattering'].shape[0] >= self.nGroup*2:
+      reactionDict['Transport'] = reactionDict['Total'] - np.sum(reactionDict['Scattering'][self.nGroup:self.nGroup*2 - 1],1)
+    else:
+      reactionDict['Transport'] = reactionDict['Total']
 
     print('+++++++++New Fission++++++++++++')
     print(reactionDict['Fission'])
