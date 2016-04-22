@@ -13,7 +13,12 @@ import numpy as np
 
 class YakMultigroupLibraryParser():
   """
-    import the user-edited input file, build list of strings with replaceable parts
+    Class used to parse Yak multigroup cross section libraries, read the user provided alias files,
+    perturb the libraries with variables defined in alias files and values from Raven Sampler.
+    Cross sections will be reblanced based on provided information.
+    In addition, this interface can be used to perturb Fission, Capture, TotalScattering, Nu, Kappa
+    for given isotopes inside the libraries. In the future, we may need to add the capability to perturb the
+    Tablewise and Librarywise data.
   """
   #Functions Used for Reading Yak Multigroup Cross Section Library (Also including some functions for checking and recalculations)
   def __init__(self,inputFiles):
@@ -364,7 +369,20 @@ class YakMultigroupLibraryParser():
     for gridKey,isotopeDict in keyDict.items():
       for isotopeKey,reactionList in isotopeDict.items():
         if len(reactionList) == 0:
-          pDict[gridKey][isotopeKey] = copy.deepcopy(pDict[gridKey]['Tablewise'])
+          if 'Tablewise' in pDict[gridKey].keys():
+            pDict[gridKey][isotopeKey] = copy.deepcopy(pDict[gridKey]['Tablewise'])
+          elif 'Librarywise' in pDict[gridKey].keys():
+            pDict[gridKey][isotopeKey] = copy.deepcopy(pDict[gridKey]['Librarywise'])
+          else:
+            raise IOError('The isotope: ' + isotopeKey + ' is provided, but the required cross sections are not found in the library!')
+        else:
+          #add the missing cross sections from the Tablewise or Librarywise dictionary. Tablewise first, and then Librarywise
+          if 'Tablewise' in pDict[gridKey].keys():
+            for key,value in pDict[gridKey]['Tablewise'].items():
+              if key not in pDict[gridKey][isotopeKey].keys(): pDict[gridKey][isotopeKey][key] = value
+          if 'Librarywise' in pDict[gridKey].keys():
+            for key,value in pDict[gridKey]['Librarywise'].items():
+              if key not in pDict[gridKey][isotopeKey].keys(): pDict[gridKey][isotopeKey][key] = value
         #calculate some independent cross sections if they are not in pDict
         #these cross sections can be: fission, total scattering, capture, nu, kappa
         self._recalculateYakXS(pDict[gridKey][isotopeKey])
@@ -590,6 +608,12 @@ class YakMultigroupLibraryParser():
     tableWise = xmlNode.find('Tablewise')
     if tableWise is not None:
       for child in tableWise:
+        for isotope in xmlNode.findall('Isotope'):
+          if isotope.find(child.tag) is not None: break
+          isotope.append(copy.deepcopy(child))
+    libraryWise = xmlNode.find('Librarywise')
+    if libraryWise is not None:
+      for child in libraryWise:
         for isotope in xmlNode.findall('Isotope'):
           if isotope.find(child.tag) is not None: break
           isotope.append(copy.deepcopy(child))
