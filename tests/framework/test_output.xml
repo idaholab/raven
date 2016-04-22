@@ -111,7 +111,7 @@
           <type>line</type>
           <x>stories|Output|time</x>
           <y>stories|Output|sine</y>
-          <colorMap>stories|Output|square</colorMap>
+          <!--colorMap>stories|Output|square</colorMap-->
           <cmap>gist_ncar</cmap>
           <range>
             <xmin>0</xmin>

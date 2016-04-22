@@ -14,6 +14,7 @@ if not 'xrange' in dir(__builtins__):
 #External Modules---------------------------------------------------------------
 import numpy as np
 import ast
+import copy
 #from scipy.interpolate import Rbf, griddata
 import numpy.ma as ma
 import importlib  # it is used in exec code so it might be detected as unused
@@ -826,6 +827,7 @@ class OutStreamPlot(OutStreamManager):
         maxV = 0
         if bool(self.colorMapValues):
           for key in self.xValues[pltindex].keys():
+            print(self.colorMapValues)
             minV = min(minV,self.colorMapValues[pltindex][key][-1][-1])
             maxV = max(maxV,self.colorMapValues[pltindex][key][-1][-1])
         for key in self.xValues[pltindex].keys():
