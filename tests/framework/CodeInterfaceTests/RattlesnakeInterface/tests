@@ -5,6 +5,7 @@
    input = 'test_grid_rattlesnake.xml'
    output = 'TestRattlesnake/GridTest/2~xs.xml TestRattlesnake/GridTest/2~twigl_mixing.i'
    csv = 'TestRattlesnake/GridTest/out~12~twigl_mixing.csv TestRattlesnake/GridTest/out~10~twigl_mixing.csv TestRattlesnake/out_grid_dump.csv'
+   xml = 'TestRattlesnake/GridTest/10~xs.xml'
    max_time = 50
    rel_err = 0.0001
    required_executable = '../../../../../rattlesnake/rattlesnake-%METHOD%'
