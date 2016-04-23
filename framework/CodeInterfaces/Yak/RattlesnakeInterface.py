@@ -11,7 +11,7 @@ from MooseBasedAppInterface import MooseBasedAppInterface
 
 class RattlesnakeInterface(CodeInterfaceBase):
   """
-    This class is used to couple raven with rattlesnake input and yak cross section xml input file to generate new
+    This class is used to couple raven with rattlesnake input and yak cross section xml input files to generate new
     cross section xml input files.
   """
   def __init__(self):
@@ -55,16 +55,19 @@ class RattlesnakeInterface(CodeInterfaceBase):
 
   def generateCommand(self, inputFiles, executable, clargs=None, fargs=None):
     """
-      Generate a command to run Yak using an input with sampled variables to output
-      the perturbed XS input files in xml format.
+      Generate a command to run Rattlesnake using an input with sampled variables
       See base class.  Collects all the clargs and the executable to produce the command-line call.
       Returns tuple of commands and base file name for run.
       Commands are a list of tuples, indicating parallel/serial and the execution command to use.
-      @ In, inputFiles, list, List of input files (length of the list depends on the number of inputs have been added in the Step is running this code)
+      @ In, inputFiles, list, List of input files (length of the list depends on the number of inputs have
+        been added in the Step is running this code)
       @ In, executable, string, executable name with absolute path (e.g. /home/path_to_executable/code.exe)
-      @ In, clargs, dict, optional, dictionary containing the command-line flags the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 i0extension =0 .inp0/ >< /Code >)
-      @ In, fargs, dict, optional, a dictionary containing the axuiliary input file variables the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 aux0extension =0 .aux0/ >< /Code >)
-      @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the code (string), returnCommand[1] is the name of the output root
+      @ In, clargs, dict, optional, dictionary containing the command-line flags the user can specify in the input
+        (e.g. under the node < Code >< clargstype = 0 input0arg = 0 i0extension = 0 .inp0/ >< /Code >)
+      @ In, fargs, dict, optional, a dictionary containing the axuiliary input file variables the user can specify
+        in the input (e.g. under the node < Code >< fargstype = 0 input0arg = 0 aux0extension = 0 .aux0/ >< /Code >)
+      @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the
+        code (string), returnCommand[1] is the name of the output root
     """
     inputDict = self.findInps(inputFiles)
     rattlesnakeInput = inputDict['RattlesnakeInput']
@@ -76,13 +79,13 @@ class RattlesnakeInterface(CodeInterfaceBase):
 
   def createNewInput(self, currentInputFiles, origInputFiles, samplerType, **Kwargs):
     """
-      Generates new perturbed input files.
-      @ In, currentInputFiles, list,  list of current input files (input files from last this method call)
+      Generates new perturbed input files for both Rattlesnake input file and Yak multigroup group cross section input files.
+      @ In, currentInputFiles, list,  list of current input files
       @ In, origInputFiles, list, list of the original input files
       @ In, samplerType, string, Sampler type (e.g. MonteCarlo, Adaptive, etc. see manual Samplers section)
-      @ In, Kwargs, dictionary, kwarded dictionary of parameters. In this dictionary there is another dictionary called "SampledVars"
-             where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
-      @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
+      @ In, Kwargs, dict, dictionary of parameters. In this dictionary there is another dictionary called "SampledVars"
+        where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
+      @ Out, newInputFiles, list, list of new input files (modified or not)
     """
     #perturb the Yak multigroup library
     import YakMultigroupLibraryParser
@@ -129,17 +132,19 @@ class RattlesnakeInterface(CodeInterfaceBase):
   def _updateRattlesnakeInputs(self,mooseInps, yakInps, newYakInps):
     """
       Update the rattlesnake inputs with the updated cross section library names
+      @ In, mooseInps, list, list of rattlesnake input files
+      @ In, yakInps, list, list of old yak cross section files
+      @ In, newYakInps, list, list of new generated yak cross section files
+      @ Out, None.
     """
     for mooseInp in mooseInps:
       if not os.path.isfile(mooseInp.getAbsFile()):
-        raise IOError("Error on replaceWord, not a regular file: " + mooseInp.getFilename())
+        raise IOError("Error on opening file, not a regular file: " + mooseInp.getFilename())
       mooseInp.open('r')
       mooseFileData = mooseInp.read()
       for fileIndex, yakInp in enumerate(yakInps):
         oldYakName = yakInp.getFilename()
         newYakName = newYakInps[fileIndex].getFilename()
-        print(type(oldYakName))
-        print(newYakName)
         newData = mooseFileData.replace(oldYakName,newYakName)
       mooseInp.close()
       mooseInp.open('w')
