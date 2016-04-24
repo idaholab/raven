@@ -1368,13 +1368,13 @@ after RAVEN completes a sequence. For example:
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%% RATTLESNAKE INTERFACE %%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Rattlesnake Interfaces}
 %
 This section covers the input specification for runing Rattlesnake through RAVEN. It is important
 to notice that this short explanation assumes that the reader already knows how to use Rattlesnake.
 The interface can be used to perturb the Rattlesnake YAML input file as well as the Yak multigroup
 cross section libraries XML input files.
 %
-\subsection{Rattlesnake Interfaces}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Files}
@@ -1395,6 +1395,44 @@ The following is an example of a typical \xmlNode{Files} block.
   <Input name='alias' type='YakXSAliasInput'>alias.xml</Input>
 </Files>
 \end{lstlisting}
+%
+The alias files are employed to define the variables that will be used to perturb Yak multigroup cross section
+libraries. The following is an example of a typical alias file:
+%
+\begin{lstlisting}[style=XML]
+<Multigroup_Cross_Section_Libraries Name="twigl" NGroup="2" Type="rel">
+    <Multigroup_Cross_Section_Library ID="1">
+        <Fission gridIndex="1" mat="pseudo-seed1" gIndex="1">f11</Fission>
+        <Capture gridIndex="1" mat="pseudo-seed1" gIndex="1">c11</Capture>
+        <TotalScattering gridIndex="1" mat="pseudo-seed1" gIndex="1">t11</TotalScattering>
+        <Nu gridIndex="1" mat="pseudo-seed1" gIndex="1">n11</Nu>
+        <Fission gridIndex="1" mat="pseudo-seed2" gIndex="2">f22</Fission>
+        <Capture gridIndex="1" mat="pseudo-seed2" gIndex="2">c22</Capture>
+        <TotalScattering gridIndex="1" mat="pseudo-seed2" gIndex="2">t22</TotalScattering>
+        <Nu gridIndex="1" mat="pseudo-seed2" gIndex="2">n22</Nu>
+        <Fission gridIndex="1" mat="pseudo-seed1-dup" gIndex="1">f11</Fission>
+        <Capture gridIndex="1" mat="pseudo-seed1-dup" gIndex="1">c11</Capture>
+        <TotalScattering gridIndex="1" mat="pseudo-seed1-dup" gIndex="1">t11</TotalScattering>
+        <Nu gridIndex="1" mat="pseudo-seed1-dup" gIndex="1">n11</Nu>
+    </Multigroup_Cross_Section_Library>
+</Multigroup_Cross_Section_Libraries>
+\end{lstlisting}
+%
+In the above alias file, the \xmlAttr{Name} of \xmlNode{Multigroup\_Cross\_Section\_Libraries} used to indicate the
+which Yak multigroup cross section library input file will be perturbed. 
+The \xmlAttr{NGroup}, \xmlAttr{ID}, and \xmlNode{Multigroup\_Cross\_Section\_Library}
+should be consistent with the Yak multigroup cross section library input files.
+The \xmlNode{Fission}, \xmlNode{Capture}, \xmlNode{TotalScattering}, \xmlNode{Nu}, \xmlAttr{gridIndex}, 
+\xmlAttr{mat}, and \xmlAttr{gIndex} are used to find the corresponding cross sections in the Yak multigroup cross
+section library input files. For example:
+%
+\begin{lstlisting}[style=XML]
+<Fission gridIndex="1" mat="pseudo-seed1" gIndex="1">f11</Fission>
+\end{lstlisting}
+%
+This node defines an alias with name \xmlString{f11} used to represent the fission cross section at energy group '1'
+for material with name 'pseudo-seed1' at grid index '1' in the Yak multigroup cross section library input files.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Models}
