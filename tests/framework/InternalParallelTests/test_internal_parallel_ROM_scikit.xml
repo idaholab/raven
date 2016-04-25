@@ -80,7 +80,7 @@
       <variables>x1,x2,y,z</variables>
     </ExternalModel>
     <ROM name="ROM1" subType="SciKitLearn">
-      <SKLtype>svm|SVR</SKLtype>
+      <SKLtype>neighbors|RadiusNeighborsRegressor</SKLtype>
       <Features>x1,x2</Features>
       <Target>y</Target>
     </ROM>
