@@ -12,10 +12,10 @@
 			<Sampler class="Samplers" type="Grid">Grid_function</Sampler>
 			<Output class="DataObjects" type="PointSet">outGRID</Output>
 			<Output class="Databases" type="HDF5">out_db</Output>
-			<Output class="OutStreamManager" type="Print">out_dump</Output>
-			<Output class="OutStreamManager" type="Plot">plotResponse_y3</Output>
-			<Output class="OutStreamManager" type="Plot">plotResponse_y4</Output>
-			<Output class="OutStreamManager" type="Plot">plotResponse_y5</Output>
+			<Output class="OutStreams" type="Print">out_dump</Output>
+			<Output class="OutStreams" type="Plot">plotResponse_y3</Output>
+			<Output class="OutStreams" type="Plot">plotResponse_y4</Output>
+			<Output class="OutStreams" type="Plot">plotResponse_y5</Output>
 		</MultiRun>
 	</Steps>
 	<Models>
@@ -58,7 +58,7 @@
 	<Databases>
 		<HDF5 name="out_db" directory="DatabaseStorage"/>
 	</Databases>
-	<OutStreamManager>
+	<OutStreams>
 		<Print name="out_dump">
 			<type>csv</type>
 			<source>outGRID</source>
@@ -120,7 +120,7 @@
 				</title>
 			</actions>
 		</Plot>
-	</OutStreamManager>
+	</OutStreams>
 	<DataObjects>
 		<PointSet name="outGRID">
 			<Input>x1,x2,x3</Input>
