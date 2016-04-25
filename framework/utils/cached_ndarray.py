@@ -106,7 +106,7 @@ class c1darray(object):
         dist = abs(self.values[i]-value)
         index = i
     return index
-  
+
   def returnIndexFirstPassage(self,value):
     """
       Function that return the index of the element that firstly crosses value
