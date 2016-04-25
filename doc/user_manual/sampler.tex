@@ -497,6 +497,7 @@ are available:
 \item \textbf{Sobol Decomposition}
 \item \textbf{Response Surface Design of Experiment}
 \item \textbf{Factorial Design of Experiment}
+\item \textbf{Ensemble Forward Sampling strategy}
 \end{itemize}
 
 From a practical point of view, these sampling strategies represent different
@@ -1415,6 +1416,84 @@ Example:
   ...
 </Samplers>
 \end{lstlisting}
+
+%%% Forward Samplers: MonteCarlo
+\subsubsection{Ensemble Forward Sampling strategy}
+\label{subsubsubsec:MC}
+The \textbf{Ensemble Forward} sampling approach allows the user to combine multiple Forward sampling strategies 
+into one single strategy. For example, it can happen that a variable is more suitable for a particular sampling strategy (e.g. a 
+stochastic event 
+modeled with a Monte Carlo approach) and a second variable is more suitable for another sampling method (e.g. because part of a parametric space modeled with a Grid-based approach).
+\specBlock{a}{EnsembleForward}
+%
+\attrsIntro
+\vspace{-5mm}
+\begin{itemize}
+\itemsep0em
+\item \textbf{name}, \textit{required string attribute}, user-defined name of this Sampler. N.B. As for the other objects, this is the name that can be used to refer to this specific entity from other input blocks (xml);
+\end{itemize}
+\vspace{-5mm}
+
+In the \textbf{EnsembleForward} input block, the user needs to specify the sampling strategies that he wants to combine together. 
+\\Currently, only the following strategies can be combined:
+\begin{itemize}
+  \item \xmlNode{MonteCarlo}
+  \item \xmlNode{Grid}
+  \item \xmlNode{Stratiefied}
+  \item \xmlNode{FactorialDesign}
+  \item \xmlNode{ResponseSurfaceDesign}
+\end{itemize}
+For each of the above samplers, the input specifications can be found in the relative sections.
+
+Example:
+\begin{lstlisting}[style=XML]
+<Samplers>
+  ...
+    <EnsembleForward name="testEnsembleForward">
+        <MonteCarlo name = "theMC">
+            <samplerInit> <limit>4</limit> </samplerInit>
+            <variable name="sigma">
+                <distribution>norm</distribution>
+            </variable>
+        </MonteCarlo>
+        <Grid name = "theGrid">
+            <variable name="x0">
+                <distribution>unif</distribution>
+                <grid construction="custom" type="value">0.02 0.5 0.6</grid>
+            </variable>
+        </Grid>
+        <Stratified name = "theStratified">
+            <variable name="z0">
+                <distribution>tri</distribution>
+                <grid construction="equal" steps="2" type="CDF">0.2 0.8</grid>
+            </variable>
+            <variable name="y0">
+                <distribution>unif</distribution>
+                <grid construction="equal" steps="2" type="value">0.5 0.8</grid>
+            </variable>
+        </Stratified>
+        <ResponseSurfaceDesign name = "theRSD">
+            <ResponseSurfaceDesignSettings>
+                <algorithmType>CentralComposite</algorithmType>
+                <centers>1,2</centers>
+                <alpha>orthogonal</alpha>
+                <face>circumscribed</face>
+            </ResponseSurfaceDesignSettings>
+            <variable name="rho">
+                <distribution>unif</distribution>
+                <grid construction="custom" type="CDF">0.0 1.0</grid>
+            </variable>
+            <variable name="beta">
+                <distribution>tri</distribution>
+                <grid construction="custom" type="value">0.1 1.5</grid>
+            </variable>
+        </ResponseSurfaceDesign>
+    </EnsembleForward>
+  ...
+</Samplers>
+\end{lstlisting}
+
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Dynamic Event Tree Samplers %%%
