@@ -14,7 +14,7 @@ def initialize(self,runInfoDict,inputFiles):
 
 def run(self,Input):
   max_time = 0.5
-  t_step = 0.05
+  t_step = 0.01
 
   numberTimeSteps = int(max_time/t_step)
 

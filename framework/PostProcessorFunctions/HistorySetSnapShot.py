@@ -142,9 +142,9 @@ def historySnapShot(inputDic, pivotVar, snapShotType, pivotVal=None, tempID = No
       for vars in outVars:
         outputDic['data']['output'][vars] = np.append(outputDic['data']['output'][vars] , copy.deepcopy(inputDic['data']['output'][history][vars][idx]))
     elif snapShotType == 'value':
-      idx = inputDic['data']['output'][history][pivotVar].returnIndex(pivotVal)
+      idx = inputDic['data']['output'][history][pivotVar].returnIndexFirstPassage(pivotVal)
       if inputDic['data']['output'][history][pivotVar][idx]>pivotVal:
-        intervalFraction = (pivotVal-inputDic['data']['output'][history][pivotVar][idx-1])/(outputDic['data']['output'][history][pivotVar][idx]-inputDic['data']['output'][history][pivotVar][idx-1])
+        intervalFraction = (pivotVal-inputDic['data']['output'][history][pivotVar][idx-1])/(inputDic['data']['output'][history][pivotVar][idx]-inputDic['data']['output'][history][pivotVar][idx-1])
         for keys in outVars:
           value = inputDic['data']['output'][history][keys][idx-1] + (inputDic['data']['output'][history][keys][idx]-inputDic['data']['output'][history][keys][idx-1])*intervalFraction
           outputDic['data']['output'][keys] = np.append(outputDic['data']['output'][keys],value)

@@ -93,7 +93,7 @@ class c1darray(object):
       self.values[self.size:self.size+x.size] = x[:]
       self.size  += x.size
 
-  def returnIndex(self,value):
+  def returnIndexClosest(self,value):
     """
       Function that return the index of the element in the array closest to value
       @ In, value, double, query value
@@ -106,6 +106,20 @@ class c1darray(object):
         dist = abs(self.values[i]-value)
         index = i
     return index
+  
+  def returnIndexFirstPassage(self,value):
+    """
+      Function that return the index of the element that firstly crosses value
+      @ In, value, double, query value
+      @ Out, index, int, index of the element in the array closest to value
+    """
+    index=-1
+    dist = sys.float_info.max
+    for i in range(1,self.size):
+      if (self.values[i]>=value and self.values[i-1]<=value) or (self.values[i]<=value and self.values[i-1]>=value):
+        index = i
+        break
+    return index
 
   def returnIndexMax(self):
     """
@@ -116,9 +130,10 @@ class c1darray(object):
     index=-1
     maxValue = -sys.float_info.max
     for i in range(self.size):
-      if self.values[i]>maxValue:
+      if self.values[i]>=maxValue:
         maxValue = self.values[i]
         index = i
+        break
     return index
 
   def returnIndexMin(self):
@@ -130,9 +145,10 @@ class c1darray(object):
     index=-1
     minValue = sys.float_info.max
     for i in range(self.size):
-      if self.values[i]<minValue:
+      if self.values[i]<=minValue:
         minValue = self.values[i]
         index = i
+        break
     return index
 
   def __add__(self, x):
