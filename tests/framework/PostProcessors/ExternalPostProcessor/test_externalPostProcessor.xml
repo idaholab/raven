@@ -89,7 +89,7 @@
   </OutStreams>
 
   <Databases>
-    <ravenTEMPcomment readMode="overwrite"> The necessary database object -->
+    <!-- The necessary database object -->
     <HDF5 name="myDB" readMode="overwrite"/>
   </Databases>
 
