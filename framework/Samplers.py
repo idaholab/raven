@@ -3099,7 +3099,7 @@ class FactorialDesign(Grid):
     """
     Grid.__init__(self)
     self.printTag = 'SAMPLER FACTORIAL DESIGN'
-    # accepted types. full = full factorial, 2levelFract = 2-level fracional factorial, pb = Plackett-Burman design. NB. full factorial is equivalent to Grid sampling
+    # accepted types. full = full factorial, 2levelFract = 2-level fractional factorial, pb = Plackett-Burman design. NB. full factorial is equivalent to Grid sampling
     self.acceptedTypes = ['full','2levelfract','pb'] # accepted factorial types
     self.factOpt       = {}                          # factorial options (type,etc)
     self.designMatrix  = None                        # matrix container
@@ -3211,7 +3211,7 @@ class ResponseSurfaceDesign(Grid):
     self.respOpt         = {}                                    # response surface design options (type,etc)
     self.designMatrix    = None                                  # matrix container
     self.bounds          = {}                                    # dictionary of lower and upper
-    self.mapping         = {}                                    # mapping between designmatrix coordinates and position in grid
+    self.mapping         = {}                                    # mapping between designMatrix coordinates and position in grid
     self.minNumbVars     = {'boxbehnken':3,'centralcomposite':2} # minimum number of variables
     # dictionary of accepted types and options (required True, optional False)
     self.acceptedOptions = {'boxbehnken':['ncenters'], 'centralcomposite':['centers','alpha','face']}
