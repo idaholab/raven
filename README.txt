@@ -1,45 +1,112 @@
-RAVEN
+Overview
+RAVEN is a flexible and multi-purpose statistical analysis framework. It has been developed at Idaho National Laboratory (INL) since 2012 within the Nuclear Energy Advanced Modeling and Simulation (NEAMS) and the Light Water Reactor Sustainability (LWRS) Risk Informed Safety Margin Characterization (RISMC) programs. 
+Statistical analysis includes the following major capabilities:
+- statistical sampling of codes (e.g., Monte Carlo, Latin hypercube and grid sampling, and Dynamic Event Trees) for uncertainty quantification and reliability analyses
+- generation and use of reduced-order models (also known as surrogate models or emulators)
+- data post-processing 
+- statistical estimation and sensitivity analysis (e.g., mean, variance, sensitivity coefficients and covariance matrix).
 
-RAVEN is a generic software framework designed to perform parametric and stochastic analysis
-based on the response of complex system codes. The initial development was aimed to provide
-dynamic risk analysis capabilities to the Thermo-Hydraulic code RELAP-7, currently under
-development at the Idaho National Laboratory (INL).
-Although the initial goal has been fully accomplished, RAVEN is now a multi-purpose probabilistic
-and uncertainty quantification platform, capable to communicate with any system code. This agnosticism
-includes providing Application Programming Interfaces (APIs). These APIs allow RAVEN to interact with
-any code as long as all the parameters that need to be perturbed are accessible by inputs files or via
-python interfaces. RAVEN is capable of investigating the system response, and investigating the input
-space using Monte Carlo, Grid, or Latin Hyper Cube sampling schemes, but its strength is focused
-toward system feature discovery, such as limit surfaces, separating regions of the input space leading
-to system failure,  using dynamic supervised learning techniques. The development of RAVEN has started
-in 2012, when, within the Nuclear Energy Advanced Modeling and Simulation (NEAMS) program, the need to
-provide a modern risk evaluation framework became stronger. RAVEN principal assignment is to provide the
-necessary software and algorithms in order to employ the concept developed by the Risk Informed Safety
-Margin Characterization (RISMC) program. RISMC is one of the pathways defined within the Light Water
-Reactor Sustainability (LWRS) program. In the RISMC approach, the goal is not just the individuation of
-the frequency of an event potentially leading to a system failure, but the closeness (or not) to key
-safety-related events. Hence, the approach is interested in identifying and increasing the safety margins
-related to those events. A safety margin is a numerical value quantifying the probability that a safety
-metric (e.g. for an important process such as peak pressure in a pipe) is exceeded under certain conditions.
-The initial development of RAVEN has been focused on providing dynamic risk assessment capability to
-RELAP-7, currently under development at the INL and, likely, future replacement of the RELAP5-3D code.
-Most the capabilities that have been implemented having RELAP-7 as principal focus are easily deployable
-for other system codes.
+Applications
+The RAVEN statistical analysis framework can be employed for several types of applications:
+- Uncertainty Quantification
+- Sensitivity Analysis
+- Probabilistic Risk and Reliability Analysis (PRA)
+- Regression Analysis
+- Data Mining Analysis
+- Model Optimization (currently under development)
 
-Principal Investigator: Rabiti, Cristian (crisr)
+Capabilities
+RAVEN provides a set of basic and advanced capabilities that ranges from data generation, data processing and data visualization.
+A full set of RAVEN computational capabilities are listed below:
 
-Raven copyright holders are:
-Alfonsi, Andrea (alfoa)
-Rabiti, Cristian (crisr)
-Mandelli, Diego (mandd)
-Cogliati, Joshua J (cogljj)
-Kinoshita, Robert A (bobk)
+Computing capabilities:
+- parallel computation capabilities (multi-thread and multi-core)
+- supported operating systems: MAC, linux and windows
+- workstation and high performance computing systems
 
-Past developers:
-Sen, Ramazan S (senrs)
+Multi-steps analyses: RAVEN analyses are performed through a series of simulation steps. Each simulation step allows the user to perform a set of basic actions: 
+- Multi-Run
+- Training of a ROM
+- Post-Process
+- IOStep
+More complex analyses are performed by simply assembling and linking a series of steps listed above.
+
+Creation and use of reduced order models (scikit-learn and CROW library)
+- SVM
+- Gaussian Process Models
+- Linear Models
+- Multi-Class classifiers
+- Decision Trees
+- Naive Bayes
+- Neighbors classifiers and regressors
+- Multi-dimensional interpolators
+- High dimension model reduction (HDMR)
+- Morse-Smale complex
+
+Forward propagation of uncertainties
+- MonteCarlo sampling
+- Grid sampling
+- Stratified Sampling
+- Factorial design
+- Response surface design
+- Multi-variate analysis
+- Generic Polynomial Chaos expansion
+
+Advance sampling methods:
+- Sobol index sampling
+- Adaptive sampling
+- Sparse grid collocation sampling
+- Dynamic event trees (DETs)
+
+Model capabilities:
+- Generic interface with codes
+- Custom code interfaces
+- Custom ad-hoc external models
+
+Data Post-Processing capabilities
+- Data clustering
+- Data regression
+- Data dimensionality Reduction
+- Custom generic post-processors
+- Time-dependent data analysis
+- Data plotting
+
+Model parameter optimization
+- Simultaneous perturbation stochastic approximation method
+
+Data management
+- Data importing and exporting
+- Databases creation
+
+Team
+Project Manager: Cristian Rabiti @crisr cristian.rabiti@inl.gov
+
+Technical Lead: Andrea Alfonsi @alfoa andrea.alfonsi@inl.gov
+
+Testing, Quality Assurance and Installation: Joshua Cogliati @cogljj joshua.cogliati@inl.gov
+
+Developers
+    Andrea Alfonsi @alfoa
+    Congjian Wang @wangc
+    Diego Mandelli @mandd
+    Daniel Maljovec @maljdan
+    Joshua Cogliati @cogljj
+    Paul Talbot @talbpaul
+    Robert Kinoshita @bobk
+    Jong Suk Kim @kimj
+    Jun Chen @chenj
+    Alain Giorla @gioralai
+
+Other Contacts
+    RAVEN user list raven-users@inl.gov
+    RAVEN service id raven@inl.gov
+    RAVEN development list raven-devel@inl.gov
 
 
 A list of other contributors can be obtained with the following command:
 ```git shortlog -sn```
 
 See the file LICENSE for copyright and export information.
+
+
+
