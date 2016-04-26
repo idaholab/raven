@@ -36,11 +36,11 @@
     <Grid name="grid1">
       <variable name="x1">
         <distribution>x1_dst</distribution>
-        <grid construction="equal" steps="10" type="value">-10 10</grid>
+        <grid construction="equal" steps="7" type="value">-10 10</grid>
       </variable>
       <variable name="x2">
         <distribution>x2_dst</distribution>
-        <grid construction="equal" steps="10" type="value">-10 10</grid>
+        <grid construction="equal" steps="7" type="value">-10 10</grid>
       </variable>
     </Grid>
   </Samplers>
