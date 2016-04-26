@@ -40,12 +40,6 @@
   xml = 'output_check/fullprint_HistorySet.xml output_check/fullprint_history.xml output_check/fullprint_Pointset.xml output_check/fullprint_Point.xml'
  [../]
 
- [./test_subPlot]
-  type = 'RavenFramework'
-  input = 'test_subPlot.xml'
-  output = 'subplot_output/1-subPlot1_surface-surface-surface.png subplot_output/1-subPlot2_stem-stem-stem.png subplot_output/1-subPlot3_stem-stem-stem-stem-stem.png'
- [../]
-
  [./test_output_attributes]
   type = 'RavenFramework'
   input = 'test_dataobjects_attributes.xml'

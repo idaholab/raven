@@ -1,0 +1,21 @@
+[Tests]
+ [./test_plot]
+  type = 'RavenFramework'
+  input = 'test_plot.xml'
+  output = 'output_check/1-plot20_scatter.svg'
+  xml = 'output_check/1-plot20_scatter.svg'
+ [../]
+
+ [./test_subPlot]
+  type = 'RavenFramework'
+  input = 'test_subPlot.xml'
+  output = 'subplot_output/1-subPlot1_surface-surface-surface.png subplot_output/1-subPlot2_stem-stem-stem.png subplot_output/1-subPlot3_stem-stem-stem-stem-stem.png'
+ [../]
+
+ [./io_ROM_pickle]
+  type = 'RavenFramework'
+  input = 'test_io_ROM_pickle.xml'
+  output = 'IO_ROM_PICKLE/PrintData_Pickle.csv IO_ROM_PICKLE/PrintData.csv'
+  csv = 'IO_ROM_PICKLE/PrintData_Pickle.csv IO_ROM_PICKLE/PrintData.csv'
+ [../]
+[]
