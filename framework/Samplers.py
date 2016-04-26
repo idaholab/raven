@@ -5285,7 +5285,6 @@ class EnsembleForwardSampler(StaticSampler):
       @ Out, None
     """
     self.limit = 1
-    self.samplersCombinations = {}
     cnt = 0
     lowerBounds, upperBounds = {}, {}
     for samplingStrategy in self.instanciatedSamplers.keys():
@@ -5301,10 +5300,9 @@ class EnsembleForwardSampler(StaticSampler):
       cnt+=1
     self.raiseAMessage('Number of Combined Samples are ' + str(self.limit) + '!')
     # create a grid of combinations (no tensor)
-    self.gridEnsemble = GridEntities.GridEntity(self.messageHandler)    
+    self.gridEnsemble = GridEntities.GridEntity(self.messageHandler)
     initDict = {'dimensionNames':self.instanciatedSamplers.keys(),'stepLength':dict.fromkeys(self.instanciatedSamplers.keys(),[1]), 'lowerBounds':lowerBounds,'upperBounds':upperBounds,'computeCells':False,'constructTensor':False}
     self.gridEnsemble.initialize(initDict)
-    #self.samplersCombinations = samplersCombinations
 
   def localGenerateInput(self,model,myInput):
     """
