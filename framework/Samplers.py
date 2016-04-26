@@ -5230,7 +5230,7 @@ class EnsembleForwardSampler(StaticSampler):
     self.acceptableSamplers   = ['MonteCarlo','Stratified','Grid','FactorialDesign','ResponseSurfaceDesign']
     self.printTag             = 'SAMPLER EnsembleForward'
     self.instanciatedSamplers = {}
-    self.listOfCombinationOfPoints = []
+    self.samplersCombinations = {}
 
   def localInputAndChecks(self,xmlNode):
     """
@@ -5285,20 +5285,26 @@ class EnsembleForwardSampler(StaticSampler):
       @ Out, None
     """
     self.limit = 1
-    samplersCombinations = []
+    self.samplersCombinations = {}
     cnt = 0
+    lowerBounds, upperBounds = {}, {}
     for samplingStrategy in self.instanciatedSamplers.keys():
       self.instanciatedSamplers[samplingStrategy].initialize(externalSeeding=self.initSeed,solutionExport=None)
-      samplersCombinations.append([])
+      self.samplersCombinations[samplingStrategy] = []
       self.limit *= self.instanciatedSamplers[samplingStrategy].limit
+      lowerBounds[samplingStrategy],upperBounds[samplingStrategy] = 0, self.instanciatedSamplers[samplingStrategy].limit -1
       while self.instanciatedSamplers[samplingStrategy].amIreadyToProvideAnInput():
         self.instanciatedSamplers[samplingStrategy].counter +=1
         self.instanciatedSamplers[samplingStrategy].localGenerateInput(None,None)
         self.instanciatedSamplers[samplingStrategy].inputInfo['prefix'] = self.instanciatedSamplers[samplingStrategy].counter
-        samplersCombinations[cnt].append(copy.deepcopy(self.instanciatedSamplers[samplingStrategy].inputInfo))
+        self.samplersCombinations[samplingStrategy].append(copy.deepcopy(self.instanciatedSamplers[samplingStrategy].inputInfo))
       cnt+=1
     self.raiseAMessage('Number of Combined Samples are ' + str(self.limit) + '!')
-    self.listOfCombinationOfPoints = list(itertools.product(*samplersCombinations))
+    # create a grid of combinations (no tensor)
+    self.gridEnsemble = GridEntities.GridEntity(self.messageHandler)    
+    initDict = {'dimensionNames':self.instanciatedSamplers.keys(),'stepLength':dict.fromkeys(self.instanciatedSamplers.keys(),[1]), 'lowerBounds':lowerBounds,'upperBounds':upperBounds,'computeCells':False,'constructTensor':False}
+    self.gridEnsemble.initialize(initDict)
+    #self.samplersCombinations = samplersCombinations
 
   def localGenerateInput(self,model,myInput):
     """
@@ -5310,8 +5316,10 @@ class EnsembleForwardSampler(StaticSampler):
       @ In, myInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
     """
-    currentCombination = self.listOfCombinationOfPoints[self.counter-1]
-    for combination in currentCombination:
+    index = self.gridEnsemble.returnPointAndAdvanceIterator(returnDict = True)
+    coordinate = []
+    for samplingStrategy in self.instanciatedSamplers.keys(): coordinate.append(self.samplersCombinations[samplingStrategy][int(index[samplingStrategy])])
+    for combination in coordinate:
       for key in combination.keys():
         if key not in self.inputInfo.keys(): self.inputInfo[key] = combination[key]
         else:

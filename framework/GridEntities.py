@@ -575,7 +575,6 @@ class GridEntity(GridBase):
     if not self.gridIterator.finished:
       coordinates = self.returnCoordinateFromIndex(self.gridIterator.multiIndex,returnDict,recastMethods)
       for _ in range(self.nVar if self.constructTensor else 1):
-
         self.gridIterator.iternext()
     else: coordinates = None
     return coordinates
@@ -961,7 +960,7 @@ def knownTypes():
   """
     Method to return the types known by this module
     @ In, None
-    @ Out, __knownTypes, dict, dictionary of known types (e.g. [GridEntity, MultiGridEntity, etc.])
+    @ Out, __knownTypes, list, list of known types (e.g. [GridEntity, MultiGridEntity, etc.])
   """
   return __knownTypes
 
