@@ -82,7 +82,7 @@ elif library_report:
   print("\nLibraries report:\n")
   for module, found, message, version in report_list:
     if found:
-      print(module,version,"\n",message)
+      print(module,version,"\n",message,"\n")
     else:
       print(module+' not found\n')
   framework_dir = os.path.abspath(os.path.join(os.path.dirname(sys.argv[0]),"framework"))
@@ -100,5 +100,17 @@ elif library_report:
     print("interpolationND not found\n")
 else:
   from TestHarness import TestHarness
-  # Run the tests!
-  TestHarness.buildAndRun(sys.argv, app_name, MOOSE_DIR)
+  sys.path.append(os.path.join("scripts","TestHarness","testers"))
+  import RavenUtils
+  missing,tooOld,notQA = RavenUtils.checkForMissingModules()
+  if len(missing) + len(tooOld) > 0:
+    print("ERROR: too old or missing raven libraries, not running:")
+    for error in missing + tooOld + notQA:
+      print(error)
+  else:
+    if len(notQA) > 0:
+      print("WARNING: not using tested versions of the libraries:")
+      for warning in notQA:
+        print(warning)
+    # Run the tests!
+    TestHarness.buildAndRun(sys.argv, app_name, MOOSE_DIR)

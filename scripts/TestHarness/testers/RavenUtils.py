@@ -1,16 +1,19 @@
 import os
 import subprocess
+import distutils.version
 
 def inPython3():
   """returns true if raven should be using python3
   """
   return os.environ.get("CHECK_PYTHON3","0") == "1"
 
-modules_to_try = [("numpy",'numpy.version.version',"1.8.0"),
-                  ("h5py",'h5py.__version__','2.2.1'),
-                  ("scipy",'scipy.__version__',"0.13.3"),
-                  ("sklearn",'sklearn.__version__',"0.14.1"),
-                  ("matplotlib",'matplotlib.__version__',"1.3.1")]
+#This list is made of (module, how to check the version, minimum version, 
+# quality assurance module)
+modules_to_try = [("numpy",'numpy.version.version',"1.8.0","1.8.0"),
+                  ("h5py",'h5py.__version__','2.2.1','2.2.1'),
+                  ("scipy",'scipy.__version__',"0.13.3","0.13.3"),
+                  ("sklearn",'sklearn.__version__',"0.14.1","0.14.1"),
+                  ("matplotlib",'matplotlib.__version__',"1.3.1","1.3.1")]
 
 def moduleReport(module,version=''):
   """Checks if the module exists.
@@ -43,60 +46,56 @@ def modulesReport():
   Returns a list of [(module_name,found_boolean,message,version)]
   """
   report_list = []
-  for i,fv,ev in modules_to_try:
+  for i,fv,ev,qa in modules_to_try:
     found, message, version = moduleReport(i,fv)
     if found:
-      missing, tooOld = checkForMissingModule(i,fv,ev)
+      missing, tooOld, notQA = __checkVersion(i, ev, qa, found, version)
       if len(tooOld) > 0:
         message += " ".join(tooOld)
+      elif len(notQA) > 0:
+        message += " ".join(notQA)
     report_list.append((i,found,message, version))
   return report_list
 
-def checkForMissingModule(i,fv,ev):
-  """Checks to see if python can import the module
-  it uses subprocess.call to try and import it.
-  i: the module to try importing
-  fv: a function to try and find the version
-  ev: expected version of the module as a string.  If less than, will
-  stop because it is too old.
-  returns (missing, tooOld) where if they are found is ([], []), but
-  if they are missing or too old will put a error message in the result
+def __checkVersion(i, ev, qa, found, version):
+  """ 
+    Checks that the version found is new enough, and also if it matches the 
+    tested version
+    i: string, module name
+    ev: string, minimum version
+    qa: string, tested version
+    found: bool, if true module was found
+    version: string, found version
+    returns (missing, tooOld, notQA)
   """
   missing = []
   tooOld = []
-  if len(fv) > 0:
-    check = ';import sys; import distutils.version; sys.exit(not distutils.version.LooseVersion('+fv+') >= distutils.version.LooseVersion("'+ev+'"))'
-  else:
-    check = ''
-  if inPython3():
-    python = 'python3'
-  else:
-    python = 'python'
-
-  suppressedOutput = open(os.devnull, 'w')
-  result = subprocess.call([python,'-c','import '+i],stdout=suppressedOutput,stderr=suppressedOutput)
-
-  if result != 0:
+  notQA = []
+  if not found:
     missing.append(i)
-  else:
-    result = subprocess.call([python,'-c','import '+i+check],stdout=suppressedOutput,stderr=suppressedOutput)
-    if result != 0:
-      tooOld.append(i+" should be at least version "+ev)
-  suppressedOutput.close()
-  return missing, tooOld
-
+  elif distutils.version.LooseVersion(version) < distutils.version.LooseVersion(ev):
+    tooOld.append(i+" should be at least version "+ev+" but is "+version)
+  elif distutils.version.StrictVersion(version) != distutils.version.StrictVersion(qa):
+    notQA.append(i + " has version " + version + " but tested version is " + qa)
+  return missing, tooOld, notQA
 
 def checkForMissingModules():
   """
   Looks for a list of modules, and the version numbers.
-  returns (missing, tooOld) where if they are all found is ([], []), but
-  if they are missing or too old will put a error message in the result for
-  each missing or too old module.
+  returns (missing, tooOld, notQA) where if they are all found is ([], [], []),
+  but if they are missing or too old will put a error message in the result for
+  each missing or too old module or not on the quality assurance version.
   """
   missing = []
   tooOld = []
-  for i,fv,ev in modules_to_try:
-    moduleMissing, moduleTooOld = checkForMissingModule(i, fv, ev)
+  notQA = []
+  for i,fv,ev, qa in modules_to_try:
+    found, message, version = moduleReport(i, fv)
+    moduleMissing, moduleTooOld, moduleNotQA = __checkVersion(i, ev, qa, found, version)
     missing.extend(moduleMissing)
     tooOld.extend(moduleTooOld)
-  return missing,tooOld
+    notQA.extend(moduleNotQA)
+    #moduleMissing, moduleTooOld = checkForMissingModule(i, fv, ev)
+    #missing.extend(moduleMissing)
+    #tooOld.extend(moduleTooOld)
+  return missing, tooOld, notQA

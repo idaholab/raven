@@ -16,7 +16,7 @@ import sys
 myDir = os.path.dirname(os.path.realpath(__file__))
 RAVEN_DIR = os.path.abspath(os.path.join(myDir, '..', '..', '..', 'framework'))
 
-_missing_modules, _too_old_modules = RavenUtils.checkForMissingModules()
+_missing_modules, _too_old_modules, _notQAModules = RavenUtils.checkForMissingModules()
 
 class RavenFramework(Tester):
 
@@ -70,8 +70,8 @@ class RavenFramework(Tester):
       return (False,'skipped (Old version python modules: '+" ".join(too_old)+
               " PYTHONPATH="+os.environ.get("PYTHONPATH","")+')')
     for lib in self.required_libraries:
-      missing, too_old = RavenUtils.checkForMissingModule(lib,'','')
-      if len(missing) > 0:
+      found, message, version =  RavenUtils.moduleReport(lib,'')
+      if not found:
         return (False,'skipped (Unable to import library: "'+lib+'")')
     if len(self.required_executable) > 0 and \
        not os.path.exists(self.required_executable):
