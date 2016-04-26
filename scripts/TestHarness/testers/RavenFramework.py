@@ -2,6 +2,7 @@ from Tester import Tester
 from CSVDiffer import CSVDiffer
 from UnorderedCSVDiffer import UnorderedCSVDiffer
 from XMLDiff import XMLDiff
+from TextDiff import TextDiff
 import RavenUtils
 import os
 import subprocess
@@ -28,6 +29,8 @@ class RavenFramework(Tester):
     params.addParam('csv','',"List of csv files to check")
     params.addParam('UnorderedCsv','',"List of unordered csv files to check")
     params.addParam('xml','',"List of xml files to check")
+    params.addParam('text','',"List of generic text files to check")
+    params.addParam('comment','',"Character or string denoting comments, all text to the right of the symbol will be ignored in the diff of text files")
     params.addParam('UnorderedXml','',"List of unordered xml files to check")
     params.addParam('xmlopts','',"Options for xml checking")
     params.addParam('rel_err','','Relative Error for csv files or floats in xml ones')
@@ -55,6 +58,7 @@ class RavenFramework(Tester):
     self.xml_files = self.specs['xml'].split(" ") if len(self.specs['xml']) > 0 else []
     self.ucsv_files = self.specs['UnorderedCsv'].split(" ") if len(self.specs['UnorderedCsv']) > 0 else []
     self.uxml_files = self.specs['UnorderedXml'].split(" ") if len(self.specs['UnorderedXml']) > 0 else []
+    self.text_files = self.specs['text'].split(" ") if len(self.specs['text']) > 0 else []
     self.required_executable = self.specs['required_executable']
     self.required_libraries = self.specs['required_libraries'].split(' ')  if len(self.specs['required_libraries']) > 0 else []
     self.required_executable = self.required_executable.replace("%METHOD%",os.environ.get("METHOD","opt"))
@@ -143,6 +147,13 @@ class RavenFramework(Tester):
     (xml_same,xml_messages) = xml_diff.diff()
     if not xml_same:
       return (xml_messages,output)
+
+    #text
+    textOpts = {'comment': self.specs['comment']}
+    textDiff = TextDiff(self.specs['test_dir'],self.text_files,**textOpts)
+    (textSame,textMessages) = textDiff.diff()
+    if not textSame:
+      return (textMessages,output)
 
     #unordered xml
     xmlopts['unordered'] = True

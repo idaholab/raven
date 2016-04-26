@@ -2,8 +2,10 @@
  [./test_plot]
   type = 'RavenFramework'
   input = 'test_plot.xml'
-  output = 'plot/1-test_scatter.svg'
-  UnorderedXml = 'plot/1-test_scatter.svg'
+  output = 'plot/1-test_scatter.ps'
+  text = 'plot/1-test_scatter.ps'
+  remove_whitespace = 'true'
+  comment = '%'
  [../]
 
  [./test_subPlot]

@@ -55,7 +55,7 @@
       </plotSettings>
       <kwargs><linewidths>0</linewidths></kwargs>
       <actions>
-        <how>svg</how>
+        <how>ps</how>
         <figureProperties>
           <frameon>false</frameon>
           <figsize>1,1</figsize>
