@@ -272,8 +272,8 @@ The Database objects are defined within the main XML block called
   ...
   <Databases>
     ...
-    <HDF5 name="aDatabaseName1"/>
-    <HDF5 name="aDatabaseName2"/>
+    <HDF5 name="aDatabaseName1 readMode='overwrite'"/>
+    <HDF5 name="aDatabaseName2 readMode='overwrite'"/>
     ...
   </Databases>
   ...
@@ -286,6 +286,11 @@ XML block \xmlNode{HDF5}, that recognizes the following attributes:
   \itemsep0em
   \item \xmlAttr{name}, \xmlDesc{required string attribute}, a user-defined
   identifier of this object.
+  %
+  \nb As with other objects, this is name can be used to reference this specific
+  entity from other input blocks in the XML.
+  \item \xmlAttr{readMode}, \xmlDesc{required string attribute}, defines whether an existing database should
+    be read when loaded (\xmlString{read}) or overwritten (\xmlString{overwrite}).
   %
   \nb As with other objects, this is name can be used to reference this specific
   entity from other input blocks in the XML.
@@ -328,7 +333,7 @@ XML block \xmlNode{HDF5}, that recognizes the following attributes:
 
 \begin{lstlisting}[style=XML,morekeywords={directory,filename}]
 <Databases>
-  <HDF5 name="aDatabaseName1" directory=''path_to_a_dir'' compression=''lzf''/>
-  <HDF5 name="aDatabaseName2" filename=''aDatabaseName2.h5''/>
+  <HDF5 name="aDatabaseName1" directory=''path_to_a_dir'' compression=''lzf'' readMode='overwrite'/>
+  <HDF5 name="aDatabaseName2" filename=''aDatabaseName2.h5'' readMode='read'/>
 </Databases>
 \end{lstlisting}
