@@ -77,7 +77,7 @@
   </Steps>
 
   <Databases>
-    <HDF5 name="testDatabase" type="MC"/>
+    <HDF5 name="testDatabase" readMode="overwrite" type="MC"/>
   </Databases>
 
   <DataObjects>

@@ -77,7 +77,7 @@
   </Steps>
 
   <Databases>
-    <HDF5 name="testMPIDatabase" type="MC"/>
+    <HDF5 name="testMPIDatabase" readMode="overwrite" type="MC"/>
   </Databases>
 
   <DataObjects>

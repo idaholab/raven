@@ -62,7 +62,7 @@
   </Steps>
 
   <Databases>
-    <HDF5 name="test_external_db"/>
+    <HDF5 name="test_external_db" readMode="overwrite"/>
   </Databases>
 
   <OutStreams>
