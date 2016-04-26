@@ -23,6 +23,8 @@ def convert(tree,fileName=None):
         dbNode.attrib['readMode'] = 'read'
       else:
         dbNode.attrib['readMode'] = 'overwrite'
+      if 'type' in dbNode.attrib.keys():
+        del dbNode.attrib['type']
   return tree
 
 

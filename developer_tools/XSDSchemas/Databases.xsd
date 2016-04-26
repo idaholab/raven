@@ -29,6 +29,5 @@
     <xsd:attribute name="directory"   type="xsd:string" />
     <xsd:attribute name="filename"    type="xsd:string" />
     <xsd:attribute name="compression" type="CompressionType" />
-    <xsd:attribute name="type"        type="xsd:string"/>
   </xsd:complexType>
 </xsd:schema>
