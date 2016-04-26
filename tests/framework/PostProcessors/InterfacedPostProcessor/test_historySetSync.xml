@@ -52,12 +52,15 @@
       <numberOfSamples>20</numberOfSamples>
       <timeID>time</timeID>
       <extension>zeroed</extension>
+      <syncMethod>grid</syncMethod>
     </PostProcessor>
     <PostProcessor name="historySamplingPP2" subType="InterfacedPostProcessor">
       <method>HistorySetSync</method>
+      <syncMethod>grid</syncMethod>
       <numberOfSamples>20</numberOfSamples>
       <timeID>time</timeID>
       <extension>extended</extension>
+      <syncMethod>grid</syncMethod>
     </PostProcessor>
   </Models>
 
