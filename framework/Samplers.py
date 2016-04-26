@@ -1938,8 +1938,8 @@ class DynamicEventTree(Grid):
     """
     needDict = Sampler._localWhatDoINeed(self)
     for hybridsampler in self.hybridStrategyToApply.values():
-      preneedDict = hybridsampler.whatDoINeed()
-      for key,value in preneedDict.items():
+      preNeedDict = hybridsampler.whatDoINeed()
+      for key,value in preNeedDict.items():
         if key not in needDict.keys(): needDict[key] = []
         needDict[key] = needDict[key] + value
     return needDict
@@ -5253,14 +5253,14 @@ class EnsembleForwardSampler(StaticSampler):
   def _localWhatDoINeed(self):
     """
       This method is a local mirror of the general whatDoINeed method.
-      It is implmented here because this Sampler requests special objects
+      It is implemented here because this Sampler requests special objects
       @ In, None
       @ Out, needDict, dict, dictionary of objects needed
     """
     needDict = StaticSampler._localWhatDoINeed(self)
     for combSampler in self.instanciatedSamplers.values():
-      preneedDict = combSampler.whatDoINeed()
-      for key,value in preneedDict.items():
+      preNeedDict = combSampler.whatDoINeed()
+      for key,value in preNeedDict.items():
         if key not in needDict.keys(): needDict[key] = []
         needDict[key] = needDict[key] + value
     return needDict
@@ -5280,7 +5280,7 @@ class EnsembleForwardSampler(StaticSampler):
 
   def localInitialize(self):
     """
-      Initialize the EnsembleForwardSampler sampler. It call the localInitialize method of all the Samplers defined in this input
+      Initialize the EnsembleForwardSampler sampler. It calls the localInitialize method of all the Samplers defined in this input
       @ In, None
       @ Out, None
     """
