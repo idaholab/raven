@@ -72,7 +72,7 @@
   </OutStreams>
 
   <Databases>
-    <HDF5 directory="test_rom_trainer/DatabaseStorage" filename="MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER.h5" name="MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER" readMode="overwrite"/>
+    <HDF5 directory="test_rom_trainer/DatabaseStorage" filename="MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER.h5" name="MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER" readMode="read"/>
   </Databases>
 
   <DataObjects>
