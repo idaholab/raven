@@ -906,7 +906,8 @@ class HDMRRom(GaussPolynomialRom):
       tvals=np.zeros(len(SG))
       for i in range(len(SG)):
         getpt=tuple(self.__fillPointWithRef(combo,SG[i][0]))
-        tvals[i] = ft[getpt]
+        #the 1e-10 is to be consistent with RAVEN's CSV print precision
+        tvals[i] = ft[tuple(mathUtils.NDInArray(np.array(ft.keys()),getpt,tol=1e-10)[2])]
         for fp,fpt in enumerate(SG[i][0]):
           fvals[i][fp] = fpt
       for i,c in enumerate(combo):

@@ -77,7 +77,7 @@ class HistorySetSnapShot(PostProcessorInterfaceBase):
     if self.type == 'timeSlice':
       PostProcessorInterfaces = importlib.import_module("PostProcessorInterfaces")
       self.HSsyncPP = PostProcessorInterfaces.returnPostProcessorInterface('HistorySetSync',self)
-      self.HSsyncPP.initialize(self.numberOfSamples,self.timeID,self.extension)
+      self.HSsyncPP.initialize(self.numberOfSamples,self.timeID,self.extension,syncMethod='grid')
 
     if self.type not in set(['min','max','avg','value','timeSlice']):
       self.raiseAnError(IOError, 'HistorySetSnapShot Interfaced Post-Processor ' + str(self.name) + ' : type is not recognized')
