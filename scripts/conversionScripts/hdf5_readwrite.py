@@ -8,7 +8,7 @@ def convert(tree,fileName=None):
     Changes list of <variable> nodes to <variables> nodes.
     @ In, tree, xml.etree.ElementTree.ElementTree object, the contents of a RAVEN input file
     @ In, fileName, the name for the raven input file
-    @Out, tree, xml.etree.ElementTree.ElementTree object, the modified RAVEN input file
+    @ Out, tree, xml.etree.ElementTree.ElementTree object, the modified RAVEN input file
   """
   simulation = tree.getroot()
   if simulation.tag!='Simulation' and simulation.tag!='ExternalModel': return tree #this isn't an input file
