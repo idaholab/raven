@@ -2,8 +2,8 @@
  [./test_plot]
   type = 'RavenFramework'
   input = 'test_plot.xml'
-  output = 'output_check/1-plot20_scatter.svg'
-  xml = 'output_check/1-plot20_scatter.svg'
+  output = 'plot/1-test_scatter.svg'
+  UnorderedXml = 'plot/1-test_scatter.svg'
  [../]
 
  [./test_subPlot]
