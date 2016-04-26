@@ -6,11 +6,11 @@ def inPython3():
   """
   return os.environ.get("CHECK_PYTHON3","0") == "1"
 
-modules_to_try = [("numpy",'numpy.version.version',"1.7"),
-                  ("h5py",'h5py.__version__','1.8.12'),
-                  ("scipy",'scipy.__version__',"0.12"),
-                  ("sklearn",'sklearn.__version__',"0.14"),
-                  ("matplotlib",'matplotlib.__version__',"1.3")]
+modules_to_try = [("numpy",'numpy.version.version',"1.8.0"),
+                  ("h5py",'h5py.__version__','2.2.1'),
+                  ("scipy",'scipy.__version__',"0.13.3"),
+                  ("sklearn",'sklearn.__version__',"0.14.1"),
+                  ("matplotlib",'matplotlib.__version__',"1.3.1")]
 
 def moduleReport(module,version=''):
   """Checks if the module exists.
