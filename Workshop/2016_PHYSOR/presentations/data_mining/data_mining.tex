@@ -1,4 +1,4 @@
-\documentclass{beamer}
+\documentclass[t,9pt,svgnames]{beamer}
 \usepackage{listings}
 
 \definecolor{deepblue}{rgb}{0,0,0.5}
@@ -8,6 +8,13 @@
 \definecolor{orangered}{RGB}{239,134,64}
 \definecolor{darkblue}{rgb}{0.0,0.0,0.6}
 \definecolor{gray}{rgb}{0.4,0.4,0.4}
+
+\graphicspath{
+{figures/}
+}
+
+\usetheme{INL}
+
 
 \lstdefinestyle{XML} {
     language=XML,
@@ -40,9 +47,18 @@
 \begin{document}
 \lstset{language=XML}
 
-\begin{frame}
-  \titlepage
-\end{frame}
+\title[Data Mining]{Data Mining with RAVEN}
+\subtitle{Joshua J. Cogliati}
+\institute[INL]{Nuclear Engineering Methods Development Department\\
+Idaho National Laboratory}
+
+
+\begin{titleframe}{Data Mining with RAVEN}
+  \vfill
+      {\small 
+Nuclear Engineering Methods Development Department\\
+Idaho National Laboratory}
+\end{titleframe}
 
 \begin{frame}
 \frametitle{Outline}
