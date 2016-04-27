@@ -1911,8 +1911,8 @@ class DynamicEventTree(Grid):
     """
     needDict = Sampler._localWhatDoINeed(self)
     for hybridsampler in self.hybridStrategyToApply.values():
-      preneedDict = hybridsampler.whatDoINeed()
-      for key,value in preneedDict.items():
+      preNeedDict = hybridsampler.whatDoINeed()
+      for key,value in preNeedDict.items():
         if key not in needDict.keys(): needDict[key] = []
         needDict[key] = needDict[key] + value
     return needDict
@@ -5179,13 +5179,131 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     for sub in self.useSet.keys():
       self._finalizeSubset(sub)
     AdaptiveSparseGrid._writeConvergencePoint(self,runPoint)
+#
+#
+#
+#
+#
+#
+#
+#
+class EnsembleForwardSampler(StaticSampler):
+  """
+    Ensemble Forward sampler. This sampler is aimed to combine Forward Sampling strategies
+  """
+  def __init__(self):
+    """
+      Default Constructor that will initialize member variables with reasonable
+      defaults or empty lists/dictionaries where applicable.
+      @ In, None
+      @ Out, None
+    """
+    StaticSampler.__init__(self)
+    self.acceptableSamplers   = ['MonteCarlo','Stratified','Grid','FactorialDesign','ResponseSurfaceDesign']
+    self.printTag             = 'SAMPLER EnsembleForward'
+    self.instanciatedSamplers = {}
+    self.samplersCombinations = {}
 
+  def localInputAndChecks(self,xmlNode):
+    """
+      Class specific xml inputs will be read here and checked for validity.
+      @ In, xmlNode, xml.etree.ElementTree.Element, The xml element node that will be checked against the available options specific to this Sampler.
+      @ Out, None
+    """
+    StaticSampler.readSamplerInit(self,xmlNode)
+    for child in xmlNode:
+      if child.tag in self.acceptableSamplers:
+        child.attrib['name'] = child.tag
+        self.instanciatedSamplers[child.tag] = returnInstance(child.tag,self)
+        #FIXME the variableGroups needs to be fixed
+        self.instanciatedSamplers[child.tag].readXML(child,self.messageHandler,variableGroups={},globalAttributes=self.globalAttributes)
+      elif child.tag in knownTypes():
+        self.raiseAnError(IOError,"Sampling strategy "+child.tag+" is not usable in "+self.type+" Sampler. Available are "+",".join(self.acceptableSamplers))
+      else:
+        self.raiseAnError(IOError,"XML node "+ child.tag + " unknown. Check the Manual!")
 
-#
-#
-#
-#
+  def _localWhatDoINeed(self):
+    """
+      This method is a local mirror of the general whatDoINeed method.
+      It is implemented here because this Sampler requests special objects
+      @ In, None
+      @ Out, needDict, dict, dictionary of objects needed
+    """
+    needDict = StaticSampler._localWhatDoINeed(self)
+    for combSampler in self.instanciatedSamplers.values():
+      preNeedDict = combSampler.whatDoINeed()
+      for key,value in preNeedDict.items():
+        if key not in needDict.keys(): needDict[key] = []
+        needDict[key] = needDict[key] + value
+    return needDict
 
+  def _localGenerateAssembler(self,initDict):
+    """
+      It is used for sending to the instanciated class, which is implementing the method, the objects that have been requested through "whatDoINeed" method
+      It is an abstract method -> It must be implemented in the derived class!
+      @ In, initDict, dict, dictionary ({'mainClassName(e.g., Databases):{specializedObjectName(e.g.,DatabaseForSystemCodeNamedWolf):ObjectInstance}'})
+      @ Out, None
+    """
+    availableDist = initDict['Distributions']
+    availableFunc = initDict['Functions']
+    for combSampler in self.instanciatedSamplers.values():
+      combSampler._generateDistributions(availableDist,availableFunc)
+    self.raiseADebug("Distributions initialized!")
+
+  def localInitialize(self):
+    """
+      Initialize the EnsembleForwardSampler sampler. It calls the localInitialize method of all the Samplers defined in this input
+      @ In, None
+      @ Out, None
+    """
+    self.limit = 1
+    cnt = 0
+    lowerBounds, upperBounds = {}, {}
+    for samplingStrategy in self.instanciatedSamplers.keys():
+      self.instanciatedSamplers[samplingStrategy].initialize(externalSeeding=self.initSeed,solutionExport=None)
+      self.samplersCombinations[samplingStrategy] = []
+      self.limit *= self.instanciatedSamplers[samplingStrategy].limit
+      lowerBounds[samplingStrategy],upperBounds[samplingStrategy] = 0, self.instanciatedSamplers[samplingStrategy].limit -1
+      while self.instanciatedSamplers[samplingStrategy].amIreadyToProvideAnInput():
+        self.instanciatedSamplers[samplingStrategy].counter +=1
+        self.instanciatedSamplers[samplingStrategy].localGenerateInput(None,None)
+        self.instanciatedSamplers[samplingStrategy].inputInfo['prefix'] = self.instanciatedSamplers[samplingStrategy].counter
+        self.samplersCombinations[samplingStrategy].append(copy.deepcopy(self.instanciatedSamplers[samplingStrategy].inputInfo))
+      cnt+=1
+    self.raiseAMessage('Number of Combined Samples are ' + str(self.limit) + '!')
+    # create a grid of combinations (no tensor)
+    self.gridEnsemble = GridEntities.GridEntity(self.messageHandler)
+    initDict = {'dimensionNames':self.instanciatedSamplers.keys(),'stepLength':dict.fromkeys(self.instanciatedSamplers.keys(),[1]), 'lowerBounds':lowerBounds,'upperBounds':upperBounds,'computeCells':False,'constructTensor':False}
+    self.gridEnsemble.initialize(initDict)
+
+  def localGenerateInput(self,model,myInput):
+    """
+      Function to select the next most informative point for refining the limit
+      surface search.
+      After this method is called, the self.inputInfo should be ready to be sent
+      to the model
+      @ In, model, model instance, an instance of a model
+      @ In, myInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
+      @ Out, None
+    """
+    index = self.gridEnsemble.returnPointAndAdvanceIterator(returnDict = True)
+    coordinate = []
+    for samplingStrategy in self.instanciatedSamplers.keys(): coordinate.append(self.samplersCombinations[samplingStrategy][int(index[samplingStrategy])])
+    for combination in coordinate:
+      for key in combination.keys():
+        if key not in self.inputInfo.keys(): self.inputInfo[key] = combination[key]
+        else:
+          if type(self.inputInfo[key]).__name__ == 'dict':
+            self.inputInfo[key].update(combination[key])
+    self.inputInfo['PointProbability'] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
+    self.inputInfo['ProbabilityWeight' ] = 1.0
+    for key in self.inputInfo.keys():
+      if key.startswith('ProbabilityWeight-'):self.inputInfo['ProbabilityWeight' ] *= self.inputInfo[key]
+    self.inputInfo['SamplerType'] = 'EnsembleForward'
+#
+#
+#
+#
 """
  Interface Dictionary (factory) (private)
 """
@@ -5203,6 +5321,7 @@ __interFaceDict['SparseGridCollocation'   ] = SparseGridCollocation
 __interFaceDict['AdaptiveSparseGrid'      ] = AdaptiveSparseGrid
 __interFaceDict['Sobol'                   ] = Sobol
 __interFaceDict['AdaptiveSobol'           ] = AdaptiveSobol
+__interFaceDict['EnsembleForward'         ] = EnsembleForwardSampler
 __knownTypes = list(__interFaceDict.keys())
 
 def knownTypes():
