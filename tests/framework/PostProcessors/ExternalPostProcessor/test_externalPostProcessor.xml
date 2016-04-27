@@ -89,8 +89,7 @@
   </OutStreams>
 
   <Databases>
-    <!-- The necessary database object -->
-    <HDF5 name="myDB"/>
+    <HDF5 name="myDB" readMode="overwrite"/>
   </Databases>
 
   <DataObjects>

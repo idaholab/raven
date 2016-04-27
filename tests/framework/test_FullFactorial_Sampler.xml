@@ -158,7 +158,7 @@
   </Steps>
 
   <Databases>
-    <HDF5 name="test_DummyModelFactorial_db"/>
+    <HDF5 name="test_DummyModelFactorial_db" readMode="overwrite"/>
   </Databases>
 
 </Simulation>

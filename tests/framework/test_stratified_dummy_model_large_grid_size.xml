@@ -21,143 +21,143 @@
     <Stratified name="2var160step">
       <variable name="x1">
         <distribution>norm</distribution>
-        <grid construction="equal" type="CDF" steps='160'>0.01 0.99</grid>
+        <grid construction="equal" steps="160" type="CDF">0.01 0.99</grid>
       </variable>
       <variable name="x2">
         <distribution>norm</distribution>
-        <grid construction="equal" type="CDF" steps='160'>0.01 0.99</grid>
+        <grid construction="equal" steps="160" type="CDF">0.01 0.99</grid>
       </variable>
     </Stratified>
     <Stratified name="16var1step">
       <variable name="x1">
         <distribution>norm</distribution>
-        <grid construction="equal" type="CDF" steps='1'>0.01 0.99</grid>
+        <grid construction="equal" steps="1" type="CDF">0.01 0.99</grid>
       </variable>
       <variable name="x2">
         <distribution>norm</distribution>
-        <grid construction="equal" type="CDF" steps='1'>0.01 0.99</grid>
+        <grid construction="equal" steps="1" type="CDF">0.01 0.99</grid>
       </variable>
       <variable name="x3">
         <distribution>norm</distribution>
-        <grid construction="equal" type="CDF" steps='1'>0.01 0.99</grid>
+        <grid construction="equal" steps="1" type="CDF">0.01 0.99</grid>
       </variable>
       <variable name="x4">
         <distribution>norm</distribution>
-        <grid construction="equal" type="CDF" steps='1'>0.01 0.99</grid>
+        <grid construction="equal" steps="1" type="CDF">0.01 0.99</grid>
       </variable>
       <variable name="x5">
         <distribution>norm</distribution>
-        <grid construction="equal" type="CDF" steps='1'>0.01 0.99</grid>
+        <grid construction="equal" steps="1" type="CDF">0.01 0.99</grid>
       </variable>
       <variable name="x6">
         <distribution>norm</distribution>
-        <grid construction="equal" type="CDF" steps='1'>0.01 0.99</grid>
+        <grid construction="equal" steps="1" type="CDF">0.01 0.99</grid>
       </variable>
       <variable name="x7">
         <distribution>norm</distribution>
-        <grid construction="equal" type="CDF" steps='1'>0.01 0.99</grid>
+        <grid construction="equal" steps="1" type="CDF">0.01 0.99</grid>
       </variable>
       <variable name="x8">
         <distribution>norm</distribution>
-        <grid construction="equal" type="CDF" steps='1'>0.01 0.99</grid>
+        <grid construction="equal" steps="1" type="CDF">0.01 0.99</grid>
       </variable>
       <variable name="x9">
         <distribution>norm</distribution>
-        <grid construction="equal" type="CDF" steps='1'>0.01 0.99</grid>
+        <grid construction="equal" steps="1" type="CDF">0.01 0.99</grid>
       </variable>
       <variable name="x10">
         <distribution>norm</distribution>
-        <grid construction="equal" type="CDF" steps='1'>0.01 0.99</grid>
+        <grid construction="equal" steps="1" type="CDF">0.01 0.99</grid>
       </variable>
       <variable name="x11">
         <distribution>norm</distribution>
-        <grid construction="equal" type="CDF" steps='1'>0.01 0.99</grid>
+        <grid construction="equal" steps="1" type="CDF">0.01 0.99</grid>
       </variable>
       <variable name="x12">
         <distribution>norm</distribution>
-        <grid construction="equal" type="CDF" steps='1'>0.01 0.99</grid>
+        <grid construction="equal" steps="1" type="CDF">0.01 0.99</grid>
       </variable>
       <variable name="x13">
         <distribution>norm</distribution>
-        <grid construction="equal" type="CDF" steps='1'>0.01 0.99</grid>
+        <grid construction="equal" steps="1" type="CDF">0.01 0.99</grid>
       </variable>
       <variable name="x14">
         <distribution>norm</distribution>
-        <grid construction="equal" type="CDF" steps='1'>0.01 0.99</grid>
+        <grid construction="equal" steps="1" type="CDF">0.01 0.99</grid>
       </variable>
       <variable name="x15">
         <distribution>norm</distribution>
-        <grid construction="equal" type="CDF" steps='1'>0.01 0.99</grid>
+        <grid construction="equal" steps="1" type="CDF">0.01 0.99</grid>
       </variable>
       <variable name="x16">
         <distribution>norm</distribution>
-        <grid construction="equal" type="CDF" steps='1'>0.01 0.99</grid>
+        <grid construction="equal" steps="1" type="CDF">0.01 0.99</grid>
       </variable>
     </Stratified>
     <Stratified name="16var160step">
       <variable name="x1">
         <distribution>norm</distribution>
-        <grid construction="equal" type="CDF" steps='160'>0.01 0.99</grid>
+        <grid construction="equal" steps="160" type="CDF">0.01 0.99</grid>
       </variable>
       <variable name="x2">
         <distribution>norm</distribution>
-        <grid construction="equal" type="CDF" steps='160'>0.01 0.99</grid>
+        <grid construction="equal" steps="160" type="CDF">0.01 0.99</grid>
       </variable>
       <variable name="x3">
         <distribution>norm</distribution>
-        <grid construction="equal" type="CDF" steps='160'>0.01 0.99</grid>
+        <grid construction="equal" steps="160" type="CDF">0.01 0.99</grid>
       </variable>
       <variable name="x4">
         <distribution>norm</distribution>
-        <grid construction="equal" type="CDF" steps='160'>0.01 0.99</grid>
+        <grid construction="equal" steps="160" type="CDF">0.01 0.99</grid>
       </variable>
       <variable name="x5">
         <distribution>norm</distribution>
-        <grid construction="equal" type="CDF" steps='160'>0.01 0.99</grid>
+        <grid construction="equal" steps="160" type="CDF">0.01 0.99</grid>
       </variable>
       <variable name="x6">
         <distribution>norm</distribution>
-        <grid construction="equal" type="CDF" steps='160'>0.01 0.99</grid>
+        <grid construction="equal" steps="160" type="CDF">0.01 0.99</grid>
       </variable>
       <variable name="x7">
         <distribution>norm</distribution>
-        <grid construction="equal" type="CDF" steps='160'>0.01 0.99</grid>
+        <grid construction="equal" steps="160" type="CDF">0.01 0.99</grid>
       </variable>
       <variable name="x8">
         <distribution>norm</distribution>
-        <grid construction="equal" type="CDF" steps='160'>0.01 0.99</grid>
+        <grid construction="equal" steps="160" type="CDF">0.01 0.99</grid>
       </variable>
       <variable name="x9">
         <distribution>norm</distribution>
-        <grid construction="equal" type="CDF" steps='160'>0.01 0.99</grid>
+        <grid construction="equal" steps="160" type="CDF">0.01 0.99</grid>
       </variable>
       <variable name="x10">
         <distribution>norm</distribution>
-        <grid construction="equal" type="CDF" steps='160'>0.01 0.99</grid>
+        <grid construction="equal" steps="160" type="CDF">0.01 0.99</grid>
       </variable>
       <variable name="x11">
         <distribution>norm</distribution>
-        <grid construction="equal" type="CDF" steps='160'>0.01 0.99</grid>
+        <grid construction="equal" steps="160" type="CDF">0.01 0.99</grid>
       </variable>
       <variable name="x12">
         <distribution>norm</distribution>
-        <grid construction="equal" type="CDF" steps='160'>0.01 0.99</grid>
+        <grid construction="equal" steps="160" type="CDF">0.01 0.99</grid>
       </variable>
       <variable name="x13">
         <distribution>norm</distribution>
-        <grid construction="equal" type="CDF" steps='160'>0.01 0.99</grid>
+        <grid construction="equal" steps="160" type="CDF">0.01 0.99</grid>
       </variable>
       <variable name="x14">
         <distribution>norm</distribution>
-        <grid construction="equal" type="CDF" steps='160'>0.01 0.99</grid>
+        <grid construction="equal" steps="160" type="CDF">0.01 0.99</grid>
       </variable>
       <variable name="x15">
         <distribution>norm</distribution>
-        <grid construction="equal" type="CDF" steps='160'>0.01 0.99</grid>
+        <grid construction="equal" steps="160" type="CDF">0.01 0.99</grid>
       </variable>
       <variable name="x16">
         <distribution>norm</distribution>
-        <grid construction="equal" type="CDF" steps='160'>0.01 0.99</grid>
+        <grid construction="equal" steps="160" type="CDF">0.01 0.99</grid>
       </variable>
     </Stratified>
   </Samplers>
@@ -213,6 +213,7 @@
       <Output class="OutStreams" type="Print">reprint_2var</Output>
     </IOStep>
   </Steps>
+
   <OutStreams>
     <Print name="reprint_16var2">
       <type>csv</type>
@@ -227,4 +228,5 @@
       <source>2var</source>
     </Print>
   </OutStreams>
+
 </Simulation>

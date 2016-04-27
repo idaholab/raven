@@ -101,7 +101,7 @@
   </Steps>
 
   <Databases>
-    <HDF5 name="DET_SBO_RUN_eqPb"/>
+    <HDF5 name="DET_SBO_RUN_eqPb" readMode="overwrite"/>
   </Databases>
 
   <OutStreams>
