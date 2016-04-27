@@ -30,11 +30,11 @@
     <Grid name="RAVENGrid">
       <variable name="X">
         <distribution>zeroToOne</distribution>
-        <grid construction="equal" steps="4" type="value">0 1</grid>
+        <grid construction="equal" steps="3" type="value">0.2 0.8</grid>
       </variable>
       <variable name="Y">
         <distribution>oneToTwo</distribution>
-        <grid construction="equal" steps="4" type="value">1  2</grid>
+        <grid construction="equal" steps="3" type="value">1.2  1.8</grid>
       </variable>
     </Grid>
   </Samplers>
@@ -64,10 +64,10 @@
           <text> </text>
         </title>
         <range>
-          <xmin>-0.1</xmin>
-          <xmax>1.1</xmax>
-          <ymin>0.9</ymin>
-          <ymax>2.1</ymax>
+          <xmin>0.0</xmin>
+          <xmax>1.0</xmax>
+          <ymin>1.0</ymin>
+          <ymax>2.0</ymax>
         </range>
         <colorbar>off</colorbar>
         <axis>off</axis>
