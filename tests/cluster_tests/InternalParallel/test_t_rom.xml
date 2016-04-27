@@ -19,7 +19,7 @@
       <Model class="Models" type="ExternalModel">PythonModule</Model>
       <Sampler class="Samplers" type="Grid">myGrid</Sampler>
       <Output class="DataObjects" type="HistorySet">HistorySet_model</Output>
-      <Output class="OutStreamManager" type="Print">PrintHistorySet_model</Output>
+      <Output class="OutStreams" type="Print">PrintHistorySet_model</Output>
     </MultiRun>
     <RomTrainer name="test_rom_trainer" verbosity="debug">
       <Input class="DataObjects" type="HistorySet">HistorySet_model</Input>
@@ -30,7 +30,7 @@
       <Model class="Models" type="ROM">t_ROM</Model>
       <Sampler class="Samplers" type="Grid">myGrid</Sampler>
       <Output class="DataObjects" type="HistorySet">HistorySet_ROM</Output>
-      <Output class="OutStreamManager" type="Print">PrintHistorySet_rom</Output>
+      <Output class="OutStreams" type="Print">PrintHistorySet_rom</Output>
     </MultiRun>
   </Steps>
 
@@ -77,7 +77,7 @@
     </Grid>
   </Samplers>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="PrintHistorySet_model">
       <type>csv</type>
       <source>HistorySet_model</source>
@@ -86,7 +86,7 @@
       <type>csv</type>
       <source>HistorySet_ROM</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
   <DataObjects>
     <Point name="inputPlaceHolder">

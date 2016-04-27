@@ -69,7 +69,7 @@
     <!-- Write the results to a csv -->
     <IOStep name="saveData">
       <Input class="DataObjects" type="PointSet">outTPS</Input>
-      <Output class="OutStreamManager" type="Print">myDump</Output>
+      <Output class="OutStreams" type="Print">myDump</Output>
     </IOStep>
     <!-- Perform the sum and difference operators using the function interface -->
     <PostProcess name="applyFunctions">
@@ -80,17 +80,16 @@
     </PostProcess>
   </Steps>
 
-  <OutStreamManager>
+  <OutStreams>
     <!-- A csv file containing the output of the example -->
     <Print name="myDump">
       <type>csv</type>
       <source>outTPS</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
   <Databases>
-    <!-- The necessary database object -->
-    <HDF5 name="myDB"/>
+    <HDF5 name="myDB" readMode="overwrite"/>
   </Databases>
 
   <DataObjects>

@@ -91,7 +91,7 @@
     </DynamicEventTree>
   </Samplers>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="testprint_hist_hier">
       <type>csv</type>
       <source>stories</source>
@@ -150,7 +150,7 @@
         </title>
       </actions>
     </Plot>
-  </OutStreamManager>
+  </OutStreams>
 
   <Steps>
     <MultiRun name="HybridDETrunTest">
@@ -165,17 +165,17 @@
     <IOStep name="testOutstreamStep">
       <Input class="DataObjects" type="HistorySet">stories</Input>
       <Input class="DataObjects" type="PointSet">Pointset</Input>
-      <Output class="OutStreamManager" type="Print">testprint_hist_hier</Output>
-      <Output class="OutStreamManager" type="Print">testprint_tpset_hier</Output>
-      <Output class="OutStreamManager" type="Print">testprint_hist_hier_variables</Output>
-      <Output class="OutStreamManager" type="Print">testprint_tpset_hier_variables</Output>
-      <Output class="OutStreamManager" type="Plot">2DHistoryPlot</Output>
-      <Output class="OutStreamManager" type="Plot">2DHistoryPlot_tps</Output>
+      <Output class="OutStreams" type="Print">testprint_hist_hier</Output>
+      <Output class="OutStreams" type="Print">testprint_tpset_hier</Output>
+      <Output class="OutStreams" type="Print">testprint_hist_hier_variables</Output>
+      <Output class="OutStreams" type="Print">testprint_tpset_hier_variables</Output>
+      <Output class="OutStreams" type="Plot">2DHistoryPlot</Output>
+      <Output class="OutStreams" type="Plot">2DHistoryPlot_tps</Output>
     </IOStep>
   </Steps>
 
   <Databases>
-    <HDF5 name="testHybridBranchDatabase"/>
+    <HDF5 name="testHybridBranchDatabase" readMode="overwrite"/>
   </Databases>
 
   <DataObjects>

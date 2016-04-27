@@ -97,31 +97,31 @@
       <Output class="DataObjects" type="PointSet">AdaptiveHybridDETPointset</Output>
       <Output class="DataObjects" type="PointSet">AdaptiveHybridDETPointsetHierarchical</Output>
       <Output class="DataObjects" type="HistorySet">adaptiveOutHistorySetimple</Output>
-      <Output class="OutStreamManager" type="Print">limitsurfaceDump</Output>
+      <Output class="OutStreams" type="Print">limitsurfaceDump</Output>
     </MultiRun>
     <IOStep name="DumpResults">
       <Input class="DataObjects" type="PointSet">AdaptiveHybridDETPointset</Input>
       <Input class="DataObjects" type="PointSet">adaptiveOutsimple</Input>
       <Input class="DataObjects" type="PointSet">LimitSurfSimple</Input>
       <Input class="DataObjects" type="HistorySet">adaptiveOutHistorySetimple</Input>
-      <Output class="OutStreamManager" type="Print">adaptiveNoHierarchicalDump</Output>
-      <Output class="OutStreamManager" type="Print">adaptiveNoHierarchicalDump</Output>
-      <Output class="OutStreamManager" type="Print">adaptiveOutsimpleHier</Output>
-      <Output class="OutStreamManager" type="Print">adaptiveOutsimpleHier_selective_Output</Output>
-      <Output class="OutStreamManager" type="Print">adaptiveOutsimpleHier_selective_Input</Output>
-      <Output class="OutStreamManager" type="Print">adaptiveOutsimpleHier_selective_Input_var</Output>
-      <Output class="OutStreamManager" type="Print">adaptiveOutsimpleHier_selective_Output_Input_var</Output>
-      <Output class="OutStreamManager" type="Print">adaptiveOutsimpleHier_selective_Input_Output_var</Output>
-      <Output class="OutStreamManager" type="Print">adaptiveOutsimpleHier_selective_Output_var</Output>
-      <Output class="OutStreamManager" type="Print">adaptiveOutsimpleHier_HistorySetselective_Input_Output_var</Output>
+      <Output class="OutStreams" type="Print">adaptiveNoHierarchicalDump</Output>
+      <Output class="OutStreams" type="Print">adaptiveNoHierarchicalDump</Output>
+      <Output class="OutStreams" type="Print">adaptiveOutsimpleHier</Output>
+      <Output class="OutStreams" type="Print">adaptiveOutsimpleHier_selective_Output</Output>
+      <Output class="OutStreams" type="Print">adaptiveOutsimpleHier_selective_Input</Output>
+      <Output class="OutStreams" type="Print">adaptiveOutsimpleHier_selective_Input_var</Output>
+      <Output class="OutStreams" type="Print">adaptiveOutsimpleHier_selective_Output_Input_var</Output>
+      <Output class="OutStreams" type="Print">adaptiveOutsimpleHier_selective_Input_Output_var</Output>
+      <Output class="OutStreams" type="Print">adaptiveOutsimpleHier_selective_Output_var</Output>
+      <Output class="OutStreams" type="Print">adaptiveOutsimpleHier_HistorySetselective_Input_Output_var</Output>
     </IOStep>
   </Steps>
 
   <Databases>
-    <HDF5 name="AdaptiveHybridDETsimpleDatabase"/>
+    <HDF5 name="AdaptiveHybridDETsimpleDatabase" readMode="overwrite"/>
   </Databases>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="adaptiveNoHierarchicalDump">
       <type>csv</type>
       <source>AdaptiveHybridDETPointset</source>
@@ -169,7 +169,7 @@
       <source>adaptiveOutsimple</source>
       <what>Output|systemFailed</what>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
   <DataObjects>
     <PointSet name="LimitSurfSimple">

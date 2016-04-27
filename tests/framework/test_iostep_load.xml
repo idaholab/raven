@@ -31,10 +31,10 @@
       <Input class="DataObjects" type="HistorySet">fullprint_HistorySet</Input>
       <Input class="DataObjects" type="Point">fullprint_Point</Input>
       <Input class="DataObjects" type="PointSet">fullprint_Pointset</Input>
-      <Output class="OutStreamManager" type="Print">reprint_Point</Output>
-      <Output class="OutStreamManager" type="Print">reprint_Pointset</Output>
-      <Output class="OutStreamManager" type="Print">reprint_history</Output>
-      <Output class="OutStreamManager" type="Print">reprint_HistorySet</Output>
+      <Output class="OutStreams" type="Print">reprint_Point</Output>
+      <Output class="OutStreams" type="Print">reprint_Pointset</Output>
+      <Output class="OutStreams" type="Print">reprint_history</Output>
+      <Output class="OutStreams" type="Print">reprint_HistorySet</Output>
     </IOStep>
   </Steps>
 
@@ -57,7 +57,7 @@
     </HistorySet>
   </DataObjects>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="reprint_HistorySet">
       <type>csv</type>
       <source>fullprint_HistorySet</source>
@@ -74,6 +74,6 @@
       <type>csv</type>
       <source>fullprint_Pointset</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
 </Simulation>

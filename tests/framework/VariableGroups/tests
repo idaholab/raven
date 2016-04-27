@@ -1,18 +1,26 @@
 [Tests]
- #note that since sets are not stable, tests might cause issues with column ordering in csvs.
- [./SetOperations]
-  type = 'RavenFramework'
-  input = 'sets.xml'
-  UnorderedCsv = 'Sets/dump_standard.csv Sets/dump_addrem.csv Sets/dump_comp.csv Sets/dump_intx.csv Sets/dump_sdiff.csv Sets/dump_uni.csv'
- [../]
- [./ROM]
-  type = 'RavenFramework'
-  input = 'rom.xml'
-  UnorderedCsv = 'ROMs/dump_romout.csv'
- [../]
- [./ExternalNodes]
-  type = 'RavenFramework'
-  input = 'extnodes.xml'
-  UnorderedCsv = 'ExternalNodes/dump_standard.csv'
- [../]
+  [./SetOperations]
+    type = 'RavenFramework'
+    input = 'sets.xml'
+    UnorderedCsv = 'Sets/dump_standard.csv Sets/dump_addrem.csv Sets/dump_comp.csv Sets/dump_intx.csv Sets/dump_sdiff.csv Sets/dump_uni.csv'
+  [../]
+
+  [./ROM]
+    type = 'RavenFramework'
+    input = 'rom.xml'
+    UnorderedCsv = 'ROMs/dump_romout.csv'
+  [../]
+
+  [./ExternalNodes]
+    type = 'RavenFramework'
+    input = 'extnodes.xml'
+    UnorderedCsv = 'ExternalNodes/dump_standard.csv'
+  [../]
+
+  [./OrderedVariables]
+    type = 'RavenFramework'
+    input = 'ordered.xml'
+    UnorderedXml = 'Ordered/duplicated_input.xml'
+  [../]
+   
 []

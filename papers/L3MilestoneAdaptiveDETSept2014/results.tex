@@ -11,7 +11,7 @@ The DPRA analysis of this simplified model here presented, it has been performed
     \label{fig:PWRmodel}
 \end{figure}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Station Black Out (SBO) analysis} 
+\subsection{Station Black Out (SBO) analysis}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \label{sec:SBOanalysis}
 The simulation of a SBO initiating event required the introduction, in the control logic, of several components (see Fig.~\ref{fig:SchemeElSystem}):
@@ -143,23 +143,23 @@ As already mentioned, the ADET methodology performs a pre-screening of the input
 The probability threshold values are reported below:
 \vspace{-5mm}
    \begin{itemize}
-       \item DGs' recovery time distribution (Fig.~\ref{fig:CDFsDGs}~(a) - blue points): 
-       \begin{itemize} 
+       \item DGs' recovery time distribution (Fig.~\ref{fig:CDFsDGs}~(a) - blue points):
+       \begin{itemize}
             \item Probability Thresholds: 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8,  0.9
             \item Variable Values (s)           : 543.69 , 631.68, 695.12, 749.33, 800.00, 850.67, 904.88, 968.32, 1056.31
        \end{itemize}
-       \item RSST recovery time distribution (Fig.~\ref{fig:CDFsACs}~(a) - blue points): 
-       \begin{itemize} 
+       \item RSST recovery time distribution (Fig.~\ref{fig:CDFsACs}~(a) - blue points):
+       \begin{itemize}
             \item Probability Thresholds:  0.1, 0.2,  0.3,  0.4, 0.5, 0.6, 0.7,  0.8,  0.9
             \item Variable Values (s)           :  887.38, 1063.35, 1190.24, 1298.66, 1400.00, 1501.34, 1609.76, 1736.65, 1912.62
        \end{itemize}
-       \item 138 kV line recovery time distribution (Fig.~\ref{fig:CDFsACs}~(b) - blue points): 
-       \begin{itemize} 
-            \item Probability Thresholds: 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9 
+       \item 138 kV line recovery time distribution (Fig.~\ref{fig:CDFsACs}~(b) - blue points):
+       \begin{itemize}
+            \item Probability Thresholds: 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9
             \item Variable Values (s)           : 1359.22,  1579.19,  1737.80, 1873.33,  2000.00,  2126.67, 2262.20,  2420.81, 2640.78
        \end{itemize}
-       \item Clad Failure Temperature distribution (Fig.~\ref{fig:CDFCladFailure} - blue points): 
-       \begin{itemize} 
+       \item Clad Failure Temperature distribution (Fig.~\ref{fig:CDFCladFailure} - blue points):
+       \begin{itemize}
             \item Probability Thresholds: 0.005, 0.01, 0.02, 0.03, 0.04, 0.05, 0.10, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95
             \item Variable Values (K)           : 1304.57, 1307.51, 1313.27, 1318.89, 1324.38, 1329.37, 1354.78, 1376.74, 1395.86, 1412.68, 1427.70, 1441.33, 1453.96, 1465.94, 1477.60, 1489.26, 1501.24, 1513.87, 1527.50, 	1542.51, 1559.34, 1578.45, 1600.40, 1625.79
     \end{itemize}
@@ -168,17 +168,17 @@ The probability threshold values are reported below:
 
 In the following section, the simulations results are shown and discussed.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Results} 
+\subsection{Results}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-In order to show the newer capability added in RAVEN code, a standard DET~\cite{alfonsiPSA,DETmilestone2013} analysis analysis and an Adaptive tree (ADET) have been compared. 
+In order to show the newer capability added in RAVEN code, a standard DET~\cite{alfonsiPSA,DETmilestone2013} analysis analysis and an Adaptive tree (ADET) have been compared.
 
 Figure~\ref{fig:SampledTEMP} shows histograms of the “sampled” clad failure temperatures for DET and ADET. It can be noticed how the Adaptive DET (right figure) focuses on the higher temperatures, reasonably closer to failure regions. The standard DET (left figure) presents a spike in the histogram for the lowest temperatures. This is due to the intrinsic initial mechanics of the methodology in the exploration of the input space (in this case, no branches on clad failure temperature until the first transition is reached).
 
 As already mentioned, the cooling of the system is ensured when:
 \begin{itemize}
 \item Diesel Generators are repaired, or,
-\item the 138 kV line is restored, or, 
-\item the RSST switch-yard is repaired. 
+\item the 138 kV line is restored, or,
+\item the RSST switch-yard is repaired.
 \end{itemize}
 \begin{table}[h]
 \begin{tabular}{|c|c|c|c|c|

@@ -31,7 +31,7 @@
     </Grid>
   </Samplers>
 
-  <OutStreamManager>
+  <OutStreams>
     <Plot dim="3" name="subPlot1" overwrite="false" verbosity="silent">
       <plotSettings>
         <gridSpace>3 3 </gridSpace>
@@ -207,7 +207,7 @@
         </title>
       </actions>
     </Plot>
-  </OutStreamManager>
+  </OutStreams>
 
   <Steps>
     <MultiRun name="FirstMRun" pauseAtEnd="false">
@@ -225,14 +225,14 @@
       <Input class="DataObjects" type="PointSet">PointSets</Input>
       <Input class="DataObjects" type="Point">Pointt</Input>
       <Input class="DataObjects" type="History">Historyy</Input>
-      <Output class="OutStreamManager" type="Plot">subPlot1</Output>
-      <Output class="OutStreamManager" type="Plot">subPlot2</Output>
-      <Output class="OutStreamManager" type="Plot">subPlot3</Output>
+      <Output class="OutStreams" type="Plot">subPlot1</Output>
+      <Output class="OutStreams" type="Plot">subPlot2</Output>
+      <Output class="OutStreams" type="Plot">subPlot3</Output>
     </IOStep>
   </Steps>
 
   <Databases>
-    <HDF5 name="testOutputDatabase" type="MC"/>
+    <HDF5 name="testOutputDatabase" readMode="overwrite"/>
   </Databases>
 
   <DataObjects>

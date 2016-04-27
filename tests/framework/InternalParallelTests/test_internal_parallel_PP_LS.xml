@@ -101,31 +101,31 @@
       <Model class="Models" type="ExternalModel">PythonModule</Model>
       <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
       <Output class="DataObjects" type="PointSet">PointSetPostProcTest</Output>
-      <Output class="OutStreamManager" type="Print">PointSetPostProcTest_dump</Output>
+      <Output class="OutStreams" type="Print">PointSetPostProcTest_dump</Output>
     </MultiRun>
     <PostProcess name="ComputeLimitSurfacePositiveNegative">
       <Input class="DataObjects" type="PointSet">PointSetPostProcTest</Input>
       <Model class="Models" type="PostProcessor">computeLimitSurfacePositiveNegative</Model>
       <Output class="DataObjects" type="PointSet">LimitSurfacePositiveNegative</Output>
-      <Output class="OutStreamManager" type="Print">LimitSurfacePositiveNegative_dump</Output>
+      <Output class="OutStreams" type="Print">LimitSurfacePositiveNegative_dump</Output>
     </PostProcess>
     <PostProcess name="ComputeLimitSurfaceIntegralWeighted">
       <Input class="DataObjects" type="PointSet">LimitSurfacePositiveNegative</Input>
       <Model class="Models" type="PostProcessor">LimitSurfaceIntegralWeighted</Model>
       <Output class="DataObjects" type="PointSet">LimitSurfaceWeightedPb</Output>
-      <Output class="OutStreamManager" type="Print">LimitSurfaceWeightedPb_dump</Output>
+      <Output class="OutStreams" type="Print">LimitSurfaceWeightedPb_dump</Output>
       <Output class="Files" type="">LimitSurfaceWeightedPb_FileObj.csv</Output>
     </PostProcess>
     <PostProcess name="ComputeLimitSurfaceIntegralUnWeighted">
       <Input class="DataObjects" type="PointSet">LimitSurfacePositiveNegative</Input>
       <Model class="Models" type="PostProcessor">LimitSurfaceIntegralUnWeightedWithBounds</Model>
       <Output class="DataObjects" type="PointSet">LimitSurfaceUnWeightedPb</Output>
-      <Output class="OutStreamManager" type="Print">LimitSurfaceUnWeightedPb_dump</Output>
+      <Output class="OutStreams" type="Print">LimitSurfaceUnWeightedPb_dump</Output>
       <Output class="Files" type="">LimitSurfaceUnWeightedPb_FileObj.csv</Output>
     </PostProcess>
   </Steps>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="PointSetPostProcTest_dump">
       <type>csv</type>
       <source>PointSetPostProcTest</source>
@@ -142,7 +142,7 @@
       <type>csv</type>
       <source>LimitSurfaceWeightedPb</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
   <DataObjects>
     <PointSet name="PointSetPostProcTest">

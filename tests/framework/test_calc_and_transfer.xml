@@ -59,7 +59,7 @@
     </MonteCarlo>
   </Samplers>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="PrintRawPointSet">
       <type>csv</type>
       <source>RawPointSet</source>
@@ -68,7 +68,7 @@
       <type>csv</type>
       <source>ROM1PointSet</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
   <Steps>
     <MultiRun name="External_Model" re-seeding="200286">
@@ -80,7 +80,7 @@
     <IOStep name="MakeSet">
       <Input class="Databases" type="HDF5">calc_and_transfer_database</Input>
       <Output class="DataObjects" type="PointSet">RawPointSet</Output>
-      <Output class="OutStreamManager" type="Print">PrintRawPointSet</Output>
+      <Output class="OutStreams" type="Print">PrintRawPointSet</Output>
     </IOStep>
     <RomTrainer name="TrainROM">
       <Input class="DataObjects" type="PointSet">RawPointSet</Input>
@@ -95,7 +95,7 @@
     <IOStep name="MakeROMSet">
       <Input class="Databases" type="HDF5">calc_and_transfer_database_rom</Input>
       <Output class="DataObjects" type="PointSet">ROM1PointSet</Output>
-      <Output class="OutStreamManager" type="Print">PrintROM1PointSet</Output>
+      <Output class="OutStreams" type="Print">PrintROM1PointSet</Output>
     </IOStep>
     <PostProcess name="ComparisonStats">
       <Input class="DataObjects" type="PointSet">RawPointSet</Input>
@@ -106,8 +106,8 @@
   </Steps>
 
   <Databases>
-    <HDF5 name="calc_and_transfer_database"/>
-    <HDF5 name="calc_and_transfer_database_rom"/>
+    <HDF5 name="calc_and_transfer_database" readMode="overwrite"/>
+    <HDF5 name="calc_and_transfer_database_rom" readMode="overwrite"/>
   </Databases>
 
   <DataObjects>

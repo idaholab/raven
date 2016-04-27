@@ -62,15 +62,15 @@
       <Sampler class="Samplers" type="Stratified">myLHS</Sampler>
       <Output class="Databases" type="HDF5">test_bison_lhs</Output>
       <Output class="DataObjects" type="HistorySet">stories</Output>
-      <Output class="OutStreamManager" type="Plot">test</Output>
+      <Output class="OutStreams" type="Plot">test</Output>
     </MultiRun>
   </Steps>
 
   <Databases>
-    <HDF5 name="test_bison_lhs"/>
+    <HDF5 name="test_bison_lhs" readMode="overwrite"/>
   </Databases>
 
-  <OutStreamManager>
+  <OutStreams>
     <Plot dim="2" name="test" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
@@ -83,6 +83,6 @@
         <how>png</how>
       </actions>
     </Plot>
-  </OutStreamManager>
+  </OutStreams>
 
 </Simulation>

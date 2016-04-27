@@ -119,16 +119,16 @@ framework input is based on the e\textbf{X}tensible \textbf{M}arkup
 \textbf{L}anguage (\textbf{XML}) format.
 %
 Thus, in order to activate the ``\textit{OutStream}'' system, the input needs to
-contain a block identified by the \xmlNode{OutStreamManager} tag (as shown
+contain a block identified by the \xmlNode{OutStreams} tag (as shown
 below).
 
 \begin{lstlisting}[style=XML]
-<OutStreamManager>
+<OutStreams>
   <!-- "OutStream" objects that need to be created-->
-</OutStreamManager>
+</OutStreams>
 \end{lstlisting}
 
-In the ``OutStreamManager'' block an unlimited number of ``Plot'' and ``Print''
+In the ``OutStreams'' block an unlimited number of ``Plot'' and ``Print''
 sub-blocks can be specified.
 %
 The input specifications and the main capabilities for both types are reported
@@ -198,7 +198,7 @@ output file will be filled with the whole content of the ``d-name''
 \textit{Data} object.
 %
 \begin{lstlisting}[style=XML]
-<OutStreamManager>
+<OutStreams>
   <Print name='first-example'>
     <type>csv</type>
     <source>d-name</source>
@@ -223,7 +223,7 @@ output file will be filled with the whole content of the ``d-name''
     <source>d-name</source>
     <filename>example5</filename>
   </Print>
-</OutStreamManager>
+</OutStreams>
 \end{lstlisting}
 
 If just part of the \xmlNode{source} is important for a particular analysis, the
@@ -290,7 +290,7 @@ If the ROM is time-dependent, the printed properties will be collected by time s
 ROM printing uses the same naming conventions as DataObjects printing.
 Examples:
 \begin{lstlisting}[style=XML]
-<OutStreamManager>
+<OutStreams>
   <Print name='first-ROM-example'>
     <type>xml</type>
     <source>mySobolRom</source>
@@ -301,7 +301,7 @@ Examples:
     <source>myGaussPolyRom</source>
     <what>mean,variance</what>
   </Print>
-</OutStreamManager>
+</OutStreams>
 \end{lstlisting}
 %
 %%%%%%%%%
@@ -336,7 +336,7 @@ for a Plot, based on XML instructions.
 %%%%%%%%%%%%%
 \subsubsection{Plot input structure \label{sec:PlotInputStructure}}
 In order to create a plot, the user needs to add, within the
-\xmlNode{OutStreamManager} block, a \xmlNode{Plot} sub-block.
+\xmlNode{OutStreams} block, a \xmlNode{Plot} sub-block.
 %
 Similar to the \xmlNode{Print} OutStream, the user needs to specify a
 \xmlAttr{name} as an attribute of the plot.
@@ -830,7 +830,7 @@ For example, in the following XML cut, a ``line'' and a ``scatter'' type are
 combined in the same figure.
 %
 \begin{lstlisting}[style=XML,morekeywords={dim,name},deletekeywords={type}]
-<OutStreamManager>
+<OutStreams>
   <Plot name='example2PlotsCombined' dim='2'>
     <actions>
       <!-- Actions -->
@@ -862,7 +862,7 @@ combined in the same figure.
       </plot>
     </plotSettings>
   </Plot>
-</OutStreamManager>
+</OutStreams>
 \end{lstlisting}
 
 The axis labels  are conditionally optional nodes
@@ -1521,7 +1521,7 @@ additional to the coordinate inputs \xmlNode{x},  \xmlNode{y}, or \xmlNode{z} de
 
 \subsubsection{Example XML input}
 \begin{lstlisting}[style=XML,morekeywords={name,dim,interactive,overwrite}]
-<OutStreamManager>
+<OutStreams>
   <Plot name='2DHistoryPlot' dim='2' interactive='False' overwrite='False'>
     <actions>
       <how>pdf,png,eps</how>
@@ -1552,5 +1552,5 @@ additional to the coordinate inputs \xmlNode{x},  \xmlNode{y}, or \xmlNode{z} de
       <ylabel>evolution</ylabel>
     </plot_settings>
   </Plot>
-</OutStreamManager>
+</OutStreams>
 \end{lstlisting}

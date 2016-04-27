@@ -9,8 +9,11 @@ else
 fi
 SCRIPT_DIR=`(cd $SCRIPT_DIRNAME; pwd)`
 
-RAVEN_LIBS_DIR=`ls -d $HOME/raven_libs/pylibs/*/python*/site-packages`
-export PYTHONPATH="$PYTHONPATH:$RAVEN_LIBS_DIR"
+if test -e $HOME/raven_libs/pylibs;
+then
+   RAVEN_LIBS_DIR=`ls -d $HOME/raven_libs/pylibs/*/python*/site-packages`
+   export PYTHONPATH="$PYTHONPATH:$RAVEN_LIBS_DIR"
+fi
 
 python $SCRIPT_DIR/framework/Driver.py "$@"
 

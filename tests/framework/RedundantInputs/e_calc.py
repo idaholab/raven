@@ -1,2 +1,2 @@
-def e(self):
+def evaluate(self):
   return self.b - self.c

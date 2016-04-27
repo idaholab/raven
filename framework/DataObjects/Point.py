@@ -26,21 +26,21 @@ import utils
 
 class Point(Data):
   """
-  Point is an object that stores a set of inputs and outputs for a particular point in time!
+    Point is an object that stores a set of inputs and outputs for a particular point in time!
   """
 
   def _specializedInputCheck(self,xmlNode):
     """
-     Here we check if the parameters read by the global reader are compatible with this type of Data
-     @ In, ElementTree object, xmlNode
-     @ Out, None
+      Here we check if the parameters read by the global reader are compatible with this type of Data
+      @ In, xmlNode, xml.etree.ElementTree.Element, xml node
+      @ Out, None
     """
     if "historyName" in xmlNode.attrib.keys(): self._dataParameters['history'] = xmlNode.attrib['historyName']
     else                                     : self._dataParameters['history'] = None
 
   def addSpecializedReadingSettings(self):
     """
-      This function adds in the dataParameters dict the options needed for reading and constructing this class
+      This function adds in the _dataParameters dict the options needed for reading and constructing this class
       @ In, None
       @ Out, None
     """
@@ -148,6 +148,13 @@ class Point(Data):
     self._createXMLFile(filenameLocal,'Point',inpKeys,outKeys)
 
   def _specializedLoadXMLandCSV(self, filenameRoot, options):
+    """
+      Function to load the xml additional file of the csv for data
+      (it contains metadata, etc). It must be implemented by the specialized classes
+      @ In, filenameRoot, string, file name root
+      @ In, options, dict, dictionary -> options for loading
+      @ Out, None
+    """
     #For Point it creates an XML file and one csv file.  The
     #CSV file will have a header with the input names and output
     #names, and one line of data with the input and output numeric
@@ -178,8 +185,25 @@ class Point(Data):
     for key in xmlData["outKeys"]:
       self._dataContainer["outputs"][key] = c1darray(values=np.array([inoutDict[key]]))
 
-  def __extractValueLocal__(self,myType,inOutType,varTyp,varName,varID=None,stepID=None,nodeid='root'):
-    """override of the method in the base class DataObjects"""
+  def __extractValueLocal__(self,inOutType,varTyp,varName,varID=None,stepID=None,nodeId='root'):
+    """
+      specialization of extractValue for this data type
+      @ In, inOutType, string, the type of data to extract (input or output)
+      @ In, varTyp, string, is the requested type of the variable to be returned (bool, int, float, numpy.ndarray, etc)
+      @ In, varName, string, is the name of the variable that should be recovered
+      @ In, varID, tuple or int, optional, is the ID of the value that should be retrieved within a set
+        if varID.type!=tuple only one point along sampling of that variable is retrieved
+          else:
+            if varID=(int,int) the slicing is [varID[0]:varID[1]]
+            if varID=(int,None) the slicing is [varID[0]:]
+      @ In, stepID, tuple or int, optional, it  determines the slicing of an history.
+          if stepID.type!=tuple only one point along the history is retrieved
+          else:
+            if stepID=(int,int) the slicing is [stepID[0]:stepID[1]]
+            if stepID=(int,None) the slicing is [stepID[0]:]
+      @ In, nodeId, string, in hierarchical mode, is the node from which the value needs to be extracted... by default is the root
+      @ Out, value, varTyp, the requested value
+    """
     if varID!=None or stepID!=None: self.raiseAnError(RuntimeError,'seeking to extract a slice from a Point type of data is not possible. Data name: '+self.name+' variable: '+varName)
     if varTyp!='numpy.ndarray':exec ('return '+varTyp+'(self.getParam(inOutType,varName)[0])')
     else: return self.getParam(inOutType,varName)

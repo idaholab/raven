@@ -92,12 +92,12 @@
       <Sampler class="Samplers" type="MonteCarlo">RAVENmc2</Sampler>
       <Output class="Databases" type="HDF5">test2StepsDatabase</Output>
       <Output class="DataObjects" type="HistorySet">stories</Output>
-      <Output class="OutStreamManager" type="Print">fullprint_HistorySet</Output>
+      <Output class="OutStreams" type="Print">fullprint_HistorySet</Output>
     </MultiRun>
   </Steps>
 
   <Databases>
-    <HDF5 name="test2StepsDatabase"/>
+    <HDF5 name="test2StepsDatabase" readMode="overwrite"/>
   </Databases>
 
   <DataObjects>
@@ -111,11 +111,11 @@
     </HistorySet>
   </DataObjects>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="fullprint_HistorySet">
       <type>csv</type>
       <source>stories</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
 </Simulation>

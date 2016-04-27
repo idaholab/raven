@@ -15,11 +15,11 @@
     </MultiRun>
     <IOStep name="print" verbosity="silent">
       <Input class="Models" type="ROM">rom</Input>
-      <Output class="OutStreamManager" type="Print">dump</Output>
+      <Output class="OutStreams" type="Print">dump</Output>
     </IOStep>
     <IOStep name="print2" verbosity="silent">
       <Input class="DataObjects" type="PointSet">solns</Input>
-      <Output class="OutStreamManager" type="Print">data</Output>
+      <Output class="OutStreams" type="Print">data</Output>
     </IOStep>
     <RomTrainer name="train" verbosity="silent">
       <Input class="DataObjects" type="PointSet">solns</Input>
@@ -75,7 +75,7 @@
     </PointSet>
   </DataObjects>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="dump" verbosity="silent">
       <type>xml</type>
       <source>rom</source>
@@ -86,6 +86,6 @@
       <type>csv</type>
       <source>solns</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
 </Simulation>

@@ -57,7 +57,7 @@
   </DataObjects>
 
   <Databases>
-    <HDF5 name="DB_BouncingBall"/>
+    <HDF5 name="DB_BouncingBall" readMode="overwrite"/>
   </Databases>
 
 </Simulation>

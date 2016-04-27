@@ -1,0 +1,118 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
+    <WorkingDir>hs_sync_max</WorkingDir>
+    <Sequence>make,sync,train,print</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="inp" type="">input_truncated.i</Input>
+  </Files>
+
+  <Steps>
+    <MultiRun name="make">
+      <Input class="Files" type="Input">inp</Input>
+      <Model class="Models" type="Code">code</Model>
+      <Sampler class="Samplers" type="Sobol">samp</Sampler>
+      <Output class="DataObjects" type="HistorySet">solns</Output>
+    </MultiRun>
+    <IOStep name="print">
+      <Input class="DataObjects" type="HistorySet">solns</Input>
+      <Input class="DataObjects" type="HistorySet">synced</Input>
+      <Input class="Models" type="ROM">rom</Input>
+      <Output class="OutStreams" type="Print">original</Output>
+      <Output class="OutStreams" type="Print">synced</Output>
+      <Output class="OutStreams" type="Print">rom</Output>
+    </IOStep>
+    <RomTrainer name="train">
+      <Input class="DataObjects" type="HistorySet">synced</Input>
+      <Output class="Models" type="ROM">rom</Output>
+    </RomTrainer>
+    <PostProcess name="sync">
+      <Input class="DataObjects" type="HistorySet">solns</Input>
+      <Model class="Models" type="PostProcessor">syncer</Model>
+      <Output class="DataObjects" type="HistorySet">synced</Output>
+    </PostProcess>
+  </Steps>
+
+  <Distributions>
+    <Uniform name="ux">
+      <lowerBound>-1</lowerBound>
+      <upperBound>1</upperBound>
+    </Uniform>
+    <Uniform name="uy">
+      <lowerBound>1</lowerBound>
+      <upperBound>2</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <Sobol name="samp">
+      <variable name="x">
+        <distribution>ux</distribution>
+      </variable>
+      <variable name="y">
+        <distribution>uy</distribution>
+      </variable>
+      <ROM class="Models" type="ROM">rom</ROM>
+    </Sobol>
+  </Samplers>
+
+  <Models>
+    <Code name="code" subType="GenericCode">
+      <executable>../../AnalyticModels/AnalyticCodes/variable_time.py</executable>
+      <clargs arg="python" type="prepend"/>
+      <clargs arg="-i" extension=".i" type="input"/>
+      <clargs arg="-o" type="output"/>
+      <prepend>python</prepend>
+    </Code>
+    <PostProcessor name="syncer" subType="InterfacedPostProcessor">
+      <method>HistorySetSync</method>
+      <syncMethod>max</syncMethod>
+      <timeID>t</timeID>
+      <extension>extended</extension>
+    </PostProcessor>
+    <ROM name="rom" subType="HDMRRom">
+      <SobolOrder>1</SobolOrder>
+      <Target>a,b,t</Target>
+      <Features>x,y</Features>
+      <IndexSet>TotalDegree</IndexSet>
+      <PolynomialOrder>2</PolynomialOrder>
+    </ROM>
+  </Models>
+
+  <DataObjects>
+    <HistorySet name="solns">
+      <Input>x,y</Input>
+      <Output>a,b,t</Output>
+      <options>
+        <pivotParameter>t</pivotParameter>
+      </options>
+    </HistorySet>
+    <HistorySet name="synced">
+      <Input>x,y</Input>
+      <Output>a,b,t</Output>
+      <options>
+        <pivotParameter>t</pivotParameter>
+      </options>
+    </HistorySet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="original">
+      <type>csv</type>
+      <source>solns</source>
+    </Print>
+    <Print name="synced">
+      <type>csv</type>
+      <source>synced</source>
+    </Print>
+    <Print name="rom">
+      <type>xml</type>
+      <source>rom</source>
+      <what>all</what>
+    </Print>
+  </OutStreams>
+
+</Simulation>

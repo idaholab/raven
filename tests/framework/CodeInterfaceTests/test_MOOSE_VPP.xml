@@ -63,15 +63,15 @@
       <Model class="Models" type="Code">MOOSETestApp</Model>
       <Sampler class="Samplers" type="Grid">Grid_sampling</Sampler>
       <Output class="DataObjects" type="PointSet">collset</Output>
-      <Output class="OutStreamManager" type="Print">print_data</Output>
+      <Output class="OutStreams" type="Print">print_data</Output>
     </MultiRun>
   </Steps>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="print_data">
       <type>csv</type>
       <source>collset</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
 </Simulation>

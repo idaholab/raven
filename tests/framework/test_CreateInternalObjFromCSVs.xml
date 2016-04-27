@@ -20,7 +20,7 @@
     <PostProcess name="LoadCsvIntoInternalObjectTestData">
       <Model class="Models" type="PostProcessor">LoadCsvIntoInternalObjectTest</Model>
       <Output class="DataObjects" type="PointSet">PointSetPostProcTest</Output>
-      <Output class="OutStreamManager" type="Print">PointSetPostProcTest_DUMP</Output>
+      <Output class="OutStreams" type="Print">PointSetPostProcTest_DUMP</Output>
     </PostProcess>
     <PostProcess name="LoadCsvIntoInternalObjectTestHDF5">
       <Model class="Models" type="PostProcessor">LoadCsvIntoInternalObjectTest</Model>
@@ -28,12 +28,12 @@
     </PostProcess>
   </Steps>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="PointSetPostProcTest_DUMP">
       <type>csv</type>
       <source>PointSetPostProcTest</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
   <DataObjects>
     <PointSet name="PointSetPostProcTest">
@@ -43,7 +43,7 @@
   </DataObjects>
 
   <Databases>
-    <HDF5 name="HDF5PostProcTest"/>
+    <HDF5 name="HDF5PostProcTest" readMode="overwrite"/>
   </Databases>
 
 </Simulation>

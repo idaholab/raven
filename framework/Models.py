@@ -25,7 +25,7 @@ from scipy import spatial
 from BaseClasses import BaseType
 from Assembler import Assembler
 import SupervisedLearning
-import PostProcessors #import returnFilterInterface
+import PostProcessors
 import CustomCommandExecuter
 import utils
 import mathUtils
@@ -33,12 +33,11 @@ import TreeStructure
 import Files
 #Internal Modules End--------------------------------------------------------------------------------
 
-#class Model(BaseType):
 class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
   """
-  A model is something that given an input will return an output reproducing some physical model
-  it could as complex as a stand alone code, a reduced order model trained somehow or something
-  externally build and imported by the user
+    A model is something that given an input will return an output reproducing some physical model
+    it could as complex as a stand alone code, a reduced order model trained somehow or something
+    externally build and imported by the user
   """
   validateDict                  = {}
   validateDict['Input'  ]       = []
@@ -71,7 +70,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
   validateDict['Output' ][1]['required'    ] = False
   validateDict['Output' ][1]['multiplicity'] = 'n'
   validateDict['Output'].append(testDict.copy())
-  validateDict['Output' ][2]['class'       ] = 'OutStreamManager'
+  validateDict['Output' ][2]['class'       ] = 'OutStreams'
   validateDict['Output' ][2]['type'        ] = ['Plot','Print']
   validateDict['Output' ][2]['required'    ] = False
   validateDict['Output' ][2]['multiplicity'] = 'n'
@@ -95,20 +94,29 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
 
   @classmethod
   def generateValidateDict(cls):
-    """This method generate a independent copy of validateDict for the calling class"""
+    """
+      This method generate a independent copy of validateDict for the calling class
+      @ In, None
+      @ Out, None
+    """
     cls.validateDict = copy.deepcopy(Model.validateDict)
 
   @classmethod
   def specializeValidateDict(cls):
-    """ This method should be overridden to describe the types of input accepted with a certain role by the model class specialization"""
+    """
+      This method should be overridden to describe the types of input accepted with a certain role by the model class specialization
+      @ In, None
+      @ Out, None
+    """
     raise NotImplementedError('The class '+str(cls.__name__)+' has not implemented the method specializeValidateDict')
 
   @classmethod
   def localValidateMethod(cls,who,what):
     """
-    This class method is called to test the compatibility of the class with its possible usage
-    @in who: a string identifying the what is the role of what we are going to test (i.e. input, output etc)
-    @in what: a list (or a general iterable) that will be playing the 'who' role
+      This class method is called to test the compatibility of the class with its possible usage
+      @ In, who, string, a string identifying the what is the role of what we are going to test (i.e. input, output etc)
+      @ In, what, string, a list (or a general iterable) that will be playing the 'who' role
+      @ Out, None
     """
     #counting successful matches
     if who not in cls.validateDict.keys(): raise IOError('The role '+str(who)+' does not exist in the class '+str(cls))
@@ -140,62 +148,90 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     return True
 
   def __init__(self,runInfoDict):
+    """
+      Constructor
+      @ In, runInfoDict, dict, the dictionary containing the runInfo (read in the XML input file)
+      @ Out, None
+    """
     BaseType.__init__(self)
     self.subType  = ''
     self.runQueue = []
     self.printTag = 'MODEL'
 
   def _readMoreXML(self,xmlNode):
+    """
+      Function to read the portion of the xml input that belongs to this specialized class
+      and initialize some stuff based on the inputs got
+      @ In, xmlNode, xml.etree.Element, Xml element node
+      @ Out, None
+    """
     try: self.subType = xmlNode.attrib['subType']
     except KeyError:
       self.raiseADebug(" Failed in Node: "+str(xmlNode),verbostiy='silent')
       self.raiseAnError(IOError,'missed subType for the model '+self.name)
     del(xmlNode.attrib['subType'])
 
-  def localInputAndChecks(self,xmlNode):
-    """place here the additional reading, remember to add initial parameters in the method localAddInitParams"""
+  def getInitParams(self):
+    """
+      This function is called from the base class to print some of the information inside the class.
+      Whatever is permanent in the class and not inherited from the parent class should be mentioned here
+      The information is passed back in the dictionary. No information about values that change during the simulation are allowed
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
+    """
+    paramDict = {}
+    paramDict['subType'] = self.subType
+    return paramDict
 
-  def addInitParams(self,tempDict):
-    tempDict['subType'] = self.subType
-
-  def localAddInitParams(self,tempDict):
-    """use this function to export to the printer in the base class the additional PERMANENT your local class have"""
+  def localGetInitParams(self):
+    """
+      Method used to export to the printer in the base class the additional PERMANENT your local class have
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
+    """
+    paramDict = {}
+    return paramDict
 
   def initialize(self,runInfo,inputs,initDict=None):
-    """ this needs to be over written if a re initialization of the model is need it gets called at every beginning of a step
-    after this call the next one will be run
-    @ In, runInfo is the run info from the jobHandler
-    @ In, inputs is a list containing whatever is passed with an input role in the step
-    @ In, initDict, optional, dictionary of all objects available in the step is using this model
+    """
+      this needs to be over written if a re initialization of the model is need it gets called at every beginning of a step
+      after this call the next one will be run
+      @ In, runInfo, dict, it is the run info from the jobHandler
+      @ In, inputs, list, it is a list containing whatever is passed with an input role in the step
+      @ In, initDict, dict, optional, dictionary of all objects available in the step is using this model
     """
     pass
 
   @abc.abstractmethod
   def createNewInput(self,myInput,samplerType,**Kwargs):
     """
-    this function have to return a new input that will be submitted to the model, it is called by the sampler
-    @in myInput the inputs (list) to start from to generate the new one
-    @in samplerType is the type of sampler that is calling to generate a new input
-    @in **Kwargs is a dictionary that contains the information coming from the sampler,
-         a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
-    @return the new input in a list form
+      this function have to return a new input that will be submitted to the model, it is called by the sampler
+      @ In, myInput, list, the inputs (list) to start from to generate the new one
+      @ In, samplerType, string, is the type of sampler that is calling to generate a new input
+      @ In, **Kwargs, dict,  is a dictionary that contains the information coming from the sampler,
+           a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
+      @ Out, [(Kwargs)], list, return the new input in a list form
     """
     return [(copy.copy(Kwargs))]
 
   @abc.abstractmethod
   def run(self,Input,jobHandler):
     """
-    This call should be over loaded and should not return any results,
-    possible it places a run one of the jobhandler lists!!!
-    @in inputs is a list containing whatever is passed with an input role in the step
-    @in jobHandler an instance of jobhandler that might be possible used to append a job for parallel running
+      Method that performs the actual run of the Code model
+      @ In,  Input, object, object contained the data to process. (inputToInternal output)
+      @ In,  jobHandler, JobHandler instance, the global job handler instance
+      @ Out, None
     """
     pass
 
   def collectOutput(self,collectFrom,storeTo):
     """
-    This call collect the output of the run
-    @in collectFrom: where the output is located, the form and the type is model dependent but should be compatible with the storeTo.addOutput method.
+      Method that collects the outputs from the previous run
+      @ In, finishedJob, InternalRunner object, instance of the run just finished
+      @ In, output, "DataObjects" object, output where the results of the calculation needs to be stored
+      @ Out, None
     """
     #if a addOutput is present in nameSpace of storeTo it is used
     if 'addOutput' in dir(storeTo): storeTo.addOutput(collectFrom)
@@ -203,9 +239,9 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
 
   def getAdditionalInputEdits(self,inputInfo):
     """
-    Collects additional edits for the sampler to use when creating a new input.  By default does nothing.
-    @ In, inputInfo, dictionary in which to add edits
-    @ Out, None.
+      Collects additional edits for the sampler to use when creating a new input.  By default does nothing.
+      @ In, inputInfo, dict, dictionary in which to add edits
+      @ Out, None.
     """
     pass
 #
@@ -213,10 +249,15 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
 #
 class Dummy(Model):
   """
-  this is a dummy model that just return the effect of the sampler. The values reported as input in the output
-  are the output of the sampler and the output is the counter of the performed sampling
+    This is a dummy model that just return the effect of the sampler. The values reported as input in the output
+    are the output of the sampler and the output is the counter of the performed sampling
   """
   def __init__(self,runInfoDict):
+    """
+      Constructor
+      @ In, runInfoDict, dict, the dictionary containing the runInfo (read in the XML input file)
+      @ Out, None
+    """
     Model.__init__(self,runInfoDict)
     self.admittedData = self.__class__.validateDict['Input' ][0]['type'] #the list of admitted data is saved also here for run time checks
     #the following variable are reset at each call of the initialize method
@@ -224,6 +265,11 @@ class Dummy(Model):
 
   @classmethod
   def specializeValidateDict(cls):
+    """
+      This method describes the types of input accepted with a certain role by the model class specialization
+      @ In, None
+      @ Out, None
+    """
     cls.validateDict['Input' ]                    = [cls.validateDict['Input' ][0]]
     cls.validateDict['Input' ][0]['type'        ] = ['Point','PointSet']
     cls.validateDict['Input' ][0]['required'    ] = True
@@ -231,13 +277,23 @@ class Dummy(Model):
     cls.validateDict['Output'][0]['type'        ] = ['Point','PointSet']
 
   def _manipulateInput(self,dataIn):
+    """
+      Method that is aimed to manipulate the input in order to return a common input understandable by this class
+      @ In, dataIn, object, the object that needs to be manipulated
+      @ Out, inRun, dict, the manipulated input
+    """
     if len(dataIn)>1: self.raiseAnError(IOError,'Only one input is accepted by the model type '+self.type+' with name '+self.name)
     if type(dataIn[0])!=tuple: inRun = self._inputToInternal(dataIn[0]) #this might happen when a single run is used and the input it does not come from self.createNewInput
     else:                      inRun = dataIn[0][0]
     return inRun
 
   def _inputToInternal(self,dataIN,full=False):
-    """Transform it in the internal format the provided input. dataIN could be either a dictionary (then nothing to do) or one of the admitted data"""
+    """
+      Transform it in the internal format the provided input. dataIN could be either a dictionary (then nothing to do) or one of the admitted data
+      @ In, dataIn, object, the object that needs to be manipulated
+      @ In, full, bool, optional, does the full input needs to be retrieved or just the last element?
+      @ Out, localInput, dict, the manipulated input
+    """
     #self.raiseADebug('wondering if a dictionary compatibility should be kept','FIXME')
     if  type(dataIN).__name__ !='dict':
       if dataIN.type not in self.admittedData: self.raiseAnError(IOError,self,'type "'+dataIN.type+'" is not compatible with the model "' + self.type + '" named "' + self.name+'"!')
@@ -258,9 +314,15 @@ class Dummy(Model):
 
   def createNewInput(self,myInput,samplerType,**Kwargs):
     """
-    here only Point and PointSet are accepted a local copy of the values is performed.
-    For a Point all value are copied, for a PointSet only the last set of entry
-    The copied values are returned as a dictionary back
+      this function have to return a new input that will be submitted to the model, it is called by the sampler
+      here only Point and PointSet are accepted a local copy of the values is performed.
+      For a Point all value are copied, for a PointSet only the last set of entry
+      The copied values are returned as a dictionary back
+      @ In, myInput, list, the inputs (list) to start from to generate the new one
+      @ In, samplerType, string, is the type of sampler that is calling to generate a new input
+      @ In, **Kwargs, dict,  is a dictionary that contains the information coming from the sampler,
+           a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
+      @ Out, ([(inputDict)],copy.deepcopy(Kwargs)), tuple, return the new input in a tuple form
     """
     if len(myInput)>1: self.raiseAnError(IOError,'Only one input is accepted by the model type '+self.type+' with name'+self.name)
     inputDict = self._inputToInternal(myInput[0])
@@ -277,18 +339,31 @@ class Dummy(Model):
 
   def run(self,Input,jobHandler):
     """
-    The input is a list of one element.
-    The element is either a tuple of two dictionary [(InputDictionary, OutputDictionary)] if the input has been created by the  self.createNewInput
-    otherwise is one of the accepted data.
-    The first is the input the second the output. The output is just the counter
+      This method executes the model .
+      @ In,  Input, object, object contained the data to process. (inputToInternal output)
+      @ In,  jobHandler, JobHandler instance, the global job handler instance
+      @ Out, None
     """
     #this set of test is performed to avoid that if used in a single run we come in with the wrong input structure since the self.createNewInput is not called
     inRun = self._manipulateInput(Input[0])
-    def lambdaReturnOut(inRun,prefix): return {'OutputPlaceHolder':np.atleast_1d(np.float(prefix))}
+    def lambdaReturnOut(inRun,prefix):
+      """
+        This method is the one is going to be submitted through the jobHandler
+        @ In, inRun, dict, the input
+        @ In, prefix, string, the string identifying this job
+        @ Out, lambdaReturnOut, dict, the return dictionary
+      """
+      return {'OutputPlaceHolder':np.atleast_1d(np.float(prefix))}
     #lambdaReturnOut = lambda inRun: {'OutputPlaceHolder':np.atleast_1d(np.float(Input[1]['prefix']))}
     jobHandler.submitDict['Internal']((inRun,Input[1]['prefix']),lambdaReturnOut,str(Input[1]['prefix']),metadata=Input[1], modulesToImport = self.mods)
 
   def collectOutput(self,finishedJob,output):
+    """
+      Method that collects the outputs from the previous run
+      @ In, finishedJob, InternalRunner object, instance of the run just finished
+      @ In, output, "DataObjects" object, output where the results of the calculation needs to be stored
+      @ Out, None
+    """
     if finishedJob.returnEvaluation() == -1: self.raiseAnError(AttributeError,"No available Output to collect")
     evaluation = finishedJob.returnEvaluation()
     if type(evaluation[1]).__name__ == "tuple": outputeval = evaluation[1][0]
@@ -308,15 +383,27 @@ class Dummy(Model):
 #
 #
 class ROM(Dummy):
-  """ROM stands for Reduced Order Model. All the models here, first learn than predict the outcome"""
+  """
+    ROM stands for Reduced Order Model. All the models here, first learn than predict the outcome
+  """
   @classmethod
   def specializeValidateDict(cls):
+    """
+      This method describes the types of input accepted with a certain role by the model class specialization
+      @ In, None
+      @ Out, None
+    """
     cls.validateDict['Input' ]                    = [cls.validateDict['Input' ][0]]
     cls.validateDict['Input' ][0]['required'    ] = True
     cls.validateDict['Input' ][0]['multiplicity'] = 1
     cls.validateDict['Output'][0]['type'        ] = ['Point','PointSet','HistorySet']
 
   def __init__(self,runInfoDict):
+    """
+      Constructor
+      @ In, runInfoDict, dict, the dictionary containing the runInfo (read in the XML input file)
+      @ Out, None
+    """
     Dummy.__init__(self,runInfoDict)
     self.initializationOptionDict = {}          # ROM initialization options
     self.amITrained                = False      # boolean flag, is the ROM trained?
@@ -325,12 +412,13 @@ class ROM(Dummy):
     self.printTag = 'ROM MODEL'
     self.numberOfTimeStep          = 1
     self.historyPivotParameter     = 'none'     #time-like pivot parameter for data object on which ROM was trained
+    self.historySteps              = []
 
   def __getstate__(self):
     """
-    This function return the state of the ROM
-    @ In, None
-    @ Out, state, dict, it contains all the information needed by the ROM to be initialized
+      This function return the state of the ROM
+      @ In, None
+      @ Out, state, dict, it contains all the information needed by the ROM to be initialized
     """
     # capture what is normally pickled
     state = self.__dict__.copy()
@@ -341,9 +429,9 @@ class ROM(Dummy):
 
   def __setstate__(self, newstate):
     """
-    Initialize the ROM with the data contained in newstate
-    @ In, newstate, dict, it contains all the information needed by the ROM to be initialized
-    @ Out, None
+      Initialize the ROM with the data contained in newstate
+      @ In, newstate, dict, it contains all the information needed by the ROM to be initialized
+      @ Out, None
     """
     self.__dict__.update(newstate)
     if not self.amITrained:
@@ -371,6 +459,12 @@ class ROM(Dummy):
           self.initializationOptionDict['Target'] = ','.join(targets)
 
   def _readMoreXML(self,xmlNode):
+    """
+      Function to read the portion of the xml input that belongs to this specialized class
+      and initialize some stuff based on the inputs got
+      @ In, xmlNode, xml.etree.Element, Xml element node
+      @ Out, None
+    """
     Dummy._readMoreXML(self, xmlNode)
     for child in xmlNode:
       if child.attrib:
@@ -398,10 +492,11 @@ class ROM(Dummy):
     self.initializationOptionDict['Target'] = ','.join(targets)
 
   def printXML(self,options=None):
-    '''
+    """
       Called by the OutStreamPrint object to cause the ROM to print itself to file.
       @ In, options, the options to use in printing, including filename, things to print, etc.
-    '''
+      @ Out, None
+    """
     if options:
       if ('filenameroot' in options.keys()): filenameLocal = options['filenameroot']
       else: filenameLocal = self.name + '_dump'
@@ -437,8 +532,7 @@ class ROM(Dummy):
           pivotNode = TreeStructure.Node(self.historyPivotParameter+'_step')
           pivotNode.setText(pivotStep)
           node.appendBranch(pivotNode)
-          pivotRom = self.SupervisedEngine[s][self.historyPivotParameter]
-          pivotValue = pivotRom.evaluate(dict(zip(pivotRom.features,[np.array([0])]*len(pivotRom.features))))
+          pivotValue = self.historySteps[s]
           pivotValNode = TreeStructure.Node(self.historyPivotParameter)
           pivotValNode.setText(pivotValue)
           pivotNode.appendBranch(pivotValNode)
@@ -458,9 +552,9 @@ class ROM(Dummy):
 
   def reset(self):
     """
-    Reset the ROM
-    @ In,  None
-    @ Out, None
+      Reset the ROM
+      @ In,  None
+      @ Out, None
     """
     if type(self.SupervisedEngine).__name__ == 'list':
       for ts in self.SupervisedEngine:
@@ -471,19 +565,25 @@ class ROM(Dummy):
         instrom.reset()
       self.amITrained   = False
 
-  def addInitParams(self,originalDict):
-    """the ROM setting parameters are added"""
-    ROMdict = {}
+  def getInitParams(self):
+    """
+      This function is called from the base class to print some of the information inside the class.
+      Whatever is permanent in the class and not inherited from the parent class should be mentioned here
+      The information is passed back in the dictionary. No information about values that change during the simulation are allowed
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
+    """
+    paramDict = {}
     for target, instrom in self.SupervisedEngine.items():
-      ROMdict[self.name + '|' + target] = instrom.returnInitialParameters()
-    for key in ROMdict.keys():
-      originalDict[key] = ROMdict[key]
+      paramDict[self.name + '|' + target] = instrom.returnInitialParameters()
+    return paramDict
 
   def train(self,trainingSet):
     """
-    This function train the ROM
-    @ In, trainingSet, dict or PointSet or HistorySet, data used to train the ROM; if an HistorySet is provided the a list of ROM is created in order to create a temporal-ROM
-    @ Out, None
+      This function train the ROM
+      @ In, trainingSet, dict or PointSet or HistorySet, data used to train the ROM; if an HistorySet is provided the a list of ROM is created in order to create a temporal-ROM
+      @ Out, None
     """
     if type(trainingSet).__name__ == 'ROM':
       self.howManyTargets           = copy.deepcopy(trainingSet.howManyTargets)
@@ -492,13 +592,13 @@ class ROM(Dummy):
       self.amITrained               = copy.deepcopy(trainingSet.amITrained)
       self.SupervisedEngine         = copy.deepcopy(trainingSet.SupervisedEngine)
       self.historyPivotParameter    = copy.deepcopy(getattr(trainingSet,self.historyPivotParameter,'time'))
+      self.historySteps             = copy.deepcopy(trainingSet.historySteps)
     else:
       if 'HistorySet' in type(trainingSet).__name__:
         #get the pivot parameter if specified
-        if 'options' in trainingSet._dataParameters.keys():
-          self.historyPivotParameter = trainingSet._dataParameters['options'].get('pivotParameter','time')
-        else:
-          self.historyPivotParameter = 'time'
+        self.historyPivotParameter = trainingSet._dataParameters.get('pivotParameter','time')
+        #get the list of history steps if specified
+        self.historySteps = trainingSet.getParametersValues('outputs').values()[0].get(self.historyPivotParameter,[])
         #store originals for future copying
         origRomCopies = {}
         for target,engine in self.SupervisedEngine.items():
@@ -538,11 +638,11 @@ class ROM(Dummy):
 
   def confidence(self,request,target = None):
     """
-    This is to get a value that is inversely proportional to the confidence that we have
-    forecasting the target value for the given set of features. The reason to chose the inverse is because
-    in case of normal distance this would be 1/distance that could be infinity
-    @ In, request, datatype, feature coordinates (request)
-    @ In, target, string, optional, target name (by default the first target entered in the input file)
+      This is to get a value that is inversely proportional to the confidence that we have
+      forecasting the target value for the given set of features. The reason to chose the inverse is because
+      in case of normal distance this would be 1/distance that could be infinity
+      @ In, request, datatype, feature coordinates (request)
+      @ In, target, string, optional, target name (by default the first target entered in the input file)
     """
     inputToROM = self._inputToInternal(request)
     if target != None:
@@ -564,14 +664,12 @@ class ROM(Dummy):
 
   def evaluate(self,request, target = None, timeInst = None):
     """
-
-    When the ROM is used directly without need of having the sampler passing in the new values evaluate instead of run should be used
-    @ In, request, datatype, feature coordinates (request)
-    @ In, target, string, optional, target name (by default the first target entered in the input file)
-    @ In, timeInst, int, element of the temporal ROM to evaluate
+      When the ROM is used directly without need of having the sampler passing in the new values evaluate instead of run should be used
+      @ In, request, datatype, feature coordinates (request)
+      @ In, target, string, optional, target name (by default the first target entered in the input file)
+      @ In, timeInst, int, element of the temporal ROM to evaluate
     """
     inputToROM = self._inputToInternal(request)
-
     if target != None:
       if timeInst == None:
         return self.SupervisedEngine[target].evaluate(inputToROM)
@@ -585,8 +683,9 @@ class ROM(Dummy):
 
   def __externalRun(self,inRun):
     """
-    Method that performs the actual run of the imported external model (separated from run method for parallelization purposes)
-    @ In, inRun, datatype, feature coordinates
+      Method that performs the actual run of the imported external model (separated from run method for parallelization purposes)
+      @ In, inRun, datatype, feature coordinates
+      @ Out, returnDict, dict, the return dictionary containing the results
     """
     returnDict = {}
     if type(self.SupervisedEngine).__name__ == 'list':
@@ -599,29 +698,40 @@ class ROM(Dummy):
     else:
       for target in self.SupervisedEngine.keys():
         returnDict[target] = self.evaluate(inRun,target)
-
     return returnDict
 
   def run(self,Input,jobHandler):
-    """This call run a ROM as a model"""
+    """
+       This method executes the model ROM.
+       @ In,  Input, object, object contained the data to process. (inputToInternal output)
+       @ In,  jobHandler, JobHandler instance, the global job handler instance
+       @ Out, None
+    """
     inRun = self._manipulateInput(Input[0])
     jobHandler.submitDict['Internal']((inRun,), self.__externalRun, str(Input[1]['prefix']), metadata=Input[1], modulesToImport=self.mods)
 #
 #
 #
 class ExternalModel(Dummy):
-  """ External model class: this model allows to interface with an external python module"""
+  """
+    External model class: this model allows to interface with an external python module
+  """
   @classmethod
   def specializeValidateDict(cls):
+    """
+      This method describes the types of input accepted with a certain role by the model class specialization
+      @ In, None
+      @ Out, None
+    """
     #one data is needed for the input
     #cls.raiseADebug('think about how to import the roles to allowed class for the external model. For the moment we have just all')
     pass
 
   def __init__(self,runInfoDict):
     """
-    Constructor
-    @ In, None
-    @ Out, None
+      Constructor
+      @ In, runInfoDict, dict, the dictionary containing the runInfo (read in the XML input file)
+      @ Out, None
     """
     Dummy.__init__(self,runInfoDict)
     self.sim                      = None
@@ -636,10 +746,11 @@ class ExternalModel(Dummy):
 
   def initialize(self,runInfo,inputs,initDict=None):
     """
-    Initialize method for the model
-    @ In, runInfo is the run info from the jobHandler
-    @ In, inputs is a list containing whatever is passed with an input role in the step
-    @ In, initDict, optional, dictionary of all objects available in the step is using this model
+      this needs to be over written if a re initialization of the model is need it gets called at every beginning of a step
+      after this call the next one will be run
+      @ In, runInfo, dict, it is the run info from the jobHandler
+      @ In, inputs, list, it is a list containing whatever is passed with an input role in the step
+      @ In, initDict, dict, optional, dictionary of all objects available in the step is using this model
     """
     for key in self.modelVariableType.keys(): self.modelVariableType[key] = None
     if 'initialize' in dir(self.sim): self.sim.initialize(self.initExtSelf,runInfo,inputs)
@@ -648,10 +759,12 @@ class ExternalModel(Dummy):
 
   def createNewInput(self,myInput,samplerType,**Kwargs):
     """
-    Function to create a new input, through the info contained in Kwargs
-    @ In, myInput, list of original inputs
-    @ In, samplerType, string, sampler type (e.g. MonteCarlo, DET, etc.)
-    @ In, Kwargs, dictionary containing information useful for creation of a newer input (e.g. sampled variables, etc.)
+      this function have to return a new input that will be submitted to the model, it is called by the sampler
+      @ In, myInput, list, the inputs (list) to start from to generate the new one
+      @ In, samplerType, string, is the type of sampler that is calling to generate a new input
+      @ In, **Kwargs, dict,  is a dictionary that contains the information coming from the sampler,
+           a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
+      @ Out, ([(inputDict)],copy.deepcopy(Kwargs)), tuple, return the new input in a tuple form
     """
     modelVariableValues ={}
     for key in Kwargs['SampledVars'].keys(): modelVariableValues[key] = Kwargs['SampledVars'][key]
@@ -663,8 +776,10 @@ class ExternalModel(Dummy):
 
   def _readMoreXML(self,xmlNode):
     """
-    Function to read the peace of input belongs to this model
-    @ In, xmlTree object, xml node containing the peace of input that belongs to this model
+      Function to read the portion of the xml input that belongs to this specialized class
+      and initialize some stuff based on the inputs got
+      @ In, xmlNode, xml.etree.Element, Xml element node
+      @ Out, None
     """
     Model._readMoreXML(self, xmlNode)
     if 'ModuleToLoad' in xmlNode.attrib.keys():
@@ -687,8 +802,10 @@ class ExternalModel(Dummy):
 
   def __externalRun(self, Input, modelVariables):
     """
-    Method that performs the actual run of the imported external model (separated from run method for parallelization purposes)
-    @ In, Input, list, list of the inputs needed for running the model
+      Method that performs the actual run of the imported external model (separated from run method for parallelization purposes)
+      @ In, Input, list, list of the inputs needed for running the model
+      @ In, modelVariables, dict, the dictionary containing all the External Model variables
+      @ Out, (modelVariableValues,self), tuple, tuple containing the dictionary of the results (pos 0) and the self (pos 1)
     """
     externalSelf        = utils.Object()
     #self.sim=__import__(self.ModuleToLoad)
@@ -726,23 +843,31 @@ class ExternalModel(Dummy):
 
   def run(self,Input,jobHandler):
     """
-    Method that performs the actual run of the imported external model
-    @ In, Input, list, list of the inputs needed for running the model
-    @ In, jobHandler, jobHandler object, jobhandler instance
+       Method that performs the actual run of the imported external model
+       @ In,  Input, object, object contained the data to process. (inputToInternal output)
+       @ In,  jobHandler, JobHandler instance, the global job handler instance
+       @ Out, None
     """
     inRun = copy.copy(self._manipulateInput(Input[0][0]))
     jobHandler.submitDict['Internal']((inRun,Input[1],),self.__externalRun,str(Input[0][1]['prefix']),metadata=Input[0][1], modulesToImport = self.mods)
 
   def collectOutput(self,finishedJob,output):
     """
-    Method that collects the outputs from the previous run
-    @ In, finishedJob, InternalRunner object, instance of the run just finished
-    @ In, output, "DataObjects" object, output where the results of the calculation needs to be stored
+      Method that collects the outputs from the previous run
+      @ In, finishedJob, InternalRunner object, instance of the run just finished
+      @ In, output, "DataObjects" object, output where the results of the calculation needs to be stored
+      @ Out, None
     """
     if finishedJob.returnEvaluation() == -1:
       #is it still possible for the run to not be finished yet?  Should we be erroring out if so?
       self.raiseAnError(RuntimeError,"No available Output to collect (Run probably failed or is not finished yet)")
     def typeMatch(var,varTypeStr):
+      """
+        This method is aimed to check if a variable changed datatype
+        @ In, var, python datatype, the first variable to compare
+        @ In, varTypeStr, string, the type that this variable should have
+        @ Out, typeMatch, bool, is the datatype changed?
+      """
       typeVar = type(var)
       return typeVar.__name__ == varTypeStr or \
         typeVar.__module__+"."+typeVar.__name__ == varTypeStr
@@ -757,17 +882,29 @@ class ExternalModel(Dummy):
 #
 #
 class Code(Model):
-  """this is the generic class that import an external code into the framework"""
+  """
+    This is the generic class that import an external code into the framework
+  """
   CodeInterfaces = importlib.import_module("CodeInterfaces")
   @classmethod
   def specializeValidateDict(cls):
+    """
+      This method describes the types of input accepted with a certain role by the model class specialization
+      @ In, None
+      @ Out, None
+    """
     #FIXME think about how to import the roles to allowed class for the codes. For the moment they are not specialized by executable
     cls.validateDict['Input'] = [cls.validateDict['Input'][1]]
 
   def __init__(self,runInfoDict):
+    """
+      Constructor
+      @ In, runInfoDict, dict, the dictionary containing the runInfo (read in the XML input file)
+      @ Out, None
+    """
     Model.__init__(self,runInfoDict)
     self.executable         = ''   #name of the executable (abs path)
-    self.preexec            = None   #name of the pre-executable, if any
+    self.preExec            = None   #name of the pre-executable, if any
     self.oriInputFiles      = []   #list of the original input files (abs path)
     self.workingDir         = ''   #location where the code is currently running
     self.outFileRoot        = ''   #root to be used to generate the sequence of output files
@@ -780,9 +917,11 @@ class Code(Model):
     self.lockedFileName     = "ravenLocked.raven"
 
   def _readMoreXML(self,xmlNode):
-    """extension of info to be read for the Code(model) as well as the code interface, and creates the interface.
-    @ In: xmlNode, node object
-    @ Out: None.
+    """
+      Function to read the portion of the xml input that belongs to this specialized class
+      and initialize some stuff based on the inputs got
+      @ In, xmlNode, xml.etree.Element, Xml element node
+      @ Out, None
     """
     Model._readMoreXML(self, xmlNode)
     self.clargs={'text':'', 'input':{'noarg':[]}, 'pre':'', 'post':''} #output:''
@@ -791,7 +930,7 @@ class Code(Model):
       if child.tag =='executable':
         self.executable = str(child.text)
       if child.tag =='preexec':
-        self.preexec = str(child.text)
+        self.preExec = str(child.text)
       elif child.tag =='alias':
         # the input would be <alias variable='internal_variable_name'>Material|Fuel|thermal_conductivity</alias>
         if 'variable' in child.attrib.keys(): self.alias[child.attrib['variable']] = child.text
@@ -847,43 +986,67 @@ class Code(Model):
     if os.path.exists(abspath):
       self.executable = abspath
     else: self.raiseAMessage('not found executable '+self.executable,'ExceptedError')
-    if self.preexec is not None:
-      if '~' in self.preexec: self.preexec = os.path.expanduser(self.preexec)
-      abspath = os.path.abspath(self.preexec)
+    if self.preExec is not None:
+      if '~' in self.preExec: self.preExec = os.path.expanduser(self.preExec)
+      abspath = os.path.abspath(self.preExec)
       if os.path.exists(abspath):
-        self.preexec = abspath
-      else: self.raiseAMessage('not found preexec '+self.preexec,'ExceptedError')
+        self.preExec = abspath
+      else: self.raiseAMessage('not found preexec '+self.preExec,'ExceptedError')
     self.code = Code.CodeInterfaces.returnCodeInterface(self.subType,self)
     self.code.readMoreXML(xmlNode)
     self.code.setInputExtension(list(a.strip('.') for b in (c for c in self.clargs['input'].values()) for a in b))
     self.code.addInputExtension(list(a.strip('.') for b in (c for c in self.fargs ['input'].values()) for a in b))
     self.code.addDefaultExtension()
 
-  def addInitParams(self,tempDict):
-    """extension of addInitParams for the Code(model)"""
-    Model.addInitParams(self, tempDict)
-    tempDict['executable']=self.executable
+  def getInitParams(self):
+    """
+      This function is called from the base class to print some of the information inside the class.
+      Whatever is permanent in the class and not inherited from the parent class should be mentioned here
+      The information is passed back in the dictionary. No information about values that change during the simulation are allowed
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
+    """
+    paramDict = Model.getInitParams(self)
+    paramDict['executable']=self.executable
     for key, value in self.alias.items():
-      tempDict['The code variable '+str(value)+' it is filled using the framework variable '] = key
+      paramDict['The code variable '+str(value)+' it is filled using the framework variable '] = key
+    return paramDict
 
-  def addCurrentSetting(self,originalDict):
-    """extension of addInitParams for the Code(model)"""
-    originalDict['current working directory'] = self.workingDir
-    originalDict['current output file root' ] = self.outFileRoot
-    originalDict['current input file'       ] = self.currentInputFiles
-    originalDict['original input file'      ] = self.oriInputFiles
+  def getCurrentSetting(self):
+    """
+      This can be seen as an extension of getInitParams for the Code(model)
+      that will return some information regarding the current settings of the
+      code.
+      Whatever is permanent in the class and not inherited from the parent class should be mentioned here
+      The information is passed back in the dictionary. No information about values that change during the simulation are allowed
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
+    """
+    paramDict = {}
+    paramDict['current working directory'] = self.workingDir
+    paramDict['current output file root' ] = self.outFileRoot
+    paramDict['current input file'       ] = self.currentInputFiles
+    paramDict['original input file'      ] = self.oriInputFiles
+    return paramDict
 
   def getAdditionalInputEdits(self,inputInfo):
     """
-    Adds input edits besides the sampledVars to the inputInfo dictionary. Called by the sampler.
-    @ In, inputInfo, dictionary object
-    @ Out, None.
+      Collects additional edits for the sampler to use when creating a new input.  By default does nothing.
+      @ In, inputInfo, dict, dictionary in which to add edits
+      @ Out, None.
     """
     inputInfo['additionalEdits']=self.fargs
 
   def initialize(self,runInfoDict,inputFiles,initDict=None):
-    """initialize some of the current setting for the runs and generate the working
-       directory with the starting input files"""
+    """
+      this needs to be over written if a re initialization of the model is need it gets called at every beginning of a step
+      after this call the next one will be run
+      @ In, runInfo, dict, it is the run info from the jobHandler
+      @ In, inputs, list, it is a list containing whatever is passed with an input role in the step
+      @ In, initDict, dict, optional, dictionary of all objects available in the step is using this model
+    """
     self.workingDir               = os.path.join(runInfoDict['WorkingDir'],runInfoDict['stepName']) #generate current working dir
     runInfoDict['TempWorkingDir'] = self.workingDir
     try: os.mkdir(self.workingDir)
@@ -903,8 +1066,17 @@ class Code(Model):
     self.outFileRoot              = None
 
   def createNewInput(self,currentInput,samplerType,**Kwargs):
-    """ This function creates a new input
-        It is called from a sampler to get the implementation specific for this model"""
+    """
+      this function have to return a new input that will be submitted to the model, it is called by the sampler
+      here only Point and PointSet are accepted a local copy of the values is performed.
+      For a Point all value are copied, for a PointSet only the last set of entry
+      The copied values are returned as a dictionary back
+      @ In, myInput, list, the inputs (list) to start from to generate the new one
+      @ In, samplerType, string, is the type of sampler that is calling to generate a new input
+      @ In, **Kwargs, dict,  is a dictionary that contains the information coming from the sampler,
+           a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
+      @ Out, createNewInput, tuple, return the new input in a tuple form
+    """
     Kwargs['executable'] = self.executable
     found = False
     #TODO FIXME I don't think the extensions are the right way to classify files anymore, with the new Files
@@ -920,9 +1092,14 @@ class Code(Model):
     return (self.code.createNewInput(currentInput,self.oriInputFiles,samplerType,**Kwargs),Kwargs)
 
   def run(self,inputFiles,jobHandler):
-    """append a run at the externalRunning list of the jobHandler"""
+    """
+      Method that performs the actual run of the Code model
+      @ In,  Input, object, object contained the data to process. (inputToInternal output)
+      @ In,  jobHandler, JobHandler instance, the global job handler instance
+      @ Out, None
+    """
     self.currentInputFiles, metaData = (copy.deepcopy(inputFiles[0]),inputFiles[1]) if type(inputFiles).__name__ == 'tuple' else (inputFiles, None)
-    returnedCommand = self.code.genCommand(self.currentInputFiles,self.executable, flags=self.clargs, fileargs=self.fargs, preexec=self.preexec)
+    returnedCommand = self.code.genCommand(self.currentInputFiles,self.executable, flags=self.clargs, fileArgs=self.fargs, preExec=self.preExec)
     if type(returnedCommand).__name__ != 'tuple'  : self.raiseAnError(IOError, "the generateCommand method in code interface must return a tuple")
     if type(returnedCommand[0]).__name__ != 'list': self.raiseAnError(IOError, "the first entry in tuple returned by generateCommand method needs to be a list of tuples!")
     executeCommand, self.outFileRoot = returnedCommand
@@ -937,7 +1114,12 @@ class Code(Model):
     self.raiseAMessage('job "'+ self.currentInputFiles[index].getBase() +'" submitted!')
 
   def collectOutput(self,finishedjob,output):
-    """collect the output file in the output object"""
+    """
+      Method that collects the outputs from the previous run
+      @ In, finishedJob, InternalRunner object, instance of the run just finished
+      @ In, output, "DataObjects" object, output where the results of the calculation needs to be stored
+      @ Out, None
+    """
     #can we revise the spelling to something more English?
     if 'finalizeCodeOutput' in dir(self.code):
       out = self.code.finalizeCodeOutput(finishedjob.command,finishedjob.output,self.workingDir)
@@ -959,25 +1141,59 @@ class Code(Model):
 #
 
 class Projector(Model):
-  """Projector is a data manipulator"""
+  """
+    Projector is a data manipulator
+  """
   @classmethod
   def specializeValidateDict(cls):
+    """
+      This method describes the types of input accepted with a certain role by the model class specialization
+      @ In, None
+      @ Out, None
+    """
     pass
     #FIXME self.raiseAMessage('PROJECTOR','Remember to add the data type supported the class filter')
 
   def __init__(self,runInfoDict):
+    """
+      Constructor
+      @ In, runInfoDict, dict, the dictionary containing the runInfo (read in the XML input file)
+      @ Out, None
+    """
     Model.__init__(self,runInfoDict)
     self.printTag = 'PROJECTOR MODEL'
 
   def _readMoreXML(self,xmlNode):
+    """
+      Function to read the portion of the xml input that belongs to this specialized class
+      and initialize some stuff based on the inputs got
+      @ In, xmlNode, xml.etree.Element, Xml element node
+      @ Out, None
+    """
     Model._readMoreXML(self, xmlNode)
     self.code = PostProcessors.returnInstance(self.subType,self)
     self.code._readMoreXML(xmlNode)
 
-  def addInitParams(self,tempDict):
-    Model.addInitParams(self, tempDict)
+  def getInitParams(self):
+    """
+      This function is called from the base class to print some of the information inside the class.
+      Whatever is permanent in the class and not inherited from the parent class should be mentioned here
+      The information is passed back in the dictionary. No information about values that change during the simulation are allowed
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
+    """
+    paramDict = Model.getInitParams(self)
+    return paramDict
 
   def initialize(self,runInfoDict,myInput,initDict=None):
+    """
+      this needs to be over written if a re initialization of the model is need it gets called at every beginning of a step
+      after this call the next one will be run
+      @ In, runInfo, dict, it is the run info from the jobHandler
+      @ In, inputs, list, it is a list containing whatever is passed with an input role in the step
+      @ In, initDict, dict, optional, dictionary of all objects available in the step is using this model
+    """
     if myInput.type == 'ROM':
       pass
     #initialize some of the current setting for the runs and generate the working
@@ -989,15 +1205,27 @@ class Projector(Model):
     return
 
   def run(self,inObj,outObj):
-    """run calls the interface finalizer"""
+    """
+      Method that performs the actual run of the Projector model
+      @ In,  Input, object, object contained the data to process. (inputToInternal output)
+      @ In,  jobHandler, JobHandler instance, the global job handler instance
+      @ Out, None
+    """
     self.interface.run(inObj,outObj,self.workingDir)
 #
 #
 #
 class PostProcessor(Model, Assembler):
-  """PostProcessor is an Action System. All the models here, take an input and perform an action"""
+  """
+    PostProcessor is an Action System. All the models here, take an input and perform an action
+  """
   @classmethod
   def specializeValidateDict(cls):
+    """
+      This method describes the types of input accepted with a certain role by the model class specialization
+      @ In, None
+      @ Out, None
+    """
     cls.validateDict['Input']                    = [cls.validateDict['Input' ][0]]
     cls.validateDict['Input'][0]['required'    ] = False
     cls.validateDict['Input'].append(cls.testDict.copy())
@@ -1025,7 +1253,7 @@ class PostProcessor(Model, Assembler):
     cls.validateDict['Output' ][2]['required'    ] = False
     cls.validateDict['Output' ][2]['multiplicity'] = 'n'
     cls.validateDict['Output'].append(cls.testDict.copy())
-    cls.validateDict['Output' ][3]['class'       ] = 'OutStreamManager'
+    cls.validateDict['Output' ][3]['class'       ] = 'OutStreams'
     cls.validateDict['Output' ][3]['type'        ] = ['Plot','Print']
     cls.validateDict['Output' ][3]['required'    ] = False
     cls.validateDict['Output' ][3]['multiplicity'] = 'n'
@@ -1046,6 +1274,11 @@ class PostProcessor(Model, Assembler):
     cls.validateDict['KDD'       ][0]['multiplicity'] = 'n'
 
   def __init__(self,runInfoDict):
+    """
+      Constructor
+      @ In, runInfoDict, dict, the dictionary containing the runInfo (read in the XML input file)
+      @ Out, None
+    """
     Model.__init__(self,runInfoDict)
     self.input  = {}     # input source
     self.action = None   # action
@@ -1054,37 +1287,57 @@ class PostProcessor(Model, Assembler):
 
   def whatDoINeed(self):
     """
-    This method is used mainly by the Simulation class at the Step construction stage.
-    It is used for inquiring the class, which is implementing the method, about the kind of objects the class needs to
-    be initialize. It is an abstract method -> It must be implemented in the derived class!
-    NB. In this implementation, the method only calls the self.interface.whatDoINeed() method
-    @ In , None, None
-    @ Out, needDict, dictionary of objects needed (class:tuple(object type{if None, Simulation does not check the type}, object name))
+      This method is used mainly by the Simulation class at the Step construction stage.
+      It is used for inquiring the class, which is implementing the method, about the kind of objects the class needs to
+      be initialize. It is an abstract method -> It must be implemented in the derived class!
+      NB. In this implementation, the method only calls the self.interface.whatDoINeed() method
+      @ In, None
+      @ Out, needDict, dict, dictionary of objects needed (class:tuple(object type{if None, Simulation does not check the type}, object name))
     """
     return self.interface.whatDoINeed()
 
   def generateAssembler(self,initDict):
     """
-    This method is used mainly by the Simulation class at the Step construction stage.
-    It is used for sending to the instanciated class, which is implementing the method, the objects that have been requested through "whatDoINeed" method
-    It is an abstract method -> It must be implemented in the derived class!
-    NB. In this implementation, the method only calls the self.interface.generateAssembler(initDict) method
-    @ In , initDict, dictionary ({'mainClassName(e.g., Databases):{specializedObjectName(e.g.,DatabaseForSystemCodeNamedWolf):ObjectInstance}'})
-    @ Out, None, None
+      This method is used mainly by the Simulation class at the Step construction stage.
+      It is used for sending to the instanciated class, which is implementing the method, the objects that have been requested through "whatDoINeed" method
+      It is an abstract method -> It must be implemented in the derived class!
+      NB. In this implementation, the method only calls the self.interface.generateAssembler(initDict) method
+      @ In, initDict, dict, dictionary ({'mainClassName(e.g., Databases):{specializedObjectName(e.g.,DatabaseForSystemCodeNamedWolf):ObjectInstance}'})
+      @ Out, None
     """
     self.interface.generateAssembler(initDict)
 
   def _readMoreXML(self,xmlNode):
+    """
+      Function to read the portion of the xml input that belongs to this specialized class
+      and initialize some stuff based on the inputs got
+      @ In, xmlNode, xml.etree.Element, Xml element node
+      @ Out, None
+    """
     Model._readMoreXML(self, xmlNode)
     self.interface = PostProcessors.returnInstance(self.subType,self)
     self.interface._readMoreXML(xmlNode)
 
-  def addInitParams(self,tempDict):
-    Model.addInitParams(self, tempDict)
+  def getInitParams(self):
+    """
+      This function is called from the base class to print some of the information inside the class.
+      Whatever is permanent in the class and not inherited from the parent class should be mentioned here
+      The information is passed back in the dictionary. No information about values that change during the simulation are allowed
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
+    """
+    paramDict = Model.getInitParams(self)
+    return paramDict
 
   def initialize(self,runInfo,inputs, initDict=None):
-    """initialize some of the current setting for the runs and generate the working
-       directory with the starting input files"""
+    """
+      this needs to be over written if a re initialization of the model is need it gets called at every beginning of a step
+      after this call the next one will be run
+      @ In, runInfo, dict, it is the run info from the jobHandler
+      @ In, inputs, list, it is a list containing whatever is passed with an input role in the step
+      @ In, initDict, dict, optional, dictionary of all objects available in the step is using this model
+    """
     self.workingDir               = os.path.join(runInfo['WorkingDir'],runInfo['stepName']) #generate current working dir
     self.interface.initialize(runInfo, inputs, initDict)
     #aaaaa = utils.returnImportModuleString(inspect.getmodule(PostProcessors),True)
@@ -1093,15 +1346,36 @@ class PostProcessor(Model, Assembler):
     #self.mods.extend(utils.returnImportModuleString(inspect.getmodule(PostProcessors),True))
 
   def run(self,Input,jobHandler):
-    """run calls the interface finalizer"""
+    """
+      Method that performs the actual run of the Post-Processor model
+      @ In,  Input, object, object contained the data to process. (inputToInternal output)
+      @ In,  jobHandler, JobHandler instance, the global job handler instance
+      @ Out, None
+    """
     if len(Input) > 0 : jobHandler.submitDict['Internal']((Input,),self.interface.run,str(0),modulesToImport = self.mods, forceUseThreads = True)
     else: jobHandler.submitDict['Internal']((None,),self.interface.run,str(0),modulesToImport = self.mods, forceUseThreads = True)
 
   def collectOutput(self,finishedjob,output):
+    """
+      Method that collects the outputs from the previous run
+      @ In, finishedJob, InternalRunner object, instance of the run just finished
+      @ In, output, "DataObjects" object, output where the results of the calculation needs to be stored
+      @ Out, None
+    """
     self.interface.collectOutput(finishedjob,output)
 
   def createNewInput(self,myInput,samplerType,**Kwargs):
-    """just for compatibility"""
+    """
+      this function have to return a new input that will be submitted to the model, it is called by the sampler
+      here only Point and PointSet are accepted a local copy of the values is performed.
+      For a Point all value are copied, for a PointSet only the last set of entry
+      The copied values are returned as a dictionary back
+      @ In, myInput, list, the inputs (list) to start from to generate the new one
+      @ In, samplerType, string, is the type of sampler that is calling to generate a new input
+      @ In, **Kwargs, dict,  is a dictionary that contains the information coming from the sampler,
+           a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
+      @ Out, createNewInput, tuple, return the new input in a tuple form
+    """
     return self.interface.inputToInternal(self,myInput)
 
 """
@@ -1124,21 +1398,42 @@ for classType in __interFaceDict.values():
   classType.specializeValidateDict()
 
 def addKnownTypes(newDict):
+  """
+    Function to add in the module dictionaries the known types
+    @ In, newDict, dict, the dict of known types
+    @ Out, None
+  """
   for name,value in newDict.items():
     __interFaceDict[name]=value
     __knownTypes.append(name)
 
 def knownTypes():
+  """
+    Return the known types
+    @ In, None
+    @ Out, knownTypes, list, list of known types
+  """
   return __knownTypes
 
 needsRunInfo = True
 
 def returnInstance(Type,runInfoDict,caller):
-  """This function return an instance of the request model type"""
+  """
+    function used to generate a Model class
+    @ In, Type, string, Model type
+    @ Out, returnInstance, instance, Instance of the Specialized Model class
+  """
   try: return __interFaceDict[Type](runInfoDict)
   except KeyError: caller.raiseAnError(NameError,'MODELS','not known '+__base+' type '+Type)
 
 def validate(className,role,what,caller):
-  """This is the general interface for the validation of a model usage"""
+  """
+    This is the general interface for the validation of a model usage
+    @ In, className, string, the name of the class
+    @ In, role, string, the role assumed in the Step
+    @ In, what, string, type of object
+    @ In, caller, instance, the instance of the caller
+    @ Out, None
+  """
   if className in __knownTypes: return __interFaceDict[className].localValidateMethod(role,what)
   else : caller.raiseAnError(IOError,'MODELS','the class '+str(className)+' it is not a registered model')

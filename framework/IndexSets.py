@@ -1,22 +1,39 @@
+"""
+Created on December 14, 2014
+
+This module is aimed to manage the createion of index Set (set of all combinations of polynomial orders
+that are needed to represent the original model)
+"""
+#for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
+if not 'xrange' in dir(__builtins__):
+  xrange = range
+#End compatibility block for Python 3----------------------------------------------------------------
 
+#External Modules------------------------------------------------------------------------------------
 import numpy as np
-import itertools
-from operator import itemgetter
-import sys
 import operator
+import itertools
+#External Modules End--------------------------------------------------------------------------------
 
+#Internal Modules------------------------------------------------------------------------------------
 import MessageHandler
-import Files
+#Internal Modules End--------------------------------------------------------------------------------
 
 class IndexSet(MessageHandler.MessageUser):
-  """In stochastic collocation for generalised polynomial chaos, the Index Set
-     is a set of all combinations of polynomial orders needed to represent the
-     original model to a "level" L (maxPolyOrder).
+  """
+    In stochastic collocation for generalised polynomial chaos, the Index Set
+    is a set of all combinations of polynomial orders needed to represent the
+    original model to a "level" L (maxPolyOrder).
   """
   def __init__(self,messageHandler):
+    """
+      Constructor.
+      @ In, messageHandler, MessageHandler object, global message handling instance
+      @ Out, None
+    """
     self.type          = 'IndexSet' #type of index set (Tensor Product, Total Degree, Hyperbolic Cross)
     self.printTag      = 'IndexSet' #type of index set (Tensor Product, Total Degree, Hyperbolic Cross)
     self.maxOrds       = None #maximum requested polynomial order requested for each distribution
@@ -27,24 +44,27 @@ class IndexSet(MessageHandler.MessageUser):
     self.messageHandler=messageHandler
 
   def __len__(self):
-    """Returns number of entries in the index set.
-    @ In , None  , None
-    @ Out, int  , cardinality of index set
+    """
+      Returns number of entries in the index set.
+      @ In, None, None
+      @ Out, __len__, int, cardinality of index set
     """
     return len(self.points)
 
   def __getitem__(self,i=None):
-    """Returns as if called on self.points.
-    @ In , i     , string/int           , splice notation for array
-    @ Out, array of tuples/tuple, requested points
+    """
+      Returns as if called on self.points.
+      @ In, i, string/int, splice notation for array
+      @ Out, points, array of tuples/tuple, requested points
     """
     if i==None: return np.array(self.points)
     else: return self.points[i]
 
   def __repr__(self):
-    """Produces a more human-readable version of the index set.
-    @ In, None, None
-    @ Out, string, visual representation of index set
+    """
+      Produces a more human-readable version of the index set.
+      @ In, None
+      @ Out, msg, string, visual representation of index set
     """
     if len(self.points)<1: return "Index set is empty!"
     msg='IndexSet Printout:\n'
@@ -65,34 +85,38 @@ class IndexSet(MessageHandler.MessageUser):
     return msg
 
   def __eq__(self,other):
-    """Checks equivalency of index set
-    @ In , other, object , object to compare to
-    @ Out, boolean, equivalency
     """
-    return self.type == other.type and \
-           self.points == other.points and \
-           (self.impWeights == other.impWeights).all()
+      Checks equivalency of index set
+      @ In, other, object, object to compare to
+      @ Out, isEqual, bool, equivalency
+    """
+    isEqual = self.type == other.type and self.points == other.points and (self.impWeights == other.impWeights).all()
+    return isEqual
 
   def __ne__(self,other):
-    """Checks non-equivalency of index set
-    @ In , other  , object , object to compare to
-    @ Out, boolean, non-equivalency
     """
-    return not self.__eq__(other)
+      Checks non-equivalency of index set
+      @ In, other, object, object to compare to
+      @ Out, isNotEqual, bool, non-equivalency
+    """
+    isNotEqual = not self.__eq__(other)
+    return isNotEqual
 
   def _xy(self):
-    """Returns reordered data.  Originally,
-       Points = [(a1,b1,...,z1),
-                 (a2,b2,...,z2),
-                 ...]
-       Returns [(a1,a2,a3,...),
-                (b1,b2,b3,...),
-                ...,
-                (z1,z2,z3,...)]
-    @ In , None  , None
-    @ Out, array of tuples, points by dimension
     """
-    return zip(*self.points)
+      Returns reordered data.  Originally,
+      Points = [(a1,b1,...,z1),
+                (a2,b2,...,z2),
+                ...]
+      Returns [(a1,a2,a3,...),
+               (b1,b2,b3,...),
+               ...,
+               (z1,z2,z3,...)]
+      @ In, None
+      @ Out, orderedPoints, array of tuples, points by dimension
+    """
+    orderedPoints = zip(*self.points)
+    return orderedPoints
 
   def printOut(self):
     """
@@ -128,13 +152,13 @@ class IndexSet(MessageHandler.MessageUser):
     self.points.sort(key=operator.itemgetter(*range(len(self.points[0]))))
 
   def initialize(self,features,impList,maxPolyOrder):
-    """Initialize everything index set needs
-    @ In , features    , list(str)      , input parameters
-    @ In , impList     , dict{str:float}, weights by dimension
-    @ In , maxPolyOrder, int            , relative maximum polynomial order to be used for index set
-    @ Out, None        , None
     """
-    numDim = len(features)
+      Initialize everything index set needs
+      @ In, features, list(str), input parameters
+      @ In, impList, dict{str:float}, weights by dimension
+      @ In, maxPolyOrder, int, relative maximum polynomial order to be used for index set
+      @ Out, None, None
+    """
     #set up and normalize weights
     #  this algorithm assures higher weight means more importance,
     #  and end product is normalized so smallest is 1
@@ -148,14 +172,14 @@ class IndexSet(MessageHandler.MessageUser):
       self.polyOrderList.append(range(self.maxOrder+1))
 
   def generateMultiIndex(self,N,rule,I=None,MI=None):
-    """Recursive algorithm to build monotonically-increasing-order index set.
-    @ In, N   , int            , dimension of the input space
-    @ In, rule, function       , rule for type of index set (tensor product, total degree, etc)
-    @ In, I   , array of scalar, single index point
-    @ In, MI  , array of tuples, multiindex point collection
-    @ Out, array of tuples, index set
     """
-    L = self.maxOrder
+      Recursive algorithm to build monotonically-increasing-order index set.
+      @ In, N, int, dimension of the input space
+      @ In, rule, function, rule for type of index set (tensor product, total degree, etc)
+      @ In, I, array of scalar, optional, single index point
+      @ In, MI, array of tuples, optional, multiindex point collection
+      @ Out, MI, array of tuples, index set
+    """
     if I ==None: I =[]
     if MI==None: MI=[]
     if len(I)!=N:
@@ -170,19 +194,27 @@ class IndexSet(MessageHandler.MessageUser):
 
 
 class TensorProduct(IndexSet):
-  """This Index Set requires only that the max poly order in the index point i is less than maxPolyOrder ( max(i)<=L )."""
+  """
+    This Index Set requires only that the max poly order in the index point i is less than maxPolyOrder ( max(i)<=L )
+  """
   def initialize(self,features,impList,maxPolyOrder):
-    """Initialize everything index set needs
-    @ In , features    , list(str)      , input parameters
-    @ In , impList     , dict{str:float}, weights by dimension
-    @ In , maxPolyOrder, int            , relative maximum polynomial order to be used for index set
-    @ Out, None        , None
+    """
+      Initialize everything index set needs
+      @ In, features, list(str), input parameters
+      @ In, impList, dict{str:float}, weights by dimension
+      @ In, maxPolyOrder, int, relative maximum polynomial order to be used for index set
+      @ Out, None
     """
     IndexSet.initialize(self,features,impList,maxPolyOrder)
     self.type='Tensor Product'
     self.printTag='TensorProductIndexSet'
     target = sum(self.impWeights)/float(len(self.impWeights))*self.maxOrder
     def rule(i):
+      """
+        Method to define the index rule
+        @ In, i, list, list of points
+        @ Out, rule, bool, if big is <= target
+      """
       big=0
       for j,p in enumerate(i):
         big=max(big,p*self.impWeights[j])
@@ -192,13 +224,16 @@ class TensorProduct(IndexSet):
 
 
 class TotalDegree(IndexSet):
-  """This Index Set requires the sum of poly orders in the index point is less than maxPolyOrder ( sum(i)<=L )."""
+  """
+    This Index Set requires the sum of poly orders in the index point is less than maxPolyOrder ( sum(i)<=L ).
+  """
   def initialize(self,features,impList,maxPolyOrder):
-    """Initialize everything index set needs
-    @ In , features    , list(str)      , input parameters
-    @ In , impList     , dict{str:float}, weights by dimension
-    @ In , maxPolyOrder, int            , relative maximum polynomial order to be used for index set
-    @ Out, None        , None
+    """
+      Initialize everything index set needs
+      @ In, features, list(str), input parameters
+      @ In, impList, dict{str:float}, weights by dimension
+      @ In, maxPolyOrder, int, relative maximum polynomial order to be used for index set
+      @ Out, None
     """
     IndexSet.initialize(self,features,impList,maxPolyOrder)
     self.type='Total Degree'
@@ -207,6 +242,11 @@ class TotalDegree(IndexSet):
     #  - right now is only limited by the maximum overall level (and importance weight)
     target = sum(self.impWeights)/float(len(self.impWeights))*self.maxOrder
     def rule(i):
+      """
+        Method to define the index rule
+        @ In, i, list, list of points
+        @ Out, rule, bool, if tot is <= target
+      """
       tot=0
       for j,p in enumerate(i):
         tot+=p*self.impWeights[j]
@@ -214,15 +254,17 @@ class TotalDegree(IndexSet):
     self.points = self.generateMultiIndex(len(features),rule)
 
 
-
 class HyperbolicCross(IndexSet):
-  """This Index Set requires the product of poly orders in the index point is less than maxPolyOrder ( prod(i+1)<=L+1 )."""
+  """
+    This Index Set requires the product of poly orders in the index point is less than maxPolyOrder ( prod(i+1)<=L+1 ).
+  """
   def initialize(self,features,impList,maxPolyOrder):
-    """Initialize everything index set needs
-    @ In , features    , list(str)      , input parameters
-    @ In , impList     , dict{str:float}, weights by dimension
-    @ In , maxPolyOrder, int            , relative maximum polynomial order to be used for index set
-    @ Out, None        , None
+    """
+      Initialize everything index set needs
+      @ In, features, list(str), input parameters
+      @ In, impList, dict{str:float}, weights by dimension
+      @ In, maxPolyOrder, int, relative maximum polynomial order to be used for index set
+      @ Out, None
     """
     IndexSet.initialize(self,features,impList,maxPolyOrder)
     self.type='Hyperbolic Cross'
@@ -231,6 +273,11 @@ class HyperbolicCross(IndexSet):
     #  - right now is only limited by the maximum overall level (and importance weight)
     target = (self.maxOrder+1)**(sum(self.impWeights)/max(1,float(len(self.impWeights))))
     def rule(i):
+      """
+        Method to define the index rule
+        @ In, i, list, list of points
+        @ Out, rule, bool, if big is <= target
+      """
       tot=1
       for e,val in enumerate(i):
         tot*=(val+1)**self.impWeights[e]
@@ -240,13 +287,16 @@ class HyperbolicCross(IndexSet):
 
 
 class Custom(IndexSet):
-  """User-based index set point choices"""
+  """
+    User-based index set point choices
+  """
   def initialize(self,features,impList,maxPolyOrder):
-    """Initialize everything index set needs
-    @ In , features    , list(str)      , input parameters
-    @ In , impList     , dict{str:float}, weights by dimension
-    @ In , maxPolyOrder, int            , relative maximum polynomial order to be used for index set
-    @ Out, None        , None
+    """
+      Initialize everything index set needs
+      @ In, features, list(str), input parameters
+      @ In, impList, dict{str:float}, weights by dimension
+      @ In, maxPolyOrder, int, relative maximum polynomial order to be used for index set
+      @ Out, None
     """
     IndexSet.initialize(self,features,impList,maxPolyOrder)
     self.type     = 'Custom'
@@ -257,7 +307,7 @@ class Custom(IndexSet):
   def setPoints(self,points):
     """
       Used to set the index set points manually.
-      @ In, points, list of tuples to set points to
+      @ In, points, list, tuples to set points to
       @ Out, None
     """
     self.points=[]
@@ -268,20 +318,22 @@ class Custom(IndexSet):
   def addPoints(self,points):
     """
       Adds points to existing index set. Reorders set on completion.
-      @ In, points, either single tuple or list of tuples to add
+      @ In, points, list of points, either single tuple or list of tuples to add
       @ Out, None
     """
     if type(points)==list:
       for pt in points: self.points.append(pt)
     elif type(points)==tuple and len(points)==self.N:
       self.points.append(points)
-    else: raiseAnError(ValueError,'Unexpected points to add to set:',points)
+    else: self.raiseAnError(ValueError,'Unexpected points to add to set:',points)
     self.order()
 
 
 
 class AdaptiveSet(IndexSet):
-  """Adaptive index set that can expand itself on call.  Used in conjunctoin with AdaptiveSparseGrid sampler."""
+  """
+    Adaptive index set that can expand itself on call.  Used in conjunctoin with AdaptiveSparseGrid sampler.
+  """
   def initialize(self,features,impList,maxPolyOrder,full=False):
     """
       Initialize everything index set needs
@@ -312,9 +364,9 @@ class AdaptiveSet(IndexSet):
 
   def accept(self,pt):
     """
-    Indicates the provided point should be accepted from the active set to the use set
-    @ In, pt, tuple(int), the polynomial index to accept
-    @ Out, None
+      Indicates the provided point should be accepted from the active set to the use set
+      @ In, pt, tuple(int), the polynomial index to accept
+      @ Out, None
     """
     if pt not in self.active:
       self.raiseAnError(KeyError,'Adaptive index set instructed to accept point',pt,'but point is not in active set!')
@@ -324,9 +376,9 @@ class AdaptiveSet(IndexSet):
 
   def reject(self,pt):
     """
-    Indicates the provided point should be accepted from the active set to the use set
-    @ In, pt, tuple(int), the polynomial index to accept
-    @ Out, None
+      Indicates the provided point should be accepted from the active set to the use set
+      @ In, pt, tuple(int), the polynomial index to accept
+      @ Out, None
     """
     if pt not in self.active.keys():
       self.raiseAnError(KeyError,'Adaptive index set instructed to reject point',pt,'but point is not in active set!')
@@ -334,9 +386,9 @@ class AdaptiveSet(IndexSet):
 
   def forward(self,maxPoly=None):
     """
-    Check the upper neighbors of each point for indices to add.
-    @ In, maxPoly, integer, optional maximum value to have in any direction
-    @ Out, None
+      Check the upper neighbors of each point for indices to add.
+      @ In, maxPoly, integer, optional maximum value to have in any direction
+      @ Out, None
     """
     for i in self.points:
       self.forwardOne(i,maxPoly)
@@ -400,8 +452,19 @@ __interFaceDict['AdaptiveSet'    ] = AdaptiveSet
 __knownTypes = list(__interFaceDict.keys())
 
 def knownTypes():
+  """
+    Returns the known types.
+    @ In, None
+    @ Out, dict, list of known types
+  """
   return __knownTypes
 
 def returnInstance(Type,caller):
+  """
+    Factory.
+    @ In, Type, string, requested object type
+    @ In, caller, object, object requesting an instance
+    @ Out, IndexSet object, requested object
+  """
   if Type in knownTypes(): return __interFaceDict[Type](caller.messageHandler)
   else: caller.raiseAnError(NameError,'not known '+__base+' type '+Type)
