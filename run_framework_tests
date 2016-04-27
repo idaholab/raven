@@ -1,4 +1,4 @@
 #!/bin/bash
 cd `dirname $0`
 source scripts/setup_raven_libs
-./run_test_backend --re=framework --skip-config-check "$@"
+./backend_run_tests --re=framework --skip-config-check "$@"
