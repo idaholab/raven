@@ -1,0 +1,258 @@
+\documentclass[t,9pt,svgnames]{beamer}
+\usepackage[latin1]{inputenc}
+\usepackage{framed}
+\usepackage{graphics}
+\usepackage{helvet}
+\usepackage{courier}
+\usepackage{amsmath}
+\usepackage[absolute,overlay]{textpos}
+\usepackage{fancybox}
+\usepackage{bm} % Use \bm to generate bold math fonts
+
+%%%%% NOTE TO USER %%%%%%%
+%
+%  This template requires the 'frame-bg.pdf' and 'title-bg.pdf' be found.  It should have been included with
+%  this example.
+%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\graphicspath{
+{graphics/}
+}
+
+\usetheme{INL}
+
+\usepackage{listings}
+\lstset{%
+  language=C++,
+	showstringspaces=false,
+% basicstyle=\scriptsize\ttfamily,
+  basicstyle=\small\ttfamily,
+  commentstyle=\color{inl@green},
+	keywordstyle=\bfseries,
+  escapeinside=$$
+}
+
+\setbeamercolor{codeboxcolor}{fg=white,bg=black}
+
+\definecolor{bubblebkng}{rgb}{0.98,0.98,0}
+%\definecolor{cbbkng}{rgb}{0.98,0.9,0.98}
+\definecolor{cbbkng}{RGB}{227,233,252}
+
+\newenvironment{codebox}{}{}
+% #1 - width
+% #2 - position on the page (<dim>,<dim>)
+% #3 - text
+\newcommand{\bubbleat}[3]{\begin{textblock*}{#1}[1,1](#2)
+\fcolorbox{black}{yellow}{%
+\scriptsize\begin{Bcenter}
+#3
+\end{Bcenter}}
+\end{textblock*}}
+
+\newcommand{\uo}{\ensuremath{\mbox{UO}_2}}
+\newcommand{\mytilde}{\raise.17ex\hbox{$\scriptstyle\sim$}}
+
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\comment}[1]{{\usebeamercolor[fg]{comment code} #1}}
+
+\newenvironment{codelst}{\begin{verbatim}}{\end{verbatim}}
+
+\newcommand{\blue}[1]{{\color{blue}#1}}
+\newcommand{\red}[1]{{\color{red}#1}}
+
+% TOC
+\newdimen\tocpnumwd
+\tocpnumwd=30pt
+
+\makeatletter
+
+\def\dottedtocline#1#2#3{\bgroup%
+  \advance\leftskip by #1%
+  \advance\rightskip by #2%
+  \advance\rightskip by \tocpnumwd%
+  \leaders\hbox to 1.5em{\hss .\hss}\hfill\nobreak%
+  \rlap{\hbox to \tocpnumwd{\hfil #3}}\par\egroup}
+
+%\def\beamer@sectionintoc #1#2#3#4#5{{\small#2\dottedtocline{7em}{6em}{#3}}\par}
+\def\beamer@sectionintoc #1#2#3#4#5{{\hspace{5em}\hyperlink{Navigation#3}{\small#2\dotfill{#3}}\hspace*{4em}}\par}
+
+
+%\def\beamer@subsectionintoc %#1#2#3#4#5#6{{\small#3\dottedtocline{9em}{6em}{#4}}\par}
+\def\beamer@subsectionintoc #1#2#3#4#5#6{{\hspace{6em}\hyperlink{Navigation#4}{\small#3\dotfill{#4}}\hspace*{4em}}\par}
+
+\newcommand{\mytoc}{\@starttoc{toc}}
+
+\makeatother
+
+%This is an ugly hack to fix a bug with Beamer that doesn't put enough vertical
+%space above the first list environment in a columns environment when the [t]
+%option is passed to the beamer class.  Use this command somewhere in the
+%column before using a list or itemize
+\newcommand{\vspacehack}{
+\setbox0=\vbox{
+\begin{itemize}
+\item
+\end{itemize}
+}}
+
+
+\begin{document}
+
+% user start editing here! %
+\title[RAVEN Workshop]{RAVEN Workshop}
+\subtitle{Multi-Step Input Space Reduction}
+\institute[INL]{Nuclear Engineering Methods Development Department\\
+Idaho National Laboratory}
+
+\begin{titleframe}{RAVEN Workshop}
+
+{\bfseries\emph{Multi-Step Input Reduction}}
+
+\vfill
+{\small Nuclear Engineering Methods Development Department\\
+Idaho National Laboratory}
+\end{titleframe}
+
+\begin{frame}{Discussion Points}
+\mytoc
+\end{frame}
+
+%                  %
+%     OVERVIEW     %
+%                  %
+\section{Overview}
+\begin{frame}{Overview}
+\end{frame}
+
+\begin{frame}{Overview: Uncertainty Quantification}
+  Benefits:
+  \begin{itemize}
+    \item Quantity of Interest Variance
+    \item Failure Probabilities
+    \item Limit Surface Construction
+    \item Design of Experiment
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Overview: Session Goal}
+  Reduce high-dimension input spaces
+  \begin{itemize}
+    \item Use PCA to eliminate correlated inputs
+    \item Use sensitivity to eliminate low-impact inputs
+    \item Accurate UQ on a reduced input space
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Overview: Assumptions}
+  \begin{itemize}
+    \item Simulation codes are expensive to run
+    \item All inputs are initially perturbable
+    \item Saving time and money is good
+  \end{itemize}
+\end{frame}
+
+%                  %
+%    MOTIVATIONS   %
+%                  %
+\begin{frame}{Motivations}
+\end{frame}
+
+\begin{frame}{Motivations: Sampling Strategies}
+  Two classes of forward sampling strategies in RAVEN:
+  \begin{itemize}
+    \item Structured (Orthogonal Grids, Limit Surface, Latin Hypercube)
+    \item Unstructured (Monte Carlo)
+  \end{itemize}
+  %TODO add pictures!
+\end{frame}
+
+\begin{frame}{Motivations: Unstructured Sampling}
+  Traditional Monte Carlo sampling
+  \begin{itemize}
+    \item Agnostic of Dimensionality
+    \item Consistent, but slow convergence
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Motivations: Structured Sampling}
+  \code{RAVEN} has several structured solvers
+  \begin{itemize}
+    \item Orthogonal Grids
+    \item Sparse Grid
+    \item Stratified
+    \item Limit Surface Search
+  \end{itemize}
+  %TODO split these into individual slides
+  All of these suffer from the Curse of Dimensionality
+\end{frame}
+
+\begin{frame}{Motivations: Proposed Solution}
+  Remove unnecessary input dimensions
+  \begin{itemize}
+    \item Correlated inputs have redundancy
+    \item Low-impact inputs aren't useful to perturb
+  \end{itemize}
+  Perform UQ on reduced space
+\end{frame}
+%                  %
+%      METHODS     %
+%                  %
+\section{Methods}
+\begin{frame}{Methods}
+\end{frame}
+
+\begin{frame}{Methods: Procedure Overview}
+  \begin{itemize}
+    \item (optional) Benchmark original problem
+    \item Perform PCA on original input space
+    \item Truncate to essential latent variables
+    \item Perform global sensitivity analysis
+    \item Truncate latent variables to exclude non-essential
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Methods: Principal Component Analysis}
+  Used to orthogonalize input space
+
+  Represent input space as sum of ``latent'' variables $\bm{L}$
+  \begin{equation}
+    \bm{M} = \bm{Q} \cdot \bm{L},
+  \end{equation}
+  where
+  \begin{itemize}
+    \item $\bm{M}$ is the vector of original variables, $|M|\times1$,
+    \item $\bm{Q}$ is the PCA transformation matrix, $|M|\times |L|$,
+    \item $\bm{L}$ is the vector of latent variables, $|L|\times 1$
+  \end{itemize}
+  All $\bm{L}$ are distributed as standard normal distributions
+\end{frame}
+
+\begin{frame}{Methods: Principal Component Analysis}
+  \begin{equation}
+    \bm{M} = \bm{Q} \cdot \bm{L},
+  \end{equation}
+  Perform eigenvalue decomposition of covariance matrix and rank eigenvalues
+
+  Truncate latent variables at desirable eigenvalue
+  %TODO show list and truncation pic
+\end{frame}
+
+\begin{frame}{Methods: PCA in RAVEN}
+  Add transformation to \code{Sampler}:
+  \begin{codebox}
+    \begin{lstlisting}[basicstyle=\ttfamily\scriptsize,frame=single,backgroundcolor=\color{cbbkng},language=python]
+    <Samplers>
+      <MonteCarlo name=``mySampler''>
+        ...
+        <variablesTransformation distribution=``MultivariateNormalReduction''>
+          <latentVariables>a,b,c</latentVariables>
+          <manifestVariables>w,x,y,z</manifestVariables>
+          <method>pca</method>
+      </MonteCarlo>
+    </Samplers>
+    \end{lstlisting}
+  \end{codebox}
+\end{frame}
+
+
+\end{document}
