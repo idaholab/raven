@@ -22,6 +22,12 @@
           <ylabel> </ylabel>
           <colorMap>PointSet|Output|Z</colorMap>
           <cmap>RdBu</cmap>
+          <range>
+            <xmin>0.0</xmin>
+            <xmax>1.0</xmax>
+            <ymin>1.0</ymin>
+            <ymax>2.0</ymax>
+          </range>
           <linewidths>0</linewidths>
         </plot>
       </plotSettings>
@@ -36,12 +42,6 @@
         <title>
           <text> </text>
         </title>
-        <range>
-          <xmin>0.0</xmin>
-          <xmax>1.0</xmax>
-          <ymin>1.0</ymin>
-          <ymax>2.0</ymax>
-        </range>
         <colorbar>off</colorbar>
         <axis>off</axis>
         <grid>off</grid>
