@@ -77,8 +77,8 @@
     <IOStep name='plot_data_3' pauseAtEnd='True'>
         <Input   class='DataObjects'      type='PointSet' >outPROM_y3</Input>
         <Input   class='DataObjects'      type='PointSet' >outGRID_y3</Input>
-        <Output  class='OutStreamManager' type='Plot'         >plot_ROM_RSy3</Output>
-        <Output  class='OutStreamManager' type='Plot'         >plot_RSy3</Output>
+        <Output  class='OutStreams' type='Plot'         >plot_ROM_RSy3</Output>
+        <Output  class='OutStreams' type='Plot'         >plot_RSy3</Output>
     </IOStep>
 </Steps>
 
@@ -111,7 +111,7 @@
     </PointSet>
 </DataObjects>
 
-<OutStreamManager>
+<OutStreams>
     <Plot name='plot_ROM_RSy3' dim='3' overwrite='False'>
         <plotSettings>
             <plot>
@@ -148,7 +148,7 @@
             </title>
         </actions>
     </Plot>
-</OutStreamManager>
+</OutStreams>
 
 </Simulation>
 
