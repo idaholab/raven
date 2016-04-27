@@ -1,0 +1,60 @@
+\ProvidesPackage{beamerthemeINL}
+
+% Copyright goes here
+%
+
+\mode<presentation>
+
+\setbeamertemplate{frametitle}[default][left]
+
+\usecolortheme{INL}
+\setbeamertemplate{navigation symbols}{} 
+
+\setbeamertemplate{footline}[page number]
+
+% items
+\setbeamertemplate{itemize items}[circle]
+\setbeamertemplate{itemize subitem}{--}
+
+% enums
+\setbeamertemplate{enumerate items}[default]
+
+% titles
+\setbeamertemplate{frametitle}{\vspace{25pt}\insertframetitle\par}
+
+% global image on background
+\usebackgroundtemplate{\includegraphics[width=\paperwidth]{frame-bg}}
+
+% fonst
+\setbeamerfont{frametitle}{shape=\itshape,series=\bfseries,size=\LARGE}
+
+% sizes
+\setbeamersize{sidebar width left=0pt}
+\setbeamersize{text margin left=18pt}
+
+%\setbeamertemplate{sections/subsections in toc}[sections numbered]
+
+%\setbeamertemplate{background canvas}[vertical shading]{top=white,middle=inl@green,bottom=white}
+
+
+% frame used at the beginning of the parts
+\newenvironment{titleframe}[1]
+{\bgroup%
+ \usebackgroundtemplate{\includegraphics[width=\paperwidth,height=\paperheight]{title-bg}}%
+ \setbeamercolor{frametitle}{fg=white}%
+ \setbeamercolor{normal text}{fg=white}%
+ \usebeamercolor[fg]{normal text}%
+ \setbeamerfont{frametitle}{series=\bfseries,size=\huge}
+ \setbeamertemplate{frametitle}{\vspace{40pt}\insertframetitle\par}%
+ \setbeamertemplate{footline}{}%
+ \advance\leftskip by 100pt%
+ \begin{frame}{#1}}%
+{\end{frame}\egroup}
+
+% misc
+\newcommand{\important}[1]{{\usebeamercolor[fg]{important text} #1}}
+
+\mode
+<all>
+
+
