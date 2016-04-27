@@ -22,6 +22,7 @@ class RavenPython(Tester):
     else:
       params.addParam('python_command','python','The command to use to run python')
     params.addParam('requires_swig2', False, "Requires swig2 for test")
+    params.addParam('required_executable','','Skip test if this executable is not found')
 
     return params
 
@@ -31,8 +32,20 @@ class RavenPython(Tester):
   def __init__(self, name, params):
     Tester.__init__(self, name, params)
     self.specs['scale_refine'] = False
+    self.required_executable = self.specs['required_executable']
+    self.required_executable = self.required_executable.replace("%METHOD%",os.environ.get("METHOD","opt"))
 
   def checkRunnable(self, option):
+    try:
+      if self.required_executable == 'compare':
+        retValue = subprocess.call([self.required_executable,'-version'],stdout=subprocess.PIPE)
+      else:
+        retValue = subprocess.call([self.required_executable],stdout=subprocess.PIPE)
+      if len(self.required_executable) > 0 and retValue != 0:
+        return (False,'skipped (Failing executable: "'+self.required_executable+'")')
+    except:
+      return (False,'skipped (Error when trying executable: "'+self.required_executable+'")')
+
     if self.specs['requires_swig2'] and not RavenPython.has_swig2:
       return (False, 'skipped (No swig 2.0 found)')
     missing,too_old = RavenUtils.checkForMissingModules()
