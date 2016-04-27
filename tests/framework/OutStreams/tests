@@ -1,11 +1,18 @@
 [Tests]
- [./test_plot]
+ [./image_generation_text]
   type = 'RavenFramework'
-  input = 'test_plot.xml'
+  input = 'imageGeneration_ps.xml'
   output = 'plot/1-test_scatter.ps'
   text = 'plot/1-test_scatter.ps'
-  remove_whitespace = 'true'
   comment = '%'
+  minimum_library_versions = 'matplotlib 1.5'
+ [../]
+
+ [./image_generation_raw]
+  type = 'RavenPython'
+  input = 'testImageGeneration.py'
+  #input = 'imageGeneration_png.xml'
+  required_executable = 'compare'
  [../]
 
  [./test_subPlot]
