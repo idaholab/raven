@@ -43,7 +43,7 @@
   </DataObjects>
 
   <Databases>
-    <HDF5 name="HDF5PostProcTest"/>
+    <HDF5 name="HDF5PostProcTest" readMode="overwrite"/>
   </Databases>
 
 </Simulation>

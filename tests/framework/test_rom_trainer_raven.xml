@@ -132,7 +132,7 @@
   </OutStreams>
 
   <Databases>
-    <HDF5 name="MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER"/>
+    <HDF5 name="MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER" readMode="overwrite"/>
   </Databases>
 
   <DataObjects>

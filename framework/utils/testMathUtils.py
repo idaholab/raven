@@ -122,7 +122,7 @@ def f(x):
   return x*x
 
 simp = mathUtils.simpson(f,-1,1,5)
-checkAnswer('simpson',simp,0.490666667,1e-5)
+checkAnswer('simpson',simp,0.677333333333,1e-5)
 
 ### check "getGraphs"
 # TODO I don't know what this does.  Documentation is poor.

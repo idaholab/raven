@@ -471,6 +471,20 @@
   xml = 'LHStestVariables/outLHS_dump.xml'
  [../]
 
+ [./fail_csv]
+   type = 'RavenFramework'
+   input = test_simple_fail_csv.xml
+   csv = 'fail_csv/PrintRawPointSet.csv'
+   expected_fail = true
+ [../]
+
+ [./fail_xml]
+   type = 'RavenFramework'
+   input = test_simple_fail_xml.xml
+   xml = 'fail_xml/PrintRawPointSet.xml'
+   expected_fail = true
+ [../]
+
  [./calculate_and_transfer]
    #REQUIREMENT_TEST R-IS-5
    type = 'RavenFramework'
