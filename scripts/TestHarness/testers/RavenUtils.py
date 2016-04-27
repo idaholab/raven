@@ -1,6 +1,8 @@
-import os
+from __future__ import print_function
+import os, sys
 import subprocess
 import distutils.version
+
 
 def inPython3():
   """returns true if raven should be using python3
@@ -14,6 +16,26 @@ modules_to_try = [("numpy",'numpy.version.version',"1.8.0","1.8.0"),
                   ("scipy",'scipy.__version__',"0.13.3","0.13.3"),
                   ("sklearn",'sklearn.__version__',"0.14.1","0.14.1"),
                   ("matplotlib",'matplotlib.__version__',"1.3.1","1.3.1")]
+
+def __lookUpPreferredVersion(name):
+  """
+    Look up the preferred version in the modules.
+    name: string, the name of the module
+    returns the version as a string or "" if unknown
+  """
+  for  i,fv,ev,qa in modules_to_try:
+    if name == i:
+      return qa
+  return ""
+
+__condaList = [("numpy",__lookUpPreferredVersion("numpy")),
+              ("h5py",__lookUpPreferredVersion("h5py")),
+              ("scipy",__lookUpPreferredVersion("scipy")),
+              ("scikit-learn",__lookUpPreferredVersion("sklearn")),
+              ("matplotlib",__lookUpPreferredVersion("matplotlib")),
+              ("hdf5",""),
+              ("swig","")]
+              
 
 def moduleReport(module,version=''):
   """Checks if the module exists.
@@ -99,3 +121,13 @@ def checkForMissingModules():
     #missing.extend(moduleMissing)
     #tooOld.extend(moduleTooOld)
   return missing, tooOld, notQA
+
+if __name__ == '__main__':
+  if '--conda-create' in sys.argv:
+    print("conda create --name raven_libraries -y ",end="")
+    for name, version in __condaList:
+      if len(version) == 0:
+        print(name,end=" ")
+      else:
+        print(name+"="+version,end=" ")
+    print()
