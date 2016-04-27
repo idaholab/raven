@@ -110,8 +110,8 @@
   </OutStreams>
 
   <Databases>
-    <HDF5 name="test_bison_mc_simple"/>
-    <HDF5 name="test_bison_mc_simple_noalias"/>
+    <HDF5 name="test_bison_mc_simple" readMode="overwrite"/>
+    <HDF5 name="test_bison_mc_simple_noalias" readMode="overwrite"/>
   </Databases>
 
 </Simulation>

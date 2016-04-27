@@ -70,7 +70,7 @@
   </Steps>
 
   <Databases>
-    <HDF5 name="test_bison_mpi_lhs"/>
+    <HDF5 name="test_bison_mpi_lhs" readMode="overwrite"/>
   </Databases>
 
 </Simulation>

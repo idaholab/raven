@@ -175,7 +175,7 @@
   </Steps>
 
   <Databases>
-    <HDF5 name="testHybridBranchDatabase"/>
+    <HDF5 name="testHybridBranchDatabase" readMode="overwrite"/>
   </Databases>
 
   <DataObjects>
