@@ -8,7 +8,7 @@
  [./EnsembleSamplerExtModel]
   type = 'RavenFramework'
   input = 'test_EnsembleSamplerExtModel.xml'
-  output = 'EnsembleForwardTest/PointsetEnsembleForward.xml EnsembleForwardTest/PointsetEnsembleForward.csv'
-  csv = 'EnsembleForwardTest/PointsetEnsembleForward.csv'
+  output = 'EnsembleForwardTestExt/PointsetEnsembleForwardExtModel.csv EnsembleForwardTestExt/PointsetEnsembleForwardExtModel.xml'
+  csv = 'EnsembleForwardTestExt/PointsetEnsembleForwardExtModel.csv'
  [../]
 []
