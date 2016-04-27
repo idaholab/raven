@@ -230,27 +230,6 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
             tobesampled = childChild.text
             self.dependentSample[prefix+child.attrib['name']] = tobesampled
         if not foundDistOrFunc: self.raiseAnError(IOError,'Sampled variable',child.attrib['name'],'has neither a <distribution> nor <function> node specified!')
-      elif child.tag == "samplerInit":
-        self.initSeed = Distributions.randomIntegers(0,2**31,self)
-        for childChild in child:
-          if childChild.tag == "limit":
-            self.limit = childChild.text
-          elif childChild.tag == "initialSeed":
-            self.initSeed = int(childChild.text)
-          elif childChild.tag == "reseedEachIteration":
-            if childChild.text.lower() in utils.stringsThatMeanTrue(): self.reseedAtEachIteration = True
-          elif childChild.tag == "distInit":
-            for childChildChild in childChild:
-              NDdistData = {}
-              for childChildChildChild in childChildChild:
-                if childChildChildChild.tag == 'initialGridDisc':
-                  NDdistData[childChildChildChild.tag] = int(childChildChildChild.text)
-                elif childChildChildChild.tag == 'tolerance':
-                  NDdistData[childChildChildChild.tag] = float(childChildChildChild.text)
-                else:
-                  self.raiseAnError(IOError,'Unknown tag '+childChildChildChild.tag+' .Available are: initialGridDisc and tolerance!')
-              self.NDSamplingParams[childChildChild.attrib['name']] = NDdistData
-          else: self.raiseAnError(IOError,'Unknown tag '+childChild.tag+' .Available are: limit, initialSeed, reseedEachIteration and distInit!')
       elif child.tag == "variablesTransformation":
         transformationDict = {}
         listIndex = None
