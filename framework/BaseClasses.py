@@ -28,6 +28,7 @@ class BaseType(MessageHandler.MessageUser):
     self._knownAttribute += ['name','verbosity']                                        # attributes that are known
     self.printTag         = 'BaseType'                                                  # the tag that refers to this class in all the specific printing
     self.messageHandler   = None                                                        # message handling object
+    self.variableGroups   = {}                                                          # the variables this class needs to be aware of
     self.mods             = utils.returnImportModuleString(inspect.getmodule(BaseType)) #list of modules this class depends on (needed for automatic parallel python)
     self.mods.extend(utils.returnImportModuleString(inspect.getmodule(self),True))
 
@@ -43,6 +44,7 @@ class BaseType(MessageHandler.MessageUser):
       @ Out, None
     """
     self.setMessageHandler(messageHandler)
+    self.variableGroups = variableGroups
     if 'name' in xmlNode.attrib.keys(): self.name = xmlNode.attrib['name']
     else: self.raiseAnError(IOError,'not found name for a '+self.__class__.__name__)
     self.type     = xmlNode.tag

@@ -18,6 +18,7 @@
             <xsd:element name="AdaptiveSparseGrid"       type="AdaptiveSGSampler"      minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="AdaptiveDynamicEventTree" type="AdaptiveDETSampler"     minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="AdaptiveSobol"            type="AdaptiveSobolSampler"   minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="EnsembleForward"          type="EnsembleForwardSampler" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -198,6 +199,19 @@
         </xsd:sequence>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
     </xsd:complexType>
+    
+    <xsd:complexType name="EnsembleForwardSampler">
+        <xsd:sequence>
+            <xsd:element name="MonteCarlo" type="MonteCarloSampler" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="Grid" type="GridSampler" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="Stratified" type="GridSampler" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="ResponseSurfaceDesign" type="ResponseSurfaceSampler" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="FactorialDesign" type="FactorialSampler" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+        <xsd:attribute name="name" type="xsd:string" use="required"/>
+    </xsd:complexType>
+    
+    
 
     <!-- *********************************************************************** -->
     <!--                  Adaptive Samplers                                      -->

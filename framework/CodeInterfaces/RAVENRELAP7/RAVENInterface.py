@@ -67,6 +67,7 @@ class RAVENInterface(CodeInterfaceBase):
     self._samplersDictionary['ResponseSurfaceDesign'   ] = self.gridForRAVEN
     self._samplersDictionary['AdaptiveDynamicEventTree'] = self.adaptiveDynamicEventTreeForRAVEN
     self._samplersDictionary['StochasticCollocation'   ] = self.gridForRAVEN
+    self._samplersDictionary['EnsembleForward'         ] = self.gridForRAVEN
     found = False
     for index, inputFile in enumerate(currentInputFiles):
       if inputFile.getExt() in self.getInputExtension():
