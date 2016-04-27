@@ -97,7 +97,7 @@
   </Steps>
 
   <Databases>
-    <HDF5 name="test2StepsDatabase"/>
+    <HDF5 name="test2StepsDatabase" readMode="overwrite"/>
   </Databases>
 
   <DataObjects>

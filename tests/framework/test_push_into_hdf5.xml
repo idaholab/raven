@@ -78,8 +78,8 @@
   </Steps>
 
   <Databases>
-    <HDF5 name="MC_TEST_EXTRACT_STEP"/>
-    <HDF5 name="MC_TEST_PUSH_STEP"/>
+    <HDF5 name="MC_TEST_EXTRACT_STEP" readMode="overwrite"/>
+    <HDF5 name="MC_TEST_PUSH_STEP" readMode="overwrite"/>
   </Databases>
 
   <OutStreams>
