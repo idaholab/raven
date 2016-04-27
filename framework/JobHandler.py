@@ -193,7 +193,7 @@ class ExternalRunner(MessageHandler.MessageUser):
     os.chdir(self.__workingDir)
     localenv = dict(os.environ)
     outFile = open(self.output,'w', self.bufsize)
-    self.__process = utils.pickleSafeSubprocessPopen(self.command,shell=True,stdout=outFile,stderr=outFile,cwd=self.__workingDir,env=localenv)
+    self.__process = utils.pickleSafeSubprocessPopen(self.command,shell=True,stdout=outFile,stderr=outFile,cwd=os.path.join(self.__workingDir,self.identifier),env=localenv)
     os.chdir(oldDir)
 
   def kill(self):

@@ -1061,7 +1061,7 @@ class Code(Model):
       shutil.copy(inputFile.getAbsFile(),self.workingDir)
     self.oriInputFiles = []
     for i in range(len(inputFiles)):
-      self.oriInputFiles.append(inputFiles[i])
+      self.oriInputFiles.append(copy.deepcopy(inputFiles[i]))
       self.oriInputFiles[-1].setPath(self.workingDir)
     self.currentInputFiles        = None
     self.outFileRoot              = None
@@ -1089,6 +1089,12 @@ class Code(Model):
     if not found: self.raiseAnError(IOError,'None of the input files has one of the extensions requested by code '
                                   + self.subType +': ' + ' '.join(self.code.getInputExtension()))
     Kwargs['outfile'] = 'out~'+currentInput[index].getBase()
+    subDirectory = os.path.join(self.workingDir,Kwargs['prefix'])
+    if not os.path.exists(subDirectory):
+      os.mkdir(subDirectory)
+    for index in range(len(currentInput)):
+      currentInput[index].setPath(os.path.join(self.workingDir,Kwargs['prefix']))
+      shutil.copy(self.oriInputFiles[index].getAbsFile(),subDirectory)
     if len(self.alias.keys()) != 0: Kwargs['alias']   = self.alias
     return (self.code.createNewInput(currentInput,self.oriInputFiles,samplerType,**Kwargs),Kwargs)
 
