@@ -26,19 +26,19 @@ wait_lines ()
 rm -Rf FirstMQRun/
 
 #REQUIREMENT_TEST R-IS-7
-python ../../framework/Driver.py test_mpiqsub_local.xml
+python ../../framework/Driver.py test_mpiqsub_local.xml cluster_runinfo.xml
 
 wait_lines 'FirstMQRun/*eqn.csv' 6 mpiqsub
 
 rm -Rf FirstMRun/
 
-qsub -l select=6:ncpus=4:mpiprocs=1 -l walltime=10:00:00 -l place=free -W block=true ./run_mpi_test.sh
+qsub -P moose -l select=6:ncpus=4:mpiprocs=1 -l walltime=10:00:00 -l place=free -W block=true ./run_mpi_test.sh
 
 wait_lines 'FirstMRun/*eqn.csv' 6 mpi
 
 rm -Rf FirstPRun/
 
-python ../../framework/Driver.py test_pbs.xml
+python ../../framework/Driver.py test_pbs.xml cluster_runinfo.xml
 
 wait_lines 'FirstPRun/*eqn.csv' 6 pbsdsh
 
@@ -50,7 +50,7 @@ cd InternalParallel/
 rm -Rf InternalParallelExtModel/*.csv
 
 #REQUIREMENT_TEST R-IS-8
-python ../../../framework/Driver.py test_internal_parallel_extModel.xml
+python ../../../framework/Driver.py test_internal_parallel_extModel.xml ../cluster_runinfo.xml
 
 wait_lines 'InternalParallelExtModel/*.csv' 28 paralExtModel
 
@@ -61,7 +61,7 @@ cd InternalParallel/
 rm -Rf InternalParallelScikit/*.csv
 
 #REQUIREMENT_TEST R-IS-9
-python ../../../framework/Driver.py test_internal_parallel_ROM_scikit.xml
+python ../../../framework/Driver.py test_internal_parallel_ROM_scikit.xml ../cluster_runinfo.xml
 
 wait_lines 'InternalParallelScikit/*.csv' 2 paralROM
 
@@ -71,7 +71,7 @@ cd ..
 cd InternalParallel/
 rm -Rf InternalParallelPostProcessorLS/*.csv
 
-python ../../../framework/Driver.py test_internal_parallel_PP_LS.xml
+python ../../../framework/Driver.py test_internal_parallel_PP_LS.xml ../cluster_runinfo.xml
 
 wait_lines 'InternalParallelPostProcessorLS/*.csv' 6 paralROM
 
@@ -80,7 +80,7 @@ cd ..
 cd InternalParallel/
 rm -Rf InternalParallelMSR/*.csv
 
-python ../../../framework/Driver.py test_internal_MSR.xml
+python ../../../framework/Driver.py test_internal_MSR.xml ../cluster_runinfo.xml
 
 wait_lines 'InternalParallelMSR/*.csv' 1 parallelMSR
 
@@ -98,7 +98,7 @@ cd ..
 cd AdaptiveSobol/
 rm -Rf workdir/*
 
-python ../../../framework/Driver.py test_adapt_sobol_parallel.xml
+python ../../../framework/Driver.py test_adapt_sobol_parallel.xml ../cluster_runinfo.xml
 
 wait_lines 'workdir/*.csv' 1 adaptiveSobol
 
