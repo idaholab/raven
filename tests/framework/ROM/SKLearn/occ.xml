@@ -20,6 +20,11 @@
       <SKLtype>multiClass|OutputCodeClassifier</SKLtype>
       <Features>X,Y</Features>
       <Target>Z</Target>
+      <estimator>
+        <SKLtype>linear_model|LinearRegression</SKLtype>
+        <fit_intercept>True</fit_intercept>
+        <normalize>False</normalize>
+      </estimator>
     </ROM>
   </Models>
 

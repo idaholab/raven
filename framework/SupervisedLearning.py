@@ -1827,14 +1827,28 @@ class SciKitLearn(superVisedLearning):
     """
     superVisedLearning.__init__(self,messageHandler,**kwargs)
     self.printTag = 'SCIKITLEARN'
-    if 'SKLtype' not in self.initOptionDict.keys(): self.raiseAnError(IOError,'to define a scikit learn ROM the SKLtype keyword is needed (from ROM '+self.initOptionDict['name']+')')
+    if 'SKLtype' not in self.initOptionDict.keys():
+      self.raiseAnError(IOError,'to define a scikit learn ROM the SKLtype keyword is needed (from ROM '+self.initOptionDict['name']+')')
     SKLtype, SKLsubType = self.initOptionDict['SKLtype'].split('|')
     self.initOptionDict.pop('SKLtype')
-    if not SKLtype in self.__class__.availImpl.keys(): self.raiseAnError(IOError,'not known SKLtype ' + SKLtype +'(from ROM '+self.initOptionDict['name']+')')
-    if not SKLsubType in self.__class__.availImpl[SKLtype].keys(): self.raiseAnError(IOError,'not known SKLsubType ' + SKLsubType +'(from ROM '+self.initOptionDict['name']+')')
+    if not SKLtype in self.__class__.availImpl.keys():
+      self.raiseAnError(IOError,'not known SKLtype ' + SKLtype +'(from ROM '+self.initOptionDict['name']+')')
+    if not SKLsubType in self.__class__.availImpl[SKLtype].keys():
+      self.raiseAnError(IOError,'not known SKLsubType ' + SKLsubType +'(from ROM '+self.initOptionDict['name']+')')
+
     self.__class__.returnType     = self.__class__.availImpl[SKLtype][SKLsubType][1]
-    self.ROM                      = self.__class__.availImpl[SKLtype][SKLsubType][0]()
     self.__class__.qualityEstType = self.__class__.qualityEstTypeDict[SKLtype][SKLsubType]
+
+    if 'estimator' in self.initOptionDict.keys():
+      print('Here')
+      estimatorDict = self.initOptionDict['estimator']
+      self.initOptionDict.pop('estimator')
+      estimatorSKLtype, estimatorSKLsubType = estimatorDict['SKLtype'].split('|')
+      estimator = self.__class__.availImpl[estimatorSKLtype][estimatorSKLsubType][0]()
+      self.ROM = self.__class__.availImpl[SKLtype][SKLsubType][0](estimator)
+    else:
+      self.ROM  = self.__class__.availImpl[SKLtype][SKLsubType][0]()
+
     for key,value in self.initOptionDict.items():
       try:self.initOptionDict[key] = ast.literal_eval(value)
       except: pass
