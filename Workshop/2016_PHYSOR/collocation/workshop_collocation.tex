@@ -130,12 +130,18 @@ Idaho National Laboratory}
 \end{frame}
 
 \begin{frame}{Overview: Session Goal}
+  \vfill
   Use advanced methods to accelerate UQ
+  \vfill
   \begin{itemize}
     \item For low dimensionality, far fewer runs
+  \vfill
     \item For smooth respones, provides accurate ROMs
+  \vfill
     \item ROMs contain analytic mean, variance, sensitivities
+  \vfill
   \end{itemize}
+  \vfill
 \end{frame}
 %
 %   Motivation
@@ -145,25 +151,38 @@ Idaho National Laboratory}
 \end{frame}
 
 \begin{frame}{Motivations: Monte Carlo}
+  \vfill
   Gold standard in UQ is Monte Carlo, Latin Hypercube
+  \vfill
   \begin{itemize}
     \item Consistently convergent (central limit theorem)
+  \vfill
     \item Easy to develop
+  \vfill
     \item Error diminishes slowly
+  \vfill
     \item Requires $1/\epsilon^2$ samples to achieve error $\epsilon$
   \end{itemize}
+  \vfill
 \end{frame}
 
 \begin{frame}{Motivations: Alternatives to Monte Carlo}
+  \vfill
   Some structured samplers can improve greatly on Monte Carlo
+  \vfill
 
   Example: Stochastic Collocation for generalized Polynomial Chaos
+  \vfill
   \begin{itemize}
     \item Expand model in orthogonal polynomials
+  \vfill
     \item Use integration to determine expansion coefficients
+  \vfill
     \item Quadrature methods perform polynomial integrations
   \end{itemize}
+  \vfill
   Input dimensions need to be orthogonalized before running
+  \vfill
 \end{frame}
 %
 %   Methods
@@ -174,53 +193,71 @@ Idaho National Laboratory}
 
 \subsection{Sparse Grid Collocation}
 \begin{frame}{Methods: generalized Polynomial Chaos expansion}
+  \vfill
   \begin{equation}
     f(x) \approx G(x) = \sum_{k\in\Lambda} c_k \Phi_k(x), 
   \end{equation}
   where
   \begin{itemize}
+  \vfill
     \item $f(x)$ is the original model,
+  \vfill
     \item $x$ are the uncertain inputs in $f(x)$,
+  \vfill
     \item $G(x)$ is the generalized Polynomial Chaos expansion,
+  \vfill
     \item $k$ is a multi-index to a polynomial, e.g. (3,1,2),
+  \vfill
     \item $\Lambda$ is a pre-determined set of polynomial indices,
+  \vfill
     \item $c_k$ are expansion coefficients,
+  \vfill
     \item $\Phi_k(x)$ are multidimensional orthogonal polynomials
   \end{itemize}
+  \vfill
 \end{frame}
 
 \begin{frame}{Methods: gPC Coefficients}
+  \vfill
   \begin{equation}
     f(x) \approx G(x) = \sum_{k\in\Lambda} c_k \Phi_k(x), 
   \end{equation}
+  \vfill
   $\Phi_k(x)$ are orthogonal,
   \begin{equation}
     c_k = \int_\Omega \rho(x) f(x) \Phi_k(x) dx
   \end{equation}
   where $\rho(x)$ is the joint probability distribution.
-
+  \vfill
   Numerically, use quadratures for $c_k$
   \begin{equation}
     c_k \approx\sum_{\ell=1}^L w_\ell f(x_\ell) \Phi_k(x_\ell))
   \end{equation}
   where $w_\ell$ are the weights and $x_\ell$ are the points
+  \vfill
 \end{frame}
 
 \begin{frame}{Methods: Large Dimensionality}
+  \vfill
   Tensor SCgPC only efficient if $N<4$
+  \vfill
 
   Fight curse of dimensionality using Sparse Grids
+  \vfill
   \begin{itemize}
     \item Hyperbolic Cross
     \item Total Degree
+  \vfill
     \item Smolyak Quadrature
   \end{itemize}
+  \vfill
 \end{frame}
 
 \begin{frame}[fragile]{Methods: SCgPC in RAVEN}
   ROM
   \lstinputlisting[basicstyle=\ttfamily\footnotesize,firstline=51,lastline=56,emph={rom,GaussPolynomialRom,y1,y2,ans,TensorProduct}]
           {./attenuate/two/tp2.xml}
+  \vfill
   Sampler
   \lstinputlisting[basicstyle=\ttfamily\footnotesize,firstline=35,lastline=44,emph={SparseGridCollocation,sc,y1,uni,y2,rom}]
           {./attenuate/two/tp2.xml}
@@ -241,22 +278,29 @@ Idaho National Laboratory}
 
 
 \begin{frame}{Methods: Interpolation Node}
+  \vfill
   What if I want to use a different quadrature?
+  \vfill
 
   What if some dimensions require higher-order polynomials than others?
+  \vfill
 
   Specify through an interpolation node
   \lstinputlisting[basicstyle=\ttfamily\footnotesize,firstline=51,lastline=58,emph={Interpolation}]
           {./attenuate/two/td3.xml}
+  \vfill
   
 \end{frame}
 
 \begin{frame}{Methods: Adaptive}
+  \vfill
   What if I don't know what dimensions are higher order?
+  \vfill
 
   Use the Adaptive SCgPC sampler!
   \lstinputlisting[basicstyle=\ttfamily\footnotesize,firstline=35,lastline=50,emph={AdaptiveSparseGrid,Convergence,convergenceStudy}]
           {./attenuate/two/adaptSC.xml}
+  \vfill
 \end{frame}
 
 \subsection{Sobol Decomposition}
@@ -264,6 +308,7 @@ Idaho National Laboratory}
 \end{frame}
 
 \begin{frame}{Methods: Sobol Decomposition}
+  \vfill
   Another kind of expansion
   \begin{align*}
     f(x,y,z) =& f_0 \\
@@ -272,32 +317,42 @@ Idaho National Laboratory}
              &+ f_{1,2,3}(x,y,z),
   \end{align*}
   where $f_1(x)=\int\int f(x,y,z)\ dy\ dz$, etc.
+  \vfill
 
   Benefits:
+  \vfill
   \begin{itemize}
     \item Many problems dominated by low-order interacations
+  \vfill
     \item Provides easy access to Sobol sensitivities
+  \vfill
     \item Each sub-term can be modelled as SCgPC ROM
     \begin{itemize}
       \item Most are dimension 2 or less!
     \end{itemize}
+  \vfill
     \item Can also be constructed adaptively
     \begin{itemize}
       \item Highest efficiency: Adaptive Sobol with Adaptive SCgPC
     \end{itemize}
   \end{itemize}
+  \vfill
 \end{frame}
 
 \begin{frame}{Methods: Sobol in RAVEN}
+  \vfill
   Sampler
   \lstinputlisting[basicstyle=\ttfamily\footnotesize,firstline=35,lastline=56,emph={AdaptiveSobol,Convergence,convergenceStudy}]
           {./attenuate/two/adaptSobol.xml}
+  \vfill
 \end{frame}
 
 \begin{frame}{Methods: Sobol in RAVEN}
+  \vfill
   ROM
   \lstinputlisting[basicstyle=\ttfamily\footnotesize,firstline=63,lastline=69,emph={HDMRRom,SobolOrder}]
           {./attenuate/two/adaptSobol.xml}
+  \vfill
 \end{frame}
 %
 %   Demonstration
@@ -307,21 +362,49 @@ Idaho National Laboratory}
 \end{frame}
 
 \begin{frame}{Demonstration: the Model}
+  \vfill
   \begin{equation}
     f(x) = \prod_{n=1}^N \exp(-x_n/N),
   \end{equation}
+  \vfill
   \begin{equation}
     x_n \sim \mathcal{U}(0,1).
   \end{equation}
+  \vfill
   Taylor expansion suggests many combinations of high-order terms
   \begin{equation}
     \exp(-x) = 1-x+\frac{x^2}{2!}-\frac{x^3}{3!}+\cdots
   \end{equation}
+  \vfill
   Expected: 
+  \vfill
   \begin{itemize}
+  \vfill
     \item Tensor Product, Total Degree, Adaptive perform well
+  \vfill
     \item Hyperbolic Cross should struggle
   \end{itemize}
+  \vfill
+\end{frame}
+
+\begin{frame}{Demonstration: Attenuation Problem}
+  \vfill
+  Files:
+  \vfill
+  \begin{itemize}
+    \item \code{hc6.xml}
+  \vfill
+    \item \code{td3.xml}
+  \vfill
+    \item \code{tp2.xml}
+  \vfill
+    \item \code{adaptSC.xml}
+  \vfill
+    \item \code{adaptSobol.xml}
+  \vfill
+    \item \code{stats\char`_[case].xml}
+  \end{itemize}
+  \vfill
 \end{frame}
 
 \begin{frame}{Demonstration: Results}
@@ -382,6 +465,54 @@ Idaho National Laboratory}
       \end{figure}
     \end{column}
   \end{columns}
+\end{frame}
+
+\begin{frame}{End of Session}
+\end{frame}
+
+\begin{frame}{Demonstration: Results}
+      \begin{figure}
+        \centering
+        \includegraphics[width=0.8\linewidth]{./attenuate/attenuate_2_mean_errs}
+        \caption{Mean, $N=2$}
+      \end{figure}
+\end{frame}
+\begin{frame}{Demonstration: Results}
+      \begin{figure}
+        \centering
+        \includegraphics[width=0.8\linewidth]{./attenuate/attenuate_2_variance_errs}
+        \caption{Variance, $N=2$}
+      \end{figure}
+\end{frame}
+
+\begin{frame}{Appendix}
+      \begin{figure}
+        \centering
+        \includegraphics[width=0.8\linewidth]{./attenuate/attenuate_4_mean_errs}
+        \caption{Mean, $N=4$}
+      \end{figure}
+\end{frame}
+\begin{frame}{Appendix}
+      \begin{figure}
+        \centering
+        \includegraphics[width=0.8\linewidth]{./attenuate/attenuate_4_variance_errs}
+        \caption{Variance, $N=4$}
+      \end{figure}
+\end{frame}
+
+\begin{frame}{Appendix}
+  \begin{figure}
+    \centering
+    \includegraphics[width=0.8\linewidth]{./attenuate/attenuate_6_mean_errs}
+    \caption{Mean, $N=6$}
+  \end{figure}
+\end{frame}
+\begin{frame}{Appendix}
+  \begin{figure}
+    \centering
+    \includegraphics[width=0.8\linewidth]{./attenuate/attenuate_6_variance_errs}
+    \caption{Variance, $N=6$}
+  \end{figure}
 \end{frame}
 
 \end{document}
