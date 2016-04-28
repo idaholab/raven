@@ -20,7 +20,7 @@
       <!-- Using all of the defaults -->
       <SKLtype>linear_model|MultiTaskElasticNet</SKLtype>
       <Features>X,Y</Features>
-      <Target>Z</Target>
+      <Target>Z,Z2</Target>
       <alpha>1.0</alpha>
       <l1_ratio>0.5</l1_ratio>
       <fit_intercept>True</fit_intercept>
