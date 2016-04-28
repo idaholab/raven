@@ -43,18 +43,20 @@ class MAMMOTHInterface(CodeInterfaceBase):
     bisonInput = []
     relap7Input = []
     for inputFile in inputFiles:
-      if inputFile.getType().lower() = "mammothinput":
-        inputDict['FoundMammothInput'] = True
-        mammothInput.append(inputFile)
-      elif inputFile.getType().lower() = "bisoninput":
-        inputDict['FoundBisonInput'] = True
-        bisonInput.append(inputFile)
-      elif inputFile.getType().lower() = "replap-7input":
-        inputDict['FoundRelap-7Input'] = True
-        relap7Input.append(inputFile)
-      elif inputFile.getType().lower() = "rattlesnakeinput":
-        inputDict['FoundRattlesnakeInput'] = True
-        rattlesnakeInput.append(inputFile)
+      fileType = inputFile.getType()
+      for var in fileType.split('|'):
+        if var.strip().lower() == "mammothinput":
+          inputDict['FoundMammothInput'] = True
+          mammothInput.append(inputFile)
+        elif var.strip().lower() = "bisoninput":
+          inputDict['FoundBisonInput'] = True
+          bisonInput.append(inputFile)
+        elif var.strip().lower() = "replap-7input":
+          inputDict['FoundRelap-7Input'] = True
+          relap7Input.append(inputFile)
+        elif var.strip().lower() = "rattlesnakeinput":
+          inputDict['FoundRattlesnakeInput'] = True
+          rattlesnakeInput.append(inputFile)
 
     if inputDict['FoundBisonInput']: inputDict['BisonInput'] = bisonInput
     if inputDict['FoundRelap-7Input']: inputDict['Relap-7Input'] = relap7Input
@@ -138,6 +140,7 @@ class MAMMOTHInterface(CodeInterfaceBase):
         perturbYakXS = True
         break
     #Rattlesnake interface
+    currentInputDicts = self.findInps()
     if perturbYakXS or perturbRattlesnake:
       newUpdatedInputs = self.rattlesnakeInterface.createNewInput(currentInputFiles,origInputFiles,samplerType,**rattlesnakeArgs)
     else:
