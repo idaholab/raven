@@ -37,7 +37,10 @@ for i in range(number):
 number_of_timesteps = 100
 for j in range(number_of_timesteps):
   time = j*0.1
+  time_file = open("timeSet_"+str(round(time,1)),"w")
   for i in range(number):
     cx,cy = point_x[i]+time*point_dx[i],point_y[i]+time*point_dy[i]
     print(time,cx,cy,sep=",",file=point_file[i])
+    print(i,cx,cy,file=time_file)
     print(time,i,cx,cy)
+  time_file.close()
