@@ -1269,7 +1269,7 @@ class ImportanceRank(BasePostProcessor):
       if child.tag == 'mvnDistribution':
         self.mvnDistribution = child.text.strip()
     if not self.dimensions:
-      self.dimensions = range(len(self.features))
+      self.dimensions = range(1,len(self.features)+1)
       self.raiseAWarning('The dimensions for given features: ' + str(self.features) + ' is not provided! Default dimensions will be used: ' + str(self.dimensions) + '!')
 
   def _localPrintXML(self,node,options=None):
