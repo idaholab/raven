@@ -4280,11 +4280,12 @@ on the data given as ``input''.
 %
 RAVEN supports several different types of PPs.
 
-Currently, the following PPs are available in RAVEN:
+Currently, the following types are available in RAVEN:
 \begin{itemize}
   \itemsep0em
   \item \textbf{BasicStatistics}
   \item \textbf{ComparisonStatistics}
+  \item \textbf{ImportanceRank}
   \item \textbf{SafestPoint}
   \item \textbf{LimitSurface}
   \item \textbf{LimitSurfaceIntegral}
@@ -4295,7 +4296,7 @@ Currently, the following PPs are available in RAVEN:
   %\item \textbf{LoadCsvIntoInternalObject}
 \end{itemize}
 
-The specifications of these PPs must be defined within the XML block
+The specifications of these types must be defined within the XML block
 \xmlNode{PostProcessor}.
 %
 This XML node needs to contain the attributes:
@@ -4545,6 +4546,65 @@ points to approximations in the calculation.
          <sigma>2.0</sigma>
       </Normal>
    </Distributions>
+</Simulation>
+\end{lstlisting}
+
+%%%%% PP ImportanceRank %%%%%%%
+\subsubsection{ImportanceRank}
+\label{ImportanceRank}
+The \textbf{ImportanceRank} post-processor is specificlly used 
+to compute sensitivity indices and importance indices with respect to input parameters
+associated with multivariate normal distribution.
+%
+\ppType{ImportanceRank}{ImportanceRank}
+%
+\begin{itemize}
+  \item \xmlNode{what}, \xmlDesc{comma separated string, required field},
+  %
+  List of quantities to be computed.
+  %
+  Currently the quantities available are:
+  \begin{itemize}
+    \item \textbf{SensitivityIndex}: used to measure the impact of sensitivities on the model.
+    \item \textbf{ImportanceIndex}: used to measure the impact of sensitivities and input uncertainties on the model.
+    \item \textbf{PCAIndex}: the indices of principal component directions, used to measure the impact
+    of principal component directions on input covariance matrix
+    %
+  \end{itemize}
+   %
+  If all the quantities need to be computed, the user can input in the body of
+  \xmlNode{what} the string ``all''.
+  %
+  %
+  \item \xmlNode{features}, \xmlDesc{comma separated string, required field},
+  lists input parameters on which the previous operations need to be applied.
+  %
+  \item \xmlNode{targets}, \xmlDesc{comma separated string, required field},
+  lists output responses on which previous operations need to be applied.
+  %
+  \item \xmlNode{dimensions}, \xmlDesc{comma separated integer, optional field},
+  lists the dimensions corresponding to \xmlNode{features}.
+  %
+  \item \xmlNode{mvnDistribution}, \xmlDesc{string, required field}, specifies the 
+  multivariate normal distribution name. The \xmlNode{MultivariateNormal} node must be present.
+  %
+\end{itemize}
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={name,subType,debug}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <PostProcessor name='aUserDefinedName' subType='ImportanceRank'>
+      <what>SensitivityIndex,ImportanceIndex</what>
+      <features>x1,x2</features>
+      <targets>y1,y2</targets>
+      <dimensions>1,2<dimensions>
+      <mvnDistribution>MVN</mvnDistribution>
+    </PostProcessor>
+    ...
+  </Models>
+  ...
 </Simulation>
 \end{lstlisting}
 
@@ -5109,16 +5169,31 @@ independent of the \xmlAttr{subType} specified:
 
 \paragraph{Method: HistorySetSync}
 This Post-Processor performs the conversion from HistorySet to HistorySet
-The conversion is made so that all histories are syncronized in time.
+The conversion is made so that all histories are synchronized in time.
 It can be used to allow the histories to be sampled at the same time instant.
+
+There are two possible synchronization methods, specified through the \xmlNode{syncMethod} node.  If the
+\xmlNode{syncMethod} is \xmlString{grid}, a \xmlNode{numberOfSamples} node is specified,
+which yields an equally-spaced grid of time points. The output values for these points will be linearly derived
+using nearest sampled time points, and the new HistorySet will contain only the new grid points.
+
+The other methods are used by specifying \xmlNode{syncMethod} as \xmlString{all}, \xmlString{min}, or
+\xmlString{max}.  For \xmlString{all}, the postprocessor will iterate through the
+existing histories, collect all the time points used in any of them, and use these as the new grid on which to
+establish histories, retaining all the exact original values and interpolating linearly where necessary.
+In the event of \xmlString{min} or \xmlString{max}, the postprocessor will find the smallest or largest time
+history, respectively, and use those time values as nodes to interpolate between.
 
 In the \xmlNode{PostProcessor} input block, the following XML sub-nodes are required,
 independent of the \xmlAttr{subType} specified:
 
 \begin{itemize}
-   \item \xmlNode{numberOfSamples}, \xmlDesc{integer, required field}, number of samples
    \item \xmlNode{timeID}, \xmlDesc{string, required field}, ID of the temporal variable
    \item \xmlNode{extension}, \xmlDesc{string, required field}, type of extension when the sync process goes outside the boundaries of the history (zeroed or extended)
+   \item \xmlNode{syncMethod}, \xmlDesc{string, required field}, synchronization strategy to employ (see
+     description above).  Options are \xmlString{grid}, \xmlString{all}, \xmlString{max}, \xmlString{min}. 
+   \item \xmlNode{numberOfSamples}, \xmlDesc{integer, optional field}, required if \xmlNode{syncMethod} is
+     \xmlString{grid}, number of new time samples
 \end{itemize}
 
 \paragraph{Method: HistorySetSnapShot}

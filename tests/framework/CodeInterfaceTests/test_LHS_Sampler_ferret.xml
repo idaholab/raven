@@ -52,7 +52,7 @@
   </Steps>
 
   <Databases>
-    <HDF5 name="test_ferret_lhs"/>
+    <HDF5 name="test_ferret_lhs" readMode="overwrite"/>
   </Databases>
 
 </Simulation>

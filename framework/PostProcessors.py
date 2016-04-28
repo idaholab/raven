@@ -31,6 +31,7 @@ import Files
 from RAVENiterators import ravenArrayIterator
 import unSupervisedLearning
 from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
+import TreeStructure
 #Internal Modules End--------------------------------------------------------------------------------
 
 #
@@ -1184,6 +1185,298 @@ class PrintCSV(BasePostProcessor):
      @ Out, input, object, the input
     """
     return input[-1]
+#
+#
+#
+class ImportanceRank(BasePostProcessor):
+  """
+    ImportantRank class. It computes the important rank for given input parameters
+    1. The importance of input parameters can be ranked via their sensitivies (SI: sensitivity index)
+    2. The importance of input parameters can be ranked via their sensitivies and covariances (II: importance index)
+    3. The importance of input directions based principal component analysis of inputs covariances (PCA index)
+    3. CSI: Cumulative sensitive index (added in the future)
+    4. CII: Cumulative importance index (added in the future)
+  """
+  def __init__(self, messageHandler):
+    """
+      Constructor
+      @ In, messageHandler, message handler object
+      @ Out, None
+    """
+    BasePostProcessor.__init__(self, messageHandler)
+    self.targets = []
+    self.features = []
+    self.dimensions = []
+    self.mvnDistribution = None
+    self.acceptedMetric = ['sensitivityindex','importanceindex','pcaindex']
+    self.what = self.acceptedMetric # what needs to be computed, default is all
+    self.printTag = 'POSTPROCESSOR IMPORTANTANCE RANK'
+    self.requiredAssObject = (True,(['Distributions'],[-1]))
+    self.transformation = False
+
+  def _localWhatDoINeed(self):
+    """
+      This method is local mirror of the general whatDoINeed method
+      It is implemented by this postprocessor that need to request special objects
+      @ In, None
+      @ Out, needDict, dict, list of objects needed
+    """
+    needDict = {'Distributions':[]}
+    needDict['Distributions'].append((None,self.mvnDistribution))
+    return needDict
+
+  def _localGenerateAssembler(self,initDict):
+    """
+      see generateAssembler method in Assembler
+      @ In, initDict, dict, dictionary ({'mainClassName':{'specializedObjectName':ObjectInstance}})
+      @ Out, None
+    """
+    distName = self.mvnDistribution
+    self.mvnDistribution = initDict['Distributions'][distName]
+
+  def _localReadMoreXML(self,xmlNode):
+    """
+      Function to read the portion of the xml input that belongs to this specialized class
+      and initialize some stuff based on the inputs
+      @ In, xmlNode, xml.etree.ElementTree Element Objects, the xml element node that will be checked against the available options specific to this Sampler
+      @ Out, None
+    """
+    for child in xmlNode:
+      if child.tag == 'what':
+        self.what = child.text
+        if self.what == 'all': self.what = self.acceptedMetric
+        else:
+          toCalculate = []
+          for metric in self.what.split(','):
+            toCalculate.append(metric.strip())
+            if metric.lower() not in self.acceptedMetric:
+              self.raiseAnError(IOError, 'Importance rank postprocessor asked unknown operation ' + metric + '. Available ' + str(self.acceptedMetric))
+          self.what = toCalculate
+      if child.tag == 'targets':
+        self.targets = list(inp.strip() for inp in child.text.strip().split(','))
+      if child.tag == 'features':
+        if 'type' in child.attrib.keys():
+          featureType = child.attrib['type']
+          if featureType.strip() == 'latent':
+            self.transformation = True
+          elif featureType.strip() == '':
+            self.transformation = False
+          else:
+            self.raiseAnError(IOError,'type: ' + str(child.attrib['type']) + ' is unsupported for node: ' + str(child.tag) + '!')
+        self.features = list(inp.strip() for inp in child.text.strip().split(','))
+      if child.tag == 'dimensions':
+        self.dimensions = list(int(inp.strip()) for inp in child.text.strip().split(','))
+      if child.tag == 'mvnDistribution':
+        self.mvnDistribution = child.text.strip()
+    if not self.dimensions:
+      self.dimensions = range(len(self.features))
+      self.raiseAWarning('The dimensions for given features: ' + str(self.features) + ' is not provided! Default dimensions will be used: ' + str(self.dimensions) + '!')
+
+  def _localPrintXML(self,node,options=None):
+    """
+      Adds requested entries to XML node.
+      @ In, node, XML node, to which entries will be added
+      @ In, options, dict, optional, list of requests and options
+        May include: 'what': comma-separated string list, the qualities to print out
+      @ Out, None
+    """
+    for what in options.keys():
+      if what.lower() in self.acceptedMetric:
+        metricNode = TreeStructure.Node(what)
+        for target in options[what].keys():
+          newNode = TreeStructure.Node(target)
+          entries = options[what][target]
+          #add to tree
+          for entry in entries:
+            subNode = TreeStructure.Node('variable')
+            subNode.setText(entry[0])
+            vNode = TreeStructure.Node('index')
+            vNode.setText(entry[1])
+            subNode.appendBranch(vNode)
+            vNode = TreeStructure.Node('dim')
+            vNode.setText(entry[2])
+            subNode.appendBranch(vNode)
+            newNode.appendBranch(subNode)
+          metricNode.appendBranch(newNode)
+      node.appendBranch(metricNode)
+
+  def collectOutput(self,finishedJob, output):
+    """
+      Function to place all of the computed data into the output object, (Files or DataObjects)
+      @ In, finishedJob, object, JobHandler object that is in charge of running this postprocessor
+      @ In, output, object, the object where we want to place our computed results
+      @ Out, None
+    """
+    parameterSet = list(set(list(self.features)))
+    if finishedJob.returnEvaluation() == -1: self.raiseAnError(RuntimeError, ' No available output to collect (Run probably is not finished yet)')
+    outputDict = finishedJob.returnEvaluation()[-1]
+    # Output to file
+    if isinstance(output, Files.File):
+      availExtens = ['xml','csv', 'txt']
+      outputExtension = output.getExt().lower()
+      if outputExtension not in availExtens:
+        self.raiseAWarning('Output extension you input is ' + outputExtension)
+        self.raiseAWarning('Available are ' + str(availExtens) + '. Converting extension to ' + str(availExtens[0]) + '!')
+        outputExtensions = availExtens[0]
+        output.setExtension(outputExtensions)
+      if outputExtension != 'csv': separator = ' '
+      else: separator = ','
+      output.setPath(self.__workingDir)
+      self.raiseADebug('Dumping output in file named ' + output.getAbsFile())
+      output.open('w')
+      if outputExtension != 'xml':
+        maxLength = max(len(max(parameterSet, key = len)) + 5, 16)
+        # Output all metrics to given file
+        for what in outputDict.keys():
+          if what.lower() in self.acceptedMetric:
+            self.raiseADebug('Writing parameter rank for metric ' + what)
+            for target in self.targets:
+              if outputExtension != 'csv':
+                output.write('Target,' + target + '\n')
+                output.write('Parameters' + ' ' * maxLength + ''.join([str(item[0]) + ' ' * (maxLength - len(item)) for item in outputDict[what][target]]) + os.linesep)
+                output.write(what + ' ' * maxLength + ''.join(['%.8E' % item[1] + ' ' * (maxLength -14) for item in outputDict[what][target]]) + os.linesep)
+              else:
+                output.write('Target,' + target + '\n')
+                output.write('Parameters'  + ''.join([separator + str(item[0])  for item in outputDict[what][target]]) + os.linesep)
+                output.write(what + ''.join([separator + '%.8E' % item[1] for item in outputDict[what][target]]) + os.linesep)
+            output.write(os.linesep)
+        output.close()
+      else:
+        node = TreeStructure.Node('ImportanceRank')
+        tree = TreeStructure.NodeTree(node)
+        self._localPrintXML(node,outputDict)
+        msg=tree.stringNodeTree()
+        output.writelines(msg)
+        output.close()
+        self.raiseAMessage('ImportanceRank XML printed to "'+output.getFilename()+'"!')
+    # Output to DataObjects
+    elif output.type in ['PointSet','Point','History','HistorySet']:
+      self.raiseADebug('Dumping output in data object named ' + output.name)
+      for what in outputDict.keys():
+        if what.lower() in self.acceptedMetric:
+          for target in self.targets:
+            self.raiseADebug('Dumping ' + target + '-' + what + '. Metadata name = ' + target + '-' + what + '. Targets stored in ' +  target + '-'  + what)
+            output.updateMetadata(target + '-'  + what, outputDict[what][target])
+    elif output.type == 'HDF5' : self.raiseAWarning('Output type ' + str(output.type) + ' not yet implemented. Skip it !!!!!')
+    else: self.raiseAnError(IOError, 'Output type ' + str(output.type) + ' unknown.')
+
+  def initialize(self, runInfo, inputs, initDict) :
+    """
+      Method to initialize the pp.
+      @ In, runInfo, dict, dictionary of run info (e.g. working dir, etc)
+      @ In, inputs, list, list of inputs
+      @ In, initDict, dict, dictionary with initialization options
+    """
+    BasePostProcessor.initialize(self, runInfo, inputs, initDict)
+    self.__workingDir = runInfo['WorkingDir']
+
+  def inputToInternal(self, currentInp):
+    """
+      Method to convert an input object into the internal format that is understandable by this pp.
+      @ In, currentInput, object, an object that needs to be converted
+      @ Out, inputDict, dictionary of the converted data
+    """
+    if type(currentInp) == list  : currentInput = currentInp[-1]
+    else                         : currentInput = currentInp
+    if type(currentInput) == dict:
+      if 'targets' in currentInput.keys(): return currentInput
+    inputDict = {'targets':{}, 'metadata':{}, 'features':{}}
+    if hasattr(currentInput,'type'):
+      inType = currentInput.type
+    else:
+      if type(currentInput).__name__ == 'list'    : inType = 'list'
+      else: self.raiseAnError(IOError, self, 'ImportanceRank postprocessor accepts Files, HDF5, PointSet, DataObject(s) only! Got ' + str(type(currentInput)))
+    if inType not in ['HDF5', 'PointSet', 'list'] and not isinstance(inType,Files.File):
+      self.raiseAnError(IOError, self, 'ImportanceRank postprocessor accepts Files, HDF5, PointSet, DataObject(s) only! Got ' + str(inType) + '!!!!')
+    # get input from the external csv file
+    if isinstance(inType,Files.File):
+      if currentInput.subtype == 'csv': pass # to be implemented
+    # get input from PointSet DataObject
+    if inType in ['PointSet']:
+      for feat in self.features:
+        if feat in currentInput.getParaKeys('input'):
+          inputDict['features'][feat] = currentInput.getParam('input', feat)
+        else:
+          self.raiseAError(IOError,'Parameter ' + str(feat) + ' is listed ImportanceRank postprocessor features, but not found in the provided input!')
+      for targetP in self.targets:
+        if targetP in currentInput.getParaKeys('output'):
+          inputDict['targets'][targetP] = currentInput.getParam('output', targetP)
+        else:
+          self.raiseAError(IOError,'Parameter ' + str(targetP) + ' is listed ImportanceRank postprocessor targets, but not found in the provided input!')
+      inputDict['metadata'] = currentInput.getAllMetadata()
+    # get input from HDF5 Database
+    if inType == 'HDF5': pass  # to be implemented
+
+    return inputDict
+
+  def run(self, inputIn):
+    """
+      This method executes the postprocessor action.
+      @ In, inputIn, object, object contained the data to process. (inputToInternal output)
+      @ Out, outputDict, dict, dictionary containing the evaluated data
+    """
+    inputDict = self.inputToInternal(inputIn)
+    outputDict = {}
+    senCoeffDict = {}
+    senWeightDict = {}
+    # compute sensitivities of targets with respect to features
+    featValues = []
+    for feat in self.features:
+      featValues.append(inputDict['features'][feat])
+    sampledFeatMatrix = np.atleast_2d(np.asarray(featValues)).T
+    for target in self.targets:
+      featCoeffs = LinearRegression().fit(sampledFeatMatrix, inputDict['targets'][target]).coef_
+      featWeights = abs(featCoeffs)/np.sum(abs(featCoeffs))
+      senWeightDict[target] = list(zip(self.features,featWeights,self.dimensions))
+      senCoeffDict[target] = featCoeffs
+    # compute importance rank
+    for what in self.what:
+      if what not in outputDict.keys(): outputDict[what] = {}
+      if what.lower() == 'sensitivityindex':
+        for target in self.targets:
+          entries = senWeightDict[target]
+          entries.sort(key=lambda x: x[1],reverse=True)
+          outputDict[what][target] = entries
+      if what.lower() == 'importanceindex':
+        for target in self.targets:
+          featCoeffs = senCoeffDict[target]
+          featWeights = []
+          if not self.transformation:
+            for index,feat in enumerate(self.features):
+              totDim = self.mvnDistribution.dimension
+              covIndex = totDim * (self.dimensions[index] - 1) + self.dimensions[index] - 1
+              if self.mvnDistribution.covarianceType == 'abs':
+                covTarget = featCoeffs[index] * self.mvnDistribution.covariance[covIndex] * featCoeffs[index]
+              else:
+                covFeature = self.mvnDistribution.covariance[covIndex]*self.mvnDistribution.mu[self.dimensions[index]-1]**2
+                covTarget = featCoeffs[index] * covFeature * featCoeffs[index]
+              featWeights.append(covTarget)
+            featWeights = featWeights/np.sum(featWeights)
+            entries = list(zip(self.features,featWeights,self.dimensions))
+            entries.sort(key=lambda x: x[1],reverse=True)
+            outputDict[what][target] = entries
+          # if the features type is 'latent', since latentVariables are used to compute the sensitivities
+          # the covariance for latentVariances are identity matrix
+          else:
+           entries = senWeightDict[target]
+           entries.sort(key=lambda x: x[1],reverse=True)
+           outputDict[what][target] = entries
+      #calculate PCA index
+      if what.lower() == 'pcaindex':
+        index = [dim-1 for dim in self.dimensions]
+        singularValues = self.mvnDistribution.returnSingularValues(index)
+        singularValues = list(singularValues/np.sum(singularValues))
+        entries = list(zip(self.features,singularValues,self.dimensions))
+        entries.sort(key=lambda x: x[1],reverse=True)
+        for target in self.targets:
+          outputDict[what][target] = entries
+      # To be implemented
+      #if what == 'CumulativeSenitivityIndex':
+      #  self.raiseAnError(NotImplementedError,'CumulativeSensitivityIndex is not yet implemented for ' + self.printTag)
+      #if what == 'CumulativeImportanceIndex':
+      #  self.raiseAnError(NotImplementedError,'CumulativeImportanceIndex is not yet implemented for ' + self.printTag)
+
+    return outputDict
 #
 #
 #
@@ -3000,6 +3293,7 @@ __interFaceDict['ComparisonStatistics'     ] = ComparisonStatistics
 __interFaceDict['External'                 ] = ExternalPostProcessor
 __interFaceDict['TopologicalDecomposition' ] = TopologicalDecomposition
 __interFaceDict['DataMining'               ] = DataMining
+__interFaceDict['ImportanceRank'            ] = ImportanceRank
 __knownTypes = __interFaceDict.keys()
 
 def knownTypes():

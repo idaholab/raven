@@ -1,3 +1,4 @@
+<?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>fail_csv</WorkingDir>
@@ -50,7 +51,7 @@
   </Steps>
 
   <Databases>
-    <HDF5 name="simple"/>
+    <HDF5 name="simple" readMode="overwrite"/>
   </Databases>
 
   <DataObjects>
@@ -65,4 +66,3 @@
   </DataObjects>
 
 </Simulation>
-
