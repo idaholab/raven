@@ -85,6 +85,32 @@
     csv = 'data/outBernoulliNB.csv'
     output = 'data/outBernoulliNB.xml'
   [../]
+  ## Non-deterministic
+  [./linearPAC]
+    type = 'RavenFramework'
+    input = 'linearPAC.xml'
+    csv = 'data/outLinearPAC.csv'
+    output = 'data/outLinearPAC.xml'
+  [../]
+  [./linearRidgeC]
+    type = 'RavenFramework'
+    input = 'linearRidgeC.xml'
+    csv = 'data/outLinearRidgeC.csv'
+    output = 'data/outLinearRidgeC.xml'
+  [../]
+  ## Non-deterministic
+  [./linearSGDC]
+    type = 'RavenFramework'
+    input = 'linearSGDC.xml'
+    csv = 'data/outLinearSGDC.csv'
+    output = 'data/outLinearSGDC.xml'
+  [../]
+  [./linearRidgeCCV]
+    type = 'RavenFramework'
+    input = 'linearRidgeCCV.xml'
+    csv = 'data/outLinearRidgeCCV.csv'
+    output = 'data/outLinearRidgeCCV.xml'
+  [../]
   ##############################################################################
   ## Regressors
   [./SVR]
@@ -232,13 +258,6 @@
     output = 'data/outLinearOMPCV.xml'
   [../]
   ## Non-deterministic
-  [./linearPAC]
-    type = 'RavenFramework'
-    input = 'linearPAC.xml'
-    csv = 'data/outLinearPAC.csv'
-    output = 'data/outLinearPAC.xml'
-  [../]
-  ## Non-deterministic
   [./linearPAR]
     type = 'RavenFramework'
     input = 'linearPAR.xml'
@@ -251,29 +270,11 @@
     csv = 'data/outLinearPerceptron.csv'
     output = 'data/outLinearPerceptron.xml'
   [../]
-  [./linearLRandomizedLogisticRegression]
-    type = 'RavenFramework'
-    input = 'linearRandomizedLogisticRegression.xml'
-    csv = 'data/outLinearRandomizedLogisticRegression.csv'
-    output = 'data/outLinearRandomizedLogisticRegression.xml'
-  [../]
   [./linearRidgeR]
     type = 'RavenFramework'
     input = 'linearRidgeR.xml'
     csv = 'data/outLinearRidgeR.csv'
     output = 'data/outLinearRidgeR.xml'
-  [../]
-  [./linearRidgeC]
-    type = 'RavenFramework'
-    input = 'linearRidgeC.xml'
-    csv = 'data/outLinearRidgeC.csv'
-    output = 'data/outLinearRidgeC.xml'
-  [../]
-  [./linearRidgeCCV]
-    type = 'RavenFramework'
-    input = 'linearRidgeCCV.xml'
-    csv = 'data/outLinearRidgeCCV.csv'
-    output = 'data/outLinearRidgeCCV.xml'
   [../]
   [./linearRidgeRCV]
     type = 'RavenFramework'
@@ -281,55 +282,10 @@
     csv = 'data/outLinearRidgeRCV.csv'
     output = 'data/outLinearRidgeRCV.xml'
   [../]
-  ## Non-deterministic
-  [./linearSGDC]
-    type = 'RavenFramework'
-    input = 'linearSGDC.xml'
-    csv = 'data/outLinearSGDC.csv'
-    output = 'data/outLinearSGDC.xml'
-  [../]
   [./linearSGDR]
     type = 'RavenFramework'
     input = 'linearSGDR.xml'
     csv = 'data/outLinearSGDR.csv'
     output = 'data/outLinearSGDR.xml'
   [../]
-  [./linearLARSPath]
-    type = 'RavenFramework'
-    input = 'linearLARSPath.xml'
-    csv = 'data/outLinearLARSPath.csv'
-    output = 'data/outLinearLARSPath.xml'
-  [../]
-  [./linearLassoPath]
-    type = 'RavenFramework'
-    input = 'linearLassoPath.xml'
-    csv = 'data/outLinearLassoPath.csv'
-    output = 'data/outLinearLassoPath.xml'
-  [../]
-  [./linearLassoStabilityPath]
-    type = 'RavenFramework'
-    input = 'linearLassoStabilityPath.xml'
-    csv = 'data/outLinearLassoStabilityPath.csv'
-    output = 'data/outLinearLassoStabilityPath.xml'
-  [../]
-  [./linearOMPGram]
-    type = 'RavenFramework'
-    input = 'linearOMPGram.xml'
-    csv = 'data/outLinearOMPGram.csv'
-    output = 'data/outLinearOMPGram.xml'
-  [../]
-  ##############################################################################
-  ## No predict
-  #[./NN]
-  #  type = 'RavenFramework'
-  #  input = 'nn.xml'
-  #  csv = 'data/outNN.csv'
-  #  output = 'data/outNN.xml'
-  #[../]
-  #[./linearRandomizedLasso]
-  #  type = 'RavenFramework'
-  #  input = 'linearRandomizedLasso.xml'
-  #  csv = 'data/outLinearRandomizedLasso.csv'
-  #  output = 'data/outLinearRandomizedLasso.xml'
-  #[../]
 []
