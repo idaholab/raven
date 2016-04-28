@@ -1191,22 +1191,23 @@ class ImportanceRank(BasePostProcessor):
   """
     ImportantRank class. It computes the important rank for given input parameters
     1. The importance of input parameters can be ranked via their sensitivies (SI: sensitivity index)
-    2. The importance of input parameters can also be ranked via their sensitivies and covariances (II: importance index)
-    3. CSI: Cumulative sensitive index
-    4. CII: Cumulative importance index
+    2. The importance of input parameters can be ranked via their sensitivies and covariances (II: importance index)
+    3. The importance of input directions based principal component analysis of inputs covariances (PCA index)
+    3. CSI: Cumulative sensitive index (added in the future)
+    4. CII: Cumulative importance index (added in the future)
   """
   def __init__(self, messageHandler):
     """
       Constructor
       @ In, messageHandler, message handler object
+      @ Out, None
     """
     BasePostProcessor.__init__(self, messageHandler)
     self.targets = []
     self.features = []
     self.dimensions = []
     self.mvnDistribution = None
-    self.acceptedMetric = ['SensitivityIndex','ImportanceIndex']
-    #self.acceptedMetric = ['SensitivityIndex','ImportanceIndex','CumulativeSensitivityIndex','CumulativeImportanceIndex'] # This will be used in the future
+    self.acceptedMetric = ['sensitivityindex','importanceindex','pcaindex']
     self.what = self.acceptedMetric # what needs to be computed, default is all
     self.printTag = 'POSTPROCESSOR IMPORTANTANCE RANK'
     self.requiredAssObject = (True,(['Distributions'],[-1]))
@@ -1247,7 +1248,7 @@ class ImportanceRank(BasePostProcessor):
           toCalculate = []
           for metric in self.what.split(','):
             toCalculate.append(metric.strip())
-            if metric not in self.acceptedMetric:
+            if metric.lower() not in self.acceptedMetric:
               self.raiseAnError(IOError, 'Importance rank postprocessor asked unknown operation ' + metric + '. Available ' + str(self.acceptedMetric))
           self.what = toCalculate
       if child.tag == 'targets':
@@ -1297,7 +1298,7 @@ class ImportanceRank(BasePostProcessor):
       maxLength = max(len(max(parameterSet, key = len)) + 5, 16)
       # Output all metrics to given file
       for what in outputDict.keys():
-        if what in ['SensitivityIndex', 'ImportanceIndex']:
+        if what.lower() in ['sensitivityindex','importanceindex']:
           self.raiseADebug('Writing parameter rank for metric ' + what)
           for target in self.targets:
             if outputExtension != 'csv':
@@ -1311,9 +1312,10 @@ class ImportanceRank(BasePostProcessor):
     elif output.type in ['PointSet','Point','History','HistorySet']:
       self.raiseADebug('Dumping output in data object named ' + output.name)
       for what in outputDict.keys():
-        for target in self.targets:
-          self.raiseADebug('Dumping ' + target + '-' + what + '. Metadata name = ' + target + '-' + what + '. Targets stored in ' +  target + '-'  + what)
-          output.updateMetadata(target + '-'  + what, outputDict[what][target])
+        if what.lower() in ['sensitivityindex','importanceindex']:
+          for target in self.targets:
+            self.raiseADebug('Dumping ' + target + '-' + what + '. Metadata name = ' + target + '-' + what + '. Targets stored in ' +  target + '-'  + what)
+            output.updateMetadata(target + '-'  + what, outputDict[what][target])
     elif output.type == 'HDF5' : self.raiseAWarning('Output type ' + str(output.type) + ' not yet implemented. Skip it !!!!!')
     else: self.raiseAnError(IOError, 'Output type ' + str(output.type) + ' unknown.')
 
@@ -1333,7 +1335,7 @@ class ImportanceRank(BasePostProcessor):
       @ In, currentInput, object, an object that needs to be converted
       @ Out, inputDict, dictionary of the converted data
     """
-    if type(currentInp) == list  : currentInput = currentInp [-1]
+    if type(currentInp) == list  : currentInput = currentInp[-1]
     else                         : currentInput = currentInp
     if type(currentInput) == dict:
       if 'targets' in currentInput.keys(): return currentInput
@@ -1369,8 +1371,8 @@ class ImportanceRank(BasePostProcessor):
   def run(self, inputIn):
     """
       This method executes the postprocessor action.
-      @ In,  inputIn, object, object contained the data to process. (inputToInternal output)
-      @ Out, outputDict, dict, Dictionary containing the evaluated data
+      @ In, inputIn, object, object contained the data to process. (inputToInternal output)
+      @ Out, outputDict, dict, dictionary containing the evaluated data
     """
     inputDict = self.inputToInternal(inputIn)
     outputDict = {}
@@ -1389,12 +1391,12 @@ class ImportanceRank(BasePostProcessor):
     # compute importance rank
     for what in self.what:
       if what not in outputDict.keys(): outputDict[what] = {}
-      if what == 'SensitivityIndex':
+      if what.lower() == 'sensitivityindex':
         for target in self.targets:
           entries = senWeightDict[target]
           entries.sort(key=lambda x: x[1],reverse=True)
           outputDict[what][target] = entries
-      if what == 'ImportanceIndex':
+      if what.lower() == 'importanceindex':
         for target in self.targets:
           featCoeffs = senCoeffDict[target]
           featWeights = []
@@ -1418,7 +1420,15 @@ class ImportanceRank(BasePostProcessor):
            entries = senWeightDict[target]
            entries.sort(key=lambda x: x[1],reverse=True)
            outputDict[what][target] = entries
-
+      #calculate PCA index
+      if what.lower() == 'pcaindex':
+        index = [dim-1 for dim in self.dimensions]
+        singularValues = self.mvnDistribution.returnSingularValues(index)
+        singularValues = list(singularValues/np.sum(singularValues))
+        sortedSingularValues = sorted(singularValues)
+        newDimensions = [self.dimensions[singularValues.index(value)] for value in sortedSingularValues]
+        outputDict[what]['Contribution'] = sortedSingularValues
+        outputDict[what]['indices'] = newDimensions
       # To be implemented
       #if what == 'CumulativeSenitivityIndex':
       #  self.raiseAnError(NotImplementedError,'CumulativeSensitivityIndex is not yet implemented for ' + self.printTag)

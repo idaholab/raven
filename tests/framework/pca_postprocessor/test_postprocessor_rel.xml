@@ -74,16 +74,16 @@
       <Model class="Models" type="PostProcessor">test_importantRank</Model>
       <Output class="Files" type="">output.csv</Output>
       <Output class="DataObjects" type="PointSet">collset</Output>
-      <Output class="OutStreamManager" type="Print">postProcessorDump</Output>
+      <Output class="OutStreams" type="Print">postProcessorDump</Output>
     </PostProcess>
   </Steps>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="postProcessorDump">
       <type>csv</type>
       <source>collset</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
   <DataObjects>
     <PointSet name="dummyIN">
