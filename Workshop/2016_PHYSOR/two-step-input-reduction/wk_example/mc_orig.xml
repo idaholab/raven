@@ -7,7 +7,6 @@
   </RunInfo>
 
   <Files>
-    <Input name="Functions.py" type="">Functions.py</Input>
     <Input name="statsfile" type="">basic_stats_orig.csv</Input>
   </Files>
 

@@ -2,25 +2,21 @@
 <Simulation>
   <RunInfo>
     <WorkingDir>run</WorkingDir>
-    <Sequence>sample,dump,stats</Sequence>
+    <Sequence>sample,train,dump,stats</Sequence>
     <batchSize>36</batchSize>
   </RunInfo>
-
-  <Files>
-    <Input name="statsfile" type="">pca_rank.xml</Input>
-  </Files>
 
   <Models>
     <ExternalModel ModuleToLoad="run/attenuate.py" name="atten" subType="">
       <variables>x1,x2,x3,x4,x5,x6,ans</variables>
     </ExternalModel>
-    <PostProcessor name="stats" subType="ImportanceRank">
-      <what>pcaindex</what>
-      <features>y1,y2,y3,y4,y5,y6</features>
-      <targets>ans</targets>
-      <dimensions>1,2,3,4,5,6</dimensions>
-      <mvnDistribution>mvn</mvnDistribution>
-    </PostProcessor>
+    <ROM name="rom" subType="HDMRRom">
+      <SobolOrder>1</SobolOrder>
+      <Target>ans</Target>
+      <Features>y1,y2,y3,y4</Features>
+      <IndexSet>TensorProduct</IndexSet>
+      <PolynomialOrder>2</PolynomialOrder>
+    </ROM>
   </Models>
 
   <Distributions>
@@ -34,17 +30,17 @@
         0.96 0.00 0.00 0.90 0.06 0.02
         0.97 0.00 0.00 0.93 0.02 0.07
       </covariance>
+      <transformation>
+        <rank>4</rank>
+      </transformation>
     </MultivariateNormal>
   </Distributions>
 
   <Samplers>
-    <MonteCarlo name='mcsamp'>
-      <samplerInit>
-        <limit>100</limit>
-      </samplerInit>
+    <Sobol name='sobolsamp'>
       <variablesTransformation distribution="mvn">
         <manifestVariables>x1,x2,x3,x4,x5,x6</manifestVariables>
-        <latentVariables>y1,y2,y3,y4,y5,y6</latentVariables>
+        <latentVariables>y1,y2,y3,y4</latentVariables>
         <method>pca</method>
       </variablesTransformation>
       <variable name='y1'>
@@ -59,47 +55,50 @@
       <variable name='y4'>
         <distribution dim='4'>mvn</distribution>
       </variable>
-      <variable name='y5'>
-        <distribution dim='5'>mvn</distribution>
-      </variable>
-      <variable name='y6'>
-        <distribution dim='6'>mvn</distribution>
-      </variable>
-    </MonteCarlo>
+      <ROM class='Models' type='ROM'>rom</ROM>
+    </Sobol>
   </Samplers>
 
   <Steps>
     <MultiRun name="sample" sleepTime="1e-5">
       <Input class="DataObjects" type="Point">inputPlaceHolder</Input>
       <Model class="Models" type="ExternalModel">atten</Model>
-      <Sampler class="Samplers" type="MonteCarlo">mcsamp</Sampler>
+      <Sampler class="Samplers" type="MonteCarlo">sobolsamp</Sampler>
       <Output class="DataObjects" type="PointSet">solns</Output>
     </MultiRun>
+    <RomTrainer name="train">
+      <Input class="DataObjects" type="PointSet">solns</Input>
+      <Output class="Models" type="ROM">rom</Output>
+    </RomTrainer>
     <IOStep name="dump">
       <Input class="DataObjects" type="PointSet">solns</Input>
-      <Output class="OutStreams" type="Print">solns_dump_pca</Output>
+      <Output class="OutStreams" type="Print">solns_dump_sobol</Output>
     </IOStep>
-    <PostProcess name="stats">
-      <Input class='DataObjects' type='PointSet'>solns</Input>
-      <Model class="Models" type="PostProcessor">stats</Model>
-      <Output class="Files" type="">statsfile</Output>
-    </PostProcess>
+    <IOStep name="stats">
+      <Input class="Models" type="ROM">rom</Input>
+      <Output class="OutStreams" type="Print">sobol_stats</Output>
+    </IOStep>
   </Steps>
 
   <OutStreams>
-    <Print name="solns_dump_pca">
+    <Print name="solns_dump_sobol">
       <type>csv</type>
       <source>solns</source>
+    </Print>
+    <Print name="sobol_stats">
+      <type>xml</type>
+      <source>rom</source>
+      <what>all</what>
     </Print>
   </OutStreams>
 
   <DataObjects>
     <Point name="inputPlaceHolder">
-      <Input>x1,x2,x3,x4,x5,x6</Input>
+      <Input>y1,y2,y3,y4</Input>
       <Output>OutputPlaceHolder</Output>
     </Point>
     <PointSet name="solns">
-      <Input>y1,y2,y3,y4,y5,y6</Input>
+      <Input>y1,y2,y3,y4</Input>
       <Output>ans</Output>
     </PointSet>
   </DataObjects>
