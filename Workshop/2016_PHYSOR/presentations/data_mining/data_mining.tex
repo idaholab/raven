@@ -110,7 +110,7 @@ Idaho National Laboratory}
 %%Gaussian mixture models
 %%K-Means - separates samples into equal variance
 %%Affinity - sending message pairs to find exemplars
-%%Mean shift - head towards denser places
+%%Mean shift - head towards denser places, finds centroids that can be the mean of points in a region
 %%Spectral clustering - affinity matrix + K-Means in low dimensional space
 %%DBSCAN - find areas of high density, irregular areas
 
@@ -134,9 +134,9 @@ Idaho National Laboratory}
 \end{frame}
 
 %Dimensionality reduction
-%%PCA - converts correlated or uncorrelated variables into set of linearly uncorrelated variables.  Allows finding the most important dimensions
-%%Truncated SVD  Singular value decomposition
-%%Independent Component Analysis
+%%PCA - converts correlated or uncorrelated variables into set of linearly uncorrelated variables.  Allows finding the most important dimensions for explaining the variance.
+%%Truncated SVD  Singular value decomposition, similar to PCA but works on samples directly instead of on the covariances
+%%Independent Component Analysis selects components for maximum amount of independent information.
 
 
 \section{Clustering Example}
