@@ -1734,6 +1734,11 @@ class SciKitLearn(superVisedLearning):
   """
   An Interface to the ROMs provided by skLearn
   """
+  ## The types in this list should not be normalized by default. I would argue
+  ## that none of these should be normed by default, since sklearn offers that
+  ## option where applicable, but that is for someone else to make a decision.
+  unnormedTypes = ['MultinomialNB']
+
   ROMtype = 'SciKitLearn'
   availImpl = {}
   availImpl['lda'] = {}
@@ -1830,6 +1835,7 @@ class SciKitLearn(superVisedLearning):
     if 'SKLtype' not in self.initOptionDict.keys():
       self.raiseAnError(IOError,'to define a scikit learn ROM the SKLtype keyword is needed (from ROM '+self.initOptionDict['name']+')')
     SKLtype, SKLsubType = self.initOptionDict['SKLtype'].split('|')
+    self.subType = SKLsubType
     self.initOptionDict.pop('SKLtype')
     if not SKLtype in self.__class__.availImpl.keys():
       self.raiseAnError(IOError,'not known SKLtype ' + SKLtype +'(from ROM '+self.initOptionDict['name']+')')
@@ -1884,6 +1890,7 @@ class SciKitLearn(superVisedLearning):
     """
     #If all the target values are the same no training is needed and the moreover the self.evaluate could be re-addressed to this value
     if len(np.unique(targetVals))>1:
+      print(featureVals)
       self.ROM.fit(featureVals,targetVals)
       self.evaluate = self._readdressEvaluateRomResponse
       #self.evaluate = lambda edict : self.__class__.evaluate(self,edict)
@@ -1934,6 +1941,19 @@ class SciKitLearn(superVisedLearning):
     self.raiseADebug('here we need to collect some info on the ROM status')
     params = {}
     return params
+
+  def _localNormalizeData(self,values,names,feat):
+    """
+      Overwrites default normalization procedure.
+      @ In, values, list(float), unused
+      @ In, names, list(string), unused
+      @ In, feat, string, feature to (not) normalize
+      @ Out, None
+    """
+    if self.subType in self.unnormedTypes:
+      self.muAndSigmaFeatures[feat] = (0.0,1.0)
+    else:
+      super(SciKitLearn, self)._localNormalizeData(values,names,feat)
 #
 #
 #

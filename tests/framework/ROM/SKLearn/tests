@@ -49,12 +49,6 @@
     csv = 'data/outDTC.csv'
     output = 'data/outDTC.xml'
   [../]
-  [./ETC]
-    type = 'RavenFramework'
-    input = 'etc.xml'
-    csv = 'data/outETC.csv'
-    output = 'data/outETC.xml'
-  [../]
   [./OVR]
     type = 'RavenFramework'
     input = 'ovr.xml'
@@ -73,37 +67,17 @@
     csv = 'data/outGaussianNB.csv'
     output = 'data/outGaussianNB.xml'
   [../]
-  [./MultinomialNB]
-    type = 'RavenFramework'
-    input = 'multinomialNB.xml'
-    csv = 'data/outMultinomialNB.csv'
-    output = 'data/outMultinomialNB.xml'
-  [../]
   [./BernoulliNB]
     type = 'RavenFramework'
     input = 'bernoulliNB.xml'
     csv = 'data/outBernoulliNB.csv'
     output = 'data/outBernoulliNB.xml'
   [../]
-  ## Non-deterministic
-  [./linearPAC]
-    type = 'RavenFramework'
-    input = 'linearPAC.xml'
-    csv = 'data/outLinearPAC.csv'
-    output = 'data/outLinearPAC.xml'
-  [../]
   [./linearRidgeC]
     type = 'RavenFramework'
     input = 'linearRidgeC.xml'
     csv = 'data/outLinearRidgeC.csv'
     output = 'data/outLinearRidgeC.xml'
-  [../]
-  ## Non-deterministic
-  [./linearSGDC]
-    type = 'RavenFramework'
-    input = 'linearSGDC.xml'
-    csv = 'data/outLinearSGDC.csv'
-    output = 'data/outLinearSGDC.xml'
   [../]
   [./linearRidgeCCV]
     type = 'RavenFramework'
@@ -136,18 +110,6 @@
     input = 'qda.xml'
     csv = 'data/outQDA.csv'
     output = 'data/outQDA.xml'
-  [../]
-  [./DTR]
-    type = 'RavenFramework'
-    input = 'dtr.xml'
-    csv = 'data/outDTR.csv'
-    output = 'data/outDTR.xml'
-  [../]
-  [./ETR]
-    type = 'RavenFramework'
-    input = 'etr.xml'
-    csv = 'data/outETR.csv'
-    output = 'data/outETR.xml'
   [../]
   [./GP]
     type = 'RavenFramework'
@@ -257,13 +219,6 @@
     csv = 'data/outLinearOMPCV.csv'
     output = 'data/outLinearOMPCV.xml'
   [../]
-  ## Non-deterministic
-  [./linearPAR]
-    type = 'RavenFramework'
-    input = 'linearPAR.xml'
-    csv = 'data/outLinearPAR.csv'
-    output = 'data/outLinearPAR.xml'
-  [../]
   [./linearPerceptron]
     type = 'RavenFramework'
     input = 'linearPerceptron.xml'
@@ -282,10 +237,54 @@
     csv = 'data/outLinearRidgeRCV.csv'
     output = 'data/outLinearRidgeRCV.xml'
   [../]
+  ##############################################################################
+  ## Failures
+  [./linearPAR]
+    type = 'RavenFramework'
+    input = 'linearPAR.xml'
+    csv = 'data/outLinearPAR.csv'
+    output = 'data/outLinearPAR.xml'
+  [../]
   [./linearSGDR]
     type = 'RavenFramework'
     input = 'linearSGDR.xml'
     csv = 'data/outLinearSGDR.csv'
     output = 'data/outLinearSGDR.xml'
+  [../]
+  [./DTR]
+    type = 'RavenFramework'
+    input = 'dtr.xml'
+    csv = 'data/outDTR.csv'
+    output = 'data/outDTR.xml'
+  [../]
+  [./ETR]
+    type = 'RavenFramework'
+    input = 'etr.xml'
+    csv = 'data/outETR.csv'
+    output = 'data/outETR.xml'
+  [../]
+  [./linearPAC]
+    type = 'RavenFramework'
+    input = 'linearPAC.xml'
+    csv = 'data/outLinearPAC.csv'
+    output = 'data/outLinearPAC.xml'
+  [../]
+  [./linearSGDC]
+    type = 'RavenFramework'
+    input = 'linearSGDC.xml'
+    csv = 'data/outLinearSGDC.csv'
+    output = 'data/outLinearSGDC.xml'
+  [../]
+  [./MultinomialNB]
+    type = 'RavenFramework'
+    input = 'multinomialNB.xml'
+    csv = 'data/outMultinomialNB.csv'
+    output = 'data/outMultinomialNB.xml'
+  [../]
+  [./ETC]
+    type = 'RavenFramework'
+    input = 'etc.xml'
+    csv = 'data/outETC.csv'
+    output = 'data/outETC.xml'
   [../]
 []

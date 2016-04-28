@@ -13,7 +13,7 @@
   </RunInfo>
 
   <Models>
-    <ExternalModel ModuleToLoad="./testClassifier" name="foo" subType="">
+    <ExternalModel ModuleToLoad="./testClassifierMultinomial" name="foo" subType="">
       <variables>X,Y,Z</variables>
     </ExternalModel>
     <ROM name="modelUnderTest" subType="SciKitLearn">
@@ -27,7 +27,28 @@
   </Models>
 
   <ExternalXML node="Distributions" xmlToLoad="sharedDistributions.xml"/>
-  <ExternalXML node="Samplers" xmlToLoad="sharedSamplers.xml"/>
+  <Samplers>
+    <Grid name="mcSampler">
+      <variable name="X">
+        <distribution>smallUniformDist</distribution>
+        <grid construction="equal" steps="5" type="value">2 12</grid>
+      </variable>
+      <variable name="Y">
+        <distribution>largeUniformDist</distribution>
+        <grid construction="equal" steps="5" type="value">1000 2000</grid>
+      </variable>
+    </Grid>
+    <Grid name="gridSampler">
+      <variable name="X">
+        <distribution>smallUniformDist</distribution>
+        <grid construction="equal" steps="10" type="value">2 12</grid>
+      </variable>
+      <variable name="Y">
+        <distribution>largeUniformDist</distribution>
+        <grid construction="equal" steps="10" type="value">1000 2000</grid>
+      </variable>
+    </Grid>
+  </Samplers>
   <ExternalXML node="Steps" xmlToLoad="sharedSteps.xml"/>
 
   <OutStreams>
