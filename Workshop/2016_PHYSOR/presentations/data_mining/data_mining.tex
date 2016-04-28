@@ -58,6 +58,7 @@ Idaho National Laboratory}
 \begin{titleframe}{Data Mining with RAVEN}
   \vfill
       {\small 
+Joshua J. Cogliati\\
 Nuclear Engineering Methods Development Department\\
 Idaho National Laboratory}
 \end{titleframe}
@@ -137,6 +138,64 @@ Idaho National Laboratory}
 %%Truncated SVD  Singular value decomposition
 %%Independent Component Analysis
 
+
+\section{Clustering Example}
+
+\begin{frame}
+  \frametitle{Clustering in RAVEN}
+  \begin{itemize}
+  \item RAVEN can cluster output data
+  \item Allows the features in the data to be seen
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Gaussian Mixture Clustering Example}
+  This is the postprocessor that calculates the Gaussian Mixture clustering:
+  \lstinputlisting[firstline=14, lastline=24, style=XML]{../../misc/example/cluster/test_dataMiningGaussianMixture.xml}
+
+\end{frame}
+
+\begin{frame}
+  \frametitle{Gaussian Mixture Cluster Example Output}
+  \includegraphics[width=\textwidth]{images/PlotGaussianMixture.png}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Means Shift Clustering Example}
+  This is the postprocessor that calculates the Means Shift clustering:
+  \lstinputlisting[firstline=15, lastline=22, style=XML]{../../misc/example/cluster/test_dataMiningMeanShift.xml}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Means Shift Cluster Example Output}
+  \includegraphics[width=\textwidth]{images/PlotMeanShift.png}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{K-Means Clustering Example}
+  This is the postprocessor that calculate the K-Means clustering:
+  \lstinputlisting[firstline=37, lastline=47, style=XML]{../../misc/example/cluster/test_dataMiningKMeans.xml}
+\end{frame}
+
+\begin{frame}
+  \frametitle{K-Means Cluster Example Output}
+  \includegraphics[width=\textwidth]{images/PlotKMeans.png}
+\end{frame}
+
+\section{Dimentionality Reduction Example}
+
+\begin{frame}[fragile]
+  \frametitle{Dimentionality Reduction Example}
+  This is the postprocessor that decreases the dimentionality:
+  \lstinputlisting[firstline=23, lastline=29, style=XML]{../../misc/example/cluster/test_dataMiningExactPCA.xml}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Exact PCA Dimentionality Reduction Example Output}
+  \includegraphics[width=\textwidth]{images/PlotExactPCA.png}
+\end{frame}
+
 \section{Basic Statistics with Time Dependence in RAVEN}
 
 \begin{frame}
@@ -177,38 +236,8 @@ Idaho National Laboratory}
 %%Show input
 %%Show output graph
 
-\section{Clustering Example}
-
 \begin{frame}
-  \frametitle{Clustering in RAVEN}
-  \begin{itemize}
-  \item RAVEN can cluster output data
-  \item Allows the features in the data to be seen
-  \end{itemize}
+  \frametitle{Questions?}
 \end{frame}
-
-\begin{frame}[fragile]
-  \frametitle{Gaussian Mixture Clustering Example}
-  This is the postprocessor that calculates the Gaussian Mixture clustering:
-  \lstinputlisting[firstline=14, lastline=24, style=XML]{../../misc/example/cluster/test_dataMiningGaussianMixture.xml}
-
-\end{frame}
-
-\begin{frame}
-  \frametitle{Gaussian Mixture Cluster Example Output}
-  \includegraphics[width=\textwidth]{images/PlotGaussianMixture.png}
-\end{frame}
-
-\begin{frame}[fragile]
-  \frametitle{Means Shift Clustering Example}
-  This is the postprocessor that calculates the Means Shift clustering:
-  \lstinputlisting[firstline=15, lastline=22, style=XML]{../../misc/example/cluster/test_dataMiningMeanShift.xml}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Means Shift Cluster Example Output}
-  \includegraphics[width=\textwidth]{images/PlotMeanShift.png}
-\end{frame}
-
 
 \end{document}
