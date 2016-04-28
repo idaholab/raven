@@ -22,11 +22,12 @@
 \usetheme{INL}
 
 \usepackage{listings}
-\lstset{%
-  language=C++,
+\lstset{
+  basicstyle=\ttfamily\scriptsize,
+  frame=single,
+  backgroundcolor=\color{cbbkng},
+  emphstyle={\color{red}\textbf},
 	showstringspaces=false,
-% basicstyle=\scriptsize\ttfamily,
-  basicstyle=\small\ttfamily,
   commentstyle=\color{inl@green},
 	keywordstyle=\bfseries,
   escapeinside=$$
@@ -211,6 +212,10 @@ Idaho National Laboratory}
   \end{itemize}
 \end{frame}
 
+\subsection{Principle Component Analysis}
+\begin{frame}{Methods: Principal Component Analysis}
+\end{frame}
+
 \begin{frame}{Methods: Principal Component Analysis}
   Used to orthogonalize input space
 
@@ -237,22 +242,219 @@ Idaho National Laboratory}
   %TODO show list and truncation pic
 \end{frame}
 
-\begin{frame}{Methods: PCA in RAVEN}
-  Add transformation to \code{Sampler}:
-  \begin{codebox}
-    \begin{lstlisting}[basicstyle=\ttfamily\scriptsize,frame=single,backgroundcolor=\color{cbbkng},language=python]
+\begin{frame}[fragile]{Methods: PCA in RAVEN}
+Add transformation to \code{Sampler}:
+\begin{codebox}
+  \begin{lstlisting}[emph={variablesTransformation,latentVariables,manifestVariables}]
     <Samplers>
-      <MonteCarlo name=``mySampler''>
-        ...
-        <variablesTransformation distribution=``MultivariateNormalReduction''>
-          <latentVariables>a,b,c</latentVariables>
-          <manifestVariables>w,x,y,z</manifestVariables>
+      <MonteCarlo name='mc'>
+        ... TODO add variables with dimensions
+        <variablesTransformation distribution='MultivariateNormalReduction'>
+          <latentVariables>y1,y2,y3,y4,y5,y6,y7</latentVariables>
+          <manifestVariables>x1,x2,x3,x4,x5,x6,x7</manifestVariables>
           <method>pca</method>
       </MonteCarlo>
     </Samplers>
+\end{lstlisting}
+\end{codebox}
+\end{frame}
+
+\begin{frame}[fragile]{Methods: PCA in RAVEN}
+  Use a PostProcessor to extract the rankings
+
+  PostProcessor
+  \begin{codebox}
+    \begin{lstlisting}[emph={PostProcessor}]
+    <Models>
+      <PostProcessor TODO>
+      </PostProcessor>
+    </Models>
+    \end{lstlisting}
+  \end{codebox}
+  Step
+  \begin{codebox}
+    \begin{lstlisting}[emph={PostProcessor}]
+    <Steps>
+      <PostProcessor name='TODO'>
+      </PostProcessor>
+    </Steps>
+    \end{lstlisting}
+  \end{codebox}
+Use results from file TODO to pick PCA truncation
+\end{frame}
+
+\begin{frame}[fragile]{Methods: PCA in RAVEN}
+  Once reduction level is decided, change sampler truncation
+\begin{codebox}
+  \begin{lstlisting}[emph={y1,y2,y3}]
+    <Samplers>
+      <MonteCarlo name='mc'>
+        ... TODO add variables with dimensions
+        <variablesTransformation distribution='MultivariateNormalReduction'>
+          <latentVariables>y1,y2,y3,y4</latentVariables>
+          <manifestVariables>x1,x2,x3,x4,x5,x6,x7</manifestVariables>
+          <method>pca</method>
+      </MonteCarlo>
+    </Samplers>
+\end{lstlisting}
+\end{codebox}
+\end{frame}
+
+
+
+\subsection{Global Sensitivity Analysis}
+\begin{frame}{Methods: Global Sensitivity Analysis}
+  Now that we've reduced the input, we can do global sensitivity analysis
+  \begin{itemize}
+    \item Pearson Correlation Coefficients
+    \item Spearman Rank Coefficients
+    \item Sobol Sensitivity Coefficients
+  \end{itemize}
+  Pearson and Spearman can be sampled using forward samplers
+
+  Linear Sobol expansion often more efficient (1 run per latent variable)
+\end{frame}
+
+\begin{frame}{Methods: Global Sensitivity Analysis}
+  Pearson Coefficients
+  \begin{itemize}
+    \item Global correlation between dimensions
+    \item Can be input-input, input-output, or output-output
+    \item Can be calculated using most RAVEN Samplers
+  \end{itemize}
+  %TODO add picture
+\end{frame}
+
+\begin{frame}[fragile]{Methods: Global Sensitivity Analysis}
+  More on Sobol sampler and HDMRRom in Collocation workshop!
+
+  Sobol sampler
+  \begin{codebox}
+    \begin{lstlisting}[emph={y1,y2,y3,Sobol,rom}]
+        <Samplers>
+          <Sobol name='sobol'>
+            ... TODO add variables with dimensions
+            <ROM class='Models' type='HDMRRom'>rom</ROM>
+            <variablesTransformation distribution='MultivariateNormalReduction'>
+              <latentVariables>y1,y2,y3,y4</latentVariables>
+              <manifestVariables>x1,x2,x3,x4,x5,x6,x7</manifestVariables>
+              <method>pca</method>
+          </Sobol>
+        </Samplers>
     \end{lstlisting}
   \end{codebox}
 \end{frame}
 
+\begin{frame}[fragile]{Methods: Global Sensitivity Analysis}
+  HDMRRom
+  \begin{codebox}
+    \begin{lstlisting}[emph={SobolOrder}]
+        <Models>
+          <ROM name='rom' subType='HDMRRom'>
+            <SobolOrder>1</SobolOrder>
+            <PolynomialOrder>1</PolynomialOrder>
+            <IndexSet>TotalDegree</IndexSet>
+            <Features>y1,y2,y3</Features>
+            <Targets>QoI</Targets>
+            ... TODO
+          </ROM>
+        </Models>
+    \end{lstlisting}
+  \end{codebox}
+  ROM Output
+  \begin{codebox}
+    \begin{lstlisting}[emph={print\_rom,rom}]
+      <OutStreams>
+        <Print name='print_rom'>
+          <type>xml</type>
+          <source>rom</source>
+          <what>indices</what>
+        </Print>
+      </OutStreams>
+    \end{lstlisting}
+  \end{codebox}
+\end{frame}
+
+\begin{frame}[fragile]{Methods: Global Sensitivity Analysis}
+  Steps
+  \begin{codebox}
+    \begin{lstlisting}[emph={MultiRun,rom,sobol,RomTrainer,training\_data,rom}]
+      <Steps>
+        <MultiRun name='sample'>
+          <Input class='Files' type=''>infile</Input>
+          <Sampler class='Sampelrs' type='Sobol'>sobol</Sampler>
+          <Model class='Models' type='ROM'>rom</Models>
+          <Output class='DataObjects' type='PointSet'>training_data</Output>
+        </MultiRun>
+        <RomTrainer name='train'>
+          <Input class='DataObjects' type='PointSet'>training_data</Input>
+          <Output class='Models' type='ROM'>rom</Input>
+        </RomTrainer>
+      </Steps>
+    \end{lstlisting}
+  \end{codebox}
+\end{frame}
+
+\begin{frame}[fragile]{Methods: Global Sensitivity Analysis}
+  Output from ROM
+  \begin{codebox}
+    \begin{lstlisting}[emph={indices}]
+    <ROM>
+      <QoI>
+        <indices>
+          <tot\_variance>TODO</tot\_variance>
+          <variables>TODO
+            <partial\_variance>TODO</partial\_variance>
+            <Sobol\_index>TODO</Sobol\_index>
+          </variables>
+        </indices>
+      </QoI>
+    </ROM>
+    \end{lstlisting}
+  \end{codebox}
+\end{frame}
+
+\begin{frame}[fragile]{Methods: Twice-Reduced Analysis}
+  Change dimensions in Sampler to prioritize
+  \begin{codebox}
+    \begin{lstlisting}[emph={indices}]
+      TODO sampler
+    \end{lstlisting}
+  \end{codebox}
+\end{frame}
+
+\begin{frame}[fragile]{Methods: Twice-Reduced Analysis}
+  Now what?
+  \begin{itemize}
+    \item Make a ROM
+    \item Perform surrogate statistics sampling
+    \item Compute limit surface on surrogate
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Full Example}
+  Example case: Cross Section Model
+  \begin{itemize}
+    \item 308 Correlated Cross Sections (SCALE)
+    \item Simulation model is polynomial combinations
+    \item PCA Reduction: 308 to 50
+    \item Sensitivity Reduction: 50 to 9
+  \end{itemize}
+  See included examples:
+  \begin{itemize}
+    \item Original Monte Carlo benchmark: \code{run\char`_mc\char`_orig.xml}
+    \item PCA reduction: \code{run\char`_mc\char`_pca.xml}
+    \item PCA output: \code{first/TODO}
+    \item Sensitivity reduction: \code{run\char`_mc2\char`_[\#].xml}
+    \item Sensitivity output: \code{first/sobol\char`_dump.xml}
+    \item ROM with twice-reduced space: \code{sc\char`_td[\#].xml}
+    \item Twice-reduced output: \code{td\char`_[\#]\char`_dump.xml}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Full Example: Results}
+  TODO RESULTS PLOTS
+\end{frame}
 
 \end{document}
+
