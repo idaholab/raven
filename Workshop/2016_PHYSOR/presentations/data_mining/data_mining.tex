@@ -138,45 +138,6 @@ Idaho National Laboratory}
 %%Truncated SVD  Singular value decomposition
 %%Independent Component Analysis
 
-\section{Basic Statistics with Time Dependence in RAVEN}
-
-\begin{frame}
-  \frametitle{Basic Statistics with Time Dependence}
-  \begin{itemize}
-  \item RAVEN calculates statistics at each time
-  \item Allows trends in the data to be seen
-  \end{itemize}
-\end{frame}
-
-\begin{frame}[fragile]
-  \frametitle{Basic Statistics Example}
-  This is the postprocessor that calculates the time statistics:
-  \lstinputlisting[firstline=13, lastline=19, style=XML]{../../misc/example/temporalBasicStatistics.xml}
-
-\end{frame}
-
-\begin{frame}
-  \frametitle{Example Input}
-  \begin{itemize}
-  \item Contains 100 x,y coordinates
-  \item Has timestep data for 100 steps of 0.1
-  \end{itemize}
-  Play Movie \movie[externalviewer]{(MPEG-1)}{time_data.mpg} \movie[externalviewer]{(Theora)}{time_data.ogg}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Example Output}
-  \begin{columns}
-    \column{.5\textwidth}
-    \includegraphics[height=4cm]{images/plotPPDataMeanX.png}
-    \column{.5\textwidth}
-    \includegraphics[height=4cm]{images/plotPPDataMeanY.png}
-  \end{columns}
-\end{frame}
-%Basic statistics with time dependence
-%%Show example
-%%Show input
-%%Show output graph
 
 \section{Clustering Example}
 
@@ -222,5 +183,61 @@ Idaho National Laboratory}
   \includegraphics[width=\textwidth]{images/PlotKMeans.png}
 \end{frame}
 
+\section{Dimentionality Reduction Example}
+
+\begin{frame}[fragile]
+  \frametitle{Dimentionality Reduction Example}
+  This is the postprocessor that decreases the dimentionality:
+  \lstinputlisting[firstline=23, lastline=29, style=XML]{../../misc/example/cluster/test_dataMiningExactPCA.xml}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Exact PCA Dimentionality Reduction Example Output}
+  \includegraphics[width=\textwidth]{images/PlotExactPCA.png}
+\end{frame}
+
+\section{Basic Statistics with Time Dependence in RAVEN}
+
+\begin{frame}
+  \frametitle{Basic Statistics with Time Dependence}
+  \begin{itemize}
+  \item RAVEN calculates statistics at each time
+  \item Allows trends in the data to be seen
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Basic Statistics Example}
+  This is the postprocessor that calculates the time statistics:
+  \lstinputlisting[firstline=13, lastline=19, style=XML]{../../misc/example/temporalBasicStatistics.xml}
+
+\end{frame}
+
+\begin{frame}
+  \frametitle{Example Input}
+  \begin{itemize}
+  \item Contains 100 x,y coordinates
+  \item Has timestep data for 100 steps of 0.1
+  \end{itemize}
+  Play Movie \movie[externalviewer]{(MPEG-1)}{time_data.mpg} \movie[externalviewer]{(Theora)}{time_data.ogg}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Example Output}
+  \begin{columns}
+    \column{.5\textwidth}
+    \includegraphics[height=4cm]{images/plotPPDataMeanX.png}
+    \column{.5\textwidth}
+    \includegraphics[height=4cm]{images/plotPPDataMeanY.png}
+  \end{columns}
+\end{frame}
+%Basic statistics with time dependence
+%%Show example
+%%Show input
+%%Show output graph
+
+\begin{frame}
+  \frametitle{Questions?}
+\end{frame}
 
 \end{document}
