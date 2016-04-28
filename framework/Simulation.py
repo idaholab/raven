@@ -632,7 +632,7 @@ class Simulation(MessageHandler.MessageUser):
     self.__modeHandler.modifySimulation()
     self.jobHandler.initialize(self.runInfoDict,self.messageHandler)
     # only print the dictionaries when the verbosity is set to debug
-    if self.verbosity == 'debug': self.printDicts()
+    #if self.verbosity == 'debug': self.printDicts()
     for stepName, stepInstance in self.stepsDict.items():
       self.checkStep(stepInstance,stepName)
 
