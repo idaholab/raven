@@ -1089,12 +1089,14 @@ class Code(Model):
     if not found: self.raiseAnError(IOError,'None of the input files has one of the extensions requested by code '
                                   + self.subType +': ' + ' '.join(self.code.getInputExtension()))
     Kwargs['outfile'] = 'out~'+currentInput[index].getBase()
-    subDirectory = os.path.join(self.workingDir,Kwargs['prefix'])
+    subDirectory = os.path.join(self.workingDir,Kwargs['prefix'] if 'prefix' in Kwargs.keys() else '1')
+    
     if not os.path.exists(subDirectory):
       os.mkdir(subDirectory)
     for index in range(len(currentInput)):
-      currentInput[index].setPath(os.path.join(self.workingDir,Kwargs['prefix']))
+      currentInput[index].setPath(subDirectory)
       shutil.copy(self.oriInputFiles[index].getAbsFile(),subDirectory)
+    Kwargs['subDirectory'] = subDirectory
     if len(self.alias.keys()) != 0: Kwargs['alias']   = self.alias
     return (self.code.createNewInput(currentInput,self.oriInputFiles,samplerType,**Kwargs),Kwargs)
 
@@ -1110,7 +1112,7 @@ class Code(Model):
     if type(returnedCommand).__name__ != 'tuple'  : self.raiseAnError(IOError, "the generateCommand method in code interface must return a tuple")
     if type(returnedCommand[0]).__name__ != 'list': self.raiseAnError(IOError, "the first entry in tuple returned by generateCommand method needs to be a list of tuples!")
     executeCommand, self.outFileRoot = returnedCommand
-    jobHandler.submitDict['External'](executeCommand,self.outFileRoot,jobHandler.runInfoDict['TempWorkingDir'],metadata=metaData,codePointer=self.code)
+    jobHandler.submitDict['External'](executeCommand,self.outFileRoot,metaData['subDirectory'],metadata=metaData,codePointer=self.code)
     found = False
     for index, inputFile in enumerate(self.currentInputFiles):
       if inputFile.getExt() in self.code.getInputExtension():
@@ -1131,13 +1133,14 @@ class Code(Model):
     if 'finalizeCodeOutput' in dir(self.code):
       out = self.code.finalizeCodeOutput(finishedjob.command,finishedjob.output,self.workingDir)
       if out: finishedjob.output = out
-    attributes={"inputFile":self.currentInputFiles,"type":"csv","name":os.path.join(self.workingDir,finishedjob.output+'.csv')}
+    outputFilelocation = os.path.join(self.workingDir,finishedjob.identifier)
+    attributes={"inputFile":self.currentInputFiles,"type":"csv","name":os.path.join(outputFilelocation,finishedjob.output+'.csv')}
     metadata = finishedjob.returnMetadata()
     if metadata: attributes['metadata'] = metadata
     if output.type == "HDF5"        : output.addGroup(attributes,attributes)
     elif output.type in ['Point','PointSet','History','HistorySet']:
       outfile = Files.returnInstance('CSV',self)
-      outfile.initialize(finishedjob.output+'.csv',self.messageHandler,path=self.workingDir)
+      outfile.initialize(finishedjob.output+'.csv',self.messageHandler,path=outputFilelocation)
       output.addOutput(outfile,attributes)
       if metadata:
         for key,value in metadata.items(): output.updateMetadata(key,value,attributes)
