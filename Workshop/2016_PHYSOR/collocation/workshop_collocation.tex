@@ -24,6 +24,9 @@
 
 \usepackage{listings}
 \lstset{%
+  basicstyle=\ttfamily\tiny,
+  frame=single,
+  backgroundcolor=\color{cbbkng},
   language={},
   emphstyle={\color{red}},
 	showstringspaces=false,
@@ -214,23 +217,46 @@ Idaho National Laboratory}
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Methods: SCgPC in RAVEN}
-  TODO add code: ROM, Sampler, RomTrainer, MultiRun
+\begin{frame}[fragile]{Methods: SCgPC in RAVEN}
+  ROM
+  \lstinputlisting[basicstyle=\ttfamily\footnotesize,firstline=51,lastline=56,emph={rom,GaussPolynomialRom,y1,y2,ans,TensorProduct}]
+          {./attenuate/two/tp2.xml}
+  Sampler
+  \lstinputlisting[basicstyle=\ttfamily\footnotesize,firstline=35,lastline=44,emph={SparseGridCollocation,sc,y1,uni,y2,rom}]
+          {./attenuate/two/tp2.xml}
 \end{frame}
+
+\begin{frame}[fragile]{Methods: SCgPC in RAVEN}
+  Steps
+  %MultiRun
+  \lstinputlisting[basicstyle=\ttfamily\footnotesize,firstline=10,lastline=15,emph={sample,sc,poly,collset}]
+          {./attenuate/two/tp2.xml}
+  %RomTrainer
+  \lstinputlisting[basicstyle=\ttfamily\footnotesize,firstline=28,lastline=31,emph={train,collset,rom}]
+          {./attenuate/two/tp2.xml}
+  %Write Out
+  \lstinputlisting[basicstyle=\ttfamily\footnotesize,firstline=20,lastline=23,emph={stats,rom,stats\_tp2}]
+          {./attenuate/two/tp2.xml}
+\end{frame}
+
 
 \begin{frame}{Methods: Interpolation Node}
   What if I want to use a different quadrature?
+
   What if some dimensions require higher-order polynomials than others?
 
   Specify through an interpolation node
-  TODO example
+  \lstinputlisting[basicstyle=\ttfamily\footnotesize,firstline=51,lastline=58,emph={Interpolation}]
+          {./attenuate/two/td3.xml}
+  
 \end{frame}
 
 \begin{frame}{Methods: Adaptive}
   What if I don't know what dimensions are higher order?
 
   Use the Adaptive SCgPC sampler!
-  TODO code
+  \lstinputlisting[basicstyle=\ttfamily\footnotesize,firstline=35,lastline=50,emph={AdaptiveSparseGrid,Convergence,convergenceStudy}]
+          {./attenuate/two/adaptSC.xml}
 \end{frame}
 
 \subsection{Sobol Decomposition}
@@ -261,6 +287,18 @@ Idaho National Laboratory}
     \end{itemize}
   \end{itemize}
 \end{frame}
+
+\begin{frame}{Methods: Sobol in RAVEN}
+  Sampler
+  \lstinputlisting[basicstyle=\ttfamily\footnotesize,firstline=35,lastline=56,emph={AdaptiveSobol,Convergence,convergenceStudy}]
+          {./attenuate/two/adaptSobol.xml}
+\end{frame}
+
+\begin{frame}{Methods: Sobol in RAVEN}
+  ROM
+  \lstinputlisting[basicstyle=\ttfamily\footnotesize,firstline=63,lastline=69,emph={HDMRRom,SobolOrder}]
+          {./attenuate/two/adaptSobol.xml}
+\end{frame}
 %
 %   Demonstration
 %
@@ -286,16 +324,64 @@ Idaho National Laboratory}
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Demonstration: ROMs}
-\end{frame}
-
-\begin{frame}{Demonstration: Samplers}
-\end{frame}
-
-\begin{frame}{Demonstration: Steps}
+\begin{frame}{Demonstration: Results}
+  Two-dimension case
+  \begin{columns}
+    \begin{column}{0.5\textwidth}
+      \begin{figure}
+        \centering
+        \includegraphics[width=\linewidth]{./attenuate/attenuate_2_mean_errs}
+        \caption{Mean, $N=2$}
+      \end{figure}
+    \end{column}
+    \begin{column}{0.5\textwidth}
+      \begin{figure}
+        \centering
+        \includegraphics[width=\linewidth]{./attenuate/attenuate_2_variance_errs}
+        \caption{Variance, $N=2$}
+      \end{figure}
+    \end{column}
+  \end{columns}
 \end{frame}
 
 \begin{frame}{Demonstration: Results}
+  Four-dimension case
+  \begin{columns}
+    \begin{column}{0.5\textwidth}
+      \begin{figure}
+        \centering
+        \includegraphics[width=\linewidth]{./attenuate/attenuate_4_mean_errs}
+        \caption{Mean, $N=4$}
+      \end{figure}
+    \end{column}
+    \begin{column}{0.5\textwidth}
+      \begin{figure}
+        \centering
+        \includegraphics[width=\linewidth]{./attenuate/attenuate_4_variance_errs}
+        \caption{Variance, $N=4$}
+      \end{figure}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Demonstration: Results}
+  Six-dimension case
+  \begin{columns}
+    \begin{column}{0.5\textwidth}
+      \begin{figure}
+        \centering
+        \includegraphics[width=\linewidth]{./attenuate/attenuate_6_mean_errs}
+        \caption{Mean, $N=6$}
+      \end{figure}
+    \end{column}
+    \begin{column}{0.5\textwidth}
+      \begin{figure}
+        \centering
+        \includegraphics[width=\linewidth]{./attenuate/attenuate_6_variance_errs}
+        \caption{Variance, $N=6$}
+      \end{figure}
+    \end{column}
+  \end{columns}
 \end{frame}
 
 \end{document}

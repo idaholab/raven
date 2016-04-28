@@ -53,6 +53,8 @@
       <Features>y1,y2</Features>
       <IndexSet>TotalDegree</IndexSet>
       <PolynomialOrder>3</PolynomialOrder>
+      <Interpolation quad="Legendre" weight="0.7">y1</Interpolation>
+      <Interpolation quad="Legendre" weight="0.5">y2</Interpolation>
     </ROM>
   </Models>
 

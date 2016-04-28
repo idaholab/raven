@@ -13,10 +13,6 @@
       <Model class="Models" type="ExternalModel">poly</Model>
       <Output class="DataObjects" type="PointSet">collset</Output>
     </MultiRun>
-    <RomTrainer name="train">
-      <Input class="DataObjects" type="PointSet">collset</Input>
-      <Output class="Models" type="ROM">rom</Output>
-    </RomTrainer>
     <IOStep name="pickle">
       <Input class="Models" type="ROM">rom</Input>
       <Output class="Files" type="">pk</Output>
@@ -29,6 +25,10 @@
       <Input class="DataObjects" type="PointSet">collset</Input>
       <Output class="OutStreams" type="Print">csv_database</Output>
     </IOStep>
+    <RomTrainer name="train">
+      <Input class="DataObjects" type="PointSet">collset</Input>
+      <Output class="Models" type="ROM">rom</Output>
+    </RomTrainer>
   </Steps>
 
   <Samplers>
