@@ -18,4 +18,3 @@ def run(self,Input):
   #  other is translated and has the correct scale, this should be good enough
   #  for testing purposes.
   self.Z = eval(((self.X-2),(self.Y+1000)/(2000)))
-  # self.Z = gerber((self.X-2),(self.Y+1000)/(2000))

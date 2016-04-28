@@ -1656,7 +1656,7 @@ determined by a linear combination of a subset of potential covariates.
 
 \skltype{Least Angle Regression model}{linear\_model|Lars}
 \begin{itemize}
-  \item \xmlNode{n\_nonzero\_coef}, \xmlDesc{integer, optional field},
+  \item \xmlNode{n\_nonzero\_coefs}, \xmlDesc{integer, optional field},
   represents the target number of non-zero coefficients.
   %
   \default{500}
@@ -5131,7 +5131,7 @@ independent of the \xmlAttr{subType} specified:
    \item \xmlNode{timeID}, \xmlDesc{string, required field}, ID of the temporal variable
    \item \xmlNode{extension}, \xmlDesc{string, required field}, type of extension when the sync process goes outside the boundaries of the history (zeroed or extended)
    \item \xmlNode{syncMethod}, \xmlDesc{string, required field}, synchronization strategy to employ (see
-     description above).  Options are \xmlString{grid}, \xmlString{all}, \xmlString{max}, \xmlString{min}. 
+     description above).  Options are \xmlString{grid}, \xmlString{all}, \xmlString{max}, \xmlString{min}.
    \item \xmlNode{numberOfSamples}, \xmlDesc{integer, optional field}, required if \xmlNode{syncMethod} is
      \xmlString{grid}, number of new time samples
 \end{itemize}
