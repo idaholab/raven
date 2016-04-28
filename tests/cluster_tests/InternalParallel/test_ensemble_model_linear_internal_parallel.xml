@@ -5,6 +5,10 @@
     <Sequence>testMetamodelHeatTransfer,dumpResults</Sequence>
     <batchSize>8</batchSize>
     <internalParallel>True</internalParallel>
+    <mode>
+      mpi
+      <runQSUB/>
+    </mode> 
   </RunInfo>
 
   <Distributions>
