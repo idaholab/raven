@@ -156,6 +156,10 @@ Idaho National Laboratory}
 
 \begin{frame}
   \frametitle{Example Input}
+  \begin{itemize}
+  \item Contains 100 x,y coordinates
+  \item Has timestep data for 100 steps of 0.1
+  \end{itemize}
   Play Movie \movie[externalviewer]{(MPEG-1)}{time_data.mpg} \movie[externalviewer]{(Theora)}{time_data.ogg}
 \end{frame}
 
@@ -184,15 +188,27 @@ Idaho National Laboratory}
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{Clustering Example}
-  This is the postprocessor that calculates the clustering:
+  \frametitle{Gaussian Mixture Clustering Example}
+  This is the postprocessor that calculates the Gaussian Mixture clustering:
   \lstinputlisting[firstline=14, lastline=24, style=XML]{../../misc/example/cluster/test_dataMiningGaussianMixture.xml}
 
 \end{frame}
 
 \begin{frame}
-  \frametitle{Cluster Example Output}
-  \includegraphics[height=5cm]{images/PlotGaussianMixture.png}
+  \frametitle{Gaussian Mixture Cluster Example Output}
+  \includegraphics[width=\textwidth]{images/PlotGaussianMixture.png}
 \end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Means Shift Clustering Example}
+  This is the postprocessor that calculates the Means Shift clustering:
+  \lstinputlisting[firstline=15, lastline=22, style=XML]{../../misc/example/cluster/test_dataMiningMeanShift.xml}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Means Shift Cluster Example Output}
+  \includegraphics[width=\textwidth]{images/PlotMeanShift.png}
+\end{frame}
+
 
 \end{document}
