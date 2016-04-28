@@ -31,6 +31,7 @@ import Files
 from RAVENiterators import ravenArrayIterator
 import unSupervisedLearning
 from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
+import TreeStructure
 #Internal Modules End--------------------------------------------------------------------------------
 
 #
@@ -1271,6 +1272,34 @@ class ImportanceRank(BasePostProcessor):
       self.dimensions = range(len(self.features))
       self.raiseAWarning('The dimensions for given features: ' + str(self.features) + ' is not provided! Default dimensions will be used: ' + str(self.dimensions) + '!')
 
+  def _localPrintXML(self,node,options=None):
+    """
+      Adds requested entries to XML node.
+      @ In, node, XML node, to which entries will be added
+      @ In, options, dict, optional, list of requests and options
+        May include: 'what': comma-separated string list, the qualities to print out
+      @ Out, None
+    """
+    for what in options.keys():
+      if what.lower() in self.acceptedMetric:
+        metricNode = TreeStructure.Node(what)
+        for target in options[what].keys():
+          newNode = TreeStructure.Node(target)
+          entries = options[what][target]
+          #add to tree
+          for entry in entries:
+            subNode = TreeStructure.Node('variable')
+            subNode.setText(entry[0])
+            vNode = TreeStructure.Node('index')
+            vNode.setText(entry[1])
+            subNode.appendBranch(vNode)
+            vNode = TreeStructure.Node('dim')
+            vNode.setText(entry[2])
+            subNode.appendBranch(vNode)
+            newNode.appendBranch(subNode)
+          metricNode.appendBranch(newNode)
+      node.appendBranch(metricNode)
+
   def collectOutput(self,finishedJob, output):
     """
       Function to place all of the computed data into the output object, (Files or DataObjects)
@@ -1283,7 +1312,7 @@ class ImportanceRank(BasePostProcessor):
     outputDict = finishedJob.returnEvaluation()[-1]
     # Output to file
     if isinstance(output, Files.File):
-      availExtens = ['csv', 'txt']
+      availExtens = ['xml','csv', 'txt']
       outputExtension = output.getExt().lower()
       if outputExtension not in availExtens:
         self.raiseAWarning('Output extension you input is ' + outputExtension)
@@ -1295,24 +1324,36 @@ class ImportanceRank(BasePostProcessor):
       output.setPath(self.__workingDir)
       self.raiseADebug('Dumping output in file named ' + output.getAbsFile())
       output.open('w')
-      maxLength = max(len(max(parameterSet, key = len)) + 5, 16)
-      # Output all metrics to given file
-      for what in outputDict.keys():
-        if what.lower() in ['sensitivityindex','importanceindex']:
-          self.raiseADebug('Writing parameter rank for metric ' + what)
-          for target in self.targets:
-            if outputExtension != 'csv':
-              output.write('Parameters' + ' ' * maxLength + ''.join([str(item[0]) + ' ' * (maxLength - len(item)) for item in outputDict[what][target]]) + os.linesep)
-              output.write(what + ' ' * maxLength + ''.join(['%.8E' % item[1] + ' ' * (maxLength -14) for item in outputDict[what][target]]) + os.linesep)
-            else:
-              output.write('Parameters'  + ''.join([separator + str(item[0])  for item in outputDict[what][target]]) + os.linesep)
-              output.write(what + ''.join([separator + '%.8E' % item[1] for item in outputDict[what][target]]) + os.linesep)
-          output.write(os.linesep)
+      if outputExtension != 'xml':
+        maxLength = max(len(max(parameterSet, key = len)) + 5, 16)
+        # Output all metrics to given file
+        for what in outputDict.keys():
+          if what.lower() in self.acceptedMetric:
+            self.raiseADebug('Writing parameter rank for metric ' + what)
+            for target in self.targets:
+              if outputExtension != 'csv':
+                output.write('Target,' + target + '\n')
+                output.write('Parameters' + ' ' * maxLength + ''.join([str(item[0]) + ' ' * (maxLength - len(item)) for item in outputDict[what][target]]) + os.linesep)
+                output.write(what + ' ' * maxLength + ''.join(['%.8E' % item[1] + ' ' * (maxLength -14) for item in outputDict[what][target]]) + os.linesep)
+              else:
+                output.write('Target,' + target + '\n')
+                output.write('Parameters'  + ''.join([separator + str(item[0])  for item in outputDict[what][target]]) + os.linesep)
+                output.write(what + ''.join([separator + '%.8E' % item[1] for item in outputDict[what][target]]) + os.linesep)
+            output.write(os.linesep)
+        output.close()
+      else:
+        node = TreeStructure.Node('ImportanceRank')
+        tree = TreeStructure.NodeTree(node)
+        self._localPrintXML(node,outputDict)
+        msg=tree.stringNodeTree()
+        output.writelines(msg)
+        output.close()
+        self.raiseAMessage('ImportanceRank XML printed to "'+output.getFilename()+'"!')
     # Output to DataObjects
     elif output.type in ['PointSet','Point','History','HistorySet']:
       self.raiseADebug('Dumping output in data object named ' + output.name)
       for what in outputDict.keys():
-        if what.lower() in ['sensitivityindex','importanceindex']:
+        if what.lower() in self.acceptedMetric:
           for target in self.targets:
             self.raiseADebug('Dumping ' + target + '-' + what + '. Metadata name = ' + target + '-' + what + '. Targets stored in ' +  target + '-'  + what)
             output.updateMetadata(target + '-'  + what, outputDict[what][target])
@@ -1386,7 +1427,7 @@ class ImportanceRank(BasePostProcessor):
     for target in self.targets:
       featCoeffs = LinearRegression().fit(sampledFeatMatrix, inputDict['targets'][target]).coef_
       featWeights = abs(featCoeffs)/np.sum(abs(featCoeffs))
-      senWeightDict[target] = list(zip(self.features,featWeights))
+      senWeightDict[target] = list(zip(self.features,featWeights,self.dimensions))
       senCoeffDict[target] = featCoeffs
     # compute importance rank
     for what in self.what:
@@ -1411,7 +1452,7 @@ class ImportanceRank(BasePostProcessor):
                 covTarget = featCoeffs[index] * covFeature * featCoeffs[index]
               featWeights.append(covTarget)
             featWeights = featWeights/np.sum(featWeights)
-            entries = list(zip(self.features,featWeights))
+            entries = list(zip(self.features,featWeights,self.dimensions))
             entries.sort(key=lambda x: x[1],reverse=True)
             outputDict[what][target] = entries
           # if the features type is 'latent', since latentVariables are used to compute the sensitivities
@@ -1425,10 +1466,10 @@ class ImportanceRank(BasePostProcessor):
         index = [dim-1 for dim in self.dimensions]
         singularValues = self.mvnDistribution.returnSingularValues(index)
         singularValues = list(singularValues/np.sum(singularValues))
-        sortedSingularValues = sorted(singularValues)
-        newDimensions = [self.dimensions[singularValues.index(value)] for value in sortedSingularValues]
-        outputDict[what]['Contribution'] = sortedSingularValues
-        outputDict[what]['indices'] = newDimensions
+        entries = list(zip(self.features,singularValues,self.dimensions))
+        entries.sort(key=lambda x: x[1],reverse=True)
+        for target in self.targets:
+          outputDict[what][target] = entries
       # To be implemented
       #if what == 'CumulativeSenitivityIndex':
       #  self.raiseAnError(NotImplementedError,'CumulativeSensitivityIndex is not yet implemented for ' + self.printTag)

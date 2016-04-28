@@ -8,6 +8,7 @@
   
   <Files>
     <Input name="output.csv" type="">output.csv</Input>
+    <Input name="output.xml" type="">output.xml</Input>
     <Input name="output_basicStatistics.csv" type="">output_basicStatistics.csv</Input>
   </Files>
 
@@ -73,6 +74,7 @@
       <Input class="DataObjects" type="PointSet">collset</Input>
       <Model class="Models" type="PostProcessor">test_importantRank</Model>
       <Output class="Files" type="">output.csv</Output>
+      <Output class="Files" type="">output.xml</Output>
       <Output class="DataObjects" type="PointSet">collset</Output>
       <Output class="OutStreams" type="Print">postProcessorDump</Output>
     </PostProcess>

@@ -2,7 +2,7 @@
  [./importanceRankAbsCov]
   type = 'RavenFramework'
   input = 'test_postprocessor.xml'
-  xml = 'absCov/postProcessorDump.xml'
+  xml = 'absCov/postProcessorDump.xml absCov/output.xml'
   csv = 'absCov/postProcessorDump.csv'
   output = 'absCov/output.csv'
  [../]
@@ -11,7 +11,7 @@
   type = 'RavenFramework'
   input = 'test_postprocessor_rel.xml'
   output = 'relCov/output.csv'
-  xml = 'relCov/postProcessorDump.xml'
+  xml = 'relCov/postProcessorDump.xml relCov/output.xml'
   csv = 'relCov/postProcessorDump.csv'
  [../]
 
