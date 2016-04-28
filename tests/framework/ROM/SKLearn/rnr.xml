@@ -17,7 +17,7 @@
       <variables>X,Y,Z</variables>
     </ExternalModel>
     <ROM name="modelUnderTest" subType="SciKitLearn">
-      <SKLtype>neighbors|RadiusNeighbors</SKLtype>
+      <SKLtype>neighbors|RadiusNeighborsRegressor</SKLtype>
       <Features>X,Y</Features>
       <Target>Z</Target>
       <radius>1.0</radius>
