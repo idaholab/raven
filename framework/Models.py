@@ -483,9 +483,15 @@ class ROM(Dummy):
     targets = self.initializationOptionDict['Target'].split(',')
     self.howManyTargets = len(targets)
 
-    for target in targets:
-      self.initializationOptionDict['Target'] = target
-      self.SupervisedEngine[target] =  SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
+    if 'SKLtype' in self.initializationOptionDict and 'MultiTask' in self.initializationOptionDict['SKLtype']:
+      self.initializationOptionDict['Target'] = targets
+      model = SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
+      for target in targets:
+        self.SupervisedEngine[target] = model
+    else:
+      for target in targets:
+        self.initializationOptionDict['Target'] = target
+        self.SupervisedEngine[target] =  SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
     # extend the list of modules this ROM depen on
     self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(utils.first(self.SupervisedEngine.values())),True)) - set(self.mods))
     self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(SupervisedLearning),True)) - set(self.mods))

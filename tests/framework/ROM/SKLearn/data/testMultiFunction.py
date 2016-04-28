@@ -8,13 +8,11 @@ import math
 
 def eval(inp):
   retVal = (inp[0] - .5)**2 + (inp[1] - .5)**2
-  if retVal > 0.25:
-    return 1
-  else:
-    return 0
+  return float('%.8f' % retVal)
 
 def eval2(inp):
-  return inp[0]+inp[1]
+  retVal = inp[0]+inp[1]
+  return float('%.8f' % retVal)
 
 def run(self,Input):
   # Run a test problem with X on the scale [2,3] and Y on the scale
