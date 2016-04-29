@@ -2309,6 +2309,25 @@ class MultivariateNormal(NDimensionalDistributions):
       L = np.atleast_1d(transformation).reshape(row,column)
       return L
 
+  def returnSingularValues(self,index=None):
+    """
+      Return the singular values from Crow
+      @ In, None
+      @ Out, singularValues, np.array, the singular values vector
+    """
+    if self.method == 'spline':
+      self.raiseAnError(NotImplementedError,' returnSingularValues is not available for ' + self.method + ' method')
+    elif self.method == 'pca':
+      if index is not None:
+        coordinateIndex = distribution1D.vectori_cxx(len(index))
+        for i in range(len(index)):
+          coordinateIndex[i] = index[i]
+        singularValues = self._distribution.getSingularValues(coordinateIndex)
+      else:
+        singularValues = self._distribution.getSingularValues()
+      singularValues = np.atleast_1d(singularValues).tolist()
+      return singularValues
+
   def pcaInverseTransform(self,x,index=None):
     """
       Transform latent parameters back to models' parameters

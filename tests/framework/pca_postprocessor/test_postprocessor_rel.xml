@@ -1,0 +1,101 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
+    <WorkingDir>relCov</WorkingDir>
+    <Sequence>modelRun,computeRank</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+  
+  <Files>
+    <Input name="output.csv" type="">output.csv</Input>
+    <Input name="output.xml" type="">output.xml</Input>
+    <Input name="output_basicStatistics.csv" type="">output_basicStatistics.csv</Input>
+  </Files>
+
+  <Models>
+    <ExternalModel ModuleToLoad="poly.py" name="poly" subType="">
+      <variables>x1,x2,x3,x4,x5,ans</variables>
+    </ExternalModel>
+    <PostProcessor name="test_importantRank" subType="ImportanceRank">
+      <what>all</what>
+      <targets>ans</targets>
+      <features type="">x1,x2,x3,x4,x5</features>
+      <dimensions>1,2,3,4,5</dimensions>
+      <mvnDistribution>MVN</mvnDistribution>
+    </PostProcessor>
+  </Models>
+
+  <Distributions>
+    <MultivariateNormal method="pca" name="MVN">
+      <mu>0.5 -0.4 0.3 -0.2 0.1</mu>
+      <covariance type="rel">
+            1.0       0.6      -0.4   0.1    -0.2
+            0.6       1.0      0.2    -0.3   -0.15
+            -0.4      0.2      1.0    0      0.25
+            0.1       -0.3     0      1.0    0.01
+            -0.2      -0.15    0.25   0.01   1.0
+        </covariance>
+    </MultivariateNormal>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="MC_external">
+      <samplerInit>
+        <limit>10</limit>
+        <initialSeed>1234</initialSeed>
+        <reseedEachIteration>True</reseedEachIteration>
+      </samplerInit>
+      <variable name="x1">
+        <distribution dim="1">MVN</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution dim="2">MVN</distribution>
+      </variable>
+      <variable name="x3">
+        <distribution dim="3">MVN</distribution>
+      </variable>
+      <variable name="x4">
+        <distribution dim="4">MVN</distribution>
+      </variable>
+      <variable name="x5">
+        <distribution dim="5">MVN</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="modelRun" sleepTime="1e-4">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">poly</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
+      <Output class="DataObjects" type="PointSet">collset</Output>
+    </MultiRun>
+    <PostProcess name="computeRank">
+      <Input class="DataObjects" type="PointSet">collset</Input>
+      <Model class="Models" type="PostProcessor">test_importantRank</Model>
+      <Output class="Files" type="">output.csv</Output>
+      <Output class="Files" type="">output.xml</Output>
+      <Output class="DataObjects" type="PointSet">collset</Output>
+      <Output class="OutStreams" type="Print">postProcessorDump</Output>
+    </PostProcess>
+  </Steps>
+
+  <OutStreams>
+    <Print name="postProcessorDump">
+      <type>csv</type>
+      <source>collset</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="dummyIN">
+      <Input>x1,x2,x3,x4,x5</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="collset">
+      <Input>x1,x2,x3,x4,x5</Input>
+      <Output>ans</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>
