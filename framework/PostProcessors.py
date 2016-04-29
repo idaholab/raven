@@ -103,7 +103,7 @@ class LimitSurfaceIntegral(BasePostProcessor):
     self.functionS = None
     self.stat = returnInstance('BasicStatistics', self)  # instantiation of the 'BasicStatistics' processor, which is used to compute the pb given montecarlo evaluations
     self.stat.what = ['expectedValue']
-    self.addAsseblerObject('Distribution','n', newXmlFlg = False)
+    self.addAssemblerObject('Distribution','n', newXmlFlg = False)
     self.printTag = 'POSTPROCESSOR INTEGRAL'
 
   def _localWhatDoINeed(self):
@@ -291,7 +291,7 @@ class SafestPoint(BasePostProcessor):
     self.surfPointsMatrix = None  # 2D-matrix containing the coordinates of the points belonging to the failure boundary (coordinates are derived from both the controllable and non-controllable space)
     self.stat = returnInstance('BasicStatistics', self)  # instantiation of the 'BasicStatistics' processor, which is used to compute the expected value of the safest point through the coordinates and probability values collected in the 'run' function
     self.stat.what = ['expectedValue']
-    self.addAsseblerObject('Distribution','n', True)
+    self.addAssemblerObject('Distribution','n', True)
     self.printTag = 'POSTPROCESSOR SAFESTPOINT'
 
   def _localGenerateAssembler(self, initDict):
@@ -1201,7 +1201,7 @@ class BasicStatistics(BasePostProcessor):
     self.methodsToRun = []  # if a function is present, its outcome name is here stored... if it matches one of the known outcomes, the pp is going to use the function to compute it
     self.externalFunction = []
     self.printTag = 'POSTPROCESSOR BASIC STATISTIC'
-    self.addAsseblerObject('Function','-1', True)
+    self.addAssemblerObject('Function','-1', True)
     self.biased = False
 
   def inputToInternal(self, currentInp):
@@ -1895,8 +1895,8 @@ class LimitSurface(BasePostProcessor):
     self.bounds            = None
     self.jobHandler        = None
     self.transfMethods     = {}
-    self.addAsseblerObject('ROM','-1', True)
-    self.addAsseblerObject('Function','1')
+    self.addAssemblerObject('ROM','-1', True)
+    self.addAssemblerObject('Function','1')
     self.printTag = 'POSTPROCESSOR LIMITSURFACE'
 
   def _localWhatDoINeed(self):

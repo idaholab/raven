@@ -1429,8 +1429,8 @@ class EnsembleModel(Dummy, Assembler):
     self.modelsDictionary         = {}           # dictionary of models that are going to be assembled {'modelName':{'Input':[in1,in2,..,inN],'Output':[out1,out2,..,outN],'Instance':Instance}}
     self.activatePicard           = False
     self.printTag = 'EnsembleModel MODEL'
-    self.addAsseblerObject('Model','n',True)
-    self.addAsseblerObject('TargetEvaluation','n')
+    self.addAssemblerObject('Model','n',True)
+    self.addAssemblerObject('TargetEvaluation','n')
     self.tempTargetEvaluations = {}
     self.maxIterations         = 30
     self.convergenceTol        = 1.e-3

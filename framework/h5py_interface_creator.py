@@ -333,15 +333,15 @@ class hdf5Database(MessageHandler.MessageUser):
       groups.attrs[b'outputSpaceHeaders'] = outHeaders
       groups.attrs[b'EndGroup'   ] = True
       groups.attrs[b'parentID'  ] = parentName
-      maxsize = 0
+      maxSize = 0
       for value in outValues:
         if type(value) == np.ndarray or type(value).__name__ == 'c1darray':
-          if maxsize < value.size : actualone = np.asarray(value).size
-        elif type(value) in [int,float,bool,np.float64,np.float32,np.float16,np.int64,np.int32,np.int16,np.int8,np.bool8]: actualone = 1
+          if maxSize < value.size : actualOne = np.asarray(value).size
+        elif type(value) in [int,float,bool,np.float64,np.float32,np.float16,np.int64,np.int32,np.int16,np.int8,np.bool8]: actualOne = 1
         else: self.raiseAnError(IOError,'The type of the dictionary parameters must be within float,bool,int,numpy.ndarray.Got '+type(value).__name__)
-        if maxsize < actualone: maxsize = actualone
-      groups.attrs[b'nTimeSteps'  ] = maxsize
-      dataout = np.zeros((maxsize,len(outHeaders)))
+        if maxSize < actualOne: maxSize = actualOne
+      groups.attrs[b'nTimeSteps'  ] = maxSize
+      dataout = np.zeros((maxSize,len(outHeaders)))
       for index in range(len(outHeaders)):
         if type(outValues[index]) == np.ndarray or type(value).__name__ == 'c1darray':  dataout[0:outValues[index].size,index] =  outValues[index][:]
         else: dataout[0,index] = outValues[index]

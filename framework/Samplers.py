@@ -132,7 +132,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.distributions2variablesMapping = {}                       # for each variable 'distName' , the following informations are included: 'distName': [{'var1': 1}, {'var2': 2}]} where for each var it is indicated the var dimension
     self.NDSamplingParams               = {}                       # this dictionary contains a dictionary for each ND distribution (key). This latter dictionary contains the initialization parameters of the ND inverseCDF ('initialGridDisc' and 'tolerance')
     ######
-    self.addAsseblerObject('Restart' ,'-n',True)
+    self.addAssemblerObject('Restart' ,'-n',True)
 
     #used for PCA analysis
     self.variablesTransformationDict    = {}                       # for each variable 'modelName', the following informations are included: {'modelName': {latentVariables:[latentVar1, latentVar2, ...], manifestVariables:[manifestVar1,manifestVar2,...]}}
@@ -766,9 +766,9 @@ class LimitSurfaceSearch(AdaptiveSampler):
     self.acceptedScoringParam = ['distance','distancePersistence']
     self.acceptedBatchParam = ['none','naive','maxV','maxP']
 
-    self.addAsseblerObject('TargetEvaluation','n')
-    self.addAsseblerObject('ROM','n')
-    self.addAsseblerObject('Function','-n')
+    self.addAssemblerObject('TargetEvaluation','n')
+    self.addAssemblerObject('ROM','n')
+    self.addAssemblerObject('Function','-n')
 
   def _localWhatDoINeed(self):
     """
@@ -3316,7 +3316,7 @@ class SparseGridCollocation(Grid):
     self.jobHandler     = None  #pointer to job handler for parallel runs
     self.doInParallel   = True  #compute sparse grid in parallel flag, recommended True
     self.dists          = {}    #Contains the instance of the distribution to be used. keys are the variable names
-    self.addAsseblerObject('ROM','1',True)
+    self.addAssemblerObject('ROM','1',True)
 
   def _localWhatDoINeed(self):
     """
@@ -3635,7 +3635,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     self.newSolutionSizeShouldBe = None   #used to track and debug intended size of solutions
     self.inTraining              = set()  #list of index set points for whom points are being run
 
-    self.addAsseblerObject('TargetEvaluation','1')
+    self.addAssemblerObject('TargetEvaluation','1')
 
   def localInputAndChecks(self,xmlNode):
     """
@@ -4148,7 +4148,7 @@ class Sobol(SparseGridCollocation):
     self.doInParallel   = True  #compute sparse grid in parallel flag, recommended True
     self.distinctPoints = set() #tracks distinct points used in creating this ROM
     self.sparseGridType = 'smolyak'
-    self.addAsseblerObject('ROM','1',True)
+    self.addAssemblerObject('ROM','1',True)
 
   def _localWhatDoINeed(self):
     """
@@ -4391,7 +4391,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     self.submittedNotCollected = [] #list of points that have been generated but not collected
     self.inTraining      = []       #usually just one tuple, unless multiple items in simultaneous training
 
-    self.addAsseblerObject('TargetEvaluation','1')
+    self.addAssemblerObject('TargetEvaluation','1')
 
   def localInputAndChecks(self,xmlNode):
     """

@@ -125,7 +125,7 @@ class Assembler(MessageHandler.MessageUser):
               if testObjects[toObjectName] != int(numerosity): self.raiseAnError(IOError,'Only '+numerosity+' '+toObjectName+' object/s is/are required. Block '+self.name + ' got '+str(testObjects[toObjectName]) + '!')
     if '_localReadMoreXML' in dir(self): self._localReadMoreXML(xmlNode)
 
-  def addAsseblerObject(self,name,flag, newXmlFlg = None):
+  def addAssemblerObject(self,name,flag, newXmlFlg = None):
     """
       Method to add required assembler objects to the requiredAssObject dictionary.
       @ In, name, string, the node name to search for (e.g. Function, Model)
