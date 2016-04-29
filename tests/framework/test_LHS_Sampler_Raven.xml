@@ -77,7 +77,7 @@
   </Steps>
 
   <Databases>
-    <HDF5 name="testLHSRavenDatabase"/>
+    <HDF5 name="testLHSRavenDatabase" readMode="overwrite"/>
   </Databases>
 
   <OutStreams>

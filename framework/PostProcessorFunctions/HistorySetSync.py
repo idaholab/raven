@@ -27,7 +27,7 @@ class HistorySetSync(PostProcessorInterfaceBase):
    It can be used to allow the histories to be sampled at the same time instant.
   """
 
-  def initialize(self, numberOfSamples=None, timeID=None, extension=None):
+  def initialize(self, numberOfSamples=None, timeID=None, extension=None, syncMethod=None):
     """
      Method to initialize the Interfaced Post-processor
      @ In, None,
@@ -41,6 +41,7 @@ class HistorySetSync(PostProcessorInterfaceBase):
     self.numberOfSamples = numberOfSamples
     self.timeID          = timeID
     self.extension       = extension
+    self.syncMethod      = syncMethod
 
 
   def readMoreXML(self,xmlNode):
@@ -52,6 +53,8 @@ class HistorySetSync(PostProcessorInterfaceBase):
     for child in xmlNode:
       if child.tag == 'numberOfSamples':
         self.numberOfSamples = int(child.text)
+      elif child.tag == 'syncMethod':
+        self.syncMethod = child.text
       elif child.tag == 'timeID':
         self.timeID = child.text
       elif child.tag == 'extension':
@@ -59,7 +62,10 @@ class HistorySetSync(PostProcessorInterfaceBase):
       elif child.tag !='method':
         self.raiseAnError(IOError, 'HistorySetSync Interfaced Post-Processor ' + str(self.name) + ' : XML node ' + str(child) + ' is not recognized')
 
-    if not isinstance(self.numberOfSamples, int):
+    validSyncMethods = ['all','grid','max','min']
+    if self.syncMethod not in validSyncMethods:
+      self.raiseAnError(NotImplementedError,'Method for syncing was not recognised: \"',self.syncMethod,'\". Options are:',validSyncMethods)
+    if self.syncMethod is 'grid' and not isinstance(self.numberOfSamples, int):
       self.raiseAnError(IOError, 'HistorySetSync Interfaced Post-Processor ' + str(self.name) + ' : number of samples is not correctly specified (either not specified or not integer)')
     if self.timeID == None:
       self.raiseAnError(IOError, 'HistorySetSync Interfaced Post-Processor ' + str(self.name) + ' : timeID is not specified')
@@ -77,15 +83,34 @@ class HistorySetSync(PostProcessorInterfaceBase):
     outputDic['data']['input'] = copy.deepcopy(inputDic['data']['input'])
     outputDic['data']['output'] = {}
 
-    maxEndTime = []
-    minInitTime = []
-    for hist in inputDic['data']['output']:
-      maxEndTime.append(inputDic['data']['output'][hist][self.timeID][-1])
-      minInitTime.append(inputDic['data']['output'][hist][self.timeID][0])
-    maxTime = max(maxEndTime)
-    minTime = min(minInitTime)
+    newTime = []
+    if self.syncMethod == 'grid':
+      maxEndTime = []
+      minInitTime = []
+      for hist in inputDic['data']['output']:
+        maxEndTime.append(inputDic['data']['output'][hist][self.timeID][-1])
+        minInitTime.append(inputDic['data']['output'][hist][self.timeID][0])
+      maxTime = max(maxEndTime)
+      minTime = min(minInitTime)
+      newTime = np.linspace(minTime,maxTime,self.numberOfSamples)
+    elif self.syncMethod == 'all':
+      times = set()
+      for hist in inputDic['data']['output']:
+        for value in inputDic['data']['output'][hist][self.timeID]:
+          times.add(value)
+      times = list(times)
+      times.sort()
+      newTime = np.array(times)
+    elif self.syncMethod in ['min',"max"]:
+      notableHist = None   #set on first iteration
+      notableLength = None #set on first iteration
+      for h,hist in enumerate(inputDic['data']['output'].keys()):
+        l = len(inputDic['data']['output'][hist][self.timeID])
+        if (h==0) or (self.syncMethod == 'max' and l > notableLength) or (self.syncMethod == 'min' and l < notableLength):
+          notableHist = inputDic['data']['output'][hist][self.timeID][:]
+          notableLength = l
+      newTime = np.array(notableHist)
 
-    newTime = np.linspace(minTime,maxTime,self.numberOfSamples)
 
     for hist in inputDic['data']['output']:
       outputDic['data']['output'][hist] = self.resampleHist(inputDic['data']['output'][hist],newTime)

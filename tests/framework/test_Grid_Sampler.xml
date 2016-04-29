@@ -77,7 +77,7 @@
   </Steps>
 
   <Databases>
-    <HDF5 name="test_DummyModel_db"/>
+    <HDF5 name="test_DummyModel_db" readMode="overwrite"/>
   </Databases>
 
 </Simulation>
