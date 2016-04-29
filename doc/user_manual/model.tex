@@ -4280,11 +4280,12 @@ on the data given as ``input''.
 %
 RAVEN supports several different types of PPs.
 
-Currently, the following PPs are available in RAVEN:
+Currently, the following types are available in RAVEN:
 \begin{itemize}
   \itemsep0em
   \item \textbf{BasicStatistics}
   \item \textbf{ComparisonStatistics}
+  \item \textbf{ImportanceRank}
   \item \textbf{SafestPoint}
   \item \textbf{LimitSurface}
   \item \textbf{LimitSurfaceIntegral}
@@ -4295,7 +4296,7 @@ Currently, the following PPs are available in RAVEN:
   %\item \textbf{LoadCsvIntoInternalObject}
 \end{itemize}
 
-The specifications of these PPs must be defined within the XML block
+The specifications of these types must be defined within the XML block
 \xmlNode{PostProcessor}.
 %
 This XML node needs to contain the attributes:
@@ -4545,6 +4546,65 @@ points to approximations in the calculation.
          <sigma>2.0</sigma>
       </Normal>
    </Distributions>
+</Simulation>
+\end{lstlisting}
+
+%%%%% PP ImportanceRank %%%%%%%
+\subsubsection{ImportanceRank}
+\label{ImportanceRank}
+The \textbf{ImportanceRank} post-processor is specifically used 
+to compute sensitivity indices and importance indices with respect to input parameters
+associated with multivariate normal distributions.
+%
+\ppType{ImportanceRank}{ImportanceRank}
+%
+\begin{itemize}
+  \item \xmlNode{what}, \xmlDesc{comma separated string, required field},
+  %
+  List of quantities to be computed.
+  %
+  Currently the quantities available are:
+  \begin{itemize}
+    \item \textbf{SensitivityIndex}: used to measure the impact of sensitivities on the model.
+    \item \textbf{ImportanceIndex}: used to measure the impact of sensitivities and input uncertainties on the model.
+    \item \textbf{PCAIndex}: the indices of principal component directions, used to measure the impact
+    of principal component directions on input covariance matrix
+    %
+  \end{itemize}
+   %
+  If all the quantities need to be computed, the user can input in the body of
+  \xmlNode{what} the string ``all''.
+  %
+  %
+  \item \xmlNode{features}, \xmlDesc{comma separated string, required field},
+  lists input parameters on which the previous operations need to be applied.
+  %
+  \item \xmlNode{targets}, \xmlDesc{comma separated string, required field},
+  lists output responses on which previous operations need to be applied.
+  %
+  \item \xmlNode{dimensions}, \xmlDesc{comma separated integer, optional field},
+  lists the dimensions corresponding to \xmlNode{features}.
+  %
+  \item \xmlNode{mvnDistribution}, \xmlDesc{string, required field}, specifies the 
+  multivariate normal distribution name. The \xmlNode{MultivariateNormal} node must be present.
+  %
+\end{itemize}
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={name,subType,debug}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <PostProcessor name='aUserDefinedName' subType='ImportanceRank'>
+      <what>SensitivityIndex,ImportanceIndex</what>
+      <features>x1,x2</features>
+      <targets>y1,y2</targets>
+      <dimensions>1,2<dimensions>
+      <mvnDistribution>MVN</mvnDistribution>
+    </PostProcessor>
+    ...
+  </Models>
+  ...
 </Simulation>
 \end{lstlisting}
 
