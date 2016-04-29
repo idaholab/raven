@@ -151,9 +151,10 @@ class File(BaseType):
     return self.__ext
 
   def getLinkedCode(self):
-    """Retriever for code name associated with this file.
-    @ In, None
-    @ Out, string path
+    """
+      Retriever for code name associated with this file.
+      @ In, None
+      @ Out, getLinkedCode, string, string path
     """
     return self.__linkedModel
 

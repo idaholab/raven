@@ -170,9 +170,9 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
 
   def resetData(self):
     """
-    Function to remove all the data in this dataobject
-    @ In, None
-    @ Out, None
+      Function to remove all the data in this dataobject
+      @ In, None
+      @ Out, None
     """
     if self._dataParameters['hierarchical']:
       self.TSData, self.rootToBranch = None, {}

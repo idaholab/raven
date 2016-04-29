@@ -27,7 +27,7 @@ class csvUtilityClass(object):
   def __init__(self, listOfFiles, linesToSkipAfterHeader=0, delimeter=",", mergeSameVariables=False):
     """
       Constructor
-      @ In, listOfFiles, list, listOfFiles, list of CSV files that need to be merged. If in one or more "filenames" the special symbol $*$ is present, the class will use the filename as root name and look for all the files with that root. For example:
+      @ In, listOfFiles, list, list of CSV files that need to be merged. If in one or more "filenames" the special symbol $*$ is present, the class will use the filename as root name and look for all the files with that root. For example:
                                              if  listOfFiles[1] == "aPath/outputChannel$*$": the code will inquire the directory "aPath" to look for all the files starting with the name "outputChannel" => at end we will have a list of files like "outputChannel_1.csv,outputChannel_ab.csv, etc"
       @ In, linesToSkipAfterHeader, int, optional, the number of lines that need to be skipped after the header
       @ In, delimeter, string, optional, the delimiter of the csv
@@ -80,8 +80,8 @@ class csvUtilityClass(object):
     """
     if len(outputFileName.strip()) == 0: raise IOError("MergeCSV class ERROR: the outputFileName string is empty!")
     options['returnAsDict'] = False
-    self.allHeaders, datafinal = self.mergeCsvAndReturnOutput(options)
-    np.savetxt(outputFileName,datafinal,delimiter=",",header=",".join(self.allHeaders))
+    self.allHeaders, dataFinal = self.mergeCsvAndReturnOutput(options)
+    np.savetxt(outputFileName,dataFinal,delimiter=",",header=",".join(self.allHeaders))
 
   def mergeCsvAndReturnOutput(self, options = {}):
     """

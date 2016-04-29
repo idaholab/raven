@@ -33,7 +33,7 @@ class Assembler(MessageHandler.MessageUser):
     # list. first entry boolean flag. True if the XML parser must look for objects;
     # second entry tuple.first entry list of object can be retrieved, second entry multiplicity (-1,-2,-n means optional (max 1 object,2 object, no number limit))
     self.requiredAssObject = [False,([],[])]
-    self.assemblerDict      = {}                       # {'class':[['subtype','name',instance]]}
+    self.assemblerDict      = {}                       # {'class':[['class','type','name',instance]]}}
 
   def whatDoINeed(self):
     """
@@ -68,13 +68,12 @@ class Assembler(MessageHandler.MessageUser):
 
   def _readAssemblerObjects(self,subXmlNode, found, testObjects):
     """
-    This method is used to look for the assemble objects in an subNodes of an xmlNode
-    @ In , subXmlNode, ET, the XML node that needs to be inquired
-    @ In , found, dict, a dictionary that check if all the tokens (requested) are found
-    @ In , testObjects, dict, a dictionary that contains the number of time a token (requested) has been found
-    @ In , tuple(found, testObjects), tuple, tuple containig in [0], found       ->  a dictionary that check if all the tokens (requested) are found ;
-                                                                [1], testObjects ->  a dictionary that contains the number of time a token (requested) has been found
-    @ In , testObjects, dict, a dictionary that contains the number of time a token (requested) has been found
+      This method is used to look for the assemble objects in an subNodes of an xmlNode
+      @ In, subXmlNode, ET, the XML node that needs to be inquired
+      @ In, found, dict, a dictionary that check if all the tokens (requested) are found
+      @ In, testObjects, dict, a dictionary that contains the number of time a token (requested) has been found
+      @ Out, returnObject, tuple, tuple(found, testObjects) containig in [0], found       ->  a dictionary that check if all the tokens (requested) are found ;
+                                                                         [1], testObjects ->  a dictionary that contains the number of time a token (requested) has been found
     """
     for subNode in subXmlNode:
       for token in self.requiredAssObject[1][0]:
@@ -84,7 +83,8 @@ class Assembler(MessageHandler.MessageUser):
           if  subNode.tag not in self.assemblerObjects.keys(): self.assemblerObjects[subNode.tag.strip()] = []
           self.assemblerObjects[subNode.tag.strip()].append([subNode.attrib['class'],subNode.attrib['type'],subNode.text.strip()])
           testObjects[token] += 1
-    return found, testObjects
+    returnObject = found, testObjects
+    return returnObject
 
   def _readMoreXML(self,xmlNode):
     """
@@ -109,20 +109,20 @@ class Assembler(MessageHandler.MessageUser):
         if not found[token] and not str(self.requiredAssObject[1][1][self.requiredAssObject[1][0].index(token)]).strip().startswith('-'): self.raiseAnError(IOError,'the required object ' +token+ ' is missed in the definition of the '+self.type+' Object! Required objects number are :'+str(self.requiredAssObject[1][1][self.requiredAssObject[1][0].index(token)]))
       # test the objects found
       else:
-        for cnt,tofto in enumerate(self.requiredAssObject[1][0]):
+        for cnt,toObjectName in enumerate(self.requiredAssObject[1][0]):
           numerosity = str(self.requiredAssObject[1][1][cnt])
           if numerosity.strip().startswith('-'):
           # optional
-            if tofto in testObjects.keys():
-              if testObjects[tofto] is not 0:
-                numerosity = numerosity.replace('-', '').replace('n',str(testObjects[tofto]))
-                if testObjects[tofto] != int(numerosity): self.raiseAnError(IOError,'Only '+numerosity+' '+tofto+' object/s is/are optionally required. Block '+self.name + ' got '+str(testObjects[tofto]) + '!')
+            if toObjectName in testObjects.keys():
+              if testObjects[toObjectName] is not 0:
+                numerosity = numerosity.replace('-', '').replace('n',str(testObjects[toObjectName]))
+                if testObjects[toObjectName] != int(numerosity): self.raiseAnError(IOError,'Only '+numerosity+' '+toObjectName+' object/s is/are optionally required. Block '+self.name + ' got '+str(testObjects[toObjectName]) + '!')
           else:
             # required
-            if tofto not in testObjects.keys(): self.raiseAnError(IOError,'Required object/s "'+tofto+'" not found. Block '+self.name + '!')
+            if toObjectName not in testObjects.keys(): self.raiseAnError(IOError,'Required object/s "'+toObjectName+'" not found. Block '+self.name + '!')
             else:
-              numerosity = numerosity.replace('n',str(testObjects[tofto]))
-              if testObjects[tofto] != int(numerosity): self.raiseAnError(IOError,'Only '+numerosity+' '+tofto+' object/s is/are required. Block '+self.name + ' got '+str(testObjects[tofto]) + '!')
+              numerosity = numerosity.replace('n',str(testObjects[toObjectName]))
+              if testObjects[toObjectName] != int(numerosity): self.raiseAnError(IOError,'Only '+numerosity+' '+toObjectName+' object/s is/are required. Block '+self.name + ' got '+str(testObjects[toObjectName]) + '!')
     if '_localReadMoreXML' in dir(self): self._localReadMoreXML(xmlNode)
 
   def addAsseblerObject(self,name,flag, newXmlFlg = None):

@@ -44,13 +44,13 @@ class ExternalRunner(MessageHandler.MessageUser):
   """
     Class for running external codes
   """
-  def __init__(self,messageHandler, command, workingDir, bufsize, identifier = None, output = None ,metadata = None, codePointer = None, uniqueHandler = "any"):
+  def __init__(self,messageHandler, command, workingDir, bufferSize, identifier = None, output = None ,metadata = None, codePointer = None, uniqueHandler = "any"):
     """
       Initialize command variable
       @ In, messageHandler, MessageHandler instance, the global RAVEN message handler instance
       @ In, command, list, list of commands that needs to be executed
       @ In, workingDir, string, absolute path of the working directory
-      @ In, bufsize, int, buffer size for logger
+      @ In, bufferSize, int, buffer size for logger
       @ In, identifier, string, optional, id of this job
       @ In, output, string, optional, output filename root
       @ In, metadata, dict, optional, dictionary of metadata associated with this ExternalRunner
@@ -63,7 +63,7 @@ class ExternalRunner(MessageHandler.MessageUser):
     self.codePointerFailed = None
     self.messageHandler    = messageHandler
     self.command           = command
-    self.bufsize           = bufsize
+    self.bufferSize        = bufferSize
     workingDirI            = None
     if output is not None:
       self.output   = output
@@ -199,7 +199,7 @@ class ExternalRunner(MessageHandler.MessageUser):
     oldDir = os.getcwd()
     os.chdir(self.__workingDir)
     localenv = dict(os.environ)
-    outFile = open(self.output,'w', self.bufsize)
+    outFile = open(self.output,'w', self.bufferSize)
     self.__process = utils.pickleSafeSubprocessPopen(self.command,shell=True,stdout=outFile,stderr=outFile,cwd=self.__workingDir,env=localenv)
     os.chdir(oldDir)
 
@@ -273,7 +273,7 @@ class InternalRunner(MessageHandler.MessageUser):
     self.__metadata       = copy.copy(metadata)
     self.__frameworkMods  = copy.copy(frameworkModules)
     self._functionToSkip  = functionToSkip
-    self.retcode          = 0
+    self.returnCode       = 0
 
   def __deepcopy__(self,memo):
     """
@@ -322,21 +322,21 @@ class InternalRunner(MessageHandler.MessageUser):
     """
       Returns the return code from running the code.  If return code not yet set, set it.
       @ In, None
-      @ Out, retcode, int,  the return code of this evaluation
+      @ Out, returnCode, int,  the return code of this evaluation
     """
     if self.ppserver is None and hasattr(self,'subque'):
       if not self.__hasBeenAdded:
         self.__collectRunnerResponse()
       if len(self.subque) == 0 and self.__runReturn is None: #is this necessary and sufficient for all failed runs?
         self.__runReturn = None
-        self.retcode     = -1
-    return self.retcode
+        self.returnCode     = -1
+    return self.returnCode
 
   def __collectRunnerResponse(self):
     """
-     Method to add the process response in the internal variable (pointer) self.__runReturn
-     @ In, None
-     @ Out, None
+      Method to add the process response in the internal variable (pointer) self.__runReturn
+      @ In, None
+      @ Out, None
     """
     if not self.__hasBeenAdded:
       if self.ppserver is not None and not self.__forceUseThreads:
@@ -357,8 +357,8 @@ class InternalRunner(MessageHandler.MessageUser):
     if self.isDone():
       self.__collectRunnerResponse()
       if self.__runReturn is None:
-        self.retcode = -1
-        return self.retcode
+        self.returnCode = -1
+        return self.returnCode
       return (self.__input[0],self.__runReturn)
     else: return -1 #control return code
 
@@ -379,7 +379,7 @@ class InternalRunner(MessageHandler.MessageUser):
     try: self.startParallelPython()
     except Exception as ae:
       self.raiseAMessage("InternalRunner job "+self.identifier+" failed with error:"+ str(ae) +" !",'ExceptedError')
-      self.retcode = -1
+      self.returnCode = -1
 
   def kill(self):
     """
@@ -632,9 +632,9 @@ class JobHandler(MessageHandler.MessageUser):
 
   def isThisJobFinished(self,identifier):
     """
-     Method to check if the run identified by "identifier" is finished
-     @ In, identifier, string, identifier
-     @ Out, isFinished, bool, True if the job identified by "identifier" is finished
+      Method to check if the run identified by "identifier" is finished
+      @ In, identifier, string, identifier
+      @ Out, isFinished, bool, True if the job identified by "identifier" is finished
     """
     isFinished = None
     with self.__queueLock:
@@ -686,17 +686,14 @@ class JobHandler(MessageHandler.MessageUser):
 
   def howManyFreeSpotsForClients(self):
     """
-     Method to get the number of free spots in the client queue (same size of __running queue)
-     @ In, None
-     @ Out, cnt_free_spots, int, number of free spots
+      Method to get the number of free spots in the client queue (same size of __running queue)
+      @ In, None
+      @ Out, cntFreeSpots, int, number of free spots
     """
     cntFreeSpots = 0
-    #if len(self.__queue) == 0:
     with self.__queueLock:
       for i in range(len(self.__clientRunning)):
         if self.__clientRunning[i] and self.__clientRunning[i].isDone():
-            cntFreeSpots += 1
-        else:
           cntFreeSpots += 1
     return cntFreeSpots
 
@@ -704,7 +701,7 @@ class JobHandler(MessageHandler.MessageUser):
     """
       Method to get the list of jobs that ended (list of objects)
       @ In, removeFinished, bool, optional, flag to control if the finished jobs need to be removed from the queue
-      @ In, prefix, string, optional, if specified, only collects finished runs with a particular prefix.
+      @ In, jobIdentifier, string, optional, if specified, only collects finished runs with a particular jobIdentifier.
       @ In, uniqueHandler, string, optional, it is a special keyword attached to each runner. If provided, just the jobs that have the uniqueIdentifier will be retrieved.
                                              by default uniqueHandler = 'any' => all the jobs for which no uniqueIdentifier has been set up are going to be retrieved
       @ Out, finished, list, list of finished jobs (InternalRunner or ExternalRunner objects) (if jobIdentifier is None), else the finished job identified by jobIdentifier
@@ -717,12 +714,10 @@ class JobHandler(MessageHandler.MessageUser):
           if self.__running[i].isDone():
             goOn = True
             if jobIdentifier is not None:
-              #if self.__running[i].identifier != jobIdentifier : goOn = False
-              if self.__running[i] is None or not self.__running[i].identifier.startswith(jobIdentifier): goOn = False
-            if self.__running[i] is None or uniqueHandler != self.__running[i].uniqueHandler: goOn = False
+              if not self.__running[i].identifier.startswith(jobIdentifier): goOn = False
+            if uniqueHandler != self.__running[i].uniqueHandler: goOn = False
             if goOn:
               if jobIdentifier is not None:
-                #if self.__running[i].identifier != jobIdentifier: continue
                 if not self.__running[i].identifier.startswith(jobIdentifier): continue
               finished.append(self.__running[i])
               if removeFinished:
@@ -754,11 +749,11 @@ class JobHandler(MessageHandler.MessageUser):
       @ Out, None
     """
     with self.__queueLock:
-      returncode = running.getReturnCode()
-      if returncode != 0:
-        self.raiseAMessage(" Process Failed "+str(running)+' '+str(running.command)+" returncode "+str(returncode))
+      returnCode = running.getReturnCode()
+      if returnCode != 0:
+        self.raiseAMessage(" Process Failed "+str(running)+' '+str(running.command)+" returnCode "+str(returnCode))
         self.__numFailed += 1
-        self.__failedJobs[running.identifier]=(returncode,copy.deepcopy(running.returnMetadata()))
+        self.__failedJobs[running.identifier]=(returnCode,copy.deepcopy(running.returnMetadata()))
         if type(running).__name__ == "External":
           outputFilename = running.getOutputFilename()
           if os.path.exists(outputFilename): self.raiseAMessage(open(outputFilename,"r").read())
@@ -770,8 +765,8 @@ class JobHandler(MessageHandler.MessageUser):
         if len(self.runInfoDict['deleteOutExtension']) >= 1 and running.__class__.__name__ != 'InternalRunner':
           for fileExt in self.runInfoDict['deleteOutExtension']:
             if not fileExt.startswith("."): fileExt = "." + fileExt
-            filelist = [ f for f in os.listdir(running.getWorkingDir()) if f.endswith(fileExt) ]
-            for f in filelist: os.remove(f)
+            fileList = [ f for f in os.listdir(running.getWorkingDir()) if f.endswith(fileExt) ]
+            for f in fileList: os.remove(f)
 
   def addRuns(self):
     """
@@ -801,7 +796,6 @@ class JobHandler(MessageHandler.MessageUser):
             self.__running[i] = item
             self.__running[i].start() #FIXME this call is really expensive; can it be reduced?
             self.__nextId += 1
-    #while len(self.__clientQueue) !=0:
     with self.__queueLock:
       if self.__clientRunning.count(None) > 0 and len(self.__clientQueue) !=0:
         for i in range(len(self.__clientRunning)):

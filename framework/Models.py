@@ -221,6 +221,12 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     pass
 
   def updateInputFromOutside(self, Input, externalDict):
+    """
+      Method to update an input from outside
+      @ In, Input, list, list of inputs that needs to be updated
+      @ In, externalDict, dict, dictionary of new values that need to be added or updated
+      @ Out, inputOut, list, updated list of inputs
+    """
     pass
 
   @abc.abstractmethod
@@ -358,17 +364,17 @@ class Dummy(Model):
 
   def updateInputFromOutside(self, Input, externalDict):
     """
-     Method to update an input from outside
-     @ In,  Input, list, list of inputs that needs to be updated
-     @ In,  externalDict, dict, dictionary of new values that need to be added or updated
-     @ Out, InputOut, list, updated list of inputs
+      Method to update an input from outside
+      @ In, Input, list, list of inputs that needs to be updated
+      @ In, externalDict, dict, dictionary of new values that need to be added or updated
+      @ Out, inputOut, list, updated list of inputs
     """
-    InputOut = Input
+    inputOut = Input
     for key, value in externalDict.items():
-      InputOut[0][0][key] =  externalDict[key]
-      InputOut[1]["SampledVars"  ][key] =  externalDict[key]
-      InputOut[1]["SampledVarsPb"][key] =  1.0    #FIXME it is a mistake (Andrea)
-    return InputOut
+      inputOut[0][0][key] =  externalDict[key]
+      inputOut[1]["SampledVars"  ][key] =  externalDict[key]
+      inputOut[1]["SampledVarsPb"][key] =  1.0    #FIXME it is a mistake (Andrea). The SampledVarsPb for this variable should be transfred from outside
+    return inputOut
 
   def run(self,Input,jobHandler):
     """
@@ -451,10 +457,10 @@ class ROM(Dummy):
 
   def updateInputFromOutside(self, Input, externalDict):
     """
-     Method to update an input from outside
-     @ In,  Input, list, list of inputs that needs to be updated
-     @ In,  externalDict, dict, dictionary of new values that need to be added or updated
-     @ Out, InputOut, list, updated list of inputs
+      Method to update an input from outside
+      @ In, Input, list, list of inputs that needs to be updated
+      @ In, externalDict, dict, dictionary of new values that need to be added or updated
+      @ Out, inputOut, list, updated list of inputs
     """
     return Dummy.updateInputFromOutside(self, Input, externalDict)
 
@@ -822,15 +828,15 @@ class ExternalModel(Dummy):
 
   def updateInputFromOutside(self, Input, externalDict):
     """
-     Method to update an input from outside
-     @ In,  Input, list, list of inputs that needs to be updated
-     @ In,  externalDict, dict,  dictionary of new values that need to be added or updated
-     @ Out, InputOut, list, updated list of inputs
+      Method to update an input from outside
+      @ In, Input, list, list of inputs that needs to be updated
+      @ In, externalDict, dict, dictionary of new values that need to be added or updated
+      @ Out, inputOut, list, updated list of inputs
     """
     dummyReturn =  Dummy.updateInputFromOutside(self,Input[0], externalDict)
-    InputOut = (dummyReturn,Input[1])
-    for key, value in externalDict.items(): InputOut[1][key] =  externalDict[key]
-    return InputOut
+    inputOut = (dummyReturn,Input[1])
+    for key, value in externalDict.items(): inputOut[1][key] =  externalDict[key]
+    return inputOut
 
   def localInputAndChecks(self,xmlNode):
     """
@@ -1159,17 +1165,17 @@ class Code(Model):
   def updateInputFromOutside(self, Input, externalDict):
     """
       Method to update an input from outside
-      @ In,  Input, list, list of inputs that needs to be updated
-      @ In,  externalDict, dict, dictionary of new values that need to be added or updated
-      @ Out, InputOut, list, updated list of inputs
+      @ In, Input, list, list of inputs that needs to be updated
+      @ In, externalDict, dict, dictionary of new values that need to be added or updated
+      @ Out, inputOut, list, updated list of inputs
     """
     newKwargs = Input[1]
     newKwargs['SampledVars'].update(externalDict)
     # the following update should be done with the Pb value coming from the previous (in the model chain) model
     newKwargs['SampledVarsPb'].update(dict.fromkeys(externalDict.keys(),0.0))
-    InputOut = self.createNewInput(Input[1]['originalInput'], Input[1]['SamplerType'], **newKwargs)
+    inputOut = self.createNewInput(Input[1]['originalInput'], Input[1]['SamplerType'], **newKwargs)
 
-    return InputOut
+    return inputOut
 
   def run(self,inputFiles,jobHandler):
     """
@@ -1408,10 +1414,10 @@ class EnsembleModel(Dummy, Assembler):
     cls.validateDict['Output' ][2]['required'    ] = False
     cls.validateDict['Output' ][2]['multiplicity'] = 'n'
     cls.validateDict['Output'].append(cls.testDict.copy())
-    cls.validateDict['Output' ][2]['class'       ] = 'OutStreams'
-    cls.validateDict['Output' ][2]['type'        ] = ['Plot','Print']
-    cls.validateDict['Output' ][2]['required'    ] = False
-    cls.validateDict['Output' ][2]['multiplicity'] = 'n'
+    cls.validateDict['Output' ][3]['class'       ] = 'OutStreams'
+    cls.validateDict['Output' ][3]['type'        ] = ['Plot','Print']
+    cls.validateDict['Output' ][3]['required'    ] = False
+    cls.validateDict['Output' ][3]['multiplicity'] = 'n'
 
   def __init__(self,runInfoDict):
     """
@@ -1485,7 +1491,7 @@ class EnsembleModel(Dummy, Assembler):
       @ Out, None
     """
     self.tree = TreeStructure.NodeTree(TreeStructure.Node(self.name))
-    rootnode = self.tree.getrootnode()
+    rootNode = self.tree.getrootnode()
     for modelIn in self.assemblerDict['Model']:
       self.modelsDictionary[modelIn[2]]['Instance'] = modelIn[3]
       inputForModel = []
@@ -1505,7 +1511,7 @@ class EnsembleModel(Dummy, Assembler):
           modelNode = TreeStructure.Node(modelIn)
           modelNode.add( 'inputs', targetEval[3].getParaKeys("inputs"))
           modelNode.add('outputs', targetEval[3].getParaKeys("outputs"))
-          rootnode.appendBranch(modelNode)
+          rootNode.appendBranch(modelNode)
           break
     # construct chain connections
     self.orderList        = self.modelsDictionary.keys()
@@ -1553,17 +1559,17 @@ class EnsembleModel(Dummy, Assembler):
     """
     tempDict['Models contained in EnsembleModel are '] = self.modelsDictionary.keys()
 
-  def __selectInputSubset(self,modelName, Kwargs):
+  def __selectInputSubset(self,modelName, kwargs ):
     """
       Method aimed to select the input subset for a certain model
       @ In, modelName, string, the model name
-      @ In, Kwargs, dict, the kwarded dictionary where the sampled vars are stored
-      @ Out, selectedKwargs, dict, the subset of variables (in a swallow copy of the Kwargs dict)
+      @ In, kwargs , dict, the kwarded dictionary where the sampled vars are stored
+      @ Out, selectedKwargs , dict, the subset of variables (in a swallow copy of the kwargs  dict)
     """
-    selectedKwargs = copy.copy(Kwargs)
+    selectedKwargs = copy.copy(kwargs)
     selectedKwargs['SampledVars'], selectedKwargs['SampledVarsPb'] = {}, {}
-    for key in Kwargs["SampledVars"].keys():
-      if key in self.modelsDictionary[modelName]['Input']: selectedKwargs['SampledVars'][key], selectedKwargs['SampledVarsPb'][key] =  Kwargs["SampledVars"][key], Kwargs["SampledVarsPb"][key]
+    for key in kwargs["SampledVars"].keys():
+      if key in self.modelsDictionary[modelName]['Input']: selectedKwargs['SampledVars'][key], selectedKwargs['SampledVarsPb'][key] =  kwargs["SampledVars"][key], kwargs["SampledVarsPb"][key]
     return copy.deepcopy(selectedKwargs)
 
   def _inputToInternal(self, myInput, sampledVarsKeys, full=False):
