@@ -1,0 +1,78 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
+    <WorkingDir>first</WorkingDir>
+    <Sequence>sample,train,stats</Sequence>
+    <batchSize>36</batchSize>
+  </RunInfo>
+
+  <ExternalXML node="VariableGroups" xmlToLoad="first/vargroup.xml"/>
+
+  <Files>
+    <Input name="Functions.py" type="">Functions.py</Input>
+    <Input name="statsfile" type="">basic_stats_2_9.csv</Input>
+  </Files>
+
+  <Models>
+    <ExternalXML node="ExternalModel" xmlToLoad="first/externalModel.xml"/>
+    <PostProcessor name="stats" subType="BasicStatistics">
+      <what>expectedValue,variance</what>
+      <parameters>response</parameters>
+    </PostProcessor>
+    <ROM name="rom" subType="GaussPolynomialRom">
+      <Target>response</Target>
+      <Features>latent9</Features>
+      <IndexSet>TotalDegree</IndexSet>
+      <PolynomialOrder>1</PolynomialOrder>
+    </ROM>
+  </Models>
+
+  <Distributions>
+    <MultivariateNormal method="pca" name="MultivariateNormalReduction">
+      <ExternalXML node="transformation" xmlToLoad="first/reduction.xml"/>
+      <ExternalXML node="mu" xmlToLoad="first/mean.xml"/>
+      <ExternalXML node="covariance" xmlToLoad="first/covariance.xml"/>
+    </MultivariateNormal>
+  </Distributions>
+
+  <Samplers>
+    <ExternalXML node="SparseGridCollocation" xmlToLoad="first/sc.xml"/>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="sample" sleepTime="1e-4">
+      <Input class="DataObjects" type="Point">inputPlaceHolder</Input>
+      <Model class="Models" type="ExternalModel">PythonModule</Model>
+      <Sampler class="Samplers" type="SparseGridCollocation">sc</Sampler>
+      <Output class="DataObjects" type="PointSet">testPrintPointSet</Output>
+    </MultiRun>
+    <RomTrainer name="train">
+      <Input class="DataObjects" type="PointSet">testPrintPointSet</Input>
+      <Output class="Models" type="ROM">rom</Output>
+    </RomTrainer>
+    <IOStep name="stats">
+      <Input class="Models" type="ROM">rom</Input>
+      <Output class="OutStreams" type="Print">td_1_dump</Output>
+    </IOStep>
+  </Steps>
+
+  <OutStreams>
+    <Print name="td_1_dump">
+      <type>xml</type>
+      <source>rom</source>
+      <what>all</what>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <Point name="inputPlaceHolder">
+      <ExternalXML node="Input" xmlToLoad="first/pointInput.xml"/>
+      <Output>OutputPlaceHolder</Output>
+    </Point>
+    <PointSet name="testPrintPointSet">
+      <Input>latent9</Input>
+      <Output>response</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>
