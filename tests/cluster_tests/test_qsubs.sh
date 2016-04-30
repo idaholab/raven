@@ -94,7 +94,7 @@ rm -Rf metaModelNonLinearParallel/*.png
 
 python ../../../framework/Driver.py test_ensemble_model_picard_parallel.xml ../cluster_runinfo.xml
 
-wait_lines 'metaModelNonLinearParallel/*.png' 6 parallelEnsemblePicard
+wait_lines 'metaModelNonLinearParallel/*.png' 3 parallelEnsemblePicard
 
 cd ..
 
@@ -104,7 +104,7 @@ rm -Rf metaModelLinearParallel/*.png
 
 python ../../../framework/Driver.py test_ensemble_model_linear_internal_parallel.xml ../cluster_runinfo.xml
 
-wait_lines 'metaModelLinearParallel/*.png' 6 parallelEnsembleLinear
+wait_lines 'metaModelLinearParallel/*.png' 2 parallelEnsembleLinear
 
 cd ..
 
