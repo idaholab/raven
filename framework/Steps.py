@@ -417,7 +417,7 @@ class MultiRun(SingleRun):
             self.raiseADebug('Just collected output {0:2} of the input {1:6}'.format(outIndex+1,self.counter))
         else:
           #add run to a pool that can be sent to the sampler later
-          self.failedRuns.append(copy.deepcopy(finishedJob))
+          self.failedRuns.append(copy.copy(finishedJob))
           self.raiseADebug('the job failed... call the handler for this situation... not yet implemented...')
           self.raiseADebug('the JOBS that failed are tracked in the JobHandler... hence, we can retrieve and treat them separately. skipping here is Ok. Andrea')
         for _ in range(min(jobHandler.howManyFreeSpots(),sampler.endJobRunnable())): # put back this loop (do not take it away again. it is NEEDED for NOT-POINT samplers(aka DET)). Andrea
@@ -435,63 +435,7 @@ class MultiRun(SingleRun):
 #
 #
 #
-# class Adaptive(MultiRun):
-#   """this class implement one step of the simulation pattern' where several runs are needed in an adaptive scheme"""
-#   def __init__(self):
-#     MultiRun.__init__(self)
-#     self.printTag = utils.returnPrintTag('STEP ADAPTIVE')
-#   def _localInputAndChecks(self,xmlNode):
-#     """we check coherence of Sampler, Functions and Solution Output"""
-#     #test sampler information:
-#     foundSampler     = False
-#     samplCounter     = 0
-#     foundTargEval    = False
-#     targEvalCounter  = 0
-#     solExportCounter = 0
-#     functionCounter  = 0
-#     foundFunction    = False
-#     ROMCounter       = 0
-#     #explanation new roles:
-#     #Function        : it takes in a dataObjects and generate the value of the goal functions
-#     #TargetEvaluation: is the output dataObjects that is used for the evaluation of the goal function. It has to be declared among the outputs
-#     #SolutionExport  : if declared it is used to export the location of the  goal functions = 0
-#     for role in self.parList:
-#       if   role[0] == 'Sampler':
-#         foundSampler    =True
-#         samplCounter   +=1
-#         if not(role[1]=='Samplers' and role[2] in ['Adaptive','AdaptiveDynamicEventTree']): risea Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '->  The type of sampler used for the step '+str(self.name)+' is not coherent with and adaptive strategy')
-#       elif role[0] == 'TargetEvaluation':
-#         foundTargEval   = True
-#         targEvalCounter+=1
-#         if role[1]!='DataObjects'                               : risea Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> The data chosen for the evaluation of the adaptive strategy is not compatible,  in the step '+self.name)
-#         if not(['Output']+role[1:] in self.parList[:])    : risea Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> The data chosen for the evaluation of the adaptive strategy is not in the output list for step '+self.name)
-#       elif role[0] == 'SolutionExport'  :
-#         solExportCounter  +=1
-#         if role[1]!='DataObjects'                               : risea Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> The data chosen for exporting the goal function solution is not compatible, in the step '+self.name)
-#       elif role[0] == 'Function'       :
-#         functionCounter+=1
-#         foundFunction   = True
-#         if role[1]!='Functions'                           : risea Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> A class function is required as function in an adaptive step, in the step '+self.name)
-#       elif role[0] == 'ROM':
-#         ROMCounter+=1
-#         if not(role[1]=='Models' and role[2]=='ROM')       : risea Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> The ROM could be only class=Models and type=ROM. It does not seems so in the step '+self.name)
-#     if foundSampler ==False: risea Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> It is not possible to run an adaptive step without a sampler in step '           +self.name)
-#     if foundTargEval==False: risea Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> It is not possible to run an adaptive step without a target output in step '     +self.name)
-#     if foundFunction==False: risea Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> It is not possible to run an adaptive step without a proper function, in step '  +self.name)
-#     if samplCounter    >1  : risea Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> More than one sampler found in step '                                            +self.name)
-#     if targEvalCounter >1  : risea Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> More than one target defined for the adaptive sampler found in step '            +self.name)
-#     if solExportCounter>1  : risea Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> More than one output to export the solution of the goal function, found in step '+self.name)
-#     if functionCounter >1  : risea Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> More than one function defined in the step '                                     +self.name)
-#     if ROMCounter      >1  : risea Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> More than one ROM defined in the step '                                          +self.name)
-#
-#   def _localInitializeStep(self,inDictionary):
-#     """this is the initialization for a generic step performing runs """
-#     #self._samplerInitDict['goalFunction'] = inDictionary['Function']
-#     if 'SolutionExport' in inDictionary.keys(): self._samplerInitDict['solutionExport']=inDictionary['SolutionExport']
-#     #if 'ROM'            in inDictionary.keys():
-#       #self._samplerInitDict['ROM']=inDictionary['ROM']
-#       #self._samplerInitDict['ROM'].reset()
-#     MultiRun._localInitializeStep(self,inDictionary)
+
 #
 #
 #

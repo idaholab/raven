@@ -50,12 +50,9 @@ class BasePostProcessor(Assembler, MessageHandler.MessageUser):
       @ In, messageHandler, MessageHandler, message handler object
       @ Out, None
     """
+    Assembler.__init__(self)
     self.type = self.__class__.__name__  # pp type
     self.name = self.__class__.__name__  # pp name
-    self.assemblerObjects = {}  # {MainClassName(e.g.Distributions):[class(e.g.Models),type(e.g.ROM),objectName]}
-    self.requiredAssObject = (False, ([], []))  # tuple. self.first entry boolean flag. True if the XML parser must look for assembler objects;
-                                                      # second entry tuple.self.first entry list of object can be retrieved, second entry multiplicity (-1,-2,-n means optional (max 1 object,2 object, no number limit))
-    self.assemblerDict = {}  # {'class':[['subtype','name',instance]]}
     self.messageHandler = messageHandler
 
   def initialize(self, runInfo, inputs, initDict) :
@@ -107,7 +104,7 @@ class LimitSurfaceIntegral(BasePostProcessor):
     self.functionS = None
     self.stat = returnInstance('BasicStatistics', self)  # instantiation of the 'BasicStatistics' processor, which is used to compute the pb given montecarlo evaluations
     self.stat.what = ['expectedValue']
-    self.requiredAssObject = (False, (['Distribution'], ['n']))
+    self.addAssemblerObject('Distribution','n', newXmlFlg = False)
     self.printTag = 'POSTPROCESSOR INTEGRAL'
 
   def _localWhatDoINeed(self):
@@ -295,7 +292,7 @@ class SafestPoint(BasePostProcessor):
     self.surfPointsMatrix = None  # 2D-matrix containing the coordinates of the points belonging to the failure boundary (coordinates are derived from both the controllable and non-controllable space)
     self.stat = returnInstance('BasicStatistics', self)  # instantiation of the 'BasicStatistics' processor, which is used to compute the expected value of the safest point through the coordinates and probability values collected in the 'run' function
     self.stat.what = ['expectedValue']
-    self.requiredAssObject = (True, (['Distribution'], ['n']))
+    self.addAssemblerObject('Distribution','n', True)
     self.printTag = 'POSTPROCESSOR SAFESTPOINT'
 
   def _localGenerateAssembler(self, initDict):
@@ -1497,7 +1494,7 @@ class BasicStatistics(BasePostProcessor):
     self.methodsToRun = []  # if a function is present, its outcome name is here stored... if it matches one of the known outcomes, the pp is going to use the function to compute it
     self.externalFunction = []
     self.printTag = 'POSTPROCESSOR BASIC STATISTIC'
-    self.requiredAssObject = (True, (['Function'], [-1]))
+    self.addAssemblerObject('Function','-1', True)
     self.biased = False
 
   def inputToInternal(self, currentInp):
@@ -2191,7 +2188,8 @@ class LimitSurface(BasePostProcessor):
     self.bounds            = None
     self.jobHandler        = None
     self.transfMethods     = {}
-    self.requiredAssObject = (True,(['ROM','Function'],[-1,1]))
+    self.addAssemblerObject('ROM','-1', True)
+    self.addAssemblerObject('Function','1')
     self.printTag = 'POSTPROCESSOR LIMITSURFACE'
 
   def _localWhatDoINeed(self):

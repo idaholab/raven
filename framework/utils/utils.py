@@ -353,7 +353,7 @@ def importFromPath(filename, printImporting = True):
     @ In, printImporting, bool, True if information about the importing needs to be printed out
     @ Out, importedModule, module, the imported module
   """
-  if printImporting: print(UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('Message')+ '-> importing module '+ filename)
+  if printImporting: print('(            ) '+UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('Message')+ '      -> importing module '+ filename)
   import imp, os.path
   try:
     (path, name) = os.path.split(filename)
@@ -361,7 +361,7 @@ def importFromPath(filename, printImporting = True):
     (file, filename, data) = imp.find_module(name, [path])
     importedModule = imp.load_module(name, file, filename, data)
   except Exception as ae:
-    raise Exception(UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ '-> importing module '+ filename + ' at '+path+os.sep+name+' failed with error '+str(ae))
+    raise Exception('(            ) '+ UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ '-> importing module '+ filename + ' at '+path+os.sep+name+' failed with error '+str(ae))
   return importedModule
 
 def index(a, x):
@@ -625,4 +625,8 @@ class pickleSafeSubprocessPopen(subprocess.Popen):
       """
       self.__dict__ = d
       self._handle = None
+
+
+
+
 
