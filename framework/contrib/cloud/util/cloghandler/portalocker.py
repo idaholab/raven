@@ -110,7 +110,7 @@ if os.name == 'nt':
             else:
                 # Q:  Are there exceptions/codes we should be dealing with here?
                 raise
-    
+
     def unlock(file):
         hfile = win32file._get_osfhandle(_getfd(file))
         try:
@@ -128,7 +128,7 @@ if os.name == 'nt':
 elif os.name == 'posix':
     def lock(file, flags):
         try:
-            #fcntl.flock(_getfd(file), flags)            
+            #fcntl.flock(_getfd(file), flags)
             fcntl.lockf(_getfd(file), flags)
         except IOError, exc_value:
             #  IOError: [Errno 11] Resource temporarily unavailable
@@ -136,7 +136,7 @@ elif os.name == 'posix':
                 raise LockException(LockException.LOCK_FAILED, exc_value[1])
             else:
                 raise
-    
+
     def unlock(file):
         #fcntl.flock(_getfd(file), fcntl.LOCK_UN)
         fcntl.lockf(_getfd(file), fcntl.LOCK_UN)

@@ -1,5 +1,5 @@
 """
-This module holds convenience functions for accessing information 
+This module holds convenience functions for accessing information
 
 Copyright (c) 2013 `PiCloud, Inc. <http://www.picloud.com>`_.  All rights reserved.
 
@@ -16,7 +16,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 Lesser General Public License for more details.
 
 You should have received a copy of the GNU Lesser General Public
-License along with this package; if not, see 
+License along with this package; if not, see
 http://www.gnu.org/licenses/lgpl-2.1.html
 """
 
@@ -46,7 +46,7 @@ cloudLog = logging.getLogger('util.common')
 ########## Utilities for sending post request ############
 def _send_request(request_url, data, jsonize_values=True):
     """Makes a cloud request and returns the results.
-    
+
     * request_url: whee the request should be sent
     * data: dictionary of post values relevant to the request
     * jsonize_values: if True (default), then the values of the *data*
@@ -97,7 +97,7 @@ def _check_rsync_dependencies():
     status, _, _ = exec_command('%s --version' % _rsync_path(), pipe_output=True)
     if status:
         raise cloud.CloudException(msg_template % 'rsync')
-    
+
     # check ssh exists
     status, _, _ = exec_command('%s -V' % _ssh_path(), pipe_output=True)
     if status:
@@ -147,7 +147,7 @@ def parse_local_paths(local_paths):
     """Validate local paths."""
     if not isinstance(local_paths, (tuple, list)):
         local_paths = [local_paths]
-    
+
     parsed_paths = []
     for path in local_paths:
         path = fix_path(path)
@@ -161,7 +161,7 @@ def parse_remote_paths(remote_paths):
     """Validate remote paths."""
     if not isinstance(remote_paths, (tuple, list)):
         remote_paths = [remote_paths]
-    
+
     resource_name = None
     parsed_paths = []
     for path in remote_paths:
@@ -212,7 +212,7 @@ def ssh_session(username, hostname, key_path, port=None, run_cmd=None):
 def rsync_session(src_arg, dest_arg, delete=False, pipe_output=True):
     """Perform an rsync operation over ssh using api_key's ssh key."""
     _check_rsync_dependencies()
-    
+
     api_key = cloud.connection_info().get('api_key')
     key_file = credentials.get_sshkey_path(api_key)
     if not os.path.exists(key_file):
@@ -241,25 +241,25 @@ def ssh_server_job(keep_alive=False):
     Set *keep_alive* to True to keep job running forever
     """
     poll_time = 4.0
-    
+
     activated = False
-    
+
     if keep_alive: # sleep forever
         time.sleep(315360000)
-        return 
+        return
 
     while True:
         time.sleep(poll_time)
         p = Popen('ps -C sshd -o cmd | grep pts', shell=True, stdout=PIPE, stderr=PIPE)
         stdout, _ = p.communicate()
         lines = stdout.splitlines()
-        
+
         if not lines:
             if activated:
                 print 'No more SSH connections. Terminating job'
                 break
-        
+
         else:
             activated=True
-        
-    
+
+

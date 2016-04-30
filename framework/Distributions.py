@@ -1869,6 +1869,8 @@ class NDimensionalDistributions(Distribution):
     value = self._distribution.returnUpperBound(dimension)
     return value
 
+
+
 class NDInverseWeight(NDimensionalDistributions):
   """
     NDInverseWeight multi-variate distribution (inverse weight interpolation)

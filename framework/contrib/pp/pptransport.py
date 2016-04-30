@@ -221,5 +221,5 @@ class CPipeTransport(PipeTransport, CTransport):
 
 class CSocketTransport(SocketTransport, CTransport):
     pass
-    
+
 # Parallel Python Software: http://www.parallelpython.com

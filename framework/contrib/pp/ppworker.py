@@ -68,7 +68,7 @@ def preprocess(msg):
             exec module
             globals().update(locals())
         except:
-            print "An error has occured during the module import. Module " + module 
+            print "An error has occured during the module import. Module " + module
             sys.excepthook(*sys.exc_info())
     return fname, fobjs
 
