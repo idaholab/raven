@@ -1,0 +1,55 @@
+[Tests]
+
+ [./testGridRattlesnake]
+   type = 'RavenFramework'
+   input = 'test_grid_rattlesnake.xml'
+   output = 'TestRattlesnake/GridTest/2~xs.xml TestRattlesnake/GridTest/2~twigl_mixing.i'
+   csv = 'TestRattlesnake/GridTest/out~12~twigl_mixing.csv TestRattlesnake/GridTest/out~10~twigl_mixing.csv TestRattlesnake/out_grid_dump.csv'
+   xml = 'TestRattlesnake/GridTest/10~xs.xml'
+   max_time = 50
+   rel_err = 0.0001
+   required_executable = '../../../../../rattlesnake/rattlesnake-%METHOD%'
+   skip_if_env = BUILD_ROOT
+   method = 'devel opt'
+ [../]
+ 
+ [./testMC]
+   type = 'RavenFramework'
+   input = 'test_mc_rattlesnake.xml'
+   output = 'TestRattlesnake/MCTest/2~xs.xml TestRattlesnake/MCTest/2~twigl_mixing.i'
+   csv = 'TestRattlesnake/MCTest/out~1~twigl_mixing.csv TestRattlesnake/MCTest/out~10~twigl_mixing.csv TestRattlesnake/out_mc_dump.csv'
+   xml = 'TestRattlesnake/MCTest/10~xs.xml'
+   max_time = 50
+   rel_err = 0.0001
+   required_executable = '../../../../../rattlesnake/rattlesnake-%METHOD%'
+   skip_if_env = BUILD_ROOT
+   method = 'devel opt'
+ [../]
+ 
+ [./testMCRattlesnake]
+   type = 'RavenFramework'
+   input = 'test_perturb_rattlesnake_only.xml'
+   output = 'TestRattlesnake/MCTestRattlesnake/2~twigl_mixing.i'
+   csv = 'TestRattlesnake/MCTestRattlesnake/out~1~twigl_mixing.csv TestRattlesnake/MCTestRattlesnake/out~10~twigl_mixing.csv TestRattlesnake/out_mc_rattlesnake_dump.csv'
+   max_time = 50
+   rel_err = 0.0001
+   required_executable = '../../../../../rattlesnake/rattlesnake-%METHOD%'
+   skip_if_env = BUILD_ROOT
+   method = 'devel opt'
+ [../]
+ 
+ [./testMCYak]
+   type = 'RavenFramework'
+   input = 'test_perturb_yak_only.xml'
+   output = 'TestRattlesnake/MCTestYak/2~xs.xml TestRattlesnake/MCTestYak/2~twigl_mixing.i'
+   csv = 'TestRattlesnake/MCTestYak/out~1~twigl_mixing.csv TestRattlesnake/MCTestYak/out~10~twigl_mixing.csv TestRattlesnake/out_mc_yak_dump.csv'
+   max_time = 50
+   rel_err = 0.0001
+   required_executable = '../../../../../rattlesnake/rattlesnake-%METHOD%'
+   skip_if_env = BUILD_ROOT
+   method = 'devel opt'
+ [../]
+
+
+
+[]

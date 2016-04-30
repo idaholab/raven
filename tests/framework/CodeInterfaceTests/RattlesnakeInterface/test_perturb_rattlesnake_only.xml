@@ -1,0 +1,71 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
+    <WorkingDir>TestRattlesnake</WorkingDir>
+    <Sequence>MCTestRattlesnake</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="twigl_mixing.i" type="RattlesnakeInput">twigl_mixing.i</Input>
+    <Input name="xs.xml" type="YakXSInput">xs.xml</Input>
+  </Files>
+
+  <Models>
+    <Code name="Rattlesnake" subType="Rattlesnake">
+        <executable>%FRAMEWORK_DIR%/../../rattlesnake/rattlesnake-%METHOD%</executable>
+    </Code>
+  </Models>
+
+  <Distributions>
+    <Normal name="G1">
+      <mean>1</mean>
+      <sigma>0.05</sigma>
+      <lowerBound>0.00001</lowerBound>
+      <upperBound>10</upperBound>
+    </Normal>
+    <Normal name="G2">
+      <mean>1</mean>
+      <sigma>0.1</sigma>
+      <lowerBound>0.0001</lowerBound>
+      <upperBound>10</upperBound>
+    </Normal>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="MC1">
+      <samplerInit>
+        <limit>10</limit>
+      </samplerInit>
+      <variable name="Materials|seed11|densities">
+        <distribution>G2</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <OutStreams>
+    <Print name="out_mc_rattlesnake_dump">
+      <type>csv</type>
+      <source>outMC</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="outMC">
+      <Input>Materials|seed11|densities</Input>
+      <Output>eigenvalue</Output>
+    </PointSet>
+  </DataObjects>
+
+  <Steps>
+    <MultiRun name="MCTestRattlesnake">
+      <Input class="Files" type="">twigl_mixing.i</Input>
+      <Input class="Files" type="">xs.xml</Input>
+      <Model class="Models" type="Code">Rattlesnake</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC1</Sampler>
+      <Output class="DataObjects" type="PointSet">outMC</Output>
+      <Output class="OutStreams" type="Print">out_mc_rattlesnake_dump</Output>
+    </MultiRun>
+  </Steps>
+
+</Simulation>
