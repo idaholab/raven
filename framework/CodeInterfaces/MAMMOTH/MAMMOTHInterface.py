@@ -22,8 +22,8 @@ class MAMMOTHInterface(CodeInterfaceBase):
       @ Out, None
     """
     CodeInterfaceBase.__init__(self)
-    self.MooseInterface = MooseBasedAppInterface() #used to perturb MAMMOTH input files
-    self.MooseInterface.addDefaultExtension()
+    #self.MooseInterface = MooseBasedAppInterface() #used to perturb MAMMOTH input files
+    #self.MooseInterface.addDefaultExtension()
     self.RattlesnakeInterface  = RattlesnakeInterface() #used to perturb Rattlesnake and Yak input files
     self.BisonInterface = MooseBasedAppInterface() #used to perturb Bison input files
 
@@ -37,32 +37,25 @@ class MAMMOTHInterface(CodeInterfaceBase):
     inputDict['FoundMammothInput'] = False
     inputDict['FoundBisonInput'] = False
     inputDict['FoundRattlesnakeInput'] = False
-    inputDict['FoundRelap-7Input'] = False #used in the future
     rattlesnakeInput = []
     mammothInput = []
     bisonInput = []
-    relap7Input = []
     for inputFile in inputFiles:
       fileType = inputFile.getType()
-      for var in fileType.split('|'):
-        if var.strip().lower() == "mammothinput":
-          inputDict['FoundMammothInput'] = True
-          mammothInput.append(inputFile)
-        elif var.strip().lower() = "bisoninput":
-          inputDict['FoundBisonInput'] = True
-          bisonInput.append(inputFile)
-        elif var.strip().lower() = "replap-7input":
-          inputDict['FoundRelap-7Input'] = True
-          relap7Input.append(inputFile)
-        elif var.strip().lower() = "rattlesnakeinput":
-          inputDict['FoundRattlesnakeInput'] = True
-          rattlesnakeInput.append(inputFile)
-
+      if var.strip().lower() == "mammothinput|rattlesnakeinput":
+        inputDict['FoundMammothInput'] = True
+        inputDict['FoundRattlesnakeInput'] = True
+        mammothInput.append(inputFile)
+        rattlesnakeInput.append(inputFile)
+      elif var.strip().lower() = "bisoninput":
+        inputDict['FoundBisonInput'] = True
+        bisonInput.append(inputFile)
     if inputDict['FoundBisonInput']: inputDict['BisonInput'] = bisonInput
-    if inputDict['FoundRelap-7Input']: inputDict['Relap-7Input'] = relap7Input
     if inputDict['FoundRattlesnakeInput']: inputDict['RattlesnakeInput'] = rattlesnakeInput
     if not inputDict['FoundMammothInput']:
       raise IOError('None of the input files has the type "MammothInput"! This is required by MAMMOTH interface.')
+    elif len(mammothInput) != 1:
+      raise IOError('Multiple MAMMOTH input files are provided! Please limit the number of input files to one!')
     else:
       inputDict['MammothInput'] = mammothInput
     return inputDict
@@ -101,11 +94,9 @@ class MAMMOTHInterface(CodeInterfaceBase):
         where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
       @ Out, newInputFiles, list, list of new input files (modified or not)
     """
-    #split up sampledAars in Kwargs between MAMMOTH, Rattlesnake, Bison and Relap-7
-    mammothArgs = copy.deepcopy(Kwargs)
+    #split up sampledAars in Kwargs between Mammoth:Rattlesnake and Bison
     rattlesnakeArgs = copy.deepcopy(Kwargs)
     bisonArgs = copy.deepcopy(Kwargs)
-    perturbMammoth = False
     perturbRattlesnake = False
     perturbBison = False
     for varName,varValue in Kwargs['SampledVars'].items():
@@ -113,38 +104,33 @@ class MAMMOTHInterface(CodeInterfaceBase):
         fullName = Kwargs['alias'].get(varName,varName)
       else:
         fullName = varName
-      if fullName.split('|')[0].lower() == 'mammoth':
-        del rattlesnakeArgs['SampledVars'][varName]
-        del bisonArgs['SampledVars'][varName]
-        perturbMammoth = True
-        if varName in Kwargs['alias']:
-          del rattlesnakeArgs['alias'][varName]
-          del bisonArgs['alias'][varName]
-      elif fullName.split('|')[0].lower() == 'rattlesnake':
-        del mammothArgs['SampledVars'][varName]
+      if fullName.split('|')[0].lower() == 'rattlesnake':
         del bisonArgs['SampledVars'][varName]
         perturbRattlesnake = True
         if varName in Kwargs['alias']:
-          del mammothArgs['alias'][varName]
           del bisonArgs['alias'][varName]
       elif fullName.split('|')[0].lower() == 'bison':
-        del mammothArgs['SampledVars'][varName]
         del rattlesnakeArgs['SampledVars'][varName]
         perturbBison = True
         if varName in Kwargs['alias']:
-          del mammothArgs['alias'][varName]
           del rattlesnakeArgs['alias'][varName]
-    perturbYakXS = False
+    #reset the type
     for inputFile in currentInputFiles:
-      if inputFile.getType().lower() == "yakxsaliasinput":
-        perturbYakXS = True
+      fileType = inputFile.getType()
+      if fileTyep.strip().lower() == "mammothinput|rattlesnakeinput":
+        inputFile.subtype = "rattlesnakeinput"
         break
     #Rattlesnake interface
-    currentInputDicts = self.findInps()
-    if perturbYakXS or perturbRattlesnake:
+    if perturbRattlesnake:
       newUpdatedInputs = self.rattlesnakeInterface.createNewInput(currentInputFiles,origInputFiles,samplerType,**rattlesnakeArgs)
     else:
       newUpdatedInputs = copy.deepcopy(currentInputFiles)
+    #reset the type
+    for inputFile in currentInputFiles:
+      fileType = inputFile.getType()
+      if fileTyep.strip().lower() == "rattlesnakeinput":
+        inputFile.subtype = "mammothinput|rattlesnakeinput"
+        break
     inputDicts = self.findInps(newUpdatedInputs)
     #Bison interface
     if perturbBison:
@@ -156,24 +142,11 @@ class MAMMOTHInterface(CodeInterfaceBase):
         newBisonInp = self.BisonInterface.createNewInput(bisonInp,[origBisonInp],samplerType,**bisonArgs)
       else:
         raise IOError('The user tried to perturb Bison input files, but no Bison input file is found!')
-    #perturb Mammoth input files
-    if perturbMammoth:
-      mammothInp = inputDicts['MammothInput']
-      if len(mammothInp) != 1: raise IOError('Multiple Mammoth input files are found!')
-      origMammothInp = origInputFiles[currentInputFiles.index(mammothInp)]
-      newMammothInp = self.MooseInterface.createNewInput(mammothInp,origMamothInp,samplerType,**mamothArgs)
-    else:
-      newMammothInp = copy.deepcopy(inputDicts['MammothInput'])
+    newMammothInp = inputDicts['MammothInput']
     #replace the input files names inside Mammoth input
     if perturbBison:
       self._updateMammothInputs(newMammothInp,bisonInp,newBisonInp)
       inputDicts['BisonInput'].setAbsFile(newBisonInp.getAbsFile())
-    if perturbRattlesnake:
-      newRattlesnakeInp = inputDicts['RattlesnakeInput']
-      origRattlesnakeInp = origInputFiles[currentInputFiles.index(newRattlesnake)]
-      self._updateMammothInputs(newMammothInp,origRattlesnakeInp,newRattlesnakeInp)
-    inputDicts['MammothInput'].setAbsFile(newMammothInp.getAbsFile())
-
     return newUpdatedInputs
 
   def _updateMammothInputs(self,mammothInps, oldInps, newInps):
