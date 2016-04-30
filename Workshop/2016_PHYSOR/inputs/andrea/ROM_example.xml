@@ -16,8 +16,8 @@
         <Sampler class='Samplers'         type='Grid'          >Grid_sampler</Sampler>
         <Output  class='DataObjects'      type='PointSet'      >outGRID</Output>
         <Output  class='Databases'        type='HDF5'          >out_db</Output>
-        <Output  class='OutStreams' type='Print'         >out_dump</Output>
-        <Output  class='OutStreams' type='Plot'          >plotResponseFunction</Output>
+        <Output  class='OutStreams'       type='Print'         >out_dump</Output>
+        <Output  class='OutStreams'       type='Plot'          >plotResponseFunction</Output>
     </MultiRun>
     <IOStep name='extractDataBase'>
         <Input   class='Databases'        type='HDF5'         >out_db</Input>
