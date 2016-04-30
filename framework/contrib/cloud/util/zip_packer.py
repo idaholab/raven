@@ -16,7 +16,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 Lesser General Public License for more details.
 
 You should have received a copy of the GNU Lesser General Public
-License along with this package; if not, see 
+License along with this package; if not, see
 http://www.gnu.org/licenses/lgpl-2.1.html
 """
 
@@ -28,16 +28,16 @@ from .gzip_stream import GzipFile
 
 class Packer(object):
     """Object packer"""
-    
+
     def __init__(self, output = None, compresslevel=5):
         if not output:
             output = StringIO()
         self._output = output
         self._gz = GzipFile(compresslevel=compresslevel, fileobj = self._output, mode='wb')
-        
+
     def add(self, str_obj):
         """Add a string object into the packer"""
-        
+
         sz = struct.pack('!I',len(str_obj)) #write size
         self._gz.write(sz)
         self._gz.write(str_obj)
@@ -46,27 +46,27 @@ class Packer(object):
         """Close compressor and return output"""
         self._gz.close()
         return self._output
-    
+
 class UnPacker(object):
     """Unpacks the format that Packer generates
     Expects a file-like obj as its first argument
     Acts as an iterator"""
-    
+
     def __init__(self, file_obj):
         self._gz = GzipFile(fileobj = file_obj, mode = 'rb')
-        
+
     def __iter__(self):
         return self
-    
+
     def next(self):
         if not self._gz:
             raise StopIteration
-        size_str = self._gz.read(4)        
+        size_str = self._gz.read(4)
         if not size_str:
             self._gz.close()
             self._gz = None
             raise StopIteration
-        sz = struct.unpack('!I', size_str)[0]        
+        sz = struct.unpack('!I', size_str)[0]
         retval = self._gz.read(sz)
         if len(retval) < sz:
             self._gz.close()
@@ -76,22 +76,22 @@ class UnPacker(object):
 
 def test():
     """unit test code"""
-    
+
     v = '123'*200
     w = '456'
     x = '789'
-    
+
     p = Packer()
     p.add(v)
     p.add(w)
     p.add(x)
-    
-    packed = p.finish()    
-    
+
+    packed = p.finish()
+
     packed.seek(0)
     print 'len %d' % len(packed.getvalue())
     print packed.getvalue()
-    
-    
+
+
     for val in UnPacker(packed):
         print 'val is %s' % val

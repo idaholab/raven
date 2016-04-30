@@ -665,7 +665,11 @@ can be further classified based on its particular functionalities:
   %
   This object allows the user to create a Python module that will be treated as
   a predefined internal model object.
-%\item [Projector:] generic data manipulator
+  \item \xmlNode{EnsembleModel} is model that is able to combine \textbf{Code},
+  \textbf{ExternalModel} and \textbf{ROM} models. It is aimed to create a chain
+  of Models (whose execution order is determined by the Input/Output relationships among them).
+  If the relationships among the models evolve in a non-linear system, a Picard's Iteration scheme
+  is employed.
   \item \xmlNode{PostProcessor} is a container of all the actions that can
   manipulate and process a data object in order to extract key information,
   such as statistical quantities, clustering, etc.
@@ -2488,14 +2492,14 @@ cross-validation.
   Cross-Validation.
   %
   Options are:
-	\begin{itemize}
+        \begin{itemize}
     \item `auto:' use svd if n\_samples > n\_features or when X is a
     sparse matrix, otherwise use eigen
-  	\item `svd:' force computation via singular value decomposition of $X$
+        \item `svd:' force computation via singular value decomposition of $X$
     (does not work for sparse matrices)
-	  \item `eigen:' force computation via eigendecomposition of $X^T X$
-	\end{itemize}
-	The `auto' mode is the default and is intended to pick the cheaper
+          \item `eigen:' force computation via eigendecomposition of $X^T X$
+        \end{itemize}
+        The `auto' mode is the default and is intended to pick the cheaper
   option of the two depending upon the shape and format of the training data.
   %
   \default{None}
@@ -4552,9 +4556,9 @@ points to approximations in the calculation.
 %%%%% PP ImportanceRank %%%%%%%
 \subsubsection{ImportanceRank}
 \label{ImportanceRank}
-The \textbf{ImportanceRank} post-processor is specificlly used 
+The \textbf{ImportanceRank} post-processor is specifically used 
 to compute sensitivity indices and importance indices with respect to input parameters
-associated with multivariate normal distribution.
+associated with multivariate normal distributions.
 %
 \ppType{ImportanceRank}{ImportanceRank}
 %
@@ -4642,34 +4646,34 @@ At present only the ``equal'' grid type is available.
   %
   These are \textbf{Assembler Objects}, each of these nodes must contain 2
   attributes that are used to identify those within the simulation framework:
-	\begin{itemize}
+        \begin{itemize}
     \item \xmlAttr{class}, \xmlDesc{required string attribute}, is the main
     ``class'' the listed object is from.
- 		\item \xmlAttr{type}, \xmlDesc{required string attribute}, is the object
+                \item \xmlAttr{type}, \xmlDesc{required string attribute}, is the object
     identifier or sub-type.
-	\end{itemize}
-	\item \xmlNode{controllable} lists the controllable variables.
+        \end{itemize}
+        \item \xmlNode{controllable} lists the controllable variables.
   %
   Each variable is associated with its name and the two items below:
-	\begin{itemize}
-		\item \xmlNode{distribution} names the probability distribution associated
+        \begin{itemize}
+                \item \xmlNode{distribution} names the probability distribution associated
     with the controllable variable.
     %
-		\item \xmlNode{grid} specifies the \xmlAttr{type}, \xmlAttr{steps}, and
+                \item \xmlNode{grid} specifies the \xmlAttr{type}, \xmlAttr{steps}, and
     tolerance of the sampling grid.
     %
-	\end{itemize}
-	\item \xmlNode{non-controllable} lists the non-controllable variables.
+        \end{itemize}
+        \item \xmlNode{non-controllable} lists the non-controllable variables.
   %
   Each variable is associated with its name and the two items below:
-	\begin{itemize}
-		\item \xmlNode{distribution} names the probability distribution associated
+        \begin{itemize}
+                \item \xmlNode{distribution} names the probability distribution associated
     with the non-controllable variable.
     %
-		\item \xmlNode{grid} specifies the \xmlAttr{type}, \xmlAttr{steps}, and
+                \item \xmlNode{grid} specifies the \xmlAttr{type}, \xmlAttr{steps}, and
     tolerance of the sampling grid.
     %
-		\end{itemize}
+                \end{itemize}
 \end{itemize}
 
 \textbf{Example:}
@@ -5239,3 +5243,106 @@ independent of the \xmlAttr{subType} specified (min, max, avg and value case):
 \begin{itemize}
    \item \xmlNode{timeID}, \xmlDesc{string, optional field}, ID of the temporal variable (only for avg)
 \end{itemize}
+
+
+
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%  EnsembleModel  Model   %%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\subsection{EnsembleModel}
+\label{subsec:models_EnsembleModel}
+As already mentioned, the \textbf{EnsembleModel} is able to combine \textbf{Code}(see ~\ref{subsec:models_code}),
+\textbf{ExternalModel}(see ~\ref{subsec:models_externalModel}) and \textbf{ROM}(see ~\ref{subsec:models_externalModel}) Models.
+\\It is aimed to create a chain of Models (whose execution order is determined by the Input/Output relationships among them).
+  If the relationships among the models evolve in a non-linear system, a Picard's Iteration scheme is employed.
+\\Currently this model is able to share information (i.e. data) using \textbf{Point} and \textbf{PointSet} only; this means that only
+point information can be shared among the different Models (e.g. thermal conductivity of a certain medium, peak temperature, etc.).
+
+The specifications of a EnsembleModel must be defined within the XML block
+\xmlNode{EnsembleModel}.
+%
+This XML node needs to contain the attributes:
+
+\vspace{-5mm}
+\begin{itemize}
+  \itemsep0em
+  \item \xmlAttr{name}, \xmlDesc{required string attribute}, user-defined name
+  of this EnsembleModel.
+  %
+  \nb As with the other objects, this is the name that can be used to refer to
+  this specific entity from other input blocks in the XML.
+  \item \xmlAttr{subType}, \xmlDesc{required string attribute}, must be kept
+  empty.
+  %
+\end{itemize}
+\vspace{-5mm}
+
+Within the \xmlNode{EnsembleModel} XML node, the multiple Models that constitute
+this EnsembleModel needs to be inputted. Each Model is specified within a \xmlNode{Model} block (\nb each model
+here specified need to be inputted in the\xmlNode{Models} main XML block) :
+\begin{itemize}
+  \item \xmlNode{Model}, \xmlDesc{XML node, required parameter}.
+  %
+  The text portion of this node needs to contain the name of the Model
+  %
+  \\This XML node needs to contain the attributes:
+
+\vspace{-5mm}
+\begin{itemize}
+  \itemsep0em
+  \item \xmlAttr{class}, \xmlDesc{required string attribute}, the class of this sub-model (e.g. Models)
+  %
+  \item \xmlAttr{type}, \xmlDesc{required string attribute}, the sub-type of this Model (e.g. ExternalModel, ROM, Code)
+  %
+  \item \xmlAttr{inputNames}, \xmlDesc{required comma separated list attribute}, the inputs' names that are required by
+  this sub-model
+\end{itemize}
+\vspace{-5mm}
+
+  %
+  In addition the following XML sub-node need to be inputted:
+  \begin{itemize}
+     \item \xmlNode{TargetEvaluation}, \xmlDesc{string, required field},
+        represents the container where the output of this Model are stored.
+        %
+        From a practical point of view, this XML node must contain the name of
+        a data object defined in the \xmlNode{DataObjects} block (see
+        Section~\ref{sec:DataObjects}).
+        %
+        Currently, the  \xmlNode{EnsembleModel} accepts ``DataObjects'' of type
+        ``PointSet'' only.
+    \end{itemize}
+  %
+\end{itemize}
+
+It is important to notice that when the EnsembleModel detects a chain of models that evolve in a non-linear system, a Picard's
+Iteration scheme is activated.
+
+
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={subType,debug,name,class,type}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <EnsembleModel name="heatTransferEnsembleModel" subType="">
+      <Model class="Models" type="ExternalModel" inputNames="inputHolder">
+        thermalConductivityComputation
+        <TargetEvaluation class="DataObjects" type="PointSet">
+          thermalConductivityComputationContainer
+        </TargetEvaluation>
+      </Model>
+      <Model class="Models" type="ExternalModel" inputNames="inputHolder">
+          heatTransfer
+          <TargetEvaluation class="DataObjects" type="PointSet">
+            heatTransferContainer
+          </TargetEvaluation>
+      </Model>
+    </EnsembleModel>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}

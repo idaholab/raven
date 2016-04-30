@@ -28,6 +28,7 @@ git checkout $RAVEN_REV -- run_tests
 git checkout $RAVEN_REV -- run_framework_tests
 git checkout $RAVEN_REV -- scripts
 git checkout $RAVEN_REV -- doc/user_manual
+git checkout $RAVEN_REV -- doc/user_guide
 git checkout $RAVEN_REV -- raven_framework
 git checkout $RAVEN_REV -- src/contrib
 git checkout $RAVEN_REV -- include/contrib
@@ -39,6 +40,10 @@ git checkout $RAVEN_REV -- .gitmodules
 
 CROW_REV=`git submodule status crow | tr -d - | cut -d ' ' -f 1`
 MOOSE_REV=`git submodule status moose | tr -d - | cut -d ' ' -f 1`
+
+#fix version tex file.
+cd $MAIN_DIR/raven/doc/user_manual
+make version.tex
 
 cd $MAIN_DIR/raven/
 echo RAVEN revision `git describe` > Version.txt
