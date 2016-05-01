@@ -621,20 +621,19 @@ class YakMultigroupLibraryParser():
       for inFile in inFiles:
         if inFile.getFilename() in self.filesMap.keys():
           libsKey = self.filesMap[inFile.getFilename()]
+          if libsKey not in self.aliases.keys(): continue
           if type(Kwargs['prefix']) in [str,type("")]:
             inFile.setBase(Kwargs['prefix']+'~'+inFile.getBase())
           else:
             inFile.setBase(str(Kwargs['prefix'][1][0])+'~'+inFile.getBase())
           outFiles[inFile.getAbsFile()] = libsKey
-
     for outFile,libsKey in outFiles.items():
-      newFile = open(outFile,'w')
       tree = self.xmlsDict[libsKey]
-      if libsKey not in self.aliases.keys(): break
+      if libsKey not in self.aliases.keys(): continue
       root = tree.getroot()
       for child in root:
         libID = child.attrib['ID']
-        if libID not in self.aliases[libsKey].keys(): break
+        if libID not in self.aliases[libsKey].keys(): continue
         for table in child.findall('Table'):
           gridIndex = self._stringSpacesToTuple(table.attrib['gridIndex'])
           if gridIndex in self.aliases[libsKey][libID].keys():
@@ -642,9 +641,9 @@ class YakMultigroupLibraryParser():
             for subNode in table:
               if subNode.tag == 'Isotope':
                 mat = subNode.attrib['Name']
-                if mat not in self.aliases[libsKey][libID][gridIndex].keys(): break
+                if mat not in self.aliases[libsKey][libID][gridIndex].keys(): continue
                 self._replaceXMLNodeText(subNode,self.pertLib[libsKey][libID][gridIndex][mat])
-
+      newFile = open(outFile,'w')
       toWrite = self._prettify(tree)
       newFile.writelines(toWrite)
       newFile.close()

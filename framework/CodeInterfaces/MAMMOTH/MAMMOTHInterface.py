@@ -43,7 +43,6 @@ class MAMMOTHInterface(CodeInterfaceBase):
     bisonInput = []
     for inputFile in inputFiles:
       fileType = inputFile.getType()
-      print(fileType.strip().lower())
       if fileType.strip().lower() == "mammothinput|rattlesnakeinput":
         inputDict['FoundMammothInput'] = True
         inputDict['FoundRattlesnakeInput'] = True
@@ -144,7 +143,6 @@ class MAMMOTHInterface(CodeInterfaceBase):
         bisonInp = inputDicts['BisonInput']
         #FIXME this need to be changed if MAMMOTH can accept multiple Bision input files
         if len(bisonInp) != 1: raise IOError('Multiple Bison input files are found!')
-        print(currentInputFiles)
         origBisonInp = origInputFiles[newUpdatedInputs.index(bisonInp[0])]
         newBisonInp = self.BisonInterface.createNewInput(bisonInp,[origBisonInp],samplerType,**bisonArgs)
       else:
