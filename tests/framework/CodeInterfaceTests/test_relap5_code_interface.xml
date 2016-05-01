@@ -28,22 +28,22 @@
       <lowerBound>49</lowerBound>
     </Normal>
     <Normal name="heat_capacity_155">
-        <mean>45.5</mean>
-        <sigma>0.5</sigma>
-        <upperBound>41</upperBound>
-        <lowerBound>50</lowerBound>
+      <mean>45.5</mean>
+      <sigma>0.5</sigma>
+      <upperBound>41</upperBound>
+      <lowerBound>50</lowerBound>
     </Normal>
     <Normal name="heat_capacity_156">
-        <mean>41.5</mean>
-        <sigma>0.5</sigma>
-        <upperBound>37</upperBound>
-        <lowerBound>46</lowerBound>
+      <mean>41.5</mean>
+      <sigma>0.5</sigma>
+      <upperBound>37</upperBound>
+      <lowerBound>46</lowerBound>
     </Normal>
     <Normal name="heat_capacity_157">
-        <mean>42.5</mean>
-        <sigma>0.5</sigma>
-        <upperBound>28</upperBound>
-        <lowerBound>37</lowerBound>
+      <mean>42.5</mean>
+      <sigma>0.5</sigma>
+      <upperBound>28</upperBound>
+      <lowerBound>37</lowerBound>
     </Normal>
   </Distributions>
 
@@ -53,16 +53,16 @@
         <limit>5</limit>
       </samplerInit>
       <variable name="20100154:2">
-          <distribution>heat_capacity_154</distribution>
+        <distribution>heat_capacity_154</distribution>
       </variable>
       <variable name="20100155:2">
-          <distribution>heat_capacity_155</distribution>
+        <distribution>heat_capacity_155</distribution>
       </variable>
       <variable name="20100156:2">
         <distribution>heat_capacity_156</distribution>
       </variable>
       <variable name="20100157:2">
-          <distribution>heat_capacity_157</distribution>
+        <distribution>heat_capacity_157</distribution>
       </variable>
     </MonteCarlo>
   </Samplers>
@@ -78,7 +78,7 @@
   </Steps>
 
   <Databases>
-    <HDF5 name="DataB_REL5_1"/>
+    <HDF5 name="DataB_REL5_1" readMode="overwrite"/>
   </Databases>
 
 </Simulation>

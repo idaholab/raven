@@ -98,6 +98,8 @@ class Relap5(CodeInterfaceBase):
     self._samplersDictionary['DynamicEventTree'     ] = self.DynamicEventTreeForRELAP5
     self._samplersDictionary['BnBDynamicEventTree'  ] = self.DynamicEventTreeForRELAP5
     self._samplersDictionary['StochasticCollocation'] = self.pointSamplerForRELAP5
+    self._samplersDictionary['EnsembleForward'      ] = self.pointSamplerForRELAP5
+
     found = False
     for index, inputFile in enumerate(currentInputFiles):
       if inputFile.getExt() in self.getInputExtension():

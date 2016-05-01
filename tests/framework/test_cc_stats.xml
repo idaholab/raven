@@ -79,7 +79,7 @@
   </Steps>
 
   <Databases>
-    <HDF5 name="MC_TEST_REWRITE"/>
+    <HDF5 name="MC_TEST_REWRITE" readMode="overwrite"/>
   </Databases>
 
   <OutStreams>

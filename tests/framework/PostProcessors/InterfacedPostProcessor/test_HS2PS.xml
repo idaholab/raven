@@ -70,7 +70,7 @@
   </Samplers>
 
   <Databases>
-    <HDF5 name="out_db"/>
+    <HDF5 name="out_db" readMode="overwrite"/>
   </Databases>
 
   <OutStreams>

@@ -65,7 +65,7 @@
   -->
 
   <Databases>
-    <HDF5 name="testMCDataBase"/>
+    <HDF5 name="testMCDataBase" readMode="overwrite"/>
   </Databases>
 
   <DataObjects>

@@ -575,7 +575,6 @@ class GridEntity(GridBase):
     if not self.gridIterator.finished:
       coordinates = self.returnCoordinateFromIndex(self.gridIterator.multiIndex,returnDict,recastMethods)
       for _ in range(self.nVar if self.constructTensor else 1):
-
         self.gridIterator.iternext()
     else: coordinates = None
     return coordinates
@@ -859,7 +858,7 @@ class MultiGridEntity(GridBase):
                                if False a tuple is riturned (coordinate1,coordinate2,etc
       @ In, recastMethods, dict, optional, dictionary containing the methods that need to be used for trasforming the coordinates
                                          ex. {'dimName1':[methodToTransformCoordinate,*args]}
-      @ Out, coordinate, tuple, tuple containing the coordinates
+      @ Out, coordinate, tuple or dict, tuple (if returnDict=False) or dict (if returnDict=True) containing the coordinates
     """
     startingNode = self.grid.find(self.mappingLevelName[self.multiGridIterator[0]])
     coordinates = None
@@ -882,7 +881,7 @@ class MultiGridEntity(GridBase):
                                          if False a tuple is riturned (coordinate1,coordinate2,etc)
       @ In, recastMethods, dict, optional, dictionary containing the methods that need to be used for trasforming the coordinates
                                          ex. {'dimName1':[methodToTransformCoordinate,*args]}
-      @ Out, coordinate, tuple or dict, tuple containing the coordinates
+      @ Out, coordinate, tuple or dict, tuple (if returnDict=False) or dict (if returnDict=True) containing the coordinates
     """
     if isinstance(multiDimNDIndex[0], Number):
       level, multiDimIndex = self.multiGridIterator[0], multiDimNDIndex
@@ -961,7 +960,7 @@ def knownTypes():
   """
     Method to return the types known by this module
     @ In, None
-    @ Out, __knownTypes, dict, dictionary of known types (e.g. [GridEntity, MultiGridEntity, etc.])
+    @ Out, __knownTypes, list, list of known types (e.g. [GridEntity, MultiGridEntity, etc.])
   """
   return __knownTypes
 
