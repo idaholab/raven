@@ -418,7 +418,7 @@ class YakMultigroupLibraryParser():
         elif reactionDict['ScatteringOrder'] == 0:
           reactionDict['Total'] = copy.copy(reactionDict['Transport'])
         else:
-          reactionDict['Total'] = reactionDict['Transport'] + np.sum(reactionDict['Scattering'][self.nGroup:2*self.nGroup-1],1)
+          reactionDict['Total'] = reactionDict['Transport'] + np.sum(reactionDict['Scattering'][self.nGroup:2*self.nGroup],1)
     else:
       if 'Transport' not in reactionList:
         #calculate transport cross sections
@@ -427,7 +427,7 @@ class YakMultigroupLibraryParser():
         elif reactionDict['ScatteringOrder'] == 0:
           reactionDict['Transport'] = copy.copy(reactionDict['Total'])
         else:
-          reactionDict['Transport'] = reactionDict['Total'] - np.sum(reactionDict['Scattering'][self.nGroup:2*self.nGroup-1],1)
+          reactionDict['Transport'] = reactionDict['Total'] - np.sum(reactionDict['Scattering'][self.nGroup:2*self.nGroup],1)
     #calculate absorption
     if 'Absorption' not in  reactionList:
       if 'Scattering' in reactionList:
@@ -451,8 +451,6 @@ class YakMultigroupLibraryParser():
       if 'Scattering' not in reactionList and self.nGroup == 1:
         reactionDict['Scattering'] = reactionDict['Total'] - reactionDict['Absorption']
         reactionDict['TotalScattering'] = copy.copy(reactionDict['Scattering'])
-      else:
-        raise IOError('The Scattering is not provided, and it could not be recalculated based on given information! ')
 
   def perturb(self,**Kwargs):
     """
@@ -547,7 +545,7 @@ class YakMultigroupLibraryParser():
     reactionDict['Removal'] = np.asarray(list(reactionDict['Total'][g] - reactionDict['Scattering'][g][g] for g in range(self.nGroup)))
     #recalculate Transport cross sections
     if reactionDict['Scattering'].shape[0] >= self.nGroup*2:
-      reactionDict['Transport'] = reactionDict['Total'] - np.sum(reactionDict['Scattering'][self.nGroup:self.nGroup*2 - 1],1)
+      reactionDict['Transport'] = reactionDict['Total'] - np.sum(reactionDict['Scattering'][self.nGroup:self.nGroup*2],1)
     else:
       #recalculate Transport cross sections
       reactionDict['Transport'] = copy.copy(reactionDict['Total'])
