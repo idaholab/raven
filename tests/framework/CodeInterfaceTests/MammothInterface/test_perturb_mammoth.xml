@@ -60,19 +60,19 @@
   <Samplers>
     <MonteCarlo name="MC1">
       <samplerInit>
-        <limit>10</limit>
+        <limit>2</limit>
       </samplerInit>
-      <variable name="Rattlesnake|AuxVariables|Temp|initial_condition">
+      <variable name="AuxVariables|Temp|initial_condition:Rattlesnake">
         <distribution>G1</distribution>
       </variable>
-      <variable name="Bison|Materials|fuel_solid_mechanics_elastic|poissons_ratio">
+      <variable name="Materials|fuel_solid_mechanics_elastic|poissons_ratio:Bison">
         <distribution>G2</distribution>
       </variable>
     </MonteCarlo>
   </Samplers>
 
   <OutStreams>
-    <Print name="out_mc_rattlesnake_dump">
+    <Print name="out_mc_mammoth_dump">
       <type>csv</type>
       <source>outMC</source>
     </Print>
@@ -80,44 +80,44 @@
 
   <DataObjects>
     <PointSet name="outMC">
-      <Input>Rattlesnake|AuxVariables|Temp|initial_condition, Bison|Materials|fuel_solid_mechanics_elastic|poissons_ratio</Input>
+      <Input>AuxVariables|Temp|initial_condition:Rattlesnake, Materials|fuel_solid_mechanics_elastic|poissons_ratio:Bison</Input>
       <Output>eigenvalue</Output>
     </PointSet>
   </DataObjects>
 
   <Steps>
-    <MultiRun name="MCTestRattlesnake">
-      <Input class="Files" type="">bison_2way_fuelcladelastic.i</Input>
-      <Input class="Files" type="">QuarterPin_withFuel.i</Input>
-      <Input class="Files" type="">QuarterPin_FuelGapCladWater_QUAD8_Fine.e</Input>
-      <Input class="Files" type="">QuarterPin_FuelClad_FineQUAD8.e</Input>
-      <Input class="Files" type="">M9_2D.xml</Input>
-      <Input class="Files" type="">M8_2D.xml</Input>
-      <Input class="Files" type="">M7_2D.xml</Input>
-      <Input class="Files" type="">M6_2D.xml</Input>
-      <Input class="Files" type="">M5_2D.xml</Input>
-      <Input class="Files" type="">M4_2D.xml</Input>
-      <Input class="Files" type="">M3_2D.xml</Input>
-      <Input class="Files" type="">M2_2D.xml</Input>
-      <Input class="Files" type="">M23_2D.xml</Input>
-      <Input class="Files" type="">M22_2D.xml</Input>
-      <Input class="Files" type="">M21_2D.xml</Input>
-      <Input class="Files" type="">M20_2D.xml</Input>
-      <Input class="Files" type="">M1_2D.xml</Input>
-      <Input class="Files" type="">M19_2D.xml</Input>
-      <Input class="Files" type="">M18_2D.xml</Input>
-      <Input class="Files" type="">M17_2D.xml</Input>
-      <Input class="Files" type="">M16_2D.xml</Input>
-      <Input class="Files" type="">M15_2D.xml</Input>
-      <Input class="Files" type="">M14_2D.xml</Input>
-      <Input class="Files" type="">M13_2D.xml</Input>
-      <Input class="Files" type="">M12_2D.xml</Input>
-      <Input class="Files" type="">M11_2D.xml</Input>
-      <Input class="Files" type="">M10_2D.xml</Input>
+    <MultiRun name="MCTestMammoth">
+      <Input class="Files" type="">bisonInput</Input>
+      <Input class="Files" type="">bisonMesh</Input>
+      <Input class="Files" type="">rattlesnakeMesh</Input>
+      <Input class="Files" type="">mammothInput</Input>
+      <Input class="Files" type="">M9</Input>
+      <Input class="Files" type="">M8</Input>
+      <Input class="Files" type="">M7</Input>
+      <Input class="Files" type="">M6</Input>
+      <Input class="Files" type="">M5</Input>
+      <Input class="Files" type="">M4</Input>
+      <Input class="Files" type="">M3</Input>
+      <Input class="Files" type="">M2</Input>
+      <Input class="Files" type="">M23</Input>
+      <Input class="Files" type="">M22</Input>
+      <Input class="Files" type="">M21</Input>
+      <Input class="Files" type="">M20</Input>
+      <Input class="Files" type="">M1</Input>
+      <Input class="Files" type="">M19</Input>
+      <Input class="Files" type="">M18</Input>
+      <Input class="Files" type="">M17</Input>
+      <Input class="Files" type="">M16</Input>
+      <Input class="Files" type="">M15</Input>
+      <Input class="Files" type="">M14</Input>
+      <Input class="Files" type="">M13</Input>
+      <Input class="Files" type="">M12</Input>
+      <Input class="Files" type="">M11</Input>
+      <Input class="Files" type="">M10</Input>
       <Model class="Models" type="Code">Mammoth</Model>
       <Sampler class="Samplers" type="MonteCarlo">MC1</Sampler>
       <Output class="DataObjects" type="PointSet">outMC</Output>
-      <Output class="OutStreams" type="Print">out_mc_rattlesnake_dump</Output>
+      <Output class="OutStreams" type="Print">out_mc_mammoth_dump</Output>
     </MultiRun>
   </Steps>
 
