@@ -18,7 +18,7 @@
         <SKLtype>cluster|MeanShift</SKLtype>
         <bin_seeding>True</bin_seeding>
       </KDD>
-      <DataObject class="DataObjects" type="PointSet">DataSets</DataObject>
+      <!-- <DataObject class="DataObjects" type="PointSet">DataSets</DataObject> -->
     </PostProcessor>
     <PostProcessor name="MeanShiftCircles" subType="DataMining" verbosity="quiet">
       <KDD lib="SciKitLearn">

@@ -4,13 +4,13 @@
 
 <RunInfo>
     <WorkingDir>results</WorkingDir>
-    <Sequence>sampleModel,extractDataBase,trainROM,sampleROM</Sequence>
+    <Sequence>sampleModel,extractDataBase,trainROM,sampleROM,plotComparison</Sequence>
     <batchSize>1</batchSize>
 </RunInfo>
 
 
 <Steps>
-    <MultiRun name='sampleModel' pauseAtEnd='True'>
+    <MultiRun name='sampleModel'>
         <Input   class='DataObjects'      type='Point'         >inputPlaceHolder</Input>
         <Model   class='Models'           type='ExternalModel' >attenuation</Model>
         <Sampler class='Samplers'         type='Grid'          >Grid_sampler</Sampler>
@@ -27,31 +27,30 @@
         <Input   class='DataObjects'      type='PointSet'     >outGRID_from_db</Input>
         <Output  class='Models'           type='ROM'          >a_ROM</Output>
     </RomTrainer>
-    <MultiRun name='sampleROM' pauseAtEnd='True'>
+    <MultiRun name='sampleROM'>
         <Input   class='DataObjects' type='PointSet'          >inputPlaceHolder</Input>
         <Model   class='Models'      type='ROM'               >a_ROM</Model>
         <Sampler class='Samplers'    type='Grid'              >Grid_sampler</Sampler>
         <Output  class='DataObjects' type='PointSet'          >outGRID_ROM</Output>
-        <Output  class='OutStreams' type='Plot'               >plot_ROM_RS</Output>
+        <Output  class='OutStreams'   type='Plot'             >plot_ROM_RS</Output>
     </MultiRun>
-    <!-- 
-    <IOStep name='statistics' pauseAtEnd='True'>
-        <Input   class='DataObjects'      type='PointSet' >outROM_y4</Input>
-        <Input   class='DataObjects'      type='PointSet' >outGRID_y4</Input>
-        <Output  class='OutStreamManager' type='Plot'     ></Output>
+    <IOStep name='plotComparison' pauseAtEnd='True'>
+        <Input   class='DataObjects'      type='PointSet' >outGRID_ROM</Input>
+        <Input   class='DataObjects'      type='PointSet' >outGRID</Input>
+        <Output  class='OutStreams'       type='Plot'     >plot_ROM_RS</Output>
+        <Output  class='OutStreams'       type='Plot'     >plotResponseFunction</Output>
     </IOStep>
-    -->
 </Steps>
 
 
 <Models>
     <ExternalModel name='attenuation' subType='' ModuleToLoad='poly'>
-        <variables>y1,y2,ans</variables>
+      <variables>y1,y2,ans</variables>
     </ExternalModel>
     <ROM  name='a_ROM' subType='NDinvDistWeight'>
-        <Features>y1,y2</Features>
-        <Target>ans</Target>
-        <p>3</p>
+      <Features>y1,y2</Features>
+      <Target>ans</Target>
+      <p>3</p>
     </ROM>
 </Models>
 

@@ -12,7 +12,9 @@ def evaluate(inp):
   else: return 1.0
 
 def run(self,Input):
-  self.ans  = evaluate(Input.values())
+  y1 = Input['y1']
+  y2 = Input['y2']
+  self.ans  = evaluate([y1,y2])
 
 #
 #  This model has analytic mean and variance documented in raven/docs/tests
