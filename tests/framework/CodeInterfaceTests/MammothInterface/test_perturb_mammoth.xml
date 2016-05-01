@@ -72,7 +72,7 @@
   </Samplers>
 
   <OutStreams>
-    <Print name="out_mc_mammoth_dump">
+    <Print name="out_perturb_mammoth">
       <type>csv</type>
       <source>outMC</source>
     </Print>
@@ -117,7 +117,7 @@
       <Model class="Models" type="Code">Mammoth</Model>
       <Sampler class="Samplers" type="MonteCarlo">MC1</Sampler>
       <Output class="DataObjects" type="PointSet">outMC</Output>
-      <Output class="OutStreams" type="Print">out_mc_mammoth_dump</Output>
+      <Output class="OutStreams" type="Print">out_perturb_mammoth</Output>
     </MultiRun>
   </Steps>
 
