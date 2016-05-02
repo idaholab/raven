@@ -1218,7 +1218,7 @@ class Code(Model):
     """
     #can we revise the spelling to something more English?
     if 'finalizeCodeOutput' in dir(self.code):
-      out = self.code.finalizeCodeOutput(finishedjob.command,finishedjob.output,self.workingDir)
+      out = self.code.finalizeCodeOutput(finishedjob.command,finishedjob.output,finishedjob.getWorkingDir())
       if out: finishedjob.output = out
     outputFilelocation = finishedjob.getWorkingDir()
     attributes={"inputFile":self.currentInputFiles,"type":"csv","name":os.path.join(outputFilelocation,finishedjob.output+'.csv')}

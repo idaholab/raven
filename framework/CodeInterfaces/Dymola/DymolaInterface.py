@@ -266,7 +266,7 @@ class Dymola(CodeInterfaceBase):
           "in %s." % (name, originalPath))
 
     # Re-write the file.
-    with open(currentInputFiles[index], 'w') as src:
+    with open(currentInputFiles[index].getAbsFile(), 'w') as src:
       src.write(text)
 
     return currentInputFiles
