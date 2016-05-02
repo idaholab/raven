@@ -24,7 +24,8 @@
       <epsilon>0.1</epsilon>
       <kernel>rbf</kernel>
       <degree>3.0</degree>
-      <gamma>auto</gamma>
+      <!-- This does not work with 0.15.2 of sklearn -->
+      <!-- <gamma>auto</gamma> -->
       <coef0>0.0</coef0>
       <shrinking>True</shrinking>
       <tol>1e-3</tol>
