@@ -21,7 +21,8 @@
       <Features>X,Y</Features>
       <Target>Z</Target>
       <C>1.0</C>
-      <loss>squared_hinge</loss>
+      <!-- This does not work with 0.15.2 of sklearn -->
+      <!-- <loss>squared_hinge</loss> -->
       <penalty>l2</penalty>
       <dual>True</dual>
       <tol>1e-4</tol>
