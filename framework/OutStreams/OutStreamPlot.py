@@ -642,12 +642,12 @@ class OutStreamPlot(OutStreamManager):
       @ In,  None
       @ Out, None
     """
-    # reactivate the figure
-    self.fig = self.plt.figure(self.name)
     # fill the x_values,y_values,z_values dictionaries
     if not self.__fillCoordinatesFromSource():
       self.raiseAWarning('Nothing to Plot Yet. Returning.')
       return
+    # reactivate the figure
+    self.fig = self.plt.figure(self.name)
     self.counter += 1
     if self.counter > 1:
       if self.dim == 2: self.fig.clear()
@@ -760,6 +760,7 @@ class OutStreamPlot(OutStreamManager):
                 if self.colorMapCoordinates[pltindex] != None:
                   scatterPlotOptions['c'] = self.colorMapValues[pltindex][key]
                   scatterPlotOptions['cmap'] = self.mpl.cm.get_cmap("winter")
+
                   if self.actcm: first = False
                   else         : first = True
                   if self.options['plotSettings']['plot'][pltindex]['cmap'] == 'None':
@@ -772,7 +773,12 @@ class OutStreamPlot(OutStreamManager):
                           self.actcm.set_label(self.colorMapCoordinates[pltindex][0].split('|')[-1].replace(')', ''))
                       else:
                           self.actcm.set_clim(vmin = min(self.colorMapValues[pltindex][key][-1]), vmax = max(self.colorMapValues[pltindex][key][-1]))
-                          self.actcm.draw_all()
+                          try:self.actcm.draw_all()
+                          except:
+                            m = self.mpl.cm.ScalarMappable(norm = self.actPlot.norm)
+                            m.set_array(self.colorMapValues[pltindex][key])
+                            self.actcm = self.fig.colorbar(m)
+                            self.actcm.set_label(self.colorMapCoordinates[pltindex][0].split('|')[-1].replace(')', ''))
                   else:
                       scatterPlotOptions['cmap'] = self.options['plotSettings']['plot'][pltindex]['cmap']
                       self.actPlot = self.plt.scatter(self.xValues[pltindex][key][xIndex], self.yValues[pltindex][key][yIndex], **scatterPlotOptions)

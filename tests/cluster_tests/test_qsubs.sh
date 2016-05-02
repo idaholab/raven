@@ -73,9 +73,11 @@ rm -Rf InternalParallelPostProcessorLS/*.csv
 
 python ../../../framework/Driver.py test_internal_parallel_PP_LS.xml ../cluster_runinfo.xml
 
-wait_lines 'InternalParallelPostProcessorLS/*.csv' 6 paralROM
+wait_lines 'InternalParallelPostProcessorLS/*.csv' 6 parallelPP
 
 cd ..
+
+# forth test (Topology Picard in parallel)
 
 cd InternalParallel/
 rm -Rf InternalParallelMSR/*.csv
@@ -86,6 +88,25 @@ wait_lines 'InternalParallelMSR/*.csv' 1 parallelMSR
 
 cd ..
 
+# fifth test (Ensamble Model Picard in parallel)
+cd InternalParallel/
+rm -Rf metaModelNonLinearParallel/*.png
+
+python ../../../framework/Driver.py test_ensemble_model_picard_parallel.xml ../cluster_runinfo.xml
+
+wait_lines 'metaModelNonLinearParallel/*.png' 3 parallelEnsemblePicard
+
+cd ..
+
+# fifth test (Ensamble Model Picard in parallel)
+cd InternalParallel/
+rm -Rf metaModelLinearParallel/*.png
+
+python ../../../framework/Driver.py test_ensemble_model_linear_internal_parallel.xml ../cluster_runinfo.xml
+
+wait_lines 'metaModelLinearParallel/*.png' 2 parallelEnsembleLinear
+
+cd ..
 
 ############################################
 # test parallel for internal Objects ENDED #

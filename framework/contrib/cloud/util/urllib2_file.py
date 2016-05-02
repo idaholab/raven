@@ -11,28 +11,28 @@
 # Version: 0.1.0
 #  - upload is now done with chunks (Adam Ambrose)
 #
-# TODO: This code is incredibly sloppy. Rewrite one day (Boto connection is better starting point) 
+# TODO: This code is incredibly sloppy. Rewrite one day (Boto connection is better starting point)
 
 # Version: older
 # THANKS TO:
 # bug fix: kosh @T aesaeion.com
 # HTTPS support : Ryan Grow <ryangrow @T yahoo.com>
 # Copyright (C) 2004,2005,2006 Fabien SEISEN
-# 
+#
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
 # License as published by the Free Software Foundation; either
 # version 2.1 of the License, or (at your option) any later version.
-# 
+#
 # This library is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU Lesser General Public
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-# 
+#
 # you can contact me at: <fabien@seisen.org>
 # http://fabien.seisen.org/python/
 #
@@ -113,7 +113,7 @@ http_close_connection = cc.transport_configurable('http_close',
 c = """Specify an http/https proxy server that should be used
 e.g. proxy.example.com:3128 for anonymous  or username:password@proxy.example.com:3128 for authenticated
 """
-proxy_server = cc.transport_configurable('proxy_server',default='',comment = c) 
+proxy_server = cc.transport_configurable('proxy_server',default='',comment = c)
 
 #new:
 from gzip_stream import GzipFile
@@ -127,7 +127,7 @@ def choose_boundary():
     import email.generator as generator
     _fmt = generator._fmt
     boundary = ('=' * 8)
-    for i in range(8):          
+    for i in range(8):
         token = random.randrange(sys.maxint)
         boundary += _fmt % token
     boundary += '=='
@@ -138,37 +138,37 @@ def get_content_type(filename):
 
 def send_data(v_vars, v_files, boundary, gzip = True, sock = None):
     """Either returns data or sends in depending on arguments.
-    
+
     Return value is a tuple of string data, content-length
-    
+
     Content-length always returns; it represents the content-length of the http request
-    
+
     If sock is None:
         Typically string data is returned; this can be written straight to the socket
-        
+
         However, as an optimization, if any v_files correspond to a file on disk and gzip is false,
             The data returned will be none. This must then call send_data again with sock nonnull
-    
-    If sock is a connection, content-length will be returned AND data will be streamed over socket (but not returned) 
+
+    If sock is a connection, content-length will be returned AND data will be streamed over socket (but not returned)
         direct socket writing will not work if gzip is True as content-length of http request will be wrong
     """
-    
+
     all_in_memory = True  #if we can return this
     cl = 0 #holds content_length
-    
-    if gzip: 
+
+    if gzip:
         if sock:
-            raise TypeError('gzip and sock cannot both be true')  
+            raise TypeError('gzip and sock cannot both be true')
         gzip_file = StringIO()
         buffer = GzipFile(filename=None,fileobj=gzip_file,mode='w')
     else:
         buffer = StringIO()
 
-    
+
     for (k, v) in v_vars:
         buffer.write('--%s\r\n' % boundary)
         buffer.write('Content-Disposition: form-data; name="%s"\r\n\r\n%s\r\n' % (k,v))
-    
+
     for (k, v) in v_files:
         fd = v
         cur_pos = None
@@ -181,51 +181,51 @@ def send_data(v_vars, v_files, boundary, gzip = True, sock = None):
         except AttributeError, e:
             #This might be a file on disk
             try:
-                
+
                 assert not gzip #if gzipping is true, we must fall back to reading in file
                 cur_pos = fd.tell()
                 fd.seek(0)  # test rewind ability
-                fd.seek(0,2)  
+                fd.seek(0,2)
                 file_size = fd.tell() - cur_pos
                 #print 'f %s %s' % (file_size, cur_pos)
                 fd.seek(cur_pos)  # back to original position
-                
-            except (AssertionError, AttributeError, OSError), e: 
+
+            except (AssertionError, AttributeError, OSError), e:
                 # must abort when file not seekable, as re-try (in network.send_request) impossible
                 raise ValueError('File postdata %s is not seekable. Cannot transfer' % k)
-            
+
             try:
                 name = fd.name.split('/')[-1]
                 if isinstance(name, unicode):
                     name = name.encode('UTF-8')
-            except AttributeError: #no name? revert to k 
+            except AttributeError: #no name? revert to k
                 name = k
 
         buffer.write('--%s\r\n' % boundary)
         buffer.write('Content-Disposition: form-data; name="%s"; filename="%s"\r\n' \
                   % (k, name))
         buffer.write('Content-Type: %s\r\n' % get_content_type(name))
-        buffer.write('Content-Length: %s\r\n' % file_size)        
-        
+        buffer.write('Content-Length: %s\r\n' % file_size)
+
         buffer.write('\r\n')
 
         if not contents:
             all_in_memory = False
-        
+
         #print '[%s] transmit %s %s - in mem? %s contents? %s' % (sock, k,v, all_in_memory, bool(contents))
         if sock or not all_in_memory:
             assert not gzip #sanity check
-            
-            #reset buffer and update content-length if not returning result                
-            buf_str = buffer.getvalue()            
-            buffer.close()   
+
+            #reset buffer and update content-length if not returning result
+            buf_str = buffer.getvalue()
+            buffer.close()
             cl += len(buf_str)
             buffer = StringIO() #regen buffer
-            cl += file_size  
-            
-            if sock:             
+            cl += file_size
+
+            if sock:
                 sock.sendall(buf_str)
-                
+
                 if contents:
                     sock.sendall(contents)
                 else:
@@ -235,34 +235,34 @@ def send_data(v_vars, v_files, boundary, gzip = True, sock = None):
                             sock.sendall(data)
                             data=fd.read(CHUNK_SIZE)
                     finally:
-                        if cur_pos != None: 
+                        if cur_pos != None:
                             # rewind so retry will work
                             fd.seek(cur_pos)
-            
-        
+
+
         elif all_in_memory: #keep writing into RAM
             buffer.write(contents)
-            
+
         buffer.write('\r\n')
-            
-    buffer.write('--%s--\r\n\r\n' % boundary)   
-    
+
+    buffer.write('--%s--\r\n\r\n' % boundary)
+
     if sock or not all_in_memory:
         buf_str = buffer.getvalue()
         if sock:
-            sock.sendall(buf_str)        
+            sock.sendall(buf_str)
         cl += len(buf_str)
-        return None, cl        
-    
+        return None, cl
+
     #in memory
     #When Using compressed content_len = compressed length (gzip
     # we need mod_wsgi middleware on the django server
     if gzip:
         buffer.close()
         buf_str = gzip_file.getvalue()
-    else:        
-        buf_str = buffer.getvalue()    
-    
+    else:
+        buf_str = buffer.getvalue()
+
     return buf_str, len(buf_str)
 
 def makeBodyFunction(v_vars, v_files, boundary):
@@ -279,36 +279,36 @@ def makeBodyFunction(v_vars, v_files, boundary):
 class funcBodyHTTPConnection(httplib.HTTPConnection):
     """
     httplib connection that supports calling a function to handle body sending
-    body takes a single argument -- this connection. 
+    body takes a single argument -- this connection.
     Note that automatic content-length calculation is not done if body is a function
-    
+
     Also supports persistant
     """
-    
+
     def _send_request(self, method, url, body, headers):
-    
+
         if callable(body):
             httplib.HTTPConnection._send_request(self, method, url, None, headers)
             body(self)
         else:
             httplib.HTTPConnection._send_request(self, method, url, body, headers)
-            
+
     @staticmethod
     def getresponse_static(self):
-                
+
         """Get the response from the server.
         This is a static method used by getresponse in http and https"""
-        
+
         #modified to read any extra data from pipe
 
         # if a prior response has been completed, then forget about it.
         if self._HTTPConnection__response:
             closed = self._HTTPConnection__response.isclosed()
 
-            
+
             if not closed:
                 self._HTTPConnection__response.read()
-            
+
             self._HTTPConnection__response = None
 
         #
@@ -329,7 +329,7 @@ class funcBodyHTTPConnection(httplib.HTTPConnection):
         #
         if self._HTTPConnection__state != httplib._CS_REQ_SENT or self._HTTPConnection__response:
             #print 'not ready %s %s' % (self._HTTPConnection__state, self._HTTPConnection__response)
-            raise httplib.ResponseNotReady('State is %s' % self._HTTPConnection__state) 
+            raise httplib.ResponseNotReady('State is %s' % self._HTTPConnection__state)
 
         if self.debuglevel > 0:
             response = self.response_class(self.sock, self.debuglevel,
@@ -343,22 +343,22 @@ class funcBodyHTTPConnection(httplib.HTTPConnection):
         assert response.will_close != httplib._UNKNOWN
         self._HTTPConnection__state = httplib._CS_IDLE
 
-        if response.will_close:            
+        if response.will_close:
             # this effectively passes the connection to the response
             self.close()
-            
+
             #hax:
             #self._HTTPConnection__response = response
-            
+
         else:
             # remember this, so we can tell when it is complete
             self._HTTPConnection__response = response
 
-        return response    
-    
+        return response
+
     def getresponse(self):
-        return self.getresponse_static(self)        
-        
+        return self.getresponse_static(self)
+
 
 
 # modified version from urllib2
@@ -367,25 +367,25 @@ class newHTTPAbstractHandler(urllib2.AbstractHTTPHandler):
     def __init__(self, debuglevel=0):
         urllib2.AbstractHTTPHandler.__init__(self, debuglevel)
         self.connections = {}
-    
+
     def do_open(self, http_class, req):
         """Adds ability to reuse connections
         """
         host = req.get_host()
         if not host:
             raise urllib2.URLError('no host given')
-        
+
         effective_host = getattr(req,'_tunnel_host', None) #check proxy first
         if not effective_host:
-            effective_host = req.get_host()            
+            effective_host = req.get_host()
         #print 'effhost is %s. req host is %s' % (effective_host, host)
-        
+
         conn_key = effective_host, http_class, thread.get_ident()  #good enough for picloud
         #print 'conn_key is ', conn_key
         h = self.connections.get(conn_key)
-            
+
         if h:
-            #print 'CONN: found reuse conn!', h.sock            
+            #print 'CONN: found reuse conn!', h.sock
             reusing = True
             h._set_hostport(host,None)  #proxy tunneling renames this
         if not h:  #no cached conn - reconnect
@@ -399,7 +399,7 @@ class newHTTPAbstractHandler(urllib2.AbstractHTTPHandler):
             reusing = False
         #To enable debugging
         #h.set_debuglevel(1)
-        
+
 
         headers = dict(req.headers)
         headers.update(req.unredirected_hdrs)
@@ -409,12 +409,12 @@ class newHTTPAbstractHandler(urllib2.AbstractHTTPHandler):
         # which will block while the server waits for the next request.
         # So make sure the connection gets closed after the (only)
         # request.
-        
-        close_connection = http_close_connection or headers.get("Connection") == "close" 
-        
+
+        close_connection = http_close_connection or headers.get("Connection") == "close"
+
         if close_connection:
             headers["Connection"] = "close"
-        
+
         headers = dict(
             (name.title(), val) for name, val in headers.items())
 
@@ -431,11 +431,11 @@ class newHTTPAbstractHandler(urllib2.AbstractHTTPHandler):
             else:  #python2.7+ removed protection
                 h.set_tunnel(req._tunnel_host, headers=tunnel_headers)
 
-        for i in range(2): 
-            #persistent connection handling via httplib2 
+        for i in range(2):
+            #persistent connection handling via httplib2
             try:
-                #hack -- check if old response closed        
-                #print 'start req'        
+                #hack -- check if old response closed
+                #print 'start req'
                 h.request(req.get_method(), req.get_selector(), req.data, headers)
                 #print 'end req'
             except socket.gaierror, err:
@@ -454,8 +454,8 @@ class newHTTPAbstractHandler(urllib2.AbstractHTTPHandler):
                     raise
             except Exception: #cleanup on any request error
                 h.close()
-                raise 
-                
+                raise
+
             try:
                 #print 'sock is', h.sock
                 r = h.getresponse()
@@ -465,7 +465,7 @@ class newHTTPAbstractHandler(urllib2.AbstractHTTPHandler):
                 #socket closed -- retry?
                 if i == 0 and reusing:
                 #if False:
-                    cloudLog.info('Reconnecting socket due to:', exc_info=1) 
+                    cloudLog.info('Reconnecting socket due to:', exc_info=1)
                     h.close()
                     h.connect()
                     continue
@@ -497,13 +497,13 @@ class newHTTPAbstractHandler(urllib2.AbstractHTTPHandler):
         resp = urllib2.addinfourl(fp, r.msg, req.get_full_url())
         resp.code = r.status
         resp.msg = r.reason
-        
+
         return resp
 
 
     def do_request_(self, request):
         """Modified to support multipart data"""
-        
+
         host = request.get_host()
         if not host:
             raise urllib2.URLError('no host given')
@@ -520,80 +520,80 @@ class newHTTPAbstractHandler(urllib2.AbstractHTTPHandler):
             # mapping object (dict)
             if type(data) == str:
                 request = urllib2.AbstractHTTPHandler.do_request_(self, request)
-            else:                         
+            else:
                 if hasattr(data, 'items'):
                     data = list(data.items())
                 else:
                     if len(data) and not isinstance(data[0], tuple):
                         raise TypeError("not a valid non-string sequence or mapping object.")
-                        
-                    
+
+
                 for (k, v) in data:
                     if isinstance(k, unicode):
                         k = k.encode('utf-8')
                         k = urllib.quote(k)
-                    
+
                     if hasattr(v, 'read'):
                         v_files.append((k, v))
                     else:
                         if isinstance(v, unicode):
                             v = v.encode('utf8')
                         v_vars.append( (k, v) )
-                        
+
                 if len(v_files) == 0:
                     if v_vars:
                         data = urllib.urlencode(v_vars)
                         #print 'transmit %s' % data
                     else:
-                        data = ""                      
+                        data = ""
                     if not request.has_header('Content-type'):
                         request.add_unredirected_header('Content-Type',
                                     'application/x-www-form-urlencoded')
                         request.add_unredirected_header('Content-length', '%d' % len(data))
-                
+
                 elif not request.has_header('Content-type') and len(v_files) > 0:
                         boundary = choose_boundary()
                         gzip_request = client_gzip and getattr(request,'use_gzip',False)
-                        
+
                         data, content_len = send_data(v_vars, v_files, boundary, gzip_request)
                         request.add_unredirected_header('Content-Type',
                                     'multipart/form-data; boundary=%s' % boundary)
                         request.add_unredirected_header('Content-length', str(content_len))
-                        
+
                         #gzip outbound requests:
                         if (gzip_request):
                             request.add_unredirected_header('Content-Encoding', 'gzip')
-                
+
                 #request's data is none if we need to do further evaluation
                 if data is not None:
                     request.data = data
                 else: #use callback
                     request.data = makeBodyFunction(v_vars, v_files, boundary)
-                            
+
                 #final steps (from urllib2.AbstractHTTPHandler)
                 sel_host = host
                 if hasattr(request,'has_proxy') and request.has_proxy():
                     scheme, sel = urllib.splittype(request.get_selector())
                     sel_host, sel_path = urllib.splithost(sel)
-        
+
                 if not request.has_header('Host'):
                     request.add_unredirected_header('Host', sel_host)
                 for name, value in self.parent.addheaders:
                     name = name.capitalize()
                     if not request.has_header(name):
-                        request.add_unredirected_header(name, value)              
+                        request.add_unredirected_header(name, value)
 
         if (use_gzip):
             request.add_unredirected_header('Accept-Encoding', 'gzip')
             #pass
 
         return request
-        
-    def do_response_(self, request, response):         
+
+    def do_response_(self, request, response):
         #print 'type', fp.__class__
         if response.headers and response.headers.getheader('Content-Encoding','') == 'gzip' and\
         getattr(request,'use_gzip',False):
-                                        
+
             fp = GzipFile(filename=None,fileobj=StringIO(response.read()),mode='r')
             #fp = GzipFile(filename=None,fileobj=response,mode='r')
             #response needs to be StringIO(response.read()) without gzip streaming
@@ -608,16 +608,16 @@ class newHTTPAbstractHandler(urllib2.AbstractHTTPHandler):
 class newHTTPHandler(newHTTPAbstractHandler):
     http_request = newHTTPAbstractHandler.do_request_
     http_response = newHTTPAbstractHandler.do_response_
-    
+
     def http_open(self, req):
-        return self.do_open(funcBodyHTTPConnection, req)    
+        return self.do_open(funcBodyHTTPConnection, req)
 
 if hasattr(httplib, 'HTTPS'):
     class funcBodyHTTPSConnection(httplib.HTTPSConnection):
         """
         See docs for funcBodyHTTPConnection
         """
-        
+
         def _send_request(self, method, url, body, headers):
             #print 'working req is %s\nbody=%s' % (headers, body)
             if callable(body):
@@ -626,10 +626,10 @@ if hasattr(httplib, 'HTTPS'):
                 body(self)
             else:
                 httplib.HTTPSConnection._send_request(self, method, url, body, headers)
-                
+
         def getresponse(self):
             return funcBodyHTTPConnection.getresponse_static(self) #use this version
-        
+
         def _send_output(self, message_body=None):
             """Fix Python 2.7 bug"""
             self._buffer.extend(("", ""))
@@ -638,7 +638,7 @@ if hasattr(httplib, 'HTTPS'):
             # If msg and message_body are sent in a single send() call,
             # it will avoid performance problems caused by the interaction
             # between delayed ack and the Nagle algorithim.
-            
+
             if isinstance(message_body, str):
                 try:
                     msg += message_body
@@ -648,17 +648,17 @@ if hasattr(httplib, 'HTTPS'):
                     message_body = None
             self.send(msg)
             if message_body is not None:
-                #message_body was not a string (i.e. it is a file) 
+                #message_body was not a string (i.e. it is a file)
                 self.send(message_body)
 
 
-    
+
     class newHTTPSHandler(newHTTPAbstractHandler):
         https_request = newHTTPAbstractHandler.do_request_
         https_response = newHTTPAbstractHandler.do_response_
-        
+
         def https_open(self, req):
-            return self.do_open(funcBodyHTTPSConnection, req)    
+            return self.do_open(funcBodyHTTPSConnection, req)
 
 #Input handling
 _opener = None
@@ -675,10 +675,10 @@ def urlopen(url, data=None, timeout = None):
         else:
             timeout=socket._GLOBAL_DEFAULT_TIMEOUT
     if sys.version_info < (2,6):
-        return _opener.open(url, data) # version 2.5 compat 
+        return _opener.open(url, data) # version 2.5 compat
     else:
         return _opener.open(url, data, timeout)
-        
+
 
 #modified build_opener:
 def build_opener(*handlers):
@@ -707,8 +707,8 @@ def build_opener(*handlers):
     if proxy_server:
         handlers = list(handlers)
         handlers.append(urllib2.ProxyHandler({'http': proxy_server,
-                                                 'https': proxy_server}))    
-    
+                                                 'https': proxy_server}))
+
     for klass in default_classes:
         for check in handlers:
             if isclass(check):
@@ -721,10 +721,10 @@ def build_opener(*handlers):
 
     for klass in default_classes:
         opener.add_handler(klass())
-        
+
     for h in handlers:
         if isclass(h):
             h = h()
         opener.add_handler(h)
     return opener
-    
+

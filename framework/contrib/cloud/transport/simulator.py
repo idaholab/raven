@@ -18,7 +18,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 Lesser General Public License for more details.
 
 You should have received a copy of the GNU Lesser General Public
-License along with this package; if not, see 
+License along with this package; if not, see
 http://www.gnu.org/licenses/lgpl-2.1.html
 """
 
@@ -26,7 +26,7 @@ from . import local
 from .. import cloudconfig as cc
 from ..cloudlog import cloudLog
 
-class SimulatedConnection(local.MPConnection):       
+class SimulatedConnection(local.MPConnection):
     simulatedForceSerializeDebugging = \
         cc.simulation_configurable('force_serialize_debugging',
                                   default=True,hidden=True,
@@ -38,26 +38,26 @@ class SimulatedConnection(local.MPConnection):
     if simulatedForceSerializeLogging and not simulatedForceSerializeDebugging:
         simulatedForceSerializeDebugging = True
         cloudLog.warning("force_serialize_logging implies force_serialize_debugging. Setting force_serialize_debugging to true")
-    
-    
+
+
     simulated_force_redirect_job_output = \
-        cc.simulation_configurable('force_redirect_job_output', default=True, 
+        cc.simulation_configurable('force_redirect_job_output', default=True,
                                   comment="If set and cloud is in simulation mode, forces redirect_job_output (see multiprocessing section) to true")
-        
+
     def open(self):
         #modify mpconnection options here:
         if self.simulated_force_redirect_job_output:
             self.redirect_job_output = True
-        
+
         if self.simulatedForceSerializeDebugging:
             self.adapter.serializeDebugging = True
         if self.simulatedForceSerializeLogging:
             self.adapter.serializeLogging = True
-            
+
         self.adapter._configure_logging() #in case options changed
-        
+
         local.MPConnection.open(self)
-        
+
     def force_adapter_report(self):
         """
         Should the SerializationReport for the SerializationAdapter be coerced to be instantiated?
@@ -65,11 +65,11 @@ class SimulatedConnection(local.MPConnection):
         parent_force = local.MPConnection.force_adapter_report(self)
         return parent_force or self.simulatedForceSerializeLogging
 
-           
+
     def connection_info(self):
         dict = local.MPConnection.connection_info(self)
-        dict['connection_type'] = 'simulation'        
-        return dict    
+        dict['connection_type'] = 'simulation'
+        return dict
 
     def report_name(self):
         return 'Simulation'

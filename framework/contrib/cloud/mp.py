@@ -29,8 +29,8 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 Lesser General Public License for more details.
 
 You should have received a copy of the GNU Lesser General Public
-License along with this package; if not, see 
-http://www.gnu.org/licenses/lgpl-2.1.html    
+License along with this package; if not, see
+http://www.gnu.org/licenses/lgpl-2.1.html
 '''
 
 import sys
@@ -51,12 +51,12 @@ result = None
 kill = None
 connection_info = None
 
-__all__ = ["call", "map", "status", "result", "iresult", "join", "kill", "info", 
+__all__ = ["call", "map", "status", "result", "iresult", "join", "kill", "info",
            "delete", "connection_info", "finished_statuses", "close","c1","c2","m1"]
 
 def _launch_cloud():
     cloudinterface._setcloud(sys.modules[__name__], 'mp')
-    
+
 _launch_cloud()
 
 def _getcloud():
