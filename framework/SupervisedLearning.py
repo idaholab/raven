@@ -1846,7 +1846,6 @@ class SciKitLearn(superVisedLearning):
     self.__class__.qualityEstType = self.__class__.qualityEstTypeDict[SKLtype][SKLsubType]
 
     if 'estimator' in self.initOptionDict.keys():
-      print('Here')
       estimatorDict = self.initOptionDict['estimator']
       self.initOptionDict.pop('estimator')
       estimatorSKLtype, estimatorSKLsubType = estimatorDict['SKLtype'].split('|')
@@ -1890,7 +1889,6 @@ class SciKitLearn(superVisedLearning):
     """
     #If all the target values are the same no training is needed and the moreover the self.evaluate could be re-addressed to this value
     if len(np.unique(targetVals))>1:
-      print(featureVals)
       self.ROM.fit(featureVals,targetVals)
       self.evaluate = self._readdressEvaluateRomResponse
       #self.evaluate = lambda edict : self.__class__.evaluate(self,edict)
