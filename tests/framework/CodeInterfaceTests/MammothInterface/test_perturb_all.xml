@@ -35,6 +35,7 @@
     <Input name="M22" type="yakxsinput">M22_2D.xml</Input>
     <Input name="M23" type="yakxsinput">M23_2D.xml</Input>
     <Input name="alias_1" type="YakXSAliasInput">alias_1.xml</Input>
+    <Input name="alias_2" type="YakXSAliasInput">alias_2.xml</Input>
   </Files>
 
   <Models>
@@ -53,6 +54,18 @@
     <Normal name="G2">
       <mean>1</mean>
       <sigma>0.1</sigma>
+      <lowerBound>0.0001</lowerBound>
+      <upperBound>10</upperBound>
+    </Normal>
+    <Normal name="G3">
+      <mean>622</mean>
+      <sigma>10</sigma>
+      <lowerBound>0.001</lowerBound>
+      <upperBound>10000</upperBound>
+    </Normal>
+    <Normal name="G4">
+      <mean>0.345</mean>
+      <sigma>0.05</sigma>
       <lowerBound>0.0001</lowerBound>
       <upperBound>10</upperBound>
     </Normal>
@@ -88,10 +101,10 @@
         <distribution>G1</distribution>
       </variable>
       <variable name="AuxVariables|Temp|initial_condition:Rattlesnake">
-        <distribution>G1</distribution>
+        <distribution>G3</distribution>
       </variable>
       <variable name="Materials|fuel_solid_mechanics_elastic|poissons_ratio:Bison">
-        <distribution>G2</distribution>
+        <distribution>G4</distribution>
       </variable>
     </MonteCarlo>
   </Samplers>
@@ -140,6 +153,7 @@
       <Input class="Files" type="">M11</Input>
       <Input class="Files" type="">M10</Input>
       <Input class="Files" type="">alias_1</Input>
+      <Input class="Files" type="">alias_2</Input>
       <Model class="Models" type="Code">Mammoth</Model>
       <Sampler class="Samplers" type="MonteCarlo">MC1</Sampler>
       <Output class="DataObjects" type="PointSet">outMC</Output>

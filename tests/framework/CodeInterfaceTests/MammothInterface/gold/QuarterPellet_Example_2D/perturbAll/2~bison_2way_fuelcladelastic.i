@@ -291,7 +291,7 @@
     disp_y = disp_y
     temp = temp
     disp_x = disp_x
-    poissons_ratio = 0.983453177362
+    poissons_ratio = 0.351434997606
     thermal_expansion = 10.0e-6
     youngs_modulus = 2.e11
     type = Elastic

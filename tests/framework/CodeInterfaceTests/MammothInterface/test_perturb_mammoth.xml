@@ -44,14 +44,14 @@
 
   <Distributions>
     <Normal name="G1">
-      <mean>1</mean>
-      <sigma>0.05</sigma>
-      <lowerBound>0.00001</lowerBound>
-      <upperBound>10</upperBound>
+      <mean>622</mean>
+      <sigma>10</sigma>
+      <lowerBound>0.001</lowerBound>
+      <upperBound>10000</upperBound>
     </Normal>
     <Normal name="G2">
-      <mean>1</mean>
-      <sigma>0.1</sigma>
+      <mean>0.345</mean>
+      <sigma>0.05</sigma>
       <lowerBound>0.0001</lowerBound>
       <upperBound>10</upperBound>
     </Normal>

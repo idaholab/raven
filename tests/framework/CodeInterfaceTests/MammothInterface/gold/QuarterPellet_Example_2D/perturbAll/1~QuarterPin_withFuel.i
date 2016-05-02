@@ -56,7 +56,7 @@ ring16 ring17 ring18 ring19 ring20'
 []
 [AuxVariables]
   [./Temp]
-    initial_condition = 1.01686180962
+    initial_condition = 620.118086899
   [../]
   [./fuelburnup]
     order = CONSTANT
@@ -175,7 +175,7 @@ ring16 ring17 ring18 ring19 ring20'
   [./RingLib2]
     library_type = MultigroupLibrary
     library_name = ring2
-    library_file = M2_2D.xml
+    library_file = 1~M2_2D.xml
     type = BaseLibObject
   [../]
   [./RingLib3]

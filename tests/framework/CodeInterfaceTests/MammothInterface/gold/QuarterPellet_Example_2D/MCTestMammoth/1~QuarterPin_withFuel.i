@@ -56,7 +56,7 @@ ring16 ring17 ring18 ring19 ring20'
 []
 [AuxVariables]
   [./Temp]
-    initial_condition = 1.01717988943
+    initial_condition = 625.435977887
   [../]
   [./fuelburnup]
     order = CONSTANT
