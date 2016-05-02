@@ -1641,6 +1641,7 @@ class Grid(Sampler):
         self.raiseADebug('New point found: '+str(newpoint))
       else:
         self.counter+=1
+        self.inputInfo['prefix'] = str(self.counter)
         if self.counter>=self.limit: raise utils.NoMoreSamplesNeeded
         self.raiseADebug('Point',newpoint,'found in restart.')
       self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
@@ -3518,6 +3519,7 @@ class SparseGridCollocation(Grid):
       if inExisting:
         self.raiseADebug('Found pt',pt,'in restart.')
         self.counter+=1
+        self.inputInfo['prefix'] = str(self.counter)
         if self.counter==self.limit: raise utils.NoMoreSamplesNeeded
         continue
       else:
@@ -4288,6 +4290,7 @@ class Sobol(SparseGridCollocation):
       if inExisting:
         self.raiseADebug('point found in restart:',pt)
         self.counter+=1
+        self.inputInfo['prefix'] = str(self.counter)
         if self.counter==self.limit: raise utils.NoMoreSamplesNeeded
         continue
       else:

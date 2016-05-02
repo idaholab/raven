@@ -1205,7 +1205,7 @@ class Code(Model):
         break
     if not found: self.raiseAnError(IOError,'None of the input files has one of the extensions requested by code '
                                   + self.subType +': ' + ' '.join(self.getInputExtension()))
-    self.raiseAMessage('job "'+ self.currentInputFiles[index].getBase() +'" submitted!')
+    self.raiseAMessage('job "'+ str(identifier) + "_" + self.currentInputFiles[index].getBase() +'" submitted!')
 
   def collectOutput(self,finishedjob,output):
     """
