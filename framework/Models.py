@@ -1090,7 +1090,7 @@ class Code(Model):
                                   + self.subType +': ' + ' '.join(self.code.getInputExtension()))
     Kwargs['outfile'] = 'out~'+currentInput[index].getBase()
     subDirectory = os.path.join(self.workingDir,Kwargs['prefix'] if 'prefix' in Kwargs.keys() else '1')
-    
+
     if not os.path.exists(subDirectory):
       os.mkdir(subDirectory)
     for index in range(len(currentInput)):
