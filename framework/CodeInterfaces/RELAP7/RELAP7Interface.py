@@ -164,8 +164,8 @@ class RELAP7(CodeInterfaceBase):
           for i in range(numZeros):
             endTimeStepString = "0" + endTimeStepString
         splitted = Kwargs['outfile'].split('~')
-        output_parent = splitted[0] + '~' + toString(Kwargs['parentID']) + '~' + splitted[1]
-        restartFileBase = output_parent + "_cp/" + endTimeStepString
+        output_parent = splitted[0] + '~'  + splitted[1]
+        restartFileBase = os.path.join("..",toString(Kwargs['parentID']),output_parent + "_cp",endTimeStepString)
         modifDict['name'] = ['Executioner']
         modifDict['restart_file_base'] = restartFileBase
         #print(' Restart file name base is "' + restart_file_base + '"')

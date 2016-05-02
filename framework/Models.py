@@ -1220,7 +1220,7 @@ class Code(Model):
     if 'finalizeCodeOutput' in dir(self.code):
       out = self.code.finalizeCodeOutput(finishedjob.command,finishedjob.output,self.workingDir)
       if out: finishedjob.output = out
-    outputFilelocation = os.path.join(self.workingDir,finishedjob.identifier)
+    outputFilelocation = finishedjob.getWorkingDir()
     attributes={"inputFile":self.currentInputFiles,"type":"csv","name":os.path.join(outputFilelocation,finishedjob.output+'.csv')}
     metadata = finishedjob.returnMetadata()
     if metadata: attributes['metadata'] = metadata
