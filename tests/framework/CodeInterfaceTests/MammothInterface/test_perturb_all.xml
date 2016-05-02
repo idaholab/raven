@@ -61,7 +61,7 @@
   <Samplers>
     <MonteCarlo name="MC1">
       <samplerInit>
-        <limit>3</limit>
+        <limit>2</limit>
       </samplerInit>
       <variable name="f11">
         <distribution>G1</distribution>
@@ -86,9 +86,6 @@
       </variable>
       <variable name="n22">
         <distribution>G1</distribution>
-      </variable>
-      <variable name="Materials|seed11|densities">
-        <distribution>G2</distribution>
       </variable>
       <variable name="AuxVariables|Temp|initial_condition:Rattlesnake">
         <distribution>G1</distribution>
