@@ -560,13 +560,13 @@ class YakMultigroupLibraryParser():
     if tableWise is not None:
       for child in tableWise:
         for isotope in xmlNode.findall('Isotope'):
-          if isotope.find(child.tag) is not None: break
+          if isotope.find(child.tag) is not None: continue
           isotope.append(copy.deepcopy(child))
     libraryWise = xmlNode.find('Librarywise')
     if libraryWise is not None:
       for child in libraryWise:
         for isotope in xmlNode.findall('Isotope'):
-          if isotope.find(child.tag) is not None: break
+          if isotope.find(child.tag) is not None: continue
           isotope.append(copy.deepcopy(child))
 
   def _replaceXMLNodeText(self,xmlNode,reactionDict):

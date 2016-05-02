@@ -63,7 +63,7 @@
   </Steps>
 
   <Databases>
-    <HDF5 name="testGridRavenDatabase"/>
+    <HDF5 name="testGridRavenDatabase" readMode="overwrite"/>
   </Databases>
 
   <OutStreams>

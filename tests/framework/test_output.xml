@@ -731,7 +731,7 @@
   </Steps>
 
   <Databases>
-    <HDF5 name="testOutputDatabase" type="MC"/>
+    <HDF5 name="testOutputDatabase" readMode="overwrite"/>
   </Databases>
 
   <DataObjects>

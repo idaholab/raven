@@ -118,7 +118,7 @@
   </Steps>
 
   <Databases>
-    <HDF5 name="AdaptiveHybridDETsimpleDatabase"/>
+    <HDF5 name="AdaptiveHybridDETsimpleDatabase" readMode="overwrite"/>
   </Databases>
 
   <OutStreams>
