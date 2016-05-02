@@ -2061,7 +2061,7 @@ class DynamicEventTree(Grid):
     # Construct the file name adding the outBase root if present
     filename   = outBase + "_actual_branch_info.xml" if outBase else "actual_branch_info.xml"
     workingDir = currentWorkingDir if currentWorkingDir is not None else self.workingDir
-    
+
     if not os.path.isabs(filename): filename = os.path.join(workingDir,filename)
     if not os.path.exists(filename):
       self.raiseADebug('branch info file ' + os.path.basename(filename) +' has not been found. => No Branching.')
