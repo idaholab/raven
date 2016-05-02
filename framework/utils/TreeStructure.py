@@ -1,7 +1,7 @@
 """
 Created on Jan 28, 2014
+@ author: alfoa
 TreeStructure. 2 classes Node, NodeTree
-@author: alfoa
 """
 
 #for future compatibility with Python 3--------------------------------------------------------------
@@ -67,15 +67,18 @@ class Node(object):
     """
     return len(self._branches)
 
-  def appendBranch(self, node):
+  def appendBranch(self, node, updateDepthLocal = False):
     """
       Method used to append a new branch to this node
       @ In, node, Node, the newer node
+      @ In, updateDepthLocal, if the depth needs to be updated locally only
       @ Out, None
     """
     node.parentname = self.name
     node.parent     = self
-    node.updateDepth()
+    # this is to avoid max number of recursion if a close loop. TODO: BETTER WAY
+    if not updateDepthLocal: node.updateDepth()
+    else                   : node.depth      = self.depth + 1
     self._branches.append(node)
 
   def updateDepth(self):
@@ -229,6 +232,7 @@ class Node(object):
       and all subnodes and returns all nodes without branches
       @ In, None
       @ Out, e, iterator, the iterator
+
     """
     if len(self._branches) == 0:
       yield self

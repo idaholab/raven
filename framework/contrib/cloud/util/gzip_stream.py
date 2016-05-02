@@ -65,7 +65,7 @@ class PaddedFile:
         if self._read is None:
             return ''
         return self._string[self._read:]
-        
+
 
 class GzipFile:
     """The GzipFile class simulates most of the methods of a file object with
@@ -263,16 +263,16 @@ class GzipFile:
             return f.unused()
         else:
             return ''
-       
+
 
     def _read(self, readsize):
         """Bug was here with bad EOF signal"""
         data = self.fileobj.read(readsize)
         is_eof = True
- 
+
         while True:
 
-                
+
             if data == "":
                 decompdata = self.decompobj.flush()
             else:
@@ -293,26 +293,26 @@ class GzipFile:
                     continue
             break
         return is_eof
- 
+
     def read(self, size=-1):
         """Decompress up to bytes bytes from input.
- 
+
         Raise IOError."""
- 
+
         if self.mode != READ:
             import errno
             raise IOError(errno.EBADF, "read() on write-only GzipFile object")
- 
+
         if self._new_member:
             self._read_gzip_header(self.fileobj)
             self._new_member = False
- 
+
         while size < 0 or self.bufferlen <  size:
             if size < 0:
                 readsize = 65536 - self.bufferlen
             else:
                 readsize = size - self.bufferlen
-                
+
             if readsize > 65536:
                 readsize = 32768
             elif readsize > 32768:
@@ -325,7 +325,7 @@ class GzipFile:
                 readsize = 2048
             else:
                 readsize = 1024
- 
+
             eof = self._read(readsize)
             if eof:
                 break
@@ -352,7 +352,7 @@ class GzipFile:
             self.buffer.pop(0)
         self.offset += len(retdata)
         return retdata
- 
+
 
     def close(self):
         if self.fileobj is None:
@@ -439,17 +439,17 @@ class GzipFile:
         if self._new_member:
             self._read_gzip_header(self.fileobj)
             self._new_member = False
- 
-        scansize = 0        
+
+        scansize = 0
         buffpos = 0
-        
+
         while True:
             for idx in range(buffpos, len(self.buffer)):
                 if idx == 0:
                     scansize -= self.pos
                     pos = self.buffer[idx].find('\n', self.pos)
                 else:
-                    pos = self.buffer[idx].find('\n')                    
+                    pos = self.buffer[idx].find('\n')
                 if pos != -1:
                     if size>=0 and scansize+pos+1>size:
                         return self.read(size)
