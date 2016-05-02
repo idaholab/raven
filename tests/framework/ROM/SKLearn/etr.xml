@@ -21,7 +21,6 @@
       <Features>X,Y</Features>
       <Target>Z</Target>
       <criterion>mse</criterion>
-      <splitter>random</splitter>
       <max_features>auto</max_features>
       <max_depth>None</max_depth>
       <min_samples_split>2</min_samples_split>

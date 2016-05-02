@@ -43,12 +43,6 @@
     csv = 'data/outNCC.csv'
     output = 'data/outNCC.xml'
   [../]
-  [./DTC]
-    type = 'RavenFramework'
-    input = 'dtc.xml'
-    csv = 'data/outDTC.csv'
-    output = 'data/outDTC.xml'
-  [../]
   [./OVR]
     type = 'RavenFramework'
     input = 'ovr.xml'
@@ -85,6 +79,37 @@
     csv = 'data/outLinearRidgeCCV.csv'
     output = 'data/outLinearRidgeCCV.xml'
   [../]
+  [./linearPAC]
+    type = 'RavenFramework'
+    input = 'linearPAC.xml'
+    csv = 'data/outLinearPAC.csv'
+    output = 'data/outLinearPAC.xml'
+  [../]
+  [./linearSGDC]
+    type = 'RavenFramework'
+    input = 'linearSGDC.xml'
+    csv = 'data/outLinearSGDC.csv'
+    output = 'data/outLinearSGDC.xml'
+  [../]
+  [./MultinomialNB]
+    type = 'RavenFramework'
+    input = 'multinomialNB.xml'
+    csv = 'data/outMultinomialNB.csv'
+    output = 'data/outMultinomialNB.xml'
+  [../]
+  [./DTC]
+    type = 'RavenFramework'
+    input = 'dtc.xml'
+    csv = 'data/outDTC.csv'
+    output = 'data/outDTC.xml'
+  [../]
+  [./ETC]
+    type = 'RavenFramework'
+    input = 'etc.xml'
+    csv = 'data/outETC.csv'
+    output = 'data/outETC.xml'
+  [../]
+
   ##############################################################################
   ## Regressors
   [./SVR]
@@ -237,8 +262,6 @@
     csv = 'data/outLinearRidgeRCV.csv'
     output = 'data/outLinearRidgeRCV.xml'
   [../]
-  ##############################################################################
-  ## Failures
   [./linearPAR]
     type = 'RavenFramework'
     input = 'linearPAR.xml'
@@ -251,40 +274,18 @@
     csv = 'data/outLinearSGDR.csv'
     output = 'data/outLinearSGDR.xml'
   [../]
-  [./DTR]
-    type = 'RavenFramework'
-    input = 'dtr.xml'
-    csv = 'data/outDTR.csv'
-    output = 'data/outDTR.xml'
-  [../]
-  [./ETR]
-    type = 'RavenFramework'
-    input = 'etr.xml'
-    csv = 'data/outETR.csv'
-    output = 'data/outETR.xml'
-  [../]
-  [./linearPAC]
-    type = 'RavenFramework'
-    input = 'linearPAC.xml'
-    csv = 'data/outLinearPAC.csv'
-    output = 'data/outLinearPAC.xml'
-  [../]
-  [./linearSGDC]
-    type = 'RavenFramework'
-    input = 'linearSGDC.xml'
-    csv = 'data/outLinearSGDC.csv'
-    output = 'data/outLinearSGDC.xml'
-  [../]
-  [./MultinomialNB]
-    type = 'RavenFramework'
-    input = 'multinomialNB.xml'
-    csv = 'data/outMultinomialNB.csv'
-    output = 'data/outMultinomialNB.xml'
-  [../]
-  [./ETC]
-    type = 'RavenFramework'
-    input = 'etc.xml'
-    csv = 'data/outETC.csv'
-    output = 'data/outETC.xml'
-  [../]
+  ##############################################################################
+  ## Inconsistent Results
+  #[./DTR]
+  #  type = 'RavenFramework'
+  #  input = 'dtr.xml'
+  #  csv = 'data/outDTR.csv'
+  #  output = 'data/outDTR.xml'
+  #[../]
+  #[./ETR]
+  #  type = 'RavenFramework'
+  #  input = 'etr.xml'
+  #  csv = 'data/outETR.csv'
+  #  output = 'data/outETR.xml'
+  #[../]
 []
