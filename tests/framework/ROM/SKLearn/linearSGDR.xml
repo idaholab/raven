@@ -28,7 +28,7 @@
       <fit_intercept>True</fit_intercept>
       <n_iter>5</n_iter>
       <shuffle>True</shuffle>
-      <random_state>None</random_state>
+      <random_state>1</random_state>
       <verbose>0</verbose>
       <epsilon>0.1</epsilon>
       <learning_rate>invscaling</learning_rate>
