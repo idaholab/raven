@@ -32,7 +32,7 @@
       <class_weight>None</class_weight>
       <verbose>False</verbose>
       <max_iter>-1</max_iter>
-      <random_state>None</random_state>
+      <random_state>1</random_state>
     </ROM>
   </Models>
 

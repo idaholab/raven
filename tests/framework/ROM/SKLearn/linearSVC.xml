@@ -30,7 +30,7 @@
       <intercept_scaling>1</intercept_scaling>
       <class_weight>None</class_weight>
       <verbose>0</verbose>
-      <random_state>None</random_state>
+      <random_state>1</random_state>
     </ROM>
   </Models>
 
