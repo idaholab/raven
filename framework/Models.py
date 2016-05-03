@@ -1140,7 +1140,7 @@ class Code(Model):
       here only Point and PointSet are accepted a local copy of the values is performed.
       For a Point all value are copied, for a PointSet only the last set of entry
       The copied values are returned as a dictionary back
-      @ In, myInput, list, the inputs (list) to start from to generate the new one
+      @ In, currentInput, list, the inputs (list) to start from to generate the new one
       @ In, samplerType, string, is the type of sampler that is calling to generate a new input
       @ In, **Kwargs, dict,  is a dictionary that contains the information coming from the sampler,
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
@@ -1148,25 +1148,26 @@ class Code(Model):
     """
     Kwargs['executable'] = self.executable
     found = False
+    newInputSet = copy.deepcopy(currentInput)
     #TODO FIXME I don't think the extensions are the right way to classify files anymore, with the new Files
     #  objects.  However, this might require some updating of many Code Interfaces as well.
-    for index, inputFile in enumerate(currentInput):
+    for index, inputFile in enumerate(newInputSet):
       if inputFile.getExt() in self.code.getInputExtension():
         found = True
         break
     if not found: self.raiseAnError(IOError,'None of the input files has one of the extensions requested by code '
                                   + self.subType +': ' + ' '.join(self.code.getInputExtension()))
-    Kwargs['outfile'] = 'out~'+currentInput[index].getBase()
+    Kwargs['outfile'] = 'out~'+newInputSet[index].getBase()
     subDirectory = os.path.join(self.workingDir,Kwargs['prefix'] if 'prefix' in Kwargs.keys() else '1')
 
     if not os.path.exists(subDirectory):
       os.mkdir(subDirectory)
-    for index in range(len(currentInput)):
-      currentInput[index].setPath(subDirectory)
+    for index in range(len(newInputSet)):
+      newInputSet[index].setPath(subDirectory)
       shutil.copy(self.oriInputFiles[index].getAbsFile(),subDirectory)
     Kwargs['subDirectory'] = subDirectory
     if len(self.alias.keys()) != 0: Kwargs['alias']   = self.alias
-    return (self.code.createNewInput(currentInput,self.oriInputFiles,samplerType,**Kwargs),Kwargs)
+    return (self.code.createNewInput(newInputSet,self.oriInputFiles,samplerType,**Kwargs),Kwargs)
 
   def updateInputFromOutside(self, Input, externalDict):
     """
