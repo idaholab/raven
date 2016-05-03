@@ -145,7 +145,7 @@
 
   <xsd:complexType name="figurePropertiesType">
     <xsd:all>
-      <!--XSD and matplotlib have irreconcilable differences. For the record, I hate both.-->
+      <!--XSD wants to see the figure size as a space delimited list of floats, whereas matplotlib wants it as a a comma separated list of floats.-->
       <xsd:element name="figsize"   type="xsd:string"  minOccurs="0"/>
       <xsd:element name="dpi"       type="xsd:integer" minOccurs="0"/>
       <xsd:element name="facecolor" type="xsd:string"  minOccurs="0"/>
