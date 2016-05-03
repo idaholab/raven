@@ -36,7 +36,7 @@ class RavenFramework(Tester):
     params.addParam('rel_err','','Relative Error for csv files or floats in xml ones')
     params.addParam('required_executable','','Skip test if this executable is not found')
     params.addParam('required_libraries','','Skip test if any of these libraries are not found')
-    params.addParam('minimum_library_versions','','Skip test if the library listed is below the supplied version (e.g. \"minimum_library_version = name1 version1 name2 version2\")')
+    params.addParam('minimum_library_versions','','Skip test if the library listed is below the supplied version (e.g. minimum_library_versions = \"name1 version1 name2 version2\")')
     params.addParam('skip_if_env','','Skip test if this environmental variable is defined')
     params.addParam('test_interface_only','False','Test the interface only (without running the driven code')
     params.addParam('zero_threshold',sys.float_info.min*4.0,'it represents the value below which a float is considered zero (XML comparison only)')
