@@ -81,6 +81,8 @@ class RavenFramework(Tester):
         return (False,'skipped (Unable to import library: "'+lib+'")')
 
     i = 0
+    if len(self.minimum_libraries):
+      return (False,'skipped (libraries are not matched to versions numbers: '+str(self.minimum_libraries)+')')
     while i < len(self.minimum_libraries):
       libraryName = self.minimum_libraries[i]
       libraryVersion = self.minimum_libraries[i+1]
