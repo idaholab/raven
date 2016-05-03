@@ -23,6 +23,7 @@ class RavenPython(Tester):
       params.addParam('python_command','python','The command to use to run python')
     params.addParam('requires_swig2', False, "Requires swig2 for test")
     params.addParam('required_executable','','Skip test if this executable is not found')
+    params.addParam('required_executable_check_flags','','Flags to add to the required executable to make sure it runs without fail when testing its existence on the machine')
 
     return params
 
@@ -34,13 +35,13 @@ class RavenPython(Tester):
     self.specs['scale_refine'] = False
     self.required_executable = self.specs['required_executable']
     self.required_executable = self.required_executable.replace("%METHOD%",os.environ.get("METHOD","opt"))
+    self.required_executable_check_flags = self.specs['required_executable_check_flags'].split(' ')
 
   def checkRunnable(self, option):
     try:
-      if self.required_executable == 'compare':
-        retValue = subprocess.call([self.required_executable,'-version'],stdout=subprocess.PIPE)
-      else:
-        retValue = subprocess.call([self.required_executable],stdout=subprocess.PIPE)
+      argsList = [self.required_executable]
+      argsList.extend(self.required_executable_check_flags)
+      retValue = subprocess.call(argsList,stdout=subprocess.PIPE)
       if len(self.required_executable) > 0 and retValue != 0:
         return (False,'skipped (Failing executable: "'+self.required_executable+'")')
     except:

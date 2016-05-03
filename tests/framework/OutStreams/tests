@@ -13,6 +13,7 @@
   input = 'testImageGeneration.py'
   #input = 'imageGeneration_png.xml'
   required_executable = 'compare'
+  required_executable_check_flags='-version'
  [../]
 
  [./test_subPlot]
