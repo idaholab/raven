@@ -3,7 +3,7 @@
   <RunInfo>
     <WorkingDir>Adapt</WorkingDir>
     <Sequence>adapt,adaptdump</Sequence>
-    <batchSize>50</batchSize>
+    <batchSize>100</batchSize>
   </RunInfo>
 
   <Steps>
@@ -61,7 +61,7 @@
       <ROM class="Models" type="ROM">accelerated_ROM</ROM>
       <Function class="Functions" type="External">g_zr</Function>
       <TargetEvaluation class="DataObjects" type="PointSet">nt_phy_dpt_dt</TargetEvaluation>
-      <Convergence forceIteration="False" limit="3000" persistence="25" weight="value">9e-2</Convergence>
+      <Convergence forceIteration="False" limit="3000" persistence="25" weight="value">5e-3</Convergence>
       <variable name="x1">
         <distribution>x1_dst</distribution>
       </variable>

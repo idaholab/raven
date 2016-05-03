@@ -1,0 +1,107 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
+    <WorkingDir>EnsembleForwardTestExt</WorkingDir>
+    <Sequence>EnsembleForwardStep,EnsembleForwardOutstreamStep</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Models>
+      <ExternalModel ModuleToLoad="lorentzAttractor" name="extModel" subType="">
+          <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0</variables>
+      </ExternalModel>
+  </Models>
+
+  <Distributions>
+    <Uniform name="unif">
+      <lowerBound>0.0</lowerBound>
+      <upperBound>1.0</upperBound>
+    </Uniform>
+    <Normal name="norm">
+      <mean>0.5</mean>
+      <sigma>0.2</sigma>
+      <lowerBound>0</lowerBound>
+      <upperBound>1</upperBound>
+    </Normal>
+    <Triangular name="tri">
+      <apex>1</apex>
+      <min>0</min>
+      <max>2</max>
+    </Triangular>
+  </Distributions>
+
+  <Samplers>
+    <EnsembleForward name="testEnsembleForward">
+        <MonteCarlo name = "theMC">
+            <samplerInit> <limit>4</limit> </samplerInit>
+            <variable name="sigma">
+                <distribution>norm</distribution>
+            </variable>
+        </MonteCarlo>
+        <Grid name = "theGrid">
+            <variable name="x0">
+                <distribution>unif</distribution>
+                <grid construction="custom" type="value">0.02 0.5 0.6</grid>
+            </variable>
+        </Grid>
+        <Stratified name = "theStratified">
+            <variable name="z0">
+                <distribution>tri</distribution>
+                <grid construction="equal" steps="2" type="CDF">0.2 0.8</grid>
+            </variable>
+            <variable name="y0">
+                <distribution>unif</distribution>
+                <grid construction="equal" steps="2" type="value">0.5 0.8</grid>
+            </variable>
+        </Stratified>
+        <ResponseSurfaceDesign name = "theRSD">
+            <ResponseSurfaceDesignSettings>
+                <algorithmType>CentralComposite</algorithmType>
+                <centers>1,2</centers>
+                <alpha>orthogonal</alpha>
+                <face>circumscribed</face>
+            </ResponseSurfaceDesignSettings>
+            <variable name="rho">
+                <distribution>unif</distribution>
+                <grid construction="custom" type="CDF">0.0 1.0</grid>
+            </variable>
+            <variable name="beta">
+                <distribution>tri</distribution>
+                <grid construction="custom" type="value">0.1 1.5</grid>
+            </variable>
+        </ResponseSurfaceDesign>
+    </EnsembleForward>
+  </Samplers>
+
+  <OutStreams>
+    <Print name="PointsetEnsembleForwardExtModel">
+      <type>csv</type>
+      <source>PointsetEnsembleForward</source>
+    </Print>
+  </OutStreams>
+
+  <Steps>
+    <MultiRun name="EnsembleForwardStep" sleepTime="0.0000001">
+      <Input   class="DataObjects" type="PointSet"       >inputPlaceHolder</Input>
+      <Model   class="Models"      type="ExternalModel"  >extModel</Model>
+      <Sampler class="Samplers"    type="EnsembleForward">testEnsembleForward</Sampler>
+      <Output  class="DataObjects" type="PointSet"       >PointsetEnsembleForward</Output>
+    </MultiRun>
+    <IOStep name="EnsembleForwardOutstreamStep">
+      <Input   class="DataObjects"      type="PointSet">PointsetEnsembleForward</Input>
+      <Output  class="OutStreams"       type="Print"   >PointsetEnsembleForwardExtModel</Output>
+    </IOStep>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="PointsetEnsembleForward">
+      <Input>sigma,rho,beta,x0,y0,z0</Input>
+      <Output>x,y,z,time</Output>
+    </PointSet>
+    <PointSet name="inputPlaceHolder">
+        <Input>x0,y0,z0,sigma,rho,beta</Input>
+        <Output>OutputPlaceHolder</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>

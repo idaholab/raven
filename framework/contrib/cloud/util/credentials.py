@@ -5,7 +5,7 @@ Provides for storage and retrieval of PiCloud credentials
 
 Current credentials include:
 - cloudauth: key/secretkey
-- ssh private keys (environments/volumes) 
+- ssh private keys (environments/volumes)
 '''
 import distutils
 import os
@@ -26,17 +26,17 @@ def save_keydef(key_def, api_key=None):
         If *api_key* not None, verify it matches key_def
     """
     key_def['api_key'] = int(key_def['api_key'])
-    if not api_key: 
+    if not api_key:
         api_key = key_def['api_key']
-    else:    
-        assert (key_def['api_key'] == int(api_key))    
+    else:
+        assert (key_def['api_key'] == int(api_key))
     key_cache[api_key] = key_def
     write_cloudauth(key_def) #flush authorization
     write_sshkey(key_def)    #flush ssh key
-    
+
 def download_key_by_key(api_key, api_secretkey):
-    """Download and cache key""" 
-    api_key = int(api_key)       
+    """Download and cache key"""
+    api_key = int(api_key)
     from account import get_key_by_key
     key_def = get_key_by_key(api_key, api_secretkey)
     cloudLog.debug('Saving key for api_key %s' % api_key)
@@ -44,8 +44,8 @@ def download_key_by_key(api_key, api_secretkey):
     return key_def
 
 def download_key_by_login(api_key, username, password):
-    """Download and cache key by using PiCloud login information""" 
-    api_key = int(api_key)       
+    """Download and cache key by using PiCloud login information"""
+    api_key = int(api_key)
     from account import get_key
     key_def = get_key(username, password, api_key)
     save_keydef(key_def, api_key)
@@ -55,7 +55,7 @@ def verify_key(api_key):
     """Return true if we have valid sshkey and cloudauth for this key.
     False if any information is missing"""
     key_def = key_cache.get(api_key, {})
-    if 'api_secretkey' not in key_def:    
+    if 'api_secretkey' not in key_def:
         if not resolve_secretkey(api_key):
             cloudLog.debug('verify_key failed: could not find secretkey for %s', api_key)
             return False
@@ -91,7 +91,7 @@ def read_cloudauth(api_key):
         raise IOError('path %s not found' % path)
     config = RawConfigParser()
     config.read(path)
-    
+
     key_def = key_cache.get(api_key, {})
     key = config.getint(api_key_section, 'key')
     if key != api_key:
@@ -112,9 +112,9 @@ def get_saved_secretkey(api_key):
 def write_cloudauth(key_def):
     """Write key/secret key information defined by key_def into cloudauth"""
     api_key = str(key_def['api_key'])
-    api_secretkey = key_def['api_secretkey']    
+    api_secretkey = key_def['api_secretkey']
     path = get_cloudauth_path(api_key)
-        
+
     config = RawConfigParser()
     config.add_section(api_key_section)
     config.set(api_key_section, 'key', api_key)
@@ -128,12 +128,12 @@ def write_cloudauth(key_def):
         os.chmod(path, 0600)
     except:
         cloudLog.exception('Could not set permissions on %s' % path)
-        
+
 
 def resolve_secretkey(api_key):
     """Find secretkey for this api_key
     Return None if key cannot be found
-    """    
+    """
     try:
         secretkey = get_saved_secretkey(api_key)
     except Exception, e:
@@ -141,12 +141,12 @@ def resolve_secretkey(api_key):
             cloudLog.exception('Unexpected error reading credentials for api_key %s' % api_key)
         return None
     else:
-        return secretkey        
+        return secretkey
 
 
-""" SSH private keys 
+""" SSH private keys
 These private keys are used to connect to PiCloud
-"""    
+"""
 
 def get_sshkey_path(api_key):
     """Locate where SSH key is stored"""
@@ -156,7 +156,7 @@ def get_sshkey_path(api_key):
 def read_sshkey(api_key):
     """Read sshkey from file.
     Save to cache and return key_def. key will be in key_def['private_key']"""
-    path = get_sshkey_path(api_key)    
+    path = get_sshkey_path(api_key)
     with open(path, 'rb') as f:
         private_key = f.read()
     key_def = key_cache.get(api_key, {})
@@ -164,10 +164,10 @@ def read_sshkey(api_key):
     key_def['private_key'] = private_key
     key_cache[int(api_key)] = key_def
     return key_def
-    
+
 def verify_sshkey(api_key):
     """Verify sshkey presence
-    Todo: Actually validate key    
+    Todo: Actually validate key
     """
     path = get_sshkey_path(api_key)
     if os.path.exists(path):
@@ -182,7 +182,7 @@ def write_sshkey(key_def):
     """Save key_def['private_key'] to sshkey_path"""
     private_key = key_def['private_key']
     api_key = key_def['api_key']
-    path = get_sshkey_path(api_key)    
+    path = get_sshkey_path(api_key)
     try:
         with open(path, 'wb') as f:
             f.write(private_key)
@@ -193,11 +193,11 @@ def write_sshkey(key_def):
             os.chmod(path, 0600)
         except:
             cloudLog.exception('Could not set permissions on %s' % path)
-        
-    
+
+
 def test(key, secretkey):
     key_has = verify_key(key)
-    print 'have key already? %s' % key_has 
+    print 'have key already? %s' % key_has
     if not key_has:
         print 'downloading'
         download_key_by_key(key, secretkey)
@@ -206,4 +206,4 @@ def test(key, secretkey):
 
     secretkey = resolve_secretkey(key)
     print 'your key is %s' % secretkey
-        
+

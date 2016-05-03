@@ -14,7 +14,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 Lesser General Public License for more details.
 
 You should have received a copy of the GNU Lesser General Public
-License along with this package; if not, see 
+License along with this package; if not, see
 http://www.gnu.org/licenses/lgpl-2.1.html
 """
 
@@ -31,7 +31,7 @@ Changes by Uche Ogbuji April 2003
 Please see Ogbuji's article for background: http://www.xml.com/pub/a/2003/04/09/py-xml.html
 Ogbuji has given permission to modify and release this code under LGPL
 """
- 
+
 
 import sys
 import codecs
@@ -68,12 +68,12 @@ class XmlWriter:
             self.out.write(
                 u"<!DOCTYPE %s PUBLIC '%s' '%s'>\n" \
                 % (root, pubid, sysid))
-    
+
     def _closeIfNeeded(self):
         if self.needClose:
             self.out.write(u">")
         self.needClose = False
-        
+
     def comment(self, cmt, attrs={}):
         """
         Create a comment with attributes
@@ -87,13 +87,13 @@ class XmlWriter:
             try:
                 self.out.write(u" %s='%s'" % (a, self.__escape_attr(v)))
             except UnicodeDecodeError:
-                continue        
+                continue
         self.out.write(' -->')
         if not self.stack:
             self.out.write('\n')
 
-        
-    def push(self, elem, attrs={}):        
+
+    def push(self, elem, attrs={}):
         """
         Create an element which will have child elements
         """
@@ -105,7 +105,7 @@ class XmlWriter:
             self.out.write("<" + elem)
         except UnicodeDecodeError:
             elem = 'UNPRINTABLE_OBJECT'
-            self.out.write("<" + elem)  
+            self.out.write("<" + elem)
         for (a, v) in attrs.items():
             try:
                 self.out.write(u" %s='%s'" % (a, self.__escape_attr(v)))
@@ -147,7 +147,7 @@ class XmlWriter:
         self.out.write(u"/>")
         if not self.stack:
             self.out.write('\n')
-        
+
     def pop(self):
         """
         Close an element started with the push() method
@@ -157,21 +157,21 @@ class XmlWriter:
 
         if self.needClose: #means we never pushed a subelement onto stack:
             self.out.write(u"/>")
-            self.needClose = False                        
+            self.needClose = False
         else:
-            self.out.write('\n')        
-            self.__indent()        
+            self.out.write('\n')
+            self.__indent()
             self.out.write(u"</%s>" % elem)
         #if outer level:
         if not self.stack:
             self.out.write('\n')
-        
+
     def flush(self):
         self.out.flush()
-    
+
     def __indent(self):
         self.out.write(self.indent * (len(self.stack) * 2))
-    
+
     def __escape_cont(self, text):
         return text.replace(u"&", u"&amp;")\
                .replace(u"<", u"&lt;")
@@ -179,7 +179,7 @@ class XmlWriter:
     def __escape_attr(self, text):
         return text.replace(u"&", u"&amp;") \
                .replace(u"'", u"&apos;").replace(u"<", u"&lt;")
-               
+
 """
 Stack Writer
 Will only write a single downward path in the xml tree
@@ -193,20 +193,20 @@ class XmlStackWriter:
         self.xmlwriter = xmlwriter
         self.writecmd = []
         self.extraEl = False
-    
-    def addElement(self, node):        
+
+    def addElement(self, node):
         if self.extraEl:
             self.writecmd[-1] = node
         else:
             self.writecmd.append(node)
-            self.extraEl = True       
-        
+            self.extraEl = True
+
     def comment(self, cmt, attrs={}):
         newcmd = (self.xmlwriter.comment,(cmt,attrs))
         self.addElement(newcmd)
 
-        
-    def push(self, elem, attrs={}):        
+
+    def push(self, elem, attrs={}):
         newcmd = (self.xmlwriter.push,(elem,attrs))
         self.addElement(newcmd)
         self.extraEl = False
@@ -215,22 +215,22 @@ class XmlStackWriter:
     def elem(self, elem, content, attrs={}):
         newcmd = (self.xmlwriter.elem,(elem,content,attrs))
         self.addElement(newcmd)
-                    
+
     def empty(self, elem, attrs={}):
         newcmd = (self.xmlwriter.empty,(elem,attrs))
-        self.addElement(newcmd)        
-        
+        self.addElement(newcmd)
+
     def pop(self):
         if self.extraEl:
-            self.writecmd.pop()        
-        self.writecmd.pop()        
+            self.writecmd.pop()
+        self.writecmd.pop()
         self.extraEl = False
-        
+
     def flush(self):
         """
         Flush to xml file
-        """        
-        for cmd, args in self.writecmd:                     
+        """
+        for cmd, args in self.writecmd:
             cmd(*args)
         self.xmlwriter._closeIfNeeded() #prettification hack
 
@@ -270,7 +270,7 @@ class XmlDataParser:
 
     parser = None
     tagclasses = {}
-    
+
     lasttagname = None
 
     def __init__(self):
@@ -288,9 +288,9 @@ class XmlDataParser:
         lines = file.readlines()
         xmltext = ''
         for line in lines:
-            xmltext += line.strip()        
+            xmltext += line.strip()
         self.parser.Parse(xmltext)
-        
+
         #print "root is " + str(self.root)
         return self.root
 
@@ -311,7 +311,7 @@ class XmlDataParser:
             tagname = attrs['name']
         else:
             tagname = name
-        
+
         self.lasttagname = tagname
 
         #print 'Entering', name
@@ -359,7 +359,7 @@ class XmlDataParser:
                 self.objpath.append('N/A')
             elif type(parent) is dict and 'value' not in attrs:
                 raise Exception('Parent is dict, but child has no value attribute')
-            elif type(parent) is list:                                
+            elif type(parent) is list:
                 raise Exception('Not really supported... ' + str(parent) + " with " + str(tagname))
             else:
                 #print '3'
@@ -403,7 +403,7 @@ class XmlDataParser:
         #if len(self.objpath) > 0:
         #    parent = self.objpath[len(self.objpath)-1]
         #    #print parent
-        #print '' 
+        #print ''
 
     def char_data(self, data):
         if len(self.objpath) > 1:
@@ -411,9 +411,9 @@ class XmlDataParser:
         else:
             parent = None
         #print 'Character data:', repr(data)
-        if hasattr(parent, self.lasttagname):            
+        if hasattr(parent, self.lasttagname):
             setattr(parent, self.lasttagname, self.convertValueToBestType(str(data)))
-        else:        
+        else:
             raise Exception("cannot handle data < " + repr(data) + "> inside " + str(self.lasttagname))
 
 

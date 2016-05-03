@@ -25,13 +25,13 @@
     <Output  class="DataObjects"             type="PointSet"  >outAdaptive</Output>
     <Output  class="Databases"               type="HDF5"          >out_db_adaptive</Output>
     <SolutionExport class="DataObjects"      type="PointSet"  >limitSurface</SolutionExport>
-    <Output         class='OutStreamManager' type='Plot'          >plotlimitSurface</Output>
-    <Output         class='OutStreamManager' type='Plot'          >adaptivePointsLocation</Output>
+    <Output         class='OutStreams' type='Plot'          >plotlimitSurface</Output>
+    <Output         class='OutStreams' type='Plot'          >adaptivePointsLocation</Output>
   </MultiRun>
   <IOStep name="push_limitsurface_in_database">
     <Input   class="DataObjects"        type="PointSet"  >limitSurface</Input>
     <Output  class="Databases"          type="HDF5"          >out_db_ls</Output>
-    <Output  class='OutStreamManager'   type='Print'         >limitSurfaceCSV</Output>
+    <Output  class='OutStreams'         type='Print'         >limitSurfaceCSV</Output>
   </IOStep>
 
 </Steps>
@@ -109,7 +109,7 @@
 </Functions>
 
 
-<OutStreamManager> 
+<OutStreams>
   <Print name = "limitSurfaceCSV">
   	<type>csv</type>
   	<source>limitSurface</source>
@@ -154,7 +154,7 @@
           </title>
       </actions>
   </Plot>
-</OutStreamManager>
+</OutStreams>
 
 
 
