@@ -40,6 +40,7 @@ class TextDiff:
         try:
           testFile = open(testFilename)
           testLines = [line.split(commentSymbol,1)[0].strip() for line in testFile]
+          testLines = [line for line in testLines if len(line) > 0]
           testFile.close()
         except Exception as e:
           self.__same = False
@@ -48,6 +49,7 @@ class TextDiff:
         try:
           goldFile = open(goldFilename)
           goldLines = [line.split(commentSymbol,1)[0].strip() for line in goldFile]
+          goldLines = [line for line in goldLines if len(line) > 0]
           goldFile.close()
         except Exception as e:
           self.__same = False
