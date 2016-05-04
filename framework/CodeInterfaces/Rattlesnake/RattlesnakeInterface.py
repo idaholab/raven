@@ -6,10 +6,10 @@ import os
 import copy
 from subprocess import Popen
 from CodeInterfaceBaseClass import CodeInterfaceBase
-from MooseBasedAppInterface import MooseBasedAppInterface
+from MooseBasedAppInterface import MooseBasedApp
 
 
-class RattlesnakeInterface(CodeInterfaceBase):
+class Rattlesnake(CodeInterfaceBase):
   """
     This class is used to couple raven with rattlesnake input and yak cross section xml input files to generate new
     cross section xml input files.
@@ -21,7 +21,7 @@ class RattlesnakeInterface(CodeInterfaceBase):
       @ Out, None
     """
     CodeInterfaceBase.__init__(self)
-    self.MooseInterface = MooseBasedAppInterface()
+    self.MooseInterface = MooseBasedApp()
     self.MooseInterface.addDefaultExtension()
 
   def findInps(self,inputFiles):
@@ -105,52 +105,12 @@ class RattlesnakeInterface(CodeInterfaceBase):
       parser.initialize(aliasFiles)
       #perturb the xs files
       parser.perturb(**Kwargs)
-      newYakInputs = copy.deepcopy(yakInputs)
       #write the perturbed files
-      parser.writeNewInput(newYakInputs,**Kwargs)
+      parser.writeNewInput(yakInputs,**Kwargs)
     #Moose based app interface
     origRattlesnakeInputs = copy.deepcopy(rattlesnakeInputs)
     newMooseInputs = self.MooseInterface.createNewInput(rattlesnakeInputs,origRattlesnakeInputs,samplerType,**Kwargs)
-    #replace the library name in the rattlesnake inputs
-    if foundAlias and foundXS:
-      self._updateRattlesnakeInputs(newMooseInputs,yakInputs,newYakInputs)
-    #replace old with new perturbed files.
-    for f in currentInputFiles:
-      if f.isOpen(): f.close()
-    newInputFiles = copy.deepcopy(currentInputFiles)
-    #replace old with new perturbed files, in place
-    newInputDict = self.findInps(newInputFiles)
-    if foundXS and foundAlias:
-      newYaks = newInputDict['YakXSInput']
-      for fileIndex, newYakFile in enumerate(newYaks):
-        newYakFile.setAbsFile(newYakInputs[fileIndex].getAbsFile())
-    newRattlesnakes = newInputDict['RattlesnakeInput']
-    for fileIndex, newFile in enumerate(newRattlesnakes):
-      newFile.setAbsFile(newMooseInputs[fileIndex].getAbsFile())
-    return newInputFiles
-
-  def _updateRattlesnakeInputs(self,mooseInps, yakInps, newYakInps):
-    """
-      Update the rattlesnake inputs with the updated cross section library names
-      @ In, mooseInps, list, list of rattlesnake input files
-      @ In, yakInps, list, list of old yak cross section files
-      @ In, newYakInps, list, list of new generated yak cross section files
-      @ Out, None.
-    """
-    for mooseInp in mooseInps:
-      if not os.path.isfile(mooseInp.getAbsFile()):
-        raise IOError("Error on opening file, not a regular file: " + mooseInp.getFilename())
-      mooseInp.open('r')
-      mooseFileData = mooseInp.read()
-      newData = copy.deepcopy(mooseFileData)
-      mooseInp.close()
-      for fileIndex, yakInp in enumerate(yakInps):
-        oldYakName = yakInp.getFilename()
-        newYakName = newYakInps[fileIndex].getFilename()
-        newData = newData.replace(oldYakName,newYakName)
-      mooseInp.open('w')
-      mooseInp.write(newData)
-      mooseInp.close()
+    return currentInputFiles
 
   def finalizeCodeOutput(self, command, output, workingDir):
     """

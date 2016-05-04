@@ -118,7 +118,7 @@ class YakMultigroupLibraryParser():
         mat = child.attrib['mat']
         if mat not in aliasXS[grid].keys(): aliasXS[grid][mat] = {}
         mt = child.tag
-        aliasXS[grid][mat][mt] = []
+        if mt not in aliasXS[grid][mat].keys(): aliasXS[grid][mat][mt] = [0]*aliasXSGroup
         groupIndex = child.get('gIndex')
         if groupIndex == None:
           varsList = list(var.strip() for var in child.text.strip().split(','))
@@ -129,14 +129,12 @@ class YakMultigroupLibraryParser():
             raise IOError(msg)
           aliasXS[grid][mat][mt] = varsList
         else:
-          varsList = [0]*aliasXSGroup
           pertList = list(var.strip() for var in child.text.strip().split(','))
           groups = self._stringSpacesToListInt(groupIndex)
           if len(groups) != len(pertList):
             raise IOError('The group indices is not consistent with the perturbed variables list')
           for i,g in enumerate(groups):
-            varsList[g-1] = pertList[i]
-          aliasXS[grid][mat][mt] = varsList
+            aliasXS[grid][mat][mt][g-1] = pertList[i]
       else:
         raise IOError('The reaction ' + child.tag + ' can not be perturbed!')
 
@@ -611,21 +609,12 @@ class YakMultigroupLibraryParser():
     outFiles = {}
     if inFiles == None:
       for fileInp,libKey in self.filesDict.items():
-        outFile = copy.deepcopy(fileInp)
-        if type(Kwargs['prefix']) in [str,type("")]:
-          outFile.setBase(Kwargs['prefix']+'~'+fileInp.getBase())
-        else:
-          outFile.setBase(str(Kwargs['prefix'][1][0])+'~'+fileInp.getBase())
-        outFiles[outFile.getAbsFile()] = libKey
+        outFiles[fileInp.getAbsFile()] = libKey
     else:
       for inFile in inFiles:
         if inFile.getFilename() in self.filesMap.keys():
           libsKey = self.filesMap[inFile.getFilename()]
           if libsKey not in self.aliases.keys(): continue
-          if type(Kwargs['prefix']) in [str,type("")]:
-            inFile.setBase(Kwargs['prefix']+'~'+inFile.getBase())
-          else:
-            inFile.setBase(str(Kwargs['prefix'][1][0])+'~'+inFile.getBase())
           outFiles[inFile.getAbsFile()] = libsKey
     for outFile,libsKey in outFiles.items():
       tree = self.xmlsDict[libsKey]

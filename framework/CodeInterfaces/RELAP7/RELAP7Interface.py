@@ -16,9 +16,9 @@ import json
 uppath = lambda _path, n: os.sep.join(_path.split(os.sep)[:-n])
 from CodeInterfaceBaseClass import CodeInterfaceBase
 
-class RAVENInterface(CodeInterfaceBase):
+class RELAP7(CodeInterfaceBase):
   """
-    This class is used as part of a code dictionary to specialize Model.Code for RAVEN
+    This class is used as part of a code dictionary to specialize Model.Code for RELAP7
   """
   def generateCommand(self,inputFiles,executable,clargs=None,fargs=None):
     """
@@ -53,21 +53,20 @@ class RAVENInterface(CodeInterfaceBase):
       @ In, oriInputFiles, list, list of the original input files
       @ In, samplerType, string, Sampler type (e.g. MonteCarlo, Adaptive, etc. see manual Samplers section)
       @ In, Kwargs, dictionary, kwarded dictionary of parameters. In this dictionary there is another dictionary called "SampledVars"
-             where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
+             where RELAP7 stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
       @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
     """
     MOOSEparser = utils.importFromPath(os.path.join(os.path.join(uppath(os.path.dirname(__file__),1),'MooseBasedApp'),'MOOSEparser.py'),False)
     self._samplersDictionary                             = {}
-    self._samplersDictionary['MonteCarlo'              ] = self.monteCarloForRAVEN
-    self._samplersDictionary['Grid'                    ] = self.gridForRAVEN
-    self._samplersDictionary['LimitSurfaceSearch'      ] = self.gridForRAVEN # same Grid Fashion. It forces a dist to give a particular value
-    self._samplersDictionary['Stratified'              ] = self.latinHyperCubeForRAVEN
-    self._samplersDictionary['DynamicEventTree'        ] = self.dynamicEventTreeForRAVEN
-    self._samplersDictionary['FactorialDesign'         ] = self.gridForRAVEN
-    self._samplersDictionary['ResponseSurfaceDesign'   ] = self.gridForRAVEN
-    self._samplersDictionary['AdaptiveDynamicEventTree'] = self.adaptiveDynamicEventTreeForRAVEN
-    self._samplersDictionary['StochasticCollocation'   ] = self.gridForRAVEN
-    self._samplersDictionary['EnsembleForward'         ] = self.gridForRAVEN
+    self._samplersDictionary['MonteCarlo'              ] = self.monteCarloForRELAP7
+    self._samplersDictionary['Grid'                    ] = self.gridForRELAP7
+    self._samplersDictionary['LimitSurfaceSearch'      ] = self.gridForRELAP7 # same Grid Fashion. It forces a dist to give a particular value
+    self._samplersDictionary['Stratified'              ] = self.latinHyperCubeForRELAP7
+    self._samplersDictionary['DynamicEventTree'        ] = self.dynamicEventTreeForRELAP7
+    self._samplersDictionary['FactorialDesign'         ] = self.gridForRELAP7
+    self._samplersDictionary['ResponseSurfaceDesign'   ] = self.gridForRELAP7
+    self._samplersDictionary['AdaptiveDynamicEventTree'] = self.adaptiveDynamicEventTreeForRELAP7
+    self._samplersDictionary['StochasticCollocation'   ] = self.gridForRELAP7
     found = False
     for index, inputFile in enumerate(currentInputFiles):
       if inputFile.getExt() in self.getInputExtension():
@@ -78,15 +77,15 @@ class RAVENInterface(CodeInterfaceBase):
     Kwargs["distributionNode"] = parser.findNodeInXML("Distributions")
     modifDict = self._samplersDictionary[samplerType](**Kwargs)
     parser.modifyOrAdd(modifDict,False)
-    newInputFiles = copy.deepcopy(currentInputFiles)
-    if type(Kwargs['prefix']) in [str,type("")]:#Specifing string type for python 2 and 3
-      newInputFiles[index].setBase(Kwargs['prefix']+"~"+newInputFiles[index].getBase())
-    else:
-      newInputFiles[index].setBase(str(Kwargs['prefix'][1][0])+'~'+newInputFiles[index].getBase())
-    parser.printInput(newInputFiles[index].getAbsFile())
-    return newInputFiles
+    #newInputFiles = copy.deepcopy(currentInputFiles)
+    #if type(Kwargs['prefix']) in [str,type("")]:#Specifing string type for python 2 and 3
+    #  newInputFiles[index].setBase(Kwargs['prefix']+"~"+newInputFiles[index].getBase())
+    #else:
+    #  newInputFiles[index].setBase(str(Kwargs['prefix'][1][0])+'~'+newInputFiles[index].getBase())
+    parser.printInput(currentInputFiles[index].getAbsFile())
+    return currentInputFiles
 
-  def monteCarloForRAVEN(self,**Kwargs):
+  def monteCarloForRELAP7(self,**Kwargs):
     """
       This method is used to create a list of dictionaries that can be interpreted by the input Parser
       in order to change the input file based on the information present in the Kwargs dictionary.
@@ -95,7 +94,7 @@ class RAVENInterface(CodeInterfaceBase):
       @ Out, listDict, list, list of dictionaries used by the parser to change the input file
     """
     if 'prefix' in Kwargs: counter = Kwargs['prefix']
-    else: raise IOError('a counter is needed for the Monte Carlo sampler for RAVEN')
+    else: raise IOError('a counter is needed for the Monte Carlo sampler for RELAP7')
     if 'initialSeed' in Kwargs: initSeed = Kwargs['initialSeed']
     else                       : initSeed = 1
     _,listDict = self.__genBasePointSampler(**Kwargs)
@@ -107,7 +106,7 @@ class RAVENInterface(CodeInterfaceBase):
     listDict.append(modifDict)
     return listDict
 
-  def adaptiveDynamicEventTreeForRAVEN(self,**Kwargs):
+  def adaptiveDynamicEventTreeForRELAP7(self,**Kwargs):
     """
       This method is used to create a list of dictionaries that can be interpreted by the input Parser
       in order to change the input file based on the information present in the Kwargs dictionary.
@@ -115,10 +114,10 @@ class RAVENInterface(CodeInterfaceBase):
       @ In, **Kwargs, dict, kwared dictionary containing the values of the parameters to be changed
       @ Out, listDict, list, list of dictionaries used by the parser to change the input file
     """
-    listDict = self.dynamicEventTreeForRAVEN(**Kwargs)
+    listDict = self.dynamicEventTreeForRELAP7(**Kwargs)
     return listDict
 
-  def dynamicEventTreeForRAVEN(self,**Kwargs):
+  def dynamicEventTreeForRELAP7(self,**Kwargs):
     """
       This method is used to create a list of dictionaries that can be interpreted by the input Parser
       in order to change the input file based on the information present in the Kwargs dictionary.
@@ -132,9 +131,9 @@ class RAVENInterface(CodeInterfaceBase):
         preconditioner['executable'] = Kwargs['executable']
         if 'MC' in preconditioner['SamplerType']:
           listDict = self.__genBasePointSampler(**preconditioner)[1]
-          listDict.extend(self.monteCarloForRAVEN(**preconditioner))
-        elif 'Grid' in preconditioner['SamplerType']: listDict.extend(self.gridForRAVEN(**preconditioner))
-        elif 'Stratified' in preconditioner['SamplerType'] or 'Stratified' in preconditioner['SamplerType']: listDict.extend(self.latinHyperCubeForRAVEN(**preconditioner))
+          listDict.extend(self.monteCarloForRELAP7(**preconditioner))
+        elif 'Grid' in preconditioner['SamplerType']: listDict.extend(self.gridForRELAP7(**preconditioner))
+        elif 'Stratified' in preconditioner['SamplerType'] or 'Stratified' in preconditioner['SamplerType']: listDict.extend(self.latinHyperCubeForRELAP7(**preconditioner))
     # Check the initiator distributions and add the next threshold
     if 'initiatorDistribution' in Kwargs.keys():
       for i in range(len(Kwargs['initiatorDistribution'])):
@@ -165,8 +164,8 @@ class RAVENInterface(CodeInterfaceBase):
           for i in range(numZeros):
             endTimeStepString = "0" + endTimeStepString
         splitted = Kwargs['outfile'].split('~')
-        output_parent = splitted[0] + '~' + toString(Kwargs['parentID']) + '~' + splitted[1]
-        restartFileBase = output_parent + "_cp/" + endTimeStepString
+        output_parent = splitted[0] + '~'  + splitted[1]
+        restartFileBase = os.path.join("..",toString(Kwargs['parentID']),output_parent + "_cp",endTimeStepString)
         modifDict['name'] = ['Executioner']
         modifDict['restart_file_base'] = restartFileBase
         #print(' Restart file name base is "' + restart_file_base + '"')
@@ -226,11 +225,11 @@ class RAVENInterface(CodeInterfaceBase):
       crowDistribution = json.loads(Kwargs['crowDist'][key])
       distributions[key] = [Kwargs["SampledVars"].pop(key),distributionName, distributionType,crowDistribution]
     mooseInterface = utils.importFromPath(os.path.join(os.path.join(uppath(os.path.dirname(__file__),1),'MooseBasedApp'),'MooseBasedAppInterface.py'),False)
-    mooseApp = mooseInterface.MooseBasedAppInterface()
+    mooseApp = mooseInterface.MooseBasedApp()
     returnTuple = distributions, mooseApp.pointSamplerForMooseBasedApp(**Kwargs)
     return returnTuple
 
-  def gridForRAVEN(self,**Kwargs):
+  def gridForRELAP7(self,**Kwargs):
     """
       This method is used to create a list of dictionaries that can be interpreted by the input Parser
       in order to change the input file based on the information present in the Kwargs dictionary.
@@ -262,7 +261,7 @@ class RAVENInterface(CodeInterfaceBase):
     #print("listDict",listDict,"distributions",distributions,"Kwargs",Kwargs)
     return listDict
 
-  def latinHyperCubeForRAVEN(self,**Kwargs):
+  def latinHyperCubeForRELAP7(self,**Kwargs):
     """
       This method is used to create a list of dictionaries that can be interpreted by the input Parser
       in order to change the input file based on the information present in the Kwargs dictionary.
