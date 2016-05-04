@@ -125,8 +125,14 @@ class MAMMOTHInterface(CodeInterfaceBase):
       if fileType.strip().lower() == "mammothinput|rattlesnakeinput":
         inputFile.subtype = "rattlesnakeinput"
         break
+    #check if the user want to perturb yak xs libraries
+    for inputFile in currentInputFiles:
+      fileType = inputFile.getType()
+      if fileType.strip().lower() == "yakxsaliasinput":
+        foundAlias= True
+        break
     #Rattlesnake interface
-    if perturbRattlesnake:
+    if perturbRattlesnake or foundAlias:
       newUpdatedInputs = self.RattlesnakeInterface.createNewInput(currentInputFiles,origInputFiles,samplerType,**rattlesnakeArgs)
     else:
       newUpdatedInputs = copy.deepcopy(currentInputFiles)
