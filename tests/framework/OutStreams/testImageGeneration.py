@@ -26,7 +26,7 @@ goldImage = os.path.join('gold',testImage)
 retCode = subprocess.call(['python','../../../framework/Driver.py',inputFile])
 
 if retCode == 0:
-  proc = subprocess.Popen(['compare', '-metric', differenceMetric, '-fuzz',fuzzAmount, testImage,goldImage,'difference.png'],stderr=subprocess.PIPE)
+  proc = subprocess.Popen(['compare', '-metric', differenceMetric, '-fuzz',fuzzAmount, testImage,goldImage,'null:'],stderr=subprocess.PIPE)
   retCode = int(proc.stderr.read())
 
 sys.exit(retCode)
