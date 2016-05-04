@@ -399,7 +399,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     retDict["outKeys"] = outputNode.text.split(",")
     retDict["filenameCSV"] = filenameNode.text
     metadataNode = root.find("metadata")
-    if metadataNode:
+    if metadataNode is not None:
       metadataDict = {}
       for child in metadataNode:
         key = child.tag
