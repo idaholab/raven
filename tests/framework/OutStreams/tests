@@ -13,7 +13,7 @@
   input = 'testImageGeneration.py'
   #input = 'imageGeneration_png.xml'
   required_executable = 'compare'
-  required_executable_check_flags='tests/framework/OutStreams/gold/plot/1-test_scatter.png tests/framework/OutStreams/gold/plot/1-test_scatter.png -metric ae null:'
+  required_executable_check_flags='gold/plot/1-test_scatter.png gold/plot/1-test_scatter.png -metric ae null:'
  [../]
 
  [./test_subPlot]
