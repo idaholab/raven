@@ -56,7 +56,7 @@
 		</Grid>
 	</Samplers>
 	<Databases>
-		<HDF5 name="out_db" directory="DatabaseStorage"/>
+		<HDF5 name="out_db" directory="DatabaseStorage" readMode="overwrite"/>
 	</Databases>
 	<OutStreams>
 		<Print name="out_dump">
