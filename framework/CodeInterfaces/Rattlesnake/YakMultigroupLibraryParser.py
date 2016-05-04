@@ -609,21 +609,12 @@ class YakMultigroupLibraryParser():
     outFiles = {}
     if inFiles == None:
       for fileInp,libKey in self.filesDict.items():
-        outFile = copy.deepcopy(fileInp)
-        if type(Kwargs['prefix']) in [str,type("")]:
-          outFile.setBase(Kwargs['prefix']+'~'+fileInp.getBase())
-        else:
-          outFile.setBase(str(Kwargs['prefix'][1][0])+'~'+fileInp.getBase())
-        outFiles[outFile.getAbsFile()] = libKey
+        outFiles[fileInp.getAbsFile()] = libKey
     else:
       for inFile in inFiles:
         if inFile.getFilename() in self.filesMap.keys():
           libsKey = self.filesMap[inFile.getFilename()]
           if libsKey not in self.aliases.keys(): continue
-          if type(Kwargs['prefix']) in [str,type("")]:
-            inFile.setBase(Kwargs['prefix']+'~'+inFile.getBase())
-          else:
-            inFile.setBase(str(Kwargs['prefix'][1][0])+'~'+inFile.getBase())
           outFiles[inFile.getAbsFile()] = libsKey
 
     for outFile,libsKey in outFiles.items():
