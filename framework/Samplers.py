@@ -1641,6 +1641,7 @@ class Grid(Sampler):
         self.raiseADebug('New point found: '+str(newpoint))
       else:
         self.counter+=1
+        self.inputInfo['prefix'] = str(self.counter)
         if self.counter>=self.limit: raise utils.NoMoreSamplesNeeded
         self.raiseADebug('Point',newpoint,'found in restart.')
       self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
@@ -1968,7 +1969,7 @@ class DynamicEventTree(Grid):
     # Read the branch info from the parent calculation (just ended calculation)
     # This function stores the information in the dictionary 'self.actualBranchInfo'
     # If no branch info, this history is concluded => return
-    if not self.__readBranchInfo(jobObject.output):
+    if not self.__readBranchInfo(jobObject.output, jobObject.getWorkingDir()):
       parentNode.add('completedHistory', True)
       return False
     # Collect the branch info in a multi-level dictionary
@@ -2045,12 +2046,13 @@ class DynamicEventTree(Grid):
       self.endInfo[index]['branchChangedParams'][key]['unchangedConditionalPb'] = parentCondPb*float(self.endInfo[index]['branchChangedParams'][key]['unchangedPb'])
       for pb in range(len(self.endInfo[index]['branchChangedParams'][key]['associatedProbability'])): self.endInfo[index]['branchChangedParams'][key]['changedConditionalPb'].append(parentCondPb*float(self.endInfo[index]['branchChangedParams'][key]['associatedProbability'][pb]))
 
-  def __readBranchInfo(self,outBase=None):
+  def __readBranchInfo(self,outBase=None,currentWorkingDir=None):
     """
       Function to read the Branching info that comes from a Model
       The branching info (for example, distribution that triggered, parameters must be changed, etc)
       are supposed to be in a xml format
       @ In, outBase, string, optional, it is the output root that, if present, is used to construct the file name the function is going to try reading.
+      @ In, currentWorkingDir, string, optional, it is the current working directory. If not present, the branch info are going to be looked in the self.workingDir
       @ Out, branchPresent, bool, true if the info are present (a set of new branches need to be run), false if the actual parent calculation reached an end point
     """
     # Remove all the elements from the info container
@@ -2058,9 +2060,10 @@ class DynamicEventTree(Grid):
     branchPresent = False
     self.actualBranchInfo = {}
     # Construct the file name adding the outBase root if present
-    if outBase: filename = outBase + "_actual_branch_info.xml"
-    else: filename = "actual_branch_info.xml"
-    if not os.path.isabs(filename): filename = os.path.join(self.workingDir,filename)
+    filename   = outBase + "_actual_branch_info.xml" if outBase else "actual_branch_info.xml"
+    workingDir = currentWorkingDir if currentWorkingDir is not None else self.workingDir
+
+    if not os.path.isabs(filename): filename = os.path.join(workingDir,filename)
     if not os.path.exists(filename):
       self.raiseADebug('branch info file ' + os.path.basename(filename) +' has not been found. => No Branching.')
       return branchPresent
@@ -3516,6 +3519,7 @@ class SparseGridCollocation(Grid):
       if inExisting:
         self.raiseADebug('Found pt',pt,'in restart.')
         self.counter+=1
+        self.inputInfo['prefix'] = str(self.counter)
         if self.counter==self.limit: raise utils.NoMoreSamplesNeeded
         continue
       else:
@@ -4286,6 +4290,7 @@ class Sobol(SparseGridCollocation):
       if inExisting:
         self.raiseADebug('point found in restart:',pt)
         self.counter+=1
+        self.inputInfo['prefix'] = str(self.counter)
         if self.counter==self.limit: raise utils.NoMoreSamplesNeeded
         continue
       else:

@@ -12,7 +12,7 @@ import copy
 from subprocess import Popen
 from CodeInterfaceBaseClass import CodeInterfaceBase
 
-class BisonMeshScriptInterface(CodeInterfaceBase):
+class BisonMeshScript(CodeInterfaceBase):
   """
     This class is used to couple raven to the Bison Mesh Generation Script using cubit (python syntax, NOT Cubit journal file)
   """
@@ -60,12 +60,8 @@ class BisonMeshScriptInterface(CodeInterfaceBase):
       sampledDict[var] = Kwargs['SampledVars'][alias]
       del sampledDict[alias]
     parser.modifyInternalDictionary(**sampledDict)
-    # Copy original mesh generation input file and write new input from sampled vars
-    newInputFiles = copy.deepcopy(currentInputFiles)
-    newInputFiles[index].close()
-    newInputFiles[index].setBase(currentInputFiles[index].getBase()+'_'+Kwargs['prefix'])
-    parser.writeNewInput(newInputFiles[index].getAbsFile())
-    return newInputFiles
+    parser.writeNewInput(currentInputFiles[index].getAbsFile())
+    return currentInputFiles
 
   def addDefaultExtension(self):
     """
