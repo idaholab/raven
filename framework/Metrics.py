@@ -43,10 +43,9 @@ class Metric(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     pass
   
 
-class Test(Metric):
+class Minkowski(Metric):
   
   def initialize(self,inputDict):
-    self.param1 = inputDict[param1]
     self.p = None
   
   def _readMoreXML(self,xmlNode):
@@ -62,15 +61,18 @@ class Test(Metric):
       return math.sqrt(value)
     elif isinstance(x,dict) and isinstance(y,dict):
       if x.keys() == y.keys():
-         value = 0
-         for key in x.keys():
-           for i in range(x[key].size):
-             value += (x[key][i]-y[key][i])**self.p 
-         return math.sqrt(value)       
+        value = 0
+        for key in x.keys():
+          if x[key].size == y[key].size:
+            for i in range(x[key].size):
+              value += (x[key][i]-y[key][i])**self.p 
+            return math.sqrt(value)
+          else:
+            print('Metric Minkowski error: the length of the variable array ' + str(key) +' is not consistent among the two data sets')       
       else:
-        print('error')
+        print('Metric Minkowski error: the two data sets do not contain the same variables')
     else:
-      print('error')
+      print('Metric Minkowski error: the structures of the two data sets are different')
 
        
 # class DTW(Metric):  
@@ -86,8 +88,8 @@ class Test(Metric):
 """
 __base = 'metric'
 __interFaceDict = {}
-__interFaceDict['Test'          ] = Test
-#__interFaceDict['DTW'           ] = DTW
+__interFaceDict['Minkowski'          ] = Minkowski
+#__interFaceDict['DTW'               ] = DTW
 __knownTypes                      = list(__interFaceDict.keys())
 
 #for classType in __interFaceDict.values():

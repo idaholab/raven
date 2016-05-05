@@ -63,15 +63,9 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
 
   def __init__(self, messageHandler, **kwargs):
     """
-<<<<<<< HEAD
-     constructor for unSupervisedLearning class.
-     @ In, messageHandler, object, Message handler object
-     @ In, kwargs, dict, arguments for the unsupervised learning algorithm
-=======
       constructor for unSupervisedLearning class.
       @ In, messageHandler, object, Message handler object
       @ In, kwargs, dict, arguments for the unsupervised learning algorithm
->>>>>>> origin/devel
     """
     self.printTag = 'unSupervised'
     self.messageHandler = messageHandler
@@ -135,6 +129,7 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
           for j in range(i,cardinality):
             self.normValues[i][j] = metric.distance(tdict[keys[i]],tdict[keys[j]])
             self.normValues[j][i] = self.normValues[i][j]
+        print(self.normValues[0])
       else:   # PointSet
         for cnt, feat in enumerate(self.features):
           if feat not in names: self.raiseAnError(IOError, ' The feature sought ' + feat + ' is not in the training set')
@@ -375,6 +370,7 @@ class SciKitLearn(unSupervisedLearning):
             self.outputDict['outputs']['noClusters'           ] = self.noClusters
         if hasattr(self.Method, 'labels_') :
             self.labels_ = self.Method.labels_
+            print(self.labels_)
             self.outputDict['outputs']['labels'               ] = self.labels_
         if hasattr(self.Method, 'cluster_centers_') :
             self.clusterCenters_ = self.Method.cluster_centers_
