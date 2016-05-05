@@ -40,12 +40,6 @@
   xml = 'output_check/fullprint_HistorySet.xml output_check/fullprint_history.xml output_check/fullprint_Pointset.xml output_check/fullprint_Point.xml'
  [../]
 
- [./test_subPlot]
-  type = 'RavenFramework'
-  input = 'test_subPlot.xml'
-  output = 'subplot_output/1-subPlot1_surface-surface-surface.png subplot_output/1-subPlot2_stem-stem-stem.png subplot_output/1-subPlot3_stem-stem-stem-stem-stem.png'
- [../]
-
  [./test_output_attributes]
   type = 'RavenFramework'
   input = 'test_dataobjects_attributes.xml'
@@ -339,13 +333,6 @@
   input = 'test_safest_point_cdf.xml'
   output = 'SafestPointPP_cdf/sfs_pnt_cdf_dmp.csv SafestPointPP_cdf/lmt_srf_dmp.csv'
   csv = 'SafestPointPP_cdf/sfs_pnt_cdf_dmp.csv SafestPointPP_cdf/lmt_srf_dmp.csv'
- [../]
-
- [./io_ROM_pickle]
-  type = 'RavenFramework'
-  input = 'test_io_ROM_pickle.xml'
-  output = 'IO_ROM_PICKLE/PrintData_Pickle.csv IO_ROM_PICKLE/PrintData.csv'
-  csv = 'IO_ROM_PICKLE/PrintData_Pickle.csv IO_ROM_PICKLE/PrintData.csv'
  [../]
 
  [./stochPolyPickleTest]

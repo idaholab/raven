@@ -2,6 +2,7 @@ from Tester import Tester
 from CSVDiffer import CSVDiffer
 from UnorderedCSVDiffer import UnorderedCSVDiffer
 from XMLDiff import XMLDiff
+from TextDiff import TextDiff
 import RavenUtils
 import os
 import subprocess
@@ -28,11 +29,14 @@ class RavenFramework(Tester):
     params.addParam('csv','',"List of csv files to check")
     params.addParam('UnorderedCsv','',"List of unordered csv files to check")
     params.addParam('xml','',"List of xml files to check")
+    params.addParam('text','',"List of generic text files to check")
+    params.addParam('comment','',"Character or string denoting comments, all text to the right of the symbol will be ignored in the diff of text files")
     params.addParam('UnorderedXml','',"List of unordered xml files to check")
     params.addParam('xmlopts','',"Options for xml checking")
     params.addParam('rel_err','','Relative Error for csv files or floats in xml ones')
     params.addParam('required_executable','','Skip test if this executable is not found')
     params.addParam('required_libraries','','Skip test if any of these libraries are not found')
+    params.addParam('minimum_library_versions','','Skip test if the library listed is below the supplied version (e.g. minimum_library_versions = \"name1 version1 name2 version2\")')
     params.addParam('skip_if_env','','Skip test if this environmental variable is defined')
     params.addParam('test_interface_only','False','Test the interface only (without running the driven code')
     params.addParam('zero_threshold',sys.float_info.min*4.0,'it represents the value below which a float is considered zero (XML comparison only)')
@@ -55,8 +59,10 @@ class RavenFramework(Tester):
     self.xml_files = self.specs['xml'].split(" ") if len(self.specs['xml']) > 0 else []
     self.ucsv_files = self.specs['UnorderedCsv'].split(" ") if len(self.specs['UnorderedCsv']) > 0 else []
     self.uxml_files = self.specs['UnorderedXml'].split(" ") if len(self.specs['UnorderedXml']) > 0 else []
+    self.text_files = self.specs['text'].split(" ") if len(self.specs['text']) > 0 else []
     self.required_executable = self.specs['required_executable']
     self.required_libraries = self.specs['required_libraries'].split(' ')  if len(self.specs['required_libraries']) > 0 else []
+    self.minimum_libraries = self.specs['minimum_library_versions'].split(' ')  if len(self.specs['minimum_library_versions']) > 0 else []
     self.required_executable = self.required_executable.replace("%METHOD%",os.environ.get("METHOD","opt"))
     self.specs['scale_refine'] = False
     self.driver = os.path.join(RAVEN_DIR,'Driver.py')
@@ -73,6 +79,20 @@ class RavenFramework(Tester):
       missing, too_old = RavenUtils.checkForMissingModule(lib,'','')
       if len(missing) > 0:
         return (False,'skipped (Unable to import library: "'+lib+'")')
+
+    i = 0
+    if len(self.minimum_libraries) % 2:
+      return (False,'skipped (libraries are not matched to versions numbers: '+str(self.minimum_libraries)+')')
+    while i < len(self.minimum_libraries):
+      libraryName = self.minimum_libraries[i]
+      libraryVersion = self.minimum_libraries[i+1]
+      missing, too_old = RavenUtils.checkForMissingModule(libraryName,libraryName+'.__version__',libraryVersion)
+      if len(missing) > 0:
+        return (False,'skipped (Unable to import library: "'+libraryName+'")')
+      if len(too_old) > 0:
+        return (False,'skipped (Outdated library: "'+libraryName+'")')
+      i+=2
+
     if len(self.required_executable) > 0 and \
        not os.path.exists(self.required_executable):
       return (False,'skipped (Missing executable: "'+self.required_executable+'")')
@@ -146,6 +166,13 @@ class RavenFramework(Tester):
     (xml_same,xml_messages) = xml_diff.diff()
     if not xml_same:
       return (xml_messages,output)
+
+    #text
+    textOpts = {'comment': self.specs['comment']}
+    textDiff = TextDiff(self.specs['test_dir'],self.text_files,**textOpts)
+    (textSame,textMessages) = textDiff.diff()
+    if not textSame:
+      return (textMessages,output)
 
     #unordered xml
     xmlopts['unordered'] = True
