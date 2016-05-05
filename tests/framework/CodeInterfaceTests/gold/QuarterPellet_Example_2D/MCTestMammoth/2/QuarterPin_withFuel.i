@@ -25,11 +25,11 @@
   AQtype = Level-Symmetric
   forceflux = true
   G = 8
-  NA =  2  
+  NA =  2
   hide_higher_flux_moment = 0
   AQorder = 2
   ReflectingBoundary = '1001 1002 1003 1004'
-  depletion =  true               
+  depletion =  true
   transient = 0
   calculation_type = SAAF
   n_delay_groups = 0
@@ -544,7 +544,7 @@ ring11 ring12 ring13 ring14 ring15 ring16 ring17 ring18 ring19 ring20'
     linear_residuals = true
   [../]
   [./exodus]
-    file_base =  QuarterPin_S2_2way  
+    file_base =  QuarterPin_S2_2way
     type = Exodus
   [../]
 []

@@ -1,13 +1,13 @@
 [GlobalParams]
   #density = 10480.0
-  energy_per_fission =  3.28451e-11  
+  energy_per_fission =  3.28451e-11
   family = LAGRANGE
   order = SECOND
   disp_y = disp_y
   disp_x = disp_x
 []
 [Mesh]
-  patch_size =  100 
+  patch_size =  100
   displacements = 'disp_x disp_y'
   file = QuarterPin_FuelClad_FineQUAD8.e
 []
@@ -19,7 +19,7 @@
     initial_condition = 0.0
   [../]
   [./temp]
-    initial_condition =  602.0     
+    initial_condition =  602.0
   [../]
 []
 [AuxVariables]
@@ -163,7 +163,7 @@
     index = 0
     type = MaterialTensorAux
     tensor = stress
-    execute_on =  timestep     
+    execute_on =  timestep
   [../]
   [./stress_yy]
     variable = stress_yy
@@ -394,7 +394,7 @@
   [../]
   [./interior_temp]
     variable = temp
-    boundary =  9 
+    boundary =  9
     type = SideAverageValue
   [../]
   [./flux_from_clad]
@@ -431,7 +431,7 @@
   interval = 1
   exodus = true
   [./exodus2]
-    file_base =  BISON_S2_1Itr_Twoway  
+    file_base =  BISON_S2_1Itr_Twoway
     type = Exodus
   [../]
   [./console]
