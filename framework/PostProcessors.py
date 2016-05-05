@@ -2140,14 +2140,15 @@ class LoadCsvIntoInternalObject(BasePostProcessor):
       @ Out, None
     """
     for index, csvFile in enumerate(self.listOfCsvFiles):
-      attributes = {"prefix":str(index), "inputFile":self.name, "type":"csv", "name":os.path.join(self.sourceDirectory, csvFile)}
+      attributes = {"prefix":str(index), "inputFile":self.name, "type":"csv", "name":csvFile}
       metadata = finishedJob.returnMetadata()
       if metadata:
         for key in metadata: attributes[key] = metadata[key]
       try:                   output.addGroup(attributes, attributes)
       except AttributeError:
         outfile = Files.returnInstance('CSV',self)
-        outfile.initialize(csvFile,self.messageHandler,path=self.sourceDirectory)
+
+        outfile.initialize(csvFile,self.messageHandler,path=os.path.dirname(csvFile))
         output.addOutput(outfile, attributes)
         if metadata:
           for key, value in metadata.items(): output.updateMetadata(key, value, attributes)

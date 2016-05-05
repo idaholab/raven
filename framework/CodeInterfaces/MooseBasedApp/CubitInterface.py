@@ -12,7 +12,7 @@ import copy
 from subprocess import Popen
 from CodeInterfaceBaseClass import CodeInterfaceBase
 
-class CubitInterface(CodeInterfaceBase):
+class Cubit(CodeInterfaceBase):
   """
     This class is used to couple raven to Cubit journal files for input to generate
     meshes (usually to run in another simulation)
@@ -53,12 +53,8 @@ class CubitInterface(CodeInterfaceBase):
     for index, inputFile in enumerate(oriInputFiles):
       if inputFile.getExt() == self.getInputExtension():
         break
-    parser = CUBITparser.CUBITparser(currentInputFiles[index])
-    # Copy original mesh generation input file and write new input from sampled vars
-    newInputFiles = copy.deepcopy(currentInputFiles)
-    newInputFiles[index].close()
-    newInputFiles[index].setBase(currentInputFiles[index].getBase()+'_'+Kwargs['prefix'])
-    self.outputfile = 'mesh~'+newInputFiles[index].getBase()
+    parser = CUBITparser.CUBITparser(oriInputFiles[index])
+    self.outputfile = 'mesh~'+currentInputFiles[index].getBase()
     Kwargs['SampledVars']['Cubit|out_name'] = "\"'"+self.outputfile+".e'\""
     # Copy dictionary of sampled vars sent to interface and change name of alias (if it exists)
     sampledDict = copy.deepcopy(Kwargs['SampledVars'])
@@ -67,8 +63,8 @@ class CubitInterface(CodeInterfaceBase):
       del sampledDict[alias]
     parser.modifyInternalDictionary(**sampledDict)
     # Write new input files
-    parser.writeNewInput(newInputFiles[index].getAbsFile())
-    return newInputFiles
+    parser.writeNewInput(currentInputFiles[index].getAbsFile())
+    return currentInputFiles
 
   def getInputExtension(self):
     """

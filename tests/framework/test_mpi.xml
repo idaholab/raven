@@ -23,11 +23,11 @@
   </Files>
 
   <Models>
-    <Code name="MyRAVEN" subType="RAVEN">
+    <Code name="MyRAVEN" subType="RELAP7">
       <executable>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</executable>
     </Code>
     <!--
-      <Code name="MyRAVEN" type="RAVEN">%FRAMEWORK_DIR%/fix_stdin.sh %FRAMEWORK_DIR%/../RAVEN-%METHOD% </Code>
+      <Code name="MyRAVEN" type="RELAP7">%FRAMEWORK_DIR%/fix_stdin.sh %FRAMEWORK_DIR%/../RAVEN-%METHOD% </Code>
     -->
   </Models>
 

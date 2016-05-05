@@ -64,46 +64,52 @@ class ExternalRunner(MessageHandler.MessageUser):
     self.messageHandler    = messageHandler
     self.command           = command
     self.bufferSize        = bufferSize
-    workingDirI            = None
     if output is not None:
       self.output   = output
-      if os.path.split(output)[0] != workingDir: workingDirI = os.path.split(output)[0]
-      if identifier != None:
-        self.identifier = identifier
+      if identifier is not None: self.identifier =  str(identifier).split("~")[1] if "~" in identifier else str(identifier)
       else:
-        # try to find the identifier in the folder name
-        # to eliminate when the identifier is passed from outside
-        def splitall(path):
-          """
-            Method to split a path into its components
-            @ In, path, string, the path to be splitted
-            @ Out, allParts, list, the list of the path components
-          """
-          allParts = []
-          while 1:
-            parts = os.path.split(path)
-            if parts[0] == path:  # sentinel for absolute paths
-              allParts.insert(0, parts[0])
-              break
-            elif parts[1] == path: # sentinel for relative paths
-              allParts.insert(0, parts[1])
-              break
-            else:
-              path = parts[0]
-              allParts.insert(0, parts[1])
-          return allParts
-        splitted = splitall(str(output))
-        if len(splitted) >= 2: self.identifier= splitted[-2]
-        else: self.identifier= 'generalOut'
+        if metadata is not None:
+          if 'prefix' in metadata.keys(): self.identifier = metadata['prefix']
+          else:
+            splitted = __splitall(str(output))
+            if len(splitted) >= 2: self.identifier= splitted[-2]
+            else: self.identifier= 'generalOut'
+        else:
+          # try to find the identifier in the folder name
+          # to eliminate when the identifier is passed from outside
+          splitted = __splitall(str(output))
+          if len(splitted) >= 2: self.identifier= splitted[-2]
+          else: self.identifier= 'generalOut'
     else:
       self.output   = os.path.join(workingDir,'generalOut')
-      self.identifier = 'generalOut'
-    if workingDirI: self.__workingDir = workingDirI
-    else          : self.__workingDir = workingDir
+      if identifier is not None: self.identifier =  str(identifier).split("~")[1] if "~" in identifier else str(identifier)
+      else                     : self.identifier = 'generalOut'
+    self.__workingDir = workingDir
     ####### WARNING: THIS DEEPCOPY MUST STAY!!!! DO NOT REMOVE IT ANYMORE. ANDREA #######
     self.__metadata   = copy.deepcopy(metadata)
     ####### WARNING: THIS DEEPCOPY MUST STAY!!!! DO NOT REMOVE IT ANYMORE. ANDREA #######
     self.codePointer  = codePointer
+
+    def __splitall(path):
+      """
+        Method to split a path into its components
+        @ In, path, string, the path to be splitted
+        @ Out, allParts, list, the list of the path components
+      """
+      allParts = []
+      while 1:
+        parts = os.path.split(path)
+        if parts[0] == path:  # sentinel for absolute paths
+          allParts.insert(0, parts[0])
+          break
+        elif parts[1] == path: # sentinel for relative paths
+          allParts.insert(0, parts[1])
+          break
+        else:
+          path = parts[0]
+          allParts.insert(0, parts[1])
+      return allParts
+
 
 # BEGIN: KEEP THIS COMMENTED PORTION HERE, I NEED IT FOR LATER USE. ANDREA
     # Initialize logger

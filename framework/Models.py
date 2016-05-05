@@ -144,7 +144,6 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     #testing if all argument to be tested have been found
     for anItem in what:
       if anItem['found']==False:
-        print(cls.validateDict[who])
         raise IOError('It is not possible to use '+anItem['class']+' type= ' +anItem['type']+' as '+who)
     return True
 
@@ -1130,7 +1129,7 @@ class Code(Model):
       shutil.copy(inputFile.getAbsFile(),self.workingDir)
     self.oriInputFiles = []
     for i in range(len(inputFiles)):
-      self.oriInputFiles.append(inputFiles[i])
+      self.oriInputFiles.append(copy.deepcopy(inputFiles[i]))
       self.oriInputFiles[-1].setPath(self.workingDir)
     self.currentInputFiles        = None
     self.outFileRoot              = None
@@ -1141,7 +1140,7 @@ class Code(Model):
       here only Point and PointSet are accepted a local copy of the values is performed.
       For a Point all value are copied, for a PointSet only the last set of entry
       The copied values are returned as a dictionary back
-      @ In, myInput, list, the inputs (list) to start from to generate the new one
+      @ In, currentInput, list, the inputs (list) to start from to generate the new one
       @ In, samplerType, string, is the type of sampler that is calling to generate a new input
       @ In, **Kwargs, dict,  is a dictionary that contains the information coming from the sampler,
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
@@ -1149,17 +1148,26 @@ class Code(Model):
     """
     Kwargs['executable'] = self.executable
     found = False
+    newInputSet = copy.deepcopy(currentInput)
     #TODO FIXME I don't think the extensions are the right way to classify files anymore, with the new Files
     #  objects.  However, this might require some updating of many Code Interfaces as well.
-    for index, inputFile in enumerate(currentInput):
+    for index, inputFile in enumerate(newInputSet):
       if inputFile.getExt() in self.code.getInputExtension():
         found = True
         break
     if not found: self.raiseAnError(IOError,'None of the input files has one of the extensions requested by code '
                                   + self.subType +': ' + ' '.join(self.code.getInputExtension()))
-    Kwargs['outfile'] = 'out~'+currentInput[index].getBase()
+    Kwargs['outfile'] = 'out~'+newInputSet[index].getBase()
+    subDirectory = os.path.join(self.workingDir,Kwargs['prefix'] if 'prefix' in Kwargs.keys() else '1')
+
+    if not os.path.exists(subDirectory):
+      os.mkdir(subDirectory)
+    for index in range(len(newInputSet)):
+      newInputSet[index].setPath(subDirectory)
+      shutil.copy(self.oriInputFiles[index].getAbsFile(),subDirectory)
+    Kwargs['subDirectory'] = subDirectory
     if len(self.alias.keys()) != 0: Kwargs['alias']   = self.alias
-    return (self.code.createNewInput(currentInput,self.oriInputFiles,samplerType,**Kwargs),Kwargs)
+    return (self.code.createNewInput(newInputSet,self.oriInputFiles,samplerType,**Kwargs),Kwargs)
 
   def updateInputFromOutside(self, Input, externalDict):
     """
@@ -1190,7 +1198,7 @@ class Code(Model):
     executeCommand, self.outFileRoot = returnedCommand
     uniqueHandler = inputFiles[1]['uniqueHandler'] if 'uniqueHandler' in inputFiles[1].keys() else 'any'
     identifier    = inputFiles[1]['prefix'] if 'prefix' in inputFiles[1].keys() else None
-    jobHandler.submitDict['External'](executeCommand,self.outFileRoot,jobHandler.runInfoDict['TempWorkingDir'],identifier=identifier,metadata=metaData,codePointer=self.code,uniqueHandler = uniqueHandler)
+    jobHandler.submitDict['External'](executeCommand,self.outFileRoot,metaData['subDirectory'],identifier=identifier,metadata=metaData,codePointer=self.code,uniqueHandler = uniqueHandler)
     found = False
     for index, inputFile in enumerate(self.currentInputFiles):
       if inputFile.getExt() in self.code.getInputExtension():
@@ -1198,7 +1206,7 @@ class Code(Model):
         break
     if not found: self.raiseAnError(IOError,'None of the input files has one of the extensions requested by code '
                                   + self.subType +': ' + ' '.join(self.getInputExtension()))
-    self.raiseAMessage('job "'+ self.currentInputFiles[index].getBase() +'" submitted!')
+    self.raiseAMessage('job "'+ str(identifier) + "_" + self.currentInputFiles[index].getBase() +'" submitted!')
 
   def collectOutput(self,finishedjob,output):
     """
@@ -1209,15 +1217,16 @@ class Code(Model):
     """
     #can we revise the spelling to something more English?
     if 'finalizeCodeOutput' in dir(self.code):
-      out = self.code.finalizeCodeOutput(finishedjob.command,finishedjob.output,self.workingDir)
+      out = self.code.finalizeCodeOutput(finishedjob.command,finishedjob.output,finishedjob.getWorkingDir())
       if out: finishedjob.output = out
-    attributes={"inputFile":self.currentInputFiles,"type":"csv","name":os.path.join(self.workingDir,finishedjob.output+'.csv')}
+    outputFilelocation = finishedjob.getWorkingDir()
+    attributes={"inputFile":self.currentInputFiles,"type":"csv","name":os.path.join(outputFilelocation,finishedjob.output+'.csv')}
     metadata = finishedjob.returnMetadata()
     if metadata: attributes['metadata'] = metadata
     if output.type == "HDF5"        : output.addGroup(attributes,attributes)
     elif output.type in ['Point','PointSet','History','HistorySet']:
       outfile = Files.returnInstance('CSV',self)
-      outfile.initialize(finishedjob.output+'.csv',self.messageHandler,path=self.workingDir)
+      outfile.initialize(finishedjob.output+'.csv',self.messageHandler,path=outputFilelocation)
       output.addOutput(outfile,attributes)
       if metadata:
         for key,value in metadata.items(): output.updateMetadata(key,value,attributes)
