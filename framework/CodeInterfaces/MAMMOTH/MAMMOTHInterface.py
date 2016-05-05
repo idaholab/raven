@@ -6,9 +6,9 @@ import os
 import copy
 from subprocess import Popen
 from CodeInterfaceBaseClass import CodeInterfaceBase
-from MooseBasedAppInterface import MooseBasedAppInterface
-from RattlesnakeInterface   import RattlesnakeInterface
-from BisonAndMeshInterface  import BisonAndMeshInterface
+from MooseBasedAppInterface import MooseBasedApp
+from RattlesnakeInterface   import Rattlesnake
+from BisonAndMeshInterface  import BisonAndMesh
 
 
 class MAMMOTHInterface(CodeInterfaceBase):
@@ -22,10 +22,10 @@ class MAMMOTHInterface(CodeInterfaceBase):
       @ Out, None
     """
     CodeInterfaceBase.__init__(self)
-    self.MooseInterface = MooseBasedAppInterface() #used to perturb MAMMOTH input files
+    self.MooseInterface = MooseBasedApp() #used to perturb MAMMOTH input files
     self.MooseInterface.addDefaultExtension()
-    self.RattlesnakeInterface  = RattlesnakeInterface() #used to perturb Rattlesnake and Yak input files
-    self.BisonInterface = MooseBasedAppInterface() #used to perturb Bison input files
+    self.RattlesnakeInterface  = Rattlesnake() #used to perturb Rattlesnake and Yak input files
+    self.BisonInterface = MooseBasedApp() #used to perturb Bison input files
     self.BisonInterface.addDefaultExtension()
 
   def findInps(self,inputFiles):
@@ -133,54 +133,25 @@ class MAMMOTHInterface(CodeInterfaceBase):
         break
     #Rattlesnake interface
     if perturbRattlesnake or foundAlias:
-      newUpdatedInputs = self.RattlesnakeInterface.createNewInput(currentInputFiles,origInputFiles,samplerType,**rattlesnakeArgs)
-    else:
-      newUpdatedInputs = copy.deepcopy(currentInputFiles)
+      currentInputFiles = self.RattlesnakeInterface.createNewInput(currentInputFiles,origInputFiles,samplerType,**rattlesnakeArgs)
     #reset the type
-    for inputFile in newUpdatedInputs:
+    for inputFile in currentInputFiles:
       fileType = inputFile.getType()
       if fileType.strip().lower() == "rattlesnakeinput":
         inputFile.subtype = "mammothinput|rattlesnakeinput"
         break
-    inputDicts = self.findInps(newUpdatedInputs)
+    inputDicts = self.findInps(currentInputFiles)
     #Bison interface
     if perturbBison:
       if inputDicts['FoundBisonInput']:
         bisonInp = inputDicts['BisonInput']
         #FIXME this need to be changed if MAMMOTH can accept multiple Bision input files
         if len(bisonInp) != 1: raise IOError('Multiple Bison input files are found!')
-        origBisonInp = origInputFiles[newUpdatedInputs.index(bisonInp[0])]
-        newBisonInp = self.BisonInterface.createNewInput(bisonInp,[origBisonInp],samplerType,**bisonArgs)
+        origBisonInp = origInputFiles[currentInputFiles.index(bisonInp[0])]
+        bisonInp = self.BisonInterface.createNewInput(bisonInp,[origBisonInp],samplerType,**bisonArgs)
       else:
         raise IOError('The user tried to perturb Bison input files, but no Bison input file is found!')
-    newMammothInp = inputDicts['MammothInput']
-    #replace the input files names inside Mammoth input
-    if perturbBison:
-      self._updateMammothInputs(newMammothInp,bisonInp,newBisonInp)
-      inputDicts['BisonInput'][0].setAbsFile(newBisonInp[0].getAbsFile())
-    return newUpdatedInputs
-
-  def _updateMammothInputs(self,mammothInps, oldInps, newInps):
-    """
-      Update the rattlesnake inputs with the updated cross section library names
-      @ In, mammothInps, list, list of MAMMOTH input files
-      @ In, oldInps, list, list of old input files referenced via MAMMOTH
-      @ In, newInps, list, list of new input files will be referenced via MAMMOTH
-      @ Out, None.
-    """
-    for fileInp in mammothInps:
-      if not os.path.isfile(fileInp.getAbsFile()):
-        raise IOError("Error on opening file, not a regular file: " + fileInp.getFilename())
-      fileInp.open('r')
-      fileData = fileInp.read()
-      for fileIndex, oldInp in enumerate(oldInps):
-        oldName = oldInp.getFilename()
-        newName = newInps[fileIndex].getFilename()
-        newData = fileData.replace(oldName,newName)
-      fileInp.close()
-      fileInp.open('w')
-      fileInp.write(newData)
-      fileInp.close()
+    return currentInputFiles
 
   def finalizeCodeOutput(self, command, output, workingDir):
     """
