@@ -95,8 +95,8 @@
 		<IOStep name="plot_results" pauseAtEnd="True">
 			<Input class="DataObjects" type="PointSet">outGrid_failure</Input>
 			<Input class="DataObjects" type="PointSet">outMC_failure</Input>
-			<Output class="OutStreamManager" type="Plot">plotGridFailureROMFromAdapt</Output>
-			<Output class="OutStreamManager" type="Plot">plotGridFailureMCExternalModel</Output>
+			<Output class="OutStreams" type="Plot">plotGridFailureROMFromAdapt</Output>
+			<Output class="OutStreams" type="Plot">plotGridFailureMCExternalModel</Output>
 		</IOStep>
 	</Steps>
 	<DataObjects>
@@ -117,7 +117,7 @@
 			<Output>OutputPlaceHolder</Output>
 		</Point>
 	</DataObjects>
-	<OutStreamManager>
+	<OutStreams>
 		<Plot name="plotGridFailureROMFromAdapt" dim="3" overwrite="False">
 			<plotSettings>
 				<plot>
@@ -158,7 +158,7 @@
 				</title>
 			</actions>
 		</Plot>
-	</OutStreamManager>
+	</OutStreams>
 	<Distributions>
 		<Normal name="normal_trunc">
 			<mean>0.5</mean>

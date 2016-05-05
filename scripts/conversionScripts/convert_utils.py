@@ -63,6 +63,8 @@ def standardMain(argv,convert):
   #offer option to apply to all framework tests
   if '--tests' in argv:
     #get list of all 'tests' files
+    pathToGCT = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))),'developer_tools')
+    sys.path.append(pathToGCT)
     import get_coverage_tests as gct
     fileDict = gct.getRegressionTests()
     filelist = []

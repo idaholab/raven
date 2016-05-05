@@ -19,28 +19,28 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 Lesser General Public License for more details.
 
 You should have received a copy of the GNU Lesser General Public
-License along with this package; if not, see 
+License along with this package; if not, see
 http://www.gnu.org/licenses/lgpl-2.1.html
 """
 
 import sys
 
-def writeConfig(withHidden = False):    
+def writeConfig(withHidden = False):
     """Direct configmanager to write config
     withHidden controls if hidden variables should be written"""
-      
-    import cloud.cloudconfig as cc    
+
+    import cloud.cloudconfig as cc
     cc._needsWrite = False
     cc.genHidden = withHidden
-    
+
     from cloud.util.configmanager import ConfigSettings
     config = ConfigSettings(cc.config,do_reload=True)
     cc.flush_config()
-            
+
 
 if __name__ == '__main__':
-    withHidden = False   
+    withHidden = False
     if len(sys.argv) > 1 and sys.argv[1] == 'advanced':
-        withHidden = True    
+        withHidden = True
 
-    writeConfig(withHidden)    
+    writeConfig(withHidden)
