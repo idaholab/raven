@@ -426,6 +426,32 @@ class YakMultigroupLibraryParser():
           reactionDict['Transport'] = copy.copy(reactionDict['Total'])
         else:
           reactionDict['Transport'] = reactionDict['Total'] - np.sum(reactionDict['Scattering'][self.nGroup:2*self.nGroup],1)
+
+    #Metod 1: Currently, rattlesnake will not check the consistent of provided cross sections, rattlesnake will only use Total,
+    #Scattering and nuFission for the transport calculation. In this case, we will recalculate the rest cross sections
+    #based on Total, Scattering and Fission.
+    if 'Scattering' in reactionList:
+      reactionDict['Absorption'] = reactionDict['Total'] - reactionDict['TotalScattering']
+    else:
+      if self.nGroup == 1 and 'Absorption' in reactionList:
+        reactionDict['Scattering'] = reactionDict['Total'] - reactionDict['Absorption']
+        reactionDict['TotalScattering'] = copy.copy(reactionDict['Scattering'])
+      else:
+        reactionDict['Absorption'] = copy.copy(reactionDict['Total'])
+    #calculate capture cross sections
+    if 'nuFission' in reactionList:
+      reactionDict['Capture'] = reactionDict['Absorption'] - reactionDict['Fission']
+    else:
+      reactionDict['Capture'] = copy.copy(reactionDict['Absorption'])
+
+    #Method 2: The following can be used to recalculate the unknown cross sections
+    #either method 1 or method 2 can be used.
+    '''
+    #calculate scattering cross sections
+    if 'Scattering' not in reactionList and self.nGroup == 1:
+      reactionDict['Scattering'] = reactionDict['Total'] - reactionDict['Absorption']
+      reactionDict['TotalScattering'] = copy.copy(reactionDict['Scattering'])
+
     #calculate absorption
     if 'Absorption' not in  reactionList:
       if 'Scattering' in reactionList:
@@ -449,6 +475,7 @@ class YakMultigroupLibraryParser():
       if 'Scattering' not in reactionList and self.nGroup == 1:
         reactionDict['Scattering'] = reactionDict['Total'] - reactionDict['Absorption']
         reactionDict['TotalScattering'] = copy.copy(reactionDict['Scattering'])
+    '''
 
   def perturb(self,**Kwargs):
     """
