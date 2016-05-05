@@ -7,9 +7,9 @@
 \label{fig:codeinterface}
 \end{figure}
 The procedure of coupling a new code/application with RAVEN is a straightforward process.
-For all the systems codes currently supported by RAVEN (e.g. RELAP-7, RELAP5-3D,
-BISON, MOOSE), the coupling is performed through a Python interface that interprets the information coming from RAVEN and translates them to the
-  input of the system code.
+For all the codes currently supported by RAVEN (e.g. RELAP-7, RELAP5-3D,
+BISON, MOOSE,etc.), the coupling is performed through a Python interface that interprets the information coming from RAVEN and translates them into the
+  input of the driven code.
 The coupling procedure does not require modifying RAVEN itself. Instead, the developer creates a new Python interface that is going to be embedded
  in RAVEN at run-time (no need to introduce  hard-coded coupling statements).
  This interface needs to be placed in a folder (whatever name) located in (see figure~\ref{fig:codeinterface}):
@@ -17,6 +17,21 @@ The coupling procedure does not require modifying RAVEN itself. Instead, the dev
  path/to/raven/distribution/raven/framework/CodeInterfaces/
 \end{lstlisting}
 At the initialization stage, RAVEN imports all the Interfaces that are contained in this directory and performs some preliminary cross-checks.
+\\It is important to notice that the name of class in the Interface module is the one the user needs to specify when the new interface 
+needs to be used. For example, if the Interface module contains the class 	``NewCode'', the \textit{subType} in the \xmlNode{Code} block will be 	``NewCode'':
+\begin{lstlisting}[language=python]
+  class NewCode(CodeInterfaceBase):
+    ...
+\end{lstlisting}
+\begin{lstlisting}[style=XML,morekeywords={name,file}] %moreemph={name,file}]
+  <Models>
+    ...
+    <Code name='whatever' subType='NewCode'>
+     ...
+    </Code>
+    ...
+  </Models>
+\end{lstlisting}
 In the following sub-sections, a step-by-step procedure for coupling a code to RAVEN is outlined.
 \subsection{Pre-requisites.}
 \label{subsec:prerequisites}
@@ -148,21 +163,25 @@ without actually knowing the syntax of the driven codes. In order to make RAVEN
 able to drive a newer software, the developer needs to code a Python module
 that will contain few methods (with strict syntax) that are called by RAVEN during the simulation.
 \\ When loading a ``Code Interface'', RAVEN expects to find, in the class representing the code,
- the following functions:
+ the following required methods:
 \begin{lstlisting}[language=python]
 from CodeInterfaceBaseClass import CodeInterfaceBase
 class NewCode(CodeInterfaceBase):
   def generateCommand(self, inputFiles, executable, clargs=None, fargs=None)
   def createNewInput(self, currentInputFiles, oriInputFiles,
                                 samplerType, **Kwargs)
+\end{lstlisting}
+In addition, the following optional methods can be specified:
+\begin{lstlisting}[language=python]
+from CodeInterfaceBaseClass import CodeInterfaceBase
+class NewCode(CodeInterfaceBase):
+  ...
   def finalizeCodeOutput(self, command, output, workingDir)
   def getInputExtension(self)
   def checkForOutputFailure(self, output, workingDir)
 \end{lstlisting}
 In the following sub-sections all the methods are fully explained, providing examples
  (referring to the simple code used as example for the previous sections)
-
-
 \subsubsection{Method: \texttt{generateCommand}}
 \label{subsubsec:generateCommand}
 \begin{lstlisting}[language=python]
@@ -238,7 +257,11 @@ file of the original list gets modified and re-named.
 RAVEN is going to call this function passing in the following arguments:
 \begin{itemize}
   \item \textbf{\texttt{currentInputFiles}}, data type = list: List of current
-              input files (input files from last this method call);
+              input files. This list of files is the one the code interface needs to use to print the new perturbed list of files.
+              Indeed, RAVEN already changes the file location in sub-directories and the Code Interface does not need to
+              change the filename or location of the files. For example, the files are going to have a absolute path as following:
+              $.\textbackslash path_to_working_directory\textbackslash stepName\textbackslash anUniqueIdentifier\textbackslash filename.extension$. In case of sampling, the 
+              ``\textit{anUniqueIdentifier}'' is going to be an integer (e.g. 1).
   \item \textbf{\texttt{oriInputFiles}} , data type = list, List of the original input files;
   \item  \textbf{\texttt{samplerType}} , data type = string, Sampler type (e.g. MonteCarlo,
                Adaptive, etc.). \nb None if no Sampler has been used;
@@ -258,10 +281,6 @@ For the example referred in the previous section, this method would implemented 
         break
     parser = simpleInputParser(currentInputFiles[index])
     parser.modifyInternalDictionary(**Kwargs['SampledVars'])
-    temp = str(oriInputFiles[index][:])
-    newInputFiles = copy.copy(currentInputFiles)
-    newInputFiles[index] = os.path.join(os.path.split(temp)[0],
-           Kwargs['prefix']+"~"+os.path.split(temp)[1])
     parser.writeNewInput(newInputFiles[index])
     return newInputFiles
 \end{lstlisting}

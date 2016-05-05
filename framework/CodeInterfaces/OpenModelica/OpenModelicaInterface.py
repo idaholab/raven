@@ -123,7 +123,7 @@ import xml.etree.ElementTree as ET
 
 from CodeInterfaceBaseClass import CodeInterfaceBase
 
-class OpenModelicaInterface(CodeInterfaceBase):
+class OpenModelica(CodeInterfaceBase):
   """
     Provides code to interface RAVEN to OpenModelica
   """
@@ -211,11 +211,11 @@ class OpenModelicaInterface(CodeInterfaceBase):
     if not found: raise Exception('OpenModelica INTERFACE ERROR -> An XML file was not found in the input files!')
 
     # Figure out the new file name and put it into the proper place in the return list
-    newInputFiles = copy.deepcopy(currentInputFiles)
+    #newInputFiles = copy.deepcopy(currentInputFiles)
     originalPath = oriInputFiles[index].getAbsFile()
-    newPath = os.path.join(os.path.split(originalPath)[0],
-                           "OM" + Kwargs['prefix'] + os.path.split(originalPath)[1])
-    newInputFiles[index].setAbsFile(newPath)
+    #newPath = os.path.join(os.path.split(originalPath)[0],
+    #                       "OM" + Kwargs['prefix'] + os.path.split(originalPath)[1])
+    #newInputFiles[index].setAbsFile(newPath)
 
     # Since the input file is XML we can load and edit it directly using etree
     # Load the original XML into a tree:
@@ -232,8 +232,8 @@ class OpenModelicaInterface(CodeInterfaceBase):
             # Change the start value to the provided one
             subelem.set('start', str(varDict[elem.attrib['name']]))
     # Now write out the modified file
-    tree.write(newPath)
-    return newInputFiles
+    tree.write(currentInputFiles[index].getAbsFile())
+    return currentInputFiles
 
 
   def finalizeCodeOutput(self, command, output, workingDir):

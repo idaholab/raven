@@ -11,8 +11,8 @@
   #REQUIREMENT_TEST R-IS-2
   type = 'RavenFramework'
   input = 'test_simple.xml'
-  output = 'revirD_tset/FirstMRun/out~1~ideal_pump revirD_tset/FirstMRun/out~6~ideal_pump'
-  csv = 'revirD_tset/FirstMRun/out~6~ideal_pump.csv'
+  output = 'revirD_tset/FirstMRun/1/out~ideal_pump revirD_tset/FirstMRun/6/out~ideal_pump'
+  csv = 'revirD_tset/FirstMRun/6/out~ideal_pump.csv'
   required_executable = '../../RAVEN-%METHOD%'
  [../]
 
@@ -82,7 +82,7 @@
   heavy= True
   max_time = 100000
   input = 'test_mpi_bison.xml'
-  output = 'mpi_bison_test/myLHS/out~1~case_1'
+  output = 'mpi_bison_test/myLHS/1/out~case_1'
   csv = 'mpi_bison_test/myLHS/out~1~case_1.csv'
  [../]
 
@@ -97,7 +97,7 @@
  [./test_merge_2_databases]
   type = 'RavenFramework'
   input = 'test_merge_2_databases.xml '
-  output = 'test_merge_2_databases/MonteCarlo/out~1~ideal_pump.csv'
+  output = 'test_merge_2_databases/MonteCarlo/1/out~ideal_pump.csv'
   csv = 'test_merge_2_databases/Pointset_from_database_dump.csv test_merge_2_databases/Pointset_IN_database_dump.csv'
   max_time = 500
   rel_err = 0.01
@@ -195,19 +195,19 @@
   rel_err = 0.001
  [../]
 
- [./testLHSRaven]
+ [./testLHS_RELAP7]
    type = 'RavenFramework'
    input = 'test_LHS_Sampler_Raven.xml'
-   output = 'LHStestRaven/FirstMRun/out~1~clg_massflowrate_3eqn'
+   output = 'LHStestRaven/FirstMRun/1/out~clg_massflowrate_3eqn'
    csv = 'LHStestRaven/outGrid_dump.csv'
    method = 'devel opt'
    required_executable = '../../RAVEN-%METHOD%'
  [../]
 
- [./testGridRaven]
+ [./testGrid_RELAP7]
    type = 'RavenFramework'
    input = 'test_Grid_Sampler_Raven.xml'
-   output = 'GridTestRaven/FirstMRun/out~1~clg_massflowrate_3eqn'
+   output = 'GridTestRaven/FirstMRun/1/out~clg_massflowrate_3eqn'
    UnorderedCsv = 'GridTestRaven/outGrid_dump.csv'
    method = 'devel opt'
    required_executable = '../../RAVEN-%METHOD%'
@@ -269,15 +269,15 @@
   csv = 'CreateInternalObjFromCSVs/PointSetPostProcTest_DUMP.csv'
   max_time = 500
   rel_err = 0.001
-  prereq = testGridRaven
+  prereq = testGrid_RELAP7
  [../]
 
  [./test_bison_mc_simple_&_alias_system]
   #REQUIREMENT_TEST R-IS-6
   type = 'RavenFramework'
   input = 'test_bison_mc_simple.xml'
-  output = 'MCTestBison/CustomSampler/out~1~gap_perfect_transfer_test'
-  csv = 'MCTestBison/CustomSampler/out~3~gap_perfect_transfer_test.csv MCTestBison/CustomSampler/out~1~gap_perfect_transfer_test.csv MCTestBison/CustomSampler_noalias/out~3~gap_perfect_transfer_test.csv MCTestBison/CustomSampler_noalias/out~1~gap_perfect_transfer_test.csv'
+  output = 'MCTestBison/CustomSampler/1/out~gap_perfect_transfer_test'
+  csv = 'MCTestBison/CustomSampler/3/out~gap_perfect_transfer_test.csv MCTestBison/CustomSampler/1/out~gap_perfect_transfer_test.csv MCTestBison/CustomSampler_noalias/3/out~gap_perfect_transfer_test.csv MCTestBison/CustomSampler_noalias/1/out~gap_perfect_transfer_test.csv'
   required_executable = '../../../bison/bison-%METHOD%'
   skip_if_env = BUILD_ROOT
  [../]
@@ -285,8 +285,8 @@
  [./test_custom_mode]
   type = 'RavenFramework'
   input = 'test_custom_mode.xml'
-  output = 'mode_test/FirstMRun/out~1~ideal_pump mode_test/FirstMRun/out~2~ideal_pump'
-  csv = 'mode_test/FirstMRun/out~2~ideal_pump.csv'
+  output = 'mode_test/FirstMRun/1/out~ideal_pump mode_test/FirstMRun/2/out~ideal_pump'
+  csv = 'mode_test/FirstMRun/2/out~ideal_pump.csv'
   required_executable = '../../RAVEN-%METHOD%'
  [../]
 
