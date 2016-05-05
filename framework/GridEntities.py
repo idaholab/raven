@@ -440,7 +440,6 @@ class GridEntity(GridBase):
     self.gridContainer['gridShape']                     = tuple   (pointByVar)                             # tuple of the grid shape
     self.gridContainer['gridLength']                    = np.int(np.prod (np.asarray(pointByVar, dtype=np.float128))) # total number of point on the grid
     self.gridContainer['gridCoorShape']                 = tuple   (pointByVar+[self.nVar])                # shape of the matrix containing all coordinate of all points in the grid
-    print(self.gridContainer['gridLength'])
     if self.constructTensor: self.gridContainer['gridCoord'] = np.zeros(self.gridContainer['gridCoorShape'])   # the matrix containing all coordinate of all points in the grid
     self.uniqueCellNumber                               = np.prod ([element-1 for element in pointByVar]) # number of unique cells
     #filling the coordinate on the grid

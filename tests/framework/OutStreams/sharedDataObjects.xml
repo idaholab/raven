@@ -1,0 +1,11 @@
+<?xml version="1.0" ?>
+<DataObjects>
+  <Point name="inputHolder">
+    <Input>X,Y</Input>
+    <Output>OutputPlaceHolder</Output>
+  </Point>
+  <PointSet name="PointSet">
+    <Input>X,Y</Input>
+    <Output>Z</Output>
+  </PointSet>
+</DataObjects>

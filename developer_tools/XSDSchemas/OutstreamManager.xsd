@@ -40,6 +40,8 @@
       <xsd:element name="axesBox"             type="toggleType" minOccurs="0"/>
       <xsd:element name="axisProperties"      type="xsd:string" minOccurs="0"/>
       <xsd:element name="grid"                type="plotGridType" minOccurs="0"/>
+      <xsd:element name="colorbar"            type="toggleType"  minOccurs="0"/>
+      <xsd:element name="axis"                type="toggleType"  minOccurs="0"/>
       <!-- This is not in the user manual, this is a custom feature from matplotlib -->
       <xsd:element name="arrow"               type="arrowType" minOccurs="0"/>
     </xsd:all>
@@ -54,6 +56,7 @@
 
   <xsd:complexType name="PlotData">
     <xsd:all>
+      <xsd:element name="kwargs" type="kwargsType" minOccurs="0"/>
       <xsd:element name="actions"      type="actionType" />
       <xsd:element name="plotSettings" type="plotSettingsType" />
       <xsd:element name="filename"     type="xsd:string" minOccurs="0"/>
@@ -142,7 +145,8 @@
 
   <xsd:complexType name="figurePropertiesType">
     <xsd:all>
-      <xsd:element name="figsize"   type="floatList"   minOccurs="0"/>
+      <!--XSD wants to see the figure size as a space delimited list of floats, whereas matplotlib wants it as a a comma separated list of floats.-->
+      <xsd:element name="figsize"   type="xsd:string"  minOccurs="0"/>
       <xsd:element name="dpi"       type="xsd:integer" minOccurs="0"/>
       <xsd:element name="facecolor" type="xsd:string"  minOccurs="0"/>
       <xsd:element name="edgecolor" type="xsd:string"  minOccurs="0"/>
@@ -221,7 +225,7 @@
     </xsd:all>
   </xsd:complexType>
 
-  <xsd:complexType name="plotGridType">
+  <xsd:complexType name="plotGridType" mixed="true">
     <xsd:all>
       <xsd:element name="b"      type="RavenBool"  minOccurs="0"/>
       <xsd:element name="which"  type="xsd:float"  minOccurs="0"/>
