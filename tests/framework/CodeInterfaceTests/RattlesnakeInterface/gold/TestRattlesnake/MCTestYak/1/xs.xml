@@ -16,7 +16,7 @@
           </Profile>
           <Value>
             2.24461e-01
-            1.00000e-02 6.83333e-01
+            1.02919e-02 6.83333e-01
 </Value>
         </Scattering>
         <nuFission index="p">7.32207e-03  2.00000e-01</nuFission>
@@ -35,7 +35,7 @@
           </Profile>
           <Value>
             2.38410e-01
-            9.80682e-03 6.04754e-01
+            1.00000e-02 6.04754e-01
 </Value>
         </Scattering>
         <nuFission index="p">3.00000e-03  5.82176e-02</nuFission>
@@ -54,7 +54,7 @@
           </Profile>
           <Value>
             2.24461e-01
-            1.00000e-02 6.83333e-01
+            1.02919e-02 6.83333e-01
 </Value>
         </Scattering>
         <nuFission index="p">7.32207e-03  2.00000e-01</nuFission>
