@@ -319,7 +319,7 @@ class YakMultigroupLibraryParser():
     #calculate Total Scattering
     totScattering = np.zeros(self.nGroup)
     for g in range(self.nGroup):
-      totScattering[g] = np.sum(pDict['Scattering'][g])
+      totScattering[g] = np.sum(pDict['Scattering'][0:self.nGroup][g])
     pDict['TotalScattering'] = totScattering
 
   def _readAdditionalYakXS(self,xmlNode,pDict):
@@ -562,10 +562,10 @@ class YakMultigroupLibraryParser():
       #recalculate Scattering Cross Sections
       for g in range(self.nGroup):
         if aliasType == 'rel':
-          reactionDict['Scattering'][g] *= perturbDict['TotalScattering'][g]
+          reactionDict['Scattering'][0:self.nGroup,g] *= perturbDict['TotalScattering'][g]
         elif aliasType == 'abs':
           factor = perturbDict['TotalScattering'][g]/self.nGroup
-          reactionDict['Scattering'][g] += factor
+          reactionDict['Scattering'][0:self.nGroup][g] += factor
     #recalculate Removal cross sections
     reactionDict['Removal'] = np.asarray(list(reactionDict['Total'][g] - reactionDict['Scattering'][g][g] for g in range(self.nGroup)))
     #recalculate Transport cross sections
