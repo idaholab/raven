@@ -2,193 +2,192 @@
 <Simulation verbosity="silent">
     <RunInfo>
         <WorkingDir>VariationalGMM</WorkingDir>
-		<Sequence>readIn,pp1,writeOut</Sequence>
+                <Sequence>readIn,pp1,writeOut</Sequence>
         <batchSize>100</batchSize>
     </RunInfo>
     <Files>
-        <Input name="rawDataFile">../SKLearnData/BB_dump.csv</Input>
+        <Input name="rawDataFile">../ClusterMoveData/dataSet.csv</Input>
     </Files>
     <Models>
         <PostProcessor name='VBGMM1' subType='DataMining'>
             <KDD lib='temporalSciKitLearn'>
-				<SKLtype>mixture|VBGMM</SKLtype>
-                <Features>x1,x2</Features>
+                                <SKLtype>mixture|VBGMM</SKLtype>
+                <Features>x,y</Features>
                 <covariance_type>diag</covariance_type>
                 <random_state>0</random_state>
                 <n_components>3</n_components>
                 <n_iter>10000</n_iter>
                 <alpha>1</alpha>
             </KDD>
-			<DataObject    class = 'DataObjects' type = 'History'>ppData</DataObject>
-        </PostProcessor>		
+                        <DataObject    class = 'DataObjects' type = 'History'>ppData</DataObject>
+        </PostProcessor>
     </Models>
-	
+
     <Steps>
         <IOStep name='readIn' pauseAtEnd = 'True'>
             <Input    class = 'Files'             type = ''              >rawDataFile</Input>
             <Output   class = 'DataObjects'       type = 'HistorySet'       >mData</Output>
         </IOStep>
-					
+
         <PostProcess name='pp1' pauseAtEnd = 'True'>
             <Input   class = 'DataObjects'       type = 'HistorySet'      >mData</Input>
-            <Model   class = 'Models'            type = 'PostProcessor' >VBGMM1</Model> 
-			<Output  class = 'DataObjects' type = 'HistorySet'>mData</Output>
-			<Output   class = 'OutStreams'  type = 'Print'         >dummy</Output>
-		</PostProcess> 
-		<IOStep name='writeOut' pauseAtEnd = 'True'>
-			<Input   class = 'DataObjects'       type = 'HistorySet'      >mData</Input>
-			<Input   class = 'DataObjects'       type = 'History'      	  >ppData</Input>
-			<Output   class = 'OutStreams'  type = 'Plot'          >plotRawData</Output>
-			<Output   class = 'OutStreams'  type = 'Plot'          >plotPPDataLabel</Output>
-			<Output   class = 'OutStreams'  type = 'Plot'          >plotPPDataCentroid</Output>
-			<Output   class = 'OutStreams'  type = 'Print'         >centroid</Output>
-		</IOStep>
+            <Model   class = 'Models'            type = 'PostProcessor' >VBGMM1</Model>
+                        <Output  class = 'DataObjects' type = 'HistorySet'>mData</Output>
+                        <Output   class = 'OutStreams'  type = 'Print'         >dummy</Output>
+                </PostProcess>
+                <IOStep name='writeOut' pauseAtEnd = 'True'>
+                        <Input   class = 'DataObjects'       type = 'HistorySet'      >mData</Input>
+                        <Input   class = 'DataObjects'       type = 'History'             >ppData</Input>
+                        <Output   class = 'OutStreams'  type = 'Plot'          >plotRawData</Output>
+                        <Output   class = 'OutStreams'  type = 'Plot'          >plotPPDataLabel</Output>
+                        <Output   class = 'OutStreams'  type = 'Plot'          >plotPPDataCentroid</Output>
+                        <Output   class = 'OutStreams'  type = 'Print'         >centroid</Output>
+                </IOStep>
     </Steps>
     <OutStreams>
-		<Print name = 'dummy'>
+                <Print name = 'dummy'>
             <type>csv</type>
             <source>mData</source>
-        </Print>	
-		<Print name = 'centroid'>
+        </Print>
+                <Print name = 'centroid'>
             <type>csv</type>
             <source>ppData</source>
         </Print>
-		<Plot dim="2" name="plotRawData" overwrite="True" >
-			<plotSettings>
-				<gridSpace>2 1</gridSpace>
-				<plot>
-					<type>line</type>
-					<x>mData|Output|Time</x>
-					<y>mData|Output|x1</y>
-					<interpPointsX>300</interpPointsX>	
-					<gridLocation>
-						<x>0</x>
-						<y>0</y>
-					</gridLocation>		
-					<xlabel>Time</xlabel>
-					<ylabel>x1</ylabel>					
-				</plot>
-				<plot>
-					<type>line</type>
-					<x>mData|Output|Time</x>
-					<y>mData|Output|x2</y>
-					<interpPointsX>300</interpPointsX>		
-					<gridLocation>
-						<x>1</x>
-						<y>0</y>
-					</gridLocation>	
-					<xlabel>Time</xlabel>
-					<ylabel>x2</ylabel>						
-				</plot>	  					
-			</plotSettings>
-			<actions>
-				<how>png</how>
-			</actions>
-	    </Plot>
-		<Plot dim="2" name="plotPPDataLabel" overwrite="True" >
-			<plotSettings>
-				<plot>
-					<type>line</type>
-					<x>mData|Output|Time</x>
-					<y>mData|Output|VBGMM1Labels</y>	
-					<interpPointsX>300</interpPointsX>						
-				</plot>					
-			</plotSettings>
-			<actions>
-				<how>png</how>
-			</actions>
-	    </Plot>
-		<Plot dim="2" name="plotPPDataCentroid" overwrite="True" >
-			<plotSettings>
-				<gridSpace>2 1</gridSpace>
-				<plot>
-					<type>line</type>
-					<x>ppData|Output|Time</x>
-					<y>ppData|Output|VBGMM1Mean-x1-0</y>
-					<interpPointsX>300</interpPointsX>	
-					<gridLocation>
-						<x>0</x>
-						<y>0</y>
-					</gridLocation>		
-					<xlabel>Time</xlabel>
-					<ylabel>x1</ylabel>					
-				</plot>
-				<plot>
-					<type>line</type>
-					<x>ppData|Output|Time</x>
-					<y>ppData|Output|VBGMM1Mean-x1-1</y>
-					<interpPointsX>300</interpPointsX>	
-					<gridLocation>
-						<x>0</x>
-						<y>0</y>
-					</gridLocation>		
-					<xlabel>Time</xlabel>
-					<ylabel>x1</ylabel>					
-				</plot>
-				<plot>
-					<type>line</type>
-					<x>ppData|Output|Time</x>
-					<y>ppData|Output|VBGMM1Mean-x1-2</y>
-					<interpPointsX>300</interpPointsX>	
-					<gridLocation>
-						<x>0</x>
-						<y>0</y>
-					</gridLocation>		
-					<xlabel>Time</xlabel>
-					<ylabel>x1</ylabel>					
-				</plot>
-				<plot>
-					<type>line</type>
-					<x>ppData|Output|Time</x>
-					<y>ppData|Output|VBGMM1Mean-x2-0</y>
-					<interpPointsX>300</interpPointsX>		
-					<gridLocation>
-						<x>1</x>
-						<y>0</y>
-					</gridLocation>	
-					<xlabel>Time</xlabel>
-					<ylabel>x2</ylabel>						
-				</plot>
-				<plot>
-					<type>line</type>
-					<x>ppData|Output|Time</x>
-					<y>ppData|Output|VBGMM1Mean-x2-1</y>
-					<interpPointsX>300</interpPointsX>		
-					<gridLocation>
-						<x>1</x>
-						<y>0</y>
-					</gridLocation>	
-					<xlabel>Time</xlabel>
-					<ylabel>x2</ylabel>						
-				</plot>
-				<plot>
-					<type>line</type>
-					<x>ppData|Output|Time</x>
-					<y>ppData|Output|VBGMM1Mean-x2-2</y>
-					<interpPointsX>300</interpPointsX>		
-					<gridLocation>
-						<x>1</x>
-						<y>0</y>
-					</gridLocation>	
-					<xlabel>Time</xlabel>
-					<ylabel>x2</ylabel>						
-				</plot>
-			</plotSettings>
-			<actions>
-				<how>png</how>
-			</actions>
-	    </Plot>		
+                <Plot dim="2" name="plotRawData" overwrite="True" >
+                        <plotSettings>
+                                <gridSpace>2 1</gridSpace>
+                                <plot>
+                                        <type>line</type>
+                                        <x>mData|Output|Time</x>
+                                        <y>mData|Output|x</y>
+                                        <interpPointsX>300</interpPointsX>
+                                        <gridLocation>
+                                                <x>0</x>
+                                                <y>0</y>
+                                        </gridLocation>
+                                        <xlabel>Time</xlabel>
+                                        <ylabel>x</ylabel>
+                                </plot>
+                                <plot>
+                                        <type>line</type>
+                                        <x>mData|Output|Time</x>
+                                        <y>mData|Output|y</y>
+                                        <interpPointsX>300</interpPointsX>
+                                        <gridLocation>
+                                                <x>1</x>
+                                                <y>0</y>
+                                        </gridLocation>
+                                        <xlabel>Time</xlabel>
+                                        <ylabel>y</ylabel>
+                                </plot>
+                        </plotSettings>
+                        <actions>
+                                <how>png</how>
+                        </actions>
+            </Plot>
+                <Plot dim="2" name="plotPPDataLabel" overwrite="True" >
+                        <plotSettings>
+                                <plot>
+                                        <type>line</type>
+                                        <x>mData|Output|Time</x>
+                                        <y>mData|Output|VBGMM1Labels</y>
+                                        <interpPointsX>300</interpPointsX>
+                                </plot>
+                        </plotSettings>
+                        <actions>
+                                <how>png</how>
+                        </actions>
+            </Plot>
+                <Plot dim="2" name="plotPPDataCentroid" overwrite="True" >
+                        <plotSettings>
+                                <gridSpace>2 1</gridSpace>
+                                <plot>
+                                        <type>line</type>
+                                        <x>ppData|Output|Time</x>
+                                        <y>ppData|Output|VBGMM1Mean-x-0</y>
+                                        <interpPointsX>300</interpPointsX>
+                                        <gridLocation>
+                                                <x>0</x>
+                                                <y>0</y>
+                                        </gridLocation>
+                                        <xlabel>Time</xlabel>
+                                        <ylabel>x</ylabel>
+                                </plot>
+                                <plot>
+                                        <type>line</type>
+                                        <x>ppData|Output|Time</x>
+                                        <y>ppData|Output|VBGMM1Mean-x-1</y>
+                                        <interpPointsX>300</interpPointsX>
+                                        <gridLocation>
+                                                <x>0</x>
+                                                <y>0</y>
+                                        </gridLocation>
+                                        <xlabel>Time</xlabel>
+                                        <ylabel>x</ylabel>
+                                </plot>
+                                <plot>
+                                        <type>line</type>
+                                        <x>ppData|Output|Time</x>
+                                        <y>ppData|Output|VBGMM1Mean-x-2</y>
+                                        <interpPointsX>300</interpPointsX>
+                                        <gridLocation>
+                                                <x>0</x>
+                                                <y>0</y>
+                                        </gridLocation>
+                                        <xlabel>Time</xlabel>
+                                        <ylabel>x</ylabel>
+                                </plot>
+                                <plot>
+                                        <type>line</type>
+                                        <x>ppData|Output|Time</x>
+                                        <y>ppData|Output|VBGMM1Mean-y-0</y>
+                                        <interpPointsX>300</interpPointsX>
+                                        <gridLocation>
+                                                <x>1</x>
+                                                <y>0</y>
+                                        </gridLocation>
+                                        <xlabel>Time</xlabel>
+                                        <ylabel>y</ylabel>
+                                </plot>
+                                <plot>
+                                        <type>line</type>
+                                        <x>ppData|Output|Time</x>
+                                        <y>ppData|Output|VBGMM1Mean-y-1</y>
+                                        <interpPointsX>300</interpPointsX>
+                                        <gridLocation>
+                                                <x>1</x>
+                                                <y>0</y>
+                                        </gridLocation>
+                                        <xlabel>Time</xlabel>
+                                        <ylabel>y</ylabel>
+                                </plot>
+                                <plot>
+                                        <type>line</type>
+                                        <x>ppData|Output|Time</x>
+                                        <y>ppData|Output|VBGMM1Mean-y-2</y>
+                                        <interpPointsX>300</interpPointsX>
+                                        <gridLocation>
+                                                <x>1</x>
+                                                <y>0</y>
+                                        </gridLocation>
+                                        <xlabel>Time</xlabel>
+                                        <ylabel>y</ylabel>
+                                </plot>
+                        </plotSettings>
+                        <actions>
+                                <how>png</how>
+                        </actions>
+            </Plot>
     </OutStreams>
-	
+
     <DataObjects>
       <History name='ppData'>
-	<Input>n</Input>
-	<Output>Time</Output>
+        <Input>n</Input>
+        <Output>Time</Output>
       </History>
         <HistorySet name="mData">
             <Input>n</Input>
-            <Output>Time,x1,x2</Output>
+            <Output>Time,x,y</Output>
         </HistorySet>
     </DataObjects>
 </Simulation>
-
