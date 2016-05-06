@@ -13,7 +13,7 @@
   </Files>
 
   <Models>
-    <Code name="MyRAVEN" subType="RAVEN">
+    <Code name="MyRAVEN" subType="RELAP7">
       <executable>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</executable>
     </Code>
     <PostProcessor name="csv_from_hdf5" subType="PrintCSV">
@@ -124,7 +124,7 @@
   </Steps>
 
   <Databases>
-    <HDF5 name="testBranchDatabase"/>
+    <HDF5 name="testBranchDatabase" readMode="overwrite"/>
   </Databases>
 
   <DataObjects>

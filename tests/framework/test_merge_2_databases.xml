@@ -12,7 +12,7 @@
   </Files>
 
   <Models>
-    <Code name="MyRAVEN" subType="RAVEN">
+    <Code name="MyRAVEN" subType="RELAP7">
       <executable>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</executable>
     </Code>
   </Models>
@@ -77,8 +77,8 @@
   </Steps>
 
   <Databases>
-    <HDF5 name="MC_MERGE_EXTRACT_STEP"/>
-    <HDF5 name="MC_MERGE_PUSH_STEP"/>
+    <HDF5 name="MC_MERGE_EXTRACT_STEP" readMode="overwrite"/>
+    <HDF5 name="MC_MERGE_PUSH_STEP" readMode="overwrite"/>
   </Databases>
 
   <OutStreams>

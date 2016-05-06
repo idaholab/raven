@@ -103,6 +103,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ Out, None
     """
     BaseType.__init__(self)
+    Assembler.__init__(self)
     self.counter                       = 0                         # Counter of the samples performed (better the input generated!!!). It is reset by calling the function self.initialize
     self.auxcnt                        = 0                         # Aux counter of samples performed (for its usage check initialize method)
     self.limit                         = sys.maxsize               # maximum number of Samples (for example, Monte Carlo = Number of HistorySet to run, DET = Unlimited)
@@ -131,14 +132,9 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.distributions2variablesMapping = {}                       # for each variable 'distName' , the following informations are included: 'distName': [{'var1': 1}, {'var2': 2}]} where for each var it is indicated the var dimension
     self.NDSamplingParams               = {}                       # this dictionary contains a dictionary for each ND distribution (key). This latter dictionary contains the initialization parameters of the ND inverseCDF ('initialGridDisc' and 'tolerance')
     ######
+    self.addAssemblerObject('Restart' ,'-n',True)
 
-    self.assemblerObjects               = {}                       # {MainClassName(e.g.Distributions):[class(e.g.Models),type(e.g.ROM),objectName]}
-    #self.requiredAssObject             = (False,([],[]))          # tuple. first entry boolean flag. True if the XML parser must look for objects;
-                                                                   # second entry tuple.first entry list of object can be retrieved, second entry multiplicity (-1,-2,-n means optional (max 1 object,2 object, no number limit))
-    self.requiredAssObject              = (True,(['Restart','function'],['-n','-n']))
-    self.assemblerDict                  = {}                       # {'class':[['subtype','name',instance]]}
-
-    #used for pca analysis
+    #used for PCA analysis
     self.variablesTransformationDict    = {}                       # for each variable 'modelName', the following informations are included: {'modelName': {latentVariables:[latentVar1, latentVar2, ...], manifestVariables:[manifestVar1,manifestVar2,...]}}
     self.transformationMethod           = {}                       # transformation method used in variablesTransformation node {'modelName':method}
     self.entitiesToRemove               = []                       # This variable is used in order to make sure the transformation info is printed once in the output xml file.
@@ -153,16 +149,6 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     availableDist = initDict['Distributions']
     availableFunc = initDict['Functions']
     self._generateDistributions(availableDist,availableFunc)
-
-  def _addAssObject(self,name,flag):
-    """
-      Method to add required assembler objects to the requiredAssObject dictionary.
-      @ In, name, string, the node name to search for
-      @ In, flag, string, the number of nodes to look for (- means optional, n means any number)
-      @ Out, None
-    """
-    self.requiredAssObject[1][0].append(name)
-    self.requiredAssObject[1][1].append(flag)
 
   def _localWhatDoINeed(self):
     """
@@ -230,27 +216,6 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
             tobesampled = childChild.text
             self.dependentSample[prefix+child.attrib['name']] = tobesampled
         if not foundDistOrFunc: self.raiseAnError(IOError,'Sampled variable',child.attrib['name'],'has neither a <distribution> nor <function> node specified!')
-      elif child.tag == "samplerInit":
-        self.initSeed = Distributions.randomIntegers(0,2**31,self)
-        for childChild in child:
-          if childChild.tag == "limit":
-            self.limit = childChild.text
-          elif childChild.tag == "initialSeed":
-            self.initSeed = int(childChild.text)
-          elif childChild.tag == "reseedEachIteration":
-            if childChild.text.lower() in utils.stringsThatMeanTrue(): self.reseedAtEachIteration = True
-          elif childChild.tag == "distInit":
-            for childChildChild in childChild:
-              NDdistData = {}
-              for childChildChildChild in childChildChild:
-                if childChildChildChild.tag == 'initialGridDisc':
-                  NDdistData[childChildChildChild.tag] = int(childChildChildChild.text)
-                elif childChildChildChild.tag == 'tolerance':
-                  NDdistData[childChildChildChild.tag] = float(childChildChildChild.text)
-                else:
-                  self.raiseAnError(IOError,'Unknown tag '+childChildChildChild.tag+' .Available are: initialGridDisc and tolerance!')
-              self.NDSamplingParams[childChildChild.attrib['name']] = NDdistData
-          else: self.raiseAnError(IOError,'Unknown tag '+childChild.tag+' .Available are: limit, initialSeed, reseedEachIteration and distInit!')
       elif child.tag == "variablesTransformation":
         transformationDict = {}
         listIndex = None
@@ -694,9 +659,10 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         metadata = run.returnMetadata()
         self.raiseADebug('  Run number %s FAILED:' %run.identifier,run.command)
         self.raiseADebug('      return code :',run.getReturnCode())
-        self.raiseADebug('      sampled vars:')
-        for v,k in metadata['SampledVars'].items():
-          self.raiseADebug('         ',v,':',k)
+        if metadata is not None:
+          self.raiseADebug('      sampled vars:')
+          for v,k in metadata['SampledVars'].items():
+            self.raiseADebug('         ',v,':',k)
     else:
       self.raiseADebug('All runs completed without returning errors.')
     self._localHandleFailedRuns(failedRuns)
@@ -770,6 +736,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
     self.firstSurface        = True             # if first LS do not consider the invPointPersistence information (if true)
     self.scoringMethod  = 'distancePersistence' # The scoring method to use
     self.batchStrategy  = 'none'                # The batch strategy to use
+    self.converged      = False                 # flag that is set to True when the sampler converged
     # self.generateCSVs   = False                 # Flag: should intermediate
     #                                             #  results be stored?
     self.toProcess      = []                    # List of the top batchSize
@@ -799,9 +766,9 @@ class LimitSurfaceSearch(AdaptiveSampler):
     self.acceptedScoringParam = ['distance','distancePersistence']
     self.acceptedBatchParam = ['none','naive','maxV','maxP']
 
-    self._addAssObject('TargetEvaluation','n')
-    self._addAssObject('ROM','n')
-    self._addAssObject('Function','-n')
+    self.addAssemblerObject('TargetEvaluation','n')
+    self.addAssemblerObject('ROM','n')
+    self.addAssemblerObject('Function','-n')
 
   def _localWhatDoINeed(self):
     """
@@ -951,6 +918,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
       @ In, solutionExport, DataObjects, optional, a PointSet to hold the solution (a list of limit surface points)
       @ Out, None
     """
+    self.converged        = False
     self.limitSurfacePP   = PostProcessors.returnInstance("LimitSurface",self)
     if 'Function' in self.assemblerDict.keys(): self.goalFunction = self.assemblerDict['Function'][0][3]
     if 'TargetEvaluation' in self.assemblerDict.keys(): self.lastOutput = self.assemblerDict['TargetEvaluation'][0][3]
@@ -1005,6 +973,8 @@ class LimitSurfaceSearch(AdaptiveSampler):
       @ Out, ready, bool, a boolean representing whether the caller is prepared for another input.
     """
     self.raiseADebug('From method localStillReady...')
+    # if the limit surface search has converged, we return False
+    if self.converged: return False
     #test on what to do
     if ready      == False: return ready #if we exceeded the limit just return that we are done
     if type(self.lastOutput) == dict:
@@ -1051,6 +1021,8 @@ class LimitSurfaceSearch(AdaptiveSampler):
         self.exceptionGrid, self.refinedPerformed, ready, self.repetition = self.name + "LSpp", True, True, 0
         self.persistenceMatrix.update(copy.deepcopy(self.limitSurfacePP.getTestMatrix("all",exceptionGrid=self.exceptionGrid)))
         self.errorTolerance = self.subGridTol
+      else:
+        self.converged = True
     self.raiseAMessage('counter: '+str(self.counter)+'       Error: ' +str(testError)+' Repetition: '+str(self.repetition))
     #if the number of point on the limit surface is > than compute persistence
     realAxisNames, cnt = [key.replace('<distribution>','') for key in self.axisName], 0
@@ -1095,6 +1067,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
       self.bandIndices[gridID] = self.bandIndices[gridID].difference(setSurfPoint)
       self.bandIndices[gridID] = list(self.bandIndices[gridID])
       for coordinate in self.bandIndices[gridID]: self.surfPoint[gridID] = np.vstack((self.surfPoint[gridID],self.limitSurfacePP.gridCoord[gridID][coordinate]))
+    if self.converged: self.raiseAMessage(self.name + " converged!")
     return ready
 
   def __scoreCandidates(self):
@@ -1668,6 +1641,7 @@ class Grid(Sampler):
         self.raiseADebug('New point found: '+str(newpoint))
       else:
         self.counter+=1
+        self.inputInfo['prefix'] = str(self.counter)
         if self.counter>=self.limit: raise utils.NoMoreSamplesNeeded
         self.raiseADebug('Point',newpoint,'found in restart.')
       self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
@@ -1938,8 +1912,8 @@ class DynamicEventTree(Grid):
     """
     needDict = Sampler._localWhatDoINeed(self)
     for hybridsampler in self.hybridStrategyToApply.values():
-      preneedDict = hybridsampler.whatDoINeed()
-      for key,value in preneedDict.items():
+      preNeedDict = hybridsampler.whatDoINeed()
+      for key,value in preNeedDict.items():
         if key not in needDict.keys(): needDict[key] = []
         needDict[key] = needDict[key] + value
     return needDict
@@ -1995,7 +1969,7 @@ class DynamicEventTree(Grid):
     # Read the branch info from the parent calculation (just ended calculation)
     # This function stores the information in the dictionary 'self.actualBranchInfo'
     # If no branch info, this history is concluded => return
-    if not self.__readBranchInfo(jobObject.output):
+    if not self.__readBranchInfo(jobObject.output, jobObject.getWorkingDir()):
       parentNode.add('completedHistory', True)
       return False
     # Collect the branch info in a multi-level dictionary
@@ -2072,12 +2046,13 @@ class DynamicEventTree(Grid):
       self.endInfo[index]['branchChangedParams'][key]['unchangedConditionalPb'] = parentCondPb*float(self.endInfo[index]['branchChangedParams'][key]['unchangedPb'])
       for pb in range(len(self.endInfo[index]['branchChangedParams'][key]['associatedProbability'])): self.endInfo[index]['branchChangedParams'][key]['changedConditionalPb'].append(parentCondPb*float(self.endInfo[index]['branchChangedParams'][key]['associatedProbability'][pb]))
 
-  def __readBranchInfo(self,outBase=None):
+  def __readBranchInfo(self,outBase=None,currentWorkingDir=None):
     """
       Function to read the Branching info that comes from a Model
       The branching info (for example, distribution that triggered, parameters must be changed, etc)
       are supposed to be in a xml format
       @ In, outBase, string, optional, it is the output root that, if present, is used to construct the file name the function is going to try reading.
+      @ In, currentWorkingDir, string, optional, it is the current working directory. If not present, the branch info are going to be looked in the self.workingDir
       @ Out, branchPresent, bool, true if the info are present (a set of new branches need to be run), false if the actual parent calculation reached an end point
     """
     # Remove all the elements from the info container
@@ -2085,9 +2060,10 @@ class DynamicEventTree(Grid):
     branchPresent = False
     self.actualBranchInfo = {}
     # Construct the file name adding the outBase root if present
-    if outBase: filename = outBase + "_actual_branch_info.xml"
-    else: filename = "actual_branch_info.xml"
-    if not os.path.isabs(filename): filename = os.path.join(self.workingDir,filename)
+    filename   = outBase + "_actual_branch_info.xml" if outBase else "actual_branch_info.xml"
+    workingDir = currentWorkingDir if currentWorkingDir is not None else self.workingDir
+
+    if not os.path.isabs(filename): filename = os.path.join(workingDir,filename)
     if not os.path.exists(filename):
       self.raiseADebug('branch info file ' + os.path.basename(filename) +' has not been found. => No Branching.')
       return branchPresent
@@ -3099,7 +3075,7 @@ class FactorialDesign(Grid):
     """
     Grid.__init__(self)
     self.printTag = 'SAMPLER FACTORIAL DESIGN'
-    # accepted types. full = full factorial, 2levelFract = 2-level fracional factorial, pb = Plackett-Burman design. NB. full factorial is equivalent to Grid sampling
+    # accepted types. full = full factorial, 2levelFract = 2-level fractional factorial, pb = Plackett-Burman design. NB. full factorial is equivalent to Grid sampling
     self.acceptedTypes = ['full','2levelfract','pb'] # accepted factorial types
     self.factOpt       = {}                          # factorial options (type,etc)
     self.designMatrix  = None                        # matrix container
@@ -3211,7 +3187,7 @@ class ResponseSurfaceDesign(Grid):
     self.respOpt         = {}                                    # response surface design options (type,etc)
     self.designMatrix    = None                                  # matrix container
     self.bounds          = {}                                    # dictionary of lower and upper
-    self.mapping         = {}                                    # mapping between designmatrix coordinates and position in grid
+    self.mapping         = {}                                    # mapping between designMatrix coordinates and position in grid
     self.minNumbVars     = {'boxbehnken':3,'centralcomposite':2} # minimum number of variables
     # dictionary of accepted types and options (required True, optional False)
     self.acceptedOptions = {'boxbehnken':['ncenters'], 'centralcomposite':['centers','alpha','face']}
@@ -3343,7 +3319,7 @@ class SparseGridCollocation(Grid):
     self.jobHandler     = None  #pointer to job handler for parallel runs
     self.doInParallel   = True  #compute sparse grid in parallel flag, recommended True
     self.dists          = {}    #Contains the instance of the distribution to be used. keys are the variable names
-    self._addAssObject('ROM','1')
+    self.addAssemblerObject('ROM','1',True)
 
   def _localWhatDoINeed(self):
     """
@@ -3543,6 +3519,7 @@ class SparseGridCollocation(Grid):
       if inExisting:
         self.raiseADebug('Found pt',pt,'in restart.')
         self.counter+=1
+        self.inputInfo['prefix'] = str(self.counter)
         if self.counter==self.limit: raise utils.NoMoreSamplesNeeded
         continue
       else:
@@ -3662,7 +3639,7 @@ class AdaptiveSparseGrid(AdaptiveSampler,SparseGridCollocation):
     self.newSolutionSizeShouldBe = None   #used to track and debug intended size of solutions
     self.inTraining              = set()  #list of index set points for whom points are being run
 
-    self._addAssObject('TargetEvaluation','1')
+    self.addAssemblerObject('TargetEvaluation','1')
 
   def localInputAndChecks(self,xmlNode):
     """
@@ -4175,8 +4152,7 @@ class Sobol(SparseGridCollocation):
     self.doInParallel   = True  #compute sparse grid in parallel flag, recommended True
     self.distinctPoints = set() #tracks distinct points used in creating this ROM
     self.sparseGridType = 'smolyak'
-
-    self._addAssObject('ROM','1')
+    self.addAssemblerObject('ROM','1',True)
 
   def _localWhatDoINeed(self):
     """
@@ -4314,6 +4290,7 @@ class Sobol(SparseGridCollocation):
       if inExisting:
         self.raiseADebug('point found in restart:',pt)
         self.counter+=1
+        self.inputInfo['prefix'] = str(self.counter)
         if self.counter==self.limit: raise utils.NoMoreSamplesNeeded
         continue
       else:
@@ -4419,7 +4396,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     self.submittedNotCollected = [] #list of points that have been generated but not collected
     self.inTraining      = []       #usually just one tuple, unless multiple items in simultaneous training
 
-    self._addAssObject('TargetEvaluation','1')
+    self.addAssemblerObject('TargetEvaluation','1')
 
   def localInputAndChecks(self,xmlNode):
     """
@@ -5207,13 +5184,131 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     for sub in self.useSet.keys():
       self._finalizeSubset(sub)
     AdaptiveSparseGrid._writeConvergencePoint(self,runPoint)
+#
+#
+#
+#
+#
+#
+#
+#
+class EnsembleForwardSampler(StaticSampler):
+  """
+    Ensemble Forward sampler. This sampler is aimed to combine Forward Sampling strategies
+  """
+  def __init__(self):
+    """
+      Default Constructor that will initialize member variables with reasonable
+      defaults or empty lists/dictionaries where applicable.
+      @ In, None
+      @ Out, None
+    """
+    StaticSampler.__init__(self)
+    self.acceptableSamplers   = ['MonteCarlo','Stratified','Grid','FactorialDesign','ResponseSurfaceDesign']
+    self.printTag             = 'SAMPLER EnsembleForward'
+    self.instanciatedSamplers = {}
+    self.samplersCombinations = {}
 
+  def localInputAndChecks(self,xmlNode):
+    """
+      Class specific xml inputs will be read here and checked for validity.
+      @ In, xmlNode, xml.etree.ElementTree.Element, The xml element node that will be checked against the available options specific to this Sampler.
+      @ Out, None
+    """
+    StaticSampler.readSamplerInit(self,xmlNode)
+    for child in xmlNode:
+      if child.tag in self.acceptableSamplers:
+        child.attrib['name'] = child.tag
+        self.instanciatedSamplers[child.tag] = returnInstance(child.tag,self)
+        #FIXME the variableGroups needs to be fixed
+        self.instanciatedSamplers[child.tag].readXML(child,self.messageHandler,variableGroups={},globalAttributes=self.globalAttributes)
+      elif child.tag in knownTypes():
+        self.raiseAnError(IOError,"Sampling strategy "+child.tag+" is not usable in "+self.type+" Sampler. Available are "+",".join(self.acceptableSamplers))
+      else:
+        self.raiseAnError(IOError,"XML node "+ child.tag + " unknown. Check the Manual!")
 
-#
-#
-#
-#
+  def _localWhatDoINeed(self):
+    """
+      This method is a local mirror of the general whatDoINeed method.
+      It is implemented here because this Sampler requests special objects
+      @ In, None
+      @ Out, needDict, dict, dictionary of objects needed
+    """
+    needDict = StaticSampler._localWhatDoINeed(self)
+    for combSampler in self.instanciatedSamplers.values():
+      preNeedDict = combSampler.whatDoINeed()
+      for key,value in preNeedDict.items():
+        if key not in needDict.keys(): needDict[key] = []
+        needDict[key] = needDict[key] + value
+    return needDict
 
+  def _localGenerateAssembler(self,initDict):
+    """
+      It is used for sending to the instanciated class, which is implementing the method, the objects that have been requested through "whatDoINeed" method
+      It is an abstract method -> It must be implemented in the derived class!
+      @ In, initDict, dict, dictionary ({'mainClassName(e.g., Databases):{specializedObjectName(e.g.,DatabaseForSystemCodeNamedWolf):ObjectInstance}'})
+      @ Out, None
+    """
+    availableDist = initDict['Distributions']
+    availableFunc = initDict['Functions']
+    for combSampler in self.instanciatedSamplers.values():
+      combSampler._generateDistributions(availableDist,availableFunc)
+    self.raiseADebug("Distributions initialized!")
+
+  def localInitialize(self):
+    """
+      Initialize the EnsembleForwardSampler sampler. It calls the localInitialize method of all the Samplers defined in this input
+      @ In, None
+      @ Out, None
+    """
+    self.limit = 1
+    cnt = 0
+    lowerBounds, upperBounds = {}, {}
+    for samplingStrategy in self.instanciatedSamplers.keys():
+      self.instanciatedSamplers[samplingStrategy].initialize(externalSeeding=self.initSeed,solutionExport=None)
+      self.samplersCombinations[samplingStrategy] = []
+      self.limit *= self.instanciatedSamplers[samplingStrategy].limit
+      lowerBounds[samplingStrategy],upperBounds[samplingStrategy] = 0, self.instanciatedSamplers[samplingStrategy].limit -1
+      while self.instanciatedSamplers[samplingStrategy].amIreadyToProvideAnInput():
+        self.instanciatedSamplers[samplingStrategy].counter +=1
+        self.instanciatedSamplers[samplingStrategy].localGenerateInput(None,None)
+        self.instanciatedSamplers[samplingStrategy].inputInfo['prefix'] = self.instanciatedSamplers[samplingStrategy].counter
+        self.samplersCombinations[samplingStrategy].append(copy.deepcopy(self.instanciatedSamplers[samplingStrategy].inputInfo))
+      cnt+=1
+    self.raiseAMessage('Number of Combined Samples are ' + str(self.limit) + '!')
+    # create a grid of combinations (no tensor)
+    self.gridEnsemble = GridEntities.GridEntity(self.messageHandler)
+    initDict = {'dimensionNames':self.instanciatedSamplers.keys(),'stepLength':dict.fromkeys(self.instanciatedSamplers.keys(),[1]), 'lowerBounds':lowerBounds,'upperBounds':upperBounds,'computeCells':False,'constructTensor':False}
+    self.gridEnsemble.initialize(initDict)
+
+  def localGenerateInput(self,model,myInput):
+    """
+      Function to select the next most informative point for refining the limit
+      surface search.
+      After this method is called, the self.inputInfo should be ready to be sent
+      to the model
+      @ In, model, model instance, an instance of a model
+      @ In, myInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
+      @ Out, None
+    """
+    index = self.gridEnsemble.returnPointAndAdvanceIterator(returnDict = True)
+    coordinate = []
+    for samplingStrategy in self.instanciatedSamplers.keys(): coordinate.append(self.samplersCombinations[samplingStrategy][int(index[samplingStrategy])])
+    for combination in coordinate:
+      for key in combination.keys():
+        if key not in self.inputInfo.keys(): self.inputInfo[key] = combination[key]
+        else:
+          if type(self.inputInfo[key]).__name__ == 'dict':
+            self.inputInfo[key].update(combination[key])
+    self.inputInfo['PointProbability'] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
+    self.inputInfo['ProbabilityWeight' ] = 1.0
+    for key in self.inputInfo.keys():
+      if key.startswith('ProbabilityWeight-'):self.inputInfo['ProbabilityWeight' ] *= self.inputInfo[key]
+    self.inputInfo['SamplerType'] = 'EnsembleForward'
+#
+#
+#
+#
 """
  Interface Dictionary (factory) (private)
 """
@@ -5231,6 +5326,7 @@ __interFaceDict['SparseGridCollocation'   ] = SparseGridCollocation
 __interFaceDict['AdaptiveSparseGrid'      ] = AdaptiveSparseGrid
 __interFaceDict['Sobol'                   ] = Sobol
 __interFaceDict['AdaptiveSobol'           ] = AdaptiveSobol
+__interFaceDict['EnsembleForward'         ] = EnsembleForwardSampler
 __knownTypes = list(__interFaceDict.keys())
 
 def knownTypes():

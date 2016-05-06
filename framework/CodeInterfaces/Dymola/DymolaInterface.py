@@ -93,8 +93,10 @@ import numpy
 
 from CodeInterfaceBaseClass import CodeInterfaceBase
 
-class DymolaInterface(CodeInterfaceBase):
-  """Provides code to interface RAVEN to Dymola"""
+class Dymola(CodeInterfaceBase):
+  """
+    Provides code to interface RAVEN to Dymola
+  """
 
   def __init__(self):
     """
@@ -180,10 +182,10 @@ class DymolaInterface(CodeInterfaceBase):
     if not found:
       raise Exception('Dymola INTERFACE ERROR -> An text (.txt) file was not found in the input files!')
     # Figure out the new file name and put it into the proper place in the return list
-    newInputFiles = copy.deepcopy(currentInputFiles)
+    #newInputFiles = copy.deepcopy(currentInputFiles)
     originalPath = oriInputFiles[index].getAbsFile()
-    newPath = os.path.join(os.path.split(originalPath)[0], "DM" + Kwargs['prefix'] + os.path.split(originalPath)[1])
-    newInputFiles[index].setAbsFile(newPath)
+    #newPath = os.path.join(os.path.split(originalPath)[0], "DM" + Kwargs['prefix'] + os.path.split(originalPath)[1])
+    #currentInputFiles[index].setAbsFile(newPath)
     # Define dictionary of parameters and pre-process the values.
     # Each key is a parameter name (including the full model path in Modelica_ dot notation) and
     #   each entry is a parameter value. The parameter name includes array indices (if any) in
@@ -264,10 +266,10 @@ class DymolaInterface(CodeInterfaceBase):
           "in %s." % (name, originalPath))
 
     # Re-write the file.
-    with open(newPath, 'w') as src:
+    with open(currentInputFiles[index].getAbsFile(), 'w') as src:
       src.write(text)
 
-    return newInputFiles
+    return currentInputFiles
 
   def finalizeCodeOutput(self, command, output, workingDir):
     """

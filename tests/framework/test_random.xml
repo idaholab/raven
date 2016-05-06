@@ -122,11 +122,11 @@
   </Steps>
 
   <Databases>
-    <HDF5 name="test_RandomTest1_db"/>
-    <HDF5 name="test_RandomTest2_db"/>
-    <HDF5 name="test_RandomTest3_db"/>
-    <HDF5 name="test_RandomTest4_db"/>
-    <HDF5 name="test_RandomTest5_db"/>
+    <HDF5 name="test_RandomTest1_db" readMode="overwrite"/>
+    <HDF5 name="test_RandomTest2_db" readMode="overwrite"/>
+    <HDF5 name="test_RandomTest3_db" readMode="overwrite"/>
+    <HDF5 name="test_RandomTest4_db" readMode="overwrite"/>
+    <HDF5 name="test_RandomTest5_db" readMode="overwrite"/>
   </Databases>
 
 </Simulation>

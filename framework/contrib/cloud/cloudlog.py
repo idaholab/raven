@@ -16,7 +16,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 Lesser General Public License for more details.
 
 You should have received a copy of the GNU Lesser General Public
-License along with this package; if not, see 
+License along with this package; if not, see
 http://www.gnu.org/licenses/lgpl-2.1.html
 """
 
@@ -77,14 +77,14 @@ def purge_old_logs(pid_log_dir, mylog):
     Warning: Potential errors if log file has been opened > purgedays and not written to
     Highly unlikely"""
     import errno, stat, time
-    
+
     try:
         logs = os.listdir(pid_log_dir)
     except OSError, e:
         if e.errno != errno.ENOENT:
             mylog.debug('Could not purge %s due to %s', pid_log_dir, str(e))
         return
-    
+
     now = time.time()
     allowed_difference = purgeDays * 24 * 3600 #purge days in seconds
 
@@ -94,32 +94,32 @@ def purge_old_logs(pid_log_dir, mylog):
             stat_result = os.stat(log_path)
         except OSError:
             mylog.warn('Could not stat %s', log, exc_info = True)
-            continue        
+            continue
         if  (now - stat_result.st_ctime) > allowed_difference:
             mylog.debug('Deleting %s (%s days old)', log, (now - stat_result.st_ctime)/(24*3600))
             try:
                 os.remove(log_path)
             except OSError:
-                mylog.warn('Could not delete %s', log_path, exc_info = True)            
-    
-    
+                mylog.warn('Could not delete %s', log_path, exc_info = True)
+
+
 def init_pid_log(base_path, mylog):
     from util.cloghandler.cloghandler import ConcurrentRotatingFileHandler
     from warnings import warn
     import errno
-        
-    my_pid = str(os.getpid())      
-    path = os.path.join(base_path, by_pid_dir)  
+
+    my_pid = str(os.getpid())
+    path = os.path.join(base_path, by_pid_dir)
 
     try:
         os.makedirs(path)
     except OSError, e: #allowed to exist already
-        if e.errno != errno.EEXIST:                
+        if e.errno != errno.EEXIST:
             warn('PiCloud cannot create directory %s. Error is %s' % (path, e))
 
-    
+
     purge_old_logs(path, mylog)
-    
+
     log_path = os.path.join(path, my_pid + '.log')
     try:
         handler = ConcurrentRotatingFileHandler(log_path, maxBytes=4194304,backupCount=7)
@@ -130,36 +130,36 @@ def init_pid_log(base_path, mylog):
         fix_sudo_path(log_path)
         handler.setFormatter(logging.Formatter(logfmt_main, datefmt =datefmt))
         mylog.addHandler(handler)
-    
+
 
 """Initialize logging"""
-def _init_logging():    
+def _init_logging():
     import errno
     from warnings import warn
-    
-    mylog = logging.getLogger("Cloud")    
-    
+
+    mylog = logging.getLogger("Cloud")
+
     #clear handlers if any exist
     handlers = mylog.handlers[:]
     for handler in handlers:
         mylog.removeHandler(handler)
         handler.close()
-        
-    if saveLog:              
-                                  
+
+    if saveLog:
+
         from util.cloghandler.cloghandler import ConcurrentRotatingFileHandler, concurrent_error
         path = os.path.expanduser(cc.baselocation)
         try:
             os.makedirs(path)
         except OSError, e: #allowed to exist already
-            if e.errno != errno.EEXIST:                
+            if e.errno != errno.EEXIST:
                 warn('PiCloud cannot create directory %s. Error is %s' % (path, e))
-        
+
         path = os.path.join(path, logFilename)
-        
+
         try:
             handler = ConcurrentRotatingFileHandler(path,maxBytes=4194304,backupCount=7)
-        except Exception, e: #warn on any exception            
+        except Exception, e: #warn on any exception
             warn('PiCloud cannot open logfile at %s.  Error is %s' % (path, e))
             handler = NullHandler()
         else:
@@ -170,8 +170,8 @@ def _init_logging():
         handler = NullHandler()
     handler.setFormatter(logging.Formatter(logfmt_pid, datefmt=datefmt))
     mylog.addHandler(handler)
-    mylog.setLevel(logging.getLevelName(logLevel))    
-    
+    mylog.setLevel(logging.getLevelName(logLevel))
+
     #start console logging:
     printhandler = logging.StreamHandler()
     printhandler.setLevel(logging.getLevelName(printLogLevel))
@@ -179,7 +179,7 @@ def _init_logging():
        logging.Formatter(logfmt_main,
        datefmt= datefmt))
     mylog.addHandler(printhandler)
-    
+
     #If pilog exists, use it as a parent
     try:
         pilog_module = __import__('pimployee.log', fromlist=['log'])
@@ -187,24 +187,24 @@ def _init_logging():
         mylog.parent = pilogger
     except (ImportError, AttributeError):
         pass
-        
-    
-        
+
+
+
     if not isinstance(handler, NullHandler):
         mylog.debug("Log file (%s) opened" % handler.baseFilename)
-        
+
         # with pid based logging, this is less relevant now
         if concurrent_error:
             mylog.warning('Could not use ConcurrentRotatingFileHandler due to import error: %s.' +
                           'Likely missing pywin32 packages. Falling back to regular logging; you may experience log corruption if you run multiple python interpreters',
-                          concurrent_error)        
+                          concurrent_error)
 
     if saveLog:
         init_pid_log(os.path.expanduser(cc.baselocation), mylog)
 
-            
+
     return mylog
-                                                              
+
 cloudLog = _init_logging()
 
 
@@ -212,7 +212,7 @@ cloudLog = _init_logging()
 Whether the below functions are sent
 """
 verbose = cc.logging_configurable('verbose',
-                                     default=False, 
+                                     default=False,
                                      comment = "Should cloud library print informative messages to stdout and stderr",
                                      hidden = True)
 
@@ -220,17 +220,17 @@ def stdout(s, auto_newline=True):
     """Write to stdout if verbose
     If auto_newline, add \n to end (like print)"""
     if not verbose:
-        return 
+        return
     sys.stdout.write(s)
     if auto_newline:
         sys.stdout.write('\n')
     sys.stdout.flush()
-               
+
 def stderr(s, auto_newline=True):
     """Write to stderr if verbose
     If auto_newline, add \n to end (like print)"""
     if not verbose:
-        return 
+        return
     sys.stderr.write(s)
     if auto_newline:
         sys.stderr.write('\n')

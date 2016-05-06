@@ -9,10 +9,10 @@ warnings.simplefilter('default',DeprecationWarning)
 
 import copy
 from CodeInterfaceBaseClass   import CodeInterfaceBase
-from MooseBasedAppInterface   import MooseBasedAppInterface
-from BisonMeshScriptInterface import BisonMeshScriptInterface
+from MooseBasedAppInterface   import MooseBasedApp
+from BisonMeshScriptInterface import BisonMeshScript
 
-class BisonAndMeshInterface(CodeInterfaceBase):#MooseBasedAppInterface,BisonMeshScriptInterface):
+class BisonAndMesh(CodeInterfaceBase):#MooseBasedAppInterface,BisonMeshScriptInterface):
   """
     This class provides the means to generate a stochastic-input-based mesh using the MOOSE
     standard Cubit python script in addition to uncertain inputs for the MOOSE app.
@@ -25,8 +25,8 @@ class BisonAndMeshInterface(CodeInterfaceBase):#MooseBasedAppInterface,BisonMesh
       @ Out, None
     """
     CodeInterfaceBase.__init__(self)
-    self.MooseInterface     = MooseBasedAppInterface()
-    self.BisonMeshInterface = BisonMeshScriptInterface()
+    self.MooseInterface     = MooseBasedApp()
+    self.BisonMeshInterface = BisonMeshScript()
     self.MooseInterface    .addDefaultExtension()
     self.BisonMeshInterface.addDefaultExtension()
 
@@ -113,12 +113,11 @@ class BisonAndMeshInterface(CodeInterfaceBase):#MooseBasedAppInterface,BisonMesh
     #make carbon copy of original input files
     for f in currentInputFiles:
       if f.isOpen(): f.close()
-    newInputFiles = copy.deepcopy(currentInputFiles)
     #replace old with new perturbed files, in place
-    newMooseInp,newCubitInp = self.findInps(newInputFiles)
+    newMooseInp,newCubitInp = self.findInps(currentInputFiles)
     newMooseInp.setAbsFile(newMooseInputs[0].getAbsFile())
     newCubitInp.setAbsFile(newCubitInputs[0].getAbsFile())
-    return newInputFiles
+    return currentInputFiles
 
   def finalizeCodeOutput(self, command, output, workingDir):
     """

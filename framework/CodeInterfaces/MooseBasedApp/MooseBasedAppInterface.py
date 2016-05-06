@@ -13,7 +13,7 @@ from CodeInterfaceBaseClass import CodeInterfaceBase
 import MooseData
 import csvUtilities
 
-class MooseBasedAppInterface(CodeInterfaceBase):
+class MooseBasedApp(CodeInterfaceBase):
   """
     this class is used as part of a code dictionary to specialize Model.Code for RAVEN
   """
@@ -65,6 +65,7 @@ class MooseBasedAppInterface(CodeInterfaceBase):
     self._samplersDictionary['ResponseSurfaceDesign'] = self.pointSamplerForMooseBasedApp
     self._samplersDictionary['Adaptive']              = self.pointSamplerForMooseBasedApp
     self._samplersDictionary['SparseGridCollocation'] = self.pointSamplerForMooseBasedApp
+    self._samplersDictionary['EnsembleForward'      ] = self.pointSamplerForMooseBasedApp
     found = False
     for index, inputFile in enumerate(currentInputFiles):
       inputFile = inputFile.getAbsFile()
@@ -75,15 +76,9 @@ class MooseBasedAppInterface(CodeInterfaceBase):
     parser = MOOSEparser.MOOSEparser(currentInputFiles[index].getAbsFile())
     modifDict = self._samplersDictionary[samplerType](**Kwargs)
     parser.modifyOrAdd(modifDict,False)
-    newInputFiles = copy.deepcopy(currentInputFiles)
-    #TODO fix this? storing unwieldy amounts of data in 'prefix'
-    if type(Kwargs['prefix']) in [str,type("")]:#Specifing string type for python 2 and 3
-      newInputFiles[index].setBase(Kwargs['prefix']+"~"+currentInputFiles[index].getBase())
-    else:
-      newInputFiles[index].setBase(str(Kwargs['prefix'][1][0])+"~"+currentInputFiles[index].getBase())
-    parser.printInput(newInputFiles[index].getAbsFile())
+    parser.printInput(currentInputFiles[index].getAbsFile())
     self.vectorPPFound, self.vectorPPDict = parser.vectorPostProcessor()
-    return newInputFiles
+    return currentInputFiles
 
   def pointSamplerForMooseBasedApp(self,**Kwargs):
     """

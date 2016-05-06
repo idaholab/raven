@@ -73,7 +73,7 @@
   </Steps>
 
   <Databases>
-    <HDF5 name="test_bison_lhs"/>
+    <HDF5 name="test_bison_lhs" readMode="overwrite"/>
   </Databases>
 
   <OutStreams>

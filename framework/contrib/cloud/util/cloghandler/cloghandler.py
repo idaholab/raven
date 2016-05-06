@@ -88,11 +88,11 @@ class ConcurrentRotatingFileHandler(BaseRotatingHandler):
     write to the log file concurrently, but this may mean that the file will
     exceed the given size.
     """
-    
+
     #picloud:
     _disabled = False
     stream_lock = None
-    
+
     def __init__(self, filename, mode='a', maxBytes=0, backupCount=0,
                  encoding=None, debug=False, supress_abs_warn=False):
         """
@@ -149,7 +149,7 @@ class ConcurrentRotatingFileHandler(BaseRotatingHandler):
         # that should be supported. For the moment, we are just going to warn
         # the user if they provide a relative path and do some other voodoo
         # logic that you'll just have to review for yourself.
-        
+
         # if the given filename contains no path, we make an absolute path
         if not os.path.isabs(filename):
             if FORCE_ABSOLUTE_PATH or \
@@ -165,11 +165,11 @@ class ConcurrentRotatingFileHandler(BaseRotatingHandler):
         except TypeError: # Due to a different logging release without encoding support  (Python 2.4.1 and earlier?)
             BaseRotatingHandler.__init__(self, filename, mode)
             self.encoding = encoding
-        
+
         self._rotateFailed = False
         self.maxBytes = maxBytes
         self.backupCount = backupCount
-        
+
         # Prevent multiple extensions on the lock file (Only handles the normal "*.log" case.)
         if not concurrent_error:
             if filename.endswith(".log"):
@@ -177,45 +177,45 @@ class ConcurrentRotatingFileHandler(BaseRotatingHandler):
             else:
                 lock_file = filename
             self.stream_lock = open(lock_file + ".lock", "w")  # use "a" for debug
-        
+
         # For debug mode, swap out the "_degrade()" method with a more a verbose one.
         if debug:
             self._degrade = self._degrade_debug
-    
+
     def _openFile(self, mode):
         if self.encoding:
             self.stream = codecs.open(self.baseFilename, mode, self.encoding)
         else:
             self.stream = open(self.baseFilename, mode)
-    
+
     def emit(self, record):
         """PiCloud: Support for disabling"""
         if not self._disabled:
             BaseRotatingHandler.emit(self, record)
-    
+
     def acquire(self):
         """ Acquire thread and file locks. Also re-opening log file when running
         in 'degraded' mode. """
         # handle thread lock
         Handler.acquire(self)
         try:
-            lock(self.stream_lock, LOCK_EX)            
+            lock(self.stream_lock, LOCK_EX)
         except IOError: # lock failed - abort logging
             self._disable()
             return
-        
+
         try:
             #self.stream_lock.write(str(os.getpid()) + ' aq\n')
-            if self.stream and self.stream.closed:  
-                try:          
+            if self.stream and self.stream.closed:
+                try:
                     self._openFile(self.mode)
                 except IOError: #fail - abort logging
                     self._disable()
-        
+
         except: #unknown error
             unlock(self.stream_lock)
             raise
-    
+
     def release(self):
         """ Release file and thread locks. Flush stream and take care of closing
         stream in 'degraded' mode. """
@@ -239,7 +239,7 @@ class ConcurrentRotatingFileHandler(BaseRotatingHandler):
             finally:
                 # release thread lock
                 Handler.release(self)
-    
+
     def close(self):
         """
         Closes the stream.
@@ -250,7 +250,7 @@ class ConcurrentRotatingFileHandler(BaseRotatingHandler):
         if self.stream_lock and not self.stream_lock.closed:
             self.stream_lock.close()
         Handler.close(self)
-    
+
     def flush(self):
         """ flush():  Do nothing.
 
@@ -263,18 +263,18 @@ class ConcurrentRotatingFileHandler(BaseRotatingHandler):
         another process to write to the log file in between calling
         stream.write() and stream.flush(), which seems like a bad thing. """
         pass
-    
+
     def _disable(self):
         """PiCloud: Disable This handler.
         This is needed due to errors occuring on our server; we can't allow crashes"""
         self._disabled = True
         #self.stream = None
-    
+
     def _degrade(self, degrade, msg, *args):
         """ Set degrade mode or not.  Ignore msg. """
         self._rotateFailed = degrade
         del msg, args   # avoid pychecker warnings
-    
+
     def _degrade_debug(self, degrade, msg, *args):
         """ A more colorful version of _degade(). (This is enabled by passing
         "debug=True" at initialization).
@@ -289,7 +289,7 @@ class ConcurrentRotatingFileHandler(BaseRotatingHandler):
                 sys.stderr.write("Degrade mode - EXITING  - (pid=%d)   %s\n" %
                                  (os.getpid(), msg % args))
                 self._rotateFailed = False
-    
+
     def doRollover(self):
         """
         Do a rollover, as described in __init__().
@@ -314,11 +314,11 @@ class ConcurrentRotatingFileHandler(BaseRotatingHandler):
                 self._degrade(True, "rename failed.  File in use?  "
                               "exception=%s", exc_value)
                 return
-            
+
             # Q: Is there some way to protect this code from a KeboardInterupt?
             # This isn't necessarily a data loss issue, but it certainly would
             # break the rotation process during my stress testing.
-            
+
             # There is currently no mechanism in place to handle the situation
             # where one of these log files cannot be renamed. (Example, user
             # opens "logfile.3" in notepad)
@@ -338,7 +338,7 @@ class ConcurrentRotatingFileHandler(BaseRotatingHandler):
             self._degrade(False, "Rotation completed")
         finally:
             self._openFile(self.mode)
-    
+
     def shouldRollover(self, record):
         """
         Determine if rollover should occur.
@@ -359,7 +359,7 @@ class ConcurrentRotatingFileHandler(BaseRotatingHandler):
         except ValueError:  #PiCloud: if I/O operation on closed file error occurs, disable handler
             self._degrade(True, 'stream seek failed')
         return False
-    
+
     def _shouldRollover(self):
         if self.maxBytes > 0:                   # are we rolling over?
             self.stream.seek(0, 2)  #due to non-posix-compliant Windows feature
@@ -370,7 +370,7 @@ class ConcurrentRotatingFileHandler(BaseRotatingHandler):
         return False
 
 
-# Publish this class to the "logging.handlers" module so that it can be use 
+# Publish this class to the "logging.handlers" module so that it can be use
 # from a logging config file via logging.config.fileConfig().
 import logging.handlers
 logging.handlers.ConcurrentRotatingFileHandler = ConcurrentRotatingFileHandler

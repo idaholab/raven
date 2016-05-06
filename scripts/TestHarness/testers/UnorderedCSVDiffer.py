@@ -1,9 +1,6 @@
 from __future__ import division, print_function, unicode_literals, absolute_import
 import sys,os
 
-num_tol = 1e-10 #effectively zero for our purposes
-
-
 def isANumber(x):
   '''Checks if x can be converted to a float.
   @ In, x, a variable or value
@@ -18,7 +15,7 @@ def isANumber(x):
 class UnorderedCSVDiffer:
   """ Used for comparing a bunch of xml files.
   """
-  def __init__(self, test_dir, out_files,*args):
+  def __init__(self, test_dir, out_files,relative_error=1e-10):
     """ Create an UnorderedCSVDiffer class
     test_dir:
     out_files:
@@ -32,7 +29,8 @@ class UnorderedCSVDiffer:
     self.__messages = ""
     self.__same = True
     self.__test_dir = test_dir
-    self.__options = args
+    #self.__options = args
+    self.__rel_err = relative_error
 
   def diff(self):
     """ Run the comparison.
@@ -88,16 +86,20 @@ class UnorderedCSVDiffer:
             found = False
             for g,goldrow in enumerate(goldData):
               #establish a baseline magnitude
-              denom = sum(goldrow)
+              denom = sum(g if type(g)==float else 0 for g in goldrow)
               if denom == 0: denom = 1.0 #protection from div by zero
               allfound = True
               for d,g in zip(datarow,goldrow):
-                check = abs(d-g)
-                #div by 0 error handling
-                if abs(g)>1e-15: check/=abs(g)
-                if check > num_tol:
-                  allfound = False
-              # if sum(abs(d-g)/g for d,g in zip(datarow,goldrow)) < num_tol: #match found -> old method, div by 0 error
+                if type(d) != type(g): allfound = False
+                if type(d) == float:
+                  check = abs(d-g)
+                  #div by 0 error handling
+                  if abs(g)>1e-15: check/=abs(g)
+                  if check > self.__rel_err:
+                    allfound = False
+                elif type(d) == str:
+                  allFound = d == g
+              # if sum(abs(d-g)/g for d,g in zip(datarow,goldrow)) < self.__rel_err: #match found -> old method, div by 0 error
               if allfound:
                 goldData.remove(goldrow)
                 found = True
@@ -121,5 +123,16 @@ class UnorderedCSVDiffer:
     data=[]
     for l,line in enumerate(f):
       if line.strip()=='': continue #sometimes a newline at and of file)
-      data.append(list(float(e) for e in line.strip().split(',')))
+      #if all values are floats, this works great
+      try: data.append(list(float(e) for e in line.strip().split(',')))
+      #otherwise, we need to take it one entry at a time
+      except ValueError:
+        toAppend = []
+        for e in line.strip().split(','):
+          #if it's float, make it so
+          try: e = float(e)
+          #otherwise, leave it string
+          except ValueError: pass
+          toAppend.append(e)
+        data.append(toAppend)
     return header.strip(),data

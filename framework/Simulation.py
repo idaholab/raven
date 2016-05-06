@@ -529,8 +529,8 @@ class Simulation(MessageHandler.MessageUser):
       self.raiseADebug('Setting color output mode to',xmlNode.attrib['color'])
       self.messageHandler.setColor(xmlNode.attrib['color'])
     self.messageHandler.verbosity = self.verbosity
-    try:    runInfoNode = xmlNode.find('RunInfo')
-    except: self.raiseAnError(IOError,'The run info node is mandatory')
+    try: runInfoNode = xmlNode.find('RunInfo')
+    except: self.raiseAnError(IOError,'The RunInfo node is missing!')
     self.__readRunInfo(runInfoNode,runInfoSkip,xmlFilename)
     ### expand variable groups before continuing ###
     ## build variable groups ##
@@ -595,6 +595,14 @@ class Simulation(MessageHandler.MessageUser):
               else: self.whichDict[Class][subType][name].readXML(childChild, self.messageHandler, globalAttributes=globalAttributes)
             else: self.raiseAnError(IOError,'not found name attribute for one '+Class)
       else: self.raiseAnError(IOError,'the '+child.tag+' is not among the known simulation components '+ET.tostring(child))
+    # If requested, duplicate input
+    # ###NOTE: All substitutions to the XML input tree should be done BEFORE this point!!
+    if self.runInfoDict.get('printInput',False):
+      fileName = os.path.join(self.runInfoDict['WorkingDir'],self.runInfoDict['printInput'])
+      self.raiseAMessage('Writing duplicate input file:',fileName)
+      outFile = file(fileName,'w')
+      outFile.writelines(ET.tostring(xmlNode)+'\n') #\n for no-end-of-line issue
+      outFile.close()
     if not set(self.stepSequenceList).issubset(set(self.stepsDict.keys())):
       self.raiseAnError(IOError,'The step list: '+str(self.stepSequenceList)+' contains steps that have not been declared: '+str(list(self.stepsDict.keys())))
 
@@ -605,8 +613,6 @@ class Simulation(MessageHandler.MessageUser):
       @ In, None
       @ Out, None
     """
-    #check/generate the existence of the working directory
-    if not os.path.exists(self.runInfoDict['WorkingDir']): os.makedirs(self.runInfoDict['WorkingDir'])
     #move the full simulation environment in the working directory
     os.chdir(self.runInfoDict['WorkingDir'])
     #add also the new working dir to the path
@@ -626,7 +632,7 @@ class Simulation(MessageHandler.MessageUser):
     self.__modeHandler.modifySimulation()
     self.jobHandler.initialize(self.runInfoDict,self.messageHandler)
     # only print the dictionaries when the verbosity is set to debug
-    if self.verbosity == 'debug': self.printDicts()
+    #if self.verbosity == 'debug': self.printDicts()
     for stepName, stepInstance in self.stepsDict.items():
       self.checkStep(stepInstance,stepName)
 
@@ -670,31 +676,44 @@ class Simulation(MessageHandler.MessageUser):
       @ Out, None
     """
     if 'verbosity' in xmlNode.attrib.keys(): self.verbosity = xmlNode.attrib['verbosity']
-    #FIXME temporarily create an error to prevent users from using the 'debug' attribute - remove it by end of June 2015 (Sonat)
-    if 'debug' in xmlNode.attrib.keys(): self.raiseAnError(IOError,'"debug" attribute found, but has been deprecated.  Please change it to "verbosity."')
     self.raiseAMessage('Global verbosity level is "',self.verbosity,'"',verbosity='quiet')
     for element in xmlNode:
       if element.tag in runInfoSkip:
         self.raiseAWarning("Skipped element ",element.tag)
-      elif   element.tag == 'WorkingDir'        :
+      elif element.tag == 'printInput':
+        text = element.text.strip() if element.text is not None else ''
+        #extension fixing
+        if len(text) >= 4 and text[-4:].lower() == '.xml': text = text[:-4]
+        # if the user asked to not print input instead of leaving off tag, respect it
+        if text.lower() in utils.stringsThatMeanFalse():
+          self.runInfoDict['printInput'] = False
+        # if the user didn't provide a name, provide a default
+        elif len(text)<1:
+          self.runInfoDict['printInput'] = 'duplicated_input.xml'
+        # otherwise, use the user-provided name
+        else:
+          self.runInfoDict['printInput'] = text+'.xml'
+      elif element.tag == 'WorkingDir':
         tempName = element.text
         if '~' in tempName : tempName = os.path.expanduser(tempName)
-        if os.path.isabs(tempName):            self.runInfoDict['WorkingDir'        ] = tempName
+        if os.path.isabs(tempName): self.runInfoDict['WorkingDir'] = tempName
         elif "runRelative" in element.attrib:
-          self.runInfoDict['WorkingDir'        ] = os.path.abspath(tempName)
+          self.runInfoDict['WorkingDir'] = os.path.abspath(tempName)
         else:
           if xmlFilename == None:
             self.raiseAnError(IOError,'Relative working directory requested but xmlFilename is None.')
           xmlDirectory = os.path.dirname(os.path.abspath(xmlFilename))
           rawRelativeWorkingDir = element.text.strip()
           self.runInfoDict['WorkingDir'] = os.path.join(xmlDirectory,rawRelativeWorkingDir)
-      elif element.tag == 'RemoteRunCommand'  :
+        #check/generate the existence of the working directory
+        if not os.path.exists(self.runInfoDict['WorkingDir']): os.makedirs(self.runInfoDict['WorkingDir'])
+      elif element.tag == 'RemoteRunCommand':
         tempName = element.text
         if '~' in tempName : tempName = os.path.expanduser(tempName)
         if os.path.isabs(tempName):
-          self.runInfoDict['RemoteRunCommand' ] = tempName
+          self.runInfoDict['RemoteRunCommand'] = tempName
         else:
-          self.runInfoDict['RemoteRunCommand' ] = os.path.abspath(os.path.join(self.runInfoDict['FrameworkDir'],tempName))
+          self.runInfoDict['RemoteRunCommand'] = os.path.abspath(os.path.join(self.runInfoDict['FrameworkDir'],tempName))
       elif element.tag == 'JobName'           : self.runInfoDict['JobName'           ] = element.text.strip()
       elif element.tag == 'ParallelCommand'   : self.runInfoDict['ParallelCommand'   ] = element.text.strip()
       elif element.tag == 'queueingSoftware'  : self.runInfoDict['queueingSoftware'  ] = element.text.strip()
@@ -712,7 +731,7 @@ class Simulation(MessageHandler.MessageUser):
         if element.text.lower() in utils.stringsThatMeanTrue(): self.runInfoDict['delSucLogFiles'    ] = True
         else                                            : self.runInfoDict['delSucLogFiles'    ] = False
       elif element.tag == 'logfileBuffer'      : self.runInfoDict['logfileBuffer'] = utils.convertMultipleToBytes(element.text.lower())
-      elif element.tag == 'clusterParameters'  : self.runInfoDict['clusterParameters'] = splitCommand(element.text)
+      elif element.tag == 'clusterParameters'  : self.runInfoDict['clusterParameters'].extend(splitCommand(element.text)) #extend to allow adding parameters at different points.
       elif element.tag == 'mode'               :
         self.runInfoDict['mode'] = element.text.strip().lower()
         #parallel environment

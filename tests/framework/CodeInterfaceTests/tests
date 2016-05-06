@@ -3,8 +3,8 @@
  [./testGridBison]
    type = 'RavenFramework'
    input = 'test_Grid_Sampler_Bison.xml'
-   output = 'GridTestBison/CustomSampler/out~1~gap_perfect_transfer_test'
-   csv = 'GridTestBison/CustomSampler/out~18~gap_perfect_transfer_test.csv GridTestBison/CustomSampler/out~17~gap_perfect_transfer_test.csv GridTestBison/outGrid_dump.csv'
+   output = 'GridTestBison/CustomSampler/1/out~gap_perfect_transfer_test'
+   csv = 'GridTestBison/CustomSampler/18/out~gap_perfect_transfer_test.csv GridTestBison/CustomSampler/17/out~gap_perfect_transfer_test.csv GridTestBison/outGrid_dump.csv'
    max_time = 500
    rel_err = 0.001
    required_executable = '../../../../bison/bison-%METHOD%'
@@ -13,12 +13,24 @@
    # test often does not work in debug mode because of the problem.
    method = 'devel opt'
  [../]
+ 
+ [./testGridRattlesnake]
+   type = 'RavenFramework'
+   input = 'test_Grid_Sampler_rattlesnake.xml'
+   output = 'GridTestTwigl/CustomSampler/18/out~twigl_mixing.csv GridTestTwigl/CustomSampler/1/out~twigl_mixing.csv GridTestTwigl/CustomSampler/10/out~twigl_mixing.csv'
+   csv = 'GridTestTwigl/outGrid_dump.csv'
+   max_time = 500
+   rel_err = 0.001
+   required_executable = '../../../../rattlesnake/rattlesnake-%METHOD%'
+   skip_if_env = BUILD_ROOT
+   method = 'devel opt'
+ [../]
 
  [./testLHSBison]
   type = 'RavenFramework'
   input = 'test_LHS_Sampler_Bison.xml'
-  output = 'LHStestBison/myLHS/out~1~gap_perfect_transfer_test'
-  UnorderedCsv = 'LHStestBison/myLHS/out~1~gap_perfect_transfer_test.csv LHStestBison/myLHS/out~3~gap_perfect_transfer_test.csv'
+  output = 'LHStestBison/myLHS/1/out~gap_perfect_transfer_test'
+  UnorderedCsv = 'LHStestBison/myLHS/1/out~gap_perfect_transfer_test.csv LHStestBison/myLHS/3/out~gap_perfect_transfer_test.csv'
   max_time = 500
   rel_err = 0.001
   required_executable = '../../../../bison/bison-%METHOD%'
@@ -29,7 +41,7 @@
    #REQUIREMENT_TEST R-IS-1
   type = 'RavenFramework'
   input = 'test_LHS_Sampler_Bison_parallel.xml'
-  output = 'LHStestBisonParallel/myLHS/out~1~gap_perfect_transfer_test LHStestBisonParallel/LHS_Bison_dump.csv'
+  output = 'LHStestBisonParallel/myLHS/1/out~gap_perfect_transfer_test LHStestBisonParallel/LHS_Bison_dump.csv'
   UnorderedCsv = 'LHStestBisonParallel/LHS_Bison_dump.csv'
   max_time = 500
   rel_err = 0.001
@@ -49,24 +61,33 @@
  [./RELAP5interfaceTestNoExecutable]
   type = 'RavenFramework'
   input = 'test_relap5_code_interface.xml'
-  output = 'RELAP5interfaceTest/testDummyStep/1~snc01.i RELAP5interfaceTest/testDummyStep/2~snc01.i RELAP5interfaceTest/testDummyStep/3~snc01.i RELAP5interfaceTest/testDummyStep/4~snc01.i RELAP5interfaceTest/testDummyStep/5~snc01.i RELAP5interfaceTest/testDummyStep/out~1~snc01.csv RELAP5interfaceTest/testDummyStep/out~2~snc01.csv RELAP5interfaceTest/testDummyStep/out~3~snc01.csv RELAP5interfaceTest/testDummyStep/out~4~snc01.csv RELAP5interfaceTest/testDummyStep/out~5~snc01.csv'
-  csv = 'RELAP5interfaceTest/testDummyStep/out~1~snc01.csv RELAP5interfaceTest/testDummyStep/out~2~snc01.csv RELAP5interfaceTest/testDummyStep/out~3~snc01.csv RELAP5interfaceTest/testDummyStep/out~4~snc01.csv RELAP5interfaceTest/testDummyStep/out~5~snc01.csv'
+  output = 'RELAP5interfaceTest/testDummyStep/1/snc01.i RELAP5interfaceTest/testDummyStep/2/snc01.i RELAP5interfaceTest/testDummyStep/3/snc01.i RELAP5interfaceTest/testDummyStep/4/snc01.i RELAP5interfaceTest/testDummyStep/5/snc01.i RELAP5interfaceTest/testDummyStep/1/out~snc01.csv RELAP5interfaceTest/testDummyStep/2/out~snc01.csv RELAP5interfaceTest/testDummyStep/3/out~snc01.csv RELAP5interfaceTest/testDummyStep/4/out~snc01.csv RELAP5interfaceTest/testDummyStep/5/out~snc01.csv'
+  csv = 'RELAP5interfaceTest/testDummyStep/1/out~snc01.csv RELAP5interfaceTest/testDummyStep/2/out~snc01.csv RELAP5interfaceTest/testDummyStep/3/out~snc01.csv RELAP5interfaceTest/testDummyStep/4/out~snc01.csv RELAP5interfaceTest/testDummyStep/5/out~snc01.csv'
   test_interface_only = True
  [../]
+
+ [./RELAP5interfaceMultDeckTestNoExecutable]
+  type = 'RavenFramework'
+  input = 'test_relap5_code_interface_multideck.xml'
+  output = 'RELAP5interfaceTestMultiDeck/testDummyStep/1/snc01.i RELAP5interfaceTestMultiDeck/testDummyStep/2/snc01.i RELAP5interfaceTestMultiDeck/testDummyStep/3/snc01.i RELAP5interfaceTestMultiDeck/testDummyStep/4/snc01.i RELAP5interfaceTestMultiDeck/testDummyStep/5/snc01.i RELAP5interfaceTestMultiDeck/testDummyStep/1/out~snc01.csv RELAP5interfaceTestMultiDeck/testDummyStep/2/out~snc01.csv RELAP5interfaceTestMultiDeck/testDummyStep/3/out~snc01.csv RELAP5interfaceTestMultiDeck/testDummyStep/4/out~snc01.csv RELAP5interfaceTestMultiDeck/testDummyStep/5/out~snc01.csv'
+  csv = 'RELAP5interfaceTestMultiDeck/testDummyStep/1/out~snc01.csv RELAP5interfaceTestMultiDeck/testDummyStep/2/out~snc01.csv RELAP5interfaceTestMultiDeck/testDummyStep/3/out~snc01.csv RELAP5interfaceTestMultiDeck/testDummyStep/4/out~snc01.csv RELAP5interfaceTestMultiDeck/testDummyStep/5/out~snc01.csv'
+  test_interface_only = True
+ [../]
+
 
 [./OpenModelicaInterfaceTestNoExecutable]
   type = 'RavenFramework'
   input = 'test_OpenModelica_code_interface.xml'
-  output = 'OMInterfaceTest/testDummyStep/OM1BouncingBall_init.xml OMInterfaceTest/testDummyStep/OM2BouncingBall_init.xml OMInterfaceTest/testDummyStep/OM3BouncingBall_init.xml OMInterfaceTest/testDummyStep/OM4BouncingBall_init.xml OMInterfaceTest/testDummyStep/OM5BouncingBall_init.xml OMInterfaceTest/testDummyStep/out~OM1BouncingBall_init.csv OMInterfaceTest/testDummyStep/out~OM2BouncingBall_init.csv OMInterfaceTest/testDummyStep/out~OM3BouncingBall_init.csv OMInterfaceTest/testDummyStep/out~OM4BouncingBall_init.csv OMInterfaceTest/testDummyStep/out~OM5BouncingBall_init.csv'
-  csv = 'OMInterfaceTest/testDummyStep/out~OM1BouncingBall_init.csv OMInterfaceTest/testDummyStep/out~OM2BouncingBall_init.csv OMInterfaceTest/testDummyStep/out~OM3BouncingBall_init.csv OMInterfaceTest/testDummyStep/out~OM4BouncingBall_init.csv OMInterfaceTest/testDummyStep/out~OM5BouncingBall_init.csv'
+  output = 'OMInterfaceTest/testDummyStep/1/BouncingBall_init.xml OMInterfaceTest/testDummyStep/2/BouncingBall_init.xml OMInterfaceTest/testDummyStep/3/BouncingBall_init.xml OMInterfaceTest/testDummyStep/4/BouncingBall_init.xml OMInterfaceTest/testDummyStep/5/BouncingBall_init.xml OMInterfaceTest/testDummyStep/1/out~BouncingBall_init.csv OMInterfaceTest/testDummyStep/2/out~BouncingBall_init.csv OMInterfaceTest/testDummyStep/3/out~BouncingBall_init.csv OMInterfaceTest/testDummyStep/4/out~BouncingBall_init.csv OMInterfaceTest/testDummyStep/5/out~BouncingBall_init.csv'
+  csv = 'OMInterfaceTest/testDummyStep/1/out~BouncingBall_init.csv OMInterfaceTest/testDummyStep/2/out~BouncingBall_init.csv OMInterfaceTest/testDummyStep/3/out~BouncingBall_init.csv OMInterfaceTest/testDummyStep/4/out~BouncingBall_init.csv OMInterfaceTest/testDummyStep/5/out~BouncingBall_init.csv'
   test_interface_only = True
  [../]
  
  [./DymolaInterfaceTestNoExecutable]
   type = 'RavenFramework'
   input = 'test_Dymola_code_interface.xml'
-  output = 'DMInterfaceTest/testDummyStep/DM1dsin.txt DMInterfaceTest/testDummyStep/DM2dsin.txt DMInterfaceTest/testDummyStep/DM3dsin.txt DMInterfaceTest/testDummyStep/DM4dsin.txt DMInterfaceTest/testDummyStep/DM5dsin.txt DMInterfaceTest/testDummyStep/out~DM1dsin.csv DMInterfaceTest/testDummyStep/out~DM2dsin.csv DMInterfaceTest/testDummyStep/out~DM3dsin.csv DMInterfaceTest/testDummyStep/out~DM4dsin.csv DMInterfaceTest/testDummyStep/out~DM5dsin.csv'
-  csv = 'DMInterfaceTest/testDummyStep/out~DM1dsin.csv DMInterfaceTest/testDummyStep/out~DM2dsin.csv DMInterfaceTest/testDummyStep/out~DM3dsin.csv DMInterfaceTest/testDummyStep/out~DM4dsin.csv DMInterfaceTest/testDummyStep/out~DM5dsin.csv'
+  output = 'DMInterfaceTest/testDummyStep/1/dsin.txt DMInterfaceTest/testDummyStep/2/dsin.txt DMInterfaceTest/testDummyStep/3/dsin.txt DMInterfaceTest/testDummyStep/4/dsin.txt DMInterfaceTest/testDummyStep/5/dsin.txt DMInterfaceTest/testDummyStep/1/out~dsin.csv DMInterfaceTest/testDummyStep/2/out~dsin.csv DMInterfaceTest/testDummyStep/3/out~dsin.csv DMInterfaceTest/testDummyStep/4/out~dsin.csv DMInterfaceTest/testDummyStep/5/out~dsin.csv'
+  csv = 'DMInterfaceTest/testDummyStep/1/out~dsin.csv DMInterfaceTest/testDummyStep/2/out~dsin.csv DMInterfaceTest/testDummyStep/3/out~dsin.csv DMInterfaceTest/testDummyStep/4/out~dsin.csv DMInterfaceTest/testDummyStep/5/out~dsin.csv'
   test_interface_only = True
  [../]
 
@@ -81,7 +102,7 @@
    input = 'test_generic_interface.xml'
    output = 'GenericInterface/samples.xml'
    csv = 'GenericInterface/samples.csv'
-   UnorderedXml = 'GenericInterface/sample/1~one.xml' #checks to make sure input is not being duplicated
+   UnorderedXml = 'GenericInterface/sample/1/one.xml' #checks to make sure input is not being duplicated
    prereq = genericInterface
  [../]
 
@@ -95,7 +116,7 @@
  [./CubitMooseInterface]
    type = 'RavenFramework'
    input = 'test_CUBIT_MOOSE.xml'
-   output = 'CUBIT_MOOSE_test/grid_run/mesh~rectangle_1.e CUBIT_MOOSE_test/grid_run/mesh~rectangle_2.e CUBIT_MOOSE_test/grid_run/mesh~rectangle_3.e CUBIT_MOOSE_test/grid_run/mesh~rectangle_4.e'
+   output = 'CUBIT_MOOSE_test/grid_run/1/mesh~rectangle.e CUBIT_MOOSE_test/grid_run/2/mesh~rectangle.e CUBIT_MOOSE_test/grid_run/3/mesh~rectangle.e CUBIT_MOOSE_test/grid_run/4/mesh~rectangle.e'
    csv = 'CUBIT_MOOSE_test/print_data.csv'
    # Need to be able to check that cubit executable exists, but listing in required_executable
    # searches for existence of file then runs it. Running cubit by itself starts a cubit
@@ -108,7 +129,7 @@
  [./BisonAndMeshInterface]
    type = 'RavenFramework'
    input = 'test_BISON_and_MESH.xml'
-   output = 'BISON_and_MESH_test/grid_run/mesh~coarse_input_1.e BISON_and_MESH_test/grid_run/mesh~coarse_input_2.e BISON_and_MESH_test/grid_run/mesh~coarse_input_3.e BISON_and_MESH_test/grid_run/mesh~coarse_input_4.e BISON_and_MESH_test/grid_run/mesh~coarse_input_5.e BISON_and_MESH_test/grid_run/mesh~coarse_input_6.e BISON_and_MESH_test/grid_run/mesh~coarse_input_7.e BISON_and_MESH_test/grid_run/mesh~coarse_input_8.e BISON_and_MESH_test/grid_run/mesh~coarse_input_9.e BISON_and_MESH_test/grid_run/mesh~coarse_input_10.e BISON_and_MESH_test/grid_run/mesh~coarse_input_11.e BISON_and_MESH_test/grid_run/mesh~coarse_input_12.e BISON_and_MESH_test/grid_run/mesh~coarse_input_13.e BISON_and_MESH_test/grid_run/mesh~coarse_input_14.e BISON_and_MESH_test/grid_run/mesh~coarse_input_15.e BISON_and_MESH_test/grid_run/mesh~coarse_input_16.e'
+   output = 'BISON_and_MESH_test/grid_run/1/mesh~coarse_input.e BISON_and_MESH_test/grid_run/2/mesh~coarse_input.e BISON_and_MESH_test/grid_run/3/mesh~coarse_input.e BISON_and_MESH_test/grid_run/4/mesh~coarse_input.e BISON_and_MESH_test/grid_run/5/mesh~coarse_input.e BISON_and_MESH_test/grid_run/6/mesh~coarse_input.e BISON_and_MESH_test/grid_run/7/mesh~coarse_input.e BISON_and_MESH_test/grid_run/8/mesh~coarse_input.e BISON_and_MESH_test/grid_run/9/mesh~coarse_input.e BISON_and_MESH_test/grid_run/10/mesh~coarse_input.e BISON_and_MESH_test/grid_run/11/mesh~coarse_input.e BISON_and_MESH_test/grid_run/12/mesh~coarse_input.e BISON_and_MESH_test/grid_run/13/mesh~coarse_input.e BISON_and_MESH_test/grid_run/14/mesh~coarse_input.e BISON_and_MESH_test/grid_run/15/mesh~coarse_input.e BISON_and_MESH_test/grid_run/16/mesh~coarse_input.e'
    csv = 'BISON_and_MESH_test/print_data.csv'
    required_executable = '../../../../bison/bison-%METHOD%'
    required_libraries = 'cubit'
@@ -117,7 +138,7 @@
  [./MooseVPPInterface]
    type = 'RavenFramework'
    input = 'test_MOOSE_VPP.xml'
-   output = 'MOOSEVPPInterface/grid_run/out~1~MooseVPP.e MOOSEVPPInterface/grid_run/out~2~MooseVPP.e MOOSEVPPInterface/grid_run/out~3~MooseVPP.e MOOSEVPPInterface/grid_run/out~4~MooseVPP.e'
+   output = 'MOOSEVPPInterface/grid_run/1/out~MooseVPP.e MOOSEVPPInterface/grid_run/2/out~MooseVPP.e MOOSEVPPInterface/grid_run/3/out~MooseVPP.e MOOSEVPPInterface/grid_run/4/out~MooseVPP.e'
    csv = 'MOOSEVPPInterface/print_data.csv'
    # Need to be able to check that cubit executable exists, but listing in required_executable
    # searches for existence of file then runs it. Running cubit by itself starts a cubit
