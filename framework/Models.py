@@ -144,7 +144,6 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     #testing if all argument to be tested have been found
     for anItem in what:
       if anItem['found']==False:
-        print(cls.validateDict[who])
         raise IOError('It is not possible to use '+anItem['class']+' type= ' +anItem['type']+' as '+who)
     return True
 
@@ -891,7 +890,6 @@ class ExternalModel(Dummy):
     for key in Input.keys():
       if key in self.modelVariableType.keys():
         InputDict[key] = Input[key]
-    print(threading.current_thread().ident,externalSelf)
     self.sim.run(externalSelf, InputDict)
     for key in self.modelVariableType.keys()   : CustomCommandExecuter.execCommand('object["'+key+'"]  = copy.copy(self.'+key+')',self=externalSelf,object=modelVariableValues) #exec('modelVariableValues[key]  = copy.copy(externalSelf.'+key+')') #self.__pointSolution()
     for key in self.initExtSelf.__dict__.keys(): CustomCommandExecuter.execCommand('self.' +key+' = copy.copy(object.'+key+')',self=self.initExtSelf,object=externalSelf) #exec('self.initExtSelf.' +key+' = copy.copy(externalSelf.'+key+')')
@@ -1828,6 +1826,5 @@ def validate(className,role,what,caller):
     @ In, caller, instance, the instance of the caller
     @ Out, None
   """
-  print(__knownTypes)
   if className in __knownTypes: return __interFaceDict[className].localValidateMethod(role,what)
   else : caller.raiseAnError(IOError,'MODELS','the class '+str(className)+' it is not a registered model')
