@@ -29,6 +29,24 @@
     csv    = 'HistorySetSync/PrintPPHistorySet_dump1_0.csv HistorySetSync/PrintPPHistorySet_dump1_1.csv HistorySetSync/PrintPPHistorySet_dump2_0.csv HistorySetSync/PrintPPHistorySet_dump2_1.csv'
     output = 'HistorySetSync/PrintPPHistorySet_dump1.xml HistorySetSync/PrintPPHistorySet_dump2.xml'
   [../]
+  [./historySetSyncAll]
+    type   = 'RavenFramework'
+    input  = 'test_historySetSyncAll.xml'
+    UnorderedCsv = 'hs_sync_all/original.csv hs_sync_all/original_0.csv hs_sync_all/original_1.csv hs_sync_all/original_2.csv hs_sync_all/original_3.csv hs_sync_all/original_4.csv hs_sync_all/synced.csv hs_sync_all/synced_0.csv hs_sync_all/synced_1.csv hs_sync_all/synced_2.csv hs_sync_all/synced_3.csv hs_sync_all/synced_4.csv'
+    UnorderedXml = 'hs_sync_all/rom.xml'
+  [../]
+  [./historySetSyncMin]
+    type   = 'RavenFramework'
+    input  = 'test_historySetSyncMin.xml'
+    UnorderedCsv = 'hs_sync_min/original.csv hs_sync_min/original_0.csv hs_sync_min/original_1.csv hs_sync_min/original_2.csv hs_sync_min/original_3.csv hs_sync_min/original_4.csv hs_sync_min/synced.csv hs_sync_min/synced_0.csv hs_sync_min/synced_1.csv hs_sync_min/synced_2.csv hs_sync_min/synced_3.csv hs_sync_min/synced_4.csv'
+    UnorderedXml = 'hs_sync_min/rom.xml'
+  [../]
+  [./historySetSyncMax]
+    type   = 'RavenFramework'
+    input  = 'test_historySetSyncMax.xml'
+    UnorderedCsv = 'hs_sync_max/original.csv hs_sync_max/original_0.csv hs_sync_max/original_1.csv hs_sync_max/original_2.csv hs_sync_max/original_3.csv hs_sync_max/original_4.csv hs_sync_max/synced.csv hs_sync_max/synced_0.csv hs_sync_max/synced_1.csv hs_sync_max/synced_2.csv hs_sync_max/synced_3.csv hs_sync_max/synced_4.csv'
+    UnorderedXml = 'hs_sync_max/rom.xml'
+  [../]
   [./HS2PS]
     type   = 'RavenFramework'
     input  = 'test_HS2PS.xml'

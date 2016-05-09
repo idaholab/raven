@@ -6,26 +6,26 @@ from collections import defaultdict
 
 variable_extract = re.compile(r'(?:[^\$\\]|\A){(\w+?)}')
 def extract_vars(command_str):
-    """Extract variables from a command string"""    
+    """Extract variables from a command string"""
     matches = variable_extract.findall(command_str)
     return list(set(matches))
 
 variable_extract_dup = re.compile(r'([^\$\\]|\A){{(\w+?)}}') # matches vars in duplicate curlies
 def generate_command(command_str, var_dct, skip_validate = False):
     """Fill in variables in command_str with ones from var_dct"""
-        
+
     if not skip_validate:
         validate_command_args(command_str, var_dct)
-    
-    # first duplicate all curlies    
+
+    # first duplicate all curlies
     command_str = command_str.replace('{', '{{')
     command_str = command_str.replace('}', '}}')
     #print command_str
-    
-    # now un-duplicate template variables    
+
+    # now un-duplicate template variables
     command_str = variable_extract_dup.sub('\\1{\\2}', command_str)
     #print command_str
-    
+
     formatted_cmd =  command_str.format(**var_dct)
     # replace escaped items
     formatted_cmd = formatted_cmd.replace('\\{', '{')
@@ -53,7 +53,7 @@ def extract_args(arg_list, allow_map = False):
     if not arg_list:
         return kwds
     for arg in arg_list:
-        
+
         parts = arg.split('=', 1)
         if len(parts) != 2:
             raise _var_format_error(arg)
@@ -73,19 +73,19 @@ def extract_args(arg_list, allow_map = False):
                 if idx == -1:
                     break
                 if value[idx - 1] == '\\': #escaped
-                    buf_str = buf_str + value[:idx+1]                    
+                    buf_str = buf_str + value[:idx+1]
                 else:
                     kwd_values.append(buf_str + value[:idx])
                     buf_str = ''
-                value = value[idx+1:]                
+                value = value[idx+1:]
             if buf_str or value:
                 kwd_values.append(buf_str + value)
             kwds[key] = kwd_values
     return kwds
 
 
-    
-        
+
+
 
 if __name__ == '__main__':
     cmdstr = 'base'
@@ -98,4 +98,4 @@ if __name__ == '__main__':
                                     'bye' : 'BYE'})
     cmdstr = '{hello} bash {} ${{env_sub}} {1..2} \{bye\}'
     print generate_command(cmdstr, {'hello' : 'HELLO',
-                                    'env_sub' : 'ENV_SUB'})            
+                                    'env_sub' : 'ENV_SUB'})

@@ -2,7 +2,7 @@
 BSD-Style CronTab parsing
 """
 """
-Code derived from 
+Code derived from
 http://android-scripting.googlecode.com/hg/python/gdata/samples/oauth/oauth_on_appengine/appengine_utilities/cron.py
 
 Original notice:
@@ -30,7 +30,7 @@ ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
 LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
 ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE 
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
 """
 
 """
@@ -47,7 +47,7 @@ class CronTime(object):
     See format at http://unixhelp.ed.ac.uk/CGI/man-cgi?crontab+5
     Also supports N/S increment format (e.g. 1/3 for every 3 min starting at min 1), as
         described at http://en.wikipedia.org/wiki/CRON_expression
-    
+
     """
 
     def __init__(self, cron_string):
@@ -80,7 +80,7 @@ class CronTime(object):
             parse = parsers[el]
             cron[el] = parse(cron[el])
         return cron
-        
+
     def _get_max(self, t):
         """
         Get maximum number for a given type
@@ -91,7 +91,7 @@ class CronTime(object):
              'hour':23,
              'min': 59
              }
-          
+
         return max_num[t]
 
     def _validate_type(self, v, t):
@@ -235,7 +235,7 @@ class CronTime(object):
             base = int(elements[0]) % step
             if base == 0 and t in ['mon','day']:
                 base += step
-            r_list.extend(self._validate_range('%d-%d' % (base, self._get_max(t)), t))        
+            r_list.extend(self._validate_range('%d-%d' % (base, self._get_max(t)), t))
         return range(r_list[0], r_list[-1] + 1, step)
 
     def _validate_dow(self, dow):
@@ -359,17 +359,17 @@ class CronTime(object):
                 return [int(min)]
 
 
-        
+
     def should_run(self, test_time):
         """Determine if the cron should run at test_time.
         test_time can be a unix timestamp (an int) or datetime object
         Note that seconds are ignroed
         """
-        
+
         if not isinstance(test_time, datetime.datetime):
             test_time = datetime.datetime.fromtimestamp(test_time)
         test_time = test_time.replace(second=0, microsecond=0)
-        
+
         #check validity:
         if test_time.month not in self.cron_compiled['mon']:
             return False
@@ -389,13 +389,13 @@ class CronTime(object):
 
 """unit test code"""
 if __name__ == '__main__':
-    k = CronTime('* * * * *') 
+    k = CronTime('* * * * *')
     assert(k.should_run(843848))
     assert(k.should_run(datetime.datetime(year=2010,month=2,day=3,hour=10,minute=0)))
-    k = CronTime('1/3 * * * *') 
+    k = CronTime('1/3 * * * *')
     assert(k.should_run(datetime.datetime(year=2010,month=2,day=3,hour=10,minute=0)) == False)
     assert(k.should_run(datetime.datetime(year=2010,month=2,day=3,hour=10,minute=31)) == True)
-    k = CronTime('1-34/5 */2 1-10 mar *') 
+    k = CronTime('1-34/5 */2 1-10 mar *')
     assert(k.should_run(datetime.datetime(year=2010,month=3,day=3,hour=10,minute=0)) == False)
     assert(k.should_run(datetime.datetime(year=2010,month=3,day=3,hour=10,minute=30)) == False)
     assert(k.should_run(datetime.datetime(year=2010,month=3,day=3,hour=10,minute=36)) == False)
@@ -403,14 +403,14 @@ if __name__ == '__main__':
     assert(k.should_run(datetime.datetime(year=2010,month=3,day=3,hour=10,minute=31)) == True)
     assert(k.should_run(datetime.datetime(year=2012,month=3,day=3,hour=10,minute=31)) == True)
     assert(k.should_run(datetime.datetime(year=2012,month=4,day=3,hour=10,minute=31)) == False)
-    
+
     #day of week
-    k = CronTime('1-34/5 */2 * 0/4 wed') 
+    k = CronTime('1-34/5 */2 * 0/4 wed')
     assert(k.should_run(datetime.datetime(year=2010,month=8,day=3,hour=10,minute=31)) == False)
     assert(k.should_run(datetime.datetime(year=2010,month=8,day=4,hour=10,minute=31)) == True)
     assert(k.should_run(datetime.datetime(year=2010,month=8,day=5,hour=10,minute=31)) == False)
-    
-    k = CronTime('1-34/5 */2 * 0/4 3-4') 
+
+    k = CronTime('1-34/5 */2 * 0/4 3-4')
     assert(k.should_run(datetime.datetime(year=2010,month=8,day=3,hour=10,minute=31)) == False)
     assert(k.should_run(datetime.datetime(year=2010,month=8,day=4,hour=10,minute=31)) == True)
     assert(k.should_run(datetime.datetime(year=2010,month=8,day=5,hour=10,minute=31)) == True)

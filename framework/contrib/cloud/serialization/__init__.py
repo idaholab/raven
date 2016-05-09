@@ -17,7 +17,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 Lesser General Public License for more details.
 
 You should have received a copy of the GNU Lesser General Public
-License along with this package; if not, see 
+License along with this package; if not, see
 http://www.gnu.org/licenses/lgpl-2.1.html
 """
 
@@ -30,18 +30,18 @@ except ImportError:
     import pickle as pickle
 
 def serialize(obj, needsPyCloudSerializer = False, useDebugSerializer = False):
-    """Pickle obj into a string.  
+    """Pickle obj into a string.
     If needsPyCloudSerializer is set, additional types are allowed at the cost of speed
     If useDebugSerializer is set, exceptions are more detailed, again at the cost of speed
     """
-    
+
     if not needsPyCloudSerializer:
         return Serializer(obj).run_serialization()
     elif not useDebugSerializer:
         return CloudSerializer(obj).run_serialization()
     else:
         return DebugSerializer(obj).run_serialization()
-    
+
 def deserialize(str):
     """Deserialize the serialized object described by string str"""
     return Deserializer(str).deserializedObj

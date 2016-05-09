@@ -15,7 +15,7 @@ user-defined ones, can be passed through cloud.call
 
 For cloud to work, you must first run 'picloud setup' in your shell.
 
-Alternatively, you can use the simulator by setting use_simulator to True 
+Alternatively, you can use the simulator by setting use_simulator to True
 in cloudconf.py or running cloud.start_simulator()
 """
 """
@@ -34,8 +34,8 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 Lesser General Public License for more details.
 
 You should have received a copy of the GNU Lesser General Public
-License along with this package; if not, see 
-http://www.gnu.org/licenses/lgpl-2.1.html    
+License along with this package; if not, see
+http://www.gnu.org/licenses/lgpl-2.1.html
 """
 
 import sys
@@ -53,18 +53,18 @@ import logging
 class ImportHook(object):
     def __init__(self):
         self.mods = []  #Reloading mods in order will reload entire cloud
-    
+
     def load_module(self, fullname):
         """This is called by the system to load a module
-            We use it to track mopdules after their code is loaded"""        
+            We use it to track mopdules after their code is loaded"""
         parentmod, ext, submod = fullname.rpartition('.')
         if parentmod:
             path = sys.modules[parentmod].__path__
         else:
             path = ""
-    
+
         file, filename, tuple = imp.find_module(submod, path)
-        
+
         #This may load additional modules which are appended before this module in self.mods
         imp.acquire_lock()
         try:
@@ -72,24 +72,24 @@ class ImportHook(object):
         except ImportError, i:
             raise
         finally:
-            imp.release_lock()  
-        
-        self.mods.append(fullname)        
+            imp.release_lock()
+
+        self.mods.append(fullname)
         return mod
-    
-    
+
+
     def find_module(self, fullname, path = None):
         """This is called by the system to find a module.
         cloud.* modules are hooked into our system"""
         #print 'find %s -- %s' % (fullname, threading.current_thread().ident)
-        
+
         if False:
             v = logging.getLogger('Cloud')
             try:
                 v.debug('IMPORT: Attempting to load %s from %s', fullname, path)
             except Exception: # race condition with multiprocessing
                 pass
-        
+
         if fullname.startswith('cloud') and 'server' not in fullname:
             self.path = path
             parentmod, ext, submod = fullname.rpartition('.')
@@ -101,15 +101,15 @@ class ImportHook(object):
                 grp = imp.find_module(submod, path)
                 if not grp: #import error
                     return None
-            except ImportError: 
-                return None 
+            except ImportError:
+                return None
             else:
                 return self
         else:
             return None
-    
-_modHook = ImportHook()    
-sys.meta_path.append(_modHook) #registers our import hook    
+
+_modHook = ImportHook()
+sys.meta_path.append(_modHook) #registers our import hook
 
 from . import cloudconfig as cc
 import cloudinterface
@@ -142,7 +142,7 @@ __useSimulator =  cc.account_configurable('use_simulator',
 
 def _launch_cloud():
     cloudinterface._setcloud(sys.modules[__name__], 'simulated' if __useSimulator else 'network', restart=True)
-    
+
 _launch_cloud()
 
 from .cloud import CloudException, CloudTimeoutError
@@ -151,61 +151,61 @@ def start_simulator(force_restart = False):
     """
     Simulate cloud functionality locally.
     If *force_restart* or not already in simulation mode, restart cloud and enter simulation.
-    In simulation mode, the cloud will be run locally, on multiple processors, via 
+    In simulation mode, the cloud will be run locally, on multiple processors, via
     the multiprocessing library.
     Additional logging information will be enabled.
-    For more information, see 
+    For more information, see
     `PiCloud documentation <http://docs.picloud.com/cloud_simulator.html>`_
     """
 
     cloudinterface._setcloud(sys.modules[__name__], 'simulated', restart=force_restart)
 
-    
+
 def setkey(api_key, api_secretkey=None, server_url=None, restart=False, immutable=False):
     """
     Connect cloud to your PiCloud account, given your *api_key*.
-    Your *api_key* is provided by PiCloud on the 
+    Your *api_key* is provided by PiCloud on the
     `API Keys <http://www.picloud.com/accounts/apikeys/>`_ section of the PiCloud website.
-    
-    The *api_secretkey* is generally stored on your machine.  However, if you have not previously used 
+
+    The *api_secretkey* is generally stored on your machine.  However, if you have not previously used
     this api_key or selected it in 'picloud setup', you will need to provide it.
-    
+
     *server_url* specifies the PiCloud server to connect to.  Leave this blank to auto-resolve servers.
 
     *restart* forces the cloud to reconnect
-    
+
     This command will disable the simulator if it is running.
     """
-    
+
     cloudinterface._setcloud(sys.modules[__name__], 'network', api_key, api_secretkey, server_url, restart, immutable)
 
 def set_dependency_whitelist(whitelist):
-    """            
+    """
     By default all relevant dependencies found will be transported to PiCloud
     In secure scenarios, you may wish to restrict the dependencies that may be transferred.
-    
+
     whitelist should be a list consisting of module names that can be transported.
-    
+
     Example::
-    
-        ['mypackage','package2.mymodule'] 
-        
+
+        ['mypackage','package2.mymodule']
+
         * Allows mypackage, package2.mymodule
-        * Disallows foo_module, package2.mymodule2 
+        * Disallows foo_module, package2.mymodule2
 
     Set to None to re-enable full automatic dependency magic
-    
+
     .. warning::
-        
+
         Dependency whitelist will reset if setkey() or start_simulator() is run
-    """ 
+    """
     from .transport.adapter import DependencyAdapter
     from .transport.network import HttpConnection
-    
+
     # must have a connected network connection to create a dependency manager
     netcon = _getcloudnetconnection()
     adapter = netcon.adapter
-    
+
     adapter._create_dependency_manager(whitelist)
 
 
@@ -219,7 +219,7 @@ def _getcloudnetconnection():
     from .transport.network import HttpConnection
     if not isinstance(__cloud.adapter, SerializingAdapter):
         raise Exception('Unexpected cloud adapter being used')
-    
+
     conn = __cloud.adapter.connection
     if isinstance(conn, HttpConnection):
         __cloud._checkOpen()
@@ -229,7 +229,7 @@ def _getcloudnetconnection():
 
 def getconfigpath():
     """
-    Return the directory where PiCloud configuration and logging files are stored.    
+    Return the directory where PiCloud configuration and logging files are stored.
     Configuration/logs are stored on a per-user basis
     """
     return _cc.fullconfigpath
@@ -239,7 +239,7 @@ from .util.configmanager import ConfigSettings
 config = ConfigSettings(cc.config)  #sets cc.config values
 if cc._needsWrite:
     cc.flush_config()
-    cc._needsWrite = False    
+    cc._needsWrite = False
 
 del ConfigSettings
 _cc = cc
@@ -254,7 +254,7 @@ except ImportError:
         cloud.cloudLog.warn('Multiprocessing is not installed. Cloud.mp will be disabled')
     else:
         raise #something else has gone wrong
-    
+
 from . import account   #cloud.account
 from . import cron      #cloud.cron
 
@@ -262,9 +262,9 @@ from . import cron      #cloud.cron
 if __cloud.running_on_cloud():
     # use server-side implementation of cloud.bucket
     from . import _server_bucket as bucket   #cloud.bucket
-else:   
+else:
     from . import bucket    #default loud.bucket
-"""    
+"""
 
 from . import shell     #cloud.shell
 from . import queue     #cloud.queue

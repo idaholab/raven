@@ -139,20 +139,33 @@ class HDF5(DateBase):
     # Check if database directory exist, otherwise create it
     if '~' in self.databaseDir: self.databaseDir = copy.copy(os.path.expanduser(self.databaseDir))
     if not os.path.exists(self.databaseDir): os.makedirs(self.databaseDir)
-    self.raiseAMessage('Database Directory is '+self.databaseDir+'!')
+    self.raiseAMessage('Database Directory is',self.databaseDir,'.')
     # Check if a filename has been provided
     # if yes, we assume the user wants to load the data from there
     # or update it
     #try:
-    if 'filename' in xmlNode.attrib.keys():
-      self.filename = xmlNode.attrib['filename']
-      self.database = h5Data(self.name,self.databaseDir,self.messageHandler,self.filename)
-      self.exist    = True
-    #except KeyError:
-    else:
-      self.filename = self.name+".h5"
+    #if 'filename' in xmlNode.attrib.keys():
+    self.filename = xmlNode.attrib.get('filename',self.name+'.h5')
+    if 'readMode' not in xmlNode.attrib.keys():
+      self.raiseAnError(IOError,'No "readMode" attribute was specified for hdf5 database',self.name)
+    self.readMode = xmlNode.attrib['readMode'].strip().lower()
+    readModes = ['read','overwrite']
+    if self.readMode not in readModes:
+      self.raiseAnError(IOError,'readMode attribute for hdf5 database',self.name,'is not recognized:',self.readMode,'.  Options are:',readModes)
+    self.raiseADebug('HDF5 Read Mode is "'+self.readMode+'".')
+    fullpath = os.path.join(self.databaseDir,self.filename)
+    if os.path.isfile(fullpath):
+      if self.readMode == 'read':
+        self.exist = True
+        self.database = h5Data(self.name,self.databaseDir,self.messageHandler,self.filename)
+      elif self.readMode == 'overwrite':
+        self.exist = False
+        self.database = h5Data(self.name,self.databaseDir,self.messageHandler)
+    else: #file does not exist in path
+      if self.readMode == 'read':
+        self.raiseAWarning('Requested to read from database, but it does not exist:',fullpath,'so continuing without reading...')
+      self.exist = False
       self.database  = h5Data(self.name,self.databaseDir,self.messageHandler)
-      self.exist     = False
 
   def getInitParams(self):
     """

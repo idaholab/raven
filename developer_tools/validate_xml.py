@@ -28,6 +28,9 @@ def validateTests():
       res[0]+=1
       startmsg =  'Validating '+f
       #expand external XML nodes
+      # - first, though, check if the backup file already exists
+      if os.path.isfile(fullpath+'.bak'):
+        print colors.neutral+'Could not check for ExternalXML since a backup file exists! Please remove it to validate.'
       os.system('python '+os.path.join(conversionDir,'externalXMLNode.py')+' '+fullpath + '> /dev/null')
       #run xmllint
       print colors.neutral+startmsg,

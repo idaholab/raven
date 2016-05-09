@@ -100,7 +100,7 @@
   </Steps>
 
   <Databases>
-    <HDF5 name="test_bison_grid"/>
+    <HDF5 name="test_bison_grid" readMode="overwrite"/>
   </Databases>
 
 </Simulation>
