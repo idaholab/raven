@@ -9,7 +9,7 @@ def inPython3():
   """
   return os.environ.get("CHECK_PYTHON3","0") == "1"
 
-#This list is made of (module, how to check the version, minimum version, 
+#This list is made of (module, how to check the version, minimum version,
 # quality assurance module)
 modules_to_try = [("numpy",'numpy.version.version',"1.8.0","1.8.0"),
                   ("h5py",'h5py.__version__','2.2.1','2.2.1'),
@@ -35,7 +35,7 @@ __condaList = [("numpy",__lookUpPreferredVersion("numpy")),
               ("matplotlib",__lookUpPreferredVersion("matplotlib")),
               ("hdf5",""),
               ("swig","")]
-              
+
 
 def moduleReport(module,version=''):
   """Checks if the module exists.
@@ -80,8 +80,8 @@ def modulesReport():
   return report_list
 
 def __checkVersion(i, ev, qa, found, version):
-  """ 
-    Checks that the version found is new enough, and also if it matches the 
+  """
+    Checks that the version found is new enough, and also if it matches the
     tested version
     i: string, module name
     ev: string, minimum version
