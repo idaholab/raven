@@ -7,6 +7,7 @@ import RavenUtils
 import os
 import subprocess
 import sys
+import distutils.version
 
 # Set this outside the class because the framework directory is constant for
 #  each instance of this Tester, and in addition, there is a problem with the
@@ -86,10 +87,10 @@ class RavenFramework(Tester):
     while i < len(self.minimum_libraries):
       libraryName = self.minimum_libraries[i]
       libraryVersion = self.minimum_libraries[i+1]
-      missing, too_old = RavenUtils.checkForMissingModule(libraryName,libraryName+'.__version__',libraryVersion)
-      if len(missing) > 0:
+      found, message, actualVersion = RavenUtils.moduleReport(libraryName,libraryName+'.__version__')
+      if not found:
         return (False,'skipped (Unable to import library: "'+libraryName+'")')
-      if len(too_old) > 0:
+      if distutils.version.LooseVersion(actualVersion) < distutils.version.LooseVersion(libraryVersion):
         return (False,'skipped (Outdated library: "'+libraryName+'")')
       i+=2
 
