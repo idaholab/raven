@@ -2,57 +2,41 @@
   <ans>
     <mean>0.972812192882</mean>
     <variance>0.0616607941964</variance>
-    <Sobol_indices>
+    <numRuns>29</numRuns>
+    <indices>
       <tot_variance>0.0616607941964</tot_variance>
       <variables>y1
-        <index>0.39200746243</index>
+        <partial_variance>0.0241714914643</partial_variance>
+        <Sobol_index>0.39200746243</Sobol_index>
       </variables>
       <variables>y2
-        <index>0.299295459803</index>
+        <partial_variance>0.0184547957508</partial_variance>
+        <Sobol_index>0.299295459803</Sobol_index>
       </variables>
       <variables>y3
-        <index>0.15069962464</index>
+        <partial_variance>0.00929225854038</partial_variance>
+        <Sobol_index>0.15069962464</Sobol_index>
       </variables>
       <variables>y4
-        <index>0.0922532806719</index>
+        <partial_variance>0.00568841055345</partial_variance>
+        <Sobol_index>0.0922532806719</Sobol_index>
       </variables>
       <variables>y5
-        <index>0.051844076122</index>
+        <partial_variance>0.00319674690806</partial_variance>
+        <Sobol_index>0.051844076122</Sobol_index>
       </variables>
       <variables>y1,y2
-        <index>0.00732672592754</index>
+        <partial_variance>0.000451771739551</partial_variance>
+        <Sobol_index>0.00732672592754</Sobol_index>
       </variables>
       <variables>y1,y3
-        <index>0.00372619433821</index>
+        <partial_variance>0.000229760102224</partial_variance>
+        <Sobol_index>0.00372619433821</Sobol_index>
       </variables>
       <variables>y2,y3
-        <index>0.00284717606799</index>
+        <partial_variance>0.000175559137569</partial_variance>
+        <Sobol_index>0.00284717606799</Sobol_index>
       </variables>
-      <variables>y1,y2,y3
-        <index>0.0</index>
-      </variables>
-      <variables>y1,y4
-        <index>0.0</index>
-      </variables>
-      <variables>y1,y5
-        <index>0.0</index>
-      </variables>
-      <variables>y2,y4
-        <index>0.0</index>
-      </variables>
-      <variables>y2,y5
-        <index>0.0</index>
-      </variables>
-      <variables>y3,y4
-        <index>0.0</index>
-      </variables>
-      <variables>y3,y5
-        <index>0.0</index>
-      </variables>
-      <variables>y4,y5
-        <index>0.0</index>
-      </variables>
-    </Sobol_indices>
-    <numRuns>29</numRuns>
+    </indices>
   </ans>
 </ReducedOrderModel>

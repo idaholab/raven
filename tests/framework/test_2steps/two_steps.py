@@ -12,8 +12,8 @@ def run(self, Input):
   self.out1 = numpy.zeros(number_of_steps)
   self.out2 = numpy.zeros(number_of_steps)
   for i in range(len(self.time)):
-    self.time[i] = 0.25*i
+    self.time[i] = 0.25*float(i)
     time = self.time[i]
     #calculate outputs
-    self.out1 = time + Gauss1+auxBackupTimeDist + Gauss2 + CladFailureDist
-    self.out2 = time*Gauss1*auxBackupTimeDist*Gauss2*CladFailureDist
+    self.out1[i] = time + Gauss1+auxBackupTimeDist + Gauss2 + CladFailureDist
+    self.out2[i] = time*Gauss1*auxBackupTimeDist*Gauss2*CladFailureDist

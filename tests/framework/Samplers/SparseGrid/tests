@@ -60,13 +60,13 @@
  [./gamma]
   type = 'RavenFramework'
   input = 'test_scgpc_gamma.xml'
-  xml = 'scgpc/Gdumprom.xml'
+  UnorderedXml = 'scgpc/Gdumprom.xml'
   csv = 'scgpc/Gdump.csv'
  [../]
  [./beta]
   type = 'RavenFramework'
   input = 'test_scgpc_beta.xml'
-  xml = 'scgpc/Bdumprom.xml'
+  UnorderedXml = 'scgpc/Bdumprom.xml'
   csv = 'scgpc/Bdump.csv'
  [../]
  [./betanorm]
@@ -84,7 +84,7 @@
  [./exponential]
   type = 'RavenFramework'
   input = 'test_scgpc_expon.xml'
-  xml = 'scgpc/Edumprom.xml'
+  UnorderedXml = 'scgpc/Edumprom.xml'
   csv = 'scgpc/Edump.csv'
  [../]
 

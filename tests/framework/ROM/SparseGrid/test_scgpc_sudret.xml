@@ -1,0 +1,87 @@
+<?xml version="1.0" ?>
+<Simulation color="true" verbosity="debug">
+  <RunInfo>
+    <WorkingDir>SCgPCAnalyticSudret</WorkingDir>
+    <Sequence>make,train,print</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="make" pauseAtEnd="False">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">poly</Model>
+      <Sampler class="Samplers" type="SparseGridCollocation">samp</Sampler>
+      <Output class="DataObjects" type="PointSet">solns</Output>
+    </MultiRun>
+    <IOStep name="print">
+      <Input class="DataObjects" type="PointSet">solns</Input>
+      <Input class="Models" type="ROM">rom</Input>
+      <Output class="OutStreams" type="Print">dump</Output>
+      <Output class="OutStreams" type="Print">dumprom</Output>
+    </IOStep>
+    <RomTrainer name="train">
+      <Input class="DataObjects" type="PointSet">solns</Input>
+      <Output class="Models" type="ROM">rom</Output>
+    </RomTrainer>
+  </Steps>
+
+  <Distributions>
+    <Uniform name="UniDist">
+      <lowerBound>0</lowerBound>
+      <upperBound>1</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <SparseGridCollocation name="samp">
+      <variable name="x1">
+        <distribution>UniDist</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution>UniDist</distribution>
+      </variable>
+      <variable name="x3">
+        <distribution>UniDist</distribution>
+      </variable>
+      <ROM class="Models" type="ROM">rom</ROM>
+    </SparseGridCollocation>
+  </Samplers>
+
+  <Models>
+    <Dummy name="MyDummy" print="True" subType=""/>
+    <ExternalModel ModuleToLoad="../../../AnalyticModels/sudret_sobol_poly" name="poly" subType="">
+      <variables>x1,x2,x3,ans</variables>
+    </ExternalModel>
+    <ROM name="rom" subType="GaussPolynomialRom">
+      <Target>ans</Target>
+      <Features>x1,x2,x3</Features>
+      <SparseGrid>tensor</SparseGrid>
+      <IndexSet>TensorProduct</IndexSet>
+      <PolynomialOrder>2</PolynomialOrder>
+    </ROM>
+  </Models>
+
+  <DataObjects>
+    <PointSet name="dummyIN">
+      <Input>x1,x2,x3</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="solns">
+      <Input>x1,x2,x3</Input>
+      <Output>ans</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="dump">
+      <type>csv</type>
+      <source>solns</source>
+    </Print>
+    <Print name="dumprom">
+      <type>xml</type>
+      <source>rom</source>
+      <what>all</what>
+    </Print>
+  </OutStreams>
+
+</Simulation>

@@ -1,2 +1,2 @@
-def d(self):
+def evaluate(self):
   return self.a * self.c

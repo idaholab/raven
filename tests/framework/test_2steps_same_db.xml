@@ -3,7 +3,7 @@
   <RunInfo>
     <WorkingDir>test_2steps</WorkingDir>
     <Sequence>FirstStep,SecondStep</Sequence>
-    <batchSize>3</batchSize>
+    <batchSize>1</batchSize>
   </RunInfo>
 
   <Files>
@@ -11,7 +11,7 @@
 
   <Models>
     <ExternalModel ModuleToLoad="two_steps" name="TwoStep" subType="">
-      <variables>Gauss1,auxBackupTimeDist,Gauss2,CladFailureDist,time,out1,out2</variables>
+      <variables>Gauss1,auxBackupTimeDist,Gauss2,CladFailureDist,time,out1,out2,time</variables>
     </ExternalModel>
   </Models>
 
@@ -92,12 +92,12 @@
       <Sampler class="Samplers" type="MonteCarlo">RAVENmc2</Sampler>
       <Output class="Databases" type="HDF5">test2StepsDatabase</Output>
       <Output class="DataObjects" type="HistorySet">stories</Output>
-      <Output class="OutStreamManager" type="Print">fullprint_HistorySet</Output>
+      <Output class="OutStreams" type="Print">fullprint_HistorySet</Output>
     </MultiRun>
   </Steps>
 
   <Databases>
-    <HDF5 name="test2StepsDatabase"/>
+    <HDF5 name="test2StepsDatabase" readMode="overwrite"/>
   </Databases>
 
   <DataObjects>
@@ -107,15 +107,15 @@
     </Point>
     <HistorySet name="stories">
       <Input>Gauss1,auxBackupTimeDist,Gauss2,CladFailureDist</Input>
-      <Output>out1,out2</Output>
+      <Output>out1,out2,time</Output>
     </HistorySet>
   </DataObjects>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="fullprint_HistorySet">
       <type>csv</type>
       <source>stories</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
 </Simulation>

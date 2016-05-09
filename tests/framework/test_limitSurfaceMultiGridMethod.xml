@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="all">
+<Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>limitSurfaceMultiGrid</WorkingDir>
     <Sequence>GoalOrientedStep,dumpLSout</Sequence>
@@ -16,7 +16,7 @@
     </MultiRun>
     <IOStep name="dumpLSout" pauseAtEnd="False">
       <Input class="DataObjects" type="PointSet">limitSurface</Input>
-      <Output class="OutStreamManager" type="Print">limitSurfaceTwoIslandsCSV</Output>
+      <Output class="OutStreams" type="Print">limitSurfaceTwoIslandsCSV</Output>
     </IOStep>
   </Steps>
 
@@ -55,7 +55,7 @@
       <ROM class="Models" type="ROM">AccelerationROM</ROM>
       <Function class="Functions" type="External">goalFunction</Function>
       <TargetEvaluation class="DataObjects" type="PointSet">outAdaptive</TargetEvaluation>
-      <Convergence forceIteration="False" limit="50000" persistence="7" subGridTol="0.0001" weight="CDF">0.0004</Convergence>
+      <Convergence forceIteration="False" limit="50000" persistence="10" subGridTol="0.0001" weight="CDF">0.0004</Convergence>
       <variable name="x1">
         <distribution>normal_trunc</distribution>
       </variable>
@@ -75,7 +75,7 @@
       <SKLtype>svm|SVC</SKLtype>
       <kernel>rbf</kernel>
       <gamma>10</gamma>
-      <tol>1e-5</tol>
+      <tol>1e-6</tol>
       <C>50</C>
     </ROM>
   </Models>
@@ -89,11 +89,11 @@
     </External>
   </Functions>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="limitSurfaceTwoIslandsCSV">
       <type>csv</type>
       <source>limitSurface</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
 </Simulation>

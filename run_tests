@@ -55,6 +55,22 @@ if coverage:
   call(["./check_py_coverage.sh"])
 elif library_report:
   print("PYTHONPATH="+os.environ["PYTHONPATH"])
+  import platform
+  print("OS:",platform.platform())
+  print("Python:",sys.version)
+  try:
+    if os.path.exists(".git"):
+      print("Git information:")
+      os.system('git log -1 --format="%H %aD"')
+      os.system('git describe')
+      os.system('git submodule')
+    elif os.path.exists("Version.txt"):
+      print("Version.txt:")
+      print(open("Version.txt","r").read())
+    else:
+      print("Could not find RAVEN version info")
+  except:
+    print("Failed to find git version")
   sys.path.append(os.path.join("scripts","TestHarness","testers"))
   sys.path.insert(0,os.path.join("framework","utils"))
   import RavenUtils,utils

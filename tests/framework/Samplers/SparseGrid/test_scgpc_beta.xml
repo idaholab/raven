@@ -58,8 +58,8 @@
     <IOStep name="Bprint">
       <Input class="DataObjects" type="PointSet">Btests</Input>
       <Input class="Models" type="ROM">BROM</Input>
-      <Output class="OutStreamManager" type="Print">Bdump</Output>
-      <Output class="OutStreamManager" type="Print">Bdumprom</Output>
+      <Output class="OutStreams" type="Print">Bdump</Output>
+      <Output class="OutStreams" type="Print">Bdumprom</Output>
     </IOStep>
     <RomTrainer name="Btrain">
       <Input class="DataObjects" type="PointSet">Bsolns</Input>
@@ -82,7 +82,7 @@
     </PointSet>
   </DataObjects>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="Bdump">
       <type>csv</type>
       <source>Btests</source>
@@ -92,6 +92,6 @@
       <source>BROM</source>
       <what>all</what>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
 </Simulation>

@@ -35,16 +35,16 @@
     </MultiRun>
     <IOStep name="Dump">
       <Input class="DataObjects" type="PointSet">testPrintPointSet</Input>
-      <Output class="OutStreamManager" type="Print">testPrintPointSet_dump</Output>
+      <Output class="OutStreams" type="Print">testPrintPointSet_dump</Output>
     </IOStep>
   </Steps>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="testPrintPointSet_dump">
       <type>csv</type>
       <source>testPrintPointSet</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
   <DataObjects>
     <Point name="inputPlaceHolder">

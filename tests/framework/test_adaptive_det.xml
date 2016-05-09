@@ -16,7 +16,7 @@
   </Files>
 
   <Models>
-    <Code name="MyRAVEN" subType="RAVEN">
+    <Code name="MyRAVEN" subType="RELAP7">
       <executable>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</executable>
     </Code>
     <ROM name="Acc" subType="SciKitLearn">
@@ -118,12 +118,12 @@
     <HDF5 name="testAdaptiveBranchDatabase"/>
   </Databases>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="stories_from_database_dump">
       <type>csv</type>
       <source>stories_from_database</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
   <DataObjects>
     <HistorySet name="stories">
