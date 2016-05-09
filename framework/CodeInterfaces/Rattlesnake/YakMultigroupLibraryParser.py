@@ -596,6 +596,7 @@ class YakMultigroupLibraryParser():
 
   def _replaceXMLNodeText(self,xmlNode,reactionDict):
     """
+      Replace the xml node text (cross section values) with perturbed cross section values.
       @ In, xmlNode, xml.etree.ElementTree.Element, xml element
       @ In, reactionDict, dict, dictionary contains the cross sections and their values
       @ Out, None
