@@ -11,11 +11,11 @@ def inPython3():
 
 #This list is made of (module, how to check the version, minimum version,
 # quality assurance module)
-modules_to_try = [("numpy",'numpy.version.version',"1.8.0","1.8.0"),
-                  ("h5py",'h5py.__version__','2.2.1','2.2.1'),
-                  ("scipy",'scipy.__version__',"0.13.3","0.13.3"),
-                  ("sklearn",'sklearn.__version__',"0.14.1","0.14.1"),
-                  ("matplotlib",'matplotlib.__version__',"1.3.1","1.3.1")]
+modules_to_try = [("numpy",'numpy.version.version',"1.8.0","1.9.3"),
+                  ("h5py",'h5py.__version__','2.2.1','2.3.1'),
+                  ("scipy",'scipy.__version__',"0.13.3","0.14.0"),
+                  ("sklearn",'sklearn.__version__',"0.16.0","0.16.1"),
+                  ("matplotlib",'matplotlib.__version__',"1.3.1","1.4.3")]
 
 def __lookUpPreferredVersion(name):
   """
@@ -33,6 +33,7 @@ __condaList = [("numpy",__lookUpPreferredVersion("numpy")),
               ("scipy",__lookUpPreferredVersion("scipy")),
               ("scikit-learn",__lookUpPreferredVersion("sklearn")),
               ("matplotlib",__lookUpPreferredVersion("matplotlib")),
+              ("python","2.7"),
               ("hdf5",""),
               ("swig","")]
 
