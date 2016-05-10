@@ -74,14 +74,6 @@ class Minkowski(Metric):
     else:
       print('Metric Minkowski error: the structures of the two data sets are different')
 
-       
-# class DTW(Metric):  
-#   def initialize(self,inputDict):
-#   
-#   def readMoreXML(self,xmlNode):
-#   
-#   def distance(self,x,y):  
-
 
 """
  Factory......
@@ -89,7 +81,6 @@ class Minkowski(Metric):
 __base = 'metric'
 __interFaceDict = {}
 __interFaceDict['Minkowski'          ] = Minkowski
-#__interFaceDict['DTW'               ] = DTW
 __knownTypes                      = list(__interFaceDict.keys())
 
 #for classType in __interFaceDict.values():

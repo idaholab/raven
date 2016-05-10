@@ -1578,7 +1578,7 @@ class BasicStatistics(BasePostProcessor):
     """
     # output
     parameterSet = list(set(list(self.parameters['targets'])))
-    if finishedJob.returnEvaluation() == -1: self.raiseAnError(RuntimeError, ' No available Output to collect (Run probabably is not finished yet)')
+    if finishedJob.returnEvaluation() == -1: self.raiseAnError(RuntimeError, ' No available Output to collect (Run probably is not finished yet)')
     outputDict = finishedJob.returnEvaluation()[1]
     methodToTest = []
     for key in self.methodsToRun:
@@ -3142,13 +3142,8 @@ class DataMining(BasePostProcessor):
     """
       Function to convert the received input into a format this object can
       understand
-<<<<<<< HEAD
-      @ In, currentInp, Some form of data object or list of data objects handed to the post-processor
-      @ Out, inputdict, dict, An input dictionary this object can process
-=======
       @ In, currentInp, list or DataObjects, Some form of data object or list of data objects handed to the post-processor
       @ Out, inputDict, dict, An input dictionary this object can process
->>>>>>> origin/devel
     """
     if type(currentInp) == list: currentInput = currentInp[-1]
     else                       : currentInput = currentInp
