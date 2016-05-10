@@ -40,6 +40,15 @@ def newNode(tag,text='',attrib={}):
   el.text = text
   return el
 
+def newTree(name):
+  """
+    Creates a new tree with named node as its root
+    @ In, name, string, name of root node
+    @ Out, tree, xml.etree.ElementTree.ElementTree, tree
+  """
+  tree = ET.ElementTree(element=newNode(name))
+  return tree
+
 def findPath(root,path):
   """
     Navigates path to find a particular element

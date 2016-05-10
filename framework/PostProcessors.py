@@ -22,6 +22,7 @@ import importlib
 #Internal Modules------------------------------------------------------------------------------------
 import utils
 import mathUtils
+import xmlUtils
 import DataObjects
 from Assembler import Assembler
 import SupervisedLearning
@@ -1489,7 +1490,20 @@ class BasicStatistics(BasePostProcessor):
     """
     BasePostProcessor.__init__(self, messageHandler)
     self.parameters = {}  # parameters dictionary (they are basically stored into a dictionary identified by tag "targets"
-    self.acceptedCalcParam = ['covariance', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity', 'pearson', 'expectedValue', 'sigma', 'variationCoefficient', 'variance', 'skewness', 'kurtosis', 'median', 'percentile']  # accepted calculation parameters
+    self.acceptedCalcParam = ['covariance',
+                              'NormalizedSensitivity',
+                              'VarianceDependentSensitivity',
+                              'sensitivity',
+                              'pearson',
+                              'expectedValue',
+                              'sigma',
+                              'variationCoefficient',
+                              'variance',
+                              'skewness',
+                              'kurtosis',
+                              'median',
+                              'percentile',
+                              'samples']  # accepted calculation parameters
     self.what = self.acceptedCalcParam  # what needs to be computed... default...all
     self.methodsToRun = []  # if a function is present, its outcome name is here stored... if it matches one of the known outcomes, the pp is going to use the function to compute it
     self.externalFunction = []
@@ -1666,7 +1680,32 @@ class BasicStatistics(BasePostProcessor):
           output.write(what + separator + '%.8E' % outputDict[what] + os.linesep)
 
   def _writeXML(self,output,outputDict,parameterSet,methodToTest):
-    self.raiseAnError(NotImplementedError,'TODO')
+    tree = xmlUtils.newTree('BasicStatisticsPP')
+    root = tree.getroot()
+    for t,target in enumerate(parameterSet):
+      tnode = xmlUtils.newNode(target) #tnode is for properties with respect to the target
+      root.append(tnode)
+      for stat,val in outputDict.items():
+        if stat not in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity'] + methodToTest:
+          val = val[target]
+          snode = xmlUtils.newNode(stat,text=str(val)) #snode is for each stat of the target
+          tnode.append(snode)
+      for stat,val in outputDict.items():
+        if stat in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity']:
+          valrow = val[t]
+          snode = xmlUtils.newNode(stat)
+          tnode.append(snode)
+          for p,param in enumerate(parameterSet):
+            actval = valrow[p]
+            vnode = xmlUtils.newNode(param,text=str(actval)) #vnode is for each parameter's stat's value with respect to the target
+            snode.append(vnode)
+      if self.externalFunction:
+        for stat in self.methodsToRun:
+          if stat not in self.acceptedCalcParam:
+            snode = xmlUtils.newNode(stat,text=str(outputDict[stat]))
+    pretty = xmlUtils.prettify(tree)
+    output.writelines(pretty)
+    output.close()
 
   def __computeVp(self,p,weights):
     """
@@ -1816,7 +1855,7 @@ class BasicStatistics(BasePostProcessor):
         else: self.raiseAWarning('BasicStatistics can not compute expectedValue without ProbabilityWeights. Use unit weight')
       pbWeights['realization'] = np.asarray([1.0 / len(input['targets'][self.parameters['targets'][0]])]*len(input['targets'][self.parameters['targets'][0]]))
     else: pbWeights['realization'] = input['metadata']['ProbabilityWeight']/np.sum(input['metadata']['ProbabilityWeight'])
-#   This section should take the probability weight for each sampling variable
+    #This section should take the probability weight for each sampling variable
     pbWeights['SampledVarsPbWeight'] = {'SampledVarsPbWeight':{}}
     if 'metadata' in input.keys():
       for target in parameterSet:
@@ -1834,6 +1873,10 @@ class BasicStatistics(BasePostProcessor):
       expValues[myIndex] = outputDict['expectedValue'][targetP]
     for what in self.what:
       if what not in outputDict.keys(): outputDict[what] = {}
+      # samples
+      if what == 'samples':
+        for p in parameterSet:
+          outputDict[what][p] = len(input['targets'].values()[0])
       # sigma
       if what == 'sigma':
         for myIndex, targetP in enumerate(parameterSet):
