@@ -131,3 +131,6 @@ if __name__ == '__main__':
       else:
         print(name+"="+version,end=" ")
     print()
+  elif '--manual-list' in sys.argv:
+    for i,fv,ev,qa in modules_to_try:
+      print("\item",i+"-"+qa)
