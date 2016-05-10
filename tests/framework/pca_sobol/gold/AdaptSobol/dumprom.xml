@@ -2,7 +2,7 @@
   <ans2>
     <mean>0.981905773532</mean>
     <variance>0.0800718010664</variance>
-    <numRuns>49</numRuns>
+    <samples>49</samples>
     <indices>
       <tot_variance>0.0800718010664</tot_variance>
       <variables>y1
@@ -30,7 +30,7 @@
   <ans>
     <mean>1.35589720456</mean>
     <variance>2.9723302863</variance>
-    <numRuns>49</numRuns>
+    <samples>49</samples>
     <indices>
       <tot_variance>2.9723302863</tot_variance>
       <variables>y1
