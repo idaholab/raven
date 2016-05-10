@@ -302,6 +302,10 @@
   type = 'RavenPython'
   input = '../../framework/utils/testMathUtils.py'
  [../]
+ [./test_xmlUtils]
+  type = 'RavenPython'
+  input = '../../framework/utils/testXmlUtils.py'
+ [../]
 
  [./test_iostep_load]
    #REQUIREMENT_TEST R-RA-2

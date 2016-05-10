@@ -938,12 +938,12 @@ class InterfacedPostProcessor(BasePostProcessor):
       @ Out, None
     """
     BasePostProcessor.initialize(self, runInfo, inputs, initDict)
-#     self.postProcessor.initialize()
-#
-#     if self.postProcessor.inputFormat not in set(['HistorySet','History','PointSet','Point']):
-#       self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.inputFormat not correctly initialized')
-#     if self.postProcessor.outputFormat not in set(['HistorySet','History','PointSet','Point']):
-#       self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.outputFormat not correctly initialized')
+     #self.postProcessor.initialize()
+
+     #if self.postProcessor.inputFormat not in set(['HistorySet','History','PointSet','Point']):
+     #  self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.inputFormat not correctly initialized')
+     #if self.postProcessor.outputFormat not in set(['HistorySet','History','PointSet','Point']):
+     #  self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.outputFormat not correctly initialized')
 
   def _localReadMoreXML(self, xmlNode):
     """
@@ -1565,9 +1565,9 @@ class BasicStatistics(BasePostProcessor):
                 if floatPercentile < 1.0 or floatPercentile > 100.0: self.raiseAnError(IOError,"the percentile needs to an integer between 1 and 100. Got "+str(floatPercentile))
                 if -float(integerPercentile)/floatPercentile + 1.0 > 0.0001: self.raiseAnError(IOError,"the percentile needs to an integer between 1 and 100. Got "+str(floatPercentile))
           self.what = toCompute
-      if child.tag == "parameters"   : self.parameters['targets'] = child.text.split(',')
-      if child.tag == "methodsToRun" : self.methodsToRun = child.text.split(',')
-      if child.tag == "biased"       :
+      elif child.tag == "parameters"   : self.parameters['targets'] = child.text.split(',')
+      elif child.tag == "methodsToRun" : self.methodsToRun = child.text.split(',')
+      elif child.tag == "biased"       :
           if child.text.lower() in utils.stringsThatMeanTrue(): self.biased = True
       assert (self.parameters is not []), self.raiseAnError(IOError, 'I need parameters to work on! Please check your input for PP: ' + self.name)
 
@@ -1586,45 +1586,24 @@ class BasicStatistics(BasePostProcessor):
     for key in self.methodsToRun:
       if key not in self.acceptedCalcParam: methodToTest.append(key)
     if isinstance(output,Files.File):
-      availextens = ['csv', 'txt']
-      outputextension = output.getExt().lower() #split('.')[-1].lower()
-      if outputextension not in availextens:
-        self.raiseAWarning('BasicStatistics postprocessor output extension you input is ' + outputextension)
-        self.raiseAWarning('Available are ' + str(availextens) + '. Convertint extension to ' + str(availextens[0]) + '!')
-        outputextension = availextens[0]
-        output.setExtension(outputextension)
-      if outputextension != 'csv': separator = ' '
-      else                       : separator = ','
-      output.setPath(self.__workingDir)#, output.base)#output[:output.rfind('.')] + '.' + outputextension)
+      availExtens = ['xml','csv', 'txt']
+      outputExtension = output.getExt().lower()
+      if outputExtension not in availExtens:
+        self.raiseAWarning('BasicStatistics postprocessor output extension you input is ' + outputExtension)
+        self.raiseAWarning('Available are ' + str(availExtens) + '. Converting extension to ' + str(availExtens[0]) + '!')
+        outputExtension = availExtens[0]
+        output.setExtension(outputExtension)
+      if outputExtension in ['csv','txt']:
+        doXml = False
+      else:
+        doXml = True
+      output.setPath(self.__workingDir)
       self.raiseADebug('Dumping output in file named ' + output.getAbsFile())
       output.open('w')
-      output.write('ComputedQuantities'+separator+separator.join(parameterSet) + os.linesep)
-      quantitiesToWrite = {}
-      for what in outputDict.keys():
-        if what not in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity'] + methodToTest:
-          if what not in quantitiesToWrite.keys():quantitiesToWrite[what] = []
-          for targetP in parameterSet:
-            quantitiesToWrite[what].append('%.8E' % copy.deepcopy(outputDict[what][targetP]))
-          output.write(what + separator +  separator.join(quantitiesToWrite[what])+os.linesep)
-      maxLength = max(len(max(parameterSet, key = len)) + 5, 16)
-      for what in outputDict.keys():
-        if what in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity','sensitivity']:
-          self.raiseADebug('Writing parameter matrix ' + what)
-          output.write(os.linesep)
-          output.write(what + os.linesep)
-          if outputextension != 'csv': output.write(' ' * maxLength + ''.join([str(item) + ' ' * (maxLength - len(item)) for item in parameterSet]) + os.linesep)
-          else                       : output.write('matrix' + separator + ''.join([str(item) + separator for item in parameterSet]) + os.linesep)
-          for index in range(len(parameterSet)):
-            if outputextension != 'csv': output.write(parameterSet[index] + ' ' * (maxLength - len(parameterSet[index])) + ''.join(['%.8E' % item + ' ' * (maxLength - 14) for item in outputDict[what][index]]) + os.linesep)
-            else                       : output.write(parameterSet[index] + ''.join([separator + '%.8E' % item for item in outputDict[what][index]]) + os.linesep)
-      if self.externalFunction:
-        self.raiseADebug('Writing External Function results')
-        output.write(os.linesep + 'EXT FUNCTION ' + os.linesep)
-        output.write(os.linesep)
-        for what in self.methodsToRun:
-          if what not in self.acceptedCalcParam:
-            self.raiseADebug('Writing External Function parameter ' + what)
-            output.write(what + separator + '%.8E' % outputDict[what] + os.linesep)
+      if outputExtension in ['csv','txt']:
+        self._writeCSVorText(output,outputDict,parameterSet,outputExtension,methodToTest)
+      else:
+        self._writeXML(output,outputDict,parameterSet,methodToTest)
     elif output.type in ['PointSet','Point','History','HistorySet']:
       self.raiseADebug('Dumping output in data object named ' + output.name)
       for what in outputDict.keys():
@@ -1645,6 +1624,49 @@ class BasicStatistics(BasePostProcessor):
             self.raiseADebug('Dumping External Function parameter ' + what)
     elif output.type == 'HDF5' : self.raiseAWarning('Output type ' + str(output.type) + ' not yet implemented. Skip it !!!!!')
     else: self.raiseAnError(IOError, 'Output type ' + str(output.type) + ' unknown.')
+
+  def _writeCSVorText(self,output,outputDict,parameterSet,outputExtension,methodToTest):
+    """
+      Defines the method for writing the basic statistics to a .csv or .txt file.
+      @ In, output, File object, file to write to
+      @ In, outputDict, dict, dictionary of statistics values
+      @ In, parameterSet, list, list of parameters in use
+      @ In, outputExtension, string, extension of the file to write
+      @ In, methodToTest, list, strings of methods to test
+      @ Out, None
+    """
+    if outputExtension != 'csv': separator = ' '
+    else                       : separator = ','
+    output.write('ComputedQuantities'+separator+separator.join(parameterSet) + os.linesep)
+    quantitiesToWrite = {}
+    for what in outputDict.keys():
+      if what not in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity'] + methodToTest:
+        if what not in quantitiesToWrite.keys():quantitiesToWrite[what] = []
+        for targetP in parameterSet:
+          quantitiesToWrite[what].append('%.8E' % copy.deepcopy(outputDict[what][targetP]))
+        output.write(what + separator +  separator.join(quantitiesToWrite[what])+os.linesep)
+    maxLength = max(len(max(parameterSet, key = len)) + 5, 16)
+    for what in outputDict.keys():
+      if what in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity','sensitivity']:
+        self.raiseADebug('Writing parameter matrix ' + what)
+        output.write(os.linesep)
+        output.write(what + os.linesep)
+        if outputExtension != 'csv': output.write(' ' * maxLength + ''.join([str(item) + ' ' * (maxLength - len(item)) for item in parameterSet]) + os.linesep)
+        else                       : output.write('matrix' + separator + ''.join([str(item) + separator for item in parameterSet]) + os.linesep)
+        for index in range(len(parameterSet)):
+          if outputExtension != 'csv': output.write(parameterSet[index] + ' ' * (maxLength - len(parameterSet[index])) + ''.join(['%.8E' % item + ' ' * (maxLength - 14) for item in outputDict[what][index]]) + os.linesep)
+          else                       : output.write(parameterSet[index] + ''.join([separator + '%.8E' % item for item in outputDict[what][index]]) + os.linesep)
+    if self.externalFunction:
+      self.raiseADebug('Writing External Function results')
+      output.write(os.linesep + 'EXT FUNCTION ' + os.linesep)
+      output.write(os.linesep)
+      for what in self.methodsToRun:
+        if what not in self.acceptedCalcParam:
+          self.raiseADebug('Writing External Function parameter ' + what)
+          output.write(what + separator + '%.8E' % outputDict[what] + os.linesep)
+
+  def _writeXML(self,output,outputDict,parameterSet,methodToTest):
+    self.raiseAnError(NotImplementedError,'TODO')
 
   def __computeVp(self,p,weights):
     """
