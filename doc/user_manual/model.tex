@@ -1149,7 +1149,7 @@ When Printing this ROM via a Print OutStream (see \ref{sec:printing}), the avail
 \begin{itemize}
   \item \xmlString{mean}, the mean value of the ROM output within the input space it was trained,
   \item \xmlString{variance}, the variance of the ROM output within the input space it was trained,
-  \item \xmlString{numRuns}, the number of distinct model runs required to construct the ROM,
+  \item \xmlString{samples}, the number of distinct model runs required to construct the ROM,
   \item \xmlString{indices}, the Sobol sensitivity indices (in percent) and partial variances,
   \item \xmlString{polyCoeffs}, the polynomial expansion coefficients (PCE moments) of the ROM.  These are
     listed by each polynomial combination, with the polynomial order tags listed in the order of the variables
@@ -1226,7 +1226,7 @@ When Printing this ROM via an OutStream (see \ref{sec:printing}), the available 
   \item \xmlString{mean}, the mean value of the ROM output within the input space it was trained,
   \item \xmlString{variance}, the ANOVA-calculated variance of the ROM output within the input space it
     was trained.
-  \item \xmlString{numRuns}, the number of distinct model runs required to construct the ROM,
+  \item \xmlString{samples}, the number of distinct model runs required to construct the ROM,
   \item \xmlString{indices}, the Sobol sensitivity indices (in percent) and partial variances.
 \end{itemize}
 
@@ -4357,7 +4357,8 @@ to compute many of the most important statistical quantities.
     \item \textbf{median}: median
     \item \textbf{percentile}: the percentile. If this quantity is inputted as \textit{percentile} the $5\%$ and $95\%$ percentile(s) are going to be computed.
                                Otherwise the user can specify this quantity as \textit{percentile\_$X\%$}, where \textit{X} represents the requested
-                               percentile (an integer value between 1 and 100).
+                               percentile (an integer value between 1 and 100)
+    \item \textbf{samples}: the number of samples in the data set used to determine the statistics.
     %
   \end{itemize}
    %

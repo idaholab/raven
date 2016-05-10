@@ -201,6 +201,7 @@
             <xsd:enumeration value="kurtosis" />
             <xsd:enumeration value="median" />
             <xsd:enumeration value="percentile" />
+            <xsd:enumeration value="samples" />
             <xsd:enumeration value="all" />
         </xsd:restriction>
     </xsd:simpleType>
