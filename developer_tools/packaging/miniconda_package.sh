@@ -7,7 +7,9 @@ curl -C - -L -O https://repo.continuum.io/miniconda/Miniconda-latest-MacOSX-x86_
 chmod +x Miniconda-latest-MacOSX-x86_64.sh
 ./Miniconda-latest-MacOSX-x86_64.sh -b -p $INSTALL_DIR
 export PATH=$INSTALL_DIR/bin:$PATH
-conda install -y numpy hdf5 h5py scipy scikit-learn matplotlib swig
+#Call RavenUtils to return the conda create command with the qa'd versions
+`python ../../scripts/TestHarness/testers/RavenUtils.py --conda-create`
+#conda install -y numpy hdf5 h5py scipy scikit-learn matplotlib swig
 
 rm -Rvf $HOME/raven_libs/root
 mkdir -p $HOME/raven_libs/root/opt
@@ -47,7 +49,7 @@ pkgbuild --root $HOME/raven_libs/root --identifier raven_libs  --scripts $HOME/r
 
 #Create dmg file.
 rm -f raven_libs_base.dmg raven_miniconda.dmg
-hdiutil create -size 500m -fs HFS+ -volname "Raven Libraries" raven_libs_base.dmg
+hdiutil create -size 850m -fs HFS+ -volname "Raven Libraries" raven_libs_base.dmg
 hdiutil attach raven_libs_base.dmg
 cp -a raven_miniconda.pkg /Volumes/Raven\ Libraries
 hdiutil detach /Volumes/Raven\ Libraries/
