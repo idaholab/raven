@@ -1370,9 +1370,9 @@ after RAVEN completes a sequence. For example:
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Rattlesnake Interfaces}
 %
-This section covers the input specification for runing Rattlesnake through RAVEN. It is important
+This section covers the input specification for running Rattlesnake through RAVEN. It is important
 to notice that this short explanation assumes that the reader already knows how to use Rattlesnake.
-The interface can be used to perturb the Rattlesnake YAML input file as well as the Yak multigroup
+The interface can be used to perturb the Rattlesnake MOOSE-based input file as well as the Yak multigroup
 cross section libraries XML input files.
 %
 
@@ -1382,8 +1382,8 @@ cross section libraries XML input files.
 attributes for each node entry.  The \xmlAttr{name} attribute is a user-chosen internal
 name for the file contained in the node, and \xmlAttr{type} identifies which base-level
 interface the file is used within.  \xmlNode{type} should only be specified for inputs
-that RAVEN will perturb.  For Rattlesnake input files, \xmlNode{type} should be \xmlString{RattlesnakeInput}, 
-for Yak multigroup cross section libraries, the \xmlNode{type} should be \xmlString{YakXSInput}, and for the Yak 
+that RAVEN will perturb.  For Rattlesnake input files, \xmlNode{type} should be \xmlString{RattlesnakeInput}; 
+for Yak multigroup cross section libraries, the \xmlNode{type} should be \xmlString{YakXSInput}; and for the Yak 
 alias files that are used to perturb the Yak multigroup cross section libraries, the \xmlNode{type} should be
 \xmlString{YakXSAliasInput}. The node should contain the path to the file from the working directory.  
 The following is an example of a typical \xmlNode{Files} block.
@@ -1418,7 +1418,7 @@ libraries. The following is an example of a typical alias file:
 </Multigroup_Cross_Section_Libraries>
 \end{lstlisting}
 %
-In the above alias file, the \xmlAttr{Name} of \xmlNode{Multigroup\_Cross\_Section\_Libraries} used to indicate the
+In the above alias file, the \xmlAttr{Name} of \xmlNode{Multigroup\_Cross\_Section\_Libraries} are used to indicate
 which Yak multigroup cross section library input file will be perturbed. 
 The \xmlAttr{NGroup}, \xmlAttr{ID}, and \xmlNode{Multigroup\_Cross\_Section\_Library}
 should be consistent with the Yak multigroup cross section library input files.
@@ -1508,7 +1508,7 @@ to be named: this name will be one of the names used in the \xmlNode{Sequence} b
 With this step, we need to import all the files needed for the simulation:
 %
 \begin{itemize}
-  \item Rattlesnake YAML input file;
+  \item Rattlesnake MOOSE-based input file;
   \item Yak multigroup cross section libraries input files (XML);
   \item Yak alias files used to define the perturbed variables (XML).
 \end{itemize}
