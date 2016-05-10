@@ -66,8 +66,6 @@
  [./testBasicStatisticsXml]
   type = 'RavenFramework'
   input = 'test_BasicStatsXML.xml'
-  output = 'basicStatisticsGeneral/PointSetPostProcTest_dump.xml'
-  csv = 'basicStatisticsGeneral/PointSetPostProcTest_dump.csv'
   UnorderedXml = 'basicStatisticsGeneral/output_basicStatistics.xml'
  [../]
  [./testBasicStatisticsSensitivity]
