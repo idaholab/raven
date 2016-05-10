@@ -1680,6 +1680,14 @@ class BasicStatistics(BasePostProcessor):
           output.write(what + separator + '%.8E' % outputDict[what] + os.linesep)
 
   def _writeXML(self,output,outputDict,parameterSet,methodToTest):
+    """
+      Defines the method for writing the basic statistics to a .xml file.
+      @ In, output, File object, file to write
+      @ In, outputDict, dict, dictionary of statistics values
+      @ In, parameterSet, list, list of parameters in use
+      @ In, methodToTest, list, strings of methods to test
+      @ Out, None
+    """
     tree = xmlUtils.newTree('BasicStatisticsPP')
     root = tree.getroot()
     for t,target in enumerate(parameterSet):
