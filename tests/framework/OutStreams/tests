@@ -1,0 +1,31 @@
+[Tests]
+ [./image_generation_text]
+  type = 'RavenFramework'
+  input = 'imageGeneration_ps.xml'
+  output = 'plot/1-test_scatter.ps'
+  text = 'plot/1-test_scatter.ps'
+  comment = '%'
+  minimum_library_versions = 'matplotlib 1.5'
+ [../]
+
+ [./image_generation_raw]
+  type = 'RavenPython'
+  input = 'testImageGeneration.py'
+  #input = 'imageGeneration_png.xml'
+  required_executable = 'compare'
+  required_executable_check_flags='gold/plot/1-test_scatter.png gold/plot/1-test_scatter.png -metric ae null:'
+ [../]
+
+ [./test_subPlot]
+  type = 'RavenFramework'
+  input = 'test_subPlot.xml'
+  output = 'subplot_output/1-subPlot1_surface-surface-surface.png subplot_output/1-subPlot2_stem-stem-stem.png subplot_output/1-subPlot3_stem-stem-stem-stem-stem.png'
+ [../]
+
+ [./io_ROM_pickle]
+  type = 'RavenFramework'
+  input = 'test_io_ROM_pickle.xml'
+  output = 'IO_ROM_PICKLE/PrintData_Pickle.csv IO_ROM_PICKLE/PrintData.csv'
+  csv = 'IO_ROM_PICKLE/PrintData_Pickle.csv IO_ROM_PICKLE/PrintData.csv'
+ [../]
+[]

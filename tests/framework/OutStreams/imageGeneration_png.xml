@@ -1,0 +1,56 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="silent">
+  <RunInfo>
+    <WorkingDir>plot</WorkingDir>
+    <Sequence>sample,plot</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files/>
+  <ExternalXML node="Models" xmlToLoad="sharedModel.xml"/>
+  <ExternalXML node="Distributions" xmlToLoad="sharedDistributions.xml"/>
+  <ExternalXML node="Samplers" xmlToLoad="sharedSamplers.xml"/>
+
+  <OutStreams>
+    <Plot dim="2" name="test" overwrite="false">
+      <plotSettings>
+        <plot>
+          <type>scatter</type>
+          <x>PointSet|Input|X</x>
+          <y>PointSet|Input|Y</y>
+          <xlabel> </xlabel>
+          <ylabel> </ylabel>
+          <colorMap>PointSet|Output|Z</colorMap>
+          <cmap>RdBu</cmap>
+          <range>
+            <xmin>0.0</xmin>
+            <xmax>1.0</xmax>
+            <ymin>1.0</ymin>
+            <ymax>2.0</ymax>
+          </range>
+          <linewidths>0</linewidths>
+        </plot>
+      </plotSettings>
+      <kwargs><linewidths>0</linewidths></kwargs>
+      <actions>
+        <!-- The difference is the type of file output -->
+        <how>png</how>
+        <figureProperties>
+          <frameon>false</frameon>
+          <figsize>1,1</figsize>
+        </figureProperties>
+        <title>
+          <text> </text>
+        </title>
+        <colorbar>off</colorbar>
+        <axis>off</axis>
+        <grid>off</grid>
+        <axesBox>off</axesBox>
+      </actions>
+    </Plot>
+  </OutStreams>
+
+  <ExternalXML node="Steps" xmlToLoad="sharedSteps.xml"/>
+  <ExternalXML node="DataObjects" xmlToLoad="sharedDataObjects.xml"/>
+
+</Simulation>
