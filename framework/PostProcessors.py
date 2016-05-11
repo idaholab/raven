@@ -1673,29 +1673,37 @@ class BasicStatistics(BasePostProcessor):
           output.write(what + separator + '%.8E' % outputDict[what] + os.linesep)
 
   def _writeXML(self,output,outputDict,parameterSet,methodToTest):
+    """
+      Defines the method for writing the basic statistics to a .xml file.
+      @ In, output, File object, file to write
+      @ In, outputDict, dict, dictionary of statistics values
+      @ In, parameterSet, list, list of parameters in use
+      @ In, methodToTest, list, strings of methods to test
+      @ Out, None
+    """
     tree = xmlUtils.newTree('BasicStatisticsPP')
     root = tree.getroot()
     for t,target in enumerate(parameterSet):
-      tnode = xmlUtils.newNode(target) #tnode is for properties with respect to the target
-      root.append(tnode)
+      tNode = xmlUtils.newNode(target) #tnode is for properties with respect to the target
+      root.append(tNode)
       for stat,val in outputDict.items():
         if stat not in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity'] + methodToTest:
           val = val[target]
-          snode = xmlUtils.newNode(stat,text=str(val)) #snode is for each stat of the target
-          tnode.append(snode)
+          sNode = xmlUtils.newNode(stat,text=str(val)) #sNode is for each stat of the target
+          tNode.append(sNode)
       for stat,val in outputDict.items():
         if stat in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity']:
-          valrow = val[t]
-          snode = xmlUtils.newNode(stat)
-          tnode.append(snode)
+          valRow = val[t]
+          sNode = xmlUtils.newNode(stat)
+          tNode.append(sNode)
           for p,param in enumerate(parameterSet):
-            actval = valrow[p]
-            vnode = xmlUtils.newNode(param,text=str(actval)) #vnode is for each parameter's stat's value with respect to the target
-            snode.append(vnode)
+            actVal = valRow[p]
+            vNode = xmlUtils.newNode(param,text=str(actVal)) #vNode is for each parameter's stat's value with respect to the target
+            sNode.append(vNode)
       if self.externalFunction:
         for stat in self.methodsToRun:
           if stat not in self.acceptedCalcParam:
-            snode = xmlUtils.newNode(stat,text=str(outputDict[stat]))
+            sNode = xmlUtils.newNode(stat,text=str(outputDict[stat]))
     pretty = xmlUtils.prettify(tree)
     output.writelines(pretty)
     output.close()

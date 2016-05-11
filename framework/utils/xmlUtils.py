@@ -21,12 +21,14 @@ def prettify(tree):
   #make the first pass at pretty.  This will insert way too many newlines, because of how we maintain XML format.
   pretty = pxml.parseString(ET.tostring(tree.getroot())).toprettyxml(indent='  ')
   #loop over each "line" and toss empty ones, but for ending main nodes, insert a newline after.
-  towrite=''
+  toWrite=''
   for line in pretty.split('\n'):
-    if line.strip()=='':continue
-    towrite += line.rstrip()+'\n'
-    if line.startswith('  </'): towrite+='\n'
-  return towrite
+    if line.strip()=='':
+      continue
+    toWrite += line.rstrip()+'\n'
+    if line.startswith('  </'):
+      toWrite+='\n'
+  return toWrite
 
 def newNode(tag,text='',attrib={}):
   """
