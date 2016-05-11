@@ -2,7 +2,7 @@
   <ans2>
     <mean>1.0</mean>
     <variance>0.777777777778</variance>
-    <numRuns>17</numRuns>
+    <samples>17</samples>
     <polyCoeffs>
       <inputVariables>x1,x2</inputVariables>
       <_0_0_>1.0</_0_0_>
@@ -32,7 +32,7 @@
   <ans>
     <mean>1.33333333333</mean>
     <variance>1.15555555556</variance>
-    <numRuns>17</numRuns>
+    <samples>17</samples>
     <polyCoeffs>
       <inputVariables>x1,x2</inputVariables>
       <_0_0_>1.33333333333</_0_0_>

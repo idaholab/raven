@@ -2,7 +2,7 @@
   <ans>
     <mean>6.0</mean>
     <variance>2.66666666667</variance>
-    <numRuns>25</numRuns>
+    <samples>25</samples>
     <polyCoeffs>
       <inputVariables>x1,x2</inputVariables>
       <_0_0_>6.0</_0_0_>
