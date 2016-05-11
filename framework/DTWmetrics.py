@@ -99,6 +99,7 @@ def dtw(x, y, dist):
     else:
         path = _traceback(D0)
     return D1[-1, -1] / sum(D1.shape), C, D1, path
+  
 
 def _traceback(D):
     i, j = array(D.shape) - 2

@@ -47,26 +47,30 @@ class Minkowski(Metric):
   
   def initialize(self,inputDict):
     self.p = None
+    self.timeID = None
   
   def _readMoreXML(self,xmlNode):
     for child in xmlNode:
       if child.tag == 'p':
         self.p = float(child.text)
+      if child.tag == 'timeID':
+        self.timeID = child.text
   
   def distance(self,x,y):    
     if isinstance(x,np.ndarray) and isinstance(y,np.ndarray):
       value = 0
       for i in range(x.size):
-        value += (x[i]-y[i])**self.p
-      return math.sqrt(value)
+        value += (math.abs(x[i]-y[i]))**self.p
+      return math.pow(value,1/p)
     elif isinstance(x,dict) and isinstance(y,dict):
       if x.keys() == y.keys():
         value = 0
         for key in x.keys():
           if x[key].size == y[key].size:
-            for i in range(x[key].size):
-              value += (x[key][i]-y[key][i])**self.p 
-            return math.sqrt(value)
+            if key == self.timeID:
+              for i in range(x[key].size):
+                value += (math.abs(x[i]-y[i]))**self.p
+            return math.pow(value,1/p)
           else:
             print('Metric Minkowski error: the length of the variable array ' + str(key) +' is not consistent among the two data sets')       
       else:
