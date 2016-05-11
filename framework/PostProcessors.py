@@ -1635,7 +1635,7 @@ class BasicStatistics(BasePostProcessor):
     elif output.type == 'HDF5' : self.raiseAWarning('Output type ' + str(output.type) + ' not yet implemented. Skip it !!!!!')
     else: self.raiseAnError(IOError, 'Output type ' + str(output.type) + ' unknown.')
 
-  def _writeCSVorText(self,output,outputDict,parameterSet,outputExtension,methodToTest):
+  def _writeCSV(self,output,outputDict,parameterSet,outputExtension,methodToTest):
     """
       Defines the method for writing the basic statistics to a .csv file.
       @ In, output, File object, file to write to
