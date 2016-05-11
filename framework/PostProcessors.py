@@ -1600,22 +1600,18 @@ class BasicStatistics(BasePostProcessor):
     for key in self.methodsToRun:
       if key not in self.acceptedCalcParam: methodToTest.append(key)
     if isinstance(output,Files.File):
-      availExtens = ['xml','csv', 'txt']
+      availExtens = ['xml','csv']
       outputExtension = output.getExt().lower()
       if outputExtension not in availExtens:
         self.raiseAWarning('BasicStatistics postprocessor output extension you input is ' + outputExtension)
         self.raiseAWarning('Available are ' + str(availExtens) + '. Converting extension to ' + str(availExtens[0]) + '!')
         outputExtension = availExtens[0]
         output.setExtension(outputExtension)
-      if outputExtension in ['csv','txt']:
-        doXml = False
-      else:
-        doXml = True
       output.setPath(self.__workingDir)
       self.raiseADebug('Dumping output in file named ' + output.getAbsFile())
       output.open('w')
-      if outputExtension in ['csv','txt']:
-        self._writeCSVorText(output,outputDict,parameterSet,outputExtension,methodToTest)
+      if outputExtension == 'csv':
+        self._writeCSV(output,outputDict,parameterSet,outputExtension,methodToTest)
       else:
         self._writeXML(output,outputDict,parameterSet,methodToTest)
     elif output.type in ['PointSet','Point','History','HistorySet']:
@@ -1641,7 +1637,7 @@ class BasicStatistics(BasePostProcessor):
 
   def _writeCSVorText(self,output,outputDict,parameterSet,outputExtension,methodToTest):
     """
-      Defines the method for writing the basic statistics to a .csv or .txt file.
+      Defines the method for writing the basic statistics to a .csv file.
       @ In, output, File object, file to write to
       @ In, outputDict, dict, dictionary of statistics values
       @ In, parameterSet, list, list of parameters in use
@@ -1649,8 +1645,7 @@ class BasicStatistics(BasePostProcessor):
       @ In, methodToTest, list, strings of methods to test
       @ Out, None
     """
-    if outputExtension != 'csv': separator = ' '
-    else                       : separator = ','
+    separator = ','
     output.write('ComputedQuantities'+separator+separator.join(parameterSet) + os.linesep)
     quantitiesToWrite = {}
     for what in outputDict.keys():
@@ -1665,11 +1660,9 @@ class BasicStatistics(BasePostProcessor):
         self.raiseADebug('Writing parameter matrix ' + what)
         output.write(os.linesep)
         output.write(what + os.linesep)
-        if outputExtension != 'csv': output.write(' ' * maxLength + ''.join([str(item) + ' ' * (maxLength - len(item)) for item in parameterSet]) + os.linesep)
-        else                       : output.write('matrix' + separator + ''.join([str(item) + separator for item in parameterSet]) + os.linesep)
+        output.write('matrix' + separator + ''.join([str(item) + separator for item in parameterSet]) + os.linesep)
         for index in range(len(parameterSet)):
-          if outputExtension != 'csv': output.write(parameterSet[index] + ' ' * (maxLength - len(parameterSet[index])) + ''.join(['%.8E' % item + ' ' * (maxLength - 14) for item in outputDict[what][index]]) + os.linesep)
-          else                       : output.write(parameterSet[index] + ''.join([separator + '%.8E' % item for item in outputDict[what][index]]) + os.linesep)
+          output.write(parameterSet[index] + ''.join([separator + '%.8E' % item for item in outputDict[what][index]]) + os.linesep)
     if self.externalFunction:
       self.raiseADebug('Writing External Function results')
       output.write(os.linesep + 'EXT FUNCTION ' + os.linesep)
