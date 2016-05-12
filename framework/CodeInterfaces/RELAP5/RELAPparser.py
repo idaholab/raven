@@ -6,6 +6,7 @@ Created on July 11, 2013
 import os
 import fileinput
 import re
+import copy
 
 class RELAPparser():
   """
@@ -53,13 +54,13 @@ class RELAPparser():
       @ In, save, bool, optional, True if the original tree needs to be saved
       @ Out, lines, list, list of modified lines (of the original input)
     """
-    temp               = []
     decks              = {}
     lines              = []
     for i in dictionaryList:
       if 'decks' not in i.keys(): raise IOError(self.printTag+"ERROR: no card inputs found!!")
       else                      : decks.update(i['decks'])
     for deckNum in decks.keys():
+      temp               = []
       modidictionaryList = decks[deckNum]
       temp.append('*RAVEN INPUT VALUES\n')
       if self.maxNumberOfDecks > 1: temp.append('*'+' deckNum: '+str(deckNum)+'\n')
@@ -67,7 +68,7 @@ class RELAPparser():
         temp.append('* card: '+j+' word: '+str(modidictionaryList[j]['position'])+' value: '+str(modidictionaryList[j]['value'])+'\n')
       temp.append('*RAVEN INPUT VALUES\n')
       for line in self.deckLines[deckNum]: #     fileinput.input(self.inputfile, mode='r'):
-        temp1=line
+        temp1=copy.deepcopy(line)
         if not re.match('^\s*\n',line):
           card = line.split()[0].strip()
           if card in modidictionaryList.keys():
@@ -80,7 +81,7 @@ class RELAPparser():
   def replaceword(self,line,position,value):
     """
       Method to replace a word value with the a new value
-      @ In, line, string, line to be modified
+      @ In, lineo, string, line to be modified
       @ In, position, int, word position that needs to be changed
       @ In, value, float, new value
       @ Out, newline, string, modified line
