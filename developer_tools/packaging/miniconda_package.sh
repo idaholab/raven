@@ -57,10 +57,11 @@ chmod +x $HOME/raven_libs/scripts/postinstall
 rm -Rf raven_miniconda.pkg
 pkgbuild --root $HOME/raven_libs/root --identifier raven_libs  --scripts $HOME/raven_libs/scripts raven_miniconda.pkg
 
+#DMG file is now redundent with new flat .pkg format.
 #Create dmg file.
-rm -f raven_libs_base.dmg raven_miniconda.dmg
-hdiutil create -size 850m -fs HFS+ -volname "Raven Libraries" raven_libs_base.dmg
-hdiutil attach raven_libs_base.dmg
-cp -a raven_miniconda.pkg /Volumes/Raven\ Libraries
-hdiutil detach /Volumes/Raven\ Libraries/
-hdiutil convert raven_libs_base.dmg -format UDZO -o raven_miniconda.dmg
+#rm -f raven_libs_base.dmg raven_miniconda.dmg
+#hdiutil create -size 850m -fs HFS+ -volname "Raven Libraries" raven_libs_base.dmg
+#hdiutil attach raven_libs_base.dmg
+#cp -a raven_miniconda.pkg /Volumes/Raven\ Libraries
+#hdiutil detach /Volumes/Raven\ Libraries/
+#hdiutil convert raven_libs_base.dmg -format UDZO -o raven_miniconda.dmg
