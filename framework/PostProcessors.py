@@ -2281,16 +2281,10 @@ class LimitSurface(BasePostProcessor):
 
   def _initializeLSppROM(self, inp, raiseErrorIfNotFound = True):
     """
-<<<<<<< HEAD
-     Method to initialize the LS acceleration rom
-     @ In, inp, Data(s) object, data object containing the training set
-     @ In, raiseErrorIfNotFound, bool, throw an error if the limit surface is not found
-=======
-      Method to initialize the LS accelleration rom
+      Method to initialize the LS acceleration rom
       @ In, inp, Data(s) object, data object containing the training set
       @ In, raiseErrorIfNotFound, bool, throw an error if the limit surface is not found
       @ Out, None
->>>>>>> origin/devel
     """
     self.raiseADebug('Initiate training')
     if type(inp) == dict:
