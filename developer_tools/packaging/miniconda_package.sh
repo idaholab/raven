@@ -10,10 +10,16 @@ export PATH=$INSTALL_DIR/bin:$PATH
 #Call RavenUtils to return the conda create command with the qa'd versions
 `python ../../scripts/TestHarness/testers/RavenUtils.py --conda-create`
 #conda install -y numpy hdf5 h5py scipy scikit-learn matplotlib swig
-#conda install -y numpy=1.9.2 hdf5=1.8.14 h5py=2.5.0 scipy=0.15.1 scikit-learn=0.16.1 matplotlib=1.4.3 swig=3.0.2
+
+# For some bizarre reason, qt causes the install to fail with incorrect
+# symbolic links.
 source activate raven_libraries
 conda remove -y qt
 
+# Packages are not needed once installed
+rm -Rvf $INSTALL_DIR/pkgs
+
+#Move to temp root
 rm -Rvf $HOME/raven_libs/root
 mkdir -p $HOME/raven_libs/root/opt
 mv $INSTALL_DIR $HOME/raven_libs/root/opt
@@ -21,6 +27,7 @@ mkdir -p $HOME/raven_libs/root/opt/raven_libs/environments
 PROFILE_FILE=$HOME/raven_libs/root/opt/raven_libs/environments/raven_libs_profile
 cat - > $PROFILE_FILE << RAVEN_PROFILE
 export PATH="/opt/raven_libs/bin:\$PATH"
+source activate raven_libraries
 RAVEN_PROFILE
 
 chmod +x $PROFILE_FILE
