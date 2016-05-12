@@ -1104,7 +1104,6 @@ class OutStreamPlot(OutStreamManager):
                 xi, yi = mathUtils.interpolateFunction(self.xValues[pltindex][key][xIndex], self.yValues[pltindex][key][yIndex], self.options['plotSettings']['plot'][pltindex], returnCoordinate = True)
                 if self.colorMapCoordinates[pltindex] != None:
                   # if a color map has been added, we use a scattered plot instead...
-
                   if self.actcm:
                     first = False
                   else:
@@ -1119,35 +1118,22 @@ class OutStreamPlot(OutStreamManager):
                         self.actcm = self.fig.colorbar(m)
                         self.actcm.set_label(self.colorMapCoordinates[pltindex][0].split('|')[-1].replace(')', ''))
                       else:
-#<<<<<<< HEAD
-#                        self.actcm.draw_all()
-#                  else:
-#                    self.actPlot = self.plt.scatter(self.xValues[pltindex][key][xIndex], self.yValues[pltindex][key][yIndex],
-#                                                          c = self.colorMapValues[pltindex][key], vmin=minV, vmax=maxV , cmap = self.mpl.cm.get_cmap(name = self.options['plotSettings']['plot'][pltindex]['cmap']), marker = '.')
-#                    self.plt.plot(xi, yi, c = self.actPlot.get_cmap()(self.colorMapValues[pltindex][key][-1][-1]))
-#=======
                         self.actcm.set_clim(vmin = min(self.colorMapValues[pltindex][key][-1]), vmax = max(self.colorMapValues[pltindex][key][-1]))
                         self.actcm.draw_all()
                   else:
                     if first:
                       self.actPlot.cmap = self.mpl.cm.get_cmap(name = self.options['plotSettings']['plot'][pltindex]['cmap'])
                     if 'colorbar' not in self.options.keys() or self.options['colorbar']['colorbar'] != 'off':
-#>>>>>>> origin/devel
                       if first:
                         m = self.mpl.cm.ScalarMappable(cmap = self.actPlot.cmap, norm = self.actPlot.norm)
                         m.set_array(self.colorMapValues[pltindex][key])
                         self.actcm = self.fig.colorbar(m)
                         self.actcm.set_label(self.colorMapCoordinates[pltindex][0].split('|')[-1].replace(')', ''))
                       else:
-#<<<<<<< HEAD
-#                        self.actcm.draw_all()
-#                else: self.actPlot = self.plt.plot(xi, yi, **self.options['plotSettings']['plot'][pltindex].get('attributes', {}))
-#=======
                         self.actcm.set_clim(vmin = min(self.colorMapValues[pltindex][key][-1]), vmax = max(self.colorMapValues[pltindex][key][-1]))
                         self.actcm.draw_all()
                 else:
                   self.actPlot = self.plt.plot(xi, yi, **self.options['plotSettings']['plot'][pltindex].get('attributes', {}))
-#>>>>>>> origin/devel
               elif self.dim == 3:
                 for zIndex in range(len(self.zValues[pltindex][key])):
                   if self.zValues[pltindex][key][zIndex].size <= 3:
@@ -1159,20 +1145,13 @@ class OutStreamPlot(OutStreamManager):
                     else:
                       first = True
                     if self.options['plotSettings']['plot'][pltindex]['cmap'] == 'None':
-#<<<<<<< HEAD
                         self.actPlot = self.plt3D.scatter(self.xValues[pltindex][key][xIndex], self.yValues[pltindex][key][yIndex], self.zValues[pltindex][key][zIndex], c = self.colorMapValues[pltindex][key][-1], vmin=minV, vmax=maxV, marker='.',linewidths=0)
                         self.plt3D.plot(self.xValues[pltindex][key][xIndex], self.yValues[pltindex][key][yIndex],self.zValues[pltindex][key][zIndex], c = self.actPlot.get_cmap()(self.colorMapValues[pltindex][key][-1][-1]/(maxV-minV)))
                         if first:
-#=======
-#                        self.actPlot = self.plt3D.scatter(self.xValues[pltindex][key][xIndex], self.yValues[pltindex][key][yIndex], self.zValues[pltindex][key][zIndex], c = self.colorMapValues[pltindex][key], marker = '_')
-#                        if 'colorbar' not in self.options.keys() or self.options['colorbar']['colorbar'] != 'off':
-#                          if first:
-#>>>>>>> origin/devel
                             m = self.mpl.cm.ScalarMappable(norm = self.actPlot.norm)
                             m.set_array(self.colorMapValues[pltindex][key][-1])
                             self.actcm = self.fig.colorbar(m)
                             self.actcm.set_label(self.colorMapCoordinates[pltindex][0].split('|')[-1].replace(')', ''))
-#<<<<<<< HEAD
                         else:
                             self.actcm.set_clim(vmin = min(self.colorMapValues[pltindex][key][-1]), vmax = max(self.colorMapValues[pltindex][key][-1]))
                             self.actcm.draw_all()
@@ -1182,16 +1161,6 @@ class OutStreamPlot(OutStreamManager):
                         self.plt3D.plot(self.xValues[pltindex][key][xIndex], self.yValues[pltindex][key][yIndex], self.zValues[pltindex][key][zIndex], c = self.actPlot.get_cmap()(self.colorMapValues[pltindex][key][-1][-1]))
                         if 'colorbar' not in self.options.keys() or self.options['colorbar']['colorbar'] != 'off':
                           if first:
-#=======
-#                          else:
-#                            self.actcm.set_clim(vmin = min(self.colorMapValues[pltindex][key][-1]), vmax = max(self.colorMapValues[pltindex][key][-1]))
-#                            self.actcm.draw_all()
-#                    else:
-#                        self.actPlot = self.plt3D.scatter(self.xValues[pltindex][key][xIndex], self.yValues[pltindex][key][yIndex], self.zValues[pltindex][key][zIndex],
-#                                                          c = self.colorMapValues[pltindex][key], cmap = self.mpl.cm.get_cmap(name = self.options['plotSettings']['plot'][pltindex]['cmap']), marker = '_')
-#                        if 'colorbar' not in self.options.keys() or self.options['colorbar']['colorbar'] != 'off':
-#                          if first:
-#>>>>>>> origin/devel
                             m = self.mpl.cm.ScalarMappable(cmap = self.actPlot.cmap, norm = self.actPlot.norm)
                             m.set_array(self.colorMapValues[pltindex][key])
                             self.actcm = self.fig.colorbar(m)
@@ -1206,7 +1175,6 @@ class OutStreamPlot(OutStreamManager):
       ##################
       elif self.outStreamTypes[pltindex] == 'histogram':
         if 'bins' not in self.options['plotSettings']['plot'][pltindex].keys():
-#<<<<<<< HEAD
           if self.dim == 2:
             self.options['plotSettings']['plot'][pltindex]['bins'] = '10'
           else:
@@ -1265,40 +1233,6 @@ class OutStreamPlot(OutStreamManager):
           for xIndex in range(len(self.xValues[pltindex][key])):
             try: colorss = ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['color'])
             except: colorss = self.options['plotSettings']['plot'][pltindex]['color']              
-# =======
-#           if self.dim == 2:
-#             self.options['plotSettings']['plot'][pltindex]['bins'] = '10'
-#           else:
-#             self.options['plotSettings']['plot'][pltindex]['bins'] = '4'
-#         settings = self.options['plotSettings']['plot'][pltindex]
-#         keys = settings.keys()
-#         if 'normed' not in keys:
-#           settings['normed'] = 'False'
-#         if 'weights' not in keys:
-#           settings['weights'] = 'None'
-#         if 'cumulative' not in keys:
-#           settings['cumulative'] = 'False'
-#         if 'histtype' not in keys:
-#           settings['histtype'] = 'bar'
-#         if 'align' not in keys:
-#           settings['align'] = 'mid'
-#         if 'orientation' not in keys:
-#           settings['orientation'] = 'vertical'
-#         if 'rwidth' not in keys:
-#           settings['rwidth'] = 'None'
-#         if 'log' not in keys:
-#           settings['log'] = 'None'
-#         if 'color' not in keys:
-#           settings['color'] = 'b'
-#         if 'stacked' not in keys:
-#           settings['stacked'] = 'None'
-#         for key in self.xValues[pltindex].keys():
-#           for xIndex in range(len(self.xValues[pltindex][key])):
-#             try:
-#               colorss = ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['color'])
-#             except:
-#               colorss = self.options['plotSettings']['plot'][pltindex]['color']
-# >>>>>>> origin/devel
             if self.dim == 2:
               self.plt.hist(self.xValues[pltindex][key][xIndex], bins = ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['bins']), normed = ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['normed']), weights = ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['weights']),
                             cumulative = ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['cumulative']), histtype = self.options['plotSettings']['plot'][pltindex]['histtype'], align = self.options['plotSettings']['plot'][pltindex]['align'],
