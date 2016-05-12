@@ -22,6 +22,7 @@ import importlib
 #Internal Modules------------------------------------------------------------------------------------
 import utils
 import mathUtils
+import xmlUtils
 import DataObjects
 from Assembler import Assembler
 import SupervisedLearning
@@ -939,6 +940,7 @@ class InterfacedPostProcessor(BasePostProcessor):
     """
     BasePostProcessor.initialize(self, runInfo, inputs, initDict)
 
+
   def _localReadMoreXML(self, xmlNode):
     """
       Function to read the portion of the xml input that belongs to this specialized class
@@ -1487,7 +1489,20 @@ class BasicStatistics(BasePostProcessor):
     """
     BasePostProcessor.__init__(self, messageHandler)
     self.parameters = {}  # parameters dictionary (they are basically stored into a dictionary identified by tag "targets"
-    self.acceptedCalcParam = ['covariance', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity', 'pearson', 'expectedValue', 'sigma', 'variationCoefficient', 'variance', 'skewness', 'kurtosis', 'median', 'percentile']  # accepted calculation parameters
+    self.acceptedCalcParam = ['covariance',
+                              'NormalizedSensitivity',
+                              'VarianceDependentSensitivity',
+                              'sensitivity',
+                              'pearson',
+                              'expectedValue',
+                              'sigma',
+                              'variationCoefficient',
+                              'variance',
+                              'skewness',
+                              'kurtosis',
+                              'median',
+                              'percentile',
+                              'samples']  # accepted calculation parameters
     self.what = self.acceptedCalcParam  # what needs to be computed... default...all
     self.methodsToRun = []  # if a function is present, its outcome name is here stored... if it matches one of the known outcomes, the pp is going to use the function to compute it
     self.externalFunction = []
@@ -1563,9 +1578,9 @@ class BasicStatistics(BasePostProcessor):
                 if floatPercentile < 1.0 or floatPercentile > 100.0: self.raiseAnError(IOError,"the percentile needs to an integer between 1 and 100. Got "+str(floatPercentile))
                 if -float(integerPercentile)/floatPercentile + 1.0 > 0.0001: self.raiseAnError(IOError,"the percentile needs to an integer between 1 and 100. Got "+str(floatPercentile))
           self.what = toCompute
-      if child.tag == "parameters"   : self.parameters['targets'] = child.text.split(',')
-      if child.tag == "methodsToRun" : self.methodsToRun = child.text.split(',')
-      if child.tag == "biased"       :
+      elif child.tag == "parameters"   : self.parameters['targets'] = child.text.split(',')
+      elif child.tag == "methodsToRun" : self.methodsToRun = child.text.split(',')
+      elif child.tag == "biased"       :
           if child.text.lower() in utils.stringsThatMeanTrue(): self.biased = True
       assert (self.parameters is not []), self.raiseAnError(IOError, 'I need parameters to work on! Please check your input for PP: ' + self.name)
 
@@ -1584,45 +1599,20 @@ class BasicStatistics(BasePostProcessor):
     for key in self.methodsToRun:
       if key not in self.acceptedCalcParam: methodToTest.append(key)
     if isinstance(output,Files.File):
-      availextens = ['csv', 'txt']
-      outputextension = output.getExt().lower() #split('.')[-1].lower()
-      if outputextension not in availextens:
-        self.raiseAWarning('BasicStatistics postprocessor output extension you input is ' + outputextension)
-        self.raiseAWarning('Available are ' + str(availextens) + '. Convertint extension to ' + str(availextens[0]) + '!')
-        outputextension = availextens[0]
-        output.setExtension(outputextension)
-      if outputextension != 'csv': separator = ' '
-      else                       : separator = ','
-      output.setPath(self.__workingDir)#, output.base)#output[:output.rfind('.')] + '.' + outputextension)
+      availExtens = ['xml','csv']
+      outputExtension = output.getExt().lower()
+      if outputExtension not in availExtens:
+        self.raiseAWarning('BasicStatistics postprocessor output extension you input is ' + outputExtension)
+        self.raiseAWarning('Available are ' + str(availExtens) + '. Converting extension to ' + str(availExtens[0]) + '!')
+        outputExtension = availExtens[0]
+        output.setExtension(outputExtension)
+      output.setPath(self.__workingDir)
       self.raiseADebug('Dumping output in file named ' + output.getAbsFile())
       output.open('w')
-      output.write('ComputedQuantities'+separator+separator.join(parameterSet) + os.linesep)
-      quantitiesToWrite = {}
-      for what in outputDict.keys():
-        if what not in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity'] + methodToTest:
-          if what not in quantitiesToWrite.keys():quantitiesToWrite[what] = []
-          for targetP in parameterSet:
-            quantitiesToWrite[what].append('%.8E' % copy.deepcopy(outputDict[what][targetP]))
-          output.write(what + separator +  separator.join(quantitiesToWrite[what])+os.linesep)
-      maxLength = max(len(max(parameterSet, key = len)) + 5, 16)
-      for what in outputDict.keys():
-        if what in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity','sensitivity']:
-          self.raiseADebug('Writing parameter matrix ' + what)
-          output.write(os.linesep)
-          output.write(what + os.linesep)
-          if outputextension != 'csv': output.write(' ' * maxLength + ''.join([str(item) + ' ' * (maxLength - len(item)) for item in parameterSet]) + os.linesep)
-          else                       : output.write('matrix' + separator + ''.join([str(item) + separator for item in parameterSet]) + os.linesep)
-          for index in range(len(parameterSet)):
-            if outputextension != 'csv': output.write(parameterSet[index] + ' ' * (maxLength - len(parameterSet[index])) + ''.join(['%.8E' % item + ' ' * (maxLength - 14) for item in outputDict[what][index]]) + os.linesep)
-            else                       : output.write(parameterSet[index] + ''.join([separator + '%.8E' % item for item in outputDict[what][index]]) + os.linesep)
-      if self.externalFunction:
-        self.raiseADebug('Writing External Function results')
-        output.write(os.linesep + 'EXT FUNCTION ' + os.linesep)
-        output.write(os.linesep)
-        for what in self.methodsToRun:
-          if what not in self.acceptedCalcParam:
-            self.raiseADebug('Writing External Function parameter ' + what)
-            output.write(what + separator + '%.8E' % outputDict[what] + os.linesep)
+      if outputExtension == 'csv':
+        self._writeCSV(output,outputDict,parameterSet,outputExtension,methodToTest)
+      else:
+        self._writeXML(output,outputDict,parameterSet,methodToTest)
     elif output.type in ['PointSet','Point','History','HistorySet']:
       self.raiseADebug('Dumping output in data object named ' + output.name)
       for what in outputDict.keys():
@@ -1643,6 +1633,79 @@ class BasicStatistics(BasePostProcessor):
             self.raiseADebug('Dumping External Function parameter ' + what)
     elif output.type == 'HDF5' : self.raiseAWarning('Output type ' + str(output.type) + ' not yet implemented. Skip it !!!!!')
     else: self.raiseAnError(IOError, 'Output type ' + str(output.type) + ' unknown.')
+
+  def _writeCSV(self,output,outputDict,parameterSet,outputExtension,methodToTest):
+    """
+      Defines the method for writing the basic statistics to a .csv file.
+      @ In, output, File object, file to write to
+      @ In, outputDict, dict, dictionary of statistics values
+      @ In, parameterSet, list, list of parameters in use
+      @ In, outputExtension, string, extension of the file to write
+      @ In, methodToTest, list, strings of methods to test
+      @ Out, None
+    """
+    separator = ','
+    output.write('ComputedQuantities'+separator+separator.join(parameterSet) + os.linesep)
+    quantitiesToWrite = {}
+    for what in outputDict.keys():
+      if what not in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity'] + methodToTest:
+        if what not in quantitiesToWrite.keys():quantitiesToWrite[what] = []
+        for targetP in parameterSet:
+          quantitiesToWrite[what].append('%.8E' % copy.deepcopy(outputDict[what][targetP]))
+        output.write(what + separator +  separator.join(quantitiesToWrite[what])+os.linesep)
+    maxLength = max(len(max(parameterSet, key = len)) + 5, 16)
+    for what in outputDict.keys():
+      if what in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity','sensitivity']:
+        self.raiseADebug('Writing parameter matrix ' + what)
+        output.write(os.linesep)
+        output.write(what + os.linesep)
+        output.write('matrix' + separator + ''.join([str(item) + separator for item in parameterSet]) + os.linesep)
+        for index in range(len(parameterSet)):
+          output.write(parameterSet[index] + ''.join([separator + '%.8E' % item for item in outputDict[what][index]]) + os.linesep)
+    if self.externalFunction:
+      self.raiseADebug('Writing External Function results')
+      output.write(os.linesep + 'EXT FUNCTION ' + os.linesep)
+      output.write(os.linesep)
+      for what in self.methodsToRun:
+        if what not in self.acceptedCalcParam:
+          self.raiseADebug('Writing External Function parameter ' + what)
+          output.write(what + separator + '%.8E' % outputDict[what] + os.linesep)
+
+  def _writeXML(self,output,outputDict,parameterSet,methodToTest):
+    """
+      Defines the method for writing the basic statistics to a .xml file.
+      @ In, output, File object, file to write
+      @ In, outputDict, dict, dictionary of statistics values
+      @ In, parameterSet, list, list of parameters in use
+      @ In, methodToTest, list, strings of methods to test
+      @ Out, None
+    """
+    tree = xmlUtils.newTree('BasicStatisticsPP')
+    root = tree.getroot()
+    for t,target in enumerate(parameterSet):
+      tNode = xmlUtils.newNode(target) #tnode is for properties with respect to the target
+      root.append(tNode)
+      for stat,val in outputDict.items():
+        if stat not in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity'] + methodToTest:
+          val = val[target]
+          sNode = xmlUtils.newNode(stat,text=str(val)) #sNode is for each stat of the target
+          tNode.append(sNode)
+      for stat,val in outputDict.items():
+        if stat in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity']:
+          valRow = val[t]
+          sNode = xmlUtils.newNode(stat)
+          tNode.append(sNode)
+          for p,param in enumerate(parameterSet):
+            actVal = valRow[p]
+            vNode = xmlUtils.newNode(param,text=str(actVal)) #vNode is for each parameter's stat's value with respect to the target
+            sNode.append(vNode)
+      if self.externalFunction:
+        for stat in self.methodsToRun:
+          if stat not in self.acceptedCalcParam:
+            sNode = xmlUtils.newNode(stat,text=str(outputDict[stat]))
+    pretty = xmlUtils.prettify(tree)
+    output.writelines(pretty)
+    output.close()
 
   def __computeVp(self,p,weights):
     """
@@ -1792,7 +1855,7 @@ class BasicStatistics(BasePostProcessor):
         else: self.raiseAWarning('BasicStatistics can not compute expectedValue without ProbabilityWeights. Use unit weight')
       pbWeights['realization'] = np.asarray([1.0 / len(input['targets'][self.parameters['targets'][0]])]*len(input['targets'][self.parameters['targets'][0]]))
     else: pbWeights['realization'] = input['metadata']['ProbabilityWeight']/np.sum(input['metadata']['ProbabilityWeight'])
-#   This section should take the probability weight for each sampling variable
+    #This section should take the probability weight for each sampling variable
     pbWeights['SampledVarsPbWeight'] = {'SampledVarsPbWeight':{}}
     if 'metadata' in input.keys():
       for target in parameterSet:
@@ -1810,6 +1873,10 @@ class BasicStatistics(BasePostProcessor):
       expValues[myIndex] = outputDict['expectedValue'][targetP]
     for what in self.what:
       if what not in outputDict.keys(): outputDict[what] = {}
+      # samples
+      if what == 'samples':
+        for p in parameterSet:
+          outputDict[what][p] = len(input['targets'].values()[0])
       # sigma
       if what == 'sigma':
         for myIndex, targetP in enumerate(parameterSet):

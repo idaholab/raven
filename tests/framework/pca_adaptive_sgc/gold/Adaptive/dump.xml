@@ -2,7 +2,7 @@
   <ans2>
     <mean>0.9</mean>
     <variance>1.6465</variance>
-    <numRuns>21</numRuns>
+    <samples>21</samples>
     <polyCoeffs>
       <inputVariables>y1,y2</inputVariables>
       <_0_0_>0.9</_0_0_>
@@ -33,7 +33,7 @@
   <ans>
     <mean>1.434</mean>
     <variance>5.671249</variance>
-    <numRuns>21</numRuns>
+    <samples>21</samples>
     <polyCoeffs>
       <inputVariables>y1,y2</inputVariables>
       <_0_0_>1.434</_0_0_>

@@ -498,7 +498,7 @@ class GaussPolynomialRom(superVisedLearning):
     """
     if not self.amITrained: self.raiseAnError(RuntimeError,'ROM is not yet trained!')
     self.mean=None
-    canDo = ['mean','variance','numRuns','polyCoeffs','indices']
+    canDo = ['mean','variance','samples','polyCoeffs','indices']
     if 'what' in options.keys():
       requests = list(o.strip() for o in options['what'].split(','))
       if 'all' in requests: requests = canDo
@@ -510,7 +510,7 @@ class GaussPolynomialRom(superVisedLearning):
           newNode.setText(self.mean)
         elif request.lower() in ['variance']:
           newNode.setText(self.__variance__())
-        elif request.lower() in ['numruns']:
+        elif request.lower() in ['samples']:
           if self.numRuns!=None: newNode.setText(self.numRuns)
           else: newNode.setText(len(self.sparseGrid))
         elif request.lower() in ['polycoeffs']:
@@ -856,7 +856,7 @@ class HDMRRom(GaussPolynomialRom):
     #inherit from GaussPolynomialRom
     if not self.amITrained: self.raiseAnError(RuntimeError,'ROM is not yet trained!')
     self.mean=None
-    canDo = ['mean','variance','numRuns','indices']
+    canDo = ['mean','variance','samples','indices']
     if 'what' in options.keys():
       requests = list(o.strip() for o in options['what'].split(','))
       if 'all' in requests: requests = canDo
