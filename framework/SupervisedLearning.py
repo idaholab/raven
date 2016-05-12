@@ -61,16 +61,10 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
 
   def __init__(self,messageHandler,**kwargs):
     """
-<<<<<<< HEAD
-    A constructor that will appropriately initialize a supervised learning object
-    @In, messageHandler: a MessageHandler object in charge of raising errors, and printing messages
-    @In, kwargs: an arbitrary list of kwargs
-=======
-      A constructor that will appropriately intialize a supervised learning object
+      A constructor that will appropriately initialize a supervised learning object
       @ In, messageHandler, MessageHandler object, it is in charge of raising errors, and printing messages
       @ In, kwargs, dict, an arbitrary list of kwargs
       @ Out, None
->>>>>>> origin/devel
     """
     self.printTag = 'Supervised'
     self.messageHandler = messageHandler
@@ -1810,16 +1804,10 @@ class SciKitLearn(superVisedLearning):
 
   def __init__(self,messageHandler,**kwargs):
     """
-<<<<<<< HEAD
-    A constructor that will appropriately initialize a supervised learning object
-    @In, messageHandler, a MessageHandler object in charge of raising errors and printing messages
-    @In, kwargs, dict, an arbitrary dictionary of keywords and values
-=======
       A constructor that will appropriately intialize a supervised learning object
       @ In, messageHandler, MessageHandler object, it is in charge of raising errors, and printing messages
       @ In, kwargs, dict, an arbitrary list of kwargs
       @ Out, None
->>>>>>> origin/devel
     """
     superVisedLearning.__init__(self,messageHandler,**kwargs)
     self.printTag = 'SCIKITLEARN'

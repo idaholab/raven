@@ -5,10 +5,6 @@
     <Sequence>FirstMRun,plotAllHists,pp1,filter0,filter1</Sequence>
     <batchSize>20</batchSize>
   </RunInfo>
-  
-	<Databases>
-	  <HDF5 name="out_db"/>
-	</Databases>
 
   <Steps>
     <MultiRun name="FirstMRun" pauseAtEnd="True">
@@ -16,7 +12,6 @@
       <Model   class="Models"           type="ExternalModel" >PythonModule</Model>
       <Sampler class="Samplers"         type="MonteCarlo"    >MC_external</Sampler>
       <Output  class="DataObjects"      type="HistorySet"    >outMC</Output>
-      <Output  class="Databases"        type="HDF5"          >out_db</Output>
     </MultiRun>
     <IOStep name="plotAllHists" pauseAtEnd="false">
       <Input   class="DataObjects"      type="HistorySet"   >outMC</Input>
