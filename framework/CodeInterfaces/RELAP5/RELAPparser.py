@@ -80,7 +80,7 @@ class RELAPparser():
   def replaceword(self,line,position,value):
     """
       Method to replace a word value with the a new value
-      @ In, lineo, string, line to be modified
+      @ In, line, string, line to be modified
       @ In, position, int, word position that needs to be changed
       @ In, value, float, new value
       @ Out, newline, string, modified line
