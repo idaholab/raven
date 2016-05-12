@@ -8,8 +8,10 @@ chmod +x Miniconda-latest-MacOSX-x86_64.sh
 ./Miniconda-latest-MacOSX-x86_64.sh -b -p $INSTALL_DIR
 export PATH=$INSTALL_DIR/bin:$PATH
 #Call RavenUtils to return the conda create command with the qa'd versions
-`python ../../scripts/TestHarness/testers/RavenUtils.py --conda-create`
+#`python ../../scripts/TestHarness/testers/RavenUtils.py --conda-create`
 #conda install -y numpy hdf5 h5py scipy scikit-learn matplotlib swig
+conda install -y numpy=1.9.2 hdf5=1.8.14 h5py=2.5.0 scipy=0.15.1 scikit-learn=0.16.1 matplotlib=1.4.3 swig=3.0.2
+conda remove -y qt
 
 rm -Rvf $HOME/raven_libs/root
 mkdir -p $HOME/raven_libs/root/opt
