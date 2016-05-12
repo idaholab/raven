@@ -2,7 +2,7 @@
   <ans>
     <mean>1.0</mean>
     <variance>0.728</variance>
-    <numRuns>27</numRuns>
+    <samples>27</samples>
     <indices>
       <tot_variance>0.728</tot_variance>
       <variables>x1
