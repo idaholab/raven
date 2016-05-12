@@ -1,8 +1,8 @@
 Overview
-RAVEN is a flexible and multi-purpose statistical analysis framework. It has been developed at Idaho National Laboratory (INL) since 2012 within the Nuclear Energy Advanced Modeling and Simulation (NEAMS) and the Light Water Reactor Sustainability (LWRS) Risk Informed Safety Margin Characterization (RISMC) programs. 
+RAVEN is a flexible and multi-purpose statistical analysis framework. It has been developed at the Idaho National Laboratory (INL) since 2012 within the Nuclear Energy Advanced Modeling and Simulation (NEAMS) and the Light Water Reactor Sustainability (LWRS) Risk Informed Safety Margin Characterization (RISMC) programs. 
 Statistical analysis includes the following major capabilities:
-- statistical sampling of codes (e.g., Monte Carlo, Latin hypercube and grid sampling, and Dynamic Event Trees) for uncertainty quantification and reliability analyses
-- generation and use of reduced-order models (also known as surrogate models or emulators)
+- statistical sampling of codes (e.g., Monte-Carlo, stratified sampling (LHS), grid sampling, and Dynamic Event Trees) for uncertainty quantification and reliability analyses
+- generation and use of reduced order models (also known as surrogate models or emulators)
 - data post-processing 
 - statistical estimation and sensitivity analysis (e.g., mean, variance, sensitivity coefficients and covariance matrix).
 
@@ -20,30 +20,31 @@ RAVEN provides a set of basic and advanced capabilities that ranges from data ge
 A full set of RAVEN computational capabilities are listed below:
 
 Computing capabilities:
-- parallel computation capabilities (multi-thread and multi-core)
-- supported operating systems: MAC, linux and windows
-- workstation and high performance computing systems
+- Parallel computation capabilities (multi-thread and multi-core)
+- Supported operating systems: MAC, Linux and Windows
+- Workstation and high performance computing (HPC) systems
 
 Multi-steps analyses: RAVEN analyses are performed through a series of simulation steps. Each simulation step allows the user to perform a set of basic actions: 
 - Multi-Run
 - Training of a ROM
 - Post-Process
 - IOStep
+
 More complex analyses are performed by simply assembling and linking a series of steps listed above.
 
-Creation and use of reduced order models (scikit-learn and CROW library)
+Creation and use of reduced order models (scikit-learn and CROW library):
 - SVM
-- Gaussian Process Models
-- Linear Models
-- Multi-Class classifiers
-- Decision Trees
+- Gaussian process models
+- Linear models
+- Multi-class classifiers
+- Decision trees
 - Naive Bayes
 - Neighbors classifiers and regressors
 - Multi-dimensional interpolators
 - High dimension model reduction (HDMR)
 - Morse-Smale complex
 
-Forward propagation of uncertainties
+Forward propagation of uncertainties:
 - MonteCarlo sampling
 - Grid sampling
 - Stratified Sampling
@@ -63,7 +64,7 @@ Model capabilities:
 - Custom code interfaces
 - Custom ad-hoc external models
 
-Data Post-Processing capabilities
+Data Post-Processing capabilities:
 - Data clustering
 - Data regression
 - Data dimensionality Reduction
@@ -71,10 +72,10 @@ Data Post-Processing capabilities
 - Time-dependent data analysis
 - Data plotting
 
-Model parameter optimization
+Model parameter optimization:
 - Simultaneous perturbation stochastic approximation method
 
-Data management
+Data management:
 - Data importing and exporting
 - Databases creation
 
