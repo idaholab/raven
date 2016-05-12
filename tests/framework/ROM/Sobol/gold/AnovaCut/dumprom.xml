@@ -2,7 +2,7 @@
   <ans>
     <mean>0.998046875</mean>
     <variance>0.673271484375</variance>
-    <numRuns>61</numRuns>
+    <samples>61</samples>
     <indices>
       <tot_variance>0.673271484375</tot_variance>
       <variables>z

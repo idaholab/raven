@@ -179,6 +179,7 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
       else:
         key = var.split(':')
       modifDict = {}
+      if '|' not in key[0]: continue
       modifDict['name'] = key[0].split('|')[:-1]
       modifDict[key[0].split('|')[-1]] = Kwargs['SampledVars'][var]
       listDict.append(modifDict)

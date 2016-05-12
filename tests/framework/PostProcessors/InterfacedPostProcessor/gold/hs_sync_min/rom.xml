@@ -4,7 +4,7 @@
     <a>
       <mean>-1.72701359386e-16</mean>
       <variance>6.74999999999</variance>
-      <numRuns>5</numRuns>
+      <samples>5</samples>
       <indices>
         <tot_variance>6.74999999999</tot_variance>
         <variables>x
@@ -20,7 +20,7 @@
     <b>
       <mean>4.5</mean>
       <variance>1.5</variance>
-      <numRuns>5</numRuns>
+      <samples>5</samples>
       <indices>
         <tot_variance>1.5</tot_variance>
         <variables>x
@@ -39,7 +39,7 @@
     <a>
       <mean>1.53213333333</mean>
       <variance>8.67750568888</variance>
-      <numRuns>5</numRuns>
+      <samples>5</samples>
       <indices>
         <tot_variance>8.67750568888</tot_variance>
         <variables>x
@@ -55,7 +55,7 @@
     <b>
       <mean>6.48213333333</mean>
       <variance>2.16000568888</variance>
-      <numRuns>5</numRuns>
+      <samples>5</samples>
       <indices>
         <tot_variance>2.16000568888</tot_variance>
         <variables>x
@@ -74,7 +74,7 @@
     <a>
       <mean>2.38175518547</mean>
       <variance>13.7727847735</variance>
-      <numRuns>5</numRuns>
+      <samples>5</samples>
       <indices>
         <tot_variance>13.7727847735</tot_variance>
         <variables>x
@@ -90,7 +90,7 @@
     <b>
       <mean>7.47538870385</mean>
       <variance>4.66596498808</variance>
-      <numRuns>5</numRuns>
+      <samples>5</samples>
       <indices>
         <tot_variance>4.66596498808</tot_variance>
         <variables>x
