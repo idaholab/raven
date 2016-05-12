@@ -1196,25 +1196,6 @@ def run(self,Input):
 
 %Example
 
-<<<<<<< HEAD
-\begin{itemize}
-   \item \xmlNode{type}, \xmlDesc{string, required field}, type of window (min, max, avg or value)
-   \item \xmlNode{pivotVar}, \xmlDesc{integer, optional field},  ID of the chosen variable
-   \item \xmlNode{timeID}, \xmlDesc{string, optional field}, ID of the temporal variable (only for avg)
-   \item \xmlNode{pivotVal}, \xmlDesc{integer, optional field},  value for the chosen variable (only for value)
-\end{itemize}
-=======
->>>>>>> origin/devel
-
-
-<<<<<<< HEAD
-The \xmlNode{HSPS} Post-Processor performs the conversion from HistorySet to PointSet.
-The conversion is made so that each history H is converted to a single point P.
-Assume that each history H is a dict of n output variables $x_1=[...],x_n=[...]$, then the resulting point P is as follows; $P=[x_1,...,x_n]$
-Note: it is here assumed that all histories have been sync so that they have the same length, start point and end point. If you are not sure, do a pre-processing the the original history set.
-=======
->>>>>>> origin/devel
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%         PostProcessor         %%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1232,14 +1213,13 @@ In the \xmlNode{PostProcessor} input block, the following XML sub-nodes are requ
    \item \xmlNode{clusterIDs}, \xmlDesc{int, required field}, cluster labels considered 
 \end{itemize}
 
-<<<<<<< HEAD
+
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%  EnsembleModel  Model   %%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
-=======
->>>>>>> origin/devel
+
 \subsection{EnsembleModel}
 \label{subsec:models_EnsembleModel}
 As already mentioned, the \textbf{EnsembleModel} is able to combine \textbf{Code}(see ~\ref{subsec:models_code}),
