@@ -2,7 +2,7 @@
   <ans>
     <mean>1.26356317848</mean>
     <variance>0.5717188979</variance>
-    <numRuns>9</numRuns>
+    <samples>9</samples>
     <polyCoeffs>
       <inputVariables>x1,x2</inputVariables>
       <_0_0_>1.26356317848</_0_0_>
