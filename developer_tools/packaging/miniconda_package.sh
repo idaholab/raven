@@ -13,8 +13,8 @@ export PATH=$INSTALL_DIR/bin:$PATH
 
 # For some bizarre reason, qt causes the install to fail with incorrect
 # symbolic links.
-source activate raven_libraries
-conda remove -y qt
+#source activate raven_libraries
+#conda remove -y qt
 
 # Packages are not needed once installed
 rm -Rvf $INSTALL_DIR/pkgs
