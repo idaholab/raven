@@ -18,10 +18,19 @@ class RELAPparser():
       @ Out, None
     """
     self.printTag = 'RELAP5 PARSER'
-    if not os.path.exists(inputFile): raise IOError('not found RELAP input file')
+    if not os.path.exists(inputFile): raise IOError(self.printTag+'ERROR: not found RELAP input file')
     IOfile = open(inputFile,'r')
     self.inputfile = inputFile
-    self.lines = IOfile.readlines()
+    self.deckLines = {}
+    self.maxNumberOfDecks = 0
+    prevDeckLineNum       = 0
+    lines                 = IOfile.readlines()
+    for lineNum, line in enumerate(lines):
+      if line.strip().startswith("."):
+        self.maxNumberOfDecks += 1
+        self.deckLines[self.maxNumberOfDecks] = lines[prevDeckLineNum:lineNum+1]
+        prevDeckLineNum = lineNum + 1
+    if self.maxNumberOfDecks < 1: raise IOError(self.printTag+ "ERROR: the file "+inputFile+" does not contain a end case fullstop '.'!")
 
   def printInput(self,outfile=None):
     """
@@ -31,32 +40,42 @@ class RELAPparser():
     """
     if outfile==None: outfile =self.inputfile
     outfile.open('w')
-    for i in self.lines: outfile.write('%s' %(i))
+    for deckNum in self.deckLines.keys():
+      for i in self.deckLines[deckNum]: outfile.write('%s' %(i))
     outfile.close()
 
-  def modifyOrAdd(self,DictionaryList,save=True):
+  def modifyOrAdd(self,dictionaryList,save=True):
     """
-      DictionaryList is a list of dictionaries of the required addition or modification
-      the method looks in self.lines for a card number matching the card in modiDictionaryList
-      and modifies the word from DictionaryList at needed
-      @ In, DictionaryList, list, list of dictionaries containing the info to modify the XML tree
+      dictionaryList is a list of dictionaries of the required addition or modification
+      the method looks in self.lines for a card number matching the card in modidictionaryList
+      and modifies the word from dictionaryList at needed
+      @ In, dictionaryList, list, list of dictionaries containing the info to modify the XML tree
       @ In, save, bool, optional, True if the original tree needs to be saved
       @ Out, lines, list, list of modified lines (of the original input)
     """
-    temp=[]
-    modiDictionaryList = {}
-    for i in DictionaryList:
-      if 'cards' in i.keys():  modiDictionaryList.update(i['cards'])
-    temp.append('*RAVEN INPUT VALUES\n')
-    for j in modiDictionaryList: temp.append('*'+j+'    '+str(modiDictionaryList[j]['position'])+'   '+str(modiDictionaryList[j]['value'])+'\n')
-    temp.append('*RAVEN INPUT VALUES\n')
-    for line in fileinput.input(self.inputfile, mode='r'):
-      temp1=line
-      if not re.match('^\s*\n',line):
-        if line.split()[0] in modiDictionaryList: temp1 = self.replaceword(line,modiDictionaryList[line.split()[0]]['position'],modiDictionaryList[line.split()[0]]['value'])
-      temp.append(temp1)
-    if save: self.lines=temp
-    return self.lines
+    decks              = {}
+    lines              = []
+    for i in dictionaryList:
+      if 'decks' not in i.keys(): raise IOError(self.printTag+"ERROR: no card inputs found!!")
+      else                      : decks.update(i['decks'])
+    for deckNum in decks.keys():
+      temp               = []
+      modidictionaryList = decks[deckNum]
+      temp.append('*RAVEN INPUT VALUES\n')
+      if self.maxNumberOfDecks > 1: temp.append('*'+' deckNum: '+str(deckNum)+'\n')
+      for j in modidictionaryList:
+        temp.append('* card: '+j+' word: '+str(modidictionaryList[j]['position'])+' value: '+str(modidictionaryList[j]['value'])+'\n')
+      temp.append('*RAVEN INPUT VALUES\n')
+      for line in self.deckLines[deckNum]: #     fileinput.input(self.inputfile, mode='r'):
+        temp1=line
+        if not re.match('^\s*\n',line):
+          card = line.split()[0].strip()
+          if card in modidictionaryList.keys():
+            temp1 = self.replaceword(line,modidictionaryList[card]['position'],modidictionaryList[card]['value'])
+        temp.append(temp1)
+      if save: self.deckLines[deckNum]=temp
+      lines = lines + temp
+    return lines
 
   def replaceword(self,line,position,value):
     """

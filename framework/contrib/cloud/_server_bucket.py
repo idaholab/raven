@@ -8,7 +8,7 @@ from __future__ import absolute_import
 """
 TODO:
 Consider having connection straight to the boss to sign requests to get/put
-""" 
+"""
 
 """Currently not supported:
 
@@ -39,8 +39,8 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 Lesser General Public License for more details.
 
 You should have received a copy of the GNU Lesser General Public
-License along with this package; if not, see 
-http://www.gnu.org/licenses/lgpl-2.1.html    
+License along with this package; if not, see
+http://www.gnu.org/licenses/lgpl-2.1.html
 """
 
 
@@ -52,7 +52,7 @@ from .cloud import CloudException, CloudTimeoutError
 
 cloudLog = logging.getLogger('Cloud.bucket')
 
-# base implementation of bucket 
+# base implementation of bucket
 import bucket as base_bucket
 #from . import bucket as base_bucket
 
@@ -66,7 +66,7 @@ from bucket import _compute_md5, _get_effective_obj_path, _putf, _ready_file_pat
 from bucket import list, iterlist, remove_prefix, make_public, public_url_folder, \
                     is_public, make_private, info, get_md5, _get_md5
 # from .bucket import list, iterlist, remove_prefix, make_public, public_url_folder, \
-#                     is_public, make_private, info, get_md5, _get_md5                    
+#                     is_public, make_private, info, get_md5, _get_md5
 
 # Error codes used by bucket:
 filenametoolong = 491
@@ -95,12 +95,12 @@ def _retry_op(func, excp_class=Exception, _num_retries=2):
             if retry_cnt == _num_retries:
                 raise
             else:
-                cloudLog.warning('Received exception %s:%s. Retrying', 
+                cloudLog.warning('Received exception %s:%s. Retrying',
                                  type(e), str(e), exc_info=True)
                 time.sleep(0.2)
                 continue
         else:
-            return retval    
+            return retval
 
 def _get_bucket_path(obj_path, prefix):
     full_obj_path = _get_effective_obj_path(obj_path, prefix)
@@ -111,77 +111,77 @@ def putf(f, obj_path, prefix=None, _buffersize = 16384):
     helper for putf.
     Does not support content_type/content_encoding
     """
-            
+
     dest_path = _get_bucket_path(obj_path, prefix)
-    
-    fsize = 0 # file size. may not be computable 
-    
+
+    fsize = 0 # file size. may not be computable
+
     if isinstance(f, basestring):
-        from cStringIO import StringIO        
+        from cStringIO import StringIO
         f = StringIO(f)
-    
+
     try:
         start_loc = f.tell()
-        f.seek(0,2)        
+        f.seek(0,2)
         fsize = f.tell() - start_loc
         f.seek(start_loc)
-    except IOError:  
+    except IOError:
         raise IOError('File object is not seekable. Cannot transmit')
 
     if fsize > 5000000000:
         raise ValueError('Cannot store bucket objects larger than 5GB on cloud.bucket')
-    
+
     if fsize == 0:
         raise ValueError('Cannot store empty bucket objects')
-    
+
     _ready_file_path(dest_path)
-    
+
     def writer():
         with open(dest_path, 'wb') as destf:
-            
+
             data = f.read(_buffersize)
-            while data:         
+            while data:
                 destf.write(data)
                 data = f.read(_buffersize)
-    
+
     try:
         _retry_op(writer,EnvironmentError)
     finally:
         f.close()
-        
+
 def put(file_path, obj_path=None, prefix=None):
-    
+
     if obj_path is None:
         obj_path = os.path.basename(file_path)
     elif not obj_path:
         raise ValueError('Cannot upload bucket object with obj_path "%s"' % obj_path)
 
-    f = open(file_path, 'rb')        
+    f = open(file_path, 'rb')
     putf(f, obj_path, prefix)
-    
+
 # Serverside md5 computation will take too long to be worthwhile, just always do a put
 #  TODO: With boss signing, md5 checks may be doiable
 sync_to_cloud = put
-    
+
 def exists(obj_path, prefix=None):
     bucket_path = _get_bucket_path(obj_path, prefix)
     return _retry_op(lambda: os.path.exists(bucket_path), EnvironmentError)
 
 def remove(obj_paths, prefix=None):
     """Removes object(s) named ``effective_obj_paths`` from PiCloud bucket
-    
+
     obj_paths can be a single object or a list of objects
-    """    
-    
+    """
+
     if not hasattr(obj_paths, '__iter__'):
         obj_paths = [obj_paths]
-    
+
     if len(obj_paths) > 10: # if batch, use webserver batch remove
         return base_bucket.remove(obj_paths, prefix)
-        
+
     for obj_path in obj_paths:
         bucket_path = _get_bucket_path(obj_path, prefix)
-                
+
         try:
             os.remove(bucket_path)
         except OSError, oe:
@@ -190,41 +190,41 @@ def remove(obj_paths, prefix=None):
 
 def get(obj_path, file_path=None, prefix=None, start_byte=0, end_byte=None, _retries=1):
     """Similar to regular get, but bypass md5 checking"""
-    
+
     if start_byte or end_byte:
         # cannot handle ranges with s3fs without pulling entire file in
-        # fall back to default implementation        
+        # fall back to default implementation
         return base_bucket.get(obj_path, file_path, prefix, start_byte, end_byte, _retries)
-    
-    file_path = _ready_file_path(file_path, obj_path)    
+
+    file_path = _ready_file_path(file_path, obj_path)
 
     # with s3fs, we are effectively doing a copy
     cloud_file = getf(obj_path, prefix, 0, None)
-    
+
     chunk_size = 16384
-    
+
     f = open(file_path, 'wb')
-    
+
     while True:
         data = cloud_file.read(chunk_size)
         if not data:
             break
         f.write(data)
-    
+
     f.close()
-    
+
 # always get on server (md5 check takes too long)
-sync_from_cloud = get        
+sync_from_cloud = get
 
 """get logic"""
 
-# redefined 
+# redefined
 class CloudBucketObject(file):
     """A CloudBucketObject provides a file-like interface to the contents of an object
     On the server-side this is just a file subclass made compatible with client-side CloudBucketObject"""
-    
+
     __cached_md5 = None
-       
+
     @property
     def md5(self):
         # interferes with read!
@@ -233,42 +233,42 @@ class CloudBucketObject(file):
         return self.__cached_md5
 
     def filesize(self):
-        # not threadsafe with respect to read() 
+        # not threadsafe with respect to read()
         start_loc = self.tell()
         self.seek(0,2)
         size = self.tell()
         self.seek(start_loc)
-        
+
         return size
-    
+
     def sizeofchunk(self):
         return self.filesize()
-    
+
     def end(self):
         return self.filesize()
 
 def getf(obj_path, prefix=None, start_byte=0, end_byte=None):
     """
     Retrieve the object referenced by ``effective_obj_path`` from PiCloud.
-    Return value is a CloudBucketObject (file-like object) that can be read() to 
-    retrieve the object's contents 
+    Return value is a CloudBucketObject (file-like object) that can be read() to
+    retrieve the object's contents
 
-    An optional byte_range can be specified using ``start_byte`` and ``end_byte``, 
-    where only the data between ``start_byte`` and ``end_byte`` is returned and made 
-    accessible to the CloudBucketObject.  The returned CloudBucketObject.tell() will 
+    An optional byte_range can be specified using ``start_byte`` and ``end_byte``,
+    where only the data between ``start_byte`` and ``end_byte`` is returned and made
+    accessible to the CloudBucketObject.  The returned CloudBucketObject.tell() will
     initialized to ``start_byte``.
-    
+
     An ``end_byte`` of None or exceeding file size is interpreted as a request to retrieve to end of file.
-    """    
-    
+    """
+
     if start_byte or end_byte:
         # cannot handle ranges with s3fs without pulling entire file in
-        # fall back to default implementation        
+        # fall back to default implementation
         return base_bucket.getf(obj_path, prefix, start_byte, end_byte)
-    
-    
+
+
     bucket_path = _get_bucket_path(obj_path, prefix)
-    
+
     try:
         return CloudBucketObject(bucket_path, 'rb')
     except OSError, e:
@@ -277,7 +277,7 @@ def getf(obj_path, prefix=None, start_byte=0, end_byte=None):
         else:
             raise
 
-def mpsafe_get(obj_path, file_path=None, prefix=None, start_byte=0, end_byte=None, 
+def mpsafe_get(obj_path, file_path=None, prefix=None, start_byte=0, end_byte=None,
                timeout=None, do_sync=False):
     """Multiprocessing-safe variant of get.
     If do_sync is false:
@@ -285,16 +285,16 @@ def mpsafe_get(obj_path, file_path=None, prefix=None, start_byte=0, end_byte=Non
     If do_sync is true:
         Download file if and only if copy at file_path does not match remote copy (atomically checked)
     Regardless, If another process is downloading, wait until process has finished
-    
+
     If timeout is reached, CloudTimeoutException is raised
     """
-    
+
     # Exact same code as base bucket: Here only so it references different get function
-    
+
     from .util.cloghandler import portalocker
-    
-    file_path = _ready_file_path(file_path, obj_path)    
-    
+
+    file_path = _ready_file_path(file_path, obj_path)
+
     # lock the file itself
     try:
         #fd = os.open(file_path, os.O_CREAT|os.O_RDONLY)
@@ -302,8 +302,8 @@ def mpsafe_get(obj_path, file_path=None, prefix=None, start_byte=0, end_byte=Non
     except OSError as oe:
         if oe.errno != errno.EEXIST:
             raise
-        
-    expire_time = timeout + time.time() if timeout else None 
+
+    expire_time = timeout + time.time() if timeout else None
     while True:
         try:
             portalocker.lock(fobj, (portalocker.LOCK_EX | portalocker.LOCK_NB))
@@ -312,19 +312,19 @@ def mpsafe_get(obj_path, file_path=None, prefix=None, start_byte=0, end_byte=Non
                 raise
             if expire_time and time.time() > expire_time:
                 raise CloudTimeoutError('could not acquire file lock within timeout')
-            
+
             time.sleep(0.2) # delay
         else:
             break
-            
+
     # We now have the lock; determine what to do based on file size
     # Zero file size is special as buckets cannot contained zero sized files
     # If file currently is zero-sized, we are the first writer: download it
-    #   Else, someone else got to it first    
+    #   Else, someone else got to it first
     fsize = os.path.getsize(file_path)
     if not fsize: # download
         get(obj_path, file_path, prefix, start_byte, end_byte)
     elif do_sync:
-        sync_from_cloud(obj_path, file_path, prefix)         
-    
+        sync_from_cloud(obj_path, file_path, prefix)
+
     fobj.close()  # releases lock

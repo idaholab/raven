@@ -18,7 +18,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 Lesser General Public License for more details.
 
 You should have received a copy of the GNU Lesser General Public
-License along with this package; if not, see 
+License along with this package; if not, see
 http://www.gnu.org/licenses/lgpl-2.1.html
 """
 
@@ -50,33 +50,33 @@ genHidden = False #if true config will generate hidden variables
 from util import configmanager
 
 def get_config_value(section, varname, default, comment=None, hidden=False):
-    
+
     """
     Return value associated with a varname found in section
     If varname is not found, return defaultval and add varname
     If varname found, cast value to type of default
-    """       
+    """
     typ = type(default)
     try:
         entry = config.get(section, varname, comment)
         return typ(entry)
-        
-    except (configmanager.NoOptionError), e:        
+
+    except (configmanager.NoOptionError), e:
         if hidden and not genHidden:
-            config.hiddenset(section,varname,default,comment)            
+            config.hiddenset(section,varname,default,comment)
             return default
-        config.set(section,varname,default,comment)        
+        config.set(section,varname,default,comment)
         return default
     except ValueError, e:
         import logging
         log = logging.getLogger('Cloud') #might not work if logging not yet initialized
         log.warning('Option %s.%s in cloudconf.py must have type %s. Reverting to default' % (section, varname, typ.__name__))
-        return default    
+        return default
 
-"""Sections defined below"""    
+"""Sections defined below"""
 def account_configurable(varname,default,comment=None, hidden=False):
     return get_config_value('Account',varname,default,comment,hidden)
-    
+
 def logging_configurable(varname,default,comment=None, hidden=False):
     return get_config_value('Logging',varname,default,comment,hidden)
 
@@ -88,7 +88,7 @@ def simulation_configurable(varname,default,comment=None, hidden=False):
 
 def transport_configurable(varname, default, comment=None, hidden=False):
     return get_config_value('Transport',varname,default,comment,hidden)
-    
+
 
 
 def flush_config():
@@ -97,14 +97,14 @@ def flush_config():
     """
     conf_path = os.path.join(fullconfigpath,configname)
     try:
-        with open(conf_path, 'w') as configfile:    
+        with open(conf_path, 'w') as configfile:
             config.write(configfile)
     except IOError, e:
         import logging
         log = logging.getLogger('Cloud') #might not work if logging not yet initialized
         log.exception('Could not write %s.', conf_path)
 
-    
+
 
 """ Setup
 """
@@ -124,7 +124,7 @@ except distutils.errors.DistutilsFileError:
 else:
     if newdir:
         os.chmod(newdir[-1], 0700)
-        
+
     if not config.read(os.path.join(fullconfigpath,configname)):
         _needsWrite = True
     #cloudLog.debug("Cloud Configuration imported")

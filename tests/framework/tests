@@ -11,8 +11,8 @@
   #REQUIREMENT_TEST R-IS-2
   type = 'RavenFramework'
   input = 'test_simple.xml'
-  output = 'revirD_tset/FirstMRun/out~1~ideal_pump revirD_tset/FirstMRun/out~6~ideal_pump'
-  csv = 'revirD_tset/FirstMRun/out~6~ideal_pump.csv'
+  output = 'revirD_tset/FirstMRun/1/out~ideal_pump revirD_tset/FirstMRun/6/out~ideal_pump'
+  csv = 'revirD_tset/FirstMRun/6/out~ideal_pump.csv'
   required_executable = '../../RAVEN-%METHOD%'
  [../]
 
@@ -38,12 +38,6 @@
   output = 'output_check/1-plot7_stem.png output_check/1-2DHistoryPlot_histogram.png output_check/1-test_line-line.png output_check/1-plot2_line-line.png output_check/1-plot4_scatter-scatter.png output_check/1-plot3_scatter-scatter.png output_check/1-plot9_stem.png output_check/1-plot8_stem.png output_check/1-plot7_stem.png output_check/1-plot6_histogram.png output_check/1-plot5_histogram.png output_check/1-plot11_step.png output_check/1-plot10_stem.png output_check/1-plot14_tri-surface-tri-surface.png output_check/1-plot13_surface-surface.png output_check/1-plot12_pseudocolor.png output_check/1-plot17_contour3D-filledContour3D.png output_check/1-plot16_contour-filledContour.png output_check/1-plot15_wireframe-wireframe.png output_check/1-plot18_scatter.png output_check/1-plot19_scatter.png output_check/1-plot20_scatter.png output_check/fullprint_history.csv output_check/fullprint_Pointset.csv output_check/fullprint_Point.csv output_check/testprint_selective_history.csv output_check/testprint_selective_Point.csv'
   csv = 'output_check/fullprint_HistorySet_2.csv output_check/test_4.csv output_check/testprint_selective_hist1_4.csv output_check/testprint_selective_hist2_4.csv output_check/testprint_selective_hist3_4.csv output_check/testprint_selective_Pointset.csv'
   xml = 'output_check/fullprint_HistorySet.xml output_check/fullprint_history.xml output_check/fullprint_Pointset.xml output_check/fullprint_Point.xml'
- [../]
-
- [./test_subPlot]
-  type = 'RavenFramework'
-  input = 'test_subPlot.xml'
-  output = 'subplot_output/1-subPlot1_surface-surface-surface.png subplot_output/1-subPlot2_stem-stem-stem.png subplot_output/1-subPlot3_stem-stem-stem-stem-stem.png'
  [../]
 
  [./test_output_attributes]
@@ -88,7 +82,7 @@
   heavy= True
   max_time = 100000
   input = 'test_mpi_bison.xml'
-  output = 'mpi_bison_test/myLHS/out~1~case_1'
+  output = 'mpi_bison_test/myLHS/1/out~case_1'
   csv = 'mpi_bison_test/myLHS/out~1~case_1.csv'
  [../]
 
@@ -103,7 +97,7 @@
  [./test_merge_2_databases]
   type = 'RavenFramework'
   input = 'test_merge_2_databases.xml '
-  output = 'test_merge_2_databases/MonteCarlo/out~1~ideal_pump.csv'
+  output = 'test_merge_2_databases/MonteCarlo/1/out~ideal_pump.csv'
   csv = 'test_merge_2_databases/Pointset_from_database_dump.csv test_merge_2_databases/Pointset_IN_database_dump.csv'
   max_time = 500
   rel_err = 0.01
@@ -201,19 +195,19 @@
   rel_err = 0.001
  [../]
 
- [./testLHSRaven]
+ [./testLHS_RELAP7]
    type = 'RavenFramework'
    input = 'test_LHS_Sampler_Raven.xml'
-   output = 'LHStestRaven/FirstMRun/out~1~clg_massflowrate_3eqn'
+   output = 'LHStestRaven/FirstMRun/1/out~clg_massflowrate_3eqn'
    csv = 'LHStestRaven/outGrid_dump.csv'
    method = 'devel opt'
    required_executable = '../../RAVEN-%METHOD%'
  [../]
 
- [./testGridRaven]
+ [./testGrid_RELAP7]
    type = 'RavenFramework'
    input = 'test_Grid_Sampler_Raven.xml'
-   output = 'GridTestRaven/FirstMRun/out~1~clg_massflowrate_3eqn'
+   output = 'GridTestRaven/FirstMRun/1/out~clg_massflowrate_3eqn'
    UnorderedCsv = 'GridTestRaven/outGrid_dump.csv'
    method = 'devel opt'
    required_executable = '../../RAVEN-%METHOD%'
@@ -275,15 +269,15 @@
   csv = 'CreateInternalObjFromCSVs/PointSetPostProcTest_DUMP.csv'
   max_time = 500
   rel_err = 0.001
-  prereq = testGridRaven
+  prereq = testGrid_RELAP7
  [../]
 
  [./test_bison_mc_simple_&_alias_system]
   #REQUIREMENT_TEST R-IS-6
   type = 'RavenFramework'
   input = 'test_bison_mc_simple.xml'
-  output = 'MCTestBison/CustomSampler/out~1~gap_perfect_transfer_test'
-  csv = 'MCTestBison/CustomSampler/out~3~gap_perfect_transfer_test.csv MCTestBison/CustomSampler/out~1~gap_perfect_transfer_test.csv MCTestBison/CustomSampler_noalias/out~3~gap_perfect_transfer_test.csv MCTestBison/CustomSampler_noalias/out~1~gap_perfect_transfer_test.csv'
+  output = 'MCTestBison/CustomSampler/1/out~gap_perfect_transfer_test'
+  csv = 'MCTestBison/CustomSampler/3/out~gap_perfect_transfer_test.csv MCTestBison/CustomSampler/1/out~gap_perfect_transfer_test.csv MCTestBison/CustomSampler_noalias/3/out~gap_perfect_transfer_test.csv MCTestBison/CustomSampler_noalias/1/out~gap_perfect_transfer_test.csv'
   required_executable = '../../../bison/bison-%METHOD%'
   skip_if_env = BUILD_ROOT
  [../]
@@ -291,8 +285,8 @@
  [./test_custom_mode]
   type = 'RavenFramework'
   input = 'test_custom_mode.xml'
-  output = 'mode_test/FirstMRun/out~1~ideal_pump mode_test/FirstMRun/out~2~ideal_pump'
-  csv = 'mode_test/FirstMRun/out~2~ideal_pump.csv'
+  output = 'mode_test/FirstMRun/1/out~ideal_pump mode_test/FirstMRun/2/out~ideal_pump'
+  csv = 'mode_test/FirstMRun/2/out~ideal_pump.csv'
   required_executable = '../../RAVEN-%METHOD%'
  [../]
 
@@ -307,6 +301,10 @@
  [./test_mathUtils]
   type = 'RavenPython'
   input = '../../framework/utils/testMathUtils.py'
+ [../]
+ [./test_xmlUtils]
+  type = 'RavenPython'
+  input = '../../framework/utils/testXmlUtils.py'
  [../]
 
  [./test_iostep_load]
@@ -339,13 +337,6 @@
   input = 'test_safest_point_cdf.xml'
   output = 'SafestPointPP_cdf/sfs_pnt_cdf_dmp.csv SafestPointPP_cdf/lmt_srf_dmp.csv'
   csv = 'SafestPointPP_cdf/sfs_pnt_cdf_dmp.csv SafestPointPP_cdf/lmt_srf_dmp.csv'
- [../]
-
- [./io_ROM_pickle]
-  type = 'RavenFramework'
-  input = 'test_io_ROM_pickle.xml'
-  output = 'IO_ROM_PICKLE/PrintData_Pickle.csv IO_ROM_PICKLE/PrintData.csv'
-  csv = 'IO_ROM_PICKLE/PrintData_Pickle.csv IO_ROM_PICKLE/PrintData.csv'
  [../]
 
  [./stochPolyPickleTest]

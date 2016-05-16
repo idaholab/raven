@@ -448,7 +448,8 @@ class SmolyakSparseGrid(SparseGrid):
     j=-1
     prefix = 'sparseTensor_'
     while True:
-      finishedJobs = handler.getFinished(prefix=prefix) #FIXME this is by far the most expensive line in this method
+      finishedJobs = handler.getFinished(jobIdentifier=prefix) #FIXME this is by far the most expensive line in this method
+      #finishedJobs = handler.getFinished(prefix=prefix) #FIXME this is by far the most expensive line in this method
       for job in finishedJobs:
         if job.getReturnCode() == 0:
           new = job.returnEvaluation()[1]
@@ -508,7 +509,8 @@ class SmolyakSparseGrid(SparseGrid):
     i=-1
     prefix = 'sparseGrid_'
     while True:
-      finishedJobs = handler.getFinished(prefix=prefix)
+      #finishedJobs = handler.getFinished(prefix=prefix)
+      finishedJobs = handler.getFinished(jobIdentifier=prefix)
       for job in finishedJobs:
         if job.getReturnCode() == 0:
           self.c[int(str(job.identifier).replace(prefix, ""))]=job.returnEvaluation()[1]
