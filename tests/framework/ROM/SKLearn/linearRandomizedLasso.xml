@@ -1,0 +1,53 @@
+<?xml version="1.0" ?>
+<Simulation>
+  <!-- A simple example of the approximate Morse-Smale complex being used for
+       regression on a 2D function with one single global maximum. This example
+       should thoroughly test all of the features associated to the MSR. -->
+  <RunInfo>
+    <WorkingDir>data</WorkingDir>
+    <Sequence>
+      sample,
+      train,
+      resample
+    </Sequence>
+  </RunInfo>
+
+  <Models>
+    <ExternalModel ModuleToLoad="./testFunction" name="foo" subType="">
+      <variables>X,Y,Z</variables>
+    </ExternalModel>
+    <ROM name="modelUnderTest" subType="SciKitLearn">
+      <!-- Using all of the defaults -->
+      <SKLtype>linear_model|RandomizedLasso</SKLtype>
+      <Features>X,Y</Features>
+      <Target>Z</Target>
+      <alpha>aic</alpha>
+      <scaling>0.5</scaling>
+      <sample_fraction>0.75</sample_fraction>
+      <n_resampling>200</n_resampling>
+      <selection_threshold>0.25</selection_threshold>
+      <fit_intercept>True</fit_intercept>
+      <verbose>False</verbose>
+      <precompute>auto</precompute>
+      <max_iter>500</max_iter>
+      <eps>2.2204460492503131e-16</eps>
+      <random_state>None</random_state>
+    </ROM>
+  </Models>
+
+  <ExternalXML node="Distributions" xmlToLoad="sharedDistributions.xml"/>
+  <ExternalXML node="Samplers" xmlToLoad="sharedSamplers.xml"/>
+  <ExternalXML node="Steps" xmlToLoad="sharedSteps.xml"/>
+
+  <OutStreams>
+    <!-- A csv file containing the output of the example -->
+    <Print name="outData">
+      <type>csv</type>
+      <source>outData</source>
+      <filename>outLinearRandomizedLasso</filename>
+    </Print>
+  </OutStreams>
+
+  <ExternalXML node="DataObjects" xmlToLoad="sharedDataObjects.xml"/>
+
+</Simulation>
