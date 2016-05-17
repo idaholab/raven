@@ -521,19 +521,37 @@ class ROM(Dummy):
           self.initializationOptionDict[child.tag]={}
         self.initializationOptionDict[child.tag][child.text]=child.attrib
       else:
-        try: self.initializationOptionDict[child.tag] = int(child.text)
-        except (ValueError,TypeError):
-          try: self.initializationOptionDict[child.tag] = float(child.text)
-          except (ValueError,TypeError): self.initializationOptionDict[child.tag] = child.text
+        if child.tag == 'estimator':
+          self.initializationOptionDict[child.tag] = {}
+          for node in child:
+            try:
+              self.initializationOptionDict[child.tag][node.tag] = int(node.text)
+            except (ValueError,TypeError):
+              try:
+                self.initializationOptionDict[child.tag][node.tag] = float(node.text)
+              except (ValueError,TypeError):
+                self.initializationOptionDict[child.tag][node.tag] = node.text
+        else:
+          try:
+            self.initializationOptionDict[child.tag] = int(child.text)
+          except (ValueError,TypeError):
+            try: self.initializationOptionDict[child.tag] = float(child.text)
+            except (ValueError,TypeError): self.initializationOptionDict[child.tag] = child.text
     #the ROM is instanced and initialized
     # check how many targets
     if not 'Target' in self.initializationOptionDict.keys(): self.raiseAnError(IOError,'No Targets specified!!!')
     targets = self.initializationOptionDict['Target'].split(',')
     self.howManyTargets = len(targets)
 
-    for target in targets:
-      self.initializationOptionDict['Target'] = target
-      self.SupervisedEngine[target] =  SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
+    if 'SKLtype' in self.initializationOptionDict and 'MultiTask' in self.initializationOptionDict['SKLtype']:
+      self.initializationOptionDict['Target'] = targets
+      model = SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
+      for target in targets:
+        self.SupervisedEngine[target] = model
+    else:
+      for target in targets:
+        self.initializationOptionDict['Target'] = target
+        self.SupervisedEngine[target] =  SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
     # extend the list of modules this ROM depen on
     self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(utils.first(self.SupervisedEngine.values())),True)) - set(self.mods))
     self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(SupervisedLearning),True)) - set(self.mods))

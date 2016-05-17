@@ -1,0 +1,46 @@
+<?xml version="1.0" ?>
+<Simulation>
+  <!-- A simple example of the approximate Morse-Smale complex being used for
+       regression on a 2D function with one single global maximum. This example
+       should thoroughly test all of the features associated to the MSR. -->
+  <RunInfo>
+    <WorkingDir>data</WorkingDir>
+    <Sequence>
+      sample,
+      train,
+      resample
+    </Sequence>
+  </RunInfo>
+
+  <Models>
+    <ExternalModel ModuleToLoad="./testClassifier" name="foo" subType="">
+      <variables>X,Y,Z</variables>
+    </ExternalModel>
+    <ROM name="modelUnderTest" subType="SciKitLearn">
+      <SKLtype>multiClass|OneVsRestClassifier</SKLtype>
+      <Features>X,Y</Features>
+      <Target>Z</Target>
+      <estimator>
+        <SKLtype>linear_model|LinearRegression</SKLtype>
+        <fit_intercept>True</fit_intercept>
+        <normalize>False</normalize>
+      </estimator>
+    </ROM>
+  </Models>
+
+  <ExternalXML node="Distributions" xmlToLoad="sharedDistributions.xml"/>
+  <ExternalXML node="Samplers" xmlToLoad="sharedSamplers.xml"/>
+  <ExternalXML node="Steps" xmlToLoad="sharedSteps.xml"/>
+
+  <OutStreams>
+    <!-- A csv file containing the output of the example -->
+    <Print name="outData">
+      <type>csv</type>
+      <source>outData</source>
+      <filename>outOVR</filename>
+    </Print>
+  </OutStreams>
+
+  <ExternalXML node="DataObjects" xmlToLoad="sharedDataObjects.xml"/>
+
+</Simulation>
