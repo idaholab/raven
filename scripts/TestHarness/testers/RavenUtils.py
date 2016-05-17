@@ -123,15 +123,26 @@ def checkForMissingModules():
     #tooOld.extend(moduleTooOld)
   return missing, tooOld, notQA
 
+def __condaString():
+  """
+  Generates a string with version ids that can be passed to conda.
+  returns s, string, a list of packages for conda to install
+  """
+  s = ""
+  for name, version in __condaList:
+    if len(version) == 0:
+      s += name+" "
+    else:
+      s += name+"="+version+" "
+  return s
+
 if __name__ == '__main__':
   if '--conda-create' in sys.argv:
     print("conda create --name raven_libraries -y ",end="")
-    for name, version in __condaList:
-      if len(version) == 0:
-        print(name,end=" ")
-      else:
-        print(name+"="+version,end=" ")
-    print()
+    print(__condaString())
+  elif '--conda-install' in sys.argv:
+    print("conda install --name raven_libraries -y ",end=" ")
+    print(__condaString())
   elif '--manual-list' in sys.argv:
     for i,fv,ev,qa in modules_to_try:
       print("\item",i+"-"+qa)

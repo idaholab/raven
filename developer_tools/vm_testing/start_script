@@ -1,11 +1,35 @@
 #!/bin/bash
-
 source ~/.bashrc
+
+cat $0
+
+
+cd $HOME
+rm -Rf sub
+mkdir sub
+cd sub
+git clone git@hpcgitlab.inl.gov:idaholab/raven.git
+cd raven/
+git checkout cogljj/library_work
 
 if which conda;
 then
+    if test "$CONDA_RAVEN_STRATEGY" == update;
+    then
         conda update -y numpy hdf5 h5py scipy scikit-learn matplotlib swig
+    fi
+    if test "$CONDA_RAVEN_STRATEGY" == qa_version;
+    then
+        `python scripts/TestHarness/testers/RavenUtils.py --conda-install`
+    fi
+    conda list
 fi
+
+git submodule update --init moose crow
+make framework_modules
+./run_framework_tests --no-color
+rm -Rf $HOME/sub/raven/.git $HOME/sub/raven/*/.git
+
 
 cd $HOME
 rm -Rf raven
@@ -26,13 +50,3 @@ cd raven
 make framework_modules
 ./run_framework_tests --no-color
 
-cd $HOME
-rm -Rf sub
-mkdir sub
-cd sub
-git clone git@hpcgitlab.inl.gov:idaholab/raven.git
-cd raven/
-git submodule update --init moose crow
-make framework_modules
-./run_framework_tests --no-color
-rm -Rf $HOME/sub/raven/.git $HOME/sub/raven/*/.git
