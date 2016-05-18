@@ -38,14 +38,15 @@ class RavenPython(Tester):
     self.required_executable_check_flags = self.specs['required_executable_check_flags'].split(' ')
 
   def checkRunnable(self, option):
-    try:
-      argsList = [self.required_executable]
-      argsList.extend(self.required_executable_check_flags)
-      retValue = subprocess.call(argsList,stdout=subprocess.PIPE)
-      if len(self.required_executable) > 0 and retValue != 0:
-        return (False,'skipped (Failing executable: "'+self.required_executable+'")')
-    except:
-      return (False,'skipped (Error when trying executable: "'+self.required_executable+'")')
+    if len(self.required_executable) > 0:
+      try:
+        argsList = [self.required_executable]
+        argsList.extend(self.required_executable_check_flags)
+        retValue = subprocess.call(argsList,stdout=subprocess.PIPE)
+        if retValue != 0:
+          return (False,'skipped (Failing executable: "'+self.required_executable+'")')
+      except:
+        return (False,'skipped (Error when trying executable: "'+self.required_executable+'")')
 
     if self.specs['requires_swig2'] and not RavenPython.has_swig2:
       return (False, 'skipped (No swig 2.0 found)')
