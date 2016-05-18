@@ -21,9 +21,9 @@
       <Model class="Models" type="ExternalModel">PythonModule</Model>
       <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
       <Output class="DataObjects" type="HistorySet">testPrintHistorySet</Output>
-      <Output class="OutStreamManager" type="Print">testPrintHistorySet_dump</Output>
+      <Output class="OutStreams" type="Print">testPrintHistorySet_dump</Output>
       <Output class="DataObjects" type="PointSet">testPointSet</Output>
-      <Output class="OutStreamManager" type="Print">testPointSet_dump</Output>
+      <Output class="OutStreams" type="Print">testPointSet_dump</Output>
     </MultiRun>
   </Steps>
 
@@ -69,7 +69,7 @@
   </Samplers>
 
   <!-- OUTSTREAMS -->
-  <OutStreamManager>
+  <OutStreams>
     <Print name="testPrintHistorySet_dump">
       <type>csv</type>
       <source>testPrintHistorySet</source>
@@ -78,7 +78,7 @@
       <type>csv</type>
       <source>testPointSet</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
   <!-- DATA OBJECTS -->
   <DataObjects>

@@ -1,0 +1,126 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="silent">
+  <RunInfo>
+    <WorkingDir>grid</WorkingDir>
+    <Sequence>make1,print1,load,make2,print2,print3</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="inp" type="">input_truncated.i</Input>
+    <Input name="csv" type="">dump1.csv</Input>
+  </Files>
+
+  <Steps>
+    <MultiRun name="make1">
+      <Input class="Files" type="Input">inp</Input>
+      <Model class="Models" type="Code">code</Model>
+      <Sampler class="Samplers" type="Grid">1</Sampler>
+      <Output class="DataObjects" type="PointSet">solns</Output>
+    </MultiRun>
+    <MultiRun name="make2">
+      <Input class="Files" type="Input">inp</Input>
+      <Model class="Models" type="Code">code</Model>
+      <Sampler class="Samplers" type="Grid">2</Sampler>
+      <Output class="DataObjects" type="PointSet">solns</Output>
+      <Output class="DataObjects" type="PointSet">solns2</Output>
+    </MultiRun>
+    <IOStep name="print1">
+      <Input class="DataObjects" type="PointSet">solns</Input>
+      <Output class="OutStreams" type="Print">dump1</Output>
+    </IOStep>
+    <IOStep name="load">
+      <Input class="Files" type="">csv</Input>
+      <Output class="DataObjects" type="PointSet">restart</Output>
+    </IOStep>
+    <IOStep name="print2">
+      <Input class="DataObjects" type="PointSet">solns2</Input>
+      <Output class="OutStreams" type="Print">dump2</Output>
+    </IOStep>
+    <IOStep name="print3">
+      <Input class="DataObjects" type="PointSet">solns</Input>
+      <Output class="OutStreams" type="Print">dump3</Output>
+    </IOStep>
+  </Steps>
+
+  <Distributions>
+    <Uniform name="u1">
+      <lowerBound>1.123456789012345</lowerBound>
+      <upperBound>2</upperBound>
+    </Uniform>
+    <Uniform name="u2">
+      <lowerBound>2.123456789012345</lowerBound>
+      <upperBound>3</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <Grid name="1">
+      <variable name="x">
+        <distribution>u1</distribution>
+        <grid construction="equal" steps="1" type="CDF">0.0 1.0</grid>
+      </variable>
+      <variable name="y">
+        <distribution>u2</distribution>
+        <grid construction="equal" steps="1" type="CDF">0.0 1.0</grid>
+      </variable>
+    </Grid>
+    <Grid name="2">
+      <variable name="x">
+        <distribution>u1</distribution>
+        <grid construction="equal" steps="2" type="CDF">0.0 1.0</grid>
+      </variable>
+      <variable name="y">
+        <distribution>u2</distribution>
+        <grid construction="equal" steps="2" type="CDF">0.0 1.0</grid>
+      </variable>
+      <Restart class="DataObjects" type="PointSet">restart</Restart>
+      <restartTolerance>1e-3</restartTolerance>
+    </Grid>
+  </Samplers>
+
+  <Models>
+    <Code name="code" subType="GenericCode">
+      <executable>../../../AnalyticModels/AnalyticCodes/truncated_output.py</executable>
+      <clargs arg="python" type="prepend"/>
+      <clargs arg="-i" extension=".i" type="input"/>
+      <clargs arg="-o" type="output"/>
+      <prepend>python</prepend>
+    </Code>
+  </Models>
+
+  <DataObjects>
+    <PointSet name="dummyIN">
+      <Input>x,y</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="solns">
+      <Input>x,y</Input>
+      <Output>a,b</Output>
+    </PointSet>
+    <PointSet name="restart">
+      <Input>x,y</Input>
+      <Output>a,b</Output>
+    </PointSet>
+    <PointSet name="solns2">
+      <Input>x,y</Input>
+      <Output>a,b</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="dump1">
+      <type>csv</type>
+      <source>solns</source>
+    </Print>
+    <Print name="dump2">
+      <type>csv</type>
+      <source>solns2</source>
+    </Print>
+    <Print name="dump3">
+      <type>csv</type>
+      <source>solns</source>
+    </Print>
+  </OutStreams>
+
+</Simulation>

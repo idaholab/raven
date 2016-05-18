@@ -1,13 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Simulation debug="True">
+<Simulation verbosity="debug">
     
 <RunInfo>
     <WorkingDir>./results</WorkingDir>
-    <Files>ROM3pk</Files>
     <Sequence>extract_data4,rom_trainer4,RunROM4,plot_data_4</Sequence>
     <batchSize>1</batchSize>
 </RunInfo>
 
+
+<Files>
+    <Input name="ROM3pk" type="">ROM3pk</Input>
+</Files>
 
 <Distributions>
     <Normal name='normal_trunc'>
@@ -40,15 +43,15 @@
     <Grid name='Grid_ROM'>
         <variable name='x1' >
             <distribution>normal_trunc</distribution>
-            <grid type='value' lowerBound='0.0' construction='equal' steps='10'>0.1</grid>
+            <grid type='value' construction='equal' steps='10'>0.0 1.0</grid>
         </variable>
         <variable name='x2' >
             <distribution>normal</distribution>
-            <grid type='value' lowerBound='1.5' construction='equal' steps='10'>0.1</grid>
+            <grid type='value'  construction='equal' steps='10'>1.5 2.5</grid>
         </variable>
         <variable name='x3' >
             <distribution>uniform</distribution>
-            <grid type='value' lowerBound='1.0' construction='equal' steps='10'>0.3</grid>
+            <grid type='value' construction='equal' steps='10'>1.0 4.0</grid>
         </variable>
     </Grid>
 </Samplers>
@@ -72,8 +75,8 @@
     <IOStep name='plot_data_4' pauseAtEnd='True'>
         <Input   class='DataObjects'      type='PointSet' >outROM_y4</Input>
         <Input   class='DataObjects'      type='PointSet' >outGRID_y4</Input>
-        <Output  class='OutStreamManager' type='Plot'         >plot_ROM_RSy4</Output>
-        <Output  class='OutStreamManager' type='Plot'         >plot_RSy4</Output>
+        <Output  class='OutStreams' type='Plot'         >plot_ROM_RSy4</Output>
+        <Output  class='OutStreams' type='Plot'         >plot_RSy4</Output>
     </IOStep>
 </Steps>
 
@@ -98,7 +101,7 @@
     </PointSet>
 </DataObjects>
 
-<OutStreamManager>
+<OutStreams>
     <Plot name='plot_ROM_RSy4' dim='3' overwrite='False'>
         <plotSettings>
             <plot>
@@ -135,7 +138,7 @@
             </title>
         </actions>
     </Plot>
-</OutStreamManager>
+</OutStreams>
 
 </Simulation>
 

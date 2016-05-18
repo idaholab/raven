@@ -56,16 +56,16 @@
       <Model class="Models" type="PostProcessor">analyticalTest</Model>
       <Output class="Files" type="">output_basicStatistics_PP1grid.csv</Output>
       <Output class="DataObjects" type="PointSet">outputDataGrid</Output>
-      <Output class="OutStreamManager" type="Print">outputDatagrid_dump</Output>
+      <Output class="OutStreams" type="Print">outputDatagrid_dump</Output>
     </PostProcess>
   </Steps>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="outputDatagrid_dump">
       <type>csv</type>
       <source>outputDataGrid</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
   <DataObjects>
     <Point name="inputPlaceHolder">

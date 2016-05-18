@@ -2,7 +2,7 @@
   <ans>
     <mean>6.0</mean>
     <variance>2.66666666667</variance>
-    <numRuns>9</numRuns>
+    <samples>9</samples>
     <polyCoeffs>
       <inputVariables>x1,x2</inputVariables>
       <_0_0_>6.0</_0_0_>
@@ -15,5 +15,20 @@
       <_2_1_>-6.66133814775e-16</_2_1_>
       <_2_2_>1.11022302463e-16</_2_2_>
     </polyCoeffs>
+    <indices>
+      <tot_variance>2.66666666667</tot_variance>
+      <variables>x2
+        <partial_variance>1.33333333333</partial_variance>
+        <Sobol_index>0.5</Sobol_index>
+      </variables>
+      <variables>x1
+        <partial_variance>1.33333333333</partial_variance>
+        <Sobol_index>0.5</Sobol_index>
+      </variables>
+      <variables>x1,x2
+        <partial_variance>9.49098276594e-31</partial_variance>
+        <Sobol_index>3.55911853723e-31</Sobol_index>
+      </variables>
+    </indices>
   </ans>
 </ReducedOrderModel>

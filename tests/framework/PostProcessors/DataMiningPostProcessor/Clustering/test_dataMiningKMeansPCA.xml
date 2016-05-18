@@ -20,15 +20,15 @@
       <Input class="DataObjects" type="PointSet">bisonData</Input>
       <Model class="Models" type="PostProcessor">KMeans1</Model>
       <Output class="DataObjects" type="PointSet">bisonData</Output>
-      <Output class="OutStreamManager" type="Plot">PlotKMeans1</Output>
-      <Output class="OutStreamManager" type="Plot">PlotAll</Output>
-      <Output class="OutStreamManager" type="Print">dump1</Output>
+      <Output class="OutStreams" type="Plot">PlotKMeans1</Output>
+      <Output class="OutStreams" type="Plot">PlotAll</Output>
+      <Output class="OutStreams" type="Print">dump1</Output>
     </PostProcess>
     <PostProcess name="pp2" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">bisonData</Input>
       <Model class="Models" type="PostProcessor">PCA1</Model>
       <Output class="DataObjects" type="PointSet">bisonData</Output>
-      <Output class="OutStreamManager" type="Plot">PlotPCA1</Output>
+      <Output class="OutStreams" type="Plot">PlotPCA1</Output>
     </PostProcess>
   </Steps>
 
@@ -60,7 +60,7 @@
     </PostProcessor>
   </Models>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="dump1">
       <type>csv</type>
       <source>bisonData</source>
@@ -75,13 +75,11 @@
           <z>bisonData|Input|thermal_expansion</z>
           <noClusters>3</noClusters>
           <clusterLabels>bisonData|Output|KMeans1Labels</clusterLabels>
-          <kwargs>
-                    </kwargs>
+          <kwargs/>
         </plot>
         <xlabel>Power Scaling Factor</xlabel>
         <ylabel>Grain Radius Factor</ylabel>
-        <zlabel>Thermal Expansion
-Factor</zlabel>
+        <zlabel>Thermal Expansion Factor</zlabel>
       </plotSettings>
       <actions>
         <how>png</how>
@@ -176,6 +174,6 @@ Stress</ylabel>
         <how>png</how>
       </actions>
     </Plot>
-  </OutStreamManager>
+  </OutStreams>
 
 </Simulation>

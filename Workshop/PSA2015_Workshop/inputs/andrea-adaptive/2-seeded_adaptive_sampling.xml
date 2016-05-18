@@ -25,13 +25,13 @@
     <Output  class="DataObjects"             type="PointSet"  >outAdaptive</Output>
     <Output  class="Databases"               type="HDF5"          >out_db_adaptive</Output>
     <SolutionExport class="DataObjects"      type="PointSet"  >limitSurface</SolutionExport>
-    <Output         class='OutStreamManager' type='Plot'          >plotlimitSurface</Output>
-    <Output         class='OutStreamManager' type='Plot'          >adaptivePointsLocation</Output>
+    <Output         class='OutStreams' type='Plot'          >plotlimitSurface</Output>
+    <Output         class='OutStreams' type='Plot'          >adaptivePointsLocation</Output>
   </MultiRun>
   <IOStep name="push_limitsurface_in_database">
     <Input   class="DataObjects"        type="PointSet"  >limitSurface</Input>
     <Output  class="Databases"          type="HDF5"          >out_db_ls</Output>
-    <Output  class='OutStreamManager'   type='Print'         >limitSurfaceCSV</Output>
+    <Output  class='OutStreams'         type='Print'         >limitSurfaceCSV</Output>
   </IOStep>
 
 </Steps>
@@ -87,15 +87,7 @@
 
 <Models>
     <ExternalModel name="PythonModule" subType="" ModuleToLoad="workshop_model">
-       <variable>x1</variable>
-       <variable>x2</variable>
-       <variable>x3</variable>
-       <variable>y1</variable>
-       <variable>y2</variable>
-       <variable>y3</variable>
-       <variable>y4</variable>
-       <variable>y5</variable>
-       <variable>failure</variable>
+       <variables>x1,x2,x3,y1,y2,y3,y4,y5,failure</variables>
     </ExternalModel>
     <ROM  name="AccelerationROM" subType="SciKitLearn">
       <Features>x1,x2,x3</Features>
@@ -117,7 +109,7 @@
 </Functions>
 
 
-<OutStreamManager> 
+<OutStreams>
   <Print name = "limitSurfaceCSV">
   	<type>csv</type>
   	<source>limitSurface</source>
@@ -162,7 +154,7 @@
           </title>
       </actions>
   </Plot>
-</OutStreamManager>
+</OutStreams>
 
 
 

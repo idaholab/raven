@@ -2,6 +2,8 @@
 Created on Feb 20, 2013
 
 @author: crisr
+
+This is the Driver of RAVEN
 """
 #For future compatibility with Python 3
 from __future__ import division, print_function, absolute_import
@@ -29,6 +31,11 @@ from Simulation import Simulation
 
 #------------------------------------------------------------- Driver
 def printStatement():
+  """
+    Method to print the BEA header
+    @ In, None
+    @ Out, None
+  """
   print("""
   NOTICE: This computer software was prepared by Battelle Energy
   Alliance, LLC, hereinafter the Contractor, under Contract

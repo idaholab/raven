@@ -71,6 +71,14 @@ characters are provided, RAVEN will truncate it using a hyphen between the first
 %
 \default{raven\_qsub}
 
+%%%%%% printInput
+\item \xmlNode{printInput}, \xmlDesc{string, optional field}, if provided, indicates RAVEN should print out a
+  duplicate of the input file.  If the provided text is \xmlString{false}, or the node is not provided, then
+  no duplicate will be printed.  If the node is provided but no name specified, it will use the default name.
+  Otherwise, the file will be written in the working directory as \texttt{name\_provided.xml}.
+  \default{duplicated\_input.xml}
+%
+
 %%%%%% NumThreads
 \item \xmlNode{NumThreads}, \xmlDesc{integer, optional field}, can be used to
 specify the number of threads RAVEN should associate when running the driven
@@ -112,8 +120,8 @@ specifies \texttt{NumThreads} $> 1$  and \texttt{NumMPI} $> 1$, then
 
 %%%%%% internalParallel
 \item \xmlNode{internalParallel}, \xmlDesc{boolean, optional field}, is a boolean
-flag that controls the type of parallel implementation needs to be used for Internal 
-Objects (e.g. ROMs, External Models, PostProcessors, etc.). 
+flag that controls the type of parallel implementation needs to be used for Internal
+Objects (e.g. ROMs, External Models, PostProcessors, etc.).
 If this flag is set to:
 \begin{itemize}
  \item  \textbf{\texttt{False}}, the internal parallelism is employed using multi-threading (i.e. 1 processor, multiple threads);
@@ -148,6 +156,8 @@ execution commands flagged as ``parallel'' within the code interface.
   specifies extra parameters to be used with the cluster submission
   command.  For example, if qsub is used to submit a command, then these
   parameters will be used as extra parameters with the qsub command.
+  This can be repeated multiple times as needed and they will all be passed
+  to the cluster submission command.
 %
 \default{None}
 

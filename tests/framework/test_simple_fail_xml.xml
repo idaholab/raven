@@ -1,0 +1,68 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
+    <WorkingDir>fail_xml</WorkingDir>
+    <Sequence>External_Model,MakeSet</Sequence>
+  </RunInfo>
+
+  <Models>
+    <ExternalModel ModuleToLoad="calc" name="Calc" subType="">
+      <variables>uniform,time,out</variables>
+    </ExternalModel>
+  </Models>
+
+  <Distributions>
+    <Uniform name="uniform">
+      <lowerBound>0.0</lowerBound>
+      <upperBound>1.0</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="theMonteCarlo">
+      <samplerInit>
+        <limit>20</limit>
+      </samplerInit>
+      <variable name="uniform">
+        <distribution>uniform</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <OutStreams>
+    <Print name="PrintRawPointSet">
+      <type>csv</type>
+      <source>RawPointSet</source>
+    </Print>
+  </OutStreams>
+
+  <Steps>
+    <MultiRun name="External_Model" re-seeding="200286">
+      <Input class="DataObjects" type="Point">inputHolder</Input>
+      <Model class="Models" type="ExternalModel">Calc</Model>
+      <Sampler class="Samplers" type="MonteCarlo">theMonteCarlo</Sampler>
+      <Output class="Databases" type="HDF5">simple</Output>
+    </MultiRun>
+    <IOStep name="MakeSet">
+      <Input class="Databases" type="HDF5">simple</Input>
+      <Output class="DataObjects" type="PointSet">RawPointSet</Output>
+      <Output class="OutStreams" type="Print">PrintRawPointSet</Output>
+    </IOStep>
+  </Steps>
+
+  <Databases>
+    <HDF5 name="simple" readMode="overwrite"/>
+  </Databases>
+
+  <DataObjects>
+    <Point name="inputHolder">
+      <Input>uniform</Input>
+      <Output>OutputPlaceHolder</Output>
+    </Point>
+    <PointSet name="RawPointSet">
+      <Input>uniform</Input>
+      <Output>time,out</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>

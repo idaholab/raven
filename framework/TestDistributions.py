@@ -1,3 +1,8 @@
+"""
+  This Module performs Unit Tests for the Distribution class.
+  It can not be considered part of the active code but of the regression test system
+"""
+
 #For future compatibility with Python 3
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
@@ -23,6 +28,12 @@ mh.initialize({'verbosity':'debug'})
 
 print (Distributions)
 def createElement(tag,attrib={},text={}):
+  """
+    Method to create a dummy xml element readable by the distribution classes
+    @ In, tag, string, the node tag
+    @ In, attrib, dict, optional, the attribute of the xml node
+    @ In, text, dict, optional, the dict containig what should be in the xml text
+  """
   element = ET.Element(tag,attrib)
   element.text = text
   return element
@@ -33,6 +44,14 @@ results = {"pass":0,"fail":0}
 #  return abs(a - b) > 1e-10
 
 def checkAnswer(comment,value,expected,tol=1e-10):
+  """
+    This method is aimed to compare two floats given a certain tolerance
+    @ In, comment, string, a comment printed out if it fails
+    @ In, value, float, the value to compare
+    @ In, expected, float, the expected value
+    @ In, tol, float, optional, the tolerance
+    @ Out, None
+  """
   if abs(value - expected) > tol:
     print("checking answer",comment,value,"!=",expected)
     results["fail"] += 1
@@ -40,6 +59,13 @@ def checkAnswer(comment,value,expected,tol=1e-10):
     results["pass"] += 1
 
 def checkCrowDist(comment,dist,expectedCrowDist):
+  """
+    Check the consistency of the crow distributions
+    @ In, comment, string, a comment
+    @ In, dist, instance, the distrubtion to inquire
+    @ In, expectedCrowDist, dict, the dictionary of the expected distrubution (with all the parameters)
+    @ Out, None
+  """
   crowDist = dist.getCrowDistDict()
   if crowDist != expectedCrowDist:
     results["fail"] += 1
@@ -48,6 +74,16 @@ def checkCrowDist(comment,dist,expectedCrowDist):
     results["pass"] += 1
 
 def checkIntegral(name,dist,low,high,numpts=1e4,tol=1e-3):
+  """
+    Check the consistency of the pdf integral (cdf)
+    @ In, name, string, the name printed out if it fails
+    @ In, dist, instance, the distrubtion to inquire
+    @ In, low, float, the lower bound of the dist
+    @ In, high, float, the uppper bound of the dist
+    @ In, numpts, int, optional, the number of integration points
+    @ In, tol, float, optional, the tolerance
+    @ Out, None
+  """
   xs=np.linspace(low,high,numpts)
   dx = (high-low)/float(numpts)
   tot = sum(dist.pdf(x)*dx for x in xs)
@@ -104,9 +140,13 @@ print(puniform.rvs(5),puniform.rvs())
 uniform.rvsWithinbounds(1.5,2.5)
 puniform.rvsWithinbounds(1.5,2.5)
 
-uniform.addInitParams({})
-puniform.addInitParams({})
-for _ in range(10): Distributions.randomIntegers(0,1,uniform)
+## Should these be checked?
+initParams = uniform.getInitParams()
+## Should these be checked?
+initParams = puniform.getInitParams()
+
+for _ in range(10):
+  Distributions.randomIntegers(0,1,uniform)
 
 Distributions.randomIntegers(2,1,uniform)
 
@@ -219,7 +259,8 @@ gamma = Distributions.Gamma()
 gamma._readMoreXML(gammaElement)
 gamma.initializeDistribution()
 
-gamma.addInitParams({})
+## Should these be checked?
+initParams = gamma.getInitParams()
 
 #check pickled version as well
 pk.dump(gamma,file('testDistrDump.pk','wb'))
@@ -266,7 +307,8 @@ gamma = Distributions.Gamma()
 gamma._readMoreXML(gammaElement)
 gamma.initializeDistribution()
 
-gamma.addInitParams({})
+## Should these be checked?
+initParams = gamma.getInitParams()
 
 checkCrowDist("shifted gamma",gamma,{'xMin': 10.0, 'theta': 2.0, 'k': 1.0, 'type': 'GammaDistribution', 'low': 10.0})
 
@@ -484,7 +526,8 @@ poisson = Distributions.Poisson()
 poisson._readMoreXML(poissonElement)
 poisson.initializeDistribution()
 
-poisson.addInitParams({})
+## Should these be checked?
+initParams = poisson.getInitParams()
 
 #check pickled version as well
 pk.dump(poisson,file('testDistrDump.pk','wb'))
@@ -524,7 +567,8 @@ binomial = Distributions.Binomial()
 binomial._readMoreXML(binomialElement)
 binomial.initializeDistribution()
 
-binomial.addInitParams({})
+## Should these be checked?
+initParams = binomial.getInitParams()
 
 #check picklling
 pk.dump(binomial,file('testDistrDump.pk','wb'))
@@ -561,7 +605,8 @@ bernoulli = Distributions.Bernoulli()
 bernoulli._readMoreXML(bernoulliElement)
 bernoulli.initializeDistribution()
 
-bernoulli.addInitParams({})
+## Should these be checked?
+initParams = bernoulli.getInitParams()
 
 #check picklling
 pk.dump(bernoulli,file('testDistrDump.pk','wb'))
@@ -598,7 +643,8 @@ logistic = Distributions.Logistic()
 logistic._readMoreXML(logisticElement)
 logistic.initializeDistribution()
 
-logistic.addInitParams({})
+## Should these be checked?
+initParams = logistic.getInitParams()
 
 #check picklling
 pk.dump(logistic,file('testDistrDump.pk','wb'))
@@ -745,7 +791,8 @@ logNormal = Distributions.LogNormal()
 logNormal._readMoreXML(logNormalElement)
 logNormal.initializeDistribution()
 
-logNormal.addInitParams({})
+## Should these be checked?
+initParams = logNormal.getInitParams()
 
 #check picklling
 pk.dump(logNormal,file('testDistrDump.pk','wb'))
@@ -799,7 +846,8 @@ logNormal = Distributions.LogNormal()
 logNormal._readMoreXML(logNormalElement)
 logNormal.initializeDistribution()
 
-logNormal.addInitParams({})
+## Should these be checked?
+initParams = logNormal.getInitParams()
 
 checkCrowDist("shift logNormal",logNormal,{'mu': 3.0, 'sigma': 2.0, 'type': 'LogNormalDistribution', 'low': 10.0})
 
@@ -845,7 +893,8 @@ weibull = Distributions.Weibull()
 weibull._readMoreXML(weibullElement)
 weibull.initializeDistribution()
 
-weibull.addInitParams({})
+## Should these be checked?
+initParams = weibull.getInitParams()
 
 #check picklling
 pk.dump(weibull,file('testDistrDump.pk','wb'))
@@ -883,7 +932,8 @@ weibull = Distributions.Weibull()
 weibull._readMoreXML(weibullElement)
 weibull.initializeDistribution()
 
-weibull.addInitParams({})
+## Should these be checked?
+initParams = weibull.getInitParams()
 
 checkCrowDist("shift weibull",weibull,{'k': 1.5, 'type': 'WeibullDistribution', 'lambda': 1.0, 'low':10.0})
 
@@ -929,7 +979,8 @@ ndInverseWeight_test = Distributions.NDInverseWeight()
 ndInverseWeight_test._readMoreXML(ndInverseWeightElement)
 ndInverseWeight_test.initializeDistribution()
 
-ndInverseWeight_test.addInitParams({})
+## Should these be checked?
+initParams = ndInverseWeight_test.getInitParams()
 
 checkCrowDist("NDInverseWeight",ndInverseWeight_test,{'type': 'NDInverseWeightDistribution'})
 
@@ -946,7 +997,8 @@ ndCartesianSpline.setMessageHandler(mh)
 ndCartesianSpline._readMoreXML(ndCartesianSplineElement)
 ndCartesianSpline.initializeDistribution()
 
-ndCartesianSpline.addInitParams({})
+## Should these be checked?
+initParams = ndCartesianSpline.getInitParams()
 
 checkCrowDist("NDCartesianSpline",ndCartesianSpline,{'type': 'NDCartesianSplineDistribution'})
 
@@ -979,7 +1031,8 @@ Categorical = Distributions.Categorical()
 Categorical._readMoreXML(CategoricalElement)
 Categorical.initializeDistribution()
 
-Categorical.addInitParams({})
+## Should these be checked?
+initParams = Categorical.getInitParams()
 
 checkAnswer("Categorical  pdf(10)" , Categorical.pdf(10),0.1)
 checkAnswer("Categorical  pdf(30)" , Categorical.pdf(30),0.15)

@@ -1,0 +1,233 @@
+\section{Global Sobol Sensitivity: Sudret}
+Associated external model: \texttt{sudret\_sobol\_poly.py}
+
+This model provides analytic Sobol sensitivities for a flexible number of input parameters.  It is taken from
+\cite{sudret2007} and has the following form:
+\begin{equation}
+  u(Y) = \frac{1}{2^N} \prod_{n=1}^N \left(3y_n^2 + 1\right).
+\end{equation}
+The variables $y_n$ are distributed uniformly on [0,1].  For three input variables ($N=3$), the Sobol sensitivities are
+as follows, to 12 digits of accuracy:
+\begin{align}
+  S_1 = S_2 = S_3 &= \frac{25}{91}\hspace{10pt} (0.2747), \\
+  S_{1,2} = S_{1,3} = S_{2,3} &= \frac{5}{91}\hspace{10pt} (0.0549), \\
+  S_{1,2,3} &= \frac{1}{91}\hspace{10pt} (0.0110).
+\end{align}
+The mean is 1.0 and the variance is 0.728.
+
+\subsection{Second-Order ANOVA of Second-Order Cut-HDMR Expansion of Sudret}
+One particular analytic tests involves calculating Sobol sensitivities for the second-order cut-HDMR expansion
+of the Sudret.  We use three variables and equate $u(Y) = f(x,y,z)$.  The reference cut point is $(\bar
+x,\bar y, \bar z) = (\frac{1}{2},\frac{1}{2},\frac{1}{2})$.
+
+The first step is to construct the second-order cut-HDMR expansion $T$,
+\begin{equation}
+  f(x,y,z) \approx T[f](x,y,z) = t_r + t_x + t_y + t_z + t_{xy} + t_{xz} + t_{yz},
+\end{equation}
+\begin{equation}
+  t_r \equiv f(\bar x,\bar y,\bar z),
+\end{equation}
+\begin{equation}
+  t_x \equiv f(x,\bar y,\bar z) -t_r,
+\end{equation}
+\begin{equation}
+  t_{xy} \equiv f(x,y,\bar z) - t_x - t_y - t_r.
+\end{equation}
+Symmetry between $x,y,z$ provides similar expressions for the remaining terms.
+The cut-plane evaluations are
+\begin{equation}
+  f_0 = t_r \equiv f(\bar x,\bar y,\bar z) = \frac{343}{512},
+\end{equation}
+\begin{equation}
+  f_x \equiv f(x,\bar y, \bar z) = \frac{49}{128}(3x^2+1),
+\end{equation}
+\begin{equation}
+  f_{xy} \equiv f(x,y, \bar z) = \frac{7}{32}(3x^2+1)(3y^2+1),
+\end{equation}
+and similar for the remaining terms.  Expanding the cut-HDMR expression,
+\begin{align}
+  T[f](x,y,z) = t_r &+ (f_x-t_r) + (f_y-t_r) + (f_y-t_r) +\nonumber\\
+  &[f_{xy} - (f_x-t_r) - (f_y-t_r) - t_r]+ \nonumber\\
+  &[f_{xz} - (f_x-t_r) - (f_z-t_r) - t_r]+ \nonumber\\
+  &[f_{yz} - (f_y-t_r) - (f_z-t_r) - t_r],
+\end{align}
+and collecting terms
+\begin{equation}
+  T[f](x,y,z) = t_r - f_x - f_y - f_z + f_{xy} + f_{xz} + f_{yz}.
+\end{equation}
+The ANOVA terms are recovered by integration of the cut-HDMR expansion.  The ANOVA expansion $H$ is similar in
+appearance to the cut-HDMR but uses different definitions; in fact, cut-HDMR is a coarse approximation of the
+ANOVA expansion.  Here we use ANOVA to approximate the cut-HDMR expansion, instead of the original model.
+
+\begin{equation}
+  H[T](x,y,z) = h_0 + h_x + h_y + h_z + h_{xy} + h_{xz} + h_{yz},
+\end{equation}
+\begin{equation}
+  h_0 \equiv \int_0^1\int_0^1\int_0^1 T[f](x,y,z)\ dx\ dy\ dz,
+\end{equation}
+\begin{equation}
+  h_x \equiv \int_0^1\int_0^1 T[f](x,y,z)\ dy\ dz - h_0,
+\end{equation}
+\begin{equation}
+  h_{xy} \equiv \int_0^1 T[f](x,y,z)\ dz - h_x - h_y - h_0,
+\end{equation}
+and similarly for the remaining terms.  We evaluate the necessary integrals in the expansion.
+\begin{align}
+  \int_0^1\int_0^1\int_0^1 T[f](x,y,z)\ dxdydz &= \int_0^1\int_0^1\int_0^1 t_r - f_x - f_y - f_z + f_{xy} +
+    f_{xz} + f_{yz}\ dxdydz,\nonumber \\
+    &= \frac{343}{512} - 3\left(\frac{49}{64}\right) + 3\left(\frac{7}{8}\right), \nonumber\\
+    &= \frac{511}{512}.\nonumber
+\end{align}
+\begin{equation}
+  h_0 = \int_0^1\int_0^1\int_0^1 T[f](x,y,z)\ dxdydz = \frac{511}{512}.
+\end{equation}
+\begin{align}
+  \int_0^1\int_0^1 T[f](x,y,z)\ dxdy &= \int_0^1\int_0^1 t_r - f_x - f_y - f_z + f_{xy} +
+    f_{xz} + f_{yz}\ dxdy, \nonumber\\
+    &= \frac{259}{512} + \frac{189}{128}z^2. \nonumber
+\end{align}
+\begin{equation}
+  h_z = \int_0^1\int_0^1 T[f](x,y,z)\ dxdy - h_0 = \frac{259}{512} + \frac{189}{128}z^2 - \frac{511}{512} =
+  -\frac{63}{128} + \frac{189}{128}z^2.
+\end{equation}
+\begin{align}
+  \int_0^1 T[f](x,y,z)\ dx &= \int_0^1 t_r - f_x - f_y - f_z + f_{xy} + f_{xz} + f_{yz}\ dx, \nonumber\\
+  &= \frac{119}{512} + \frac{105}{128}(y^2+z^2)+ \frac{63}{32}y^2z^2,\nonumber
+\end{align}
+\begin{align}
+  h_{yz} &=\int_0^1 T[f](x,y,z)\ dx - h_y - h_z - h_0,\nonumber\\
+  &= \frac{119}{512} + \frac{105}{128}(y^2+z^2)+ \frac{63}{32}y^2z^2 - \nonumber\\
+  &=\frac{7}{32} - \frac{21}{32}(y^2+z^2) + \frac{63}{32}y^2z^2.
+\end{align}
+The other terms are obtained similarly, and are symmetric.  In summary,
+\begin{align}
+  h_0 &= \frac{511}{512}, \\
+  h_x &= -\frac{63}{128} + \frac{189}{128}x^2, \\
+  h_y &= -\frac{63}{128} + \frac{189}{128}y^2, \\
+  h_z &= -\frac{63}{128} + \frac{189}{128}z^2, \\
+  h_{xy} &= \frac{7}{32} - \frac{21}{32}(x^2+y^2) + \frac{63}{32}x^2y^2, \\
+  h_{xz} &= \frac{7}{32} - \frac{21}{32}(x^2+z^2) + \frac{63}{32}x^2z^2, \\
+  h_{yz} &= \frac{7}{32} - \frac{21}{32}(y^2+z^2) + \frac{63}{32}y^2z^2.
+\end{align}
+It can be shown that the expectation value of any ANOVA expansion term is zero, with the exception of the
+first term $h_0$.  Additionally, each term is orthogonal to each other term.  The second moment can thus be
+calculated as
+\begin{align}
+  \langle H[T](x,y,z)^2\rangle &\equiv \int_0^1\int_0^1\int_0^1 (h_0+h_x+h_y+h_z+h_{xy}+h_{xz}+h_{yz})^2\
+  dxdydz, \nonumber\\
+  &= h_0^2+\int_0^1\int_0^1\int_0^1 h_x^2+h_y^2+h_z^2+h_{xy}^2+h_{xz}^2+h_{yz}^2\ dxdydz.
+\end{align}
+To obtain the variance $\sigma_\text{tot}^2$, we subtract the square of the mean,
+\begin{equation}
+  \sigma_\text{tot}^2 = \int_0^1\int_0^1\int_0^1 h_x^2+h_y^2+h_z^2+h_{xy}^2+h_{xz}^2+h_{yz}^2\ dxdydz.
+\end{equation}
+The partial variance $\sigma_k^2$ of any subset $k$ is the integral of the square of that ANOVA term.
+\begin{equation}
+  \sigma_x^2 = \sigma_y^2 = \sigma_z^2 = \frac{3969}{20480} \approx0.19379883,
+\end{equation}
+\begin{equation}
+  \sigma_{xy}^2 = \sigma_{xz}^2 = \sigma_{yz}^2 = \frac{49}{1600} =0.030625.
+\end{equation}
+The total variance is a sum of the partial variances,
+\begin{equation}
+  \sigma_\text{tot}^2 = 3\left(\frac{3969}{20480}\right) + 3\left(\frac{49}{1600}\right) =
+  \frac{68943}{102400} \approx 0.67327.
+\end{equation}
+
+The Sobol indices are the ratio of the partial variance to the total,
+
+\begin{equation}
+  \mathcal{S}_x =\mathcal{S}_y = \mathcal{S}_z = \frac{135}{469} \approx 0.287846482,
+\end{equation}
+\begin{equation}
+  \mathcal{S}_{xy} =\mathcal{S}_{xz} = \mathcal{S}_{yz} = \frac{64}{1407} \approx 0.045486851.
+\end{equation}
+%
+%
+%
+%
+%
+%
+%
+\section{Global Sobol Sensitivity: Ishigami}
+Associated external model: \texttt{ishigami.py}
+
+This model has interesting properties for its sensitivity indices, in that $y_3$ has zero impact alone but a
+nonzero impact when coupled with $y_1$.  Additionally, the sinusoidal expression is not trivially represented
+by polynomial expansion.  It is listed in \cite{saltelli2000} and has the following form:
+\begin{equation}
+  u(Y) = \sin(y_1) + a\sin^2(y_2) + b y_3^4\sin(y_1),
+\end{equation}
+where in this case $a=7$ and $b=0.1$, and all $y_n$ are uniformly distributed on $[-\pi,\pi]$.
+
+The variance and partial variances are as follows:
+\begin{align}
+  D_\text{tot} &= \frac{a^2}{8} + \frac{b\pi^4}{5} + \frac{b^2\pi^8}{18} + \frac{1}{2}, \\
+  D_1 &= \frac{b\pi^4}{5} + \frac{b^2\pi^8}{50} + \frac{1}{2} ,\\
+  D_2 &= \frac{a^2}{8}, \\
+  D_3 &= 0, \\
+  D_{1,2} &= 0, \\
+  D_{2,3} &= 0, \\
+  D_{1,3} &= \frac{8b^2\pi^8}{225}, \\
+  D_{1,2,3} &= 0.
+\end{align}
+The corresponding variance values and Sobol sensitivities are listed in Table \ref{tab:ishigami sens}.
+\begin{table}[h]
+  \centering
+  \begin{tabular}{c|c|c}
+    Variable & Partial Variance & Sobol Index \\ \hline
+    (total) & 13.8446 & 1 \\
+    $y_1$         & 4.34589 & 0.3138 \\
+    $y_2$         & 6.125   & 0.4424 \\
+    $y_3$         & 0       & 0      \\
+    $y_1,y_2$     & 0       & 0      \\
+    $y_1,y_3$     & 3.3737  & 0.2436 \\
+    $y_2,y_3$     & 0       & 0      \\
+    $y_1,y_2,y_3$ & 0       & 0      \\
+  \end{tabular}
+  \caption{Ishigami sensitivities and variances}
+  \label{tab:ishigami sens}
+\end{table}
+
+%
+%
+%
+%
+%
+%
+\section{Sobol G-Function}
+Associated external model: \texttt{gFunction.py}
+
+This function developed by Sobol has the benefit of tuning factors $a_n$ that allow the importance of any
+particular term to be increased or decreased.  Because of the absolute value, this function is quite
+challenging for polynomial expansion.  Documentation can be found in \cite{sobol2003}.  The function is
+represented by
+\begin{equation}
+  u(Y) = \prod_{n=1}^N \frac{|4y_n - 2|+a_n}{1+a_n},
+\end{equation}
+where $y_n$ are distributed uniformly on [0,1] and $a_n$ are non-negative.  $a_n$ are generally integers, and
+smaller values lead to greater impact of corresponding $y_n$.  As in \cite{sudret2007} we use $N=8$ with
+$a=[1,2,5,10,20,50,100,500]$.  The partial variances are given by
+\begin{equation}
+  D_n = \frac{1}{3(1+a_n)^2},
+\end{equation}
+\begin{equation}
+  D_\text{tot} = \prod_{n=1}^N (D_n+1)-1.
+\end{equation}
+Analytic values for Sobol sensitivities are given in Table \ref{tab:gfunc sens}.
+\begin{table}[h]
+  \centering
+  \begin{tabular}{c|c}
+    Variable & Sobol sensitivity \\ \hline
+    $y_1$ & 0.6037 \\
+    $y_2$ & 0.2683 \\
+    $y_3$ & 0.0671 \\
+    $y_4$ & 0.0200 \\
+    $y_5$ & 0.0055 \\
+    $y_6$ & 0.0009 \\
+    $y_7$ & 0.0002 \\
+    $y_8$ & 0.0000 \\
+  \end{tabular}
+  \caption{G-Function sensitivities and variances}
+  \label{tab:gfunc sens}
+\end{table}

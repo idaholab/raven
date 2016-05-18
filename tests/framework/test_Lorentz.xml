@@ -19,18 +19,18 @@
       <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
       <Output class="DataObjects" type="HistorySet">testPrintHistorySet</Output>
       <Output class="Databases" type="HDF5">test_external_db</Output>
-      <Output class="OutStreamManager" type="Print">testPrintHistorySet_dump</Output>
+      <Output class="OutStreams" type="Print">testPrintHistorySet_dump</Output>
       <Output class="DataObjects" type="PointSet">testPointSet</Output>
-      <Output class="OutStreamManager" type="Print">testPointSet_dump</Output>
+      <Output class="OutStreams" type="Print">testPointSet_dump</Output>
     </MultiRun>
     <MultiRun name="FirstMRun2" re-seeding="25061978">
       <Input class="DataObjects" type="Point">inputPlaceHolder</Input>
       <Model class="Models" type="ExternalModel">PythonModule</Model>
       <Sampler class="Samplers" type="Grid">myGrid</Sampler>
       <Output class="DataObjects" type="HistorySet">testPrintHistorySet</Output>
-      <Output class="OutStreamManager" type="Print">testPrintHistorySet_dump</Output>
+      <Output class="OutStreams" type="Print">testPrintHistorySet_dump</Output>
       <Output class="DataObjects" type="PointSet">testPointSet</Output>
-      <Output class="OutStreamManager" type="Print">testPointSet_dump</Output>
+      <Output class="OutStreams" type="Print">testPointSet_dump</Output>
     </MultiRun>
   </Steps>
 
@@ -91,11 +91,11 @@
 
   <!-- DATABASES -->
   <Databases>
-    <HDF5 name="test_external_db"/>
+    <HDF5 name="test_external_db" readMode="overwrite"/>
   </Databases>
 
   <!-- OUTSTREAMS -->
-  <OutStreamManager>
+  <OutStreams>
     <Print name="testPrintHistorySet_dump">
       <type>csv</type>
       <source>testPrintHistorySet</source>
@@ -104,7 +104,7 @@
       <type>csv</type>
       <source>testPointSet</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
   <!-- DATA OBJECTS -->
   <DataObjects>

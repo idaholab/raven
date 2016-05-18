@@ -7,12 +7,12 @@
   </RunInfo>
 
   <Files>
-    <Input name="simple_flow_3eqn.i" type="">simple_flow_3eqn.i</Input>
-    <Input name="simple_flow_3eqn_control.py" type="">simple_flow_3eqn_control.py</Input>
+    <Input name="massflowrate_3eqn.i" type="">clg_massflowrate_3eqn.i</Input>
+    <Input name="massflowrate_3eqn_control.py" type="">clg_massflowrate_3eqn_control.py</Input>
   </Files>
 
   <Models>
-    <Code name="MyRAVEN" subType="RAVEN">
+    <Code name="MyRAVEN" subType="RELAP7">
       <executable>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</executable>
     </Code>
   </Models>
@@ -45,8 +45,8 @@
 
   <Steps>
     <MultiRun name="TestDataObjectAttributes">
-      <Input class="Files" type="">simple_flow_3eqn.i</Input>
-      <Input class="Files" type="">simple_flow_3eqn_control.py</Input>
+      <Input class="Files" type="">massflowrate_3eqn.i</Input>
+      <Input class="Files" type="">massflowrate_3eqn_control.py</Input>
       <Model class="Models" type="Code">MyRAVEN</Model>
       <Sampler class="Samplers" type="Grid">myGrid</Sampler>
       <Output class="Databases" type="HDF5">testGridRavenDatabase</Output>
@@ -57,13 +57,13 @@
       <Output class="DataObjects" type="PointSet">outGridTPS1</Output>
       <Output class="DataObjects" type="PointSet">outGridTPS2</Output>
       <Output class="DataObjects" type="Point">outGridTP</Output>
-      <Output class="OutStreamManager" type="Print">stories1_dump</Output>
-      <Output class="OutStreamManager" type="Print">stories2_dump</Output>
-      <Output class="OutStreamManager" type="Print">hst1_dump</Output>
-      <Output class="OutStreamManager" type="Print">hst2_dump</Output>
-      <Output class="OutStreamManager" type="Print">outGridTPS1_dump</Output>
-      <Output class="OutStreamManager" type="Print">outGridTPS2_dump</Output>
-      <Output class="OutStreamManager" type="Print">outGridTP_dump</Output>
+      <Output class="OutStreams" type="Print">stories1_dump</Output>
+      <Output class="OutStreams" type="Print">stories2_dump</Output>
+      <Output class="OutStreams" type="Print">hst1_dump</Output>
+      <Output class="OutStreams" type="Print">hst2_dump</Output>
+      <Output class="OutStreams" type="Print">outGridTPS1_dump</Output>
+      <Output class="OutStreams" type="Print">outGridTPS2_dump</Output>
+      <Output class="OutStreams" type="Print">outGridTP_dump</Output>
     </MultiRun>
     <IOStep name="TestDataObjectAttributesFromDataBase">
       <Input class="Databases" type="HDF5">testGridRavenDatabase</Input>
@@ -80,21 +80,21 @@
       <Output class="DataObjects" type="PointSet">outGridTPS1_from_DB</Output>
       <Output class="DataObjects" type="PointSet">outGridTPS2_from_DB</Output>
       <Output class="DataObjects" type="Point">outGridTP_from_DB</Output>
-      <Output class="OutStreamManager" type="Print">stories1_from_DB_dump</Output>
-      <Output class="OutStreamManager" type="Print">stories2_from_DB_dump</Output>
-      <Output class="OutStreamManager" type="Print">hst1_from_DB_dump</Output>
-      <Output class="OutStreamManager" type="Print">hst2_from_DB_dump</Output>
-      <Output class="OutStreamManager" type="Print">outGridTPS1_from_DB_dump</Output>
-      <Output class="OutStreamManager" type="Print">outGridTPS2_from_DB_dump</Output>
-      <Output class="OutStreamManager" type="Print">outGridTP_from_DB_dump</Output>
+      <Output class="OutStreams" type="Print">stories1_from_DB_dump</Output>
+      <Output class="OutStreams" type="Print">stories2_from_DB_dump</Output>
+      <Output class="OutStreams" type="Print">hst1_from_DB_dump</Output>
+      <Output class="OutStreams" type="Print">hst2_from_DB_dump</Output>
+      <Output class="OutStreams" type="Print">outGridTPS1_from_DB_dump</Output>
+      <Output class="OutStreams" type="Print">outGridTPS2_from_DB_dump</Output>
+      <Output class="OutStreams" type="Print">outGridTP_from_DB_dump</Output>
     </IOStep>
   </Steps>
 
   <Databases>
-    <HDF5 name="testGridRavenDatabase"/>
+    <HDF5 name="testGridRavenDatabase" readMode="overwrite"/>
   </Databases>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="stories1_from_DB_dump">
       <type>csv</type>
       <source>stories1_from_DB</source>
@@ -151,7 +151,7 @@
       <type>csv</type>
       <source>outGridTP</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
   <DataObjects>
     <Point name="outGridTP">
@@ -159,7 +159,7 @@
         <inputRow>-1</inputRow>
         <operator>max</operator>
       </options>
-      <Input>pipe_Area,pipe_Dh,Dummy1</Input>
+      <Input>pipe_Area,Dummy1</Input>
       <Output>pipe_Hw,pipe_Tw,time</Output>
     </Point>
     <Point historyName="2" name="outGridTP_from_DB">
@@ -167,7 +167,7 @@
         <inputRow>-1</inputRow>
         <operator>max</operator>
       </options>
-      <Input>pipe_Area,pipe_Dh,Dummy1</Input>
+      <Input>pipe_Area,Dummy1</Input>
       <Output>pipe_Hw,pipe_Tw,time</Output>
     </Point>
     <PointSet name="outGridTPS1">
@@ -175,7 +175,7 @@
         <inputRow>1</inputRow>
         <outputRow>-1</outputRow>
       </options>
-      <Input>pipe_Area,pipe_Dh,Dummy1</Input>
+      <Input>pipe_Area,Dummy1</Input>
       <Output>pipe_Hw,pipe_Tw,time</Output>
     </PointSet>
     <PointSet name="outGridTPS2">
@@ -184,7 +184,7 @@
         <pivotParameter>time</pivotParameter>
         <outputPivotValue>0.00012345</outputPivotValue>
       </options>
-      <Input>pipe_Area,pipe_Dh,Dummy1</Input>
+      <Input>pipe_Area,Dummy1</Input>
       <Output>pipe_Hw,pipe_Tw,time</Output>
     </PointSet>
     <PointSet name="outGridTPS1_from_DB">
@@ -192,7 +192,7 @@
         <inputRow>1</inputRow>
         <outputRow>-1</outputRow>
       </options>
-      <Input>pipe_Area,pipe_Dh,Dummy1</Input>
+      <Input>pipe_Area,Dummy1</Input>
       <Output>pipe_Hw,pipe_Tw,time</Output>
     </PointSet>
     <PointSet name="outGridTPS2_from_DB">
@@ -201,14 +201,14 @@
         <pivotParameter>time</pivotParameter>
         <outputPivotValue>0.00012345</outputPivotValue>
       </options>
-      <Input>pipe_Area,pipe_Dh,Dummy1</Input>
+      <Input>pipe_Area,Dummy1</Input>
       <Output>pipe_Hw,pipe_Tw,time</Output>
     </PointSet>
     <History name="hst1">
       <options>
         <inputRow>1</inputRow>
       </options>
-      <Input>pipe_Area,pipe_Dh</Input>
+      <Input>pipe_Area</Input>
       <Output>pipe_Hw,pipe_Tw,time</Output>
     </History>
     <History name="hst2">
@@ -217,14 +217,14 @@
         <pivotParameter>time</pivotParameter>
         <outputPivotValue>0.0002 0.0003 0.0004</outputPivotValue>
       </options>
-      <Input>pipe_Area,pipe_Dh</Input>
+      <Input>pipe_Area</Input>
       <Output>pipe_Hw,pipe_Tw,time</Output>
     </History>
     <History historyName="1" name="hst1_from_DB">
       <options>
         <inputRow>1</inputRow>
       </options>
-      <Input>pipe_Area,pipe_Dh</Input>
+      <Input>pipe_Area</Input>
       <Output>pipe_Hw,pipe_Tw,time</Output>
     </History>
     <History historyName="2" name="hst2_from_DB">
@@ -233,14 +233,14 @@
         <pivotParameter>time</pivotParameter>
         <outputPivotValue>0.0002 0.0003 0.0004</outputPivotValue>
       </options>
-      <Input>pipe_Area,pipe_Dh</Input>
+      <Input>pipe_Area</Input>
       <Output>pipe_Hw,pipe_Tw,time</Output>
     </History>
     <HistorySet name="stories1">
       <options>
         <inputRow>1</inputRow>
       </options>
-      <Input>pipe_Area,pipe_Dh</Input>
+      <Input>pipe_Area</Input>
       <Output>pipe_Hw,pipe_Tw,time</Output>
     </HistorySet>
     <HistorySet name="stories2">
@@ -249,14 +249,14 @@
         <pivotParameter>time</pivotParameter>
         <outputPivotValue>0.0002 0.0003 0.0004</outputPivotValue>
       </options>
-      <Input>pipe_Area,pipe_Dh</Input>
+      <Input>pipe_Area</Input>
       <Output>pipe_Hw,pipe_Tw,time</Output>
     </HistorySet>
     <HistorySet name="stories1_from_DB">
       <options>
         <inputRow>1</inputRow>
       </options>
-      <Input>pipe_Area,pipe_Dh</Input>
+      <Input>pipe_Area</Input>
       <Output>pipe_Hw,pipe_Tw,time</Output>
     </HistorySet>
     <HistorySet name="stories2_from_DB">
@@ -265,7 +265,7 @@
         <pivotParameter>time</pivotParameter>
         <outputPivotValue>0.0002 0.0003 0.0004</outputPivotValue>
       </options>
-      <Input>pipe_Area,pipe_Dh</Input>
+      <Input>pipe_Area</Input>
       <Output>pipe_Hw,pipe_Tw,time</Output>
     </HistorySet>
   </DataObjects>

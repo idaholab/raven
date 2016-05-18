@@ -1,3 +1,9 @@
+"""
+Created on Feb 4, 2016
+
+Module aimed to define the methods to group variables in the RAVEN frameworl
+"""
+
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
@@ -7,17 +13,12 @@ if not 'xrange' in dir(__builtins__):
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
-import sys
-import os
-import time
-import copy
+from collections import OrderedDict
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-import utils
 import BaseClasses
 #Internal Modules End--------------------------------------------------------------------------------
-
 
 class VariableGroup(BaseClasses.BaseType):
   """
@@ -26,19 +27,21 @@ class VariableGroup(BaseClasses.BaseType):
   def __init__(self):
     """
       Constructor
+      @ In, None
+      @ Out, None
     """
     BaseClasses.BaseType.__init__(self)
     self.printTag       = 'VariableGroup'
     self._dependents    = []             #name of groups this group's construction is dependent on
     self._base          = None           #if dependent, the name of base group to start from
     self._list          = []             #text from node
-    self.variables      = set()          #list of variable names
+    self.variables      = []             #list of variable names
     self.initialized    = False          #true when initialized
 
   def _readMoreXML(self,node):
     """
       reads XML for more information
-      @ In, node, ET.Element, xml element to read data from
+      @ In, node, xml.etree.ElementTree.Element, xml element to read data from
       @ Out, None
     """
     #establish the name
@@ -61,7 +64,7 @@ class VariableGroup(BaseClasses.BaseType):
       @ Out, None
     """
     if len(self._dependents)==0:
-      self.variables = set(l.strip() for l in self._list)
+      self.variables = list(l.strip() for l in self._list) #set(l.strip() for l in self._list) #don't use sets, since they destroy order
     else:
       #get base
       base = None
@@ -72,7 +75,7 @@ class VariableGroup(BaseClasses.BaseType):
       if base is None:
         self.raiseAnError(IOError,'Base %s not found among variable groups!' %self._base)
       #get dependencies
-      deps={}
+      deps=OrderedDict()
       for depName in self._dependents:
         dep = None
         for group in varGroups:
@@ -83,9 +86,10 @@ class VariableGroup(BaseClasses.BaseType):
           self.raiseAnError(IOError,'Dependent %s not found among variable groups!' %depName)
         deps[depName] = dep
       #get base set
-      baseVars = base.getVars()
+      baseVars = set(base.getVars())
       #do modifiers to base
       modifiers = list(m.strip() for m in self._list)
+      orderOps = [] #order of operations that occurred, just var names and dep lists
       for mod in modifiers:
         #remove internal whitespace
         mod = mod.replace(' ','')
@@ -96,22 +100,39 @@ class VariableGroup(BaseClasses.BaseType):
           self.raiseAnError(IOError,'Unrecognized or missing dependency operator:',op,varName)
         #if varName is a single variable, make it a set so it behaves like the rest
         if varName not in deps.keys():
-          modSet = set([varName])
+          modSet = [varName]
         else:
           modSet = deps[varName].getVars()
+        orderOps.append(modSet[:])
+        modSet = set(modSet)
         if   op == '+': baseVars.update(modSet)
         elif op == '-': baseVars.difference_update(modSet)
         elif op == '^': baseVars.intersection_update(modSet)
         elif op == '%': baseVars.symmetric_difference_update(modSet)
-        #set class variable
-      self.variables = baseVars
+      #sort variable list into self.variables
+      #  -> first, sort through top-level vars
+      for var in base.getVars():
+        if var in baseVars:
+          self.variables.append(var)
+          baseVars.remove(var)
+      #  -> then, sort through deps/operations in order
+      for mod in orderOps:
+        for var in mod:
+          if var in baseVars:
+            self.variables.append(var)
+            baseVars.remove(var)
+      #  -> baseVars better be empty now!
+      if len(baseVars) > 0:
+        self.raiseAWarning('    End vars    :',self.variables)
+        self.raiseAWarning('    End BaseVars:',baseVars)
+        self.raiseAnError(RuntimeError, 'Not all variableGroup entries were accounted for!  The operations were not performed correctly')
     self.initialized=True
 
   def getDependencies(self):
     """
       Returns list object of strings containing variable group names
       @ In, None
-      @ Out, list(str), list of variable group names
+      @ Out, _dependents, list(str), list of variable group names
     """
     return self._dependents[:]
 
@@ -119,17 +140,18 @@ class VariableGroup(BaseClasses.BaseType):
     """
       Returns set object of strings containing variable names in group
       @ In, None
-      @ Out, set(str), set of variable names
+      @ Out, variables, list(str), set of variable names
     """
-    return self.variables.copy()
+    return self.variables[:]
 
   def getVarsString(self,delim=','):
     """
       Returns delim-separated list of variables in group
-      @ In, delim, string, delimiter
-      @ Out, string, list of variables in comma-separated string
+      @ In, delim, string, optional, delimiter (default = ',')
+      @ Out, csvVariablesString, string, list of variables in comma-separated string
     """
-    return ','.join(self.getVars())
+    csvVariablesString = ','.join(self.getVars())
+    return csvVariablesString
 #
 #
 #

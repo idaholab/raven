@@ -54,6 +54,7 @@
     zero_threshold = 1e-14
   [../]
  [./testBasicStatisticsGeneral]
+  #REQUIREMENT_TEST R-RA-5
   type = 'RavenFramework'
   input = 'test_BasicStatistics.xml'
   output = 'basicStatisticsGeneral/PointSetPostProcTest_dump.csv basicStatisticsGeneral/output_basicStatistics_PP1.csv basicStatisticsGeneral/output_basicStatistics_PP2.csv basicStatisticsGeneral/PointSetPostProcTest_dump.xml basicStatisticsGeneral/output_basicStatistics_PP3.csv basicStatisticsGeneral/output_basicStatistics_PP4.csv basicStatisticsGeneral/output_basicStatistics_PP5.csv'
@@ -61,6 +62,11 @@
   xml = 'basicStatisticsGeneral/PointSetPostProcTest_dump.xml'
   max_time = 500
   rel_err = 0.00001
+ [../]
+ [./testBasicStatisticsXml]
+  type = 'RavenFramework'
+  input = 'test_BasicStatsXML.xml'
+  UnorderedXml = 'basicStatisticsXml/output_basicStatistics.xml'
  [../]
  [./testBasicStatisticsSensitivity]
   type = 'RavenFramework'

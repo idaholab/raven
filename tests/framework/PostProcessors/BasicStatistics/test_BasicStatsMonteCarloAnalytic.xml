@@ -57,16 +57,16 @@
       <Input class="DataObjects" type="PointSet">outputDataMC</Input>
       <Model class="Models" type="PostProcessor">analyticalTest</Model>
       <Output class="Files" type="">output_basicStatistics_PP1mc.csv</Output>
-      <Output class="OutStreamManager" type="Print">outputDataMC_dump</Output>
+      <Output class="OutStreams" type="Print">outputDataMC_dump</Output>
     </PostProcess>
   </Steps>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="outputDataMC_dump">
       <type>csv</type>
       <source>outputDataMC</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
   <DataObjects>
     <Point name="inputPlaceHolder2">

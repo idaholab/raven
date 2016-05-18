@@ -138,11 +138,11 @@ class _NetworkServer(pp.Server):
                 except socket.timeout:
                     pass
                 # don't exit on an interupt due to a signal
-                except socket.error as e: 
+                except socket.error as e:
                     if e.errno == errno.EINTR:
                       pass
                 if self._exiting:
-                    return                
+                    return
                 # now do something with the clientsocket
                 # in this case, we'll pretend this is a threaded server
                 if csocket:
@@ -153,7 +153,7 @@ class _NetworkServer(pp.Server):
             self.logger.debug("Exception in listen method (possibly expected)", exc_info=True)
         finally:
             self.logger.debug("Closing server socket")
-            self.ssocket.close()            
+            self.ssocket.close()
 
     def crun(self, csocket):
         """Authenticates client and handles its jobs"""
@@ -322,7 +322,7 @@ def print_usage():
     print "-P pid_file        : file to write PID to"
     print
     print "To print server stats send SIGUSR1 to its main process (unix only). "
-    print 
+    print
     print "Due to the security concerns always use a non-trivial secret key."
     print "Secret key set by -s switch will override secret key assigned by"
     print "pp_secret variable in .pythonrc.py"
@@ -391,8 +391,8 @@ def create_network_server(argv):
     server = _NetworkServer(**args)
     if autodiscovery:
         server.broadcast()
-    return server    
-    
+    return server
+
 def signal_handler(signum, stack):
     """Prints server stats when SIGUSR1 is received (unix only). """
     server.print_stats()
@@ -405,6 +405,6 @@ if __name__ == "__main__":
     #have to destroy it here explicitly otherwise an exception
     #comes out in Python 2.4
     del server
-    
+
 
 # Parallel Python Software: http://www.parallelpython.com

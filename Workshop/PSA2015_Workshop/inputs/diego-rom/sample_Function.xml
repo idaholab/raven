@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Simulation debug="True">
+<Simulation verbosity="debug">
 
 
 <RunInfo>
     <WorkingDir>results</WorkingDir>
-    <Files>.</Files>
     <Sequence>FirstMRun</Sequence>
     <batchSize>1</batchSize>
 </RunInfo>
@@ -17,22 +16,15 @@
         <Sampler class='Samplers'         type='Grid'          >Grid_function</Sampler>
         <Output  class='DataObjects'      type='PointSet'  >outGRID</Output>
         <Output  class='Databases'        type='HDF5'          >out_db</Output>
-        <Output  class='OutStreamManager' type='Print'         >out_dump</Output>
-        <Output  class='OutStreamManager' type='Plot'          >plotResponseFunction</Output>
+        <Output  class='OutStreams' type='Print'         >out_dump</Output>
+        <Output  class='OutStreams' type='Plot'          >plotResponseFunction</Output>
     </MultiRun>
 </Steps>
 
 
 <Models>
     <ExternalModel name='PythonModule' subType='' ModuleToLoad='workshop_model'>
-       <variable>x1</variable>
-       <variable>x2</variable>
-       <variable>x3</variable>
-       <variable>y1</variable>
-       <variable>y2</variable>
-       <variable>y3</variable>
-       <variable>y4</variable>
-       <variable>y5</variable>
+        <variables>x1,x2,x3,y1,y2,y3,y4,y5</variables>
     </ExternalModel>
 </Models>
 
@@ -59,15 +51,15 @@
     <Grid name='Grid_function'>
       <variable name='x1' >
         <distribution>normal_trunc</distribution>
-        <grid type='value' lowerBound='0.0' construction='equal' steps='5'>0.2</grid>
+        <grid type='value' construction='equal' steps='5'>0.0 1.0</grid>
       </variable>
       <variable name='x2' >
         <distribution>normal</distribution>
-        <grid type='value' lowerBound='1.5' construction='equal' steps='5'>0.2</grid>
+        <grid type='value' construction='equal' steps='5'>1.5 2.5</grid>
       </variable>
       <variable name='x3' >
         <distribution>uniform</distribution>
-        <grid type='value' lowerBound='1.0' construction='equal' steps='5'>0.6</grid>
+        <grid type='value' construction='equal' steps='5'>1.0 4.0</grid>
       </variable>
     </Grid>
 </Samplers>
@@ -78,7 +70,7 @@
 </Databases>
 
 
-<OutStreamManager>
+<OutStreams>
   <Print name='out_dump'>
     <type>csv</type>
     <source>outGRID</source>
@@ -99,7 +91,7 @@
           </title>
       </actions>
   </Plot>
-</OutStreamManager>
+</OutStreams>
 
 
 <DataObjects>

@@ -36,19 +36,21 @@ for classObj in eval(__base).__subclasses__():
 
 def knownTypes():
   """
-  Returns a list of strings that define the types of instantiable objects for
-  this base factory.
+    Returns a list of strings that define the types of instantiable objects for
+    this base factory.
+    @ In, None
+    @ Out, knownTypes, list, the known types
   """
   return __interFaceDict.keys()
 
 def returnInstance(Type,caller):
   """
-  Attempts to create and return an instance of a particular type of object
-  available to this factory.
-  @ In, Type, string should be one of the knownTypes.
-  @ In, caller, the object requesting the instance
-                (used for error/debug messaging).
-  @ Out, subclass object constructed with no arguments
+    Attempts to create and return an instance of a particular type of object
+    available to this factory.
+    @ In, Type, string, string should be one of the knownTypes.
+    @ In, caller, instance, the object requesting the instance
+                  (used for error/debug messaging).
+    @ Out, returnInstance, instance, subclass object constructed with no arguments
   """
   try:
     return __interFaceDict[Type]()
@@ -57,11 +59,11 @@ def returnInstance(Type,caller):
 
 def returnClass(Type,caller):
   """
-  Attempts to return a particular class type available to this factory.
-  @ In, Type, string should be one of the knownTypes.
-  @ In, caller, the object requesting the class
-                (used for error/debug messaging).
-  @ Out, reference to the subclass
+    Attempts to return a particular class type available to this factory.
+    @ In, Type, string, string should be one of the knownTypes.
+    @ In, caller, instance, the object requesting the class
+                  (used for error/debug messaging).
+    @ Out, returnClass, class, reference to the subclass
   """
   try:
     return __interFaceDict[Type]

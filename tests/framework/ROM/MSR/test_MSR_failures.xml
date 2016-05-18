@@ -124,7 +124,7 @@
       <Model class="Models" type="ExternalModel">foo</Model>
       <Sampler class="Samplers" type="MonteCarlo">mcSampler</Sampler>
       <Output class="DataObjects" type="PointSet">trainingData</Output>
-      <Output class="OutStreamManager" type="Print">trainingData</Output>
+      <Output class="OutStreams" type="Print">trainingData</Output>
     </MultiRun>
     <RomTrainer name="train">
       <Input class="DataObjects" type="PointSet">trainingData</Input>
@@ -133,13 +133,13 @@
     </RomTrainer>
   </Steps>
 
-  <OutStreamManager>
+  <OutStreams>
     <!-- A csv file containing the output of the example -->
     <Print name="trainingData">
       <type>csv</type>
       <source>trainingData</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
   <DataObjects>
     <!-- The input PointSet object -->

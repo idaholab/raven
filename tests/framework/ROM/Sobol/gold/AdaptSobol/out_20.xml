@@ -1,78 +1,58 @@
 <ReducedOrderModel>
   <ans2>
     <mean>0.612853900845</mean>
-    <approx_variance>0.00768602528029</approx_variance>
-    <impacts>
-      <approx_tot_variance>0.00768602528029</approx_tot_variance>
+    <variance>0.00773322508479</variance>
+    <samples>21</samples>
+    <indices>
+      <tot_variance>0.00773322508479</tot_variance>
       <variables>x1
-        <impact_param>0.250328718816</impact_param>
-      </variables>
-      <variables>x2
-        <impact_param>0.250328718816</impact_param>
+        <partial_variance>0.00193250285727</partial_variance>
+        <Sobol_index>0.249896108814</Sobol_index>
       </variables>
       <variables>x3
-        <impact_param>0.250328718816</impact_param>
+        <partial_variance>0.00193203655088</partial_variance>
+        <Sobol_index>0.24983580973</Sobol_index>
       </variables>
       <variables>x4
-        <impact_param>0.250328718816</impact_param>
+        <partial_variance>0.00193185256636</partial_variance>
+        <Sobol_index>0.249812018296</Sobol_index>
+      </variables>
+      <variables>x2
+        <partial_variance>0.00192681903697</partial_variance>
+        <Sobol_index>0.249161121763</Sobol_index>
       </variables>
       <variables>x1,x3
-        <impact_param>0.00330259466314</impact_param>
+        <partial_variance>1.00140732988e-05</partial_variance>
+        <Sobol_index>0.00129494139754</Sobol_index>
       </variables>
-      <variables>x2,x4
-        <impact_param>-0.00121397936158</impact_param>
-      </variables>
-      <variables>x1,x2
-        <impact_param>-0.000850872641649</impact_param>
-      </variables>
-      <variables>x1,x4
-        <impact_param>-0.000850872641649</impact_param>
-      </variables>
-      <variables>x2,x3
-        <impact_param>-0.000850872641649</impact_param>
-      </variables>
-      <variables>x3,x4
-        <impact_param>-0.000850872641649</impact_param>
-      </variables>
-    </impacts>
-    <numRuns>21</numRuns>
+    </indices>
   </ans2>
   <ans>
     <mean>5.0625</mean>
-    <approx_variance>3.83203125</approx_variance>
-    <impacts>
-      <approx_tot_variance>3.83203125</approx_tot_variance>
-      <variables>x1
-        <impact_param>0.247706422018</impact_param>
+    <variance>3.83203125</variance>
+    <samples>21</samples>
+    <indices>
+      <tot_variance>3.83203125</tot_variance>
+      <variables>x3
+        <partial_variance>0.94921875</partial_variance>
+        <Sobol_index>0.247706422018</Sobol_index>
       </variables>
       <variables>x2
-        <impact_param>0.247706422018</impact_param>
-      </variables>
-      <variables>x3
-        <impact_param>0.247706422018</impact_param>
+        <partial_variance>0.94921875</partial_variance>
+        <Sobol_index>0.247706422018</Sobol_index>
       </variables>
       <variables>x4
-        <impact_param>0.247706422018</impact_param>
+        <partial_variance>0.94921875</partial_variance>
+        <Sobol_index>0.247706422018</Sobol_index>
+      </variables>
+      <variables>x1
+        <partial_variance>0.94921875</partial_variance>
+        <Sobol_index>0.247706422018</Sobol_index>
       </variables>
       <variables>x1,x3
-        <impact_param>0.00917431192661</impact_param>
+        <partial_variance>0.03515625</partial_variance>
+        <Sobol_index>0.00917431192661</Sobol_index>
       </variables>
-      <variables>x1,x2
-        <impact_param>0.0</impact_param>
-      </variables>
-      <variables>x1,x4
-        <impact_param>9.2710978774e-16</impact_param>
-      </variables>
-      <variables>x2,x3
-        <impact_param>0.0</impact_param>
-      </variables>
-      <variables>x2,x4
-        <impact_param>1.85421957548e-15</impact_param>
-      </variables>
-      <variables>x3,x4
-        <impact_param>9.2710978774e-16</impact_param>
-      </variables>
-    </impacts>
-    <numRuns>21</numRuns>
+    </indices>
   </ans>
 </ReducedOrderModel>

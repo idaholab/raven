@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation verbosity='debug'>
+<Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>ExternalNodes</WorkingDir>
     <Sequence>sample,print</Sequence>
@@ -8,7 +8,6 @@
 
   <ExternalXML node="VariableGroups" xmlToLoad="ExternalNodes/vargroups.xml"/>
   <ExternalXML node="DataObjects" xmlToLoad="ExternalNodes/dataobjects.xml"/>
-
   <Distributions>
     <Normal name="NormDist">
       <mean>0</mean>
@@ -59,12 +58,15 @@
     </MultiRun>
     <IOStep name="print">
       <Input class="DataObjects" type="PointSet">standard</Input>
-      <Output class="OutStreamManager" type="Print">dump_standard</Output>
+      <Output class="OutStreams" type="Print">dump_standard</Output>
     </IOStep>
   </Steps>
 
-  <OutStreamManager>
-    <Print name="dump_standard"><type>csv</type><source>standard</source></Print>
-  </OutStreamManager>
+  <OutStreams>
+    <Print name="dump_standard">
+      <type>csv</type>
+      <source>standard</source>
+    </Print>
+  </OutStreams>
 
 </Simulation>

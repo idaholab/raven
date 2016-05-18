@@ -95,18 +95,18 @@
       <Model class="Models" type="PostProcessor">analyticalTest</Model>
       <Output class="Files" type="">output_basicStatistics_PP1BoxBehnkenRespDesign.csv</Output>
       <Output class="DataObjects" type="PointSet">outputDataBoxBehnkenRespDesign</Output>
-      <Output class="OutStreamManager" type="Print">outputDataBoxBehnkenRespDesign_dump</Output>
+      <Output class="OutStreams" type="Print">outputDataBoxBehnkenRespDesign_dump</Output>
     </PostProcess>
     <PostProcess name="PP1CentralCompositeRespDesign">
       <Input class="DataObjects" type="PointSet">outputDataCentralCompositeRespDesign</Input>
       <Model class="Models" type="PostProcessor">analyticalTest</Model>
       <Output class="Files" type="">output_basicStatistics_PP1CentralCompositeRespDesign.csv</Output>
       <Output class="DataObjects" type="PointSet">outputDataCentralCompositeRespDesign</Output>
-      <Output class="OutStreamManager" type="Print">outputDataCentralCompositeRespDesign_dump</Output>
+      <Output class="OutStreams" type="Print">outputDataCentralCompositeRespDesign_dump</Output>
     </PostProcess>
   </Steps>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="outputDataBoxBehnkenRespDesign_dump">
       <type>csv</type>
       <source>outputDataBoxBehnkenRespDesign</source>
@@ -115,7 +115,7 @@
       <type>csv</type>
       <source>outputDataCentralCompositeRespDesign</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
   <DataObjects>
     <Point name="inputPlaceHolder">

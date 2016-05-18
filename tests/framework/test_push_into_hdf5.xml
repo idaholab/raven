@@ -50,8 +50,8 @@
       <Output class="DataObjects" type="Point">Point_from_database</Output>
       <Output class="DataObjects" type="History">history_from_database</Output>
       <Output class="DataObjects" type="PointSet">Pointset_from_database</Output>
-      <Output class="OutStreamManager" type="Print">Pointset_from_database_dump</Output>
-      <Output class="OutStreamManager" type="Print">HistorySet_from_database_dump</Output>
+      <Output class="OutStreams" type="Print">Pointset_from_database_dump</Output>
+      <Output class="OutStreams" type="Print">HistorySet_from_database_dump</Output>
     </IOStep>
     <IOStep name="test_push_in">
       <Input class="DataObjects" type="HistorySet">HistorySet_from_database</Input>
@@ -72,17 +72,17 @@
       <Output class="DataObjects" type="Point">Point_IN_database</Output>
       <Output class="DataObjects" type="History">history_IN_database</Output>
       <Output class="DataObjects" type="PointSet">Pointset_IN_database</Output>
-      <Output class="OutStreamManager" type="Print">Pointset_IN_database_dump</Output>
-      <Output class="OutStreamManager" type="Print">HistorySet_IN_database_dump</Output>
+      <Output class="OutStreams" type="Print">Pointset_IN_database_dump</Output>
+      <Output class="OutStreams" type="Print">HistorySet_IN_database_dump</Output>
     </IOStep>
   </Steps>
 
   <Databases>
-    <HDF5 name="MC_TEST_EXTRACT_STEP"/>
-    <HDF5 name="MC_TEST_PUSH_STEP"/>
+    <HDF5 name="MC_TEST_EXTRACT_STEP" readMode="overwrite"/>
+    <HDF5 name="MC_TEST_PUSH_STEP" readMode="overwrite"/>
   </Databases>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="Pointset_from_database_dump">
       <type>csv</type>
       <source>Pointset_from_database</source>
@@ -99,7 +99,7 @@
       <type>csv</type>
       <source>HistorySet_from_database</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
   <DataObjects>
     <Point name="inputHolder">

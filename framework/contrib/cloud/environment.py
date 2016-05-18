@@ -20,8 +20,8 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 Lesser General Public License for more details.
 
 You should have received a copy of the GNU Lesser General Public
-License along with this package; if not, see 
-http://www.gnu.org/licenses/lgpl-2.1.html    
+License along with this package; if not, see
+http://www.gnu.org/licenses/lgpl-2.1.html
 """
 try:
     import json
@@ -183,9 +183,9 @@ def modify(name):
 def save(name):
     """Saves the current modified version of the environment, without tearing
     down the setup server.
-    
+
     * name: name of the environment to save
-    
+
     This is a blocking function.  When it returns without errors, the new
     version of the environment is available for use by all workers.
     """
@@ -196,9 +196,9 @@ def save(name):
 def save_shutdown(name):
     """Saves the current modified version of the environment, and tears down
     the setup server when saving is done.
-    
+
     * name: name of the environment to save
-    
+
     This is a blocking function.  When it returns without errors, the new
     version of the environment is available for use by all workers.
     """
@@ -208,7 +208,7 @@ def save_shutdown(name):
 
 def shutdown(name):
     """Tears down the setup server without saving the environment modification.
-    
+
     * name: name of the environment to save
     """
     resp = _send_env_request('shutdown', {'env_name': name})
@@ -245,7 +245,7 @@ def clone(parent_name, new_name=None, new_desc=None):
 
 def delete(name):
     """Deletes and existing environment.
-    
+
     * name: Name of the environment to save
     """
     resp = _send_env_request('delete', {'env_name': name})
@@ -255,7 +255,7 @@ def get_setup_hostname(name):
     """Returns the hostname of the setup server where environment can be
     modified.  raises exception if the environment does not have a setup server
     already launched.
-    
+
     * name: name of the environment whose setup server hostname is desired
     """
     env_info = wait_for_edit(name, _ACTION_IDLE)
@@ -270,7 +270,7 @@ def get_key_path():
 
 def ssh(name, cmd=None):
     """Creates an ssh session to the environment setup server.
-    
+
     * name: Name of the environment to make an ssh connection
     * cmd: By default, this function creates an interactive ssh session.
         If cmd is given, however, it executes the cmd on the setup server
@@ -284,7 +284,7 @@ def ssh(name, cmd=None):
         if stdout:
             sys.stdout.write(stdout)
         if stderr:
-            sys.stderr.write(stderr)        
+            sys.stderr.write(stderr)
         sys.exit(status)
 
     if cmd and stdout:
@@ -306,11 +306,11 @@ def rsync(src_path, dest_path, delete=False, pipe_output=False):
 
     Note that the colon is what indicates this is an environment path
     specification.
-    
+
     *src_path* can be a list of paths, all of which should either be local
     paths, or environment paths. If *src_path* is a directory, a trailing slash
     indicates that its contents should be rsynced, while ommission of slash
-    would lead to the directory itself being rsynced to the environment. 
+    would lead to the directory itself being rsynced to the environment.
 
     Example::
 
@@ -323,7 +323,7 @@ def rsync(src_path, dest_path, delete=False, pipe_output=False):
 
     will copy all the contents of 'dataset1' to the home directory of user
     picloud. See rsync manual for more information.
-    
+
     If *delete* is True, files that exist in *dest_path* but not in *src_path*
     will be deleted.  By default, such files will not be removed.
     """
@@ -334,7 +334,7 @@ def rsync(src_path, dest_path, delete=False, pipe_output=False):
                         (src_path, dest_path))
     local_paths = common.parse_local_paths(l_paths)
     env_name, env_paths = common.parse_remote_paths(r_paths)
-    
+
     hostname = get_setup_hostname(env_name)
     try:
         r_base = 'picloud@%s:' % hostname
@@ -357,7 +357,7 @@ def rsync(src_path, dest_path, delete=False, pipe_output=False):
 
 def run_script(name, filename):
     """Runs a script on the environment setup server, and returns the output.
-    
+
     * name: Environment whose setup server should run the script
     filename: local path where the script to be run can be found
     """
@@ -395,7 +395,7 @@ def _wait_for(name, action, invalid_actions=None, poll_frequency=2,
     invalid_actions = invalid_actions or []
     if not hasattr(invalid_actions, '__iter__'):
         invalid_actions = [invalid_actions]
-    
+
     for _ in xrange(max_poll_duration / poll_frequency):
         resp = list_envs(name)
 
@@ -426,6 +426,6 @@ def _wait_for(name, action, invalid_actions=None, poll_frequency=2,
             pass
 
         time.sleep(poll_frequency)
-        
+
     raise cloud.CloudException('Environment operation timed out. '
                                'Please contact PiCloud support.')
