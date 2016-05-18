@@ -1,5 +1,5 @@
 SRCFILE = raven_user_manual
-MANUAL_FILES = database_data.tex OutStreamSystem.tex sampler.tex existing_interfaces.tex ProbabilityDistributions.tex  step.tex functions.tex ravenStructure.tex Summary.tex introduction.tex raven_user_manual.tex model.tex runInfo.tex install.tex version.tex
+MANUAL_FILES = rom.tex postprocessor.tex database_data.tex OutStreamSystem.tex sampler.tex existing_interfaces.tex ProbabilityDistributions.tex  step.tex functions.tex ravenStructure.tex Summary.tex introduction.tex raven_user_manual.tex model.tex runInfo.tex install.tex version.tex
 LATEX_FLAGS=-interaction=nonstopmode
 
 #all: raven_user_manual.pdf
@@ -27,7 +27,7 @@ version.tex : version_update
 .PHONY : version_update
 
 version_update :
-	git describe | sed 's/_/\\_/g'  > new_version.tex
-	echo "\\\\" >> new_version.tex
-	git log -1 --format="%H %an\\\\%aD" . >> new_version.tex
-	if diff new_version.tex version.tex; then echo No change in version.tex; else mv new_version.tex version.tex; fi
+	if git describe; then git describe | sed 's/_/\\_/g' > new_version.tex;\
+	echo "\\\\" >> new_version.tex;\
+	git log -1 --format="%H %an\\\\%aD" . >> new_version.tex;\
+	if diff new_version.tex version.tex; then echo No change in version.tex; else mv new_version.tex version.tex; fi; fi

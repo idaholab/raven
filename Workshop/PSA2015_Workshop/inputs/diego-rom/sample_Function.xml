@@ -16,8 +16,8 @@
         <Sampler class='Samplers'         type='Grid'          >Grid_function</Sampler>
         <Output  class='DataObjects'      type='PointSet'  >outGRID</Output>
         <Output  class='Databases'        type='HDF5'          >out_db</Output>
-        <Output  class='OutStreamManager' type='Print'         >out_dump</Output>
-        <Output  class='OutStreamManager' type='Plot'          >plotResponseFunction</Output>
+        <Output  class='OutStreams' type='Print'         >out_dump</Output>
+        <Output  class='OutStreams' type='Plot'          >plotResponseFunction</Output>
     </MultiRun>
 </Steps>
 
@@ -70,7 +70,7 @@
 </Databases>
 
 
-<OutStreamManager>
+<OutStreams>
   <Print name='out_dump'>
     <type>csv</type>
     <source>outGRID</source>
@@ -91,7 +91,7 @@
           </title>
       </actions>
   </Plot>
-</OutStreamManager>
+</OutStreams>
 
 
 <DataObjects>

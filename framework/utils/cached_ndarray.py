@@ -12,6 +12,8 @@ warnings.simplefilter('default',DeprecationWarning)
 from numpy import ndarray
 import numpy as np
 import sys
+import threading
+lock = threading.Lock()
 #External Modules End--------------------------------------------------------------------------------
 
 
@@ -74,26 +76,34 @@ class c1darray(object):
       @ In, x, element or array, the value or array to append
       @ Out, None (appending in place)
     """
-    if type(x).__name__ != 'ndarray':
-      if self.size  == self.capacity:
-        self.capacity *= 4
-        newdata = np.zeros((self.capacity,),dtype=self.values.dtype)
-        newdata[:self.size] = self.values[:]
-        self.values = newdata
-      self.values[self.size] = x
-      self.size  += 1
-    else:
-      if (self.capacity - self.size) < x.size:
-        # to be safer
-        self.capacity += max(self.capacity*4,x.size) #self.capacity + x.size*4
-        newdata = np.zeros((self.capacity,),dtype=self.values.dtype)
-        newdata[:self.size] = self.values[:]
-        self.values = newdata
-      #for index in range(x.size):
-      self.values[self.size:self.size+x.size] = x[:]
-      self.size  += x.size
 
-  def returnIndex(self,value):
+    #lock.acquire()
+    try:
+      if type(x).__name__ != 'ndarray':
+        if self.size  == self.capacity:
+          self.capacity *= 4
+          newdata = np.zeros((self.capacity,),dtype=self.values.dtype)
+          newdata[:self.size] = self.values[:]
+          self.values = newdata
+        self.values[self.size] = x
+        self.size  += 1
+      else:
+        if (self.capacity - self.size) < x.size:
+          # to be safer
+          self.capacity += max(self.capacity*4,x.size) #self.capacity + x.size*4
+          newdata = np.zeros((self.capacity,),dtype=self.values.dtype)
+          try: newdata[:self.size] = self.values[:]
+          except:
+            pass
+          self.values = newdata
+        #for index in range(x.size):
+        self.values[self.size:self.size+x.size] = x[:]
+        self.size  += x.size
+    finally:
+      #lock.release()
+      pass
+
+  def returnIndexClosest(self,value):
     """
       Function that return the index of the element in the array closest to value
       @ In, value, double, query value
@@ -107,6 +117,20 @@ class c1darray(object):
         index = i
     return index
 
+  def returnIndexFirstPassage(self,value):
+    """
+      Function that return the index of the element that firstly crosses value
+      @ In, value, double, query value
+      @ Out, index, int, index of the element in the array closest to value
+    """
+    index=-1
+    dist = sys.float_info.max
+    for i in range(1,self.size):
+      if (self.values[i]>=value and self.values[i-1]<=value) or (self.values[i]<=value and self.values[i-1]>=value):
+        index = i
+        break
+    return index
+
   def returnIndexMax(self):
     """
       Function that returns the index (i.e. the location) of the maximum value of the array
@@ -116,9 +140,10 @@ class c1darray(object):
     index=-1
     maxValue = -sys.float_info.max
     for i in range(self.size):
-      if self.values[i]>maxValue:
+      if self.values[i]>=maxValue:
         maxValue = self.values[i]
         index = i
+        break
     return index
 
   def returnIndexMin(self):
@@ -130,9 +155,10 @@ class c1darray(object):
     index=-1
     minValue = sys.float_info.max
     for i in range(self.size):
-      if self.values[i]<minValue:
+      if self.values[i]<=minValue:
         minValue = self.values[i]
         index = i
+        break
     return index
 
   def __add__(self, x):

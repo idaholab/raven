@@ -128,7 +128,7 @@
   </Steps>
 
   <Databases>
-    <HDF5 name="test_DummyModelResponseSurfDesign_db"/>
+    <HDF5 name="test_DummyModelResponseSurfDesign_db" readMode="overwrite"/>
   </Databases>
 
 </Simulation>

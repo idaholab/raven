@@ -25,7 +25,7 @@
   </Files>
 
   <Models>
-    <Code name="MyRAVEN" subType="RAVEN">
+    <Code name="MyRAVEN" subType="RELAP7">
       <executable>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</executable>
     </Code>
   </Models>
@@ -76,7 +76,7 @@
   </Steps>
 
   <Databases>
-    <HDF5 name="testMCDatabase"/>
+    <HDF5 name="testMCDatabase" readMode="overwrite"/>
   </Databases>
 
   <DataObjects>

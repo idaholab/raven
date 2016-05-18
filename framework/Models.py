@@ -16,9 +16,8 @@ import abc
 import importlib
 import inspect
 import atexit
-# to be removed
-from scipy import spatial
-# to be removed
+import time
+import threading
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -33,7 +32,7 @@ import TreeStructure
 import Files
 #Internal Modules End--------------------------------------------------------------------------------
 
-class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
+class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
   """
     A model is something that given an input will return an output reproducing some physical model
     it could as complex as a stand alone code, a reduced order model trained somehow or something
@@ -90,7 +89,8 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
                                                 'SparseGridCollocation',
                                                 'AdaptiveSparseGrid',
                                                 'Sobol',
-                                                'AdaptiveSobol']
+                                                'AdaptiveSobol',
+                                                'EnsembleForward']
 
   @classmethod
   def generateValidateDict(cls):
@@ -154,22 +154,37 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ Out, None
     """
     BaseType.__init__(self)
+    Assembler.__init__(self)
     self.subType  = ''
     self.runQueue = []
     self.printTag = 'MODEL'
+
 
   def _readMoreXML(self,xmlNode):
     """
       Function to read the portion of the xml input that belongs to this specialized class
       and initialize some stuff based on the inputs got
-      @ In, xmlNode, xml.etree.Element, Xml element node
+      @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None
     """
+    Assembler._readMoreXML(self,xmlNode)
     try: self.subType = xmlNode.attrib['subType']
     except KeyError:
       self.raiseADebug(" Failed in Node: "+str(xmlNode),verbostiy='silent')
       self.raiseAnError(IOError,'missed subType for the model '+self.name)
+
     del(xmlNode.attrib['subType'])
+    # read local information
+    self.localInputAndChecks(xmlNode)
+
+  def localInputAndChecks(self,xmlNode):
+    """
+      Function to read the portion of the xml input that belongs to this specialized class
+      and initialize some stuff based on the inputs got
+      @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
+      @ Out, None
+    """
+    pass
 
   def getInitParams(self):
     """
@@ -201,6 +216,15 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ In, runInfo, dict, it is the run info from the jobHandler
       @ In, inputs, list, it is a list containing whatever is passed with an input role in the step
       @ In, initDict, dict, optional, dictionary of all objects available in the step is using this model
+    """
+    pass
+
+  def updateInputFromOutside(self, Input, externalDict):
+    """
+      Method to update an input from outside
+      @ In, Input, list, list of inputs that needs to be updated
+      @ In, externalDict, dict, dictionary of new values that need to be added or updated
+      @ Out, inputOut, list, updated list of inputs
     """
     pass
 
@@ -337,6 +361,20 @@ class Dummy(Model):
     #same reason why it should not be used the value of the counter inside the class but the one returned from outside as a part of the input
     return [(inputDict)],copy.deepcopy(Kwargs)
 
+  def updateInputFromOutside(self, Input, externalDict):
+    """
+      Method to update an input from outside
+      @ In, Input, list, list of inputs that needs to be updated
+      @ In, externalDict, dict, dictionary of new values that need to be added or updated
+      @ Out, inputOut, list, updated list of inputs
+    """
+    inputOut = Input
+    for key, value in externalDict.items():
+      inputOut[0][0][key] =  externalDict[key]
+      inputOut[1]["SampledVars"  ][key] =  externalDict[key]
+      inputOut[1]["SampledVarsPb"][key] =  1.0    #FIXME it is a mistake (Andrea). The SampledVarsPb for this variable should be transfred from outside
+    return inputOut
+
   def run(self,Input,jobHandler):
     """
       This method executes the model .
@@ -346,6 +384,7 @@ class Dummy(Model):
     """
     #this set of test is performed to avoid that if used in a single run we come in with the wrong input structure since the self.createNewInput is not called
     inRun = self._manipulateInput(Input[0])
+
     def lambdaReturnOut(inRun,prefix):
       """
         This method is the one is going to be submitted through the jobHandler
@@ -354,8 +393,9 @@ class Dummy(Model):
         @ Out, lambdaReturnOut, dict, the return dictionary
       """
       return {'OutputPlaceHolder':np.atleast_1d(np.float(prefix))}
-    #lambdaReturnOut = lambda inRun: {'OutputPlaceHolder':np.atleast_1d(np.float(Input[1]['prefix']))}
-    jobHandler.submitDict['Internal']((inRun,Input[1]['prefix']),lambdaReturnOut,str(Input[1]['prefix']),metadata=Input[1], modulesToImport = self.mods)
+
+    uniqueHandler = Input[1]['uniqueHandler'] if 'uniqueHandler' in Input[1].keys() else 'any'
+    jobHandler.submitDict['Internal']((inRun,Input[1]['prefix']),lambdaReturnOut,str(Input[1]['prefix']),metadata=Input[1], modulesToImport = self.mods, uniqueHandler=uniqueHandler)
 
   def collectOutput(self,finishedJob,output):
     """
@@ -368,7 +408,7 @@ class Dummy(Model):
     evaluation = finishedJob.returnEvaluation()
     if type(evaluation[1]).__name__ == "tuple": outputeval = evaluation[1][0]
     else                                      : outputeval = evaluation[1]
-    exportDict = {'inputSpaceParams':evaluation[0],'outputSpaceParams':outputeval,'metadata':finishedJob.returnMetadata()}
+    exportDict = copy.deepcopy({'inputSpaceParams':evaluation[0],'outputSpaceParams':outputeval,'metadata':finishedJob.returnMetadata()})
     if output.type == 'HDF5': output.addGroupDataObjects({'group':self.name+str(finishedJob.identifier)},exportDict,False)
     else:
       if not set(output.getParaKeys('inputs') + output.getParaKeys('outputs')).issubset(set(list(exportDict['inputSpaceParams'].keys()) + list(exportDict['outputSpaceParams'].keys()))):
@@ -412,6 +452,16 @@ class ROM(Dummy):
     self.printTag = 'ROM MODEL'
     self.numberOfTimeStep          = 1
     self.historyPivotParameter     = 'none'     #time-like pivot parameter for data object on which ROM was trained
+    self.historySteps              = []
+
+  def updateInputFromOutside(self, Input, externalDict):
+    """
+      Method to update an input from outside
+      @ In, Input, list, list of inputs that needs to be updated
+      @ In, externalDict, dict, dictionary of new values that need to be added or updated
+      @ Out, inputOut, list, updated list of inputs
+    """
+    return Dummy.updateInputFromOutside(self, Input, externalDict)
 
   def __getstate__(self):
     """
@@ -461,7 +511,7 @@ class ROM(Dummy):
     """
       Function to read the portion of the xml input that belongs to this specialized class
       and initialize some stuff based on the inputs got
-      @ In, xmlNode, xml.etree.Element, Xml element node
+      @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None
     """
     Dummy._readMoreXML(self, xmlNode)
@@ -471,19 +521,37 @@ class ROM(Dummy):
           self.initializationOptionDict[child.tag]={}
         self.initializationOptionDict[child.tag][child.text]=child.attrib
       else:
-        try: self.initializationOptionDict[child.tag] = int(child.text)
-        except (ValueError,TypeError):
-          try: self.initializationOptionDict[child.tag] = float(child.text)
-          except (ValueError,TypeError): self.initializationOptionDict[child.tag] = child.text
+        if child.tag == 'estimator':
+          self.initializationOptionDict[child.tag] = {}
+          for node in child:
+            try:
+              self.initializationOptionDict[child.tag][node.tag] = int(node.text)
+            except (ValueError,TypeError):
+              try:
+                self.initializationOptionDict[child.tag][node.tag] = float(node.text)
+              except (ValueError,TypeError):
+                self.initializationOptionDict[child.tag][node.tag] = node.text
+        else:
+          try:
+            self.initializationOptionDict[child.tag] = int(child.text)
+          except (ValueError,TypeError):
+            try: self.initializationOptionDict[child.tag] = float(child.text)
+            except (ValueError,TypeError): self.initializationOptionDict[child.tag] = child.text
     #the ROM is instanced and initialized
     # check how many targets
     if not 'Target' in self.initializationOptionDict.keys(): self.raiseAnError(IOError,'No Targets specified!!!')
     targets = self.initializationOptionDict['Target'].split(',')
     self.howManyTargets = len(targets)
 
-    for target in targets:
-      self.initializationOptionDict['Target'] = target
-      self.SupervisedEngine[target] =  SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
+    if 'SKLtype' in self.initializationOptionDict and 'MultiTask' in self.initializationOptionDict['SKLtype']:
+      self.initializationOptionDict['Target'] = targets
+      model = SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
+      for target in targets:
+        self.SupervisedEngine[target] = model
+    else:
+      for target in targets:
+        self.initializationOptionDict['Target'] = target
+        self.SupervisedEngine[target] =  SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
     # extend the list of modules this ROM depen on
     self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(utils.first(self.SupervisedEngine.values())),True)) - set(self.mods))
     self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(SupervisedLearning),True)) - set(self.mods))
@@ -531,8 +599,7 @@ class ROM(Dummy):
           pivotNode = TreeStructure.Node(self.historyPivotParameter+'_step')
           pivotNode.setText(pivotStep)
           node.appendBranch(pivotNode)
-          pivotRom = self.SupervisedEngine[s][self.historyPivotParameter]
-          pivotValue = pivotRom.evaluate(dict(zip(pivotRom.features,[np.array([0])]*len(pivotRom.features))))
+          pivotValue = self.historySteps[s]
           pivotValNode = TreeStructure.Node(self.historyPivotParameter)
           pivotValNode.setText(pivotValue)
           pivotNode.appendBranch(pivotValNode)
@@ -592,13 +659,13 @@ class ROM(Dummy):
       self.amITrained               = copy.deepcopy(trainingSet.amITrained)
       self.SupervisedEngine         = copy.deepcopy(trainingSet.SupervisedEngine)
       self.historyPivotParameter    = copy.deepcopy(getattr(trainingSet,self.historyPivotParameter,'time'))
+      self.historySteps             = copy.deepcopy(trainingSet.historySteps)
     else:
       if 'HistorySet' in type(trainingSet).__name__:
         #get the pivot parameter if specified
-        if 'options' in trainingSet._dataParameters.keys():
-          self.historyPivotParameter = trainingSet._dataParameters['options'].get('pivotParameter','time')
-        else:
-          self.historyPivotParameter = 'time'
+        self.historyPivotParameter = trainingSet._dataParameters.get('pivotParameter','time')
+        #get the list of history steps if specified
+        self.historySteps = trainingSet.getParametersValues('outputs').values()[0].get(self.historyPivotParameter,[])
         #store originals for future copying
         origRomCopies = {}
         for target,engine in self.SupervisedEngine.items():
@@ -677,7 +744,7 @@ class ROM(Dummy):
         return self.SupervisedEngine[timeInst][target].evaluate(inputToROM)
     else:
       if timeInst == None:
-       return utils.first(self.SupervisedEngine.values()).evaluate(inputToROM)
+        return utils.first(self.SupervisedEngine.values()).evaluate(inputToROM)
       else:
         return self.SupervisedEngine[timeInst].values()[0].evaluate(inputToROM)
 
@@ -708,7 +775,8 @@ class ROM(Dummy):
        @ Out, None
     """
     inRun = self._manipulateInput(Input[0])
-    jobHandler.submitDict['Internal']((inRun,), self.__externalRun, str(Input[1]['prefix']), metadata=Input[1], modulesToImport=self.mods)
+    uniqueHandler = Input[1]['uniqueHandler'] if 'uniqueHandler' in Input[1].keys() else 'any'
+    jobHandler.submitDict['Internal']((inRun,), self.__externalRun, str(Input[1]['prefix']), metadata=Input[1], modulesToImport=self.mods, uniqueHandler=uniqueHandler)
 #
 #
 #
@@ -735,14 +803,15 @@ class ExternalModel(Dummy):
     """
     Dummy.__init__(self,runInfoDict)
     self.sim                      = None
-    self.modelVariableValues      = {}                                                                                                       # dictionary of variable values for the external module imported at runtime
-    self.modelVariableType        = {}                                                                                                       # dictionary of variable types, used for consistency checks
-    self._availableVariableTypes = ['float','bool','int','ndarray','float16','float32','float64','float128','int16','int32','int64','bool8'] # available data types
+    self.modelVariableValues      = {}                                          # dictionary of variable values for the external module imported at runtime
+    self.modelVariableType        = {}                                          # dictionary of variable types, used for consistency checks
+    self._availableVariableTypes = ['float','bool','int','ndarray',
+                                    'c1darray','float16','float32','float64',
+                                    'float128','int16','int32','int64','bool8'] # available data types
     self._availableVariableTypes = self._availableVariableTypes + ['numpy.'+item for item in self._availableVariableTypes]                   # as above
     self.printTag                 = 'EXTERNAL MODEL'
     self.initExtSelf              = utils.Object()
     self.workingDir = runInfoDict['WorkingDir']
-
 
   def initialize(self,runInfo,inputs,initDict=None):
     """
@@ -774,14 +843,26 @@ class ExternalModel(Dummy):
       return ([(extCreateNewInput)],copy.deepcopy(Kwargs)),copy.copy(modelVariableValues)
     else: return Dummy.createNewInput(self, myInput,samplerType,**Kwargs),copy.copy(modelVariableValues)
 
-  def _readMoreXML(self,xmlNode):
+  def updateInputFromOutside(self, Input, externalDict):
+    """
+      Method to update an input from outside
+      @ In, Input, list, list of inputs that needs to be updated
+      @ In, externalDict, dict, dictionary of new values that need to be added or updated
+      @ Out, inputOut, list, updated list of inputs
+    """
+    dummyReturn =  Dummy.updateInputFromOutside(self,Input[0], externalDict)
+    inputOut = (dummyReturn,Input[1])
+    for key, value in externalDict.items(): inputOut[1][key] =  externalDict[key]
+    return inputOut
+
+  def localInputAndChecks(self,xmlNode):
     """
       Function to read the portion of the xml input that belongs to this specialized class
       and initialize some stuff based on the inputs got
-      @ In, xmlNode, xml.etree.Element, Xml element node
+      @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None
     """
-    Model._readMoreXML(self, xmlNode)
+    #Model._readMoreXML(self, xmlNode)
     if 'ModuleToLoad' in xmlNode.attrib.keys():
       self.ModuleToLoad = str(xmlNode.attrib['ModuleToLoad'])
       moduleToLoadString, self.ModuleToLoad = utils.identifyIfExternalModelExists(self, self.ModuleToLoad, self.workingDir)
@@ -849,7 +930,8 @@ class ExternalModel(Dummy):
        @ Out, None
     """
     inRun = copy.copy(self._manipulateInput(Input[0][0]))
-    jobHandler.submitDict['Internal']((inRun,Input[1],),self.__externalRun,str(Input[0][1]['prefix']),metadata=Input[0][1], modulesToImport = self.mods)
+    uniqueHandler = Input[0][1]['uniqueHandler'] if 'uniqueHandler' in Input[0][1].keys() else 'any'
+    jobHandler.submitDict['Internal']((inRun,Input[1],),self.__externalRun,str(Input[0][1]['prefix']),metadata=Input[0][1], modulesToImport = self.mods,uniqueHandler=uniqueHandler)
 
   def collectOutput(self,finishedJob,output):
     """
@@ -860,7 +942,7 @@ class ExternalModel(Dummy):
     """
     if finishedJob.returnEvaluation() == -1:
       #is it still possible for the run to not be finished yet?  Should we be erroring out if so?
-      self.raiseAnError(RuntimeError,"No available Output to collect (Run probably failed or is not finished yet)")
+      self.raiseAnError(RuntimeError,"No available Output to collect")
     def typeMatch(var,varTypeStr):
       """
         This method is aimed to check if a variable changed datatype
@@ -894,7 +976,12 @@ class Code(Model):
       @ Out, None
     """
     #FIXME think about how to import the roles to allowed class for the codes. For the moment they are not specialized by executable
-    cls.validateDict['Input'] = [cls.validateDict['Input'][1]]
+    cls.validateDict['Input'].append(cls.testDict.copy())
+    cls.validateDict['Input'  ][1]['class'       ] = 'Files'
+    # FIXME there's lots of types that Files can be, so until XSD replaces this, commenting this out
+    #validateDict['Input'  ][1]['type'        ] = ['']
+    cls.validateDict['Input'  ][1]['required'    ] = False
+    cls.validateDict['Input'  ][1]['multiplicity'] = 'n'
 
   def __init__(self,runInfoDict):
     """
@@ -920,7 +1007,7 @@ class Code(Model):
     """
       Function to read the portion of the xml input that belongs to this specialized class
       and initialize some stuff based on the inputs got
-      @ In, xmlNode, xml.etree.Element, Xml element node
+      @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None
     """
     Model._readMoreXML(self, xmlNode)
@@ -1060,7 +1147,7 @@ class Code(Model):
       shutil.copy(inputFile.getAbsFile(),self.workingDir)
     self.oriInputFiles = []
     for i in range(len(inputFiles)):
-      self.oriInputFiles.append(inputFiles[i])
+      self.oriInputFiles.append(copy.deepcopy(inputFiles[i]))
       self.oriInputFiles[-1].setPath(self.workingDir)
     self.currentInputFiles        = None
     self.outFileRoot              = None
@@ -1071,7 +1158,7 @@ class Code(Model):
       here only Point and PointSet are accepted a local copy of the values is performed.
       For a Point all value are copied, for a PointSet only the last set of entry
       The copied values are returned as a dictionary back
-      @ In, myInput, list, the inputs (list) to start from to generate the new one
+      @ In, currentInput, list, the inputs (list) to start from to generate the new one
       @ In, samplerType, string, is the type of sampler that is calling to generate a new input
       @ In, **Kwargs, dict,  is a dictionary that contains the information coming from the sampler,
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
@@ -1079,17 +1166,41 @@ class Code(Model):
     """
     Kwargs['executable'] = self.executable
     found = False
+    newInputSet = copy.deepcopy(currentInput)
     #TODO FIXME I don't think the extensions are the right way to classify files anymore, with the new Files
     #  objects.  However, this might require some updating of many Code Interfaces as well.
-    for index, inputFile in enumerate(currentInput):
+    for index, inputFile in enumerate(newInputSet):
       if inputFile.getExt() in self.code.getInputExtension():
         found = True
         break
     if not found: self.raiseAnError(IOError,'None of the input files has one of the extensions requested by code '
                                   + self.subType +': ' + ' '.join(self.code.getInputExtension()))
-    Kwargs['outfile'] = 'out~'+currentInput[index].getBase()
+    Kwargs['outfile'] = 'out~'+newInputSet[index].getBase()
+    subDirectory = os.path.join(self.workingDir,Kwargs['prefix'] if 'prefix' in Kwargs.keys() else '1')
+
+    if not os.path.exists(subDirectory):
+      os.mkdir(subDirectory)
+    for index in range(len(newInputSet)):
+      newInputSet[index].setPath(subDirectory)
+      shutil.copy(self.oriInputFiles[index].getAbsFile(),subDirectory)
+    Kwargs['subDirectory'] = subDirectory
     if len(self.alias.keys()) != 0: Kwargs['alias']   = self.alias
-    return (self.code.createNewInput(currentInput,self.oriInputFiles,samplerType,**Kwargs),Kwargs)
+    return (self.code.createNewInput(newInputSet,self.oriInputFiles,samplerType,**Kwargs),Kwargs)
+
+  def updateInputFromOutside(self, Input, externalDict):
+    """
+      Method to update an input from outside
+      @ In, Input, list, list of inputs that needs to be updated
+      @ In, externalDict, dict, dictionary of new values that need to be added or updated
+      @ Out, inputOut, list, updated list of inputs
+    """
+    newKwargs = Input[1]
+    newKwargs['SampledVars'].update(externalDict)
+    # the following update should be done with the Pb value coming from the previous (in the model chain) model
+    newKwargs['SampledVarsPb'].update(dict.fromkeys(externalDict.keys(),0.0))
+    inputOut = self.createNewInput(Input[1]['originalInput'], Input[1]['SamplerType'], **newKwargs)
+
+    return inputOut
 
   def run(self,inputFiles,jobHandler):
     """
@@ -1103,7 +1214,9 @@ class Code(Model):
     if type(returnedCommand).__name__ != 'tuple'  : self.raiseAnError(IOError, "the generateCommand method in code interface must return a tuple")
     if type(returnedCommand[0]).__name__ != 'list': self.raiseAnError(IOError, "the first entry in tuple returned by generateCommand method needs to be a list of tuples!")
     executeCommand, self.outFileRoot = returnedCommand
-    jobHandler.submitDict['External'](executeCommand,self.outFileRoot,jobHandler.runInfoDict['TempWorkingDir'],metadata=metaData,codePointer=self.code)
+    uniqueHandler = inputFiles[1]['uniqueHandler'] if 'uniqueHandler' in inputFiles[1].keys() else 'any'
+    identifier    = inputFiles[1]['prefix'] if 'prefix' in inputFiles[1].keys() else None
+    jobHandler.submitDict['External'](executeCommand,self.outFileRoot,metaData['subDirectory'],identifier=identifier,metadata=metaData,codePointer=self.code,uniqueHandler = uniqueHandler)
     found = False
     for index, inputFile in enumerate(self.currentInputFiles):
       if inputFile.getExt() in self.code.getInputExtension():
@@ -1111,7 +1224,7 @@ class Code(Model):
         break
     if not found: self.raiseAnError(IOError,'None of the input files has one of the extensions requested by code '
                                   + self.subType +': ' + ' '.join(self.getInputExtension()))
-    self.raiseAMessage('job "'+ self.currentInputFiles[index].getBase() +'" submitted!')
+    self.raiseAMessage('job "'+ str(identifier) + "_" + self.currentInputFiles[index].getBase() +'" submitted!')
 
   def collectOutput(self,finishedjob,output):
     """
@@ -1122,96 +1235,22 @@ class Code(Model):
     """
     #can we revise the spelling to something more English?
     if 'finalizeCodeOutput' in dir(self.code):
-      out = self.code.finalizeCodeOutput(finishedjob.command,finishedjob.output,self.workingDir)
+      out = self.code.finalizeCodeOutput(finishedjob.command,finishedjob.output,finishedjob.getWorkingDir())
       if out: finishedjob.output = out
-    attributes={"inputFile":self.currentInputFiles,"type":"csv","name":os.path.join(self.workingDir,finishedjob.output+'.csv')}
+    outputFilelocation = finishedjob.getWorkingDir()
+    attributes={"inputFile":self.currentInputFiles,"type":"csv","name":os.path.join(outputFilelocation,finishedjob.output+'.csv')}
     metadata = finishedjob.returnMetadata()
     if metadata: attributes['metadata'] = metadata
     if output.type == "HDF5"        : output.addGroup(attributes,attributes)
     elif output.type in ['Point','PointSet','History','HistorySet']:
       outfile = Files.returnInstance('CSV',self)
-      outfile.initialize(finishedjob.output+'.csv',self.messageHandler,path=self.workingDir)
+      outfile.initialize(finishedjob.output+'.csv',self.messageHandler,path=outputFilelocation)
       output.addOutput(outfile,attributes)
       if metadata:
         for key,value in metadata.items(): output.updateMetadata(key,value,attributes)
     else: self.raiseAnError(ValueError,"output type "+ output.type + " unknown for Model Code "+self.name)
 
 #
-#
-#
-
-class Projector(Model):
-  """
-    Projector is a data manipulator
-  """
-  @classmethod
-  def specializeValidateDict(cls):
-    """
-      This method describes the types of input accepted with a certain role by the model class specialization
-      @ In, None
-      @ Out, None
-    """
-    pass
-    #FIXME self.raiseAMessage('PROJECTOR','Remember to add the data type supported the class filter')
-
-  def __init__(self,runInfoDict):
-    """
-      Constructor
-      @ In, runInfoDict, dict, the dictionary containing the runInfo (read in the XML input file)
-      @ Out, None
-    """
-    Model.__init__(self,runInfoDict)
-    self.printTag = 'PROJECTOR MODEL'
-
-  def _readMoreXML(self,xmlNode):
-    """
-      Function to read the portion of the xml input that belongs to this specialized class
-      and initialize some stuff based on the inputs got
-      @ In, xmlNode, xml.etree.Element, Xml element node
-      @ Out, None
-    """
-    Model._readMoreXML(self, xmlNode)
-    self.code = PostProcessors.returnInstance(self.subType,self)
-    self.code._readMoreXML(xmlNode)
-
-  def getInitParams(self):
-    """
-      This function is called from the base class to print some of the information inside the class.
-      Whatever is permanent in the class and not inherited from the parent class should be mentioned here
-      The information is passed back in the dictionary. No information about values that change during the simulation are allowed
-      @ In, None
-      @ Out, paramDict, dict, dictionary containing the parameter names as keys
-        and each parameter's initial value as the dictionary values
-    """
-    paramDict = Model.getInitParams(self)
-    return paramDict
-
-  def initialize(self,runInfoDict,myInput,initDict=None):
-    """
-      this needs to be over written if a re initialization of the model is need it gets called at every beginning of a step
-      after this call the next one will be run
-      @ In, runInfo, dict, it is the run info from the jobHandler
-      @ In, inputs, list, it is a list containing whatever is passed with an input role in the step
-      @ In, initDict, dict, optional, dictionary of all objects available in the step is using this model
-    """
-    if myInput.type == 'ROM':
-      pass
-    #initialize some of the current setting for the runs and generate the working
-    #   directory with the starting input files
-    self.workingDir               = os.path.join(runInfoDict['WorkingDir'],runInfoDict['stepName']) #generate current working dir
-    runInfoDict['TempWorkingDir'] = self.workingDir
-    try:                   os.mkdir(self.workingDir)
-    except AttributeError: self.raiseAWarning('current working dir '+self.workingDir+' already exists, this might imply deletion of present files')
-    return
-
-  def run(self,inObj,outObj):
-    """
-      Method that performs the actual run of the Projector model
-      @ In,  Input, object, object contained the data to process. (inputToInternal output)
-      @ In,  jobHandler, JobHandler instance, the global job handler instance
-      @ Out, None
-    """
-    self.interface.run(inObj,outObj,self.workingDir)
 #
 #
 #
@@ -1311,7 +1350,7 @@ class PostProcessor(Model, Assembler):
     """
       Function to read the portion of the xml input that belongs to this specialized class
       and initialize some stuff based on the inputs got
-      @ In, xmlNode, xml.etree.Element, Xml element node
+      @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None
     """
     Model._readMoreXML(self, xmlNode)
@@ -1340,10 +1379,7 @@ class PostProcessor(Model, Assembler):
     """
     self.workingDir               = os.path.join(runInfo['WorkingDir'],runInfo['stepName']) #generate current working dir
     self.interface.initialize(runInfo, inputs, initDict)
-    #aaaaa = utils.returnImportModuleString(inspect.getmodule(PostProcessors),True)
-    #bbbbb = utils.returnImportModuleString(inspect.getmodule(PostProcessors))
     self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(PostProcessors),True)) - set(self.mods))
-    #self.mods.extend(utils.returnImportModuleString(inspect.getmodule(PostProcessors),True))
 
   def run(self,Input,jobHandler):
     """
@@ -1377,7 +1413,389 @@ class PostProcessor(Model, Assembler):
       @ Out, createNewInput, tuple, return the new input in a tuple form
     """
     return self.interface.inputToInternal(self,myInput)
+#
+#
+#
+#
+class EnsembleModel(Dummy, Assembler):
+  """
+    EnsembleModel class. This class is aimed to create a comunication 'pipe' among different models in terms of Input/Output relation
+  """
+  @classmethod
+  def specializeValidateDict(cls):
+    """
+      This method describes the types of input accepted with a certain role by the model class specialization
+      Being this class an essembler class, all the Inputs
+      @ In, None
+      @ Out, None
+    """
+    cls.validateDict['Output'].append(cls.testDict.copy())
+    cls.validateDict['Output' ][1]['class'       ] = 'DataObjects'
+    cls.validateDict['Output' ][1]['type'        ] = ['Point','PointSet']
+    cls.validateDict['Output' ][1]['required'    ] = False
+    cls.validateDict['Output' ][1]['multiplicity'] = 'n'
+    cls.validateDict['Output'].append(cls.testDict.copy())
+    cls.validateDict['Output' ][2]['class'       ] = 'Databases'
+    cls.validateDict['Output' ][2]['type'        ] = ['HDF5']
+    cls.validateDict['Output' ][2]['required'    ] = False
+    cls.validateDict['Output' ][2]['multiplicity'] = 'n'
+    cls.validateDict['Output'].append(cls.testDict.copy())
+    cls.validateDict['Output' ][3]['class'       ] = 'OutStreams'
+    cls.validateDict['Output' ][3]['type'        ] = ['Plot','Print']
+    cls.validateDict['Output' ][3]['required'    ] = False
+    cls.validateDict['Output' ][3]['multiplicity'] = 'n'
 
+  def __init__(self,runInfoDict):
+    """
+      Constructor
+      @ In, runInfoDict, dict, the dictionary containing the runInfo (read in the XML input file)
+      @ Out, None
+    """
+    Dummy.__init__(self,runInfoDict)
+    self.modelsDictionary         = {}           # dictionary of models that are going to be assembled {'modelName':{'Input':[in1,in2,..,inN],'Output':[out1,out2,..,outN],'Instance':Instance}}
+    self.activatePicard           = False
+    self.printTag = 'EnsembleModel MODEL'
+    self.addAssemblerObject('Model','n',True)
+    self.addAssemblerObject('TargetEvaluation','n')
+    self.tempTargetEvaluations = {}
+    self.maxIterations         = 30
+    self.convergenceTol        = 1.e-3
+    self.lockSystem = threading.RLock()
+
+  def localInputAndChecks(self,xmlNode):
+    """
+      Function to read the portion of the xml input that belongs to this specialized class
+      and initialize some stuff based on the inputs got
+      @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
+      @ Out, None
+    """
+    Dummy.localInputAndChecks(self, xmlNode)
+    for child in xmlNode:
+      if child.tag not in  ["Model"]: self.raiseAnError(IOError, "Expected Model tag. Got "+child.tag)
+      if child.tag == 'Model':
+        self.modelsDictionary[child.text.strip()] = {'TargetEvaluation':None,'Instance':None}
+        for childChild in child:
+          self.modelsDictionary[child.text.strip()][childChild.tag] = childChild.text.strip()
+        if self.modelsDictionary[child.text.strip()].values().count(None) != 1: self.raiseAnError(IOError, "TargetEvaluation xml block needs to be inputted!")
+        if len(self.modelsDictionary[child.text.strip()].values()) > 2: self.raiseAnError(IOError, "TargetEvaluation xml block is the only XML sub-block allowed!")
+        if 'inputNames' not in child.attrib.keys(): self.raiseAnError(IOError, "inputNames attribute for Model" + child.text.strip() +" has not been inputted!")
+        self.modelsDictionary[child.text.strip()]['inputNames'] = [utils.toStrish(inpName) for inpName in child.attrib["inputNames"].split(",")]
+      if child.tag == 'settings':
+        self.__readSettings(child)
+    if len(self.modelsDictionary.keys()) < 2: self.raiseAnError(IOError, "The EnsembleModel needs at least 2 models to be constructed!")
+
+  def __readSettings(self, xmlNode):
+    """
+      Method to read the ensemble model settings from XML input files
+      @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
+      @ Out, None
+    """
+    for childChild in child:
+      if childChild.tag == 'maxIterations': self.maxIterations  = int(childChild.text)
+      if childChild.tag == 'tolerance'    : self.convergenceTol = float(childChild.text)
+
+
+  def __findMatchingModel(self,what,subWhat):
+    """
+      Method to find the matching models with respect a some input/output. If not found, return None
+      @ In, what, string, "Input" or "Output"
+      @ In, subWhat, string, a keyword that needs to be contained in "what" for the mathching model
+      @ Out, models, list, list of model names that match the key subWhat
+    """
+    models = []
+    for key, value in self.modelsDictionary.items():
+      if subWhat in value[what]: models.append(key)
+    if len(models) == 0: models = None
+    return models
+
+  def initialize(self,runInfo,inputs,initDict=None):
+    """
+      Method to initialize the EnsembleModel
+      @ In, runInfo is the run info from the jobHandler
+      @ In, inputs is a list containing whatever is passed with an input role in the step
+      @ In, initDict, optional, dictionary of all objects available in the step is using this model
+      @ Out, None
+    """
+    self.tree = TreeStructure.NodeTree(TreeStructure.Node(self.name))
+    rootNode = self.tree.getrootnode()
+    for modelIn in self.assemblerDict['Model']:
+      self.modelsDictionary[modelIn[2]]['Instance'] = modelIn[3]
+      inputForModel = []
+      for input in inputs:
+        if input.name in self.modelsDictionary[modelIn[2]]['inputNames']: inputForModel.append(input)
+      self.modelsDictionary[modelIn[2]]['Instance'].initialize(runInfo,inputForModel,initDict)
+      for mm in self.modelsDictionary[modelIn[2]]['Instance'].mods:
+        if mm not in self.mods: self.mods.append(mm)
+    for targetEval in self.assemblerDict['TargetEvaluation']:
+      for modelIn in self.modelsDictionary.keys():
+        if targetEval[2] == self.modelsDictionary[modelIn]['TargetEvaluation']:
+          self.modelsDictionary[modelIn]['TargetEvaluation'] = targetEval[3]
+          self.tempTargetEvaluations[modelIn]                = copy.deepcopy(targetEval[3])
+          if type(targetEval[3]).__name__ != 'PointSet': self.raiseAnError(IOError, "The TargetEvaluation needs to be an instance of PointSet. Got "+type(targetEval[3]).__name__)
+          self.modelsDictionary[modelIn]['Input'] = targetEval[3].getParaKeys("inputs")
+          self.modelsDictionary[modelIn]['Output'] = targetEval[3].getParaKeys("outputs")
+          modelNode = TreeStructure.Node(modelIn)
+          modelNode.add( 'inputs', targetEval[3].getParaKeys("inputs"))
+          modelNode.add('outputs', targetEval[3].getParaKeys("outputs"))
+          rootNode.appendBranch(modelNode)
+          break
+    # construct chain connections
+    self.orderList        = self.modelsDictionary.keys()
+    self.isConnected      = {}
+    for modelIn in self.modelsDictionary.keys():
+      topModelNode = self.tree.find(modelIn)
+      for i in range(len(self.modelsDictionary[modelIn]['Input'])):
+        inputMatch   = self.__findMatchingModel('Output',self.modelsDictionary[modelIn]['Input'][i])
+        if inputMatch is not None:
+          for match in inputMatch:
+            if not topModelNode.isAnActualBranch(match):
+              topModelNode.appendBranch(self.tree.getrootnode().findBranch(match),True)
+            indexModelIn = self.orderList.index(modelIn)
+            self.orderList.pop(self.orderList.index(modelIn))
+            self.orderList.insert(int(max(self.orderList.index(match)+1,indexModelIn)), modelIn)
+    # check if Picard needs to be activated
+    for modelIn in self.modelsDictionary.keys():
+      if not self.activatePicard:
+        branch, testDict = self.tree.getrootnode().findBranch(modelIn), dict.fromkeys(self.modelsDictionary.keys(),-1)
+        for node in branch.iter():
+          testDict[node.name] +=1
+          if testDict[node.name] > 0:
+            self.activatePicard = True
+            break
+    if self.activatePicard: self.raiseAMessage("Multi-model connections determined a non-linear system. Picard's iterations activated!")
+    else                  : self.raiseAMessage("Multi-model connections determined a linear system. Picard's iterations not activated!")
+
+    self.allOutputs = []
+    self.needToCheckInputs = True
+    #if self.activatePicard:
+    for modelIn in self.modelsDictionary.keys():
+      for modelCheck in self.modelsDictionary.keys():
+        for modelInOut in self.modelsDictionary[modelIn]['Output']:
+          if modelInOut not in self.allOutputs: self.allOutputs.append(modelInOut)
+          if modelInOut not in self.isConnected.keys(): self.isConnected[modelInOut] = {'input':[],'output':None}
+          if modelInOut in self.modelsDictionary[modelCheck]['Input']:
+            self.isConnected[modelInOut]['input' ].append(modelCheck)
+            self.isConnected[modelInOut]['output'] = modelIn
+
+  def localAddInitParams(self,tempDict):
+    """
+      Method used to export to the printer in the base class the additional PERMANENT your local class have
+      @ In, tempDict, dict, dictionary to be updated. {'attribute name':value}
+      @ Out, None
+    """
+    tempDict['Models contained in EnsembleModel are '] = self.modelsDictionary.keys()
+
+  def __selectInputSubset(self,modelName, kwargs ):
+    """
+      Method aimed to select the input subset for a certain model
+      @ In, modelName, string, the model name
+      @ In, kwargs , dict, the kwarded dictionary where the sampled vars are stored
+      @ Out, selectedKwargs , dict, the subset of variables (in a swallow copy of the kwargs  dict)
+    """
+    selectedKwargs = copy.copy(kwargs)
+    selectedKwargs['SampledVars'], selectedKwargs['SampledVarsPb'] = {}, {}
+    for key in kwargs["SampledVars"].keys():
+      if key in self.modelsDictionary[modelName]['Input']: selectedKwargs['SampledVars'][key], selectedKwargs['SampledVarsPb'][key] =  kwargs["SampledVars"][key], kwargs["SampledVarsPb"][key]
+    return copy.deepcopy(selectedKwargs)
+
+  def _inputToInternal(self, myInput, sampledVarsKeys, full=False):
+    """
+      Transform it in the internal format the provided input. myInput could be either a dictionary (then nothing to do) or one of the admitted data
+      This method is used only for the sub-models that are INTERNAL (not for Code models)
+      @ In, myInput, object, the object that needs to be manipulated
+      @ In, sampledVarsKeys, list, list of variables that partecipate to the sampling
+      @ In, full, bool, optional, does the full input needs to be retrieved or just the last element?
+      @ Out, initialConversion, dict, the manipulated input
+    """
+    initialConversion = Dummy._inputToInternal(self, myInput, full)
+    for key in initialConversion.keys():
+      if key not in sampledVarsKeys: initialConversion.pop(key)
+    return initialConversion
+
+  def createNewInput(self,myInput,samplerType,**Kwargs):
+    """
+      this function have to return a new input that will be submitted to the model, it is called by the sampler
+      @ In, myInput, list, the inputs (list) to start from to generate the new one
+      @ In, samplerType, string, is the type of sampler that is calling to generate a new input
+      @ In, **Kwargs, dict,  is a dictionary that contains the information coming from the sampler,
+           a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
+      @ Out, newInputs, dict, dict that returns the new inputs for each sub-model
+    """
+    # check if all the inputs of the submodule are covered by the sampled vars and Outputs of the other sub-models
+    if self.needToCheckInputs: allCoveredVariables = list(set(self.allOutputs + Kwargs['SampledVars'].keys()))
+    newInputs                     = {}
+    identifier                    = Kwargs['prefix']
+    newInputs['prefix']           = identifier
+    for modelIn, specs in self.modelsDictionary.items():
+      if self.needToCheckInputs:
+        for inp in specs['Input']:
+          if inp not in allCoveredVariables: self.raiseAnError(RuntimeError,"for sub-model "+ modelIn + "the input "+inp+" has not been found among other models' outputs and sampled variables!")
+      newKwargs = self.__selectInputSubset(modelIn,Kwargs)
+      inputForModel = []
+      for input in myInput:
+        if input.name in self.modelsDictionary[modelIn]['inputNames']: inputForModel.append(input)
+      inputDict = [self._inputToInternal(inputForModel[0],newKwargs['SampledVars'].keys())] if specs['Instance'].type != 'Code' else  inputForModel
+      newInputs[modelIn] = specs['Instance'].createNewInput(inputDict,samplerType,**newKwargs)
+      if specs['Instance'].type == 'Code':
+        newInputs[modelIn][1]['originalInput'] = inputDict
+    self.needToCheckInputs = False
+    return copy.deepcopy(newInputs)
+
+  def collectOutput(self,finishedJob,output):
+    """
+      Method that collects the outputs from the previous run
+      @ In, finishedJob, ClientRunner object, instance of the run just finished
+      @ In, output, "DataObjects" object, output where the results of the calculation needs to be stored
+      @ Out, None
+    """
+    if finishedJob.returnEvaluation() == -1: self.raiseAnError(RuntimeError,"Job " + finishedJob.identifier +" failed!")
+    out, inputs = finishedJob.returnEvaluation()[1], finishedJob.returnEvaluation()[0]
+    exportDict = {'inputSpaceParams':{},'outputSpaceParams':{},'metadata':{}}
+    outcomes, targetEvaluations = out
+    for modelIn in self.modelsDictionary.keys():
+      # update TargetEvaluation
+      inputsValues  = targetEvaluations[modelIn].getParametersValues('inputs', nodeId = 'RecontructEnding')
+      outputsValues = targetEvaluations[modelIn].getParametersValues('outputs', nodeId = 'RecontructEnding')
+      metadataValues= targetEvaluations[modelIn].getAllMetadata(nodeId = 'RecontructEnding')
+      for key in targetEvaluations[modelIn].getParaKeys('inputs'):
+        self.modelsDictionary[modelIn]['TargetEvaluation'].updateInputValue (key,inputsValues[key])
+      for key in targetEvaluations[modelIn].getParaKeys('outputs'):
+        self.modelsDictionary[modelIn]['TargetEvaluation'].updateOutputValue (key,outputsValues[key])
+      for key in metadataValues.keys():
+        self.modelsDictionary[modelIn]['TargetEvaluation'].updateMetadata(key,metadataValues[key])
+      # end of update of TargetEvaluation
+      for typeInfo,values in outcomes[modelIn].items():
+        for key in values.keys(): exportDict[typeInfo][key] = values[key]
+      if output.name == self.modelsDictionary[modelIn]['TargetEvaluation'].name: self.raiseAnError(RuntimeError, "The Step output can not be one of the target evaluation outputs!")
+    if output.type == 'HDF5': output.addGroupDataObjects({'group':self.name+str(finishedJob.identifier)},exportDict,False)
+    else:
+      for key in exportDict['inputSpaceParams' ] :
+        if key in output.getParaKeys('inputs') : output.updateInputValue (key,exportDict['inputSpaceParams' ][key][-1])
+      for key in exportDict['outputSpaceParams'] :
+        if key in output.getParaKeys('outputs'): output.updateOutputValue(key,exportDict['outputSpaceParams'][key][-1])
+      for key in exportDict['metadata'] :  output.updateMetadata(key,exportDict['metadata'][key][-1])
+
+  def getAdditionalInputEdits(self,inputInfo):
+    """
+      Collects additional edits for the sampler to use when creating a new input. In this case, it calls all the getAdditionalInputEdits methods
+      of the sub-models
+      @ In, inputInfo, dict, dictionary in which to add edits
+      @ Out, None.
+    """
+    for modelIn in self.modelsDictionary.keys(): self.modelsDictionary[modelIn]['Instance'].getAdditionalInputEdits(inputInfo)
+
+  def run(self,Input,jobHandler):
+    """
+      Method to run the essembled model
+      @ In, Input, object, object contained the data to process. (inputToInternal output)
+      @ In, jobHandler, JobHandler instance, the global job handler instance
+      @ Out, None
+    """
+    for mm in utils.returnImportModuleString(jobHandler):
+      if mm not in self.mods: self.mods.append(mm)
+    jobHandler.submitDict['InternalClient'](((copy.deepcopy(Input),jobHandler),), self.__externalRun,str(Input['prefix']))
+
+  def __retrieveDependentOutput(self,modelIn,listOfOutputs):
+    """
+      This method is aimed to retrieve the values of the output of the models on which the modelIn depends on
+      @ In, modelIn, string, name of the model for which the dependent outputs need to be
+      @ In, listOfOutputs, list, list of dictionary outputs ({modelName:dictOfOutputs})
+      @ Out, dependentOutputs, dict, the dictionary of outputs the modelIn needs
+    """
+    dependentOutputs = {}
+    for previousOutputs in listOfOutputs:
+      if len(previousOutputs.values()) > 0:
+        for input in self.modelsDictionary[modelIn]['Input']:
+          # since we support only PointSet we get the last entry of the array (the current history)
+          if input in previousOutputs.keys(): dependentOutputs[input] =  previousOutputs[input][-1]
+    return dependentOutputs
+
+  def __externalRun(self,inRun):
+    """
+      Method that performs the actual run of the essembled model (separated from run method for parallelization purposes)
+      @ In, inRun, tuple, tuple of Inputs (inRun[0] actual input, inRun[1] jobHandler instance )
+      @ Out, returnEvaluation, tuple, the results of the essembled model:
+                               - returnEvaluation[0] dict of results from each sub-model,
+                               - returnEvaluation[1] the dataObjects where the projection of each model is stored
+    """
+    Input, jobHandler = inRun[0], inRun[1]
+    identifier = Input.pop('prefix')
+    #with self.lockSystem:
+    for modelIn in self.orderList:
+      self.tempTargetEvaluations[modelIn].resetData()
+    tempTargetEvaluations = copy.deepcopy(self.tempTargetEvaluations)
+    #modelsTargetEvaluations[modelIn] = copy.deepcopy(self.modelsDictionary[modelIn]['TargetEvaluation'])
+    residueContainer = dict.fromkeys(self.modelsDictionary.keys())
+    gotOutputs = [{}]*len(self.orderList)
+    if self.activatePicard:
+      for modelIn in self.orderList:
+        residueContainer[modelIn] = {'residue':{},'iterValues':[{}]*2}
+        for out in self.modelsDictionary[modelIn]['Output']:
+          residueContainer[modelIn]['residue'][out], residueContainer[modelIn]['iterValues'][0][out], residueContainer[modelIn]['iterValues'][1][out] = 0.0, 0.0, 0.0
+    maxIterations, iterationCount = (self.maxIterations, 0) if self.activatePicard else (1 , 0)
+    #if self.activatePicard: maxIterations, iterationCount = self.maxIterations, 0 if self.activatePicard else 1 , 0
+    #else                  : maxIterations, iterationCount = 1 , 0
+    while iterationCount < maxIterations:
+      returnDict     = {}
+      iterationCount += 1
+      if self.activatePicard: self.raiseAMessage("Picard's Iteration "+ str(iterationCount))
+      for modelCnt, modelIn in enumerate(self.orderList):
+        #with self.lockSystem:
+        dependentOutput = self.__retrieveDependentOutput(modelIn, gotOutputs)
+        if iterationCount == 1  and self.activatePicard:
+          try              : sampledVars = Input[modelIn][0][1]['SampledVars'].keys()
+          except IndexError: sampledVars = Input[modelIn][1]['SampledVars'].keys()
+          for initCondToSet in [x for x in self.modelsDictionary[modelIn]['Input'] if x not in set(dependentOutput.keys()+sampledVars)]:
+            dependentOutput[initCondToSet] = np.asarray([1.0])[-1]
+        #with self.lockSystem:
+        Input[modelIn]  = self.modelsDictionary[modelIn]['Instance'].updateInputFromOutside(Input[modelIn], dependentOutput)
+        try              : Input[modelIn][0][1]['prefix'], Input[modelIn][0][1]['uniqueHandler'] = modelIn+"|"+identifier, self.name+identifier
+        except IndexError: Input[modelIn][1]['prefix'   ], Input[modelIn][1]['uniqueHandler'   ] = modelIn+"|"+identifier, self.name+identifier
+        nextModel = False
+        while not nextModel:
+          moveOn = False
+          while not moveOn:
+            if jobHandler.howManyFreeSpots() > 0:
+              #with self.lockSystem:
+              self.modelsDictionary[modelIn]['Instance'].run(copy.deepcopy(Input[modelIn]),jobHandler)
+              while not jobHandler.isThisJobFinished(modelIn+"|"+identifier): time.sleep(1.e-3)
+              nextModel, moveOn = True, True
+            else: time.sleep(1.e-3)
+          # get job that just finished
+          #with self.lockSystem:
+          finishedRun = jobHandler.getFinished(jobIdentifier = modelIn+"|"+identifier, uniqueHandler=self.name+identifier)
+          if finishedRun[0].returnEvaluation() == -1:
+            for modelToRemove in self.orderList:
+              if modelToRemove != modelIn: jobHandler.getFinished(jobIdentifier = modelToRemove + "|" + identifier, uniqueHandler = self.name + identifier)
+            self.raiseAnError(RuntimeError,"The Model "+modelIn + " failed!")
+          # get back the output in a general format
+          self.modelsDictionary[modelIn]['Instance'].collectOutput(finishedRun[0],tempTargetEvaluations[modelIn])
+          gotOutputs[modelCnt] = tempTargetEvaluations[modelIn].getParametersValues('outputs', nodeId = 'RecontructEnding')
+          #store the result in return dictionary
+          returnDict[modelIn] = {'outputSpaceParams':gotOutputs[modelCnt],'inputSpaceParams':tempTargetEvaluations[modelIn].getParametersValues('inputs', nodeId = 'RecontructEnding'),'metadata':tempTargetEvaluations[modelIn].getAllMetadata()}
+          if self.activatePicard:
+            # compute residue
+            residueContainer[modelIn]['iterValues'][1] = copy.copy(residueContainer[modelIn]['iterValues'][0])
+            for out in gotOutputs[modelCnt].keys(): residueContainer[modelIn]['iterValues'][0][out] = copy.copy(gotOutputs[modelCnt][out][-1])
+            for out in gotOutputs[modelCnt].keys():
+              residueContainer[modelIn]['residue'][out] = abs(residueContainer[modelIn]['iterValues'][0][out] - residueContainer[modelIn]['iterValues'][1][out])
+            residueContainer[modelIn]['Norm'] =  np.linalg.norm(np.asarray(residueContainer[modelIn]['iterValues'][1].values())-np.asarray(residueContainer[modelIn]['iterValues'][0].values()))
+      if self.activatePicard:
+        iterZero, iterOne = [],[]
+        for modelIn in self.orderList:
+          iterZero += residueContainer[modelIn]['iterValues'][0].values()
+          iterOne  += residueContainer[modelIn]['iterValues'][1].values()
+        residueContainer['TotalResidue'] = np.linalg.norm(np.asarray(iterOne)-np.asarray(iterZero))
+        self.raiseAMessage("Picard's Iteration Norm: "+ str(residueContainer['TotalResidue']))
+        if residueContainer['TotalResidue'] <= self.convergenceTol:
+          self.raiseAMessage("Picard's Iteration converged. Norm: "+ str(residueContainer['TotalResidue']))
+          break
+    returnEvaluation = returnDict, tempTargetEvaluations
+    return returnEvaluation
+#
+#
+#
+#
 """
  Factory......
 """
@@ -1387,8 +1805,8 @@ __interFaceDict['Dummy'         ] = Dummy
 __interFaceDict['ROM'           ] = ROM
 __interFaceDict['ExternalModel' ] = ExternalModel
 __interFaceDict['Code'          ] = Code
-__interFaceDict['Projector'     ] = Projector
 __interFaceDict['PostProcessor' ] = PostProcessor
+__interFaceDict['EnsembleModel' ] = EnsembleModel
 #__interFaceDict                   = (__interFaceDict.items()+CodeInterfaces.__interFaceDict.items()) #try to use this and remove the code interface
 __knownTypes                      = list(__interFaceDict.keys())
 

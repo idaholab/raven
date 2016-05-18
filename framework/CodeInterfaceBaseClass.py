@@ -35,13 +35,13 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
   def genCommand(self,inputFiles,executable,flags=None, fileArgs=None, preExec=None):
     """
       This method is used to retrieve the command (in tuple format) needed to launch the Code.
-      This method checks a bolean enviroment variable called 'RAVENinterfaceCheck':
+      This method checks a boolean environment variable called 'RAVENinterfaceCheck':
       if true, the subcodeCommand is going to be overwritten with an empty string. In this way we can check the functionality of the interface without having an executable.
       See Driver.py to understand how this Env variable is set
-      @ In, inputFiles, list, List of input files (lenght of the list depends on the number of inputs have been added in the Step is running this code)
+      @ In, inputFiles, list, List of input files (length of the list depends on the number of inputs have been added in the Step is running this code)
       @ In, executable, string, executable name with absolute path (e.g. /home/path_to_executable/code.exe)
       @ In, flags, dict, optional, dictionary containing the command-line flags the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 i0extension =0 .inp0/ >< /Code >)
-      @ In, fileArgs, dict, optional, a dictionary containing the axuiliary input file variables the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 aux0extension =0 .aux0/ >< /Code >)
+      @ In, fileArgs, dict, optional, a dictionary containing the auxiliary input file variables the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 aux0extension =0 .aux0/ >< /Code >)
       @ In, preExec, string, optional, a string the command that needs to be pre-executed before the actual command here defined
       @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the code (string), returnCommand[1] is the name of the output root
     """
@@ -74,10 +74,10 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
   def generateCommand(self,inputFiles,executable,clargs=None,fargs=None, preExec=None):
     """
       This method is used to retrieve the command (in tuple format) needed to launch the Code.
-      @ In, inputFiles, list, List of input files (lenght of the list depends on the number of inputs have been added in the Step is running this code)
+      @ In, inputFiles, list, List of input files (length of the list depends on the number of inputs have been added in the Step is running this code)
       @ In, executable, string, executable name with absolute path (e.g. /home/path_to_executable/code.exe)
       @ In, clargs, dict, optional, dictionary containing the command-line flags the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 i0extension =0 .inp0/ >< /Code >)
-      @ In, fargs, dict, optional, a dictionary containing the axuiliary input file variables the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 aux0extension =0 .aux0/ >< /Code >)
+      @ In, fargs, dict, optional, a dictionary containing the auxiliary input file variables the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 aux0extension =0 .aux0/ >< /Code >)
       @ In, preExec, string, optional, a string the command that needs to be pre-executed before the actual command here defined
       @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the code (string), returnCommand[1] is the name of the output root
     """
@@ -136,7 +136,7 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
   def finalizeCodeOutput(self,command,output,workingDir):
     """
       this method is called by the RAVEN code at the end of each run (if the method is present).
-      It can be used for those codes, that do not create CSV files to convert the whaterver output formato into a csv
+      It can be used for those codes, that do not create CSV files to convert the whatever output format into a csv
       @ In, command, string, the command used to run the just ended job
       @ In, output, string, the Output name root
       @ In, workingDir, string, current working dir
@@ -149,7 +149,7 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
       This method is called by RAVEN at the end of each run if the return code is == 0.
       This method needs to be implemented by the codes that, if the run fails, return a return code that is 0
       This can happen in those codes that record the failure of the job (e.g. not converged, etc.) as normal termination (returncode == 0)
-      This method can be used, for example, to parse the outputfile looking for a special keyword that testifies that a particular job got failed
+      This method can be used, for example, to parse the output file looking for a special keyword that testifies that a particular job got failed
       (e.g. in RELAP5 would be the keyword "********")
       @ In, output, string, the Output name root
       @ In, workingDir, string, current working dir
@@ -160,7 +160,7 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
 
   def expandVarNames(self,**Kwargs):
     """
-      This method will assure the full proper variable names are returned in a modificaton dictionary.
+      This method will assure the full proper variable names are returned in a dictionary.
       It primarily expands aliases. I will admit I don't know what colons do.
       @ In, Kwargs, dict, keyworded dictionary. Arguments include:
           - alias, the alias -> TrueName dictionary
@@ -179,6 +179,7 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
       else:
         key = var.split(':')
       modifDict = {}
+      if '|' not in key[0]: continue
       modifDict['name'] = key[0].split('|')[:-1]
       modifDict[key[0].split('|')[-1]] = Kwargs['SampledVars'][var]
       listDict.append(modifDict)

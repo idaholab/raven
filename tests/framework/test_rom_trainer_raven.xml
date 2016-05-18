@@ -27,7 +27,7 @@
   </Distributions>
 
   <Models>
-    <Code name="MyRAVEN" subType="RAVEN">
+    <Code name="MyRAVEN" subType="RELAP7">
       <executable>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</executable>
     </Code>
     <ROM name="ROM1" subType="SciKitLearn">
@@ -132,7 +132,7 @@
   </OutStreams>
 
   <Databases>
-    <HDF5 name="MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER"/>
+    <HDF5 name="MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER" readMode="overwrite"/>
   </Databases>
 
   <DataObjects>

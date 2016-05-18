@@ -15,7 +15,7 @@ Not supported (mostly due to not making sense in the PiCloud context).
 * join, close and terminate operations
 
 .. warning::
-    
+
     It is highly recommended that you do not use this module and instead use the cloud module directly.
     Much functionality that the cloud interface offers is missing here.
 """
@@ -35,7 +35,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 Lesser General Public License for more details.
 
 You should have received a copy of the GNU Lesser General Public
-License along with this package; if not, see 
+License along with this package; if not, see
 http://www.gnu.org/licenses/lgpl-2.1.html
 """
 
@@ -47,20 +47,20 @@ import multiprocessing
 
 class AsyncResult(object):
     """Result object that emulates multiprocessing.pool.AsyncResult"""
-    
+
     _jid = None #internal - jid (or jid list) associated with this result
-    
+
     def __init__(self, jid):
         self._jid = jid
-    
+
     def get(self, timeout=None):
         """
         Return result when it arrives.
-        If timeout is not None and none arrives, 
+        If timeout is not None and none arrives,
         raise multiprocessing.TimeoutError in *timeout* seconds
         """
         return _getcloud().result(self._jid)
-        
+
     def wait(self, timeout=None):
         """
         Wait until result is available or *timeout* seconds pass
@@ -69,7 +69,7 @@ class AsyncResult(object):
             _getcloud().join(self._jid)
         except CloudTimeoutError:
             pass
-        
+
     def ready(self):
         """Returns true if the job finished (done or errored)"""
         c = _getcloud()
@@ -81,7 +81,7 @@ class AsyncResult(object):
                 if s not in c.finished_statuses:
                     return False
             return True
-    
+
     def successful(self):
         """Returns true if job finished successfully.
         Asserts that job has finished"""
@@ -95,14 +95,14 @@ class AsyncResult(object):
                     return False
             return True
 
-    
+
 
 def apply(func, args=()):
     """
     Equivalent to Multiprocessing apply.
-    keyword arguments are not supported        
+    keyword arguments are not supported
     """
-    
+
     c = _getcloud()
     jid = c.call(func, *args)
     return c.result(jid)
@@ -111,22 +111,22 @@ def apply_async(func, args=(), callback=None):
     """
     Equivalent to Multiprocessing apply_async
     keyword arguments are not supported
-    
+
     callback is a list of functions that should be run on the callee's computer once this job finishes successfully.
-        Each callback will be invoked with one argument - the jid of the complete job     
+        Each callback will be invoked with one argument - the jid of the complete job
     """
 
     c = _getcloud()
     jid = c.call(func, _callback = callback, *args)
     return AsyncResult(jid)
-    
+
 
 def map(func, iterable, chunksize=None):
     """
     Equivalent to Multiprocessing map
     chunksize is not used here
     """
-    
+
     c = _getcloud()
     jids = c.map(func, iterable)
     return c.result(jids)
@@ -135,18 +135,18 @@ def map_async(func, iterable, chunksize=None):
     """
     Equivalent to Multiprocessing map_async
     chunksize is not used here
-    """    
+    """
     c = _getcloud()
     jids = c.map(func, iterable)
     return AsyncResult(jids)
-    
-    
+
+
 def imap(func, iterable, chunksize = None):
     """
     Equivalent to Multiprocessing imap
     chunksize is used only to control the cloud.iresult stage
     """
-    
+
     c = _getcloud()
     jids = c.map(func, iterable)
     return c.iresult(jids,chunksize)
@@ -155,11 +155,11 @@ def imap_unordered(func, iterable, chunksize = None):
     """
     Same as imap
     """
-    
+
     return imap(func, iterable, chunksize)
 
-    
 
 
-    
-    
+
+
+

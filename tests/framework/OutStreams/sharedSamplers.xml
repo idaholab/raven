@@ -1,0 +1,13 @@
+<?xml version="1.0" ?>
+<Samplers>
+  <Grid name="RAVENGrid">
+    <variable name="X">
+      <distribution>zeroToOne</distribution>
+      <grid construction="equal" steps="3" type="value">0.2 0.8</grid>
+    </variable>
+    <variable name="Y">
+      <distribution>oneToTwo</distribution>
+      <grid construction="equal" steps="3" type="value">1.2  1.8</grid>
+    </variable>
+  </Grid>
+</Samplers>
