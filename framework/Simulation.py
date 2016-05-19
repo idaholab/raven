@@ -281,10 +281,10 @@ class MPISimulationMode(SimulationMode):
             self.__simulation.runInfoDict['batchSize'] = fullGroupCount
 
         #then give each index a separate file.
-        nodeCommand = "-f %BASE_WORKING_DIR%/node_%INDEX% "
+        nodeCommand = self.__simulation.runInfoDict["NodeParameter"]+" %BASE_WORKING_DIR%/node_%INDEX% "
       else:
         #If only one batch just use original node file
-        nodeCommand = "-f "+nodefile
+        nodeCommand = self.__simulation.runInfoDict["NodeParameter"]+" "+nodefile
     else:
       #Not in PBS, so can't look at PBS_NODEFILE and none supplied in input
       newBatchsize = self.__simulation.runInfoDict['batchSize']
@@ -298,7 +298,8 @@ class MPISimulationMode(SimulationMode):
     os.environ["MV2_ENABLE_AFFINITY"] = "0"
 
     # Create the mpiexec pre command
-    self.__simulation.runInfoDict['precommand'] = "mpiexec "+nodeCommand+" -n "+str(numMPI)+" "+self.__simulation.runInfoDict['precommand']
+    # Note, with defaults the precommand is "mpiexec -f nodeFile -n numMPI"
+    self.__simulation.runInfoDict['precommand'] = self.__simulation.runInfoDict["MPIExec"]+" "+nodeCommand+" -n "+str(numMPI)+" "+self.__simulation.runInfoDict['precommand']
     if(self.__simulation.runInfoDict['NumThreads'] > 1):
       #add number of threads to the post command.
       self.__simulation.runInfoDict['postcommand'] = " --n-threads=%NUM_CPUS% "+self.__simulation.runInfoDict['postcommand']
@@ -439,6 +440,8 @@ class Simulation(MessageHandler.MessageUser):
     self.runInfoDict['ScriptDir'         ] = os.path.join(os.path.dirname(frameworkDir),"scripts") # the location of the pbs script interfaces
     self.runInfoDict['FrameworkDir'      ] = frameworkDir # the directory where the framework is located
     self.runInfoDict['RemoteRunCommand'  ] = os.path.join(frameworkDir,'raven_qsub_command.sh')
+    self.runInfoDict['NodeParameter'     ] = '-f'         # the parameter used to specify the files where the nodes are listed
+    self.runInfoDict['MPIExec'           ] = 'mpiexec'    # the command used to run mpi commands
     self.runInfoDict['WorkingDir'        ] = ''           # the directory where the framework should be running
     self.runInfoDict['TempWorkingDir'    ] = ''           # the temporary directory where a simulation step is run
     self.runInfoDict['NumMPI'            ] = 1            # the number of mpi process by run
@@ -811,6 +814,8 @@ class Simulation(MessageHandler.MessageUser):
           self.runInfoDict['RemoteRunCommand'] = tempName
         else:
           self.runInfoDict['RemoteRunCommand'] = os.path.abspath(os.path.join(self.runInfoDict['FrameworkDir'],tempName))
+      elif element.tag == 'NodeParameter'     : self.runInfoDict['NodeParameter'] = element.text.strip()
+      elif element.tag == 'MPIExec'           : self.runInfoDict['MPIExec'] = element.text.strip()
       elif element.tag == 'JobName'           : self.runInfoDict['JobName'           ] = element.text.strip()
       elif element.tag == 'ParallelCommand'   : self.runInfoDict['ParallelCommand'   ] = element.text.strip()
       elif element.tag == 'queueingSoftware'  : self.runInfoDict['queueingSoftware'  ] = element.text.strip()
