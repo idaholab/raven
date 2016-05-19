@@ -140,10 +140,15 @@
             <xsd:element name="NumThreads"         type="xsd:integer" minOccurs="0" default="1"/>
             <xsd:element name="mode" minOccurs="0">
                 <xsd:complexType mixed="true">
-                    <xsd:choice>
+                    <xsd:choice maxOccurs="unbounded">
                         <xsd:element name="runQSUB"                        minOccurs="0"/>
                         <xsd:element name="nodefile"     type="xsd:string" minOccurs="0"/>
                         <xsd:element name="nodefileenv"  type="xsd:string" minOccurs="0"/>
+                        <xsd:element name="NoSplitNode" minOccurs="0">
+                          <xsd:complexType>
+                            <xsd:attribute name="maxOnNode" type="xsd:integer" />
+                          </xsd:complexType>
+                        </xsd:element>
                     </xsd:choice>
                 </xsd:complexType>
             </xsd:element>
