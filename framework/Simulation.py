@@ -182,6 +182,9 @@ class MPISimulationMode(SimulationMode):
     self.__inPbs = "PBS_NODEFILE" in os.environ
     self.__nodefile = False
     self.__runQsub = False
+    self.__noSplitNode = False #If true, don't split mpi processes across nodes
+    self.__maxOnNode = None #Used with __noSplitNode.  If __noSplitNode and
+    # __maxOnNode is not None, don't put more than that on on single shared memory node
     self.printTag = 'MPI SIMULATION MODE'
 
   def modifySimulation(self):
@@ -211,11 +214,51 @@ class MPISimulationMode(SimulationMode):
       if newBatchsize > 1:
         #need to split node lines so that numMPI nodes are available per run
         workingDir = self.__simulation.runInfoDict['WorkingDir']
-        for i in range(newBatchsize):
-          nodeFile = open(os.path.join(workingDir,"node_"+str(i)),"w")
-          for line in lines[i*numMPI:(i+1)*numMPI]:
-            nodeFile.write(line)
-          nodeFile.close()
+        if not self.__noSplitNode:
+          for i in range(newBatchsize):
+            nodeFile = open(os.path.join(workingDir,"node_"+str(i)),"w")
+            for line in lines[i*numMPI:(i+1)*numMPI]:
+              nodeFile.write(line)
+            nodeFile.close()
+        else: #self.__noSplitNode == True
+          nodes = []
+          for line in lines:
+            nodes.append(line.strip())
+
+          nodes.sort()
+
+          currentNode = ""
+          countOnNode = 0
+          groups = []
+
+          for i in range(len(nodes)):
+            node = nodes[i]
+            if node != currentNode:
+              currentNode = node
+              countOnNode = 0
+              groups.append([])
+            if self.__maxOnNode is None or countOnNode < self.__maxOnNode:
+              countOnNode += 1
+              if len(groups[-1]) >= numMPI:
+                groups.append([])
+              groups[-1].append(node)
+
+          fullGroupCount = 0
+          for group in groups:
+            if len(group) < numMPI:
+              self.raiseAWarning("not using part of node because of partial group: "+str(group))
+            else:
+              nodeFile = open(os.path.join(workingDir,"node_"+str(fullGroupCount)),"w")
+              for node in group:
+                print(node,file=nodeFile)
+              nodeFile.close()
+              fullGroupCount += 1
+          if fullGroupCount == 0:
+            self.raiseAnError(IOError, "Cannot run with given parameters because no nodes have numMPI "+str(numMPI)+" available and NoSplitNode is on.")
+          if fullGroupCount != self.__simulation.runInfoDict['batchSize']:
+            self.raiseAWarning("changing batchsize to "+str(fullGroupCount)+" because NoSplitNode is on and some nodes could not be used.")
+            self.__simulation.runInfoDict['batchSize'] = fullGroupCount
+
         #then give each index a separate file.
         nodeCommand = "-f %BASE_WORKING_DIR%/node_%INDEX% "
       else:
@@ -277,6 +320,11 @@ class MPISimulationMode(SimulationMode):
         self.__nodefile = child.text.strip()
       elif child.tag.lower() == "runqsub":
         self.__runQsub = True
+      elif child.tag.lower() == "nosplitnode":
+        self.__noSplitNode = True
+        self.__maxOnNode = child.attrib.get("maxOnNode",None)
+        if self.__maxOnNode is not None:
+          self.__maxOnNode = int(self.__maxOnNode)
       else:
         self.raiseADebug("We should do something with child "+str(child))
 #
