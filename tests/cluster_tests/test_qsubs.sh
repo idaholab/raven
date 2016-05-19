@@ -34,7 +34,7 @@ rm -Rf FirstMNRun/
 
 python ../../framework/Driver.py test_mpiqsub_nosplit.xml
 
-wait_lines 'FirstMNRun/*eqn.csv' 6 mpiqsub_nosplit
+wait_lines 'FirstMNRun/[1-6]/*.csv' 6 mpiqsub_nosplit
 
 rm -Rf FirstMRun/
 
