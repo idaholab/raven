@@ -941,9 +941,9 @@ class InterfacedPostProcessor(BasePostProcessor):
     BasePostProcessor.initialize(self, runInfo, inputs, initDict)
      #self.postProcessor.initialize()
 
-     #if self.postProcessor.inputFormat not in set(['HistorySet','History','PointSet','Point']):
+     #if self.postProcessor.inputFormat not in set(['HistorySet','PointSet']):
      #  self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.inputFormat not correctly initialized')
-     #if self.postProcessor.outputFormat not in set(['HistorySet','History','PointSet','Point']):
+     #if self.postProcessor.outputFormat not in set(['HistorySet','PointSet']):
      #  self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.outputFormat not correctly initialized')
 
   def _localReadMoreXML(self, xmlNode):
@@ -960,9 +960,9 @@ class InterfacedPostProcessor(BasePostProcessor):
       self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : not correctly coded; it must inherit the PostProcessorInterfaceBase class')
 
     self.postProcessor.initialize()
-    if self.postProcessor.inputFormat not in set(['HistorySet','History','PointSet','Point']):
+    if self.postProcessor.inputFormat not in set(['HistorySet','PointSet']):
       self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.inputFormat not correctly initialized')
-    if self.postProcessor.outputFormat not in set(['HistorySet','History','PointSet','Point']):
+    if self.postProcessor.outputFormat not in set(['HistorySet','PointSet']):
       self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.outputFormat not correctly initialized')
     self.postProcessor.readMoreXML(xmlNode)
 
@@ -1348,7 +1348,7 @@ class ImportanceRank(BasePostProcessor):
         output.close()
         self.raiseAMessage('ImportanceRank XML printed to "'+output.getFilename()+'"!')
     # Output to DataObjects
-    elif output.type in ['PointSet','Point','History','HistorySet']:
+    elif output.type in ['PointSet','HistorySet']:
       self.raiseADebug('Dumping output in data object named ' + output.name)
       for what in outputDict.keys():
         if what.lower() in self.acceptedMetric:
@@ -1614,7 +1614,7 @@ class BasicStatistics(BasePostProcessor):
         self._writeCSV(output,outputDict,parameterSet,outputExtension,methodToTest)
       else:
         self._writeXML(output,outputDict,parameterSet,methodToTest)
-    elif output.type in ['PointSet','Point','History','HistorySet']:
+    elif output.type in ['PointSet','HistorySet']:
       self.raiseADebug('Dumping output in data object named ' + output.name)
       for what in outputDict.keys():
         if what not in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity'] + methodToTest:
@@ -2326,8 +2326,8 @@ class LimitSurface(BasePostProcessor):
     self.indexes = -1
     for index, inp in enumerate(self.inputs):
       if type(inp).__name__ in ['str', 'bytes', 'unicode']: self.raiseAnError(IOError, 'LimitSurface PostProcessor only accepts Data(s) as inputs!')
-      if inp.type in ['PointSet', 'Point']: self.indexes = index
-    if self.indexes == -1: self.raiseAnError(IOError, 'LimitSurface PostProcessor needs a Point or PointSet as INPUT!!!!!!')
+      if inp.type == 'PointSet': self.indexes = index
+    if self.indexes == -1: self.raiseAnError(IOError, 'LimitSurface PostProcessor needs a PointSet as INPUT!!!!!!')
     else:
       # check if parameters are contained in the data
       inpKeys = self.inputs[self.indexes].getParaKeys("inputs")
