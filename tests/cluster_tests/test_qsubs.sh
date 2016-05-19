@@ -32,7 +32,7 @@ wait_lines 'FirstMQRun/1/*eqn.csv FirstMQRun/2/*eqn.csv FirstMQRun/3/*eqn.csv Fi
 
 rm -Rf FirstMNRun/
 
-python ../../framework/Driver.py test_mpiqsub_nosplit.xml
+python ../../framework/Driver.py test_mpiqsub_nosplit.xml cluster_runinfo.xml
 
 wait_lines 'FirstMNRun/[1-6]/*.csv' 6 mpiqsub_nosplit
 
