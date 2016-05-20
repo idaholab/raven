@@ -98,7 +98,7 @@ class CsvLoader(MessageHandler.MessageUser):
         del tupleVar
       return(listhistIn,listhistOut)
     else:
-      self.raiseAnError(IOError,'Type ' + options['type'] + 'unknown')
+      self.raiseAnError(IOError,'Type ' + options['type'] + ' unknown')
 
   def __csvLoaderForPointSet(self,filesIn,options):
     """
