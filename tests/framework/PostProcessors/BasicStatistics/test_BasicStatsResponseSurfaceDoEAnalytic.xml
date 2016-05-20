@@ -79,13 +79,13 @@
 
   <Steps>
     <MultiRun name="SamplingMirrowModelBoxBehnkenRespDesign" re-seeding="20021986">
-      <Input class="DataObjects" type="Point">inputPlaceHolder</Input>
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
       <Model class="Models" type="ExternalModel">mirrowModel</Model>
       <Sampler class="Samplers" type="Stratified">BoxBehnkenRespDesign</Sampler>
       <Output class="DataObjects" type="PointSet">outputDataBoxBehnkenRespDesign</Output>
     </MultiRun>
     <MultiRun name="SamplingMirrowModelCentralCompositeRespDesign" re-seeding="20021986">
-      <Input class="DataObjects" type="Point">inputPlaceHolder</Input>
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
       <Model class="Models" type="ExternalModel">mirrowModel</Model>
       <Sampler class="Samplers" type="Stratified">CentralCompositeRespDesign</Sampler>
       <Output class="DataObjects" type="PointSet">outputDataCentralCompositeRespDesign</Output>
@@ -118,10 +118,10 @@
   </OutStreams>
 
   <DataObjects>
-    <Point name="inputPlaceHolder">
+    <PointSet name="inputPlaceHolder">
       <Input>x,y,z</Input>
       <Output>OutputPlaceHolder</Output>
-    </Point>
+    </PointSet>
     <PointSet name="outputDataBoxBehnkenRespDesign">
       <Input>x,y,z</Input>
       <Output>x1</Output>

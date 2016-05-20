@@ -80,14 +80,14 @@
 
   <Steps>
     <MultiRun name="FirstStep" re-seeding="200286">
-      <Input class="DataObjects" type="Point">inputHolder</Input>
+      <Input class="DataObjects" type="PointSet">inputHolder</Input>
       <Model class="Models" type="ExternalModel">TwoStep</Model>
       <Sampler class="Samplers" type="MonteCarlo">RAVENmc6</Sampler>
       <Output class="Databases" type="HDF5">test2StepsDatabase</Output>
       <Output class="DataObjects" type="HistorySet">stories</Output>
     </MultiRun>
     <MultiRun name="SecondStep" re-seeding="200286">
-      <Input class="DataObjects" type="Point">inputHolder</Input>
+      <Input class="DataObjects" type="PointSet">inputHolder</Input>
       <Model class="Models" type="ExternalModel">TwoStep</Model>
       <Sampler class="Samplers" type="MonteCarlo">RAVENmc2</Sampler>
       <Output class="Databases" type="HDF5">test2StepsDatabase</Output>
@@ -101,10 +101,10 @@
   </Databases>
 
   <DataObjects>
-    <Point name="inputHolder">
+    <PointSet name="inputHolder">
       <Input>Gauss1,auxBackupTimeDist,Gauss2,CladFailureDist</Input>
       <Output>OutputPlaceHolder</Output>
-    </Point>
+    </PointSet>
     <HistorySet name="stories">
       <Input>Gauss1,auxBackupTimeDist,Gauss2,CladFailureDist</Input>
       <Output>out1,out2,time</Output>
