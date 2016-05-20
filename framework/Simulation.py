@@ -22,6 +22,7 @@ import Steps
 import DataObjects
 import Files
 import Samplers
+import Optimizers
 import Models
 import Distributions
 import Databases
@@ -407,6 +408,7 @@ class Simulation(MessageHandler.MessageUser):
     self.addWhatDict['Steps'            ] = Steps
     self.addWhatDict['DataObjects'      ] = DataObjects
     self.addWhatDict['Samplers'         ] = Samplers
+    self.addWhatDict['Optimizers'       ] = Optimizers
     self.addWhatDict['Models'           ] = Models
     self.addWhatDict['Distributions'    ] = Distributions
     self.addWhatDict['Databases'        ] = Databases
@@ -569,6 +571,10 @@ class Simulation(MessageHandler.MessageUser):
           globalAttributes = child.attrib
           #if 'verbosity' in globalAttributes.keys(): self.verbosity = globalAttributes['verbosity']
         if Class != 'RunInfo':
+          if Class == 'Optimizers': 
+            Class, ClassToAdd = 'Samplers', 'Optimizers'
+          else:
+            ClassToAdd = Class          
           for childChild in child:
             subType = childChild.tag
             if 'name' in childChild.attrib.keys():
@@ -579,14 +585,14 @@ class Simulation(MessageHandler.MessageUser):
               #if name not in self.whichDict[Class].keys():  self.whichDict[Class][name] = self.addWhatDict[Class].returnInstance(childChild.tag,self)
               if Class != 'OutStreams':
                   if name not in self.whichDict[Class].keys():
-                    if "needsRunInfo" in self.addWhatDict[Class].__dict__:
-                      self.whichDict[Class][name] = self.addWhatDict[Class].returnInstance(childChild.tag,self.runInfoDict,self)
+                    if "needsRunInfo" in self.addWhatDict[ClassToAdd].__dict__:
+                      self.whichDict[Class][name] = self.addWhatDict[ClassToAdd].returnInstance(childChild.tag,self.runInfoDict,self)
                     else:
-                      self.whichDict[Class][name] = self.addWhatDict[Class].returnInstance(childChild.tag,self)
+                      self.whichDict[Class][name] = self.addWhatDict[ClassToAdd].returnInstance(childChild.tag,self)
                   else: self.raiseAnError(IOError,'Redundant naming in the input for class '+Class+' and name '+name)
               else:
                   if name not in self.whichDict[Class][subType].keys():
-                    self.whichDict[Class][subType][name] = self.addWhatDict[Class][subType].returnInstance(childChild.tag,self)
+                    self.whichDict[Class][subType][name] = self.addWhatDict[ClassToAdd][subType].returnInstance(childChild.tag,self)
                   else: self.raiseAnError(IOError,'Redundant  naming in the input for class '+Class+' and sub Type'+subType+' and name '+name)
               #now we can read the info for this object
               #if globalAttributes and 'verbosity' in globalAttributes.keys(): localVerbosity = globalAttributes['verbosity']
