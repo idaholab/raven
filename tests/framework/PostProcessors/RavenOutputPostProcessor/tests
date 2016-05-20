@@ -1,0 +1,8 @@
+[Tests]
+  [./static]
+    type   = 'RavenFramework'
+    input  = 'test_notime.xml'
+    csv    = 'static/data.csv'
+	  output = 'static/data.xml static/basic.xml static/collocation.xml'
+  [../]
+[]
