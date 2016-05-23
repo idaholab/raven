@@ -101,18 +101,6 @@ class HistorySet(Data):
           if (self._dataContainer['outputs'][key][key2].ndim) != 1:
             self.raiseAnError(NotConsistentData,'The output parameter value, for key ' + key2 + ' has not a consistent shape for History ' + key + ' contained in HistorySet ' +self.name+ '!! It should be an 1D array.' + '.Actual dimension is ' + str(self._dataContainer['outputs'][key][key2].ndim))
 
-  def addRealization(self,realizationi,options=None,addOnly=[]):
-    """
-      Main method for adding entries to internal storage
-      This specializes for HistorySet objects.
-      @ In, realization, dict, {'inputs':{inpName:value, inpName:value},
-                                'outputs':[{outName:value, outName:value}], #note list of outputs, by history
-                                'metadata': {key:val}}
-      @ In, options, dict, optional, the dictionary of options to update the value (e.g. parentId, etc.)
-      @ In, addonly, list(int), optional, specifies only certain indices to add
-      @ Out, None
-    """
-
   def _updateSpecializedInputValue(self,name,value,options=None):
     """
       This function performs the updating of the values (input space) into this Data
