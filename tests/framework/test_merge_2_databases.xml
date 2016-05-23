@@ -43,13 +43,10 @@
     <IOStep name="test_extract">
       <Input class="Databases" type="HDF5">MC_MERGE_EXTRACT_STEP</Input>
       <Input class="Databases" type="HDF5">MC_MERGE_EXTRACT_STEP</Input>
-      <Input class="Databases" type="HDF5">MC_MERGE_EXTRACT_STEP</Input>
-      <Input class="Databases" type="HDF5">MC_MERGE_EXTRACT_STEP</Input>
       <Output class="DataObjects" type="HistorySet">HistorySet_from_database</Output>
-      <Output class="DataObjects" type="HistorySet">HistorySet_from_database</Output>
-      <Output class="DataObjects" type="PointSet">Pointset_from_database</Output>
       <Output class="DataObjects" type="PointSet">Pointset_from_database</Output>
       <Output class="OutStreams"  type="Print">Pointset_from_database_dump</Output>
+      <Output class="OutStreams"  type="Print">Historyset_from_database_dump</Output>
     </IOStep>
     <IOStep name="test_push_in">
       <Input class="DataObjects" type="HistorySet">HistorySet_from_database</Input>
@@ -63,6 +60,7 @@
       <Output class="DataObjects" type="HistorySet">HistorySet_IN_database</Output>
       <Output class="DataObjects" type="PointSet">Pointset_IN_database</Output>
       <Output class="OutStreams"  type="Print">Pointset_IN_database_dump</Output>
+      <Output class="OutStreams"  type="Print">Historyset_IN_database_dump</Output>
     </IOStep>
   </Steps>
 
@@ -79,6 +77,14 @@
     <Print name="Pointset_IN_database_dump">
       <type>csv</type>
       <source>Pointset_IN_database</source>
+    </Print>
+    <Print name="Historyset_from_database_dump">
+      <type>csv</type>
+      <source>HistorySet_from_database</source>
+    </Print>
+    <Print name="Historyset_IN_database_dump">
+      <type>csv</type>
+      <source>HistorySet_IN_database</source>
     </Print>
   </OutStreams>
 
