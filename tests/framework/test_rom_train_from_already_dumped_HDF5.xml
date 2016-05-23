@@ -76,7 +76,7 @@
   </Databases>
 
   <DataObjects>
-    <PointSet historyName="1" name="data_for_sampling_empty_at_begin">
+    <PointSet name="data_for_sampling_empty_at_begin">
       <options>
         <inputRow>2</inputRow>
       </options>

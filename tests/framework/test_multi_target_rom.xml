@@ -163,14 +163,14 @@
       <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
-    <PointSet historyName="1" name="data_for_sampling_empty_at_begin">
+    <PointSet name="data_for_sampling_empty_at_begin">
       <options>
         <inputRow>2</inputRow>
       </options>
       <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
-    <PointSet historyName="1" name="data_for_sampling_empty_at_begin_nd">
+    <PointSet name="data_for_sampling_empty_at_begin_nd">
       <options>
         <inputRow>2</inputRow>
       </options>
