@@ -1,9 +1,8 @@
 """
-  This module contains the Monte Carlo sampling strategy
+  This module contains the Custom sampling strategy
 
   Created on May 21, 2016
   @author: alfoa
-  supercedes Samplers.py from crisr
 """
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
@@ -37,29 +36,11 @@ else: import cPickle as pickle
 
 #Internal Modules------------------------------------------------------------------------------------
 from .ForwardSampler import ForwardSampler
-import utils
-import mathUtils
-from BaseClasses import BaseType
-from Assembler import Assembler
-import Distributions
-import DataObjects
-import TreeStructure as ETS
-import SupervisedLearning
-import pyDOE as doe
-import Quadratures
-import OrthoPolynomials
-import IndexSets
-import Models
-import PostProcessors
-import MessageHandler
-import GridEntities
-from AMSC_Object import AMSC_Object
-distribution1D = utils.find_distribution1D()
 #Internal Modules End--------------------------------------------------------------------------------
 
-class MonteCarlo(ForwardSampler):
+class CustomSampler(ForwardSampler):
   """
-    MONTE CARLO Sampler
+    Custom Sampler
   """
   def __init__(self):
     """
@@ -69,7 +50,7 @@ class MonteCarlo(ForwardSampler):
       @ Out, None
     """
     ForwardSampler.__init__(self)
-    self.printTag = 'SAMPLER MONTECARLO'
+    self.printTag = 'SAMPLER CUSTOM'
 
   def localInputAndChecks(self,xmlNode):
     """
@@ -153,6 +134,3 @@ class MonteCarlo(ForwardSampler):
       @ Out, None
     """
     if len(failedRuns)>0: self.raiseADebug('  Continuing with reduced-size Monte Carlo sampling.')
-
-
-

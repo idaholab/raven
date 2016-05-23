@@ -38,6 +38,21 @@ else: import cPickle as pickle
 #Internal Modules------------------------------------------------------------------------------------
 from .Sobol import Sobol
 from .AdaptiveSparseGrid import AdaptiveSparseGrid
+import utils
+import mathUtils
+from BaseClasses import BaseType
+from Assembler import Assembler
+import Distributions
+import DataObjects
+import TreeStructure as ETS
+import SupervisedLearning
+import pyDOE as doe
+import Quadratures
+import OrthoPolynomials
+import IndexSets
+import Models
+import PostProcessors
+import MessageHandler
 #Internal Modules End--------------------------------------------------------------------------------
 
 class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
@@ -668,6 +683,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
       @ In, subset, tuple(string), subset for cut plane
       @ Out, None
     """
+    from .Factory import returnInstance
     verbosity = self.subVerbosity #sets verbosity of created RAVEN objects
     SVL = self.ROM.SupervisedEngine.values()[0] #an example SVL for most parameters
     #replicate "normal" construction of the ROM

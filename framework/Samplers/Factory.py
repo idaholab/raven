@@ -11,25 +11,25 @@ if not 'xrange' in dir(__builtins__): xrange = range
 #End compatibility block for Python 3-------------------------------------------
 
 ################################################################################
-from Samplers import Sampler
+from Samplers.Sampler import Sampler
 # Forward samplers
-from Samplers import ForwardSampler
-from Samplers import MonteCarlo
-from Samplers import Grid
-from Samplers import Stratified
-from Samplers import FactorialDesign
-from Samplers import ResponseSurfaceDesign
-from Samplers import Sobol
-from Samplers import SparseGridCollocation
-from Samplers import EnsembleForward
+from Samplers.ForwardSampler import ForwardSampler
+from Samplers.MonteCarlo import MonteCarlo
+from Samplers.Grid import Grid
+from Samplers.Stratified import Stratified
+from Samplers.FactorialDesign import FactorialDesign
+from Samplers.ResponseSurfaceDesign import ResponseSurfaceDesign
+from Samplers.Sobol import Sobol
+from Samplers.SparseGridCollocation import SparseGridCollocation
+from Samplers.EnsembleForward import EnsembleForwardSampler
 # Adaptive samplers
-from Samplers import AdaptiveSampler
-from Samplers import LimitSurfaceSearch
-from Samplers import AdaptiveSobol
-from Samplers import AdaptiveSparseGrid
+from Samplers.AdaptiveSampler import AdaptiveSampler
+from Samplers.LimitSurfaceSearch import LimitSurfaceSearch
+from Samplers.AdaptiveSobol import AdaptiveSobol
+from Samplers.AdaptiveSparseGrid import AdaptiveSparseGrid
 # Dynamic Event Tree-based Samplers
-from Samplers import DynamicEventTree
-from Samplers import AdaptiveDynamicEventTree
+from Samplers.DynamicEventTree import DynamicEventTree
+from Samplers.AdaptiveDynamicEventTree import AdaptiveDET
 ## [ Add new class here ]
 ################################################################################
 ## Alternatively, to fully automate this file:
@@ -43,13 +43,19 @@ from Samplers import AdaptiveDynamicEventTree
 # imports defined above.
 __base = 'Sampler'
 __interFaceDict = {}
-
-for classObj in eval(__base).__subclasses__():
-  __interFaceDict[classObj.__name__] = classObj
-for base in __interFaceDict.keys():
-  for classObj in eval(base).__subclasses__():
-    __interFaceDict[classObj.__name__] = classObj
-
+__interFaceDict['MonteCarlo'              ] = MonteCarlo
+__interFaceDict['Grid'                    ] = Grid
+__interFaceDict['Stratified'              ] = Stratified
+__interFaceDict['FactorialDesign'         ] = FactorialDesign
+__interFaceDict['ResponseSurfaceDesign'   ] = ResponseSurfaceDesign
+__interFaceDict['Sobol'                   ] = Sobol
+__interFaceDict['SparseGridCollocation'   ] = SparseGridCollocation
+__interFaceDict['EnsembleForward'         ] = EnsembleForwardSampler
+__interFaceDict['LimitSurfaceSearch'      ] = LimitSurfaceSearch
+__interFaceDict['AdaptiveSobol'           ] = AdaptiveSobol
+__interFaceDict['AdaptiveSparseGrid'      ] = AdaptiveSparseGrid
+__interFaceDict['DynamicEventTree'        ] = DynamicEventTree
+__interFaceDict['AdaptiveDynamicEventTree'] = AdaptiveDET
 print(__interFaceDict.keys())
 
 def knownTypes():

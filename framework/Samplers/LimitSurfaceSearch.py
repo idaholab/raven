@@ -51,6 +51,7 @@ import Models
 import PostProcessors
 import MessageHandler
 import GridEntities
+from AMSC_Object import AMSC_Object
 #Internal Modules End--------------------------------------------------------------------------------
 
 class LimitSurfaceSearch(AdaptiveSampler):

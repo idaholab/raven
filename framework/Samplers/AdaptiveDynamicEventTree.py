@@ -40,6 +40,7 @@ else: import cPickle as pickle
 #Internal Modules------------------------------------------------------------------------------------
 from .DynamicEventTree import DynamicEventTree
 from .LimitSurfaceSearch import LimitSurfaceSearch
+import utils
 import Distributions
 import DataObjects
 import TreeStructure as ETS
