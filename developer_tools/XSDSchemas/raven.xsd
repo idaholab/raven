@@ -377,6 +377,33 @@
       </xsd:complexContent>
     </xsd:complexType>
 
+    <xsd:complexType name="fileOutputType">
+      <xsd:simpleContent>
+        <xsd:extension base="xsd:string">
+          <xsd:attribute name="name" type="xsd:string" />
+        </xsd:extension>
+      </xsd:simpleContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="fileObjectType">
+      <xsd:all minOccurs="0">
+        <xsd:element name="output" type="fileOutputType" minOccurs="1" />
+      </xsd:all>
+      <xsd:attribute name="name" type="xsd:string" default="all"/>
+      <!-- The ids are typically floats, but to generalize all floats are technically strings, plus XSD didn't like a float here. -->
+      <xsd:attribute name="id" type="xsd:string" default="all"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="RavenOutput">
+      <xsd:complexContent>
+        <xsd:extension base="PostProcessor">
+          <xsd:all minOccurs="0">
+            <xsd:element name="File" type="fileObjectType" minOccurs="1" />
+          </xsd:all>
+        </xsd:extension>
+      </xsd:complexContent>
+    </xsd:complexType>
+
     <xsd:simpleType  name="TopoGraph">
       <xsd:restriction   base="xsd:string">
         <xsd:enumeration value="beta skeleton"/>

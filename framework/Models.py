@@ -1277,6 +1277,12 @@ class PostProcessor(Model, Assembler):
     cls.validateDict['Input'  ][2]['type'        ] = ['Point','PointSet','History','HistorySet']
     cls.validateDict['Input'  ][2]['required'    ] = False
     cls.validateDict['Input'  ][2]['multiplicity'] = 'n'
+    cls.validateDict['Input'].append(cls.testDict.copy())
+    cls.validateDict['Input'  ][3]['class'       ] = 'Files'
+    # FIXME there's lots of types that Files can be, so until XSD replaces this, commenting this out
+    #cls.validateDict['Input'  ][3]['type'        ] = ['']
+    cls.validateDict['Input'  ][3]['required'    ] = False
+    cls.validateDict['Input'  ][3]['multiplicity'] = 'n'
     cls.validateDict['Output'].append(cls.testDict.copy())
     cls.validateDict['Output' ][0]['class'       ] = 'Files'
     cls.validateDict['Output' ][0]['type'        ] = ['']
