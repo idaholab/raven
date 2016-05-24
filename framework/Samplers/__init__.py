@@ -21,6 +21,8 @@ from .ResponseSurfaceDesign import ResponseSurfaceDesign
 from .Sobol                 import Sobol
 from .SparseGridCollocation import SparseGridCollocation
 from .EnsembleForward       import EnsembleForwardSampler
+from .CustomSampler         import CustomSampler
+
 # Adaptive Samplers
 from .AdaptiveSampler      import AdaptiveSampler
 from .LimitSurfaceSearch   import LimitSurfaceSearch
@@ -35,7 +37,6 @@ from .Factory import returnInstance
 from .Factory import returnClass
 
 # We should not really need this as we do not use wildcard imports
-__all__ = ['Sampler','AdaptiveSampler','ForwardSampler','MonteCarlo','Grid','Stratified','FactorialDesign',
-           'ResponseSurfaceDesign','Sobol','EnsembleForward','SparseGridCollocation',
-           'DynamicEventTree','LimitSurfaceSearch','AdaptiveDynamicEventTree',
-           'AdaptiveSparseGrid','AdaptiveSobol']
+__all__ = ['Sampler','AdaptiveSampler','ForwardSampler','MonteCarlo','Grid','CustomSampler','Stratified',
+           'FactorialDesign','ResponseSurfaceDesign','Sobol','EnsembleForward','SparseGridCollocation',
+           'DynamicEventTree','LimitSurfaceSearch','AdaptiveDynamicEventTree','AdaptiveSparseGrid','AdaptiveSobol']

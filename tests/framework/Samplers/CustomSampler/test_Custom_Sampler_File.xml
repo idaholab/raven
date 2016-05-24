@@ -1,0 +1,69 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
+    <WorkingDir>CustomSampler</WorkingDir>
+    <Sequence>CustomSampler</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Models>
+    <Dummy name="MyDummy" subType=""/>
+  </Models>
+  
+  <Files>
+    <Input name="samples.csv" type="">samples.csv</Input>
+  </Files>
+
+  <Samplers>
+    <CustomSampler name="customSamplerFile">
+      <samplerInit>
+        <source type="Files">samples.csv</source>
+      </samplerInit>
+      <variable name="VarGauss1"/>
+      <variable name="VarGauss2"/>
+      <variable name="VarTri1"/>
+    </CustomSampler>
+    <CustomSampler name="customSamplerDataObject">
+      <samplerInit>
+        <source type="DataObjects">outCustomSampler</source>
+      </samplerInit>
+      <variable name="VarGauss1"/>
+      <variable name="VarGauss2"/>
+      <variable name="VarTri1"/>
+    </CustomSampler>
+  </Samplers>
+
+  <DataObjects>
+    <PointSet name="outCustomSampler">
+      <Input>VarGauss1,VarGauss2,VarTri1</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="dummyIN">
+      <Input>VarGauss1,VarGauss2,VarTri1</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="outCustomSampler_dump">
+      <type>csv</type>
+      <source>outCustomSampler</source>
+    </Print>
+  </OutStreams>
+
+  <Steps>
+    <MultiRun name="CustomSampler">
+      <Input class="DataObjects"  type="PointSet">dummyIN</Input>
+      <Model class="Models"       type="Dummy">MyDummy</Model>
+      <Sampler class="Samplers"   type="CustomSampler">customSamplerFile</Sampler>
+      <Output class="DataObjects" type="PointSet">outCustomSampler</Output>
+      <Output class="Databases"   type="HDF5">test_DummyModel_db</Output>
+      <Output class="OutStreams"  type="Print">outCustomSampler_dump</Output>
+    </MultiRun>
+  </Steps>
+
+  <Databases>
+    <HDF5 name="test_DummyModel_db" readMode="overwrite"/>
+  </Databases>
+
+</Simulation>

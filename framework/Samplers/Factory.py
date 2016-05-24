@@ -22,6 +22,8 @@ from Samplers.ResponseSurfaceDesign import ResponseSurfaceDesign
 from Samplers.Sobol import Sobol
 from Samplers.SparseGridCollocation import SparseGridCollocation
 from Samplers.EnsembleForward import EnsembleForwardSampler
+from Samplers.CustomSampler import CustomSampler
+
 # Adaptive samplers
 from Samplers.AdaptiveSampler import AdaptiveSampler
 from Samplers.LimitSurfaceSearch import LimitSurfaceSearch
@@ -50,13 +52,13 @@ __interFaceDict['FactorialDesign'         ] = FactorialDesign
 __interFaceDict['ResponseSurfaceDesign'   ] = ResponseSurfaceDesign
 __interFaceDict['Sobol'                   ] = Sobol
 __interFaceDict['SparseGridCollocation'   ] = SparseGridCollocation
+__interFaceDict['CustomSampler'           ] = CustomSampler
 __interFaceDict['EnsembleForward'         ] = EnsembleForwardSampler
 __interFaceDict['LimitSurfaceSearch'      ] = LimitSurfaceSearch
 __interFaceDict['AdaptiveSobol'           ] = AdaptiveSobol
 __interFaceDict['AdaptiveSparseGrid'      ] = AdaptiveSparseGrid
 __interFaceDict['DynamicEventTree'        ] = DynamicEventTree
 __interFaceDict['AdaptiveDynamicEventTree'] = AdaptiveDET
-print(__interFaceDict.keys())
 
 def knownTypes():
   """
