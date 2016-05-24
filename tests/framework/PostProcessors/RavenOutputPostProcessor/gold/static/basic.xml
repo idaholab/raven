@@ -1,0 +1,21 @@
+<?xml version="1.0" ?>
+<BasicStatisticsPP>
+  <x2>
+    <variance>0.0858930631925</variance>
+    <kurtosis>1.52175627046</kurtosis>
+    <expectedValue>0.52372430645</expectedValue>
+  </x2>
+
+  <x1>
+    <variance>0.019336079951</variance>
+    <kurtosis>-2.20860116838</kurtosis>
+    <expectedValue>0.6838788463</expectedValue>
+  </x1>
+
+  <ans>
+    <variance>0.0128217548886</variance>
+    <kurtosis>1.04912155031</kurtosis>
+    <expectedValue>0.55485571918</expectedValue>
+  </ans>
+
+</BasicStatisticsPP>
