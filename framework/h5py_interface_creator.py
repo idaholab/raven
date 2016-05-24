@@ -419,40 +419,6 @@ class hdf5Database(MessageHandler.MessageUser):
           else:
             self.allGroupPaths.append("/" + groupName + '|' +str(run))
             self.allGroupEnds["/" + groupName + '|' +str(run)] = True
-      elif source['name'].type in ['Point','History']:
-        if upGroup:
-          groups = parentGroupObj.require_group(groupName)
-          del groups[groupName+"_data"]
-        else: groups = parentGroupObj.create_group(groupName)
-        groups.attrs[b'mainClass'          ] = b'DataObjects'
-        groups.attrs[b'sourceType'         ] = utils.toBytes(source['name'].type)
-        groups.attrs[b'nParams'            ] = len(headersOut)
-        groups.attrs[b'inputSpaceHeaders' ] = [utils.toBytes(headersIn[i])  for i in range(len(headersIn))]
-        groups.attrs[b'outputSpaceHeaders'] = [utils.toBytes(headersOut[i])  for i in range(len(headersOut))]
-        groups.attrs[b'inputSpaceValues'  ] = [np.array(dataIn[i])  for i in range(len(dataIn))]
-        groups.attrs[b'sourceType'         ] = utils.toBytes(source['name'].type)
-        groups.attrs[b'EndGroup'            ] = True
-        groups.attrs[b'parentID'           ] = parentName
-        dataout = np.zeros((dataOut[0].size,len(dataOut)))
-        groups.attrs[b'nTimeSteps'  ] = dataOut[0].size
-        for run in range(len(dataOut)): dataout[:,int(run)] = dataOut[run][:]
-        groups.create_dataset(groupName + "_data", dtype="float", data=dataout)
-        # add metadata if present
-        for attr in attributes.keys():
-          objectToConvert = mathUtils.convertNumpyToLists(attributes[attr])
-          converted = json.dumps(objectToConvert)
-          if converted and attr != 'name': groups.attrs[utils.toBytes(attr)]=converted
-        for attr in metadata.keys():
-          objectToConvert = mathUtils.convertNumpyToLists(metadata[attr])
-          converted = json.dumps(objectToConvert)
-          if converted and attr != 'name': groups.attrs[utils.toBytes(attr)]=converted
-
-        if parentGroupName != "/":
-          self.allGroupPaths.append(parentGroupName + "/" + groupName)
-          self.allGroupEnds[parentGroupName + "/" + groupName] = True
-        else:
-          self.allGroupPaths.append("/" + groupName)
-          self.allGroupEnds["/" + groupName] = True
       else: self.raiseAnError(IOError,'The function addGroupDataObjects accepts Data(s) or dictionaries as inputs only!!!!!')
 
   def __addSubGroup(self,groupName,attributes,source):
