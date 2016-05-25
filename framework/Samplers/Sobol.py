@@ -11,7 +11,7 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 #if not 'xrange' in dir(__builtins__): xrange = range
 #End compatibility block for Python 3----------------------------------------------------------------
- 
+
 #External Modules------------------------------------------------------------------------------------
 import sys
 import os

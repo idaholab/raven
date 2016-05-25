@@ -12,6 +12,7 @@ warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
+import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -30,21 +31,48 @@ class CustomSampler(ForwardSampler):
       @ Out, None
     """
     ForwardSampler.__init__(self)
+    self.pointsToSample = {}
+    self.infoFromCustom = {}
+    self.addAssemblerObject('Source','1',True)
     self.printTag = 'SAMPLER CUSTOM'
 
-  def localInputAndChecks(self,xmlNode):
+  def _readMoreXMLbase(self,xmlNode):
     """
       Class specific xml inputs will be read here and checked for validity.
       @ In, xmlNode, xml.etree.ElementTree.Element, The xml element node that will be checked against the available options specific to this Sampler.
       @ Out, None
     """
-    ForwardSampler.readSamplerInit(self,xmlNode)
-    if xmlNode.find('samplerInit')!= None:
-      if xmlNode.find('samplerInit').find('limit')!= None:
-        try              : self.limit = int(xmlNode.find('samplerInit').find('limit').text)
-        except ValueError: self.raiseAnError(IOError,'reading the attribute for the sampler '+self.name+' it was not possible to perform the conversion to integer for the attribute limit with value '+xmlNode.attrib['limit'])
-      else: self.raiseAnError(IOError,self,'Monte Carlo sampler '+self.name+' needs the limit block (number of samples) in the samplerInit block')
-    else: self.raiseAnError(IOError,self,'Monte Carlo sampler '+self.name+' needs the samplerInit block')
+    self.readSamplerInit(xmlNode)
+    for child in xmlNode:
+      if child.tag == 'variable':
+        self.toBeSampled[child.attrib['name']] = 'custom'
+      if child.tag == 'Source'  :
+        if child.attrib['class'] not in ['Files','DataObjects']: self.raiseAnError(IOError, "Source class attribute must be either 'Files' or 'DataObjects'!!!")
+        if child.attrib['class'] == 'DataObjects' and child.attrib['type'] != 'PointSet': self.raiseAnError(IOError, "Source type attribute must be 'PointSet' if class attribute is 'DataObjects'!!!")
+    if len(self.toBeSampled.keys()) == 0: self.raiseAnError(IOError,"no variables got inputted!!!!!!")
+
+  def _localWhatDoINeed(self):
+    """
+      This method is a local mirror of the general whatDoINeed method.
+      It is implemented by the samplers that need to request special objects
+      @ In, None
+      @ Out, needDict, dict, list of objects needed (in this case it is empty, since no distrubtions are needed and the Source is loaded automatically)
+    """
+    return {}
+
+  def _localGenerateAssembler(self,initDict):
+    """
+      It is used for sending to the instanciated class, which is implementing the method, the objects that have been requested through "whatDoINeed" method
+      It is an abstract method -> It must be implemented in the derived class!
+      @ In, initDict, dict, dictionary ({'mainClassName(e.g., Databases):{specializedObjectName(e.g.,DatabaseForSystemCodeNamedWolf):ObjectInstance}'})
+      @ Out, None
+    """
+    #it is called for the ensemble sampler
+    for key, value in self.assemblerObjects.items():
+      if key == 'Source':
+        self.assemblerDict[key] =  []
+        for interface in value: self.assemblerDict[key].append([interface[0],interface[1],interface[2],initDict[interface[0]][interface[2]]])
+    if len(self.assemblerDict.keys()) == 0: self.raiseAnError(IOError,"No Source object has been found!")
 
   def localInitialize(self):
     """
@@ -55,10 +83,30 @@ class CustomSampler(ForwardSampler):
       @ In, None
       @ Out, None
     """
-    if self.restartData:
-      self.counter+=len(self.restartData)
-      self.raiseAMessage('Number of points from restart: %i' %self.counter)
-      self.raiseAMessage('Number of points needed:       %i' %(self.limit-self.counter))
+    # check the source
+    if self.assemblerDict['Source'][0][0] == 'Files':
+      csvFile = self.assemblerDict['Source'][0][3]
+      csvFile.open(mode='r')
+      headers = [x.replace("\n","") for x in csvFile.readline().split(",")]
+      data = np.loadtxt(self.assemblerDict['Source'][0][3], dtype=np.float, delimiter=',', skiprows=1, ndmin=2)
+      for var in self.toBeSampled.keys():
+        if var not in headers: self.raiseAnError(IOError, "variable "+ var+ " not found in the file "+csvFile.getFilename())
+        self.pointsToSample[var] = data[:,headers.index(var)]
+      if 'PointProbability' in headers: self.infoFromCustom['PointProbability'] = data[:,headers.index('PointProbability')]
+      if 'ProbabilityWeight' in headers: self.infoFromCustom['ProbabilityWeight'] = data[:,headers.index('ProbabilityWeight')]
+    else:
+      dataObj = self.assemblerDict['Source'][0][3]
+      for var in self.toBeSampled.keys():
+        if var not in dataObj.getParaKeys('input') + dataObj.getParaKeys('output'): self.raiseAnError(IOError,"the variable "+ var+ " not found in "+dataObj.type +" "+dataObj.name)
+        self.pointsToSample[var] = dataObj.getParam('input', var, nodeId = 'ending') if var in dataObj.getParaKeys('input') else dataObj.getParam('output', var, nodeId = 'ending')
+      if 'PointProbability'  in dataObj.getParaKeys('metadata'): self.infoFromCustom['PointProbability'] = dataObj.getMetadata('PointProbability',nodeId='ending')
+      if 'ProbabilityWeight' in dataObj.getParaKeys('metadata'): self.infoFromCustom['ProbabilityWeight'] = dataObj.getMetadata('ProbabilityWeight',nodeId='ending')
+    self.limit = len(self.pointsToSample.values()[0])
+    #TODO: add restart capability here!
+    if self.restartData: self.raiseAnError(IOError,"restart capability not implemented for CustomSampler yet!")
+#       self.counter+=len(self.restartData)
+#       self.raiseAMessage('Number of points from restart: %i' %self.counter)
+#       self.raiseAMessage('Number of points needed:       %i' %(self.limit-self.counter))
 
   def localGenerateInput(self,model,myInput):
     """
@@ -71,46 +119,8 @@ class CustomSampler(ForwardSampler):
       @ Out, None
     """
     # create values dictionary
-    for key in self.distDict:
-      # check if the key is a comma separated list of strings
-      # in this case, the user wants to sample the comma separated variables with the same sampled value => link the value to all comma separated variables
+    for var in self.toBeSampled.keys():                   self.values[var] = self.pointsToSample[var][self.counter-1]
+    if 'PointProbability' in self.infoFromCustom.keys():  self.inputInfo['PointProbability'] = self.infoFromCustom['PointProbability'][self.counter-1]
+    if 'ProbabilityWeight' in self.infoFromCustom.keys(): self.inputInfo['ProbabilityWeight'] = self.infoFromCustom['ProbabilityWeight'][self.counter-1]
+    self.inputInfo['SamplerType'] = 'Custom'
 
-      dim    = self.variables2distributionsMapping[key]['dim']
-      totDim = self.variables2distributionsMapping[key]['totDim']
-      dist   = self.variables2distributionsMapping[key]['name']
-      reducedDim = self.variables2distributionsMapping[key]['reducedDim']
-
-      if totDim == 1:
-        for var in self.distributions2variablesMapping[dist]:
-          varID  = utils.first(var.keys())
-          rvsnum = self.distDict[key].rvs()
-          self.inputInfo['SampledVarsPb'][key] = self.distDict[key].pdf(rvsnum)
-          for kkey in varID.strip().split(','):
-            self.values[kkey] = np.atleast_1d(rvsnum)[0]
-      elif totDim > 1:
-        if reducedDim == 1:
-          rvsnum = self.distDict[key].rvs()
-          coordinate = np.atleast_1d(rvsnum).tolist()
-          if reducedDim > len(coordinate): self.raiseAnError(IOError,"The dimension defined for variables drew from the multivariate normal distribution is exceeded by the dimension used in Distribution (MultivariateNormal) ")
-          probabilityValue = self.distDict[key].pdf(coordinate)
-          self.inputInfo['SampledVarsPb'][key] = probabilityValue
-          for var in self.distributions2variablesMapping[dist]:
-            varID  = utils.first(var.keys())
-            varDim = var[varID]
-            for kkey in varID.strip().split(','):
-              self.values[kkey] = np.atleast_1d(rvsnum)[varDim-1]
-      else:
-        self.raiseAnError(IOError,"Total dimension for given distribution should be >= 1")
-
-    if len(self.inputInfo['SampledVarsPb'].keys()) > 0:
-      self.inputInfo['PointProbability'  ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
-      #self.inputInfo['ProbabilityWeight' ] = 1.0 #MC weight is 1/N => weight is one
-    self.inputInfo['SamplerType'] = 'MC'
-
-  def _localHandleFailedRuns(self,failedRuns):
-    """
-      Specialized method for samplers to handle failed runs.  Defaults to failing runs.
-      @ In, failedRuns, list, list of JobHandler.ExternalRunner objects
-      @ Out, None
-    """
-    if len(failedRuns)>0: self.raiseADebug('  Continuing with reduced-size Monte Carlo sampling.')

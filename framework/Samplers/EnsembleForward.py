@@ -69,7 +69,7 @@ class EnsembleForwardSampler(ForwardSampler):
       @ Out, None
     """
     ForwardSampler.__init__(self)
-    self.acceptableSamplers   = ['MonteCarlo','Stratified','Grid','FactorialDesign','ResponseSurfaceDesign']
+    self.acceptableSamplers   = ['MonteCarlo','Stratified','Grid','FactorialDesign','ResponseSurfaceDesign','CustomSampler']
     self.printTag             = 'SAMPLER EnsembleForward'
     self.instanciatedSamplers = {}
     self.samplersCombinations = {}
@@ -118,7 +118,8 @@ class EnsembleForwardSampler(ForwardSampler):
     availableDist = initDict['Distributions']
     availableFunc = initDict['Functions']
     for combSampler in self.instanciatedSamplers.values():
-      combSampler._generateDistributions(availableDist,availableFunc)
+      if combSampler.type != 'CustomSampler': combSampler._generateDistributions(availableDist,availableFunc)
+      combSampler._localGenerateAssembler(initDict)
     self.raiseADebug("Distributions initialized!")
 
   def localInitialize(self):

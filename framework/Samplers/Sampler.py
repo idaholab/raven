@@ -240,9 +240,6 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       elif child.tag == "restartTolerance":
         self.restartTolerance = float(child.text)
 
-    if self.initSeed == None:
-      self.initSeed = Distributions.randomIntegers(0,2**31,self)
-
     # Creation of the self.distributions2variablesMapping dictionary: {'distName': ({'variable_name1': dim1}, {'variable_name2': dim2})}
     for variable in self.variables2distributionsMapping.keys():
       distName = self.variables2distributionsMapping[variable]['name']
@@ -432,6 +429,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ In, solutionExport, DataObject, optional, in goal oriented sampling (a.k.a. adaptive sampling this is where the space/point satisfying the constrains)
       @ Out, None
     """
+    if self.initSeed == None: self.initSeed = Distributions.randomIntegers(0,2**31,self)
     self.counter = 0
     if   not externalSeeding          :
       Distributions.randomSeed(self.initSeed)       #use the sampler initialization seed

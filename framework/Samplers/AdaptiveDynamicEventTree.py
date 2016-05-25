@@ -1,5 +1,5 @@
 """
-  This module contains the Adaptive Dynamic Event Tree and 
+  This module contains the Adaptive Dynamic Event Tree and
   the Adaptive Hybrid Dynamic Event Tree sampling strategies
 
   Created on May 21, 2016
