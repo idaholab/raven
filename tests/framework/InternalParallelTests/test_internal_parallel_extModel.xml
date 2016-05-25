@@ -11,7 +11,7 @@
   <!-- STEPS -->
   <Steps>
     <MultiRun name="ParalleMonteCarlo" re-seeding="25061978">
-      <Input class="DataObjects" type="Point">inputPlaceHolder</Input>
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
       <Model class="Models" type="ExternalModel">PythonModule</Model>
       <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
       <Output class="DataObjects" type="HistorySet">testPrintHistorySet</Output>
@@ -76,10 +76,10 @@
 
   <!-- DATA OBJECTS -->
   <DataObjects>
-    <Point name="inputPlaceHolder">
+    <PointSet name="inputPlaceHolder">
       <Input>x0,y0,z0</Input>
       <Output>OutputPlaceHolder</Output>
-    </Point>
+    </PointSet>
     <PointSet name="testPointSet">
       <Input>x0,y0,z0</Input>
       <Output>time,x,y,z</Output>

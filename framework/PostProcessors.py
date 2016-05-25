@@ -22,6 +22,7 @@ import importlib
 #Internal Modules------------------------------------------------------------------------------------
 import utils
 import mathUtils
+import xmlUtils
 import DataObjects
 from Assembler import Assembler
 import SupervisedLearning
@@ -938,12 +939,12 @@ class InterfacedPostProcessor(BasePostProcessor):
       @ Out, None
     """
     BasePostProcessor.initialize(self, runInfo, inputs, initDict)
-#     self.postProcessor.initialize()
-#
-#     if self.postProcessor.inputFormat not in set(['HistorySet','History','PointSet','Point']):
-#       self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.inputFormat not correctly initialized')
-#     if self.postProcessor.outputFormat not in set(['HistorySet','History','PointSet','Point']):
-#       self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.outputFormat not correctly initialized')
+     #self.postProcessor.initialize()
+
+     #if self.postProcessor.inputFormat not in set(['HistorySet','PointSet']):
+     #  self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.inputFormat not correctly initialized')
+     #if self.postProcessor.outputFormat not in set(['HistorySet','PointSet']):
+     #  self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.outputFormat not correctly initialized')
 
   def _localReadMoreXML(self, xmlNode):
     """
@@ -959,9 +960,9 @@ class InterfacedPostProcessor(BasePostProcessor):
       self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : not correctly coded; it must inherit the PostProcessorInterfaceBase class')
 
     self.postProcessor.initialize()
-    if self.postProcessor.inputFormat not in set(['HistorySet','History','PointSet','Point']):
+    if self.postProcessor.inputFormat not in set(['HistorySet','PointSet']):
       self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.inputFormat not correctly initialized')
-    if self.postProcessor.outputFormat not in set(['HistorySet','History','PointSet','Point']):
+    if self.postProcessor.outputFormat not in set(['HistorySet','PointSet']):
       self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.outputFormat not correctly initialized')
     self.postProcessor.readMoreXML(xmlNode)
 
@@ -1347,7 +1348,7 @@ class ImportanceRank(BasePostProcessor):
         output.close()
         self.raiseAMessage('ImportanceRank XML printed to "'+output.getFilename()+'"!')
     # Output to DataObjects
-    elif output.type in ['PointSet','Point','History','HistorySet']:
+    elif output.type in ['PointSet','HistorySet']:
       self.raiseADebug('Dumping output in data object named ' + output.name)
       for what in outputDict.keys():
         if what.lower() in self.acceptedMetric:
@@ -1489,7 +1490,20 @@ class BasicStatistics(BasePostProcessor):
     """
     BasePostProcessor.__init__(self, messageHandler)
     self.parameters = {}  # parameters dictionary (they are basically stored into a dictionary identified by tag "targets"
-    self.acceptedCalcParam = ['covariance', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity', 'pearson', 'expectedValue', 'sigma', 'variationCoefficient', 'variance', 'skewness', 'kurtosis', 'median', 'percentile']  # accepted calculation parameters
+    self.acceptedCalcParam = ['covariance',
+                              'NormalizedSensitivity',
+                              'VarianceDependentSensitivity',
+                              'sensitivity',
+                              'pearson',
+                              'expectedValue',
+                              'sigma',
+                              'variationCoefficient',
+                              'variance',
+                              'skewness',
+                              'kurtosis',
+                              'median',
+                              'percentile',
+                              'samples']  # accepted calculation parameters
     self.what = self.acceptedCalcParam  # what needs to be computed... default...all
     self.methodsToRun = []  # if a function is present, its outcome name is here stored... if it matches one of the known outcomes, the pp is going to use the function to compute it
     self.externalFunction = []
@@ -1565,9 +1579,9 @@ class BasicStatistics(BasePostProcessor):
                 if floatPercentile < 1.0 or floatPercentile > 100.0: self.raiseAnError(IOError,"the percentile needs to an integer between 1 and 100. Got "+str(floatPercentile))
                 if -float(integerPercentile)/floatPercentile + 1.0 > 0.0001: self.raiseAnError(IOError,"the percentile needs to an integer between 1 and 100. Got "+str(floatPercentile))
           self.what = toCompute
-      if child.tag == "parameters"   : self.parameters['targets'] = child.text.split(',')
-      if child.tag == "methodsToRun" : self.methodsToRun = child.text.split(',')
-      if child.tag == "biased"       :
+      elif child.tag == "parameters"   : self.parameters['targets'] = child.text.split(',')
+      elif child.tag == "methodsToRun" : self.methodsToRun = child.text.split(',')
+      elif child.tag == "biased"       :
           if child.text.lower() in utils.stringsThatMeanTrue(): self.biased = True
       assert (self.parameters is not []), self.raiseAnError(IOError, 'I need parameters to work on! Please check your input for PP: ' + self.name)
 
@@ -1586,46 +1600,21 @@ class BasicStatistics(BasePostProcessor):
     for key in self.methodsToRun:
       if key not in self.acceptedCalcParam: methodToTest.append(key)
     if isinstance(output,Files.File):
-      availextens = ['csv', 'txt']
-      outputextension = output.getExt().lower() #split('.')[-1].lower()
-      if outputextension not in availextens:
-        self.raiseAWarning('BasicStatistics postprocessor output extension you input is ' + outputextension)
-        self.raiseAWarning('Available are ' + str(availextens) + '. Convertint extension to ' + str(availextens[0]) + '!')
-        outputextension = availextens[0]
-        output.setExtension(outputextension)
-      if outputextension != 'csv': separator = ' '
-      else                       : separator = ','
-      output.setPath(self.__workingDir)#, output.base)#output[:output.rfind('.')] + '.' + outputextension)
+      availExtens = ['xml','csv']
+      outputExtension = output.getExt().lower()
+      if outputExtension not in availExtens:
+        self.raiseAWarning('BasicStatistics postprocessor output extension you input is ' + outputExtension)
+        self.raiseAWarning('Available are ' + str(availExtens) + '. Converting extension to ' + str(availExtens[0]) + '!')
+        outputExtension = availExtens[0]
+        output.setExtension(outputExtension)
+      output.setPath(self.__workingDir)
       self.raiseADebug('Dumping output in file named ' + output.getAbsFile())
       output.open('w')
-      output.write('ComputedQuantities'+separator+separator.join(parameterSet) + os.linesep)
-      quantitiesToWrite = {}
-      for what in outputDict.keys():
-        if what not in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity'] + methodToTest:
-          if what not in quantitiesToWrite.keys():quantitiesToWrite[what] = []
-          for targetP in parameterSet:
-            quantitiesToWrite[what].append('%.8E' % copy.deepcopy(outputDict[what][targetP]))
-          output.write(what + separator +  separator.join(quantitiesToWrite[what])+os.linesep)
-      maxLength = max(len(max(parameterSet, key = len)) + 5, 16)
-      for what in outputDict.keys():
-        if what in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity','sensitivity']:
-          self.raiseADebug('Writing parameter matrix ' + what)
-          output.write(os.linesep)
-          output.write(what + os.linesep)
-          if outputextension != 'csv': output.write(' ' * maxLength + ''.join([str(item) + ' ' * (maxLength - len(item)) for item in parameterSet]) + os.linesep)
-          else                       : output.write('matrix' + separator + ''.join([str(item) + separator for item in parameterSet]) + os.linesep)
-          for index in range(len(parameterSet)):
-            if outputextension != 'csv': output.write(parameterSet[index] + ' ' * (maxLength - len(parameterSet[index])) + ''.join(['%.8E' % item + ' ' * (maxLength - 14) for item in outputDict[what][index]]) + os.linesep)
-            else                       : output.write(parameterSet[index] + ''.join([separator + '%.8E' % item for item in outputDict[what][index]]) + os.linesep)
-      if self.externalFunction:
-        self.raiseADebug('Writing External Function results')
-        output.write(os.linesep + 'EXT FUNCTION ' + os.linesep)
-        output.write(os.linesep)
-        for what in self.methodsToRun:
-          if what not in self.acceptedCalcParam:
-            self.raiseADebug('Writing External Function parameter ' + what)
-            output.write(what + separator + '%.8E' % outputDict[what] + os.linesep)
-    elif output.type in ['PointSet','Point','History','HistorySet']:
+      if outputExtension == 'csv':
+        self._writeCSV(output,outputDict,parameterSet,outputExtension,methodToTest)
+      else:
+        self._writeXML(output,outputDict,parameterSet,methodToTest)
+    elif output.type in ['PointSet','HistorySet']:
       self.raiseADebug('Dumping output in data object named ' + output.name)
       for what in outputDict.keys():
         if what not in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity'] + methodToTest:
@@ -1645,6 +1634,79 @@ class BasicStatistics(BasePostProcessor):
             self.raiseADebug('Dumping External Function parameter ' + what)
     elif output.type == 'HDF5' : self.raiseAWarning('Output type ' + str(output.type) + ' not yet implemented. Skip it !!!!!')
     else: self.raiseAnError(IOError, 'Output type ' + str(output.type) + ' unknown.')
+
+  def _writeCSV(self,output,outputDict,parameterSet,outputExtension,methodToTest):
+    """
+      Defines the method for writing the basic statistics to a .csv file.
+      @ In, output, File object, file to write to
+      @ In, outputDict, dict, dictionary of statistics values
+      @ In, parameterSet, list, list of parameters in use
+      @ In, outputExtension, string, extension of the file to write
+      @ In, methodToTest, list, strings of methods to test
+      @ Out, None
+    """
+    separator = ','
+    output.write('ComputedQuantities'+separator+separator.join(parameterSet) + os.linesep)
+    quantitiesToWrite = {}
+    for what in outputDict.keys():
+      if what not in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity'] + methodToTest:
+        if what not in quantitiesToWrite.keys():quantitiesToWrite[what] = []
+        for targetP in parameterSet:
+          quantitiesToWrite[what].append('%.8E' % copy.deepcopy(outputDict[what][targetP]))
+        output.write(what + separator +  separator.join(quantitiesToWrite[what])+os.linesep)
+    maxLength = max(len(max(parameterSet, key = len)) + 5, 16)
+    for what in outputDict.keys():
+      if what in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity','sensitivity']:
+        self.raiseADebug('Writing parameter matrix ' + what)
+        output.write(os.linesep)
+        output.write(what + os.linesep)
+        output.write('matrix' + separator + ''.join([str(item) + separator for item in parameterSet]) + os.linesep)
+        for index in range(len(parameterSet)):
+          output.write(parameterSet[index] + ''.join([separator + '%.8E' % item for item in outputDict[what][index]]) + os.linesep)
+    if self.externalFunction:
+      self.raiseADebug('Writing External Function results')
+      output.write(os.linesep + 'EXT FUNCTION ' + os.linesep)
+      output.write(os.linesep)
+      for what in self.methodsToRun:
+        if what not in self.acceptedCalcParam:
+          self.raiseADebug('Writing External Function parameter ' + what)
+          output.write(what + separator + '%.8E' % outputDict[what] + os.linesep)
+
+  def _writeXML(self,output,outputDict,parameterSet,methodToTest):
+    """
+      Defines the method for writing the basic statistics to a .xml file.
+      @ In, output, File object, file to write
+      @ In, outputDict, dict, dictionary of statistics values
+      @ In, parameterSet, list, list of parameters in use
+      @ In, methodToTest, list, strings of methods to test
+      @ Out, None
+    """
+    tree = xmlUtils.newTree('BasicStatisticsPP')
+    root = tree.getroot()
+    for t,target in enumerate(parameterSet):
+      tNode = xmlUtils.newNode(target) #tnode is for properties with respect to the target
+      root.append(tNode)
+      for stat,val in outputDict.items():
+        if stat not in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity'] + methodToTest:
+          val = val[target]
+          sNode = xmlUtils.newNode(stat,text=str(val)) #sNode is for each stat of the target
+          tNode.append(sNode)
+      for stat,val in outputDict.items():
+        if stat in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity']:
+          valRow = val[t]
+          sNode = xmlUtils.newNode(stat)
+          tNode.append(sNode)
+          for p,param in enumerate(parameterSet):
+            actVal = valRow[p]
+            vNode = xmlUtils.newNode(param,text=str(actVal)) #vNode is for each parameter's stat's value with respect to the target
+            sNode.append(vNode)
+      if self.externalFunction:
+        for stat in self.methodsToRun:
+          if stat not in self.acceptedCalcParam:
+            sNode = xmlUtils.newNode(stat,text=str(outputDict[stat]))
+    pretty = xmlUtils.prettify(tree)
+    output.writelines(pretty)
+    output.close()
 
   def __computeVp(self,p,weights):
     """
@@ -1794,7 +1856,7 @@ class BasicStatistics(BasePostProcessor):
         else: self.raiseAWarning('BasicStatistics can not compute expectedValue without ProbabilityWeights. Use unit weight')
       pbWeights['realization'] = np.asarray([1.0 / len(input['targets'][self.parameters['targets'][0]])]*len(input['targets'][self.parameters['targets'][0]]))
     else: pbWeights['realization'] = input['metadata']['ProbabilityWeight']/np.sum(input['metadata']['ProbabilityWeight'])
-#   This section should take the probability weight for each sampling variable
+    #This section should take the probability weight for each sampling variable
     pbWeights['SampledVarsPbWeight'] = {'SampledVarsPbWeight':{}}
     if 'metadata' in input.keys():
       for target in parameterSet:
@@ -1812,6 +1874,10 @@ class BasicStatistics(BasePostProcessor):
       expValues[myIndex] = outputDict['expectedValue'][targetP]
     for what in self.what:
       if what not in outputDict.keys(): outputDict[what] = {}
+      # samples
+      if what == 'samples':
+        for p in parameterSet:
+          outputDict[what][p] = len(input['targets'].values()[0])
       # sigma
       if what == 'sigma':
         for myIndex, targetP in enumerate(parameterSet):
@@ -2260,8 +2326,8 @@ class LimitSurface(BasePostProcessor):
     self.indexes = -1
     for index, inp in enumerate(self.inputs):
       if type(inp).__name__ in ['str', 'bytes', 'unicode']: self.raiseAnError(IOError, 'LimitSurface PostProcessor only accepts Data(s) as inputs!')
-      if inp.type in ['PointSet', 'Point']: self.indexes = index
-    if self.indexes == -1: self.raiseAnError(IOError, 'LimitSurface PostProcessor needs a Point or PointSet as INPUT!!!!!!')
+      if inp.type == 'PointSet': self.indexes = index
+    if self.indexes == -1: self.raiseAnError(IOError, 'LimitSurface PostProcessor needs a PointSet as INPUT!!!!!!')
     else:
       # check if parameters are contained in the data
       inpKeys = self.inputs[self.indexes].getParaKeys("inputs")
@@ -3275,6 +3341,144 @@ class DataMining(BasePostProcessor):
         for i in range(noComponents):
           outputDict['output'][self.name+'PCAComponent' + str(i + 1)] =  components[:, i]
     return outputDict
+#
+#
+#
+#
+class RavenOutput(BasePostProcessor):
+  """
+    This postprocessor collects the outputs of RAVEN runs (XML format) and turns entries into a PointSet
+    Someday maybe it should do history sets too.
+  """
+  def __init__(self, messageHandler):
+    """
+      Constructor
+      @ In, messageHandler, MessageHandler, message handler object
+      @ Out, None
+    """
+    BasePostProcessor.__init__(self, messageHandler)
+    self.printTag = 'POSTPROCESSOR RAVENOUTPUT'
+    self.IDType = 'int'
+    self.files = {}
+      # keyed by ID, which gets you to... (self.files[ID])
+      #   name: RAVEN name for file (from input)
+      #   fileObject: FileObject
+      #   paths: {varName:'path|through|xml|to|var'}
+
+  def initialize(self,runInfo,inputs,initDict):
+    """
+      Method to initialize pp
+      @ In, runInfo, dict, dictionary of run info (e.g. working dir, etc)
+      @ In, inputs, list, list of inputs
+      @ In, initDict, dict, dictionary with initialization options
+      @ Out, None
+    """
+    BasePostProcessor.initialize(self, runInfo, inputs, initDict)
+    #assign File objects to their proper place
+    for id,fileDict in self.files.items():
+      found = False
+      for i,input in enumerate(inputs):
+        #skip things that aren't files
+        if not isinstance(input,Files.File):
+          continue
+        #assign pointer to file object if match found
+        if input.name == fileDict['name']:
+          self.files[id]['fileObject'] = input
+          found = True
+          break
+      if not found:
+        self.raiseAnError(IOError,'Did not find file named "%s" among the Step inputs!')
+
+  def _localReadMoreXML(self,xmlNode):
+    """
+      Function to read the portion of the xml input that belongs to this specialized class
+      and initialize some stuff based on the inputs got
+      @ In, xmlNode, xml.etree.Element, Xml element node
+      @ Out, None
+    """
+    for child in xmlNode:
+      #accept a list of files as <File ID="1">ravenOutputFile.xml</File>
+      if child.tag == 'File':
+        #make sure you provide an ID and a file name
+        if 'ID' not in child.attrib.keys():
+          self.raiseAnError(IOError,'Each "File" entry must have an associated "ID"; missing for',child.tag,child.text)
+        if 'name' not in child.attrib.keys():
+          self.raiseAnError(IOError,'Each "file" must have an associated "name"; missing for',child.tag,child.text)
+        #assure ID is a number, since it's going into a data object
+        id = child.attrib['ID']
+        try:
+          id = float(id)
+        except ValueError:
+          self.raiseAnError(IOError,'ID for "'+child.text+'" is not a valid number:',id)
+        #if already used, raise an error
+        if id in self.files.keys():
+          self.raiseAnError(IOError,'Multiple File nodes have the same ID:',child.attrib('ID'))
+        #store id,filename pair
+        self.files[id] = {'name':child.attrib['name'].strip(), 'fileObject':None, 'paths':{}}
+        #user provides loading information as <output name="variablename">ans|pearson|x</output>
+        for cchild in child:
+          if cchild.tag == 'output':
+            #make sure you provide a label for this data array
+            if 'name' not in cchild.attrib.keys():
+              self.raiseAnError(IOError,'Must specify a "name" for each "output" block!  Missing for:',cchild.text)
+            varName = cchild.attrib['name'].strip()
+            if varName in self.files[id]['paths'].keys():
+              self.raiseAnError(IOError,'Multiple "output" blocks for "%s" have the same "name":' %self.files[id]['name'],label)
+            self.files[id]['paths'][varName] = cchild.text.strip()
+    # check there are entries for each
+    if len(self.files)<1:
+      self.raiseAWarning('No files were specified to read from!  Nothing will be done...')
+    # if no outputs listed, remove file from list and warn
+    toRemove=[]
+    for id,fileDict in self.files.items():
+      if len(fileDict['paths'])<1:
+        self.raiseAWarning('No outputs were specified for File with ID "%s"!  No extraction will be performed for this file...' %str(id))
+        toRemove.append(id)
+    for rem in toRemove:
+      del self.files[id]
+
+  def run(self, inputIn):
+    """
+      This method executes the postprocessor action.
+      @ In, inputIn, dict, dictionary of data to process
+      @ Out, outputDict, dict, dictionary containing the post-processed results
+    """
+    # outputs are realizations that will got into data object
+    outputDict={'realizations':[]}
+    # each ID results in a realization for the requested attributes
+    for id,fileDict in self.files.items():
+      realization = {'inputs':{'ID':id},'outputs':{},'metadata':{'loadedFromRavenFile':str(fileDict['fileObject'])}}
+      for varName,path in fileDict['paths'].items():
+        #read the value from the file's XML
+        root,_ = xmlUtils.loadToTree(fileDict['fileObject'].getAbsFile())
+        #improve path format
+        path = '|'.join(c.strip() for c in path.strip().split('|'))
+        desiredNode = xmlUtils.findPath(root,path)
+        if desiredNode is None:
+          self.raiseAnError(RuntimeError,'Did not find "<root>|%s" in file "%s"' %(path,fileDict['fileObject'].getAbsFile()))
+        else:
+          realization['outputs'][varName] = float(desiredNode.text)
+      outputDict['realizations'].append(realization)
+    return outputDict
+
+  def collectOutput(self, finishedJob, output):
+    """
+      Function to place all of the computed data into the output object
+      @ In, finishedJob, JobHandler External or Internal instance, A JobHandler object that is in charge of running this post-processor
+      @ In, output, dataObjects, The object where we want to place our computed results
+      @ Out, None
+    """
+    if finishedJob.returnEvaluation() == -1: self.raiseAnError(RuntimeError, 'No available Output to collect (Run probably is not finished yet)')
+    realizations = finishedJob.returnEvaluation()[1]['realizations']
+    for real in realizations:
+      for key in output.getParaKeys('inputs'):
+        output.updateInputValue(key,real['inputs'][key])
+      for key in output.getParaKeys('outputs'):
+        output.updateOutputValue(key,real['outputs'][key])
+      for key,val in real['metadata'].items():
+        output.updateMetadata(key,val)
+
+
 
 """
  Interface Dictionary (factory) (private)
@@ -3292,7 +3496,8 @@ __interFaceDict['ComparisonStatistics'     ] = ComparisonStatistics
 __interFaceDict['External'                 ] = ExternalPostProcessor
 __interFaceDict['TopologicalDecomposition' ] = TopologicalDecomposition
 __interFaceDict['DataMining'               ] = DataMining
-__interFaceDict['ImportanceRank'            ] = ImportanceRank
+__interFaceDict['ImportanceRank'           ] = ImportanceRank
+__interFaceDict['RavenOutput'              ] = RavenOutput
 __knownTypes = __interFaceDict.keys()
 
 def knownTypes():

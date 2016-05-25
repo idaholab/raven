@@ -4,7 +4,7 @@
     <a>
       <mean>-1.72701359386e-16</mean>
       <variance>6.74999999999</variance>
-      <numRuns>5</numRuns>
+      <samples>5</samples>
       <indices>
         <tot_variance>6.74999999999</tot_variance>
         <variables>x
@@ -20,7 +20,7 @@
     <b>
       <mean>4.5</mean>
       <variance>1.5</variance>
-      <numRuns>5</numRuns>
+      <samples>5</samples>
       <indices>
         <tot_variance>1.5</tot_variance>
         <variables>x
@@ -39,7 +39,7 @@
     <a>
       <mean>0.482</mean>
       <variance>7.44537120767</variance>
-      <numRuns>5</numRuns>
+      <samples>5</samples>
       <indices>
         <tot_variance>7.44537120767</tot_variance>
         <variables>x
@@ -55,7 +55,7 @@
     <b>
       <mean>5.132</mean>
       <variance>1.73451010379</variance>
-      <numRuns>5</numRuns>
+      <samples>5</samples>
       <indices>
         <tot_variance>1.73451010379</tot_variance>
         <variables>x
@@ -74,7 +74,7 @@
     <a>
       <mean>0.992711111111</mean>
       <variance>8.09130026941</variance>
-      <numRuns>5</numRuns>
+      <samples>5</samples>
       <indices>
         <tot_variance>8.09130026941</tot_variance>
         <variables>x
@@ -90,7 +90,7 @@
     <b>
       <mean>5.79271111111</mean>
       <variance>1.9562178396</variance>
-      <numRuns>5</numRuns>
+      <samples>5</samples>
       <indices>
         <tot_variance>1.9562178396</tot_variance>
         <variables>x
@@ -109,7 +109,7 @@
     <a>
       <mean>1.53213333333</mean>
       <variance>8.67750568888</variance>
-      <numRuns>5</numRuns>
+      <samples>5</samples>
       <indices>
         <tot_variance>8.67750568888</tot_variance>
         <variables>x
@@ -125,7 +125,7 @@
     <b>
       <mean>6.48213333333</mean>
       <variance>2.16000568888</variance>
-      <numRuns>5</numRuns>
+      <samples>5</samples>
       <indices>
         <tot_variance>2.16000568888</tot_variance>
         <variables>x
@@ -144,7 +144,7 @@
     <a>
       <mean>1.94568888889</mean>
       <variance>9.5110568398</variance>
-      <numRuns>5</numRuns>
+      <samples>5</samples>
       <indices>
         <tot_variance>9.5110568398</tot_variance>
         <variables>x
@@ -160,7 +160,7 @@
     <b>
       <mean>6.99902222222</mean>
       <variance>2.42514860998</variance>
-      <numRuns>5</numRuns>
+      <samples>5</samples>
       <indices>
         <tot_variance>2.42514860998</tot_variance>
         <variables>x
