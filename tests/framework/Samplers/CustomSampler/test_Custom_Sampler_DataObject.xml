@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <RunInfo>
-    <WorkingDir>/Users/alfoa/projects/raven/tests/framework/Samplers/CustomSampler/CustomSamplerFromDataObject</WorkingDir>
+    <WorkingDir>CustomSamplerFromDataObject</WorkingDir>
     <Sequence>loadDataSet,CustomSampler</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
