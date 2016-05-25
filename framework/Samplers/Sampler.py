@@ -240,6 +240,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       elif child.tag == "restartTolerance":
         self.restartTolerance = float(child.text)
 
+    if self.initSeed == None: self.initSeed = Distributions.randomIntegers(0,2**31,self)
     # Creation of the self.distributions2variablesMapping dictionary: {'distName': ({'variable_name1': dim1}, {'variable_name2': dim2})}
     for variable in self.variables2distributionsMapping.keys():
       distName = self.variables2distributionsMapping[variable]['name']
