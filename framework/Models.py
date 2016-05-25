@@ -48,7 +48,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
   #the possible inputs
   validateDict['Input'].append(testDict.copy())
   validateDict['Input'  ][0]['class'       ] = 'DataObjects'
-  validateDict['Input'  ][0]['type'        ] = ['Point','PointSet','History','HistorySet']
+  validateDict['Input'  ][0]['type'        ] = ['PointSet','HistorySet']
   validateDict['Input'  ][0]['required'    ] = False
   validateDict['Input'  ][0]['multiplicity'] = 'n'
   validateDict['Input'].append(testDict.copy())
@@ -60,7 +60,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
   #the possible outputs
   validateDict['Output'].append(testDict.copy())
   validateDict['Output' ][0]['class'       ] = 'DataObjects'
-  validateDict['Output' ][0]['type'        ] = ['Point','PointSet','History','HistorySet']
+  validateDict['Output' ][0]['type'        ] = ['PointSet','HistorySet']
   validateDict['Output' ][0]['required'    ] = False
   validateDict['Output' ][0]['multiplicity'] = 'n'
   validateDict['Output'].append(testDict.copy())
@@ -296,10 +296,10 @@ class Dummy(Model):
       @ Out, None
     """
     cls.validateDict['Input' ]                    = [cls.validateDict['Input' ][0]]
-    cls.validateDict['Input' ][0]['type'        ] = ['Point','PointSet']
+    cls.validateDict['Input' ][0]['type'        ] = ['PointSet']
     cls.validateDict['Input' ][0]['required'    ] = True
     cls.validateDict['Input' ][0]['multiplicity'] = 1
-    cls.validateDict['Output'][0]['type'        ] = ['Point','PointSet']
+    cls.validateDict['Output'][0]['type'        ] = ['PointSet']
 
   def _manipulateInput(self,dataIn):
     """
@@ -340,8 +340,8 @@ class Dummy(Model):
   def createNewInput(self,myInput,samplerType,**Kwargs):
     """
       this function have to return a new input that will be submitted to the model, it is called by the sampler
-      here only Point and PointSet are accepted a local copy of the values is performed.
-      For a Point all value are copied, for a PointSet only the last set of entry
+      here only a PointSet is accepted a local copy of the values is performed.
+      For a PointSet, only the last set of entries are copied
       The copied values are returned as a dictionary back
       @ In, myInput, list, the inputs (list) to start from to generate the new one
       @ In, samplerType, string, is the type of sampler that is calling to generate a new input
@@ -437,7 +437,7 @@ class ROM(Dummy):
     cls.validateDict['Input' ]                    = [cls.validateDict['Input' ][0]]
     cls.validateDict['Input' ][0]['required'    ] = True
     cls.validateDict['Input' ][0]['multiplicity'] = 1
-    cls.validateDict['Output'][0]['type'        ] = ['Point','PointSet','HistorySet']
+    cls.validateDict['Output'][0]['type'        ] = ['PointSet','HistorySet']
 
   def __init__(self,runInfoDict):
     """
@@ -1156,8 +1156,8 @@ class Code(Model):
   def createNewInput(self,currentInput,samplerType,**Kwargs):
     """
       this function have to return a new input that will be submitted to the model, it is called by the sampler
-      here only Point and PointSet are accepted a local copy of the values is performed.
-      For a Point all value are copied, for a PointSet only the last set of entry
+      here only a PointSet is accepted a local copy of the values is performed.
+      For a PointSet only the last set of entries are copied.
       The copied values are returned as a dictionary back
       @ In, currentInput, list, the inputs (list) to start from to generate the new one
       @ In, samplerType, string, is the type of sampler that is calling to generate a new input
@@ -1243,7 +1243,7 @@ class Code(Model):
     metadata = finishedjob.returnMetadata()
     if metadata: attributes['metadata'] = metadata
     if output.type == "HDF5"        : output.addGroup(attributes,attributes)
-    elif output.type in ['Point','PointSet','History','HistorySet']:
+    elif output.type in ['PointSet','HistorySet']:
       outfile = Files.returnInstance('CSV',self)
       outfile.initialize(finishedjob.output+'.csv',self.messageHandler,path=outputFilelocation)
       output.addOutput(outfile,attributes)
@@ -1275,16 +1275,22 @@ class PostProcessor(Model, Assembler):
     cls.validateDict['Input'  ][1]['multiplicity'] = 'n'
     cls.validateDict['Input'].append(cls.testDict.copy())
     cls.validateDict['Input'  ][2]['class'       ] = 'DataObjects'
-    cls.validateDict['Input'  ][2]['type'        ] = ['Point','PointSet','History','HistorySet']
+    cls.validateDict['Input'  ][2]['type'        ] = ['PointSet','HistorySet']
     cls.validateDict['Input'  ][2]['required'    ] = False
     cls.validateDict['Input'  ][2]['multiplicity'] = 'n'
+    cls.validateDict['Input'].append(cls.testDict.copy())
+    cls.validateDict['Input'  ][3]['class'       ] = 'Files'
+    # FIXME there's lots of types that Files can be, so until XSD replaces this, commenting this out
+    #cls.validateDict['Input'  ][3]['type'        ] = ['']
+    cls.validateDict['Input'  ][3]['required'    ] = False
+    cls.validateDict['Input'  ][3]['multiplicity'] = 'n'
     cls.validateDict['Output'].append(cls.testDict.copy())
     cls.validateDict['Output' ][0]['class'       ] = 'Files'
     cls.validateDict['Output' ][0]['type'        ] = ['']
     cls.validateDict['Output' ][0]['required'    ] = False
     cls.validateDict['Output' ][0]['multiplicity'] = 'n'
     cls.validateDict['Output' ][1]['class'       ] = 'DataObjects'
-    cls.validateDict['Output' ][1]['type'        ] = ['Point','PointSet','History','HistorySet']
+    cls.validateDict['Output' ][1]['type'        ] = ['PointSet','HistorySet']
     cls.validateDict['Output' ][1]['required'    ] = False
     cls.validateDict['Output' ][1]['multiplicity'] = 'n'
     cls.validateDict['Output'].append(cls.testDict.copy())
@@ -1404,8 +1410,8 @@ class PostProcessor(Model, Assembler):
   def createNewInput(self,myInput,samplerType,**Kwargs):
     """
       this function have to return a new input that will be submitted to the model, it is called by the sampler
-      here only Point and PointSet are accepted a local copy of the values is performed.
-      For a Point all value are copied, for a PointSet only the last set of entry
+      here only a PointSet is accepted a local copy of the values is performed.
+      For a PointSet, only the last set of entries is copied
       The copied values are returned as a dictionary back
       @ In, myInput, list, the inputs (list) to start from to generate the new one
       @ In, samplerType, string, is the type of sampler that is calling to generate a new input
@@ -1432,7 +1438,7 @@ class EnsembleModel(Dummy, Assembler):
     """
     cls.validateDict['Output'].append(cls.testDict.copy())
     cls.validateDict['Output' ][1]['class'       ] = 'DataObjects'
-    cls.validateDict['Output' ][1]['type'        ] = ['Point','PointSet']
+    cls.validateDict['Output' ][1]['type'        ] = ['PointSet']
     cls.validateDict['Output' ][1]['required'    ] = False
     cls.validateDict['Output' ][1]['multiplicity'] = 'n'
     cls.validateDict['Output'].append(cls.testDict.copy())

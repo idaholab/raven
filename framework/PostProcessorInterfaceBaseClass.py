@@ -87,7 +87,7 @@ class PostProcessorInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object),Mess
     """
     outcome = True
     if isinstance(outputDic,dict):
-      if self.outputFormat == 'HistorySet' or self.outputFormat == 'History':
+      if self.outputFormat == 'HistorySet':
         for key in outputDic:
           if isinstance(outputDic[key],dict):
             outcome = outcome and True

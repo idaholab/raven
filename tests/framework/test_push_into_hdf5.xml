@@ -36,7 +36,7 @@
 
   <Steps>
     <MultiRun name="MonteCarlo">
-      <Input class="DataObjects" type="Point">inputHolder</Input>
+      <Input class="DataObjects" type="PointSet">inputHolder</Input>
       <Model class="Models" type="ExternalModel">PumpFake</Model>
       <Sampler class="Samplers" type="MonteCarlo">RAVENmc3</Sampler>
       <Output class="Databases" type="HDF5">MC_TEST_EXTRACT_STEP</Output>
@@ -44,33 +44,21 @@
     <IOStep name="test_extract">
       <Input class="Databases" type="HDF5">MC_TEST_EXTRACT_STEP</Input>
       <Input class="Databases" type="HDF5">MC_TEST_EXTRACT_STEP</Input>
-      <Input class="Databases" type="HDF5">MC_TEST_EXTRACT_STEP</Input>
-      <Input class="Databases" type="HDF5">MC_TEST_EXTRACT_STEP</Input>
       <Output class="DataObjects" type="HistorySet">HistorySet_from_database</Output>
-      <Output class="DataObjects" type="Point">Point_from_database</Output>
-      <Output class="DataObjects" type="History">history_from_database</Output>
       <Output class="DataObjects" type="PointSet">Pointset_from_database</Output>
       <Output class="OutStreams" type="Print">Pointset_from_database_dump</Output>
       <Output class="OutStreams" type="Print">HistorySet_from_database_dump</Output>
     </IOStep>
     <IOStep name="test_push_in">
       <Input class="DataObjects" type="HistorySet">HistorySet_from_database</Input>
-      <Input class="DataObjects" type="Point">Point_from_database</Input>
-      <Input class="DataObjects" type="History">history_from_database</Input>
       <Input class="DataObjects" type="PointSet">Pointset_from_database</Input>
-      <Output class="Databases" type="HDF5">MC_TEST_PUSH_STEP</Output>
-      <Output class="Databases" type="HDF5">MC_TEST_PUSH_STEP</Output>
       <Output class="Databases" type="HDF5">MC_TEST_PUSH_STEP</Output>
       <Output class="Databases" type="HDF5">MC_TEST_PUSH_STEP</Output>
     </IOStep>
     <IOStep name="test_extract_again">
       <Input class="Databases" type="HDF5">MC_TEST_PUSH_STEP</Input>
       <Input class="Databases" type="HDF5">MC_TEST_PUSH_STEP</Input>
-      <Input class="Databases" type="HDF5">MC_TEST_PUSH_STEP</Input>
-      <Input class="Databases" type="HDF5">MC_TEST_PUSH_STEP</Input>
       <Output class="DataObjects" type="HistorySet">HistorySet_IN_database</Output>
-      <Output class="DataObjects" type="Point">Point_IN_database</Output>
-      <Output class="DataObjects" type="History">history_IN_database</Output>
       <Output class="DataObjects" type="PointSet">Pointset_IN_database</Output>
       <Output class="OutStreams" type="Print">Pointset_IN_database_dump</Output>
       <Output class="OutStreams" type="Print">HistorySet_IN_database_dump</Output>
@@ -102,24 +90,10 @@
   </OutStreams>
 
   <DataObjects>
-    <Point name="inputHolder">
+    <PointSet name="inputHolder">
       <Input>zeroToOne</Input>
       <Output>OutputPlaceHolder</Output>
-    </Point>
-    <Point historyName="PumpFake1" name="Point_from_database">
-      <options>
-        <inputRow>-1</inputRow>
-      </options>
-      <Input>zeroToOne</Input>
-      <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
-    </Point>
-    <Point historyName="HistorySet_from_database|0" name="Point_IN_database">
-      <options>
-        <inputRow>-1</inputRow>
-      </options>
-      <Input>zeroToOne</Input>
-      <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
-    </Point>
+    </PointSet>
     <PointSet name="Pointset_from_database">
       <options>
         <inputRow>-1</inputRow>
@@ -134,20 +108,6 @@
       <Input>zeroToOne</Input>
       <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
     </PointSet>
-    <History historyName="PumpFake1" name="history_from_database">
-      <options>
-        <inputRow>-1</inputRow>
-      </options>
-      <Input>zeroToOne</Input>
-      <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
-    </History>
-    <History historyName="HistorySet_from_database|0" name="history_IN_database">
-      <options>
-        <inputRow>-1</inputRow>
-      </options>
-      <Input>zeroToOne</Input>
-      <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
-    </History>
     <HistorySet name="HistorySet_from_database">
       <options>
         <inputRow>-1</inputRow>
