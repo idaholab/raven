@@ -227,6 +227,7 @@
             <xsd:element name="Stratified" type="GridSampler" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="ResponseSurfaceDesign" type="ResponseSurfaceSampler" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="FactorialDesign" type="FactorialSampler" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="CustomSampler" type="CustomSampler" minOccurs="0" maxOccurs="1"/>
         </xsd:sequence>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
     </xsd:complexType>
