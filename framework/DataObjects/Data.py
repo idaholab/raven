@@ -499,12 +499,13 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
   def getParaKeys(self,typePara):
     """
       Functions to get the parameter keys
-      @ In, typePara, string, variable type (input or output)
+      @ In, typePara, string, variable type (input, output or metadata)
       @ Out, keys, list, list of requested keys
     """
-    if typePara.lower() not in ['input','inputs','output','outputs']: self.raiseAnError(RuntimeError,'type ' + typePara + ' is not a valid type. Function: Data.getParaKeys')
-    keys = self._dataParameters['inParam' ] if typePara.lower() in 'inputs' else self._dataParameters['outParam']
+    if typePara.lower() not in ['input','inputs','output','outputs','metadata']: self.raiseAnError(RuntimeError,'type ' + typePara + ' is not a valid type. Function: Data.getParaKeys')
+    keys = self._dataParameters['inParam' ] if typePara.lower() in 'inputs' else (self._dataParameters['outParam'] if typePara.lower() in 'outputs' else self._dataContainer['metadata'].keys())
     return keys
+
   def isItEmpty(self):
     """
       Function to check if the data is empty
