@@ -90,7 +90,8 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
                                                 'AdaptiveSparseGrid',
                                                 'Sobol',
                                                 'AdaptiveSobol',
-                                                'EnsembleForward']
+                                                'EnsembleForward',
+                                                'CustomSampler']
 
   @classmethod
   def generateValidateDict(cls):
