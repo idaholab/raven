@@ -6,6 +6,11 @@ import numpy as np
 #import random
 #import mpl_toolkits.mplot3d.axes3d as p3
 
+def _readMoreXML(self,xmlNode):
+  for child in xmlNode:
+    if child.tag == 'customNode':
+      self.customNodeContent = child.text
+
 def initialize(self,runInfoDict,inputFiles):
   self.sigma = 10.0
   self.rho   = 28.0
@@ -13,6 +18,7 @@ def initialize(self,runInfoDict,inputFiles):
   return
 
 def run(self,Input):
+  print(self.customNodeContent)
   max_time = 0.03
   t_step = 0.01
 

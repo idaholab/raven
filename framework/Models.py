@@ -879,7 +879,7 @@ class ExternalModel(Dummy):
           var = var.strip()
           self.modelVariableType[var] = None
     # check if there are other information that the external module wants to load
-    if '_readMoreXML' in dir(self.sim): self.sim._readMoreXML(self,xmlNode)
+    if '_readMoreXML' in dir(self.sim): self.sim._readMoreXML(self.initExtSelf,xmlNode)
 
   def __externalRun(self, Input, modelVariables):
     """
