@@ -805,6 +805,7 @@ class ExternalModel(Dummy):
     self.sim                      = None
     self.modelVariableValues      = {}                                          # dictionary of variable values for the external module imported at runtime
     self.modelVariableType        = {}                                          # dictionary of variable types, used for consistency checks
+    self.listOfRavenAwareVars     = []                                          # list of variables RAVEN needs to be aware of
     self._availableVariableTypes = ['float','bool','int','ndarray',
                                     'c1darray','float16','float32','float64',
                                     'float128','int16','int32','int64','bool8'] # available data types
@@ -878,6 +879,7 @@ class ExternalModel(Dummy):
         for var in son.text.split(','):
           var = var.strip()
           self.modelVariableType[var] = None
+          self.listOfRavenAwareVars.append(var)
     # check if there are other information that the external module wants to load
     if '_readMoreXML' in dir(self.sim): self.sim._readMoreXML(self.initExtSelf,xmlNode)
 
@@ -886,7 +888,7 @@ class ExternalModel(Dummy):
       Method that performs the actual run of the imported external model (separated from run method for parallelization purposes)
       @ In, Input, list, list of the inputs needed for running the model
       @ In, modelVariables, dict, the dictionary containing all the External Model variables
-      @ Out, (modelVariableValues,self), tuple, tuple containing the dictionary of the results (pos 0) and the self (pos 1)
+      @ Out, (outcomes,self), tuple, tuple containing the dictionary of the results (pos 0) and the self (pos 1)
     """
     externalSelf        = utils.Object()
     #self.sim=__import__(self.ModuleToLoad)
@@ -920,7 +922,8 @@ class ExternalModel(Dummy):
           errorFound = True
           self.raiseADebug('variable '+ key+' has an unsupported type -> '+ self.modelVariableType[key],verbosity='silent')
       if errorFound: self.raiseAnError(RuntimeError,'Errors detected. See above!!')
-    return copy.copy(modelVariableValues),self
+    outcomes = dict((k, modelVariableValues[k]) for k in self.listOfRavenAwareVars)
+    return copy.copy(outcomes),self
 
   def run(self,Input,jobHandler):
     """
