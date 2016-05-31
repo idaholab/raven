@@ -7,6 +7,7 @@ import numpy as np
 #import mpl_toolkits.mplot3d.axes3d as p3
 
 def _readMoreXML(self,xmlNode):
+  self.customNodeContent = None
   for child in xmlNode:
     if child.tag == 'customNode':
       self.customNodeContent = child.text
@@ -18,7 +19,8 @@ def initialize(self,runInfoDict,inputFiles):
   return
 
 def run(self,Input):
-  print(self.customNodeContent)
+  if self.customNodeContent: print(self.customNodeContent)
+  else                     : print("no custom node inputted")
   max_time = 0.03
   t_step = 0.01
 
@@ -43,9 +45,5 @@ def run(self,Input):
     self.x[t+1]    = self.x[t] + self.sigma*(self.y[t]-self.x[t]) * t_step
     self.y[t+1]    = self.y[t] + (self.x[t]*(self.rho-self.z[t])-self.y[t]) * t_step
     self.z[t+1]    = self.z[t] + (self.x[t]*self.y[t]-self.beta*self.z[t]) * t_step
-
-    #self.ax.plot3D(self.x,self.y,self.z)
-
-    #pyl.savefig('test.png')
 
 
