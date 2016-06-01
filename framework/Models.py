@@ -923,7 +923,7 @@ class ExternalModel(Dummy):
           self.raiseADebug('variable '+ key+' has an unsupported type -> '+ self.modelVariableType[key],verbosity='silent')
       if errorFound: self.raiseAnError(RuntimeError,'Errors detected. See above!!')
     outcomes = dict((k, modelVariableValues[k]) for k in self.listOfRavenAwareVars)
-    return copy.copy(outcomes),self
+    return outcomes,self
 
   def run(self,Input,jobHandler):
     """

@@ -6,13 +6,26 @@ import numpy as np
 #import random
 #import mpl_toolkits.mplot3d.axes3d as p3
 
+def _readMoreXML(self,xmlNode):
+  self.customNodeContent = None
+  self.customVariable2   = None
+  for child in xmlNode:
+    if child.tag == 'customNode1':
+      self.customNodeContent = child.text
+    if child.tag == 'customNode2':
+      self.customVariable2 = int(child.text)
+
 def initialize(self,runInfoDict,inputFiles):
+  if self.customNodeContent is None: raise IOError("customNode1 value not correctly transfered!")
+  if self.customVariable2 is None: raise IOError("customNode2 value not correctly transfered!")
   self.sigma = 10.0
   self.rho   = 28.0
   self.beta  = 8.0/3.0
   return
 
 def run(self,Input):
+  if self.customNodeContent is None: raise IOError("customNode1 value not correctly transfered!")
+  if self.customVariable2 is None  : raise IOError("customNode2 value not correctly transfered!")
   max_time = 0.03
   t_step = 0.01
 
