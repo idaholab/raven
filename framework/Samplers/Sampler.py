@@ -585,6 +585,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       realization['metadata'] = copy.deepcopy(self.inputInfo)
       realization['inputs'] = inExisting['inputs']
       realization['outputs'] = inExisting['outputs']
+      realization['prefix'] = self.inputInfo['prefix']
       return 1,realization
 
 

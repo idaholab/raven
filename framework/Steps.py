@@ -382,14 +382,20 @@ class MultiRun(SingleRun):
     self._outputCollectionLambda            = []
     for outIndex, output in enumerate(inDictionary['Output']):
       if output.type not in ['OutStreamPlot','OutStreamPrint']:
-        if 'SolutionExport' in inDictionary.keys() and output.name == inDictionary['SolutionExport'].name: self._outputCollectionLambda.append((lambda x:None, outIndex))
-        else: self._outputCollectionLambda.append( (lambda x: inDictionary['Model'].collectOutput(x[0],x[1]), outIndex) )
-      else: self._outputCollectionLambda.append((lambda x: x[1].addOutput(), outIndex))
+        if 'SolutionExport' in inDictionary.keys() and output.name == inDictionary['SolutionExport'].name:
+          self._outputCollectionLambda.append((lambda x:None, outIndex))
+          self._outputDictCollectionLambda.append((lambda x:None, outIndex))
+        else:
+          self._outputCollectionLambda.append( (lambda x: inDictionary['Model'].collectOutput(x[0],x[1]), outIndex) )
+          self._outputDictCollectionLambda.append( (lambda x: inDictionary['Model'].collectOutputFromDict(x[0],x[1]), outIndex) )
+      else:
+        self._outputCollectionLambda.append((lambda x: x[1].addOutput(), outIndex))
+        self._outputDictCollectionLambda.append((lambda x: x[1].addOutput(), outIndex))
     self.raiseADebug('Generating input batch of size '+str(inDictionary['jobHandler'].runInfoDict['batchSize']))
     for inputIndex in range(inDictionary['jobHandler'].runInfoDict['batchSize']):
       if inDictionary['Sampler'].amIreadyToProvideAnInput():
         try:
-          newinp = inDictionary['Sampler'].generateInput(inDictionary['Model'],inDictionary['Input'])
+          newinp = self._findANewInputToRun(inDictionary)
           inDictionary["Model"].run(newinp,inDictionary['jobHandler'])
           self.raiseADebug('Submitted input '+str(inputIndex+1))
         except utils.NoMoreSamplesNeeded:
@@ -422,16 +428,32 @@ class MultiRun(SingleRun):
           self.raiseADebug('the JOBS that failed are tracked in the JobHandler... hence, we can retrieve and treat them separately. skipping here is Ok. Andrea')
         for _ in range(min(jobHandler.howManyFreeSpots(),sampler.endJobRunnable())): # put back this loop (do not take it away again. it is NEEDED for NOT-POINT samplers(aka DET)). Andrea
           self.raiseADebug('Testing the sampler if it is ready to generate a new input')
-          #if sampler.amIreadyToProvideAnInput(inLastOutput=self.targetOutput):
           if sampler.amIreadyToProvideAnInput():
             try:
-              newInput =sampler.generateInput(model,inputs)
+              newInput = self._findANewInputToRun(inDictionary)
               model.run(newInput,jobHandler)
             except utils.NoMoreSamplesNeeded:
               self.raiseAMessage('Sampler returned "NoMoreSamplesNeeded".  Continuing...')
       if jobHandler.isFinished() and len(jobHandler.getFinishedNoPop()) == 0: break
       time.sleep(self.sleepTime)
     sampler.handleFailedRuns(self.failedRuns)
+
+  def _findANewInputToRun(self,inDictionary):
+    """
+      Repeatedly calls Sampler until a new run is found or "NoMoreSamplesNeeded" is raised.
+      @ In, inDictionary, dict, dictionary of entities for this step
+      @ Out, newInp, list, list containing the new inputs
+    """
+    #The value of "found" determines what the Sampler is ready to provide.
+    #  case 0: a new sample has been discovered and can be run, and newInp is a new input list.
+    #  case 1: found the input in restart, and newInp is a realization dicitonary of data to use
+    found = None
+    while found != 0:
+      found,newInp = inDictionary['Sampler'].generateInput(inDictionary['Model'],inDictionary['Input'])
+      if found == 1:
+        for collector, outIndex in self._outputDictCollectionLambda:
+          collector([newInp,inDictionary['Output'][outIndex]])
+    return newInp
 #
 #
 #
