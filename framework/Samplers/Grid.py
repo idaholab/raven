@@ -154,7 +154,9 @@ class Grid(ForwardSampler):
         elif self.gridInfo[varName]!='value': self.raiseAnError(IOError,self.gridInfo[varName]+' is not know as value keyword for type. Sampler: '+self.name)
       if self.externalgGridCoord: currentIndexes, coordinates = self.gridEntity.returnIteratorIndexesFromIndex(self.gridCoordinate), self.gridEntity.returnCoordinateFromIndex(self.gridCoordinate, True, recastDict)
       else                      : currentIndexes, coordinates = self.gridEntity.returnIteratorIndexes(), self.gridEntity.returnPointAndAdvanceIterator(True,recastDict)
-      if coordinates == None: raise utils.NoMoreSamplesNeeded
+      if coordinates == None:
+        self.raiseADebug('Grid finished with restart points!  Moving on...')
+        raise utils.NoMoreSamplesNeeded
       coordinatesPlusOne  = self.gridEntity.returnShiftedCoordinate(currentIndexes,dict.fromkeys(self.axisName,1))
       coordinatesMinusOne = self.gridEntity.returnShiftedCoordinate(currentIndexes,dict.fromkeys(self.axisName,-1))
       for i in range(len(self.axisName)):

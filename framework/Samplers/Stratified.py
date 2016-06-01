@@ -131,10 +131,6 @@ class Stratified(Grid):
         cnt +=1
 
     for nPoint in range(self.pointByVar-1): self.sampledCoordinate[nPoint]= [tempFillingCheck[mappingIdVarName[varName]][nPoint] for varName in self.axisName]
-    if self.restartData:
-      self.counter+=len(self.restartData)
-      self.raiseAMessage('Number of points from restart: %i' %self.counter)
-      self.raiseAMessage('Number of points needed:       %i' %(self.limit-self.counter))
 
   def localGenerateInput(self,model,myInput):
     """

@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation>
+<Simulation verbosity='debug'>
   <RunInfo>
     <WorkingDir>sparsegrid</WorkingDir>
     <Sequence>make1,train1,print1,make2,train2,print2,print3</Sequence>
