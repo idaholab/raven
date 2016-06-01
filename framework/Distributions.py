@@ -79,6 +79,8 @@ class DistributionInput(InputData.ParameterInput):
 DistributionInput.createClass("DistributionInput")
 DistributionInput.addSub(UpperBoundInput)
 DistributionInput.addSub(LowerBoundInput)
+#TODO remove this when Distribution inherits from BaseClass
+DistributionInput.addParam("name", InputData.StringType, True)
 
 
 class Distribution(BaseType):
@@ -537,6 +539,14 @@ class Uniform(BoostDistribution):
     """
     paramInput = UniformDistributionInput()
     paramInput.parseNode(xmlNode)
+    self._handleInput(paramInput)
+
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the common parts of the distribution parameter input.
+      @ In, paramInput, ParameterInput, the already parsed input.
+      @ Out, None
+    """
     BoostDistribution._handleInput(self, paramInput)
     if not self.upperBoundUsed or not self.lowerBoundUsed:
       self.raiseAnError(IOError,'the Uniform distribution needs both upperBound and lowerBound attributes. Got upperBound? '+ str(self.upperBoundUsed) + '. Got lowerBound? '+str(self.lowerBoundUsed))
@@ -656,6 +666,14 @@ class Normal(BoostDistribution):
     """
     paramInput = NormalDistributionInput()
     paramInput.parseNode(xmlNode)
+    self._handleInput(paramInput)
+
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the common parts of the distribution parameter input.
+      @ In, paramInput, ParameterInput, the already parsed input.
+      @ Out, None
+    """
     BoostDistribution._handleInput(self, paramInput)
     meanFind = paramInput.findFirst('mean' )
     if meanFind != None: self.mean  = meanFind.value
@@ -805,6 +823,14 @@ class Gamma(BoostDistribution):
     """
     paramInput = GammaDistributionInput()
     paramInput.parseNode(xmlNode)
+    self._handleInput(paramInput)
+
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the common parts of the distribution parameter input.
+      @ In, paramInput, ParameterInput, the already parsed input.
+      @ Out, None
+    """
     BoostDistribution._handleInput(self, paramInput)
     lowFind = paramInput.findFirst('low')
     if lowFind != None: self.low = lowFind.value
@@ -956,6 +982,14 @@ class Beta(BoostDistribution):
     """
     paramInput = BetaDistributionInput()
     paramInput.parseNode(xmlNode)
+    self._handleInput(paramInput)
+
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the common parts of the distribution parameter input.
+      @ In, paramInput, ParameterInput, the already parsed input.
+      @ Out, None
+    """
     BoostDistribution._handleInput(self, paramInput)
     lowFind = paramInput.findFirst('low')
     if lowFind != None: self.low = lowFind.value
@@ -1117,6 +1151,14 @@ class Triangular(BoostDistribution):
     """
     paramInput = TriangularDistributionInput()
     paramInput.parseNode(xmlNode)
+    self._handleInput(paramInput)
+
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the common parts of the distribution parameter input.
+      @ In, paramInput, ParameterInput, the already parsed input.
+      @ Out, None
+    """
     BoostDistribution._handleInput(self, paramInput)
     apexFind = paramInput.findFirst('apex')
     if apexFind != None: self.apex = apexFind.value
@@ -1219,6 +1261,14 @@ class Poisson(BoostDistribution):
     """
     paramInput = PoissonDistributionInput()
     paramInput.parseNode(xmlNode)
+    self._handleInput(paramInput)
+
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the common parts of the distribution parameter input.
+      @ In, paramInput, ParameterInput, the already parsed input.
+      @ Out, None
+    """
     BoostDistribution._handleInput(self, paramInput)
     muFind = paramInput.findFirst('mu')
     if muFind != None: self.mu = muFind.value
@@ -1313,6 +1363,14 @@ class Binomial(BoostDistribution):
     """
     paramInput = BinomialDistributionInput()
     paramInput.parseNode(xmlNode)
+    self._handleInput(paramInput)
+
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the common parts of the distribution parameter input.
+      @ In, paramInput, ParameterInput, the already parsed input.
+      @ Out, None
+    """
     BoostDistribution._handleInput(self, paramInput)
     nFind = paramInput.findFirst('n')
     if nFind != None: self.n = nFind.value
@@ -1404,6 +1462,14 @@ class Bernoulli(BoostDistribution):
     """
     paramInput = BernoulliDistributionInput()
     paramInput.parseNode(xmlNode)
+    self._handleInput(paramInput)
+
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the common parts of the distribution parameter input.
+      @ In, paramInput, ParameterInput, the already parsed input.
+      @ Out, None
+    """
     BoostDistribution._handleInput(self, paramInput)
     pFind = paramInput.findFirst('p')
     if pFind != None: self.p = pFind.value
@@ -1478,7 +1544,14 @@ class Categorical(Distribution):
 
     paramInput = CategoricalDistributionInput()
     paramInput.parseNode(xmlNode)
+    self._handleInput(paramInput)
 
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the common parts of the distribution parameter input.
+      @ In, paramInput, ParameterInput, the already parsed input.
+      @ Out, None
+    """
     for child in paramInput.subparts:
       if child.getName() == "state":
         outcome = child.parameterValues["outcome"]
@@ -1626,6 +1699,14 @@ class Logistic(BoostDistribution):
     """
     paramInput = LogisticDistributionInput()
     paramInput.parseNode(xmlNode)
+    self._handleInput(paramInput)
+
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the common parts of the distribution parameter input.
+      @ In, paramInput, ParameterInput, the already parsed input.
+      @ Out, None
+    """
     BoostDistribution._handleInput(self, paramInput)
     locationFind = paramInput.findFirst('location')
     if locationFind != None: self.location = locationFind.value
@@ -1726,6 +1807,14 @@ class Exponential(BoostDistribution):
     """
     paramInput = ExponentialDistributionInput()
     paramInput.parseNode(xmlNode)
+    self._handleInput(paramInput)
+
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the common parts of the distribution parameter input.
+      @ In, paramInput, ParameterInput, the already parsed input.
+      @ Out, None
+    """
     BoostDistribution._handleInput(self, paramInput)
     lambdaFind = paramInput.findFirst('lambda')
     if lambdaFind != None: self.lambdaVar = lambdaFind.value
@@ -1858,6 +1947,14 @@ class LogNormal(BoostDistribution):
     """
     paramInput = LogNormalDistributionInput()
     paramInput.parseNode(xmlNode)
+    self._handleInput(paramInput)
+
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the common parts of the distribution parameter input.
+      @ In, paramInput, ParameterInput, the already parsed input.
+      @ Out, None
+    """
     BoostDistribution._handleInput(self, paramInput)
     meanFind = paramInput.findFirst('mean')
     if meanFind != None: self.mean = meanFind.value
@@ -1970,6 +2067,14 @@ class Weibull(BoostDistribution):
     """
     paramInput = WeibullDistributionInput()
     paramInput.parseNode(xmlNode)
+    self._handleInput(paramInput)
+
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the common parts of the distribution parameter input.
+      @ In, paramInput, ParameterInput, the already parsed input.
+      @ Out, None
+    """
     BoostDistribution._handleInput(self, paramInput)
     lambdaFind = paramInput.findFirst('lambda')
     if lambdaFind != None: self.lambdaVar = lambdaFind.value
@@ -2155,6 +2260,10 @@ class NDimensionalDistributionInput(InputData.ParameterInput):
 NDimensionalDistributionInput.createClass("NDimensionalDistribution", False,
                                           baseNode=DistributionInput)
 NDimensionalDistributionInput.addSub(WorkingDirInput)
+#TODO remove this when NDimentionalDistribution inherits from BaseClass
+NDimensionalDistributionInput.addParam("name", InputData.StringType, True)
+
+DistributionsCollection.addSub(NDimensionalDistributionInput)
 
 
 class NDimensionalDistributions(Distribution):
@@ -2289,6 +2398,14 @@ class NDInverseWeight(NDimensionalDistributions):
     """
     paramInput = NDInverseWeightInput()
     paramInput.parseNode(xmlNode)
+    self._handleInput(paramInput)
+
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the common parts of the distribution parameter input.
+      @ In, paramInput, ParameterInput, the already parsed input.
+      @ Out, None
+    """
     NDimensionalDistributions._handleInput(self, paramInput)
     pFind = paramInput.findFirst('p')
     if pFind != None: self.p = pFind.value
@@ -2466,6 +2583,14 @@ class NDCartesianSpline(NDimensionalDistributions):
     """
     paramInput = NDCartesianSplineInput()
     paramInput.parseNode(xmlNode)
+    self._handleInput(paramInput)
+
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the common parts of the distribution parameter input.
+      @ In, paramInput, ParameterInput, the already parsed input.
+      @ Out, None
+    """
     NDimensionalDistributions._handleInput(self, paramInput)
     dataFilename = paramInput.findFirst('dataFilename')
     if dataFilename != None: self.dataFilename = os.path.join(self.workingDir,dataFilename.value)
@@ -2632,6 +2757,10 @@ MultivariateNormalInput.addParam("method", MultivariateMethodType, True)
 MultivariateNormalInput.addSub(MuListParameterInput)
 MultivariateNormalInput.addSub(CovarianceListParameterInput)
 MultivariateNormalInput.addSub(TransformationParameterInput)
+#TODO Remove this when MultivariateNormalInput inherits from BaseClass
+MultivariateNormalInput.addParam("name", InputData.StringType, True)
+
+DistributionsCollection.addSub(MultivariateNormalInput)
 
 class MultivariateNormal(NDimensionalDistributions):
   """
@@ -2664,6 +2793,14 @@ class MultivariateNormal(NDimensionalDistributions):
     #NDimensionalDistributions._readMoreXML(self, xmlNode)
     paramInput = MultivariateNormalInput()
     paramInput.parseNode(xmlNode)
+    self._handleInput(paramInput)
+
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the common parts of the distribution parameter input.
+      @ In, paramInput, ParameterInput, the already parsed input.
+      @ Out, None
+    """
     if paramInput.parameterValues['method'] == 'pca':
       self.method = 'pca'
     elif paramInput.parameterValues['method'] == 'spline':
@@ -3009,5 +3146,5 @@ def returnInputParameter():
     whole collection.
     @ Out, DistributionsCollection, DistributionsCollection, class for parsing.
   """
-  return DistributionsCollection
+  return DistributionsCollection()
 
