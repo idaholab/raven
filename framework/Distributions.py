@@ -60,6 +60,14 @@ _FrameworkToCrowDistNames = { 'Uniform':'UniformDistribution',
                               'NDCartesianSpline': 'NDCartesianSplineDistribution',
                               'MultivariateNormal' : 'MultivariateNormalDistribution'}
 
+class DistributionsCollection(InputData.ParameterInput):
+  """
+    Class for reading in a collection of distributions
+  """
+
+DistributionsCollection.createClass("Distributions")
+
+
 UpperBoundInput = InputData.parameterInputFactory('upperBound',contentType=InputData.FloatType)
 LowerBoundInput = InputData.parameterInputFactory('lowerBound', contentType=InputData.FloatType)
 
@@ -477,6 +485,8 @@ class UniformDistributionInput(InputData.ParameterInput):
 
 UniformDistributionInput.createClass("Uniform", False, baseNode=DistributionInput)
 
+DistributionsCollection.addSub(UniformDistributionInput)
+
 class Uniform(BoostDistribution):
   """
     Uniform univariate distribution
@@ -593,6 +603,7 @@ NormalDistributionInput.createClass("Normal", False, baseNode=DistributionInput)
 NormalDistributionInput.addSub(MeanParameterInput)
 NormalDistributionInput.addSub(SigmaParameterInput)
 
+DistributionsCollection.addSub(NormalDistributionInput)
 
 class Normal(BoostDistribution):
   """
@@ -739,6 +750,7 @@ GammaDistributionInput.addSub(LowParameterInput)
 GammaDistributionInput.addSub(AlphaParameterInput)
 GammaDistributionInput.addSub(BetaParameterInput)
 
+DistributionsCollection.addSub(GammaDistributionInput)
 
 class Gamma(BoostDistribution):
   """
@@ -885,6 +897,8 @@ BetaDistributionInput.addSub(HighParameterInput)
 BetaDistributionInput.addSub(AlphaParameterInput)
 BetaDistributionInput.addSub(BetaParameterInput)
 BetaDistributionInput.addSub(PeakFactorParameterInput)
+
+DistributionsCollection.addSub(BetaDistributionInput)
 
 class Beta(BoostDistribution):
   """
@@ -1050,6 +1064,8 @@ TriangularDistributionInput.addSub(ApexParameterInput)
 TriangularDistributionInput.addSub(MinParameterInput)
 TriangularDistributionInput.addSub(MaxParameterInput)
 
+DistributionsCollection.addSub(TriangularDistributionInput)
+
 class Triangular(BoostDistribution):
   """
     Triangular univariate distribution
@@ -1155,6 +1171,8 @@ class PoissonDistributionInput(InputData.ParameterInput):
 PoissonDistributionInput.createClass("Poisson", False, baseNode=DistributionInput)
 PoissonDistributionInput.addSub(MuParameterInput)
 
+DistributionsCollection.addSub(PoissonDistributionInput)
+
 class Poisson(BoostDistribution):
   """
     Poisson univariate distribution
@@ -1243,6 +1261,8 @@ class BinomialDistributionInput(InputData.ParameterInput):
 BinomialDistributionInput.createClass("Binomial", False, baseNode=DistributionInput)
 BinomialDistributionInput.addSub(NParameterInput)
 BinomialDistributionInput.addSub(PParameterInput)
+
+DistributionsCollection.addSub(BinomialDistributionInput)
 
 class Binomial(BoostDistribution):
   """
@@ -1335,6 +1355,8 @@ class BernoulliDistributionInput(InputData.ParameterInput):
 BernoulliDistributionInput.createClass("Bernoulli", False, baseNode=DistributionInput)
 BernoulliDistributionInput.addSub(PParameterInput)
 
+DistributionsCollection.addSub(BernoulliDistributionInput)
+
 class Bernoulli(BoostDistribution):
   """
     Bernoulli univariate distribution
@@ -1425,6 +1447,8 @@ class CategoricalDistributionInput(InputData.ParameterInput):
 
 CategoricalDistributionInput.createClass("Categorical", True)
 CategoricalDistributionInput.addSub(StatePartInput, InputData.Quantity.one_to_infinity)
+
+DistributionsCollection.addSub(CategoricalDistributionInput)
 
 class Categorical(Distribution):
   """
@@ -1551,6 +1575,8 @@ LogisticDistributionInput.createClass("Logistic", False, baseNode=DistributionIn
 LogisticDistributionInput.addSub(LocationParameterInput)
 LogisticDistributionInput.addSub(ScaleParameterInput)
 
+DistributionsCollection.addSub(LogisticDistributionInput)
+
 class Logistic(BoostDistribution):
   """
     Logistic univariate distribution
@@ -1649,7 +1675,7 @@ ExponentialDistributionInput.createClass("Exponential", False, baseNode=Distribu
 ExponentialDistributionInput.addSub(LambdaParameterInput)
 ExponentialDistributionInput.addSub(LowParameterInput)
 
-
+DistributionsCollection.addSub(ExponentialDistributionInput)
 
 class Exponential(BoostDistribution):
   """
@@ -1779,6 +1805,8 @@ LogNormalDistributionInput.addSub(MeanParameterInput)
 LogNormalDistributionInput.addSub(SigmaParameterInput)
 LogNormalDistributionInput.addSub(LowParameterInput)
 
+DistributionsCollection.addSub(LogNormalDistributionInput)
+
 class LogNormal(BoostDistribution):
   """
     LogNormal univariate distribution
@@ -1889,6 +1917,8 @@ WeibullDistributionInput.addSub(LambdaParameterInput)
 WeibullDistributionInput.addSub(KParameterInput)
 WeibullDistributionInput.addSub(LowParameterInput)
 
+DistributionsCollection.addSub(WeibullDistributionInput)
+
 class Weibull(BoostDistribution):
   """
     Weibull univariate distribution
@@ -1990,16 +2020,6 @@ class Weibull(BoostDistribution):
       else:b = self.upperBound
       self._distribution = distribution1D.BasicWeibullDistribution(self.k,self.lambdaVar,a,b,self.low)
 
-WorkingDirInput = InputData.parameterInputFactory("workingDir", contentType=InputData.StringType)
-
-class NDimensionalDistributionInput(InputData.ParameterInput):
-  """
-    Base class for reading N-Dimensional distribution input
-  """
-
-NDimensionalDistributionInput.createClass("NDimensionalDistribution", False,
-                                          baseNode=DistributionInput)
-NDimensionalDistributionInput.addSub(WorkingDirInput)
 
 class Custom1D(Distribution):
   """
@@ -2125,6 +2145,18 @@ class Custom1D(Distribution):
     return rvsValue
 
 
+WorkingDirInput = InputData.parameterInputFactory("workingDir", contentType=InputData.StringType)
+
+class NDimensionalDistributionInput(InputData.ParameterInput):
+  """
+    Base class for reading N-Dimensional distribution input
+  """
+
+NDimensionalDistributionInput.createClass("NDimensionalDistribution", False,
+                                          baseNode=DistributionInput)
+NDimensionalDistributionInput.addSub(WorkingDirInput)
+
+
 class NDimensionalDistributions(Distribution):
   """
     General base class for NDimensional distributions
@@ -2232,6 +2264,8 @@ class NDInverseWeightInput(InputData.ParameterInput):
 NDInverseWeightInput.createClass("NDInverseWeight", False, baseNode=NDimensionalDistributionInput)
 NDInverseWeightInput.addSub(PParameterInput)
 NDInverseWeightInput.addSub(DataFilenameParameterInput)
+
+DistributionsCollection.addSub(NDInverseWeightInput)
 
 class NDInverseWeight(NDimensionalDistributions):
   """
@@ -2408,6 +2442,8 @@ class NDCartesianSplineInput(InputData.ParameterInput):
 
 NDCartesianSplineInput.createClass("NDCartesianSpline", False, baseNode=NDimensionalDistributionInput)
 NDCartesianSplineInput.addSub(DataFilenameParameterInput)
+
+DistributionsCollection.addSub(NDCartesianSplineInput)
 
 class NDCartesianSpline(NDimensionalDistributions):
   """
@@ -2966,3 +3002,12 @@ def returnInstance(Type,caller):
   """
   try: return __interFaceDict[Type]()
   except KeyError: caller.raiseAnError(NameError,'not known '+__base+' type '+Type)
+
+def returnInputParameter():
+  """
+    Function returns the InputParameterClass that can be used to parse the
+    whole collection.
+    @ Out, DistributionsCollection, DistributionsCollection, class for parsing.
+  """
+  return DistributionsCollection
+
