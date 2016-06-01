@@ -255,16 +255,6 @@ class Grid(ForwardSampler):
                   ndCoordinate[positionList.index(position)] = (self.distDict[varName].returnUpperBound(positionList.index(position)) + (coordinates[variable.strip()]+coordinatesMinusOne[variable])/2.0) /2.0
             self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")] = self.distDict[varName].cellIntegral(ndCoordinate,dxs)
             weight *= self.distDict[varName].cellIntegral(ndCoordinate,dxs)
-      newpoint = tuple(self.values[key] for key in self.values.keys())
-      inExisting,_,_ = mathUtils.NDInArray(np.array(self.existing.keys()),newpoint,tol=self.restartTolerance)
-      if not inExisting:
-        found=True
-        self.raiseADebug('New point found: '+str(newpoint))
-      else:
-        self.counter+=1
-        self.inputInfo['prefix'] = str(self.counter)
-        if self.counter>=self.limit: raise utils.NoMoreSamplesNeeded
-        self.raiseADebug('Point',newpoint,'found in restart.')
       self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
       self.inputInfo['ProbabilityWeight'] = copy.deepcopy(weight)
       self.inputInfo['SamplerType'] = 'Grid'

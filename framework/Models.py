@@ -426,8 +426,11 @@ class Dummy(Model):
       @ In, output, DataObject, to whom we write the data
       @ Out, None
     """
+    #prefix is not generally useful for dummy-related models, so we remove it but store it
+    if 'prefix' in exportDict.keys():
+      prefix = exportDict.pop('prefix')
     #check for name usage, depends on where it comes from
-    if 'inputSpaceParams' in exportDict.keys:
+    if 'inputSpaceParams' in exportDict.keys():
       inKey = 'inputSpaceParams'
       outKey = 'outputSpaceParams'
     else:

@@ -1,44 +1,51 @@
 <?xml version="1.0" ?>
-<Simulation verbosity='debug'>
+<Simulation>
   <RunInfo>
     <WorkingDir>sparsegrid</WorkingDir>
-    <Sequence>make1,train1,print1,make2,train2,print2,print3</Sequence>
+    <Sequence>makeCoarse,makeRestart,makeFine,trainRestart,trainFine,print,printROM</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
   <Steps>
-    <MultiRun name="make1">
+    <MultiRun name="makeCoarse">
       <Input class="DataObjects" type="PointSet">dummyIN</Input>
-      <Model class="Models" type="ExternalModel">poly</Model>
-      <Sampler class="Samplers" type="SparseGridCollocation">SG</Sampler>
+      <Model class="Models" type="ExternalModel">coarsemod</Model>
+      <Sampler class="Samplers" type="SparseGridCollocation">coarse</Sampler>
       <Output class="DataObjects" type="PointSet">solns</Output>
     </MultiRun>
-    <MultiRun name="make2">
+    <MultiRun name="makeRestart">
       <Input class="DataObjects" type="PointSet">solns</Input>
-      <Model class="Models" type="ExternalModel">poly</Model>
-      <Sampler class="Samplers" type="SparseGridCollocation">SG2</Sampler>
-      <Output class="DataObjects" type="PointSet">solns</Output>
-      <Output class="DataObjects" type="PointSet">solns2</Output>
+      <Model class="Models" type="ExternalModel">finemod</Model>
+      <Sampler class="Samplers" type="SparseGridCollocation">restart</Sampler>
+      <Output class="DataObjects" type="PointSet">solnsRestart</Output>
     </MultiRun>
-    <IOStep name="print1">
+    <MultiRun name="makeFine">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">finemod</Model>
+      <Sampler class="Samplers" type="SparseGridCollocation">fine</Sampler>
+      <Output class="DataObjects" type="PointSet">solnsFine</Output>
+    </MultiRun>
+    <IOStep name="print">
       <Input class="DataObjects" type="PointSet">solns</Input>
-      <Output class="OutStreams" type="Print">SCdump1</Output>
+      <Input class="DataObjects" type="PointSet">solnsRestart</Input>
+      <Input class="DataObjects" type="PointSet">solnsFine</Input>
+      <Output class="OutStreams" type="Print">coarse</Output>
+      <Output class="OutStreams" type="Print">restart</Output>
+      <Output class="OutStreams" type="Print">fine</Output>
     </IOStep>
-    <IOStep name="print2">
-      <Input class="DataObjects" type="PointSet">solns2</Input>
-      <Output class="OutStreams" type="Print">SCdump2</Output>
+    <IOStep name="printROM">
+      <Input class="Models" type="ROM">romRestart</Input>
+      <Input class="Models" type="ROM">romFine</Input>
+      <Output class="OutStreams" type="Print">romRestart</Output>
+      <Output class="OutStreams" type="Print">romFine</Output>
     </IOStep>
-    <IOStep name="print3">
-      <Input class="DataObjects" type="PointSet">solns</Input>
-      <Output class="OutStreams" type="Print">SCdump3</Output>
-    </IOStep>
-    <RomTrainer name="train2">
-      <Input class="DataObjects" type="PointSet">solns</Input>
-      <Output class="Models" type="ROM">rom2</Output>
+    <RomTrainer name="trainRestart">
+      <Input class="DataObjects" type="PointSet">solnsRestart</Input>
+      <Output class="Models" type="ROM">romRestart</Output>
     </RomTrainer>
-    <RomTrainer name="train1">
-      <Input class="DataObjects" type="PointSet">solns</Input>
-      <Output class="Models" type="ROM">rom</Output>
+    <RomTrainer name="trainFine">
+      <Input class="DataObjects" type="PointSet">solnsFine</Input>
+      <Output class="Models" type="ROM">romFine</Output>
     </RomTrainer>
   </Steps>
 
@@ -50,42 +57,62 @@
   </Distributions>
 
   <Samplers>
-    <SparseGridCollocation name="SG">
+    <SparseGridCollocation name="coarse">
       <variable name="x1">
         <distribution>UniDist</distribution>
       </variable>
       <variable name="x2">
         <distribution>UniDist</distribution>
       </variable>
-      <ROM class="Models" type="ROM">rom</ROM>
+      <ROM class="Models" type="ROM">romCoarse</ROM>
     </SparseGridCollocation>
-    <SparseGridCollocation name="SG2">
+    <SparseGridCollocation name="restart">
       <variable name="x1">
         <distribution>UniDist</distribution>
       </variable>
       <variable name="x2">
         <distribution>UniDist</distribution>
       </variable>
-      <ROM class="Models" type="ROM">rom2</ROM>
+      <ROM class="Models" type="ROM">romRestart</ROM>
       <Restart class="DataObjects" type="PointSet">solns</Restart>
+    </SparseGridCollocation>
+    <SparseGridCollocation name="fine">
+      <variable name="x1">
+        <distribution>UniDist</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution>UniDist</distribution>
+      </variable>
+      <ROM class="Models" type="ROM">romFine</ROM>
     </SparseGridCollocation>
   </Samplers>
 
   <Models>
     <Dummy name="MyDummy" subType=""/>
-    <ExternalModel ModuleToLoad="../polynomial" name="poly" subType="">
-      <variables>x1,x2,ans,ans2</variables>
+    <ExternalModel ModuleToLoad="../coarse" name="coarsemod" subType="">
+      <variables>x1,x2,ans</variables>
     </ExternalModel>
-    <ROM name="rom" subType="GaussPolynomialRom">
-      <Target>ans,ans2</Target>
+    <ExternalModel ModuleToLoad="../fine" name="finemod" subType="">
+      <variables>x1,x2,ans</variables>
+    </ExternalModel>
+    <ROM name="romCoarse" subType="GaussPolynomialRom">
+      <Target>ans</Target>
       <Features>x1,x2</Features>
       <IndexSet>TotalDegree</IndexSet>
       <PolynomialOrder>1</PolynomialOrder>
       <Interpolation quad="ClenshawCurtis">x1</Interpolation>
       <Interpolation quad="ClenshawCurtis">x2</Interpolation>
     </ROM>
-    <ROM name="rom2" subType="GaussPolynomialRom">
-      <Target>ans,ans2</Target>
+    <ROM name="romRestart" subType="GaussPolynomialRom">
+      <Target>ans</Target>
+      <Features>x1,x2</Features>
+      <IndexSet>TotalDegree</IndexSet>
+      <PolynomialOrder>2</PolynomialOrder>
+      <Interpolation quad="ClenshawCurtis">x1</Interpolation>
+      <Interpolation quad="ClenshawCurtis">x2</Interpolation>
+    </ROM>
+    <ROM name="romFine" subType="GaussPolynomialRom">
+      <Target>ans</Target>
       <Features>x1,x2</Features>
       <IndexSet>TotalDegree</IndexSet>
       <PolynomialOrder>2</PolynomialOrder>
@@ -101,26 +128,40 @@
     </PointSet>
     <PointSet name="solns">
       <Input>x1,x2</Input>
-      <Output>ans,ans2</Output>
+      <Output>ans</Output>
     </PointSet>
-    <PointSet name="solns2">
+    <PointSet name="solnsRestart">
       <Input>x1,x2</Input>
-      <Output>ans,ans2</Output>
+      <Output>ans</Output>
+    </PointSet>
+    <PointSet name="solnsFine">
+      <Input>x1,x2</Input>
+      <Output>ans</Output>
     </PointSet>
   </DataObjects>
 
   <OutStreams>
-    <Print name="SCdump1">
+    <Print name="coarse">
       <type>csv</type>
       <source>solns</source>
     </Print>
-    <Print name="SCdump2">
+    <Print name="restart">
       <type>csv</type>
-      <source>solns2</source>
+      <source>solnsRestart</source>
     </Print>
-    <Print name="SCdump3">
+    <Print name="fine">
       <type>csv</type>
-      <source>solns</source>
+      <source>solnsFine</source>
+    </Print>
+    <Print name="romRestart">
+      <type>xml</type>
+      <source>romRestart</source>
+      <what>all</what>
+    </Print>
+    <Print name="romFine">
+      <type>xml</type>
+      <source>romFine</source>
+      <what>all</what>
     </Print>
   </OutStreams>
 
