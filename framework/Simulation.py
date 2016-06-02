@@ -207,10 +207,11 @@ class MPISimulationMode(SimulationMode):
       #the batchsize is just the number of nodes of which there is one
       # per line in the nodefile divided by the numMPI (which is per run)
       # and the floor and int and max make sure that the numbers are reasonable
-      newBatchsize = max(int(math.floor(len(lines)/numMPI)),1)
-      if newBatchsize < oldBatchsize:
-        self.__simulation.runInfoDict['batchSize'] = newBatchsize
+      maxBatchsize = max(int(math.floor(len(lines)/numMPI)),1)
+      if maxBatchsize < oldBatchsize:
+        self.__simulation.runInfoDict['batchSize'] = maxBatchsize
         self.raiseAWarning("changing batchsize from "+str(oldBatchsize)+" to "+str(newBatchsize))
+      newBatchsize = self.__simulation.runInfoDict['batchSize']
       if newBatchsize > 1:
         #need to split node lines so that numMPI nodes are available per run
         workingDir = self.__simulation.runInfoDict['WorkingDir']
