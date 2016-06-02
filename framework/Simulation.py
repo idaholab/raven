@@ -208,7 +208,7 @@ class MPISimulationMode(SimulationMode):
       # per line in the nodefile divided by the numMPI (which is per run)
       # and the floor and int and max make sure that the numbers are reasonable
       newBatchsize = max(int(math.floor(len(lines)/numMPI)),1)
-      if newBatchsize != oldBatchsize:
+      if newBatchsize < oldBatchsize:
         self.__simulation.runInfoDict['batchSize'] = newBatchsize
         self.raiseAWarning("changing batchsize from "+str(oldBatchsize)+" to "+str(newBatchsize))
       if newBatchsize > 1:
