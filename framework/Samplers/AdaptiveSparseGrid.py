@@ -183,9 +183,6 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
       for t in self.targets:
         self.expImpact[t][pt] = 1.0 #dummy, just to help algorithm be consistent
 
-    #set up the already-existing solutions (and re-order the inputs appropriately)
-    self._updateExisting()
-
     #make the first sparse grid
     self.sparseGrid = self._makeSparseQuad(self.indexSet.active)
 
@@ -212,7 +209,7 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
     #if points all submitted but not all done, not ready for now.
     if (not self.batchDone) or (not skipJobHandlerCheck and not self.jobHandler.isFinished()):
       return False
-    if len(self.existing) < self.newSolutionSizeShouldBe:
+    if len(self.solns) < self.newSolutionSizeShouldBe:
       return False
     #if no points to check right now, search for points to sample
     #this should also mean the points for the poly-in-training are done
@@ -349,7 +346,7 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
     for pt in SG.points()[:]:
       self.pointsNeededToMakeROM.add(pt) #sets won't store redundancies
       #if pt isn't already in needed, and it hasn't already been solved, add it to the queue
-      if pt not in self.neededPoints and self.solns.getMatchingRealization(self._tupleToDict(pt)) is None:#not mathUtils.NDInArray(np.array(self.existing.keys()),pt,tol=self.restartTolerance)[0]:
+      if pt not in self.neededPoints and self.solns.getMatchingRealization(self._tupleToDict(pt)) is None:
           self.newSolutionSizeShouldBe+=1
           self.neededPoints.append(pt)
 

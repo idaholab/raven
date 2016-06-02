@@ -1295,7 +1295,7 @@ class Code(Model):
       exportDict['outputSpaceParams'] = out
     if output.type == 'HDF5':
       output.addGroupDataObjects({'group':self.name+str(prefix)},exportDict,False)
-    else:
+    else: #point set
       for key in exportDict['inputSpaceParams']:
         if key in output.getParaKeys('inputs'):
           output.updateInputValue(key,exportDict['inputSpaceParams'][key])
@@ -1304,6 +1304,7 @@ class Code(Model):
           output.updateOutputValue(key,exportDict['outputSpaceParams'][key])
       for key in exportDict['metadata']:
         output.updateMetadata(key,exportDict['metadata'][key])
+      output.numAdditionalLoadPoints += 1 #prevents consistency problems for entries from restart
 
 
 #

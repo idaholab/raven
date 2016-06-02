@@ -852,9 +852,8 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     #update self.exisitng for adaptive sobol sampler (this class)
     for i in range(len(self.solns)):
       existing = self.solns.getRealization(i)
-      inp = self.dictToTuple(existing['inputs'])
-      soln = self.dictToTuple(existing['outputs'],output=True)
-      allRealizations.append(self.getRealization(i))
+      inp = self._dictToTuple(existing['inputs'])
+      soln = self._dictToTuple(existing['outputs'],output=True)
       #if point already sorted, don't re-do work
       if inp not in self.submittedNotCollected: continue
       #check through neededPoints to find subset that needed this point
