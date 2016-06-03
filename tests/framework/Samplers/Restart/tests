@@ -1,31 +1,31 @@
 [Tests]
+ # Restart Within Run
+ # the XML files are checked within here to make sure the probabilities are re-weighted
  [./MC]
   type = 'RavenFramework'
   input = 'test_restart_MC.xml'
-  output = 'mc/coarse.xml mc/restart.xml mc/fine.xml'
+  UnorderedXml = 'mc/coarse.xml mc/restart.xml mc/fine.xml'
   csv = 'mc/coarse.csv mc/restart.csv mc/fine.csv'
  [../]
 
  [./StochPoly]
   type = 'RavenFramework'
   input = 'test_restart_stochpoly.xml'
-  output = 'sparsegrid/coarse.xml sparsegrid/fine.xml sparsegrid/restart.xml'
   csv = 'sparsegrid/fine.csv sparsegrid/coarse.csv sparsegrid/restart.csv'
-  UnorderedXml = 'sparsegrid/romFine.xml sparsegrid/romRestart.xml'
+  UnorderedXml = 'sparsegrid/romFine.xml sparsegrid/romRestart.xml sparsegrid/coarse.xml sparsegrid/fine.xml sparsegrid/restart.xml'
  [../]
 
  [./Sobol]
   type = 'RavenFramework'
   input = 'test_restart_sobol.xml'
-  output = 'sobol/coarse.xml sobol/fine.xml sobol/restart.xml'
   csv = 'sobol/fine.csv sobol/coarse.csv sobol/restart.csv'
-  UnorderedXml = 'sobol/romFine.xml sobol/romRestart.xml'
+  UnorderedXml = 'sobol/romFine.xml sobol/romRestart.xml sobol/coarse.xml sobol/fine.xml sobol/restart.xml'
  [../]
 
  [./Grid]
   type = 'RavenFramework'
   input = 'test_restart_Grid.xml'
-  output = 'grid/coarse.xml grid/restart.xml grid/fine.xml'
+  UnorderedXml = 'grid/coarse.xml grid/restart.xml grid/fine.xml'
   csv = 'grid/coarse.csv grid/restart.csv grid/fine.csv'
  [../]
 

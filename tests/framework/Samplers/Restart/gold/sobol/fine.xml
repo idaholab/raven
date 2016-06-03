@@ -1,4 +1,11 @@
-<data name="fine" type="Pointset"><input>x2,x1</input><output>ans</output><inputFilename>fine.csv</inputFilename><metadata><crowDist>array([ {u'x2': '{"xMin": 2.0, "type": "UniformDistribution", "xMax": 3.0}', u'x1': '{"xMin": 1.0, "type": "UniformDistribution", "xMax": 2.0}'},
+<data name="fine" type="Pointset"><input>x2,x1</input><output>ans</output><inputFilename>fine.csv</inputFilename><metadata><SamplerType>array([u'Sparse Grids for Sobol', u'Sparse Grids for Sobol',
+       u'Sparse Grids for Sobol', u'Sparse Grids for Sobol',
+       u'Sparse Grids for Sobol', u'Sparse Grids for Sobol',
+       u'Sparse Grids for Sobol', u'Sparse Grids for Sobol',
+       u'Sparse Grids for Sobol', u'Sparse Grids for Sobol',
+       u'Sparse Grids for Sobol', u'Sparse Grids for Sobol',
+       u'Sparse Grids for Sobol'], 
+      dtype='&lt;U22')</SamplerType><crowDist>array([ {u'x2': '{"xMin": 2.0, "type": "UniformDistribution", "xMax": 3.0}', u'x1': '{"xMin": 1.0, "type": "UniformDistribution", "xMax": 2.0}'},
        {u'x2': '{"xMin": 2.0, "type": "UniformDistribution", "xMax": 3.0}', u'x1': '{"xMin": 1.0, "type": "UniformDistribution", "xMax": 2.0}'},
        {u'x2': '{"xMin": 2.0, "type": "UniformDistribution", "xMax": 3.0}', u'x1': '{"xMin": 1.0, "type": "UniformDistribution", "xMax": 2.0}'},
        {u'x2': '{"xMin": 2.0, "type": "UniformDistribution", "xMax": 3.0}', u'x1': '{"xMin": 1.0, "type": "UniformDistribution", "xMax": 2.0}'},
@@ -28,5 +35,4 @@
        {u'x2': 1.0, u'x1': 1.0}, {u'x2': 1.0, u'x1': 1.0},
        {u'x2': 1.0, u'x1': 1.0}, {u'x2': 1.0, u'x1': 1.0},
        {u'x2': 1.0, u'x1': 1.0}, {u'x2': 1.0, u'x1': 1.0},
-       {u'x2': 1.0, u'x1': 1.0}], dtype=object)</SampledVarsPb><PointProbability>array([None, None, None, None, None, None, None, None, None, None, None,
-       None, None], dtype=object)</PointProbability></metadata></data>
+       {u'x2': 1.0, u'x1': 1.0}], dtype=object)</SampledVarsPb><PointProbability>array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])</PointProbability></metadata></data>
