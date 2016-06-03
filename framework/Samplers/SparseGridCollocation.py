@@ -189,11 +189,6 @@ class SparseGridCollocation(Grid):
       outFile.writelines(msg)
       outFile.close()
 
-    #if restart, figure out what runs we need; else, all of them
-    if self.restartData != None:
-      self.solns = self.restartData
-      self._updateExisting()
-
     self.limit=len(self.sparseGrid)
     self.raiseADebug('Size of Sparse Grid  :'+str(self.limit))
     self.raiseADebug('Finished sampler generation.')
@@ -275,72 +270,42 @@ class SparseGridCollocation(Grid):
       @ In, myInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
     """
-    found=False
-    while not found:
-      try: pt,weight = self.sparseGrid[self.counter-1]
-      except IndexError: raise utils.NoMoreSamplesNeeded
-      inExisting,_,_ = mathUtils.NDInArray(np.array(self.existing.keys()),pt,tol=self.restartTolerance)
-      if inExisting:
-        self.raiseADebug('Found pt',pt,'in restart.')
-        self.counter+=1
-        self.inputInfo['prefix'] = str(self.counter)
-        if self.counter==self.limit: raise utils.NoMoreSamplesNeeded
-        continue
-      else:
-        found=True
+    try: pt,weight = self.sparseGrid[self.counter-1]
+    except IndexError: raise utils.NoMoreSamplesNeeded
 
-        for v,varName in enumerate(self.sparseGrid.varNames):
-          # compute the SampledVarsPb for 1-D distribution
-          if self.variables2distributionsMapping[varName]['totDim'] == 1:
-            for key in varName.strip().split(','):
-              self.values[key] = pt[v]
-            self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(pt[v])
-            self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.inputInfo['SampledVarsPb'][varName]
-          # compute the SampledVarsPb for N-D distribution
-          # Assume only one N-D distribution is associated with sparse grid collocation method
-          elif self.variables2distributionsMapping[varName]['totDim'] > 1 and self.variables2distributionsMapping[varName]['reducedDim'] ==1:
-            dist = self.variables2distributionsMapping[varName]['name']
-            ndCoordinates = np.zeros(len(self.distributions2variablesMapping[dist]))
-            positionList = self.distributions2variablesIndexList[dist]
-            for varDict in self.distributions2variablesMapping[dist]:
-              var = utils.first(varDict.keys())
-              position = utils.first(varDict.values())
-              location = -1
-              for key in var.strip().split(','):
-                if key in self.sparseGrid.varNames:
-                  location = self.sparseGrid.varNames.index(key)
-                  break
-              if location > -1:
-                ndCoordinates[positionList.index(position)] = pt[location]
-              else:
-                self.raiseAnError(IOError,'The variables ' + var + ' listed in sparse grid collocation sampler, but not used in the ROM!' )
-              for key in var.strip().split(','):
-                self.values[key] = pt[location]
-            self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(ndCoordinates)
-            self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")] = self.inputInfo['SampledVarsPb'][varName]
+    for v,varName in enumerate(self.sparseGrid.varNames):
+      # compute the SampledVarsPb for 1-D distribution
+      if self.variables2distributionsMapping[varName]['totDim'] == 1:
+        for key in varName.strip().split(','):
+          self.values[key] = pt[v]
+        self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(pt[v])
+        self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.inputInfo['SampledVarsPb'][varName]
+      # compute the SampledVarsPb for N-D distribution
+      # Assume only one N-D distribution is associated with sparse grid collocation method
+      elif self.variables2distributionsMapping[varName]['totDim'] > 1 and self.variables2distributionsMapping[varName]['reducedDim'] ==1:
+        dist = self.variables2distributionsMapping[varName]['name']
+        ndCoordinates = np.zeros(len(self.distributions2variablesMapping[dist]))
+        positionList = self.distributions2variablesIndexList[dist]
+        for varDict in self.distributions2variablesMapping[dist]:
+          var = utils.first(varDict.keys())
+          position = utils.first(varDict.values())
+          location = -1
+          for key in var.strip().split(','):
+            if key in self.sparseGrid.varNames:
+              location = self.sparseGrid.varNames.index(key)
+              break
+          if location > -1:
+            ndCoordinates[positionList.index(position)] = pt[location]
+          else:
+            self.raiseAnError(IOError,'The variables ' + var + ' listed in sparse grid collocation sampler, but not used in the ROM!' )
+          for key in var.strip().split(','):
+            self.values[key] = pt[location]
+        self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(ndCoordinates)
+        self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")] = self.inputInfo['SampledVarsPb'][varName]
 
-        self.inputInfo['ProbabilityWeight'] = weight
-        self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
-        self.inputInfo['SamplerType'] = 'Sparse Grid Collocation'
-
-  def _updateExisting(self):
-    """
-      Goes through the stores solutions PointSet and pulls out solutions, ordering them
-      by the order the features we're evaluating.
-      @ In, None
-      @ Out, None
-    """
-    #TODO: only append new points instead of resorting everyone
-    if not self.solns.isItEmpty():
-      inps = self.solns.getInpParametersValues()
-      outs = self.solns.getOutParametersValues()
-      #make reorder map
-      reordmap=list(inps.keys().index(i) for i in self.features)
-      solns = list(v for v in inps.values())
-      ordsolns = [solns[i] for i in reordmap]
-      existinginps = zip(*ordsolns)
-      outvals = zip(*list(v for v in outs.values()))
-      self.existing = dict(zip(existinginps,outvals))
+    self.inputInfo['ProbabilityWeight'] = weight
+    self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
+    self.inputInfo['SamplerType'] = 'Sparse Grid Collocation'
 
   def readFromROM(self):
     """

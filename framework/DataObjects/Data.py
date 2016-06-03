@@ -26,6 +26,7 @@ from Csv_loader import CsvLoader as ld
 import Files
 import TreeStructure as TS
 import utils
+import mathUtils
 #Internal Modules End--------------------------------------------------------------------------------
 
 # Custom exceptions
@@ -862,4 +863,56 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
         if 'parentID' in options.keys(): parentID = options['parentID']
       if not parentID: self.raiseAnError(ConstructError,'the parentID must be provided if a new node needs to be appended')
       self.retrieveNodeInTreeMode(parentID).appendBranch(tsnode)
+
+
+  def getMatchingRealization(self,requested,tol=1e-15):
+    """
+      Finds first appropriate match within tolerance and returns it.
+      @ In, requested, dict, {inName:inValue, inName:inValue}
+      @ In, tol, float, relative tolerance with which to match
+      @ Out, realization, dict, {'inputs':{inpName:value, inpName:value},'outputs':{outName:value, outName:value}} or None if not found
+    """
+    #if there's no entries, just return
+    if len(self) < 1:
+      return
+    #check input spaces match
+    #FIXME I don't like this fix.  Because of the Transformed space, our internal space includes latent variables, so we check subset.
+    #  This is potentially flawed, though, in case you're taking points from a higher-dimension space!
+    if not set(requested.keys()).issubset(set(self.getParaKeys('inputs'))):
+      self.raiseAWarning('Requested Space :',requested.keys())
+      self.raiseAWarning('DataObject Space:',self.getParaKeys('inputs'))
+      self.raiseADebug('Requested realization input space does not match DataObject input space!  Assuming not found...')
+      return
+    inpVals = self.getParametersValues('inputs')
+    outVals = self.getParametersValues('outputs')
+    #prepare list of tuples to search from
+    have = []
+    for i in range(len(inpVals.values()[0])):
+      have.append(tuple(inpVals[var][i] for var in requested.keys()))
+    have = np.array(have)
+    found,idx,match = mathUtils.NDInArray(have,tuple(val for val in requested.values()),tol=tol)
+    if not found:
+      return
+    realization = self.getRealization(idx)
+    return realization
+
+  def getRealization(self,index):
+    """
+      Returns the indexed entry of inputs and outputs
+      @ In, index, int, index of realization to return
+      @ Out, realization, dict, {'inputs':{inName:value}, 'outputs':{outName:value}}
+    """
+    if index >= len(self):
+      self.raiseAnError(IndexError,'Requested entry %i but only entries 0 through %i exist!' %(index,len(self)-1))
+    realization = {}
+    inps = self.getParaKeys('inputs')
+    outs = self.getParaKeys('outputs')
+    allInVals = self.getParametersValues('inputs')
+    allOutVals = self.getParametersValues('outputs')
+    inVals = list(allInVals[var][index] for var in inps)
+    outVals = list(allOutVals[var][index] for var in outs)
+    realization['inputs'] = dict((k,v) for (k,v) in zip(inps,inVals))
+    realization['outputs'] = dict((k,v) for (k,v) in zip(outs,outVals))
+    return realization
+
 
