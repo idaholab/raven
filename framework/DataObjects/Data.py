@@ -410,6 +410,10 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
         if value.startswith('array('):
           isArray=True
           value=value.split('dtype')[0].lstrip('ary(').rstrip('),\n ')
+          #test against numpy ellipses error
+          if '...' in value:
+            self.raiseAWarning('Failed to import metadata "%s" due to numpy truncation ellipse!  Skipping...' %child.tag)
+            continue
         else: isArray = False
         try: value = ast.literal_eval(value)
         except ValueError as e:
