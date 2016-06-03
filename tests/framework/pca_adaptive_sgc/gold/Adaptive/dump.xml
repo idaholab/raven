@@ -19,14 +19,17 @@
       <variables>y2
         <partial_variance>1.1025</partial_variance>
         <Sobol_index>0.669602186456</Sobol_index>
+        <Sobol_total_index>0.860066808381</Sobol_total_index>
       </variables>
       <variables>y1,y2
         <partial_variance>0.3136</partial_variance>
         <Sobol_index>0.190464621925</Sobol_index>
+        <Sobol_total_index>0.190464621925</Sobol_total_index>
       </variables>
       <variables>y1
         <partial_variance>0.2304</partial_variance>
         <Sobol_index>0.139933191619</Sobol_index>
+        <Sobol_total_index>0.330397813544</Sobol_total_index>
       </variables>
     </indices>
   </ans2>
@@ -50,14 +53,17 @@
       <variables>y2
         <partial_variance>2.798929</partial_variance>
         <Sobol_index>0.493529555835</Sobol_index>
+        <Sobol_total_index>0.785494870707</Sobol_total_index>
       </variables>
       <variables>y1,y2
         <partial_variance>1.655808</partial_variance>
         <Sobol_index>0.291965314872</Sobol_index>
+        <Sobol_total_index>0.291965314872</Sobol_total_index>
       </variables>
       <variables>y1
         <partial_variance>1.216512</partial_variance>
         <Sobol_index>0.214505129293</Sobol_index>
+        <Sobol_total_index>0.506470444165</Sobol_total_index>
       </variables>
     </indices>
   </ans>

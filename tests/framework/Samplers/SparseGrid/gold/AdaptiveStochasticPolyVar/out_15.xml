@@ -15,17 +15,20 @@
     </polyCoeffs>
     <indices>
       <tot_variance>0.777777777778</tot_variance>
-      <variables>(u'x1',)
+      <variables>x1
         <partial_variance>0.333333333333</partial_variance>
         <Sobol_index>0.428571428571</Sobol_index>
+        <Sobol_total_index>0.571428571429</Sobol_total_index>
       </variables>
-      <variables>(u'x2',)
+      <variables>x2
         <partial_variance>0.333333333333</partial_variance>
         <Sobol_index>0.428571428571</Sobol_index>
+        <Sobol_total_index>0.571428571429</Sobol_total_index>
       </variables>
-      <variables>(u'x1', u'x2')
+      <variables>x1,x2
         <partial_variance>0.111111111111</partial_variance>
         <Sobol_index>0.142857142857</Sobol_index>
+        <Sobol_total_index>0.142857142857</Sobol_total_index>
       </variables>
     </indices>
   </ans2>
@@ -45,17 +48,20 @@
     </polyCoeffs>
     <indices>
       <tot_variance>1.15555555556</tot_variance>
-      <variables>(u'x2',)
+      <variables>x2
         <partial_variance>0.592592592593</partial_variance>
         <Sobol_index>0.512820512821</Sobol_index>
+        <Sobol_total_index>0.634615384615</Sobol_total_index>
       </variables>
-      <variables>(u'x1',)
+      <variables>x1
         <partial_variance>0.422222222222</partial_variance>
         <Sobol_index>0.365384615385</Sobol_index>
+        <Sobol_total_index>0.487179487179</Sobol_total_index>
       </variables>
-      <variables>(u'x1', u'x2')
+      <variables>x1,x2
         <partial_variance>0.140740740741</partial_variance>
         <Sobol_index>0.121794871795</Sobol_index>
+        <Sobol_total_index>0.121794871795</Sobol_total_index>
       </variables>
     </indices>
   </ans>
