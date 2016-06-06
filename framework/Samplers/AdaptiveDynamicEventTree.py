@@ -549,7 +549,7 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
       only the code interface possesses the dictionary for reading the variable definition syntax
       @ In, model, model instance, it is the instance of a RAVEN model
       @ In, oldInput, list, a list of the original needed inputs for the model (e.g. list of files, etc. etc)
-      @ Out, generateInput, list, list containing the new inputs -in reality it is the model that return this the Sampler generate the value to be placed in the input the model
+      @ Out, generateInput, tuple(0,list), list containing the new inputs -in reality it is the model that return this the Sampler generate the value to be placed in the input the model
     """
     return DynamicEventTree.generateInput(self, model, oldInput)
 
