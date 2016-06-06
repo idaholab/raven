@@ -30,7 +30,16 @@ import utils
 import mathUtils
 import TreeStructure
 import Files
+import InputData
 #Internal Modules End--------------------------------------------------------------------------------
+
+class ModelInput(InputData.ParameterInput):
+  """
+    Class for reading in model input
+  """
+
+ModelInput.createClass("ModelInput")
+ModelInput.addParam("subType", InputData.StringType, True)
 
 class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
   """
@@ -179,10 +188,23 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     except KeyError:
       self.raiseADebug(" Failed in Node: "+str(xmlNode),verbostiy='silent')
       self.raiseAnError(IOError,'missed subType for the model '+self.name)
-
+    #TODO can this be removed?
     del(xmlNode.attrib['subType'])
     # read local information
     self.localInputAndChecks(xmlNode)
+
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the common parts of the model parameter input.
+      @ In, paramInput, ParameterInput, the already parsed input.
+      @ Out, None
+    """
+    if "subType" in paramInput.parameterValues:
+      self.subType = paraminput.parameterValues["subType"]
+    else:
+      self.raiseADebug(" Failed in Node: "+str(xmlNode),verbostiy='silent')
+      self.raiseAnError(IOError,'missed subType for the model '+self.name)
+
 
   def localInputAndChecks(self,xmlNode):
     """
@@ -993,6 +1015,49 @@ class ExternalModel(Dummy):
         self.raiseAnError(RuntimeError,'type of variable '+ key + ' is ' + str(type(outcomes[key]))+' and mismatches with respect to the input ones (' + instanciatedSelf.modelVariableType[key] +')!!!')
     Dummy.collectOutput(self, finishedJob, output)
 #
+
+
+class CodeInput(InputData.ParameterInput):
+  """
+    Class for reading in code block
+  """
+
+CodeInput.createClass("Code", False, baseNode=ModelInput)
+
+ExecutableInput = InputData.parameterInputFactory("executable", contentType=InputData.StringType)
+CodeInput.addSub(ExecutableInput)
+
+PreexecInput = InputData.parameterInputFactory("preexec", contentType=InputData.StringType)
+CodeInput.addSub(PreexecInput)
+
+AliasInput = InputData.parameterInputFactory("alias", contentType=InputData.StringType)
+AliasInput.addParam("variable", InputData.StringType, True)
+CodeInput.addSub(AliasInput)
+
+class ClargsTypeInput(InputData.EnumBaseType):
+  """
+    input for the Clargs type attribute
+  """
+
+ClargsTypeInput.createClass("clargsType","clargsTypeType",["text","input","output","prepend","postpend"])
+ClargsInput = InputData.parameterInputFactory("clargs")
+ClargsInput.addParam("type", ClargsTypeInput, True)
+ClargsInput.addParam("arg", InputData.StringType, False)
+ClargsInput.addParam("extension", InputData.StringType, False)
+CodeInput.addSub(ClargsInput)
+
+class FileargsTypeInput(InputData.EnumBaseType):
+  """
+    input for the Fileargs type attribute
+  """
+
+FileargsTypeInput.createClass("fileargsType", "fileargsTypeType",["input","output","moosevpp"])
+FileargsInput = InputData.parameterInputFactory("fileargs")
+FileargsInput.addParam("type", FileargsTypeInput, True)
+FileargsInput.addParam("arg", InputData.StringType, False)
+FileargsInput.addParam("extension", InputData.StringType, False)
+CodeInput.addSub(FileargsInput)
+
 #
 #
 class Code(Model):
@@ -1043,21 +1108,25 @@ class Code(Model):
       @ Out, None
     """
     Model._readMoreXML(self, xmlNode)
+    paramInput = CodeInput()
+    paramInput.parseNode(xmlNode)
     self.clargs={'text':'', 'input':{'noarg':[]}, 'pre':'', 'post':''} #output:''
     self.fargs={'input':{}, 'output':'', 'moosevpp':''}
-    for child in xmlNode:
-      if child.tag =='executable':
-        self.executable = str(child.text)
-      if child.tag =='preexec':
-        self.preExec = str(child.text)
-      elif child.tag =='alias':
+    for child in paramInput.subparts:
+      if child.getName() =='executable':
+        self.executable = child.value
+      if child.getName() =='preexec':
+        self.preExec = child.value
+      elif child.getName() =='alias':
         # the input would be <alias variable='internal_variable_name'>Material|Fuel|thermal_conductivity</alias>
-        if 'variable' in child.attrib.keys(): self.alias[child.attrib['variable']] = child.text
-        else: self.raiseAnError(IOError,'not found the attribute variable in the definition of one of the alias for code model '+str(self.name))
-      elif child.tag == 'clargs':
-        argtype = child.attrib['type']      if 'type'      in child.attrib.keys() else None
-        arg     = child.attrib['arg']       if 'arg'       in child.attrib.keys() else None
-        ext     = child.attrib['extension'] if 'extension' in child.attrib.keys() else None
+        if 'variable' in child.parameterValues:
+          self.alias[child.parameterValues['variable']] = child.value
+        else:
+          self.raiseAnError(IOError,'the attribute variable was not found in the definition of one of the alias for code model '+str(self.name))
+      elif child.getName() == 'clargs':
+        argtype = child.parameterValues['type']      if 'type'      in child.parameterValues else None
+        arg     = child.parameterValues['arg']       if 'arg'       in child.parameterValues else None
+        ext     = child.parameterValues['extension'] if 'extension' in child.parameterValues else None
         if argtype == None: self.raiseAnError(IOError,'"type" for clarg not specified!')
         elif argtype == 'text':
           if ext != None: self.raiseAWarning('"text" nodes only accept "type" and "arg" attributes! Ignoring "extension"...')
@@ -1081,10 +1150,10 @@ class Code(Model):
           if arg == None: self.raiseAnError(IOError,'"arg" for clarg '+argtype+' not specified! Enter text to be used.')
           self.clargs['post'] = arg
         else: self.raiseAnError(IOError,'clarg type '+argtype+' not recognized!')
-      elif child.tag == 'fileargs':
-        argtype = child.attrib['type']      if 'type'      in child.attrib.keys() else None
-        arg     = child.attrib['arg']       if 'arg'       in child.attrib.keys() else None
-        ext     = child.attrib['extension'] if 'extension' in child.attrib.keys() else None
+      elif child.getName() == 'fileargs':
+        argtype = child.parameterValues['type']      if 'type'      in child.parameterValues else None
+        arg     = child.parameterValues['arg']       if 'arg'       in child.parameterValues else None
+        ext     = child.parameterValues['extension'] if 'extension' in child.parameterValues else None
         if argtype == None: self.raiseAnError(IOError,'"type" for filearg not specified!')
         elif argtype == 'input':
           if arg == None: self.raiseAnError(IOError,'filearg type "input" requires the template variable be specified in "arg" attribute!')
@@ -1112,7 +1181,7 @@ class Code(Model):
         self.preExec = abspath
       else: self.raiseAMessage('not found preexec '+self.preExec,'ExceptedError')
     self.code = Code.CodeInterfaces.returnCodeInterface(self.subType,self)
-    self.code.readMoreXML(xmlNode)
+    self.code.readMoreXML(xmlNode) #TODO figure out how to handle this with InputData
     self.code.setInputExtension(list(a.strip('.') for b in (c for c in self.clargs['input'].values()) for a in b))
     self.code.addInputExtension(list(a.strip('.') for b in (c for c in self.fargs ['input'].values()) for a in b))
     self.code.addDefaultExtension()
