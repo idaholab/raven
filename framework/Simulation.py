@@ -184,7 +184,8 @@ class MPISimulationMode(SimulationMode):
     self.__runQsub = False
     self.__noSplitNode = False #If true, don't split mpi processes across nodes
     self.__limitNode = False #If true, fiddle with max on Node
-    self.__maxOnNode = None #Used with __noSplitNode.
+    self.__maxOnNode = None #Used with __noSplitNode and __limitNode to limit number on a node
+    self.__noOverlap = False #Used with __limitNode to prevent multiple batches from being on one node
     # If (__noSplitNode or __limitNode) and  __maxOnNode is not None,
     # don't put more than that on on single shared memory node
     self.printTag = 'MPI SIMULATION MODE'
@@ -231,6 +232,8 @@ class MPISimulationMode(SimulationMode):
 
           currentNode = ""
           countOnNode = 0
+          nodeUsed = False
+
           if self.__noSplitNode:
             groups = []
           else:
@@ -241,6 +244,7 @@ class MPISimulationMode(SimulationMode):
             if node != currentNode:
               currentNode = node
               countOnNode = 0
+              nodeUsed = False
               if self.__noSplitNode:
                 #When switching node, make new group
                 groups.append([])
@@ -248,7 +252,9 @@ class MPISimulationMode(SimulationMode):
               countOnNode += 1
               if len(groups[-1]) >= numMPI:
                 groups.append([])
-              groups[-1].append(node)
+                nodeUsed = True
+              if not self.__noOverlap or not nodeUsed:
+                groups[-1].append(node)
 
           fullGroupCount = 0
           for group in groups:
@@ -332,6 +338,8 @@ class MPISimulationMode(SimulationMode):
         self.__maxOnNode = child.attrib.get("maxOnNode",None)
         if self.__maxOnNode is not None:
           self.__maxOnNode = int(self.__maxOnNode)
+        if "noOverlap" in child.attrib:
+          self.__noOverlap = True
       elif child.tag.lower() == "limitnode":
         self.__limitNode = True
         self.__maxOnNode = child.attrib.get("maxOnNode",None)
@@ -339,6 +347,8 @@ class MPISimulationMode(SimulationMode):
           self.__maxOnNode = int(self.__maxOnNode)
         else:
           self.raiseAnError(IOError, "maxOnNode must be specified with LimitNode")
+        if "noOverlap" in child.attrib:
+          self.__noOverlap = True
       else:
         self.raiseADebug("We should do something with child "+str(child))
 #
