@@ -347,7 +347,7 @@ class MPISimulationMode(SimulationMode):
           self.__maxOnNode = int(self.__maxOnNode)
         else:
           self.raiseAnError(IOError, "maxOnNode must be specified with LimitNode")
-        if "noOverlap" in child.attrib:
+        if "noOverlap" in child.attrib and child.attrib["noOverlap"].lower() in utils.stringsThatMeanTrue():
           self.__noOverlap = True
       else:
         self.raiseADebug("We should do something with child "+str(child))
