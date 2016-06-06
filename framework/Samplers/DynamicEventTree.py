@@ -572,13 +572,11 @@ class DynamicEventTree(Grid):
       only the code interface possesses the dictionary for reading the variable definition syntax
       @ In, model, model instance, it is the instance of a RAVEN model
       @ In, oldInput, list, a list of the original needed inputs for the model (e.g. list of files, etc. etc)
-      @ Out, generateInput, (int,list), list containing the new inputs -in reality it is the model that return this the Sampler generate the value to be placed in the input the model
+      @ Out, generateInput, (0,list), list containing the new inputs -in reality it is the model that return this the Sampler generate the value to be placed in the input the model
     """
-    found,toReturn = self.localGenerateInput(model,oldInput)
-    #if found == 1, it means a restart was found, which is not currently implemented for DET samplers.
-    if found != 0:
-      self.raiseAnError(RuntimeError,'Return code for generateInput was not recognized:',found)
-    return found,toReturn #self.localGenerateInput(model, oldInput)
+    #NB: if someday the DET handles restarts as other samplers do in generateInput, the return code 1 indicates the result
+    #  is stored in a restart data object, while 0 indicates a new run has been found.
+    return 0, self.localGenerateInput(model, oldInput)
 
   def localGenerateInput(self,model,myInput):
     """
