@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="silent">
+<Simulation verbosity="debug">
     <RunInfo>
         <WorkingDir>DirichletProcessGMM</WorkingDir>
                 <Sequence>readIn,pp1,writeOut</Sequence>
@@ -19,6 +19,8 @@
                 <n_iter>10000</n_iter>
                 <init_params>wc</init_params>
             </KDD>
+            <timeID>time</timeID>
+
                         <DataObject    class = 'DataObjects' type = 'History'>ppData</DataObject>
         </PostProcessor>
     </Models>
@@ -36,12 +38,12 @@
                         <Output   class = 'OutStreams'  type = 'Print'         >dummy</Output>
                 </PostProcess>
                 <IOStep name='writeOut' pauseAtEnd = 'True'>
-                        <Input   class = 'DataObjects'       type = 'HistorySet'      >mData</Input>
-                        <Input   class = 'DataObjects'       type = 'History'             >ppData</Input>
-                        <Output   class = 'OutStreams'  type = 'Plot'          >plotRawData</Output>
-                        <Output   class = 'OutStreams'  type = 'Plot'          >plotPPDataLabel</Output>
-                        <Output   class = 'OutStreams'  type = 'Plot'          >plotPPDataCentroid</Output>
-                        <Output   class = 'OutStreams'  type = 'Print'         >centroid</Output>
+                  <Input class = 'DataObjects' type = 'HistorySet'>mData</Input>
+                  <Input class = 'DataObjects' type = 'History'>ppData</Input>
+                  <Output class = 'OutStreams' type = 'Plot'>plotRawData</Output>
+                  <Output class = 'OutStreams' type = 'Plot'>plotPPDataLabel</Output>
+                  <Output class = 'OutStreams' type = 'Plot'>plotPPDataCentroid</Output>
+                  <Output class = 'OutStreams' type = 'Print'>centroid</Output>
                 </IOStep>
     </Steps>
     <OutStreams>
@@ -58,7 +60,7 @@
                                 <gridSpace>2 1</gridSpace>
                                 <plot>
                                         <type>line</type>
-                                        <x>mData|Output|Time</x>
+                                        <x>mData|Output|time</x>
                                         <y>mData|Output|x</y>
                                         <interpPointsX>300</interpPointsX>
                                         <gridLocation>
@@ -70,7 +72,7 @@
                                 </plot>
                                 <plot>
                                         <type>line</type>
-                                        <x>mData|Output|Time</x>
+                                        <x>mData|Output|time</x>
                                         <y>mData|Output|y</y>
                                         <interpPointsX>300</interpPointsX>
                                         <gridLocation>
@@ -89,7 +91,7 @@
                         <plotSettings>
                                 <plot>
                                         <type>line</type>
-                                        <x>mData|Output|Time</x>
+                                        <x>mData|Output|time</x>
                                         <y>mData|Output|DirichletProcessGMM1Labels</y>
                                         <interpPointsX>300</interpPointsX>
                                 </plot>
@@ -183,11 +185,11 @@
     <DataObjects>
       <History name='ppData'>
         <Input>n</Input>
-        <Output>Time</Output>
+        <Output>time</Output>
       </History>
         <HistorySet name="mData">
             <Input>n</Input>
-            <Output>Time,x,y</Output>
+            <Output>time,x,y</Output>
         </HistorySet>
     </DataObjects>
 </Simulation>

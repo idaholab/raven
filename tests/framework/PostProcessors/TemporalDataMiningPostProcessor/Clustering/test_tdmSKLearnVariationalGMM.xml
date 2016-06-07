@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="silent">
+<Simulation verbosity="debug">
     <RunInfo>
         <WorkingDir>VariationalGMM</WorkingDir>
                 <Sequence>readIn,pp1,writeOut</Sequence>
@@ -11,14 +11,16 @@
     <Models>
         <PostProcessor name='VBGMM1' subType='DataMining'>
             <KDD lib='temporalSciKitLearn'>
-                                <SKLtype>mixture|VBGMM</SKLtype>
-                <Features>x,y</Features>
-                <covariance_type>diag</covariance_type>
-                <random_state>0</random_state>
-                <n_components>3</n_components>
-                <n_iter>10000</n_iter>
-                <alpha>1</alpha>
+              <SKLtype>mixture|VBGMM</SKLtype>
+              <Features>x,y</Features>
+              <covariance_type>diag</covariance_type>
+              <random_state>0</random_state>
+              <n_components>3</n_components>
+              <n_iter>10000</n_iter>
+              <alpha>1</alpha>
             </KDD>
+            <timeID>time</timeID>
+
                         <DataObject    class = 'DataObjects' type = 'History'>ppData</DataObject>
         </PostProcessor>
     </Models>
@@ -58,26 +60,26 @@
                                 <gridSpace>2 1</gridSpace>
                                 <plot>
                                         <type>line</type>
-                                        <x>mData|Output|Time</x>
+                                        <x>mData|Output|time</x>
                                         <y>mData|Output|x</y>
                                         <interpPointsX>300</interpPointsX>
                                         <gridLocation>
                                                 <x>0</x>
                                                 <y>0</y>
                                         </gridLocation>
-                                        <xlabel>Time</xlabel>
+                                        <xlabel>time</xlabel>
                                         <ylabel>x</ylabel>
                                 </plot>
                                 <plot>
                                         <type>line</type>
-                                        <x>mData|Output|Time</x>
+                                        <x>mData|Output|time</x>
                                         <y>mData|Output|y</y>
                                         <interpPointsX>300</interpPointsX>
                                         <gridLocation>
                                                 <x>1</x>
                                                 <y>0</y>
                                         </gridLocation>
-                                        <xlabel>Time</xlabel>
+                                        <xlabel>time</xlabel>
                                         <ylabel>y</ylabel>
                                 </plot>
                         </plotSettings>
@@ -89,7 +91,7 @@
                         <plotSettings>
                                 <plot>
                                         <type>line</type>
-                                        <x>mData|Output|Time</x>
+                                        <x>mData|Output|time</x>
                                         <y>mData|Output|VBGMM1Labels</y>
                                         <interpPointsX>300</interpPointsX>
                                 </plot>
@@ -110,7 +112,7 @@
                                                 <x>0</x>
                                                 <y>0</y>
                                         </gridLocation>
-                                        <xlabel>Time</xlabel>
+                                        <xlabel>time</xlabel>
                                         <ylabel>x</ylabel>
                                 </plot>
                                 <plot>
@@ -122,7 +124,7 @@
                                                 <x>0</x>
                                                 <y>0</y>
                                         </gridLocation>
-                                        <xlabel>Time</xlabel>
+                                        <xlabel>time</xlabel>
                                         <ylabel>x</ylabel>
                                 </plot>
                                 <plot>
@@ -134,7 +136,7 @@
                                                 <x>0</x>
                                                 <y>0</y>
                                         </gridLocation>
-                                        <xlabel>Time</xlabel>
+                                        <xlabel>time</xlabel>
                                         <ylabel>x</ylabel>
                                 </plot>
                                 <plot>
@@ -146,7 +148,7 @@
                                                 <x>1</x>
                                                 <y>0</y>
                                         </gridLocation>
-                                        <xlabel>Time</xlabel>
+                                        <xlabel>time</xlabel>
                                         <ylabel>y</ylabel>
                                 </plot>
                                 <plot>
@@ -158,7 +160,7 @@
                                                 <x>1</x>
                                                 <y>0</y>
                                         </gridLocation>
-                                        <xlabel>Time</xlabel>
+                                        <xlabel>time</xlabel>
                                         <ylabel>y</ylabel>
                                 </plot>
                                 <plot>
@@ -170,7 +172,7 @@
                                                 <x>1</x>
                                                 <y>0</y>
                                         </gridLocation>
-                                        <xlabel>Time</xlabel>
+                                        <xlabel>time</xlabel>
                                         <ylabel>y</ylabel>
                                 </plot>
                         </plotSettings>
@@ -183,11 +185,11 @@
     <DataObjects>
       <History name='ppData'>
         <Input>n</Input>
-        <Output>Time</Output>
+        <Output>time</Output>
       </History>
         <HistorySet name="mData">
             <Input>n</Input>
-            <Output>Time,x,y</Output>
+            <Output>time,x,y</Output>
         </HistorySet>
     </DataObjects>
 </Simulation>
