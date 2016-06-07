@@ -19,6 +19,7 @@ Currently, the following types are available in RAVEN:
   \item \textbf{LimitSurfaceIntegral}
   \item \textbf{External}
   \item \textbf{TopologicalDecomposition}
+  \item \textbf{RavenOutput}
   \item \textbf{DataMining}
   %\item \textbf{PrintCSV}
   %\item \textbf{LoadCsvIntoInternalObject}
@@ -976,3 +977,89 @@ independent of the \xmlAttr{subType} specified (min, max, avg and value case):
 %%%%%%  EnsembleModel  Model   %%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
+
+\subsubsection{RavenOut}
+\label{RavenOut}
+The \textbf{RavenOut} post-processor is specifically used 
+to gather data from several XML output files produced by RAVEN.
+%
+\ppType{RavenOut}{RavenOut}
+%
+\begin{itemize}
+  \item \xmlNode{File}, \xmlDesc{XML Node, required field}
+  %
+  For each file to be read by this postprocessor, an entry in the \xmlNode{Files} node must be added, and a
+  \xmlNode{File} node must be added to the postprocessor input block.  The \xmlNode{File} requires two
+  identifying attributes:
+  \begin{itemize}
+    \item \xmlAttr{name}, \xmlDesc{string, required field}, the RAVEN-assigned name of the file,
+    \item \xmlAttr{ID}, \xmlDesc{float, required field}, the floating point ID that will be unique to this
+      file.  This will appear as an entry in the output \xmlNode{DataObject} and the corresponding column are
+      the values extracted from this file.
+  \end{itemize}
+  Each value that needs to be extracted from the file needs to be specified by one of the following
+  \xmlNode{output} nodes within the \xmlNode{File} node:
+  \begin{itemize}
+    \item \xmlNode{output}, \xmlDesc{|-separated string, required field},
+           the specification of the output to extract from the file.  The text of this node is a path
+           separated by pipe characters (``|''), starting under the root; this means the root node should not
+           be included in the path. See the example.
+           %
+           The \xmlNode{output} node requires the following attribute:
+      \begin{itemize}
+        \item \xmlAttr{name}, \xmlDesc{string, required field}, specifies the entry in the Data Object that
+          this value should be stored under.
+      \end{itemize}
+
+  \end{itemize}
+  %
+\end{itemize}
+\textbf{Example:}
+Using an example, let us have two input files, named \emph{in1.xml} and \emph{in2.xml}.  They appear as
+follows.  Note that the name of the variables we want changes slightly between the XML; this is fine.
+
+\textbf{\emph{in1.xml}}
+\begin{lstlisting}[style=XML]
+<BasicStatistics>
+  <ans>
+    <val1>6</val1>
+    <val2>7</val2>
+  </ans>
+</BasicStatistics>
+\end{lstlisting}
+\textbf{\emph{in2.xml}}
+\begin{lstlisting}[style=XML]
+<ROM>
+  <ans>
+    <first>6.1</first>
+    <second>7.1</second>
+  </ans>
+</BasicStatistics>
+\end{lstlisting}
+The RAVEN input to extract this information would appear as follows:
+\begin{lstlisting}[style=XML]
+<Simulation>
+ ...
+ <Files>
+   <Input name='in1'>inp1.xml</Input>
+   <Input name='in2'>inp2.xml</Input>
+ </Files>
+ ...
+ <Models>
+   ...
+   <PostProcessor name='pp' subType='RavenOut'>
+     <File name='in1' ID='1'>
+       <output name='first'>ans|val1</output>
+       <output name='second'>ans|val2</output>
+     </File>
+     <File name='in2' ID='2'>
+       <output name='first'>ans|first</output>
+       <output name='second'>ans|second</output>
+     </File>
+   </PostProcessor>
+   ...
+ </Models>
+ ...
+</Simulation>
+\end{lstlisting}
+

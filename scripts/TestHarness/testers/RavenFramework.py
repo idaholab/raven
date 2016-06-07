@@ -75,6 +75,10 @@ class RavenFramework(Tester):
     if len(too_old) > 0:
       return (False,'skipped (Old version python modules: '+" ".join(too_old)+
               " PYTHONPATH="+os.environ.get("PYTHONPATH","")+')')
+    if len(self.specs['skip_if_env']) > 0:
+      env_var = self.specs['skip_if_env']
+      if env_var in os.environ:
+        return (False,'skipped (found environmental variable "'+env_var+'")')
     for lib in self.required_libraries:
       missing, too_old = RavenUtils.checkForMissingModule(lib,'','')
       if len(missing) > 0:
@@ -102,10 +106,6 @@ class RavenFramework(Tester):
         return (False,'skipped (Failing executable: "'+self.required_executable+'")')
     except:
       return (False,'skipped (Error when trying executable: "'+self.required_executable+'")')
-    if len(self.specs['skip_if_env']) > 0:
-      env_var = self.specs['skip_if_env']
-      if env_var in os.environ:
-        return (False,'skipped (found environmental variable "'+env_var+'")')
     return (True, '')
 
   def prepare(self):

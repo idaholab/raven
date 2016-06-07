@@ -260,7 +260,7 @@ When Printing this ROM via a Print OutStream (see \ref{sec:printing}), the avail
   \item \xmlString{mean}, the mean value of the ROM output within the input space it was trained,
   \item \xmlString{variance}, the variance of the ROM output within the input space it was trained,
   \item \xmlString{samples}, the number of distinct model runs required to construct the ROM,
-  \item \xmlString{indices}, the Sobol sensitivity indices (in percent) and partial variances,
+  \item \xmlString{indices}, the Sobol sensitivity indices (in percent), Sobol total indices, and partial variances,
   \item \xmlString{polyCoeffs}, the polynomial expansion coefficients (PCE moments) of the ROM.  These are
     listed by each polynomial combination, with the polynomial order tags listed in the order of the variables
     shown in the XML print.
@@ -337,7 +337,7 @@ When Printing this ROM via an OutStream (see \ref{sec:printing}), the available 
   \item \xmlString{variance}, the ANOVA-calculated variance of the ROM output within the input space it
     was trained.
   \item \xmlString{samples}, the number of distinct model runs required to construct the ROM,
-  \item \xmlString{indices}, the Sobol sensitivity indices (in percent) and partial variances.
+  \item \xmlString{indices}, the Sobol sensitivity indices (in percent), Sobol total indices, and partial variances.
 \end{itemize}
 
 %%%%% ROM Model - MSR  %%%%%%%
@@ -770,7 +770,7 @@ determined by a linear combination of a subset of potential covariates.
 
 \skltype{Least Angle Regression model}{linear\_model|Lars}
 \begin{itemize}
-  \item \xmlNode{n\_nonzero\_coef}, \xmlDesc{integer, optional field},
+  \item \xmlNode{n\_nonzero\_coefs}, \xmlDesc{integer, optional field},
   represents the target number of non-zero coefficients.
   %
   \default{500}
@@ -1311,142 +1311,6 @@ training set one at a time.
   \item \warmStartDescription{False}
 \end{itemize}
 
-\subparagraph{Randomized Lasso}
-\mbox{}
-\\The \textit{Randomized Lasso} works by resampling the training data and
-computing a Lasso on each resampling.
-%
-In short, the features selected more often are good features.
-%
-It is also known as stability selection.
-%
-\skltype{Randomized Lasso regressor}{linear\_model|RandomizedLasso}
-\begin{itemize}
-  \item \xmlNode{alpha}, \xmlDesc{float, `aic', or `bic', optional}, defines the
-  regularization parameter $\alpha$ in the Lasso.
-  %
-  \default{`aic'}
-  %
-  \item \xmlNode{scaling}, \xmlDesc{float, optional field}, specifies the alpha
-  parameter used to randomly scale the
-  %
-  Should be between 0 and 1.
-  %
-  \default{0.5}
-  %
-  \item \xmlNode{sample\_fraction}, \xmlDesc{float, optional field}, defines
-  the fraction of samples to be used in each randomized design.
-  %
-  Should be between 0 and 1.
-  %
-  If 1, all samples are used.
-  %
-  \default{0.75}
-  %
-  \item \xmlNode{n\_resampling}, \xmlDesc{int, optional field}, is the number of
-  randomized models used.
-  %
-  \default{200}
-  %
-  \item \xmlNode{selection\_threshold}, \xmlDesc{float, optional field}, sets
-  the score above for which features should be selected.
-  %
-  \default{0.25}
-  %
-  \item \fitInterceptDescription{True}
-  \item \verDescriptionB{False}
-  \item \normalizeDescription{True}
-  \item \precomputeDescription{`auto'}
-  \item \maxIterDescription{500}
-  \item \xmlNode{eps}, \xmlDesc{float, optional field}, defines the machine
-  precision regularization in the computation of the Cholesky diagonal factors.
-  %
-  Increase this for very ill-conditioned systems.
-  %
-  Unlike the `tol' parameter in some iterative optimization-based algorithms,
-  this parameter does not control the tolerance of the optimization.
-  %
-  \default{2.2204460492503131e-16}
-  %
-  \item \xmlNode{random\_state}, \xmlDesc{int, RandomState instance or None,
-  optional}, if int, random\_state is the seed used by the random number
-  generator; If RandomState instance, random\_state is the random
-  number generator; If None, the random number generator is the RandomState
-  instance used by np.random.
-  %
-  \default{None}
-\end{itemize}
-
-% TODO document n_jobs
-% TODO document pre_dispatch
-% TODO document memory
-
-\subparagraph{Randomized Logistic Regression}
-\mbox{}
-
-The \textit{Randomized Logistic Regression} works by resampling the training
-data and computing a logistic regression on each resampling.
-%
-In short, the features selected more often are good features.
-%
-It is also known as stability selection.
-%
-\skltype{Randomized Logistic
-Regressor}{linear\_model|RandomizedLogisticRegression}
-\begin{itemize}
-  \item \xmlNode{C}, \xmlDesc{float, optional field}, specifies the
-  regularization parameter $C$ in the LogisticRegression.
-  %
-  \default{1}
-  %
-  \item \xmlNode{scaling}, \xmlDesc{float, optional field (default=0.5)}, sets
-  the alpha parameter used to randomly scale
-  the features.
-  %
-  Should be between 0 and 1.
-  %
-  \default{0.5}
-  %
-  \item \xmlNode{sample\_fraction}, \xmlDesc{float, optional field}, is the
-  fraction of samples to be used in each randomized design.
-  %
-  Should be between 0 and 1.
-  %
-  If 1, all samples are used.
-  %
-  \default{0.75}
-  %
-  \item \xmlNode{n\_resampling}, \xmlDesc{int, optional field}, sets the number
-  of randomized models.
-  %
-  \default{200}
-  %
-  \item \xmlNode{selection\_threshold}, \xmlDesc{float, optional field}, sets
-  the score above which features should be selected.
-  %
-  \default{0.25}
-  %
-  \item \fitInterceptDescription{True}
-  %
-  \item \verDescriptionB{False}
-  \item \normalizeDescription{True}
-  \item \tolDescriptionC{}
-  \default{1=e-3}
-  %
-  \item \xmlNode{random\_state}, \xmlDesc{int, RandomState instance or None,
-  optional}, if int, random\_state is the seed used by the random number
-  generator; If RandomState instance, random\_state is the random
-  number generator; If None, the random number generator is the RandomState
-  instance used by np.random.
-  %
-  \default{None}
-  %
-\end{itemize}
-
-% TODO document n_jobs
-% TODO document pre_dispatch
-% TODO document memory
-
 \subparagraph{Linear least squares with l2 regularization}
 \mbox{}
 \\The \textit{Linear least squares with l2 regularization} solves a regression
@@ -1602,14 +1466,14 @@ cross-validation.
   Cross-Validation.
   %
   Options are:
-        \begin{itemize}
+	\begin{itemize}
     \item `auto:' use svd if n\_samples > n\_features or when X is a
     sparse matrix, otherwise use eigen
-        \item `svd:' force computation via singular value decomposition of $X$
+  	\item `svd:' force computation via singular value decomposition of $X$
     (does not work for sparse matrices)
-          \item `eigen:' force computation via eigendecomposition of $X^T X$
-        \end{itemize}
-        The `auto' mode is the default and is intended to pick the cheaper
+	  \item `eigen:' force computation via eigendecomposition of $X^T X$
+	\end{itemize}
+	The `auto' mode is the default and is intended to pick the cheaper
   option of the two depending upon the shape and format of the training data.
   %
   \default{None}
@@ -1843,233 +1707,6 @@ floating point values for the features.
 \end{itemize}
 
 %TODO document average
-
-\subparagraph{Compute Least Angle Regression or Lasso path using LARS algorithm}
-\mbox{}
-\\The \textit{Compute Least Angle Regression or Lasso path using LARS algorithm}
-is a regressor where the optimization objective for the case method=`lasso'
-is:
-$(1 / (2 * n\_samples)) * ||y - Xw||^2_2 + alpha * ||w||_1$
-in the case of method='lars', the objective function is only known in the
-form of an implicit equation.
-%
-\skltype{Compute Least Angle Regression or Lasso path using LARS algorithm
-regressor}{linear\_model|lars\_path}
-\begin{itemize}
-  \item \xmlNode{X}, \xmlDesc{array, shape: (n\_samples,n\_features)}, is the
-  input data.
-  %
-  \item \xmlNode{y}, \xmlDesc{array, shape: (n\_samples)}, is the set of input
-  targets.
-  %
-  \item \maxIterDescription{500}
-  %
-  \item \xmlNode{gram}, \xmlDesc{None, `auto', array, shape:
-      (n\_features, n\_features), optional},
-  %
-  Precomputed Gram matrix (X' * X), if `auto', the Gram matrix is precomputed
-  from the given X, if there are more samples than features.
-  %
-  \default{None}
-  %
-  \item \xmlNode{alpha\_min}, \xmlDesc{float, optional field}, sets the minimum
-  correlation along the path.
-  %
-  It corresponds to the regularization parameter alpha parameter in the Lasso.
-  %
-  \default{0}
-  %
-  \item \xmlNode{method}, \xmlDesc{{`lar', `lasso'}, optional}, specifies the
-  returned model.
-  %
-  Select `lar' for Least Angle Regression, `lasso' for the Lasso.
-  %
-  \default{`lar'}
-  %
-  \item \xmlNode{eps}, \xmlDesc{float, optional}, sets the machine-precision
-  regularization in the computation of the Cholesky diagonal factors.
-  %
-  Increase this for very ill-conditioned systems.
-  %
-  \default{``np.finfo(np.float).eps''}
-  %
-  \item \verDescriptionB{0}
-\end{itemize}
-
-%TODO document Xy
-%TODO document copy_X
-%TODO document copy_Gram
-%TODO document return_path
-%TODO document return_n_iter
-%TODO document positive
-
-\subparagraph{Compute Lasso path with coordinate descent}
-\mbox{}
-\\The \textit{Compute Lasso path with coordinate descent} is a regressor where
-the Lasso optimization function varies for mono and multi-outputs.
-%
-For mono-output tasks it is:
-$(1 / (2 * n\_samples)) * ||y - Xw||^2_2 + alpha * ||w||_1$
-For multi-output tasks it is:
-$(1 / (2 * n\_samples)) * ||Y - XW||^2_Fro + alpha * ||W||_21$
-Where:
-$||W||_21 = \sum_i \sqrt{\sum_j w_{ij}^2}$
-i.e. the sum of norm of each row.
-%
-\skltype{Compute Lasso path with coordinate descent regressor}{linear\_model|lasso\_path}
-\begin{itemize}
-  \item \xmlNode{X}, \xmlDesc{{array-like, sparse matrix}, shape (n\_samples,
-  n\_features)}, represents the training data.
-  %
-  Pass directly as Fortran-contiguous data to avoid unnecessary memory
-  duplication.
-  %
-  If y is mono-output then X can be sparse.
-  %
-  \item \xmlNode{y}, \xmlDesc{ndarray, shape = (n\_samples,), or (n\_samples,
-  n\_outputs)}, represents the target values.
-  \item \xmlNode{eps}, \xmlDesc{float, optional field}, specifies the length of
-  the path.
-  %
-  eps=1e-3 means that alpha\_min / alpha\_max = 1e-3.
-  \item \xmlNode{n\_alphas}, \xmlDesc{int, optional field}, is the number of
-  alphas along the regularization path.
-  %
-  \default{100}
-  %
-  \item \xmlNode{alphas}, \xmlDesc{ndarray, optional field}, lists the alphas
-  where the models will be computed.
-  %
-  If None, alphas are set automatically.
-  %
-  \default{None}
-  %
-  \item \xmlNode{precompute}, \xmlDesc{True | False | `auto' | array-like},
-  decides whether to use a precomputed Gram matrix to speed up calculations or
-  not.
-  %
-  If set to `auto,' RAVEN will decide.
-  %
-  The Gram matrix can also be passed as argument.
-  %
-  \default{`auto'}
-  %
-  \item \xmlNode{Xy}, \xmlDesc{array-like, optional field},
-  %
-  Xy = np.dot(X.T, y) that can be precomputed.
-  %
-  It is useful only when the Gram matrix is precomputed.
-  %
-  \default{None}
-  %
-  \item \xmlNode{copy\_X}, \xmlDesc{boolean, optional field}, if True, X will be
-  copied; else, it may be overwritten.
-  %
-  \default{True}
-  %
-  \item \xmlNode{coef\_init}, \xmlDesc{array, shape (n\_features, ) | None}, is
-  the initial set of values of the coefficients.
-  %
-  \default{None}
-  \item \verDescriptionB{False}
-\end{itemize}
-
-%TODO document return_n_iter
-%TODO document positive
-
-\subparagraph{Stability path based on randomized Lasso estimates}
-\mbox{}
-\skltype{Stability path based on randomized Lasso
-  estimates regressor}{linear\_model|lasso\_stability\_path}
-\begin{itemize}
-  \item \xmlNode{X}, \xmlDesc{array-like, shape = [n\_samples,
-      n\_features]}, represents the training data.
-  %
-  \item \xmlNode{y}, \xmlDesc{array-like, shape = [n\_samples]}, represents the
-  target values.
-  %
-  \item \xmlNode{scaling}, \xmlDesc{float, optional, default=0.5},sets the alpha
-  parameter used to randomly scale the
-  features.
-  %
-  Should be between 0 and 1.
-  %
-  \default{0.5}
-  %
-  \item \xmlNode{random\_state}, \xmlDesc{integer or
-  numpy.random.RandomState, optional}, sets the generator used to randomize the
-  design.
-  %
-  \default{None}
-  %
-  \item \xmlNode{n\_resampling}, \xmlDesc{int, optional}, sets the number of
-  randomized models.
-  %
-  \default{200}
-  %
-  \item \xmlNode{n\_grid}, \xmlDesc{int, optional}, specifies the number of grid
-  points.
-  %
-  The path is linearly reinterpolated on a grid between 0 and 1 before computing
-  the scores.
-  %
-  \default{100}
-  %
-  \item \xmlNode{sample\_fraction}, \xmlDesc{float, optional}, determines the
-  fraction of samples to be used in each randomized design.
-  %
-  Should be between 0 and 1.
-  %
-  If 1, all samples are used.
-  %
-  \default{0.75}
-  %
-  \item \xmlNode{eps}, \xmlDesc{float, optional field}, is the smallest value of
-  alpha / alpha\_max considered.
-  %
-  \default{8.8817841970012523e-16}
-  %
-  \item \verDescriptionB{False}
-\end{itemize}
-
-%TODO document n_jobs
-
-\subparagraph{Gram Orthogonal Matching Pursuit (OMP)}
-\mbox{}
-\\The \textit{Gram OMP} solves n\_targets Orthogonal Matching Pursuit problems
-using only the Gram matrix, X.T * X, and the product, X.T * y.
-%
-\skltype{Gram OMP regressor}{linear\_model|orthogonal\_mp\_gram}
-\begin{itemize}
-  \item \xmlNode{Gram}, \xmlDesc{array, shape (n\_features,n\_features)},
-  contains the Gram matrix of the input data: X.T * X
-  \item \xmlNode{Xy}, \xmlDesc{array, shape (n\_features,) or
-  (n\_features, n\_targets)}, specifies the input targets multiplied by X:
-  X.T * y.
-  \item \xmlNode{n\_nonzero\_coefs}, \xmlDesc{int}, sets the desired number of
-  non-zero entries in the solution.
-  %
-  If None this value is set to 10\% of n\_features.
-  %
-  \default{None}
-  %
-  \item \xmlNode{tol}, \xmlDesc{float}, sets the maximum norm of the residual.
-  %
-  If not None, overrides n\_nonzero\_coefs.
-  %
-  \default{None}
-  %
-  \item \xmlNode{norms\_squared}, \xmlDesc{array-like, shape(n\_targets)},
-  %f\maljdan{needs description}
-  %
-  \default{None}
-  %
-\end{itemize}
-
-%TODO document copy_Gram
-%TODO document copy_Xy
-%TODO document return_path
-%TODO document return_n_iter
 
 %%%%% ROM Model - SciKitLearn: Support Vector Machines %%%%%%%
 \paragraph{Support Vector Machines}
@@ -2568,27 +2205,6 @@ into a fast indexing structure such as a Ball Tree or KD Tree.).
 In the following, all the Neighbors' models available in RAVEN are reported.
 %
 %%%%%%%%%%%%%%%
-\subparagraph{Nearest Neighbors}
-\mbox{}
-\\The \textit{Nearest Neighbors} implements unsupervised nearest neighbors
-learning.
-%
-It acts as a uniform interface to three different nearest neighbors algorithms:
-BallTree, KDTree, and a brute-force algorithm.
-%
-%The choice of neighbors search algorithm is controlled through the keyword 'algorithm', which must be one of ['auto', 'ball_tree', 'kd_tree', 'brute']. When the default value 'auto' is passed, the algorithm attempts to determine the best approach from the training data.
-\skltype{Nearest Neighbors strategy}{neighbors|NearestNeighbors}
-\begin{itemize}
-  \item \nNeighborsDescription{5}
-  \item \radiusDescription{1.0}
-  \item \algorithmDescription{auto}
-  \item \leafSizeDescription{30}
-  \item \pDescription{2}
-    %TODO document metric
-    %TODO document metric_params
-    %TODO should n_jobs be documented?
-\end{itemize}
-%%%%%%%%%%%%%%%
 \subparagraph{K Neighbors Classifier}
 \mbox{}
 \\The \textit{K Neighbors Classifier} is a type of instance-based learning or
@@ -2714,9 +2330,6 @@ drastically different variances, as equal variance in all dimensions is assumed.
 %\subparagraph{K-D Tree}
 %pass
 
- %%%%% ROM Model - SciKitLearn: Quadratic Discriminant Analysis %%%%%%%
-\paragraph{Quadratic Discriminant Analysis}
-\label{QDA}
 
 The \textit{Quadratic Discriminant Analysis} is a classifier with a quadratic
 decision boundary, generated by fitting class conditional densities to the data
@@ -3078,6 +2691,3 @@ The disadvantages of Gaussian Processes for Machine Learning include:
 </Simulation>
 \end{lstlisting}
 
-%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%  External  Model   %%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%

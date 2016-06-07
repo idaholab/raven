@@ -109,6 +109,9 @@ class simpleInputParser():
     # close the file
     fileobject.close()
 \end{lstlisting}
+It is important to notice that for most of the codes, a wild-card approach can be used. In case this approach fits the user's needs,
+the RAVEN developer team suggests to inherit from the $GenericCode$ Interface (see section ~\ref{subsec:genericCodeInterface}).
+
 %%% OUTPUT %%%
 \textbf{\textit{\underline{Output}}}
 \newline
@@ -252,7 +255,7 @@ on the information RAVEN passes in. In this function the developer needs to
 call the driven code input parser in order to modify the input file, accordingly with
 respect to the variables RAVEN is providing. This method needs to return a list containing
 the path and filenames of the modified input files. \nb RAVEN expects that at least one input
-file of the original list gets modified and re-named.
+file of the original list gets modified.
 
 RAVEN is going to call this function passing in the following arguments:
 \begin{itemize}

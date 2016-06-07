@@ -67,6 +67,7 @@ class RELAP7(CodeInterfaceBase):
     self._samplersDictionary['ResponseSurfaceDesign'   ] = self.gridForRELAP7
     self._samplersDictionary['AdaptiveDynamicEventTree'] = self.adaptiveDynamicEventTreeForRELAP7
     self._samplersDictionary['StochasticCollocation'   ] = self.gridForRELAP7
+    self._samplersDictionary['CustomSampler'           ] = self.gridForRELAP7
     found = False
     for index, inputFile in enumerate(currentInputFiles):
       if inputFile.getExt() in self.getInputExtension():

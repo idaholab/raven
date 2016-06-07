@@ -1,0 +1,48 @@
+<?xml version="1.0" ?>
+<Simulation>
+  <!-- A simple example of the approximate Morse-Smale complex being used for
+       regression on a 2D function with one single global maximum. This example
+       should thoroughly test all of the features associated to the MSR. -->
+  <RunInfo>
+    <WorkingDir>data</WorkingDir>
+    <Sequence>
+      sample,
+      train,
+      resample
+    </Sequence>
+  </RunInfo>
+
+  <Models>
+    <ExternalModel ModuleToLoad="./testMultiFunction" name="foo" subType="">
+      <variables>X,Y,Z,Z2</variables>
+    </ExternalModel>
+    <ROM name="modelUnderTest" subType="SciKitLearn">
+      <!-- Using all of the defaults -->
+      <SKLtype>linear_model|MultiTaskLasso</SKLtype>
+      <Features>X,Y</Features>
+      <Target>Z,Z2</Target>
+      <alpha>1.0</alpha>
+      <fit_intercept>True</fit_intercept>
+      <normalize>False</normalize>
+      <max_iter>1000</max_iter>
+      <tol>1e-4</tol>
+      <warm_start>False</warm_start>
+    </ROM>
+  </Models>
+
+  <ExternalXML node="Distributions" xmlToLoad="sharedDistributions.xml"/>
+  <ExternalXML node="Samplers" xmlToLoad="sharedSamplers.xml"/>
+  <ExternalXML node="Steps" xmlToLoad="sharedSteps.xml"/>
+
+  <OutStreams>
+    <!-- A csv file containing the output of the example -->
+    <Print name="outData">
+      <type>csv</type>
+      <source>outData</source>
+      <filename>outLinearMultiTaskLasso</filename>
+    </Print>
+  </OutStreams>
+
+  <ExternalXML node="DataObjects" xmlToLoad="sharedDataObjects2.xml"/>
+
+</Simulation>
