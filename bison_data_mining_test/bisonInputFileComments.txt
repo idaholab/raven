@@ -1,0 +1,545 @@
+% BISON input file meaning
+
+%==============================================================================
+
+Block 1:
+
+GlobalParams - Block specifies parameters that are available, as appropriate, in
+all other block or subblock in the input file. Here we are defining density, energy
+per fission, disp_x, disp_y, disp_r, disp_z (displacements along respective directions),
+and family (this is the family of basis functions for finite element discretization).
+
+%==============================================================================
+
+Block 2:
+
+Problems - Problems block is typically used to indicate that a model
+should be run as axisymmetric (RZ) or spherically symmetric (RSPHERICAL). For
+problems in 3D this block may be omitted. See file for syntax.
+
+%==============================================================================
+
+Block 3:
+
+Mesh - The mesh block's purpose is to give details about the finite element mesh
+to be used. Typically meshes for BISON are created using mesh generation tool called
+CUBIT or TRELIS. Mesh scripts can be found in Ch. 26. See file for syntax. However,
+file is the file name in input folder, displacements is list of displacement variables
+(typically disp_x and disp_y) for RZ; patch_size is number of nearby elements to consider
+as possible contacting surfaces. The value of patch_size depends on whether dirac
+or constraint based contact is used. For dirac typical value is 1000. For constraint,
+it is ideal to choose small enough patch_size that encompasses all possible contacting
+surfaces to reduce memory requirements. Typically if fuel moves up the clad 8 nodes, make
+patch_size 20. Here we are using 20. For users without CUBIT, BISON generates simple
+meshes using the characteristics input in input file. For syntax and input parameters,
+see manual page 18. type is SmearedPelletMesh.
+
+%==============================================================================
+
+Block 4:
+
+Variables - The variables block is where all of the primary solution variables are identified.
+The name of each variable must have it own separate subblock. Primary solution
+variables often include temperature, and displacement. Here we have subblock
+for temp, disp_x and disp_y.
+
+%==============================================================================
+
+Block 5: functions
+
+It may be used to define phase space values of parameters using functions/external
+data files. There are several types of functions that are allowed -
+
+- Composite - Takes an arbitrary set of functions, provided in the functions - parameter,
+evaluates them each at approproate time and position and then multiplies them together. It
+can optionally be multiplied with a scale_factor.
+
+- ParsedFunction - Not used in this input file - but this is sort of like a user
+defined function in terms of time and position variables. Only very basic operations
+can be performed on the space-time variables. For syntax, see manual page 26.
+
+- PiecewiseBilinear - This function reads a csv file and interpolates values based
+on the data given in file. The interpolation is based on x-y pairs. If axis is
+given, time is used as y index. Either xaxis or yaxis value may be given. The axis
+direction may be chosen by using 0, 1, or 2 for x, y or z axis for axis.
+
+- PiecewiseConstant - Function defines data using x-y pairs given in a data file.
+It does not interpolate rather just uses a constant value.
+
+- PiecewiseLinear - It performs linear interpolation.
+
+We have the following subblocks:
+
+power_history - PiecewiseLinear
+axial_power_factors - PiecewiseBilinear
+q - CompositeFunction - power_history, axial_power_factors
+clad_out_temp - PiecewiseLinear
+axial_temp_factors - PiecewiseBilinear
+clad_temp_bc - CompositeFunction - clad_out_temp, axial_temp_factors
+coolant_pressure - PiecewiseLinear
+fast_flux - PiecewiseLinear
+
+%==============================================================================
+
+Block 6: AuxVariables
+
+These are supplementary variables that are to be calculated aside from the main
+variables defined in the variables block. These are defined in the AuxVariables
+block. The name of each variable is taken as the name of the subblock. These
+are used for quantities such as fast neutron flux, stresses and other output
+variables.
+
+Order, family and initial_condition are supplied here. Additionally block (exodus) may
+be supplied in order to tell BISON which mesh block the the AuxVariable is to be caluclated on.
+
+We have the following AuxVariables here -
+
+subblock (AuxVariable name), order, family, block, initial_condition
+
+fast_neutron_flux  -, -, pellet_type_1, -
+fast_neturon_fluence  -, -, pellet_type_1, -
+grain_radius  -, -, pellet_type_1, 1.7e-5
+porosity    constant, monomial, pellet_type_1, 0.0626
+pellet_id   constant, monomial, pellet_type_1, -
+scale_thickness   constant, monomial, -, -
+vonmises_stress   constant, monomial, -, -
+hydrostatic_stress  constant, monomial, -, -
+stress_xx   constant, monomial, -, -
+stress_yy   constant, monomial, -, -
+stress_zz   constant, monomial, -, -
+strain_zz   constant, monomial, -, -
+creep_strain_xx   constant, monomial, clad, -
+creep_strain_hoop   constant, monomial, clad, -
+creep_strain_mag    constant, monomial, clad, -
+gas_gen_3   constant, monomial, pellet_type_1, -
+gas_grn_3   constant, monomial, pellet_type_1, -
+gas_bdr_3   constant, monomial, pellet_type_1, -
+gas_rel_3   constant, monomial, pellet_type_1, -
+bbl_bdr_2   constant, monomial, pellet_type_1, -
+prs_bbl_bdr   constant, monomial, pellet_type_1, -
+preseq_bbl_bdr   constant, monomial, pellet_type_1, -
+rad_bbl_bdr   constant, monomial, pellet_type_1, -
+GBConvergence   constant, monomial, pellet_type_1, -
+sat_coverage   constant, monomial, pellet_type_1, -
+eff_diff_coeff   constant, monomial, pellet_type_1, -
+deltav_v0_bd   constant, monomial, pellet_type_1, -
+solid_swell   constant, monomial, pellet_type_1, -
+densification   constant, monomial, pellet_type_1, -
+total_swell   constant, monomial, pellet_type_1, -
+fabrication_porosity   constant, monomial, pellet_type_1, -
+gaseous_porosity   constant, monomial, pellet_type_1, -
+thermal_conductivity   constant, monomial, pellet_type_1, -
+gap_cond  constant, monomial, -, -
+
+The definition of how these aux variables are created will be given in the AuxKerel block.
+
+
+
+%==============================================================================
+
+Block 7: AuxKernels
+
+AuxKerels are used to compute auxiliary variables. They often compute quantities
+based on functions, solution variables, and material properties. AuxKernels can
+apply to blocks or boundaries (in mesh). If no block or boundary is specified,
+AuxKernel is applied to the entire model.
+
+Basic syntax can be found in the manual. The options include depending on the AuxKernel
+being used -
+
+type - type of auxiliary kernel
+block - List of blocks - either numbers or names
+boundary - list of boundaries (side sets) - either boundary number or name
+variable - which variable kernel applies on (if the auxkernel name differnt from auxvariable??)
+property -
+function - auxiliary function used for this if there is no predefined kernel in BISON
+execute_on - which time step
+
+There are several predefined AuxKernels in BISON refer to manual pg 45 onwards
+
+Here we have the following kernels (AuxKernels subblocks) -
+
+AuxKernel - type (and then the syntax can be looked up in the manual)
+
+fast_neutron_flux
+
+type - FastNeutronFluxAux - Calculates fast neutron flux
+variable - fast_neutron_flux - Variable name corresponding to fast neutron fast neutron fast_neutron_flux
+rod_ave_lin_pow - Function describing averaged linear power - optional
+axial_power_profile - Function describing axial power profile
+factor - Fast neutron flux if one of above functions are not given. Typical 3e13
+function - Function that describes fast neutron flux
+q-variable - Variable holding linear heat rate in pellet
+
+block - block id in mesh - number or name
+execute_on - ? not in manual - says timestep_begin or timestep_end so here we specify whether to be calculated at
+the beginning of the timestep or at the end
+
+
+fast_neturon_fluence
+
+type - FastNeutronFluenceAux - Calculates fast neutron fluence given flux
+variable - Variable name corresponding to fast neutron fast neutron fluence
+fast_neutron_flux - Variable name corresponding to the fast neutron flux
+execute_on
+
+grain_radius
+
+type - GrainRadiusAux - emiprical model for calculating grain growth
+variable - Variable name corresponding to fuel grain radius
+temp - Variable name for temperature variable
+block - block id in mesh
+execute_on
+
+porosity - PorosityAuxUO2 - NOT IN MANUAL
+
+type - PorosityAuxUO2
+variable - Variable name for porosity
+block - block id on mesh
+execute_on -
+
+pellet_id
+
+type - PelletIdAux - Used to compute pellet number. It may be used with discrete or speared fuel column mesh
+variable - AuxVariable name corresponding to Pellet ID
+a_lower - Lower axial coordiante of fuel stack
+a_upper - Upper axial coordinate of fuel stack
+number_pellets - Number of fuel pellets
+block - block id on mesh
+execute_on
+
+scale_thickness
+
+type - MaterialRealAux - Used to output material property. The computed value will be volume averaged over the element.
+property - name of material property
+variable - name of AuxVariable to hold result
+boundary - boundary number or name
+
+vonmises
+
+type - MaterialTensorAux - Used to output quantities related to second-order tensors used as material properties.
+tensor - name of second order tensor property
+variable - variable Name of AuxVariable
+index - Index into tensor - 0, 1, 2, 3, 4, 5 for xx, yy, zz, xy, yz, zx
+quantity - One of the quantity from the manual must be specified ..here vonmises
+execute_on
+
+
+hydrostatic_stress
+
+type - MaterialTensorAux - Used to output quantities related to second-order tensors used as material properties.
+tensor - name of second order tensor property
+variable - variable Name of AuxVariable
+index - Index into tensor - 0, 1, 2, 3, 4, 5 for xx, yy, zz, xy, yz, zx
+quantity - One of the quantity from the manual must be specified ..here vonmises
+execute_on
+
+
+stress_xx
+
+type - MaterialTensorAux - Used to output quantities related to second-order tensors used as material properties.
+tensor - name of second order tensor property
+variable - variable Name of AuxVariable
+index - Index into tensor - 0, 1, 2, 3, 4, 5 for xx, yy, zz, xy, yz, zx
+quantity - One of the quantity from the manual must be specified ..here vonmises
+execute_on
+
+stress_yy
+
+type - MaterialTensorAux - Used to output quantities related to second-order tensors used as material properties.
+tensor - name of second order tensor property
+variable - variable Name of AuxVariable
+index - Index into tensor - 0, 1, 2, 3, 4, 5 for xx, yy, zz, xy, yz, zx
+quantity - One of the quantity from the manual must be specified ..here vonmises
+execute_on
+
+stress_zz
+
+type - MaterialTensorAux - Used to output quantities related to second-order tensors used as material properties.
+tensor - name of second order tensor property
+variable - variable Name of AuxVariable
+index - Index into tensor - 0, 1, 2, 3, 4, 5 for xx, yy, zz, xy, yz, zx
+quantity - One of the quantity from the manual must be specified ..here vonmises
+execute_on
+
+strain_zz
+
+type - MaterialTensorAux - Used to output quantities related to second-order tensors used as material properties.
+tensor - name of second order tensor property
+variable - variable Name of AuxVariable
+index - Index into tensor - 0, 1, 2, 3, 4, 5 for xx, yy, zz, xy, yz, zx
+quantity - One of the quantity from the manual must be specified ..here vonmises
+execute_on
+
+creep_strain_xx
+
+type - MaterialTensorAux - Used to output quantities related to second-order tensors used as material properties.
+tensor - name of second order tensor property
+variable - variable Name of AuxVariable
+index - Index into tensor - 0, 1, 2, 3, 4, 5 for xx, yy, zz, xy, yz, zx
+quantity - One of the quantity from the manual must be specified ..here vonmises
+execute_on
+
+creep_strain_hoop
+
+type - MaterialTensorAux - Used to output quantities related to second-order tensors used as material properties.
+tensor - name of second order tensor property
+variable - variable Name of AuxVariable
+index - Index into tensor - 0, 1, 2, 3, 4, 5 for xx, yy, zz, xy, yz, zx
+quantity - One of the quantity from the manual must be specified ..here vonmises
+execute_on
+
+creep_strain_mag
+
+type - MaterialTensorAux - Used to output quantities related to second-order tensors used as material properties.
+tensor - name of second order tensor property
+variable - variable Name of AuxVariable
+index - Index into tensor - 0, 1, 2, 3, 4, 5 for xx, yy, zz, xy, yz, zx
+quantity - One of the quantity from the manual must be specified ..here vonmises
+execute_on
+
+fggen
+
+type - MaterialTensorAux - Used to output quantities related to second-order tensors used as material properties.
+tensor - name of second order tensor property
+variable - variable Name of AuxVariable
+index - Index into tensor - 0, 1, 2, 3, 4, 5 for xx, yy, zz, xy, yz, zx
+quantity - One of the quantity from the manual must be specified ..here vonmises
+execute_on
+
+fggrn
+
+type - MaterialRealAux - Used to output material property. The computed value will be volume averaged over the element.
+property - name of material property
+variable - name of AuxVariable to hold result
+
+fgbdr
+
+type - MaterialRealAux - Used to output material property. The computed value will be volume averaged over the element.
+property - name of material property
+variable - name of AuxVariable to hold result
+
+fgrel
+
+type - MaterialRealAux - Used to output material property. The computed value will be volume averaged over the element.
+property - name of material property
+variable - name of AuxVariable to hold result
+
+nbbl2
+
+type - MaterialRealAux - Used to output material property. The computed value will be volume averaged over the element.
+property - name of material property
+variable - name of AuxVariable to hold result
+
+prsbbl
+
+type - MaterialRealAux - Used to output material property. The computed value will be volume averaged over the element.
+property - name of material property
+variable - name of AuxVariable to hold result
+
+prseqbbl
+
+type - MaterialRealAux - Used to output material property. The computed value will be volume averaged over the element.
+property - name of material property
+variable - name of AuxVariable to hold result
+
+radbbl
+
+type - MaterialRealAux - Used to output material property. The computed value will be volume averaged over the element.
+property - name of material property
+variable - name of AuxVariable to hold result
+
+frcvrg
+
+type - MaterialRealAux - Used to output material property. The computed value will be volume averaged over the element.
+property - name of material property
+variable - name of AuxVariable to hold result
+
+stcvrg
+
+type - MaterialRealAux - Used to output material property. The computed value will be volume averaged over the element.
+property - name of material property
+variable - name of AuxVariable to hold result
+
+diffc
+
+type - MaterialRealAux - Used to output material property. The computed value will be volume averaged over the element.
+property - name of material property
+variable - name of AuxVariable to hold result
+
+dvv0bd
+
+type - MaterialRealAux - Used to output material property. The computed value will be volume averaged over the element.
+property - name of material property
+variable - name of AuxVariable to hold result
+
+dvv0sl
+
+type - MaterialRealAux - Used to output material property. The computed value will be volume averaged over the element.
+property - name of material property
+variable - name of AuxVariable to hold result
+
+dvv0dn
+
+type - MaterialRealAux - Used to output material property. The computed value will be volume averaged over the element.
+property - name of material property
+variable - name of AuxVariable to hold result
+
+dvv0swe
+
+type - MaterialRealAux - Used to output material property. The computed value will be volume averaged over the element.
+property - name of material property
+variable - name of AuxVariable to hold result
+
+fabpor
+
+type - MaterialRealAux - Used to output material property. The computed value will be volume averaged over the element.
+property - name of material property
+variable - name of AuxVariable to hold result
+
+gaspor
+
+type - MaterialRealAux - Used to output material property. The computed value will be volume averaged over the element.
+property - name of material property
+variable - name of AuxVariable to hold result
+
+sinpor
+
+type - MaterialRealAux - Used to output material property. The computed value will be volume averaged over the element.
+property - name of material property
+variable - name of AuxVariable to hold result
+
+fuel_conductivity
+
+type - MaterialRealAux - Used to output material property. The computed value will be volume averaged over the element.
+property - name of material property
+variable - name of AuxVariable to hold result
+
+gap_conductance
+
+type - MaterialRealAux - Used to output material property. The computed value will be volume averaged over the element.
+property - name of material property
+variable - name of AuxVariable to hold result
+boundary
+
+
+%==============================================================================
+
+
+Block 9: SolidMechanics
+
+The SolidMechanics block specifies inputs for the divergence of stress as part
+of the equations of solid mechanics. The divergence of stress is a kernel in moose.
+This block informs moose of divergence kernels but is not places inside kernels block in the
+input file.
+
+disp_x, disp_y, disp_r, disp_z, temp are the options with this block. Here only temp is used.
+
+
+%==============================================================================
+
+Block 10: Kernels - used to evaluate integrals associated with a given term in pde.
+ Compute quantities based on functions, solution variables, auxiliary variables,
+ material properties. All kernels act on blocks. If no kernel is specified it
+ kernel will act on the entire model.
+
+ subblock - name -  type, block, variable etc depending on kernel type
+
+heat -
+
+type - HeatConduction - Kernel for diffusion or divergence of heat flux
+variable - variable name corresponding to the heat conduction equation, eg temp; here temp
+
+heat_ie
+
+type - HeatConductionTimeDerivative -  Kernel for time derivative term in time dependent heat equation
+variable - Variable name corresponding to heat conduction equation.
+
+heat_source_
+
+type - NeutronHeatSource - Kernel for the volumetric heat source associated with fission
+variable - Variable name associated with heat conduction equation. Here temp
+burnup_function - Name of burnup subblocks. May not be used if fission_rate is used which we do here.
+fission_rate - Variable name corresponding to fission_rate
+decay_heat_function - Name of the post processor giving decay heat curve. Typically supplied for LOCA sims not supplied here.
+fuel_pin_geometry =  Name of fuel pin geometry object - not here
+Inner_diameter - Inner diameter of cold fuel pellet
+outer_diameter - outer diameter of cold fuel pellet
+area - cross sectional area of cold fuel pellet if fuel_pin_geometry is not specified.
+
+here we only have type, variable, block, and fission_rate
+
+gravity
+
+type - Gravity - Gravity may be applied to the model with this kernel. Required density
+is computed and provided internally given inputs in materials block.
+variable - Varibale name corresponding to displacement direction in which gravity load should be applied.
+value - g
+
+
+%==============================================================================
+
+Block 11: burnup
+
+Burnup block computes fission rate and burnup for LWR fuel including the radial power factor.
+The use of burnup will cause bison to create and populate burnup, fission_rate and optionally other AuxVariables.
+
+block - list of fuel blocks. Either block numbers or names.
+rod_ave_lin_pow - Function describing rod averaged linear power. This power is
+total power times energy per fission.
+axial_power_profile - Function describing axial power profile.
+num_radial - Number of radial divisions in secondary grid used to compute radial power profile
+num_axial - Number of axial divisions in secondary grid used to compute radial power profile.
+a_lower - Lower axial coordinate of fuel stack
+a_upper - Upper axial coordinate of fuel stack
+fuel_inner_radius - inner radius of fuel
+fuel_outer_radius - outer radius of fuel
+i_enrich - Initial enrichment of the six isotopes or U
+RPF - Indicates the output of radial power factor is required.
+
+There are several other options that go with burnup block. They can be found in the manual
+
+
+%==============================================================================
+
+Block 12: contact
+
+Finite element contact enforces constraints between surfaces in the mesh. Mechanical
+contact prevents penetration and develops contact forces. Thermal contact transfers heat
+between surfaces.
+
+master - Boundary id for master surface (cladding)
+slave - Boundary id for slave surface (fuel)
+penalty - penalty stiffness value to be used in the constraint
+model - one of frictionless, glued, or coulomb
+normal_smoothing_distance - one of edge_based or nodal_normal_based.
+system - DiracKernel or Constraint
+
+There are other options as well which can be found in the manual.
+
+
+%==============================================================================
+
+Block 13: ThermalContact
+
+type: GapHeatTransferLWR - Gap heat conductivity is calculated based on gases in the gap.
+
+variable - temperature variable name
+master - boundary id for master surfaces
+slave - boundary id for slave surfaces
+initial_moles - the post processor that will have initial moles of gas
+gas_released - List of one or more post processors that give the gas released
+roughness_clad - roughness of cladding surfaces
+roughness_fuel - roughness of fuel surfaces
+plenum_pressure - name of plenumpressure postprocessor
+jump_distance_model - one of direct of kennard - jump distances are calculated based on gas properties
+initial_gas_fractions - initial fraction of consitituent gases (he, ar, kr, xe, h, n, o, co, co2, h2o)
+contact_pressure - contact pressure variable
+quadrature - whether or not to use quadrature point based gap heat transfer
+normal_smoothing_distance - one of edge based or nodal_normal_based
+
+there are other options also. See manual
+
+
+%==============================================================================
+

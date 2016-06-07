@@ -1,0 +1,198 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
+    <JobName>rodlet_mc</JobName>
+    <WorkingDir>./sample</WorkingDir>
+    <batchSize>8</batchSize>
+    <Sequence> readdata, mine </Sequence>
+  </RunInfo>
+
+  <Files>
+    <Input name="output_basicStatistics_mine.csv" type=""> output_basicStatistics_mine.csv </Input>
+  </Files>
+
+  <Databases>
+    <HDF5 directory="sample/DatabaseStorage" filename="rodlet.h5" name="rodlet" readMode="read"/>
+  </Databases>
+
+  <DataObjects>
+    <PointSet name="collset">
+      <Input>gap_width,clad_rough,grain_diffCoeff,fuel_rough,power,clad_width,dens,fuel_reloc,grain_radius,fuel_thC,clad_ox,clad_thC,fuel_thE,clad_creeprate,gas_thC,clad_thE,fuel_swell,grain_res_param</Input>
+      <Output>nonlinear_its,max_contact_pressure,_dt,max_clad_temp,fis_gas_released,max_fuel_temp,midplane_radial_disp,midplane_contact_pressure,midplane_vonmises_stress,avg_gap_conductance,gas_volume,ave_temp_interior,max_oxide_thickness,centerline_temp,fis_gas_generated,avg_clad_temp,midplane_hoop_strain,max_radial_disp,midplane_clad_temp,max_hoop_strain,midplane_hoop_stress,max_hoop_stress,midplane_oxide_thickness,average_burnup,max_vonmises_stress</Output>
+      <operator>max</operator>
+    </PointSet>
+    <HistorySet name="hists">
+      <Input>gap_width,clad_rough,grain_diffCoeff,fuel_rough,power,clad_width,dens,fuel_reloc,grain_radius,fuel_thC,clad_ox,clad_thC,fuel_thE,clad_creeprate,gas_thC,clad_thE,fuel_swell,grain_res_param</Input>
+      <Output>nonlinear_its,max_contact_pressure,_dt,max_clad_temp,fis_gas_released,max_fuel_temp,midplane_radial_disp,midplane_contact_pressure,midplane_vonmises_stress,avg_gap_conductance,gas_volume,ave_temp_interior,max_oxide_thickness,centerline_temp,fis_gas_generated,avg_clad_temp,midplane_hoop_strain,max_radial_disp,midplane_clad_temp,max_hoop_strain,midplane_hoop_stress,max_hoop_stress,midplane_oxide_thickness,average_burnup,max_vonmises_stress</Output>
+    </HistorySet>
+  </DataObjects>
+
+  <Distributions>
+    <Uniform name="five_pct">
+      <lowerBound>0.95</lowerBound>
+      <upperBound>1.05</upperBound>
+    </Uniform>
+    <Uniform name="gap_width">
+      <lowerBound>6.55e-05</lowerBound>
+      <upperBound>8.05e-05</upperBound>
+    </Uniform>
+    <Uniform name="clad_rough">
+      <lowerBound>2e-07</lowerBound>
+      <upperBound>7e-07</upperBound>
+    </Uniform>
+    <Uniform name="grain_diffCoeff">
+      <lowerBound>0.1</lowerBound>
+      <upperBound>10.0</upperBound>
+    </Uniform>
+    <Uniform name="fuel_rough">
+      <lowerBound>1.5e-06</lowerBound>
+      <upperBound>2.5e-06</upperBound>
+    </Uniform>
+    <Uniform name="clad_width">
+      <lowerBound>0.00072</lowerBound>
+      <upperBound>0.00074</upperBound>
+    </Uniform>
+    <Uniform name="dens">
+      <lowerBound>0.008</lowerBound>
+      <upperBound>0.012</upperBound>
+    </Uniform>
+    <Uniform name="twenty_pct">
+      <lowerBound>0.8</lowerBound>
+      <upperBound>1.2</upperBound>
+    </Uniform>
+    <Uniform name="clad_thC">
+      <lowerBound>14.4</lowerBound>
+      <upperBound>17.6</upperBound>
+    </Uniform>
+    <Uniform name="fuel_thE">
+      <lowerBound>8.5e-06</lowerBound>
+      <upperBound>1.15e-05</upperBound>
+    </Uniform>
+    <Uniform name="thirty_pct">
+      <lowerBound>0.7</lowerBound>
+      <upperBound>1.3</upperBound>
+    </Uniform>
+    <Uniform name="grain_res_param">
+      <lowerBound>0.1</lowerBound>
+      <upperBound>10.0</upperBound>
+    </Uniform>
+    <Uniform name="grain_radius">
+      <lowerBound>0.4</lowerBound>
+      <upperBound>1.6</upperBound>
+    </Uniform>
+    <Uniform name="clad_thE">
+      <lowerBound>3.5e-06</lowerBound>
+      <upperBound>6.5e-06</upperBound>
+    </Uniform>
+    <Uniform name="fifteen_pct">
+      <lowerBound>0.85</lowerBound>
+      <upperBound>1.15</upperBound>
+    </Uniform>
+    <Uniform name="forty_pct">
+      <lowerBound>0.6</lowerBound>
+      <upperBound>1.4</upperBound>
+    </Uniform>
+    <Uniform name="ten_pct">
+      <lowerBound>0.9</lowerBound>
+      <upperBound>1.1</upperBound>
+    </Uniform>
+    <Uniform name="fuel_swell">
+      <lowerBound>4.616e-05</lowerBound>
+      <upperBound>6.924e-05</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="sc">
+      <samplerInit>
+        <limit>10</limit>
+        <!-- <limit>7000</limit> -->
+        <initialSeed>42</initialSeed>
+      </samplerInit>
+      <variable name="gap_width">
+        <distribution>gap_width</distribution>
+      </variable>
+      <variable name="clad_rough">
+        <distribution>clad_rough</distribution>
+      </variable>
+      <variable name="grain_diffCoeff">
+        <distribution>grain_diffCoeff</distribution>
+      </variable>
+      <variable name="fuel_rough">
+        <distribution>fuel_rough</distribution>
+      </variable>
+      <variable name="power">
+        <distribution>five_pct</distribution>
+      </variable>
+      <variable name="clad_width">
+        <distribution>clad_width</distribution>
+      </variable>
+      <variable name="dens">
+        <distribution>dens</distribution>
+      </variable>
+      <variable name="fuel_reloc">
+        <distribution>twenty_pct</distribution>
+      </variable>
+      <variable name="grain_radius">
+        <distribution>grain_radius</distribution>
+      </variable>
+      <variable name="fuel_thC">
+        <distribution>ten_pct</distribution>
+      </variable>
+      <variable name="clad_ox">
+        <distribution>forty_pct</distribution>
+      </variable>
+      <variable name="clad_thC">
+        <distribution>clad_thC</distribution>
+      </variable>
+      <variable name="fuel_thE">
+        <distribution>fuel_thE</distribution>
+      </variable>
+      <variable name="clad_creeprate">
+        <distribution>thirty_pct</distribution>
+      </variable>
+      <variable name="gas_thC">
+        <distribution>ten_pct</distribution>
+      </variable>
+      <variable name="clad_thE">
+        <distribution>clad_thE</distribution>
+      </variable>
+      <variable name="fuel_swell">
+        <distribution>fuel_swell</distribution>
+      </variable>
+      <variable name="grain_res_param">
+        <distribution>grain_res_param</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Models>
+    <PostProcessor name="mining_database" subType="BasicStatistics" verbosity="debug">
+      <what> all </what>
+      <parameters> max_clad_temp,fis_gas_released,max_fuel_temp </parameters>
+    </PostProcessor>
+  </Models>
+
+  <Steps>
+
+    <IOStep name="readdata">
+      <Input class="Databases" type="HDF5">rodlet</Input>
+      <Output class="DataObjects" type="PointSet">collset</Output>
+    </IOStep>
+
+    <PostProcess name="mine">
+      <Input class="DataObjects" type="PointSet"> collset </Input>
+      <Model class="Models" type="PostProcessor"> mining_database </Model>
+      <Output class="Files" type=""> output_basicStatistics_mine.csv </Output>
+    </PostProcess>
+
+  </Steps>
+
+  <OutStreams>
+    <Print name="output_basicStatistics_mine_dump.csv">
+      <type>csv</type>
+      <source>output_basicStatistics_mine.csv</source>
+    </Print>
+  </OutStreams>
+
+</Simulation>
