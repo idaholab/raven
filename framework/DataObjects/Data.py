@@ -453,14 +453,14 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       if type(tupleVar[0][hist]) == dict:
         for key in tupleVar[0][hist].keys(): self.updateInputValue(key, tupleVar[0][hist][key], options)
       else:
-        if self.type in ['Point','PointSet']:
+        if self.type in ['PointSet']:
           for index in range(tupleVar[0][hist].size): self.updateInputValue(hist, tupleVar[0][hist][index], options)
         else: self.updateInputValue(hist, tupleVar[0][hist], options)
     for hist in tupleVar[1].keys():
       if type(tupleVar[1][hist]) == dict:
         for key in tupleVar[1][hist].keys(): self.updateOutputValue(key, tupleVar[1][hist][key], options)
       else:
-        if self.type in ['Point','PointSet']:
+        if self.type in ['PointSet']:
           for index in range(tupleVar[1][hist].size): self.updateOutputValue(hist, tupleVar[1][hist][index], options)
         else: self.updateOutputValue(hist, tupleVar[1][hist], options)
     if len(tupleVar) > 2:
@@ -499,12 +499,13 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
   def getParaKeys(self,typePara):
     """
       Functions to get the parameter keys
-      @ In, typePara, string, variable type (input or output)
+      @ In, typePara, string, variable type (input, output or metadata)
       @ Out, keys, list, list of requested keys
     """
-    if typePara.lower() not in ['input','inputs','output','outputs']: self.raiseAnError(RuntimeError,'type ' + typePara + ' is not a valid type. Function: Data.getParaKeys')
-    keys = self._dataParameters['inParam' ] if typePara.lower() in 'inputs' else self._dataParameters['outParam']
+    if typePara.lower() not in ['input','inputs','output','outputs','metadata']: self.raiseAnError(RuntimeError,'type ' + typePara + ' is not a valid type. Function: Data.getParaKeys')
+    keys = self._dataParameters['inParam' ] if typePara.lower() in 'inputs' else (self._dataParameters['outParam'] if typePara.lower() in 'outputs' else self._dataContainer['metadata'].keys())
     return keys
+
   def isItEmpty(self):
     """
       Function to check if the data is empty
@@ -617,9 +618,6 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
             returnDict[keyword] = {}
             if self.type == 'HistorySet':
                 for key in self._dataContainer['inputs'][keyword].keys(): returnDict[keyword][key] = np.resize(self._dataContainer['inputs'][keyword][key],len(self._dataContainer['outputs'][keyword].values()[0]))
-                return convertArr(returnDict[keyword])
-            elif self.type == 'History':
-                returnDict[keyword] = np.resize(self._dataContainer['inputs'][keyword],len(self._dataContainer['outputs'].values()[0]))
                 return convertArr(returnDict[keyword])
             else:
                 return convertArr(self._dataContainer['inputs'][keyword])

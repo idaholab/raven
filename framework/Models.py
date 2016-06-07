@@ -48,7 +48,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
   #the possible inputs
   validateDict['Input'].append(testDict.copy())
   validateDict['Input'  ][0]['class'       ] = 'DataObjects'
-  validateDict['Input'  ][0]['type'        ] = ['Point','PointSet','History','HistorySet']
+  validateDict['Input'  ][0]['type'        ] = ['PointSet','HistorySet']
   validateDict['Input'  ][0]['required'    ] = False
   validateDict['Input'  ][0]['multiplicity'] = 'n'
   validateDict['Input'].append(testDict.copy())
@@ -60,7 +60,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
   #the possible outputs
   validateDict['Output'].append(testDict.copy())
   validateDict['Output' ][0]['class'       ] = 'DataObjects'
-  validateDict['Output' ][0]['type'        ] = ['Point','PointSet','History','HistorySet']
+  validateDict['Output' ][0]['type'        ] = ['PointSet','HistorySet']
   validateDict['Output' ][0]['required'    ] = False
   validateDict['Output' ][0]['multiplicity'] = 'n'
   validateDict['Output'].append(testDict.copy())
@@ -90,7 +90,8 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
                                                 'AdaptiveSparseGrid',
                                                 'Sobol',
                                                 'AdaptiveSobol',
-                                                'EnsembleForward']
+                                                'EnsembleForward',
+                                                'CustomSampler']
 
   @classmethod
   def generateValidateDict(cls):
@@ -295,10 +296,10 @@ class Dummy(Model):
       @ Out, None
     """
     cls.validateDict['Input' ]                    = [cls.validateDict['Input' ][0]]
-    cls.validateDict['Input' ][0]['type'        ] = ['Point','PointSet']
+    cls.validateDict['Input' ][0]['type'        ] = ['PointSet']
     cls.validateDict['Input' ][0]['required'    ] = True
     cls.validateDict['Input' ][0]['multiplicity'] = 1
-    cls.validateDict['Output'][0]['type'        ] = ['Point','PointSet']
+    cls.validateDict['Output'][0]['type'        ] = ['PointSet']
 
   def _manipulateInput(self,dataIn):
     """
@@ -339,8 +340,8 @@ class Dummy(Model):
   def createNewInput(self,myInput,samplerType,**Kwargs):
     """
       this function have to return a new input that will be submitted to the model, it is called by the sampler
-      here only Point and PointSet are accepted a local copy of the values is performed.
-      For a Point all value are copied, for a PointSet only the last set of entry
+      here only a PointSet is accepted a local copy of the values is performed.
+      For a PointSet, only the last set of entries are copied
       The copied values are returned as a dictionary back
       @ In, myInput, list, the inputs (list) to start from to generate the new one
       @ In, samplerType, string, is the type of sampler that is calling to generate a new input
@@ -436,7 +437,7 @@ class ROM(Dummy):
     cls.validateDict['Input' ]                    = [cls.validateDict['Input' ][0]]
     cls.validateDict['Input' ][0]['required'    ] = True
     cls.validateDict['Input' ][0]['multiplicity'] = 1
-    cls.validateDict['Output'][0]['type'        ] = ['Point','PointSet','HistorySet']
+    cls.validateDict['Output'][0]['type'        ] = ['PointSet','HistorySet']
 
   def __init__(self,runInfoDict):
     """
@@ -521,19 +522,37 @@ class ROM(Dummy):
           self.initializationOptionDict[child.tag]={}
         self.initializationOptionDict[child.tag][child.text]=child.attrib
       else:
-        try: self.initializationOptionDict[child.tag] = int(child.text)
-        except (ValueError,TypeError):
-          try: self.initializationOptionDict[child.tag] = float(child.text)
-          except (ValueError,TypeError): self.initializationOptionDict[child.tag] = child.text
+        if child.tag == 'estimator':
+          self.initializationOptionDict[child.tag] = {}
+          for node in child:
+            try:
+              self.initializationOptionDict[child.tag][node.tag] = int(node.text)
+            except (ValueError,TypeError):
+              try:
+                self.initializationOptionDict[child.tag][node.tag] = float(node.text)
+              except (ValueError,TypeError):
+                self.initializationOptionDict[child.tag][node.tag] = node.text
+        else:
+          try:
+            self.initializationOptionDict[child.tag] = int(child.text)
+          except (ValueError,TypeError):
+            try: self.initializationOptionDict[child.tag] = float(child.text)
+            except (ValueError,TypeError): self.initializationOptionDict[child.tag] = child.text
     #the ROM is instanced and initialized
     # check how many targets
     if not 'Target' in self.initializationOptionDict.keys(): self.raiseAnError(IOError,'No Targets specified!!!')
     targets = self.initializationOptionDict['Target'].split(',')
     self.howManyTargets = len(targets)
 
-    for target in targets:
-      self.initializationOptionDict['Target'] = target
-      self.SupervisedEngine[target] =  SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
+    if 'SKLtype' in self.initializationOptionDict and 'MultiTask' in self.initializationOptionDict['SKLtype']:
+      self.initializationOptionDict['Target'] = targets
+      model = SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
+      for target in targets:
+        self.SupervisedEngine[target] = model
+    else:
+      for target in targets:
+        self.initializationOptionDict['Target'] = target
+        self.SupervisedEngine[target] =  SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
     # extend the list of modules this ROM depen on
     self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(utils.first(self.SupervisedEngine.values())),True)) - set(self.mods))
     self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(SupervisedLearning),True)) - set(self.mods))
@@ -787,6 +806,7 @@ class ExternalModel(Dummy):
     self.sim                      = None
     self.modelVariableValues      = {}                                          # dictionary of variable values for the external module imported at runtime
     self.modelVariableType        = {}                                          # dictionary of variable types, used for consistency checks
+    self.listOfRavenAwareVars     = []                                          # list of variables RAVEN needs to be aware of
     self._availableVariableTypes = ['float','bool','int','ndarray',
                                     'c1darray','float16','float32','float64',
                                     'float128','int16','int32','int64','bool8'] # available data types
@@ -860,15 +880,16 @@ class ExternalModel(Dummy):
         for var in son.text.split(','):
           var = var.strip()
           self.modelVariableType[var] = None
+          self.listOfRavenAwareVars.append(var)
     # check if there are other information that the external module wants to load
-    if '_readMoreXML' in dir(self.sim): self.sim._readMoreXML(self,xmlNode)
+    if '_readMoreXML' in dir(self.sim): self.sim._readMoreXML(self.initExtSelf,xmlNode)
 
   def __externalRun(self, Input, modelVariables):
     """
       Method that performs the actual run of the imported external model (separated from run method for parallelization purposes)
       @ In, Input, list, list of the inputs needed for running the model
       @ In, modelVariables, dict, the dictionary containing all the External Model variables
-      @ Out, (modelVariableValues,self), tuple, tuple containing the dictionary of the results (pos 0) and the self (pos 1)
+      @ Out, (outcomes,self), tuple, tuple containing the dictionary of the results (pos 0) and the self (pos 1)
     """
     externalSelf        = utils.Object()
     #self.sim=__import__(self.ModuleToLoad)
@@ -902,7 +923,8 @@ class ExternalModel(Dummy):
           errorFound = True
           self.raiseADebug('variable '+ key+' has an unsupported type -> '+ self.modelVariableType[key],verbosity='silent')
       if errorFound: self.raiseAnError(RuntimeError,'Errors detected. See above!!')
-    return copy.copy(modelVariableValues),self
+    outcomes = dict((k, modelVariableValues[k]) for k in self.listOfRavenAwareVars)
+    return outcomes,self
 
   def run(self,Input,jobHandler):
     """
@@ -1137,8 +1159,8 @@ class Code(Model):
   def createNewInput(self,currentInput,samplerType,**Kwargs):
     """
       this function have to return a new input that will be submitted to the model, it is called by the sampler
-      here only Point and PointSet are accepted a local copy of the values is performed.
-      For a Point all value are copied, for a PointSet only the last set of entry
+      here only a PointSet is accepted a local copy of the values is performed.
+      For a PointSet only the last set of entries are copied.
       The copied values are returned as a dictionary back
       @ In, currentInput, list, the inputs (list) to start from to generate the new one
       @ In, samplerType, string, is the type of sampler that is calling to generate a new input
@@ -1224,7 +1246,7 @@ class Code(Model):
     metadata = finishedjob.returnMetadata()
     if metadata: attributes['metadata'] = metadata
     if output.type == "HDF5"        : output.addGroup(attributes,attributes)
-    elif output.type in ['Point','PointSet','History','HistorySet']:
+    elif output.type in ['PointSet','HistorySet']:
       outfile = Files.returnInstance('CSV',self)
       outfile.initialize(finishedjob.output+'.csv',self.messageHandler,path=outputFilelocation)
       output.addOutput(outfile,attributes)
@@ -1256,16 +1278,22 @@ class PostProcessor(Model, Assembler):
     cls.validateDict['Input'  ][1]['multiplicity'] = 'n'
     cls.validateDict['Input'].append(cls.testDict.copy())
     cls.validateDict['Input'  ][2]['class'       ] = 'DataObjects'
-    cls.validateDict['Input'  ][2]['type'        ] = ['Point','PointSet','History','HistorySet']
+    cls.validateDict['Input'  ][2]['type'        ] = ['PointSet','HistorySet']
     cls.validateDict['Input'  ][2]['required'    ] = False
     cls.validateDict['Input'  ][2]['multiplicity'] = 'n'
+    cls.validateDict['Input'].append(cls.testDict.copy())
+    cls.validateDict['Input'  ][3]['class'       ] = 'Files'
+    # FIXME there's lots of types that Files can be, so until XSD replaces this, commenting this out
+    #cls.validateDict['Input'  ][3]['type'        ] = ['']
+    cls.validateDict['Input'  ][3]['required'    ] = False
+    cls.validateDict['Input'  ][3]['multiplicity'] = 'n'
     cls.validateDict['Output'].append(cls.testDict.copy())
     cls.validateDict['Output' ][0]['class'       ] = 'Files'
     cls.validateDict['Output' ][0]['type'        ] = ['']
     cls.validateDict['Output' ][0]['required'    ] = False
     cls.validateDict['Output' ][0]['multiplicity'] = 'n'
     cls.validateDict['Output' ][1]['class'       ] = 'DataObjects'
-    cls.validateDict['Output' ][1]['type'        ] = ['Point','PointSet','History','HistorySet']
+    cls.validateDict['Output' ][1]['type'        ] = ['PointSet','HistorySet']
     cls.validateDict['Output' ][1]['required'    ] = False
     cls.validateDict['Output' ][1]['multiplicity'] = 'n'
     cls.validateDict['Output'].append(cls.testDict.copy())
@@ -1385,8 +1413,8 @@ class PostProcessor(Model, Assembler):
   def createNewInput(self,myInput,samplerType,**Kwargs):
     """
       this function have to return a new input that will be submitted to the model, it is called by the sampler
-      here only Point and PointSet are accepted a local copy of the values is performed.
-      For a Point all value are copied, for a PointSet only the last set of entry
+      here only a PointSet is accepted a local copy of the values is performed.
+      For a PointSet, only the last set of entries is copied
       The copied values are returned as a dictionary back
       @ In, myInput, list, the inputs (list) to start from to generate the new one
       @ In, samplerType, string, is the type of sampler that is calling to generate a new input
@@ -1413,7 +1441,7 @@ class EnsembleModel(Dummy, Assembler):
     """
     cls.validateDict['Output'].append(cls.testDict.copy())
     cls.validateDict['Output' ][1]['class'       ] = 'DataObjects'
-    cls.validateDict['Output' ][1]['type'        ] = ['Point','PointSet']
+    cls.validateDict['Output' ][1]['type'        ] = ['PointSet']
     cls.validateDict['Output' ][1]['required'    ] = False
     cls.validateDict['Output' ][1]['multiplicity'] = 'n'
     cls.validateDict['Output'].append(cls.testDict.copy())

@@ -9,48 +9,30 @@
   <Files>
     <Input name="ideal_pump.i" type="">ideal_pump.i</Input>
     <Input name="ideal_pump_control.py" type="">ideal_pump_control.py</Input>
-    <Input name="point">../output_check/fullprint_Point.csv</Input>
     <Input name="pointset">../output_check/fullprint_Pointset.csv</Input>
-    <Input name="hist">../output_check/fullprint_history.csv</Input>
     <Input name="histset">../output_check/fullprint_HistorySet.csv</Input>
   </Files>
 
   <Steps>
     <IOStep fromDirectory="../output_check" name="test_read_in">
-      <Input class="Files" type="">point</Input>
       <Input class="Files" type="">pointset</Input>
-      <Input class="Files" type="">hist</Input>
       <Input class="Files" type="">histset</Input>
-      <Output class="DataObjects" type="Point">fullprint_Point</Output>
       <Output class="DataObjects" type="PointSet">fullprint_Pointset</Output>
-      <Output class="DataObjects" type="History">fullprint_history</Output>
       <Output class="DataObjects" type="HistorySet">fullprint_HistorySet</Output>
     </IOStep>
     <IOStep name="test_rewrite">
-      <Input class="DataObjects" type="History">fullprint_history</Input>
       <Input class="DataObjects" type="HistorySet">fullprint_HistorySet</Input>
-      <Input class="DataObjects" type="Point">fullprint_Point</Input>
       <Input class="DataObjects" type="PointSet">fullprint_Pointset</Input>
-      <Output class="OutStreams" type="Print">reprint_Point</Output>
       <Output class="OutStreams" type="Print">reprint_Pointset</Output>
-      <Output class="OutStreams" type="Print">reprint_history</Output>
       <Output class="OutStreams" type="Print">reprint_HistorySet</Output>
     </IOStep>
   </Steps>
 
   <DataObjects>
-    <Point name="fullprint_Point">
-      <Input>pipe1_Area,pipe1_Dh</Input>
-      <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
-    </Point>
     <PointSet name="fullprint_Pointset">
       <Input>pipe1_Area,pipe1_Dh</Input>
       <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
     </PointSet>
-    <History name="fullprint_history">
-      <Input>pipe1_Area,pipe1_Dh</Input>
-      <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
-    </History>
     <HistorySet name="fullprint_HistorySet">
       <Input>pipe1_Area,pipe1_Dh</Input>
       <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
@@ -61,14 +43,6 @@
     <Print name="reprint_HistorySet">
       <type>csv</type>
       <source>fullprint_HistorySet</source>
-    </Print>
-    <Print name="reprint_history">
-      <type>csv</type>
-      <source>fullprint_history</source>
-    </Print>
-    <Print name="reprint_Point">
-      <type>csv</type>
-      <source>fullprint_Point</source>
     </Print>
     <Print name="reprint_Pointset">
       <type>csv</type>

@@ -28,7 +28,7 @@
 
   <Steps>
     <MultiRun name="uqWithCov" re-seeding="103186">
-      <Input class="DataObjects" type="Point">inputPlaceHolder</Input>
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
       <Model class="Models" type="ExternalModel">PythonModule</Model>
       <Sampler class="Samplers" type="MonteCarlo">MCExternal</Sampler>
       <Output class="DataObjects" type="PointSet">testPrintPointSet</Output>
@@ -47,10 +47,10 @@
   </OutStreams>
 
   <DataObjects>
-    <Point name="inputPlaceHolder">
+    <PointSet name="inputPlaceHolder">
       <ExternalXML node="Input" xmlToLoad="ROM/pointInput.xml"/>
       <Output>OutputPlaceHolder</Output>
-    </Point>
+    </PointSet>
     <PointSet name="testPrintPointSet">
       <Input>x_0,x_10,x_50</Input>
       <Output>response</Output>

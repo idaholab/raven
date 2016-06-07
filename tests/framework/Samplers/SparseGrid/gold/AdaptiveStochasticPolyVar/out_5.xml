@@ -2,7 +2,7 @@
   <ans2>
     <mean>1.0</mean>
     <variance>0.666666666667</variance>
-    <numRuns>7</numRuns>
+    <samples>7</samples>
     <polyCoeffs>
       <inputVariables>x1,x2</inputVariables>
       <_0_0_>1.0</_0_0_>
@@ -12,20 +12,22 @@
     </polyCoeffs>
     <indices>
       <tot_variance>0.666666666667</tot_variance>
-      <variables>(u'x2',)
+      <variables>x2
         <partial_variance>0.333333333333</partial_variance>
         <Sobol_index>0.5</Sobol_index>
+        <Sobol_total_index>0.5</Sobol_total_index>
       </variables>
-      <variables>(u'x1',)
+      <variables>x1
         <partial_variance>0.333333333333</partial_variance>
         <Sobol_index>0.5</Sobol_index>
+        <Sobol_total_index>0.5</Sobol_total_index>
       </variables>
     </indices>
   </ans2>
   <ans>
     <mean>1.33333333333</mean>
     <variance>0.755555555556</variance>
-    <numRuns>7</numRuns>
+    <samples>7</samples>
     <polyCoeffs>
       <inputVariables>x1,x2</inputVariables>
       <_0_0_>1.33333333333</_0_0_>
@@ -35,13 +37,15 @@
     </polyCoeffs>
     <indices>
       <tot_variance>0.755555555556</tot_variance>
-      <variables>(u'x1',)
+      <variables>x1
         <partial_variance>0.422222222222</partial_variance>
         <Sobol_index>0.558823529412</Sobol_index>
+        <Sobol_total_index>0.558823529412</Sobol_total_index>
       </variables>
-      <variables>(u'x2',)
+      <variables>x2
         <partial_variance>0.333333333333</partial_variance>
         <Sobol_index>0.441176470588</Sobol_index>
+        <Sobol_total_index>0.441176470588</Sobol_total_index>
       </variables>
     </indices>
   </ans>
