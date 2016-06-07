@@ -572,7 +572,7 @@ class DynamicEventTree(Grid):
       only the code interface possesses the dictionary for reading the variable definition syntax
       @ In, model, model instance, it is the instance of a RAVEN model
       @ In, oldInput, list, a list of the original needed inputs for the model (e.g. list of files, etc. etc)
-      @ Out, generateInput, (0,list), list containing the new inputs -in reality it is the model that return this the Sampler generate the value to be placed in the input the model
+      @ Out, generateInput, (0,list), list containing the new inputs -in reality it is the model that returns this; the Sampler generates the value to be placed in the input of the model.
     """
     #NB: if someday the DET handles restarts as other samplers do in generateInput, the return code 1 indicates the result
     #  is stored in a restart data object, while 0 indicates a new run has been found.

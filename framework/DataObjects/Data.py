@@ -879,8 +879,8 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     #FIXME I don't like this fix.  Because of the Transformed space, our internal space includes latent variables, so we check subset.
     #  This is potentially flawed, though, in case you're taking points from a higher-dimension space!
     if not set(requested.keys()).issubset(set(self.getParaKeys('inputs'))):
-      self.raiseAWarning('Requested Space :',requested.keys())
-      self.raiseAWarning('DataObject Space:',self.getParaKeys('inputs'))
+      self.raiseADebug('Requested Space :',requested.keys())
+      self.raiseADebug('DataObject Space:',self.getParaKeys('inputs'))
       self.raiseADebug('Requested realization input space does not match DataObject input space!  Assuming not found...')
       return
     inpVals = self.getParametersValues('inputs')
