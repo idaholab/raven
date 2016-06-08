@@ -478,7 +478,6 @@ class temporalBasicStatistics(unSupervisedLearning):
     if self.methodsToRun:             self.method.methodsToRun = self.methodsToRun.split(',')
     self.method.biased = self.biased
     assert (self.parameters is not []), self.raiseAnError(IOError, 'I need parameters to work on! Please check your input for PP: ' + self.name)
-    self.outputDict = {}
 
   def run(self, Input):
     """
@@ -486,8 +485,9 @@ class temporalBasicStatistics(unSupervisedLearning):
       @In, Input, historySet
       @Out, self.outputDict, history
     """
+    outputDict = {}
     timeVar = Input.getParam('output',1)[self.timeID]
-    self.outputDict[self.timeID] = timeVar
+    outputDict[self.timeID] = timeVar
     historyKey = Input.getOutParametersValues().keys()
     noHistory = len(historyKey)
     noTimeStep = len(timeVar)
@@ -498,17 +498,17 @@ class temporalBasicStatistics(unSupervisedLearning):
       if whatc in self.__class__.whatThatReturnsMatrix:
         for tar1 in parameterSet:
           for tar2 in parameterSet:
-            self.outputDict[whatc + '-' + tar1 + '-' + tar2] = []
+            outputDict[whatc + '-' + tar1 + '-' + tar2] = []
       else:
         for tar in parameterSet:
           if whatc.split("_")[0] == 'percentile':
             if "_" not in whatc:
-              self.outputDict[tar + '-' + whatc + '_5'] = []
-              self.outputDict[tar + '-' + whatc + '_95'] = []
+              outputDict[tar + '-' + whatc + '_5'] = []
+              outputDict[tar + '-' + whatc + '_95'] = []
             else:
-              self.outputDict[tar + '-' + whatc.replace('%','')] = []
+              outputDict[tar + '-' + whatc.replace('%','')] = []
           else:
-            self.outputDict[tar + '-' + whatc] = []
+            outputDict[tar + '-' + whatc] = []
 
     # Converts Input (HistorySet) into InputV (dictionary)
     InputV = {}
@@ -536,20 +536,20 @@ class temporalBasicStatistics(unSupervisedLearning):
           for index1,tar1 in enumerate(parameterSet):
             for index2,tar2 in enumerate(parameterSet):
               if whatc in ['pearson', 'covariance']:
-                self.outputDict[whatc + '-' + tar1 + '-' + tar2].append(outp[whatc][index1,index2])
+                outputDict[whatc + '-' + tar1 + '-' + tar2].append(outp[whatc][index1,index2])
               elif whatc in ['sensitivity','NormalizedSensitivity', 'VarianceDependentSensitivity']:
-                self.outputDict[whatc + '-' + tar1 + '-' + tar2].append(outp[whatc][index1][index2])
+                outputDict[whatc + '-' + tar1 + '-' + tar2].append(outp[whatc][index1][index2])
         else:
           for tar in parameterSet:
             if whatc.split("_")[0] == 'percentile':
               if "_" not in whatc:
-                self.outputDict[tar + '-' + whatc + '_5'].append(outp[whatc + '_5'][tar])
-                self.outputDict[tar + '-' + whatc + '_95'].append(outp[whatc + '_95'][tar])
+                outputDict[tar + '-' + whatc + '_5'].append(outp[whatc + '_5'][tar])
+                outputDict[tar + '-' + whatc + '_95'].append(outp[whatc + '_95'][tar])
               else:
-                self.outputDict[tar + '-' + whatc.replace('%','')].append(outp[whatc.replace('%','')][tar])
+                outputDict[tar + '-' + whatc.replace('%','')].append(outp[whatc.replace('%','')][tar])
             else:
-              self.outputDict[tar + '-' + whatc].append(outp[whatc][tar])
-    return self.outputDict
+              outputDict[tar + '-' + whatc].append(outp[whatc][tar])
+    return outputDict
 
   def __trainLocal__(self):
     """

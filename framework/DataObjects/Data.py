@@ -63,6 +63,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     self._dataContainer['metadata'     ] = {}                         # In this dictionary we store metadata (For example, probability,input file names, etc)
     self.metaAdditionalInOrOut           = ['PointProbability','ProbabilityWeight']            # list of metadata keys that will be printed in the CSV one
     self.acceptHierarchy                 = False                      # flag to tell if a sub-type accepts hierarchy
+    self.placeHolders = {'Input':'inputPlaceHolder','Output':'outputPlaceHolder'}
     self.notAllowedInputs  = []                                       # this is a list of keyword that are not allowed as Inputs
     self.notAllowedOutputs = []                                       # this is a list of keyword that are not allowed as Outputs
     # This is a list of metadata types that are CSV-compatible...we build the list this way to catch when a python implementation doesn't

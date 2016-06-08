@@ -220,8 +220,7 @@ class HistorySet(Data):
                                                                              otherwise a new history is created and the new value is inserted in it
       @ Out, None
     """
-    if not isinstance(value,(np.ndarray,c1darray)):
-        self.raiseAnError(NotConsistentData,'HistorySet Data accepts only numpy array as type for method <_updateSpecializedOutputValue>. Got ' + str(type(value)))
+    if not isinstance(value,(np.ndarray,c1darray)): self.raiseAnError(NotConsistentData,'HistorySet Data accepts only numpy array as type for method <_updateSpecializedOutputValue>. Got ' + str(type(value)))
 
     if options and self._dataParameters['hierarchical']:
       parentID = None
@@ -379,11 +378,8 @@ class HistorySet(Data):
               outKeys_h.append(var.split('|')[1])
               outValues_h.append(outValues[n][variableName])
         else:
-          inpKeys_h   = list(inpValues[n].keys())
-          inpValues_h = list(inpValues[n].values())
-          outKeys_h   = list(outValues[n].keys())
-          outValues_h = list(outValues[n].values())
-
+          inpKeys_h, inpValues_h = list(inpValues[n].keys()), list(inpValues[n].values())
+          outKeys_h, outValues_h   = list(outValues[n].keys()), list(outValues[n].values())
         dataFilename = filenameLocal + '_'+ str(n) + '.csv'
         if len(inpKeys_h) > 0 or len(outKeys_h) > 0: myDataFile = open(dataFilename, 'w')
         else: return #XXX should this just skip this iteration?

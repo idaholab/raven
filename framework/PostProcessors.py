@@ -3329,15 +3329,13 @@ class DataMining(BasePostProcessor):
         if keyP == 'metadata':
           for keyM in bsDict[keyP].keys():
             output.updateMetadata(keyM, bsDict[keyP][keyM])
-        else:
-          output.updateOutputValue(keyP, bsDict[keyP])
+        else: output.updateOutputValue(keyP, np.asarray(bsDict[keyP]))
 
     elif self.type in ['temporalSciKitLearn']:
       tlDict = finishedJob.returnEvaluation()[1]
       historyKey = output.getOutParametersValues().keys()
       for index, keyH in enumerate(historyKey):
-        for keyL in tlDict['output'].keys():
-          output.updateOutputValue([keyH,keyL], tlDict['output'][keyL][index,:])
+        for keyL in tlDict['output'].keys(): output.updateOutputValue([keyH,keyL], tlDict['output'][keyL][index,:])
 
   def run(self, inputIn):
     """
@@ -3402,8 +3400,7 @@ class DataMining(BasePostProcessor):
     #        in the unSupervisedLearning module.
     #        Make changes if necessary.
     elif self.type in ['temporalBasicStatistics']:
-      self.unSupervisedEngine.run(Input)
-      outputDict = self.unSupervisedEngine.outputDict
+      outputDict= self.unSupervisedEngine.run(Input)
 
     elif self.type in ['temporalSciKitLearn']:
       outputDict = {}

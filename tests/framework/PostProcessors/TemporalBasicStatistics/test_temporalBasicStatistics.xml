@@ -2,8 +2,8 @@
 <Simulation verbosity="debug">
     <RunInfo>
         <WorkingDir>BasicStatisticGeneral</WorkingDir>
-                <Sequence>readIn,tpp</Sequence>
-        <batchSize>100</batchSize>
+        <Sequence>readIn,tpp</Sequence>
+        <batchSize>1</batchSize>
     </RunInfo>
     <Files>
         <Input name="rawDataFile">./dataSet.csv</Input>
@@ -11,9 +11,9 @@
     <Models>
         <PostProcessor name='tbs' subType='DataMining'>
             <KDD lib='temporalBasicStatistics'>
-                                <timeID>Time</timeID>
-                <parameters>x1,x2</parameters>
-                                <what>all</what>
+               <timeID>Time</timeID>
+               <parameters>x1,x2</parameters>
+               <what>all</what>
             </KDD>
         </PostProcessor>
 
@@ -21,28 +21,28 @@
 
     <Steps>
         <IOStep name='readIn' pauseAtEnd = 'True'>
-            <Input    class = 'Files'             type = ''              >rawDataFile</Input>
+            <Input    class = 'Files'             type = ''               >rawDataFile</Input>
             <Output   class = 'DataObjects'       type = 'HistorySet'       >rawData</Output>
         </IOStep>
 
         <PostProcess name='tpp' pauseAtEnd = 'True'>
-            <Input   class = 'DataObjects'       type = 'HistorySet'      >rawData</Input>
-            <Model   class = 'Models'            type = 'PostProcessor' >tbs</Model>
-                        <Output  class = 'DataObjects'           type = 'History'>ppData</Output>
-                        <Output   class = 'OutStreams'  type = 'Print'         >dummy</Output>
-                        <Output   class = 'OutStreams'  type = 'Plot'          >plotPPDataMean</Output>
-                        <Output   class = 'OutStreams'  type = 'Plot'          >plotPPDataSigma</Output>
-                        <Output   class = 'OutStreams'  type = 'Plot'          >plotPPDataSkewKurtosis</Output>
-                        <Output   class = 'OutStreams'  type = 'Plot'          >plotPPDataCov</Output>
-                        <Output   class = 'OutStreams'  type = 'Plot'          >plotPPDataCorr</Output>
-                        <Output   class = 'OutStreams'  type = 'Plot'          >plotPPDataNSens</Output>
-                        <Output   class = 'OutStreams'  type = 'Plot'          >plotPPDataVDSens</Output>
-                        <Output   class = 'OutStreams'  type = 'Plot'          >plotPPDataSens</Output>
-                </PostProcess>
+            <Input    class = 'DataObjects' type = 'HistorySet'    >rawData</Input>
+            <Model    class = 'Models'      type = 'PostProcessor' >tbs</Model>
+            <Output   class = 'DataObjects' type = 'HistorySet'    >ppData</Output>
+            <Output   class = 'OutStreams'  type = 'Print'         >dummy</Output>
+            <Output   class = 'OutStreams'  type = 'Plot'          >plotPPDataMean</Output>
+            <Output   class = 'OutStreams'  type = 'Plot'          >plotPPDataSigma</Output>
+            <Output   class = 'OutStreams'  type = 'Plot'          >plotPPDataSkewKurtosis</Output>
+            <Output   class = 'OutStreams'  type = 'Plot'          >plotPPDataCov</Output>
+            <Output   class = 'OutStreams'  type = 'Plot'          >plotPPDataCorr</Output>
+            <Output   class = 'OutStreams'  type = 'Plot'          >plotPPDataNSens</Output>
+            <Output   class = 'OutStreams'  type = 'Plot'          >plotPPDataVDSens</Output>
+            <Output   class = 'OutStreams'  type = 'Plot'          >plotPPDataSens</Output>
+         </PostProcess>
     </Steps>
 
     <OutStreams>
-                <Print name = 'dummy'>
+        <Print name = 'dummy'>
             <type>csv</type>
             <source>ppData</source>
         </Print>
@@ -422,10 +422,10 @@
 
     </OutStreams>
     <DataObjects>
-      <History name='ppData'>
+      <HistorySet name='ppData'>
         <Input>n</Input>
         <Output>Time</Output>
-      </History>
+      </HistorySet>
         <HistorySet name="rawData">
             <Input>n</Input>
             <Output>Time,x1,x2</Output>
