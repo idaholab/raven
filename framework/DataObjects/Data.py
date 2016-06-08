@@ -16,6 +16,7 @@ import abc
 import ast
 import copy
 import numpy as np
+from scipy import spatial
 import xml.etree.ElementTree as ET
 #External Modules End--------------------------------------------------------------------------------
 
@@ -64,6 +65,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     self._dataContainer['metadata'     ] = {}                         # In this dictionary we store metadata (For example, probability,input file names, etc)
     self.metaAdditionalInOrOut           = ['PointProbability','ProbabilityWeight']            # list of metadata keys that will be printed in the CSV one
     self.acceptHierarchy                 = False                      # flag to tell if a sub-type accepts hierarchy
+    self.inputKDTree                     = None                       # KDTree for speedy querying of input space
     self.notAllowedInputs  = []                                       # this is a list of keyword that are not allowed as Inputs
     self.notAllowedOutputs = []                                       # this is a list of keyword that are not allowed as Outputs
     # This is a list of metadata types that are CSV-compatible...we build the list this way to catch when a python implementation doesn't
@@ -155,6 +157,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
           if name in node.get('dataContainer')['inputs'].keys(): node.get('dataContainer')['inputs'].pop(name)
     else:
       if name in self._dataContainer['inputs'].keys(): self._dataContainer['inputs'].pop(name)
+    self.inputKDTree = None
 
   def removeOutputValue(self,name):
     """
@@ -180,6 +183,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     else:
       self._dataContainer                  = {'inputs':{},'outputs':{}}
       self._dataContainer['metadata'     ] = {}
+    self.inputKDTree = None
 
   def updateInputValue(self,name,value,options=None):
     """
@@ -189,6 +193,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ In, options, dict, optional, the dictionary of options to update the value (e.g. parentId, etc.)
       @ Out, None
     """
+    self.inputKDTree = None
     self._updateSpecializedInputValue(name,value,options)
 
   def updateOutputValue(self,name,value,options=None):
@@ -337,6 +342,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ In, options, dict, optional, dictionary -> options for loading
       @ Out, None
     """
+    self.inputKDTree = None
     self._specializedLoadXMLandCSV(filenameRoot,options)
 
   def _specializedLoadXMLandCSV(self,filenameRoot,options):
@@ -884,17 +890,40 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       self.raiseADebug('Requested realization input space does not match DataObject input space!  Assuming not found...')
       return
     inpVals = self.getParametersValues('inputs')
-    outVals = self.getParametersValues('outputs')
-    #prepare list of tuples to search from
-    have = []
-    for i in range(len(inpVals.values()[0])):
-      have.append(tuple(inpVals[var][i] for var in requested.keys()))
-    have = np.array(have)
-    found,idx,match = mathUtils.NDInArray(have,tuple(val for val in requested.values()),tol=tol)
-    if not found:
-      return
-    realization = self.getRealization(idx)
+    #in benchmarking, using KDTree to query was shown to be consistently and on-average faster
+    #  for each tensor case of dimensions=[2,5,10], number of realizations=[10,100,1000]
+    #  when compared with brute force search through tuples
+    #  This speedup was realized both in formatting, as well as creating the tree/querying the tree
+    #if inputs have changed or this if first query, build the tree
+    if self.inputKDTree is None:
+      #convert data into a matrix in the order of requested
+      data = np.dstack(tuple(inpVals[v] for v in requested.keys()))[0] #[0] is for the way dstack constructs the stack
+      self.inputKDTree = spatial.KDTree(data)
+    #query the tree
+    distances,indices = self.inputKDTree.query(tuple(v for v in requested.values()),distance_upper_bound=tol)
+    #if multiple entries were within tolerance, accept the minimum one
+    if hasattr(distances,'__len__'):
+      index = indices[distances.index(min(distances))]
+    else:
+      index = indices
+    #KDTree reports a "not found" as at infinite distance, at len(data) index
+    if index >= len(self):
+      return None
+    else:
+      realization = self.getRealization(index)
     return realization
+
+    #brute force approach, for comparison
+    #prepare list of tuples to search from
+    #have = []
+    #for i in range(len(inpVals.values()[0])):
+    #  have.append(tuple(inpVals[var][i] for var in requested.keys()))
+    #have = np.array(have)
+    #found,idx,match = mathUtils.NDInArray(have,tuple(val for val in requested.values()),tol=tol)
+    #if not found:
+    #  return
+    #realization = self.getRealization(idx)
+    #return realization
 
   def getRealization(self,index):
     """
