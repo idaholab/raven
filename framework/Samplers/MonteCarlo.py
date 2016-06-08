@@ -85,20 +85,6 @@ class MonteCarlo(ForwardSampler):
       else: self.raiseAnError(IOError,self,'Monte Carlo sampler '+self.name+' needs the limit block (number of samples) in the samplerInit block')
     else: self.raiseAnError(IOError,self,'Monte Carlo sampler '+self.name+' needs the samplerInit block')
 
-  def localInitialize(self):
-    """
-      Will perform all initialization specific to this Sampler. For instance,
-      creating an empty container to hold the identified surface points, error
-      checking the optionally provided solution export and other preset values,
-      and initializing the limit surface Post-Processor used by this sampler.
-      @ In, None
-      @ Out, None
-    """
-    if self.restartData:
-      self.counter+=len(self.restartData)
-      self.raiseAMessage('Number of points from restart: %i' %self.counter)
-      self.raiseAMessage('Number of points needed:       %i' %(self.limit-self.counter))
-
   def localGenerateInput(self,model,myInput):
     """
       Function to select the next most informative point for refining the limit
