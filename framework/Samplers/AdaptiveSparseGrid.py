@@ -151,6 +151,9 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
       @ In, None
       @ Out, None
     """
+    #this model doesn't use restarts, it uses the TargetEvaluation
+    if self.restartData is not None:
+      self.raiseAnError(IOError,'AdaptiveSparseGrid does not use Restart nodes!  Try TargetEvaluation instead.')
     #obtain the DataObject that contains evaluations of the model
     self.solns = self.assemblerDict['TargetEvaluation'][0][3]
     #set a pointer to the GaussPolynomialROM object
@@ -180,14 +183,11 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
       for t in self.targets:
         self.expImpact[t][pt] = 1.0 #dummy, just to help algorithm be consistent
 
-    #set up the already-existing solutions (and re-order the inputs appropriately)
-    self._updateExisting()
-
     #make the first sparse grid
     self.sparseGrid = self._makeSparseQuad(self.indexSet.active)
 
     #set up the points we need RAVEN to run before we can continue
-    self.newSolutionSizeShouldBe = len(self.existing)
+    self.newSolutionSizeShouldBe = len(self.solns)
     self._addNewPoints()
 
   def localStillReady(self,ready,skipJobHandlerCheck=False):
@@ -200,9 +200,7 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
       @ Out, ready, bool, a boolean representing whether the caller is prepared for another input.
     """
     #if we're done, be done
-    if self.done: return False
-    #update existing solutions
-    self._updateExisting()
+    if self.done:return False
     #if we're not ready elsewhere, just be not ready
     if ready==False: return ready
     #if we still have a list of points to sample, just keep on trucking.
@@ -211,7 +209,7 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
     #if points all submitted but not all done, not ready for now.
     if (not self.batchDone) or (not skipJobHandlerCheck and not self.jobHandler.isFinished()):
       return False
-    if len(self.existing) < self.newSolutionSizeShouldBe:
+    if len(self.solns) < self.newSolutionSizeShouldBe:
       return False
     #if no points to check right now, search for points to sample
     #this should also mean the points for the poly-in-training are done
@@ -282,8 +280,7 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
 
   def localGenerateInput(self,model,myInput):
     """
-      Function to select the next most informative point for refining the limit
-      surface search.
+      Function to select the next most informative point
       After this method is called, the self.inputInfo should be ready to be sent
       to the model
       @ In, model, model instance, an instance of a model
@@ -349,7 +346,7 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
     for pt in SG.points()[:]:
       self.pointsNeededToMakeROM.add(pt) #sets won't store redundancies
       #if pt isn't already in needed, and it hasn't already been solved, add it to the queue
-      if pt not in self.neededPoints and not mathUtils.NDInArray(np.array(self.existing.keys()),pt,tol=self.restartTolerance)[0]:
+      if pt not in self.neededPoints and self.solns.getMatchingRealization(self._tupleToDict(pt)) is None:
           self.newSolutionSizeShouldBe+=1
           self.neededPoints.append(pt)
 
@@ -364,21 +361,21 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
     if self.convType.lower()=='variance':
       impact = rom.polyCoeffDict[poly]**2 / sum(rom.polyCoeffDict[p]**2 for p in rom.polyCoeffDict.keys())
     #FIXME 'coeffs' has to be updated to fit in the new rework before it can be used.
-#    elif self.convType.lower()=='coeffs':
-#      #new = self._makeARom(rom.sparseGrid,rom.indexSet).SupervisedEngine[target]
-#      tot = 0 #for L2 norm of coeffs
-#      if self.oldSG != None:
-#        oSG,oSet = self._makeSparseQuad()
-#        old = self._makeARom(oSG,oSet).SupervisedEngine[target]
-#      else: old=None
-#      for coeff in new.polyCoeffDict.keys():
-#        if old!=None and coeff in old.polyCoeffDict.keys():
-#          n = new.polyCoeffDict[coeff]
-#          o = old.polyCoeffDict[coeff]
-#          tot+= (n - o)**2
-#        else:
-#          tot+= new.polyCoeffDict[coeff]**2
-#      impact = np.sqrt(tot)
+    # elif self.convType.lower()=='coeffs':
+    #   #new = self._makeARom(rom.sparseGrid,rom.indexSet).SupervisedEngine[target]
+    #   tot = 0 #for L2 norm of coeffs
+    #   if self.oldSG != None:
+    #     oSG,oSet = self._makeSparseQuad()
+    #     old = self._makeARom(oSG,oSet).SupervisedEngine[target]
+    #   else: old=None
+    #   for coeff in new.polyCoeffDict.keys():
+    #     if old!=None and coeff in old.polyCoeffDict.keys():
+    #       n = new.polyCoeffDict[coeff]
+    #       o = old.polyCoeffDict[coeff]
+    #       tot+= (n - o)**2
+    #     else:
+    #       tot+= new.polyCoeffDict[coeff]**2
+    #   impact = np.sqrt(tot)
     else: self.raiseAnError(KeyError,'Unexpected convergence criteria:',self.convType)
     return impact
 
@@ -454,10 +451,10 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
     tot=0
     for n in range(len(sg)):
       pt,wt = sg[n]
-      inExisting,_,_ = mathUtils.NDInArray(np.array(self.existing.keys()),pt,tol=self.restartTolerance)
-      if not inExisting:
+      inExisting = self.solns.getMatchingRealization(self._tupleToDict(pt))
+      if inExisting is None:
         self.raiseAnError(RuntimeError,'Trying to integrate with point',pt,'but it is not in the solutions!')
-      tot+=self.existing[pt][i]**r*wt
+      tot+=inExisting['outputs'][self.targets[i]]**r*wt
     return tot
 
   def _makeARom(self,grid,inset):
@@ -536,6 +533,28 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
       f.writelines('\n')
     f.writelines('===================== END STEP =====================\n')
     f.close()
+
+  def _tupleToDict(self,pt,output=False):
+    """
+      Converts tuple in order of self.features into a dictionary varName:varValue
+      @ In, pt, tuple(float), point
+      @ In, output, bool, if True use self.targets instead
+      @ Out, _tupleToDict, dict, dictionary
+    """
+    if output:
+      return dict((k,v) for (k,v) in zip(self.targets,pt))
+    return dict((k,v) for (k,v) in zip(self.features,pt))
+
+  def _dictToTuple(self,pt,output=False):
+    """
+      Converts dictionary to tuple in order of self.features
+      @ In, pt, dict, point
+      @ In, output, bool, if True use self.targets instead
+      @ Out, _dictToTuple, tuple(float), point
+    """
+    if output:
+      return tuple(pt[v] for v in self.targets)
+    return tuple(pt[v] for v in self.features)
 
   def _updateQoI(self):
     """

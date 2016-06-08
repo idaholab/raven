@@ -126,7 +126,6 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.printTag                      = self.type                 # prefix for all prints (sampler type)
     self.restartData                   = None                      # presampled points to restart from
     self.restartTolerance              = 1e-15                     # strictness with which to find matches in the restart data
-    self.existing                      = {}                        # restart data points, inputs:outputs
 
     self._endJobRunnable               = sys.maxsize               # max number of inputs creatable by the sampler right after a job ends (e.g., infinite for MC, 1 for Adaptive, etc)
 
@@ -517,8 +516,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ In, None
       @ Out, ready, bool, is this sampler ready to generate another sample?
     """
-    if(self.counter < self.limit): ready = True
-    else                         : ready = False
+    ready = True if self.counter < self.limit else False
     ready = self.localStillReady(ready)
     return ready
 
@@ -538,10 +536,17 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       only the code interface possesses the dictionary for reading the variable definition syntax
       @ In, model, model instance, it is the instance of a RAVEN model
       @ In, oldInput, list, a list of the original needed inputs for the model (e.g. list of files, etc. etc)
-      @ Out, generateInput, list, list containing the new inputs -in reality it is the model that return this the Sampler generate the value to be placed in the input the model
+      @ Out, generateInput, tuple(0,list), list contains the new inputs -in reality it is the model that returns this; the Sampler generates the value to be placed in the input of the model.
+      The Out parameter depends on the results of generateInput
+        If a new point is found, the default Out above is correct.
+        If a restart point is found:
+          @ Out, generateInput, tuple(int,dict), (1,realization dictionary)
     """
     self.counter +=1                              #since we are creating the input for the next run we increase the counter and global counter
     self.auxcnt  +=1
+    #exit if over the limit
+    if self.counter > self.limit:
+      self.raiseADebug('Exceeded number of points requested in sampling!  Moving on...')
     #FIXME, the following condition check is make sure that the require info is only printed once when dump metadata to xml, this should be removed in the future when we have a better way to dump the metadata
     if self.counter >1:
       for key in self.entitiesToRemove:
@@ -550,6 +555,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.inputInfo['prefix'] = str(self.counter)
     model.getAdditionalInputEdits(self.inputInfo)
     self.localGenerateInput(model,oldInput)
+    ##### TRANSFORMATION #####
     # add latent variables and original variables to self.inputInfo
     if self.variablesTransformationDict:
       for dist,var in self.variablesTransformationDict.items():
@@ -557,11 +563,31 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
           self.pcaTransform(var,dist)
         else:
           self.raiseAnError(NotImplementedError,'transformation method is not yet implemented for ' + self.transformationMethod[dist] + ' method')
+    ##### REDUNDANT FUNCTIONALS #####
     # generate the function variable values
     for var in self.dependentSample.keys():
       test=self.funcDict[var].evaluate("evaluate",self.values)
       self.values[var] = test
-    return model.createNewInput(oldInput,self.type,**self.inputInfo)
+    ##### RESTART #####
+    #check if point already exists
+    if self.restartData is not None:
+      inExisting = self.restartData.getMatchingRealization(self.values,tol=self.restartTolerance)
+    else:
+      inExisting = None
+    #if not found or not restarting, we have a new point!
+    if inExisting is None:
+      self.raiseADebug('Found new point to sample:',self.values)
+      return 0,model.createNewInput(oldInput,self.type,**self.inputInfo)
+    #otherwise, return the restart point
+    else:
+      self.raiseADebug('Point found in restart:',inExisting['inputs'])
+      realization = {}
+      realization['metadata'] = copy.deepcopy(self.inputInfo)
+      realization['inputs'] = inExisting['inputs']
+      realization['outputs'] = inExisting['outputs']
+      realization['prefix'] = self.inputInfo['prefix']
+      return 1,realization
+
 
   def pcaTransform(self,varsDict,dist):
     """
@@ -591,9 +617,9 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
       This class need to be overwritten since it is here that the magic of the sampler happens.
       After this method call the self.inputInfo should be ready to be sent to the model
-      @ In, model, model instance, it is the instance of a RAVEN model
+      @ In, model, model instance, Model instance
       @ In, oldInput, list, a list of the original needed inputs for the model (e.g. list of files, etc. etc)
-      @ Out, localGenerateInput, list, list containing the new inputs -in reality it is the model that return this the Sampler generate the value to be placed in the input the model
+      @ Out, None
     """
     pass
 
