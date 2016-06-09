@@ -596,6 +596,36 @@ def printCsvPart(csv,*args):
     """
     print(*args,file=csv,sep=',',end=',')
 
+def tryParse(text):
+  """
+  A convenience function for attempting to parse a string into an integer, a
+  floating point, and finally resorting to just returning the string, if all
+  else fails. This function has little purpose, but someone was using it over
+  and over again, so I decided to make it a proper function rather than to
+  repeat the code everywhere. I will not object if someone wants to extend or
+  remove this capability.
+  a
+  @ In, text, string we are trying to parse
+  @ Out, value, int/float/string, the possibly converted type
+  """
+
+  ## FIXME is there anything that is a float that will raise an
+  ## exception for int?
+
+  ## Yes, inf and nan do not convert well to int, but would you
+  ## ever have these in an input file? Also, what kinds of data is this
+  ## catch all piece of code actually getting? I would argue that if
+  ## it is not something we explicitly allow, then we should raise an
+  ## error rather than attempt to store it and never use it again.
+  ## - dpm 6/8/16
+  try:
+    value = int(text)
+  except ValueError:
+    try:
+      value = float(text)
+    except ValueError:
+      value = text
+  return value
 
 class pickleSafeSubprocessPopen(subprocess.Popen):
   """

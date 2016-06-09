@@ -3181,6 +3181,7 @@ class DataMining(BasePostProcessor):
     self.clusterLabels = None
     self.labelAlgorithms = []
     self.dataObjects = []
+    self.labelFeature = self.name+'Labels'
 
   def inputToInternal(self, currentInp):
     """
@@ -3242,32 +3243,37 @@ class DataMining(BasePostProcessor):
       @ Out, None
     """
     for child in xmlNode:
-      # FIXME is there anything that is a float that will raise an exception for int?
-      if child.attrib:
-        self.initializationOptionDict[child.tag] = {}
-        self.initializationOptionDict[child.tag].update(child.attrib)
-      else:
-        try: self.initializationOptionDict[child.tag] = utils.intConversion(child.text)
-        except ValueError:
-          try: self.initializationOptionDict[child.tag] = float(child.text)
-          except ValueError: self.initializationOptionDict[child.tag] = child.text
       if child.tag == 'KDD':
         if child.attrib:
-          if 'lib' in child.attrib.keys():
-            self.type = child.attrib.values()[0]
-            self.initializationOptionDict[child.tag].pop('lib')
+          ## I'm not sure what this thing is used for, but it seems to make more
+          ## sense to only put data that is not otherwise handled rather than
+          ## put all of the information and then to remove the ones we process.
+          ## - dpm 6/8/16
+          self.initializationOptionDict[child.tag] = {}
+          for key,value in child.attrib.iteritems():
+            if key == 'lib':
+              self.type = value
+            elif key == 'labelFeature':
+              self.labelFeature = value
+            else:
+              self.initializationOptionDict[child.tag][key] = value
+        else:
+          self.initializationOptionDict[child.tag] = utils.tryParse(child.text)
+
         for childChild in child:
           if childChild.attrib:
             self.initializationOptionDict[child.tag][childChild.tag] = {}
             self.initializationOptionDict[child.tag][childChild.tag].update(childChild.attrib)
           else:
-            try: self.initializationOptionDict[child.tag][childChild.tag] = int(childChild.text)
-            except ValueError:
-              try: self.initializationOptionDict[child.tag][childChild.tag] = float(childChild.text)
-              except ValueError: self.initializationOptionDict[child.tag][childChild.tag] = childChild.text
+            self.initializationOptionDict[child.tag][childChild.tag] = utils.tryParse(childChild.text)
+    else:
+      ## Don't we want to print an error? Also, is the KDD subnode necessary?
+      pass
 
-    if self.type: self.unSupervisedEngine = unSupervisedLearning.returnInstance(self.type, self, **self.initializationOptionDict['KDD'])
-    else        : self.raiseAnError(IOError, 'No Data Mining Algorithm is supplied!')
+    if self.type:
+      self.unSupervisedEngine = unSupervisedLearning.returnInstance(self.type, self, **self.initializationOptionDict['KDD'])
+    else:
+      self.raiseAnError(IOError, 'No Data Mining Algorithm is supplied!')
 
   def collectOutput(self, finishedJob, output):
     """
@@ -3276,13 +3282,16 @@ class DataMining(BasePostProcessor):
       @ In, output, dataObjects, The object where we want to place our computed results
       @ Out, None
     """
-    if finishedJob.returnEvaluation() == -1: self.raiseAnError(RuntimeError, 'No available Output to collect (Run probably is not finished yet)')
-    self.raiseADebug(str(finishedJob.returnEvaluation()))
+    if finishedJob.returnEvaluation() == -1:
+      self.raiseAnError(RuntimeError, 'No available Output to collect (Run probably is not finished yet)')
+
     dataMineDict = finishedJob.returnEvaluation()[1]
     for key in dataMineDict['output']:
       for param in output.getParaKeys('output'):
-        if key == param: output.removeOutputValue(key)
-      for value in dataMineDict['output'][key]: output.updateOutputValue(key, copy.copy(value))
+        if key == param:
+          output.removeOutputValue(key)
+      for value in dataMineDict['output'][key]:
+        output.updateOutputValue(key, copy.copy(value))
 
   def run(self, inputIn):
     """
@@ -3304,42 +3313,57 @@ class DataMining(BasePostProcessor):
     outputDict['output'] = {}
     noClusters = 1
     if 'cluster' == self.unSupervisedEngine.SKLtype:
-        if hasattr(self.unSupervisedEngine, 'labels_'):
-          self.clusterLabels = self.unSupervisedEngine.labels_
-        outputDict['output'][self.name+'Labels'] = self.clusterLabels;
-        if hasattr(self.unSupervisedEngine, 'noClusters'): noClusters = self.unSupervisedEngine.noClusters
-        if hasattr(self.unSupervisedEngine, 'clusterCentersIndices_'): noClusters = len(self.unSupervisedEngine.clusterCentersIndices_)
-        for k in range(noClusters):
-          if hasattr(self.unSupervisedEngine, 'clusterCenters_'): clusterCenter = self.unSupervisedEngine.clusterCenters_[k]
-        if hasattr(self.unSupervisedEngine, 'inertia_') : inertia = self.unSupervisedEngine.inertia_
-    if 'bicluster' == self.unSupervisedEngine.SKLtype:
-        print ('Not yet implemented!...', self.unSupervisedEngine.SKLtype)
-    if 'mixture' == self.unSupervisedEngine.SKLtype:
-        if   hasattr(self.unSupervisedEngine, 'covars_'): mixtureCovars = self.unSupervisedEngine.covars_
-        elif hasattr(self.unSupervisedEngine, 'precs_'): mixtureCovars = self.unSupervisedEngine.precs_
-        mixtureValues = self.unSupervisedEngine.normValues
-        mixtureMeans = self.unSupervisedEngine.means_
-        mixtureLabels = self.unSupervisedEngine.evaluate(input['Features'])
-        outputDict['output'][self.name+'Labels'] = mixtureLabels
-    if 'manifold' == self.unSupervisedEngine.SKLtype:
-        manifoldValues = self.unSupervisedEngine.normValues
-        if hasattr(self.unSupervisedEngine, 'embeddingVectors_'): embeddingVectors = self.unSupervisedEngine.embeddingVectors_
-        if hasattr(self.unSupervisedEngine, 'reconstructionError_'): reconstructionError = self.unSupervisedEngine.reconstructionError_
-        if   'transform'     in dir(self.unSupervisedEngine.Method): embeddingVectors = self.unSupervisedEngine.Method.transform(manifoldValues)
-        elif 'fit_transform' in dir(self.unSupervisedEngine.Method): embeddingVectors = self.unSupervisedEngine.Method.fit_transform(manifoldValues)
-        for i in range(len(embeddingVectors[0, :])):
-          outputDict['output'][self.name+'EmbeddingVector' + str(i + 1)] =  embeddingVectors[:, i]
-    if 'decomposition' == self.unSupervisedEngine.SKLtype:
-        decompositionValues = self.unSupervisedEngine.normValues
-        if hasattr(self.unSupervisedEngine, 'noComponents_'): noComponents = self.unSupervisedEngine.noComponents_
-        if hasattr(self.unSupervisedEngine, 'components_'): components = self.unSupervisedEngine.components_
-        if hasattr(self.unSupervisedEngine, 'explainedVarianceRatio_'): explainedVarianceRatio = self.unSupervisedEngine.explainedVarianceRatio_
-        # SCORE method does not work for SciKit Learn 0.14
-        # if hasattr(self.unSupervisedEngine.Method, 'score'): score = self.unSupervisedEngine.Method.score(decompositionValues)
-        if   'transform'     in dir(self.unSupervisedEngine.Method): components = self.unSupervisedEngine.Method.transform(decompositionValues)
-        elif 'fit_transform' in dir(self.unSupervisedEngine.Method): components = self.unSupervisedEngine.Method.fit_transform(decompositionValues)
-        for i in range(noComponents):
-          outputDict['output'][self.name+'PCAComponent' + str(i + 1)] =  components[:, i]
+      if hasattr(self.unSupervisedEngine, 'labels_'):
+        self.clusterLabels = self.unSupervisedEngine.labels_
+      outputDict['output'][self.labelFeature] = self.clusterLabels;
+      if hasattr(self.unSupervisedEngine, 'noClusters'):
+        noClusters = self.unSupervisedEngine.noClusters
+      if hasattr(self.unSupervisedEngine, 'clusterCentersIndices_'):
+        noClusters = len(self.unSupervisedEngine.clusterCentersIndices_)
+      for k in range(noClusters):
+        if hasattr(self.unSupervisedEngine, 'clusterCenters_'):
+          clusterCenter = self.unSupervisedEngine.clusterCenters_[k]
+      if hasattr(self.unSupervisedEngine, 'inertia_'):
+        inertia = self.unSupervisedEngine.inertia_
+    elif 'bicluster' == self.unSupervisedEngine.SKLtype:
+      print ('Not yet implemented!...', self.unSupervisedEngine.SKLtype)
+    elif 'mixture' == self.unSupervisedEngine.SKLtype:
+      if   hasattr(self.unSupervisedEngine, 'covars_'):
+        mixtureCovars = self.unSupervisedEngine.covars_
+      elif hasattr(self.unSupervisedEngine, 'precs_'):
+        mixtureCovars = self.unSupervisedEngine.precs_
+      mixtureValues = self.unSupervisedEngine.normValues
+      mixtureMeans = self.unSupervisedEngine.means_
+      mixtureLabels = self.unSupervisedEngine.evaluate(input['Features'])
+      outputDict['output'][self.labelFeature] = mixtureLabels
+    elif 'manifold' == self.unSupervisedEngine.SKLtype:
+      manifoldValues = self.unSupervisedEngine.normValues
+      if hasattr(self.unSupervisedEngine, 'embeddingVectors_'):
+        embeddingVectors = self.unSupervisedEngine.embeddingVectors_
+      if hasattr(self.unSupervisedEngine, 'reconstructionError_'):
+        reconstructionError = self.unSupervisedEngine.reconstructionError_
+      if   'transform'     in dir(self.unSupervisedEngine.Method):
+        embeddingVectors = self.unSupervisedEngine.Method.transform(manifoldValues)
+      elif 'fit_transform' in dir(self.unSupervisedEngine.Method):
+        embeddingVectors = self.unSupervisedEngine.Method.fit_transform(manifoldValues)
+      for i in range(len(embeddingVectors[0, :])):
+        outputDict['output'][self.name+'EmbeddingVector' + str(i + 1)] =  embeddingVectors[:, i]
+    elif 'decomposition' == self.unSupervisedEngine.SKLtype:
+      decompositionValues = self.unSupervisedEngine.normValues
+      if hasattr(self.unSupervisedEngine, 'noComponents_'):
+        noComponents = self.unSupervisedEngine.noComponents_
+      if hasattr(self.unSupervisedEngine, 'components_'):
+        components = self.unSupervisedEngine.components_
+      if hasattr(self.unSupervisedEngine, 'explainedVarianceRatio_'):
+        explainedVarianceRatio = self.unSupervisedEngine.explainedVarianceRatio_
+      # SCORE method does not work for SciKit Learn 0.14
+      # if hasattr(self.unSupervisedEngine.Method, 'score'): score = self.unSupervisedEngine.Method.score(decompositionValues)
+      if   'transform'     in dir(self.unSupervisedEngine.Method):
+        components = self.unSupervisedEngine.Method.transform(decompositionValues)
+      elif 'fit_transform' in dir(self.unSupervisedEngine.Method):
+        components = self.unSupervisedEngine.Method.fit_transform(decompositionValues)
+      for i in range(noComponents):
+        outputDict['output'][self.name+'PCAComponent' + str(i + 1)] =  components[:, i]
     return outputDict
 #
 #

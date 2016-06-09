@@ -12,7 +12,7 @@
 
   <Models>
     <PostProcessor name="DBSCANBlobs" subType="DataMining" verbosity="quiet">
-      <KDD lib="SciKitLearn">
+      <KDD lib="SciKitLearn" labelFeature='labels'>
         <Features>x1,x2</Features>
         <SKLtype>cluster|DBSCAN</SKLtype>
         <eps>0.2</eps>
@@ -28,16 +28,23 @@
     <IOStep name="output" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">DataSets</Input>
       <Output class="OutStreams" type="Plot">PlotDBSCANBlobs</Output>
+      <Input class="DataObjects" type="PointSet">clusterInfo</Input>
+      <Output class="OutStreams" type="Print">info</Output>
     </IOStep>
-    <PostProcess name="DBSCANBlobs" pauseAtEnd="True">
+    <SingleRun name="DBSCANBlobs" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">DataSets</Input>
       <Model class="Models" type="PostProcessor">DBSCANBlobs</Model>
+      <SolutionExport class="DataObjects" type="PointSet">clusterInfo</SolutionExport>
       <Output class="DataObjects" type="PointSet">DataSets</Output>
       <Output class="OutStreams" type="Print">dummy</Output>
-    </PostProcess>
+    </SingleRun>
   </Steps>
 
   <OutStreams>
+    <Print name="info">
+      <type>csv</type>
+      <source>clusterInfo</source>
+    </Print>
     <Print name="dummy">
       <type>csv</type>
       <source>DataSets</source>
@@ -49,7 +56,7 @@
           <SKLtype>cluster</SKLtype>
           <x>DataSets|input|x1</x>
           <y>DataSets|input|x2</y>
-          <clusterLabels>DataSets|Output|DBSCANBlobsLabels</clusterLabels>
+          <clusterLabels>DataSets|Output|labels</clusterLabels>
           <kwargs>
             <edgecolor>None</edgecolor>
           </kwargs>
@@ -65,6 +72,10 @@
     <PointSet name="DataSets">
       <Input>x1,x2,y1,y2,z1,z2</Input>
       <Output>Output</Output>
+    </PointSet>
+    <PointSet name="clusterInfo">
+      <Input>labels</Input>
+      <Output>x1,x2,y1,y2,z1,z2</Output>
     </PointSet>
   </DataObjects>
 
