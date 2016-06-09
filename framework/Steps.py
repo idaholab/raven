@@ -274,13 +274,22 @@ class SingleRun(Step):
       @ Out, None
     """
     #Model initialization
-    inDictionary['Model'].initialize(inDictionary['jobHandler'].runInfoDict,inDictionary['Input'],{})
+    modelInitDict = {}
+    if 'SolutionExport' in inDictionary.keys():
+      modelInitDict['SolutionExport'] = inDictionary['SolutionExport']
+
+    inDictionary['Model'].initialize(inDictionary['jobHandler'].runInfoDict,inDictionary['Input'],modelInitDict)
+
     self.raiseADebug('for the role Model  the item of class {0:15} and name {1:15} has been initialized'.format(inDictionary['Model'].type,inDictionary['Model'].name))
+
     #HDF5 initialization
     for i in range(len(inDictionary['Output'])):
       #if type(inDictionary['Output'][i]).__name__ not in ['str','bytes','unicode']:
-      if 'HDF5' in inDictionary['Output'][i].type: inDictionary['Output'][i].initialize(self.name)
-      elif inDictionary['Output'][i].type in ['OutStreamPlot','OutStreamPrint']: inDictionary['Output'][i].initialize(inDictionary)
+      if 'HDF5' in inDictionary['Output'][i].type:
+        inDictionary['Output'][i].initialize(self.name)
+      elif inDictionary['Output'][i].type in ['OutStreamPlot','OutStreamPrint']:
+        inDictionary['Output'][i].initialize(inDictionary)
+
       self.raiseADebug('for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(inDictionary['Output'][i].type,inDictionary['Output'][i].name))
 
   def _localTakeAstepRun(self,inDictionary):
@@ -289,11 +298,13 @@ class SingleRun(Step):
       @ In, inDictionary, dict, contains the list of instances (see Simulation)
       @ Out, None
     """
-    jobHandler = inDictionary['jobHandler']
-    model      = inDictionary['Model'     ]
-    sampler    = inDictionary.get('Sampler',None)
-    inputs     = inDictionary['Input'     ]
-    outputs    = inDictionary['Output'    ]
+    jobHandler     = inDictionary['jobHandler']
+    model          = inDictionary['Model'     ]
+    sampler        = inDictionary.get('Sampler',None)
+    inputs         = inDictionary['Input'     ]
+    outputs        = inDictionary['Output'    ]
+    solutionExport = inDictionary['SolutionExport']
+
     model.run(inputs,jobHandler)
     while True:
       finishedJobs = jobHandler.getFinished()

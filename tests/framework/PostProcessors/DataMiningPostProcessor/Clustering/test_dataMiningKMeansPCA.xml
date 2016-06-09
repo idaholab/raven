@@ -19,6 +19,7 @@
     <PostProcess name="pp1" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">bisonData</Input>
       <Model class="Models" type="PostProcessor">KMeans1</Model>
+      <SolutionExport class="DataObjects" type="PointSet">clusterInfo</SolutionExport>
       <Output class="DataObjects" type="PointSet">bisonData</Output>
       <Output class="OutStreams" type="Plot">PlotKMeans1</Output>
       <Output class="OutStreams" type="Plot">PlotAll</Output>

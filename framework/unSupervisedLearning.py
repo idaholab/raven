@@ -314,6 +314,12 @@ class SciKitLearn(unSupervisedLearning):
 
     self.outputDict['outputs'] = {}
     self.outputDict['inputs' ] = self.normValues
+    ## What are you doing here? Calling half of these methods does nothing
+    ## unless you store the data somewhere. If you are going to blindly call
+    ## whatever methods that exist in the class, then at least store them for
+    ## later. Why is this done again on the PostProcessor side? I am struggling
+    ## to understand what this code's purpose is except to obfuscate our
+    ## interaction with skl.
     if   hasattr(self.Method, 'fit_predict'):
         self.Method.fit_predict(self.normValues)
     elif hasattr(self.Method, 'predict'):

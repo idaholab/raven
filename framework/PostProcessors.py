@@ -3164,8 +3164,9 @@ class TopologicalDecomposition(BasePostProcessor):
 
 class DataMining(BasePostProcessor):
   """
-    DataMiningPostProcessor class. It will apply the specified KDD algorithms in the models
-    to a dataset, each specified algorithm's output can be loaded to dataObject.
+    DataMiningPostProcessor class. It will apply the specified KDD algorithms in
+    the models to a dataset, each specified algorithm's output can be loaded to
+    dataObject.
   """
   def __init__(self, messageHandler):
     """
@@ -3175,46 +3176,92 @@ class DataMining(BasePostProcessor):
     """
     BasePostProcessor.__init__(self, messageHandler)
     self.printTag = 'POSTPROCESSOR DATAMINING'
-    self.algorithms = []  # A list of Algorithms objects that contain definitions for all the algorithms the user wants
-    self.requiredAssObject = (True, (['Label'], ['-1']))  # The Label is optional for now....
+
+    self.algorithms = []                                  ## A list of Algorithm
+                                                          ## objects that
+                                                          ## contain definitions
+                                                          ## for all the
+                                                          ## algorithms the user
+                                                          ## wants
+
+    self.requiredAssObject = (True, (['Label'], ['-1']))  ## The Label is
+                                                          ## optional for now
     self.initializationOptionDict = {}
     self.clusterLabels = None
     self.labelAlgorithms = []
-    self.dataObjects = []
-    self.labelFeature = self.name+'Labels'
+    self.solutionExport = None                            ## A data object to
+                                                          ## hold derived info
+                                                          ## about the algorithm
+                                                          ## being performed,
+                                                          ## e.g., cluster
+                                                          ## centers or a
+                                                          ## projection matrix
+                                                          ## for dimensiionality
+                                                          ## reduction methods
+
+    self.labelFeature = self.name+'Labels'                ## User customizable
+                                                          ## column name for the
+                                                          ## labels associated
+                                                          ## to a clustering
+                                                          ## algorithm
 
   def inputToInternal(self, currentInp):
     """
       Function to convert the received input into a format this object can
       understand
-      @ In, currentInp, list or DataObjects, Some form of data object or list of data objects handed to the post-processor
+      @ In, currentInp, list or DataObjects, Some form of data object or list of
+        data objects handed to the post-processor
       @ Out, inputDict, dict, An input dictionary this object can process
     """
     if type(currentInp) == list: currentInput = currentInp[-1]
     else                       : currentInput = currentInp
     if type(currentInp) == dict:
-      if 'Features' in currentInput.keys(): return
+      if 'Features' in currentInput.keys():
+        return
+
     inputDict = {'Features':{}, 'parameters':{}, 'Labels':{}, 'metadata':{}}
-    if isinstance(currentInp, Files.File):
-      if currentInput.subtype == 'csv': self.raiseAnError(IOError, 'CSV File received as an input!')
-    if currentInput.type == 'HDF5': self.raiseAnError(IOError, 'HDF5 Object received as an input!')
-    if currentInput.type in ['PointSet']:
+    if currentInput.type == 'PointSet':
+
+      ## Get what is available in the data object being operated on
+      ## This is potentially more information than we need at the moment, but
+      ## it will make the code below easier to read and highlights where objects
+      ## are reused more readily
+      allInputFeatures = currentInput.getParaKeys('input')
+      allOutputFeatures = currentInput.getParaKeys('output')
+
       if self.initializationOptionDict['KDD']['Features'] == 'input':
-        for param in currentInput.getParaKeys('input'): inputDict['Features'][param] = currentInput.getParam('input', param)
+        for param in allInputFeatures:
+          inputDict['Features'][param] = currentInput.getParam('input', param)
       elif self.initializationOptionDict['KDD']['Features'] == 'output':
-        for param in currentInput.getParaKeys('output'): inputDict['Features'][param] = currentInput.getParam('output', param)
+        for param in allOutputFeatures:
+          inputDict['Features'][param] = currentInput.getParam('output', param)
       elif self.initializationOptionDict['KDD']['Features'] == 'all':
-        for param in currentInput.getParaKeys('input') : inputDict['Features'][param] = currentInput.getParam('input', param)
-        for param in currentInput.getParaKeys('output'): inputDict['Features'][param] = currentInput.getParam('output', param)
+        for param in allInputFeatures:
+          inputDict['Features'][param] = currentInput.getParam('input', param)
+        for param in allOutputFeatures:
+          inputDict['Features'][param] = currentInput.getParam('output', param)
       else:
-        features = self.initializationOptionDict['KDD']['Features'].split(',')
-        for param in currentInput.getParaKeys('input'):
-          if param in features: inputDict['Features'][param] = currentInput.getParam('input', param)
-        for param in currentInput.getParaKeys('output'):
-          if param in features: inputDict['Features'][param] = currentInput.getParam('output', param)
+        ## Get what the user asks requests
+        features = set(self.initializationOptionDict['KDD']['Features'].split(','))
+
+        ## Now intersect what the user wants and what is available.
+        ## NB: this will not error, if the user asks for something that does not
+        ##     exist in the data, it will silently ignore it.
+        inParams = list(features.intersection(allInputFeatures))
+        outParams = list(features.intersection(allOutputFeatures))
+
+        for param in inParams:
+          inputDict['Features'][param] = currentInput.getParam('input', param)
+        for param in outParams:
+          inputDict['Features'][param] = currentInput.getParam('output', param)
 
       inputDict['metadata'] = currentInput.getAllMetadata()
-
+    ## Redundant if-conditional preserved as a placeholder for potential future
+    ## development working directly with files
+    # elif isinstance(currentInp, Files.File):
+    #   self.raiseAnError(IOError, 'Unsupported input type (' + currentInput.subtype + ') for PostProcessor ' + self.name + ' must be a PointSet.')
+    else:
+      self.raiseAnError(IOError, 'Unsupported input type (' + currentInput.type + ') for PostProcessor ' + self.name + ' must be a PointSet.')
 
     return inputDict
 
@@ -3228,12 +3275,12 @@ class DataMining(BasePostProcessor):
     """
     BasePostProcessor.initialize(self, runInfo, inputs, initDict)
     self.__workingDir = runInfo['WorkingDir']
-    for key in self.assemblerDict.keys():
-      if 'Label' == key:
-        indice = 0
-        for _ in self.assemblerDict[key]:
-          self.labelAlgorithms.append(self.assemblerDict[key][indice][3])
-          indice += 1
+    if 'Label' in self.assemblerDict:
+      for val in self.assmeblerDict['Label']:
+        self.labelAlgorithms.append(val[3])
+
+    if "SolutionExport" in initDict:
+      self.solutionExport = initDict["SolutionExport"]
 
   def _localReadMoreXML(self, xmlNode):
     """
@@ -3262,13 +3309,9 @@ class DataMining(BasePostProcessor):
 
         for childChild in child:
           if childChild.attrib:
-            self.initializationOptionDict[child.tag][childChild.tag] = {}
-            self.initializationOptionDict[child.tag][childChild.tag].update(childChild.attrib)
+            self.initializationOptionDict[child.tag][childChild.tag] = dict(childChild.attrib)
           else:
             self.initializationOptionDict[child.tag][childChild.tag] = utils.tryParse(childChild.text)
-    else:
-      ## Don't we want to print an error? Also, is the KDD subnode necessary?
-      pass
 
     if self.type:
       self.unSupervisedEngine = unSupervisedLearning.returnInstance(self.type, self, **self.initializationOptionDict['KDD'])
@@ -3278,92 +3321,152 @@ class DataMining(BasePostProcessor):
   def collectOutput(self, finishedJob, output):
     """
       Function to place all of the computed data into the output object
-      @ In, finishedJob, JobHandler External or Internal instance, A JobHandler object that is in charge of running this post-processor
-      @ In, output, dataObjects, The object where we want to place our computed results
+      @ In, finishedJob, JobHandler External or Internal instance, A JobHandler
+        object that is in charge of running this post-processor
+      @ In, output, dataObjects, The object where we want to place our computed
+        results
       @ Out, None
     """
+    ## When does this actually happen?
     if finishedJob.returnEvaluation() == -1:
       self.raiseAnError(RuntimeError, 'No available Output to collect (Run probably is not finished yet)')
 
+    self.raiseADebug(str(finishedJob.returnEvaluation()))
+
     dataMineDict = finishedJob.returnEvaluation()[1]
     for key in dataMineDict['output']:
-      for param in output.getParaKeys('output'):
-        if key == param:
-          output.removeOutputValue(key)
+      ## This seems inefficient...
+      if key in output.getParaKeys('output'):
+        output.removeOutputValue(key)
       for value in dataMineDict['output'][key]:
         output.updateOutputValue(key, copy.copy(value))
 
   def run(self, inputIn):
     """
-      This method executes the postprocessor action. In this case it loads the results to specified dataObject
+      This method executes the postprocessor action. In this case it loads the
+      results to specified dataObject
       @ In, inputIn, dict, dictionary of data to process
       @ Out, outputDict, dict, dictionary containing the post-processed results
     """
-    if len(self.dataObjects) is not 0:
-      if type(self.dataObjects) == list: dataObject = self.dataObjects[-1]
-      else                             : dataObject = self.dataObjects
-    else: dataObject = None
+
     input = self.inputToInternal(inputIn)
 
     outputDict = {}
     self.unSupervisedEngine.features = input['Features']
-    if not self.unSupervisedEngine.amITrained:  self.unSupervisedEngine.train(input['Features'])
+    if not self.unSupervisedEngine.amITrained:
+      self.unSupervisedEngine.train(input['Features'])
 
     self.unSupervisedEngine.confidence()
     outputDict['output'] = {}
     noClusters = 1
+
+    ## These are very different things, shouldn't each one be its own class?
+    ## Proposed hierarchy:
+    ##   - DataMining
+    ##     - Classification
+    ##       - GMM
+    ##       - Clustering
+    ##         - Biclustering
+    ##         - Hierarchical
+    ##           - Topological
+    ##     - Dimensionality Reduction
+    ##       - Manifold Learning
+    ##       - Linear projection methods
     if 'cluster' == self.unSupervisedEngine.SKLtype:
+
+      ## Get the cluster labels and store as a new column in the output
       if hasattr(self.unSupervisedEngine, 'labels_'):
         self.clusterLabels = self.unSupervisedEngine.labels_
       outputDict['output'][self.labelFeature] = self.clusterLabels;
+
+      ## Get the total number of clusters
       if hasattr(self.unSupervisedEngine, 'noClusters'):
         noClusters = self.unSupervisedEngine.noClusters
-      if hasattr(self.unSupervisedEngine, 'clusterCentersIndices_'):
+      elif hasattr(self.unSupervisedEngine, 'clusterCentersIndices_'):
         noClusters = len(self.unSupervisedEngine.clusterCentersIndices_)
-      for k in range(noClusters):
-        if hasattr(self.unSupervisedEngine, 'clusterCenters_'):
-          clusterCenter = self.unSupervisedEngine.clusterCenters_[k]
+
+      ## Get the centroids and push them to a SolutionExport data object, if
+      ## we have both, also if we have the centers, assume we have the indices
+      ## to match them.
+      if hasattr(self.unSupervisedEngine, 'clusterCenters_'):
+        centers = self.unSupervisedEngine.clusterCenters_
+        ## Does skl not provide a correlation between label ids and cluster
+        ## centers?
+        if hasattr(self.unSupervisedEngine, 'clusterCentersIndices_'):
+          indices = self.unSupervisedEngine.clusterCentersIndices_
+        else:
+          indices = list(range(len(centers)))
+        for index,center in zip(indices,centers):
+          self.solutionExport.updateInputValue(self.labelFeature,index)
+          ## Can I be sure of the order of dimensions in the features dict, is
+          ## the same order as the data held in the UnSupervisedLearning object?
+          for key,value in zip(self.unSupervisedEngine.features.keys(),center):
+            self.solutionExport.updateOutputValue(key,center)
+
       if hasattr(self.unSupervisedEngine, 'inertia_'):
         inertia = self.unSupervisedEngine.inertia_
+
     elif 'bicluster' == self.unSupervisedEngine.SKLtype:
-      print ('Not yet implemented!...', self.unSupervisedEngine.SKLtype)
+      self.raiseAnError(RuntimeError, 'Bicluster has not yet been implemented.')
     elif 'mixture' == self.unSupervisedEngine.SKLtype:
+
       if   hasattr(self.unSupervisedEngine, 'covars_'):
         mixtureCovars = self.unSupervisedEngine.covars_
       elif hasattr(self.unSupervisedEngine, 'precs_'):
         mixtureCovars = self.unSupervisedEngine.precs_
+
       mixtureValues = self.unSupervisedEngine.normValues
       mixtureMeans = self.unSupervisedEngine.means_
       mixtureLabels = self.unSupervisedEngine.evaluate(input['Features'])
       outputDict['output'][self.labelFeature] = mixtureLabels
+
+      ## TODO: Export Gaussian centers to SolutionExport
+      print(self.solutionExport,mixtureMeans)
+
     elif 'manifold' == self.unSupervisedEngine.SKLtype:
       manifoldValues = self.unSupervisedEngine.normValues
+
       if hasattr(self.unSupervisedEngine, 'embeddingVectors_'):
         embeddingVectors = self.unSupervisedEngine.embeddingVectors_
+      elif hasattr(self.unSupervisedEngine.Method, 'transform'):
+        embeddingVectors = self.unSupervisedEngine.Method.transform(manifoldValues)
+      elif hasattr(self.unSupervisedEngine.Method, 'fit_transform'):
+        embeddingVectors = self.unSupervisedEngine.Method.fit_transform(manifoldValues)
+
       if hasattr(self.unSupervisedEngine, 'reconstructionError_'):
         reconstructionError = self.unSupervisedEngine.reconstructionError_
-      if   'transform'     in dir(self.unSupervisedEngine.Method):
-        embeddingVectors = self.unSupervisedEngine.Method.transform(manifoldValues)
-      elif 'fit_transform' in dir(self.unSupervisedEngine.Method):
-        embeddingVectors = self.unSupervisedEngine.Method.fit_transform(manifoldValues)
+
+      ## information stored on a per point basis, no need to use a solution
+      ## export here
       for i in range(len(embeddingVectors[0, :])):
         outputDict['output'][self.name+'EmbeddingVector' + str(i + 1)] =  embeddingVectors[:, i]
+
     elif 'decomposition' == self.unSupervisedEngine.SKLtype:
       decompositionValues = self.unSupervisedEngine.normValues
+
       if hasattr(self.unSupervisedEngine, 'noComponents_'):
         noComponents = self.unSupervisedEngine.noComponents_
+
       if hasattr(self.unSupervisedEngine, 'components_'):
         components = self.unSupervisedEngine.components_
+
       if hasattr(self.unSupervisedEngine, 'explainedVarianceRatio_'):
         explainedVarianceRatio = self.unSupervisedEngine.explainedVarianceRatio_
-      # SCORE method does not work for SciKit Learn 0.14
-      # if hasattr(self.unSupervisedEngine.Method, 'score'): score = self.unSupervisedEngine.Method.score(decompositionValues)
-      if   'transform'     in dir(self.unSupervisedEngine.Method):
+
+      ## SCORE method does not work for SciKit Learn 0.14
+      # if hasattr(self.unSupervisedEngine.Method, 'score'):
+      #   score = self.unSupervisedEngine.Method.score(decompositionValues)
+      if hasattr(self.unSupervisedEngine.Method, 'transform'):
         components = self.unSupervisedEngine.Method.transform(decompositionValues)
-      elif 'fit_transform' in dir(self.unSupervisedEngine.Method):
+      elif hasattr(self.unSupervisedEngine.Method, 'fit_transform'):
         components = self.unSupervisedEngine.Method.fit_transform(decompositionValues)
+
+      ## information stored on a per point basis, no need to use a solution
+      ## export here, this could potentially change, if we are sure these
+      ## use a single projection matrix.
       for i in range(noComponents):
         outputDict['output'][self.name+'PCAComponent' + str(i + 1)] =  components[:, i]
+
     return outputDict
 #
 #
