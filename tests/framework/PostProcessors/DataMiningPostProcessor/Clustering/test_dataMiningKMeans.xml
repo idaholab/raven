@@ -57,7 +57,6 @@
       <plotSettings>
         <plot>
           <type>scatter</type>
-          <SKLtype>cluster</SKLtype>
           <x>data|input|x1</x>
           <y>data|input|x2</y>
           <cmap>Set1</cmap>
@@ -68,7 +67,6 @@
         </plot>
         <plot>
           <type>scatter</type>
-          <SKLtype>cluster</SKLtype>
           <x>clusterInfo|output|x1</x>
           <y>clusterInfo|output|x2</y>
           <cmap>Set1</cmap>

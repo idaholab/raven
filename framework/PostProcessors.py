@@ -3412,8 +3412,9 @@ class DataMining(BasePostProcessor):
 
       if   hasattr(self.unSupervisedEngine, 'covars_'):
         mixtureCovars = self.unSupervisedEngine.covars_
-      elif hasattr(self.unSupervisedEngine, 'precs_'):
-        mixtureCovars = self.unSupervisedEngine.precs_
+
+      if hasattr(self.unSupervisedEngine, 'precs_'):
+        mixturePrecisions = self.unSupervisedEngine.precs_
 
       mixtureValues = self.unSupervisedEngine.normValues
       mixtureMeans = self.unSupervisedEngine.means_
@@ -3421,7 +3422,18 @@ class DataMining(BasePostProcessor):
       outputDict['output'][self.labelFeature] = mixtureLabels
 
       ## TODO: Export Gaussian centers to SolutionExport
-      print(self.solutionExport,mixtureMeans)
+      ## Get the centroids and push them to a SolutionExport data object, if
+      ## we have both, also if we have the centers, assume we have the indices
+      ## to match them.
+      ## Does skl not provide a correlation between label ids and Gaussian
+      ## centers?
+      indices = list(range(len(mixtureMeans)))
+      for index,center in zip(indices,mixtureMeans):
+        self.solutionExport.updateInputValue(self.labelFeature,index)
+        ## Can I be sure of the order of dimensions in the features dict, is
+        ## the same order as the data held in the UnSupervisedLearning object?
+        for key,value in zip(self.unSupervisedEngine.features.keys(),center):
+          self.solutionExport.updateOutputValue(key,value)
 
     elif 'manifold' == self.unSupervisedEngine.SKLtype:
       manifoldValues = self.unSupervisedEngine.normValues
