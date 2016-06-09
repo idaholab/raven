@@ -3401,7 +3401,7 @@ class DataMining(BasePostProcessor):
           ## Can I be sure of the order of dimensions in the features dict, is
           ## the same order as the data held in the UnSupervisedLearning object?
           for key,value in zip(self.unSupervisedEngine.features.keys(),center):
-            self.solutionExport.updateOutputValue(key,center)
+            self.solutionExport.updateOutputValue(key,value)
 
       if hasattr(self.unSupervisedEngine, 'inertia_'):
         inertia = self.unSupervisedEngine.inertia_

@@ -340,6 +340,14 @@ class SciKitLearn(unSupervisedLearning):
             self.outputDict['outputs']['labels'               ] = self.labels_
         if hasattr(self.Method, 'cluster_centers_') :
             self.clusterCenters_ = self.Method.cluster_centers_
+            print(self.clusterCenters_[0],self.muAndSigmaFeatures)
+            ## I hope these arrays are consistently ordered...
+            ## We are mixing our internal storage of muAndSigma with SKLs
+            ## representation of our data, I believe it is fair to say that we
+            ## hand the data to SKL in the same order that we have it stored.
+            for cnt, feat in enumerate(self.features):
+              for center in self.clusterCenters_:
+                center[cnt] = center[cnt] * self.muAndSigmaFeatures[feat][1] + self.muAndSigmaFeatures[feat][0]
             self.outputDict['outputs']['clusterCenters'       ] = self.clusterCenters_
         if hasattr(self.Method, 'cluster_centers_indices_') :
             self.clusterCentersIndices_ = self.Method.cluster_centers_indices_
