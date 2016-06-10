@@ -33,6 +33,7 @@
       <Input class="DataObjects" type="PointSet">data</Input>
       <Input class="DataObjects" type="PointSet">clusterInfo</Input>
       <Output class="OutStreams" type="Plot">PlotGaussianMixtureBlobs</Output>
+      <Output class="OutStreams" type="Print">info</Input>
     </IOStep>
     <PostProcess name="GaussianMixtureBlobs" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">data</Input>
@@ -47,6 +48,10 @@
     <Print name="dummy">
       <type>csv</type>
       <source>data</source>
+    </Print>
+    <Print name="info">
+      <type>csv</type>
+      <source>clusterInfo</source>
     </Print>
     <Plot dim="2" name="PlotGaussianMixtureBlobs" overwrite="false">
       <plotSettings>
@@ -80,6 +85,7 @@
       <actions>
         <how>png</how>
       </actions>
+      <filename>scatter</filename>
     </Plot>
   </OutStreams>
 

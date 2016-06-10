@@ -3199,7 +3199,7 @@ class DataMining(BasePostProcessor):
                                                           ## for dimensiionality
                                                           ## reduction methods
 
-    self.labelFeature = self.name+'Labels'                ## User customizable
+    self.labelFeature = 'labels'                          ## User customizable
                                                           ## column name for the
                                                           ## labels associated
                                                           ## to a clustering
@@ -3262,7 +3262,6 @@ class DataMining(BasePostProcessor):
     #   self.raiseAnError(IOError, 'Unsupported input type (' + currentInput.subtype + ') for PostProcessor ' + self.name + ' must be a PointSet.')
     else:
       self.raiseAnError(IOError, 'Unsupported input type (' + currentInput.type + ') for PostProcessor ' + self.name + ' must be a PointSet.')
-
     return inputDict
 
   def initialize(self, runInfo, inputs, initDict):
@@ -3289,6 +3288,11 @@ class DataMining(BasePostProcessor):
       @ In, xmlNode, xml.etree.Element, Xml element node
       @ Out, None
     """
+    ## By default, we want to name the 'labels' by the name of this
+    ## postprocessor, but that name is not available before processing the XML
+    ## At this point, we have that information
+    self.labelFeature = self.name+'Labels'
+
     for child in xmlNode:
       if child.tag == 'KDD':
         if child.attrib:
@@ -3396,12 +3400,15 @@ class DataMining(BasePostProcessor):
           indices = self.unSupervisedEngine.clusterCentersIndices_
         else:
           indices = list(range(len(centers)))
-        for index,center in zip(indices,centers):
-          self.solutionExport.updateInputValue(self.labelFeature,index)
-          ## Can I be sure of the order of dimensions in the features dict, is
-          ## the same order as the data held in the UnSupervisedLearning object?
-          for key,value in zip(self.unSupervisedEngine.features.keys(),center):
-            self.solutionExport.updateOutputValue(key,value)
+
+        if self.solutionExport is not None:
+          for index,center in zip(indices,centers):
+            self.solutionExport.updateInputValue(self.labelFeature,index)
+            ## Can I be sure of the order of dimensions in the features dict, is
+            ## the same order as the data held in the UnSupervisedLearning
+            ## object?
+            for key,value in zip(self.unSupervisedEngine.features.keys(),center):
+              self.solutionExport.updateOutputValue(key,value)
 
       if hasattr(self.unSupervisedEngine, 'inertia_'):
         inertia = self.unSupervisedEngine.inertia_
@@ -3421,19 +3428,20 @@ class DataMining(BasePostProcessor):
       mixtureLabels = self.unSupervisedEngine.evaluate(input['Features'])
       outputDict['output'][self.labelFeature] = mixtureLabels
 
-      ## TODO: Export Gaussian centers to SolutionExport
-      ## Get the centroids and push them to a SolutionExport data object, if
-      ## we have both, also if we have the centers, assume we have the indices
-      ## to match them.
-      ## Does skl not provide a correlation between label ids and Gaussian
-      ## centers?
-      indices = list(range(len(mixtureMeans)))
-      for index,center in zip(indices,mixtureMeans):
-        self.solutionExport.updateInputValue(self.labelFeature,index)
-        ## Can I be sure of the order of dimensions in the features dict, is
-        ## the same order as the data held in the UnSupervisedLearning object?
-        for key,value in zip(self.unSupervisedEngine.features.keys(),center):
-          self.solutionExport.updateOutputValue(key,value)
+      if self.solutionExport is not None:
+        ## TODO: Export Gaussian centers to SolutionExport
+        ## Get the centroids and push them to a SolutionExport data object, if
+        ## we have both, also if we have the centers, assume we have the indices
+        ## to match them.
+        ## Does skl not provide a correlation between label ids and Gaussian
+        ## centers?
+        indices = list(range(len(mixtureMeans)))
+        for index,center in zip(indices,mixtureMeans):
+          self.solutionExport.updateInputValue(self.labelFeature,index)
+          ## Can I be sure of the order of dimensions in the features dict, is
+          ## the same order as the data held in the UnSupervisedLearning object?
+          for key,value in zip(self.unSupervisedEngine.features.keys(),center):
+            self.solutionExport.updateOutputValue(key,value)
 
     elif 'manifold' == self.unSupervisedEngine.SKLtype:
       manifoldValues = self.unSupervisedEngine.normValues

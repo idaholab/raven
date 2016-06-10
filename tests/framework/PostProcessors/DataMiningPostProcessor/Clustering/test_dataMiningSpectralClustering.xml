@@ -44,11 +44,11 @@
     <Plot dim="2" name="PlotSpectralBlobs" overwrite="false">
       <plotSettings>
         <plot>
-          <type>dataMining</type>
-          <SKLtype>cluster</SKLtype>
+          <type>scatter</type>
           <x>DataSets|input|x1</x>
           <y>DataSets|input|x2</y>
-          <clusterLabels>DataSets|Output|SpectralBlobsLabels</clusterLabels>
+          <cmap>Set1</cmap>
+          <colorMap>DataSets|Output|SpectralBlobsLabels</colorMap>
           <kwargs>
             <edgecolor>None</edgecolor>
           </kwargs>
@@ -57,6 +57,7 @@
       <actions>
         <how>png</how>
       </actions>
+      <filename>scatter</filename>
     </Plot>
   </OutStreams>
 

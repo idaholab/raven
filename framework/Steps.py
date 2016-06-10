@@ -303,7 +303,6 @@ class SingleRun(Step):
     sampler        = inDictionary.get('Sampler',None)
     inputs         = inDictionary['Input'     ]
     outputs        = inDictionary['Output'    ]
-    solutionExport = inDictionary['SolutionExport']
 
     model.run(inputs,jobHandler)
     while True:

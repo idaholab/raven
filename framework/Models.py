@@ -552,9 +552,9 @@ class ROM(Dummy):
         if child.tag == 'estimator':
           self.initializationOptionDict[child.tag] = {}
           for node in child:
-            self.initializationOptionDict[child.tag][node.tag] = tryParse(node.text)
+            self.initializationOptionDict[child.tag][node.tag] = utils.tryParse(node.text)
         else:
-          self.initializationOptionDict[child.tag] = tryParse(child.text)
+          self.initializationOptionDict[child.tag] = utils.tryParse(child.text)
 
     #the ROM is instanced and initialized
     # check how many targets
