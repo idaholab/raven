@@ -33,7 +33,7 @@
       <Input class="DataObjects" type="PointSet">data</Input>
       <Input class="DataObjects" type="PointSet">clusterInfo</Input>
       <Output class="OutStreams" type="Plot">PlotGaussianMixtureBlobs</Output>
-      <Output class="OutStreams" type="Print">info</Input>
+      <Output class="OutStreams" type="Print">info</Output>
     </IOStep>
     <PostProcess name="GaussianMixtureBlobs" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">data</Input>
