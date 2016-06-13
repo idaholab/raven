@@ -610,7 +610,7 @@ def tryParse(text):
   ## exception for int?
 
   ## Yes, inf and nan do not convert well to int, but would you
-  ## ever have these in an input file? å- dpm 6/8/16
+  ## ever have these in an input file? - dpm 6/8/16
   try:
     value = int(text)
   except ValueError:
