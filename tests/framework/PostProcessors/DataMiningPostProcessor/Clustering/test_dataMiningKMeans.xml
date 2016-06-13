@@ -1,43 +1,43 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="silent">
   <RunInfo>
-    <WorkingDir>GaussianMixture</WorkingDir>
-    <Sequence>readIn,GaussianMixtureBlobs,output</Sequence>
+    <WorkingDir>KMeans</WorkingDir>
+    <Sequence>input,cluster,output</Sequence>
     <batchSize>100</batchSize>
   </RunInfo>
 
   <Files>
-    <Input name="dataFile">./DataSets.csv</Input>
+    <Input name="dataFile">./data.csv</Input>
   </Files>
 
   <Models>
-    <PostProcessor name="GaussianMixtureBlobs" subType="DataMining" verbosity="quiet">
+    <PostProcessor name="kMeans" subType="DataMining" verbosity="quiet">
       <KDD lib="SciKitLearn" labelFeature='labels'>
         <Features>x1,x2</Features>
-        <SKLtype>mixture|GMM</SKLtype>
-        <covariance_type>full</covariance_type>
-        <random_state>0</random_state>
-        <n_components>3</n_components>
-        <n_iter>10000</n_iter>
-        <init_params>wc</init_params>
+        <SKLtype>cluster|KMeans</SKLtype>
+        <n_clusters>3</n_clusters>
+        <tol>1E-10</tol>
+        <random_state>1</random_state>
+        <init>k-means++</init>
+        <precompute_distances>True</precompute_distances>
       </KDD>
     </PostProcessor>
   </Models>
 
   <Steps>
-    <IOStep name="readIn" pauseAtEnd="True">
+    <IOStep name="input" pauseAtEnd="True">
       <Input class="Files" type="">dataFile</Input>
       <Output class="DataObjects" type="PointSet">data</Output>
     </IOStep>
     <IOStep name="output" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">data</Input>
       <Input class="DataObjects" type="PointSet">clusterInfo</Input>
-      <Output class="OutStreams" type="Plot">PlotGaussianMixtureBlobs</Output>
+      <Output class="OutStreams" type="Plot">plot</Output>
       <Output class="OutStreams" type="Print">info</Output>
     </IOStep>
-    <PostProcess name="GaussianMixtureBlobs" pauseAtEnd="True">
+    <PostProcess name="cluster" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">data</Input>
-      <Model class="Models" type="PostProcessor">GaussianMixtureBlobs</Model>
+      <Model class="Models" type="PostProcessor">kMeans</Model>
       <SolutionExport class="DataObjects" type="PointSet">clusterInfo</SolutionExport>
       <Output class="DataObjects" type="PointSet">data</Output>
       <Output class="OutStreams" type="Print">dummy</Output>
@@ -45,15 +45,15 @@
   </Steps>
 
   <OutStreams>
-    <Print name="dummy">
-      <type>csv</type>
-      <source>data</source>
-    </Print>
     <Print name="info">
       <type>csv</type>
       <source>clusterInfo</source>
     </Print>
-    <Plot dim="2" name="PlotGaussianMixtureBlobs" overwrite="false">
+    <Print name="dummy">
+      <type>csv</type>
+      <source>data</source>
+    </Print>
+    <Plot dim="2" name="plot" overwrite="false">
       <plotSettings>
         <plot>
           <type>scatter</type>
@@ -61,13 +61,7 @@
           <y>data|input|x2</y>
           <cmap>Set1</cmap>
           <colorMap>data|Output|labels</colorMap>
-<!--
-          <type>dataMining</type>
-          <SKLtype>cluster</SKLtype>
-          <x>DataSets|input|x1</x>
-          <y>DataSets|input|x2</y>
-          <clusterLabels>DataSets|Output|labels</clusterLabels>
- -->          <kwargs>
+          <kwargs>
             <edgecolor>None</edgecolor>
           </kwargs>
         </plot>
