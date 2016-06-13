@@ -31,17 +31,17 @@
     </IOStep>
     <IOStep name="output" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">data</Input>
-      <Output class="OutStreams" type="Plot">plot</Output>
       <Input class="DataObjects" type="PointSet">clusterInfo</Input>
+      <Output class="OutStreams" type="Plot">plot</Output>
       <Output class="OutStreams" type="Print">info</Output>
     </IOStep>
-    <SingleRun name="cluster" pauseAtEnd="True">
+    <PostProcess name="cluster" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">data</Input>
       <Model class="Models" type="PostProcessor">kMeans</Model>
       <SolutionExport class="DataObjects" type="PointSet">clusterInfo</SolutionExport>
       <Output class="DataObjects" type="PointSet">data</Output>
       <Output class="OutStreams" type="Print">dummy</Output>
-    </SingleRun>
+    </PostProcess>
   </Steps>
 
   <OutStreams>

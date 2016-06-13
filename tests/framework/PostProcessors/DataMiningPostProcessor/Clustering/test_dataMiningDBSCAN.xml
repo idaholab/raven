@@ -27,17 +27,17 @@
     </IOStep>
     <IOStep name="output" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">DataSets</Input>
-      <Output class="OutStreams" type="Plot">PlotDBSCANBlobs</Output>
       <Input class="DataObjects" type="PointSet">clusterInfo</Input>
+      <Output class="OutStreams" type="Plot">PlotDBSCANBlobs</Output>
       <Output class="OutStreams" type="Print">info</Output>
     </IOStep>
-    <SingleRun name="DBSCANBlobs" pauseAtEnd="True">
+    <PostProcess name="DBSCANBlobs" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">DataSets</Input>
       <Model class="Models" type="PostProcessor">DBSCANBlobs</Model>
       <SolutionExport class="DataObjects" type="PointSet">clusterInfo</SolutionExport>
       <Output class="DataObjects" type="PointSet">DataSets</Output>
       <Output class="OutStreams" type="Print">dummy</Output>
-    </SingleRun>
+    </PostProcess>
   </Steps>
 
   <OutStreams>
