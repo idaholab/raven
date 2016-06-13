@@ -58,41 +58,41 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     Optimizer is a special type of samplers that own the sampling strategy (Type) and they generate the
     input values using the associate distribution. They do not have distributions inside!!!!
 
-#     --Instance--
-#     myInstance = Sampler()
-#     myInstance.XMLread(xml.etree.ElementTree.Element)  This method generates all the information that will be permanent for the object during the simulation
-# 
-#     --usage--
-#     myInstance = Sampler()
-#     myInstance.XMLread(xml.etree.ElementTree.Element)  This method generate all permanent information of the object from <Simulation>
-#     myInstance.whatDoINeed()                           -see Assembler class-
-#     myInstance.generateDistributions(dict)             Here the seed for the random engine is started and the distributions are supplied to the sampler and
-#                                                        initialized. The method is called come from <Simulation> since it is the only one possess all the distributions.
-#     myInstance.initialize()                            This method is called from the <Step> before the Step process start. In the base class it reset the counter to 0
-#     myInstance.amIreadyToProvideAnInput                Requested from <Step> used to verify that the sampler is available to generate a new input
-#     myInstance.generateInput(self,model,oldInput)      Requested from <Step> to generate a new input. Generate the new values and request to model to modify according the input and returning it back
-# 
-#     --Other inherited methods--
-#     myInstance.whoAreYou()                            -see BaseType class-
-#     myInstance.myCurrentSetting()                     -see BaseType class-
-# 
-#     --Adding a new Sampler subclass--
-#     <MyClass> should inherit at least from Sampler or from another step already presents
-# 
-#     DO NOT OVERRIDE any of the class method that are not starting with self.local*
-# 
-#     ADD your class to the dictionary __InterfaceDict at the end of the module
-# 
-#     The following method overriding is MANDATORY:
-#     self.localGenerateInput(model,oldInput)  : this is where the step happens, after this call the output is ready
-# 
-#     the following methods could be overrode:
-#     self.localInputAndChecks(xmlNode)
-#     self.localGetInitParams()
-#     self.localGetCurrentSetting()
-#     self.localInitialize()
-#     self.localStillReady(ready)
-#     self.localFinalizeActualSampling(jobObject,model,myInput)
+    --Instance--
+    myInstance = Sampler()
+    myInstance.XMLread(xml.etree.ElementTree.Element)  This method generates all the information that will be permanent for the object during the simulation
+ 
+    --usage--
+    myInstance = Sampler()
+    myInstance.XMLread(xml.etree.ElementTree.Element)  This method generate all permanent information of the object from <Simulation>
+    myInstance.whatDoINeed()                           -see Assembler class-
+    myInstance.generateDistributions(dict)             Here the seed for the random engine is started and the distributions are supplied to the sampler and
+                                                       initialized. The method is called come from <Simulation> since it is the only one possess all the distributions.
+    myInstance.initialize()                            This method is called from the <Step> before the Step process start. In the base class it reset the counter to 0
+    myInstance.amIreadyToProvideAnInput                Requested from <Step> used to verify that the sampler is available to generate a new input
+    myInstance.generateInput(self,model,oldInput)      Requested from <Step> to generate a new input. Generate the new values and request to model to modify according the input and returning it back
+ 
+    --Other inherited methods--
+    myInstance.whoAreYou()                            -see BaseType class-
+    myInstance.myCurrentSetting()                     -see BaseType class-
+ 
+    --Adding a new Sampler subclass--
+    <MyClass> should inherit at least from Sampler or from another step already presents
+ 
+    DO NOT OVERRIDE any of the class method that are not starting with self.local*
+ 
+    ADD your class to the dictionary __InterfaceDict at the end of the module
+ 
+    The following method overriding is MANDATORY:
+    self.localGenerateInput(model,oldInput)  : this is where the step happens, after this call the output is ready
+ 
+    the following methods could be overrode:
+    self.localInputAndChecks(xmlNode)
+    self.localGetInitParams()
+    self.localGetCurrentSetting()
+    self.localInitialize()
+    self.localStillReady(ready)
+    self.localFinalizeActualSampling(jobObject,model,myInput)
   """
 
   def __init__(self):
@@ -105,39 +105,39 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     BaseType.__init__(self)
     Assembler.__init__(self)
     self.counter                       = 0                         # Counter of the samples performed (better the input generated!!!). It is reset by calling the function self.initialize
-    self.auxcnt                        = 0                         # Aux counter of samples performed (for its usage check initialize method)
+    self.auxcnt                        = 0 # may be removed                         # Aux counter of samples performed (for its usage check initialize method)
     self.limit                         = sys.maxsize               # maximum number of Samples (for example, Monte Carlo = Number of HistorySet to run, DET = Unlimited)
-    self.toBeSampled                   = {}                        # Sampling mapping dictionary {'Variable Name':'name of the distribution'}
-    self.dependentSample               = {}                        # Sampling mapping dictionary for dependent variables {'Variable Name':'name of the external function'}
-    self.distDict                      = {}                        # Contains the instance of the distribution to be used, it is created every time the sampler is initialized. keys are the variable names
-    self.funcDict                      = {}                        # Contains the instance of the function     to be used, it is created every time the sampler is initialized. keys are the variable names
+    self.toBeSampled                   = {} # may be removed                       # Sampling mapping dictionary {'Variable Name':'name of the distribution'}
+    self.dependentSample               = {} # may be removed                       # Sampling mapping dictionary for dependent variables {'Variable Name':'name of the external function'}
+    self.distDict                      = {} # may be removed                       # Contains the instance of the distribution to be used, it is created every time the sampler is initialized. keys are the variable names
+#     self.funcDict                      = {}                        # Contains the instance of the function     to be used, it is created every time the sampler is initialized. keys are the variable names
     self.values                        = {}                        # for each variable the current value {'var name':value}
     self.inputInfo                     = {}                        # depending on the sampler several different type of keywarded information could be present only one is mandatory, see below
     self.initSeed                      = None                      # if not provided the seed is randomly generated at the istanciation of the sampler, the step can override the seed by sending in another seed
     self.inputInfo['SampledVars'     ] = self.values               # this is the location where to get the values of the sampled variables
-    self.inputInfo['SampledVarsPb'   ] = {}                        # this is the location where to get the probability of the sampled variables
-    self.inputInfo['PointProbability'] = None                      # this is the location where the point wise probability is stored (probability associated to a sampled point)
-    self.inputInfo['crowDist']         = {}                        # Stores a dictionary that contains the information to create a crow distribution.  Stored as a json object
-    self.reseedAtEachIteration         = False                     # Logical flag. True if every newer evaluation is performed after a new reseeding
+#     self.inputInfo['SampledVarsPb'   ] = {}                        # this is the location where to get the probability of the sampled variables
+#     self.inputInfo['PointProbability'] = None                      # this is the location where the point wise probability is stored (probability associated to a sampled point)
+#     self.inputInfo['crowDist']         = {}                        # Stores a dictionary that contains the information to create a crow distribution.  Stored as a json object
+#     self.reseedAtEachIteration         = False                     # Logical flag. True if every newer evaluation is performed after a new reseeding
     self.FIXME                         = False                     # FIXME flag
     self.printTag                      = self.type                 # prefix for all prints (sampler type)
-    self.restartData                   = None                      # presampled points to restart from
-    self.restartTolerance              = 1e-15                     # strictness with which to find matches in the restart data
-    self.existing                      = {}                        # restart data points, inputs:outputs
+    self.restartData                   = None # may be removed                     # presampled points to restart from
+    self.restartTolerance              = 1e-15 # may be removed                    # strictness with which to find matches in the restart data
+    self.existing                      = {} # may be removed                       # restart data points, inputs:outputs
 
     self._endJobRunnable               = sys.maxsize               # max number of inputs creatable by the sampler right after a job ends (e.g., infinite for MC, 1 for Adaptive, etc)
 
     ######
-    self.variables2distributionsMapping = {}                       # for each variable 'varName'  , the following informations are included:  'varName': {'dim': 1, 'reducedDim': 1,'totDim': 2, 'name': 'distName'} ; dim = dimension of the variable; reducedDim = dimension of the variable in the transformed space; totDim = total dimensionality of its associated distribution
-    self.distributions2variablesMapping = {}                       # for each variable 'distName' , the following informations are included: 'distName': [{'var1': 1}, {'var2': 2}]} where for each var it is indicated the var dimension
-    self.NDSamplingParams               = {}                       # this dictionary contains a dictionary for each ND distribution (key). This latter dictionary contains the initialization parameters of the ND inverseCDF ('initialGridDisc' and 'tolerance')
+#     self.variables2distributionsMapping = {}                       # for each variable 'varName'  , the following informations are included:  'varName': {'dim': 1, 'reducedDim': 1,'totDim': 2, 'name': 'distName'} ; dim = dimension of the variable; reducedDim = dimension of the variable in the transformed space; totDim = total dimensionality of its associated distribution
+#     self.distributions2variablesMapping = {}                       # for each variable 'distName' , the following informations are included: 'distName': [{'var1': 1}, {'var2': 2}]} where for each var it is indicated the var dimension
+#     self.NDSamplingParams               = {}                       # this dictionary contains a dictionary for each ND distribution (key). This latter dictionary contains the initialization parameters of the ND inverseCDF ('initialGridDisc' and 'tolerance')
     ######
     self.addAssemblerObject('Restart' ,'-n',True)
 
     #used for PCA analysis
-    self.variablesTransformationDict    = {}                       # for each variable 'modelName', the following informations are included: {'modelName': {latentVariables:[latentVar1, latentVar2, ...], manifestVariables:[manifestVar1,manifestVar2,...]}}
-    self.transformationMethod           = {}                       # transformation method used in variablesTransformation node {'modelName':method}
-    self.entitiesToRemove               = []                       # This variable is used in order to make sure the transformation info is printed once in the output xml file.
+#     self.variablesTransformationDict    = {}                       # for each variable 'modelName', the following informations are included: {'modelName': {latentVariables:[latentVar1, latentVar2, ...], manifestVariables:[manifestVar1,manifestVar2,...]}}
+#     self.transformationMethod           = {}                       # transformation method used in variablesTransformation node {'modelName':method}
+#     self.entitiesToRemove               = []                       # This variable is used in order to make sure the transformation info is printed once in the output xml file.
 
   def _localGenerateAssembler(self,initDict):
     """
