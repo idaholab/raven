@@ -596,6 +596,33 @@ def printCsvPart(csv,*args):
     """
     print(*args,file=csv,sep=',',end=',')
 
+def tryParse(text):
+  """
+    A convenience function for attempting to parse a string as a number (first,
+    attempts to create an integer, and falls back to a float if the value has
+    a decimal, and finally resorting to just returning the string in the case
+    where the data cannot be converted).
+  @ In, text, string we are trying to parse
+  @ Out, value, int/float/string, the possibly converted type
+  """
+
+  ## FIXME is there anything that is a float that will raise an
+  ## exception for int?
+
+  ## Yes, inf and nan do not convert well to int, but would you
+  ## ever have these in an input file? - dpm 6/8/16
+  try:
+    value = int(text)
+  except ValueError:
+    try:
+      value = float(text)
+    except ValueError:
+      value = text
+  ## If this tag exists, but has no internal text, then it is most likely
+  ## a boolean value
+  except TypeError:
+    return True
+  return value
 
 class pickleSafeSubprocessPopen(subprocess.Popen):
   """
