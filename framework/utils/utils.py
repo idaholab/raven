@@ -625,6 +625,10 @@ def tryParse(text):
       value = float(text)
     except ValueError:
       value = text
+  ## If this tag exists, but has no internal text, then it is most likely
+  ## a boolean value
+  except TypeError:
+    return True
   return value
 
 class pickleSafeSubprocessPopen(subprocess.Popen):
