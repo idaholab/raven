@@ -102,10 +102,6 @@
       <Input>x0,y0,z0</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
-    <HistorySet name="hist">
-      <Input>x0,y0,z0</Input>
-      <Output>time,x,y,z</Output>
-    </HistorySet>
     <PointSet name="point1">
       <Input>x0,y0,z0</Input>
       <Output>x,y</Output>
@@ -114,6 +110,10 @@
       <Input>x0,y0,z0</Input>
       <Output>x,y,z</Output>
     </PointSet>
+    <HistorySet name="hist">
+      <Input>x0,y0,z0</Input>
+      <Output>time,x,y,z</Output>
+    </HistorySet>
   </DataObjects>
 
 </Simulation>
