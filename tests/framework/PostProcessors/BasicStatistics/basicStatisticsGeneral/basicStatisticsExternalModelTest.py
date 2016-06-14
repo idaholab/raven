@@ -33,7 +33,9 @@ def run(self,Input):
   self.y01  = copy.deepcopy(Input['x0'])
   self.y02 = copy.deepcopy(Input['y0'])
   self.time[0]= 0
-
+  self.x[0] =  copy.deepcopy(self.cnt+Input['x0'])
+  self.y[0] =  copy.deepcopy(self.cnt+Input['y0'])
+  self.z[0] =  copy.deepcopy(self.cnt+Input['z0'])
   for t in range ( self.numberTimeSteps-1):
     self.time[t+1] = self.time[t] + self.t_step*self.x02
     self.x[t+1]    = self.x[t] + (self.y[t]-self.x[t])*self.t_step

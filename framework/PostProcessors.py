@@ -1511,7 +1511,9 @@ class BasicStatistics(BasePostProcessor):
     self.printTag = 'POSTPROCESSOR BASIC STATISTIC'
     self.addAssemblerObject('Function','-1', True)
     self.biased = False
+    self.pivotParameter = None
 
+  
   def inputToInternal(self, currentInp):
     """
       Method to convert an input object into the internal format that is
@@ -1530,15 +1532,25 @@ class BasicStatistics(BasePostProcessor):
     else:
       if type(currentInput).__name__ == 'list'    : inType = 'list'
       else: self.raiseAnError(IOError, self, 'BasicStatistics postprocessor accepts files,HDF5,Data(s) only! Got ' + str(type(currentInput)))
-    if inType not in ['HDF5', 'PointSet', 'list'] and not isinstance(inType,Files.File):
+    if inType not in ['HDF5', 'PointSet', 'list','HistorySet'] and not isinstance(inType,Files.File):
       self.raiseAnError(IOError, self, 'BasicStatistics postprocessor accepts files,HDF5,Data(s) only! Got ' + str(inType) + '!!!!')
     if isinstance(inType,Files.File):
       if currentInput.subtype == 'csv': pass
-    if inType == 'HDF5': pass  # to be implemented
     if inType in ['PointSet']:
       for targetP in self.parameters['targets']:
-        if   targetP in currentInput.getParaKeys('input') : inputDict['targets'][targetP] = currentInput.getParam('input' , targetP)
-        elif targetP in currentInput.getParaKeys('output'): inputDict['targets'][targetP] = currentInput.getParam('output', targetP)
+        if   targetP in currentInput.getParaKeys('input') : inputDict['targets'][targetP] = currentInput.getParam('input' , targetP, nodeId = 'ending')
+        elif targetP in currentInput.getParaKeys('output'): inputDict['targets'][targetP] = currentInput.getParam('output', targetP, nodeId = 'ending')
+      inputDict['metadata'] = currentInput.getAllMetadata()
+    if inType in ['HistorySet']:
+      if self.pivotParameter is None: self.raiseAnError(IOError, self, 'Time-dependent statistics is requested (HistorySet) but no pivotParameter got inputted!')
+      inputs, outputs  = currentInput.getParametersValues('inputs',nodeId = 'ending'), currentInput.getParametersValues('outputs',nodeId = 'ending')
+      for targetP in self.parameters['targets']:
+        inputDict['targets'][targetP] = []
+        if   targetP in currentInput.getParaKeys('input') :
+          inputDict['targets'][targetP] = [inputs[i][targetP] for i in inputs.keys()]
+        elif targetP in currentInput.getParaKeys('output'):
+          for ts in range(len(outputs.values()[0][targetP])): 
+            inputDict['targets'][targetP].append([outputs[i][targetP][ts] for i in outputs.keys()])
       inputDict['metadata'] = currentInput.getAllMetadata()
     return inputDict
 
@@ -1583,7 +1595,8 @@ class BasicStatistics(BasePostProcessor):
       elif child.tag == "parameters"   : self.parameters['targets'] = child.text.split(',')
       elif child.tag == "methodsToRun" : self.methodsToRun = child.text.split(',')
       elif child.tag == "biased"       :
-          if child.text.lower() in utils.stringsThatMeanTrue(): self.biased = True
+        if child.text.lower() in utils.stringsThatMeanTrue(): self.biased = True
+      elif child.tag == "pivotParameter": self.pivotParameter = child.text
       assert (self.parameters is not []), self.raiseAnError(IOError, 'I need parameters to work on! Please check your input for PP: ' + self.name)
 
   def collectOutput(self, finishedJob, output):
@@ -1826,14 +1839,15 @@ class BasicStatistics(BasePostProcessor):
     except ValueError:
       result = np.median(arrayIn)
     return result
-
-  def run(self, inputIn):
+  
+  
+  def __runLocal(self, input):
     """
       This method executes the postprocessor action. In this case, it computes all the requested statistical FOMs
-      @ In,  inputIn, object, object contained the data to process. (inputToInternal output)
+      @ In,  input, object, object contained the data to process. (inputToInternal output)
       @ Out, outputDict, dict, Dictionary containing the results
     """
-    input = self.inputToInternal(inputIn)
+    #input = self.inputToInternal(inputIn)
     outputDict = {}
     pbWeights, pbPresent  = {'realization':None}, False
     if self.externalFunction:
@@ -1846,7 +1860,7 @@ class BasicStatistics(BasePostProcessor):
             if type(outputDict[what]) != dict: self.raiseAnError(IOError, 'BasicStatistics postprocessor: You have overwritten the "' + what + '" method through an external function, it must be a dictionary!!')
           else:
             if type(outputDict[what]) != np.ndarray: self.raiseAnError(IOError, 'BasicStatistics postprocessor: You have overwritten the "' + what + '" method through an external function, it must be a numpy.ndarray!!')
-            if len(outputDict[what].shape) != 2:     self.raiseAnError(IOError, 'BasicStatistics postprocessor: You have overwritten the "' + what + '" method through an external function, it must be a 2D numpy.ndarray!!')
+            if len(outputDict[what].shape) != 2    : self.raiseAnError(IOError, 'BasicStatistics postprocessor: You have overwritten the "' + what + '" method through an external function, it must be a 2D numpy.ndarray!!')
     # setting some convenience values
     parameterSet = list(set(list(self.parameters['targets'])))  # @Andrea I am using set to avoid the test: if targetP not in outputDict[what].keys()
     if 'metadata' in input.keys(): pbPresent = 'ProbabilityWeight' in input['metadata'].keys() if 'metadata' in input.keys() else False
@@ -2074,6 +2088,17 @@ class BasicStatistics(BasePostProcessor):
           msg += '              ' + '* ' + what + ' * ' + '%.8E' % outputDict[what] + '  *' + os.linesep
           msg += '              ' + '**' + '*' * len(what) + '***' + 6 * '*' + '*' * 8 + '***' + os.linesep
     self.raiseADebug(msg)
+    return outputDict
+
+  
+  def run(self, inputIn):
+    """
+      This method executes the postprocessor action. In this case, it computes all the requested statistical FOMs
+      @ In,  inputIn, object, object contained the data to process. (inputToInternal output)
+      @ Out, outputDict, dict, Dictionary containing the results
+    """
+    input = self.inputToInternal(inputIn)
+    outputDict = self.__runLocal(input)
     return outputDict
 
   def covariance(self, feature, weights = None, rowVar = 1):
