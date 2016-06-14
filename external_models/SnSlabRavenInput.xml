@@ -13,7 +13,7 @@
   <RunInfo>
 
     <WorkingDir> extmod </WorkingDir>
-    <Sequence> FirstSRun, PP1 </Sequence>
+    <Sequence> FirstSRun, PP1, plot </Sequence>
     <batchSize> 1 </batchSize>
 
   </RunInfo>
@@ -56,7 +56,7 @@
   <Models>
 
        <ExternalModel ModuleToLoad="SnSlabRavenInput" name="PythonModule" subType="">
-         <variables> flux, c, c0, sigma_s </variables>
+         <variables> flux, c, c0, sigma_s, x </variables>
        </ExternalModel>
 
        <PostProcessor name="base_stats" subType="BasicStatistics" verbosity="debug">
@@ -94,7 +94,7 @@
 
         <MonteCarlo name="MC_external">
           <samplerInit>
-            <limit> 2 </limit>
+            <limit> 5 </limit>
           </samplerInit>
           <variable name="c0">
             <distribution> c0_distrib </distribution>
@@ -107,8 +107,15 @@
   <!--
 
   Now we have the steps block where we will define which steps are done.
-  Here we have FirstSRun - this is a single run where we will run the post
-  processor once.
+
+  We use multirun since we are generating several samples of c0. 
+
+  WE USE HISTORY SET FOR OUTPUT. THIS IS BECAUSE OUR DATA CHANGES
+  ALONG X. SO WE HAVE AN ARRAY. DOING A POINTSET WILL RETURN STATISTICS ON A
+  THE LAST POINT OF THE ARRAY. Also, basicstatistics has not been implemented
+  on history sets yet so if we get rid of the pointset part, we will not get
+  any output_flux_pp1.csv
+
 
   -->
 
@@ -120,7 +127,9 @@
         <Model class="Models" type="ExternalModel"> PythonModule </Model>
         <Sampler class="Samplers" type="MonteCarlo"> MC_external </Sampler>
         <Output class="DataObjects" type="PointSet"> PointSetPostProcTest </Output>
+        <Output class="DataObjects" type="HistorySet"> HistorySetPostProcTest </Output>
         <Output class="OutStreams" type="Print"> PointSetPostProcTest_dump </Output>
+        <Output class="OutStreams" type="Print"> HistorySetPostProcTest_dump </Output>
 
       </MultiRun>
 
@@ -132,6 +141,13 @@
 
       </PostProcess>
 
+      <IOStep name="plot">
+
+        <Input class="DataObjects" type="HistorySet"> HistorySetPostProcTest </Input>
+        <Output class="OutStreams" type="Plot"> test </Output>
+
+      </IOStep>
+
   </Steps>
 
   <!--
@@ -142,13 +158,46 @@
 
   Manual has a good description on page 137.
 
+  We will now plot flux for each realization of c. Regular use of matplotlib
+  in the python module raises errors. This means plotting must be done from
+  within this input file. This is done using OutStreams. The manual has a
+  lot of options that can be used. Here we only have a regular 2D plot.
+
   -->
 
   <OutStreams>
+
     <Print name="PointSetPostProcTest_dump">
       <type> csv </type>
       <source> PointSetPostProcTest </source>
     </Print>
+    <Print name="HistorySetPostProcTest_dump">
+      <type> csv </type>
+      <source> HistorySetPostProcTest </source>
+    </Print>
+
+    <Plot dim="2" name="test" overwrite="true">
+      <plotSettings>
+        <plot>
+          <type> line </type>
+          <x> HistorySetPostProcTest|Output|x </x>
+          <y> HistorySetPostProcTest|Output|flux </y>
+          <xlabel> x </xlabel>
+          <ylabel> flux </ylabel>
+          <range>
+            <xmin>0.0</xmin>
+            <xmax>1.0</xmax>
+            <ymin>0.0</ymin>
+            <ymax>4.0</ymax>
+          </range>
+        </plot>
+      </plotSettings>
+      <kwargs><linewidths>0</linewidths></kwargs>
+      <actions>
+        <how> png </how>
+      </actions>
+    </Plot>
+
   </OutStreams>
 
   <!--
@@ -175,12 +224,17 @@
   <DataObjects>
       <PointSet name="PointSetPostProcTest">
         <Input> c0 </Input>
-        <Output> c, flux, sigma_s </Output>
+        <Output> c, flux, sigma_s, x </Output>
       </PointSet>
+      <HistorySet name="HistorySetPostProcTest">
+        <Input> c0 </Input>
+        <Output> c, flux, sigma_s, x </Output>
+      </HistorySet>
       <PointSet name="inputPlaceHolder">
         <Input>c0</Input>
         <Output> outputPlaceHolder </Output>
       </PointSet>
   </DataObjects>
+
 
 </Simulation>
