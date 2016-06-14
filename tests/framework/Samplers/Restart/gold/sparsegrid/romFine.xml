@@ -1,0 +1,31 @@
+<ReducedOrderModel>
+  <ans>
+    <mean>2.17777777778</mean>
+    <variance>0.00493827160494</variance>
+    <samples>13</samples>
+    <polyCoeffs>
+      <inputVariables>x1,x2</inputVariables>
+      <_0_0_>2.17777777778</_0_0_>
+      <_0_1_>-1.11022302463e-16</_0_1_>
+      <_0_2_>-0.0496903995</_0_2_>
+      <_1_0_>-1.11022302463e-16</_1_0_>
+      <_1_1_>0.0</_1_1_>
+      <_2_0_>-0.0496903995</_2_0_>
+    </polyCoeffs>
+    <indices>
+      <tot_variance>0.00493827160494</tot_variance>
+      <variables>x2
+        <partial_variance>0.00246913580247</partial_variance>
+        <Sobol_index>0.5</Sobol_index>
+      </variables>
+      <variables>x1
+        <partial_variance>0.00246913580247</partial_variance>
+        <Sobol_index>0.5</Sobol_index>
+      </variables>
+      <variables>x1,x2
+        <partial_variance>0.0</partial_variance>
+        <Sobol_index>0.0</Sobol_index>
+      </variables>
+    </indices>
+  </ans>
+</ReducedOrderModel>

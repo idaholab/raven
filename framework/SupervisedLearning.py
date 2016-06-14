@@ -548,6 +548,7 @@ class GaussPolynomialRom(superVisedLearning):
             newNode.appendBranch(cNode)
         elif request.lower() in ['indices']:
           indices,partials = self.getSensitivities()
+          totals = self.getTotalSensitivities(indices)
           #provide variance
           varNode = TreeStructure.Node('tot_variance')
           varNode.setText(self.__variance__())
@@ -555,7 +556,7 @@ class GaussPolynomialRom(superVisedLearning):
           #sort by value
           entries = []
           for key in indices.keys():
-            entries.append( (','.join(key),partials[key],indices[key]) )
+            entries.append( (','.join(key),partials[key],indices[key],totals[key]) )
           entries.sort(key=lambda x: abs(x[1]),reverse=True)
           #add to tree
           for entry in entries:
@@ -566,6 +567,9 @@ class GaussPolynomialRom(superVisedLearning):
             subNode.appendBranch(vNode)
             vNode = TreeStructure.Node('Sobol_index')
             vNode.setText(entry[2])
+            subNode.appendBranch(vNode)
+            vNode = TreeStructure.Node('Sobol_total_index')
+            vNode.setText(entry[3])
             subNode.appendBranch(vNode)
             newNode.appendBranch(subNode)
         else:
@@ -800,6 +804,23 @@ class GaussPolynomialRom(superVisedLearning):
     for subset,partial in partials.items():
       indices[subset] = partial / totVar
     return (indices,partials)
+
+  def getTotalSensitivities(self,indices):
+    """
+      Given the Sobol global sensitivity indices, calculates the total indices for each subset.
+      @ In, indices, dict, tuple(subset):float(index)
+      @ Out, totals, dict, tuple(subset):float(index)
+    """
+    #total index is the sum of all Sobol indices in which a subset belongs
+    totals={}
+    for subset in indices.keys():
+      setSub = set(subset)
+      totals[subset] = 0
+      for checkSubset in indices.keys():
+        setCheck = set(checkSubset)
+        if setSub.issubset(setCheck):
+          totals[subset] += indices[checkSubset]
+    return totals
 
   def _polyToSubset(self,poly):
     """

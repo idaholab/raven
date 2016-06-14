@@ -61,6 +61,20 @@ def findPath(root,path):
   path = path.split("|")
   if len(path)>1:
     oneUp = findPath(root,'|'.join(path[:-1]))
-    return oneUp.find(path[-1])
+    if oneUp is not None:
+      return oneUp.find(path[-1])
+    else:
+      return None
   else:
     return root.find(path[-1])
+
+def loadToTree(filename):
+  """
+    loads a file into an XML tree
+    @ In, filename, string, the file to load
+    @ Out, root, xml.etree.ElementTree.Element, root of tree
+    @ Out, tree, xml.etree.ElementTree.ElementTree, tree read from file
+  """
+  tree = ET.parse(filename)
+  root = tree.getroot()
+  return root,tree
