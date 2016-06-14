@@ -59,7 +59,6 @@ def returnPostProcessorInterface(Type,caller):
     @ Out, __interFaceDict[Type](), dict, interfaced PostProcessor dictionary
   """
   if Type not in knownTypes():
-    print('DEBUGG knowntypes:',knownTypes())
     caller.raiseAnError(NameError,'"%s" type unrecognized:' %__base,Type)
   return __interFaceDict[Type](caller.messageHandler)
 

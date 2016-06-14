@@ -40,59 +40,6 @@ def checkAnswer(comment,value,expected,tol=1e-10,updateResults=True):
     if updateResults: results["pass"] += 1
     return True
 
-def checkArray(comment,check,expected,tol=1e-10):
-  """
-    This method is aimed to compare two arrays of floats given a certain tolerance
-    @ In, comment, string, a comment printed out if it fails
-    @ In, check, list, the value to compare
-    @ In, expected, list, the expected value
-    @ In, tol, float, optional, the tolerance
-    @ Out, None
-  """
-  same=True
-  if len(check) != len(expected):
-    same=False
-  else:
-    for i in range(len(check)):
-      same = same*checkAnswer(comment+'[%i]'%i,check[i],expected[i],tol,False)
-  if not same:
-    print("checking array",comment,"did not match!")
-    results['fail']+=1
-    return False
-  else:
-    results['pass']+=1
-    return True
-
-def checkType(comment,value,expected,updateResults=True):
-  """
-    This method compares the data type of two values
-    @ In, comment, string, a comment printed out if it fails
-    @ In, value, float, the value to compare
-    @ In, expected, float, the expected value
-    @ In, updateResults, bool, optional, if True updates global results
-    @ Out, None
-  """
-  if type(value) != type(expected):
-    print("checking type",comment,value,'|',type(value),"!=",expected,'|',type(expected))
-    if updateResults: results["fail"] += 1
-    return False
-  else:
-    if updateResults: results["pass"] += 1
-    return True
-
-def attemptFileClear(fName,later):
-  """
-    Attempts to remove the file.  If not possible, store it in "later".
-    @ In, fName, string, name of file to remove
-    @ In, later, list, list of files to remove later
-    @ Out, later, list, list of files to remove later
-  """
-  try:
-    os.remove(fName)
-  except OSError:
-    later.append(fName)
-  return later
-
 
 #establish test array
 origin = np.array([-3.14,2.99792,2.718,8.987,0.618])
