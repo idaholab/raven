@@ -191,13 +191,14 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     for child in xmlNode:
       if child.tag == "variable":
         self.optVars.append(child.text)
+      
       elif child.tag == "initialization":
         self.initSeed = Distributions.randomIntegers(0,2**31,self)
         for childChild in child:
           if childChild.tag == "limit":
             self.limit = int(childChild.text)
-          elif childChild.tag == "initialSeed":
-            self.initSeed = int(childChild.text)
+#           elif childChild.tag == "initialSeed":
+#             self.initSeed = int(childChild.text)
 #           elif childChild.tag == "reseedEachIteration":
 #             if childChild.text.lower() in utils.stringsThatMeanTrue(): self.reseedAtEachIteration = True
 #           elif childChild.tag == "distInit":
@@ -211,118 +212,124 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 #                 else:
 #                   self.raiseAnError(IOError,'Unknown tag '+childChildChildChild.tag+' .Available are: initialGridDisc and tolerance!')
 #               self.NDSamplingParams[childChildChild.attrib['name']] = NDdistData
-          else: self.raiseAnError(IOError,'Unknown tag '+childChild.tag+' .Available are: limit, and initialSeed!')
+          else: self.raiseAnError(IOError,'Unknown tag '+childChild.tag+' .Available: limit!')
       
-      prefix = ""
-      if child.tag == 'Distribution':
-        for childChild in child:
-          if childChild.tag =='distribution':
-            prefix = "<distribution>"
-            tobesampled = childChild.text
-        self.toBeSampled[prefix+child.attrib['name']] = tobesampled
-      elif child.tag == 'variable':
-        foundDistOrFunc = False
-        for childChild in child:
-          if childChild.tag =='distribution':
-            if not foundDistOrFunc: foundDistOrFunc = True
-            else: self.raiseAnError(IOError,'A sampled variable cannot have both a distribution and a function!')
-            tobesampled = childChild.text
-            varData={}
-            varData['name']=childChild.text
-            if childChild.get('dim') == None:
-              dim=1
-            else:
-              dim=childChild.attrib['dim']
-            varData['dim']=int(dim)
-            self.variables2distributionsMapping[child.attrib['name']] = varData
-            self.toBeSampled[prefix+child.attrib['name']] = tobesampled
-          elif childChild.tag == 'function':
-            if not foundDistOrFunc: foundDistOrFunc = True
-            else: self.raiseAnError(IOError,'A sampled variable cannot have both a distribution and a function!')
-            tobesampled = childChild.text
-            self.dependentSample[prefix+child.attrib['name']] = tobesampled
-        if not foundDistOrFunc: self.raiseAnError(IOError,'Sampled variable',child.attrib['name'],'has neither a <distribution> nor <function> node specified!')
-      elif child.tag == "variablesTransformation":
-        transformationDict = {}
-        listIndex = None
-        for childChild in child:
-          if childChild.tag == "latentVariables":
-            transformationDict[childChild.tag] = list(inp.strip() for inp in childChild.text.strip().split(','))
-          elif childChild.tag == "manifestVariables":
-            transformationDict[childChild.tag] = list(inp.strip() for inp in childChild.text.strip().split(','))
-          elif childChild.tag == "manifestVariablesIndex":
-            # the index provided by the input file starts from 1, but the index used by the code starts from 0.
-            listIndex = list(int(inp.strip()) - 1  for inp in childChild.text.strip().split(','))
-          elif childChild.tag == "method":
-            self.transformationMethod[child.attrib['distribution']] = childChild.text
-        if listIndex == None:
-          self.raiseAWarning('Index is not provided for manifestVariables, default index will be used instead!')
-          listIndex = range(len(transformationDict["manifestVariables"]))
-        transformationDict["manifestVariablesIndex"] = listIndex
-        self.variablesTransformationDict[child.attrib['distribution']] = transformationDict
       elif child.tag == "restartTolerance":
         self.restartTolerance = float(child.text)
+      
+      ## below belongs to old sampler
+#       prefix = ""
+#       if child.tag == 'Distribution':
+#         for childChild in child:
+#           if childChild.tag =='distribution':
+#             prefix = "<distribution>"
+#             tobesampled = childChild.text
+#         self.toBeSampled[prefix+child.attrib['name']] = tobesampled
+#       elif child.tag == 'variable':
+#         foundDistOrFunc = False
+#         for childChild in child:
+#           if childChild.tag =='distribution':
+#             if not foundDistOrFunc: foundDistOrFunc = True
+#             else: self.raiseAnError(IOError,'A sampled variable cannot have both a distribution and a function!')
+#             tobesampled = childChild.text
+#             varData={}
+#             varData['name']=childChild.text
+#             if childChild.get('dim') == None:
+#               dim=1
+#             else:
+#               dim=childChild.attrib['dim']
+#             varData['dim']=int(dim)
+#             self.variables2distributionsMapping[child.attrib['name']] = varData
+#             self.toBeSampled[prefix+child.attrib['name']] = tobesampled
+#           elif childChild.tag == 'function':
+#             if not foundDistOrFunc: foundDistOrFunc = True
+#             else: self.raiseAnError(IOError,'A sampled variable cannot have both a distribution and a function!')
+#             tobesampled = childChild.text
+#             self.dependentSample[prefix+child.attrib['name']] = tobesampled
+#         if not foundDistOrFunc: self.raiseAnError(IOError,'Sampled variable',child.attrib['name'],'has neither a <distribution> nor <function> node specified!')
+#       elif child.tag == "variablesTransformation":
+#         transformationDict = {}
+#         listIndex = None
+#         for childChild in child:
+#           if childChild.tag == "latentVariables":
+#             transformationDict[childChild.tag] = list(inp.strip() for inp in childChild.text.strip().split(','))
+#           elif childChild.tag == "manifestVariables":
+#             transformationDict[childChild.tag] = list(inp.strip() for inp in childChild.text.strip().split(','))
+#           elif childChild.tag == "manifestVariablesIndex":
+#             # the index provided by the input file starts from 1, but the index used by the code starts from 0.
+#             listIndex = list(int(inp.strip()) - 1  for inp in childChild.text.strip().split(','))
+#           elif childChild.tag == "method":
+#             self.transformationMethod[child.attrib['distribution']] = childChild.text
+#         if listIndex == None:
+#           self.raiseAWarning('Index is not provided for manifestVariables, default index will be used instead!')
+#           listIndex = range(len(transformationDict["manifestVariables"]))
+#         transformationDict["manifestVariablesIndex"] = listIndex
+#         self.variablesTransformationDict[child.attrib['distribution']] = transformationDict
+#       elif child.tag == "restartTolerance":
+#         self.restartTolerance = float(child.text)
 
-    if self.initSeed == None:
-      self.initSeed = Distributions.randomIntegers(0,2**31,self)
-
-    # Creation of the self.distributions2variablesMapping dictionary: {'distName': ({'variable_name1': dim1}, {'variable_name2': dim2})}
-    for variable in self.variables2distributionsMapping.keys():
-      distName = self.variables2distributionsMapping[variable]['name']
-      dim      = self.variables2distributionsMapping[variable]['dim']
-      listElement={}
-      listElement[variable] = dim
-      if (distName in self.distributions2variablesMapping.keys()):
-        self.distributions2variablesMapping[distName].append(listElement)
-      else:
-        self.distributions2variablesMapping[distName]=[listElement]
-
-    # creation of the self.distributions2variablesIndexList dictionary:{'distName':[dim1,dim2,...,dimN]}
-    self.distributions2variablesIndexList = {}
-    for distName in self.distributions2variablesMapping.keys():
-      positionList = []
-      for var in self.distributions2variablesMapping[distName]:
-        position = utils.first(var.values())
-        positionList.append(position)
-      positionList = list(set(positionList))
-      positionList.sort()
-      self.distributions2variablesIndexList[distName] = positionList
-
-    for key in self.variables2distributionsMapping.keys():
-      distName = self.variables2distributionsMapping[key]['name']
-      dim      = self.variables2distributionsMapping[key]['dim']
-      reducedDim = self.distributions2variablesIndexList[distName].index(dim) + 1
-      self.variables2distributionsMapping[key]['reducedDim'] = reducedDim  # the dimension of variable in the transformed space
-      self.variables2distributionsMapping[key]['totDim'] = max(self.distributions2variablesIndexList[distName]) # We will reset the value if the node <variablesTransformation> exist in the raven input file
-      if not self.variablesTransformationDict and self.variables2distributionsMapping[key]['totDim'] > 1:
-        if self.variables2distributionsMapping[key]['totDim'] != len(self.distributions2variablesIndexList[distName]):
-          self.raiseAnError(IOError,'The "dim" assigned to the variables insider Sampler are not correct! the "dim" should start from 1, and end with the full dimension of given distribution')
-
-    #Checking the variables transformation
-    if self.variablesTransformationDict:
-      for dist,varsDict in self.variablesTransformationDict.items():
-        maxDim = len(varsDict['manifestVariables'])
-        listLatentElement = varsDict['latentVariables']
-        if len(set(listLatentElement)) != len(listLatentElement):
-          self.raiseAnError(IOError,'There are replicated variables listed in the latentVariables!')
-        if len(set(varsDict['manifestVariables'])) != len(varsDict['manifestVariables']):
-          self.raiseAnError(IOError,'There are replicated variables listed in the manifestVariables!')
-        if len(set(varsDict['manifestVariablesIndex'])) != len(varsDict['manifestVariablesIndex']):
-          self.raiseAnError(IOError,'There are replicated variables indices listed in the manifestVariablesIndex!')
-        listElement = self.distributions2variablesMapping[dist]
-        for var in listElement:
-          self.variables2distributionsMapping[var.keys()[0]]['totDim'] = maxDim #reset the totDim to reflect the totDim of original input space
-        tempListElement = {k.strip():v for x in listElement for ks,v in x.items() for k in list(ks.strip().split(','))}
-        listIndex = []
-        for var in listLatentElement:
-          if var not in set(tempListElement.keys()):
-            self.raiseAnError(IOError, 'The variable listed in latentVariables is not listed in the given distribution: ' + dist)
-          listIndex.append(tempListElement[var]-1)
-        if max(listIndex) > maxDim: self.raiseAnError(IOError,'The maximum dim = ' + str(max(listIndex)) + ' defined for latent variables is exceeded the dimension of the problem!')
-        if len(set(listIndex)) != len(listIndex):
-          self.raiseAnError(IOError,'There are at least two latent variables assigned with the same dimension!')
-        # update the index for latentVariables according to the 'dim' assigned for given var defined in Sampler
-        self.variablesTransformationDict[dist]['latentVariablesIndex'] = listIndex
+    
+    # below belongs to old sampler
+#     if self.initSeed == None:
+#       self.initSeed = Distributions.randomIntegers(0,2**31,self)
+# 
+#     # Creation of the self.distributions2variablesMapping dictionary: {'distName': ({'variable_name1': dim1}, {'variable_name2': dim2})}
+#     for variable in self.variables2distributionsMapping.keys():
+#       distName = self.variables2distributionsMapping[variable]['name']
+#       dim      = self.variables2distributionsMapping[variable]['dim']
+#       listElement={}
+#       listElement[variable] = dim
+#       if (distName in self.distributions2variablesMapping.keys()):
+#         self.distributions2variablesMapping[distName].append(listElement)
+#       else:
+#         self.distributions2variablesMapping[distName]=[listElement]
+# 
+#     # creation of the self.distributions2variablesIndexList dictionary:{'distName':[dim1,dim2,...,dimN]}
+#     self.distributions2variablesIndexList = {}
+#     for distName in self.distributions2variablesMapping.keys():
+#       positionList = []
+#       for var in self.distributions2variablesMapping[distName]:
+#         position = utils.first(var.values())
+#         positionList.append(position)
+#       positionList = list(set(positionList))
+#       positionList.sort()
+#       self.distributions2variablesIndexList[distName] = positionList
+# 
+#     for key in self.variables2distributionsMapping.keys():
+#       distName = self.variables2distributionsMapping[key]['name']
+#       dim      = self.variables2distributionsMapping[key]['dim']
+#       reducedDim = self.distributions2variablesIndexList[distName].index(dim) + 1
+#       self.variables2distributionsMapping[key]['reducedDim'] = reducedDim  # the dimension of variable in the transformed space
+#       self.variables2distributionsMapping[key]['totDim'] = max(self.distributions2variablesIndexList[distName]) # We will reset the value if the node <variablesTransformation> exist in the raven input file
+#       if not self.variablesTransformationDict and self.variables2distributionsMapping[key]['totDim'] > 1:
+#         if self.variables2distributionsMapping[key]['totDim'] != len(self.distributions2variablesIndexList[distName]):
+#           self.raiseAnError(IOError,'The "dim" assigned to the variables insider Sampler are not correct! the "dim" should start from 1, and end with the full dimension of given distribution')
+# 
+#     #Checking the variables transformation
+#     if self.variablesTransformationDict:
+#       for dist,varsDict in self.variablesTransformationDict.items():
+#         maxDim = len(varsDict['manifestVariables'])
+#         listLatentElement = varsDict['latentVariables']
+#         if len(set(listLatentElement)) != len(listLatentElement):
+#           self.raiseAnError(IOError,'There are replicated variables listed in the latentVariables!')
+#         if len(set(varsDict['manifestVariables'])) != len(varsDict['manifestVariables']):
+#           self.raiseAnError(IOError,'There are replicated variables listed in the manifestVariables!')
+#         if len(set(varsDict['manifestVariablesIndex'])) != len(varsDict['manifestVariablesIndex']):
+#           self.raiseAnError(IOError,'There are replicated variables indices listed in the manifestVariablesIndex!')
+#         listElement = self.distributions2variablesMapping[dist]
+#         for var in listElement:
+#           self.variables2distributionsMapping[var.keys()[0]]['totDim'] = maxDim #reset the totDim to reflect the totDim of original input space
+#         tempListElement = {k.strip():v for x in listElement for ks,v in x.items() for k in list(ks.strip().split(','))}
+#         listIndex = []
+#         for var in listLatentElement:
+#           if var not in set(tempListElement.keys()):
+#             self.raiseAnError(IOError, 'The variable listed in latentVariables is not listed in the given distribution: ' + dist)
+#           listIndex.append(tempListElement[var]-1)
+#         if max(listIndex) > maxDim: self.raiseAnError(IOError,'The maximum dim = ' + str(max(listIndex)) + ' defined for latent variables is exceeded the dimension of the problem!')
+#         if len(set(listIndex)) != len(listIndex):
+#           self.raiseAnError(IOError,'There are at least two latent variables assigned with the same dimension!')
+#         # update the index for latentVariables according to the 'dim' assigned for given var defined in Sampler
+#         self.variablesTransformationDict[dist]['latentVariablesIndex'] = listIndex
 
   def readSamplerInit(self,xmlNode):
     """
@@ -331,28 +338,29 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None
     """
-    for child in xmlNode:
-      if child.tag == "samplerInit":
-        self.initSeed = Distributions.randomIntegers(0,2**31,self)
-        for childChild in child:
-          if childChild.tag == "limit":
-            self.limit = childChild.text
-          elif childChild.tag == "initialSeed":
-            self.initSeed = int(childChild.text)
-          elif childChild.tag == "reseedEachIteration":
-            if childChild.text.lower() in utils.stringsThatMeanTrue(): self.reseedAtEachIteration = True
-          elif childChild.tag == "distInit":
-            for childChildChild in childChild:
-              NDdistData = {}
-              for childChildChildChild in childChildChild:
-                if childChildChildChild.tag == 'initialGridDisc':
-                  NDdistData[childChildChildChild.tag] = int(childChildChildChild.text)
-                elif childChildChildChild.tag == 'tolerance':
-                  NDdistData[childChildChildChild.tag] = float(childChildChildChild.text)
-                else:
-                  self.raiseAnError(IOError,'Unknown tag '+childChildChildChild.tag+' .Available are: initialGridDisc and tolerance!')
-              self.NDSamplingParams[childChildChild.attrib['name']] = NDdistData
-          else: self.raiseAnError(IOError,'Unknown tag '+child.tag+' .Available are: limit, initialSeed, reseedEachIteration and distInit!')
+    pass
+#     for child in xmlNode:
+#       if child.tag == "samplerInit":
+#         self.initSeed = Distributions.randomIntegers(0,2**31,self)
+#         for childChild in child:
+#           if childChild.tag == "limit":
+#             self.limit = childChild.text
+#           elif childChild.tag == "initialSeed":
+#             self.initSeed = int(childChild.text)
+#           elif childChild.tag == "reseedEachIteration":
+#             if childChild.text.lower() in utils.stringsThatMeanTrue(): self.reseedAtEachIteration = True
+#           elif childChild.tag == "distInit":
+#             for childChildChild in childChild:
+#               NDdistData = {}
+#               for childChildChildChild in childChildChild:
+#                 if childChildChildChild.tag == 'initialGridDisc':
+#                   NDdistData[childChildChildChild.tag] = int(childChildChildChild.text)
+#                 elif childChildChildChild.tag == 'tolerance':
+#                   NDdistData[childChildChildChild.tag] = float(childChildChildChild.text)
+#                 else:
+#                   self.raiseAnError(IOError,'Unknown tag '+childChildChildChild.tag+' .Available are: initialGridDisc and tolerance!')
+#               self.NDSamplingParams[childChildChild.attrib['name']] = NDdistData
+#           else: self.raiseAnError(IOError,'Unknown tag '+child.tag+' .Available are: limit, initialSeed, reseedEachIteration and distInit!')
 
   def endJobRunnable(self):
     """
