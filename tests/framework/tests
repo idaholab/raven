@@ -303,6 +303,10 @@
   type = 'RavenPython'
   input = '../../framework/utils/testXmlUtils.py'
  [../]
+ [./test_cachedNDArray]
+  type = 'RavenPython'
+  input = '../../framework/utils/testCachedNDArray.py'
+ [../]
 
  [./test_iostep_load]
    #REQUIREMENT_TEST R-RA-2
