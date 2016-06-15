@@ -42,6 +42,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
   validateDict['Input'  ]       = []
   validateDict['Output' ]       = []
   validateDict['Sampler']       = []
+  validateDict['Optimizer']     = []
   testDict                      = {}
   testDict                      = {'class':'','type':[''],'multiplicity':0,'required':False}
   #FIXME: a multiplicity value is needed to control role that can have different class
@@ -91,7 +92,14 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
                                                 'Sobol',
                                                 'AdaptiveSobol',
                                                 'EnsembleForward',
-                                                'CustomSampler']
+                                                'CustomSampler',
+                                                'Optimizer']
+  validateDict['Sampler'].append(testDict.copy())
+  validateDict['Sampler'][1]['class'       ] ='Optimizers'
+  validateDict['Sampler'][1]['required'    ] = False
+  validateDict['Sampler'][1]['multiplicity'] = 1
+  validateDict['Sampler'][1]['type']         = ['FiniteDifference',
+                                                  'SPSA']
 
   @classmethod
   def generateValidateDict(cls):

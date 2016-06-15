@@ -481,6 +481,8 @@ class Simulation(MessageHandler.MessageUser):
     self.whichDict['OutStreams'] = {}
     self.whichDict['OutStreams']['Plot' ] = self.OutStreamManagerPlotDict
     self.whichDict['OutStreams']['Print'] = self.OutStreamManagerPrintDict
+    self.knownSimulationComponents = self.whichDict.keys()
+    self.knownSimulationComponents.append('Optimizers')
     #the handler of the runs within each step
     self.jobHandler    = JobHandler()
     #handle the setting of how the jobHandler act
@@ -612,7 +614,7 @@ class Simulation(MessageHandler.MessageUser):
     # read other nodes
     for child in xmlNode:
       if child.tag=='VariableGroups': continue #we did these before the for loop
-      if child.tag in list(self.whichDict.keys()):
+      if child.tag in self.knownSimulationComponents: #list(self.whichDict.keys()):
         self.raiseADebug('-'*2+' Reading the block: {0:15}'.format(str(child.tag))+2*'-')
         Class = child.tag
         if len(child.attrib.keys()) == 0: globalAttributes = {}

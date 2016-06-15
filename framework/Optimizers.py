@@ -112,7 +112,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 #     self.funcDict                      = {}                        # Contains the instance of the function     to be used, it is created every time the sampler is initialized. keys are the variable names
     self.values                        = {}                        # for each variable the current value {'var name':value}
     self.inputInfo                     = {}                        # depending on the sampler several different type of keywarded information could be present only one is mandatory, see below
-    self.initSeed                      = None                      # if not provided the seed is randomly generated at the istanciation of the sampler, the step can override the seed by sending in another seed
+#     self.initSeed                      = None  # move to subclass                     # if not provided the seed is randomly generated at the istanciation of the sampler, the step can override the seed by sending in another seed
     self.inputInfo['SampledVars'     ] = self.values               # this is the location where to get the values of the sampled variables
 #     self.inputInfo['SampledVarsPb'   ] = {}                        # this is the location where to get the probability of the sampled variables
 #     self.inputInfo['PointProbability'] = None                      # this is the location where the point wise probability is stored (probability associated to a sampled point)
@@ -147,9 +147,10 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ In, initDict, dict, dictionary ({'mainClassName(e.g., Databases):{specializedObjectName(e.g.,DatabaseForSystemCodeNamedWolf):ObjectInstance}'})
       @ Out, None
     """
-    availableDist = initDict['Distributions']
-    availableFunc = initDict['Functions']
-    self._generateDistributions(availableDist,availableFunc)
+#     availableDist = initDict['Distributions']
+#     availableFunc = initDict['Functions']
+#     self._generateDistributions(availableDist,availableFunc)
+    pass # Need to move to subclass
 
   def _localWhatDoINeed(self):
     """
@@ -164,7 +165,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 #     for dist in self.toBeSampled.values():     needDict['Distributions'].append((None,dist))
 #     for func in self.dependentSample.values(): needDict['Functions'].append((None,func))
 #     return needDict
-    pass
+    return {} # Constraint functions or random variable for stochastic optimization need to move to subclass
 
   def _readMoreXML(self,xmlNode):
     """
@@ -190,7 +191,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     for child in xmlNode:
       if child.tag == "variable":
-        self.optVars.append(child.text)
+        for var in child.text.split(','):           self.optVars.append(var)
       
       elif child.tag == "initialization":
         self.initSeed = Distributions.randomIntegers(0,2**31,self)
@@ -377,7 +378,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None
     """
-    pass
+    pass # To be overwritten by subclass
 
   def getInitParams(self):
     """
@@ -389,10 +390,10 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         and each parameter's initial value as the dictionary values
     """
     paramDict = {}
-    for variable in self.toBeSampled.items():
-      paramDict[variable[0]] = 'is sampled using the distribution ' +variable[1]
+    for variable in self.optVars:
+      paramDict[variable] = 'is sampled as a decision variable'
     paramDict['limit' ]        = self.limit
-    paramDict['initial seed' ] = self.initSeed
+#     paramDict['initial seed' ] = self.initSeed
     paramDict.update(self.localGetInitParams())
     return paramDict
 
@@ -416,7 +417,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     paramDict = {}
     paramDict['counter'       ] = self.counter
-    paramDict['initial seed'  ] = self.initSeed
+#     paramDict['initial seed'  ] = self.initSeed
     for key in self.inputInfo:
       if key!='SampledVars':
         paramDict[key] = self.inputInfo[key]
@@ -442,19 +443,20 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ In, availableDist, dict, dict of distributions
       @ In, availableFunc, dict, dict of functions
       @ Out, None
-    """
-    if self.initSeed != None:
-      Distributions.randomSeed(self.initSeed)
-    for key in self.toBeSampled.keys():
-      if self.toBeSampled[key] not in availableDist.keys(): self.raiseAnError(IOError,'Distribution '+self.toBeSampled[key]+' not found among available distributions (check input)!')
-      self.distDict[key] = availableDist[self.toBeSampled[key]]
-      self.inputInfo['crowDist'][key] = json.dumps(self.distDict[key].getCrowDistDict())
-    for key,val in self.dependentSample.items():
-      if val not in availableFunc.keys(): self.raiseAnError('Function',val,'was not found among the available functions:',availableFunc.keys())
-      self.funcDict[key] = availableFunc[val]
-      # check if the correct method is present
-      if "evaluate" not in self.funcDict[key].availableMethods():
-        self.raiseAnError(IOError,'Function '+self.funcDict[key].name+' does not contain a method named "evaluate". It must be present if this needs to be used in a Sampler!')
+    """    
+#     if self.initSeed != None:
+#       Distributions.randomSeed(self.initSeed)
+#     for key in self.toBeSampled.keys():
+#       if self.toBeSampled[key] not in availableDist.keys(): self.raiseAnError(IOError,'Distribution '+self.toBeSampled[key]+' not found among available distributions (check input)!')
+#       self.distDict[key] = availableDist[self.toBeSampled[key]]
+#       self.inputInfo['crowDist'][key] = json.dumps(self.distDict[key].getCrowDistDict())
+#     for key,val in self.dependentSample.items():
+#       if val not in availableFunc.keys(): self.raiseAnError('Function',val,'was not found among the available functions:',availableFunc.keys())
+#       self.funcDict[key] = availableFunc[val]
+#       # check if the correct method is present
+#       if "evaluate" not in self.funcDict[key].availableMethods():
+#         self.raiseAnError(IOError,'Function '+self.funcDict[key].name+' does not contain a method named "evaluate". It must be present if this needs to be used in a Sampler!')
+    pass # This method should be moved to subclass
 
   def initialize(self,externalSeeding=None,solutionExport=None):
     """
@@ -464,73 +466,79 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ Out, None
     """
     self.counter = 0
-    if   not externalSeeding          :
-      Distributions.randomSeed(self.initSeed)       #use the sampler initialization seed
-      self.auxcnt = self.initSeed
-    elif externalSeeding=='continue'  : pass        #in this case the random sequence needs to be preserved
-    else                              :
-      Distributions.randomSeed(externalSeeding)     #the external seeding is used
-      self.auxcnt = externalSeeding
-    #grab restart dataobject if it's available, then in localInitialize the sampler can deal with it.
-    if 'Restart' in self.assemblerDict.keys():
-      self.raiseADebug('Restart object: '+str(self.assemblerDict['Restart']))
-      self.restartData = self.assemblerDict['Restart'][0][3]
-      self.raiseAMessage('Restarting from '+self.restartData.name)
-      #check consistency of data
-      try:
-        rdata = self.restartData.getAllMetadata()['crowDist']
-        sdata = self.inputInfo['crowDist']
-        self.raiseAMessage('sampler inputs:')
-        for sk,sv in sdata.items():
-          self.raiseAMessage('|   '+str(sk)+': '+str(sv))
-        for i,r in enumerate(rdata):
-          if type(r) != dict: continue
-          if not r==sdata:
-            self.raiseAMessage('restart inputs %i:' %i)
-            for rk,rv in r.items():
-              self.raiseAMessage('|   '+str(rk)+': '+str(rv))
-            self.raiseAnError(IOError,'Restart "%s" data[%i] does not have same inputs as sampler!' %(self.restartData.name,i))
-      except KeyError as e:
-        self.raiseAWarning("No CROW distribution available in restart -",e)
-    else:
-      self.raiseAMessage('No restart for '+self.printTag)
-
-    #load restart data into existing points
-    if self.restartData is not None:
-      if not self.restartData.isItEmpty():
-        inps = self.restartData.getInpParametersValues()
-        outs = self.restartData.getOutParametersValues()
-        #FIXME there is no guarantee ordering is accurate between restart data and sampler
-        inputs = list(v for v in inps.values())
-        existingInps = zip(*inputs)
-        outVals = zip(*list(v for v in outs.values()))
-        self.existing = dict(zip(existingInps,outVals))
+    
+    ## The following shall be moved to subclass
+#     if   not externalSeeding          :
+#       Distributions.randomSeed(self.initSeed)       #use the sampler initialization seed
+#       self.auxcnt = self.initSeed
+#     elif externalSeeding=='continue'  : pass        #in this case the random sequence needs to be preserved
+#     else                              :
+#       Distributions.randomSeed(externalSeeding)     #the external seeding is used
+#       self.auxcnt = externalSeeding
+      
+    # Restart currently not implemented
+#     #grab restart dataobject if it's available, then in localInitialize the sampler can deal with it.
+#     if 'Restart' in self.assemblerDict.keys():
+#       self.raiseADebug('Restart object: '+str(self.assemblerDict['Restart']))
+#       self.restartData = self.assemblerDict['Restart'][0][3]
+#       self.raiseAMessage('Restarting from '+self.restartData.name)
+#       #check consistency of data
+#       try:
+#         rdata = self.restartData.getAllMetadata()['crowDist']
+#         sdata = self.inputInfo['crowDist']
+#         self.raiseAMessage('sampler inputs:')
+#         for sk,sv in sdata.items():
+#           self.raiseAMessage('|   '+str(sk)+': '+str(sv))
+#         for i,r in enumerate(rdata):
+#           if type(r) != dict: continue
+#           if not r==sdata:
+#             self.raiseAMessage('restart inputs %i:' %i)
+#             for rk,rv in r.items():
+#               self.raiseAMessage('|   '+str(rk)+': '+str(rv))
+#             self.raiseAnError(IOError,'Restart "%s" data[%i] does not have same inputs as sampler!' %(self.restartData.name,i))
+#       except KeyError as e:
+#         self.raiseAWarning("No CROW distribution available in restart -",e)
+#     else:
+#       self.raiseAMessage('No restart for '+self.printTag)
+# 
+#     #load restart data into existing points
+#     if self.restartData is not None:
+#       if not self.restartData.isItEmpty():
+#         inps = self.restartData.getInpParametersValues()
+#         outs = self.restartData.getOutParametersValues()
+#         #FIXME there is no guarantee ordering is accurate between restart data and sampler
+#         inputs = list(v for v in inps.values())
+#         existingInps = zip(*inputs)
+#         outVals = zip(*list(v for v in outs.values()))
+#         self.existing = dict(zip(existingInps,outVals))
 
     #specializing the self.localInitialize() to account for adaptive sampling
     if solutionExport != None : self.localInitialize(solutionExport=solutionExport)
     else                      : self.localInitialize()
 
-    for distrib in self.NDSamplingParams:
-      if distrib in self.distributions2variablesMapping:
-        params = self.NDSamplingParams[distrib]
-        temp = utils.first(self.distributions2variablesMapping[distrib][0].keys())
-        self.distDict[temp].updateRNGParam(params)
-      else:
-        self.raiseAnError(IOError,'Distribution "%s" specified in distInit block of sampler "%s" does not exist!' %(distrib,self.name))
+    ## The following shall be removed
+#     for distrib in self.NDSamplingParams:
+#       if distrib in self.distributions2variablesMapping:
+#         params = self.NDSamplingParams[distrib]
+#         temp = utils.first(self.distributions2variablesMapping[distrib][0].keys())
+#         self.distDict[temp].updateRNGParam(params)
+#       else:
+#         self.raiseAnError(IOError,'Distribution "%s" specified in distInit block of sampler "%s" does not exist!' %(distrib,self.name))
 
-    # Store the transformation matrix in the metadata
-    if self.variablesTransformationDict:
-      self.entitiesToRemove = []
-      for variable in self.variables2distributionsMapping.keys():
-        distName = self.variables2distributionsMapping[variable]['name']
-        dim      = self.variables2distributionsMapping[variable]['dim']
-        totDim   = self.variables2distributionsMapping[variable]['totDim']
-        if totDim > 1 and dim  == 1:
-          transformDict = {}
-          transformDict['type'] = self.distDict[variable.strip()].type
-          transformDict['transformationMatrix'] = self.distDict[variable.strip()].transformationMatrix()
-          self.inputInfo['transformation-'+distName] = transformDict
-          self.entitiesToRemove.append('transformation-'+distName)
+    ## The following shall be removed
+#     # Store the transformation matrix in the metadata
+#     if self.variablesTransformationDict:
+#       self.entitiesToRemove = []
+#       for variable in self.variables2distributionsMapping.keys():
+#         distName = self.variables2distributionsMapping[variable]['name']
+#         dim      = self.variables2distributionsMapping[variable]['dim']
+#         totDim   = self.variables2distributionsMapping[variable]['totDim']
+#         if totDim > 1 and dim  == 1:
+#           transformDict = {}
+#           transformDict['type'] = self.distDict[variable.strip()].type
+#           transformDict['transformationMatrix'] = self.distDict[variable.strip()].transformationMatrix()
+#           self.inputInfo['transformation-'+distName] = transformDict
+#           self.entitiesToRemove.append('transformation-'+distName)
 
   def localInitialize(self):
     """
@@ -539,7 +547,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ In, None
       @ Out, None
     """
-    pass
+    pass # To be overwritten by subclass
 
   def amIreadyToProvideAnInput(self): #inLastOutput=None):
     """
@@ -573,26 +581,32 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ Out, generateInput, list, list containing the new inputs -in reality it is the model that return this the Sampler generate the value to be placed in the input the model
     """
     self.counter +=1                              #since we are creating the input for the next run we increase the counter and global counter
-    self.auxcnt  +=1
+#     self.auxcnt  +=1
     #FIXME, the following condition check is make sure that the require info is only printed once when dump metadata to xml, this should be removed in the future when we have a better way to dump the metadata
     if self.counter >1:
       for key in self.entitiesToRemove:
         self.inputInfo.pop(key,None)
-    if self.reseedAtEachIteration: Distributions.randomSeed(self.auxcnt-1)
+        
+    ## The following shall be moved to localGenerateInput of subclass    
+#     if self.reseedAtEachIteration: Distributions.randomSeed(self.auxcnt-1)
+    
     self.inputInfo['prefix'] = str(self.counter)
     model.getAdditionalInputEdits(self.inputInfo)
     self.localGenerateInput(model,oldInput)
-    # add latent variables and original variables to self.inputInfo
-    if self.variablesTransformationDict:
-      for dist,var in self.variablesTransformationDict.items():
-        if self.transformationMethod[dist] == 'pca':
-          self.pcaTransform(var,dist)
-        else:
-          self.raiseAnError(NotImplementedError,'transformation method is not yet implemented for ' + self.transformationMethod[dist] + ' method')
-    # generate the function variable values
-    for var in self.dependentSample.keys():
-      test=self.funcDict[var].evaluate("evaluate",self.values)
-      self.values[var] = test
+    
+    ## The following shall be removed since the current optimizer does not deal with latent or dependent variables
+#     # add latent variables and original variables to self.inputInfo
+#     if self.variablesTransformationDict:
+#       for dist,var in self.variablesTransformationDict.items():
+#         if self.transformationMethod[dist] == 'pca':
+#           self.pcaTransform(var,dist)
+#         else:
+#           self.raiseAnError(NotImplementedError,'transformation method is not yet implemented for ' + self.transformationMethod[dist] + ' method')
+#     # generate the function variable values
+#     for var in self.dependentSample.keys():
+#       test=self.funcDict[var].evaluate("evaluate",self.values)
+#       self.values[var] = test
+
     return model.createNewInput(oldInput,self.type,**self.inputInfo)
 
   def pcaTransform(self,varsDict,dist):
@@ -603,20 +617,21 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ In, dist, string, the distribution name associated with given variable set
       @ Out, None
     """
-    latentVariablesValues = []
-    listIndex = []
-    manifestVariablesValues = [None] * len(varsDict['manifestVariables'])
-    for index,lvar in enumerate(varsDict['latentVariables']):
-      for var,value in self.values.items():
-        if lvar == var:
-          latentVariablesValues.append(value)
-          listIndex.append(varsDict['latentVariablesIndex'][index])
-    varName = utils.first(utils.first(self.distributions2variablesMapping[dist]).keys())
-    varsValues = self.distDict[varName].pcaInverseTransform(latentVariablesValues,listIndex)
-    for index1,index2 in enumerate(varsDict['manifestVariablesIndex']):
-      manifestVariablesValues[index2] = varsValues[index1]
-    manifestVariablesDict = dict(zip(varsDict['manifestVariables'],manifestVariablesValues))
-    self.values.update(manifestVariablesDict)
+#     latentVariablesValues = []
+#     listIndex = []
+#     manifestVariablesValues = [None] * len(varsDict['manifestVariables'])
+#     for index,lvar in enumerate(varsDict['latentVariables']):
+#       for var,value in self.values.items():
+#         if lvar == var:
+#           latentVariablesValues.append(value)
+#           listIndex.append(varsDict['latentVariablesIndex'][index])
+#     varName = utils.first(utils.first(self.distributions2variablesMapping[dist]).keys())
+#     varsValues = self.distDict[varName].pcaInverseTransform(latentVariablesValues,listIndex)
+#     for index1,index2 in enumerate(varsDict['manifestVariablesIndex']):
+#       manifestVariablesValues[index2] = varsValues[index1]
+#     manifestVariablesDict = dict(zip(varsDict['manifestVariables'],manifestVariablesValues))
+#     self.values.update(manifestVariablesDict)
+    pass
 
   @abc.abstractmethod
   def localGenerateInput(self,model,oldInput):
@@ -639,15 +654,16 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ In, projector, object, optional, used for adaptive sampling to provide the projection of the solution on the success metric
       @ Out, newInputs, list of list, list of the list of input sets
     """
-    newInputs = []
-    #inlastO = None
-    #if lastOutput:
-    #  if not lastOutput.isItEmpty(): inlastO = lastOutput
-    #while self.amIreadyToProvideAnInput(inlastO) and (self.counter < batchSize):
-    while self.amIreadyToProvideAnInput() and (self.counter < batchSize):
-      if projector==None: newInputs.append(self.generateInput(model,myInput))
-      else              : newInputs.append(self.generateInput(model,myInput,projector))
-    return newInputs
+#     newInputs = []
+#     #inlastO = None
+#     #if lastOutput:
+#     #  if not lastOutput.isItEmpty(): inlastO = lastOutput
+#     #while self.amIreadyToProvideAnInput(inlastO) and (self.counter < batchSize):
+#     while self.amIreadyToProvideAnInput() and (self.counter < batchSize):
+#       if projector==None: newInputs.append(self.generateInput(model,myInput))
+#       else              : newInputs.append(self.generateInput(model,myInput,projector))
+#     return newInputs
+    pass
 
   def finalizeActualSampling(self,jobObject,model,myInput):
     """
@@ -717,7 +733,19 @@ class SPSA(Optimizer):
   pass
 
 class FiniteDifference(Optimizer):
-  pass
+  def localGenerateInput(self,model,oldInput):
+    for var in self.optVars:
+      self.values[var] = 0.2
+      
+  def localInitialize(self, solutionExport):
+    """
+      use this function to add initialization features to the derived class
+      it is call at the beginning of each step
+      @ In, None
+      @ Out, None
+    """
+    pass    
+  
 
 """
  Interface Dictionary (factory) (private)
