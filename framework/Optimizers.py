@@ -190,7 +190,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ Out, None
     """
     for child in xmlNode:
-      if child.tag == "variable":
+      if child.tag in ["variable", "variables"]:
         for var in child.text.split(','):           self.optVars.append(var)
       
       elif child.tag == "initialization":
@@ -557,9 +557,9 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ In, None
       @ Out, ready, bool, is this sampler ready to generate another sample?
     """
-    if(self.counter < self.limit): ready = True
-    else                         : ready = False
+    ready = True if self.counter < self.limit else False
     ready = self.localStillReady(ready)
+    self.raiseADebug(ready)
     return ready
 
   def localStillReady(self,ready): #,lastOutput=None
@@ -581,11 +581,13 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ Out, generateInput, list, list containing the new inputs -in reality it is the model that return this the Sampler generate the value to be placed in the input the model
     """
     self.counter +=1                              #since we are creating the input for the next run we increase the counter and global counter
+    
+    ## The following shall be removed
 #     self.auxcnt  +=1
-    #FIXME, the following condition check is make sure that the require info is only printed once when dump metadata to xml, this should be removed in the future when we have a better way to dump the metadata
-    if self.counter >1:
-      for key in self.entitiesToRemove:
-        self.inputInfo.pop(key,None)
+#     #FIXME, the following condition check is make sure that the require info is only printed once when dump metadata to xml, this should be removed in the future when we have a better way to dump the metadata
+#     if self.counter >1:
+#       for key in self.entitiesToRemove:
+#         self.inputInfo.pop(key,None)
         
     ## The following shall be moved to localGenerateInput of subclass    
 #     if self.reseedAtEachIteration: Distributions.randomSeed(self.auxcnt-1)
@@ -736,6 +738,9 @@ class FiniteDifference(Optimizer):
   def localGenerateInput(self,model,oldInput):
     for var in self.optVars:
       self.values[var] = 0.2
+    self.raiseADebug(self.optVars)
+    self.raiseADebug(self.values)
+#     self.raiseAnError(IOError, 'debug')
       
   def localInitialize(self, solutionExport):
     """
