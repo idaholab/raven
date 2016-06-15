@@ -23,7 +23,7 @@ class HistorySetSnapShot(PostProcessorInterfaceBase):
    The conversion is made so that each history H is converted to a single point P.
    Assume that each history H is a dict of n output variables x_1=[...],x_n=[...], then the resulting point P can be as follows accordingly to the specified type:
    - type = timeSlice: at time instant t: P=[x_1[t],...,x_n[t]]
-   - type = min, max, avg, value
+   - type = min, max, average, value
 
   """
 
@@ -49,6 +49,7 @@ class HistorySetSnapShot(PostProcessorInterfaceBase):
     self.timeID          = None
     self.interpolation   = None
 
+    self.classifiers = {} #for "mixed" mode
 
   def readMoreXML(self,xmlNode):
     """
@@ -57,30 +58,70 @@ class HistorySetSnapShot(PostProcessorInterfaceBase):
       @ Out, None
     """
     for child in xmlNode:
-      if child.tag =='type':
+      tag = child.tag
+      if tag =='type':
         self.type = child.text
-      elif child.tag == 'numberOfSamples':
+      elif tag == 'numberOfSamples':
         self.numberOfSamples = int(child.text)
-      elif child.tag == 'extension':
+      elif tag == 'extension':
         self.extension = child.text
-      elif child.tag == 'timeID':
+      elif tag == 'timeID':
         self.timeID = child.text
-      elif child.tag == 'pivotVar':
+      elif tag == 'pivotVar':
         self.pivotVar = child.text
-      elif child.tag == 'pivotVal':
+      elif tag == 'pivotVal':
         self.pivotVal = float(child.text)
-      elif child.tag == 'timeInstant':
+      elif tag == 'timeInstant':
         self.timeInstant = int(child.text)
-      elif child.tag !='method':
+      elif self.type == 'mixed':
+        entries = list(c.strip() for c in child.text.strip().split(','))
+        if tag not in self.classifiers.keys():
+          self.classifiers[tag] = []
+        #min,max,avg need no additional information to run, so list is [varName, varName, ...]
+        if tag in ['min','max','average']:
+          self.classifiers[tag].extend(entries)
+        #for now we remove timeSlice in mixed mode, until we recall why it might be desirable for a user
+        #timeSlice requires the time at which to slice, so list is [ (varName,time), (varName,time), ...]
+        #elif tag in ['timeSlice']:
+        #  time = child.attrib.get('value',None)
+        #  if time is None:
+        #    self.raiseAnError('For "mixed" mode, must specify "value" as an attribute for each "timeSlice" node!')
+        #  for entry in entries:
+        #    self.classifiers[tag].append( (entry,float(time)) )
+        #value requires the dependent variable and dependent value, so list is [ (varName,depVar,depVal), ...]
+        elif tag == 'value':
+          depVar = child.attrib.get('pivotVar',None)
+          depVal = child.attrib.get('pivotVal',None)
+          if depVar is None or depVal is None:
+            self.raiseAnError('For "mixed" mode, must specify both "pivotVar" and "pivotVal" as an attribute for each "value" node!')
+          for entry in entries:
+            self.classifiers[tag].append( (entry,depVar,float(depVal)) )
+        else:
+          self.raiseAnError(IOError,'Unrecognized node for HistorySetSnapShot in "mixed" mode:',tag)
+      elif tag !='method':
         self.raiseAnError(IOError, 'HistorySetSnapShot Interfaced Post-Processor ' + str(self.name) + ' : XML node ' + str(child.tag) + ' is not recognized')
 
+    needsTimeID = ['average','timeSlice']
+    if self.type in needsTimeID or any(mode in self.classifiers.keys() for mode in needsTimeID):
+      if self.timeID is None:
+        self.raiseAnError(IOError,'"timeID" is required for',needsTimeID,'but not provided!')
+
+    #sync if needed
     if self.type == 'timeSlice':
+      #for syncing, need numberOfSamples, extension
+      if self.numberOfSamples is None:
+        self.raiseIOError(IOError,'When using "timeSlice" a "numberOfSamples" must be specified for synchronizing!')
+      if self.extension is None:
+        self.raiseAnError(IOError,'When using "timeSlice" an "extension" method must be specified for synchronizing!')
+      if self.extension not in ['zeroed','extended']:
+        self.raiseAnError(IOError,'Unrecognized "extension" method:',self.extension)
+      #perform sync
       PostProcessorInterfaces = importlib.import_module("PostProcessorInterfaces")
       self.HSsyncPP = PostProcessorInterfaces.returnPostProcessorInterface('HistorySetSync',self)
       self.HSsyncPP.initialize(self.numberOfSamples,self.timeID,self.extension,syncMethod='grid')
 
-    if self.type not in set(['min','max','avg','value','timeSlice']):
-      self.raiseAnError(IOError, 'HistorySetSnapShot Interfaced Post-Processor ' + str(self.name) + ' : type is not recognized')
+    if self.type not in set(['min','max','average','value','timeSlice','mixed']):
+      self.raiseAnError(IOError, 'HistorySetSnapShot Interfaced Post-Processor "' + str(self.name) + '" : type "%s" is not recognized' %self.type)
 
 
   def run(self,inputDic, pivotVal=None):
@@ -92,21 +133,57 @@ class HistorySetSnapShot(PostProcessorInterfaceBase):
     outputPSDic = {}
     outputHSDic = {}
 
+    #for timeSlice we call historySetWindow
     if self.type == 'timeSlice':
       outputHSDic = self.HSsyncPP.run(inputDic)
       outputPSDic = historySetWindow(outputHSDic,self.timeInstant,self.timeID)
-    else:
+      return outputPSDic
+    #for other non-mixed methods we call historySnapShot
+    elif self.type != 'mixed':
       outputPSDic = historySnapShot(inputDic,self.pivotVar,self.type,self.pivotVal,self.timeID)
-    return outputPSDic
+      return outputPSDic
+    #mixed is more complicated: we pull out values by method instead of a single slice type
+    #   We use the same methods to get slices, then pick out only the requested variables
+    else:
+      #establish the output dict
+      outDict = {'data':{'input':{},'output':{}}}
+      #replicate input space
+      for var in inputDic['data']['input'].values()[0].keys():
+        outDict['data']['input'][var] = np.array(list(inputDic['data']['input'][prefix][var] for prefix in inputDic['data']['input'].keys()))
+      #replicate metadata
+        outDict['metadata'] = inputDic['metadata']
+      #loop over the methods requested to fill output space
+      for method,entries in self.classifiers.items():
+        #min, max take no special effort
+        if method in ['min','max']:
+          for var in entries:
+            getDict = historySnapShot(inputDic,var,method)
+            outDict['data']['output'][var] = getDict['data']['output'][var]
+        #average requires the timeID
+        elif method == 'average':
+          for var in entries:
+            getDict = historySnapShot(inputDic,var,method,tempID=self.timeID)
+            outDict['data']['output'][var] = getDict['data']['output'][var]
+        #timeSlice requires the time value
+        #functionality removed for now until we recall why it's desirable
+        #elif method == 'timeSlice':
+        #  for var,time in entries:
+        #    getDict = historySetWindow(inputDic,time,self.timeID)
+        #value requires the dependent variable and value
+        elif method == 'value':
+          for var,depVar,depVal in entries:
+            getDict = historySnapShot(inputDic,depVar,method,pivotVal=depVal)
+            outDict['data']['output'][var] = getDict['data']['output'][var]
+      return outDict
 
 
 def historySnapShot(inputDic, pivotVar, snapShotType, pivotVal=None, tempID = None):
   """
-  Method do to compute a conversion from HistorySet to PointSet using the methods: min,max,avg,value
+  Method do to compute a conversion from HistorySet to PointSet using the methods: min,max,average,value
   @ In, vars, dict, it is an historySet
   @ In, pivotVar,  string, variable considered
   @ In, pivotVal,  double, value associated to the variable considered
-  @ In, snapShotType, string, type of snapShot: min, max, avg, value
+  @ In, snapShotType, string, type of snapShot: min, max, average, value
   @ Out, outputDic, dict, it contains the temporal slice of all histories
   """
 
@@ -153,7 +230,7 @@ def historySnapShot(inputDic, pivotVar, snapShotType, pivotVal=None, tempID = No
         for keys in outVars:
           value = inputDic['data']['output'][history][keys][idx] + (inputDic['data']['output'][history][keys][idx+1]-inputDic['data']['output'][history][keys][idx])*intervalFraction
           outputDic['data']['output'][keys] = np.append(outputDic['data']['output'][keys],value)
-    elif snapShotType == 'avg':
+    elif snapShotType == 'average':
        for keys in outVars:
          cumulative=0.0
          for t in range(1,len(inputDic['data']['output'][history][tempID])):
