@@ -59,15 +59,13 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     input values using the associate distribution. They do not have distributions inside!!!!
 
     --Instance--
-    myInstance = Sampler()
+    myInstance = Optimizer()
     myInstance.XMLread(xml.etree.ElementTree.Element)  This method generates all the information that will be permanent for the object during the simulation
  
     --usage--
-    myInstance = Sampler()
+    myInstance = Optimizer()
     myInstance.XMLread(xml.etree.ElementTree.Element)  This method generate all permanent information of the object from <Simulation>
     myInstance.whatDoINeed()                           -see Assembler class-
-    myInstance.generateDistributions(dict)             Here the seed for the random engine is started and the distributions are supplied to the sampler and
-                                                       initialized. The method is called come from <Simulation> since it is the only one possess all the distributions.
     myInstance.initialize()                            This method is called from the <Step> before the Step process start. In the base class it reset the counter to 0
     myInstance.amIreadyToProvideAnInput                Requested from <Step> used to verify that the sampler is available to generate a new input
     myInstance.generateInput(self,model,oldInput)      Requested from <Step> to generate a new input. Generate the new values and request to model to modify according the input and returning it back
@@ -76,8 +74,8 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     myInstance.whoAreYou()                            -see BaseType class-
     myInstance.myCurrentSetting()                     -see BaseType class-
  
-    --Adding a new Sampler subclass--
-    <MyClass> should inherit at least from Sampler or from another step already presents
+    --Adding a new Optimizer subclass--
+    <MyClass> should inherit at least from Optimizer or from another step already presents
  
     DO NOT OVERRIDE any of the class method that are not starting with self.local*
  
@@ -105,11 +103,12 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     BaseType.__init__(self)
     Assembler.__init__(self)
     self.counter                       = 0                         # Counter of the samples performed (better the input generated!!!). It is reset by calling the function self.initialize
-    self.auxcnt                        = 0 # may be removed                         # Aux counter of samples performed (for its usage check initialize method)
+#     self.auxcnt                        = 0 # may be removed                         # Aux counter of samples performed (for its usage check initialize method)
     self.limit                         = sys.maxsize               # maximum number of Samples (for example, Monte Carlo = Number of HistorySet to run, DET = Unlimited)
-    self.toBeSampled                   = {} # may be removed                       # Sampling mapping dictionary {'Variable Name':'name of the distribution'}
-    self.dependentSample               = {} # may be removed                       # Sampling mapping dictionary for dependent variables {'Variable Name':'name of the external function'}
-    self.distDict                      = {} # may be removed                       # Contains the instance of the distribution to be used, it is created every time the sampler is initialized. keys are the variable names
+    self.optVars                       = []                        # Decision variables for optimization
+#     self.toBeSampled                   = {} # may be removed                       # Sampling mapping dictionary {'Variable Name':'name of the distribution'}
+#     self.dependentSample               = {} # may be removed                       # Sampling mapping dictionary for dependent variables {'Variable Name':'name of the external function'}
+#     self.distDict                      = {} # may be removed                       # Contains the instance of the distribution to be used, it is created every time the sampler is initialized. keys are the variable names
 #     self.funcDict                      = {}                        # Contains the instance of the function     to be used, it is created every time the sampler is initialized. keys are the variable names
     self.values                        = {}                        # for each variable the current value {'var name':value}
     self.inputInfo                     = {}                        # depending on the sampler several different type of keywarded information could be present only one is mandatory, see below
@@ -121,9 +120,9 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 #     self.reseedAtEachIteration         = False                     # Logical flag. True if every newer evaluation is performed after a new reseeding
     self.FIXME                         = False                     # FIXME flag
     self.printTag                      = self.type                 # prefix for all prints (sampler type)
-    self.restartData                   = None # may be removed                     # presampled points to restart from
-    self.restartTolerance              = 1e-15 # may be removed                    # strictness with which to find matches in the restart data
-    self.existing                      = {} # may be removed                       # restart data points, inputs:outputs
+#     self.restartData                   = None # may be removed                     # presampled points to restart from
+#     self.restartTolerance              = 1e-15 # may be removed                    # strictness with which to find matches in the restart data
+#     self.existing                      = {} # may be removed                       # restart data points, inputs:outputs
 
     self._endJobRunnable               = sys.maxsize               # max number of inputs creatable by the sampler right after a job ends (e.g., infinite for MC, 1 for Adaptive, etc)
 
@@ -133,7 +132,9 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 #     self.NDSamplingParams               = {}                       # this dictionary contains a dictionary for each ND distribution (key). This latter dictionary contains the initialization parameters of the ND inverseCDF ('initialGridDisc' and 'tolerance')
     ######
     self.addAssemblerObject('Restart' ,'-n',True)
-
+    self.addAssemblerObject('TargetEvaluation','n')
+    self.addAssemblerObject('Function','-n')
+    
     #used for PCA analysis
 #     self.variablesTransformationDict    = {}                       # for each variable 'modelName', the following informations are included: {'modelName': {latentVariables:[latentVar1, latentVar2, ...], manifestVariables:[manifestVar1,manifestVar2,...]}}
 #     self.transformationMethod           = {}                       # transformation method used in variablesTransformation node {'modelName':method}
@@ -157,12 +158,13 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ In, None
       @ Out, needDict, dict, list of objects needed
     """
-    needDict = {}
-    needDict['Distributions'] = [] # Every sampler requires Distributions OR a Function
-    needDict['Functions']     = [] # Every sampler requires Distributions OR a Function
-    for dist in self.toBeSampled.values():     needDict['Distributions'].append((None,dist))
-    for func in self.dependentSample.values(): needDict['Functions'].append((None,func))
-    return needDict
+#     needDict = {}
+#     needDict['Distributions'] = [] # Every sampler requires Distributions OR a Function
+#     needDict['Functions']     = [] # Every sampler requires Distributions OR a Function
+#     for dist in self.toBeSampled.values():     needDict['Distributions'].append((None,dist))
+#     for func in self.dependentSample.values(): needDict['Functions'].append((None,func))
+#     return needDict
+    pass
 
   def _readMoreXML(self,xmlNode):
     """
@@ -187,6 +189,30 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ Out, None
     """
     for child in xmlNode:
+      if child.tag == "variable":
+        self.optVars.append(child.text)
+      elif child.tag == "initialization":
+        self.initSeed = Distributions.randomIntegers(0,2**31,self)
+        for childChild in child:
+          if childChild.tag == "limit":
+            self.limit = int(childChild.text)
+          elif childChild.tag == "initialSeed":
+            self.initSeed = int(childChild.text)
+#           elif childChild.tag == "reseedEachIteration":
+#             if childChild.text.lower() in utils.stringsThatMeanTrue(): self.reseedAtEachIteration = True
+#           elif childChild.tag == "distInit":
+#             for childChildChild in childChild:
+#               NDdistData = {}
+#               for childChildChildChild in childChildChild:
+#                 if childChildChildChild.tag == 'initialGridDisc':
+#                   NDdistData[childChildChildChild.tag] = int(childChildChildChild.text)
+#                 elif childChildChildChild.tag == 'tolerance':
+#                   NDdistData[childChildChildChild.tag] = float(childChildChildChild.text)
+#                 else:
+#                   self.raiseAnError(IOError,'Unknown tag '+childChildChildChild.tag+' .Available are: initialGridDisc and tolerance!')
+              self.NDSamplingParams[childChildChild.attrib['name']] = NDdistData
+          else: self.raiseAnError(IOError,'Unknown tag '+childChild.tag+' .Available are: limit, and initialSeed!')
+      
       prefix = ""
       if child.tag == 'Distribution':
         for childChild in child:

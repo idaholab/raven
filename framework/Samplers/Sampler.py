@@ -148,9 +148,10 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ In, initDict, dict, dictionary ({'mainClassName(e.g., Databases):{specializedObjectName(e.g.,DatabaseForSystemCodeNamedWolf):ObjectInstance}'})
       @ Out, None
     """
-    availableDist = initDict['Distributions']
-    availableFunc = initDict['Functions']
-    self._generateDistributions(availableDist,availableFunc)
+#     availableDist = initDict['Distributions']
+#     availableFunc = initDict['Functions']
+#     self._generateDistributions(availableDist,availableFunc)
+    pass
 
   def _localWhatDoINeed(self):
     """
@@ -409,18 +410,19 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ In, availableFunc, dict, dict of functions
       @ Out, None
     """
-    if self.initSeed != None:
-      Distributions.randomSeed(self.initSeed)
-    for key in self.toBeSampled.keys():
-      if self.toBeSampled[key] not in availableDist.keys(): self.raiseAnError(IOError,'Distribution '+self.toBeSampled[key]+' not found among available distributions (check input)!')
-      self.distDict[key] = availableDist[self.toBeSampled[key]]
-      self.inputInfo['crowDist'][key] = json.dumps(self.distDict[key].getCrowDistDict())
-    for key,val in self.dependentSample.items():
-      if val not in availableFunc.keys(): self.raiseAnError('Function',val,'was not found among the available functions:',availableFunc.keys())
-      self.funcDict[key] = availableFunc[val]
-      # check if the correct method is present
-      if "evaluate" not in self.funcDict[key].availableMethods():
-        self.raiseAnError(IOError,'Function '+self.funcDict[key].name+' does not contain a method named "evaluate". It must be present if this needs to be used in a Sampler!')
+#     if self.initSeed != None:
+#       Distributions.randomSeed(self.initSeed)
+#     for key in self.toBeSampled.keys():
+#       if self.toBeSampled[key] not in availableDist.keys(): self.raiseAnError(IOError,'Distribution '+self.toBeSampled[key]+' not found among available distributions (check input)!')
+#       self.distDict[key] = availableDist[self.toBeSampled[key]]
+#       self.inputInfo['crowDist'][key] = json.dumps(self.distDict[key].getCrowDistDict())
+#     for key,val in self.dependentSample.items():
+#       if val not in availableFunc.keys(): self.raiseAnError('Function',val,'was not found among the available functions:',availableFunc.keys())
+#       self.funcDict[key] = availableFunc[val]
+#       # check if the correct method is present
+#       if "evaluate" not in self.funcDict[key].availableMethods():
+#         self.raiseAnError(IOError,'Function '+self.funcDict[key].name+' does not contain a method named "evaluate". It must be present if this needs to be used in a Sampler!')
+    pass
 
   def initialize(self,externalSeeding=None,solutionExport=None):
     """
