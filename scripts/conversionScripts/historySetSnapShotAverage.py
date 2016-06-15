@@ -9,7 +9,7 @@ def addToNode(node):
     @ Out, none
   """
   text = node.find('type').text
-  if 'avg' in text:
+  if text.strip() == 'avg':
     text.replace('avg','average')
     node.find('type').text = text
 

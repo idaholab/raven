@@ -80,8 +80,8 @@ class HistorySetSnapShot(PostProcessorInterfaceBase):
         #min,max,avg need no additional information to run, so list is [varName, varName, ...]
         if tag in ['min','max','average']:
           self.classifiers[tag].extend(entries)
-        #timeSlice requires the time at which to slice, so list is [ (varName,time), (varName,time), ...]
         #for now we remove timeSlice in mixed mode, until we recall why it might be desirable for a user
+        #timeSlice requires the time at which to slice, so list is [ (varName,time), (varName,time), ...]
         #elif tag in ['timeSlice']:
         #  time = child.attrib.get('value',None)
         #  if time is None:

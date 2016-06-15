@@ -966,9 +966,9 @@ If a \xmlString{timeSlice} type is in use, the following nodes also are required
 If instead a \xmlString{min}, \xmlString{max}, \xmlString{average}, or \xmlString{value} is used, the following nodes
 are also required:
 \begin{itemize}
-   \item \xmlNode{pivotVar}, \xmlDesc{integer, required field},  Name of the chosen indexing variable (the
+   \item \xmlNode{pivotVar}, \xmlDesc{string, required field},  Name of the chosen indexing variable (the
          variable whose min, max, average, or value is used to determine the time slice)
-       \item \xmlNode{pivotVal}, \xmlDesc{integer, optional field},  required for \xmlString{value} type, the value for the chosen variable
+       \item \xmlNode{pivotVal}, \xmlDesc{float, optional field},  required for \xmlString{value} type, the value for the chosen variable
 \end{itemize}
 
 Lastly, if a \xmlString{mixed} approach is used, the following nodes apply:
