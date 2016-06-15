@@ -210,7 +210,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 #                   NDdistData[childChildChildChild.tag] = float(childChildChildChild.text)
 #                 else:
 #                   self.raiseAnError(IOError,'Unknown tag '+childChildChildChild.tag+' .Available are: initialGridDisc and tolerance!')
-              self.NDSamplingParams[childChildChild.attrib['name']] = NDdistData
+#               self.NDSamplingParams[childChildChild.attrib['name']] = NDdistData
           else: self.raiseAnError(IOError,'Unknown tag '+childChild.tag+' .Available are: limit, and initialSeed!')
       
       prefix = ""
