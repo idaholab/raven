@@ -29,6 +29,7 @@
       <Input          class='DataObjects' type='HistorySet'   >mData</Input>
       <Model          class='Models'      type='PostProcessor'>MiniBatchKMeans1</Model>
       <SolutionExport class="DataObjects" type="HistorySet"   >clusterInfo</SolutionExport>
+      <Output         class='DataObjects' type='HistorySet'   >mData</Output>
       <Output         class='OutStreams'  type='Print'        >dummy</Output>
     </PostProcess>
     <IOStep name='writeOut' pauseAtEnd='True'>

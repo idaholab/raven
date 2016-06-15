@@ -13,9 +13,9 @@
   <Models>
     <PostProcessor name='DBSCAN1' subType='DataMining'>
       <KDD lib='temporalSciKitLearn' labelFeature='labels'>
-        <Features>x1,x2</Features>
         <SKLtype>cluster|DBSCAN</SKLtype>
-        <eps>0.2</eps>
+        <Features>x1,x2</Features>
+        <min_samples>1</min_samples>
       </KDD>
     </PostProcessor>
   </Models>
@@ -37,10 +37,10 @@
     <IOStep name='writeOut' pauseAtEnd='True'>
       <Input  class='DataObjects' type='HistorySet'>mData</Input>
       <Input  class='DataObjects' type='HistorySet'>clusterInfo</Input>
-      <Output class='OutStreams'  type='Print'     >centroid</Output>
       <Output class='OutStreams'  type='Plot'      >plotRawData</Output>
       <Output class='OutStreams'  type='Plot'      >plotPPDataLabel</Output>
       <Output class='OutStreams'  type='Plot'      >plotPPDataCentroid</Output>
+      <Output class='OutStreams'  type='Print'     >centroid</Output>
     </IOStep>
   </Steps>
 

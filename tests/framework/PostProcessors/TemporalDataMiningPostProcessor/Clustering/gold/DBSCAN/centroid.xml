@@ -1,1 +1,1 @@
-<data name="centroid" type="history"><input /><output>DBSCAN1Centroid-x1-1,DBSCAN1Centroid-x1-0,DBSCAN1Centroid-x1-2,DBSCAN1Centroid-x2-2,DBSCAN1Centroid-x2-0,DBSCAN1Centroid-x2-1,Time</output><inputFilename>centroid.csv</inputFilename></data>
+<data name="centroid" type="HistorySet"><input>labels</input><output>x2,x1,Time</output><inputFilename>centroid.csv</inputFilename></data>
