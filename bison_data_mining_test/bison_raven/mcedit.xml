@@ -2,17 +2,28 @@
 <Simulation verbosity="debug">
   <RunInfo>
     <JobName>rodlet_mc</JobName>
-    <WorkingDir>./Cluster1100samples</WorkingDir>
-    <batchSize>8</batchSize>
-    <Sequence> readdata, mine </Sequence>
+    <WorkingDir>./sample</WorkingDir>
+    <batchSize>24</batchSize>
+    <!-- <mode>mpi<runQSUB/></mode>
+    <NumMPI>24</NumMPI>
+    <expectedTime>1:0:0</expectedTime> -->
+    <Sequence>sample,write1, write2</Sequence>
   </RunInfo>
 
   <Files>
-    <Input name="output_basicStatistics_mine.csv" type=""> output_basicStatistics_mine.csv </Input>
+    <Input name="bison_inp" type="MooseInput">../refcase/inputs/input_PK6-3.i</Input>
+    <Input name="power_hist">../refcase/inputs/PK6-3_power_history.csv</Input>
+    <Input name="cubit_inp" type="BisonMeshInput">../refcase/inputs/mesh_script_input.py</Input>
+    <Input name="clad_temp">../refcase/inputs/PK6-3_clad_out_temp.csv</Input>
+    <Input name="ax_t_facts">../refcase/inputs/PK6-3_axial_temp_factors.csv</Input>
+    <Input name="fast_flux">../refcase/inputs/PK6-3_fast_flux.csv</Input>
+    <Input name="cool_press">../refcase/inputs/PK6-3_coolant_pressure.csv</Input>
+    <Input name="ax_p_facts">../refcase/inputs/PK6-3_axial_power_factors.csv</Input>
+    <Input name="pk6-3_smeared">../refcase/inputs/pk6-3_smeared.e</Input>
   </Files>
 
   <Databases>
-    <HDF5 directory="Cluster1100samples/DatabaseStorage" filename="rodlet.h5" name="rodlet" readMode="read"/>
+    <HDF5 name="rodlet" readMode="overwrite"/>
   </Databases>
 
   <DataObjects>
@@ -105,7 +116,7 @@
   <Samplers>
     <MonteCarlo name="sc">
       <samplerInit>
-        <limit>1100</limit>
+        <limit>1000</limit>
         <!-- <limit>7000</limit> -->
         <initialSeed>42</initialSeed>
       </samplerInit>
@@ -167,31 +178,59 @@
   </Samplers>
 
   <Models>
-    <PostProcessor name="mining_database" subType="BasicStatistics" verbosity="debug">
-      <what> all </what>
-      <parameters> max_clad_temp,fis_gas_released,max_fuel_temp </parameters>
-    </PostProcessor>
+    <Code name="Bison-opt" subType="MooseBasedApp">
+      <executable>%FRAMEWORK_DIR%/../../bison/bison-%METHOD%</executable>
+      <alias variable="clad_rough">ThermalContact|thermal_contact|roughness_clad</alias>
+      <alias variable="grain_diffCoeff">Materials|fission_gas_release_and_swelling|igdiffcoeff_scalef</alias>
+      <alias variable="fuel_rough">ThermalContact|thermal_contact|roughness_fuel</alias>
+      <alias variable="power">Functions|power_history|scale_factor</alias>
+      <alias variable="dens">Materials|fuel_solid_mechanics_swelling|total_densification</alias>
+      <alias variable="fuel_reloc">Materials|fuel_relocation|relocation_scalef</alias>
+      <alias variable="grain_radius">Materials|fission_gas_release_and_swelling|grainradius_scalef</alias>
+      <alias variable="fuel_thC">Materials|fuel_thermal|thcond_scalef</alias>
+      <alias variable="clad_ox">Materials|clad_oxidation|oxidation_scalef</alias>
+      <alias variable="clad_thC">Materials|clad_thermal|thermal_conductivity</alias>
+      <alias variable="fuel_thE">Materials|fuel_elastic|thermal_expansion</alias>
+      <alias variable="clad_creeprate">Materials|clad_solid_mechanics|creeprate_scalef</alias>
+      <alias variable="gas_thC">ThermalContact|thermal_contact|gascond_scalef</alias>
+      <alias variable="clad_thE">Materials|clad_solid_mechanics|thermal_expansion</alias>
+      <alias variable="fuel_swell">Materials|fuel_solid_mechanics_swelling|solid_factor</alias>
+      <alias variable="grain_res_param">Materials|fission_gas_release_and_swelling|resolutionp_scalef</alias>
+    </Code>
   </Models>
 
   <Steps>
-
-    <IOStep name="readdata">
-      <Input class="Databases" type="HDF5">rodlet</Input>
-      <Output class="DataObjects" type="PointSet">collset</Output>
+    <IOStep name="write1">
+      <Input class="DataObjects" type="PointSet">collset</Input>
+      <Output class="OutStreams" type="Print">mc_database</Output>
     </IOStep>
 
-    <PostProcess name="mine">
-      <Input class="DataObjects" type="PointSet"> collset </Input>
-      <Model class="Models" type="PostProcessor"> mining_database </Model>
-      <Output class="Files" type=""> output_basicStatistics_mine.csv </Output>
-    </PostProcess>
+    <IOStep name="write2">
+      <Input class="DataObjects" type="HistorySet">hists</Input>
+      <Output class="Databases" type="HDF5">rodlet</Output>
+    </IOStep>
 
+    <MultiRun name="sample">
+      <Input class="Files" type="">bison_inp</Input>
+      <Input class="Files" type="">power_hist</Input>
+      <Input class="Files" type="">cubit_inp</Input>
+      <Input class="Files" type="">clad_temp</Input>
+      <Input class="Files" type="">ax_t_facts</Input>
+      <Input class="Files" type="">fast_flux</Input>
+      <Input class="Files" type="">cool_press</Input>
+      <Input class="Files" type="">ax_p_facts</Input>
+      <Input class="Files" type="">pk6-3_smeared</Input>
+      <Sampler class="Samplers" type="MonteCarlo">sc</Sampler>
+      <Model class="Models" type="Code">Bison-opt</Model>
+      <Output class="DataObjects" type="PointSet">collset</Output>
+      <Output class="DataObjects" type="HistorySet">hists</Output>
+    </MultiRun>
   </Steps>
 
   <OutStreams>
-    <Print name="output_basicStatistics_mine_dump.csv">
+    <Print name="mc_database">
       <type>csv</type>
-      <source>output_basicStatistics_mine.csv</source>
+      <source>collset</source>
     </Print>
   </OutStreams>
 
