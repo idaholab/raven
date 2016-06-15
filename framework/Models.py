@@ -254,13 +254,15 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
   def collectOutput(self,collectFrom,storeTo):
     """
       Method that collects the outputs from the previous run
-      @ In, finishedJob, InternalRunner object, instance of the run just finished
-      @ In, output, "DataObjects" object, output where the results of the calculation needs to be stored
+      @ In, collectFrom, InternalRunner object, instance of the run just finished
+      @ In, storeTo, "DataObjects" object, output where the results of the calculation needs to be stored
       @ Out, None
     """
     #if a addOutput is present in nameSpace of storeTo it is used
-    if 'addOutput' in dir(storeTo): storeTo.addOutput(collectFrom)
-    else                          : self.raiseAnError(IOError,'The place where to store the output has not a addOutput method')
+    if 'addOutput' in dir(storeTo):
+      storeTo.addOutput(collectFrom)
+    else:
+      self.raiseAnError(IOError,'The place where we want to store the output has no addOutput method!')
 
   def getAdditionalInputEdits(self,inputInfo):
     """
@@ -405,21 +407,46 @@ class Dummy(Model):
       @ In, output, "DataObjects" object, output where the results of the calculation needs to be stored
       @ Out, None
     """
-    if finishedJob.returnEvaluation() == -1: self.raiseAnError(AttributeError,"No available Output to collect")
+    if finishedJob.returnEvaluation() == -1:
+      self.raiseAnError(AttributeError,"No available Output to collect")
     evaluation = finishedJob.returnEvaluation()
-    if type(evaluation[1]).__name__ == "tuple": outputeval = evaluation[1][0]
-    else                                      : outputeval = evaluation[1]
+    if type(evaluation[1]).__name__ == "tuple":
+      outputeval = evaluation[1][0]
+    else:
+      outputeval = evaluation[1]
     exportDict = copy.deepcopy({'inputSpaceParams':evaluation[0],'outputSpaceParams':outputeval,'metadata':finishedJob.returnMetadata()})
     if output.type == 'HDF5': output.addGroupDataObjects({'group':self.name+str(finishedJob.identifier)},exportDict,False)
     else:
-      if not set(output.getParaKeys('inputs') + output.getParaKeys('outputs')).issubset(set(list(exportDict['inputSpaceParams'].keys()) + list(exportDict['outputSpaceParams'].keys()))):
-        missingParameters = set(output.getParaKeys('inputs') + output.getParaKeys('outputs')) - set(list(exportDict['inputSpaceParams'].keys()) + list(exportDict['outputSpaceParams'].keys()))
-        self.raiseAnError(RuntimeError,"the model "+ self.name+" does not generate all the outputs requested in output object "+ output.name +". Missing parameters are: " + ','.join(list(missingParameters)) +".")
-      for key in exportDict['inputSpaceParams' ] :
-        if key in output.getParaKeys('inputs') : output.updateInputValue (key,exportDict['inputSpaceParams' ][key])
-      for key in exportDict['outputSpaceParams'] :
-        if key in output.getParaKeys('outputs'): output.updateOutputValue(key,exportDict['outputSpaceParams'][key])
-      for key in exportDict['metadata'] : output.updateMetadata(key,exportDict['metadata'][key])
+      self.collectOutputFromDict(exportDict,output)
+
+  def collectOutputFromDict(self,exportDict,output):
+    """
+      Collect results from a dictionary
+      @ In, exportDict, dict, contains 'inputSpaceParams','outputSpaceParams','metadata'
+      @ In, output, DataObject, to whom we write the data
+      @ Out, None
+    """
+    #prefix is not generally useful for dummy-related models, so we remove it but store it
+    if 'prefix' in exportDict.keys():
+      prefix = exportDict.pop('prefix')
+    #check for name usage, depends on where it comes from
+    if 'inputSpaceParams' in exportDict.keys():
+      inKey = 'inputSpaceParams'
+      outKey = 'outputSpaceParams'
+    else:
+      inKey = 'inputs'
+      outKey = 'outputs'
+    if not set(output.getParaKeys('inputs') + output.getParaKeys('outputs')).issubset(set(list(exportDict[inKey].keys()) + list(exportDict[outKey].keys()))):
+      missingParameters = set(output.getParaKeys('inputs') + output.getParaKeys('outputs')) - set(list(exportDict[inKey].keys()) + list(exportDict[outKey].keys()))
+      self.raiseAnError(RuntimeError,"the model "+ self.name+" does not generate all the outputs requested in output object "+ output.name +". Missing parameters are: " + ','.join(list(missingParameters)) +".")
+    for key in exportDict[inKey ]:
+      if key in output.getParaKeys('inputs'):
+        output.updateInputValue (key,exportDict[inKey][key])
+    for key in exportDict[outKey]:
+      if key in output.getParaKeys('outputs'):
+        output.updateOutputValue(key,exportDict[outKey][key])
+    for key in exportDict['metadata']:
+      output.updateMetadata(key,exportDict['metadata'][key])
 #
 #
 #
@@ -525,19 +552,10 @@ class ROM(Dummy):
         if child.tag == 'estimator':
           self.initializationOptionDict[child.tag] = {}
           for node in child:
-            try:
-              self.initializationOptionDict[child.tag][node.tag] = int(node.text)
-            except (ValueError,TypeError):
-              try:
-                self.initializationOptionDict[child.tag][node.tag] = float(node.text)
-              except (ValueError,TypeError):
-                self.initializationOptionDict[child.tag][node.tag] = node.text
+            self.initializationOptionDict[child.tag][node.tag] = utils.tryParse(node.text)
         else:
-          try:
-            self.initializationOptionDict[child.tag] = int(child.text)
-          except (ValueError,TypeError):
-            try: self.initializationOptionDict[child.tag] = float(child.text)
-            except (ValueError,TypeError): self.initializationOptionDict[child.tag] = child.text
+          self.initializationOptionDict[child.tag] = utils.tryParse(child.text)
+
     #the ROM is instanced and initialized
     # check how many targets
     if not 'Target' in self.initializationOptionDict.keys(): self.raiseAnError(IOError,'No Targets specified!!!')
@@ -1253,6 +1271,35 @@ class Code(Model):
       if metadata:
         for key,value in metadata.items(): output.updateMetadata(key,value,attributes)
     else: self.raiseAnError(ValueError,"output type "+ output.type + " unknown for Model Code "+self.name)
+
+  def collectOutputFromDict(self,exportDict,output):
+    """
+      Collect results from dictionary
+      @ In, exportDict, dict, contains 'inputs','outputs','metadata'
+      @ In, output, the place to write to
+      @ Out, None
+    """
+    prefix = exportDict.pop('prefix')
+    #convert to *spaceParams instead of inputs,outputs
+    if 'inputs' in exportDict.keys():
+      inp = exportDict.pop('inputs')
+      exportDict['inputSpaceParams'] = inp
+    if 'outputs' in exportDict.keys():
+      out = exportDict.pop('outputs')
+      exportDict['outputSpaceParams'] = out
+    if output.type == 'HDF5':
+      output.addGroupDataObjects({'group':self.name+str(prefix)},exportDict,False)
+    else: #point set
+      for key in exportDict['inputSpaceParams']:
+        if key in output.getParaKeys('inputs'):
+          output.updateInputValue(key,exportDict['inputSpaceParams'][key])
+      for key in exportDict['outputSpaceParams']:
+        if key in output.getParaKeys('outputs'):
+          output.updateOutputValue(key,exportDict['outputSpaceParams'][key])
+      for key in exportDict['metadata']:
+        output.updateMetadata(key,exportDict['metadata'][key])
+      output.numAdditionalLoadPoints += 1 #prevents consistency problems for entries from restart
+
 
 #
 #

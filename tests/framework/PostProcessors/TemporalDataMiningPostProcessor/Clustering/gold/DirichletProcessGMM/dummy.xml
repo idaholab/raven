@@ -1,1 +1,1 @@
-<data name="dummy" type="HistorySet"><input>n</input><output>x2,DirichletProcessGMM1Labels,x1,time</output><inputFilename>dummy.csv</inputFilename></data>
+<data name="dummy" type="HistorySet"><input>n</input><output>y,x,labels,time</output><inputFilename>dummy.csv</inputFilename></data>

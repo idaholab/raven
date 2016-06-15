@@ -1,1 +1,1 @@
-<data name="centroid" type="history"><input /><output>MeanShift1Centroid-x1-2,MeanShift1Centroid-x1-0,MeanShift1Centroid-x1-1,MeanShift1Centroid-x2-1,MeanShift1Centroid-x2-0,MeanShift1Centroid-x2-2,Time</output><inputFilename>centroid.csv</inputFilename></data>
+<data name="centroid" type="HistorySet"><input>labels</input><output>x2,x1,Time</output><inputFilename>centroid.csv</inputFilename></data>
