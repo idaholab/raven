@@ -188,8 +188,6 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     except KeyError:
       self.raiseADebug(" Failed in Node: "+str(xmlNode),verbostiy='silent')
       self.raiseAnError(IOError,'missed subType for the model '+self.name)
-    #TODO can this be removed?
-    del(xmlNode.attrib['subType'])
     # read local information
     self.localInputAndChecks(xmlNode)
 
