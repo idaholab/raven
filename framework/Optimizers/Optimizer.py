@@ -55,8 +55,8 @@ distribution1D = utils.find_distribution1D()
 class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
   """
     This is the base class for optimizers
-    Optimizer is a special type of samplers that own the sampling strategy (Type) and they generate the
-    input values using the associate distribution. They do not have distributions inside!!!!
+    Optimizer is a special type of samplers that own the optimization sampling strategy (Type) and they generate the
+    input values to optimize a loss function. They do not have distributions inside!!!!
 
     --Instance--
     myInstance = Optimizer()
@@ -75,14 +75,16 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     myInstance.myCurrentSetting()                     -see BaseType class-
  
     --Adding a new Optimizer subclass--
-    <MyClass> should inherit at least from Optimizer or from another step already presents
+    <MyClass> should inherit at least from Optimizer or from another derived class already presents
  
     DO NOT OVERRIDE any of the class method that are not starting with self.local*
  
-    ADD your class to the dictionary __InterfaceDict at the end of the module
+    ADD your class to the dictionary __InterfaceDict in the Factory submodule
  
     The following method overriding is MANDATORY:
     self.localGenerateInput(model,oldInput)  : this is where the step happens, after this call the output is ready
+    self._localGenerateAssembler(initDict)    
+    self._localWhatDoINeed()
  
     the following methods could be overrode:
     self.localInputAndChecks(xmlNode)
@@ -102,10 +104,19 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     BaseType.__init__(self)
     Assembler.__init__(self)
-    self.counter                       = 0                         # Counter of the samples performed (better the input generated!!!). It is reset by calling the function self.initialize
+    self.counter                       = {}
+    self.counter['mdlEval']            = 0                         # Counter of the samples performed (better the input generated!!!). It is reset by calling the function self.initialize
+    self.counter['varsUpdate']         = 0
 #     self.auxcnt                        = 0 # may be removed                         # Aux counter of samples performed (for its usage check initialize method)
-    self.limit                         = sys.maxsize               # maximum number of Samples (for example, Monte Carlo = Number of HistorySet to run, DET = Unlimited)
+    self.limit                         = {}
+    self.limit['mdlEval']              = sys.maxsize               # maximum number of Samples (for example, Monte Carlo = Number of HistorySet to run, DET = Unlimited)
+    self.limit['varsUpdate']              = sys.maxsize
     self.optVars                       = []                        # Decision variables for optimization
+    self.optVarsHist                   = {}                        # History of Decision variables
+    self.objVar                        = ""
+    self.optType                       = None
+    self.convergenceTol                = 1e-3
+    self.solutionExport                = None             #This is the data used to export the solution (it could also not be present)
 #     self.toBeSampled                   = {} # may be removed                       # Sampling mapping dictionary {'Variable Name':'name of the distribution'}
 #     self.dependentSample               = {} # may be removed                       # Sampling mapping dictionary for dependent variables {'Variable Name':'name of the external function'}
 #     self.distDict                      = {} # may be removed                       # Contains the instance of the distribution to be used, it is created every time the sampler is initialized. keys are the variable names
@@ -132,10 +143,8 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 #     self.NDSamplingParams               = {}                       # this dictionary contains a dictionary for each ND distribution (key). This latter dictionary contains the initialization parameters of the ND inverseCDF ('initialGridDisc' and 'tolerance')
     ######
     self.addAssemblerObject('Restart' ,'-n',True)
-    self.addAssemblerObject('TargetEvaluation','n')
-    self.addAssemblerObject('Function','-n')
+    self.addAssemblerObject('TargetEvaluation','1')
   
-  @abc.abstractmethod  
   def _localGenerateAssembler(self,initDict):
     """
       It is used for sending to the instanciated class, which is implementing the method, the objects that have been requested through "whatDoINeed" method
@@ -148,7 +157,6 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 #     self._generateDistributions(availableDist, availableFunc)
     pass # Need to move to subclass
 
-  @abc.abstractmethod
   def _localWhatDoINeed(self):
     """
       This method is a local mirror of the general whatDoINeed method.
@@ -190,11 +198,18 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       if child.tag in ["variable", "variables"]:
         for var in child.text.split(','):           self.optVars.append(var)
       
+      elif child.tag == "objectVar":
+        self.objVar = child.text
+        
       elif child.tag == "initialization":
         self.initSeed = Distributions.randomIntegers(0,2**31,self)
         for childChild in child:
           if childChild.tag == "limit":
-            self.limit = int(childChild.text)
+            self.limit['mdlEval'] = int(childChild.text)
+          elif childChild.tag == "type":
+            self.optType = childChild.text
+            if self.optType not in ['min', 'max']:
+              self.raiseAnError(IOError, 'Unknown optimization type '+childChild.text+'. Available: mix or max')
 #           elif childChild.tag == "initialSeed":
 #             self.initSeed = int(childChild.text)
 #           elif childChild.tag == "reseedEachIteration":
@@ -210,11 +225,16 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 #                 else:
 #                   self.raiseAnError(IOError,'Unknown tag '+childChildChildChild.tag+' .Available are: initialGridDisc and tolerance!')
 #               self.NDSamplingParams[childChildChild.attrib['name']] = NDdistData
-          else: self.raiseAnError(IOError,'Unknown tag '+childChild.tag+' .Available: limit!')
+          else: self.raiseAnError(IOError,'Unknown tag '+childChild.tag+' .Available: limit, type!')
+      
+      elif child.tag == "convergence":
+        self.convergenceTol = float(child.text)        
       
       elif child.tag == "restartTolerance":
         self.restartTolerance = float(child.text)
       
+    if self.optType == None:    self.optType = 'min'
+    
       ## below belongs to old sampler
 #       prefix = ""
 #       if child.tag == 'Distribution':
@@ -389,7 +409,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     paramDict = {}
     for variable in self.optVars:
       paramDict[variable] = 'is sampled as a decision variable'
-    paramDict['limit' ]        = self.limit
+    paramDict['limit_mdlEval' ]        = self.limit['mdlEval']
 #     paramDict['initial seed' ] = self.initSeed
     paramDict.update(self.localGetInitParams())
     return paramDict
@@ -413,7 +433,8 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         and each parameter's initial value as the dictionary values
     """
     paramDict = {}
-    paramDict['counter'       ] = self.counter
+    paramDict['counter_mdlEval'       ] = self.counter['mdlEval']
+    paramDict['counter_varsUpdate'    ] = self.counter['varsUpdate']
 #     paramDict['initial seed'  ] = self.initSeed
     for key in self.inputInfo:
       if key!='SampledVars':
@@ -462,8 +483,18 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ In, solutionExport, DataObject, optional, in goal oriented sampling (a.k.a. adaptive sampling this is where the space/point satisfying the constrains)
       @ Out, None
     """
-    self.counter = 0
+    self.counter['mdlEval'] = 0
+    self.counter['varsUpdate'] = 0
+    self.nVar = len(self.optVars)
     
+    self.mdlEvalHist = self.assemblerDict['TargetEvaluation'][0][3]
+    
+    self.objSearchingROM = SupervisedLearning.returnInstance('SciKitLearn', self, **{'SKLtype':'neighbors|KNeighborsRegressor', 'Features':','.join(list(self.optVars)), 'Target':self.objVar, 'n_neighbors':1})
+    
+    
+         
+      
+      
     ## The following shall be moved to subclass
 #     if   not externalSeeding          :
 #       Distributions.randomSeed(self.initSeed)       #use the sampler initialization seed
@@ -537,7 +568,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 #           self.inputInfo['transformation-'+distName] = transformDict
 #           self.entitiesToRemove.append('transformation-'+distName)
 
-  def localInitialize(self):
+  def localInitialize(self,solutionExport=None):
     """
       use this function to add initialization features to the derived class
       it is call at the beginning of each step
@@ -546,6 +577,17 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     pass # To be overwritten by subclass
 
+  def lossFunctionEval(self, optVars):
+    tempDict = copy.copy(self.mdlEvalHist.getParametersValues('inputs', nodeid = 'RecontructEnding'))
+    tempDict.update(self.mdlEvalHist.getParametersValues('outputs', nodeid = 'RecontructEnding'))
+    for key in tempDict.keys():           tempDict[key] = np.asarray(tempDict[key])
+    self.objSearchingROM.train(tempDict)
+    
+    lossFunctionValue = self.searchingROM.evaluate(optVars)
+    
+    if self.optType == 'min':           return lossFunctionValue
+    else:                               return lossFunctionValue*-1.0
+    
   def amIreadyToProvideAnInput(self): #inLastOutput=None):
     """
       This is a method that should be call from any user of the sampler before requiring the generation of a new sample.
@@ -554,11 +596,12 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ In, None
       @ Out, ready, bool, is this sampler ready to generate another sample?
     """
-    ready = True if self.counter < self.limit else False
-    ready = self.localStillReady(ready)
+    ready = True if self.counter['mdlEval'] < self.limit['mdlEval'] and self.counter['varsUpdate'] < self.limit['varsUpdate'] else False
+    convergence = self.checkConvergence()
+    ready = self.localStillReady(ready, convergence)
     return ready
 
-  def localStillReady(self,ready): #,lastOutput=None
+  def localStillReady(self,ready, convergence = False): #,lastOutput=None
     """
       Determines if sampler is prepared to provide another input.  If not, and
       if jobHandler is finished, this will end sampling.
@@ -566,6 +609,14 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ Out, ready, bool, a boolean representing whether the caller is prepared for another input.
     """
     return ready
+
+  def checkConvergence(self):
+    convergence = self.localCheckConvergence()
+    return convergence
+
+  @abc.abstractmethod
+  def localCheckConvergence(self, convergence = False):
+    return convergence
 
   def generateInput(self,model,oldInput):
     """
@@ -576,7 +627,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ In, oldInput, list, a list of the original needed inputs for the model (e.g. list of files, etc. etc)
       @ Out, generateInput, list, list containing the new inputs -in reality it is the model that return this the Sampler generate the value to be placed in the input the model
     """
-    self.counter +=1                              #since we are creating the input for the next run we increase the counter and global counter
+    self.counter['mdlEval'] +=1                              #since we are creating the input for the next run we increase the counter and global counter
     
     ## The following shall be removed
 #     self.auxcnt  +=1
@@ -588,7 +639,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     ## The following shall be moved to localGenerateInput of subclass    
 #     if self.reseedAtEachIteration: Distributions.randomSeed(self.auxcnt-1)
     
-    self.inputInfo['prefix'] = str(self.counter)
+    self.inputInfo['prefix'] = str(self.counter['mdlEval'])
     model.getAdditionalInputEdits(self.inputInfo)
     self.localGenerateInput(model,oldInput)
     
@@ -729,30 +780,9 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     if len(failedRuns)>0:
       self.raiseAnError(IOError,'There were failed runs; aborting RAVEN.')
 
-class SPSA(Optimizer):
-  pass
 
-class FiniteDifference(Optimizer):
-  def _localGenerateAssembler(self,initDict):
-    pass # To be implemented in Stochastic Optimization or constrained optimization class
 
-  def _localWhatDoINeed(self):
-    return {} # To be implemented in Stochastic Optimization or constrained optimization class
-    
-  def localGenerateInput(self,model,oldInput):
-    for var in self.optVars:
-      self.values[var] = 0.2
-    self.raiseADebug(self.counter, self.limit)
-    self.raiseADebug(self.values)
-      
-  def localInitialize(self, solutionExport):
-    """
-      use this function to add initialization features to the derived class
-      it is call at the beginning of each step
-      @ In, None
-      @ Out, None
-    """
-    pass    
+   
   
 
 

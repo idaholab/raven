@@ -11,8 +11,11 @@ if not 'xrange' in dir(__builtins__): xrange = range
 
 ################################################################################
 from .Optimizer import Optimizer
-from .Optimizer import SPSA
-from .Optimizer import FiniteDifference
+from .ConstraintOptimizer import ConstraintOptimizer
+from .GradientBasedOptimizer import GradientBasedOptimizer
+from .StochasticOptimizer import StochasticOptimizer
+from .SPSA import SPSA
+from .FiniteDifference import FiniteDifference
 
 # # Forward samplers
 # from Samplers.ForwardSampler import ForwardSampler
@@ -44,6 +47,9 @@ from .Optimizer import FiniteDifference
 # imports defined above.
 __base = 'Optimizer'
 __interFaceDict = {}
+__interFaceDict['ConstraintOptimizer'        ] = ConstraintOptimizer
+__interFaceDict['GradientBasedOptimizer'        ] = GradientBasedOptimizer
+__interFaceDict['StochasticOptimizer'        ] = StochasticOptimizer
 __interFaceDict['SPSA'              ] = SPSA
 __interFaceDict['FiniteDifference'        ] = FiniteDifference
 __knownTypes = list(__interFaceDict.keys())
