@@ -16,9 +16,10 @@
         <SKLtype>manifold|LocallyLinearEmbedding</SKLtype>
         <Features>x1,x2,x3,x4</Features>
         <eigen_solver>dense</eigen_solver>
-        <tol>1E-10</tol>
         <random_state>1</random_state>
         <n_components>2</n_components>
+        <n_neighbors>100</n_neighbors>
+        <neighbors_algorithm>brute</neighbors_algorithm>
       </KDD>
     </PostProcessor>
   </Models>
