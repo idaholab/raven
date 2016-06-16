@@ -755,42 +755,6 @@ class FiniteDifference(Optimizer):
     pass    
   
 
-  
 
-"""
- Interface Dictionary (factory) (private)
-"""
-__base = 'Optimizer'
-__interFaceDict = {}
-__interFaceDict['SPSA'              ] = SPSA
-__interFaceDict['FiniteDifference'        ] = FiniteDifference
-__knownTypes = list(__interFaceDict.keys())
-
-def knownTypes():
-  """
-    Return the known types
-    @ In, None
-    @ Out, knownTypes, list, list of known types
-  """
-  return __knownTypes
-
-def addKnownTypes(newDict):
-  """
-    Function to add in the module dictionaries the known types
-    @ In, newDict, dict, the dict of known types
-    @ Out, None
-  """
-  for name, value in newDict.items():
-    __interFaceDict[name]=value
-    __knownTypes.append(name)
-
-def returnInstance(Type,caller):
-  """
-    Function used to generate a Optimizer class
-    @ In, Type, string, Optimizer type
-    @ Out, returnInstance, instance, Instance of the Specialized Optimizer class
-  """
-  try: return __interFaceDict[Type]()
-  except KeyError: caller.raiseAnError(NameError,'not known '+__base+' type '+Type)
 
 
