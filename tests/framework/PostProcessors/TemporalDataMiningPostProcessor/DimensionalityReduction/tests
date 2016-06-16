@@ -1,4 +1,12 @@
 [Tests]
+  ## Unfortunately, all of these test cases use a dataset consisting of 150
+  ## different time histories. For the sake of brevity, we will only be checking
+  ## the first few files for consistency.
+  ## Ideally, this test should be on a smaller input dataset, but in order to
+  ## get meaningful dimensionality reduction results, you typically need a large
+  ## amount of data. Possibly, we should look into storing these sets as HDF5s
+  ## and doing comparison on them?
+
   [./ExactPCA]
     type   = 'RavenFramework'
     input  = 'test_tdmSKLearnExactPCA.xml'
@@ -26,10 +34,12 @@
   [./MiniBatchSparsePCA]
     type    = 'RavenFramework'
     input   = 'test_tdmSKLearnMiniBatchSparsePCA.xml'
-    csv     = 'MiniBatchSparsePCA/dummy_0.csv MiniBatchSparsePCA/dummy_1.csv MiniBatchSparsePCA/dummy_2.csv'
+    csv     = 'MiniBatchSparsePCA/dummy_0.csv MiniBatchSparsePCA/dummy_1.csv
+               MiniBatchSparsePCA/dummy_2.csv'
     output  = 'MiniBatchSparsePCA/dummy.csv MiniBatchSparsePCA/dummy.xml'
     rel_err = 0.001
   [../]
+
   [./TruncatedSVD]
     type   = 'RavenFramework'
     input  = 'test_tdmSKLearnTruncatedSVD.xml'

@@ -16,8 +16,14 @@
         <Features>x1,x2,x3,x4</Features>
         <SKLtype>decomposition|MiniBatchSparsePCA</SKLtype>
         <n_components>2</n_components>
-        <random_state>1</random_state>
+        <alpha>10</alpha>
+        <ridge_alpha>0.01</ridge_alpha>
+        <n_iter>1000</n_iter>
+        <batch_size>4</batch_size>
         <shuffle>false</shuffle>
+        <n_jobs>1</n_jobs>
+        <method>lars</method>
+        <random_state>1</random_state>
       </KDD>
     </PostProcessor>
   </Models>
