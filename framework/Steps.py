@@ -410,7 +410,7 @@ class MultiRun(SingleRun):
           inDictionary["Model"].run(newinp,inDictionary['jobHandler'])
           self.raiseADebug('Submitted input '+str(inputIndex+1))
         except utils.NoMoreSamplesNeeded:
-          self.raiseAMessage('Sampler returned "NoMoreSamplesNeeded".  Continuing...')
+          self.raiseAMessage('Sampler returned "NoMoreSamplesNeeded".  Continuing...')         
 
   def _localTakeAstepRun(self,inDictionary):
     """

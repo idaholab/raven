@@ -134,12 +134,8 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.addAssemblerObject('Restart' ,'-n',True)
     self.addAssemblerObject('TargetEvaluation','n')
     self.addAssemblerObject('Function','-n')
-    
-    #used for PCA analysis
-#     self.variablesTransformationDict    = {}                       # for each variable 'modelName', the following informations are included: {'modelName': {latentVariables:[latentVar1, latentVar2, ...], manifestVariables:[manifestVar1,manifestVar2,...]}}
-#     self.transformationMethod           = {}                       # transformation method used in variablesTransformation node {'modelName':method}
-#     self.entitiesToRemove               = []                       # This variable is used in order to make sure the transformation info is printed once in the output xml file.
-
+  
+  @abc.abstractmethod  
   def _localGenerateAssembler(self,initDict):
     """
       It is used for sending to the instanciated class, which is implementing the method, the objects that have been requested through "whatDoINeed" method
@@ -149,9 +145,10 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
 #     availableDist = initDict['Distributions']
 #     availableFunc = initDict['Functions']
-#     self._generateDistributions(availableDist,availableFunc)
+#     self._generateDistributions(availableDist, availableFunc)
     pass # Need to move to subclass
 
+  @abc.abstractmethod
   def _localWhatDoINeed(self):
     """
       This method is a local mirror of the general whatDoINeed method.
@@ -332,36 +329,36 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 #         # update the index for latentVariables according to the 'dim' assigned for given var defined in Sampler
 #         self.variablesTransformationDict[dist]['latentVariablesIndex'] = listIndex
 
-  def readSamplerInit(self,xmlNode):
-    """
-      This method is responsible to read only the samplerInit block in the .xml file.
-      This method has been moved from the base sampler class since the samplerInit block is needed only for the MC and stratified (LHS) samplers
-      @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
-      @ Out, None
-    """
-    pass
-#     for child in xmlNode:
-#       if child.tag == "samplerInit":
-#         self.initSeed = Distributions.randomIntegers(0,2**31,self)
-#         for childChild in child:
-#           if childChild.tag == "limit":
-#             self.limit = childChild.text
-#           elif childChild.tag == "initialSeed":
-#             self.initSeed = int(childChild.text)
-#           elif childChild.tag == "reseedEachIteration":
-#             if childChild.text.lower() in utils.stringsThatMeanTrue(): self.reseedAtEachIteration = True
-#           elif childChild.tag == "distInit":
-#             for childChildChild in childChild:
-#               NDdistData = {}
-#               for childChildChildChild in childChildChild:
-#                 if childChildChildChild.tag == 'initialGridDisc':
-#                   NDdistData[childChildChildChild.tag] = int(childChildChildChild.text)
-#                 elif childChildChildChild.tag == 'tolerance':
-#                   NDdistData[childChildChildChild.tag] = float(childChildChildChild.text)
-#                 else:
-#                   self.raiseAnError(IOError,'Unknown tag '+childChildChildChild.tag+' .Available are: initialGridDisc and tolerance!')
-#               self.NDSamplingParams[childChildChild.attrib['name']] = NDdistData
-#           else: self.raiseAnError(IOError,'Unknown tag '+child.tag+' .Available are: limit, initialSeed, reseedEachIteration and distInit!')
+#   def readSamplerInit(self,xmlNode):
+#     """
+#       This method is responsible to read only the samplerInit block in the .xml file.
+#       This method has been moved from the base sampler class since the samplerInit block is needed only for the MC and stratified (LHS) samplers
+#       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
+#       @ Out, None
+#     """
+#     pass
+# #     for child in xmlNode:
+# #       if child.tag == "samplerInit":
+# #         self.initSeed = Distributions.randomIntegers(0,2**31,self)
+# #         for childChild in child:
+# #           if childChild.tag == "limit":
+# #             self.limit = childChild.text
+# #           elif childChild.tag == "initialSeed":
+# #             self.initSeed = int(childChild.text)
+# #           elif childChild.tag == "reseedEachIteration":
+# #             if childChild.text.lower() in utils.stringsThatMeanTrue(): self.reseedAtEachIteration = True
+# #           elif childChild.tag == "distInit":
+# #             for childChildChild in childChild:
+# #               NDdistData = {}
+# #               for childChildChildChild in childChildChild:
+# #                 if childChildChildChild.tag == 'initialGridDisc':
+# #                   NDdistData[childChildChildChild.tag] = int(childChildChildChild.text)
+# #                 elif childChildChildChild.tag == 'tolerance':
+# #                   NDdistData[childChildChildChild.tag] = float(childChildChildChild.text)
+# #                 else:
+# #                   self.raiseAnError(IOError,'Unknown tag '+childChildChildChild.tag+' .Available are: initialGridDisc and tolerance!')
+# #               self.NDSamplingParams[childChildChild.attrib['name']] = NDdistData
+# #           else: self.raiseAnError(IOError,'Unknown tag '+child.tag+' .Available are: limit, initialSeed, reseedEachIteration and distInit!')
 
   def endJobRunnable(self):
     """
@@ -559,7 +556,6 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     ready = True if self.counter < self.limit else False
     ready = self.localStillReady(ready)
-    self.raiseADebug(ready)
     return ready
 
   def localStillReady(self,ready): #,lastOutput=None
@@ -609,7 +605,9 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 #       test=self.funcDict[var].evaluate("evaluate",self.values)
 #       self.values[var] = test
 
-    return model.createNewInput(oldInput,self.type,**self.inputInfo)
+
+    self.raiseADebug('Found new point to sample:',self.values)
+    return 0,model.createNewInput(oldInput,self.type,**self.inputInfo)
 
   def pcaTransform(self,varsDict,dist):
     """
@@ -735,12 +733,17 @@ class SPSA(Optimizer):
   pass
 
 class FiniteDifference(Optimizer):
+  def _localGenerateAssembler(self,initDict):
+    pass # To be implemented in Stochastic Optimization or constrained optimization class
+
+  def _localWhatDoINeed(self):
+    return {} # To be implemented in Stochastic Optimization or constrained optimization class
+    
   def localGenerateInput(self,model,oldInput):
     for var in self.optVars:
       self.values[var] = 0.2
-    self.raiseADebug(self.optVars)
+    self.raiseADebug(self.counter, self.limit)
     self.raiseADebug(self.values)
-#     self.raiseAnError(IOError, 'debug')
       
   def localInitialize(self, solutionExport):
     """
@@ -750,6 +753,8 @@ class FiniteDifference(Optimizer):
       @ Out, None
     """
     pass    
+  
+
   
 
 """
