@@ -1,58 +1,103 @@
 [Tests]
   [./KMeans]
-    type   = 'RavenFramework'
-    input  = 'test_tdmSKLearnKMeans.xml'
-    csv    = 'KMeans/centroid_0.csv KMeans/dummy_0.csv KMeans/dummy_1.csv KMeans/dummy_2.csv'
-	output = 'KMeans/dummy.xml KMeans/centroid.xml'
+    type    = 'RavenFramework'
+    input   = 'test_tdmSKLearnKMeans.xml'
+    csv     = 'KMeans/centroid_0.csv KMeans/centroid_1.csv KMeans/centroid_2.csv
+               KMeans/dummy_0.csv KMeans/dummy_1.csv KMeans/dummy_2.csv
+               KMeans/dummy_3.csv KMeans/dummy_4.csv KMeans/dummy_5.csv
+               KMeans/dummy_6.csv KMeans/dummy_7.csv KMeans/dummy_8.csv
+               KMeans/dummy_9.csv'
+    output  = 'KMeans/dummy.xml KMeans/centroid.xml'
     rel_err = 0.001
   [../]
   [./MiniBatchKMeans]
-	type   = 'RavenFramework'
-	input  = 'test_tdmSKLearnMiniBatchKMeans.xml'
-    csv    = 'MiniBatchKMeans/centroid_0.csv MiniBatchKMeans/dummy_0.csv MiniBatchKMeans/dummy_1.csv MiniBatchKMeans/dummy_2.csv'
-	output = 'MiniBatchKMeans/dummy.xml MiniBatchKMeans/centroid.xml'
-  [../] 
+    type   = 'RavenFramework'
+    input  = 'test_tdmSKLearnMiniBatchKMeans.xml'
+    csv    = 'MiniBatchKMeans/centroid_0.csv MiniBatchKMeans/centroid_1.csv
+              MiniBatchKMeans/centroid_2.csv MiniBatchKMeans/dummy_0.csv
+              MiniBatchKMeans/dummy_1.csv MiniBatchKMeans/dummy_2.csv
+              MiniBatchKMeans/dummy_3.csv MiniBatchKMeans/dummy_4.csv
+              MiniBatchKMeans/dummy_5.csv MiniBatchKMeans/dummy_6.csv
+              MiniBatchKMeans/dummy_7.csv MiniBatchKMeans/dummy_8.csv
+              MiniBatchKMeans/dummy_9.csv'
+    output = 'MiniBatchKMeans/dummy.xml MiniBatchKMeans/centroid.xml'
+  [../]
   [./MeanShift]
-	type   = 'RavenFramework'
-	input  = 'test_tdmSKLearnMeanShift.xml'
-    csv    = 'MeanShift/centroid_0.csv MeanShift/dummy_0.csv MeanShift/dummy_1.csv MeanShift/dummy_2.csv'
-	output = 'MeanShift/dummy.xml MeanShift/centroid.xml'
-  [../] 
+    type   = 'RavenFramework'
+    input  = 'test_tdmSKLearnMeanShift.xml'
+    csv    = 'MeanShift/centroid_0.csv MeanShift/centroid_1.csv
+              MeanShift/centroid_2.csv MeanShift/dummy_0.csv
+              MeanShift/dummy_1.csv MeanShift/dummy_2.csv MeanShift/dummy_3.csv
+              MeanShift/dummy_4.csv MeanShift/dummy_5.csv MeanShift/dummy_6.csv
+              MeanShift/dummy_7.csv MeanShift/dummy_8.csv MeanShift/dummy_9.csv'
+    output = 'MeanShift/dummy.xml MeanShift/centroid.xml'
+  [../]
   [./DBSCAN]
-	type   = 'RavenFramework'
-	input  = 'test_tdmSKLearnDBSCAN.xml'
-    csv    = 'DBSCAN/centroid_0.csv DBSCAN/dummy_0.csv DBSCAN/dummy_1.csv DBSCAN/dummy_2.csv'
-	output = 'DBSCAN/dummy.xml DBSCAN/centroid.xml'
+    type   = 'RavenFramework'
+    input  = 'test_tdmSKLearnDBSCAN.xml'
+    csv    = 'DBSCAN/centroid_0.csv DBSCAN/centroid_1.csv DBSCAN/centroid_2.csv
+              DBSCAN/centroid_3.csv DBSCAN/centroid_4.csv DBSCAN/centroid_5.csv
+              DBSCAN/centroid_6.csv DBSCAN/centroid_7.csv DBSCAN/dummy_0.csv
+              DBSCAN/dummy_1.csv DBSCAN/dummy_2.csv DBSCAN/dummy_3.csv
+              DBSCAN/dummy_4.csv DBSCAN/dummy_5.csv DBSCAN/dummy_6.csv
+              DBSCAN/dummy_7.csv DBSCAN/dummy_8.csv DBSCAN/dummy_9.csv'
+    output = 'DBSCAN/dummy.xml DBSCAN/centroid.xml'
   [../]
   [./AffinityPropogation]
-	type   = 'RavenFramework'
-	input  = 'test_tdmSKLearnAffinityPropogation.xml'
-    csv    = 'AffinityPropogation/centroid_0.csv DBSCAN/dummy_0.csv AffinityPropogation/dummy_1.csv AffinityPropogation/dummy_2.csv'
-	output = 'AffinityPropogation/dummy.xml AffinityPropogation/centroid.xml'
-	skip   = 'Timing issue -- FIXME'
-  [../]  
+    type   = 'RavenFramework'
+    input  = 'test_tdmSKLearnAffinityPropogation.xml'
+    csv    = 'AffinityPropogation/centroid_0.csv AffinityPropogation/dummy_0.csv
+              AffinityPropogation/dummy_1.csv AffinityPropogation/dummy_2.csv
+              AffinityPropogation/dummy_3.csv AffinityPropogation/dummy_4.csv
+              AffinityPropogation/dummy_5.csv AffinityPropogation/dummy_6.csv
+              AffinityPropogation/dummy_7.csv AffinityPropogation/dummy_8.csv
+              AffinityPropogation/dummy_9.csv'
+    output = 'AffinityPropogation/dummy.xml AffinityPropogation/centroid.xml'
+  [../]
   [./SpectralClustering]
-	type   = 'RavenFramework'
-	input  = 'test_tdmSKLearnSpectralClustering.xml'
-    csv    = 'SpectralClustering/centroid_0.csv SpectralClustering/dummy_0.csv SpectralClustering/dummy_1.csv SpectralClustering/dummy_2.csv'
-	output = 'SpectralClustering/dummy.xml SpectralClustering/centroid.xml'
-  [../] 
+    type   = 'RavenFramework'
+    input  = 'test_tdmSKLearnSpectralClustering.xml'
+    csv    = 'SpectralClustering/centroid_0.csv
+              SpectralClustering/centroid_1.csv
+              SpectralClustering/centroid_2.csv SpectralClustering/dummy_0.csv SpectralClustering/dummy_1.csv SpectralClustering/dummy_2.csv
+              SpectralClustering/dummy_3.csv SpectralClustering/dummy_4.csv
+              SpectralClustering/dummy_5.csv SpectralClustering/dummy_6.csv
+              SpectralClustering/dummy_7.csv SpectralClustering/dummy_8.csv
+              SpectralClustering/dummy_9.csv'
+    output = 'SpectralClustering/dummy.xml SpectralClustering/centroid.xml'
+  [../]
   [./GaussianMixture]
-	type   = 'RavenFramework'
-	input  = 'test_tdmSKLearnGaussianMixture.xml'
-    csv    = 'GaussianMixture/centroid_0.csv GaussianMixture/dummy_0.csv GaussianMixture/dummy_1.csv GaussianMixture/dummy_2.csv'
-	output = 'GaussianMixture/dummy.xml GaussianMixture/centroid.xml'
-  [../] 
+    type   = 'RavenFramework'
+    input  = 'test_tdmSKLearnGaussianMixture.xml'
+    csv    = 'GaussianMixture/centroid_0.csv GaussianMixture/centroid_1.csv
+              GaussianMixture/centroid_2.csv GaussianMixture/dummy_0.csv
+              GaussianMixture/dummy_1.csv GaussianMixture/dummy_2.csv
+              GaussianMixture/dummy_3.csv GaussianMixture/dummy_4.csv
+              GaussianMixture/dummy_5.csv GaussianMixture/dummy_6.csv
+              GaussianMixture/dummy_7.csv GaussianMixture/dummy_8.csv
+              GaussianMixture/dummy_9.csv'
+    output = 'GaussianMixture/dummy.xml GaussianMixture/centroid.xml'
+  [../]
   [./DirichletProcessGMM]
-	type   = 'RavenFramework'
-	input  = 'test_tdmSKLearnDirichletProcessGMM.xml'
-    csv    = 'DirichletProcessGMM/centroid_0.csv DirichletProcessGMM/dummy_0.csv DirichletProcessGMM/dummy_1.csv DirichletProcessGMM/dummy_2.csv'
-	output = 'DirichletProcessGMM/dummy.xml DirichletProcessGMM/centroid.xml'
-  [../] 
+    type   = 'RavenFramework'
+    input  = 'test_tdmSKLearnDirichletProcessGMM.xml'
+    csv    = 'DirichletProcessGMM/centroid_0.csv
+              DirichletProcessGMM/centroid_1.csv
+              DirichletProcessGMM/centroid_2.csv DirichletProcessGMM/dummy_0.csv DirichletProcessGMM/dummy_1.csv DirichletProcessGMM/dummy_2.csv
+              DirichletProcessGMM/dummy_3.csv DirichletProcessGMM/dummy_4.csv
+              DirichletProcessGMM/dummy_5.csv DirichletProcessGMM/dummy_6.csv
+              DirichletProcessGMM/dummy_7.csv DirichletProcessGMM/dummy_8.csv'
+    output = 'DirichletProcessGMM/dummy.xml DirichletProcessGMM/centroid.xml'
+  [../]
   [./VariationalGMM]
-	type   = 'RavenFramework'
-	input  = 'test_tdmSKLearnVariationalGMM.xml'
-    csv    = 'VariationalGMM/centroid_0.csv VariationalGMM/dummy_0.csv VariationalGMM/dummy_1.csv VariationalGMM/dummy_2.csv'
-	output = 'VariationalGMM/dummy.xml VariationalGMM/centroid.xml'
-  [../] 
+    type   = 'RavenFramework'
+    input  = 'test_tdmSKLearnVariationalGMM.xml'
+    csv    = 'VariationalGMM/centroid_0.csv VariationalGMM/centroid_1.csv
+              VariationalGMM/centroid_2.csv VariationalGMM/dummy_0.csv
+              VariationalGMM/dummy_1.csv VariationalGMM/dummy_2.csv
+              VariationalGMM/dummy_3.csv VariationalGMM/dummy_4.csv
+              VariationalGMM/dummy_5.csv VariationalGMM/dummy_6.csv
+              VariationalGMM/dummy_7.csv VariationalGMM/dummy_8.csv'
+    output = 'VariationalGMM/dummy.xml VariationalGMM/centroid.xml'
+  [../]
 []
