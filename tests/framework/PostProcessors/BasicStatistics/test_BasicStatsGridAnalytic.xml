@@ -46,7 +46,7 @@
 
   <Steps>
     <MultiRun name="SamplingMirrowModelGrid" re-seeding="20021986">
-      <Input class="DataObjects" type="Point">inputPlaceHolder</Input>
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
       <Model class="Models" type="ExternalModel">mirrowModel</Model>
       <Sampler class="Samplers" type="Grid">Grid_external</Sampler>
       <Output class="DataObjects" type="PointSet">outputDataGrid</Output>
@@ -68,10 +68,10 @@
   </OutStreams>
 
   <DataObjects>
-    <Point name="inputPlaceHolder">
+    <PointSet name="inputPlaceHolder">
       <Input>x,y</Input>
       <Output>OutputPlaceHolder</Output>
-    </Point>
+    </PointSet>
     <PointSet name="outputDataGrid">
       <Input>x,y</Input>
       <Output>x1,y1</Output>

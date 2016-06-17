@@ -1,0 +1,22 @@
+<ReducedOrderModel>
+  <ans>
+    <mean>-2.77555756156e-16</mean>
+    <variance>2.5</variance>
+    <samples>13</samples>
+    <indices>
+      <tot_variance>2.5</tot_variance>
+      <variables>x1
+        <partial_variance>1.25</partial_variance>
+        <Sobol_index>0.5</Sobol_index>
+      </variables>
+      <variables>x2
+        <partial_variance>1.25</partial_variance>
+        <Sobol_index>0.5</Sobol_index>
+      </variables>
+      <variables>x1,x2
+        <partial_variance>0.0</partial_variance>
+        <Sobol_index>0.0</Sobol_index>
+      </variables>
+    </indices>
+  </ans>
+</ReducedOrderModel>

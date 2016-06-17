@@ -1,10 +1,10 @@
 """
-The OutStreamManagers module includes the different type of ways to output
-data available in RAVEN
+  The OutStreamManagers module includes the different type of ways to output
+  data available in RAVEN
 
-Created on April 5, 2016
-@author: maljdp
-supercedes OutStreamManager.py from alfoa (11/14/2013)
+  Created on April 5, 2016
+  @author: maljdp
+  supercedes OutStreamManager.py from alfoa (11/14/2013)
 """
 
 from __future__ import absolute_import

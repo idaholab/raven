@@ -63,6 +63,11 @@
   max_time = 500
   rel_err = 0.00001
  [../]
+ [./testBasicStatisticsXml]
+  type = 'RavenFramework'
+  input = 'test_BasicStatsXML.xml'
+  UnorderedXml = 'basicStatisticsXml/output_basicStatistics.xml'
+ [../]
  [./testBasicStatisticsSensitivity]
   type = 'RavenFramework'
   input = 'test_BasicStatisticsSensitivity.xml'

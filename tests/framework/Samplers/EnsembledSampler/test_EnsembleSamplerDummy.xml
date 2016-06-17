@@ -6,6 +6,10 @@
     <batchSize>1</batchSize>
   </RunInfo>
 
+  <Files>
+    <Input name="samples.csv" type="">samples.csv</Input>
+  </Files>
+
   <Models>
     <Dummy name="MyDummy1" subType=""/>
   </Models>
@@ -91,6 +95,12 @@
           <grid construction="custom" type="CDF">0.5 1.0</grid>
         </variable>
       </FactorialDesign>
+      <CustomSampler name="customSamplerFile">
+          <Source   class="Files"  type="">samples.csv</Source>
+          <variable name="x11"/>
+          <variable name="x12"/>
+          <variable name="x13"/>
+      </CustomSampler>
     </EnsembleForward>
   </Samplers>
 
@@ -116,7 +126,7 @@
 
   <DataObjects>
     <PointSet name="PointsetEnsembleForward">
-      <Input>x1,x2,x3,x4,x5,x6,x7,x8,x9,x10</Input>
+      <Input>x1,x2,x3,x4,x5,x6,x7,x8,x9,x10,x11,x12,x13</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
   </DataObjects>
