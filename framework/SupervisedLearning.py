@@ -642,10 +642,14 @@ class GaussPolynomialRom(superVisedLearning):
     self.featv, self.targv = featureVals,targetVals
     self.polyCoeffDict={}
     #check equality of point space
+    self.raiseADebug('...checking required points are available...')
+    #kdtree way
+    #brute way
     fvs = []
     tvs=[]
     sgs = list(self.sparseGrid.points())
     missing=[]
+    #TODO this is slowest loop in this algorithm, by quite a bit.
     for pt in sgs:
       found,idx,point = mathUtils.NDInArray(featureVals,pt)
       if found:
@@ -662,25 +666,37 @@ class GaussPolynomialRom(superVisedLearning):
       self.raiseADebug('sparse:',sgs)
       self.raiseADebug('solns :',fvs)
       self.raiseAnError(IOError,'input values do not match required values!')
-    #make translation matrix between lists
+    #make translation matrix between lists, also actual-to-standardized point map
+    self.raiseADebug('...constructing translation matrices...')
     translate={}
     for i in range(len(fvs)):
       translate[tuple(fvs[i])]=sgs[i]
-    self.norm = np.prod(list(self.distDict[v].measureNorm(self.quads[v].type) for v in self.distDict.keys()))
+    standardPoints = {}
+    for pt in fvs:
+      stdPt = []
+      for i,p in enumerate(pt):
+        varName = self.sparseGrid.varNames[i]
+        stdPt.append( self.distDict[varName].convertToQuad(self.quads[varName].type,p) )
+      standardPoints[tuple(pt)] = stdPt[:]
     #make polynomials
+    self.raiseADebug('...constructing polynomials...')
+    self.norm = np.prod(list(self.distDict[v].measureNorm(self.quads[v].type) for v in self.distDict.keys()))
     for i,idx in enumerate(self.indexSet):
       idx=tuple(idx)
       self.polyCoeffDict[idx]=0
       wtsum=0
       for pt,soln in zip(fvs,tvs):
-        stdPt = np.zeros(len(pt))
-        for i,p in enumerate(pt):
-          varName = self.sparseGrid.varNames[i]
-          stdPt[i] = self.distDict[varName].convertToQuad(self.quads[varName].type,p)
-        wt = self.sparseGrid.weights(translate[tuple(pt)])
+        #stdPt = np.zeros(len(pt))
+        #for i,p in enumerate(pt):
+        #  varName = self.sparseGrid.varNames[i]
+        #  stdPt[i] = self.distDict[varName].convertToQuad(self.quads[varName].type,p)
+        tupPt = tuple(pt)
+        stdPt = standardPoints[tupPt]
+        wt = self.sparseGrid.weights(translate[tupPt])
         self.polyCoeffDict[idx]+=soln*self._multiDPolyBasisEval(idx,stdPt)*wt
       self.polyCoeffDict[idx]*=self.norm
     self.amITrained=True
+    self.raiseADebug('...training complete!')
 
   def printPolyDict(self,printZeros=False):
     """
