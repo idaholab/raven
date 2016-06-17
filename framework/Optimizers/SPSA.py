@@ -36,7 +36,8 @@ else: import cPickle as pickle
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from .Optimizer import Optimizer
+from .StochasticOptimizer import StochasticOptimizer
+from .GradientBasedOptimizer import GradientBasedOptimizer
 # from Assembler import Assembler
 # import Distributions
 # import DataObjects
@@ -53,5 +54,24 @@ from .Optimizer import Optimizer
 from AMSC_Object import AMSC_Object
 #Internal Modules End--------------------------------------------------------------------------------
 
-class SPSA(Optimizer):
-  pass
+class SPSA(GradientBasedOptimizer):
+  def localEvaluateGradient(self, optVars, gradient):
+    return gradient
+  
+  def localGenerateInput(self,model,oldInput):
+    for var in self.optVars:
+      self.values[var] = 0.2
+#     self.raiseADebug(self.counter['mdlEval'], self.limit)
+#     self.raiseADebug(self.values)
+      
+  def localInitialize(self, solutionExport):
+    """
+      use this function to add initialization features to the derived class
+      it is call at the beginning of each step
+      @ In, None
+      @ Out, None
+    """
+    pass 
+  
+  def localCheckConvergence(self, convergence = False):
+    return convergence    

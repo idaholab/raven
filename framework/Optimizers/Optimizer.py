@@ -111,6 +111,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.limit                         = {}
     self.limit['mdlEval']              = sys.maxsize               # maximum number of Samples (for example, Monte Carlo = Number of HistorySet to run, DET = Unlimited)
     self.limit['varsUpdate']              = sys.maxsize
+    self.initSeed                      = None
     self.optVars                       = []                        # Decision variables for optimization
     self.optVarsHist                   = {}                        # History of Decision variables
     self.objVar                        = ""
@@ -123,7 +124,6 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 #     self.funcDict                      = {}                        # Contains the instance of the function     to be used, it is created every time the sampler is initialized. keys are the variable names
     self.values                        = {}                        # for each variable the current value {'var name':value}
     self.inputInfo                     = {}                        # depending on the sampler several different type of keywarded information could be present only one is mandatory, see below
-#     self.initSeed                      = None  # move to subclass                     # if not provided the seed is randomly generated at the istanciation of the sampler, the step can override the seed by sending in another seed
     self.inputInfo['SampledVars'     ] = self.values               # this is the location where to get the values of the sampled variables
 #     self.inputInfo['SampledVarsPb'   ] = {}                        # this is the location where to get the probability of the sampled variables
 #     self.inputInfo['PointProbability'] = None                      # this is the location where the point wise probability is stored (probability associated to a sampled point)
@@ -136,6 +136,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 #     self.existing                      = {} # may be removed                       # restart data points, inputs:outputs
 
     self._endJobRunnable               = sys.maxsize               # max number of inputs creatable by the sampler right after a job ends (e.g., infinite for MC, 1 for Adaptive, etc)
+    self.constraintFunction     = None
 
     ######
 #     self.variables2distributionsMapping = {}                       # for each variable 'varName'  , the following informations are included:  'varName': {'dim': 1, 'reducedDim': 1,'totDim': 2, 'name': 'distName'} ; dim = dimension of the variable; reducedDim = dimension of the variable in the transformed space; totDim = total dimensionality of its associated distribution
@@ -144,6 +145,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     ######
     self.addAssemblerObject('Restart' ,'-n',True)
     self.addAssemblerObject('TargetEvaluation','1')
+    self.addAssemblerObject('Function','-1')
   
   def _localGenerateAssembler(self,initDict):
     """
@@ -210,30 +212,21 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
             self.optType = childChild.text
             if self.optType not in ['min', 'max']:
               self.raiseAnError(IOError, 'Unknown optimization type '+childChild.text+'. Available: mix or max')
-#           elif childChild.tag == "initialSeed":
-#             self.initSeed = int(childChild.text)
-#           elif childChild.tag == "reseedEachIteration":
-#             if childChild.text.lower() in utils.stringsThatMeanTrue(): self.reseedAtEachIteration = True
-#           elif childChild.tag == "distInit":
-#             for childChildChild in childChild:
-#               NDdistData = {}
-#               for childChildChildChild in childChildChild:
-#                 if childChildChildChild.tag == 'initialGridDisc':
-#                   NDdistData[childChildChildChild.tag] = int(childChildChildChild.text)
-#                 elif childChildChildChild.tag == 'tolerance':
-#                   NDdistData[childChildChildChild.tag] = float(childChildChildChild.text)
-#                 else:
-#                   self.raiseAnError(IOError,'Unknown tag '+childChildChildChild.tag+' .Available are: initialGridDisc and tolerance!')
-#               self.NDSamplingParams[childChildChild.attrib['name']] = NDdistData
-          else: self.raiseAnError(IOError,'Unknown tag '+childChild.tag+' .Available: limit, type!')
+          elif childChild.tag == "initialSeed":
+            self.initSeed = int(childChild.text)
+          else: self.raiseAnError(IOError,'Unknown tag '+childChild.tag+' .Available: limit, type, initialSeed!')
       
       elif child.tag == "convergence":
-        self.convergenceTol = float(child.text)        
+        self.convergenceTol = float(child.text)
+        if 'limit' in child.attrib.keys():
+          try   : self.limit['varsUpdate'] = int(child.attrib['limit'])
+          except: self.raiseAnError(IOError,'Cannot convert limit value '+ child.attrib['limit']+ '!!!')       
       
       elif child.tag == "restartTolerance":
         self.restartTolerance = float(child.text)
       
     if self.optType == None:    self.optType = 'min'
+    if self.initSeed == None: self.initSeed = Distributions.randomIntegers(0,2**31,self)
     
       ## below belongs to old sampler
 #       prefix = ""
@@ -455,26 +448,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     return {}
 
-  def _generateDistributions(self,availableDist,availableFunc):
-    """
-      Generates the distrbutions and functions.
-      @ In, availableDist, dict, dict of distributions
-      @ In, availableFunc, dict, dict of functions
-      @ Out, None
-    """    
-#     if self.initSeed != None:
-#       Distributions.randomSeed(self.initSeed)
-#     for key in self.toBeSampled.keys():
-#       if self.toBeSampled[key] not in availableDist.keys(): self.raiseAnError(IOError,'Distribution '+self.toBeSampled[key]+' not found among available distributions (check input)!')
-#       self.distDict[key] = availableDist[self.toBeSampled[key]]
-#       self.inputInfo['crowDist'][key] = json.dumps(self.distDict[key].getCrowDistDict())
-#     for key,val in self.dependentSample.items():
-#       if val not in availableFunc.keys(): self.raiseAnError('Function',val,'was not found among the available functions:',availableFunc.keys())
-#       self.funcDict[key] = availableFunc[val]
-#       # check if the correct method is present
-#       if "evaluate" not in self.funcDict[key].availableMethods():
-#         self.raiseAnError(IOError,'Function '+self.funcDict[key].name+' does not contain a method named "evaluate". It must be present if this needs to be used in a Sampler!')
-    pass # This method should be moved to subclass
+
 
   def initialize(self,externalSeeding=None,solutionExport=None):
     """
@@ -492,8 +466,12 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.objSearchingROM = SupervisedLearning.returnInstance('SciKitLearn', self, **{'SKLtype':'neighbors|KNeighborsRegressor', 'Features':','.join(list(self.optVars)), 'Target':self.objVar, 'n_neighbors':1})
     
     
-         
-      
+    if 'Function' in self.assemblerDict.keys():
+      self.constraintFunction = self.assemblerDict['Function'][0][3]
+      if 'constrain' not in self.constrainFunction.availableMethods(): 
+        self.raiseAnError(IOError,'the function provided to define the constraints must have an implemented method called "constrain"')
+             
+    if self.initSeed != None:     Distributions.randomSeed(self.initSeed)  
       
     ## The following shall be moved to subclass
 #     if   not externalSeeding          :

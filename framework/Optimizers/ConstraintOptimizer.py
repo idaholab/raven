@@ -53,24 +53,7 @@ from .Optimizer import Optimizer
 from AMSC_Object import AMSC_Object
 #Internal Modules End--------------------------------------------------------------------------------
 
-class ConstraintOptimizer(Optimizer):
-  def __init(self):
-    Optimizer.__init__(self)
-    self.constraintFunction     = None
-    self.addAssemblerObject('Function','-1')
-   
-  def localInitialize(self,solutionExport=None):
-    """
-      use this function to add initialization features to the derived class
-      it is call at the beginning of each step
-      @ In, None
-      @ Out, None
-    """
-    if 'Function' in self.assemblerDict.keys():
-      self.constraintFunction = self.assemblerDict['Function'][0][3]
-      if 'constrain' not in self.constrainFunction.availableMethods(): 
-        self.raiseAnError(IOError,'the function provided to define the constraints must have an implemented method called "constrain"')
-    
+class ConstraintOptimizer(Optimizer):    
   def checkConstraint(self, optVars):
     if self.constraintFunction == None:
       satisfaction = True

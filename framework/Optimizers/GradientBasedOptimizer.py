@@ -53,33 +53,13 @@ from .Optimizer import Optimizer
 from AMSC_Object import AMSC_Object
 #Internal Modules End--------------------------------------------------------------------------------
 
-class GradientBasedOptimizer(Optimizer):
-  def __init(self):
-    Optimizer.__init__(self)
-    self.gradientFunction = None
-    self.addAssemblerObject('Function','-1')
-   
-  def localInitialize(self,solutionExport=None):
-    """
-      use this function to add initialization features to the derived class
-      it is call at the beginning of each step
-      @ In, None
-      @ Out, None
-    """
-    if 'Function' in self.assemblerDict.keys():
-      self.gradientFunction = self.assemblerDict['Function'][0][3]
-      if 'evaluate' not in self.constrainFunction.availableMethods(): 
-        self.raiseAnError(IOError,'the function provided to define the gradient must have an implemented method called "evaluate"')
-    
+class GradientBasedOptimizer(Optimizer):    
   def evaluateGradient(self, optVarsValues):
     """
     For explicit gradient case, optVarsValues are the point value to be evaluated;
     For implicit gradient case, optVarsValues are the perturbed parameter values for gradient estimation
     """
-    if self.gradientFunction != None:
-      gradient = self.gradientFunction.evaluate("evaluate",optVarsValues)
-    else:
-      gradient = self.localEvaluateGradient(optVarsValues)
+    gradient = self.localEvaluateGradient(optVarsValues)
     return gradient
       
   @abc.abstractmethod
