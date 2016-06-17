@@ -649,6 +649,7 @@ class GaussPolynomialRom(superVisedLearning):
     sgs = list(self.sparseGrid.points())
     missing=[]
     kdTree = spatial.KDTree(featureVals)
+    #TODO this is slowest loop in this algorithm, by quite a bit.
     for pt in sgs:
       #KDtree way
       distances,indices = kdTree.query(pt,distance_upper_bound=1e-9) #FIXME how to set the tolerance generically?
@@ -665,8 +666,8 @@ class GaussPolynomialRom(superVisedLearning):
         point = tuple(featureVals[idx])#tuple(var[idx] for var in featureVals)
       #end KDTree way
       #brute way
-      #TODO this is slowest loop in this algorithm, by quite a bit.
       #found,idx,point = mathUtils.NDInArray(featureVals,pt)
+      #end brute way
       if found:
         fvs.append(point)
         tvs.append(targetVals[idx])
@@ -701,10 +702,6 @@ class GaussPolynomialRom(superVisedLearning):
       self.polyCoeffDict[idx]=0
       wtsum=0
       for pt,soln in zip(fvs,tvs):
-        #stdPt = np.zeros(len(pt))
-        #for i,p in enumerate(pt):
-        #  varName = self.sparseGrid.varNames[i]
-        #  stdPt[i] = self.distDict[varName].convertToQuad(self.quads[varName].type,p)
         tupPt = tuple(pt)
         stdPt = standardPoints[tupPt]
         wt = self.sparseGrid.weights(translate[tupPt])
