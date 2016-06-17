@@ -448,7 +448,16 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     return {}
 
-
+  def checkConstraint(self, optVars):
+    if self.constraintFunction == None:
+      satisfaction = True
+    else:
+      satisfaction = True if self.constraintFunction.evaluate("constrain",optVars) == 1 else False
+    satisfaction = self.localCheckConstraint(optVars, satisfaction)
+    return satisfaction
+  
+  def localCheckConstraint(self, optVars, satisfaction = True):
+    return satisfaction
 
   def initialize(self,externalSeeding=None,solutionExport=None):
     """

@@ -37,33 +37,32 @@ else: import cPickle as pickle
 
 #Internal Modules------------------------------------------------------------------------------------
 from .Optimizer import Optimizer
-# from Assembler import Assembler
-# import Distributions
-# import DataObjects
-# import TreeStructure as ETS
-# import SupervisedLearning
-# import pyDOE as doe
-# import Quadratures
-# import OrthoPolynomials
-# import IndexSets
-# import Models
-# import PostProcessors
-# import MessageHandler
-# import GridEntities
+from Assembler import Assembler
+import Distributions
+import DataObjects
+import TreeStructure as ETS
+import SupervisedLearning
+import pyDOE as doe
+import Quadratures
+import OrthoPolynomials
+import IndexSets
+import Models
+import PostProcessors
+import MessageHandler
+import GridEntities
 from AMSC_Object import AMSC_Object
 #Internal Modules End--------------------------------------------------------------------------------
 
 class GradientBasedOptimizer(Optimizer):    
   def evaluateGradient(self, optVarsValues):
     """
-    For explicit gradient case, optVarsValues are the point value to be evaluated;
-    For implicit gradient case, optVarsValues are the perturbed parameter values for gradient estimation
+    optVarsValues are the perturbed parameter values for gradient estimation
     """
     gradient = self.localEvaluateGradient(optVarsValues)
     return gradient
       
   @abc.abstractmethod
-  def localEvaluateGradient(self, optVars, gradient):
+  def localEvaluateGradient(self, optVars, gradient = None):
     return gradient
     
     

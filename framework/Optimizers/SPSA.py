@@ -36,25 +36,28 @@ else: import cPickle as pickle
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from .StochasticOptimizer import StochasticOptimizer
 from .GradientBasedOptimizer import GradientBasedOptimizer
-# from Assembler import Assembler
-# import Distributions
-# import DataObjects
-# import TreeStructure as ETS
-# import SupervisedLearning
-# import pyDOE as doe
-# import Quadratures
-# import OrthoPolynomials
-# import IndexSets
-# import Models
-# import PostProcessors
-# import MessageHandler
-# import GridEntities
+from Assembler import Assembler
+import Distributions
+import DataObjects
+import TreeStructure as ETS
+import SupervisedLearning
+import pyDOE as doe
+import Quadratures
+import OrthoPolynomials
+import IndexSets
+import Models
+import PostProcessors
+import MessageHandler
+import GridEntities
 from AMSC_Object import AMSC_Object
 #Internal Modules End--------------------------------------------------------------------------------
 
 class SPSA(GradientBasedOptimizer):
+  def __init__(self):
+    GradientBasedOptimizer.__init__(self)
+    
+  
   def localEvaluateGradient(self, optVars, gradient):
     return gradient
   
