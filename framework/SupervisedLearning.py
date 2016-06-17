@@ -27,6 +27,7 @@ import abc
 import ast
 from operator import itemgetter
 import math
+from scipy import spatial
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -643,15 +644,29 @@ class GaussPolynomialRom(superVisedLearning):
     self.polyCoeffDict={}
     #check equality of point space
     self.raiseADebug('...checking required points are available...')
-    #kdtree way
-    #brute way
     fvs = []
     tvs=[]
     sgs = list(self.sparseGrid.points())
     missing=[]
-    #TODO this is slowest loop in this algorithm, by quite a bit.
+    kdTree = spatial.KDTree(featureVals)
     for pt in sgs:
-      found,idx,point = mathUtils.NDInArray(featureVals,pt)
+      #KDtree way
+      distances,indices = kdTree.query(pt,distance_upper_bound=1e-9) #FIXME how to set the tolerance generically?
+      #if multiple eligible, get the closest one
+      if hasattr(distances,'__len__'):
+        idx = indices[distances.index(min(distances))]
+      else:
+        idx = indices
+      #KDTree repots a "not found" as at infinite distance with index len(data)
+      if idx >= len(featureVals):
+        found = False
+      else:
+        found = True
+        point = tuple(featureVals[idx])#tuple(var[idx] for var in featureVals)
+      #end KDTree way
+      #brute way
+      #TODO this is slowest loop in this algorithm, by quite a bit.
+      #found,idx,point = mathUtils.NDInArray(featureVals,pt)
       if found:
         fvs.append(point)
         tvs.append(targetVals[idx])
