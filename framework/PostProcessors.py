@@ -3117,8 +3117,8 @@ try:
     def run(self, InputIn):
       """
        Function to finalize the filter => execute the filtering
-       @ In , dictionary       : dictionary of data to process
-       @ Out, dictionary       : Dictionary with results
+       @ In, InputIn, dictionary, dictionary of data to process
+       @ Out, outputDict, dictionary, dictionary with results
       """
       Input = self.inputToInternal(InputIn)
       outputDict = {}
