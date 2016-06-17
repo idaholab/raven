@@ -282,7 +282,7 @@ points to approximations in the calculation.
 %%%%% PP ImportanceRank %%%%%%%
 \subsubsection{ImportanceRank}
 \label{ImportanceRank}
-The \textbf{ImportanceRank} post-processor is specifically used 
+The \textbf{ImportanceRank} post-processor is specifically used
 to compute sensitivity indices and importance indices with respect to input parameters
 associated with multivariate normal distributions.
 %
@@ -315,7 +315,7 @@ associated with multivariate normal distributions.
   \item \xmlNode{dimensions}, \xmlDesc{comma separated integer, optional field},
   lists the dimensions corresponding to \xmlNode{features}.
   %
-  \item \xmlNode{mvnDistribution}, \xmlDesc{string, required field}, specifies the 
+  \item \xmlNode{mvnDistribution}, \xmlDesc{string, required field}, specifies the
   multivariate normal distribution name. The \xmlNode{MultivariateNormal} node must be present.
   %
 \end{itemize}
@@ -669,6 +669,16 @@ dataset, namely \texttt{minLabel} and \texttt{maxLabel} that can be used to
 decompose a dataset.
 %
 
+The topological post-processor can also be run in `interactive' mode, that is
+by passing the keyword \texttt{interactive} to the command line of RAVEN's
+driver.
+%
+In this way, RAVEN will initiate an interactive UI that allows one to explore
+the topological hierarchy in real-time and adjust the simplification setting
+before adjusting a dataset. Use in interactive mode will replace the parameter
+\xmlNode{simplification} described below with whatever setting is set in the UI
+upon exiting it.
+
 In order to use the \textbf{TopologicalDecomposition} post-processor, the user
 needs to set the attribute \xmlAttr{subType}:
 \xmlNode{PostProcessor \xmlAttr{subType}=\xmlString{TopologicalDecomposition}}.
@@ -921,7 +931,7 @@ independent of the \xmlAttr{subType} specified:
    \item \xmlNode{timeID}, \xmlDesc{string, required field}, ID of the temporal variable
    \item \xmlNode{extension}, \xmlDesc{string, required field}, type of extension when the sync process goes outside the boundaries of the history (zeroed or extended)
    \item \xmlNode{syncMethod}, \xmlDesc{string, required field}, synchronization strategy to employ (see
-     description above).  Options are \xmlString{grid}, \xmlString{all}, \xmlString{max}, \xmlString{min}. 
+     description above).  Options are \xmlString{grid}, \xmlString{all}, \xmlString{max}, \xmlString{min}.
    \item \xmlNode{numberOfSamples}, \xmlDesc{integer, optional field}, required if \xmlNode{syncMethod} is
      \xmlString{grid}, number of new time samples
 \end{itemize}
@@ -996,7 +1006,7 @@ Lastly, if a \xmlString{mixed} approach is used, the following nodes apply:
 \end{itemize}
 
 \textbf{Example (mixed):}
-This example will output the average value of $x$ for $x$, the value of $y$ at 
+This example will output the average value of $x$ for $x$, the value of $y$ at
 time$=0.245$ for $y$, and the value of $z$ at $x=4.0$ for $z$.
 \begin{lstlisting}[style=XML,morekeywords={subType,debug,name,class,type}]
 <Simulation>
@@ -1043,7 +1053,7 @@ independent of the \xmlAttr{subType} specified (min, max, avg and value case):
 
 \subsubsection{RavenOut}
 \label{RavenOut}
-The \textbf{RavenOut} post-processor is specifically used 
+The \textbf{RavenOut} post-processor is specifically used
 to gather data from several XML output files produced by RAVEN.
 %
 \ppType{RavenOut}{RavenOut}
