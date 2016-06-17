@@ -58,7 +58,6 @@ class RELAPparser():
     for i in dictionaryList:
       if 'decks' not in i.keys(): raise IOError(self.printTag+"ERROR: no card inputs found!!")
       else                      : decks.update(i['decks'])
-    print(decks)
     for deckNum in decks.keys():
       temp               = []
       modidictionaryList = decks[deckNum]
