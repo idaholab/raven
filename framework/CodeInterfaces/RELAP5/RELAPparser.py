@@ -58,13 +58,15 @@ class RELAPparser():
     for i in dictionaryList:
       if 'decks' not in i.keys(): raise IOError(self.printTag+"ERROR: no card inputs found!!")
       else                      : decks.update(i['decks'])
+    print(decks)
     for deckNum in decks.keys():
       temp               = []
       modidictionaryList = decks[deckNum]
       temp.append('*RAVEN INPUT VALUES\n')
       if self.maxNumberOfDecks > 1: temp.append('*'+' deckNum: '+str(deckNum)+'\n')
       for j in modidictionaryList:
-        temp.append('* card: '+j+' word: '+str(modidictionaryList[j]['position'])+' value: '+str(modidictionaryList[j]['value'])+'\n')
+        for keys in modidictionaryList[str(j)]:
+            temp.append('* card: '+j+' word: '+str(keys['position'])+' value: '+str(keys['value'])+'\n')
       temp.append('*RAVEN INPUT VALUES\n')
       for line in self.deckLines[deckNum]: #     fileinput.input(self.inputfile, mode='r'):
         temp1=line
@@ -72,7 +74,7 @@ class RELAPparser():
           card = line.split()[0].strip()
           if card in modidictionaryList.keys():
             temp2 = line
-            for var in modiDictionaryList[card]:
+            for var in modidictionaryList[card]:
               temp1 = self.replaceword(temp2,var['position'],var['value'])
               temp2 = temp1
             #temp1 = self.replaceword(line,modidictionaryList[card]['position'],modidictionaryList[card]['value'])
