@@ -20,8 +20,8 @@ modules_to_try = [("numpy",'numpy.version.version',"1.8.0","1.9.3"),
 def __lookUpPreferredVersion(name):
   """
     Look up the preferred version in the modules.
-    name: string, the name of the module
-    returns the version as a string or "" if unknown
+    @In, name, string, the name of the module
+    @Out, result, string, returns the version as a string or "" if unknown
   """
   for  i,fv,ev,qa in modules_to_try:
     if name == i:
@@ -84,12 +84,12 @@ def __checkVersion(i, ev, qa, found, version):
   """
     Checks that the version found is new enough, and also if it matches the
     tested version
-    i: string, module name
-    ev: string, minimum version
-    qa: string, tested version
-    found: bool, if true module was found
-    version: string, found version
-    returns (missing, tooOld, notQA)
+    @In, i, string, module name
+    @In, ev, string, minimum version
+    @In, qa, string, tested version
+    @In, found, bool, if true module was found
+    @In, version, string, found version
+    @Out, result, tuple, returns (missing, tooOld, notQA)
   """
   missing = []
   tooOld = []
