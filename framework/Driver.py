@@ -134,6 +134,11 @@ if __name__ == '__main__':
     simulation.XMLread(root,runInfoSkip=set(["DefaultInputFile"]),xmlFilename=inputFile)
 
   def worker():
+    """
+      A worker function that allows the computation of the main RAVEN thread to
+      be offloaded to another thread, freeing the main thread for UI interaction
+      (Qt requires UI to be handled on the main thread of execution)
+    """
     # Initialize the simulation
     simulation.initialize()
     # Run the simulation

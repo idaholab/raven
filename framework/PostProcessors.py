@@ -3269,6 +3269,15 @@ try:
       return outputDict
 
     def signalDone(self,uiID):
+      """
+        In Qt language, this is a slot that will accept a signal from the UI
+        saying that it has completed, thus allowing the computation to begin
+        again with information updated by the user in the UI.
+        @In, uiID, string, the ID of the user interface that signaled its
+            completion. Thus, if several UI windows are open, we don't proceed,
+            until the correct one has signaled it is done.
+        @Out, None
+      """
       if uiID == unicode(id(self)):
         self.uiDone = True
 except ImportError as e:
