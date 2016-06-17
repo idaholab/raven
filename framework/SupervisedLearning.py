@@ -101,27 +101,50 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
       @ In, tdict, dict, training dictionary
       @ Out, None
     """
-    if type(tdict) != dict: self.raiseAnError(TypeError,'In method "train", the training set needs to be provided through a dictionary. Type of the in-object is ' + str(type(tdict)))
+    if type(tdict) != dict:
+      self.raiseAnError(TypeError,'In method "train", the training set needs to be provided through a dictionary. Type of the in-object is ' + str(type(tdict)))
     names, values  = list(tdict.keys()), list(tdict.values())
-    if self.target in names: targetValues = values[names.index(self.target)]
-    else                   : self.raiseAnError(IOError,'The output sought '+self.target+' is not in the training set')
-    # check if the targetValues are consistent with the expected structure
-    resp = self.checkArrayConsistency(targetValues)
-    if not resp[0]: self.raiseAnError(IOError,'In training set for target '+self.target+':'+resp[1])
-    # construct the evaluation matrixes
-    featureValues = np.zeros(shape=(targetValues.size,len(self.features)))
+    ## This is for handling the special case needed by SKLtype=*MultiTask* that
+    ## requires multiple targets.
+    if isinstance(self.target,list):
+      targetValues = None
+      for target in self.target:
+        if target in names:
+          if targetValues is None:
+            targetValues = values[names.index(target)]
+          else:
+            targetValues = np.column_stack((targetValues,values[names.index(target)]))
+        else:
+          self.raiseAnError(IOError,'The target '+target+' is not in the training set')
+      # construct the evaluation matrixes
+      featureValues = np.zeros(shape=(len(targetValues),len(self.features)))
+    else:
+      if self.target in names:
+        targetValues = values[names.index(self.target)]
+      else:
+        self.raiseAnError(IOError,'The target ' + self.target + ' is not in the training set')
+      # check if the targetValues are consistent with the expected structure
+      resp = self.checkArrayConsistency(targetValues)
+      if not resp[0]:
+        self.raiseAnError(IOError,'In training set for target '+self.target+':'+resp[1])
+      # construct the evaluation matrixes
+      featureValues = np.zeros(shape=(targetValues.size,len(self.features)))
     for cnt, feat in enumerate(self.features):
-      if feat not in names: self.raiseAnError(IOError,'The feature sought '+feat+' is not in the training set')
+      if feat not in names:
+        self.raiseAnError(IOError,'The feature sought '+feat+' is not in the training set')
       else:
         resp = self.checkArrayConsistency(values[names.index(feat)])
-        if not resp[0]: self.raiseAnError(IOError,'In training set for feature '+feat+':'+resp[1])
+        if not resp[0]:
+          self.raiseAnError(IOError,'In training set for feature '+feat+':'+resp[1])
         if values[names.index(feat)].size != featureValues[:,0].size:
           self.raiseAWarning('feature values:',featureValues[:,0].size,tag='ERROR')
           self.raiseAWarning('target values:',values[names.index(feat)].size,tag='ERROR')
           self.raiseAnError(IOError,'In training set, the number of values provided for feature '+feat+' are != number of target outcomes!')
         self._localNormalizeData(values,names,feat)
-        if self.muAndSigmaFeatures[feat][1]==0: self.muAndSigmaFeatures[feat] = (self.muAndSigmaFeatures[feat][0],np.max(np.absolute(values[names.index(feat)])))
-        if self.muAndSigmaFeatures[feat][1]==0: self.muAndSigmaFeatures[feat] = (self.muAndSigmaFeatures[feat][0],1.0)
+        if self.muAndSigmaFeatures[feat][1]==0:
+          self.muAndSigmaFeatures[feat] = (self.muAndSigmaFeatures[feat][0],np.max(np.absolute(values[names.index(feat)])))
+        if self.muAndSigmaFeatures[feat][1]==0:
+          self.muAndSigmaFeatures[feat] = (self.muAndSigmaFeatures[feat][0],1.0)
         featureValues[:,cnt] = (values[names.index(feat)] - self.muAndSigmaFeatures[feat][0])/self.muAndSigmaFeatures[feat][1]
     self.__trainLocal__(featureValues,targetValues)
     self.amITrained = True
@@ -498,7 +521,7 @@ class GaussPolynomialRom(superVisedLearning):
     """
     if not self.amITrained: self.raiseAnError(RuntimeError,'ROM is not yet trained!')
     self.mean=None
-    canDo = ['mean','variance','numRuns','polyCoeffs','indices']
+    canDo = ['mean','variance','samples','polyCoeffs','indices']
     if 'what' in options.keys():
       requests = list(o.strip() for o in options['what'].split(','))
       if 'all' in requests: requests = canDo
@@ -510,7 +533,7 @@ class GaussPolynomialRom(superVisedLearning):
           newNode.setText(self.mean)
         elif request.lower() in ['variance']:
           newNode.setText(self.__variance__())
-        elif request.lower() in ['numruns']:
+        elif request.lower() in ['samples']:
           if self.numRuns!=None: newNode.setText(self.numRuns)
           else: newNode.setText(len(self.sparseGrid))
         elif request.lower() in ['polycoeffs']:
@@ -525,6 +548,7 @@ class GaussPolynomialRom(superVisedLearning):
             newNode.appendBranch(cNode)
         elif request.lower() in ['indices']:
           indices,partials = self.getSensitivities()
+          totals = self.getTotalSensitivities(indices)
           #provide variance
           varNode = TreeStructure.Node('tot_variance')
           varNode.setText(self.__variance__())
@@ -532,7 +556,7 @@ class GaussPolynomialRom(superVisedLearning):
           #sort by value
           entries = []
           for key in indices.keys():
-            entries.append( (','.join(key),partials[key],indices[key]) )
+            entries.append( (','.join(key),partials[key],indices[key],totals[key]) )
           entries.sort(key=lambda x: abs(x[1]),reverse=True)
           #add to tree
           for entry in entries:
@@ -543,6 +567,9 @@ class GaussPolynomialRom(superVisedLearning):
             subNode.appendBranch(vNode)
             vNode = TreeStructure.Node('Sobol_index')
             vNode.setText(entry[2])
+            subNode.appendBranch(vNode)
+            vNode = TreeStructure.Node('Sobol_total_index')
+            vNode.setText(entry[3])
             subNode.appendBranch(vNode)
             newNode.appendBranch(subNode)
         else:
@@ -778,6 +805,23 @@ class GaussPolynomialRom(superVisedLearning):
       indices[subset] = partial / totVar
     return (indices,partials)
 
+  def getTotalSensitivities(self,indices):
+    """
+      Given the Sobol global sensitivity indices, calculates the total indices for each subset.
+      @ In, indices, dict, tuple(subset):float(index)
+      @ Out, totals, dict, tuple(subset):float(index)
+    """
+    #total index is the sum of all Sobol indices in which a subset belongs
+    totals={}
+    for subset in indices.keys():
+      setSub = set(subset)
+      totals[subset] = 0
+      for checkSubset in indices.keys():
+        setCheck = set(checkSubset)
+        if setSub.issubset(setCheck):
+          totals[subset] += indices[checkSubset]
+    return totals
+
   def _polyToSubset(self,poly):
     """
       Given a tuple with polynomial orders, returns the subset it belongs exclusively to
@@ -856,7 +900,7 @@ class HDMRRom(GaussPolynomialRom):
     #inherit from GaussPolynomialRom
     if not self.amITrained: self.raiseAnError(RuntimeError,'ROM is not yet trained!')
     self.mean=None
-    canDo = ['mean','variance','numRuns','indices']
+    canDo = ['mean','variance','samples','indices']
     if 'what' in options.keys():
       requests = list(o.strip() for o in options['what'].split(','))
       if 'all' in requests: requests = canDo
@@ -1711,6 +1755,11 @@ class SciKitLearn(superVisedLearning):
   """
   An Interface to the ROMs provided by skLearn
   """
+  ## The types in this list should not be normalized by default. I would argue
+  ## that none of these should be normed by default, since sklearn offers that
+  ## option where applicable, but that is for someone else to make a decision.
+  unnormedTypes = ['MultinomialNB']
+
   ROMtype = 'SciKitLearn'
   availImpl = {}
   availImpl['lda'] = {}
@@ -1736,18 +1785,12 @@ class SciKitLearn(superVisedLearning):
   availImpl['linear_model']['PassiveAggressiveClassifier' ] = (linear_model.PassiveAggressiveClassifier , 'int') #Passive Aggressive Classifier
   availImpl['linear_model']['PassiveAggressiveRegressor'  ] = (linear_model.PassiveAggressiveRegressor  , 'float'  ) #Passive Aggressive Regressor
   availImpl['linear_model']['Perceptron'                  ] = (linear_model.Perceptron                  , 'float'  ) #Perceptron
-  availImpl['linear_model']['RandomizedLasso'             ] = (linear_model.RandomizedLasso             , 'float'  ) #Randomized Lasso.
-  availImpl['linear_model']['RandomizedLogisticRegression'] = (linear_model.RandomizedLogisticRegression, 'float'  ) #Randomized Logistic Regression
   availImpl['linear_model']['Ridge'                       ] = (linear_model.Ridge                       , 'float'  ) #Linear least squares with l2 regularization.
   availImpl['linear_model']['RidgeClassifier'             ] = (linear_model.RidgeClassifier             , 'float'  ) #Classifier using Ridge regression.
   availImpl['linear_model']['RidgeClassifierCV'           ] = (linear_model.RidgeClassifierCV           , 'int') #Ridge classifier with built-in cross-validation.
   availImpl['linear_model']['RidgeCV'                     ] = (linear_model.RidgeCV                     , 'float'  ) #Ridge regression with built-in cross-validation.
   availImpl['linear_model']['SGDClassifier'               ] = (linear_model.SGDClassifier               , 'int') #Linear classifiers (SVM, logistic regression, a.o.) with SGD training.
   availImpl['linear_model']['SGDRegressor'                ] = (linear_model.SGDRegressor                , 'float'  ) #Linear model fitted by minimizing a regularized empirical loss with SGD
-  availImpl['linear_model']['lars_path'                   ] = (linear_model.lars_path                   , 'float'  ) #Compute Least Angle Regression or Lasso path using LARS algorithm [1]
-  availImpl['linear_model']['lasso_path'                  ] = (linear_model.lasso_path                  , 'float'  ) #Compute Lasso path with coordinate descent
-  availImpl['linear_model']['lasso_stability_path'        ] = (linear_model.lasso_stability_path        , 'float'  ) #Stabiliy path based on randomized Lasso estimates
-  availImpl['linear_model']['orthogonal_mp_gram'          ] = (linear_model.orthogonal_mp_gram          , 'float'  ) #Gram Orthogonal Matching Pursuit (OMP)
 
   availImpl['svm'] = {} #support Vector Machines
   availImpl['svm']['LinearSVC'] = (svm.LinearSVC, 'bool')
@@ -1772,7 +1815,6 @@ class SciKitLearn(superVisedLearning):
   availImpl['naiveBayes']['BernoulliNB'  ] = (naive_bayes.BernoulliNB  , 'float')
 
   availImpl['neighbors'] = {}
-  availImpl['neighbors']['NearestNeighbors']         = (neighbors.NearestNeighbors         , 'float'  )# Unsupervised learner for implementing neighbor searches.
   availImpl['neighbors']['KNeighborsClassifier']     = (neighbors.KNeighborsClassifier     , 'int')# Classifier implementing the k-nearest neighbors vote.
   availImpl['neighbors']['RadiusNeighbors']          = (neighbors.RadiusNeighborsClassifier, 'int')# Classifier implementing a vote among neighbors within a given radius
   availImpl['neighbors']['KNeighborsRegressor']      = (neighbors.KNeighborsRegressor      , 'float'  )# Regression based on k-nearest neighbors.
@@ -1811,14 +1853,28 @@ class SciKitLearn(superVisedLearning):
     """
     superVisedLearning.__init__(self,messageHandler,**kwargs)
     self.printTag = 'SCIKITLEARN'
-    if 'SKLtype' not in self.initOptionDict.keys(): self.raiseAnError(IOError,'to define a scikit learn ROM the SKLtype keyword is needed (from ROM '+self.name+')')
+    if 'SKLtype' not in self.initOptionDict.keys():
+      self.raiseAnError(IOError,'to define a scikit learn ROM the SKLtype keyword is needed (from ROM '+self.initOptionDict['name']+')')
     SKLtype, SKLsubType = self.initOptionDict['SKLtype'].split('|')
+    self.subType = SKLsubType
     self.initOptionDict.pop('SKLtype')
-    if not SKLtype in self.__class__.availImpl.keys(): self.raiseAnError(IOError,'not known SKLtype ' + SKLtype +'(from ROM '+self.name+')')
-    if not SKLsubType in self.__class__.availImpl[SKLtype].keys(): self.raiseAnError(IOError,'not known SKLsubType ' + SKLsubType +'(from ROM '+self.name+')')
+    if not SKLtype in self.__class__.availImpl.keys():
+      self.raiseAnError(IOError,'not known SKLtype ' + SKLtype +'(from ROM '+self.initOptionDict['name']+')')
+    if not SKLsubType in self.__class__.availImpl[SKLtype].keys():
+      self.raiseAnError(IOError,'not known SKLsubType ' + SKLsubType +'(from ROM '+self.initOptionDict['name']+')')
+
     self.__class__.returnType     = self.__class__.availImpl[SKLtype][SKLsubType][1]
-    self.ROM                      = self.__class__.availImpl[SKLtype][SKLsubType][0]()
     self.__class__.qualityEstType = self.__class__.qualityEstTypeDict[SKLtype][SKLsubType]
+
+    if 'estimator' in self.initOptionDict.keys():
+      estimatorDict = self.initOptionDict['estimator']
+      self.initOptionDict.pop('estimator')
+      estimatorSKLtype, estimatorSKLsubType = estimatorDict['SKLtype'].split('|')
+      estimator = self.__class__.availImpl[estimatorSKLtype][estimatorSKLsubType][0]()
+      self.ROM = self.__class__.availImpl[SKLtype][SKLsubType][0](estimator)
+    else:
+      self.ROM  = self.__class__.availImpl[SKLtype][SKLsubType][0]()
+
     for key,value in self.initOptionDict.items():
       try:self.initOptionDict[key] = ast.literal_eval(value)
       except: pass
@@ -1868,7 +1924,7 @@ class SciKitLearn(superVisedLearning):
       @ Out, predict_proba, float, the confidence
     """
     if  'probability' in self.__class__.qualityEstType: return self.ROM.predict_proba(featureVals)
-    else            : self.raiseAnError(IOError,'the ROM '+str(self.name)+'has not the an method to evaluate the confidence of the prediction')
+    else            : self.raiseAnError(IOError,'the ROM '+str(self.initOptionDict['name'])+'has not the an method to evaluate the confidence of the prediction')
 
   def __evaluateLocal__(self,featureVals):
     """
@@ -1904,6 +1960,19 @@ class SciKitLearn(superVisedLearning):
     self.raiseADebug('here we need to collect some info on the ROM status')
     params = {}
     return params
+
+  def _localNormalizeData(self,values,names,feat):
+    """
+      Overwrites default normalization procedure.
+      @ In, values, list(float), unused
+      @ In, names, list(string), unused
+      @ In, feat, string, feature to (not) normalize
+      @ Out, None
+    """
+    if self.subType in self.unnormedTypes:
+      self.muAndSigmaFeatures[feat] = (0.0,1.0)
+    else:
+      super(SciKitLearn, self)._localNormalizeData(values,names,feat)
 #
 #
 #

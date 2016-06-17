@@ -2,7 +2,7 @@
   <ans2>
     <mean>0.612868446285</mean>
     <variance>0.00780894099287</variance>
-    <numRuns>33</numRuns>
+    <samples>33</samples>
     <indices>
       <tot_variance>0.00780894099287</tot_variance>
       <variables>x1
@@ -42,7 +42,7 @@
   <ans>
     <mean>5.0625</mean>
     <variance>3.9375</variance>
-    <numRuns>33</numRuns>
+    <samples>33</samples>
     <indices>
       <tot_variance>3.9375</tot_variance>
       <variables>x3

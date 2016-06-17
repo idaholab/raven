@@ -1,0 +1,13 @@
+<?xml version="1.0" ?>
+<Steps>
+  <MultiRun name="sample" pauseAtEnd="false">
+    <Input class="DataObjects" type="PointSet">inputHolder</Input>
+    <Model class="Models" type="ExternalModel">PythonModule</Model>
+    <Sampler class="Samplers" type="Grid">RAVENGrid</Sampler>
+    <Output class="DataObjects" type="PointSet">PointSet</Output>
+  </MultiRun>
+  <IOStep name="plot" pauseAtEnd="false">
+    <Input class="DataObjects" type="PointSet">PointSet</Input>
+    <Output class="OutStreams" type="Plot">test</Output>
+  </IOStep>
+</Steps>

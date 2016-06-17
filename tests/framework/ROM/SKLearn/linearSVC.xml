@@ -1,0 +1,53 @@
+<?xml version="1.0" ?>
+<Simulation>
+  <!-- A simple example of the approximate Morse-Smale complex being used for
+       regression on a 2D function with one single global maximum. This example
+       should thoroughly test all of the features associated to the MSR. -->
+  <RunInfo>
+    <WorkingDir>data</WorkingDir>
+    <Sequence>
+      sample,
+      train,
+      resample
+    </Sequence>
+  </RunInfo>
+
+  <Models>
+    <ExternalModel ModuleToLoad="./testClassifier" name="foo" subType="">
+      <variables>X,Y,Z</variables>
+    </ExternalModel>
+    <ROM name="modelUnderTest" subType="SciKitLearn">
+      <SKLtype>svm|LinearSVC</SKLtype>
+      <Features>X,Y</Features>
+      <Target>Z</Target>
+      <C>1.0</C>
+      <!-- This does not work with 0.15.2 of sklearn -->
+      <!-- <loss>squared_hinge</loss> -->
+      <penalty>l2</penalty>
+      <dual>True</dual>
+      <tol>1e-4</tol>
+      <multi_class>ovr</multi_class>
+      <fit_intercept>True</fit_intercept>
+      <intercept_scaling>1</intercept_scaling>
+      <class_weight>None</class_weight>
+      <verbose>0</verbose>
+      <random_state>1</random_state>
+    </ROM>
+  </Models>
+
+  <ExternalXML node="Distributions" xmlToLoad="sharedDistributions.xml"/>
+  <ExternalXML node="Samplers" xmlToLoad="sharedSamplers.xml"/>
+  <ExternalXML node="Steps" xmlToLoad="sharedSteps.xml"/>
+
+  <OutStreams>
+    <!-- A csv file containing the output of the example -->
+    <Print name="outData">
+      <type>csv</type>
+      <source>outData</source>
+      <filename>outlinearSVC</filename>
+    </Print>
+  </OutStreams>
+
+  <ExternalXML node="DataObjects" xmlToLoad="sharedDataObjects.xml"/>
+
+</Simulation>

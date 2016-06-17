@@ -1,0 +1,6 @@
+<?xml version="1.0" ?>
+<Models>
+  <ExternalModel ModuleToLoad="testFunction" name="PythonModule" subType="">
+    <variables>X,Y,Z</variables>
+  </ExternalModel>
+</Models>

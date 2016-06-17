@@ -1,0 +1,65 @@
+<?xml version="1.0" ?>
+<Simulation>
+  <!-- A simple example of the approximate Morse-Smale complex being used for
+       regression on a 2D function with one single global maximum. This example
+       should thoroughly test all of the features associated to the MSR. -->
+  <RunInfo>
+    <WorkingDir>data</WorkingDir>
+    <Sequence>
+      sample,
+      train,
+      resample
+    </Sequence>
+  </RunInfo>
+
+  <Models>
+    <ExternalModel ModuleToLoad="./testClassifierMultinomial" name="foo" subType="">
+      <variables>X,Y,Z</variables>
+    </ExternalModel>
+    <ROM name="modelUnderTest" subType="SciKitLearn">
+      <SKLtype>naiveBayes|MultinomialNB</SKLtype>
+      <Features>X,Y</Features>
+      <Target>Z</Target>
+      <alpha>1.0</alpha>
+      <fit_prior>True</fit_prior>
+      <class_prior>None</class_prior>
+    </ROM>
+  </Models>
+
+  <ExternalXML node="Distributions" xmlToLoad="sharedDistributions.xml"/>
+  <Samplers>
+    <Grid name="mcSampler">
+      <variable name="X">
+        <distribution>smallUniformDist</distribution>
+        <grid construction="equal" steps="5" type="value">2 12</grid>
+      </variable>
+      <variable name="Y">
+        <distribution>largeUniformDist</distribution>
+        <grid construction="equal" steps="5" type="value">1000 2000</grid>
+      </variable>
+    </Grid>
+    <Grid name="gridSampler">
+      <variable name="X">
+        <distribution>smallUniformDist</distribution>
+        <grid construction="equal" steps="10" type="value">2 12</grid>
+      </variable>
+      <variable name="Y">
+        <distribution>largeUniformDist</distribution>
+        <grid construction="equal" steps="10" type="value">1000 2000</grid>
+      </variable>
+    </Grid>
+  </Samplers>
+  <ExternalXML node="Steps" xmlToLoad="sharedSteps.xml"/>
+
+  <OutStreams>
+    <!-- A csv file containing the output of the example -->
+    <Print name="outData">
+      <type>csv</type>
+      <source>outData</source>
+      <filename>outMultinomialNB</filename>
+    </Print>
+  </OutStreams>
+
+  <ExternalXML node="DataObjects" xmlToLoad="sharedDataObjects.xml"/>
+
+</Simulation>

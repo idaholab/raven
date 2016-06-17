@@ -1,0 +1,68 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
+    <WorkingDir>CustomSamplerFromDataObject</WorkingDir>
+    <Sequence>loadDataSet,CustomSampler</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Models>
+    <Dummy name="MyDummy" subType=""/>
+  </Models>
+  
+  <Files>
+    <Input name="samples.csv" type="">samples.csv</Input>
+    <Input name="pointset">../CustomSamplerFromFile/outCustomSampler_dump.csv</Input>
+  </Files>
+
+  <Samplers>
+    <CustomSampler name="customSamplerDataObject">
+      <Source   class="DataObjects"  type="PointSet">outCustomSamplerFromFile</Source>
+      <variable name="x"/>
+      <variable name="y"/>
+      <variable name="z"/>
+    </CustomSampler>
+  </Samplers>
+
+  <DataObjects>
+    <PointSet name="outCustomSampler">
+      <Input>x,y,z</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="outCustomSamplerFromFile">
+        <Input>x,y,z</Input>
+        <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="dummyIN">
+      <Input>x,y,z</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="outCustomSampler_dump">
+      <type>csv</type>
+      <source>outCustomSampler</source>
+    </Print>
+  </OutStreams>
+
+  <Steps>
+      <IOStep name="loadDataSet">
+          <Input class="Files" type="">pointset</Input>
+          <Output class="DataObjects" type="PointSet">outCustomSamplerFromFile</Output>
+      </IOStep>
+    <MultiRun name="CustomSampler">
+      <Input   class="DataObjects"  type="PointSet">dummyIN</Input>
+      <Model   class="Models"       type="Dummy">MyDummy</Model>
+      <Sampler class="Samplers"     type="CustomSampler">customSamplerDataObject</Sampler>
+      <Output  class="DataObjects"  type="PointSet">outCustomSampler</Output>
+      <Output  class="Databases"    type="HDF5">test_DummyModel_db</Output>
+      <Output  class="OutStreams"   type="Print">outCustomSampler_dump</Output>
+    </MultiRun>
+  </Steps>
+
+  <Databases>
+    <HDF5 name="test_DummyModel_db" readMode="overwrite"/>
+  </Databases>
+
+</Simulation>

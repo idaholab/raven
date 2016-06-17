@@ -16,6 +16,7 @@ import abc
 import ast
 import copy
 import numpy as np
+from scipy import spatial
 import xml.etree.ElementTree as ET
 #External Modules End--------------------------------------------------------------------------------
 
@@ -26,6 +27,7 @@ from Csv_loader import CsvLoader as ld
 import Files
 import TreeStructure as TS
 import utils
+import mathUtils
 #Internal Modules End--------------------------------------------------------------------------------
 
 # Custom exceptions
@@ -63,6 +65,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     self._dataContainer['metadata'     ] = {}                         # In this dictionary we store metadata (For example, probability,input file names, etc)
     self.metaAdditionalInOrOut           = ['PointProbability','ProbabilityWeight']            # list of metadata keys that will be printed in the CSV one
     self.acceptHierarchy                 = False                      # flag to tell if a sub-type accepts hierarchy
+    self.inputKDTree                     = None                       # KDTree for speedy querying of input space
     self.notAllowedInputs  = []                                       # this is a list of keyword that are not allowed as Inputs
     self.notAllowedOutputs = []                                       # this is a list of keyword that are not allowed as Outputs
     # This is a list of metadata types that are CSV-compatible...we build the list this way to catch when a python implementation doesn't
@@ -154,6 +157,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
           if name in node.get('dataContainer')['inputs'].keys(): node.get('dataContainer')['inputs'].pop(name)
     else:
       if name in self._dataContainer['inputs'].keys(): self._dataContainer['inputs'].pop(name)
+    self.inputKDTree = None
 
   def removeOutputValue(self,name):
     """
@@ -179,6 +183,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     else:
       self._dataContainer                  = {'inputs':{},'outputs':{}}
       self._dataContainer['metadata'     ] = {}
+    self.inputKDTree = None
 
   def updateInputValue(self,name,value,options=None):
     """
@@ -188,6 +193,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ In, options, dict, optional, the dictionary of options to update the value (e.g. parentId, etc.)
       @ Out, None
     """
+    self.inputKDTree = None
     self._updateSpecializedInputValue(name,value,options)
 
   def updateOutputValue(self,name,value,options=None):
@@ -336,6 +342,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ In, options, dict, optional, dictionary -> options for loading
       @ Out, None
     """
+    self.inputKDTree = None
     self._specializedLoadXMLandCSV(filenameRoot,options)
 
   def _specializedLoadXMLandCSV(self,filenameRoot,options):
@@ -399,7 +406,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     retDict["outKeys"] = outputNode.text.split(",")
     retDict["filenameCSV"] = filenameNode.text
     metadataNode = root.find("metadata")
-    if metadataNode:
+    if metadataNode is not None:
       metadataDict = {}
       for child in metadataNode:
         key = child.tag
@@ -453,14 +460,14 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       if type(tupleVar[0][hist]) == dict:
         for key in tupleVar[0][hist].keys(): self.updateInputValue(key, tupleVar[0][hist][key], options)
       else:
-        if self.type in ['Point','PointSet']:
+        if self.type in ['PointSet']:
           for index in range(tupleVar[0][hist].size): self.updateInputValue(hist, tupleVar[0][hist][index], options)
         else: self.updateInputValue(hist, tupleVar[0][hist], options)
     for hist in tupleVar[1].keys():
       if type(tupleVar[1][hist]) == dict:
         for key in tupleVar[1][hist].keys(): self.updateOutputValue(key, tupleVar[1][hist][key], options)
       else:
-        if self.type in ['Point','PointSet']:
+        if self.type in ['PointSet']:
           for index in range(tupleVar[1][hist].size): self.updateOutputValue(hist, tupleVar[1][hist][index], options)
         else: self.updateOutputValue(hist, tupleVar[1][hist], options)
     if len(tupleVar) > 2:
@@ -499,12 +506,13 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
   def getParaKeys(self,typePara):
     """
       Functions to get the parameter keys
-      @ In, typePara, string, variable type (input or output)
+      @ In, typePara, string, variable type (input, output or metadata)
       @ Out, keys, list, list of requested keys
     """
-    if typePara.lower() not in ['input','inputs','output','outputs']: self.raiseAnError(RuntimeError,'type ' + typePara + ' is not a valid type. Function: Data.getParaKeys')
-    keys = self._dataParameters['inParam' ] if typePara.lower() in 'inputs' else self._dataParameters['outParam']
+    if typePara.lower() not in ['input','inputs','output','outputs','metadata']: self.raiseAnError(RuntimeError,'type ' + typePara + ' is not a valid type. Function: Data.getParaKeys')
+    keys = self._dataParameters['inParam' ] if typePara.lower() in 'inputs' else (self._dataParameters['outParam'] if typePara.lower() in 'outputs' else self._dataContainer['metadata'].keys())
     return keys
+
   def isItEmpty(self):
     """
       Function to check if the data is empty
@@ -617,9 +625,6 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
             returnDict[keyword] = {}
             if self.type == 'HistorySet':
                 for key in self._dataContainer['inputs'][keyword].keys(): returnDict[keyword][key] = np.resize(self._dataContainer['inputs'][keyword][key],len(self._dataContainer['outputs'][keyword].values()[0]))
-                return convertArr(returnDict[keyword])
-            elif self.type == 'History':
-                returnDict[keyword] = np.resize(self._dataContainer['inputs'][keyword],len(self._dataContainer['outputs'].values()[0]))
                 return convertArr(returnDict[keyword])
             else:
                 return convertArr(self._dataContainer['inputs'][keyword])
@@ -864,4 +869,79 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
         if 'parentID' in options.keys(): parentID = options['parentID']
       if not parentID: self.raiseAnError(ConstructError,'the parentID must be provided if a new node needs to be appended')
       self.retrieveNodeInTreeMode(parentID).appendBranch(tsnode)
+
+
+  def getMatchingRealization(self,requested,tol=1e-15):
+    """
+      Finds first appropriate match within tolerance and returns it.
+      @ In, requested, dict, {inName:inValue, inName:inValue}
+      @ In, tol, float, relative tolerance with which to match
+      @ Out, realization, dict, {'inputs':{inpName:value, inpName:value},'outputs':{outName:value, outName:value}} or None if not found
+    """
+    #if there's no entries, just return
+    if len(self) < 1:
+      return
+    #check input spaces match
+    #FIXME I don't like this fix.  Because of the Transformed space, our internal space includes latent variables, so we check subset.
+    #  This is potentially flawed, though, in case you're taking points from a higher-dimension space!
+    if not set(requested.keys()).issubset(set(self.getParaKeys('inputs'))):
+      self.raiseADebug('Requested Space :',requested.keys())
+      self.raiseADebug('DataObject Space:',self.getParaKeys('inputs'))
+      self.raiseADebug('Requested realization input space does not match DataObject input space!  Assuming not found...')
+      return
+    inpVals = self.getParametersValues('inputs')
+    #in benchmarking, using KDTree to query was shown to be consistently and on-average faster
+    #  for each tensor case of dimensions=[2,5,10], number of realizations=[10,100,1000]
+    #  when compared with brute force search through tuples
+    #  This speedup was realized both in formatting, as well as creating the tree/querying the tree
+    #if inputs have changed or this if first query, build the tree
+    if self.inputKDTree is None:
+      #convert data into a matrix in the order of requested
+      data = np.dstack(tuple(inpVals[v] for v in requested.keys()))[0] #[0] is for the way dstack constructs the stack
+      self.inputKDTree = spatial.KDTree(data)
+    #query the tree
+    distances,indices = self.inputKDTree.query(tuple(v for v in requested.values()),distance_upper_bound=tol)
+    #if multiple entries were within tolerance, accept the minimum one
+    if hasattr(distances,'__len__'):
+      index = indices[distances.index(min(distances))]
+    else:
+      index = indices
+    #KDTree reports a "not found" as at infinite distance, at len(data) index
+    if index >= len(self):
+      return None
+    else:
+      realization = self.getRealization(index)
+    return realization
+
+    #brute force approach, for comparison
+    #prepare list of tuples to search from
+    #have = []
+    #for i in range(len(inpVals.values()[0])):
+    #  have.append(tuple(inpVals[var][i] for var in requested.keys()))
+    #have = np.array(have)
+    #found,idx,match = mathUtils.NDInArray(have,tuple(val for val in requested.values()),tol=tol)
+    #if not found:
+    #  return
+    #realization = self.getRealization(idx)
+    #return realization
+
+  def getRealization(self,index):
+    """
+      Returns the indexed entry of inputs and outputs
+      @ In, index, int, index of realization to return
+      @ Out, realization, dict, {'inputs':{inName:value}, 'outputs':{outName:value}}
+    """
+    if index >= len(self):
+      self.raiseAnError(IndexError,'Requested entry %i but only entries 0 through %i exist!' %(index,len(self)-1))
+    realization = {}
+    inps = self.getParaKeys('inputs')
+    outs = self.getParaKeys('outputs')
+    allInVals = self.getParametersValues('inputs')
+    allOutVals = self.getParametersValues('outputs')
+    inVals = list(allInVals[var][index] for var in inps)
+    outVals = list(allOutVals[var][index] for var in outs)
+    realization['inputs'] = dict((k,v) for (k,v) in zip(inps,inVals))
+    realization['outputs'] = dict((k,v) for (k,v) in zip(outs,outVals))
+    return realization
+
 
