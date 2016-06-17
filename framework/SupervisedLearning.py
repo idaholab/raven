@@ -652,18 +652,13 @@ class GaussPolynomialRom(superVisedLearning):
     #TODO this is slowest loop in this algorithm, by quite a bit.
     for pt in sgs:
       #KDtree way
-      distances,indices = kdTree.query(pt,distance_upper_bound=1e-9) #FIXME how to set the tolerance generically?
-      #if multiple eligible, get the closest one
-      if hasattr(distances,'__len__'):
-        idx = indices[distances.index(min(distances))]
-      else:
-        idx = indices
+      distances,idx = kdTree.query(pt,k=1,distance_upper_bound=1e-9) #FIXME how to set the tolerance generically?
       #KDTree repots a "not found" as at infinite distance with index len(data)
       if idx >= len(featureVals):
         found = False
       else:
         found = True
-        point = tuple(featureVals[idx])#tuple(var[idx] for var in featureVals)
+        point = tuple(featureVals[idx])
       #end KDTree way
       #brute way
       #found,idx,point = mathUtils.NDInArray(featureVals,pt)
