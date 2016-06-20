@@ -1551,6 +1551,12 @@ class BasicStatistics(BasePostProcessor):
         elif targetP in currentInput.getParaKeys('output'):
           for ts in range(len(outputs.values()[0][targetP])): 
             inputDict['targets'][targetP].append([outputs[i][targetP][ts] for i in outputs.keys()])
+        if self.pivotParameter not in currentInput.getParaKeys('output'): self.raiseAnError(IOError, self, 'Pivot parameter ' + self.pivotParameter + ' has not been found in output space of data object '+currentInput.name)
+        inputDict['pivotParameter'] = []
+        for ts in range(len(outputs.values()[0][self.pivotParameter])):
+          currentSnapShot = [outputs[i][self.pivotParameter][ts] for i in outputs.keys()]
+          if len(set(currentSnapShot)) > 1: self.raiseAnError(IOError, self, 'Histories are not syncronized!')
+          inputDict['pivotParameter'].append(currentSnapShot[-1]) 
       inputDict['metadata'] = currentInput.getAllMetadata()
     return inputDict
 
