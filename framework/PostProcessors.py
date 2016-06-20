@@ -1512,6 +1512,7 @@ class BasicStatistics(BasePostProcessor):
     self.addAssemblerObject('Function','-1', True)
     self.biased = False
     self.pivotParameter = None
+    self.dynamic        = False
 
   
   def inputToInternal(self, currentInp):
@@ -1522,6 +1523,7 @@ class BasicStatistics(BasePostProcessor):
       @ Out, inputDict, dict, dictionary of the converted data
     """
     # each post processor knows how to handle the coming inputs. The BasicStatistics postprocessor accept all the input type (files (csv only), hdf5 and datas
+    self.dynamic = False
     if type(currentInp) == list  : currentInput = currentInp [-1]
     else                         : currentInput = currentInp
     if type(currentInput) == dict:
@@ -1542,15 +1544,20 @@ class BasicStatistics(BasePostProcessor):
         elif targetP in currentInput.getParaKeys('output'): inputDict['targets'][targetP] = currentInput.getParam('output', targetP, nodeId = 'ending')
       inputDict['metadata'] = currentInput.getAllMetadata()
     if inType in ['HistorySet']:
+      self.dynamic = True
       if self.pivotParameter is None: self.raiseAnError(IOError, self, 'Time-dependent statistics is requested (HistorySet) but no pivotParameter got inputted!')
       inputs, outputs  = currentInput.getParametersValues('inputs',nodeId = 'ending'), currentInput.getParametersValues('outputs',nodeId = 'ending')
+      inputDict['staticTargets'], inputDict['dynamicTargets'] = [], []
+      nTs = len(outputs.values()[0].values()[0])
       for targetP in self.parameters['targets']:
         inputDict['targets'][targetP] = []
-        if   targetP in currentInput.getParaKeys('input') :
-          inputDict['targets'][targetP] = [inputs[i][targetP] for i in inputs.keys()]
-        elif targetP in currentInput.getParaKeys('output'):
-          for ts in range(len(outputs.values()[0][targetP])): 
-            inputDict['targets'][targetP].append([outputs[i][targetP][ts] for i in outputs.keys()])
+        if targetP in currentInput.getParaKeys('output'):
+          inputDict['dynamicTargets'].append(targetP)
+          for ts in range(nTs): 
+            inputDict['targets'][targetP].append(np.asarray([outputs[i][targetP][ts] for i in outputs.keys()]))
+        elif   targetP in currentInput.getParaKeys('input') :
+          inputDict['targets'][targetP] = np.asarray([inputs[i][targetP] for i in inputs.keys()]*nTs)
+          inputDict['staticTargets'].append(targetP)
         if self.pivotParameter not in currentInput.getParaKeys('output'): self.raiseAnError(IOError, self, 'Pivot parameter ' + self.pivotParameter + ' has not been found in output space of data object '+currentInput.name)
         inputDict['pivotParameter'] = []
         for ts in range(len(outputs.values()[0][self.pivotParameter])):
@@ -1558,6 +1565,9 @@ class BasicStatistics(BasePostProcessor):
           if len(set(currentSnapShot)) > 1: self.raiseAnError(IOError, self, 'Histories are not syncronized!')
           inputDict['pivotParameter'].append(currentSnapShot[-1]) 
       inputDict['metadata'] = currentInput.getAllMetadata()
+    # check if all targets got retrieved
+    if not set(self.parameters['targets']) <= set(inputDict['targets'].keys()): self.raiseAnError(IOError,'Not all the requested parameters have been found in input data object. Targets: "'+
+                                                                                          ' '.join(self.parameters['targets'])+'". Data Object parameters: "'+' '.join(inputDict['targets'].keys())+'".')
     return inputDict
 
   def initialize(self, runInfo, inputs, initDict):
@@ -2104,7 +2114,15 @@ class BasicStatistics(BasePostProcessor):
       @ Out, outputDict, dict, Dictionary containing the results
     """
     input = self.inputToInternal(inputIn)
-    outputDict = self.__runLocal(input)
+    if not self.dynamic: outputDict = self.__runLocal(input)
+    else:
+      # time dependent
+      self.parameters['targets'] = input['staticTargets']
+      outputDictStatic = self.__runLocal(input)
+      self.parameters['targets'] = input['dynamicTargets']
+      for ts in input['pivotParameter']:
+        inputTs = input
+        outputDictDynamic = self.__runLocal(inputTs)
     return outputDict
 
   def covariance(self, feature, weights = None, rowVar = 1):
