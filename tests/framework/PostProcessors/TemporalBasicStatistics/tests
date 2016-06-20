@@ -1,8 +1,0 @@
-[Tests]
-  [./basicStatistics]
-    type = 'RavenFramework'
-    input = 'test_temporalBasicStatistics.xml'
-    csv = 'BasicStatisticGeneral/dummy_0.csv'
-    output = 'BasicStatisticGeneral/dummy.csv BasicStatisticGeneral/dummy.xml'
-  [../]
-[]

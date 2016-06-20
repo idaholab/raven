@@ -3215,23 +3215,26 @@ class DataMining(BasePostProcessor):
       @ Out, inputDict, dict, An input dictionary this object can process
     """
 
-    if type(currentInp) == list: currentInput = currentInp[-1]
-    else                       : currentInput = currentInp
-
-    # FIXME this is temporal codes
-    if self.type in ['temporalBasicStatistics']: # for testing time dependent dm - BasicStatistics
-      return currentInput
+    if type(currentInp) == list:
+      currentInput = currentInp[-1]
+    else:
+      currentInput = currentInp
 
     if self.type in ['temporalSciKitLearn']: # for testing time dependent dm - time dependent clustering
       inputDict = {'Features':{}, 'parameters':{}, 'Labels':{}, 'metadata':{}}
       if currentInput.type in ['HistorySet']:
+
         # FIXME, this needs to be changed for asynchronous HistorySet
-        if self.timeID in currentInput.getParam('output',1).keys(): self.Time = currentInput.getParam('output',1)[self.timeID]
-        else: self.raiseAnError(ValueError, 'Time not found in input historyset')
+        if self.timeID in currentInput.getParam('output',1).keys():
+          self.Time = currentInput.getParam('output',1)[self.timeID]
+        else:
+          self.raiseAnError(ValueError, 'Time not found in input historyset')
         # end of FIXME
+
         historyKey = currentInput.getOutParametersValues().keys()
         noSample = len(historyKey)
         noTimeStep = len(self.Time)
+
         if self.initializationOptionDict['KDD']['Features'] == 'input':
           self.raiseAnError(ValueError, 'To perform data mining over input please use SciKitLearn library')
         elif self.initializationOptionDict['KDD']['Features'] in ['output', 'all']:
@@ -3239,10 +3242,12 @@ class DataMining(BasePostProcessor):
           features.remove(self.timeID)
         else:
           features = self.initializationOptionDict['KDD']['Features'].split(',')
+
         for param in features:
           inputDict['Features'][param] = np.zeros(shape=(noSample,noTimeStep))
           for cnt, keyH in enumerate(historyKey):
             inputDict['Features'][param][cnt,:] = currentInput.getParam('output', keyH)[param]
+
       inputDict['metadata'] = currentInput.getAllMetadata()
       return inputDict
 
@@ -3306,6 +3311,7 @@ class DataMining(BasePostProcessor):
     """
     BasePostProcessor.initialize(self, runInfo, inputs, initDict)
     self.__workingDir = runInfo['WorkingDir']
+
     if 'Label' in self.assemblerDict:
       for val in self.assmeblerDict['Label']:
         self.labelAlgorithms.append(val[3])
@@ -3350,8 +3356,10 @@ class DataMining(BasePostProcessor):
             self.initializationOptionDict[child.tag][childChild.tag] = utils.tryParse(childChild.text)
       elif child.tag == 'timeID':
         self.timeID = child.text
+
     if not hasattr(self, 'timeID'):
       self.timeID = 'Time'
+
     if self.type:
       self.unSupervisedEngine = unSupervisedLearning.returnInstance(self.type, self, **self.initializationOptionDict['KDD'])
     else:
@@ -3535,12 +3543,6 @@ class DataMining(BasePostProcessor):
         ## use a single projection matrix.
         for i in range(noComponents):
           outputDict['output'][self.name+'PCAComponent' + str(i + 1)] =  components[:, i]
-
-    # FIXME, time dependent BasisStatistics is now a library of KDD, and the codes are placed
-    #        in the unSupervisedLearning module.
-    #        Make changes if necessary.
-    elif self.type in ['temporalBasicStatistics']:
-      outputDict= self.unSupervisedEngine.run(Input)
 
     elif self.type in ['temporalSciKitLearn']:
       outputDict = {}
