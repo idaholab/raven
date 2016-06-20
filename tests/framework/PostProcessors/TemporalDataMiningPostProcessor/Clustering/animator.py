@@ -35,6 +35,9 @@ for filename in files:
 mapper = cm.ScalarMappable(cmap=cm.get_cmap('Set1'))
 mapper.set_clim(np.min(C),np.max(C))
 
+def init_plot():
+  pass
+
 def update_plot(idx):
   fig.clf()
   if idx == numTimeSteps:
@@ -53,7 +56,9 @@ def update_plot(idx):
 
 fig = plt.figure()
 im_ani = animation.FuncAnimation(fig, update_plot, frames=range(numTimeSteps+1),
-                                 interval=500, repeat_delay=5000, repeat=True)
+                                 interval=500, init_func=init_plot,
+                                 repeat_delay=5000, repeat=True)
 
-# im_ani.save('test.mp4')
-plt.show()
+im_ani.save('test.gif', writer='imagemagick',fps=10)
+im_ani.save('test.mp4', fps=10)
+# plt.show()
