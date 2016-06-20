@@ -1,0 +1,119 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
+    <WorkingDir>HistorySetSnapShotMixed</WorkingDir>
+    <Sequence>FirstMRun,snap,snap2</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="FirstMRun" pauseAtEnd="True">
+      <Input   class="DataObjects" type="PointSet">inputPlaceHolder</Input>
+      <Model   class="Models"      type="ExternalModel">PythonModule</Model>
+      <Sampler class="Samplers"    type="MonteCarlo">MC_external</Sampler>
+      <Output  class="DataObjects" type="HistorySet">hist</Output>
+      <Output  class="OutStreams"  type="Print">history_dump</Output>
+    </MultiRun>
+    <PostProcess name="snap">
+      <Input  class="DataObjects"  type="HistorySet">hist</Input>
+      <Model  class="Models"       type="PostProcessor">mampp</Model>
+      <Output class="DataObjects"  type="PointSet">point1</Output>
+      <Output class="OutStreams"   type="Print">point_dump1</Output>
+    </PostProcess>
+    <PostProcess name="snap2">
+      <Input  class="DataObjects"  type="HistorySet">hist</Input>
+      <Model  class="Models"       type="PostProcessor">mampp2</Model>
+      <Output class="DataObjects"  type="PointSet">point2</Output>
+      <Output class="OutStreams"   type="Print">point_dump2</Output>
+    </PostProcess>
+  </Steps>
+
+  <Models>
+    <ExternalModel ModuleToLoad="lorentzAttractor" name="PythonModule" subType="">
+      <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0</variables>
+    </ExternalModel>
+    <PostProcessor name="mampp" subType="InterfacedPostProcessor">
+      <method>HistorySetSnapShot</method>
+      <type>mixed</type>
+      <min>x</min>
+      <max>y</max>
+    </PostProcessor>
+    <PostProcessor name="mampp2" subType="InterfacedPostProcessor">
+      <method>HistorySetSnapShot</method>
+      <type>mixed</type>
+      <average>x</average>
+      <value pivotVar="time" pivotVal="0.245">y</value>
+      <value pivotVar="x" pivotVal="4.0">z</value>
+      <timeID>time</timeID>
+      <extension>zeroed</extension>
+      <numberOfSamples>5</numberOfSamples>
+    </PostProcessor>
+  </Models>
+
+  <Distributions>
+    <Normal name="x0_distrib">
+      <mean>4</mean>
+      <sigma>1</sigma>
+    </Normal>
+    <Normal name="y0_distrib">
+      <mean>4</mean>
+      <sigma>1</sigma>
+    </Normal>
+    <Normal name="z0_distrib">
+      <mean>4</mean>
+      <sigma>1</sigma>
+    </Normal>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="MC_external">
+      <samplerInit>
+        <limit>2</limit>
+      </samplerInit>
+      <variable name="x0">
+        <distribution>x0_distrib</distribution>
+      </variable>
+      <variable name="y0">
+        <distribution>y0_distrib</distribution>
+      </variable>
+      <variable name="z0">
+        <distribution>z0_distrib</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <OutStreams>
+    <Print name="history_dump">
+      <type>csv</type>
+      <source>hist</source>
+    </Print>
+    <Print name="point_dump1">
+      <type>csv</type>
+      <source>point1</source>
+    </Print>
+    <Print name="point_dump2">
+      <type>csv</type>
+      <source>point2</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="inputPlaceHolder">
+      <Input>x0,y0,z0</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="point1">
+      <Input>x0,y0,z0</Input>
+      <Output>x,y</Output>
+    </PointSet>
+    <PointSet name="point2">
+      <Input>x0,y0,z0</Input>
+      <Output>x,y,z</Output>
+    </PointSet>
+    <HistorySet name="hist">
+      <Input>x0,y0,z0</Input>
+      <Output>time,x,y,z</Output>
+    </HistorySet>
+  </DataObjects>
+
+</Simulation>
