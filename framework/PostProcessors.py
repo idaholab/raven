@@ -3507,18 +3507,17 @@ class DataMining(BasePostProcessor):
 
         if hasattr(self.unSupervisedEngine, 'embeddingVectors_'):
           embeddingVectors = self.unSupervisedEngine.embeddingVectors_
-          # print('a')
         elif hasattr(self.unSupervisedEngine.Method, 'transform'):
           embeddingVectors = self.unSupervisedEngine.Method.transform(manifoldValues)
-          # print('b')
         elif hasattr(self.unSupervisedEngine.Method, 'fit_transform'):
           embeddingVectors = self.unSupervisedEngine.Method.fit_transform(manifoldValues)
-          # print('c')
 
         if hasattr(self.unSupervisedEngine, 'reconstructionError_'):
           reconstructionError = self.unSupervisedEngine.reconstructionError_
 
-        ## information stored on a per point basis
+        ## information stored on a per point basis, so no need to use a solution
+        ## export. Manifold methods do not give us a global transformation
+        ## matrix.
         for i in range(len(embeddingVectors[0, :])):
           outputDict['output'][self.name+'EmbeddingVector' + str(i + 1)] =  embeddingVectors[:, i]
 
@@ -3549,15 +3548,27 @@ class DataMining(BasePostProcessor):
         # if hasattr(self.unSupervisedEngine.Method, 'score'):
         #   score = self.unSupervisedEngine.Method.score(decompositionValues)
         if   'transform'     in dir(self.unSupervisedEngine.Method):
-          components = self.unSupervisedEngine.Method.transform(decompositionValues)
+          transformedData = self.unSupervisedEngine.Method.transform(decompositionValues)
         elif 'fit_transform' in dir(self.unSupervisedEngine.Method):
-          components = self.unSupervisedEngine.Method.fit_transform(decompositionValues)
+          transformedData = self.unSupervisedEngine.Method.fit_transform(decompositionValues)
 
         ## information stored on a per point basis, no need to use a solution
         ## export here, this could potentially change, if we are sure these
         ## use a single projection matrix.
         for i in range(noComponents):
-          outputDict['output'][self.name+'PCAComponent' + str(i + 1)] =  components[:, i]
+          outputDict['output'][self.name+'PCAComponent' + str(i + 1)] =  transformedData[:, i]
+
+        if self.solutionExport is not None:
+          ## Get the transformation matrix and push them to a SolutionExport
+          ## data object. The input will always be zero since this information
+          ## is global.
+          ## Can I be sure of the order of dimensions in the features dict, is
+          ## the same order as the data held in the UnSupervisedLearning object?
+          print(components)
+          for row,values in enumerate(components):
+            self.solutionExport.updateInputValue('component', row+1)
+            for col,value in zip(self.unSupervisedEngine.features.keys(),values):
+              self.solutionExport.updateOutputValue(col,value)
 
     elif self.type in ['temporalSciKitLearn']:
       outputDict = {}
