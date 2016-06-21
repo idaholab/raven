@@ -1,4 +1,4 @@
- ##############################################################################
+##############################################################################
  # Software License Agreement (BSD License)                                   #
  #                                                                            #
  # Copyright 2014 University of Utah                                          #
@@ -37,6 +37,7 @@ import sys
 import numpy as np
 import time
 import os
+import itertools
 import collections
 
 ####################################################
@@ -54,10 +55,7 @@ except ImportError as e:
                    + 'running the following command:' + os.linesep
                    + '\tmake -f ' + makeFilePath + os.linesep)
   sys.exit(1)
-
-####################################################
-
-# import PySide.QtCore
+################################################################################
 
 import sklearn.neighbors
 import sklearn.linear_model
@@ -65,42 +63,37 @@ import sklearn.preprocessing
 
 import scipy.optimize
 import scipy.stats
+import scipy
 
 ##Let's see what statsmodels weighted linear regression does
 #import statsmodels.api as sm
 
-# class AMSC_Object(PySide.QtCore.QObject):
+def WeightedLinearModel(X,y,w):
+  """ A wrapper for playing with the linear regression used per segment. The
+      benefit of having this out here is that we do not have to adjust it in
+      several places in the AMSC class, since it can build linear models for
+      an arbitrary subset of dimensions, as well.
+      @ In, X, a matrix of input samples
+      @ In, y, a vector of output responses corresponding to the input samples
+      @ In, w, a vector of weights corresponding to the input samples
+      @ Out, a tuple consisting of the fits y-intercept and the the list of
+        linear coefficients.
+  """
+  ## Using scipy directly to do weighted linear regression on non-centered data
+  Xw = np.ones((X.shape[0],X.shape[1]+1))
+  Xw[:,1:] = X
+  Xw = Xw * np.sqrt(w)[:, None]
+  yw = y * np.sqrt(w)
+  results = scipy.linalg.lstsq(Xw, yw)[0]
+  yIntercept = results[0]
+  betaHat = results[1:]
+
+  return (yIntercept,betaHat)
+
 class AMSC_Object(object):
   """ A wrapper class for the C++ approximate Morse-Smale complex Object that
       also communicates with the UI via Qt's signal interface
   """
-
-  ## Paul Tol's colorblind safe colors
-  colorList = ['#88CCEE', '#DDCC77', '#AA4499', '#117733', '#332288', '#999933',
-               '#44AA99', '#882255', '#CC6677']
-  ## Alternative Color Lists from Color Brewer
-  colorList2 = ['#1b9e77', '#d95f02', '#7570b3', '#e7298a', '#66a61e',
-                '#e6ab02', '#a6761d', '#666666']
-  colorList3 = ['#8dd3c7', '#ffffb3', '#bebada', '#fb8072', '#80b1d3',
-                '#fdb462', '#b3de69', '#fccde5', '#d9d9d9', '#bc80bd',
-                '#ccebc5', '#ffed6f']
-  colorList4 = ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00',
-                '#ffff33', '#a65628', '#f781bf', '#999999']
-  colorList5 = ['#a6cee3', '#1f78b4', '#b2df8a', '#33a02c', '#fb9a99',
-                '#e31a1c', '#fdbf6f', '#ff7f00', '#cab2d6', '#6a3d9a',
-                '#ffff99', '#b15928']
-  # colorList = ['#e41a1c', '#88CCEE', '#377eb8', '#DDCC77', '#4daf4a',
-  #              '#AA4499', '#984ea3', '#ff7f00', '#ffff33',
-  #              '#a65628', '#f781bf', '#999999', '#117733', '#332288',
-  #              '#999933', '#44AA99', '#882255']
-
-  # sigPersistenceChanged = PySide.QtCore.Signal()
-  # sigSelectionChanged = PySide.QtCore.Signal()
-  # sigFilterChanged = PySide.QtCore.Signal()
-  # sigDataChanged = PySide.QtCore.Signal()
-  # sigModelsChanged = PySide.QtCore.Signal()
-  # sigWeightsChanged = PySide.QtCore.Signal()
-
   def __init__(self, X, Y, w=None, names=None, graph='beta skeleton',
                gradient='steepest', knn=-1, beta=1.0, normalization=None,
                persistence='difference', edges=None, debug=False):
@@ -150,7 +143,18 @@ class AMSC_Object(object):
           should be enabled.
     """
     super(AMSC_Object,self).__init__()
+    if X is not None and len(X) > 1:
+      self.Reinitialize(X, Y, w, names, graph, gradient, knn, beta,
+                        normalization, persistence, edges, debug)
+    else:
+      # Set some reasonable defaults
+      self.SetEmptySettings()
 
+  def SetEmptySettings(self):
+    """
+       Empties all internal storage containers
+    """
+    self.partitions = {}
     self.persistence = 0.
 
     self.segmentFits = {}
@@ -166,6 +170,84 @@ class AMSC_Object(object):
 
     self.filters = {}
 
+    self.minIdxs = []
+    self.maxIdxs = []
+
+    self.X = []
+    self.Y = []
+    self.w = []
+
+    self.normalization = None
+
+    self.names = []
+    self.Xnorm = []
+    self.Ynorm = []
+
+    self.__amsc = None
+
+  def Reinitialize(self, X, Y, w=None, names=None, graph='beta skeleton', gradient='steepest', knn=-1, beta=1.0, normalization=None, persistence='difference', edges=None, debug=False):
+    """ Allows the caller to basically start over with a new dataset.
+        @ In, X, an m-by-n array of values specifying m n-dimensional samples
+        @ In, Y, a m vector of values specifying the output responses
+          corresponding to the m samples specified by X
+        @ In, w, an optional m vector of values specifying the weights
+          associated to each of the m samples used. Default of None means all
+          points will be equally weighted
+        @ In, names, an optional list of strings that specify the names to
+          associate to the n input dimensions and 1 output dimension. Default of
+          None means input variables will be x0,x1...,x(n-1) and the output will
+          be y
+        @ In, graph, an optional string specifying the type of neighborhood
+          graph to use. Default is 'beta skeleton,' but other valid types are:
+          'delaunay,' 'relaxed beta skeleton,' or 'approximate knn'
+        @ In, gradient, an optional string specifying the type of gradient
+          estimator
+          to use. Currently the only available option is 'steepest'
+        @ In, knn, an optional integer value specifying the maximum number of
+          k-nearest neighbors used to begin a neighborhood search. In the case
+          of graph='[relaxed] beta skeleton', we will begin with the specified
+          approximate knn graph and prune edges that do not satisfy the empty
+          region criteria.
+        @ In, beta, an optional floating point value between 0 and 2. This
+          value is only used when graph='[relaxed] beta skeleton' and specifies
+          the radius for the empty region graph computation (1=Gabriel graph,
+          2=Relative neighbor graph)
+        @ In, normalization, an optional string specifying whether the
+          inputs/output should be scaled before computing. Currently, two modes
+          are supported 'zscore' and 'feature'. 'zscore' will ensure the data
+          has a mean of zero and a standard deviation of 1 by subtracting the
+          mean and dividing by the variance. 'feature' scales the data into the
+          unit hypercube.
+        @ In, persistence, an optional string specifying how we will compute
+          the persistence hierarchy. Currently, three modes are supported
+          'difference', 'probability' and 'count'. 'difference' will take the
+          function value difference of the extrema and its closest function
+          valued neighboring saddle, 'probability' will augment this value by
+          multiplying the probability of the extremum and its saddle, and count
+          will make the larger point counts more persistent.
+    """
+    self.partitions = {}
+    self.persistence = 0.
+
+    self.segmentFits = {}
+    self.extremumFits = {}
+
+    self.segmentFitnesses = {}
+    self.extremumFitnesses = {}
+
+    self.mergeSequence = {}
+
+    self.selectedExtrema = []
+    self.selectedSegments = []
+
+    self.filters = {}
+
+    self.minIdxs = []
+    self.maxIdxs = []
+
+    self.partitionColors = {}
+    self.colorIdx = 0
+
     self.X = X
     self.Y = Y
     if w is not None:
@@ -178,6 +260,7 @@ class AMSC_Object(object):
 
     if self.X is None or self.Y is None:
       print('There is no data to process, what would the Maker have me do?')
+      self.SetEmptySettings()
       return
 
     if self.names is None:
@@ -208,6 +291,9 @@ class AMSC_Object(object):
       sys.stderr.write('Graph Preparation: ')
       start = time.clock()
 
+    if knn <= 0:
+      knn = len(self.Y)-1
+
     if edges is None:
       knnAlgorithm = sklearn.neighbors.NearestNeighbors(n_neighbors=knn,
                                                         algorithm='kd_tree')
@@ -216,9 +302,8 @@ class AMSC_Object(object):
       if debug:
         end = time.clock()
         sys.stderr.write('%f s\n' % (end-start))
-      #  print(edges.shape)
 
-      pairs = []                                # prevent duplicates with this guy
+      pairs = []                              # prevent duplicates with this guy
       for e1 in xrange(0,edges.shape[0]):
         for col in xrange(0,edges.shape[1]):
           e2 = edges.item(e1,col)
@@ -237,12 +322,6 @@ class AMSC_Object(object):
       edgesToPrune.append(edge[0])
       edgesToPrune.append(edge[1])
 
-    ## Swig/Python struggles communicating a python list as a std::vector<int>
-    ## under some implementations, so we will force the datatype
-    #preliminaryEdges = amsc.vectorInt(int(len(edgesToPrune)))
-    #for i,edge in enumerate(edgesToPrune):
-    #  preliminaryEdges[i] = int(edge)
-
     if debug:
       end = time.clock()
       sys.stderr.write('%f s\n' % (end-start))
@@ -254,7 +333,7 @@ class AMSC_Object(object):
                                  amsc.vectorString(self.names), str(graph),
                                  str(gradient), int(knn), float(beta),
                                  str(persistence), amsc.vectorFloat(self.w),
-                                 amsc.vectorInt(edgesToPrune))
+                                 amsc.vectorInt(edgesToPrune), debug)
 
     if debug:
       end = time.clock()
@@ -262,6 +341,7 @@ class AMSC_Object(object):
 
     hierarchy = self.__amsc.PrintHierarchy().strip().split(' ')
 
+    self.persistences = []
     self.mergeSequence = {}
     for line in hierarchy:
       if line.startswith('Maxima') or line.startswith('Minima'):
@@ -271,6 +351,14 @@ class AMSC_Object(object):
         parentIndex = int(tokens[3])
 
         self.mergeSequence[dyingIndex] = (parentIndex,p)
+        self.persistences.append(p)
+
+    self.persistences = sorted(list(set(self.persistences)))
+
+    partitions = self.Partitions(self.persistences[0])
+    cellIdxs = np.array(partitions.keys())
+    self.minIdxs = np.unique(cellIdxs[:,0])
+    self.maxIdxs = np.unique(cellIdxs[:,1])
 
   def SetWeights(self, w=None):
     """ Sets the weights associated to the m input samples
@@ -279,12 +367,11 @@ class AMSC_Object(object):
     """
     if w is not None:
       self.w = np.array(w)
-    else:
-      self.w = np.ones(len(Y))*1.0/float(len(Y))
+    elif len(self.Y) > 0:
+      self.w = np.ones(len(self.Y))*1.0/float(len(self.Y))
 
     if self.FitsSynced():
       self.BuildModels()
-    # self.sigWeightsChanged.emit()
 
   def GetMergeSequence(self):
     """ Returns a data structure holding the ordered merge sequence of extrema
@@ -305,16 +392,20 @@ class AMSC_Object(object):
           hold a list of indices specifying points that are associated to this
           min-max pair.
     """
+    if self.__amsc is None:
+      return None
     if persistence is None:
       persistence = self.persistence
-    partitions = self.__amsc.GetPartitions(persistence)
-    tupleKeyedPartitions = {}
-    minMaxKeys = partitions.keys()
-    for strMinMax in minMaxKeys:
-      indices = partitions[strMinMax]
-      minMax = tuple(map(int,strMinMax.split(',')))
-      tupleKeyedPartitions[minMax] = indices
-    return tupleKeyedPartitions
+    if persistence not in self.partitions:
+      partitions = self.__amsc.GetPartitions(persistence)
+      tupleKeyedPartitions = {}
+      minMaxKeys = partitions.keys()
+      for strMinMax in minMaxKeys:
+        indices = partitions[strMinMax]
+        minMax = tuple(map(int,strMinMax.split(',')))
+        tupleKeyedPartitions[minMax] = indices
+      self.partitions[persistence] = tupleKeyedPartitions
+    return self.partitions[persistence]
 
   def StableManifolds(self,persistence=None):
     """ Returns the partitioned data based on a specified persistence level.
@@ -412,6 +503,8 @@ class AMSC_Object(object):
     """ Applies all data filters to the input data and returns a list of
         filtered indices that specifies the rows of data that satisfy all
         conditions.
+        @ In, indices, an optional integer list of indices to start from, if not
+          supplied, then the mask will be applied to all indices of the data.
         @ Out, a 1-dimensional array of integer indices that is a subset of
           the input data row indices specifying rows that satisfy every set
           filter criterion.
@@ -454,6 +547,8 @@ class AMSC_Object(object):
         the set of linear coefficients by magnitude and progressively refit the
         data using more and more dimensions and computing R^2 values for each
         lower dimensional fit until we arrive at the full dimensional linear fit
+        @ In, key, a tuple of two integers specifying the minimum and maximum
+          indices used to key the partition upon which we are retrieving info.
         @ Out, a tuple of three equal sized lists that specify the index order
           of the dimensions added where the indices match the input data's
           order, the R^2 values for each progressively finer fit, and the
@@ -498,18 +593,7 @@ class AMSC_Object(object):
       y = self.Y[np.array(items)]
       w = self.w[np.array(items)]
 
-      linearModel = sklearn.linear_model.LinearRegression(fit_intercept=True,
-                                                          normalize=False,
-                                                          copy_X=True)
-      tempFit = linearModel.fit(X,y)
-      temp_beta_hat = tempFit.coef_
-      temp_yIntercept = tempFit.intercept_
-
-     # smX = sm.add_constant(X)
-     # model = sm.WLS(y, smX, w)
-     # results = model.fit()
-     # temp_beta_hat = results.params[1:]
-     # temp_yIntercept = results.params[0]
+      (temp_yIntercept,temp_beta_hat) = WeightedLinearModel(X,y,w)
 
       yHat = X.dot(temp_beta_hat) + temp_yIntercept
 
@@ -535,6 +619,9 @@ class AMSC_Object(object):
         @ In, p, a floating point value that will set the persistence value,
           if this value is set to None, then this function will return the
           current persistence leve.
+        @ Out, if no p value is supplied then this function will return the
+          current persistence setting. If a p value is supplied, it will be
+          returned as it will be the new persistence setting of this object.
     """
     if p is None:
       return self.persistence
@@ -543,7 +630,7 @@ class AMSC_Object(object):
     self.extremumFits = {}
     self.segmentFitnesses = {}
     self.extremumFitnesses = {}
-    # self.sigPersistenceChanged.emit()
+    return self.persistence
 
   def BuildModels(self,persistence=None):
     """ Forces the construction of linear fits per Morse-Smale segment and
@@ -558,11 +645,7 @@ class AMSC_Object(object):
     self.segmentFitnesses = {}
     self.extremumFitnesses = {}
     self.BuildLinearModels(persistence)
-    self.BuildGaussianModels(persistence)
-    self.ComputeExtremaShapeDescriptors()
-    # self.BuildPolynomialModels(persistence)
     self.ComputeStatisticalSensitivity()
-    # self.sigModelsChanged.emit()
 
   def BuildLinearModels(self, persistence=None):
     """ Forces the construction of linear fits per Morse-Smale segment.
@@ -574,209 +657,15 @@ class AMSC_Object(object):
 
     for key,items in partitions.iteritems():
       X = self.Xnorm[np.array(items),:]
-      y = np.array(self.Ynorm[np.array(items)])
+      y = np.array(self.Y[np.array(items)])
       w = self.w[np.array(items)]
 
-      linearModel = sklearn.linear_model.LinearRegression(fit_intercept=True,
-                                                          normalize=False,
-                                                          copy_X=True)
-     # linearModel = sklearn.linear_model.LinearRegression(fit_intercept=False,
-     #                                                     normalize=False,
-     #                                                     copy_X=True)
-
-      lmFit = linearModel.fit(X,y)
-      self.segmentFits[key] = np.hstack((lmFit.intercept_,lmFit.coef_))
-     # self.segmentFits[key] = lmFit.coef_
-     # print('SKL',self.segmentFits[key])
-
-     # smX = sm.add_constant(X)
-     # # smX = X
-     # model = sm.WLS(y, smX, w)
-     # results = model.fit()
-     # self.segmentFits[key] = results.params
-     # print('SM',results.params)
+      (temp_yIntercept,temp_beta_hat) = WeightedLinearModel(X,y,w)
+      self.segmentFits[key] = np.hstack((temp_yIntercept,temp_beta_hat))
 
       yHat = X.dot(self.segmentFits[key][1:]) + self.segmentFits[key][0]
-      # yHat = X.dot(self.segmentFits[key][:]) + self.segmentFits[key][0]
 
-      self.segmentFitnesses[key] = linearModel.score(X,y)
-
-  ## Not actually implemented yet
-  def BuildPolynomialModels(self, persistence=None):
-   """ Forces the construction of a polynomial fit per stable/unstable manifold
-       for the user-specified persistence level.
-       @ In, persistence, a floating point value specifying the simplification
-         level to use, if this value is None, then we will build models based
-         on the internally set persistence level for this Morse-Smale object.
-   """
-   pass
-   # partitions = self.Partitions(persistence)
-   # for extType in [0,1]:
-   #   count = 0
-   #   extFlowSet = {}
-   #   for key,items in partitions.iteritems():
-   #     extIdx = key[extType]
-   #     if extIdx not in extFlowSet.keys():
-   #       extFlowSet[extIdx] = []
-   #     for idx in items:
-   #       extFlowSet[extIdx].append(idx)
-
-   #   for extIdx,indices in extFlowSet.iteritems():
-   #     X = self.Xnorm[np.array(indices),:]
-   #     Y = self.Y[np.array(indices)]
-   #     self.extremumFits[extIdx] = np.polyfit(X,Y,2)
-   #     yHat = np.zeros(X.shape[0])
-   #     for i in xrange(X.shape[0]):
-   #       yHat[i] = 0 #FIXME
-   #     self.extremumFitnesses[extIdx] = 1 - np.sum((yHat - Y)**2)/np.sum((Y - np.mean(Y))**2)
-
-  def BuildGaussianModels(self, persistence=None):
-    """ Forces the construction of Gaussian fits per stable/unstable manifold
-        for the user-specified persistence level.
-        @ In, persistence, a floating point value specifying the simplification
-          level to use, if this value is None, then we will build models based
-          on the internally set persistence level for this Morse-Smale object.
-    """
-    dimCount = len(self.names)-1
-    # For now, if we are doing anything more than a moderate amount of
-    # dimensions, use a constrained Gaussian
-    constrainedGaussian = (dimCount > 10)
-    #########DEBUG##############################################################
-    # constrainedGaussian = True
-    #########END DEBUG##########################################################
-
-    partitions = self.Partitions(self.persistence)
-    for extType in [0,1]:
-      count = 0
-      extFlowSet = {}
-      for key,items in partitions.iteritems():
-        extIdx = key[extType]
-        if extIdx not in extFlowSet.keys():
-          extFlowSet[extIdx] = []
-        for idx in items:
-          extFlowSet[extIdx].append(idx)
-
-      paramCount = 1
-      if constrainedGaussian:
-        paramCount += dimCount
-      else:
-        for d in xrange(dimCount+1):
-          paramCount += d
-
-      for extIdx,indices in extFlowSet.iteritems():
-        if len(indices) < paramCount:
-          print('Too few samples, skipping this segment: %d' % extIdx)
-          continue
-
-        X = self.Xnorm[np.array(indices),:]
-        Y = self.Y[np.array(indices)]
-        W = self.w[np.array(indices)]
-
-        # For fitting a multivariate Gaussian, we will fix the mean to be at the
-        # extrema and the y-offset to match the output value at the extrema's
-        # location
-        mu = self.Xnorm[extIdx,:]
-        c = self.Y[extIdx]
-
-        paramGuess = []
-
-        if constrainedGaussian:
-          # Define a variable number of inputs for our constrained Gaussian, it
-          # is constrained because we are only fitting diagonal components of
-          # the covariance matrix
-          def residuals(*arg):
-            a = arg[0][-1]
-            xvec = arg[1]
-            yvec = arg[2]
-            err = []
-            A = np.identity(len(arg[0][:-1]))*np.array(arg[0][:-1])
-            Adet = np.linalg.det(np.linalg.inv(A))
-            for idx in xrange(0,len(yvec)):
-              v = mu-xvec[idx]
-              C = a # a*(1/math.sqrt(2*math.pi**dimCount*Adet))
-              yPredicted = C*np.exp(-(v.dot(A).dot(v))) + c - C
-              err.append((yvec[idx] - yPredicted))
-            return err
-          # Not sure what is a good starting place for the covariance, so just
-          # use the identity matrix
-          for d in xrange(0,paramCount-1):
-            paramGuess.append(1.0)
-        else:
-          # Define a variable number of inputs for our Gaussian
-          def residuals(*arg):
-            a = arg[0][-1]
-            xvec = arg[1]
-            yvec = arg[2]
-            err = []
-
-            A = np.zeros((dimCount,dimCount))
-            idx = 0
-            for dRow in xrange(dimCount):
-              for dCol in xrange(dRow,dimCount):
-                A[dRow,dCol] = A[dCol,dRow] = arg[0][idx]
-                idx += 1
-
-            # Fastest way to tell if a matrix is positive definite
-            try:
-              np.linalg.cholesky(A)
-            except np.linalg.LinAlgError as msg:
-             # if 'Matrix is not positive definite' in msg.args:
-                # Return a large value to penalize non-conformant solution.
-                return 1e50*np.ones(len(yvec))
-               # return sys.float_info.max*np.ones(len(yvec))
-
-            #Adet = np.linalg.det(np.linalg.inv(A))
-            for idx in xrange(0,len(yvec)):
-              v = mu-xvec[idx]
-              C = a # a*(1/math.sqrt(2*math.pi**dimCount*Adet))
-              yPredicted = C*np.exp(-(v.dot(A).dot(v))) + c - C
-              err.append((yvec[idx] - yPredicted))
-            return err
-
-
-          # Not sure what is a good starting place for the covariance, so just
-          # use the identity matrix
-          for dRow in xrange(dimCount):
-            for dCol in xrange(dRow,dimCount):
-              paramGuess.append(1.0*(dRow==dCol))
-
-        if extType:
-          # Amplitude estimate (the range of this data, opens down for the maxima
-          # thus amplitude should be positive
-          paramGuess.append(self.Y[extIdx]-min(self.Y[indices]))
-        else:
-          # Amplitude estimate (the range of this data, opens up for minima
-          # thus the amplitude should be negative
-          paramGuess.append(self.Y[extIdx]-max(self.Y[indices]))
-
-        test = scipy.optimize.leastsq(residuals, paramGuess, args=(X,Y),
-                                      full_output=True)
-       # print(test)
-
-        a = test[0][-1]
-        if constrainedGaussian:
-          A = np.identity(dimCount)*test[0][0:-1]
-        else:
-          A = np.zeros((dimCount,dimCount))
-          idx = 0
-          for dRow in xrange(dimCount):
-            for dCol in xrange(dRow,dimCount):
-              A[dRow,dCol] = A[dCol,dRow] = test[0][idx]
-              idx += 1
-        #Adet = np.linalg.det(np.linalg.inv(A))
-
-        def GaussFit(x):
-          v = mu - x
-          C = a # a*(1/sqrt(2*pi**dimCount*Adet))
-          return C*np.exp(-(v.dot(A).dot(v))) + c - C
-
-        yHat = np.zeros(X.shape[0])
-        for i in xrange(X.shape[0]):
-          yHat[i] = GaussFit(X[i,])
-        rSquared = 1 - np.sum((yHat - Y)**2)/np.sum((Y - np.mean(Y))**2)
-
-        self.extremumFits[extIdx] = (mu,c,a,A)
-        self.extremumFitnesses[extIdx] = rSquared
+      self.segmentFitnesses[key] = sum(np.sqrt((yHat-y)**2))
 
   def GetNames(self):
     """ Returns the names of the input and output dimensions in the order they
@@ -831,7 +720,6 @@ class AMSC_Object(object):
     if len(rows) == 0:
       return []
     return retValue[:,cols]
-    # return self.X[rows,cols]
 
   def GetY(self, indices=None, applyFilters=False):
     """ Returns the output data requested by the user
@@ -918,11 +806,6 @@ class AMSC_Object(object):
     partitions = self.Partitions(self.persistence)
     beta_hat = self.segmentFits[key][1:]
     y_intercept = self.segmentFits[key][0]
-    # beta_hat = self.segmentFits[key][:]
-    # y_intercept = 0
-
-    ## Debug statement to ensure that the appropriate model is being evaluated
-    # return self.segmentFits.keys().index(key)*np.ones(x.shape[0])
     if len(x.shape) == 1:
       return x.dot(beta_hat) + y_intercept
     else:
@@ -937,7 +820,8 @@ class AMSC_Object(object):
           row indices to predict
         @ In, fit, an optional string specifying which fit should be used to
           predict each location, 'linear' = Morse-Smale segment, 'maxima' =
-          descending/stable manifold, 'minima' = ascending/unstable manifold
+          descending/stable manifold, 'minima' = ascending/unstable manifold.
+          Only 'linear' is available in this version.
         @ In, applyFilters, a boolean specifying whether data filters should be
           used to prune the results
         @ Out, a list of floating point values specifying the predicted output
@@ -950,24 +834,10 @@ class AMSC_Object(object):
       for key,items in partitions.iteritems():
         beta_hat = self.segmentFits[key][1:]
         y_intercept = self.segmentFits[key][0]
-        # beta_hat = self.segmentFits[key][:]
-        # y_intercept = 0
         for idx in items:
           predictedY[idx] = self.Xnorm[idx,:].dot(beta_hat) + y_intercept
-    else:
-      extType = 0
-      if fit == 'maximum':
-        extType = 1
-      for key,items in partitions.iteritems():
-        extIdx = key[extType]
-        (mu,c,a,A) = self.extremumFits[extIdx]
-        def GaussFit(x):
-          v = mu - x
-          C = a # a*(1/sqrt(2*pi**dimCount*Adet))
-          return C*np.exp(-(v.dot(A).dot(v))) + c#+ c - C
-
-        for idx in items:
-          predictedY[idx] = GaussFit(self.Xnorm[idx,:])
+    ## Possible extension to fit data per stable or unstable manifold would
+    ## go here
 
     if indices is None:
       indices = list(xrange(0,self.GetSampleSize()))
@@ -1007,57 +877,49 @@ class AMSC_Object(object):
     else:
       residuals = np.absolute(actualY-predictedY)/yRange
 
-    # if(fit =='linear'):
-    #   w = self.w[indices]
-    #   for i in xrange(len(residuals)):
-    #     residuals[i] *= w[i]
-
     return residuals
 
-  def FitsSynced(self):
-    """ Returns whether the segment and extremum fits are built for the
-        currently selected level of persistence.
-        @ Out, a boolean that reports True if everything is synced and False,
-          otherwise.
+  def GetColors(self):
+    """ Returns a dictionary of colors where the keys specify Morse-Smale
+        segment min-max integer index pairs, unstable/ascending manifold minima
+        integer indices, and stable/descending manifold maxima integer indices.
+        The values are hex strings specifying unique colors for each different
+        type of segment.
+        @ Out, a dictionary specifying unique colors for each Morse-Smale
+          segment, stable/descending manifold, and unstable/ascending manifold.
     """
-    return self.SegmentFitsSynced() and self.ExtremumFitsSynced()
+    partitions = self.Partitions(self.persistence)
+    partColors = {}
+    for key in partitions.keys():
+      minKey,maxKey = key
+      if key not in self.partitionColors:
+        self.partitionColors[key] = next(self.colorList)
+      if minKey not in self.partitionColors:
+        self.partitionColors[minKey] = next(self.colorList)
+      if maxKey not in self.partitionColors:
+        self.partitionColors[maxKey] = next(self.colorList)
 
-  def SegmentFitsSynced(self):
-    """ Returns whether the segment fits are built for the currently selected
-        level of persistence.
-        @ Out, a boolean that reports True if all of the linear fits are
-          constructed and False, otherwise.
+      # Only get the colors we need for this level of the partition
+      partColors[key] = self.partitionColors[key]
+      partColors[minKey] = self.partitionColors[minKey]
+      partColors[maxKey] = self.partitionColors[maxKey]
+
+    return partColors
+
+  def GetSelectedExtrema(self):
+    """ Returns the extrema highlighted as being selected in an attached UI
+        @ Out, a list of non-negative integer indices specifying the extrema
+          selected.
     """
-    fitKeys = self.segmentFits.keys()
-    rSquaredKeys = self.segmentFitnesses.keys()
+    return self.selectedExtrema
 
-    if sorted(fitKeys) != sorted(rSquaredKeys) \
-    or sorted(fitKeys) != sorted(self.GetCurrentLabels()) \
-    or self.segmentFits is None or len(self.segmentFits) == 0:
-      return False
-
-    return True
-
-  def ExtremumFitsSynced(self):
-    """ Returns whether the extremum fits are built for the currently selected
-        level of persistence.
-        @ Out, a boolean that reports True if all of the Gaussian fits are
-          constructed and False, otherwise.
+  def GetSelectedSegments(self):
+    """ Returns the Morse-Smale segments highlighted as being selected in an
+        attached UI
+        @ Out, a list of non-negative integer index pairs specifying the min-max
+          pairs associated to the selected Morse-Smale segments.
     """
-    extIdxs = []
-    for extPair in self.GetCurrentLabels():
-      extIdxs.extend(list(extPair))
-
-    extIdxs = list(set(extIdxs))
-    fitKeys = self.extremumFits.keys()
-    rSquaredKeys = self.extremumFitnesses.keys()
-
-    if sorted(fitKeys) != sorted(rSquaredKeys) \
-    or sorted(fitKeys) != sorted(extIdxs) \
-    or self.extremumFits is None or len(self.extremumFits) == 0:
-      return False
-
-    return True
+    return self.selectedSegments
 
   def GetCurrentLabels(self):
     """ Returns a list of tuples that specifies the min-max index labels
@@ -1069,126 +931,23 @@ class AMSC_Object(object):
     partitions = self.Partitions(self.persistence)
     return partitions.keys()
 
-  def SetSelection(self, selectionList, cross_inclusion=False):
-    """ Sets the currently selected items of this instance
-        @ In, selectionList, a mixed list of 2-tuples and integers representing
-          min-max index pairs and extremum indices, respectively
-        @ In, cross_inclusion, a boolean that will ensure if you select all of
-          the segments attached to an extermum get selected and vice versa
-    """
-    partitions = self.Partitions(self.persistence)
-
-    self.selectedSegments = []
-    self.selectedExtrema = []
-
-    for idx in selectionList:
-      ## Here are a few alternatives to do the same thing, I think I like the
-      ## not an int test the best because it is less likely to change than the
-      ## representation of the pair
-      #if isinstance(label, tuple):
-      #if hasattr(label, '__len__'):
-      if isinstance(idx,int):
-        self.selectedExtrema.append(idx)
-        #If you select an extremum, also select all of its attached segments
-        if cross_inclusion:
-          for minMax in partitions.keys():
-            if idx in minMax:
-              self.selectedSegments.append(minMax)
-      else:
-        self.selectedSegments.append(idx)
-        #If you select an segment, also select all of its attached extrema
-        if cross_inclusion:
-          self.selectedExtrema.extend(list(idx))
-
-    self.selectedSegments = list(set(self.selectedSegments))
-    self.selectedExtrema = list(set(self.selectedExtrema))
-
-    # self.sigSelectionChanged.emit()
-
-  def GetSampleSize(self):
+  def GetSampleSize(self,key = None):
     """ Returns the number of samples in the input data
+        @ In, key, an optional 2-tuple specifying a min-max id pair used for
+          determining which partition size should be returned. If not specified
+          then the size of the entire data set will be returned.
         @ Out, an integer specifying the number of samples.
     """
-    return len(self.Y)
+    if key is None:
+      return len(self.Y)
+    else:
+      return len(self.partitions[self.persistence][key])
 
   def GetDimensionality(self):
     """ Returns the dimensionality of the input space of the input data
         @ Out, an integer specifying the dimensionality of the input samples.
     """
     return self.X.shape[1]
-
-  def ComputeExtremaShapeDescriptors(self):
-    """ Computes and internally stores the second order derivative information
-        computed at each extrema using the Gaussian fit around each extremum.
-    """
-    self.derivatives = {}
-    for ext,fit in self.extremumFits.iteritems():
-      (mu,c,a,A) = fit
-
-      # def dfdu(x):
-      #   v = x - mu
-      #   C = a
-      #   return C*np.exp(-(v.dot(A).dot(v)))
-
-      # def dudxm(x,m):
-      #   v = x - mu
-      #   mySum = 0
-      #   for i in xrange(0,len(x)):
-      #     mySum += 2*v[i]*A[m,i]
-      #   return -mySum
-
-      # def du2dxmdxn(x,m,n):
-      #   return -2*A[m,n]
-
-      x = self.Xnorm[int(ext),:]
-      self.derivatives[int(ext)] = np.zeros(shape=(len(x),len(x)))
-      for m in xrange(len(x)):
-        for n in xrange(len(x)):
-          # val1 = dfdu(x)
-          # val2 = dudxm(x,m)
-          # val3  = dudxm(x,n)
-          # val4 = du2dxmdxn(x,m,n)
-          # self.derivatives[int(ext)][m,n] = val1*(val2*val3 + val4)
-          ## You are a big dum dum, Dan, all you had to do was this:
-          self.derivatives[int(ext)][m,n] = -2*a*A[m,n]
-
-  def GetSecondOrderDerivatives(self,key):
-    """ Returns the computed second order derivative information at the
-        specified extremum using its associated Gaussian fit.
-        @ In, key, a non-negative integer specifying the index of an extrema for
-          the currently selected persistence level.
-        @ Out, a matrix of values specifying the second order derivatives at
-          the specified extremum where the order represents the same dimensional
-          ordering of the input data.
-    """
-    return self.derivatives[key]
-
-  def GetConcentrationMatrix(self,key):
-    """ Returns only the concentraion matrix solution for the nonlinear least
-        squares fitting about a specified local minimum or local maximum given
-        by key.
-        @ In, key, a non-negative integer less than the input sample size
-          corresponding to an input sample that is either a local minimum or a
-          local maximum that has a local fit built.
-        @ Out, a matrix representing the solution of the concentration matrix
-          for the specified fit.
-    """
-    (mu,c,a,A) = self.extremumFits[key]
-    # covariance = np.linalg.inv(A)
-    return A
-
-  def GetExtremumFitCoefficients(self,key):
-    """ Returns the solution coefficients for the nonlinear least squares
-        fitting about a specified local minimum or local maximum given by key.
-        @ In, key, a non-negative integer less than the input sample size
-          corresponding to an input sample that is either a local minimum or a
-          local maximum that has a local fit built.
-        @ Out, a tuple representing all of the solution coefficients including
-          the mean vector, the scalar offset, the scalar amplitude, and the
-          concentration matrix, in that order.
-    """
-    (mu,c,a,A) = self.extremumFits[key]
-    return (mu,c,a,A)
 
   def GetClassification(self,idx):
     """ Given an index, this function will report whether that sample is a local
@@ -1198,12 +957,10 @@ class AMSC_Object(object):
         @ Out, a string specifying the classification type of the input sample:
           will be 'maximum,' 'minimum,' or 'regular.'
     """
-    partitions = self.Partitions(0)
-    for minMaxPair in partitions.keys():
-      if idx == minMaxPair[0]:
-        return 'minimum'
-      elif idx == minMaxPair[1]:
-        return 'maximum'
+    if idx in self.minIdxs:
+      return 'minimum'
+    elif idx in self.maxIdxs:
+      return 'maximum'
     return 'regular'
 
   def ComputeStatisticalSensitivity(self):
@@ -1217,22 +974,14 @@ class AMSC_Object(object):
     for key,items in partitions.iteritems():
       X = self.Xnorm[np.array(items),:]
       y = self.Y[np.array(items)]
-     # w = self.w[np.array(items)]
 
       self.pearson[key] = []
       self.spearman[key] = []
+
       for col in xrange(0,X.shape[1]):
         sigmaXcol = np.std(X[:,col])
         self.pearson[key].append(scipy.stats.pearsonr(X[:,col], y)[0])
         self.spearman[key].append(scipy.stats.spearmanr(X[:,col], y)[0])
-
-  def XMLFormattedHierarchy(self):
-    """ Writes the complete Morse-Smale merge hierarchy to an xml formatted
-        string.
-        @ Out, a string object storing the entire merge hierarchy of all minima
-          and maxima in xml format.
-    """
-    return self.__amsc.XMLFormattedHierarchy()
 
   def PrintHierarchy(self):
     """ Writes the complete Morse-Smale merge hierarchy to a string object.
@@ -1240,3 +989,250 @@ class AMSC_Object(object):
           and maxima.
     """
     return self.__amsc.PrintHierarchy()
+
+  def GetNeighbors(self,idx):
+    """ Returns a list of neighbors for the specified index
+        @ In, an integer specifying the query point
+        @ Out, a integer list of neighbors indices
+    """
+    return self.__amsc.Neighbors(idx)
+
+
+try:
+  import PySide.QtCore
+  import colors
+
+  class QAMSC_Object(AMSC_Object,PySide.QtCore.QObject):
+    ## Paul Tol's colorblind safe colors
+    colorList = itertools.cycle(colors.TolColors)
+
+    sigPersistenceChanged = PySide.QtCore.Signal()
+    sigSelectionChanged = PySide.QtCore.Signal()
+    sigFilterChanged = PySide.QtCore.Signal()
+    sigDataChanged = PySide.QtCore.Signal()
+    sigModelsChanged = PySide.QtCore.Signal()
+    sigWeightsChanged = PySide.QtCore.Signal()
+
+    def Reinitialize(self, X, Y, w=None, names=None, graph='beta skeleton',
+                     gradient='steepest', knn=-1, beta=1.0, normalization=None,
+                     persistence='difference', edges=None, debug=False):
+      """ Allows the caller to basically start over with a new dataset.
+          @ In, X, an m-by-n array of values specifying m n-dimensional samples
+          @ In, Y, a m vector of values specifying the output responses
+            corresponding to the m samples specified by X
+          @ In, w, an optional m vector of values specifying the weights
+            associated to each of the m samples used. Default of None means all
+            points will be equally weighted
+          @ In, names, an optional list of strings that specify the names to
+            associate to the n input dimensions and 1 output dimension. Default of
+            None means input variables will be x0,x1...,x(n-1) and the output will
+            be y
+          @ In, graph, an optional string specifying the type of neighborhood
+            graph to use. Default is 'beta skeleton,' but other valid types are:
+            'delaunay,' 'relaxed beta skeleton,' or 'approximate knn'
+          @ In, gradient, an optional string specifying the type of gradient
+            estimator
+            to use. Currently the only available option is 'steepest'
+          @ In, knn, an optional integer value specifying the maximum number of
+            k-nearest neighbors used to begin a neighborhood search. In the case
+            of graph='[relaxed] beta skeleton', we will begin with the specified
+            approximate knn graph and prune edges that do not satisfy the empty
+            region criteria.
+          @ In, beta, an optional floating point value between 0 and 2. This
+            value is only used when graph='[relaxed] beta skeleton' and specifies
+            the radius for the empty region graph computation (1=Gabriel graph,
+            2=Relative neighbor graph)
+          @ In, normalization, an optional string specifying whether the
+            inputs/output should be scaled before computing. Currently, two modes
+            are supported 'zscore' and 'feature'. 'zscore' will ensure the data
+            has a mean of zero and a standard deviation of 1 by subtracting the
+            mean and dividing by the variance. 'feature' scales the data into the
+            unit hypercube.
+          @ In, persistence, an optional string specifying how we will compute
+            the persistence hierarchy. Currently, three modes are supported
+            'difference', 'probability' and 'count'. 'difference' will take the
+            function value difference of the extrema and its closest function
+            valued neighboring saddle, 'probability' will augment this value by
+            multiplying the probability of the extremum and its saddle, and count
+            will make the larger point counts more persistent.
+      """
+      super(QAMSC_Object,self).Reinitialize(X, Y, w, names, graph, gradient,
+                                            knn, beta, normalization,
+                                            persistence, edges, debug)
+      self.sigDataChanged.emit()
+
+    def Persistence(self, p=None):
+      """ Sets or returns the persistence simplfication level to be used for
+          representing this Morse-Smale complex
+          @ In, p, a floating point value that will set the persistence value,
+            if this value is set to None, then this function will return the
+            current persistence leve.
+          @ Out, if no p value is supplied then this function will return the
+            current persistence setting. If a p value is supplied, it will be
+            returned as it will be the new persistence setting of this object.
+      """
+      if p is None:
+        return self.persistence
+      pers = super(QAMSC_Object,self).Persistence(p)
+      self.sigPersistenceChanged.emit()
+      return pers
+
+    def SetWeights(self, w=None):
+      """ Sets the weights associated to the m input samples
+          @ In, w, optional m vector specifying the new weights to use for the
+            data points. Default is None and resets the weights to be uniform.
+      """
+      super(QAMSC_Object,self).SetWeights(w)
+      self.sigWeightsChanged.emit()
+
+    def BuildModels(self,persistence=None):
+      """ Forces the construction of linear fits per Morse-Smale segment and
+          Gaussian fits per stable/unstable manifold for the user-specified
+          persistence level.
+          @ In, persistence, a floating point value specifying the simplification
+            level to use, if this value is None, then we will build models based
+            on the internally set persistence level for this Morse-Smale object.
+      """
+      super(QAMSC_Object,self).BuildModels(persistence)
+      self.sigModelsChanged.emit()
+
+    def SetSelection(self, selectionList, cross_inclusion=False):
+      """ Sets the currently selected items of this instance
+          @ In, selectionList, a mixed list of 2-tuples and integers representing
+            min-max index pairs and extremum indices, respectively
+          @ In, cross_inclusion, a boolean that will ensure if you select all of
+            the segments attached to an extermum get selected and vice versa
+      """
+      partitions = self.Partitions(self.persistence)
+
+      self.selectedSegments = []
+      self.selectedExtrema = []
+
+      for idx in selectionList:
+        ## Here are a few alternatives to do the same thing, I think I like the
+        ## not an int test the best because it is less likely to change than the
+        ## representation of the pair
+        #if isinstance(label, tuple):
+        #if hasattr(label, '__len__'):
+        if isinstance(idx,int):
+          self.selectedExtrema.append(idx)
+          #If you select an extremum, also select all of its attached segments
+          if cross_inclusion:
+            for minMax in partitions.keys():
+              if idx in minMax:
+                self.selectedSegments.append(minMax)
+        else:
+          self.selectedSegments.append(idx)
+          #If you select an segment, also select all of its attached extrema
+          if cross_inclusion:
+            self.selectedExtrema.extend(list(idx))
+
+      self.selectedSegments = list(set(self.selectedSegments))
+      self.selectedExtrema = list(set(self.selectedExtrema))
+
+      self.sigSelectionChanged.emit()
+
+    def ClearFilter(self):
+      """ Erases all currently set filters on any dimension.
+      """
+      self.filters = {}
+      self.sigSelectionChanged.emit()
+
+    def SetFilter(self,name,bounds):
+      """ Sets the bounds of the selected dimension as a filter
+          @ In, name, a string denoting the variable to which this filter will be
+            applied.
+          @ In, bounds, a list of two values specifying a lower and upper bound on
+            the dimension specified by name.
+      """
+      if bounds is None:
+        self.filters.pop(name,None)
+      else:
+        self.filters[name] = bounds
+      self.sigSelectionChanged.emit()
+
+    def GetFilter(self,name):
+      """ Returns the currently set filter for a particular dimension specified.
+          @ In, name, a string denoting the variable for which one wants to
+            retrieve filtered information.
+          @ Out, a list consisting of two values that specify the filter
+            boundaries of the queried dimension.
+      """
+      if name in self.filters.keys():
+        return self.filters[name]
+      else:
+        return None
+
+    def Select(self, idx):
+      """ Add a segment or extremum to the list of currently selected items
+          @ In, idx, either an non-negative integer or a 2-tuple of non-negative
+            integers specifying the index of an extremum or a min-max index pair.
+      """
+      if isinstance(idx,int):
+        if idx not in self.selectedExtrema:
+          self.selectedExtrema.append(idx)
+      else:
+        if idx not in self.sectedSegments:
+          self.selectedSegments.append(idx)
+
+        self.sigSelectionChanged.emit()
+
+    def Deselect(self, idx):
+      """ Remove a segment or extremum from the list of currently selected items
+          @ In, idx, either an non-negative integer or a 2-tuple of non-negative
+            integers specifying the index of an extremum or a min-max index pair.
+      """
+      if isinstance(idx,int):
+        if idx in self.selectedExtrema:
+          self.selectedExtrema.remove(idx)
+      else:
+        if idx in self.sectedSegments:
+          self.selectedSegments.remove(idx)
+
+        self.sigSelectionChanged.emit()
+
+    def ClearSelection(self):
+      """ Empties the list of selected items.
+      """
+      self.selectedSegments = []
+      self.selectedExtrema = []
+      self.sigSelectionChanged.emit()
+
+    def GetSelectedIndices(self,segmentsOnly=True):
+      """ Returns a mixed list of extremum indices and min-max index pairs
+          specifying all of the segments selected.
+          @ In, segmentsOnly, a boolean variable that will filter the results to
+            only return min-max index pairs.
+          @ Out, a list of non-negative integers and 2-tuples consisting of
+            non-negative integers.
+      """
+      partitions = self.Partitions(self.persistence)
+      indices = []
+      for extPair,indexSet in partitions.iteritems():
+        if extPair in self.selectedSegments \
+        or extPair[0] in self.selectedExtrema \
+        or extPair[1] in self.selectedExtrema:
+          indices.extend(indexSet)
+
+      indices = self.GetMask(indices)
+      return list(indices)
+
+    def FitsSynced(self):
+      """ Returns whether the segment and extremum fits are built for the
+          currently selected level of persistence.
+          @ Out, a boolean that reports True if everything is synced and False,
+            otherwise.
+      """
+      fitKeys = self.segmentFits.keys()
+      rSquaredKeys = self.segmentFitnesses.keys()
+
+      if sorted(fitKeys) != sorted(rSquaredKeys) \
+      or sorted(fitKeys) != sorted(self.GetCurrentLabels()) \
+      or self.segmentFits is None or len(self.segmentFits) == 0:
+        return False
+
+      return True
+
+except ImportError as e:
+  sys.stderr.write('')
+  pass

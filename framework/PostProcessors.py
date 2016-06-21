@@ -15,6 +15,7 @@ from glob import glob
 import copy
 import math
 from collections import OrderedDict
+import time
 from sklearn.linear_model import LinearRegression
 import importlib
 #External Modules End--------------------------------------------------------------------------------
@@ -2878,7 +2879,6 @@ class TopologicalDecomposition(BasePostProcessor):
       @ In, messageHandler, MessageHandler, message handler object
       @ Out, None
     """
-
     BasePostProcessor.__init__(self, messageHandler)
     self.acceptedGraphParam = ['approximate knn', 'delaunay', 'beta skeleton', \
                                'relaxed beta skeleton']
@@ -3071,9 +3071,6 @@ class TopologicalDecomposition(BasePostProcessor):
       @ In, inputIn, dict, dictionary of data to process
       @ Out, outputDict, dict, Dictionary containing the post-processed results
     """
-    # # Possibly load this here in case people have trouble building it, so it
-    # # only errors if they try to use it?
-    from AMSC_Object import AMSC_Object
 
     input = self.inputToInternal(inputIn)
     outputDict = {}
@@ -3094,9 +3091,11 @@ class TopologicalDecomposition(BasePostProcessor):
       weights = None
 
     names = self.parameters['features'] + [self.parameters['targets']]
-    # FIXME: AMSC_Object employs unsupervised NearestNeighbors algorithm from scikit learn.
-    #       The NearestNeighbor algorithm is implemented in SupervisedLearning, which requires features and targets by default.
-    #       which we don't have here. When the NearestNeighbor is implemented in unSupervisedLearning switch to it.
+
+    ## Possibly load this here in case people have trouble building it, so it
+    ## only errors if they try to use it?
+    from AMSC_Object import AMSC_Object
+
     self.__amsc = AMSC_Object(X=inputData, Y=outputData, w=weights,
                               names=names, graph=self.graph,
                               gradient=self.gradient, knn=self.knn,
@@ -3108,60 +3107,185 @@ class TopologicalDecomposition(BasePostProcessor):
 
     outputDict['minLabel'] = np.zeros(self.pointCount)
     outputDict['maxLabel'] = np.zeros(self.pointCount)
-    output = ""
     for extPair, indices in partitions.iteritems():
       for idx in indices:
         outputDict['minLabel'][idx] = extPair[0]
         outputDict['maxLabel'][idx] = extPair[1]
     outputDict['hierarchy'] = self.__amsc.PrintHierarchy()
-    output += '========== Linear Regressors: ==========' + os.linesep
     self.__amsc.BuildModels()
     linearFits = self.__amsc.SegmentFitCoefficients()
     linearFitnesses = self.__amsc.SegmentFitnesses()
 
     for key in linearFits.keys():
-      output += str(key) + os.linesep
       coefficients = linearFits[key]
       rSquared = linearFitnesses[key]
-      #output += '\t' + u"\u03B2\u0302: " + str(coefficients) + '\n'
-      #output += '\t' + u"R\u00B2: " + str(rSquared) + '\n' + '\n'
-      output += '\t' + "beta: " + str(coefficients) + os.linesep
-      output += '\t' + "R^2: " + str(rSquared) + 2 * os.linesep
       outputDict['coefficients_%d_%d' % (key[0], key[1])] = coefficients
       outputDict['R2_%d_%d' % (key[0], key[1])] = rSquared
 
-    #output += 'RMSD  = %f\n' % (self.linearNRMSD)
-    output += '========== Gaussian Fits: ==========' + os.linesep
-    #output += u'a/\u221A(2\u03C0^d|\u03A3|)*e^(-(x-\u03BC)T\u03A3(x-\u03BC)) + c - '
-    #      + u'a\t(\u03BC & c are fixed, \u03A3 and a are estimated)\n'
-    output += 'a/sqrt(2*(pi)^d|M|)*e^(-(x-mu)TM(x-mu)) + c - a'
-    output += '\t(mu & c are fixed, M and a are estimated)' + os.linesep
-
-    exts = linearFits.keys()
-    exts = [int(item) for sublist in exts for item in sublist]
-    exts = list(set(exts))
-
-    for key in exts:
-      output += str(key) + ':' + os.linesep
-      (mu, c, a, A) = self.__amsc.GetExtremumFitCoefficients(key)
-      #output += u':\t\u03BC=' + str(mu) + '\n'
-      output += u':\tmu=' + str(mu) + os.linesep
-      output += '\tc=' + str(c) + os.linesep
-      output += '\ta=' + str(a) + os.linesep
-      output += '\tM=' + os.linesep + str(A) + 2 * os.linesep
-      #output += '\t\u03A3=\n' + str(A)+'\n\n'
-      #output += '\t' + u"R\u00B2: " + str(rSquared) + '\n\n'
-
-      outputDict['mu_' + str(key)] = mu
-      outputDict['c_' + str(key)] = c
-      outputDict['a_' + str(key)] = a
-      outputDict['Sigma_' + str(key)] = A
-      outputDict['R2_' + str(key)] = rSquared
-
-    # output += 'RMSD  = %f and %f\n' % (self.gaussianNRMSD[0],self.gaussianNRMSD[1])
-    self.raiseAMessage(output)
     return outputDict
 
+#
+#
+#
+#
+try:
+  import PySide.QtCore as qtc
+  class QTopologicalDecomposition(TopologicalDecomposition,qtc.QObject):
+    """
+      TopologicalDecomposition class - Computes an approximated hierarchical
+      Morse-Smale decomposition from an input point cloud consisting of an
+      arbitrary number of input parameters and a response value per input point
+    """
+    requestUI = qtc.Signal(str,str,dict)
+    def __init__(self, messageHandler):
+      """
+       Constructor
+       @ In, messageHandler, message handler object
+      """
+
+      TopologicalDecomposition.__init__(self, messageHandler)
+      qtc.QObject.__init__(self)
+
+      self.interactive = False
+      self.uiDone = True ## If it has not been requested, then we are not waiting for a UI
+
+    def _localWhatDoINeed(self):
+      """
+      This method is a local mirror of the general whatDoINeed method.
+      It is implemented by the samplers that need to request special objects
+      @ In , None, None
+      @ Out, needDict, list of objects needed
+      """
+      return {'internal':[(None,'app')]}
+
+    def _localGenerateAssembler(self,initDict):
+      """
+      Generates the assembler.
+      @ In, initDict, dict of init objects
+      @ Out, None
+      """
+      self.app = initDict['internal']['app']
+      if self.app is None:
+        self.interactive = False
+
+    def _localReadMoreXML(self, xmlNode):
+      """
+        Function to grab the names of the methods this post-processor will be
+        using
+        @ In, xmlNode    : Xml element node
+        @ Out, None
+      """
+      TopologicalDecomposition._localReadMoreXML(self, xmlNode)
+      for child in xmlNode:
+        if child.tag == 'interactive':
+          self.interactive = True
+
+    def run(self, InputIn):
+      """
+       Function to finalize the filter => execute the filtering
+       @ In, InputIn, dictionary, dictionary of data to process
+       @ Out, outputDict, dictionary, dictionary with results
+      """
+      Input = self.inputToInternal(InputIn)
+      outputDict = {}
+
+      myDataIn = Input['features']
+      myDataOut = Input['targets']
+      outputData = myDataOut[self.parameters['targets'].encode('UTF-8')]
+      self.pointCount = len(outputData)
+      self.dimensionCount = len(self.parameters['features'])
+
+      inputData = np.zeros((self.pointCount, self.dimensionCount))
+      for i, lbl in enumerate(self.parameters['features']):
+        inputData[:, i] = myDataIn[lbl.encode('UTF-8')]
+
+      if self.weighted:
+        weights = InputIn[0].getMetadata('PointProbability')
+      else:
+        weights = None
+
+      names = self.parameters['features'] + [self.parameters['targets']]
+
+      self.__amsc = None
+      if self.interactive:
+        ## Connect our own signal to the slot on the main thread
+        self.requestUI.connect(self.app.createUI)
+        ## Connect our own slot to listen for whenver the main thread signals a
+        ## window has been closed
+        self.app.windowClosed.connect(self.signalDone)
+        ## Give this UI a unique id in case other threads are requesting UI
+        ##  elements
+        uiID = unicode(id(self))
+        ## Set the flag to false before requesting the UI
+        self.uiDone = False
+        ## Send the request for a UI thread to the main application
+        self.requestUI.emit('MainWindow', uiID,
+                            {'X':inputData, 'Y':outputData, 'w':weights,
+                             'names':names, 'graph':self.graph,
+                             'gradient': self.gradient, 'knn':self.knn,
+                             'beta':self.beta, 'normalization':self.normalization,
+                             'debug':False})
+        ## Spinlock will wait until this instance's window has been closed
+        while(not self.uiDone):
+          time.sleep(1)
+
+        if hasattr(self.app.UIs[uiID],'amsc'):
+          self.__amsc = self.app.UIs[uiID].amsc
+          self.simplification = self.app.UIs[uiID].amsc.Persistence()
+        else:
+          self.__amsc = None
+
+      if self.__amsc is None:
+        ## Possibly load this here in case people have trouble building it, so it
+        ## only errors if they try to use it?
+        from AMSC_Object import AMSC_Object
+
+        self.__amsc = AMSC_Object(X=inputData, Y=outputData, w=weights,
+                                  names=names, graph=self.graph,
+                                  gradient=self.gradient, knn=self.knn,
+                                  beta=self.beta, normalization=self.normalization,
+                                  persistence=self.persistence, debug=False)
+
+      self.__amsc.Persistence(self.simplification)
+      partitions = self.__amsc.Partitions()
+
+      outputDict['minLabel'] = np.zeros(self.pointCount)
+      outputDict['maxLabel'] = np.zeros(self.pointCount)
+      for extPair, indices in partitions.iteritems():
+        for idx in indices:
+          outputDict['minLabel'][idx] = extPair[0]
+          outputDict['maxLabel'][idx] = extPair[1]
+      outputDict['hierarchy'] = self.__amsc.PrintHierarchy()
+      self.__amsc.BuildModels()
+      linearFits = self.__amsc.SegmentFitCoefficients()
+      linearFitnesses = self.__amsc.SegmentFitnesses()
+
+      for key in linearFits.keys():
+        coefficients = linearFits[key]
+        rSquared = linearFitnesses[key]
+        outputDict['coefficients_%d_%d' % (key[0], key[1])] = coefficients
+        outputDict['R2_%d_%d' % (key[0], key[1])] = rSquared
+
+      return outputDict
+
+    def signalDone(self,uiID):
+      """
+        In Qt language, this is a slot that will accept a signal from the UI
+        saying that it has completed, thus allowing the computation to begin
+        again with information updated by the user in the UI.
+        @In, uiID, string, the ID of the user interface that signaled its
+            completion. Thus, if several UI windows are open, we don't proceed,
+            until the correct one has signaled it is done.
+        @Out, None
+      """
+      if uiID == unicode(id(self)):
+        self.uiDone = True
+except ImportError as e:
+  pass
+#
+#
+#
+#
 class DataMining(BasePostProcessor):
   """
     DataMiningPostProcessor class. It will apply the specified KDD algorithms in
@@ -3641,7 +3765,10 @@ __interFaceDict['LoadCsvIntoInternalObject'] = LoadCsvIntoInternalObject
 __interFaceDict['LimitSurface'             ] = LimitSurface
 __interFaceDict['ComparisonStatistics'     ] = ComparisonStatistics
 __interFaceDict['External'                 ] = ExternalPostProcessor
-__interFaceDict['TopologicalDecomposition' ] = TopologicalDecomposition
+try:
+  __interFaceDict['TopologicalDecomposition' ] = QTopologicalDecomposition
+except NameError:
+  __interFaceDict['TopologicalDecomposition' ] = TopologicalDecomposition
 __interFaceDict['DataMining'               ] = DataMining
 __interFaceDict['ImportanceRank'           ] = ImportanceRank
 __interFaceDict['RavenOutput'              ] = RavenOutput

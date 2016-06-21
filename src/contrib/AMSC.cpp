@@ -982,7 +982,7 @@ void AMSC<T>::ComputeMinimaPersistence(boost::numeric::ublas::matrix<int>
   //compute final persistences - recursively merge smallest persistence
   //extrema and update remaining peristencies depending on the merge
 
-  //First, set each maximum to merge into itself
+  //First, set each minimum to merge into itself
   std::map<int,int> merge;
   for(persistence_map_it it = minHierarchy.begin();
       it != minHierarchy.end();

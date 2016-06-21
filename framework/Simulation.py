@@ -31,6 +31,9 @@ from JobHandler import JobHandler
 import MessageHandler
 import VariableGroups
 import utils
+from Application import __PySideAvailable
+if __PySideAvailable:
+  from Application import InteractiveApplication
 #Internal Modules End--------------------------------------------------------------------------------
 
 #----------------------------------------------------------------------------------------------------
@@ -377,11 +380,13 @@ class Simulation(MessageHandler.MessageUser):
     Using the attribute in the xml node <MyType> type discouraged to avoid confusion
   """
 
-  def __init__(self,frameworkDir,verbosity='all'):
+  def __init__(self,frameworkDir,verbosity='all',interactive=False):
     """
       Constructor
       @ In, frameworkDir, string, absolute path to framework directory
       @ In, verbosity, string, optional, general verbosity level
+      @ In, interactive, boolean, optional, toggles the ability to provide an
+        interactive UI or to run to completion without human interaction
       @ Out, None
     """
     self.FIXME          = False
@@ -479,6 +484,13 @@ class Simulation(MessageHandler.MessageUser):
     self.whichDict['OutStreams'] = {}
     self.whichDict['OutStreams']['Plot' ] = self.OutStreamManagerPlotDict
     self.whichDict['OutStreams']['Print'] = self.OutStreamManagerPrintDict
+
+    # The QApplication
+    if interactive:
+      self.app = InteractiveApplication([],self.messageHandler)
+    else:
+      self.app = None
+
     #the handler of the runs within each step
     self.jobHandler    = JobHandler()
     #handle the setting of how the jobHandler act
