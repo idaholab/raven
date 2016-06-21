@@ -3446,9 +3446,8 @@ class DataMining(BasePostProcessor):
         if hasattr(self.unSupervisedEngine, 'clusterCentersIndices_'):
           noClusters = len(self.unSupervisedEngine.clusterCentersIndices_)
 
-        ## Get the centroids and push them to a SolutionExport data object, if
-        ## we have both, also if we have the centers, assume we have the indices
-        ## to match them.
+        ## Get the centroids and push them to a SolutionExport data object.
+        ## Also if we have the centers, assume we have the indices to match them
         if hasattr(self.unSupervisedEngine, 'clusterCenters_'):
           centers = self.unSupervisedEngine.clusterCenters_
           ## Does skl not provide a correlation between label ids and cluster
@@ -3461,8 +3460,8 @@ class DataMining(BasePostProcessor):
           if self.solutionExport is not None:
             for index,center in zip(indices,centers):
               self.solutionExport.updateInputValue(self.labelFeature,index)
-              ## Can I be sure of the order of dimensions in the features dict, is
-              ## the same order as the data held in the UnSupervisedLearning
+              ## Can I be sure of the order of dimensions in the features dict,
+              ## is the same order as the data held in the UnSupervisedLearning
               ## object?
               for key,value in zip(self.unSupervisedEngine.features.keys(),center):
                 self.solutionExport.updateOutputValue(key,value)
@@ -3485,38 +3484,54 @@ class DataMining(BasePostProcessor):
         outputDict['output'][self.labelFeature] = mixtureLabels
 
         if self.solutionExport is not None:
-          ## TODO: Export Gaussian centers to SolutionExport
-          ## Get the centroids and push them to a SolutionExport data object, if
-          ## we have both, also if we have the centers, assume we have the indices
-          ## to match them.
+          ## Get the means and push them to a SolutionExport data object.
           ## Does skl not provide a correlation between label ids and Gaussian
           ## centers?
           indices = list(range(len(mixtureMeans)))
           for index,center in zip(indices,mixtureMeans):
             self.solutionExport.updateInputValue(self.labelFeature,index)
             ## Can I be sure of the order of dimensions in the features dict, is
-            ## the same order as the data held in the UnSupervisedLearning object?
+            ## the same order as the data held in the UnSupervisedLearning
+            ## object?
             for key,value in zip(self.unSupervisedEngine.features.keys(),center):
               self.solutionExport.updateOutputValue(key,value)
+            ## You may also want to output the covariances of each pair of
+            ## dimensions as well
+            for i,row in enumerate(self.unSupervisedEngine.features.keys()):
+              for joffset,col in enumerate(self.unSupervisedEngine.features.keys()[i:]):
+                j = i+joffset
+                self.solutionExport.updateOutputValue('cov_'+str(row)+'_'+str(col),mixtureCovars[index][i,j])
 
       elif 'manifold' == self.unSupervisedEngine.SKLtype:
         manifoldValues = self.unSupervisedEngine.normValues
 
         if hasattr(self.unSupervisedEngine, 'embeddingVectors_'):
           embeddingVectors = self.unSupervisedEngine.embeddingVectors_
+          # print('a')
         elif hasattr(self.unSupervisedEngine.Method, 'transform'):
           embeddingVectors = self.unSupervisedEngine.Method.transform(manifoldValues)
+          # print('b')
         elif hasattr(self.unSupervisedEngine.Method, 'fit_transform'):
           embeddingVectors = self.unSupervisedEngine.Method.fit_transform(manifoldValues)
+          # print('c')
 
         if hasattr(self.unSupervisedEngine, 'reconstructionError_'):
           reconstructionError = self.unSupervisedEngine.reconstructionError_
 
-        ## information stored on a per point basis, no need to use a solution
-        ## export here
+        ## information stored on a per point basis
         for i in range(len(embeddingVectors[0, :])):
           outputDict['output'][self.name+'EmbeddingVector' + str(i + 1)] =  embeddingVectors[:, i]
 
+        # if self.solutionExport is not None:
+        #   ## Get the embedding vectors and push them to a SolutionExport data
+        #   ## object. The input will always be zero since this information is
+        #   ## global.
+        #   index = 0
+        #   self.solutionExport.updateInputValue('global',index)
+        #   ## Can I be sure of the order of dimensions in the features dict, is
+        #   ## the same order as the data held in the UnSupervisedLearning object?
+        #   for key,value in zip(self.unSupervisedEngine.features.keys(),embeddingVectors):
+        #     self.solutionExport.updateOutputValue(key+'_coeff',value)
 
       elif 'decomposition' == self.unSupervisedEngine.SKLtype:
         decompositionValues = self.unSupervisedEngine.normValues
