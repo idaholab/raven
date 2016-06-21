@@ -3521,17 +3521,6 @@ class DataMining(BasePostProcessor):
         for i in range(len(embeddingVectors[0, :])):
           outputDict['output'][self.name+'EmbeddingVector' + str(i + 1)] =  embeddingVectors[:, i]
 
-        # if self.solutionExport is not None:
-        #   ## Get the embedding vectors and push them to a SolutionExport data
-        #   ## object. The input will always be zero since this information is
-        #   ## global.
-        #   index = 0
-        #   self.solutionExport.updateInputValue('global',index)
-        #   ## Can I be sure of the order of dimensions in the features dict, is
-        #   ## the same order as the data held in the UnSupervisedLearning object?
-        #   for key,value in zip(self.unSupervisedEngine.features.keys(),embeddingVectors):
-        #     self.solutionExport.updateOutputValue(key+'_coeff',value)
-
       elif 'decomposition' == self.unSupervisedEngine.SKLtype:
         decompositionValues = self.unSupervisedEngine.normValues
 
@@ -3552,9 +3541,7 @@ class DataMining(BasePostProcessor):
         elif 'fit_transform' in dir(self.unSupervisedEngine.Method):
           transformedData = self.unSupervisedEngine.Method.fit_transform(decompositionValues)
 
-        ## information stored on a per point basis, no need to use a solution
-        ## export here, this could potentially change, if we are sure these
-        ## use a single projection matrix.
+        ## information stored on a per point basis
         for i in range(noComponents):
           outputDict['output'][self.name+'PCAComponent' + str(i + 1)] =  transformedData[:, i]
 
@@ -3656,36 +3643,46 @@ class DataMining(BasePostProcessor):
           componentMeanIndices = self.unSupervisedEngine.outputDict['componentMeanIndices']
         if 'means' in self.unSupervisedEngine.outputDict.keys():
           mixtureMeans = self.unSupervisedEngine.outputDict['means']
-          # Output cluster centroid to solutionExport
-          if self.solutionExport is not None:
-            ## We will process each cluster in turn
-            for clusterIdx in xrange(int(np.max(componentMeanIndices.values()))+1):
-              ## First store the label as the input for this cluster
-              self.solutionExport.updateInputValue(self.labelFeature,clusterIdx)
+        # Output cluster centroid to solutionExport
+        if self.solutionExport is not None:
+          ## We will process each cluster in turn
+          for clusterIdx in xrange(int(np.max(componentMeanIndices.values()))+1):
+            ## First store the label as the input for this cluster
+            self.solutionExport.updateInputValue(self.labelFeature,clusterIdx)
 
-              ## The time series will be the first output
-              ## TODO: Ensure user requests this
-              self.solutionExport.updateOutputValue('Time', self.Time)
+            ## The time series will be the first output
+            ## TODO: Ensure user requests this
+            self.solutionExport.updateOutputValue('Time', self.Time)
 
-              ## Now we will process each feature available
-              ## TODO: Ensure user requests each of these
-              for featureIdx, feat in enumerate(self.unSupervisedEngine.features):
-                ## We will go through the time series and find every instance
-                ## where this cluster exists, if it does not, then we put a NaN
-                ## to signal that the information is missing for this timestep
+            ## Now we will process each feature available
+            ## TODO: Ensure user requests each of these
+            for featureIdx, feat in enumerate(self.unSupervisedEngine.features):
+              ## We will go through the time series and find every instance
+              ## where this cluster exists, if it does not, then we put a NaN
+              ## to signal that the information is missing for this timestep
+              timeSeries = np.zeros(noTimeStep)
+
+              for timeIdx in range(noTimeStep):
+                timeSeries[timeIdx] = mixtureMeans[timeIdx][clusterIdx,featureIdx]
+
+              ## In summary, for each feature, we fill a temporary array and
+              ## stuff it into the solutionExport, one question is how do we
+              ## tell it which item we are exporting? I am assuming that if
+              ## I add an input, then I need to do the corresponding
+              ## updateOutputValue to associate everything with it? Once I
+              ## call updateInputValue again, it will move the pointer? This
+              ## needs verified
+              self.solutionExport.updateOutputValue(feat, timeSeries)
+
+            ## You may also want to output the covariances of each pair of
+            ## dimensions as well
+            for i,row in enumerate(self.unSupervisedEngine.features.keys()):
+              for joffset,col in enumerate(self.unSupervisedEngine.features.keys()[i:]):
+                j = i+joffset
                 timeSeries = np.zeros(noTimeStep)
-
                 for timeIdx in range(noTimeStep):
-                  timeSeries[timeIdx] = self.unSupervisedEngine.outputDict['means'][timeIdx][clusterIdx,featureIdx]
-
-                ## In summary, for each feature, we fill a temporary array and
-                ## stuff it into the solutionExport, one question is how do we
-                ## tell it which item we are exporting? I am assuming that if
-                ## I add an input, then I need to do the corresponding
-                ## updateOutputValue to associate everything with it? Once I
-                ## call updateInputValue again, it will move the pointer? This
-                ## needs verified
-                self.solutionExport.updateOutputValue(feat, timeSeries)
+                  timeSeries[timeIdx] = mixtureCovars[timeIdx][clusterIdx][i,j]
+                self.solutionExport.updateOutputValue('cov_'+str(row)+'_'+str(col),timeSeries)
 
       elif self.unSupervisedEngine.SKLtype in ['manifold']:
         noComponents = self.unSupervisedEngine.outputDict['noComponents'][0]
