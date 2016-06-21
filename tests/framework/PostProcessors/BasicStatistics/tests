@@ -75,4 +75,14 @@
   csv = 'basicStatsSensitivity/csv_database.csv'
   xml = 'basicStatsSensitivity/csv_database.xml'
  [../]
+ [./testTimeDependentBasicStatistics]
+  type = 'RavenFramework'
+  input = 'test_time_dep_basicStats.xml'
+  output = 'basicStatisticsTimeDependent/output_basicStatistics_timedep_PP1.csv basicStatisticsTimeDependent/output_basicStatistics_timedep_PP1.xml'
+  csv = 'basicStatisticsTimeDependent/HistorySetPostProcTest_dump_3.csv'
+  xml = 'basicStatisticsTimeDependent/HistorySetPostProcTest_dump.xml basicStatisticsTimeDependent/output_basicStatistics_timedep_PP1.xml'
+ [../]
+
+
+
 []

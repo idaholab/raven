@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <RunInfo>
-    <WorkingDir>/Users/alfoa/projects/raven/tests/framework/PostProcessors/BasicStatistics/basicStatisticsGeneral</WorkingDir>
+    <WorkingDir>basicStatisticsTimeDependent</WorkingDir>
     <Sequence>FirstMRun,timeDepBasicStatPP</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
@@ -62,13 +62,14 @@
       <Model class="Models" type="ExternalModel">PythonModule</Model>
       <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
       <Output class="DataObjects" type="HistorySet">HistorySetPostProcTest</Output>
-      <Output class="OutStreams" type="Print">HistorySetPostProcTest_dump</Output>
     </MultiRun>
     <PostProcess name="timeDepBasicStatPP">
       <Input class="DataObjects" type="HistorySet">HistorySetPostProcTest</Input>
       <Model class="Models" type="PostProcessor">timeDepBasicStat</Model>
       <Output class="Files" type="">output_basicStatistics_timedep_PP1.csv</Output>
       <Output class="Files" type="">output_basicStatistics_timedep_PP1.xml</Output>
+      <Output class="DataObjects" type="HistorySet">HistorySetPostProcTest</Output>
+      <Output class="OutStreams" type="Print">HistorySetPostProcTest_dump</Output>
     </PostProcess>
   </Steps>
 
