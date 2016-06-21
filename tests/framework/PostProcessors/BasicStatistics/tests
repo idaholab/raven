@@ -81,6 +81,8 @@
   output = 'basicStatisticsTimeDependent/output_basicStatistics_timedep_PP1.csv basicStatisticsTimeDependent/output_basicStatistics_timedep_PP1.xml'
   csv = 'basicStatisticsTimeDependent/HistorySetPostProcTest_dump_3.csv'
   xml = 'basicStatisticsTimeDependent/HistorySetPostProcTest_dump.xml basicStatisticsTimeDependent/output_basicStatistics_timedep_PP1.xml'
+   rel_err = 1e-5
+   zero_threshold = 1e-14
  [../]
 
 

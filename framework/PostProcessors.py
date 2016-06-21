@@ -1525,6 +1525,9 @@ class BasicStatistics(BasePostProcessor):
     # each post processor knows how to handle the coming inputs. The BasicStatistics postprocessor accept all the input type (files (csv only), hdf5 and datas
     self.dynamic = False
     currentInput = currentInp [-1] if type(currentInp) == list else currentInp
+    if type(currentInput).__name__ =='dict':
+      if 'targets' not in currentInput.keys() and 'timeDepData' not in currentInput.keys(): self.raiseAnError(IOError, 'Did not find targets or timeDepData in input dictionary')
+      return currentInput
     if currentInput.type not in ['PointSet','HistorySet']: self.raiseAnError(IOError, self, 'BasicStatistics postprocessor accepts PointSet and HistorySet only! Got ' + currentInput.type)
     if currentInput.type in ['PointSet']:
       inputDict = {'targets':{},'metadata':currentInput.getAllMetadata()}
