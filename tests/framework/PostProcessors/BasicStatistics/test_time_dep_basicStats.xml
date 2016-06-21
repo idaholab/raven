@@ -10,6 +10,7 @@
     <Input name="basicStatisticsExternalModelTest.py" type="">basicStatisticsExternalModelTest.py</Input>
     <Input name="output_basicStatistics_timedep_PP1.csv" type="">output_basicStatistics_timedep_PP1.csv</Input>
     <Input name="output_basicStatistics_timedep_PP1.xml" type="">output_basicStatistics_timedep_PP1.xml</Input>
+    <Input name="samples.csv" type="">samples.csv</Input>
   </Files>
 
   <Models>
@@ -17,51 +18,30 @@
       <variables>x,y,z,time,x0,x01,x02,y0,y02,y01,z0,z02,z01</variables>
     </ExternalModel>
     <PostProcessor name="timeDepBasicStat" subType="BasicStatistics" verbosity="debug">
+        <!--
         <what>covariance,NormalizedSensitivity,VarianceDependentSensitivity,pearson,expectedValue,sigma,variationCoefficient,variance,skewness,kurtosis,median,percentile,samples</what>
+         -->
+        <what>all</what>
       <parameters>x0,y0,z0,x,y,z</parameters>
       <pivotParameter>time</pivotParameter>
     </PostProcessor>
   </Models>
 
-
-  <Distributions>
-    <Normal name="x0_distrib">
-      <mean>4</mean>
-      <sigma>1</sigma>
-    </Normal>
-    <Normal name="y0_distrib">
-      <mean>100</mean>
-      <sigma>1</sigma>
-    </Normal>
-    <Normal name="z0_distrib">
-      <mean>4</mean>
-      <sigma>1</sigma>
-    </Normal>
-  </Distributions>
-
   <Samplers>
-    <MonteCarlo name="MC_external">
-      <samplerInit>
-        <limit>4</limit>
-      </samplerInit>
-      <variable name="x0">
-        <distribution>x0_distrib</distribution>
-      </variable>
-      <variable name="y0">
-        <distribution>y0_distrib</distribution>
-      </variable>
-      <variable name="z0">
-        <distribution>z0_distrib</distribution>
-      </variable>
-    </MonteCarlo>
+      <CustomSampler name="customSamplerFile">
+          <Source   class="Files"  type="">samples.csv</Source>
+          <variable name="x0"/>
+          <variable name="y0"/>
+          <variable name="z0"/>
+      </CustomSampler>
   </Samplers>
 
   <Steps>
-    <MultiRun name="FirstMRun" re-seeding="25061978">
-      <Input class="Files" type="">basicStatisticsExternalModelTest.py</Input>
-      <Model class="Models" type="ExternalModel">PythonModule</Model>
-      <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
-      <Output class="DataObjects" type="HistorySet">HistorySetPostProcTest</Output>
+    <MultiRun name="FirstMRun">
+      <Input   class="Files" type="">basicStatisticsExternalModelTest.py</Input>
+      <Model   class="Models" type="ExternalModel">PythonModule</Model>
+      <Sampler class="Samplers" type="CustomSampler">customSamplerFile</Sampler>
+      <Output  class="DataObjects" type="HistorySet">HistorySetPostProcTest</Output>
     </MultiRun>
     <PostProcess name="timeDepBasicStatPP">
       <Input class="DataObjects" type="HistorySet">HistorySetPostProcTest</Input>
