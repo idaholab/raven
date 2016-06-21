@@ -483,6 +483,138 @@ class Dummy(Model):
       output.updateMetadata(key,exportDict['metadata'][key])
 #
 #
+
+class ROMInput(InputData.ParameterInput):
+  """
+    Class for reading in ROM block
+  """
+
+ROMInput.createClass("ROM", False, baseNode=ModelInput)
+
+FeaturesInput = InputData.parameterInputFactory('Features',contentType=InputData.StringType)
+TargetInput = InputData.parameterInputFactory('Target',contentType=InputData.StringType)
+
+ROMInput.addSub(FeaturesInput)
+ROMInput.addSub(TargetInput)
+
+IndexSetInputType = InputData.makeEnumType("indexSet","indexSetType",["TensorProduct","TotalDegree","HyperbolicCross","Custom"])
+CriterionInputType = InputData.makeEnumType("criterion", "criterionType", ["bic","aic","gini","entropy","mse"])
+EstimatorInput = InputData.parameterInputFactory('estimator', contentType=InputData.StringType)
+EstimatorInput.addParam("estimatorType", InputData.StringType, True)
+
+def addSimpleSub(outer, name, inputType):
+  """
+    Adds a sub node to the outer.
+    @ In, outer, Inputdata.Parameterinput, the outer node
+    @ In, name, string, the name to use for the sub node
+    @ In, inputType, InputData.InputType, the type of the content in the sub node
+    @ Out, None
+  """
+  sub = InputData.parameterInputFactory(name, contentType=inputType)
+  outer.addSub(sub)
+
+addSimpleSub(ROMInput, "IndexPoints", InputData.StringType)
+addSimpleSub(ROMInput, "IndexSet",IndexSetInputType)
+addSimpleSub(ROMInput, "Interpolation", InputData.StringType)
+addSimpleSub(ROMInput, "PolynomialOrder", InputData.IntegerType)
+addSimpleSub(ROMInput, "SobolOrder", InputData.IntegerType)
+addSimpleSub(ROMInput, "SparseGrid", InputData.IntegerType)
+addSimpleSub(ROMInput, "persistence", InputData.StringType)
+addSimpleSub(ROMInput, "gradient", InputData.StringType)
+addSimpleSub(ROMInput, "simplification", InputData.FloatType)
+addSimpleSub(ROMInput, "graph", InputData.StringType)
+addSimpleSub(ROMInput, "beta", InputData.FloatType)
+addSimpleSub(ROMInput, "knn", InputData.IntegerType)
+addSimpleSub(ROMInput, "partitionPredictor", InputData.StringType)
+addSimpleSub(ROMInput, "smooth", InputData.StringType)
+addSimpleSub(ROMInput, "kernel", InputData.StringType)
+addSimpleSub(ROMInput, "bandwidth", InputData.FloatType)
+addSimpleSub(ROMInput, "p", InputData.IntegerType)
+addSimpleSub(ROMInput, "SKLtype", InputData.StringType)
+addSimpleSub(ROMInput, "n_iter", InputData.IntegerType)
+addSimpleSub(ROMInput, "tol", InputData.FloatType)
+addSimpleSub(ROMInput, "alpha_1", InputData.FloatType)
+addSimpleSub(ROMInput, "alpha_2", InputData.FloatType)
+addSimpleSub(ROMInput, "lambda_1", InputData.FloatType)
+addSimpleSub(ROMInput, "lambda_2", InputData.FloatType)
+addSimpleSub(ROMInput, "compute_score", InputData.StringType) #bool
+addSimpleSub(ROMInput, "threshold_lambda", InputData.FloatType)
+addSimpleSub(ROMInput, "fit_intercept", InputData.StringType) #bool
+addSimpleSub(ROMInput, "normalize", InputData.StringType) #bool
+addSimpleSub(ROMInput, "verbose", InputData.StringType) #bool
+addSimpleSub(ROMInput, "alpha", InputData.FloatType)
+addSimpleSub(ROMInput, "l1_ratio", InputData.FloatType)
+addSimpleSub(ROMInput, "max_iter", InputData.IntegerType)
+addSimpleSub(ROMInput, "warm_start", InputData.StringType) #bool
+addSimpleSub(ROMInput, "positive", InputData.StringType) #bool?
+addSimpleSub(ROMInput, "eps", InputData.FloatType)
+addSimpleSub(ROMInput, "n_alphas", InputData.IntegerType)
+addSimpleSub(ROMInput, "precompute", InputData.StringType)
+addSimpleSub(ROMInput, "n_nonzero_coefs", InputData.IntegerType)
+addSimpleSub(ROMInput, "fit_path", InputData.StringType) #bool
+addSimpleSub(ROMInput, "max_n_alphas", InputData.IntegerType)
+addSimpleSub(ROMInput, "criterion", CriterionInputType)
+addSimpleSub(ROMInput, "penalty", InputData.StringType) #enum
+addSimpleSub(ROMInput, "dual", InputData.StringType) #bool
+addSimpleSub(ROMInput, "C", InputData.FloatType)
+addSimpleSub(ROMInput, "intercept_scaling", InputData.FloatType)
+addSimpleSub(ROMInput, "class_weight", InputData.StringType)
+addSimpleSub(ROMInput, "random_state", InputData.StringType)
+addSimpleSub(ROMInput, "cv", InputData.StringType)
+addSimpleSub(ROMInput, "shuffle", InputData.StringType) #bool
+addSimpleSub(ROMInput, "loss", InputData.StringType) #enum
+addSimpleSub(ROMInput, "epsilon", InputData.FloatType)
+addSimpleSub(ROMInput, "eta0", InputData.FloatType)
+addSimpleSub(ROMInput, "solver", InputData.StringType) #enum
+addSimpleSub(ROMInput, "alphas", InputData.StringType)
+addSimpleSub(ROMInput, "scoring", InputData.StringType)
+addSimpleSub(ROMInput, "gcv_mode", InputData.StringType) #enum
+addSimpleSub(ROMInput, "store_cv_values", InputData.StringType) #bool
+addSimpleSub(ROMInput, "learning_rate", InputData.StringType), #enum
+addSimpleSub(ROMInput, "power_t", InputData.FloatType)
+addSimpleSub(ROMInput, "multi_class", InputData.StringType)
+addSimpleSub(ROMInput, "kernel", InputData.StringType) #enum
+addSimpleSub(ROMInput, "degree", InputData.IntegerType)
+addSimpleSub(ROMInput, "gamma", InputData.FloatType)
+addSimpleSub(ROMInput, "coef0", InputData.FloatType)
+addSimpleSub(ROMInput, "probability", InputData.StringType) #bool
+addSimpleSub(ROMInput, "shrinking", InputData.StringType) #bool
+addSimpleSub(ROMInput, "cache_size", InputData.FloatType)
+addSimpleSub(ROMInput, "nu", InputData.FloatType)
+ROMInput.addSub(EstimatorInput)
+addSimpleSub(ROMInput, "code_size", InputData.FloatType)
+addSimpleSub(ROMInput, "fit_prior", InputData.StringType) #bool
+addSimpleSub(ROMInput, "class_prior", InputData.StringType)
+addSimpleSub(ROMInput, "binarize", InputData.FloatType)
+addSimpleSub(ROMInput, "n_neighbors", InputData.IntegerType)
+addSimpleSub(ROMInput, "weights", InputData.StringType) #enum
+addSimpleSub(ROMInput, "algorithm", InputData.StringType) #enum
+addSimpleSub(ROMInput, "leaf_size", InputData.IntegerType)
+addSimpleSub(ROMInput, "metric", InputData.StringType) #enum?
+addSimpleSub(ROMInput, "radius", InputData.FloatType)
+addSimpleSub(ROMInput, "outlier_label", InputData.StringType)
+addSimpleSub(ROMInput, "shrink_threshold", InputData.FloatType)
+addSimpleSub(ROMInput, "priors", InputData.StringType)
+addSimpleSub(ROMInput, "reg_param", InputData.FloatType)
+addSimpleSub(ROMInput, "splitter", InputData.StringType) #enum
+addSimpleSub(ROMInput, "max_features", InputData.StringType)
+addSimpleSub(ROMInput, "max_depth", InputData.IntegerType)
+addSimpleSub(ROMInput, "min_samples_split", InputData.IntegerType)
+addSimpleSub(ROMInput, "min_samples_leaf", InputData.IntegerType)
+addSimpleSub(ROMInput, "max_leaf_nodes", InputData.IntegerType)
+addSimpleSub(ROMInput, "regr", InputData.StringType) #enum
+addSimpleSub(ROMInput, "corr", InputData.StringType) #enum?
+addSimpleSub(ROMInput, "beta0", InputData.StringType)
+addSimpleSub(ROMInput, "storage_mode", InputData.StringType) #enum
+addSimpleSub(ROMInput, "theta0", InputData.StringType)
+addSimpleSub(ROMInput, "thetaL", InputData.StringType)
+addSimpleSub(ROMInput, "thetaU", InputData.StringType)
+addSimpleSub(ROMInput, "nugget", InputData.FloatType)
+addSimpleSub(ROMInput, "optimizer", InputData.StringType) #enum
+addSimpleSub(ROMInput, "random_start", InputData.IntegerType)
+
+#TODO start at 16.3.6.3 Multi class
+
 #
 class ROM(Dummy):
   """
