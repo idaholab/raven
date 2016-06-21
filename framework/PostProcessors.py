@@ -3635,14 +3635,27 @@ class DataMining(BasePostProcessor):
           for t in range(noTimeStep):
             labels[:,t] = self.unSupervisedEngine.outputDict['labels'][t]
           outputDict['output'][self.labelFeature] = labels
+
         if 'covars' in self.unSupervisedEngine.outputDict.keys():
           mixtureCovars = self.unSupervisedEngine.outputDict['covars']
-        elif 'precs' in self.unSupervisedEngine.outputDict.keys():
-          mixtureCovars = self.unSupervisedEngine.outputDict['precs']
+        else:
+          mixtureCovars = None
+
+        if 'precs' in self.unSupervisedEngine.outputDict.keys():
+          mixturePrecs = self.unSupervisedEngine.outputDict['precs']
+        else:
+          mixturePrecs = None
+
         if 'componentMeanIndices' in self.unSupervisedEngine.outputDict.keys():
           componentMeanIndices = self.unSupervisedEngine.outputDict['componentMeanIndices']
+        else:
+          componentMeanIndices = None
+
         if 'means' in self.unSupervisedEngine.outputDict.keys():
           mixtureMeans = self.unSupervisedEngine.outputDict['means']
+        else:
+          mixtureMeans = None
+
         # Output cluster centroid to solutionExport
         if self.solutionExport is not None:
           ## We will process each cluster in turn
@@ -3656,33 +3669,35 @@ class DataMining(BasePostProcessor):
 
             ## Now we will process each feature available
             ## TODO: Ensure user requests each of these
-            for featureIdx, feat in enumerate(self.unSupervisedEngine.features):
-              ## We will go through the time series and find every instance
-              ## where this cluster exists, if it does not, then we put a NaN
-              ## to signal that the information is missing for this timestep
-              timeSeries = np.zeros(noTimeStep)
+            if mixtureMeans is not None:
+              for featureIdx, feat in enumerate(self.unSupervisedEngine.features):
+                ## We will go through the time series and find every instance
+                ## where this cluster exists, if it does not, then we put a NaN
+                ## to signal that the information is missing for this timestep
+                timeSeries = np.zeros(noTimeStep)
 
-              for timeIdx in range(noTimeStep):
-                timeSeries[timeIdx] = mixtureMeans[timeIdx][clusterIdx,featureIdx]
+                for timeIdx in range(noTimeStep):
+                  timeSeries[timeIdx] = mixtureMeans[timeIdx][clusterIdx,featureIdx]
 
-              ## In summary, for each feature, we fill a temporary array and
-              ## stuff it into the solutionExport, one question is how do we
-              ## tell it which item we are exporting? I am assuming that if
-              ## I add an input, then I need to do the corresponding
-              ## updateOutputValue to associate everything with it? Once I
-              ## call updateInputValue again, it will move the pointer? This
-              ## needs verified
-              self.solutionExport.updateOutputValue(feat, timeSeries)
+                ## In summary, for each feature, we fill a temporary array and
+                ## stuff it into the solutionExport, one question is how do we
+                ## tell it which item we are exporting? I am assuming that if
+                ## I add an input, then I need to do the corresponding
+                ## updateOutputValue to associate everything with it? Once I
+                ## call updateInputValue again, it will move the pointer? This
+                ## needs verified
+                self.solutionExport.updateOutputValue(feat, timeSeries)
 
             ## You may also want to output the covariances of each pair of
             ## dimensions as well
-            for i,row in enumerate(self.unSupervisedEngine.features.keys()):
-              for joffset,col in enumerate(self.unSupervisedEngine.features.keys()[i:]):
-                j = i+joffset
-                timeSeries = np.zeros(noTimeStep)
-                for timeIdx in range(noTimeStep):
-                  timeSeries[timeIdx] = mixtureCovars[timeIdx][clusterIdx][i,j]
-                self.solutionExport.updateOutputValue('cov_'+str(row)+'_'+str(col),timeSeries)
+            if mixtureCovars is not None:
+              for i,row in enumerate(self.unSupervisedEngine.features.keys()):
+                for joffset,col in enumerate(self.unSupervisedEngine.features.keys()[i:]):
+                  j = i+joffset
+                  timeSeries = np.zeros(noTimeStep)
+                  for timeIdx in range(noTimeStep):
+                    timeSeries[timeIdx] = mixtureCovars[timeIdx][clusterIdx][i,j]
+                  self.solutionExport.updateOutputValue('cov_'+str(row)+'_'+str(col),timeSeries)
 
       elif self.unSupervisedEngine.SKLtype in ['manifold']:
         noComponents = self.unSupervisedEngine.outputDict['noComponents'][0]

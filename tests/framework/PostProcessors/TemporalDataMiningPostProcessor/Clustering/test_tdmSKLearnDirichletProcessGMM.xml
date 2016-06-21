@@ -105,6 +105,7 @@
         <how>png</how>
       </actions>
     </Plot>
+
     <Plot dim="2" name="plotPPDataCentroid" overwrite="True" >
       <plotSettings>
         <gridSpace>2 1</gridSpace>
@@ -134,7 +135,7 @@
         </plot>
       </plotSettings>
       <actions>
-       <how>png</how>
+        <how>png</how>
       </actions>
     </Plot>
   </OutStreams>
@@ -142,7 +143,7 @@
   <DataObjects>
     <HistorySet name='clusterInfo'>
       <Input>labels</Input>
-      <Output>time,x,y</Output>
+      <Output>Time,x,y</Output>
     </HistorySet>
     <HistorySet name="mData">
       <Input>n</Input>
