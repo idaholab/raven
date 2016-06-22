@@ -1,0 +1,193 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+
+  <!--
+
+  Define RunInfo so we describe where the input file is and what kind of problem
+  to run. Here we run an external python file that generates multiplication factors
+  using external file and do k-means clustering on it.
+
+  -->
+
+  <RunInfo>
+
+    <WorkingDir> clustering </WorkingDir>
+    <Sequence> CalcKeig, classify </Sequence>
+    <batchSize> 1 </batchSize>
+
+  </RunInfo>
+
+  <!--
+
+  Now we define where our .py file. We have at one input file.
+
+  -->
+
+  <Files>
+
+    <Input name="diff_k_raven.py" type=""> diff_k_raven.py </Input>
+    <Input name="output_k.csv" type=""> output_k.csv </Input>
+
+  </Files>
+
+  <!--
+
+  Now we have the models block. ExternalModel allows us to use external files.
+
+  For out PostProcessor, this is what we are doing:
+
+  First we name the postprocessor with a name of our choice and then tell raven
+  what type of postprocessor this is. Here, we have DataMiningPostProcessor.
+  Then inside that node, we have KDD = Knowledge-Based Discovery in Databases
+  This must be invoked for datamining jobs. Here we chooose SciKitLearn (since
+  that is where the k-means clustering method comes from).
+
+  In there we have the following subnodes:
+  SKLtype - cluster|Kmeans - means cluster container and Kmeans method
+  Features - Which variable to apply clustering method to
+  n_clusters - number of clusters (predefined with this k-means)
+  tol - tolerance for convergence
+  random_state - Generator used to define centers for rand numpy array.
+  init - Method of initialization - k-means++ / random / ndarray
+
+  -->
+
+  <Models>
+
+    <ExternalModel ModuleToLoad="diff_k_raven" name="PythonModule" subType="">
+      <variables> l0, k, length </variables>
+    </ExternalModel>
+
+    <PostProcessor name="classifyKmeans" subType="DataMining" verbosity="debug">
+      <KDD lib="SciKitLearn">
+        <SKLtype> cluster|KMeans </SKLtype>
+        <Features> k </Features>
+        <n_clusters> 2 </n_clusters>
+        <tol> 1E-6 </tol>
+        <random_state> 1 </random_state>
+        <init> k-means++ </init>
+      </KDD>
+    </PostProcessor>
+
+  </Models>
+
+  <!--
+
+  Next we have distribution for l0. We will choose a normal distribution with
+  center at 1 and std 0.2.
+
+  -->
+
+  <Distributions>
+    <Normal name="l0_distrib">
+      <mean> 1.0 </mean>
+      <sigma> 0.2 </sigma>
+    </Normal>
+  </Distributions>
+
+  <!--
+
+  Next we define sampler for l0. We use MC sampler.
+
+  -->
+
+  <Samplers>
+
+    <MonteCarlo name="MC_external">
+      <samplerInit>
+        <limit> 100 </limit>
+      </samplerInit>
+      <variable name="l0">
+        <distribution> l0_distrib </distribution>
+      </variable>
+    </MonteCarlo>
+
+  </Samplers>
+
+  <!--
+
+  Now we have the steps block where we will define the steps identified in the
+  RunInfo block.
+
+  Add explaination later.
+
+  NOTE THAT MANUAL SAYS DATAMININGPOSTPROCESSOR THAT GIVES ERROR
+  SAYING POSTPROCESSOR BY THAT NAME DOES NOT EXIST SO USE DATAMINING
+
+  -->
+
+  <Steps>
+
+    <MultiRun name="CalcKeig" re-seeding="25061978">
+
+      <Input class="DataObjects" type="PointSet">  inputPlaceHolder </Input>
+      <Model class="Models" type="ExternalModel"> PythonModule </Model>
+      <Sampler class="Samplers" type="MonteCarlo"> MC_external </Sampler>
+      <Output class="DataObjects" type="PointSet"> k_eigvals </Output>
+      <Output class="OutStreams" type="Print"> k_eigvals_dump </Output>
+
+    </MultiRun>
+
+    <PostProcess name="classify">
+
+      <Input class="DataObjects" type="PointSet"> k_eigvals </Input>
+      <Model class="Models" type="PostProcessor"> classifyKmeans </Model>
+      <Output class="DataObjects" type="PointSet"> k_eigvals </Output>
+      <Output class="OutStreams" type="Plot"> plot_k_eigvals </Output>
+
+    </PostProcess>
+
+  </Steps>
+
+  <!--
+
+  Now we have the outstreams block where we specify what we want to output and
+  in what format.
+
+  -->
+
+  <OutStreams>
+
+    <Print name="k_eigvals_dump">
+      <type> csv </type>
+      <source> k_eigvals </source>
+    </Print>
+
+    <Plot dim="2" name="plot_k_eigvals" overwrite="true">
+      <plotSettings>
+        <plot>
+          <type> dataMining </type>
+          <SKLtype> cluster </SKLtype>
+          <x> k_eigvals|Output|length </x>
+          <y> k_eigvals|Output|k </y>
+          <noClusters> 2 </noClusters>
+          <clusterLabels> k_eigvals|Output|classifyKmeansLabels </clusterLabels>
+        </plot>
+      </plotSettings>
+    <kwargs><linewidths>0</linewidths></kwargs>
+    <actions>
+      <how> png </how>
+    </actions>
+    </Plot>
+
+  </OutStreams>
+
+  <!--
+
+  Now we have the dataobjects block.
+
+  -->
+
+  <DataObjects>
+    <PointSet name="k_eigvals">
+      <Input> l0 </Input>
+      <Output> length, k </Output>
+    </PointSet>
+
+      <PointSet name="inputPlaceHolder">
+        <Input>l0</Input>
+        <Output> outputPlaceHolder </Output>
+      </PointSet>
+  </DataObjects>
+
+</Simulation>
