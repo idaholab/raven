@@ -41,7 +41,7 @@ class MAAP5_GenericV7(GenericCode):
                 if child.text != None:
                     self.boolOutputVariables = child.text.split(',')
             if child.tag == 'contMaapOutputVariables':
-                """here we'll store boolean output MAAP variables to look for"""
+                #here we'll store boolean output MAAP variables to look for
                 if child.text != None:
                     self.contOutputVariables = child.text.split(',')
             if child.tag == 'stopSimulation': self.stop=child.text #this node defines if the MAAP5 simulation stop condition is: 'mission_time' or the occurrence of a given event e.g. 'IEVNT(691)'
