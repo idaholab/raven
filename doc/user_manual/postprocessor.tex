@@ -1089,8 +1089,8 @@ independent of the \xmlAttr{subType} specified (min, max, avg and value case):
 %
 
 \subsubsection{RavenOutput}
-\label{RavenOut}
-The \textbf{RavenOut} post-processor is specifically used
+\label{RavenOutput}
+The \textbf{RavenOutput} post-processor is specifically used
 to gather data from RAVEN output files and generate a PointSet suitable for plotting or other analysis.  
 It can do this in two modes: static and dynamic.  In static mode, the
 PostProcessor reads from from several static XML output files produced by RAVEN.  In dynamic mode, the PostProcessor
@@ -1136,7 +1136,7 @@ be specified.
   \end{itemize}
   %
 \end{itemize}
-\textbf{Example:}
+\textbf{Example (Static):}
 Using an example, let us have two input files, named \emph{in1.xml} and \emph{in2.xml}.  They appear as
 follows.  Note that the name of the variables we want changes slightly between the XML; this is fine.
 
@@ -1185,3 +1185,46 @@ The RAVEN input to extract this information would appear as follows:
 </Simulation>
 \end{lstlisting}
 
+\textbf{Example (Dynamic):}
+For a dynamic example, consider this time-evolution of values example.  \emph{inFile.xml} is a RAVEN dynamic
+XML output.
+
+\textbf{\emph{in1.xml}}
+\begin{lstlisting}[style=XML]
+<BasicStatistics type='Dynamic'>
+  <time value='0.0'>
+    <ans>
+      <val1>6</val1>
+      <val2>7</val2>
+    </ans>
+  <\time>
+  <time value='1.0'>
+    <ans>
+      <val1>9</val1>
+      <val2>10</val2>
+    </ans>
+  <\time>
+</BasicStatistics>
+\end{lstlisting}
+The RAVEN input to extract this information would appear as follows:
+\begin{lstlisting}[style=XML]
+<Simulation>
+ ...
+ <Files>
+   <Input name='inFile'>inFile.xml</Input>
+ </Files>
+ ...
+ <Models>
+   ...
+   <PostProcessor name='pp' subType='RavenOut'>
+     <dynamic>true</dynamic>
+     <File name='inFile'>
+       <output name='first'>ans|val1</output>
+     </File>
+   </PostProcessor>
+   ...
+ </Models>
+ ...
+</Simulation>
+\end{lstlisting}
+The resulting PointSet has \emph{time} as an input and \emph{first} as an output.
