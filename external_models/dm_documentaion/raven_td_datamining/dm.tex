@@ -1,0 +1,111 @@
+\documentclass[11pt]{article}
+\usepackage[a4paper]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{lipsum}
+\usepackage{amsmath, amssymb, amsfonts, amsthm, fouriernc, mathtools}
+\usepackage{microtype}
+\usepackage{graphicx}
+\graphicspath{ {./pics/} {./eps/}}
+\usepackage{epsfig}
+\usepackage{epstopdf}
+
+\begin{document}
+
+\begin{center}
+\begin{Huge}
+
+Time-Dependent Post-Processing in RAVEN
+
+\end{Huge}
+\end{center}
+
+\section{Introduction}
+
+RAVEN is a multi-purpose physics-agnostic software framework designed to perform parametric and stochastic analysis based on the response of system codes. It is not only capable of performing dynamic probabilistic risk analysis for INL based thermal-hydraulics code - RELAP-7 but also provides stochastic uncertainty quantification, and advanced post processing capabilities to any code that is able to communicate with RAVEN using our Application Programming Interfaces (APIs). RAVEN can investigate system response as well as input spaces using advanced sampling schemes such as Monte-Carlo, Latin Hyper Cube, Grid etc. RAVEN's strength lies in it system feature discovery capabilities. The RAVEN user guide (Alfonsi et al., 2016) may be consulted for further information on this.
+
+In this section, we will go over the time dependent post processing algorithms that have been implemented in RAVEN. We will describe the theory behind each algorithm in steady state first and then demonstrate how we extend it to incorporate time dependence. First we will look at Bayes statistics, then we look at the clustering algorithms that have been incorporated into RAVEN, then after we go over dimension reduction algorithms, and then towards the end of this section, we will describe how we extend our steady state algorithms in order to incorporate time dependence.  
+
+\subsection{Bayes Statistics}
+
+
+
+\subsection{Data Mining - Clustering}
+
+Data mining is the computational process of discovering patterns in large data sets that involves methods from artificial intelligence, machine learning, statistics, and database systems. The overall goal of data mining is to extract information from a data set and transform it into understandable structure. In this section we will discuss clustering algorithms in RAVEN. 
+
+A loose definition of clustering is the grouping. Objects with similar properties are grouped into clusters. Closeness according to some predefined metric is the main property we look at in order to define clusters. Several closeness metrics exist in literature (Alfonsi et al., 2016). These different metrics lead to different clustering algorithms. In this section, we will discuss several such clustering algorithms.
+
+\subsubsection{K-Means}
+
+Given an data set, $D$ of size $N$, the k-means algorithm separates $D$ into $K$ clusters, $C_k$ where $k = 1,2,3...K$ such that all $K$ clusters have equal variance. Here, $K$ must be specified beforehand. This k-means algorithm is also known Lloyd's algorithm. The main aim of this algorithm is to choose centroids such that the inertia or within-cluster sum of squares criteria:
+
+\begin{equation}
+\label{criteria}
+\sum_{i=0}^{K} \left(|| x_k - \mu_i||^2 \right),
+\end{equation} 
+
+is minimized. Here $\mu_i$ is the mean value of samples (centroid) within respective clusters, and $x_k$ is the sample value in a particular cluster $C_k$.
+
+The algorithm is as follows:
+
+\begin{enumerate}
+
+\item Choose the initial $K$ centroids (within-cluster mean value).
+
+\item Assign the sample to the nearest centroid. Often, Euclidean distance is used to determine the nearest centroid. 
+
+\item Upon assignment of each sample to its respective centroid, new centroids are calculated for each cluster. The means of the clusters are often chosen to be the new centroids. 
+  
+\item Upon assignment of new centroids, we check for convergence. In other words, we check and see if the centroids are still moving by checking if the difference between the new and the old centroids is below a predefined tolerance. 
+
+\end{enumerate}
+
+This algorithm essentially has two drawbacks:
+
+\begin{itemize}
+\item The minimization criteria makes an assumption that clusters are convex and isotropic. This is not always true.
+\item The minimization criteria is not normalized. Thus with increasing dimension, where the Euclidean distances become inflated, this is not a criteria. 
+\end{itemize}
+
+In order to mitigate the above drawbacks, the dimensions of data set $D$ are reduced using principal component analysis and then k-means algorithm is applied to the data. One may consult (Macqueen, 1967), and (Ding et al., 2004) for mathematical analysis of this method. 
+
+In RAVEN, all data-mining methods are available through scikits-learn (Pderogosa et al., 2011). The k-means method can be accessed in RAVEN through the "KMeans" post-processor. 
+
+
+\subsubsection{Mini-Batch K-Means}
+
+\subsubsection{Affinity Propagation}
+
+
+
+\subsubsection{DBSCAN}
+
+\subsubsection{Dirichelet Process Gaussian Mixture Model}
+
+\subsubsection{Gaussian Mixture}
+
+
+
+\subsubsection{Mean-Shift} 
+
+
+
+\subsubsection{Variational Gaussian Mixture Model}
+
+\subsection{Data Mining - Dimension Reduction}
+
+The rest of the report has been organized as follows. In the following section, we will look at the theoretical benchmarks for each algorithm. The the section after, we will demonstrate how RAVEN seamlessly communicates with BISON.  
+
+\section{Time-Dependent Data Mining}
+
+In this section we will discuss the problems we will use to test RAVEN. 
+
+\section{Post-Processing for BISON}
+
+
+
+\section{Conclusions}
+
+\end{document}
+
