@@ -23,7 +23,7 @@
       <C>1.0</C>
       <epsilon>0.1</epsilon>
       <kernel>rbf</kernel>
-      <degree>3.0</degree>
+      <degree>3</degree>
       <!-- This does not work with 0.15.2 of sklearn -->
       <!-- <gamma>auto</gamma> -->
       <coef0>0.0</coef0>
