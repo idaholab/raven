@@ -308,7 +308,7 @@ class SciKitLearn(unSupervisedLearning):
     """
     if hasattr(self.Method, 'bandwidth'):  # set bandwidth for MeanShift clustering
       self.initOptionDict['bandwidth'] = cluster.estimate_bandwidth(self.normValues,quantile=0.3)
-#       self.Method.set_params(**self.initOptionDict)
+      # self.Method.set_params(**self.initOptionDict)
     if hasattr(self.Method, 'connectivity'):  # We need this connectivity if we want to use structured ward
       connectivity = kneighbors_graph(self.normValues, n_neighbors = 10)  # we should find a smart way to define the number of neighbors instead of default constant integer value(10)
       connectivity = 0.5 * (connectivity + connectivity.T)
@@ -332,7 +332,7 @@ class SciKitLearn(unSupervisedLearning):
     elif hasattr(self.Method, 'transform'):
         self.Method.fit(self.normValues)
         self.Method.transform(self.normValues)
-# Below generates the output Dictionary from the trained algorithm, can be defined in a new method....
+    # Below generates the output Dictionary from the trained algorithm, can be defined in a new method....
     if 'cluster' == self.SKLtype:
         if hasattr(self.Method, 'n_clusters') :
             self.noClusters = self.Method.n_clusters
@@ -415,19 +415,19 @@ class SciKitLearn(unSupervisedLearning):
             self.outputDict['outputs']['explainedVarianceRatio'] = self.explainedVarianceRatio_
     else: print ('Not Implemented yet!...', self.SKLtype)
 
-#     elif 'bicluster' == self.SKLtype:
-#         if hasattr(self.Method, 'n_clusters') :
-#             self.noClusters = self.Method.n_clusters
-#             self.outputDict['outputs']['noClusters'           ] = self.noClusters
-#         if hasattr(self.Method, 'row_labels_') :
-#             self.rowLabels_ = self.Method.row_labels_
-#             self.outputDict['outputs']['rowLabels'            ] = self.rowLabels_
-#         if hasattr(self.Method, 'column_labels_') :
-#             self.columnLabels_ = self.Method.column_labels_
-#             self.outputDict['outputs']['columnLabels'         ] = self.columnLabels_
-#         if hasattr(self.Method, 'bicluster_') :
-#             self.biClusters_ = self.Method.biClusters_
-#             self.outputDict['outputs']['biClusters'           ] = self.biClusters_
+    # elif 'bicluster' == self.SKLtype:
+    #     if hasattr(self.Method, 'n_clusters') :
+    #         self.noClusters = self.Method.n_clusters
+    #         self.outputDict['outputs']['noClusters'           ] = self.noClusters
+    #     if hasattr(self.Method, 'row_labels_') :
+    #         self.rowLabels_ = self.Method.row_labels_
+    #         self.outputDict['outputs']['rowLabels'            ] = self.rowLabels_
+    #     if hasattr(self.Method, 'column_labels_') :
+    #         self.columnLabels_ = self.Method.column_labels_
+    #         self.outputDict['outputs']['columnLabels'         ] = self.columnLabels_
+    #     if hasattr(self.Method, 'bicluster_') :
+    #         self.biClusters_ = self.Method.biClusters_
+    #         self.outputDict['outputs']['biClusters'           ] = self.biClusters_
 
 
   def __evaluateLocal__(self, featureVals):
@@ -688,16 +688,29 @@ class temporalSciKitLearn(unSupervisedLearning):
 
       elif 'decomposition' == self.SKLtype:
 
-        if 'noComponents' not in self.outputDict.keys():      self.outputDict['noComponents'] = {}
-        if 'components' not in self.outputDict.keys():        self.outputDict['components'] = {}
+        if 'noComponents' not in self.outputDict.keys():
+          self.outputDict['noComponents'] = {}
+        if 'components' not in self.outputDict.keys():
+          self.outputDict['components'] = {}
+        if 'transformedData' not in self.outputDict.keys():
+          self.outputDict['transformedData'] = {}
 
         self.outputDict['noComponents'][t] = self.SKLEngine.noComponents_
+
         if hasattr(self.SKLEngine.Method, 'components_'):
           self.outputDict['components'][t] = self.SKLEngine.Method.components_
+
+        ## This is not the same thing as the components above! This is the
+        ## transformed data, the other composes the transformation matrix to get
+        ## this. Whoever designed this, you are causing me no end of headaches
+        ## with this code... I am pretty sure this can all be handled within the
+        ## post-processor rather than adding this frankenstein of code just to
+        ## gain access to the skl techniques.
         if   'transform'     in dir(self.SKLEngine.Method):
-          self.outputDict['components'][t] = self.SKLEngine.Method.transform(self.SKLEngine.normValues)
+          self.outputDict['transformedData'][t] = self.SKLEngine.Method.transform(self.SKLEngine.normValues)
         elif 'fit_transform' in dir(self.SKLEngine.Method):
-          self.outputDict['components'][t] = self.SKLEngine.Method.fit_transform(self.SKLEngine.normValues)
+          self.outputDict['transformedData'][t] = self.SKLEngine.Method.fit_transform(self.SKLEngine.normValues)
+
         if hasattr(self.SKLEngine.Method, 'means_'):
             self.outputDict['means'] = self.SKLEngine.Method.means_
         if hasattr(self.SKLEngine.Method, 'explained_variance_'):

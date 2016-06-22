@@ -3546,12 +3546,10 @@ class DataMining(BasePostProcessor):
           outputDict['output'][self.name+'PCAComponent' + str(i + 1)] =  transformedData[:, i]
 
         if self.solutionExport is not None:
-          ## Get the transformation matrix and push them to a SolutionExport
-          ## data object. The input will always be zero since this information
-          ## is global.
+          ## Get the transformation matrix and push it to a SolutionExport
+          ## data object.
           ## Can I be sure of the order of dimensions in the features dict, is
           ## the same order as the data held in the UnSupervisedLearning object?
-          print(components)
           for row,values in enumerate(components):
             self.solutionExport.updateInputValue('component', row+1)
             for col,value in zip(self.unSupervisedEngine.features.keys(),values):
@@ -3722,10 +3720,19 @@ class DataMining(BasePostProcessor):
             outputDict['output'][self.name+'EmbeddingVector' + str(i + 1)][:,t] =  embeddingVectors[t][:, i]
 
       elif self.unSupervisedEngine.SKLtype in ['decomposition']:
+        decompositionValues = self.unSupervisedEngine.normValues
+
         noComponents = self.unSupervisedEngine.outputDict['noComponents'][0]
 
         if 'components' in self.unSupervisedEngine.outputDict.keys():
           components = self.unSupervisedEngine.outputDict['components']
+        else:
+          components = None
+
+        if 'transformedData' in self.unSupervisedEngine.outputDict.keys():
+          transformedData = self.unSupervisedEngine.outputDict['transformedData']
+        else:
+          transformedData = None
 
         if 'explainedVarianceRatio' in self.unSupervisedEngine.outputDict.keys():
           explainedVarianceRatio = self.unSupervisedEngine.outputDict['explainedVarianceRatio']
@@ -3739,9 +3746,24 @@ class DataMining(BasePostProcessor):
           else:
             print('DEAD CODE 2')
 
-          ## Shouldn't this only happen if components is set above?
-          for t in range(noTimeStep):
-            outputDict['output'][self.name+'PCAComponent' + str(i + 1)][:,t] =  components[t][:, i]
+          if transformedData is not None:
+            for t in range(noTimeStep):
+              outputDict['output'][self.name+'PCAComponent' + str(i + 1)][:,t] = transformedData[t][:, i]
+
+
+        if self.solutionExport is not None and components is not None:
+          ## Get the transformation matrix and push it to a SolutionExport
+          ## data object.
+          ## Can I be sure of the order of dimensions in the features dict, is
+          ## the same order as the data held in the UnSupervisedLearning object?
+          for row in range(noComponents):
+            self.solutionExport.updateInputValue('component', row+1)
+            self.solutionExport.updateOutputValue('Time', self.Time)
+            for i,col in enumerate(self.unSupervisedEngine.features.keys()):
+              timeSeries = np.zeros(noTimeStep)
+              for timeIdx in range(noTimeStep):
+                timeSeries[timeIdx] = components[timeIdx][row][i]
+              self.solutionExport.updateOutputValue(col,timeSeries)
 
       else:
         print ('Not yet implemented!...', self.unSupervisedEngine.SKLtype)

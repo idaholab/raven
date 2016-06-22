@@ -10,8 +10,8 @@
   [./ExactPCA]
     type   = 'RavenFramework'
     input  = 'test_tdmSKLearnExactPCA.xml'
-    csv    = 'ExactPCA/dummy_0.csv ExactPCA/dummy_1.csv ExactPCA/dummy_2.csv'
-    output = 'ExactPCA/dummy.csv ExactPCA/dummy.xml'
+    csv    = 'ExactPCA/dummy_0.csv ExactPCA/dummy_1.csv ExactPCA/dummy_2.csv ExactPCA/info_0.csv ExactPCA/info_1.csv'
+    output = 'ExactPCA/dummy.csv ExactPCA/dummy.xml ExactPCA/info.csv ExactPCA/info.xml'
   [../]
   [./RandomizedPCA]
     type   = 'RavenFramework'

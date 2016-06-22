@@ -2,7 +2,7 @@
 <Simulation verbosity="silent">
   <RunInfo>
     <WorkingDir>ExactPCA</WorkingDir>
-		<Sequence>readIn,pp1</Sequence>
+		<Sequence>readIn,pp1,output</Sequence>
     <batchSize>100</batchSize>
   </RunInfo>
   <Files>
@@ -23,9 +23,14 @@
       <Input  class='Files'       type=''          >rawDataFile</Input>
       <Output class='DataObjects' type='HistorySet'>mData</Output>
     </IOStep>
+    <IOStep name="output" pauseAtEnd="True">
+      <Input class="DataObjects" type="PointSet">drInfo</Input>
+      <Output class="OutStreams" type="Print">info</Output>
+    </IOStep>
     <PostProcess name='pp1' pauseAtEnd='True'>
       <Input  class='DataObjects' type='HistorySet'   >mData</Input>
       <Model  class='Models'      type='PostProcessor'>PCA</Model>
+      <SolutionExport class="DataObjects" type="PointSet">drInfo</SolutionExport>
   		<Output class='DataObjects' type='HistorySet'   >mData</Output>
 			<Output class='OutStreams'  type='Print'        >dummy</Output>
 			<Output class='OutStreams'  type='Plot'         >plotPCAData</Output>
@@ -36,6 +41,10 @@
 		<Print name='dummy'>
       <type>csv</type>
       <source>mData</source>
+    </Print>
+    <Print name="info">
+      <type>csv</type>
+      <source>drInfo</source>
     </Print>
 		<Plot dim="2" name="plotPCAData" overwrite="True" >
 			<plotSettings>
@@ -68,6 +77,10 @@
   </OutStreams>
 
   <DataObjects>
+    <HistorySet name='drInfo'>
+      <Input>x1,x2,x3,x4</Input>
+      <Output>placeholder</Output>
+    </HistorySet>
     <HistorySet name="mData">
       <Input>n</Input>
       <Output>Time,x1,x2,x3,x4</Output>
