@@ -56,12 +56,35 @@ from AMSC_Object import AMSC_Object
 class SPSA(GradientBasedOptimizer):
   def __init__(self):
     GradientBasedOptimizer.__init__(self)
+
     
+  def localLocalInputAndChecks(self, xmlNode):
+    self.gainParamDict['alpha'] = self.paramDict.get('alpha', 0.602)
+    self.gainParamDict['gamma'] = self.paramDict.get('gamma', 0.101)
+    self.gainParamDict['A'] = self.paramDict.get('alpha', self.limit['mdlEval']/10)
+    self.gainParamDict['a'] = self.paramDict.get('alpha', None)
+    self.gainParamDict['c'] = self.paramDict.get('alpha', 0.005)
+    
+#     if 'alpha' not in self.gainDict.keys():       self.gainDict['alpha']    = 0.602
+#     if 'gamma' not in self.gainDict.keys():       self.gainDict['gamma']    = 0.101
+#     if 'A' not in self.gainDict.keys():           self.gainDict['A']        = self.limit['mdlEval']/10
+#     if 'a' not in self.gainDict.keys():           self.gainDict['a']        = None
+#     if 'c' not in self.gainDict.keys():           self.gainDict['c']        = 0.005
+ 
+    
+    pass # to be overwritten by subclass
+
+  def localLocalInitialize(self, solutionExport = None):
+    self._endJobRunnable = 1 # batch mode currently not implemented for SPSA
+    self.numPerturbationsNeeded = 2 * self.gradAveNumber
   
+  def localLocalStillReady(self, ready, convergence = False):
+    return ready
+    
   def localEvaluateGradient(self, optVars, gradient):
     return gradient
   
-  def localGenerateInput(self,model,oldInput):
+  def localLocalGenerateInput(self,model,oldInput):
     for var in self.optVars:
       self.values[var] = 0.2
 #     self.raiseADebug(self.counter['mdlEval'], self.limit)
