@@ -1088,14 +1088,25 @@ independent of the \xmlAttr{subType} specified (min, max, avg and value case):
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 
-\subsubsection{RavenOut}
+\subsubsection{RavenOutput}
 \label{RavenOut}
 The \textbf{RavenOut} post-processor is specifically used
-to gather data from several XML output files produced by RAVEN.
+to gather data from RAVEN output files and generate a PointSet suitable for plotting or other analysis.  
+It can do this in two modes: static and dynamic.  In static mode, the
+PostProcessor reads from from several static XML output files produced by RAVEN.  In dynamic mode, the PostProcessor
+reads from a single dynamic XML output file and builds a PointSet where the pivot parameter (e.g. time) is the
+input and the requested values are returned for each of the pivot parameter values (e.g. points in time).  The
+name for the pivot parameter will be taken directly from the XML structure.
 %
-\ppType{RavenOut}{RavenOut}
+Note: by default the PostProcessor operates in static mode; to read a dynamic file, the \xmlNode{dynamic} node must
+be specified.
+%
+\ppType{RavenOutput}{RavenOutput}
 %
 \begin{itemize}
+  \item \xmlNode{dynamic}, \xmlDesc{string, optional field}, if included will trigger reading a single dynamic
+  file instead of multiple static files, unless the text of this field is \xmlString{false}, in which case it
+  will return to the default (multiple static files).  \default(False)
   \item \xmlNode{File}, \xmlDesc{XML Node, required field}
   %
   For each file to be read by this postprocessor, an entry in the \xmlNode{Files} node must be added, and a
@@ -1103,9 +1114,10 @@ to gather data from several XML output files produced by RAVEN.
   identifying attributes:
   \begin{itemize}
     \item \xmlAttr{name}, \xmlDesc{string, required field}, the RAVEN-assigned name of the file,
-    \item \xmlAttr{ID}, \xmlDesc{float, required field}, the floating point ID that will be unique to this
+    \item \xmlAttr{ID}, \xmlDesc{float, optional field}, the floating point ID that will be unique to this
       file.  This will appear as an entry in the output \xmlNode{DataObject} and the corresponding column are
-      the values extracted from this file.
+      the values extracted from this file.  If not specified, RAVEN will attempt to find a suitable integer ID
+      to use, and a warning will be raised.
   \end{itemize}
   Each value that needs to be extracted from the file needs to be specified by one of the following
   \xmlNode{output} nodes within the \xmlNode{File} node:
