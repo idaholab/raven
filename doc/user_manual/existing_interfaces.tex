@@ -1535,3 +1535,184 @@ This interface's, \xmlNode{OutStreams}, and
 \xmlNode{DataObjects} blocks do not deviate significantly from
 other interfaces' respective nodes.  Please refer to previous
 entries for these blocks if needed.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% MAAP5  INTERFACE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{MAAP5 Interface}
+This section presents the main aspects of the interface coupling RAVEN with MAAP5, 
+the consequent RAVEN input adjustments and the modifications of the MAAP5 input 
+files required to run the two coupled codes.
+The interface works both for forward sampling and the DET, 
+however there are some differences depending on the selected sampling strategy.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{RAVEN Input file}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\paragraph{Files}
+MAAP5 requires more than one file to run a simulation. 
+This means that, since the \xmlNode{Files} section has to contain all the files required by
+the external model (MAAP5) to be run, all these files need to be included within this node. 
+This involves not only the input file (.inp) but also the include file, the parameter file, all the 
+files defining the different plotfils and the other files which could
+result useful for the MAAP5 simulation run.
+Example:
+\begin{lstlisting}[style=XML]
+<Files>
+  <Input name="test.inp" type="">test.inp</Input>
+  <Input name="include_900_502" type="">include_900_502</Input>
+  <Input name="plot_900_502a.txt" type="">plot_900_502a.txt</Input>
+  <Input name="rep900-502a2.par" type="">rep900-502a2.par</Input>
+</Files>
+\end{lstlisting}
+All the files here mentioned in this section
+ need, then, to be put into the working directory specified 
+by the \xmlNode{RunInfo} block.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\paragraph{Models}
+The \xmlNode{Models} block contains the name of the executable file of MAAP5 (with the path, if necessary), 
+and the name of the interface (e.g. MAAP5\_GenericV7).
+In the specific case of MAAP5 interface, this block has also some additional required nodes:
+\begin{itemize}
+  \item \xmlNode{boolMaapOutputVariables}: containing the number of the MAAP5 $IEVNT$ corresponding to the boolean events of 
+  interest;
+  \item \xmlNode{contMaapOutputVariables}: containing the list of all the continuous variables we are interested at, 
+  and that we want to monitor;
+  \item \xmlNode{stopSimulation}: this node is required only in case of DET-based sampling strategy. The user needs to specify
+  if the MAAP5 simulation run stops due to the reached $END TIME$ ('mission\_time') or due to the occurrence of a specific event, 
+  whose $IEVNT$ number needs to be inputted (e.g. ``core\_uncovery'' i.e. $IEVNT(691)$). 
+  
+\end{itemize}
+A \xmlNode{Models} block is show as example below:
+\begin{lstlisting}[style=XML]
+<Models>
+  <Code name="MyMAAP" subType="MAAP5\_GenericV7">
+    <executable>MP502a2LINUX_opt.exe</executable>         
+    <clargs type='input' extension='.inp'/>
+    <boolMaapOutputVariables>691</boolMaapOutputVariables>
+    <contMaapOutputVariables>PPS,PSGGEN(1),ZWDC2SG(1)
+    </contMaapOutputVariables>
+    <stopSimulation>mission_time</stopSimulation>
+  </Code>
+</Models>
+\end{lstlisting}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\paragraph{Other blocks}
+All the other blocks (e.g. \xmlNode{Distributions}, \xmlNode{Samplers}, \xmlNode{Steps},
+ \xmlNode{Databases}, \xmlNode{OutStream}, etc.)
+do not require any particular arrangements than already provided by a RAVEN input.
+User can, therefore, refer to the corresponding sections of the User's Manual.
+This is valid for both forward sampling and DET.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{MAAP5 Input files}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+The coupling of RAVEN and MAAP5 requires modifications to some 
+MAAP5 files in order to work. This is particularly true when a DET analysis is performed.
+The MAAP5 input files that need to be modified are:
+\begin{itemize}
+  \item MAAP5 INCLUDE file
+  \item MAAP5 input file (.inp)
+  \item MAAP5 plotfil definition files
+\end{itemize}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\paragraph{MAAP5 include file}
+The adjustments explained in this section are required only in case of a DET analysis.
+In this case, in fact, one of the include files needs to contain the definition of the
+different timers, one for each variable that causes a branching.
+User is supposed to check that the numbers used for the different timers definition
+are not already used in any of the other MAAP5 files.
+These timers should be preceded by a line reporting 'C Branching + name of the variable 
+sampled by RAVEN causing the branching'.
+For example, we assume that DIESEL is the name of the variable corresponding to the failure time 
+of the Diesel generators (user defined). User has to firstly ensure that, for example, 
+'TIMER 100' is not already used into the model, then the following lines
+need to be added into the include file (that usually contains a section for
+the definition of all the timers to be used into the simulation) for the set of the timer corresponding
+to the Diesel generators failure:
+\begin{lstlisting}[style=XML]
+C Branching DIESEL
+WHEN (TIM>DIESEL)
+   SET TIMER 100
+END 
+\end{lstlisting}
+It is worth mentioning that at this step a TIMER should be defined
+also for the event 'core\_uncovery', if this is the stop condition
+for the MAAP5 run:
+\begin{lstlisting}[style=XML]
+WHEN CORE HAS UNCOV IS TRUE
+  SET TIMER 10
+END 
+\end{lstlisting}
+The interface will check that one timer is defined for each variable
+of the DET. If not, an error arises suggesting to user the name of the variable having no
+timer defined.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\paragraph{MAAP5 input file}
+In the 'parameter change' section of the MAAP5 input file, the user should declare 
+the name of the variables sampled by RAVEN according to the following statement:
+variable = \$ RAVEN-variable:default\$
+where the dafault value is optional.
+For example:
+\begin{lstlisting}[style=XML]
+DIESEL = $RAVEN-DIESEL:-1$ 
+\end{lstlisting}
+This is valid for both forward and DET sampled variables. 
+In particular, in case of DET analysis, the variables causing the occurrence of the branch should be 
+assigned within a block identified by the comment 'C DET Sampled variables':
+\begin{lstlisting}[style=XML]
+C DET Sampled Variables
+DIESEL = $RAVEN-DIESEL:-1$
+C End DET Sampled Variables
+\end{lstlisting}
+If the sampled variables are user-defined, then the user shall ensure that they are initialized 
+(to the default value) and set within the include file into the user-defined variables section.
+As usual, a distribution and a sampling strategy should then correspond to each of these variables 
+into the RAVEN xml input file.
+Only for the DET analysis, then, the occurrence of a branch is identified by a comment before. This comment is
+ 'C BRANCHING + name of the variable determining the branch' and acts as a sort of branching marker. 
+Looking for these markers, indeed, the interface (in case of DET sampler) verifies that at least
+one branching exists.
+Within the block, the occurrence of the branching leads the value of a variable 
+called 'TIM'+number of the corresponding timer set into
+the include file' to switch to 1.0. The code, in fact, detects if a branch has occurred by monitoring
+the value of these kind of variables (initialized within the user-defined
+variables into the include file) of all the branches.
+Therefore following the example, if we want that, when the diesels failure occurs it leads
+to the event 'Loss of AC Power' ($IEVNT(205)$ of MAAP5), we will have:
+\end{document}
+\begin{lstlisting}[style=XML]
+C Branching TIMELOCA
+WHEN TIM > DIESEL
+ TIM100=1.0
+ IEVNT(205)=1.0
+END
+\end{lstlisting}
+It is worth noticing that no comments should be contained within the line of assignment
+(i.e. $IEVNT(205)=1.0$ //LOSS OF AC POWER is not allowed).
+Finally, also in this case only for DET analysis, a stop simulation condition (provided by the comment 
+'C Stop Simulation condition') needs to be put into the input.
+The original input should have all the timers linked with the branching separated by an OR
+condition, even including that one of the event that stops the simulation (e.g. core\_uncovery), 
+if any.
+\begin{lstlisting}[style=XML]
+C Stop Simulation condition
+IF (TIMER 10 > 0) OR (TIMER 100 > 0) OR ... (TIMER N > 0)
+ TILAST=TIM
+END
+\end{lstlisting}
+This allows the simulation run to stop when a branch condition occurs, creating the restart file that will
+be used by the two following branch to run the two branches simulation.
+For each branch, then, the interface will automatically update the name of the restart file to be used and 
+of the RESTART TIME that will be equal to the difference between the END TIME of the 'parent' simulation
+and the PRINT INTERVAL (which specifies the interval at which the restart output is written).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\paragraph{MAAP5 plotfil definition file}
+These files in MAAP5 are used to define all the plotfil output (.csv) in terms of variables included in each plotfil. 
+It is important that the MAAP5 csv output files contain the evolution of:
+\begin{itemize}
+  \item RAVEN sampled variables (e.g. DIESEL) (both for Forward and DET sampling)
+  \item the variables whose value is modified by the occurrence of one of the branches, either continuous or boolean (e.g. 
+  $IEVNT(225)$)
+  \item the variables of interest defined within \xmlNode{boolMaapOutputVariables} and \xmlNode{contMaapOutputVariables} blocks (both for Forward and DET sampling)
+\end{itemize}
+If one of these variables won't be contained into one of csv files, RAVEN will give an error.
+
