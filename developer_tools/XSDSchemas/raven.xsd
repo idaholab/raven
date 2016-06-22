@@ -140,10 +140,15 @@
             <xsd:element name="NumThreads"         type="xsd:integer" minOccurs="0" default="1"/>
             <xsd:element name="mode" minOccurs="0">
                 <xsd:complexType mixed="true">
-                    <xsd:choice>
+                    <xsd:choice maxOccurs="unbounded">
                         <xsd:element name="runQSUB"                        minOccurs="0"/>
                         <xsd:element name="nodefile"     type="xsd:string" minOccurs="0"/>
                         <xsd:element name="nodefileenv"  type="xsd:string" minOccurs="0"/>
+                        <xsd:element name="NoSplitNode" minOccurs="0">
+                          <xsd:complexType>
+                            <xsd:attribute name="maxOnNode" type="xsd:integer" />
+                          </xsd:complexType>
+                        </xsd:element>
                     </xsd:choice>
                 </xsd:complexType>
             </xsd:element>
@@ -367,6 +372,33 @@
           <xsd:all minOccurs="0">
             <xsd:element name="method" type="xsd:string" minOccurs="1" />
             <xsd:element name='Function' type="AssemblerObjectType" minOccurs="1" />
+          </xsd:all>
+        </xsd:extension>
+      </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="fileOutputType">
+      <xsd:simpleContent>
+        <xsd:extension base="xsd:string">
+          <xsd:attribute name="name" type="xsd:string" />
+        </xsd:extension>
+      </xsd:simpleContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="fileObjectType">
+      <xsd:all minOccurs="0">
+        <xsd:element name="output" type="fileOutputType" minOccurs="1" />
+      </xsd:all>
+      <xsd:attribute name="name" type="xsd:string" default="all"/>
+      <!-- The ids are typically floats, but to generalize all floats are technically strings, plus XSD didn't like a float here. -->
+      <xsd:attribute name="id" type="xsd:string" default="all"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="RavenOutput">
+      <xsd:complexContent>
+        <xsd:extension base="PostProcessor">
+          <xsd:all minOccurs="0">
+            <xsd:element name="File" type="fileObjectType" minOccurs="1" />
           </xsd:all>
         </xsd:extension>
       </xsd:complexContent>

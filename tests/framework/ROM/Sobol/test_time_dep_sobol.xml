@@ -13,7 +13,7 @@
 
   <Steps>
     <MultiRun name="sample">
-      <Input class="DataObjects" type="Point">dummyIN</Input>
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
       <Model class="Models" type="ExternalModel">lorentz</Model>
       <Sampler class="Samplers" type="SparseGridCollocation">samp</Sampler>
       <Output class="DataObjects" type="HistorySet">trainset</Output>
@@ -86,10 +86,10 @@
   </OutStreams>
 
   <DataObjects>
-    <Point name="dummyIN">
+    <PointSet name="dummyIN">
       <Input>x0,y0,z0</Input>
       <Output>OutputPlaceHolder</Output>
-    </Point>
+    </PointSet>
     <HistorySet name="trainset">
       <Input>x0,y0,z0</Input>
       <Output>time,x,y,z</Output>

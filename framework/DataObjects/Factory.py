@@ -13,9 +13,7 @@ if not 'xrange' in dir(__builtins__):
 
 ################################################################################
 from DataObjects.Data import Data
-from DataObjects.Point import Point
 from DataObjects.PointSet import PointSet
-from DataObjects.History import History
 from DataObjects.HistorySet import HistorySet
 ## [ Add new class here ]
 ################################################################################

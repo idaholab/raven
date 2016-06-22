@@ -8,7 +8,7 @@
     <mode>
       mpi
       <runQSUB/>
-    </mode> 
+    </mode>
     <expectedTime>00:10:00</expectedTime>
     <clusterParameters>-W block=true</clusterParameters>
   </RunInfo>
@@ -58,7 +58,7 @@
 
   <Steps>
     <MultiRun name="testMetamodelHeatTransfer">
-      <Input class="DataObjects" type="Point">inputHolder</Input>
+      <Input class="DataObjects" type="PointSet">inputHolder</Input>
       <Model class="Models" type="EnsembleModel">heatTransferEnsembleModel</Model>
       <Sampler class="Samplers" type="Grid">MonteCarloTemperature</Sampler>
       <Output class="DataObjects" type="PointSet">metaModelOutputTest</Output>
@@ -147,10 +147,10 @@
   </OutStreams>
 
   <DataObjects>
-    <Point name="inputHolder">
+    <PointSet name="inputHolder">
       <Input>leftTemperature,rightTemperature</Input>
       <Output>OutputPlaceHolder</Output>
-    </Point>
+    </PointSet>
     <PointSet name="heatTransferContainer">
       <Input>leftTemperature,rightTemperature,k</Input>
       <Output>solution</Output>
