@@ -518,7 +518,7 @@ addSimpleSub(ROMInput, "IndexSet",IndexSetInputType)
 addSimpleSub(ROMInput, "Interpolation", InputData.StringType)
 addSimpleSub(ROMInput, "PolynomialOrder", InputData.IntegerType)
 addSimpleSub(ROMInput, "SobolOrder", InputData.IntegerType)
-addSimpleSub(ROMInput, "SparseGrid", InputData.IntegerType)
+addSimpleSub(ROMInput, "SparseGrid", InputData.StringType)
 addSimpleSub(ROMInput, "persistence", InputData.StringType)
 addSimpleSub(ROMInput, "gradient", InputData.StringType)
 addSimpleSub(ROMInput, "simplification", InputData.FloatType)
@@ -532,7 +532,7 @@ addSimpleSub(ROMInput, "bandwidth", InputData.FloatType)
 addSimpleSub(ROMInput, "p", InputData.IntegerType)
 addSimpleSub(ROMInput, "SKLtype", InputData.StringType)
 addSimpleSub(ROMInput, "n_iter", InputData.IntegerType)
-addSimpleSub(ROMInput, "tol", InputData.FloatType)
+addSimpleSub(ROMInput, "tol", InputData.StringType)
 addSimpleSub(ROMInput, "alpha_1", InputData.FloatType)
 addSimpleSub(ROMInput, "alpha_2", InputData.FloatType)
 addSimpleSub(ROMInput, "lambda_1", InputData.FloatType)
@@ -544,13 +544,13 @@ addSimpleSub(ROMInput, "normalize", InputData.StringType) #bool
 addSimpleSub(ROMInput, "verbose", InputData.StringType) #bool
 addSimpleSub(ROMInput, "alpha", InputData.FloatType)
 addSimpleSub(ROMInput, "l1_ratio", InputData.FloatType)
-addSimpleSub(ROMInput, "max_iter", InputData.IntegerType)
+addSimpleSub(ROMInput, "max_iter", InputData.StringType)
 addSimpleSub(ROMInput, "warm_start", InputData.StringType) #bool
 addSimpleSub(ROMInput, "positive", InputData.StringType) #bool?
 addSimpleSub(ROMInput, "eps", InputData.FloatType)
 addSimpleSub(ROMInput, "n_alphas", InputData.IntegerType)
 addSimpleSub(ROMInput, "precompute", InputData.StringType)
-addSimpleSub(ROMInput, "n_nonzero_coefs", InputData.IntegerType)
+addSimpleSub(ROMInput, "n_nonzero_coefs", InputData.StringType)
 addSimpleSub(ROMInput, "fit_path", InputData.StringType) #bool
 addSimpleSub(ROMInput, "max_n_alphas", InputData.IntegerType)
 addSimpleSub(ROMInput, "criterion", CriterionInputType)
@@ -593,15 +593,15 @@ addSimpleSub(ROMInput, "leaf_size", InputData.IntegerType)
 addSimpleSub(ROMInput, "metric", InputData.StringType) #enum?
 addSimpleSub(ROMInput, "radius", InputData.FloatType)
 addSimpleSub(ROMInput, "outlier_label", InputData.StringType)
-addSimpleSub(ROMInput, "shrink_threshold", InputData.FloatType)
+addSimpleSub(ROMInput, "shrink_threshold", InputData.StringType)
 addSimpleSub(ROMInput, "priors", InputData.StringType)
 addSimpleSub(ROMInput, "reg_param", InputData.FloatType)
 addSimpleSub(ROMInput, "splitter", InputData.StringType) #enum
 addSimpleSub(ROMInput, "max_features", InputData.StringType)
-addSimpleSub(ROMInput, "max_depth", InputData.IntegerType)
+addSimpleSub(ROMInput, "max_depth", InputData.StringType)
 addSimpleSub(ROMInput, "min_samples_split", InputData.IntegerType)
 addSimpleSub(ROMInput, "min_samples_leaf", InputData.IntegerType)
-addSimpleSub(ROMInput, "max_leaf_nodes", InputData.IntegerType)
+addSimpleSub(ROMInput, "max_leaf_nodes", InputData.StringType)
 addSimpleSub(ROMInput, "regr", InputData.StringType) #enum
 addSimpleSub(ROMInput, "corr", InputData.StringType) #enum?
 addSimpleSub(ROMInput, "beta0", InputData.StringType)
@@ -613,7 +613,6 @@ addSimpleSub(ROMInput, "nugget", InputData.FloatType)
 addSimpleSub(ROMInput, "optimizer", InputData.StringType) #enum
 addSimpleSub(ROMInput, "random_start", InputData.IntegerType)
 
-#TODO start at 16.3.6.3 Multi class
 
 #
 class ROM(Dummy):
@@ -710,6 +709,8 @@ class ROM(Dummy):
     """
     Dummy._readMoreXML(self, xmlNode)
     self.initializationOptionDict['name'] = self.name
+    paramInput = ROMInput()
+    paramInput.parseNode(xmlNode)
     for child in xmlNode:
       if child.attrib:
         if child.tag not in self.initializationOptionDict.keys():
