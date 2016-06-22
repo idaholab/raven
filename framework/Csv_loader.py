@@ -86,9 +86,12 @@ class CsvLoader(MessageHandler.MessageUser):
       @ In, options, dict, dictionary of options
       @ Out, csvLoadData, tuple, tuple of (listhistIn,listhistOut)
     """
-    if   options['type'] == 'Point'   : return self.__csvLoaderForPoint(fileIn[0],options)
-    elif options['type'] == 'PointSet': return self.__csvLoaderForPointSet(fileIn,options)
-    elif options['type'] == 'History' : return self.__csvLoaderForHistory(fileIn[0],options)
+    if   options['type'] == 'Point':
+      return self.__csvLoaderForPoint(fileIn[0],options)
+    elif options['type'] == 'History':
+      return self.__csvLoaderForHistory(fileIn[0],options)
+    elif options['type'] == 'PointSet':
+      return self.__csvLoaderForPointSet(fileIn,options)
     elif options['type'] == 'HistorySet':
       listhistIn  = {}
       listhistOut = {}
@@ -100,7 +103,7 @@ class CsvLoader(MessageHandler.MessageUser):
         del tupleVar
       return(listhistIn,listhistOut)
     else:
-      self.raiseAnError(IOError,'Type ' + options['type'] + 'unknown')
+      self.raiseAnError(IOError,'Type ' + options['type'] + ' unknown')
 
   def __csvLoaderForPoint(self,fileIn,options):
     """

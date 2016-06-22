@@ -13,7 +13,7 @@
 
   <Steps>
     <MultiRun name="FirstMRun" pauseAtEnd="True">
-      <Input class="DataObjects" type="Point">inputPlaceHolder</Input>
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
       <Model class="Models" type="ExternalModel">PythonModule</Model>
       <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
       <Output class="DataObjects" type="PointSet">outMC</Output>
@@ -86,10 +86,10 @@
   </Distributions>
 
   <DataObjects>
-    <Point name="inputPlaceHolder">
+    <PointSet name="inputPlaceHolder">
       <Input>x0,y0,z0</Input>
       <Output>OutputPlaceHolder</Output>
-    </Point>
+    </PointSet>
     <HistorySet name="outMC">
       <Input>x0,y0,z0</Input>
       <Output>time,x,y,z</Output>

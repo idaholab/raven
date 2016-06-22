@@ -5,9 +5,7 @@
 <!-- *********************************************************************** -->
   <xsd:complexType name="DataObjectsData">
     <xsd:sequence>
-      <xsd:element name="Point"    type="historyDataObjectsData" minOccurs="0" maxOccurs="unbounded"/>
       <xsd:element name="PointSet" type="commonDataObjectsData"  minOccurs="0" maxOccurs="unbounded"/>
-      <xsd:element name="History"      type="historyDataObjectsData" minOccurs="0" maxOccurs="unbounded"/>
       <xsd:element name="HistorySet"    type="commonDataObjectsData"  minOccurs="0" maxOccurs="unbounded"/>
     </xsd:sequence>
   </xsd:complexType>
@@ -46,13 +44,5 @@
     </xsd:all>
     <xsd:attribute name="name"         type="xsd:string"  use="required"/>
     <xsd:attribute name="hierarchical" type="RavenBool"/>
-  </xsd:complexType>
-
-  <xsd:complexType name="historyDataObjectsData">
-    <xsd:complexContent>
-      <xsd:extension base="commonDataObjectsData">
-        <xsd:attribute name="historyName" type="xsd:string"/>
-      </xsd:extension>
-    </xsd:complexContent>
   </xsd:complexType>
 </xsd:schema>

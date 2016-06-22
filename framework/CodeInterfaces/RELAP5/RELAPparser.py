@@ -53,13 +53,13 @@ class RELAPparser():
       @ In, save, bool, optional, True if the original tree needs to be saved
       @ Out, lines, list, list of modified lines (of the original input)
     """
-    temp               = []
     decks              = {}
     lines              = []
     for i in dictionaryList:
       if 'decks' not in i.keys(): raise IOError(self.printTag+"ERROR: no card inputs found!!")
       else                      : decks.update(i['decks'])
     for deckNum in decks.keys():
+      temp               = []
       modidictionaryList = decks[deckNum]
       temp.append('*RAVEN INPUT VALUES\n')
       if self.maxNumberOfDecks > 1: temp.append('*'+' deckNum: '+str(deckNum)+'\n')
