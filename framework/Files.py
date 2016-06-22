@@ -12,6 +12,7 @@ warnings.simplefilter('default',DeprecationWarning)
 #External Modules------------------------------------------------------------------------------------
 import os
 from copy import deepcopy
+import xmlUtils
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -451,6 +452,77 @@ class RAVENGenerated(File):
     self.perturbed = False
     self.subtype   = subtype
     self.name      = filename
+
+#
+#
+#
+#
+#   Form for StaticXMLOutput
+#    Static form:
+#    <root type='Static'>
+#      <parameter>
+#        <single-value properties>value</single-value properties>
+#        <multi-value properties>
+#          <w.r.t. parameter2>value</w.r.t. paramter2>
+#          <w.r.t. parameter2>value</w.r.t. paramter2>
+#        </multi-value properties>
+#      <parameter>
+#    </root>
+#
+#    Form for DynamicXMLOutput
+#    <root type='Static'>
+#      <pivot value="value">
+#        <parameter>
+#          <single-value properties>value</single-value properties>
+#          <multi-value properties>
+#            <w.r.t. parameter2>value</w.r.t. paramter2>
+#            <w.r.t. parameter2>value</w.r.t. paramter2>
+#          </multi-value properties>
+#        <parameter>
+#    </root>
+class StaticXMLOutput(RAVENGenerated):
+  """
+    Specialized class for consistent RAVEN XML outputs.  See forms in comments above.
+  """
+  def initialize(self,filename,messageHandler,path='.',subtype=None):
+    """
+      Since this is internally generated, set up all the basic information.
+      @ In, filename, string, name of the file
+      @ In, messageHandler, MessageHandler object, message handler
+      @ In, path, string, optional, path to file object
+      @ In, subtype, string, optional, subtype for labeling
+      @ Out, None
+    """
+    RAVENGenerated.initialize(self,filename,messageHandler,path,subtype)
+
+  def newTree(self,root):
+    """
+      Sets up a new internal tree.
+      @ In, root, string, name of root node
+      @ Out, None
+    """
+    self.tree = xmlUtils.newTree(root)
+
+  def addScalar(self,target,name,value):
+    """
+      Adds a node entry named "name" with value "value" to "target" node, such as
+      <root>
+        <target>
+          <name>value<name>
+      Note that if pivotVal is not specified, will skip searching through pivot values
+      @ In, target, string, target parameter to add node value to
+      @ In, name, string, name of characteristic of target to add
+      @ In, value, string/float/etc, value of characteristic
+    """
+    root = self.tree.getroot()
+    #find target node
+    targ = xmlUtils.findPath(root,target)
+    #if it doesn't exist, make it and add it
+    if targ is None:
+      targ = xmlUtils.newNode(target)
+      root.append(targ)
+    #check consistency of xml
+
 
 #
 #
