@@ -23,8 +23,9 @@ def run(self, Input):
     Bm_sq = (nu_sig_f - sig_a)/D;   # Material Buckling
     ext_dis = 19.6;         # Extrapolation Distance
     L_sq = D/sig_a;
-    self.length = copy.deepcopy(154.5875 + Input['l0']);        # ~ Critical Slab lenght
+    self.l0 = 10*Input['l0'];
+    self.length = copy.deepcopy(154.5875 + 10*Input['l0']);        # ~ Critical Slab lenght
     Bg_sq = (np.pi/self.length)**2;
     self.k = (nu_sig_f/sig_a)/(1 + (L_sq)*(Bg_sq))
 
-    print(self.k);
+    #print(self.k);
