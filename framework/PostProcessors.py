@@ -3679,6 +3679,7 @@ class RavenOutput(BasePostProcessor):
       #   name: RAVEN name for file (from input)
       #   fileObject: FileObject
       #   paths: {varName:'path|through|xml|to|var'}
+    self.dynamic = False #if true, reading in pivot as input and values as outputs
 
   def initialize(self,runInfo,inputs,initDict):
     """
@@ -3711,23 +3712,40 @@ class RavenOutput(BasePostProcessor):
       @ In, xmlNode, xml.etree.Element, Xml element node
       @ Out, None
     """
+    #check if in dynamic mode; default is False
+    dynamicNode = xmlNode.find('dynamic')
+    if dynamicNode is not None:
+      #could specify as true/false or just have the node present
+      text = dynamicNode.text
+      if text is not None:
+        if text not in utils.stringsThatMeanFalse():
+          self.dynamic = True
+      else:
+        self.dynamic = True
+    numberOfSources = 0
     for child in xmlNode:
-      #accept a list of files as <File ID="1">ravenOutputFile.xml</File>
+      #if dynamic, accept a single file as <File ID="1" name="myOut.xml">
+      #if not dynamic, accept a list of files
       if child.tag == 'File':
+        numberOfSources += 1
+        if 'name' not in child.attrib.keys():
+          self.raiseAnError(IOError,'Each "File" must have an associated "name"; missing for',child.tag,child.text)
         #make sure you provide an ID and a file name
         if 'ID' not in child.attrib.keys():
-          self.raiseAnError(IOError,'Each "File" entry must have an associated "ID"; missing for',child.tag,child.text)
-        if 'name' not in child.attrib.keys():
-          self.raiseAnError(IOError,'Each "file" must have an associated "name"; missing for',child.tag,child.text)
-        #assure ID is a number, since it's going into a data object
-        id = child.attrib['ID']
-        try:
-          id = float(id)
-        except ValueError:
-          self.raiseAnError(IOError,'ID for "'+child.text+'" is not a valid number:',id)
-        #if already used, raise an error
-        if id in self.files.keys():
-          self.raiseAnError(IOError,'Multiple File nodes have the same ID:',child.attrib('ID'))
+          id = 0
+          while id in self.files.keys():
+            id += 1
+          self.raiseAWarning(IOError,'Each "File" entry must have an associated "ID"; missing for',child.tag,child.attrib['name'],'so ID is set to',id)
+        else:
+          #assure ID is a number, since it's going into a data object
+          id = child.attrib['ID']
+          try:
+            id = float(id)
+          except ValueError:
+            self.raiseAnError(IOError,'ID for "'+child.text+'" is not a valid number:',id)
+          #if already used, raise an error
+          if id in self.files.keys():
+            self.raiseAnError(IOError,'Multiple File nodes have the same ID:',child.attrib('ID'))
         #store id,filename pair
         self.files[id] = {'name':child.attrib['name'].strip(), 'fileObject':None, 'paths':{}}
         #user provides loading information as <output name="variablename">ans|pearson|x</output>
@@ -3740,6 +3758,9 @@ class RavenOutput(BasePostProcessor):
             if varName in self.files[id]['paths'].keys():
               self.raiseAnError(IOError,'Multiple "output" blocks for "%s" have the same "name":' %self.files[id]['name'],label)
             self.files[id]['paths'][varName] = cchild.text.strip()
+    #if dynamic, only one File can be specified currently; to fix this, how do you handle different-lengthed times in same data object?
+    if self.dynamic and numberOfSources > 1:
+      self.raiseAnError(IOError,'For Dynamic reading, only one "File" node can be specified!  Got',numberOfSources,'nodes.')
     # check there are entries for each
     if len(self.files)<1:
       self.raiseAWarning('No files were specified to read from!  Nothing will be done...')
@@ -3760,20 +3781,31 @@ class RavenOutput(BasePostProcessor):
     """
     # outputs are realizations that will got into data object
     outputDict={'realizations':[]}
-    # each ID results in a realization for the requested attributes
-    for id,fileDict in self.files.items():
-      realization = {'inputs':{'ID':id},'outputs':{},'metadata':{'loadedFromRavenFile':str(fileDict['fileObject'])}}
-      for varName,path in fileDict['paths'].items():
-        #read the value from the file's XML
-        root,_ = xmlUtils.loadToTree(fileDict['fileObject'].getAbsFile())
-        #improve path format
-        path = '|'.join(c.strip() for c in path.strip().split('|'))
-        desiredNode = xmlUtils.findPath(root,path)
-        if desiredNode is None:
-          self.raiseAnError(RuntimeError,'Did not find "<root>|%s" in file "%s"' %(path,fileDict['fileObject'].getAbsFile()))
-        else:
+    if self.dynamic:
+      #outputs are basically a point set with pivot as input and requested XML path entries as output
+      fileName = self.files.values()[0]['fileObject'].getAbsFile()
+      root,_ = xmlUtils.loadToTree(fileName)
+      #determine the pivot parameter
+      pivot = root[0].tag
+      numPivotSteps = len(root)
+      #read from each iterative pivot step
+      for p,pivotStep in enumerate(root):
+        realization = {'inputs':{},'outputs':{},'metadata':{'loadedFromRavenFile':fileName}}
+        realization['inputs'][pivot] = float(pivotStep.attrib['value'])
+        for name,path in self.files.values()[0]['paths'].items():
+          desiredNode = self._readPath(pivotStep,path,fileName)
+          realization['outputs'][name] = float(desiredNode.text)
+        outputDict['realizations'].append(realization)
+    else:
+      # each ID results in a realization for the requested attributes
+      for id,fileDict in self.files.items():
+        realization = {'inputs':{'ID':id},'outputs':{},'metadata':{'loadedFromRavenFile':str(fileDict['fileObject'])}}
+        for varName,path in fileDict['paths'].items():
+          #read the value from the file's XML
+          root,_ = xmlUtils.loadToTree(fileDict['fileObject'].getAbsFile())
+          desiredNode = self._readPath(root,path,fileDict['fileObject'].getAbsFile())
           realization['outputs'][varName] = float(desiredNode.text)
-      outputDict['realizations'].append(realization)
+        outputDict['realizations'].append(realization)
     return outputDict
 
   def collectOutput(self, finishedJob, output):
@@ -3792,6 +3824,22 @@ class RavenOutput(BasePostProcessor):
         output.updateOutputValue(key,real['outputs'][key])
       for key,val in real['metadata'].items():
         output.updateMetadata(key,val)
+
+  def _readPath(self,root,inpPath,fileName):
+    """
+      Reads in values from XML tree.
+      @ In, root, xml.etree.ElementTree.Element, node to start from
+      @ In, inPath, string, |-separated list defining path from root (not including root)
+      @ In, fileName, string, used in error
+      @ Out, desiredNode, xml.etree.ElementTree.Element, desired node
+    """
+    #improve path format
+    path = '|'.join(c.strip() for c in inpPath.strip().split('|'))
+    desiredNode = xmlUtils.findPath(root,path)
+    if desiredNode is None:
+      self.raiseAnError(RuntimeError,'Did not find "%s|%s" in file "%s"' %(root.tag,path,fileName))
+    return desiredNode
+
 
 
 

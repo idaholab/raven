@@ -1,0 +1,83 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
+    <WorkingDir>dynamic</WorkingDir>
+    <Sequence>sample,stats,read,print</Sequence>
+  </RunInfo>
+
+  <Files>
+    <Input name="model.py" type="">time_model.py</Input>
+    <Input name="statsfile" type="">stats.xml</Input>
+    <Input name="samples.csv" type="">samples.csv</Input>
+  </Files>
+
+  <Models>
+    <ExternalModel ModuleToLoad="time_model" name="PythonModule" subType="">
+      <variables>x,y,z,time,x0,x01,x02,y0,y02,y01,z0,z02,z01</variables>
+    </ExternalModel>
+    <PostProcessor name="stats" subType="BasicStatistics">
+      <what>percentile,expectedValue,pearson</what>
+      <parameters>x0,y0,z0,x,y,z</parameters>
+      <pivotParameter>time</pivotParameter>
+    </PostProcessor>
+    <PostProcessor name="statsReader" subType="RavenOutput">
+      <dynamic/>
+      <File name='statsfile'>
+        <output name="mean"> x | expectedValue </output>
+        <output name="high"> x | percentile_5 </output>
+        <output name="low"> x | percentile_95 </output>
+      </File>
+    </PostProcessor>
+  </Models>
+
+  <Samplers>
+      <CustomSampler name="customSamplerFile">
+          <Source   class="Files"  type="">samples.csv</Source>
+          <variable name="x0"/>
+          <variable name="y0"/>
+          <variable name="z0"/>
+      </CustomSampler>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="sample">
+      <Input   class="Files" type="">model.py</Input>
+      <Model   class="Models" type="ExternalModel">PythonModule</Model>
+      <Sampler class="Samplers" type="CustomSampler">customSamplerFile</Sampler>
+      <Output  class="DataObjects" type="HistorySet">history</Output>
+    </MultiRun>
+    <IOStep name="print">
+      <Input class='DataObjects' type='PointSet'>points</Input>
+      <Output class="OutStreams" type="Print">point_dump</Output>
+    </IOStep>
+    <PostProcess name="stats">
+      <Input class="DataObjects" type="HistorySet">history</Input>
+      <Model class="Models" type="PostProcessor">stats</Model>
+      <Output class="Files" type="">statsfile</Output>
+    </PostProcess>
+    <PostProcess name="read">
+      <Input class="Files" type="">statsfile</Input>
+      <Model class="Models" type="PostProcessor">statsReader</Model>
+      <Output class="DataObjects" type="PointSet">points</Output>
+    </PostProcess>
+  </Steps>
+
+  <OutStreams>
+    <Print name="point_dump">
+      <type>csv</type>
+      <source>points</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <HistorySet name="history">
+      <Input>x0,y0,z0</Input>
+      <Output>time,x,y,z</Output>
+    </HistorySet>
+    <PointSet name="points">
+      <Input>time</Input>
+      <Output>mean,high,low</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>
