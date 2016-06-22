@@ -3430,7 +3430,7 @@ __interFaceDict['ComparisonStatistics'     ] = ComparisonStatistics
 __interFaceDict['External'                 ] = ExternalPostProcessor
 __interFaceDict['TopologicalDecomposition' ] = TopologicalDecomposition
 __interFaceDict['DataMining'               ] = DataMining
-__interFaceDict['ImportanceRank'            ] = ImportanceRank
+__interFaceDict['ImportanceRank'           ] = ImportanceRank
 __knownTypes = __interFaceDict.keys()
 
 def knownTypes():
