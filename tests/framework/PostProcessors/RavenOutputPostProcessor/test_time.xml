@@ -70,14 +70,14 @@
   </OutStreams>
 
   <DataObjects>
-    <HistorySet name="history">
-      <Input>x0,y0,z0</Input>
-      <Output>time,x,y,z</Output>
-    </HistorySet>
     <PointSet name="points">
       <Input>time</Input>
       <Output>mean,high,low</Output>
     </PointSet>
+    <HistorySet name="history">
+      <Input>x0,y0,z0</Input>
+      <Output>time,x,y,z</Output>
+    </HistorySet>
   </DataObjects>
 
 </Simulation>
