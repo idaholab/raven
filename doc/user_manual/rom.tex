@@ -1561,10 +1561,14 @@ training}{linear\_model|SGDClassifier}
   \item \shuffleDescription{True}
   \item \randomStateSVMDescription{None}
   \item \verDescriptionB{0}
-  \item \xmlNode{epsilon}, \xmlDesc{int, optional field}, is the number of CPUs
-  to use to do the OVA (One Versus All, for multi-class problems) computation.
-  %
-  -1 means `all CPUs.'
+  \item \xmlNode{epsilon}, \xmlDesc{float, optional field}, varies meaning
+  depending on the value of \xmlNode{loss}. If loss is `huber',
+  `epsilon_insensitive' or `squared_epsilon_insensitive' then this is the
+  epsilon in the epsilon-insensitive loss functions. For ‘huber’,
+  determines the threshold at which it becomes less important to get the
+  prediction exactly right. For `epsilon_insensitive, any differences between
+  the current prediction and the correct label are ignored if they are less than
+  this threshold.
   %
   \default{0.1}
   %
