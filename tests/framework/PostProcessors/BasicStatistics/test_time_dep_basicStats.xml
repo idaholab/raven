@@ -18,10 +18,7 @@
       <variables>x,y,z,time,x0,x01,x02,y0,y02,y01,z0,z02,z01</variables>
     </ExternalModel>
     <PostProcessor name="timeDepBasicStat" subType="BasicStatistics" verbosity="debug">
-        <!--
-        <what>covariance,NormalizedSensitivity,VarianceDependentSensitivity,pearson,expectedValue,sigma,variationCoefficient,variance,skewness,kurtosis,median,percentile,samples</what>
-         -->
-        <what>all</what>
+      <what>covariance,NormalizedSensitivity,VarianceDependentSensitivity,pearson,expectedValue,sigma,variationCoefficient,variance,skewness,kurtosis,median,percentile,samples</what>
       <parameters>x0,y0,z0,x,y,z</parameters>
       <pivotParameter>time</pivotParameter>
     </PostProcessor>
