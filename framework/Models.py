@@ -447,9 +447,9 @@ class Dummy(Model):
     if not set(output.getParaKeys('inputs') + output.getParaKeys('outputs')).issubset(set(list(exportDict[inKey].keys()) + list(exportDict[outKey].keys()))):
       missingParameters = set(output.getParaKeys('inputs') + output.getParaKeys('outputs')) - set(list(exportDict[inKey].keys()) + list(exportDict[outKey].keys()))
       self.raiseAnError(RuntimeError,"the model "+ self.name+" does not generate all the outputs requested in output object "+ output.name +". Missing parameters are: " + ','.join(list(missingParameters)) +".")
-    for key in exportDict[inKey ]:
+    for key in exportDict[inKey ]:  
       if key in output.getParaKeys('inputs'):
-        output.updateInputValue (key,exportDict[inKey][key])
+        output.updateInputValue(key,exportDict[inKey][key])
     for key in exportDict[outKey]:
       if key in output.getParaKeys('outputs'):
         output.updateOutputValue(key,exportDict[outKey][key])

@@ -78,7 +78,7 @@ class SPSA(GradientBasedOptimizer):
       self.raiseAnError(IOError, self.paramDict['stochasticEngine']+'is currently not support for SPSA')
 
   def localLocalInitialize(self, solutionExport = None):
-    self._endJobRunnable = 1 # batch mode currently not implemented for SPSA
+    self._endJobRunnable = 10 # batch mode currently not implemented for SPSA
     self.gradDict['pertNeeded'] = 2 * self.gradDict['numIterForAve']
       
   
@@ -98,17 +98,17 @@ class SPSA(GradientBasedOptimizer):
   
   def localLocalGenerateInput(self,model,oldInput):
        
-    if self.counter['mdlEval'] == 1:
-      self.optVarsHist[self.counter['varsUpdate']] = {}
+    if self.optCounter['mdlEval'] == 1:
+      self.optVarsHist[self.optCounter['varsUpdate']] = {}
       for var in self.optVars:
-        self.values[var] = 0
-        self.optVarsHist[self.counter['varsUpdate']][var] = copy.copy(self.values[var])
+        self.values[var] = 0.0
+        self.optVarsHist[self.optCounter['varsUpdate']][var] = copy.copy(self.values[var])
         
     elif not self.readyVarsUpdate: # Not ready to update decision variables; continue to perturb for gradient evaluation
-      if self.counter['perturbation'] == 1:
+      if self.optCounter['perturbation'] == 1:
         self.gradDict['pertPoints'] = {}
-        ck = self._computeGainSequenceCk(self.gainParamDict,self.counter['varsUpdate']+1)
-        varK = copy.deepcopy(self.optVarsHist[self.counter['varsUpdate']])
+        ck = self._computeGainSequenceCk(self.gainParamDict,self.optCounter['varsUpdate']+1)
+        varK = copy.deepcopy(self.optVarsHist[self.optCounter['varsUpdate']])
         for ind in range(self.gradDict['numIterForAve']):
           self.gradDict['pertPoints'][ind] = {}
           delta = self.stochasticEngine()
@@ -127,15 +127,15 @@ class SPSA(GradientBasedOptimizer):
 
       
     else: # Enough gradient evaluation for decision variable update
-      ak = self._computeGainSequenceAk(self.gainParamDict,self.counter['varsUpdate']) # Compute the new ak
+      ak = self._computeGainSequenceAk(self.gainParamDict,self.optCounter['varsUpdate']) # Compute the new ak
       gradient = self.evaluateGradient(self.gradDict['pertPoints'])
       
-      self.optVarsHist[self.counter['varsUpdate']] = {}
-      varK = copy.deepcopy(self.optVarsHist[self.counter['varsUpdate']-1])
+      self.optVarsHist[self.optCounter['varsUpdate']] = {}
+      varK = copy.deepcopy(self.optVarsHist[self.optCounter['varsUpdate']-1])
       for var in self.optVars:
         self.values[var] = copy.copy(varK[var]-ak*gradient[var]*1.0)
         self.raiseADebug(gradient[var])
-        self.optVarsHist[self.counter['varsUpdate']][var] = copy.copy(self.values[var])
+        self.optVarsHist[self.optCounter['varsUpdate']][var] = copy.copy(self.values[var])
 
       self.raiseADebug(self.values)
       self.raiseAnError(IOError, 's')
@@ -175,7 +175,7 @@ class SPSA(GradientBasedOptimizer):
 #     for  varIdGradient, key in enumerate(self.axisName):
 #       if key == minThetaKey:    break
 #     minTestGradientElement = np.abs(self.gradientEstimationCurrent[varIdGradient])
-#     a = 0.1*minCurrentThetakElement*((self.counterParamUpdate + A) ** alpha) / minTestGradientElement
+#     a = 0.1*minCurrentThetakElement*((self.optCounterParamUpdate + A) ** alpha) / minTestGradientElement
 #     return a
             
   def localInitialize(self, solutionExport):

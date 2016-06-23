@@ -63,7 +63,7 @@ class GradientBasedOptimizer(Optimizer):
     self.gradDict['numIterForAve'] = 1
     self.gradDict['pertNeeded'] = 1
     self.gradDict['pertPoints'] = {}
-    self.counter['perturbation'] = 0
+    self.optCounter['perturbation'] = 0
     self.readyVarsUpdate = None
     
   
@@ -104,9 +104,9 @@ class GradientBasedOptimizer(Optimizer):
     
     if ready == False:                                                                              
       return ready # Just return if we exceed the max iterations or converges...
-    if self.mdlEvalHist == None and self.counter['perturbation'] < self.gradDict['pertNeeded']:          
+    if self.mdlEvalHist == None and self.optCounter['perturbation'] < self.gradDict['pertNeeded']:          
       return ready # Just return if we just initialize
-    elif self.mdlEvalHist.isItEmpty() and self.counter['perturbation'] < self.gradDict['pertNeeded']:    
+    elif self.mdlEvalHist.isItEmpty() and self.optCounter['perturbation'] < self.gradDict['pertNeeded']:    
       return ready # Just return if we just initialize
     
     ready = self.localLocalStillReady(ready, convergence)
@@ -128,7 +128,7 @@ class GradientBasedOptimizer(Optimizer):
     """      
     # Check if all the perturbations have been evaluated
 #     if self.mdlEvalHist is not None and not self.mdlEvalHist.isItEmpty():
-#       if self.counter['perturbation'] < self.gradDict['pertNeeded']:
+#       if self.optCounter['perturbation'] < self.gradDict['pertNeeded']:
 #         self.readyVarsUpdate = False
 #       else: # Got enough perturbation
 #         self.readyVarsUpdate = True
@@ -136,20 +136,20 @@ class GradientBasedOptimizer(Optimizer):
 #       self.readyVarsUpdate = False
 #         
 #     if not self.readyVarsUpdate: # Not ready to update decision variables; continue to perturb for gradient evaluation
-#       self.counter['perturbation'] += 1
+#       self.optCounter['perturbation'] += 1
 #       
 #     else: # Enough gradient evaluation for decision variable update
-#       self.counter['perturbation'] = 0
-#       self.counter['varsUpdate'] += 1
+#       self.optCounter['perturbation'] = 0
+#       self.optCounter['varsUpdate'] += 1
       
-    if self.counter['mdlEval'] > 1:
-      if self.counter['perturbation'] < self.gradDict['pertNeeded']:
+    if self.optCounter['mdlEval'] > 1:
+      if self.optCounter['perturbation'] < self.gradDict['pertNeeded']:
         self.readyVarsUpdate = False
-        self.counter['perturbation'] += 1
+        self.optCounter['perturbation'] += 1
       else: # Got enough perturbation
         self.readyVarsUpdate = True  
-        self.counter['perturbation'] = 0
-        self.counter['varsUpdate'] += 1
+        self.optCounter['perturbation'] = 0
+        self.optCounter['varsUpdate'] += 1
     else:
       self.readyVarsUpdate = False
     
