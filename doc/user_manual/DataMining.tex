@@ -39,8 +39,6 @@ The following is a list of acceptable sub-nodes:
   \end{itemize}
 \end{itemize}
 
-\paragraph{temporalBasicStatistics}
-The library \xmlString{temporalBasicStatistics} performs the exact same functionality as \xmlString{BasicProcessor} post-processor (see Section \ref{BasicStatistics}), but over HistorySet as opposed to PointSet. The use instruction of \xmlString{temporalBasicStatistics} is also same as that of \xmlString{BasicProcessor}, and so is omitted here. For detail, please see Section \ref{BasicStatistics}. Note that \xmlString{temporalBasicStatistics} performs the task given in \xmlNode{what} for each time step, and so only synchronized HistorySet can be used as input to this model. For unsynchronized HistorySet, use \xmlString{HistorySetSync} method in \xmlString{Interfaced} post-processor to synchronize the input data before using \xmlString{temporalBasicStatistics}.
 \paragraph{SciKitLearn and temporalSciKitLearn}
 Both \xmlString{SciKitLearn} and \xmlString{temporalSciKitLearn} are based on algorithms in SciKit-Learn library, where the former performs data mining over PointSet while the latter on HistorySet. Note that \xmlString{temporalSciKitLearn} performs the task given in \xmlNode{SKLType} (see below) for each time step, and so only synchronized HistorySet can be used as input to this model. For unsynchronized HistorySet, use \xmlString{HistorySetSync} method in \xmlString{Interfaced} post-processor to synchronize the input data before using \xmlString{temporalSciKitLearn}. The rest of this subsection and following subsection are dedicated to \xmlString{SciKitLearn} and \xmlString{temporalSciKitLearn} libraries.
 
