@@ -371,10 +371,10 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     for key in optVars.keys():              optVars[key] = np.atleast_1d(optVars[key])
     lossFunctionValue = self.objSearchingROM.evaluate(optVars)
     
-    self.raiseADebug(self.mdlEvalHist._dataContainer)
-    self.raiseADebug(tempDict)
-    self.raiseADebug(optVars)
-    self.raiseADebug(lossFunctionValue)
+    self.raiseADebug('1',self.mdlEvalHist._dataContainer)
+    self.raiseADebug('2',tempDict)
+    self.raiseADebug('3',optVars)
+    self.raiseADebug('4',lossFunctionValue)
     self.raiseAnError(IOError, 'chenen')
     
     if self.optType == 'min':           return lossFunctionValue

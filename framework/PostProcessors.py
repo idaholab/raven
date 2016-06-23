@@ -15,6 +15,7 @@ from glob import glob
 import copy
 import math
 from collections import OrderedDict
+import time
 from sklearn.linear_model import LinearRegression
 import importlib
 #External Modules End--------------------------------------------------------------------------------
@@ -1509,7 +1510,10 @@ class BasicStatistics(BasePostProcessor):
     self.externalFunction = []
     self.printTag = 'POSTPROCESSOR BASIC STATISTIC'
     self.addAssemblerObject('Function','-1', True)
-    self.biased = False
+    self.biased = False # biased statistics?
+    self.pivotParameter = None # time-dependent statistics pivot parameter
+    self.dynamic        = False # is it time-dependent?
+
 
   def inputToInternal(self, currentInp):
     """
@@ -1519,26 +1523,36 @@ class BasicStatistics(BasePostProcessor):
       @ Out, inputDict, dict, dictionary of the converted data
     """
     # each post processor knows how to handle the coming inputs. The BasicStatistics postprocessor accept all the input type (files (csv only), hdf5 and datas
-    if type(currentInp) == list  : currentInput = currentInp [-1]
-    else                         : currentInput = currentInp
-    if type(currentInput) == dict:
-      if 'targets' in currentInput.keys(): return currentInput
-    inputDict = {'targets':{}, 'metadata':{}}
-    if hasattr(currentInput,'type'):
-      inType = currentInput.type
-    else:
-      if type(currentInput).__name__ == 'list'    : inType = 'list'
-      else: self.raiseAnError(IOError, self, 'BasicStatistics postprocessor accepts files,HDF5,Data(s) only! Got ' + str(type(currentInput)))
-    if inType not in ['HDF5', 'PointSet', 'list'] and not isinstance(inType,Files.File):
-      self.raiseAnError(IOError, self, 'BasicStatistics postprocessor accepts files,HDF5,Data(s) only! Got ' + str(inType) + '!!!!')
-    if isinstance(inType,Files.File):
-      if currentInput.subtype == 'csv': pass
-    if inType == 'HDF5': pass  # to be implemented
-    if inType in ['PointSet']:
+    self.dynamic = False
+    currentInput = currentInp [-1] if type(currentInp) == list else currentInp
+    if type(currentInput).__name__ =='dict':
+      if 'targets' not in currentInput.keys() and 'timeDepData' not in currentInput.keys(): self.raiseAnError(IOError, 'Did not find targets or timeDepData in input dictionary')
+      return currentInput
+    if currentInput.type not in ['PointSet','HistorySet']: self.raiseAnError(IOError, self, 'BasicStatistics postprocessor accepts PointSet and HistorySet only! Got ' + currentInput.type)
+    if currentInput.type in ['PointSet']:
+      inputDict = {'targets':{},'metadata':currentInput.getAllMetadata()}
       for targetP in self.parameters['targets']:
-        if   targetP in currentInput.getParaKeys('input') : inputDict['targets'][targetP] = currentInput.getParam('input' , targetP)
-        elif targetP in currentInput.getParaKeys('output'): inputDict['targets'][targetP] = currentInput.getParam('output', targetP)
-      inputDict['metadata'] = currentInput.getAllMetadata()
+        if   targetP in currentInput.getParaKeys('input') : inputDict['targets'][targetP] = currentInput.getParam('input' , targetP, nodeId = 'ending')
+        elif targetP in currentInput.getParaKeys('output'): inputDict['targets'][targetP] = currentInput.getParam('output', targetP, nodeId = 'ending')
+        else: self.raiseAnError(IOError, self, 'Target ' + targetP + ' has not been found in data object '+currentInput.name)
+    else:
+      if self.pivotParameter is None: self.raiseAnError(IOError, self, 'Time-dependent statistics is requested (HistorySet) but no pivotParameter got inputted!')
+      inputs, outputs  = currentInput.getParametersValues('inputs',nodeId = 'ending'), currentInput.getParametersValues('outputs',nodeId = 'ending')
+      nTs, self.dynamic = len(outputs.values()[0].values()[0]), True
+      if self.pivotParameter not in currentInput.getParaKeys('output'): self.raiseAnError(IOError, self, 'Pivot parameter ' + self.pivotParameter + ' has not been found in output space of data object '+currentInput.name)
+      pivotParameter = []
+      for ts in range(len(outputs.values()[0][self.pivotParameter])):
+        currentSnapShot = [outputs[i][self.pivotParameter][ts] for i in outputs.keys()]
+        if len(set(currentSnapShot)) > 1: self.raiseAnError(IOError, self, 'Histories are not syncronized! Please, pre-process the data using Interfaced PostProcessor HistorySetSync!')
+        pivotParameter.append(currentSnapShot[-1])
+      inputDict = {'timeDepData':OrderedDict.fromkeys(pivotParameter,None)}
+      for ts in range(nTs):
+        inputDict['timeDepData'][pivotParameter[ts]] = {'targets':{}}
+        for targetP in self.parameters['targets']:
+          if targetP in currentInput.getParaKeys('output') : inputDict['timeDepData'][pivotParameter[ts]]['targets'][targetP] = np.asarray([outputs[i][targetP][ts] for i in outputs.keys()])
+          elif targetP in currentInput.getParaKeys('input'): inputDict['timeDepData'][pivotParameter[ts]]['targets'][targetP] = np.asarray([inputs[i][targetP][-1] for i in inputs.keys()])
+          else: self.raiseAnError(IOError, self, 'Target ' + targetP + ' has not been found in data object '+currentInput.name)
+        inputDict['timeDepData'][pivotParameter[ts]]['metadata'] = currentInput.getAllMetadata()
     return inputDict
 
   def initialize(self, runInfo, inputs, initDict):
@@ -1582,7 +1596,8 @@ class BasicStatistics(BasePostProcessor):
       elif child.tag == "parameters"   : self.parameters['targets'] = child.text.split(',')
       elif child.tag == "methodsToRun" : self.methodsToRun = child.text.split(',')
       elif child.tag == "biased"       :
-          if child.text.lower() in utils.stringsThatMeanTrue(): self.biased = True
+        if child.text.lower() in utils.stringsThatMeanTrue(): self.biased = True
+      elif child.tag == "pivotParameter": self.pivotParameter = child.text
       assert (self.parameters is not []), self.raiseAnError(IOError, 'I need parameters to work on! Please check your input for PP: ' + self.name)
 
   def collectOutput(self, finishedJob, output):
@@ -1595,7 +1610,7 @@ class BasicStatistics(BasePostProcessor):
     # output
     parameterSet = list(set(list(self.parameters['targets'])))
     if finishedJob.returnEvaluation() == -1: self.raiseAnError(RuntimeError, ' No available Output to collect (Run probabably is not finished yet)')
-    outputDict = finishedJob.returnEvaluation()[1]
+    outputDictionary = finishedJob.returnEvaluation()[1]
     methodToTest = []
     for key in self.methodsToRun:
       if key not in self.acceptedCalcParam: methodToTest.append(key)
@@ -1610,100 +1625,112 @@ class BasicStatistics(BasePostProcessor):
       output.setPath(self.__workingDir)
       self.raiseADebug('Dumping output in file named ' + output.getAbsFile())
       output.open('w')
-      if outputExtension == 'csv':
-        self._writeCSV(output,outputDict,parameterSet,outputExtension,methodToTest)
-      else:
-        self._writeXML(output,outputDict,parameterSet,methodToTest)
+      if outputExtension == 'csv': self._writeCSV(output,outputDictionary,parameterSet,outputExtension,methodToTest)
+      else                       : self._writeXML(output,outputDictionary,parameterSet,methodToTest)
     elif output.type in ['PointSet','HistorySet']:
       self.raiseADebug('Dumping output in data object named ' + output.name)
-      for what in outputDict.keys():
-        if what not in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity'] + methodToTest:
-          for targetP in parameterSet:
-            self.raiseADebug('Dumping variable ' + targetP + '. Parameter: ' + what + '. Metadata name = ' + targetP + '-' + what)
-            output.updateMetadata(targetP + '-' + what, outputDict[what][targetP])
-        else:
-          if what not in methodToTest:
-            self.raiseADebug('Dumping matrix ' + what + '. Metadata name = ' + what + '. Targets stored in ' + 'targets-' + what)
-            output.updateMetadata('targets-' + what, parameterSet)
-            output.updateMetadata(what.replace("|","-"), outputDict[what])
-      if self.externalFunction:
-        self.raiseADebug('Dumping External Function results')
-        for what in self.methodsToRun:
-          if what not in self.acceptedCalcParam:
-            output.updateMetadata(what, outputDict[what])
-            self.raiseADebug('Dumping External Function parameter ' + what)
-    elif output.type == 'HDF5' : self.raiseAWarning('Output type ' + str(output.type) + ' not yet implemented. Skip it !!!!!')
+      outputResults = [outputDictionary] if not self.dynamic else outputDictionary.values()
+      for ts, outputDict in enumerate(outputResults):
+        appendix = '-'+self.pivotParameter+'-'+str(outputDictionary.keys()[ts]) if self.dynamic else ''
+        for what in outputDict.keys():
+          if what not in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity'] + methodToTest:
+            for targetP in parameterSet:
+              self.raiseADebug('Dumping variable ' + targetP + '. Parameter: ' + what + '. Metadata name = ' + targetP + '-' + what)
+              output.updateMetadata(targetP + '-' + what + appendix, outputDict[what][targetP])
+          else:
+            if what not in methodToTest:
+              self.raiseADebug('Dumping matrix ' + what + '. Metadata name = ' + what + '. Targets stored in ' + 'targets-' + what)
+              output.updateMetadata('targets-' + what + appendix, parameterSet)
+              output.updateMetadata(what.replace("|","-") + appendix, outputDict[what])
+        if self.externalFunction:
+          self.raiseADebug('Dumping External Function results')
+          for what in self.methodsToRun:
+            if what not in self.acceptedCalcParam:
+              output.updateMetadata(what + appendix, outputDict[what])
+              self.raiseADebug('Dumping External Function parameter ' + what)
     else: self.raiseAnError(IOError, 'Output type ' + str(output.type) + ' unknown.')
 
-  def _writeCSV(self,output,outputDict,parameterSet,outputExtension,methodToTest):
+  def _writeCSV(self,output,outputDictionary,parameterSet,outputExtension,methodToTest):
     """
       Defines the method for writing the basic statistics to a .csv file.
       @ In, output, File object, file to write to
-      @ In, outputDict, dict, dictionary of statistics values
+      @ In, outputDictionary, dict, dictionary of statistics values
       @ In, parameterSet, list, list of parameters in use
       @ In, outputExtension, string, extension of the file to write
       @ In, methodToTest, list, strings of methods to test
       @ Out, None
     """
     separator = ','
+    if self.dynamic: output.write('Dynamic BasicStatistics'+ separator+ 'Pivot Parameter' + separator + self.pivotParameter + separator + os.linesep)
     output.write('ComputedQuantities'+separator+separator.join(parameterSet) + os.linesep)
     quantitiesToWrite = {}
-    for what in outputDict.keys():
-      if what not in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity'] + methodToTest:
-        if what not in quantitiesToWrite.keys():quantitiesToWrite[what] = []
-        for targetP in parameterSet:
-          quantitiesToWrite[what].append('%.8E' % copy.deepcopy(outputDict[what][targetP]))
-        output.write(what + separator +  separator.join(quantitiesToWrite[what])+os.linesep)
-    maxLength = max(len(max(parameterSet, key = len)) + 5, 16)
-    for what in outputDict.keys():
-      if what in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity','sensitivity']:
-        self.raiseADebug('Writing parameter matrix ' + what)
+    outputResults = [outputDictionary] if not self.dynamic else outputDictionary.values()
+    for ts, outputDict in enumerate(outputResults):
+      if self.dynamic: output.write('Pivot Value' +separator+ str(outputDictionary.keys()[ts]) + os.linesep)
+      for what in outputDict.keys():
+        if what not in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity'] + methodToTest:
+          if what not in quantitiesToWrite.keys():quantitiesToWrite[what] = []
+          for targetP in parameterSet:
+            quantitiesToWrite[what].append('%.8E' % copy.deepcopy(outputDict[what][targetP]))
+          output.write(what + separator +  separator.join(quantitiesToWrite[what])+os.linesep)
+      maxLength = max(len(max(parameterSet, key = len)) + 5, 16)
+      for what in outputDict.keys():
+        if what in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity','sensitivity']:
+          self.raiseADebug('Writing parameter matrix ' + what)
+          output.write(os.linesep)
+          output.write(what + os.linesep)
+          output.write('matrix' + separator + ''.join([str(item) + separator for item in parameterSet]) + os.linesep)
+          for index in range(len(parameterSet)):
+            output.write(parameterSet[index] + ''.join([separator + '%.8E' % item for item in outputDict[what][index]]) + os.linesep)
+      if self.externalFunction:
+        self.raiseADebug('Writing External Function results')
+        output.write(os.linesep + 'EXT FUNCTION ' + os.linesep)
         output.write(os.linesep)
-        output.write(what + os.linesep)
-        output.write('matrix' + separator + ''.join([str(item) + separator for item in parameterSet]) + os.linesep)
-        for index in range(len(parameterSet)):
-          output.write(parameterSet[index] + ''.join([separator + '%.8E' % item for item in outputDict[what][index]]) + os.linesep)
-    if self.externalFunction:
-      self.raiseADebug('Writing External Function results')
-      output.write(os.linesep + 'EXT FUNCTION ' + os.linesep)
-      output.write(os.linesep)
-      for what in self.methodsToRun:
-        if what not in self.acceptedCalcParam:
-          self.raiseADebug('Writing External Function parameter ' + what)
-          output.write(what + separator + '%.8E' % outputDict[what] + os.linesep)
+        for what in self.methodsToRun:
+          if what not in self.acceptedCalcParam:
+            self.raiseADebug('Writing External Function parameter ' + what)
+            output.write(what + separator + '%.8E' % outputDict[what] + os.linesep)
 
-  def _writeXML(self,output,outputDict,parameterSet,methodToTest):
+  def _writeXML(self,output,outputDictionary,parameterSet,methodToTest):
     """
       Defines the method for writing the basic statistics to a .xml file.
       @ In, output, File object, file to write
-      @ In, outputDict, dict, dictionary of statistics values
+      @ In, outputDictionary, dict, dictionary of statistics values
       @ In, parameterSet, list, list of parameters in use
       @ In, methodToTest, list, strings of methods to test
       @ Out, None
     """
     tree = xmlUtils.newTree('BasicStatisticsPP')
     root = tree.getroot()
-    for t,target in enumerate(parameterSet):
-      tNode = xmlUtils.newNode(target) #tnode is for properties with respect to the target
-      root.append(tNode)
-      for stat,val in outputDict.items():
-        if stat not in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity'] + methodToTest:
-          val = val[target]
-          sNode = xmlUtils.newNode(stat,text=str(val)) #sNode is for each stat of the target
-          tNode.append(sNode)
-      for stat,val in outputDict.items():
-        if stat in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity']:
-          valRow = val[t]
-          sNode = xmlUtils.newNode(stat)
-          tNode.append(sNode)
-          for p,param in enumerate(parameterSet):
-            actVal = valRow[p]
-            vNode = xmlUtils.newNode(param,text=str(actVal)) #vNode is for each parameter's stat's value with respect to the target
-            sNode.append(vNode)
-      if self.externalFunction:
-        for stat in self.methodsToRun:
-          if stat not in self.acceptedCalcParam:
-            sNode = xmlUtils.newNode(stat,text=str(outputDict[stat]))
+    root.set('type','Dynamic' if self.dynamic else 'Static')
+    outputResults = [outputDictionary] if not self.dynamic else outputDictionary.values()
+    for ts, outputDict in enumerate(outputResults):
+      if self.dynamic:
+        parentNode = xmlUtils.newNode(self.pivotParameter)
+        parentNode.set('value',str(outputDictionary.keys()[ts]))
+        root.append(parentNode)
+      else: parentNode = root
+      for t,target in enumerate(parameterSet):
+        tNode = xmlUtils.newNode(target) #tnode is for properties with respect to the target
+        parentNode.append(tNode)
+        for stat,val in outputDict.items():
+          if stat not in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity'] + methodToTest:
+            val = val[target]
+            sNode = xmlUtils.newNode(stat,text=str(val)) #sNode is for each stat of the target
+            tNode.append(sNode)
+        for stat,val in outputDict.items():
+          if stat in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity']:
+            valRow = val[t]
+            sNode = xmlUtils.newNode(stat)
+            tNode.append(sNode)
+            for p,param in enumerate(parameterSet):
+              actVal = valRow[p]
+              vNode = xmlUtils.newNode(param,text=str(actVal)) #vNode is for each parameter's stat's value with respect to the target
+              sNode.append(vNode)
+        if self.externalFunction:
+          for stat in self.methodsToRun:
+            if stat not in self.acceptedCalcParam:
+              sNode = xmlUtils.newNode(stat,text=str(outputDict[stat]))
     pretty = xmlUtils.prettify(tree)
     output.writelines(pretty)
     output.close()
@@ -1826,13 +1853,13 @@ class BasicStatistics(BasePostProcessor):
       result = np.median(arrayIn)
     return result
 
-  def run(self, inputIn):
+  def __runLocal(self, input):
     """
       This method executes the postprocessor action. In this case, it computes all the requested statistical FOMs
-      @ In,  inputIn, object, object contained the data to process. (inputToInternal output)
+      @ In,  input, object, object contained the data to process. (inputToInternal output)
       @ Out, outputDict, dict, Dictionary containing the results
     """
-    input = self.inputToInternal(inputIn)
+    #input = self.inputToInternal(inputIn)
     outputDict = {}
     pbWeights, pbPresent  = {'realization':None}, False
     if self.externalFunction:
@@ -1845,7 +1872,7 @@ class BasicStatistics(BasePostProcessor):
             if type(outputDict[what]) != dict: self.raiseAnError(IOError, 'BasicStatistics postprocessor: You have overwritten the "' + what + '" method through an external function, it must be a dictionary!!')
           else:
             if type(outputDict[what]) != np.ndarray: self.raiseAnError(IOError, 'BasicStatistics postprocessor: You have overwritten the "' + what + '" method through an external function, it must be a numpy.ndarray!!')
-            if len(outputDict[what].shape) != 2:     self.raiseAnError(IOError, 'BasicStatistics postprocessor: You have overwritten the "' + what + '" method through an external function, it must be a 2D numpy.ndarray!!')
+            if len(outputDict[what].shape) != 2    : self.raiseAnError(IOError, 'BasicStatistics postprocessor: You have overwritten the "' + what + '" method through an external function, it must be a 2D numpy.ndarray!!')
     # setting some convenience values
     parameterSet = list(set(list(self.parameters['targets'])))  # @Andrea I am using set to avoid the test: if targetP not in outputDict[what].keys()
     if 'metadata' in input.keys(): pbPresent = 'ProbabilityWeight' in input['metadata'].keys() if 'metadata' in input.keys() else False
@@ -2073,6 +2100,24 @@ class BasicStatistics(BasePostProcessor):
           msg += '              ' + '* ' + what + ' * ' + '%.8E' % outputDict[what] + '  *' + os.linesep
           msg += '              ' + '**' + '*' * len(what) + '***' + 6 * '*' + '*' * 8 + '***' + os.linesep
     self.raiseADebug(msg)
+    return outputDict
+
+
+  def run(self, inputIn):
+    """
+      This method executes the postprocessor action. In this case, it computes all the requested statistical FOMs
+      @ In,  inputIn, object, object contained the data to process. (inputToInternal output)
+      @ Out, outputDict, dict, Dictionary containing the results
+    """
+    input = self.inputToInternal(inputIn)
+    if not self.dynamic: outputDict = self.__runLocal(input)
+    else:
+      # time dependent (actually pivot-dependent)
+      outputDict = OrderedDict()
+      self.raiseADebug('BasicStatistics Pivot-Dependent output:')
+      for pivotParamValue in input['timeDepData'].keys():
+        self.raiseADebug('Pivot Parameter Value: ' + str(pivotParamValue))
+        outputDict[pivotParamValue] = self.__runLocal(input['timeDepData'][pivotParamValue])
     return outputDict
 
   def covariance(self, feature, weights = None, rowVar = 1):
@@ -2878,7 +2923,6 @@ class TopologicalDecomposition(BasePostProcessor):
       @ In, messageHandler, MessageHandler, message handler object
       @ Out, None
     """
-
     BasePostProcessor.__init__(self, messageHandler)
     self.acceptedGraphParam = ['approximate knn', 'delaunay', 'beta skeleton', \
                                'relaxed beta skeleton']
@@ -3071,9 +3115,6 @@ class TopologicalDecomposition(BasePostProcessor):
       @ In, inputIn, dict, dictionary of data to process
       @ Out, outputDict, dict, Dictionary containing the post-processed results
     """
-    # # Possibly load this here in case people have trouble building it, so it
-    # # only errors if they try to use it?
-    from AMSC_Object import AMSC_Object
 
     input = self.inputToInternal(inputIn)
     outputDict = {}
@@ -3094,9 +3135,11 @@ class TopologicalDecomposition(BasePostProcessor):
       weights = None
 
     names = self.parameters['features'] + [self.parameters['targets']]
-    # FIXME: AMSC_Object employs unsupervised NearestNeighbors algorithm from scikit learn.
-    #       The NearestNeighbor algorithm is implemented in SupervisedLearning, which requires features and targets by default.
-    #       which we don't have here. When the NearestNeighbor is implemented in unSupervisedLearning switch to it.
+
+    ## Possibly load this here in case people have trouble building it, so it
+    ## only errors if they try to use it?
+    from AMSC_Object import AMSC_Object
+
     self.__amsc = AMSC_Object(X=inputData, Y=outputData, w=weights,
                               names=names, graph=self.graph,
                               gradient=self.gradient, knn=self.knn,
@@ -3108,60 +3151,185 @@ class TopologicalDecomposition(BasePostProcessor):
 
     outputDict['minLabel'] = np.zeros(self.pointCount)
     outputDict['maxLabel'] = np.zeros(self.pointCount)
-    output = ""
     for extPair, indices in partitions.iteritems():
       for idx in indices:
         outputDict['minLabel'][idx] = extPair[0]
         outputDict['maxLabel'][idx] = extPair[1]
     outputDict['hierarchy'] = self.__amsc.PrintHierarchy()
-    output += '========== Linear Regressors: ==========' + os.linesep
     self.__amsc.BuildModels()
     linearFits = self.__amsc.SegmentFitCoefficients()
     linearFitnesses = self.__amsc.SegmentFitnesses()
 
     for key in linearFits.keys():
-      output += str(key) + os.linesep
       coefficients = linearFits[key]
       rSquared = linearFitnesses[key]
-      #output += '\t' + u"\u03B2\u0302: " + str(coefficients) + '\n'
-      #output += '\t' + u"R\u00B2: " + str(rSquared) + '\n' + '\n'
-      output += '\t' + "beta: " + str(coefficients) + os.linesep
-      output += '\t' + "R^2: " + str(rSquared) + 2 * os.linesep
       outputDict['coefficients_%d_%d' % (key[0], key[1])] = coefficients
       outputDict['R2_%d_%d' % (key[0], key[1])] = rSquared
 
-    #output += 'RMSD  = %f\n' % (self.linearNRMSD)
-    output += '========== Gaussian Fits: ==========' + os.linesep
-    #output += u'a/\u221A(2\u03C0^d|\u03A3|)*e^(-(x-\u03BC)T\u03A3(x-\u03BC)) + c - '
-    #      + u'a\t(\u03BC & c are fixed, \u03A3 and a are estimated)\n'
-    output += 'a/sqrt(2*(pi)^d|M|)*e^(-(x-mu)TM(x-mu)) + c - a'
-    output += '\t(mu & c are fixed, M and a are estimated)' + os.linesep
-
-    exts = linearFits.keys()
-    exts = [int(item) for sublist in exts for item in sublist]
-    exts = list(set(exts))
-
-    for key in exts:
-      output += str(key) + ':' + os.linesep
-      (mu, c, a, A) = self.__amsc.GetExtremumFitCoefficients(key)
-      #output += u':\t\u03BC=' + str(mu) + '\n'
-      output += u':\tmu=' + str(mu) + os.linesep
-      output += '\tc=' + str(c) + os.linesep
-      output += '\ta=' + str(a) + os.linesep
-      output += '\tM=' + os.linesep + str(A) + 2 * os.linesep
-      #output += '\t\u03A3=\n' + str(A)+'\n\n'
-      #output += '\t' + u"R\u00B2: " + str(rSquared) + '\n\n'
-
-      outputDict['mu_' + str(key)] = mu
-      outputDict['c_' + str(key)] = c
-      outputDict['a_' + str(key)] = a
-      outputDict['Sigma_' + str(key)] = A
-      outputDict['R2_' + str(key)] = rSquared
-
-    # output += 'RMSD  = %f and %f\n' % (self.gaussianNRMSD[0],self.gaussianNRMSD[1])
-    self.raiseAMessage(output)
     return outputDict
 
+#
+#
+#
+#
+try:
+  import PySide.QtCore as qtc
+  class QTopologicalDecomposition(TopologicalDecomposition,qtc.QObject):
+    """
+      TopologicalDecomposition class - Computes an approximated hierarchical
+      Morse-Smale decomposition from an input point cloud consisting of an
+      arbitrary number of input parameters and a response value per input point
+    """
+    requestUI = qtc.Signal(str,str,dict)
+    def __init__(self, messageHandler):
+      """
+       Constructor
+       @ In, messageHandler, message handler object
+      """
+
+      TopologicalDecomposition.__init__(self, messageHandler)
+      qtc.QObject.__init__(self)
+
+      self.interactive = False
+      self.uiDone = True ## If it has not been requested, then we are not waiting for a UI
+
+    def _localWhatDoINeed(self):
+      """
+      This method is a local mirror of the general whatDoINeed method.
+      It is implemented by the samplers that need to request special objects
+      @ In , None, None
+      @ Out, needDict, list of objects needed
+      """
+      return {'internal':[(None,'app')]}
+
+    def _localGenerateAssembler(self,initDict):
+      """
+      Generates the assembler.
+      @ In, initDict, dict of init objects
+      @ Out, None
+      """
+      self.app = initDict['internal']['app']
+      if self.app is None:
+        self.interactive = False
+
+    def _localReadMoreXML(self, xmlNode):
+      """
+        Function to grab the names of the methods this post-processor will be
+        using
+        @ In, xmlNode    : Xml element node
+        @ Out, None
+      """
+      TopologicalDecomposition._localReadMoreXML(self, xmlNode)
+      for child in xmlNode:
+        if child.tag == 'interactive':
+          self.interactive = True
+
+    def run(self, InputIn):
+      """
+       Function to finalize the filter => execute the filtering
+       @ In, InputIn, dictionary, dictionary of data to process
+       @ Out, outputDict, dictionary, dictionary with results
+      """
+      Input = self.inputToInternal(InputIn)
+      outputDict = {}
+
+      myDataIn = Input['features']
+      myDataOut = Input['targets']
+      outputData = myDataOut[self.parameters['targets'].encode('UTF-8')]
+      self.pointCount = len(outputData)
+      self.dimensionCount = len(self.parameters['features'])
+
+      inputData = np.zeros((self.pointCount, self.dimensionCount))
+      for i, lbl in enumerate(self.parameters['features']):
+        inputData[:, i] = myDataIn[lbl.encode('UTF-8')]
+
+      if self.weighted:
+        weights = InputIn[0].getMetadata('PointProbability')
+      else:
+        weights = None
+
+      names = self.parameters['features'] + [self.parameters['targets']]
+
+      self.__amsc = None
+      if self.interactive:
+        ## Connect our own signal to the slot on the main thread
+        self.requestUI.connect(self.app.createUI)
+        ## Connect our own slot to listen for whenver the main thread signals a
+        ## window has been closed
+        self.app.windowClosed.connect(self.signalDone)
+        ## Give this UI a unique id in case other threads are requesting UI
+        ##  elements
+        uiID = unicode(id(self))
+        ## Set the flag to false before requesting the UI
+        self.uiDone = False
+        ## Send the request for a UI thread to the main application
+        self.requestUI.emit('MainWindow', uiID,
+                            {'X':inputData, 'Y':outputData, 'w':weights,
+                             'names':names, 'graph':self.graph,
+                             'gradient': self.gradient, 'knn':self.knn,
+                             'beta':self.beta, 'normalization':self.normalization,
+                             'debug':False})
+        ## Spinlock will wait until this instance's window has been closed
+        while(not self.uiDone):
+          time.sleep(1)
+
+        if hasattr(self.app.UIs[uiID],'amsc'):
+          self.__amsc = self.app.UIs[uiID].amsc
+          self.simplification = self.app.UIs[uiID].amsc.Persistence()
+        else:
+          self.__amsc = None
+
+      if self.__amsc is None:
+        ## Possibly load this here in case people have trouble building it, so it
+        ## only errors if they try to use it?
+        from AMSC_Object import AMSC_Object
+
+        self.__amsc = AMSC_Object(X=inputData, Y=outputData, w=weights,
+                                  names=names, graph=self.graph,
+                                  gradient=self.gradient, knn=self.knn,
+                                  beta=self.beta, normalization=self.normalization,
+                                  persistence=self.persistence, debug=False)
+
+      self.__amsc.Persistence(self.simplification)
+      partitions = self.__amsc.Partitions()
+
+      outputDict['minLabel'] = np.zeros(self.pointCount)
+      outputDict['maxLabel'] = np.zeros(self.pointCount)
+      for extPair, indices in partitions.iteritems():
+        for idx in indices:
+          outputDict['minLabel'][idx] = extPair[0]
+          outputDict['maxLabel'][idx] = extPair[1]
+      outputDict['hierarchy'] = self.__amsc.PrintHierarchy()
+      self.__amsc.BuildModels()
+      linearFits = self.__amsc.SegmentFitCoefficients()
+      linearFitnesses = self.__amsc.SegmentFitnesses()
+
+      for key in linearFits.keys():
+        coefficients = linearFits[key]
+        rSquared = linearFitnesses[key]
+        outputDict['coefficients_%d_%d' % (key[0], key[1])] = coefficients
+        outputDict['R2_%d_%d' % (key[0], key[1])] = rSquared
+
+      return outputDict
+
+    def signalDone(self,uiID):
+      """
+        In Qt language, this is a slot that will accept a signal from the UI
+        saying that it has completed, thus allowing the computation to begin
+        again with information updated by the user in the UI.
+        @In, uiID, string, the ID of the user interface that signaled its
+            completion. Thus, if several UI windows are open, we don't proceed,
+            until the correct one has signaled it is done.
+        @Out, None
+      """
+      if uiID == unicode(id(self)):
+        self.uiDone = True
+except ImportError as e:
+  pass
+#
+#
+#
+#
 class DataMining(BasePostProcessor):
   """
     DataMiningPostProcessor class. It will apply the specified KDD algorithms in
@@ -3511,6 +3679,7 @@ class RavenOutput(BasePostProcessor):
       #   name: RAVEN name for file (from input)
       #   fileObject: FileObject
       #   paths: {varName:'path|through|xml|to|var'}
+    self.dynamic = False #if true, reading in pivot as input and values as outputs
 
   def initialize(self,runInfo,inputs,initDict):
     """
@@ -3543,23 +3712,40 @@ class RavenOutput(BasePostProcessor):
       @ In, xmlNode, xml.etree.Element, Xml element node
       @ Out, None
     """
+    #check if in dynamic mode; default is False
+    dynamicNode = xmlNode.find('dynamic')
+    if dynamicNode is not None:
+      #could specify as true/false or just have the node present
+      text = dynamicNode.text
+      if text is not None:
+        if text not in utils.stringsThatMeanFalse():
+          self.dynamic = True
+      else:
+        self.dynamic = True
+    numberOfSources = 0
     for child in xmlNode:
-      #accept a list of files as <File ID="1">ravenOutputFile.xml</File>
+      #if dynamic, accept a single file as <File ID="1" name="myOut.xml">
+      #if not dynamic, accept a list of files
       if child.tag == 'File':
+        numberOfSources += 1
+        if 'name' not in child.attrib.keys():
+          self.raiseAnError(IOError,'Each "File" must have an associated "name"; missing for',child.tag,child.text)
         #make sure you provide an ID and a file name
         if 'ID' not in child.attrib.keys():
-          self.raiseAnError(IOError,'Each "File" entry must have an associated "ID"; missing for',child.tag,child.text)
-        if 'name' not in child.attrib.keys():
-          self.raiseAnError(IOError,'Each "file" must have an associated "name"; missing for',child.tag,child.text)
-        #assure ID is a number, since it's going into a data object
-        id = child.attrib['ID']
-        try:
-          id = float(id)
-        except ValueError:
-          self.raiseAnError(IOError,'ID for "'+child.text+'" is not a valid number:',id)
-        #if already used, raise an error
-        if id in self.files.keys():
-          self.raiseAnError(IOError,'Multiple File nodes have the same ID:',child.attrib('ID'))
+          id = 0
+          while id in self.files.keys():
+            id += 1
+          self.raiseAWarning(IOError,'Each "File" entry must have an associated "ID"; missing for',child.tag,child.attrib['name'],'so ID is set to',id)
+        else:
+          #assure ID is a number, since it's going into a data object
+          id = child.attrib['ID']
+          try:
+            id = float(id)
+          except ValueError:
+            self.raiseAnError(IOError,'ID for "'+child.text+'" is not a valid number:',id)
+          #if already used, raise an error
+          if id in self.files.keys():
+            self.raiseAnError(IOError,'Multiple File nodes have the same ID:',child.attrib('ID'))
         #store id,filename pair
         self.files[id] = {'name':child.attrib['name'].strip(), 'fileObject':None, 'paths':{}}
         #user provides loading information as <output name="variablename">ans|pearson|x</output>
@@ -3572,6 +3758,9 @@ class RavenOutput(BasePostProcessor):
             if varName in self.files[id]['paths'].keys():
               self.raiseAnError(IOError,'Multiple "output" blocks for "%s" have the same "name":' %self.files[id]['name'],label)
             self.files[id]['paths'][varName] = cchild.text.strip()
+    #if dynamic, only one File can be specified currently; to fix this, how do you handle different-lengthed times in same data object?
+    if self.dynamic and numberOfSources > 1:
+      self.raiseAnError(IOError,'For Dynamic reading, only one "File" node can be specified!  Got',numberOfSources,'nodes.')
     # check there are entries for each
     if len(self.files)<1:
       self.raiseAWarning('No files were specified to read from!  Nothing will be done...')
@@ -3592,20 +3781,31 @@ class RavenOutput(BasePostProcessor):
     """
     # outputs are realizations that will got into data object
     outputDict={'realizations':[]}
-    # each ID results in a realization for the requested attributes
-    for id,fileDict in self.files.items():
-      realization = {'inputs':{'ID':id},'outputs':{},'metadata':{'loadedFromRavenFile':str(fileDict['fileObject'])}}
-      for varName,path in fileDict['paths'].items():
-        #read the value from the file's XML
-        root,_ = xmlUtils.loadToTree(fileDict['fileObject'].getAbsFile())
-        #improve path format
-        path = '|'.join(c.strip() for c in path.strip().split('|'))
-        desiredNode = xmlUtils.findPath(root,path)
-        if desiredNode is None:
-          self.raiseAnError(RuntimeError,'Did not find "<root>|%s" in file "%s"' %(path,fileDict['fileObject'].getAbsFile()))
-        else:
+    if self.dynamic:
+      #outputs are basically a point set with pivot as input and requested XML path entries as output
+      fileName = self.files.values()[0]['fileObject'].getAbsFile()
+      root,_ = xmlUtils.loadToTree(fileName)
+      #determine the pivot parameter
+      pivot = root[0].tag
+      numPivotSteps = len(root)
+      #read from each iterative pivot step
+      for p,pivotStep in enumerate(root):
+        realization = {'inputs':{},'outputs':{},'metadata':{'loadedFromRavenFile':fileName}}
+        realization['inputs'][pivot] = float(pivotStep.attrib['value'])
+        for name,path in self.files.values()[0]['paths'].items():
+          desiredNode = self._readPath(pivotStep,path,fileName)
+          realization['outputs'][name] = float(desiredNode.text)
+        outputDict['realizations'].append(realization)
+    else:
+      # each ID results in a realization for the requested attributes
+      for id,fileDict in self.files.items():
+        realization = {'inputs':{'ID':id},'outputs':{},'metadata':{'loadedFromRavenFile':str(fileDict['fileObject'])}}
+        for varName,path in fileDict['paths'].items():
+          #read the value from the file's XML
+          root,_ = xmlUtils.loadToTree(fileDict['fileObject'].getAbsFile())
+          desiredNode = self._readPath(root,path,fileDict['fileObject'].getAbsFile())
           realization['outputs'][varName] = float(desiredNode.text)
-      outputDict['realizations'].append(realization)
+        outputDict['realizations'].append(realization)
     return outputDict
 
   def collectOutput(self, finishedJob, output):
@@ -3625,6 +3825,22 @@ class RavenOutput(BasePostProcessor):
       for key,val in real['metadata'].items():
         output.updateMetadata(key,val)
 
+  def _readPath(self,root,inpPath,fileName):
+    """
+      Reads in values from XML tree.
+      @ In, root, xml.etree.ElementTree.Element, node to start from
+      @ In, inPath, string, |-separated list defining path from root (not including root)
+      @ In, fileName, string, used in error
+      @ Out, desiredNode, xml.etree.ElementTree.Element, desired node
+    """
+    #improve path format
+    path = '|'.join(c.strip() for c in inpPath.strip().split('|'))
+    desiredNode = xmlUtils.findPath(root,path)
+    if desiredNode is None:
+      self.raiseAnError(RuntimeError,'Did not find "%s|%s" in file "%s"' %(root.tag,path,fileName))
+    return desiredNode
+
+
 
 
 """
@@ -3641,7 +3857,10 @@ __interFaceDict['LoadCsvIntoInternalObject'] = LoadCsvIntoInternalObject
 __interFaceDict['LimitSurface'             ] = LimitSurface
 __interFaceDict['ComparisonStatistics'     ] = ComparisonStatistics
 __interFaceDict['External'                 ] = ExternalPostProcessor
-__interFaceDict['TopologicalDecomposition' ] = TopologicalDecomposition
+try:
+  __interFaceDict['TopologicalDecomposition' ] = QTopologicalDecomposition
+except NameError:
+  __interFaceDict['TopologicalDecomposition' ] = TopologicalDecomposition
 __interFaceDict['DataMining'               ] = DataMining
 __interFaceDict['ImportanceRank'           ] = ImportanceRank
 __interFaceDict['RavenOutput'              ] = RavenOutput

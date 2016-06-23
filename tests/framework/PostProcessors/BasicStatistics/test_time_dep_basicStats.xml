@@ -1,0 +1,67 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
+    <WorkingDir>basicStatisticsTimeDependent</WorkingDir>
+    <Sequence>FirstMRun,timeDepBasicStatPP</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="basicStatisticsExternalModelTest.py" type="">basicStatisticsExternalModelTest.py</Input>
+    <Input name="output_basicStatistics_timedep_PP1.csv" type="">output_basicStatistics_timedep_PP1.csv</Input>
+    <Input name="output_basicStatistics_timedep_PP1.xml" type="">output_basicStatistics_timedep_PP1.xml</Input>
+    <Input name="samples.csv" type="">samples.csv</Input>
+  </Files>
+
+  <Models>
+    <ExternalModel ModuleToLoad="basicStatisticsExternalModelTest" name="PythonModule" subType="">
+      <variables>x,y,z,time,x0,x01,x02,y0,y02,y01,z0,z02,z01</variables>
+    </ExternalModel>
+    <PostProcessor name="timeDepBasicStat" subType="BasicStatistics" verbosity="debug">
+      <what>covariance,pearson,expectedValue,sigma,variationCoefficient,variance,skewness,kurtosis,median,percentile,samples</what>
+      <parameters>x0,y0,z0,x,y,z</parameters>
+      <pivotParameter>time</pivotParameter>
+    </PostProcessor>
+  </Models>
+
+  <Samplers>
+      <CustomSampler name="customSamplerFile">
+          <Source   class="Files"  type="">samples.csv</Source>
+          <variable name="x0"/>
+          <variable name="y0"/>
+          <variable name="z0"/>
+      </CustomSampler>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="FirstMRun">
+      <Input   class="Files" type="">basicStatisticsExternalModelTest.py</Input>
+      <Model   class="Models" type="ExternalModel">PythonModule</Model>
+      <Sampler class="Samplers" type="CustomSampler">customSamplerFile</Sampler>
+      <Output  class="DataObjects" type="HistorySet">HistorySetPostProcTest</Output>
+    </MultiRun>
+    <PostProcess name="timeDepBasicStatPP">
+      <Input class="DataObjects" type="HistorySet">HistorySetPostProcTest</Input>
+      <Model class="Models" type="PostProcessor">timeDepBasicStat</Model>
+      <Output class="Files" type="">output_basicStatistics_timedep_PP1.csv</Output>
+      <Output class="Files" type="">output_basicStatistics_timedep_PP1.xml</Output>
+      <Output class="DataObjects" type="HistorySet">HistorySetPostProcTest</Output>
+      <Output class="OutStreams" type="Print">HistorySetPostProcTest_dump</Output>
+    </PostProcess>
+  </Steps>
+
+  <OutStreams>
+    <Print name="HistorySetPostProcTest_dump">
+      <type>csv</type>
+      <source>HistorySetPostProcTest</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <HistorySet name="HistorySetPostProcTest">
+      <Input>x0,y0,z0</Input>
+      <Output>time,x,y,z</Output>
+    </HistorySet>
+  </DataObjects>
+
+</Simulation>

@@ -75,4 +75,24 @@
   csv = 'basicStatsSensitivity/csv_database.csv'
   xml = 'basicStatsSensitivity/csv_database.xml'
  [../]
+ [./testTimeDependentBasicStatistics]
+  type = 'RavenFramework'
+  input = 'test_time_dep_basicStats.xml'
+  output = 'basicStatisticsTimeDependent/output_basicStatistics_timedep_PP1.csv basicStatisticsTimeDependent/output_basicStatistics_timedep_PP1.xml'
+  UnorderedCsv = 'basicStatisticsTimeDependent/HistorySetPostProcTest_dump_3.csv'
+   UnorderedXml = 'basicStatisticsTimeDependent/HistorySetPostProcTest_dump.xml basicStatisticsTimeDependent/output_basicStatistics_timedep_PP1.xml'
+   rel_err = 1e-5
+   zero_threshold = 1e-14
+ [../]
+ [./testTimeDependentBasicStatisticsAsynchronousHistories]
+  type = 'RavenFramework'
+  input = 'test_time_dep_basicStatsAsynchronousHistories.xml'
+  output = 'basicStatisticsTimeDependentAsynchronousHistories/output_basicStatistics_timedep_PP1.csv basicStatisticsTimeDependentAsynchronousHistories/output_basicStatistics_timedep_PP1.xml'
+  UnorderedCsv = 'basicStatisticsTimeDependentAsynchronousHistories/HistorySetPostProcTest_dump_3.csv basicStatisticsTimeDependentAsynchronousHistories/HistorySetPostProcTestSyncronized_dump_3.csv'
+   UnorderedXml = 'basicStatisticsTimeDependentAsynchronousHistories/HistorySetPostProcTest_dump.xml basicStatisticsTimeDependentAsynchronousHistories/output_basicStatistics_timedep_PP1.xml'
+   rel_err = 1e-5
+   zero_threshold = 1e-14
+ [../]
+
+
 []
