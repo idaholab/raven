@@ -56,7 +56,16 @@ In the following sections the specifications of each type are reported.
 \subsubsection{BasicStatistics}
 \label{BasicStatistics}
 The \textbf{BasicStatistics} post-processor is the container of the algorithms
-to compute many of the most important statistical quantities.
+to compute many of the most important statistical quantities. It is important to notice that this
+post-processor can accept as input both \textit{\textbf{PointSet}} and \textit{\textbf{HistorySet}} 
+data objects, depending on the type of statistics the user wants to compute:
+\begin{itemize}
+  \item \textit{\textbf{PointSet}}: Static Statistics; 
+  \item \textit{\textbf{HistorySet}}: Dynamic Statistics. Depending on a ``pivot parameter'' (e.g. time) 
+  the post-processor is going to compute the statistics for each value of it (e.g. for each time step). 
+  In case an \textbf{HistorySet} is provided as Input, the Histories needs to be synchronized (use
+    \textit{\textbf{Interfaced}} post-processor of type  \textbf{HistorySetSync}).
+\end{itemize}
 %
 \ppType{BasicStatistics post-processor}{BasicStatistics}
 \begin{itemize}
@@ -107,10 +116,10 @@ to compute many of the most important statistical quantities.
   %
   \default{None}
 % Assembler Objects
-  \item \textbf{Assembler Objects} These objects are either required or optional
-  depending on the functionality of the Adaptive Sampler.
+  \item \textbf{Assembler Objects} This object is required in case the  \xmlNode{methodsToRun}
+  node is specified.
   %
-  The objects must be listed with a rigorous syntax that, except for the xml
+  The object must be listed with a rigorous syntax that, except for the xml
   node tag, is common among all the objects.
   %
   Each of these nodes must contain 2 attributes that are used to map those
@@ -132,8 +141,15 @@ to compute many of the most important statistical quantities.
     This object needs to contain the methods listed in the node
     \xmlNode{methodsToRun}.
   \end{itemize}
+   \item \xmlNode{pivotParameter}, \xmlDesc{string, optional field}, name of the parameter that needs
+   to be used for the computation of the Dynamic BasicStatistics (e.g. time). This node needs to
+   be inputted just in case an \textbf{HistorySet} is used as Input. It represents the reference 
+   monotonic variable based on which the statistics is going to be computed (e.g. time-dependent 
+   statistical moments).
+    \default{None}
+  %
 \end{itemize}
-\textbf{Example:}
+\textbf{Example (Static Statistics):}
 \begin{lstlisting}[style=XML,morekeywords={name,subType,debug}]
 <Simulation>
   ...
@@ -146,6 +162,27 @@ to compute many of the most important statistical quantities.
       <what>expectedValue</what>
       <parameters>x01,x02</parameters>
       <methodsToRun>failureProbability</methodsToRun>
+    </PostProcessor>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+
+\textbf{Example (Dynamic Statistics):}
+\begin{lstlisting}[style=XML,morekeywords={name,subType,debug}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <PostProcessor name='aUserDefinedNameForDynamicPP' subType='BasicStatistics' verbosity='debug'>
+      <!-- Here you can specify what type of figure of merit
+          you need to compute: expectedValue, sigma, variance, kurtosis, pearson, covariance, etc.
+       -->
+      <what>expectedValue,covariance,variance</what>
+      <parameters>x01,x02</parameters>
+      <methodsToRun>failureProbability</methodsToRun>
+      <pivotParameter>time</pivotParameter>
     </PostProcessor>
     ...
   </Models>
@@ -282,7 +319,7 @@ points to approximations in the calculation.
 %%%%% PP ImportanceRank %%%%%%%
 \subsubsection{ImportanceRank}
 \label{ImportanceRank}
-The \textbf{ImportanceRank} post-processor is specifically used 
+The \textbf{ImportanceRank} post-processor is specifically used
 to compute sensitivity indices and importance indices with respect to input parameters
 associated with multivariate normal distributions.
 %
@@ -315,7 +352,7 @@ associated with multivariate normal distributions.
   \item \xmlNode{dimensions}, \xmlDesc{comma separated integer, optional field},
   lists the dimensions corresponding to \xmlNode{features}.
   %
-  \item \xmlNode{mvnDistribution}, \xmlDesc{string, required field}, specifies the 
+  \item \xmlNode{mvnDistribution}, \xmlDesc{string, required field}, specifies the
   multivariate normal distribution name. The \xmlNode{MultivariateNormal} node must be present.
   %
 \end{itemize}
@@ -669,6 +706,16 @@ dataset, namely \texttt{minLabel} and \texttt{maxLabel} that can be used to
 decompose a dataset.
 %
 
+The topological post-processor can also be run in `interactive' mode, that is
+by passing the keyword \texttt{interactive} to the command line of RAVEN's
+driver.
+%
+In this way, RAVEN will initiate an interactive UI that allows one to explore
+the topological hierarchy in real-time and adjust the simplification setting
+before adjusting a dataset. Use in interactive mode will replace the parameter
+\xmlNode{simplification} described below with whatever setting is set in the UI
+upon exiting it.
+
 In order to use the \textbf{TopologicalDecomposition} post-processor, the user
 needs to set the attribute \xmlAttr{subType}:
 \xmlNode{PostProcessor \xmlAttr{subType}=\xmlString{TopologicalDecomposition}}.
@@ -921,7 +968,7 @@ independent of the \xmlAttr{subType} specified:
    \item \xmlNode{timeID}, \xmlDesc{string, required field}, ID of the temporal variable
    \item \xmlNode{extension}, \xmlDesc{string, required field}, type of extension when the sync process goes outside the boundaries of the history (zeroed or extended)
    \item \xmlNode{syncMethod}, \xmlDesc{string, required field}, synchronization strategy to employ (see
-     description above).  Options are \xmlString{grid}, \xmlString{all}, \xmlString{max}, \xmlString{min}. 
+     description above).  Options are \xmlString{grid}, \xmlString{all}, \xmlString{max}, \xmlString{min}.
    \item \xmlNode{numberOfSamples}, \xmlDesc{integer, optional field}, required if \xmlNode{syncMethod} is
      \xmlString{grid}, number of new time samples
 \end{itemize}
@@ -996,7 +1043,7 @@ Lastly, if a \xmlString{mixed} approach is used, the following nodes apply:
 \end{itemize}
 
 \textbf{Example (mixed):}
-This example will output the average value of $x$ for $x$, the value of $y$ at 
+This example will output the average value of $x$ for $x$, the value of $y$ at
 time$=0.245$ for $y$, and the value of $z$ at $x=4.0$ for $z$.
 \begin{lstlisting}[style=XML,morekeywords={subType,debug,name,class,type}]
 <Simulation>
@@ -1043,7 +1090,7 @@ independent of the \xmlAttr{subType} specified (min, max, avg and value case):
 
 \subsubsection{RavenOut}
 \label{RavenOut}
-The \textbf{RavenOut} post-processor is specifically used 
+The \textbf{RavenOut} post-processor is specifically used
 to gather data from several XML output files produced by RAVEN.
 %
 \ppType{RavenOut}{RavenOut}
