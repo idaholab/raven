@@ -10,32 +10,32 @@
   [./ExactPCA]
     type   = 'RavenFramework'
     input  = 'test_tdmSKLearnExactPCA.xml'
-    csv    = 'ExactPCA/dummy_0.csv ExactPCA/dummy_1.csv ExactPCA/dummy_2.csv ExactPCA/info_0.csv ExactPCA/info_1.csv'
+    csv    = 'ExactPCA/dummy_0.csv ExactPCA/dummy_75.csv ExactPCA/dummy_149.csv ExactPCA/info_0.csv ExactPCA/info_1.csv'
     output = 'ExactPCA/dummy.csv ExactPCA/dummy.xml ExactPCA/info.csv ExactPCA/info.xml'
   [../]
   [./RandomizedPCA]
     type   = 'RavenFramework'
     input  = 'test_tdmSKLearnRandomizedPCA.xml'
-    csv    = 'RandomizedPCA/dummy_0.csv RandomizedPCA/dummy_1.csv RandomizedPCA/dummy_2.csv'
+    csv    = 'RandomizedPCA/dummy_0.csv RandomizedPCA/dummy_75.csv RandomizedPCA/dummy_149.csv'
     output = 'RandomizedPCA/dummy.csv RandomizedPCA/dummy.xml'
   [../]
   [./KernelPCA]
     type   = 'RavenFramework'
     input  = 'test_tdmSKLearnKernelPCA.xml'
-    csv    = 'KernelPCA/dummy_0.csv KernelPCA/dummy_1.csv KernelPCA/dummy_2.csv'
+    csv    = 'KernelPCA/dummy_0.csv KernelPCA/dummy_75.csv KernelPCA/dummy_149.csv'
     output = 'KernelPCA/dummy.csv KernelPCA/dummy.xml'
   [../]
   [./SparsePCA]
     type   = 'RavenFramework'
     input  = 'test_tdmSKLearnSparsePCA.xml'
-    csv    = 'SparsePCA/dummy_0.csv SparsePCA/dummy_1.csv SparsePCA/dummy_2.csv'
+    csv    = 'SparsePCA/dummy_0.csv SparsePCA/dummy_75.csv SparsePCA/dummy_149.csv'
     output = 'SparsePCA/dummy.csv SparsePCA/dummy.xml'
   [../]
   [./MiniBatchSparsePCA]
     type    = 'RavenFramework'
     input   = 'test_tdmSKLearnMiniBatchSparsePCA.xml'
-    csv     = 'MiniBatchSparsePCA/dummy_0.csv MiniBatchSparsePCA/dummy_1.csv
-               MiniBatchSparsePCA/dummy_2.csv'
+    csv     = 'MiniBatchSparsePCA/dummy_0.csv MiniBatchSparsePCA/dummy_75.csv
+               MiniBatchSparsePCA/dummy_149.csv'
     output  = 'MiniBatchSparsePCA/dummy.csv MiniBatchSparsePCA/dummy.xml'
     rel_err = 0.001
   [../]
