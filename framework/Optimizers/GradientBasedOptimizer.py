@@ -56,13 +56,16 @@ from AMSC_Object import AMSC_Object
 class GradientBasedOptimizer(Optimizer):    
   def __init__(self):
     Optimizer.__init__(self)
-    self.paramDict = {}
+    
     self.gainParamDict = {}
-    self.gradAveNumber = 1
-    self.numPerturbationsNeeded = 1
+    
+    self.gradDict = {}
+    self.gradDict['numIterForAve'] = 1
+    self.gradDict['pertNeeded'] = 1
+    self.gradDict['pertPoints'] = {}
     self.counter['perturbation'] = 0
     self.readyVarsUpdate = None
-    self.gradAveArray = np.ndarray((self.gradAveNumber, self.nVar))
+    
   
   def localInputAndChecks(self, xmlNode):
     """
@@ -70,13 +73,9 @@ class GradientBasedOptimizer(Optimizer):
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None
     """
-    paramNode = xmlNode.find('gainParam')
-    if paramNode != None:
-      for child in paramNode:
-        self.paramDict[child.tag] = float(paramNode.text)
     
-    self.gradAveNumber = self.paramDict.get('numGradAvgIterations', 1)
     
+    self.gradDict['numIterForAve'] = int(self.paramDict.get('numGradAvgIterations', 1))   
     self.localLocalInputAndChecks(xmlNode)
 
   @abc.abstractmethod
@@ -84,7 +83,7 @@ class GradientBasedOptimizer(Optimizer):
     pass # to be overwritten by subclass
   
   def localInitialize(self,solutionExport=None):   
-    self.gradAveArray = np.ndarray((self.gradAveNumber, self.nVar))
+    self.gradDict['pertPoints'] = {}
         
     #specializing the self.localInitialize() to account for adaptive sampling
     if solutionExport != None : self.localLocalInitialize(solutionExport=solutionExport)
@@ -105,9 +104,9 @@ class GradientBasedOptimizer(Optimizer):
     
     if ready == False:                                                                              
       return ready # Just return if we exceed the max iterations or converges...
-    if self.mdlEvalHist == None and self.counter['perturbation'] < self.numPerturbationsNeeded:          
+    if self.mdlEvalHist == None and self.counter['perturbation'] < self.gradDict['pertNeeded']:          
       return ready # Just return if we just initialize
-    elif self.mdlEvalHist.isItEmpty() and self.counter['perturbation'] < self.numPerturbationsNeeded:    
+    elif self.mdlEvalHist.isItEmpty() and self.counter['perturbation'] < self.gradDict['pertNeeded']:    
       return ready # Just return if we just initialize
     
     ready = self.localLocalStillReady(ready, convergence)
@@ -126,14 +125,36 @@ class GradientBasedOptimizer(Optimizer):
       @ In, model, model instance, it is the instance of a RAVEN model
       @ In, oldInput, list, a list of the original needed inputs for the model (e.g. list of files, etc. etc)
       @ Out, localGenerateInput, list, list containing the new inputs -in reality it is the model that return this the Sampler generate the value to be placed in the input the model
-    """    
-        # Check if all the perturbations have been evaluated
-    if self.mdlEvalHist is not None and not self.mdlEvalHist.isItEmpty():
-      if self.counter['perturbation'] < self.numPerturbationsNeeded:
+    """      
+    # Check if all the perturbations have been evaluated
+#     if self.mdlEvalHist is not None and not self.mdlEvalHist.isItEmpty():
+#       if self.counter['perturbation'] < self.gradDict['pertNeeded']:
+#         self.readyVarsUpdate = False
+#       else: # Got enough perturbation
+#         self.readyVarsUpdate = True
+#     else:
+#       self.readyVarsUpdate = False
+#         
+#     if not self.readyVarsUpdate: # Not ready to update decision variables; continue to perturb for gradient evaluation
+#       self.counter['perturbation'] += 1
+#       
+#     else: # Enough gradient evaluation for decision variable update
+#       self.counter['perturbation'] = 0
+#       self.counter['varsUpdate'] += 1
+      
+    if self.counter['mdlEval'] > 1:
+      if self.counter['perturbation'] < self.gradDict['pertNeeded']:
         self.readyVarsUpdate = False
+        self.counter['perturbation'] += 1
       else: # Got enough perturbation
-        self.readyVarsUpdate = True
-        
+        self.readyVarsUpdate = True  
+        self.counter['perturbation'] = 0
+        self.counter['varsUpdate'] += 1
+    else:
+      self.readyVarsUpdate = False
+    
+      
+      
     self.localLocalGenerateInput(model,oldInput)    
 
   @abc.abstractmethod
@@ -144,32 +165,35 @@ class GradientBasedOptimizer(Optimizer):
   def evaluateGradient(self, optVarsValues):
     """
     optVarsValues are the perturbed parameter values for gradient estimation
+    optVarsValues should have the form of {pertIndex: {varName: [varValue1 varValue2]}}
+    Therefore, each optVarsValues[pertIndex] should return a dict of variable values that is sufficient for gradient 
+    evaluation for at least one variable (depending on specific optimization algorithm) 
     """
-    
-    # First, train a nearest ROM for searching for the needed points.
-    tempDict = copy.copy(self.lastOutput.getParametersValues('inputs', nodeid = 'RecontructEnding'))
-    tempDict.update(self.lastOutput.getParametersValues('outputs', nodeid = 'RecontructEnding'))
-    for key in tempDict.keys():           tempDict[key] = np.asarray(tempDict[key])
-    self.searchingROM.train(tempDict)
-     
-    # Retrieve the loss function (target) outputs evaluated at the perturbed thetaK values    
-    tempDictPerturbedThetak = {varName:self.perturbedCoordinates[:,varId] for varId, varName in enumerate(self.axisName)}
-    yPerturbed = self.searchingROM.evaluate(tempDictPerturbedThetak)
-
-    # Compute the new directional gradient vector (it is only for SPSA for now ...)
-    tempGradientEstimate = np.asarray([(yPerturbed[0] - yPerturbed[1]) / (2.0*self.ck*self.deltaK[varID]) for varID in range(self.nVar)])
-    self.gradAvgArray[(self.counterOuterIteration % self.numGradAvgIterations)-1][:] = copy.copy(tempGradientEstimate)
-
-
-    gradient = self.localEvaluateGradient(optVarsValues)
+    gradArray = {}
+    for var in self.optVars:
+      gradArray[var] = np.ndarray((0,0))
+        
+    # Evaluate gradient at each point
+    for pertIndex in optVarsValues.keys():
+      tempDictPerturbed = optVarsValues[pertIndex]
+#       self.raiseADebug(tempDictPerturbed)
+#       self.raiseAnError(IOError, 'laopo')
+      tempDictPerturbed['lossValue'] = copy.copy(self.lossFunctionEval(tempDictPerturbed))
+      lossDiff = tempDictPerturbed['lossValue'][0] - tempDictPerturbed['lossValue'][1]
+      for var in self.optVars:
+        if tempDictPerturbed[var][0] != tempDictPerturbed[var][1]:
+          gradArray[var] = np.append(gradArray, lossDiff/(tempDictPerturbed[var][0]-tempDictPerturbed[var][1])*1.0)
+          
+    gradient = {}    
+    for var in self.optVars:
+      gradient[var] = gradArray[var].mean()  
+          
+    gradient = self.localEvaluateGradient(optVarsValues, gradient)
     return gradient
       
   @abc.abstractmethod
-  def localEvaluateGradient(self, optVars, gradient = None):
+  def localEvaluateGradient(self, optVarsValues, gradient = None):
     return gradient
-    
-    
-    
     
 
 

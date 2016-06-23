@@ -119,6 +119,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.nVar                           = 0
     self.objVar                         = None
     self.optType                        = None
+    self.paramDict                      = {}
     self.convergenceTol                 = 1e-3
     self.solutionExport                 = None             #This is the data used to export the solution (it could also not be present)
     self.values                         = {}                        # for each variable the current value {'var name':value}
@@ -218,6 +219,11 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       elif child.tag == "restartTolerance":
         self.restartTolerance = float(child.text)
       
+      elif child.tag == 'parameter':
+        for childChild in child:
+          self.paramDict[childChild.tag] = childChild.text
+      
+    self.optVars.sort()
     if self.optType == None:    self.optType = 'min'
     if self.initSeed == None:   self.initSeed = Distributions.randomIntegers(0,2**31,self)
     if self.objVar == None:     self.raiseAnError(IOError, 'Object variable is not specified for optimizer!')
@@ -353,13 +359,22 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     pass # To be overwritten by subclass
 
   def lossFunctionEval(self, optVars):
-    tempDict = copy.copy(self.mdlEvalHist.getParametersValues('inputs', nodeid = 'RecontructEnding'))
-    tempDict.update(self.mdlEvalHist.getParametersValues('outputs', nodeid = 'RecontructEnding'))
+    """
+    optVars should have the form {varName1:[value11, value12,...value1n], varName2:[value21, value22,...value2n]...}
+    """
+    tempDict = copy.copy(self.mdlEvalHist.getParametersValues('inputs', nodeId = 'RecontructEnding'))
+    tempDict.update(self.mdlEvalHist.getParametersValues('outputs', nodeId = 'RecontructEnding'))
     for key in tempDict.keys():
       tempDict[key] = np.asarray(tempDict[key])
     self.objSearchingROM.train(tempDict)
     
-    lossFunctionValue = self.searchingROM.evaluate(optVars)
+    for key in optVars.keys():              optVars[key] = np.atleast_1d(optVars[key])
+    lossFunctionValue = self.objSearchingROM.evaluate(optVars)
+    
+    self.raiseADebug(tempDict)
+    self.raiseADebug(optVars)
+    self.raiseADebug(lossFunctionValue)
+    self.raiseAnError(IOError, 'chenen')
     
     if self.optType == 'min':           return lossFunctionValue
     else:                               return lossFunctionValue*-1.0
