@@ -43,38 +43,38 @@
   [./TruncatedSVD]
     type   = 'RavenFramework'
     input  = 'test_tdmSKLearnTruncatedSVD.xml'
-    csv    = 'TruncatedSVD/dummy_0.csv TruncatedSVD/dummy_1.csv TruncatedSVD/dummy_2.csv'
+    csv    = 'TruncatedSVD/dummy_0.csv TruncatedSVD/dummy_75.csv TruncatedSVD/dummy_149.csv'
     output = 'TruncatedSVD/dummy.csv TruncatedSVD/dummy.xml'
   [../]
   [./FastICA]
     type   = 'RavenFramework'
     input  = 'test_tdmSKLearnFastICA.xml'
-    csv    = 'FastICA/dummy_0.csv FastICA/dummy_1.csv FastICA/dummy_2.csv'
+    csv    = 'FastICA/dummy_0.csv FastICA/dummy_75.csv FastICA/dummy_149.csv'
     output = 'FastICA/dummy.csv FastICA/dummy.xml'
   [../]
   [./Isomap]
     type   = 'RavenFramework'
     input  = 'test_tdmSKLearnIsomap.xml'
-    csv    = 'Isomap/dummy_0.csv Isomap/dummy_1.csv Isomap/dummy_2.csv'
+    csv    = 'Isomap/dummy_0.csv Isomap/dummy_75.csv Isomap/dummy_149.csv'
     output = 'Isomap/dummy.csv Isomap/dummy.xml'
   [../]
   [./LocallyLinearEmbedding]
     type    = 'RavenFramework'
     input   = 'test_tdmSKLearnLocallyLinearEmbedding.xml'
-    csv     = 'LocallyLinearEmbedding/dummy_0.csv LocallyLinearEmbedding/dummy_1.csv LocallyLinearEmbedding/dummy_2.csv'
+    csv     = 'LocallyLinearEmbedding/dummy_0.csv LocallyLinearEmbedding/dummy_75.csv LocallyLinearEmbedding/dummy_149.csv'
     output  = 'LocallyLinearEmbedding/dummy.csv LocallyLinearEmbedding/dummy.xml'
     rel_err = 0.001
   [../]
   [./SpectralEmbedding]
     type   = 'RavenFramework'
     input  = 'test_tdmSKLearnSpectralEmbedding.xml'
-    csv    = 'SpectralEmbedding/dummy_0.csv SpectralEmbedding/dummy_1.csv SpectralEmbedding/dummy_2.csv'
+    csv    = 'SpectralEmbedding/dummy_0.csv SpectralEmbedding/dummy_75.csv SpectralEmbedding/dummy_149.csv'
     output = 'SpectralEmbedding/dummy.csv SpectralEmbedding/dummy.xml'
   [../]
   [./MultiDimensionalScaling]
     type   = 'RavenFramework'
     input  = 'test_tdmSKLearnMultiDimensionalScaling.xml'
-    csv    = 'MultiDimensionalScaling/dummy_0.csv MultiDimensionalScaling/dummy_1.csv MultiDimensionalScaling/dummy_2.csv'
+    csv    = 'MultiDimensionalScaling/dummy_0.csv MultiDimensionalScaling/dummy_75.csv MultiDimensionalScaling/dummy_149.csv'
     output = 'MultiDimensionalScaling/dummy.csv MultiDimensionalScaling/dummy.xml'
   [../]
 []
