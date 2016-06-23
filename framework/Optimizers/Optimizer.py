@@ -371,6 +371,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     for key in optVars.keys():              optVars[key] = np.atleast_1d(optVars[key])
     lossFunctionValue = self.objSearchingROM.evaluate(optVars)
     
+    self.raiseADebug(self.mdlEvalHist._dataContainer)
     self.raiseADebug(tempDict)
     self.raiseADebug(optVars)
     self.raiseADebug(lossFunctionValue)
@@ -421,6 +422,9 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.counter['mdlEval'] +=1                              #since we are creating the input for the next run we increase the counter and global counter
         
     self.inputInfo['prefix'] = str(self.counter['mdlEval'])
+    
+    self.raiseADebug('ss',self.inputInfo)
+    
     model.getAdditionalInputEdits(self.inputInfo)
     self.localGenerateInput(model,oldInput)
     
