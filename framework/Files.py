@@ -469,6 +469,90 @@ class RAVENGenerated(File):
 #      <parameter>
 #    </root>
 #
+class StaticXMLOutput(RAVENGenerated):
+  """
+    Specialized class for consistent RAVEN XML outputs.  See forms in comments above.
+  """
+  def newTree(self,root):
+    """
+      Sets up a new internal tree.
+      @ In, root, string, name of root node
+      @ Out, None
+    """
+    self.tree = xmlUtils.newTree(root,attrib={'type':'Static'})
+
+  def addScalar(self,target,name,value,root=None):
+    """
+      Adds a node entry named "name" with value "value" to "target" node, such as
+      <root>
+        <target>
+          <name>value<name>
+      @ In, target, string, target parameter to add node value to
+      @ In, name, string, name of characteristic of target to add
+      @ In, value, string/float/etc, value of characteristic
+      @ In, root, xml.etree.ElementTree.Element, optional, root to add to
+      @ Out, None
+    """
+    if root is None:
+      root = self.tree.getroot()
+    #note: illegal unicode characters are checked for in xmlUtils methods
+    targ = self._findTarg(root,target)
+    targ.append(xmlUtils.newNode(name,text=value))
+
+  def addMatrix(self,target,name,valueDict,root=None):
+    """
+      Adds a node entry named "name" with value "value" to "target" node, such as
+      <root>
+        <target>
+          <name>
+            <with_respect_to_name1>value1
+            <with_respect_to_name2>value2
+            <with_respect_to_name3>value3
+      The valueDict should be as {with_respect_to_name1:value1, with_respect_to_name2:value2}
+      For example, if the "name" is sensitivity_coefficients, each entry would be the
+          sensitivity of "target" to "with_respect_to" parameters.
+      @ In, target, string, target parameter to add node value to
+      @ In, name, string, name of characteristic of target to add
+      @ In, valueDict, dict, name:value
+      @ In, root, xml.etree.ElementTree.Element, optional, root to add to
+      @ Out, None
+    """
+    if root is None:
+      root = self.tree.getroot()
+    targ = self._findTarg(root,target)
+    nameNode = xmlUtils.newNode(name)
+    for key,value in valueDict.items():
+      nameNode.append(xmlUtils.newNode(key,text=value))
+    targ.append(nameNode)
+
+  def _findTarg(self,root,target):
+    """
+      Searches "root" for "target" node and makes it if not found
+      @ In, root, xml.etree.ElementTree.Element, node to search under
+      @ In, target, string, name of target to find
+      @ Out, targ, xml.etree.ElementTree.Element, desired target node
+    """
+    #find target node
+    targ = xmlUtils.findPath(root,target)
+    #if it doesn't exist, make it and add it
+    if targ is None:
+      targ = xmlUtils.newNode(target)
+      root.append(targ)
+    return targ
+
+  def writeFile(self):
+    """
+      Writes the input file do disk.
+      @ In, None
+      @ Out, None
+    """
+    #prettify tree
+    pretty = xmlUtils.prettify(self.tree)
+    #make sure file is written cleanly and anew
+    if self.isOpen(): self.close()
+    self.writelines(pretty,overwrite=True)
+    self.close()
+
 #    Form for DynamicXMLOutput
 #    <root type='Static'>
 #      <pivot value="value">
@@ -480,50 +564,85 @@ class RAVENGenerated(File):
 #          </multi-value properties>
 #        <parameter>
 #    </root>
-class StaticXMLOutput(RAVENGenerated):
+class DynamicXMLOutput(StaticXMLOutput):
   """
     Specialized class for consistent RAVEN XML outputs.  See forms in comments above.
   """
-  def initialize(self,filename,messageHandler,path='.',subtype=None):
-    """
-      Since this is internally generated, set up all the basic information.
-      @ In, filename, string, name of the file
-      @ In, messageHandler, MessageHandler object, message handler
-      @ In, path, string, optional, path to file object
-      @ In, subtype, string, optional, subtype for labeling
-      @ Out, None
-    """
-    RAVENGenerated.initialize(self,filename,messageHandler,path,subtype)
-
-  def newTree(self,root):
+  def newTree(self,root,pivotParam):
     """
       Sets up a new internal tree.
       @ In, root, string, name of root node
+      @ In, pivotParam, string, name of time-like parameter
       @ Out, None
     """
-    self.tree = xmlUtils.newTree(root)
+    self.pivotParam = pivotParam
+    self.tree = xmlUtils.newTree(root,attrib={'type':'Dynamic'})
 
-  def addScalar(self,target,name,value):
+  def addScalar(self,pivotVal,target,name,value,root=None):
+    """
+      Adds a node entry named "name" with value "value" to "target" node, such as
+      <root>
+        <pivotParam value=pivotVal>
+          <target>
+            <name>value<name>
+      @ In, pivotVal, float, value of the pivot parameter
+      @ In, target, string, target parameter to add node value to
+      @ In, name, string, name of characteristic of target to add
+      @ In, value, string/float/etc, value of characteristic
+      @ In, root, xml.etree.ElementTree.Element, optional, root to add to
+      @ Out, None
+    """
+    if root is None:
+      root = self.tree.getroot()
+    pivotNode = self.findPivotNode(root,pivotVal)
+    #use addScalar methods to add parameters
+    StaticXMLOutput.addScalar(self,target,name,value,root=pivotNode)
+
+  def addMatrix(self,pivotVal,target,name,valueDict,root=None):
     """
       Adds a node entry named "name" with value "value" to "target" node, such as
       <root>
         <target>
-          <name>value<name>
-      Note that if pivotVal is not specified, will skip searching through pivot values
+          <name>
+            <with_respect_to_name1>value1
+            <with_respect_to_name2>value2
+            <with_respect_to_name3>value3
+      The valueDict should be as {with_respect_to_name1:value1, with_respect_to_name2:value2}
+      For example, if the "name" is sensitivity_coefficients, each entry would be the
+          sensitivity of "target" to "with_respect_to" parameters.
       @ In, target, string, target parameter to add node value to
       @ In, name, string, name of characteristic of target to add
-      @ In, value, string/float/etc, value of characteristic
+      @ In, valueDict, dict, name:value
+      @ In, root, xml.etree.ElementTree.Element, optional, root to add to
+      @ Out, None
     """
-    root = self.tree.getroot()
-    #find target node
-    targ = xmlUtils.findPath(root,target)
-    #if it doesn't exist, make it and add it
-    if targ is None:
-      targ = xmlUtils.newNode(target)
-      root.append(targ)
-    #check consistency of xml
+    if root is None:
+      root = self.tree.getroot()
+    pivotNode = self.findPivotNode(root,pivotVal)
+    StaticXMLOutput.addMatrix(self,target,name,valueDict,root=pivotNode)
 
-
+  def findPivotNode(self,root,pivotVal):
+    """
+      Searches "root" for pivot node with value pivotVal
+      @ In, root, xml.etree.ElementTree.Element, node to search under
+      @ In, pivotVal, float, value of pivot to find
+      @ Out, pivotNode, xml.etree.ElementTree.Element, node desired
+    """
+    #find the right time parameter
+    found = False
+    for child in root:
+      #make sure it's an eligible node
+      if child.tag != self.pivotParam:
+        continue
+      if abs(float(child.attrib['value']) - pivotVal) <= 1e-10*pivotVal:
+        pivotNode = child
+        found = True
+        break
+    #if not found, make one
+    if not found:
+      pivotNode = xmlUtils.newNode(self.pivotParam, attrib={'value':pivotVal})
+      root.append(pivotNode)
+    return pivotNode
 #
 #
 #
@@ -579,6 +698,8 @@ __interFaceDict               = {}
 __interFaceDict['RAVEN']      = RAVENGenerated
 __interFaceDict['CSV']        = CSV
 __interFaceDict['Input']      = UserGenerated
+__interFaceDict['StaticXMLOutput']  = StaticXMLOutput
+__interFaceDict['DynamicXMLOutput'] = DynamicXMLOutput
 __knownTypes                  = __interFaceDict.keys()
 
 def knownTypes():

@@ -10,6 +10,7 @@ warnings.simplefilter('default',DeprecationWarning)
 import numpy as np
 import xml.etree.ElementTree as ET
 import xml.dom.minidom as pxml
+import re
 
 def prettify(tree):
   """
@@ -38,16 +39,24 @@ def newNode(tag,text='',attrib={}):
     @ In, attrib, dict{string:string}, attribute:value pairs
     @ Out, el, xml.etree.ElementTree.Element, new node
   """
-  el = ET.Element(tag,attrib=attrib)
-  el.text = text
+  tag = fixXmlString(tag)
+  text = str(text)
+  cleanAttrib = {}
+  for key,value in attrib.items():
+    value = str(value)
+    cleanAttrib[fixXmlString(key)] = fixXmlString(value)
+  el = ET.Element(tag,attrib=cleanAttrib)
+  el.text = fixXmlString(text)
   return el
 
-def newTree(name):
+def newTree(name,attrib={}):
   """
     Creates a new tree with named node as its root
     @ In, name, string, name of root node
+    @ In, attrib, dict, optional, attributes for root node
     @ Out, tree, xml.etree.ElementTree.ElementTree, tree
   """
+  name = fixXmlString(name)
   tree = ET.ElementTree(element=newNode(name))
   return tree
 
@@ -78,3 +87,23 @@ def loadToTree(filename):
   tree = ET.parse(filename)
   root = tree.getroot()
   return root,tree
+
+def fixXmlString(msg):
+  """
+    Removes unallowable characters from xml
+    @ In, msg, string, tag/text/attribute
+    @ Out, msg, string, fixed string
+  """
+  #if not a string, pass it back through
+  if not isinstance(msg,basestring): return msg
+  #otherwise, replace illegal characters with "?"
+  # from http://boodebr.org/main/python/all-about-python-and-unicode#UNI_XML
+  RE_XML_ILLEGAL = u'([\u0000-\u0008\u000b-\u000c\u000e-\u001f\ufffe-\uffff])' + \
+                 u'|' + \
+                 u'([%s-%s][^%s-%s])|([^%s-%s][%s-%s])|([%s-%s]$)|(^[%s-%s])' % \
+                  (unichr(0xd800),unichr(0xdbff),unichr(0xdc00),unichr(0xdfff),
+                   unichr(0xd800),unichr(0xdbff),unichr(0xdc00),unichr(0xdfff),
+                   unichr(0xd800),unichr(0xdbff),unichr(0xdc00),unichr(0xdfff))
+  msg = re.sub(RE_XML_ILLEGAL, "?", msg)
+  return msg
+

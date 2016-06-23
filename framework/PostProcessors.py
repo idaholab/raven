@@ -1691,49 +1691,75 @@ class BasicStatistics(BasePostProcessor):
             self.raiseADebug('Writing External Function parameter ' + what)
             output.write(what + separator + '%.8E' % outputDict[what] + os.linesep)
 
-  def _writeXML(self,output,outputDictionary,parameterSet,methodToTest):
+  def _writeXML(self,origOutput,outputDictionary,parameterSet,methodToTest):
     """
       Defines the method for writing the basic statistics to a .xml file.
-      @ In, output, File object, file to write
+      @ In, origOutput, File object, file to write
       @ In, outputDictionary, dict, dictionary of statistics values
       @ In, parameterSet, list, list of parameters in use
       @ In, methodToTest, list, strings of methods to test
       @ Out, None
     """
-    tree = xmlUtils.newTree('BasicStatisticsPP')
-    root = tree.getroot()
-    root.set('type','Dynamic' if self.dynamic else 'Static')
+    #create XML output with same path as original output
+    if origOutput.isOpen(): origOutput.close()
+    if self.dynamic:
+      output = Files.returnInstance('DynamicXMLOutput',self)
+      output.initialize(origOutput.getFilename(),self.messageHandler,path=origOutput.getPath())
+      output.newTree('BasicStatisticsPP',self.pivotParameter)
+    else:
+      output = Files.returnInstance('StaticXMLOutput',self)
+      output.initialize(origOutput.getFilename(),self.messageHandler,path=origOutput.getPath())
+      output.newTree('BasicStatisticsPP')
+    #tree = xmlUtils.newTree('BasicStatisticsPP')
+    #root = tree.getroot()
+    #root.set('type','Dynamic' if self.dynamic else 'Static')
     outputResults = [outputDictionary] if not self.dynamic else outputDictionary.values()
     for ts, outputDict in enumerate(outputResults):
-      if self.dynamic:
-        parentNode = xmlUtils.newNode(self.pivotParameter)
-        parentNode.set('value',str(outputDictionary.keys()[ts]))
-        root.append(parentNode)
-      else: parentNode = root
+      #if self.dynamic:
+        #parentNode = xmlUtils.newNode(self.pivotParameter)
+        #parentNode.set('value',str())
+        #root.append(parentNode)
+      #else: parentNode = root
+      pivotVal = outputDictionary.keys()[ts]
       for t,target in enumerate(parameterSet):
-        tNode = xmlUtils.newNode(target) #tnode is for properties with respect to the target
-        parentNode.append(tNode)
+        #tNode = xmlUtils.newNode(target) #tnode is for properties with respect to the target
+        #parentNode.append(tNode)
         for stat,val in outputDict.items():
           if stat not in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity'] + methodToTest:
-            val = val[target]
-            sNode = xmlUtils.newNode(stat,text=str(val)) #sNode is for each stat of the target
-            tNode.append(sNode)
+            #val = val[target]
+            if self.dynamic:
+              output.addScalar(pivotVal,target,stat,val[target])
+            else:
+              output.addScalar(target,stat,val[target])
+            #sNode = xmlUtils.newNode(stat,text=str(val)) #sNode is for each stat of the target
+            #tNode.append(sNode)
         for stat,val in outputDict.items():
           if stat in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity']:
+            valueDict = {}
             valRow = val[t]
-            sNode = xmlUtils.newNode(stat)
-            tNode.append(sNode)
+            #sNode = xmlUtils.newNode(stat)
+            #tNode.append(sNode)
             for p,param in enumerate(parameterSet):
               actVal = valRow[p]
-              vNode = xmlUtils.newNode(param,text=str(actVal)) #vNode is for each parameter's stat's value with respect to the target
-              sNode.append(vNode)
+              valueDict[param] = actVal
+            if self.dynamic:
+              output.addMatrix(pivotVal,target,stat,valueDict)
+            else:
+              output.addMatrix(target,stat,valueDict)
+              #vNode = xmlUtils.newNode(param,text=str(actVal)) #vNode is for each parameter's stat's value with respect to the target
+              #sNode.append(vNode)
         if self.externalFunction:
           for stat in self.methodsToRun:
             if stat not in self.acceptedCalcParam:
-              sNode = xmlUtils.newNode(stat,text=str(outputDict[stat]))
-    pretty = xmlUtils.prettify(tree)
-    output.writelines(pretty)
-    output.close()
+              if self.dynamic:
+                output.addScalar(pivotVal,target,stat,val[target])
+              else:
+                output.addScalar(target,stat,val[target])
+              #sNode = xmlUtils.newNode(stat,text=str(outputDict[stat]))
+    #pretty = xmlUtils.prettify(tree)
+    #output.writelines(pretty)
+    #output.close()
+    output.writeFile()
 
   def __computeVp(self,p,weights):
     """
