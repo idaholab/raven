@@ -429,7 +429,7 @@ class HistorySet(Data):
 
     filenameLocal = os.path.join(filenameRoot,name)
 
-    if os.path.isfile(filenameLocal):
+    if os.path.isfile(filenameLocal+'.xml'):
       xmlData = self._loadXMLFile(filenameLocal)
       assert(xmlData["fileType"] == "HistorySet")
       if "metadata" in xmlData:
