@@ -143,7 +143,7 @@ class relapdata:
     """
     IOcsvfile=open(filen,'w')
     if self.minordata != None:
-      for i in range(len(self.minordata.keys())): IOcsvfile.write('%s,' %([minor.replace("1 time_(sec)","time") for minor in self.minordata.keys()][i]))
+      for i in range(len(self.minordata.keys())): IOcsvfile.write('%s,' %(self.minordata.keys()[i].replace("1 time_(sec)","time")))
     for j in range(len(self.ravenData.keys())):
       IOcsvfile.write('%s' %(self.ravenData.keys()[j]))
       if j+1<len(self.ravenData.keys()): IOcsvfile.write(',')
