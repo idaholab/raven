@@ -1,1 +1,1 @@
-<data name="data" type="Pointset"><input>a,b,c</input><output>1</output><inputFilename>output.csv</inputFilename></data>
+<data name="data" type="Pointset"><input>a,c,b</input><output>1</output><inputFilename>output.csv</inputFilename></data>
