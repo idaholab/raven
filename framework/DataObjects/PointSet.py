@@ -337,21 +337,31 @@ class PointSet(Data):
     #numeric values, one line for each input.
     if options is not None and 'fileToLoad' in options.keys():
       name = os.path.join(options['fileToLoad'].getPath(),options['fileToLoad'].getBase())
-    else: name = self.name
+    else:
+      name = self.name
+
     filenameLocal = os.path.join(filenameRoot,name)
-    xmlData = self._loadXMLFile(filenameLocal)
-    assert(xmlData["fileType"] == "Pointset")
-    if "metadata" in xmlData:
-      self._dataContainer['metadata'] = xmlData["metadata"]
-    mainCSV = os.path.join(filenameRoot,xmlData["filenameCSV"])
+
+    if os.path.isfile(filenameLocal):
+      xmlData = self._loadXMLFile(filenameLocal)
+      assert(xmlData["fileType"] == "Pointset")
+      if "metadata" in xmlData:
+        self._dataContainer['metadata'] = xmlData["metadata"]
+
+      mainCSV = os.path.join(filenameRoot,xmlData["filenameCSV"])
+    else:
+      mainCSV = os.path.join(filenameRoot,name+'.csv')
+
     myFile = open(mainCSV,"rU")
     header = myFile.readline().rstrip()
     inoutKeys = header.split(",")
     inoutValues = [[] for _ in range(len(inoutKeys))]
+
     for line in myFile.readlines():
       lineList = line.rstrip().split(",")
       for i in range(len(inoutKeys)):
         inoutValues[i].append(utils.partialEval(lineList[i]))
+
     #extend the expected size of this point set
     self.numAdditionalLoadPoints = len(inoutValues[0]) #used in checkConsistency
     self._dataContainer['inputs'] = {}
@@ -359,9 +369,11 @@ class PointSet(Data):
     inoutDict = {}
     for key,value in zip(inoutKeys,inoutValues):
       inoutDict[key] = value
-    for key in xmlData["inpKeys"]:
+
+    for key in self.getParaKeys('inputs'):
       self._dataContainer["inputs"][key] = c1darray(values=np.array(inoutDict[key]))
-    for key in xmlData["outKeys"]:
+
+    for key in self.getParaKeys('outputs'):
       self._dataContainer["outputs"][key] = c1darray(values=np.array(inoutDict[key]))
 
   def __extractValueLocal__(self,inOutType,varTyp,varName,varID=None,stepID=None,nodeId='root'):

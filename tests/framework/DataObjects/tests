@@ -16,13 +16,13 @@
    csv = 'dataObject_metadata/PointProbability_dump.csv'
  [../]
 
-# [./load_csv]
-#   type = 'RavenFramework'
-#   input = 'test_load_csv.xml'
-#   output = 'csv/output.xml'
-#   xml = 'csv/output.xml'
-#   csv = 'csv/output.csv'
-# [../]
+ [./load_csv]
+   type = 'RavenFramework'
+   input = 'test_load_csv.xml'
+   output = 'csv/output.xml'
+   xml = 'csv/output.xml'
+   csv = 'csv/output.csv'
+ [../]
 []
 
 
