@@ -1,0 +1,4 @@
+<data name="point_dump" type="Pointset"><input>time</input><output>high,low,mean</output><inputFilename>point_dump.csv</inputFilename><metadata><loadedFromRavenFile>array([ u'/Users/talbpw/projects/raven/tests/framework/PostProcessors/RavenOutputPostProcessor/dynamic/stats.xml',
+       u'/Users/talbpw/projects/raven/tests/framework/PostProcessors/RavenOutputPostProcessor/dynamic/stats.xml',
+       u'/Users/talbpw/projects/raven/tests/framework/PostProcessors/RavenOutputPostProcessor/dynamic/stats.xml'], 
+      dtype='&lt;U102')</loadedFromRavenFile></metadata></data>
