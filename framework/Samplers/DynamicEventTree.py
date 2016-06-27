@@ -124,6 +124,8 @@ class DynamicEventTree(Grid):
     self.standardDETvariables              = []
     # Dictionary of variables that represent the epistemic space (hybrid det). Format => {'epistemicVarName':{'HybridTree name':value}}
     self.epistemicVariables                = {}
+    # remove branch info?
+    self.removeBranchInfo                  = True
 
   def _localWhatDoINeed(self):
     """
@@ -297,7 +299,7 @@ class DynamicEventTree(Grid):
     # Check if endTime and endTimeStep (time step)  are present... In case store them in the relative working vars
     #try: #Branch info written out by program, so should always exist.
     self.actualEndTime = float(root.attrib['end_time'])
-    self.actualEndTs   = int(root.attrib['end_ts'])
+    self.actualEndTs   = int(root.attrib['end_ts']) if 'end_ts' in root.attrib.keys() else -1
     #except? pass
     # Store the information in a dictionary that has as keywords the distributions that triggered
     for node in root:
@@ -314,7 +316,7 @@ class DynamicEventTree(Grid):
       # we exit the loop here, because only one trigger at the time can be handled  right now
       break
     # remove the file
-    os.remove(filename)
+    if self.removeBranchInfo: os.remove(filename)
     branchPresent = True
     return branchPresent
 
@@ -329,6 +331,9 @@ class DynamicEventTree(Grid):
       @ In, myInput, list, list of inputs for the Models object (passed through the Steps XML block)
       @ Out, None
     """
+    # check if additional edits are needed and add them
+    model.getAdditionalInputEdits(self.inputInfo)
+    
     precSampled = rootTree.getrootnode().get('hybridsamplerCoordinate')
     rootnode    =  rootTree.getrootnode()
     rname       = rootnode.name
@@ -473,6 +478,9 @@ class DynamicEventTree(Grid):
                 'conditionalPb':[subGroup.get('conditionalPbr')],
                 'startTime':endInfo['parentNode'].get('endTime'),
                 'parentID':subGroup.get('parent')}
+
+      # check if additional edits are needed and add them
+      model.getAdditionalInputEdits(self.inputInfo)
       # add the newer branch name to the map
       self.rootToJob[rname] = self.rootToJob[subGroup.get('parent')]
       # check if it is a preconditioned DET sampling, if so add the relative information
@@ -632,7 +640,11 @@ class DynamicEventTree(Grid):
       else: self.printEndXmlSummary = False
     if 'maxSimulationTime' in xmlNode.attrib.keys():
       try:    self.maxSimulTime = float(xmlNode.attrib['maxSimulationTime'])
-      except (KeyError,NameError): self.raiseAnError(IOError,'Can not convert maxSimulationTime in float number!!!')
+      except (KeyError,NameError): self.raiseAnError(IOError,'Can not convert maxSimulationTime in float number!!!')     
+    if 'removeBranchInfo' in xmlNode.attrib.keys():
+      if xmlNode.attrib['removeBranchInfo'].lower() in utils.stringsThatMeanTrue(): self.removeBranchInfo = True
+      else: self.removeBranchInfo = False
+      
     branchedLevel, error_found = {}, False
     gridInfo = self.gridEntity.returnParameter("gridInfo")
     errorFound = False

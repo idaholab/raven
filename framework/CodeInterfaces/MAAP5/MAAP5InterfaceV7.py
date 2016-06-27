@@ -133,6 +133,7 @@ class MAAP5_GenericV7(GenericCode):
                 continue
 
         print('DET sampled Variables =',self.DETsampledVars)
+        print('Hybrid sampled Variables =',self.HYBRIDsampledVars)
         print('branching',branching)
 
         for var in self.DETsampledVars:
