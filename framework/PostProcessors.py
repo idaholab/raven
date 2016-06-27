@@ -1704,61 +1704,29 @@ class BasicStatistics(BasePostProcessor):
     if origOutput.isOpen(): origOutput.close()
     if self.dynamic:
       output = Files.returnInstance('DynamicXMLOutput',self)
-      output.initialize(origOutput.getFilename(),self.messageHandler,path=origOutput.getPath())
-      output.newTree('BasicStatisticsPP',self.pivotParameter)
     else:
       output = Files.returnInstance('StaticXMLOutput',self)
-      output.initialize(origOutput.getFilename(),self.messageHandler,path=origOutput.getPath())
-      output.newTree('BasicStatisticsPP')
-    #tree = xmlUtils.newTree('BasicStatisticsPP')
-    #root = tree.getroot()
-    #root.set('type','Dynamic' if self.dynamic else 'Static')
+    output.initialize(origOutput.getFilename(),self.messageHandler,path=origOutput.getPath())
+    output.newTree('BasicStatisticsPP',pivotParam=self.pivotParameter)
     outputResults = [outputDictionary] if not self.dynamic else outputDictionary.values()
     for ts, outputDict in enumerate(outputResults):
-      #if self.dynamic:
-        #parentNode = xmlUtils.newNode(self.pivotParameter)
-        #parentNode.set('value',str())
-        #root.append(parentNode)
-      #else: parentNode = root
       pivotVal = outputDictionary.keys()[ts]
       for t,target in enumerate(parameterSet):
-        #tNode = xmlUtils.newNode(target) #tnode is for properties with respect to the target
-        #parentNode.append(tNode)
         for stat,val in outputDict.items():
           if stat not in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity'] + methodToTest:
-            #val = val[target]
-            if self.dynamic:
-              output.addScalar(pivotVal,target,stat,val[target])
-            else:
-              output.addScalar(target,stat,val[target])
-            #sNode = xmlUtils.newNode(stat,text=str(val)) #sNode is for each stat of the target
-            #tNode.append(sNode)
+            output.addScalar(target,stat,val[target],pivotVal=pivotVal)
         for stat,val in outputDict.items():
           if stat in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity']:
             valueDict = {}
             valRow = val[t]
-            #sNode = xmlUtils.newNode(stat)
-            #tNode.append(sNode)
             for p,param in enumerate(parameterSet):
               actVal = valRow[p]
               valueDict[param] = actVal
-            if self.dynamic:
-              output.addMatrix(pivotVal,target,stat,valueDict)
-            else:
-              output.addMatrix(target,stat,valueDict)
-              #vNode = xmlUtils.newNode(param,text=str(actVal)) #vNode is for each parameter's stat's value with respect to the target
-              #sNode.append(vNode)
+            output.addVector(target,stat,valueDict,pivotVal=pivotVal)
         if self.externalFunction:
           for stat in self.methodsToRun:
             if stat not in self.acceptedCalcParam:
-              if self.dynamic:
-                output.addScalar(pivotVal,target,stat,val[target])
-              else:
-                output.addScalar(target,stat,val[target])
-              #sNode = xmlUtils.newNode(stat,text=str(outputDict[stat]))
-    #pretty = xmlUtils.prettify(tree)
-    #output.writelines(pretty)
-    #output.close()
+              output.addScalar(target,stat,val[target],pivotVal=pivotVal)
     output.writeFile()
 
   def __computeVp(self,p,weights):

@@ -473,15 +473,16 @@ class StaticXMLOutput(RAVENGenerated):
   """
     Specialized class for consistent RAVEN XML outputs.  See forms in comments above.
   """
-  def newTree(self,root):
+  def newTree(self,root,pivotParam=None):
     """
       Sets up a new internal tree.
       @ In, root, string, name of root node
+      @ In, pivotParam, string, unused (for consistency with dynamic method)
       @ Out, None
     """
     self.tree = xmlUtils.newTree(root,attrib={'type':'Static'})
 
-  def addScalar(self,target,name,value,root=None):
+  def addScalar(self,target,name,value,root=None,pivotVal=None):
     """
       Adds a node entry named "name" with value "value" to "target" node, such as
       <root>
@@ -491,6 +492,7 @@ class StaticXMLOutput(RAVENGenerated):
       @ In, name, string, name of characteristic of target to add
       @ In, value, string/float/etc, value of characteristic
       @ In, root, xml.etree.ElementTree.Element, optional, root to add to
+      @ In, pivotVal, float, optional, unused (for consistency with dynamic mode)
       @ Out, None
     """
     if root is None:
@@ -499,7 +501,7 @@ class StaticXMLOutput(RAVENGenerated):
     targ = self._findTarg(root,target)
     targ.append(xmlUtils.newNode(name,text=value))
 
-  def addMatrix(self,target,name,valueDict,root=None):
+  def addVector(self,target,name,valueDict,root=None,pivotVal=None):
     """
       Adds a node entry named "name" with value "value" to "target" node, such as
       <root>
@@ -515,6 +517,7 @@ class StaticXMLOutput(RAVENGenerated):
       @ In, name, string, name of characteristic of target to add
       @ In, valueDict, dict, name:value
       @ In, root, xml.etree.ElementTree.Element, optional, root to add to
+      @ In, pivotVal, float, optional, unused (for consistency with dynamic mode)
       @ Out, None
     """
     if root is None:
@@ -568,17 +571,19 @@ class DynamicXMLOutput(StaticXMLOutput):
   """
     Specialized class for consistent RAVEN XML outputs.  See forms in comments above.
   """
-  def newTree(self,root,pivotParam):
+  def newTree(self,root,pivotParam=None):
     """
       Sets up a new internal tree.
       @ In, root, string, name of root node
       @ In, pivotParam, string, name of time-like parameter
       @ Out, None
     """
+    if pivotParam is None:
+      self.raiseAnError(RuntimeError,'newTree argument pivotParam is None but output is in dynamic mode!')
     self.pivotParam = pivotParam
     self.tree = xmlUtils.newTree(root,attrib={'type':'Dynamic'})
 
-  def addScalar(self,pivotVal,target,name,value,root=None):
+  def addScalar(self,target,name,value,root=None,pivotVal=None):
     """
       Adds a node entry named "name" with value "value" to "target" node, such as
       <root>
@@ -594,11 +599,13 @@ class DynamicXMLOutput(StaticXMLOutput):
     """
     if root is None:
       root = self.tree.getroot()
+    if pivotVal is None:
+      self.raiseAnError(RuntimeError,'In addScalar no pivotVal specificied, but in dynamic mode!')
     pivotNode = self.findPivotNode(root,pivotVal)
     #use addScalar methods to add parameters
     StaticXMLOutput.addScalar(self,target,name,value,root=pivotNode)
 
-  def addMatrix(self,pivotVal,target,name,valueDict,root=None):
+  def addVector(self,target,name,valueDict,root=None,pivotVal=None):
     """
       Adds a node entry named "name" with value "value" to "target" node, such as
       <root>
@@ -618,8 +625,10 @@ class DynamicXMLOutput(StaticXMLOutput):
     """
     if root is None:
       root = self.tree.getroot()
+    if pivotVal is None:
+      self.raiseAnError(RuntimeError,'In addScalar no pivotVal specificied, but in dynamic mode!')
     pivotNode = self.findPivotNode(root,pivotVal)
-    StaticXMLOutput.addMatrix(self,target,name,valueDict,root=pivotNode)
+    StaticXMLOutput.addVector(self,target,name,valueDict,root=pivotNode)
 
   def findPivotNode(self,root,pivotVal):
     """

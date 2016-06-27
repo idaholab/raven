@@ -39,14 +39,14 @@ def newNode(tag,text='',attrib={}):
     @ In, attrib, dict{string:string}, attribute:value pairs
     @ Out, el, xml.etree.ElementTree.Element, new node
   """
-  tag = fixXmlString(tag)
+  tag = fixXmlTag(tag)
   text = str(text)
   cleanAttrib = {}
   for key,value in attrib.items():
     value = str(value)
-    cleanAttrib[fixXmlString(key)] = fixXmlString(value)
+    cleanAttrib[fixXmlTag(key)] = fixXmlText(value)
   el = ET.Element(tag,attrib=cleanAttrib)
-  el.text = fixXmlString(text)
+  el.text = fixXmlText(text)
   return el
 
 def newTree(name,attrib={}):
@@ -56,8 +56,9 @@ def newTree(name,attrib={}):
     @ In, attrib, dict, optional, attributes for root node
     @ Out, tree, xml.etree.ElementTree.ElementTree, tree
   """
-  name = fixXmlString(name)
+  name = fixXmlTag(name)
   tree = ET.ElementTree(element=newNode(name))
+  tree.getroot().attrib = dict(attrib)
   return tree
 
 def findPath(root,path):
@@ -88,7 +89,7 @@ def loadToTree(filename):
   root = tree.getroot()
   return root,tree
 
-def fixXmlString(msg):
+def fixXmlText(msg):
   """
     Removes unallowable characters from xml
     @ In, msg, string, tag/text/attribute
@@ -107,3 +108,26 @@ def fixXmlString(msg):
   msg = re.sub(RE_XML_ILLEGAL, "?", msg)
   return msg
 
+def fixXmlTag(msg):
+  """
+    Does the same things as fixXmlText, but with additional tag restrictions.
+    @ In, msg, string, tag/text/attribute
+    @ Out, msg, string, fixed string
+  """
+  #if not a string, pass it back through
+  if not isinstance(msg,basestring): return msg
+  #define some presets
+  letters = u'([a-zA-Z])'
+  notAllTagChars = '(^[a-zA-Z0-9-_.]+$)'
+  notTagChars = '([^a-zA-Z0-9-_.])'
+  #rules:
+  #  1. Can only contain letters, digits, hyphens, underscores, and periods
+  if not bool(re.match(notAllTagChars,msg)):
+    pre = msg
+    msg = re.sub(notTagChars,'.',msg)
+    print('XML UTILS: Replacing illegal tag characters in "'+pre+'":',msg)
+  #  2. Start with a letter or underscore
+  if not bool(re.match(letters+u'|([_])',msg[0])) or bool(re.match(u'([xX][mM][lL])',msg[:3])):
+    print('XML UTILS: Prepending "_" to illegal tag "'+msg+'"')
+    msg = '_' + msg
+  return msg

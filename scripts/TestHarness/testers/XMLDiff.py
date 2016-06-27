@@ -254,8 +254,16 @@ def compareUnorderedElement(a,b,*args,**kwargs):
       #print what was different between them
       diff =  diffs[unmatched][close[0][0]]
       for b,code,right,miss in diff:
+        if b is None:
+          b = str(b)
+        if code is None:
+          code = str(code)
+        if right is None:
+          right = str(right)
+        if miss is None:
+          miss = str(miss)
         if code == XMLDiff.missingChildNode:
-          note+='    <'+b.tag+'> is missing child node: <'+right+'> vs <'+miss+'\n'
+          note+='    <'+b.tag+'> is missing child node: <'+str(right)+'> vs <'+miss+'>\n'
         elif code == XMLDiff.missingAttribute:
           note+='    <'+b.tag+'> is missing attribute: "'+right+'"\n'
         elif code == XMLDiff.extraChildNode:
