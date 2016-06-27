@@ -22,6 +22,19 @@ done
 
 rm -Rvf pdfs
 
+if git describe
+then
+    git describe | sed 's/_/\\_/g' > new_version.tex
+    echo "\\\\" >> new_version.tex
+    git log -1 --format="%H %an\\\\%aD" . >> new_version.tex
+    if diff new_version.tex version.tex
+    then
+        echo No change in version.tex
+    else
+        mv new_version.tex version.tex
+    fi
+fi
+
 for DIR in  user_manual user_guide qa_docs tests; do
     cd $DIR
     echo Building in $DIR...
