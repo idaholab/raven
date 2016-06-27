@@ -1,5 +1,9 @@
 """
-Module where the base class and the specialization of different type of optimizer (type of sampler) are
+  Module where the base class and the specialization of different type of optimizer (type of sampler) are
+
+  Created on June 16, 2016
+  @author: chenj
+
 """
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
@@ -55,7 +59,7 @@ distribution1D = utils.find_distribution1D()
 class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
   """
     This is the base class for optimizers
-    Optimizer is a special type of samplers that own the optimization sampling strategy (Type) and they generate the
+    Optimizer is a special type of "samplers" that own the optimization strategy (Type) and they generate the
     input values to optimize a loss function. They do not have distributions inside!!!!
 
     --Instance--
@@ -104,10 +108,9 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     BaseType.__init__(self)
     Assembler.__init__(self)
-    self.optCounter                        = {}
-    self.optCounter['mdlEval']             = 0                         # Counter of the samples performed (better the input generated!!!). It is reset by calling the function self.initialize
-    self.optCounter['varsUpdate']          = 0
-    self.counter                        = self.optCounter['mdlEval']
+    self.counter                        = {}
+    self.counter['mdlEval']             = 0                         # Counter of the samples performed (better the input generated!!!). It is reset by calling the function self.initialize
+    self.counter['varsUpdate']          = 0
     self.limit                          = {}
     self.limit['mdlEval']               = sys.maxsize               # maximum number of Samples (for example, Monte Carlo = Number of HistorySet to run, DET = Unlimited)
     self.limit['varsUpdate']            = sys.maxsize
@@ -284,8 +287,8 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         and each parameter's initial value as the dictionary values
     """
     paramDict = {}
-    paramDict['counter_mdlEval'       ] = self.optCounter['mdlEval']
-    paramDict['counter_varsUpdate'    ] = self.optCounter['varsUpdate']
+    paramDict['counter_mdlEval'       ] = self.counter['mdlEval']
+    paramDict['counter_varsUpdate'    ] = self.counter['varsUpdate']
     paramDict['initial seed'  ] = self.initSeed
     for key in self.inputInfo:
       if key!='SampledVars':
@@ -324,8 +327,8 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ In, solutionExport, DataObject, optional, in goal oriented sampling (a.k.a. adaptive sampling this is where the space/point satisfying the constrains)
       @ Out, None
     """
-    self.optCounter['mdlEval'] = 0
-    self.optCounter['varsUpdate'] = 0
+    self.counter['mdlEval'] = 0
+    self.counter['varsUpdate'] = 0
     self.nVar = len(self.optVars)
     
     self.mdlEvalHist = self.assemblerDict['TargetEvaluation'][0][3]    
@@ -371,14 +374,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     
     for key in optVars.keys():              optVars[key] = np.atleast_1d(optVars[key])
     lossFunctionValue = self.objSearchingROM.evaluate(optVars)
-    
-    self.raiseADebug('0',self.inputInfo)
-    self.raiseADebug('1',self.mdlEvalHist._dataContainer)
-    self.raiseADebug('2',tempDict)
-    self.raiseADebug('3',optVars)
-    self.raiseADebug('4',lossFunctionValue)
-    self.raiseAnError(IOError, 'chenen')
-    
+        
     if self.optType == 'min':           return lossFunctionValue
     else:                               return lossFunctionValue*-1.0
     
@@ -390,7 +386,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ In, None
       @ Out, ready, bool, is this sampler ready to generate another sample?
     """
-    ready = True if self.optCounter['mdlEval'] < self.limit['mdlEval'] and self.optCounter['varsUpdate'] < self.limit['varsUpdate'] else False
+    ready = True if self.counter['mdlEval'] < self.limit['mdlEval'] and self.counter['varsUpdate'] < self.limit['varsUpdate'] else False
     convergence = self.checkConvergence()
     ready = self.localStillReady(ready, convergence)
     return ready
@@ -405,7 +401,21 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     return ready
 
   def checkConvergence(self):
-    convergence = self.localCheckConvergence()
+    
+    if self.counter['varsUpdate'] < 2: 
+      convergence = False
+    elif abs(self.lossFunctionEval(self.optVarsHist[self.counter['varsUpdate']])-self.lossFunctionEval(self.optVarsHist[self.counter['varsUpdate']-1])) < self.convergenceTol:
+      convergence = True
+    else:
+      convergence = False   
+    
+#     if convergence:
+#       self.raiseADebug(self.optVarsHist)
+#       self.raiseADebug(self.lossFunctionEval(self.optVarsHist[self.counter['varsUpdate']]))
+#       self.raiseADebug(self.lossFunctionEval(self.optVarsHist[self.counter['varsUpdate']-1]))
+#       self.raiseAnError(ValueError, 'shy')
+    convergence = self.localCheckConvergence(convergence)
+    
     return convergence
 
   @abc.abstractmethod
@@ -421,11 +431,9 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ In, oldInput, list, a list of the original needed inputs for the model (e.g. list of files, etc. etc)
       @ Out, generateInput, list, list containing the new inputs -in reality it is the model that return this the Sampler generate the value to be placed in the input the model
     """
-    self.optCounter['mdlEval'] +=1                              #since we are creating the input for the next run we increase the counter and global counter
+    self.counter['mdlEval'] +=1                              #since we are creating the input for the next run we increase the counter and global counter
         
-    self.inputInfo['prefix'] = str(self.optCounter['mdlEval'])
-    
-    self.raiseADebug('ss',self.inputInfo)
+    self.inputInfo['prefix'] = str(self.counter['mdlEval'])
     
     model.getAdditionalInputEdits(self.inputInfo)
     self.localGenerateInput(model,oldInput)
@@ -458,8 +466,8 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 # #     #inlastO = None
 # #     #if lastOutput:
 # #     #  if not lastOutput.isItEmpty(): inlastO = lastOutput
-# #     #while self.amIreadyToProvideAnInput(inlastO) and (self.optCounter < batchSize):
-# #     while self.amIreadyToProvideAnInput() and (self.optCounter < batchSize):
+# #     #while self.amIreadyToProvideAnInput(inlastO) and (self.counter < batchSize):
+# #     while self.amIreadyToProvideAnInput() and (self.counter < batchSize):
 # #       if projector==None: newInputs.append(self.generateInput(model,myInput))
 # #       else              : newInputs.append(self.generateInput(model,myInput,projector))
 # #     return newInputs

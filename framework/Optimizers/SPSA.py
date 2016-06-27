@@ -2,7 +2,7 @@
   This module contains the Finite Difference Optimization sampling strategy
 
   Created on June 16, 2016
-  @author: alfoa
+  @author: chenj
 """
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
@@ -78,13 +78,30 @@ class SPSA(GradientBasedOptimizer):
       self.raiseAnError(IOError, self.paramDict['stochasticEngine']+'is currently not support for SPSA')
 
   def localLocalInitialize(self, solutionExport = None):
-    self._endJobRunnable = 10 # batch mode currently not implemented for SPSA
-    self.gradDict['pertNeeded'] = 2 * self.gradDict['numIterForAve']
+    self._endJobRunnable = 1 # batch mode currently not implemented for SPSA
+    self.gradDict['pertNeeded'] = self.gradDict['numIterForAve'] * 2
       
   
   def localLocalStillReady(self, ready, convergence = False):
     if convergence:             ready = False
     else:                       ready = True and ready
+    
+    ############### debug ######################
+    if self.readyVarsUpdate:  
+      if self.solutionExport != None:
+        for var in self.optVars:
+          self.solutionExport.updateInputValue(var,self.optVarsHist[self.counter['varsUpdate']-1][var])
+        self.solutionExport.updateInputValue(self.objVar, self.lossFunctionEval(self.optVarsHist[self.counter['varsUpdate']-1]))
+        self.solutionExport.updateOutputValue('varsUpdate', self.counter['varsUpdate']-1)
+    
+    if convergence:
+      if self.solutionExport != None:
+        for var in self.optVars:
+          self.solutionExport.updateInputValue(var,self.optVarsHist[self.counter['varsUpdate']][var])
+        self.solutionExport.updateInputValue(self.objVar, self.lossFunctionEval(self.optVarsHist[self.counter['varsUpdate']]))
+        self.solutionExport.updateOutputValue('varsUpdate', self.counter['varsUpdate'])
+    ############################################ 
+        
     return ready
     
   def localEvaluateGradient(self, optVarsValues, gradient = None):
@@ -98,49 +115,43 @@ class SPSA(GradientBasedOptimizer):
   
   def localLocalGenerateInput(self,model,oldInput):
        
-    if self.optCounter['mdlEval'] == 1:
-      self.optVarsHist[self.optCounter['varsUpdate']] = {}
+    if self.counter['mdlEval'] == 1:
+      self.optVarsHist[self.counter['varsUpdate']] = {}
       for var in self.optVars:
         self.values[var] = 0.0
-        self.optVarsHist[self.optCounter['varsUpdate']][var] = copy.copy(self.values[var])
+        self.optVarsHist[self.counter['varsUpdate']][var] = copy.copy(self.values[var])
         
     elif not self.readyVarsUpdate: # Not ready to update decision variables; continue to perturb for gradient evaluation
-      if self.optCounter['perturbation'] == 1:
+      if self.counter['perturbation'] == 1:
         self.gradDict['pertPoints'] = {}
-        ck = self._computeGainSequenceCk(self.gainParamDict,self.optCounter['varsUpdate']+1)
-        varK = copy.deepcopy(self.optVarsHist[self.optCounter['varsUpdate']])
+        ck = self._computeGainSequenceCk(self.gainParamDict,self.counter['varsUpdate']+1)
+        varK = copy.deepcopy(self.optVarsHist[self.counter['varsUpdate']])
         for ind in range(self.gradDict['numIterForAve']):
           self.gradDict['pertPoints'][ind] = {}
           delta = self.stochasticEngine()
           for varID, var in enumerate(self.optVars):
             if var not in self.gradDict['pertPoints'][ind].keys():
-              self.gradDict['pertPoints'][ind][var] = [varK[var]+ck*delta[varID]*1.0, varK[var]-ck*delta[varID]*1.0]
-            
-    
-          
-#         self.raiseADebug(self.gradDict['pertPoints'])
-#         self.raiseAnError(IOError, 'ff')
+              p1 = np.asarray([varK[var]+ck*delta[varID]*1.0]).reshape((1,))
+              p2 = np.asarray([varK[var]-ck*delta[varID]*1.0]).reshape((1,))
+#               self.raiseADebug('p1',p1)
+#               self.raiseADebug('p2',p2)
+              self.gradDict['pertPoints'][ind][var] = np.concatenate((p1, p2))
       
+      loc1 = self.counter['perturbation'] % 2      
+      loc2 = np.floor(self.counter['perturbation'] / 2) if loc1 == 1 else np.floor(self.counter['perturbation'] / 2) - 1
       for var in self.optVars:
-        self.values[var] = 0.1
-        
-
+        self.values[var] = self.gradDict['pertPoints'][loc2][var][loc1]
       
     else: # Enough gradient evaluation for decision variable update
-      ak = self._computeGainSequenceAk(self.gainParamDict,self.optCounter['varsUpdate']) # Compute the new ak
+      ak = self._computeGainSequenceAk(self.gainParamDict,self.counter['varsUpdate']) # Compute the new ak
+#       self.raiseADebug('allPoints',self.gradDict['pertPoints'])
       gradient = self.evaluateGradient(self.gradDict['pertPoints'])
       
-      self.optVarsHist[self.optCounter['varsUpdate']] = {}
-      varK = copy.deepcopy(self.optVarsHist[self.optCounter['varsUpdate']-1])
+      self.optVarsHist[self.counter['varsUpdate']] = {}
+      varK = copy.deepcopy(self.optVarsHist[self.counter['varsUpdate']-1])
       for var in self.optVars:
         self.values[var] = copy.copy(varK[var]-ak*gradient[var]*1.0)
-        self.raiseADebug(gradient[var])
-        self.optVarsHist[self.optCounter['varsUpdate']][var] = copy.copy(self.values[var])
-
-      self.raiseADebug(self.values)
-      self.raiseAnError(IOError, 's')
-#     for var in self.optVars:
-#       self.values[var] = 0.2
+        self.optVarsHist[self.counter['varsUpdate']][var] = copy.copy(self.values[var])
 
   def _computeGainSequenceCk(self,paramDict,iterNum):
     """
@@ -175,7 +186,7 @@ class SPSA(GradientBasedOptimizer):
 #     for  varIdGradient, key in enumerate(self.axisName):
 #       if key == minThetaKey:    break
 #     minTestGradientElement = np.abs(self.gradientEstimationCurrent[varIdGradient])
-#     a = 0.1*minCurrentThetakElement*((self.optCounterParamUpdate + A) ** alpha) / minTestGradientElement
+#     a = 0.1*minCurrentThetakElement*((self.counterParamUpdate + A) ** alpha) / minTestGradientElement
 #     return a
             
   def localInitialize(self, solutionExport):

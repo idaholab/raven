@@ -2,7 +2,7 @@
   This module contains the Gradient Based Optimization sampling strategy
 
   Created on June 16, 2016
-  @author: alfoa
+  @author: chenj
 """
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
@@ -63,7 +63,7 @@ class GradientBasedOptimizer(Optimizer):
     self.gradDict['numIterForAve'] = 1
     self.gradDict['pertNeeded'] = 1
     self.gradDict['pertPoints'] = {}
-    self.optCounter['perturbation'] = 0
+    self.counter['perturbation'] = 0
     self.readyVarsUpdate = None
     
   
@@ -104,9 +104,9 @@ class GradientBasedOptimizer(Optimizer):
     
     if ready == False:                                                                              
       return ready # Just return if we exceed the max iterations or converges...
-    if self.mdlEvalHist == None and self.optCounter['perturbation'] < self.gradDict['pertNeeded']:          
+    if self.mdlEvalHist == None and self.counter['perturbation'] < self.gradDict['pertNeeded']:          
       return ready # Just return if we just initialize
-    elif self.mdlEvalHist.isItEmpty() and self.optCounter['perturbation'] < self.gradDict['pertNeeded']:    
+    elif self.mdlEvalHist.isItEmpty() and self.counter['perturbation'] < self.gradDict['pertNeeded']:    
       return ready # Just return if we just initialize
     
     ready = self.localLocalStillReady(ready, convergence)
@@ -126,30 +126,15 @@ class GradientBasedOptimizer(Optimizer):
       @ In, oldInput, list, a list of the original needed inputs for the model (e.g. list of files, etc. etc)
       @ Out, localGenerateInput, list, list containing the new inputs -in reality it is the model that return this the Sampler generate the value to be placed in the input the model
     """      
-    # Check if all the perturbations have been evaluated
-#     if self.mdlEvalHist is not None and not self.mdlEvalHist.isItEmpty():
-#       if self.optCounter['perturbation'] < self.gradDict['pertNeeded']:
-#         self.readyVarsUpdate = False
-#       else: # Got enough perturbation
-#         self.readyVarsUpdate = True
-#     else:
-#       self.readyVarsUpdate = False
-#         
-#     if not self.readyVarsUpdate: # Not ready to update decision variables; continue to perturb for gradient evaluation
-#       self.optCounter['perturbation'] += 1
-#       
-#     else: # Enough gradient evaluation for decision variable update
-#       self.optCounter['perturbation'] = 0
-#       self.optCounter['varsUpdate'] += 1
-      
-    if self.optCounter['mdlEval'] > 1:
-      if self.optCounter['perturbation'] < self.gradDict['pertNeeded']:
+     
+    if self.counter['mdlEval'] > 1:
+      if self.counter['perturbation'] < self.gradDict['pertNeeded']:
         self.readyVarsUpdate = False
-        self.optCounter['perturbation'] += 1
+        self.counter['perturbation'] += 1
       else: # Got enough perturbation
         self.readyVarsUpdate = True  
-        self.optCounter['perturbation'] = 0
-        self.optCounter['varsUpdate'] += 1
+        self.counter['perturbation'] = 0
+        self.counter['varsUpdate'] += 1
     else:
       self.readyVarsUpdate = False
     
@@ -176,18 +161,15 @@ class GradientBasedOptimizer(Optimizer):
     # Evaluate gradient at each point
     for pertIndex in optVarsValues.keys():
       tempDictPerturbed = optVarsValues[pertIndex]
-#       self.raiseADebug(tempDictPerturbed)
-#       self.raiseAnError(IOError, 'laopo')
       tempDictPerturbed['lossValue'] = copy.copy(self.lossFunctionEval(tempDictPerturbed))
       lossDiff = tempDictPerturbed['lossValue'][0] - tempDictPerturbed['lossValue'][1]
       for var in self.optVars:
         if tempDictPerturbed[var][0] != tempDictPerturbed[var][1]:
-          gradArray[var] = np.append(gradArray, lossDiff/(tempDictPerturbed[var][0]-tempDictPerturbed[var][1])*1.0)
-          
+          gradArray[var] = np.append(gradArray[var], lossDiff/(tempDictPerturbed[var][0]-tempDictPerturbed[var][1])*1.0)
     gradient = {}    
     for var in self.optVars:
       gradient[var] = gradArray[var].mean()  
-          
+              
     gradient = self.localEvaluateGradient(optVarsValues, gradient)
     return gradient
       
