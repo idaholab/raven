@@ -1,0 +1,8 @@
+[Tests]
+ [./SPSA]
+  type = 'RavenFramework'
+  input = 'test_optFSPSA.xml'
+  xml = 'SPSA/mdlDataDump.xml'
+  csv = 'SPSA/mdlDataDump.csv'
+ [../]
+[]
