@@ -72,14 +72,51 @@ In order to mitigate the above drawbacks, the dimensions of data set $D$ are red
 
 In RAVEN, all data-mining methods are available through scikits-learn (Pderogosa et al., 2011). The k-means method can be accessed in RAVEN through the "KMeans" post-processor. 
 
+Another way to access the k-means algorithm is through "MiniBatchKMeans". This uses subsets of original input data, randomly sampled in each training iteration. The aim is to reduce the computational time taken by the k-means algorithm while still optimizing the same function. Just like the original k-means algorithm, the mini-batch k-means algorithm following steps:
 
-\subsubsection{Mini-Batch K-Means}
+\begin{enumerate}
+
+\item Form mini-batches by randomly choosing n samples. 
+
+\item Assign these samples to the nearest centroid. 
+
+\item Update centroids by taking streaming average of sample and all previous samples assigned to the centroid. 
+
+\item Check for convergence by seeing if the centroids are still moving. Iterate until convergence. 
+
+\end{enumerate}
+
+This method decreases the rate of change of centroid over time which helps accelerate convergence (for that given convergence criteria). However this is not a true acceleration scheme since the results or the original method are not necessarily reproduced. It has been observed that this method produces different, less accurate results that the standard k-means algorithm (Pderogosa et al., 2011). 
+
+Here, we will give an example of how to implement this method using RAVEN using the following example:
+
+
 
 \subsubsection{Affinity Propagation}
 
+Affinity propagation is an examplar-based clustering algorithm. Examplars are a set of samples that represent other samples the best based on a given criteria. This method simultaneously considers all samples as examplars. It sends messages between pairs of samples that eventually determine the clustering pattern. 
 
 
-\subsubsection{DBSCAN}
+\subsubsection{Density Based Spatial Clustering of Applications with Noise (DBSCAN)}
+
+Clusters are formed by identifying high sample density areas separated from low sample density areas. The DBSCAN clusters can be of any arbitrary shape (Pderogosa et al., 2011). The main concept behing this algorithm is that of core samples. Core samples are the areas of high sample density. These are defined using two parameters - cardinality, $d$ and distance $\epsilon$. Higher cardinality and lower distance indicate higher sample density required to form clusters.
+
+Formally, a core sample is a sample in the dataset with cardinality greater than or equal to $d$ with distance $\epsilon$. The samples inside distance $\epsilon$ are called neighbors. A cluster is then built from core samples recursively by taking core samples, finding all neighbors that are core samples, finding their neighbors that are core samples and so on. The cluster also incorporates samples that are not core samples themselves but are neighbors of core samples. 
+
+The DBSCAN algorithm may be summarized as follows:
+
+\begin{enumerate}
+
+\item Input d and $\epsilon$.
+
+\item For a given dataset, determine core samples $C_i$ and neighbors.  
+
+\item Take union of core samples $C_i$ and $C_j$ if $C_i \cap C_j \neq \phi$ over all core samples. 
+
+
+\end{enumerate}
+
+Step 3 of the above algorithm will return separated clusters. In RAVEN this algorithm can be accessed using the "DBSCAN" post processor. 
 
 \subsubsection{Dirichelet Process Gaussian Mixture Model}
 
@@ -89,7 +126,45 @@ In RAVEN, all data-mining methods are available through scikits-learn (Pderogosa
 
 \subsubsection{Mean-Shift} 
 
+This clustering algorithm is a nonparametric algorithm that does not require number of clusters as an input. It automatically selects the number of clusters based on the bandwidth - the size of regions to search through and number of local minima that result from the bandwidth specification. It is a centroid-based algorithm that works by updating centroids to be the mean of points within a given region.  
 
+Assuming the bandwidth returns a neighborhood $N(x_i)$ around centroid $x_i$ , the mean shift vector, $s(x_i)$, is defined as follows:
+
+\begin{equation}
+\label{ms_vec}
+s(x_i) = \frac{\sum_{x_j \in N(x_i)} K(x_j - x_i) x_j}{\sum_{x_j \in N(x_i)} K(x_j - x_i) },
+\end{equation}
+
+where, $K(x_j - x_i)$ represents the kernel function used for the weighted mean. This mean shift vector is computed for each centroid that points towards the region of maximum increase in the density of points. Now given a centroid $x_i$ for iteration, $k$, the updates are given using the following equation: 
+
+\begin{equation}
+x_{i, k+1} = x_{i, k} + s(x_{i, k}).
+\end{equation}
+
+The mean shift algorithm can be summarized as follows:
+
+\begin{enumerate}
+
+\item Initialize with a random centroid. 
+
+\item Assign members to this centroid based on bandwidth. 
+
+\item For points unassigned, choose other centroids at random until each point is assigned to a centroid. 
+
+\item Now calculate the mean if each neighborhoods $x_i)$ 
+
+\item Shift it by mean shift vector $s(x_i)$. 
+
+\item Calculate the members in the new neighborhoods. 
+
+\item Check for convergence. When centroids move less than specified tolerance, the method is converged. 
+ 
+\end{enumerate}
+
+Detailed explanation of theory and and applications can be found in (Wu et al., 2007), and (Comaniciu et al., 2002). In RAVEN, this functionality is provided using "MeanShift" post-processor. We will demonstrate how to exactly do this in RAVEN using the following example input file: 
+
+
+ 
 
 \subsubsection{Variational Gaussian Mixture Model}
 
