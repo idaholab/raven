@@ -499,8 +499,12 @@ ROMInput.addSub(TargetInput)
 
 IndexSetInputType = InputData.makeEnumType("indexSet","indexSetType",["TensorProduct","TotalDegree","HyperbolicCross","Custom"])
 CriterionInputType = InputData.makeEnumType("criterion", "criterionType", ["bic","aic","gini","entropy","mse"])
-EstimatorInput = InputData.parameterInputFactory('estimator', contentType=InputData.StringType)
-EstimatorInput.addParam("estimatorType", InputData.StringType, True)
+
+InterpolationInput = InputData.parameterInputFactory('Interpolation', contentType=InputData.StringType)
+InterpolationInput.addParam("quad", InputData.StringType, False)
+InterpolationInput.addParam("poly", InputData.StringType, False)
+InterpolationInput.addParam("weight", InputData.FloatType, False)
+
 
 def addSimpleSub(outer, name, inputType):
   """
@@ -515,7 +519,7 @@ def addSimpleSub(outer, name, inputType):
 
 addSimpleSub(ROMInput, "IndexPoints", InputData.StringType)
 addSimpleSub(ROMInput, "IndexSet",IndexSetInputType)
-addSimpleSub(ROMInput, "Interpolation", InputData.StringType)
+ROMInput.addSub(InterpolationInput)
 addSimpleSub(ROMInput, "PolynomialOrder", InputData.IntegerType)
 addSimpleSub(ROMInput, "SobolOrder", InputData.IntegerType)
 addSimpleSub(ROMInput, "SparseGrid", InputData.StringType)
@@ -581,7 +585,6 @@ addSimpleSub(ROMInput, "probability", InputData.StringType) #bool
 addSimpleSub(ROMInput, "shrinking", InputData.StringType) #bool
 addSimpleSub(ROMInput, "cache_size", InputData.FloatType)
 addSimpleSub(ROMInput, "nu", InputData.FloatType)
-ROMInput.addSub(EstimatorInput)
 addSimpleSub(ROMInput, "code_size", InputData.FloatType)
 addSimpleSub(ROMInput, "fit_prior", InputData.StringType) #bool
 addSimpleSub(ROMInput, "class_prior", InputData.StringType)
@@ -612,6 +615,10 @@ addSimpleSub(ROMInput, "thetaU", InputData.StringType)
 addSimpleSub(ROMInput, "nugget", InputData.FloatType)
 addSimpleSub(ROMInput, "optimizer", InputData.StringType) #enum
 addSimpleSub(ROMInput, "random_start", InputData.IntegerType)
+
+EstimatorInput = InputData.parameterInputFactory('estimator', contentType=InputData.StringType, baseNode=ROMInput)
+EstimatorInput.addParam("estimatorType", InputData.StringType, True)
+ROMInput.addSub(EstimatorInput)
 
 
 #
@@ -711,18 +718,31 @@ class ROM(Dummy):
     self.initializationOptionDict['name'] = self.name
     paramInput = ROMInput()
     paramInput.parseNode(xmlNode)
-    for child in xmlNode:
-      if child.attrib:
-        if child.tag not in self.initializationOptionDict.keys():
-          self.initializationOptionDict[child.tag]={}
-        self.initializationOptionDict[child.tag][child.text]=child.attrib
+    def tryStrParse(s):
+      """
+        Trys to parse if it is stringish
+        @ In, s, possible string
+        @ Out, s, original type, or possibly parsed string
+      """
+      if type(s).__name__ in ['str','unicode']:
+        return utils.tryParse(s)
+      return s
+
+    for child in paramInput.subparts:
+      if len(child.parameterValues) > 0:
+        if child.getName() not in self.initializationOptionDict.keys():
+          self.initializationOptionDict[child.getName()]={}
+        self.initializationOptionDict[child.getName()][child.value]=child.parameterValues
       else:
-        if child.tag == 'estimator':
-          self.initializationOptionDict[child.tag] = {}
-          for node in child:
-            self.initializationOptionDict[child.tag][node.tag] = utils.tryParse(node.text)
+        print("childName",repr(child.getName()))
+        if child.getName() == 'estimator':
+          print("estimator",child.getName(),child.parameterValues,child.subparts, child.subs)
+          self.initializationOptionDict[child.getName()] = {}
+          for node in child.subparts:
+            self.initializationOptionDict[child.getName()][node.getName()] = tryStrParse(node.value)
         else:
-          self.initializationOptionDict[child.tag] = utils.tryParse(child.text)
+          self.initializationOptionDict[child.getName()] = tryStrParse(child.value)
+
     #the ROM is instanced and initialized
     # check how many targets
     if not 'Target' in self.initializationOptionDict.keys(): self.raiseAnError(IOError,'No Targets specified!!!')
