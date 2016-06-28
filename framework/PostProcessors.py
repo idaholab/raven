@@ -1287,7 +1287,6 @@ class ImportanceRank(BasePostProcessor):
       pca = options['pcaindex'].values()[0]
       for var,index,_ in pca:
         outFile.addScalar(var,'pcaIndex',index)
-    print('DEBUGG what:',options.keys())
     #build tree
     targets = options.values()[0].keys()
     for target in targets:
