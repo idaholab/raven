@@ -56,10 +56,12 @@
 	  <variable name="x1">
         <upperBound>100</upperBound>
 		<lowerBound>-100</lowerBound>
+		<initial>0</initial>
       </variable>
 	  <variable name="x2">
         <upperBound>100</upperBound>
 		<lowerBound>-100</lowerBound>
+		<initial>0</initial>
       </variable>
 	  <objectVar>c</objectVar>
     </SPSA>

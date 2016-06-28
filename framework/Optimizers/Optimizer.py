@@ -115,9 +115,10 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.limit['varsUpdate']            = sys.maxsize               # Maximum number of the optimization iteration. 
     self.initSeed                       = None                      # Seed for random number generators
     self.optVars                        = None                      # Decision variables for optimization
-    self.optVarsBound                   = {}                        # Dict containing upper and lower bounds of each decision variables
-    self.optVarsBound['upperBound']     = {}                        # Dict containing upper bounds of each decision variables
-    self.optVarsBound['lowerBound']     = {}                        # Dict containing lower bounds of each decision variables
+    self.optVarsInit                    = {}                        # Dict containing upper/lower bounds and initial of each decision variables
+    self.optVarsInit['upperBound']      = {}                        # Dict containing upper bounds of each decision variables
+    self.optVarsInit['lowerBound']      = {}                        # Dict containing lower bounds of each decision variables
+    self.optVarsInit['initial']         = {}                        # Dict containing initial values of each decision variables  
     self.optVarsHist                    = {}                        # History of decision variables for each iteration
     self.nVar                           = 0                         # Number of decision variables
     self.objVar                         = None                      # Objective variable to be optimized
@@ -187,12 +188,12 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         varname = str(child.attrib['name'])
         self.optVars.append(varname)
         for childChild in child:
-          if childChild.tag == "upperBound":        self.optVarsBound['upperBound'][varname] = float(childChild.text)
-          elif childChild.tag == "lowerBound":      self.optVarsBound['lowerBound'][varname] = float(childChild.text)
-        if varname not in self.optVarsBound['upperBound'].keys():
-          self.optVarsBound['upperBound'][varname] = sys.maxsize
-        elif varname not in self.optVarsBound['lowerBound'].keys():
-          self.optVarsBound['lowerBound'][varname] = -sys.maxsize        
+          if childChild.tag == "upperBound":        self.optVarsInit['upperBound'][varname] = float(childChild.text)
+          elif childChild.tag == "lowerBound":      self.optVarsInit['lowerBound'][varname] = float(childChild.text)
+          elif childChild.tag == "initial":         self.optVarsInit['initial'][varname] = float(childChild.text)
+        if varname not in self.optVarsInit['upperBound'].keys():  self.optVarsInit['upperBound'][varname] = sys.maxsize
+        if varname not in self.optVarsInit['lowerBound'].keys():  self.optVarsInit['lowerBound'][varname] = -sys.maxsize  
+        if varname not in self.optVarsInit['initial'].keys():     self.optVarsInit['initial'][varname] = 0.0        
       
       elif child.tag == "objectVar":
         self.objVar = child.text
