@@ -4,14 +4,14 @@ Created on May 1, 2016
 @author: alfoa
 """
 from xml.etree import ElementTree as ET
-from xml.dom import minidom 
+from xml.dom import minidom
 
 def write_xml_for_DET(filename,trigger,listDict,stopInfo):
   """
-    Method to write the XML file containing the information regarding 
+    Method to write the XML file containing the information regarding
     the stop condition for branching in DET method
     @ In, file, string, filename (with absolute path)
-    @ Out, None  
+    @ Out, None
   """
   #  trigger == 'variable trigger'
   #  Variables == 'variables changed in the branch control logic block'
@@ -19,9 +19,9 @@ def write_xml_for_DET(filename,trigger,listDict,stopInfo):
   #  stopInfo {'end_time': end simulation   time (already stopped), 'end_ts': end time step}
   root=ET.Element('Branch_info')
   root.set("end_time",stopInfo['end_time'])
-  if "end_ts" in stopInfo.keys(): root.set("end_ts",stopInfo['end_ts']) 
+  if "end_ts" in stopInfo.keys(): root.set("end_ts",stopInfo['end_ts'])
   triggerNode=ET.SubElement(root,"Distribution_trigger")
-  triggerNode.set("name",trigger) 
+  triggerNode.set("name",trigger)
   for varInfo in listDict:
     var=ET.SubElement(triggerNode,'Variable')
     var.text=varInfo['name']
@@ -32,4 +32,4 @@ def write_xml_for_DET(filename,trigger,listDict,stopInfo):
   fileObject = open(filename,'w')
   fileObject.write(minidom.parseString(ET.tostring(root, 'utf-8')).toprettyxml(indent="\t"))
   fileObject.close()
-  #tree.write(open(filename,'w')) 
+  #tree.write(open(filename,'w'))

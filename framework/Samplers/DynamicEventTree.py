@@ -80,6 +80,8 @@ class DynamicEventTree(Grid):
     # print the xml tree representation of the dynamic event tree calculation
     # see variable 'self.TreeInfo'
     self.printEndXmlSummary                = False
+    # flag to control if the branch info xml file needs to be removed after reading
+    self.removeXmlBranchInfo               = True
     # Dictionary of the probability bins for each distribution that have been
     #  inputted by the user ('distName':[Pb_Threshold_1, Pb_Threshold_2, ..., Pb_Threshold_n])
     self.branchProbabilities               = {}
@@ -124,8 +126,6 @@ class DynamicEventTree(Grid):
     self.standardDETvariables              = []
     # Dictionary of variables that represent the epistemic space (hybrid det). Format => {'epistemicVarName':{'HybridTree name':value}}
     self.epistemicVariables                = {}
-    # remove branch info?
-    self.removeBranchInfo                  = True
 
   def _localWhatDoINeed(self):
     """
@@ -206,7 +206,9 @@ class DynamicEventTree(Grid):
     endInfo['parentNode'] = parentNode
     # get the branchedLevel dictionary
     branchedLevel = {}
-    for distk, distpb in zip(endInfo['parentNode'].get('initiatorDistribution'),endInfo['parentNode'].get('PbThreshold')): branchedLevel[distk] = utils.index(self.branchProbabilities[distk],distpb)
+    for distk, distpb in zip(endInfo['parentNode'].get('SampledVarsPb').keys(),endInfo['parentNode'].get('SampledVarsPb').values()):
+    #for distk, distpb in zip(endInfo['parentNode'].get('initiatorDistribution'),endInfo['parentNode'].get('PbThreshold')):
+      branchedLevel[distk] = utils.index(self.branchProbabilities[distk],distpb)
     if not branchedLevel: self.raiseAnError(RuntimeError,'branchedLevel of node '+jobObject.identifier+'not found!')
     # Loop of the parameters that have been changed after a trigger gets activated
     for key in endInfo['branchChangedParams']:
@@ -299,7 +301,7 @@ class DynamicEventTree(Grid):
     # Check if endTime and endTimeStep (time step)  are present... In case store them in the relative working vars
     #try: #Branch info written out by program, so should always exist.
     self.actualEndTime = float(root.attrib['end_time'])
-    self.actualEndTs   = int(root.attrib['end_ts']) if 'end_ts' in root.attrib.keys() else -1
+    self.actualEndTs   = int(root.attrib['end_ts']) if  'end_ts' in root.attrib.keys() else -1
     #except? pass
     # Store the information in a dictionary that has as keywords the distributions that triggered
     for node in root:
@@ -316,7 +318,7 @@ class DynamicEventTree(Grid):
       # we exit the loop here, because only one trigger at the time can be handled  right now
       break
     # remove the file
-    if self.removeBranchInfo: os.remove(filename)
+    if self.removeXmlBranchInfo: os.remove(filename)
     branchPresent = True
     return branchPresent
 
@@ -331,9 +333,9 @@ class DynamicEventTree(Grid):
       @ In, myInput, list, list of inputs for the Models object (passed through the Steps XML block)
       @ Out, None
     """
-    # check if additional edits are needed and add them
+    # add additional edits if needed
     model.getAdditionalInputEdits(self.inputInfo)
-    
+
     precSampled = rootTree.getrootnode().get('hybridsamplerCoordinate')
     rootnode    =  rootTree.getrootnode()
     rname       = rootnode.name
@@ -351,12 +353,17 @@ class DynamicEventTree(Grid):
     self.inputInfo['parentID'                  ] = 'root'
     self.inputInfo['conditionalPb'             ] = [1.0]
     self.inputInfo['conditionalPbr'            ] = 1.0
-    for key in self.branchProbabilities.keys():self.inputInfo['initiatorDistribution'].append(key.encode())
+    for key in self.branchProbabilities.keys():self.inputInfo['initiatorDistribution'].append(self.toBeSampled[key])
+    #for key in self.branchProbabilities.keys():self.inputInfo['initiatorDistribution'].append(key.encode())
     for key in self.branchProbabilities.keys():self.inputInfo['PbThreshold'].append(self.branchProbabilities[key][branchedLevel[key]])
+    #for key in self.branchProbabilities.keys():self.inputInfo['PbThreshold'].append(self.branchProbabilities[key][branchedLevel[key]])
     for key in self.branchProbabilities.keys():self.inputInfo['ValueThreshold'].append(self.branchValues[key][branchedLevel[key]])
+    #for key in self.branchProbabilities.keys():self.inputInfo['ValueThreshold'].append(self.branchValues[key][branchedLevel[key]])
     for varname in self.standardDETvariables:
-      self.inputInfo['SampledVars'  ][varname] = self.branchValues[self.toBeSampled[varname]][branchedLevel[self.toBeSampled[varname]]]
-      self.inputInfo['SampledVarsPb'][varname] = self.branchProbabilities[self.toBeSampled[varname]][branchedLevel[self.toBeSampled[varname]]]
+      self.inputInfo['SampledVars'  ][varname] = self.branchValues[varname][branchedLevel[varname]]
+      #self.inputInfo['SampledVars'  ][varname] = self.branchValues[self.toBeSampled[varname]][branchedLevel[self.toBeSampled[varname]]]
+      self.inputInfo['SampledVarsPb'][varname] = self.branchProbabilities[varname][branchedLevel[varname] ]
+      #self.inputInfo['SampledVarsPb'][varname] = self.branchProbabilities[self.toBeSampled[varname]][branchedLevel[self.toBeSampled[varname]]]
     if precSampled:
       for precSample in precSampled:
         self.inputInfo['SampledVars'  ].update(precSample['SampledVars'])
@@ -478,8 +485,7 @@ class DynamicEventTree(Grid):
                 'conditionalPb':[subGroup.get('conditionalPbr')],
                 'startTime':endInfo['parentNode'].get('endTime'),
                 'parentID':subGroup.get('parent')}
-
-      # check if additional edits are needed and add them
+      # add additional edits if needed
       model.getAdditionalInputEdits(self.inputInfo)
       # add the newer branch name to the map
       self.rootToJob[rname] = self.rootToJob[subGroup.get('parent')]
@@ -513,8 +519,10 @@ class DynamicEventTree(Grid):
       self.inputInfo['SampledVars']   = {}
       self.inputInfo['SampledVarsPb'] = {}
       for varname in self.standardDETvariables:
-        self.inputInfo['SampledVars'][varname]   = self.branchValues[self.toBeSampled[varname]][branchedLevel[self.toBeSampled[varname]]]
-        self.inputInfo['SampledVarsPb'][varname] = self.branchProbabilities[self.toBeSampled[varname]][branchedLevel[self.toBeSampled[varname]]]
+        self.inputInfo['SampledVars'][varname]   = self.branchValues[varname][branchedLevel[varname]]
+        self.inputInfo['SampledVarsPb'][varname] = self.branchProbabilities[varname][branchedLevel[varname]]
+        #self.inputInfo['SampledVars'][varname]   = self.branchValues[self.toBeSampled[varname]][branchedLevel[self.toBeSampled[varname]]]
+        #self.inputInfo['SampledVarsPb'][varname] = self.branchProbabilities[self.toBeSampled[varname]][branchedLevel[self.toBeSampled[varname]]]
       if precSampled:
         for precSample in precSampled:
           self.inputInfo['SampledVars'  ].update(precSample['SampledVars'])
@@ -584,6 +592,7 @@ class DynamicEventTree(Grid):
     """
     #NB: if someday the DET handles restarts as other samplers do in generateInput, the return code 1 indicates the result
     #  is stored in a restart data object, while 0 indicates a new run has been found.
+    #model.getAdditionalInputEdits(self.inputInfo)
     return 0, self.localGenerateInput(model, oldInput)
 
   def localGenerateInput(self,model,myInput):
@@ -635,39 +644,50 @@ class DynamicEventTree(Grid):
       @ Out, None
     """
     Grid.localInputAndChecks(self,xmlNode)
-    if 'printEndXmlSummary' in xmlNode.attrib.keys():
-      if xmlNode.attrib['printEndXmlSummary'].lower() in utils.stringsThatMeanTrue(): self.printEndXmlSummary = True
-      else: self.printEndXmlSummary = False
-    if 'maxSimulationTime' in xmlNode.attrib.keys():
-      try:    self.maxSimulTime = float(xmlNode.attrib['maxSimulationTime'])
-      except (KeyError,NameError): self.raiseAnError(IOError,'Can not convert maxSimulationTime in float number!!!')     
-    if 'removeBranchInfo' in xmlNode.attrib.keys():
-      if xmlNode.attrib['removeBranchInfo'].lower() in utils.stringsThatMeanTrue(): self.removeBranchInfo = True
-      else: self.removeBranchInfo = False
-      
+    if 'printEndXmlSummary'  in xmlNode.attrib.keys(): self.printEndXmlSummary  = True if xmlNode.attrib['printEndXmlSummary'].lower()  in utils.stringsThatMeanTrue() else False
+    if 'removeXmlBranchInfo' in xmlNode.attrib.keys(): self.removeXmlBranchInfo = True if xmlNode.attrib['removeXmlBranchInfo'].lower() in utils.stringsThatMeanTrue() else False
+    if 'maxSimulationTime'   in xmlNode.attrib.keys():
+      try                        : self.maxSimulTime = float(xmlNode.attrib['maxSimulationTime'])
+      except (KeyError,NameError): self.raiseAnError(IOError,'Can not convert maxSimulationTime in float number!!!')
     branchedLevel, error_found = {}, False
     gridInfo = self.gridEntity.returnParameter("gridInfo")
     errorFound = False
     for keyk in self.axisName:
-      branchedLevel[self.toBeSampled[keyk]] = 0
+      branchedLevel[keyk] = 0
+      #branchedLevel[self.toBeSampled[keyk]] = 0
       self.standardDETvariables.append(keyk)
       if self.gridInfo[keyk] == 'CDF':
-        self.branchProbabilities[self.toBeSampled[keyk]] = gridInfo[keyk][2]
-        self.branchProbabilities[self.toBeSampled[keyk]].sort(key=float)
-        if max(self.branchProbabilities[self.toBeSampled[keyk]]) > 1:
+        self.branchProbabilities[keyk] = gridInfo[keyk][2]
+        self.branchProbabilities[keyk].sort(key=float)
+        if max(self.branchProbabilities[keyk]) > 1:
           self.raiseAWarning("One of the Thresholds for distribution " + str(gridInfo[keyk][2]) + " is > 1")
           errorFound = True
-          for index in range(len(sorted(self.branchProbabilities[self.toBeSampled[keyk]], key=float))):
-            if sorted(self.branchProbabilities[self.toBeSampled[keyk]], key=float).count(sorted(self.branchProbabilities[self.toBeSampled[keyk]], key=float)[index]) > 1:
-              self.raiseAWarning("In distribution " + str(self.toBeSampled[keyk]) + " the Threshold " + str(sorted(self.branchProbabilities[self.toBeSampled[keyk]], key=float)[index])+" appears multiple times!!")
+          for index in range(len(sorted(self.branchProbabilities[keyk], key=float))):
+            if sorted(self.branchProbabilities[keyk], key=float).count(sorted(self.branchProbabilities[keyk], key=float)[index]) > 1:
+              self.raiseAWarning("In distribution " + str(self.toBeSampled[keyk]) + " the Threshold " + str(sorted(self.branchProbabilities[keyk], key=float)[index])+" appears multiple times!!")
               errorFound = True
+#         self.branchProbabilities[self.toBeSampled[keyk]] = gridInfo[keyk][2]
+#         self.branchProbabilities[self.toBeSampled[keyk]].sort(key=float)
+#         if max(self.branchProbabilities[self.toBeSampled[keyk]]) > 1:
+#           self.raiseAWarning("One of the Thresholds for distribution " + str(gridInfo[keyk][2]) + " is > 1")
+#           errorFound = True
+#           for index in range(len(sorted(self.branchProbabilities[self.toBeSampled[keyk]], key=float))):
+#             if sorted(self.branchProbabilities[self.toBeSampled[keyk]], key=float).count(sorted(self.branchProbabilities[self.toBeSampled[keyk]], key=float)[index]) > 1:
+#               self.raiseAWarning("In distribution " + str(self.toBeSampled[keyk]) + " the Threshold " + str(sorted(self.branchProbabilities[self.toBeSampled[keyk]], key=float)[index])+" appears multiple times!!")
+#               errorFound = True
       else:
-        self.branchValues[self.toBeSampled[keyk]] = gridInfo[keyk][2]
-        self.branchValues[self.toBeSampled[keyk]].sort(key=float)
-        for index in range(len(sorted(self.branchValues[self.toBeSampled[keyk]], key=float))):
-          if sorted(self.branchValues[self.toBeSampled[keyk]], key=float).count(sorted(self.branchValues[self.toBeSampled[keyk]], key=float)[index]) > 1:
-            self.raiseAWarning("In distribution " + str(self.toBeSampled[keyk]) + " the Threshold " + str(sorted(self.branchValues[self.toBeSampled[keyk]], key=float)[index])+" appears multiple times!!")
+        self.branchValues[keyk] = gridInfo[keyk][2]
+        self.branchValues[keyk].sort(key=float)
+        for index in range(len(sorted(self.branchValues[keyk], key=float))):
+          if sorted(self.branchValues[keyk], key=float).count(sorted(self.branchValues[keyk], key=float)[index]) > 1:
+            self.raiseAWarning("In distribution " + str(self.toBeSampled[keyk]) + " the Threshold " + str(sorted(self.branchValues[keyk], key=float)[index])+" appears multiple times!!")
             errorFound = True
+#         self.branchValues[self.toBeSampled[keyk]] = gridInfo[keyk][2]
+#         self.branchValues[self.toBeSampled[keyk]].sort(key=float)
+#         for index in range(len(sorted(self.branchValues[self.toBeSampled[keyk]], key=float))):
+#           if sorted(self.branchValues[self.toBeSampled[keyk]], key=float).count(sorted(self.branchValues[self.toBeSampled[keyk]], key=float)[index]) > 1:
+#             self.raiseAWarning("In distribution " + str(self.toBeSampled[keyk]) + " the Threshold " + str(sorted(self.branchValues[self.toBeSampled[keyk]], key=float)[index])+" appears multiple times!!")
+#             errorFound = True
     if errorFound: self.raiseAnError(IOError,"In sampler named " + self.name+' Errors have been found!' )
     # Append the branchedLevel dictionary in the proper list
     self.branchedLevel.append(branchedLevel)
@@ -704,9 +724,9 @@ class DynamicEventTree(Grid):
     """
     paramDict = {}
     for key in self.branchProbabilities.keys():
-      paramDict['Probability Thresholds for dist ' + str(key) + ' are: '] = [str(x) for x in self.branchProbabilities[key]]
+      paramDict['Probability Thresholds for var ' + str(key) + ' are: '] = [str(x) for x in self.branchProbabilities[key]]
     for key in self.branchValues.keys()       :
-      paramDict['Values Thresholds for dist ' + str(key) + ' are: '] = [str(x) for x in self.branchValues[key]]
+      paramDict['Values Thresholds for var ' + str(key) + ' are: '] = [str(x) for x in self.branchValues[key]]
     return paramDict
 
   def localGetCurrentSetting(self):
@@ -771,8 +791,10 @@ class DynamicEventTree(Grid):
 
     for key in self.branchProbabilities.keys():
       #kk = self.toBeSampled.values().index(key)
-      self.branchValues[key] = [self.distDict[self.toBeSampled.keys()[self.toBeSampled.values().index(key)]].ppf(float(self.branchProbabilities[key][index])) for index in range(len(self.branchProbabilities[key]))]
+      #self.branchValues[key] = [self.distDict[self.toBeSampled.keys()[self.toBeSampled.values().index(key)]].ppf(float(self.branchProbabilities[key][index])) for index in range(len(self.branchProbabilities[key]))]
+      self.branchValues[key] = [self.distDict[key].ppf(float(self.branchProbabilities[key][index])) for index in range(len(self.branchProbabilities[key]))]
     for key in self.branchValues.keys():
       #kk = self.toBeSampled.values().index(key)
-      self.branchProbabilities[key] = [self.distDict[self.toBeSampled.keys()[self.toBeSampled.values().index(key)]].cdf(float(self.branchValues[key][index])) for index in range(len(self.branchValues[key]))]
+      #self.branchProbabilities[key] = [self.distDict[self.toBeSampled.keys()[self.toBeSampled.values().index(key)]].cdf(float(self.branchValues[key][index])) for index in range(len(self.branchValues[key]))]
+      self.branchProbabilities[key] = [self.distDict[key].cdf(float(self.branchValues[key][index])) for index in range(len(self.branchValues[key]))]
     self.limit = sys.maxsize
