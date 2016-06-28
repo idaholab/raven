@@ -543,6 +543,7 @@ class ROM(Dummy):
       @ Out, None
     """
     Dummy._readMoreXML(self, xmlNode)
+    self.initializationOptionDict['name'] = self.name
     for child in xmlNode:
       if child.attrib:
         if child.tag not in self.initializationOptionDict.keys():
@@ -555,7 +556,6 @@ class ROM(Dummy):
             self.initializationOptionDict[child.tag][node.tag] = utils.tryParse(node.text)
         else:
           self.initializationOptionDict[child.tag] = utils.tryParse(child.text)
-
     #the ROM is instanced and initialized
     # check how many targets
     if not 'Target' in self.initializationOptionDict.keys(): self.raiseAnError(IOError,'No Targets specified!!!')
