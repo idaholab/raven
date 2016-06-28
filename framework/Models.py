@@ -616,6 +616,8 @@ addSimpleSub(ROMInput, "nugget", InputData.FloatType)
 addSimpleSub(ROMInput, "optimizer", InputData.StringType) #enum
 addSimpleSub(ROMInput, "random_start", InputData.IntegerType)
 
+#Estimators can include ROMs, and so because baseNode does a copy, this
+#needs to be after the rest of ROMInput is defined.
 EstimatorInput = InputData.parameterInputFactory('estimator', contentType=InputData.StringType, baseNode=ROMInput)
 EstimatorInput.addParam("estimatorType", InputData.StringType, True)
 ROMInput.addSub(EstimatorInput)
@@ -981,6 +983,17 @@ class ROM(Dummy):
     jobHandler.submitDict['Internal']((inRun,), self.__externalRun, str(Input[1]['prefix']), metadata=Input[1], modulesToImport=self.mods, uniqueHandler=uniqueHandler)
 #
 #
+
+class ExternalModelInput(InputData.ParameterInput):
+  """
+    Class for reading in external model block
+  """
+
+ExternalModelInput.createClass("ExternalModel", False, baseNode=ModelInput)
+ExternalModelInput.addParam("ModuleToLoad", InputData.StringType, True)
+VariablesInput = InputData.parameterInputFactory("variables", contentType=InputData.StringType)
+ExternalModelInput.addSub(VariablesInput)
+
 #
 class ExternalModel(Dummy):
   """
@@ -1066,23 +1079,26 @@ class ExternalModel(Dummy):
       @ Out, None
     """
     #Model._readMoreXML(self, xmlNode)
-    if 'ModuleToLoad' in xmlNode.attrib.keys():
-      self.ModuleToLoad = str(xmlNode.attrib['ModuleToLoad'])
+    paramInput = ExternalModelInput()
+    paramInput.parseNode(xmlNode)
+    if 'ModuleToLoad' in paramInput.parameterValues:
+      self.ModuleToLoad = paramInput.parameterValues['ModuleToLoad']
       moduleToLoadString, self.ModuleToLoad = utils.identifyIfExternalModelExists(self, self.ModuleToLoad, self.workingDir)
     else: self.raiseAnError(IOError,'ModuleToLoad not provided for module externalModule')
     # load the external module and point it to self.sim
     self.sim = utils.importFromPath(moduleToLoadString,self.messageHandler.getDesiredVerbosity(self)>1)
     # check if there are variables and, in case, load them
-    for son in xmlNode:
-      if son.tag=='variable':
+    for child in paramInput.subparts:
+      if child.getName() =='variable':
         self.raiseAnError(IOError,'"variable" node included but has been depreciated!  Please list variables in a "variables" node instead.  Remove this message by Dec 2016.')
-      elif son.tag=='variables':
-        if len(son.attrib.keys()) > 0: self.raiseAnError(IOError,'the block '+son.tag+' named '+son.text+' should not have attributes!!!!!')
-        for var in son.text.split(','):
+      elif child.getName() == 'variables':
+        if len(child.parameterValues) > 0: self.raiseAnError(IOError,'the block '+child.getName()+' named '+child.value+' should not have attributes!!!!!')
+        for var in child.value.split(','):
           var = var.strip()
           self.modelVariableType[var] = None
           self.listOfRavenAwareVars.append(var)
     # check if there are other information that the external module wants to load
+    #TODO this needs to be converted to work with paramInput
     if '_readMoreXML' in dir(self.sim): self.sim._readMoreXML(self.initExtSelf,xmlNode)
 
   def __externalRun(self, Input, modelVariables):
