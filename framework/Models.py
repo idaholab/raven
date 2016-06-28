@@ -24,7 +24,6 @@ import threading
 from BaseClasses import BaseType
 from Assembler import Assembler
 import SupervisedLearning
-import PostProcessors
 import CustomCommandExecuter
 import utils
 import mathUtils
@@ -37,6 +36,11 @@ class ModelInput(InputData.ParameterInput):
   """
     Class for reading in model input
   """
+
+#Internal Modules------------------------------------------------------------------------------------
+#This needs to be after the definition of ModelInput
+import PostProcessors
+#Internal Modules End--------------------------------------------------------------------------------
 
 ModelInput.createClass("ModelInput")
 ModelInput.addParam("subType", InputData.StringType, True)

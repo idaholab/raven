@@ -24,12 +24,16 @@ import importlib
 import utils
 import mathUtils
 import xmlUtils
+import InputData
 import DataObjects
 from Assembler import Assembler
 import SupervisedLearning
 import MessageHandler
 import GridEntities
 import Files
+import Models
+print(dir(Models))
+from Models import ModelInput
 from RAVENiterators import ravenArrayIterator
 import unSupervisedLearning
 from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
@@ -1358,6 +1362,26 @@ class ImportanceRank(BasePostProcessor):
     return outputDict
 #
 #
+
+class BasicStatisticsInput(InputData.ParameterInput):
+  """
+    Class for reading the Basic Statistics block
+  """
+
+BasicStatisticsInput.createClass("PostProcessor", False, baseNode=ModelInput)
+WhatInput = InputData.parameterInputFactory("what", contentType=InputData.StringType)
+BasicStatisticsInput.addSub(WhatInput)
+BiasedInput = InputData.parameterInputFactory("biased", contentType=InputData.StringType) #bool
+BasicStatisticsInput.addSub(BiasedInput)
+ParameterInput = InputData.parameterInputFactory("parameters", contentType=InputData.StringType)
+BasicStatisticsInput.addSub(ParameterInput)
+MethodsToRunInput = InputData.parameterInputFactory("methodsToRun", contentType=InputData.StringType)
+BasicStatisticsInput.addSub(MethodsToRunInput)
+FunctionInput = InputData.parameterInputFactory("Function", contentType=InputData.StringType)
+BasicStatisticsInput.addSub(FunctionInput)
+PivotParameterInput = InputData.parameterInputFactory("pivotParameter", contentType=InputData.StringType)
+BasicStatisticsInput.addSub(PivotParameterInput)
+
 #
 class BasicStatistics(BasePostProcessor):
   """
@@ -1458,9 +1482,11 @@ class BasicStatistics(BasePostProcessor):
       @ In, xmlNode, xml.etree.Element, Xml element node
       @ Out, None
     """
-    for child in xmlNode:
-      if child.tag == "what":
-        self.what = child.text
+    paramInput = BasicStatisticsInput()
+    paramInput.parseNode(xmlNode)
+    for child in paramInput.subparts:
+      if child.getName() == "what":
+        self.what = child.value
         if self.what == 'all': self.what = self.acceptedCalcParam
         else:
           toCompute = []
@@ -1477,11 +1503,15 @@ class BasicStatistics(BasePostProcessor):
                 if floatPercentile < 1.0 or floatPercentile > 100.0: self.raiseAnError(IOError,"the percentile needs to an integer between 1 and 100. Got "+str(floatPercentile))
                 if -float(integerPercentile)/floatPercentile + 1.0 > 0.0001: self.raiseAnError(IOError,"the percentile needs to an integer between 1 and 100. Got "+str(floatPercentile))
           self.what = toCompute
-      elif child.tag == "parameters"   : self.parameters['targets'] = child.text.split(',')
-      elif child.tag == "methodsToRun" : self.methodsToRun = child.text.split(',')
-      elif child.tag == "biased"       :
-        if child.text.lower() in utils.stringsThatMeanTrue(): self.biased = True
-      elif child.tag == "pivotParameter": self.pivotParameter = child.text
+      elif child.getName() == "parameters":
+        self.parameters['targets'] = child.value.split(',')
+      elif child.getName() == "methodsToRun":
+        self.methodsToRun = child.value.split(',')
+      elif child.getName() == "biased":
+        if child.value.lower() in utils.stringsThatMeanTrue():
+          self.biased = True
+      elif child.getName() == "pivotParameter":
+        self.pivotParameter = child.value
       assert (self.parameters is not []), self.raiseAnError(IOError, 'I need parameters to work on! Please check your input for PP: ' + self.name)
 
   def collectOutput(self, finishedJob, output):
