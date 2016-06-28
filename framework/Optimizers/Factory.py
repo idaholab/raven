@@ -13,28 +13,6 @@ if not 'xrange' in dir(__builtins__): xrange = range
 from .Optimizer import Optimizer
 from .GradientBasedOptimizer import GradientBasedOptimizer
 from .SPSA import SPSA
-from .FiniteDifference import FiniteDifference
-
-# # Forward samplers
-# from Samplers.ForwardSampler import ForwardSampler
-# from Samplers.MonteCarlo import MonteCarlo
-# from Samplers.Grid import Grid
-# from Samplers.Stratified import Stratified
-# from Samplers.FactorialDesign import FactorialDesign
-# from Samplers.ResponseSurfaceDesign import ResponseSurfaceDesign
-# from Samplers.Sobol import Sobol
-# from Samplers.SparseGridCollocation import SparseGridCollocation
-# from Samplers.EnsembleForward import EnsembleForwardSampler
-# from Samplers.CustomSampler import CustomSampler
-# 
-# # Adaptive samplers
-# from Samplers.AdaptiveSampler import AdaptiveSampler
-# from Samplers.LimitSurfaceSearch import LimitSurfaceSearch
-# from Samplers.AdaptiveSobol import AdaptiveSobol
-# from Samplers.AdaptiveSparseGrid import AdaptiveSparseGrid
-# # Dynamic Event Tree-based Samplers
-# from Samplers.DynamicEventTree import DynamicEventTree
-# from Samplers.AdaptiveDynamicEventTree import AdaptiveDET
 ## [ Add new class here ]
 
 
@@ -47,7 +25,6 @@ __base = 'Optimizer'
 __interFaceDict = {}
 __interFaceDict['GradientBasedOptimizer'        ] = GradientBasedOptimizer
 __interFaceDict['SPSA'              ] = SPSA
-__interFaceDict['FiniteDifference'        ] = FiniteDifference
 __knownTypes = list(__interFaceDict.keys())
 
 def knownTypes():

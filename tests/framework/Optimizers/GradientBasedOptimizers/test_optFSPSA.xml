@@ -10,7 +10,7 @@
     <MultiRun name="optimization" pauseAtEnd="true">
       <Input class="DataObjects" type="PointSet">optInput</Input>
       <Model class="Models" type="ExternalModel">optObjModel</Model>
-      <Sampler class="Samplers" type="Optimizer">opt_smp</Sampler>
+      <Optimizer class="Optimizers" type="SPSA">opt_smp</Optimizer>	  
       <SolutionExport class="DataObjects" type="PointSet">optData</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOutput</Output>
       <Output class="OutStreams" type="Print">optimizationHistoryDump</Output>

@@ -92,14 +92,12 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
                                                 'Sobol',
                                                 'AdaptiveSobol',
                                                 'EnsembleForward',
-                                                'CustomSampler',
-                                                'Optimizer']
-  validateDict['Sampler'].append(testDict.copy())
-  validateDict['Sampler'][1]['class'       ] ='Optimizers'
-  validateDict['Sampler'][1]['required'    ] = False
-  validateDict['Sampler'][1]['multiplicity'] = 1
-  validateDict['Sampler'][1]['type']         = ['FiniteDifference',
-                                                  'SPSA']
+                                                'CustomSampler']
+  validateDict['Optimizer'].append(testDict.copy())
+  validateDict['Optimizer'][0]['class'       ] ='Optimizers'
+  validateDict['Optimizer'][0]['required'    ] = False
+  validateDict['Optimizer'][0]['multiplicity'] = 1
+  validateDict['Optimizer'][0]['type']         = ['SPSA']
 
   @classmethod
   def generateValidateDict(cls):
@@ -447,9 +445,9 @@ class Dummy(Model):
     if not set(output.getParaKeys('inputs') + output.getParaKeys('outputs')).issubset(set(list(exportDict[inKey].keys()) + list(exportDict[outKey].keys()))):
       missingParameters = set(output.getParaKeys('inputs') + output.getParaKeys('outputs')) - set(list(exportDict[inKey].keys()) + list(exportDict[outKey].keys()))
       self.raiseAnError(RuntimeError,"the model "+ self.name+" does not generate all the outputs requested in output object "+ output.name +". Missing parameters are: " + ','.join(list(missingParameters)) +".")
-    for key in exportDict[inKey ]:  
+    for key in exportDict[inKey ]:
       if key in output.getParaKeys('inputs'):
-        output.updateInputValue(key,exportDict[inKey][key])
+        output.updateInputValue (key,exportDict[inKey][key])
     for key in exportDict[outKey]:
       if key in output.getParaKeys('outputs'):
         output.updateOutputValue(key,exportDict[outKey][key])
