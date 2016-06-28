@@ -1882,6 +1882,8 @@ class SciKitLearn(superVisedLearning):
     self.subType = SKLsubType
     self.initOptionDict.pop('SKLtype')
     if not SKLtype in self.__class__.availImpl.keys():
+      print(self.initOptionDict)
+      print(self)
       self.raiseAnError(IOError,'not known SKLtype ' + SKLtype +'(from ROM '+self.initOptionDict['name']+')')
     if not SKLsubType in self.__class__.availImpl[SKLtype].keys():
       self.raiseAnError(IOError,'not known SKLsubType ' + SKLsubType +'(from ROM '+self.initOptionDict['name']+')')
@@ -2017,7 +2019,7 @@ def returnInstance(ROMclass,caller,**kwargs):
     @ Out, returnInstance, instance, an instance of a ROM
   """
   try: return __interfaceDict[ROMclass](caller.messageHandler,**kwargs)
-  except KeyError: caller.raiseAnError(NameError,'not known '+__base+' type '+str(ROMclass))
+  except KeyError as ae: caller.raiseAnError(NameError,'not known '+__base+' type '+str(ROMclass))
 
 def returnClass(ROMclass,caller):
   """

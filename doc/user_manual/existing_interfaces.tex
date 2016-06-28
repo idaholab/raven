@@ -168,8 +168,7 @@ EDITS block and those variables are the only one the INTERFACE will read and mak
 \begin{itemize}
   \item \textbf{the simulation time is stored in a variable called \textit{``time''}};
   \item \textbf{all the variables specified in the MINOR EDIT block are going to be converted using underscores (e.g.  an edit such as 
-  $301 \:\:\: p \:\:\: 345010000$ will be named in the converted CSVs as $p\_345010000$). In addition, if a variable contains trailing spaces, the spaces are 
-   going to be removed and replaces with underscores (e.g. $HTTEMP 1131008 12$ will become $HTTEMP\_1131008\_12$}.
+  $301 \:\:\: p \:\:\: 345010000$ will be named in the converted CSVs as $p\_345010000$).In addition, if a variable contains spaces, the trailing spaces are going to be removed and internal spaces are replaced with underscores (e.g. $HTTEMP 1131008 12$ will become $HTTEMP\_1131008\_12$}.
 \end{itemize}
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
