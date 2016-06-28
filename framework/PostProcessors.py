@@ -1271,33 +1271,40 @@ class ImportanceRank(BasePostProcessor):
       self.dimensions = range(1,len(self.features)+1)
       self.raiseAWarning('The dimensions for given features: ' + str(self.features) + ' is not provided! Default dimensions will be used: ' + str(self.dimensions) + '!')
 
-  def _localPrintXML(self,node,options=None):
+  def _localPrintXML(self,outFile,options=None):
     """
       Adds requested entries to XML node.
-      @ In, node, XML node, to which entries will be added
+      @ In, outFile, Files.StaticXMLOutput, file to which entries will be printed
       @ In, options, dict, optional, list of requests and options
         May include: 'what': comma-separated string list, the qualities to print out
       @ Out, None
     """
-    for what in options.keys():
-      if what.lower() in self.acceptedMetric:
-        metricNode = TreeStructure.Node(what)
-        for target in options[what].keys():
-          newNode = TreeStructure.Node(target)
-          entries = options[what][target]
-          #add to tree
-          for entry in entries:
-            subNode = TreeStructure.Node('variable')
-            subNode.setText(entry[0])
-            vNode = TreeStructure.Node('index')
-            vNode.setText(entry[1])
-            subNode.appendBranch(vNode)
-            vNode = TreeStructure.Node('dim')
-            vNode.setText(entry[2])
-            subNode.appendBranch(vNode)
-            newNode.appendBranch(subNode)
-          metricNode.appendBranch(newNode)
-      node.appendBranch(metricNode)
+    #dimension node needs only be set once, but it is given for each index type
+    dimDict = None
+    settingDim = False
+    #pca index is a feature only of target, not with respect to anything else
+    if 'pcaindex' in options.keys():
+      pca = options['pcaindex'].values()[0]
+      for var,index,_ in pca:
+        outFile.addScalar(var,'pcaIndex',index)
+    #build tree
+    targets = options.values()[0].keys()
+    for target in targets:
+      valueDict = OrderedDict()
+      for what in options.keys():
+        if what.lower() in self.acceptedMetric and what.lower()!='pcaindex':
+          if dimDict is None:
+            dimDict = {}
+            settingDim = True
+          for var,index,dim in options[what][target]:
+            valueDict[var]=index #dims?
+            if settingDim:
+              dimDict[var] = dim
+          if settingDim:
+            for key,val in dimDict.items():
+              outFile.addScalar(key,'dimension',val)
+            settingDim = False
+          outFile.addVector(target,what,valueDict)
 
   def collectOutput(self,finishedJob, output):
     """
@@ -1341,12 +1348,12 @@ class ImportanceRank(BasePostProcessor):
             output.write(os.linesep)
         output.close()
       else:
-        node = TreeStructure.Node('ImportanceRank')
-        tree = TreeStructure.NodeTree(node)
-        self._localPrintXML(node,outputDict)
-        msg=tree.stringNodeTree()
-        output.writelines(msg)
-        output.close()
+        #convert output into an XML output file
+        outFile = Files.returnInstance('StaticXMLOutput',self)
+        outFile.initialize(output.getFilename(),self.messageHandler,path=output.getPath())
+        outFile.newTree('ImportanceRankPP')
+        self._localPrintXML(outFile,outputDict)
+        outFile.writeFile()
         self.raiseAMessage('ImportanceRank XML printed to "'+output.getFilename()+'"!')
     # Output to DataObjects
     elif output.type in ['PointSet','HistorySet']:
@@ -1691,49 +1698,43 @@ class BasicStatistics(BasePostProcessor):
             self.raiseADebug('Writing External Function parameter ' + what)
             output.write(what + separator + '%.8E' % outputDict[what] + os.linesep)
 
-  def _writeXML(self,output,outputDictionary,parameterSet,methodToTest):
+  def _writeXML(self,origOutput,outputDictionary,parameterSet,methodToTest):
     """
       Defines the method for writing the basic statistics to a .xml file.
-      @ In, output, File object, file to write
+      @ In, origOutput, File object, file to write
       @ In, outputDictionary, dict, dictionary of statistics values
       @ In, parameterSet, list, list of parameters in use
       @ In, methodToTest, list, strings of methods to test
       @ Out, None
     """
-    tree = xmlUtils.newTree('BasicStatisticsPP')
-    root = tree.getroot()
-    root.set('type','Dynamic' if self.dynamic else 'Static')
+    #create XML output with same path as original output
+    if origOutput.isOpen(): origOutput.close()
+    if self.dynamic:
+      output = Files.returnInstance('DynamicXMLOutput',self)
+    else:
+      output = Files.returnInstance('StaticXMLOutput',self)
+    output.initialize(origOutput.getFilename(),self.messageHandler,path=origOutput.getPath())
+    output.newTree('BasicStatisticsPP',pivotParam=self.pivotParameter)
     outputResults = [outputDictionary] if not self.dynamic else outputDictionary.values()
     for ts, outputDict in enumerate(outputResults):
-      if self.dynamic:
-        parentNode = xmlUtils.newNode(self.pivotParameter)
-        parentNode.set('value',str(outputDictionary.keys()[ts]))
-        root.append(parentNode)
-      else: parentNode = root
+      pivotVal = outputDictionary.keys()[ts]
       for t,target in enumerate(parameterSet):
-        tNode = xmlUtils.newNode(target) #tnode is for properties with respect to the target
-        parentNode.append(tNode)
         for stat,val in outputDict.items():
           if stat not in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity'] + methodToTest:
-            val = val[target]
-            sNode = xmlUtils.newNode(stat,text=str(val)) #sNode is for each stat of the target
-            tNode.append(sNode)
+            output.addScalar(target,stat,val[target],pivotVal=pivotVal)
         for stat,val in outputDict.items():
           if stat in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity']:
+            valueDict = {}
             valRow = val[t]
-            sNode = xmlUtils.newNode(stat)
-            tNode.append(sNode)
             for p,param in enumerate(parameterSet):
               actVal = valRow[p]
-              vNode = xmlUtils.newNode(param,text=str(actVal)) #vNode is for each parameter's stat's value with respect to the target
-              sNode.append(vNode)
+              valueDict[param] = actVal
+            output.addVector(target,stat,valueDict,pivotVal=pivotVal)
         if self.externalFunction:
           for stat in self.methodsToRun:
             if stat not in self.acceptedCalcParam:
-              sNode = xmlUtils.newNode(stat,text=str(outputDict[stat]))
-    pretty = xmlUtils.prettify(tree)
-    output.writelines(pretty)
-    output.close()
+              output.addScalar(target,stat,val[target],pivotVal=pivotVal)
+    output.writeFile()
 
   def __computeVp(self,p,weights):
     """
