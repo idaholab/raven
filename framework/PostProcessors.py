@@ -1271,33 +1271,58 @@ class ImportanceRank(BasePostProcessor):
       self.dimensions = range(1,len(self.features)+1)
       self.raiseAWarning('The dimensions for given features: ' + str(self.features) + ' is not provided! Default dimensions will be used: ' + str(self.dimensions) + '!')
 
-  def _localPrintXML(self,node,options=None):
+  def _localPrintXML(self,outFile,options=None):
     """
       Adds requested entries to XML node.
-      @ In, node, XML node, to which entries will be added
+      @ In, outFile, Files.StaticXMLOutput, file to which entries will be printed
       @ In, options, dict, optional, list of requests and options
         May include: 'what': comma-separated string list, the qualities to print out
       @ Out, None
     """
-    for what in options.keys():
-      if what.lower() in self.acceptedMetric:
-        metricNode = TreeStructure.Node(what)
-        for target in options[what].keys():
-          newNode = TreeStructure.Node(target)
-          entries = options[what][target]
+    #dimension node needs only be set once, but it is given for each index type
+    dimDict = None
+    settingDim = False
+    #pca index is a feature only of target, not with respect to anything else
+    if 'pcaindex' in options.keys():
+      pca = options.pop('pcaindex').values()[0]
+      for var,index,_ in pca:
+        outFile.addScalar(var,'pcaIndex',index)
+    print('DEBUGG what:',options.keys())
+    #build tree
+    targets = options.values()[0].keys()
+    for target in targets:
+      valueDict = OrderedDict()
+      for what in options.keys():
+        if what.lower() in self.acceptedMetric:
+          if dimDict is None:
+            dimDict = {}
+            settingDim = True
+          for var,index,dim in options[what][target]:
+            valueDict[var]=index #dims?
+            if settingDim:
+              dimDict[var] = dim
+          if settingDim:
+            for key,val in dimDict.items():
+              outFile.addScalar(key,'dimension',val)
+            settingDim = False
+          outFile.addVector(target,what,valueDict)
+      #metricNode = TreeStructure.Node(what)
+         # for target in options[what].keys():
+          #newNode = TreeStructure.Node(target)
+          #entries = options[what][target]
           #add to tree
-          for entry in entries:
-            subNode = TreeStructure.Node('variable')
-            subNode.setText(entry[0])
-            vNode = TreeStructure.Node('index')
-            vNode.setText(entry[1])
-            subNode.appendBranch(vNode)
-            vNode = TreeStructure.Node('dim')
-            vNode.setText(entry[2])
-            subNode.appendBranch(vNode)
-            newNode.appendBranch(subNode)
-          metricNode.appendBranch(newNode)
-      node.appendBranch(metricNode)
+          #for var,index,dim in entries:
+            #subNode = TreeStructure.Node('variable')
+            #subNode.setText(entry[0])
+            #vNode = TreeStructure.Node('index')
+            #vNode.setText(entry[1])
+            #subNode.appendBranch(vNode)
+            #vNode = TreeStructure.Node('dim')
+            #vNode.setText(entry[2])
+            #subNode.appendBranch(vNode)
+            #newNode.appendBranch(subNode)
+          #metricNode.appendBranch(newNode)
+      #node.appendBranch(metricNode)
 
   def collectOutput(self,finishedJob, output):
     """
@@ -1341,12 +1366,15 @@ class ImportanceRank(BasePostProcessor):
             output.write(os.linesep)
         output.close()
       else:
-        node = TreeStructure.Node('ImportanceRank')
-        tree = TreeStructure.NodeTree(node)
-        self._localPrintXML(node,outputDict)
-        msg=tree.stringNodeTree()
-        output.writelines(msg)
-        output.close()
+        #convert output into an XML output file
+        outFile = Files.returnInstance('StaticXMLOutput',self)
+        outFile.initialize(output.getFilename(),self.messageHandler,path=output.getPath())
+        outFile.newTree('ImportanceRankPP')
+        self._localPrintXML(outFile,outputDict)
+        outFile.writeFile()
+        #msg=tree.stringNodeTree()
+        #output.writelines(msg)
+        #output.close()
         self.raiseAMessage('ImportanceRank XML printed to "'+output.getFilename()+'"!')
     # Output to DataObjects
     elif output.type in ['PointSet','HistorySet']:
