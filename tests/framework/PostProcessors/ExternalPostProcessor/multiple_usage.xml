@@ -1,0 +1,97 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <!-- Here we are testing whether using the same external processor on multiple
+       data objects does not cause naming issues -->
+  <RunInfo>
+    <WorkingDir>externalPostProcessor</WorkingDir>
+    <Sequence>
+      loadData,
+      test1,
+      test2,
+      saveData
+    </Sequence>
+  </RunInfo>
+
+  <Files>
+    <Input name="csv" type="">data.csv</Input>
+  </Files>
+
+  <Models>
+    <PostProcessor name="functionPP" subType="External" verbosity="debug">
+      <method>Delta,Sum,Product</method>
+      <Function class="Functions" type="External">basicOps</Function>
+    </PostProcessor>
+  </Models>
+
+  <!-- The external methods will be defined in the files pointed to by these
+     guys -->
+  <Functions>
+    <External file="externalPostProcessor/BasicOperators" name="basicOps">
+      <variable>X</variable>
+      <variable>Y</variable>
+    </External>
+  </Functions>
+
+  <Steps>
+    <!-- Read the data from a csv into a dataObject -->
+    <IOStep fromDirectory="." name="loadData">
+      <Input class="Files" type="">csv</Input>
+      <Output class="DataObjects" type="PointSet">testData</Output>
+    </IOStep>
+    <!-- Write the results to a csv -->
+    <IOStep name="saveData">
+      <Input class="DataObjects" type="PointSet">outData1</Input>
+      <Output class="OutStreams" type="Print">dump1</Output>
+      <Input class="DataObjects" type="PointSet">outData2</Input>
+      <Output class="OutStreams" type="Print">dump2</Output>
+    </IOStep>
+    <!-- Run the post-processor and get the sums and products -->
+    <PostProcess name="test1">
+      <Input class="DataObjects" type="PointSet">testData</Input>
+      <Model class="Models" type="PostProcessor">functionPP</Model>
+      <Output class="DataObjects" type="PointSet">outData1</Output>
+    </PostProcess>
+    <!-- Run the post-processor again and get the deltas and products -->
+    <PostProcess name="test2">
+      <Input class="DataObjects" type="PointSet">testData</Input>
+      <Model class="Models" type="PostProcessor">functionPP</Model>
+      <Output class="DataObjects" type="PointSet">outData2</Output>
+    </PostProcess>
+  </Steps>
+
+  <OutStreams>
+    <!-- A csv file containing the output of the example -->
+    <Print name="dump1">
+      <filename>multiple_usage_1</filename>
+      <type>csv</type>
+      <source>outData1</source>
+    </Print>
+    <Print name="dump2">
+      <filename>multiple_usage_2</filename>
+      <type>csv</type>
+      <source>outData2</source>
+    </Print>
+  </OutStreams>
+
+  <Databases>
+    <HDF5 name="myDB" readMode="overwrite"/>
+  </Databases>
+
+  <DataObjects>
+    <!-- The input PointSet objects -->
+    <PointSet name="testData">
+      <Input>X,Y</Input>
+      <Output>Z</Output>
+    </PointSet>
+    <!-- The output PointSet object -->
+    <PointSet name="outData1">
+      <Input>X,Y</Input>
+      <Output>Z,Sum,Product</Output>
+    </PointSet>
+    <PointSet name="outData2">
+      <Input>X,Y</Input>
+      <Output>Z,Delta,Product</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>
