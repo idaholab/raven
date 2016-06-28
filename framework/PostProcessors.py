@@ -1306,23 +1306,6 @@ class ImportanceRank(BasePostProcessor):
               outFile.addScalar(key,'dimension',val)
             settingDim = False
           outFile.addVector(target,what,valueDict)
-      #metricNode = TreeStructure.Node(what)
-         # for target in options[what].keys():
-          #newNode = TreeStructure.Node(target)
-          #entries = options[what][target]
-          #add to tree
-          #for var,index,dim in entries:
-            #subNode = TreeStructure.Node('variable')
-            #subNode.setText(entry[0])
-            #vNode = TreeStructure.Node('index')
-            #vNode.setText(entry[1])
-            #subNode.appendBranch(vNode)
-            #vNode = TreeStructure.Node('dim')
-            #vNode.setText(entry[2])
-            #subNode.appendBranch(vNode)
-            #newNode.appendBranch(subNode)
-          #metricNode.appendBranch(newNode)
-      #node.appendBranch(metricNode)
 
   def collectOutput(self,finishedJob, output):
     """
@@ -1372,9 +1355,6 @@ class ImportanceRank(BasePostProcessor):
         outFile.newTree('ImportanceRankPP')
         self._localPrintXML(outFile,outputDict)
         outFile.writeFile()
-        #msg=tree.stringNodeTree()
-        #output.writelines(msg)
-        #output.close()
         self.raiseAMessage('ImportanceRank XML printed to "'+output.getFilename()+'"!')
     # Output to DataObjects
     elif output.type in ['PointSet','HistorySet']:
