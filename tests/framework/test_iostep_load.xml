@@ -30,12 +30,12 @@
 
   <DataObjects>
     <PointSet name="fullprint_Pointset">
-      <Input>pipe1_Area,pipe1_Dh</Input>
-      <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
+      <Input>var1,var2</Input>
+      <Output>cosine,square,sine,time</Output>
     </PointSet>
     <HistorySet name="fullprint_HistorySet">
-      <Input>pipe1_Area,pipe1_Dh</Input>
-      <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
+      <Input>var1,var2</Input>
+      <Output>cosine,square,sine,time</Output>
     </HistorySet>
   </DataObjects>
 
