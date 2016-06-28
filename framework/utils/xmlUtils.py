@@ -10,6 +10,7 @@ warnings.simplefilter('default',DeprecationWarning)
 import numpy as np
 import xml.etree.ElementTree as ET
 import xml.dom.minidom as pxml
+import re
 
 def prettify(tree):
   """
@@ -38,17 +39,26 @@ def newNode(tag,text='',attrib={}):
     @ In, attrib, dict{string:string}, attribute:value pairs
     @ Out, el, xml.etree.ElementTree.Element, new node
   """
-  el = ET.Element(tag,attrib=attrib)
-  el.text = text
+  tag = fixXmlTag(tag)
+  text = str(text)
+  cleanAttrib = {}
+  for key,value in attrib.items():
+    value = str(value)
+    cleanAttrib[fixXmlTag(key)] = fixXmlText(value)
+  el = ET.Element(tag,attrib=cleanAttrib)
+  el.text = fixXmlText(text)
   return el
 
-def newTree(name):
+def newTree(name,attrib={}):
   """
     Creates a new tree with named node as its root
     @ In, name, string, name of root node
+    @ In, attrib, dict, optional, attributes for root node
     @ Out, tree, xml.etree.ElementTree.ElementTree, tree
   """
+  name = fixXmlTag(name)
   tree = ET.ElementTree(element=newNode(name))
+  tree.getroot().attrib = dict(attrib)
   return tree
 
 def findPath(root,path):
@@ -78,3 +88,46 @@ def loadToTree(filename):
   tree = ET.parse(filename)
   root = tree.getroot()
   return root,tree
+
+def fixXmlText(msg):
+  """
+    Removes unallowable characters from xml
+    @ In, msg, string, tag/text/attribute
+    @ Out, msg, string, fixed string
+  """
+  #if not a string, pass it back through
+  if not isinstance(msg,basestring): return msg
+  #otherwise, replace illegal characters with "?"
+  # from http://boodebr.org/main/python/all-about-python-and-unicode#UNI_XML
+  RE_XML_ILLEGAL = u'([\u0000-\u0008\u000b-\u000c\u000e-\u001f\ufffe-\uffff])' + \
+                 u'|' + \
+                 u'([%s-%s][^%s-%s])|([^%s-%s][%s-%s])|([%s-%s]$)|(^[%s-%s])' % \
+                  (unichr(0xd800),unichr(0xdbff),unichr(0xdc00),unichr(0xdfff),
+                   unichr(0xd800),unichr(0xdbff),unichr(0xdc00),unichr(0xdfff),
+                   unichr(0xd800),unichr(0xdbff),unichr(0xdc00),unichr(0xdfff))
+  msg = re.sub(RE_XML_ILLEGAL, "?", msg)
+  return msg
+
+def fixXmlTag(msg):
+  """
+    Does the same things as fixXmlText, but with additional tag restrictions.
+    @ In, msg, string, tag/text/attribute
+    @ Out, msg, string, fixed string
+  """
+  #if not a string, pass it back through
+  if not isinstance(msg,basestring): return msg
+  #define some presets
+  letters = u'([a-zA-Z])'
+  notAllTagChars = '(^[a-zA-Z0-9-_.]+$)'
+  notTagChars = '([^a-zA-Z0-9-_.])'
+  #rules:
+  #  1. Can only contain letters, digits, hyphens, underscores, and periods
+  if not bool(re.match(notAllTagChars,msg)):
+    pre = msg
+    msg = re.sub(notTagChars,'.',msg)
+    print('XML UTILS: Replacing illegal tag characters in "'+pre+'":',msg)
+  #  2. Start with a letter or underscore
+  if not bool(re.match(letters+u'|([_])',msg[0])) or bool(re.match(u'([xX][mM][lL])',msg[:3])):
+    print('XML UTILS: Prepending "_" to illegal tag "'+msg+'"')
+    msg = '_' + msg
+  return msg
