@@ -1284,7 +1284,7 @@ class ImportanceRank(BasePostProcessor):
     settingDim = False
     #pca index is a feature only of target, not with respect to anything else
     if 'pcaindex' in options.keys():
-      pca = options.pop('pcaindex').values()[0]
+      pca = options['pcaindex'].values()[0]
       for var,index,_ in pca:
         outFile.addScalar(var,'pcaIndex',index)
     print('DEBUGG what:',options.keys())
@@ -1293,7 +1293,7 @@ class ImportanceRank(BasePostProcessor):
     for target in targets:
       valueDict = OrderedDict()
       for what in options.keys():
-        if what.lower() in self.acceptedMetric:
+        if what.lower() in self.acceptedMetric and what.lower()!='pcaindex':
           if dimDict is None:
             dimDict = {}
             settingDim = True
