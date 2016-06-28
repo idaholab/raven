@@ -1,9 +1,8 @@
 """
-  Module where the base class and the specialization of different type of optimizer (type of sampler) are
+  Module where the base class of optimizer is
 
   Created on June 16, 2016
   @author: chenj
-
 """
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
@@ -70,8 +69,8 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     myInstance = Optimizer()
     myInstance.XMLread(xml.etree.ElementTree.Element)  This method generate all permanent information of the object from <Simulation>
     myInstance.whatDoINeed()                           -see Assembler class-
-    myInstance.initialize()                            This method is called from the <Step> before the Step process start. In the base class it reset the counter to 0
-    myInstance.amIreadyToProvideAnInput                Requested from <Step> used to verify that the sampler is available to generate a new input
+    myInstance.initialize()                            This method is called from the <Step> before the Step process start. 
+    myInstance.amIreadyToProvideAnInput                Requested from <Step> used to verify that the optimizer is available to generate a new input for the model
     myInstance.generateInput(self,model,oldInput)      Requested from <Step> to generate a new input. Generate the new values and request to model to modify according the input and returning it back
  
     --Other inherited methods--
@@ -108,35 +107,35 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     BaseType.__init__(self)
     Assembler.__init__(self)
-    self.counter                        = {}
-    self.counter['mdlEval']             = 0                         # Counter of the samples performed (better the input generated!!!). It is reset by calling the function self.initialize
-    self.counter['varsUpdate']          = 0
-    self.limit                          = {}
-    self.limit['mdlEval']               = sys.maxsize               # maximum number of Samples (for example, Monte Carlo = Number of HistorySet to run, DET = Unlimited)
-    self.limit['varsUpdate']            = sys.maxsize
-    self.initSeed                       = None
-    self.optVars                        = None                        # Decision variables for optimization
-    self.optVarsBound                   = {}
-    self.optVarsBound['upperBound']     = {}
-    self.optVarsBound['lowerBound']     = {}
-    self.optVarsHist                    = {}                        # History of Decision variables
-    self.nVar                           = 0
-    self.objVar                         = None
-    self.optType                        = None
-    self.paramDict                      = {}
-    self.convergenceTol                 = 1e-3
-    self.solutionExport                 = None             #This is the data used to export the solution (it could also not be present)
+    self.counter                        = {}                        # Dict containing counters used for based and derived class
+    self.counter['mdlEval']             = 0                         # Counter of the loss function evaluation performed (better the input generated!!!). It is reset by calling the function self.initialize
+    self.counter['varsUpdate']          = 0                         # Counter of the optimization iteration. 
+    self.limit                          = {}                        # Dict containing limits for each counter
+    self.limit['mdlEval']               = sys.maxsize               # Maximum number of the loss function evaluation
+    self.limit['varsUpdate']            = sys.maxsize               # Maximum number of the optimization iteration. 
+    self.initSeed                       = None                      # Seed for random number generators
+    self.optVars                        = None                      # Decision variables for optimization
+    self.optVarsBound                   = {}                        # Dict containing upper and lower bounds of each decision variables
+    self.optVarsBound['upperBound']     = {}                        # Dict containing upper bounds of each decision variables
+    self.optVarsBound['lowerBound']     = {}                        # Dict containing lower bounds of each decision variables
+    self.optVarsHist                    = {}                        # History of decision variables for each iteration
+    self.nVar                           = 0                         # Number of decision variables
+    self.objVar                         = None                      # Objective variable to be optimized
+    self.optType                        = None                      # Either maximize or minimize
+    self.paramDict                      = {}                        # Dict containing additional parameters for derived class
+    self.convergenceTol                 = 1e-3                      # Convergence threshold
+    self.solutionExport                 = None                      #This is the data used to export the solution (it could also not be present)
     self.values                         = {}                        # for each variable the current value {'var name':value}
-    self.inputInfo                      = {}                        # depending on the sampler several different type of keywarded information could be present only one is mandatory, see below
+    self.inputInfo                      = {}                        # depending on the optimizer several different type of keywarded information could be present only one is mandatory, see below
     self.inputInfo['SampledVars'     ]  = self.values               # this is the location where to get the values of the sampled variables
     self.FIXME                          = False                     # FIXME flag
     self.printTag                       = self.type                 # prefix for all prints (sampler type)
 
-    self._endJobRunnable                = sys.maxsize               # max number of inputs creatable by the sampler right after a job ends (e.g., infinite for MC, 1 for Adaptive, etc)
-    self.constraintFunction             = None
-
-    self.mdlEvalHist                    = None
-    self.objSearchingROM                = None
+    self._endJobRunnable                = sys.maxsize               # max number of inputs creatable by the sampler right after a job ends
+    
+    self.constraintFunction             = None                      # External constraint function, could be not present
+    self.mdlEvalHist                    = None                      # Containing information of all loss function evaluation
+    self.objSearchingROM                = None                      # ROM used internally for fast loss function evaluation
     
     self.addAssemblerObject('Restart' ,'-n',True)
     self.addAssemblerObject('TargetEvaluation','1')
@@ -150,6 +149,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ Out, None
     """
     ## FIX ME -- this method is inherited from sampler and may not be needed by optimizer
+    ## Currently put here as a place holder
     pass
 
   def _localWhatDoINeed(self):
@@ -159,7 +159,8 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ In, None
       @ Out, needDict, dict, list of objects needed
     """
-    ## FIX ME -- this method is inherited from sampler and may not be neede by optimizer
+    ## FIX ME -- this method is inherited from sampler and may not be needed by optimizer
+    ## Currently put here as a place holder
     return {}
 
   def _readMoreXML(self,xmlNode):
