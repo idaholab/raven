@@ -208,7 +208,8 @@ class DynamicEventTree(Grid):
     branchedLevel = {}
     for distk, distpb in zip(endInfo['parentNode'].get('SampledVarsPb').keys(),endInfo['parentNode'].get('SampledVarsPb').values()):
     #for distk, distpb in zip(endInfo['parentNode'].get('initiatorDistribution'),endInfo['parentNode'].get('PbThreshold')):
-      branchedLevel[distk] = utils.index(self.branchProbabilities[distk],distpb)
+      if distk not in self.epistemicVariables.keys(): branchedLevel[distk] = utils.index(self.branchProbabilities[distk],distpb)
+
     if not branchedLevel: self.raiseAnError(RuntimeError,'branchedLevel of node '+jobObject.identifier+'not found!')
     # Loop of the parameters that have been changed after a trigger gets activated
     for key in endInfo['branchChangedParams']:
