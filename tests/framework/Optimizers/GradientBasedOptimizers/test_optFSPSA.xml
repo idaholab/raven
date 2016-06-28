@@ -48,11 +48,9 @@
 		<type>min</type>
 		<initialSeed>30</initialSeed>
       </initialization>
-      <!-- <Function class="Functions" type="External">optConstraintFunc</Function> -->
       <TargetEvaluation class="DataObjects" type="PointSet">optOutput</TargetEvaluation>
-	  <Convergence limit = '50'>1e-3</Convergence>
-      <!-- <Convergence forceIteration="False" scaleVariable="True" gradientEstimationMethod="SimultaneousPerturbation" limit="200" target="c">1e-3</Convergence> -->
-	  <parameter>
+	  <Convergence iterationlimit = '50'>1e-3</Convergence>
+   	  <parameter>
 		<numGradAvgIterations>3</numGradAvgIterations>
 	  </parameter>
 	  <variable name="x1">

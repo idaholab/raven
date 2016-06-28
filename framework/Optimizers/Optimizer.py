@@ -1,5 +1,5 @@
 """
-  Module where the base class of optimizer is
+  Module where the base class of optimizer is. Adapted from Sampler.py. 
 
   Created on June 16, 2016
   @author: chenj
@@ -108,7 +108,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     BaseType.__init__(self)
     Assembler.__init__(self)
     self.counter                        = {}                        # Dict containing counters used for based and derived class
-    self.counter['mdlEval']             = 0                         # Counter of the loss function evaluation performed (better the input generated!!!). It is reset by calling the function self.initialize
+    self.counter['mdlEval']             = 0                         # Counter of the model evaluation performed (better the input generated!!!). It is reset by calling the function self.initialize
     self.counter['varsUpdate']          = 0                         # Counter of the optimization iteration. 
     self.limit                          = {}                        # Dict containing limits for each counter
     self.limit['mdlEval']               = sys.maxsize               # Maximum number of the loss function evaluation
@@ -129,12 +129,12 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.inputInfo                      = {}                        # depending on the optimizer several different type of keywarded information could be present only one is mandatory, see below
     self.inputInfo['SampledVars'     ]  = self.values               # this is the location where to get the values of the sampled variables
     self.FIXME                          = False                     # FIXME flag
-    self.printTag                       = self.type                 # prefix for all prints (sampler type)
+    self.printTag                       = self.type                 # prefix for all prints (optimizer type)
 
-    self._endJobRunnable                = sys.maxsize               # max number of inputs creatable by the sampler right after a job ends
+    self._endJobRunnable                = sys.maxsize               # max number of inputs creatable by the optimizer right after a job ends
     
     self.constraintFunction             = None                      # External constraint function, could be not present
-    self.mdlEvalHist                    = None                      # Containing information of all loss function evaluation
+    self.mdlEvalHist                    = None                      # Containing information of all model evaluation
     self.objSearchingROM                = None                      # ROM used internally for fast loss function evaluation
     
     self.addAssemblerObject('Restart' ,'-n',True)
@@ -155,7 +155,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
   def _localWhatDoINeed(self):
     """
       This method is a local mirror of the general whatDoINeed method.
-      It is implemented by the samplers that need to request special objects
+      It is implemented by the optimizers that need to request special objects
       @ In, None
       @ Out, needDict, dict, list of objects needed
     """
@@ -167,8 +167,6 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
       Function to read the portion of the xml input that belongs to this specialized class
       and initialize some stuff based on the inputs got
-      The text is supposed to contain the info where and which variable to change.
-      In case of a code the syntax is specified by the code interface itself
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None
     """
@@ -178,10 +176,8 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
   def _readMoreXMLbase(self,xmlNode):
     """
-      Function to read the portion of the xml input that belongs to the base sampler only
+      Function to read the portion of the xml input that belongs to the base optimizer only
       and initialize some stuff based on the inputs got
-      The text is supposed to contain the info where and which variable to change.
-      In case of a code the syntax is specified by the code interface itself
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node1
       @ Out, None
     """
@@ -193,7 +189,6 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         for childChild in child:
           if childChild.tag == "upperBound":        self.optVarsBound['upperBound'][varname] = float(childChild.text)
           elif childChild.tag == "lowerBound":      self.optVarsBound['lowerBound'][varname] = float(childChild.text)
-        
         if varname not in self.optVarsBound['upperBound'].keys():
           self.optVarsBound['upperBound'][varname] = sys.maxsize
         elif varname not in self.optVarsBound['lowerBound'].keys():
@@ -217,7 +212,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       
       elif child.tag == "convergence":
         self.convergenceTol = float(child.text)
-        if 'limit' in child.attrib.keys():
+        if 'iterationlimit' in child.attrib.keys():
           try   : self.limit['varsUpdate'] = int(child.attrib['limit'])
           except: self.raiseAnError(IOError,'Cannot convert limit value '+ child.attrib['limit']+ '!!!')       
       
@@ -226,15 +221,16 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       
       elif child.tag == 'parameter':
         for childChild in child:
-          self.paramDict[childChild.tag] = childChild.text
-      
-    self.optVars.sort()
+          self.paramDict[childChild.tag] = childChild.text      
+    
     if self.optType == None:    self.optType = 'min'
     if self.initSeed == None:   self.initSeed = Distributions.randomIntegers(0,2**31,self)
     if self.objVar == None:     self.raiseAnError(IOError, 'Object variable is not specified for optimizer!')
-    if self.optVars == None:    self.raiseAnError(IOError, 'Decision variable is not specified for optimizer!')
-    
-    
+    if self.optVars == None:    
+      self.raiseAnError(IOError, 'Decision variable is not specified for optimizer!')
+    else:
+      self.optVars.sort()
+
   def localInputAndChecks(self,xmlNode):
     """
       Local method. Place here the additional reading, remember to add initial parameters in the method localGetInitParams
@@ -245,10 +241,9 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       
   def endJobRunnable(self):
     """
-      Returns the maximum number of inputs allowed to be created by the sampler
-      right after a job ends (e.g., infinite for MC, 1 for Adaptive, etc)
+      Returns the maximum number of inputs allowed to be created by the optimizer right after a job ends
       @ In, None
-      @ Out, endJobRunnable, int, number of runnable jobs at the end of each sample
+      @ Out, endJobRunnable, int, number of runnable jobs at the end of each job
     """
     return self._endJobRunnable
 
@@ -265,7 +260,8 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     for variable in self.optVars:
       paramDict[variable] = 'is sampled as a decision variable'
     paramDict['limit_mdlEval' ]        = self.limit['mdlEval']
-    paramDict['initial seed' ] = self.initSeed
+    paramDict['limit_optIter']         = self.limit['varsUpdate']
+    paramDict['initial seed' ]         = self.initSeed
     paramDict.update(self.localGetInitParams())
     return paramDict
 
@@ -310,22 +306,11 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     return {}
 
-  def checkConstraint(self, optVars):
-    if self.constraintFunction == None:
-      satisfaction = True
-    else:
-      satisfaction = True if self.constraintFunction.evaluate("constrain",optVars) == 1 else False
-    satisfaction = self.localCheckConstraint(optVars, satisfaction)
-    return satisfaction 
-  
-  def localCheckConstraint(self, optVars, satisfaction = True):
-    return satisfaction # To be overwritten by subclass
-
   def initialize(self,externalSeeding=None,solutionExport=None):
     """
-      This function should be called every time a clean sampler is needed. Called before takeAstep in <Step>
+      This function should be called every time a clean optimizer is needed. Called before takeAstep in <Step>
       @ In, externalSeeding, int, optional, external seed
-      @ In, solutionExport, DataObject, optional, in goal oriented sampling (a.k.a. adaptive sampling this is where the space/point satisfying the constrains)
+      @ In, solutionExport, DataObject, optional
       @ Out, None
     """
     self.counter['mdlEval'] = 0
@@ -346,11 +331,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
              
     if self.initSeed != None:           Distributions.randomSeed(self.initSeed)  
       
-    if not externalSeeding:             Distributions.randomSeed(self.initSeed)       #use the sampler initialization seed
-    elif externalSeeding=='continue':   pass        #in this case the random sequence needs to be preserved
-    else:                               Distributions.randomSeed(externalSeeding)     #the external seeding is used
-      
-    #specializing the self.localInitialize() to account for adaptive sampling
+    # specializing the self.localInitialize()
     if solutionExport != None : self.localInitialize(solutionExport=solutionExport)
     else                      : self.localInitialize()
 
@@ -358,34 +339,18 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
       use this function to add initialization features to the derived class
       it is call at the beginning of each step
-      @ In, None
+      @ In, solutionExport, DataObject, optional
       @ Out, None
     """
     pass # To be overwritten by subclass
 
-  def lossFunctionEval(self, optVars):
-    """
-    optVars should have the form {varName1:[value11, value12,...value1n], varName2:[value21, value22,...value2n]...}
-    """
-    tempDict = copy.copy(self.mdlEvalHist.getParametersValues('inputs', nodeId = 'RecontructEnding'))
-    tempDict.update(self.mdlEvalHist.getParametersValues('outputs', nodeId = 'RecontructEnding'))
-    for key in tempDict.keys():
-      tempDict[key] = np.asarray(tempDict[key])
-    self.objSearchingROM.train(tempDict)
-    
-    for key in optVars.keys():              optVars[key] = np.atleast_1d(optVars[key])
-    lossFunctionValue = self.objSearchingROM.evaluate(optVars)
-        
-    if self.optType == 'min':           return lossFunctionValue
-    else:                               return lossFunctionValue*-1.0
-    
   def amIreadyToProvideAnInput(self): #inLastOutput=None):
     """
-      This is a method that should be call from any user of the sampler before requiring the generation of a new sample.
+      This is a method that should be called from any user of the optimizer before requiring the generation of a new input.
       This method act as a "traffic light" for generating a new input.
-      Reason for not being ready could be for example: exceeding number of samples, waiting for other simulation for providing more information etc. etc.
+      Reason for not being ready could be for example: exceeding number of model evaluation, convergence criteria met, etc.
       @ In, None
-      @ Out, ready, bool, is this sampler ready to generate another sample?
+      @ Out, ready, bool, indicating the readiness of the optimizer to generate a new input. 
     """
     ready = True if self.counter['mdlEval'] < self.limit['mdlEval'] and self.counter['varsUpdate'] < self.limit['varsUpdate'] else False
     convergence = self.checkConvergence()
@@ -394,94 +359,109 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
   def localStillReady(self,ready, convergence = False): #,lastOutput=None
     """
-      Determines if sampler is prepared to provide another input.  If not, and
-      if jobHandler is finished, this will end sampling.
-      @ In,  ready, bool, a boolean representing whether the caller is prepared for another input.
-      @ Out, ready, bool, a boolean representing whether the caller is prepared for another input.
+      Determines if optimizer is ready to provide another input.  If not, and if jobHandler is finished, this will end sampling.
+      @In, ready, bool, boolean variable indicating whether the caller is prepared for another input.
+      @In, convergence, boolean variable indicating whether the convergence criteria has been met. 
+      @Out, ready, bool, boolean variable indicating whether the caller is prepared for another input.
     """
-    return ready
-
-  def checkConvergence(self):
+    return ready # To be overwritten by subclass
+  
+  def lossFunctionEval(self, optVars):
+    """
+      Method to evaluate the loss function based on all model evaluation. 
+      @In, optVars, dict containing the values of decision variables to be evaluated
+           optVars should have the form {varName1:[value11, value12,...value1n], varName2:[value21, value22,...value2n]...}
+      @Out, lossFunctionValue, array, loss function values corresponding to each point in optVars
+    """
+    tempDict = copy.copy(self.mdlEvalHist.getParametersValues('inputs', nodeId = 'RecontructEnding'))
+    tempDict.update(self.mdlEvalHist.getParametersValues('outputs', nodeId = 'RecontructEnding'))
+    for key in tempDict.keys():                   tempDict[key] = np.asarray(tempDict[key])
+    self.objSearchingROM.train(tempDict)
     
+    for key in optVars.keys():                    optVars[key] = np.atleast_1d(optVars[key])
+    lossFunctionValue = self.objSearchingROM.evaluate(optVars)   
+    if self.optType == 'min':           return lossFunctionValue
+    else:                               return lossFunctionValue*-1.0
+    
+  def checkConstraint(self, optVars):
+    """
+      Method to check whether a set of decision variables satisfy the constraint or not
+      @In, optVars, dict containing the value of decision variables to be checked, in form of {varName: varValue}
+      @Out, satisfaction, boolean variable indicating the satisfaction of contraints at the point optVars
+    """
+    if self.constraintFunction == None:
+      satisfaction = True
+    else:
+      satisfaction = True if self.constraintFunction.evaluate("constrain",optVars) == 1 else False
+    satisfaction = self.localCheckConstraint(optVars, satisfaction)
+    return satisfaction 
+  
+  def localCheckConstraint(self, optVars, satisfaction = True):
+    """
+      Local method to check whether a set of decision variables satisfy the constraint or not
+      @In, optVars, dict containing the value of decision variables to be checked, in form of {varName: varValue}
+      @In, satisfaction, boolean variable indicating how the caller determines the constraint satisfaction at the point optVars
+      @Out, satisfaction, boolean variable indicating the satisfaction of constraints at the point optVars
+    """    
+    return satisfaction # To be overwritten by subclass
+      
+  def checkConvergence(self):
+    """
+      Method to check whether the convergence criteria has been met. 
+      @In, none, 
+      @Out, convergence, boolean variable indicating whether the convergence criteria has been met. 
+    """    
     if self.counter['varsUpdate'] < 2: 
       convergence = False
     elif abs(self.lossFunctionEval(self.optVarsHist[self.counter['varsUpdate']])-self.lossFunctionEval(self.optVarsHist[self.counter['varsUpdate']-1])) < self.convergenceTol:
       convergence = True
     else:
       convergence = False   
-    
-#     if convergence:
-#       self.raiseADebug(self.optVarsHist)
-#       self.raiseADebug(self.lossFunctionEval(self.optVarsHist[self.counter['varsUpdate']]))
-#       self.raiseADebug(self.lossFunctionEval(self.optVarsHist[self.counter['varsUpdate']-1]))
-#       self.raiseAnError(ValueError, 'shy')
-    convergence = self.localCheckConvergence(convergence)
-    
+    convergence = self.localCheckConvergence(convergence)    
     return convergence
 
   @abc.abstractmethod
   def localCheckConvergence(self, convergence = False):
+    """
+      Local method to check convergence. 
+      @In, convergence, boolean variable indicating how the caller determines the convergence. 
+      @Out, convergence, boolean variable indicating whether the convergence criteria has been met. 
+    """
     return convergence
 
   def generateInput(self,model,oldInput):
     """
-      This method has to be overwritten to provide the specialization for the specific sampler
-      The model instance in might be needed since, especially for external codes,
-      only the code interface possesses the dictionary for reading the variable definition syntax
+      Method to generate input for model to run
       @ In, model, model instance, it is the instance of a RAVEN model
       @ In, oldInput, list, a list of the original needed inputs for the model (e.g. list of files, etc. etc)
-      @ Out, generateInput, list, list containing the new inputs -in reality it is the model that return this the Sampler generate the value to be placed in the input the model
     """
     self.counter['mdlEval'] +=1                              #since we are creating the input for the next run we increase the counter and global counter
-        
     self.inputInfo['prefix'] = str(self.counter['mdlEval'])
     
     model.getAdditionalInputEdits(self.inputInfo)
     self.localGenerateInput(model,oldInput)
     
-    self.raiseADebug('Found new point to sample:',self.values)
+    self.raiseADebug('Found new input to evaluate:',self.values)
     return 0,model.createNewInput(oldInput,self.type,**self.inputInfo)
 
   @abc.abstractmethod
   def localGenerateInput(self,model,oldInput):
     """
-      This class need to be overwritten since it is here that the magic of the sampler happens.
+      This class need to be overwritten since it is here that the magic of the optimizer happens.
       After this method call the self.inputInfo should be ready to be sent to the model
       @ In, model, model instance, it is the instance of a RAVEN model
       @ In, oldInput, list, a list of the original needed inputs for the model (e.g. list of files, etc. etc)
-      @ Out, localGenerateInput, list, list containing the new inputs -in reality it is the model that return this the Sampler generate the value to be placed in the input the model
+      @ Out, None
     """
     pass
 
-#   def generateInputBatch(self,myInput,model,batchSize,projector=None): #,lastOutput=None
-#     """
-#       this function provide a mask to create several inputs at the same time
-#       It call the generateInput function as many time as needed
-#       @ In, myInput, list, list containing one input set
-#       @ In, model, model instance, it is the instance of a RAVEN model
-#       @ In, batchSize, int, the number of input sets required
-#       @ In, projector, object, optional, used for adaptive sampling to provide the projection of the solution on the success metric
-#       @ Out, newInputs, list of list, list of the list of input sets
-#     """
-# #     newInputs = []
-# #     #inlastO = None
-# #     #if lastOutput:
-# #     #  if not lastOutput.isItEmpty(): inlastO = lastOutput
-# #     #while self.amIreadyToProvideAnInput(inlastO) and (self.counter < batchSize):
-# #     while self.amIreadyToProvideAnInput() and (self.counter < batchSize):
-# #       if projector==None: newInputs.append(self.generateInput(model,myInput))
-# #       else              : newInputs.append(self.generateInput(model,myInput,projector))
-# #     return newInputs
-#     pass
-
   def finalizeActualSampling(self,jobObject,model,myInput):
     """
-      This function is used by samplers that need to collect information from a
-      finished run.
-      Provides a generic interface that all samplers will use, for specifically
+      This function is used by optimizers that need to collect information from a finished run.
+      Provides a generic interface that all optimizers will use, for specifically
       handling any sub-class, the localFinalizeActualSampling should be overridden
       instead, as finalizeActualSampling provides only generic functionality
-      shared by all Samplers and will in turn call the localFinalizeActualSampling
+      shared by all optimizers and will in turn call the localFinalizeActualSampling
       before returning.
       @ In, jobObject, instance, an instance of a JobHandler
       @ In, model, model instance, it is the instance of a RAVEN model
@@ -492,11 +472,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
   def localFinalizeActualSampling(self,jobObject,model,myInput):
     """
       Overwrite only if you need something special at the end of each run....
-      This function is used by samplers that need to collect information from the just ended run
-      For example, for a Dynamic Event Tree case, this function can be used to retrieve
-      the information from the just finished run of a branch in order to retrieve, for example,
-      the distribution name that caused the trigger, etc.
-      It is a essentially a place-holder for most of the sampler to remain compatible with the StepsCR structure
+      This function is used by optimizers that need to collect information from the just ended run
       @ In, jobObject, instance, an instance of a JobHandler
       @ In, model, model instance, it is the instance of a RAVEN model
       @ In, myInput, list, the generating input
@@ -505,7 +481,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
   def handleFailedRuns(self,failedRuns):
     """
-      Collects the failed runs from the Step and allows samples to handle them individually if need be.
+      Collects the failed runs from the Step and allows optimizer to handle them individually if need be.
       @ In, failedRuns, list, list of JobHandler.ExternalRunner objects
       @ Out, None
     """
@@ -531,7 +507,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
   def _localHandleFailedRuns(self,failedRuns):
     """
-      Specialized method for samplers to handle failed runs.  Defaults to failing runs.
+      Specialized method for optimizers to handle failed runs.  Defaults to failing runs.
       @ In, failedRuns, list, list of JobHandler.ExternalRunner objects
       @ Out, None
     """
