@@ -33,7 +33,7 @@
   </Distributions>
 
   <Samplers>
-    <DynamicEventTree name="det" removeBranchInfo="yes">
+    <DynamicEventTree name="det" removeXmlBranchInfo="no">
       <variable name="TIMELOCA">
         <distribution>uniform</distribution>
 	<grid type='value' construction='custom'>500 900</grid>
