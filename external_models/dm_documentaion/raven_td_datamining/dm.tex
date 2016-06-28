@@ -10,6 +10,7 @@
 \usepackage{epsfig}
 \usepackage{epstopdf}
 
+
 \begin{document}
 
 \begin{center}
@@ -94,7 +95,47 @@ Here, we will give an example of how to implement this method using RAVEN using 
 
 \subsubsection{Affinity Propagation}
 
-Affinity propagation is an examplar-based clustering algorithm. Examplars are a set of samples that represent other samples the best based on a given criteria. This method simultaneously considers all samples as examplars. It sends messages between pairs of samples that eventually determine the clustering pattern. 
+Affinity propagation is an examplar-based clustering algorithm. Examplars are a set of samples that represent other samples the best based on a given criteria. This method simultaneously considers all samples as examplars. It sends messages between pairs of samples that eventually determine the clustering pattern. Two kinds of messages are primarily sent in order to determine the suitability of a given sample to be the examplar of the other (Pderogosa et al., 2011):
+
+\begin{enumerate}
+
+\item Responsibility $R(i, k)$ - accumulated evidence that a sample $k$ should be the examplar for sample $i$. Responsibility function, $R(i, k)$ is:
+
+\begin{center}
+
+$R(i, k) \leftarrow S(i, k) - max\left(A(i, \tilde{k}) + S(i, \tilde{k}, \forall \tilde{k} \neq k \right).$
+
+\end{center}
+
+Where $S(i, k)$ is pairwise similarity function that defines how well sample $k$ represents sample $i$.
+
+\item Availability $A(i, k)$ - accumulated evidence that sample $i$ should choose sample $k$ to be its examplar. Availability function, $A(i, k)$ is:
+
+\begin{center}
+$A(i, k) \leftarrow min \left(0, R(k, k) + \sum_{\tilde{i} | \tilde{i}  \notin {i, k}} R(\tilde{i}, k) \right).$
+\end{center}
+
+
+\end{enumerate}
+
+Therefore, examplars must be similar to several samples and must be chosen by several samples to represent them. Roughly, the affinity propagation algorithm can be summarized as follows (Dueck, 2009):
+
+\begin{enumerate}
+
+\item Define a set of pairwise similarity functions, $S(i, k)$. This function can be user defined. In general squared Euclidean distance is chosen to be the similarity function. Choose all samples as examplars to initially.
+
+\item Set all availabilities to zero. 
+
+\item Calculate response and availability function for all samples. 
+
+\item Calculate $\tilde{C}_i = max_k\left(A(i, k) + R(i, k) \right)$ where $i = 1, 2, ... N$. This is where we assign an examplar to sample i. In other words, if for a sample $i$, sample $k$ has the maximum availability-plus-responsibility value, then sample $k$ will be the examplar of sample $i$. 
+
+\end{enumerate}
+
+In case there are contradictory results, one k-medoids (k-means but with medoids instead of means) run might be necessary. An in-depth presentation of this algorithm is present in (Dueck, 2009). In RAVEN, this algorithm is accessible through "AffinityPropagation" post processor. 
+
+The following input file will demonstrate how to access this algorithm:
+
 
 
 \subsubsection{Density Based Spatial Clustering of Applications with Noise (DBSCAN)}
@@ -163,8 +204,6 @@ The mean shift algorithm can be summarized as follows:
 
 Detailed explanation of theory and and applications can be found in (Wu et al., 2007), and (Comaniciu et al., 2002). In RAVEN, this functionality is provided using "MeanShift" post-processor. We will demonstrate how to exactly do this in RAVEN using the following example input file: 
 
-
- 
 
 \subsubsection{Variational Gaussian Mixture Model}
 
