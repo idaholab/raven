@@ -375,6 +375,22 @@ def parameterInputFactory(*paramList, **paramDict):
   newClass.createClass(*paramList, **paramDict)
   return newClass
 
+def makeEnumType(name, xmlName, enumList):
+  """
+    Creates a new enum type that can be used as a content type.
+    @ In, name, string, Name of the type
+    @ In, xmlName, string, Name of the type used in the XSD file.
+    @ In, enumList, list of strings, the possible values of the enumeration.
+    @ Out, newEnum, InputData.EnumBaseType, the new enumeration type.
+  """
+  class newEnum(EnumBaseType):
+    """
+      the new enum to be created by the factory
+    """
+
+  newEnum.createClass(name, xmlName, enumList)
+  return newEnum
+
 def createXSD(outerElement):
   """
     Creates an XSD element.
