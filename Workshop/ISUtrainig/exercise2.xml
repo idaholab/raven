@@ -114,13 +114,13 @@
   <IODatabase name='extract_DB_GridValue' pauseAtEnd='True'>
     <Input   class='Databases'        type='HDF5'         >DB_GridValue</Input >
     <Output  class='DataObjects'            type='PointSet' >DB_GridValue</Output>
-    <Output  class='OutStreamManager' type='Plot'         >GridValue</Output>
-    <Output  class='OutStreamManager' type='Print'        >printGridValue</Output>
+    <Output  class='OutStreams' type='Plot'         >GridValue</Output>
+    <Output  class='OutStreams' type='Print'        >printGridValue</Output>
   </IODatabase>
   <IODatabase name='extract_DB_LHS' pauseAtEnd='True'>
     <Input   class ='Databases'        type ='HDF5'         >DB_LHS</Input >
     <Output  class ='DataObjects'            type ='PointSet' >DB_LHS</Output>
-    <Output  class='OutStreamManager'  type ='Plot'          >LHS</Output>   
+    <Output  class='OutStreams'  type ='Plot'          >LHS</Output>   
   </IODatabase>
   <RomTrainer name='train_Sum_GridValues'>
     <Input   class='DataObjects'             type='PointSet'>DB_GridValue</Input>
@@ -135,14 +135,14 @@
     <Input   class = 'DataObjects'             type='PointSet' >dummyMCsum</Input>    
     <Model   class = 'Models'            type='ROM'          >ROMforSumGridValue</Model>
     <Output  class = 'DataObjects'             type='PointSet' >outMCsum</Output>
-    <Output  class='OutStreamManager'    type ='Plot'        >MCforSum</Output>   
+    <Output  class='OutStreams'    type ='Plot'        >MCforSum</Output>   
   </MultiRun >
   <MultiRun name='MCsin' pauseAtEnd='True'>
     <Sampler class = 'Samplers'          type='MonteCarlo'   >exercise1a</Sampler>
     <Input   class = 'DataObjects'             type='PointSet' >dummyMCsin</Input>    
     <Model   class = 'Models'            type='ROM'          >ROMforSinLHS</Model>
     <Output  class = 'DataObjects'             type='PointSet' >outMCsin</Output>
-    <Output  class='OutStreamManager'    type ='Plot'        >MCforSin</Output> 
+    <Output  class='OutStreams'    type ='Plot'        >MCforSin</Output> 
   </MultiRun >
   <PostProcess name='PPsum'>
     <Input    class='DataObjects'            type='PointSet'    >outMCsum</Input>
@@ -160,12 +160,12 @@
     <SolutionExport    class = 'DataObjects'            type = 'PointSet' >LimitSurf</SolutionExport>
     <Function          class = 'Functions'        type = 'External'     >sinThreshold</Function>
     <Model             class = 'Models'           type = 'ROM'          >ROMforSinLHS</Model>
-    <Output            class = 'OutStreamManager' type = 'Plot'         >limitSurf</Output>
-    <Output            class = 'OutStreamManager' type = 'Plot'         >testedPoint</Output>    
+    <Output            class = 'OutStreams' type = 'Plot'         >limitSurf</Output>
+    <Output            class = 'OutStreams' type = 'Plot'         >testedPoint</Output>    
   </Adaptive>
 </Steps>
 
-<OutStreamManager>
+<OutStreams>
   <Print name='printGridValue'>
     <type>csv</type>
     <source>DB_GridValue</source>
@@ -273,6 +273,6 @@
       <title><text>Sin</text></title>
     </actions>
   </Plot>
-</OutStreamManager>
+</OutStreams>
 
 </Simulation>
