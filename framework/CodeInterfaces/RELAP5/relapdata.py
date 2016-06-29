@@ -1,6 +1,10 @@
 import re
-#  author  : nieljw
-#  modified: alfoa
+import xml.etree.ElementTree as ET
+"""
+Created on May 5, 2016
+
+@author: alfoa
+"""
 
 class relapdata:
   """
@@ -33,10 +37,19 @@ class relapdata:
       @ In, lines, list, list of lines of the output file
       @ Out, time, float, Final time
     """
+    return self.gettimeDeck(lines)[-1]
+
+  def gettimeDeck(self,lines):
+    """
+      Method to check ended time of the simulation (multi-deck compatible)
+      @ In, lines, list, list of lines of the output file
+      @ Out, times, list, list of floats. Final times
+    """
+    times = []
     for i in lines:
       if re.match('^\s*Final time=',i):
-        time=i.split()[2]
-        return time
+        times.append(i.split()[2])
+    return times
 
   def returntrip(self,lines):
     """
@@ -85,7 +98,9 @@ class relapdata:
         i=i+4
         while not re.match('^\s*1 time|^1RELAP5|^\s*\n|^\s*1RELAP5|^\s*MINOR EDIT',lines[i]):
           tempdata=lines[i].split()
-          for k in range(len(temparray)): temparray[k].append(tempdata[k])
+          if ('Reducing' not in tempdata):
+            for k in range(len(temparray)):
+              temparray[k].append(tempdata[k])
           i=i+1
           if re.match('^\s*1 time|^\s*1\s*R5|^\s*\n|^1RELAP5',lines[i]): break
         for l in range(len(tempkeys)): minorDict.update({tempkeys[l]:temparray[l]})
