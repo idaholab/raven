@@ -49,7 +49,10 @@
 		<initialSeed>30</initialSeed>
       </initialization>
       <TargetEvaluation class="DataObjects" type="PointSet">optOutput</TargetEvaluation>
-	  <Convergence iterationlimit = '50'>1e-3</Convergence>
+	  <Convergence>
+		<iterationLimit>50</iterationLimit>
+		<threshold>1e-3</threshold>
+	  </Convergence>
    	  <parameter>
 		<numGradAvgIterations>3</numGradAvgIterations>
 	  </parameter>

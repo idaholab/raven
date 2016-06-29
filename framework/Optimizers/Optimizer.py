@@ -212,10 +212,11 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
           else: self.raiseAnError(IOError,'Unknown tag '+childChild.tag+' .Available: limit, type, initialSeed!')
       
       elif child.tag == "convergence":
-        self.convergenceTol = float(child.text)
-        if 'iterationlimit' in child.attrib.keys():
-          try   : self.limit['varsUpdate'] = int(child.attrib['limit'])
-          except: self.raiseAnError(IOError,'Cannot convert limit value '+ child.attrib['limit']+ '!!!')       
+        for childChild in child:
+          if childChild.tag == "iterationLimit":
+            self.limit['varsUpdate'] = int(childChild.text)
+          if childChild.tag == "threshold":
+            self.convergenceTol = float(childChild.text)    
       
       elif child.tag == "restartTolerance":
         self.restartTolerance = float(child.text)
