@@ -1900,16 +1900,17 @@ class SciKitLearn(superVisedLearning):
       @ Out, None
     """
     superVisedLearning.__init__(self,messageHandler,**kwargs)
+    name  = self.initOptionDict.pop('name','')
     self.printTag = 'SCIKITLEARN'
     if 'SKLtype' not in self.initOptionDict.keys():
-      self.raiseAnError(IOError,'to define a scikit learn ROM the SKLtype keyword is needed (from ROM '+self.initOptionDict['name']+')')
+      self.raiseAnError(IOError,'to define a scikit learn ROM the SKLtype keyword is needed (from ROM "'+name+'")')
     SKLtype, SKLsubType = self.initOptionDict['SKLtype'].split('|')
     self.subType = SKLsubType
     self.initOptionDict.pop('SKLtype')
     if not SKLtype in self.__class__.availImpl.keys():
-      self.raiseAnError(IOError,'not known SKLtype ' + SKLtype +'(from ROM '+self.initOptionDict['name']+')')
+      self.raiseAnError(IOError,'not known SKLtype "' + SKLtype +'" (from ROM "'+name+'")')
     if not SKLsubType in self.__class__.availImpl[SKLtype].keys():
-      self.raiseAnError(IOError,'not known SKLsubType ' + SKLsubType +'(from ROM '+self.initOptionDict['name']+')')
+      self.raiseAnError(IOError,'not known SKLsubType "' + SKLsubType +'" (from ROM "'+name+'")')
 
     self.__class__.returnType     = self.__class__.availImpl[SKLtype][SKLsubType][1]
     self.__class__.qualityEstType = self.__class__.qualityEstTypeDict[SKLtype][SKLsubType]
@@ -2042,7 +2043,7 @@ def returnInstance(ROMclass,caller,**kwargs):
     @ Out, returnInstance, instance, an instance of a ROM
   """
   try: return __interfaceDict[ROMclass](caller.messageHandler,**kwargs)
-  except KeyError: caller.raiseAnError(NameError,'not known '+__base+' type '+str(ROMclass))
+  except KeyError as ae: caller.raiseAnError(NameError,'not known '+__base+' type '+str(ROMclass))
 
 def returnClass(ROMclass,caller):
   """
