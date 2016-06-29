@@ -1875,7 +1875,7 @@ class SciKitLearn(superVisedLearning):
       @ Out, None
     """
     superVisedLearning.__init__(self,messageHandler,**kwargs)
-    name  = self.initOptionDict['name']
+    name  = self.initOptionDict.pop('name')
     self.printTag = 'SCIKITLEARN'
     if 'SKLtype' not in self.initOptionDict.keys():
       self.raiseAnError(IOError,'to define a scikit learn ROM the SKLtype keyword is needed (from ROM "'+name+'")')
