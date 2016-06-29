@@ -1,5 +1,5 @@
-\section{Samplers}
-\label{sec:Samplers}
+\section{Optimizers}
+\label{sec:Optimizers}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % If you are confused by the input of this document, please make sure you see
@@ -329,22 +329,16 @@ XML node and the requirements for other attributes change:
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-The sampler is probably the most important entity in the RAVEN framework.
-%
-It performs the driving of the specific sampling strategy and, hence, determines
-the effectiveness of the analysis, from both an accuracy and computational point
-of view.
-%
-The samplers, that are available in RAVEN, can be categorized into three main
-classes:
+The optimizer is another important entity in the RAVEN framework. It performs the driving of a specific loss function over the model for value optimization. The difference between an optimizer and a sampler is that the former does not require sampling over a distribution, although certain specific optimizers may utilize stochastic approach to locate the optimality. 
+The optimizers currently available in RAVEN can be categorized into the following class(es)
 \begin{itemize}
-\item \textbf{Forward} (see Section~\ref{subsec:onceThroughSamplers})
-\item \textbf{Dynamic Event Tree (DET)} (see Section~\ref{subsec:DETSamplers})
-\item \textbf{Adaptive} (see Section~\ref{subsec:AdaptSamplers})
+\item \textbf{Gradient Based Optimizer} (see Section~\ref{subsec:gradientBasedOptimizers})
 \end{itemize}
-Before analyzing each sampler in detail, it is important to mention that each
-type has a similar syntax to input the variables to be ``sampled''.
-%
+
+Before analyzing each optimizer in detail, it is important to mention that each type needs to be contained in the main XML node \xmlNode{Optimizers}, as reported below:
+
+\textbf{Example:}
+
 In the example below, the variable \xmlString{variableName} is going to be
 sampled by the Sampler \xmlString{whatever} using the distribution named\\
 \xmlString{aDistribution}.
@@ -367,155 +361,25 @@ sampled by the Sampler \xmlString{whatever} using the distribution named\\
   ...
 </Simulation>
 \end{lstlisting}
-
-As reported in section \ref{sec:existingInterface}, the variable naming syntax,
-for external driven codes, depends on the way the ``code interface'' has been
-implemented.
-%
-For example, if the code has an input structure like the one reported below (YAML), the
-variable name might be\xmlString{I-Level|II-Level|variable}.
-%
-In this way, the relative code interface (and input parser) will know which
-variable needs to be perturbed and the ``recipe'' to access it.
-%
-As reported in \ref{sec:existingInterface}, its syntax is chosen by the
-developer of the ``code interface'' and is implemented in the interface only
-(no modifications are needed in the RAVEN code).
-
-%\maljdan{Where does this type of input come from? Should the user care?}
-%\alfoa{Dan, this is an example (in this case, a YAML structure)}
-
-Example YAML based Input:
-\begin{lstlisting}
-[I-Level]
-  [./II-Level]
-    variable = xxx
-  [../]
-[]
-\end{lstlisting}
-
-Example XML block to define the variables and associated distributions:
-\begin{lstlisting}[style=XML]
-<variable name='I-Level|II-Level|variable'>
-  <distribution>exampleDistribution</distribution>
-</variable>
-\end{lstlisting}
-
-If the variable is associated to a multi-dimensional ND distribution, it is needed to specify which dimension of the ND distribution is associated to such variable. An example is shown below: the variable  ``variableX'' is associated to the third dimension of the ND distribution ``NDdistribution''.
-
-\begin{lstlisting}[style=XML]
-<variable name='variableX'>
-     <distribution dim='3'>NDdistribution</distribution>
-</variable>
-\end{lstlisting}
-
-For most codes, it is prudent that there are no redundant inputs; however there are
-cases where this is not reality.  For example, if there is a variable \xmlString{inner\_radius} and
-a variable \xmlString{outer\_radius}, there may be a third variable \xmlString{thickness} that
-is actually derived from the previous two, as \xmlString{thickness} = \xmlString{outer\_radius} - \xmlString{inner\_radius}.
-RAVEN supports this type of redundant input through a Function entity.  In this case,
-instead of a \xmlNode{distribution} node in the \xmlNode{variable} block, there is a
-\xmlNode{Function} node, specifying the name of the function (defined in the \xmlNode{Functions} block).
-In order to work properly, this function must have a method named ``evaluate''
-that returns a single python float object. In this way, multiple variables can be associated with the same Function.  For example,
-\begin{lstlisting}[style=XML]
-...
-<Functions>
-  <External name='torus_calcs' file='torus_calcs.py'>
-    <variable>outer_radius</variable>
-    <variable>inner_radius</variable>
-  </External>
-<Functions>
-...
-<Samplers>
-  <WhatEverSampler name='myExampleSampler'>
-    <variable name='inner_radius'>
-      <distribution>inner_dist</distribution>
-    </variable>
-    <variable name='outer_radius'>
-      <distribution>outer_dist</distribution>
-    </variable>
-    <variable name='thickness'>
-      <Function>torus_calcs</Function>
-    </variable>
-  </WhatEverSampler>
-</Samplers>
-\end{lstlisting}
-The corresponding function file \xmlString{torus\_calcs.py} needs the following method:
-\begin{lstlisting}
-def evaluate(self):
-  return self.outer_radius - self.inner_radius
-\end{lstlisting}
-The \xmlString{thickness} parameter will still be treated as an input for the sake of csv
-printing and DataObjects storage.
-
-In the sampler class a special node exists: the \xmlNode{sampler\textunderscore init} node.
-This node contains specific parameters that characterize each particular sampler.
-In addition, \xmlNode{sampler\textunderscore init} might contain the information regarding the random generator function for each $N$-Dimensional distribution (specified in the \xmlNode{dist\textunderscore init} node):
-\begin{itemize}
-\item initial\textunderscore grid\textunderscore disc
-\item tolerance
-\end{itemize}
-
-An example of \xmlNode{dist\textunderscore init} node is provided below:
-
-\begin{lstlisting}[style=XML]
-<distInit>
-    <distribution name= 'ND_dist_name'>
-         <initialGridDisc>5</initialGridDisc>
-          <tolerance>0.2</tolerance>
-     </distribution>
-  </distInit>
-\end{lstlisting}
-
-In the \xmlNode{sampler\textunderscore init}  node it is possible to add also the subnode \xmlNode{globalGrid}.
-The \xmlNode{globalGrid} can be used in two cases:
-\begin{itemize}
-\item 1D distributions: an identical grid that is associated to several distributions
-\item ND distribution: a grid associated to a single ND distribution. This is the case when a stratified sampling is performed on the CDF of an ND distribution: the  \xmlNode{globalGrid} is  shared among the variables associated to the Nd distribution
-\end{itemize}
-
+                     
 %%%%%%%%%%%%%%%%%%%%%%%%%
-%%%      Forward Samplers      %%%
+%%%      Gradient Based Optimizers      %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Forward Samplers}
-\label{subsec:onceThroughSamplers}
-The Forward sampler category collects all the strategies that perform the
-sampling of the input space without exploiting, through dynamic learning
-approaches, the information made available from the outcomes of calculations
-previously performed (adaptive sampling) and the common system evolution
-(patterns) that different sampled calculations can generate in the phase space
-(dynamic event tree).
-%
-In the RAVEN framework, several different ``Forward'' samplers
+\subsection{Gradient Based Optimizers}
+\label{subsec:gradientBasedOptimizers}
+The Gradient Based Optimizer category collects all the strategies that perform the optimization based on gradient information, either directly provided or estimated by optimization strategy. In the RAVEN framework, currently implemented optimizer in this category are: 
 are available:
 \begin{itemize}
-\item \textbf{Monte Carlo (MC)}
-\item \textbf{Stratified}
-\item \textbf{Grid Based}
-\item \textbf{Sparse Grid Collocation}
-\item \textbf{Sobol Decomposition}
-\item \textbf{Response Surface Design of Experiment}
-\item \textbf{Factorial Design of Experiment}
-\item \textbf{Ensemble Forward Sampling strategy}
-\item \textbf{Custom Sampling strategy}
+\item \textbf{Simultaneous Perturbation Stochastic Approximation (SPSA)}
 \end{itemize}
 
-From a practical point of view, these sampling strategies represent different
-ways to explore the input space.
-%
-In the following paragraphs, the input requirements and a small explanation of
-the different sampling methodologies are reported.
+From a practical point of view, these optimization strategies represent different ways to estimate the gradient based on information from previously performed model evaluation. In the following paragraphs, the input requirements and a small explanation of the different sampling methodologies are reported.
 
 
-%%% Forward Samplers: MonteCarlo
-\subsubsection{Monte Carlo}
-\label{subsubsubsec:MC}
-The \textbf{Monte-Carlo} sampling approach is one of the most well-known and
-widely used approaches to perform exploration of the input space.
-%
-The main idea behind MonteCarlo sampling is to  randomly perturb the input space according
-to uniform or parameter-based probability density functions.
+%%% Gradient Based Optimizers: SPSA
+\subsubsection{Simultaneous Perturbation Stochastic Approximation (SPSA)}
+\label{subsubsubsec:SPSA}
+The \textbf{SPSA} optimization approach is one of the optimization strategies that are based on gradient estimation. The main idea is to simultaneously perturb all decision variables in order to estimate the gradient. Consequently a minimal of two model evaluations are required in order to approximate the gradient. The theory behind SPSA can be found in \cite{spall1998implementation}. 
 %
 
 \specBlock{a}{MonteCarlo}
