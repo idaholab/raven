@@ -73,9 +73,9 @@ class SPSA(GradientBasedOptimizer):
     """    
     self.gainParamDict['alpha'] = self.paramDict.get('alpha', 0.602)
     self.gainParamDict['gamma'] = self.paramDict.get('gamma', 0.101)
-    self.gainParamDict['A'] = self.paramDict.get('alpha', self.limit['mdlEval']/10)
-    self.gainParamDict['a'] = self.paramDict.get('alpha', 0.16)
-    self.gainParamDict['c'] = self.paramDict.get('alpha', 0.005)
+    self.gainParamDict['A'] = self.paramDict.get('A', self.limit['mdlEval']/10)
+    self.gainParamDict['a'] = self.paramDict.get('a', 0.16)
+    self.gainParamDict['c'] = self.paramDict.get('c', 0.005)
     
     self.gradDict['pertNeeded'] = self.gradDict['numIterForAve'] * 2
     
