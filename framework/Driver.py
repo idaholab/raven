@@ -184,4 +184,6 @@ if __name__ == '__main__':
       traceback.print_stack(sys._current_frames()[ravenThread.ident])
     print ('\n\n! Received keyboard interrupt, exiting RAVEN.\n\n')
   except SystemExit:
+    if ravenThread.isAlive():
+      traceback.print_stack(sys._current_frames()[ravenThread.ident])
     print ('\n\n! Exit called, exiting RAVEN.\n\n')
