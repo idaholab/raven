@@ -99,8 +99,7 @@ class relapdata:
         while not re.match('^\s*1 time|^1RELAP5|^\s*\n|^\s*1RELAP5|^\s*MINOR EDIT',lines[i]):
           tempdata=lines[i].split()
           if ('Reducing' not in tempdata):
-            for k in range(len(temparray)):
-              temparray[k].append(tempdata[k])
+            for k in range(len(temparray)): temparray[k].append(tempdata[k])
           i=i+1
           if re.match('^\s*1 time|^\s*1\s*R5|^\s*\n|^1RELAP5',lines[i]): break
         for l in range(len(tempkeys)): minorDict.update({tempkeys[l]:temparray[l]})
