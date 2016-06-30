@@ -244,13 +244,41 @@ $ w_i \leftarrow \frac{n_i}{N}$
 
 Each component returns a cluster. This functionality can be accessed in RAVEN through the "GMM" post processor. The following input file will describe how to access this functionality in more detail: \\
 
-\begin{large}
-\textbf{Variable Bayesian}:
-\end{large} \\
 
 \begin{large}
 \textbf{Dirichelet Process}:
 \end{large} \\
+
+Dirichelet process does not require number of clusters as an input. It is a prior probability distribution on clustering with infinite number of components. A classic way of explaining how this works is by using the analogy of a Chinese restaurant process (Pderogosa et al., 2011). Think of a Chinese restaurant with infinite number of empty tables initially. The first customer takes the first table. After that as the customers arrive, they either join the preoccupied table with a probability proportional to the occupancy of that table or they sit on a new table with a probability proportional to the concentration parameter $\alpha$. After a known number of customers sit, we see that only a finite number of tables have been occupied. Higher the $\alpha$ value, higher the number of tables occupied. Here, for the Dirichelet process GMM, each component of the mixture is analogous to the table and each sample is analogous to the customer. 
+
+Variational inference techniques for Dirichelet processes woek with finite approximations. Inference using Gibbs sampling is a common way of inferring mixture components. For exact algorithm and mathematical derivation, please refer to (Gorur, 2010). 
+
+This functionality is available in RAVEN through the "DPGMM" post processor. 
+
+\begin{large}
+\textbf{Variable Bayesian}:
+\end{large} \\
+
+The GMM may be implemented with variational inference algorithms. Variational Inference GMM chooses Gaussians with an randon initial parameters and minimizes the lower bound of model evidence instead of data likelihood. Model evidence incorporates prior guesses (Pderogosa et al., 2011). Just like with expectation minimization, the algorithm altrenates between finding probability for each point to be generated bt each mixture component and fitting the mixtures to these assigned points. Variational methods add regularization by integrating information from prior distributions. Roughly, this algorithm can be summarized as follows (Blei, 2011):
+
+\begin{enumerate}
+
+\item Given a data set, initialize parameters and define number of clusters. 
+
+\item Define variational distributions: variational multinomials, variational Gaussians.
+
+\item Update variational multinomial. 
+
+\item Update mean and variance of variational Gaussian. 
+
+\item Check for convergence of evidence lower bound. 
+
+\end{enumerate}
+
+For a detailed mathematical derivation of the algorithm, please refer to (Blei, 2011) and (Bishop, 2006). 
+
+This functionality is available in RAVEN through the "VBGMM" post processor. 
+
 
 \subsection{Data Mining - Dimension Reduction}
 
