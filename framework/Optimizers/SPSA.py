@@ -188,3 +188,4 @@ class SPSA(GradientBasedOptimizer):
       @Out, convergence, boolean variable indicating whether the convergence criteria has been met.
     """
     return convergence
+

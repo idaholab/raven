@@ -515,12 +515,3 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     if len(failedRuns)>0:
       self.raiseAnError(IOError,'There were failed runs; aborting RAVEN.')
-
-
-
-
-
-
-
-
-
