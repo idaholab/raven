@@ -18,318 +18,10 @@
   The specifications of this optimizer must be defined within #1 \xmlNode{#2} XML
   block.
 }
-\newcommand{\variableChildIntro}
-{
- This \xmlNode{variable} recognizes the following child node:
-}
 
-\newcommand{\variableChildrenIntro}
-{
-  This \xmlNode{variable} recognizes the following child nodes:
-}
-
-\newcommand{\variableIntro}[1]
-{
-  In the \xmlNode{#1} input block, the user
-  needs to specify the variables to sample.
-  %
-  As already mentioned, these variables are specified within consecutive
-  \xmlNode{variable} XML blocks:
-}
-
-\newcommand{\constructionGridDescriptionOnlyCustom}
-{
-Based on the \xmlAttr{construction} type, the content of the \xmlNode{grid}
-XML node and the requirements for other attributes change. In this case, only the following is available:
-\begin{itemize}
-  \item \xmlAttr{construction}\textbf{\texttt{=}}\xmlString{custom}.
-    The grid will be directly specified by the user.
-    This construction type requires that the \xmlNode{grid} node contains
-    the actual mesh bins.
-    For example, if the grid \xmlAttr{type} is \xmlString{CDF}, in the body
-    of \xmlNode{grid}, the user will specify the CDF probability thresholds
-    (nodalization in probability).
-      All the bins are checked against the associated
-      \xmlNode{distribution} bounds.
-      If one or more of them falls outside the distribution's bounds, the
-      code will raise an error.
-      No additional attributes are needed.
-\end{itemize}
-}
-
-\newcommand{\constructionGridDescription}
-{
-Based on the \xmlAttr{construction} type, the content of the \xmlNode{grid}
-XML node and the requirements for other attributes change:
-\begin{itemize}
-  \item \xmlAttr{construction}\textbf{\texttt{=}}\xmlString{equal}.
-    The grid is going to be constructed equally-spaced
-    (\xmlAttr{type}\textbf{\texttt{=}}\xmlString{value}) or equally probable
-    (\xmlAttr{type}\textbf{\texttt{=}}\xmlString{CDF}).
-    This construction type requires the definition of additional attributes:
-      \begin{itemize}
-         \item \xmlAttr{steps}, \xmlDesc{required integer attribute}, number
-           of equally spaced/probable discretization steps.
-      \end{itemize}
-      This construction type requires that the content of the \xmlNode{grid}
-      node represents the lower and upper bounds (either
-      in probability or value). Two values need to be specified; the lowest one
-     will be considered as the $lowerBound$, the largest, the $upperBound$.
-      The lower and upper bounds are checked against the associated
-      \xmlNode{distribution} bounds.
-      If one or both of them falls outside the distribution's bounds, the
-      code will raise an error.
-      The $stepSize$ is determined as follows:
-      \\ $stepSize=(upperBound - lowerBound)/steps$
-  \item \xmlAttr{construction}\textbf{\texttt{=}}\xmlString{custom}.
-    The grid will be directly specified by the user.
-    No additional attributes are needed.
-    This construction type requires that the \xmlNode{grid} node contains
-    the actual mesh bins.
-    For example, if the grid \xmlAttr{type} is \xmlString{CDF}, in the body
-    of \xmlNode{grid}, the user will specify the CDF probability thresholds
-    (nodalization in probability).
-      All the bins are checked against the associated
-      \xmlNode{distribution} bounds.
-      If one or more of them falls outside the distribution's bounds, the
-      code will raise an error.
-\end{itemize}
-}
-\newcommand{\variableDescription}
-{
-  \xmlNode{variable}, \xmlDesc{XML node,
-  required parameter} will specify one attribute:
-  \begin{itemize}
-    \item \xmlAttr{name}, \xmlDesc{required string attribute}, user-defined name
-      of this variable.
-  \end{itemize}
-}
-
-\newcommand{\distributionDescription}
-{
-  \xmlNode{distribution}, \xmlDesc{string,
-  required field}, name of the distribution that is associated to this variable.
-  Its name needs to be contained in the \xmlNode{Distributions} block explained
-  in Section \ref{sec:distributions}. In addition, if NDDistribution is used,
-  the attribute \xmlAttr{dim} is required. \nb{Alternatively, this node must be ommitted
-  if the \xmlNode{function} node is supplied.}
-}
-\newcommand{\functionDescription}
-{
-  \xmlNode{function}, \xmlDesc{string, required field}, name of the function that
-  defines the calculation of this variable from other distributed variables.  Its name
-  needs to be contained in the \xmlNode{Functions} block explained in Section
-  \ref{sec:functions}. This function must implement a method named ``evaluate''.
- \nb{Alternatively, this node must be ommitted
-  if the \xmlNode{distribution} node is supplied.}
-}
-
-
-
-
-\newcommand{\gridDescriptionOnlyCustom}
-{
-  \xmlNode{grid}, \xmlDesc{space separated floats, required
-  field}, the content of this XML node depends on the definition of the
-  associated attributes:
-  \begin{itemize}
-  \itemsep0em
-    \item \xmlAttr{type}, \xmlDesc{required string attribute}, user-defined
-      discretization metric type: 1) \xmlString{CDF}, the grid will be
-      specified based on cumulative distribution function probability
-      thresholds, and 2) \xmlString{value}, the grid will be provided
-      using variable values.
-    \item \xmlAttr{construction}, \xmlDesc{required string attribute}, how
-      the grid needs to be constructed, independent of its type (i.e.
-      \xmlString{CDF} or \xmlString{value}).
-  \end{itemize}
-  \constructionGridDescriptionOnlyCustom
-  \nb{The \xmlNode{grid} node is only required if a \xmlNode{distribution}
-  node is supplied.  In the case of a \xmlNode{function} node, no grid
-  information is requested.}
-}
-
-
-
-\newcommand{\gridDescription}
-{
-  \xmlNode{grid}, \xmlDesc{space separated floats, required
-  field}, the content of this XML node depends on the definition of the
-  associated attributes:
-  \begin{itemize}
-  \itemsep0em
-    \item \xmlAttr{type}, \xmlDesc{required string attribute}, user-defined
-      discretization metric type: 1) \xmlString{CDF}, the grid will be
-      specified based on cumulative distribution function probability
-      thresholds, and 2) \xmlString{value}, the grid will be provided
-      using variable values.
-    \item \xmlAttr{construction}, \xmlDesc{required string attribute}, how
-      the grid needs to be constructed, independent of its type (i.e.
-      \xmlString{CDF} or \xmlString{value}).
-  \end{itemize}
-  \constructionGridDescription
-  \nb{The \xmlNode{grid} node is only required if a \xmlNode{distribution}
-  node is supplied.  In the case of a \xmlNode{function} node, no grid
-  information is requested.}
-}
-
-\newcommand{\convergenceDescription}
-{
-\xmlNode{Convergence}, \xmlDesc{float, required field}, Convergence
-    tolerance.
-    %
-    The meaning of this tolerance depends on the definition of other attributes
-    that might be defined in this XML node:
-    \begin{itemize}
-      \item \xmlAttr{limit}, \xmlDesc{optional integer attribute}, the
-        maximum number of adaptive samples (iterations).
-        %
-        \default{infinite}.
-      \item \xmlAttr{forceIteration}, \xmlDesc{optional boolean attribute},
-        this attribute controls if at least a number of iterations equal to
-        \textbf{limit} must be performed.
-        %
-        \default{False}.
-      \item \xmlAttr{weight}, \xmlDesc{optional string attribute (case insensitive)}, defines on
-        what the convergence check needs to be performed.
-        \begin{itemize}
-          \item \xmlString{CDF}, the convergence is checked in terms
-            of probability (Cumulative Distribution Function). From a practical point of view,
-            this means that full uncertain domain
-            is discretized in a way that the probability volume of each cell is going to be equal to
-           the tolerance specified in the body of the node \xmlNode{Convergence}
-          \item \xmlString{value}, the convergence is checked on the
-            hyper-volume in terms of variable values.From a practical point of view,
-            this means that full uncertain domain
-            is discretized in a way that the ``volume'' fraction of each cell is going to be equal to
-           the tolerance specified in the body of the node \xmlNode{Convergence}. In other words,
-           each cell volume is going to be equal to the total volume times the tolerance.
-        \end{itemize}
-        \default{CDF}.
-      \item \xmlAttr{persistence}, \xmlDesc{optional integer attribute},
-        offers an additional convergence check.
-        %
-        It represents the number of times the computed error needs to be
-        below the inputted tolerance before convergence is reported.
-        %
-        \default{5}.
-        \item \xmlAttr{subGridTol}, \xmlDesc{optional float attribute},
-            this attribute is used to activate the multi-grid approach (adaptive meshing)
-            of the constructed evaluation grid (see attribute \xmlAttr{weight}).
-            In case this attribute is specified, the final grid discretization (cell's ``volume content''
-             aka convergence confidence) is represented by the
-            value here specified. The sampler converges on the initial coarse grid, defined by
-            the tolerance specified in the body of the node \xmlNode{Convergence}.
-            When the Limit Surface has been identified on the coarse grid, the sampler starts
-            refining the grid until the ``volume content'' of each cell is equal to the value
-            specified in this attribute (Multi-grid approach).
-           \default{None}.
-    \end{itemize}
-    In summary, this XML node contains the information that is needed in order
-    to control this sampler's convergence criterion.
-}
-
-\newcommand{\assemblerDescription}[1] %%NOTE this only applies to the adaptive sampler.  Why is it a newcommand? %%
-{
-  \textbf{Assembler Objects} These objects are either required or optional
-    depending on the functionality of the #1 Sampler.
-    %
-    The objects must be listed with a rigorous syntax that, except for the XML
-    node tag, is common among all the objects.
-    %
-    Each of these nodes must contain 2 attributes that are used to identify them
-    within the simulation framework:
-    \begin{itemize}
-      \item \xmlAttr{class}, \xmlDesc{required string attribute}, the main
-        ``class'' of the listed object.
-        %
-        For example, it can be \xmlString{Models}, \xmlString{Functions}, etc.
-      \item \xmlAttr{type},  \xmlDesc{required string attribute}, the object
-        identifier or sub-type.
-        %
-        For example, it can be \xmlString{ROM}, \xmlString{External}, etc.
-    \end{itemize}
-    The \textbf{#1} approach requires or optionally accepts the
-    following object types:
-
-}
-\newcommand{\ROMDescription}[1]
-{
-    \begin{itemize}
-      \item \xmlNode{ROM}, \xmlDesc{string, required field}, the
-        body of this XML node must contain the name of an appropriate ROM defined in the
-        \xmlNode{Models} block (see Section~\ref{subsec:models_ROM}).
-    \end{itemize}
-}
-
-\newcommand{\restartDescription}[1]
-{
-    \begin{itemize}
-      \item \xmlNode{Restart}, \xmlDesc{string, optional field}, the
-        body of this XML node must contain the name of an appropriate \textbf{PointSet} defined in the
-        \xmlNode{DataObjects} block (see Section~\ref{sec:DataObjects}).  It is used as a
-        ``restart'' tool, where it accepts pre-existing solutions in the PointSet instead
-        of recalculating solutions.
-    \end{itemize}
-    \begin{itemize}
-      \item \xmlNode{restartTolerance}, \xmlDesc{float, optional field}, the
-        body of this XML node must contain a valid floating point value.  If a \xmlNode{Restart} node is
-        supplied for this \xmlNode{Sampler}, this node offers a way to determine how strictly matching points
-        are determined.  Given a point in the input space, if all the points in a restart point are within
-        the relative tolerance listed in this node to the given point, the restart point will be used instead
-        of recalculated.  \default{1e-15}
-    \end{itemize}
-}
-
-\newcommand{\variablesTransformationDescription}[1]
-{
-    \begin{itemize}
-      \item \xmlNode{variablesTransformation}, \xmlDesc{optional field}. this XML node accepts one attribute:
-      \begin{itemize}
-        \item \xmlAttr{distribution}, \xmlDesc{required string attribute}, the name for the distribution defined in the XML node \xmlNode{Distributions}.
-        This attribute indicates the values of \xmlNode{manifestVariables} are drawn from \xmlAttr{distribution}.
-      \end{itemize}
-      In addition, this XML node also accepts three childen nodes:
-      \begin{itemize}
-        \item \xmlNode{latentVariables}, \xmlDesc{comma separated string, required field}, user-defined latent variables that
-        are used for the variables transformation. All the variables listed under this node should be also mentioned in \xmlNode{variable}.
-        \item \xmlNode{manifestVariables}, \xmlDesc{comma separated string, required field}, user-defined manifest variables
-        that can be used by the \xmlAttr{model}.
-        \item \xmlNode{manifestVariablesIndex}, \xmlDesc{comma separated string, optional field}, user-defined manifest variables indices paired with \xmlNode{manifestVariables}.
-        These indices indicate the position of manifest variables associated with multivariate normal distribution defined in the XML node \xmlNode{Distributions}.
-        The indices should be postive integer. If not provided, the code will use the positions of manifest variables listed in \xmlNode{manifestVariables} as the indices.
-        \item \xmlNode{method}, \xmlDesc{string, required field}, the method that is used for the variables transformation. The currently available method is '\textbf{pca}'.
-      \end{itemize}
-    \end{itemize}
-}
-
-\newcommand{\convergenceStudyDescription}
-{
-    \xmlNode{convergenceStudy}, \xmlDesc{optional node},
-    if included, triggers writing state points at particular numbers of model solves for the purpose of
-    a convergence study.  The study is performed by writing XML output files as described in the
-    OutStreams for ROMs at the state points requested, using \xmlString{all} as the requested
-    \xmlNode{what} values.
-    The state points are identified when a certain
-    number of model runs is passed, as specified by the \xmlNode{runStatePoints} node.
-    This node has the following sub-nodes to define its parameters:
-    \begin{itemize}
-      \item \xmlNode{runStatePoints}, \xmlDesc{list of integers, required node},
-        lists the number of model runs at which state points should be written. Note that these will be
-        written when the requested number of runs is met or passed, so the actual value is often somewhat more
-        than the requested value, and the exact value will be listed in the XML output.
-      \item \xmlNode{baseFilename}, \xmlDesc{string, optional node},
-        if specified determines the base file name for the state point outputs.  If not specified, defaults to
-        \xmlString{out\_}.
-      \item \xmlNode{pickle}, \xmlDesc{no text, optional node},
-        if this node is included, serialized (pickled) versions of the ROM at each of the run states is also
-        created in the working directory, with the format \texttt{<baseFilename><numRuns>.pk}, such as
-        \texttt{out\_100.pk}.
-    \end{itemize}
-}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-The optimizer is another important entity in the RAVEN framework. It performs the driving of a specific loss function over the model for value optimization. The difference between an optimizer and a sampler is that the former does not require sampling over a distribution, although certain specific optimizers may utilize stochastic approach to locate the optimality. 
+The optimizer is another important entity in the RAVEN framework. It performs the driving of a specific loss function over the model for value optimization. The difference between an optimizer and a sampler is that the former does not require sampling over a distribution, although certain specific optimizers may utilize stochastic approach to locate the optimality.
 The optimizers currently available in RAVEN can be categorized into the following class(es):
 \begin{itemize}
 \item \textbf{Gradient Based Optimizer} (see Section~\ref{subsec:gradientBasedOptimizers})
@@ -352,13 +44,13 @@ Before analyzing each optimizer in detail, it is important to mention that each 
   ...
 </Simulation>
 \end{lstlisting}
-                     
+
 %%%%%%%%%%%%%%%%%%%%%%%%%
 %%%      Gradient Based Optimizers      %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Gradient Based Optimizers}
 \label{subsec:gradientBasedOptimizers}
-The Gradient Based Optimizer category collects all the strategies that perform the optimization based on gradient information, either directly provided or estimated by optimization strategy. In the RAVEN framework, currently implemented optimizer in this category are: 
+The Gradient Based Optimizer category collects all the strategies that perform the optimization based on gradient information, either directly provided or estimated by optimization strategy. In the RAVEN framework, currently implemented optimizer in this category are:
 \begin{itemize}
 \item \textbf{Simultaneous Perturbation Stochastic Approximation (SPSA)}
 \end{itemize}
@@ -369,7 +61,7 @@ From a practical point of view, these optimization strategies represent differen
 %%% Gradient Based Optimizers: SPSA
 \subsubsection{Simultaneous Perturbation Stochastic Approximation (SPSA)}
 \label{subsubsubsec:SPSA}
-The \textbf{SPSA} optimization approach is one of the optimization strategies that are based on gradient estimation. The main idea is to simultaneously perturb all decision variables in order to estimate the gradient. Consequently a minimal number of two model evaluations are required in order to approximate the gradient. The theory behind SPSA can be found in \cite{spall1998implementation}. 
+The \textbf{SPSA} optimization approach is one of the optimization strategies that are based on gradient estimation. The main idea is to simultaneously perturb all decision variables in order to estimate the gradient. Consequently a minimal number of two model evaluations are required in order to approximate the gradient. The theory behind SPSA can be found in \cite{spall1998implementation}.
 %
 
 \specBlock{a}{SPSA}
@@ -388,7 +80,7 @@ In the \textbf{SPSA} input block, the user needs to specify the objective variab
   \begin{itemize}
     \item \xmlNode{limit}, \xmlDesc{integer,optional field}, number of samples to be generated, which is same as the number of model evaluation;
     \item \xmlNode{initialSeed}, \xmlDesc{integer, optional field}, initial seeding of random number generator for stochastic perturbations;
-    \item \xmlNode{type},  \xmlDesc{string (case insensitive), optional field}, specifies whether this optimizer performs maximization or minimization. Available options are \xmlString{max} and \xmlString{min}. 
+    \item \xmlNode{type},  \xmlDesc{string (case insensitive), optional field}, specifies whether this optimizer performs maximization or minimization. Available options are \xmlString{max} and \xmlString{min}.
     \default{Min};
   \end{itemize}
 \end{itemize}
@@ -406,24 +98,24 @@ In the \textbf{SPSA} input block, the user needs to specify the objective variab
 \end{itemize}
 \begin{itemize}
 \item \variableDescription
- The variable specified here must be input of the DataObject specified in \xmlNode{TargetEvaluation}. 
+ The variable specified here must be input of the DataObject specified in \xmlNode{TargetEvaluation}.
  \variableChildrenIntro
  \begin{itemize}
-    \item \xmlNode{upperBound}, \xmlDesc{float, optional field}, the upper bound of this variable; 
-    \item \xmlNode{lowerBound}, \xmlDesc{float, optional field}, the lower bound of this variable; 
-    \item \xmlNode{initial}, \xmlDesc{float, optional field}, the initial value for this variable. 
+    \item \xmlNode{upperBound}, \xmlDesc{float, optional field}, the upper bound of this variable;
+    \item \xmlNode{lowerBound}, \xmlDesc{float, optional field}, the lower bound of this variable;
+    \item \xmlNode{initial}, \xmlDesc{float, optional field}, the initial value for this variable.
   \end{itemize}
 \end{itemize}
 \begin{itemize}
 \item \xmlNode{Convergence}, \xmlDesc{XML node, optional parameter} will specify parameters associated with optimization convergence. This node accepts the following sub-nodes:
   \begin{itemize}
-  \item \xmlNode{iterationLimit}, \xmlDesc{integer, optional field}, user-defined maximum number of optimization iterations. 
+  \item \xmlNode{iterationLimit}, \xmlDesc{integer, optional field}, user-defined maximum number of optimization iterations.
   \item \xmlNode{threshold}, \xmlDesc{float, optional field}, specifies the convergence criteria to determine the optimality. When the change of objective variable in two successive model evaluations is smaller than this pre-specified threshold, the \textbf{SPSA} optimizer decides optimality and terminates the simulation.
       \default{1e-3}
   \end{itemize}
 \item \xmlNode{Parameter}, \xmlDesc{XML node, optional parameter} will accepts the following sub-nodes:
   \begin{itemize}
-  \item \xmlNode{numGradGradAvgIterations}, \xmlDesc{integer, optional field} is the number of iterations for gradient estimation. 
+  \item \xmlNode{numGradGradAvgIterations}, \xmlDesc{integer, optional field} is the number of iterations for gradient estimation.
         \default{1}
   \item \xmlNode{alpha}, \xmlDesc{float, optional field} a parameter for the evolution of gain sequence for variable update. See \cite{spall1998implementation}.
         \default{0.602}
@@ -431,11 +123,11 @@ In the \textbf{SPSA} input block, the user needs to specify the objective variab
         \default{\xmlNode{iterationLimit} divided by 10}
   \item \xmlNode{a}, \xmlDesc{float, optional field} a parameter for the evolution of gain sequence for variable update. See \cite{spall1998implementation}.
         \default{0.16}
-  \item \xmlNode{gamma}, \xmlDesc{float, optional field} a parameter for the evolution of gain sequence for perturbation. See \cite{spall1998implementation}. 
+  \item \xmlNode{gamma}, \xmlDesc{float, optional field} a parameter for the evolution of gain sequence for perturbation. See \cite{spall1998implementation}.
         \default{0.101}
   \item \xmlNode{c}, \xmlDesc{float, optional field} a parameter for the evolution of gain sequence for perturbation. See \cite{spall1998implementation}.
-        \default{0.005} 
-  \end{itemize}  
+        \default{0.005}
+  \end{itemize}
 \end{itemize}
 
 
@@ -466,5 +158,5 @@ Example:
   </SPSA>
   ...
 </Optimizers>
-\end{lstlisting}  
+\end{lstlisting}
 
