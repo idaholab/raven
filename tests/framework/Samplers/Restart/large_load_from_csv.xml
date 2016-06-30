@@ -1,0 +1,93 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
+    <WorkingDir>large</WorkingDir>
+    <Sequence>make1k,print,load,print2</Sequence>
+    <batchSize>2</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="make1k">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">coarsemod</Model>
+      <Sampler class="Samplers" type="MonteCarlo">large</Sampler>
+      <Output class="DataObjects" type="PointSet">solns</Output>
+    </MultiRun>
+    <IOStep name="print">
+      <Input class="DataObjects" type="PointSet">solns</Input>
+      <Output class="OutStreams" type="Print">large</Output>
+    </IOStep>
+    <IOStep name="load">
+      <Input class="Files" type="">csv</Input>
+      <Output class="DataObjects" type="PointSet">restart</Output>
+    </IOStep>
+    <IOStep name="print2">
+      <Input class="DataObjects" type="PointSet">restart</Input>
+      <Output class="OutStreams" type="Print">large_restart</Output>
+    </IOStep>
+  </Steps>
+
+  <Files>
+    <Input name="csv" type="csv">large.csv</Input>
+  </Files>
+
+  <Distributions>
+    <Uniform name="u1">
+      <lowerBound>1</lowerBound>
+      <upperBound>2</upperBound>
+    </Uniform>
+    <Uniform name="u2">
+      <lowerBound>2</lowerBound>
+      <upperBound>3</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="large">
+      <samplerInit>
+        <limit>1001</limit>
+        <initialSeed>1</initialSeed>
+      </samplerInit>
+      <variable name="x1">
+        <distribution>u1</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution>u2</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Models>
+    <Dummy name="MyDummy" subType=""/>
+    <ExternalModel ModuleToLoad="../coarse" name="coarsemod" subType="">
+      <variables>x1,x2,ans</variables>
+    </ExternalModel>
+  </Models>
+
+  <DataObjects>
+    <PointSet name="dummyIN">
+      <Input>x1,x2</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="solns">
+      <Input>x1,x2</Input>
+      <Output>ans</Output>
+    </PointSet>
+    <PointSet name="restart">
+      <Input>x1,x2</Input>
+      <Output>ans</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="large">
+      <type>csv</type>
+      <source>solns</source>
+    </Print>
+    <Print name="large_restart">
+      <type>csv</type>
+      <source>restart</source>
+    </Print>
+  </OutStreams>
+
+</Simulation>
