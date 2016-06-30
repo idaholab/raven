@@ -41,8 +41,8 @@
     <!-- Write the results to a csv -->
     <IOStep name="saveData">
       <Input class="DataObjects" type="PointSet">outData1</Input>
-      <Output class="OutStreams" type="Print">dump1</Output>
       <Input class="DataObjects" type="PointSet">outData2</Input>
+      <Output class="OutStreams" type="Print">dump1</Output>
       <Output class="OutStreams" type="Print">dump2</Output>
     </IOStep>
     <!-- Run the post-processor and get the sums and products -->
