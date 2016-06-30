@@ -714,7 +714,7 @@ For NDInverseWeight and NDCartesianSpline distributions, the user provides the s
 
 The user could specify, for each $N$-Dimensional distribution, the parameters of the random number generator function:
 \begin{itemize}
-\item \xmlNode{initialGridDisc}, \xmlDesc{positive integer, optional field}, user-defined initial grid discretization. This parameter specifies the number of discretizations that need to be performed, initially, for each Dimension in 
+\item \xmlNode{initialGridDisc}, \xmlDesc{positive integer, optional field}, user-defined initial grid discretization. This parameter specifies the number of discretizations that need to be performed, initially, for each Dimension in
 order to find N-Dimensional coordinate that corresponds to the CDF represented by a random number (0-1);
 \item \xmlNode{tolerance}, \xmlDesc{float, optional field}, user-defined tolerance in order to find the N-D coordinates corresponding to a random number. This tolerance is expressed in terms of CDF.
 \end{itemize}
@@ -751,7 +751,7 @@ This XML node needs to contain the attributes:
 \item \xmlAttr{name}, \xmlDesc{required string attribute}, user-defined identifier of this multivariate normal distribution.
 %
 \nb As with other objects, this is the name that can be used to refer to this specific entity from other input XML blocks.
-\item \xmlAttr{method}, \xmlDesc{required string attribute}, defines which method is used to generate the multivariate normal distribution. 
+\item \xmlAttr{method}, \xmlDesc{required string attribute}, defines which method is used to generate the multivariate normal distribution.
 The only allowable methods are \xmlString{spline} and \xmlString{pca}.
 %
 \end{itemize}
@@ -799,9 +799,9 @@ Example:
 </Distributions>
 \end{lstlisting}
 
-In the following, we defined a distribution with a transformation node using PCA method. The number of principal components is 
-defined in \xmlNode{rank}. In this distribution, PCA is employed to restruct the multivariate normal distribution. In addition, 
-the size of uncorrelated variables is also determined by \xmlNode{rank}. 
+In the following, we defined a distribution with a transformation node using PCA method. The number of principal components is
+defined in \xmlNode{rank}. In this distribution, PCA is employed to restruct the multivariate normal distribution. In addition,
+the size of uncorrelated variables is also determined by \xmlNode{rank}.
 
 \begin{lstlisting}[style=XML]
 <Distributions>

@@ -20,19 +20,19 @@
     </PointSet>
   </DataObjects>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="outGrid_dump">
       <ExternalXML node="type" xmlToLoad="ExternalXMLTest/external_printtype.xml"/>
       <ExternalXML node="source" xmlToLoad="ExternalXMLTest/external_printsource.xml"/>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
   <Steps>
     <ExternalXML node="MultiRun" xmlToLoad="ExternalXMLTest/external_multirun.xml"/>
   </Steps>
 
   <Databases>
-    <HDF5 name="test_DummyModel_db"/>
+    <HDF5 name="test_DummyModel_db" readMode="overwrite"/>
   </Databases>
 
 </Simulation>

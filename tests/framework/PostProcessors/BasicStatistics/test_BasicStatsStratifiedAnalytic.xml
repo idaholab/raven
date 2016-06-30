@@ -46,7 +46,7 @@
 
   <Steps>
     <MultiRun name="SamplingMirrowModelStratified" re-seeding="20021986">
-      <Input class="DataObjects" type="Point">inputPlaceHolder</Input>
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
       <Model class="Models" type="ExternalModel">mirrowModel</Model>
       <Sampler class="Samplers" type="Stratified">Stratified_external</Sampler>
       <Output class="DataObjects" type="PointSet">outputDataStratified</Output>
@@ -56,22 +56,22 @@
       <Model class="Models" type="PostProcessor">analyticalTest</Model>
       <Output class="Files" type="">output_basicStatistics_PP1Stratified.csv</Output>
       <Output class="DataObjects" type="PointSet">outputDataStratified</Output>
-      <Output class="OutStreamManager" type="Print">outputDataStratified_dump</Output>
+      <Output class="OutStreams" type="Print">outputDataStratified_dump</Output>
     </PostProcess>
   </Steps>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="outputDataStratified_dump">
       <type>csv</type>
       <source>outputDataStratified</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
   <DataObjects>
-    <Point name="inputPlaceHolder">
+    <PointSet name="inputPlaceHolder">
       <Input>x,y</Input>
       <Output>OutputPlaceHolder</Output>
-    </Point>
+    </PointSet>
     <PointSet name="outputDataStratified">
       <Input>x,y</Input>
       <Output>x1</Output>

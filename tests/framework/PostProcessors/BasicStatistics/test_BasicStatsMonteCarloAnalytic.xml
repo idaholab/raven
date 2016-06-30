@@ -48,7 +48,7 @@
 
   <Steps>
     <MultiRun name="SamplingMirrowModelMC" re-seeding="20021986">
-      <Input class="DataObjects" type="Point">inputPlaceHolder2</Input>
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder2</Input>
       <Model class="Models" type="ExternalModel">mirrowModel</Model>
       <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
       <Output class="DataObjects" type="PointSet">outputDataMC</Output>
@@ -57,22 +57,22 @@
       <Input class="DataObjects" type="PointSet">outputDataMC</Input>
       <Model class="Models" type="PostProcessor">analyticalTest</Model>
       <Output class="Files" type="">output_basicStatistics_PP1mc.csv</Output>
-      <Output class="OutStreamManager" type="Print">outputDataMC_dump</Output>
+      <Output class="OutStreams" type="Print">outputDataMC_dump</Output>
     </PostProcess>
   </Steps>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="outputDataMC_dump">
       <type>csv</type>
       <source>outputDataMC</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
   <DataObjects>
-    <Point name="inputPlaceHolder2">
+    <PointSet name="inputPlaceHolder2">
       <Input>x,y</Input>
       <Output>OutputPlaceHolder</Output>
-    </Point>
+    </PointSet>
     <PointSet name="outputDataMC">
       <Input>x,y</Input>
       <Output>x1</Output>

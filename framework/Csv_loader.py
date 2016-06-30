@@ -23,9 +23,14 @@ import MessageHandler
 #Internal Modules End--------------------------------------------------------------------------------
 
 class CsvLoader(MessageHandler.MessageUser):
+  """
+    Class aimed to load the CSV files
+  """
   def __init__(self,messageHandler):
     """
-    Constructor
+      Constructor
+      @ In, messageHandler, MessageHandler, the message handler
+      @ Out, None
     """
     self.allOutParam      = False # all output parameters?
     self.fieldNames        = []    #
@@ -36,15 +41,15 @@ class CsvLoader(MessageHandler.MessageUser):
 
   def loadCsvFile(self,myFile):
     """
-    Function to load a csv file into a numpy array (2D)
-    It also retrieves the headers
-    The format of the csv must be:
-    STRING,STRING,STRING,STRING
-    FLOAT ,FLOAT ,FLOAT ,FLOAT
-    ...
-    FLOAT ,FLOAT ,FLOAT ,FLOAT
-    @ In, filein, string -> Input file name (absolute path)
-    @ Out, data, numpy.ndarray -> the loaded data
+      Function to load a csv file into a numpy array (2D)
+      It also retrieves the headers
+      The format of the csv must be:
+      STRING,STRING,STRING,STRING
+      FLOAT ,FLOAT ,FLOAT ,FLOAT
+      ...
+      FLOAT ,FLOAT ,FLOAT ,FLOAT
+      @ In, fileIn, string, Input file name (absolute path)
+      @ Out, data, numpy.ndarray, the loaded data
     """
     # open file
     myFile.open(mode='rb')
@@ -60,52 +65,56 @@ class CsvLoader(MessageHandler.MessageUser):
 
   def getFieldNames(self):
     """
-    @ In, None
-    @ Out, fieldNames, list -> field names' list
-    Function to get actual field names (desired output parameter keywords)
+      Function to get actual field names (desired output parameter keywords)
+      @ In, None
+      @ Out, fieldNames, list,  field names' list
     """
     return self.fieldNames
 
   def getAllFieldNames(self):
     """
-    Function to get all field names found in the csv file
-    @ In, None
-    @ Out, allFieldNames, list -> list of field names (headers)
+      Function to get all field names found in the csv file
+      @ In, None
+      @ Out, allFieldNames, list, list of field names (headers)
     """
     return self.allFieldNames
 
-  def csvLoadData(self,filein,options):
+  def csvLoadData(self,fileIn,options):
     """
-    General interface function to call the private methods for loading the different dataObjects!
-    @ In, filein, csv file name
-    @ In, options, dictionary of options
+      General interface function to call the private methods for loading the different dataObjects!
+      @ In, fileIn, string, csv file name
+      @ In, options, dict, dictionary of options
+      @ Out, csvLoadData, tuple, tuple of (listhistIn,listhistOut)
     """
-    if   options['type'] == 'Point'   : return self.__csvLoaderForPoint(filein[0],options)
-    elif options['type'] == 'PointSet': return self.__csvLoaderForPointSet(filein,options)
-    elif options['type'] == 'History' : return self.__csvLoaderForHistory(filein[0],options)
+    if   options['type'] == 'Point':
+      return self.__csvLoaderForPoint(fileIn[0],options)
+    elif options['type'] == 'History':
+      return self.__csvLoaderForHistory(fileIn[0],options)
+    elif options['type'] == 'PointSet':
+      return self.__csvLoaderForPointSet(fileIn,options)
     elif options['type'] == 'HistorySet':
       listhistIn  = {}
       listhistOut = {}
-      for index in xrange(len(filein)):
-        tupleVar = self.__csvLoaderForHistory(filein[index],options)
+      for index in xrange(len(fileIn)):
+        tupleVar = self.__csvLoaderForHistory(fileIn[index],options)
         # dictionary of dictionary key = i => ith history ParameterValues dictionary
         listhistIn[index]  = tupleVar[0]
         listhistOut[index] = tupleVar[1]
         del tupleVar
       return(listhistIn,listhistOut)
     else:
-      self.raiseAnError(IOError,'Type ' + options['type'] + 'unknown')
+      self.raiseAnError(IOError,'Type ' + options['type'] + ' unknown')
 
-  def __csvLoaderForPoint(self,filein,options):
+  def __csvLoaderForPoint(self,fileIn,options):
     """
-    loader for point data type
-    @ In, filein, file name
-    @ In, options, dictionary of options:
-          outputPivotVal, output value at which the outputs need to be collected
-          inParam, input Parameters
-          outParam, output Parameters
-          inputRow, outputPivotVal-step from which the input parameters need to be taken
-          SampledVars, optional, dictionary of input parameters. The code is going to
+      loader for point data type
+      @ In, fileIn, string, file name
+      @ In, options, dict, dictionary of options:
+            outputPivotVal, output value at which the outputs need to be collected
+            inParam, input Parameters
+            outParam, output Parameters
+            inputRow, outputPivotVal-step from which the input parameters need to be taken
+            sampledVars, optional, dictionary of input parameters. The code is going to
                                  look for the inParams in the CSV, if it does not find it
                                  it will try to get the values from this dictionary (if present)
               <inputRow>
@@ -115,9 +124,10 @@ class CsvLoader(MessageHandler.MessageUser):
               <outputPivotValue>
               <outputPivotValue>
               <inputPivotValue>
+      @ Out, (inDict,outDict), tuple, the tuple containing the input and output dictionaries
     """
     inParam, outParam, inputRow, outputRow                 = options['inParam'], options['outParam'], copy.deepcopy(options.get('inputRow',None)), copy.deepcopy(options.get('outputRow',None))
-    SampledVars, inputPivotVal, outputPivotVal, operator   = options.get('SampledVars',None), options.get('inputPivotValue',None), options.get('outputPivotValue',None), options.get('operator',None)
+    sampledVars, inputPivotVal, outputPivotVal, operator   = options.get('SampledVars',None), options.get('inputPivotValue',None), options.get('outputPivotValue',None), options.get('operator',None)
     pivotParameter                                         = options.get('pivotParameter',None)
 
     if 'all' in outParam: self.allOutParam = True
@@ -138,15 +148,15 @@ class CsvLoader(MessageHandler.MessageUser):
     inDict, outDict = {}, {}
 
     #load the data into the numpy array
-    data = self.loadCsvFile(filein)
+    data = self.loadCsvFile(fileIn)
     if pivotParameter != None:
       pivotIndex = self.allFieldNames.index(pivotParameter) if pivotParameter in self.allFieldNames else None
-      if pivotIndex == None: self.raiseAnError(IOError,'pivotParameter ' +pivotParameter+' has not been found in file '+ str(filein) + '!')
+      if pivotIndex == None: self.raiseAnError(IOError,'pivotParameter ' +pivotParameter+' has not been found in file '+ str(fileIn) + '!')
     else:
       pivotIndex = self.allFieldNames.index("time") if "time" in self.allFieldNames else None
       # if None...default is 0
       if pivotIndex == None: pivotIndex = 0
-    if inputRow > data[:,0].size-1  and inputRow != -1: self.raiseAnError(IOError,'inputRow is greater than number of actual rows in file '+ str(filein) + '!')
+    if inputRow > data[:,0].size-1  and inputRow != -1: self.raiseAnError(IOError,'inputRow is greater than number of actual rows in file '+ str(fileIn) + '!')
 
     if(self.allOutParam): self.fieldNames = self.allFieldNames
     else: self.fieldNames = outParam
@@ -156,12 +166,12 @@ class CsvLoader(MessageHandler.MessageUser):
       ix = self.allFieldNames.index(key) if key in self.allFieldNames else None
       if ix != None:
         if inputPivotVal != None:
-          if float(inputPivotVal) > np.max(data[:,pivotIndex]) or float(inputPivotVal) < np.min(data[:,pivotIndex]): self.raiseAnError(IOError,'inputPivotVal is out of the min and max for input  ' + key+' in file '+ str(filein) + '!')
+          if float(inputPivotVal) > np.max(data[:,pivotIndex]) or float(inputPivotVal) < np.min(data[:,pivotIndex]): self.raiseAnError(IOError,'inputPivotVal is out of the min and max for input  ' + key+' in file '+ str(fileIn) + '!')
           inDict[key] = np.atleast_1d(np.array(interp1d(data[:,pivotIndex], data[:,ix], kind='linear')(float(inputPivotVal))))
         else: inDict[key] = np.atleast_1d(np.array(data[inputRow,ix]))
       else:
-        if SampledVars != None:
-          if key in SampledVars.keys(): inDict[key], ix = copy.deepcopy(np.atleast_1d(np.array(SampledVars[key]))), 0
+        if sampledVars != None:
+          if key in sampledVars.keys(): inDict[key], ix = copy.deepcopy(np.atleast_1d(np.array(sampledVars[key]))), 0
       if ix == None and key != 'InputPlaceHolder': self.raiseAnError(IOError,"the parameter " + key + " has not been found")
     # outputPivotVal end case
     if outputPivotValEnd:
@@ -175,7 +185,7 @@ class CsvLoader(MessageHandler.MessageUser):
             outDict[key] = np.atleast_1d(np.array(data[lastRow,self.allFieldNames.index(key)]))
           else: self.raiseAnError(IOError,"the parameter " + str(key) + " has not been found")
     elif outputRow != None:
-      if outputRow > data[:,0].size-1  and outputRow != -1: self.raiseAnError(IOError,'outputRow is greater than number of actual rows in file '+ str(filein) + '!')
+      if outputRow > data[:,0].size-1  and outputRow != -1: self.raiseAnError(IOError,'outputRow is greater than number of actual rows in file '+ str(fileIn) + '!')
       if self.allOutParam:
         for key in self.allFieldNames:
           outDict[key] = np.atleast_1d(np.array(data[outputRow,self.allFieldNames.index(key)]))
@@ -208,16 +218,16 @@ class CsvLoader(MessageHandler.MessageUser):
           else                          : self.raiseAnError(IOError,"the parameter " + key + " has not been found")
     return (inDict,outDict)
 
-  def __csvLoaderForPointSet(self,filesin,options):
+  def __csvLoaderForPointSet(self,filesIn,options):
     """
-    loader for outputPivotVal point set data type
-    @ In, filein, file name
-    @ In, options, dictionary of options:
+      loader for outputPivotVal point set data type
+      @ In, filesIn, string, file name
+      @ In, options, dict, dictionary of options:
           outputPivotVal, outputPivotVal
           inParam, input Parameters
           outParam, output Parameters
           inputRow, outputPivotVal-step from which the input parameters need to be taken
-          SampledVars, optional, dictionary of input parameters. The code is going to
+          sampledVars, optional, dictionary of input parameters. The code is going to
                                  look for the inParams in the CSV, if it does not find it
                                  it will try to get the values from this dictionary (if present)
               <inputRow>
@@ -227,9 +237,10 @@ class CsvLoader(MessageHandler.MessageUser):
               <outputPivotValue>
               <outputPivotValue>
               <inputPivotValue>
+      @ Out, (inDict,outDict), tuple, the tuple containing the input and output dictionaries
     """
     inParam, outParam, inputRow, outputRow                 = options['inParam'], options['outParam'], copy.deepcopy(options.get('inputRow',None)), copy.deepcopy(options.get('outputRow',None))
-    SampledVars, inputPivotVal, outputPivotVal, operator   = options.get('SampledVars',None), options.get('inputPivotValue',None), options.get('outputPivotValue',None), options.get('operator',None)
+    sampledVars, inputPivotVal, outputPivotVal, operator   = options.get('SampledVars',None), options.get('inputPivotValue',None), options.get('outputPivotValue',None), options.get('operator',None)
     pivotParameter                                         = options.get('pivotParameter',None)
 
     if 'all' in outParam: self.allOutParam = True
@@ -250,71 +261,71 @@ class CsvLoader(MessageHandler.MessageUser):
       if outputRow > 0: outputRow -= 1
     inDict, outDict = {}, {}
 
-    for i in range(len(filesin)):
+    for i in range(len(filesIn)):
       #load the data into the numpy array
-      data = self.loadCsvFile(filesin[i])
+      data = self.loadCsvFile(filesIn[i])
       if pivotParameter != None:
         pivotIndex = self.allFieldNames.index(pivotParameter) if pivotParameter in self.allFieldNames else None
-        if pivotIndex == None: self.raiseAnError(IOError,'pivotParameter ' +pivotParameter+' has not been found in file '+ str(filesin[i]) + '!')
+        if pivotIndex == None: self.raiseAnError(IOError,'pivotParameter ' +pivotParameter+' has not been found in file '+ str(filesIn[i]) + '!')
       else:
         pivotIndex = self.allFieldNames.index("time") if "time" in self.allFieldNames else None
         # if None...default is 0
         if pivotIndex == None: pivotIndex = 0
-      if inputRow > data[:,0].size-1  and inputRow != -1: self.raiseAnError(IOError,'inputRow is greater than number of actual rows in file '+ str(filesin[i]) + '!')
+      if inputRow > data[:,0].size-1  and inputRow != -1: self.raiseAnError(IOError,'inputRow is greater than number of actual rows in file '+ str(filesIn[i]) + '!')
 
       if i == 0:
         if(self.allOutParam): self.fieldNames = self.allFieldNames
         else: self.fieldNames = outParam
       #fill input param dictionary
       for key in inParam:
-        if i == 0: inDict[key] = np.zeros(len(filesin))
+        if i == 0: inDict[key] = np.zeros(len(filesIn))
         ix = self.allFieldNames.index(key) if key in self.allFieldNames else None
         if ix != None:
           if inputPivotVal != None:
-            if float(inputPivotVal) > np.max(data[:,pivotIndex]) or float(inputPivotVal) < np.min(data[:,pivotIndex]): self.raiseAnError(IOError,'inputPivotVal is out of the min and max for input  ' + key+' in file '+ str(filesin[i]) + '!')
+            if float(inputPivotVal) > np.max(data[:,pivotIndex]) or float(inputPivotVal) < np.min(data[:,pivotIndex]): self.raiseAnError(IOError,'inputPivotVal is out of the min and max for input  ' + key+' in file '+ str(filesIn[i]) + '!')
             inDict[key][i] = interp1d(data[:,pivotIndex], data[:,ix], kind='linear')(float(inputPivotVal))
           else: inDict[key][i] = data[inputRow,ix]
         else:
-          if SampledVars != None:
-            if key in SampledVars.keys(): inDict[key][i], ix = copy.deepcopy(SampledVars[key]), 0
+          if sampledVars != None:
+            if key in sampledVars.keys(): inDict[key][i], ix = copy.deepcopy(sampledVars[key]), 0
         if ix == None and key != 'InputPlaceHolder': self.raiseAnError(IOError,"the parameter " + key + " has not been found")
       # outputPivotVal end case
       if outputPivotValEnd:
         lastRow = data[:,0].size - 1
         if self.allOutParam:
           for key in self.allFieldNames:
-            if i == 0: outDict[key] = np.zeros(len(filesin))
+            if i == 0: outDict[key] = np.zeros(len(filesIn))
             outDict[key][i] = data[lastRow,self.allFieldNames.index(key)]
         else:
           for key in outParam:
             if key in self.allFieldNames:
-              if i == 0: outDict[key] = np.zeros(len(filesin))
+              if i == 0: outDict[key] = np.zeros(len(filesIn))
               outDict[key][i] = data[lastRow,self.allFieldNames.index(key)]
             else: self.raiseAnError(IOError,"the parameter " + str(key) + " has not been found")
       elif outputRow != None:
-        if outputRow > data[:,0].size-1  and outputRow != -1: self.raiseAnError(IOError,'outputRow is greater than number of actual rows in file '+ str(filesin[i]) + '!')
+        if outputRow > data[:,0].size-1  and outputRow != -1: self.raiseAnError(IOError,'outputRow is greater than number of actual rows in file '+ str(filesIn[i]) + '!')
         if self.allOutParam:
           for key in self.allFieldNames:
-            if i == 0: outDict[key] = np.zeros(len(filesin))
+            if i == 0: outDict[key] = np.zeros(len(filesIn))
             outDict[key][i] = data[outputRow,self.allFieldNames.index(key)]
         else:
           for key in outParam:
             if key in self.allFieldNames:
-              if i == 0: outDict[key] = np.zeros(len(filesin))
+              if i == 0: outDict[key] = np.zeros(len(filesIn))
               outDict[key][i] = data[outputRow,self.allFieldNames.index(key)]
             else: self.raiseAnError(IOError,"the parameter " + str(key) + " has not been found")
       elif operator != None:
         if operator not in ['max','min','average']: self.raiseAnError(IOError,'operator unknown. Available are min,max,average')
         if self.allOutParam:
           for key in self.allFieldNames:
-            if i == 0: outDict[key] = np.zeros(len(filesin))
+            if i == 0: outDict[key] = np.zeros(len(filesIn))
             if operator == 'max'    : outDict[key][i] = np.max(data[:,self.allFieldNames.index(key)])
             if operator == 'min'    : outDict[key][i] = np.min(data[:,self.allFieldNames.index(key)])
             if operator == 'average': outDict[key][i] = np.average(data[:,self.allFieldNames.index(key)])
         else:
           for key in outParam:
             if key in self.allFieldNames:
-              if i == 0: outDict[key] = np.zeros(len(filesin))
+              if i == 0: outDict[key] = np.zeros(len(filesIn))
               if operator == 'max'    : outDict[key][i] = np.max(data[:,self.allFieldNames.index(key)])
               if operator == 'min'    : outDict[key][i] = np.min(data[:,self.allFieldNames.index(key)])
               if operator == 'average': outDict[key][i] = np.average(data[:,self.allFieldNames.index(key)])
@@ -322,26 +333,26 @@ class CsvLoader(MessageHandler.MessageUser):
       else:
         if self.allOutParam:
           for key in self.allFieldNames:
-            if i == 0: outDict[key] = np.zeros(len(filesin))
+            if i == 0: outDict[key] = np.zeros(len(filesIn))
             outDict[key][i] = interp1d(data[:,pivotIndex], data[:,self.allFieldNames.index(key)], kind='linear')(outputPivotVal)
         else:
           for key in outParam:
-            if i == 0: outDict[key] = np.zeros(len(filesin))
+            if i == 0: outDict[key] = np.zeros(len(filesIn))
             if key in self.allFieldNames: outDict[key][i] = interp1d(data[:,pivotIndex], data[:,self.allFieldNames.index(key)], kind='linear')(outputPivotVal)
             else                          : self.raiseAnError(IOError,"the parameter " + key + " has not been found")
       del data
     return (inDict,outDict)
 
-  def __csvLoaderForHistory(self,filein,options):
+  def __csvLoaderForHistory(self,fileIn,options):
     """
-    loader for history data type
-    @ In, filein, file name
-    @ In, options, dictionary of options:
+      loader for history data type
+      @ In, fileIn, string, file name
+      @ In, options, dict, dictionary of options:
           outputPivotVal, outputPivotVal
           inParam, input Parameters
           outParam, output Parameters
           inputRow, outputPivotVal-step from which the input parameters need to be taken
-          SampledVars, optional, dictionary of input parameters. The code is going to
+          sampledVars, optional, dictionary of input parameters. The code is going to
                                  look for the inParams in the CSV, if it does not find it
                                  it will try to get the values from this dictionary (if present)
               <inputRow>
@@ -349,18 +360,18 @@ class CsvLoader(MessageHandler.MessageUser):
               <outputPivotValue>
               <outputPivotValue>
               <inputPivotValue>
-
+      @ Out, (inDict,outDict), tuple, the tuple containing the input and output dictionaries
     """
     inParam, outParam, inputRow                 = options['inParam'], options['outParam'], copy.deepcopy(options.get('inputRow',None))
-    SampledVars, inputPivotVal, outputPivotVal  = options.get('SampledVars',None), options.get('inputPivotValue',None), options.get('outputPivotValue',None)
+    sampledVars, inputPivotVal, outputPivotVal  = options.get('SampledVars',None), options.get('inputPivotValue',None), options.get('outputPivotValue',None)
     pivotParameter                              = options.get('pivotParameter',None)
     #load the data into the numpy array
-    data = self.loadCsvFile(filein)
+    data = self.loadCsvFile(fileIn)
     if 'all' in outParam: self.allOutParam = True
     else                : self.allOutParam = False
     if pivotParameter != None:
       pivotIndex = self.allFieldNames.index(pivotParameter) if pivotParameter in self.allFieldNames else None
-      if pivotIndex == None: self.raiseAnError(IOError,'pivotParameter ' +pivotParameter+' has not been found in file '+ str(filein) + '!')
+      if pivotIndex == None: self.raiseAnError(IOError,'pivotParameter ' +pivotParameter+' has not been found in file '+ str(fileIn) + '!')
     else:
       pivotIndex = self.allFieldNames.index("time") if "time" in self.allFieldNames else None
       # if None...default is 0
@@ -376,7 +387,7 @@ class CsvLoader(MessageHandler.MessageUser):
     if inputRow != None :
       inputRow = int(inputRow)
       if inputRow  > 0: inputRow  -= 1
-    if inputRow > data[:,0].size-1  and inputRow != -1: self.raiseAnError(IOError,'inputRow is greater than number of actual rows in file '+ str(filein) + '!')
+    if inputRow > data[:,0].size-1  and inputRow != -1: self.raiseAnError(IOError,'inputRow is greater than number of actual rows in file '+ str(fileIn) + '!')
     inDict, outDict = {}, {}
     self.fieldNames = self.allFieldNames if self.allOutParam else outParam
 
@@ -386,12 +397,12 @@ class CsvLoader(MessageHandler.MessageUser):
       ix = self.allFieldNames.index(key) if key in self.allFieldNames else None
       if ix != None:
         if inputPivotVal != None:
-          if float(inputPivotVal) > np.max(data[:,pivotIndex]) or float(inputPivotVal) < np.min(data[:,pivotIndex]): self.raiseAnError(IOError,'inputPivotVal is out of the min and max for input  ' + key+' in file '+ str(filein) + '!')
+          if float(inputPivotVal) > np.max(data[:,pivotIndex]) or float(inputPivotVal) < np.min(data[:,pivotIndex]): self.raiseAnError(IOError,'inputPivotVal is out of the min and max for input  ' + key+' in file '+ str(fileIn) + '!')
           inDict[key] = np.atleast_1d(np.array(interp1d(data[:,pivotIndex], data[:,ix], kind='linear')(float(inputPivotVal))))
         else: inDict[key] = np.atleast_1d(np.array(data[inputRow,ix]))
       else:
-        if SampledVars != None:
-          if key in SampledVars.keys(): inDict[key], ix = copy.deepcopy(np.atleast_1d(SampledVars[key])), 0
+        if sampledVars != None:
+          if key in sampledVars.keys(): inDict[key], ix = copy.deepcopy(np.atleast_1d(sampledVars[key])), 0
       if ix == None and key != 'InputPlaceHolder': self.raiseAnError(IOError,"the parameter " + key + " has not been found")
 
     # outputPivotVal all case

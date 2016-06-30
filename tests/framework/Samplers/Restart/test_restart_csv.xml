@@ -7,13 +7,13 @@
   </RunInfo>
 
   <Files>
-    <Input name="csv" type="">../mc/MCdump1.csv</Input>
+    <Input name="csv" type="">../mc/coarse.csv</Input>
   </Files>
 
   <Steps>
     <MultiRun name="make">
       <Input class="DataObjects" type="PointSet">solns</Input>
-      <Model class="Models" type="ExternalModel">poly</Model>
+      <Model class="Models" type="ExternalModel">fine</Model>
       <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
       <Output class="DataObjects" type="PointSet">solns</Output>
     </MultiRun>
@@ -23,7 +23,7 @@
     </IOStep>
     <IOStep name="print">
       <Input class="DataObjects" type="PointSet">solns</Input>
-      <Output class="OutStreamManager" type="Print">CSVdump</Output>
+      <Output class="OutStreams" type="Print">CSVdump</Output>
     </IOStep>
   </Steps>
 
@@ -51,32 +51,14 @@
         <distribution>u2</distribution>
       </variable>
       <Restart class="DataObjects" type="PointSet">solns</Restart>
+      <restartTolerance>1e-9</restartTolerance>
     </MonteCarlo>
-    <SparseGridCollocation name="sc1">
-      <variable name="x">
-        <distribution>u1</distribution>
-      </variable>
-      <variable name="y">
-        <distribution>u2</distribution>
-      </variable>
-      <ROM class="Models" type="ROM">rom1</ROM>
-    </SparseGridCollocation>
-    <SparseGridCollocation name="sc2">
-      <variable name="x">
-        <distribution>u1</distribution>
-      </variable>
-      <variable name="y">
-        <distribution>u2</distribution>
-      </variable>
-      <ROM class="Models" type="ROM">rom2</ROM>
-      <Restart class="DataObjects" type="PointSet">csolns2</Restart>
-    </SparseGridCollocation>
   </Samplers>
 
   <Models>
     <Dummy name="MyDummy" subType=""/>
-    <ExternalModel ModuleToLoad="../polynomial" name="poly" subType="">
-      <variables>x1,x2,ans,ans2</variables>
+    <ExternalModel ModuleToLoad="../fine" name="fine" subType="">
+      <variables>x1,x2,ans</variables>
     </ExternalModel>
     <ROM name="rom1" subType="GaussPolynomialRom">
       <Target>ans</Target>
@@ -99,19 +81,15 @@
     </PointSet>
     <PointSet name="solns">
       <Input>x1,x2</Input>
-      <Output>ans,ans2</Output>
-    </PointSet>
-    <PointSet name="solns2">
-      <Input>x1,x2</Input>
-      <Output>ans,ans2</Output>
+      <Output>ans</Output>
     </PointSet>
   </DataObjects>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="CSVdump">
       <type>csv</type>
       <source>solns</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
 </Simulation>

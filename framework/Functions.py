@@ -20,17 +20,22 @@ warnings.simplefilter('default',DeprecationWarning)
 from BaseClasses import BaseType
 import utils
 from CustomCommandExecuter import execCommand
-#import DataObjects
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Function(BaseType):
   """
-  This class is the base class for different wrapper for external functions
-  provide the tools to solve
-  F(x)=0 where at least one of the component of the output space of a model (F is a vector as x)
-  plus a series of inequality in the input space that are considered by the supportBoundingTest
+    This class is the base class for different wrappers for external functions
+    providing the tools to solve F(x)=0 where at least one of the components of
+    the output space of a model (F is a vector as x) plus a series of
+    inequalities in the input space that are considered by the
+    supportBoundingTest
   """
   def __init__(self,runInfoDict):
+    """
+      Constructor
+      @ In, runInfoDict, dict, the dictionary containing the runInfo (read in the XML input file)
+      @ Out, None
+    """
     BaseType.__init__(self)
     self.workingDir                      = runInfoDict['WorkingDir']
     self.__functionFile                  = ''                                # function file name
@@ -44,13 +49,20 @@ class Function(BaseType):
     self.printTag                        = 'FUNCTIONS'
 
   def _readMoreXML(self,xmlNode):
+    """
+      Function to read the portion of the xml input that belongs to this
+      specialized class and initialize some variables based on the inputs
+      received.
+      @ In, xmlNode, xml.etree.ElementTree.Element, XML element node that represents the portion of the input that belongs to this class
+      @ Out, None
+    """
     if 'file' in xmlNode.attrib.keys():
       self.functionFile = xmlNode.attrib['file']
       # get the module to load and the filename without path
       moduleToLoadString, self.functionFile = utils.identifyIfExternalModelExists(self, self.functionFile, self.workingDir)
       # import the external function
       importedModule = utils.importFromPath(moduleToLoadString,self.messageHandler.getDesiredVerbosity(self)>1)
-      if not importedModule: self.raiseAnError(IOError,'Failed to import the module '+moduleName+' supposed to contain the function: '+self.name)
+      if not importedModule: self.raiseAnError(IOError,'Failed to import the module '+moduleToLoadString+' supposed to contain the function: '+self.name)
       #here the methods in the imported file are brought inside the class
       for method in importedModule.__dict__.keys():
         if method in ['__residuumSign__','__residuumSign','residuumSign',
@@ -86,42 +98,58 @@ class Function(BaseType):
         if len(child.attrib.keys()) > 0: self.raiseAnError(IOError,'variable block in the definition of the function '+self.name + ' should not have any attribute!')
     if cnt == 0: self.raiseAnError(IOError,'not variable found in the definition of the function '+self.name)
 
-  def addInitParams(self,tempDict):
+  def getInitParams(self):
     """
-    This function is called from the base class to print some of the information inside the class.
-    Whatever is permanent in the class and not inherited from the parent class should be mentioned here
-    The information is passed back in the dictionary. No information about values that change during the simulation are allowed
-    @ In/Out tempDict: {'attribute name':value}
+      This function is called from the base class to print some of the information inside the class.
+      Whatever is permanent in the class and not inherited from the parent class should be mentioned here
+      The information is passed back in the dictionary. No information about values that change during the simulation are allowed
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
     """
-    tempDict['Module file name'                    ] = self.functionFile
-    tempDict['The residuum is provided'            ] = self.__actionImplemented['residuum']
-    tempDict['The sign of the residuum is provided'] = self.__actionImplemented['residuumSign']
-    tempDict['The gradient is provided'            ] = self.__actionImplemented['gradient']
-    tempDict['The support bonding is provided'     ] = self.__actionImplemented['supportBoundingTest']
+    paramDict = {}
+    paramDict['Module file name'                    ] = self.functionFile
+    paramDict['The residuum is provided'            ] = self.__actionImplemented['residuum']
+    paramDict['The sign of the residuum is provided'] = self.__actionImplemented['residuumSign']
+    paramDict['The gradient is provided'            ] = self.__actionImplemented['gradient']
+    paramDict['The support bonding is provided'     ] = self.__actionImplemented['supportBoundingTest']
     for key,value in enumerate(self.__actionImplemented):
-      if key not in ['residualSign','supportBoundingTest','residual','gradient']: tempDict['Custom Function'] = value
-  def addCurrentSetting(self,tempDict):
+      if key not in ['residualSign','supportBoundingTest','residual','gradient']:
+        paramDict['Custom Function'] = value
+    return paramDict
+
+  def getCurrentSetting(self):
     """
-    This function is called from the base class to print some of the information inside the class.
-    Whatever is a temporary value in the class and not inherited from the parent class should be mentioned here
-    The information is passed back in the dictionary
-    Function adds the current settings in a temporary dictionary
-    @ In, tempDict
-    @ Out, tempDict
+      This function is called from the base class to print some of the information inside the class.
+      Whatever is a temporary value in the class and not inherited from the parent class should be mentioned here
+      The information is passed back in the dictionary
+      Function adds the current settings in a temporary dictionary
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
     """
-    for key in self.__inputVariables: execCommand("object['variable "+str(key)+" has value']=self."+key,self=self,object=tempDict)
+    paramDict = {}
+    for key in self.__inputVariables:
+      execCommand("object['variable "+str(key)+" has value']=self."+key,self=self,object=paramDict)
+    return paramDict
 
   def __importValues(self,myInput):
-    """this makes available the variable values sent in as self.key"""
+    """
+      This method makes available the variable values sent in as self.key
+      @ In, myInput, object (dataObjects,dict), object from which the data need to be imported
+      @ Out, None
+    """
     if type(myInput)==dict         :self.__inputFromWhat['dict'](myInput)
     elif 'Data' in myInput.__base__:self.__inputFromWhat['Data'](myInput)
     else: self.raiseAnError(IOError,'Unknown type of input provided to the function '+str(self.name))
 
   def __inputFromData(self,inputData):
     """
-    This is meant to be used to collect the input from a Data. A conversion to the declared type of data is attempted by inputData.extractValue"""
+      This is meant to be used to collect the input from a Data. A conversion to the declared type of data is attempted by inputData.extractValue
+      @ In, inputData, dataObjects, dataObject from which the data need to be imported
+      @ Out, None
+    """
     for key in self.__inputVariables:
-      #exec('self.'+key+'=inputData.extractValue(myType,key)')
       ##### TEMPORARY FIXXXXXXXX - ALIAS NEEDED#######
       self.raiseAMessage('Alias are already in place why we have still the fixme (once done see also if the loop should contain the myType?','FIXME')
       foundperfectly = False
@@ -146,9 +174,11 @@ class Function(BaseType):
 
   def __inputFromDict(self,myInputDict):
     """
-    This is meant to be used to collect the input directly from a sampler generated input or simply from a generic dictionary
-    In case the input come from a sampler the expected structure is myInputDict['SampledVars'][variable name] = value
-    In case it is a generic dictionary the expected structure is myInputDict[variable name] = value
+      This is meant to be used to collect the input directly from a sampler generated input or simply from a generic dictionary
+      In case the input comes from a sampler the expected structure is myInputDict['SampledVars'][variable name] = value
+      In case it is a generic dictionary the expected structure is myInputDict[variable name] = value
+      @ In, myInputDict, dict, dict from which the data need to be imported
+      @ Out, None
     """
     if 'SampledVars' in myInputDict.keys(): inDict = myInputDict['SampledVars']
     else                                  : inDict = myInputDict
@@ -157,25 +187,36 @@ class Function(BaseType):
       else                    : self.raiseAnError(IOError,'The input variable '+name+' in external function seems not to be passed in')
 
   def evaluate(self,what,myInput):
-    """return the result of the type of action described by 'what' """
+    """
+      Method that returns the result of the type of action described by 'what'
+      @ In, what, string, what action needs to be performed
+      @ In, myInput, object (dataObjects,dict), object from which the data need to be imported
+      @ Out, response, object, the response of the action defined in what
+    """
     self.__importValues(myInput)
-
-    if what not in self.__actionDictionary:
-      self.raiseAnError(IOError,'Method ' + what + ' not defined in ' + self.name)
-    return self.__actionDictionary[what](self)
+    if what not in self.__actionDictionary: self.raiseAnError(IOError,'Method ' + what + ' not defined in ' + self.name)
+    response = self.__actionDictionary[what](self)
+    return response
 
   def availableMethods(self):
-    """ Get a list of the callable methods this interface provides """
+    """
+      Get a list of the callable methods this interface provides
+      @ In, None
+      @ Out, keys, list, list of available methods in this Function module (imported module)
+    """
     return self.__actionDictionary.keys()
 
   def parameterNames(self):
-    """ Get a list of the variables this function needs """
+    """
+      Get a list of the variables this function needs
+      @ In, None
+      @ Out, __inputVariables, list, the parameter names
+    """
     return self.__inputVariables[:]
 
 """
  Interface Dictionary (factory) (private)
 """
-
 __base = 'function'
 __interFaceDict = {}
 __interFaceDict['External'] = Function
@@ -183,11 +224,21 @@ __knownTypes                = __interFaceDict.keys()
 
 
 def knownTypes():
+  """
+    Returns known types.
+    @ In, None
+    @ Out, __knownTypes, list, list of known types
+  """
   return __knownTypes
 
 needsRunInfo = True
 
 def returnInstance(Type,runInfoDict, caller):
-  """This function return an instance of the request model type"""
+  """
+    Returns an object construction pointer from this module.
+    @ In, Type, string, requested object
+    @ In, caller, object, requesting object
+    @ Out, __interFaceDict, instance, instance of the object
+  """
   if Type in knownTypes():return __interFaceDict[Type](runInfoDict)
   else: caller.raiseAnError(NameError,'FUNCTIONS','not known '+__base+' type '+Type)

@@ -43,29 +43,29 @@
     </IOStep>
     <IOStep name="output" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">DataSets</Input>
-      <Output class="OutStreamManager" type="Plot">PlotMeanShift</Output>
+      <Output class="OutStreams" type="Plot">PlotMeanShift</Output>
     </IOStep>
     <PostProcess name="MeanShiftBlobs" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">DataSets</Input>
       <Model class="Models" type="PostProcessor">MeanShiftBlobs</Model>
       <Output class="DataObjects" type="PointSet">DataSets</Output>
-      <Output class="OutStreamManager" type="Print">dummy</Output>
+      <Output class="OutStreams" type="Print">dummy</Output>
     </PostProcess>
     <PostProcess name="MeanShiftCircles" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">DataSets</Input>
       <Model class="Models" type="PostProcessor">MeanShiftCircles</Model>
       <Output class="DataObjects" type="PointSet">DataSets</Output>
-      <Output class="OutStreamManager" type="Print">dummy</Output>
+      <Output class="OutStreams" type="Print">dummy</Output>
     </PostProcess>
     <PostProcess name="MeanShiftMoons" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">DataSets</Input>
       <Model class="Models" type="PostProcessor">MeanShiftMoons</Model>
       <Output class="DataObjects" type="PointSet">DataSets</Output>
-      <Output class="OutStreamManager" type="Print">dummy</Output>
+      <Output class="OutStreams" type="Print">dummy</Output>
     </PostProcess>
   </Steps>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="dummy">
       <type>csv</type>
       <source>DataSets</source>
@@ -74,11 +74,11 @@
       <plotSettings>
         <gridSpace>3 1</gridSpace>
         <plot>
-          <type>dataMining</type>
-          <SKLtype>cluster</SKLtype>
+          <type>scatter</type>
           <x>DataSets|input|x1</x>
           <y>DataSets|input|x2</y>
-          <clusterLabels>DataSets|Output|MeanShiftBlobsLabels</clusterLabels>
+          <cmap>Set1</cmap>
+          <colorMap>DataSets|Output|MeanShiftBlobsLabels</colorMap>
           <gridLocation>
             <x>0</x>
             <y>0</y>
@@ -94,11 +94,11 @@
           </kwargs>
         </plot>
         <plot>
-          <type>dataMining</type>
-          <SKLtype>cluster</SKLtype>
+          <type>scatter</type>
           <x>DataSets|input|y1</x>
           <y>DataSets|input|y2</y>
-          <clusterLabels>DataSets|Output|MeanShiftCirclesLabels</clusterLabels>
+          <cmap>Set1</cmap>
+          <colorMap>DataSets|Output|MeanShiftCirclesLabels</colorMap>
           <gridLocation>
             <x>1</x>
             <y>0</y>
@@ -114,11 +114,11 @@
           </kwargs>
         </plot>
         <plot>
-          <type>dataMining</type>
-          <SKLtype>cluster</SKLtype>
+          <type>scatter</type>
           <x>DataSets|input|z1</x>
           <y>DataSets|input|z2</y>
-          <clusterLabels>DataSets|Output|MeanShiftMoonsLabels</clusterLabels>
+          <cmap>Set1</cmap>
+          <colorMap>DataSets|Output|MeanShiftMoonsLabels</colorMap>
           <gridLocation>
             <x>2</x>
             <y>0</y>
@@ -137,8 +137,9 @@
       <actions>
         <how>png</how>
       </actions>
+      <filename>scatter</filename>
     </Plot>
-  </OutStreamManager>
+  </OutStreams>
 
   <DataObjects>
     <PointSet name="DataSets">

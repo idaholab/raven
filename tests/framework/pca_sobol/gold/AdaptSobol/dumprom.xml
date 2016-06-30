@@ -1,48 +1,59 @@
-<ReducedOrderModel>
+<?xml version="1.0" ?>
+<ROM type="Static">
   <ans2>
     <mean>0.981905773532</mean>
+    <expectedValue>0.981905773532</expectedValue>
     <variance>0.0800718010664</variance>
-    <Sobol_indices>
-      <tot_variance>0.0800718010664</tot_variance>
-      <variables>y1
-        <index>0.711384726168</index>
-      </variables>
-      <variables>y3
-        <index>0.208352994243</index>
-      </variables>
-      <variables>y2
-        <index>0.070939538991</index>
-      </variables>
-      <variables>y4
-        <index>0.00496388821056</index>
-      </variables>
-      <variables>y5
-        <index>0.00435885238678</index>
-      </variables>
-    </Sobol_indices>
-    <numRuns>49</numRuns>
+    <samples>49</samples>
+    <partialVariance>
+      <y1>0.0569618562754</y1>
+      <y3>0.0166831995066</y3>
+      <y2>0.00568025665382</y2>
+      <y4>0.000397467469312</y4>
+      <y5>0.000349021161192</y5>
+    </partialVariance>
+    <sobolIndices>
+      <y1>0.711384726168</y1>
+      <y3>0.208352994243</y3>
+      <y2>0.070939538991</y2>
+      <y4>0.00496388821056</y4>
+      <y5>0.00435885238678</y5>
+    </sobolIndices>
+    <sobolTotalIndices>
+      <y1>0.711384726168</y1>
+      <y3>0.208352994243</y3>
+      <y2>0.070939538991</y2>
+      <y4>0.00496388821056</y4>
+      <y5>0.00435885238678</y5>
+    </sobolTotalIndices>
   </ans2>
+
   <ans>
     <mean>1.35589720456</mean>
+    <expectedValue>1.35589720456</expectedValue>
     <variance>2.9723302863</variance>
-    <Sobol_indices>
-      <tot_variance>2.9723302863</tot_variance>
-      <variables>y1
-        <index>0.714972542969</index>
-      </variables>
-      <variables>y2
-        <index>0.177312989711</index>
-      </variables>
-      <variables>y3
-        <index>0.0870142662177</index>
-      </variables>
-      <variables>y4
-        <index>0.0186950111912</index>
-      </variables>
-      <variables>y5
-        <index>0.00200518991091</index>
-      </variables>
-    </Sobol_indices>
-    <numRuns>49</numRuns>
+    <samples>49</samples>
+    <partialVariance>
+      <y1>2.12513454334</y1>
+      <y2>0.527032769471</y2>
+      <y3>0.258635138819</y3>
+      <y4>0.0555677479663</y4>
+      <y5>0.00596008670197</y5>
+    </partialVariance>
+    <sobolIndices>
+      <y1>0.714972542969</y1>
+      <y2>0.177312989711</y2>
+      <y3>0.0870142662177</y3>
+      <y4>0.0186950111912</y4>
+      <y5>0.00200518991091</y5>
+    </sobolIndices>
+    <sobolTotalIndices>
+      <y1>0.714972542969</y1>
+      <y2>0.177312989711</y2>
+      <y3>0.0870142662177</y3>
+      <y4>0.0186950111912</y4>
+      <y5>0.00200518991091</y5>
+    </sobolTotalIndices>
   </ans>
-</ReducedOrderModel>
+
+</ROM>

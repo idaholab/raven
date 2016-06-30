@@ -1,0 +1,18 @@
+[Tests]
+ [./importanceRankAbsCov]
+  type = 'RavenFramework'
+  input = 'test_postprocessor.xml'
+  UnorderedXml = 'absCov/postProcessorDump.xml absCov/output.xml'
+  csv = 'absCov/postProcessorDump.csv'
+  output = 'absCov/output.csv'
+ [../]
+
+ [./importanceRankRelCov]
+  type = 'RavenFramework'
+  input = 'test_postprocessor_rel.xml'
+  output = 'relCov/output.csv'
+  UnorderedXml = 'relCov/postProcessorDump.xml relCov/output.xml'
+  csv = 'relCov/postProcessorDump.csv'
+ [../]
+
+[]

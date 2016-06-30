@@ -1,28 +1,45 @@
-'''
+"""
 Created on Jun 5, 2015
 
 @author: alfoa
-'''
+"""
+#for future compatibility with Python 3--------------------------------------------------------------
+from __future__ import division, print_function, absolute_import
+# WARNING if you import unicode_literals here, we fail tests (e.g. framework.testFactorials).  This may be a future-proofing problem. 2015-04.
+import warnings
+warnings.simplefilter('default',DeprecationWarning)
+#End compatibility block for Python 3----------------------------------------------------------------
+
+#External Modules------------------------------------------------------------------------------------
 import os
 from glob import glob
+from sklearn import neighbors
 import numpy as np
+#External Modules End--------------------------------------------------------------------------------
+
+#Internal Modules------------------------------------------------------------------------------------
+#Internal Modules End--------------------------------------------------------------------------------
 
 class csvUtilityClass(object):
   """
-  This utility class is aimed to provide utilities for CSV handling.
+    This utility class is aimed to provide utilities for CSV handling.
   """
-  def __init__(self, listOfFiles):
+  def __init__(self, listOfFiles, linesToSkipAfterHeader=0, delimeter=",", mergeSameVariables=False):
     """
-    Constructor
-    @ In, list, required param, listOfFiles, list of CSV files that need to be merged. If in one or more "filenames" the special symbol $*$ is present, the class will use the filename as root name and look for all the files with that root. For example:
+      Constructor
+      @ In, listOfFiles, list, list of CSV files that need to be merged. If in one or more "filenames" the special symbol $*$ is present, the class will use the filename as root name and look for all the files with that root. For example:
                                              if  listOfFiles[1] == "aPath/outputChannel$*$": the code will inquire the directory "aPath" to look for all the files starting with the name "outputChannel" => at end we will have a list of files like "outputChannel_1.csv,outputChannel_ab.csv, etc"
-
+      @ In, linesToSkipAfterHeader, int, optional, the number of lines that need to be skipped after the header
+      @ In, delimeter, string, optional, the delimiter of the csv
+      @ In, mergeSameVariables, bool, optional, do variables with the same name need to be merged together ? (aka, take only the values of the first occurence)?
+      @ Out, None
     """
     if len(listOfFiles) == 0: raise IOError("MergeCSV class ERROR: the number of CSV files provided is equal to 0!! it can not merge anything!")
     self.listOfFiles    = []   # list of files
     self.dataContainer  = {}   # dictionary that is going to contain all the data from the multiple CSVs
     self.allHeaders     = []   # it containes all the headers
     filePathToExpand    = []
+    self.mergeSameVariables = mergeSameVariables
     for filename in listOfFiles:
       if "$*$" in filename: filePathToExpand.append(filename)
       else                : self.listOfFiles.append(filename)
@@ -35,38 +52,56 @@ class csvUtilityClass(object):
       myFile = open (filename,'rb')
       # read the field names
       head = myFile.readline().decode()
-      all_field_names = head.split(',')
+      for _ in range(linesToSkipAfterHeader):
+        myFile.readline()
+      all_field_names = head.split(delimeter)
       for index in range(len(all_field_names)): all_field_names[index] = all_field_names[index].strip()
       if all_field_names[-1] == "": all_field_names.pop(-1) # it means there is a trailing "'" at the end of the file
-      self.allHeaders.extend(all_field_names)
+      isAlreadyIn = False
+
       # load the table data (from the csv file) into a numpy nd array
-      data = np.loadtxt(myFile, delimiter=",", usecols=tuple([i for i in range(len(all_field_names))]))
+      data = np.loadtxt(myFile, delimiter=delimeter, usecols=tuple([i for i in range(len(all_field_names))]))
       # close file
       myFile.close()
+      self.allHeaders.extend(all_field_names)
       # store the data
       self.dataContainer[filename] = {"headers":all_field_names,"data":data}
-    print("file read")
 
-  def mergeCSV(self,outputFileName,options = {}):
-    from sklearn import neighbors
-
+  def mergeCSV(self,outputFileName, options = {}):
     """
-    Method that is going to merge multiple csvs in a single one.
-    @ In, string, required param, outputFileName, full path of the resulting merged CSV (output file name, eg. /users/userName/output.csv)
-    @ In, dict, optional param. options, dictionary of options: {
-                                                                 "variablesToExpandFrom":"aVariable" (a variable through which the "shorter" CSVs need to be expanded)
-                                                                 "sameKeySuffix":"integerCounter or filename (default)" (if in the CSVs that need to be merged there are
-                                                                 multiple occurrences of the same key, the code will append either a letter (A,B,C,D,etc) or an integer counter (1,2,3,etc)
-                                                                 }
+      Method that is going to merge multiple csvs in a single one.
+      @ In, outputFileName, string, full path of the resulting merged CSV (output file name, eg. /users/userName/output.csv)
+      @ In, options, dict, optional, dictionary of options: { "variablesToExpandFrom":"aVariable" (a variable through which the "shorter" CSVs need to be expanded)
+                                                              "sameKeySuffix":"integerCounter or filename (default)" (if in the CSVs that need to be merged there are
+                                                              multiple occurrences of the same key, the code will append either a letter (A,B,C,D,etc) or an integer counter (1,2,3,etc)
+
+                                                            }
+      @ Out, None
     """
     if len(outputFileName.strip()) == 0: raise IOError("MergeCSV class ERROR: the outputFileName string is empty!")
+    options['returnAsDict'] = False
+    self.allHeaders, dataFinal = self.mergeCsvAndReturnOutput(options)
+    np.savetxt(outputFileName,dataFinal,delimiter=",",header=",".join(self.allHeaders))
+
+  def mergeCsvAndReturnOutput(self, options = {}):
+    """
+      Method that is going to read multiple csvs and return the merged results
+      @ In, options, dict, optional, dictionary of options: { "variablesToExpandFrom":"aVariable" (a variable through which the "shorter" CSVs need to be expanded)
+                                                              "sameKeySuffix":"integerCounter or filename (default)" (if in the CSVs that need to be merged there are
+                                                              multiple occurrences of the same key, the code will append either a letter (A,B,C,D,etc) or an integer counter (1,2,3,etc)
+                                                              "returnAsDict":True/False, True if the merged values need to be returned as a dictionary, otherwise it returns a tuple
+                                                            }
+      @ Out, mergedReturn, dict or tuple, merged csvs values (see "returnAsDict" option above to understand what you get)
+    """
     # set some default
     sameKeySuffix        = "filename"
     variablesToExpandFrom = []
+    returnAsDict = False
     variablesToExpandFrom.append('time')
     if options:
-      if "sameKeySuffix" in options.keys()        : sameKeySuffix         = options["sameKeySuffix"]
-      if "variablesToExpandFrom" in options.keys(): variablesToExpandFrom = options["variablesToExpandFrom"]
+      if "sameKeySuffix" in options.keys()          : sameKeySuffix         = options["sameKeySuffix"]
+      if "variablesToExpandFrom" in options.keys()  : variablesToExpandFrom = options["variablesToExpandFrom"]
+      if "returnAsDict"          in options.keys()  : returnAsDict = bool(options["returnAsDict"])
     setHeaders = list(set(self.allHeaders))
     headerCounts = {}
     headerAppender = {}
@@ -81,14 +116,17 @@ class csvUtilityClass(object):
         if varToExpandFrom in data["headers"]:
           variablesToExpandFromValues[filename] =  data["data"][:,data["headers"].index(varToExpandFrom)]
           variablesToExpandFromValuesSet.extend(variablesToExpandFromValues[filename].tolist())
+        else:
+          print("in file " + filename + "the variable "+ varToExpandFrom + " has not been found")
       for cnt, head in enumerate(data["headers"]):
         if headerCounts[head] > 1 and head not in variablesToExpandFrom:
-          #append a suffix
-          if sameKeySuffix == "filename":
-            self.dataContainer[filename]["headers"][cnt] = head + "_" + os.path.split(filename)[-1].split(".")[0]
-          else:
-            headerAppender[variable] += 1
-            self.dataContainer[filename]["headers"][cnt] = head + "_" + str(headerAppender[variable])
+          if not self.mergeSameVariables:
+            #append a suffix
+            if sameKeySuffix == "filename":
+              self.dataContainer[filename]["headers"][cnt] = head + "_" + os.path.split(filename)[-1].split(".")[0]
+            else:
+              headerAppender[variable] += 1
+              self.dataContainer[filename]["headers"][cnt] = head + "_" + str(headerAppender[variable])
       self.allHeaders.extend(data["headers"])
     # at this point all the headers are unique
     variablesToExpandFromValuesSet = list(set(variablesToExpandFromValuesSet))
@@ -107,7 +145,19 @@ class csvUtilityClass(object):
       for headindex, head in enumerate(data["headers"]):
         nearest.fit(np.atleast_2d(data["data"][:,index]).T,data["data"][:,headindex])   #[nsamples,nfeatures]
         datafinal[:,self.allHeaders.index(head)] = nearest.predict(variablesToExpandFromValuesSet)[:]
-    np.savetxt(outputFileName,datafinal,delimiter=",",header=",".join(self.allHeaders))
+    if returnAsDict:
+      mergedReturn = {}
+      for variableToAdd in self.allHeaders:
+        if self.mergeSameVariables:
+          if variableToAdd not in mergedReturn.keys():
+            mergedReturn[variableToAdd] = datafinal[:,self.allHeaders.index(variableToAdd)]
+        else:
+          mergedReturn[variableToAdd] = datafinal[:,self.allHeaders.index(variableToAdd)] # datafinal[:,cnt]
+    else:
+      mergedReturn = (self.allHeaders,datafinal)
+    return mergedReturn
+
+
 
 
 

@@ -1,0 +1,41 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="silent">
+  <RunInfo>
+    <WorkingDir>csv</WorkingDir>
+    <Sequence>in,out</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="input">./td_input.csv</Input>
+  </Files>
+
+  <Models>
+  </Models>
+
+  <Steps>
+    <IOStep name="in">
+      <Input class="Files" type="">input</Input>
+      <Output class="DataObjects" type="HistorySet">data</Output>
+    </IOStep>
+    <IOStep name="out">
+      <Input class="DataObjects" type="HistorySet">data</Input>
+      <Output class="OutStreams" type="Print">td_output</Output>
+    </IOStep>
+  </Steps>
+
+  <OutStreams>
+    <Print name="td_output">
+      <type>csv</type>
+      <source>data</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <HistorySet name="data">
+      <Input>b,c</Input>
+      <Output>1,Time</Output>
+    </HistorySet>
+  </DataObjects>
+
+</Simulation>

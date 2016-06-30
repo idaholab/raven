@@ -70,30 +70,30 @@
 
   <Steps>
     <MultiRun name="FirstMRun">
-      <Input class="DataObjects" type="Point">inputPlaceHolder</Input>
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
       <Model class="Models" type="ExternalModel">PythonModule</Model>
       <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
       <Output class="DataObjects" type="PointSet">PointSet</Output>
-      <Output class="OutStreamManager" type="Print">PrintPointSet_dump</Output>
+      <Output class="OutStreams" type="Print">PrintPointSet_dump</Output>
     </MultiRun>
   </Steps>
 
   <DataObjects>
-    <Point name="inputPlaceHolder">
+    <PointSet name="inputPlaceHolder">
       <Input>t1,t2,t3,t4,x0,y0,z0,x1,y1,z1</Input>
       <Output>out</Output>
-    </Point>
+    </PointSet>
     <PointSet name="PointSet">
       <Input>t1,t2,t3,t4,x0,y0,z0,x1,y1,z1</Input>
       <Output>out</Output>
     </PointSet>
   </DataObjects>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="PrintPointSet_dump">
       <type>csv</type>
       <source>PointSet</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
 </Simulation>

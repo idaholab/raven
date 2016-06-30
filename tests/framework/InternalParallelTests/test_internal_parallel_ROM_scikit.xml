@@ -23,8 +23,8 @@
     <IOStep name="step4" pauseAtEnd="false">
       <Input class="DataObjects" type="PointSet">Data2</Input>
       <Input class="DataObjects" type="PointSet">Data3</Input>
-      <Output class="OutStreamManager" type="Print">PrintDataData2</Output>
-      <Output class="OutStreamManager" type="Print">PrintDataData3</Output>
+      <Output class="OutStreams" type="Print">PrintDataData2</Output>
+      <Output class="OutStreams" type="Print">PrintDataData3</Output>
     </IOStep>
     <RomTrainer name="step2">
       <Input class="DataObjects" type="PointSet">Data2</Input>
@@ -36,11 +36,11 @@
     <Grid name="grid1">
       <variable name="x1">
         <distribution>x1_dst</distribution>
-        <grid construction="equal" steps="10" type="value">-10 10</grid>
+        <grid construction="equal" steps="5" type="value">-10 10</grid>
       </variable>
       <variable name="x2">
         <distribution>x2_dst</distribution>
-        <grid construction="equal" steps="10" type="value">-10 10</grid>
+        <grid construction="equal" steps="6" type="value">-10 10</grid>
       </variable>
     </Grid>
   </Samplers>
@@ -80,13 +80,14 @@
       <variables>x1,x2,y,z</variables>
     </ExternalModel>
     <ROM name="ROM1" subType="SciKitLearn">
-      <SKLtype>svm|SVC</SKLtype>
+      <SKLtype>neighbors|KNeighborsRegressor</SKLtype>
+      <n_neighbors>1</n_neighbors>
       <Features>x1,x2</Features>
       <Target>y</Target>
     </ROM>
   </Models>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="PrintDataData2">
       <type>csv</type>
       <source>Data2</source>
@@ -95,6 +96,6 @@
       <type>csv</type>
       <source>Data3</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
 </Simulation>

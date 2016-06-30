@@ -79,13 +79,13 @@
 
   <Steps>
     <MultiRun name="SamplingMirrowModelBoxBehnkenRespDesign" re-seeding="20021986">
-      <Input class="DataObjects" type="Point">inputPlaceHolder</Input>
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
       <Model class="Models" type="ExternalModel">mirrowModel</Model>
       <Sampler class="Samplers" type="Stratified">BoxBehnkenRespDesign</Sampler>
       <Output class="DataObjects" type="PointSet">outputDataBoxBehnkenRespDesign</Output>
     </MultiRun>
     <MultiRun name="SamplingMirrowModelCentralCompositeRespDesign" re-seeding="20021986">
-      <Input class="DataObjects" type="Point">inputPlaceHolder</Input>
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
       <Model class="Models" type="ExternalModel">mirrowModel</Model>
       <Sampler class="Samplers" type="Stratified">CentralCompositeRespDesign</Sampler>
       <Output class="DataObjects" type="PointSet">outputDataCentralCompositeRespDesign</Output>
@@ -95,18 +95,18 @@
       <Model class="Models" type="PostProcessor">analyticalTest</Model>
       <Output class="Files" type="">output_basicStatistics_PP1BoxBehnkenRespDesign.csv</Output>
       <Output class="DataObjects" type="PointSet">outputDataBoxBehnkenRespDesign</Output>
-      <Output class="OutStreamManager" type="Print">outputDataBoxBehnkenRespDesign_dump</Output>
+      <Output class="OutStreams" type="Print">outputDataBoxBehnkenRespDesign_dump</Output>
     </PostProcess>
     <PostProcess name="PP1CentralCompositeRespDesign">
       <Input class="DataObjects" type="PointSet">outputDataCentralCompositeRespDesign</Input>
       <Model class="Models" type="PostProcessor">analyticalTest</Model>
       <Output class="Files" type="">output_basicStatistics_PP1CentralCompositeRespDesign.csv</Output>
       <Output class="DataObjects" type="PointSet">outputDataCentralCompositeRespDesign</Output>
-      <Output class="OutStreamManager" type="Print">outputDataCentralCompositeRespDesign_dump</Output>
+      <Output class="OutStreams" type="Print">outputDataCentralCompositeRespDesign_dump</Output>
     </PostProcess>
   </Steps>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="outputDataBoxBehnkenRespDesign_dump">
       <type>csv</type>
       <source>outputDataBoxBehnkenRespDesign</source>
@@ -115,13 +115,13 @@
       <type>csv</type>
       <source>outputDataCentralCompositeRespDesign</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
   <DataObjects>
-    <Point name="inputPlaceHolder">
+    <PointSet name="inputPlaceHolder">
       <Input>x,y,z</Input>
       <Output>OutputPlaceHolder</Output>
-    </Point>
+    </PointSet>
     <PointSet name="outputDataBoxBehnkenRespDesign">
       <Input>x,y,z</Input>
       <Output>x1</Output>

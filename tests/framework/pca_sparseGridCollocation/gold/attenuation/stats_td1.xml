@@ -1,6 +1,8 @@
-<ReducedOrderModel>
+<?xml version="1.0" ?>
+<ROM type="Static">
   <ans>
     <mean>0.972967819632</mean>
     <variance>0.0635666452899</variance>
   </ans>
-</ReducedOrderModel>
+
+</ROM>

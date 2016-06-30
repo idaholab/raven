@@ -41,29 +41,29 @@
     </IOStep>
     <IOStep name="output" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">DataSets</Input>
-      <Output class="OutStreamManager" type="Plot">PlotMiniBatchKMeans</Output>
+      <Output class="OutStreams" type="Plot">PlotMiniBatchKMeans</Output>
     </IOStep>
     <PostProcess name="MiniBatchKMeansBlobs" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">DataSets</Input>
       <Model class="Models" type="PostProcessor">MiniBatchKMeansBlobs</Model>
       <Output class="DataObjects" type="PointSet">DataSets</Output>
-      <Output class="OutStreamManager" type="Print">dummy</Output>
+      <Output class="OutStreams" type="Print">dummy</Output>
     </PostProcess>
     <PostProcess name="MiniBatchKMeansCircles" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">DataSets</Input>
       <Model class="Models" type="PostProcessor">MiniBatchKMeansCircles</Model>
       <Output class="DataObjects" type="PointSet">DataSets</Output>
-      <Output class="OutStreamManager" type="Print">dummy</Output>
+      <Output class="OutStreams" type="Print">dummy</Output>
     </PostProcess>
     <PostProcess name="MiniBatchKMeansMoons" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">DataSets</Input>
       <Model class="Models" type="PostProcessor">MiniBatchKMeansMoons</Model>
       <Output class="DataObjects" type="PointSet">DataSets</Output>
-      <Output class="OutStreamManager" type="Print">dummy</Output>
+      <Output class="OutStreams" type="Print">dummy</Output>
     </PostProcess>
   </Steps>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="dummy">
       <type>csv</type>
       <source>DataSets</source>
@@ -72,11 +72,11 @@
       <plotSettings>
         <gridSpace>3 1</gridSpace>
         <plot>
-          <type>dataMining</type>
-          <SKLtype>cluster</SKLtype>
+          <type>scatter</type>
           <x>DataSets|input|x1</x>
           <y>DataSets|input|x2</y>
-          <clusterLabels>DataSets|Output|MiniBatchKMeansBlobsLabels</clusterLabels>
+          <cmap>Set1</cmap>
+          <colorMap>DataSets|Output|MiniBatchKMeansBlobsLabels</colorMap>
           <gridLocation>
             <x>0</x>
             <y>0</y>
@@ -92,11 +92,11 @@
           </kwargs>
         </plot>
         <plot>
-          <type>dataMining</type>
-          <SKLtype>cluster</SKLtype>
+          <type>scatter</type>
           <x>DataSets|input|y1</x>
           <y>DataSets|input|y2</y>
-          <clusterLabels>DataSets|Output|MiniBatchKMeansCirclesLabels</clusterLabels>
+          <cmap>Set1</cmap>
+          <colorMap>DataSets|Output|MiniBatchKMeansCirclesLabels</colorMap>
           <gridLocation>
             <x>1</x>
             <y>0</y>
@@ -112,11 +112,11 @@
           </kwargs>
         </plot>
         <plot>
-          <type>dataMining</type>
-          <SKLtype>cluster</SKLtype>
+          <type>scatter</type>
           <x>DataSets|input|z1</x>
           <y>DataSets|input|z2</y>
-          <clusterLabels>DataSets|Output|MiniBatchKMeansMoonsLabels</clusterLabels>
+          <cmap>Set1</cmap>
+          <colorMap>DataSets|Output|MiniBatchKMeansMoonsLabels</colorMap>
           <gridLocation>
             <x>2</x>
             <y>0</y>
@@ -135,8 +135,9 @@
       <actions>
         <how>png</how>
       </actions>
+      <filename>scatter</filename>
     </Plot>
-  </OutStreamManager>
+  </OutStreams>
 
   <DataObjects>
     <PointSet name="DataSets">

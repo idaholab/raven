@@ -1,8 +1,10 @@
-<ReducedOrderModel>
+<?xml version="1.0" ?>
+<ROM type="Static">
   <ans2>
     <mean>1.0</mean>
+    <expectedValue>1.0</expectedValue>
     <variance>0.777777777778</variance>
-    <numRuns>13</numRuns>
+    <samples>13</samples>
     <polyCoeffs>
       <inputVariables>x1,x2</inputVariables>
       <_0_0_>1.0</_0_0_>
@@ -12,11 +14,28 @@
       <_1_1_>0.333333333333</_1_1_>
       <_2_0_>-6.66133814775e-16</_2_0_>
     </polyCoeffs>
+    <partialVariance>
+      <x2>0.333333333333</x2>
+      <x1>0.333333333333</x1>
+      <x1.x2>0.111111111111</x1.x2>
+    </partialVariance>
+    <sobolIndices>
+      <x2>0.428571428571</x2>
+      <x1>0.428571428571</x1>
+      <x1.x2>0.142857142857</x1.x2>
+    </sobolIndices>
+    <sobolTotalIndices>
+      <x2>0.571428571429</x2>
+      <x1>0.571428571429</x1>
+      <x1.x2>0.142857142857</x1.x2>
+    </sobolTotalIndices>
   </ans2>
+
   <ans>
     <mean>1.33333333333</mean>
+    <expectedValue>1.33333333333</expectedValue>
     <variance>1.12592592593</variance>
-    <numRuns>13</numRuns>
+    <samples>13</samples>
     <polyCoeffs>
       <inputVariables>x1,x2</inputVariables>
       <_0_0_>1.33333333333</_0_0_>
@@ -26,5 +45,21 @@
       <_1_1_>0.333333333333</_1_1_>
       <_2_0_>0.298142397</_2_0_>
     </polyCoeffs>
+    <partialVariance>
+      <x2>0.592592592593</x2>
+      <x1>0.422222222222</x1>
+      <x1.x2>0.111111111111</x1.x2>
+    </partialVariance>
+    <sobolIndices>
+      <x2>0.526315789474</x2>
+      <x1>0.375</x1>
+      <x1.x2>0.0986842105263</x1.x2>
+    </sobolIndices>
+    <sobolTotalIndices>
+      <x2>0.625</x2>
+      <x1>0.473684210526</x1>
+      <x1.x2>0.0986842105263</x1.x2>
+    </sobolTotalIndices>
   </ans>
-</ReducedOrderModel>
+
+</ROM>

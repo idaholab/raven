@@ -1,28 +1,34 @@
-<ReducedOrderModel>
+<?xml version="1.0" ?>
+<ROM type="Static">
   <ans>
     <mean>0.998046875</mean>
+    <expectedValue>0.998046875</expectedValue>
     <variance>0.673271484375</variance>
-    <Sobol_indices>
-      <tot_variance>0.673271484375</tot_variance>
-      <variables>z
-        <index>0.287846481876</index>
-      </variables>
-      <variables>x
-        <index>0.287846481876</index>
-      </variables>
-      <variables>y
-        <index>0.287846481876</index>
-      </variables>
-      <variables>x,z
-        <index>0.045486851457</index>
-      </variables>
-      <variables>y,z
-        <index>0.045486851457</index>
-      </variables>
-      <variables>x,y
-        <index>0.045486851457</index>
-      </variables>
-    </Sobol_indices>
-    <numRuns>61</numRuns>
+    <samples>61</samples>
+    <partialVariance>
+      <z>0.193798828125</z>
+      <y>0.193798828125</y>
+      <x>0.193798828125</x>
+      <x.z>0.030625</x.z>
+      <y.z>0.030625</y.z>
+      <x.y>0.030625</x.y>
+    </partialVariance>
+    <sobolIndices>
+      <z>0.287846481876</z>
+      <y>0.287846481876</y>
+      <x>0.287846481876</x>
+      <x.z>0.045486851457</x.z>
+      <y.z>0.045486851457</y.z>
+      <x.y>0.045486851457</x.y>
+    </sobolIndices>
+    <sobolTotalIndices>
+      <z>0.37882018479</z>
+      <y>0.37882018479</y>
+      <x>0.37882018479</x>
+      <x.z>0.045486851457</x.z>
+      <y.z>0.045486851457</y.z>
+      <x.y>0.045486851457</x.y>
+    </sobolTotalIndices>
   </ans>
-</ReducedOrderModel>
+
+</ROM>

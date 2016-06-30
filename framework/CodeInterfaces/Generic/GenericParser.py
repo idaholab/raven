@@ -1,32 +1,31 @@
-'''
+"""
 Created on Mar 10, 2015
 
 @author: talbpaul
-'''
+"""
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
 if not 'xrange' in dir(__builtins__):
   xrange = range
 
-import xml.etree.ElementTree as ET
 import os
 import sys
-import copy
-from utils import toStrish, compare
 
 class GenericParser():
-  '''import the user-edited input file, build list of strings with replacable parts'''
+  """
+    import the user-edited input file, build list of strings with replacable parts
+  """
   def __init__(self,inputFiles,prefix='$RAVEN-',postfix='$',defaultDelim=':', formatDelim='|'):
-    '''
-    Accept the input file and parse it by the prefix-postfix breaks. Someday might be able to change prefix,postfix,defaultDelim from input file, but not yet.
-    @ In, inputFiles, string list of input filenames that might need parsing.
-    @ In, prefix, the string prefix to find input variables within the input files
-    @ In, postfix, the string postfix signifying hte end of an input variable within an input file
-    @ In, defaultDelim, the string used between prefix and postfix to set default values
-    @ In, formatDelim, the string used between prefix and postfix to set the format of the value
-    @Out, None.
-    '''
+    """
+      Accept the input file and parse it by the prefix-postfix breaks. Someday might be able to change prefix,postfix,defaultDelim from input file, but not yet.
+      @ In, inputFiles, list, string list of input filenames that might need parsing.
+      @ In, prefix, string, optional, the string prefix to find input variables within the input files
+      @ In, postfix, string, optional, the string postfix signifying hte end of an input variable within an input file
+      @ In, defaultDelim, string, optional, the string used between prefix and postfix to set default values
+      @ In, formatDelim, string, optional, the string used between prefix and postfix to set the format of the value
+      @ Out, None
+    """
     self.inputFiles = inputFiles
     self.prefixKey=prefix
     self.postfixKey=postfix
@@ -40,7 +39,6 @@ class GenericParser():
       infileName = inputFile.getFilename()#os.path.basename(inputFile)
       self.segments[infileName] = []
       if not os.path.exists(inputFile.getAbsFile()): raise IOError('Input file not found: '+inputFile)
-      foundSome = False
       seg = ''
       lines = inputFile.readlines()
       inputFile.close()
@@ -90,35 +88,34 @@ class GenericParser():
       self.segments[infileName].append(seg)
 
   def modifyInternalDictionary(self,**Kwargs):
-    '''
-    Edits the parsed file stored in self.segments to enter new variable values preperatory to a new run.
-    @ In, **Kwargs, dict including moddit (the dictionary of variable:value to replace) and additionalEdits.
-    @Out, None.
-    '''
-    moddict = Kwargs['SampledVars']
-    self.adldict = Kwargs['additionalEdits']
-    iovars = []
-    for key,value in self.adldict.items():
+    """
+      Edits the parsed file stored in self.segments to enter new variable values preperatory to a new run.
+      @ In, **Kwargs, dict, dict including moddit (the dictionary of variable:value to replace) and additionalEdits.
+      @ Out, None
+    """
+    modDict = Kwargs['SampledVars']
+    self.adlDict = Kwargs['additionalEdits']
+    ioVars = []
+    for value in self.adlDict.values():
       if type(value)==dict:
         for k in value.keys():
-          iovars.append(k)
+          ioVars.append(k)
       elif type(value)==list:
         for v in value:
-          iovars.append(v)
+          ioVars.append(v)
       else:
-        iovars.append(value)
-    newFileStrings={}
+        ioVars.append(value)
     for var in self.varPlaces.keys():
       for inputFile in self.segments.keys():
         for place in self.varPlaces[var][inputFile] if inputFile in self.varPlaces[var].keys() else []:
-          if var in moddict.keys():
+          if var in modDict.keys():
             if var in self.formats.keys():
               if inputFile in self.formats[var].keys():
                 if any(formVal in self.formats[var][inputFile][0] for formVal in self.acceptFormats.keys()):
                   formatstringc = "{:"+self.formats[var][inputFile][0].strip()+"}"
-                  self.segments[inputFile][place] = formatstringc.format(self.formats[var][inputFile][1](moddict[var]))
-                else: self.segments[inputFile][place] = str(moddict[var]).strip().rjust(self.formats[var][inputFile][1](self.formats[var][inputFile][0]))
-            else: self.segments[inputFile][place] = str(moddict[var])
+                  self.segments[inputFile][place] = formatstringc.format(self.formats[var][inputFile][1](modDict[var]))
+                else: self.segments[inputFile][place] = str(modDict[var]).strip().rjust(self.formats[var][inputFile][1](self.formats[var][inputFile][0]))
+            else: self.segments[inputFile][place] = str(modDict[var])
           elif var in self.defaults.keys():
             if var in self.formats.keys():
               if inputFile in self.formats[var].keys():
@@ -127,25 +124,26 @@ class GenericParser():
                   self.segments[inputFile][place] = formatstringc.format(self.formats[var][inputFile][1](self.defaults[var][inputFile]))
                 else: self.segments[inputFile][place] = str(self.defaults[var][inputFile]).strip().rjust(self.formats[var][inputFile][1](self.formats[var][inputFile][0]))
             else: self.segments[inputFile][place] = self.defaults[var][inputFile]
-          elif var in iovars: continue #this gets handled in writeNewInput
+          elif var in ioVars: continue #this gets handled in writeNewInput
           else: raise IOError('Generic Parser: Variable '+var+' was not sampled and no default given!')
 
   def writeNewInput(self,inFiles,origFiles):
-    '''
-    Generates a new input file with the existing parsed dictionary.
-    @ In, inFiles, Files list of new input files to return
-    @ In, origFiles, the original list of Files, used for key names
-    @Out, None.
-    '''
+    """
+      Generates a new input file with the existing parsed dictionary.
+      @ In, inFiles, list, Files list of new input files to return
+      @ In, origFiles, list, the original list of Files, used for key names
+      @ Out, None
+    """
     #get the right IO names put in
     case = 'out~'+inFiles[0].getBase() #FIXME the first entry? This is bad! Forces order somewhere in input file
     # however, I can't seem to generate an error with this, so maybe it's okay
     def getFileWithExtension(fileList,ext):
-      '''
-      Just a script to get the file with extension ext from the fileList.
-      @ In, fileList, the Files list of files to pick from.
-      @Out, ext, the string extension that the desired filename ends with.
-      '''
+      """
+        Just a script to get the file with extension ext from the fileList.
+        @ In, fileList, list, the Files list of files to pick from.
+        @ In, ext, string, the string extension that the desired filename ends with.
+        @ Out, None
+      """
       found=False
       for index,inputFile in enumerate(fileList):
         if inputFile.getExt() == ext:
@@ -157,18 +155,19 @@ class GenericParser():
     for var in self.varPlaces.keys():
       for inputFile in self.segments.keys():
         for place in self.varPlaces[var][inputFile] if inputFile in self.varPlaces[var].keys() else []:
-          for iotype,adlvar in self.adldict.items():
+          for iotype,adlvar in self.adlDict.items():
             if iotype=='output':
-              if var==self.adldict[iotype]:
+              if var==self.adlDict[iotype]:
                 self.segments[inputFile][place] = case
                 break
             elif iotype=='input':
-              if var in self.adldict[iotype].keys():
-                self.segments[inputFile][place] = getFileWithExtension(inFiles,self.adldict[iotype][var][0].strip('.'))[1].getAbsFile()
+              if var in self.adlDict[iotype].keys():
+                self.segments[inputFile][place] = getFileWithExtension(inFiles,self.adlDict[iotype][var][0].strip('.'))[1].getAbsFile()
                 break
     #now just write the files.
     for f,inFile in enumerate(origFiles):
       outfile = inFiles[f]
-      if os.path.isfile(outfile.getAbsFile()): os.remove(outfile.getAbsFile())
+      #if os.path.isfile(outfile.getAbsFile()): os.remove(outfile.getAbsFile())
+      outfile.open('w')
       outfile.writelines(''.join(self.segments[inFile.getFilename()]))
       outfile.close()

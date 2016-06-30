@@ -48,11 +48,11 @@
 
   <Steps>
     <MultiRun name="rom_MC">
-      <Input class="DataObjects" type="Point">data_for_sampling_empty_at_begin</Input>
+      <Input class="DataObjects" type="PointSet">data_for_sampling_empty_at_begin</Input>
       <Model class="Models" type="ROM">ROM1</Model>
       <Sampler class="Samplers" type="MonteCarlo">RAVENmc3</Sampler>
       <Output class="DataObjects" type="PointSet">outputMontecarloRom</Output>
-      <Output class="OutStreamManager" type="Print">outputMontecarloRom_dump2</Output>
+      <Output class="OutStreams" type="Print">outputMontecarloRom_dump2</Output>
     </MultiRun>
     <IOStep name="test_extract_for_rom_trainer">
       <Input class="Databases" type="HDF5">MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER</Input>
@@ -64,25 +64,25 @@
     </RomTrainer>
   </Steps>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="outputMontecarloRom_dump2">
       <type>csv</type>
       <source>outputMontecarloRom</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
   <Databases>
-    <HDF5 directory="test_rom_trainer/DatabaseStorage" filename="MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER.h5" name="MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER"/>
+    <HDF5 directory="test_rom_trainer/DatabaseStorage" filename="MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER.h5" name="MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER" readMode="read"/>
   </Databases>
 
   <DataObjects>
-    <Point historyName="1" name="data_for_sampling_empty_at_begin">
+    <PointSet name="data_for_sampling_empty_at_begin">
       <options>
         <inputRow>2</inputRow>
       </options>
       <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
       <Output>OutputPlaceHolder</Output>
-    </Point>
+    </PointSet>
     <PointSet name="Pointset_from_database_for_rom_trainer">
       <options>
         <inputRow>2</inputRow>

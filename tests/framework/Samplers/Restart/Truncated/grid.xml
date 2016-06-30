@@ -1,0 +1,124 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
+    <WorkingDir>grid</WorkingDir>
+    <Sequence>makeCoarse,printCoarse,load,makeRestart,printRestart</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="inp" type="">input_truncated.i</Input>
+    <Input name="csv" type="">coarse.csv</Input>
+  </Files>
+
+  <Steps>
+    <MultiRun name="makeCoarse">
+      <Input class="Files" type="Input">inp</Input>
+      <Model class="Models" type="Code">coarse</Model>
+      <Sampler class="Samplers" type="Grid">coarse</Sampler>
+      <Output class="DataObjects" type="PointSet">coarse</Output>
+    </MultiRun>
+    <MultiRun name="makeRestart">
+      <Input class="Files" type="Input">inp</Input>
+      <Model class="Models" type="Code">fine</Model>
+      <Sampler class="Samplers" type="Grid">fine</Sampler>
+      <Output class="DataObjects" type="PointSet">fine</Output>
+    </MultiRun>
+    <IOStep name="printCoarse">
+      <Input class="DataObjects" type="PointSet">coarse</Input>
+      <Output class="OutStreams" type="Print">coarse</Output>
+    </IOStep>
+    <IOStep name="load">
+      <Input class="Files" type="">csv</Input>
+      <Output class="DataObjects" type="PointSet">restart</Output>
+    </IOStep>
+    <IOStep name="printRestart">
+      <Input class="DataObjects" type="PointSet">fine</Input>
+      <Output class="OutStreams" type="Print">fine</Output>
+    </IOStep>
+  </Steps>
+
+  <Distributions>
+    <Uniform name="u1">
+      <lowerBound>0.123456789012345</lowerBound>
+      <upperBound>1</upperBound>
+    </Uniform>
+    <Uniform name="u2">
+      <lowerBound>10.123456789012345</lowerBound>
+      <upperBound>11</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <Grid name="coarse">
+      <variable name="x">
+        <distribution>u1</distribution>
+        <grid construction="equal" steps="1" type="CDF">0.0 1.0</grid>
+      </variable>
+      <variable name="y">
+        <distribution>u2</distribution>
+        <grid construction="equal" steps="1" type="CDF">0.0 1.0</grid>
+      </variable>
+    </Grid>
+    <Grid name="fine">
+      <variable name="x">
+        <distribution>u1</distribution>
+        <grid construction="equal" steps="2" type="CDF">0.0 1.0</grid>
+      </variable>
+      <variable name="y">
+        <distribution>u2</distribution>
+        <grid construction="equal" steps="2" type="CDF">0.0 1.0</grid>
+      </variable>
+      <Restart class="DataObjects" type="PointSet">restart</Restart>
+      <restartTolerance>5e-3</restartTolerance>
+    </Grid>
+  </Samplers>
+
+  <Models>
+    <Code name="coarse" subType="GenericCode">
+      <executable>model_1.py</executable>
+      <clargs arg="python" type="prepend"/>
+      <clargs arg="-i" extension=".i" type="input"/>
+      <clargs arg="-o" type="output"/>
+      <prepend>python</prepend>
+    </Code>
+    <Code name="fine" subType="GenericCode">
+      <executable>model_2.py</executable>
+      <clargs arg="python" type="prepend"/>
+      <clargs arg="-i" extension=".i" type="input"/>
+      <clargs arg="-o" type="output"/>
+      <prepend>python</prepend>
+    </Code>
+  </Models>
+
+  <DataObjects>
+    <PointSet name="dummyIN">
+      <Input>x,y</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="coarse">
+      <Input>x,y</Input>
+      <Output>a</Output>
+    </PointSet>
+    <PointSet name="restart">
+      <Input>x,y</Input>
+      <Output>a</Output>
+    </PointSet>
+    <PointSet name="fine">
+      <Input>x,y</Input>
+      <Output>a</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="coarse">
+      <type>csv</type>
+      <source>coarse</source>
+    </Print>
+    <Print name="fine">
+      <type>csv</type>
+      <source>fine</source>
+    </Print>
+  </OutStreams>
+
+</Simulation>

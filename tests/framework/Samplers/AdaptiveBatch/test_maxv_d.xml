@@ -23,8 +23,8 @@
     <IOStep name="dump">
       <Input class="DataObjects" type="PointSet">limit_surface</Input>
       <Input class="DataObjects" type="PointSet">response</Input>
-      <Output class="OutStreamManager" type="Print">maxV_d_ls</Output>
-      <Output class="OutStreamManager" type="Print">maxV_d_samples</Output>
+      <Output class="OutStreams" type="Print">maxV_d_ls</Output>
+      <Output class="OutStreams" type="Print">maxV_d_samples</Output>
     </IOStep>
   </Steps>
 
@@ -106,7 +106,7 @@
     </External>
   </Functions>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="maxV_d_ls">
       <type>csv</type>
       <source>limit_surface</source>
@@ -115,6 +115,6 @@
       <type>csv</type>
       <source>response</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
 </Simulation>

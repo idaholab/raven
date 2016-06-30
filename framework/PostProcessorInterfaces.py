@@ -32,8 +32,8 @@ __moduleImportedList = []
  Here all the Interfaced Post-Processors located in the raven/framework/PostProcessorFunctions folder are parsed and their instance is returned
 '''
 
-__base                          = 'PostProcessor'
-__interFaceDict                 = {}
+__base          = 'PostProcessor'
+__interFaceDict = {}
 for moduleIndex in range(len(__moduleInterfaceList)):
   if 'class' in open(__moduleInterfaceList[moduleIndex]).read():
     __moduleImportedList.append(utils.importFromPath(__moduleInterfaceList[moduleIndex],False))
@@ -45,20 +45,20 @@ __knownTypes = list(__interFaceDict.keys())
 
 def knownTypes():
   """
-  This function returns the types of interfaced post-processors available
-  @ In, None,
-  @ Out, __knownTypes, list, list of recognized post-processors
+    This function returns the types of interfaced post-processors available
+    @ In, None,
+    @ Out, __knownTypes, list, list of recognized post-processors
   """
   return __knownTypes
 
 def returnPostProcessorInterface(Type,caller):
   """
-  This function returns interfaced post-processors interface
-  @ In, Type, string, type of Interfaced PostProcessor to run
-  @ In, caller, instance of the PostProcessor class
-  @ Out, __interFaceDict[Type](), dict, interfaced PostProcessor dictionary
+    This function returns interfaced post-processors interface
+    @ In, Type, string, type of Interfaced PostProcessor to run
+    @ In, caller, instance of the PostProcessor class
+    @ Out, __interFaceDict[Type](), dict, interfaced PostProcessor dictionary
   """
   if Type not in knownTypes():
-    caller.raiseAnError(NameError,'not known '+__base+' type '+Type)
+    caller.raiseAnError(NameError,'"%s" type unrecognized:' %__base,Type)
   return __interFaceDict[Type](caller.messageHandler)
 

@@ -7,12 +7,12 @@
   </RunInfo>
 
   <Files>
-    <Input name="DataSetsFile">./DataSets.csv</Input>
+    <Input name="dataFile">./DataSets.csv</Input>
   </Files>
 
   <Models>
     <PostProcessor name="GaussianMixtureBlobs" subType="DataMining" verbosity="quiet">
-      <KDD lib="SciKitLearn">
+      <KDD lib="SciKitLearn" labelFeature='labels'>
         <Features>x1,x2</Features>
         <SKLtype>mixture|GMM</SKLtype>
         <covariance_type>full</covariance_type>
@@ -26,49 +26,77 @@
 
   <Steps>
     <IOStep name="readIn" pauseAtEnd="True">
-      <Input class="Files" type="">DataSetsFile</Input>
-      <Output class="DataObjects" type="PointSet">DataSets</Output>
+      <Input class="Files" type="">dataFile</Input>
+      <Output class="DataObjects" type="PointSet">data</Output>
     </IOStep>
     <IOStep name="output" pauseAtEnd="True">
-      <Input class="DataObjects" type="PointSet">DataSets</Input>
-      <Output class="OutStreamManager" type="Plot">PlotGaussianMixtureBlobs</Output>
+      <Input class="DataObjects" type="PointSet">data</Input>
+      <Input class="DataObjects" type="PointSet">clusterInfo</Input>
+      <Output class="OutStreams" type="Plot">PlotGaussianMixtureBlobs</Output>
+      <Output class="OutStreams" type="Print">info</Output>
     </IOStep>
     <PostProcess name="GaussianMixtureBlobs" pauseAtEnd="True">
-      <Input class="DataObjects" type="PointSet">DataSets</Input>
+      <Input class="DataObjects" type="PointSet">data</Input>
       <Model class="Models" type="PostProcessor">GaussianMixtureBlobs</Model>
-      <Output class="DataObjects" type="PointSet">DataSets</Output>
-      <Output class="OutStreamManager" type="Print">dummy</Output>
+      <SolutionExport class="DataObjects" type="PointSet">clusterInfo</SolutionExport>
+      <Output class="DataObjects" type="PointSet">data</Output>
+      <Output class="OutStreams" type="Print">dummy</Output>
     </PostProcess>
   </Steps>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="dummy">
       <type>csv</type>
-      <source>DataSets</source>
+      <source>data</source>
+    </Print>
+    <Print name="info">
+      <type>csv</type>
+      <source>clusterInfo</source>
     </Print>
     <Plot dim="2" name="PlotGaussianMixtureBlobs" overwrite="false">
       <plotSettings>
         <plot>
+          <type>scatter</type>
+          <x>data|input|x1</x>
+          <y>data|input|x2</y>
+          <cmap>Set1</cmap>
+          <colorMap>data|Output|labels</colorMap>
+<!--
           <type>dataMining</type>
           <SKLtype>cluster</SKLtype>
           <x>DataSets|input|x1</x>
           <y>DataSets|input|x2</y>
-          <clusterLabels>DataSets|Output|GaussianMixtureBlobsLabels</clusterLabels>
-          <kwargs>
+          <clusterLabels>DataSets|Output|labels</clusterLabels>
+ -->          <kwargs>
             <edgecolor>None</edgecolor>
+          </kwargs>
+        </plot>
+        <plot>
+          <type>scatter</type>
+          <x>clusterInfo|output|x1</x>
+          <y>clusterInfo|output|x2</y>
+          <cmap>Set1</cmap>
+          <colorMap>clusterInfo|input|labels</colorMap>
+          <kwargs>
+            <edgecolor>black</edgecolor>
           </kwargs>
         </plot>
       </plotSettings>
       <actions>
         <how>png</how>
       </actions>
+      <filename>scatter</filename>
     </Plot>
-  </OutStreamManager>
+  </OutStreams>
 
   <DataObjects>
-    <PointSet name="DataSets">
+    <PointSet name="data">
       <Input>x1,x2,y1,y2,z1,z2</Input>
       <Output>Output</Output>
+    </PointSet>
+    <PointSet name="clusterInfo">
+      <Input>labels</Input>
+      <Output>x1,x2</Output>
     </PointSet>
   </DataObjects>
 

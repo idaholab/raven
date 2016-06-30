@@ -55,7 +55,7 @@
     required_libraries = 'AMSC'
   [../]
 
-  [./realxed_beta_skeleton]
+  [./relaxed_beta_skeleton]
     type = 'RavenFramework'
     input = 'test_graph_rbs.xml'
     csv = 'data/segRBS.csv'

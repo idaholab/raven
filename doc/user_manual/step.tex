@@ -9,7 +9,7 @@ kind of step being used.
 A sequence of different \textbf{Steps} represents the calculation flow.
 %
 
-Before analyzing each \textbf{Step} type, it is worth to 1) 
+Before analyzing each \textbf{Step} type, it is worth to 1)
 explain how a general \textbf{Step} entity is organized, and 2) introduce the concept of step
 ``role'' .
 %
@@ -31,7 +31,7 @@ In the following example, a general example of a \textbf{Step} is shown below:
 </Simulation>
 \end{lstlisting}
 As shown above each \textbf{Step} consists of
-a list of entities organized into ``Roles.'' 
+a list of entities organized into ``Roles.''
 %
 Each role represents a behavior the entity (object) will assume during the
 evaluation of the \textbf{Step}.
@@ -43,24 +43,26 @@ The allowable input objects depend on the type of \textbf{Model} in the
 \textbf{Step}.
 \item \textbf{Output} defines where to collect the results of an action
 performed by the \textbf{Model}.
-It is generally one of the following types: \textbf{DataObjects}, \textbf{Databases}, 
-or \textbf{OutStreamManager}.
+It is generally one of the following types: \textbf{DataObjects}, \textbf{Databases},
+or \textbf{OutStreams}.
 \item \textbf{Model} represents a physical or mathematical system or behavior.
 The object used in this role defines the allowable types of
 \textbf{Inputs} and \textbf{Outputs} usable in this step.
 \item \textbf{Sampler} defines the sampling strategy to be used to probe the model.
-\\ It is worth to mention that, when a sampling strategy is employed, the ``variables'' defined in the \xmlNode{variable} blocks are going to be 
+\\ It is worth to mention that, when a sampling strategy is employed, the ``variables'' defined in the \xmlNode{variable} blocks are going to be
 directly placed in the \textbf{Output} objects of type \textbf{DataObjects} and \textbf{Databases}).
 \item \textbf{Function} is an extremely important role. It introduces the capability to
 perform pre or post processing of Model \textbf{Inputs} and \textbf{Outputs}. Its specific
 behavior depends on the \textbf{Step} is using it.
 %\item \textbf{Function.} The Function role is extremely important, for example, when performing Adaptive Sampling to represent the metric of the transition regions. This role is the role used, for example, to collapse information coming from a Model.
-\item \textbf{ROM} defines an acceleration Reduced Order Model to use for a 
+\item \textbf{ROM} defines an acceleration Reduced Order Model to use for a
 \textbf{Step}.
 \item \textbf{SolutionExport} represents the container of the eventual output
-of a Sampler. For the moment, it is only used  when a \textbf{Step} is employing the 
-search of the Limit Surface (LS), through the class of Adaptive \textbf{Samplers}). In this case, it 
-contains the coordinates of the LS in the input space. 
+of a step. For the moment, there are two uses: 1) A \textbf{Step} is employing the
+search of the Limit Surface (LS), through the class of Adaptive \textbf{Samplers}); in this case, it
+contains the coordinates of the LS in the input space; and 2) Some of the post-processors
+employ clustering algorithms and the cluster centers will be stored in this file
+with the input being the cluster labels.
 \end{itemize}
 Depending on the \textbf{Step} type, different combinations of these roles can
 be used.
@@ -85,7 +87,7 @@ The \textbf{SingleRun} is the simplest step the user can use to assemble a
 calculation flow: perform a single action of a \textbf{Model}.
 %
 For example, it can be used to run a single job (Code Model) and collect the
-outcome(s) in a ``\textbf{DataObjects}'' object of type \textbf{Point} or 
+outcome(s) in a ``\textbf{DataObjects}'' object of type \textbf{Point} or
 \textbf{History} (see Section~\ref{sec:DataObjects} for more details on available data
 representations).
 
@@ -98,14 +100,14 @@ This XML node has the following definable attributes:
 \itemsep0em
 \item \xmlAttr{name}, \xmlDesc{required string attribute}, user-defined name of
 this \textbf{Step}. \nb This name is used to reference this specific entity
-in the \xmlNode{RunInfo} block, under the \xmlNode{Sequence} node. If the name 
+in the \xmlNode{RunInfo} block, under the \xmlNode{Sequence} node. If the name
 of this \textbf{Step} is not listed in the  \xmlNode{Sequence} block, its action is not
 going to be performed.
 \item \xmlAttr{pauseAtEnd}, \xmlDesc{optional boolean/string attribute (case insensitive)}, if True
 (True values = True, yes, y, t), the code will pause at the end of
 the step, waiting for a user signal to continue. This is used in case one or
-more of the \textbf{Outputs} are of type \textbf{OutStreamManager}.
-For example, it can be used when an \textbf{OutStreamManager} of type
+more of the \textbf{Outputs} are of type \textbf{OutStreams}.
+For example, it can be used when an \textbf{OutStreams} of type
 \textbf{Plot} is output to the screen. Thus, allowing the user to interact with
 the \textbf{Plot} (e.g. rotate the figure, change the scale, etc.).
 \default{False}.
@@ -123,7 +125,7 @@ This XML node accepts the following attributes:
 \begin{itemize}
   \item \xmlAttr{class}, \xmlDesc{required string attribute}, main object class
     type.
-    This string corresponds to the tag of the main object's type used in the 
+    This string corresponds to the tag of the main object's type used in the
     input.
     For example, \xmlString{Files}, \xmlString{DataObjects}, \xmlString{Databases},
     etc.
@@ -133,7 +135,7 @@ This XML node accepts the following attributes:
     class.
     For example, if the  \xmlAttr{class} attribute is \xmlString{DataObjects}, the
     \xmlAttr{type} attribute might be \xmlString{PointSet}.
-    \nb The class \xmlString{Files} has no type (i.e. 
+    \nb The class \xmlString{Files} has no type (i.e.
     \xmlAttr{type}\textbf{\texttt{=''}}).
 \end{itemize}
 
@@ -153,7 +155,7 @@ This XML node accepts the following attributes:
     type.
     This attribute needs to specify the object type within the \texttt{Models}
     object class.
-    For example, the \xmlAttr{type} attribute might be \xmlString{Code}, 
+    For example, the \xmlAttr{type} attribute might be \xmlString{Code},
     \xmlString{ROM}, etc.
 \end{itemize}
 \item \xmlNode{Output}, \xmlDesc{string, required parameter} names an entity
@@ -162,13 +164,13 @@ This XML node recognizes the following attributes:
 \begin{itemize}
   \item \xmlAttr{class}, \xmlDesc{required string attribute}, main object class
     type.
-    For this role, only \xmlString{DataObjects}, \xmlString{Databases}, and 
-    \xmlString{OutStreamManager} can be used.
+    For this role, only \xmlString{DataObjects}, \xmlString{Databases}, and
+    \xmlString{OutStreams} can be used.
   \item \xmlAttr{type}, \xmlDesc{required string attribute}, the actual entity
     type.
     This attribute needs to specify the object type within the main object
     class.
-    For example, if the  \xmlAttr{class} attribute is \xmlString{DataObjects}, the 
+    For example, if the  \xmlAttr{class} attribute is \xmlString{DataObjects}, the
     \xmlAttr{type} attribute might be \xmlString{PointSet}.
 \end{itemize}
 \nb The number of \xmlNode{Output} nodes is unlimited.
@@ -178,7 +180,7 @@ Example:
 \begin{lstlisting}[style=XML,morekeywords={class,pauseAtEnd}]
 <Steps>
   ...
-  <SingleRun name='StepName' pauseAtEnd='false'> 
+  <SingleRun name='StepName' pauseAtEnd='false'>
         <Input    class='Files'          type=''>anInputFile.i</Input>
         <Input    class='Files'          type=''>aFile</Input>
         <Model   class='Models'      type='Code'>aCode</Model>
@@ -208,16 +210,16 @@ This XML node recognizes the following list of attributes:
 \begin{itemize}
 \itemsep0em
 \item \xmlAttr{name}, \xmlDesc{required string attribute}, user-defined name of
-this Step. 
+this Step.
 \nb As with other objects, this name is used to reference this specific entity
-in the \xmlNode{RunInfo} block, under the \xmlNode{Sequence} node. If the name 
+in the \xmlNode{RunInfo} block, under the \xmlNode{Sequence} node. If the name
 of this \textbf{Step} is not listed in the  \xmlNode{Sequence} block, its action is not
 going to be performed.
 \item \xmlAttr{pauseAtEnd}, \xmlDesc{optional boolean/string attribute}, if True
 (True values = True, yes, y, t), the code will pause at the end of
 the step, waiting for a user signal to continue. This is used in case one or
-more of the \textbf{Outputs} are of type \textbf{OutStreamManager}.
-For example, it can be used when an \textbf{OutStreamManager} of type
+more of the \textbf{Outputs} are of type \textbf{OutStreams}.
+For example, it can be used when an \textbf{OutStreams} of type
 \textbf{Plot} is output to the screen. Thus, allowing the user to interact with
 the \textbf{Plot} (e.g. rotate the figure, change the scale, etc.).
 \item \xmlAttr{sleepTime}, \xmlDesc{optional float attribute}, in this attribute
@@ -245,7 +247,7 @@ This XML node accepts the following attributes:
   \item \xmlAttr{type}, \xmlDesc{required string attribute}, the actual entity
     type.
     This attribute specifies the object type within the main object class.
-    For example, if the  \xmlAttr{class} attribute is \xmlString{DataObjects}, the 
+    For example, if the  \xmlAttr{class} attribute is \xmlString{DataObjects}, the
     \xmlAttr{type} attribute might be \xmlString{PointSet}.
     \nb The class \xmlString{Files} has no type (i.e.
     \xmlAttr{type}\textbf{\texttt{=''}}).
@@ -253,7 +255,7 @@ This XML node accepts the following attributes:
 \nb The \xmlAttr{class} and, consequently, the \xmlAttr{type} usable for this
 role depend on the particular \xmlNode{Model} being used.
 The user can specify as many \xmlNode{Input} nodes as needed.
-\item \xmlNode{Model}, \xmlDesc{string, required parameter} names an entity 
+\item \xmlNode{Model}, \xmlDesc{string, required parameter} names an entity
 defined elsewhere in the input that will be used as the model for this step.
 This XML node recognizes the following attributes:
 \begin{itemize}
@@ -264,7 +266,7 @@ This XML node recognizes the following attributes:
     type.
     This attribute needs to specify the object type within the \texttt{Models}
     object class.
-    For example, the \xmlAttr{type} attribute might be \xmlString{Code}, 
+    For example, the \xmlAttr{type} attribute might be \xmlString{Code},
     \xmlString{ROM}, etc.
 \end{itemize}
 \item \xmlNode{Sampler}, \xmlDesc{string, required parameter} names an entity
@@ -298,19 +300,19 @@ This XML node accepts the following attributes:
     For this role, only \xmlString{DataObjects} can be used.
   \item \xmlAttr{type}, \xmlDesc{required string attribute}, the actual entity
     type.
-    This attribute needs to specify the object type within the \texttt{DataObjects} 
+    This attribute needs to specify the object type within the \texttt{DataObjects}
     object class.
-    For example, the \xmlAttr{type} attribute might be \xmlString{Code}, 
+    For example, the \xmlAttr{type} attribute might be \xmlString{Code},
     \xmlString{ROM}, etc. \\
     \nb Whether or not it is possible to export the \textbf{Sampler} solution
     depends on the \xmlAttr{type}.
     Currently, only the Samplers in the \xmlString{Adaptive} category can
-    export their solution into a \xmlNode{SolutionExport} entity. The \xmlNode{Outputs} node 
-    in the \texttt{DataObjects} needs to contain the goal  \xmlNode{Function} name. 
-    For example, if  \xmlNode{Sampler} is of type \xmlString{Adaptive}, the 
-    \xmlNode{SolutionExport} needs to be of type \xmlString{PointSet} and 
+    export their solution into a \xmlNode{SolutionExport} entity. The \xmlNode{Outputs} node
+    in the \texttt{DataObjects} needs to contain the goal  \xmlNode{Function} name.
+    For example, if  \xmlNode{Sampler} is of type \xmlString{Adaptive}, the
+    \xmlNode{SolutionExport} needs to be of type \xmlString{PointSet} and
     it will contain the coordinates, in the input space, that belong to the
-    ``Limit Surface.'' 
+    ``Limit Surface.''
 \end{itemize}
 \item \xmlNode{Output}, \xmlDesc{string, required parameter} identifies an
 entity to be used as output for this step.
@@ -320,8 +322,8 @@ This XML node recognizes the following attributes:
     type.
     This string corresponds to the tag of the main object's type used in the
     input.
-    For this role, only \xmlString{DataObjects}, \xmlString{Databases}, and 
-    \xmlString{OutStreamManager} may be used.
+    For this role, only \xmlString{DataObjects}, \xmlString{Databases}, and
+    \xmlString{OutStreams} may be used.
   \item \xmlAttr{type}, \xmlDesc{required string attribute}, the actual entity
     type.
     This attribute specifies the object type within the main object class.
@@ -366,7 +368,7 @@ Example:
 As the name suggests, the \textbf{IOStep} is the step where the user can perform
 input/output operations among the different I/O entities available in RAVEN.
 %
-This step type is used to: 
+This step type is used to:
 \begin{itemize}
  \item construct/update a \textit{Database} from a \textit{DataObjects} object, and
    vice versa;
@@ -380,9 +382,9 @@ This step type is used to:
  of Python.
 \end{itemize}
 This last function can be used to create and store mathematical model of fast solution
- trained to predict a response of interest of a physical system. This model can be 
+ trained to predict a response of interest of a physical system. This model can be
 recovered in other simulations or used to evaluate the response of a physical system
- in a Python program by the implementing of the Pickle module. 
+ in a Python program by the implementing of the Pickle module.
 %
 The specifications of this type of step must be defined within an
 \xmlNode{IOStep} XML block.
@@ -394,16 +396,19 @@ This XML node can accept the following attributes:
 \item \xmlAttr{name}, \xmlDesc{required string attribute}, user-defined name of
   this Step.
   \nb As for the other objects, this is the name that can be used to refer to
-    this specific entity in the \xmlNode{RunInfo} block, under the 
+    this specific entity in the \xmlNode{RunInfo} block, under the
     \xmlNode{Sequence} node.
 \item \xmlAttr{pauseAtEnd}, \xmlDesc{optional boolean/string attribute (case insensitive)}, if True
   (True values = True, yes, y, t), the code will pause at the end of
   the step, waiting for a user signal to continue. This is used in case one or
-  more of the \textbf{Outputs} are of type \textbf{OutStreamManager}.
-  For example, it can be used when an \textbf{OutStreamManager} of type
+  more of the \textbf{Outputs} are of type \textbf{OutStreams}.
+  For example, it can be used when an \textbf{OutStreams} of type
   \textbf{Plot} is output to the screen. Thus, allowing the user to interact
   with the \textbf{Plot} (e.g. rotate the figure, change the scale, etc.).
 \default{False}.
+\item \xmlAttr{fromDirectory}, \xmlDesc{optional string attribute}, The directory
+  where the input files can be found when loading data from a file or series of
+  files directly into a DataObject.
 \end{itemize}
 \vspace{-5mm}
 In the \xmlNode{IOStep} input block, the user specifies the objects that need to
@@ -430,7 +435,7 @@ This step accepts the following roles:
     \xmlAttr{type} attribute must be \xmlString{ROM} and if the  \xmlAttr{class} attribute is \xmlString{Files}, the
     \xmlAttr{type} attribute must be \xmlString{ }
 \end{itemize}
-\item \xmlNode{Output}, \xmlDesc{string, required parameter} names an entity to 
+\item \xmlNode{Output}, \xmlDesc{string, required parameter} names an entity to
   be used as the target (output) where the information extracted in the input
   will be stored.
   This XML node needs to contain the following attributes:
@@ -439,12 +444,12 @@ This step accepts the following roles:
     type.
     This string corresponds to the tag of the main object's type used in the
     input.
-    The allowable main classes are \xmlString{DataObjects}, \xmlString{Databases}, \xmlString{OutStreamManager}, \xmlString{Models} and \xmlString{Files}.
+    The allowable main classes are \xmlString{DataObjects}, \xmlString{Databases}, \xmlString{OutStreams}, \xmlString{Models} and \xmlString{Files}.
   \item \xmlAttr{type}, \xmlDesc{required string attribute}, the actual entity
     type.
     This attribute specifies the object type within the main object class.
-    For example, if the \xmlAttr{class} attribute is 
-    \xmlString{OutStreamManager}, the \xmlAttr{type} attribute might be
+    For example, if the \xmlAttr{class} attribute is
+    \xmlString{OutStreams}, the \xmlAttr{type} attribute might be
     \xmlString{Plot}.
 \end{itemize}
 \end{itemize}
@@ -458,11 +463,11 @@ This step assumes a 1-to-1 mapping (e.g. first \xmlNode{Input} is going to be
 used for the first \xmlNode{Output}, etc.).
 \\
 \nb This 1-to-1 mapping is not present when \xmlNode{Output} nodes are of
-\xmlAttr{class}\\\xmlString{OutStreamManager}, since  \textbf{OutStreamManager}
+\xmlAttr{class}\\\xmlString{OutStreams}, since  \textbf{OutStreams}
 objects are already linked to a Data object in the relative RAVEN input block.
 
-In this case, the user needs to provide in the \xmlNode{Input} nodes, all of the 
-``DataObjects'' objects linked to the OutStreamManager objects (see the example 
+In this case, the user needs to provide in the \xmlNode{Input} nodes, all of the
+``DataObjects'' objects linked to the OutStreams objects (see the example
 below):
 \begin{lstlisting}[style=XML,morekeywords={class}]
 <Steps>
@@ -470,13 +475,13 @@ below):
   <IOStep name='OutStreamStep'>
     <Input class='DataObjects' type='HistorySet'>aHistorySet</Input>
     <Input class='DataObjects' type='PointSet'>aTPS</Input>
-    <Output class='OutStreamManager' type='Plot'>plot_hist
+    <Output class='OutStreams' type='Plot'>plot_hist
     </Output>
-    <Output class='OutStreamManager' type='Print'>print_hist
+    <Output class='OutStreams' type='Print'>print_hist
     </Output>
-    <Output class='OutStreamManager' type='Print'>print_tps
+    <Output class='OutStreams' type='Print'>print_tps
     </Output>
-    <Output class='OutStreamManager' type='Print'>print_tp
+    <Output class='OutStreams' type='Print'>print_tp
     </Output>
   </IOStep>
   <IOStep name='PushDataObjectsIntoDatabase'>
@@ -507,8 +512,8 @@ below):
 </Steps>
 \end{lstlisting}
 %
-Example of how to use a ROM exported by RAVEN using the IOStep, 
-where (x1,x2) are the input variable names for which the ROM has been trained: 
+Example of how to use a ROM exported by RAVEN using the IOStep,
+where (x1,x2) are the input variable names for which the ROM has been trained:
 %
 Example Python Function:
 \begin{lstlisting}[language=python]
@@ -549,12 +554,12 @@ this step.
 specific entity in the \xmlNode{RunInfo} block under \xmlNode{Sequence}.
 \end{itemize}
 \vspace{-5mm}
-In the \xmlNode{RomTrainer} input block, the user will specify the objects 
+In the \xmlNode{RomTrainer} input block, the user will specify the objects
 needed for the different allowable roles.
 %
 This step accepts the following roles:
 \begin{itemize}
-\item \xmlNode{Input}, \xmlDesc{string, required parameter} names an entity to 
+\item \xmlNode{Input}, \xmlDesc{string, required parameter} names an entity to
 be used as a source (input) from which the information needs to be extracted.
 This XML node accepts the following attributes:
   \begin{itemize}
@@ -610,7 +615,7 @@ It is aimed at performing a single action that is employed by a
 \textbf{Model} of type \textbf{PostProcessor}.
 %
 
-The specifications of this type of step is defined within a 
+The specifications of this type of step is defined within a
 \xmlNode{PostProcess} XML block.
 %
 This XML node specifies the following attributes:
@@ -618,15 +623,15 @@ This XML node specifies the following attributes:
 \begin{itemize}
 \itemsep0em
 \item \xmlAttr{name}, \xmlDesc{required string attribute}, user-defined name of
-  this Step. 
+  this Step.
   \nb As for the other objects, this is the name that is used to refer to
-  this specific entity in the \xmlNode{RunInfo} block under the 
+  this specific entity in the \xmlNode{RunInfo} block under the
   \xmlNode{Sequence} node.
 \item \xmlAttr{pauseAtEnd}, \xmlDesc{optional boolean/string attribute (case insensitive)}, if True
   (True values = True, yes, y, t), the code will pause at the end of
   the step, waiting for a user signal to continue. This is used in case one or
-  more of the \textbf{Outputs} are of type \textbf{OutStreamManager}.
-  For example, it can be used when an \textbf{OutStreamManager} of type
+  more of the \textbf{Outputs} are of type \textbf{OutStreams}.
+  For example, it can be used when an \textbf{OutStreams} of type
   \textbf{Plot} is output to the screen. Thus, allowing the user to interact
   with the \textbf{Plot} (e.g. rotate the figure, change the scale, etc.).
   \default{False}.
@@ -650,8 +655,8 @@ This step accepts the following roles:
   \item \xmlAttr{type}, \xmlDesc{required string attribute}, the actual entity
     type.
     This attribute specifies the object type within the main object class.
-    For example, if the  \xmlAttr{class} attribute is \xmlString{DataObjects}, 
-    the \xmlAttr{type} attribute might be \xmlString{PointSet}. 
+    For example, if the  \xmlAttr{class} attribute is \xmlString{DataObjects},
+    the \xmlAttr{type} attribute might be \xmlString{PointSet}.
     \nb The class \xmlString{Files} has no type (i.e.
     \xmlAttr{type}\textbf{\texttt{=''}}).
 \end{itemize}

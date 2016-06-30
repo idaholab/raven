@@ -23,25 +23,16 @@ conceptual meaning.
 These data types are instantiated as sub-nodes in the \xmlNode{DataObjects} block of
 an input file:
 \begin{itemize}
-  \item \xmlNode{Point}, as the name suggests, describes the state of the
-  system at a certain point (e.g. in time).
-  %
-  In other words, it can be considered a mapping between a set of parameters
-  in the input space and the resulting outcomes in the output space at a
-  particular point in the phase space (e.g. in time).
-  %
-  \item \xmlNode{PointSet} is a collection of individual \textit{Point}
-  objects.
+  \item \xmlNode{PointSet} is a collection of individual objects, each
+  describing the state of the system at a certain point (e.g. in time).
   %
   It can be considered a mapping between multiple sets of parameters in the
   input space and the resulting sets of outcomes in the output space at a
   particular point (e.g. in time).
   %
-  \item \xmlNode{History} describes the temporal evolution of the state of the
-  system within a certain input domain.
-  %
-  \item \xmlNode{HistorySet} is a collection of individual \textit{History}
-  objects.
+  \item \xmlNode{HistorySet} is a collection of individual objects each
+  describing the temporal evolution of the state of the system within a certain
+  input domain.
   %
   It can be considered a mapping between multiple sets of parameters in the
   input space and the resulting sets of temporal evolutions in the output
@@ -57,9 +48,7 @@ The data objects are defined within the main XML block called \xmlNode{DataObjec
 <Simulation>
    ...
   <DataObjects>
-    <Point name='***'>...</Point>
     <PointSet name='***'>...</PointSet>
-    <History name='***'>...</History>
     <HistorySet name='***'>...</HistorySet>
   </DataObjects>
    ...
@@ -107,19 +96,13 @@ available attributes:
 %  %
 %  \default{None}
 
-  \item \xmlAttr{historyName}, \xmlDesc{optional string attribute}, in the case  the
-   ``DataObject'' type is either a \textit{Point} or an
-  \textit{History}, this XML node contains the name of the associated history needs to be placed in.
-  \\\nb This attribute is a required parameter when the  \xmlNode{Point} or \xmlNode{History}
-   types are constructed from a Database (e.g.HDF5).
-
   \item \xmlAttr{hierarchical}, \xmlDesc{optional boolean attribute}, if True
   this data object will be constructed, if possible, in a hierarchical fashion.
   %
   \default{False}
 \end{itemize}
 \vspace{-5mm}
-In each XML node (e.g. \xmlNode{Point} or \xmlNode{HistorySet}), the user
+In each XML node (e.g. \xmlNode{PointSet} or \xmlNode{HistorySet}), the user
 needs to specify the following sub-nodes:
 \begin{itemize}
   \item \xmlNode{Input}, \xmlDesc{comma separated string, required field} lists
@@ -143,7 +126,7 @@ contain the following optional XML sub-nodes:
        specify  the row (in the CSV file or HDF5 table) from which the output space
       needs to be retrieved (e.g. the time-step). If this node is inputted, the nodes
        \xmlNode{operator} and  \xmlNode{outputPivotValue} can not be inputted (mutually exclusive).
-     \\\nb This XML node is available for DataObjects of type \xmlNode{Point} and \xmlNode{PointSet} only;
+     \\\nb This XML node is available for DataObjects of type \xmlNode{PointSet} only;
   %
   \item \xmlNode{operator}, \xmlDesc{string, optional field}, is aimed to perform
        simple operations on the data to be stored.
@@ -155,7 +138,7 @@ contain the following optional XML sub-nodes:
        \end{itemize}
        If this node is inputted, the nodes
        \xmlNode{outputRow} and  \xmlNode{outputPivotValue} can not be inputted (mutually exclusive).
-       \\\nb This XML node is available for DataObjects of type \xmlNode{Point} and \xmlNode{PointSet} only;
+       \\\nb This XML node is available for DataObjects of type \xmlNode{PointSet} only;
   %
   \item \xmlNode{pivotParameter}, \xmlDesc{string, optional field} the name of
     the parameter whose values need to be used as reference for the values
@@ -174,9 +157,9 @@ contain the following optional XML sub-nodes:
     %
   \item \xmlNode{outputPivotValue}. This node can be either a float or a list of floats, depending on the type of DataObjects:
    \begin{itemize}
-      \item if \xmlNode{History} or \xmlNode{HistorySet},\xmlNode{outputPivotValue}, \xmlDesc{list of floats, optional field},  list of values of the
+      \item if \xmlNode{HistorySet},\xmlNode{outputPivotValue}, \xmlDesc{list of floats, optional field},  list of values of the
                           \xmlNode{pivotParameter} at which the output space needs to be retrieved;
-      \item if \xmlNode{Point} or \xmlNode{PointSet},\xmlNode{outputPivotValue}, \xmlDesc{float, optional field},  the value of the \xmlNode{pivotParameter}
+      \item if \xmlNode{PointSet},\xmlNode{outputPivotValue}, \xmlDesc{float, optional field},  the value of the \xmlNode{pivotParameter}
          at which the output space needs to be retrieved. If this node is inputted, the node  \xmlNode{outputRow} can not be inputted (mutually exclusive);
    \end{itemize}
   %
@@ -185,8 +168,8 @@ contain the following optional XML sub-nodes:
        \item the Input space is retrieved from the first row in the CSVs files or HDF5 tables (if the parameters specified are not among the variables sampled by RAVEN);
        \item  the output space defaults are as follows:
        \begin{itemize}
-           \item if \xmlNode{Point} or \xmlNode{PointSet}, the output space is retrieved from the last row in the CSVs files or HDF5 tables;
-           \item if \xmlNode{History} or \xmlNode{HistorySet}, the output space is represented by all the rows found in  the CSVs or HDF5 tables.
+           \item if \xmlNode{PointSet}, the output space is retrieved from the last row in the CSVs files or HDF5 tables;
+           \item if \xmlNode{HistorySet}, the output space is represented by all the rows found in  the CSVs or HDF5 tables.
         \end{itemize}
     \end{itemize}
 \end{itemize}
@@ -210,14 +193,6 @@ contain the following optional XML sub-nodes:
         <Input>pipe_Area,pipe_Dh,Dummy1</Input>
         <Output>pipe_Hw,pipe_Tw,time</Output>
     </PointSet>
-    <Point name='outTP'>
-        <options>
-            <inputRow>-1</inputRow>
-            <operator>max</operator>
-        </options>
-        <Input>pipe_Area,pipe_Dh,Dummy1</Input>
-        <Output>pipe_Hw,pipe_Tw,time</Output>
-    </Point>
     <HistorySet name='stories1'>
         <options>
             <inputRow>1</inputRow>
@@ -234,22 +209,6 @@ contain the following optional XML sub-nodes:
         <Input>pipe_Area,pipe_Dh</Input>
         <Output>pipe_Hw,pipe_Tw,time</Output>
     </HistorySet>
-    <History name='hst1'>
-        <options>
-            <inputRow>1</inputRow>
-        </options>
-        <Input>pipe_Area,pipe_Dh</Input>
-        <Output>pipe_Hw,pipe_Tw,time</Output>
-    </History>
-    <History name='hst2'>
-        <options>
-            <inputRow>-1</inputRow>
-            <pivotParameter>time</pivotParameter>
-            <outputPivotValue>0.0002 0.0003 0.0004</outputPivotValue>
-        </options>
-        <Input>pipe_Area,pipe_Dh</Input>
-        <Output>pipe_Hw,pipe_Tw,time</Output>
-    </History>
   </DataObjects>
 \end{lstlisting}
 
@@ -272,8 +231,8 @@ The Database objects are defined within the main XML block called
   ...
   <Databases>
     ...
-    <HDF5 name="aDatabaseName1"/>
-    <HDF5 name="aDatabaseName2"/>
+    <HDF5 name="aDatabaseName1" readMode="overwrite"/>
+    <HDF5 name="aDatabaseName2" readMode="overwrite"/>
     ...
   </Databases>
   ...
@@ -289,6 +248,9 @@ XML block \xmlNode{HDF5}, that recognizes the following attributes:
   %
   \nb As with other objects, this is name can be used to reference this specific
   entity from other input blocks in the XML.
+  \item \xmlAttr{readMode}, \xmlDesc{required string attribute}, defines whether an existing database should
+    be read when loaded (\xmlString{read}) or overwritten (\xmlString{overwrite}).
+  %
   \item \xmlAttr{directory}, \xmlDesc{optional string attribute}, this attribute
   can be used to specify a particular directory path where the database will be
   created, if no \textit{filename} is specified, or where to find an already
@@ -328,7 +290,7 @@ XML block \xmlNode{HDF5}, that recognizes the following attributes:
 
 \begin{lstlisting}[style=XML,morekeywords={directory,filename}]
 <Databases>
-  <HDF5 name="aDatabaseName1" directory=''path_to_a_dir'' compression=''lzf''/>
-  <HDF5 name="aDatabaseName2" filename=''aDatabaseName2.h5''/>
+  <HDF5 name="aDatabaseName1" directory=''path_to_a_dir'' compression=''lzf'' readMode='overwrite'/>
+  <HDF5 name="aDatabaseName2" filename=''aDatabaseName2.h5'' readMode='read'/>
 </Databases>
 \end{lstlisting}

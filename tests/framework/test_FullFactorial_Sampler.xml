@@ -115,7 +115,7 @@
     </PointSet>
   </DataObjects>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="2levelFact_dump">
       <type>csv</type>
       <source>2levelFactData</source>
@@ -128,7 +128,7 @@
       <type>csv</type>
       <source>fullFactData</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
   <Steps>
     <MultiRun name="2levelFractFactorialStep">
@@ -137,7 +137,7 @@
       <Sampler class="Samplers" type="FactorialDesign">2levelFractFactorial</Sampler>
       <Output class="DataObjects" type="PointSet">2levelFactData</Output>
       <Output class="Databases" type="HDF5">test_DummyModelFactorial_db</Output>
-      <Output class="OutStreamManager" type="Print">2levelFact_dump</Output>
+      <Output class="OutStreams" type="Print">2levelFact_dump</Output>
     </MultiRun>
     <MultiRun name="pbFactorialStep">
       <Input class="DataObjects" type="PointSet">pbDatadummyIN</Input>
@@ -145,7 +145,7 @@
       <Sampler class="Samplers" type="FactorialDesign">pbFactorial</Sampler>
       <Output class="DataObjects" type="PointSet">pbData</Output>
       <Output class="Databases" type="HDF5">test_DummyModelFactorial_db</Output>
-      <Output class="OutStreamManager" type="Print">pb_dump</Output>
+      <Output class="OutStreams" type="Print">pb_dump</Output>
     </MultiRun>
     <MultiRun name="fullFactStep">
       <Input class="DataObjects" type="PointSet">fullFactDatadummyIN</Input>
@@ -153,12 +153,12 @@
       <Sampler class="Samplers" type="FactorialDesign">fullFactorial</Sampler>
       <Output class="DataObjects" type="PointSet">fullFactData</Output>
       <Output class="Databases" type="HDF5">test_DummyModelFactorial_db</Output>
-      <Output class="OutStreamManager" type="Print">fullFact_dump</Output>
+      <Output class="OutStreams" type="Print">fullFact_dump</Output>
     </MultiRun>
   </Steps>
 
   <Databases>
-    <HDF5 name="test_DummyModelFactorial_db"/>
+    <HDF5 name="test_DummyModelFactorial_db" readMode="overwrite"/>
   </Databases>
 
 </Simulation>

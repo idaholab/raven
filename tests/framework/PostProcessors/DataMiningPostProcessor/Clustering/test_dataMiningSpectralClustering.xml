@@ -26,17 +26,17 @@
     </IOStep>
     <IOStep name="output" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">DataSets</Input>
-      <Output class="OutStreamManager" type="Plot">PlotSpectralBlobs</Output>
+      <Output class="OutStreams" type="Plot">PlotSpectralBlobs</Output>
     </IOStep>
     <PostProcess name="SpectralBlobs" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">DataSets</Input>
       <Model class="Models" type="PostProcessor">SpectralBlobs</Model>
       <Output class="DataObjects" type="PointSet">DataSets</Output>
-      <Output class="OutStreamManager" type="Print">dummy</Output>
+      <Output class="OutStreams" type="Print">dummy</Output>
     </PostProcess>
   </Steps>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="dummy">
       <type>csv</type>
       <source>DataSets</source>
@@ -44,11 +44,11 @@
     <Plot dim="2" name="PlotSpectralBlobs" overwrite="false">
       <plotSettings>
         <plot>
-          <type>dataMining</type>
-          <SKLtype>cluster</SKLtype>
+          <type>scatter</type>
           <x>DataSets|input|x1</x>
           <y>DataSets|input|x2</y>
-          <clusterLabels>DataSets|Output|SpectralBlobsLabels</clusterLabels>
+          <cmap>Set1</cmap>
+          <colorMap>DataSets|Output|SpectralBlobsLabels</colorMap>
           <kwargs>
             <edgecolor>None</edgecolor>
           </kwargs>
@@ -57,8 +57,9 @@
       <actions>
         <how>png</how>
       </actions>
+      <filename>scatter</filename>
     </Plot>
-  </OutStreamManager>
+  </OutStreams>
 
   <DataObjects>
     <PointSet name="DataSets">

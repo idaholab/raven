@@ -132,15 +132,15 @@
     <Model   class='Models'           type='ExternalModel'        >PythonModule</Model>
     <Sampler class='Samplers'         type='Grid'                 >GridSampler</Sampler>
     <Output  class='DataObjects'      type='PointSet'         >outGrid</Output>
-    <Output  class='OutStreamManager' type='Plot'                 >plotLocationGrid</Output>
+    <Output  class='OutStreams' type='Plot'                 >plotLocationGrid</Output>
   </MultiRun>
   <MultiRun name='runStratified' pauseAtEnd='True'>
     <Input   class='DataObjects'      type='PointSet'         >dummy</Input>
     <Model   class='Models'           type='ExternalModel'        >PythonModule</Model>
     <Sampler class='Samplers'         type='Stratified'           >StratifiedSampler</Sampler>
     <Output  class='DataObjects'      type='PointSet'         >outStratified</Output>
-    <Output  class='OutStreamManager' type='Plot'                 >plotLocationStratified</Output>
-    <Output  class='OutStreamManager' type='Plot'                 >plotLocationStratifiedY4</Output>
+    <Output  class='OutStreams' type='Plot'                 >plotLocationStratified</Output>
+    <Output  class='OutStreams' type='Plot'                 >plotLocationStratifiedY4</Output>
   </MultiRun>
   <MultiRun name='runDoE'>
     <Input   class='DataObjects'      type='PointSet'          >dummy</Input>
@@ -150,7 +150,7 @@
   </MultiRun>
   <IOStep name='OutstreamDoE' pauseAtEnd='True'>
     <Input   class='DataObjects'      type='PointSet'           >outDoE</Input>
-    <Output  class='OutStreamManager' type='Plot'                   >plotLocationDoE</Output>
+    <Output  class='OutStreams' type='Plot'                   >plotLocationDoE</Output>
   </IOStep>
   <MultiRun name='runMC'>
     <Input   class='DataObjects'      type='PointSet'           >dummy</Input>
@@ -160,8 +160,8 @@
   </MultiRun>
   <IOStep name='OutstreamMC' pauseAtEnd='True'>
     <Input   class='DataObjects'      type='PointSet'           >outMC</Input>
-    <Output  class='OutStreamManager' type='Plot'                   >plotLocationMC</Output>
-    <Output  class='OutStreamManager' type='Print'                  >out_dump</Output>    
+    <Output  class='OutStreams' type='Plot'                   >plotLocationMC</Output>
+    <Output  class='OutStreams' type='Print'                  >out_dump</Output>    
   </IOStep>
   <PostProcess name='PP'>
     <Input    class='DataObjects'     type='PointSet'           >outMC</Input>
@@ -171,7 +171,7 @@
  </Steps>
 
 
-<OutStreamManager>
+<OutStreams>
   <Print name='out_dump'>
     <type>csv</type>
     <source>outMC</source>
@@ -255,7 +255,7 @@
       </title>
     </actions>
   </Plot>
-</OutStreamManager>
+</OutStreams>
 </Simulation>
 
 

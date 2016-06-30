@@ -46,7 +46,7 @@
 
   <Steps>
     <MultiRun name="SamplingMirrowModelGrid" re-seeding="20021986">
-      <Input class="DataObjects" type="Point">inputPlaceHolder</Input>
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
       <Model class="Models" type="ExternalModel">mirrowModel</Model>
       <Sampler class="Samplers" type="Grid">Grid_external</Sampler>
       <Output class="DataObjects" type="PointSet">outputDataGrid</Output>
@@ -56,22 +56,22 @@
       <Model class="Models" type="PostProcessor">analyticalTest</Model>
       <Output class="Files" type="">output_basicStatistics_PP1grid.csv</Output>
       <Output class="DataObjects" type="PointSet">outputDataGrid</Output>
-      <Output class="OutStreamManager" type="Print">outputDatagrid_dump</Output>
+      <Output class="OutStreams" type="Print">outputDatagrid_dump</Output>
     </PostProcess>
   </Steps>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="outputDatagrid_dump">
       <type>csv</type>
       <source>outputDataGrid</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
   <DataObjects>
-    <Point name="inputPlaceHolder">
+    <PointSet name="inputPlaceHolder">
       <Input>x,y</Input>
       <Output>OutputPlaceHolder</Output>
-    </Point>
+    </PointSet>
     <PointSet name="outputDataGrid">
       <Input>x,y</Input>
       <Output>x1,y1</Output>

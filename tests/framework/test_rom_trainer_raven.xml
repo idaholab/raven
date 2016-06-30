@@ -27,7 +27,7 @@
   </Distributions>
 
   <Models>
-    <Code name="MyRAVEN" subType="RAVEN">
+    <Code name="MyRAVEN" subType="RELAP7">
       <executable>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</executable>
     </Code>
     <ROM name="ROM1" subType="SciKitLearn">
@@ -88,23 +88,23 @@
       <Output class="Databases" type="HDF5">MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER</Output>
     </MultiRun>
     <MultiRun name="rom_MC" re-seeding="200286">
-      <Input class="DataObjects" type="Point">data_for_sampling_empty_at_begin</Input>
+      <Input class="DataObjects" type="PointSet">data_for_sampling_empty_at_begin</Input>
       <Model class="Models" type="ROM">ROM1</Model>
       <Sampler class="Samplers" type="MonteCarlo">RAVENmc3</Sampler>
       <Output class="DataObjects" type="PointSet">outputMontecarloRom</Output>
-      <Output class="OutStreamManager" type="Print">outputMontecarloRom_dump</Output>
+      <Output class="OutStreams" type="Print">outputMontecarloRom_dump</Output>
     </MultiRun>
     <MultiRun name="rom_MC_nd_interpolator">
       <Input class="DataObjects" type="Point">data_for_sampling_empty_at_begin_nd</Input>
       <Model class="Models" type="ROM">ROM2</Model>
       <Sampler class="Samplers" type="MonteCarlo">RAVENmcND</Sampler>
       <Output class="DataObjects" type="PointSet">outputMontecarloRomND</Output>
-      <Output class="OutStreamManager" type="Print">outputMontecarloRomND_dump</Output>
+      <Output class="OutStreams" type="Print">outputMontecarloRomND_dump</Output>
     </MultiRun>
     <IOStep name="test_extract_for_rom_trainer" verbosity="debug">
       <Input class="Databases" type="HDF5">MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER</Input>
       <Output class="DataObjects" type="PointSet">Pointset_from_database_for_rom_trainer</Output>
-      <Output class="OutStreamManager" type="Print">ciccio</Output>
+      <Output class="OutStreams" type="Print">ciccio</Output>
     </IOStep>
     <RomTrainer name="test_rom_trainer" verbosity="debug">
       <Input class="DataObjects" type="PointSet">Pointset_from_database_for_rom_trainer</Input>
@@ -116,7 +116,7 @@
     </RomTrainer>
   </Steps>
 
-  <OutStreamManager>
+  <OutStreams>
     <Print name="outputMontecarloRom_dump">
       <type>csv</type>
       <source>outputMontecarloRom</source>
@@ -129,27 +129,27 @@
       <type>csv</type>
       <source>Pointset_from_database_for_rom_trainer</source>
     </Print>
-  </OutStreamManager>
+  </OutStreams>
 
   <Databases>
-    <HDF5 name="MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER"/>
+    <HDF5 name="MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER" readMode="overwrite"/>
   </Databases>
 
   <DataObjects>
-    <Point historyName="1" name="data_for_sampling_empty_at_begin">
+    <PointSet name="data_for_sampling_empty_at_begin">
       <options>
         <inputRow>2</inputRow>
       </options>
       <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
       <Output>OutputPlaceHolder</Output>
-    </Point>
-    <Point historyName="1" name="data_for_sampling_empty_at_begin_nd">
+    </PointSet>
+    <PointSet name="data_for_sampling_empty_at_begin_nd">
       <options>
         <inputRow>2</inputRow>
       </options>
       <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
       <Output>OutputPlaceHolder</Output>
-    </Point>
+    </PointSet>
     <PointSet name="Pointset_from_database_for_rom_trainer">
       <options>
         <inputRow>2</inputRow>

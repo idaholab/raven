@@ -1,22 +1,21 @@
-'''
-Module containing interface with SciKit-Learn clustering
-Created on Feb 13, 2015
+"""
+  Module containing interface with SciKit-Learn clustering
+  Created on Feb 13, 2015
 
-@author: senrs
+  @author: senrs
 
-TODO:
-For Clustering:
-1) paralleization: n_jobs parameter to some of the algorithms
-2) find a smarter way to choose the parameters that are used as default, eg:
-   number of clusters, init, leaf_size, etc.
-3) dimensionality reduction: maybe using PCA
+  TODO:
+  For Clustering:
+  1) paralleization: n_jobs parameter to some of the algorithms
+  2) find a smarter way to choose the parameters that are used as default, eg:
+     number of clusters, init, leaf_size, etc.
+  3) dimensionality reduction: maybe using PCA
 
-unSuperVisedLearning: Include other algorithms, such as:
-1) Gaussian Mixture models
-2) Manifold Learning,
-3) BiClustering, etc...
-
-'''
+  unSuperVisedLearning: Include other algorithms, such as:
+  1) Gaussian Mixture models
+  2) Manifold Learning,
+  3) BiClustering, etc...
+"""
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
@@ -30,6 +29,7 @@ from sklearn.neighbors import kneighbors_graph
 import numpy as np
 import abc
 import ast
+import copy
 #External Modules End--------------------------------------------------------------------------------
 #Internal Modules------------------------------------------------------------------------------------
 import utils
@@ -38,34 +38,34 @@ import MessageHandler
 
 class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.MessageUser):
   """
-  This is the general interface to any unSuperisedLearning learning method.
-  Essentially it contains a train, and evaluate methods
+    This is the general interface to any unSuperisedLearning learning method.
+    Essentially it contains a train, and evaluate methods
   """
   returnType = ''  # this describe the type of information generated the possibility are 'boolean', 'integer', 'float'
   modelType = ''  # the broad class of the interpolator
 
   @staticmethod
-  def checkArrayConsistency(arrayin):
+  def checkArrayConsistency(arrayIn):
     """
-    This method checks the consistency of the in-array
-    @ In, object... It should be an array
-    @ Out, tuple, tuple[0] is a bool (True -> everything is ok, False -> something wrong), tuple[1], string ,the error mesg
+      This method checks the consistency of the in-array
+      @ In, arrayIn, object,  It should be an array
+      @ Out, (consistent, 'error msg'), tuple, tuple[0] is a bool (True -> everything is ok, False -> something wrong), tuple[1], string ,the error mesg
     """
-    if type(arrayin) != np.ndarray: return (False, ' The object is not a numpy array')
+    if type(arrayIn) != np.ndarray: return (False, ' The object is not a numpy array')
     # The input data matrix kind is different for different clustering algorithms
     # e.g. [n_samples, n_features] for MeanShift and KMeans
     #     [n_samples,n_samples]   for AffinityPropogation and SpectralCLustering
     # In other words, MeanShift and KMeans work with points in a vector space,
     # whereas AffinityPropagation and SpectralClustering can work with arbitrary objects, as long as a similarity measure exists for such objects
     # The input matrix supplied to unSupervisedLearning models as 1-D arrays of size [n_samples], (either n_features of or n_samples of them)
-    if len(arrayin.shape) != 1: return(False, ' The array must be 1-d')
+    if len(arrayIn.shape) != 1: return(False, ' The array must be 1-d')
     return (True, '')
 
   def __init__(self, messageHandler, **kwargs):
     """
-     constructor for unSupervisedLearning class.
-     @ In, messageHandler, objcet, Message handler object
-     @ In, kwargs, dict, arguments for the unsupervised learning algorithm
+      constructor for unSupervisedLearning class.
+      @ In, messageHandler, object, Message handler object
+      @ In, kwargs, dict, arguments for the unsupervised learning algorithm
     """
     self.printTag = 'unSupervised'
     self.messageHandler = messageHandler
@@ -92,7 +92,7 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
       Method to perform the training of the unSuperVisedLearning algorithm
       NB.the unSuperVisedLearning object is committed to convert the dictionary that is passed (in), into the local format
       the interface with the kernels requires. So far the base class will do the translation into numpy
-      @ In, tdict, dictionary, training dictionary
+      @ In, tdict, dict, training dictionary
       @ Out, None
     """
     if type(tdict) != dict: self.raiseAnError(IOError, ' method "train". The training set needs to be provided through a dictionary. Type of the in-object is ' + str(type(tdict)))
@@ -118,22 +118,22 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
 
   def _localNormalizeData(self, values, names, feat):
     """
-    Method to normalize data based on the mean and standard deviation.  If undesired for a particular algorithm,
-    this method can be overloaded to simply pass.
-    @ In, values, list,  list of feature values (from tdict)
-    @ In, names,  list,  names of features (from tdict)
-    @ In, feat, list, list of features (from Model)
-    @ Out, None
+      Method to normalize data based on the mean and standard deviation.  If undesired for a particular algorithm,
+      this method can be overloaded to simply pass.
+      @ In, values, list,  list of feature values (from tdict)
+      @ In, names,  list,  names of features (from tdict)
+      @ In, feat, list, list of features (from Model)
+      @ Out, None
     """
     self.muAndSigmaFeatures[feat] = (np.average(values[names.index(feat)]), np.std(values[names.index(feat)]))
 
   def evaluate(self, edict):
     """
-    Method to perform the evaluation of a point or a set of points through the previous trained unSuperVisedLearning algorithm
-    NB.the superVisedLearning object is committed to convert the dictionary that is passed (in), into the local format
-    the interface with the kernels requires.
-    @ In, tdict, dict, evaluation dictionary
-    @ Out, ...., numpy array,  array of evaluated points
+      Method to perform the evaluation of a point or a set of points through the previous trained unSuperVisedLearning algorithm
+      NB.the superVisedLearning object is committed to convert the dictionary that is passed (in), into the local format
+      the interface with the kernels requires.
+      @ In, edict, dict, evaluation dictionary
+      @ Out, evaluation, numpy.array, array of evaluated points
     """
     if type(edict) != dict: self.raiseAnError(IOError, ' Method "evaluate". The evaluate request/s need/s to be provided through a dictionary. Type of the in-object is ' + str(type(edict)))
     names, values = list(edict.keys()), list(edict.values())
@@ -150,14 +150,15 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
         resp = self.checkArrayConsistency(values[names.index(feat)])
         if not resp[0]: self.raiseAnError(IOError, ' In training set for feature ' + feat + ':' + resp[1])
         featureValues[:, cnt] = ((values[names.index(feat)] - self.muAndSigmaFeatures[feat][0])) / self.muAndSigmaFeatures[feat][1]
-    return self.__evaluateLocal__(featureValues)
+    evaluation = self.__evaluateLocal__(featureValues)
+    return evaluation
 
   def confidence(self):
     """
-    This call is used to get an estimate of the confidence in the prediction of the clusters.
-    The base class self.confidence checks if the clusters are already evaluated (trained) then calls the local confidence
-    @ In, none
-    @ Out, none
+      This call is used to get an estimate of the confidence in the prediction of the clusters.
+      The base class self.confidence checks if the clusters are already evaluated (trained) then calls the local confidence
+      @ In, none
+      @ Out, confidence, float, the confidence
     """
     if self.amITrained: return self.__confidenceLocal__()
     else:               self.raiseAnError(IOError, ' The confidence check is performed before evaluating the clusters.')
@@ -166,29 +167,32 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
   @abc.abstractmethod
   def __trainLocal__(self):
     """
-    Perform training...
-    @ In, none
-    @ Out, none
+      Perform training...
+      @ In, none
+      @ Out, none
     """
 
   @abc.abstractmethod
   def __evaluateLocal__(self, featureVals):
     """
-    @ In,  featureVals, 2-D numpy array [n_samples,n_features]
-    @ Out, targetVals , 1-D numpy array [n_samples]
+      @ In,  featureVals, 2-D numpy.array, [n_samples,n_features]
+      @ Out, targetVals , 1-D numpy.array, [n_samples]
     """
 
   @abc.abstractmethod
   def __confidenceLocal__(self):
     """
-    This should return an estimation of the quality of the prediction.
-    @ In, none
-    @ Out, none
+      This should return an estimation of the quality of the prediction.
+      @ In, none
+      @ Out, none
      """
 #
 #
 
 class SciKitLearn(unSupervisedLearning):
+  """
+    SciKitLearn interface for unsupervised Learning
+  """
   modelType = 'SciKitLearn'
   availImpl = {}
   availImpl['cluster'] = {}  # Generalized Cluster
@@ -253,8 +257,9 @@ class SciKitLearn(unSupervisedLearning):
   def __init__(self, messageHandler, **kwargs):
     """
      constructor for SciKitLearn class.
-     @ In, messageHandler, object, Message handler object
+     @ In, messageHandler, MessageHandler, Message handler object
      @ In, kwargs, dict, arguments for the SciKitLearn algorithm
+     @ Out, None
     """
     unSupervisedLearning.__init__(self, messageHandler, **kwargs)
     self.printTag = 'SCIKITLEARN'
@@ -295,9 +300,9 @@ class SciKitLearn(unSupervisedLearning):
 
   def __trainLocal__(self):
     """
-    Perform training on samples in self.normValues: array, shape = [n_samples, n_features] or [n_samples, n_samples]
-    @ In, none
-    @ out, none
+      Perform training on samples in self.normValues: array, shape = [n_samples, n_features] or [n_samples, n_samples]
+      @ In, None
+      @ Out, None
     """
     if hasattr(self.Method, 'bandwidth'):  # set bandwidth for MeanShift clustering
       self.initOptionDict['bandwidth'] = cluster.estimate_bandwidth(self.normValues,quantile=0.3)
@@ -310,6 +315,12 @@ class SciKitLearn(unSupervisedLearning):
 
     self.outputDict['outputs'] = {}
     self.outputDict['inputs' ] = self.normValues
+    ## What are you doing here? Calling half of these methods does nothing
+    ## unless you store the data somewhere. If you are going to blindly call
+    ## whatever methods that exist in the class, then at least store them for
+    ## later. Why is this done again on the PostProcessor side? I am struggling
+    ## to understand what this code's purpose is except to obfuscate our
+    ## interaction with skl.
     if   hasattr(self.Method, 'fit_predict'):
         self.Method.fit_predict(self.normValues)
     elif hasattr(self.Method, 'predict'):
@@ -324,80 +335,105 @@ class SciKitLearn(unSupervisedLearning):
     if 'cluster' == self.SKLtype:
         if hasattr(self.Method, 'n_clusters') :
             self.noClusters = self.Method.n_clusters
-            self.outputDict['outputs']['noClusters'           ] = self.noClusters
+            self.outputDict['outputs']['noClusters'           ] = copy.deepcopy(self.noClusters)
         if hasattr(self.Method, 'labels_') :
             self.labels_ = self.Method.labels_
-            self.outputDict['outputs']['labels'               ] = self.labels_
+            self.outputDict['outputs']['labels'               ] = copy.deepcopy(self.labels_)
         if hasattr(self.Method, 'cluster_centers_') :
-            self.clusterCenters_ = self.Method.cluster_centers_
+            self.clusterCenters_ = copy.deepcopy(self.Method.cluster_centers_)
+            ## I hope these arrays are consistently ordered...
+            ## We are mixing our internal storage of muAndSigma with SKLs
+            ## representation of our data, I believe it is fair to say that we
+            ## hand the data to SKL in the same order that we have it stored.
+            for cnt, feat in enumerate(self.features):
+              for center in self.clusterCenters_:
+                center[cnt] = center[cnt] * self.muAndSigmaFeatures[feat][1] + self.muAndSigmaFeatures[feat][0]
             self.outputDict['outputs']['clusterCenters'       ] = self.clusterCenters_
         if hasattr(self.Method, 'cluster_centers_indices_') :
-            self.clusterCentersIndices_ = self.Method.cluster_centers_indices_
+            self.clusterCentersIndices_ = copy.deepcopy(self.Method.cluster_centers_indices_)
             self.outputDict['outputs']['clusterCentersIndices'] = self.clusterCentersIndices_
         if hasattr(self.Method, 'inertia_') :
             self.inertia_ = self.Method.inertia_
             self.outputDict['outputs']['inertia'              ] = self.inertia_
     elif 'mixture' == self.SKLtype:
         if hasattr(self.Method, 'weights_') :
-            self.weights_ = self.Method.weights_
-            self.outputDict['outputs']['weights'  ] = self.weights_
+            self.weights_ = copy.deepcopy(self.Method.weights_)
+            self.outputDict['outputs']['weights'  ] = copy.deepcopy(self.weights_)
         if hasattr(self.Method, 'means_') :
-            self.means_ = self.Method.means_
+            self.means_ = copy.deepcopy(self.Method.means_)
+
+            ## I hope these arrays are consistently ordered...
+            ## We are mixing our internal storage of muAndSigma with SKLs
+            ## representation of our data, I believe it is fair to say that we
+            ## hand the data to SKL in the same order that we have it stored.
+            for cnt, feat in enumerate(self.features):
+              for center in self.means_:
+                center[cnt] = center[cnt] * self.muAndSigmaFeatures[feat][1] + self.muAndSigmaFeatures[feat][0]
+
             self.outputDict['outputs']['means'    ] = self.means_
         if hasattr(self.Method, 'covars_') :
-            self.covars_ = self.Method.covars_
+            self.covars_ = copy.deepcopy(self.Method.covars_)
+
+            ## I hope these arrays are consistently ordered...
+            ## We are mixing our internal storage of muAndSigma with SKLs
+            ## representation of our data, I believe it is fair to say that we
+            ## hand the data to SKL in the same order that we have it stored.
+            for row, rowFeat in enumerate(self.features):
+              for col, colFeat in enumerate(self.features):
+                self.covars_[row,col] = self.covars_[row,col] * self.muAndSigmaFeatures[rowFeat][1] * self.muAndSigmaFeatures[colFeat][1]
+
             self.outputDict['outputs']['covars'   ] = self.covars_
         if hasattr(self.Method, 'precs_') :
-            self.precs_ = self.Method.precs_
+            self.precs_ = copy.deepcopy(self.Method.precs_)
             self.outputDict['outputs']['precs_'   ] = self.precs_
         if hasattr(self.Method, 'converged_') :
             if not self.Method.converged_ : self.raiseAnError(RuntimeError, self.SKLtype + '|' + self.SKLsubType + ' did not converged. (from KDD->' + self.SKLsubType + ')')
-            self.converged_ = self.Method.converged_
+            self.converged_ = copy.deepcopy(self.Method.converged_)
             self.outputDict['outputs']['converged'] = self.converged_
     elif 'manifold' == self.SKLtype:
-        self.outputDict['outputs']['noComponents'] = self.noComponents_
+        self.outputDict['outputs']['noComponents'] = copy.deepcopy(self.noComponents_)
         if hasattr(self.Method, 'embedding_'):
-            self.embeddingVectors_ = self.Method.embedding_
-            self.outputDict['outputs']['embeddingVectors_'] = self.embeddingVectors_
+            self.embeddingVectors_ = copy.deepcopy(self.Method.embedding_)
+            self.outputDict['outputs']['embeddingVectors_'] = copy.deepcopy(self.embeddingVectors_)
         if hasattr(self.Method, 'reconstruction_error_'):
-            self.reconstructionError_ = self.Method.reconstruction_error_
-            self.outputDict['outputs']['reconstructionError_'] = self.reconstructionError_
+            self.reconstructionError_ = copy.deepcopy(self.Method.reconstruction_error_)
+            self.outputDict['outputs']['reconstructionError_'] = copy.deepcopy(self.reconstructionError_)
     elif 'decomposition' == self.SKLtype:
-        self.outputDict['outputs']['noComponents'] = self.noComponents_
+        self.outputDict['outputs']['noComponents'] = copy.deepcopy(self.noComponents_)
         if hasattr(self.Method, 'components_'):
-            self.components_ = self.Method.components_
+            self.components_ = copy.deepcopy(self.Method.components_)
             self.outputDict['outputs']['components'] = self.components_
         if hasattr(self.Method, 'means_'):
-            self.means_ = self.Method.means_
+            self.means_ = copy.deepcopy(self.Method.means_)
             self.outputDict['outputs']['means'] = self.means_
         if hasattr(self.Method, 'explained_variance_'):
-            self.explainedVariance_ = self.Method.explained_variance_
+            self.explainedVariance_ = copy.deepcopy(self.Method.explained_variance_)
             self.outputDict['outputs']['explainedVariance'] = self.explainedVariance_
         if hasattr(self.Method, 'explained_variance_ratio_'):
-            self.explainedVarianceRatio_ = self.Method.explained_variance_ratio_
+            self.explainedVarianceRatio_ = copy.deepcopy(self.Method.explained_variance_ratio_)
             self.outputDict['outputs']['explainedVarianceRatio'] = self.explainedVarianceRatio_
     else: print ('Not Implemented yet!...', self.SKLtype)
-    '''
-    elif 'bicluster' == self.SKLtype:
-        if hasattr(self.Method, 'n_clusters') :
-            self.noClusters = self.Method.n_clusters
-            self.outputDict['outputs']['noClusters'           ] = self.noClusters
-        if hasattr(self.Method, 'row_labels_') :
-            self.rowLabels_ = self.Method.row_labels_
-            self.outputDict['outputs']['rowLabels'            ] = self.rowLabels_
-        if hasattr(self.Method, 'column_labels_') :
-            self.columnLabels_ = self.Method.column_labels_
-            self.outputDict['outputs']['columnLabels'         ] = self.columnLabels_
-        if hasattr(self.Method, 'bicluster_') :
-            self.biClusters_ = self.Method.biClusters_
-            self.outputDict['outputs']['biClusters'           ] = self.biClusters_
-    '''
+
+#     elif 'bicluster' == self.SKLtype:
+#         if hasattr(self.Method, 'n_clusters') :
+#             self.noClusters = self.Method.n_clusters
+#             self.outputDict['outputs']['noClusters'           ] = self.noClusters
+#         if hasattr(self.Method, 'row_labels_') :
+#             self.rowLabels_ = self.Method.row_labels_
+#             self.outputDict['outputs']['rowLabels'            ] = self.rowLabels_
+#         if hasattr(self.Method, 'column_labels_') :
+#             self.columnLabels_ = self.Method.column_labels_
+#             self.outputDict['outputs']['columnLabels'         ] = self.columnLabels_
+#         if hasattr(self.Method, 'bicluster_') :
+#             self.biClusters_ = self.Method.biClusters_
+#             self.outputDict['outputs']['biClusters'           ] = self.biClusters_
+
 
   def __evaluateLocal__(self, featureVals):
     """
-    Method to return labels of an already trained unSuperVised algorithm.
-    @ In, featureVals, array, feature values
-    @ Out, self.labels_, array, labels
+      Method to return labels of an already trained unSuperVised algorithm.
+      @ In, featureVals, numpy.array, feature values
+      @ Out, self.labels_, numpy.array, labels
     """
     self.normValues = featureVals
     if hasattr(self.Method, 'predict'): self.labels_ = self.Method.predict(featureVals)
@@ -411,9 +447,9 @@ class SciKitLearn(unSupervisedLearning):
 
   def __confidenceLocal__(self):
     """
-    This should return an estimation dictionary of the quality of the prediction.
-    @ In, none
-    @ Out, self.outputdict['confidence'], dict, dictionary of the confidence metrics of the algorithms
+      This should return an estimation dictionary of the quality of the prediction.
+      @ In, None
+      @ Out, self.outputdict['confidence'], dict, dictionary of the confidence metrics of the algorithms
     """
     self.outputDict['confidence'] = {}
     if 'cluster' == self.SKLtype:
@@ -442,21 +478,21 @@ __base = 'unSuperVisedLearning'
 
 def returnInstance(modelClass, caller, **kwargs):
   """
-  This function return an instance of the request model type
-  @In, modelClass, string, representing the instance to create
-  @In, caller, object, object that will share its messageHandler instance
-  @In, kwargs, dict, a dictionary specifying the keywords and values needed to create the instance.
-  @Out, object,  an instance of a Model
+    This function return an instance of the request model type
+    @ In, modelClass, string, representing the instance to create
+    @ In, caller, object, object that will share its messageHandler instance
+    @ In, kwargs, dict, a dictionary specifying the keywords and values needed to create the instance.
+    @ Out, object, an instance of a Model
   """
   try: return __interfaceDict[modelClass](caller.messageHandler, **kwargs)
   except KeyError: caller.raiseAnError(NameError, 'unSuperVisedLEarning', 'Not known ' + __base + ' type ' + str(modelClass))
 
 def returnClass(modelClass, caller):
   """
-  This function return an instance of the request model type
-  @In, modelClass, string, representing the class to retrieve
-  @In, caller, object, object that will share its messageHandler instance
-  @Out, the class definition of the Model
+    This function return an instance of the request model type
+    @ In, modelClass, string, representing the class to retrieve
+    @ In, caller, object, object that will share its messageHandler instance
+    @ Out, the class definition of the Model
   """
   try: return __interfaceDict[modelClass]
   except KeyError: caller.raiseanError(NameError, 'unSuperVisedLEarning', 'not known ' + __base + ' type ' + modelClass)

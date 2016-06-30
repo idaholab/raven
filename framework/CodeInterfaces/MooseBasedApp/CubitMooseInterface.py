@@ -7,32 +7,40 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
-import os
 import copy
-import Files
 from CodeInterfaceBaseClass import CodeInterfaceBase
-from MooseBasedAppInterface import MooseBasedAppInterface
-from CubitInterface         import CubitInterface
+from MooseBasedAppInterface import MooseBasedApp
+from CubitInterface         import Cubit
 
-class CubitMooseInterface(CodeInterfaceBase): #MooseBasedAppInterface,CubitInterface):
-  """This class provides the means to generate a stochastic-input-based mesh using the MOOSE
-     standard Cubit python script in addition to uncertain inputs for the MOOSE app."""
+class CubitMoose(CodeInterfaceBase): #MooseBasedAppInterface,CubitInterface):
+  """
+    This class provides the means to generate a stochastic-input-based mesh using the MOOSE
+    standard Cubit python script in addition to uncertain inputs for the MOOSE app.
+    @ In, None
+    @ Out, None
+  """
 
   def __init__(self):
+    """
+      Constructor
+      @ In, None
+      @ Out, None
+    """
     CodeInterfaceBase.__init__(self)
-    self.MooseInterface = MooseBasedAppInterface()
-    self.CubitInterface = CubitInterface()
+    self.MooseInterface = MooseBasedApp()
+    self.CubitInterface = Cubit()
     self.MooseInterface.addDefaultExtension()
     self.CubitInterface.addDefaultExtension()
 
   def findInps(self,inputFiles):
-    """Locates the input files for Moose, Cubit
-    @ In, inputFiles, list of Files objects
-    @Out, (File,File), Moose and Cubit input files
+    """
+      Locates the input files for Moose, Cubit
+      @ In, inputFiles, list of Files objects
+      @ Out, (File,File), Moose and Cubit input files
     """
     foundMooseInp = False
     foundCubitInp = False
-    for index,inFile in enumerate(inputFiles):
+    for inFile in inputFiles:
       if inFile.getType() == 'MooseInput':
         foundMooseInp = True
         mooseInp = inFile
@@ -43,38 +51,39 @@ class CubitMooseInterface(CodeInterfaceBase): #MooseBasedAppInterface,CubitInter
     if not foundCubitInp: raise IOError('None of the input Files has the type "CubitInput"! CubitMoose interface requires one.')
     return mooseInp,cubitInp
 
-  def generateCommand(self,inputFiles,executable,clargs=None,fargs=None, preexec = None):
-    """Generate a multi-line command that runs both the Cubit mesh generator and then the
-       desired MOOSE run.
-    See base class.  Collects all the clargs and the executable to produce the command-line call.
-    Returns tuple of commands and base file name for run.
-    Commands are a list of tuples, indicating parallel/serial and the execution command to use.
-    @ In, inputFiles, the input files to be used for the run
-    @ In, executable, the executable to be run
-    @ In, clargs, command-line arguments to be used
-    @ In, fargs, in-file changes to be made
-    @Out, tuple( list(tuple(serial/parallel, exec_command)), outFileRoot string)
+  def generateCommand(self,inputFiles,executable,clargs=None,fargs=None, preExec = None):
     """
-    if preexec is None:
-      raise IOError('No preexec listed in input!  Use MooseBasedAppInterface if mesh is not perturbed.  Exiting...')
+      Generate a multi-line command that runs both the Cubit mesh generator and then the desired MOOSE run.
+      See base class.  Collects all the clargs and the executable to produce the command-line call.
+      Returns tuple of commands and base file name for run.
+      Commands are a list of tuples, indicating parallel/serial and the execution command to use.
+      @ In, inputFiles, list, List of input files (lenght of the list depends on the number of inputs have been added in the Step is running this code)
+      @ In, executable, string, executable name with absolute path (e.g. /home/path_to_executable/code.exe)
+      @ In, clargs, dict, optional, dictionary containing the command-line flags the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 i0extension =0 .inp0/ >< /Code >)
+      @ In, fargs, dict, optional, a dictionary containing the axuiliary input file variables the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 aux0extension =0 .aux0/ >< /Code >)
+      @ In, preExec, string, a string the command that needs to be pre-executed before the actual command here defined
+      @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the code (string), returnCommand[1] is the name of the output root
+    """
+    if preExec is None: raise IOError('No preExec listed in input!  Use MooseBasedAppInterface if mesh is not perturbed.  Exiting...')
     mooseInp,cubitInp = self.findInps(inputFiles)
     #get the cubit part
-    cubitCommand,cubitOut = self.CubitInterface.generateCommand([cubitInp],preexec,clargs,fargs)
+    cubitCommand,_ = self.CubitInterface.generateCommand([cubitInp],preExec,clargs,fargs)
     #get the moose part
     mooseCommand,mooseOut = self.MooseInterface.generateCommand([mooseInp],executable,clargs,fargs)
     #combine them
-    #executeCommand = ' && '.join([cubitCommand,mooseCommand])
-    executeCommand = cubitCommand + mooseCommand
-    print('ExecutionCommand:',executeCommand,'\n')
-    return executeCommand,mooseOut #can only send one...#(cubitOut,mooseOut)
+    returnCommand = cubitCommand + mooseCommand, mooseOut #can only send one...#(cubitOut,mooseOut)
+    print('ExecutionCommand:',returnCommand[0],'\n')
+    return returnCommand
 
   def createNewInput(self,currentInputFiles,origInputFiles,samplerType,**Kwargs):
-    """Generates new perturbed input files.
-    @ In, currrentInputFiles, list of Files objects, most recently perturbed files
-    @ In, origInputFiles, the template input files originally shown
-    @ In, samplerType, the sampler type used (not used in this algorithm)
-    @ In, Kwargs, dictionary of key-val pairs
-    @Out, list of perturbed Files
+    """
+      Generates new perturbed input files.
+      @ In, currentInputFiles, list,  list of current input files (input files from last this method call)
+      @ In, oriInputFiles, list, list of the original input files
+      @ In, samplerType, string, Sampler type (e.g. MonteCarlo, Adaptive, etc. see manual Samplers section)
+      @ In, Kwargs, dictionary, kwarded dictionary of parameters. In this dictionary there is another dictionary called "SampledVars"
+             where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
+      @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
     """
     mooseInp,cubitInp = self.findInps(currentInputFiles)
     origMooseInp = origInputFiles[currentInputFiles.index(mooseInp)]
@@ -100,22 +109,18 @@ class CubitMooseInterface(CodeInterfaceBase): #MooseBasedAppInterface,CubitInter
     newCubitInputs = self.CubitInterface.createNewInput([cubitInp],[origCubitInp],samplerType,**cargs)
     margs['SampledVars']['Mesh|file'] = 'mesh~'+newCubitInputs[0].getBase()+'.e'#"".join(os.path.split(newCubitInputs[0])[1].split('.')[:-1])+'.e'
     newMooseInputs = self.MooseInterface.createNewInput([mooseInp],[origMooseInp],samplerType,**margs)
-    #make carbon copy of original input files
-    for f in currentInputFiles:
-      if f.isOpen(): f.close()
-    newInputFiles = copy.deepcopy(currentInputFiles)
-    #replace old with new perturbed files, in place TODO is that necessary, really? Does order matter?
     #  if order doesn't matter, can loop through and check for type else copy directly
-    newMooseInp,newCubitInp = self.findInps(newInputFiles)
+    newMooseInp,newCubitInp = self.findInps(currentInputFiles)
     newMooseInp.setAbsFile(newMooseInputs[0].getAbsFile())
     newCubitInp.setAbsFile(newCubitInputs[0].getAbsFile())
-    return newInputFiles
+    return currentInputFiles
 
   def finalizeCodeOutput(self, command, output, workingDir):
-    """Calls finalizeCodeOutput from Cubit Interface to clean up files
-       @ In, command, (string), command used to run the just ended job
-       @ In, output, (string), the Output name root
-       @ In, workingDir, (string), the current working directory
-       @Out, None
+    """
+      Calls finalizeCodeOutput from Cubit Interface to clean up files
+      @ In, command, string, the command used to run the just ended job
+      @ In, output, string, the Output name root
+      @ In, workingDir, string, current working dir
+      @ Out, output, string, optional, present in case the root of the output file gets changed in this method. (not in this case)
     """
     self.CubitInterface.finalizeCodeOutput(command, output, workingDir)

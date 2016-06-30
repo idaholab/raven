@@ -7,6 +7,11 @@ cd $PROJECT_DIR
 
 git clone https://github.com/idaholab/moose.git
 
+cd moose
+export JOBS=3
+./scripts/update_and_rebuild_libmesh.sh
+cd ..
+
 git clone git@hpcgitlab.inl.gov:idaholab/relap-7.git
 
 cd relap-7
