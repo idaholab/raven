@@ -44,7 +44,7 @@ class TextDiff:
           testFile.close()
         except Exception as e:
           self.__same = False
-          self.__messages += "Error reading " + testFilename + ":" + e
+          self.__messages += "Error reading " + testFilename + ":" + str(e) + " "
           filesRead = False
         try:
           goldFile = open(goldFilename)
@@ -53,7 +53,7 @@ class TextDiff:
           goldFile.close()
         except Exception as e:
           self.__same = False
-          self.__messages += "Error reading " + goldFilename + ":" + e
+          self.__messages += "Error reading " + goldFilename + ":" + str(e) + " "
           filesRead = False
 
         if filesRead:
