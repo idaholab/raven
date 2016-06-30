@@ -3,7 +3,7 @@
   <RunInfo>
     <JobName>rodlet_mc</JobName>
     <WorkingDir>./sample</WorkingDir>
-    <batchSize>8</batchSize>
+    <batchSize>6</batchSize>
     <!-- <mode>mpi<runQSUB/></mode>
     <NumMPI>24</NumMPI>
     <expectedTime>1:0:0</expectedTime> -->
@@ -65,12 +65,12 @@
    <DataObjects>
      <PointSet name="collset">
        <Input>power, gas_thC, fuel_thC, fuel_reloc, grain_diffCoeff, grain_res_param, grain_radius, clad_creeprate, clad_ox</Input>
-       <Output>nonlinear_its,max_contact_pressure,_dt,max_clad_temp,fis_gas_released,max_fuel_temp,midplane_radial_disp,midplane_contact_pressure,midplane_vonmises_stress,avg_gap_conductance,gas_volume,ave_temp_interior,max_oxide_thickness,centerline_temp,fis_gas_generated,avg_clad_temp,midplane_hoop_strain,max_radial_disp,midplane_clad_temp,max_hoop_strain,midplane_hoop_stress,max_hoop_stress,midplane_oxide_thickness,average_burnup,max_vonmises_stress</Output>
+       <Output>nonlinear_its,_dt,max_clad_temp,fis_gas_released,max_fuel_temp,midplane_contact_pressure,avg_gap_conductance,gas_volume,ave_temp_interior,average_burnup</Output>
        <operator>max</operator>
      </PointSet>
      <HistorySet name="hists">
        <Input>power, gas_thC, fuel_thC, fuel_reloc, grain_diffCoeff, grain_res_param, grain_radius, clad_creeprate, clad_ox</Input>
-       <Output>nonlinear_its,max_contact_pressure,_dt,max_clad_temp,fis_gas_released,max_fuel_temp,midplane_radial_disp,midplane_contact_pressure,midplane_vonmises_stress,avg_gap_conductance,gas_volume,ave_temp_interior,max_oxide_thickness,centerline_temp,fis_gas_generated,avg_clad_temp,midplane_hoop_strain,max_radial_disp,midplane_clad_temp,max_hoop_strain,midplane_hoop_stress,max_hoop_stress,midplane_oxide_thickness,average_burnup,max_vonmises_stress</Output>
+       <Output>nonlinear_its,_dt,max_clad_temp,fis_gas_released,max_fuel_temp,midplane_contact_pressure,avg_gap_conductance,gas_volume,ave_temp_interior,average_burnup</Output>
      </HistorySet>
    </DataObjects>
 
@@ -92,29 +92,16 @@
     PointSet has the following inputs:
 
     nonlinear_its,
-    max_contact_pressure,
     _dt,
     max_clad_temp,
     fis_gas_released,
     max_fuel_temp,
-    midplane_radial_disp,
     midplane_contact_pressure,
-    midplane_vonmises_stress,
     avg_gap_conductance,
     gas_volume,ave_temp_interior,
-    max_oxide_thickness,
-    centerline_temp,
     fis_gas_generated,
-    avg_clad_temp,
-    midplane_hoop_strain,
-    max_radial_disp,
-    midplane_clad_temp,
-    max_hoop_strain,
-    midplane_hoop_stress,
-    max_hoop_stress,
-    midplane_oxide_thickness,
     average_burnup,
-    max_vonmises_stress
+
 
     "max" operator is used with the pointset in order to perform max operation on the dataset to be stored.
 
@@ -183,7 +170,7 @@
    <Samplers>
      <MonteCarlo name="sc">
        <samplerInit>
-         <limit>30</limit>
+         <limit>100</limit>
          <!-- <limit>7000</limit> -->
          <initialSeed>42</initialSeed>
        </samplerInit>
