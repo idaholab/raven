@@ -14,12 +14,25 @@ if not 'xrange' in dir(__builtins__):
 #Internal Modules---------------------------------------------------------------
 import DataObjects
 from .OutStreamManager import OutStreamManager
+from ClassProperty import ClassProperty
 #Internal Modules End-----------------------------------------------------------
 
 class OutStreamPrint(OutStreamManager):
   """
     Class for managing the printing of files as an output stream.
   """
+
+  ## Promoting these to static class variables, since they will not alter from
+  ## object to object. The use of the @ClassProperty with only a getter makes
+  ## the variables immutable (so long as no one touches the internally stored
+  ## "_"-prefixed), so other objects don't accidentally modify them.
+
+  _availableOutStreamTypes = ['csv', 'xml']
+
+  @ClassProperty
+  def availableOutStreamTypes(cls):
+    return cls._availableOutStreamTypes
+
   def __init__(self):
     """
       Constructor
@@ -27,8 +40,6 @@ class OutStreamPrint(OutStreamManager):
       @ Out, None
     """
     OutStreamManager.__init__(self)
-    self.type = 'OutStreamPrint'
-    self.availableOutStreamTypes = ['csv', 'xml']
     self.printTag = 'OUTSTREAM PRINT'
     OutStreamManager.__init__(self)
     self.sourceName = []
