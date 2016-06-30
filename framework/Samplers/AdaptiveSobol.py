@@ -175,7 +175,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     """
     #we don't use restarts in adaptive sampling
     if self.restartData is not None:
-      self.raiseAnError(IOError,'AdaptiveSobol does not take Restart node!  USe TargetEvaluation instead.')
+      self.raiseAnError(IOError,'AdaptiveSobol does not take Restart node!  Use TargetEvaluation instead.')
     #set up assembly-based objects
     self.solns = self.assemblerDict['TargetEvaluation'][0][3]
     self.ROM   = self.assemblerDict['ROM'][0][3]

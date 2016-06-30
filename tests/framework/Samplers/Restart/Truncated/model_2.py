@@ -23,7 +23,7 @@ def run(x,y,z):
     @ In, x, float, value
     @ In, y, float, value
     @ In, z, float, value
-    @ Out, 1, float, 1.0
+    @ Out, 2, float, 1.0
   """
   return 2.0
 

@@ -42,19 +42,19 @@
  [./uniform]
   type = 'RavenFramework'
   input = 'test_scgpc_uniform.xml'
-  xml = 'scgpc/Udumprom.xml'
+  UnorderedXml = 'scgpc/Udumprom.xml'
   csv = 'scgpc/Udump.csv'
  [../]
  [./uniform_cc]
   type = 'RavenFramework'
   input = 'test_scgpc_uniform_cc.xml'
-  xml = 'scgpc/UCdumprom.xml'
+  UnorderedXml = 'scgpc/UCdumprom.xml'
   csv = 'scgpc/UCdump.csv'
  [../]
  [./normal]
   type = 'RavenFramework'
   input = 'test_scgpc_normal.xml'
-  xml = 'scgpc/Ndumprom.xml'
+  UnorderedXml = 'scgpc/Ndumprom.xml'
   csv = 'scgpc/Ndump.csv'
  [../]
  [./gamma]
@@ -72,13 +72,13 @@
  [./betanorm]
   type = 'RavenFramework'
   input = 'test_scgpc_betanorm.xml'
-  xml = 'scgpc/BNdumprom.xml'
+  UnorderedXml = 'scgpc/BNdumprom.xml'
   csv = 'scgpc/BNdump.csv'
  [../]
  [./triangular]
   type = 'RavenFramework'
   input = 'test_scgpc_triang.xml'
-  xml = 'scgpc/Tdumprom.xml'
+  UnorderedXml = 'scgpc/Tdumprom.xml'
   csv = 'scgpc/Tdump.csv'
  [../]
  [./exponential]
@@ -91,7 +91,7 @@
  [./AdaptiveOnVariance]
    type = 'RavenFramework'
    input = 'test_adaptive_stochpoly_var.xml'
-   xml = 'AdaptiveStochasticPolyVar/dump.xml'
+   UnorderedXml = 'AdaptiveStochasticPolyVar/dump.xml'
    csv = 'AdaptiveStochasticPolyVar/data.csv'
  [../]
 []

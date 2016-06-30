@@ -54,14 +54,14 @@
     <Input   class = 'DataObjects'             type='PointSet' >dummyIN</Input>    
     <Model   class = 'Models'            type='Dummy'        >MyDummy</Model>
     <Output  class = 'DataObjects'             type='PointSet' >dummyIN</Output>
-    <Output  class = 'OutStreamManager'  type='Print'        >DistributionsDump</Output>
-    <Output  class = 'OutStreamManager'  type='Plot'         >HistogramPowerScaleFact</Output>
-    <Output  class = 'OutStreamManager'  type='Plot'         >HistogramThExp</Output>
-    <Output  class = 'OutStreamManager'  type='Plot'         >HistogramGrainSizeScaleFact</Output>
+    <Output  class = 'OutStreams'  type='Print'        >DistributionsDump</Output>
+    <Output  class = 'OutStreams'  type='Plot'         >HistogramPowerScaleFact</Output>
+    <Output  class = 'OutStreams'  type='Plot'         >HistogramThExp</Output>
+    <Output  class = 'OutStreams'  type='Plot'         >HistogramGrainSizeScaleFact</Output>
   </MultiRun >
 </Steps>
 
-<OutStreamManager>
+<OutStreams>
   <Print name='DistributionsDump'>
     <type>csv</type>
     <source>dummyIN</source>
@@ -114,6 +114,6 @@
       <title><text>Grain Radius Scaling Factor Histogram</text></title>
     </actions>
   </Plot>
-</OutStreamManager>
+</OutStreams>
 
 </Simulation>

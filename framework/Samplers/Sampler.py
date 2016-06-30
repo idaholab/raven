@@ -536,7 +536,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       only the code interface possesses the dictionary for reading the variable definition syntax
       @ In, model, model instance, it is the instance of a RAVEN model
       @ In, oldInput, list, a list of the original needed inputs for the model (e.g. list of files, etc. etc)
-      @ Out, generateInput, tuple(0,list), list contains the new inputs -in reality it is the model that return this the Sampler generate the value to be placed in the input the model
+      @ Out, generateInput, tuple(0,list), list contains the new inputs -in reality it is the model that returns this; the Sampler generates the value to be placed in the input of the model.
       The Out parameter depends on the results of generateInput
         If a new point is found, the default Out above is correct.
         If a restart point is found:
