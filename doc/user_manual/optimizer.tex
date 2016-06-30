@@ -70,11 +70,11 @@ The \textbf{SPSA} optimization approach is one of the optimization strategies th
 \vspace{-5mm}
 \begin{itemize}
 \itemsep0em
-\item \textbf{name}, \textit{required string attribute}, user-defined name of this optimizer. N.B. As for the other objects, this is the name that can be used to refer to this specific entity from other input blocks (xml);
+\item \xmlAttr{name}, \xmlDesc{required string attribute}, user-defined name of this optimizer. \nb As for the other objects, this is the name that can be used to refer to this specific entity from other input blocks (xml);
 \end{itemize}
 \vspace{-5mm}
 
-In the \textbf{SPSA} input block, the user needs to specify the objective variable to be optimized, the decision variables, the dataObject storing previously performed model evaluation, as well as convergence criteira. In addition, the settings for this optimization can be specified in the \xmlNode{initialization} and \xmlNode{parameter} XML blocks:
+In the \xmlNode{SPSA} input block, the user needs to specify the objective variable to be optimized, the decision variables, the DataObject storing previously performed model evaluation, as well as convergence criteira. In addition, the settings for this optimization can be specified in the \xmlNode{initialization} and \xmlNode{parameter} XML blocks:
 \begin{itemize}
 \item \xmlNode{initialization},  \xmlDesc{XML node, optional parameter}. In this xml-node,the following xml sub-nodes can be specified:
   \begin{itemize}
@@ -93,7 +93,7 @@ In the \textbf{SPSA} input block, the user needs to specify the objective variab
         Section~\ref{sec:DataObjects}). The object here specified must be
         input as  \xmlNode{Output} in the Steps that employ this optimization strategy.
         %
-        The \textbf{SPSA} optimizer accepts ``DataObjects'' of type ``PointSet'' only;
+        The \xmlNode{SPSA} optimizer accepts ``DataObjects'' of type ``PointSet'' only;
 \item \xmlNode{objectVar}, \xmlDesc{XML node, required parameter}. The objective variable to be optimized. This variable must be output of the DataObject specified in \xmlNode{TargetEvaluation}.
 \end{itemize}
 \begin{itemize}
@@ -110,22 +110,22 @@ In the \textbf{SPSA} input block, the user needs to specify the objective variab
 \item \xmlNode{Convergence}, \xmlDesc{XML node, optional parameter} will specify parameters associated with optimization convergence. This node accepts the following sub-nodes:
   \begin{itemize}
   \item \xmlNode{iterationLimit}, \xmlDesc{integer, optional field}, user-defined maximum number of optimization iterations.
-  \item \xmlNode{threshold}, \xmlDesc{float, optional field}, specifies the convergence criteria to determine the optimality. When the change of objective variable in two successive model evaluations is smaller than this pre-specified threshold, the \textbf{SPSA} optimizer decides optimality and terminates the simulation.
+  \item \xmlNode{threshold}, \xmlDesc{float, optional field}, specifies the convergence criteria to determine the optimality. When the change of objective variable in two successive model evaluations is smaller than this pre-specified threshold, the \xmlNode{SPSA} optimizer decides optimality and terminates the simulation.
       \default{1e-3}
   \end{itemize}
 \item \xmlNode{Parameter}, \xmlDesc{XML node, optional parameter} will accepts the following sub-nodes:
   \begin{itemize}
   \item \xmlNode{numGradGradAvgIterations}, \xmlDesc{integer, optional field} is the number of iterations for gradient estimation.
         \default{1}
-  \item \xmlNode{alpha}, \xmlDesc{float, optional field} a parameter for the evolution of gain sequence for variable update. See \cite{spall1998implementation}.
+  \item \xmlNode{alpha}, \xmlDesc{float, optional field} a parameter for updating gain sequence for variable update. See \cite{spall1998implementation}.
         \default{0.602}
-  \item \xmlNode{A}, \xmlDesc{float, optional field} a parameter for the evolution of gain sequence for variable update. See \cite{spall1998implementation}.
+  \item \xmlNode{A}, \xmlDesc{float, optional field} a parameter for updating gain sequence for variable update. See \cite{spall1998implementation}.
         \default{\xmlNode{iterationLimit} divided by 10}
-  \item \xmlNode{a}, \xmlDesc{float, optional field} a parameter for the evolution of gain sequence for variable update. See \cite{spall1998implementation}.
+  \item \xmlNode{a}, \xmlDesc{float, optional field} a parameter for updating gain sequence for variable update. See \cite{spall1998implementation}.
         \default{0.16}
-  \item \xmlNode{gamma}, \xmlDesc{float, optional field} a parameter for the evolution of gain sequence for perturbation. See \cite{spall1998implementation}.
+  \item \xmlNode{gamma}, \xmlDesc{float, optional field} a parameter updating gain sequence for perturbation. See \cite{spall1998implementation}.
         \default{0.101}
-  \item \xmlNode{c}, \xmlDesc{float, optional field} a parameter for the evolution of gain sequence for perturbation. See \cite{spall1998implementation}.
+  \item \xmlNode{c}, \xmlDesc{float, optional field} a parameter for updating gain sequence for perturbation. See \cite{spall1998implementation}.
         \default{0.005}
   \end{itemize}
 \end{itemize}
