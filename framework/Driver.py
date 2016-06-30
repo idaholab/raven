@@ -17,6 +17,7 @@ import xml.etree.ElementTree as ET
 import os
 import sys
 import threading
+import time
 #External Modules--------------------end
 
 #warning: this needs to be before importing h5py
@@ -133,7 +134,7 @@ if __name__ == '__main__':
     #Call the function to read and construct each single module of the simulation
     simulation.XMLread(root,runInfoSkip=set(["DefaultInputFile"]),xmlFilename=inputFile)
 
-  def worker():
+  def raven():
     """
       A worker function that allows the computation of the main RAVEN thread to
       be offloaded to another thread, freeing the main thread for UI interaction
@@ -147,7 +148,32 @@ if __name__ == '__main__':
     if simulation.app is not None:
       simulation.app.quit()
 
-  mainThread = threading.Thread(target=worker)
-  mainThread.start()
-  if simulation.app is not None:
-    simulation.app.exec_()
+  try:
+    ravenThread = threading.Thread(target=raven)
+
+    ## This makes sure that this thread exits when RAVEN exits
+    ravenThread.daemon = True
+    ravenThread.start()
+
+    if simulation.app is not None:
+      simulation.app.exec_()
+
+    ## This makes sure that the main thread waits for RAVEN to complete before
+    ## exiting, however join will block the main thread until ravenThread is
+    ## complete, thus ignoring any kill signals until after it has completed
+    # ravenThread.join()
+
+    waitTime = 0.1 ## in seconds
+
+    ## So, in order to live wait for ravenThread, we need a spinlock that will
+    ## allow us to accept keyboard input.
+    while ravenThread.isAlive():
+      time.sleep(waitTime)
+      ## Alternatively, we could have a join with a timeout (in seconds), this
+      ## eliminates the need to import time, but otherwise should effectively
+      ## be the same as the above.
+      # ravenThread.join(waitTime)
+  except KeyboardInterrupt:
+    print ('\n\n! Received keyboard interrupt, exiting RAVEN.\n\n')
+  except SystemExit:
+    print ('\n\n! Exit called, exiting RAVEN.\n\n')
