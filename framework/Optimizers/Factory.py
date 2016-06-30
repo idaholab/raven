@@ -36,7 +36,7 @@ def knownTypes():
   """
   return __interFaceDict.keys()
 
-  
+
 def returnInstance(Type,caller):
   """
     Attempts to create and return an instance of a particular type of object
@@ -51,7 +51,7 @@ def returnInstance(Type,caller):
   except KeyError:
     print(knownTypes())
     caller.raiseAnError(NameError,__name__+': unknown '+__base+' type '+Type)
-  
+
 def returnClass(Type,caller):
   """
     Attempts to return a particular class type available to this factory.

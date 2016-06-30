@@ -1,5 +1,5 @@
 """
-  Module where the base class of optimizer is. Adapted from Sampler.py. 
+  Module where the base class of optimizer is. Adapted from Sampler.py.
 
   Created on June 16, 2016
   @author: chenj
@@ -64,31 +64,31 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     --Instance--
     myInstance = Optimizer()
     myInstance.XMLread(xml.etree.ElementTree.Element)  This method generates all the information that will be permanent for the object during the simulation
- 
+
     --usage--
     myInstance = Optimizer()
     myInstance.XMLread(xml.etree.ElementTree.Element)  This method generate all permanent information of the object from <Simulation>
     myInstance.whatDoINeed()                           -see Assembler class-
-    myInstance.initialize()                            This method is called from the <Step> before the Step process start. 
+    myInstance.initialize()                            This method is called from the <Step> before the Step process start.
     myInstance.amIreadyToProvideAnInput                Requested from <Step> used to verify that the optimizer is available to generate a new input for the model
     myInstance.generateInput(self,model,oldInput)      Requested from <Step> to generate a new input. Generate the new values and request to model to modify according the input and returning it back
- 
+
     --Other inherited methods--
     myInstance.whoAreYou()                            -see BaseType class-
     myInstance.myCurrentSetting()                     -see BaseType class-
- 
+
     --Adding a new Optimizer subclass--
     <MyClass> should inherit at least from Optimizer or from another derived class already presents
- 
+
     DO NOT OVERRIDE any of the class method that are not starting with self.local*
- 
+
     ADD your class to the dictionary __InterfaceDict in the Factory submodule
- 
+
     The following method overriding is MANDATORY:
     self.localGenerateInput(model,oldInput)  : this is where the step happens, after this call the output is ready
-    self._localGenerateAssembler(initDict)    
+    self._localGenerateAssembler(initDict)
     self._localWhatDoINeed()
- 
+
     the following methods could be overrode:
     self.localInputAndChecks(xmlNode)
     self.localGetInitParams()
@@ -109,16 +109,16 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     Assembler.__init__(self)
     self.counter                        = {}                        # Dict containing counters used for based and derived class
     self.counter['mdlEval']             = 0                         # Counter of the model evaluation performed (better the input generated!!!). It is reset by calling the function self.initialize
-    self.counter['varsUpdate']          = 0                         # Counter of the optimization iteration. 
+    self.counter['varsUpdate']          = 0                         # Counter of the optimization iteration.
     self.limit                          = {}                        # Dict containing limits for each counter
     self.limit['mdlEval']               = sys.maxsize               # Maximum number of the loss function evaluation
-    self.limit['varsUpdate']            = sys.maxsize               # Maximum number of the optimization iteration. 
+    self.limit['varsUpdate']            = sys.maxsize               # Maximum number of the optimization iteration.
     self.initSeed                       = None                      # Seed for random number generators
     self.optVars                        = None                      # Decision variables for optimization
     self.optVarsInit                    = {}                        # Dict containing upper/lower bounds and initial of each decision variables
     self.optVarsInit['upperBound']      = {}                        # Dict containing upper bounds of each decision variables
     self.optVarsInit['lowerBound']      = {}                        # Dict containing lower bounds of each decision variables
-    self.optVarsInit['initial']         = {}                        # Dict containing initial values of each decision variables  
+    self.optVarsInit['initial']         = {}                        # Dict containing initial values of each decision variables
     self.optVarsHist                    = {}                        # History of decision variables for each iteration
     self.nVar                           = 0                         # Number of decision variables
     self.objVar                         = None                      # Objective variable to be optimized
@@ -133,15 +133,15 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.printTag                       = self.type                 # prefix for all prints (optimizer type)
 
     self._endJobRunnable                = sys.maxsize               # max number of inputs creatable by the optimizer right after a job ends
-    
+
     self.constraintFunction             = None                      # External constraint function, could be not present
     self.mdlEvalHist                    = None                      # Containing information of all model evaluation
     self.objSearchingROM                = None                      # ROM used internally for fast loss function evaluation
-    
+
     self.addAssemblerObject('Restart' ,'-n',True)
     self.addAssemblerObject('TargetEvaluation','1')
     self.addAssemblerObject('Function','-1')
-  
+
   def _localGenerateAssembler(self,initDict):
     """
       It is used for sending to the instanciated class, which is implementing the method, the objects that have been requested through "whatDoINeed" method
@@ -171,7 +171,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None
     """
-    Assembler._readMoreXML(self,xmlNode)    
+    Assembler._readMoreXML(self,xmlNode)
     self._readMoreXMLbase(xmlNode)
     self.localInputAndChecks(xmlNode)
 
@@ -192,12 +192,12 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
           elif childChild.tag == "lowerBound":      self.optVarsInit['lowerBound'][varname] = float(childChild.text)
           elif childChild.tag == "initial":         self.optVarsInit['initial'][varname] = float(childChild.text)
         if varname not in self.optVarsInit['upperBound'].keys():  self.optVarsInit['upperBound'][varname] = sys.maxsize
-        if varname not in self.optVarsInit['lowerBound'].keys():  self.optVarsInit['lowerBound'][varname] = -sys.maxsize  
-        if varname not in self.optVarsInit['initial'].keys():     self.optVarsInit['initial'][varname] = 0.0        
-      
+        if varname not in self.optVarsInit['lowerBound'].keys():  self.optVarsInit['lowerBound'][varname] = -sys.maxsize
+        if varname not in self.optVarsInit['initial'].keys():     self.optVarsInit['initial'][varname] = 0.0
+
       elif child.tag == "objectVar":
         self.objVar = child.text
-        
+
       elif child.tag == "initialization":
         self.initSeed = Distributions.randomIntegers(0,2**31,self)
         for childChild in child:
@@ -210,25 +210,25 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
           elif childChild.tag == "initialSeed":
             self.initSeed = int(childChild.text)
           else: self.raiseAnError(IOError,'Unknown tag '+childChild.tag+' .Available: limit, type, initialSeed!')
-      
+
       elif child.tag == "convergence":
         for childChild in child:
           if childChild.tag == "iterationLimit":
             self.limit['varsUpdate'] = int(childChild.text)
           if childChild.tag == "threshold":
-            self.convergenceTol = float(childChild.text)    
-      
+            self.convergenceTol = float(childChild.text)
+
       elif child.tag == "restartTolerance":
         self.restartTolerance = float(child.text)
-      
+
       elif child.tag == 'parameter':
         for childChild in child:
-          self.paramDict[childChild.tag] = childChild.text      
-    
+          self.paramDict[childChild.tag] = childChild.text
+
     if self.optType == None:    self.optType = 'min'
     if self.initSeed == None:   self.initSeed = Distributions.randomIntegers(0,2**31,self)
     if self.objVar == None:     self.raiseAnError(IOError, 'Object variable is not specified for optimizer!')
-    if self.optVars == None:    
+    if self.optVars == None:
       self.raiseAnError(IOError, 'Decision variable is not specified for optimizer!')
     else:
       self.optVars.sort()
@@ -240,7 +240,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ Out, None
     """
     pass # To be overwritten by subclass
-      
+
   def endJobRunnable(self):
     """
       Returns the maximum number of inputs allowed to be created by the optimizer right after a job ends
@@ -318,21 +318,21 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.counter['mdlEval'] = 0
     self.counter['varsUpdate'] = 0
     self.nVar = len(self.optVars)
-    
-    self.mdlEvalHist = self.assemblerDict['TargetEvaluation'][0][3]    
+
+    self.mdlEvalHist = self.assemblerDict['TargetEvaluation'][0][3]
     self.objSearchingROM = SupervisedLearning.returnInstance('SciKitLearn', self, **{'SKLtype':'neighbors|KNeighborsRegressor', 'Features':','.join(list(self.optVars)), 'Target':self.objVar, 'n_neighbors':1})
     self.solutionExport = solutionExport
-    
+
     if solutionExport != None and type(solutionExport).__name__ != "PointSet":
-      self.raiseAnError(IOError,'solutionExport type is not a PointSet. Got '+ type(solutionExport).__name__+ '!')    
-    
+      self.raiseAnError(IOError,'solutionExport type is not a PointSet. Got '+ type(solutionExport).__name__+ '!')
+
     if 'Function' in self.assemblerDict.keys():
       self.constraintFunction = self.assemblerDict['Function'][0][3]
-      if 'constrain' not in self.constrainFunction.availableMethods(): 
+      if 'constrain' not in self.constrainFunction.availableMethods():
         self.raiseAnError(IOError,'the function provided to define the constraints must have an implemented method called "constrain"')
-             
-    if self.initSeed != None:           Distributions.randomSeed(self.initSeed)  
-      
+
+    if self.initSeed != None:           Distributions.randomSeed(self.initSeed)
+
     # specializing the self.localInitialize()
     if solutionExport != None : self.localInitialize(solutionExport=solutionExport)
     else                      : self.localInitialize()
@@ -352,7 +352,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       This method act as a "traffic light" for generating a new input.
       Reason for not being ready could be for example: exceeding number of model evaluation, convergence criteria met, etc.
       @ In, None
-      @ Out, ready, bool, indicating the readiness of the optimizer to generate a new input. 
+      @ Out, ready, bool, indicating the readiness of the optimizer to generate a new input.
     """
     ready = True if self.counter['mdlEval'] < self.limit['mdlEval'] and self.counter['varsUpdate'] < self.limit['varsUpdate'] else False
     convergence = self.checkConvergence()
@@ -363,14 +363,14 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
       Determines if optimizer is ready to provide another input.  If not, and if jobHandler is finished, this will end sampling.
       @In, ready, bool, boolean variable indicating whether the caller is prepared for another input.
-      @In, convergence, boolean variable indicating whether the convergence criteria has been met. 
+      @In, convergence, boolean variable indicating whether the convergence criteria has been met.
       @Out, ready, bool, boolean variable indicating whether the caller is prepared for another input.
     """
     return ready # To be overwritten by subclass
-  
+
   def lossFunctionEval(self, optVars):
     """
-      Method to evaluate the loss function based on all model evaluation. 
+      Method to evaluate the loss function based on all model evaluation.
       @In, optVars, dict containing the values of decision variables to be evaluated
            optVars should have the form {varName1:[value11, value12,...value1n], varName2:[value21, value22,...value2n]...}
       @Out, lossFunctionValue, array, loss function values corresponding to each point in optVars
@@ -379,12 +379,12 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     tempDict.update(self.mdlEvalHist.getParametersValues('outputs', nodeId = 'RecontructEnding'))
     for key in tempDict.keys():                   tempDict[key] = np.asarray(tempDict[key])
     self.objSearchingROM.train(tempDict)
-    
+
     for key in optVars.keys():                    optVars[key] = np.atleast_1d(optVars[key])
-    lossFunctionValue = self.objSearchingROM.evaluate(optVars)   
+    lossFunctionValue = self.objSearchingROM.evaluate(optVars)
     if self.optType == 'min':           return lossFunctionValue
     else:                               return lossFunctionValue*-1.0
-    
+
   def checkConstraint(self, optVars):
     """
       Method to check whether a set of decision variables satisfy the constraint or not
@@ -396,38 +396,38 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     else:
       satisfaction = True if self.constraintFunction.evaluate("constrain",optVars) == 1 else False
     satisfaction = self.localCheckConstraint(optVars, satisfaction)
-    return satisfaction 
-  
+    return satisfaction
+
   def localCheckConstraint(self, optVars, satisfaction = True):
     """
       Local method to check whether a set of decision variables satisfy the constraint or not
       @In, optVars, dict containing the value of decision variables to be checked, in form of {varName: varValue}
       @In, satisfaction, boolean variable indicating how the caller determines the constraint satisfaction at the point optVars
       @Out, satisfaction, boolean variable indicating the satisfaction of constraints at the point optVars
-    """    
+    """
     return satisfaction # To be overwritten by subclass
-      
+
   def checkConvergence(self):
     """
-      Method to check whether the convergence criteria has been met. 
-      @In, none, 
-      @Out, convergence, boolean variable indicating whether the convergence criteria has been met. 
-    """    
-    if self.counter['varsUpdate'] < 2: 
+      Method to check whether the convergence criteria has been met.
+      @In, none,
+      @Out, convergence, boolean variable indicating whether the convergence criteria has been met.
+    """
+    if self.counter['varsUpdate'] < 2:
       convergence = False
     elif abs(self.lossFunctionEval(self.optVarsHist[self.counter['varsUpdate']])-self.lossFunctionEval(self.optVarsHist[self.counter['varsUpdate']-1])) < self.convergenceTol:
       convergence = True
     else:
-      convergence = False   
-    convergence = self.localCheckConvergence(convergence)    
+      convergence = False
+    convergence = self.localCheckConvergence(convergence)
     return convergence
 
   @abc.abstractmethod
   def localCheckConvergence(self, convergence = False):
     """
-      Local method to check convergence. 
-      @In, convergence, boolean variable indicating how the caller determines the convergence. 
-      @Out, convergence, boolean variable indicating whether the convergence criteria has been met. 
+      Local method to check convergence.
+      @In, convergence, boolean variable indicating how the caller determines the convergence.
+      @Out, convergence, boolean variable indicating whether the convergence criteria has been met.
     """
     return convergence
 
@@ -439,10 +439,10 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     self.counter['mdlEval'] +=1                              #since we are creating the input for the next run we increase the counter and global counter
     self.inputInfo['prefix'] = str(self.counter['mdlEval'])
-    
+
     model.getAdditionalInputEdits(self.inputInfo)
     self.localGenerateInput(model,oldInput)
-    
+
     self.raiseADebug('Found new input to evaluate:',self.values)
     return 0,model.createNewInput(oldInput,self.type,**self.inputInfo)
 
@@ -518,8 +518,8 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
 
 
-   
-  
+
+
 
 
 

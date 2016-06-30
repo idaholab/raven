@@ -56,7 +56,7 @@ from AMSC_Object import AMSC_Object
 class SPSA(GradientBasedOptimizer):
   """
     Simultaneous Perturbation Stochastic Approximation Optimizer
-  """  
+  """
   def __init__(self):
     """
       Default Constructor
@@ -67,18 +67,18 @@ class SPSA(GradientBasedOptimizer):
 
   def localLocalInputAndChecks(self, xmlNode):
     """
-      Local method for additional reading. 
+      Local method for additional reading.
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None
-    """    
+    """
     self.gainParamDict['alpha'] = self.paramDict.get('alpha', 0.602)
     self.gainParamDict['gamma'] = self.paramDict.get('gamma', 0.101)
     self.gainParamDict['A'] = self.paramDict.get('A', self.limit['mdlEval']/10)
     self.gainParamDict['a'] = self.paramDict.get('a', 0.16)
     self.gainParamDict['c'] = self.paramDict.get('c', 0.005)
-    
+
     self.gradDict['pertNeeded'] = self.gradDict['numIterForAve'] * 2
-    
+
     if self.paramDict.get('stochasticDistribution', 'Bernoulli') == 'Bernoulli':
       self.stochasticDistribution = Distributions.returnInstance('Bernoulli',self)
       self.stochasticDistribution.p = 0.5
@@ -89,37 +89,37 @@ class SPSA(GradientBasedOptimizer):
 
   def localLocalInitialize(self, solutionExport = None):
     """
-      Method to initialize local settings. 
+      Method to initialize local settings.
       @ In, solutionExport, DataObject, optional
       @ Out, None
     """
     self._endJobRunnable = 1 # batch mode currently not implemented for SPSA
-    self.gradDict['pertNeeded'] = self.gradDict['numIterForAve'] * 2      
-  
+    self.gradDict['pertNeeded'] = self.gradDict['numIterForAve'] * 2
+
   def localLocalStillReady(self, ready, convergence = False):
     """
       Determines if optimizer is ready to provide another input.  If not, and if jobHandler is finished, this will end sampling.
       @In, ready, bool, boolean variable indicating whether the caller is prepared for another input.
-      @In, convergence, boolean variable indicating whether the convergence criteria has been met. 
+      @In, convergence, boolean variable indicating whether the convergence criteria has been met.
       @Out, ready, bool, boolean variable indicating whether the caller is prepared for another input.
-    """       
+    """
     if convergence:             ready = False
-    else:                       ready = True and ready       
+    else:                       ready = True and ready
     return ready
-     
+
   def localLocalGenerateInput(self,model,oldInput):
     """
       Method to generate input for model to run
       @ In, model, model instance, it is the instance of a RAVEN model
       @ In, oldInput, list, a list of the original needed inputs for the model (e.g. list of files, etc. etc)
       @ Out, None
-    """        
+    """
     if self.counter['mdlEval'] == 1: # Just started
       self.optVarsHist[self.counter['varsUpdate']] = {}
       for var in self.optVars:
         self.values[var] = self.optVarsInit['initial'][var]
         self.optVarsHist[self.counter['varsUpdate']][var] = copy.copy(self.values[var])
-        
+
     elif not self.readyVarsUpdate: # Not ready to update decision variables; continue to perturb for gradient evaluation
       if self.counter['perturbation'] == 1: # Generate all the perturbations at once
         self.gradDict['pertPoints'] = {}
@@ -133,16 +133,16 @@ class SPSA(GradientBasedOptimizer):
               p1 = np.asarray([varK[var]+ck*delta[varID]*1.0]).reshape((1,))
               p2 = np.asarray([varK[var]-ck*delta[varID]*1.0]).reshape((1,))
               self.gradDict['pertPoints'][ind][var] = np.concatenate((p1, p2))
-      
-      loc1 = self.counter['perturbation'] % 2      
+
+      loc1 = self.counter['perturbation'] % 2
       loc2 = np.floor(self.counter['perturbation'] / 2) if loc1 == 1 else np.floor(self.counter['perturbation'] / 2) - 1
       for var in self.optVars:
         self.values[var] = self.gradDict['pertPoints'][loc2][var][loc1]
-      
+
     else: # Enough gradient evaluation for decision variable update
       ak = self._computeGainSequenceAk(self.gainParamDict,self.counter['varsUpdate']) # Compute the new ak
       gradient = self.evaluateGradient(self.gradDict['pertPoints'])
-      
+
       self.optVarsHist[self.counter['varsUpdate']] = {}
       varK = copy.deepcopy(self.optVarsHist[self.counter['varsUpdate']-1])
       for var in self.optVars:
@@ -151,16 +151,16 @@ class SPSA(GradientBasedOptimizer):
 
   def localEvaluateGradient(self, optVarsValues, gradient = None):
     """
-      Local method to evaluate gradient. 
-      @In, optVarsValues, Dict containing perturbed points. 
+      Local method to evaluate gradient.
+      @In, optVarsValues, Dict containing perturbed points.
            optVarsValues should have the form {pertIndex: {varName: [varValue1 varValue2]}}
-           Therefore, each optVarsValues[pertIndex] should return a dict of variable values that is sufficient for gradient 
-           evaluation for at least one variable (depending on specific optimization algorithm) 
+           Therefore, each optVarsValues[pertIndex] should return a dict of variable values that is sufficient for gradient
+           evaluation for at least one variable (depending on specific optimization algorithm)
       @In, gradient, Dict containing gradient estimation by the caller. gradient should have the form {varName: gradEstimation}
       @Out, gradient, Dict containing gradient estimation. gradient should have the form {varName: gradEstimation}
-    """  
+    """
     return gradient
-  
+
   def _computeGainSequenceCk(self,paramDict,iterNum):
     """
       Utility function to compute the ck coefficients (gain sequence ck)
@@ -170,7 +170,7 @@ class SPSA(GradientBasedOptimizer):
     c, gamma = paramDict['c'], paramDict['gamma']
     ck = c / (iterNum) ** gamma *1.0
     return ck
-  
+
   def _computeGainSequenceAk(self,paramDict,iterNum):
     """
       Utility function to compute the ak coefficients (gain sequence ak)
@@ -180,11 +180,11 @@ class SPSA(GradientBasedOptimizer):
     a, A, alpha = paramDict['a'], paramDict['A'], paramDict['alpha']
     ak = a / (iterNum + A) ** alpha *1.0
     return ak
-  
+
   def localCheckConvergence(self, convergence = False):
     """
-      Local method to check convergence. 
-      @In, convergence, boolean variable indicating how the caller determines the convergence. 
-      @Out, convergence, boolean variable indicating whether the convergence criteria has been met. 
-    """    
-    return convergence    
+      Local method to check convergence.
+      @In, convergence, boolean variable indicating how the caller determines the convergence.
+      @Out, convergence, boolean variable indicating whether the convergence criteria has been met.
+    """
+    return convergence
