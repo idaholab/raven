@@ -21,14 +21,13 @@ import abc
 import numpy as np
 import json
 from operator import mul,itemgetter
-from collections import OrderedDict
 from functools import reduce
 from scipy import spatial
 from scipy.interpolate import InterpolatedUnivariateSpline
 import xml.etree.ElementTree as ET
 import itertools
 from math import ceil
-from collections import OrderedDict
+from collections import OrderedDict, Counter
 from sklearn import neighbors
 from sklearn.utils.extmath import cartesian
 
@@ -670,7 +669,7 @@ class DynamicEventTree(Grid):
         if max(self.branchProbabilities[keyk]) > 1:
           errorMsgs += "One of the Thresholds for distribution " + str(gridInfo[keyk][2]) + " is > 1 \n"
           errorFound = True
-        probMultiplicities = collections.Counter(self.branchProbabilities[keyk])
+        probMultiplicities = Counter(self.branchProbabilities[keyk])
         multiples = [prob for prob,mult in probMultiplicities.items() if mult > 1]
         ## Only the multiple variables remain
         for prob in multiples:
@@ -688,7 +687,7 @@ class DynamicEventTree(Grid):
       else:
         self.branchValues[keyk] = gridInfo[keyk][2]
         self.branchValues[keyk].sort(key=float)
-        valueMultiplicities = collections.Counter(self.branchValues[keyk])
+        valueMultiplicities = Counter(self.branchValues[keyk])
         multiples = [value for value,mult in valueMultiplicities.items() if mult > 1]
         ## Only the multiple variables remain
         for value in multiples:

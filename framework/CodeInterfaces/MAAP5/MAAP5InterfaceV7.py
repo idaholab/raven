@@ -20,7 +20,7 @@ import re
 import math
 import sys
 
-class MAAP5(GenericCode):
+class MAAP5_GenericV7(GenericCode):
 
   def _readMoreXML(self,xmlNode):
     """
@@ -242,7 +242,7 @@ class MAAP5(GenericCode):
               restartFile =  line.split(" ")[-1].strip()
               if restartFile == restartFileCorrect:
                   correct = True
-            print ('RESTART FILE is correct: ',restartFile)
+              print ('RESTART FILE is correct: ',restartFile)
               break
 
       if found_restart == False:
@@ -379,7 +379,7 @@ class MAAP5(GenericCode):
       base=os.path.basename(inputFile).split('.')[0]
       path=os.path.dirname(inputFile)
       filename=os.path.join(path,'out~'+base+"_actual_branch_info.xml")
-      stopInfo={'endTime':tilast}
+      stopInfo={'end_time':tilast}
       listDict=[]
       variableBranch=''
       branchName=path.split('/')[-1]
@@ -395,7 +395,7 @@ class MAAP5(GenericCode):
               old_value=str(dataDict[var][0])
               branch={'name':var, 'type':'auxiliar','old_value': old_value, 'new_value': new_value.strip('\n')}
               listDict.append(branch)
-          detU.write_xml_for_DET(filename,variableBranch,listDict,stopInfo) #this function writes the xml file for DET
+          detU.writeXmlForDET(filename,variableBranch,listDict,stopInfo) #this function writes the xml file for DET
 
   def dictVariables(self,current_inp):
       """
