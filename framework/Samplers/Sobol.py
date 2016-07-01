@@ -112,10 +112,7 @@ class Sobol(SparseGridCollocation):
 
   def localInitialize(self):
     """
-      Will perform all initialization specific to this Sampler. For instance,
-      creating an empty container to hold the identified surface points, error
-      checking the optionally provided solution export and other preset values,
-      and initializing the limit surface Post-Processor used by this sampler.
+      Will perform all initialization specific to this Sampler.
       @ In, None
       @ Out, None
     """
@@ -164,10 +161,6 @@ class Sobol(SparseGridCollocation):
         self.ROMs[name][combo] = SupervisedLearning.returnInstance('GaussPolynomialRom',self,**initDict)
         self.ROMs[name][combo].initialize(initializeDict)
         self.ROMs[name][combo].messageHandler = self.messageHandler
-    #if restart, figure out what runs we need; else, all of them
-    if self.restartData != None:
-      self.solns = self.restartData
-      self._updateExisting()
     #make combined sparse grids
     self.references={}
     for var in self.features:
@@ -208,56 +201,43 @@ class Sobol(SparseGridCollocation):
 
   def localGenerateInput(self,model,myInput):
     """
-      Function to select the next most informative point for refining the limit
-      surface search.
-      After this method is called, the self.inputInfo should be ready to be sent
-      to the model
+      Function to select the next most informative point
       @ In, model, model instance, an instance of a model
       @ In, myInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
     """
-    found=False
-    while not found:
-      try: pt = self.pointsToRun[self.counter-1]
-      except IndexError: raise utils.NoMoreSamplesNeeded
-      inExisting,_,_ = mathUtils.NDInArray(np.array(self.existing.keys()),pt,tol=self.restartTolerance)
-      if inExisting:
-        self.raiseADebug('point found in restart:',pt)
-        self.counter+=1
-        self.inputInfo['prefix'] = str(self.counter)
-        if self.counter==self.limit: raise utils.NoMoreSamplesNeeded
-        continue
-      else:
-        self.raiseADebug('point found to run:',pt)
-        found=True
-        for v,varName in enumerate(self.features):
-          # compute the SampledVarsPb for 1-D distribution
-          if self.variables2distributionsMapping[varName]['totDim'] == 1:
-            for key in varName.strip().split(','):
-              self.values[key] = pt[v]
-            self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(pt[v])
-            self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.inputInfo['SampledVarsPb'][varName]
-          # compute the SampledVarsPb for N-D distribution
-          elif self.variables2distributionsMapping[varName]['totDim'] > 1 and self.variables2distributionsMapping[varName]['reducedDim'] == 1:
-            dist = self.variables2distributionsMapping[varName]['name']
-            ndCoordinates = np.zeros(len(self.distributions2variablesMapping[dist]))
-            positionList = self.distributions2variablesIndexList[dist]
-            for varDict in self.distributions2variablesMapping[dist]:
-              var = utils.first(varDict.keys())
-              position = utils.first(varDict.values())
-              location = -1
-              for key in var.strip().split(','):
-                if key in self.features:
-                  location = self.features.index(key)
-                  break
-              if location > -1:
-                ndCoordinates[positionList.index(position)] = pt[location]
-              else:
-                self.raiseAnError(IOError,'The variables ' + var + ' listed in sobol sampler, but not used in the ROM!' )
-              for key in var.strip().split(','):
-                self.values[key] = pt[location]
-            self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(ndCoordinates)
-            self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")] = self.inputInfo['SampledVarsPb'][varName]
+    try: pt = self.pointsToRun[self.counter-1]
+    except IndexError:
+      self.raiseADebug('All sparse grids are complete!  Moving on...')
+      raise utils.NoMoreSamplesNeeded
+    for v,varName in enumerate(self.features):
+      # compute the SampledVarsPb for 1-D distribution
+      if self.variables2distributionsMapping[varName]['totDim'] == 1:
+        for key in varName.strip().split(','):
+          self.values[key] = pt[v]
+        self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(pt[v])
+        self.inputInfo['ProbabilityWeight-'+varName.replace(",","-")] = self.inputInfo['SampledVarsPb'][varName]
+      # compute the SampledVarsPb for N-D distribution
+      elif self.variables2distributionsMapping[varName]['totDim'] > 1 and self.variables2distributionsMapping[varName]['reducedDim'] == 1:
+        dist = self.variables2distributionsMapping[varName]['name']
+        ndCoordinates = np.zeros(len(self.distributions2variablesMapping[dist]))
+        positionList = self.distributions2variablesIndexList[dist]
+        for varDict in self.distributions2variablesMapping[dist]:
+          var = utils.first(varDict.keys())
+          position = utils.first(varDict.values())
+          location = -1
+          for key in var.strip().split(','):
+            if key in self.features:
+              location = self.features.index(key)
+              break
+          if location > -1:
+            ndCoordinates[positionList.index(position)] = pt[location]
+          else:
+            self.raiseAnError(IOError,'The variables ' + var + ' listed in sobol sampler, but not used in the ROM!' )
+          for key in var.strip().split(','):
+            self.values[key] = pt[location]
+        self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(ndCoordinates)
+        self.inputInfo['ProbabilityWeight-'+varName.replace(",","!")] = self.inputInfo['SampledVarsPb'][varName]
 
-        self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
-        self.inputInfo['SamplerType'] = 'Sparse Grids for Sobol'
+    self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
+    self.inputInfo['SamplerType'] = 'Sparse Grids for Sobol'

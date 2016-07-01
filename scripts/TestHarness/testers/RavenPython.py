@@ -50,7 +50,7 @@ class RavenPython(Tester):
 
     if self.specs['requires_swig2'] and not RavenPython.has_swig2:
       return (False, 'skipped (No swig 2.0 found)')
-    missing,too_old = RavenUtils.checkForMissingModules()
+    missing,too_old, notQA = RavenUtils.checkForMissingModules()
     if len(missing) > 0:
       return (False,'skipped (Missing python modules: '+" ".join(missing)+
               " PYTHONPATH="+os.environ.get("PYTHONPATH","")+')')

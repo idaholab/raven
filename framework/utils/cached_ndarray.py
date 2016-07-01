@@ -143,7 +143,7 @@ class c1darray(object):
       if self.values[i]>=maxValue:
         maxValue = self.values[i]
         index = i
-        break
+        #break Breaking here guarantees you only ever get the first index (unless you have -sys.float_info_max in first entry)
     return index
 
   def returnIndexMin(self):
@@ -158,7 +158,7 @@ class c1darray(object):
       if self.values[i]<=minValue:
         minValue = self.values[i]
         index = i
-        break
+        #break Breaking here guarantees you only ever get the first index (unless you have sys.float_info_max in first entry)
     return index
 
   def __add__(self, x):

@@ -23,7 +23,7 @@ In order to use the \textbf{DataMining} post-processor, the user
 needs to set the attribute \xmlAttr{subType}: \\
 \\
 \xmlNode{PostProcessor \xmlAttr{subType}=
-\xmlString{DataMiningPostProcessor}}. \\
+\xmlString{DataMining}}. \\
 \\
 The following is a list of acceptable sub-nodes:
 \begin{itemize}
@@ -128,7 +128,7 @@ process. Can contain any combination of ‘w’ for weights, ‘m’ for means,
   ...
   <Models>
     ...
-      <PostProcessor name='PostProcessorName' subType='DataMiningPostProcessor'>
+      <PostProcessor name='PostProcessorName' subType='DataMining'>
           <KDD lib='SciKitLearn'>
               <Features>variableName</Features>
               <SKLtype>mixture|GMM</SKLtype>
@@ -301,7 +301,7 @@ useful for debugging. For n\_jobs below -1, (n\_cpus + 1 + n\_jobs) are used. Th
   ...
   <Models>
     ...
-      <PostProcessor name='PostProcessorName' subType='DataMiningPostProcessor'>
+      <PostProcessor name='PostProcessorName' subType='DataMining'>
           <KDD lib='SciKitLearn'>
               <Features>variableName</Features>
               <SKLtype>cluster|KMeans</SKLtype>
@@ -662,7 +662,7 @@ The Silhouette Coefficient for a set of samples is given as the mean of the
   ...
   <Models>
     ...
-      <PostProcessor name='PostProcessorName' subType='DataMiningPostProcessor'>
+      <PostProcessor name='PostProcessorName' subType='DataMining'>
           <KDD lib='SciKitLearn'>
               <Features>variable1,variable2,variable3, variable4,variable5</Features>
               <SKLtype>decomposition|PCA</SKLtype>
@@ -942,7 +942,7 @@ Non-linear dimensionality reduction through Isometric Mapping (Isomap).
   ...
   <Models>
     ...
-      <PostProcessor name='PostProcessorName' subType='DataMiningPostProcessor'>
+      <PostProcessor name='PostProcessorName' subType='DataMining'>
           <KDD lib='SciKitLearn'>
               <Features>input</Features>
               <SKLtype>manifold|Isomap</SKLtype>

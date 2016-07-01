@@ -197,7 +197,35 @@ for f in toRemove:
     except OSError:
       print('WARNING: In cleaning up, could not remove file',f)
 
-
+#test bad XML tags
+# rule 1: only start with letter or underscore, can't start with xml
+bads = ['xmlstart','0startnum','.startspec']
+for bad in bads:
+  fixed = xmlUtils.fixXmlTag(bad)
+  if fixed == '_'+bad:
+    results['pass']+=1
+  else:
+    print('ERROR: Fixing illegal XML tag "'+bad+'" FAILED:',fixed,'should be','_'+bad)
+    results['fail']+=1
+# rule 2: only contain letters, digits, hyphens, underscores, and periods
+bads = ['spec@char','co:lon','!234','?<>, ']
+rights = ['spec.char','co.lon','_.234','_.....']
+for b,bad in enumerate(bads):
+  fixed = xmlUtils.fixXmlTag(bad)
+  if fixed == rights[b]:
+    results['pass']+=1
+  else:
+    print('ERROR: Fixing illegal XML tag "'+bad+'" FAILED:',fixed,'should be',rights[b])
+    results['fail']+=1
+#don't fix what ain't broke
+okay = ['abcd','ABCD','_xml','per.iod','hy-phen','under_score']
+for ok in okay:
+  fixed = xmlUtils.fixXmlTag(ok)
+  if fixed == ok:
+    results['pass']+=1
+  else:
+    print('ERROR: Fixing legal XML tag "'+ok+'" FAILED:',fixed,'should be',ok)
+    results['fail']+=1
 
 print(results)
 
