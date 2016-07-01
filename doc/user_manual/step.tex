@@ -58,9 +58,11 @@ behavior depends on the \textbf{Step} is using it.
 \item \textbf{ROM} defines an acceleration Reduced Order Model to use for a
 \textbf{Step}.
 \item \textbf{SolutionExport} represents the container of the eventual output
-of a Sampler. For the moment, it is only used  when a \textbf{Step} is employing the
-search of the Limit Surface (LS), through the class of Adaptive \textbf{Samplers}). In this case, it
-contains the coordinates of the LS in the input space.
+of a step. For the moment, there are two uses: 1) A \textbf{Step} is employing the
+search of the Limit Surface (LS), through the class of Adaptive \textbf{Samplers}); in this case, it
+contains the coordinates of the LS in the input space; and 2) Some of the post-processors
+employ clustering algorithms and the cluster centers will be stored in this file
+with the input being the cluster labels.
 \end{itemize}
 Depending on the \textbf{Step} type, different combinations of these roles can
 be used.
@@ -404,6 +406,9 @@ This XML node can accept the following attributes:
   \textbf{Plot} is output to the screen. Thus, allowing the user to interact
   with the \textbf{Plot} (e.g. rotate the figure, change the scale, etc.).
 \default{False}.
+\item \xmlAttr{fromDirectory}, \xmlDesc{optional string attribute}, The directory
+  where the input files can be found when loading data from a file or series of
+  files directly into a DataObject.
 \end{itemize}
 \vspace{-5mm}
 In the \xmlNode{IOStep} input block, the user specifies the objects that need to

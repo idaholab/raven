@@ -420,13 +420,20 @@ class HistorySet(Data):
     #for time, and the rest of the file is data for different times.
     if options is not None and 'fileToLoad' in options.keys():
       name = os.path.join(options['fileToLoad'].getPath(),options['fileToLoad'].getBase())
-    else: name = self.name
+    else:
+      name = self.name
+
     filenameLocal = os.path.join(filenameRoot,name)
-    xmlData = self._loadXMLFile(filenameLocal)
-    assert(xmlData["fileType"] == "HistorySet")
-    if "metadata" in xmlData:
-      self._dataContainer['metadata'] = xmlData["metadata"]
-    mainCSV = os.path.join(filenameRoot,xmlData["filenameCSV"])
+
+    if os.path.isfile(filenameLocal+'.xml'):
+      xmlData = self._loadXMLFile(filenameLocal)
+      assert(xmlData["fileType"] == "HistorySet")
+      if "metadata" in xmlData:
+        self._dataContainer['metadata'] = xmlData["metadata"]
+      mainCSV = os.path.join(filenameRoot,xmlData["filenameCSV"])
+    else:
+      mainCSV = os.path.join(filenameRoot,name+'.csv')
+
     myFile = open(mainCSV,"rU")
     header = myFile.readline().rstrip()
     inpKeys = header.split(",")[:-1]
@@ -461,9 +468,11 @@ class HistorySet(Data):
       subOutput = {}
       for key,value in zip(inpKeys,inpValues[i]):
         #subInput[key] = c1darray(values=np.array([value]*len(outValues[0][0])))
-        subInput[key] = c1darray(values=np.array([value]))
+        if key in self.getParaKeys('inputs'):
+          subInput[key] = c1darray(values=np.array([value]))
       for key,value in zip(outKeys[i],outValues[i]):
-        subOutput[key] = c1darray(values=np.array(value))
+        if key in self.getParaKeys('outputs'):
+          subOutput[key] = c1darray(values=np.array(value))
       self._dataContainer['inputs'][mainKey] = subInput
       self._dataContainer['outputs'][mainKey] = subOutput
     self.checkConsistency()

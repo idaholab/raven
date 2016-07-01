@@ -1,8 +1,15 @@
 [Tests]
-  [./externalPostProcessor]
+  [./simple]
     type = 'RavenFramework'
     input = 'test_externalPostProcessor.xml'
     csv = 'externalPostProcessor/myDump.csv'
     output = 'externalPostProcessor/myDump.xml'
+  [../]
+
+  [./multiple_usage]
+    type = 'RavenFramework'
+    input = 'multiple_usage.xml'
+    csv = 'externalPostProcessor/multiple_usage_1.csv externalPostProcessor/multiple_usage_2.csv'
+    output = 'externalPostProcessor/multiple_usage_1.xml externalPostProcessor/multiple_usage_2.xml'
   [../]
 []

@@ -30,6 +30,7 @@ from sklearn.neighbors import kneighbors_graph
 import numpy as np
 import abc
 import ast
+import copy
 #External Modules End--------------------------------------------------------------------------------
 #Internal Modules------------------------------------------------------------------------------------
 import utils
@@ -353,6 +354,12 @@ class SciKitLearn(unSupervisedLearning):
 
     self.outputDict['outputs'] = {}
     self.outputDict['inputs' ] = self.normValues
+    ## What are you doing here? Calling half of these methods does nothing
+    ## unless you store the data somewhere. If you are going to blindly call
+    ## whatever methods that exist in the class, then at least store them for
+    ## later. Why is this done again on the PostProcessor side? I am struggling
+    ## to understand what this code's purpose is except to obfuscate our
+    ## interaction with skl.
     if   hasattr(self.Method, 'fit_predict'):
         self.Method.fit_predict(self.normValues)
     elif hasattr(self.Method, 'predict'):
@@ -367,58 +374,82 @@ class SciKitLearn(unSupervisedLearning):
     if 'cluster' == self.SKLtype:
         if hasattr(self.Method, 'n_clusters') :
             self.noClusters = self.Method.n_clusters
-            self.outputDict['outputs']['noClusters'           ] = self.noClusters
+            self.outputDict['outputs']['noClusters'           ] = copy.deepcopy(self.noClusters)
         if hasattr(self.Method, 'labels_') :
             self.labels_ = self.Method.labels_
-            print(self.labels_)
-            self.outputDict['outputs']['labels'               ] = self.labels_
+            self.outputDict['outputs']['labels'               ] = copy.deepcopy(self.labels_)
         if hasattr(self.Method, 'cluster_centers_') :
-            self.clusterCenters_ = self.Method.cluster_centers_
+            self.clusterCenters_ = copy.deepcopy(self.Method.cluster_centers_)
+            ## I hope these arrays are consistently ordered...
+            ## We are mixing our internal storage of muAndSigma with SKLs
+            ## representation of our data, I believe it is fair to say that we
+            ## hand the data to SKL in the same order that we have it stored.
+            for cnt, feat in enumerate(self.features):
+              for center in self.clusterCenters_:
+                center[cnt] = center[cnt] * self.muAndSigmaFeatures[feat][1] + self.muAndSigmaFeatures[feat][0]
             self.outputDict['outputs']['clusterCenters'       ] = self.clusterCenters_
         if hasattr(self.Method, 'cluster_centers_indices_') :
-            self.clusterCentersIndices_ = self.Method.cluster_centers_indices_
+            self.clusterCentersIndices_ = copy.deepcopy(self.Method.cluster_centers_indices_)
             self.outputDict['outputs']['clusterCentersIndices'] = self.clusterCentersIndices_
         if hasattr(self.Method, 'inertia_') :
             self.inertia_ = self.Method.inertia_
             self.outputDict['outputs']['inertia'              ] = self.inertia_
     elif 'mixture' == self.SKLtype:
         if hasattr(self.Method, 'weights_') :
-            self.weights_ = self.Method.weights_
-            self.outputDict['outputs']['weights'  ] = self.weights_
+            self.weights_ = copy.deepcopy(self.Method.weights_)
+            self.outputDict['outputs']['weights'  ] = copy.deepcopy(self.weights_)
         if hasattr(self.Method, 'means_') :
-            self.means_ = self.Method.means_
+            self.means_ = copy.deepcopy(self.Method.means_)
+
+            ## I hope these arrays are consistently ordered...
+            ## We are mixing our internal storage of muAndSigma with SKLs
+            ## representation of our data, I believe it is fair to say that we
+            ## hand the data to SKL in the same order that we have it stored.
+            for cnt, feat in enumerate(self.features):
+              for center in self.means_:
+                center[cnt] = center[cnt] * self.muAndSigmaFeatures[feat][1] + self.muAndSigmaFeatures[feat][0]
+
             self.outputDict['outputs']['means'    ] = self.means_
         if hasattr(self.Method, 'covars_') :
-            self.covars_ = self.Method.covars_
+            self.covars_ = copy.deepcopy(self.Method.covars_)
+
+            ## I hope these arrays are consistently ordered...
+            ## We are mixing our internal storage of muAndSigma with SKLs
+            ## representation of our data, I believe it is fair to say that we
+            ## hand the data to SKL in the same order that we have it stored.
+            for row, rowFeat in enumerate(self.features):
+              for col, colFeat in enumerate(self.features):
+                self.covars_[row,col] = self.covars_[row,col] * self.muAndSigmaFeatures[rowFeat][1] * self.muAndSigmaFeatures[colFeat][1]
+
             self.outputDict['outputs']['covars'   ] = self.covars_
         if hasattr(self.Method, 'precs_') :
-            self.precs_ = self.Method.precs_
+            self.precs_ = copy.deepcopy(self.Method.precs_)
             self.outputDict['outputs']['precs_'   ] = self.precs_
         if hasattr(self.Method, 'converged_') :
             if not self.Method.converged_ : self.raiseAnError(RuntimeError, self.SKLtype + '|' + self.SKLsubType + ' did not converged. (from KDD->' + self.SKLsubType + ')')
-            self.converged_ = self.Method.converged_
+            self.converged_ = copy.deepcopy(self.Method.converged_)
             self.outputDict['outputs']['converged'] = self.converged_
     elif 'manifold' == self.SKLtype:
-        self.outputDict['outputs']['noComponents'] = self.noComponents_
+        self.outputDict['outputs']['noComponents'] = copy.deepcopy(self.noComponents_)
         if hasattr(self.Method, 'embedding_'):
-            self.embeddingVectors_ = self.Method.embedding_
-            self.outputDict['outputs']['embeddingVectors_'] = self.embeddingVectors_
+            self.embeddingVectors_ = copy.deepcopy(self.Method.embedding_)
+            self.outputDict['outputs']['embeddingVectors_'] = copy.deepcopy(self.embeddingVectors_)
         if hasattr(self.Method, 'reconstruction_error_'):
-            self.reconstructionError_ = self.Method.reconstruction_error_
-            self.outputDict['outputs']['reconstructionError_'] = self.reconstructionError_
+            self.reconstructionError_ = copy.deepcopy(self.Method.reconstruction_error_)
+            self.outputDict['outputs']['reconstructionError_'] = copy.deepcopy(self.reconstructionError_)
     elif 'decomposition' == self.SKLtype:
-        self.outputDict['outputs']['noComponents'] = self.noComponents_
+        self.outputDict['outputs']['noComponents'] = copy.deepcopy(self.noComponents_)
         if hasattr(self.Method, 'components_'):
-            self.components_ = self.Method.components_
+            self.components_ = copy.deepcopy(self.Method.components_)
             self.outputDict['outputs']['components'] = self.components_
         if hasattr(self.Method, 'means_'):
-            self.means_ = self.Method.means_
+            self.means_ = copy.deepcopy(self.Method.means_)
             self.outputDict['outputs']['means'] = self.means_
         if hasattr(self.Method, 'explained_variance_'):
-            self.explainedVariance_ = self.Method.explained_variance_
+            self.explainedVariance_ = copy.deepcopy(self.Method.explained_variance_)
             self.outputDict['outputs']['explainedVariance'] = self.explainedVariance_
         if hasattr(self.Method, 'explained_variance_ratio_'):
-            self.explainedVarianceRatio_ = self.Method.explained_variance_ratio_
+            self.explainedVarianceRatio_ = copy.deepcopy(self.Method.explained_variance_ratio_)
             self.outputDict['outputs']['explainedVarianceRatio'] = self.explainedVarianceRatio_
     else: print ('Not Implemented yet!...', self.SKLtype)
 
