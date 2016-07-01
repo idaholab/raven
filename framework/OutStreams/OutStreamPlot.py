@@ -695,7 +695,7 @@ class OutStreamPlot(OutStreamManager):
     self.xCoordinates = []
     self.sourceName = []
 
-    self.destinations = self.options['how']['how'].split(',')
+    self.destinations = self.options['how']['how'].lower().split(',')
 
     if 'figureProperties' in self.options.keys():
       key = 'figureProperties'
@@ -1231,28 +1231,28 @@ class OutStreamPlot(OutStreamManager):
             plotSettings['bins'] = '10'
           else:
             plotSettings['bins'] = '4'
-        settings = plotSettings
-        keys = settings.keys()
+
+        keys = plotSettings.keys()
         if 'normed' not in keys:
-          settings['normed'] = 'False'
+          plotSettings['normed'] = 'False'
         if 'weights' not in keys:
-          settings['weights'] = 'None'
+          plotSettings['weights'] = 'None'
         if 'cumulative' not in keys:
-          settings['cumulative'] = 'False'
+          plotSettings['cumulative'] = 'False'
         if 'histtype' not in keys:
-          settings['histtype'] = 'bar'
+          plotSettings['histtype'] = 'bar'
         if 'align' not in keys:
-          settings['align'] = 'mid'
+          plotSettings['align'] = 'mid'
         if 'orientation' not in keys:
-          settings['orientation'] = 'vertical'
+          plotSettings['orientation'] = 'vertical'
         if 'rwidth' not in keys:
-          settings['rwidth'] = 'None'
+          plotSettings['rwidth'] = 'None'
         if 'log' not in keys:
-          settings['log'] = 'None'
+          plotSettings['log'] = 'None'
         if 'color' not in keys:
-          settings['color'] = 'b'
+          plotSettings['color'] = 'b'
         if 'stacked' not in keys:
-          settings['stacked'] = 'None'
+          plotSettings['stacked'] = 'None'
         for key in self.xValues[pltindex].keys():
           for xIndex in range(len(self.xValues[pltindex][key])):
             try:
