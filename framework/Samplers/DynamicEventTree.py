@@ -650,8 +650,8 @@ class DynamicEventTree(Grid):
       @ Out, None
     """
     Grid.localInputAndChecks(self,xmlNode)
-    if 'printEndXmlSummary'  in xmlNode.attrib.keys(): self.printEndXmlSummary  = True if xmlNode.attrib['printEndXmlSummary'].lower()  in utils.stringsThatMeanTrue() else False
-    if 'removeXmlBranchInfo' in xmlNode.attrib.keys(): self.removeXmlBranchInfo = True if xmlNode.attrib['removeXmlBranchInfo'].lower() in utils.stringsThatMeanTrue() else False
+    if 'printEndXmlSummary'  in xmlNode.attrib.keys(): self.printEndXmlSummary  = xmlNode.attrib['printEndXmlSummary'].lower()  in utils.stringsThatMeanTrue()
+    if 'removeXmlBranchInfo' in xmlNode.attrib.keys(): self.removeXmlBranchInfo = xmlNode.attrib['removeXmlBranchInfo'].lower() in utils.stringsThatMeanTrue()
     if 'maxSimulationTime'   in xmlNode.attrib.keys():
       try                        : self.maxSimulTime = float(xmlNode.attrib['maxSimulationTime'])
       except (KeyError,NameError): self.raiseAnError(IOError,'Can not convert maxSimulationTime in float number!!!')
@@ -695,6 +695,12 @@ class DynamicEventTree(Grid):
 #             self.raiseAWarning("In distribution " + str(self.toBeSampled[keyk]) + " the Threshold " + str(sorted(self.branchValues[self.toBeSampled[keyk]], key=float)[index])+" appears multiple times!!")
 #             errorFound = True
     if errorFound: self.raiseAnError(IOError,"In sampler named " + self.name+' Errors have been found!' )
+    # check if RELAP7 mode is activated, in case check that a <distribution> variable is unique in the input
+    if any("<distribution>" in s for s in self.branchProbabilities.keys()):
+      associatedDists = self.toBeSampled.values()
+      if len(list(set(associatedDists))) != len(associatedDists):
+        self.raiseAnError(IOError,"Distribution-mode sampling activated in " + self.name+". In this case every <distribution> needs to be assocaited with one single <Distribution> block!" )
+
     # Append the branchedLevel dictionary in the proper list
     self.branchedLevel.append(branchedLevel)
 

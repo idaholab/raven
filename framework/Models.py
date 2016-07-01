@@ -1273,7 +1273,6 @@ class Code(Model):
       @ In, output, "DataObjects" object, output where the results of the calculation needs to be stored
       @ Out, None
     """
-    #can we revise the spelling to something more English? No. Andrea :D
     outputFilelocation = finishedjob.getWorkingDir()
     attributes={"inputFile":self.currentInputFiles,"type":"csv","name":os.path.join(outputFilelocation,finishedjob.output+'.csv')}
     metadata = finishedjob.returnMetadata()
