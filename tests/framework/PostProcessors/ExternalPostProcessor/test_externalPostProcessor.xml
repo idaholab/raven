@@ -3,25 +3,24 @@
   <!-- A simple example of writing an external python function and using it
      inside RAVEN -->
   <!-- Here we are testing several things:
-     1. We can handle data from multiple input files.
-     2. We can handle methods defined in multiple .py files.
-     3. A subset of inputs from the originating data is reported correctly, note
+    1.  We can handle data from multiple input files.
+    2.  We can handle methods defined in multiple .py files.
+    3.  A subset of inputs from the originating data is reported correctly, note
         we ask for B, but not Y (they contain the same information).
-     4. A subset of outputs from the originating data is reported correctly,
+    4.  A subset of outputs from the originating data is reported correctly,
         note we ask for Z, but not C (they contain the same information).
-     5. Reporting an overloaded function with the appropriately qualified names:
+    5.  Reporting an overloaded function with the appropriately qualified names:
         basicOps.Sum and advOps.Sum.
-     6. A non-overloaded function is reported correctly: Norm
-     7. An overloaded function name can be specified by its qualified name and
+    6.  A non-overloaded function is reported correctly: Norm
+    7.  An overloaded function name can be specified by its qualified name and
         only that version will be applied to the output: advOps.Delta.
-     8. If you ask for a function that is not defined, it will give a warning
+    8.  If you ask for a function that is not defined, it will give a warning
         message and skip it: DoesNotExist
-     9. Vector return type that is appended as a column to the data: Norm
+    9.  Vector return type that is appended as a column to the data: Norm
     10. Vector return type that is stored in the metadata: Mean
     11. Scalar or non-conformant data size stored in metadata: Min
     12. Scalar or non-conformant data size warning message when attempting to
-        store it in the output, it is instead put in the metadata: Max
- -->
+        store it in the output, it is instead put in the metadata: Max -->
   <RunInfo>
     <WorkingDir>externalPostProcessor</WorkingDir>
     <Sequence>
