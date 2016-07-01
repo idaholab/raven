@@ -6,11 +6,19 @@ Created on May 1, 2016
 from xml.etree import ElementTree as ET
 from xml.dom import minidom
 
-def write_xml_for_DET(filename,trigger,listDict,stopInfo):
+def writeXmlForDET(filename,trigger,listDict,stopInfo):
   """
     Method to write the XML file containing the information regarding
     the stop condition for branching in DET method
-    @ In, file, string, filename (with absolute path)
+    @ In, filename, string, filename (with absolute path) of the XML file that needs to be printed out
+    @ In, trigger, string, the name of the trigger variable
+    @ In, listDict, list, list of dictionaries containing the information regarding the "modified" variables:
+                            [{'type':VariableType (e.g. controlled, monitored, aux, etc),
+                              'old_value':The unchanged value,
+                              'new_value':[list of new values (if more then one value => multi-branch)],
+                              'associated_pb':[list of associated probabilities (required only in case a multi-branch is requested]
+                            }]
+    @ In, stopInfo, dict, dictionary of stop information ({'end_time': end simulation time (already stopped),'end_ts': end simulation time step (optional)})
     @ Out, None
   """
   #  trigger == 'variable trigger'
@@ -32,4 +40,3 @@ def write_xml_for_DET(filename,trigger,listDict,stopInfo):
   fileObject = open(filename,'w')
   fileObject.write(minidom.parseString(ET.tostring(root, 'utf-8')).toprettyxml(indent="\t"))
   fileObject.close()
-  #tree.write(open(filename,'w'))
