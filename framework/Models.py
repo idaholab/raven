@@ -1242,7 +1242,7 @@ class Code(Model):
     executeCommand, self.outFileRoot = returnedCommand
     uniqueHandler = inputFiles[1]['uniqueHandler'] if 'uniqueHandler' in inputFiles[1].keys() else 'any'
     identifier    = inputFiles[1]['prefix'] if 'prefix' in inputFiles[1].keys() else None
-    jobHandler.submitDict['External'](executeCommand,self.outFileRoot,metaData['subDirectory'],identifier=identifier,metadata=metaData,codePointer=self.code,uniqueHandler = uniqueHandler)
+    jobHandler.submitDict['External'](executeCommand,self.outFileRoot,metaData.pop('subDirectory'),identifier=identifier,metadata=metaData,codePointer=self.code,uniqueHandler = uniqueHandler)
     found = False
     for index, inputFile in enumerate(self.currentInputFiles):
       if inputFile.getExt() in self.code.getInputExtension():
