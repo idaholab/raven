@@ -35,12 +35,12 @@ from ClassProperty import ClassProperty
 ## instance, then we don't have the ability to display the plot, only to save it
 ## to a file
 if platform.system() == 'Windows':
-  DISPLAY_AVAILABLE = True
+  displayAvailable = True
 else:
   if os.getenv('DISPLAY'):
-    DISPLAY_AVAILABLE = True
+    displayAvailable = True
   else:
-    DISPLAY_AVAILABLE = False
+    displayAvailable = False
 
 class OutStreamPlot(OutStreamManager):
   """
@@ -681,7 +681,7 @@ class OutStreamPlot(OutStreamManager):
       @ In, instructionString, string, the instruction to execute
       @ Out, None
     """
-    if instructionString == 'interactive' and 'screen' in self.destinations and DISPLAY_AVAILABLE:
+    if instructionString == 'interactive' and 'screen' in self.destinations and displayAvailable:
       self.plt.figure(self.name)
       self.fig.ginput(n = -1, timeout = -1, show_clicks = False)
 
@@ -717,7 +717,7 @@ class OutStreamPlot(OutStreamManager):
     else:
       self.fig = self.plt.figure(self.name)
 
-    if 'screen' in self.destinations and DISPLAY_AVAILABLE:
+    if 'screen' in self.destinations and displayAvailable:
       self.fig.show()
 
     if self.dim == 3:
@@ -879,7 +879,7 @@ class OutStreamPlot(OutStreamManager):
     if self.dim not in [2, 3]:
       self.raiseAnError(TypeError, 'This Plot interface is able to handle 2D-3D plot only')
 
-    if not DISPLAY_AVAILABLE:
+    if not displayAvailable:
       self.mpl.use('Agg')
     self.plt = importlib.import_module("matplotlib.pyplot")
 
@@ -1784,7 +1784,7 @@ class OutStreamPlot(OutStreamManager):
     self.plt.draw()
 
     # self.plt3D.draw(self.fig.canvas.renderer)
-    if 'screen' in self.destinations and DISPLAY_AVAILABLE:
+    if 'screen' in self.destinations and displayAvailable:
       if platform.system() == 'Linux':
         # XXX For some reason, this is required on Linux, but causes
         # OSX to fail.  Which is correct for windows has not been determined.
