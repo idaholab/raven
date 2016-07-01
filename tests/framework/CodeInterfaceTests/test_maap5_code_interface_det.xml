@@ -13,7 +13,7 @@
   </Files>
 
   <Models>
-    <Code name="MyMAAP" subType="MAAP5_GenericV7">
+    <Code name="MyMAAP" subType="MAAP5">
       <executable>
 
       </executable>         
