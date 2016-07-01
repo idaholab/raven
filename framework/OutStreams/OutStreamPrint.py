@@ -31,6 +31,11 @@ class OutStreamPrint(OutStreamManager):
 
   @ClassProperty
   def availableOutStreamTypes(cls):
+    """
+        A class level constant that tells developers what outstreams are
+        available from this class
+        @ In, cls, the OutStreamPrint class of which this object will be a type
+    """
     return cls._availableOutStreamTypes
 
   def __init__(self):

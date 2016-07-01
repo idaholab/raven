@@ -67,10 +67,20 @@ class OutStreamPlot(OutStreamManager):
 
   @ClassProperty
   def availableOutStreamTypes(cls):
+    """
+        A class level constant that tells developers what outstreams are
+        available from this class
+        @ In, cls, the OutStreamPlot class of which this object will be a type
+    """
     return cls._availableOutStreamTypes
 
   @ClassProperty
   def availableInterpolators(cls):
+    """
+        A class level constant that tells developers what interpolators are
+        available from this class
+        @ In, cls, the OutStreamPlot class of which this object will be a type
+    """
     return cls._availableInterpolators
 
 
