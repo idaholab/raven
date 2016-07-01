@@ -1271,33 +1271,40 @@ class ImportanceRank(BasePostProcessor):
       self.dimensions = range(1,len(self.features)+1)
       self.raiseAWarning('The dimensions for given features: ' + str(self.features) + ' is not provided! Default dimensions will be used: ' + str(self.dimensions) + '!')
 
-  def _localPrintXML(self,node,options=None):
+  def _localPrintXML(self,outFile,options=None):
     """
       Adds requested entries to XML node.
-      @ In, node, XML node, to which entries will be added
+      @ In, outFile, Files.StaticXMLOutput, file to which entries will be printed
       @ In, options, dict, optional, list of requests and options
         May include: 'what': comma-separated string list, the qualities to print out
       @ Out, None
     """
-    for what in options.keys():
-      if what.lower() in self.acceptedMetric:
-        metricNode = TreeStructure.Node(what)
-        for target in options[what].keys():
-          newNode = TreeStructure.Node(target)
-          entries = options[what][target]
-          #add to tree
-          for entry in entries:
-            subNode = TreeStructure.Node('variable')
-            subNode.setText(entry[0])
-            vNode = TreeStructure.Node('index')
-            vNode.setText(entry[1])
-            subNode.appendBranch(vNode)
-            vNode = TreeStructure.Node('dim')
-            vNode.setText(entry[2])
-            subNode.appendBranch(vNode)
-            newNode.appendBranch(subNode)
-          metricNode.appendBranch(newNode)
-      node.appendBranch(metricNode)
+    #dimension node needs only be set once, but it is given for each index type
+    dimDict = None
+    settingDim = False
+    #pca index is a feature only of target, not with respect to anything else
+    if 'pcaindex' in options.keys():
+      pca = options['pcaindex'].values()[0]
+      for var,index,_ in pca:
+        outFile.addScalar(var,'pcaIndex',index)
+    #build tree
+    targets = options.values()[0].keys()
+    for target in targets:
+      valueDict = OrderedDict()
+      for what in options.keys():
+        if what.lower() in self.acceptedMetric and what.lower()!='pcaindex':
+          if dimDict is None:
+            dimDict = {}
+            settingDim = True
+          for var,index,dim in options[what][target]:
+            valueDict[var]=index #dims?
+            if settingDim:
+              dimDict[var] = dim
+          if settingDim:
+            for key,val in dimDict.items():
+              outFile.addScalar(key,'dimension',val)
+            settingDim = False
+          outFile.addVector(target,what,valueDict)
 
   def collectOutput(self,finishedJob, output):
     """
@@ -1341,12 +1348,12 @@ class ImportanceRank(BasePostProcessor):
             output.write(os.linesep)
         output.close()
       else:
-        node = TreeStructure.Node('ImportanceRank')
-        tree = TreeStructure.NodeTree(node)
-        self._localPrintXML(node,outputDict)
-        msg=tree.stringNodeTree()
-        output.writelines(msg)
-        output.close()
+        #convert output into an XML output file
+        outFile = Files.returnInstance('StaticXMLOutput',self)
+        outFile.initialize(output.getFilename(),self.messageHandler,path=output.getPath())
+        outFile.newTree('ImportanceRankPP')
+        self._localPrintXML(outFile,outputDict)
+        outFile.writeFile()
         self.raiseAMessage('ImportanceRank XML printed to "'+output.getFilename()+'"!')
     # Output to DataObjects
     elif output.type in ['PointSet','HistorySet']:
@@ -1691,49 +1698,43 @@ class BasicStatistics(BasePostProcessor):
             self.raiseADebug('Writing External Function parameter ' + what)
             output.write(what + separator + '%.8E' % outputDict[what] + os.linesep)
 
-  def _writeXML(self,output,outputDictionary,parameterSet,methodToTest):
+  def _writeXML(self,origOutput,outputDictionary,parameterSet,methodToTest):
     """
       Defines the method for writing the basic statistics to a .xml file.
-      @ In, output, File object, file to write
+      @ In, origOutput, File object, file to write
       @ In, outputDictionary, dict, dictionary of statistics values
       @ In, parameterSet, list, list of parameters in use
       @ In, methodToTest, list, strings of methods to test
       @ Out, None
     """
-    tree = xmlUtils.newTree('BasicStatisticsPP')
-    root = tree.getroot()
-    root.set('type','Dynamic' if self.dynamic else 'Static')
+    #create XML output with same path as original output
+    if origOutput.isOpen(): origOutput.close()
+    if self.dynamic:
+      output = Files.returnInstance('DynamicXMLOutput',self)
+    else:
+      output = Files.returnInstance('StaticXMLOutput',self)
+    output.initialize(origOutput.getFilename(),self.messageHandler,path=origOutput.getPath())
+    output.newTree('BasicStatisticsPP',pivotParam=self.pivotParameter)
     outputResults = [outputDictionary] if not self.dynamic else outputDictionary.values()
     for ts, outputDict in enumerate(outputResults):
-      if self.dynamic:
-        parentNode = xmlUtils.newNode(self.pivotParameter)
-        parentNode.set('value',str(outputDictionary.keys()[ts]))
-        root.append(parentNode)
-      else: parentNode = root
+      pivotVal = outputDictionary.keys()[ts]
       for t,target in enumerate(parameterSet):
-        tNode = xmlUtils.newNode(target) #tnode is for properties with respect to the target
-        parentNode.append(tNode)
         for stat,val in outputDict.items():
           if stat not in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity'] + methodToTest:
-            val = val[target]
-            sNode = xmlUtils.newNode(stat,text=str(val)) #sNode is for each stat of the target
-            tNode.append(sNode)
+            output.addScalar(target,stat,val[target],pivotVal=pivotVal)
         for stat,val in outputDict.items():
           if stat in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity']:
+            valueDict = {}
             valRow = val[t]
-            sNode = xmlUtils.newNode(stat)
-            tNode.append(sNode)
             for p,param in enumerate(parameterSet):
               actVal = valRow[p]
-              vNode = xmlUtils.newNode(param,text=str(actVal)) #vNode is for each parameter's stat's value with respect to the target
-              sNode.append(vNode)
+              valueDict[param] = actVal
+            output.addVector(target,stat,valueDict,pivotVal=pivotVal)
         if self.externalFunction:
           for stat in self.methodsToRun:
             if stat not in self.acceptedCalcParam:
-              sNode = xmlUtils.newNode(stat,text=str(outputDict[stat]))
-    pretty = xmlUtils.prettify(tree)
-    output.writelines(pretty)
-    output.close()
+              output.addScalar(target,stat,val[target],pivotVal=pivotVal)
+    output.writeFile()
 
   def __computeVp(self,p,weights):
     """
@@ -2671,59 +2672,75 @@ class ExternalPostProcessor(BasePostProcessor):
       @ Out, None
     """
     BasePostProcessor.__init__(self, messageHandler)
-    self.methodsToRun = []  # A list of strings specifying what
+    self.methodsToRun = []              # A list of strings specifying what
                                         # methods the user wants to compute from
                                         # the external interfaces
 
-    self.externalInterfaces = []  # A list of Function objects that
+    self.externalInterfaces = set()     # A set of Function objects that
                                         # hopefully contain definitions for all
                                         # of the methods the user wants
 
     self.printTag = 'POSTPROCESSOR EXTERNAL FUNCTION'
     self.requiredAssObject = (True, (['Function'], ['n']))
 
-  def inputToInternal(self, currentInp):
+  def inputToInternal(self, currentInput):
     """
       Function to convert the received input into a format this object can
       understand
-      @ In, currentInp, dataObjects or list, Some form of data object or list of data objects handed to the post-processor
+      @ In, currentInput, dataObjects or list, Some form of data object or list
+        of data objects handed to the post-processor
       @ Out, inputDict, dict, An input dictionary this object can process
     """
 
-    if type(currentInp) == dict:
-      if 'targets' in currentInp.keys(): return
-    currentInput = currentInp
-    if type(currentInput) != list: currentInput = [currentInput]
+    if type(currentInput) == dict and 'targets' in currentInput.keys():
+      return
+
+    if type(currentInput) != list:
+      currentInput = [currentInput]
+
     inputDict = {'targets':{}, 'metadata':{}}
     metadata = []
     for item in currentInput:
       inType = None
-      if hasattr(item, 'type')  : inType = item.type
-      elif type(item) in [list]: inType = "list"
-      if inType not in ['HDF5', 'PointSet', 'list'] and not isinstance(item,Files.File):
-        self.raiseAWarning(self, 'Input type ' + type(item).__name__ + ' not' + ' recognized. I am going to skip it.')
-      elif isinstance(item,Files.File):
-        if currentInput.subtype == 'csv': self.raiseAWarning(self, 'Input type ' + inType + ' not yet ' + 'implemented. I am going to skip it.')
+      if hasattr(item, 'type'):
+        inType = item.type
+      elif type(item) in [list]:
+        inType = "list"
+
+      if isinstance(item,Files.File):
+        if currentInput.subtype == 'csv':
+          self.raiseAWarning(self, 'Input type ' + inType + ' not yet implemented. I am going to skip it.')
       elif inType == 'HDF5':
         # TODO
-          self.raiseAWarning(self, 'Input type ' + inType + ' not yet ' + 'implemented. I am going to skip it.')
+          self.raiseAWarning(self, 'Input type ' + inType + ' not yet implemented. I am going to skip it.')
       elif inType == 'PointSet':
-        for param in item.getParaKeys('input') : inputDict['targets'][param] = item.getParam('input', param)
-        for param in item.getParaKeys('output'): inputDict['targets'][param] = item.getParam('output', param)
+        for param in item.getParaKeys('input'):
+          inputDict['targets'][param] = item.getParam('input', param)
+        for param in item.getParaKeys('output'):
+          inputDict['targets'][param] = item.getParam('output', param)
+
         metadata.append(item.getAllMetadata())
+      elif inType != 'list':
+        self.raiseAWarning(self, 'Input type ' + type(item).__name__ + ' not recognized. I am going to skip it.')
+
       # Not sure if we need it, but keep a copy of every inputs metadata
       inputDict['metadata'] = metadata
 
-    if len(inputDict['targets'].keys()) == 0: self.raiseAnError(IOError, "No input variables have been found in the input objects!")
+    if len(inputDict['targets'].keys()) == 0:
+      self.raiseAnError(IOError, 'No input variables have been found in the input objects!')
+
     for interface in self.externalInterfaces:
       for _ in self.methodsToRun:
         # The function should reference self and use the same variable names
         # as the xml file
         for param in interface.parameterNames():
           if param not in inputDict['targets']:
-            self.raiseAnError(IOError, self, 'variable \"' + param + '\" unknown.' + ' Please verify your external' + ' script (' + interface.functionFile
-                                          + ') variables match the data'
-                                          + ' available in your dataset.')
+            self.raiseAnError(IOError, self, 'variable \"' + param
+                                             + '\" unknown. Please verify your '
+                                             + 'external script ('
+                                             + interface.functionFile
+                                             + ') variables match the data'
+                                             + ' available in your dataset.')
     return inputDict
 
   def initialize(self, runInfo, inputs, initDict):
@@ -2738,15 +2755,13 @@ class ExternalPostProcessor(BasePostProcessor):
     self.__workingDir = runInfo['WorkingDir']
     for key in self.assemblerDict.keys():
       if 'Function' in key:
-        indice = 0
-        for _ in self.assemblerDict[key]:
-          self.externalInterfaces.append(self.assemblerDict[key][indice][3])
-          indice += 1
+        for val in self.assemblerDict[key]:
+            self.externalInterfaces.add(val[3])
 
   def _localReadMoreXML(self, xmlNode):
     """
-      Function to read the portion of the xml input that belongs to this specialized class
-      and initialize some stuff based on the inputs got
+      Function to read the portion of the xml input that belongs to this
+      specialized class and initialize some stuff based on the inputs got
       @ In, xmlNode, xml.etree.Element, Xml element node
       @ Out, None
     """
@@ -2758,50 +2773,57 @@ class ExternalPostProcessor(BasePostProcessor):
   def collectOutput(self, finishedJob, output):
     """
       Function to place all of the computed data into the output object
-      @ In, finishedJob, JobHandler External or Internal instance, A JobHandler object that is in charge of running this post-processor
-      @ In, output, dataObjects, The object where we want to place our computed results
+      @ In, finishedJob, JobHandler External or Internal instance, A JobHandler
+        object that is in charge of running this post-processor
+      @ In, output, dataObjects, The object where we want to place our computed
+        results
       @ Out, None
     """
     if finishedJob.returnEvaluation() == -1:
       # #TODO This does not feel right
-      self.raiseAnError(RuntimeError, 'No available Output to collect (Run '
-                                       + 'probably did not finish yet)')
+      self.raiseAnError(RuntimeError, 'No available Output to collect (Run probably did not finish yet)')
+
     inputList = finishedJob.returnEvaluation()[0]
     outputDict = finishedJob.returnEvaluation()[1]
 
     if isinstance(output,Files.File):
-      self.raiseAWarning('Output type File not'
-                               + ' yet implemented. I am going to skip it.')
+      self.raiseAWarning('Output type File not yet implemented. I am going to skip it.')
     elif output.type == 'DataObjects':
-      self.raiseAWarning('Output type ' + type(output).__name__ + ' not'
-                               + ' yet implemented. I am going to skip it.')
+      self.raiseAWarning('Output type ' + type(output).__name__
+                         + ' not yet implemented. I am going to skip it.')
     elif output.type == 'HDF5':
-      self.raiseAWarning('Output type ' + type(output).__name__ + ' not'
-                               + ' yet implemented. I am going to skip it.')
+      self.raiseAWarning('Output type ' + type(output).__name__
+                         + ' not yet implemented. I am going to skip it.')
     elif output.type == 'PointSet':
       requestedInput = output.getParaKeys('input')
+      ## If you want to be able to dynamically add columns to your data, then
+      ## you should use this commented line, otherwise only the information
+      ## asked for by the user in the output data object will be available
+
+      # requestedOutput = list(set(output.getParaKeys('output') + self.methodsToRun))
       requestedOutput = output.getParaKeys('output')
-      # # The user can simply ask for a computation that may exist in multiple
-      # # interfaces, in that case, we will need to qualify their names for the
-      # # output. The names should already be qualified from the outputDict.
-      # # However, the user may have already qualified the name, so make sure and
-      # # test whether the unqualified name exists in the requestedOutput before
-      # # replacing it.
+
+      ## The user can simply ask for a computation that may exist in multiple
+      ## interfaces, in that case, we will need to qualify their names for the
+      ## output. The names should already be qualified from the outputDict.
+      ## However, the user may have already qualified the name, so make sure and
+      ## test whether the unqualified name exists in the requestedOutput before
+      ## replacing it.
       for key, replacements in outputDict['qualifiedNames'].iteritems():
         if key in requestedOutput:
           requestedOutput.remove(key)
           requestedOutput.extend(replacements)
 
-      # # Grab all data from the outputDict and anything else requested not
-      # # present in the outputDict will be copied from the input data.
-      # # TODO: User may want to specify which dataset the parameter comes from.
-      # #       For now, we assume that if we find more than one an error will
-      # #      occur.
-      # # FIXME: There is an issue that the data size should be determined before
-      # #        entering this loop, otherwise if say a scalar is first added,
-      # #        then dataLength will be 1 and everything longer will be placed
-      # #        in the Metadata.
-      # #        How do we know what size the output data should be?
+      ## Grab all data from the outputDict and anything else requested not
+      ## present in the outputDict will be copied from the input data.
+      ## TODO: User may want to specify which dataset the parameter comes from.
+      ##       For now, we assume that if we find more than one an error will
+      ##       occur.
+      ## FIXME: There is an issue that the data size should be determined before
+      ##        entering this loop, otherwise if say a scalar is first added,
+      ##        then dataLength will be 1 and everything longer will be placed
+      ##        in the Metadata.
+      ##        How do we know what size the output data should be?
       dataLength = None
       for key in requestedInput + requestedOutput:
         storeInOutput = True
@@ -2829,8 +2851,8 @@ class ExternalPostProcessor(BasePostProcessor):
             self.raiseAnError(IOError, key + ' is ambiguous since it occurs'
                                             + ' in multiple input objects.')
 
-        # # We need the size to ensure the data size is consistent, but there
-        # # is no guarantee the data is not scalar, so this check is necessary
+        ## We need the size to ensure the data size is consistent, but there
+        ## is no guarantee the data is not scalar, so this check is necessary
         myLength = 1
         if not hasattr(value, "__iter__"):
           value = [value]
@@ -2845,8 +2867,8 @@ class ExternalPostProcessor(BasePostProcessor):
                                     + '), it is being placed in the metadata.')
           storeInOutput = False
 
-        # # Finally, no matter what, place the requested data somewhere
-        # # accessible
+        ## Finally, no matter what, place the requested data somewhere
+        ## accessible
         if storeInOutput:
           if key in requestedInput:
             for val in value:
@@ -2860,25 +2882,27 @@ class ExternalPostProcessor(BasePostProcessor):
           for val in value:
             output.updateMetadata(key, val)
 
-    else: self.raiseAnError(IOError, 'Unknown output type: ' + str(output.type))
+      # print(output._dataContainer['inputs'],output._dataContainer['outputs'])
+    else:
+      self.raiseAnError(IOError, 'Unknown output type: ' + str(output.type))
 
   def run(self, inputIn):
     """
-      This method executes the postprocessor action. In this case it performs the action defined int
-      the external pp
+      This method executes the postprocessor action. In this case it performs
+      the action defined in the external pp
       @ In, inputIn, dict, dictionary of data to process
       @ Out, outputDict, dict, Dictionary containing the post-processed results
     """
     input = self.inputToInternal(inputIn)
     outputDict = {'qualifiedNames' : {}}
-    # # This will map the name to its appropriate interface and method
-    # # in the case of a function being defined in two separate files, we
-    # # qualify the output by appending the name of the interface from which it
-    # # originates
+    ## This will map the name to its appropriate interface and method
+    ## in the case of a function being defined in two separate files, we
+    ## qualify the output by appending the name of the interface from which it
+    ## originates
     methodMap = {}
 
-    # # First check all the requested methods are available and if there are
-    # # duplicates then qualify their names for the user
+    ## First check all the requested methods are available and if there are
+    ## duplicates then qualify their names for the user
     for method in self.methodsToRun:
       matchingInterfaces = []
       for interface in self.externalInterfaces:
@@ -2897,8 +2921,8 @@ class ExternalPostProcessor(BasePostProcessor):
           methodMap[methodName] = (interface, method)
           outputDict['qualifiedNames'][method].append(methodName)
 
-    # # Evaluate the method and add it to the outputDict, also if the method
-    # # adjusts the input data, then you should update it as well.
+    ## Evaluate the method and add it to the outputDict, also if the method
+    ## adjusts the input data, then you should update it as well.
     for methodName, (interface, method) in methodMap.iteritems():
       outputDict[methodName] = interface.evaluate(method, input['targets'])
       for target in input['targets']:
@@ -3960,6 +3984,7 @@ class RavenOutput(BasePostProcessor):
       #   name: RAVEN name for file (from input)
       #   fileObject: FileObject
       #   paths: {varName:'path|through|xml|to|var'}
+    self.dynamic = False #if true, reading in pivot as input and values as outputs
 
   def initialize(self,runInfo,inputs,initDict):
     """
@@ -3992,23 +4017,40 @@ class RavenOutput(BasePostProcessor):
       @ In, xmlNode, xml.etree.Element, Xml element node
       @ Out, None
     """
+    #check if in dynamic mode; default is False
+    dynamicNode = xmlNode.find('dynamic')
+    if dynamicNode is not None:
+      #could specify as true/false or just have the node present
+      text = dynamicNode.text
+      if text is not None:
+        if text not in utils.stringsThatMeanFalse():
+          self.dynamic = True
+      else:
+        self.dynamic = True
+    numberOfSources = 0
     for child in xmlNode:
-      #accept a list of files as <File ID="1">ravenOutputFile.xml</File>
+      #if dynamic, accept a single file as <File ID="1" name="myOut.xml">
+      #if not dynamic, accept a list of files
       if child.tag == 'File':
+        numberOfSources += 1
+        if 'name' not in child.attrib.keys():
+          self.raiseAnError(IOError,'Each "File" must have an associated "name"; missing for',child.tag,child.text)
         #make sure you provide an ID and a file name
         if 'ID' not in child.attrib.keys():
-          self.raiseAnError(IOError,'Each "File" entry must have an associated "ID"; missing for',child.tag,child.text)
-        if 'name' not in child.attrib.keys():
-          self.raiseAnError(IOError,'Each "file" must have an associated "name"; missing for',child.tag,child.text)
-        #assure ID is a number, since it's going into a data object
-        id = child.attrib['ID']
-        try:
-          id = float(id)
-        except ValueError:
-          self.raiseAnError(IOError,'ID for "'+child.text+'" is not a valid number:',id)
-        #if already used, raise an error
-        if id in self.files.keys():
-          self.raiseAnError(IOError,'Multiple File nodes have the same ID:',child.attrib('ID'))
+          id = 0
+          while id in self.files.keys():
+            id += 1
+          self.raiseAWarning(IOError,'Each "File" entry must have an associated "ID"; missing for',child.tag,child.attrib['name'],'so ID is set to',id)
+        else:
+          #assure ID is a number, since it's going into a data object
+          id = child.attrib['ID']
+          try:
+            id = float(id)
+          except ValueError:
+            self.raiseAnError(IOError,'ID for "'+child.text+'" is not a valid number:',id)
+          #if already used, raise an error
+          if id in self.files.keys():
+            self.raiseAnError(IOError,'Multiple File nodes have the same ID:',child.attrib('ID'))
         #store id,filename pair
         self.files[id] = {'name':child.attrib['name'].strip(), 'fileObject':None, 'paths':{}}
         #user provides loading information as <output name="variablename">ans|pearson|x</output>
@@ -4021,6 +4063,9 @@ class RavenOutput(BasePostProcessor):
             if varName in self.files[id]['paths'].keys():
               self.raiseAnError(IOError,'Multiple "output" blocks for "%s" have the same "name":' %self.files[id]['name'],label)
             self.files[id]['paths'][varName] = cchild.text.strip()
+    #if dynamic, only one File can be specified currently; to fix this, how do you handle different-lengthed times in same data object?
+    if self.dynamic and numberOfSources > 1:
+      self.raiseAnError(IOError,'For Dynamic reading, only one "File" node can be specified!  Got',numberOfSources,'nodes.')
     # check there are entries for each
     if len(self.files)<1:
       self.raiseAWarning('No files were specified to read from!  Nothing will be done...')
@@ -4041,20 +4086,31 @@ class RavenOutput(BasePostProcessor):
     """
     # outputs are realizations that will got into data object
     outputDict={'realizations':[]}
-    # each ID results in a realization for the requested attributes
-    for id,fileDict in self.files.items():
-      realization = {'inputs':{'ID':id},'outputs':{},'metadata':{'loadedFromRavenFile':str(fileDict['fileObject'])}}
-      for varName,path in fileDict['paths'].items():
-        #read the value from the file's XML
-        root,_ = xmlUtils.loadToTree(fileDict['fileObject'].getAbsFile())
-        #improve path format
-        path = '|'.join(c.strip() for c in path.strip().split('|'))
-        desiredNode = xmlUtils.findPath(root,path)
-        if desiredNode is None:
-          self.raiseAnError(RuntimeError,'Did not find "<root>|%s" in file "%s"' %(path,fileDict['fileObject'].getAbsFile()))
-        else:
+    if self.dynamic:
+      #outputs are basically a point set with pivot as input and requested XML path entries as output
+      fileName = self.files.values()[0]['fileObject'].getAbsFile()
+      root,_ = xmlUtils.loadToTree(fileName)
+      #determine the pivot parameter
+      pivot = root[0].tag
+      numPivotSteps = len(root)
+      #read from each iterative pivot step
+      for p,pivotStep in enumerate(root):
+        realization = {'inputs':{},'outputs':{},'metadata':{'loadedFromRavenFile':fileName}}
+        realization['inputs'][pivot] = float(pivotStep.attrib['value'])
+        for name,path in self.files.values()[0]['paths'].items():
+          desiredNode = self._readPath(pivotStep,path,fileName)
+          realization['outputs'][name] = float(desiredNode.text)
+        outputDict['realizations'].append(realization)
+    else:
+      # each ID results in a realization for the requested attributes
+      for id,fileDict in self.files.items():
+        realization = {'inputs':{'ID':id},'outputs':{},'metadata':{'loadedFromRavenFile':str(fileDict['fileObject'])}}
+        for varName,path in fileDict['paths'].items():
+          #read the value from the file's XML
+          root,_ = xmlUtils.loadToTree(fileDict['fileObject'].getAbsFile())
+          desiredNode = self._readPath(root,path,fileDict['fileObject'].getAbsFile())
           realization['outputs'][varName] = float(desiredNode.text)
-      outputDict['realizations'].append(realization)
+        outputDict['realizations'].append(realization)
     return outputDict
 
   def collectOutput(self, finishedJob, output):
@@ -4073,6 +4129,22 @@ class RavenOutput(BasePostProcessor):
         output.updateOutputValue(key,real['outputs'][key])
       for key,val in real['metadata'].items():
         output.updateMetadata(key,val)
+
+  def _readPath(self,root,inpPath,fileName):
+    """
+      Reads in values from XML tree.
+      @ In, root, xml.etree.ElementTree.Element, node to start from
+      @ In, inPath, string, |-separated list defining path from root (not including root)
+      @ In, fileName, string, used in error
+      @ Out, desiredNode, xml.etree.ElementTree.Element, desired node
+    """
+    #improve path format
+    path = '|'.join(c.strip() for c in inpPath.strip().split('|'))
+    desiredNode = xmlUtils.findPath(root,path)
+    if desiredNode is None:
+      self.raiseAnError(RuntimeError,'Did not find "%s|%s" in file "%s"' %(root.tag,path,fileName))
+    return desiredNode
+
 
 
 

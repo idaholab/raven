@@ -34,6 +34,14 @@ class OutStreamManager(BaseType):
       @ Out, None
     """
     BaseType.__init__(self)
+
+    ## Use the class name as the type, so as we extend this class, this is
+    ## automatically updated to be the correct value. Honestly, we shouldn't
+    ## need this as we can just reference the class name wherever this is used.
+    ## Otherwise, if you don't agree with that sentiment, then this should at
+    ## least propogate itself up the hierarchy
+    self.type = self.__class__.__name__
+
     # outstreaming options
     self.options = {}
     # counter
