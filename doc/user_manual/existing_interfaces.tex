@@ -145,14 +145,12 @@ In the case of RELAP5, the files typically needed are:
 \begin{itemize}
   \item RELAP5 Input file
   \item Table file or files that RELAP needs to run
-  \item The Relap5 executable
 \end{itemize}
 Example:
 \begin{lstlisting}[style=XML]
 <Files>
   <Input name='inputrelap.i' type=''>inputfilerelap.i</Input>
   <Input name='tpfh2o' type=''>tpfh2o</Input>
-  <Input name='r5executable.x' type=''>r5executabler.x</Input>
   <Input name='X10.i' type=''>X10.i</Input>
 </Files>
 \end{lstlisting}
@@ -163,6 +161,15 @@ also:
   \item the RAVEN input file
   \item the license for the executable of RELAP5
 \end{itemize}
+\textcolor{red}{
+\textbf{It is important to notice that the interface output collection relies on the MINOR EDITS. The user must specify the MINOR 
+EDITS block and those variables are the only one the INTERFACE will read and make available to RAVEN. In addition, it is important to notice that:}
+\begin{itemize}
+  \item \textbf{the simulation time is stored in a variable called \textit{``time''}};
+  \item \textbf{all the variables specified in the MINOR EDIT block are going to be converted using underscores (e.g.  an edit such as 
+  $301 \:\:\: p \:\:\: 345010000$ will be named in the converted CSVs as $p\_345010000$).In addition, if a variable contains spaces, the trailing spaces are going to be removed and internal spaces are replaced with underscores (e.g. $HTTEMP 1131008 12$ will become $HTTEMP\_1131008\_12$}.
+\end{itemize}
+}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Models}
 For the \xmlNode{Models} block here is a standard example of how it would look
@@ -239,18 +246,21 @@ We proceed to do so for both the Grid sampling and the MonteCarlo sampling.
   <Grid name='Grid_Sampler' >
     <variable name='0000588:6'>
       <distribution>BPfailtime</distribution>
-      <grid type='value' construction='equal' lowerBound='0.0' steps='10'>2880</grid>
+      <grid type='value' construction='equal'  steps='10'>0.0 28800</grid>
     </variable>
     <variable name='0000575:6'>
       <distribution>BPrepairtime</distribution>
-      <grid type='value' construction='equal' lowerBound='0.0' steps='10'>2880</grid>
+      <grid type='value' construction='equal' steps='10'>0.0 28800</grid>
     </variable>
     <variable name='20210000:4'>
       <distribution>ScalFactPower</distribution>
-      <grid type='value' construction='equal' lowerBound='1.0' steps='10'>0.02</grid>
+      <grid type='value' construction='equal' steps='10'>1.0 1.2</grid>
     </variable>
   </Grid>
-  <MonteCarlo name='MC_Sampler' limit='1000'>
+  <MonteCarlo name='MC_Sampler'>
+     <samplerInit>
+       <limit>1000</limit>
+     </samplerInit>
     <variable name='0000588:6'>
       <distribution>BPfailtime</distribution>
     </variable>
@@ -349,8 +359,8 @@ called \texttt{Grid\_out} and \texttt{MC\_out}.
 So the user needs to input the following:
 \begin{lstlisting}[style=XML]
 <Databases>
-  <HDF5 name="Grid_out"/>
-  <HDF5 name="MC_out"/>
+  <HDF5 name="Grid_out" readMode="overwrite"/>
+  <HDF5 name="MC_out" readMode="overwrite"/>
 </Databases>
 \end{lstlisting}
 As listed before, this will create two databases.
@@ -684,8 +694,8 @@ called \texttt{Grid\_out} and \texttt{MC\_out}.
 So the user needs to input the following:
 \begin{lstlisting}[style=XML]
 <Databases>
-  <HDF5 name="Grid_out"/>
-  <HDF5 name="MC_out"/>
+  <HDF5 name="Grid_out" readMode="overwrite"/>
+  <HDF5 name="MC_out" readMode="overwrite"/>
 </Databases>
 \end{lstlisting}
 As listed before, this will create two databases.

@@ -551,6 +551,7 @@ class ROM(Dummy):
       @ Out, None
     """
     Dummy._readMoreXML(self, xmlNode)
+    self.initializationOptionDict['name'] = self.name
     for child in xmlNode:
       if child.attrib:
         if child.tag not in self.initializationOptionDict.keys():
@@ -563,7 +564,6 @@ class ROM(Dummy):
             self.initializationOptionDict[child.tag][node.tag] = utils.tryParse(node.text)
         else:
           self.initializationOptionDict[child.tag] = utils.tryParse(child.text)
-
     #the ROM is instanced and initialized
     # check how many targets
     if not 'Target' in self.initializationOptionDict.keys(): self.raiseAnError(IOError,'No Targets specified!!!')
@@ -585,64 +585,60 @@ class ROM(Dummy):
     #restore targets to initialization option dict
     self.initializationOptionDict['Target'] = ','.join(targets)
 
-  def printXML(self,options=None):
+  def printXML(self,options={}):
     """
       Called by the OutStreamPrint object to cause the ROM to print itself to file.
-      @ In, options, the options to use in printing, including filename, things to print, etc.
+      @ In, options, dict, optional, the options to use in printing, including filename, things to print, etc.
       @ Out, None
     """
-    if options:
-      if ('filenameroot' in options.keys()): filenameLocal = options['filenameroot']
-      else: filenameLocal = self.name + '_dump'
-    else: options={}
-    tree=self._localBuildPrintTree(options)
-    msg=tree.stringNodeTree()
-    open(filenameLocal+'.xml','w').writelines(msg)
-    self.raiseAMessage('ROM XML printed to "'+filenameLocal+'.xml"')
-
-  def _localBuildPrintTree(self,options=None):
-    """
-      Constructs XML for printing of poperties of this Model.
-      @ In, options, dict, optional, options by keyword
-      @ Out, node, TreeStructure.NodeTree, xml-like tree with desired data
-    """
-    node = TreeStructure.Node('ReducedOrderModel')
-    tree = TreeStructure.NodeTree(node)
+    #determine dynamic or static
+    if type(self.SupervisedEngine) == list:
+      dynamic = True
+    elif type(self.SupervisedEngine) == dict:
+      dynamic = False
+    else:
+      self.raiseAnError(RuntimeError,'Unrecognized structure for self.SupervisedEngine:',type(self.SupervisedEnging))
+    # establish file
+    if 'filenameroot' in options.keys():
+      filenameLocal = options['filenameroot']
+    else:
+      filenameLocal = self.name + '_dump'
+    if dynamic:
+      outFile = Files.returnInstance('DynamicXMLOutput',self)
+    else:
+      outFile = Files.returnInstance('StaticXMLOutput',self)
+    outFile.initialize(filenameLocal+'.xml',self.messageHandler)
+    outFile.newTree('ROM',pivotParam=self.historyPivotParameter)
+    #establish targets
     if 'target' in options.keys():
       targets = options['target'].split(',')
     else:
-      targets = 'all'
-    if type(self.SupervisedEngine) == list: timeDep = True
-    elif type(self.SupervisedEngine) == dict: timeDep = False
+      targets = ['all']
+    #establish sets of engines to work from
+    if dynamic:
+      engines = self.SupervisedEngine
     else:
-      self.raiseAnError(RuntimeError,'Unrecognized structure for self.SupervisedEngine:',type(self.SupervisedEnging))
+      engines = [self.SupervisedEngine]
+    #handle 'all' case
     if 'all' in targets:
-      #case: time-dependent
-      if timeDep:
-        targets = list(key for key in self.SupervisedEngine[0].keys())
-        for s,step in enumerate(self.SupervisedEngine):
-          #get the time step
-          pivotStep = range(1,self.numberOfTimeStep+1)[s]
-          pivotNode = TreeStructure.Node(self.historyPivotParameter+'_step')
-          pivotNode.setText(pivotStep)
-          node.appendBranch(pivotNode)
-          pivotValue = self.historySteps[s]
-          pivotValNode = TreeStructure.Node(self.historyPivotParameter)
-          pivotValNode.setText(pivotValue)
-          pivotNode.appendBranch(pivotValNode)
-          for key,target in step.items():
-            #skip time marching parameter
-            if key == self.historyPivotParameter:
-              continue
-            if key in targets:
-              target.printXML(pivotNode,options)
-      #case: not time-dependent
+      targets = engines[0].keys()
+    #this loop is only 1 entry long if not dynamic
+    for s,step in enumerate(engines):
+      if dynamic:
+        pivotValue = self.historySteps[s]
       else:
-        targets = list(key for key in self.SupervisedEngine.keys())
-        for key,target in self.SupervisedEngine.items():
-          if key in targets:
-            target.printXML(node,options)
-    return tree
+        pivotValue = 0
+      for key,target in step.items():
+        #skip the pivot param
+        if key == self.historyPivotParameter:
+          continue
+        #otherwise, if this is one of the requested keys, call engine's print method
+        if key in targets:
+          self.raiseAMessage('Printing time',pivotValue,'target',key,'ROM XML')
+          target.printXML(outFile,pivotValue,options)
+    self.raiseADebug('Writing to XML file...')
+    outFile.writeFile()
+    self.raiseAMessage('ROM XML printed to "'+filenameLocal+'.xml"')
 
   def reset(self):
     """
