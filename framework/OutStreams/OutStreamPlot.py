@@ -1273,8 +1273,7 @@ class OutStreamPlot(OutStreamManager):
         if 'color' not in keys:
           plotSettings['color'] = 'b'
         if 'stacked' not in keys:
-<<<<<<< HEAD
-          settings['stacked'] = 'None'
+          plotSettings['stacked'] = 'None'
           
         #if self.sourceData[0].type.strip() == 'HistorySet' and self.xCoordinates[0][0].split("|")[1] == "Output":
         if self.sourceData[0].type.strip() == 'HistorySet':
@@ -1305,17 +1304,10 @@ class OutStreamPlot(OutStreamManager):
         
         for key in self.xValues[pltindex].keys():
           for xIndex in range(len(self.xValues[pltindex][key])):
-            try: colorss = ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['color'])
-            except: colorss = self.options['plotSettings']['plot'][pltindex]['color']              
-=======
-          plotSettings['stacked'] = 'None'
-        for key in self.xValues[pltindex].keys():
-          for xIndex in range(len(self.xValues[pltindex][key])):
             try:
               colorss = ast.literal_eval(plotSettings['color'])
             except:
-              colorss = plotSettings['color']
->>>>>>> origin/devel
+              colorss = plotSettings['color']            
             if self.dim == 2:
               self.plt.hist(self.xValues[pltindex][key][xIndex], bins = ast.literal_eval(plotSettings['bins']), normed = ast.literal_eval(plotSettings['normed']), weights = ast.literal_eval(plotSettings['weights']),
                             cumulative = ast.literal_eval(plotSettings['cumulative']), histtype = plotSettings['histtype'], align = plotSettings['align'],
