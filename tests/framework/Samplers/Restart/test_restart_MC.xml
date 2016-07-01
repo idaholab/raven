@@ -1,36 +1,37 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="quiet">
+<Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>mc</WorkingDir>
-    <Sequence>make1,print1,make2,print2,print3</Sequence>
+    <Sequence>makeCoarse,makeRestart,makeFine,print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
   <Steps>
-    <MultiRun name="make1">
+    <MultiRun name="makeCoarse">
       <Input class="DataObjects" type="PointSet">dummyIN</Input>
-      <Model class="Models" type="ExternalModel">poly</Model>
-      <Sampler class="Samplers" type="MonteCarlo">1</Sampler>
+      <Model class="Models" type="ExternalModel">coarsemod</Model>
+      <Sampler class="Samplers" type="MonteCarlo">coarse</Sampler>
       <Output class="DataObjects" type="PointSet">solns</Output>
     </MultiRun>
-    <MultiRun name="make2">
-      <Input class="DataObjects" type="PointSet">solns</Input>
-      <Model class="Models" type="ExternalModel">poly</Model>
-      <Sampler class="Samplers" type="MonteCarlo">2</Sampler>
-      <Output class="DataObjects" type="PointSet">solns</Output>
-      <Output class="DataObjects" type="PointSet">solns2</Output>
+    <MultiRun name="makeFine">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">finemod</Model>
+      <Sampler class="Samplers" type="MonteCarlo">fine</Sampler>
+      <Output class="DataObjects" type="PointSet">solnsFine</Output>
     </MultiRun>
-    <IOStep name="print1">
+    <MultiRun name="makeRestart">
       <Input class="DataObjects" type="PointSet">solns</Input>
-      <Output class="OutStreams" type="Print">MCdump1</Output>
-    </IOStep>
-    <IOStep name="print2">
-      <Input class="DataObjects" type="PointSet">solns2</Input>
-      <Output class="OutStreams" type="Print">MCdump2</Output>
-    </IOStep>
-    <IOStep name="print3">
+      <Model class="Models" type="ExternalModel">finemod</Model>
+      <Sampler class="Samplers" type="MonteCarlo">restart</Sampler>
+      <Output class="DataObjects" type="PointSet">solnsRestart</Output>
+    </MultiRun>
+    <IOStep name="print">
       <Input class="DataObjects" type="PointSet">solns</Input>
-      <Output class="OutStreams" type="Print">MCdump3</Output>
+      <Input class="DataObjects" type="PointSet">solnsFine</Input>
+      <Input class="DataObjects" type="PointSet">solnsRestart</Input>
+      <Output class="OutStreams" type="Print">coarse</Output>
+      <Output class="OutStreams" type="Print">fine</Output>
+      <Output class="OutStreams" type="Print">restart</Output>
     </IOStep>
   </Steps>
 
@@ -46,7 +47,7 @@
   </Distributions>
 
   <Samplers>
-    <MonteCarlo name="1">
+    <MonteCarlo name="coarse">
       <samplerInit>
         <limit>10</limit>
         <initialSeed>1</initialSeed>
@@ -58,7 +59,7 @@
         <distribution>u2</distribution>
       </variable>
     </MonteCarlo>
-    <MonteCarlo name="2">
+    <MonteCarlo name="restart">
       <samplerInit>
         <limit>15</limit>
         <initialSeed>1</initialSeed>
@@ -71,12 +72,27 @@
       </variable>
       <Restart class="DataObjects" type="PointSet">solns</Restart>
     </MonteCarlo>
+    <MonteCarlo name="fine">
+      <samplerInit>
+        <limit>15</limit>
+        <initialSeed>1</initialSeed>
+      </samplerInit>
+      <variable name="x1">
+        <distribution>u1</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution>u2</distribution>
+      </variable>
+    </MonteCarlo>
   </Samplers>
 
   <Models>
     <Dummy name="MyDummy" subType=""/>
-    <ExternalModel ModuleToLoad="../polynomial" name="poly" subType="">
-      <variables>x1,x2,ans,ans2</variables>
+    <ExternalModel ModuleToLoad="../coarse" name="coarsemod" subType="">
+      <variables>x1,x2,ans</variables>
+    </ExternalModel>
+    <ExternalModel ModuleToLoad="../fine" name="finemod" subType="">
+      <variables>x1,x2,ans</variables>
     </ExternalModel>
   </Models>
 
@@ -87,26 +103,30 @@
     </PointSet>
     <PointSet name="solns">
       <Input>x1,x2</Input>
-      <Output>ans,ans2</Output>
+      <Output>ans</Output>
     </PointSet>
-    <PointSet name="solns2">
+    <PointSet name="solnsFine">
       <Input>x1,x2</Input>
-      <Output>ans,ans2</Output>
+      <Output>ans</Output>
+    </PointSet>
+    <PointSet name="solnsRestart">
+      <Input>x1,x2</Input>
+      <Output>ans</Output>
     </PointSet>
   </DataObjects>
 
   <OutStreams>
-    <Print name="MCdump1">
+    <Print name="coarse">
       <type>csv</type>
       <source>solns</source>
     </Print>
-    <Print name="MCdump2">
+    <Print name="fine">
       <type>csv</type>
-      <source>solns2</source>
+      <source>solnsFine</source>
     </Print>
-    <Print name="MCdump3">
+    <Print name="restart">
       <type>csv</type>
-      <source>solns</source>
+      <source>solnsRestart</source>
     </Print>
   </OutStreams>
 

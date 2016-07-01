@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Created on Feb 20, 2013
 
@@ -15,6 +16,7 @@ warnings.simplefilter('default',DeprecationWarning)
 import xml.etree.ElementTree as ET
 import os
 import sys
+import threading
 #External Modules--------------------end
 
 #warning: this needs to be before importing h5py
@@ -27,6 +29,7 @@ utils.find_crow(frameworkDir)
 utils.add_path_recursively(os.path.join(frameworkDir,'contrib'))
 #Internal Modules
 from Simulation import Simulation
+from Application import __PySideAvailable
 #Internal Modules
 
 #------------------------------------------------------------- Driver
@@ -59,6 +62,7 @@ if __name__ == '__main__':
   printStatement()
   verbosity      = 'all'
   interfaceCheck = False
+  interactive = False
   workingDir = os.getcwd()
   for item in sys.argv:
     if   item.lower() == 'silent':
@@ -73,9 +77,15 @@ if __name__ == '__main__':
     elif item.lower() == 'interfacecheck':
       interfaceCheck = True
       sys.argv.pop(sys.argv.index(item))
+    elif item.lower() == 'interactive':
+      if __PySideAvailable:
+        interactive = True
+      else:
+        print('\nPySide is not installed, disabling interactive mode.\n')
+      sys.argv.pop(sys.argv.index(item))
   if interfaceCheck: os.environ['RAVENinterfaceCheck'] = 'True'
   else             : os.environ['RAVENinterfaceCheck'] = 'False'
-  simulation = Simulation(frameworkDir,verbosity=verbosity)
+  simulation = Simulation(frameworkDir,verbosity=verbosity,interactive=interactive)
   #If a configuration file exists, read it in
   configFile = os.path.join(os.path.expanduser("~"),".raven","default_runinfo.xml")
   if os.path.exists(configFile):
@@ -122,7 +132,22 @@ if __name__ == '__main__':
     #generate all the components of the simulation
     #Call the function to read and construct each single module of the simulation
     simulation.XMLread(root,runInfoSkip=set(["DefaultInputFile"]),xmlFilename=inputFile)
-  # Initialize the simulation
-  simulation.initialize()
-  # Run the simulation
-  simulation.run()
+
+  def worker():
+    """
+      A worker function that allows the computation of the main RAVEN thread to
+      be offloaded to another thread, freeing the main thread for UI interaction
+      (Qt requires UI to be handled on the main thread of execution)
+    """
+    # Initialize the simulation
+    simulation.initialize()
+    # Run the simulation
+    simulation.run()
+
+    if simulation.app is not None:
+      simulation.app.quit()
+
+  mainThread = threading.Thread(target=worker)
+  mainThread.start()
+  if simulation.app is not None:
+    simulation.app.exec_()

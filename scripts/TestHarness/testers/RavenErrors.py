@@ -40,7 +40,7 @@ class RavenErrors(Tester):
 
   def checkRunnable(self, option):
     """This method checks if the the test is runnable within the current settings"""
-    missing,too_old = RavenUtils.checkForMissingModules()
+    missing,too_old,notQA = RavenUtils.checkForMissingModules()
     if len(missing) > 0:
       return (False,'skipped (Missing python modules: '+" ".join(missing)+
               " PYTHONPATH="+os.environ.get("PYTHONPATH","")+')')

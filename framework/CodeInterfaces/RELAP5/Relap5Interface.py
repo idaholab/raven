@@ -99,6 +99,7 @@ class Relap5(CodeInterfaceBase):
     self._samplersDictionary['BnBDynamicEventTree'  ] = self.DynamicEventTreeForRELAP5
     self._samplersDictionary['StochasticCollocation'] = self.pointSamplerForRELAP5
     self._samplersDictionary['EnsembleForward'      ] = self.pointSamplerForRELAP5
+    self._samplersDictionary['CustomSampler'        ] = self.pointSamplerForRELAP5
 
     found = False
     for index, inputFile in enumerate(currentInputFiles):
@@ -138,8 +139,12 @@ class Relap5(CodeInterfaceBase):
       else:
         card = key[0]
         deck = 1
-      if len(key) > 1    : deckList[deck][card] = {'position':int(key[1]),'value':Kwargs['SampledVars'][keys]}
-      else               : deckList[deck][card] = {'position':0,'value':Kwargs['SampledVars'][keys]}
+      if len(key) > 1:
+        if card not in deckList[deck].keys(): deckList[deck][card] = [{'position':int(key[1]),'value':Kwargs['SampledVars'][keys]}]
+        else                                : deckList[deck][card].append({'position':int(key[1]),'value':Kwargs['SampledVars'][keys]})
+      else:
+        if card not in deckList[deck].keys(): deckList[deck][card] = [{'position':0,'value':Kwargs['SampledVars'][keys]}]
+        else                                : deckList[deck][card].append({'position':0,'value':Kwargs['SampledVars'][keys]})
       if deck is None:
         # check if other variables have been defined with a deck ID, in case...error out
         if deckActivated: raise IOError("If the multi-deck/case approach gets activated, all the variables need to provide a DECK ID. E.g. deckNumber|card|word ! Wrong variable is "+card)
@@ -237,11 +242,20 @@ class Relap5(CodeInterfaceBase):
         deck = 1
         card = key[0]
       if len(key) > 1:
-        if Kwargs['startTime'] != 'Initial':  deckList[deck][card]={'position':int(key[1]),'value':float(Kwargs['SampledVars'][keys])}
-        else: deckList[deck][card]={'position':int(key[1]),'value':Kwargs['SampledVars'][keys]}
+
+        if Kwargs['startTime'] != 'Initial':
+          if card not in deckList[deck].keys(): deckList[deck][card] = [{'position':int(key[1]),'value':float(Kwargs['SampledVars'][keys])}]
+          else                                : deckList[deck][card].append({'position':int(key[1]),'value':float(Kwargs['SampledVars'][keys])})
+        else:
+          if card not in deckList[deck].keys(): deckList[deck][card] = [{'position':int(key[1]),'value':Kwargs['SampledVars'][keys]}]
+          else                                : deckList[deck][card].append({'position':int(key[1]),'value':Kwargs['SampledVars'][keys]})
       else:
-        if Kwargs['startTime'] != 'Initial':  deckList[deck][card]={'position':0,'value':float(Kwargs['SampledVars'][keys])}
-        else: deckList[deck][card]={'position':0,'value':float(Kwargs['SampledVars'][keys])}
+        if Kwargs['startTime'] != 'Initial':
+          if card not in deckList[deck].keys(): deckList[deck][card]=[{'position':0,'value':float(Kwargs['SampledVars'][keys])}]
+          else                                : deckList[deck][card].append({'position':0,'value':float(Kwargs['SampledVars'][keys])})
+        else:
+          if card not in deckList[deck].keys(): deckList[deck][card]=[{'position':0,'value':float(Kwargs['SampledVars'][keys])}]
+          else                                : deckList[deck][card].append({'position':0,'value':float(Kwargs['SampledVars'][keys])})
       if deck is None:
         # check if other variables have been defined with a deck ID, in case...error out
         if deckActivated: raise IOError("If the multi-deck/case approach gets activated, all the variables need to provide a DECK ID. E.g. deckNumber|card|word ! Wrong variable is "+card)
@@ -260,8 +274,12 @@ class Relap5(CodeInterfaceBase):
           if deck not in deckList.keys():deckList[deck] = {}
         else:
           card = key[0]
-        if len(key) > 1:  deckList[deck][card]={'position':int(key[1]),'value':Kwargs['aux_vars'][keys]}
-        else:  deckList[deck][card]={'position':0,'value':Kwargs['aux_vars'][keys]}
+        if len(key) > 1:
+          if card not in deckList[deck].keys(): deckList[deck][card]=[{'position':int(key[1]),'value':Kwargs['aux_vars'][keys]}]
+          else                                : deckList[deck][card].append({'position':int(key[1]),'value':Kwargs['aux_vars'][keys]})
+        else:
+          if card not in deckList[deck].keys(): deckList[deck][card]=[{'position':0,'value':Kwargs['aux_vars'][keys]}]
+          else                                : deckList[deck][card].append({'position':0,'value':Kwargs['aux_vars'][keys]})
         if deck is None:
           # check if other variables have been defined with a deck ID, in case...error out
           if deckActivated: raise IOError("If the multi-deck/case approach gets activated, all the variables need to provide a DECK ID. E.g. deckNumber|card|word ! Wrong variable is "+card)

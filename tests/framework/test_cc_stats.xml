@@ -98,26 +98,14 @@
   </OutStreams>
 
   <DataObjects>
-    <Point name="fullprint_Point">
-      <Input>pipe1_Area,pipe1_Dh</Input>
-      <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
-    </Point>
     <PointSet name="fullprint_Pointset">
-      <Input>pipe1_Area,pipe1_Dh</Input>
-      <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
+      <Input>useless_input</Input>
+      <Output>normal1,normal2,uniform1,uniform2p</Output>
     </PointSet>
     <PointSet name="out_data">
       <Input>DummyIn</Input>
       <Output>DummyOut</Output>
     </PointSet>
-    <History name="fullprint_history">
-      <Input>pipe1_Area,pipe1_Dh</Input>
-      <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
-    </History>
-    <HistorySet name="fullprint_HistorySet">
-      <Input>pipe1_Area,pipe1_Dh</Input>
-      <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
-    </HistorySet>
   </DataObjects>
 
 </Simulation>

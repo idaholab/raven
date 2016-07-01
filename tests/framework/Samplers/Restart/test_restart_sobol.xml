@@ -2,43 +2,50 @@
 <Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>sobol</WorkingDir>
-    <Sequence>SOBOLmake1,SOBOLtrain1,SOBOLprint1,SOBOLmake2,SOBOLtrain2,SOBOLprint2,SOBOLprint3</Sequence>
+    <Sequence>makeCoarse,makeRestart,makeFine,trainRestart,trainFine,print,printROM</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
   <Steps>
-    <MultiRun name="SOBOLmake1">
+    <MultiRun name="makeCoarse">
       <Input class="DataObjects" type="PointSet">dummyIN</Input>
-      <Model class="Models" type="ExternalModel">poly</Model>
-      <Sampler class="Samplers" type="Sobol">SOBOL1</Sampler>
-      <Output class="DataObjects" type="PointSet">SOBOLsolns</Output>
+      <Model class="Models" type="ExternalModel">coarsemod</Model>
+      <Sampler class="Samplers" type="Sobol">coarse</Sampler>
+      <Output class="DataObjects" type="PointSet">solns</Output>
     </MultiRun>
-    <MultiRun name="SOBOLmake2">
-      <Input class="DataObjects" type="PointSet">SOBOLsolns</Input>
-      <Model class="Models" type="ExternalModel">poly</Model>
-      <Sampler class="Samplers" type="Sobol">SOBOL2</Sampler>
-      <Output class="DataObjects" type="PointSet">SOBOLsolns</Output>
-      <Output class="DataObjects" type="PointSet">SOBOLsolns2</Output>
+    <MultiRun name="makeRestart">
+      <Input class="DataObjects" type="PointSet">solns</Input>
+      <Model class="Models" type="ExternalModel">finemod</Model>
+      <Sampler class="Samplers" type="Sobol">restart</Sampler>
+      <Output class="DataObjects" type="PointSet">solnsRestart</Output>
     </MultiRun>
-    <IOStep name="SOBOLprint1">
-      <Input class="DataObjects" type="PointSet">SOBOLsolns</Input>
-      <Output class="OutStreams" type="Print">SOBOLdump1</Output>
+    <MultiRun name="makeFine">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">finemod</Model>
+      <Sampler class="Samplers" type="Sobol">fine</Sampler>
+      <Output class="DataObjects" type="PointSet">solnsFine</Output>
+    </MultiRun>
+    <IOStep name="print">
+      <Input class="DataObjects" type="PointSet">solns</Input>
+      <Input class="DataObjects" type="PointSet">solnsRestart</Input>
+      <Input class="DataObjects" type="PointSet">solnsFine</Input>
+      <Output class="OutStreams" type="Print">coarse</Output>
+      <Output class="OutStreams" type="Print">restart</Output>
+      <Output class="OutStreams" type="Print">fine</Output>
     </IOStep>
-    <IOStep name="SOBOLprint2">
-      <Input class="DataObjects" type="PointSet">SOBOLsolns2</Input>
-      <Output class="OutStreams" type="Print">SOBOLdump2</Output>
+    <IOStep name="printROM">
+      <Input class="Models" type="ROM">romRestart</Input>
+      <Input class="Models" type="ROM">romFine</Input>
+      <Output class="OutStreams" type="Print">romRestart</Output>
+      <Output class="OutStreams" type="Print">romFine</Output>
     </IOStep>
-    <IOStep name="SOBOLprint3">
-      <Input class="DataObjects" type="PointSet">SOBOLsolns</Input>
-      <Output class="OutStreams" type="Print">SOBOLdump3</Output>
-    </IOStep>
-    <RomTrainer name="SOBOLtrain1">
-      <Input class="DataObjects" type="PointSet">SOBOLsolns</Input>
-      <Output class="Models" type="ROM">rom1</Output>
+    <RomTrainer name="trainRestart">
+      <Input class="DataObjects" type="PointSet">solnsRestart</Input>
+      <Output class="Models" type="ROM">romRestart</Output>
     </RomTrainer>
-    <RomTrainer name="SOBOLtrain2">
-      <Input class="DataObjects" type="PointSet">SOBOLsolns</Input>
-      <Output class="Models" type="ROM">rom2</Output>
+    <RomTrainer name="trainFine">
+      <Input class="DataObjects" type="PointSet">solnsFine</Input>
+      <Output class="Models" type="ROM">romFine</Output>
     </RomTrainer>
   </Steps>
 
@@ -54,40 +61,59 @@
   </Distributions>
 
   <Samplers>
-    <Sobol name="SOBOL1">
+    <Sobol name="coarse">
       <variable name="x1">
         <distribution>u1</distribution>
       </variable>
       <variable name="x2">
         <distribution>u2</distribution>
       </variable>
-      <ROM class="Models" type="ROM">rom1</ROM>
+      <ROM class="Models" type="ROM">rom</ROM>
     </Sobol>
-    <Sobol name="SOBOL2">
+    <Sobol name="restart">
       <variable name="x1">
         <distribution>u1</distribution>
       </variable>
       <variable name="x2">
         <distribution>u2</distribution>
       </variable>
-      <ROM class="Models" type="ROM">rom2</ROM>
-      <Restart class="DataObjects" type="PointSet">SOBOLsolns</Restart>
+      <ROM class="Models" type="ROM">romRestart</ROM>
+      <Restart class="DataObjects" type="PointSet">solns</Restart>
+    </Sobol>
+    <Sobol name="fine">
+      <variable name="x1">
+        <distribution>u1</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution>u2</distribution>
+      </variable>
+      <ROM class="Models" type="ROM">romFine</ROM>
     </Sobol>
   </Samplers>
 
   <Models>
     <Dummy name="MyDummy" subType=""/>
-    <ExternalModel ModuleToLoad="../polynomial" name="poly" subType="">
-      <variables>x1,x2,ans,ans2</variables>
+    <ExternalModel ModuleToLoad="../coarse" name="coarsemod" subType="">
+      <variables>x1,x2,ans</variables>
     </ExternalModel>
-    <ROM name="rom1" subType="HDMRRom">
+    <ExternalModel ModuleToLoad="../fine" name="finemod" subType="">
+      <variables>x1,x2,ans</variables>
+    </ExternalModel>
+    <ROM name="rom" subType="HDMRRom">
       <SobolOrder>1</SobolOrder>
       <Target>ans</Target>
       <Features>x1,x2</Features>
       <IndexSet>TotalDegree</IndexSet>
       <PolynomialOrder>2</PolynomialOrder>
     </ROM>
-    <ROM name="rom2" subType="HDMRRom">
+    <ROM name="romRestart" subType="HDMRRom">
+      <SobolOrder>2</SobolOrder>
+      <Target>ans</Target>
+      <Features>x1,x2</Features>
+      <IndexSet>TotalDegree</IndexSet>
+      <PolynomialOrder>2</PolynomialOrder>
+    </ROM>
+    <ROM name="romFine" subType="HDMRRom">
       <SobolOrder>2</SobolOrder>
       <Target>ans</Target>
       <Features>x1,x2</Features>
@@ -101,28 +127,42 @@
       <Input>x1,x2</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
-    <PointSet name="SOBOLsolns">
+    <PointSet name="solns">
       <Input>x1,x2</Input>
-      <Output>ans,ans2</Output>
+      <Output>ans</Output>
     </PointSet>
-    <PointSet name="SOBOLsolns2">
+    <PointSet name="solnsRestart">
       <Input>x1,x2</Input>
-      <Output>ans,ans2</Output>
+      <Output>ans</Output>
+    </PointSet>
+    <PointSet name="solnsFine">
+      <Input>x1,x2</Input>
+      <Output>ans</Output>
     </PointSet>
   </DataObjects>
 
   <OutStreams>
-    <Print name="SOBOLdump1">
+    <Print name="coarse">
       <type>csv</type>
-      <source>SOBOLsolns</source>
+      <source>solns</source>
     </Print>
-    <Print name="SOBOLdump2">
+    <Print name="restart">
       <type>csv</type>
-      <source>SOBOLsolns2</source>
+      <source>solnsRestart</source>
     </Print>
-    <Print name="SOBOLdump3">
+    <Print name="fine">
       <type>csv</type>
-      <source>SOBOLsolns</source>
+      <source>solnsFine</source>
+    </Print>
+    <Print name="romRestart">
+      <type>xml</type>
+      <source>romRestart</source>
+      <what>all</what>
+    </Print>
+    <Print name="romFine">
+      <type>xml</type>
+      <source>romFine</source>
+      <what>all</what>
     </Print>
   </OutStreams>
 
