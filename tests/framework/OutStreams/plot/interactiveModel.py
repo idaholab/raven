@@ -1,5 +1,9 @@
 import sys, os, time
-import autopy, pyscreenshot
+try:
+  import autopy, pyscreenshot
+  autopyAndPyscreenshotImported = True
+except:
+  autopyAndPyscreenshotImported = False
 
 def run(self,Input):
   self.x1 = Input['x1']
@@ -15,6 +19,8 @@ def run(self,Input):
     return
 
   testImageFile = os.path.join('..','gold','plot',myFile)
+  if not autopyAndPyscreenshotImported:
+    return
   testImage = autopy.bitmap.Bitmap.open(testImageFile)
 
   ## This didn't work, but everything else from the autopy library seems to:
