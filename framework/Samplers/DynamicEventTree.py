@@ -656,18 +656,10 @@ class DynamicEventTree(Grid):
       try                        : self.maxSimulTime = float(xmlNode.attrib['maxSimulationTime'])
       except (KeyError,NameError): self.raiseAnError(IOError,'Can not convert maxSimulationTime in float number!!!')
     branchedLevel, error_found = {}, False
-    gridInfo = self.gridEntity.returnParameter("gridInfo")
+    gridInfo   = self.gridEntity.returnParameter("gridInfo")
     errorFound = False
-    
-    sortedProbabilities = sorted(self.branchProbabilities[keyk], key=float)
-    for index in range(len(sortedProbabilities)):
-      if sortedProbabilities.count(sortedProbabilities[index]) > 1:
-        self.raiseAWarning("In distribution " + str(self.toBeSampled[keyk]) + " the Threshold " + str(sortedProbabilities[index])+" appears multiple times!!")
-        
-        
-        
-        
-    errorMsgs = ''
+    errorMsgs  = ''
+
     for keyk in self.axisName:
       branchedLevel[keyk] = 0
       #branchedLevel[self.toBeSampled[keyk]] = 0
@@ -678,10 +670,12 @@ class DynamicEventTree(Grid):
         if max(self.branchProbabilities[keyk]) > 1:
           errorMsgs += "One of the Thresholds for distribution " + str(gridInfo[keyk][2]) + " is > 1 \n"
           errorFound = True
-          for index in range(len(sorted(self.branchProbabilities[keyk], key=float))):
-            if sorted(self.branchProbabilities[keyk], key=float).count(sorted(self.branchProbabilities[keyk], key=float)[index]) > 1:
-              errorMsgs += "In distribution " + str(self.toBeSampled[keyk]) + " the Threshold " + str(sorted(self.branchProbabilities[keyk], key=float)[index])+" appears multiple times!!\n"
-              errorFound = True
+        probMultiplicities = collections.Counter(self.branchProbabilities[keyk])
+        multiples = [prob for prob,mult in probMultiplicities.items() if mult > 1]
+        ## Only the multiple variables remain
+        for prob in multiples:
+          errorMsgs += "In variable " + str(keyk) + " the Threshold " + str(prob)+" appears multiple times!!\n"
+          errorFound = True
 #         self.branchProbabilities[self.toBeSampled[keyk]] = gridInfo[keyk][2]
 #         self.branchProbabilities[self.toBeSampled[keyk]].sort(key=float)
 #         if max(self.branchProbabilities[self.toBeSampled[keyk]]) > 1:
@@ -694,22 +688,25 @@ class DynamicEventTree(Grid):
       else:
         self.branchValues[keyk] = gridInfo[keyk][2]
         self.branchValues[keyk].sort(key=float)
-        for index in range(len(sorted(self.branchValues[keyk], key=float))):
-          if sorted(self.branchValues[keyk], key=float).count(sorted(self.branchValues[keyk], key=float)[index]) > 1:
-            errorMsgs += "In distribution " + str(self.toBeSampled[keyk]) + " the Threshold " + str(sorted(self.branchValues[keyk], key=float)[index])+" appears multiple times!!\n"
-            errorFound = True
+        valueMultiplicities = collections.Counter(self.branchValues[keyk])
+        multiples = [value for value,mult in valueMultiplicities.items() if mult > 1]
+        ## Only the multiple variables remain
+        for value in multiples:
+          errorMsgs += "In variable " + str(keyk) + " the Threshold " + str(value)+" appears multiple times!!\n"
+          errorFound = True
 #         self.branchValues[self.toBeSampled[keyk]] = gridInfo[keyk][2]
 #         self.branchValues[self.toBeSampled[keyk]].sort(key=float)
 #         for index in range(len(sorted(self.branchValues[self.toBeSampled[keyk]], key=float))):
 #           if sorted(self.branchValues[self.toBeSampled[keyk]], key=float).count(sorted(self.branchValues[self.toBeSampled[keyk]], key=float)[index]) > 1:
 #             self.raiseAWarning("In distribution " + str(self.toBeSampled[keyk]) + " the Threshold " + str(sorted(self.branchValues[self.toBeSampled[keyk]], key=float)[index])+" appears multiple times!!")
 #             errorFound = True
-    
+
     # check if RELAP7 mode is activated, in case check that a <distribution> variable is unique in the input
     if any("<distribution>" in s for s in self.branchProbabilities.keys()):
       associatedDists = self.toBeSampled.values()
       if len(list(set(associatedDists))) != len(associatedDists):
         errorMsgs += "Distribution-mode sampling activated in " + self.name+". In this case every <distribution> needs to be assocaited with one single <Distribution> block!\n"
+        errorFound = True
     if errorFound: self.raiseAnError(IOError,"In sampler named " + self.name+' the following errors have been found: \n'+errorMsgs )
     # Append the branchedLevel dictionary in the proper list
     self.branchedLevel.append(branchedLevel)

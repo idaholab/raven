@@ -92,9 +92,7 @@ class c1darray(object):
           # to be safer
           self.capacity += max(self.capacity*4,x.size) #self.capacity + x.size*4
           newdata = np.zeros((self.capacity,),dtype=self.values.dtype)
-          try: newdata[:self.size] = self.values[:self.size]
-          except:
-            pass
+          newdata[:self.size] = self.values[:self.size]
           self.values = newdata
         #for index in range(x.size):
         self.values[self.size:self.size+x.size] = x[:]
