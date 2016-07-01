@@ -720,14 +720,14 @@ So the user needs to input the following:
 \end{lstlisting}
 As listed before, this will create two DataObjects that can be used in sub-sequential post-processing.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsubsection{OutStreamManager}
+\subsubsection{OutStreams}
 As fully explained in section~\ref{sec:outstream}, if the user want to print out or plot the content of a \textbf{DataObjects},
-he needs to create an \textbf{OutStream} in the \xmlNode{OutStreamManager} XML block.
+he needs to create an \textbf{OutStream} in the \xmlNode{OutStreams} XML block.
 \\As it shown in the example below, for MooseBasedApp (and any other Code interface that might use the symbol $|$
 for the Sampler's variable syntax), in the Plot \xmlNode{x} and \xmlNode{y} specification, the user needs to
 utilize curly brackets.
 \begin{lstlisting}[style=XML]
-<OutStreamManager>
+<OutStreams>
   <Print name='gridOutDataDumpCSV'>
     <type>csv</type>
     <source>gridOutData</source>
@@ -743,7 +743,7 @@ utilize curly brackets.
     </plotSettings>
     <actions><how>screen,png</how></actions>
   </Plot>
-</OutStreamManager>
+</OutStreams>
 \end{lstlisting}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1183,8 +1183,8 @@ defined in \xmlNode{Models}).
 \end{lstlisting}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\paragraph{Steps,OutStreamManager,DataObjects}
-This interface's \xmlNode{Steps}, \xmlNode{OutStreamManager}, and
+\paragraph{Steps,OutStreams,DataObjects}
+This interface's \xmlNode{Steps}, \xmlNode{OutStreams}, and
 \xmlNode{DataObjects} blocks do not deviate significantly from
 other interfaces' respective nodes.  Please refer to previous
 entries for these blocks if needed.
@@ -1200,7 +1200,7 @@ directory is not kept clean; thus these files are removed.  In addition, some us
 may wish to remove Exodus files after the RAVEN run is complete as
 the typical size of each file is quite large and it is assumed that any
 output quantities of interest will be collected by appropriate postprocessors
-and the OutStreamManager.  Exodus files are not automatically removed,
+and the OutStreams.  Exodus files are not automatically removed,
 but by using the \xmlNode{deleteOutExtension} node in \xmlNode{RunInfo}, one
 may specify the Exodus extension to save a fair amount of storage space
 after RAVEN completes a sequence. For example:
@@ -1330,8 +1330,8 @@ defined in \xmlNode{Models}).
 \end{lstlisting}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\paragraph{Steps,OutStreamManager,DataObjects}
-This interface's \xmlNode{Steps}, \xmlNode{OutStreamManager}, and
+\paragraph{Steps,OutStreams,DataObjects}
+This interface's \xmlNode{Steps}, \xmlNode{OutStreams}, and
 \xmlNode{DataObjects} blocks do not deviate significantly from
 other interfaces' respective nodes.  Please refer to previous
 entries for these blocks if needed.
@@ -1351,7 +1351,7 @@ files are removed.  Some users
 may wish to remove Exodus files after the RAVEN run is complete as
 the typical size of each file is quite large and it is assumed that any
 output quantities of interest will be collected by appropriate postprocessors
-and the OutStreamManager.  Exodus files are not automatically removed,
+and the OutStreams.  Exodus files are not automatically removed,
 but by using the \xmlNode{deleteOutExtension} node in \xmlNode{RunInfo}, one
 may specify the Exodus extension (*.e) to save a fair amount of storage space
 after RAVEN completes a sequence. For example:
@@ -1381,7 +1381,7 @@ MAAP5 requires more than one file to run a simulation.
 This means that, since the \xmlNode{Files} section has to contain all the files required by
 the external model (MAAP5) to be run, all these files need to be included within this node. 
 This involves not only the input file (.inp) but also the include file, the parameter file, all the 
-files defining the different plotfils, if any, and the other files which could
+files defining the different ``PLOTFILs'', if any, and the other files which could
 result useful for the MAAP5 simulation run.
 
 Example:
@@ -1417,7 +1417,7 @@ or due to the occurrence of a specific event by
 (see paragraph ''MAAP5 include file below'' for more information about timers).
 \end{itemize}
 
-A \xmlNode{Models} block is show as example below:
+A \xmlNode{Models} block is shown as an example below:
 \begin{lstlisting}[style=XML]
 <Models>
   <Code name="MyMAAP" subType="MAAP5\_GenericV7">
@@ -1457,7 +1457,7 @@ The adjustments explained in this section are required only in case of a DET ana
 The user needs to modify the include file containing the set of the
 timers used into the run, by adding the definition of the different timers, 
 one for each variable that causes a branching.
-The include file to be modified should correspond to that one defined into the \xmlNode{includeForTimer}
+The include file to be modified should correspond to that one defined in the \xmlNode{includeForTimer}
 block of the RAVEN xml input.
 
 User is supposed to check that the numbers used for the different timers definition
@@ -1567,4 +1567,4 @@ It is important, indeed, that the MAAP5 csv PLOTFIL files contain the evolution 
   \item the variables of interest defined within \xmlNode{boolMaapOutputVariables} 
   and \\ \xmlNode{contMaapOutputVariables} blocks (both for Forward and DET sampling)
 \end{itemize}
-If one of these variables won''t be contained into one of csv files, RAVEN will give an error.
+If one of these variables is not contained into one of csv files, RAVEN will give an error.
