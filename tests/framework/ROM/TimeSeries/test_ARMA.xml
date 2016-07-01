@@ -47,10 +47,10 @@
         </IOStep>
 		<IOStep name='readInGhostData' pauseAtEnd = 'True'>
             <Input    class = 'Files'             type = ''              >ghostDataFile</Input>
-            <Output   class = 'DataObjects'       type = 'Point'       >ghostData</Output>           
+            <Output   class = 'DataObjects'       type = 'PointSet'       >ghostData</Output>           
         </IOStep>
 		<RomTrainer name='ARMATrain'>
-			<Input    class = 'DataObjects'       type = 'History'       >rawData</Input>
+			<Input    class = 'DataObjects'       type = 'HistorySet'       >rawData</Input>
 			<Output   class='Models' 			  type ='ROM' 	 		 >ARMA</Output>
 		</RomTrainer>
 		<MultiRun name='runARMA'>
@@ -61,11 +61,11 @@
 		</MultiRun>
         <IOStep name='writeOut' pauseAtEnd = 'True'>
 			<Input    class = 'DataObjects'       type = 'HistorySet'    >synData</Input>		 			
-			<Output   class = 'OutStreamManager'  type = 'Print'         >writeSynDataOut</Output>
-			<Output   class = 'OutStreamManager'  type = 'Plot'         >plotSynData</Output> 
+			<Output   class = 'OutStreams'  type = 'Print'         >writeSynDataOut</Output>
+			<Output   class = 'OutStreams'  type = 'Plot'         >plotSynData</Output> 
 		</IOStep>	
     </Steps>
-    <OutStreamManager>		
+    <OutStreams>		
         <Print name = 'writeSynDataOut'>
             <type>csv</type>
             <source>synData</source>
@@ -86,17 +86,17 @@
 				<how>png</how>
 			</actions>
 	    </Plot>
-	</OutStreamManager>
+	</OutStreams>
 	
     <DataObjects>
         <HistorySet name="rawData">
             <Input>x</Input>
             <Output>Time,Speed</Output>
         </HistorySet>
-		<Point name="ghostData">
+		<PointSet name="ghostData">
             <Input>Speed</Input>
             <Output>y,z</Output>
-        </Point>
+        </PointSet>
 		<HistorySet name="synData">
             <Input>y</Input>
             <Output>Time,Speed</Output>
