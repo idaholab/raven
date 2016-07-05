@@ -3394,7 +3394,6 @@ class DataMining(BasePostProcessor):
                                                           ## wants
 
     self.requiredAssObject = (True, (['Label','PreProcessor','Metric'], ['-1','-1','-1']))  ## The Label is optional for now
-    self.initializationOptionDict = {}
     self.clusterLabels = None
     self.labelAlgorithms = []
     self.solutionExport = None                            ## A data object to
@@ -3407,7 +3406,7 @@ class DataMining(BasePostProcessor):
                                                           ## for dimensionality
                                                           ## reduction methods
 
-    self.labelFeature = 'labels'                          ## User customizable
+    #self.labelFeature = 'labels'                          ## User customizable
                                                           ## column name for the
                                                           ## labels associated
                                                           ## to a clustering
@@ -3427,14 +3426,13 @@ class DataMining(BasePostProcessor):
     if type(currentInp) == list: currentInput = currentInp[-1]
     else                       : currentInput = currentInp
     if type(currentInp) == dict:
-      if 'Features' in currentInput.keys(): return
-      
+      if 'Features' in currentInput.keys(): return 
     if isinstance(currentInp, Files.File):
       if currentInput.subtype == 'csv': 
         self.raiseAnError(IOError, 'CSV File received as an input!')
     if currentInput.type == 'HDF5': 
-      self.raiseAnError(IOError, 'HDF5 Object received as an input!')
-          
+      self.raiseAnError(IOError, 'HDF5 Object received as an input!') 
+    
     if self.PreProcessor != None:
       inputDict = {'Features':{}, 'parameters':{}, 'Labels':{}, 'metadata':{}}
       if self.initializationOptionDict['KDD']['Features'] == 'input':
@@ -3459,9 +3457,10 @@ class DataMining(BasePostProcessor):
              inputDict['Features'][param] = copy.deepcopy(preProcessedData['data']['output'][param])
                           
       inputDict['metadata'] = currentInput.getAllMetadata()
-      return inputDict
-      
+      return inputDict 
+   
     inputDict = {'Features':{}, 'parameters':{}, 'Labels':{}, 'metadata':{}}
+   
     if currentInput.type in ['PointSet']:
       ## Get what is available in the data object being operated on
       ## This is potentially more information than we need at the moment, but
@@ -3493,8 +3492,7 @@ class DataMining(BasePostProcessor):
         for param in inParams:
           inputDict['Features'][param] = currentInput.getParam('input', param)
         for param in outParams:
-          inputDict['Features'][param] = currentInput.getParam('output', param)
-          
+          inputDict['Features'][param] = currentInput.getParam('output', param)  
     elif currentInput.type in ['HistorySet']:
       if self.initializationOptionDict['KDD']['Features'] == 'input':
         for param in currentInput.getParaKeys('input'): 
@@ -3547,9 +3545,8 @@ class DataMining(BasePostProcessor):
     ## postprocessor, but that name is not available before processing the XML
     ## At this point, we have that information
     self.labelFeature = self.name+'Labels'
-    
     self.initializationOptionDict = {}
-
+    
     for child in xmlNode:
       if child.tag == 'KDD':
         if child.attrib:
@@ -3577,8 +3574,7 @@ class DataMining(BasePostProcessor):
     if self.type:
       self.unSupervisedEngine = unSupervisedLearning.returnInstance(self.type, self, **self.initializationOptionDict['KDD'])
     else:
-      self.raiseAnError(IOError, 'No Data Mining Algorithm is supplied!')
-      
+      self.raiseAnError(IOError, 'No Data Mining Algorithm is supplied!') 
 
   def collectOutput(self, finishedJob, output):
     """
@@ -3629,7 +3625,6 @@ class DataMining(BasePostProcessor):
         self.unSupervisedEngine.train(input['Features'])
       else:
         self.unSupervisedEngine.train(input['Features'], self.metric)
-
     self.unSupervisedEngine.confidence()
     outputDict['output'] = {}
     noClusters = 1
@@ -3756,7 +3751,6 @@ class DataMining(BasePostProcessor):
       ## use a single projection matrix.
       for i in range(noComponents):
         outputDict['output'][self.name+'PCAComponent' + str(i + 1)] =  components[:, i]
-
     return outputDict
 #
 #
