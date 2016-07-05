@@ -15,7 +15,7 @@
   <Models>
     <Code name="MyMAAP" subType="MAAP5">
       <executable>
-      </executable>         
+      </executable>
       <clargs type='input' extension='.inp'/>
       <boolMaapOutputVariables>691</boolMaapOutputVariables>
       <contMaapOutputVariables>PPS, PSGGEN(1), ZWDC2SG(1), WWBBN(1), WWTOTFW(1) </contMaapOutputVariables>
@@ -36,7 +36,7 @@
   </Distributions>
 
   <Samplers>
-    <DynamicEventTree name="hybdet" printEndXML='True'>
+    <DynamicEventTree name="hybdet" printEndXmlSummary='True'>
       <HybridSampler type='MonteCarlo'>
         <samplerInit>
           <limit>2</limit>
@@ -123,7 +123,7 @@
       </actions>
     </Plot>
   </OutStreams>
-  
+
   <Databases>
     <HDF5 name="DataB_MAAP5_1" readMode="overwrite"/>
   </Databases>

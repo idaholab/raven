@@ -107,7 +107,7 @@
         </xsd:sequence>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
     </xsd:complexType>
-    
+
     <xsd:complexType name="CustomSampler">
         <xsd:sequence>
             <xsd:element name="Source"       minOccurs="1"  maxOccurs="1">
@@ -219,7 +219,7 @@
         </xsd:sequence>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
     </xsd:complexType>
-    
+
     <xsd:complexType name="EnsembleForwardSampler">
         <xsd:sequence>
             <xsd:element name="MonteCarlo" type="MonteCarloSampler" minOccurs="0" maxOccurs="1"/>
@@ -231,8 +231,8 @@
         </xsd:sequence>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
     </xsd:complexType>
-    
-    
+
+
 
     <!-- *********************************************************************** -->
     <!--                  Adaptive Samplers                                      -->
@@ -389,6 +389,7 @@
         </xsd:sequence>
         <xsd:attribute name="name"              type="xsd:string" use="required"/>
         <xsd:attribute name="printEndXmlSummary"     type="RavenBool"/>
+        <xsd:attribute name="removeXmlBranchInfo"     type="RavenBool"/>
         <xsd:attribute name="maxSimulationTime" type="xsd:float"/>
     </xsd:complexType>
     <xsd:complexType name="AdaptiveDETSampler">
