@@ -68,16 +68,20 @@ outside = InputData.createXSD(test_classes.OuterInput)
 outsideTree = ET.ElementTree(outside)
 outsideTree.write(testMoreXSDFilename)
 
-from lxml import etree
+try:
+  from lxml import etree
 
-schemaDoc = etree.parse(open(testMoreXSDFilename,"r"))
+  schemaDoc = etree.parse(open(testMoreXSDFilename,"r"))
 
-schema = etree.XMLSchema(schemaDoc)
+  schema = etree.XMLSchema(schemaDoc)
 
-testDoc = etree.parse(open(testMoreFilename,"r"))
+  testDoc = etree.parse(open(testMoreFilename,"r"))
 
-valid = schema.validate(testDoc)
-checkAnswer(True, valid)
-print("valid",valid)
+  valid = schema.validate(testDoc)
+  checkAnswer(True, valid)
+  print("valid",valid)
+except ImportError:
+  print("Unable to import lxml")
+
 print("passes",passFails[0],"fails",passFails[1])
 sys.exit(passFails[1])

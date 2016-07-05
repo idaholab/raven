@@ -310,6 +310,7 @@
   type = 'RavenPython'
   input = 'TestXSD/TestFails.py'
   requires_swig2 = True
+  required_libraries = lxml
  [../]
 
  [./test_iostep_load]
