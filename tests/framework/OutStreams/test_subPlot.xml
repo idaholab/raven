@@ -211,20 +211,16 @@
 
   <Steps>
     <MultiRun name="FirstMRun" pauseAtEnd="false">
-      <Input class="DataObjects" type="Point">inputHolder</Input>
+      <Input class="DataObjects" type="PointSet">inputHolder</Input>
       <Model class="Models" type="ExternalModel">PumpFake</Model>
       <Sampler class="Samplers" type="Grid">RAVENGrid</Sampler>
       <Output class="Databases" type="HDF5">testOutputDatabase</Output>
       <Output class="DataObjects" type="HistorySet">stories</Output>
       <Output class="DataObjects" type="PointSet">PointSets</Output>
-      <Output class="DataObjects" type="Point">Pointt</Output>
-      <Output class="DataObjects" type="History">Historyy</Output>
     </MultiRun>
     <IOStep name="testOutstreamStep" pauseAtEnd="true">
       <Input class="DataObjects" type="HistorySet">stories</Input>
       <Input class="DataObjects" type="PointSet">PointSets</Input>
-      <Input class="DataObjects" type="Point">Pointt</Input>
-      <Input class="DataObjects" type="History">Historyy</Input>
       <Output class="OutStreams" type="Plot">subPlot1</Output>
       <Output class="OutStreams" type="Plot">subPlot2</Output>
       <Output class="OutStreams" type="Plot">subPlot3</Output>
@@ -236,14 +232,10 @@
   </Databases>
 
   <DataObjects>
-    <Point name="inputHolder">
+    <PointSet name="inputHolder">
       <Input>zeroToOne</Input>
       <Output>OutputPlaceHolder</Output>
-    </Point>
-    <Point name="Pointt">
-      <Input>zeroToOne</Input>
-      <Output>pipe1_Area,pipe1_Dh,pipe1_Hw,pump_mass_flow_rate,time</Output>
-    </Point>
+    </PointSet>
     <PointSet name="PointSets">
       <Input>zeroToOne</Input>
       <Output>pipe1_Area, pipe1_Dh,pipe1_Hw,
@@ -251,10 +243,6 @@
                 time
         </Output>
     </PointSet>
-    <History name="Historyy">
-      <Input>zeroToOne</Input>
-      <Output>pipe1_Area,pipe1_Dh,pipe1_Hw,pump_mass_flow_rate,time</Output>
-    </History>
     <HistorySet name="stories">
       <Input>zeroToOne</Input>
       <Output>pipe1_Area,

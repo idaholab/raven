@@ -64,27 +64,9 @@
       <source>PointSets</source>
       <what>Output,Input|var1</what>
     </Print>
-    <Print name="testprint_selective_Point">
-      <type>csv</type>
-      <source>Pointt</source>
-      <what>Output,Input|var1</what>
-    </Print>
-    <Print name="testprint_selective_history">
-      <type>csv</type>
-      <source>Historyy</source>
-      <what>Output,Input|var1</what>
-    </Print>
     <Print name="fullprint_HistorySet">
       <type>csv</type>
       <source>stories</source>
-    </Print>
-    <Print name="fullprint_history">
-      <type>csv</type>
-      <source>Historyy</source>
-    </Print>
-    <Print name="fullprint_Point">
-      <type>csv</type>
-      <source>Pointt</source>
     </Print>
     <Print name="fullprint_Pointset">
       <type>csv</type>
@@ -623,26 +605,6 @@
         <zlabel>cosine</zlabel>
       </plotSettings>
     </Plot>
-    <Plot dim="3" name="plot20" overwrite="false" verbosity="debug">
-      <actions>
-        <how>png</how>
-      </actions>
-      <plotSettings>
-        <plot>
-          <type>scatter</type>
-          <x>Historyy|Output|time</x>
-          <y>Historyy|Input|var1</y>
-          <z>Historyy|Output|cosine</z>
-          <colorMap>Historyy|Output|sine</colorMap>
-          <cmap>Accent</cmap>
-        </plot>
-        <kwargs>
-        </kwargs>
-        <xlabel>time</xlabel>
-        <ylabel>var1</ylabel>
-        <zlabel>cosine</zlabel>
-      </plotSettings>
-    </Plot>
     <Plot dim="2" name="historyPlot2D" overwrite="false" verbosity="debug">
       <filename>1-2DHistoryPlot_histogram</filename>
       <plotSettings>
@@ -680,20 +642,16 @@
 
   <Steps>
     <MultiRun name="FirstMRun" pauseAtEnd="false">
-      <Input class="DataObjects" type="Point">inputHolder</Input>
+      <Input class="DataObjects" type="PointSet">inputHolder</Input>
       <Model class="Models" type="ExternalModel">PythonModule</Model>
       <Sampler class="Samplers" type="Grid">RAVENGrid</Sampler>
       <Output class="Databases" type="HDF5">testOutputDatabase</Output>
       <Output class="DataObjects" type="HistorySet">stories</Output>
       <Output class="DataObjects" type="PointSet">PointSets</Output>
-      <Output class="DataObjects" type="Point">Pointt</Output>
-      <Output class="DataObjects" type="History">Historyy</Output>
     </MultiRun>
     <IOStep name="testOutstreamStep" pauseAtEnd="false">
       <Input class="DataObjects" type="HistorySet">stories</Input>
       <Input class="DataObjects" type="PointSet">PointSets</Input>
-      <Input class="DataObjects" type="Point">Pointt</Input>
-      <Input class="DataObjects" type="History">Historyy</Input>
       <Output class="OutStreams" type="Plot">historyPlot2D</Output>
       <Output class="OutStreams" type="Print">test</Output>
       <Output class="OutStreams" type="Print">fullprint_Pointset</Output>
@@ -717,16 +675,11 @@
       <Output class="OutStreams" type="Plot">plot17</Output>
       <Output class="OutStreams" type="Plot">plot18</Output>
       <Output class="OutStreams" type="Plot">plot19</Output>
-      <Output class="OutStreams" type="Plot">plot20</Output>
       <Output class="OutStreams" type="Print">testprint_selective_hist1</Output>
       <Output class="OutStreams" type="Print">testprint_selective_hist2</Output>
       <Output class="OutStreams" type="Print">testprint_selective_hist3</Output>
       <Output class="OutStreams" type="Print">testprint_selective_Pointset</Output>
-      <Output class="OutStreams" type="Print">testprint_selective_Point</Output>
-      <Output class="OutStreams" type="Print">testprint_selective_history</Output>
       <Output class="OutStreams" type="Print">fullprint_HistorySet</Output>
-      <Output class="OutStreams" type="Print">fullprint_history</Output>
-      <Output class="OutStreams" type="Print">fullprint_Point</Output>
     </IOStep>
   </Steps>
 
@@ -735,15 +688,10 @@
   </Databases>
 
   <DataObjects>
-    <Point name="inputHolder">
+    <PointSet name="inputHolder">
       <Input>var1, var2</Input>
       <Output>OutputPlaceHolder</Output>
-    </Point>
-    <Point name="Pointt">
-      <Input>var1,
-      var2</Input>
-      <Output>time,sine,square,cosine</Output>
-    </Point>
+    </PointSet>
     <PointSet name="PointSets">
       <Input>var1,var2</Input>
       <Output>time,
@@ -751,10 +699,6 @@
                 square, cosine
         </Output>
     </PointSet>
-    <History name="Historyy">
-      <Input>var1,var2</Input>
-      <Output>time,sine,square,cosine</Output>
-    </History>
     <HistorySet name="stories">
       <Input>var1 , var2
       </Input>

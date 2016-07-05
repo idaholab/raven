@@ -77,13 +77,13 @@
 
   <Steps>
     <MultiRun name="SamplingMirrowModel2levelFractFactorial" re-seeding="20021986">
-      <Input class="DataObjects" type="Point">inputPlaceHolder</Input>
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
       <Model class="Models" type="ExternalModel">mirrowModel</Model>
       <Sampler class="Samplers" type="Stratified">2levelFractFactorial</Sampler>
       <Output class="DataObjects" type="PointSet">outputData2levelFractFactorial</Output>
     </MultiRun>
     <MultiRun name="SamplingMirrowModelpbFactorial" re-seeding="20021986">
-      <Input class="DataObjects" type="Point">inputPlaceHolder</Input>
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
       <Model class="Models" type="ExternalModel">mirrowModel</Model>
       <Sampler class="Samplers" type="Stratified">pbFactorial</Sampler>
       <Output class="DataObjects" type="PointSet">outputDatapbFactorial</Output>
@@ -116,10 +116,10 @@
   </OutStreams>
 
   <DataObjects>
-    <Point name="inputPlaceHolder">
+    <PointSet name="inputPlaceHolder">
       <Input>x,y,z</Input>
       <Output>OutputPlaceHolder</Output>
-    </Point>
+    </PointSet>
     <PointSet name="outputData2levelFractFactorial">
       <Input>x,y,z</Input>
       <Output>x1</Output>

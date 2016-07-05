@@ -47,31 +47,36 @@ class RELAPparser():
   def modifyOrAdd(self,dictionaryList,save=True):
     """
       dictionaryList is a list of dictionaries of the required addition or modification
-      the method looks in self.lines for a card number matching the card in modidictionaryList
+      the method looks in self.lines for a card number matching the card in modiDictionaryList
       and modifies the word from dictionaryList at needed
       @ In, dictionaryList, list, list of dictionaries containing the info to modify the XML tree
       @ In, save, bool, optional, True if the original tree needs to be saved
       @ Out, lines, list, list of modified lines (of the original input)
     """
-    temp               = []
     decks              = {}
     lines              = []
     for i in dictionaryList:
       if 'decks' not in i.keys(): raise IOError(self.printTag+"ERROR: no card inputs found!!")
       else                      : decks.update(i['decks'])
     for deckNum in decks.keys():
-      modidictionaryList = decks[deckNum]
+      temp               = []
+      modiDictionaryList = decks[deckNum]
       temp.append('*RAVEN INPUT VALUES\n')
       if self.maxNumberOfDecks > 1: temp.append('*'+' deckNum: '+str(deckNum)+'\n')
-      for j in modidictionaryList:
-        temp.append('* card: '+j+' word: '+str(modidictionaryList[j]['position'])+' value: '+str(modidictionaryList[j]['value'])+'\n')
+      for j in modiDictionaryList:
+        for var in modiDictionaryList[j]:
+          temp.append('* card: '+j+' word: '+str(var['position'])+' value: '+str(var['value'])+'\n')
       temp.append('*RAVEN INPUT VALUES\n')
       for line in self.deckLines[deckNum]: #     fileinput.input(self.inputfile, mode='r'):
         temp1=line
         if not re.match('^\s*\n',line):
           card = line.split()[0].strip()
-          if card in modidictionaryList.keys():
-            temp1 = self.replaceword(line,modidictionaryList[card]['position'],modidictionaryList[card]['value'])
+          if card in modiDictionaryList.keys():
+            temp2 = line
+            for var in modiDictionaryList[card]:
+              temp1 = self.replaceword(temp2,var['position'],var['value'])
+              temp2 = temp1
+            #temp1 = self.replaceword(line,modiDictionaryList[card]['position'],modiDictionaryList[card]['value'])
         temp.append(temp1)
       if save: self.deckLines[deckNum]=temp
       lines = lines + temp

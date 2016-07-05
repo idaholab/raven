@@ -26,6 +26,13 @@
           <xsd:attribute name="type"  type="xsd:string" use="required"/>
         </xsd:complexType>
       </xsd:element>
+      <xsd:element name="SolutionExport" minOccurs="0"  maxOccurs="1">
+        <xsd:complexType mixed="true">
+          <!-- Specific types for class based on other XSD objects -->
+          <xsd:attribute name="class" type="xsd:string" use="required" fixed="DataObjects"/>
+          <xsd:attribute name="type"  type="xsd:string" use="required"/>
+        </xsd:complexType>
+      </xsd:element>
       <xsd:element name="Output" minOccurs="1">
         <xsd:complexType mixed="true">
           <!-- Specific types for class based on other XSD objects -->
@@ -146,6 +153,13 @@
       <xsd:element name="Model" minOccurs="1" maxOccurs="unbounded">
         <xsd:complexType mixed="true">
           <xsd:attribute name="class" type="xsd:string" use="required" fixed="Models"/>
+          <xsd:attribute name="type"  type="xsd:string" use="required"/>
+        </xsd:complexType>
+      </xsd:element>
+      <xsd:element name="SolutionExport" minOccurs="0"  maxOccurs="1">
+        <xsd:complexType mixed="true">
+          <!-- Specific types for class based on other XSD objects -->
+          <xsd:attribute name="class" type="xsd:string" use="required" fixed="DataObjects"/>
           <xsd:attribute name="type"  type="xsd:string" use="required"/>
         </xsd:complexType>
       </xsd:element>

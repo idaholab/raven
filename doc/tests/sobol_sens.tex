@@ -174,16 +174,16 @@ The variance and partial variances are as follows:
 The corresponding variance values and Sobol sensitivities are listed in Table \ref{tab:ishigami sens}.
 \begin{table}[h]
   \centering
-  \begin{tabular}{c|c|c}
-    Variable & Partial Variance & Sobol Index \\ \hline
-    (total) & 13.8446 & 1 \\
-    $y_1$         & 4.34589 & 0.3138 \\
-    $y_2$         & 6.125   & 0.4424 \\
-    $y_3$         & 0       & 0      \\
-    $y_1,y_2$     & 0       & 0      \\
-    $y_1,y_3$     & 3.3737  & 0.2436 \\
-    $y_2,y_3$     & 0       & 0      \\
-    $y_1,y_2,y_3$ & 0       & 0      \\
+  \begin{tabular}{c|c|c|c}
+    Variable & Partial Variance & Sobol Index & Sobol Total Index\\ \hline
+    (total) & 13.8446 & 1 & -\\
+    $y_1$         & 4.34589 & 0.3138 & 0.5574\\
+    $y_2$         & 6.125   & 0.4424 & 0.4424\\
+    $y_3$         & 0       & 0      & 0.2436\\
+    $y_1,y_2$     & 0       & 0      & -\\
+    $y_1,y_3$     & 3.3737  & 0.2436 & -\\
+    $y_2,y_3$     & 0       & 0      & -\\
+    $y_1,y_2,y_3$ & 0       & 0      & -\\
   \end{tabular}
   \caption{Ishigami sensitivities and variances}
   \label{tab:ishigami sens}
@@ -217,16 +217,16 @@ $a=[1,2,5,10,20,50,100,500]$.  The partial variances are given by
 Analytic values for Sobol sensitivities are given in Table \ref{tab:gfunc sens}.
 \begin{table}[h]
   \centering
-  \begin{tabular}{c|c}
-    Variable & Sobol sensitivity \\ \hline
-    $y_1$ & 0.6037 \\
-    $y_2$ & 0.2683 \\
-    $y_3$ & 0.0671 \\
-    $y_4$ & 0.0200 \\
-    $y_5$ & 0.0055 \\
-    $y_6$ & 0.0009 \\
-    $y_7$ & 0.0002 \\
-    $y_8$ & 0.0000 \\
+  \begin{tabular}{c|c|c}
+    Variable & Sobol sensitivity & Sobol total sensitivity\\ \hline
+    $y_1$ & 0.6037 & 0.6342\\
+    $y_2$ & 0.2683 & 0.2945\\
+    $y_3$ & 0.0671 & 0.0756\\
+    $y_4$ & 0.0200 & 0.0227\\
+    $y_5$ & 0.0055 & 0.0062\\
+    $y_6$ & 0.0009 & 0.0011\\
+    $y_7$ & 0.0002 & 0.0003\\
+    $y_8$ & 0.0000 & 0.0000\\
   \end{tabular}
   \caption{G-Function sensitivities and variances}
   \label{tab:gfunc sens}
