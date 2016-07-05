@@ -80,14 +80,14 @@ class BasePostProcessor(Assembler, MessageHandler.MessageUser):
   def run(self, input):
     """
       This method executes the postprocessor action.
-      @ In,  input, object, object contained the data to process. (inputToInternal output)
+      @ In,  input, object, object containing the data to process. (inputToInternal output)
       @ Out, None
     """
     pass
 
 class LimitSurfaceIntegral(BasePostProcessor):
   """
-    This post-processor is aimed to compute the n-dimensional integral of an inputted Limit Surface
+    This post-processor computes the n-dimensional integral of a Limit Surface
   """
   def __init__(self, messageHandler):
     """
@@ -3547,6 +3547,8 @@ class DataMining(BasePostProcessor):
     ## postprocessor, but that name is not available before processing the XML
     ## At this point, we have that information
     self.labelFeature = self.name+'Labels'
+    
+    self.initializationOptionDict = {}
 
     for child in xmlNode:
       if child.tag == 'KDD':
@@ -3576,6 +3578,7 @@ class DataMining(BasePostProcessor):
       self.unSupervisedEngine = unSupervisedLearning.returnInstance(self.type, self, **self.initializationOptionDict['KDD'])
     else:
       self.raiseAnError(IOError, 'No Data Mining Algorithm is supplied!')
+      
 
   def collectOutput(self, finishedJob, output):
     """
