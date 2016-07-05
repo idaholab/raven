@@ -41,6 +41,12 @@ The following is a list of acceptable sub-nodes:
 \paragraph{SciKitLearn and temporalSciKitLearn}
 Both \xmlString{SciKitLearn} and \xmlString{temporalSciKitLearn} are based on algorithms in SciKit-Learn library, where the former performs data mining over PointSet while the latter on HistorySet. Note that \xmlString{temporalSciKitLearn} performs the task given in \xmlNode{SKLType} (see below) for each time step, and so only synchronized HistorySet can be used as input to this model. For unsynchronized HistorySet, use \xmlString{HistorySetSync} method in \xmlString{Interfaced} post-processor to synchronize the input data before using \xmlString{temporalSciKitLearn}. The rest of this subsection and following subsection are dedicated to \xmlString{SciKitLearn} and \xmlString{temporalSciKitLearn} libraries.
 
+The temporal variable for \xmlString{temporalSciKitLearn} is specified in the \xmlNode{timeID} node: 
+\begin{itemize}
+  \item \xmlNode{timeID}, \xmlDesc{string, optional parameter} specifies the temporal variable in the input HistorySet. This option is for \xmlString{temporalSciKitLearn} library only.
+      \default{`Time'}. 
+\end{itemize}
+
 The algorithm for the dataMining is chosen by the subnode \xmlNode{SKLType} under the parent node
 \xmlNode{KDD}. The format is same as in \ref{subsubsec:SciKitLearn}. However, for the completeness
 sake , it is repeated here.
