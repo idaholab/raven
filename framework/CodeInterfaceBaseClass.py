@@ -55,8 +55,8 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
     """
       Function to read the portion of the xml input that belongs to this class and
       initialize some members based on inputs.
-      @ In, xmlNode, XML element node
-      @ Out, None.
+      @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
+      @ Out, None
     """
     self._readMoreXML(xmlNode)
 
@@ -65,8 +65,8 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
       Function to read the portion of the xml input that belongs to this specialized class and
       initialize some members based on inputs. This can be overloaded in specialized code interface in order
       to read specific flags
-      @ In, xmlNode, XML element node
-      @ Out, None.
+      @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
+      @ Out, None
     """
     pass #afaik, this is only used in GenericCodeInterface currently.
 
