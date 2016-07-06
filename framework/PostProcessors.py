@@ -3370,23 +3370,7 @@ class DataMining(BasePostProcessor):
     """
     BasePostProcessor.__init__(self, messageHandler)
     self.printTag = 'POSTPROCESSOR DATAMINING'
-
-  def _localWhatDoINeed(self):
-    """
-    This method is a local mirror of the general whatDoINeed method.
-    It is implemented by the samplers that need to request special objects
-    @ In , None, None
-    @ Out, dict, dictionary of objects needed
-    """
-    return {'internal':[(None,'jobHandler')]}
-
-  def _localGenerateAssembler(self,initDict):
-    """Generates the assembler.
-    @ In, initDict, dict, init objects
-    @ Out, None
-    """
-    self.jobHandler = initDict['internal']['jobHandler']
-
+    
     self.algorithms = []                                  ## A list of Algorithm
                                                           ## objects that
                                                           ## contain definitions
@@ -3406,9 +3390,33 @@ class DataMining(BasePostProcessor):
                                                           ## projection matrix
                                                           ## for dimensionality
                                                           ## reduction methods
+    
+    self.labelFeature = 'labels'                          ## User customizable
+                                                          ## column name for the
+                                                          ## labels associated
+                                                          ## to a clustering
+                                                          ## algorithm
+
     self.dataObjects = []
     self.PreProcessor = None
     self.metric = None
+
+  def _localWhatDoINeed(self):
+    """
+    This method is a local mirror of the general whatDoINeed method.
+    It is implemented by the samplers that need to request special objects
+    @ In , None, None
+    @ Out, dict, dictionary of objects needed
+    """
+    return {'internal':[(None,'jobHandler')]}
+
+  def _localGenerateAssembler(self,initDict):
+    """Generates the assembler.
+    @ In, initDict, dict, init objects
+    @ Out, None
+    """
+    self.jobHandler = initDict['internal']['jobHandler']
+
 
   def inputToInternal(self, currentInp):
     """
@@ -3513,6 +3521,7 @@ class DataMining(BasePostProcessor):
       @ In, initDict, dict, dictionary with initialization options
       @ Out, None
     """
+
     BasePostProcessor.initialize(self, runInfo, inputs, initDict)
     self.__workingDir = runInfo['WorkingDir']
 
@@ -3520,13 +3529,13 @@ class DataMining(BasePostProcessor):
       for val in self.assemblerDict['Label']:
         self.labelAlgorithms.append(val[3])
 
-    if "SolutionExport" in initDict:
+    if "SolutionExport" in self.assemblerDict:
       self.solutionExport = initDict["SolutionExport"]
-
-    if "PreProcessor" in initDict:
+    
+    if "PreProcessor" in self.assemblerDict:
       self.PreProcessor = self.assemblerDict['PreProcessor'][0][3]
 
-    if 'Metric' in initDict:
+    if 'Metric' in self.assemblerDict:
       self.metric = self.assemblerDict['Metric'][0][3]
 
   def _localReadMoreXML(self, xmlNode):
