@@ -156,7 +156,7 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
       self.raiseADebug("Distrbution name: "+str(self.toBeSampled[key]))
       if key not in self.epistemicVariables.keys():
         cdfValues[key] = self.distDict[key].cdf(value)
-        lowerCdfValues[key] = utils.find_le(self.branchProbabilities[self.toBeSampled[key]],cdfValues[key])[0]
+        lowerCdfValues[key] = utils.find_le(self.branchProbabilities[key],cdfValues[key])[0]
         self.raiseADebug("CDF value       : "+str(cdfValues[key]))
         self.raiseADebug("Lower CDF found : "+str(lowerCdfValues[key]))
       self.raiseADebug("_"*50)
@@ -329,6 +329,8 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
         self.inputInfo['SampledVarsPb'].update(precSample['SampledVarsPb'])
     self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())*subGroup.get('conditionalPbr')
     self.inputInfo['ProbabilityWeight'] = self.inputInfo['PointProbability' ]
+    # add additional edits if needed
+    model.getAdditionalInputEdits(self.inputInfo)
     # Call the model function "createNewInput" with the "values" dictionary just filled.
     # Add the new input path into the RunQueue system
     self.RunQueue['queue'].append(model.createNewInput(myInput,self.type,**self.inputInfo))
@@ -406,12 +408,12 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
       # add pbthresholds in the grid
       investigatedPoint = {}
       for key,value in cdfValues.items():
-        ind = utils.find_le_index(self.branchProbabilities[self.toBeSampled[key]],value)
+        ind = utils.find_le_index(self.branchProbabilities[key],value)
         if not ind: ind = 0
-        if value not in self.branchProbabilities[self.toBeSampled[key]]:
-          self.branchProbabilities[self.toBeSampled[key]].insert(ind,value)
-          self.branchValues[self.toBeSampled[key]].insert(ind,self.distDict[key].ppf(value))
-        investigatedPoint[self.toBeSampled[key]] = value
+        if value not in self.branchProbabilities[key]:
+          self.branchProbabilities[key].insert(ind,value)
+          self.branchValues[key].insert(ind,self.distDict[key].ppf(value))
+        investigatedPoint[key] = value
       # collect investigated point
       self.investigatedPoints.append(investigatedPoint)
 
@@ -431,7 +433,7 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
         elm.add('queue',False)
         elm.add('completedHistory', False)
         branchedLevel = {}
-        for key,value in cdfValues.items(): branchedLevel[self.toBeSampled[key]] = utils.index(self.branchProbabilities[self.toBeSampled[key]],value)
+        for key,value in cdfValues.items(): branchedLevel[key] = utils.index(self.branchProbabilities[key],value)
         # The dictionary branchedLevel is stored in the xml tree too. That's because
         # the advancement of the thresholds must follow the tree structure
         elm.add('branchedLevel', branchedLevel)
