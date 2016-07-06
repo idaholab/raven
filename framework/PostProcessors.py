@@ -955,23 +955,24 @@ class InterfacedPostProcessor(BasePostProcessor):
       self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : not correctly coded; it must inherit the PostProcessorInterfaceBase class')
 
     self.postProcessor.initialize()
+    self.postProcessor.readMoreXML(xmlNode)
     if self.postProcessor.inputFormat not in set(['HistorySet','PointSet']):
       self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.inputFormat not correctly initialized')
     if self.postProcessor.outputFormat not in set(['HistorySet','PointSet']):
       self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.outputFormat not correctly initialized')
-    self.postProcessor.readMoreXML(xmlNode)
+
 
   def run(self, inputIn):
     """
       This method executes the interfaced  post-processor action.
       @ In, inputIn, dict, dictionary of data to process
       @ Out, outputDic, dict, dict containing the post-processed results
-    """    
+    """
     if self.postProcessor.inputFormat not in set(['HistorySet','History','PointSet','Point']):
       self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.inputFormat not correctly initialized')
     if self.postProcessor.outputFormat not in set(['HistorySet','History','PointSet','Point']):
       self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.outputFormat not correctly initialized')
- 
+
     inputDic= self.inputToInternal(inputIn)
 
     outputDic = self.postProcessor.run(inputDic)
@@ -1013,7 +1014,7 @@ class InterfacedPostProcessor(BasePostProcessor):
             if key in output.getParaKeys('outputs'):
               output.updateOutputValue(key,exportDict['outputSpaceParams'][key])
           for key in exportDict['metadata'][0]:
-            output.updateMetadata(key,exportDict['metadata'][0][key]) 
+            output.updateMetadata(key,exportDict['metadata'][0][key])
     else:   # output.type == 'PointSet':
       for key in exportDict['inputSpaceParams']:
         if key in output.getParaKeys('inputs'):
@@ -1025,8 +1026,8 @@ class InterfacedPostProcessor(BasePostProcessor):
             output.updateOutputValue(key,value)
       for key in exportDict['metadata'][0]:
         output.updateMetadata(key,exportDict['metadata'][0][key])
-    
-     
+
+
 
   def inputToInternal(self,input):
     """
@@ -1046,7 +1047,7 @@ class InterfacedPostProcessor(BasePostProcessor):
       metadata.append(copy.deepcopy(item.getAllMetadata()))
     metadata.append(item.getAllMetadata())
     inputDict['metadata']=metadata
-    
+
     return inputDict
 
 #
@@ -3369,7 +3370,7 @@ class DataMining(BasePostProcessor):
     """
     BasePostProcessor.__init__(self, messageHandler)
     self.printTag = 'POSTPROCESSOR DATAMINING'
-  
+
   def _localWhatDoINeed(self):
     """
     This method is a local mirror of the general whatDoINeed method.
@@ -3384,7 +3385,7 @@ class DataMining(BasePostProcessor):
     @ In, initDict, dict, init objects
     @ Out, None
     """
-    self.jobHandler = initDict['internal']['jobHandler']  
+    self.jobHandler = initDict['internal']['jobHandler']
 
     self.algorithms = []                                  ## A list of Algorithm
                                                           ## objects that
@@ -3405,15 +3406,9 @@ class DataMining(BasePostProcessor):
                                                           ## projection matrix
                                                           ## for dimensionality
                                                           ## reduction methods
-
-    #self.labelFeature = 'labels'                          ## User customizable
-                                                          ## column name for the
-                                                          ## labels associated
-                                                          ## to a clustering
-                                                          ## algorithm
     self.dataObjects = []
     self.PreProcessor = None
-    self.metric = None                                                     
+    self.metric = None
 
   def inputToInternal(self, currentInp):
     """
@@ -3426,13 +3421,13 @@ class DataMining(BasePostProcessor):
     if type(currentInp) == list: currentInput = currentInp[-1]
     else                       : currentInput = currentInp
     if type(currentInp) == dict:
-      if 'Features' in currentInput.keys(): return 
+      if 'Features' in currentInput.keys(): return
     if isinstance(currentInp, Files.File):
-      if currentInput.subtype == 'csv': 
+      if currentInput.subtype == 'csv':
         self.raiseAnError(IOError, 'CSV File received as an input!')
-    if currentInput.type == 'HDF5': 
-      self.raiseAnError(IOError, 'HDF5 Object received as an input!') 
-    
+    if currentInput.type == 'HDF5':
+      self.raiseAnError(IOError, 'HDF5 Object received as an input!')
+
     if self.PreProcessor != None:
       inputDict = {'Features':{}, 'parameters':{}, 'Labels':{}, 'metadata':{}}
       if self.initializationOptionDict['KDD']['Features'] == 'input':
@@ -3447,7 +3442,7 @@ class DataMining(BasePostProcessor):
         inputDict['Features'] = copy.deepcopy(preProcessedData['data']['input'])
       elif self.initializationOptionDict['KDD']['Features'] == 'output':
         inputDict['Features'] = copy.deepcopy(preProcessedData['data']['output'])
-      else:  
+      else:
         features = self.initializationOptionDict['KDD']['Features'].split(',')
         for param in currentInput.getParaKeys('input'):
            if param in features:
@@ -3455,12 +3450,12 @@ class DataMining(BasePostProcessor):
         for param in currentInput.getParaKeys('output'):
            if param in features:
              inputDict['Features'][param] = copy.deepcopy(preProcessedData['data']['output'][param])
-                          
+
       inputDict['metadata'] = currentInput.getAllMetadata()
-      return inputDict 
-   
+      return inputDict
+
     inputDict = {'Features':{}, 'parameters':{}, 'Labels':{}, 'metadata':{}}
-   
+
     if currentInput.type in ['PointSet']:
       ## Get what is available in the data object being operated on
       ## This is potentially more information than we need at the moment, but
@@ -3492,13 +3487,13 @@ class DataMining(BasePostProcessor):
         for param in inParams:
           inputDict['Features'][param] = currentInput.getParam('input', param)
         for param in outParams:
-          inputDict['Features'][param] = currentInput.getParam('output', param)  
+          inputDict['Features'][param] = currentInput.getParam('output', param)
     elif currentInput.type in ['HistorySet']:
       if self.initializationOptionDict['KDD']['Features'] == 'input':
-        for param in currentInput.getParaKeys('input'): 
-          inputDict['Features'][param] = currentInput.getParam('input', param)  
-      elif self.initializationOptionDict['KDD']['Features'] == 'output': 
-        inputDict['Features'] = currentInput.getOutParametersValues()        
+        for param in currentInput.getParaKeys('input'):
+          inputDict['Features'][param] = currentInput.getParam('input', param)
+      elif self.initializationOptionDict['KDD']['Features'] == 'output':
+        inputDict['Features'] = currentInput.getOutParametersValues()
       inputDict['metadata'] = currentInput.getAllMetadata()
 
       inputDict['metadata'] = currentInput.getAllMetadata()
@@ -3522,7 +3517,7 @@ class DataMining(BasePostProcessor):
     self.__workingDir = runInfo['WorkingDir']
 
     if 'Label' in self.assemblerDict:
-      for val in self.assmeblerDict['Label']:
+      for val in self.assemblerDict['Label']:
         self.labelAlgorithms.append(val[3])
 
     if "SolutionExport" in initDict:
@@ -3530,14 +3525,14 @@ class DataMining(BasePostProcessor):
 
     if "PreProcessor" in initDict:
       self.PreProcessor = self.assemblerDict['PreProcessor'][0][3]
-    
+
     if 'Metric' in initDict:
       self.metric = self.assemblerDict['Metric'][0][3]
 
   def _localReadMoreXML(self, xmlNode):
     """
-      Function to read the portion of the xml input that belongs to this specialized class
-      and initialize some stuff based on the inputs got
+      Function that reads the portion of the xml input that belongs to this specialized class
+      and initializes some elements based on the inputs got
       @ In, xmlNode, xml.etree.Element, Xml element node
       @ Out, None
     """
@@ -3546,7 +3541,7 @@ class DataMining(BasePostProcessor):
     ## At this point, we have that information
     self.labelFeature = self.name+'Labels'
     self.initializationOptionDict = {}
-    
+
     for child in xmlNode:
       if child.tag == 'KDD':
         if child.attrib:
@@ -3574,7 +3569,7 @@ class DataMining(BasePostProcessor):
     if self.type:
       self.unSupervisedEngine = unSupervisedLearning.returnInstance(self.type, self, **self.initializationOptionDict['KDD'])
     else:
-      self.raiseAnError(IOError, 'No Data Mining Algorithm is supplied!') 
+      self.raiseAnError(IOError, 'No Data Mining Algorithm is supplied!')
 
   def collectOutput(self, finishedJob, output):
     """
@@ -3596,7 +3591,7 @@ class DataMining(BasePostProcessor):
       for param in output.getParaKeys('output'):
         if key == param: output.removeOutputValue(key)
       if output.type == 'PointSet':
-        for value in dataMineDict['output'][key]: 
+        for value in dataMineDict['output'][key]:
           output.updateOutputValue(key, copy.copy(value))
       elif output.type == 'HistorySet':
         for index,value in np.ndenumerate(dataMineDict['output'][key]):
@@ -3604,7 +3599,7 @@ class DataMining(BasePostProcessor):
           firstVar  = output._dataContainer['outputs'][firstHist].keys()[0]
           timeLength = output._dataContainer['outputs'][firstHist][firstVar].size
           arrayBase = value * np.ones(timeLength)
-          output.updateOutputValue([index[0]+1,key], arrayBase)   
+          output.updateOutputValue([index[0]+1,key], arrayBase)
 
   def run(self, inputIn):
     """
@@ -3620,7 +3615,7 @@ class DataMining(BasePostProcessor):
     input = self.inputToInternal(inputIn)
     outputDict = {}
     self.unSupervisedEngine.features = input['Features']
-    if not self.unSupervisedEngine.amITrained:  
+    if not self.unSupervisedEngine.amITrained:
       if self.metric == None:
         self.unSupervisedEngine.train(input['Features'])
       else:
@@ -3646,7 +3641,7 @@ class DataMining(BasePostProcessor):
       ## Get the cluster labels and store as a new column in the output
       if hasattr(self.unSupervisedEngine, 'labels_'):
         self.clusterLabels = self.unSupervisedEngine.labels_
-      outputDict['output'][self.labelFeature] = self.clusterLabels;
+      outputDict['output'][self.labelFeature] = self.clusterLabels
 
       ## Get the total number of clusters
       if hasattr(self.unSupervisedEngine, 'noClusters'):

@@ -482,7 +482,7 @@ def interpolateFunction(x,y,option,z=None,returnCoordinate=False):
     xig, yig = np.meshgrid(xi, yi)
     try:
       if ['nearest','linear','cubic'].count(options['interpolationType']) > 0 or z.size <= 3:
-        if options['interpolationType'] != 'nearest' and z.size > 3: 
+        if options['interpolationType'] != 'nearest' and z.size > 3:
           zi = griddata((x,y), z, (xi[None,:], yi[:,None]), method=options['interpolationType'])
         else: zi = griddata((x,y), z, (xi[None,:], yi[:,None]), method='nearest')
       else:

@@ -70,25 +70,25 @@ class dataObjectLabelFilter(PostProcessorInterfaceBase):
     outputDic['data'] = {}
     outputDic['data']['input'] = {}
     outputDic['data']['output'] = {}
-    
+
     if self.inputFormat == 'HistorySet':
       for hist in inputDic['data']['output']:
         if int(inputDic['data']['output'][hist][self.label][0]) in self.clusterIDs:
           outputDic['data']['input'][hist]  = copy.deepcopy(inputDic['data']['input'][hist])
           outputDic['data']['output'][hist] = copy.deepcopy(inputDic['data']['output'][hist])
-    
+
     else:   # self.outFormat == 'PointSet'
       for key in inputDic['data']['input']:
         outputDic['data']['input'][key] = np.zeros(0)
       for key in inputDic['data']['output']:
-        outputDic['data']['output'][key] = np.zeros(0) 
-       
-      for pos,val in np.ndenumerate(inputDic['data']['output'][self.label]): 
+        outputDic['data']['output'][key] = np.zeros(0)
+
+      for pos,val in np.ndenumerate(inputDic['data']['output'][self.label]):
         if val in self.clusterIDs:
           for key in inputDic['data']['input']:
             outputDic['data']['input'][key]  = np.append(outputDic['data']['input'][key],copy.deepcopy(inputDic['data']['input'][key][pos[0]]))
           for key in inputDic['data']['output']:
             outputDic['data']['output'][key] = np.append(outputDic['data']['output'][key],copy.deepcopy(inputDic['data']['output'][key][pos[0]]))
 
-    
+
     return outputDic
