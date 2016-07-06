@@ -39,16 +39,16 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
     self.features = inputDict['output'][inputDict['output'].keys()[0]].keys()
     self.features.remove(self.timeID)
     self.noHistory = len(inputDict['output'].keys())
-    self.Time = np.asarray(inputDict['output'][inputDict['output'].keys()[0]][self.timeID])
+    self.time = np.asarray(inputDict['output'][inputDict['output'].keys()[0]][self.timeID])
 
     self.subsequence = {}
     startLocation, n = 0, 0
     while True:
       subsequenceLength = self.subseqLen[n % len(self.subseqLen)]
-      if startLocation + subsequenceLength < self.Time[-1]:
+      if startLocation + subsequenceLength < self.time[-1]:
         self.subsequence[n] = [startLocation, startLocation+subsequenceLength]
       else:
-        self.subsequence[n] = [startLocation, self.Time[-1]]
+        self.subsequence[n] = [startLocation, self.time[-1]]
         break
       startLocation += subsequenceLength
       n+= 1
@@ -62,8 +62,8 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
         tempData['all'][keyF] = np.concatenate((tempData['all'][keyF],inputDict['output'][keyH][keyF]))
     for keySub in subKeys:
       tempData[keySub] = {}
-      extractCondition = (self.Time>=self.subsequence[keySub][0]) * (self.Time<self.subsequence[keySub][1])
-      tempData[keySub][self.timeID] = np.extract(extractCondition, self.Time)
+      extractCondition = (self.time>=self.subsequence[keySub][0]) * (self.time<self.subsequence[keySub][1])
+      tempData[keySub][self.timeID] = np.extract(extractCondition, self.time)
       for keyF in self.features:
         tempData[keySub][keyF] = np.zeros(shape=(self.noHistory,len(tempData[keySub][self.timeID])))
         for cnt, keyH in enumerate(inputDict['output'].keys()):
@@ -120,9 +120,9 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
   def __computeCDF(self, data, binEdgesIn):
     """
      Method to generate empirical CDF of input data, with the bins given.
-     @ In, data, array, data for which empirical CDF is computed
-     @ In, binEdgesIn, array, bins over which CDF value is computed
-     @ Out, , array, empirical CDF of the input data.
+     @ In, data, numpy array, data for which empirical CDF is computed
+     @ In, binEdgesIn, numpy array, bins over which CDF value is computed
+     @ Out, , numpy array, empirical CDF of the input data.
 
     """
     counts, binEdges = np.histogram(data,bins=binEdgesIn,normed=True)
@@ -136,8 +136,8 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
   def __computeDist(self, x1, x2):
     """
     Method to compute absolute difference of two points.
-    @ In, x1, array, input 1
-    @ In, x2, array, input 2
+    @ In, x1, numpy array, input 1
+    @ In, x2, numpy array, input 2
     @ Out, , float, difference between x1 and x2
     """
     return np.average(np.absolute(x1-x2))
