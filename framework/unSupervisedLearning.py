@@ -87,7 +87,7 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
     self.muAndSigmaFeatures = {}
     #these need to be declared in the child classes!!!!
     self.amITrained = False
-  
+
 
   def train(self, tdict, metric = None):
     """
@@ -103,7 +103,7 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
       self.labelValues = values[names.index(self.labels)]
       resp = self.checkArrayConsistency(self.labelValues)
       if not resp[0]: self.raiseAnError(IOError, 'In training set for ground truth labels ' + self.labels + ':' + resp[1])
-    else            : self.raiseAWarning(' The ground truth labels are not known a priori')   
+    else            : self.raiseAWarning(' The ground truth labels are not known a priori')
     if metric == None:
       for cnt, feat in enumerate(self.features):
         if feat not in names: self.raiseAnError(IOError, ' The feature sought ' + feat + ' is not in the training set')
@@ -122,7 +122,7 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
         for key in tdict.keys():
           for var in tdict[key]:
             tdict[key][var] = (tdict[key][var]-np.average(tdict[key][var]))/np.std(tdict[key][var])
-          
+
         cardinality = len(tdict.keys())
         self.normValues = np.zeros((cardinality,cardinality))
         keys = tdict.keys()
@@ -138,15 +138,15 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
             resp = self.checkArrayConsistency(values[names.index(feat)])
             if not resp[0]: self.raiseAnError(IOError, ' In training set for feature ' + feat + ':' + resp[1])
             normValues = np.zeros(shape = (values[names.index(feat)].size, len(self.features)))
-            if values[names.index(feat)].size != normValues[:, 0].size: 
+            if values[names.index(feat)].size != normValues[:, 0].size:
               self.raiseAnError(IOError, ' In training set, the number of values provided for feature ' + feat + ' are != number of target outcomes!')
             self._localNormalizeData(values, names, feat)
-            if self.muAndSigmaFeatures[feat][1] == 0: 
+            if self.muAndSigmaFeatures[feat][1] == 0:
               self.muAndSigmaFeatures[feat] = (self.muAndSigmaFeatures[feat][0], np.max(np.absolute(values[names.index(feat)])))
-            if self.muAndSigmaFeatures[feat][1] == 0: 
+            if self.muAndSigmaFeatures[feat][1] == 0:
               self.muAndSigmaFeatures[feat] = (self.muAndSigmaFeatures[feat][0], 1.0)
-            normValues[:, cnt] = (values[names.index(feat)] - self.muAndSigmaFeatures[feat][0]) / self.muAndSigmaFeatures[feat][1]        
-        
+            normValues[:, cnt] = (values[names.index(feat)] - self.muAndSigmaFeatures[feat][0]) / self.muAndSigmaFeatures[feat][1]
+
             for i in range(cardinality):
               for j in range(i,cardinality):
                 self.normValues[i][j] = metric.distance(tdict[i],tdict[j])

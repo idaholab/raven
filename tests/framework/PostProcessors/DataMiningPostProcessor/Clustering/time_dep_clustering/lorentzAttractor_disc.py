@@ -28,7 +28,7 @@ def run(self,Input):
   self.y[0] = Input['y0']
   self.z[0] = Input['z0']
   self.time[0]= 0.0
-  
+
   if self.x0<4.0:
     disc = 2.0
   else:

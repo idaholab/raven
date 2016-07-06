@@ -24,39 +24,39 @@ import Files
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Metric(utils.metaclass_insert(abc.ABCMeta,BaseType)):
-  
+
   def __init__(self,runInfoDict):
     BaseType.__init__(self)
     self.type = self.__class__.__name__
     self.name = self.__class__.__name__
-    
+
   def initialize(self,inputDict):
     pass
-  
+
   def _readMoreXML(self,xmlNode):
-    pass    
-  
+    pass
+
   def readMoreXML(self,xmlNode):
     pass
-    
+
   def distance(self,x,y,weights=None,paramDict=None):
     pass
-  
+
 
 class Minkowski(Metric):
-  
+
   def initialize(self,inputDict):
     self.p = None
     self.timeID = None
-  
+
   def _readMoreXML(self,xmlNode):
     for child in xmlNode:
       if child.tag == 'p':
         self.p = float(child.text)
       if child.tag == 'timeID':
         self.timeID = child.text
-  
-  def distance(self,x,y):    
+
+  def distance(self,x,y):
     if isinstance(x,np.ndarray) and isinstance(y,np.ndarray):
       value = 0
       for i in range(x.size):
@@ -72,7 +72,7 @@ class Minkowski(Metric):
                 value += (math.abs(x[i]-y[i]))**self.p
             return math.pow(value,1/p)
           else:
-            print('Metric Minkowski error: the length of the variable array ' + str(key) +' is not consistent among the two data sets')       
+            print('Metric Minkowski error: the length of the variable array ' + str(key) +' is not consistent among the two data sets')
       else:
         print('Metric Minkowski error: the two data sets do not contain the same variables')
     else:
@@ -110,5 +110,5 @@ def validate(className,role,what,caller):
   """This is the general interface for the validation of a model usage"""
   if className in __knownTypes: return __interFaceDict[className].localValidateMethod(role,what)
   else : caller.raiseAnError(IOError,'METRICS','the class '+str(className)+' it is not a registered model')
-  
-  
+
+
