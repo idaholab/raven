@@ -65,7 +65,7 @@
     csv    = 'interfacedPostProcessor_PointSet/PrintPPPointSetSet_dump.csv'
     output = 'interfacedPostProcessor_PointSet/PrintPPPointSetSet_dump.xml'
   [../]
-  [./TypicalHistoryFromHS]
+  [./typicalHistoryFromHS]
     type   = 'RavenFramework'
     input  = 'test_typicalHistoryFromHS.xml'
     csv    = 'TypicalHistoryFromHS/writeTypDataOut_0.csv'

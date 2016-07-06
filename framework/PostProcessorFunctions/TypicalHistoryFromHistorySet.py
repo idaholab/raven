@@ -127,11 +127,11 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
     """
     counts, binEdges = np.histogram(data,bins=binEdgesIn,normed=True)
     numBins = len(counts)
-    Delta = np.zeros(shape=(numBins,))
+    binDiffArray = np.zeros(shape=(numBins,))
     for n in range(numBins):
-      Delta[n] = binEdges[n+1]-binEdges[n]
-    delta = np.average(Delta)
-    return np.cumsum(counts)*delta
+      binDiffArray[n] = binEdges[n+1]-binEdges[n]
+    binDiff = np.average(binDiffArray)
+    return np.cumsum(counts)*binDiff
 
   def __computeDist(self, x1, x2):
     """
