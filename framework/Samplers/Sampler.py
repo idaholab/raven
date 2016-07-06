@@ -196,6 +196,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
             prefix = "<distribution>"
             tobesampled = childChild.text
         self.toBeSampled[prefix+child.attrib['name']] = tobesampled
+        #if child.attrib['name'] != tobesampled:self.raiseAnError(IOError,"name of the <Distribution> node and <distribution> mismatches for node named "+ child.attrib['name'])
       elif child.tag == 'variable':
         foundDistOrFunc = False
         for childChild in child:
