@@ -204,13 +204,16 @@ class HistorySet(Data):
         self._dataContainer = tsnode.get('dataContainer')
       else:
         if 'metadata' not in self._dataContainer.keys(): self._dataContainer['metadata'] ={}
-      if name in self._dataContainer['metadata'].keys(): self._dataContainer['metadata'][name].append(np.atleast_1d(np.array(value))) #= copy.copy(np.concatenate((self._dataContainer['metadata'][name],np.atleast_1d(value))))
-      else                                             : self._dataContainer['metadata'][name] = copy.copy(c1darray(values=np.atleast_1d(np.array(value)),dtype=type(value)))
+      if name in self._dataContainer['metadata'].keys():
+        self._dataContainer['metadata'][name].append(np.atleast_1d(np.array(value))) #= copy.copy(np.concatenate((self._dataContainer['metadata'][name],np.atleast_1d(value))))
+      else:
+        self._dataContainer['metadata'][name] = copy.copy(c1darray(values=np.atleast_1d(np.array(value)),dtype=type(value)))
       self.addNodeInTreeMode(tsnode,options)
     else:
       if name in self._dataContainer['metadata'].keys():
         self._dataContainer['metadata'][name].append(np.atleast_1d(value)) # = copy.copy(np.concatenate((self._dataContainer['metadata'][name],np.atleast_1d(value))))
-      else                                             : self._dataContainer['metadata'][name] = copy.copy(c1darray(values=np.atleast_1d(np.array(value)),dtype=type(value)))
+      else:
+        self._dataContainer['metadata'][name] = copy.copy(c1darray(values=np.atleast_1d(np.array(value)),dtype=type(value)))
 
   def _updateSpecializedOutputValue(self,name,value,options=None):
     """
