@@ -3529,7 +3529,7 @@ class DataMining(BasePostProcessor):
       for val in self.assemblerDict['Label']:
         self.labelAlgorithms.append(val[3])
 
-    if "SolutionExport" in self.assemblerDict:
+    if "SolutionExport" in initDict:
       self.solutionExport = initDict["SolutionExport"]
     
     if "PreProcessor" in self.assemblerDict:
@@ -3681,7 +3681,7 @@ class DataMining(BasePostProcessor):
 
       if hasattr(self.unSupervisedEngine, 'inertia_'):
         inertia = self.unSupervisedEngine.inertia_
-
+        
     elif 'bicluster' == self.unSupervisedEngine.SKLtype:
       self.raiseAnError(RuntimeError, 'Bicluster has not yet been implemented.')
     elif 'mixture' == self.unSupervisedEngine.SKLtype:
