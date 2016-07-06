@@ -3755,6 +3755,7 @@ class DataMining(BasePostProcessor):
       ## use a single projection matrix.
       for i in range(noComponents):
         outputDict['output'][self.name+'PCAComponent' + str(i + 1)] =  components[:, i]
+        
     return outputDict
 #
 #
