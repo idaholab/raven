@@ -357,6 +357,7 @@ class DynamicEventTree(Grid):
     self.inputInfo['parentID'                  ] = 'root'
     self.inputInfo['conditionalPb'             ] = [1.0]
     self.inputInfo['conditionalPbr'            ] = 1.0
+    self.inputInfo['happenedEvent'             ] = False
     for key in self.branchProbabilities.keys():self.inputInfo['initiatorDistribution'].append(self.toBeSampled[key])
     #for key in self.branchProbabilities.keys():self.inputInfo['initiatorDistribution'].append(key.encode())
     for key in self.branchProbabilities.keys():self.inputInfo['PbThreshold'].append(self.branchProbabilities[key][branchedLevel[key]])
@@ -460,7 +461,9 @@ class DynamicEventTree(Grid):
           subGroup.add('branchChangedParamValue',endInfo['branchChangedParams'][key]['actualValue'][self.branchCountOnLevel-2])
           subGroup.add('branchChangedParamPb',endInfo['branchChangedParams'][key]['associatedProbability'][self.branchCountOnLevel-2])
           condPbC = condPbC + endInfo['branchChangedParams'][key]['changedConditionalPb'][self.branchCountOnLevel-2]
+          subGroup.add('happenedEvent',True)
         else:
+          subGroup.add('happenedEvent',endInfo['parentNode'].get('happenedEvent'))
           subGroup.add('branchChangedParamValue',endInfo['branchChangedParams'][key]['oldValue'])
           subGroup.add('branchChangedParamPb',endInfo['branchChangedParams'][key]['unchangedPb'])
           condPbUn =  condPbUn + endInfo['branchChangedParams'][key]['unchangedConditionalPb']
@@ -490,6 +493,8 @@ class DynamicEventTree(Grid):
                 'conditionalPb':[subGroup.get('conditionalPbr')],
                 'startTime':endInfo['parentNode'].get('endTime'),
                 'parentID':subGroup.get('parent')}
+
+      self.inputInfo['happenedEvent'] = subGroup.get('happenedEvent')
       # add additional edits if needed
       model.getAdditionalInputEdits(self.inputInfo)
       # add the newer branch name to the map

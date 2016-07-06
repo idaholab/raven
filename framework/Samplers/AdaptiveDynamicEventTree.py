@@ -223,7 +223,7 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
     validBranch   = None
     idOfBranches  = branchSet[1][-1]
     for closestBranch in idOfBranches:
-      if not mapping[closestBranch+1].get('completedHistory'):
+      if not mapping[closestBranch+1].get('completedHistory') and not mapping[closestBranch+1].get('happenedEvent'):
         validBranch = mapping[closestBranch+1]
         break
     return validBranch
