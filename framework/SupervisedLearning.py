@@ -119,6 +119,7 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     names, values  = list(tdict.keys()), list(tdict.values())
     ## This is for handling the special case needed by SKLtype=*MultiTask* that
     ## requires multiple targets.
+    
     if isinstance(self.target,list):
       targetValues = None
       for target in self.target:
@@ -2098,11 +2099,11 @@ class ARMA(superVisedLearning):
       @In, targetVals, array, shape = [n_timeStep], data for time variable
     """
     self.time = copy.deepcopy(targetVals)
-    self.timeSeriesDatabase = featureVals
-
+    self.timeSeriesDatabase = featureVals 
+    
     # Fit fourier seires
     if self.hasFourierSeries:
-      self.__trainFourier__()   
+      self.__trainFourier__()  
       self.armaPara['rSeries'] = self.timeSeriesDatabase - self.fourierResult['predict']
     else:
       self.armaPara['rSeries'] = self.timeSeriesDatabase
@@ -2417,6 +2418,7 @@ class ARMA(superVisedLearning):
     sigHat = sigHat / noTimeStep
     self.armaResult['sigHat'] = sigHat[0,0]
     lkHood = -L
+    self.raiseADebug(lkHood)
     return lkHood
         
   def __computeAICorBIC(self,maxL,noPara,cType,obj='max'):

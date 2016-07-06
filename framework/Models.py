@@ -685,7 +685,7 @@ class ROM(Dummy):
           for entries in trainingSet.getParaKeys('outputs'):
             if not trainingSet.isItEmpty(): localInput[entries] = copy.copy(np.array(trainingSet.getParam('output',1)[entries]))
             else:                      localInput[entries] = None
-        
+
         self.trainingSet = copy.copy(localInput)
         if type(self.trainingSet) is dict:
           self.amITrained = True
