@@ -1,5 +1,5 @@
 '''
-Created on Feb 17, 2016
+  Created on Feb 17, 2016
 
 '''
 from __future__ import division, print_function, unicode_literals, absolute_import
@@ -10,20 +10,18 @@ from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
 import numpy as np
 
 class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
-  """ 
+  """
     This class forms a typical history from a history set
-      The methodology can be found at:
-      S. WIlcox and W. Marion, "User Manual for TMY3 Data Sets," Technical Report, NREL/TP-581-43156,
-        National Renewable Energy Laboratory Golden, CO, May 2008
-
+    The methodology can be found at:
+    S. WIlcox and W. Marion, "User Manual for TMY3 Data Sets," Technical Report, NREL/TP-581-43156,
+    National Renewable Energy Laboratory Golden, CO, May 2008
   """
 
   def initialize(self):
     """
-     Method to initialize the Interfaced Post-processor
-     @ In, None,
-     @ Out, None,
-
+      Method to initialize the Interfaced Post-processor
+      @ In, None,
+      @ Out, None,
     """
     PostProcessorInterfaceBase.initialize(self)
     self.inputFormat  = 'HistorySet'
@@ -32,9 +30,8 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
 
   def run(self,inputDic):
     """
-     @ In, inputDic, dict, dictionary which contains the data inside the input DataObject
-     @ Out, outputDic, dict, dictionary which contains the data to be collected by output DataObject
-
+      @ In, inputDic, dict, dictionary which contains the data inside the input DataObject
+      @ Out, outputDic, dict, dictionary which contains the data to be collected by output DataObject
     """
     inputDict = inputDic['data']
     self.features = inputDict['output'][inputDict['output'].keys()[0]].keys()
@@ -119,41 +116,22 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
 
     return outputDic
 
-#   def __computeECDF(self, data, numBins, bounds):
-#     """
-#        Method to generate empirical CDF of input data, with the bin number given.
-#        @ In, data, numpy array, data for which empirical CDF is computed
-#        @ In, numBins, int, bin number for computing empirical CDF
-#        @ In, bounds, tuple (lowerBound, upperBound), the boundaries within which the empirical CDF is computed
-#        @ Out, , numpy array, empirical CDF of the input data.
-# 
-#     """
-#     (cumFreqs, _, _, _) = scipy.stats.cumfreq(data, numBins, bounds)
-#     return cumFreqs/max(cumFreqs)
-
   def __computeECDF(self, data, binEdgesIn):
     """
-       Method to generate empirical CDF of input data, with the bins given.
-       @ In, data, numpy array, data for which empirical CDF is computed
-       @ In, binEdgesIn, numpy array, bins over which CDF value is computed
-       @ Out, , numpy array, empirical CDF of the input data.
-  
+      Method to generate empirical CDF of input data, with the bins given.
+      @ In, data, numpy array, data for which empirical CDF is computed
+      @ In, binEdgesIn, numpy array, bins over which CDF value is computed
+      @ Out, , numpy array, empirical CDF of the input data.
     """
     (counts, _) = np.histogram(data,bins=binEdgesIn,normed=True)
-#     numBins = len(counts)
-#     binDiffArray = np.zeros(shape=(numBins,))
-#     for n in range(numBins):
-#       binDiffArray[n] = binEdges[n+1]-binEdges[n]
-#     binDiff = np.average(binDiffArray)
-#     return np.cumsum(counts)*binDiff    
     return np.cumsum(counts)/max(np.cumsum(counts))
 
   def __computeDist(self, x1, x2):
     """
-    Method to compute absolute difference of two points.
-    @ In, x1, numpy array, input 1
-    @ In, x2, numpy array, input 2
-    @ Out, , float, difference between x1 and x2
+      Method to compute absolute difference of two points.
+      @ In, x1, numpy array, input 1
+      @ In, x2, numpy array, input 2
+      @ Out, , float, difference between x1 and x2
     """
     return np.average(np.absolute(x1-x2))
 
