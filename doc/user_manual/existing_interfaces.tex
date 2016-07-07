@@ -162,11 +162,11 @@ also:
   \item the license for the executable of RELAP5
 \end{itemize}
 \textcolor{red}{
-\textbf{It is important to notice that the interface output collection relies on the MINOR EDITS. The user must specify the MINOR 
+\textbf{It is important to notice that the interface output collection relies on the MINOR EDITS. The user must specify the MINOR
 EDITS block and those variables are the only one the INTERFACE will read and make available to RAVEN. In addition, it is important to notice that:}
 \begin{itemize}
   \item \textbf{the simulation time is stored in a variable called \textit{``time''}};
-  \item \textbf{all the variables specified in the MINOR EDIT block are going to be converted using underscores (e.g.  an edit such as 
+  \item \textbf{all the variables specified in the MINOR EDIT block are going to be converted using underscores (e.g.  an edit such as
   $301 \:\:\: p \:\:\: 345010000$ will be named in the converted CSVs as $p\_345010000$).In addition, if a variable contains spaces, the trailing spaces are going to be removed and internal spaces are replaced with underscores (e.g. $HTTEMP 1131008 12$ will become $HTTEMP\_1131008\_12$}.
 \end{itemize}
 }
@@ -448,7 +448,7 @@ input file *.i)  and which variables are going to be ``sampled'' through the con
 For the example, we are performing Grid Sampling.
 %
 The global initial pressure wasn't specified in the control logic so it is going to be specified
-using the node \xmlNode{variable}. The ``pressureInPressurizer `` variable is instead sampled in the
+using the node \xmlNode{variable}. The ``pressureInPressurizer'' variable is instead sampled in the
 control logic system; for this reason, it is going to be specified using the node  \xmlNode{Distribution}.
 %
 For example,
@@ -1002,7 +1002,7 @@ Additionally, they could be created by simulating the model.  The following comm
 >> simulateModel("BouncingBall", stopTime=10, numberOfIntervals=0, outputInterval=0.1, method="dassl", resultFile="BouncingBall");
  = true
 \end{lstlisting}
-The file extension (.mat) is automatically added to a output file (resultFile), e.g., BouncingBall.mat.  If the generated executable code is triggered directly from a 
+The file extension (.mat) is automatically added to a output file (resultFile), e.g., BouncingBall.mat.  If the generated executable code is triggered directly from a
 command prompt, the output file is always named as "dsres.mat".
 \end{enumerate}
 The model executable is specified to RAVEN using the \textless Models\textgreater  section of the input file as follows:
@@ -1374,23 +1374,194 @@ after RAVEN completes a sequence. For example:
 </RunInfo>
 \end{lstlisting}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%% RATTLESNAKE INTERFACE %%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Rattlesnake Interfaces}
+%
+This section covers the input specification for running Rattlesnake through RAVEN. It is important
+to notice that this short explanation assumes that the reader already knows how to use Rattlesnake.
+The interface can be used to perturb the Rattlesnake MOOSE-based input file as well as the Yak multigroup
+cross section libraries XML input files.
+%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Files}
+\xmlNode{Files} works the same as in other interfaces with name and type
+attributes for each node entry.  The \xmlAttr{name} attribute is a user-chosen internal
+name for the file contained in the node, and \xmlAttr{type} identifies which base-level
+interface the file is used within.  \xmlNode{type} should only be specified for inputs
+that RAVEN will perturb.  For Rattlesnake input files, \xmlNode{type} should be \xmlString{RattlesnakeInput};
+for Yak multigroup cross section libraries, the \xmlNode{type} should be \xmlString{YakXSInput}; and for the Yak
+alias files that are used to perturb the Yak multigroup cross section libraries, the \xmlNode{type} should be
+\xmlString{YakXSAliasInput}. The node should contain the path to the file from the working directory.
+The following is an example of a typical \xmlNode{Files} block.
+%
+\begin{lstlisting}[style=XML]
+<Files>
+  <Input name='rattlesnakeInput' type='RattlesnakeInput'>simple_diffusion.i</Input>
+  <Input name='crossSection'    type='YakXSInput'>xs.xml</Input>
+  <Input name='alias' type='YakXSAliasInput'>alias.xml</Input>
+</Files>
+\end{lstlisting}
+%
+The alias files are employed to define the variables that will be used to perturb Yak multigroup cross section
+libraries. The following is an example of a typical alias file:
+%
+\begin{lstlisting}[style=XML]
+<Multigroup_Cross_Section_Libraries Name="twigl" NGroup="2" Type="rel">
+    <Multigroup_Cross_Section_Library ID="1">
+        <Fission gridIndex="1" mat="pseudo-seed1" gIndex="1">f11</Fission>
+        <Capture gridIndex="1" mat="pseudo-seed1" gIndex="1">c11</Capture>
+        <TotalScattering gridIndex="1" mat="pseudo-seed1" gIndex="1">t11</TotalScattering>
+        <Nu gridIndex="1" mat="pseudo-seed1" gIndex="1">n11</Nu>
+        <Fission gridIndex="1" mat="pseudo-seed2" gIndex="2">f22</Fission>
+        <Capture gridIndex="1" mat="pseudo-seed2" gIndex="2">c22</Capture>
+        <TotalScattering gridIndex="1" mat="pseudo-seed2" gIndex="2">t22</TotalScattering>
+        <Nu gridIndex="1" mat="pseudo-seed2" gIndex="2">n22</Nu>
+        <Fission gridIndex="1" mat="pseudo-seed1-dup" gIndex="1">f11</Fission>
+        <Capture gridIndex="1" mat="pseudo-seed1-dup" gIndex="1">c11</Capture>
+        <TotalScattering gridIndex="1" mat="pseudo-seed1-dup" gIndex="1">t11</TotalScattering>
+        <Nu gridIndex="1" mat="pseudo-seed1-dup" gIndex="1">n11</Nu>
+    </Multigroup_Cross_Section_Library>
+</Multigroup_Cross_Section_Libraries>
+\end{lstlisting}
+%
+In the above alias file, the \xmlAttr{Name} of \xmlNode{Multigroup\_Cross\_Section\_Libraries} are used to indicate
+which Yak multigroup cross section library input file will be perturbed.
+The \xmlAttr{NGroup}, \xmlAttr{ID}, and \xmlNode{Multigroup\_Cross\_Section\_Library}
+should be consistent with the Yak multigroup cross section library input files.
+The \xmlNode{Fission}, \xmlNode{Capture}, \xmlNode{TotalScattering}, \xmlNode{Nu}, \xmlAttr{gridIndex},
+\xmlAttr{mat}, and \xmlAttr{gIndex} are used to find the corresponding cross sections in the Yak multigroup cross
+section library input files. For example:
+%
+\begin{lstlisting}[style=XML]
+<Fission gridIndex="1" mat="pseudo-seed1" gIndex="1">f11</Fission>
+\end{lstlisting}
+%
+This node defines an alias with name \xmlString{f11} used to represent the fission cross section at energy group '1'
+for material with name 'pseudo-seed1' at grid index '1' in the Yak multigroup cross section library input files.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Models}
+A user provides paths to executables and aliases for sampled variables within the
+\xmlNode{Models} block.  The \xmlNode{Code} block will contain attributes name and
+subType.  Name identifies that particular \xmlNode{Code} model within RAVEN, and
+subType specifies which code interface the model will use. The \xmlNode{executable}
+block should contain the absolute or relative (with respect to the current working
+directory) path to Rattlesnake that RAVEN will use to run generated input
+files.
+
+An example \xmlNode{Models} block follows.
+
+\begin{lstlisting}[style=XML]
+<Models>
+  <Code name="Rattlesnake" subType="Rattlesnake">
+    <executable>%FRAMEWORK_DIR%/../../rattlesnake/
+     rattlesnake-%METHOD%</executable>
+  </Code>
+</Models>
+\end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Distributions}
+The \xmlNode{Distributions} block defines all distributions used to
+sample variables in the current RAVEN run.
+
+For all the possible distributions and their possible inputs please
+refer to the Distributions chapter (see~\ref{sec:distributions}).
+%
+It is good practice to name the distribution something similar to what kind of
+variable is going to be sampled, since there might be many variables with the
+same kind of distributions but different input parameters.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\paragraph{Samplers}
+The \xmlNode{Samplers} block defines the variables to be sampled.
+After defining a sampling scheme, the variables to be sampled and
+their distributions are identified in the \xmlNode{variable} blocks.
+The name attribute in the \xmlNode{variable} block must either be the
+full MooseBasedApp (Rattlesnake) model variable name, the alias name specifed in
+\xmlNode{Models}, or the variable name specified in the provided alias files.
+
+For listings of available samplers, please refer to the Samplers chapter (see~\ref{sec:Samplers}).
+See the following for an example of a grid based sampler for
+the first energy group fission and capture cross sections  (both of which have
+defined in alias files provided in \xmlNode{Files}).
+
+\begin{lstlisting}[style=XML]
+<Samplers>
+  <Grid name="Grid_sampling">
+    <variable name="fission_group_1" >
+      <distribution>fission_dist</distribution>
+      <grid type="value" construction="custom">1.0 2.0</grid>
+    </variable>
+    <variable name="capture_group_1">
+      <distribution>capture_dist</distribution>
+      <grid type="value" construction="custom">3.0 6.0</grid>
+    </variable>
+  </Grid>
+</Samplers>
+\end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Steps}
+For a Rattlesnake interface, the \xmlNode{MultiRun} step type will most likely be used. First, the step needs
+to be named: this name will be one of the names used in the \xmlNode{Sequence} block. In our example, \xmlString{Grid\_Rattlesnake}.
+%
+\begin{lstlisting}[style=XML]
+<MultiRun name='Grid_Rattlesnake' verbosity='debug'>
+\end{lstlisting}
+%
+With this step, we need to import all the files needed for the simulation:
+%
+\begin{itemize}
+  \item Rattlesnake MOOSE-based input file;
+  \item Yak multigroup cross section libraries input files (XML);
+  \item Yak alias files used to define the perturbed variables (XML).
+\end{itemize}
+\begin{lstlisting}[style=XML,morekeywords={name,class,type}]
+    <Input   class='Files' type=''>RattlesnakeInput.i</Input>
+    <Input   class='Files' type=''>xs.xml</Input>
+    <Input   class='Files' type=''>alias.xml</Input>
+\end{lstlisting}
+We then need to define which model will be used:
+\begin{lstlisting}[style=XML]
+    <Model  class='Models' type='Code'>Rattlesnake</Model>
+\end{lstlisting}
+We then need to specify which Sampler is used, and this can be done as follows:
+\begin{lstlisting}[style=XML]
+    <Sampler class='Samplers' type='Grid'>Grid_Samplering</Sampler>
+\end{lstlisting}
+
+And lastly, we need to specify what kind of output the user wants.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{OutStreams,DataObjects}
+This interface's, \xmlNode{OutStreams}, and
+\xmlNode{DataObjects} blocks do not deviate significantly from
+other interfaces' respective nodes.  Please refer to previous
+entries for these blocks if needed.
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% MAAP5  INTERFACE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{MAAP5 Interface}
-This section presents the main aspects of the interface coupling RAVEN with MAAP5, 
-the consequent RAVEN input adjustments and the modifications of the MAAP5 
+This section presents the main aspects of the interface coupling RAVEN with MAAP5,
+the consequent RAVEN input adjustments and the modifications of the MAAP5
 files required to run the two coupled codes.
-The interface works both for forward sampling and the DET, 
+The interface works both for forward sampling and the DET,
 however there are some differences depending on the selected sampling strategy.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{RAVEN Input file}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \paragraph{Files}
-MAAP5 requires more than one file to run a simulation. 
+MAAP5 requires more than one file to run a simulation.
 This means that, since the \xmlNode{Files} section has to contain all the files required by
-the external model (MAAP5) to be run, all these files need to be included within this node. 
-This involves not only the input file (.inp) but also the include file, the parameter file, all the 
+the external model (MAAP5) to be run, all these files need to be included within this node.
+This involves not only the input file (.inp) but also the include file, the parameter file, all the
 files defining the different ``PLOTFILs'', if any, and the other files which could
 result useful for the MAAP5 simulation run.
 
@@ -1404,26 +1575,26 @@ Example:
 </Files>
 \end{lstlisting}
 All the files here mentioned in this section
- need, then, to be put into the working directory specified 
+ need, then, to be put into the working directory specified
 by the \xmlNode{workingDir} node into the \xmlNode{RunInfo} block.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \paragraph{Models}
-The \xmlNode{Models} block contains the name of the executable file of MAAP5 
-(with the path, if necessary), 
+The \xmlNode{Models} block contains the name of the executable file of MAAP5
+(with the path, if necessary),
 and the name of the interface (e.g. MAAP5\_GenericV7).
 The block has also some required nodes:
 \begin{itemize}
   \item \xmlNode{boolMaapOutputVariables}: containing the number of the MAAP5 IEVNT corresponding to the boolean events of interest;
-  \item \xmlNode{contMaapOutputVariables}: containing the list of all the continuous variables we are interested at, 
+  \item \xmlNode{contMaapOutputVariables}: containing the list of all the continuous variables we are interested at,
   and that we want to monitor;
-  \item \xmlNode{stopSimulation}: this node is required only in case of DET sampling strategy. 
+  \item \xmlNode{stopSimulation}: this node is required only in case of DET sampling strategy.
 The user needs to specify
-  if the MAAP5 simulation run stops due to the reached END TIME, specifying ''mission\_time'', 
-or due to the occurrence of a specific event by 
+  if the MAAP5 simulation run stops due to the reached END TIME, specifying ''mission\_time'',
+or due to the occurrence of a specific event by
   inserting the number of the corresponding MAAP5 IEVNT (e.g IEVNT(691) for core uncovery)
  \item \xmlNode{includeForTimer}: also this node is required only in case of DET sampling
- strategy and it contains the name of the 
- MAAP5 include file where the TIMERS for the different variables are defined 
+ strategy and it contains the name of the
+ MAAP5 include file where the TIMERS for the different variables are defined
 (see paragraph ''MAAP5 include file below'' for more information about timers).
 \end{itemize}
 
@@ -1431,7 +1602,7 @@ A \xmlNode{Models} block is shown as an example below:
 \begin{lstlisting}[style=XML]
 <Models>
   <Code name="MyMAAP" subType="MAAP5\_GenericV7">
-    <executable>MAAP5.exe</executable>         
+    <executable>MAAP5.exe</executable>
     <clargs type='input' extension='.inp'/>
     <boolMaapOutputVariables>691</boolMaapOutputVariables>
     <contMaapOutputVariables>PPS,PSGGEN(1),ZWDC2SG(1)
@@ -1451,7 +1622,7 @@ This is valid for both forward sampling and DET.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{MAAP5 Input files}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-The coupling of RAVEN and MAAP5 requires modifications to some 
+The coupling of RAVEN and MAAP5 requires modifications to some
 MAAP5 files in order to work. This is particularly true when a DET analysis is performed.
 The MAAP5 input files that need to be modified are:
 \begin{itemize}
@@ -1465,18 +1636,18 @@ Usually MAAP5 simulation provides the presence of some include files, for exampl
 containing the user-defined variables, timers, definition of the plotfil, etc.
 The adjustments explained in this section are required only in case of a DET analysis.
 The user needs to modify the include file containing the set of the
-timers used into the run, by adding the definition of the different timers, 
+timers used into the run, by adding the definition of the different timers,
 one for each variable that causes a branching.
 The include file to be modified should correspond to that one defined in the \xmlNode{includeForTimer}
 block of the RAVEN xml input.
 
 User is supposed to check that the numbers used for the different timers definition
 are not already used in any of the other MAAP5 files.
-These timers should be preceeded by a line reporting ''C Branching + name of the variable 
+These timers should be preceeded by a line reporting ''C Branching + name of the variable
 sampled by RAVEN causing the branching''.
 
-For example, we assume that DIESEL is the name of the variable corresponding to the failure time 
-of the Diesel generators (user defined). User has to firstly ensure that, for example, 
+For example, we assume that DIESEL is the name of the variable corresponding to the failure time
+of the Diesel generators (user defined). User has to firstly ensure that, for example,
 ''TIMER 100'' is not already used into the model, then the following lines
 need to be added into the selected include file for the set of the timer corresponding
 to the Diesel generators failure:
@@ -1484,7 +1655,7 @@ to the Diesel generators failure:
 C Branching DIESEL
 WHEN (TIM>DIESEL)
    SET TIMER 100
-END 
+END
 \end{lstlisting}
 It is worth mentioning that at this step a TIMER should be defined
 also for the event IEVNT specified into the \xmlNode{stopSimulation},
@@ -1492,14 +1663,14 @@ also for the event IEVNT specified into the \xmlNode{stopSimulation},
 \begin{lstlisting}[style=XML]
 WHEN IEVNT(691) == 1.0
   SET TIMER 10
-END 
+END
 \end{lstlisting}
 The interface will check that one timer is defined for each variable
 of the DET. If not, an error arises suggesting to user the name of the variable having no
 timer defined.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \paragraph{MAAP5 input file}
-In the ''parameter change'' section of the MAAP5 input file, the user should declare 
+In the ''parameter change'' section of the MAAP5 input file, the user should declare
 the name of the variables sampled by RAVEN according to the following statement:
 \begin{lstlisting}[style=XML]
  variable = $ RAVEN-variable:default$
@@ -1508,24 +1679,24 @@ where the dafault value is optional.
 
 For example:
 \begin{lstlisting}[style=XML]
-DIESEL = $RAVEN-DIESEL:-1$ 
+DIESEL = $RAVEN-DIESEL:-1$
 \end{lstlisting}
-This is valid for both forward and DET sampled variables. 
-In particular, in case of DET analysis, the variables causing the occurrence of the branch should be 
+This is valid for both forward and DET sampled variables.
+In particular, in case of DET analysis, the variables causing the occurrence of the branch should be
 assigned within a block identified by the comment ''C DET Sampled variables'':
 \begin{lstlisting}[style=XML]
 C DET Sampled Variables
 DIESEL = $RAVEN-DIESEL:-1$
 C End DET Sampled Variables
 \end{lstlisting}
-If the sampled variables are user-defined, then the user shall ensure that they are initialized 
-(to the default value) and set within the user-defined variables section of one of the include 
+If the sampled variables are user-defined, then the user shall ensure that they are initialized
+(to the default value) and set within the user-defined variables section of one of the include
 file.
-As usual, a distribution and a sampling strategy should then correspond to each of these variables 
+As usual, a distribution and a sampling strategy should then correspond to each of these variables
 into the RAVEN xml input file.
 
 Only for the DET analysis, then, the occurence of a branch will be identified by a comment before. This comment is
- ''C BRANCHING + name of the variable determining the branch'' and acts as a sort of branching marker. 
+ ''C BRANCHING + name of the variable determining the branch'' and acts as a sort of branching marker.
 Looking for these markers, indeed, the interface (in case of DET sampler) verifies that at least
 one branching exists, and furthermore, that one branching is defined for each of the
 variables contained into ''DET sampled variables''.
@@ -1533,7 +1704,7 @@ variables contained into ''DET sampled variables''.
 Within the block, the occurrence of the branching leads the value of a variable (user-defined)
 called ''TIM+number of the corresponding timer set into
 the include file'' to switch to 1.0. The code, in fact, detects if a branch has occurred by monitoring
-the value of these kind of variables. SInce these variables are user-defined, they need to be 
+the value of these kind of variables. SInce these variables are user-defined, they need to be
 initialized to a value (different from 1.0), into the ''user-defined variables'' section of one of the include
 files.
 
@@ -1549,10 +1720,10 @@ END
 It is worth noticing that no comments should be contained within the line of assignment
 (i.e. IEVNT(205)=1.0 //LOSS OF AC POWER is not allowed).
 
-Finally, only in case of DET analysis, a stop simulation condition (provided by the comment 
+Finally, only in case of DET analysis, a stop simulation condition (provided by the comment
 ''C Stop Simulation condition'') needs to be put into the input.
 The original input should have all the timers (linked with the branching) separated by an OR
-condition, even including that one of the event that stops the simulation (e.g. IEVNT(691)), 
+condition, even including that one of the event that stops the simulation (e.g. IEVNT(691)),
 if any.
 \begin{lstlisting}[style=XML]
 C Stop Simulation condition
@@ -1563,7 +1734,7 @@ END
 This allows the simulation run to stop when a branch condition occurs, creating the restart file that will
 be used by the two following branches.
 
-For each branch, then, the interface will automatically update the name of the RESTART FILE to be used and 
+For each branch, then, the interface will automatically update the name of the RESTART FILE to be used and
 of the RESTART TIME that will be equal to the difference between the END TIME of the ''parent'' simulation
 and the PRINT INTERVAL (which specifies the interval at which the restart output is written).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1574,7 +1745,7 @@ It is important, indeed, that the MAAP5 csv PLOTFIL files contain the evolution 
 \begin{itemize}
   \item RAVEN sampled variables (e.g. DIESEL) (both for Forward and DET sampling)
   \item the variables whose value is modified by the occurrence of one of the branches, either continuous or boolean (e.g. IEVNT(225))
-  \item the variables of interest defined within \xmlNode{boolMaapOutputVariables} 
+  \item the variables of interest defined within \xmlNode{boolMaapOutputVariables}
   and \\ \xmlNode{contMaapOutputVariables} blocks (both for Forward and DET sampling)
 \end{itemize}
 If one of these variables is not contained into one of csv files, RAVEN will give an error.
