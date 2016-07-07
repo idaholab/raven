@@ -8,10 +8,10 @@ warnings.simplefilter('default',DeprecationWarning)
 
 from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
 import numpy as np
-# import scipy
 
 class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
-  """ This class forms a typical history from a history set
+  """ 
+    This class forms a typical history from a history set
       The methodology can be found at:
       S. WIlcox and W. Marion, "User Manual for TMY3 Data Sets," Technical Report, NREL/TP-581-43156,
         National Renewable Energy Laboratory Golden, CO, May 2008
