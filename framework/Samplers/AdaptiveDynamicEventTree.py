@@ -384,8 +384,8 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
         self.raiseAMessage("Completed full histories are "+str(self.completedHistCnt))
       else: ready = False
       self.adaptiveReady = ready
-      if ready or detReady and self.persistence > self.repetition : return True
-      else: return False
+      if ready or detReady: return True
+      else                : return False
     return detReady
 
   def localGenerateInput(self,model,myInput):
