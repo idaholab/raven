@@ -8,6 +8,7 @@ warnings.simplefilter('default',DeprecationWarning)
 
 from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
 import numpy as np
+# import scipy
 
 class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
   """ This class forms a typical history from a history set
@@ -77,12 +78,13 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
       binSize = 2.0*IQR*(tempData['all'][keyF].size**(-1.0/3.0))
       numBins = int((max(tempData['all'][keyF])-min(tempData['all'][keyF]))/binSize)
       binEdges = np.linspace(start=min(tempData['all'][keyF]),stop=max(tempData['all'][keyF]),num=numBins+1)
-      tempCDF['all'][keyF] = self.__computeCDF(tempData['all'][keyF],binEdges)
+#       dataRange = (min(tempData['all'][keyF]), max(tempData['all'][keyF]))
+      tempCDF['all'][keyF] = self.__computeECDF(tempData['all'][keyF], binEdges)# numBins, dataRange)
       for keySub in subKeys:
         if keySub not in tempCDF.keys(): tempCDF[keySub] = {}
         tempCDF[keySub][keyF] = np.zeros(shape=(self.noHistory,numBins))
         for cnt in range(tempData[keySub][keyF].shape[0]):
-          tempCDF[keySub][keyF][cnt,:] = self.__computeCDF(tempData[keySub][keyF][cnt,:], binEdges)
+          tempCDF[keySub][keyF][cnt,:] = self.__computeECDF(tempData[keySub][keyF][cnt,:], binEdges)#numBins, dataRange)
 
     tempTyp = {}
     for keySub in subKeys:
@@ -117,21 +119,34 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
 
     return outputDic
 
-  def __computeCDF(self, data, binEdgesIn):
-    """
-     Method to generate empirical CDF of input data, with the bins given.
-     @ In, data, numpy array, data for which empirical CDF is computed
-     @ In, binEdgesIn, numpy array, bins over which CDF value is computed
-     @ Out, , numpy array, empirical CDF of the input data.
+#   def __computeECDF(self, data, numBins, bounds):
+#     """
+#        Method to generate empirical CDF of input data, with the bin number given.
+#        @ In, data, numpy array, data for which empirical CDF is computed
+#        @ In, numBins, int, bin number for computing empirical CDF
+#        @ In, bounds, tuple (lowerBound, upperBound), the boundaries within which the empirical CDF is computed
+#        @ Out, , numpy array, empirical CDF of the input data.
+# 
+#     """
+#     (cumFreqs, _, _, _) = scipy.stats.cumfreq(data, numBins, bounds)
+#     return cumFreqs/max(cumFreqs)
 
+  def __computeECDF(self, data, binEdgesIn):
     """
-    counts, binEdges = np.histogram(data,bins=binEdgesIn,normed=True)
-    numBins = len(counts)
-    binDiffArray = np.zeros(shape=(numBins,))
-    for n in range(numBins):
-      binDiffArray[n] = binEdges[n+1]-binEdges[n]
-    binDiff = np.average(binDiffArray)
-    return np.cumsum(counts)*binDiff
+       Method to generate empirical CDF of input data, with the bins given.
+       @ In, data, numpy array, data for which empirical CDF is computed
+       @ In, binEdgesIn, numpy array, bins over which CDF value is computed
+       @ Out, , numpy array, empirical CDF of the input data.
+  
+    """
+    (counts, _) = np.histogram(data,bins=binEdgesIn,normed=True)
+#     numBins = len(counts)
+#     binDiffArray = np.zeros(shape=(numBins,))
+#     for n in range(numBins):
+#       binDiffArray[n] = binEdges[n+1]-binEdges[n]
+#     binDiff = np.average(binDiffArray)
+#     return np.cumsum(counts)*binDiff    
+    return np.cumsum(counts)/max(np.cumsum(counts))
 
   def __computeDist(self, x1, x2):
     """
