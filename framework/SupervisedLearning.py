@@ -2418,7 +2418,7 @@ class ARMA(superVisedLearning):
     sigHat = sigHat / noTimeStep
     self.armaResult['sigHat'] = sigHat[0,0]
     lkHood = -L
-    self.raiseADebug(lkHood)
+#     self.raiseADebug(lkHood)
     return lkHood
         
   def __computeAICorBIC(self,maxL,noPara,cType,obj='max'):
