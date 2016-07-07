@@ -10,16 +10,18 @@ class relapdata:
   """
     Class that parses output of relap5 output file and reads in trip, minor block and write a csv file
   """
-  def __init__(self,filen):
+  def __init__(self,filen, deckNumber=-1):
     """
       Constructor
       @ In, filen, string, file name to be parsed
+      @ In, deckNumber, int, optional, the deckNumber from which the outputs need to be retrieved (default is the last)
       @ Out, None
     """
+    self.deckNumber = deckNumber
     self.lines=open(filen,"r").readlines()
     self.trips=self.returntrip(self.lines)
     self.minordata=self.getminor(self.lines)
-    self.EndTime=self.gettime(self.lines)
+    self.endTime=self.gettime(self.lines)
     self.readraven()
 
   def hasAtLeastMinorData(self):
@@ -37,18 +39,18 @@ class relapdata:
       @ In, lines, list, list of lines of the output file
       @ Out, time, float, Final time
     """
-    return self.gettimeDeck(lines)[-1]
+    return self.gettimeDeck(lines)[-1][0]
 
   def gettimeDeck(self,lines):
     """
       Method to check ended time of the simulation (multi-deck compatible)
       @ In, lines, list, list of lines of the output file
-      @ Out, times, list, list of floats. Final times
+      @ Out, times, list, list of tuples (float, integer). Tuples of final times and corresponding line number
     """
     times = []
-    for i in lines:
-      if re.match('^\s*Final time=',i):
-        times.append(i.split()[2])
+    for cnt, line in enumerate(lines):
+      if re.match('^\s*Final time=',line):
+        times.append((line.split()[2],cnt))
     return times
 
   def returntrip(self,lines):

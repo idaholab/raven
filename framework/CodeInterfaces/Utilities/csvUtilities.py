@@ -136,7 +136,7 @@ class csvUtilityClass(object):
     if len(variablesToExpandFromValues.keys()) != len(self.dataContainer.keys()): raise Exception ("the variables "+str(variablesToExpandFrom) + " have not been found in all files!!!!")
     datafinal = np.zeros((len(variablesToExpandFromValuesSet),len(self.allHeaders)))
     # we use a neighbors.KNeighborsRegressor to merge the csvs
-    nearest = neighbors.KNeighborsRegressor(n_neighbors=1)
+    nearest = neighbors.KNeighborsRegressor(n_neighbors=1,algorithm='brute')
     for filename, data in self.dataContainer.items():
       for _, varToExpandFrom in enumerate(variablesToExpandFrom):
         if varToExpandFrom in data["headers"]:

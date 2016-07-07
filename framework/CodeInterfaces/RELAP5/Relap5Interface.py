@@ -17,6 +17,21 @@ class Relap5(CodeInterfaceBase):
   """
     this class is used a part of a code dictionary to specialize Model.Code for RELAP5-3D Version 4.0.3
   """
+  def _readMoreXML(self,xmlNode):
+    """
+      Function to read the portion of the xml input that belongs to this specialized class and initialize
+      some members based on inputs. This can be overloaded in specialize code interface in order to
+      read specific flags.
+      Only one option is possible. You can choose here, if multi-deck mode is activated, from which deck you want to load the results
+      @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
+      @ Out, None.
+    """
+    self.outputDeck = -1 # default is the last deck!
+    for child in xmlNode:
+      if child.tag == 'outputDeckNumber': 
+        try              : self.outputDeck = int(child.text)
+        except ValueError: raise ValueError("can not convert outputDeckNumber to integer!!!! Got "+ child.text)
+    
   def generateCommand(self,inputFiles,executable,clargs=None,fargs=None):
     """
       This method is used to retrieve the command (in tuple format) needed to launch the Code.
@@ -54,7 +69,7 @@ class Relap5(CodeInterfaceBase):
       @ Out, output, string, optional, present in case the root of the output file gets changed in this method.
     """
     outfile = os.path.join(workingDir,output+'.o')
-    outputobj=relapdata.relapdata(outfile)
+    outputobj=relapdata.relapdata(outfile,self.outputDeck)
     if outputobj.hasAtLeastMinorData(): outputobj.write_csv(os.path.join(workingDir,output+'.csv'))
     else: raise IOError('Relap5 output file '+ command.split('-o')[0].split('-i')[-1].strip()+'.o' + ' does not contain any minor edits. It might be crashed!')
 
