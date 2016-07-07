@@ -18,6 +18,7 @@ def validateTests():
   tests = get_coverage_tests.getRegressionTests(skipThese=['test_rom_trainer.xml'],skipExpectedFails=True)
   res=[0,0,0] #run, pass, fail
   failed={}
+  devnull = open(os.devnull, "wb")
   for dir,files in tests.items():
     #print directory being checked'
     checkmsg = ' Directory: '+dir
@@ -31,7 +32,12 @@ def validateTests():
       # - first, though, check if the backup file already exists
       if os.path.isfile(fullpath+'.bak'):
         print colors.neutral+'Could not check for ExternalXML since a backup file exists! Please remove it to validate.'
-      os.system('python '+os.path.join(conversionDir,'externalXMLNode.py')+' '+fullpath + '> /dev/null')
+      # Since directing output of shell commands to file /dev/null is problematic on Windows, this equivalent form is used
+      #   which is better supported on all platforms.
+      subprocess.call(
+                'python '+os.path.join(conversionDir,'externalXMLNode.py')+' '+fullpath,
+                shell = True, stdout=devnull)
+
       #run xmllint
       print colors.neutral+startmsg,
       cmd = 'xmllint --noout --schema '+os.path.join(scriptDir,'XSDSchemas','raven.xsd')+' '+fullpath
