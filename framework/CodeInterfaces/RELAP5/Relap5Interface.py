@@ -28,10 +28,10 @@ class Relap5(CodeInterfaceBase):
     """
     self.outputDeck = -1 # default is the last deck!
     for child in xmlNode:
-      if child.tag == 'outputDeckNumber': 
+      if child.tag == 'outputDeckNumber':
         try              : self.outputDeck = int(child.text)
         except ValueError: raise ValueError("can not convert outputDeckNumber to integer!!!! Got "+ child.text)
-    
+
   def generateCommand(self,inputFiles,executable,clargs=None,fargs=None):
     """
       This method is used to retrieve the command (in tuple format) needed to launch the Code.

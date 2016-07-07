@@ -17,14 +17,13 @@ class relapdata:
       @ In, deckNumber, int, optional, the deckNumber from which the outputs need to be retrieved (default is the last)
       @ Out, None
     """
-    self.totNumberOfDecks= 0 
+    self.totNumberOfDecks= 0
     self.lines           = open(filen,"r").readlines()
     self.deckEndTimeInfo = self.gettimeDeck(self.lines,deckNumber)
     self.deckNumberToTake= deckNumber if deckNumber != -1 else self.totNumberOfDecks
     startLine, endLine   = self.deckEndTimeInfo[self.deckNumberToTake]['sliceCoordinates'][0], self.deckEndTimeInfo[self.deckNumberToTake]['sliceCoordinates'][1]
     self.trips           = self.returntrip(self.lines[startLine:endLine])
     self.minordata       = self.getminor(self.lines[startLine:endLine])
-    
     self.readraven()
 
   def hasAtLeastMinorData(self):
@@ -52,11 +51,13 @@ class relapdata:
       @ Out, times, dict, dict containing the information {'deckNumber':{'time':float,'sliceCoordinates':tuple(startLine,EndLine)}}. Dict of final times and corresponding deck start and end line number
     """
     times = {}
-    deckNum, startLineNumber = 0, 0
+    deckNum, startLineNumber, endLineNumber = 0, 0, 0
     for cnt, line in enumerate(lines):
       if re.match('^\s*Final time=',line):
         deckNum+=1
-        times[deckNum] = {'time':line.split()[2],'sliceCoordinates':(startLineNumber,cnt)}
+        startLineNumber = endLineNumber
+        endLineNumber   = cnt
+        times[deckNum] = {'time':line.split()[2],'sliceCoordinates':(startLineNumber,endLineNumber)}
     if deckNum < deckNumber: raise IOError("the deck number requested is greater than the number found in the outputfiles! Found "+ str(deckNum) + " decks and requested are "+str(deckNumber))
     self.totNumberOfDecks = deckNum
     return times
@@ -134,7 +135,7 @@ class relapdata:
       if re.match('^MINOR EDIT',lines[i]):
         j=i+1
         count=count+1
-        tempdict=self.readminorblock(self.lines,j)
+        tempdict=self.readminorblock(lines,j)
         if (count==1): minorDict=tempdict;
         else:
           for k in minorDict.keys():
