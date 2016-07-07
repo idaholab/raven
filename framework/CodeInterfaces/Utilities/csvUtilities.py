@@ -134,29 +134,29 @@ class csvUtilityClass(object):
     variablesToExpandFromValuesSet = np.array(variablesToExpandFromValuesSet)
     variablesToExpandFromValuesSet.shape = (len(variablesToExpandFromValuesSet),1)
     if len(variablesToExpandFromValues.keys()) != len(self.dataContainer.keys()): raise Exception ("the variables "+str(variablesToExpandFrom) + " have not been found in all files!!!!")
-    datafinal = np.zeros((len(variablesToExpandFromValuesSet),len(self.allHeaders)))
+    dataFinal = np.zeros((len(variablesToExpandFromValuesSet),len(self.allHeaders)))
     # we use a neighbors.KNeighborsRegressor to merge the csvs
     nearest = neighbors.KNeighborsRegressor(n_neighbors=1)
     for filename, data in self.dataContainer.items():
       for _, varToExpandFrom in enumerate(variablesToExpandFrom):
         if varToExpandFrom in data["headers"]:
           index = data["headers"].index(varToExpandFrom)
-          datafinal[:,index] = variablesToExpandFromValuesSet[:,index]
+          dataFinal[:,index] = variablesToExpandFromValuesSet[:,index]
           break
       for headindex, head in enumerate(data["headers"]):
         if head not in variablesToExpandFrom:
           nearest.fit(np.atleast_2d(data["data"][:,index]).T,data["data"][:,headindex])   #[nsamples,nfeatures]
-          datafinal[:,self.allHeaders.index(head)] = nearest.predict(variablesToExpandFromValuesSet)[:]
+          dataFinal[:,self.allHeaders.index(head)] = nearest.predict(variablesToExpandFromValuesSet)[:]
     if returnAsDict:
       mergedReturn = {}
       for variableToAdd in self.allHeaders:
         if self.mergeSameVariables:
           if variableToAdd not in mergedReturn.keys():
-            mergedReturn[variableToAdd] = datafinal[:,self.allHeaders.index(variableToAdd)]
+            mergedReturn[variableToAdd] = dataFinal[:,self.allHeaders.index(variableToAdd)]
         else:
-          mergedReturn[variableToAdd] = datafinal[:,self.allHeaders.index(variableToAdd)] # datafinal[:,cnt]
+          mergedReturn[variableToAdd] = dataFinal[:,self.allHeaders.index(variableToAdd)] # dataFinal[:,cnt]
     else:
-      mergedReturn = (self.allHeaders,datafinal)
+      mergedReturn = (self.allHeaders,dataFinal)
     return mergedReturn
 
 
