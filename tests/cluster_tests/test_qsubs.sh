@@ -30,6 +30,12 @@ python ../../framework/Driver.py test_mpiqsub_local.xml cluster_runinfo.xml
 
 wait_lines 'FirstMQRun/1/*eqn.csv FirstMQRun/2/*eqn.csv FirstMQRun/3/*eqn.csv FirstMQRun/4/*eqn.csv FirstMQRun/5/*eqn.csv FirstMQRun/6/*eqn.csv' 6 mpiqsub
 
+rm -Rf FirstMNRun/
+
+python ../../framework/Driver.py test_mpiqsub_nosplit.xml cluster_runinfo.xml
+
+wait_lines 'FirstMNRun/[1-6]/*.csv' 6 mpiqsub_nosplit
+
 rm -Rf FirstMRun/
 
 qsub -P moose -l select=6:ncpus=4:mpiprocs=1 -l walltime=10:00:00 -l place=free -W block=true ./run_mpi_test.sh

@@ -940,7 +940,6 @@ class InterfacedPostProcessor(BasePostProcessor):
     """
     BasePostProcessor.initialize(self, runInfo, inputs, initDict)
 
-
   def _localReadMoreXML(self, xmlNode):
     """
       Function to read the portion of the xml input that belongs to this specialized class
@@ -955,7 +954,10 @@ class InterfacedPostProcessor(BasePostProcessor):
       self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : not correctly coded; it must inherit the PostProcessorInterfaceBase class')
 
     self.postProcessor.initialize()
-    
+    if self.postProcessor.inputFormat not in set(['HistorySet','PointSet']):
+      self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.inputFormat not correctly initialized')
+    if self.postProcessor.outputFormat not in set(['HistorySet','PointSet']):
+      self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.outputFormat not correctly initialized')
     self.postProcessor.readMoreXML(xmlNode)
 
   def run(self, inputIn):
@@ -1347,7 +1349,7 @@ class ImportanceRank(BasePostProcessor):
         output.close()
         self.raiseAMessage('ImportanceRank XML printed to "'+output.getFilename()+'"!')
     # Output to DataObjects
-    elif output.type in ['PointSet','Point','History','HistorySet']:
+    elif output.type in ['PointSet','HistorySet']:
       self.raiseADebug('Dumping output in data object named ' + output.name)
       for what in outputDict.keys():
         if what.lower() in self.acceptedMetric:
@@ -1613,7 +1615,7 @@ class BasicStatistics(BasePostProcessor):
         self._writeCSV(output,outputDict,parameterSet,outputExtension,methodToTest)
       else:
         self._writeXML(output,outputDict,parameterSet,methodToTest)
-    elif output.type in ['PointSet','Point','History','HistorySet']:
+    elif output.type in ['PointSet','HistorySet']:
       self.raiseADebug('Dumping output in data object named ' + output.name)
       for what in outputDict.keys():
         if what not in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity'] + methodToTest:
@@ -2325,8 +2327,8 @@ class LimitSurface(BasePostProcessor):
     self.indexes = -1
     for index, inp in enumerate(self.inputs):
       if type(inp).__name__ in ['str', 'bytes', 'unicode']: self.raiseAnError(IOError, 'LimitSurface PostProcessor only accepts Data(s) as inputs!')
-      if inp.type in ['PointSet', 'Point']: self.indexes = index
-    if self.indexes == -1: self.raiseAnError(IOError, 'LimitSurface PostProcessor needs a Point or PointSet as INPUT!!!!!!')
+      if inp.type == 'PointSet': self.indexes = index
+    if self.indexes == -1: self.raiseAnError(IOError, 'LimitSurface PostProcessor needs a PointSet as INPUT!!!!!!')
     else:
       # check if parameters are contained in the data
       inpKeys = self.inputs[self.indexes].getParaKeys("inputs")
@@ -3413,6 +3415,144 @@ class DataMining(BasePostProcessor):
         for i in range(noComponents):
           outputDict['output'][self.name+'PCAComponent' + str(i + 1)] =  components[:, i]
     return outputDict
+#
+#
+#
+#
+class RavenOutput(BasePostProcessor):
+  """
+    This postprocessor collects the outputs of RAVEN runs (XML format) and turns entries into a PointSet
+    Someday maybe it should do history sets too.
+  """
+  def __init__(self, messageHandler):
+    """
+      Constructor
+      @ In, messageHandler, MessageHandler, message handler object
+      @ Out, None
+    """
+    BasePostProcessor.__init__(self, messageHandler)
+    self.printTag = 'POSTPROCESSOR RAVENOUTPUT'
+    self.IDType = 'int'
+    self.files = {}
+      # keyed by ID, which gets you to... (self.files[ID])
+      #   name: RAVEN name for file (from input)
+      #   fileObject: FileObject
+      #   paths: {varName:'path|through|xml|to|var'}
+
+  def initialize(self,runInfo,inputs,initDict):
+    """
+      Method to initialize pp
+      @ In, runInfo, dict, dictionary of run info (e.g. working dir, etc)
+      @ In, inputs, list, list of inputs
+      @ In, initDict, dict, dictionary with initialization options
+      @ Out, None
+    """
+    BasePostProcessor.initialize(self, runInfo, inputs, initDict)
+    #assign File objects to their proper place
+    for id,fileDict in self.files.items():
+      found = False
+      for i,input in enumerate(inputs):
+        #skip things that aren't files
+        if not isinstance(input,Files.File):
+          continue
+        #assign pointer to file object if match found
+        if input.name == fileDict['name']:
+          self.files[id]['fileObject'] = input
+          found = True
+          break
+      if not found:
+        self.raiseAnError(IOError,'Did not find file named "%s" among the Step inputs!')
+
+  def _localReadMoreXML(self,xmlNode):
+    """
+      Function to read the portion of the xml input that belongs to this specialized class
+      and initialize some stuff based on the inputs got
+      @ In, xmlNode, xml.etree.Element, Xml element node
+      @ Out, None
+    """
+    for child in xmlNode:
+      #accept a list of files as <File ID="1">ravenOutputFile.xml</File>
+      if child.tag == 'File':
+        #make sure you provide an ID and a file name
+        if 'ID' not in child.attrib.keys():
+          self.raiseAnError(IOError,'Each "File" entry must have an associated "ID"; missing for',child.tag,child.text)
+        if 'name' not in child.attrib.keys():
+          self.raiseAnError(IOError,'Each "file" must have an associated "name"; missing for',child.tag,child.text)
+        #assure ID is a number, since it's going into a data object
+        id = child.attrib['ID']
+        try:
+          id = float(id)
+        except ValueError:
+          self.raiseAnError(IOError,'ID for "'+child.text+'" is not a valid number:',id)
+        #if already used, raise an error
+        if id in self.files.keys():
+          self.raiseAnError(IOError,'Multiple File nodes have the same ID:',child.attrib('ID'))
+        #store id,filename pair
+        self.files[id] = {'name':child.attrib['name'].strip(), 'fileObject':None, 'paths':{}}
+        #user provides loading information as <output name="variablename">ans|pearson|x</output>
+        for cchild in child:
+          if cchild.tag == 'output':
+            #make sure you provide a label for this data array
+            if 'name' not in cchild.attrib.keys():
+              self.raiseAnError(IOError,'Must specify a "name" for each "output" block!  Missing for:',cchild.text)
+            varName = cchild.attrib['name'].strip()
+            if varName in self.files[id]['paths'].keys():
+              self.raiseAnError(IOError,'Multiple "output" blocks for "%s" have the same "name":' %self.files[id]['name'],label)
+            self.files[id]['paths'][varName] = cchild.text.strip()
+    # check there are entries for each
+    if len(self.files)<1:
+      self.raiseAWarning('No files were specified to read from!  Nothing will be done...')
+    # if no outputs listed, remove file from list and warn
+    toRemove=[]
+    for id,fileDict in self.files.items():
+      if len(fileDict['paths'])<1:
+        self.raiseAWarning('No outputs were specified for File with ID "%s"!  No extraction will be performed for this file...' %str(id))
+        toRemove.append(id)
+    for rem in toRemove:
+      del self.files[id]
+
+  def run(self, inputIn):
+    """
+      This method executes the postprocessor action.
+      @ In, inputIn, dict, dictionary of data to process
+      @ Out, outputDict, dict, dictionary containing the post-processed results
+    """
+    # outputs are realizations that will got into data object
+    outputDict={'realizations':[]}
+    # each ID results in a realization for the requested attributes
+    for id,fileDict in self.files.items():
+      realization = {'inputs':{'ID':id},'outputs':{},'metadata':{'loadedFromRavenFile':str(fileDict['fileObject'])}}
+      for varName,path in fileDict['paths'].items():
+        #read the value from the file's XML
+        root,_ = xmlUtils.loadToTree(fileDict['fileObject'].getAbsFile())
+        #improve path format
+        path = '|'.join(c.strip() for c in path.strip().split('|'))
+        desiredNode = xmlUtils.findPath(root,path)
+        if desiredNode is None:
+          self.raiseAnError(RuntimeError,'Did not find "<root>|%s" in file "%s"' %(path,fileDict['fileObject'].getAbsFile()))
+        else:
+          realization['outputs'][varName] = float(desiredNode.text)
+      outputDict['realizations'].append(realization)
+    return outputDict
+
+  def collectOutput(self, finishedJob, output):
+    """
+      Function to place all of the computed data into the output object
+      @ In, finishedJob, JobHandler External or Internal instance, A JobHandler object that is in charge of running this post-processor
+      @ In, output, dataObjects, The object where we want to place our computed results
+      @ Out, None
+    """
+    if finishedJob.returnEvaluation() == -1: self.raiseAnError(RuntimeError, 'No available Output to collect (Run probably is not finished yet)')
+    realizations = finishedJob.returnEvaluation()[1]['realizations']
+    for real in realizations:
+      for key in output.getParaKeys('inputs'):
+        output.updateInputValue(key,real['inputs'][key])
+      for key in output.getParaKeys('outputs'):
+        output.updateOutputValue(key,real['outputs'][key])
+      for key,val in real['metadata'].items():
+        output.updateMetadata(key,val)
+
+
 
 """
  Interface Dictionary (factory) (private)
@@ -3430,7 +3570,8 @@ __interFaceDict['ComparisonStatistics'     ] = ComparisonStatistics
 __interFaceDict['External'                 ] = ExternalPostProcessor
 __interFaceDict['TopologicalDecomposition' ] = TopologicalDecomposition
 __interFaceDict['DataMining'               ] = DataMining
-__interFaceDict['ImportanceRank'            ] = ImportanceRank
+__interFaceDict['ImportanceRank'           ] = ImportanceRank
+__interFaceDict['RavenOutput'              ] = RavenOutput
 __knownTypes = __interFaceDict.keys()
 
 def knownTypes():

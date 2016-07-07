@@ -246,6 +246,7 @@ RAVEN currently supports one pre-defined ``mode'':
                   to find the nodes' information in the enviroment variable
                   \texttt{PBS\_NODEFILE}.
            \end{itemize}
+           \item The mpi exec can be forced to run on one shared memory node with the \xmlNode{NoSplitNode}.  If this is present, the splitting apart the batches will put each batch on one shared memory node.  Without \xmlNode{NoSplitNode}, the they can be split across nodes.  There is an option \xmlAttr{maxOnNode} which puts at most \xmlAttr{maxOnNode} number of mpi processes on one node.  \xmlNode{NoSplitNode} can cause processes to not be placed, so \xmlNode{NoSplitNode} should not be used unless needed.
          \end{itemize}
          In addition, this flag activates the remote (PBS) execution of internal Models (e.g. ROMs,
          ExternalModels, PostProcessors, etc.). If this node is not present, the internal Models
