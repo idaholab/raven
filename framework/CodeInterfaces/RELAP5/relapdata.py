@@ -17,11 +17,11 @@ class relapdata:
       @ In, deckNumber, int, optional, the deckNumber from which the outputs need to be retrieved (default is the last)
       @ Out, None
     """
-    self.totNumberOfDecks= 0
+    # self.totNumberOfDecks is set in gettimeDeck method!
     self.lines           = open(filen,"r").readlines()
     self.deckEndTimeInfo = self.gettimeDeck(self.lines,deckNumber)
     self.deckNumberToTake= deckNumber if deckNumber != -1 else self.totNumberOfDecks
-    startLine, endLine   = self.deckEndTimeInfo[self.deckNumberToTake]['sliceCoordinates'][0], self.deckEndTimeInfo[self.deckNumberToTake]['sliceCoordinates'][1]
+    startLine, endLine   = self.deckEndTimeInfo[self.deckNumberToTake]['sliceCoordinates'][0:2]
     self.trips           = self.returntrip(self.lines[startLine:endLine])
     self.minordata       = self.getminor(self.lines[startLine:endLine])
     self.readraven()
