@@ -250,26 +250,39 @@ def compareUnorderedElement(a,b,*args,**kwargs):
       #print the tree of the nearest match
       note+='  Nearest unused match: '
       close = sorted(list(close.items()),key=lambda x:x[1],reverse=True)
-      note+='    '+'/'.join(list(c.tag for c in close[0][0])) +'\n'#+', %2.1f %% match' %(100*close[0][1])+'\n'
+      if len(close) > 1:
+        closest = '/'.join(list(c.tag for c in close[0][0]))
+      else:
+        closest = '-none found-'
+      note+='    '+ closest +'\n'
       #print what was different between them
-      diff =  diffs[unmatched][close[0][0]]
-      for b,code,right,miss in diff:
-        if code == XMLDiff.missingChildNode:
-          note+='    <'+b.tag+'> is missing child node: <'+right+'> vs <'+miss+'\n'
-        elif code == XMLDiff.missingAttribute:
-          note+='    <'+b.tag+'> is missing attribute: "'+right+'"\n'
-        elif code == XMLDiff.extraChildNode:
-          note+='    <'+b.tag+'> has extra child node: <'+right+'>\n'
-        elif code == XMLDiff.extraAttribute:
-          note+='    <'+b.tag+'> has extra attribute: "'+right+'" = "'+b.attrib[right]+'"\n'
-        elif code == XMLDiff.notMatchTag:
-          note+='    <'+b.tag+'> tag does not match: <'+right+'> vs <'+miss+'>\n'
-        elif code == XMLDiff.notMatchAttribute:
-          note+='    <'+b.tag+'> attribute does not match: "'+right[1]+'" = "'+right[0].attrib[right[1]]+'" vs "'+miss[0].attrib[miss[1]]+'"\n'
-        elif code == XMLDiff.notMatchText:
-          note+='    <'+b.tag+'> text does not match: "'+right+'" vs "'+miss+'"\n'
-        else:
-          note+='     UNRECOGNIZED OPTION: "'+b.tag+'" "'+str(code)+'": "'+str(right)+'" vs "'+str(miss)+'"\n'
+      if len(close) > 1:
+        diff =  diffs[unmatched][close[0][0]]
+        for b,code,right,miss in diff:
+          if b is None:
+            b = str(b)
+          if code is None:
+            code = str(code)
+          if right is None:
+            right = str(right)
+          if miss is None:
+            miss = str(miss)
+          if code == XMLDiff.missingChildNode:
+            note+='    <'+b.tag+'> is missing child node: <'+right+'> vs <'+miss+'>\n'
+          elif code == XMLDiff.missingAttribute:
+            note+='    <'+b.tag+'> is missing attribute: "'+right+'"\n'
+          elif code == XMLDiff.extraChildNode:
+            note+='    <'+b.tag+'> has extra child node: <'+right+'>\n'
+          elif code == XMLDiff.extraAttribute:
+            note+='    <'+b.tag+'> has extra attribute: "'+right+'" = "'+b.attrib[right]+'"\n'
+          elif code == XMLDiff.notMatchTag:
+            note+='    <'+b.tag+'> tag does not match: <'+right+'> vs <'+miss+'>\n'
+          elif code == XMLDiff.notMatchAttribute:
+            note+='    <'+b.tag+'> attribute does not match: "'+right[1]+'" = "'+right[0].attrib[right[1]]+'" vs "'+miss[0].attrib[miss[1]]+'"\n'
+          elif code == XMLDiff.notMatchText:
+            note+='    <'+b.tag+'> text does not match: "'+right+'" vs "'+miss+'"\n'
+          else:
+            note+='     UNRECOGNIZED OPTION: "'+b.tag+'" "'+str(code)+'": "'+str(right)+'" vs "'+str(miss)+'"\n'
 
     return (False,[note])
 

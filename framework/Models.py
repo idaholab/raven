@@ -200,6 +200,14 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     paramDict['subType'] = self.subType
     return paramDict
 
+  def finalizeModelOutput(self,finishedJob):
+    """
+      Method that is aimed to finalize (preprocess) the output of a model before the results get collected
+      @ In, finishedJob, InternalRunner object, instance of the run just finished
+      @ Out, None
+    """
+    pass
+
   def localGetInitParams(self):
     """
       Method used to export to the printer in the base class the additional PERMANENT your local class have
@@ -577,64 +585,60 @@ class ROM(Dummy):
     #restore targets to initialization option dict
     self.initializationOptionDict['Target'] = ','.join(targets)
 
-  def printXML(self,options=None):
+  def printXML(self,options={}):
     """
       Called by the OutStreamPrint object to cause the ROM to print itself to file.
-      @ In, options, the options to use in printing, including filename, things to print, etc.
+      @ In, options, dict, optional, the options to use in printing, including filename, things to print, etc.
       @ Out, None
     """
-    if options:
-      if ('filenameroot' in options.keys()): filenameLocal = options['filenameroot']
-      else: filenameLocal = self.name + '_dump'
-    else: options={}
-    tree=self._localBuildPrintTree(options)
-    msg=tree.stringNodeTree()
-    open(filenameLocal+'.xml','w').writelines(msg)
-    self.raiseAMessage('ROM XML printed to "'+filenameLocal+'.xml"')
-
-  def _localBuildPrintTree(self,options=None):
-    """
-      Constructs XML for printing of poperties of this Model.
-      @ In, options, dict, optional, options by keyword
-      @ Out, node, TreeStructure.NodeTree, xml-like tree with desired data
-    """
-    node = TreeStructure.Node('ReducedOrderModel')
-    tree = TreeStructure.NodeTree(node)
+    #determine dynamic or static
+    if type(self.SupervisedEngine) == list:
+      dynamic = True
+    elif type(self.SupervisedEngine) == dict:
+      dynamic = False
+    else:
+      self.raiseAnError(RuntimeError,'Unrecognized structure for self.SupervisedEngine:',type(self.SupervisedEnging))
+    # establish file
+    if 'filenameroot' in options.keys():
+      filenameLocal = options['filenameroot']
+    else:
+      filenameLocal = self.name + '_dump'
+    if dynamic:
+      outFile = Files.returnInstance('DynamicXMLOutput',self)
+    else:
+      outFile = Files.returnInstance('StaticXMLOutput',self)
+    outFile.initialize(filenameLocal+'.xml',self.messageHandler)
+    outFile.newTree('ROM',pivotParam=self.historyPivotParameter)
+    #establish targets
     if 'target' in options.keys():
       targets = options['target'].split(',')
     else:
-      targets = 'all'
-    if type(self.SupervisedEngine) == list: timeDep = True
-    elif type(self.SupervisedEngine) == dict: timeDep = False
+      targets = ['all']
+    #establish sets of engines to work from
+    if dynamic:
+      engines = self.SupervisedEngine
     else:
-      self.raiseAnError(RuntimeError,'Unrecognized structure for self.SupervisedEngine:',type(self.SupervisedEnging))
+      engines = [self.SupervisedEngine]
+    #handle 'all' case
     if 'all' in targets:
-      #case: time-dependent
-      if timeDep:
-        targets = list(key for key in self.SupervisedEngine[0].keys())
-        for s,step in enumerate(self.SupervisedEngine):
-          #get the time step
-          pivotStep = range(1,self.numberOfTimeStep+1)[s]
-          pivotNode = TreeStructure.Node(self.historyPivotParameter+'_step')
-          pivotNode.setText(pivotStep)
-          node.appendBranch(pivotNode)
-          pivotValue = self.historySteps[s]
-          pivotValNode = TreeStructure.Node(self.historyPivotParameter)
-          pivotValNode.setText(pivotValue)
-          pivotNode.appendBranch(pivotValNode)
-          for key,target in step.items():
-            #skip time marching parameter
-            if key == self.historyPivotParameter:
-              continue
-            if key in targets:
-              target.printXML(pivotNode,options)
-      #case: not time-dependent
+      targets = engines[0].keys()
+    #this loop is only 1 entry long if not dynamic
+    for s,step in enumerate(engines):
+      if dynamic:
+        pivotValue = self.historySteps[s]
       else:
-        targets = list(key for key in self.SupervisedEngine.keys())
-        for key,target in self.SupervisedEngine.items():
-          if key in targets:
-            target.printXML(node,options)
-    return tree
+        pivotValue = 0
+      for key,target in step.items():
+        #skip the pivot param
+        if key == self.historyPivotParameter:
+          continue
+        #otherwise, if this is one of the requested keys, call engine's print method
+        if key in targets:
+          self.raiseAMessage('Printing time',pivotValue,'target',key,'ROM XML')
+          target.printXML(outFile,pivotValue,options)
+    self.raiseADebug('Writing to XML file...')
+    outFile.writeFile()
+    self.raiseAMessage('ROM XML printed to "'+filenameLocal+'.xml"')
 
   def reset(self):
     """
@@ -1238,7 +1242,7 @@ class Code(Model):
     executeCommand, self.outFileRoot = returnedCommand
     uniqueHandler = inputFiles[1]['uniqueHandler'] if 'uniqueHandler' in inputFiles[1].keys() else 'any'
     identifier    = inputFiles[1]['prefix'] if 'prefix' in inputFiles[1].keys() else None
-    jobHandler.submitDict['External'](executeCommand,self.outFileRoot,metaData['subDirectory'],identifier=identifier,metadata=metaData,codePointer=self.code,uniqueHandler = uniqueHandler)
+    jobHandler.submitDict['External'](executeCommand,self.outFileRoot,metaData.pop('subDirectory'),identifier=identifier,metadata=metaData,codePointer=self.code,uniqueHandler = uniqueHandler)
     found = False
     for index, inputFile in enumerate(self.currentInputFiles):
       if inputFile.getExt() in self.code.getInputExtension():
@@ -1248,6 +1252,16 @@ class Code(Model):
                                   + self.subType +': ' + ' '.join(self.getInputExtension()))
     self.raiseAMessage('job "'+ str(identifier) + "_" + self.currentInputFiles[index].getBase() +'" submitted!')
 
+  def finalizeModelOutput(self,finishedJob):
+    """
+      Method that is aimed to finalize (preprocess) the output of a model before the results get collected
+      @ In, finishedJob, InternalRunner object, instance of the run just finished
+      @ Out, None
+    """
+    if 'finalizeCodeOutput' in dir(self.code):
+      out = self.code.finalizeCodeOutput(finishedJob.command,finishedJob.output,finishedJob.getWorkingDir())
+      if out: finishedJob.output = out
+
   def collectOutput(self,finishedjob,output):
     """
       Method that collects the outputs from the previous run
@@ -1255,10 +1269,6 @@ class Code(Model):
       @ In, output, "DataObjects" object, output where the results of the calculation needs to be stored
       @ Out, None
     """
-    #can we revise the spelling to something more English?
-    if 'finalizeCodeOutput' in dir(self.code):
-      out = self.code.finalizeCodeOutput(finishedjob.command,finishedjob.output,finishedjob.getWorkingDir())
-      if out: finishedjob.output = out
     outputFilelocation = finishedjob.getWorkingDir()
     attributes={"inputFile":self.currentInputFiles,"type":"csv","name":os.path.join(outputFilelocation,finishedjob.output+'.csv')}
     metadata = finishedjob.returnMetadata()

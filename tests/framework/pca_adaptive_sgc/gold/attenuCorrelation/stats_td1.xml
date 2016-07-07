@@ -1,6 +1,8 @@
-<ReducedOrderModel>
+<?xml version="1.0" ?>
+<ROM type="Static">
   <ans>
     <mean>0.982263704701</mean>
+    <expectedValue>0.982263704701</expectedValue>
     <variance>0.0840896483903</variance>
     <samples>43</samples>
     <polyCoeffs>
@@ -21,68 +23,48 @@
       <_1_1_0_0_0_>0.0183861899255</_1_1_0_0_0_>
       <_2_0_0_0_0_>0.0397075593167</_2_0_0_0_0_>
     </polyCoeffs>
-    <indices>
-      <tot_variance>0.0840896483903</tot_variance>
-      <variables>y1
-        <partial_variance>0.0582537409467</partial_variance>
-        <Sobol_index>0.692757575539</Sobol_index>
-        <Sobol_total_index>0.708953297067</Sobol_total_index>
-      </variables>
-      <variables>y3
-        <partial_variance>0.0174306613371</partial_variance>
-        <Sobol_index>0.20728664789</Sobol_index>
-        <Sobol_total_index>0.220328217926</Sobol_total_index>
-      </variables>
-      <variables>y2
-        <partial_variance>0.00612080170987</partial_variance>
-        <Sobol_index>0.0727890034867</Sobol_index>
-        <Sobol_total_index>0.0780437369579</Sobol_total_index>
-      </variables>
-      <variables>y1,y3
-        <partial_variance>0.000979106322578</partial_variance>
-        <Sobol_index>0.011643601101</Sobol_index>
-        <Sobol_total_index>0.011643601101</Sobol_total_index>
-      </variables>
-      <variables>y4
-        <partial_variance>0.000428607528491</partial_variance>
-        <Sobol_index>0.00509703080815</Sobol_index>
-        <Sobol_total_index>0.00546726164615</Sobol_total_index>
-      </variables>
-      <variables>y5
-        <partial_variance>0.000376389623145</partial_variance>
-        <Sobol_index>0.00447605181315</Sobol_index>
-        <Sobol_total_index>0.00480117686656</Sobol_total_index>
-      </variables>
-      <variables>y1,y2
-        <partial_variance>0.000338051979978</partial_variance>
-        <Sobol_index>0.00402013787011</Sobol_index>
-        <Sobol_total_index>0.00402013787011</Sobol_total_index>
-      </variables>
-      <variables>y2,y3
-        <partial_variance>0.000103816709999</partial_variance>
-        <Sobol_index>0.00123459560108</Sobol_index>
-        <Sobol_total_index>0.00123459560108</Sobol_total_index>
-      </variables>
-      <variables>y1,y4
-        <partial_variance>2.38180049514e-05</partial_variance>
-        <Sobol_index>0.00028324538641</Sobol_index>
-        <Sobol_total_index>0.00028324538641</Sobol_total_index>
-      </variables>
-      <variables>y1,y5
-        <partial_variance>2.09162212789e-05</partial_variance>
-        <Sobol_index>0.000248737171332</Sobol_index>
-        <Sobol_total_index>0.000248737171332</Sobol_total_index>
-      </variables>
-      <variables>y3,y4
-        <partial_variance>7.31457603934e-06</partial_variance>
-        <Sobol_index>8.69854515908e-05</Sobol_index>
-        <Sobol_total_index>8.69854515908e-05</Sobol_total_index>
-      </variables>
-      <variables>y3,y5
-        <partial_variance>6.42343014505e-06</partial_variance>
-        <Sobol_index>7.63878820761e-05</Sobol_index>
-        <Sobol_total_index>7.63878820761e-05</Sobol_total_index>
-      </variables>
-    </indices>
+    <partialVariance>
+      <y1>0.0582537409467</y1>
+      <y3>0.0174306613371</y3>
+      <y2>0.00612080170987</y2>
+      <y1.y3>0.000979106322578</y1.y3>
+      <y4>0.000428607528491</y4>
+      <y5>0.000376389623145</y5>
+      <y1.y2>0.000338051979978</y1.y2>
+      <y2.y3>0.000103816709999</y2.y3>
+      <y1.y4>2.38180049514e-05</y1.y4>
+      <y1.y5>2.09162212789e-05</y1.y5>
+      <y3.y4>7.31457603934e-06</y3.y4>
+      <y3.y5>6.42343014505e-06</y3.y5>
+    </partialVariance>
+    <sobolIndices>
+      <y1>0.692757575539</y1>
+      <y3>0.20728664789</y3>
+      <y2>0.0727890034867</y2>
+      <y1.y3>0.011643601101</y1.y3>
+      <y4>0.00509703080815</y4>
+      <y5>0.00447605181315</y5>
+      <y1.y2>0.00402013787011</y1.y2>
+      <y2.y3>0.00123459560108</y2.y3>
+      <y1.y4>0.00028324538641</y1.y4>
+      <y1.y5>0.000248737171332</y1.y5>
+      <y3.y4>8.69854515908e-05</y3.y4>
+      <y3.y5>7.63878820761e-05</y3.y5>
+    </sobolIndices>
+    <sobolTotalIndices>
+      <y1>0.708953297067</y1>
+      <y3>0.220328217926</y3>
+      <y2>0.0780437369579</y2>
+      <y1.y3>0.011643601101</y1.y3>
+      <y4>0.00546726164615</y4>
+      <y5>0.00480117686656</y5>
+      <y1.y2>0.00402013787011</y1.y2>
+      <y2.y3>0.00123459560108</y2.y3>
+      <y1.y4>0.00028324538641</y1.y4>
+      <y1.y5>0.000248737171332</y1.y5>
+      <y3.y4>8.69854515908e-05</y3.y4>
+      <y3.y5>7.63878820761e-05</y3.y5>
+    </sobolTotalIndices>
   </ans>
-</ReducedOrderModel>
+
+</ROM>
