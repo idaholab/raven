@@ -141,10 +141,12 @@ class csvUtilityClass(object):
       for _, varToExpandFrom in enumerate(variablesToExpandFrom):
         if varToExpandFrom in data["headers"]:
           index = data["headers"].index(varToExpandFrom)
+          datafinal[:,index] = variablesToExpandFromValuesSet[:,index]
           break
       for headindex, head in enumerate(data["headers"]):
-        nearest.fit(np.atleast_2d(data["data"][:,index]).T,data["data"][:,headindex])   #[nsamples,nfeatures]
-        datafinal[:,self.allHeaders.index(head)] = nearest.predict(variablesToExpandFromValuesSet)[:]
+        if head not in variablesToExpandFrom:
+          nearest.fit(np.atleast_2d(data["data"][:,index]).T,data["data"][:,headindex])   #[nsamples,nfeatures]
+          datafinal[:,self.allHeaders.index(head)] = nearest.predict(variablesToExpandFromValuesSet)[:]
     if returnAsDict:
       mergedReturn = {}
       for variableToAdd in self.allHeaders:
