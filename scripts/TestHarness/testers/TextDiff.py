@@ -39,7 +39,7 @@ class TextDiff:
         filesRead = True
         try:
           testFile = open(testFilename)
-          testLines = [line.split(commentSymbol,1)[0].strip() for line in testFile]
+          testLines = [line.split(commentSymbol,1)[0].strip() if len(commentSymbol) > 0 else line) for line in testFile]
           testLines = [line for line in testLines if len(line) > 0]
           testFile.close()
         except Exception as e:
@@ -48,7 +48,7 @@ class TextDiff:
           filesRead = False
         try:
           goldFile = open(goldFilename)
-          goldLines = [line.split(commentSymbol,1)[0].strip() for line in goldFile]
+          goldLines = [line.split(commentSymbol,1)[0].strip() if len(commentSymbol) > 0 else line for line in goldFile]
           goldLines = [line for line in goldLines if len(line) > 0]
           goldFile.close()
         except Exception as e:
