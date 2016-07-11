@@ -256,24 +256,24 @@ Idaho National Laboratory}
 \begin{frame}[fragile]{Methods: SCgPC in RAVEN}
   ROM
   \lstinputlisting[basicstyle=\ttfamily\footnotesize,firstline=51,lastline=56,emph={rom,GaussPolynomialRom,y1,y2,ans,TensorProduct}]
-          {./attenuate/two/tp2.xml}
+          {../../inputs/paul/two/tp2.xml}
   \vfill
   Sampler
   \lstinputlisting[basicstyle=\ttfamily\footnotesize,firstline=35,lastline=44,emph={SparseGridCollocation,sc,y1,uni,y2,rom}]
-          {./attenuate/two/tp2.xml}
+          {../../inputs/paul/two/tp2.xml}
 \end{frame}
 
 \begin{frame}[fragile]{Methods: SCgPC in RAVEN}
   Steps
   %MultiRun
   \lstinputlisting[basicstyle=\ttfamily\footnotesize,firstline=10,lastline=15,emph={sample,sc,poly,collset}]
-          {./attenuate/two/tp2.xml}
+          {../../inputs/paul/two/tp2.xml}
   %RomTrainer
   \lstinputlisting[basicstyle=\ttfamily\footnotesize,firstline=28,lastline=31,emph={train,collset,rom}]
-          {./attenuate/two/tp2.xml}
+          {../../inputs/paul/two/tp2.xml}
   %Write Out
   \lstinputlisting[basicstyle=\ttfamily\footnotesize,firstline=20,lastline=23,emph={stats,rom,stats\_tp2}]
-          {./attenuate/two/tp2.xml}
+          {../../inputs/paul/two/tp2.xml}
 \end{frame}
 
 
@@ -287,7 +287,7 @@ Idaho National Laboratory}
 
   Specify through an interpolation node
   \lstinputlisting[basicstyle=\ttfamily\footnotesize,firstline=51,lastline=58,emph={Interpolation}]
-          {./attenuate/two/td3.xml}
+          {../../inputs/paul/two/td3.xml}
   \vfill
   
 \end{frame}
@@ -299,7 +299,7 @@ Idaho National Laboratory}
 
   Use the Adaptive SCgPC sampler!
   \lstinputlisting[basicstyle=\ttfamily\footnotesize,firstline=35,lastline=50,emph={AdaptiveSparseGrid,Convergence,convergenceStudy}]
-          {./attenuate/two/adaptSC.xml}
+          {../../inputs/paul/two/adaptSC.xml}
   \vfill
 \end{frame}
 
@@ -343,7 +343,7 @@ Idaho National Laboratory}
   \vfill
   Sampler
   \lstinputlisting[basicstyle=\ttfamily\footnotesize,firstline=35,lastline=56,emph={AdaptiveSobol,Convergence,convergenceStudy}]
-          {./attenuate/two/adaptSobol.xml}
+          {../../inputs/paul/two/adaptSobol.xml}
   \vfill
 \end{frame}
 
@@ -351,7 +351,7 @@ Idaho National Laboratory}
   \vfill
   ROM
   \lstinputlisting[basicstyle=\ttfamily\footnotesize,firstline=63,lastline=69,emph={HDMRRom,SobolOrder}]
-          {./attenuate/two/adaptSobol.xml}
+          {../../inputs/paul/two/adaptSobol.xml}
   \vfill
 \end{frame}
 %
@@ -413,14 +413,14 @@ Idaho National Laboratory}
     \begin{column}{0.5\textwidth}
       \begin{figure}
         \centering
-        \includegraphics[width=\linewidth]{./attenuate/attenuate_2_mean_errs}
+        \includegraphics[width=\linewidth]{../../inputs/paul/attenuate_2_mean_errs}
         \caption{Mean, $N=2$}
       \end{figure}
     \end{column}
     \begin{column}{0.5\textwidth}
       \begin{figure}
         \centering
-        \includegraphics[width=\linewidth]{./attenuate/attenuate_2_variance_errs}
+        \includegraphics[width=\linewidth]{../../inputs/paul/attenuate_2_variance_errs}
         \caption{Variance, $N=2$}
       \end{figure}
     \end{column}
@@ -433,14 +433,14 @@ Idaho National Laboratory}
     \begin{column}{0.5\textwidth}
       \begin{figure}
         \centering
-        \includegraphics[width=\linewidth]{./attenuate/attenuate_4_mean_errs}
+        \includegraphics[width=\linewidth]{../../inputs/paul/attenuate_4_mean_errs}
         \caption{Mean, $N=4$}
       \end{figure}
     \end{column}
     \begin{column}{0.5\textwidth}
       \begin{figure}
         \centering
-        \includegraphics[width=\linewidth]{./attenuate/attenuate_4_variance_errs}
+        \includegraphics[width=\linewidth]{../../inputs/paul/attenuate_4_variance_errs}
         \caption{Variance, $N=4$}
       \end{figure}
     \end{column}
@@ -453,14 +453,14 @@ Idaho National Laboratory}
     \begin{column}{0.5\textwidth}
       \begin{figure}
         \centering
-        \includegraphics[width=\linewidth]{./attenuate/attenuate_6_mean_errs}
+        \includegraphics[width=\linewidth]{../../inputs/paul/attenuate_6_mean_errs}
         \caption{Mean, $N=6$}
       \end{figure}
     \end{column}
     \begin{column}{0.5\textwidth}
       \begin{figure}
         \centering
-        \includegraphics[width=\linewidth]{./attenuate/attenuate_6_variance_errs}
+        \includegraphics[width=\linewidth]{../../inputs/paul/attenuate_6_variance_errs}
         \caption{Variance, $N=6$}
       \end{figure}
     \end{column}
@@ -473,14 +473,14 @@ Idaho National Laboratory}
 \begin{frame}{Demonstration: Results}
       \begin{figure}
         \centering
-        \includegraphics[width=0.8\linewidth]{./attenuate/attenuate_2_mean_errs}
+        \includegraphics[width=0.8\linewidth]{../../inputs/paul/attenuate_2_mean_errs}
         \caption{Mean, $N=2$}
       \end{figure}
 \end{frame}
 \begin{frame}{Demonstration: Results}
       \begin{figure}
         \centering
-        \includegraphics[width=0.8\linewidth]{./attenuate/attenuate_2_variance_errs}
+        \includegraphics[width=0.8\linewidth]{../../inputs/paul/attenuate_2_variance_errs}
         \caption{Variance, $N=2$}
       \end{figure}
 \end{frame}
@@ -488,14 +488,14 @@ Idaho National Laboratory}
 \begin{frame}{Appendix}
       \begin{figure}
         \centering
-        \includegraphics[width=0.8\linewidth]{./attenuate/attenuate_4_mean_errs}
+        \includegraphics[width=0.8\linewidth]{../../inputs/paul/attenuate_4_mean_errs}
         \caption{Mean, $N=4$}
       \end{figure}
 \end{frame}
 \begin{frame}{Appendix}
       \begin{figure}
         \centering
-        \includegraphics[width=0.8\linewidth]{./attenuate/attenuate_4_variance_errs}
+        \includegraphics[width=0.8\linewidth]{../../inputs/paul/attenuate_4_variance_errs}
         \caption{Variance, $N=4$}
       \end{figure}
 \end{frame}
@@ -503,14 +503,14 @@ Idaho National Laboratory}
 \begin{frame}{Appendix}
   \begin{figure}
     \centering
-    \includegraphics[width=0.8\linewidth]{./attenuate/attenuate_6_mean_errs}
+    \includegraphics[width=0.8\linewidth]{../../inputs/paul/attenuate_6_mean_errs}
     \caption{Mean, $N=6$}
   \end{figure}
 \end{frame}
 \begin{frame}{Appendix}
   \begin{figure}
     \centering
-    \includegraphics[width=0.8\linewidth]{./attenuate/attenuate_6_variance_errs}
+    \includegraphics[width=0.8\linewidth]{../../inputs/paul/attenuate_6_variance_errs}
     \caption{Variance, $N=6$}
   \end{figure}
 \end{frame}

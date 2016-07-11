@@ -342,7 +342,7 @@ Idaho National Laboratory}
 \begin{frame}[fragile]{Methods: PCA in RAVEN}
   \vfill
 Add transformation to \code{Sampler}:
-\lstinputlisting[firstline=41,lastline=68,emph={variablesTransformation,x1,x2,x3,x4,x5,x6,y1,y2,y3,y4,y5,y6}]{./wk_example/mc_pca.xml}
+\lstinputlisting[firstline=41,lastline=68,emph={variablesTransformation,x1,x2,x3,x4,x5,x6,y1,y2,y3,y4,y5,y6}]{../../inputs/two-step-input-reduction/wk_example/mc_pca.xml}
   \vfill
 \end{frame}
 
@@ -352,10 +352,10 @@ Add transformation to \code{Sampler}:
   \vfill
 
   PostProcessor
-\lstinputlisting[firstline=17,lastline=23,emph={ImportanceRank,stats,pcaindex,y1,y2,y3,y4,y5,y6,ans,mvn}]{./wk_example/mc_pca.xml}
+\lstinputlisting[firstline=17,lastline=23,emph={ImportanceRank,stats,pcaindex,y1,y2,y3,y4,y5,y6,ans,mvn}]{../../inputs/two-step-input-reduction/wk_example/mc_pca.xml}
   \vfill
   Step
-\lstinputlisting[firstline=82,lastline=86,emph={stats,solns,statsfile}]{./wk_example/mc_pca.xml}
+\lstinputlisting[firstline=82,lastline=86,emph={stats,solns,statsfile}]{../../inputs/two-step-input-reduction/wk_example/mc_pca.xml}
   \vfill
 Use results from file TODO to pick PCA truncation
   \vfill
@@ -364,14 +364,14 @@ Use results from file TODO to pick PCA truncation
 \begin{frame}[fragile]{Methods: PCA in RAVEN}
   \vfill
   Once reduction level is decided, change sampler truncation and distribution truncation
-  \lstinputlisting[firstline=40,lastline=59,emph={y1,y2,y3,y4}]{./wk_example/sobol_sens.xml}
+  \lstinputlisting[firstline=40,lastline=59,emph={y1,y2,y3,y4}]{../../inputs/two-step-input-reduction/wk_example/sobol_sens.xml}
   \vfill
 \end{frame}
 
 \begin{frame}[fragile]{Methods: PCA in RAVEN}
   \vfill
   Once reduction level is decided, change sampler truncation and distribution truncation
-  \lstinputlisting[firstline=23,lastline=36,emph={transformation,rank}]{./wk_example/sobol_sens.xml}
+  \lstinputlisting[firstline=23,lastline=36,emph={transformation,rank}]{../../inputs/two-step-input-reduction/wk_example/sobol_sens.xml}
   \vfill
 \end{frame}
 
@@ -420,31 +420,31 @@ Use results from file TODO to pick PCA truncation
   \vfill
 
   Sobol sampler
-  \lstinputlisting[firstline=40,lastline=59,emph={Sobol,sobolsamp,ROM,rom}]{./wk_example/sobol_sens.xml}
+  \lstinputlisting[firstline=40,lastline=59,emph={Sobol,sobolsamp,ROM,rom}]{../../inputs/two-step-input-reduction/wk_example/sobol_sens.xml}
   \vfill
 \end{frame}
 
 \begin{frame}[fragile]{Methods: Global Sensitivity Analysis}
   \vfill
   HDMRRom
-  \lstinputlisting[firstline=13,lastline=19,emph={HDMRRom,SobolOrder}]{./wk_example/sobol_sens.xml}
+  \lstinputlisting[firstline=13,lastline=19,emph={HDMRRom,SobolOrder}]{../../inputs/two-step-input-reduction/wk_example/sobol_sens.xml}
   \vfill
   ROM Output
-  \lstinputlisting[firstline=88,lastline=92,emph={Print,rom}]{./wk_example/sobol_sens.xml}
+  \lstinputlisting[firstline=88,lastline=92,emph={Print,rom}]{../../inputs/two-step-input-reduction/wk_example/sobol_sens.xml}
   \vfill
 \end{frame}
 
 \begin{frame}[fragile]{Methods: Global Sensitivity Analysis}
   \vfill
   Steps
-  \lstinputlisting[firstline=62,lastline=81,emph={atten,sobolsamp,solns,solns\_dump\_sobol,rom,sobol\_stats,MultiRun,RomTrainer,IOStep}]{./wk_example/sobol_sens.xml}
+  \lstinputlisting[firstline=62,lastline=81,emph={atten,sobolsamp,solns,solns\_dump\_sobol,rom,sobol\_stats,MultiRun,RomTrainer,IOStep}]{../../inputs/two-step-input-reduction/wk_example/sobol_sens.xml}
   \vfill
 \end{frame}
 
 \begin{frame}[fragile]{Methods: Global Sensitivity Analysis}
   \vfill
   Output from ROM
-  \lstinputlisting[firstline=1,lastline=26,emph={indices,Sobol\_index}]{./wk_example/run/sobol_stats.xml}
+  \lstinputlisting[firstline=1,lastline=26,emph={indices,Sobol\_index}]{../../inputs/two-step-input-reduction/wk_example/run/sobol_stats.xml}
   \vfill
 \end{frame}
 
@@ -452,7 +452,7 @@ Use results from file TODO to pick PCA truncation
 \begin{frame}[fragile]{Methods: Twice-Reduced Analysis}
   \vfill
   Change dimensions in Sampler to prioritize
-  \lstinputlisting[firstline=37,lastline=55,emph={y1,y2,y4}]{./wk_example/mc_twice.xml}
+  \lstinputlisting[firstline=37,lastline=55,emph={y1,y2,y4}]{../../inputs/two-step-input-reduction/wk_example/mc_twice.xml}
   \vfill
 \end{frame}
 
