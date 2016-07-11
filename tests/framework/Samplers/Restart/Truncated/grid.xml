@@ -1,61 +1,56 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="silent">
+<Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>grid</WorkingDir>
-    <Sequence>make1,print1,load,make2,print2,print3</Sequence>
+    <Sequence>makeCoarse,printCoarse,load,makeRestart,printRestart</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
   <Files>
     <Input name="inp" type="">input_truncated.i</Input>
-    <Input name="csv" type="">dump1.csv</Input>
+    <Input name="csv" type="">coarse.csv</Input>
   </Files>
 
   <Steps>
-    <MultiRun name="make1">
+    <MultiRun name="makeCoarse">
       <Input class="Files" type="Input">inp</Input>
-      <Model class="Models" type="Code">code</Model>
-      <Sampler class="Samplers" type="Grid">1</Sampler>
-      <Output class="DataObjects" type="PointSet">solns</Output>
+      <Model class="Models" type="Code">coarse</Model>
+      <Sampler class="Samplers" type="Grid">coarse</Sampler>
+      <Output class="DataObjects" type="PointSet">coarse</Output>
     </MultiRun>
-    <MultiRun name="make2">
+    <MultiRun name="makeRestart">
       <Input class="Files" type="Input">inp</Input>
-      <Model class="Models" type="Code">code</Model>
-      <Sampler class="Samplers" type="Grid">2</Sampler>
-      <Output class="DataObjects" type="PointSet">solns</Output>
-      <Output class="DataObjects" type="PointSet">solns2</Output>
+      <Model class="Models" type="Code">fine</Model>
+      <Sampler class="Samplers" type="Grid">fine</Sampler>
+      <Output class="DataObjects" type="PointSet">fine</Output>
     </MultiRun>
-    <IOStep name="print1">
-      <Input class="DataObjects" type="PointSet">solns</Input>
-      <Output class="OutStreams" type="Print">dump1</Output>
+    <IOStep name="printCoarse">
+      <Input class="DataObjects" type="PointSet">coarse</Input>
+      <Output class="OutStreams" type="Print">coarse</Output>
     </IOStep>
     <IOStep name="load">
       <Input class="Files" type="">csv</Input>
       <Output class="DataObjects" type="PointSet">restart</Output>
     </IOStep>
-    <IOStep name="print2">
-      <Input class="DataObjects" type="PointSet">solns2</Input>
-      <Output class="OutStreams" type="Print">dump2</Output>
-    </IOStep>
-    <IOStep name="print3">
-      <Input class="DataObjects" type="PointSet">solns</Input>
-      <Output class="OutStreams" type="Print">dump3</Output>
+    <IOStep name="printRestart">
+      <Input class="DataObjects" type="PointSet">fine</Input>
+      <Output class="OutStreams" type="Print">fine</Output>
     </IOStep>
   </Steps>
 
   <Distributions>
     <Uniform name="u1">
-      <lowerBound>1.123456789012345</lowerBound>
-      <upperBound>2</upperBound>
+      <lowerBound>0.123456789012345</lowerBound>
+      <upperBound>1</upperBound>
     </Uniform>
     <Uniform name="u2">
-      <lowerBound>2.123456789012345</lowerBound>
-      <upperBound>3</upperBound>
+      <lowerBound>10.123456789012345</lowerBound>
+      <upperBound>11</upperBound>
     </Uniform>
   </Distributions>
 
   <Samplers>
-    <Grid name="1">
+    <Grid name="coarse">
       <variable name="x">
         <distribution>u1</distribution>
         <grid construction="equal" steps="1" type="CDF">0.0 1.0</grid>
@@ -65,7 +60,7 @@
         <grid construction="equal" steps="1" type="CDF">0.0 1.0</grid>
       </variable>
     </Grid>
-    <Grid name="2">
+    <Grid name="fine">
       <variable name="x">
         <distribution>u1</distribution>
         <grid construction="equal" steps="2" type="CDF">0.0 1.0</grid>
@@ -75,13 +70,20 @@
         <grid construction="equal" steps="2" type="CDF">0.0 1.0</grid>
       </variable>
       <Restart class="DataObjects" type="PointSet">restart</Restart>
-      <restartTolerance>1e-3</restartTolerance>
+      <restartTolerance>5e-3</restartTolerance>
     </Grid>
   </Samplers>
 
   <Models>
-    <Code name="code" subType="GenericCode">
-      <executable>../../../AnalyticModels/AnalyticCodes/truncated_output.py</executable>
+    <Code name="coarse" subType="GenericCode">
+      <executable>model_1.py</executable>
+      <clargs arg="python" type="prepend"/>
+      <clargs arg="-i" extension=".i" type="input"/>
+      <clargs arg="-o" type="output"/>
+      <prepend>python</prepend>
+    </Code>
+    <Code name="fine" subType="GenericCode">
+      <executable>model_2.py</executable>
       <clargs arg="python" type="prepend"/>
       <clargs arg="-i" extension=".i" type="input"/>
       <clargs arg="-o" type="output"/>
@@ -94,32 +96,28 @@
       <Input>x,y</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
-    <PointSet name="solns">
+    <PointSet name="coarse">
       <Input>x,y</Input>
-      <Output>a,b</Output>
+      <Output>a</Output>
     </PointSet>
     <PointSet name="restart">
       <Input>x,y</Input>
-      <Output>a,b</Output>
+      <Output>a</Output>
     </PointSet>
-    <PointSet name="solns2">
+    <PointSet name="fine">
       <Input>x,y</Input>
-      <Output>a,b</Output>
+      <Output>a</Output>
     </PointSet>
   </DataObjects>
 
   <OutStreams>
-    <Print name="dump1">
+    <Print name="coarse">
       <type>csv</type>
-      <source>solns</source>
+      <source>coarse</source>
     </Print>
-    <Print name="dump2">
+    <Print name="fine">
       <type>csv</type>
-      <source>solns2</source>
-    </Print>
-    <Print name="dump3">
-      <type>csv</type>
-      <source>solns</source>
+      <source>fine</source>
     </Print>
   </OutStreams>
 

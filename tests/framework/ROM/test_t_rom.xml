@@ -13,14 +13,14 @@
 
   <Steps>
     <MultiRun name="model_MRun">
-      <Input class="DataObjects" type="Point">inputPlaceHolder</Input>
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
       <Model class="Models" type="ExternalModel">PythonModule</Model>
       <Sampler class="Samplers" type="Grid">myGrid</Sampler>
       <Output class="DataObjects" type="HistorySet">HistorySet_model</Output>
       <Output class="OutStreams" type="Print">PrintHistorySet_model</Output>
     </MultiRun>
     <MultiRun name="ROM_MRun">
-      <Input class="DataObjects" type="Point">inputPlaceHolder</Input>
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
       <Model class="Models" type="ROM">t_ROM</Model>
       <Sampler class="Samplers" type="Grid">myGrid</Sampler>
       <Output class="DataObjects" type="HistorySet">HistorySet_ROM</Output>
@@ -139,10 +139,10 @@
   </OutStreams>
 
   <DataObjects>
-    <Point name="inputPlaceHolder">
+    <PointSet name="inputPlaceHolder">
       <Input>x0,y0,z0</Input>
       <Output>OutputPlaceHolder</Output>
-    </Point>
+    </PointSet>
     <HistorySet name="HistorySet_model">
       <Input>x0,y0,z0</Input>
       <Output>time,x,y,z</Output>

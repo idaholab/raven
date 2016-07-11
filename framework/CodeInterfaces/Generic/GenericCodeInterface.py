@@ -9,9 +9,10 @@ warnings.simplefilter('default',DeprecationWarning)
 
 import os
 import copy
+import GenericParser
 from CodeInterfaceBaseClass import CodeInterfaceBase
 
-class GenericCodeInterface(CodeInterfaceBase):
+class GenericCode(CodeInterfaceBase):
   """
     This class is used as a generic code interface for Model.Code in Raven.  It expects
     input paremeters to be specified by input file, input files be specified by either
@@ -132,7 +133,6 @@ class GenericCodeInterface(CodeInterfaceBase):
             where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
       @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
     """
-    import GenericParser
     indexes=[]
     infiles=[]
     origfiles=[]
@@ -146,8 +146,5 @@ class GenericCodeInterface(CodeInterfaceBase):
         origfiles.append(inputFile)
     parser = GenericParser.GenericParser(infiles)
     parser.modifyInternalDictionary(**Kwargs)
-    newInputFiles = copy.deepcopy(currentInputFiles)
-    for i in indexes:
-      newInputFiles[i].setBase(Kwargs['prefix']+'~'+newInputFiles[i].getBase())
-    parser.writeNewInput(newInputFiles,origfiles)
-    return newInputFiles
+    parser.writeNewInput(currentInputFiles,origfiles)
+    return currentInputFiles

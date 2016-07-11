@@ -1,0 +1,11 @@
+<?xml version="1.0" ?>
+<Distributions>
+  <Uniform name="zeroToOne">
+    <lowerBound>0.0</lowerBound>
+    <upperBound>1.0</upperBound>
+  </Uniform>
+  <Uniform name="oneToTwo">
+    <lowerBound>1.0</lowerBound>
+    <upperBound>2.0</upperBound>
+  </Uniform>
+</Distributions>

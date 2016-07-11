@@ -8,6 +8,8 @@
 raven_user_manual.pdf
 version.tex
 new_version.tex
+user_manual/libraries.tex
+user_manual/new_libraries.tex
 *.toc
 doxygen/html/
 doxygen/latex/

@@ -99,6 +99,7 @@ class Relap5(CodeInterfaceBase):
     self._samplersDictionary['BnBDynamicEventTree'  ] = self.DynamicEventTreeForRELAP5
     self._samplersDictionary['StochasticCollocation'] = self.pointSamplerForRELAP5
     self._samplersDictionary['EnsembleForward'      ] = self.pointSamplerForRELAP5
+    self._samplersDictionary['CustomSampler'        ] = self.pointSamplerForRELAP5
 
     found = False
     for index, inputFile in enumerate(currentInputFiles):
@@ -109,10 +110,8 @@ class Relap5(CodeInterfaceBase):
     parser = RELAPparser.RELAPparser(currentInputFiles[index].getAbsFile())
     modifDict = self._samplersDictionary[samplerType](**Kwargs)
     parser.modifyOrAdd(modifDict,True)
-    newInputFiles = copy.deepcopy(currentInputFiles)
-    newInputFiles[index].setBase(Kwargs['prefix']+'~'+currentInputFiles[index].getBase())
-    parser.printInput(newInputFiles[index])
-    return newInputFiles
+    parser.printInput(currentInputFiles[index])
+    return currentInputFiles
 
   def pointSamplerForRELAP5(self,**Kwargs):
     """
@@ -124,14 +123,28 @@ class Relap5(CodeInterfaceBase):
     """
     listDict = []
     modifDict = {}
-    cardList = {}
+    deckList = {1:{}}
+    deckActivated = False
     for keys in Kwargs['SampledVars']:
+      deck = None
       key = keys.split(':')
-      if len(key) > 1:
-        position=int(key[1])
-        cardList[key[0]]={'position':position,'value':Kwargs['SampledVars'][keys]}
-      else: cardList[key[0]]={'position':0,'value':Kwargs['SampledVars'][keys]}
-    modifDict['cards']=cardList
+      multiDeck = key[0].split("|")
+      if len(multiDeck) > 1:
+        card = multiDeck[1]
+        deck = multiDeck[0]
+        try   : deck = int(deck)
+        except: raise IOError("RELAP5 interface: activated multi-deck/case approach but the deck number is not an integer (first word followed by '|' symbol). Got "+str(deck))
+        deckActivated = True
+        if deck not in deckList.keys():deckList[deck] = {}
+      else:
+        card = key[0]
+        deck = 1
+      if len(key) > 1    : deckList[deck][card] = {'position':int(key[1]),'value':Kwargs['SampledVars'][keys]}
+      else               : deckList[deck][card] = {'position':0,'value':Kwargs['SampledVars'][keys]}
+      if deck is None:
+        # check if other variables have been defined with a deck ID, in case...error out
+        if deckActivated: raise IOError("If the multi-deck/case approach gets activated, all the variables need to provide a DECK ID. E.g. deckNumber|card|word ! Wrong variable is "+card)
+    modifDict['decks']=deckList
     listDict.append(modifDict)
     return listDict
 
@@ -144,7 +157,8 @@ class Relap5(CodeInterfaceBase):
       @ Out, listDict, list, list of dictionaries used by the parser to change the input file
     """
     listDict =[]
-    cardList={}   #  List of cards to be modified in RELAP5 Input File
+    deckList={1:{}}   #  List of decks with the cards to be modified in RELAP5 Input File
+    deckActivated = False
     # Check the initiator distributions and add the next threshold
     if 'initiator_distribution' in Kwargs.keys():
       for i in range(len(Kwargs['initiator_distribution'])):
@@ -211,19 +225,48 @@ class Relap5(CodeInterfaceBase):
     modifDict={}
     for keys in Kwargs['SampledVars']:
       key = keys.split(':')
-      if len(key) > 1:
-        if Kwargs['startTime'] != 'Initial':  cardList[key[0]]={'position':key[1],'value':float(Kwargs['SampledVars'][keys])}
-        else: cardList[key[0]]={'position':key[1],'value':Kwargs['SampledVars'][keys]}
+      deck = None
+      multiDeck = key[0].split("|")
+      if len(multiDeck) > 1:
+        card = multiDeck[1]
+        deck = multiDeck[0]
+        try   : deck = int(deck)
+        except: raise IOError("RELAP5 interface: activated multi-deck/case approach but the deck number is not an integer (first word followed by '|' symbol). Got "+str(deck))
+        deckActivated = True
+        if deck not in deckList.keys():deckList[deck] = {}
       else:
-        if Kwargs['startTime'] != 'Initial':  cardList[key[0]]={'position':0,'value':float(Kwargs['SampledVars'][keys])}
-        else: cardList[key[0]]={'position':0,'value':float(Kwargs['SampledVars'][keys])}
-    modifDict['cards']=cardList
+        deck = 1
+        card = key[0]
+      if len(key) > 1:
+        if Kwargs['startTime'] != 'Initial':  deckList[deck][card]={'position':int(key[1]),'value':float(Kwargs['SampledVars'][keys])}
+        else: deckList[deck][card]={'position':int(key[1]),'value':Kwargs['SampledVars'][keys]}
+      else:
+        if Kwargs['startTime'] != 'Initial':  deckList[deck][card]={'position':0,'value':float(Kwargs['SampledVars'][keys])}
+        else: deckList[deck][card]={'position':0,'value':float(Kwargs['SampledVars'][keys])}
+      if deck is None:
+        # check if other variables have been defined with a deck ID, in case...error out
+        if deckActivated: raise IOError("If the multi-deck/case approach gets activated, all the variables need to provide a DECK ID. E.g. deckNumber|card|word ! Wrong variable is "+card)
+    modifDict['decks']=deckList
     if 'aux_vars' in Kwargs.keys():
       for keys in Kwargs['aux_vars']:
+        deck = None
         key = keys.split(':')
-        if len(key) > 1:  cardList[key[0]]={'position':key[1],'value':Kwargs['aux_vars'][keys]}
-        else:  cardList[key[0]]={'position':0,'value':Kwargs['aux_vars'][keys]}
-        modifDict['cards']=cardList
+        multiDeck = key[0].split("|")
+        if len(multiDeck) > 1:
+          card = multiDeck[1]
+          deck = multiDeck[0]
+          try   : deck = int(deck)
+          except: raise IOError("RELAP5 interface: activated multi-deck/case approach but the deck number is not an integer (first word followed by '|' symbol). Got "+str(deck))
+          deckActivated = True
+          if deck not in deckList.keys():deckList[deck] = {}
+        else:
+          card = key[0]
+        if len(key) > 1:  deckList[deck][card]={'position':int(key[1]),'value':Kwargs['aux_vars'][keys]}
+        else:  deckList[deck][card]={'position':0,'value':Kwargs['aux_vars'][keys]}
+        if deck is None:
+          # check if other variables have been defined with a deck ID, in case...error out
+          if deckActivated: raise IOError("If the multi-deck/case approach gets activated, all the variables need to provide a DECK ID. E.g. deckNumber|card|word ! Wrong variable is "+card)
+        modifDict['cards']=deckList
     listDict.append(modifDict)
     del modifDict
     return listDict

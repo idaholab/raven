@@ -2,19 +2,19 @@
  [./Grid]
    type = 'RavenFramework'
    input = 'grid.xml'
-   output = 'grid/dump1.xml grid/dump2.xml grid/dump3.xml'
-   csv = 'grid/dump1.csv grid/dump2.csv grid/dump3.csv'
+   output = 'grid/coarse.xml grid/fine.xml'
+   csv = 'grid/coarse.csv grid/fine.csv'
  [../]
  [./SparseGridCollocation]
    type = 'RavenFramework'
    input = 'sparse_grid_collocation.xml'
-   output = 'sparse_grid_collocation/dump1.xml sparse_grid_collocation/dump2.xml sparse_grid_collocation/dump3.xml'
-   csv = 'sparse_grid_collocation/dump1.csv sparse_grid_collocation/dump2.csv sparse_grid_collocation/dump3.csv'
+   output = 'sparse_grid_collocation/coarse.xml sparse_grid_collocation/fine.xml'
+   csv = 'sparse_grid_collocation/coarse.csv sparse_grid_collocation/fine.csv'
  [../]
  [./Sobol]
    type = 'RavenFramework'
    input = 'sobol.xml'
-   output = 'sobol/dump1.xml sobol/dump2.xml sobol/dump3.xml'
-   csv = 'sobol/dump1.csv sobol/dump2.csv sobol/dump3.csv'
+   output = 'sobol/coarse.xml sobol/fine.xml'
+   csv = 'sobol/coarse.csv sobol/fine.csv'
  [../]
 []
