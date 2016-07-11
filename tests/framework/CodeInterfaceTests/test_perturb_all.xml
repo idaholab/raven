@@ -7,8 +7,8 @@
   </RunInfo>
 
   <Files>
-    <Input name="mammothInput" type="mammothInput|rattlesnakeInput">QuarterPin_withFuel.i</Input>
-    <Input name="bisonInput" type="bisonInput">bison_2way_fuelcladelastic.i</Input>
+    <Input name="mammothInput" type="mammothInput|rattlesnakeInput">quarter_pin_with_fuel.i</Input>
+    <Input name="bisonInput" type="bisonInput">bison_2way_fuel_clad_elastic.i</Input>
     <Input name="bisonMesh" type="bison|mesh">QuarterPin_FuelClad_FineQUAD8.e</Input>
     <Input name="rattlesnakeMesh" type="rattlesnake|mesh">QuarterPin_FuelGapCladWater_QUAD8_Fine.e</Input>
     <Input name="M1" type="yakxsinput">M1_2D.xml</Input>
@@ -40,11 +40,14 @@
 
   <Models>
     <Code name="Mammoth" subType="MAMMOTH">
-        <executable>
-            <!--  /path/to/mammoth/executable/mammoth-opt
+        <!--executable>
+              /path/to/mammoth/executable/mammoth-opt
               here we should put the executable. Since we want to test the interface only, it is going to be empty
               the following is an example:
-              %FRAMEWORK_DIR%/../../mammoth/mammoth-%METHOD% -->
+              %FRAMEWORK_DIR%/../../mammoth/mammoth-%METHOD%
+        </executable-->
+        <executable>
+              %FRAMEWORK_DIR%/../../mammoth/mammoth-%METHOD% 
         </executable>
     </Code>
   </Models>

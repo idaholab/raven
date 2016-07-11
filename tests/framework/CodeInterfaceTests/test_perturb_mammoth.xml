@@ -3,7 +3,13 @@
   <RunInfo>
     <WorkingDir>QuarterPellet_Example_2D</WorkingDir>
     <Sequence>MCTestMammoth</Sequence>
-    <batchSize>1</batchSize>
+    <mode>
+      mpi
+      <runQSUB/>
+    </mode>
+    <expectedTime>00:10:00</expectedTime>
+    <clusterParameters>-W block=true</clusterParameters>
+    <batchSize>2</batchSize>
   </RunInfo>
 
   <Files>
@@ -43,6 +49,7 @@
               here we should put the executable. Since we want to test the interface only, it is going to be empty
               the following is an example:
               %FRAMEWORK_DIR%/../../mammoth/mammoth-%METHOD% -->
+              %FRAMEWORK_DIR%/../../mammoth/mammoth-%METHOD%
         </executable>
     </Code>
   </Models>
@@ -65,7 +72,7 @@
   <Samplers>
     <MonteCarlo name="MC1">
       <samplerInit>
-        <limit>2</limit>
+        <limit>5</limit>
       </samplerInit>
       <variable name="AuxVariables|Temp|initial_condition:Rattlesnake">
         <distribution>G1</distribution>
