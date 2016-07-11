@@ -1,13 +1,25 @@
 Overview
-RAVEN is a flexible and multi-purpose statistical analysis framework. It has been developed at Idaho National Laboratory (INL) since 2012 within the Nuclear Energy Advanced Modeling and Simulation (NEAMS) and the Light Water Reactor Sustainability (LWRS) Risk Informed Safety Margin Characterization (RISMC) programs. 
+
+RAVEN is a flexible and multi-purpose statistical analysis
+framework. It has been developed at Idaho National Laboratory (INL)
+since 2012 within the Nuclear Energy Advanced Modeling and Simulation
+(NEAMS) and the Light Water Reactor Sustainability (LWRS) Risk
+Informed Safety Margin Characterization (RISMC) programs.
+
 Statistical analysis includes the following major capabilities:
-- statistical sampling of codes (e.g., Monte Carlo, Latin hypercube and grid sampling, and Dynamic Event Trees) for uncertainty quantification and reliability analyses
-- generation and use of reduced-order models (also known as surrogate models or emulators)
-- data post-processing 
-- statistical estimation and sensitivity analysis (e.g., mean, variance, sensitivity coefficients and covariance matrix).
+- statistical sampling of codes (e.g., Monte Carlo, Latin hypercube
+  and grid sampling, and Dynamic Event Trees) for uncertainty
+  quantification and reliability analyses
+- generation and use of reduced-order models (also known as surrogate
+  models or emulators)
+- data post-processing
+- statistical estimation and sensitivity analysis (e.g., mean,
+  variance, sensitivity coefficients and covariance matrix).
 
 Applications
-The RAVEN statistical analysis framework can be employed for several types of applications:
+
+The RAVEN statistical analysis framework can be employed for several
+types of applications:
 - Uncertainty Quantification
 - Sensitivity Analysis
 - Probabilistic Risk and Reliability Analysis (PRA)
@@ -16,7 +28,10 @@ The RAVEN statistical analysis framework can be employed for several types of ap
 - Model Optimization (currently under development)
 
 Capabilities
-RAVEN provides a set of basic and advanced capabilities that ranges from data generation, data processing and data visualization.
+
+RAVEN provides a set of basic and advanced capabilities that ranges
+from data generation, data processing and data visualization.
+
 A full set of RAVEN computational capabilities are listed below:
 
 Computing capabilities:
@@ -24,12 +39,17 @@ Computing capabilities:
 - supported operating systems: MAC, linux and windows
 - workstation and high performance computing systems
 
-Multi-steps analyses: RAVEN analyses are performed through a series of simulation steps. Each simulation step allows the user to perform a set of basic actions: 
+Multi-steps analyses: RAVEN analyses are performed through a series of
+simulation steps. Each simulation step allows the user to perform a
+set of basic actions:
+
 - Multi-Run
 - Training of a ROM
 - Post-Process
 - IOStep
-More complex analyses are performed by simply assembling and linking a series of steps listed above.
+
+More complex analyses are performed by simply assembling and linking a
+series of steps listed above.
 
 Creation and use of reduced order models (scikit-learn and CROW library)
 - SVM
