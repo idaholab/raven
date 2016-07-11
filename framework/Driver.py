@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Created on Feb 20, 2013
 
@@ -15,6 +16,9 @@ warnings.simplefilter('default',DeprecationWarning)
 import xml.etree.ElementTree as ET
 import os
 import sys
+import threading
+import time
+import traceback
 #External Modules--------------------end
 
 #warning: this needs to be before importing h5py
@@ -27,6 +31,7 @@ utils.find_crow(frameworkDir)
 utils.add_path_recursively(os.path.join(frameworkDir,'contrib'))
 #Internal Modules
 from Simulation import Simulation
+from Application import __PySideAvailable
 #Internal Modules
 
 #------------------------------------------------------------- Driver
@@ -59,6 +64,7 @@ if __name__ == '__main__':
   printStatement()
   verbosity      = 'all'
   interfaceCheck = False
+  interactive = False
   workingDir = os.getcwd()
   for item in sys.argv:
     if   item.lower() == 'silent':
@@ -73,9 +79,15 @@ if __name__ == '__main__':
     elif item.lower() == 'interfacecheck':
       interfaceCheck = True
       sys.argv.pop(sys.argv.index(item))
+    elif item.lower() == 'interactive':
+      if __PySideAvailable:
+        interactive = True
+      else:
+        print('\nPySide is not installed, disabling interactive mode.\n')
+      sys.argv.pop(sys.argv.index(item))
   if interfaceCheck: os.environ['RAVENinterfaceCheck'] = 'True'
   else             : os.environ['RAVENinterfaceCheck'] = 'False'
-  simulation = Simulation(frameworkDir,verbosity=verbosity)
+  simulation = Simulation(frameworkDir,verbosity=verbosity,interactive=interactive)
   #If a configuration file exists, read it in
   configFile = os.path.join(os.path.expanduser("~"),".raven","default_runinfo.xml")
   if os.path.exists(configFile):
@@ -122,7 +134,56 @@ if __name__ == '__main__':
     #generate all the components of the simulation
     #Call the function to read and construct each single module of the simulation
     simulation.XMLread(root,runInfoSkip=set(["DefaultInputFile"]),xmlFilename=inputFile)
-  # Initialize the simulation
-  simulation.initialize()
-  # Run the simulation
-  simulation.run()
+
+  def raven():
+    """
+      A worker function that allows the computation of the main RAVEN execution
+      to be offloaded to another thread, freeing the main thread for UI
+      interaction (Qt requires UI to be handled on the main thread of execution)
+    """
+    simulation.initialize()
+    simulation.run()
+
+    ## If there is an associated UI application, then we can quit it now that
+    ## we are done, the main thread does not know when this done presumably
+    ## because this thread still is technically running as long as the app,
+    ## which both threads can see, has not called quit. Otherwise, we could do
+    ## this after the while loop below.
+    if simulation.app is not None:
+      simulation.app.quit()
+
+  try:
+    ## Create the thread that will run RAVEN, and make sure that it will die if
+    ## the main thread dies by making it a daemon, then start it up
+    ravenThread = threading.Thread(target=raven)
+    ravenThread.daemon = True
+    ravenThread.start()
+
+    ## If there is an associated application, then we can start it up now as
+    ## well. It will listen for UI update requests from the ravenThread.
+    if simulation.app is not None:
+      simulation.app.exec_()
+
+    ## This makes sure that the main thread waits for RAVEN to complete before
+    ## exiting, however join will block the main thread until ravenThread is
+    ## complete, thus ignoring any kill signals until after it has completed
+    # ravenThread.join()
+
+    waitTime = 0.1 ## in seconds
+
+    ## So, in order to live wait for ravenThread, we need a spinlock that will
+    ## allow us to accept keyboard input.
+    while ravenThread.isAlive():
+      ## Use one of these two alternatives, effectively they should be the same
+      ## not sure if there is any advantage to one over the other
+      time.sleep(waitTime)
+      # ravenThread.join(waitTime)
+
+  except KeyboardInterrupt:
+    if ravenThread.isAlive():
+      traceback.print_stack(sys._current_frames()[ravenThread.ident])
+    print ('\n\n! Received keyboard interrupt, exiting RAVEN.\n\n')
+  except SystemExit:
+    if ravenThread.isAlive():
+      traceback.print_stack(sys._current_frames()[ravenThread.ident])
+    print ('\n\n! Exit called, exiting RAVEN.\n\n')

@@ -9418,6 +9418,26 @@
    19     blpmass      sum           70465.8                 20     primass      sum           542288.    
    21     corlev       sum           13.3744                 22     uplev        sum           12.5310    
 0---Restart no.         0 written, block no.     0, at time=     0.00000    ---  Restart Write # =        1
+ Reducing time step due to max number of repeats                300368
+ Reducing time step due to max number of repeats                300371
+ Reducing time step due to max number of repeats                300389
+ Reducing time step due to max number of repeats                300392
+ Reducing time step due to max number of repeats                300407
+ Reducing time step due to max number of repeats                300410
+ Reducing time step due to max number of repeats                300413
+ Reducing time step due to max number of repeats                300487
+ Reducing time step due to max number of repeats                300490
+ Reducing time step due to max number of repeats                300505
+ Reducing time step due to max number of repeats                300531
+ Reducing time step due to max number of repeats                300534
+ Reducing time step due to max number of repeats                300537
+ Reducing time step due to max number of repeats                300553
+ Reducing time step due to max number of repeats                300556
+ Reducing time step due to max number of repeats                300559
+ Reducing time step due to max number of repeats                300575
+ Reducing time step due to max number of repeats                300578
+ Reducing time step due to max number of repeats                300595
+ Reducing time step due to max number of repeats                300598
   MINOR EDIT
 MINOR EDIT time=  4.90000000E+01 adv=   798 M.Ed. Lines    50
 1 time        p            p            p            voidg        voidg        voidg        mflowj       
@@ -9474,6 +9494,26 @@ MINOR EDIT time=  4.90000000E+01 adv=   798 M.Ed. Lines    50
    47.0000       1022.2       916.36       905.23      1.90701E-03  3.39009E-04   0.0000       920.73    
    48.0000       1012.9       916.60       905.56      4.47078E-03  8.38981E-04  1.23801E-07   907.96    
    49.0000       1006.0       916.87       905.85      7.75019E-03  2.15721E-02  1.64652E-06   898.94    
+ Reducing time step due to max number of repeats                300368
+ Reducing time step due to max number of repeats                300371
+ Reducing time step due to max number of repeats                300389
+ Reducing time step due to max number of repeats                300392
+ Reducing time step due to max number of repeats                300407
+ Reducing time step due to max number of repeats                300410
+ Reducing time step due to max number of repeats                300413
+ Reducing time step due to max number of repeats                300487
+ Reducing time step due to max number of repeats                300490
+ Reducing time step due to max number of repeats                300505
+ Reducing time step due to max number of repeats                300531
+ Reducing time step due to max number of repeats                300534
+ Reducing time step due to max number of repeats                300537
+ Reducing time step due to max number of repeats                300553
+ Reducing time step due to max number of repeats                300556
+ Reducing time step due to max number of repeats                300559
+ Reducing time step due to max number of repeats                300575
+ Reducing time step due to max number of repeats                300578
+ Reducing time step due to max number of repeats                300595
+ Reducing time step due to max number of repeats                300598
   MINOR EDIT
 MINOR EDIT time=  9.90000000E+01 adv=  1386 M.Ed. Lines   100
 1 time        p            p            p            voidg        voidg        voidg        mflowj       
@@ -11308,6 +11348,26 @@ MINOR EDIT time=  9.90000000E+01 adv=  1386 M.Ed. Lines   100
    19     blpmass      sum           65774.1                 20     primass      sum           443127.    
    21     corlev       sum           12.2175                 22     uplev        sum           9.74772    
 0---Restart no.      1401 written, block no.     1, at time=     100.000    ---  Restart Write # =        2
+ Reducing time step due to max number of repeats                300368
+ Reducing time step due to max number of repeats                300371
+ Reducing time step due to max number of repeats                300389
+ Reducing time step due to max number of repeats                300392
+ Reducing time step due to max number of repeats                300407
+ Reducing time step due to max number of repeats                300410
+ Reducing time step due to max number of repeats                300413
+ Reducing time step due to max number of repeats                300487
+ Reducing time step due to max number of repeats                300490
+ Reducing time step due to max number of repeats                300505
+ Reducing time step due to max number of repeats                300531
+ Reducing time step due to max number of repeats                300534
+ Reducing time step due to max number of repeats                300537
+ Reducing time step due to max number of repeats                300553
+ Reducing time step due to max number of repeats                300556
+ Reducing time step due to max number of repeats                300559
+ Reducing time step due to max number of repeats                300575
+ Reducing time step due to max number of repeats                300578
+ Reducing time step due to max number of repeats                300595
+ Reducing time step due to max number of repeats                300598
   MINOR EDIT
 MINOR EDIT time=  1.00000000E+02 adv=  1401 M.Ed. Lines   101
 1 time        p            p            p            voidg        voidg        voidg        mflowj       

@@ -90,7 +90,8 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
                                                 'AdaptiveSparseGrid',
                                                 'Sobol',
                                                 'AdaptiveSobol',
-                                                'EnsembleForward']
+                                                'EnsembleForward',
+                                                'CustomSampler']
 
   @classmethod
   def generateValidateDict(cls):
@@ -199,6 +200,14 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     paramDict['subType'] = self.subType
     return paramDict
 
+  def finalizeModelOutput(self,finishedJob):
+    """
+      Method that is aimed to finalize (preprocess) the output of a model before the results get collected
+      @ In, finishedJob, InternalRunner object, instance of the run just finished
+      @ Out, None
+    """
+    pass
+
   def localGetInitParams(self):
     """
       Method used to export to the printer in the base class the additional PERMANENT your local class have
@@ -253,13 +262,15 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
   def collectOutput(self,collectFrom,storeTo):
     """
       Method that collects the outputs from the previous run
-      @ In, finishedJob, InternalRunner object, instance of the run just finished
-      @ In, output, "DataObjects" object, output where the results of the calculation needs to be stored
+      @ In, collectFrom, InternalRunner object, instance of the run just finished
+      @ In, storeTo, "DataObjects" object, output where the results of the calculation needs to be stored
       @ Out, None
     """
     #if a addOutput is present in nameSpace of storeTo it is used
-    if 'addOutput' in dir(storeTo): storeTo.addOutput(collectFrom)
-    else                          : self.raiseAnError(IOError,'The place where to store the output has not a addOutput method')
+    if 'addOutput' in dir(storeTo):
+      storeTo.addOutput(collectFrom)
+    else:
+      self.raiseAnError(IOError,'The place where we want to store the output has no addOutput method!')
 
   def getAdditionalInputEdits(self,inputInfo):
     """
@@ -404,21 +415,46 @@ class Dummy(Model):
       @ In, output, "DataObjects" object, output where the results of the calculation needs to be stored
       @ Out, None
     """
-    if finishedJob.returnEvaluation() == -1: self.raiseAnError(AttributeError,"No available Output to collect")
+    if finishedJob.returnEvaluation() == -1:
+      self.raiseAnError(AttributeError,"No available Output to collect")
     evaluation = finishedJob.returnEvaluation()
-    if type(evaluation[1]).__name__ == "tuple": outputeval = evaluation[1][0]
-    else                                      : outputeval = evaluation[1]
+    if type(evaluation[1]).__name__ == "tuple":
+      outputeval = evaluation[1][0]
+    else:
+      outputeval = evaluation[1]
     exportDict = copy.deepcopy({'inputSpaceParams':evaluation[0],'outputSpaceParams':outputeval,'metadata':finishedJob.returnMetadata()})
     if output.type == 'HDF5': output.addGroupDataObjects({'group':self.name+str(finishedJob.identifier)},exportDict,False)
     else:
-      if not set(output.getParaKeys('inputs') + output.getParaKeys('outputs')).issubset(set(list(exportDict['inputSpaceParams'].keys()) + list(exportDict['outputSpaceParams'].keys()))):
-        missingParameters = set(output.getParaKeys('inputs') + output.getParaKeys('outputs')) - set(list(exportDict['inputSpaceParams'].keys()) + list(exportDict['outputSpaceParams'].keys()))
-        self.raiseAnError(RuntimeError,"the model "+ self.name+" does not generate all the outputs requested in output object "+ output.name +". Missing parameters are: " + ','.join(list(missingParameters)) +".")
-      for key in exportDict['inputSpaceParams' ] :
-        if key in output.getParaKeys('inputs') : output.updateInputValue (key,exportDict['inputSpaceParams' ][key])
-      for key in exportDict['outputSpaceParams'] :
-        if key in output.getParaKeys('outputs'): output.updateOutputValue(key,exportDict['outputSpaceParams'][key])
-      for key in exportDict['metadata'] : output.updateMetadata(key,exportDict['metadata'][key])
+      self.collectOutputFromDict(exportDict,output)
+
+  def collectOutputFromDict(self,exportDict,output):
+    """
+      Collect results from a dictionary
+      @ In, exportDict, dict, contains 'inputSpaceParams','outputSpaceParams','metadata'
+      @ In, output, DataObject, to whom we write the data
+      @ Out, None
+    """
+    #prefix is not generally useful for dummy-related models, so we remove it but store it
+    if 'prefix' in exportDict.keys():
+      prefix = exportDict.pop('prefix')
+    #check for name usage, depends on where it comes from
+    if 'inputSpaceParams' in exportDict.keys():
+      inKey = 'inputSpaceParams'
+      outKey = 'outputSpaceParams'
+    else:
+      inKey = 'inputs'
+      outKey = 'outputs'
+    if not set(output.getParaKeys('inputs') + output.getParaKeys('outputs')).issubset(set(list(exportDict[inKey].keys()) + list(exportDict[outKey].keys()))):
+      missingParameters = set(output.getParaKeys('inputs') + output.getParaKeys('outputs')) - set(list(exportDict[inKey].keys()) + list(exportDict[outKey].keys()))
+      self.raiseAnError(RuntimeError,"the model "+ self.name+" does not generate all the outputs requested in output object "+ output.name +". Missing parameters are: " + ','.join(list(missingParameters)) +".")
+    for key in exportDict[inKey ]:
+      if key in output.getParaKeys('inputs'):
+        output.updateInputValue (key,exportDict[inKey][key])
+    for key in exportDict[outKey]:
+      if key in output.getParaKeys('outputs'):
+        output.updateOutputValue(key,exportDict[outKey][key])
+    for key in exportDict['metadata']:
+      output.updateMetadata(key,exportDict['metadata'][key])
 #
 #
 #
@@ -515,6 +551,7 @@ class ROM(Dummy):
       @ Out, None
     """
     Dummy._readMoreXML(self, xmlNode)
+    self.initializationOptionDict['name'] = self.name
     for child in xmlNode:
       if child.attrib:
         if child.tag not in self.initializationOptionDict.keys():
@@ -524,19 +561,9 @@ class ROM(Dummy):
         if child.tag == 'estimator':
           self.initializationOptionDict[child.tag] = {}
           for node in child:
-            try:
-              self.initializationOptionDict[child.tag][node.tag] = int(node.text)
-            except (ValueError,TypeError):
-              try:
-                self.initializationOptionDict[child.tag][node.tag] = float(node.text)
-              except (ValueError,TypeError):
-                self.initializationOptionDict[child.tag][node.tag] = node.text
+            self.initializationOptionDict[child.tag][node.tag] = utils.tryParse(node.text)
         else:
-          try:
-            self.initializationOptionDict[child.tag] = int(child.text)
-          except (ValueError,TypeError):
-            try: self.initializationOptionDict[child.tag] = float(child.text)
-            except (ValueError,TypeError): self.initializationOptionDict[child.tag] = child.text
+          self.initializationOptionDict[child.tag] = utils.tryParse(child.text)
     #the ROM is instanced and initialized
     # check how many targets
     if not 'Target' in self.initializationOptionDict.keys(): self.raiseAnError(IOError,'No Targets specified!!!')
@@ -558,64 +585,60 @@ class ROM(Dummy):
     #restore targets to initialization option dict
     self.initializationOptionDict['Target'] = ','.join(targets)
 
-  def printXML(self,options=None):
+  def printXML(self,options={}):
     """
       Called by the OutStreamPrint object to cause the ROM to print itself to file.
-      @ In, options, the options to use in printing, including filename, things to print, etc.
+      @ In, options, dict, optional, the options to use in printing, including filename, things to print, etc.
       @ Out, None
     """
-    if options:
-      if ('filenameroot' in options.keys()): filenameLocal = options['filenameroot']
-      else: filenameLocal = self.name + '_dump'
-    else: options={}
-    tree=self._localBuildPrintTree(options)
-    msg=tree.stringNodeTree()
-    open(filenameLocal+'.xml','w').writelines(msg)
-    self.raiseAMessage('ROM XML printed to "'+filenameLocal+'.xml"')
-
-  def _localBuildPrintTree(self,options=None):
-    """
-      Constructs XML for printing of poperties of this Model.
-      @ In, options, dict, optional, options by keyword
-      @ Out, node, TreeStructure.NodeTree, xml-like tree with desired data
-    """
-    node = TreeStructure.Node('ReducedOrderModel')
-    tree = TreeStructure.NodeTree(node)
+    #determine dynamic or static
+    if type(self.SupervisedEngine) == list:
+      dynamic = True
+    elif type(self.SupervisedEngine) == dict:
+      dynamic = False
+    else:
+      self.raiseAnError(RuntimeError,'Unrecognized structure for self.SupervisedEngine:',type(self.SupervisedEnging))
+    # establish file
+    if 'filenameroot' in options.keys():
+      filenameLocal = options['filenameroot']
+    else:
+      filenameLocal = self.name + '_dump'
+    if dynamic:
+      outFile = Files.returnInstance('DynamicXMLOutput',self)
+    else:
+      outFile = Files.returnInstance('StaticXMLOutput',self)
+    outFile.initialize(filenameLocal+'.xml',self.messageHandler)
+    outFile.newTree('ROM',pivotParam=self.historyPivotParameter)
+    #establish targets
     if 'target' in options.keys():
       targets = options['target'].split(',')
     else:
-      targets = 'all'
-    if type(self.SupervisedEngine) == list: timeDep = True
-    elif type(self.SupervisedEngine) == dict: timeDep = False
+      targets = ['all']
+    #establish sets of engines to work from
+    if dynamic:
+      engines = self.SupervisedEngine
     else:
-      self.raiseAnError(RuntimeError,'Unrecognized structure for self.SupervisedEngine:',type(self.SupervisedEnging))
+      engines = [self.SupervisedEngine]
+    #handle 'all' case
     if 'all' in targets:
-      #case: time-dependent
-      if timeDep:
-        targets = list(key for key in self.SupervisedEngine[0].keys())
-        for s,step in enumerate(self.SupervisedEngine):
-          #get the time step
-          pivotStep = range(1,self.numberOfTimeStep+1)[s]
-          pivotNode = TreeStructure.Node(self.historyPivotParameter+'_step')
-          pivotNode.setText(pivotStep)
-          node.appendBranch(pivotNode)
-          pivotValue = self.historySteps[s]
-          pivotValNode = TreeStructure.Node(self.historyPivotParameter)
-          pivotValNode.setText(pivotValue)
-          pivotNode.appendBranch(pivotValNode)
-          for key,target in step.items():
-            #skip time marching parameter
-            if key == self.historyPivotParameter:
-              continue
-            if key in targets:
-              target.printXML(pivotNode,options)
-      #case: not time-dependent
+      targets = engines[0].keys()
+    #this loop is only 1 entry long if not dynamic
+    for s,step in enumerate(engines):
+      if dynamic:
+        pivotValue = self.historySteps[s]
       else:
-        targets = list(key for key in self.SupervisedEngine.keys())
-        for key,target in self.SupervisedEngine.items():
-          if key in targets:
-            target.printXML(node,options)
-    return tree
+        pivotValue = 0
+      for key,target in step.items():
+        #skip the pivot param
+        if key == self.historyPivotParameter:
+          continue
+        #otherwise, if this is one of the requested keys, call engine's print method
+        if key in targets:
+          self.raiseAMessage('Printing time',pivotValue,'target',key,'ROM XML')
+          target.printXML(outFile,pivotValue,options)
+    self.raiseADebug('Writing to XML file...')
+    outFile.writeFile()
+    self.raiseAMessage('ROM XML printed to "'+filenameLocal+'.xml"')
 
   def reset(self):
     """
@@ -805,6 +828,7 @@ class ExternalModel(Dummy):
     self.sim                      = None
     self.modelVariableValues      = {}                                          # dictionary of variable values for the external module imported at runtime
     self.modelVariableType        = {}                                          # dictionary of variable types, used for consistency checks
+    self.listOfRavenAwareVars     = []                                          # list of variables RAVEN needs to be aware of
     self._availableVariableTypes = ['float','bool','int','ndarray',
                                     'c1darray','float16','float32','float64',
                                     'float128','int16','int32','int64','bool8'] # available data types
@@ -878,15 +902,16 @@ class ExternalModel(Dummy):
         for var in son.text.split(','):
           var = var.strip()
           self.modelVariableType[var] = None
+          self.listOfRavenAwareVars.append(var)
     # check if there are other information that the external module wants to load
-    if '_readMoreXML' in dir(self.sim): self.sim._readMoreXML(self,xmlNode)
+    if '_readMoreXML' in dir(self.sim): self.sim._readMoreXML(self.initExtSelf,xmlNode)
 
   def __externalRun(self, Input, modelVariables):
     """
       Method that performs the actual run of the imported external model (separated from run method for parallelization purposes)
       @ In, Input, list, list of the inputs needed for running the model
       @ In, modelVariables, dict, the dictionary containing all the External Model variables
-      @ Out, (modelVariableValues,self), tuple, tuple containing the dictionary of the results (pos 0) and the self (pos 1)
+      @ Out, (outcomes,self), tuple, tuple containing the dictionary of the results (pos 0) and the self (pos 1)
     """
     externalSelf        = utils.Object()
     #self.sim=__import__(self.ModuleToLoad)
@@ -920,7 +945,8 @@ class ExternalModel(Dummy):
           errorFound = True
           self.raiseADebug('variable '+ key+' has an unsupported type -> '+ self.modelVariableType[key],verbosity='silent')
       if errorFound: self.raiseAnError(RuntimeError,'Errors detected. See above!!')
-    return copy.copy(modelVariableValues),self
+    outcomes = dict((k, modelVariableValues[k]) for k in self.listOfRavenAwareVars)
+    return outcomes,self
 
   def run(self,Input,jobHandler):
     """
@@ -1216,7 +1242,7 @@ class Code(Model):
     executeCommand, self.outFileRoot = returnedCommand
     uniqueHandler = inputFiles[1]['uniqueHandler'] if 'uniqueHandler' in inputFiles[1].keys() else 'any'
     identifier    = inputFiles[1]['prefix'] if 'prefix' in inputFiles[1].keys() else None
-    jobHandler.submitDict['External'](executeCommand,self.outFileRoot,metaData['subDirectory'],identifier=identifier,metadata=metaData,codePointer=self.code,uniqueHandler = uniqueHandler)
+    jobHandler.submitDict['External'](executeCommand,self.outFileRoot,metaData.pop('subDirectory'),identifier=identifier,metadata=metaData,codePointer=self.code,uniqueHandler = uniqueHandler)
     found = False
     for index, inputFile in enumerate(self.currentInputFiles):
       if inputFile.getExt() in self.code.getInputExtension():
@@ -1226,6 +1252,16 @@ class Code(Model):
                                   + self.subType +': ' + ' '.join(self.getInputExtension()))
     self.raiseAMessage('job "'+ str(identifier) + "_" + self.currentInputFiles[index].getBase() +'" submitted!')
 
+  def finalizeModelOutput(self,finishedJob):
+    """
+      Method that is aimed to finalize (preprocess) the output of a model before the results get collected
+      @ In, finishedJob, InternalRunner object, instance of the run just finished
+      @ Out, None
+    """
+    if 'finalizeCodeOutput' in dir(self.code):
+      out = self.code.finalizeCodeOutput(finishedJob.command,finishedJob.output,finishedJob.getWorkingDir())
+      if out: finishedJob.output = out
+
   def collectOutput(self,finishedjob,output):
     """
       Method that collects the outputs from the previous run
@@ -1233,10 +1269,6 @@ class Code(Model):
       @ In, output, "DataObjects" object, output where the results of the calculation needs to be stored
       @ Out, None
     """
-    #can we revise the spelling to something more English?
-    if 'finalizeCodeOutput' in dir(self.code):
-      out = self.code.finalizeCodeOutput(finishedjob.command,finishedjob.output,finishedjob.getWorkingDir())
-      if out: finishedjob.output = out
     outputFilelocation = finishedjob.getWorkingDir()
     attributes={"inputFile":self.currentInputFiles,"type":"csv","name":os.path.join(outputFilelocation,finishedjob.output+'.csv')}
     metadata = finishedjob.returnMetadata()
@@ -1249,6 +1281,35 @@ class Code(Model):
       if metadata:
         for key,value in metadata.items(): output.updateMetadata(key,value,attributes)
     else: self.raiseAnError(ValueError,"output type "+ output.type + " unknown for Model Code "+self.name)
+
+  def collectOutputFromDict(self,exportDict,output):
+    """
+      Collect results from dictionary
+      @ In, exportDict, dict, contains 'inputs','outputs','metadata'
+      @ In, output, the place to write to
+      @ Out, None
+    """
+    prefix = exportDict.pop('prefix')
+    #convert to *spaceParams instead of inputs,outputs
+    if 'inputs' in exportDict.keys():
+      inp = exportDict.pop('inputs')
+      exportDict['inputSpaceParams'] = inp
+    if 'outputs' in exportDict.keys():
+      out = exportDict.pop('outputs')
+      exportDict['outputSpaceParams'] = out
+    if output.type == 'HDF5':
+      output.addGroupDataObjects({'group':self.name+str(prefix)},exportDict,False)
+    else: #point set
+      for key in exportDict['inputSpaceParams']:
+        if key in output.getParaKeys('inputs'):
+          output.updateInputValue(key,exportDict['inputSpaceParams'][key])
+      for key in exportDict['outputSpaceParams']:
+        if key in output.getParaKeys('outputs'):
+          output.updateOutputValue(key,exportDict['outputSpaceParams'][key])
+      for key in exportDict['metadata']:
+        output.updateMetadata(key,exportDict['metadata'][key])
+      output.numAdditionalLoadPoints += 1 #prevents consistency problems for entries from restart
+
 
 #
 #

@@ -38,8 +38,4 @@ def run(self,Input):
     self.y[t+1]    = self.y[t] + (self.x[t]*(self.rho-self.z[t])-self.y[t]) * t_step
     self.z[t+1]    = self.z[t] + (self.x[t]*self.y[t]-self.beta*self.z[t]) * t_step
 
-    #self.ax.plot3D(self.x,self.y,self.z)
-
-    #pyl.savefig('test.png')
-
 

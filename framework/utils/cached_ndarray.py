@@ -92,9 +92,7 @@ class c1darray(object):
           # to be safer
           self.capacity += max(self.capacity*4,x.size) #self.capacity + x.size*4
           newdata = np.zeros((self.capacity,),dtype=self.values.dtype)
-          try: newdata[:self.size] = self.values[:]
-          except:
-            pass
+          newdata[:self.size] = self.values[:self.size]
           self.values = newdata
         #for index in range(x.size):
         self.values[self.size:self.size+x.size] = x[:]
@@ -143,7 +141,7 @@ class c1darray(object):
       if self.values[i]>=maxValue:
         maxValue = self.values[i]
         index = i
-        break
+        #break Breaking here guarantees you only ever get the first index (unless you have -sys.float_info_max in first entry)
     return index
 
   def returnIndexMin(self):
@@ -158,7 +156,7 @@ class c1darray(object):
       if self.values[i]<=minValue:
         minValue = self.values[i]
         index = i
-        break
+        #break Breaking here guarantees you only ever get the first index (unless you have sys.float_info_max in first entry)
     return index
 
   def __add__(self, x):

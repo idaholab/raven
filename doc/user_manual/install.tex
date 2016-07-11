@@ -11,14 +11,12 @@ There are two main requirements to installing RAVEN, installing the
 RAVEN dependencies (Section \ref{raven_dependencies}) and installing
 RAVEN itself (Section \ref{raven_installation}).  For any particular
 installation, only one of the raven dependency procedures and one of
-the raven installation paths needs to be taken. For some versions of
-OSX, there is a RAVEN complete package that combines these steps
-(Section \ref{raven_complete}).
+the raven installation paths needs to be taken.
 
 For OSX it is recommended that the dependencies be installed with
 Miniconda (Section \ref{miniconda}).  For Linux, it is recommended
 that the distribution package manager be used if possible (Section
-\ref{linux_package_manager}).
+\ref{sysprep_linux}).
 
 There are several different ways of getting RAVEN as described in
 Section \ref{raven_installation}.  They vary depending on how easy
@@ -32,28 +30,55 @@ be inversely correlated).
 \section{RAVEN Dependencies Installation}
 \label{raven_dependencies}
 
-There are several different ways to install the dependencies that
-RAVEN needs.  For OSX, Xcode command line tools and XQuartz are
-needed, and then Miniconda is recommended (Section
-\ref{osx_dependencies}).  If the MOOSE environment package is
-installed, Miniconda is recommended (Section \ref{miniconda_moose}) .
-For Linux, the distribution's package manager is recommended (Section
-\ref{linux_package_manager}).
+RAVEN is built upon several freely available open-source software packages, 
+which must  be installed before it will function properly:
 
-\subsection{Linux Package Manager}
-\label{linux_package_manager}
+\begin{center}
+    \begin{tabular}{ | l | p{10cm} |}
+    \hline Package & Purpose \\
+    \hline git & Source code control tool \\
+    \hline g++ & C++ language compiler suite (Needed to build
+        support code in the RAVEN package) \\
+    \hline libtool & Generic library management tool \\
+    \hline python & Scripting language RAVEN is written in \\
+    \hline swig & Simplified Wrapper and Interface Generator 
+        (Used to create Python interfaces to supporting C++ code) \\
+    \hline hdf5 & Library providing interface to HDF5 database 
+        file format used by RAVEN \\
+    \hline h5py & Python interface to HDF5 database library \\
+    \hline numpy & N-Dimensional array package for Python \\
+    \hline scipy &  Scientific computing package for Python \\
+    \hline scikit-learn & Machine learning library for Python \\
+    \hline matplotlib & Plotting library for Python \\
+    \hline
+    \end{tabular}
+\end{center}
 
-If RAVEN is being installed on Linux, it is recommended that the
+
+RAVEN is supported on three separate computing platforms:
+Linux, OSX (Apple Macintosh), and Microsoft Windows.  Depending
+on which of these systems is used, the preparation of the system 
+to run RAVEN varies.
+
+\subsection{Preparing a Linux System for RAVEN}
+\label{sysprep_linux}
+
+When installing RAVEN on a Linux system, it is recommended that the
 distribution's package manager be used to install the dependencies.
-Below are instructions for doing so in Ubuntu and Fedora.
+Doing so automates the process and automatically includes any needed
+dependencies of the requested packages.  Below are instructions for 
+doing so for two popular Linux distributions, Ubuntu and Fedora.
 
 \subsubsection{Ubuntu}
 
-Install the dependencies using the command:
+The Ubuntu distribution of Linux makes use of the Advanced Package Tool 
+(APT) to automate the installation of preconfigured software.  The following
+command uses the APT to add the needed packages and any needed 
+dependencies not already on the system:
 
 \begin{lstlisting}[language=bash]
-sudo apt-get install libtool git python-dev swig g++ python3-dev \
- python-numpy python-sklearn python-h5py
+sudo apt-get install libtool git python-dev swig g++ \
+  python3-dev python-numpy python-sklearn python-h5py
 \end{lstlisting}
 
 Optionally, if you want to be able to edit and rebuild the manual, you can
@@ -67,128 +92,136 @@ sudo apt-get install texlive-latex-base texlive-extra-utils \
 
 \subsubsection{Fedora}
 
-Install the dependencies:
+When using the Fedora Linux distribution, use the RPM package manager to 
+install needed dependencies:
 
 \begin{lstlisting}[language=bash]
-dnf install swig libtool gcc-c++ redhat-rpm-config python-devel python3-devel \
- numpy h5py scipy python-scikit-learn python-matplotlib-qt4
+dnf install swig libtool gcc-c++ redhat-rpm-config python-devel \
+  python3-devel numpy h5py scipy python-scikit-learn \
+  python-matplotlib-qt4
 \end{lstlisting}
 
-Optionally, if you want to be able to edit and rebuild the manual, you can
-install \TeX~Live and its related packages:
+In addition, if you would like to be able to build the documentation 
+included in the RAVEN software distribution it is necessary to install 
+\TeX~Live and its related packages:
 \begin{lstlisting}[language=bash]
-dnf install texlive texlive-subfigure texlive-stmaryrd texlive-titlesec \
-texlive-preprint texlive-placeins texlive-bigints texlive-relsize \
-texlive-appendix
+dnf install texlive texlive-subfigure texlive-stmaryrd \
+  texlive-titlesec texlive-preprint texlive-placeins \
+  texlive-bigints texlive-relsize texlive-appendix
 \end{lstlisting}
+
+Note: The 'dnf' command replaces 'yum' used on older versions of
+Fedora Linux.
 
 \goToRavenInstallation
 
-\subsection{OSX Dependencies}
-\label{osx_dependencies}
+\subsection{Preparing an Apple Macintosh OSX System for RAVEN}
+\label{sysprep_osx}
 
-For running OSX, there are two additional dependencies that need to be
-installed.  The first in the Xcode command line tools.  The second is
-XQuartz.  How to install these is explained at
-\url{http://mooseframework.org/getting-started/osx/}
+When using an Apple Macintosh computer, the above dependencies are met
+by following three steps: Installing the XCode command line tools from Apple, 
+installing the XQuartz  X-Window system server, and then installing and using the Miniconda
+package system to add the rest of the dependencies.
 
-Next Miniconda can be used to install the rest of the dependencies
-(Section \ref{miniconda})
+\subsubsection{Installing XCode Command Line Tools}
 
-%command line tools
-%x quartz
+The XCode command line tools package from Apple Computer provides the C++ 
+compilers and git source code control tools needed to obtain and build RAVEN.
+It is freely available from the Apple developer site (download and install the appropriate link 
+for your version of OSX):
+\begin{itemize}
+    \item For El Capitan download and install: \url{https://developer.apple.com/downloads/index.action?name=for%20Xcode}
+    \item For Yosemite download and install:  \url{https://developer.apple.com/downloads/index.action?name=for%20Xcode%20-}
+\end{itemize}
 
-\subsection{Miniconda}
+\subsubsection{Installing XQuartz}
+XQuartz is an implementation of the X Server for the Mac OSX operating system.  It is required 
+becuase RAVEN is often used with applications developed with the Multiphysics 
+Object-Oriented Simulation Environment (MOOSE).
+\begin{itemize}
+    \item Download and install: \url{https://dl.bintray.com/xquartz/downloads/XQuartz-2.7.9.dmg}
+\end{itemize}
+
+\subsubsection{Installing Miniconda and Packages}
 \label{miniconda}
 
 For OSX, the simplest and most robust way to install the RAVEN dependencies
-is with Miniconda.  The details of this vary depending what else is
-installed.  Only one of the following subsections should be used.
+is to install and use Miniconda to obtain them (see \url{http://conda.pydata.org/miniconda.html} for more information).
 
-\subsubsection{With MOOSE}
-\label{miniconda_moose}
+To install Miniconda, download and install the appropriate file from \url{http://conda.pydata.org/miniconda.html}.
 
-If running other MOOSE packages is needed, then MOOSE's MOOSE
-Environment package comes with miniconda and that should be used to
-install the RAVEN dependencies.
+After Miniconda has been installed, it may then be used to install the rest of the packages needed to run RAVEN:
 
-Then:
-\begin{lstlisting}[language=bash]
-sudo bash
-#Set up http_proxy and https_proxy variables if needed
-conda install numpy hdf5 h5py scipy scikit-learn matplotlib swig
-exit #exit from root
-\end{lstlisting}
-
-Don't install the RAVEN Miniconda package with the MOOSE Environment
-package, they conflict.
-
-\goToRavenInstallation
-
-\subsubsection{Direct Miniconda}
-
-Miniconda can be directly installed using the instructions at: \url{http://conda.pydata.org/miniconda.html}
-
-Then the packages RAVEN needs can be installed:
 \begin{lstlisting}[language=bash]
 conda install numpy hdf5 h5py scipy scikit-learn matplotlib swig
 \end{lstlisting}
 
-\goToRavenInstallation
+\subsection{Preparing a Windows System for RAVEN}
+\label{sysprep_windows}
 
-\subsubsection{With Miniconda package}
+Since RAVEN requires a UNIX-like shell to function, one must be installed for a Microsoft
+Windows system to run it.  A freely available software package called MSYS2 is used to
+provide this functionality.  More information about MSYS2 is available at 
+\url{https://sourceforge.net/p/msys2/wiki/MSYS2%20introduction/}.
 
-For OSX Yosemite and OSX Mavericks there is a package available called
-raven\_miniconda.dmg The package includes both miniconda and the
-dependencies RAVEN needs.  This package should not be used if the
-MOOSE Environment package is installed.
+\subsubsection{Prerequisites to use RAVEN on Windows}
+\begin{itemize}
+    \item A system running a 64-bit version of Microsoft Windows. Installation and operation 
+        has been verified on Windows 7 and Windows Server 2012 R2 Standard. While there 
+        is also a 32-bit version of MSYS2 available, the RAVEN installation described here will not work with it.
+    \item At least 7 Gigabytes of available disk space:
+    \begin{itemize}
+        \item 3.5 GB for MSYS2, including everything necessary to build and run RAVEN: Python, GNU compilers, required Python packages, git
+        \item 1.5 GB for RAVEN and Crow
+        \item 1.1 GB for the MOOSE framework, upon which RAVEN is based
+    \end{itemize}
+\end{itemize}
 
-The files will be installed into \texttt{/opt/raven\_libs}.
-
-Your \texttt{.bash\_profile} will be modified to source
-the\\ \texttt{/opt/raven\_libs/environments/raven\_libs\_profile}
-file.  This needs to be sourced.  Reopening the terminal will put the
-correct Miniconda python in the path.
-
-Once this is installed you can go on to Section \ref{raven_installation} and install RAVEN.
-
-\subsection{Manual Dependency Install}
-
-If other options don't work, the dependencies can be installed
-manually.  RAVEN uses the following packages (newer versions usually
-work):
-
+\subsubsection{Installation}
 \begin{enumerate}
-\item numpy-1.7.0
-\item hdf5-1.8.12
-\item Cython-0.18
-\item h5py-2.2.1
-\item scipy-0.12.0
-\item scikit-learn-0.14.1
-\item matplotlib-1.4.0
-\item swig-2.0.12
+    \item Obtain and run the latest basic 64-bit MSYS2 installer from \url{ https://msys2.github.io/} (As of this writing it is named
+	msys2-x86\_64-20160205.exe and is approximately 50 Megabytes in size).  
+    \item The page with the download also contains installation instructions. Perform the steps described there up to 
+	step 4 to install a minimal MSYS2 system. Make sure that you install to path C:\textbackslash{}msys64. There 
+	is no need to go past step 4 because the balance of what is needed to run RAVEN under MSYS2 have been 
+	pre-packaged together in one large archive file. 
+    \item Download the pre-built archive file containing MSYS2 packages needed to run RAVEN.  A link to the current version of
+	this file may be found in the Windows installation section of the RAVEN Wiki: 
+	\url{https://hpcgitlab.inl.gov/idaholab/raven/wikis/installationWindows#obtain-and-install-the-pre-built-archive-containing-msys2-packages-needed-for-raven}
+    \item Use a Windows archive file program such as WinZip to open the large zip file just downloaded.  Shut down any 
+	MSYS2 shells you have open and then copy the "msys64" folder from the large zip file so that it is copied right 
+	on top of the MSYS2 installation performed above. When the file copying is done (which will take a while) 
+	you should have an environment ready to receive RAVEN.
+    \item This installation will create shortcuts that may be used to start UNIX-Like shells:
+	\begin{itemize}
+	    \item MSYS2 Shell
+	    \item MinGW-w64 Win32 Shell
+	    \item MinGW-w64 Win64 Shell
+	\end{itemize}
+	For best results with Python, a copy of the shortcut pointing to  "MinGW-w64 Win64 Shell" needs to be created. Give
+	it a name like " MinGW-w64 Win64 SH".  Open the properties of this new shortcut an add "-sh" to the end of the Target
+	field.  Use this new shortcut to start shells that will be used to run RAVEN.
 \end{enumerate}
 
-You may install these dependencies yourself, or by running the
-\texttt{raven\_libs\_script.sh} script provided within the RAVEN distribution:
 
-\begin{lstlisting}[language=bash]
-#Only use raven_libs_script.sh if other methods don't work
-cd full_path_to_raven_distribution/raven/
-./raven_libs_script.sh
-cd ..
-\end{lstlisting}
+\subsubsection{For More Information}
+Note: An illustrated version of this procedure may be found on the Wiki page at 
+\url{https://hpcgitlab.inl.gov/idaholab/raven/wikis/installationWindows}.
 
-If the \texttt{raven\_libs\_script.sh} script is successful it will
-install the raven dependencies in \verb'~/raven_libs'
+\subsection{Manual Dependency Install}
+\label{sysprep_manual}
 
-If it needs to install swig or other tools, you may need to update
-your path. The command below can be used, and to make it run everytime
-it should be added to \texttt{.bash\_profile} or \texttt{.bashrc}
-file.
-\begin{lstlisting}[language=bash]
-export PATH="$HOME/raven_libs/pylibs/bin:$PATH"
-\end{lstlisting}
+If other options don't work, the dependencies can be installed
+manually.  This is sometimes tricky, pay attention to the order you
+install them.  RAVEN uses the following packages (newer versions
+usually work):
+
+\begin{enumerate}
+  \input{libraries.tex}
+\item hdf5-1.8.12
+\item Cython-0.18
+\item swig-2.0.12
+\end{enumerate}
 
 \goToRavenInstallation
 
@@ -210,9 +243,8 @@ RAVEN, the RAVEN Whole repository can be used as described in Section
 \ref{raven_whole_devel}.  If you don't need to do RAVEN development,
 and want to track a stable version of RAVEN, the RAVEN Whole
 repository with a stable branch can be used as described in Section
-\ref{raven_whole_stable}.  If git is not used, either the Source Code
-Package in Section \ref{raven_source_package} or if in OSX the
-complete package (Section \ref{raven_complete}) can be used.
+\ref{raven_whole_stable}.  If git is not used, the Source Code
+Package in Section \ref{raven_source_package} can be used.
 
 \subsection{Parallel Directory Git}
 \label{parallel_directory_git}
@@ -420,24 +452,6 @@ Section \ref{HowToRun}.
 If the tests did not pass, check Section
 \ref{troubleshooting_installation} on troubleshooting.
 
-\subsection{RAVEN Complete}
-\label{raven_complete}
-
-Open up the file \texttt{raven\_framework\_complete\_version.dmg}.
-
-Next, Open up the \texttt{raven\_libs.pkg} inside, and install it.  If
-you get an error that the package is not signed, then Control click
-the package, and choose ``Open With'' and then Installer.
-
-The files will be installed into \texttt{/opt/raven\_libs}.
-
-Your \texttt{.bash\_profile} will be modified to source
-the\\ \texttt{/opt/raven\_libs/environments/raven\_libs\_profile}
-file.  This file sets up the environment variables \texttt{PYTHONPATH}
-and \texttt{PATH} so that the \texttt{raven\_framework} command can be
-used.  The \texttt{.bash\_profile} needs to be sourced.  Reopening the
-terminal will source it and put the executable in the path.
-
 \subsection{Troubleshooting the Installation}
 \label{troubleshooting_installation}
 
@@ -451,3 +465,8 @@ can be used to check if all the libraries are available, and which
 ones are being used.  If amsc, distribution1D or interpolationND are
 missing, then the RAVEN modules need to be compiled or recompiled.
 Otherwise, the RAVEN dependencies need to be fixed.
+
+\subsection{In-use Testing}
+
+In use testing can be done by re-running the installation tests as
+described in Section \ref{raven_compilation}.

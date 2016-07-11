@@ -64,7 +64,7 @@ class HistorySetSync(PostProcessorInterfaceBase):
 
     validSyncMethods = ['all','grid','max','min']
     if self.syncMethod not in validSyncMethods:
-      self.raiseAnError(NotImplementedError,'Method for syncing was not recognised: \"',self.syncMethod,'\". Options are:',validSyncMethods)
+      self.raiseAnError(NotImplementedError,'Method for synchronizing was not recognized: \"',self.syncMethod,'\". Options are:',validSyncMethods)
     if self.syncMethod is 'grid' and not isinstance(self.numberOfSamples, int):
       self.raiseAnError(IOError, 'HistorySetSync Interfaced Post-Processor ' + str(self.name) + ' : number of samples is not correctly specified (either not specified or not integer)')
     if self.timeID == None:
@@ -110,13 +110,9 @@ class HistorySetSync(PostProcessorInterfaceBase):
           notableHist = inputDic['data']['output'][hist][self.timeID][:]
           notableLength = l
       newTime = np.array(notableHist)
-
-
     for hist in inputDic['data']['output']:
       outputDic['data']['output'][hist] = self.resampleHist(inputDic['data']['output'][hist],newTime)
-
     return outputDic
-
 
   def resampleHist(self, vars, newTime):
     newVars={}

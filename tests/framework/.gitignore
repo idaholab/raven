@@ -62,3 +62,12 @@ PostProcessors/InterfacedPostProcessor/hs_sync_min/make/
 CodeInterfaceTests/RELAP5interfaceTestMultiDeck/testDummyStep/snc01.i
 CodeInterfaceTests/RELAP5interfaceTestMultiDeck/testDummyStep/tpfh2o
 metaModelsTests/metaModelWithCode/sampleMC/
+CodeInterfaceTests/TestRattlesnake/MCTest/*/out*
+CodeInterfaceTests/TestRattlesnake/MCTest/*/*.i
+CodeInterfaceTests/TestRattlesnake/MCTest/twigl_mixing.i
+Samplers/Restart/Truncated/grid/makeCoarse/
+Samplers/Restart/Truncated/grid/makeRestart/
+Samplers/Restart/Truncated/sobol/makeCoarse/
+Samplers/Restart/Truncated/sobol/makeRestart/
+Samplers/Restart/Truncated/sparse_grid_collocation/makeCoarse/
+Samplers/Restart/Truncated/sparse_grid_collocation/makeRestart/

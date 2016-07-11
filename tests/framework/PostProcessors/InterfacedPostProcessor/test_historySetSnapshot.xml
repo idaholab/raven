@@ -95,7 +95,7 @@
     </PostProcessor>
     <PostProcessor name="historySamplingAvg" subType="InterfacedPostProcessor">
       <method>HistorySetSnapShot</method>
-      <type>avg</type>
+      <type>average</type>
       <pivotVar>x</pivotVar>
       <timeID>time</timeID>
     </PostProcessor>

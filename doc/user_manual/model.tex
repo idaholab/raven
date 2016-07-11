@@ -147,7 +147,7 @@
 
 \newcommand{\positiveDescription}[1]
 {
-  \xmlNode{positive}, \xmlDesc{float, optional field}, when set to True, this
+  \xmlNode{positive}, \xmlDesc{boolean, optional field}, when set to True, this
   forces the coefficients to be positive.
   %
   \ifthenelse{\equal{#1}{}}{}{\default{#1}}
@@ -233,7 +233,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%% Common SVM Parameters %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newcommand{\CSVMDescription}[1]
 {
-  \xmlNode{C}, \xmlDesc{boolean, optional field}, sets the penalty parameter C
+  \xmlNode{C}, \xmlDesc{float, optional field}, sets the penalty parameter C
   of the error term.
   %
   \ifthenelse{\equal{#1}{}}{}{\default{#1}}

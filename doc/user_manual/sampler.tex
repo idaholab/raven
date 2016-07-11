@@ -487,7 +487,7 @@ previously performed (adaptive sampling) and the common system evolution
 (patterns) that different sampled calculations can generate in the phase space
 (dynamic event tree).
 %
-In the RAVEN framework, five different “Forward” samplers
+In the RAVEN framework, several different ``Forward'' samplers
 are available:
 \begin{itemize}
 \item \textbf{Monte Carlo (MC)}
@@ -498,6 +498,7 @@ are available:
 \item \textbf{Response Surface Design of Experiment}
 \item \textbf{Factorial Design of Experiment}
 \item \textbf{Ensemble Forward Sampling strategy}
+\item \textbf{Custom Sampling strategy}
 \end{itemize}
 
 From a practical point of view, these sampling strategies represent different
@@ -513,7 +514,7 @@ the different sampling methodologies are reported.
 The \textbf{Monte-Carlo} sampling approach is one of the most well-known and
 widely used approaches to perform exploration of the input space.
 %
-The main idea behind MonteCarlo sampling is to  randomly perturbate the input space according
+The main idea behind MonteCarlo sampling is to  randomly perturb the input space according
 to uniform or parameter-based probability density functions.
 %
 
@@ -1417,12 +1418,12 @@ Example:
 </Samplers>
 \end{lstlisting}
 
-%%% Forward Samplers: MonteCarlo
+%%% Forward Samplers: EnsembleForward
 \subsubsection{Ensemble Forward Sampling strategy}
-\label{subsubsubsec:MC}
-The \textbf{Ensemble Forward} sampling approach allows the user to combine multiple Forward sampling strategies 
-into one single strategy. For example, it can happen that a variable is more suitable for a particular sampling strategy (e.g. a 
-stochastic event 
+\label{subsubsubsec:EnsembleSampler}
+The \textbf{Ensemble Forward} sampling approach allows the user to combine multiple Forward sampling strategies
+into one single strategy. For example, it can happen that a variable is more suitable for a particular sampling strategy (e.g. a
+stochastic event
 modeled with a Monte Carlo approach) and a second variable is more suitable for another sampling method (e.g. because part of a parametric space modeled with a Grid-based approach).
 \specBlock{a}{EnsembleForward}
 %
@@ -1434,7 +1435,7 @@ modeled with a Monte Carlo approach) and a second variable is more suitable for 
 \end{itemize}
 \vspace{-5mm}
 
-In the \textbf{EnsembleForward} input block, the user needs to specify the sampling strategies that he wants to combine together. 
+In the \textbf{EnsembleForward} input block, the user needs to specify the sampling strategies that he wants to combine together.
 \\Currently, only the following strategies can be combined:
 \begin{itemize}
   \item \xmlNode{MonteCarlo}
@@ -1442,6 +1443,7 @@ In the \textbf{EnsembleForward} input block, the user needs to specify the sampl
   \item \xmlNode{Stratiefied}
   \item \xmlNode{FactorialDesign}
   \item \xmlNode{ResponseSurfaceDesign}
+  \item \xmlNode{CustomSampler}
 \end{itemize}
 For each of the above samplers, the input specifications can be found in the relative sections.
 
@@ -1493,7 +1495,74 @@ Example:
 </Samplers>
 \end{lstlisting}
 
+%%% Forward Samplers: Custom Sampler
+\subsubsection{Custom Sampling strategy}
+\label{subsubsubsec:CustomSampler}
+The \textbf{Custom} sampling approach allows the user to specify a predefined set of coordinates (in the input space) that RAVEN should use to inquire the model. For example, the user can provide a CSV file containing a list of samples that RAVEN should use.
+\specBlock{a}{CustomSampler}
+%
+\attrsIntro
+\vspace{-5mm}
+\begin{itemize}
+\itemsep0em
+\item \textbf{name}, \textit{required string attribute}, user-defined name of this Sampler. N.B. As for the other objects, this is the name that can be used to refer to this specific entity from other input blocks (xml);
+\end{itemize}
+\vspace{-5mm}
 
+In the \textbf{CustomSampler} input block, the user needs to specify the variables need to be sampled. As already mentioned, these variables are inputted within consecutive XML blocks called \xmlNode{variable}.  In addition, the \xmlNode{Source} from which the samples need to be retrieved needs to be specified as well:
+\begin{itemize}
+\item \variableDescription
+ \item \xmlNode{Source}, \xmlDesc{XML node,
+  required parameter} will specify the following attributes:
+  \begin{itemize}
+    \item \xmlAttr{class}, \xmlDesc{required string attribute}, class entity of the source where the samples need to be retrieved from.
+     It can be either \textbf{Files} or \textbf{DataObjects}.
+     \item \xmlAttr{type}, \xmlDesc{required string attribute}, type of the source withing the previously explained ``class''.
+      If \xmlAttr{class} is  \textbf{Files}, this attribute needs to be kept empty; otherwise it must be  \textbf{PointSet} (the only allowed
+      DataObjects usable as source in this sampler).
+      \\ \nb If the \xmlNode{Source} \xmlAttr{class} is  \textbf{Files}, the File needs to be a standard CSV file, specified in the
+      \xmlNode{Files} XML block in the RAVEN input.
+      \\ In addition, it is important to notice that if in the \xmlNode{Source}  the \textbf{PointProbability} and
+      \textbf{ProbabilityWeight} quantities are not found, the samples are assumed to come from a MonteCarlo (from a  statistical
+      post-processing prospective).
+  \end{itemize}
+\end{itemize}
+
+Example:
+\begin{table}[h!]
+\centering
+\caption{samples.csv}
+\begin{tabular}{ccccc}
+\textbf{y}  & \textbf{x}  & \textbf{z}  & \textbf{PointProbability} & \textbf{ProbabilityWeight} \\
+0.725675246 & 0.031099304 & 0.984988317 & 0.1                       & 0.2                        \\
+0.565949127 & 0.028589754 & 1.13186372  & 0.1                       & 0.2                        \\
+0.72567754  & 0.031099304 & 0.967209238 & 0.1                       & 0.2                        \\
+0.565951633 & 0.028589754 & 1.111431662 & 0.1                       & 0.2                        \\
+0.725968307 & 0.031100307 & 0.98498835  & 0.1                       & 0.2
+\end{tabular}
+\end{table}
+\begin{lstlisting}[style=XML]
+<Samplers>
+  ...
+  <Samplers>
+    <CustomSampler name="customSamplerDataObject">
+      <Source   class="DataObjects"  type="PointSet">outCustomSamplerFromFile</Source>
+      <variable name="x"/>
+      <variable name="y"/>
+      <variable name="z"/>
+    </CustomSampler>
+  </Samplers>
+  <Samplers>
+    <CustomSampler name="customSamplerFile">
+      <Source   class="Files"  type="">samples.csv</Source>
+      <variable name="x"/>
+      <variable name="y"/>
+      <variable name="z"/>
+    </CustomSampler>
+  </Samplers>
+  ...
+</Samplers>
+\end{lstlisting}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Dynamic Event Tree Samplers %%%
@@ -1560,7 +1629,7 @@ space.
 \begin{itemize}
   \itemsep0em
   \item \nameDescription
-  \item \xmlAttr{printEndXML}, \xmlDesc{optional string/boolean attribute},
+  \item \xmlAttr{printEndXmlSummary}, \xmlDesc{optional string/boolean attribute},
     controls the dumping of a ``summary'' of the DET performed into an external
     XML.
     %
@@ -1667,7 +1736,7 @@ For this reason, its specifications must be defined within a
 \begin{itemize}
   \itemsep0em
   \item \nameDescription
-  \item \xmlAttr{printEndXML}, \xmlDesc{optional string/boolean attribute},
+  \item \xmlAttr{printEndXmlSummary}, \xmlDesc{optional string/boolean attribute},
     controls the dumping of a ``summary'' of the DET performed into an external
     XML.
     %
@@ -2063,7 +2132,7 @@ the input space in proximity of the limit surface.
 \begin{itemize}
   \itemsep0em
   \item \nameDescription
-  \item \xmlAttr{printEndXML}, \xmlDesc{optional string/boolean attribute},
+  \item \xmlAttr{printEndXmlSummary}, \xmlDesc{optional string/boolean attribute},
     this attribute controls the dumping of a ``summary'' of the DET performed in
     to an external XML.
     %
@@ -2215,7 +2284,7 @@ For this reason, its specifications must be defined within a
 \begin{itemize}
   \itemsep0em
   \item \nameDescription
-  \item \xmlAttr{printEndXML}, \xmlDesc{optional string/boolean attribute},
+  \item \xmlAttr{printEndXmlSummary}, \xmlDesc{optional string/boolean attribute},
     this attribute controls the dumping of a ``summary'' of the DET performed in
     to an external XML.
     %

@@ -17,6 +17,7 @@ class RavenPython(Tester):
   def validParams():
     params = Tester.validParams()
     params.addRequiredParam('input',"The python file to use for this test.")
+    params.addParam('output','',"List of output files that this input should create.")
     if os.environ.get("CHECK_PYTHON3","0") == "1":
       params.addParam('python_command','python3','The command to use to run python')
     else:
@@ -26,6 +27,21 @@ class RavenPython(Tester):
     params.addParam('required_executable_check_flags','','Flags to add to the required executable to make sure it runs without fail when testing its existence on the machine')
 
     return params
+
+  def prepare(self):
+    """
+      Copied from RavenFramework since we should still clean out test files
+      before running an external tester, though we will not test if they
+      are created later (for now), so it may behoove us to not save
+      check_files for later use.
+    """
+    if self.specs['output'].strip() != '':
+      self.check_files = [os.path.join(self.specs['test_dir'],filename)  for filename in self.specs['output'].split(" ")]
+    else:
+      self.check_files = []
+    for filename in self.check_files:
+      if os.path.exists(filename):
+        os.remove(filename)
 
   def getCommand(self, options):
     return self.specs["python_command"]+" "+self.specs["input"]
@@ -50,7 +66,7 @@ class RavenPython(Tester):
 
     if self.specs['requires_swig2'] and not RavenPython.has_swig2:
       return (False, 'skipped (No swig 2.0 found)')
-    missing,too_old = RavenUtils.checkForMissingModules()
+    missing,too_old, notQA = RavenUtils.checkForMissingModules()
     if len(missing) > 0:
       return (False,'skipped (Missing python modules: '+" ".join(missing)+
               " PYTHONPATH="+os.environ.get("PYTHONPATH","")+')')
