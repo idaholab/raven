@@ -131,6 +131,7 @@ class MAAP5(GenericCode):
           line=line.split(':')[1]
           line=line.strip('$\n')
           self.HYBRIDdefaultValue[str(var.strip())]=str(line)
+          self.HYBRIDsampledVars.append(var.strip())
         else:
           self.HYBRIDdefaultValue[str(var.strip())]=''
           self.HYBRIDsampledVars.append(var.strip()) #var.strip() deletes whitespace
