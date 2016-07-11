@@ -31,7 +31,7 @@ class RavenFramework(Tester):
     params.addParam('UnorderedCsv','',"List of unordered csv files to check")
     params.addParam('xml','',"List of xml files to check")
     params.addParam('text','',"List of generic text files to check")
-    params.addParam('comment','',"Character or string denoting comments, all text to the right of the symbol will be ignored in the diff of text files")
+    params.addParam('comment','-20021986',"Character or string denoting comments, all text to the right of the symbol will be ignored in the diff of text files")
     params.addParam('UnorderedXml','',"List of unordered xml files to check")
     params.addParam('xmlopts','',"Options for xml checking")
     params.addParam('rel_err','','Relative Error for csv files or floats in xml ones')
