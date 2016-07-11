@@ -12,7 +12,7 @@
 
   <Steps>
     <MultiRun name="FirstMRun" pauseAtEnd="True">
-      <Input   class="DataObjects" type="Point">inputPlaceHolder</Input>
+      <Input   class="DataObjects" type="PointSet">inputPlaceHolder</Input>
       <Model   class="Models"      type="ExternalModel">PythonModule</Model>
       <Sampler class="Samplers"    type="MonteCarlo">MC_external</Sampler>
       <Output  class="DataObjects" type="PointSet">outMC</Output>
@@ -95,7 +95,7 @@
     </PostProcessor>
     <PostProcessor name="historySamplingAvg" subType="InterfacedPostProcessor">
       <method>HistorySetSnapShot</method>
-      <type>avg</type>
+      <type>average</type>
       <pivotVar>x</pivotVar>
       <timeID>time</timeID>
     </PostProcessor>
@@ -267,10 +267,10 @@
   </OutStreams>
 
   <DataObjects>
-    <Point name="inputPlaceHolder">
+    <PointSet name="inputPlaceHolder">
       <Input>x0,y0,z0</Input>
       <Output>OutputPlaceHolder</Output>
-    </Point>
+    </PointSet>
     <PointSet name="outMC_PP">
       <Input>x0,y0,z0</Input>
       <Output>x,y,z</Output>

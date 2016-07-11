@@ -12,7 +12,7 @@
   </Files>
 
   <Models>
-    <Code name="MyRAVEN" subType="RAVEN">
+    <Code name="MyRAVEN" subType="RELAP7">
       <executable>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</executable>
     </Code>
   </Models>
@@ -52,41 +52,26 @@
       <Output class="Databases" type="HDF5">testGridRavenDatabase</Output>
       <Output class="DataObjects" type="HistorySet">stories1</Output>
       <Output class="DataObjects" type="HistorySet">stories2</Output>
-      <Output class="DataObjects" type="History">hst1</Output>
-      <Output class="DataObjects" type="History">hst2</Output>
       <Output class="DataObjects" type="PointSet">outGridTPS1</Output>
       <Output class="DataObjects" type="PointSet">outGridTPS2</Output>
-      <Output class="DataObjects" type="Point">outGridTP</Output>
       <Output class="OutStreams" type="Print">stories1_dump</Output>
       <Output class="OutStreams" type="Print">stories2_dump</Output>
-      <Output class="OutStreams" type="Print">hst1_dump</Output>
-      <Output class="OutStreams" type="Print">hst2_dump</Output>
       <Output class="OutStreams" type="Print">outGridTPS1_dump</Output>
       <Output class="OutStreams" type="Print">outGridTPS2_dump</Output>
-      <Output class="OutStreams" type="Print">outGridTP_dump</Output>
     </MultiRun>
     <IOStep name="TestDataObjectAttributesFromDataBase">
       <Input class="Databases" type="HDF5">testGridRavenDatabase</Input>
       <Input class="Databases" type="HDF5">testGridRavenDatabase</Input>
       <Input class="Databases" type="HDF5">testGridRavenDatabase</Input>
       <Input class="Databases" type="HDF5">testGridRavenDatabase</Input>
-      <Input class="Databases" type="HDF5">testGridRavenDatabase</Input>
-      <Input class="Databases" type="HDF5">testGridRavenDatabase</Input>
-      <Input class="Databases" type="HDF5">testGridRavenDatabase</Input>
       <Output class="DataObjects" type="HistorySet">stories1_from_DB</Output>
       <Output class="DataObjects" type="HistorySet">stories2_from_DB</Output>
-      <Output class="DataObjects" type="History">hst1_from_DB</Output>
-      <Output class="DataObjects" type="History">hst2_from_DB</Output>
       <Output class="DataObjects" type="PointSet">outGridTPS1_from_DB</Output>
       <Output class="DataObjects" type="PointSet">outGridTPS2_from_DB</Output>
-      <Output class="DataObjects" type="Point">outGridTP_from_DB</Output>
       <Output class="OutStreams" type="Print">stories1_from_DB_dump</Output>
       <Output class="OutStreams" type="Print">stories2_from_DB_dump</Output>
-      <Output class="OutStreams" type="Print">hst1_from_DB_dump</Output>
-      <Output class="OutStreams" type="Print">hst2_from_DB_dump</Output>
       <Output class="OutStreams" type="Print">outGridTPS1_from_DB_dump</Output>
       <Output class="OutStreams" type="Print">outGridTPS2_from_DB_dump</Output>
-      <Output class="OutStreams" type="Print">outGridTP_from_DB_dump</Output>
     </IOStep>
   </Steps>
 
@@ -103,14 +88,6 @@
       <type>csv</type>
       <source>stories2_from_DB</source>
     </Print>
-    <Print name="hst1_from_DB_dump">
-      <type>csv</type>
-      <source>hst1_from_DB</source>
-    </Print>
-    <Print name="hst2_from_DB_dump">
-      <type>csv</type>
-      <source>hst2_from_DB</source>
-    </Print>
     <Print name="outGridTPS1_from_DB_dump">
       <type>csv</type>
       <source>outGridTPS1_from_DB</source>
@@ -118,10 +95,6 @@
     <Print name="outGridTPS2_from_DB_dump">
       <type>csv</type>
       <source>outGridTPS2_from_DB</source>
-    </Print>
-    <Print name="outGridTP_from_DB_dump">
-      <type>csv</type>
-      <source>outGridTP_from_DB</source>
     </Print>
     <Print name="stories1_dump">
       <type>csv</type>
@@ -131,14 +104,6 @@
       <type>csv</type>
       <source>stories2</source>
     </Print>
-    <Print name="hst1_dump">
-      <type>csv</type>
-      <source>hst1</source>
-    </Print>
-    <Print name="hst2_dump">
-      <type>csv</type>
-      <source>hst2</source>
-    </Print>
     <Print name="outGridTPS1_dump">
       <type>csv</type>
       <source>outGridTPS1</source>
@@ -147,29 +112,9 @@
       <type>csv</type>
       <source>outGridTPS2</source>
     </Print>
-    <Print name="outGridTP_dump">
-      <type>csv</type>
-      <source>outGridTP</source>
-    </Print>
   </OutStreams>
 
   <DataObjects>
-    <Point name="outGridTP">
-      <options>
-        <inputRow>-1</inputRow>
-        <operator>max</operator>
-      </options>
-      <Input>pipe_Area,Dummy1</Input>
-      <Output>pipe_Hw,pipe_Tw,time</Output>
-    </Point>
-    <Point historyName="2" name="outGridTP_from_DB">
-      <options>
-        <inputRow>-1</inputRow>
-        <operator>max</operator>
-      </options>
-      <Input>pipe_Area,Dummy1</Input>
-      <Output>pipe_Hw,pipe_Tw,time</Output>
-    </Point>
     <PointSet name="outGridTPS1">
       <options>
         <inputRow>1</inputRow>
@@ -204,38 +149,6 @@
       <Input>pipe_Area,Dummy1</Input>
       <Output>pipe_Hw,pipe_Tw,time</Output>
     </PointSet>
-    <History name="hst1">
-      <options>
-        <inputRow>1</inputRow>
-      </options>
-      <Input>pipe_Area</Input>
-      <Output>pipe_Hw,pipe_Tw,time</Output>
-    </History>
-    <History name="hst2">
-      <options>
-        <inputRow>-1</inputRow>
-        <pivotParameter>time</pivotParameter>
-        <outputPivotValue>0.0002 0.0003 0.0004</outputPivotValue>
-      </options>
-      <Input>pipe_Area</Input>
-      <Output>pipe_Hw,pipe_Tw,time</Output>
-    </History>
-    <History historyName="1" name="hst1_from_DB">
-      <options>
-        <inputRow>1</inputRow>
-      </options>
-      <Input>pipe_Area</Input>
-      <Output>pipe_Hw,pipe_Tw,time</Output>
-    </History>
-    <History historyName="2" name="hst2_from_DB">
-      <options>
-        <inputRow>-1</inputRow>
-        <pivotParameter>time</pivotParameter>
-        <outputPivotValue>0.0002 0.0003 0.0004</outputPivotValue>
-      </options>
-      <Input>pipe_Area</Input>
-      <Output>pipe_Hw,pipe_Tw,time</Output>
-    </History>
     <HistorySet name="stories1">
       <options>
         <inputRow>1</inputRow>
