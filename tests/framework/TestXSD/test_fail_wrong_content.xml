@@ -1,0 +1,5 @@
+<outer>
+  <inner required_string="hi">
+    <sub_3>text</sub_3>
+  </inner>
+</outer>
