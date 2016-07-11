@@ -40,7 +40,6 @@
         <distribution>uni</distribution>
       </variable>
       <ROM class="Models" type="ROM">rom</ROM>
-      <Restart class="DataObjects" type="PointSet">collset</Restart>
       <TargetEvaluation class="DataObjects" type="PointSet">collset</TargetEvaluation>
       <Convergence maxRuns="100" target="variance">1e-15</Convergence>
       <convergenceStudy>
