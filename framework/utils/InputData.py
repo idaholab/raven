@@ -23,7 +23,7 @@ class InputType(object):
       Creates a new class for use as an input type.
       @ In, name, string, is the name of the input type.
       @ In, xmlType, string, is the xml name of the type.
-      @ In, needgenerating, bool, optional, is true if the type needs to be generated.
+      @ In, needGenerating, bool, optional, is true if the type needs to be generated.
       @ Out, None
     """
     cls.name = name
@@ -340,8 +340,6 @@ class ParameterInput(object):
         elif definedDict[sub.getName()] != sub:
           print("ERROR: multiple definitions ",sub.getName())
     else:
-      #If no sub xmls then allow data inside
-      #complexType.set('mixed', 'true')
       if cls.contentType is not None:
         contentNode = ET.SubElement(complexType, 'xsd:simpleContent')
         extensionNode = ET.SubElement(contentNode, 'xsd:extension')

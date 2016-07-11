@@ -18,8 +18,6 @@ import InputData
 import test_classes
 
 
-#print("OuterInput params",OuterInput.parameters)
-
 outerInput = test_classes.OuterInput()
 
 testMoreFilename = os.path.join("TestXSD","test_more.xml")
