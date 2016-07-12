@@ -3663,22 +3663,32 @@ class DataMining(BasePostProcessor):
       ## to match them.
       if hasattr(self.unSupervisedEngine, 'clusterCenters_'):
         centers = self.unSupervisedEngine.clusterCenters_
-        ## Does skl not provide a correlation between label ids and cluster
-        ## centers?
+        print(centers)
+        ## Does skl not provide a correlation between label ids and cluster centers?
         if hasattr(self.unSupervisedEngine, 'clusterCentersIndices_'):
           indices = self.unSupervisedEngine.clusterCentersIndices_
         else:
           indices = list(range(len(centers)))
-
+          
         if self.solutionExport is not None:
-          for index,center in zip(indices,centers):
-            self.solutionExport.updateInputValue(self.labelFeature,index)
-            ## Can I be sure of the order of dimensions in the features dict, is
-            ## the same order as the data held in the UnSupervisedLearning
-            ## object?
-            for key,value in zip(self.unSupervisedEngine.features.keys(),center):
-              self.solutionExport.updateOutputValue(key,value)
-
+          if self.PreProcessor == None:
+            for index,center in zip(indices,centers):
+              self.solutionExport.updateInputValue(self.labelFeature,index)
+              ## Can I be sure of the order of dimensions in the features dict, is
+              ## the same order as the data held in the UnSupervisedLearning object?
+              for key,value in zip(self.unSupervisedEngine.features.keys(),center):
+                self.solutionExport.updateOutputValue(key,value)
+          else:
+            # if a pre-processor is used it is here assumed that the pre-processor has internally a 
+            # method (called "inverse") which converts the cluster centers back to their original format. If this method 
+            # does not exist a warning will be generated  
+            self.raiseAWarning('Solution export is not yet adapted when PreProcessor is used')
+            # conversion of centers to a dictionary dict and back conversion of data
+            tempDict = {}
+            for index,center in zip(indices,centers):
+              tempDict[index] = center
+            centers = self.PreProcessor.inverse(tempDict)
+        
       if hasattr(self.unSupervisedEngine, 'inertia_'):
         inertia = self.unSupervisedEngine.inertia_
         

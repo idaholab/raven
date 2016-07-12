@@ -36,6 +36,9 @@ class PostProcessorInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object),Mess
     self.type = self.__class__.__name__
     self.name = self.__class__.__name__
     self.messageHandler = messageHandler
+    
+    self.transformationSettings = {}   # this dictionary is used to store all the setting required to back transform the data into its original format
+                                       # it gets filled in the run method and used in the inverse method
 
 
   def initialize(self):
@@ -64,8 +67,15 @@ class PostProcessorInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object),Mess
      Method to post-process the dataObjects
      @ In, inputDic, dict, dictionary which contains the data inside the input DataObject
      @ Out, None
-
     """
+    pass
+  
+  def inverse(self,inputDic):
+    """
+     Method to perform the inverse of the post-process action
+     @ In, inputDic, dict, dictionary which contains the data to be back pre-processed
+     @ Out, None
+    """    
     pass
 
   def checkGeneratedDicts(self,outputDic):
