@@ -193,6 +193,7 @@ They have the following options:
     \item[xmlopts] Options for xml checking
     \item[rel\_err] Relative Error for csv files or floats in xml ones
     \item[required\_executable] Skip test if this executable is not found
+    \item[required\_libraries] Skip test if any of these libraries are not found
     \item[minimum\_library\_versions] Skip test if the library listed is below the supplied version (e.g. minimum\_library\_versions = ``name1 version1 name2 version2'')
     \item[expected\_fail] if true, then the test should fail, and if it passes, it fails.
     \item[skip\_if\_env] Skip test if this environmental variable is defined
@@ -216,6 +217,7 @@ They have the following options:
 \item[requires\_swig2] If True requires swig2 for test.
 \item[required\_executable] Skip test if this executable is not found.
 \item[required\_executable\_check\_flags] Flags to add to the required executable to make sure it runs without fail when testing its existence on the machine
+\item[required\_libraries] Skip test if any of these libraries are not found
 \end{description}
 
 \subsection{Cluster tests}

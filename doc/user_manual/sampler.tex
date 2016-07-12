@@ -1421,9 +1421,9 @@ Example:
 %%% Forward Samplers: EnsembleForward
 \subsubsection{Ensemble Forward Sampling strategy}
 \label{subsubsubsec:EnsembleSampler}
-The \textbf{Ensemble Forward} sampling approach allows the user to combine multiple Forward sampling strategies 
-into one single strategy. For example, it can happen that a variable is more suitable for a particular sampling strategy (e.g. a 
-stochastic event 
+The \textbf{Ensemble Forward} sampling approach allows the user to combine multiple Forward sampling strategies
+into one single strategy. For example, it can happen that a variable is more suitable for a particular sampling strategy (e.g. a
+stochastic event
 modeled with a Monte Carlo approach) and a second variable is more suitable for another sampling method (e.g. because part of a parametric space modeled with a Grid-based approach).
 \specBlock{a}{EnsembleForward}
 %
@@ -1435,7 +1435,7 @@ modeled with a Monte Carlo approach) and a second variable is more suitable for 
 \end{itemize}
 \vspace{-5mm}
 
-In the \textbf{EnsembleForward} input block, the user needs to specify the sampling strategies that he wants to combine together. 
+In the \textbf{EnsembleForward} input block, the user needs to specify the sampling strategies that he wants to combine together.
 \\Currently, only the following strategies can be combined:
 \begin{itemize}
   \item \xmlNode{MonteCarlo}
@@ -1509,21 +1509,21 @@ The \textbf{Custom} sampling approach allows the user to specify a predefined se
 \end{itemize}
 \vspace{-5mm}
 
-In the \textbf{CustomSampler} input block, the user needs to specify the variables need to be sampled. As already mentioned, these variables are inputted within consecutive XML blocks called \xmlNode{variable}.  In addition, the \xmlNode{Source} from which the samples need to be retrieved needs to be specified as well: 
+In the \textbf{CustomSampler} input block, the user needs to specify the variables need to be sampled. As already mentioned, these variables are inputted within consecutive XML blocks called \xmlNode{variable}.  In addition, the \xmlNode{Source} from which the samples need to be retrieved needs to be specified as well:
 \begin{itemize}
 \item \variableDescription
  \item \xmlNode{Source}, \xmlDesc{XML node,
   required parameter} will specify the following attributes:
   \begin{itemize}
-    \item \xmlAttr{class}, \xmlDesc{required string attribute}, class entity of the source where the samples need to be retrieved from. 
+    \item \xmlAttr{class}, \xmlDesc{required string attribute}, class entity of the source where the samples need to be retrieved from.
      It can be either \textbf{Files} or \textbf{DataObjects}.
      \item \xmlAttr{type}, \xmlDesc{required string attribute}, type of the source withing the previously explained ``class''.
-      If \xmlAttr{class} is  \textbf{Files}, this attribute needs to be kept empty; otherwise it must be  \textbf{PointSet} (the only allowed 
+      If \xmlAttr{class} is  \textbf{Files}, this attribute needs to be kept empty; otherwise it must be  \textbf{PointSet} (the only allowed
       DataObjects usable as source in this sampler).
-      \\ \nb If the \xmlNode{Source} \xmlAttr{class} is  \textbf{Files}, the File needs to be a standard CSV file, specified in the  
+      \\ \nb If the \xmlNode{Source} \xmlAttr{class} is  \textbf{Files}, the File needs to be a standard CSV file, specified in the
       \xmlNode{Files} XML block in the RAVEN input.
-      \\ In addition, it is important to notice that if in the \xmlNode{Source}  the \textbf{PointProbability} and 
-      \textbf{ProbabilityWeight} quantities are not found, the samples are assumed to come from a MonteCarlo (from a  statistical 
+      \\ In addition, it is important to notice that if in the \xmlNode{Source}  the \textbf{PointProbability} and
+      \textbf{ProbabilityWeight} quantities are not found, the samples are assumed to come from a MonteCarlo (from a  statistical
       post-processing prospective).
   \end{itemize}
 \end{itemize}
@@ -1538,7 +1538,7 @@ Example:
 0.565949127 & 0.028589754 & 1.13186372  & 0.1                       & 0.2                        \\
 0.72567754  & 0.031099304 & 0.967209238 & 0.1                       & 0.2                        \\
 0.565951633 & 0.028589754 & 1.111431662 & 0.1                       & 0.2                        \\
-0.725968307 & 0.031100307 & 0.98498835  & 0.1                       & 0.2                       
+0.725968307 & 0.031100307 & 0.98498835  & 0.1                       & 0.2
 \end{tabular}
 \end{table}
 \begin{lstlisting}[style=XML]
@@ -1629,7 +1629,7 @@ space.
 \begin{itemize}
   \itemsep0em
   \item \nameDescription
-  \item \xmlAttr{printEndXML}, \xmlDesc{optional string/boolean attribute},
+  \item \xmlAttr{printEndXmlSummary}, \xmlDesc{optional string/boolean attribute},
     controls the dumping of a ``summary'' of the DET performed into an external
     XML.
     %
@@ -1736,7 +1736,7 @@ For this reason, its specifications must be defined within a
 \begin{itemize}
   \itemsep0em
   \item \nameDescription
-  \item \xmlAttr{printEndXML}, \xmlDesc{optional string/boolean attribute},
+  \item \xmlAttr{printEndXmlSummary}, \xmlDesc{optional string/boolean attribute},
     controls the dumping of a ``summary'' of the DET performed into an external
     XML.
     %
@@ -2132,7 +2132,7 @@ the input space in proximity of the limit surface.
 \begin{itemize}
   \itemsep0em
   \item \nameDescription
-  \item \xmlAttr{printEndXML}, \xmlDesc{optional string/boolean attribute},
+  \item \xmlAttr{printEndXmlSummary}, \xmlDesc{optional string/boolean attribute},
     this attribute controls the dumping of a ``summary'' of the DET performed in
     to an external XML.
     %
@@ -2284,7 +2284,7 @@ For this reason, its specifications must be defined within a
 \begin{itemize}
   \itemsep0em
   \item \nameDescription
-  \item \xmlAttr{printEndXML}, \xmlDesc{optional string/boolean attribute},
+  \item \xmlAttr{printEndXmlSummary}, \xmlDesc{optional string/boolean attribute},
     this attribute controls the dumping of a ``summary'' of the DET performed in
     to an external XML.
     %
