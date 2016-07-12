@@ -2170,6 +2170,12 @@ class ARMA(superVisedLearning):
     fourierEngine.fit(fSeriesBest,self.timeSeriesDatabase)
     self.fourierResult['predict'] = fourierEngine.predict(fSeriesBest)
     
+    self.raiseADebug(self.timeSeriesDatabase[0:2])
+    self.raiseADebug(self.fourierResult['fOrder'], self.fourierResult['residues'])
+    self.raiseADebug(fourierEngine.coef_)
+    self.raiseADebug(self.fourierResult['predict'][0,0])
+    self.raiseAnError(ValueError, 's')
+    
   def __trainARMA__(self):
     """
       Fit ARMA model: x_t = \sum_{i=1}^P \phi_i*x_{t-i} + \alpha_t + \sum_{j=1}^Q \theta_j*\alpha_{t-j}
@@ -2476,7 +2482,15 @@ class ARMA(superVisedLearning):
     # Ensure positivity --- FIXME
     tSeries = np.absolute(tSeries)
     
-    self.raiseAnError(ValueError, self.fourierResult['predict'][0,0])    
+    self.raiseADebug(self.fourierResult['predict'][0,0])
+    self.raiseADebug(self.armaResult['Phi'])
+    self.raiseADebug(self.armaResult['Theta'])
+    self.raiseADebug(self.armaResult['sig'])
+    self.raiseADebug(tSeriesNoise[0,0]/self.armaResult['sig'][0,0])
+    self.raiseADebug(tSeriesNoise[0,0])
+    self.raiseADebug(tSeriesNorm[0,0])
+    self.raiseADebug(tSeries[0,0])
+    self.raiseAnError(ValueError, 'ddd')    
     # debug
     self.raiseADebug('mean', np.mean(tSeries), 'std', np.std(tSeries))
     # end of debug
