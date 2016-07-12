@@ -3,11 +3,11 @@
   <RunInfo>
     <WorkingDir>large</WorkingDir>
     <Sequence>make1k,print,load,print2</Sequence>
-    <batchSize>2</batchSize>
+    <batchSize>1</batchSize>
   </RunInfo>
 
   <Steps>
-    <MultiRun name="make1k">
+    <MultiRun name="make1k" sleepTime="1e-4">
       <Input class="DataObjects" type="PointSet">dummyIN</Input>
       <Model class="Models" type="ExternalModel">coarsemod</Model>
       <Sampler class="Samplers" type="MonteCarlo">large</Sampler>
