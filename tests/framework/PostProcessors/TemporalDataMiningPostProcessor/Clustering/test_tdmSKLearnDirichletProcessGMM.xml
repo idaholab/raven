@@ -191,6 +191,10 @@
   </OutStreams>
 
   <DataObjects>
+    <PointSet name="inputPlaceHolder">
+      <Input>cluster,dx,dy,ddx,ddy</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
     <HistorySet name='clusterInfo'>
       <Input>labels</Input>
       <Output>Time,x,y</Output>
@@ -199,9 +203,5 @@
       <Input>cluster,dx,dy,ddx,ddy</Input>
       <Output>time,x,y</Output>
     </HistorySet>
-    <PointSet name="inputPlaceHolder">
-      <Input>cluster,dx,dy,ddx,ddy</Input>
-      <Output>OutputPlaceHolder</Output>
-    </PointSet>
   </DataObjects>
 </Simulation>
