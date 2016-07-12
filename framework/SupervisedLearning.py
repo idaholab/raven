@@ -2455,7 +2455,8 @@ class ARMA(superVisedLearning):
     tSeriesNoise = np.zeros(shape=self.armaPara['rSeriesNorm'].shape)
     for t in range(noTimeStep):
       for n in range(self.armaPara['dimension']):
-        tSeriesNoise[t,n] = normEvaluateEngine.rvs()*self.armaResult['sig'] [0,n]
+        tSeriesNoise[t,n] = normEvaluateEngine.rvs()*self.armaResult['sig'][0,n]
+    
 
     tSeriesNorm = np.zeros(shape=self.armaPara['rSeriesNorm'].shape)
     tSeriesNorm[0,:] = self.armaPara['rSeriesNorm'][0,:]    
@@ -2466,13 +2467,16 @@ class ARMA(superVisedLearning):
         tSeriesNorm[t,:] += np.dot(tSeriesNoise[t-j,:], self.armaResult['Theta'][j])
       tSeriesNorm[t,:] += tSeriesNoise[t,:] 
     
+    
+    
     # Convert data back to empirically distributed
     tSeries = self.__dataConversion__(tSeriesNorm, obj='denormalize')       
     # Add fourier trends
     if self.hasFourierSeries:     tSeries += self.fourierResult['predict']    
     # Ensure positivity --- FIXME
     tSeries = np.absolute(tSeries)
-        
+    
+    self.raiseAnError(ValueError, self.fourierResult['predict'][0,0])    
     # debug
     self.raiseADebug('mean', np.mean(tSeries), 'std', np.std(tSeries))
     # end of debug
