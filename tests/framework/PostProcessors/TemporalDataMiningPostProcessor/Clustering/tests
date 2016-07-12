@@ -82,22 +82,14 @@
     type   = 'RavenFramework'
     input  = 'test_tdmSKLearnDirichletProcessGMM.xml'
     csv    = 'DirichletProcessGMM/centroid_0.csv
-              DirichletProcessGMM/centroid_1.csv
-              DirichletProcessGMM/centroid_2.csv DirichletProcessGMM/dummy_0.csv DirichletProcessGMM/dummy_1.csv DirichletProcessGMM/dummy_2.csv
-              DirichletProcessGMM/dummy_3.csv DirichletProcessGMM/dummy_4.csv
-              DirichletProcessGMM/dummy_5.csv DirichletProcessGMM/dummy_6.csv
-              DirichletProcessGMM/dummy_7.csv DirichletProcessGMM/dummy_8.csv'
+              DirichletProcessGMM/dummy_0.csv DirichletProcessGMM/dummy_1.csv DirichletProcessGMM/dummy_2.csv'
     output = 'DirichletProcessGMM/dummy.xml DirichletProcessGMM/centroid.xml'
   [../]
   [./VariationalGMM]
     type   = 'RavenFramework'
     input  = 'test_tdmSKLearnVariationalGMM.xml'
-    csv    = 'VariationalGMM/centroid_0.csv VariationalGMM/centroid_1.csv
-              VariationalGMM/centroid_2.csv VariationalGMM/dummy_0.csv
-              VariationalGMM/dummy_1.csv VariationalGMM/dummy_2.csv
-              VariationalGMM/dummy_3.csv VariationalGMM/dummy_4.csv
-              VariationalGMM/dummy_5.csv VariationalGMM/dummy_6.csv
-              VariationalGMM/dummy_7.csv VariationalGMM/dummy_8.csv'
+    csv    = 'VariationalGMM/centroid_0.csv VariationalGMM/dummy_0.csv
+              VariationalGMM/dummy_1.csv VariationalGMM/dummy_2.csv'
     output = 'VariationalGMM/dummy.xml VariationalGMM/centroid.xml'
   [../]
 []

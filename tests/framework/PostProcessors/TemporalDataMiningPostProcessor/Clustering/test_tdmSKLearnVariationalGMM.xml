@@ -2,15 +2,63 @@
 <Simulation verbosity="silent">
   <RunInfo>
     <WorkingDir>VariationalGMM</WorkingDir>
-    <Sequence>readIn,pp1,writeOut</Sequence>
+    <Sequence>sampleGen,pp1,writeOut</Sequence>
     <batchSize>100</batchSize>
   </RunInfo>
 
   <Files>
-    <Input name="rawDataFile">../ClusterMoveData/dataSet.csv</Input>
+    <Input name="data_generator">../ClusterMoveData/data_generator.py</Input>
   </Files>
 
+  <Distributions>
+    <Uniform name="cluster">
+      <lowerBound>0.0</lowerBound>
+      <upperBound>2.99</upperBound>
+    </Uniform>
+    <Normal name="dx">
+      <mean>0.0</mean>
+      <sigma>0.1</sigma>
+    </Normal>
+    <Normal name="dy">
+      <mean>0.0</mean>
+      <sigma>0.1</sigma>
+    </Normal>
+    <Normal name="ddx">
+      <mean>0.0</mean>
+      <sigma>0.01</sigma>
+    </Normal>
+    <Normal name="ddy">
+      <mean>0.0</mean>
+      <sigma>0.01</sigma>
+    </Normal>
+  </Distributions>
+  <Samplers>
+    <MonteCarlo name="useless">
+      <samplerInit>
+         <limit>100</limit>
+      </samplerInit>
+      <variable name="cluster">
+        <distribution>cluster</distribution>
+      </variable>
+      <variable name="dx">
+        <distribution>dx</distribution>
+      </variable>
+      <variable name="dy">
+        <distribution>dy</distribution>
+      </variable>
+      <variable name="ddx">
+        <distribution>ddx</distribution>
+      </variable>
+      <variable name="ddy">
+        <distribution>ddy</distribution>
+      </variable>
+     </MonteCarlo>
+   </Samplers>
+
   <Models>
+    <ExternalModel ModuleToLoad="../ClusterMoveData/data_generator" name="DataGeneratorModel" subType="">
+      <variables>cluster,dx,dy,ddx,ddy,time,x,y</variables>
+    </ExternalModel>
     <PostProcessor name='VBGMM1' subType='DataMining'>
       <KDD lib='temporalSciKitLearn' labelFeature='labels'>
         <SKLtype>mixture|VBGMM</SKLtype>
@@ -26,10 +74,12 @@
   </Models>
 
   <Steps>
-    <IOStep name='readIn' pauseAtEnd='True'>
-      <Input  class='Files'       type=''          >rawDataFile</Input>
+    <MultiRun name="sampleGen">
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
+      <Model class="Models" type="ExternalModel">DataGeneratorModel</Model>
+      <Sampler class="Samplers" type="MonteCarlo">useless</Sampler>
       <Output class='DataObjects' type='HistorySet'>mData</Output>
-    </IOStep>
+    </MultiRun>
 
     <PostProcess name='pp1' pauseAtEnd='True'>
       <Input          class='DataObjects' type='HistorySet'   >mData</Input>
@@ -146,8 +196,12 @@
       <Output>Time,x,y</Output>
     </HistorySet>
     <HistorySet name="mData">
-      <Input>n</Input>
+      <Input>cluster,dx,dy,ddx,ddy</Input>
       <Output>time,x,y</Output>
     </HistorySet>
+    <PointSet name="inputPlaceHolder">
+      <Input>cluster,dx,dy,ddx,ddy</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
   </DataObjects>
 </Simulation>
