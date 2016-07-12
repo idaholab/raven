@@ -2162,10 +2162,10 @@ class ARMA(superVisedLearning):
       r = r/self.time.size
       criterionCurrent = r #self.__computeAICorBIC(r,noPara=sum(fOrder)*2,cType='None',obj='min')
       if  criterionCurrent< criterionBest:
-        self.fourierResult['fOrder'] = fOrder
+        self.fourierResult['fOrder'] = copy.deepcopy(fOrder)
         fSeriesBest = copy.deepcopy(fSeries)
-        self.fourierResult['residues'] = r
-        criterionBest = criterionCurrent 
+        self.fourierResult['residues'] = copy.deepcopy(r)
+        criterionBest = copy.deepcopy(criterionCurrent) 
     
     fourierEngine.fit(fSeriesBest,self.timeSeriesDatabase)
     self.fourierResult['predict'] = fourierEngine.predict(fSeriesBest)
