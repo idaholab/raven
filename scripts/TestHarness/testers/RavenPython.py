@@ -24,6 +24,7 @@ class RavenPython(Tester):
       params.addParam('python_command','python','The command to use to run python')
     params.addParam('requires_swig2', False, "Requires swig2 for test")
     params.addParam('required_executable','','Skip test if this executable is not found')
+    params.addParam('required_libraries','','Skip test if any of these libraries are not found')
     params.addParam('required_executable_check_flags','','Flags to add to the required executable to make sure it runs without fail when testing its existence on the machine')
 
     return params
@@ -51,6 +52,7 @@ class RavenPython(Tester):
     self.specs['scale_refine'] = False
     self.required_executable = self.specs['required_executable']
     self.required_executable = self.required_executable.replace("%METHOD%",os.environ.get("METHOD","opt"))
+    self.required_libraries = self.specs['required_libraries'].split(' ')  if len(self.specs['required_libraries']) > 0 else []
     self.required_executable_check_flags = self.specs['required_executable_check_flags'].split(' ')
 
   def checkRunnable(self, option):
@@ -73,6 +75,11 @@ class RavenPython(Tester):
     if len(too_old) > 0:
       return (False,'skipped (Old version python modules: '+" ".join(too_old)+
               " PYTHONPATH="+os.environ.get("PYTHONPATH","")+')')
+    for lib in self.required_libraries:
+      found, message, version =  RavenUtils.moduleReport(lib,'')
+      if not found:
+        return (False,'skipped (Unable to import library: "'+lib+'")')
+
     return (True, '')
 
   def processResults(self, moose_dir,retcode, options, output):
