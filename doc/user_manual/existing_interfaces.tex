@@ -181,6 +181,24 @@ when using RELAP5 as the external model:
   </Code>
 </Models>
 \end{lstlisting}
+In case the \textbf{multi-deck} approach is used in RELAP5, the interface is going to load all the outputs in one CSV RAVEN is
+going to read. This means that all the decks' outputs are going to be loaded in one of the Output of RAVEN. In case the user
+wants to select the outputs coming from only one deck, the following XML node needs to be specified:
+\begin{itemize}
+   \item \xmlNode{outputDeckNumber}, \xmlDesc{integer, optional parameter}, the deck number from 
+   which the results needs to be retrieved. \default{all}.
+\end{itemize}
+
+\begin{lstlisting}[style=XML]
+<Models>
+  <Code name='MyRELAP' subType='Relap5'>
+    <executable>~/path_to_the_executable</executable>
+    <!-- here is taking the output from the first deck only -->
+    <outputDeckNumber>1</outputDeckNumber>
+  </Code>
+</Models>
+\end{lstlisting}
+ 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Distributions}
 The \xmlNode{Distribution} block defines the distributions that are going
