@@ -128,16 +128,7 @@ class HS2PS(PostProcessorInterfaceBase):
   
   
   def _inverse(self,inputDic):
-    
-    reorderedData = {}
-    '''
-    for key in inputDic.keys():
-      reorderedData[key] = np.zeros(inputDic[key].size)
-    
-    for index,var in enumerate(self.transformationSettings['dimID']):
-      for key in reorderedData.keys():
-        reorderedData[key][int(var)] = inputDic[key][index]
-    ''' 
+  
     data = {}
     for hist in inputDic.keys():
       data[hist]= {}
