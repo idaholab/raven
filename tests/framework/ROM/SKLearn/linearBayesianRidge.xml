@@ -29,7 +29,7 @@
       <lambda_2>1e-6</lambda_2>
       <compute_score>False</compute_score>
       <fit_intercept>True</fit_intercept>
-      <normalize>False</normalize>
+      <normalize>True</normalize>
       <verbose>False</verbose>
     </ROM>
   </Models>

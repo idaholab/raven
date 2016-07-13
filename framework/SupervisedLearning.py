@@ -2022,6 +2022,7 @@ class SciKitLearn(superVisedLearning):
       self.muAndSigmaFeatures[feat] = (0.0,1.0)
     else:
       super(SciKitLearn, self)._localNormalizeData(values,names,feat)
+    self.muAndSigmaFeatures[feat] = (0.0,1.0)
 #
 #
 #

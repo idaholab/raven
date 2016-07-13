@@ -36,6 +36,7 @@
       <power_t>0.5</power_t>
       <class_weight>None</class_weight>
       <warm_start>False</warm_start>
+      <normalize>True</normalize>
     </ROM>
   </Models>
 

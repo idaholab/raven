@@ -23,7 +23,7 @@
       <Target>Z</Target>
       <alpha>1.0</alpha>
       <fit_intercept>True</fit_intercept>
-      <normalize>False</normalize>
+      <normalize>True</normalize>
       <precompute>False</precompute>
       <max_iter>1000</max_iter>
       <tol>1e-4</tol>
