@@ -2887,8 +2887,6 @@ class ExternalPostProcessor(BasePostProcessor):
             value = [value]
           for val in value:
             output.updateMetadata(key, val)
-
-      # print(output._dataContainer['inputs'],output._dataContainer['outputs'])
     else:
       self.raiseAnError(IOError, 'Unknown output type: ' + str(output.type))
 
