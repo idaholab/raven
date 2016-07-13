@@ -22,7 +22,7 @@
       <Features>X,Y</Features>
       <Target>Z</Target>
       <fit_intercept>True</fit_intercept>
-      <normalize>False</normalize>
+      <normalize>True</normalize>
     </ROM>
   </Models>
 
