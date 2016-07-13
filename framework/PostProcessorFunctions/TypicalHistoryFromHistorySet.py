@@ -146,3 +146,4 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
         self.subseqLen = map(int, child.text.split(','))
       elif child.tag == 'timeID':
         self.timeID = child.text
+
