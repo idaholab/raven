@@ -1806,7 +1806,7 @@ class SciKitLearn(superVisedLearning):
   ## The types in this list should not be normalized by default. I would argue
   ## that none of these should be normed by default, since sklearn offers that
   ## option where applicable, but that is for someone else to make a decision.
-  unnormedTypes = ['MultinomialNB']
+  unnormedTypes = ['MultinomialNB','GaussianProcess']
 
   ROMtype = 'SciKitLearn'
   availImpl = {}
@@ -1881,7 +1881,7 @@ class SciKitLearn(superVisedLearning):
   availImpl['tree']['ExtraTreeRegressor'    ] = (tree.ExtraTreeRegressor    , 'float'  )# An extremely randomized tree regressor.
 
   availImpl['GaussianProcess'] = {}
-  availImpl['GaussianProcess']['GaussianProcess'] = (gaussian_process.GaussianProcess    , 'float'  )
+  availImpl['GaussianProcess']['GaussianProcess'] = (gaussian_process.GaussianProcess, 'float')
   #test if a method to estimate the probability of the prediction is available
   qualityEstTypeDict = {}
   for key1, myDict in availImpl.items():
