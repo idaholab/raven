@@ -10,6 +10,7 @@
 #eval `/apps/local/modules/bin/modulecmd bash load moose-dev-gcc python/3.2`
 
 #export PYTHONPATH=$HOME/raven_libs/pylibs/lib/python2.7/site-packages
+
 module load pbs_is_loaded raven-devel-gcc
 
 if test -n "$PBS_O_WORKDIR"; then
