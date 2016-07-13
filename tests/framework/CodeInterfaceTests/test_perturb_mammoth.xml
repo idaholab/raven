@@ -74,13 +74,6 @@
     </MonteCarlo>
   </Samplers>
 
-  <OutStreams>
-    <Print name="out_perturb_mammoth">
-      <type>csv</type>
-      <source>outMC</source>
-    </Print>
-  </OutStreams>
-
   <Steps>
     <MultiRun name="MCTestMammoth">
       <Input class="Files" type="">bisonInput</Input>
@@ -119,19 +112,17 @@
       <Output class="OutStreams" type="Print">perturb_mammoth</Output>
     </IOStep>
   </Steps>
-  
-  <DataObjects>
-      <HistorySet name="solns">
-          <Input>AuxVariables|Temp|initial_condition:Rattlesnake,Materials|fuel_solid_mechanics_elastic|poissons_ratio:Bison</Input>
-          <Output>time,TotalReactorPower,burnup,burnup_FIMA_pp,k-eff-correction,k-eff-prediction,power_scaling,raw_total_power</Output>
-      </HistorySet>
-  </DataObjects>
-  
   <OutStreams>
     <Print name="perturb_mammoth">
       <type>csv</type>
       <source>solns</source>
     </Print>
   </OutStreams>
+  <DataObjects>
+      <HistorySet name="solns">
+          <Input>AuxVariables|Temp|initial_condition:Rattlesnake,Materials|fuel_solid_mechanics_elastic|poissons_ratio:Bison</Input>
+          <Output>time,TotalReactorPower,burnup,burnup_FIMA_pp,k-eff-correction,k-eff-prediction,power_scaling,raw_total_power</Output>
+      </HistorySet>
+  </DataObjects>
 
 </Simulation>
