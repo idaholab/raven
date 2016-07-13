@@ -28,6 +28,7 @@
       <Output         class="OutStreams"       type="Plot"           >plot5</Output>
       <Output         class="OutStreams"       type="Plot"           >plot6</Output>
       <Output         class="OutStreams"       type="Plot"           >plot7</Output>
+      <Output         class="OutStreams"       type="Print"          >print2</Output>
     </PostProcess>
     <PostProcess name="filter0" pauseAtEnd="True">
       <Input  class="DataObjects"      type="HistorySet"     >outMC</Input>
@@ -166,7 +167,10 @@
       <type>csv</type>
       <source>outMC1</source>
     </Print>
-    
+    <Print name="print2">
+      <type>csv</type>
+      <source>clusterInfo</source>
+    </Print>
 	  <Print name="PrintHistorySet_dump">
 	    <type>csv</type>
 	    <source>outMC</source>
