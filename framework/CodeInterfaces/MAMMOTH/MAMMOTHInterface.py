@@ -107,9 +107,6 @@ class MAMMOTHInterface(CodeInterfaceBase):
         fullName = varName
       if fullName.split(':')[-1].lower() == 'rattlesnake':
         del bisonArgs['SampledVars'][varName]
-        value = rattlesnakeArgs['SampledVars'][varName]
-        #del rattlesnakeArgs['SampledVars'][varName]
-        #rattlesnakeArgs['SampledVars'][fullName.split(':')[-1]] = value
         perturbRattlesnake = True
         if 'alias' in Kwargs.keys():
           if varName in Kwargs['alias']:
@@ -132,8 +129,8 @@ class MAMMOTHInterface(CodeInterfaceBase):
         foundAlias= True
         break
     #Rattlesnake interface
-    if perturbRattlesnake or foundAlias:
-      currentInputFiles = self.RattlesnakeInterface.createNewInput(currentInputFiles,origInputFiles,samplerType,**rattlesnakeArgs)
+    #if perturbRattlesnake or foundAlias:
+    currentInputFiles = self.RattlesnakeInterface.createNewInput(currentInputFiles,origInputFiles,samplerType,**rattlesnakeArgs)
     #reset the type
     for inputFile in currentInputFiles:
       fileType = inputFile.getType()

@@ -1,8 +1,8 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <RunInfo>
-    <WorkingDir>QuarterPellet_Example_2D</WorkingDir>
-    <Sequence>perturbAll</Sequence>
+    <WorkingDir>MammothInterface/QuarterPellet_Example_2D</WorkingDir>
+    <Sequence>perturbAll,print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
@@ -40,14 +40,9 @@
 
   <Models>
     <Code name="Mammoth" subType="MAMMOTH">
-        <!--executable>
-              /path/to/mammoth/executable/mammoth-opt
-              here we should put the executable. Since we want to test the interface only, it is going to be empty
-              the following is an example:
-              %FRAMEWORK_DIR%/../../mammoth/mammoth-%METHOD%
-        </executable-->
         <executable>
-              %FRAMEWORK_DIR%/../../mammoth/mammoth-%METHOD% 
+          <!--  /path/to/mammoth/executable -->
+          <!-- here we should put the executable. Since we want to test the interface only, it is going to be empty -->
         </executable>
     </Code>
   </Models>
@@ -150,12 +145,26 @@
       <Input class="Files" type="">alias_2</Input>
       <Model class="Models" type="Code">Mammoth</Model>
       <Sampler class="Samplers" type="MonteCarlo">MC1</Sampler>
-      <Output class="Databases" type="HDF5">DataB_mammoth</Output>
+      <Output class="DataObjects" type="HistorySet">solns</Output>
     </MultiRun>
+    <IOStep name='print'>
+      <Input class="DataObjects" type="HistorySet">solns</Input>
+      <Output class="OutStreams" type="Print">perturb_all</Output>
+    </IOStep>
   </Steps>
+  <DataObjects>
+      <HistorySet name="solns">
+          <Input>AuxVariables|Temp|initial_condition:Rattlesnake,Materials|fuel_solid_mechanics_elastic|poissons_ratio:Bison</Input>
+          <Output>time,TotalReactorPower,burnup,burnup_FIMA_pp,k-eff-correction,k-eff-prediction,power_scaling,raw_total_power</Output>
+      </HistorySet>
+  </DataObjects>
+  
+  <OutStreams>
+    <Print name="perturb_all">
+      <type>csv</type>
+      <source>solns</source>
+    </Print>
+  </OutStreams>
 
-  <Databases>
-    <HDF5 name="DataB_mammoth" readMode="overwrite"/>
-  </Databases>
 
 </Simulation>

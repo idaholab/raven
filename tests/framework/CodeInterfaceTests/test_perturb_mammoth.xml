@@ -1,20 +1,14 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <RunInfo>
-    <WorkingDir>QuarterPellet_Example_2D</WorkingDir>
-    <Sequence>MCTestMammoth</Sequence>
-    <mode>
-      mpi
-      <runQSUB/>
-    </mode>
-    <expectedTime>00:10:00</expectedTime>
-    <clusterParameters>-W block=true</clusterParameters>
-    <batchSize>2</batchSize>
+    <WorkingDir>MammothInterface/QuarterPellet_Example_2D</WorkingDir>
+    <Sequence>MCTestMammoth,print</Sequence>
+    <batchSize>1</batchSize>
   </RunInfo>
 
   <Files>
-    <Input name="mammothInput" type="mammothInput|rattlesnakeInput">QuarterPin_withFuel.i</Input>
-    <Input name="bisonInput" type="bisonInput">bison_2way_fuelcladelastic.i</Input>
+    <Input name="mammothInput" type="mammothInput|rattlesnakeInput">quarter_pin_with_fuel.i</Input>
+    <Input name="bisonInput" type="bisonInput">bison_2way_fuel_clad_elastic.i</Input>
     <Input name="bisonMesh" type="bison|mesh">QuarterPin_FuelClad_FineQUAD8.e</Input>
     <Input name="rattlesnakeMesh" type="rattlesnake|mesh">QuarterPin_FuelGapCladWater_QUAD8_Fine.e</Input>
     <Input name="M1" type="yakxsinput">M1_2D.xml</Input>
@@ -45,11 +39,8 @@
   <Models>
     <Code name="Mammoth" subType="MAMMOTH">
         <executable>
-            <!--  /path/to/mammoth/executable/mammoth-opt
-              here we should put the executable. Since we want to test the interface only, it is going to be empty
-              the following is an example:
-              %FRAMEWORK_DIR%/../../mammoth/mammoth-%METHOD% -->
-              %FRAMEWORK_DIR%/../../mammoth/mammoth-%METHOD%
+          <!--  /path/to/mammoth/executable -->
+          <!-- here we should put the executable. Since we want to test the interface only, it is going to be empty -->
         </executable>
     </Code>
   </Models>
@@ -72,7 +63,7 @@
   <Samplers>
     <MonteCarlo name="MC1">
       <samplerInit>
-        <limit>5</limit>
+        <limit>3</limit>
       </samplerInit>
       <variable name="AuxVariables|Temp|initial_condition:Rattlesnake">
         <distribution>G1</distribution>
@@ -121,12 +112,26 @@
       <Input class="Files" type="">M10</Input>
       <Model class="Models" type="Code">Mammoth</Model>
       <Sampler class="Samplers" type="MonteCarlo">MC1</Sampler>
-      <Output class="Databases" type="HDF5">DataB_mammoth</Output>
+      <Output class="DataObjects" type="HistorySet">solns</Output>
     </MultiRun>
+    <IOStep name='print'>
+      <Input class="DataObjects" type="HistorySet">solns</Input>
+      <Output class="OutStreams" type="Print">perturb_mammoth</Output>
+    </IOStep>
   </Steps>
-
-  <Databases>
-    <HDF5 name="DataB_mammoth" readMode="overwrite"/>
-  </Databases>
+  
+  <DataObjects>
+      <HistorySet name="solns">
+          <Input>AuxVariables|Temp|initial_condition:Rattlesnake,Materials|fuel_solid_mechanics_elastic|poissons_ratio:Bison</Input>
+          <Output>time,TotalReactorPower,burnup,burnup_FIMA_pp,k-eff-correction,k-eff-prediction,power_scaling,raw_total_power</Output>
+      </HistorySet>
+  </DataObjects>
+  
+  <OutStreams>
+    <Print name="perturb_mammoth">
+      <type>csv</type>
+      <source>solns</source>
+    </Print>
+  </OutStreams>
 
 </Simulation>
