@@ -70,11 +70,11 @@ class PostProcessorInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object),Mess
     """
     pass
   
-  def inverse(self,inputDic):
+  def _inverse(self,inputDic):
     """
-     Method to perform the inverse of the post-process action
-     @ In, inputDic, dict, dictionary which contains the data to be back pre-processed
-     @ Out, None
+      Method to perform the inverse of the post-process action
+      @ In, inputDic, dict, dictionary which contains the data to be back pre-processed
+      @ Out, None
     """    
     pass
 

@@ -73,7 +73,7 @@ class HS2PS(PostProcessorInterfaceBase):
     outputDic['data']['output'] = {}
     outputDic['data']['input']  = {}
 
-    ''' generate the input part of the output dictionary'''
+    #generate the input part of the output dictionary
     inputVars = inputDic['data']['input'][inputDic['data']['input'].keys()[0]].keys()
     for inputVar in inputVars:
       outputDic['data']['input'][inputVar] = np.empty(0)
@@ -82,7 +82,7 @@ class HS2PS(PostProcessorInterfaceBase):
       for inputVar in inputVars:
         outputDic['data']['input'][inputVar] = np.append(outputDic['data']['input'][inputVar], copy.deepcopy(inputDic['data']['input'][hist][inputVar]))
 
-    ''' generate the output part of the output dictionary'''
+    #generate the output part of the output dictionary
     if self.features == 'all':
       self.features = []
       historiesID = inputDic['data']['output'].keys()
@@ -111,27 +111,41 @@ class HS2PS(PostProcessorInterfaceBase):
 
     for key in range(length):
       if key != self.timeID:
-        outputDic['data']['output'][str(key)] = np.empty(0)
+        outputDic['data']['output'][key] = np.empty(0)
 
     for hist in inputDic['data']['output'].keys():
       for key in outputDic['data']['output'].keys():
         outputDic['data']['output'][key] = np.append(outputDic['data']['output'][key], copy.deepcopy(tempDict[hist][int(key)]))
         
-    self.transformationSettings['timeLength'] = length
-    self.transformationSettings['vars'] = inputDic['data']['output'].keys()
+    self.transformationSettings['vars'] = copy.deepcopy(self.features)
+    self.transformationSettings['vars'].remove(self.timeID)
+    self.transformationSettings['timeLength'] = int(length/len(self.transformationSettings['vars']))
+    self.transformationSettings['timeAxis'] = inputDic['data']['output'][1][self.timeID]
+    self.transformationSettings['dimID'] = outputDic['data']['output'].keys()
+
     return outputDic
   
-  def inverse(self,inputDic):
+  
+  
+  def _inverse(self,inputDic):
+    
+    reorderedData = {}
+    '''
+    for key in inputDic.keys():
+      reorderedData[key] = np.zeros(inputDic[key].size)
+    
+    for index,var in enumerate(self.transformationSettings['dimID']):
+      for key in reorderedData.keys():
+        reorderedData[key][int(var)] = inputDic[key][index]
+    ''' 
     data = {}
-    
-    for key in self.transformationSettings['vars']:
-      data[key] = np.zeros(self.transformationSettings['timeLength'])
-    
-    for index,val in enumerate(self.transformationSettings['vars']):     
-      for t in range(self.transformationSettings['timeLength']):
-        location = t + index * np.zeros(self.transformationSettings['timeLength'])  
-        data[val][t] = inputDic[location]
-        
+    for hist in inputDic.keys():
+      data[hist]= {}
+      tempData = inputDic[hist].reshape((len(self.transformationSettings['vars']),self.transformationSettings['timeLength']))
+      for index,var in enumerate(self.transformationSettings['vars']): 
+        data[hist][var] = tempData[index,:]
+      data[hist][self.timeID] = self.transformationSettings['timeAxis']
+      
     return data
 
 

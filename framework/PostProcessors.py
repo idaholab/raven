@@ -980,6 +980,10 @@ class InterfacedPostProcessor(BasePostProcessor):
       return outputDic
     else:
       self.raiseAnError(RuntimeError,'InterfacedPostProcessor Post-Processor '+ self.name +' : function has generated a not valid output dictionary')
+      
+  def _inverse(self, inputIn):
+    outputDic = self.postProcessor._inverse(inputIn)
+    return outputDic
 
   def collectOutput(self, finishedJob, output):
     """
@@ -3444,8 +3448,11 @@ class DataMining(BasePostProcessor):
         features = currentInput.getParaKeys('output')
       else:
         features = self.initializationOptionDict['KDD']['Features'].split(',')
+        
       tempData = self.PreProcessor.interface.inputToInternal(currentInp)
+      
       preProcessedData = self.PreProcessor.interface.run(tempData)
+      
       if self.initializationOptionDict['KDD']['Features'] == 'input':
         inputDict['Features'] = copy.deepcopy(preProcessedData['data']['input'])
       elif self.initializationOptionDict['KDD']['Features'] == 'output':
@@ -3460,6 +3467,7 @@ class DataMining(BasePostProcessor):
              inputDict['Features'][param] = copy.deepcopy(preProcessedData['data']['output'][param])
 
       inputDict['metadata'] = currentInput.getAllMetadata()
+      
       return inputDict
 
     inputDict = {'Features':{}, 'parameters':{}, 'Labels':{}, 'metadata':{}}
@@ -3533,7 +3541,10 @@ class DataMining(BasePostProcessor):
       self.solutionExport = initDict["SolutionExport"]
     
     if "PreProcessor" in self.assemblerDict:
-      self.PreProcessor = self.assemblerDict['PreProcessor'][0][3]
+       self.PreProcessor = self.assemblerDict['PreProcessor'][0][3]
+       if not '_inverse' in dir(self.PreProcessor.interface):
+         self.raiseAnError(IOError, 'PostProcessor ' + self.name + ' is using a pre-processor where the method inverse has not implemented')
+        
 
     if 'Metric' in self.assemblerDict:
       self.metric = self.assemblerDict['Metric'][0][3]
@@ -3663,7 +3674,6 @@ class DataMining(BasePostProcessor):
       ## to match them.
       if hasattr(self.unSupervisedEngine, 'clusterCenters_'):
         centers = self.unSupervisedEngine.clusterCenters_
-        print(centers)
         ## Does skl not provide a correlation between label ids and cluster centers?
         if hasattr(self.unSupervisedEngine, 'clusterCentersIndices_'):
           indices = self.unSupervisedEngine.clusterCentersIndices_
@@ -3682,12 +3692,24 @@ class DataMining(BasePostProcessor):
             # if a pre-processor is used it is here assumed that the pre-processor has internally a 
             # method (called "inverse") which converts the cluster centers back to their original format. If this method 
             # does not exist a warning will be generated  
-            self.raiseAWarning('Solution export is not yet adapted when PreProcessor is used')
-            # conversion of centers to a dictionary dict and back conversion of data
             tempDict = {}
             for index,center in zip(indices,centers):
               tempDict[index] = center
-            centers = self.PreProcessor.inverse(tempDict)
+            centers = self.PreProcessor.interface._inverse(tempDict)
+            
+            for index,center in zip(indices,centers):
+              self.solutionExport.updateInputValue(self.labelFeature,index)     
+                     
+            listOutputParams = self.solutionExport.getParaKeys('outputs')              
+            if self.solutionExport.type == 'HistorySet':
+              for hist in centers.keys():
+                for key in centers[hist].keys():
+                  self.solutionExport.updateOutputValue(key,centers[hist][key])
+            else:
+              for key in centers.keys():
+                if key in self.solutionExport.getParaKeys('outputs'):
+                  for value in centers[key]:
+                    self.solutionExport.updateOutputValue(key,value)              
         
       if hasattr(self.unSupervisedEngine, 'inertia_'):
         inertia = self.unSupervisedEngine.inertia_
