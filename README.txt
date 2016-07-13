@@ -1,12 +1,4 @@
 Overview
-<<<<<<< HEAD
-RAVEN is a flexible and multi-purpose statistical analysis framework. It has been developed at the Idaho National Laboratory (INL) since 2012 within the Nuclear Energy Advanced Modeling and Simulation (NEAMS) and the Light Water Reactor Sustainability (LWRS) Risk Informed Safety Margin Characterization (RISMC) programs. 
-Statistical analysis includes the following major capabilities:
-- statistical sampling of codes (e.g., Monte-Carlo, stratified sampling (LHS), grid sampling, and Dynamic Event Trees) for uncertainty quantification and reliability analyses
-- generation and use of reduced order models (also known as surrogate models or emulators)
-- data post-processing 
-- statistical estimation and sensitivity analysis (e.g., mean, variance, sensitivity coefficients and covariance matrix).
-=======
 
 RAVEN is a flexible and multi-purpose statistical analysis
 framework. It has been developed at Idaho National Laboratory (INL)
@@ -23,7 +15,7 @@ Statistical analysis includes the following major capabilities:
 - data post-processing
 - statistical estimation and sensitivity analysis (e.g., mean,
   variance, sensitivity coefficients and covariance matrix).
->>>>>>> origin/devel
+
 
 Applications
 
@@ -57,12 +49,9 @@ set of basic actions:
 - Post-Process
 - IOStep
 
-<<<<<<< HEAD
-More complex analyses are performed by simply assembling and linking a series of steps listed above.
-=======
 More complex analyses are performed by simply assembling and linking a
 series of steps listed above.
->>>>>>> origin/devel
+
 
 Creation and use of reduced order models (scikit-learn and CROW library):
 - SVM
