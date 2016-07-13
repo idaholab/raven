@@ -1803,14 +1803,8 @@ class SciKitLearn(superVisedLearning):
   """
     An Interface to the ROMs provided by skLearn
   """
-  ## The types in this list should not be normalized by default. I would argue
-  ## that none of these should be normed by default, since sklearn offers that
-  ## option where applicable, but that is for someone else to make a decision.
-  unnormedTypes = ['MultinomialNB','GaussianProcess',
-                   'Lasso','ARDRegression','BayesianRidge','ElasticNet','Lars','LarsCV',
-                   'LassoCV','LassoLars','LassoLarsCV','LassoLarsIC','LinearRegression','MultiTaskLasso','MultiTaskElasticNet',
-                   'OrthogonalMatchingPursuit','OrthogonalMatchingPursuitCV','Ridge','RidgeClassifier']
-
+  # the normalization strategy is defined through the Boolean value in the dictionary below:
+  # {mainClass:{subtype:(classPointer,Output type (float or int), boolean -> External Z-normalization needed)}
   ROMtype = 'SciKitLearn'
   availImpl                                                 = {}                                                            # dictionary of available ROMs {mainClass:{subtype:(classPointer,Output type (float or int), boolean -> External Z-normalization needed)}
   availImpl['lda']                                          = {}                                                            #Linear Discriminant Analysis
