@@ -41,7 +41,7 @@ class HS2PS(PostProcessorInterfaceBase):
     ''' timeID identify the ID of the temporal variable in the data set; it is used so that in the
     conversion the time array is not inserted since it is not needed (all histories have same length)'''
     self.features     = 'all'
-    
+
 
   def readMoreXML(self,xmlNode):
     """
@@ -116,7 +116,7 @@ class HS2PS(PostProcessorInterfaceBase):
     for hist in inputDic['data']['output'].keys():
       for key in outputDic['data']['output'].keys():
         outputDic['data']['output'][key] = np.append(outputDic['data']['output'][key], copy.deepcopy(tempDict[hist][int(key)]))
-        
+
     self.transformationSettings['vars'] = copy.deepcopy(self.features)
     self.transformationSettings['vars'].remove(self.timeID)
     self.transformationSettings['timeLength'] = int(length/len(self.transformationSettings['vars']))
@@ -124,19 +124,19 @@ class HS2PS(PostProcessorInterfaceBase):
     self.transformationSettings['dimID'] = outputDic['data']['output'].keys()
 
     return outputDic
-  
-  
-  
+
+
+
   def _inverse(self,inputDic):
-  
+
     data = {}
     for hist in inputDic.keys():
       data[hist]= {}
       tempData = inputDic[hist].reshape((len(self.transformationSettings['vars']),self.transformationSettings['timeLength']))
-      for index,var in enumerate(self.transformationSettings['vars']): 
+      for index,var in enumerate(self.transformationSettings['vars']):
         data[hist][var] = tempData[index,:]
       data[hist][self.timeID] = self.transformationSettings['timeAxis']
-      
+
     return data
 
 

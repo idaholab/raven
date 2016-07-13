@@ -446,7 +446,7 @@ class OutStreamPlot(OutStreamManager):
             else:
               for i in range(len(self.colorMapValues[pltindex][key])):
                 if self.colorMapValues[pltindex][key][i].size == 0:
-                  return False               
+                  return False
     return True
 
   def __executeActions(self):

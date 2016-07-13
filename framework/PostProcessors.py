@@ -980,7 +980,7 @@ class InterfacedPostProcessor(BasePostProcessor):
       return outputDic
     else:
       self.raiseAnError(RuntimeError,'InterfacedPostProcessor Post-Processor '+ self.name +' : function has generated a not valid output dictionary')
-      
+
   def _inverse(self, inputIn):
     outputDic = self.postProcessor._inverse(inputIn)
     return outputDic
@@ -3374,7 +3374,7 @@ class DataMining(BasePostProcessor):
     """
     BasePostProcessor.__init__(self, messageHandler)
     self.printTag = 'POSTPROCESSOR DATAMINING'
-    
+
     self.algorithms = []                                  ## A list of Algorithm
                                                           ## objects that
                                                           ## contain definitions
@@ -3394,7 +3394,7 @@ class DataMining(BasePostProcessor):
                                                           ## projection matrix
                                                           ## for dimensionality
                                                           ## reduction methods
-    
+
     self.labelFeature = 'labels'                          ## User customizable
                                                           ## column name for the
                                                           ## labels associated
@@ -3448,11 +3448,11 @@ class DataMining(BasePostProcessor):
         features = currentInput.getParaKeys('output')
       else:
         features = self.initializationOptionDict['KDD']['Features'].split(',')
-        
+
       tempData = self.PreProcessor.interface.inputToInternal(currentInp)
-      
+
       preProcessedData = self.PreProcessor.interface.run(tempData)
-      
+
       if self.initializationOptionDict['KDD']['Features'] == 'input':
         inputDict['Features'] = copy.deepcopy(preProcessedData['data']['input'])
       elif self.initializationOptionDict['KDD']['Features'] == 'output':
@@ -3467,7 +3467,7 @@ class DataMining(BasePostProcessor):
              inputDict['Features'][param] = copy.deepcopy(preProcessedData['data']['output'][param])
 
       inputDict['metadata'] = currentInput.getAllMetadata()
-      
+
       return inputDict
 
     inputDict = {'Features':{}, 'parameters':{}, 'Labels':{}, 'metadata':{}}
@@ -3539,12 +3539,12 @@ class DataMining(BasePostProcessor):
 
     if "SolutionExport" in initDict:
       self.solutionExport = initDict["SolutionExport"]
-    
+
     if "PreProcessor" in self.assemblerDict:
        self.PreProcessor = self.assemblerDict['PreProcessor'][0][3]
        if not '_inverse' in dir(self.PreProcessor.interface):
          self.raiseAnError(IOError, 'PostProcessor ' + self.name + ' is using a pre-processor where the method inverse has not implemented')
-        
+
 
     if 'Metric' in self.assemblerDict:
       self.metric = self.assemblerDict['Metric'][0][3]
@@ -3679,7 +3679,7 @@ class DataMining(BasePostProcessor):
           indices = self.unSupervisedEngine.clusterCentersIndices_
         else:
           indices = list(range(len(centers)))
-          
+
         if self.solutionExport is not None:
           if self.PreProcessor == None:
             for index,center in zip(indices,centers):
@@ -3689,18 +3689,18 @@ class DataMining(BasePostProcessor):
               for key,value in zip(self.unSupervisedEngine.features.keys(),center):
                 self.solutionExport.updateOutputValue(key,value)
           else:
-            # if a pre-processor is used it is here assumed that the pre-processor has internally a 
-            # method (called "inverse") which converts the cluster centers back to their original format. If this method 
-            # does not exist a warning will be generated  
+            # if a pre-processor is used it is here assumed that the pre-processor has internally a
+            # method (called "inverse") which converts the cluster centers back to their original format. If this method
+            # does not exist a warning will be generated
             tempDict = {}
             for index,center in zip(indices,centers):
               tempDict[index] = center
             centers = self.PreProcessor.interface._inverse(tempDict)
-            
+
             for index,center in zip(indices,centers):
-              self.solutionExport.updateInputValue(self.labelFeature,index)     
-                     
-            listOutputParams = self.solutionExport.getParaKeys('outputs')              
+              self.solutionExport.updateInputValue(self.labelFeature,index)
+
+            listOutputParams = self.solutionExport.getParaKeys('outputs')
             if self.solutionExport.type == 'HistorySet':
               for hist in centers.keys():
                 for key in centers[hist].keys():
@@ -3709,11 +3709,11 @@ class DataMining(BasePostProcessor):
               for key in centers.keys():
                 if key in self.solutionExport.getParaKeys('outputs'):
                   for value in centers[key]:
-                    self.solutionExport.updateOutputValue(key,value)              
-        
+                    self.solutionExport.updateOutputValue(key,value)
+
       if hasattr(self.unSupervisedEngine, 'inertia_'):
         inertia = self.unSupervisedEngine.inertia_
-        
+
     elif 'bicluster' == self.unSupervisedEngine.SKLtype:
       self.raiseAnError(RuntimeError, 'Bicluster has not yet been implemented.')
     elif 'mixture' == self.unSupervisedEngine.SKLtype:
@@ -3787,7 +3787,7 @@ class DataMining(BasePostProcessor):
       ## use a single projection matrix.
       for i in range(noComponents):
         outputDict['output'][self.name+'PCAComponent' + str(i + 1)] =  components[:, i]
-        
+
     return outputDict
 #
 #
