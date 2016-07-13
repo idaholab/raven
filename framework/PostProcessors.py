@@ -1968,7 +1968,7 @@ class BasicStatistics(BasePostProcessor):
               outputDict[whatPerc][targetP] = np.percentile(input['targets'][targetP], integerPercentile) if not pbPresent else self._computeWeightedPercentile(input['targets'][targetP],relWeight,percent=float(integerPercentile)/100.0)
       # cov matrix
       if what == 'covariance':
-        if len(input['targets'].keys()) < 2:  self.raiseAWarning("The number of targets are < 2. covariance matrix is not computed!")
+        if len(input['targets'].keys()) < 2:  self.raiseAWarning("The number of targets are < 2 in post-processor named "+ self.name +". Covariance matrix is not computed!")
         else:
           feat = np.zeros((len(input['targets'].keys()), utils.first(input['targets'].values()).size))
           pbWeightsList = [None]*len(input['targets'].keys())
@@ -1979,7 +1979,7 @@ class BasicStatistics(BasePostProcessor):
           outputDict[what] = self.covariance(feat, weights = pbWeightsList)
       # pearson matrix
       if what == 'pearson':
-        if len(input['targets'].keys()) < 2:  self.raiseAWarning("The number of targets are < 2. pearson matrix is not computed!")
+        if len(input['targets'].keys()) < 2:  self.raiseAWarning("The number of targets are < 2 in post-processor named "+ self.name +". Pearson matrix is not computed!")
         else:
           feat          = np.zeros((len(input['targets'].keys()), utils.first(input['targets'].values()).size))
           pbWeightsList = [None]*len(input['targets'].keys())
@@ -1989,7 +1989,7 @@ class BasicStatistics(BasePostProcessor):
           outputDict[what] = self.corrCoeff(feat, weights = pbWeightsList)  # np.corrcoef(feat)
       # sensitivity matrix
       if what == 'sensitivity':
-        if len(input['targets'].keys()) < 2:  self.raiseAWarning("The number of targets are < 2. sensitivity matrix is not computed!")
+        if len(input['targets'].keys()) < 2:  self.raiseAWarning("The number of targets are < 2 in post-processor named "+ self.name +". Sensitivity matrix is not computed!")
         else:
           for myIndex, target in enumerate(parameterSet):
             values, targetCoefs = list(input['targets'].values()), list(input['targets'].keys())
@@ -2006,7 +2006,7 @@ class BasicStatistics(BasePostProcessor):
       # vc(X) is the covariance matrix of X with itself.
       # The variance dependent sensitivity matrix is defined as: cov(Y,X) * [vc(X)]^(-1)
       if what == 'VarianceDependentSensitivity':
-        if len(input['targets'].keys()) < 2:  self.raiseAWarning("The number of targets are < 2. VarianceDependentSensitivity matrix is not computed!")
+        if len(input['targets'].keys()) < 2:  self.raiseAWarning("The number of targets are < 2 in post-processor named "+ self.name +". VarianceDependentSensitivity matrix is not computed!")
         else:
           feat = np.zeros((len(input['targets'].keys()), utils.first(input['targets'].values()).size))
           pbWeightsList = [None]*len(input['targets'].keys())
@@ -2029,7 +2029,7 @@ class BasicStatistics(BasePostProcessor):
               outputDict[what][myIndex][cnt] = sensitivityCoeffDict[param]
       # Normalized variance dependent sensitivity matrix: variance dependent sensitivity  normalized by the mean (% change of output)/(% change of input)
       if what == 'NormalizedSensitivity':
-        if len(input['targets'].keys()) < 2:  self.raiseAWarning("The number of targets are < 2. NormalizedSensitivity matrix is not computed!")
+        if len(input['targets'].keys()) < 2:  self.raiseAWarning("The number of targets are < 2 in post-processor named "+ self.name +". NormalizedSensitivity matrix is not computed!")
         else:
           feat = np.zeros((len(input['targets'].keys()), utils.first(input['targets'].values()).size))
           pbWeightsList = [None]*len(input['targets'].keys())
