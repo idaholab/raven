@@ -15,6 +15,7 @@ import sys
 import io
 import string
 import datetime
+import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -392,6 +393,8 @@ class Simulation(MessageHandler.MessageUser):
       @ Out, None
     """
     self.FIXME          = False
+    #set the numpy print threshold to avoid ellipses in array truncation
+    np.set_printoptions(threshold=np.inf)
     #establish message handling: the error, warning, message, and debug print handler
     self.messageHandler = MessageHandler.MessageHandler()
     self.verbosity      = verbosity
