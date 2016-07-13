@@ -36,8 +36,8 @@
 			<Pmin>2</Pmin>
 			<Qmax>1</Qmax>
 			<Qmin>1</Qmin>
-			<Fourier>31536000,604800,86400</Fourier>
-			<FourierOrder>6, 2, 2</FourierOrder>
+			<Fourier>604800,86400</Fourier>
+			<FourierOrder>2, 2</FourierOrder>
 		</ROM>
     </Models>
     <Steps>

@@ -2166,15 +2166,25 @@ class ARMA(superVisedLearning):
         fSeriesBest = copy.deepcopy(fSeries)
         self.fourierResult['residues'] = copy.deepcopy(r)
         criterionBest = copy.deepcopy(criterionCurrent) 
-    
+#       self.raiseADebug(fOrder)
+# #       self.raiseADebug(np.average(fSeries,axis=0))
+#       self.raiseADebug(fourierEngine.coef_)  
+#       self.raiseADebug(fourierEngine.intercept_) 
+# #       self.raiseADebug(self.fourierResult['fOrder'])    
+#       self.raiseADebug(criterionCurrent, criterionBest)
+#       self.raiseADebug(self.timeSeriesDatabase[0:10])
+#       self.raiseADebug(self.timeSeriesDatabase[-10:])
+# #       self.raiseAnError(ValueError, 'fOrder')
+      
     fourierEngine.fit(fSeriesBest,self.timeSeriesDatabase)
     self.fourierResult['predict'] = fourierEngine.predict(fSeriesBest)
     
-    self.raiseADebug(self.timeSeriesDatabase[0:2])
-    self.raiseADebug(self.fourierResult['fOrder'], self.fourierResult['residues'])
-    self.raiseADebug(fourierEngine.coef_)
-    self.raiseADebug(self.fourierResult['predict'][0,0])
-    self.raiseAnError(ValueError, 's')
+#     self.raiseADebug(np.average(self.timeSeriesDatabase))
+#     self.raiseADebug(self.timeSeriesDatabase[0:2])
+#     self.raiseADebug(self.fourierResult['fOrder'], self.fourierResult['residues'])
+#     self.raiseADebug(fourierEngine.coef_)
+#     self.raiseADebug(self.fourierResult['predict'][0,0])
+#     self.raiseAnError(ValueError, 's')
     
   def __trainARMA__(self):
     """
@@ -2364,6 +2374,7 @@ class ARMA(superVisedLearning):
       for orderBp in range(fourierOrder[bp]):       
         fourierSeriesAll[bp][:, 2*orderBp] = np.sin(2*np.pi*(orderBp+1)/bp*Time)
         fourierSeriesAll[bp][:, 2*orderBp+1] = np.cos(2*np.pi*(orderBp+1)/bp*Time)
+        
     return fourierSeriesAll
     
   def __armaParamAssemb__(self,x,p,q,N): 
@@ -2482,15 +2493,15 @@ class ARMA(superVisedLearning):
     # Ensure positivity --- FIXME
     tSeries = np.absolute(tSeries)
     
-    self.raiseADebug(self.fourierResult['predict'][0,0])
-    self.raiseADebug(self.armaResult['Phi'])
-    self.raiseADebug(self.armaResult['Theta'])
-    self.raiseADebug(self.armaResult['sig'])
-    self.raiseADebug(tSeriesNoise[0,0]/self.armaResult['sig'][0,0])
-    self.raiseADebug(tSeriesNoise[0,0])
-    self.raiseADebug(tSeriesNorm[0,0])
-    self.raiseADebug(tSeries[0,0])
-    self.raiseAnError(ValueError, 'ddd')    
+#     self.raiseADebug(self.fourierResult['predict'][0,0])
+#     self.raiseADebug(self.armaResult['Phi'])
+#     self.raiseADebug(self.armaResult['Theta'])
+#     self.raiseADebug(self.armaResult['sig'])
+#     self.raiseADebug(tSeriesNoise[0,0]/self.armaResult['sig'][0,0])
+#     self.raiseADebug(tSeriesNoise[0,0])
+#     self.raiseADebug(tSeriesNorm[0,0])
+#     self.raiseADebug(tSeries[0,0])
+#     self.raiseAnError(ValueError, 'ddd')    
     # debug
     self.raiseADebug('mean', np.mean(tSeries), 'std', np.std(tSeries))
     # end of debug
