@@ -23,6 +23,12 @@
     csv    = 'HistorySetSnapShot/PrintPPpointSet_dump.csv HistorySetSnapShot/PrintPPpointSet_dump1.csv HistorySetSnapShot/PrintPPpointSet_dump2.csv HistorySetSnapShot/PrintPPpointSet_dump3.csv HistorySetSnapShot/PrintPPpointSet_dump4.csv'
     output = 'HistorySetSnapShot/PrintPPpointSet_dump.xml'
   [../]
+  [./HistorySetSnapShotMixed]
+    type   = 'RavenFramework'
+    input  = 'test_historySetSnapshot_mixed.xml'
+    UnorderedCsv = 'HistorySetSnapShotMixed/history_dump.csv'
+    csv = 'HistorySetSnapShotMixed/history_dump_0.csv HistorySetSnapShotMixed/history_dump_1.csv HistorySetSnapShotMixed/point_dump1.csv HistorySetSnapShotMixed/point_dump2.csv'
+  [../]
   [./historySetSync]
     type   = 'RavenFramework'
     input  = 'test_historySetSync.xml'
@@ -58,5 +64,11 @@
     input  = 'test_interfacedPP_pointset.xml'
     csv    = 'interfacedPostProcessor_PointSet/PrintPPPointSetSet_dump.csv'
     output = 'interfacedPostProcessor_PointSet/PrintPPPointSetSet_dump.xml'
+  [../]
+  [./typicalHistoryFromHS]
+    type   = 'RavenFramework'
+    input  = 'test_typicalHistoryFromHS.xml'
+    csv    = 'TypicalHistoryFromHS/writeTypDataOut_0.csv'
+    output = 'TypicalHistoryFromHS/writeTypDataOut.csv TypicalHistoryFromHS/writeTypDataOut.xml'
   [../]
 []

@@ -1,0 +1,25 @@
+<?xml version="1.0" ?>
+<ROM type="Static">
+  <ans>
+    <mean>-2.77555756156e-16</mean>
+    <expectedValue>-2.77555756156e-16</expectedValue>
+    <variance>2.5</variance>
+    <samples>13</samples>
+    <partialVariance>
+      <x1>1.25</x1>
+      <x2>1.25</x2>
+      <x1.x2>0.0</x1.x2>
+    </partialVariance>
+    <sobolIndices>
+      <x1>0.5</x1>
+      <x2>0.5</x2>
+      <x1.x2>0.0</x1.x2>
+    </sobolIndices>
+    <sobolTotalIndices>
+      <x1>0.5</x1>
+      <x2>0.5</x2>
+      <x1.x2>0.0</x1.x2>
+    </sobolTotalIndices>
+  </ans>
+
+</ROM>

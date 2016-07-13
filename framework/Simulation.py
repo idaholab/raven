@@ -15,6 +15,7 @@ import sys
 import io
 import string
 import datetime
+import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -31,6 +32,9 @@ from JobHandler import JobHandler
 import MessageHandler
 import VariableGroups
 import utils
+from Application import __PySideAvailable
+if __PySideAvailable:
+  from Application import InteractiveApplication
 #Internal Modules End--------------------------------------------------------------------------------
 
 #----------------------------------------------------------------------------------------------------
@@ -182,6 +186,9 @@ class MPISimulationMode(SimulationMode):
     self.__inPbs = "PBS_NODEFILE" in os.environ
     self.__nodefile = False
     self.__runQsub = False
+    self.__noSplitNode = False #If true, don't split mpi processes across nodes
+    self.__maxOnNode = None #Used with __noSplitNode.  If __noSplitNode and
+    # __maxOnNode is not None, don't put more than that on on single shared memory node
     self.printTag = 'MPI SIMULATION MODE'
 
   def modifySimulation(self):
@@ -204,18 +211,59 @@ class MPISimulationMode(SimulationMode):
       #the batchsize is just the number of nodes of which there is one
       # per line in the nodefile divided by the numMPI (which is per run)
       # and the floor and int and max make sure that the numbers are reasonable
-      newBatchsize = max(int(math.floor(len(lines)/numMPI)),1)
-      if newBatchsize != oldBatchsize:
-        self.__simulation.runInfoDict['batchSize'] = newBatchsize
-        self.raiseAWarning("changing batchsize from "+str(oldBatchsize)+" to "+str(newBatchsize))
+      maxBatchsize = max(int(math.floor(len(lines)/numMPI)),1)
+      if maxBatchsize < oldBatchsize:
+        self.__simulation.runInfoDict['batchSize'] = maxBatchsize
+        self.raiseAWarning("changing batchsize from "+str(oldBatchsize)+" to "+str(maxBatchsize))
+      newBatchsize = self.__simulation.runInfoDict['batchSize']
       if newBatchsize > 1:
         #need to split node lines so that numMPI nodes are available per run
         workingDir = self.__simulation.runInfoDict['WorkingDir']
-        for i in range(newBatchsize):
-          nodeFile = open(os.path.join(workingDir,"node_"+str(i)),"w")
-          for line in lines[i*numMPI:(i+1)*numMPI]:
-            nodeFile.write(line)
-          nodeFile.close()
+        if not self.__noSplitNode:
+          for i in range(newBatchsize):
+            nodeFile = open(os.path.join(workingDir,"node_"+str(i)),"w")
+            for line in lines[i*numMPI:(i+1)*numMPI]:
+              nodeFile.write(line)
+            nodeFile.close()
+        else: #self.__noSplitNode == True
+          nodes = []
+          for line in lines:
+            nodes.append(line.strip())
+
+          nodes.sort()
+
+          currentNode = ""
+          countOnNode = 0
+          groups = []
+
+          for i in range(len(nodes)):
+            node = nodes[i]
+            if node != currentNode:
+              currentNode = node
+              countOnNode = 0
+              groups.append([])
+            if self.__maxOnNode is None or countOnNode < self.__maxOnNode:
+              countOnNode += 1
+              if len(groups[-1]) >= numMPI:
+                groups.append([])
+              groups[-1].append(node)
+
+          fullGroupCount = 0
+          for group in groups:
+            if len(group) < numMPI:
+              self.raiseAWarning("not using part of node because of partial group: "+str(group))
+            else:
+              nodeFile = open(os.path.join(workingDir,"node_"+str(fullGroupCount)),"w")
+              for node in group:
+                print(node,file=nodeFile)
+              nodeFile.close()
+              fullGroupCount += 1
+          if fullGroupCount == 0:
+            self.raiseAnError(IOError, "Cannot run with given parameters because no nodes have numMPI "+str(numMPI)+" available and NoSplitNode is on.")
+          if fullGroupCount != self.__simulation.runInfoDict['batchSize']:
+            self.raiseAWarning("changing batchsize to "+str(fullGroupCount)+" because NoSplitNode is on and some nodes could not be used.")
+            self.__simulation.runInfoDict['batchSize'] = fullGroupCount
+
         #then give each index a separate file.
         nodeCommand = "-f %BASE_WORKING_DIR%/node_%INDEX% "
       else:
@@ -277,6 +325,11 @@ class MPISimulationMode(SimulationMode):
         self.__nodefile = child.text.strip()
       elif child.tag.lower() == "runqsub":
         self.__runQsub = True
+      elif child.tag.lower() == "nosplitnode":
+        self.__noSplitNode = True
+        self.__maxOnNode = child.attrib.get("maxOnNode",None)
+        if self.__maxOnNode is not None:
+          self.__maxOnNode = int(self.__maxOnNode)
       else:
         self.raiseADebug("We should do something with child "+str(child))
 #
@@ -328,14 +381,18 @@ class Simulation(MessageHandler.MessageUser):
     Using the attribute in the xml node <MyType> type discouraged to avoid confusion
   """
 
-  def __init__(self,frameworkDir,verbosity='all'):
+  def __init__(self,frameworkDir,verbosity='all',interactive=False):
     """
       Constructor
       @ In, frameworkDir, string, absolute path to framework directory
       @ In, verbosity, string, optional, general verbosity level
+      @ In, interactive, boolean, optional, toggles the ability to provide an
+        interactive UI or to run to completion without human interaction
       @ Out, None
     """
     self.FIXME          = False
+    #set the numpy print threshold to avoid ellipses in array truncation
+    np.set_printoptions(threshold=np.inf)
     #establish message handling: the error, warning, message, and debug print handler
     self.messageHandler = MessageHandler.MessageHandler()
     self.verbosity      = verbosity
@@ -430,6 +487,13 @@ class Simulation(MessageHandler.MessageUser):
     self.whichDict['OutStreams'] = {}
     self.whichDict['OutStreams']['Plot' ] = self.OutStreamManagerPlotDict
     self.whichDict['OutStreams']['Print'] = self.OutStreamManagerPrintDict
+
+    # The QApplication
+    if interactive:
+      self.app = InteractiveApplication([],self.messageHandler)
+    else:
+      self.app = None
+
     #the handler of the runs within each step
     self.jobHandler    = JobHandler()
     #handle the setting of how the jobHandler act

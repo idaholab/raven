@@ -1,8 +1,10 @@
-<ReducedOrderModel>
+<?xml version="1.0" ?>
+<ROM type="Static">
   <ans2>
     <mean>1.0</mean>
+    <expectedValue>1.0</expectedValue>
     <variance>0.666666666667</variance>
-    <numRuns>7</numRuns>
+    <samples>7</samples>
     <polyCoeffs>
       <inputVariables>x1,x2</inputVariables>
       <_0_0_>1.0</_0_0_>
@@ -10,22 +12,25 @@
       <_1_0_>0.57735026919</_1_0_>
       <_2_0_>-8.32667268469e-16</_2_0_>
     </polyCoeffs>
-    <indices>
-      <tot_variance>0.666666666667</tot_variance>
-      <variables>(u'x2',)
-        <partial_variance>0.333333333333</partial_variance>
-        <Sobol_index>0.5</Sobol_index>
-      </variables>
-      <variables>(u'x1',)
-        <partial_variance>0.333333333333</partial_variance>
-        <Sobol_index>0.5</Sobol_index>
-      </variables>
-    </indices>
+    <partialVariance>
+      <x2>0.333333333333</x2>
+      <x1>0.333333333333</x1>
+    </partialVariance>
+    <sobolIndices>
+      <x2>0.5</x2>
+      <x1>0.5</x1>
+    </sobolIndices>
+    <sobolTotalIndices>
+      <x2>0.5</x2>
+      <x1>0.5</x1>
+    </sobolTotalIndices>
   </ans2>
+
   <ans>
     <mean>1.33333333333</mean>
+    <expectedValue>1.33333333333</expectedValue>
     <variance>0.755555555556</variance>
-    <numRuns>7</numRuns>
+    <samples>7</samples>
     <polyCoeffs>
       <inputVariables>x1,x2</inputVariables>
       <_0_0_>1.33333333333</_0_0_>
@@ -33,16 +38,18 @@
       <_1_0_>0.57735026919</_1_0_>
       <_2_0_>0.298142397</_2_0_>
     </polyCoeffs>
-    <indices>
-      <tot_variance>0.755555555556</tot_variance>
-      <variables>(u'x1',)
-        <partial_variance>0.422222222222</partial_variance>
-        <Sobol_index>0.558823529412</Sobol_index>
-      </variables>
-      <variables>(u'x2',)
-        <partial_variance>0.333333333333</partial_variance>
-        <Sobol_index>0.441176470588</Sobol_index>
-      </variables>
-    </indices>
+    <partialVariance>
+      <x1>0.422222222222</x1>
+      <x2>0.333333333333</x2>
+    </partialVariance>
+    <sobolIndices>
+      <x1>0.558823529412</x1>
+      <x2>0.441176470588</x2>
+    </sobolIndices>
+    <sobolTotalIndices>
+      <x1>0.558823529412</x1>
+      <x2>0.441176470588</x2>
+    </sobolTotalIndices>
   </ans>
-</ReducedOrderModel>
+
+</ROM>

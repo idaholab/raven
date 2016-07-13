@@ -1,0 +1,137 @@
+<?xml version="1.0" ?>
+<Simulation verbosity='debug'>
+  <RunInfo>
+    <WorkingDir>static</WorkingDir>
+    <Sequence>basic,basicpp,coll,colltrain,collprint,pp</Sequence>
+    <batchSize>4</batchSize>
+  </RunInfo>
+  <!--Creates both a BasicStatistics and collocation ROM dump XML
+       for loading, then loads comparable values from them.-->
+  <Files>
+    <Input name="first">basic.xml</Input>
+    <Input name="second">collocation.xml</Input>
+  </Files>
+
+  <Steps>
+    <MultiRun name="basic">
+      <Input class="DataObjects" type="PointSet">dummyIn</Input>
+      <Model class="Models" type="ExternalModel">model</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
+      <Output class="DataObjects" type="PointSet">basic_data</Output>
+    </MultiRun>
+    <MultiRun name="coll">
+      <Input class="DataObjects" type="PointSet">dummyIn</Input>
+      <Model class="Models" type="ExternalModel">model</Model>
+      <Sampler class="Samplers" type="SparseGridCollocation">sc</Sampler>
+      <Output class="DataObjects" type="PointSet">coll_data</Output>
+    </MultiRun>
+    <RomTrainer name="colltrain">
+      <Input class="DataObjects" type="PointSet">coll_data</Input>
+      <Output class="Models" type="ROM">rom</Output>
+    </RomTrainer>
+    <IOStep name="collprint">
+      <Input class="Models" type="ROM">rom</Input>
+      <Output class="OutStreams" type="Print">collocation</Output>
+    </IOStep>
+    <PostProcess name="basicpp" pauseAtEnd="True">
+      <Input class="DataObjects" type="PointSet">basic_data</Input>
+      <Model class="Models" type="PostProcessor">stats</Model>
+      <Output class="Files" type="">first</Output>
+    </PostProcess>
+    <PostProcess name="pp" pauseAtEnd="True">
+      <Input class="Files" type="">first</Input>
+      <Input class="Files" type="">second</Input>
+      <Model class="Models" type="PostProcessor">ravenout</Model>
+      <Output class="DataObjects" type="PointSet">data</Output>
+      <Output class="OutStreams" type="Print">data</Output>
+    </PostProcess>
+  </Steps>
+
+  <Samplers>
+    <MonteCarlo name="mc">
+      <samplerInit>
+        <limit>5</limit>
+      </samplerInit>
+      <variable name="x1">
+        <distribution>uni</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution>uni</distribution>
+      </variable>
+    </MonteCarlo>
+    <SparseGridCollocation name="sc">
+      <variable name="x1">
+        <distribution>uni</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution>uni</distribution>
+      </variable>
+      <ROM class="Models" type="ROM">rom</ROM>
+    </SparseGridCollocation>
+  </Samplers>
+
+  <DataObjects>
+    <PointSet name="data">
+      <Input>ID</Input>
+      <Output>mean,variance</Output>
+    </PointSet>
+    <PointSet name="dummyIn">
+      <Input>x1,x2</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="coll_data">
+      <Input>x1,x2</Input>
+      <Output>ans</Output>
+    </PointSet>
+    <PointSet name="basic_data">
+      <Input>x1,x2</Input>
+      <Output>ans</Output>
+    </PointSet>
+  </DataObjects>
+
+  <Distributions>
+    <Uniform name="uni">
+      <lowerBound>0</lowerBound>
+      <upperBound>1</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Models>
+    <PostProcessor name="ravenout" subType="RavenOutput">
+      <File name="first" ID="1">
+        <output name="mean">ans|expectedValue</output>
+        <output name="variance">ans|variance</output>
+      </File>
+      <File name="second" ID="2">
+        <output name="mean">ans|mean</output>
+        <output name="variance">ans|variance</output>
+      </File>
+    </PostProcessor>
+    <PostProcessor name="stats" subType="BasicStatistics">
+      <what>expectedValue,variance,kurtosis</what>
+      <parameters>x1,x2,ans</parameters>
+    </PostProcessor>
+    <ExternalModel ModuleToLoad="../../../AnalyticModels/attenuate" name="model" subType="">
+      <variables>x1,x2,ans</variables>
+    </ExternalModel>
+    <ROM name="rom" subType="GaussPolynomialRom">
+      <Target>ans</Target>
+      <Features>x1,x2</Features>
+      <IndexSet>TotalDegree</IndexSet>
+      <PolynomialOrder>2</PolynomialOrder>
+    </ROM>
+  </Models>
+
+  <OutStreams>
+    <Print name="collocation">
+      <type>xml</type>
+      <source>rom</source>
+      <what>all</what>
+    </Print>
+    <Print name="data">
+      <type>csv</type>
+      <source>data</source>
+    </Print>
+  </OutStreams>
+
+</Simulation>

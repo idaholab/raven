@@ -8,7 +8,7 @@
 
   <Steps>
     <MultiRun name="GoalOrientedStep" pauseAtEnd="False">
-      <Input class="DataObjects" type="Point">inputPlaceHolder</Input>
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
       <Model class="Models" type="ExternalModel">PythonModule</Model>
       <Sampler class="Samplers" type="LimitSurfaceSearch">workshopAdaptive</Sampler>
       <SolutionExport class="DataObjects" type="PointSet">limitSurface</SolutionExport>
@@ -21,10 +21,10 @@
   </Steps>
 
   <DataObjects>
-    <Point name="inputPlaceHolder">
+    <PointSet name="inputPlaceHolder">
       <Input>x1,x2</Input>
       <Output>OutputPlaceHolder</Output>
-    </Point>
+    </PointSet>
     <PointSet name="outAdaptive">
       <Input>x1,x2</Input>
       <Output>y4,failure</Output>

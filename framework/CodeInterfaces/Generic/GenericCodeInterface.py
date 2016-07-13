@@ -55,8 +55,8 @@ class GenericCode(CodeInterfaceBase):
     if clargs==None:
       raise IOError('No input file was specified in clargs!')
     #check for output either in clargs or fargs
-    if len(fargs['output'])<1 and 'output' not in clargs.keys():
-      raise IOError('No output file was specified, either in clargs or fileargs!')
+    #if len(fargs['output'])<1 and 'output' not in clargs.keys():
+    #  raise IOError('No output file was specified, either in clargs or fileargs!')
     #check for duplicate extension use
     usedExt=[]
     for ext in list(clargs['input'][flag] for flag in clargs['input'].keys()) + list(fargs['input'][var] for var in fargs['input'].keys()):

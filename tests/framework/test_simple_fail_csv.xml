@@ -38,7 +38,7 @@
 
   <Steps>
     <MultiRun name="External_Model" re-seeding="200286">
-      <Input class="DataObjects" type="Point">inputHolder</Input>
+      <Input class="DataObjects" type="PointSet">inputHolder</Input>
       <Model class="Models" type="ExternalModel">Calc</Model>
       <Sampler class="Samplers" type="MonteCarlo">theMonteCarlo</Sampler>
       <Output class="Databases" type="HDF5">simple</Output>
@@ -55,10 +55,10 @@
   </Databases>
 
   <DataObjects>
-    <Point name="inputHolder">
+    <PointSet name="inputHolder">
       <Input>uniform</Input>
       <Output>OutputPlaceHolder</Output>
-    </Point>
+    </PointSet>
     <PointSet name="RawPointSet">
       <Input>uniform</Input>
       <Output>time,out</Output>

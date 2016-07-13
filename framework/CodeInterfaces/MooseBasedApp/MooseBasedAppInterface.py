@@ -17,6 +17,10 @@ class MooseBasedApp(CodeInterfaceBase):
   """
     this class is used as part of a code dictionary to specialize Model.Code for RAVEN
   """
+  def __init__(self):
+    CodeInterfaceBase.__init__(self)
+    self.outputPrefix = 'out~'
+
   def generateCommand(self,inputFiles,executable,clargs=None,fargs=None):
     """
       See base class.  Collects all the clargs and the executable to produce the command-line call.
@@ -37,10 +41,8 @@ class MooseBasedApp(CodeInterfaceBase):
         break
     if not found: raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
     if fargs['moosevpp'] != '' : self.mooseVPPFile = fargs['moosevpp']
-    outputfile = 'out~'+inputFiles[index].getBase()
-    executeCommand = [('parallel',executable+' -i '+inputFiles[index].getFilename() +
-                        ' Outputs/file_base='+ outputfile +
-                        ' Outputs/csv=true')]
+    outputfile = self.outputPrefix+inputFiles[index].getBase()
+    executeCommand = [('parallel',executable+' -i '+inputFiles[index].getFilename())]
     returnCommand = executeCommand, outputfile
     return returnCommand
 
@@ -66,6 +68,7 @@ class MooseBasedApp(CodeInterfaceBase):
     self._samplersDictionary['Adaptive']              = self.pointSamplerForMooseBasedApp
     self._samplersDictionary['SparseGridCollocation'] = self.pointSamplerForMooseBasedApp
     self._samplersDictionary['EnsembleForward'      ] = self.pointSamplerForMooseBasedApp
+    self._samplersDictionary['CustomSampler'        ] = self.pointSamplerForMooseBasedApp
     found = False
     for index, inputFile in enumerate(currentInputFiles):
       inputFile = inputFile.getAbsFile()
@@ -73,9 +76,15 @@ class MooseBasedApp(CodeInterfaceBase):
         found = True
         break
     if not found: raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
+    outName = self.outputPrefix+currentInputFiles[index].getBase()
     parser = MOOSEparser.MOOSEparser(currentInputFiles[index].getAbsFile())
     modifDict = self._samplersDictionary[samplerType](**Kwargs)
+    #set up output
+    modifDict.append({'csv':'true','name':['Outputs']})
+    modifDict.append({'file_base':outName,'name':['Outputs']})
+    #make tree
     parser.modifyOrAdd(modifDict,False)
+    #make input
     parser.printInput(currentInputFiles[index].getAbsFile())
     self.vectorPPFound, self.vectorPPDict = parser.vectorPostProcessor()
     return currentInputFiles

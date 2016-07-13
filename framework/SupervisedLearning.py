@@ -27,6 +27,8 @@ import abc
 import ast
 from operator import itemgetter
 import math
+from scipy import spatial
+from collections import OrderedDict
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -101,27 +103,50 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
       @ In, tdict, dict, training dictionary
       @ Out, None
     """
-    if type(tdict) != dict: self.raiseAnError(TypeError,'In method "train", the training set needs to be provided through a dictionary. Type of the in-object is ' + str(type(tdict)))
+    if type(tdict) != dict:
+      self.raiseAnError(TypeError,'In method "train", the training set needs to be provided through a dictionary. Type of the in-object is ' + str(type(tdict)))
     names, values  = list(tdict.keys()), list(tdict.values())
-    if self.target in names: targetValues = values[names.index(self.target)]
-    else                   : self.raiseAnError(IOError,'The output sought '+self.target+' is not in the training set')
-    # check if the targetValues are consistent with the expected structure
-    resp = self.checkArrayConsistency(targetValues)
-    if not resp[0]: self.raiseAnError(IOError,'In training set for target '+self.target+':'+resp[1])
-    # construct the evaluation matrixes
-    featureValues = np.zeros(shape=(targetValues.size,len(self.features)))
+    ## This is for handling the special case needed by SKLtype=*MultiTask* that
+    ## requires multiple targets.
+    if isinstance(self.target,list):
+      targetValues = None
+      for target in self.target:
+        if target in names:
+          if targetValues is None:
+            targetValues = values[names.index(target)]
+          else:
+            targetValues = np.column_stack((targetValues,values[names.index(target)]))
+        else:
+          self.raiseAnError(IOError,'The target '+target+' is not in the training set')
+      # construct the evaluation matrixes
+      featureValues = np.zeros(shape=(len(targetValues),len(self.features)))
+    else:
+      if self.target in names:
+        targetValues = values[names.index(self.target)]
+      else:
+        self.raiseAnError(IOError,'The target ' + self.target + ' is not in the training set')
+      # check if the targetValues are consistent with the expected structure
+      resp = self.checkArrayConsistency(targetValues)
+      if not resp[0]:
+        self.raiseAnError(IOError,'In training set for target '+self.target+':'+resp[1])
+      # construct the evaluation matrixes
+      featureValues = np.zeros(shape=(targetValues.size,len(self.features)))
     for cnt, feat in enumerate(self.features):
-      if feat not in names: self.raiseAnError(IOError,'The feature sought '+feat+' is not in the training set')
+      if feat not in names:
+        self.raiseAnError(IOError,'The feature sought '+feat+' is not in the training set')
       else:
         resp = self.checkArrayConsistency(values[names.index(feat)])
-        if not resp[0]: self.raiseAnError(IOError,'In training set for feature '+feat+':'+resp[1])
+        if not resp[0]:
+          self.raiseAnError(IOError,'In training set for feature '+feat+':'+resp[1])
         if values[names.index(feat)].size != featureValues[:,0].size:
           self.raiseAWarning('feature values:',featureValues[:,0].size,tag='ERROR')
           self.raiseAWarning('target values:',values[names.index(feat)].size,tag='ERROR')
           self.raiseAnError(IOError,'In training set, the number of values provided for feature '+feat+' are != number of target outcomes!')
         self._localNormalizeData(values,names,feat)
-        if self.muAndSigmaFeatures[feat][1]==0: self.muAndSigmaFeatures[feat] = (self.muAndSigmaFeatures[feat][0],np.max(np.absolute(values[names.index(feat)])))
-        if self.muAndSigmaFeatures[feat][1]==0: self.muAndSigmaFeatures[feat] = (self.muAndSigmaFeatures[feat][0],1.0)
+        if self.muAndSigmaFeatures[feat][1]==0:
+          self.muAndSigmaFeatures[feat] = (self.muAndSigmaFeatures[feat][0],np.max(np.absolute(values[names.index(feat)])))
+        if self.muAndSigmaFeatures[feat][1]==0:
+          self.muAndSigmaFeatures[feat] = (self.muAndSigmaFeatures[feat][0],1.0)
         featureValues[:,cnt] = (values[names.index(feat)] - self.muAndSigmaFeatures[feat][0])/self.muAndSigmaFeatures[feat][1]
     self.__trainLocal__(featureValues,targetValues)
     self.amITrained = True
@@ -207,16 +232,15 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     currParDict = dict({'Trained':self.amITrained}.items() + self.__CurrentSettingDictLocal__().items())
     return currParDict
 
-  def printXML(self,rootnode,options=None):
+  def printXML(self,outFile,pivotVal,options={}):
     """
       Allows the SVE to put whatever it wants into an XML to print to file.
-      @ In, rootnode, xml.etree.ElementTree.Element, the root node of an XML tree to print to
+      @ In, outFile, Files.File, either StaticXMLOutput or DynamicXMLOutput file
+      @ In, pivotVal, float, value of pivot parameters to use in printing if dynamic
       @ In, options, dict, optional, dict of string-based options to use, including filename, things to print, etc
       @ Out, None
     """
-    node = TreeStructure.Node(self.target)
-    rootnode.appendBranch(node)
-    self._localPrintXML(node,options)
+    self._localPrintXML(outFile,pivotVal,options)
 
   def _localPrintXML(self,node,options=None):
     """
@@ -487,68 +511,93 @@ class GaussPolynomialRom(superVisedLearning):
     if self.maxPolyOrder < 1:
       self.raiseAnError(IOError,'Polynomial order cannot be less than 1 currently.')
 
-  def _localPrintXML(self,node,options=None):
+  def _localPrintXML(self,outFile,pivotVal,options={}):
     """
       Adds requested entries to XML node.
-      @ In, node, XML node, to which entries will be added
-      @ In, options, dict, optional, list of requests and options
+      @ In, outFile, Files.File, either StaticXMLOutput or DynamicXMLOutput file
+      @ In, pivotVal, float, value of pivot parameters to use in printing if dynamic
+      @ In, options, dict, optional, dict of string-based options to use, including filename, things to print, etc
         May include:
-        '  what': comma-separated string list, the qualities to print out
+        'what': comma-separated string list, the qualities to print out
+        'pivotVal': float value of dynamic pivotParam value
       @ Out, None
     """
     if not self.amITrained: self.raiseAnError(RuntimeError,'ROM is not yet trained!')
+    #reset stats so they're fresh for this calculation
     self.mean=None
-    canDo = ['mean','variance','numRuns','polyCoeffs','indices']
+    sobolIndices = None
+    partialVars = None
+    sobolTotals = None
+    variance = None
+    #establish what we can handle, and how
+    scalars = ['mean','expectedValue','variance','samples']
+    vectors = ['polyCoeffs','partialVariance','sobolIndices','sobolTotalIndices']
+    canDo = scalars + vectors
+    #lowercase for convenience
+    scalars = list(s.lower() for s in scalars)
+    vectors = list(v.lower() for v in vectors)
+    #establish requests, defaulting to "all"
     if 'what' in options.keys():
       requests = list(o.strip() for o in options['what'].split(','))
-      if 'all' in requests: requests = canDo
-      for request in requests:
-        request=request.strip()
-        newNode = TreeStructure.Node(request)
+    else:
+      requests =['all']
+    #handle "all" option
+    if 'all' in requests:
+      requests = canDo
+    # loop over the requested items
+    for request in requests:
+      request=request.strip()
+      if request.lower() in scalars:
         if request.lower() in ['mean','expectedvalue']:
-          if self.mean == None: self.mean = self.__mean__()
-          newNode.setText(self.mean)
-        elif request.lower() in ['variance']:
-          newNode.setText(self.__variance__())
-        elif request.lower() in ['numruns']:
-          if self.numRuns!=None: newNode.setText(self.numRuns)
-          else: newNode.setText(len(self.sparseGrid))
-        elif request.lower() in ['polycoeffs']:
-          vNode = TreeStructure.Node('inputVariables')
-          vNode.text = ','.join(self.features)
-          newNode.appendBranch(vNode)
+          #only calculate the mean once per printing
+          if self.mean is None:
+            self.mean = self.__mean__()
+          val = self.mean
+        elif request.lower() == 'variance':
+          if variance is None:
+            variance = self.__variance__()
+          val = variance
+        elif request.lower() == 'samples':
+          if self.numRuns!=None:
+            val = self.numRuns
+          else:
+            val = len(self.sparseGrid)
+        outFile.addScalar(self.target,request,val,pivotVal=pivotVal)
+      elif request.lower() in vectors:
+        if request.lower() == 'polycoeffs':
+          valueDict = OrderedDict()
+          valueDict['inputVariables'] = ','.join(self.features)
           keys = self.polyCoeffDict.keys()
           keys.sort()
           for key in keys:
-            cNode = TreeStructure.Node('_'+'_'.join(str(k) for k in key)+'_')
-            cNode.setText(self.polyCoeffDict[key])
-            newNode.appendBranch(cNode)
-        elif request.lower() in ['indices']:
-          indices,partials = self.getSensitivities()
-          #provide variance
-          varNode = TreeStructure.Node('tot_variance')
-          varNode.setText(self.__variance__())
-          newNode.appendBranch(varNode)
+            valueDict['_'+'_'.join(str(k) for k in key)+'_'] = self.polyCoeffDict[key]
+        elif request.lower() in ['partialvariance','sobolindices','soboltotalindices']:
+          if sobolIndices is None or partialVars is None:
+            sobolIndices,partialVars = self.getSensitivities()
+          if sobolTotals is None:
+            sobolTotals = self.getTotalSensitivities(sobolIndices)
           #sort by value
           entries = []
-          for key in indices.keys():
-            entries.append( (','.join(key),partials[key],indices[key]) )
+          if request.lower() in ['partialvariance','sobolindices']: #these both will have same sort
+            for key in sobolIndices.keys():
+              entries.append( ('.'.join(key),partialVars[key],key) )
+          elif request.lower() in ['soboltotalindices']:
+            for key in sobolTotals.keys():
+              entries.append( ('.'.join(key),sobolTotals[key],key) )
           entries.sort(key=lambda x: abs(x[1]),reverse=True)
-          #add to tree
+          #add entries to results list
+          valueDict=OrderedDict()
           for entry in entries:
-            subNode = TreeStructure.Node('variables')
-            subNode.setText(entry[0])
-            vNode = TreeStructure.Node('partial_variance')
-            vNode.setText(entry[1])
-            subNode.appendBranch(vNode)
-            vNode = TreeStructure.Node('Sobol_index')
-            vNode.setText(entry[2])
-            subNode.appendBranch(vNode)
-            newNode.appendBranch(subNode)
-        else:
-          self.raiseAWarning('ROM does not know how to return '+request)
-          newNode.setText('not found')
-        node.appendBranch(newNode)
+            name,_,key = entry
+            if request.lower() == 'partialvariance':
+              valueDict[name] = partialVars[key]
+            elif request.lower() == 'sobolindices':
+              valueDict[name] = sobolIndices[key]
+            elif request.lower() == 'soboltotalindices':
+              valueDict[name] = sobolTotals[key]
+        outFile.addVector(self.target,request,valueDict,pivotVal=pivotVal)
+      else:
+        self.raiseAWarning('ROM does not know how to return "'+request+'".  Skipping...')
 
   def _localNormalizeData(self,values,names,feat):
     """
@@ -615,12 +664,26 @@ class GaussPolynomialRom(superVisedLearning):
     self.featv, self.targv = featureVals,targetVals
     self.polyCoeffDict={}
     #check equality of point space
+    self.raiseADebug('...checking required points are available...')
     fvs = []
     tvs=[]
     sgs = list(self.sparseGrid.points())
     missing=[]
+    kdTree = spatial.KDTree(featureVals)
+    #TODO this is slowest loop in this algorithm, by quite a bit.
     for pt in sgs:
-      found,idx,point = mathUtils.NDInArray(featureVals,pt)
+      #KDtree way
+      distances,idx = kdTree.query(pt,k=1,distance_upper_bound=1e-9) #FIXME how to set the tolerance generically?
+      #KDTree repots a "not found" as at infinite distance with index len(data)
+      if idx >= len(featureVals):
+        found = False
+      else:
+        found = True
+        point = tuple(featureVals[idx])
+      #end KDTree way
+      #brute way
+      #found,idx,point = mathUtils.NDInArray(featureVals,pt)
+      #end brute way
       if found:
         fvs.append(point)
         tvs.append(targetVals[idx])
@@ -635,25 +698,33 @@ class GaussPolynomialRom(superVisedLearning):
       self.raiseADebug('sparse:',sgs)
       self.raiseADebug('solns :',fvs)
       self.raiseAnError(IOError,'input values do not match required values!')
-    #make translation matrix between lists
+    #make translation matrix between lists, also actual-to-standardized point map
+    self.raiseADebug('...constructing translation matrices...')
     translate={}
     for i in range(len(fvs)):
       translate[tuple(fvs[i])]=sgs[i]
-    self.norm = np.prod(list(self.distDict[v].measureNorm(self.quads[v].type) for v in self.distDict.keys()))
+    standardPoints = {}
+    for pt in fvs:
+      stdPt = []
+      for i,p in enumerate(pt):
+        varName = self.sparseGrid.varNames[i]
+        stdPt.append( self.distDict[varName].convertToQuad(self.quads[varName].type,p) )
+      standardPoints[tuple(pt)] = stdPt[:]
     #make polynomials
+    self.raiseADebug('...constructing polynomials...')
+    self.norm = np.prod(list(self.distDict[v].measureNorm(self.quads[v].type) for v in self.distDict.keys()))
     for i,idx in enumerate(self.indexSet):
       idx=tuple(idx)
       self.polyCoeffDict[idx]=0
       wtsum=0
       for pt,soln in zip(fvs,tvs):
-        stdPt = np.zeros(len(pt))
-        for i,p in enumerate(pt):
-          varName = self.sparseGrid.varNames[i]
-          stdPt[i] = self.distDict[varName].convertToQuad(self.quads[varName].type,p)
-        wt = self.sparseGrid.weights(translate[tuple(pt)])
+        tupPt = tuple(pt)
+        stdPt = standardPoints[tupPt]
+        wt = self.sparseGrid.weights(translate[tupPt])
         self.polyCoeffDict[idx]+=soln*self._multiDPolyBasisEval(idx,stdPt)*wt
       self.polyCoeffDict[idx]*=self.norm
     self.amITrained=True
+    self.raiseADebug('...training complete!')
 
   def printPolyDict(self,printZeros=False):
     """
@@ -778,6 +849,23 @@ class GaussPolynomialRom(superVisedLearning):
       indices[subset] = partial / totVar
     return (indices,partials)
 
+  def getTotalSensitivities(self,indices):
+    """
+      Given the Sobol global sensitivity indices, calculates the total indices for each subset.
+      @ In, indices, dict, tuple(subset):float(index)
+      @ Out, totals, dict, tuple(subset):float(index)
+    """
+    #total index is the sum of all Sobol indices in which a subset belongs
+    totals={}
+    for subset in indices.keys():
+      setSub = set(subset)
+      totals[subset] = 0
+      for checkSubset in indices.keys():
+        setCheck = set(checkSubset)
+        if setSub.issubset(setCheck):
+          totals[subset] += indices[checkSubset]
+    return totals
+
   def _polyToSubset(self,poly):
     """
       Given a tuple with polynomial orders, returns the subset it belongs exclusively to
@@ -844,19 +932,21 @@ class HDMRRom(GaussPolynomialRom):
     for key,val in kwargs.items():
       if key=='SobolOrder': self.sobolOrder = int(val)
 
-  def _localPrintXML(self,node,options=None):
+  def _localPrintXML(self,outFile,pivotVal,options={}):
     """
       Adds requested entries to XML node.
-      @ In, node, XML node, to which entries will be added
-      @ In, options, dict, optional, list of requests and options
+      @ In, outFile, Files.File, either StaticXMLOutput or DynamicXMLOutput file
+      @ In, pivotVal, float, value of pivot parameters to use in printing if dynamic
+      @ In, options, dict, optional, dict of string-based options to use, including filename, things to print, etc
         May include:
-          'what': comma-separated string list, the qualities to print out
+        'what': comma-separated string list, the qualities to print out
+        'pivotVal': float value of dynamic pivotParam value
       @ Out, None
     """
     #inherit from GaussPolynomialRom
     if not self.amITrained: self.raiseAnError(RuntimeError,'ROM is not yet trained!')
     self.mean=None
-    canDo = ['mean','variance','numRuns','indices']
+    canDo = ['mean','expectedValue','variance','samples','partialVariance','sobolIndices','sobolTotalIndices']
     if 'what' in options.keys():
       requests = list(o.strip() for o in options['what'].split(','))
       if 'all' in requests: requests = canDo
@@ -865,7 +955,9 @@ class HDMRRom(GaussPolynomialRom):
         self.raiseAWarning('HDMRRom cannot currently print polynomial coefficients.  Skipping...')
         requests.remove('polyCoeffs')
       options['what'] = ','.join(requests)
-    GaussPolynomialRom._localPrintXML(self,node,options)
+    else:
+      self.raiseAWarning('No "what" options for XML printing are recognized!  Skipping...')
+    GaussPolynomialRom._localPrintXML(self,outFile,pivotVal,options)
 
   def initialize(self,idict):
     """
@@ -1711,6 +1803,11 @@ class SciKitLearn(superVisedLearning):
   """
   An Interface to the ROMs provided by skLearn
   """
+  ## The types in this list should not be normalized by default. I would argue
+  ## that none of these should be normed by default, since sklearn offers that
+  ## option where applicable, but that is for someone else to make a decision.
+  unnormedTypes = ['MultinomialNB']
+
   ROMtype = 'SciKitLearn'
   availImpl = {}
   availImpl['lda'] = {}
@@ -1736,18 +1833,12 @@ class SciKitLearn(superVisedLearning):
   availImpl['linear_model']['PassiveAggressiveClassifier' ] = (linear_model.PassiveAggressiveClassifier , 'int') #Passive Aggressive Classifier
   availImpl['linear_model']['PassiveAggressiveRegressor'  ] = (linear_model.PassiveAggressiveRegressor  , 'float'  ) #Passive Aggressive Regressor
   availImpl['linear_model']['Perceptron'                  ] = (linear_model.Perceptron                  , 'float'  ) #Perceptron
-  availImpl['linear_model']['RandomizedLasso'             ] = (linear_model.RandomizedLasso             , 'float'  ) #Randomized Lasso.
-  availImpl['linear_model']['RandomizedLogisticRegression'] = (linear_model.RandomizedLogisticRegression, 'float'  ) #Randomized Logistic Regression
   availImpl['linear_model']['Ridge'                       ] = (linear_model.Ridge                       , 'float'  ) #Linear least squares with l2 regularization.
   availImpl['linear_model']['RidgeClassifier'             ] = (linear_model.RidgeClassifier             , 'float'  ) #Classifier using Ridge regression.
   availImpl['linear_model']['RidgeClassifierCV'           ] = (linear_model.RidgeClassifierCV           , 'int') #Ridge classifier with built-in cross-validation.
   availImpl['linear_model']['RidgeCV'                     ] = (linear_model.RidgeCV                     , 'float'  ) #Ridge regression with built-in cross-validation.
   availImpl['linear_model']['SGDClassifier'               ] = (linear_model.SGDClassifier               , 'int') #Linear classifiers (SVM, logistic regression, a.o.) with SGD training.
   availImpl['linear_model']['SGDRegressor'                ] = (linear_model.SGDRegressor                , 'float'  ) #Linear model fitted by minimizing a regularized empirical loss with SGD
-  availImpl['linear_model']['lars_path'                   ] = (linear_model.lars_path                   , 'float'  ) #Compute Least Angle Regression or Lasso path using LARS algorithm [1]
-  availImpl['linear_model']['lasso_path'                  ] = (linear_model.lasso_path                  , 'float'  ) #Compute Lasso path with coordinate descent
-  availImpl['linear_model']['lasso_stability_path'        ] = (linear_model.lasso_stability_path        , 'float'  ) #Stabiliy path based on randomized Lasso estimates
-  availImpl['linear_model']['orthogonal_mp_gram'          ] = (linear_model.orthogonal_mp_gram          , 'float'  ) #Gram Orthogonal Matching Pursuit (OMP)
 
   availImpl['svm'] = {} #support Vector Machines
   availImpl['svm']['LinearSVC'] = (svm.LinearSVC, 'bool')
@@ -1772,7 +1863,6 @@ class SciKitLearn(superVisedLearning):
   availImpl['naiveBayes']['BernoulliNB'  ] = (naive_bayes.BernoulliNB  , 'float')
 
   availImpl['neighbors'] = {}
-  availImpl['neighbors']['NearestNeighbors']         = (neighbors.NearestNeighbors         , 'float'  )# Unsupervised learner for implementing neighbor searches.
   availImpl['neighbors']['KNeighborsClassifier']     = (neighbors.KNeighborsClassifier     , 'int')# Classifier implementing the k-nearest neighbors vote.
   availImpl['neighbors']['RadiusNeighbors']          = (neighbors.RadiusNeighborsClassifier, 'int')# Classifier implementing a vote among neighbors within a given radius
   availImpl['neighbors']['KNeighborsRegressor']      = (neighbors.KNeighborsRegressor      , 'float'  )# Regression based on k-nearest neighbors.
@@ -1810,15 +1900,30 @@ class SciKitLearn(superVisedLearning):
       @ Out, None
     """
     superVisedLearning.__init__(self,messageHandler,**kwargs)
+    name  = self.initOptionDict.pop('name','')
     self.printTag = 'SCIKITLEARN'
-    if 'SKLtype' not in self.initOptionDict.keys(): self.raiseAnError(IOError,'to define a scikit learn ROM the SKLtype keyword is needed (from ROM '+self.name+')')
+    if 'SKLtype' not in self.initOptionDict.keys():
+      self.raiseAnError(IOError,'to define a scikit learn ROM the SKLtype keyword is needed (from ROM "'+name+'")')
     SKLtype, SKLsubType = self.initOptionDict['SKLtype'].split('|')
+    self.subType = SKLsubType
     self.initOptionDict.pop('SKLtype')
-    if not SKLtype in self.__class__.availImpl.keys(): self.raiseAnError(IOError,'not known SKLtype ' + SKLtype +'(from ROM '+self.name+')')
-    if not SKLsubType in self.__class__.availImpl[SKLtype].keys(): self.raiseAnError(IOError,'not known SKLsubType ' + SKLsubType +'(from ROM '+self.name+')')
+    if not SKLtype in self.__class__.availImpl.keys():
+      self.raiseAnError(IOError,'not known SKLtype "' + SKLtype +'" (from ROM "'+name+'")')
+    if not SKLsubType in self.__class__.availImpl[SKLtype].keys():
+      self.raiseAnError(IOError,'not known SKLsubType "' + SKLsubType +'" (from ROM "'+name+'")')
+
     self.__class__.returnType     = self.__class__.availImpl[SKLtype][SKLsubType][1]
-    self.ROM                      = self.__class__.availImpl[SKLtype][SKLsubType][0]()
     self.__class__.qualityEstType = self.__class__.qualityEstTypeDict[SKLtype][SKLsubType]
+
+    if 'estimator' in self.initOptionDict.keys():
+      estimatorDict = self.initOptionDict['estimator']
+      self.initOptionDict.pop('estimator')
+      estimatorSKLtype, estimatorSKLsubType = estimatorDict['SKLtype'].split('|')
+      estimator = self.__class__.availImpl[estimatorSKLtype][estimatorSKLsubType][0]()
+      self.ROM = self.__class__.availImpl[SKLtype][SKLsubType][0](estimator)
+    else:
+      self.ROM  = self.__class__.availImpl[SKLtype][SKLsubType][0]()
+
     for key,value in self.initOptionDict.items():
       try:self.initOptionDict[key] = ast.literal_eval(value)
       except: pass
@@ -1868,7 +1973,7 @@ class SciKitLearn(superVisedLearning):
       @ Out, predict_proba, float, the confidence
     """
     if  'probability' in self.__class__.qualityEstType: return self.ROM.predict_proba(featureVals)
-    else            : self.raiseAnError(IOError,'the ROM '+str(self.name)+'has not the an method to evaluate the confidence of the prediction')
+    else            : self.raiseAnError(IOError,'the ROM '+str(self.initOptionDict['name'])+'has not the an method to evaluate the confidence of the prediction')
 
   def __evaluateLocal__(self,featureVals):
     """
@@ -1904,6 +2009,19 @@ class SciKitLearn(superVisedLearning):
     self.raiseADebug('here we need to collect some info on the ROM status')
     params = {}
     return params
+
+  def _localNormalizeData(self,values,names,feat):
+    """
+      Overwrites default normalization procedure.
+      @ In, values, list(float), unused
+      @ In, names, list(string), unused
+      @ In, feat, string, feature to (not) normalize
+      @ Out, None
+    """
+    if self.subType in self.unnormedTypes:
+      self.muAndSigmaFeatures[feat] = (0.0,1.0)
+    else:
+      super(SciKitLearn, self)._localNormalizeData(values,names,feat)
 #
 #
 #
@@ -1925,7 +2043,7 @@ def returnInstance(ROMclass,caller,**kwargs):
     @ Out, returnInstance, instance, an instance of a ROM
   """
   try: return __interfaceDict[ROMclass](caller.messageHandler,**kwargs)
-  except KeyError: caller.raiseAnError(NameError,'not known '+__base+' type '+str(ROMclass))
+  except KeyError as ae: caller.raiseAnError(NameError,'not known '+__base+' type '+str(ROMclass))
 
 def returnClass(ROMclass,caller):
   """
