@@ -200,6 +200,14 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     paramDict['subType'] = self.subType
     return paramDict
 
+  def finalizeModelOutput(self,finishedJob):
+    """
+      Method that is aimed to finalize (preprocess) the output of a model before the results get collected
+      @ In, finishedJob, InternalRunner object, instance of the run just finished
+      @ Out, None
+    """
+    pass
+
   def localGetInitParams(self):
     """
       Method used to export to the printer in the base class the additional PERMANENT your local class have
@@ -1263,7 +1271,7 @@ class Code(Model):
     executeCommand, self.outFileRoot = returnedCommand
     uniqueHandler = inputFiles[1]['uniqueHandler'] if 'uniqueHandler' in inputFiles[1].keys() else 'any'
     identifier    = inputFiles[1]['prefix'] if 'prefix' in inputFiles[1].keys() else None
-    jobHandler.submitDict['External'](executeCommand,self.outFileRoot,metaData['subDirectory'],identifier=identifier,metadata=metaData,codePointer=self.code,uniqueHandler = uniqueHandler)
+    jobHandler.submitDict['External'](executeCommand,self.outFileRoot,metaData.pop('subDirectory'),identifier=identifier,metadata=metaData,codePointer=self.code,uniqueHandler = uniqueHandler)
     found = False
     for index, inputFile in enumerate(self.currentInputFiles):
       if inputFile.getExt() in self.code.getInputExtension():
@@ -1273,6 +1281,16 @@ class Code(Model):
                                   + self.subType +': ' + ' '.join(self.getInputExtension()))
     self.raiseAMessage('job "'+ str(identifier) + "_" + self.currentInputFiles[index].getBase() +'" submitted!')
 
+  def finalizeModelOutput(self,finishedJob):
+    """
+      Method that is aimed to finalize (preprocess) the output of a model before the results get collected
+      @ In, finishedJob, InternalRunner object, instance of the run just finished
+      @ Out, None
+    """
+    if 'finalizeCodeOutput' in dir(self.code):
+      out = self.code.finalizeCodeOutput(finishedJob.command,finishedJob.output,finishedJob.getWorkingDir())
+      if out: finishedJob.output = out
+
   def collectOutput(self,finishedjob,output):
     """
       Method that collects the outputs from the previous run
@@ -1280,10 +1298,6 @@ class Code(Model):
       @ In, output, "DataObjects" object, output where the results of the calculation needs to be stored
       @ Out, None
     """
-    #can we revise the spelling to something more English?
-    if 'finalizeCodeOutput' in dir(self.code):
-      out = self.code.finalizeCodeOutput(finishedjob.command,finishedjob.output,finishedjob.getWorkingDir())
-      if out: finishedjob.output = out
     outputFilelocation = finishedjob.getWorkingDir()
     attributes={"inputFile":self.currentInputFiles,"type":"csv","name":os.path.join(outputFilelocation,finishedjob.output+'.csv')}
     metadata = finishedjob.returnMetadata()
@@ -1716,6 +1730,7 @@ class EnsembleModel(Dummy, Assembler):
       inputForModel = []
       for input in myInput:
         if input.name in self.modelsDictionary[modelIn]['inputNames']: inputForModel.append(input)
+      if len(inputForModel) == 0: self.raiseAnError(IOError,"inputs " + " ".join(self.modelsDictionary[modelIn]['inputNames']) + " has not been found!")
       inputDict = [self._inputToInternal(inputForModel[0],newKwargs['SampledVars'].keys())] if specs['Instance'].type != 'Code' else  inputForModel
       newInputs[modelIn] = specs['Instance'].createNewInput(inputDict,samplerType,**newKwargs)
       if specs['Instance'].type == 'Code':

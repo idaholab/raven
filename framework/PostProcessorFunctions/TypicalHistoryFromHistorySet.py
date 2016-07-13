@@ -1,5 +1,5 @@
 '''
-Created on Feb 17, 2016
+  Created on Feb 17, 2016
 
 '''
 from __future__ import division, print_function, unicode_literals, absolute_import
@@ -10,19 +10,18 @@ from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
 import numpy as np
 
 class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
-  """ This class forms a typical history from a history set
-      The methodology can be found at:
-      S. WIlcox and W. Marion, "User Manual for TMY3 Data Sets," Technical Report, NREL/TP-581-43156,
-        National Renewable Energy Laboratory Golden, CO, May 2008
-
+  """
+    This class forms a typical history from a history set
+    The methodology can be found at:
+    S. WIlcox and W. Marion, "User Manual for TMY3 Data Sets," Technical Report, NREL/TP-581-43156,
+    National Renewable Energy Laboratory Golden, CO, May 2008
   """
 
   def initialize(self):
     """
-     Method to initialize the Interfaced Post-processor
-     @ In, None,
-     @ Out, None,
-
+      Method to initialize the Interfaced Post-processor
+      @ In, None,
+      @ Out, None,
     """
     PostProcessorInterfaceBase.initialize(self)
     self.inputFormat  = 'HistorySet'
@@ -31,24 +30,23 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
 
   def run(self,inputDic):
     """
-     @ In, inputDic, dict, dictionary which contains the data inside the input DataObject
-     @ Out, outputDic, dict, dictionary which contains the data to be collected by output DataObject
-
+      @ In, inputDic, dict, dictionary which contains the data inside the input DataObject
+      @ Out, outputDic, dict, dictionary which contains the data to be collected by output DataObject
     """
     inputDict = inputDic['data']
     self.features = inputDict['output'][inputDict['output'].keys()[0]].keys()
     self.features.remove(self.timeID)
     self.noHistory = len(inputDict['output'].keys())
-    self.Time = np.asarray(inputDict['output'][inputDict['output'].keys()[0]][self.timeID])
+    self.time = np.asarray(inputDict['output'][inputDict['output'].keys()[0]][self.timeID])
 
     self.subsequence = {}
     startLocation, n = 0, 0
     while True:
       subsequenceLength = self.subseqLen[n % len(self.subseqLen)]
-      if startLocation + subsequenceLength < self.Time[-1]:
+      if startLocation + subsequenceLength < self.time[-1]:
         self.subsequence[n] = [startLocation, startLocation+subsequenceLength]
       else:
-        self.subsequence[n] = [startLocation, self.Time[-1]]
+        self.subsequence[n] = [startLocation, self.time[-1]]
         break
       startLocation += subsequenceLength
       n+= 1
@@ -62,8 +60,8 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
         tempData['all'][keyF] = np.concatenate((tempData['all'][keyF],inputDict['output'][keyH][keyF]))
     for keySub in subKeys:
       tempData[keySub] = {}
-      extractCondition = (self.Time>=self.subsequence[keySub][0]) * (self.Time<self.subsequence[keySub][1])
-      tempData[keySub][self.timeID] = np.extract(extractCondition, self.Time)
+      extractCondition = (self.time>=self.subsequence[keySub][0]) * (self.time<self.subsequence[keySub][1])
+      tempData[keySub][self.timeID] = np.extract(extractCondition, self.time)
       for keyF in self.features:
         tempData[keySub][keyF] = np.zeros(shape=(self.noHistory,len(tempData[keySub][self.timeID])))
         for cnt, keyH in enumerate(inputDict['output'].keys()):
@@ -77,12 +75,13 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
       binSize = 2.0*IQR*(tempData['all'][keyF].size**(-1.0/3.0))
       numBins = int((max(tempData['all'][keyF])-min(tempData['all'][keyF]))/binSize)
       binEdges = np.linspace(start=min(tempData['all'][keyF]),stop=max(tempData['all'][keyF]),num=numBins+1)
-      tempCDF['all'][keyF] = self.__computeCDF(tempData['all'][keyF],binEdges)
+#       dataRange = (min(tempData['all'][keyF]), max(tempData['all'][keyF]))
+      tempCDF['all'][keyF] = self.__computeECDF(tempData['all'][keyF], binEdges)# numBins, dataRange)
       for keySub in subKeys:
         if keySub not in tempCDF.keys(): tempCDF[keySub] = {}
         tempCDF[keySub][keyF] = np.zeros(shape=(self.noHistory,numBins))
         for cnt in range(tempData[keySub][keyF].shape[0]):
-          tempCDF[keySub][keyF][cnt,:] = self.__computeCDF(tempData[keySub][keyF][cnt,:], binEdges)
+          tempCDF[keySub][keyF][cnt,:] = self.__computeECDF(tempData[keySub][keyF][cnt,:], binEdges)#numBins, dataRange)
 
     tempTyp = {}
     for keySub in subKeys:
@@ -117,28 +116,22 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
 
     return outputDic
 
-  def __computeCDF(self, data, binEdgesIn):
+  def __computeECDF(self, data, binEdgesIn):
     """
-     Method to generate empirical CDF of input data, with the bins given.
-     @ In, data, array, data for which empirical CDF is computed
-     @ In, binEdgesIn, array, bins over which CDF value is computed
-     @ Out, , array, empirical CDF of the input data.
-
+      Method to generate empirical CDF of input data, with the bins given.
+      @ In, data, numpy array, data for which empirical CDF is computed
+      @ In, binEdgesIn, numpy array, bins over which CDF value is computed
+      @ Out, , numpy array, empirical CDF of the input data.
     """
-    counts, binEdges = np.histogram(data,bins=binEdgesIn,normed=True)
-    numBins = len(counts)
-    binDiffArray = np.zeros(shape=(numBins,))
-    for n in range(numBins):
-      binDiffArray[n] = binEdges[n+1]-binEdges[n]
-    binDiff = np.average(binDiffArray)
-    return np.cumsum(counts)*binDiff
+    (counts, _) = np.histogram(data,bins=binEdgesIn,normed=True)
+    return np.cumsum(counts)/max(np.cumsum(counts))
 
   def __computeDist(self, x1, x2):
     """
-    Method to compute absolute difference of two points.
-    @ In, x1, array, input 1
-    @ In, x2, array, input 2
-    @ Out, , float, difference between x1 and x2
+      Method to compute absolute difference of two points.
+      @ In, x1, numpy array, input 1
+      @ In, x2, numpy array, input 2
+      @ Out, , float, difference between x1 and x2
     """
     return np.average(np.absolute(x1-x2))
 
