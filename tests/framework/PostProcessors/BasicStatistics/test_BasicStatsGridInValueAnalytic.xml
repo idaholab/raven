@@ -3,7 +3,7 @@
   <RunInfo>
     <WorkingDir>basicStatsGridInValueAnalytic</WorkingDir>
     <Sequence>SamplingMirrowModelGrid,PP1grid</Sequence>
-    <batchSize>30</batchSize>
+    <batchSize>1</batchSize>
   </RunInfo>
 
   <Files>
