@@ -1395,7 +1395,7 @@ after RAVEN completes a sequence. For example:
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%% RATTLESNAKE INTERFACE %%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Rattlesnake Interfaces}
+\subsection{Rattlesnake Interfaces} \label{RattlesnakeInterfaces}
 %
 This section covers the input specification for running Rattlesnake through RAVEN. It is important
 to notice that this short explanation assumes that the reader already knows how to use Rattlesnake.
@@ -1773,9 +1773,9 @@ If one of these variables is not contained into one of csv files, RAVEN will giv
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{MAMMOTH Interfaces}
 %
-This section covers the input specification for runing MAMMOTH (couple Rattlesnake with Bison) through RAVEN. 
+This section covers the input specification for running MAMMOTH (couple Rattlesnake with Bison) through RAVEN. 
 It is important to notice that this short explanation assumes that the reader already knows how to use MAMMOTH.
-The interface can be used to perturb the Bison, Rattlesnake YAML input files as well as the Yak multigroup
+The interface can be used to perturb the Bison and Rattlesnake MOOSE input files as well as the Yak multigroup
 cross section libraries XML input files.
 %
 
@@ -1789,7 +1789,7 @@ that RAVEN will perturb.  For MAMMOTH input files, \xmlNode{type} should be \xml
 for Yak multigroup cross section libraries, the \xmlNode{type} should be \xmlString{YakXSInput}, and for the Yak 
 alias files that are used to perturb the Yak multigroup cross section libraries, the \xmlNode{type} should be
 \xmlString{YakXSAliasInput}. For Bison input files, the \xmlNode{type} should be \xmlString{BisonInput}. In addition, 
-The \xmlNode{type}s for Rattlesnake mesh input file and Bison mesh input file are \xmlString{Bison|Mesh} and 
+the \xmlNode{type}s for Rattlesnake mesh input file and Bison mesh input file are \xmlString{Bison|Mesh} and 
 \xmlString{Rattlesnake|Mesh},respectively. 
 
 The node should contain the path to the file from the working directory.  
@@ -1807,14 +1807,14 @@ The following is an example of a typical \xmlNode{Files} block.
 \end{lstlisting}
 %
 The alias files are employed to define the variables that will be used to perturb Yak multigroup cross section
-libraries. Please see the section \textbf{Rattlesnake Interface} for the example.  
+libraries. Please see the section \ref{RattlesnakeInterfaces} for the example.  
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Models}
 A user provides paths to executables and aliases for sampled variables within the
-\xmlNode{Models} block.  The \xmlNode{Code} block will contain attributes name and
-subType.  Name identifies that particular \xmlNode{Code} model within RAVEN, and
-subType specifies which code interface the model will use. The \xmlNode{executable}
+\xmlNode{Models} block.  The \xmlNode{Code} block will contain \xmlAttr{name} and
+\xmlAttr{subType}.  The attribute \xmlAttr{name} identifies that particular \xmlNode{Code} model within RAVEN, and
+\xmlAttr{subType} specifies which code interface the model will use. The \xmlNode{executable}
 block should contain the absolute or relative (with respect to the current working
 directory) path to MAMMOTH that RAVEN will use to run generated input
 files.
@@ -1880,8 +1880,8 @@ input file and the poissons ratio defined in Bison input files.
 </Samplers>
 \end{lstlisting}
 %
-In order to make the input variables of Rattlesnake be distinct from the input variables of Bison, \textbf{:Rattlesnake}
-or \textbf{:Bison} is used at the end of each full MooseBasedApp model variable name. 
+In order to make the input variables of Rattlesnake be distinct from the input variables of Bison, \xmlString{:Rattlesnake}
+or \xmlString{:Bison} is used at the end of each full MooseBasedApp model variable name. 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Steps}
 For a MAMMOTH interface, the \xmlNode{MultiRun} step type will most likely be used. First, the step needs
@@ -1889,6 +1889,16 @@ to be named: this name will be one of the names used in the \xmlNode{Sequence} b
 %
 \begin{lstlisting}[style=XML]
 <MultiRun name='Grid_Mammoth' verbosity='debug'>
+    <Input   class='Files' type=''>mammothInput</Input>
+    <Input   class='Files' type=''>crossSection</Input>
+    <Input   class='Files' type=''>alias</Input>
+    <Input   class='Files' type=''>bisonInput</Input>
+    <Input   class='Files' type=''>bisonMesh</Input>
+    <Input   class='Files' type=''>rattlesnakeMesh</Input>
+    <Model   class='Models' type='Code'>Mammoth</Model>
+    <Sampler class='Samplers' type='Grid'>Grid_Samplering</Sampler>
+    <Output  class='DataObjects' type='PointSet'>solns</Output>
+</MultiRun>
 \end{lstlisting}
 %
 With this step, we need to import all the files needed for the simulation:
@@ -1901,28 +1911,5 @@ With this step, we need to import all the files needed for the simulation:
   \item Rattlesnake mesh file;
   \item Bison mesh file.
 \end{itemize}
-\begin{lstlisting}[style=XML,morekeywords={name,class,type}]
-    <Input   class='Files' type=''>mammothInput</Input>
-    <Input   class='Files' type=''>crossSection</Input>
-    <Input   class='Files' type=''>alias</Input>
-    <Input   class='Files' type=''>bisonInput</Input>
-    <Input   class='Files' type=''>bisonMesh</Input>
-    <Input   class='Files' type=''>rattlesnakeMesh</Input>
-\end{lstlisting}
-We then need to define which model will be used:
-\begin{lstlisting}[style=XML]
-    <Model  class='Models' type='Code'>Mammoth</Model>
-\end{lstlisting}
-We then need to specify which Sampler is used, and this can be done as follows:
-\begin{lstlisting}[style=XML]
-    <Sampler class='Samplers' type='Grid'>Grid_Samplering</Sampler>
-\end{lstlisting}
+As well as \xmlNode{Model}, \xmlNode{Sampler} and outputs, such as \xmlNode{OutStreams} and \xmlNode{DataObjects}.
 
-And lastly, we need to specify what kind of output the user wants.
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsubsection{OutStreams,DataObjects}
-This interface's, \xmlNode{OutStreams}, and
-\xmlNode{DataObjects} blocks do not deviate significantly from
-other interfaces' respective nodes.  Please refer to previous
-entries for these blocks if needed.

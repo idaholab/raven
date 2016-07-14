@@ -8,8 +8,6 @@ from subprocess import Popen
 from CodeInterfaceBaseClass import CodeInterfaceBase
 from MooseBasedAppInterface import MooseBasedApp
 from RattlesnakeInterface   import Rattlesnake
-from BisonAndMeshInterface  import BisonAndMesh
-
 
 class MAMMOTHInterface(CodeInterfaceBase):
   """
@@ -54,7 +52,10 @@ class MAMMOTHInterface(CodeInterfaceBase):
     if inputDict['FoundBisonInput']: inputDict['BisonInput'] = bisonInput
     if inputDict['FoundRattlesnakeInput']: inputDict['RattlesnakeInput'] = rattlesnakeInput
     if not inputDict['FoundMammothInput']:
-      raise IOError('None of the input files has the type "MammothInput"! This is required by MAMMOTH interface.')
+      errorMessage = 'This interface is only support the calculations via Rattlesnake coupled with Bison through MAMMOTH. \n'
+      errorMessage = errorMessage + 'The type of MAMMOTH input file should be MammothInput|RattlesnakeInput. \n'
+      errorMessage = errorMessage + 'But, none of the input files has this type. This is required by MAMMOTH interface.'
+      raise IOError(errorMessage)
     elif len(mammothInput) != 1:
       raise IOError('Multiple MAMMOTH input files are provided! Please limit the number of input files to one!')
     else:
@@ -79,8 +80,6 @@ class MAMMOTHInterface(CodeInterfaceBase):
     """
     inputDict = self.findInps(inputFiles)
     mammothInput = inputDict['MammothInput']
-    if len(mammothInput) != 1:
-      raise IOError('The user should only provide one mammoth input file, but found ' + str(len(mammothInput)) + '!')
     mooseCommand, mooseOut = self.MooseInterface.generateCommand(mammothInput,executable,clargs,fargs)
     returnCommand = mooseCommand, mooseOut
     return returnCommand
