@@ -57,15 +57,9 @@
   [./time_dep_clustering_filtered]
 	  type   = 'RavenFramework'
 	  input  = 'test_TD_KMeans_Filtered.xml'
-    csv    = 'time_dep_clustering_filtered/print0_0.csv  time_dep_clustering_filtered/print0_1.csv  
-              time_dep_clustering_filtered/print0_2.csv  time_dep_clustering_filtered/print0_3.csv 
-              time_dep_clustering_filtered/print0_4.csv  time_dep_clustering_filtered/print0_5.csv 
-              time_dep_clustering_filtered/print1_0.csv  time_dep_clustering_filtered/print1_1.csv 
-              time_dep_clustering_filtered/print1_2.csv  time_dep_clustering_filtered/print1_3.csv 
-              time_dep_clustering_filtered/print2_0.csv  time_dep_clustering_filtered/print2_1.csv'
-    xml    = 'time_dep_clustering_filtered/print0.xml 
-              time_dep_clustering_filtered/print1.xml 
-              time_dep_clustering_filtered/print2.xml'
+    csv    = 'time_dep_clustering_filtered/print0_0.csv  time_dep_clustering_filtered/print0_1.csv time_dep_clustering_filtered/print0_2.csv  time_dep_clustering_filtered/print0_3.csv time_dep_clustering_filtered/print0_4.csv  time_dep_clustering_filtered/print0_5.csv time_dep_clustering_filtered/print1_0.csv  time_dep_clustering_filtered/print1_1.csv time_dep_clustering_filtered/print1_2.csv  time_dep_clustering_filtered/print1_3.csv time_dep_clustering_filtered/print2_0.csv  time_dep_clustering_filtered/print2_1.csv'
+    xml    = 'time_dep_clustering_filtered/print0.xml  time_dep_clustering_filtered/print1.xml  time_dep_clustering_filtered/print2.xml'
+    output = 'time_dep_clustering_filtered/1-Clustered_HS_line.png'
   [../] 
   [./VariationalGMM]
   	type   = 'RavenFramework'
