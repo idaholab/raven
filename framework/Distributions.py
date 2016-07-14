@@ -2248,6 +2248,13 @@ class MultivariateNormal(NDimensionalDistributions):
     if self.rank == None: self.rank = self.dimension
     self.mu = mu
     self.covariance = covariance
+    #check square covariance
+    covDim = int(np.sqrt(len(self.covariance)))
+    if abs(covDim - np.sqrt(len(self.covariance)))/covDim > 1e-10:
+      self.raiseAnError(IOError,'Covariance matrix is not square!  Contains %i entries.' %len(self.covariance))
+    #sanity check on dimensionality
+    if covDim != len(self.mu):
+      self.raiseAnError(IOError,'Invalid dimensions! Covariance has %i entries (%i x %i), but mu has %i entries!' %(len(self.covariance),covDim,covDim,len(self.mu)))
     self.initializeDistribution()
 
   def getInitParams(self):
