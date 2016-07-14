@@ -12,4 +12,13 @@
    method = 'devel opt'
  [../]
  
+ [./testInstant_noexec]
+   type = 'RavenFramework'
+   input = 'test_instant_noexec.xml'
+   UnorderedCsv = 'IAEA2D/out_noexec.csv'
+   xml = 'IAEA2D/sample/1/iaea2d_materials.xml IAEA2D/sample/2/iaea2d_materials.xml IAEA2D/sample/3/iaea2d_materials.xml'
+   max_time = 200 
+   rel_err = 0.0001
+   test_interface_only = True
+ [../]
 []
