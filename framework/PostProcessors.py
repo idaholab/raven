@@ -1005,9 +1005,9 @@ class InterfacedPostProcessor(BasePostProcessor):
       for hist in exportDict['inputSpaceParams']:
         if type(exportDict['inputSpaceParams'].values()[0]).__name__ == "dict":
           for key in listInputParms:
-            output.updateInputValue(key,exportDict['inputSpaceParams'][hist][key])
+            output.updateInputValue(key,exportDict['inputSpaceParams'][hist][str(key)])
           for key in listOutputParams:
-            output.updateOutputValue(key,exportDict['outputSpaceParams'][hist][key])
+            output.updateOutputValue(key,exportDict['outputSpaceParams'][hist][str(key)])
           for key in exportDict['metadata'][0]:
             output.updateMetadata(key,exportDict['metadata'][0][key])
         else:
@@ -1016,18 +1016,18 @@ class InterfacedPostProcessor(BasePostProcessor):
               output.updateInputValue(key,exportDict['inputSpaceParams'][key])
           for key in exportDict['outputSpaceParams']:
             if key in output.getParaKeys('outputs'):
-              output.updateOutputValue(key,exportDict['outputSpaceParams'][key])
+              output.updateOutputValue(key,exportDict['outputSpaceParams'][str(key)])
           for key in exportDict['metadata'][0]:
             output.updateMetadata(key,exportDict['metadata'][0][key])
     else:   # output.type == 'PointSet':
       for key in exportDict['inputSpaceParams']:
         if key in output.getParaKeys('inputs'):
           for value in exportDict['inputSpaceParams'][key]:
-            output.updateInputValue(key,value)
+            output.updateInputValue(str(key),value)
       for key in exportDict['outputSpaceParams']:
-        if key in output.getParaKeys('outputs'):
+        if str(key) in output.getParaKeys('outputs'):
           for value in exportDict['outputSpaceParams'][key]:
-            output.updateOutputValue(key,value)
+            output.updateOutputValue(str(key),value)
       for key in exportDict['metadata'][0]:
         output.updateMetadata(key,exportDict['metadata'][0][key])
 
