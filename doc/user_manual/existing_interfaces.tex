@@ -1399,21 +1399,24 @@ after RAVEN completes a sequence. For example:
 %
 This section covers the input specification for running Rattlesnake through RAVEN. It is important
 to notice that this short explanation assumes that the reader already knows how to use Rattlesnake.
-The interface can be used to perturb the Rattlesnake MOOSE-based input file as well as the Yak multigroup
-cross section libraries XML input files.
+The interface can be used to perturb the Rattlesnake MOOSE-based input file as well as the Yak
+cross section libraries XML input files (e.g. multigroup cross section libraries) and Instant format 
+cross section libraries.
 %
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Files}
 \xmlNode{Files} works the same as in other interfaces with name and type
 attributes for each node entry.  The \xmlAttr{name} attribute is a user-chosen internal
 name for the file contained in the node, and \xmlAttr{type} identifies which base-level
-interface the file is used within.  \xmlNode{type} should only be specified for inputs
-that RAVEN will perturb.  For Rattlesnake input files, \xmlNode{type} should be \xmlString{RattlesnakeInput};
-for Yak multigroup cross section libraries, the \xmlNode{type} should be \xmlString{YakXSInput}; and for the Yak
-alias files that are used to perturb the Yak multigroup cross section libraries, the \xmlNode{type} should be
-\xmlString{YakXSAliasInput}. The node should contain the path to the file from the working directory.
-The following is an example of a typical \xmlNode{Files} block.
+interface the file is used within.  \xmlAttr{type} should only be specified for inputs
+that RAVEN will perturb. Take Rattlesnake input files for example, \xmlAttr{type} should 
+be \xmlString{RattlesnakeInput}.
+
+\paragraph{Perturb Yak Multigroup Cross Section Libraries}
+If the user would like to perturb the Yak multigroup cross section libraries, the user need to use the 
+\xmlString{YakXSInput} for the \xmlAttr{type} of the libaries. In addition, the \xmlAttr{type} of the
+alias files that are used to perturb the Yak multigroup cross section libraries should be
+\xmlString{YakXSAliasInput}. The following is an example of a typical \xmlNode{Files} block.
 %
 \begin{lstlisting}[style=XML]
 <Files>
@@ -1457,16 +1460,66 @@ section library input files. For example:
 <Fission gridIndex="1" mat="pseudo-seed1" gIndex="1">f11</Fission>
 \end{lstlisting}
 %
-This node defines an alias with name \xmlString{f11} used to represent the fission cross section at energy group '1'
-for material with name 'pseudo-seed1' at grid index '1' in the Yak multigroup cross section library input files.
+This node defines an alias with name \xmlString{f11} used to represent the fission cross section at energy group \xmlString{1}
+for material with name 'pseudo-seed1' at grid index \xmlString{1} in the Yak multigroup cross section library input files.
 
+\nb The attribute \xmlAttr{Type="rel"} indicates that the cross sections will be perturbed relatively (i.e. perturbed by 
+percents). In this case, the user also needs to specify a relative covariance matrix for \xmlNode{covaraince \xmlAttr{type="rel"}} in 
+\xmlNode{MultivariateNormal} distribution, and the values for \xmlNode{mu} should be \xmlString{ones}. In the other case, if 
+the user choose \xmlAttr{Type="abs"}, the cross sections will be perturbed absolutely (i.e. perturbed by values), and 
+the user needs to provide an absolute covariance matrix and specify \xmlString{zeros} for \xmlNode{mu} in \xmlNode{MultivariateNormal}
+distribution.
+
+\paragraph{Perturb Instant format Cross Section Libraries}
+If the user would like to perturb the Instant cross section libraries, the user need to use the 
+\xmlString{InstantXSInput} for the \xmlAttr{type} of the libaries. In addition, the \xmlAttr{type} of the
+alias files that are used to perturb the Instant format cross section libraries should be
+\xmlString{InstantXSAliasInput}. The following is an example of a typical \xmlNode{Files} block.
+%
+\begin{lstlisting}[style=XML]
+<Files>
+  <Input name='rattlesnakeInput' type='RattlesnakeInput'>iaea2d_ls_sn.i</Input>
+  <Input name='crossSection'    type='InstantXSInput'>iaea2d_materials.xml</Input>
+  <Input name='alias' type='InstantXSAliasInput'>alias.xml</Input>
+</Files>
+\end{lstlisting}
+%
+The alias files are employed to define the variables that will be used to perturb Instant format cross section
+libraries. The following is an example of a typical alias file:
+%
+\begin{lstlisting}[style=XML]
+<Materials>
+  <Macros NG="2" Type="rel">
+    <material ID="1">
+      <FissionXS gIndex="1">f11</FissionXS>
+      <CaptureXS gIndex="1">c11</CaptureXS>
+      <TotalScatteringXS gIndex="1">t11<TotalScatteringXS>
+      <Nu gIndex="1">n11</Nu>
+    </material>
+  </Macros>
+</Materials>
+\end{lstlisting}
+
+%
+In the above alias file, the \xmlAttr{NG} and \xmlAttr{ID} should be consistent with the Instant format cross 
+section library input files. The \xmlNode{FissionXS}, \xmlNode{CaptureXS}, \xmlNode{TotalScatteringXS}, \xmlNode{Nu}, \xmlAttr{gIndex},
+are used to find the corresponding cross sections in the Instant format cross
+section library input files. For example, the variable \xmlString{f11} used to represent the fission cross section at energy group \xmlString{1}
+for material with \xmlString{ID} equal \xmlString{1} in the given cross section library.
+
+\nb The attribute \xmlAttr{Type="rel"} indicates that the cross sections will be perturbed relatively (i.e. perturbed by 
+percents). In this case, the user also needs to specify a relative covariance matrix for \xmlNode{covaraince \xmlAttr{type="rel"}} in 
+\xmlNode{MultivariateNormal} distribution, and the values for \xmlNode{mu} should be \xmlString{ones}. In the other case, if 
+the user choose \xmlAttr{Type="abs"}, the cross sections will be perturbed absolutely (i.e. perturbed by values), and 
+the user needs to provide an absolute covariance matrix and specify \xmlString{zeros} for \xmlNode{mu} in \xmlNode{MultivariateNormal}
+distribution.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Models}
 A user provides paths to executables and aliases for sampled variables within the
-\xmlNode{Models} block.  The \xmlNode{Code} block will contain attributes name and
-subType.  Name identifies that particular \xmlNode{Code} model within RAVEN, and
-subType specifies which code interface the model will use. The \xmlNode{executable}
+\xmlNode{Models} block.  The \xmlNode{Code} block will contain attributes \xmlNode{name} and
+\xmlNode{subType}. The \xmlNode{name} identifies that particular \xmlNode{Code} model within RAVEN, and
+\xmlNode{subType} specifies which code interface the model will use. The \xmlNode{executable}
 block should contain the absolute or relative (with respect to the current working
 directory) path to Rattlesnake that RAVEN will use to run generated input
 files.
@@ -1530,6 +1583,12 @@ to be named: this name will be one of the names used in the \xmlNode{Sequence} b
 %
 \begin{lstlisting}[style=XML]
 <MultiRun name='Grid_Rattlesnake' verbosity='debug'>
+    <Input   class='Files' type=''>RattlesnakeInput.i</Input>
+    <Input   class='Files' type=''>xs.xml</Input>
+    <Input   class='Files' type=''>alias.xml</Input>
+    <Model   class='Models' type='Code'>Rattlesnake</Model>
+    <Sampler class='Samplers' type='Grid'>Grid_Samplering</Sampler>
+    <Output  class='DataObjects' type='PointSet'>solns</Ouput>
 \end{lstlisting}
 %
 With this step, we need to import all the files needed for the simulation:
@@ -1539,29 +1598,8 @@ With this step, we need to import all the files needed for the simulation:
   \item Yak multigroup cross section libraries input files (XML);
   \item Yak alias files used to define the perturbed variables (XML).
 \end{itemize}
-\begin{lstlisting}[style=XML,morekeywords={name,class,type}]
-    <Input   class='Files' type=''>RattlesnakeInput.i</Input>
-    <Input   class='Files' type=''>xs.xml</Input>
-    <Input   class='Files' type=''>alias.xml</Input>
-\end{lstlisting}
-We then need to define which model will be used:
-\begin{lstlisting}[style=XML]
-    <Model  class='Models' type='Code'>Rattlesnake</Model>
-\end{lstlisting}
-We then need to specify which Sampler is used, and this can be done as follows:
-\begin{lstlisting}[style=XML]
-    <Sampler class='Samplers' type='Grid'>Grid_Samplering</Sampler>
-\end{lstlisting}
-
-And lastly, we need to specify what kind of output the user wants.
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsubsection{OutStreams,DataObjects}
-This interface's, \xmlNode{OutStreams}, and
-\xmlNode{DataObjects} blocks do not deviate significantly from
-other interfaces' respective nodes.  Please refer to previous
-entries for these blocks if needed.
-
+We then need to define \xmlNode{Model}, \xmlNode{Sampler} and \xmlNode{Output}. The \xmlNode{Output} can be
+\xmlNode{DataObjects} or \xmlNode{OutStreams}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% MAAP5  INTERFACE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
