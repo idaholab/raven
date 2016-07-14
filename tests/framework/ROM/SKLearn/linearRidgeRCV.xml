@@ -23,7 +23,7 @@
       <Target>Z</Target>
       <alphas>0.1,1.0,10.0</alphas>
       <fit_intercept>True</fit_intercept>
-      <normalize>False</normalize>
+      <normalize>True</normalize>
       <scoring>None</scoring>
       <cv>None</cv>
       <gcv_mode>None</gcv_mode>
