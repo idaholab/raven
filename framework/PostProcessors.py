@@ -1276,7 +1276,7 @@ class ImportanceRank(BasePostProcessor):
         self.features = list(inp.strip() for inp in child.text.strip().split(','))
       if child.tag == 'dimensions':
         self.dimensions = list(int(inp.strip()) for inp in child.text.strip().split(','))
-      if child.tag.lower() == 'targetdimensions':
+      if child.tag == 'targetDimensions':
         self.targetDimensions = list(int(inp.strip()) for inp in child.text.strip().split(','))
       if child.tag == 'mvnDistribution':
         self.mvnDistribution = child.text.strip()
@@ -1286,6 +1286,8 @@ class ImportanceRank(BasePostProcessor):
     if not self.targetDimensions and self.outputTransformMatrix:
       self.targetDimensions = range(1,len(self.targets)+1)
       self.raiseAWarning('The dimensions for given targets: ' + str(self.targets) + ' is not provided! Default dimensions will be used: ' + str(self.targetDimensions) + '!')
+    if targetType.strip() == 'manifest' and featureType.strip() != 'latent':
+      self.raiseAnError(IOError, 'Transformation matrix is requested, but the type of features is not specified correctly!')
 
   def _localPrintXML(self,outFile,options=None):
     """
@@ -1303,8 +1305,11 @@ class ImportanceRank(BasePostProcessor):
       pca = options['pcaindex'].values()[0]
       for var,index,_ in pca:
         outFile.addScalar(var,'pcaIndex',index)
+    if 'transformation' in options.keys():
+      outFile.addScalar('transformation','type',self.mvnDistribution.covarianceType)
     #build tree
     targets = options.values()[0].keys()
+
     for target in targets:
       valueDict = OrderedDict()
       for what in options.keys():
@@ -1320,7 +1325,10 @@ class ImportanceRank(BasePostProcessor):
             for key,val in dimDict.items():
               outFile.addScalar(key,'dimension',val)
             settingDim = False
-          outFile.addVector(target,what,valueDict)
+          if what.lower() != 'transformation':
+            outFile.addVector(target,what,valueDict)
+          else:
+            outFile.addVector(what,target,valueDict)
 
   def collectOutput(self,finishedJob, output):
     """
@@ -1423,6 +1431,8 @@ class ImportanceRank(BasePostProcessor):
       for targetP in self.targets:
         if targetP in currentInput.getParaKeys('output'):
           inputDict['targets'][targetP] = currentInput.getParam('output', targetP)
+        elif targetP in currentInput.getParaKeys('input'):
+          inputDict['targets'][targetP] = currentInput.getParam('input',targetP)
         else:
           self.raiseAnError(IOError,'Parameter ' + str(targetP) + ' is listed ImportanceRank postprocessor targets, but not found in the provided input!')
       inputDict['metadata'] = currentInput.getAllMetadata()
@@ -1443,16 +1453,16 @@ class ImportanceRank(BasePostProcessor):
     senWeightDict = {}
     # compute sensitivities of targets with respect to features
     featValues = []
-    for feat in self.features:
-      featValues.append(inputDict['features'][feat])
-    sampledFeatMatrix = np.atleast_2d(np.asarray(featValues)).T
-    for target in self.targets:
-      featCoeffs = LinearRegression().fit(sampledFeatMatrix, inputDict['targets'][target]).coef_
-      featWeights = abs(featCoeffs)/np.sum(abs(featCoeffs))
-      senWeightDict[target] = list(zip(self.features,featWeights,self.dimensions))
-      senCoeffDict[target] = featCoeffs
     # compute importance rank
     if not self.outputTransformMatrix:
+      for feat in self.features:
+        featValues.append(inputDict['features'][feat])
+      sampledFeatMatrix = np.atleast_2d(np.asarray(featValues)).T
+      for target in self.targets:
+        featCoeffs = LinearRegression().fit(sampledFeatMatrix, inputDict['targets'][target]).coef_
+        featWeights = abs(featCoeffs)/np.sum(abs(featCoeffs))
+        senWeightDict[target] = list(zip(self.features,featWeights,self.dimensions))
+        senCoeffDict[target] = featCoeffs
       for what in self.what:
         if what not in outputDict.keys() and what.lower() != 'transformation': outputDict[what] = {}
         if what.lower() == 'sensitivityindex':
@@ -1500,7 +1510,8 @@ class ImportanceRank(BasePostProcessor):
       transformMatrix = self.mvnDistribution.transformationMatrix(index)
       targetIndex = [dim-1 for dim in self.targetDimensions]
       for ind,target in enumerate(self.targets):
-        outputDict[what][target] = transformMatrix[targetIndex[ind]]
+        entries = list(zip(self.features,transformMatrix[targetIndex[ind]],self.dimensions))
+        outputDict[what][target] = entries
 
       # To be implemented
       #if what == 'CumulativeSenitivityIndex':
