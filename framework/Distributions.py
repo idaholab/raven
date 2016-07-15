@@ -2294,19 +2294,27 @@ class MultivariateNormal(NDimensionalDistributions):
       self.raiseAnError(NotImplementedError,'cdf not yet implemented for ' + self.method + ' method')
     return cdfValue
 
-  def transformationMatrix(self):
+  def transformationMatrix(self,index=None):
     """
       Return the transformation matrix from Crow
       @ In, None
+      @ In, index, list, optional, input coordinate index, list values for the index of the latent variables
       @ Out, L, np.array, the transformation matrix
     """
     if self.method == 'spline':
       self.raiseAnError(NotImplementedError,' transformationMatrix is not yet implemented for ' + self.method + ' method')
     elif self.method == 'pca':
-      matrixDim = self._distribution.getTransformationMatrixDimensions()
+      if index is not None:
+        coordinateIndex = distribution1D.vectori_cxx(len(index))
+        for i in range(len(index)):
+          coordinateIndex[i] = index[i]
+          matrixDim = self._distribution.getTransformationMatrixDimensions(coordinateIndex)
+          transformation = self._distribution.getTransformationMatrix(coordinateIndex)
+      else:
+        matrixDim = self._distribution.getTransformationMatrixDimensions()
+        transformation = self._distribution.getTransformationMatrix()
       row = matrixDim[0]
       column = matrixDim[1]
-      transformation = self._distribution.getTransformationMatrix()
       # convert 1D vector to 2D array
       L = np.atleast_1d(transformation).reshape(row,column)
       return L
@@ -2315,6 +2323,7 @@ class MultivariateNormal(NDimensionalDistributions):
     """
       Return the singular values from Crow
       @ In, None
+      @ In, index, list, optional, input coordinate index, list values for the index of the input variables
       @ Out, singularValues, np.array, the singular values vector
     """
     if self.method == 'spline':

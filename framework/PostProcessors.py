@@ -1206,8 +1206,9 @@ class ImportanceRank(BasePostProcessor):
     self.targets = []
     self.features = []
     self.dimensions = []
+    self.targetDimensions = []
     self.mvnDistribution = None
-    self.acceptedMetric = ['sensitivityindex','importanceindex','pcaindex']
+    self.acceptedMetric = ['sensitivityindex','importanceindex','pcaindex','transformation']
     self.what = self.acceptedMetric # what needs to be computed, default is all
     self.printTag = 'POSTPROCESSOR IMPORTANTANCE RANK'
     self.requiredAssObject = (True,(['Distributions'],[-1]))
@@ -1252,6 +1253,16 @@ class ImportanceRank(BasePostProcessor):
               self.raiseAnError(IOError, 'Importance rank postprocessor asked unknown operation ' + metric + '. Available ' + str(self.acceptedMetric))
           self.what = toCalculate
       if child.tag == 'targets':
+        if 'type' in child.attrib.keys():
+          targetType = child.attrib['type']
+          if targetType.strip() == 'manifest':
+            self.outputTransformMatrix = True
+          elif targetType.strip() == '':
+            self.outputTransformMatrix = False
+          else:
+            self.raiseAnError(IOError, 'type: ' + targetType + ' is not supported for node: ' + str(child.tag))
+        else:
+          self.outputTransformMatrix = False
         self.targets = list(inp.strip() for inp in child.text.strip().split(','))
       if child.tag == 'features':
         if 'type' in child.attrib.keys():
@@ -1265,11 +1276,16 @@ class ImportanceRank(BasePostProcessor):
         self.features = list(inp.strip() for inp in child.text.strip().split(','))
       if child.tag == 'dimensions':
         self.dimensions = list(int(inp.strip()) for inp in child.text.strip().split(','))
+      if child.tag.lower() == 'targetdimensions':
+        self.targetDimensions = list(int(inp.strip()) for inp in child.text.strip().split(','))
       if child.tag == 'mvnDistribution':
         self.mvnDistribution = child.text.strip()
     if not self.dimensions:
       self.dimensions = range(1,len(self.features)+1)
       self.raiseAWarning('The dimensions for given features: ' + str(self.features) + ' is not provided! Default dimensions will be used: ' + str(self.dimensions) + '!')
+    if not self.targetDimensions and self.outputTransformMatrix:
+      self.targetDimensions = range(1,len(self.targets)+1)
+      self.raiseAWarning('The dimensions for given targets: ' + str(self.targets) + ' is not provided! Default dimensions will be used: ' + str(self.targetDimensions) + '!')
 
   def _localPrintXML(self,outFile,options=None):
     """
@@ -1436,46 +1452,56 @@ class ImportanceRank(BasePostProcessor):
       senWeightDict[target] = list(zip(self.features,featWeights,self.dimensions))
       senCoeffDict[target] = featCoeffs
     # compute importance rank
-    for what in self.what:
-      if what not in outputDict.keys(): outputDict[what] = {}
-      if what.lower() == 'sensitivityindex':
-        for target in self.targets:
-          entries = senWeightDict[target]
-          entries.sort(key=lambda x: x[1],reverse=True)
-          outputDict[what][target] = entries
-      if what.lower() == 'importanceindex':
-        for target in self.targets:
-          featCoeffs = senCoeffDict[target]
-          featWeights = []
-          if not self.transformation:
-            for index,feat in enumerate(self.features):
-              totDim = self.mvnDistribution.dimension
-              covIndex = totDim * (self.dimensions[index] - 1) + self.dimensions[index] - 1
-              if self.mvnDistribution.covarianceType == 'abs':
-                covTarget = featCoeffs[index] * self.mvnDistribution.covariance[covIndex] * featCoeffs[index]
-              else:
-                covFeature = self.mvnDistribution.covariance[covIndex]*self.mvnDistribution.mu[self.dimensions[index]-1]**2
-                covTarget = featCoeffs[index] * covFeature * featCoeffs[index]
-              featWeights.append(covTarget)
-            featWeights = featWeights/np.sum(featWeights)
-            entries = list(zip(self.features,featWeights,self.dimensions))
+    if not self.outputTransformMatrix:
+      for what in self.what:
+        if what not in outputDict.keys() and what.lower() != 'transformation': outputDict[what] = {}
+        if what.lower() == 'sensitivityindex':
+          for target in self.targets:
+            entries = senWeightDict[target]
             entries.sort(key=lambda x: x[1],reverse=True)
             outputDict[what][target] = entries
-          # if the features type is 'latent', since latentVariables are used to compute the sensitivities
-          # the covariance for latentVariances are identity matrix
-          else:
-           entries = senWeightDict[target]
-           entries.sort(key=lambda x: x[1],reverse=True)
-           outputDict[what][target] = entries
-      #calculate PCA index
-      if what.lower() == 'pcaindex':
-        index = [dim-1 for dim in self.dimensions]
-        singularValues = self.mvnDistribution.returnSingularValues(index)
-        singularValues = list(singularValues/np.sum(singularValues))
-        entries = list(zip(self.features,singularValues,self.dimensions))
-        entries.sort(key=lambda x: x[1],reverse=True)
-        for target in self.targets:
-          outputDict[what][target] = entries
+        if what.lower() == 'importanceindex':
+          for target in self.targets:
+            featCoeffs = senCoeffDict[target]
+            featWeights = []
+            if not self.transformation:
+              for index,feat in enumerate(self.features):
+                totDim = self.mvnDistribution.dimension
+                covIndex = totDim * (self.dimensions[index] - 1) + self.dimensions[index] - 1
+                if self.mvnDistribution.covarianceType == 'abs':
+                  covTarget = featCoeffs[index] * self.mvnDistribution.covariance[covIndex] * featCoeffs[index]
+                else:
+                  covFeature = self.mvnDistribution.covariance[covIndex]*self.mvnDistribution.mu[self.dimensions[index]-1]**2
+                  covTarget = featCoeffs[index] * covFeature * featCoeffs[index]
+                featWeights.append(covTarget)
+              featWeights = featWeights/np.sum(featWeights)
+              entries = list(zip(self.features,featWeights,self.dimensions))
+              entries.sort(key=lambda x: x[1],reverse=True)
+              outputDict[what][target] = entries
+            # if the features type is 'latent', since latentVariables are used to compute the sensitivities
+            # the covariance for latentVariances are identity matrix
+            else:
+             entries = senWeightDict[target]
+             entries.sort(key=lambda x: x[1],reverse=True)
+             outputDict[what][target] = entries
+        #calculate PCA index
+        if what.lower() == 'pcaindex':
+          index = [dim-1 for dim in self.dimensions]
+          singularValues = self.mvnDistribution.returnSingularValues(index)
+          singularValues = list(singularValues/np.sum(singularValues))
+          entries = list(zip(self.features,singularValues,self.dimensions))
+          entries.sort(key=lambda x: x[1],reverse=True)
+          for target in self.targets:
+            outputDict[what][target] = entries
+    else:
+      what = 'transformation'
+      if what not in outputDict.keys(): outputDict[what] = {}
+      index = [dim-1 for dim in self.dimensions]
+      transformMatrix = self.mvnDistribution.transformationMatrix(index)
+      targetIndex = [dim-1 for dim in self.targetDimensions]
+      for ind,target in enumerate(self.targets):
+        outputDict[what][target] = transformMatrix[targetIndex[ind]]
+
       # To be implemented
       #if what == 'CumulativeSenitivityIndex':
       #  self.raiseAnError(NotImplementedError,'CumulativeSensitivityIndex is not yet implemented for ' + self.printTag)
