@@ -1395,7 +1395,7 @@ after RAVEN completes a sequence. For example:
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%% RATTLESNAKE INTERFACE %%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Rattlesnake Interfaces}
+\subsection{Rattlesnake Interfaces} \label{RattlesnakeInterfaces}
 %
 This section covers the input specification for running Rattlesnake through RAVEN. It is important
 to notice that this short explanation assumes that the reader already knows how to use Rattlesnake.
@@ -1767,3 +1767,149 @@ It is important, indeed, that the MAAP5 csv PLOTFIL files contain the evolution 
   and \\ \xmlNode{contMaapOutputVariables} blocks (both for Forward and DET sampling)
 \end{itemize}
 If one of these variables is not contained into one of csv files, RAVEN will give an error.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%% MAMMOTH INTERFACE %%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{MAMMOTH Interfaces}
+%
+This section covers the input specification for running MAMMOTH (couple Rattlesnake with Bison) through RAVEN. 
+It is important to notice that this short explanation assumes that the reader already knows how to use MAMMOTH.
+The interface can be used to perturb the Bison and Rattlesnake MOOSE input files as well as the Yak multigroup
+cross section libraries XML input files.
+%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Files}
+\xmlNode{Files} works the same as in other interfaces with name and type
+attributes for each node entry.  The \xmlAttr{name} attribute is a user-chosen internal
+name for the file contained in the node, and \xmlAttr{type} identifies which base-level
+interface the file is used within.  \xmlNode{type} should only be specified for inputs
+that RAVEN will perturb.  For MAMMOTH input files, \xmlNode{type} should be \xmlString{MAMMOTHInput|RattlesnakeInput}, 
+for Yak multigroup cross section libraries, the \xmlNode{type} should be \xmlString{YakXSInput}, and for the Yak 
+alias files that are used to perturb the Yak multigroup cross section libraries, the \xmlNode{type} should be
+\xmlString{YakXSAliasInput}. For Bison input files, the \xmlNode{type} should be \xmlString{BisonInput}. In addition, 
+the \xmlNode{type}s for Rattlesnake mesh input file and Bison mesh input file are \xmlString{Bison|Mesh} and 
+\xmlString{Rattlesnake|Mesh},respectively. 
+
+The node should contain the path to the file from the working directory.  
+The following is an example of a typical \xmlNode{Files} block.
+%
+\begin{lstlisting}[style=XML]
+<Files>
+  <Input name='mammothInput' type='MAMMOTHInput|RattlesnakeInput'>test_mammoth.i</Input>
+  <Input name='crossSection'    type='YakXSInput'>xs.xml</Input>
+  <Input name='alias' type='YakXSAliasInput'>alias.xml</Input>
+  <Input name='bisonInput'    type='BisonInput'>test_bison.xml</Input>
+  <Input name='bisonMesh'    type='Bison|Mesh'>bisonMesh.e</Input>
+  <Input name='rattlesnakeMesh'    type='Rattlesnake|Mesh'>rattlesnakeMesh.e</Input>
+</Files>
+\end{lstlisting}
+%
+The alias files are employed to define the variables that will be used to perturb Yak multigroup cross section
+libraries. Please see the section \ref{RattlesnakeInterfaces} for the example.  
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Models}
+A user provides paths to executables and aliases for sampled variables within the
+\xmlNode{Models} block.  The \xmlNode{Code} block will contain \xmlAttr{name} and
+\xmlAttr{subType}.  The attribute \xmlAttr{name} identifies that particular \xmlNode{Code} model within RAVEN, and
+\xmlAttr{subType} specifies which code interface the model will use. The \xmlNode{executable}
+block should contain the absolute or relative (with respect to the current working
+directory) path to MAMMOTH that RAVEN will use to run generated input
+files.
+
+An example \xmlNode{Models} block follows.
+
+\begin{lstlisting}[style=XML]
+<Models>
+  <Code name="Mammoth" subType="MAMMOTH">
+    <executable>%FRAMEWORK_DIR%/../../mammoth/ 
+     mammoth-%METHOD%</executable>
+  </Code>
+</Models>
+\end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Distributions}
+The \xmlNode{Distributions} block defines all distributions used to
+sample variables in the current RAVEN run.
+
+For all the possible distributions and their possible inputs please
+refer to the Distributions chapter (see~\ref{sec:distributions}).
+%
+It is good practice to name the distribution something similar to what kind of
+variable is going to be sampled, since there might be many variables with the
+same kind of distributions but different input parameters.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\paragraph{Samplers}
+The \xmlNode{Samplers} block defines the variables to be sampled.
+After defining a sampling scheme, the variables to be sampled and
+their distributions are identified in the \xmlNode{variable} blocks.
+The name attribute in the \xmlNode{variable} block must either be the
+full MooseBasedApp model variable name, the alias name specifed in
+\xmlNode{Models}, or the variable name specified in the provided alias files.  
+
+For listings of available samplers, please refer to the Samplers chapter (see~\ref{sec:Samplers}).
+See the following for an example of a grid based sampler used to generate the samples for
+the first energy group fission and capture cross sections  (both of which have
+defined in alias files provided in \xmlNode{Files}), the initial condition temperature defined in Rattlesnake
+input file and the poissons ratio defined in Bison input files.
+%
+\begin{lstlisting}[style=XML]
+<Samplers>
+  <Grid name="Grid_sampling">
+    <variable name="fission_group_1" >
+      <distribution>fission_dist</distribution>
+      <grid type="value" construction="custom">1.0 2.0</grid>
+    </variable>
+    <variable name="capture_group_1">
+      <distribution>capture_dist</distribution>
+      <grid type="value" construction="custom">3.0 6.0</grid>
+    </variable>
+    <variable name="AuxVariables|Temp|initial_condition:Rattlesnake">
+      <distribution>uniform</distribution>
+      <grid type="value" construction="custom">3.0 6.0</grid>
+    </variable>
+    <variable name="Materials|fuel_solid_mechanics_elastic|poissons_ratio:Bison">
+      <distribution>normal</distribution>
+      <grid type="value" construction="custom">3.0 6.0</grid>
+    </variable>
+  </Grid>
+</Samplers>
+\end{lstlisting}
+%
+In order to make the input variables of Rattlesnake be distinct from the input variables of Bison, \xmlString{:Rattlesnake}
+or \xmlString{:Bison} is used at the end of each full MooseBasedApp model variable name. 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Steps}
+For a MAMMOTH interface, the \xmlNode{MultiRun} step type will most likely be used. First, the step needs
+to be named: this name will be one of the names used in the \xmlNode{Sequence} block. In our example, \xmlString{Grid\_Mammoth}.
+%
+\begin{lstlisting}[style=XML]
+<MultiRun name='Grid_Mammoth' verbosity='debug'>
+    <Input   class='Files' type=''>mammothInput</Input>
+    <Input   class='Files' type=''>crossSection</Input>
+    <Input   class='Files' type=''>alias</Input>
+    <Input   class='Files' type=''>bisonInput</Input>
+    <Input   class='Files' type=''>bisonMesh</Input>
+    <Input   class='Files' type=''>rattlesnakeMesh</Input>
+    <Model   class='Models' type='Code'>Mammoth</Model>
+    <Sampler class='Samplers' type='Grid'>Grid_Samplering</Sampler>
+    <Output  class='DataObjects' type='PointSet'>solns</Output>
+</MultiRun>
+\end{lstlisting}
+%
+With this step, we need to import all the files needed for the simulation:
+%
+\begin{itemize}
+  \item MAMMOTH|Rattlesnake YAML input file;
+  \item Yak multigroup cross section libraries input files (XML);
+  \item Yak alias files used to define the perturbed variables (XML);
+  \item Bison YAML input file;
+  \item Rattlesnake mesh file;
+  \item Bison mesh file.
+\end{itemize}
+As well as \xmlNode{Model}, \xmlNode{Sampler} and outputs, such as \xmlNode{OutStreams} and \xmlNode{DataObjects}.
+
