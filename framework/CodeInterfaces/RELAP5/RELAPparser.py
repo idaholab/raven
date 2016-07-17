@@ -71,7 +71,11 @@ class RELAPparser():
         if not re.match('^\s*\n',line):
           card = line.split()[0].strip()
           if card in modidictionaryList.keys():
-            temp1 = self.replaceword(line,modidictionaryList[card]['position'],modidictionaryList[card]['value'])
+            temp2 = line
+            for var in modiDictionaryList[card]:
+              temp1 = self.replaceword(temp2,var['position'],var['value'])
+              temp2 = temp1
+            #temp1 = self.replaceword(line,modidictionaryList[card]['position'],modidictionaryList[card]['value'])
         temp.append(temp1)
       if save: self.deckLines[deckNum]=temp
       lines = lines + temp
