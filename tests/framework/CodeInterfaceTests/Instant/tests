@@ -1,0 +1,24 @@
+[Tests]
+
+ [./testInstant_MC]
+   type = 'RavenFramework'
+   input = 'test_mc_instant.xml'
+   UnorderedCsv = 'IAEA2D/out_mc_dump.csv IAEA2D/MCTest/1/out~iaea2d_ls_sn.csv IAEA2D/MCTest/2/out~iaea2d_ls_sn.csv IAEA2D/MCTest/3/out~iaea2d_ls_sn.csv'
+   xml = 'IAEA2D/MCTest/1/iaea2d_materials.xml IAEA2D/MCTest/2/iaea2d_materials.xml IAEA2D/MCTest/3/iaea2d_materials.xml'
+   max_time = 200 
+   rel_err = 0.0001
+   required_executable = '../../../../../rattlesnake/rattlesnake-%METHOD%'
+   skip_if_env = BUILD_ROOT
+   method = 'devel opt'
+ [../]
+ 
+ [./testInstant_noexec]
+   type = 'RavenFramework'
+   input = 'test_instant_noexec.xml'
+   UnorderedCsv = 'IAEA2D/out_noexec.csv'
+   xml = 'IAEA2D/sample/1/iaea2d_materials.xml IAEA2D/sample/2/iaea2d_materials.xml IAEA2D/sample/3/iaea2d_materials.xml'
+   max_time = 200 
+   rel_err = 0.0001
+   test_interface_only = True
+ [../]
+[]
