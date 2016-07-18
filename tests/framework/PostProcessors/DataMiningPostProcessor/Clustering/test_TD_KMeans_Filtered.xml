@@ -251,12 +251,12 @@
       <actions>
         <how>png</how>
         <range>
-          <xmax>0.5</xmax>
           <xmin>0.0</xmin>
+          <xmax>0.5</xmax>   
+          <ymin>-15.0</ymin>    
           <ymax>30.0</ymax>
-          <ymin>-15.0</ymin>
-          <zmax>60.0</zmax>
           <zmin>0.0</zmin>
+          <zmax>60.0</zmax>
         </range>
       </actions>
     </Plot>
@@ -278,12 +278,12 @@
       <actions>
         <how>pdf</how>
         <range>
-          <xmax>0.5</xmax>
           <xmin>0.0</xmin>
+          <xmax>0.5</xmax>   
+          <ymin>-15.0</ymin>    
           <ymax>30.0</ymax>
-          <ymin>-15.0</ymin>
-          <zmax>60.0</zmax>
           <zmin>0.0</zmin>
+          <zmax>60.0</zmax>
         </range>
       </actions>
     </Plot>
@@ -305,12 +305,12 @@
       <actions>
         <how>pdf</how>
         <range>
-          <xmax>0.5</xmax>
           <xmin>0.0</xmin>
+          <xmax>0.5</xmax>   
+          <ymin>-15.0</ymin>    
           <ymax>30.0</ymax>
-          <ymin>-15.0</ymin>
-          <zmax>60.0</zmax>
           <zmin>0.0</zmin>
+          <zmax>60.0</zmax>
         </range>
       </actions>
     </Plot>
@@ -332,12 +332,12 @@
       <actions>
         <how>pdf</how>
         <range>
-          <xmax>0.5</xmax>
           <xmin>0.0</xmin>
+          <xmax>0.5</xmax>   
+          <ymin>-15.0</ymin>    
           <ymax>30.0</ymax>
-          <ymin>-15.0</ymin>
-          <zmax>60.0</zmax>
           <zmin>0.0</zmin>
+          <zmax>60.0</zmax>
         </range>
       </actions>
     </Plot>
@@ -359,12 +359,12 @@
       <actions>
         <how>pdf</how>
         <range>
-          <xmax>0.5</xmax>
           <xmin>0.0</xmin>
+          <xmax>0.5</xmax>   
+          <ymin>-15.0</ymin>    
           <ymax>30.0</ymax>
-          <ymin>-15.0</ymin>
-          <zmax>60.0</zmax>
           <zmin>0.0</zmin>
+          <zmax>60.0</zmax>
         </range>
       </actions>
     </Plot>  

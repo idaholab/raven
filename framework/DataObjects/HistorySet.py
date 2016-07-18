@@ -259,14 +259,16 @@ class HistorySet(Data):
     else:
       if type(name) == list:      # there are info regarding the history number
         if name[0] in self._dataContainer['outputs'].keys():
-          gethistory = self._dataContainer['outputs'].pop(name[0])
-          gethistory[name[1]] = np.atleast_1d(np.array(value))
-          self._dataContainer['outputs'][name[0]] =gethistory
+          #gethistory = self._dataContainer['outputs'].pop(name[0])
+          #gethistory[name[1]] = np.atleast_1d(np.array(value))
+          #self._dataContainer['outputs'][name[0]] =gethistory
+          self._dataContainer['outputs'][name[0]][name[1]] = np.atleast_1d(np.array(value))
         else:
           self._dataContainer['outputs'][name[0]] = {name[1]:c1darray(values=np.atleast_1d(np.array(value,dtype=float)))} #np.atleast_1d(np.array(value))}
       else:
         # no info regarding the history number => use internal counter
-        if len(self._dataContainer['outputs'].keys()) == 0: self._dataContainer['outputs'][1] = {name:c1darray(values=np.atleast_1d(np.array(value,dtype=float)))} #np.atleast_1d(np.array(value))}
+        if len(self._dataContainer['outputs'].keys()) == 0: 
+          self._dataContainer['outputs'][1] = {name:c1darray(values=np.atleast_1d(np.array(value,dtype=float)))} #np.atleast_1d(np.array(value))}
         else:
           hisn = max(self._dataContainer['outputs'].keys())
           if name in list(self._dataContainer['outputs'].values())[-1]:

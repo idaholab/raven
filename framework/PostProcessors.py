@@ -968,9 +968,9 @@ class InterfacedPostProcessor(BasePostProcessor):
       @ In, inputIn, dict, dictionary of data to process
       @ Out, outputDic, dict, dict containing the post-processed results
     """
-    if self.postProcessor.inputFormat not in set(['HistorySet','History','PointSet','Point']):
+    if self.postProcessor.inputFormat not in set(['HistorySet','PointSet']):
       self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.inputFormat not correctly initialized')
-    if self.postProcessor.outputFormat not in set(['HistorySet','History','PointSet','Point']):
+    if self.postProcessor.outputFormat not in set(['HistorySet','PointSet']):
       self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.outputFormat not correctly initialized')
 
     inputDic= self.inputToInternal(inputIn)
@@ -3607,7 +3607,8 @@ class DataMining(BasePostProcessor):
     dataMineDict = finishedJob.returnEvaluation()[1]
     for key in dataMineDict['output']:
       for param in output.getParaKeys('output'):
-        if key == param: output.removeOutputValue(key)
+        if key == param: 
+          output.removeOutputValue(key)
       if output.type == 'PointSet':
         for value in dataMineDict['output'][key]:
           output.updateOutputValue(key, copy.copy(value))
@@ -3626,18 +3627,18 @@ class DataMining(BasePostProcessor):
       @ In, inputIn, dict, dictionary of data to process
       @ Out, outputDict, dict, dictionary containing the post-processed results
     """
-    if len(self.dataObjects) is not 0:
-      if type(self.dataObjects) == list: dataObject = self.dataObjects[-1]
-      else                             : dataObject = self.dataObjects
-    else: dataObject = None
+    if len(self.dataObjects) > 0:
+      if type(self.dataObjects) == list: 
+        dataObject = self.dataObjects[-1]
+      else:
+        dataObject = self.dataObjects
+    else: 
+      dataObject = None
     input = self.inputToInternal(inputIn)
     outputDict = {}
     self.unSupervisedEngine.features = input['Features']
     if not self.unSupervisedEngine.amITrained:
-      if self.metric == None:
-        self.unSupervisedEngine.train(input['Features'])
-      else:
-        self.unSupervisedEngine.train(input['Features'], self.metric)
+      self.unSupervisedEngine.train(input['Features'], self.metric)
     self.unSupervisedEngine.confidence()
     outputDict['output'] = {}
     noClusters = 1
@@ -3679,7 +3680,7 @@ class DataMining(BasePostProcessor):
           indices = list(range(len(centers)))
 
         if self.solutionExport is not None:
-          if self.PreProcessor == None:
+          if self.PreProcessor is None:
             for index,center in zip(indices,centers):
               self.solutionExport.updateInputValue(self.labelFeature,index)
               ## Can I be sure of the order of dimensions in the features dict, is

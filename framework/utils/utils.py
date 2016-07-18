@@ -474,17 +474,22 @@ def interpolateFunction(x,y,option,z=None,returnCoordinate=False):
     @ Out, i, ndarray or cached_ndarray or tuple, the interpolated values
   """
   options = copy.copy(option)
-  if x.size <= 2: xi = x
-  else          : xi = np.linspace(x.min(),x.max(),int(options['interpPointsX']))
+  if x.size <= 2: 
+    xi = x
+  else:
+    xi = np.linspace(x.min(),x.max(),int(options['interpPointsX']))
   if z != None:
-    if y.size <= 2: yi = y
-    else          : yi = np.linspace(y.min(),y.max(),int(options['interpPointsY']))
+    if y.size <= 2:
+      yi = y
+    else:
+      yi = np.linspace(y.min(),y.max(),int(options['interpPointsY']))
     xig, yig = np.meshgrid(xi, yi)
     try:
       if ['nearest','linear','cubic'].count(options['interpolationType']) > 0 or z.size <= 3:
         if options['interpolationType'] != 'nearest' and z.size > 3:
           zi = griddata((x,y), z, (xi[None,:], yi[:,None]), method=options['interpolationType'])
-        else: zi = griddata((x,y), z, (xi[None,:], yi[:,None]), method='nearest')
+        else: 
+          zi = griddata((x,y), z, (xi[None,:], yi[:,None]), method='nearest')
       else:
         rbf = Rbf(x,y,z,function=str(str(options['interpolationType']).replace('Rbf', '')), epsilon=int(options.pop('epsilon',2)), smooth=float(options.pop('smooth',0.0)))
         zi  = rbf(xig, yig)
@@ -493,7 +498,8 @@ def interpolateFunction(x,y,option,z=None,returnCoordinate=False):
         print(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('Warning') + '->   The interpolation process failed with error : ' + str(ae) + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ options['interpolationTypeBackUp'])
         options['interpolationTypeBackUp'] = options.pop('interpolationTypeBackUp')
         zi = interpolateFunction(x,y,z,options)
-      else: raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('ERROR') + '-> Interpolation failed with error: ' +  str(ae))
+      else: 
+        raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('ERROR') + '-> Interpolation failed with error: ' +  str(ae))
     if returnCoordinate: return xig,yig,zi
     else               : return zi
   else:
@@ -511,8 +517,10 @@ def interpolateFunction(x,y,option,z=None,returnCoordinate=False):
         options['interpolationTypeBackUp'] = options.pop('interpolationTypeBackUp')
         yi = interpolateFunction(x,y,options)
       else: raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('ERROR') + '-> Interpolation failed with error: ' +  str(ae))
-    if returnCoordinate: return xi,yi
-    else               : return yi
+    if returnCoordinate:
+      return xi,yi
+    else:
+      return yi
 
 def line3DInterpolation(x,y,z,nPoints):
   """
