@@ -276,7 +276,7 @@
         <zlabel>y</zlabel>
       </plotSettings>
       <actions>
-        <how>pdf</how>
+        <how>png</how>
         <range>
           <xmin>0.0</xmin>
           <xmax>0.5</xmax>   
@@ -303,7 +303,7 @@
         <zlabel>y</zlabel>
       </plotSettings>
       <actions>
-        <how>pdf</how>
+        <how>png</how>
         <range>
           <xmin>0.0</xmin>
           <xmax>0.5</xmax>   
@@ -330,7 +330,7 @@
         <zlabel>y</zlabel>
       </plotSettings>
       <actions>
-        <how>pdf</how>
+        <how>png</how>
         <range>
           <xmin>0.0</xmin>
           <xmax>0.5</xmax>   
@@ -357,7 +357,7 @@
         <zlabel>y</zlabel>
       </plotSettings>
       <actions>
-        <how>pdf</how>
+        <how>png</how>
         <range>
           <xmin>0.0</xmin>
           <xmax>0.5</xmax>   
@@ -378,7 +378,7 @@
         </plot>
       </plotSettings>
       <actions>
-        <how>pdf</how>
+        <how>png</how>
       </actions>
     </Plot>
     
@@ -391,7 +391,7 @@
         </plot>
       </plotSettings>
       <actions>
-        <how>pdf</how>
+        <how>png</how>
       </actions>
     </Plot>
  
@@ -404,7 +404,7 @@
         </plot>
       </plotSettings>
       <actions>
-        <how>pdf</how>
+        <how>png</how>
       </actions>
     </Plot>
     
@@ -417,7 +417,7 @@
         </plot>
       </plotSettings>
       <actions>
-        <how>pdf</how>
+        <how>png</how>
       </actions>
     </Plot>
     
@@ -430,7 +430,7 @@
         </plot>
       </plotSettings>
       <actions>
-        <how>pdf</how>
+        <how>png</how>
       </actions>
     </Plot>
  
@@ -443,7 +443,7 @@
         </plot>
       </plotSettings>
       <actions>
-        <how>pdf</how>
+        <how>png</how>
       </actions>
     </Plot>
     
@@ -456,7 +456,7 @@
         </plot>
       </plotSettings>
       <actions>
-        <how>pdf</how>
+        <how>png</how>
       </actions>
     </Plot>
     
@@ -469,7 +469,7 @@
         </plot>
       </plotSettings>
       <actions>
-        <how>pdf</how>
+        <how>png</how>
       </actions>
     </Plot>
  
@@ -482,7 +482,7 @@
         </plot>
       </plotSettings>
       <actions>
-        <how>pdf</how>
+        <how>png</how>
       </actions>
     </Plot>
 
@@ -495,7 +495,7 @@
         </plot>
       </plotSettings>
       <actions>
-        <how>pdf</how>
+        <how>png</how>
       </actions>
     </Plot>
     
@@ -508,7 +508,7 @@
         </plot>
       </plotSettings>
       <actions>
-        <how>pdf</how>
+        <how>png</how>
       </actions>
     </Plot>
  
@@ -521,7 +521,7 @@
         </plot>
       </plotSettings>
       <actions>
-        <how>pdf</how>
+        <how>png</how>
       </actions>
     </Plot>    
     
@@ -535,7 +535,7 @@
         </plot>
       </plotSettings>
       <actions>
-        <how>pdf</how>
+        <how>png</how>
       </actions>
     </Plot>
 
@@ -548,7 +548,7 @@
         </plot>
       </plotSettings>
       <actions>
-        <how>pdf</how>
+        <how>png</how>
       </actions>
     </Plot>
     
@@ -563,7 +563,7 @@
         </plot>
       </plotSettings>
       <actions>
-        <how>pdf</how>
+        <how>png</how>
       </actions>
     </Plot>
                                      
