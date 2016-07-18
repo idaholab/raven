@@ -23,6 +23,7 @@ import utils
 from BaseClasses import BaseType
 from Assembler import Assembler
 import SupervisedLearning
+import Distributions
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
