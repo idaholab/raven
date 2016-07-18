@@ -13,46 +13,16 @@ warnings.simplefilter('default',DeprecationWarning)
 
 #External Modules------------------------------------------------------------------------------------
 import sys
-import os
 import copy
 import abc
 import numpy as np
-import json
-from operator import mul,itemgetter
-from collections import OrderedDict
-from functools import reduce
-from scipy import spatial
-from scipy.interpolate import InterpolatedUnivariateSpline
-import xml.etree.ElementTree as ET
-import itertools
-from math import ceil
-from collections import OrderedDict
-from sklearn import neighbors
-from sklearn.utils.extmath import cartesian
-
-if sys.version_info.major > 2: import pickle
-else: import cPickle as pickle
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
 import utils
-import mathUtils
 from BaseClasses import BaseType
 from Assembler import Assembler
-import Distributions
-import DataObjects
-import TreeStructure as ETS
 import SupervisedLearning
-import pyDOE as doe
-import Quadratures
-import OrthoPolynomials
-import IndexSets
-import Models
-import PostProcessors
-import MessageHandler
-import GridEntities
-from AMSC_Object import AMSC_Object
-distribution1D = utils.find_distribution1D()
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
@@ -184,16 +154,16 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     for child in xmlNode:
       if child.tag == "variable":
-        if self.optVars == None:                    self.optVars = []
+        if self.optVars == None: self.optVars = []
         varname = str(child.attrib['name'])
         self.optVars.append(varname)
         for childChild in child:
-          if childChild.tag == "upperBound":        self.optVarsInit['upperBound'][varname] = float(childChild.text)
-          elif childChild.tag == "lowerBound":      self.optVarsInit['lowerBound'][varname] = float(childChild.text)
-          elif childChild.tag == "initial":         self.optVarsInit['initial'][varname] = float(childChild.text)
-        if varname not in self.optVarsInit['upperBound'].keys():  self.optVarsInit['upperBound'][varname] = sys.maxsize
-        if varname not in self.optVarsInit['lowerBound'].keys():  self.optVarsInit['lowerBound'][varname] = -sys.maxsize
-        if varname not in self.optVarsInit['initial'].keys():     self.optVarsInit['initial'][varname] = 0.0
+          if   childChild.tag == "upperBound": self.optVarsInit['upperBound'][varname] = float(childChild.text)
+          elif childChild.tag == "lowerBound": self.optVarsInit['lowerBound'][varname] = float(childChild.text)
+          elif childChild.tag == "initial"   : self.optVarsInit['initial'][varname] = float(childChild.text)
+        if varname not in self.optVarsInit['upperBound'].keys(): self.optVarsInit['upperBound'][varname] = sys.maxsize
+        if varname not in self.optVarsInit['lowerBound'].keys(): self.optVarsInit['lowerBound'][varname] = -sys.maxsize
+        if varname not in self.optVarsInit['initial'].keys()   : self.optVarsInit['initial'][varname] = 0.0
 
       elif child.tag == "objectVar":
         self.objVar = child.text
@@ -410,8 +380,8 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
   def checkConvergence(self):
     """
       Method to check whether the convergence criteria has been met.
-      @In, none,
-      @Out, convergence, boolean variable indicating whether the convergence criteria has been met.
+      @ In, none,
+      @ Out, convergence, boolean variable indicating whether the convergence criteria has been met.
     """
     if self.counter['varsUpdate'] < 2:
       convergence = False
@@ -426,8 +396,8 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
   def localCheckConvergence(self, convergence = False):
     """
       Local method to check convergence.
-      @In, convergence, boolean variable indicating how the caller determines the convergence.
-      @Out, convergence, boolean variable indicating whether the convergence criteria has been met.
+      @ In, convergence, boolean variable indicating how the caller determines the convergence.
+      @ Out, convergence, boolean variable indicating whether the convergence criteria has been met.
     """
     return convergence
 

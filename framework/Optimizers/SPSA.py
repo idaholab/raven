@@ -2,7 +2,7 @@
   This module contains the Simultaneous Perturbation Stochastic Approximation Optimization strategy
 
   Created on June 16, 2016
-  @author: chenj
+  @ author: chenj, alfoa
 """
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
