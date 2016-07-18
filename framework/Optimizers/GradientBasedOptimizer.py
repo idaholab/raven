@@ -92,9 +92,9 @@ class GradientBasedOptimizer(Optimizer):
   def localStillReady(self,ready, convergence = False): #,lastOutput=None
     """
       Determines if optimizer is ready to provide another input.  If not, and if jobHandler is finished, this will end sampling.
-      @In, ready, bool, boolean variable indicating whether the caller is prepared for another input.
-      @In, convergence, boolean variable indicating whether the convergence criteria has been met.
-      @Out, ready, bool, boolean variable indicating whether the caller is prepared for another input.
+      @ In, ready, bool, boolean variable indicating whether the caller is prepared for another input.
+      @ In, convergence, boolean variable indicating whether the convergence criteria has been met.
+      @ Out, ready, bool, boolean variable indicating whether the caller is prepared for another input.
     """
     if ready == False:
       return ready # Return if we exceed the max iterations or converges...
@@ -127,9 +127,9 @@ class GradientBasedOptimizer(Optimizer):
   def localLocalStillReady(self, ready, convergence = False):
     """
       Determines if optimizer is ready to provide another input.  If not, and if jobHandler is finished, this will end sampling.
-      @In, ready, bool, boolean variable indicating whether the caller is prepared for another input.
-      @In, convergence, boolean variable indicating whether the convergence criteria has been met.
-      @Out, ready, bool, boolean variable indicating whether the caller is prepared for another input.
+      @ In, ready, bool, boolean variable indicating whether the caller is prepared for another input.
+      @ In, convergence, boolean variable indicating whether the convergence criteria has been met.
+      @ Out, ready, bool, boolean variable indicating whether the caller is prepared for another input.
     """
     pass
 
@@ -167,11 +167,11 @@ class GradientBasedOptimizer(Optimizer):
   def evaluateGradient(self, optVarsValues):
     """
       Method to evaluate gradient based on perturbed points and model evaluations.
-      @In, optVarsValues, Dict containing perturbed points.
+      @ In, optVarsValues, Dict containing perturbed points.
            optVarsValues should have the form {pertIndex: {varName: [varValue1 varValue2]}}
            Therefore, each optVarsValues[pertIndex] should return a dict of variable values that is sufficient for gradient
            evaluation for at least one variable (depending on specific optimization algorithm)
-      @Out, gradient, Dict containing gradient estimation. gradient should have the form {varName: gradEstimation}
+      @ Out, gradient, Dict containing gradient estimation. gradient should have the form {varName: gradEstimation}
     """
     gradArray = {}
     for var in self.optVars:                      gradArray[var] = np.ndarray((0,0))
@@ -196,12 +196,12 @@ class GradientBasedOptimizer(Optimizer):
   def localEvaluateGradient(self, optVarsValues, gradient = None):
     """
       Local method to evaluate gradient.
-      @In, optVarsValues, Dict containing perturbed points.
+      @ In, optVarsValues, Dict containing perturbed points.
            optVarsValues should have the form {pertIndex: {varName: [varValue1 varValue2]}}
            Therefore, each optVarsValues[pertIndex] should return a dict of variable values that is sufficient for gradient
            evaluation for at least one variable (depending on specific optimization algorithm)
-      @In, gradient, Dict containing gradient estimation by the caller. gradient should have the form {varName: gradEstimation}
-      @Out, gradient, Dict containing gradient estimation. gradient should have the form {varName: gradEstimation}
+      @ In, gradient, Dict containing gradient estimation by the caller. gradient should have the form {varName: gradEstimation}
+      @ Out, gradient, Dict containing gradient estimation. gradient should have the form {varName: gradEstimation}
     """
     return gradient
 
@@ -209,8 +209,8 @@ class GradientBasedOptimizer(Optimizer):
   def localCheckConvergence(self, convergence = False):
     """
       Local method to check convergence.
-      @In, convergence, boolean variable indicating how the caller determines the convergence.
-      @Out, convergence, boolean variable indicating whether the convergence criteria has been met.
+      @ In, convergence, boolean variable indicating how the caller determines the convergence.
+      @ Out, convergence, boolean variable indicating whether the convergence criteria has been met.
     """
     return convergence
 

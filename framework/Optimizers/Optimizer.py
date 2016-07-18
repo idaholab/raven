@@ -333,18 +333,18 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
   def localStillReady(self,ready, convergence = False): #,lastOutput=None
     """
       Determines if optimizer is ready to provide another input.  If not, and if jobHandler is finished, this will end sampling.
-      @In, ready, bool, boolean variable indicating whether the caller is prepared for another input.
-      @In, convergence, boolean variable indicating whether the convergence criteria has been met.
-      @Out, ready, bool, boolean variable indicating whether the caller is prepared for another input.
+      @ In, ready, bool, boolean variable indicating whether the caller is prepared for another input.
+      @ In, convergence, boolean variable indicating whether the convergence criteria has been met.
+      @ Out, ready, bool, boolean variable indicating whether the caller is prepared for another input.
     """
     return ready # To be overwritten by subclass
 
   def lossFunctionEval(self, optVars):
     """
       Method to evaluate the loss function based on all model evaluation.
-      @In, optVars, dict containing the values of decision variables to be evaluated
+      @ In, optVars, dict containing the values of decision variables to be evaluated
            optVars should have the form {varName1:[value11, value12,...value1n], varName2:[value21, value22,...value2n]...}
-      @Out, lossFunctionValue, array, loss function values corresponding to each point in optVars
+      @ Out, lossFunctionValue, array, loss function values corresponding to each point in optVars
     """
     tempDict = copy.copy(self.mdlEvalHist.getParametersValues('inputs', nodeId = 'RecontructEnding'))
     tempDict.update(self.mdlEvalHist.getParametersValues('outputs', nodeId = 'RecontructEnding'))
@@ -359,8 +359,8 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
   def checkConstraint(self, optVars):
     """
       Method to check whether a set of decision variables satisfy the constraint or not
-      @In, optVars, dict containing the value of decision variables to be checked, in form of {varName: varValue}
-      @Out, satisfaction, boolean variable indicating the satisfaction of contraints at the point optVars
+      @ In, optVars, dict containing the value of decision variables to be checked, in form of {varName: varValue}
+      @ Out, satisfaction, boolean variable indicating the satisfaction of contraints at the point optVars
     """
     if self.constraintFunction == None:
       satisfaction = True
@@ -372,9 +372,9 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
   def localCheckConstraint(self, optVars, satisfaction = True):
     """
       Local method to check whether a set of decision variables satisfy the constraint or not
-      @In, optVars, dict containing the value of decision variables to be checked, in form of {varName: varValue}
-      @In, satisfaction, boolean variable indicating how the caller determines the constraint satisfaction at the point optVars
-      @Out, satisfaction, boolean variable indicating the satisfaction of constraints at the point optVars
+      @ In, optVars, dict containing the value of decision variables to be checked, in form of {varName: varValue}
+      @ In, satisfaction, boolean variable indicating how the caller determines the constraint satisfaction at the point optVars
+      @ Out, satisfaction, boolean variable indicating the satisfaction of constraints at the point optVars
     """
     return satisfaction # To be overwritten by subclass
 
