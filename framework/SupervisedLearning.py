@@ -28,6 +28,7 @@ import ast
 from operator import itemgetter
 import math
 from scipy import spatial
+from collections import OrderedDict
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -231,16 +232,15 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     currParDict = dict({'Trained':self.amITrained}.items() + self.__CurrentSettingDictLocal__().items())
     return currParDict
 
-  def printXML(self,rootnode,options=None):
+  def printXML(self,outFile,pivotVal,options={}):
     """
       Allows the SVE to put whatever it wants into an XML to print to file.
-      @ In, rootnode, xml.etree.ElementTree.Element, the root node of an XML tree to print to
+      @ In, outFile, Files.File, either StaticXMLOutput or DynamicXMLOutput file
+      @ In, pivotVal, float, value of pivot parameters to use in printing if dynamic
       @ In, options, dict, optional, dict of string-based options to use, including filename, things to print, etc
       @ Out, None
     """
-    node = TreeStructure.Node(self.target)
-    rootnode.appendBranch(node)
-    self._localPrintXML(node,options)
+    self._localPrintXML(outFile,pivotVal,options)
 
   def _localPrintXML(self,node,options=None):
     """
@@ -511,72 +511,93 @@ class GaussPolynomialRom(superVisedLearning):
     if self.maxPolyOrder < 1:
       self.raiseAnError(IOError,'Polynomial order cannot be less than 1 currently.')
 
-  def _localPrintXML(self,node,options=None):
+  def _localPrintXML(self,outFile,pivotVal,options={}):
     """
       Adds requested entries to XML node.
-      @ In, node, XML node, to which entries will be added
-      @ In, options, dict, optional, list of requests and options
+      @ In, outFile, Files.File, either StaticXMLOutput or DynamicXMLOutput file
+      @ In, pivotVal, float, value of pivot parameters to use in printing if dynamic
+      @ In, options, dict, optional, dict of string-based options to use, including filename, things to print, etc
         May include:
-        '  what': comma-separated string list, the qualities to print out
+        'what': comma-separated string list, the qualities to print out
+        'pivotVal': float value of dynamic pivotParam value
       @ Out, None
     """
     if not self.amITrained: self.raiseAnError(RuntimeError,'ROM is not yet trained!')
+    #reset stats so they're fresh for this calculation
     self.mean=None
-    canDo = ['mean','variance','samples','polyCoeffs','indices']
+    sobolIndices = None
+    partialVars = None
+    sobolTotals = None
+    variance = None
+    #establish what we can handle, and how
+    scalars = ['mean','expectedValue','variance','samples']
+    vectors = ['polyCoeffs','partialVariance','sobolIndices','sobolTotalIndices']
+    canDo = scalars + vectors
+    #lowercase for convenience
+    scalars = list(s.lower() for s in scalars)
+    vectors = list(v.lower() for v in vectors)
+    #establish requests, defaulting to "all"
     if 'what' in options.keys():
       requests = list(o.strip() for o in options['what'].split(','))
-      if 'all' in requests: requests = canDo
-      for request in requests:
-        request=request.strip()
-        newNode = TreeStructure.Node(request)
+    else:
+      requests =['all']
+    #handle "all" option
+    if 'all' in requests:
+      requests = canDo
+    # loop over the requested items
+    for request in requests:
+      request=request.strip()
+      if request.lower() in scalars:
         if request.lower() in ['mean','expectedvalue']:
-          if self.mean == None: self.mean = self.__mean__()
-          newNode.setText(self.mean)
-        elif request.lower() in ['variance']:
-          newNode.setText(self.__variance__())
-        elif request.lower() in ['samples']:
-          if self.numRuns!=None: newNode.setText(self.numRuns)
-          else: newNode.setText(len(self.sparseGrid))
-        elif request.lower() in ['polycoeffs']:
-          vNode = TreeStructure.Node('inputVariables')
-          vNode.text = ','.join(self.features)
-          newNode.appendBranch(vNode)
+          #only calculate the mean once per printing
+          if self.mean is None:
+            self.mean = self.__mean__()
+          val = self.mean
+        elif request.lower() == 'variance':
+          if variance is None:
+            variance = self.__variance__()
+          val = variance
+        elif request.lower() == 'samples':
+          if self.numRuns!=None:
+            val = self.numRuns
+          else:
+            val = len(self.sparseGrid)
+        outFile.addScalar(self.target,request,val,pivotVal=pivotVal)
+      elif request.lower() in vectors:
+        if request.lower() == 'polycoeffs':
+          valueDict = OrderedDict()
+          valueDict['inputVariables'] = ','.join(self.features)
           keys = self.polyCoeffDict.keys()
           keys.sort()
           for key in keys:
-            cNode = TreeStructure.Node('_'+'_'.join(str(k) for k in key)+'_')
-            cNode.setText(self.polyCoeffDict[key])
-            newNode.appendBranch(cNode)
-        elif request.lower() in ['indices']:
-          indices,partials = self.getSensitivities()
-          totals = self.getTotalSensitivities(indices)
-          #provide variance
-          varNode = TreeStructure.Node('tot_variance')
-          varNode.setText(self.__variance__())
-          newNode.appendBranch(varNode)
+            valueDict['_'+'_'.join(str(k) for k in key)+'_'] = self.polyCoeffDict[key]
+        elif request.lower() in ['partialvariance','sobolindices','soboltotalindices']:
+          if sobolIndices is None or partialVars is None:
+            sobolIndices,partialVars = self.getSensitivities()
+          if sobolTotals is None:
+            sobolTotals = self.getTotalSensitivities(sobolIndices)
           #sort by value
           entries = []
-          for key in indices.keys():
-            entries.append( (','.join(key),partials[key],indices[key],totals[key]) )
+          if request.lower() in ['partialvariance','sobolindices']: #these both will have same sort
+            for key in sobolIndices.keys():
+              entries.append( ('.'.join(key),partialVars[key],key) )
+          elif request.lower() in ['soboltotalindices']:
+            for key in sobolTotals.keys():
+              entries.append( ('.'.join(key),sobolTotals[key],key) )
           entries.sort(key=lambda x: abs(x[1]),reverse=True)
-          #add to tree
+          #add entries to results list
+          valueDict=OrderedDict()
           for entry in entries:
-            subNode = TreeStructure.Node('variables')
-            subNode.setText(entry[0])
-            vNode = TreeStructure.Node('partial_variance')
-            vNode.setText(entry[1])
-            subNode.appendBranch(vNode)
-            vNode = TreeStructure.Node('Sobol_index')
-            vNode.setText(entry[2])
-            subNode.appendBranch(vNode)
-            vNode = TreeStructure.Node('Sobol_total_index')
-            vNode.setText(entry[3])
-            subNode.appendBranch(vNode)
-            newNode.appendBranch(subNode)
-        else:
-          self.raiseAWarning('ROM does not know how to return '+request)
-          newNode.setText('not found')
-        node.appendBranch(newNode)
+            name,_,key = entry
+            if request.lower() == 'partialvariance':
+              valueDict[name] = partialVars[key]
+            elif request.lower() == 'sobolindices':
+              valueDict[name] = sobolIndices[key]
+            elif request.lower() == 'soboltotalindices':
+              valueDict[name] = sobolTotals[key]
+        outFile.addVector(self.target,request,valueDict,pivotVal=pivotVal)
+      else:
+        self.raiseAWarning('ROM does not know how to return "'+request+'".  Skipping...')
 
   def _localNormalizeData(self,values,names,feat):
     """
@@ -911,19 +932,21 @@ class HDMRRom(GaussPolynomialRom):
     for key,val in kwargs.items():
       if key=='SobolOrder': self.sobolOrder = int(val)
 
-  def _localPrintXML(self,node,options=None):
+  def _localPrintXML(self,outFile,pivotVal,options={}):
     """
       Adds requested entries to XML node.
-      @ In, node, XML node, to which entries will be added
-      @ In, options, dict, optional, list of requests and options
+      @ In, outFile, Files.File, either StaticXMLOutput or DynamicXMLOutput file
+      @ In, pivotVal, float, value of pivot parameters to use in printing if dynamic
+      @ In, options, dict, optional, dict of string-based options to use, including filename, things to print, etc
         May include:
-          'what': comma-separated string list, the qualities to print out
+        'what': comma-separated string list, the qualities to print out
+        'pivotVal': float value of dynamic pivotParam value
       @ Out, None
     """
     #inherit from GaussPolynomialRom
     if not self.amITrained: self.raiseAnError(RuntimeError,'ROM is not yet trained!')
     self.mean=None
-    canDo = ['mean','variance','samples','indices']
+    canDo = ['mean','expectedValue','variance','samples','partialVariance','sobolIndices','sobolTotalIndices']
     if 'what' in options.keys():
       requests = list(o.strip() for o in options['what'].split(','))
       if 'all' in requests: requests = canDo
@@ -932,7 +955,9 @@ class HDMRRom(GaussPolynomialRom):
         self.raiseAWarning('HDMRRom cannot currently print polynomial coefficients.  Skipping...')
         requests.remove('polyCoeffs')
       options['what'] = ','.join(requests)
-    GaussPolynomialRom._localPrintXML(self,node,options)
+    else:
+      self.raiseAWarning('No "what" options for XML printing are recognized!  Skipping...')
+    GaussPolynomialRom._localPrintXML(self,outFile,pivotVal,options)
 
   def initialize(self,idict):
     """
@@ -1776,87 +1801,84 @@ class NDinvDistWeight(NDinterpolatorRom):
 #
 class SciKitLearn(superVisedLearning):
   """
-  An Interface to the ROMs provided by skLearn
+    An Interface to the ROMs provided by skLearn
   """
-  ## The types in this list should not be normalized by default. I would argue
-  ## that none of these should be normed by default, since sklearn offers that
-  ## option where applicable, but that is for someone else to make a decision.
-  unnormedTypes = ['MultinomialNB']
-
+  # the normalization strategy is defined through the Boolean value in the dictionary below:
+  # {mainClass:{subtype:(classPointer,Output type (float or int), boolean -> External Z-normalization needed)}
   ROMtype = 'SciKitLearn'
-  availImpl = {}
-  availImpl['lda'] = {}
-  availImpl['lda']['LDA'] = (lda.LDA, 'int') #Quadratic Discriminant Analysis (QDA)
-  availImpl['linear_model'] = {} #Generalized Linear Models
-  availImpl['linear_model']['ARDRegression'               ] = (linear_model.ARDRegression               , 'float'  ) #Bayesian ARD regression.
-  availImpl['linear_model']['BayesianRidge'               ] = (linear_model.BayesianRidge               , 'float'  ) #Bayesian ridge regression
-  availImpl['linear_model']['ElasticNet'                  ] = (linear_model.ElasticNet                  , 'float'  ) #Linear Model trained with L1 and L2 prior as regularizer
-  availImpl['linear_model']['ElasticNetCV'                ] = (linear_model.ElasticNetCV                , 'float'  ) #Elastic Net model with iterative fitting along a regularization path
-  availImpl['linear_model']['Lars'                        ] = (linear_model.Lars                        , 'float'  ) #Least Angle Regression model a.k.a.
-  availImpl['linear_model']['LarsCV'                      ] = (linear_model.LarsCV                      , 'float'  ) #Cross-validated Least Angle Regression model
-  availImpl['linear_model']['Lasso'                       ] = (linear_model.Lasso                       , 'float'  ) #Linear Model trained with L1 prior as regularizer (aka the Lasso)
-  availImpl['linear_model']['LassoCV'                     ] = (linear_model.LassoCV                     , 'float'  ) #Lasso linear model with iterative fitting along a regularization path
-  availImpl['linear_model']['LassoLars'                   ] = (linear_model.LassoLars                   , 'float'  ) #Lasso model fit with Least Angle Regression a.k.a.
-  availImpl['linear_model']['LassoLarsCV'                 ] = (linear_model.LassoLarsCV                 , 'float'  ) #Cross-validated Lasso, using the LARS algorithm
-  availImpl['linear_model']['LassoLarsIC'                 ] = (linear_model.LassoLarsIC                 , 'float'  ) #Lasso model fit with Lars using BIC or AIC for model selection
-  availImpl['linear_model']['LinearRegression'            ] = (linear_model.LinearRegression            , 'float'  ) #Ordinary least squares Linear Regression.
-  availImpl['linear_model']['LogisticRegression'          ] = (linear_model.LogisticRegression          , 'float'  ) #Logistic Regression (aka logit, MaxEnt) classifier.
-  availImpl['linear_model']['MultiTaskLasso'              ] = (linear_model.MultiTaskLasso              , 'float'  ) #Multi-task Lasso model trained with L1/L2 mixed-norm as regularizer
-  availImpl['linear_model']['MultiTaskElasticNet'         ] = (linear_model.MultiTaskElasticNet         , 'float'  ) #Multi-task ElasticNet model trained with L1/L2 mixed-norm as regularizer
-  availImpl['linear_model']['OrthogonalMatchingPursuit'   ] = (linear_model.OrthogonalMatchingPursuit   , 'float'  ) #Orthogonal Mathching Pursuit model (OMP)
-  availImpl['linear_model']['OrthogonalMatchingPursuitCV' ] = (linear_model.OrthogonalMatchingPursuitCV , 'float'  ) #Cross-validated Orthogonal Mathching Pursuit model (OMP)
-  availImpl['linear_model']['PassiveAggressiveClassifier' ] = (linear_model.PassiveAggressiveClassifier , 'int') #Passive Aggressive Classifier
-  availImpl['linear_model']['PassiveAggressiveRegressor'  ] = (linear_model.PassiveAggressiveRegressor  , 'float'  ) #Passive Aggressive Regressor
-  availImpl['linear_model']['Perceptron'                  ] = (linear_model.Perceptron                  , 'float'  ) #Perceptron
-  availImpl['linear_model']['Ridge'                       ] = (linear_model.Ridge                       , 'float'  ) #Linear least squares with l2 regularization.
-  availImpl['linear_model']['RidgeClassifier'             ] = (linear_model.RidgeClassifier             , 'float'  ) #Classifier using Ridge regression.
-  availImpl['linear_model']['RidgeClassifierCV'           ] = (linear_model.RidgeClassifierCV           , 'int') #Ridge classifier with built-in cross-validation.
-  availImpl['linear_model']['RidgeCV'                     ] = (linear_model.RidgeCV                     , 'float'  ) #Ridge regression with built-in cross-validation.
-  availImpl['linear_model']['SGDClassifier'               ] = (linear_model.SGDClassifier               , 'int') #Linear classifiers (SVM, logistic regression, a.o.) with SGD training.
-  availImpl['linear_model']['SGDRegressor'                ] = (linear_model.SGDRegressor                , 'float'  ) #Linear model fitted by minimizing a regularized empirical loss with SGD
+  availImpl                                                 = {}                                                            # dictionary of available ROMs {mainClass:{subtype:(classPointer,Output type (float or int), boolean -> External Z-normalization needed)}
+  availImpl['lda']                                          = {}                                                            #Linear Discriminant Analysis
+  availImpl['lda']['LDA']                                   = (lda.LDA                                  , 'int'    , False) #Quadratic Discriminant Analysis (QDA)
+  availImpl['linear_model']                                 = {}                                                            #Generalized Linear Models
+  availImpl['linear_model']['ARDRegression'               ] = (linear_model.ARDRegression               , 'float'  , False) #Bayesian ARD regression.
+  availImpl['linear_model']['BayesianRidge'               ] = (linear_model.BayesianRidge               , 'float'  , False) #Bayesian ridge regression
+  availImpl['linear_model']['ElasticNet'                  ] = (linear_model.ElasticNet                  , 'float'  , False) #Linear Model trained with L1 and L2 prior as regularizer
+  availImpl['linear_model']['ElasticNetCV'                ] = (linear_model.ElasticNetCV                , 'float'  , False) #Elastic Net model with iterative fitting along a regularization path
+  availImpl['linear_model']['Lars'                        ] = (linear_model.Lars                        , 'float'  , False) #Least Angle Regression model a.k.a.
+  availImpl['linear_model']['LarsCV'                      ] = (linear_model.LarsCV                      , 'float'  , False) #Cross-validated Least Angle Regression model
+  availImpl['linear_model']['Lasso'                       ] = (linear_model.Lasso                       , 'float'  , False) #Linear Model trained with L1 prior as regularizer (aka the Lasso)
+  availImpl['linear_model']['LassoCV'                     ] = (linear_model.LassoCV                     , 'float'  , False) #Lasso linear model with iterative fitting along a regularization path
+  availImpl['linear_model']['LassoLars'                   ] = (linear_model.LassoLars                   , 'float'  , False) #Lasso model fit with Least Angle Regression a.k.a.
+  availImpl['linear_model']['LassoLarsCV'                 ] = (linear_model.LassoLarsCV                 , 'float'  , False) #Cross-validated Lasso, using the LARS algorithm
+  availImpl['linear_model']['LassoLarsIC'                 ] = (linear_model.LassoLarsIC                 , 'float'  , False) #Lasso model fit with Lars using BIC or AIC for model selection
+  availImpl['linear_model']['LinearRegression'            ] = (linear_model.LinearRegression            , 'float'  , False) #Ordinary least squares Linear Regression.
+  availImpl['linear_model']['LogisticRegression'          ] = (linear_model.LogisticRegression          , 'float'  , True ) #Logistic Regression (aka logit, MaxEnt) classifier.
+  availImpl['linear_model']['MultiTaskLasso'              ] = (linear_model.MultiTaskLasso              , 'float'  , False) #Multi-task Lasso model trained with L1/L2 mixed-norm as regularizer
+  availImpl['linear_model']['MultiTaskElasticNet'         ] = (linear_model.MultiTaskElasticNet         , 'float'  , False) #Multi-task ElasticNet model trained with L1/L2 mixed-norm as regularizer
+  availImpl['linear_model']['OrthogonalMatchingPursuit'   ] = (linear_model.OrthogonalMatchingPursuit   , 'float'  , False) #Orthogonal Mathching Pursuit model (OMP)
+  availImpl['linear_model']['OrthogonalMatchingPursuitCV' ] = (linear_model.OrthogonalMatchingPursuitCV , 'float'  , False) #Cross-validated Orthogonal Mathching Pursuit model (OMP)
+  availImpl['linear_model']['PassiveAggressiveClassifier' ] = (linear_model.PassiveAggressiveClassifier , 'int'    , True ) #Passive Aggressive Classifier
+  availImpl['linear_model']['PassiveAggressiveRegressor'  ] = (linear_model.PassiveAggressiveRegressor  , 'float'  , True ) #Passive Aggressive Regressor
+  availImpl['linear_model']['Perceptron'                  ] = (linear_model.Perceptron                  , 'float'  , True ) #Perceptron
+  availImpl['linear_model']['Ridge'                       ] = (linear_model.Ridge                       , 'float'  , False) #Linear least squares with l2 regularization.
+  availImpl['linear_model']['RidgeClassifier'             ] = (linear_model.RidgeClassifier             , 'float'  , False) #Classifier using Ridge regression.
+  availImpl['linear_model']['RidgeClassifierCV'           ] = (linear_model.RidgeClassifierCV           , 'int'    , False) #Ridge classifier with built-in cross-validation.
+  availImpl['linear_model']['RidgeCV'                     ] = (linear_model.RidgeCV                     , 'float'  , False) #Ridge regression with built-in cross-validation.
+  availImpl['linear_model']['SGDClassifier'               ] = (linear_model.SGDClassifier               , 'int'    , True ) #Linear classifiers (SVM, logistic regression, a.o.) with SGD training.
+  availImpl['linear_model']['SGDRegressor'                ] = (linear_model.SGDRegressor                , 'float'  , True ) #Linear model fitted by minimizing a regularized empirical loss with SGD
 
-  availImpl['svm'] = {} #support Vector Machines
-  availImpl['svm']['LinearSVC'] = (svm.LinearSVC, 'bool')
-  availImpl['svm']['SVC'      ] = (svm.SVC      , 'bool')
-  availImpl['svm']['NuSVC'    ] = (svm.NuSVC    , 'bool')
-  availImpl['svm']['SVR'      ] = (svm.SVR      , 'bool')
+  availImpl['svm']                                          = {}                                                            #support Vector Machines
+  availImpl['svm']['LinearSVC'                            ] = (svm.LinearSVC                            , 'bool'   , True ) #Linear Support vector classifier
+  availImpl['svm']['SVC'                                  ] = (svm.SVC                                  , 'bool'   , True ) #Support vector classifier
+  availImpl['svm']['NuSVC'                                ] = (svm.NuSVC                                , 'bool'   , True ) #Nu Support vector classifier
+  availImpl['svm']['SVR'                                  ] = (svm.SVR                                  , 'float'  , True ) #Support vector regressor
 
-  availImpl['multiClass'] = {} #Multiclass and multilabel classification
-  availImpl['multiClass']['OneVsRestClassifier' ] = (multiclass.OneVsRestClassifier , 'int') # One-vs-the-rest (OvR) multiclass/multilabel strategy
-  availImpl['multiClass']['OneVsOneClassifier'  ] = (multiclass.OneVsOneClassifier  , 'int') # One-vs-one multiclass strategy
-  availImpl['multiClass']['OutputCodeClassifier'] = (multiclass.OutputCodeClassifier, 'int') # (Error-Correcting) Output-Code multiclass strategy
-  availImpl['multiClass']['fit_ovr'             ] = (multiclass.fit_ovr             , 'int') # Fit a one-vs-the-rest strategy.
-  availImpl['multiClass']['predict_ovr'         ] = (multiclass.predict_ovr         , 'int') # Make predictions using the one-vs-the-rest strategy.
-  availImpl['multiClass']['fit_ovo'             ] = (multiclass.fit_ovo             , 'int') # Fit a one-vs-one strategy.
-  availImpl['multiClass']['predict_ovo'         ] = (multiclass.predict_ovo         , 'int') # Make predictions using the one-vs-one strategy.
-  availImpl['multiClass']['fit_ecoc'            ] = (multiclass.fit_ecoc            , 'int') # Fit an error-correcting output-code strategy.
-  availImpl['multiClass']['predict_ecoc'        ] = (multiclass.predict_ecoc        , 'int') # Make predictions using the error-correcting output-code strategy.
+  availImpl['multiClass']                                   = {} #Multiclass and multilabel classification
+  availImpl['multiClass']['OneVsRestClassifier'           ] = (multiclass.OneVsRestClassifier           , 'int'   ,  False) # One-vs-the-rest (OvR) multiclass/multilabel strategy
+  availImpl['multiClass']['OneVsOneClassifier'            ] = (multiclass.OneVsOneClassifier            , 'int'   ,  False) # One-vs-one multiclass strategy
+  availImpl['multiClass']['OutputCodeClassifier'          ] = (multiclass.OutputCodeClassifier          , 'int'   ,  False) # (Error-Correcting) Output-Code multiclass strategy
+  availImpl['multiClass']['fit_ovr'                       ] = (multiclass.fit_ovr                       , 'int'   ,  False) # Fit a one-vs-the-rest strategy.
+  availImpl['multiClass']['predict_ovr'                   ] = (multiclass.predict_ovr                   , 'int'   ,  False) # Make predictions using the one-vs-the-rest strategy.
+  availImpl['multiClass']['fit_ovo'                       ] = (multiclass.fit_ovo                       , 'int'   ,  False) # Fit a one-vs-one strategy.
+  availImpl['multiClass']['predict_ovo'                   ] = (multiclass.predict_ovo                   , 'int'   ,  False) # Make predictions using the one-vs-one strategy.
+  availImpl['multiClass']['fit_ecoc'                      ] = (multiclass.fit_ecoc                      , 'int'   ,  False) # Fit an error-correcting output-code strategy.
+  availImpl['multiClass']['predict_ecoc'                  ] = (multiclass.predict_ecoc                  , 'int'   ,  False) # Make predictions using the error-correcting output-code strategy.
 
-  availImpl['naiveBayes'] = {}
-  availImpl['naiveBayes']['GaussianNB'   ] = (naive_bayes.GaussianNB   , 'float')
-  availImpl['naiveBayes']['MultinomialNB'] = (naive_bayes.MultinomialNB, 'float')
-  availImpl['naiveBayes']['BernoulliNB'  ] = (naive_bayes.BernoulliNB  , 'float')
+  availImpl['naiveBayes']                                   = {}
+  availImpl['naiveBayes']['GaussianNB'                    ] = (naive_bayes.GaussianNB                   , 'float' ,  True )
+  availImpl['naiveBayes']['MultinomialNB'                 ] = (naive_bayes.MultinomialNB                , 'float' ,  False)
+  availImpl['naiveBayes']['BernoulliNB'                   ] = (naive_bayes.BernoulliNB                  , 'float' ,  True )
 
-  availImpl['neighbors'] = {}
-  availImpl['neighbors']['KNeighborsClassifier']     = (neighbors.KNeighborsClassifier     , 'int')# Classifier implementing the k-nearest neighbors vote.
-  availImpl['neighbors']['RadiusNeighbors']          = (neighbors.RadiusNeighborsClassifier, 'int')# Classifier implementing a vote among neighbors within a given radius
-  availImpl['neighbors']['KNeighborsRegressor']      = (neighbors.KNeighborsRegressor      , 'float'  )# Regression based on k-nearest neighbors.
-  availImpl['neighbors']['RadiusNeighborsRegressor'] = (neighbors.RadiusNeighborsRegressor , 'float'  )# Regression based on neighbors within a fixed radius.
-  availImpl['neighbors']['NearestCentroid']          = (neighbors.NearestCentroid          , 'int')# Nearest centroid classifier.
-  availImpl['neighbors']['BallTree']                 = (neighbors.BallTree                 , 'float'  )# BallTree for fast generalized N-point problems
-  availImpl['neighbors']['KDTree']                   = (neighbors.KDTree                   , 'float'  )# KDTree for fast generalized N-point problems
+  availImpl['neighbors']                                    = {}
+  availImpl['neighbors']['KNeighborsClassifier'           ] = (neighbors.KNeighborsClassifier           , 'int'   ,  True )# Classifier implementing the k-nearest neighbors vote.
+  availImpl['neighbors']['RadiusNeighbors'                ] = (neighbors.RadiusNeighborsClassifier      , 'int'   ,  True )# Classifier implementing a vote among neighbors within a given radius
+  availImpl['neighbors']['KNeighborsRegressor'            ] = (neighbors.KNeighborsRegressor            , 'float' ,  True )# Regression based on k-nearest neighbors.
+  availImpl['neighbors']['RadiusNeighborsRegressor'       ] = (neighbors.RadiusNeighborsRegressor       , 'float' ,  True )# Regression based on neighbors within a fixed radius.
+  availImpl['neighbors']['NearestCentroid'                ] = (neighbors.NearestCentroid                , 'int'   ,  True )# Nearest centroid classifier.
+  availImpl['neighbors']['BallTree'                       ] = (neighbors.BallTree                       , 'float' ,  True )# BallTree for fast generalized N-point problems
+  availImpl['neighbors']['KDTree'                         ] = (neighbors.KDTree                         , 'float' ,  True )# KDTree for fast generalized N-point problems
 
   availImpl['qda'] = {}
-  availImpl['qda']['QDA'] = (qda.QDA, 'int') #Quadratic Discriminant Analysis (QDA)
+  availImpl['qda']['QDA'                                  ] = (qda.QDA                                  , 'int'   ,  False) #Quadratic Discriminant Analysis (QDA)
 
   availImpl['tree'] = {}
-  availImpl['tree']['DecisionTreeClassifier'] = (tree.DecisionTreeClassifier, 'int')# A decision tree classifier.
-  availImpl['tree']['DecisionTreeRegressor' ] = (tree.DecisionTreeRegressor , 'float'  )# A tree regressor.
-  availImpl['tree']['ExtraTreeClassifier'   ] = (tree.ExtraTreeClassifier   , 'int')# An extremely randomized tree classifier.
-  availImpl['tree']['ExtraTreeRegressor'    ] = (tree.ExtraTreeRegressor    , 'float'  )# An extremely randomized tree regressor.
+  availImpl['tree']['DecisionTreeClassifier'              ] = (tree.DecisionTreeClassifier              , 'int'   ,  True )# A decision tree classifier.
+  availImpl['tree']['DecisionTreeRegressor'               ] = (tree.DecisionTreeRegressor               , 'float' ,  True )# A tree regressor.
+  availImpl['tree']['ExtraTreeClassifier'                 ] = (tree.ExtraTreeClassifier                 , 'int'   ,  True )# An extremely randomized tree classifier.
+  availImpl['tree']['ExtraTreeRegressor'                  ] = (tree.ExtraTreeRegressor                  , 'float' ,  True )# An extremely randomized tree regressor.
 
   availImpl['GaussianProcess'] = {}
-  availImpl['GaussianProcess']['GaussianProcess'] = (gaussian_process.GaussianProcess    , 'float'  )
+  availImpl['GaussianProcess']['GaussianProcess'          ] = (gaussian_process.GaussianProcess         , 'float' ,  False)
   #test if a method to estimate the probability of the prediction is available
   qualityEstTypeDict = {}
   for key1, myDict in availImpl.items():
@@ -1875,18 +1897,20 @@ class SciKitLearn(superVisedLearning):
       @ Out, None
     """
     superVisedLearning.__init__(self,messageHandler,**kwargs)
+    name  = self.initOptionDict.pop('name','')
     self.printTag = 'SCIKITLEARN'
     if 'SKLtype' not in self.initOptionDict.keys():
-      self.raiseAnError(IOError,'to define a scikit learn ROM the SKLtype keyword is needed (from ROM '+self.initOptionDict['name']+')')
+      self.raiseAnError(IOError,'to define a scikit learn ROM the SKLtype keyword is needed (from ROM "'+name+'")')
     SKLtype, SKLsubType = self.initOptionDict['SKLtype'].split('|')
     self.subType = SKLsubType
     self.initOptionDict.pop('SKLtype')
     if not SKLtype in self.__class__.availImpl.keys():
-      self.raiseAnError(IOError,'not known SKLtype ' + SKLtype +'(from ROM '+self.initOptionDict['name']+')')
+      self.raiseAnError(IOError,'not known SKLtype "' + SKLtype +'" (from ROM "'+name+'")')
     if not SKLsubType in self.__class__.availImpl[SKLtype].keys():
-      self.raiseAnError(IOError,'not known SKLsubType ' + SKLsubType +'(from ROM '+self.initOptionDict['name']+')')
+      self.raiseAnError(IOError,'not known SKLsubType "' + SKLsubType +'" (from ROM "'+name+'")')
 
     self.__class__.returnType     = self.__class__.availImpl[SKLtype][SKLsubType][1]
+    self.externalNorm             = self.__class__.availImpl[SKLtype][SKLsubType][2]
     self.__class__.qualityEstType = self.__class__.qualityEstTypeDict[SKLtype][SKLsubType]
 
     if 'estimator' in self.initOptionDict.keys():
@@ -1992,7 +2016,7 @@ class SciKitLearn(superVisedLearning):
       @ In, feat, string, feature to (not) normalize
       @ Out, None
     """
-    if self.subType in self.unnormedTypes:
+    if not self.externalNorm:
       self.muAndSigmaFeatures[feat] = (0.0,1.0)
     else:
       super(SciKitLearn, self)._localNormalizeData(values,names,feat)
@@ -2017,7 +2041,7 @@ def returnInstance(ROMclass,caller,**kwargs):
     @ Out, returnInstance, instance, an instance of a ROM
   """
   try: return __interfaceDict[ROMclass](caller.messageHandler,**kwargs)
-  except KeyError: caller.raiseAnError(NameError,'not known '+__base+' type '+str(ROMclass))
+  except KeyError as ae: caller.raiseAnError(NameError,'not known '+__base+' type '+str(ROMclass))
 
 def returnClass(ROMclass,caller):
   """

@@ -71,3 +71,4 @@ Samplers/Restart/Truncated/sobol/makeCoarse/
 Samplers/Restart/Truncated/sobol/makeRestart/
 Samplers/Restart/Truncated/sparse_grid_collocation/makeCoarse/
 Samplers/Restart/Truncated/sparse_grid_collocation/makeRestart/
+TestXSD/test_more.xsd

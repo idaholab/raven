@@ -1,21 +1,29 @@
 import re
-#  author  : nieljw
-#  modified: alfoa
+import xml.etree.ElementTree as ET
+"""
+Created on May 5, 2016
+
+@author: alfoa
+"""
 
 class relapdata:
   """
     Class that parses output of relap5 output file and reads in trip, minor block and write a csv file
   """
-  def __init__(self,filen):
+  def __init__(self,filen, deckNumber=-1):
     """
       Constructor
       @ In, filen, string, file name to be parsed
+      @ In, deckNumber, int, optional, the deckNumber from which the outputs need to be retrieved (default is the last)
       @ Out, None
     """
-    self.lines=open(filen,"r").readlines()
-    self.trips=self.returntrip(self.lines)
-    self.minordata=self.getminor(self.lines)
-    self.EndTime=self.gettime(self.lines)
+    # self.totNumberOfDecks is set in gettimeDeck method!
+    self.lines           = open(filen,"r").readlines()
+    self.deckEndTimeInfo = self.gettimeDeck(self.lines,deckNumber)
+    self.deckNumberToTake= deckNumber if deckNumber != -1 else self.totNumberOfDecks
+    startLine, endLine   = self.deckEndTimeInfo[self.deckNumberToTake]['sliceCoordinates'][0:2]
+    self.trips           = self.returntrip(self.lines[startLine:endLine])
+    self.minordata       = self.getminor(self.lines[startLine:endLine])
     self.readraven()
 
   def hasAtLeastMinorData(self):
@@ -33,10 +41,26 @@ class relapdata:
       @ In, lines, list, list of lines of the output file
       @ Out, time, float, Final time
     """
-    for i in lines:
-      if re.match('^\s*Final time=',i):
-        time=i.split()[2]
-        return time
+    return self.gettimeDeck(lines).values()[-1]['time']
+
+  def gettimeDeck(self,lines, deckNumber=-1):
+    """
+      Method to check ended time of the simulation (multi-deck compatible)
+      @ In, lines, list, list of lines of the output file
+      @ In, deckNumber, int, optional, the deckNumber from which the outputs need to be retrieved (default is the last)
+      @ Out, times, dict, dict containing the information {'deckNumber':{'time':float,'sliceCoordinates':tuple(startLine,EndLine)}}. Dict of final times and corresponding deck start and end line number
+    """
+    times = {}
+    deckNum, startLineNumber, endLineNumber = 0, 0, 0
+    for cnt, line in enumerate(lines):
+      if re.match('^\s*Final time=',line):
+        deckNum+=1
+        startLineNumber = endLineNumber
+        endLineNumber   = cnt
+        times[deckNum] = {'time':line.split()[2],'sliceCoordinates':(startLineNumber,endLineNumber)}
+    if deckNum < deckNumber: raise IOError("the deck number requested is greater than the number found in the outputfiles! Found "+ str(deckNum) + " decks and requested are "+str(deckNumber))
+    self.totNumberOfDecks = deckNum
+    return times
 
   def returntrip(self,lines):
     """
@@ -85,7 +109,8 @@ class relapdata:
         i=i+4
         while not re.match('^\s*1 time|^1RELAP5|^\s*\n|^\s*1RELAP5|^\s*MINOR EDIT',lines[i]):
           tempdata=lines[i].split()
-          for k in range(len(temparray)): temparray[k].append(tempdata[k])
+          if ('Reducing' not in tempdata):
+            for k in range(len(temparray)): temparray[k].append(tempdata[k])
           i=i+1
           if re.match('^\s*1 time|^\s*1\s*R5|^\s*\n|^1RELAP5',lines[i]): break
         for l in range(len(tempkeys)): minorDict.update({tempkeys[l]:temparray[l]})
@@ -110,7 +135,7 @@ class relapdata:
       if re.match('^MINOR EDIT',lines[i]):
         j=i+1
         count=count+1
-        tempdict=self.readminorblock(self.lines,j)
+        tempdict=self.readminorblock(lines,j)
         if (count==1): minorDict=tempdict;
         else:
           for k in minorDict.keys():
@@ -143,7 +168,7 @@ class relapdata:
     """
     IOcsvfile=open(filen,'w')
     if self.minordata != None:
-      for i in range(len(self.minordata.keys())): IOcsvfile.write('%s,' %(self.minordata.keys()[i]))
+      for i in range(len(self.minordata.keys())): IOcsvfile.write('%s,' %(self.minordata.keys()[i].strip().replace("1 time_(sec)","time").replace(' ', '_')))
     for j in range(len(self.ravenData.keys())):
       IOcsvfile.write('%s' %(self.ravenData.keys()[j]))
       if j+1<len(self.ravenData.keys()): IOcsvfile.write(',')

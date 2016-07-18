@@ -1,0 +1,5 @@
+<data name="windRawData" type="HistorySet">
+<input>x</input>
+<output>Time,Speed</output>
+<inputFilename>SITE_03247_H.csv</inputFilename>
+</data>

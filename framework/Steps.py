@@ -432,6 +432,7 @@ class MultiRun(SingleRun):
       finishedJobs = jobHandler.getFinished()
       for finishedJob in finishedJobs:
         self.counter +=1
+        model.finalizeModelOutput(finishedJob)
         sampler.finalizeActualSampling(finishedJob,model,inputs)
         if finishedJob.getReturnCode() == 0:
           for myLambda, outIndex in self._outputCollectionLambda:

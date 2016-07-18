@@ -11,3 +11,6 @@ def Delta(self):
 
 def Sum(self):
   return self.X + self.Y
+
+def Product(self):
+  return self.X * self.Y
