@@ -53,15 +53,7 @@
   </Steps>
   
 	<Distributions>
-	  <Normal name="x0_distrib">
-	    <mean>4</mean>
-	    <sigma>1</sigma>
-	  </Normal>
-	  <Normal name="y0_distrib">
-	    <mean>4</mean>
-	    <sigma>1</sigma>
-	  </Normal>
-	  <Normal name="z0_distrib">
+	  <Normal name="distrib">
 	    <mean>4</mean>
 	    <sigma>1</sigma>
 	  </Normal>
@@ -74,13 +66,13 @@
 	      <initialSeed>1</initialSeed>
 	    </samplerInit>
 	    <variable name="x0">
-	      <distribution>x0_distrib</distribution>
+	      <distribution>distrib</distribution>
 	    </variable>
 	    <variable name="y0">
-	      <distribution>y0_distrib</distribution>
+	      <distribution>distrib</distribution>
 	    </variable>
 	    <variable name="z0">
-	      <distribution>z0_distrib</distribution>
+	      <distribution>distrib</distribution>
 	    </variable>
 	  </MonteCarlo>
 	</Samplers>
@@ -110,7 +102,7 @@
        <method>HS2PS</method>
        <timeID>time</timeID>
     </PostProcessor>
-    <ExternalModel ModuleToLoad="lorentzAttractor_disc" name="PythonModule" subType="">
+    <ExternalModel ModuleToLoad="../../../AnalyticModels/lorentzAttractor_disc" name="PythonModule" subType="">
       <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0</variables>
     </ExternalModel>
     <PostProcessor name="filter0" subType="InterfacedPostProcessor">
