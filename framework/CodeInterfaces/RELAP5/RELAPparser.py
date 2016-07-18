@@ -73,7 +73,7 @@ class RELAPparser():
           card = line.split()[0].strip()
           if card in modiDictionaryList.keys():
             temp2 = line
-            for var in modiDictionaryList[card]:
+            for var in modidictionaryList[card]:
               temp1 = self.replaceword(temp2,var['position'],var['value'])
               temp2 = temp1
             #temp1 = self.replaceword(line,modiDictionaryList[card]['position'],modiDictionaryList[card]['value'])
