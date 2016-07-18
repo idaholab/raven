@@ -108,18 +108,26 @@ class GradientBasedOptimizer(Optimizer):
     ############### export optimization solution to self.solutionExport if present ######################
     if self.readyVarsUpdate:
       if self.solutionExport != None:
-        for var in self.optVars:
-          self.solutionExport.updateInputValue(var,self.optVarsHist[self.counter['varsUpdate']-1][var])
-        self.solutionExport.updateInputValue(self.objVar, self.lossFunctionEval(self.optVarsHist[self.counter['varsUpdate']-1]))
-        self.solutionExport.updateOutputValue('varsUpdate', self.counter['varsUpdate']-1)
+        for var in self.solutionExport.getParaKeys('inputs'):
+          if var in self.optVars:
+            self.solutionExport.updateInputValue(var,self.optVarsHist[self.counter['varsUpdate']-1][var])
+        if 'varsUpdate' in self.solutionExport.getParaKeys('inputs'):
+          self.solutionExport.updateOutputValue('varsUpdate', self.counter['varsUpdate']-1)
+        for var in self.solutionExport.getParaKeys('outputs'):
+          if var == self.objVar:
+            self.solutionExport.updateInputValue(self.objVar, self.lossFunctionEval(self.optVarsHist[self.counter['varsUpdate']-1]))
 
-    if convergence:
-      if self.solutionExport != None:
-        for var in self.optVars:
-          self.solutionExport.updateInputValue(var,self.optVarsHist[self.counter['varsUpdate']][var])
-        self.solutionExport.updateInputValue(self.objVar, self.lossFunctionEval(self.optVarsHist[self.counter['varsUpdate']]))
-        self.solutionExport.updateOutputValue('varsUpdate', self.counter['varsUpdate'])
-    ############################################
+      if convergence:
+        if self.solutionExport != None:
+          for var in self.solutionExport.getParaKeys('inputs'):
+            if var in self.optVars:
+              self.solutionExport.updateInputValue(var,self.optVarsHist[self.counter['varsUpdate']][var])
+          if 'varsUpdate' in self.solutionExport.getParaKeys('inputs'):
+            self.solutionExport.updateOutputValue('varsUpdate', self.counter['varsUpdate'])
+          for var in self.solutionExport.getParaKeys('outputs'):
+            if var == self.objVar:
+              self.solutionExport.updateInputValue(self.objVar, self.lossFunctionEval(self.optVarsHist[self.counter['varsUpdate']]))
+    ######################################################################################################
 
     return ready
 

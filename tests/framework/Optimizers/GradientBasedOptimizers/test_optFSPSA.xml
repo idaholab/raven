@@ -36,8 +36,8 @@
       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="optData">
-      <Input>x1,x2,c</Input>
-      <Output>optConstraintFunc</Output>
+      <Input>x1,x2,varsUpdate</Input>
+      <Output>c</Output>
     </PointSet>
   </DataObjects>
 
