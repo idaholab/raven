@@ -88,7 +88,7 @@
 	
     <Plot dim="3" name="optPath" overwrite="false" verbosity="debug">
         <actions>
-            <how>pdf,png</how>
+            <how>pdf</how>
         </actions>
         <plotSettings>
             <plot>
@@ -100,15 +100,12 @@
             <xlabel>x1</xlabel>
             <ylabel>x2</ylabel>
             <zlabel>Loss Function</zlabel>
-            <kwargs>
-              <title> </title>
-            </kwargs>
         </plotSettings>
     </Plot>
 	
     <Plot dim="2" name="plotIteration" overwrite="false" verbosity="debug">
         <actions>
-            <how>pdf,png</how>
+            <how>pdf</how>
         </actions>
         <plotSettings>
 			<gridSpace>3 1</gridSpace>
