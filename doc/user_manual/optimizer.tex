@@ -21,7 +21,7 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-The optimizer is another important entity in the RAVEN framework. It performs the driving of a specific goal function over the model for value optimization. The difference between an optimizer and a sampler is that the former does not require sampling over a distribution, although certain specific optimizers may utilize stochastic approach to locate the optimality. 
+The optimizer is another important entity in the RAVEN framework. It performs the driving of a specific goal function over the model for value optimization. The difference between an optimizer and a sampler is that the former does not require sampling over a distribution, although certain specific optimizers may utilize stochastic approach to locate the optimality.
 The optimizers currently available in RAVEN can be categorized into the following class(es):
 \begin{itemize}
 \item \textbf{Gradient Based Optimizer} (see Section~\ref{subsec:gradientBasedOptimizers})
@@ -115,7 +115,7 @@ In the \xmlNode{SPSA} input block, the user needs to specify the objective varia
   \end{itemize}
 \item \xmlNode{Parameter}, \xmlDesc{XML node, optional parameter} will accepts the following sub-nodes:
   \begin{itemize}
-  \item \xmlNode{numGradGradAvgIterations}, \xmlDesc{integer, optional field} is the number of iterations for gradient estimation.
+  \item \xmlNode{numGradAvgIterations}, \xmlDesc{integer, optional field} is the number of iterations for gradient estimation.
         \default{1}
   \item \xmlNode{alpha}, \xmlDesc{float, optional field} a parameter for updating gain sequence for variable update. See \cite{spall1998implementation}.
         \default{0.602}

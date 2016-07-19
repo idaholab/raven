@@ -53,9 +53,6 @@
 		<iterationLimit>50</iterationLimit>
 		<threshold>1e-3</threshold>
 	  </Convergence>
-   	  <parameter>
-		<numGradAvgIterations>3</numGradAvgIterations>
-	  </parameter>
 	  <variable name="x1">
         <upperBound>100</upperBound>
 		<lowerBound>-100</lowerBound>
@@ -67,6 +64,9 @@
 		<initial>0</initial>
       </variable>
 	  <objectVar>c</objectVar>
+	  <parameter>
+		<numGradAvgIterations>3</numGradAvgIterations>
+	  </parameter>
     </SPSA>
   </Optimizers>
 
