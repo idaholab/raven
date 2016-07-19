@@ -102,7 +102,7 @@
        <method>HS2PS</method>
        <timeID>time</timeID>
     </PostProcessor>
-    <ExternalModel ModuleToLoad="../../../AnalyticModels/lorentzAttractor_disc" name="PythonModule" subType="">
+    <ExternalModel ModuleToLoad="../../../../AnalyticModels/lorentzAttractor_disc" name="PythonModule" subType="">
       <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0</variables>
     </ExternalModel>
     <PostProcessor name="filter0" subType="InterfacedPostProcessor">
