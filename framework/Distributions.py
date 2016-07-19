@@ -2319,6 +2319,31 @@ class MultivariateNormal(NDimensionalDistributions):
       L = np.atleast_1d(transformation).reshape(row,column)
       return L
 
+  def inverseTransformationMatrix(self,index=None):
+    """
+      Return the inverse transformation matrix from Crow
+      @ In, None
+      @ In, index, list, optional, input coordinate index, list values for the index of the original variables
+      @ Out, L, np.array, the inverse transformation matrix
+    """
+    if self.method == 'spline':
+      self.raiseAnError(NotImplementedError,' inverse transformationMatrix is not yet implemented for ' + self.method + ' method')
+    elif self.method == 'pca':
+      if index is not None:
+        coordinateIndex = distribution1D.vectori_cxx(len(index))
+        for i in range(len(index)):
+          coordinateIndex[i] = index[i]
+          matrixDim = self._distribution.getInverseTransformationMatrixDimensions(coordinateIndex)
+          inverseTransformation = self._distribution.getInverseTransformationMatrix(coordinateIndex)
+      else:
+        matrixDim = self._distribution.getInverseTransformationMatrixDimensions()
+        inverseTransformation = self._distribution.getInverseTransformationMatrix()
+      row = matrixDim[0]
+      column = matrixDim[1]
+      # convert 1D vector to 2D array
+      L = np.atleast_1d(inverseTransformation).reshape(row,column)
+      return L
+
   def returnSingularValues(self,index=None):
     """
       Return the singular values from Crow

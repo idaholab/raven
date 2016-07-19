@@ -1507,14 +1507,21 @@ class ImportanceRank(BasePostProcessor):
           for target in self.targets:
             outputDict[what][target] = entries
     else:
+      index = [dim-1 for dim in self.dimensions]
+      targetIndex = [dim-1 for dim in self.targetDimensions]
       what = 'transformation'
       if what not in outputDict.keys(): outputDict[what] = {}
-      index = [dim-1 for dim in self.dimensions]
       transformMatrix = self.mvnDistribution.transformationMatrix(index)
-      targetIndex = [dim-1 for dim in self.targetDimensions]
       for ind,target in enumerate(self.targets):
         entries = list(zip(self.features,transformMatrix[targetIndex[ind]],self.dimensions))
         outputDict[what][target] = entries
+      # compute the inverse transformation matrix
+      what = 'inverseTransformation'
+      if what not in outputDict.keys(): outputDict[what] = {}
+      inverseTransformationMatrix = self.mvnDistribution.inverseTransformationMatrix(targetIndex)
+      for ind,feature in enumerate(self.features):
+        entries = list(zip(self.tragets,inverseTransformationMatrix[index[ind]],self.targetDimensions))
+        outputDict[what][feature] = entries
 
       # To be implemented
       #if what == 'CumulativeSenitivityIndex':
