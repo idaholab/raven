@@ -279,11 +279,14 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         maxDim = len(varsDict['manifestVariables'])
         listLatentElement = varsDict['latentVariables']
         if len(set(listLatentElement)) != len(listLatentElement):
-          self.raiseAnError(IOError,'There are replicated variables listed in the latentVariables!')
+          dups = set(var for var in listLatentElement if listLatentElement.count(var) > 1)
+          self.raiseAnError(IOError,'The following are duplicated variables listed in the latentVariables: ' + str(dups))
         if len(set(varsDict['manifestVariables'])) != len(varsDict['manifestVariables']):
-          self.raiseAnError(IOError,'There are replicated variables listed in the manifestVariables!')
+          dups = set(var for var in varsDict['manifestVariables'] if varsDict['manifestVariables'].count(var) > 1)
+          self.raiseAnError(IOError,'The following are duplicated variables listed in the manifestVariables: ' + str(dups))
         if len(set(varsDict['manifestVariablesIndex'])) != len(varsDict['manifestVariablesIndex']):
-          self.raiseAnError(IOError,'There are replicated variables indices listed in the manifestVariablesIndex!')
+          dups = set(var+1 for var in varsDict['manifestVariablesIndex'] if varsDict['manifestVariablesIndex'].count(var) > 1)
+          self.raiseAnError(IOError,'The following are duplicated variables indices listed in the manifestVariablesIndex: ' + str(dups))
         listElement = self.distributions2variablesMapping[dist]
         for var in listElement:
           self.variables2distributionsMapping[var.keys()[0]]['totDim'] = maxDim #reset the totDim to reflect the totDim of original input space
@@ -291,11 +294,12 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         listIndex = []
         for var in listLatentElement:
           if var not in set(tempListElement.keys()):
-            self.raiseAnError(IOError, 'The variable listed in latentVariables is not listed in the given distribution: ' + dist)
+            self.raiseAnError(IOError, 'The variable listed in latentVariables ' + var + ' is not listed in the given distribution: ' + dist)
           listIndex.append(tempListElement[var]-1)
-        if max(listIndex) > maxDim: self.raiseAnError(IOError,'The maximum dim = ' + str(max(listIndex)) + ' defined for latent variables is exceeded the dimension of the problem!')
+        if max(listIndex) > maxDim: self.raiseAnError(IOError,'The maximum dim = ' + str(max(listIndex)) + ' defined for latent variables is exceeded the dimension of the problem ' + str(maxDim))
         if len(set(listIndex)) != len(listIndex):
-          self.raiseAnError(IOError,'There are at least two latent variables assigned with the same dimension!')
+          dups = set(var+1 for var in listIndex if listIndex.count(var) > 1)
+          self.raiseAnError(IOError,'Each of the following dimensions  are assigned to multiple latent variables in Samplers: ' + str(dups))
         # update the index for latentVariables according to the 'dim' assigned for given var defined in Sampler
         self.variablesTransformationDict[dist]['latentVariablesIndex'] = listIndex
 

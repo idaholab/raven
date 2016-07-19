@@ -1301,8 +1301,8 @@ class ImportanceRank(BasePostProcessor):
     dimDict = None
     settingDim = False
     #pca index is a feature only of target, not with respect to anything else
-    if 'pcaindex' in options.keys():
-      pca = options['pcaindex'].values()[0]
+    if 'pcaIndex' in options.keys():
+      pca = options['pcaIndex'].values()[0]
       for var,index,_ in pca:
         outFile.addScalar(var,'pcaIndex',index)
     if 'transformation' in options.keys():
@@ -1466,11 +1466,13 @@ class ImportanceRank(BasePostProcessor):
       for what in self.what:
         if what not in outputDict.keys() and what.lower() != 'transformation': outputDict[what] = {}
         if what.lower() == 'sensitivityindex':
+          what = 'sensitivityIndex'
           for target in self.targets:
             entries = senWeightDict[target]
             entries.sort(key=lambda x: x[1],reverse=True)
             outputDict[what][target] = entries
         if what.lower() == 'importanceindex':
+          what = 'importanceIndex'
           for target in self.targets:
             featCoeffs = senCoeffDict[target]
             featWeights = []
@@ -1496,6 +1498,7 @@ class ImportanceRank(BasePostProcessor):
              outputDict[what][target] = entries
         #calculate PCA index
         if what.lower() == 'pcaindex':
+          what = 'pcaIndex'
           index = [dim-1 for dim in self.dimensions]
           singularValues = self.mvnDistribution.returnSingularValues(index)
           singularValues = list(singularValues/np.sum(singularValues))
