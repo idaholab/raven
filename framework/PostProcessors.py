@@ -972,7 +972,6 @@ class InterfacedPostProcessor(BasePostProcessor):
       self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.inputFormat not correctly initialized')
     if self.postProcessor.outputFormat not in set(['HistorySet','PointSet']):
       self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.outputFormat not correctly initialized')
-
     inputDic= self.inputToInternal(inputIn)
 
     outputDic = self.postProcessor.run(inputDic)
@@ -1043,6 +1042,7 @@ class InterfacedPostProcessor(BasePostProcessor):
     if type(input) == dict:
       return input
     else:
+      if len(input[0]) == 0: self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : The input dataObject named '+input[0].name + ' is empty. Check your input!')
       inputDict['data']['input']  = copy.deepcopy(input[0].getInpParametersValues())
       inputDict['data']['output'] = copy.deepcopy(input[0].getOutParametersValues())
     for item in input:
@@ -1536,6 +1536,8 @@ class BasicStatistics(BasePostProcessor):
     # each post processor knows how to handle the coming inputs. The BasicStatistics postprocessor accept all the input type (files (csv only), hdf5 and datas
     self.dynamic = False
     currentInput = currentInp [-1] if type(currentInp) == list else currentInp
+    if len(currentInput) == 0: self.raiseAnError(IOError, "In post-processor " +self.name+" the input "+currentInput.name+" is empty.")
+
     if type(currentInput).__name__ =='dict':
       if 'targets' not in currentInput.keys() and 'timeDepData' not in currentInput.keys(): self.raiseAnError(IOError, 'Did not find targets or timeDepData in input dictionary')
       return currentInput
