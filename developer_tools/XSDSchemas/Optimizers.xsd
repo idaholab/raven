@@ -25,37 +25,37 @@
 		</xsd:all>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
     </xsd:complexType>
+	
+	<xsd:complexType name="convergenceType">
+        <xsd:all>
+			<xsd:element name="iterationLimit" 	 type="xsd:integer"  					minOccurs="0"/>
+			<xsd:element name="threshold"     	 type="xsd:float" 						minOccurs="0"/>
+		</xsd:all>
+        <xsd:attribute name="name" type="xsd:string" use="required"/>
+    </xsd:complexType>
 
 	<xsd:complexType name="SPSAOptimizer">
         <xsd:sequence>
 			<xsd:element name="initialization"  		 type="optInitType" 					minOccurs="0"/>
             <xsd:element name="Function"         		 type="AssemblerObjectType"      		minOccurs="0" maxOccurs="1"/>
             <xsd:element name="TargetEvaluation" 		 type="AssemblerObjectType"      		minOccurs="1" maxOccurs="1"/>
-            <xsd:element name="Convergence"                      								minOccurs="0" maxOccurs="1">
-                <xsd:all>
-					<xsd:element name="iterationLimit" 	 type="xsd:integer"  					minOccurs="0"/>
-					<xsd:element name="threshold"     	 type="xsd:float" 						minOccurs="0"/>
-				</xsd:all>
-            </xsd:element>
+            <xsd:element name="Convergence"              type="convergenceType"        			minOccurs="0" maxOccurs="1"/>
 			<xsd:element name="variable"     			 type="variableType"    				minOccurs="1" maxOccurs="unbounded"/>
 			<xsd:element name="objectVar" 				 type="xsd:string"      				minOccurs="1" maxOccurs="1"/>
 			<xsd:element name="Parameter"                										minOccurs="0" maxOccurs="1">
-                <xsd:all>
-					<xsd:element name="numGradGradAvgIterations" type="xsd:integer"  			minOccurs="0" maxOccurs="1"/>
-					<xsd:element name="alpha"        	 type="xsd:float"  minOccurs="0" maxOccurs="1"/>
-					<xsd:element name="A"          		 type="xsd:float"  minOccurs="0" maxOccurs="1"/>
-					<xsd:element name="a"           	 type="xsd:float"  minOccurs="0" maxOccurs="1"/>
-					<xsd:element name="gamma"         	 type="xsd:float"  minOccurs="0" maxOccurs="1"/>
-					<xsd:element name="c"             	 type="xsd:float"  minOccurs="0" maxOccurs="1"/>
-				</xsd:all>
+				<xsd:complexType mixed="true">
+					<xsd:sequence>
+						<xsd:element name="numGradGradAvgIterations" type="xsd:integer"  			minOccurs="0" maxOccurs="1"/>
+						<xsd:element name="alpha"        	 type="xsd:float"  minOccurs="0" maxOccurs="1"/>
+						<xsd:element name="A"          		 type="xsd:float"  minOccurs="0" maxOccurs="1"/>
+						<xsd:element name="a"           	 type="xsd:float"  minOccurs="0" maxOccurs="1"/>
+						<xsd:element name="gamma"         	 type="xsd:float"  minOccurs="0" maxOccurs="1"/>
+						<xsd:element name="c"             	 type="xsd:float"  minOccurs="0" maxOccurs="1"/>
+					</xsd:sequence>
+				</xsd:complexType>
             </xsd:element>				
         </xsd:sequence>
         <xsd:attribute name="name"      type="xsd:string" use="required"/>
         <xsd:attribute name="verbosity" type="verbosityAttr"/>
-    </xsd:complexType>	
-	
-	
-   
-
-  
+    </xsd:complexType>	  
 </xsd:schema>
