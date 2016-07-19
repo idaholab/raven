@@ -25,6 +25,7 @@
   <xsd:complexType name="actionType">
     <xsd:all>
       <xsd:element name="how"                 type="imgList" minOccurs="0"/>
+      <xsd:element name="range"               type="rangeType" minOccurs="0"/>
       <xsd:element name="title"               type="titleType" minOccurs="0"/>
       <xsd:element name="labelFormat"         type="labelFormatType" minOccurs="0"/>
       <xsd:element name="figureProperties"    type="figurePropertiesType" minOccurs="0"/>

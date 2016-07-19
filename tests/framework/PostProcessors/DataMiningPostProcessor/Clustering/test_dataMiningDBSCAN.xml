@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="silent">
+<Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>DBSCAN</WorkingDir>
     <Sequence>readIn,DBSCANBlobs,output</Sequence>
@@ -22,8 +22,8 @@
 
   <Steps>
     <IOStep name="readIn" pauseAtEnd="True">
-      <Input class="Files" type="">DataSetsFile</Input>
-      <Output class="DataObjects" type="PointSet">DataSets</Output>
+      <Input  class="Files" type=""               >DataSetsFile</Input>
+      <Output class="DataObjects" type="PointSet" >DataSets</Output>
     </IOStep>
     <IOStep name="output" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">DataSets</Input>
