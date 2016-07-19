@@ -1008,8 +1008,6 @@ class InterfacedPostProcessor(BasePostProcessor):
             output.updateInputValue(key,exportDict['inputSpaceParams'][hist][str(key)])
           for key in listOutputParams:
             output.updateOutputValue(key,exportDict['outputSpaceParams'][hist][str(key)])
-          for key in exportDict['metadata'][0]:
-            output.updateMetadata(key,exportDict['metadata'][0][key])
         else:
           for key in exportDict['inputSpaceParams']:
             if key in output.getParaKeys('inputs'):
@@ -1017,8 +1015,8 @@ class InterfacedPostProcessor(BasePostProcessor):
           for key in exportDict['outputSpaceParams']:
             if key in output.getParaKeys('outputs'):
               output.updateOutputValue(key,exportDict['outputSpaceParams'][str(key)])
-          for key in exportDict['metadata'][0]:
-            output.updateMetadata(key,exportDict['metadata'][0][key])
+      for key in exportDict['metadata'][0]:
+        output.updateMetadata(key,exportDict['metadata'][0][key])
     else:   # output.type == 'PointSet':
       for key in exportDict['inputSpaceParams']:
         if key in output.getParaKeys('inputs'):
@@ -3617,7 +3615,7 @@ class DataMining(BasePostProcessor):
     dataMineDict = finishedJob.returnEvaluation()[1]
     for key in dataMineDict['output']:
       for param in output.getParaKeys('output'):
-        if key == param: 
+        if key == param:
           output.removeOutputValue(key)
       if output.type == 'PointSet':
         for value in dataMineDict['output'][key]:
@@ -3638,11 +3636,11 @@ class DataMining(BasePostProcessor):
       @ Out, outputDict, dict, dictionary containing the post-processed results
     """
     if len(self.dataObjects) > 0:
-      if type(self.dataObjects) == list: 
+      if type(self.dataObjects) == list:
         dataObject = self.dataObjects[-1]
       else:
         dataObject = self.dataObjects
-    else: 
+    else:
       dataObject = None
     input = self.inputToInternal(inputIn)
     outputDict = {}
