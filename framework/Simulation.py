@@ -25,6 +25,8 @@ import Files
 import Samplers
 import Optimizers
 import Models
+
+import Metrics
 import Distributions
 import Databases
 import Functions
@@ -446,6 +448,7 @@ class Simulation(MessageHandler.MessageUser):
     self.dataBasesDict        = {}
     self.functionsDict        = {}
     self.filesDict            = {} #  for each file returns an instance of a Files class
+    self.metricsDict          = {}
     self.OutStreamManagerPlotDict  = {}
     self.OutStreamManagerPrintDict = {}
     self.stepSequenceList     = [] #the list of step of the simulation
@@ -471,9 +474,11 @@ class Simulation(MessageHandler.MessageUser):
     self.addWhatDict['Databases'        ] = Databases
     self.addWhatDict['Functions'        ] = Functions
     self.addWhatDict['Files'            ] = Files
+    self.addWhatDict['Metrics'          ] = Metrics
     self.addWhatDict['OutStreams' ] = {}
     self.addWhatDict['OutStreams' ]['Plot' ] = OutStreams
     self.addWhatDict['OutStreams' ]['Print'] = OutStreams
+
 
     #Mapping between an entity type and the dictionary containing the instances for the simulation
     self.whichDict = {}
@@ -487,6 +492,7 @@ class Simulation(MessageHandler.MessageUser):
     self.whichDict['Distributions'   ] = self.distributionsDict
     self.whichDict['Databases'       ] = self.dataBasesDict
     self.whichDict['Functions'       ] = self.functionsDict
+    self.whichDict['Metrics'         ] = self.metricsDict
     self.whichDict['OutStreams'] = {}
     self.whichDict['OutStreams']['Plot' ] = self.OutStreamManagerPlotDict
     self.whichDict['OutStreams']['Print'] = self.OutStreamManagerPrintDict
@@ -850,6 +856,8 @@ class Simulation(MessageHandler.MessageUser):
     msg=__prntDict(self.dataDict,msg)
     msg=__prntDict(self.samplersDict,msg)
     msg=__prntDict(self.modelsDict,msg)
+    msg=__prntDict(self.metricsDict,msg)
+    #msg=__prntDict(self.testsDict,msg)
     msg=__prntDict(self.filesDict,msg)
     msg=__prntDict(self.dataBasesDict,msg)
     msg=__prntDict(self.OutStreamManagerPlotDict,msg)

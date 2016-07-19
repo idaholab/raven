@@ -34,9 +34,13 @@ class Rattlesnake(CodeInterfaceBase):
     inputDict['FoundYakXSInput'] = False
     inputDict['FoundRattlesnakeInput'] = False
     inputDict['FoundYakXSAliasInput'] = False
+    inputDict['FoundInstantXSInput'] = False
+    inputDict['FoundInstantXSAliasInput'] = False
     yakInput = []
     rattlesnakeInput = []
     aliasInput = []
+    instantInput = []
+    instantAlias = []
     for inputFile in inputFiles:
       if inputFile.getType().lower() == "yakxsinput":
         inputDict['FoundYakXSInput'] = True
@@ -47,9 +51,17 @@ class Rattlesnake(CodeInterfaceBase):
       elif inputFile.getType().lower() == "yakxsaliasinput":
         inputDict['FoundYakXSAliasInput'] = True
         aliasInput.append(inputFile)
+      elif inputFile.getType().lower() == "instantxsaliasinput":
+        inputDict['FoundInstantXSAliasInput'] = True
+        instantAlias.append(inputFile)
+      elif inputFile.getType().lower() == "instantxsinput":
+        inputDict['FoundInstantXSInput'] = True
+        instantInput.append(inputFile)
     if inputDict['FoundYakXSInput']: inputDict['YakXSInput'] = yakInput
+    if inputDict['FoundInstantXSInput']: inputDict['InstantXSInput'] = instantInput
     if inputDict['FoundRattlesnakeInput']: inputDict['RattlesnakeInput'] = rattlesnakeInput
     if inputDict['FoundYakXSAliasInput']: inputDict['YakAliasInput'] =  aliasInput
+    if inputDict['FoundInstantXSAliasInput']: inputDict['InstantAliasInput'] =  instantAlias
     if not inputDict['FoundRattlesnakeInput']: raise IOError('None of the input files has the type "RattlesnakeInput"! This is required by Rattlesnake interface.')
     return inputDict
 
@@ -107,6 +119,23 @@ class Rattlesnake(CodeInterfaceBase):
       parser.perturb(**Kwargs)
       #write the perturbed files
       parser.writeNewInput(yakInputs,**Kwargs)
+    import YakInstantLibraryParser
+    foundInstantXS = False
+    foundInstantAlias = False
+    if inputDict['FoundInstantXSInput']:
+      foundInstantXS = True
+      instantInputs = inputDict['InstantXSInput']
+    if inputDict['FoundInstantXSAliasInput']:
+      foundInstantAlias = True
+      instantAlias = inputDict['InstantAliasInput']
+    if foundInstantXS and foundInstantAlias:
+      #perturb the yak cross section inputs
+      parser = YakInstantLibraryParser.YakInstantLibraryParser(instantInputs)
+      parser.initialize(instantAlias)
+      #perturb the xs files
+      parser.perturb(**Kwargs)
+      #write the perturbed files
+      parser.writeNewInput(instantInputs,**Kwargs)
     #Moose based app interface
     origRattlesnakeInputs = copy.deepcopy(rattlesnakeInputs)
     newMooseInputs = self.MooseInterface.createNewInput(rattlesnakeInputs,origRattlesnakeInputs,samplerType,**Kwargs)
