@@ -1,10 +1,10 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <RunInfo>
-    <internalParallel>true</internalParallel>
+    <internalParallel>False</internalParallel>
     <WorkingDir>MeanShift</WorkingDir>
     <Sequence>readIn,MeanShiftBlobs,MeanShiftCircles,MeanShiftMoons,output</Sequence>
-    <batchSize>2</batchSize>
+    <batchSize>1</batchSize>
   </RunInfo>
 
   <Files>
