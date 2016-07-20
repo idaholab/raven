@@ -352,7 +352,8 @@ class SciKitLearn(unSupervisedLearning):
       @ Out, None
     """
     if hasattr(self.Method, 'bandwidth'):  # set bandwidth for MeanShift clustering
-      self.initOptionDict['bandwidth'] = cluster.estimate_bandwidth(self.normValues,quantile=0.3)
+      if 'bandwidth' not in self.initOptionDict.keys():
+        self.initOptionDict['bandwidth'] = cluster.estimate_bandwidth(self.normValues,quantile=0.3)
       self.Method.set_params(**self.initOptionDict)
     if hasattr(self.Method, 'connectivity'):  # We need this connectivity if we want to use structured ward
       connectivity = kneighbors_graph(self.normValues, n_neighbors = 10)  # we should find a smart way to define the number of neighbors instead of default constant integer value(10)

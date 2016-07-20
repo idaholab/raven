@@ -72,4 +72,10 @@
     csv    = 'Agglomerative/dummy.csv Agglomerative/info.csv'
     output = 'Agglomerative/scatter.png'
   [../]
+  [./time_dep_MeanShift]
+	  type   = 'RavenFramework'
+	  input  = 'test_TD_MeanShift.xml'
+    csv    = 'time_dep_meanshift/print0_0.csv time_dep_meanshift/print0_1.csv time_dep_meanshift/print0_2.csv time_dep_meanshift/print1_0.csv time_dep_meanshift/print1_1.csv 
+    output = 'time_dep_clustering_filtered/1-Clustered_HS_line.png'
+  [../] 
 []
