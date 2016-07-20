@@ -71,7 +71,7 @@ class YakMultigroupLibraryParser():
           self._readAdditionalYakXS(mgLib,mgDict[mgLib.attrib['ID']])
           self._checkYakXS(mgDict[mgLib.attrib['ID']],mgDictKeys[mgLib.attrib['ID']])
       else:
-        msg = 'In YakMultigroupLibraryParser, root element of XS file is always ' + self.rootElement + ';\n'
+        msg = 'In YakMultigroupLibraryParser, root element of XS file is always ' + self.level0Element + ';\n'
         msg = msg + 'while the given XS file has different root element: ' + root.tag + "!"
         raise IOError(msg)
 
