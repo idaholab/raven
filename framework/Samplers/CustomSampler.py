@@ -91,7 +91,6 @@ class CustomSampler(ForwardSampler):
       data = np.loadtxt(self.assemblerDict['Source'][0][3], dtype=np.float, delimiter=',', skiprows=1, ndmin=2)
       csvFile.close()
       for var in self.toBeSampled.keys():
-        print(headers)
         if var not in headers: self.raiseAnError(IOError, "variable "+ var+ " not found in the file "+csvFile.getFilename())
         self.pointsToSample[var] = data[:,headers.index(var)]
       if 'PointProbability' in headers: self.infoFromCustom['PointProbability'] = data[:,headers.index('PointProbability')]
