@@ -53,10 +53,10 @@ class relapdata:
     times = {}
     deckNum, startLineNumber, endLineNumber = 0, 0, 0
     for cnt, line in enumerate(lines):
-      if re.match('^\s*Final time=',line):
+      if re.match('^\s*Final time=',line) or re.match('^\s*0Final time=',line):
         deckNum+=1
         startLineNumber = endLineNumber
-        endLineNumber   = cnt
+        endLineNumber   = cnt+1
         times[deckNum] = {'time':line.split()[2],'sliceCoordinates':(startLineNumber,endLineNumber)}
     if deckNum < deckNumber: raise IOError("the deck number requested is greater than the number found in the outputfiles! Found "+ str(deckNum) + " decks and requested are "+str(deckNumber))
     self.totNumberOfDecks = deckNum
@@ -109,17 +109,24 @@ class relapdata:
         i=i+4
         while not re.match('^\s*1 time|^1RELAP5|^\s*\n|^\s*1RELAP5|^\s*MINOR EDIT',lines[i]):
           tempdata=lines[i].split()
-          if ('Reducing' not in tempdata):
+          takeIt = False if re.match("^\d+?\.\d+?$", tempdata[0]) is None else True
+          if takeIt:
             for k in range(len(temparray)): temparray[k].append(tempdata[k])
           i=i+1
-          if re.match('^\s*1 time|^\s*1\s*R5|^\s*\n|^1RELAP5',lines[i]): break
+          if re.match('^\s*1 time|^\s*1\s*R5|^\s*\n|^1RELAP5',lines[i]) or re.match('^\s*0Final time',lines[i]) or re.match('^\s*Final time',lines[i]): break
         for l in range(len(tempkeys)): minorDict.update({tempkeys[l]:temparray[l]})
-        if re.match('^\s*1\s*R5|^\s*\n|^\s*1RELAP5|^\s*MINOR EDIT',lines[i]):
+        if re.match('^\s*1\s*R5|^\s*\n|^\s*1RELAP5|^\s*MINOR EDIT',lines[i]): #or i+1 > len(lines) -1:
           flagg2=1
           flagg1=1
         elif re.match('^\s*1 time',lines[i]):
           block_count=block_count+1
           flagg=1
+          flagg1=1
+          flagg2=1
+        elif re.match('^\s*0Final time',lines[i]):
+          flagg=1
+          flagg1=1
+          flagg2=1
     return minorDict
 
   def getminor(self,lines):
@@ -132,8 +139,8 @@ class relapdata:
     count  = 0
     minorDict = None
     for i in range(len(lines)):
-      if re.match('^MINOR EDIT',lines[i]):
-        j=i+1
+      if re.match('^MINOR EDIT',lines[i]) or re.match('1 time ',lines[i]):
+        j=i+1 if re.match('^MINOR EDIT',lines[i]) else i
         count=count+1
         tempdict=self.readminorblock(lines,j)
         if (count==1): minorDict=tempdict;

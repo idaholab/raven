@@ -206,4 +206,13 @@
    test_interface_only = True
    rel_err = 0.0001
  [../]
+ [./INSSrelap5JapanInterfaceSampling]
+   type = 'RavenFramework'
+   input = 'test_relap5_code_inss.xml'
+   output = 'RELAP5interfaceTestModifiedVersionINSS/1-max_pressure_scatter.png RELAP5interfaceTestModifiedVersionINSS/pressure_function_of_loca_size_print.xml RELAP5interfaceTestModifiedVersionINSS/pressure_function_of_loca_size_print.csv'
+   csv = 'RELAP5interfaceTestModifiedVersionINSS/pressure_function_of_loca_size_print.csv'
+   text = 'RELAP5interfaceTestModifiedVersionINSS/INSS_RELAP5_step/1/modelpar.inp'
+   test_interface_only = True
+   rel_err = 0.0001 
+ [../]
 []
