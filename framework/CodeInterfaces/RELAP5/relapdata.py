@@ -139,15 +139,13 @@ class relapdata:
     count  = 0
     minorDict = None
     for i in range(len(lines)):
-      if re.match('^MINOR EDIT',lines[i]) or re.match('1 time ',lines[i]):
-        j=i+1 if re.match('^MINOR EDIT',lines[i]) else i
+      if re.match('^1 time',lines[i]):
         count=count+1
-        tempdict=self.readminorblock(lines,j)
+        tempdict=self.readminorblock(lines,i)
         if (count==1): minorDict=tempdict;
         else:
           for k in minorDict.keys():
-            for l in tempdict.get(k):
-              minorDict[k].append(l)
+            minorDict[k].extend(tempdict.get(k))
     return minorDict
 
   def readraven(self):
