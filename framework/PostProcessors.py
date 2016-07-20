@@ -1241,6 +1241,8 @@ class ImportanceRank(BasePostProcessor):
       @ In, xmlNode, xml.etree.ElementTree Element Objects, the xml element node that will be checked against the available options specific to this Sampler
       @ Out, None
     """
+    targetType = ''
+    featureType = ''
     for child in xmlNode:
       if child.tag == 'what':
         self.what = child.text
@@ -1302,33 +1304,34 @@ class ImportanceRank(BasePostProcessor):
     settingDim = False
     #pca index is a feature only of target, not with respect to anything else
     if 'pcaIndex' in options.keys():
-      pca = options['pcaIndex'].values()[0]
-      for var,index,_ in pca:
-        outFile.addScalar(var,'pcaIndex',index)
+      pca = options['pcaIndex']
+      for index,dim in pca:
+        outFile.addScalar('pcaIndex',str(dim),index)
+      options.pop('pcaIndex',None)
     if 'transformation' in options.keys():
       outFile.addScalar('transformation','type',self.mvnDistribution.covarianceType)
+    if 'inverseTransformation' in options.keys():
+      outFile.addScalar('inverseTransformation','type',self.mvnDistribution.covarianceType)
     #build tree
-    targets = options.values()[0].keys()
-
-    for target in targets:
-      valueDict = OrderedDict()
-      for what in options.keys():
-        if what.lower() in self.acceptedMetric and what.lower()!='pcaindex':
-          if dimDict is None:
-            dimDict = {}
-            settingDim = True
-          for var,index,dim in options[what][target]:
-            valueDict[var]=index #dims?
-            if settingDim:
-              dimDict[var] = dim
+    for what in options.keys():
+      if what == 'pcaIndex': continue
+      for target in options[what].keys():
+        valueDict = OrderedDict()
+        if dimDict is None:
+          dimDict = {}
+          settingDim = True
+        for var,index,dim in options[what][target]:
+          valueDict[var] = index
           if settingDim:
-            for key,val in dimDict.items():
-              outFile.addScalar(key,'dimension',val)
-            settingDim = False
-          if what.lower() != 'transformation':
-            outFile.addVector(target,what,valueDict)
-          else:
-            outFile.addVector(what,target,valueDict)
+            dimDict[var] = dim
+        if settingDim:
+          for key, val in dimDict.items():
+            outFile.addScalar(key,'dimension',val)
+          settingDim = False
+        if what == 'transformation' or what == 'inverseTransformation':
+          outFile.addVector(what,target,valueDict)
+        else:
+          outFile.addVector(target,what,valueDict)
 
   def collectOutput(self,finishedJob, output):
     """
@@ -1464,15 +1467,16 @@ class ImportanceRank(BasePostProcessor):
         senWeightDict[target] = list(zip(self.features,featWeights,self.dimensions))
         senCoeffDict[target] = featCoeffs
       for what in self.what:
-        if what not in outputDict.keys() and what.lower() != 'transformation': outputDict[what] = {}
         if what.lower() == 'sensitivityindex':
           what = 'sensitivityIndex'
+          if what not in outputDict.keys(): outputDict[what] = {}
           for target in self.targets:
             entries = senWeightDict[target]
             entries.sort(key=lambda x: x[1],reverse=True)
             outputDict[what][target] = entries
         if what.lower() == 'importanceindex':
           what = 'importanceIndex'
+          if what not in outputDict.keys(): outputDict[what] = {}
           for target in self.targets:
             featCoeffs = senCoeffDict[target]
             featWeights = []
@@ -1499,13 +1503,13 @@ class ImportanceRank(BasePostProcessor):
         #calculate PCA index
         if what.lower() == 'pcaindex':
           what = 'pcaIndex'
+          if what not in outputDict.keys(): outputDict[what] = {}
           index = [dim-1 for dim in self.dimensions]
           singularValues = self.mvnDistribution.returnSingularValues(index)
           singularValues = list(singularValues/np.sum(singularValues))
-          entries = list(zip(self.features,singularValues,self.dimensions))
-          entries.sort(key=lambda x: x[1],reverse=True)
-          for target in self.targets:
-            outputDict[what][target] = entries
+          entries = list(zip(singularValues,self.dimensions))
+          entries.sort(key=lambda x: x[0],reverse=True)
+          outputDict[what] = entries
     else:
       index = [dim-1 for dim in self.dimensions]
       targetIndex = [dim-1 for dim in self.targetDimensions]
@@ -1520,7 +1524,7 @@ class ImportanceRank(BasePostProcessor):
       if what not in outputDict.keys(): outputDict[what] = {}
       inverseTransformationMatrix = self.mvnDistribution.inverseTransformationMatrix(targetIndex)
       for ind,feature in enumerate(self.features):
-        entries = list(zip(self.tragets,inverseTransformationMatrix[index[ind]],self.targetDimensions))
+        entries = list(zip(self.targets,inverseTransformationMatrix[index[ind]],self.targetDimensions))
         outputDict[what][feature] = entries
 
       # To be implemented
