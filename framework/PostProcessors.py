@@ -3622,7 +3622,7 @@ class DataMining(BasePostProcessor):
     dataMineDict = finishedJob.returnEvaluation()[1]
     for key in dataMineDict['output']:
       for param in output.getParaKeys('output'):
-        if key == param: 
+        if key == param:
           output.removeOutputValue(key)
       if output.type == 'PointSet':
         for value in dataMineDict['output'][key]:
@@ -3643,11 +3643,11 @@ class DataMining(BasePostProcessor):
       @ Out, outputDict, dict, dictionary containing the post-processed results
     """
     if len(self.dataObjects) > 0:
-      if type(self.dataObjects) == list: 
+      if type(self.dataObjects) == list:
         dataObject = self.dataObjects[-1]
       else:
         dataObject = self.dataObjects
-    else: 
+    else:
       dataObject = None
     input = self.inputToInternal(inputIn)
     outputDict = {}
