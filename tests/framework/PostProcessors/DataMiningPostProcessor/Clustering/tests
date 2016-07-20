@@ -66,4 +66,10 @@
     csv    = 'VariationalGMM/dummy.csv'
   	output = 'VariationalGMM/scatter.png'
   [../]
+  [./Agglomerative]
+    type   = 'RavenFramework'
+    input  = 'test_dataMiningAgglomerative.xml'
+    csv    = 'Agglomerative/dummy.csv Agglomerative/info.csv'
+    output = 'Agglomerative/scatter.png'
+  [../]
 []

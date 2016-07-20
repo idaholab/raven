@@ -396,6 +396,22 @@ class SciKitLearn(unSupervisedLearning):
               for center in self.clusterCenters_:
                 center[cnt] = center[cnt] * self.muAndSigmaFeatures[feat][1] + self.muAndSigmaFeatures[feat][0]
             self.outputDict['outputs']['clusterCenters'       ] = self.clusterCenters_
+        if hasattr(self.Method, 'children_'):
+            # this methods is used by agglomerative clustering to generate the cluster centers. Agglomerative
+            # clustering in Sklearn does not in fact compute cluster centers. This if condition computes 
+            # self.outputDict['outputs']['clusterCenters'] for this particular clustering method
+            centroids = np.zeros([self.noClusters,len(self.features)])
+            counter = np.zeros(self.noClusters)
+            for val,index in enumerate(self.Method.labels_):
+              centroids[index] += self.normValues[val]
+              counter[index]+=1 
+            for index,val in enumerate(centroids):
+              centroids[index] = centroids[index]/float(counter[index])
+            for cnt, feat in enumerate(self.features):
+              for center in centroids:
+                center[cnt] = center[cnt] * self.muAndSigmaFeatures[feat][1] + self.muAndSigmaFeatures[feat][0]
+            self.clusterCenters_ = copy.deepcopy(centroids)
+            self.outputDict['outputs']['clusterCenters'] = centroids    
         if hasattr(self.Method, 'cluster_centers_indices_') :
             self.clusterCentersIndices_ = copy.deepcopy(self.Method.cluster_centers_indices_)
             self.outputDict['outputs']['clusterCentersIndices'] = self.clusterCentersIndices_
