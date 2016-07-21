@@ -53,10 +53,6 @@
           <variable name="z0"/>
       </CustomSampler>
       <EnsembleForward name="ensemble">
-          <CustomSampler name="customSamplerFiles">
-              <Source   class="Files"  type="">samples.csv</Source>
-              <variable name="x0"/>
-          </CustomSampler>
           <Grid name="notNeeded">
               <variable name="y0">
                   <distribution>unif</distribution>
@@ -67,6 +63,10 @@
                   <grid construction="custom" type="CDF">0.0 0.5 1.0</grid>
               </variable>
           </Grid>
+          <CustomSampler name="customSamplerFiles">
+              <Source   class="Files"  type="">samples.csv</Source>
+              <variable name="x0"/>
+          </CustomSampler>
       </EnsembleForward>
   </Samplers>
 
