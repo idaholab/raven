@@ -7,7 +7,7 @@
   </RunInfo>
 
   <Files>
-    <Input name="dataFile">./data.csv</Input>
+    <Input name="dataFile">./../KMeans/data.csv</Input>
   </Files>
 
   <Models>

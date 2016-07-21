@@ -397,8 +397,8 @@ class SciKitLearn(unSupervisedLearning):
               for center in self.clusterCenters_:
                 center[cnt] = center[cnt] * self.muAndSigmaFeatures[feat][1] + self.muAndSigmaFeatures[feat][0]
             self.outputDict['outputs']['clusterCenters'       ] = self.clusterCenters_
-        if hasattr(self.Method, 'children_'):
-            # this methods is used by agglomerative clustering to generate the cluster centers. Agglomerative
+        else:            
+            # this methods is used by any other clustering algorithm that does not generatecluster_centers_ to generate the cluster centers. Agglomerative
             # clustering in Sklearn does not in fact compute cluster centers. This if condition computes 
             # self.outputDict['outputs']['clusterCenters'] for this particular clustering method
             centroids = np.zeros([self.noClusters,len(self.features)])
@@ -407,6 +407,8 @@ class SciKitLearn(unSupervisedLearning):
               centroids[index] += self.normValues[val]
               counter[index]+=1 
             for index,val in enumerate(centroids):
+              if counter[index] == 0.:
+                self.raiseAnError(RuntimeError, 'The data-mining clustering method '+ str(self.Method) +' has generated a 0-size cluster' )
               centroids[index] = centroids[index]/float(counter[index])
             for cnt, feat in enumerate(self.features):
               for center in centroids:
