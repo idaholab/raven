@@ -55,11 +55,6 @@
       <Function class="Functions" type="External">maapFunctionSimple</Function>
       <TargetEvaluation class="DataObjects" type="PointSet">adaptiveOutsimple</TargetEvaluation>
       <Convergence forceIteration="False" limit="10" persistence="1" weight="CDF">0.5</Convergence>
-      <HybridSampler type="LimitSurface">
-        <variable name="ZCRU">
-          <distribution>ZCRU_dist</distribution>
-        </variable>
-      </HybridSampler>
       <variable name="TIMELOCA">
         <distribution>TIMELOCA_dist</distribution>
         <grid construction="custom" type="CDF">0.1 0.95</grid>
@@ -68,6 +63,11 @@
         <distribution>AFWOFF_dist</distribution>
         <grid construction="custom" type="CDF">0.2 0.95</grid>
       </variable>
+      <HybridSampler type="LimitSurface">
+          <variable name="ZCRU">
+              <distribution>ZCRU_dist</distribution>
+          </variable>
+      </HybridSampler>
     </AdaptiveDynamicEventTree>
   </Samplers>
 
