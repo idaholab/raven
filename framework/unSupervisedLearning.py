@@ -384,9 +384,15 @@ class SciKitLearn(unSupervisedLearning):
         if hasattr(self.Method, 'n_clusters') :
             self.noClusters = self.Method.n_clusters
             self.outputDict['outputs']['noClusters'           ] = copy.deepcopy(self.noClusters)
+        else:
+            self.outputDict['outputs']['noClusters'           ] = None
         if hasattr(self.Method, 'labels_') :
             self.labels_ = self.Method.labels_
             self.outputDict['outputs']['labels'               ] = copy.deepcopy(self.labels_)
+            labelsIDs = set(self.labels_)
+            if not len(labelsIDs) == self.outputDict['outputs']['noClusters']:
+                self.outputDict['outputs']['noClusters'] = len(labelsIDs)
+                self.noClusters = len(labelsIDs)
         if hasattr(self.Method, 'cluster_centers_') :
             self.clusterCenters_ = copy.deepcopy(self.Method.cluster_centers_)
             ## I hope these arrays are consistently ordered...
@@ -398,7 +404,7 @@ class SciKitLearn(unSupervisedLearning):
                 center[cnt] = center[cnt] * self.muAndSigmaFeatures[feat][1] + self.muAndSigmaFeatures[feat][0]
             self.outputDict['outputs']['clusterCenters'       ] = self.clusterCenters_
         else:            
-            # this methods is used by any other clustering algorithm that does not generatecluster_centers_ to generate the cluster centers. Agglomerative
+            # this methods is used by any other clustering algorithm that does not generatecluster_centers_ to generate the cluster centers. E.g., Agglomerative
             # clustering in Sklearn does not in fact compute cluster centers. This if condition computes 
             # self.outputDict['outputs']['clusterCenters'] for this particular clustering method
             centroids = np.zeros([self.noClusters,len(self.features)])
