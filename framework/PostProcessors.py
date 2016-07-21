@@ -1208,7 +1208,7 @@ class ImportanceRank(BasePostProcessor):
     self.dimensions = []
     self.targetDimensions = []
     self.mvnDistribution = None
-    self.acceptedMetric = ['sensitivityindex','importanceindex','pcaindex','transformation']
+    self.acceptedMetric = ['sensitivityindex','importanceindex','pcaindex','transformation','inversetransformation']
     self.what = self.acceptedMetric # what needs to be computed, default is all
     self.printTag = 'POSTPROCESSOR IMPORTANTANCE RANK'
     self.requiredAssObject = (True,(['Distributions'],[-1]))
@@ -1307,7 +1307,6 @@ class ImportanceRank(BasePostProcessor):
       pca = options['pcaIndex']
       for index,dim in pca:
         outFile.addScalar('pcaIndex',str(dim),index)
-      options.pop('pcaIndex',None)
     if 'transformation' in options.keys():
       outFile.addScalar('transformation','type',self.mvnDistribution.covarianceType)
     if 'inverseTransformation' in options.keys():
@@ -1362,8 +1361,9 @@ class ImportanceRank(BasePostProcessor):
         # Output all metrics to given file
         for what in outputDict.keys():
           if what.lower() in self.acceptedMetric:
+            if what == 'pcaIndex': continue
             self.raiseADebug('Writing parameter rank for metric ' + what)
-            for target in self.targets:
+            for target in outputDict[what].keys():
               if outputExtension != 'csv':
                 output.write('Target,' + target + '\n')
                 output.write('Parameters' + ' ' * maxLength + ''.join([str(item[0]) + ' ' * (maxLength - len(item)) for item in outputDict[what][target]]) + os.linesep)
@@ -1386,8 +1386,9 @@ class ImportanceRank(BasePostProcessor):
     elif output.type in ['PointSet','HistorySet']:
       self.raiseADebug('Dumping output in data object named ' + output.name)
       for what in outputDict.keys():
+        if what == 'pcaIndex': continue
         if what.lower() in self.acceptedMetric:
-          for target in self.targets:
+          for target in outputDict[what].keys():
             self.raiseADebug('Dumping ' + target + '-' + what + '. Metadata name = ' + target + '-' + what + '. Targets stored in ' +  target + '-'  + what)
             output.updateMetadata(target + '-'  + what, outputDict[what][target])
     elif output.type == 'HDF5' : self.raiseAWarning('Output type ' + str(output.type) + ' not yet implemented. Skip it !!!!!')

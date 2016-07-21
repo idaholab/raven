@@ -1,0 +1,17 @@
+Target,y1
+Parameters,z0,x0,y0
+inverseTransformation,7.92760640E-01,-2.28705362E-01,4.61488448E-01
+Target,x1
+Parameters,z0,x0,y0
+inverseTransformation,-1.24563289E-01,5.45843974E-01,4.84489519E-01
+
+Target,y0
+Parameters,y1,x1
+transformation,5.16352350E-01,8.83795712E-01
+Target,x0
+Parameters,y1,x1
+transformation,-2.55894924E-01,9.95717234E-01
+Target,z0
+Parameters,y1,x1
+transformation,8.87007728E-01,-2.27225762E-01
+
