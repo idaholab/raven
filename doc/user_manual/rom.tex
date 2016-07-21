@@ -1,6 +1,6 @@
 \newcommand{\zNormalizationPerformed}[1]
 {
-  \textcolor{red}{\\It is important to NOTICE that RAVEN uses a Z-score normalization of the training data before 
+  \textcolor{red}{\\It is important to NOTE that RAVEN uses a Z-score normalization of the training data before 
   constructing the \textit{#1} ROM:
 \begin{equation}
   \mathit{\mathbf{X}} = \frac{(\mathit{\mathbf{X}}-\mu )}{\sigma }
@@ -11,7 +11,7 @@
 \newcommand{\zNormalizationNotPerformed}[1]
 {
   \textcolor{red}{
-  \\It is important to NOTICE that RAVEN does not pre-normalize the training data before 
+  \\It is important to NOTE that RAVEN does not pre-normalize the training data before 
   constructing the \textit{#1} ROM.}
 }
 
@@ -94,7 +94,7 @@ specified in the attribute \xmlAttr{subType}.
 %
 Note that if an HistorySet is provided in the training step then a temporal ROM is created, i.e. a ROM that generates not a single value prediction of each element indicated in the  \xmlNode{Target} block but its full temporal profile.
 \\ 
-\textcolor{red}{\\\textbf{It is important to notice that RAVEN uses a Z-score normalization of the training data before constructing most of the 
+\textcolor{red}{\\\textbf{It is important to NOTE that RAVEN uses a Z-score normalization of the training data before constructing most of the 
 Reduced Order Models (e.g. most of the SciKitLearn-based ROMs):}}
 \begin{equation}
   \mathit{\mathbf{X}} = \frac{(\mathit{\mathbf{X}}-\mu )}{\sigma }
