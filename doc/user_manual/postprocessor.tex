@@ -321,7 +321,8 @@ points to approximations in the calculation.
 \label{ImportanceRank}
 The \textbf{ImportanceRank} post-processor is specifically used
 to compute sensitivity indices and importance indices with respect to input parameters
-associated with multivariate normal distributions.
+associated with multivariate normal distributions. In addition, the user can also request the transformation
+matrix and the inverse transformation matrix when the PCA reduction is used.
 %
 \ppType{ImportanceRank}{ImportanceRank}
 %
@@ -332,51 +333,56 @@ associated with multivariate normal distributions.
   %
   Currently the quantities available are:
   \begin{itemize}
-    \item \textbf{SensitivityIndex}: used to measure the impact of sensitivities on the model.
-    \item \textbf{ImportanceIndex}: used to measure the impact of sensitivities and input uncertainties on the model.
-    \item \textbf{PCAIndex}: the indices of principal component directions, used to measure the impact
+    \item \xmlString{SensitivityIndex}: used to measure the impact of sensitivities on the model.
+    \item \xmlString{ImportanceIndex}: used to measure the impact of sensitivities and input uncertainties on the model.
+    \item \xmlString{PCAIndex}: the indices of principal component directions, used to measure the impact
     of principal component directions on input covariance matrix.
+    \nb \xmlString{PCAIndex} can be only requested when subnode \xmlNode{latent} is defined in \xmlNode{features}.
     %
   \end{itemize}
    %
-  If all the quantities need to be computed, the user can input in the body of
-  \xmlNode{what} the string ``all''.
-  In addition, the user can request the transformation matrix from this post processor. The transformation matrix
-  is used to map the latent variables in the transformed space to the manifest variables in the original input space.
-  In the following, we will show the user how to request the transformation matrix.
+  If all the quantities need to be computed, the user can input in the body of \xmlNode{what} the string \xmlString{all}.
+  \nb \xmlString{all} equivalent to \xmlString {SensitivityIndex, ImportanceIndex, PCAIndex}.
   %
   %
-  \item \xmlNode{features}, \xmlDesc{comma separated string, required field},
-  lists input parameters on which the previous operations need to be applied.
-  In addition, the user can also specify the \xmlAttr{type} for \xmlNode{features}:
+  In addition, the user can request the transformation matrix (or inverse transformation matrix) from this post processor. The transformation matrix
+  is used to map the latent variables in the transformed space to the manifest variables in the original input space, while the inverse transformation
+  matrix is used to map the manifest variables to the latent variables in the transformed space. In order to let RAVEN to output the transformation matrix
+  (or inverse transformation matrix), the user need to specify \xmlString{transformation} or \xmlString{InverseTransformation} in \xmlNode{what}. In addition,
+  both  \xmlNode{manifest} and \xmlNode{latent} subnodes should be defined in node \xmlNode{features}. 
+  In the following, we will show the user how to request the transformation matrix or the inverse transformation matrix.
+  %
+  %
+  \item \xmlNode{features}, \textit{\textbf{XML node, required parameter}}, used to specify the information for the input variables.
+  In this xml-node, the following xml sub-nodes need to be specified:
     \begin{itemize}
-      \item \xmlAttr{type}, \xmlDesc{optional string attribute}, specifies the type of input variables
-      the default \xmlAttr{type} is \xmlString{''}. Possible values are \xmlString{''} and \xmlString{latent}.
-      \nb \xmlString{latent} indicates the input variables are from the transformed space, i.e. the latent variables.
+      \item \xmlNode{manifest},\xmlDesc{XML node, optional parameter}, used to indicate the input variables belongs to the original input space.
+      It can accept the following child node:
+        \begin{itemize}
+          \item \xmlNode{variables},\xmlDesc{comma separated string, required field}, lists manifest variables.
+          \item \xmlNode{dimensions}, \xmlDesc{comma separated integer, optional field}, lists the dimensions corresponding to the manifest variables.
+          If not provided, the dimensions are determined by the order indices of given manifest variables.
+        \end{itemize}
+      \item \xmlNode{latent},\xmlDesc{XML node, optional parameter}, used to indicate the input variables belongs to the transformed space.
+      It can accept the following child node:
+        \begin{itemize}
+          \item \xmlNode{variables},\xmlDesc{comma separated string, required field}, lists latent variables.
+          \item \xmlNode{dimensions}, \xmlDesc{comma separated integer, optional field}, lists the dimensions corresponding to the latent variables.
+          If not provided, the dimensions are determined by the order indices of given latent variables.
+        \end{itemize}
+      \nb At least one of the subnodes, i.e. \xmlNode{manifest} and \xmlNode{latent} needs to be specified.
     \end{itemize}
-  \nb the \xmlAttr{type} need to be specified only if the transformation matrix is requested. 
-  %
-  \item \xmlNode{targets}, \xmlDesc{comma separated string, required field},
-  lists output responses on which previous operations need to be applied. In addition, this node contains one
-  attribute:
-    \begin{itemize}
-      \item \xmlAttr{type}, \xmlDesc{optional string attribute}, specifies the type of target variables
-      the default \xmlAttr{type} is \xmlString{''}. Possible values are \xmlString{''} and \xmlString{manifest}.
-      \nb \xmlString{manifest} indicates the target variables are from the input space, i.e. the manifest variables.
-    \end{itemize}
-  \nb the \xmlAttr{type} need to be specified only if the transformation matrix is requested. 
-  %
-  \item \xmlNode{dimensions}, \xmlDesc{comma separated integer, optional field},
-  lists the dimensions corresponding to \xmlNode{features}.
-  %
-  \item \xmlNode{targetDimensions}, \xmlDesc{comma separated integer, optional field},
-  lists the  dimensions corresponding to \xmlNode{targets}. This information will be used if the transformation matrix
-  is requested, otherwise ignore this node.
+  % 
+  \item \xmlNode{targets}, \xmlDesc{comma separated string, required field}, lists output responses.
   %
   \item \xmlNode{mvnDistribution}, \xmlDesc{string, required field}, specifies the
   multivariate normal distribution name. The \xmlNode{MultivariateNormal} node must be present.
-  %
 \end{itemize}
+  %
+  %
+  Moreover, if both \xmlNode{manifest} and \xmlNode{latent} are provided, the user can input \xmlString{ManifestSensitivity} in \xmlNode{what}
+  to request the sensitivities for the manifest variables.
+  %
 
 \textbf{Example:}
 \begin{lstlisting}[style=XML,morekeywords={name,subType,debug}]
@@ -385,10 +391,18 @@ associated with multivariate normal distributions.
   <Models>
     ...
     <PostProcessor name='aUserDefinedName' subType='ImportanceRank'>
-      <what>SensitivityIndex,ImportanceIndex</what>
-      <features>x1,x2</features>
+      <what>SensitivityIndex,ImportanceIndex,Transformation, InverseTransformation,ManifestSensitivity</what>
+      <features>
+        <manifest>
+          <variables>x1,x2</variables>
+          <dimensions>1,2</dimensions>
+        </manifest>
+        <latent>
+          <variables>latent_1, latent_2</variables>
+          <dimensions>1,2</dimensions>
+        </latent>
+      </features>
       <targets>y1,y2</targets>
-      <dimensions>1,2<dimensions>
       <mvnDistribution>MVN</mvnDistribution>
     </PostProcessor>
     ...
@@ -396,33 +410,6 @@ associated with multivariate normal distributions.
   ...
 </Simulation>
 \end{lstlisting}
-
-In oder to output the transformation matrix, the user need to input the body of \xmlNode{what} the string
-`transformation'. In addition, the \xmlAttr{type} of \xmlNode{targets} should be \xmlString{manifest}, and the
-\xmlAttr{type} of \xmlNode{features} should be \xmlString{latent}. If \xmlNode{dimensions} and \xmlNode{targetDimensions}
-are not specified, the default order indices of \xmlNode{features} and \xmlNode{targets} will be used, respectively.
-Here is the example:
-
-\textbf{Example:}
-\begin{lstlisting}[style=XML,morekeywords={name,subType,debug}]
-<Simulation>
-  ...
-  <Models>
-    ...
-    <PostProcessor name='aUserDefinedName' subType='ImportanceRank'>
-      <what>transformation</what>
-      <features type='latent'>x1,x2</features>
-      <targets type='manifest'>y1,y2</targets>
-      <dimensions>1,2<dimensions>
-      <targetDimensions>1,2</targetDimensions>
-      <mvnDistribution>MVN</mvnDistribution>
-    </PostProcessor>
-    ...
-  </Models>
-  ...
-</Simulation>
-\end{lstlisting}
-
 
 %%%%% PP SafestPoint %%%%%%%
 \subsubsection{SafestPoint}
