@@ -15,3 +15,13 @@ Target,z0
 Parameters,y1,x1
 transformation,8.87007728E-01,-2.27225762E-01
 
+Target,y
+Parameters,z0,x0,y0
+manifestSensitivity,4.39537754E-01,-1.28237088E-03,3.92980852E-01
+Target,x
+Parameters,z0,x0,y0
+manifestSensitivity,-1.98279412E-01,5.37898073E-01,4.09666903E-01
+Target,z
+Parameters,z0,x0,y0
+manifestSensitivity,3.68371316E-01,3.91162105E-01,7.57814666E-01
+

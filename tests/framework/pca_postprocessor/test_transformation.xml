@@ -13,15 +13,22 @@
   </Files>
 
   <Models>
-    <ExternalModel ModuleToLoad="transform/lorentzAttractor_noK" name="PythonModule" subType="">
+    <ExternalModel ModuleToLoad="lorentzAttractor_noK" name="PythonModule" subType="">
       <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0</variables>
     </ExternalModel>
     <PostProcessor name="test_importantRank" subType="ImportanceRank">
-      <what>transformation</what>
-      <targets type='manifest'>z0,x0,y0</targets>
-      <features type='latent'>y1,x1</features>
-      <dimensions>2,1</dimensions>
-      <targetDimensions>3,1,2</targetDimensions>
+      <what>transformation,inverseTransformation,manifestSEnsitivity,pcaIndex</what>
+      <targets>x,y,z</targets>
+      <features>
+          <manifest>
+              <variables>z0,x0,y0</variables>
+              <dimensions>3,1,2</dimensions>
+          </manifest>
+          <latent>
+              <variables>y1,x1</variables>
+              <dimensions>2,1</dimensions>
+          </latent>
+      </features>
       <mvnDistribution>MVN</mvnDistribution>
     </PostProcessor>
   </Models>

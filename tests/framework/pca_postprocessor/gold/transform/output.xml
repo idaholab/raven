@@ -1,5 +1,10 @@
 <?xml version="1.0" ?>
 <ImportanceRankPP type="Static">
+  <pcaIndex>
+    <x1>0.619823179816</x1>
+    <y1>0.380176820184</y1>
+  </pcaIndex>
+
   <transformation>
     <type>abs</type>
     <y0>
@@ -41,5 +46,29 @@
   <z0>
     <dimension>3</dimension>
   </z0>
+
+  <y>
+    <manifestSensitivity>
+      <z0>0.439537753824</z0>
+      <x0>-0.00128237088267</x0>
+      <y0>0.392980852163</y0>
+    </manifestSensitivity>
+  </y>
+
+  <x>
+    <manifestSensitivity>
+      <z0>-0.198279411527</z0>
+      <x0>0.537898072953</x0>
+      <y0>0.409666903055</y0>
+    </manifestSensitivity>
+  </x>
+
+  <z>
+    <manifestSensitivity>
+      <z0>0.368371315711</z0>
+      <x0>0.391162104735</x0>
+      <y0>0.757814665769</y0>
+    </manifestSensitivity>
+  </z>
 
 </ImportanceRankPP>

@@ -1205,14 +1205,20 @@ class ImportanceRank(BasePostProcessor):
     BasePostProcessor.__init__(self, messageHandler)
     self.targets = []
     self.features = []
+    self.latent = []
+    self.latentDim = []
+    self.manifest = []
+    self.manifestDim = []
     self.dimensions = []
-    self.targetDimensions = []
     self.mvnDistribution = None
-    self.acceptedMetric = ['sensitivityindex','importanceindex','pcaindex','transformation','inversetransformation']
+    self.acceptedMetric = ['sensitivityindex','importanceindex','pcaindex','transformation','inversetransformation','manifestsensitivity']
+    self.all = ['sensitivityindex','importanceindex','pcaindex']
     self.what = self.acceptedMetric # what needs to be computed, default is all
     self.printTag = 'POSTPROCESSOR IMPORTANTANCE RANK'
     self.requiredAssObject = (True,(['Distributions'],[-1]))
     self.transformation = False
+    self.latentSen = False
+    self.reconstructSen = False
 
   def _localWhatDoINeed(self):
     """
@@ -1241,55 +1247,64 @@ class ImportanceRank(BasePostProcessor):
       @ In, xmlNode, xml.etree.ElementTree Element Objects, the xml element node that will be checked against the available options specific to this Sampler
       @ Out, None
     """
-    targetType = ''
-    featureType = ''
     for child in xmlNode:
       if child.tag == 'what':
-        self.what = child.text
-        if self.what == 'all': self.what = self.acceptedMetric
+        what = child.text.strip()
+        if what.lower() == 'all': self.what = self.all
         else:
+          requestMetric = list(var.strip() for var in what.split(','))
           toCalculate = []
-          for metric in self.what.split(','):
-            toCalculate.append(metric.strip())
-            if metric.lower() not in self.acceptedMetric:
-              self.raiseAnError(IOError, 'Importance rank postprocessor asked unknown operation ' + metric + '. Available ' + str(self.acceptedMetric))
+          for metric in requestMetric:
+            if metric.lower() == 'all':
+              toCalculate.extend(self.all)
+            elif metric.lower() in self.acceptedMetric:
+              if metric.lower() not in toCalculate:
+                toCalculate.append(metric.lower())
+              else:
+                self.raiseAWarning('Duplicate calculations',metric,'are removed from XML node <what> in',self.printTag)
+            else:
+              self.raiseAnError(IOError, self.printTag,'asked unknown operation', metric, '. Available',str(self.acceptedMetric))
           self.what = toCalculate
-      if child.tag == 'targets':
-        if 'type' in child.attrib.keys():
-          targetType = child.attrib['type']
-          if targetType.strip() == 'manifest':
-            self.outputTransformMatrix = True
-          elif targetType.strip() == '':
-            self.outputTransformMatrix = False
-          else:
-            self.raiseAnError(IOError, 'type: ' + targetType + ' is not supported for node: ' + str(child.tag))
-        else:
-          self.outputTransformMatrix = False
+      elif child.tag == 'targets':
         self.targets = list(inp.strip() for inp in child.text.strip().split(','))
-      if child.tag == 'features':
-        if 'type' in child.attrib.keys():
-          featureType = child.attrib['type']
-          if featureType.strip() == 'latent':
-            self.transformation = True
-          elif featureType.strip() == '':
-            self.transformation = False
-          else:
-            self.raiseAnError(IOError,'type: ' + str(child.attrib['type']) + ' is unsupported for node: ' + str(child.tag) + '!')
-        self.features = list(inp.strip() for inp in child.text.strip().split(','))
-      if child.tag == 'dimensions':
-        self.dimensions = list(int(inp.strip()) for inp in child.text.strip().split(','))
-      if child.tag == 'targetDimensions':
-        self.targetDimensions = list(int(inp.strip()) for inp in child.text.strip().split(','))
-      if child.tag == 'mvnDistribution':
+      elif child.tag == 'features':
+        for subNode in child:
+          if subNode.tag == 'manifest':
+            for subSubNode in subNode:
+              if subSubNode.tag == 'variables':
+                self.manifest = list(inp.strip() for inp in subSubNode.text.strip().split(','))
+                self.features.extend(self.manifest)
+              elif subSubNode.tag == 'dimensions':
+                self.manifestDim = list(int(inp.strip()) for inp in subSubNode.text.strip().split(','))
+              else:
+                self.raiseAnError(IOError, 'Unrecognized xml node name:',subSubNode.tag,'in',self.printTag)
+          if subNode.tag == 'latent':
+            self.latentSen = True
+            for subSubNode in subNode:
+              if subSubNode.tag == 'variables':
+                self.latent = list(inp.strip() for inp in subSubNode.text.strip().split(','))
+                self.features.extend(self.latent)
+              elif subSubNode.tag == 'dimensions':
+                self.latentDim = list(int(inp.strip()) for inp in subSubNode.text.strip().split(','))
+              else:
+                self.raiseAnError(IOError, 'Unrecognized xml node name:',subSubNode.tag,'in',self.printTag)
+      elif child.tag == 'mvnDistribution':
         self.mvnDistribution = child.text.strip()
-    if not self.dimensions:
-      self.dimensions = range(1,len(self.features)+1)
-      self.raiseAWarning('The dimensions for given features: ' + str(self.features) + ' is not provided! Default dimensions will be used: ' + str(self.dimensions) + '!')
-    if not self.targetDimensions and self.outputTransformMatrix:
-      self.targetDimensions = range(1,len(self.targets)+1)
-      self.raiseAWarning('The dimensions for given targets: ' + str(self.targets) + ' is not provided! Default dimensions will be used: ' + str(self.targetDimensions) + '!')
-    if targetType.strip() == 'manifest' and featureType.strip() != 'latent':
-      self.raiseAnError(IOError, 'Transformation matrix is requested, but the type of features is not specified correctly!')
+      else:
+        self.raiseAnError(IOError, 'Unrecognized xml node name: ' + child.tag + '!')
+    if not self.latentDim and len(self.latent) != 0:
+      self.latentDim = range(1,len(self.latent)+1)
+      self.raiseAWarning('The dimensions for given latent variables: ' + str(self.latent) + ' is not provided! Default dimensions will be used: ' + str(self.latentDim) + ' in ' + self.printTag)
+    if not self.manifestDim and len(self.manifest) !=0:
+      self.manifestDim = range(1,len(self.manifest)+1)
+      self.raiseAWarning('The dimensions for given latent variables: ' + str(self.manifest) + ' is not provided! Default dimensions will be used: ' + str(self.manifestDim) + ' in ' + self.printTag)
+    if not self.features:
+      self.raiseAnError(IOError, 'No variables provided for XML node: features in',self.printTag)
+    if not self.targets:
+      self.raiseAnError(IOError, 'No variables provided for XML node: targets in', self.printTag)
+    if len(self.latent) !=0 and len(self.manifest) !=0:
+      self.reconstructSen = True
+      self.transformation = True
 
   def _localPrintXML(self,outFile,options=None):
     """
@@ -1305,8 +1320,8 @@ class ImportanceRank(BasePostProcessor):
     #pca index is a feature only of target, not with respect to anything else
     if 'pcaIndex' in options.keys():
       pca = options['pcaIndex']
-      for index,dim in pca:
-        outFile.addScalar('pcaIndex',str(dim),index)
+      for var,index,dim in pca:
+        outFile.addScalar('pcaIndex',var,index)
     if 'transformation' in options.keys():
       outFile.addScalar('transformation','type',self.mvnDistribution.covarianceType)
     if 'inverseTransformation' in options.keys():
@@ -1340,7 +1355,7 @@ class ImportanceRank(BasePostProcessor):
       @ Out, None
     """
     parameterSet = list(set(list(self.features)))
-    if finishedJob.returnEvaluation() == -1: self.raiseAnError(RuntimeError, ' No available output to collect (Run probably is not finished yet)')
+    if finishedJob.returnEvaluation() == -1: self.raiseAnError(RuntimeError, ' No available output to collect (Run probably is not finished yet) via',self.printTag)
     outputDict = finishedJob.returnEvaluation()[-1]
     # Output to file
     if isinstance(output, Files.File):
@@ -1458,75 +1473,114 @@ class ImportanceRank(BasePostProcessor):
     # compute sensitivities of targets with respect to features
     featValues = []
     # compute importance rank
-    if not self.outputTransformMatrix:
-      for feat in self.features:
+    if self.latentSen:
+      for feat in self.latent:
         featValues.append(inputDict['features'][feat])
-      sampledFeatMatrix = np.atleast_2d(np.asarray(featValues)).T
-      for target in self.targets:
-        featCoeffs = LinearRegression().fit(sampledFeatMatrix, inputDict['targets'][target]).coef_
-        featWeights = abs(featCoeffs)/np.sum(abs(featCoeffs))
-        senWeightDict[target] = list(zip(self.features,featWeights,self.dimensions))
-        senCoeffDict[target] = featCoeffs
-      for what in self.what:
-        if what.lower() == 'sensitivityindex':
-          what = 'sensitivityIndex'
-          if what not in outputDict.keys(): outputDict[what] = {}
-          for target in self.targets:
+      feats = self.latent
+      self.dimensions = self.latentDim
+    else:
+      for feat in self.manifest:
+        featValues.append(inputDict['features'][feat])
+      feats = self.manifest
+      self.dimensions = self.manifestDim
+    sampledFeatMatrix = np.atleast_2d(np.asarray(featValues)).T
+    for target in self.targets:
+      featCoeffs = LinearRegression().fit(sampledFeatMatrix, inputDict['targets'][target]).coef_
+      featWeights = abs(featCoeffs)/np.sum(abs(featCoeffs))
+      senWeightDict[target] = list(zip(feats,featWeights,self.dimensions))
+      senCoeffDict[target] = featCoeffs
+    for what in self.what:
+      if what.lower() == 'sensitivityindex':
+        what = 'sensitivityIndex'
+        if what not in outputDict.keys(): outputDict[what] = {}
+        for target in self.targets:
+          entries = senWeightDict[target]
+          entries.sort(key=lambda x: x[1],reverse=True)
+          outputDict[what][target] = entries
+      if what.lower() == 'importanceindex':
+        what = 'importanceIndex'
+        if what not in outputDict.keys(): outputDict[what] = {}
+        for target in self.targets:
+          featCoeffs = senCoeffDict[target]
+          featWeights = []
+          if not self.latentSen:
+            for index,feat in enumerate(self.manifest):
+              totDim = self.mvnDistribution.dimension
+              covIndex = totDim * (self.dimensions[index] - 1) + self.dimensions[index] - 1
+              if self.mvnDistribution.covarianceType == 'abs':
+                covTarget = featCoeffs[index] * self.mvnDistribution.covariance[covIndex] * featCoeffs[index]
+              else:
+                covFeature = self.mvnDistribution.covariance[covIndex]*self.mvnDistribution.mu[self.dimensions[index]-1]**2
+                covTarget = featCoeffs[index] * covFeature * featCoeffs[index]
+              featWeights.append(covTarget)
+            featWeights = featWeights/np.sum(featWeights)
+            entries = list(zip(self.manifest,featWeights,self.dimensions))
+            entries.sort(key=lambda x: x[1],reverse=True)
+            outputDict[what][target] = entries
+          # if the features type is 'latent', since latentVariables are used to compute the sensitivities
+          # the covariance for latentVariances are identity matrix
+          else:
             entries = senWeightDict[target]
             entries.sort(key=lambda x: x[1],reverse=True)
             outputDict[what][target] = entries
-        if what.lower() == 'importanceindex':
-          what = 'importanceIndex'
-          if what not in outputDict.keys(): outputDict[what] = {}
-          for target in self.targets:
-            featCoeffs = senCoeffDict[target]
-            featWeights = []
-            if not self.transformation:
-              for index,feat in enumerate(self.features):
-                totDim = self.mvnDistribution.dimension
-                covIndex = totDim * (self.dimensions[index] - 1) + self.dimensions[index] - 1
-                if self.mvnDistribution.covarianceType == 'abs':
-                  covTarget = featCoeffs[index] * self.mvnDistribution.covariance[covIndex] * featCoeffs[index]
-                else:
-                  covFeature = self.mvnDistribution.covariance[covIndex]*self.mvnDistribution.mu[self.dimensions[index]-1]**2
-                  covTarget = featCoeffs[index] * covFeature * featCoeffs[index]
-                featWeights.append(covTarget)
-              featWeights = featWeights/np.sum(featWeights)
-              entries = list(zip(self.features,featWeights,self.dimensions))
-              entries.sort(key=lambda x: x[1],reverse=True)
-              outputDict[what][target] = entries
-            # if the features type is 'latent', since latentVariables are used to compute the sensitivities
-            # the covariance for latentVariances are identity matrix
-            else:
-             entries = senWeightDict[target]
-             entries.sort(key=lambda x: x[1],reverse=True)
-             outputDict[what][target] = entries
-        #calculate PCA index
-        if what.lower() == 'pcaindex':
+      #calculate PCA index
+      if what.lower() == 'pcaindex':
+        if not self.latentSen:
+          self.raiseAWarning('pcaIndex can be not requested because no latent variable is provided!')
+        else:
           what = 'pcaIndex'
           if what not in outputDict.keys(): outputDict[what] = {}
           index = [dim-1 for dim in self.dimensions]
           singularValues = self.mvnDistribution.returnSingularValues(index)
           singularValues = list(singularValues/np.sum(singularValues))
-          entries = list(zip(singularValues,self.dimensions))
-          entries.sort(key=lambda x: x[0],reverse=True)
+          entries = list(zip(self.latent,singularValues,self.dimensions))
+          entries.sort(key=lambda x: x[1],reverse=True)
           outputDict[what] = entries
-    else:
-      index = [dim-1 for dim in self.dimensions]
-      targetIndex = [dim-1 for dim in self.targetDimensions]
-      what = 'transformation'
-      if what not in outputDict.keys(): outputDict[what] = {}
-      transformMatrix = self.mvnDistribution.transformationMatrix(index)
-      for ind,target in enumerate(self.targets):
-        entries = list(zip(self.features,transformMatrix[targetIndex[ind]],self.dimensions))
-        outputDict[what][target] = entries
-      # compute the inverse transformation matrix
-      what = 'inverseTransformation'
-      if what not in outputDict.keys(): outputDict[what] = {}
-      inverseTransformationMatrix = self.mvnDistribution.inverseTransformationMatrix(targetIndex)
-      for ind,feature in enumerate(self.features):
-        entries = list(zip(self.targets,inverseTransformationMatrix[index[ind]],self.targetDimensions))
-        outputDict[what][feature] = entries
+
+      if what.lower() == 'transformation':
+        if self.transformation:
+          what = 'transformation'
+          if what not in outputDict.keys(): outputDict[what] = {}
+          index = [dim-1 for dim in self.latentDim]
+          manifestIndex = [dim-1 for dim in self.manifestDim]
+          transformMatrix = self.mvnDistribution.transformationMatrix(index)
+          for ind,var in enumerate(self.manifest):
+            entries = list(zip(self.latent,transformMatrix[manifestIndex[ind]],self.latentDim))
+            outputDict[what][var] = entries
+        else:
+          self.raiseAnError(IOError,'Unable to output the transformation matrix, please provide both "manifest" and "latent" variables in XML node "features" in',self.printTag)
+      if what.lower() == 'inversetransformation':
+        if self.transformation:
+          what = 'inverseTransformation'
+          if what not in outputDict.keys(): outputDict[what] = {}
+          index = [dim-1 for dim in self.latentDim]
+          manifestIndex = [dim-1 for dim in self.manifestDim]
+          inverseTransformationMatrix = self.mvnDistribution.inverseTransformationMatrix(manifestIndex)
+          for ind,var in enumerate(self.latent):
+            entries = list(zip(self.manifest,inverseTransformationMatrix[index[ind]],self.manifestDim))
+            outputDict[what][var] = entries
+        else:
+          self.raiseAnError(IOError,'Unable to output the inverse transformation matrix, please provide both "manifest" and "latent" variables in XML node "features" in', self.printTag)
+
+      if what.lower() == 'manifestsensitivity':
+        if self.reconstructSen:
+          what = 'manifestSensitivity'
+          if what not in outputDict.keys(): outputDict[what] = {}
+          # compute the inverse transformation matrix
+          index = [dim-1 for dim in self.latentDim]
+          manifestIndex = [dim-1 for dim in self.manifestDim]
+          inverseTransformationMatrix = self.mvnDistribution.inverseTransformationMatrix(manifestIndex)
+          inverseTransformationMatrix = inverseTransformationMatrix[index]
+          # recompute the sensitivities for manifest variables
+          for target in self.targets:
+            latentSen = np.asarray(senCoeffDict[target])
+            manifestSen = list(np.dot(latentSen,inverseTransformationMatrix))
+            entries = list(zip(self.manifest,manifestSen,self.manifestDim))
+            outputDict[what][target] = entries
+        elif self.latentSen:
+          self.raiseAnError(IOError, 'Unable to reconstruct the sensitivities for manifest variables, this is because no manifest variable is provided in',self.printTag)
+        else:
+          self.raiseAWarning('No latent variables, and there is no need to reconstruct the sensitivities for manifest variables!')
 
       # To be implemented
       #if what == 'CumulativeSenitivityIndex':
