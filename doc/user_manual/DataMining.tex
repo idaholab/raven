@@ -580,6 +580,48 @@ DBSCAN can be any shape, as opposed to k-means which assumes that clusters
 	\default{numpy.random}.
 \end{itemize}
 
+\subparagraph{Agglomerative Clustering } \hfill
+\label{subparagraph:agglomerative}
+
+Hierarchical clustering is a general family of clustering algorithms that build nested clusters by merging or splitting them successively. 
+This hierarchy of clusters is represented as a tree (or dendrogram). 
+The root of the tree is the unique cluster that gathers all of the samples, the leaves being the clusters with only one sample. 
+The AgglomerativeClustering object performs a hierarchical clustering using a bottom up approach: each observation starts in its own cluster, 
+and clusters are successively merged together. The linkage criteria determines the metric used for the merge strategy:
+\begin{itemize}
+  \item Ward: it minimizes the sum of squared differences within all clusters. It is a variance-minimizing approach and in this sense 
+is similar to the k-means objective function but tackled with an agglomerative hierarchical approach.
+  \item Maximum or complete linkage: it minimizes the maximum distance between observations of pairs of clusters.
+  \item Average linkage: it minimizes the average of the distances between all observations of pairs of clusters.
+\end{itemize}
+
+AgglomerativeClustering can also scale to large number of samples when it is used jointly with a connectivity matrix, 
+but is computationally expensive when no connectivity constraints are added between samples: it considers at each step all of the possible merges.
+
+\skltype{Agglomerative Clustering}{cluster|Agglomerative}
+\begin{itemize}
+  \item \xmlNode{n\_clusters}, \xmlDesc{int, optional field}, The number of clusters to find. \default{2}
+  \item \xmlNode{connectivity}, \xmlDesc{array like or callable, optional field}, Connectivity matrix. Defines for each sample the neighboring samples
+   following a given structure of the data. This can be a connectivity matrix itself or a callable that transforms the data into a connectivity matrix,
+   such as derived from kneighbors graph. Default is None, i.e, the hierarchical clustering algorithm is unstructured. \default{None}
+  \item \xmlNode{affinity}, \xmlDesc{string or callable, optional field}, Metric used to compute the linkage. Can be ``euclidean'', ``$l1$'', ``$l2$'',
+   ``manhattan'',``cosine'', or ``precomputed''. If linkage is ``ward'', only ``euclidean'' is accepted. \default{euclidean}
+%  \item \xmlNode{memory}, \xmlDesc{Instance of joblib.Memory or string, optional field}, Used to cache the output of the computation of the tree.
+%   By default, no caching is done. If a string is given, it is the path to the caching directory.
+  \item \xmlNode{n\_components}, \xmlDesc{int, optional field}, Number of connected components. If None the number of connected components is estimated
+  from the connectivity matrix. NOTE: This parameter is now directly determined from the connectivity matrix and will be removed in $0.18$.
+%  \item \xmlNode{compute\_full\_tree}, \xmlDesc{bool or 'auto', optional field}, Stop early the construction of the tree at \xmlNode{n\_clusters}.
+%  This is useful to decrease computation time if the number of clusters is not small compared to the number of samples. This option is useful only
+%  when specifying a connectivity matrix. Note also that when varying the number of clusters and using caching, it may be advantageous to compute the full tree.
+  \item \xmlNode{linkage}, \xmlDesc{{ward,complete,average}, optional field}, Which linkage criterion to use. The linkage criterion determines which distance
+  to use between sets of observation. The algorithm will merge the pairs of cluster that minimize this criterion. Ward minimizes the variance of the clusters being merged.
+  Average uses the average of the distances of each observation of the two sets. Complete or maximum linkage uses the maximum distances between all observations
+  of the two sets.. \default{ward}
+%  \item \xmlNode{pooling\_func}, \xmlDesc{callable, optional field}, This combines the values of agglomerated features into a single value, and
+%  should accept an array of shape $[M, N]$ and the keyword argument axis=1, and reduce it to an array of size $[M]$. \default{np.mean}
+\end{itemize}
+
+
 \subparagraph{Clustering performance evaluation} \hfill
 \label{subparagraph:ClusterPerformance}
 

@@ -248,7 +248,7 @@ class SciKitLearn(unSupervisedLearning):
   availImpl['cluster']['MiniBatchKMeans'        ] = (cluster.MiniBatchKMeans        , 'float')  # Mini-Batch K-Means Clustering
   availImpl['cluster']['MeanShift'              ] = (cluster.MeanShift              , 'float')  # Mean Shift Clustering
   availImpl['cluster']['SpectralClustering'     ] = (cluster.SpectralClustering     , 'float')  # Apply clustering to a projection to the normalized laplacian.
-  #  availImpl['cluster']['AgglomerativeClustering'] = (cluster.AgglomerativeClustering, 'float')  # Agglomerative Clustering - Feature of SciKit-Learn version 0.15
+  availImpl['cluster']['Agglomerative'          ] = (cluster.AgglomerativeClustering, 'float')  # Agglomerative Clustering - Feature of SciKit-Learn version 0.15
   #  availImpl['cluster']['FeatureAgglomeration'   ] = (cluster.FeatureAgglomeration   , 'float')  # - Feature of SciKit-Learn version 0.15
   #  availImpl['cluster']['Ward'                   ] = (cluster.Ward                   , 'float')  # Ward hierarchical clustering: constructs a tree and cuts it.
 
@@ -352,7 +352,8 @@ class SciKitLearn(unSupervisedLearning):
       @ Out, None
     """
     if hasattr(self.Method, 'bandwidth'):  # set bandwidth for MeanShift clustering
-      self.initOptionDict['bandwidth'] = cluster.estimate_bandwidth(self.normValues,quantile=0.3)
+      if 'bandwidth' not in self.initOptionDict.keys():
+        self.initOptionDict['bandwidth'] = cluster.estimate_bandwidth(self.normValues,quantile=0.3)
       self.Method.set_params(**self.initOptionDict)
     if hasattr(self.Method, 'connectivity'):  # We need this connectivity if we want to use structured ward
       connectivity = kneighbors_graph(self.normValues, n_neighbors = 10)  # we should find a smart way to define the number of neighbors instead of default constant integer value(10)
@@ -383,9 +384,15 @@ class SciKitLearn(unSupervisedLearning):
         if hasattr(self.Method, 'n_clusters') :
             self.noClusters = self.Method.n_clusters
             self.outputDict['outputs']['noClusters'           ] = copy.deepcopy(self.noClusters)
+        else:
+            self.outputDict['outputs']['noClusters'           ] = None
         if hasattr(self.Method, 'labels_') :
             self.labels_ = self.Method.labels_
             self.outputDict['outputs']['labels'               ] = copy.deepcopy(self.labels_)
+            labelsIDs = set(self.labels_)
+            if not len(labelsIDs) == self.outputDict['outputs']['noClusters']:
+                self.outputDict['outputs']['noClusters'] = len(labelsIDs)
+                self.noClusters = len(labelsIDs)
         if hasattr(self.Method, 'cluster_centers_') :
             self.clusterCenters_ = copy.deepcopy(self.Method.cluster_centers_)
             ## I hope these arrays are consistently ordered...
@@ -396,6 +403,24 @@ class SciKitLearn(unSupervisedLearning):
               for center in self.clusterCenters_:
                 center[cnt] = center[cnt] * self.muAndSigmaFeatures[feat][1] + self.muAndSigmaFeatures[feat][0]
             self.outputDict['outputs']['clusterCenters'       ] = self.clusterCenters_
+        else:            
+            # this methods is used by any other clustering algorithm that does not generatecluster_centers_ to generate the cluster centers. E.g., Agglomerative
+            # clustering in Sklearn does not in fact compute cluster centers. This if condition computes 
+            # self.outputDict['outputs']['clusterCenters'] for this particular clustering method
+            centroids = np.zeros([self.noClusters,len(self.features)])
+            counter = np.zeros(self.noClusters)
+            for val,index in enumerate(self.Method.labels_):
+              centroids[index] += self.normValues[val]
+              counter[index]+=1 
+            for index,val in enumerate(centroids):
+              if counter[index] == 0.:
+                self.raiseAnError(RuntimeError, 'The data-mining clustering method '+ str(self.Method) +' has generated a 0-size cluster' )
+              centroids[index] = centroids[index]/float(counter[index])
+            for cnt, feat in enumerate(self.features):
+              for center in centroids:
+                center[cnt] = center[cnt] * self.muAndSigmaFeatures[feat][1] + self.muAndSigmaFeatures[feat][0]
+            self.clusterCenters_ = copy.deepcopy(centroids)
+            self.outputDict['outputs']['clusterCenters'] = centroids    
         if hasattr(self.Method, 'cluster_centers_indices_') :
             self.clusterCentersIndices_ = copy.deepcopy(self.Method.cluster_centers_indices_)
             self.outputDict['outputs']['clusterCentersIndices'] = self.clusterCentersIndices_
