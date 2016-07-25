@@ -227,7 +227,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       The information is passed back in the dictionary. No information about values that change during the simulation are allowed
       @ In, None
       @ Out, paramDict, dict, dictionary containing the parameter names as keys
-        and each parameter's initial value as the dictionary values
+                              and each parameter's initial value as the dictionary values
     """
     paramDict = {}
     for variable in self.optVars:
@@ -243,7 +243,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       Method used to export to the printer in the base class the additional PERMANENT your local class have
       @ In, None
       @ Out, paramDict, dict, dictionary containing the parameter names as keys
-        and each parameter's initial value as the dictionary values
+                              and each parameter's initial value as the dictionary values
     """
     return {}
 
@@ -254,7 +254,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       The information is passed back in the dictionary
       @ In, None
       @ Out, paramDict, dict, dictionary containing the parameter names as keys
-        and each parameter's initial value as the dictionary values
+                              and each parameter's initial value as the dictionary values
     """
     paramDict = {}
     paramDict['counter_mdlEval'       ] = self.counter['mdlEval']
@@ -275,7 +275,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       current status of the object.
       @ In, None
       @ Out, paramDict, dict, dictionary containing the parameter names as keys
-        and each parameter's initial value as the dictionary values
+                              and each parameter's initial value as the dictionary values
     """
     return {}
 
@@ -283,7 +283,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
       This function should be called every time a clean optimizer is needed. Called before takeAstep in <Step>
       @ In, externalSeeding, int, optional, external seed
-      @ In, solutionExport, DataObject, optional
+      @ In, solutionExport, DataObject, optional, a PointSet to hold the solution
       @ Out, None
     """
     self.counter['mdlEval'] = 0
@@ -310,9 +310,9 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
   def localInitialize(self,solutionExport=None):
     """
-      use this function to add initialization features to the derived class
+      Use this function to add initialization features to the derived class
       it is call at the beginning of each step
-      @ In, solutionExport, DataObject, optional
+      @ In, solutionExport, DataObject, optional, a PointSet to hold the solution
       @ Out, None
     """
     pass # To be overwritten by subclass
@@ -333,18 +333,18 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
   def localStillReady(self,ready, convergence = False): #,lastOutput=None
     """
       Determines if optimizer is ready to provide another input.  If not, and if jobHandler is finished, this will end sampling.
-      @ In, ready, bool, boolean variable indicating whether the caller is prepared for another input.
-      @ In, convergence, boolean variable indicating whether the convergence criteria has been met.
-      @ Out, ready, bool, boolean variable indicating whether the caller is prepared for another input.
+      @ In, ready, bool, variable indicating whether the caller is prepared for another input.
+      @ In, convergence, bool, optional, variable indicating whether the convergence criteria has been met.
+      @ Out, ready, bool, variable indicating whether the caller is prepared for another input.
     """
     return ready # To be overwritten by subclass
 
   def lossFunctionEval(self, optVars):
     """
       Method to evaluate the loss function based on all model evaluation.
-      @ In, optVars, dict containing the values of decision variables to be evaluated
-           optVars should have the form {varName1:[value11, value12,...value1n], varName2:[value21, value22,...value2n]...}
-      @ Out, lossFunctionValue, array, loss function values corresponding to each point in optVars
+      @ In, optVars, dict, dictionary containing the values of decision variables to be evaluated
+                           optVars should have the form {varName1:[value11, value12,...value1n], varName2:[value21, value22,...value2n]...}
+      @ Out, lossFunctionValue, numpy array, loss function values corresponding to each point in optVars
     """
     tempDict = copy.copy(self.mdlEvalHist.getParametersValues('inputs', nodeId = 'RecontructEnding'))
     tempDict.update(self.mdlEvalHist.getParametersValues('outputs', nodeId = 'RecontructEnding'))
@@ -359,8 +359,8 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
   def checkConstraint(self, optVars):
     """
       Method to check whether a set of decision variables satisfy the constraint or not
-      @ In, optVars, dict containing the value of decision variables to be checked, in form of {varName: varValue}
-      @ Out, satisfaction, boolean variable indicating the satisfaction of contraints at the point optVars
+      @ In, optVars, dict, dictionary containing the value of decision variables to be checked, in form of {varName: varValue}
+      @ Out, satisfaction, bool, variable indicating the satisfaction of constraints at the point optVars
     """
     if self.constraintFunction == None:
       satisfaction = True
@@ -372,9 +372,9 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
   def localCheckConstraint(self, optVars, satisfaction = True):
     """
       Local method to check whether a set of decision variables satisfy the constraint or not
-      @ In, optVars, dict containing the value of decision variables to be checked, in form of {varName: varValue}
-      @ In, satisfaction, boolean variable indicating how the caller determines the constraint satisfaction at the point optVars
-      @ Out, satisfaction, boolean variable indicating the satisfaction of constraints at the point optVars
+      @ In, optVars, dict, dictionary containing the value of decision variables to be checked, in form of {varName: varValue}
+      @ In, satisfaction, bool, optional, variable indicating how the caller determines the constraint satisfaction at the point optVars
+      @ Out, satisfaction, bool, variable indicating the satisfaction of constraints at the point optVars
     """
     return satisfaction # To be overwritten by subclass
 
@@ -382,7 +382,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
       Method to check whether the convergence criteria has been met.
       @ In, none,
-      @ Out, convergence, boolean variable indicating whether the convergence criteria has been met.
+      @ Out, convergence, bool, variable indicating whether the convergence criteria has been met.
     """
     if self.counter['varsUpdate'] < 2:
       convergence = False
@@ -397,8 +397,8 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
   def localCheckConvergence(self, convergence = False):
     """
       Local method to check convergence.
-      @ In, convergence, boolean variable indicating how the caller determines the convergence.
-      @ Out, convergence, boolean variable indicating whether the convergence criteria has been met.
+      @ In, convergence, bool, optional, variable indicating how the caller determines the convergence.
+      @ Out, convergence, bool, variable indicating whether the convergence criteria has been met.
     """
     return convergence
 
@@ -407,6 +407,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       Method to generate input for model to run
       @ In, model, model instance, it is the instance of a RAVEN model
       @ In, oldInput, list, a list of the original needed inputs for the model (e.g. list of files, etc. etc)
+      @ Out, generateInput, tuple(int,dict), (1,realization dictionary)
     """
     self.counter['mdlEval'] +=1                              #since we are creating the input for the next run we increase the counter and global counter
     self.inputInfo['prefix'] = str(self.counter['mdlEval'])

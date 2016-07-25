@@ -42,8 +42,7 @@ def returnInstance(Type,caller):
     Attempts to create and return an instance of a particular type of object
     available to this factory.
     @ In, Type, string, string should be one of the knownTypes.
-    @ In, caller, instance, the object requesting the instance
-                  (used for error/debug messaging).
+    @ In, caller, instance, the object requesting the instance (used for error/debug messaging).
     @ Out, returnInstance, instance, subclass object constructed with no arguments
   """
   try:
@@ -56,8 +55,7 @@ def returnClass(Type,caller):
   """
     Attempts to return a particular class type available to this factory.
     @ In, Type, string, string should be one of the knownTypes.
-    @ In, caller, instance, the object requesting the class
-                  (used for error/debug messaging).
+    @ In, caller, instance, the object requesting the class (used for error/debug messaging).
     @ Out, returnClass, class, reference to the subclass
   """
   try:
