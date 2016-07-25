@@ -2,7 +2,6 @@
  [./SPSA]
   type = 'RavenFramework'
   input = 'test_optFSPSA.xml'
-  xml = 'SPSA/mdlDataDump.xml SPSA/optimizationHistoryDump.xml'
   csv = 'SPSA/mdlDataDump.csv SPSA/optimizationHistoryDump.csv'
  [../]
 []
