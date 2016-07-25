@@ -21,13 +21,13 @@ def run(self, Input):
   point_dy = cluster_dy[cluster] + Input['ddy']
 
 
-  self.time = np.zeros(number_of_timesteps)
+  self.Time = np.zeros(number_of_timesteps)
   self.x = np.zeros(number_of_timesteps)
   self.y = np.zeros(number_of_timesteps)
 
   for j in range(number_of_timesteps):
-    time = j*0.1
-    self.time[j] = time
-    cx,cy = point_x+time*point_dx,point_y+time*point_dy
+    Time = j*0.1
+    self.Time[j] = Time
+    cx,cy = point_x+Time*point_dx,point_y+Time*point_dy
     self.x[j] = cx
     self.y[j] = cy

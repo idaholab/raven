@@ -3417,8 +3417,8 @@ class DataMining(BasePostProcessor):
       if currentInput.type in ['HistorySet']:
 
         # FIXME, this needs to be changed for asynchronous HistorySet
-        if self.timeID in currentInput.getParam('output',1).keys():
-          self.Time = currentInput.getParam('output',1)[self.timeID]
+        if self.pivotParameter in currentInput.getParam('output',1).keys():
+          self.Time = currentInput.getParam('output',1)[self.pivotParameter]
         else:
           self.raiseAnError(ValueError, 'Time not found in input historyset')
         # end of FIXME
@@ -3431,7 +3431,7 @@ class DataMining(BasePostProcessor):
           self.raiseAnError(ValueError, 'To perform data mining over input please use SciKitLearn library')
         elif self.initializationOptionDict['KDD']['Features'] in ['output', 'all']:
           features = currentInput.getParaKeys('output')
-          features.remove(self.timeID)
+          features.remove(self.pivotParameter)
         else:
           features = self.initializationOptionDict['KDD']['Features'].split(',')
 
@@ -3546,11 +3546,11 @@ class DataMining(BasePostProcessor):
             self.initializationOptionDict[child.tag][childChild.tag] = dict(childChild.attrib)
           else:
             self.initializationOptionDict[child.tag][childChild.tag] = utils.tryParse(childChild.text)
-      elif child.tag == 'timeID':
-        self.timeID = child.text
+      elif child.tag == 'pivotParameter':
+        self.pivotParameter = child.text
 
-    if not hasattr(self, 'timeID'):
-      self.timeID = 'Time'
+    if not hasattr(self, 'pivotParameter'):
+      self.pivotParameter = 'Time'
 
     if self.type:
       self.unSupervisedEngine = unSupervisedLearning.returnInstance(self.type, self, **self.initializationOptionDict['KDD'])

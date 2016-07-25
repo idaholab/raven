@@ -57,7 +57,7 @@
 
   <Models>
     <ExternalModel ModuleToLoad="../ClusterMoveData/data_generator" name="DataGeneratorModel" subType="">
-      <variables>cluster,dx,dy,ddx,ddy,time,x,y</variables>
+      <variables>cluster,dx,dy,ddx,ddy,Time,x,y</variables>
     </ExternalModel>
     <PostProcessor name='VBGMM1' subType='DataMining'>
       <KDD lib='temporalSciKitLearn' labelFeature='labels'>
@@ -69,7 +69,6 @@
         <n_iter>10000</n_iter>
         <alpha>1</alpha>
       </KDD>
-      <timeID>time</timeID>
     </PostProcessor>
   </Models>
 
@@ -115,26 +114,26 @@
         <gridSpace>2 1</gridSpace>
         <plot>
           <type>line</type>
-          <x>mData|Output|time</x>
+          <x>mData|Output|Time</x>
           <y>mData|Output|x</y>
           <interpPointsX>300</interpPointsX>
           <gridLocation>
             <x>0</x>
             <y>0</y>
           </gridLocation>
-          <xlabel>time</xlabel>
+          <xlabel>Time</xlabel>
           <ylabel>x</ylabel>
         </plot>
         <plot>
           <type>line</type>
-          <x>mData|Output|time</x>
+          <x>mData|Output|Time</x>
           <y>mData|Output|y</y>
           <interpPointsX>300</interpPointsX>
           <gridLocation>
             <x>1</x>
             <y>0</y>
           </gridLocation>
-          <xlabel>time</xlabel>
+          <xlabel>Time</xlabel>
           <ylabel>y</ylabel>
         </plot>
       </plotSettings>
@@ -146,7 +145,7 @@
       <plotSettings>
         <plot>
           <type>line</type>
-          <x>mData|Output|time</x>
+          <x>mData|Output|Time</x>
           <y>mData|Output|labels</y>
           <interpPointsX>300</interpPointsX>
         </plot>
@@ -201,7 +200,7 @@
     </HistorySet>
     <HistorySet name="mData">
       <Input>cluster,dx,dy,ddx,ddy</Input>
-      <Output>time,x,y</Output>
+      <Output>Time,x,y</Output>
     </HistorySet>
   </DataObjects>
 </Simulation>
