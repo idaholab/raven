@@ -1,25 +1,5 @@
 <?xml version="1.0" ?>
 <ImportanceRankPP type="Static">
-  <x2>
-    <dimension>2</dimension>
-  </x2>
-
-  <x3>
-    <dimension>3</dimension>
-  </x3>
-
-  <x1>
-    <dimension>1</dimension>
-  </x1>
-
-  <x4>
-    <dimension>4</dimension>
-  </x4>
-
-  <x5>
-    <dimension>5</dimension>
-  </x5>
-
   <ans>
     <importanceIndex>
       <x5>0.878275386514</x5>
@@ -36,5 +16,15 @@
       <x4>0.0112994350283</x4>
     </sensitivityIndex>
   </ans>
+
+  <dimensions>
+    <manifest>
+      <x1>1</x1>
+      <x2>2</x2>
+      <x3>3</x3>
+      <x4>4</x4>
+      <x5>5</x5>
+    </manifest>
+  </dimensions>
 
 </ImportanceRankPP>

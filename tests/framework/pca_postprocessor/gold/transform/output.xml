@@ -1,5 +1,41 @@
 <?xml version="1.0" ?>
 <ImportanceRankPP type="Static">
+  <y>
+    <manifestSensitivity>
+      <z0>0.439537753824</z0>
+      <y0>0.392980852163</y0>
+      <x0>-0.00128237088267</x0>
+    </manifestSensitivity>
+  </y>
+
+  <x>
+    <manifestSensitivity>
+      <x0>0.537898072953</x0>
+      <y0>0.409666903055</y0>
+      <z0>-0.198279411527</z0>
+    </manifestSensitivity>
+  </x>
+
+  <z>
+    <manifestSensitivity>
+      <y0>0.757814665769</y0>
+      <x0>0.391162104735</x0>
+      <z0>0.368371315711</z0>
+    </manifestSensitivity>
+  </z>
+
+  <dimensions>
+    <latent>
+      <y1>2</y1>
+      <x1>1</x1>
+    </latent>
+    <manifest>
+      <z0>3</z0>
+      <x0>1</x0>
+      <y0>2</y0>
+    </manifest>
+  </dimensions>
+
   <pcaIndex>
     <x1>0.619823179816</x1>
     <y1>0.380176820184</y1>
@@ -34,41 +70,5 @@
       <y0>0.484489519211</y0>
     </x1>
   </inverseTransformation>
-
-  <y0>
-    <dimension>2</dimension>
-  </y0>
-
-  <x0>
-    <dimension>1</dimension>
-  </x0>
-
-  <z0>
-    <dimension>3</dimension>
-  </z0>
-
-  <y>
-    <manifestSensitivity>
-      <z0>0.439537753824</z0>
-      <x0>-0.00128237088267</x0>
-      <y0>0.392980852163</y0>
-    </manifestSensitivity>
-  </y>
-
-  <x>
-    <manifestSensitivity>
-      <z0>-0.198279411527</z0>
-      <x0>0.537898072953</x0>
-      <y0>0.409666903055</y0>
-    </manifestSensitivity>
-  </x>
-
-  <z>
-    <manifestSensitivity>
-      <z0>0.368371315711</z0>
-      <x0>0.391162104735</x0>
-      <y0>0.757814665769</y0>
-    </manifestSensitivity>
-  </z>
 
 </ImportanceRankPP>

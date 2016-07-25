@@ -343,13 +343,12 @@ matrix and the inverse transformation matrix when the PCA reduction is used.
    %
   If all the quantities need to be computed, the user can input in the body of \xmlNode{what} the string \xmlString{all}.
   \nb \xmlString{all} equivalent to \xmlString {SensitivityIndex, ImportanceIndex, PCAIndex}.
-  %
-  %
-  In addition, the user can request the transformation matrix (or inverse transformation matrix) from this post processor. The transformation matrix
+  
+  In order to request the transformation matrix (or inverse transformation matrix) from this post processor,
+  the user need to specify \xmlString{transformation} or \xmlString{InverseTransformation} in \xmlNode{what}. In addition,
+  both  \xmlNode{manifest} and \xmlNode{latent} subnodes should be defined in node \xmlNode{features}. The transformation matrix
   is used to map the latent variables in the transformed space to the manifest variables in the original input space, while the inverse transformation
-  matrix is used to map the manifest variables to the latent variables in the transformed space. In order to let RAVEN to output the transformation matrix
-  (or inverse transformation matrix), the user need to specify \xmlString{transformation} or \xmlString{InverseTransformation} in \xmlNode{what}. In addition,
-  both  \xmlNode{manifest} and \xmlNode{latent} subnodes should be defined in node \xmlNode{features}. 
+  matrix is used to map the manifest variables to the latent variables in the transformed space.
   In the following, we will show the user how to request the transformation matrix or the inverse transformation matrix.
   %
   %

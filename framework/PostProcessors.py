@@ -1317,35 +1317,47 @@ class ImportanceRank(BasePostProcessor):
     #dimension node needs only be set once, but it is given for each index type
     dimDict = None
     settingDim = False
+    #build tree
+    for what in options.keys():
+      if what == 'pcaIndex': continue
+      if what == 'transformation' or what == 'inverseTransformation': continue
+      for target in options[what].keys():
+        valueDict = OrderedDict()
+        for var,index,dim in options[what][target]:
+          valueDict[var] = index
+        outFile.addVector(target,what,valueDict)
+    # output variables and dimensions
+    latentDict = OrderedDict()
+    if self.latentSen:
+      for index,var in enumerate(self.latent):
+        latentDict[var] = self.latentDim[index]
+      outFile.addVector('dimensions','latent',latentDict)
+    manifestDict = OrderedDict()
+    if len(self.manifest) > 0:
+      for index,var in enumerate(self.manifest):
+        manifestDict[var] = self.manifestDim[index]
+      outFile.addVector('dimensions','manifest',manifestDict)
     #pca index is a feature only of target, not with respect to anything else
     if 'pcaIndex' in options.keys():
       pca = options['pcaIndex']
       for var,index,dim in pca:
         outFile.addScalar('pcaIndex',var,index)
     if 'transformation' in options.keys():
-      outFile.addScalar('transformation','type',self.mvnDistribution.covarianceType)
-    if 'inverseTransformation' in options.keys():
-      outFile.addScalar('inverseTransformation','type',self.mvnDistribution.covarianceType)
-    #build tree
-    for what in options.keys():
-      if what == 'pcaIndex': continue
+      what = 'transformation'
+      outFile.addScalar(what,'type',self.mvnDistribution.covarianceType)
       for target in options[what].keys():
         valueDict = OrderedDict()
-        if dimDict is None:
-          dimDict = {}
-          settingDim = True
-        for var,index,dim in options[what][target]:
+        for var, index, dim in options[what][target]:
           valueDict[var] = index
-          if settingDim:
-            dimDict[var] = dim
-        if settingDim:
-          for key, val in dimDict.items():
-            outFile.addScalar(key,'dimension',val)
-          settingDim = False
-        if what == 'transformation' or what == 'inverseTransformation':
-          outFile.addVector(what,target,valueDict)
-        else:
-          outFile.addVector(target,what,valueDict)
+        outFile.addVector(what,target,valueDict)
+    if 'inverseTransformation' in options.keys():
+      what = 'inverseTransformation'
+      outFile.addScalar(what,'type',self.mvnDistribution.covarianceType)
+      for target in options[what].keys():
+        valueDict = OrderedDict()
+        for var, index, dim in options[what][target]:
+          valueDict[var] = index
+        outFile.addVector(what,target,valueDict)
 
   def collectOutput(self,finishedJob, output):
     """
@@ -1576,6 +1588,7 @@ class ImportanceRank(BasePostProcessor):
             latentSen = np.asarray(senCoeffDict[target])
             manifestSen = list(np.dot(latentSen,inverseTransformationMatrix))
             entries = list(zip(self.manifest,manifestSen,self.manifestDim))
+            entries.sort(key=lambda x: abs(x[1]),reverse=True)
             outputDict[what][target] = entries
         elif self.latentSen:
           self.raiseAnError(IOError, 'Unable to reconstruct the sensitivities for manifest variables, this is because no manifest variable is provided in',self.printTag)
