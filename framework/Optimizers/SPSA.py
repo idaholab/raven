@@ -60,7 +60,7 @@ class SPSA(GradientBasedOptimizer):
   def localLocalInitialize(self, solutionExport = None):
     """
       Method to initialize local settings.
-      @ In, solutionExport, DataObject, optional
+      @ In, solutionExport, DataObject, optional, a PointSet to hold the solution
       @ Out, None
     """
     self._endJobRunnable = 1 # batch mode currently not implemented for SPSA
@@ -69,9 +69,9 @@ class SPSA(GradientBasedOptimizer):
   def localLocalStillReady(self, ready, convergence = False):
     """
       Determines if optimizer is ready to provide another input.  If not, and if jobHandler is finished, this will end sampling.
-      @ In, ready, bool, boolean variable indicating whether the caller is prepared for another input.
-      @ In, convergence, boolean variable indicating whether the convergence criteria has been met.
-      @ Out, ready, bool, boolean variable indicating whether the caller is prepared for another input.
+      @ In, ready, bool, variable indicating whether the caller is prepared for another input.
+      @ In, convergence, bool, optional, variable indicating whether the convergence criteria has been met.
+      @ Out, ready, bool, variable indicating whether the caller is prepared for another input.
     """
     if convergence:             ready = False
     else:                       ready = True and ready
@@ -122,20 +122,23 @@ class SPSA(GradientBasedOptimizer):
   def localEvaluateGradient(self, optVarsValues, gradient = None):
     """
       Local method to evaluate gradient.
-      @ In, optVarsValues, Dict containing perturbed points.
-           optVarsValues should have the form {pertIndex: {varName: [varValue1 varValue2]}}
-           Therefore, each optVarsValues[pertIndex] should return a dict of variable values that is sufficient for gradient
-           evaluation for at least one variable (depending on specific optimization algorithm)
-      @ In, gradient, Dict containing gradient estimation by the caller. gradient should have the form {varName: gradEstimation}
-      @ Out, gradient, Dict containing gradient estimation. gradient should have the form {varName: gradEstimation}
+      @ In, optVarsValues, dict, Dictionary containing perturbed points.
+                                 optVarsValues should have the form {pertIndex: {varName: [varValue1 varValue2]}}
+                                 Therefore, each optVarsValues[pertIndex] should return a dict of variable values 
+                                 that is sufficient for gradient evaluation for at least one variable 
+                                 (depending on specific optimization algorithm)
+      @ In, gradient, dict, optional, dictionary containing gradient estimation by the caller. 
+                                      gradient should have the form {varName: gradEstimation}
+      @ Out, gradient, dict, dictionary containing gradient estimation. gradient should have the form {varName: gradEstimation}
     """
     return gradient
 
   def _computeGainSequenceCk(self,paramDict,iterNum):
     """
       Utility function to compute the ck coefficients (gain sequence ck)
-      @ In, None
-      @ Out, an iterator for the gain sequence ck
+      @ In, paramDict, dict, dictionary containing information to compute gain parameter
+      @ In, iterNum, int, current iteration index
+      @ Out, ck, float, current value for gain ck
     """
     c, gamma = paramDict['c'], paramDict['gamma']
     ck = c / (iterNum) ** gamma *1.0
@@ -144,8 +147,9 @@ class SPSA(GradientBasedOptimizer):
   def _computeGainSequenceAk(self,paramDict,iterNum):
     """
       Utility function to compute the ak coefficients (gain sequence ak)
-      @ In, None
-      @ Out, an iterator for the gain sequence ak
+      @ In, paramDict, dict, dictionary containing information to compute gain parameter
+      @ In, iterNum, int, current iteration index
+      @ Out, ak, float, current value for gain ak
     """
     a, A, alpha = paramDict['a'], paramDict['A'], paramDict['alpha']
     ak = a / (iterNum + A) ** alpha *1.0
@@ -154,8 +158,8 @@ class SPSA(GradientBasedOptimizer):
   def localCheckConvergence(self, convergence = False):
     """
       Local method to check convergence.
-      @ In, convergence, boolean variable indicating how the caller determines the convergence.
-      @ Out, convergence, boolean variable indicating whether the convergence criteria has been met.
+      @ In, convergence, bool, optional, variable indicating how the caller determines the convergence.
+      @ Out, convergence, bool, variable indicating whether the convergence criteria has been met.
     """
     return convergence
 
