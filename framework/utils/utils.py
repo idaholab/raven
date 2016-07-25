@@ -474,7 +474,7 @@ def interpolateFunction(x,y,option,z=None,returnCoordinate=False):
     @ Out, i, ndarray or cached_ndarray or tuple, the interpolated values
   """
   options = copy.copy(option)
-  if x.size <= 2: 
+  if x.size <= 2:
     xi = x
   else:
     xi = np.linspace(x.min(),x.max(),int(options['interpPointsX']))
@@ -488,7 +488,7 @@ def interpolateFunction(x,y,option,z=None,returnCoordinate=False):
       if ['nearest','linear','cubic'].count(options['interpolationType']) > 0 or z.size <= 3:
         if options['interpolationType'] != 'nearest' and z.size > 3:
           zi = griddata((x,y), z, (xi[None,:], yi[:,None]), method=options['interpolationType'])
-        else: 
+        else:
           zi = griddata((x,y), z, (xi[None,:], yi[:,None]), method='nearest')
       else:
         rbf = Rbf(x,y,z,function=str(str(options['interpolationType']).replace('Rbf', '')), epsilon=int(options.pop('epsilon',2)), smooth=float(options.pop('smooth',0.0)))
@@ -498,7 +498,7 @@ def interpolateFunction(x,y,option,z=None,returnCoordinate=False):
         print(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('Warning') + '->   The interpolation process failed with error : ' + str(ae) + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ options['interpolationTypeBackUp'])
         options['interpolationTypeBackUp'] = options.pop('interpolationTypeBackUp')
         zi = interpolateFunction(x,y,z,options)
-      else: 
+      else:
         raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('ERROR') + '-> Interpolation failed with error: ' +  str(ae))
     if returnCoordinate: return xig,yig,zi
     else               : return zi

@@ -106,20 +106,20 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
     else            : self.raiseAWarning(' The ground truth labels are not known a priori')
     if metric == None:
       for cnt, feat in enumerate(self.features):
-        if feat not in names: 
+        if feat not in names:
           self.raiseAnError(IOError, ' The feature sought ' + feat + ' is not in the training set')
         else:
           resp = self.checkArrayConsistency(values[names.index(feat)])
           if not resp[0]:
             self.raiseAnError(IOError, ' In training set for feature ' + feat + ':' + resp[1])
-          if self.normValues is None: 
+          if self.normValues is None:
             self.normValues = np.zeros(shape = (values[names.index(feat)].size, len(self.features)))
-          if values[names.index(feat)].size != self.normValues[:, 0].size: 
+          if values[names.index(feat)].size != self.normValues[:, 0].size:
             self.raiseAnError(IOError, ' In training set, the number of values provided for feature ' + feat + ' are != number of target outcomes!')
           self._localNormalizeData(values, names, feat)
-          if self.muAndSigmaFeatures[feat][1] == 0: 
+          if self.muAndSigmaFeatures[feat][1] == 0:
             self.muAndSigmaFeatures[feat] = (self.muAndSigmaFeatures[feat][0], np.max(np.absolute(values[names.index(feat)])))
-          if self.muAndSigmaFeatures[feat][1] == 0: 
+          if self.muAndSigmaFeatures[feat][1] == 0:
             self.muAndSigmaFeatures[feat] = (self.muAndSigmaFeatures[feat][0], 1.0)
           self.normValues[:, cnt] = (values[names.index(feat)] - self.muAndSigmaFeatures[feat][0]) / self.muAndSigmaFeatures[feat][1]
     else:    # metric != None
@@ -139,11 +139,11 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
         print(self.normValues[0])
       else:   # PointSet
         for cnt, feat in enumerate(self.features):
-          if feat not in names: 
+          if feat not in names:
             self.raiseAnError(IOError, ' The feature sought ' + feat + ' is not in the training set')
           else:
             resp = self.checkArrayConsistency(values[names.index(feat)])
-            if not resp[0]: 
+            if not resp[0]:
               self.raiseAnError(IOError, ' In training set for feature ' + feat + ':' + resp[1])
             normValues = np.zeros(shape = (values[names.index(feat)].size, len(self.features)))
             if values[names.index(feat)].size != normValues[:, 0].size:

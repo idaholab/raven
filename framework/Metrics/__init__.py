@@ -1,5 +1,5 @@
 """
-  The Metrics module includes the different type of metrics 
+  The Metrics module includes the different type of metrics
   to measure distance among RAVEN dataobjects
 """
 
