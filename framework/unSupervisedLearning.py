@@ -16,6 +16,7 @@
   2) Manifold Learning,
   3) BiClustering, etc...
 """
+
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
@@ -72,7 +73,7 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
     # booleanFlag that controls the normalization procedure. If true, the normalization is performed. Default = True
     if kwargs != None: self.initOptionDict = kwargs
     else             : self.initOptionDict = {}
-    if 'Labels'       in self.initOptionDict.keys():  # Labels are passed, if known appriori (optional), they used in quality estimate
+    if 'Labels'       in self.initOptionDict.keys():  # Labels are passed, if known a priori (optional), they used in quality estimate
       self.labels = self.initOptionDict['Labels'  ]
       self.initOptionDict.pop('Labels')
     else: self.labels = None
@@ -87,7 +88,8 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
     #these need to be declared in the child classes!!!!
     self.amITrained = False
 
-  def train(self, tdict):
+
+  def train(self, tdict, metric = None):
     """
       Method to perform the training of the unSuperVisedLearning algorithm
       NB.the unSuperVisedLearning object is committed to convert the dictionary that is passed (in), into the local format
@@ -102,17 +104,61 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
       resp = self.checkArrayConsistency(self.labelValues)
       if not resp[0]: self.raiseAnError(IOError, 'In training set for ground truth labels ' + self.labels + ':' + resp[1])
     else            : self.raiseAWarning(' The ground truth labels are not known a priori')
-    for cnt, feat in enumerate(self.features):
-      if feat not in names: self.raiseAnError(IOError, ' The feature sought ' + feat + ' is not in the training set')
-      else:
-        resp = self.checkArrayConsistency(values[names.index(feat)])
-        if not resp[0]: self.raiseAnError(IOError, ' In training set for feature ' + feat + ':' + resp[1])
-        if self.normValues is None: self.normValues = np.zeros(shape = (values[names.index(feat)].size, len(self.features)))
-        if values[names.index(feat)].size != self.normValues[:, 0].size: self.raiseAnError(IOError, ' In training set, the number of values provided for feature ' + feat + ' are != number of target outcomes!')
-        self._localNormalizeData(values, names, feat)
-        if self.muAndSigmaFeatures[feat][1] == 0: self.muAndSigmaFeatures[feat] = (self.muAndSigmaFeatures[feat][0], np.max(np.absolute(values[names.index(feat)])))
-        if self.muAndSigmaFeatures[feat][1] == 0: self.muAndSigmaFeatures[feat] = (self.muAndSigmaFeatures[feat][0], 1.0)
-        self.normValues[:, cnt] = (values[names.index(feat)] - self.muAndSigmaFeatures[feat][0]) / self.muAndSigmaFeatures[feat][1]
+    if metric == None:
+      for cnt, feat in enumerate(self.features):
+        if feat not in names:
+          self.raiseAnError(IOError, ' The feature sought ' + feat + ' is not in the training set')
+        else:
+          resp = self.checkArrayConsistency(values[names.index(feat)])
+          if not resp[0]:
+            self.raiseAnError(IOError, ' In training set for feature ' + feat + ':' + resp[1])
+          if self.normValues is None:
+            self.normValues = np.zeros(shape = (values[names.index(feat)].size, len(self.features)))
+          if values[names.index(feat)].size != self.normValues[:, 0].size:
+            self.raiseAnError(IOError, ' In training set, the number of values provided for feature ' + feat + ' are != number of target outcomes!')
+          self._localNormalizeData(values, names, feat)
+          if self.muAndSigmaFeatures[feat][1] == 0:
+            self.muAndSigmaFeatures[feat] = (self.muAndSigmaFeatures[feat][0], np.max(np.absolute(values[names.index(feat)])))
+          if self.muAndSigmaFeatures[feat][1] == 0:
+            self.muAndSigmaFeatures[feat] = (self.muAndSigmaFeatures[feat][0], 1.0)
+          self.normValues[:, cnt] = (values[names.index(feat)] - self.muAndSigmaFeatures[feat][0]) / self.muAndSigmaFeatures[feat][1]
+    else:    # metric != None
+      if isinstance(tdict[tdict.keys()[0]],dict): #  the dictionary represents an HistorySet
+        # normalize data
+        for key in tdict.keys():
+          for var in tdict[key]:
+            tdict[key][var] = (tdict[key][var]-np.average(tdict[key][var]))/np.std(tdict[key][var])
+
+        cardinality = len(tdict.keys())
+        self.normValues = np.zeros((cardinality,cardinality))
+        keys = tdict.keys()
+        for i in range(cardinality):
+          for j in range(i,cardinality):
+            self.normValues[i][j] = metric.distance(tdict[keys[i]],tdict[keys[j]])
+            self.normValues[j][i] = self.normValues[i][j]
+        print(self.normValues[0])
+      else:   # PointSet
+        for cnt, feat in enumerate(self.features):
+          if feat not in names:
+            self.raiseAnError(IOError, ' The feature sought ' + feat + ' is not in the training set')
+          else:
+            resp = self.checkArrayConsistency(values[names.index(feat)])
+            if not resp[0]:
+              self.raiseAnError(IOError, ' In training set for feature ' + feat + ':' + resp[1])
+            normValues = np.zeros(shape = (values[names.index(feat)].size, len(self.features)))
+            if values[names.index(feat)].size != normValues[:, 0].size:
+              self.raiseAnError(IOError, ' In training set, the number of values provided for feature ' + feat + ' are != number of target outcomes!')
+            self._localNormalizeData(values, names, feat)
+            if self.muAndSigmaFeatures[feat][1] == 0:
+              self.muAndSigmaFeatures[feat] = (self.muAndSigmaFeatures[feat][0], np.max(np.absolute(values[names.index(feat)])))
+            if self.muAndSigmaFeatures[feat][1] == 0:
+              self.muAndSigmaFeatures[feat] = (self.muAndSigmaFeatures[feat][0], 1.0)
+            normValues[:, cnt] = (values[names.index(feat)] - self.muAndSigmaFeatures[feat][0]) / self.muAndSigmaFeatures[feat][1]
+
+            for i in range(cardinality):
+              for j in range(i,cardinality):
+                self.normValues[i][j] = metric.distance(tdict[i],tdict[j])
+                self.normValues[j][i] = self.normValues[i][j]
     self.__trainLocal__()
     self.amITrained = True
 
@@ -202,7 +248,7 @@ class SciKitLearn(unSupervisedLearning):
   availImpl['cluster']['MiniBatchKMeans'        ] = (cluster.MiniBatchKMeans        , 'float')  # Mini-Batch K-Means Clustering
   availImpl['cluster']['MeanShift'              ] = (cluster.MeanShift              , 'float')  # Mean Shift Clustering
   availImpl['cluster']['SpectralClustering'     ] = (cluster.SpectralClustering     , 'float')  # Apply clustering to a projection to the normalized laplacian.
-  #  availImpl['cluster']['AgglomerativeClustering'] = (cluster.AgglomerativeClustering, 'float')  # Agglomerative Clustering - Feature of SciKit-Learn version 0.15
+  availImpl['cluster']['Agglomerative'          ] = (cluster.AgglomerativeClustering, 'float')  # Agglomerative Clustering - Feature of SciKit-Learn version 0.15
   #  availImpl['cluster']['FeatureAgglomeration'   ] = (cluster.FeatureAgglomeration   , 'float')  # - Feature of SciKit-Learn version 0.15
   #  availImpl['cluster']['Ward'                   ] = (cluster.Ward                   , 'float')  # Ward hierarchical clustering: constructs a tree and cuts it.
 
@@ -298,6 +344,7 @@ class SciKitLearn(unSupervisedLearning):
     self.normValues = None
     self.outputDict = {}
 
+
   def __trainLocal__(self):
     """
       Perform training on samples in self.normValues: array, shape = [n_samples, n_features] or [n_samples, n_samples]
@@ -305,7 +352,8 @@ class SciKitLearn(unSupervisedLearning):
       @ Out, None
     """
     if hasattr(self.Method, 'bandwidth'):  # set bandwidth for MeanShift clustering
-      self.initOptionDict['bandwidth'] = cluster.estimate_bandwidth(self.normValues,quantile=0.3)
+      if 'bandwidth' not in self.initOptionDict.keys():
+        self.initOptionDict['bandwidth'] = cluster.estimate_bandwidth(self.normValues,quantile=0.3)
       self.Method.set_params(**self.initOptionDict)
     if hasattr(self.Method, 'connectivity'):  # We need this connectivity if we want to use structured ward
       connectivity = kneighbors_graph(self.normValues, n_neighbors = 10)  # we should find a smart way to define the number of neighbors instead of default constant integer value(10)
@@ -336,9 +384,15 @@ class SciKitLearn(unSupervisedLearning):
         if hasattr(self.Method, 'n_clusters') :
             self.noClusters = self.Method.n_clusters
             self.outputDict['outputs']['noClusters'           ] = copy.deepcopy(self.noClusters)
+        else:
+            self.outputDict['outputs']['noClusters'           ] = None
         if hasattr(self.Method, 'labels_') :
             self.labels_ = self.Method.labels_
             self.outputDict['outputs']['labels'               ] = copy.deepcopy(self.labels_)
+            labelsIDs = set(self.labels_)
+            if not len(labelsIDs) == self.outputDict['outputs']['noClusters']:
+                self.outputDict['outputs']['noClusters'] = len(labelsIDs)
+                self.noClusters = len(labelsIDs)
         if hasattr(self.Method, 'cluster_centers_') :
             self.clusterCenters_ = copy.deepcopy(self.Method.cluster_centers_)
             ## I hope these arrays are consistently ordered...
@@ -349,6 +403,24 @@ class SciKitLearn(unSupervisedLearning):
               for center in self.clusterCenters_:
                 center[cnt] = center[cnt] * self.muAndSigmaFeatures[feat][1] + self.muAndSigmaFeatures[feat][0]
             self.outputDict['outputs']['clusterCenters'       ] = self.clusterCenters_
+        else:            
+            # this methods is used by any other clustering algorithm that does not generatecluster_centers_ to generate the cluster centers. E.g., Agglomerative
+            # clustering in Sklearn does not in fact compute cluster centers. This if condition computes 
+            # self.outputDict['outputs']['clusterCenters'] for this particular clustering method
+            centroids = np.zeros([self.noClusters,len(self.features)])
+            counter = np.zeros(self.noClusters)
+            for val,index in enumerate(self.Method.labels_):
+              centroids[index] += self.normValues[val]
+              counter[index]+=1 
+            for index,val in enumerate(centroids):
+              if counter[index] == 0.:
+                self.raiseAnError(RuntimeError, 'The data-mining clustering method '+ str(self.Method) +' has generated a 0-size cluster' )
+              centroids[index] = centroids[index]/float(counter[index])
+            for cnt, feat in enumerate(self.features):
+              for center in centroids:
+                center[cnt] = center[cnt] * self.muAndSigmaFeatures[feat][1] + self.muAndSigmaFeatures[feat][0]
+            self.clusterCenters_ = copy.deepcopy(centroids)
+            self.outputDict['outputs']['clusterCenters'] = centroids    
         if hasattr(self.Method, 'cluster_centers_indices_') :
             self.clusterCentersIndices_ = copy.deepcopy(self.Method.cluster_centers_indices_)
             self.outputDict['outputs']['clusterCentersIndices'] = self.clusterCentersIndices_

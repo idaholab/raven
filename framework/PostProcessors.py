@@ -80,14 +80,14 @@ class BasePostProcessor(Assembler, MessageHandler.MessageUser):
   def run(self, input):
     """
       This method executes the postprocessor action.
-      @ In,  input, object, object contained the data to process. (inputToInternal output)
+      @ In,  input, object, object containing the data to process. (inputToInternal output)
       @ Out, None
     """
     pass
 
 class LimitSurfaceIntegral(BasePostProcessor):
   """
-    This post-processor is aimed to compute the n-dimensional integral of an inputted Limit Surface
+    This post-processor computes the n-dimensional integral of a Limit Surface
   """
   def __init__(self, messageHandler):
     """
@@ -284,13 +284,13 @@ class SafestPoint(BasePostProcessor):
       @ Out, None
     """
     BasePostProcessor.__init__(self, messageHandler)
-    self.controllableDist = {}  # dictionary created upon the .xml input file reading. It stores the distributions for each controllale variable.
-    self.nonControllableDist = {}  # dictionary created upon the .xml input file reading. It stores the distributions for each non-controllale variable.
+    self.controllableDist = {}  # dictionary created upon the .xml input file reading. It stores the distributions for each controllable variable.
+    self.nonControllableDist = {}  # dictionary created upon the .xml input file reading. It stores the distributions for each non-controllable variable.
     self.controllableGrid = {}  # dictionary created upon the .xml input file reading. It stores the grid type ('value' or 'CDF'), the number of steps and the step length for each controllale variable.
     self.nonControllableGrid = {}  # dictionary created upon the .xml input file reading. It stores the grid type ('value' or 'CDF'), the number of steps and the step length for each non-controllale variable.
-    self.gridInfo = {}  # dictionary contaning the grid type ('value' or 'CDF'), the grid construction type ('equal', set by default) and the list of sampled points for each variable.
-    self.controllableOrd = []  # list contaning the controllable variables' names in the same order as they appear inside the controllable space (self.controllableSpace)
-    self.nonControllableOrd = []  # list contaning the controllable variables' names in the same order as they appear inside the non-controllable space (self.nonControllableSpace)
+    self.gridInfo = {}  # dictionary containing the grid type ('value' or 'CDF'), the grid construction type ('equal', set by default) and the list of sampled points for each variable.
+    self.controllableOrd = []  # list containing the controllable variables' names in the same order as they appear inside the controllable space (self.controllableSpace)
+    self.nonControllableOrd = []  # list containing the controllable variables' names in the same order as they appear inside the non-controllable space (self.nonControllableSpace)
     self.surfPointsMatrix = None  # 2D-matrix containing the coordinates of the points belonging to the failure boundary (coordinates are derived from both the controllable and non-controllable space)
     self.stat = returnInstance('BasicStatistics', self)  # instantiation of the 'BasicStatistics' processor, which is used to compute the expected value of the safest point through the coordinates and probability values collected in the 'run' function
     self.stat.what = ['expectedValue']
@@ -940,12 +940,6 @@ class InterfacedPostProcessor(BasePostProcessor):
       @ Out, None
     """
     BasePostProcessor.initialize(self, runInfo, inputs, initDict)
-     #self.postProcessor.initialize()
-
-     #if self.postProcessor.inputFormat not in set(['HistorySet','PointSet']):
-     #  self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.inputFormat not correctly initialized')
-     #if self.postProcessor.outputFormat not in set(['HistorySet','PointSet']):
-     #  self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.outputFormat not correctly initialized')
 
   def _localReadMoreXML(self, xmlNode):
     """
@@ -961,11 +955,11 @@ class InterfacedPostProcessor(BasePostProcessor):
       self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : not correctly coded; it must inherit the PostProcessorInterfaceBase class')
 
     self.postProcessor.initialize()
+    self.postProcessor.readMoreXML(xmlNode)
     if self.postProcessor.inputFormat not in set(['HistorySet','PointSet']):
       self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.inputFormat not correctly initialized')
     if self.postProcessor.outputFormat not in set(['HistorySet','PointSet']):
       self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.outputFormat not correctly initialized')
-    self.postProcessor.readMoreXML(xmlNode)
 
 
   def run(self, inputIn):
@@ -974,12 +968,21 @@ class InterfacedPostProcessor(BasePostProcessor):
       @ In, inputIn, dict, dictionary of data to process
       @ Out, outputDic, dict, dict containing the post-processed results
     """
+    if self.postProcessor.inputFormat not in set(['HistorySet','PointSet']):
+      self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.inputFormat not correctly initialized')
+    if self.postProcessor.outputFormat not in set(['HistorySet','PointSet']):
+      self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.outputFormat not correctly initialized')
     inputDic= self.inputToInternal(inputIn)
+
     outputDic = self.postProcessor.run(inputDic)
     if self.postProcessor.checkGeneratedDicts(outputDic):
       return outputDic
     else:
-      self.raiseAnError(RuntimeError,'InterfacedPostProcessor Post-Processor: function has generated a not valid output dictionary')
+      self.raiseAnError(RuntimeError,'InterfacedPostProcessor Post-Processor '+ self.name +' : function has generated a not valid output dictionary')
+
+  def _inverse(self, inputIn):
+    outputDic = self.postProcessor._inverse(inputIn)
+    return outputDic
 
   def collectOutput(self, finishedJob, output):
     """
@@ -991,6 +994,7 @@ class InterfacedPostProcessor(BasePostProcessor):
     if finishedJob.returnEvaluation() == -1:
       self.raiseAnError(RuntimeError, ' No available Output to collect (Run probably is not finished yet)')
     evaluation = finishedJob.returnEvaluation()[1]
+
     exportDict = {'inputSpaceParams':evaluation['data']['input'],'outputSpaceParams':evaluation['data']['output'],'metadata':evaluation['metadata']}
 
     listInputParms   = output.getParaKeys('inputs')
@@ -1000,29 +1004,27 @@ class InterfacedPostProcessor(BasePostProcessor):
       for hist in exportDict['inputSpaceParams']:
         if type(exportDict['inputSpaceParams'].values()[0]).__name__ == "dict":
           for key in listInputParms:
-            output.updateInputValue(key,exportDict['inputSpaceParams'][hist][key])
+            output.updateInputValue(key,exportDict['inputSpaceParams'][hist][str(key)])
           for key in listOutputParams:
-            output.updateOutputValue(key,exportDict['outputSpaceParams'][hist][key])
-          for key in exportDict['metadata'][0]:
-            output.updateMetadata(key,exportDict['metadata'][0][key])
+            output.updateOutputValue(key,exportDict['outputSpaceParams'][hist][str(key)])
         else:
           for key in exportDict['inputSpaceParams']:
             if key in output.getParaKeys('inputs'):
               output.updateInputValue(key,exportDict['inputSpaceParams'][key])
           for key in exportDict['outputSpaceParams']:
             if key in output.getParaKeys('outputs'):
-              output.updateOutputValue(key,exportDict['outputSpaceParams'][key])
-          for key in exportDict['metadata'][0]:
-            output.updateMetadata(key,exportDict['metadata'][0][key])
-    elif output.type == 'PointSet':
+              output.updateOutputValue(key,exportDict['outputSpaceParams'][str(key)])
+      for key in exportDict['metadata'][0]:
+        output.updateMetadata(key,exportDict['metadata'][0][key])
+    else:   # output.type == 'PointSet':
       for key in exportDict['inputSpaceParams']:
         if key in output.getParaKeys('inputs'):
           for value in exportDict['inputSpaceParams'][key]:
-            output.updateInputValue(key,value)
+            output.updateInputValue(str(key),value)
       for key in exportDict['outputSpaceParams']:
-        if key in output.getParaKeys('outputs'):
+        if str(key) in output.getParaKeys('outputs'):
           for value in exportDict['outputSpaceParams'][key]:
-            output.updateOutputValue(key,value)
+            output.updateOutputValue(str(key),value)
       for key in exportDict['metadata'][0]:
         output.updateMetadata(key,exportDict['metadata'][0][key])
 
@@ -1040,12 +1042,14 @@ class InterfacedPostProcessor(BasePostProcessor):
     if type(input) == dict:
       return input
     else:
+      if len(input[0]) == 0: self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : The input dataObject named '+input[0].name + ' is empty. Check your input!')
       inputDict['data']['input']  = copy.deepcopy(input[0].getInpParametersValues())
       inputDict['data']['output'] = copy.deepcopy(input[0].getOutParametersValues())
     for item in input:
       metadata.append(copy.deepcopy(item.getAllMetadata()))
     metadata.append(item.getAllMetadata())
     inputDict['metadata']=metadata
+
     return inputDict
 
 #
@@ -1283,8 +1287,8 @@ class ImportanceRank(BasePostProcessor):
     dimDict = None
     settingDim = False
     #pca index is a feature only of target, not with respect to anything else
-    if 'pcaindex' in options.keys():
-      pca = options['pcaindex'].values()[0]
+    if 'pcaIndex' in options.keys():
+      pca = options['pcaIndex'].values()[0]
       for var,index,_ in pca:
         outFile.addScalar(var,'pcaIndex',index)
     #build tree
@@ -1437,13 +1441,16 @@ class ImportanceRank(BasePostProcessor):
       senCoeffDict[target] = featCoeffs
     # compute importance rank
     for what in self.what:
-      if what not in outputDict.keys(): outputDict[what] = {}
       if what.lower() == 'sensitivityindex':
+        what = 'sensitivityIndex'
+        if what not in outputDict.keys(): outputDict[what] = {}
         for target in self.targets:
           entries = senWeightDict[target]
           entries.sort(key=lambda x: x[1],reverse=True)
           outputDict[what][target] = entries
       if what.lower() == 'importanceindex':
+        what = 'importanceIndex'
+        if what not in outputDict.keys(): outputDict[what] = {}
         for target in self.targets:
           featCoeffs = senCoeffDict[target]
           featWeights = []
@@ -1469,6 +1476,8 @@ class ImportanceRank(BasePostProcessor):
            outputDict[what][target] = entries
       #calculate PCA index
       if what.lower() == 'pcaindex':
+        what = 'pcaIndex'
+        if what not in outputDict.keys(): outputDict[what] = {}
         index = [dim-1 for dim in self.dimensions]
         singularValues = self.mvnDistribution.returnSingularValues(index)
         singularValues = list(singularValues/np.sum(singularValues))
@@ -1532,6 +1541,8 @@ class BasicStatistics(BasePostProcessor):
     # each post processor knows how to handle the coming inputs. The BasicStatistics postprocessor accept all the input type (files (csv only), hdf5 and datas
     self.dynamic = False
     currentInput = currentInp [-1] if type(currentInp) == list else currentInp
+    if len(currentInput) == 0: self.raiseAnError(IOError, "In post-processor " +self.name+" the input "+currentInput.name+" is empty.")
+
     if type(currentInput).__name__ =='dict':
       if 'targets' not in currentInput.keys() and 'timeDepData' not in currentInput.keys(): self.raiseAnError(IOError, 'Did not find targets or timeDepData in input dictionary')
       return currentInput
@@ -1616,7 +1627,7 @@ class BasicStatistics(BasePostProcessor):
     """
     # output
     parameterSet = list(set(list(self.parameters['targets'])))
-    if finishedJob.returnEvaluation() == -1: self.raiseAnError(RuntimeError, ' No available Output to collect (Run probabably is not finished yet)')
+    if finishedJob.returnEvaluation() == -1: self.raiseAnError(RuntimeError, ' No available Output to collect (Run probably is not finished yet)')
     outputDictionary = finishedJob.returnEvaluation()[1]
     methodToTest = []
     for key in self.methodsToRun:
@@ -1645,7 +1656,7 @@ class BasicStatistics(BasePostProcessor):
               self.raiseADebug('Dumping variable ' + targetP + '. Parameter: ' + what + '. Metadata name = ' + targetP + '-' + what)
               output.updateMetadata(targetP + '-' + what + appendix, outputDict[what][targetP])
           else:
-            if what not in methodToTest:
+            if what not in methodToTest and len(parameterSet) > 1:
               self.raiseADebug('Dumping matrix ' + what + '. Metadata name = ' + what + '. Targets stored in ' + 'targets-' + what)
               output.updateMetadata('targets-' + what + appendix, parameterSet)
               output.updateMetadata(what.replace("|","-") + appendix, outputDict[what])
@@ -1682,7 +1693,7 @@ class BasicStatistics(BasePostProcessor):
           output.write(what + separator +  separator.join(quantitiesToWrite[what])+os.linesep)
       maxLength = max(len(max(parameterSet, key = len)) + 5, 16)
       for what in outputDict.keys():
-        if what in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity','sensitivity']:
+        if what in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity','sensitivity'] and len(parameterSet) > 1:
           self.raiseADebug('Writing parameter matrix ' + what)
           output.write(os.linesep)
           output.write(what + os.linesep)
@@ -1723,7 +1734,7 @@ class BasicStatistics(BasePostProcessor):
           if stat not in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity'] + methodToTest:
             output.addScalar(target,stat,val[target],pivotVal=pivotVal)
         for stat,val in outputDict.items():
-          if stat in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity']:
+          if stat in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity'] and len(parameterSet) > 1:
             valueDict = {}
             valRow = val[t]
             for p,param in enumerate(parameterSet):
@@ -1968,31 +1979,37 @@ class BasicStatistics(BasePostProcessor):
               outputDict[whatPerc][targetP] = np.percentile(input['targets'][targetP], integerPercentile) if not pbPresent else self._computeWeightedPercentile(input['targets'][targetP],relWeight,percent=float(integerPercentile)/100.0)
       # cov matrix
       if what == 'covariance':
-        feat = np.zeros((len(input['targets'].keys()), utils.first(input['targets'].values()).size))
-        pbWeightsList = [None]*len(input['targets'].keys())
-        for myIndex, targetP in enumerate(parameterSet):
-          feat[myIndex, :] = input['targets'][targetP][:]
-          pbWeightsList[myIndex] = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
-        pbWeightsList.append(pbWeights['realization'])
-        outputDict[what] = self.covariance(feat, weights = pbWeightsList)
+        if len(input['targets'].keys()) < 2:  self.raiseAWarning("The number of targets are < 2 in post-processor named "+ self.name +". Covariance matrix is not computed!")
+        else:
+          feat = np.zeros((len(input['targets'].keys()), utils.first(input['targets'].values()).size))
+          pbWeightsList = [None]*len(input['targets'].keys())
+          for myIndex, targetP in enumerate(parameterSet):
+            feat[myIndex, :] = input['targets'][targetP][:]
+            pbWeightsList[myIndex] = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
+          pbWeightsList.append(pbWeights['realization'])
+          outputDict[what] = self.covariance(feat, weights = pbWeightsList)
       # pearson matrix
       if what == 'pearson':
-        feat          = np.zeros((len(input['targets'].keys()), utils.first(input['targets'].values()).size))
-        pbWeightsList = [None]*len(input['targets'].keys())
-        for myIndex, targetP in enumerate(parameterSet):
-          feat[myIndex, :] = input['targets'][targetP][:]
-          pbWeightsList[myIndex] = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
-        outputDict[what] = self.corrCoeff(feat, weights = pbWeightsList)  # np.corrcoef(feat)
+        if len(input['targets'].keys()) < 2:  self.raiseAWarning("The number of targets are < 2 in post-processor named "+ self.name +". Pearson matrix is not computed!")
+        else:
+          feat          = np.zeros((len(input['targets'].keys()), utils.first(input['targets'].values()).size))
+          pbWeightsList = [None]*len(input['targets'].keys())
+          for myIndex, targetP in enumerate(parameterSet):
+            feat[myIndex, :] = input['targets'][targetP][:]
+            pbWeightsList[myIndex] = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
+          outputDict[what] = self.corrCoeff(feat, weights = pbWeightsList)  # np.corrcoef(feat)
       # sensitivity matrix
       if what == 'sensitivity':
-        for myIndex, target in enumerate(parameterSet):
-          values, targetCoefs = list(input['targets'].values()), list(input['targets'].keys())
-          values.pop(list(input['targets'].keys()).index(target)), targetCoefs.pop(list(input['targets'].keys()).index(target))
-          sampledMatrix = np.atleast_2d(np.asarray(values)).T
-          regressorsByTarget = dict(zip(targetCoefs, LinearRegression().fit(sampledMatrix, input['targets'][target]).coef_))
-          regressorsByTarget[target] = 1.0
-          outputDict[what][myIndex] = np.zeros(len(parameterSet))
-          for cnt, param in enumerate(parameterSet): outputDict[what][myIndex][cnt] = regressorsByTarget[param]
+        if len(input['targets'].keys()) < 2:  self.raiseAWarning("The number of targets are < 2 in post-processor named "+ self.name +". Sensitivity matrix is not computed!")
+        else:
+          for myIndex, target in enumerate(parameterSet):
+            values, targetCoefs = list(input['targets'].values()), list(input['targets'].keys())
+            values.pop(list(input['targets'].keys()).index(target)), targetCoefs.pop(list(input['targets'].keys()).index(target))
+            sampledMatrix = np.atleast_2d(np.asarray(values)).T
+            regressorsByTarget = dict(zip(targetCoefs, LinearRegression().fit(sampledMatrix, input['targets'][target]).coef_))
+            regressorsByTarget[target] = 1.0
+            outputDict[what][myIndex] = np.zeros(len(parameterSet))
+            for cnt, param in enumerate(parameterSet): outputDict[what][myIndex][cnt] = regressorsByTarget[param]
       # VarianceDependentSensitivity matrix
       # The formular for this calculation is coming from: http://www.math.uah.edu/stat/expect/Matrices.html
       # The best linear predictor: L(Y|X) = expectedValue(Y) + cov(Y,X) * [vc(X)]^(-1) * [X-expectedValue(X)]
@@ -2000,46 +2017,50 @@ class BasicStatistics(BasePostProcessor):
       # vc(X) is the covariance matrix of X with itself.
       # The variance dependent sensitivity matrix is defined as: cov(Y,X) * [vc(X)]^(-1)
       if what == 'VarianceDependentSensitivity':
-        feat = np.zeros((len(input['targets'].keys()), utils.first(input['targets'].values()).size))
-        pbWeightsList = [None]*len(input['targets'].keys())
-        for myIndex, targetP in enumerate(parameterSet):
-          feat[myIndex, :] = input['targets'][targetP][:]
-          pbWeightsList[myIndex] = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
-        pbWeightsList.append(pbWeights['realization'])
-        covMatrix = self.covariance(feat, weights = pbWeightsList)
-        for myIndex, targetP in enumerate(parameterSet):
-          targetCoefs = list(parameterSet)
-          targetCoefs.pop(myIndex)
-          inputParameters = np.delete(feat,myIndex,axis=0)
-          inputCovMatrix = np.delete(covMatrix,myIndex,axis=0)
-          inputCovMatrix = np.delete(inputCovMatrix,myIndex,axis=1)
-          outputInputCov = np.delete(covMatrix[myIndex,:],myIndex)
-          sensitivityCoeffDict = dict(zip(targetCoefs,np.dot(outputInputCov, np.linalg.pinv(inputCovMatrix))))
-          sensitivityCoeffDict[targetP] = 1.0
-          outputDict[what][myIndex] = np.zeros(len(parameterSet))
-          for cnt,param in enumerate(parameterSet):
-            outputDict[what][myIndex][cnt] = sensitivityCoeffDict[param]
+        if len(input['targets'].keys()) < 2:  self.raiseAWarning("The number of targets are < 2 in post-processor named "+ self.name +". VarianceDependentSensitivity matrix is not computed!")
+        else:
+          feat = np.zeros((len(input['targets'].keys()), utils.first(input['targets'].values()).size))
+          pbWeightsList = [None]*len(input['targets'].keys())
+          for myIndex, targetP in enumerate(parameterSet):
+            feat[myIndex, :] = input['targets'][targetP][:]
+            pbWeightsList[myIndex] = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
+          pbWeightsList.append(pbWeights['realization'])
+          covMatrix = self.covariance(feat, weights = pbWeightsList)
+          for myIndex, targetP in enumerate(parameterSet):
+            targetCoefs = list(parameterSet)
+            targetCoefs.pop(myIndex)
+            inputParameters = np.delete(feat,myIndex,axis=0)
+            inputCovMatrix = np.delete(covMatrix,myIndex,axis=0)
+            inputCovMatrix = np.delete(inputCovMatrix,myIndex,axis=1)
+            outputInputCov = np.delete(covMatrix[myIndex,:],myIndex)
+            sensitivityCoeffDict = dict(zip(targetCoefs,np.dot(outputInputCov, np.linalg.pinv(inputCovMatrix))))
+            sensitivityCoeffDict[targetP] = 1.0
+            outputDict[what][myIndex] = np.zeros(len(parameterSet))
+            for cnt,param in enumerate(parameterSet):
+              outputDict[what][myIndex][cnt] = sensitivityCoeffDict[param]
       # Normalized variance dependent sensitivity matrix: variance dependent sensitivity  normalized by the mean (% change of output)/(% change of input)
       if what == 'NormalizedSensitivity':
-        feat = np.zeros((len(input['targets'].keys()), utils.first(input['targets'].values()).size))
-        pbWeightsList = [None]*len(input['targets'].keys())
-        for myIndex, targetP in enumerate(parameterSet):
-          feat[myIndex, :] = input['targets'][targetP][:]
-          pbWeightsList[myIndex] = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
-        pbWeightsList.append(pbWeights['realization'])
-        covMatrix = self.covariance(feat, weights = pbWeightsList)
-        for myIndex, targetP in enumerate(parameterSet):
-          targetCoefs = list(parameterSet)
-          targetCoefs.pop(myIndex)
-          inputParameters = np.delete(feat,myIndex,axis=0)
-          inputCovMatrix = np.delete(covMatrix,myIndex,axis=0)
-          inputCovMatrix = np.delete(inputCovMatrix,myIndex,axis=1)
-          outputInputCov = np.delete(covMatrix[myIndex,:],myIndex)
-          sensitivityCoeffDict = dict(zip(targetCoefs,np.dot(outputInputCov, np.linalg.pinv(inputCovMatrix))))
-          sensitivityCoeffDict[targetP] = 1.0
-          outputDict[what][myIndex] = np.zeros(len(parameterSet))
-          for cnt,param in enumerate(parameterSet):
-            outputDict[what][myIndex][cnt] = sensitivityCoeffDict[param]*expValues[cnt]/expValues[myIndex]
+        if len(input['targets'].keys()) < 2:  self.raiseAWarning("The number of targets are < 2 in post-processor named "+ self.name +". NormalizedSensitivity matrix is not computed!")
+        else:
+          feat = np.zeros((len(input['targets'].keys()), utils.first(input['targets'].values()).size))
+          pbWeightsList = [None]*len(input['targets'].keys())
+          for myIndex, targetP in enumerate(parameterSet):
+            feat[myIndex, :] = input['targets'][targetP][:]
+            pbWeightsList[myIndex] = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
+          pbWeightsList.append(pbWeights['realization'])
+          covMatrix = self.covariance(feat, weights = pbWeightsList)
+          for myIndex, targetP in enumerate(parameterSet):
+            targetCoefs = list(parameterSet)
+            targetCoefs.pop(myIndex)
+            inputParameters = np.delete(feat,myIndex,axis=0)
+            inputCovMatrix = np.delete(covMatrix,myIndex,axis=0)
+            inputCovMatrix = np.delete(inputCovMatrix,myIndex,axis=1)
+            outputInputCov = np.delete(covMatrix[myIndex,:],myIndex)
+            sensitivityCoeffDict = dict(zip(targetCoefs,np.dot(outputInputCov, np.linalg.pinv(inputCovMatrix))))
+            sensitivityCoeffDict[targetP] = 1.0
+            outputDict[what][myIndex] = np.zeros(len(parameterSet))
+            for cnt,param in enumerate(parameterSet):
+              outputDict[what][myIndex][cnt] = sensitivityCoeffDict[param]*expValues[cnt]/expValues[myIndex]
     # print on screen
     self.raiseADebug('BasicStatistics ' + str(self.name) + 'pp outputs')
     methodToTest = []
@@ -2056,35 +2077,35 @@ class BasicStatistics(BasePostProcessor):
           msg += '               ' + '* ' + what + ' * ' + '%.8E' % outputDict[what][targetP] + '  *' + os.linesep
           msg += '               ' + '**' + '*' * len(what) + '***' + 6 * '*' + '*' * 8 + '***' + os.linesep
     maxLength = max(len(max(parameterSet, key = len)) + 5, 16)
-    if 'covariance' in outputDict.keys():
+    if 'covariance' in outputDict.keys() and len(parameterSet) > 1:
       msg += ' ' * maxLength + '*****************************' + os.linesep
       msg += ' ' * maxLength + '*         Covariance        *' + os.linesep
       msg += ' ' * maxLength + '*****************************' + os.linesep
       msg += ' ' * maxLength + ''.join([str(item) + ' ' * (maxLength - len(item)) for item in parameterSet]) + os.linesep
       for index in range(len(parameterSet)):
         msg += parameterSet[index] + ' ' * (maxLength - len(parameterSet[index])) + ''.join(['%.8E' % item + ' ' * (maxLength - 14) for item in outputDict['covariance'][index]]) + os.linesep
-    if 'pearson' in outputDict.keys():
+    if 'pearson' in outputDict.keys() and len(parameterSet) > 1:
       msg += ' ' * maxLength + '*****************************' + os.linesep
       msg += ' ' * maxLength + '*    Pearson/Correlation    *' + os.linesep
       msg += ' ' * maxLength + '*****************************' + os.linesep
       msg += ' ' * maxLength + ''.join([str(item) + ' ' * (maxLength - len(item)) for item in parameterSet]) + os.linesep
       for index in range(len(parameterSet)):
         msg += parameterSet[index] + ' ' * (maxLength - len(parameterSet[index])) + ''.join(['%.8E' % item + ' ' * (maxLength - 14) for item in outputDict['pearson'][index]]) + os.linesep
-    if 'VarianceDependentSensitivity' in outputDict.keys():
+    if 'VarianceDependentSensitivity' in outputDict.keys() and len(parameterSet) > 1:
       msg += ' ' * maxLength + '******************************' + os.linesep
       msg += ' ' * maxLength + '*VarianceDependentSensitivity*' + os.linesep
       msg += ' ' * maxLength + '******************************' + os.linesep
       msg += ' ' * maxLength + ''.join([str(item) + ' ' * (maxLength - len(item)) for item in parameterSet]) + os.linesep
       for index in range(len(parameterSet)):
         msg += parameterSet[index] + ' ' * (maxLength - len(parameterSet[index])) + ''.join(['%.8E' % item + ' ' * (maxLength - 14) for item in outputDict['VarianceDependentSensitivity'][index]]) + os.linesep
-    if 'NormalizedSensitivity' in outputDict.keys():
+    if 'NormalizedSensitivity' in outputDict.keys() and len(parameterSet) > 1:
       msg += ' ' * maxLength + '******************************' + os.linesep
       msg += ' ' * maxLength + '* Normalized V.D.Sensitivity *' + os.linesep
       msg += ' ' * maxLength + '******************************' + os.linesep
       msg += ' ' * maxLength + ''.join([str(item) + ' ' * (maxLength - len(item)) for item in parameterSet]) + os.linesep
       for index in range(len(parameterSet)):
         msg += parameterSet[index] + ' ' * (maxLength - len(parameterSet[index])) + ''.join(['%.8E' % item + ' ' * (maxLength - 14) for item in outputDict['NormalizedSensitivity'][index]]) + os.linesep
-    if 'sensitivity' in outputDict.keys():
+    if 'sensitivity' in outputDict.keys() and len(parameterSet) > 1:
       msg += ' ' * maxLength + '******************************' + os.linesep
       msg += ' ' * maxLength + '*        Sensitivity         *' + os.linesep
       msg += ' ' * maxLength + '******************************' + os.linesep
@@ -2294,7 +2315,7 @@ class LimitSurface(BasePostProcessor):
     self.functionValue     = {}               #This a dictionary that contains np vectors with the value for each variable and for the goal function
     self.ROM               = None             #Pointer to a ROM
     self.externalFunction  = None             #Pointer to an external Function
-    self.tolerance         = 1.0e-4           #SubGrid tollerance
+    self.tolerance         = 1.0e-4           #SubGrid tolerance
     self.gridFromOutside   = False            #The grid has been passed from outside (self._initFromDict)?
     self.lsSide            = "negative"       # Limit surface side to compute the LS for (negative,positive,both)
     self.gridEntity        = None
@@ -2395,7 +2416,7 @@ class LimitSurface(BasePostProcessor):
 
   def _initializeLSppROM(self, inp, raiseErrorIfNotFound = True):
     """
-      Method to initialize the LS accelleration rom
+      Method to initialize the LS acceleration rom
       @ In, inp, Data(s) object, data object containing the training set
       @ In, raiseErrorIfNotFound, bool, throw an error if the limit surface is not found
       @ Out, None
@@ -2881,8 +2902,6 @@ class ExternalPostProcessor(BasePostProcessor):
             value = [value]
           for val in value:
             output.updateMetadata(key, val)
-
-      # print(output._dataContainer['inputs'],output._dataContainer['outputs'])
     else:
       self.raiseAnError(IOError, 'Unknown output type: ' + str(output.type))
 
@@ -3376,9 +3395,7 @@ class DataMining(BasePostProcessor):
                                                           ## algorithms the user
                                                           ## wants
 
-    self.requiredAssObject = (True, (['Label'], ['-1']))  ## The Label is
-                                                          ## optional for now
-    self.initializationOptionDict = {}
+    self.requiredAssObject = (True, (['Label','PreProcessor','Metric'], ['-1','-1','-1']))  ## The Label is optional for now
     self.clusterLabels = None
     self.labelAlgorithms = []
     self.solutionExport = None                            ## A data object to
@@ -3388,7 +3405,7 @@ class DataMining(BasePostProcessor):
                                                           ## e.g., cluster
                                                           ## centers or a
                                                           ## projection matrix
-                                                          ## for dimensiionality
+                                                          ## for dimensionality
                                                           ## reduction methods
 
     self.labelFeature = 'labels'                          ## User customizable
@@ -3396,6 +3413,27 @@ class DataMining(BasePostProcessor):
                                                           ## labels associated
                                                           ## to a clustering
                                                           ## algorithm
+
+    self.dataObjects = []
+    self.PreProcessor = None
+    self.metric = None
+
+  def _localWhatDoINeed(self):
+    """
+    This method is a local mirror of the general whatDoINeed method.
+    It is implemented by the samplers that need to request special objects
+    @ In , None, None
+    @ Out, dict, dictionary of objects needed
+    """
+    return {'internal':[(None,'jobHandler')]}
+
+  def _localGenerateAssembler(self,initDict):
+    """Generates the assembler.
+    @ In, initDict, dict, init objects
+    @ Out, None
+    """
+    self.jobHandler = initDict['internal']['jobHandler']
+
 
   def inputToInternal(self, currentInp):
     """
@@ -3408,19 +3446,52 @@ class DataMining(BasePostProcessor):
     if type(currentInp) == list: currentInput = currentInp[-1]
     else                       : currentInput = currentInp
     if type(currentInp) == dict:
-      if 'Features' in currentInput.keys():
-        return
+      if 'Features' in currentInput.keys(): return
+    if isinstance(currentInp, Files.File):
+      if currentInput.subtype == 'csv':
+        self.raiseAnError(IOError, 'CSV File received as an input!')
+    if currentInput.type == 'HDF5':
+      self.raiseAnError(IOError, 'HDF5 Object received as an input!')
+
+    if self.PreProcessor != None:
+      inputDict = {'Features':{}, 'parameters':{}, 'Labels':{}, 'metadata':{}}
+      if self.initializationOptionDict['KDD']['Features'] == 'input':
+        features = currentInput.getParaKeys('input')
+      elif self.initializationOptionDict['KDD']['Features'] == 'output':
+        features = currentInput.getParaKeys('output')
+      else:
+        features = self.initializationOptionDict['KDD']['Features'].split(',')
+
+      tempData = self.PreProcessor.interface.inputToInternal(currentInp)
+
+      preProcessedData = self.PreProcessor.interface.run(tempData)
+
+      if self.initializationOptionDict['KDD']['Features'] == 'input':
+        inputDict['Features'] = copy.deepcopy(preProcessedData['data']['input'])
+      elif self.initializationOptionDict['KDD']['Features'] == 'output':
+        inputDict['Features'] = copy.deepcopy(preProcessedData['data']['output'])
+      else:
+        features = self.initializationOptionDict['KDD']['Features'].split(',')
+        for param in currentInput.getParaKeys('input'):
+           if param in features:
+             inputDict['Features'][param] = copy.deepcopy(preProcessedData['data']['input'][param])
+        for param in currentInput.getParaKeys('output'):
+           if param in features:
+             inputDict['Features'][param] = copy.deepcopy(preProcessedData['data']['output'][param])
+
+      inputDict['metadata'] = currentInput.getAllMetadata()
+
+      return inputDict
 
     inputDict = {'Features':{}, 'parameters':{}, 'Labels':{}, 'metadata':{}}
-    if currentInput.type == 'PointSet':
 
+    if currentInput.type in ['PointSet']:
       ## Get what is available in the data object being operated on
       ## This is potentially more information than we need at the moment, but
       ## it will make the code below easier to read and highlights where objects
       ## are reused more readily
       allInputFeatures = currentInput.getParaKeys('input')
       allOutputFeatures = currentInput.getParaKeys('output')
-
       if self.initializationOptionDict['KDD']['Features'] == 'input':
         for param in allInputFeatures:
           inputDict['Features'][param] = currentInput.getParam('input', param)
@@ -3446,6 +3517,13 @@ class DataMining(BasePostProcessor):
           inputDict['Features'][param] = currentInput.getParam('input', param)
         for param in outParams:
           inputDict['Features'][param] = currentInput.getParam('output', param)
+    elif currentInput.type in ['HistorySet']:
+      if self.initializationOptionDict['KDD']['Features'] == 'input':
+        for param in currentInput.getParaKeys('input'):
+          inputDict['Features'][param] = currentInput.getParam('input', param)
+      elif self.initializationOptionDict['KDD']['Features'] == 'output':
+        inputDict['Features'] = currentInput.getOutParametersValues()
+      inputDict['metadata'] = currentInput.getAllMetadata()
 
       inputDict['metadata'] = currentInput.getAllMetadata()
     ## Redundant if-conditional preserved as a placeholder for potential future
@@ -3464,19 +3542,30 @@ class DataMining(BasePostProcessor):
       @ In, initDict, dict, dictionary with initialization options
       @ Out, None
     """
+
     BasePostProcessor.initialize(self, runInfo, inputs, initDict)
     self.__workingDir = runInfo['WorkingDir']
+
     if 'Label' in self.assemblerDict:
-      for val in self.assmeblerDict['Label']:
+      for val in self.assemblerDict['Label']:
         self.labelAlgorithms.append(val[3])
 
     if "SolutionExport" in initDict:
       self.solutionExport = initDict["SolutionExport"]
 
+    if "PreProcessor" in self.assemblerDict:
+       self.PreProcessor = self.assemblerDict['PreProcessor'][0][3]
+       if not '_inverse' in dir(self.PreProcessor.interface):
+         self.raiseAnError(IOError, 'PostProcessor ' + self.name + ' is using a pre-processor where the method inverse has not implemented')
+
+
+    if 'Metric' in self.assemblerDict:
+      self.metric = self.assemblerDict['Metric'][0][3]
+
   def _localReadMoreXML(self, xmlNode):
     """
-      Function to read the portion of the xml input that belongs to this specialized class
-      and initialize some stuff based on the inputs got
+      Function that reads the portion of the xml input that belongs to this specialized class
+      and initializes some elements based on the inputs got
       @ In, xmlNode, xml.etree.Element, Xml element node
       @ Out, None
     """
@@ -3484,6 +3573,7 @@ class DataMining(BasePostProcessor):
     ## postprocessor, but that name is not available before processing the XML
     ## At this point, we have that information
     self.labelFeature = self.name+'Labels'
+    self.initializationOptionDict = {}
 
     for child in xmlNode:
       if child.tag == 'KDD':
@@ -3504,7 +3594,7 @@ class DataMining(BasePostProcessor):
           self.initializationOptionDict[child.tag] = utils.tryParse(child.text)
 
         for childChild in child:
-          if childChild.attrib:
+          if childChild.attrib and not childChild.tag == 'PreProcessor':
             self.initializationOptionDict[child.tag][childChild.tag] = dict(childChild.attrib)
           else:
             self.initializationOptionDict[child.tag][childChild.tag] = utils.tryParse(childChild.text)
@@ -3531,11 +3621,19 @@ class DataMining(BasePostProcessor):
 
     dataMineDict = finishedJob.returnEvaluation()[1]
     for key in dataMineDict['output']:
-      ## This seems inefficient...
-      if key in output.getParaKeys('output'):
-        output.removeOutputValue(key)
-      for value in dataMineDict['output'][key]:
-        output.updateOutputValue(key, copy.copy(value))
+      for param in output.getParaKeys('output'):
+        if key == param:
+          output.removeOutputValue(key)
+      if output.type == 'PointSet':
+        for value in dataMineDict['output'][key]:
+          output.updateOutputValue(key, copy.copy(value))
+      elif output.type == 'HistorySet':
+        for index,value in np.ndenumerate(dataMineDict['output'][key]):
+          firstHist = output._dataContainer['outputs'].keys()[0]
+          firstVar  = output._dataContainer['outputs'][firstHist].keys()[0]
+          timeLength = output._dataContainer['outputs'][firstHist][firstVar].size
+          arrayBase = value * np.ones(timeLength)
+          output.updateOutputValue([index[0]+1,key], arrayBase)
 
   def run(self, inputIn):
     """
@@ -3544,14 +3642,18 @@ class DataMining(BasePostProcessor):
       @ In, inputIn, dict, dictionary of data to process
       @ Out, outputDict, dict, dictionary containing the post-processed results
     """
-
+    if len(self.dataObjects) > 0:
+      if type(self.dataObjects) == list:
+        dataObject = self.dataObjects[-1]
+      else:
+        dataObject = self.dataObjects
+    else:
+      dataObject = None
     input = self.inputToInternal(inputIn)
-
     outputDict = {}
     self.unSupervisedEngine.features = input['Features']
     if not self.unSupervisedEngine.amITrained:
-      self.unSupervisedEngine.train(input['Features'])
-
+      self.unSupervisedEngine.train(input['Features'], self.metric)
     self.unSupervisedEngine.confidence()
     outputDict['output'] = {}
     noClusters = 1
@@ -3573,7 +3675,7 @@ class DataMining(BasePostProcessor):
       ## Get the cluster labels and store as a new column in the output
       if hasattr(self.unSupervisedEngine, 'labels_'):
         self.clusterLabels = self.unSupervisedEngine.labels_
-      outputDict['output'][self.labelFeature] = self.clusterLabels;
+      outputDict['output'][self.labelFeature] = self.clusterLabels
 
       ## Get the total number of clusters
       if hasattr(self.unSupervisedEngine, 'noClusters'):
@@ -3586,21 +3688,42 @@ class DataMining(BasePostProcessor):
       ## to match them.
       if hasattr(self.unSupervisedEngine, 'clusterCenters_'):
         centers = self.unSupervisedEngine.clusterCenters_
-        ## Does skl not provide a correlation between label ids and cluster
-        ## centers?
+        ## Does skl not provide a correlation between label ids and cluster centers?
         if hasattr(self.unSupervisedEngine, 'clusterCentersIndices_'):
           indices = self.unSupervisedEngine.clusterCentersIndices_
         else:
           indices = list(range(len(centers)))
 
         if self.solutionExport is not None:
-          for index,center in zip(indices,centers):
-            self.solutionExport.updateInputValue(self.labelFeature,index)
-            ## Can I be sure of the order of dimensions in the features dict, is
-            ## the same order as the data held in the UnSupervisedLearning
-            ## object?
-            for key,value in zip(self.unSupervisedEngine.features.keys(),center):
-              self.solutionExport.updateOutputValue(key,value)
+          if self.PreProcessor is None:
+            for index,center in zip(indices,centers):
+              self.solutionExport.updateInputValue(self.labelFeature,index)
+              ## Can I be sure of the order of dimensions in the features dict, is
+              ## the same order as the data held in the UnSupervisedLearning object?
+              for key,value in zip(self.unSupervisedEngine.features.keys(),center):
+                self.solutionExport.updateOutputValue(key,value)
+          else:
+            # if a pre-processor is used it is here assumed that the pre-processor has internally a
+            # method (called "inverse") which converts the cluster centers back to their original format. If this method
+            # does not exist a warning will be generated
+            tempDict = {}
+            for index,center in zip(indices,centers):
+              tempDict[index] = center
+            centers = self.PreProcessor.interface._inverse(tempDict)
+
+            for index,center in zip(indices,centers):
+              self.solutionExport.updateInputValue(self.labelFeature,index)
+
+            listOutputParams = self.solutionExport.getParaKeys('outputs')
+            if self.solutionExport.type == 'HistorySet':
+              for hist in centers.keys():
+                for key in centers[hist].keys():
+                  self.solutionExport.updateOutputValue(key,centers[hist][key])
+            else:
+              for key in centers.keys():
+                if key in self.solutionExport.getParaKeys('outputs'):
+                  for value in centers[key]:
+                    self.solutionExport.updateOutputValue(key,value)
 
       if hasattr(self.unSupervisedEngine, 'inertia_'):
         inertia = self.unSupervisedEngine.inertia_

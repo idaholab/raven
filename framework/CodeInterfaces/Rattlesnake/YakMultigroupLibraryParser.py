@@ -71,7 +71,7 @@ class YakMultigroupLibraryParser():
           self._readAdditionalYakXS(mgLib,mgDict[mgLib.attrib['ID']])
           self._checkYakXS(mgDict[mgLib.attrib['ID']],mgDictKeys[mgLib.attrib['ID']])
       else:
-        msg = 'In YakMultigroupLibraryParser, root element of XS file is always ' + self.rootElement + ';\n'
+        msg = 'In YakMultigroupLibraryParser, root element of XS file is always ' + self.level0Element + ';\n'
         msg = msg + 'while the given XS file has different root element: ' + root.tag + "!"
         raise IOError(msg)
 
@@ -644,9 +644,7 @@ class YakMultigroupLibraryParser():
           libsKey = self.filesMap[inFile.getFilename()]
           if libsKey not in self.aliases.keys(): continue
           outFiles[inFile.getAbsFile()] = libsKey
-
     for outFile,libsKey in outFiles.items():
-      newFile = open(outFile,'w')
       tree = self.xmlsDict[libsKey]
       if libsKey not in self.aliases.keys(): continue
       root = tree.getroot()
@@ -662,7 +660,7 @@ class YakMultigroupLibraryParser():
                 mat = subNode.attrib['Name']
                 if mat not in self.aliases[libsKey][libID][gridIndex].keys(): continue
                 self._replaceXMLNodeText(subNode,self.pertLib[libsKey][libID][gridIndex][mat])
-
+      newFile = open(outFile,'w')
       toWrite = self._prettify(tree)
       newFile.writelines(toWrite)
       newFile.close()

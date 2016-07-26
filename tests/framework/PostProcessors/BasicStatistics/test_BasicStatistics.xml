@@ -2,7 +2,7 @@
 <Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>basicStatisticsGeneral</WorkingDir>
-    <Sequence>FirstMRun,PP1,PP2,PP3,PP4,PP5</Sequence>
+    <Sequence>FirstMRun,PP1,PP2,PP3,PP4,PP5,PP6</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
@@ -13,6 +13,7 @@
     <Input name="output_basicStatistics_PP3.csv" type="">output_basicStatistics_PP3.csv</Input>
     <Input name="output_basicStatistics_PP4.csv" type="">output_basicStatistics_PP4.csv</Input>
     <Input name="output_basicStatistics_PP5.csv" type="">output_basicStatistics_PP5.csv</Input>
+    <Input name="output_basicStatistics_PP6.csv" type="">output_basicStatistics_PP6.csv</Input>
   </Files>
 
   <Models>
@@ -40,6 +41,10 @@
     <PostProcessor name="InputOutput" subType="BasicStatistics" verbosity="debug">
       <what>all</what>
       <parameters>x0,x01,y0,y02</parameters>
+    </PostProcessor>
+    <PostProcessor name="checkIfMatrixCanBeComputed" subType="BasicStatistics" verbosity="debug">
+        <what>all</what>
+        <parameters>x</parameters>
     </PostProcessor>
     <PostProcessor name="CreateInfinity" subType="BasicStatistics" verbosity="debug">
       <what>all</what>
@@ -118,6 +123,11 @@
       <Input class="DataObjects" type="PointSet">PointSetPostProcTest</Input>
       <Model class="Models" type="PostProcessor">CreateInfinity</Model>
       <Output class="Files" type="">output_basicStatistics_PP5.csv</Output>
+    </PostProcess>
+    <PostProcess name="PP6">
+        <Input class="DataObjects" type="PointSet">PointSetPostProcTest</Input>
+        <Model class="Models" type="PostProcessor">checkIfMatrixCanBeComputed</Model>
+        <Output class="Files" type="">output_basicStatistics_PP6.csv</Output>
     </PostProcess>
   </Steps>
 

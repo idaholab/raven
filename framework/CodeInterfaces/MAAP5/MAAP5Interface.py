@@ -23,11 +23,11 @@ import sys
 class MAAP5(GenericCode):
   def _readMoreXML(self,xmlNode):
     """
-    Function to read the portion of the xml input that belongs to this specialized class and initialize
-    some members based on inputs. This can be overloaded in specialize code interface in order to
-    read specific flags
-    @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
-    @ Out, None.
+      Function to read the portion of the xml input that belongs to this specialized class and initialize
+      some members based on inputs. This can be overloaded in specialize code interface in order to
+      read specific flags
+      @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
+      @ Out, None.
     """
     GenericCode._readMoreXML(self,xmlNode)
     self.include=''
@@ -55,13 +55,13 @@ class MAAP5(GenericCode):
 
   def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
     """
-    This method is used to generate an input based on the information passed in.
-    @ In, currentInputFiles, list,  list of current input files (input files from last this method call)
-    @ In, oriInputFiles, list, list of the original input files
-    @ In, samplerType, string, Sampler type (e.g. MonteCarlo, Adaptive, etc. see manual Samplers section)
-    @ In, Kwargs, dictionary, kwarded dictionary of parameters. In this dictionary there is another dictionary called "SampledVars"
-          where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
-    @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
+      This method is used to generate an input based on the information passed in.
+      @ In, currentInputFiles, list,  list of current input files (input files from last this method call)
+      @ In, oriInputFiles, list, list of the original input files
+      @ In, samplerType, string, Sampler type (e.g. MonteCarlo, Adaptive, etc. see manual Samplers section)
+      @ In, Kwargs, dictionary, kwarded dictionary of parameters. In this dictionary there is another dictionary called "SampledVars"
+            where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
+      @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
     """
     self.samplerType=samplerType
     if 'DynamicEventTree' in samplerType:
@@ -72,17 +72,17 @@ class MAAP5(GenericCode):
 
   def oriInput(self, oriInputFiles):
     """
-    ONLY IN CASE OF DET SAMPLER!
-    This function read the original input file and the include file
-    specified by the user into 'includeForTimer' block. In the input file,
-    the method looks for the MAAP5 'END TIME' and 'PRINT INTERVAL'
-    variables, it lists the DET sampled variables and the HYBRID ones,
-    their default values. It checks that at least one branching exists, and
-    that one branching condition exists for each of the DET sampled variables.
-    The include file is also read looking for the timer defined for each DET sampled
-    variable.
-    @ In, oriInputFiles, list, list of all the original input files
-    @ Out, None
+      ONLY IN CASE OF DET SAMPLER!
+      This function read the original input file and the include file
+      specified by the user into 'includeForTimer' block. In the input file,
+      the method looks for the MAAP5 'END TIME' and 'PRINT INTERVAL'
+      variables, it lists the DET sampled variables and the HYBRID ones,
+      their default values. It checks that at least one branching exists, and
+      that one branching condition exists for each of the DET sampled variables.
+      The include file is also read looking for the timer defined for each DET sampled
+      variable.
+      @ In, oriInputFiles, list, list of all the original input files
+      @ Out, None
     """
     self.lineTimerComplete=[] #list of all the timer (one for each DET sampled variables)
     self.DETsampledVars = [] #list of RAVEN DET sampled variables
@@ -195,12 +195,12 @@ class MAAP5(GenericCode):
 
   def restart(self,currentInputFiles, parentName):
     """
-    ONLY IN CASE OF DET SAMPLER!
-    This method reads the input file and, for each branch, changes
-    the value of the RESTART TIME and RESTART FILE to be used
-    @ In, currentInputFiles, list, list of all the current input files
-    @ In, parentName, string, name of the parent branch
-    @ Out, input file modified according to the correct restart set
+      ONLY IN CASE OF DET SAMPLER!
+      This method reads the input file and, for each branch, changes
+      the value of the RESTART TIME and RESTART FILE to be used
+      @ In, currentInputFiles, list, list of all the current input files
+      @ In, parentName, string, name of the parent branch
+      @ Out, input file modified according to the correct restart set
     """
     correctRestart='' #is the correct line for the restart time definition
     newLine=''
@@ -275,17 +275,17 @@ class MAAP5(GenericCode):
 
   def finalizeCodeOutput(self, command, output, workingDir):
     """
-    finalizeCodeOutput checks MAAP csv files and looks for iEvents and
-    continous variables we specified in < boolMaapOutputVariables> and
-    contMaapOutputVairables> sections of RAVEN_INPUT.xml file. Both
-    < boolMaapOutputVariables> and <contMaapOutputVairables> should be
-    contained into csv MAAP csv file
-    In case of DET sampler, if a new branching condition is met, the
-    method writes the xml for creating the two new branches.
-    @ In, command, string, the command used to run the just ended job
-    @ In, output, string, the Output name root
-    @ In, workingDir, string, current working dir
-    @ Out, output, string, output csv file containing the variables of interest specified in the input
+      finalizeCodeOutput checks MAAP csv files and looks for iEvents and
+      continous variables we specified in < boolMaapOutputVariables> and
+      contMaapOutputVairables> sections of RAVEN_INPUT.xml file. Both
+      < boolMaapOutputVariables> and <contMaapOutputVairables> should be
+      contained into csv MAAP csv file
+      In case of DET sampler, if a new branching condition is met, the
+      method writes the xml for creating the two new branches.
+      @ In, command, string, the command used to run the just ended job
+      @ In, output, string, the Output name root
+      @ In, workingDir, string, current working dir
+      @ Out, output, string, output csv file containing the variables of interest specified in the input
     """
     csvSimulationFiles=[]
     realOutput=output.split("out~")[1] #rootname of the simulation files
@@ -382,13 +382,13 @@ class MAAP5(GenericCode):
 
   def branchXml(self, tilast,Dict,inputFile,dataDict):
     """
-    ONLY FOR DET SAMPLER!
-    This method writes the xml files used by RAVEN to create the two branches at each stop condition reached
-    @ In, tilast, string, end time of the current simulation run
-    @ In, Dict, dict, dictionary containing the name and the value of the variables modified by the branch occurrence
-    @ In, inputFile, string, name of the current input file
-    @ In, dataDict, dict, dictionary containing the time evolution of the MAAP5 output variables contained in the csv output file
-    @ Out, None
+      ONLY FOR DET SAMPLER!
+      This method writes the xml files used by RAVEN to create the two branches at each stop condition reached
+      @ In, tilast, string, end time of the current simulation run
+      @ In, Dict, dict, dictionary containing the name and the value of the variables modified by the branch occurrence
+      @ In, inputFile, string, name of the current input file
+      @ In, dataDict, dict, dictionary containing the time evolution of the MAAP5 output variables contained in the csv output file
+      @ Out, None
     """
     base=os.path.basename(inputFile).split('.')[0]
     path=os.path.dirname(inputFile)
@@ -413,11 +413,11 @@ class MAAP5(GenericCode):
 
   def dictVariables(self,currentInp):
     """
-    ONLY FOR DET SAMPLER!
-    This method creates a dictionary for the variables determining a branch and the values of the
-    variables changed due to the branch occurrence.
-    @In, currentInp, string, name of the current input file
-    @Out, self.DictAllVars, dict, dictionary containing the value of all the variables that could branching and the value of the corresponding variables that would be modified in the branches
+      ONLY FOR DET SAMPLER!
+      This method creates a dictionary for the variables determining a branch and the values of the
+      variables changed due to the branch occurrence.
+      @ In, currentInp, string, name of the current input file
+      @ Out, self.DictAllVars, dict, dictionary containing the value of all the variables that could branching and the value of the corresponding variables that would be modified in the branches
     """
     fileobject = open(currentInp, "r") #open MAAP .inp
     lines=fileobject.readlines()
@@ -445,12 +445,12 @@ class MAAP5(GenericCode):
 
   def stopSimulation(self,currentInputFiles, Kwargs):
     """
-    ONLY FOR DET SAMPLER!
-    This method update the stop simulation condition into the MAAP5 input
-    to stop the run when the new branch occurs
-    @In, currentInputFiles, list, list of the current input files
-    @Out, Kwargs, dict,kwarded dictionary of parameters. In this dictionary there is another dictionary called "SampledVars"
-         where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
+      ONLY FOR DET SAMPLER!
+      This method update the stop simulation condition into the MAAP5 input
+      to stop the run when the new branch occurs
+      @ In, currentInputFiles, list, list of the current input files
+      @ Out, Kwargs, dict,kwarded dictionary of parameters. In this dictionary there is another dictionary called "SampledVars"
+           where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
     """
     for filename in currentInputFiles:
       if '.inp' in str(filename):

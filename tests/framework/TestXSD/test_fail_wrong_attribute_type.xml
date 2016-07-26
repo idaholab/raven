@@ -1,0 +1,3 @@
+<outer>
+  <inner int_value="bad" required_string="hi"/>
+</outer>
