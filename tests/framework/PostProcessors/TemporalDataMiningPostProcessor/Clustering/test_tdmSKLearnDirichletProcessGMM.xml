@@ -69,6 +69,7 @@
         <n_iter>10000</n_iter>
         <init_params>wc</init_params>
       </KDD>
+	  <pivotParameter>Time</pivotParameter>
     </PostProcessor>
   </Models>
 

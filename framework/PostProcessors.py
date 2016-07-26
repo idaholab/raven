@@ -3418,14 +3418,14 @@ class DataMining(BasePostProcessor):
 
         # FIXME, this needs to be changed for asynchronous HistorySet
         if self.pivotParameter in currentInput.getParam('output',1).keys():
-          self.Time = currentInput.getParam('output',1)[self.pivotParameter]
+          self.pivotVariable = currentInput.getParam('output',1)[self.pivotParameter]
         else:
-          self.raiseAnError(ValueError, 'Time not found in input historyset')
+          self.raiseAnError(ValueError, 'Pivot variable not found in input historyset')
         # end of FIXME
 
         historyKey = currentInput.getOutParametersValues().keys()
         noSample = len(historyKey)
-        noTimeStep = len(self.Time)
+        noTimeStep = len(self.pivotVariable)
 
         if self.initializationOptionDict['KDD']['Features'] == 'input':
           self.raiseAnError(ValueError, 'To perform data mining over input please use SciKitLearn library')
@@ -3750,7 +3750,7 @@ class DataMining(BasePostProcessor):
     elif self.type in ['temporalSciKitLearn']:
       outputDict = {}
       self.unSupervisedEngine.features = Input['Features']
-      self.unSupervisedEngine.Time = self.Time
+      self.unSupervisedEngine.pivotVariable = self.pivotVariable
 
       if not self.unSupervisedEngine.amITrained:
         self.unSupervisedEngine.train(Input['Features'])
@@ -3786,7 +3786,7 @@ class DataMining(BasePostProcessor):
 
               ## The time series will be the first output
               ## TODO: Ensure user requests this
-              self.solutionExport.updateOutputValue('Time', self.Time)
+              self.solutionExport.updateOutputValue(self.pivotParameter, self.pivotVariable)
 
               ## Now we will process each feature available
               ## TODO: Ensure user requests each of these
@@ -3855,7 +3855,7 @@ class DataMining(BasePostProcessor):
 
             ## The time series will be the first output
             ## TODO: Ensure user requests this
-            self.solutionExport.updateOutputValue('Time', self.Time)
+            self.solutionExport.updateOutputValue(self.pivotParameter, self.pivotVariable)
 
             ## Now we will process each feature available
             ## TODO: Ensure user requests each of these
@@ -3950,7 +3950,7 @@ class DataMining(BasePostProcessor):
           ## the same order as the data held in the UnSupervisedLearning object?
           for row in range(noComponents):
             self.solutionExport.updateInputValue('component', row+1)
-            self.solutionExport.updateOutputValue('Time', self.Time)
+            self.solutionExport.updateOutputValue(self.pivotParameter, self.pivotVariable)
             for i,col in enumerate(self.unSupervisedEngine.features.keys()):
               timeSeries = np.zeros(noTimeStep)
               for timeIdx in range(noTimeStep):
