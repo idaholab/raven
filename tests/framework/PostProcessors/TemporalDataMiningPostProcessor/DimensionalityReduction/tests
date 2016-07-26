@@ -6,75 +6,78 @@
   ## get meaningful dimensionality reduction results, you typically need a large
   ## amount of data. Possibly, we should look into storing these sets as HDF5s
   ## and doing comparison on them?
+  
+  ## Now we used the iris dataset stored in sklearn to generate input date
+  ## And we do not check all the output file, but only a few of them
 
   [./ExactPCA]
     type   = 'RavenFramework'
     input  = 'test_tdmSKLearnExactPCA.xml'
-    csv    = 'ExactPCA/dummy_0.csv ExactPCA/dummy_75.csv ExactPCA/dummy_149.csv ExactPCA/info_0.csv ExactPCA/info_1.csv'
-    output = 'ExactPCA/dummy.csv ExactPCA/dummy.xml ExactPCA/info.csv ExactPCA/info.xml'
+    csv    = 'ExactPCA/dummy_0.csv ExactPCA/dummy_149.csv ExactPCA/info_0.csv ExactPCA/info_1.csv'
+    output = 'ExactPCA/dummy.csv ExactPCA/info.csv'
   [../]
   [./RandomizedPCA]
     type   = 'RavenFramework'
     input  = 'test_tdmSKLearnRandomizedPCA.xml'
-    csv    = 'RandomizedPCA/dummy_0.csv RandomizedPCA/dummy_75.csv RandomizedPCA/dummy_149.csv'
-    output = 'RandomizedPCA/dummy.csv RandomizedPCA/dummy.xml'
+    csv    = 'RandomizedPCA/dummy_0.csv RandomizedPCA/dummy_149.csv'
+    output = 'RandomizedPCA/dummy.csv'
   [../]
   [./KernelPCA]
     type   = 'RavenFramework'
     input  = 'test_tdmSKLearnKernelPCA.xml'
-    csv    = 'KernelPCA/dummy_0.csv KernelPCA/dummy_75.csv KernelPCA/dummy_149.csv'
-    output = 'KernelPCA/dummy.csv KernelPCA/dummy.xml'
+    csv    = 'KernelPCA/dummy_0.csv KernelPCA/dummy_149.csv'
+    output = 'KernelPCA/dummy.csv'
   [../]
   [./SparsePCA]
     type   = 'RavenFramework'
     input  = 'test_tdmSKLearnSparsePCA.xml'
-    csv    = 'SparsePCA/dummy_0.csv SparsePCA/dummy_75.csv SparsePCA/dummy_149.csv'
-    output = 'SparsePCA/dummy.csv SparsePCA/dummy.xml'
+    csv    = 'SparsePCA/dummy_0.csv SparsePCA/dummy_149.csv'
+    output = 'SparsePCA/dummy.csv'
   [../]
   [./MiniBatchSparsePCA]
     type    = 'RavenFramework'
     input   = 'test_tdmSKLearnMiniBatchSparsePCA.xml'
-    csv     = 'MiniBatchSparsePCA/dummy_0.csv MiniBatchSparsePCA/dummy_75.csv
-               MiniBatchSparsePCA/dummy_149.csv'
-    output  = 'MiniBatchSparsePCA/dummy.csv MiniBatchSparsePCA/dummy.xml'
+    csv     = 'MiniBatchSparsePCA/dummy_0.csv MiniBatchSparsePCA/dummy_149.csv'
+    output  = 'MiniBatchSparsePCA/dummy.csv'
     rel_err = 0.001
   [../]
 
   [./TruncatedSVD]
     type   = 'RavenFramework'
     input  = 'test_tdmSKLearnTruncatedSVD.xml'
-    csv    = 'TruncatedSVD/dummy_0.csv TruncatedSVD/dummy_75.csv TruncatedSVD/dummy_149.csv'
-    output = 'TruncatedSVD/dummy.csv TruncatedSVD/dummy.xml'
+    csv    = 'TruncatedSVD/dummy_0.csv TruncatedSVD/dummy_149.csv'
+    output = 'TruncatedSVD/dummy.csv'
   [../]
   [./FastICA]
     type   = 'RavenFramework'
     input  = 'test_tdmSKLearnFastICA.xml'
-    csv    = 'FastICA/dummy_0.csv FastICA/dummy_75.csv FastICA/dummy_149.csv'
-    output = 'FastICA/dummy.csv FastICA/dummy.xml'
+    csv    = 'FastICA/dummy_0.csv FastICA/dummy_149.csv'
+    output = 'FastICA/dummy.csv'
   [../]
   [./Isomap]
     type   = 'RavenFramework'
     input  = 'test_tdmSKLearnIsomap.xml'
-    csv    = 'Isomap/dummy_0.csv Isomap/dummy_75.csv Isomap/dummy_149.csv'
-    output = 'Isomap/dummy.csv Isomap/dummy.xml'
+    csv    = 'Isomap/dummy_0.csv Isomap/dummy_149.csv'
+    output = 'Isomap/dummy.csv'
   [../]
   [./LocallyLinearEmbedding]
     type    = 'RavenFramework'
     input   = 'test_tdmSKLearnLocallyLinearEmbedding.xml'
-    csv     = 'LocallyLinearEmbedding/dummy_0.csv LocallyLinearEmbedding/dummy_75.csv LocallyLinearEmbedding/dummy_149.csv'
-    output  = 'LocallyLinearEmbedding/dummy.csv LocallyLinearEmbedding/dummy.xml'
+    csv     = 'LocallyLinearEmbedding/dummy_0.csv LocallyLinearEmbedding/dummy_149.csv'
+    output  = 'LocallyLinearEmbedding/dummy.csv'
     rel_err = 0.001
   [../]
   [./SpectralEmbedding]
     type   = 'RavenFramework'
     input  = 'test_tdmSKLearnSpectralEmbedding.xml'
-    csv    = 'SpectralEmbedding/dummy_0.csv SpectralEmbedding/dummy_75.csv SpectralEmbedding/dummy_149.csv'
-    output = 'SpectralEmbedding/dummy.csv SpectralEmbedding/dummy.xml'
+    csv    = 'SpectralEmbedding/dummy_0.csv SpectralEmbedding/dummy_149.csv'
+    output = 'SpectralEmbedding/dummy.csv'
+	rel_err = 0.001
   [../]
   [./MultiDimensionalScaling]
     type   = 'RavenFramework'
     input  = 'test_tdmSKLearnMultiDimensionalScaling.xml'
-    csv    = 'MultiDimensionalScaling/dummy_0.csv MultiDimensionalScaling/dummy_75.csv MultiDimensionalScaling/dummy_149.csv'
-    output = 'MultiDimensionalScaling/dummy.csv MultiDimensionalScaling/dummy.xml'
+    csv    = 'MultiDimensionalScaling/dummy_0.csv MultiDimensionalScaling/dummy_149.csv'
+    output = 'MultiDimensionalScaling/dummy.csv'
   [../]
 []
