@@ -2,7 +2,7 @@
 <Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>basicStatisticsTimeDependentAsynchronousHistories</WorkingDir>
-    <Sequence>FirstMRun,syncronizeHistorySetStep,timeDepBasicStatPP</Sequence>
+    <Sequence>FirstMRun,syncronizeHistorySetStep,timeDepBasicStatPP,FirstMRunEnsemble,syncronizeHistorySetStepEnsemble,timeDepBasicStatPPEnsemble</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
@@ -10,9 +10,24 @@
     <Input name="basicStatisticsExternalModelTest.py" type="">basicStatisticsExternalModelTest.py</Input>
     <Input name="output_basicStatistics_timedep_PP1.csv" type="">output_basicStatistics_timedep_PP1.csv</Input>
     <Input name="output_basicStatistics_timedep_PP1.xml" type="">output_basicStatistics_timedep_PP1.xml</Input>
+    <Input name="output_basicStatistics_timedep_Ensemble_PP1.csv" type="">output_basicStatistics_timedep_PP1.csv</Input>
+    <Input name="output_basicStatistics_timedep_Ensemble_PP1.xml" type="">output_basicStatistics_timedep_PP1.xml</Input>
     <Input name="samples.csv" type="">samples.csv</Input>
   </Files>
 
+  <Distributions>
+      <Uniform name="unif">
+          <lowerBound>0.0</lowerBound>
+          <upperBound>1.0</upperBound>
+      </Uniform>
+      <Normal name="norm">
+          <mean>0.5</mean>
+          <sigma>0.2</sigma>
+          <lowerBound>0</lowerBound>
+          <upperBound>1</upperBound>
+      </Normal>
+  </Distributions>
+  
   <Models>
     <ExternalModel ModuleToLoad="basicStatisticsExternalModelTest" name="PythonModule" subType="">
       <variables>x,y,z,time,x0,x01,x02,y0,y02,y01,z0,z02,z01</variables>
@@ -37,6 +52,22 @@
           <variable name="y0"/>
           <variable name="z0"/>
       </CustomSampler>
+      <EnsembleForward name="ensemble">
+          <Grid name="notNeeded">
+              <variable name="y0">
+                  <distribution>unif</distribution>
+                  <grid construction="custom" type="value">0.02 0.5 0.6</grid>
+              </variable>
+              <variable name="z0">
+                  <distribution>norm</distribution>
+                  <grid construction="custom" type="CDF">0.0 0.5 1.0</grid>
+              </variable>
+          </Grid>
+          <CustomSampler name="customSamplerFiles">
+              <Source   class="Files"  type="">samples.csv</Source>
+              <variable name="x0"/>
+          </CustomSampler>
+      </EnsembleForward>
   </Samplers>
 
   <Steps>
@@ -59,7 +90,26 @@
       <Output class="Files" type="">output_basicStatistics_timedep_PP1.csv</Output>
       <Output class="Files" type="">output_basicStatistics_timedep_PP1.xml</Output>
       <Output class="DataObjects" type="HistorySet">HistorySetPostProcTestSyncronized</Output>
-      
+    </PostProcess>
+    <MultiRun name="FirstMRunEnsemble">
+        <Input   class="Files" type="">basicStatisticsExternalModelTest.py</Input>
+        <Model   class="Models" type="ExternalModel">PythonModule</Model>
+        <Sampler class="Samplers" type="CustomSampler">ensemble</Sampler>
+        <Output  class="DataObjects" type="HistorySet">HistorySetPostProcTestEnsemble</Output>
+    </MultiRun>
+    <PostProcess name="syncronizeHistorySetStepEnsemble">
+        <Input class="DataObjects" type="HistorySet">HistorySetPostProcTestEnsemble</Input>
+        <Model class="Models" type="PostProcessor">syncronizeHistorySet</Model>
+        <Output class="DataObjects" type="HistorySet">HistorySetPostProcTestSyncronizedEnsemble</Output>
+        <Output class="OutStreams" type="Print">HistorySetPostProcTestEnsemble_dump</Output>
+        <Output class="OutStreams" type="Print">HistorySetPostProcTestSyncronizedEnsemble_dump</Output>
+    </PostProcess>
+    <PostProcess name="timeDepBasicStatPPEnsemble">
+        <Input class="DataObjects" type="HistorySet">HistorySetPostProcTestSyncronized</Input>
+        <Model class="Models" type="PostProcessor">timeDepBasicStat</Model>
+        <Output class="Files" type="">output_basicStatistics_timedep_Ensemble_PP1.csv</Output>
+        <Output class="Files" type="">output_basicStatistics_timedep_Ensemble_PP1.xml</Output>
+        <Output class="DataObjects" type="HistorySet">HistorySetPostProcTestSyncronizedEnsemble</Output>
     </PostProcess>
   </Steps>
 
@@ -72,6 +122,14 @@
       <type>csv</type>
       <source>HistorySetPostProcTestSyncronized</source>
     </Print>
+    <Print name="HistorySetPostProcTestEnsemble_dump">
+        <type>csv</type>
+        <source>HistorySetPostProcTestEnsemble</source>
+    </Print>
+    <Print name="HistorySetPostProcTestSyncronizedEnsemble_dump">
+        <type>csv</type>
+        <source>HistorySetPostProcTestSyncronizedEnsemble</source>
+    </Print>
   </OutStreams>
 
   <DataObjects>
@@ -82,6 +140,14 @@
     <HistorySet name="HistorySetPostProcTestSyncronized">
       <Input>x0,y0,z0</Input>
       <Output>time,x,y,z</Output>
+    </HistorySet>
+    <HistorySet name="HistorySetPostProcTestEnsemble">
+        <Input>x0,y0,z0</Input>
+        <Output>time,x,y,z</Output>
+    </HistorySet>
+    <HistorySet name="HistorySetPostProcTestSyncronizedEnsemble">
+        <Input>x0,y0,z0</Input>
+        <Output>time,x,y,z</Output>
     </HistorySet>
   </DataObjects>
 

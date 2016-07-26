@@ -141,6 +141,14 @@ data, without any dependencies on a particular prediction model.
 These algorithms directly build a neighborhood structure as the
 ROM (e.g., a relaxed Gabriel graph) on the initial training data. Examples of such ROM type are nearest neighbors and decision trees.
 
+\textcolor{red}{\\It is important to NOTE that RAVEN uses a Z-score normalization of the training data before 
+  constructing most of the ROMs:
+\begin{equation}
+  \mathit{\mathbf{X}} = \frac{(\mathit{\mathbf{X}}-\mu )}{\sigma }
+\end{equation} 
+ } 
+In order to identify which ROMs get trained with data normalized by the previous reported normalization approach, please refer to the RAVEN user manual \cite{RAVENuserManual}.
+
 \subsubsection{Gaussian Process Models}
 \label{sec:GPM}
 Gaussian Processes (GPs)~\cite{Rasmussen_GPM} are algorithms that extend multivariate Gaussian distributions to infinite dimensionality. A Gaussian process generates a data set located throughout some domain such that any finite subset of the range follows a multivariate Gaussian distribution. Now, the n observations in an arbitrary data set, $y={y_1,\ldots,y_n}$, can always be imagined as a single point sampled from some multivariate ($n$-variate) Gaussian distribution.
