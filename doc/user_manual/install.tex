@@ -446,9 +446,13 @@ Normally there are skipped tests because either some of the codes are
 not available, or some of the test are not currently working.  The
 output will explain why each is skipped.
 
-Note, that when using RAVEN remotely, some tests may depend on X11 forwarding
-to the remote client. The standard timeout of X for an untrusted connection is
-20 minutes. Users wanting to run the full test suite including those involving
+Note, that when using RAVEN remotely in a graphical session with X11 forwarded
+to the client, some tests may depend on live X11 forwarding to the remote
+client. If the user is not using X11 forwarding then RAVEN should degrade
+gracefully and still be able to pass all of the test cases, this case only
+arises when the user has forwarded their X11 environment to a ssh client, for
+example. The standard timeout of X for an untrusted connection is 20 minutes.
+Users wanting to run the full test suite including those involving
 graphical output may note that the this process can take longer than the
 aforementioned timeout. One way to alleviate this is to login to the remote
 host of RAVEN using a trusted connection by using the -Y flag:
