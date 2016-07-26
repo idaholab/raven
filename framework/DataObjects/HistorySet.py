@@ -44,19 +44,16 @@ class HistorySet(Data):
       @ In, xmlNode, xml.etree.ElementTree.Element, xml node
       @ Out, None
     """
-    if set(self._dataParameters.keys()).issubset(['operator','outputRow']):
-      self.raiseAnError(IOError,"Inputted operator or outputRow attributes are available for Point and PointSet only!")
+    if set(self._dataParameters.keys()).issubset(['operator','outputRow']): self.raiseAnError(IOError,"Inputted operator or outputRow attributes are available for Point and PointSet only!")
 
   def addSpecializedReadingSettings(self):
     """
-      This function adds in the _dataParameters dict the options needed for reading and constructing this class
+      This function adds in the _dataParameters dictionary the options needed for reading and constructing this class
       @ In,  None
       @ Out, None
     """
-    if self._dataParameters['hierarchical']:
-      self._dataParameters['type'] = 'History'
-    else:
-      self._dataParameters['type'] = self.type # store the type into the _dataParameters dictionary
+    if self._dataParameters['hierarchical']: self._dataParameters['type'] = 'History'
+    else: self._dataParameters['type'] = self.type # store the type into the _dataParameters dictionary
     if hasattr(self._toLoadFromList[-1],'type'):
       sourceType = self._toLoadFromList[-1].type
     else:
@@ -67,7 +64,7 @@ class HistorySet(Data):
 
   def checkConsistency(self):
     """
-      Here we perform the consistency check for the structured data HistorySet
+      This method performs the consistency check for the structured data HistorySet
       @ In,  None
       @ Out, None
     """
@@ -75,10 +72,8 @@ class HistorySet(Data):
     sourceType = self._toLoadFromList[-1].type
     # here we assume that the outputs are all read....so we need to compute the total number of time point sets
     for sourceLoad in self._toLoadFromList:
-      if'HDF5' == sourceLoad.type:
-        lenMustHave = lenMustHave + len(sourceLoad.getEndingGroupNames())
-      elif isinstance(sourceLoad,Files.File):
-        lenMustHave += 1
+      if'HDF5' == sourceLoad.type:  lenMustHave = lenMustHave + len(sourceLoad.getEndingGroupNames())
+      elif isinstance(sourceLoad,Files.File): lenMustHave += 1
       else:
         self.raiseAnError(Exception,'The type ' + sourceLoad.type + ' is unknown!')
 
@@ -91,7 +86,6 @@ class HistorySet(Data):
           self.raiseAnError(NotConsistentData,'The output parameter value, for key ' + key + ' has not a consistent shape for History in HistorySet ' + self.name + '!! It should be an 1D array since we are in hierarchical mode.' + '.Actual dimension is ' + str(self._dataContainer['outputs'][key].ndim))
     else:
       if('HDF5' == sourceType):
-        #eg = self._toLoadFromList[-1].getEndingGroupNames()
         if(lenMustHave != len(self._dataContainer['inputs'].keys())):
           self.raiseAnError(NotConsistentData,'Number of HistorySet contained in HistorySet data ' + self.name + ' != number of loading sources!!! ' + str(lenMustHave) + ' !=' + str(len(self._dataContainer['inputs'].keys())))
       else:
@@ -118,47 +112,38 @@ class HistorySet(Data):
     if (not isinstance(value,(float,int,bool,np.ndarray,c1darray))):
       self.raiseAnError(NotConsistentData,'HistorySet Data accepts only a numpy array (dim 1) or a single value for method <_updateSpecializedInputValue>. Got type ' + str(type(value)))
     if isinstance(value,(np.ndarray,c1darray)):
-      if value.size != 1:
-        self.raiseAnError(NotConsistentData,'HistorySet Data accepts only a numpy array of dim 1 or a single value for method <_updateSpecializedInputValue>. Size is ' + str(value.size))
+      if value.size != 1: self.raiseAnError(NotConsistentData,'HistorySet Data accepts only a numpy array of dim 1 or a single value for method <_updateSpecializedInputValue>. Size is ' + str(value.size))
 
     if options and self._dataParameters['hierarchical']:
       # we retrieve the node in which the specialized 'History' has been stored
       parentID = None
       if type(name) == list:
         namep = name[1]
-        if type(name[0]) == str:
-          nodeId = name[0]
+        if type(name[0]) == str: nodeId = name[0]
         else:
           if 'metadata' in options.keys():
             nodeId = options['metadata']['prefix']
-            if 'parentID' in options['metadata'].keys():
-              parentID = options['metadata']['parentID']
+            if 'parentID' in options['metadata'].keys(): parentID = options['metadata']['parentID']
           else:
             nodeId = options['prefix']
-            if 'parentID' in options.keys():
-              parentID = options['parentID']
+            if 'parentID' in options.keys(): parentID = options['parentID']
       else:
         if 'metadata' in options.keys():
           nodeId = options['metadata']['prefix']
-          if 'parentID' in options['metadata'].keys():
-            parentID = options['metadata']['parentID']
+          if 'parentID' in options['metadata'].keys(): parentID = options['metadata']['parentID']
         else:
           nodeId = options['prefix']
-          if 'parentID' in options.keys():
-            parentID = options['parentID']
+          if 'parentID' in options.keys(): parentID = options['parentID']
         namep = name
-      if parentID:
-        tsnode = self.retrieveNodeInTreeMode(nodeId, parentID)
-      else:
-        tsnode = self.retrieveNodeInTreeMode(nodeId)
+      if parentID: tsnode = self.retrieveNodeInTreeMode(nodeId, parentID)
+      else:         tsnode = self.retrieveNodeInTreeMode(nodeId)
       self._dataContainer = tsnode.get('dataContainer')
       if not self._dataContainer:
         tsnode.add('dataContainer',{'inputs':{},'outputs':{}})
         self._dataContainer = tsnode.get('dataContainer')
       if namep in self._dataContainer['inputs'].keys():
         self._dataContainer['inputs'].pop(name)
-      if namep not in self._dataParameters['inParam']:
-        self._dataParameters['inParam'].append(namep)
+      if namep not in self._dataParameters['inParam']: self._dataParameters['inParam'].append(namep)
       self._dataContainer['inputs'][namep] = c1darray(values=np.atleast_1d(value)) # np.atleast_1d(np.array(value))
       self.addNodeInTreeMode(tsnode,options)
     else:
@@ -174,8 +159,7 @@ class HistorySet(Data):
           self._dataContainer['inputs'][name[0]] = {name[1]:c1darray(values=np.atleast_1d(np.array(value,dtype=float)))}
       else:
         # no info regarding the history number => use internal counter
-        if len(self._dataContainer['inputs'].keys()) == 0:
-          self._dataContainer['inputs'][1] = {name:c1darray(values=np.atleast_1d(np.array(value,dtype=float)))}
+        if len(self._dataContainer['inputs'].keys()) == 0: self._dataContainer['inputs'][1] = {name:c1darray(values=np.atleast_1d(np.array(value,dtype=float)))}
         else:
           hisn = max(self._dataContainer['inputs'].keys())
           if name in list(self._dataContainer['inputs'].values())[-1]:
@@ -195,28 +179,22 @@ class HistorySet(Data):
       # we retrieve the node in which the specialized 'Point' has been stored
       parentID = None
       if type(name) == list:
-        if type(name[0]) == str:
-          nodeId = name[0]
+        if type(name[0]) == str: nodeId = name[0]
         else:
           if 'metadata' in options.keys():
             nodeId = options['metadata']['prefix']
-            if 'parentID' in options['metadata'].keys():
-              parentID = options['metadata']['parentID']
+            if 'parentID' in options['metadata'].keys(): parentID = options['metadata']['parentID']
           else:
             nodeId = options['prefix']
-            if 'parentID' in options.keys():
-              parentID = options['parentID']
+            if 'parentID' in options.keys(): parentID = options['parentID']
       else:
         if 'metadata' in options.keys():
           nodeId = options['metadata']['prefix']
-          if 'parentID' in options['metadata'].keys():
-            parentID = options['metadata']['parentID']
+          if 'parentID' in options['metadata'].keys(): parentID = options['metadata']['parentID']
         else:
           nodeId = options['prefix']
-          if 'parentID' in options.keys():
-            parentID = options['parentID']
-      if parentID:
-        tsnode = self.retrieveNodeInTreeMode(nodeId, parentID)
+          if 'parentID' in options.keys(): parentID = options['parentID']
+      if parentID: tsnode = self.retrieveNodeInTreeMode(nodeId, parentID)
       #if 'parentID' in options.keys(): tsnode = self.retrieveNodeInTreeMode(options['prefix'], options['parentID'])
       #else:                             tsnode = self.retrieveNodeInTreeMode(options['prefix'])
       self._dataContainer = tsnode.get('dataContainer')
@@ -224,8 +202,7 @@ class HistorySet(Data):
         tsnode.add('dataContainer',{'metadata':{}})
         self._dataContainer = tsnode.get('dataContainer')
       else:
-        if 'metadata' not in self._dataContainer.keys():
-          self._dataContainer['metadata'] ={}
+        if 'metadata' not in self._dataContainer.keys(): self._dataContainer['metadata'] ={}
       if name in self._dataContainer['metadata'].keys():
         self._dataContainer['metadata'][name].append(np.atleast_1d(np.array(value))) #= copy.copy(np.concatenate((self._dataContainer['metadata'][name],np.atleast_1d(value))))
       else:
@@ -245,64 +222,47 @@ class HistorySet(Data):
                                                                              otherwise a new history is created and the new value is inserted in it
       @ Out, None
     """
-
-    ## https://www.python.org/dev/peps/pep-0008/#other-recommendations
-    ## Please refrain from putting if conditionals on one line. The natural
-    ## need for indentations make control flows easier to understand, and in
-    ## addition it is easier to find the split between the condition and the
-    ## statement this way
     if not isinstance(value,(np.ndarray,c1darray)):
-      self.raiseAnError(NotConsistentData,'HistorySet Data accepts only numpy array as type for method <_updateSpecializedOutputValue>. Got ' + str(type(value)))
+        self.raiseAnError(NotConsistentData,'HistorySet Data accepts only numpy array as type for method <_updateSpecializedOutputValue>. Got ' + str(type(value)))
 
     if options and self._dataParameters['hierarchical']:
       parentID = None
       if type(name) == list:
         namep = name[1]
-
-        if type(name[0]) == str:
-          nodeId = name[0]
+        if type(name[0]) == str: nodeId = name[0]
         else:
           if 'metadata' in options.keys():
             nodeId = options['metadata']['prefix']
-            if 'parentID' in options['metadata'].keys():
-              parentID = options['metadata']['parentID']
+            if 'parentID' in options['metadata'].keys(): parentID = options['metadata']['parentID']
           else:
             nodeId = options['prefix']
-            if 'parentID' in options.keys():
-              parentID = options['parentID']
+            if 'parentID' in options.keys(): parentID = options['parentID']
       else:
         if 'metadata' in options.keys():
           nodeId = options['metadata']['prefix']
-          if 'parentID' in options['metadata'].keys():
-            parentID = options['metadata']['parentID']
+          if 'parentID' in options['metadata'].keys(): parentID = options['metadata']['parentID']
         else:
           nodeId = options['prefix']
-          if 'parentID' in options.keys():
-            parentID = options['parentID']
+          if 'parentID' in options.keys(): parentID = options['parentID']
         namep = name
-      if parentID:
-        tsnode = self.retrieveNodeInTreeMode(nodeId, parentID)
+      if parentID: tsnode = self.retrieveNodeInTreeMode(nodeId, parentID)
 
       # we store the pointer to the container in the self._dataContainer because checkConsistency acts on this
       self._dataContainer = tsnode.get('dataContainer')
       if not self._dataContainer:
         tsnode.add('dataContainer',{'inputs':{},'outputs':{}})
         self._dataContainer = tsnode.get('dataContainer')
-      if namep in self._dataContainer['outputs'].keys():
-        self._dataContainer['outputs'].pop(namep)
-      if namep not in self._dataParameters['inParam']:
-        self._dataParameters['outParam'].append(namep)
+      if namep in self._dataContainer['outputs'].keys(): self._dataContainer['outputs'].pop(namep)
+      if namep not in self._dataParameters['inParam']: self._dataParameters['outParam'].append(namep)
       self._dataContainer['outputs'][namep] = c1darray(values=np.atleast_1d(np.array(value,dtype=float))) #np.atleast_1d(np.array(value))
       self.addNodeInTreeMode(tsnode,options)
     else:
-      if type(name) == list:
-        # there are info regarding the history number
+      if type(name) == list:      # there are info regarding the history number
         if name[0] in self._dataContainer['outputs'].keys():
-          gethistory = self._dataContainer['outputs'].pop(name[0])
-          # popped = gethistory[name[1]]
-          # if name[1] in popped.keys():
-          gethistory[name[1]] = np.atleast_1d(np.array(value))
-          self._dataContainer['outputs'][name[0]] =gethistory
+          #gethistory = self._dataContainer['outputs'].pop(name[0])
+          #gethistory[name[1]] = np.atleast_1d(np.array(value))
+          #self._dataContainer['outputs'][name[0]] =gethistory
+          self._dataContainer['outputs'][name[0]][name[1]] = np.atleast_1d(np.array(value))
         else:
           self._dataContainer['outputs'][name[0]] = {name[1]:c1darray(values=np.atleast_1d(np.array(value,dtype=float)))} #np.atleast_1d(np.array(value))}
       else:
@@ -319,7 +279,7 @@ class HistorySet(Data):
   def specializedPrintCSV(self,filenameLocal,options):
     """
       This function prints a CSV file with the content of this class (Input and Output space)
-      @ In,  filenameLocal, string, filename root (for example, 'homo_homini_lupus' -> the final file name is gonna be called 'homo_homini_lupus.csv')
+      @ In,  filenameLocal, string, filename root (for example, 'homo_homini_lupus' -> the final file name is going to be called 'homo_homini_lupus.csv')
       @ In,  options, dictionary, dictionary of printing options
       @ Out, None (a csv is gonna be printed)
     """
@@ -350,16 +310,14 @@ class HistorySet(Data):
             if varType == 'output':
               outKeys[-1].append(variableName)
               axa = O_o[key][0]['outputs'][variableName]
-              for index in range(len(O_o[key])-1):
-                axa = np.concatenate((axa,O_o[key][index+1]['outputs'][variableName]))
+              for index in range(len(O_o[key])-1): axa = np.concatenate((axa,O_o[key][index+1]['outputs'][variableName]))
               outValues[-1].append(axa)
         else:
           inpKeys[-1] = O_o[key][0]['inputs'].keys()
           outKeys[-1] = O_o[key][0]['outputs'].keys()
           for var in O_o[key][0]['inputs'].keys():
             axa = np.zeros(len(O_o[key]))
-            for index in range(len(O_o[key])):
-              axa[index] = O_o[key][index]['inputs'][var][0]
+            for index in range(len(O_o[key])): axa[index] = O_o[key][index]['inputs'][var][0]
             inpValues[-1].append(axa)
           for var in O_o[key][0]['outputs'].keys():
             axa = O_o[key][0]['outputs'][var]
@@ -367,10 +325,8 @@ class HistorySet(Data):
               axa = np.concatenate((axa,O_o[key][index+1]['outputs'][var]))
             outValues[-1].append(axa)
 
-        if len(inpKeys) > 0 or len(outKeys) > 0:
-          myFile = open(filenameLocal + '_' + key + '.csv', 'w')
-        else:
-          return
+        if len(inpKeys) > 0 or len(outKeys) > 0: myFile = open(filenameLocal + '_' + key + '.csv', 'w')
+        else: return
         myFile.write('Ending branch,'+key+'\n')
         myFile.write('branch #')
         for item in inpKeys[-1]:
@@ -424,13 +380,14 @@ class HistorySet(Data):
               outKeys_h.append(var.split('|')[1])
               outValues_h.append(outValues[n][variableName])
         else:
-          inpKeys_h, inpValues_h = list(inpValues[n].keys()), list(inpValues[n].values())
-          outKeys_h, outValues_h   = list(outValues[n].keys()), list(outValues[n].values())
+          inpKeys_h   = list(inpValues[n].keys())
+          inpValues_h = list(inpValues[n].values())
+          outKeys_h   = list(outValues[n].keys())
+          outValues_h = list(outValues[n].values())
+
         dataFilename = filenameLocal + '_'+ str(n) + '.csv'
-        if len(inpKeys_h) > 0 or len(outKeys_h) > 0:
-          myDataFile = open(dataFilename, 'w')
-        else:
-          return #XXX should this just skip this iteration?
+        if len(inpKeys_h) > 0 or len(outKeys_h) > 0: myDataFile = open(dataFilename, 'w')
+        else: return #XXX should this just skip this iteration?
         #Write header for main file
         if n == 0:
           myFile.write(','.join([item for item in
@@ -546,18 +503,13 @@ class HistorySet(Data):
     """
     if varTyp!='numpy.ndarray':
       if varName in self._dataParameters['inParam']:
-        if varID!=None:
-          exec ('return varTyp(self.getParam('+inOutType+','+str(varID)+')[varName]')
-        else:
-          self.raiseAnError(RuntimeError,'to extract a scalar ('+varName+') form the data '+self.name+', it is needed an ID to identify the history (varID missed)')
+        if varID!=None: exec ('return varTyp(self.getParam('+inOutType+','+str(varID)+')[varName]')
+        else: self.raiseAnError(RuntimeError,'to extract a scalar ('+varName+') form the data '+self.name+', it is needed an ID to identify the history (varID missed)')
       else:
         if varID!=None:
-          if stepID!=None and type(stepID)!=tuple:
-            exec ('return varTyp(self.getParam('+inOutType+','+str(varID)+')[varName][stepID]')
-          else:
-            self.raiseAnError(RuntimeError,'to extract a scalar ('+varName+') form the data '+self.name+', it is needed an ID of the input set used and a time coordinate (time or timeID missed or tuple)')
-        else:
-          self.raiseAnError(RuntimeError,'to extract a scalar ('+varName+') form the data '+self.name+', it is needed an ID of the input set used (varID missed)')
+          if stepID!=None and type(stepID)!=tuple: exec ('return varTyp(self.getParam('+inOutType+','+str(varID)+')[varName][stepID]')
+          else: self.raiseAnError(RuntimeError,'to extract a scalar ('+varName+') form the data '+self.name+', it is needed an ID of the input set used and a time coordinate (time or timeID missed or tuple)')
+        else: self.raiseAnError(RuntimeError,'to extract a scalar ('+varName+') form the data '+self.name+', it is needed an ID of the input set used (varID missed)')
     else:
       if varName in self._dataParameters['inParam']:
         myOut=np.zeros(len(self.getInpParametersValues().keys()))
@@ -569,22 +521,17 @@ class HistorySet(Data):
           if stepID==None:
             return self.getParam(inOutType,varID)[varName]
           elif type(stepID)==tuple:
-            if stepID[1]==None:
-              return self.getParam(inOutType,varID)[varName][stepID[0]:]
-            else:
-              return self.getParam(inOutType,varID)[varName][stepID[0]:stepID[1]]
-          else:
-            return self.getParam(inOutType,varID)[varName][stepID]
+            if stepID[1]==None: return self.getParam(inOutType,varID)[varName][stepID[0]:]
+            else: return self.getParam(inOutType,varID)[varName][stepID[0]:stepID[1]]
+          else: return self.getParam(inOutType,varID)[varName][stepID]
         else:
-          if stepID==None:
-            self.raiseAnError(RuntimeError,'more info needed trying to extract '+varName+' from data '+self.name)
+          if stepID==None: self.raiseAnError(RuntimeError,'more info needed trying to extract '+varName+' from data '+self.name)
           elif type(stepID)==tuple:
             if stepID[1]!=None:
               myOut=np.zeros((len(self.getOutParametersValues().keys()),stepID[1]-stepID[0]))
               for key in self.getOutParametersValues().keys():
                 myOut[int(key),:]=self.getParam(inOutType,key)[varName][stepID[0]:stepID[1]]
-            else:
-              self.raiseAnError(RuntimeError,'more info needed trying to extract '+varName+' from data '+self.name)
+            else: self.raiseAnError(RuntimeError,'more info needed trying to extract '+varName+' from data '+self.name)
           else:
             myOut=np.zeros(len(self.getOutParametersValues().keys()))
             for key in self.getOutParametersValues().keys():
