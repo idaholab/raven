@@ -972,7 +972,6 @@ class InterfacedPostProcessor(BasePostProcessor):
       self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.inputFormat not correctly initialized')
     if self.postProcessor.outputFormat not in set(['HistorySet','PointSet']):
       self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.outputFormat not correctly initialized')
-
     inputDic= self.inputToInternal(inputIn)
 
     outputDic = self.postProcessor.run(inputDic)
@@ -1008,8 +1007,6 @@ class InterfacedPostProcessor(BasePostProcessor):
             output.updateInputValue(key,exportDict['inputSpaceParams'][hist][str(key)])
           for key in listOutputParams:
             output.updateOutputValue(key,exportDict['outputSpaceParams'][hist][str(key)])
-          for key in exportDict['metadata'][0]:
-            output.updateMetadata(key,exportDict['metadata'][0][key])
         else:
           for key in exportDict['inputSpaceParams']:
             if key in output.getParaKeys('inputs'):
@@ -1017,8 +1014,8 @@ class InterfacedPostProcessor(BasePostProcessor):
           for key in exportDict['outputSpaceParams']:
             if key in output.getParaKeys('outputs'):
               output.updateOutputValue(key,exportDict['outputSpaceParams'][str(key)])
-          for key in exportDict['metadata'][0]:
-            output.updateMetadata(key,exportDict['metadata'][0][key])
+      for key in exportDict['metadata'][0]:
+        output.updateMetadata(key,exportDict['metadata'][0][key])
     else:   # output.type == 'PointSet':
       for key in exportDict['inputSpaceParams']:
         if key in output.getParaKeys('inputs'):
@@ -1045,6 +1042,7 @@ class InterfacedPostProcessor(BasePostProcessor):
     if type(input) == dict:
       return input
     else:
+      if len(input[0]) == 0: self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : The input dataObject named '+input[0].name + ' is empty. Check your input!')
       inputDict['data']['input']  = copy.deepcopy(input[0].getInpParametersValues())
       inputDict['data']['output'] = copy.deepcopy(input[0].getOutParametersValues())
     for item in input:
@@ -1289,8 +1287,8 @@ class ImportanceRank(BasePostProcessor):
     dimDict = None
     settingDim = False
     #pca index is a feature only of target, not with respect to anything else
-    if 'pcaindex' in options.keys():
-      pca = options['pcaindex'].values()[0]
+    if 'pcaIndex' in options.keys():
+      pca = options['pcaIndex'].values()[0]
       for var,index,_ in pca:
         outFile.addScalar(var,'pcaIndex',index)
     #build tree
@@ -1443,13 +1441,16 @@ class ImportanceRank(BasePostProcessor):
       senCoeffDict[target] = featCoeffs
     # compute importance rank
     for what in self.what:
-      if what not in outputDict.keys(): outputDict[what] = {}
       if what.lower() == 'sensitivityindex':
+        what = 'sensitivityIndex'
+        if what not in outputDict.keys(): outputDict[what] = {}
         for target in self.targets:
           entries = senWeightDict[target]
           entries.sort(key=lambda x: x[1],reverse=True)
           outputDict[what][target] = entries
       if what.lower() == 'importanceindex':
+        what = 'importanceIndex'
+        if what not in outputDict.keys(): outputDict[what] = {}
         for target in self.targets:
           featCoeffs = senCoeffDict[target]
           featWeights = []
@@ -1475,6 +1476,8 @@ class ImportanceRank(BasePostProcessor):
            outputDict[what][target] = entries
       #calculate PCA index
       if what.lower() == 'pcaindex':
+        what = 'pcaIndex'
+        if what not in outputDict.keys(): outputDict[what] = {}
         index = [dim-1 for dim in self.dimensions]
         singularValues = self.mvnDistribution.returnSingularValues(index)
         singularValues = list(singularValues/np.sum(singularValues))
@@ -1538,6 +1541,8 @@ class BasicStatistics(BasePostProcessor):
     # each post processor knows how to handle the coming inputs. The BasicStatistics postprocessor accept all the input type (files (csv only), hdf5 and datas
     self.dynamic = False
     currentInput = currentInp [-1] if type(currentInp) == list else currentInp
+    if len(currentInput) == 0: self.raiseAnError(IOError, "In post-processor " +self.name+" the input "+currentInput.name+" is empty.")
+
     if type(currentInput).__name__ =='dict':
       if 'targets' not in currentInput.keys() and 'timeDepData' not in currentInput.keys(): self.raiseAnError(IOError, 'Did not find targets or timeDepData in input dictionary')
       return currentInput
@@ -3617,7 +3622,7 @@ class DataMining(BasePostProcessor):
     dataMineDict = finishedJob.returnEvaluation()[1]
     for key in dataMineDict['output']:
       for param in output.getParaKeys('output'):
-        if key == param: 
+        if key == param:
           output.removeOutputValue(key)
       if output.type == 'PointSet':
         for value in dataMineDict['output'][key]:
@@ -3638,11 +3643,11 @@ class DataMining(BasePostProcessor):
       @ Out, outputDict, dict, dictionary containing the post-processed results
     """
     if len(self.dataObjects) > 0:
-      if type(self.dataObjects) == list: 
+      if type(self.dataObjects) == list:
         dataObject = self.dataObjects[-1]
       else:
         dataObject = self.dataObjects
-    else: 
+    else:
       dataObject = None
     input = self.inputToInternal(inputIn)
     outputDict = {}

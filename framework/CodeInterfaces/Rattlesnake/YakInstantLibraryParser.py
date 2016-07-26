@@ -117,7 +117,7 @@ class YakInstantLibraryParser():
           varsList = list(var.strip() for var in child.text.strip().split(','))
           if len(varsList) != aliasXSGroup:
             msg = str(aliasXSGroup) + ' variables should be provided for ' + child.tag
-            msg = msg + " Only " + len(varsList) + " variables is provided!"
+            msg = msg + " Only " + str(len(varsList)) + " variables is provided!"
             raise IOError(msg)
           aliasXS[mt] = varsList
         else:
