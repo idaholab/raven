@@ -3424,8 +3424,8 @@ class DataMining(BasePostProcessor):
         # end of FIXME
 
         historyKey = currentInput.getOutParametersValues().keys()
-        noSample = len(historyKey)
-        noTimeStep = len(self.pivotVariable)
+        numberOfSample = len(historyKey)
+        numberOfHistoryStep = len(self.pivotVariable)
 
         if self.initializationOptionDict['KDD']['Features'] == 'input':
           self.raiseAnError(ValueError, 'To perform data mining over input please use SciKitLearn library')
@@ -3436,7 +3436,7 @@ class DataMining(BasePostProcessor):
           features = self.initializationOptionDict['KDD']['Features'].split(',')
 
         for param in features:
-          inputDict['Features'][param] = np.zeros(shape=(noSample,noTimeStep))
+          inputDict['Features'][param] = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
           for cnt, keyH in enumerate(historyKey):
             inputDict['Features'][param][cnt,:] = currentInput.getParam('output', keyH)[param]
 
@@ -3757,13 +3757,13 @@ class DataMining(BasePostProcessor):
 
       self.unSupervisedEngine.confidence()
       outputDict['output'] = {}
-      noTimeStep = self.unSupervisedEngine.noTimeStep
-      noSample = self.unSupervisedEngine.noSample
+      numberOfHistoryStep = self.unSupervisedEngine.numberOfHistoryStep
+      numberOfSample = self.unSupervisedEngine.numberOfSample
 
       if self.unSupervisedEngine.SKLtype in ['cluster']:
         if 'labels' in self.unSupervisedEngine.outputDict.keys():
-          labels = np.zeros(shape=(noSample,noTimeStep))
-          for t in range(noTimeStep):
+          labels = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
+          for t in range(numberOfHistoryStep):
             labels[:,t] = self.unSupervisedEngine.outputDict['labels'][t]
           outputDict['output'][self.labelFeature] = labels
 
@@ -3794,9 +3794,9 @@ class DataMining(BasePostProcessor):
                 ## We will go through the time series and find every instance
                 ## where this cluster exists, if it does not, then we put a NaN
                 ## to signal that the information is missing for this timestep
-                timeSeries = np.zeros(noTimeStep)
+                timeSeries = np.zeros(numberOfHistoryStep)
 
-                for timeIdx in range(noTimeStep):
+                for timeIdx in range(numberOfHistoryStep):
                   ## Here we use the assumption that SKL provides clusters that
                   ## are integer values beginning at zero, which make for nice
                   ## indexes with no need to add another layer of obfuscation
@@ -3821,8 +3821,8 @@ class DataMining(BasePostProcessor):
 
       elif self.unSupervisedEngine.SKLtype in ['mixture']:
         if 'labels' in self.unSupervisedEngine.outputDict.keys():
-          labels = np.zeros(shape=(noSample,noTimeStep))
-          for t in range(noTimeStep):
+          labels = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
+          for t in range(numberOfHistoryStep):
             labels[:,t] = self.unSupervisedEngine.outputDict['labels'][t]
           outputDict['output'][self.labelFeature] = labels
 
@@ -3864,9 +3864,9 @@ class DataMining(BasePostProcessor):
                 ## We will go through the time series and find every instance
                 ## where this cluster exists, if it does not, then we put a NaN
                 ## to signal that the information is missing for this timestep
-                timeSeries = np.zeros(noTimeStep)
+                timeSeries = np.zeros(numberOfHistoryStep)
 
-                for timeIdx in range(noTimeStep):
+                for timeIdx in range(numberOfHistoryStep):
                   timeSeries[timeIdx] = mixtureMeans[timeIdx][clusterIdx,featureIdx]
 
                 ## In summary, for each feature, we fill a temporary array and
@@ -3884,8 +3884,8 @@ class DataMining(BasePostProcessor):
               for i,row in enumerate(self.unSupervisedEngine.features.keys()):
                 for joffset,col in enumerate(self.unSupervisedEngine.features.keys()[i:]):
                   j = i+joffset
-                  timeSeries = np.zeros(noTimeStep)
-                  for timeIdx in range(noTimeStep):
+                  timeSeries = np.zeros(numberOfHistoryStep)
+                  for timeIdx in range(numberOfHistoryStep):
                     timeSeries[timeIdx] = mixtureCovars[timeIdx][clusterIdx][i,j]
                   self.solutionExport.updateOutputValue('cov_'+str(row)+'_'+str(col),timeSeries)
 
@@ -3903,12 +3903,12 @@ class DataMining(BasePostProcessor):
           ## outputDict['output'] and here, how is this ever possible? I don't
           ## think the if is necessary here.
           if self.name+'EmbeddingVector' + str(i + 1) not in outputDict['output'].keys():
-            outputDict['output'][self.name+'EmbeddingVector' + str(i + 1)] = np.zeros(shape=(noSample,noTimeStep))
+            outputDict['output'][self.name+'EmbeddingVector' + str(i + 1)] = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
           else:
             print('DEAD CODE')
 
           ## Shouldn't this only happen if embeddingVectors is set above?
-          for t in range(noTimeStep):
+          for t in range(numberOfHistoryStep):
             outputDict['output'][self.name+'EmbeddingVector' + str(i + 1)][:,t] =  embeddingVectors[t][:, i]
 
       elif self.unSupervisedEngine.SKLtype in ['decomposition']:
@@ -3934,12 +3934,12 @@ class DataMining(BasePostProcessor):
           ## outputDict['output'] and here, how is this ever possible? I don't
           ## think the if is necessary here.
           if self.name+'PCAComponent' + str(i + 1) not in outputDict['output'].keys():
-            outputDict['output'][self.name+'PCAComponent' + str(i + 1)] = np.zeros(shape=(noSample,noTimeStep))
+            outputDict['output'][self.name+'PCAComponent' + str(i + 1)] = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
           else:
             print('DEAD CODE 2')
 
           if transformedData is not None:
-            for t in range(noTimeStep):
+            for t in range(numberOfHistoryStep):
               outputDict['output'][self.name+'PCAComponent' + str(i + 1)][:,t] = transformedData[t][:, i]
 
 
@@ -3952,8 +3952,8 @@ class DataMining(BasePostProcessor):
             self.solutionExport.updateInputValue('component', row+1)
             self.solutionExport.updateOutputValue(self.pivotParameter, self.pivotVariable)
             for i,col in enumerate(self.unSupervisedEngine.features.keys()):
-              timeSeries = np.zeros(noTimeStep)
-              for timeIdx in range(noTimeStep):
+              timeSeries = np.zeros(numberOfHistoryStep)
+              for timeIdx in range(numberOfHistoryStep):
                 timeSeries[timeIdx] = components[timeIdx][row][i]
               self.solutionExport.updateOutputValue(col,timeSeries)
 

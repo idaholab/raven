@@ -526,8 +526,8 @@ class temporalSciKitLearn(unSupervisedLearning):
       @ Out, normV, array, shape = [no_history, no_timeStep], normalized values
     """
     normV = np.zeros(shape = values[names.index(feat)].shape)
-    self.muAndSigmaFeatures[feat] = np.zeros(shape=(2,self.noTimeStep))
-    for t in range(self.noTimeStep):
+    self.muAndSigmaFeatures[feat] = np.zeros(shape=(2,self.numberOfHistoryStep))
+    for t in range(self.numberOfHistoryStep):
       self.muAndSigmaFeatures[feat][0,t] = np.average(values[names.index(feat)][:,t])
       self.muAndSigmaFeatures[feat][1,t] = np.std(values[names.index(feat)][:,t])
       if self.muAndSigmaFeatures[feat][1,t] == 0: self.muAndSigmaFeatures[feat][1,t] = np.max(np.absolute(values[names.index(feat)][:,t]))
@@ -559,17 +559,17 @@ class temporalSciKitLearn(unSupervisedLearning):
     # need to overwrite train method because time dependent data mining requires different treatment of input
     if type(tdict) != dict: self.raiseAnError(IOError, ' method "train". The training set needs to be provided through a dictionary. Type of the in-object is ' + str(type(tdict)))
     names, values = list(tdict.keys()), list(tdict.values())
-    self.noSample, self.noTimeStep = values[0].shape[0], values[0].shape[1]
+    self.numberOfSample, self.numberOfHistoryStep = values[0].shape[0], values[0].shape[1]
     if self.labels in names:
       self.labelValues = values[names.index(self.labels)]
-      resp = self.checkArrayConsistency(self.labelValues,[self.noSample, self.noTimeStep])
+      resp = self.checkArrayConsistency(self.labelValues,[self.numberOfSample, self.numberOfHistoryStep])
       if not resp[0]: self.raiseAnError(IOError, 'In training set for ground truth labels ' + self.labels + ':' + resp[1])
     else            : self.raiseAWarning(' The ground truth labels are not known appriori')
 #     for cnt, feat in enumerate(self.features):
     for feat in self.features:
       if feat not in names: self.raiseAnError(IOError, ' The feature sought ' + feat + ' is not in the training set')
       else:
-        resp = self.checkArrayConsistency(values[names.index(feat)],[self.noSample, self.noTimeStep])
+        resp = self.checkArrayConsistency(values[names.index(feat)],[self.numberOfSample, self.numberOfHistoryStep])
         if not resp[0]: self.raiseAnError(IOError, ' In training set for feature ' + feat + ':' + resp[1])
         if self.normValues is None: self.normValues = {}
         self.normValues[feat] = self._localNormalizeData(values, names, feat)
@@ -585,7 +585,7 @@ class temporalSciKitLearn(unSupervisedLearning):
     self.outputDict['inputs' ] = self.normValues
 
     Input = {}
-    for t in range(self.noTimeStep):
+    for t in range(self.numberOfHistoryStep):
       Input['Features'] ={}
       for feat in self.features.keys():     Input['Features'][feat] = self.inputDict[feat][:,t]
       self.SKLEngine.features = Input['Features']
