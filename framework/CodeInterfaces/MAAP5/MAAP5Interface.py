@@ -309,7 +309,7 @@ class MAAP5(GenericCode):
     if len(self.boolOutputVariables)>0:
       boolVariableEvolution=[]
       for variable in self.boolOutputVariables:
-        variableName='IEVNT('+str(variable)+')'
+        variableName=str(variable)
         try: (dataDict[variableName])
         except: raise IOError('define the variable within MAAP5 plotfil: ',variableName)
         boolVariableEvolution.append(dataDict[variableName])
@@ -352,8 +352,13 @@ class MAAP5(GenericCode):
       #
       #  NOTE THAT THIS ERROR CAN BE WRONG SINCE IT IS POSSIBLE (BRANCHES ON DEMAND) THAT TWO BRANCHES (OR MORE) HAPPEN AT THE SAME TIME! Andrea
       #
-      if any([dictTimer.values().count(value) > 1 for value in dictTimer.values()]): raise IOError('Branch must occur at different times')
-
+      dictTimeHappened = []
+      for value in dictTimer.values():
+        if value != -1: dictTimeHappened.append(value)
+      print ('finalizeCodeOutput', workingDir)
+      print('DictTimer =', dictTimer)
+      print('Events occur at: ', dictTimeHappened)     
+      #if any([dictTimeHappened.count(value) > 1 for value in dictTimer.values()]): raise IOError('Branch must occur at different times')
       key1 = max(dictTimer.values())
       d1 = dict((v, k) for k, v in dictTimer.iteritems())
       timerActivated = d1[key1]
@@ -374,7 +379,7 @@ class MAAP5(GenericCode):
       tilast=str(timeFloat[-1])
       self.tilastDict[currentFolder]=tilast
       if self.stop.strip()=='mission_time': condition=(math.floor(float(tilast)) >= math.floor(float(self.endTime)))
-      else: condition=event
+      else: condition=(event or (math.floor(float(tilast)) >= math.floor(float(self.endTime))))
       if not condition:
         DictBranchCurrent='Dict'+str(self.branch[currentFolder][0])
         DictChanged=self.DictAllVars[DictBranchCurrent]
