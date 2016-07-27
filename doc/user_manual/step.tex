@@ -269,7 +269,7 @@ This XML node recognizes the following attributes:
     For example, the \xmlAttr{type} attribute might be \xmlString{Code},
     \xmlString{ROM}, etc.
 \end{itemize}
-\item \xmlNode{Sampler}, \xmlDesc{string, required parameter} names an entity
+\item \xmlNode{Sampler}, \xmlDesc{string, optional parameter} names an entity
 defined elsewhere in the input file to be used as a sampler.
 As mentioned in Section \ref{sec:Samplers}, the \textbf{Sampler} is in charge of
 defining the strategy to characterize the input space.
@@ -288,6 +288,25 @@ This XML node recognizes the following attributes:
     See Section \ref{sec:Samplers} for all the different types currently
     supported.
 \end{itemize}
+\item \xmlNode{Optimizer}, \xmlDesc{string, optional parameter} names an entity
+defined elsewhere in the input file to be used as an optimizer.
+As mentioned in Section \ref{sec:Optimizers}, the \textbf{Optimizer} is in charge of
+defining the strategy to optimize an user-specified variable.
+This XML node recognizes the following attributes:
+\begin{itemize}
+  \item \xmlAttr{class}, \xmlDesc{required string attribute}, main object class
+    type.
+    This string corresponds to the tag of the main object's type used.
+    Only \xmlString{Optimizers} can be used for this role.
+  \item \xmlAttr{type}, \xmlDesc{required string attribute}, the actual entity
+    type.
+    This attribute needs to specify the object type within the \texttt{Optimizers}
+    object class.
+    For example, the \xmlAttr{type} attribute might be \xmlString{SPSA}, etc.
+    See Section \ref{sec:Optimizers} for all the different types currently
+    supported.
+\end{itemize}
+\nb For Multi-Run, either one \xmlNode{Sampler} or one \xmlNode{Optimizer} is required. 
 \item \xmlNode{SolutionExport}, \xmlDesc{string, optional parameter} identifies
 an entity to be used for exporting key information coming from the
 \textbf{Sampler} object during the simulation.
