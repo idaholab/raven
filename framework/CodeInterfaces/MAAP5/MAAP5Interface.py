@@ -357,7 +357,7 @@ class MAAP5(GenericCode):
         if value != -1: dictTimeHappened.append(value)
       print ('finalizeCodeOutput', workingDir)
       print('DictTimer =', dictTimer)
-      print('Events occur at: ', dictTimeHappened)     
+      print('Events occur at: ', dictTimeHappened)
       #if any([dictTimeHappened.count(value) > 1 for value in dictTimer.values()]): raise IOError('Branch must occur at different times')
       key1 = max(dictTimer.values())
       d1 = dict((v, k) for k, v in dictTimer.iteritems())

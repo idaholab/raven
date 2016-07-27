@@ -427,6 +427,9 @@ class GridEntity(GridBase):
         gridMesh = [self.gridContainer['bounds']["lowerBounds"][varName]]
         for stepLengthi in stepLength[varId]: gridMesh.append(round(gridMesh[-1],14)+round(stepLengthi,14))
         self.gridContainer['gridVectors'][varName] = np.asarray(gridMesh)
+      if compare(round(self.gridContainer['bounds']["lowerBounds" ][varName],14), round(self.gridContainer['bounds']["upperBounds" ][varName],14)): self.raiseAnError(IOError,"the lowerBound and upperBound for dimension named " + varName +
+                                                                                                                                                                              " are the same!. lowerBound = "+ str(self.gridContainer['bounds']["lowerBounds" ][varName]) +
+                                                                                                                                                                              " and upperBound = "+ str(self.gridContainer['bounds']["upperBounds" ][varName]))
       if not compare(round(max(self.gridContainer['gridVectors'][varName]),14), round(self.gridContainer['bounds']["upperBounds" ][varName],14)) and self.volumetricRatio == None: self.raiseAnError(IOError,"the maximum value in the grid is bigger that upperBound! upperBound: "+
                                                                                                                                       str(self.gridContainer['bounds']["upperBounds" ][varName]) +
                                                                                                                                       " < maxValue in grid: "+str(max(self.gridContainer['gridVectors'][varName])))

@@ -14,8 +14,8 @@
     input = 'test_BasicStatsGridInValueAnalytic.xml'
     output = 'basicStatsGridInValueAnalytic/outputDatagrid_dump.csv basicStatsGridInValueAnalytic/outputDatagrid_dump.xml'
     UnorderedXml = 'basicStatsGridInValueAnalytic/outputDatagrid_dump.xml'
-    rel_err = 0.00001
-    zero_threshold = 1e-14
+    rel_err = 0.0001
+    zero_threshold = 1e-12
     remove_whitespace = True
   [../]
   [./basicStatsMC]
