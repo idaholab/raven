@@ -7,10 +7,7 @@ def run(self, Input):
   self.Time = np.linspace(0, end_time, number_of_timesteps)
   
   id = int(Input['n'])
-  
-  print(id)
-  print('/n')
-  
+    
   iris = datasets.load_iris()
   x1 = iris.data[id,0]
   x2 = iris.data[id,1]
