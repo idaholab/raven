@@ -27,7 +27,7 @@ class SPSA(GradientBasedOptimizer):
   """
     Simultaneous Perturbation Stochastic Approximation Optimizer
   """
-  def __init__(self):
+  def __init__(self): 
     """
       Default Constructor
     """
