@@ -2099,6 +2099,7 @@ class ARMA(superVisedLearning):
       @In, targetVals, array, shape = [n_timeStep], data for time variable
     """
     self.time = copy.deepcopy(targetVals)
+    self.historySteps = self.time
     self.timeSeriesDatabase = featureVals 
     
     # Fit fourier seires
