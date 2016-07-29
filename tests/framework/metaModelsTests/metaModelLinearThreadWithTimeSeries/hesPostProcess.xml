@@ -1,0 +1,165 @@
+<Simulation>
+    <RunInfo>
+        <WorkingDir>.</WorkingDir>
+        <Sequence>importData,testOutstreamStep1</Sequence>
+        <batchSize>4</batchSize>
+    </RunInfo>
+
+    <VariableGroups>
+        <Group name="opt_params" >reCapacity, ngCapacity, besCapacity, meanDemand</Group>
+        <Group name="outputs" >ranWind,hourLost,utilRE,utilNG,utilSMR,LCOE_Total,CO2_Total,product_revenue
+        </Group>
+    </VariableGroups>
+
+    <Databases>
+        <HDF5 name="hesData" filename="hesData.h5"/>
+    </Databases>
+
+    <Steps>
+        <IOStep name="importData" pauseAtEnd="True">
+            <Input          class="Databases"       type="HDF5">hesData</Input>
+            <Output         class="DataObjects"     type="pointset">outputData</Output>
+            <!--<Input          class="Databases"       type="HDF5">lsdatabase</Input>-->
+            <!--<Output         class="DataObjects"     type="pointset">lmt_srf_dt</Output>-->
+        </IOStep>
+        <IOStep name="testOutstreamStep1" pauseAtEnd="True">
+            <Input          class="DataObjects"     type="PointSet">outputData</Input>
+            <Output         class="OutStreams"      type="Plot">plot1</Output>
+            <Output         class="OutStreams"      type="Plot">plot2</Output>
+            <Output         class="OutStreams"      type="Plot">plot3</Output>
+            <Output         class="OutStreams"      type="Plot">plot4</Output>
+        </IOStep>
+        <!--<IOStep name="testOutstreamStep2" pauseAtEnd="True">-->
+            <!--<Input          class="DataObjects"     type="PointSet">lmt_srf_dt</Input>-->
+            <!--<Output         class="OutStreams"      type="Plot">plot6</Output>-->
+        <!--</IOStep>-->
+    </Steps>
+
+    <DataObjects>
+        <PointSet name="outputData">
+            <Input>opt_params</Input>
+            <Output>outputs</Output>
+        </PointSet>
+        <PointSet name="dummy">
+            <Input>opt_params</Input>
+            <Output>OutputPlaceHolder</Output>
+        </PointSet>
+        <PointSet name="LStarget">
+            <Input>opt_params</Input>
+            <Output>hourLost</Output>
+        </PointSet>
+        <PointSet name="dummy2">
+            <Input>opt_params</Input>
+            <Output>OutputPlaceHolder</Output>
+        </PointSet>
+        <PointSet name="lmt_srf_dt">
+            <Input>opt_params</Input>
+            <Output>BlackOut</Output>
+        </PointSet>
+    </DataObjects>
+
+    <OutStreams>
+
+        <Plot dim="3" name="plot1" overwrite="True">
+            <plotSettings>
+                <plot>
+                    <type>scatter</type>
+                    <x>outputData|Input|reCapacity</x>
+                    <y>outputData|Input|ngCapacity</y>
+                    <z>outputData|Input|besCapacity</z>
+                    <colorMap>outputData|Output|LCOE_Total</colorMap>
+                </plot>
+                <xlabel>Renewable Nameplate Capacity</xlabel>
+                <ylabel>Natural Gas Capacity</ylabel>
+                <zlabel>Battery Capacity</zlabel>
+            </plotSettings>
+            <actions>
+                <how>screen</how>
+                <title>
+                    <text>Total Cost [$/MWh]</text>
+                </title>
+            </actions>
+            </Plot>
+
+        <Plot dim="3" name="plot2" overwrite="True">
+            <plotSettings>
+                <plot>
+                    <type>scatter</type>
+                    <x>outputData|Input|reCapacity</x>
+                    <y>outputData|Input|ngCapacity</y>
+                    <z>outputData|Input|besCapacity</z>
+                    <colorMap>outputData|Output|CO2_Total</colorMap>
+                </plot>
+                <xlabel>Renewable Nameplate Capacity</xlabel>
+                <ylabel>Natural Gas Capacity</ylabel>
+                <zlabel>Battery Capacity</zlabel>
+            </plotSettings>
+            <actions>
+                <how>screen</how>
+                <title>
+                    <text>Total Emissions [Tonnes of CO2]</text>
+                </title>
+            </actions>
+        </Plot>
+
+        <Plot dim="3" name="plot3" overwrite="True">
+            <plotSettings>
+                <plot>
+                    <type>scatter</type>
+                    <x>outputData|Input|reCapacity</x>
+                    <y>outputData|Input|ngCapacity</y>
+                    <z>outputData|Input|besCapacity</z>
+                    <colorMap>outputData|Output|product_revenue</colorMap>
+                </plot>
+                <xlabel>Renewable Nameplate Capacity</xlabel>
+                <ylabel>Natural Gas Capacity</ylabel>
+                <zlabel>Battery Capacity</zlabel>
+            </plotSettings>
+            <actions>
+                <how>screen</how>
+                <title>
+                    <text>Annual Product Revenue [$]</text>
+                </title>
+            </actions>
+        </Plot>
+
+                <Plot dim="2" name="plot4" overwrite="True">
+            <plotSettings>
+                <plot>
+                    <type>scatter</type>
+                    <x>outputData|Input|meanDemand</x>
+                    <y>outputData|Output|hourLost</y>
+                </plot>
+                <xlabel>Mean Demand</xlabel>
+                <ylabel>Hours Lost</ylabel>
+            </plotSettings>
+            <actions>
+                <how>screen</how>
+                <title>
+                    <text>hourLost vs Meandemand</text>
+                </title>
+            </actions>
+        </Plot>
+
+        <!--<Plot dim="3" name="plot6" overwrite="True">-->
+            <!--<plotSettings>-->
+                <!--<plot>-->
+                    <!--<type>scatter</type>-->
+                    <!--<x>lmt_srf_dt|Input|reCapacity</x>-->
+                    <!--<y>lmt_srf_dt|Input|ngCapacity</y>-->
+                    <!--<z>lmt_srf_dt|Input|meanDemand</z>-->
+                    <!--<colorMap>lmt_srf_dt|Output|BlackOut</colorMap>-->
+                <!--</plot>-->
+                <!--<xlabel>Renewable Nameplate Capacity</xlabel>-->
+                <!--<ylabel>Natural Gas Capacity</ylabel>-->
+                <!--<zlabel>Battery Storage Capacity</zlabel>-->
+            <!--</plotSettings>-->
+            <!--<actions>-->
+            <!--<how>screen</how>-->
+            <!--<title>-->
+            <!--<text>Limit Surface for less than 30 hours of uncovered demand</text>-->
+            <!--</title>-->
+            <!--</actions>-->
+        <!--</Plot>-->
+    </OutStreams>
+</Simulation>

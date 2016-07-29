@@ -1,0 +1,114 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+    <RunInfo>
+        <WorkingDir>.</WorkingDir>
+        <Sequence>FirstGridRun</Sequence>
+        <batchSize>1</batchSize>
+    </RunInfo>
+
+    <VariableGroups>
+        <Group name="opt_params" >reCapacity, ngCapacity, besCapacity, meanDemand</Group>
+        <Group name="outputs" >ranWind,hourLost,utilRE,utilNG,utilSMR,LCOE_Total,CO2_Total,product_revenue</Group>
+    </VariableGroups>
+
+    <Models>
+        <ExternalModel ModuleToLoad="hesCostModel" name="hesCostModel" subType="">
+            <variables>opt_params, outputs</variables>
+        </ExternalModel>
+        <ExternalModel ModuleToLoad="demandDataModel" name="demandDataModel" subType="">
+            <variables>opt_params, outputs</variables>
+        </ExternalModel>
+        
+        <EnsembleModel name="ensambleModelTest" subType="">
+           <Model class="Models" inputNames="inputHolder" type="ExternalModel">
+             hesCostModel
+           <TargetEvaluation class="DataObjects" type="PointSet">hesCostModelOutput</TargetEvaluation>
+           </Model>
+           <Model class="Models" inputNames="inputHolder" type="ExternalModel">
+              demandDataModel
+              <TargetEvaluation class="DataObjects" type="PointSet">demandDataModelOutput</TargetEvaluation>
+           </Model>
+        </EnsembleModel>
+    </Models>
+
+    <Distributions>
+        <Uniform name="capacities_distrib">
+            <upperBound>1000</upperBound>
+            <lowerBound>10</lowerBound>
+        </Uniform>
+        <Uniform name="mean_distrib">
+            <upperBound>1000</upperBound>
+            <lowerBound>10</lowerBound>
+        </Uniform>
+        <Uniform name="perturbedDeman">
+            <upperBound>1.0</upperBound>
+            <lowerBound>1.1</lowerBound>
+        </Uniform>
+    </Distributions>
+
+    <Samplers>
+        <Grid name="myGrid">
+            <variable name="perturbDemand">
+                <distribution>perturbedDeman</distribution>
+                <grid construction="equal" steps="3" type="CDF">0.0 1.0</grid>
+            </variable>
+            <variable name="reCapacity">
+                <distribution>capacities_distrib</distribution>
+                <grid construction="equal" steps="5" type="value">10 1000</grid>
+            </variable>
+            <variable name="ngCapacity">
+                <distribution>capacities_distrib</distribution>
+                <grid construction="equal" steps="5" type="value">10 1000</grid>
+            </variable>
+            <variable name="besCapacity">
+                <distribution>capacities_distrib</distribution>
+                <grid construction="equal" steps="5" type="value">10 1000</grid>
+            </variable>
+	        <variable name="meanDemand">
+                <distribution>mean_distrib</distribution>
+                <grid construction="equal" steps="5" type="value">10 1000</grid>
+            </variable>
+        </Grid>
+  </Samplers>
+
+  <DataObjects>
+        <PointSet name="outputData">
+            <Input>opt_params</Input>
+            <Output>outputs</Output>
+        </PointSet>
+        <PointSet name="hesCostModelOutput">
+            <Input>opt_params,demandData</Input>
+            <Output>outputs</Output>
+        </PointSet>
+        <PointSet name="demandDataModelOutput">
+            <Input>perturbDemand</Input>
+            <Output>demandData</Output>
+        </PointSet>
+        <PointSet name="dummy">
+            <Input>opt_params</Input>
+            <Output>OutputPlaceHolder</Output>
+        </PointSet>
+        <PointSet name="LStarget">
+            <Input>opt_params</Input>
+            <Output>hourLost</Output>
+        </PointSet>
+        <PointSet name="dummy2">
+            <Input>opt_params</Input>
+            <Output>OutputPlaceHolder</Output>
+        </PointSet>
+    </DataObjects>
+
+    <Databases>
+        <HDF5 name="hesData" readMode="overwrite"/>
+    </Databases>
+
+    <Steps>
+        <MultiRun name="FirstGridRun">
+            <Input          class="DataObjects"   type="PointSet">dummy</Input>
+            <Model          class="Models"        type="ExternalModel">hesCostModel</Model>
+            <Sampler        class="Samplers"      type="Grid">myGrid</Sampler>
+            <Output         class="Databases"     type="HDF5">hesData</Output>
+        </MultiRun>
+    </Steps>
+
+</Simulation>

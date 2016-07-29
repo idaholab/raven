@@ -1530,6 +1530,7 @@ class EnsembleModel(Dummy, Assembler):
     self.printTag = 'EnsembleModel MODEL'
     self.addAssemblerObject('Model','n',True)
     self.addAssemblerObject('TargetEvaluation','n')
+    self.addAssemblerObject('Input','n')
     self.tempTargetEvaluations = {}
     self.maxIterations         = 30
     self.convergenceTol        = 1.e-3
@@ -1546,13 +1547,17 @@ class EnsembleModel(Dummy, Assembler):
     for child in xmlNode:
       if child.tag not in  ["Model"]: self.raiseAnError(IOError, "Expected Model tag. Got "+child.tag)
       if child.tag == 'Model':
-        self.modelsDictionary[child.text.strip()] = {'TargetEvaluation':None,'Instance':None}
+        modelName = child.text.strip()
+        self.modelsDictionary[modelName] = {'TargetEvaluation':None,'Instance':None,'Input':[]}
         for childChild in child:
-          self.modelsDictionary[child.text.strip()][childChild.tag] = childChild.text.strip()
-        if self.modelsDictionary[child.text.strip()].values().count(None) != 1: self.raiseAnError(IOError, "TargetEvaluation xml block needs to be inputted!")
-        if len(self.modelsDictionary[child.text.strip()].values()) > 2: self.raiseAnError(IOError, "TargetEvaluation xml block is the only XML sub-block allowed!")
-        if 'inputNames' not in child.attrib.keys(): self.raiseAnError(IOError, "inputNames attribute for Model" + child.text.strip() +" has not been inputted!")
-        self.modelsDictionary[child.text.strip()]['inputNames'] = [utils.toStrish(inpName) for inpName in child.attrib["inputNames"].split(",")]
+          try                  : self.modelsDictionary[modelName][childChild.tag].append(childChild.text.strip())
+          except AttributeError: self.modelsDictionary[modelName][childChild.tag] = childChild.text.strip()
+        if self.modelsDictionary[modelName].values().count(None) != 1: self.raiseAnError(IOError, "TargetEvaluation xml block needs to be inputted!")
+        #if len(self.modelsDictionary[child.text.strip()].values()) > 2: self.raiseAnError(IOError, "TargetEvaluation xml block is the only XML sub-block allowed!")
+        #if 'inputNames' not in child.attrib.keys(): self.raiseAnError(IOError, "inputNames attribute for Model" + child.text.strip() +" has not been inputted!")
+        #self.modelsDictionary[modelName]['inputNames'] = [utils.toStrish(inpName) for inpName in child.attrib["inputNames"].split(",")]
+        if len(self.modelsDictionary[modelName]['Input']) == 0 : self.raiseAnError(IOError, "Input XML node for Model" + modelName +" has not been inputted!") 
+        if len(self.modelsDictionary[modelName].values()) > 3  : self.raiseAnError(IOError, "TargetEvaluation and Input XML blocks are the only XML sub-blocks allowed!")
       if child.tag == 'settings':
         self.__readSettings(child)
     if len(self.modelsDictionary.keys()) < 2: self.raiseAnError(IOError, "The EnsembleModel needs at least 2 models to be constructed!")
@@ -1580,7 +1585,7 @@ class EnsembleModel(Dummy, Assembler):
       if subWhat in value[what]: models.append(key)
     if len(models) == 0: models = None
     return models
-
+   
   def initialize(self,runInfo,inputs,initDict=None):
     """
       Method to initialize the EnsembleModel
@@ -1593,25 +1598,22 @@ class EnsembleModel(Dummy, Assembler):
     rootNode = self.tree.getrootnode()
     for modelIn in self.assemblerDict['Model']:
       self.modelsDictionary[modelIn[2]]['Instance'] = modelIn[3]
-      inputForModel = []
-      for input in inputs:
-        if input.name in self.modelsDictionary[modelIn[2]]['inputNames']: inputForModel.append(input)
-      self.modelsDictionary[modelIn[2]]['Instance'].initialize(runInfo,inputForModel,initDict)
+      inputInstancesForModel = []
+      for input in self.modelsDictionary[modelIn[2]]['Input']: inputInstancesForModel.append( self.retrieveObjectFromAssemblerDict('Input',input))
+      self.modelsDictionary[modelIn[2]]['InputObject'] = inputInstancesForModel
+      self.modelsDictionary[modelIn[2]]['Instance'].initialize(runInfo,inputInstancesForModel,initDict)
       for mm in self.modelsDictionary[modelIn[2]]['Instance'].mods:
         if mm not in self.mods: self.mods.append(mm)
-    for targetEval in self.assemblerDict['TargetEvaluation']:
-      for modelIn in self.modelsDictionary.keys():
-        if targetEval[2] == self.modelsDictionary[modelIn]['TargetEvaluation']:
-          self.modelsDictionary[modelIn]['TargetEvaluation'] = targetEval[3]
-          self.tempTargetEvaluations[modelIn]                = copy.deepcopy(targetEval[3])
-          if type(targetEval[3]).__name__ != 'PointSet': self.raiseAnError(IOError, "The TargetEvaluation needs to be an instance of PointSet. Got "+type(targetEval[3]).__name__)
-          self.modelsDictionary[modelIn]['Input'] = targetEval[3].getParaKeys("inputs")
-          self.modelsDictionary[modelIn]['Output'] = targetEval[3].getParaKeys("outputs")
-          modelNode = TreeStructure.Node(modelIn)
-          modelNode.add( 'inputs', targetEval[3].getParaKeys("inputs"))
-          modelNode.add('outputs', targetEval[3].getParaKeys("outputs"))
-          rootNode.appendBranch(modelNode)
-          break
+      self.modelsDictionary[modelIn[2]]['TargetEvaluation'] = self.retrieveObjectFromAssemblerDict('TargetEvaluation',self.modelsDictionary[modelIn[2]]['TargetEvaluation'])
+      self.tempTargetEvaluations[modelIn[2]]                 = copy.deepcopy(self.modelsDictionary[modelIn[2]]['TargetEvaluation'])
+      #if type(self.tempTargetEvaluations[modelIn[2]]).__name__ != 'PointSet': self.raiseAnError(IOError, "The TargetEvaluation needs to be an instance of PointSet. Got "+type(self.tempTargetEvaluations[modelIn[2]]).__name__)
+      self.modelsDictionary[modelIn[2]]['Input' ] = self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getParaKeys("inputs")
+      self.modelsDictionary[modelIn[2]]['Output'] = self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getParaKeys("outputs")
+      modelNode = TreeStructure.Node(modelIn[2])
+      modelNode.add( 'inputs', self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getParaKeys("inputs"))
+      modelNode.add('outputs', self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getParaKeys("outputs"))
+      rootNode.appendBranch(modelNode)
+  
     # construct chain connections
     self.orderList        = self.modelsDictionary.keys()
     self.isConnected      = {}
@@ -1704,14 +1706,13 @@ class EnsembleModel(Dummy, Assembler):
         for inp in specs['Input']:
           if inp not in allCoveredVariables: self.raiseAnError(RuntimeError,"for sub-model "+ modelIn + "the input "+inp+" has not been found among other models' outputs and sampled variables!")
       newKwargs = self.__selectInputSubset(modelIn,Kwargs)
-      inputForModel = []
-      for input in myInput:
-        if input.name in self.modelsDictionary[modelIn]['inputNames']: inputForModel.append(input)
-      if len(inputForModel) == 0: self.raiseAnError(IOError,"inputs " + " ".join(self.modelsDictionary[modelIn]['inputNames']) + " has not been found!")
-      inputDict = [self._inputToInternal(inputForModel[0],newKwargs['SampledVars'].keys())] if specs['Instance'].type != 'Code' else  inputForModel
+      #inputForModel = []
+      #for input in myInput:
+      #  if input.name in self.modelsDictionary[modelIn]['inputNames']: inputForModel.append(input)
+      #if len(inputForModel) == 0: self.raiseAnError(IOError,"inputs " + " ".join(self.modelsDictionary[modelIn]['inputNames']) + " has not been found!")
+      inputDict = [self._inputToInternal(self.modelsDictionary[modelIn]['InputObject'][0],newKwargs['SampledVars'].keys())] if specs['Instance'].type != 'Code' else  self.modelsDictionary[modelIn]['InputObject']
       newInputs[modelIn] = specs['Instance'].createNewInput(inputDict,samplerType,**newKwargs)
-      if specs['Instance'].type == 'Code':
-        newInputs[modelIn][1]['originalInput'] = inputDict
+      if specs['Instance'].type == 'Code': newInputs[modelIn][1]['originalInput'] = inputDict
     self.needToCheckInputs = False
     return copy.deepcopy(newInputs)
 
@@ -1769,7 +1770,7 @@ class EnsembleModel(Dummy, Assembler):
       if mm not in self.mods: self.mods.append(mm)
     jobHandler.submitDict['InternalClient'](((copy.deepcopy(Input),jobHandler),), self.__externalRun,str(Input['prefix']))
 
-  def __retrieveDependentOutput(self,modelIn,listOfOutputs):
+  def __retrieveDependentOutput(self,modelIn,listOfOutputs, typeOutputs):
     """
       This method is aimed to retrieve the values of the output of the models on which the modelIn depends on
       @ In, modelIn, string, name of the model for which the dependent outputs need to be
@@ -1777,11 +1778,10 @@ class EnsembleModel(Dummy, Assembler):
       @ Out, dependentOutputs, dict, the dictionary of outputs the modelIn needs
     """
     dependentOutputs = {}
-    for previousOutputs in listOfOutputs:
+    for previousOutputs, outputType in zip(listOfOutputs,typeOutputs):
       if len(previousOutputs.values()) > 0:
         for input in self.modelsDictionary[modelIn]['Input']:
-          # since we support only PointSet we get the last entry of the array (the current history)
-          if input in previousOutputs.keys(): dependentOutputs[input] =  previousOutputs[input][-1]
+          if input in previousOutputs.keys(): dependentOutputs[input] =  previousOutputs[input][-1] if outputType != 'HistorySet' else previousOutputs[input]
     return dependentOutputs
 
   def __externalRun(self,inRun):
@@ -1800,7 +1800,8 @@ class EnsembleModel(Dummy, Assembler):
     tempTargetEvaluations = copy.deepcopy(self.tempTargetEvaluations)
     #modelsTargetEvaluations[modelIn] = copy.deepcopy(self.modelsDictionary[modelIn]['TargetEvaluation'])
     residueContainer = dict.fromkeys(self.modelsDictionary.keys())
-    gotOutputs = [{}]*len(self.orderList)
+    gotOutputs  = [{}]*len(self.orderList)
+    typeOutputs = ['']*len(self.orderList)
     if self.activatePicard:
       for modelIn in self.orderList:
         residueContainer[modelIn] = {'residue':{},'iterValues':[{}]*2}
@@ -1815,7 +1816,7 @@ class EnsembleModel(Dummy, Assembler):
       if self.activatePicard: self.raiseAMessage("Picard's Iteration "+ str(iterationCount))
       for modelCnt, modelIn in enumerate(self.orderList):
         #with self.lockSystem:
-        dependentOutput = self.__retrieveDependentOutput(modelIn, gotOutputs)
+        dependentOutput = self.__retrieveDependentOutput(modelIn, gotOutputs, typeOutputs)
         if iterationCount == 1  and self.activatePicard:
           try              : sampledVars = Input[modelIn][0][1]['SampledVars'].keys()
           except IndexError: sampledVars = Input[modelIn][1]['SampledVars'].keys()
@@ -1844,9 +1845,16 @@ class EnsembleModel(Dummy, Assembler):
             self.raiseAnError(RuntimeError,"The Model "+modelIn + " failed!")
           # get back the output in a general format
           self.modelsDictionary[modelIn]['Instance'].collectOutput(finishedRun[0],tempTargetEvaluations[modelIn])
-          gotOutputs[modelCnt] = tempTargetEvaluations[modelIn].getParametersValues('outputs', nodeId = 'RecontructEnding')
+          returnDict[modelIn]  = {}
+          responseSpace = tempTargetEvaluations[modelIn].getParametersValues('outputs', nodeId = 'RecontructEnding')
+          inputSpace    = tempTargetEvaluations[modelIn].getParametersValues('inputs', nodeId = 'RecontructEnding')
+          typeOutputs[modelCnt] = tempTargetEvaluations[modelIn].type
+          gotOutputs[modelCnt]  = responseSpace if typeOutputs[modelCnt] != 'HistorySet' else responseSpace.values()[-1]
           #store the result in return dictionary
-          returnDict[modelIn] = {'outputSpaceParams':gotOutputs[modelCnt],'inputSpaceParams':tempTargetEvaluations[modelIn].getParametersValues('inputs', nodeId = 'RecontructEnding'),'metadata':tempTargetEvaluations[modelIn].getAllMetadata()}
+          returnDict[modelIn]['outputSpaceParams'] = gotOutputs[modelCnt]
+          returnDict[modelIn]['inputSpaceParams' ] = inputSpace if typeOutputs[modelCnt] != 'HistorySet' else inputSpace.values()[-1]
+          returnDict[modelIn]['metadata'         ] = tempTargetEvaluations[modelIn].getAllMetadata()
+          #returnDict[modelIn] = {'outputSpaceParams':gotOutputs[modelCnt],'inputSpaceParams':tempTargetEvaluations[modelIn].getParametersValues('inputs', nodeId = 'RecontructEnding'),'metadata':tempTargetEvaluations[modelIn].getAllMetadata()}
           if self.activatePicard:
             # compute residue
             residueContainer[modelIn]['iterValues'][1] = copy.copy(residueContainer[modelIn]['iterValues'][0])
