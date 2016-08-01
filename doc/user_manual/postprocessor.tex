@@ -684,12 +684,11 @@ Section~\ref{sec:functions} for more details).
     ...
     <PostProcessor name="externalPP" subType='External' verbosity='debug'>
       <method>Delta,Sum</method>
-        <Function class='Functions' type='External'>operators</Function>
-          <!--Here, you can add a Function defined in the
-              Functions block. This should be present or
-              else RAVEN will not know where to find the
-              defined methods.
-            -->
+      <Function class='Functions' type='External'>operators</Function>
+        <!-- Here, you can add a Function defined in the
+             Functions block. This should be present or
+             else RAVEN will not know where to find the
+             defined methods. -->
     </PostProcessor>
     ...
   </Models>
