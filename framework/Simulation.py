@@ -779,7 +779,20 @@ class Simulation(MessageHandler.MessageUser):
           rawRelativeWorkingDir = element.text.strip()
           self.runInfoDict['WorkingDir'] = os.path.join(xmlDirectory,rawRelativeWorkingDir)
         #check/generate the existence of the working directory
-        if not os.path.exists(self.runInfoDict['WorkingDir']): os.makedirs(self.runInfoDict['WorkingDir'])
+        if not os.path.exists(self.runInfoDict['WorkingDir']):
+          ## In a parallel environment, as in the regression test framework, it
+          ## is possible for more than one instance of RAVEN to get inside here,
+          ## so we must guard against creating the directory twice.
+          try:
+            os.makedirs(self.runInfoDict['WorkingDir'])
+          except OSError as exc:
+            if exc.errno == errno.EEXIST and os.path.isdir(path):
+              ## The path already exists so we can safely ignore this exception
+              pass
+            else:
+              ## If it failed for some other reason, we want to see what the
+              ## error is still
+              raise
       elif element.tag == 'RemoteRunCommand':
         tempName = element.text
         if '~' in tempName : tempName = os.path.expanduser(tempName)
