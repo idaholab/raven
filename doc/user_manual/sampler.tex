@@ -586,9 +586,16 @@ Example:
       <distribution>aDistributionNameDefinedInDistributionBlock
       </distribution>
     </variable>
+    <Restart class='DataObject' type='PointSet'>data</Restart>
   </MonteCarlo>
   ...
 </Samplers>
+  ...
+  <PointSet name="data">
+    <Input>var1</Input>
+    <Output>ans</Output>
+  </PointSet>
+  ...
 \end{lstlisting}
 
 %%% Forward Samplers: Grid
@@ -688,6 +695,12 @@ Example:
   </Grid>
   ...
 </Samplers>
+  ...
+  <PointSet name="data">
+    <Input>var1,var2,var3,var4,var5,var6</Input>
+    <Output>ans</Output>
+  </PointSet>
+  ...
 \end{lstlisting}
 \nb A restart example is included here but is not necessary in general.
 
@@ -742,6 +755,12 @@ Example:
   </SparseGridCollocation>
   ...
 </Samplers>
+  ...
+  <PointSet name="solns">
+    <Input>x1,x2</Input>
+    <Output>y</Output>
+  </PointSet>
+  ...
 \end{lstlisting}
  \normalsize
 
@@ -811,10 +830,16 @@ are used by the \xmlNode{Models}.
             <method>pca</method>
         </variablesTransformation>
         <ROM class = 'Models' type = 'ROM' >SCROM</ROM>
+        <Restart class="DataObjects" type="PointSet">solns</Restart>
   </SparseGridCollocation>
   ...
 </Samplers>
-...
+  ...
+  <PointSet name="solns">
+    <Input>x0,y0,z0</Input>
+    <Output>ans</Output>
+  </PointSet>
+  ...
 \end{lstlisting}
 
  %%% Forward Samplers: Sobol
@@ -867,9 +892,16 @@ Example:
       <distribution>myDist2</distribution>
     </variable>
     <ROM class = 'Models' type = 'ROM' >myHDMR</ROM>
+    <Restart class="DataObjects" type="PointSet">solns</Restart>
   </Sobol>
   ...
 </Samplers>
+  ...
+  <PointSet name="solns">
+    <Input>x1,y2</Input>
+    <Output>ans</Output>
+  </PointSet>
+  ...
 \end{lstlisting}
  \normalsize
 
