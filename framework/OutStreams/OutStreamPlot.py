@@ -1075,7 +1075,6 @@ class OutStreamPlot(OutStreamManager):
               scatterPlotOptions = {'s':ast.literal_eval(plotSettings['s']),
                                     'marker':(plotSettings['marker']),
                                     'alpha':ast.literal_eval(plotSettings['alpha']),
-                                    'vmin':0,'vmax':0.4,
                                     'linewidths':ast.literal_eval(plotSettings['linewidths'])}
               scatterPlotOptions.update(plotSettings.get('attributes', {}))
               if self.dim == 2:
