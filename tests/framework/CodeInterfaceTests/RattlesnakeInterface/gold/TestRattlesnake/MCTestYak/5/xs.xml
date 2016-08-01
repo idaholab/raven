@@ -1,15 +1,15 @@
 <?xml version="1.0" ?>
-<Multigroup_Cross_Section_Libraries NGroup="2" Name="twigl">
-  <Multigroup_Cross_Section_Library Generator="Yaqi Wang" ID="1" Ver="1.0">
+<Multigroup_Cross_Section_Libraries NGroup="  2" Name="  twigl  ">
+  <Multigroup_Cross_Section_Library Generator="Yaqi Wang" ID=" 1 " Ver="1.0">
     <Tabulation>temperature</Tabulation>
     <temperature>300</temperature>
     <AllReactions>Total Removal Transport Scattering nuFission FissionSpectrum NeutronVelocity DNPlambda DNFraction DNSpectrum</AllReactions>
     <TablewiseReactions>NeutronVelocity DNFraction FissionSpectrum</TablewiseReactions>
     <LibrarywiseReactions>DNPlambda DNSpectrum</LibrarywiseReactions>
-    <Table gridIndex="1">
-      <Isotope I="1" L="0" NS="1" Name="pseudo-seed1">
+    <Table gridIndex="  1  ">
+      <Isotope I="  1 " L="  0 " NS=" 1 " Name="  pseudo-seed1  ">
         <Total index="g">2.29817e-01  8.33333e-01</Total>
-        <Scattering has2l="false" index="pgl" profile="1">
+        <Scattering has2l="false" index="pgl" profile=" 1">
           <Profile>
             1 1
             1 2

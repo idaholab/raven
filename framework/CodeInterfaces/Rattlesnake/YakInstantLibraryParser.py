@@ -61,7 +61,7 @@ class YakInstantLibraryParser():
       if macrosLib != None:
         self.nGroup = int(macrosLib.attrib['NG']) #total number of neutron energy groups
         for matLib in macrosLib:
-          matID = matLib.attrib['ID']
+          matID = matLib.attrib['ID'].strip()
           scatteringOrder = int(matLib.attrib['NA'])
           self.libs[matID] = {}
           self.libsKeys[matID] = {}
@@ -94,11 +94,11 @@ class YakInstantLibraryParser():
         if child.tag != self.level1Element:
           raise IOError('Invalid subnode tag: ' + child.tag +' is provided.' + ' The valid subnode tag should be: ' + self.level1Element)
         self.aliasesNG = int(child.attrib['NG'])
-        self.aliasesType = child.attrib['Type']
+        self.aliasesType = child.attrib['Type'].strip()
         for matNode in child:
-          self.aliases[matNode.attrib['ID']] = {}
+          self.aliases[matNode.attrib['ID'].strip()] = {}
           #read the cross section alias for each library (or material)
-          self._readXSAlias(matNode,self.aliases[matNode.attrib['ID']],self.aliasesNG)
+          self._readXSAlias(matNode,self.aliases[matNode.attrib['ID'].strip()],self.aliasesNG)
 
   def _readXSAlias(self,xmlNode,aliasXS,aliasXSGroup):
     """
@@ -429,7 +429,7 @@ class YakInstantLibraryParser():
       root = tree.getroot()
       for child in root:
         for mat in child:
-          matID = mat.attrib['ID']
+          matID = mat.attrib['ID'].strip()
           if matID not in self.aliases.keys(): continue
           self._replaceXMLNodeText(mat,self.pertLib[matID])
 

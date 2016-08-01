@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Materials>
-  <Macros NG="2">
-    <material ID="1" NA="0" fissile="true">
+  <Macros NG="  2  ">
+    <material ID="  1  " NA="  0  " fissile="true">
       <name>Assembly type 1</name>
       <TotalXS>2.27712e-01  8.33333e-01</TotalXS>
       <NuFissionXS>0.00000e+00  1.35000e-01</NuFissionXS>

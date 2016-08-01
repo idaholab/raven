@@ -54,22 +54,24 @@ class YakMultigroupLibraryParser():
       tree = ET.parse(xmlFile.getAbsFile())
       root = tree.getroot()
       if root.tag == self.level0Element:
-        self.xmlsDict[root.attrib['Name']] = tree
-        self.filesDict[xmlFile] = root.attrib['Name']
-        self.filesMap[xmlFile.getFilename()] = root.attrib['Name']
-        self.libs[root.attrib['Name']] = {}
-        self.libsKeys[root.attrib['Name']] = {}
-        mgDict = self.libs[root.attrib['Name']]
-        mgDictKeys =  self.libsKeys[root.attrib['Name']]
+        rootName = root.attrib['Name'].strip()
+        self.xmlsDict[rootName] = tree
+        self.filesDict[xmlFile] = rootName
+        self.filesMap[xmlFile.getFilename()] = rootName
+        self.libs[rootName] = {}
+        self.libsKeys[rootName] = {}
+        mgDict = self.libs[rootName]
+        mgDictKeys =  self.libsKeys[rootName]
         self.nGroup = int(root.attrib['NGroup']) #total number of neutron energy groups
         for mgLib in root:
-          self.matLibMaps[mgLib.attrib['ID']] = root.attrib['Name']
-          self.matTreeMaps[mgLib.attrib['ID']] = mgLib
-          mgDict[mgLib.attrib['ID']] = {}
-          mgDictKeys[mgLib.attrib['ID']] = {}
-          self._readYakXSInternal(mgLib,mgDict[mgLib.attrib['ID']],mgDictKeys[mgLib.attrib['ID']])
-          self._readAdditionalYakXS(mgLib,mgDict[mgLib.attrib['ID']])
-          self._checkYakXS(mgDict[mgLib.attrib['ID']],mgDictKeys[mgLib.attrib['ID']])
+          mgLibID = mgLib.attrib['ID'].strip()
+          self.matLibMaps[mgLibID] = rootName
+          self.matTreeMaps[mgLibID] = mgLib
+          mgDict[mgLibID] = {}
+          mgDictKeys[mgLibID] = {}
+          self._readYakXSInternal(mgLib,mgDict[mgLibID],mgDictKeys[mgLibID])
+          self._readAdditionalYakXS(mgLib,mgDict[mgLibID])
+          self._checkYakXS(mgDict[mgLibID],mgDictKeys[mgLibID])
       else:
         msg = 'In YakMultigroupLibraryParser, root element of XS file is always ' + self.level0Element + ';\n'
         msg = msg + 'while the given XS file has different root element: ' + root.tag + "!"
@@ -90,18 +92,20 @@ class YakMultigroupLibraryParser():
       root = aliasTree.getroot()
       if root.tag != self.level0Element:
         raise IOError('Invalid root tag: ' + root.tag +' is provided.' + ' The valid root tag should be: ' + self.level0Element)
-      if root.attrib['Name'] in self.aliases.keys(): raise IOError('Duplicated libraries name: ' + root.attrib['Name'] + ' is found in provided alias files!')
-      self.aliases[root.attrib['Name']] ={}
-      self.aliasesNGroup[root.attrib['Name']] = int(root.attrib['NGroup'])
+      rootName = root.attrib['Name'].strip()
+      if rootName in self.aliases.keys(): raise IOError('Duplicated libraries name: ' + rootName + ' is found in provided alias files!')
+      self.aliases[rootName] ={}
+      self.aliasesNGroup[rootName] = int(root.attrib['NGroup'])
       aliasNGroup = int(root.attrib['NGroup'])
-      self.aliasesType[root.attrib['Name']] = root.attrib['Type']
-      subAlias = self.aliases[root.attrib['Name']]
+      self.aliasesType[rootName] = root.attrib['Type'].strip()
+      subAlias = self.aliases[rootName]
       for child in root:
         if child.tag != self.level1Element:
           raise IOError('Invalid subnode tag: ' + child.tag +' is provided.' + ' The valid subnode tag should be: ' + self.level1Element)
-        subAlias[child.attrib['ID']] = {}
+        libID = child.attrib['ID'].strip()
+        subAlias[libID] = {}
         #read the cross section alias for each library (or material)
-        self._readXSAlias(child,subAlias[child.attrib['ID']],aliasNGroup)
+        self._readXSAlias(child,subAlias[libID],aliasNGroup)
 
   def _readXSAlias(self,xmlNode,aliasXS,aliasXSGroup):
     """
@@ -115,7 +119,7 @@ class YakMultigroupLibraryParser():
       if child.tag in self.perturbableReactions:
         grid = self._stringSpacesToTuple(child.attrib['gridIndex'])
         if grid not in aliasXS.keys(): aliasXS[grid] = {}
-        mat = child.attrib['mat']
+        mat = child.attrib['mat'].strip()
         if mat not in aliasXS[grid].keys(): aliasXS[grid][mat] = {}
         mt = child.tag
         if mt not in aliasXS[grid][mat].keys(): aliasXS[grid][mat][mt] = [0]*aliasXSGroup
@@ -230,15 +234,15 @@ class YakMultigroupLibraryParser():
       self._readTablewise(xmlNode,pDict[xmlNode.tag])
     elif xmlNode.tag == 'Isotope':
       #check if the subnode includes the XS
-      pDict[xmlNode.attrib['Name']] = {}
-      keyDict[xmlNode.attrib['Name']] = []
+      pDict[xmlNode.attrib['Name'].strip()] = {}
+      keyDict[xmlNode.attrib['Name'].strip()] = []
       hasSubNode = False
       for child in xmlNode:
         if child != None:
           hasSubNode = True
           break
       if hasSubNode:
-        self._readIsotopeXS(xmlNode,pDict[xmlNode.attrib['Name']],keyDict[xmlNode.attrib['Name']])
+        self._readIsotopeXS(xmlNode,pDict[xmlNode.attrib['Name'].strip()],keyDict[xmlNode.attrib['Name'].strip()])
     #store the xmlNode tags that have not been parsed
     else:
       self.toBeReadXML.append(xmlNode.tag)
@@ -649,7 +653,7 @@ class YakMultigroupLibraryParser():
       if libsKey not in self.aliases.keys(): continue
       root = tree.getroot()
       for child in root:
-        libID = child.attrib['ID']
+        libID = child.attrib['ID'].strip()
         if libID not in self.aliases[libsKey].keys(): continue
         for table in child.findall('Table'):
           gridIndex = self._stringSpacesToTuple(table.attrib['gridIndex'])
@@ -657,7 +661,7 @@ class YakMultigroupLibraryParser():
             self._addSubElementForIsotope(table)
             for subNode in table:
               if subNode.tag == 'Isotope':
-                mat = subNode.attrib['Name']
+                mat = subNode.attrib['Name'].strip()
                 if mat not in self.aliases[libsKey][libID][gridIndex].keys(): continue
                 self._replaceXMLNodeText(subNode,self.pertLib[libsKey][libID][gridIndex][mat])
       newFile = open(outFile,'w')
