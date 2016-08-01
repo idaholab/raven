@@ -455,21 +455,40 @@ class DynamicEventTree(Grid):
       condPbC  = 0.0
       # Loop over  branchChangedParams (events) and start storing information,
       # such as conditional pb, variable values, into the xml tree object
+      branchChangedParamValue = []
+      branchChangedParamPb    = []
+      branchParams            = []
+      #subGroup.add('branchChangedParam',endInfo['branchChangedParams'].keys())
+      
       for key in endInfo['branchChangedParams'].keys():
-        subGroup.add('branchChangedParam',key)
+        #subGroup.add('branchChangedParam',key)
+        branchParams.append(key)
         if self.branchCountOnLevel != 1:
-          subGroup.add('branchChangedParamValue',endInfo['branchChangedParams'][key]['actualValue'][self.branchCountOnLevel-2])
-          subGroup.add('branchChangedParamPb',endInfo['branchChangedParams'][key]['associatedProbability'][self.branchCountOnLevel-2])
+          branchChangedParamValue.append(endInfo['branchChangedParams'][key]['actualValue'][self.branchCountOnLevel-2])
+          branchChangedParamPb.append(endInfo['branchChangedParams'][key]['associatedProbability'][self.branchCountOnLevel-2])
+          #subGroup.add('branchChangedParamValue',endInfo['branchChangedParams'][key]['actualValue'][self.branchCountOnLevel-2])
+          #subGroup.add('branchChangedParamPb',endInfo['branchChangedParams'][key]['associatedProbability'][self.branchCountOnLevel-2])
+          #condPbC.append(endInfo['branchChangedParams'][key]['changedConditionalPb'][self.branchCountOnLevel-2])
           condPbC = condPbC + endInfo['branchChangedParams'][key]['changedConditionalPb'][self.branchCountOnLevel-2]
           subGroup.add('happenedEvent',True)
         else:
           subGroup.add('happenedEvent',endInfo['parentNode'].get('happenedEvent'))
-          subGroup.add('branchChangedParamValue',endInfo['branchChangedParams'][key]['oldValue'])
-          subGroup.add('branchChangedParamPb',endInfo['branchChangedParams'][key]['unchangedPb'])
+          branchChangedParamValue.append(endInfo['branchChangedParams'][key]['oldValue'])
+          branchChangedParamPb.append(endInfo['branchChangedParams'][key]['unchangedPb'])
+          #subGroup.add('branchChangedParamValue',endInfo['branchChangedParams'][key]['oldValue'])
+          #subGroup.add('branchChangedParamPb',endInfo['branchChangedParams'][key]['unchangedPb'])
+          #condPbUn.append(endInfo['branchChangedParams'][key]['unchangedConditionalPb'])
           condPbUn =  condPbUn + endInfo['branchChangedParams'][key]['unchangedConditionalPb']
+      subGroup.add('branchChangedParam',branchParams)
       # add conditional probability
-      if self.branchCountOnLevel != 1: subGroup.add('conditionalPbr',condPbC)
-      else: subGroup.add('conditionalPbr',condPbUn)
+      if self.branchCountOnLevel != 1: 
+        subGroup.add('conditionalPbr',condPbC)
+        subGroup.add('branchChangedParamValue',branchChangedParamValue)
+        subGroup.add('branchChangedParamPb',branchChangedParamPb)
+      else: 
+        subGroup.add('conditionalPbr',condPbUn)
+        subGroup.add('branchChangedParamValue',branchChangedParamValue)
+        subGroup.add('branchChangedParamPb',branchChangedParamPb)
       # add initiator distribution info, start time, etc.
 
       subGroup.add('initiatorDistribution',self.toBeSampled[endInfo['branchDist']])
@@ -488,9 +507,9 @@ class DynamicEventTree(Grid):
       # Fill the values dictionary that will be passed into the model in order to create an input
       # In this dictionary the info for changing the original input is stored
       self.inputInfo = {'prefix':rname.encode(),'endTimeStep':endInfo['endTimeStep'],
-                'branchChangedParam':[subGroup.get('branchChangedParam')],
-                'branchChangedParamValue':[subGroup.get('branchChangedParamValue')],
-                'conditionalPb':[subGroup.get('conditionalPbr')],
+                'branchChangedParam':subGroup.get('branchChangedParam'),
+                'branchChangedParamValue':subGroup.get('branchChangedParamValue'),
+                'conditionalPb':subGroup.get('conditionalPbr'),
                 'startTime':endInfo['parentNode'].get('endTime'),
                 'parentID':subGroup.get('parent')}
 

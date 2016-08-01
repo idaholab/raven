@@ -269,11 +269,17 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
 
     # Loop over  branchChangedParams (events) and start storing information,
     # such as conditional pb, variable values, into the xml tree object
+    branchChangedParamValue = []
+    branchChangedParamPb    = []
+    branchParams            = []
     if endInfo:
       for key in endInfo['branchChangedParams'].keys():
-        subGroup.add('branchChangedParam',key)
-        subGroup.add('branchChangedParamValue',endInfo['branchChangedParams'][key]['oldValue'][0])
-        subGroup.add('branchChangedParamPb',endInfo['branchChangedParams'][key]['associatedProbability'][0])
+        branchParams.append(key)
+        branchChangedParamPb.append(endInfo['branchChangedParams'][key]['associatedProbability'][0])
+        branchChangedParamValue.append(endInfo['branchChangedParams'][key]['oldValue'][0])
+      subGroup.add('branchChangedParam',branchParams)
+      subGroup.add('branchChangedParamValue',branchChangedParamValue)
+      subGroup.add('branchChangedParamPb',branchChangedParamPb)
     else:
       pass
     #condPbC = condPbC + copy.deepcopy(endInfo['branchChangedParams'][key]['unchangedConditionalPb'])
@@ -296,9 +302,9 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
     # Fill the values dictionary that will be passed into the model in order to create an input
     # In this dictionary the info for changing the original input is stored
     self.inputInfo = {'prefix':rname,'endTimeStep':info['parentNode'].get('actualEndTimeStep'),
-              'branchChangedParam':[subGroup.get('branchChangedParam')],
-              'branchChangedParamValue':[subGroup.get('branchChangedParamValue')],
-              'conditionalPb':[subGroup.get('conditionalPbr')],
+              'branchChangedParam':subGroup.get('branchChangedParam'),
+              'branchChangedParamValue':subGroup.get('branchChangedParamValue'),
+              'conditionalPb':subGroup.get('conditionalPbr'),
               'startTime':info['parentNode'].get('endTime'),
               'parentID':subGroup.get('parent')}
     # add the newer branch name to the map
