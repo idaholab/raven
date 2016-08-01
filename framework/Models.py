@@ -1729,9 +1729,12 @@ class EnsembleModel(Dummy, Assembler):
     outcomes, targetEvaluations = out
     for modelIn in self.modelsDictionary.keys():
       # update TargetEvaluation
-      inputsValues  = targetEvaluations[modelIn].getParametersValues('inputs', nodeId = 'RecontructEnding')
-      outputsValues = targetEvaluations[modelIn].getParametersValues('outputs', nodeId = 'RecontructEnding')
-      metadataValues= targetEvaluations[modelIn].getAllMetadata(nodeId = 'RecontructEnding')
+      inputsValues   = targetEvaluations[modelIn].getParametersValues('inputs', nodeId = 'RecontructEnding')
+      outputsValues  = targetEvaluations[modelIn].getParametersValues('outputs', nodeId = 'RecontructEnding')
+      metadataValues = targetEvaluations[modelIn].getAllMetadata(nodeId = 'RecontructEnding')
+      inputsValues   = inputsValues if targetEvaluations[modelIn].type != 'HistorySet' else inputsValues.values()[-1]      
+      outputsValues  = outputsValues if targetEvaluations[modelIn].type != 'HistorySet' else outputsValues.values()[-1] 
+      
       for key in targetEvaluations[modelIn].getParaKeys('inputs'):
         self.modelsDictionary[modelIn]['TargetEvaluation'].updateInputValue (key,inputsValues[key])
       for key in targetEvaluations[modelIn].getParaKeys('outputs'):
