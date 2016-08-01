@@ -229,7 +229,7 @@ class YakInstantLibraryParser():
     #calculate Total Scattering
     totScattering = np.zeros(self.nGroup)
     for g in range(self.nGroup):
-      totScattering[g] = np.sum(pDict[scattering.tag][0:self.nGroup][g])
+      totScattering[g] = np.sum(pDict[scattering.tag][0:self.nGroup,g])
     pDict['TotalScatteringXS'] = totScattering
 
   def _checkYakXS(self,reactionDict):
@@ -373,7 +373,7 @@ class YakInstantLibraryParser():
           reactionDict['ScatteringXS'][0:self.nGroup,g] *= perturbDict['TotalScatteringXS'][g]
         elif aliasType == 'abs':
           factor = perturbDict['TotalScatteringXS'][g]/self.nGroup
-          reactionDict['ScatteringXS'][0:self.nGroup][g] += factor
+          reactionDict['ScatteringXS'][0:self.nGroup,g] += factor
     #recalculate Removal cross sections
     reactionDict['RemovalXS'] = np.asarray(list(reactionDict['TotalXS'][g] - reactionDict['ScatteringXS'][g][g] for g in range(self.nGroup)))
     #recalculate diffusion coefficient cross sections

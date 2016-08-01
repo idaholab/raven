@@ -3,7 +3,7 @@
   <Macros NG="2">
     <material ID="1" NA="0" fissile="true">
       <name>Assembly type 1</name>
-      <TotalXS>2.15685e-01  8.33333e-01</TotalXS>
+      <TotalXS>2.14209e-01  8.33333e-01</TotalXS>
       <NuFissionXS>0.00000e+00  1.35000e-01</NuFissionXS>
       <ChiXS>1.00000e+00  0.00000e+00</ChiXS>
       <Profile>
@@ -17,7 +17,7 @@
     </material>
     <material ID="2" NA="0" fissile="true">
       <name>Assembly type 2</name>
-      <TotalXS>2.22222e-01  8.78133e-01</TotalXS>
+      <TotalXS>2.22222e-01  8.76625e-01</TotalXS>
       <NuFissionXS>0.00000e+00  1.25334e-01</NuFissionXS>
       <ChiXS>1.00000e+00  0.00000e+00</ChiXS>
       <Profile>
@@ -31,7 +31,7 @@
     </material>
     <material ID="3" NA="0" fissile="true">
       <name>Assembly type 3</name>
-      <TotalXS>2.15685e-01  8.33333e-01</TotalXS>
+      <TotalXS>2.14209e-01  8.33333e-01</TotalXS>
       <NuFissionXS>0.00000e+00  1.35000e-01</NuFissionXS>
       <ChiXS>1.00000e+00  0.00000e+00</ChiXS>
       <Profile>
