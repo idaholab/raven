@@ -28,7 +28,9 @@
       <Output         class="OutStreams"       type="Plot"           >plot5</Output>
       <Output         class="OutStreams"       type="Plot"           >plot6</Output>
       <Output         class="OutStreams"       type="Plot"           >plot7</Output>
-      <!--Output         class="OutStreams"       type="Print"          >print2</Output-->
+      <!--
+           <Output         class="OutStreams"       type="Print"          >print2</Output>
+      -->
     </PostProcess>
     <PostProcess name="filter0" pauseAtEnd="True">
       <Input  class="DataObjects"      type="HistorySet"     >outMC</Input>
@@ -202,7 +204,9 @@
           <x>outMC|Output|time</x>
           <y>outMC|Output|y</y>
           <colorMap>outMC|Output|MeanShiftLabels</colorMap>
-          <!--cmap>Dark2</cmap-->
+          <!--
+               <cmap>Dark2</cmap>
+          -->
         </plot>
         <xlabel>time</xlabel>
         <ylabel>x</ylabel>
@@ -222,7 +226,9 @@
           <y>outMC|Output|y</y>
           <z>outMC|Output|z</z>
           <colorMap>outMC|Output|MeanShiftLabels</colorMap>
-          <!--cmap>Dark2</cmap-->
+          <!--
+               <cmap>Dark2</cmap>
+          -->
         </plot>
         <xlabel>time</xlabel>
         <ylabel>x</ylabel>
