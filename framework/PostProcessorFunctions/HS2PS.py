@@ -1,7 +1,4 @@
-"""
-Created on October 28, 2015
 
-"""
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
@@ -45,6 +42,7 @@ class HS2PS(PostProcessorInterfaceBase):
     conversion the time array is not inserted since it is not needed (all histories have same length)'''
     self.features     = 'all'
 
+
   def readMoreXML(self,xmlNode):
     """
       Function that reads elements this post-processor will use
@@ -65,7 +63,7 @@ class HS2PS(PostProcessorInterfaceBase):
 
   def run(self,inputDic):
     """
-    This method is transparent: it passes the inputDic directly as output
+    This method performs the actual transformation of the data object from history set to point set
       @ In, inputDic, dict, input dictionary
       @ Out, outputDic, dict, output dictionary
     """
@@ -75,7 +73,7 @@ class HS2PS(PostProcessorInterfaceBase):
     outputDic['data']['output'] = {}
     outputDic['data']['input']  = {}
 
-    ''' generate the input part of the output dictionary'''
+    #generate the input part of the output dictionary
     inputVars = inputDic['data']['input'][inputDic['data']['input'].keys()[0]].keys()
     for inputVar in inputVars:
       outputDic['data']['input'][inputVar] = np.empty(0)
@@ -84,7 +82,7 @@ class HS2PS(PostProcessorInterfaceBase):
       for inputVar in inputVars:
         outputDic['data']['input'][inputVar] = np.append(outputDic['data']['input'][inputVar], copy.deepcopy(inputDic['data']['input'][hist][inputVar]))
 
-    ''' generate the output part of the output dictionary'''
+    #generate the output part of the output dictionary
     if self.features == 'all':
       self.features = []
       historiesID = inputDic['data']['output'].keys()
@@ -113,12 +111,32 @@ class HS2PS(PostProcessorInterfaceBase):
 
     for key in range(length):
       if key != self.timeID:
-        outputDic['data']['output'][str(key)] = np.empty(0)
+        outputDic['data']['output'][key] = np.empty(0)
 
     for hist in inputDic['data']['output'].keys():
       for key in outputDic['data']['output'].keys():
         outputDic['data']['output'][key] = np.append(outputDic['data']['output'][key], copy.deepcopy(tempDict[hist][int(key)]))
 
+    self.transformationSettings['vars'] = copy.deepcopy(self.features)
+    self.transformationSettings['vars'].remove(self.timeID)
+    self.transformationSettings['timeLength'] = int(length/len(self.transformationSettings['vars']))
+    self.transformationSettings['timeAxis'] = inputDic['data']['output'][1][self.timeID]
+    self.transformationSettings['dimID'] = outputDic['data']['output'].keys()
+
     return outputDic
+
+
+
+  def _inverse(self,inputDic):
+
+    data = {}
+    for hist in inputDic.keys():
+      data[hist]= {}
+      tempData = inputDic[hist].reshape((len(self.transformationSettings['vars']),self.transformationSettings['timeLength']))
+      for index,var in enumerate(self.transformationSettings['vars']):
+        data[hist][var] = tempData[index,:]
+      data[hist][self.timeID] = self.transformationSettings['timeAxis']
+
+    return data
 
 

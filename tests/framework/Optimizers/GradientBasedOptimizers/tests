@@ -1,0 +1,8 @@
+[Tests]
+ [./SPSA]
+  #REQUIREMENT_TEST R-RM-1
+  type = 'RavenFramework'
+  input = 'test_optFSPSA.xml'
+  csv = 'SPSA/mdlDataDump.csv SPSA/optimizationHistoryDump.csv'
+ [../]
+[]
