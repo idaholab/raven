@@ -3610,6 +3610,7 @@ class DataMining(BasePostProcessor):
         for keyL in tlDict['output'].keys():
           output.updateOutputValue([keyH,keyL], tlDict['output'][keyL][index,:])
 
+
   def run(self, inputIn):
     """
       This method executes the postprocessor action. In this case it loads the
@@ -3617,254 +3618,206 @@ class DataMining(BasePostProcessor):
       @ In, inputIn, dict, dictionary of data to process
       @ Out, outputDict, dict, dictionary containing the post-processed results
     """
+    if 'SciKitLearn' == self.type:
+      return self.__runSciKitLearn(inputIn)
+    elif 'temporalSciKitLearn' == self.type:
+      return self.__runTemporalSciKitLearn(inputIn)
+
+  def __runSciKitLearn(self, inputIn):
+    """
+      This method executes the postprocessor action. In this case it loads the
+      results to specified dataObject.  This is for SciKitLearn
+      @ In, inputIn, dict, dictionary of data to process
+      @ Out, outputDict, dict, dictionary containing the post-processed results
+    """
     Input = self.inputToInternal(inputIn)
 
-    if self.type in ['SciKitLearn']:
-      outputDict = {}
-      self.unSupervisedEngine.features = Input['Features']
-      if not self.unSupervisedEngine.amITrained:
-        self.unSupervisedEngine.train(Input['Features'])
+    outputDict = {}
+    self.unSupervisedEngine.features = Input['Features']
+    if not self.unSupervisedEngine.amITrained:
+      self.unSupervisedEngine.train(Input['Features'])
 
-      self.unSupervisedEngine.confidence()
-      outputDict['output'] = {}
-      noClusters = 1
+    self.unSupervisedEngine.confidence()
+    outputDict['output'] = {}
+    noClusters = 1
 
-      ## These are very different things, shouldn't each one be its own class?
-      ## Proposed hierarchy:
-      ##   - DataMining
-      ##     - Classification
-      ##       - GMM
-      ##       - Clustering
-      ##         - Biclustering
-      ##         - Hierarchical
-      ##           - Topological
-      ##     - Dimensionality Reduction
-      ##       - Manifold Learning
-      ##       - Linear projection methods
-      if 'cluster' == self.unSupervisedEngine.SKLtype:
-        ## Get the cluster labels and store as a new column in the output
-        if hasattr(self.unSupervisedEngine, 'labels_'):
-          self.clusterLabels = self.unSupervisedEngine.labels_
-        outputDict['output'][self.labelFeature] = self.clusterLabels
+    ## These are very different things, shouldn't each one be its own class?
+    ## Proposed hierarchy:
+    ##   - DataMining
+    ##     - Classification
+    ##       - GMM
+    ##       - Clustering
+    ##         - Biclustering
+    ##         - Hierarchical
+    ##           - Topological
+    ##     - Dimensionality Reduction
+    ##       - Manifold Learning
+    ##       - Linear projection methods
+    if 'cluster' == self.unSupervisedEngine.SKLtype:
+      ## Get the cluster labels and store as a new column in the output
+      if hasattr(self.unSupervisedEngine, 'labels_'):
+        self.clusterLabels = self.unSupervisedEngine.labels_
+      outputDict['output'][self.labelFeature] = self.clusterLabels
 
-        ## Get the total number of clusters
-        if hasattr(self.unSupervisedEngine, 'noClusters'):
-          noClusters = self.unSupervisedEngine.noClusters
+      ## Get the total number of clusters
+      if hasattr(self.unSupervisedEngine, 'noClusters'):
+        noClusters = self.unSupervisedEngine.noClusters
+      if hasattr(self.unSupervisedEngine, 'clusterCentersIndices_'):
+        noClusters = len(self.unSupervisedEngine.clusterCentersIndices_)
+
+      ## Get the centroids and push them to a SolutionExport data object.
+      ## Also if we have the centers, assume we have the indices to match them
+      if hasattr(self.unSupervisedEngine, 'clusterCenters_'):
+        centers = self.unSupervisedEngine.clusterCenters_
+        ## Does skl not provide a correlation between label ids and cluster
+        ## centers?
         if hasattr(self.unSupervisedEngine, 'clusterCentersIndices_'):
-          noClusters = len(self.unSupervisedEngine.clusterCentersIndices_)
-
-        ## Get the centroids and push them to a SolutionExport data object.
-        ## Also if we have the centers, assume we have the indices to match them
-        if hasattr(self.unSupervisedEngine, 'clusterCenters_'):
-          centers = self.unSupervisedEngine.clusterCenters_
-          ## Does skl not provide a correlation between label ids and cluster
-          ## centers?
-          if hasattr(self.unSupervisedEngine, 'clusterCentersIndices_'):
-            indices = self.unSupervisedEngine.clusterCentersIndices_
-          else:
-            indices = list(range(len(centers)))
-
-          if self.solutionExport is not None:
-            for index,center in zip(indices,centers):
-              self.solutionExport.updateInputValue(self.labelFeature,index)
-              ## Can I be sure of the order of dimensions in the features dict,
-              ## is the same order as the data held in the UnSupervisedLearning
-              ## object?
-              for key,value in zip(self.unSupervisedEngine.features.keys(),center):
-                self.solutionExport.updateOutputValue(key,value)
-
-        if hasattr(self.unSupervisedEngine, 'inertia_'):
-          inertia = self.unSupervisedEngine.inertia_
-
-      elif 'bicluster' == self.unSupervisedEngine.SKLtype:
-        self.raiseAnError(RuntimeError, 'Bicluster has not yet been implemented.')
-      elif 'mixture' == self.unSupervisedEngine.SKLtype:
-        if   hasattr(self.unSupervisedEngine, 'covars_'):
-          mixtureCovars = self.unSupervisedEngine.covars_
-
-        if hasattr(self.unSupervisedEngine, 'precs_'):
-          mixturePrecisions = self.unSupervisedEngine.precs_
-
-        mixtureValues = self.unSupervisedEngine.normValues
-        mixtureMeans = self.unSupervisedEngine.means_
-        mixtureLabels = self.unSupervisedEngine.evaluate(Input['Features'])
-        outputDict['output'][self.labelFeature] = mixtureLabels
+          indices = self.unSupervisedEngine.clusterCentersIndices_
+        else:
+          indices = list(range(len(centers)))
 
         if self.solutionExport is not None:
-          ## Get the means and push them to a SolutionExport data object.
-          ## Does skl not provide a correlation between label ids and Gaussian
-          ## centers?
-          indices = list(range(len(mixtureMeans)))
-          for index,center in zip(indices,mixtureMeans):
+          for index,center in zip(indices,centers):
             self.solutionExport.updateInputValue(self.labelFeature,index)
-            ## Can I be sure of the order of dimensions in the features dict, is
-            ## the same order as the data held in the UnSupervisedLearning
+            ## Can I be sure of the order of dimensions in the features dict,
+            ## is the same order as the data held in the UnSupervisedLearning
             ## object?
             for key,value in zip(self.unSupervisedEngine.features.keys(),center):
               self.solutionExport.updateOutputValue(key,value)
-            ## You may also want to output the covariances of each pair of
-            ## dimensions as well
-            for i,row in enumerate(self.unSupervisedEngine.features.keys()):
-              for joffset,col in enumerate(self.unSupervisedEngine.features.keys()[i:]):
-                j = i+joffset
-                self.solutionExport.updateOutputValue('cov_'+str(row)+'_'+str(col),mixtureCovars[index][i,j])
 
-      elif 'manifold' == self.unSupervisedEngine.SKLtype:
-        manifoldValues = self.unSupervisedEngine.normValues
+      if hasattr(self.unSupervisedEngine, 'inertia_'):
+        inertia = self.unSupervisedEngine.inertia_
 
-        if hasattr(self.unSupervisedEngine, 'embeddingVectors_'):
-          embeddingVectors = self.unSupervisedEngine.embeddingVectors_
-        elif hasattr(self.unSupervisedEngine.Method, 'transform'):
-          embeddingVectors = self.unSupervisedEngine.Method.transform(manifoldValues)
-        elif hasattr(self.unSupervisedEngine.Method, 'fit_transform'):
-          embeddingVectors = self.unSupervisedEngine.Method.fit_transform(manifoldValues)
+    elif 'bicluster' == self.unSupervisedEngine.SKLtype:
+      self.raiseAnError(RuntimeError, 'Bicluster has not yet been implemented.')
+    elif 'mixture' == self.unSupervisedEngine.SKLtype:
+      if   hasattr(self.unSupervisedEngine, 'covars_'):
+        mixtureCovars = self.unSupervisedEngine.covars_
 
-        if hasattr(self.unSupervisedEngine, 'reconstructionError_'):
-          reconstructionError = self.unSupervisedEngine.reconstructionError_
+      if hasattr(self.unSupervisedEngine, 'precs_'):
+        mixturePrecisions = self.unSupervisedEngine.precs_
 
-        ## information stored on a per point basis, so no need to use a solution
-        ## export. Manifold methods do not give us a global transformation
-        ## matrix.
-        for i in range(len(embeddingVectors[0, :])):
-          outputDict['output'][self.name+'EmbeddingVector' + str(i + 1)] =  embeddingVectors[:, i]
+      mixtureValues = self.unSupervisedEngine.normValues
+      mixtureMeans = self.unSupervisedEngine.means_
+      mixtureLabels = self.unSupervisedEngine.evaluate(Input['Features'])
+      outputDict['output'][self.labelFeature] = mixtureLabels
 
-      elif 'decomposition' == self.unSupervisedEngine.SKLtype:
-        decompositionValues = self.unSupervisedEngine.normValues
-
-        if hasattr(self.unSupervisedEngine, 'noComponents_'):
-          noComponents = self.unSupervisedEngine.noComponents_
-
-        if hasattr(self.unSupervisedEngine, 'components_'):
-          components = self.unSupervisedEngine.components_
-
-        if hasattr(self.unSupervisedEngine, 'explainedVarianceRatio_'):
-          explainedVarianceRatio = self.unSupervisedEngine.explainedVarianceRatio_
-
-        ## SCORE method does not work for SciKit Learn 0.14
-        # if hasattr(self.unSupervisedEngine.Method, 'score'):
-        #   score = self.unSupervisedEngine.Method.score(decompositionValues)
-        if   'transform'     in dir(self.unSupervisedEngine.Method):
-          transformedData = self.unSupervisedEngine.Method.transform(decompositionValues)
-        elif 'fit_transform' in dir(self.unSupervisedEngine.Method):
-          transformedData = self.unSupervisedEngine.Method.fit_transform(decompositionValues)
-
-        ## information stored on a per point basis
-        for i in range(noComponents):
-          outputDict['output'][self.name+'PCAComponent' + str(i + 1)] =  transformedData[:, i]
-
-        if self.solutionExport is not None:
-          ## Get the transformation matrix and push it to a SolutionExport
-          ## data object.
+      if self.solutionExport is not None:
+        ## Get the means and push them to a SolutionExport data object.
+        ## Does skl not provide a correlation between label ids and Gaussian
+        ## centers?
+        indices = list(range(len(mixtureMeans)))
+        for index,center in zip(indices,mixtureMeans):
+          self.solutionExport.updateInputValue(self.labelFeature,index)
           ## Can I be sure of the order of dimensions in the features dict, is
-          ## the same order as the data held in the UnSupervisedLearning object?
-          for row,values in enumerate(components):
-            self.solutionExport.updateInputValue('component', row+1)
-            for col,value in zip(self.unSupervisedEngine.features.keys(),values):
-              self.solutionExport.updateOutputValue(col,value)
+          ## the same order as the data held in the UnSupervisedLearning
+          ## object?
+          for key,value in zip(self.unSupervisedEngine.features.keys(),center):
+            self.solutionExport.updateOutputValue(key,value)
+          ## You may also want to output the covariances of each pair of
+          ## dimensions as well
+          for i,row in enumerate(self.unSupervisedEngine.features.keys()):
+            for joffset,col in enumerate(self.unSupervisedEngine.features.keys()[i:]):
+              j = i+joffset
+              self.solutionExport.updateOutputValue('cov_'+str(row)+'_'+str(col),mixtureCovars[index][i,j])
 
-    elif self.type in ['temporalSciKitLearn']:
-      outputDict = {}
-      self.unSupervisedEngine.features = Input['Features']
-      self.unSupervisedEngine.pivotVariable = self.pivotVariable
+    elif 'manifold' == self.unSupervisedEngine.SKLtype:
+      manifoldValues = self.unSupervisedEngine.normValues
 
-      if not self.unSupervisedEngine.amITrained:
-        self.unSupervisedEngine.train(Input['Features'])
+      if hasattr(self.unSupervisedEngine, 'embeddingVectors_'):
+        embeddingVectors = self.unSupervisedEngine.embeddingVectors_
+      elif hasattr(self.unSupervisedEngine.Method, 'transform'):
+        embeddingVectors = self.unSupervisedEngine.Method.transform(manifoldValues)
+      elif hasattr(self.unSupervisedEngine.Method, 'fit_transform'):
+        embeddingVectors = self.unSupervisedEngine.Method.fit_transform(manifoldValues)
 
-      self.unSupervisedEngine.confidence()
-      outputDict['output'] = {}
-      numberOfHistoryStep = self.unSupervisedEngine.numberOfHistoryStep
-      numberOfSample = self.unSupervisedEngine.numberOfSample
+      if hasattr(self.unSupervisedEngine, 'reconstructionError_'):
+        reconstructionError = self.unSupervisedEngine.reconstructionError_
 
-      if self.unSupervisedEngine.SKLtype in ['cluster']:
-        if 'labels' in self.unSupervisedEngine.outputDict.keys():
-          labels = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
-          for t in range(numberOfHistoryStep):
-            labels[:,t] = self.unSupervisedEngine.outputDict['labels'][t]
-          outputDict['output'][self.labelFeature] = labels
+      ## information stored on a per point basis, so no need to use a solution
+      ## export. Manifold methods do not give us a global transformation
+      ## matrix.
+      for i in range(len(embeddingVectors[0, :])):
+        outputDict['output'][self.name+'EmbeddingVector' + str(i + 1)] =  embeddingVectors[:, i]
 
-        if 'noClusters' in self.unSupervisedEngine.outputDict.keys():
-          noClusters = self.unSupervisedEngine.outputDict['noClusters']
+    elif 'decomposition' == self.unSupervisedEngine.SKLtype:
+      decompositionValues = self.unSupervisedEngine.normValues
 
-        ## SKL will always enumerate cluster centers starting from zero, if this
-        ## is violated, then the indexing below will break.
-        if 'clusterCentersIndices' in self.unSupervisedEngine.outputDict.keys():
-          clusterCentersIndices = self.unSupervisedEngine.outputDict['clusterCentersIndices']
+      if hasattr(self.unSupervisedEngine, 'noComponents_'):
+        noComponents = self.unSupervisedEngine.noComponents_
 
-        if 'clusterCenters' in self.unSupervisedEngine.outputDict.keys():
-          clusterCenters = self.unSupervisedEngine.outputDict['clusterCenters']
-          # Output cluster centroid to solutionExport
-          if self.solutionExport is not None:
-            ## We will process each cluster in turn
-            for clusterIdx in xrange(int(np.max(labels))+1):
-              ## First store the label as the input for this cluster
-              self.solutionExport.updateInputValue(self.labelFeature,clusterIdx)
+      if hasattr(self.unSupervisedEngine, 'components_'):
+        components = self.unSupervisedEngine.components_
 
-              ## The time series will be the first output
-              ## TODO: Ensure user requests this
-              self.solutionExport.updateOutputValue(self.pivotParameter, self.pivotVariable)
+      if hasattr(self.unSupervisedEngine, 'explainedVarianceRatio_'):
+        explainedVarianceRatio = self.unSupervisedEngine.explainedVarianceRatio_
 
-              ## Now we will process each feature available
-              ## TODO: Ensure user requests each of these
-              for featureIdx, feat in enumerate(self.unSupervisedEngine.features):
-                ## We will go through the time series and find every instance
-                ## where this cluster exists, if it does not, then we put a NaN
-                ## to signal that the information is missing for this timestep
-                timeSeries = np.zeros(numberOfHistoryStep)
+      ## SCORE method does not work for SciKit Learn 0.14
+      # if hasattr(self.unSupervisedEngine.Method, 'score'):
+      #   score = self.unSupervisedEngine.Method.score(decompositionValues)
+      if   'transform'     in dir(self.unSupervisedEngine.Method):
+        transformedData = self.unSupervisedEngine.Method.transform(decompositionValues)
+      elif 'fit_transform' in dir(self.unSupervisedEngine.Method):
+        transformedData = self.unSupervisedEngine.Method.fit_transform(decompositionValues)
 
-                for timeIdx in range(numberOfHistoryStep):
-                  ## Here we use the assumption that SKL provides clusters that
-                  ## are integer values beginning at zero, which make for nice
-                  ## indexes with no need to add another layer of obfuscation
-                  if clusterIdx in clusterCentersIndices[timeIdx]:
-                    timeSeries[timeIdx] = self.unSupervisedEngine.outputDict['clusterCenters'][timeIdx][clusterIdx,featureIdx]
-                  else:
-                    timeSeries[timeIdx] = np.nan
+      ## information stored on a per point basis
+      for i in range(noComponents):
+        outputDict['output'][self.name+'PCAComponent' + str(i + 1)] =  transformedData[:, i]
 
-                ## In summary, for each feature, we fill a temporary array and
-                ## stuff it into the solutionExport, one question is how do we
-                ## tell it which item we are exporting? I am assuming that if
-                ## I add an input, then I need to do the corresponding
-                ## updateOutputValue to associate everything with it? Once I
-                ## call updateInputValue again, it will move the pointer? This
-                ## needs verified
-                self.solutionExport.updateOutputValue(feat, timeSeries)
+      if self.solutionExport is not None:
+        ## Get the transformation matrix and push it to a SolutionExport
+        ## data object.
+        ## Can I be sure of the order of dimensions in the features dict, is
+        ## the same order as the data held in the UnSupervisedLearning object?
+        for row,values in enumerate(components):
+          self.solutionExport.updateInputValue('component', row+1)
+          for col,value in zip(self.unSupervisedEngine.features.keys(),values):
+            self.solutionExport.updateOutputValue(col,value)
 
-              # print('self.solutionExport', self.solutionExport._dataContainer)
+    return outputDict
 
-        if 'inertia' in self.unSupervisedEngine.outputDict.keys():
-          inertia = self.unSupervisedEngine.outputDict['inertia']
 
-      elif self.unSupervisedEngine.SKLtype in ['mixture']:
-        if 'labels' in self.unSupervisedEngine.outputDict.keys():
-          labels = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
-          for t in range(numberOfHistoryStep):
-            labels[:,t] = self.unSupervisedEngine.outputDict['labels'][t]
-          outputDict['output'][self.labelFeature] = labels
+  def __runTemporalSciKitLearn(self, inputIn):
+    """
+      This method executes the postprocessor action. In this case it loads the
+      results to specified dataObject.  This is for temporalSciKitLearn
+      @ In, inputIn, dict, dictionary of data to process
+      @ Out, outputDict, dict, dictionary containing the post-processed results
+    """
+    Input = self.inputToInternal(inputIn)
+    outputDict = {}
+    self.unSupervisedEngine.features = Input['Features']
+    self.unSupervisedEngine.pivotVariable = self.pivotVariable
 
-        if 'covars' in self.unSupervisedEngine.outputDict.keys():
-          mixtureCovars = self.unSupervisedEngine.outputDict['covars']
-        else:
-          mixtureCovars = None
+    if not self.unSupervisedEngine.amITrained:
+      self.unSupervisedEngine.train(Input['Features'])
 
-        if 'precs' in self.unSupervisedEngine.outputDict.keys():
-          mixturePrecs = self.unSupervisedEngine.outputDict['precs']
-        else:
-          mixturePrecs = None
+    self.unSupervisedEngine.confidence()
+    outputDict['output'] = {}
+    numberOfHistoryStep = self.unSupervisedEngine.numberOfHistoryStep
+    numberOfSample = self.unSupervisedEngine.numberOfSample
 
-        if 'componentMeanIndices' in self.unSupervisedEngine.outputDict.keys():
-          componentMeanIndices = self.unSupervisedEngine.outputDict['componentMeanIndices']
-        else:
-          componentMeanIndices = None
+    if self.unSupervisedEngine.SKLtype in ['cluster']:
+      if 'labels' in self.unSupervisedEngine.outputDict.keys():
+        labels = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
+        for t in range(numberOfHistoryStep):
+          labels[:,t] = self.unSupervisedEngine.outputDict['labels'][t]
+        outputDict['output'][self.labelFeature] = labels
 
-        if 'means' in self.unSupervisedEngine.outputDict.keys():
-          mixtureMeans = self.unSupervisedEngine.outputDict['means']
-        else:
-          mixtureMeans = None
+      if 'noClusters' in self.unSupervisedEngine.outputDict.keys():
+        noClusters = self.unSupervisedEngine.outputDict['noClusters']
 
+      ## SKL will always enumerate cluster centers starting from zero, if this
+      ## is violated, then the indexing below will break.
+      if 'clusterCentersIndices' in self.unSupervisedEngine.outputDict.keys():
+        clusterCentersIndices = self.unSupervisedEngine.outputDict['clusterCentersIndices']
+
+      if 'clusterCenters' in self.unSupervisedEngine.outputDict.keys():
+        clusterCenters = self.unSupervisedEngine.outputDict['clusterCenters']
         # Output cluster centroid to solutionExport
         if self.solutionExport is not None:
           ## We will process each cluster in turn
-          for clusterIdx in xrange(int(np.max(componentMeanIndices.values()))+1):
+          for clusterIdx in xrange(int(np.max(labels))+1):
             ## First store the label as the input for this cluster
             self.solutionExport.updateInputValue(self.labelFeature,clusterIdx)
 
@@ -3874,106 +3827,175 @@ class DataMining(BasePostProcessor):
 
             ## Now we will process each feature available
             ## TODO: Ensure user requests each of these
-            if mixtureMeans is not None:
-              for featureIdx, feat in enumerate(self.unSupervisedEngine.features):
-                ## We will go through the time series and find every instance
-                ## where this cluster exists, if it does not, then we put a NaN
-                ## to signal that the information is missing for this timestep
-                timeSeries = np.zeros(numberOfHistoryStep)
-
-                for timeIdx in range(numberOfHistoryStep):
-                  timeSeries[timeIdx] = mixtureMeans[timeIdx][clusterIdx,featureIdx]
-
-                ## In summary, for each feature, we fill a temporary array and
-                ## stuff it into the solutionExport, one question is how do we
-                ## tell it which item we are exporting? I am assuming that if
-                ## I add an input, then I need to do the corresponding
-                ## updateOutputValue to associate everything with it? Once I
-                ## call updateInputValue again, it will move the pointer? This
-                ## needs verified
-                self.solutionExport.updateOutputValue(feat, timeSeries)
-
-            ## You may also want to output the covariances of each pair of
-            ## dimensions as well
-            if mixtureCovars is not None:
-              for i,row in enumerate(self.unSupervisedEngine.features.keys()):
-                for joffset,col in enumerate(self.unSupervisedEngine.features.keys()[i:]):
-                  j = i+joffset
-                  timeSeries = np.zeros(numberOfHistoryStep)
-                  for timeIdx in range(numberOfHistoryStep):
-                    timeSeries[timeIdx] = mixtureCovars[timeIdx][clusterIdx][i,j]
-                  self.solutionExport.updateOutputValue('cov_'+str(row)+'_'+str(col),timeSeries)
-
-      elif self.unSupervisedEngine.SKLtype in ['manifold']:
-        noComponents = self.unSupervisedEngine.outputDict['noComponents'][0]
-
-        if 'embeddingVectors_' in self.unSupervisedEngine.outputDict.keys():
-          embeddingVectors = self.unSupervisedEngine.outputDict['embeddingVectors_']
-
-        if 'reconstructionError_' in self.unSupervisedEngine.outputDict.keys():
-          reconstructionError = self.unSupervisedEngine.outputDict['reconstructionError_']
-
-        for i in range(noComponents):
-          ## Looking at the lines between the initialization of
-          ## outputDict['output'] and here, how is this ever possible? I don't
-          ## think the if is necessary here.
-          if self.name+'EmbeddingVector' + str(i + 1) not in outputDict['output'].keys():
-            outputDict['output'][self.name+'EmbeddingVector' + str(i + 1)] = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
-          else:
-            print('DEAD CODE')
-
-          ## Shouldn't this only happen if embeddingVectors is set above?
-          for t in range(numberOfHistoryStep):
-            outputDict['output'][self.name+'EmbeddingVector' + str(i + 1)][:,t] =  embeddingVectors[t][:, i]
-
-      elif self.unSupervisedEngine.SKLtype in ['decomposition']:
-        decompositionValues = self.unSupervisedEngine.normValues
-
-        noComponents = self.unSupervisedEngine.outputDict['noComponents'][0]
-
-        if 'components' in self.unSupervisedEngine.outputDict.keys():
-          components = self.unSupervisedEngine.outputDict['components']
-        else:
-          components = None
-
-        if 'transformedData' in self.unSupervisedEngine.outputDict.keys():
-          transformedData = self.unSupervisedEngine.outputDict['transformedData']
-        else:
-          transformedData = None
-
-        if 'explainedVarianceRatio' in self.unSupervisedEngine.outputDict.keys():
-          explainedVarianceRatio = self.unSupervisedEngine.outputDict['explainedVarianceRatio']
-
-        for i in range(noComponents):
-          ## Looking at the lines between the initialization of
-          ## outputDict['output'] and here, how is this ever possible? I don't
-          ## think the if is necessary here.
-          if self.name+'PCAComponent' + str(i + 1) not in outputDict['output'].keys():
-            outputDict['output'][self.name+'PCAComponent' + str(i + 1)] = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
-          else:
-            print('DEAD CODE 2')
-
-          if transformedData is not None:
-            for t in range(numberOfHistoryStep):
-              outputDict['output'][self.name+'PCAComponent' + str(i + 1)][:,t] = transformedData[t][:, i]
-
-
-        if self.solutionExport is not None and components is not None:
-          ## Get the transformation matrix and push it to a SolutionExport
-          ## data object.
-          ## Can I be sure of the order of dimensions in the features dict, is
-          ## the same order as the data held in the UnSupervisedLearning object?
-          for row in range(noComponents):
-            self.solutionExport.updateInputValue('component', row+1)
-            self.solutionExport.updateOutputValue(self.pivotParameter, self.pivotVariable)
-            for i,col in enumerate(self.unSupervisedEngine.features.keys()):
+            for featureIdx, feat in enumerate(self.unSupervisedEngine.features):
+              ## We will go through the time series and find every instance
+              ## where this cluster exists, if it does not, then we put a NaN
+              ## to signal that the information is missing for this timestep
               timeSeries = np.zeros(numberOfHistoryStep)
-              for timeIdx in range(numberOfHistoryStep):
-                timeSeries[timeIdx] = components[timeIdx][row][i]
-              self.solutionExport.updateOutputValue(col,timeSeries)
 
+              for timeIdx in range(numberOfHistoryStep):
+                ## Here we use the assumption that SKL provides clusters that
+                ## are integer values beginning at zero, which make for nice
+                ## indexes with no need to add another layer of obfuscation
+                if clusterIdx in clusterCentersIndices[timeIdx]:
+                  timeSeries[timeIdx] = self.unSupervisedEngine.outputDict['clusterCenters'][timeIdx][clusterIdx,featureIdx]
+                else:
+                  timeSeries[timeIdx] = np.nan
+
+              ## In summary, for each feature, we fill a temporary array and
+              ## stuff it into the solutionExport, one question is how do we
+              ## tell it which item we are exporting? I am assuming that if
+              ## I add an input, then I need to do the corresponding
+              ## updateOutputValue to associate everything with it? Once I
+              ## call updateInputValue again, it will move the pointer? This
+              ## needs verified
+              self.solutionExport.updateOutputValue(feat, timeSeries)
+
+            # print('self.solutionExport', self.solutionExport._dataContainer)
+
+      if 'inertia' in self.unSupervisedEngine.outputDict.keys():
+        inertia = self.unSupervisedEngine.outputDict['inertia']
+
+    elif self.unSupervisedEngine.SKLtype in ['mixture']:
+      if 'labels' in self.unSupervisedEngine.outputDict.keys():
+        labels = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
+        for t in range(numberOfHistoryStep):
+          labels[:,t] = self.unSupervisedEngine.outputDict['labels'][t]
+        outputDict['output'][self.labelFeature] = labels
+
+      if 'covars' in self.unSupervisedEngine.outputDict.keys():
+        mixtureCovars = self.unSupervisedEngine.outputDict['covars']
       else:
-        print ('Not yet implemented!...', self.unSupervisedEngine.SKLtype)
+        mixtureCovars = None
+
+      if 'precs' in self.unSupervisedEngine.outputDict.keys():
+        mixturePrecs = self.unSupervisedEngine.outputDict['precs']
+      else:
+        mixturePrecs = None
+
+      if 'componentMeanIndices' in self.unSupervisedEngine.outputDict.keys():
+        componentMeanIndices = self.unSupervisedEngine.outputDict['componentMeanIndices']
+      else:
+        componentMeanIndices = None
+
+      if 'means' in self.unSupervisedEngine.outputDict.keys():
+        mixtureMeans = self.unSupervisedEngine.outputDict['means']
+      else:
+        mixtureMeans = None
+
+      # Output cluster centroid to solutionExport
+      if self.solutionExport is not None:
+        ## We will process each cluster in turn
+        for clusterIdx in xrange(int(np.max(componentMeanIndices.values()))+1):
+          ## First store the label as the input for this cluster
+          self.solutionExport.updateInputValue(self.labelFeature,clusterIdx)
+
+          ## The time series will be the first output
+          ## TODO: Ensure user requests this
+          self.solutionExport.updateOutputValue(self.pivotParameter, self.pivotVariable)
+
+          ## Now we will process each feature available
+          ## TODO: Ensure user requests each of these
+          if mixtureMeans is not None:
+            for featureIdx, feat in enumerate(self.unSupervisedEngine.features):
+              ## We will go through the time series and find every instance
+              ## where this cluster exists, if it does not, then we put a NaN
+              ## to signal that the information is missing for this timestep
+              timeSeries = np.zeros(numberOfHistoryStep)
+
+              for timeIdx in range(numberOfHistoryStep):
+                timeSeries[timeIdx] = mixtureMeans[timeIdx][clusterIdx,featureIdx]
+
+              ## In summary, for each feature, we fill a temporary array and
+              ## stuff it into the solutionExport, one question is how do we
+              ## tell it which item we are exporting? I am assuming that if
+              ## I add an input, then I need to do the corresponding
+              ## updateOutputValue to associate everything with it? Once I
+              ## call updateInputValue again, it will move the pointer? This
+              ## needs verified
+              self.solutionExport.updateOutputValue(feat, timeSeries)
+
+          ## You may also want to output the covariances of each pair of
+          ## dimensions as well
+          if mixtureCovars is not None:
+            for i,row in enumerate(self.unSupervisedEngine.features.keys()):
+              for joffset,col in enumerate(self.unSupervisedEngine.features.keys()[i:]):
+                j = i+joffset
+                timeSeries = np.zeros(numberOfHistoryStep)
+                for timeIdx in range(numberOfHistoryStep):
+                  timeSeries[timeIdx] = mixtureCovars[timeIdx][clusterIdx][i,j]
+                self.solutionExport.updateOutputValue('cov_'+str(row)+'_'+str(col),timeSeries)
+
+    elif self.unSupervisedEngine.SKLtype in ['manifold']:
+      noComponents = self.unSupervisedEngine.outputDict['noComponents'][0]
+
+      if 'embeddingVectors_' in self.unSupervisedEngine.outputDict.keys():
+        embeddingVectors = self.unSupervisedEngine.outputDict['embeddingVectors_']
+
+      if 'reconstructionError_' in self.unSupervisedEngine.outputDict.keys():
+        reconstructionError = self.unSupervisedEngine.outputDict['reconstructionError_']
+
+      for i in range(noComponents):
+        ## Looking at the lines between the initialization of
+        ## outputDict['output'] and here, how is this ever possible? I don't
+        ## think the if is necessary here.
+        if self.name+'EmbeddingVector' + str(i + 1) not in outputDict['output'].keys():
+          outputDict['output'][self.name+'EmbeddingVector' + str(i + 1)] = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
+        else:
+          print('DEAD CODE')
+
+        ## Shouldn't this only happen if embeddingVectors is set above?
+        for t in range(numberOfHistoryStep):
+          outputDict['output'][self.name+'EmbeddingVector' + str(i + 1)][:,t] =  embeddingVectors[t][:, i]
+
+    elif self.unSupervisedEngine.SKLtype in ['decomposition']:
+      decompositionValues = self.unSupervisedEngine.normValues
+
+      noComponents = self.unSupervisedEngine.outputDict['noComponents'][0]
+
+      if 'components' in self.unSupervisedEngine.outputDict.keys():
+        components = self.unSupervisedEngine.outputDict['components']
+      else:
+        components = None
+
+      if 'transformedData' in self.unSupervisedEngine.outputDict.keys():
+        transformedData = self.unSupervisedEngine.outputDict['transformedData']
+      else:
+        transformedData = None
+
+      if 'explainedVarianceRatio' in self.unSupervisedEngine.outputDict.keys():
+        explainedVarianceRatio = self.unSupervisedEngine.outputDict['explainedVarianceRatio']
+
+      for i in range(noComponents):
+        ## Looking at the lines between the initialization of
+        ## outputDict['output'] and here, how is this ever possible? I don't
+        ## think the if is necessary here.
+        if self.name+'PCAComponent' + str(i + 1) not in outputDict['output'].keys():
+          outputDict['output'][self.name+'PCAComponent' + str(i + 1)] = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
+        else:
+          print('DEAD CODE 2')
+
+        if transformedData is not None:
+          for t in range(numberOfHistoryStep):
+            outputDict['output'][self.name+'PCAComponent' + str(i + 1)][:,t] = transformedData[t][:, i]
+
+
+      if self.solutionExport is not None and components is not None:
+        ## Get the transformation matrix and push it to a SolutionExport
+        ## data object.
+        ## Can I be sure of the order of dimensions in the features dict, is
+        ## the same order as the data held in the UnSupervisedLearning object?
+        for row in range(noComponents):
+          self.solutionExport.updateInputValue('component', row+1)
+          self.solutionExport.updateOutputValue(self.pivotParameter, self.pivotVariable)
+          for i,col in enumerate(self.unSupervisedEngine.features.keys()):
+            timeSeries = np.zeros(numberOfHistoryStep)
+            for timeIdx in range(numberOfHistoryStep):
+              timeSeries[timeIdx] = components[timeIdx][row][i]
+            self.solutionExport.updateOutputValue(col,timeSeries)
+
+    else:
+      print ('Not yet implemented!...', self.unSupervisedEngine.SKLtype)
 
     return outputDict
 #
