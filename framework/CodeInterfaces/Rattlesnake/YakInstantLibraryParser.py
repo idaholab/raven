@@ -45,6 +45,9 @@ class YakInstantLibraryParser():
     self.level2Element  = ['material'] #These are some of the level 2 element tag with string vector xmlnode.text, without xml subnodes
     self.toBeReadXML    = [] #list of XML nodes that need to be read.
     self.libsKeys       = {} #dict to store library keys: {material_ID:{reaction:[]}}
+    self.nGroup         = None # total energy groups
+    self.aliasesNG      = None # total energy groups defined in alias files
+    self.aliasesType    = {} # dict to store the perturbation type given in the alias files.
 
     #read in cross-section files, unperturbed files
     for xmlFile in inputFiles:
@@ -59,7 +62,10 @@ class YakInstantLibraryParser():
         raise IOError(msg)
       macrosLib = root.find(self.level1Element)
       if macrosLib != None:
-        self.nGroup = int(macrosLib.attrib['NG']) #total number of neutron energy groups
+        if self.nGroup == None:
+          self.nGroup = int(macrosLib.attrib['NG']) #total number of neutron energy groups
+        elif self.nGroup != int(macrosLib.attrib['NG']):
+          raise IOError('Inconsistent energy structures for give XS library ' + xmlFile.getFilename() + ' is found!')
         for matLib in macrosLib:
           matID = matLib.attrib['ID'].strip()
           scatteringOrder = int(matLib.attrib['NA'])
@@ -82,8 +88,6 @@ class YakInstantLibraryParser():
       @ Out, None
     """
     self.aliases = {}
-    if len(aliasFiles) != 1:
-      raise IOError('We only accept one alias file that can be used to perturb Yak instant cross section library, but the user provided: ' + len(aliasFiles) + ' alias files')
     for xmlFile in aliasFiles:
       if not os.path.exists(xmlFile.getPath()): raise IOError('The following Yak cross section alias file: ' + xmlFile + ' is not found!')
       aliasTree = ET.parse(xmlFile.getAbsFile())
@@ -93,12 +97,17 @@ class YakInstantLibraryParser():
       for child in root:
         if child.tag != self.level1Element:
           raise IOError('Invalid subnode tag: ' + child.tag +' is provided.' + ' The valid subnode tag should be: ' + self.level1Element)
-        self.aliasesNG = int(child.attrib['NG'])
-        self.aliasesType = child.attrib['Type'].strip()
+        if self.aliasesNG == None:
+          self.aliasesNG = int(child.attrib['NG'])
+        elif self.aliasesNG != int(child.attrib['NG']):
+          raise IOError('Inconsistent total engergy groups were found in XS library: ' + xmlFile.getFilename())
         for matNode in child:
-          self.aliases[matNode.attrib['ID'].strip()] = {}
+          matNodeID = matNode.attrib['ID'].strip()
+          self.aliases[matNodeID] = {}
+          aliasType = child.attrib['Type'].strip()
+          self.aliasesType[matNodeID] = aliasType
           #read the cross section alias for each library (or material)
-          self._readXSAlias(matNode,self.aliases[matNode.attrib['ID'].strip()],self.aliasesNG)
+          self._readXSAlias(matNode,self.aliases[matNodeID],self.aliasesNG)
 
   def _readXSAlias(self,xmlNode,aliasXS,aliasXSGroup):
     """
@@ -316,9 +325,9 @@ class YakInstantLibraryParser():
     pertFactor = copy.deepcopy(self.aliases)
     #generate the pertLib
     for matID, mtDict in pertFactor.items():
-      self._computePerturbations(mtDict,self.pertLib[matID],self.aliasesType)
+      self._computePerturbations(mtDict,self.pertLib[matID],self.aliasesType[matID])
     for matID, mtDict in pertFactor.items():
-      self._rebalanceXS(self.pertLib[matID],pertFactor[matID],self.aliasesType)
+      self._rebalanceXS(self.pertLib[matID],pertFactor[matID],self.aliasesType[matID])
 
   def _computePerturbations(self,factors,lib,aliasType):
     """
@@ -409,12 +418,7 @@ class YakInstantLibraryParser():
     """
     #make the first pass at pretty.  This will insert way too many newlines, because of how we maintain XML format.
     pretty = pxml.parseString(ET.tostring(tree.getroot())).toprettyxml(indent='  ')
-    #loop over each "line" and toss empty ones, but for ending main nodes, insert a newline after.
-    toWrite=''
-    for line in pretty.split('\n'):
-      if line.strip()=='':continue
-      toWrite += line.rstrip()+'\n'
-    return toWrite
+    return pretty
 
   def writeNewInput(self,inFiles=None,**Kwargs):
     """

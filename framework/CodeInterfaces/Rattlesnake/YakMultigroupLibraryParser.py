@@ -624,12 +624,7 @@ class YakMultigroupLibraryParser():
     """
     #make the first pass at pretty.  This will insert way too many newlines, because of how we maintain XML format.
     pretty = pxml.parseString(ET.tostring(tree.getroot())).toprettyxml(indent='  ')
-    #loop over each "line" and toss empty ones, but for ending main nodes, insert a newline after.
-    toWrite=''
-    for line in pretty.split('\n'):
-      if line.strip()=='':continue
-      toWrite += line.rstrip()+'\n'
-    return toWrite
+    return pretty
 
   def writeNewInput(self,inFiles=None,**Kwargs):
     """
