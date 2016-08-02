@@ -24,7 +24,6 @@
         <title>
           <text> </text>
         </title>
-        <!-- <colorbar>off</colorbar> -->
         <axis>off</axis>
         <grid>off</grid>
         <axesBox>off</axesBox>
