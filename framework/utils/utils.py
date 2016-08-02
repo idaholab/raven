@@ -8,7 +8,7 @@ warnings.simplefilter('default',DeprecationWarning)
 # built into python.  Otherwise the import can fail, and since utils
 # are used by --library-report, this can cause diagnostic messages to fail.
 import bisect
-import sys, os
+import sys, os, errno
 import inspect
 import subprocess
 import platform
@@ -709,7 +709,7 @@ def makeDir(dirName):
   try:
     os.makedirs(dirName)
   except OSError as exc:
-    if exc.errno == errno.EEXIST and os.path.isdir(path):
+    if exc.errno == errno.EEXIST and os.path.isdir(dirName):
       ## The path already exists so we can safely ignore this exception
       pass
     else:
