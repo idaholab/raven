@@ -96,7 +96,7 @@ data objects, depending on the type of statistics the user wants to compute:
     %
   \end{itemize}
    %
-  \nb If the weights are present in the system then weighted quantities are calculated automatically.
+  \nb If the weights are present in the system then weighted quantities are calculated automatically. In addition, if a matrix quantity is requested (e.g. Covariance matrix, etc.), only the weights in the output space are going to be used for both input and output space (the computation of the joint probability between input and output spaces is not implemented yet).
   \\
   \\  If all the quantities need to be computed, the user can input in the body of
   \xmlNode{what} the string ``all''.

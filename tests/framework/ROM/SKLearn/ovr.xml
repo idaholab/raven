@@ -23,7 +23,7 @@
       <estimator>
         <SKLtype>linear_model|LinearRegression</SKLtype>
         <fit_intercept>True</fit_intercept>
-        <normalize>False</normalize>
+        <normalize>True</normalize>
       </estimator>
     </ROM>
   </Models>

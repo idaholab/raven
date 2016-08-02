@@ -1,5 +1,21 @@
 [Tests]
 
+ [./testMCMAMMOTHNoExecutable]
+   type = 'RavenFramework'
+   input = 'test_perturb_all.xml'
+   output = 'MammothInterface/QuarterPellet_Example_2D/perturb_all.csv MammothInterface/QuarterPellet_Example_2D/perturbAll/1/quarter_pin_with_fuel.i MammothInterface/QuarterPellet_Example_2D/perturbAll/2/quarter_pin_with_fuel.i'
+   csv = 'MammothInterface/QuarterPellet_Example_2D/perturb_all_0.csv MammothInterface/QuarterPellet_Example_2D/perturb_all_1.csv'
+   test_interface_only = True
+ [../]
+ 
+ [./testPerturbMAMMOTHNoExecutable]
+   type = 'RavenFramework'
+   input = 'test_perturb_mammoth.xml'
+   output = 'MammothInterface/QuarterPellet_Example_2D/perturb_mammoth.csv MammothInterface/QuarterPellet_Example_2D/MCTestMammoth/1/quarter_pin_with_fuel.i MammothInterface/QuarterPellet_Example_2D/MCTestMammoth/2/quarter_pin_with_fuel.i MammothInterface/QuarterPellet_Example_2D/MCTestMammoth/3/quarter_pin_with_fuel.i'
+   csv = 'MammothInterface/QuarterPellet_Example_2D/perturb_mammoth_0.csv MammothInterface/QuarterPellet_Example_2D/perturb_mammoth_1.csv MammothInterface/QuarterPellet_Example_2D/perturb_mammoth_2.csv'
+   test_interface_only = True
+ [../]
+
  [./testGridBison]
    type = 'RavenFramework'
    input = 'test_Grid_Sampler_Bison.xml'

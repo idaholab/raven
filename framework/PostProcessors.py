@@ -1283,8 +1283,8 @@ class ImportanceRank(BasePostProcessor):
     dimDict = None
     settingDim = False
     #pca index is a feature only of target, not with respect to anything else
-    if 'pcaindex' in options.keys():
-      pca = options['pcaindex'].values()[0]
+    if 'pcaIndex' in options.keys():
+      pca = options['pcaIndex'].values()[0]
       for var,index,_ in pca:
         outFile.addScalar(var,'pcaIndex',index)
     #build tree
@@ -1437,13 +1437,16 @@ class ImportanceRank(BasePostProcessor):
       senCoeffDict[target] = featCoeffs
     # compute importance rank
     for what in self.what:
-      if what not in outputDict.keys(): outputDict[what] = {}
       if what.lower() == 'sensitivityindex':
+        what = 'sensitivityIndex'
+        if what not in outputDict.keys(): outputDict[what] = {}
         for target in self.targets:
           entries = senWeightDict[target]
           entries.sort(key=lambda x: x[1],reverse=True)
           outputDict[what][target] = entries
       if what.lower() == 'importanceindex':
+        what = 'importanceIndex'
+        if what not in outputDict.keys(): outputDict[what] = {}
         for target in self.targets:
           featCoeffs = senCoeffDict[target]
           featWeights = []
@@ -1469,6 +1472,8 @@ class ImportanceRank(BasePostProcessor):
            outputDict[what][target] = entries
       #calculate PCA index
       if what.lower() == 'pcaindex':
+        what = 'pcaIndex'
+        if what not in outputDict.keys(): outputDict[what] = {}
         index = [dim-1 for dim in self.dimensions]
         singularValues = self.mvnDistribution.returnSingularValues(index)
         singularValues = list(singularValues/np.sum(singularValues))
@@ -1645,7 +1650,7 @@ class BasicStatistics(BasePostProcessor):
               self.raiseADebug('Dumping variable ' + targetP + '. Parameter: ' + what + '. Metadata name = ' + targetP + '-' + what)
               output.updateMetadata(targetP + '-' + what + appendix, outputDict[what][targetP])
           else:
-            if what not in methodToTest:
+            if what not in methodToTest and len(parameterSet) > 1:
               self.raiseADebug('Dumping matrix ' + what + '. Metadata name = ' + what + '. Targets stored in ' + 'targets-' + what)
               output.updateMetadata('targets-' + what + appendix, parameterSet)
               output.updateMetadata(what.replace("|","-") + appendix, outputDict[what])
@@ -1682,7 +1687,7 @@ class BasicStatistics(BasePostProcessor):
           output.write(what + separator +  separator.join(quantitiesToWrite[what])+os.linesep)
       maxLength = max(len(max(parameterSet, key = len)) + 5, 16)
       for what in outputDict.keys():
-        if what in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity','sensitivity']:
+        if what in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity','sensitivity'] and len(parameterSet) > 1:
           self.raiseADebug('Writing parameter matrix ' + what)
           output.write(os.linesep)
           output.write(what + os.linesep)
@@ -1723,7 +1728,7 @@ class BasicStatistics(BasePostProcessor):
           if stat not in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity'] + methodToTest:
             output.addScalar(target,stat,val[target],pivotVal=pivotVal)
         for stat,val in outputDict.items():
-          if stat in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity']:
+          if stat in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity'] and len(parameterSet) > 1:
             valueDict = {}
             valRow = val[t]
             for p,param in enumerate(parameterSet):
@@ -1968,31 +1973,37 @@ class BasicStatistics(BasePostProcessor):
               outputDict[whatPerc][targetP] = np.percentile(input['targets'][targetP], integerPercentile) if not pbPresent else self._computeWeightedPercentile(input['targets'][targetP],relWeight,percent=float(integerPercentile)/100.0)
       # cov matrix
       if what == 'covariance':
-        feat = np.zeros((len(input['targets'].keys()), utils.first(input['targets'].values()).size))
-        pbWeightsList = [None]*len(input['targets'].keys())
-        for myIndex, targetP in enumerate(parameterSet):
-          feat[myIndex, :] = input['targets'][targetP][:]
-          pbWeightsList[myIndex] = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
-        pbWeightsList.append(pbWeights['realization'])
-        outputDict[what] = self.covariance(feat, weights = pbWeightsList)
+        if len(input['targets'].keys()) < 2:  self.raiseAWarning("The number of targets are < 2 in post-processor named "+ self.name +". Covariance matrix is not computed!")
+        else:
+          feat = np.zeros((len(input['targets'].keys()), utils.first(input['targets'].values()).size))
+          pbWeightsList = [None]*len(input['targets'].keys())
+          for myIndex, targetP in enumerate(parameterSet):
+            feat[myIndex, :] = input['targets'][targetP][:]
+            pbWeightsList[myIndex] = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
+          pbWeightsList.append(pbWeights['realization'])
+          outputDict[what] = self.covariance(feat, weights = pbWeightsList)
       # pearson matrix
       if what == 'pearson':
-        feat          = np.zeros((len(input['targets'].keys()), utils.first(input['targets'].values()).size))
-        pbWeightsList = [None]*len(input['targets'].keys())
-        for myIndex, targetP in enumerate(parameterSet):
-          feat[myIndex, :] = input['targets'][targetP][:]
-          pbWeightsList[myIndex] = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
-        outputDict[what] = self.corrCoeff(feat, weights = pbWeightsList)  # np.corrcoef(feat)
+        if len(input['targets'].keys()) < 2:  self.raiseAWarning("The number of targets are < 2 in post-processor named "+ self.name +". Pearson matrix is not computed!")
+        else:
+          feat          = np.zeros((len(input['targets'].keys()), utils.first(input['targets'].values()).size))
+          pbWeightsList = [None]*len(input['targets'].keys())
+          for myIndex, targetP in enumerate(parameterSet):
+            feat[myIndex, :] = input['targets'][targetP][:]
+            pbWeightsList[myIndex] = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
+          outputDict[what] = self.corrCoeff(feat, weights = pbWeightsList)  # np.corrcoef(feat)
       # sensitivity matrix
       if what == 'sensitivity':
-        for myIndex, target in enumerate(parameterSet):
-          values, targetCoefs = list(input['targets'].values()), list(input['targets'].keys())
-          values.pop(list(input['targets'].keys()).index(target)), targetCoefs.pop(list(input['targets'].keys()).index(target))
-          sampledMatrix = np.atleast_2d(np.asarray(values)).T
-          regressorsByTarget = dict(zip(targetCoefs, LinearRegression().fit(sampledMatrix, input['targets'][target]).coef_))
-          regressorsByTarget[target] = 1.0
-          outputDict[what][myIndex] = np.zeros(len(parameterSet))
-          for cnt, param in enumerate(parameterSet): outputDict[what][myIndex][cnt] = regressorsByTarget[param]
+        if len(input['targets'].keys()) < 2:  self.raiseAWarning("The number of targets are < 2 in post-processor named "+ self.name +". Sensitivity matrix is not computed!")
+        else:
+          for myIndex, target in enumerate(parameterSet):
+            values, targetCoefs = list(input['targets'].values()), list(input['targets'].keys())
+            values.pop(list(input['targets'].keys()).index(target)), targetCoefs.pop(list(input['targets'].keys()).index(target))
+            sampledMatrix = np.atleast_2d(np.asarray(values)).T
+            regressorsByTarget = dict(zip(targetCoefs, LinearRegression().fit(sampledMatrix, input['targets'][target]).coef_))
+            regressorsByTarget[target] = 1.0
+            outputDict[what][myIndex] = np.zeros(len(parameterSet))
+            for cnt, param in enumerate(parameterSet): outputDict[what][myIndex][cnt] = regressorsByTarget[param]
       # VarianceDependentSensitivity matrix
       # The formular for this calculation is coming from: http://www.math.uah.edu/stat/expect/Matrices.html
       # The best linear predictor: L(Y|X) = expectedValue(Y) + cov(Y,X) * [vc(X)]^(-1) * [X-expectedValue(X)]
@@ -2000,46 +2011,50 @@ class BasicStatistics(BasePostProcessor):
       # vc(X) is the covariance matrix of X with itself.
       # The variance dependent sensitivity matrix is defined as: cov(Y,X) * [vc(X)]^(-1)
       if what == 'VarianceDependentSensitivity':
-        feat = np.zeros((len(input['targets'].keys()), utils.first(input['targets'].values()).size))
-        pbWeightsList = [None]*len(input['targets'].keys())
-        for myIndex, targetP in enumerate(parameterSet):
-          feat[myIndex, :] = input['targets'][targetP][:]
-          pbWeightsList[myIndex] = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
-        pbWeightsList.append(pbWeights['realization'])
-        covMatrix = self.covariance(feat, weights = pbWeightsList)
-        for myIndex, targetP in enumerate(parameterSet):
-          targetCoefs = list(parameterSet)
-          targetCoefs.pop(myIndex)
-          inputParameters = np.delete(feat,myIndex,axis=0)
-          inputCovMatrix = np.delete(covMatrix,myIndex,axis=0)
-          inputCovMatrix = np.delete(inputCovMatrix,myIndex,axis=1)
-          outputInputCov = np.delete(covMatrix[myIndex,:],myIndex)
-          sensitivityCoeffDict = dict(zip(targetCoefs,np.dot(outputInputCov, np.linalg.pinv(inputCovMatrix))))
-          sensitivityCoeffDict[targetP] = 1.0
-          outputDict[what][myIndex] = np.zeros(len(parameterSet))
-          for cnt,param in enumerate(parameterSet):
-            outputDict[what][myIndex][cnt] = sensitivityCoeffDict[param]
+        if len(input['targets'].keys()) < 2:  self.raiseAWarning("The number of targets are < 2 in post-processor named "+ self.name +". VarianceDependentSensitivity matrix is not computed!")
+        else:
+          feat = np.zeros((len(input['targets'].keys()), utils.first(input['targets'].values()).size))
+          pbWeightsList = [None]*len(input['targets'].keys())
+          for myIndex, targetP in enumerate(parameterSet):
+            feat[myIndex, :] = input['targets'][targetP][:]
+            pbWeightsList[myIndex] = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
+          pbWeightsList.append(pbWeights['realization'])
+          covMatrix = self.covariance(feat, weights = pbWeightsList)
+          for myIndex, targetP in enumerate(parameterSet):
+            targetCoefs = list(parameterSet)
+            targetCoefs.pop(myIndex)
+            inputParameters = np.delete(feat,myIndex,axis=0)
+            inputCovMatrix = np.delete(covMatrix,myIndex,axis=0)
+            inputCovMatrix = np.delete(inputCovMatrix,myIndex,axis=1)
+            outputInputCov = np.delete(covMatrix[myIndex,:],myIndex)
+            sensitivityCoeffDict = dict(zip(targetCoefs,np.dot(outputInputCov, np.linalg.pinv(inputCovMatrix))))
+            sensitivityCoeffDict[targetP] = 1.0
+            outputDict[what][myIndex] = np.zeros(len(parameterSet))
+            for cnt,param in enumerate(parameterSet):
+              outputDict[what][myIndex][cnt] = sensitivityCoeffDict[param]
       # Normalized variance dependent sensitivity matrix: variance dependent sensitivity  normalized by the mean (% change of output)/(% change of input)
       if what == 'NormalizedSensitivity':
-        feat = np.zeros((len(input['targets'].keys()), utils.first(input['targets'].values()).size))
-        pbWeightsList = [None]*len(input['targets'].keys())
-        for myIndex, targetP in enumerate(parameterSet):
-          feat[myIndex, :] = input['targets'][targetP][:]
-          pbWeightsList[myIndex] = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
-        pbWeightsList.append(pbWeights['realization'])
-        covMatrix = self.covariance(feat, weights = pbWeightsList)
-        for myIndex, targetP in enumerate(parameterSet):
-          targetCoefs = list(parameterSet)
-          targetCoefs.pop(myIndex)
-          inputParameters = np.delete(feat,myIndex,axis=0)
-          inputCovMatrix = np.delete(covMatrix,myIndex,axis=0)
-          inputCovMatrix = np.delete(inputCovMatrix,myIndex,axis=1)
-          outputInputCov = np.delete(covMatrix[myIndex,:],myIndex)
-          sensitivityCoeffDict = dict(zip(targetCoefs,np.dot(outputInputCov, np.linalg.pinv(inputCovMatrix))))
-          sensitivityCoeffDict[targetP] = 1.0
-          outputDict[what][myIndex] = np.zeros(len(parameterSet))
-          for cnt,param in enumerate(parameterSet):
-            outputDict[what][myIndex][cnt] = sensitivityCoeffDict[param]*expValues[cnt]/expValues[myIndex]
+        if len(input['targets'].keys()) < 2:  self.raiseAWarning("The number of targets are < 2 in post-processor named "+ self.name +". NormalizedSensitivity matrix is not computed!")
+        else:
+          feat = np.zeros((len(input['targets'].keys()), utils.first(input['targets'].values()).size))
+          pbWeightsList = [None]*len(input['targets'].keys())
+          for myIndex, targetP in enumerate(parameterSet):
+            feat[myIndex, :] = input['targets'][targetP][:]
+            pbWeightsList[myIndex] = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
+          pbWeightsList.append(pbWeights['realization'])
+          covMatrix = self.covariance(feat, weights = pbWeightsList)
+          for myIndex, targetP in enumerate(parameterSet):
+            targetCoefs = list(parameterSet)
+            targetCoefs.pop(myIndex)
+            inputParameters = np.delete(feat,myIndex,axis=0)
+            inputCovMatrix = np.delete(covMatrix,myIndex,axis=0)
+            inputCovMatrix = np.delete(inputCovMatrix,myIndex,axis=1)
+            outputInputCov = np.delete(covMatrix[myIndex,:],myIndex)
+            sensitivityCoeffDict = dict(zip(targetCoefs,np.dot(outputInputCov, np.linalg.pinv(inputCovMatrix))))
+            sensitivityCoeffDict[targetP] = 1.0
+            outputDict[what][myIndex] = np.zeros(len(parameterSet))
+            for cnt,param in enumerate(parameterSet):
+              outputDict[what][myIndex][cnt] = sensitivityCoeffDict[param]*expValues[cnt]/expValues[myIndex]
     # print on screen
     self.raiseADebug('BasicStatistics ' + str(self.name) + 'pp outputs')
     methodToTest = []
@@ -2056,35 +2071,35 @@ class BasicStatistics(BasePostProcessor):
           msg += '               ' + '* ' + what + ' * ' + '%.8E' % outputDict[what][targetP] + '  *' + os.linesep
           msg += '               ' + '**' + '*' * len(what) + '***' + 6 * '*' + '*' * 8 + '***' + os.linesep
     maxLength = max(len(max(parameterSet, key = len)) + 5, 16)
-    if 'covariance' in outputDict.keys():
+    if 'covariance' in outputDict.keys() and len(parameterSet) > 1:
       msg += ' ' * maxLength + '*****************************' + os.linesep
       msg += ' ' * maxLength + '*         Covariance        *' + os.linesep
       msg += ' ' * maxLength + '*****************************' + os.linesep
       msg += ' ' * maxLength + ''.join([str(item) + ' ' * (maxLength - len(item)) for item in parameterSet]) + os.linesep
       for index in range(len(parameterSet)):
         msg += parameterSet[index] + ' ' * (maxLength - len(parameterSet[index])) + ''.join(['%.8E' % item + ' ' * (maxLength - 14) for item in outputDict['covariance'][index]]) + os.linesep
-    if 'pearson' in outputDict.keys():
+    if 'pearson' in outputDict.keys() and len(parameterSet) > 1:
       msg += ' ' * maxLength + '*****************************' + os.linesep
       msg += ' ' * maxLength + '*    Pearson/Correlation    *' + os.linesep
       msg += ' ' * maxLength + '*****************************' + os.linesep
       msg += ' ' * maxLength + ''.join([str(item) + ' ' * (maxLength - len(item)) for item in parameterSet]) + os.linesep
       for index in range(len(parameterSet)):
         msg += parameterSet[index] + ' ' * (maxLength - len(parameterSet[index])) + ''.join(['%.8E' % item + ' ' * (maxLength - 14) for item in outputDict['pearson'][index]]) + os.linesep
-    if 'VarianceDependentSensitivity' in outputDict.keys():
+    if 'VarianceDependentSensitivity' in outputDict.keys() and len(parameterSet) > 1:
       msg += ' ' * maxLength + '******************************' + os.linesep
       msg += ' ' * maxLength + '*VarianceDependentSensitivity*' + os.linesep
       msg += ' ' * maxLength + '******************************' + os.linesep
       msg += ' ' * maxLength + ''.join([str(item) + ' ' * (maxLength - len(item)) for item in parameterSet]) + os.linesep
       for index in range(len(parameterSet)):
         msg += parameterSet[index] + ' ' * (maxLength - len(parameterSet[index])) + ''.join(['%.8E' % item + ' ' * (maxLength - 14) for item in outputDict['VarianceDependentSensitivity'][index]]) + os.linesep
-    if 'NormalizedSensitivity' in outputDict.keys():
+    if 'NormalizedSensitivity' in outputDict.keys() and len(parameterSet) > 1:
       msg += ' ' * maxLength + '******************************' + os.linesep
       msg += ' ' * maxLength + '* Normalized V.D.Sensitivity *' + os.linesep
       msg += ' ' * maxLength + '******************************' + os.linesep
       msg += ' ' * maxLength + ''.join([str(item) + ' ' * (maxLength - len(item)) for item in parameterSet]) + os.linesep
       for index in range(len(parameterSet)):
         msg += parameterSet[index] + ' ' * (maxLength - len(parameterSet[index])) + ''.join(['%.8E' % item + ' ' * (maxLength - 14) for item in outputDict['NormalizedSensitivity'][index]]) + os.linesep
-    if 'sensitivity' in outputDict.keys():
+    if 'sensitivity' in outputDict.keys() and len(parameterSet) > 1:
       msg += ' ' * maxLength + '******************************' + os.linesep
       msg += ' ' * maxLength + '*        Sensitivity         *' + os.linesep
       msg += ' ' * maxLength + '******************************' + os.linesep
