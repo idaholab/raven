@@ -1861,9 +1861,9 @@ class EnsembleModel(Dummy, Assembler):
           if self.activatePicard:
             # compute residue
             residueContainer[modelIn]['iterValues'][1] = copy.copy(residueContainer[modelIn]['iterValues'][0])
-            for out in gotOutputs[modelCnt].keys(): residueContainer[modelIn]['iterValues'][0][out] = copy.copy(gotOutputs[modelCnt][out][-1])
+            for out in gotOutputs[modelCnt].keys(): residueContainer[modelIn]['iterValues'][0][out] = copy.copy(gotOutputs[modelCnt][out])
             for out in gotOutputs[modelCnt].keys():
-              residueContainer[modelIn]['residue'][out] = abs(residueContainer[modelIn]['iterValues'][0][out] - residueContainer[modelIn]['iterValues'][1][out])
+              residueContainer[modelIn]['residue'][out] = abs(np.asarray(residueContainer[modelIn]['iterValues'][0][out]) - np.asarray(residueContainer[modelIn]['iterValues'][1][out]))
             residueContainer[modelIn]['Norm'] =  np.linalg.norm(np.asarray(residueContainer[modelIn]['iterValues'][1].values())-np.asarray(residueContainer[modelIn]['iterValues'][0].values()))
       if self.activatePicard:
         iterZero, iterOne = [],[]
