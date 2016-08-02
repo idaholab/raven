@@ -412,9 +412,9 @@ class YakInstantLibraryParser():
 
   def _prettify(self,tree):
     """
-      Script for turning XML tree into something mostly RAVEN-preferred.  Does not align attributes as some devs like.
+      Script for turning XML tree to be more user friendly.
       @ In, tree, xml.etree.ElementTree object, the tree form of an input file
-      @ Out, toWrite, string, the entire contents of the desired file to write, including newlines
+      @ Out, pretty, string, the entire contents of the desired file to write
     """
     #make the first pass at pretty.  This will insert way too many newlines, because of how we maintain XML format.
     pretty = pxml.parseString(ET.tostring(tree.getroot())).toprettyxml(indent='  ')
