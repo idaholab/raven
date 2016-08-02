@@ -697,6 +697,26 @@ def tryParse(text):
     return True
   return value
 
+def makeDir(dirName):
+  """
+      Function that will attempt to create a directory. If the directory already
+      exists, this function will return silently with no error, however if it
+      fails to create the directory for any other reason, then an error is
+      raised.
+      @ In, dirName, string specifying the new directory to be created
+      @ Out, None
+  """
+  try:
+    os.makedirs(dirName)
+  except OSError as exc:
+    if exc.errno == errno.EEXIST and os.path.isdir(path):
+      ## The path already exists so we can safely ignore this exception
+      pass
+    else:
+      ## If it failed for some other reason, we want to see what the
+      ## error is still
+      raise
+
 class pickleSafeSubprocessPopen(subprocess.Popen):
   """
   Subclass of subprocess.Popen used internally to prevent _handle member from being pickled.  On
