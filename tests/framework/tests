@@ -250,17 +250,6 @@
   rel_err = 0.0001
  [../]
 
-
- [./testCreateInternalObjFromCSVs]
-  type = 'RavenFramework'
-  input = 'test_CreateInternalObjFromCSVs.xml'
-  output = 'CreateInternalObjFromCSVs/PointSetPostProcTest_DUMP.csv'
-  csv = 'CreateInternalObjFromCSVs/PointSetPostProcTest_DUMP.csv'
-  max_time = 500
-  rel_err = 0.001
-  prereq = testGrid_RELAP7
- [../]
-
  [./test_bison_mc_simple_&_alias_system]
   #REQUIREMENT_TEST R-IS-6
   type = 'RavenFramework'
