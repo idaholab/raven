@@ -3,13 +3,13 @@
   <RunInfo>
     <WorkingDir>SpectralEmbedding</WorkingDir>
     <Sequence>sampleGen,pp1</Sequence>
-    <batchSize>100</batchSize>
+    <batchSize>1</batchSize>
   </RunInfo>
 
   <Models>
     <ExternalModel ModuleToLoad="../data_generator" name="DataGeneratorModel" subType="">
       <variables>n,Time,x1,x2,x3,x4</variables>
-    </ExternalModel> 
+    </ExternalModel>
     <PostProcessor name="PCA" subType="DataMining">
       <KDD lib="temporalSciKitLearn">
         <Features>x1,x2,x3,x4</Features>
@@ -42,20 +42,20 @@
       <upperBound>150</upperBound>
     </Uniform>
   </Distributions>
-  
+
   <Samplers>
     <Grid name="gridSampler">
       <samplerInit>
          <limit>150</limit>
-		 <initialSeed>10</initialSeed>
+                 <initialSeed>10</initialSeed>
       </samplerInit>
       <variable name="n">
         <distribution>uniDist</distribution>
-		<grid type='value' construction='equal' steps='149'>0.0 149.0</grid>
+                <grid type='value' construction='equal' steps='149'>0.0 149.0</grid>
       </variable>
-	</Grid>
-  </Samplers> 
-  
+        </Grid>
+  </Samplers>
+
   <OutStreams>
     <Print name='dummy'>
       <type>csv</type>
@@ -96,11 +96,10 @@
     <PointSet name="inputPlaceHolder">
       <Input>n</Input>
       <Output>OutputPlaceHolder</Output>
-    </PointSet>  
+    </PointSet>
     <HistorySet name="mData">
       <Input>n</Input>
       <Output>Time,x1,x2,x3,x4</Output>
     </HistorySet>
   </DataObjects>
 </Simulation>
-
