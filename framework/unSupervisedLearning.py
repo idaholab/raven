@@ -27,6 +27,7 @@ warnings.simplefilter('default', DeprecationWarning)
 from sklearn import cluster, mixture, manifold, decomposition, covariance, neural_network
 from sklearn import metrics
 from sklearn.neighbors import kneighbors_graph
+from scipy.cluster import hierarchy
 import numpy as np
 import abc
 import ast
@@ -550,7 +551,7 @@ class Scipy(unSupervisedLearning):
   modelType = 'Scipy'
   availImpl = {}
   availImpl['cluster'] = {}  
-  availImpl['cluster']['Hierarchical'] = (cluster.Hierarchical, 'float')  # Perform Hierarchical Clustering of data.
+  availImpl['cluster']['Hierarchical'] = (hierarchy, 'float')  # Perform Hierarchical Clustering of data.
 
   def __init__(self, messageHandler, **kwargs):
     """
