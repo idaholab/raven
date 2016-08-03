@@ -1534,6 +1534,7 @@ class EnsembleModel(Dummy, Assembler):
     self.tempTargetEvaluations = {}
     self.maxIterations         = 30
     self.convergenceTol        = 1.e-3
+    self.initialConditions     = {}
     self.lockSystem = threading.RLock()
 
   def localInputAndChecks(self,xmlNode):
@@ -1545,7 +1546,7 @@ class EnsembleModel(Dummy, Assembler):
     """
     Dummy.localInputAndChecks(self, xmlNode)
     for child in xmlNode:
-      if child.tag not in  ["Model"]: self.raiseAnError(IOError, "Expected Model tag. Got "+child.tag)
+      if child.tag not in  ["Model","settings"]: self.raiseAnError(IOError, "Expected <Model> or <settings> tag. Got "+child.tag)
       if child.tag == 'Model':
         modelName = child.text.strip()
         self.modelsDictionary[modelName] = {'TargetEvaluation':None,'Instance':None,'Input':[]}
@@ -1568,9 +1569,16 @@ class EnsembleModel(Dummy, Assembler):
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None
     """
-    for childChild in child:
-      if childChild.tag == 'maxIterations': self.maxIterations  = int(childChild.text)
-      if childChild.tag == 'tolerance'    : self.convergenceTol = float(childChild.text)
+    for child in xmlNode:
+      if child.tag == 'maxIterations'    : self.maxIterations  = int(child.text)
+      if child.tag == 'tolerance'        : self.convergenceTol = float(child.text)
+      if child.tag == 'initialConditions':
+        for var in child:
+          if "repeat" in var.attrib.keys():
+            self.initialConditions[var.tag] = np.repeat([float(var.text.split()[0])], int(var.attrib['repeat'])) #np.array([float(var.text.split()[0]) for _ in range(int(var.attrib['repeat']))])
+          else:
+            self.initialConditions[var.tag] = np.array(var.text.split())
+        
 
 
   def __findMatchingModel(self,what,subWhat):
@@ -1637,7 +1645,9 @@ class EnsembleModel(Dummy, Assembler):
           if testDict[node.name] > 0:
             self.activatePicard = True
             break
-    if self.activatePicard: self.raiseAMessage("Multi-model connections determined a non-linear system. Picard's iterations activated!")
+    if self.activatePicard: 
+      self.raiseAMessage("Multi-model connections determined a non-linear system. Picard's iterations activated!")
+      if len(self.initialConditions.keys()) == 0: self.raiseAnError(IOError,"Picard's iterations mode activated but no intial conditions provided!")
     else                  : self.raiseAMessage("Multi-model connections determined a linear system. Picard's iterations not activated!")
 
     self.allOutputs = []
@@ -1809,7 +1819,7 @@ class EnsembleModel(Dummy, Assembler):
       for modelIn in self.orderList:
         residueContainer[modelIn] = {'residue':{},'iterValues':[{}]*2}
         for out in self.modelsDictionary[modelIn]['Output']:
-          residueContainer[modelIn]['residue'][out], residueContainer[modelIn]['iterValues'][0][out], residueContainer[modelIn]['iterValues'][1][out] = 0.0, 0.0, 0.0
+          residueContainer[modelIn]['residue'][out], residueContainer[modelIn]['iterValues'][0][out], residueContainer[modelIn]['iterValues'][1][out] = np.zeros(1), np.zeros(1), np.zeros(1)
     maxIterations, iterationCount = (self.maxIterations, 0) if self.activatePicard else (1 , 0)
     #if self.activatePicard: maxIterations, iterationCount = self.maxIterations, 0 if self.activatePicard else 1 , 0
     #else                  : maxIterations, iterationCount = 1 , 0
@@ -1824,7 +1834,8 @@ class EnsembleModel(Dummy, Assembler):
           try              : sampledVars = Input[modelIn][0][1]['SampledVars'].keys()
           except IndexError: sampledVars = Input[modelIn][1]['SampledVars'].keys()
           for initCondToSet in [x for x in self.modelsDictionary[modelIn]['Input'] if x not in set(dependentOutput.keys()+sampledVars)]:
-            dependentOutput[initCondToSet] = np.asarray([1.0])[-1]
+            if initCondToSet in self.initialConditions.keys(): dependentOutput[initCondToSet] = np.asarray(self.initialConditions[initCondToSet])
+            else                                             : self.raiseAnError(IOError,"No initial conditions provided for variable "+ initCondToSet)
         #with self.lockSystem:
         Input[modelIn]  = self.modelsDictionary[modelIn]['Instance'].updateInputFromOutside(Input[modelIn], dependentOutput)
         try              : Input[modelIn][0][1]['prefix'], Input[modelIn][0][1]['uniqueHandler'] = modelIn+"|"+identifier, self.name+identifier
@@ -1859,9 +1870,12 @@ class EnsembleModel(Dummy, Assembler):
           returnDict[modelIn]['metadata'         ] = tempTargetEvaluations[modelIn].getAllMetadata()
           #returnDict[modelIn] = {'outputSpaceParams':gotOutputs[modelCnt],'inputSpaceParams':tempTargetEvaluations[modelIn].getParametersValues('inputs', nodeId = 'RecontructEnding'),'metadata':tempTargetEvaluations[modelIn].getAllMetadata()}
           if self.activatePicard:
-            # compute residue
+            # compute residue 
             residueContainer[modelIn]['iterValues'][1] = copy.copy(residueContainer[modelIn]['iterValues'][0])
-            for out in gotOutputs[modelCnt].keys(): residueContainer[modelIn]['iterValues'][0][out] = copy.copy(gotOutputs[modelCnt][out])
+            for out in gotOutputs[modelCnt].keys(): 
+              residueContainer[modelIn]['iterValues'][0][out] = copy.copy(gotOutputs[modelCnt][out])
+              if iterationCount == 1: residueContainer[modelIn]['iterValues'][1][out] = np.zeros(len(residueContainer[modelIn]['iterValues'][0][out]))
+              
             for out in gotOutputs[modelCnt].keys():
               residueContainer[modelIn]['residue'][out] = abs(np.asarray(residueContainer[modelIn]['iterValues'][0][out]) - np.asarray(residueContainer[modelIn]['iterValues'][1][out]))
             residueContainer[modelIn]['Norm'] =  np.linalg.norm(np.asarray(residueContainer[modelIn]['iterValues'][1].values())-np.asarray(residueContainer[modelIn]['iterValues'][0].values()))
