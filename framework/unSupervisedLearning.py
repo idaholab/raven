@@ -562,7 +562,7 @@ class Scipy(unSupervisedLearning):
     """    
     unSupervisedLearning.__init__(self, messageHandler, **kwargs)
     self.printTag = 'SCIPY'
-    if 'Scipy' not in self.initOptionDict.keys(): 
+    if 'SCIPYtype' not in self.initOptionDict.keys(): 
       self.raiseAnError(IOError, ' to define a Scipy unSupervisedLearning Method the SCIPYtype keyword is needed (from KDD ' + self.name + ')')
     
     SCIPYtype, SCIPYsubType = self.initOptionDict['SCIPY'].split('|')
@@ -577,7 +577,6 @@ class Scipy(unSupervisedLearning):
     self.Method = self.__class__.availImpl[SCIPYtype][SCIPYsubType][0]()
     self.SCIPYtype = SCIPYtype
     self.SCIPYsubType = SCIPYsubType
-    paramsDict = self.Method.get_params()
     
     self.Method.set_params(**self.initOptionDict)
     self.normValues = None
@@ -600,7 +599,8 @@ class Scipy(unSupervisedLearning):
     """
     self.dData = dendrogram(self.linkage,**self.initOptionDict)
     
-    
+  def __confidenceLocal__(self):
+    pass 
 #
 #
 __interfaceDict = {}
