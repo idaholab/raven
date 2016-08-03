@@ -2,21 +2,18 @@
   [./KMeans]
     type    = 'RavenFramework'
     input   = 'test_tdmSKLearnKMeans.xml'
-    csv     = 'KMeans/centroid_0.csv KMeans/centroid_2.csv 
-			   KMeans/dummy_0.csv KMeans/dummy_9.csv'
+    csv     = 'KMeans/centroid_0.csv KMeans/centroid_2.csv KMeans/dummy_0.csv KMeans/dummy_9.csv'
     rel_err = 0.001
   [../]
   [./MiniBatchKMeans]
     type   = 'RavenFramework'
     input  = 'test_tdmSKLearnMiniBatchKMeans.xml'
-    csv    = 'MiniBatchKMeans/centroid_0.csv MiniBatchKMeans/centroid_2.csv 
-			  MiniBatchKMeans/dummy_0.csv MiniBatchKMeans/dummy_9.csv'
+    csv    = 'MiniBatchKMeans/centroid_0.csv MiniBatchKMeans/centroid_2.csv MiniBatchKMeans/dummy_0.csv MiniBatchKMeans/dummy_9.csv'
   [../]
   [./MeanShift]
     type   = 'RavenFramework'
     input  = 'test_tdmSKLearnMeanShift.xml'
-    csv    = 'MeanShift/centroid_0.csv MeanShift/centroid_2.csv 
-	          MeanShift/dummy_0.csv MeanShift/dummy_9.csv'
+    csv    = 'MeanShift/centroid_0.csv MeanShift/centroid_2.csv MeanShift/dummy_0.csv MeanShift/dummy_9.csv'
   [../]
   [./DBSCAN]
     type   = 'RavenFramework'
