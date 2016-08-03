@@ -9,7 +9,6 @@
   <Files>
     <Input name="ideal_pump.i" type="">ideal_pump.i</Input>
     <Input name="ideal_pump_control.py" type="">ideal_pump_control.py</Input>
-    <Input name="DET_HistorySet.csv" type="">DET_HistorySet.csv</Input>
   </Files>
 
   <Models>
@@ -113,10 +112,6 @@
       <Output class="OutStreams" type="Plot">2DHistoryPlot</Output>
       <Output class="OutStreams" type="Plot">2DHistoryPlot_tps</Output>
     </MultiRun>
-    <IOStep name="extract_hist_example">
-      <Input class="Databases" type="HDF5">testBranchDatabase</Input>
-      <Output class="Files" type="">DET_HistorySet.csv</Output>
-    </IOStep>
   </Steps>
 
   <Databases>
@@ -131,6 +126,8 @@
     <HistorySet hierarchical="true" name="stories">
       <Input>dummy_for_branch</Input>
       <Output>pump_mass_flow_rate,time</Output>
+    </HistorySet>
+    <HistorySet>
     </HistorySet>
   </DataObjects>
 
