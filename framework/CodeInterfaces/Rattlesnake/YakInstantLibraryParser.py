@@ -120,7 +120,7 @@ class YakInstantLibraryParser():
     for child in xmlNode:
       if child.tag in self.perturbableReactions:
         mt = child.tag
-        if mt not in aliasXS.keys(): aliasXS[mt] = [0]*aliasXSGroup
+        if mt not in aliasXS.keys(): aliasXS[mt] = [None]*aliasXSGroup
         groupIndex = child.get('gIndex')
         if groupIndex == None:
           varsList = list(var.strip() for var in child.text.strip().split(','))
@@ -285,7 +285,7 @@ class YakInstantLibraryParser():
         elif reactionDict['ScatteringOrder'] == 0:
           reactionDict['TotalXS'] = [1.0/(3.0*value) for value in reactionDict['DiffusionCoefficient']]
         else:
-          reactionDict['TotalXS'] =  [1.0/(3.0*value) for value in reactionDict['DiffusionCoefficient']] + np.sum(reactionDict['ScatteringXS'][self.nGroup:2*self.nGroup],1)
+          reactionDict['TotalXS'] =  [1.0/(3.0*value) for value in reactionDict['DiffusionCoefficient']] + np.sum(reactionDict['ScatteringXS'][self.nGroup:2*self.nGroup])
     else:
       if 'DiffusionCoefficient' not in reactionList:
         #calculate transport cross sections
@@ -294,7 +294,7 @@ class YakInstantLibraryParser():
         elif reactionDict['ScatteringOrder'] == 0:
           reactionDict['DiffusionCoefficient'] =  [1.0/(3.0*value) for value in reactionDict['TotalXS']]
         else:
-          xs = reactionDict['TotalXS'] - np.sum(reactionDict['ScatteringXS'][self.nGroup:2*self.nGroup],1)
+          xs = reactionDict['TotalXS'] - np.sum(reactionDict['ScatteringXS'][self.nGroup:2*self.nGroup])
           reactionDict['DiffusionCoefficient'] =  [1.0/(3.0*value) for value in xs]
 
     #Metod 1: Currently, rattlesnake will not check the consistent of provided cross sections, rattlesnake will only use Total,
@@ -343,11 +343,13 @@ class YakInstantLibraryParser():
       for var in libValue:
         if var in self.modDict.keys():
           groupValues.append(self.modDict[var])
-        else:
+        elif var ==None:
           if aliasType == 'rel':
             groupValues.append(1.0)
           elif aliasType == 'abs':
             groupValues.append(0.0)
+        else:
+          raise IOError('The user wants to perturb ' + var + ', but this variable is defined in Sampler!')
       groupValues = np.asarray(groupValues)
       factors[mtID] = groupValues
       if aliasType == 'rel':
@@ -387,7 +389,7 @@ class YakInstantLibraryParser():
     reactionDict['RemovalXS'] = np.asarray(list(reactionDict['TotalXS'][g] - reactionDict['ScatteringXS'][g][g] for g in range(self.nGroup)))
     #recalculate diffusion coefficient cross sections
     if reactionDict['ScatteringXS'].shape[0] >= self.nGroup*2:
-      transport = reactionDict['TotalXS'] - np.sum(reactionDict['ScatteringXS'][self.nGroup:self.nGroup*2],1)
+      transport = reactionDict['TotalXS'] - np.sum(reactionDict['ScatteringXS'][self.nGroup:self.nGroup*2])
       reactionDict['DiffusionCoefficient'] = [1.0/(3.0*value) for value in transport]
     else:
       reactionDict['DiffusionCoefficient'] = [1.0/(3.0*value) for value in reactionDict['TotalXS']]

@@ -420,7 +420,7 @@ class YakMultigroupLibraryParser():
         elif reactionDict['ScatteringOrder'] == 0:
           reactionDict['Total'] = copy.copy(reactionDict['Transport'])
         else:
-          reactionDict['Total'] = reactionDict['Transport'] + np.sum(reactionDict['Scattering'][self.nGroup:2*self.nGroup],1)
+          reactionDict['Total'] = reactionDict['Transport'] + np.sum(reactionDict['Scattering'][self.nGroup:2*self.nGroup])
     else:
       if 'Transport' not in reactionList:
         #calculate transport cross sections
@@ -429,7 +429,7 @@ class YakMultigroupLibraryParser():
         elif reactionDict['ScatteringOrder'] == 0:
           reactionDict['Transport'] = copy.copy(reactionDict['Total'])
         else:
-          reactionDict['Transport'] = reactionDict['Total'] - np.sum(reactionDict['Scattering'][self.nGroup:2*self.nGroup],1)
+          reactionDict['Transport'] = reactionDict['Total'] - np.sum(reactionDict['Scattering'][self.nGroup:2*self.nGroup])
 
     #Metod 1: Currently, rattlesnake will not check the consistent of provided cross sections, rattlesnake will only use Total,
     #Scattering and nuFission for the transport calculation. In this case, we will recalculate the rest cross sections
@@ -574,7 +574,7 @@ class YakMultigroupLibraryParser():
     reactionDict['Removal'] = np.asarray(list(reactionDict['Total'][g] - reactionDict['Scattering'][g][g] for g in range(self.nGroup)))
     #recalculate Transport cross sections
     if reactionDict['Scattering'].shape[0] >= self.nGroup*2:
-      reactionDict['Transport'] = reactionDict['Total'] - np.sum(reactionDict['Scattering'][self.nGroup:self.nGroup*2],1)
+      reactionDict['Transport'] = reactionDict['Total'] - np.sum(reactionDict['Scattering'][self.nGroup:self.nGroup*2])
     else:
       #recalculate Transport cross sections
       reactionDict['Transport'] = copy.copy(reactionDict['Total'])
