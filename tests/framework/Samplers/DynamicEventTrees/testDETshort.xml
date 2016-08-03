@@ -16,9 +16,6 @@
     <Code name="MyRAVEN" subType="RELAP7">
       <executable>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</executable>
     </Code>
-    <PostProcessor name="csv_from_hdf5" subType="PrintCSV">
-      <paramters>all</paramters>
-    </PostProcessor>
   </Models>
 
   <Distributions>
@@ -116,11 +113,10 @@
       <Output class="OutStreams" type="Plot">2DHistoryPlot</Output>
       <Output class="OutStreams" type="Plot">2DHistoryPlot_tps</Output>
     </MultiRun>
-    <SingleRun name="extract_hist_example">
+    <IOStep name="extract_hist_example">
       <Input class="Databases" type="HDF5">testBranchDatabase</Input>
-      <Model class="Models" type="PostProcessor">csv_from_hdf5</Model>
       <Output class="Files" type="">DET_HistorySet.csv</Output>
-    </SingleRun>
+    </IOStep>
   </Steps>
 
   <Databases>
