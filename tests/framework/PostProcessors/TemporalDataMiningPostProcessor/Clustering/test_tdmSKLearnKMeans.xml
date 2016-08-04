@@ -18,6 +18,7 @@
         <random_state>1</random_state>
         <init>k-means++</init>
       </KDD>
+      <pivotParameter>Time</pivotParameter>
     </PostProcessor>
   </Models>
 

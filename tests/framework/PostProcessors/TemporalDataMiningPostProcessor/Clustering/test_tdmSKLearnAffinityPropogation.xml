@@ -20,6 +20,7 @@
         <convergence_iter>5</convergence_iter>
         <preference>-50</preference>
       </KDD>
+      <pivotParameter>Time</pivotParameter>
     </PostProcessor>
   </Models>
 

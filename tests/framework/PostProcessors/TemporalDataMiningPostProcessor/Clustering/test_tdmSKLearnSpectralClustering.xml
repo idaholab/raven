@@ -18,6 +18,7 @@
         <Features>x1,x2</Features>
         <n_clusters>3</n_clusters>
       </KDD>
+      <pivotParameter>Time</pivotParameter>
     </PostProcessor>
   </Models>
 

@@ -20,6 +20,7 @@
         <n_neighbors>100</n_neighbors>
         <neighbors_algorithm>brute</neighbors_algorithm>
       </KDD>
+      <pivotParameter>Time</pivotParameter>
     </PostProcessor>
   </Models>
 

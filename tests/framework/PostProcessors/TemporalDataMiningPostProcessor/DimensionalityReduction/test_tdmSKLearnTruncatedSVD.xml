@@ -16,6 +16,7 @@
         <SKLtype>decomposition|TruncatedSVD</SKLtype>
         <n_components>2</n_components>
       </KDD>
+      <pivotParameter>Time</pivotParameter>
     </PostProcessor>
   </Models>
 

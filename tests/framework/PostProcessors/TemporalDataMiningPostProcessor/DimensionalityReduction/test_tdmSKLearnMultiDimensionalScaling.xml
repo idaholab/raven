@@ -18,6 +18,7 @@
       <random_state>0</random_state>
       <max_iter>10000</max_iter>
       </KDD>
+      <pivotParameter>Time</pivotParameter>
     </PostProcessor>
   </Models>
 

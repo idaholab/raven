@@ -15,6 +15,7 @@
                 <SKLtype>decomposition|PCA</SKLtype>
                 <n_components>2</n_components>
           </KDD>
+      <pivotParameter>Time</pivotParameter>
     </PostProcessor>
   </Models>
 

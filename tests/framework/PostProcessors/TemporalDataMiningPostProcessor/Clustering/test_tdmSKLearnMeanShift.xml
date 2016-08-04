@@ -18,6 +18,7 @@
         <bin_seeding>True</bin_seeding>
         <bin_seeding>True</bin_seeding>
       </KDD>
+      <pivotParameter>Time</pivotParameter>
     </PostProcessor>
   </Models>
 

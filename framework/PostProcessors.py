@@ -3637,10 +3637,17 @@ class DataMining(BasePostProcessor):
         self.pivotParameter = child.text
 
     if not hasattr(self, 'pivotParameter'):
-      self.pivotParameter = 'Time'
+      #TODO, if doing time dependent data mining that needs this, an error
+      # should be thrown
+      self.pivotParameter = None
 
     if self.type:
-      self.unSupervisedEngine = unSupervisedLearning.returnInstance(self.type, self, **self.initializationOptionDict['KDD'])
+      #TODO unSurpervisedEngine needs to be able to handle both methods
+      # without this if statement.
+      if self.pivotParameter is not None:
+        self.unSupervisedEngine = unSupervisedLearning.returnInstance("temporalSciKitLearn", self, **self.initializationOptionDict['KDD'])
+      else:
+        self.unSupervisedEngine = unSupervisedLearning.returnInstance(self.type, self, **self.initializationOptionDict['KDD'])
     else:
       self.raiseAnError(IOError, 'No Data Mining Algorithm is supplied!')
 

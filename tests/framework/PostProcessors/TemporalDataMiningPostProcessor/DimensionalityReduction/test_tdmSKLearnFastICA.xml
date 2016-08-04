@@ -17,6 +17,7 @@
         <random_state>0</random_state>
         <n_components>2</n_components>
       </KDD>
+      <pivotParameter>Time</pivotParameter>
     </PostProcessor>
   </Models>
 

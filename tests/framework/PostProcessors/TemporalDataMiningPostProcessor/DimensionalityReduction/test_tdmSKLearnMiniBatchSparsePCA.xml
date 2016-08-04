@@ -24,6 +24,7 @@
         <method>lars</method>
         <random_state>1</random_state>
       </KDD>
+      <pivotParameter>Time</pivotParameter>
     </PostProcessor>
   </Models>
 

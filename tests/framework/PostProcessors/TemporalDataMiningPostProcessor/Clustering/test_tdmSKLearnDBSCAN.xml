@@ -17,6 +17,7 @@
         <Features>x1,x2</Features>
         <min_samples>1</min_samples>
       </KDD>
+      <pivotParameter>Time</pivotParameter>
     </PostProcessor>
   </Models>
 
