@@ -3395,7 +3395,7 @@ class DataMining(BasePostProcessor):
                                                           ## algorithms the user
                                                           ## wants
 
-    self.requiredAssObject = (True, (['Label', 'DataObject','PreProcessor','Metric'], ['-1','-1','-1','-1']))  ## The Label is optional for now
+    self.requiredAssObject = (True, (['Label', 'PreProcessor','Metric'], ['-1','-1','-1']))  ## The Label is optional for now
     self.clusterLabels = None
     self.labelAlgorithms = []
     self.solutionExport = None                            ## A data object to
