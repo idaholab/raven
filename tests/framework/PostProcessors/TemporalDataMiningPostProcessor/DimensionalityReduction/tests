@@ -54,25 +54,12 @@
     csv    = 'FastICA/dummy_0.csv FastICA/dummy_149.csv'
     output = 'FastICA/dummy.csv'
   [../]
-  [./Isomap]
-    type   = 'RavenFramework'
-    input  = 'test_tdmSKLearnIsomap.xml'
-    csv    = 'Isomap/dummy_0.csv Isomap/dummy_149.csv'
-    output = 'Isomap/dummy.csv'
-  [../]
   [./LocallyLinearEmbedding]
     type    = 'RavenFramework'
     input   = 'test_tdmSKLearnLocallyLinearEmbedding.xml'
     csv     = 'LocallyLinearEmbedding/dummy_0.csv LocallyLinearEmbedding/dummy_149.csv'
     output  = 'LocallyLinearEmbedding/dummy.csv'
     rel_err = 0.001
-  [../]
-  [./SpectralEmbedding]
-    type   = 'RavenFramework'
-    input  = 'test_tdmSKLearnSpectralEmbedding.xml'
-    csv    = 'SpectralEmbedding/dummy_0.csv SpectralEmbedding/dummy_149.csv'
-    output = 'SpectralEmbedding/dummy.csv'
-	rel_err = 0.001
   [../]
   [./MultiDimensionalScaling]
     type   = 'RavenFramework'
