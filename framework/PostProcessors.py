@@ -3449,33 +3449,32 @@ class DataMining(BasePostProcessor):
     else:
       currentInput = currentInp
 
-    if self.type in ['temporalSciKitLearn']: # for testing time dependent dm - time dependent clustering
+    if currentInput.type == 'HistorySet' and self.PreProcessor is None: # for testing time dependent dm - time dependent clustering
       inputDict = {'Features':{}, 'parameters':{}, 'Labels':{}, 'metadata':{}}
-      if currentInput.type in ['HistorySet']:
 
-        # FIXME, this needs to be changed for asynchronous HistorySet
-        if self.pivotParameter in currentInput.getParam('output',1).keys():
-          self.pivotVariable = currentInput.getParam('output',1)[self.pivotParameter]
-        else:
-          self.raiseAnError(ValueError, 'Pivot variable not found in input historyset')
-        # end of FIXME
+      # FIXME, this needs to be changed for asynchronous HistorySet
+      if self.pivotParameter in currentInput.getParam('output',1).keys():
+        self.pivotVariable = currentInput.getParam('output',1)[self.pivotParameter]
+      else:
+        self.raiseAnError(ValueError, 'Pivot variable not found in input historyset')
+      # end of FIXME
 
-        historyKey = currentInput.getOutParametersValues().keys()
-        numberOfSample = len(historyKey)
-        numberOfHistoryStep = len(self.pivotVariable)
+      historyKey = currentInput.getOutParametersValues().keys()
+      numberOfSample = len(historyKey)
+      numberOfHistoryStep = len(self.pivotVariable)
 
-        if self.initializationOptionDict['KDD']['Features'] == 'input':
-          self.raiseAnError(ValueError, 'To perform data mining over input please use SciKitLearn library')
-        elif self.initializationOptionDict['KDD']['Features'] in ['output', 'all']:
-          features = currentInput.getParaKeys('output')
-          features.remove(self.pivotParameter)
-        else:
-          features = self.initializationOptionDict['KDD']['Features'].split(',')
+      if self.initializationOptionDict['KDD']['Features'] == 'input':
+        self.raiseAnError(ValueError, 'To perform data mining over input please use SciKitLearn library')
+      elif self.initializationOptionDict['KDD']['Features'] in ['output', 'all']:
+        features = currentInput.getParaKeys('output')
+        features.remove(self.pivotParameter)
+      else:
+        features = self.initializationOptionDict['KDD']['Features'].split(',')
 
-        for param in features:
-          inputDict['Features'][param] = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
-          for cnt, keyH in enumerate(historyKey):
-            inputDict['Features'][param][cnt,:] = currentInput.getParam('output', keyH)[param]
+      for param in features:
+        inputDict['Features'][param] = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
+        for cnt, keyH in enumerate(historyKey):
+          inputDict['Features'][param][cnt,:] = currentInput.getParam('output', keyH)[param]
 
       inputDict['metadata'] = currentInput.getAllMetadata()
       return inputDict
@@ -3658,38 +3657,28 @@ class DataMining(BasePostProcessor):
     if finishedJob.returnEvaluation() == -1:
       self.raiseAnError(RuntimeError, 'No available Output to collect (Run probably is not finished yet)')
 
-    if self.type in ['SciKitLearn']:
-      dataMineDict = finishedJob.returnEvaluation()[1]
-      for key in dataMineDict['output']:
-        for param in output.getParaKeys('output'):
-          if key == param:
-            output.removeOutputValue(key)
-        if output.type == 'PointSet':
-          for value in dataMineDict['output'][key]:
-            output.updateOutputValue(key, copy.copy(value))
-        elif output.type == 'HistorySet':
+    dataMineDict = finishedJob.returnEvaluation()[1]
+    for key in dataMineDict['output']:
+      for param in output.getParaKeys('output'):
+        if key == param:
+          output.removeOutputValue(key)
+      if output.type == 'PointSet':
+        for value in dataMineDict['output'][key]:
+          output.updateOutputValue(key, copy.copy(value))
+      elif output.type == 'HistorySet':
+        if self.PreProcessor is not None:
           for index,value in np.ndenumerate(dataMineDict['output'][key]):
             firstHist = output._dataContainer['outputs'].keys()[0]
             firstVar  = output._dataContainer['outputs'][firstHist].keys()[0]
             timeLength = output._dataContainer['outputs'][firstHist][firstVar].size
             arrayBase = value * np.ones(timeLength)
             output.updateOutputValue([index[0]+1,key], arrayBase)
-
-    elif self.type in ['temporalBasicStatistics']:
-      bsDict = finishedJob.returnEvaluation()[1]
-      for keyP in bsDict.keys():
-        if keyP == 'metadata':
-          for keyM in bsDict[keyP].keys():
-            output.updateMetadata(keyM, bsDict[keyP][keyM])
         else:
-          output.updateOutputValue(keyP, np.asarray(bsDict[keyP]))
-
-    elif self.type in ['temporalSciKitLearn']:
-      tlDict = finishedJob.returnEvaluation()[1]
-      historyKey = output.getOutParametersValues().keys()
-      for index, keyH in enumerate(historyKey):
-        for keyL in tlDict['output'].keys():
-          output.updateOutputValue([keyH,keyL], tlDict['output'][keyL][index,:])
+          tlDict = finishedJob.returnEvaluation()[1]
+          historyKey = output.getOutParametersValues().keys()
+          for index, keyH in enumerate(historyKey):
+            for keyL in tlDict['output'].keys():
+              output.updateOutputValue([keyH,keyL], tlDict['output'][keyL][index,:])
 
 
   def run(self, inputIn):
@@ -3699,19 +3688,24 @@ class DataMining(BasePostProcessor):
       @ In, inputIn, dict, dictionary of data to process
       @ Out, outputDict, dict, dictionary containing the post-processed results
     """
-    if 'SciKitLearn' == self.type:
-      return self.__runSciKitLearn(inputIn)
-    elif 'temporalSciKitLearn' == self.type:
-      return self.__runTemporalSciKitLearn(inputIn)
+    Input = self.inputToInternal(inputIn)
+    if type(inputIn) == list:
+      currentInput = inputIn[-1]
+    else:
+      currentInput = inputIn
 
-  def __runSciKitLearn(self, inputIn):
+    if currentInput.type == 'HistorySet' and self.PreProcessor is None:
+      return self.__runTemporalSciKitLearn(Input)
+    else:
+      return self.__runSciKitLearn(Input)
+
+  def __runSciKitLearn(self, Input):
     """
       This method executes the postprocessor action. In this case it loads the
       results to specified dataObject.  This is for SciKitLearn
-      @ In, inputIn, dict, dictionary of data to process
+      @ In, Input, dict, dictionary of data to process
       @ Out, outputDict, dict, dictionary containing the post-processed results
     """
-    Input = self.inputToInternal(inputIn)
 
     outputDict = {}
     self.unSupervisedEngine.features = Input['Features']
@@ -3872,14 +3866,13 @@ class DataMining(BasePostProcessor):
     return outputDict
 
 
-  def __runTemporalSciKitLearn(self, inputIn):
+  def __runTemporalSciKitLearn(self, Input):
     """
       This method executes the postprocessor action. In this case it loads the
       results to specified dataObject.  This is for temporalSciKitLearn
-      @ In, inputIn, dict, dictionary of data to process
+      @ In, Input, dict, dictionary of data to process
       @ Out, outputDict, dict, dictionary containing the post-processed results
     """
-    Input = self.inputToInternal(inputIn)
 
     outputDict = {}
     self.unSupervisedEngine.features = Input['Features']
