@@ -17,8 +17,9 @@ class YakInstantLibraryParser():
     perturb the libraries with variables defined in alias files and values from Raven Sampler.
     Cross sections will be reblanced based on provided information.
     In addition, this interface can be used to perturb Fission, Capture, TotalScattering, Nu, Kappa
-    for given isotopes inside the libraries. In the future, we may need to add the capability to perturb the
-    Tablewise and Librarywise data.
+    for given isotopes inside the libraries. The user can also perturb the diffusion coefficient if it
+    exists in the input XS library.
+    In the future, we may need to add the capability to perturb the Tablewise and Librarywise data.
   """
   #Functions Used for Reading Yak Multigroup Cross Section Library (Also including some functions for checking and recalculations)
   def __init__(self,inputFiles):
@@ -274,6 +275,10 @@ class YakInstantLibraryParser():
           else:
             kappa.append(self.defaultKappa)
         reactionDict['Kappa'] = np.asarray(kappa)
+    if 'DiffusionCoefficient' in reactionList:
+      reactionDict['perturbDiffusionCoefficient'] = True
+    else:
+      reactionDict['perturbDiffusionCoefficient'] = False
     #check and calculate total or  transport cross sections
     if 'TotalXS' not in reactionList:
       if 'DiffusionCoefficient' not in reactionList:
@@ -352,6 +357,8 @@ class YakInstantLibraryParser():
           raise IOError('The user wants to perturb ' + var + ', but this variable is defined in Sampler!')
       groupValues = np.asarray(groupValues)
       factors[mtID] = groupValues
+      if not lib['perturbDiffusionCoefficient'] and mtID == 'DiffusionCoefficient':
+        raise IOError('Diffusion Coefficient can not be perturbed since it does not exist in the XS library!')
       if aliasType == 'rel':
         lib[mtID] *= groupValues
       elif aliasType == 'abs':
@@ -388,11 +395,12 @@ class YakInstantLibraryParser():
     #recalculate Removal cross sections
     reactionDict['RemovalXS'] = np.asarray(list(reactionDict['TotalXS'][g] - reactionDict['ScatteringXS'][g][g] for g in range(self.nGroup)))
     #recalculate diffusion coefficient cross sections
-    if reactionDict['ScatteringXS'].shape[0] >= self.nGroup*2:
-      transport = reactionDict['TotalXS'] - np.sum(reactionDict['ScatteringXS'][self.nGroup:self.nGroup*2])
-      reactionDict['DiffusionCoefficient'] = [1.0/(3.0*value) for value in transport]
-    else:
-      reactionDict['DiffusionCoefficient'] = [1.0/(3.0*value) for value in reactionDict['TotalXS']]
+    if not reactionDict['perturbDiffusionCoefficient']:
+      if reactionDict['ScatteringXS'].shape[0] >= self.nGroup*2:
+        transport = reactionDict['TotalXS'] - np.sum(reactionDict['ScatteringXS'][self.nGroup:self.nGroup*2])
+        reactionDict['DiffusionCoefficient'] = [1.0/(3.0*value) for value in transport]
+      else:
+        reactionDict['DiffusionCoefficient'] = [1.0/(3.0*value) for value in reactionDict['TotalXS']]
 
 
   def _replaceXMLNodeText(self,xmlNode,reactionDict):

@@ -17,8 +17,9 @@ class YakMultigroupLibraryParser():
     perturb the libraries with variables defined in alias files and values from Raven Sampler.
     Cross sections will be reblanced based on provided information.
     In addition, this interface can be used to perturb Fission, Capture, TotalScattering, Nu, Kappa
-    for given isotopes inside the libraries. In the future, we may need to add the capability to perturb the
-    Tablewise and Librarywise data.
+    for given isotopes inside the libraries. In addition, the user can also perturb Transport if it
+    exists in the XS library. In this case, we will treat Transport as independent variable.
+    In the future, we may need to add the capability to perturb the Tablewise and Librarywise data.
   """
   #Functions Used for Reading Yak Multigroup Cross Section Library (Also including some functions for checking and recalculations)
   def __init__(self,inputFiles):
@@ -409,6 +410,11 @@ class YakMultigroupLibraryParser():
           else:
             kappa.append(self.defaultKappa)
         reactionDict['Kappa'] = np.asarray(kappa)
+    # enable Transport perturbation if it exists.
+    if 'Transport' in reactionList:
+      reactionDict['perturbTransport'] = True
+    else:
+      reactionDict['perturbTransport'] = False
     #check and calculate total or  transport cross sections
     if 'Total' not in reactionList:
       if 'Transport' not in reactionList:
@@ -523,6 +529,8 @@ class YakMultigroupLibraryParser():
               groupValues.append(0.0)
         groupValues = np.asarray(groupValues)
         factors[libKey] = groupValues
+        if not lib['perturbTransport'] and libKey == 'Transport':
+          raise IOError('Transport can not be perturbed since it does not exist in the input XS library!')
         if aliasType == 'rel':
           lib[libKey] *= groupValues
         elif aliasType == 'abs':
@@ -573,11 +581,12 @@ class YakMultigroupLibraryParser():
     #recalculate Removal cross sections
     reactionDict['Removal'] = np.asarray(list(reactionDict['Total'][g] - reactionDict['Scattering'][g][g] for g in range(self.nGroup)))
     #recalculate Transport cross sections
-    if reactionDict['Scattering'].shape[0] >= self.nGroup*2:
-      reactionDict['Transport'] = reactionDict['Total'] - np.sum(reactionDict['Scattering'][self.nGroup:self.nGroup*2])
-    else:
-      #recalculate Transport cross sections
-      reactionDict['Transport'] = copy.copy(reactionDict['Total'])
+    if not reactionDict['perturbTransport']:
+      if reactionDict['Scattering'].shape[0] >= self.nGroup*2:
+        reactionDict['Transport'] = reactionDict['Total'] - np.sum(reactionDict['Scattering'][self.nGroup:self.nGroup*2])
+      else:
+        #recalculate Transport cross sections
+        reactionDict['Transport'] = copy.copy(reactionDict['Total'])
 
   def _addSubElementForIsotope(self,xmlNode):
     """
