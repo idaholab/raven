@@ -40,7 +40,7 @@ class YakInstantLibraryParser():
     self.aliases        = {} #alias to XML node dict
     self.validReactions = ['TotalXS','FissionXS','RemovalXS','DiffusionCoefficient','ScatteringXS','NuFissionXS','KappaFissionXS',
                            'ChiXS','DNFraction','DNSpectrum','NeutronSpeed','DNPlambda','AbsorptionXS','CaptureXS','Nu','Kappa'] #These are all valid reactions for Yak XS format
-    self.perturbableReactions = ['FissionXS','CaptureXS','TotalScatteringXS','Nu','Kappa'] #These are all valid perturbable reactions for RAVEN
+    self.perturbableReactions = ['FissionXS','CaptureXS','TotalScatteringXS','Nu','Kappa','DiffusionCoefficient'] #These are all valid perturbable reactions for RAVEN
     self.level0Element  = 'Materials' #root element tag is always the same for Yak XS format
     self.level1Element  = 'Macros'   #level 1 element tag is always Macros
     self.level2Element  = ['material'] #These are some of the level 2 element tag with string vector xmlnode.text, without xml subnodes

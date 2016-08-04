@@ -42,7 +42,7 @@ class YakMultigroupLibraryParser():
                            'FissionSpectrum','DNFraction','DNSpectrum','NeutronVelocity','DNPlambda','Absorption',
                            'Capture','Nalpha','NGamma','Flux','N2Alpha','N2N','N3N','N4N','NNProton','NProton',
                            'NDeuteron','NTriton'] #These are all valid reactions for Yak XS format
-    self.perturbableReactions = ['Fission','Capture','TotalScattering','Nu','Kappa'] #These are all valid perturbable reactions for RAVEN
+    self.perturbableReactions = ['Fission','Capture','TotalScattering','Nu','Kappa','Transport'] #These are all valid perturbable reactions for RAVEN
     self.level0Element  = 'Multigroup_Cross_Section_Libraries' #root element tag is always the same for Yak XS format
     self.level1Element  = 'Multigroup_Cross_Section_Library'   #level 1 element tag is always Multigroup_Cross_Section_Library
     self.level2Element  = ['Tabulation','AllReactions','TablewiseReactions','LibrarywiseReactions'] #These are some of the level 2 element tag with string vector xmlnode.text, without xml subnodes
@@ -123,7 +123,7 @@ class YakMultigroupLibraryParser():
         mat = child.attrib['mat'].strip()
         if mat not in aliasXS[grid].keys(): aliasXS[grid][mat] = {}
         mt = child.tag
-        if mt not in aliasXS[grid][mat].keys(): aliasXS[grid][mat][mt] = [0]*aliasXSGroup
+        if mt not in aliasXS[grid][mat].keys(): aliasXS[grid][mat][mt] = [None]*aliasXSGroup
         groupIndex = child.get('gIndex')
         if groupIndex == None:
           varsList = list(var.strip() for var in child.text.strip().split(','))
@@ -522,11 +522,13 @@ class YakMultigroupLibraryParser():
         for var in libValue:
           if var in self.modDict.keys():
             groupValues.append(self.modDict[var])
-          else:
+          elif var == None:
             if aliasType == 'rel':
               groupValues.append(1.0)
             elif aliasType == 'abs':
               groupValues.append(0.0)
+          else:
+            raise IOError('The user wants to perturb ' + var + ', but this variable is defined in Sampler!')
         groupValues = np.asarray(groupValues)
         factors[libKey] = groupValues
         if not lib['perturbTransport'] and libKey == 'Transport':
