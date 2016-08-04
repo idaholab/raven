@@ -45,26 +45,35 @@
       <upperBound>28</upperBound>
       <lowerBound>37</lowerBound>
     </Normal>
+    <Normal name="testMultiLine">
+        <mean>0.5</mean>
+        <sigma>0.1</sigma>
+        <upperBound>0</upperBound>
+        <lowerBound>1</lowerBound>
+    </Normal>
   </Distributions>
-
+  
   <Samplers>
-    <MonteCarlo name="MC_samp">
-      <samplerInit>
-        <limit>5</limit>
-      </samplerInit>
-      <variable name="20100154:2">
-        <distribution>heat_capacity_154</distribution>
-      </variable>
-      <variable name="20100155:2">
-        <distribution>heat_capacity_155</distribution>
-      </variable>
-      <variable name="20100156:2">
-        <distribution>heat_capacity_156</distribution>
-      </variable>
-      <variable name="20100157:2">
-        <distribution>heat_capacity_157</distribution>
-      </variable>
-    </MonteCarlo>
+      <MonteCarlo name="MC_samp">
+          <samplerInit>
+              <limit>5</limit>
+          </samplerInit>
+          <variable name="20100154:2">
+              <distribution>heat_capacity_154</distribution>
+          </variable>
+          <variable name="20100155:2">
+              <distribution>heat_capacity_155</distribution>
+          </variable>
+          <variable name="20100156:2">
+              <distribution>heat_capacity_156</distribution>
+          </variable>
+          <variable name="20100157:2">
+              <distribution>heat_capacity_157</distribution>
+          </variable>
+          <variable name="13550801:6">
+              <distribution>testMultiLine</distribution>
+          </variable>
+      </MonteCarlo>
   </Samplers>
 
   <Steps>
