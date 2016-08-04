@@ -1090,7 +1090,7 @@ class OutStreamPlot(OutStreamManager):
                     self.actPlot = self.plt.scatter(self.xValues[pltindex][key][xIndex], self.yValues[pltindex][key][yIndex], **scatterPlotOptions)
                     if 'colorbar' not in self.options.keys() or self.options['colorbar']['colorbar'] != 'off':
                       if first:
-                        m = self.mpl.cm.ScalarMappable(norm = self.actPlot.norm)
+                        m = self.mpl.cm.ScalarMappable(cmap = self.actPlot.cmap, norm = self.actPlot.norm)
                         m.set_array(self.colorMapValues[pltindex][key])
                         self.actcm = self.fig.colorbar(m)
                         self.actcm.set_label(self.colorMapCoordinates[pltindex][0].split('|')[-1].replace(')', ''))
@@ -1099,7 +1099,7 @@ class OutStreamPlot(OutStreamManager):
                         try:
                           self.actcm.draw_all()
                         except:
-                          m = self.mpl.cm.ScalarMappable(norm = self.actPlot.norm)
+                          m = self.mpl.cm.ScalarMappable(cmap = self.actPlot.cmap, norm = self.actPlot.norm)
                           m.set_array(self.colorMapValues[pltindex][key])
                           self.actcm = self.fig.colorbar(m)
                           self.actcm.set_label(self.colorMapCoordinates[pltindex][0].split('|')[-1].replace(')', ''))
@@ -1131,7 +1131,7 @@ class OutStreamPlot(OutStreamManager):
                       self.actPlot = self.plt3D.scatter(self.xValues[pltindex][key][xIndex], self.yValues[pltindex][key][yIndex], self.zValues[pltindex][key][zIndex], **scatterPlotOptions)
                       if 'colorbar' not in self.options.keys() or self.options['colorbar']['colorbar'] != 'off':
                         if first:
-                          m = self.mpl.cm.ScalarMappable(norm = self.actPlot.norm)
+                          m = self.mpl.cm.ScalarMappable(cmap = self.actPlot.cmap, norm = self.actPlot.norm)
                           m.set_array(self.colorMapValues[pltindex][key])
                           self.actcm = self.fig.colorbar(m)
                           self.actcm.set_label(self.colorMapCoordinates[pltindex][0].split('|')[-1].replace(')', ''))
@@ -1185,7 +1185,7 @@ class OutStreamPlot(OutStreamManager):
 
                     if 'colorbar' not in self.options.keys() or self.options['colorbar']['colorbar'] != 'off':
                       if first:
-                        m = self.mpl.cm.ScalarMappable(norm = self.actPlot.norm)
+                        m = self.mpl.cm.ScalarMappable(cmap = self.actPlot.cmap, norm = self.actPlot.norm)
                         m.set_array(self.colorMapValues[pltindex][key])
                         self.actcm = self.fig.colorbar(m)
                         self.actcm.set_label(self.colorMapCoordinates[pltindex][0].split('|')[-1].replace(')', ''))
@@ -1221,7 +1221,7 @@ class OutStreamPlot(OutStreamManager):
                         self.plt3D.plot(self.xValues[pltindex][key][xIndex], self.yValues[pltindex][key][yIndex],self.zValues[pltindex][key][zIndex], c = self.actPlot.get_cmap()(self.colorMapValues[pltindex][key][-1][-1]/(maxV-minV)))
                         if 'colorbar' not in self.options.keys() or self.options['colorbar']['colorbar'] != 'off':
                           if first:
-                            m = self.mpl.cm.ScalarMappable(norm = self.actPlot.norm)
+                            m = self.mpl.cm.ScalarMappable(cmap = self.actPlot.cmap, norm = self.actPlot.norm)
                             m.set_array(self.colorMapValues[pltindex][key][-1])
                             self.actcm = self.fig.colorbar(m)
                             self.actcm.set_label(self.colorMapCoordinates[pltindex][0].split('|')[-1].replace(')', ''))
@@ -1392,7 +1392,7 @@ class OutStreamPlot(OutStreamManager):
                   xig, yig, Ci = mathUtils.interpolateFunction(self.xValues[pltindex][key][xIndex], self.yValues[pltindex][key][yIndex], plotSettings, z = self.colorMapValues[pltindex][key][zIndex], returnCoordinate = True)
                   if plotSettings['cmap'] == 'None':
                     self.actPlot = self.plt.pcolormesh(xig, yig, ma.masked_where(np.isnan(Ci), Ci), **plotSettings.get('attributes', {}))
-                    m = self.mpl.cm.ScalarMappable(norm = self.actPlot.norm)
+                    m = self.mpl.cm.ScalarMappable(cmap = self.actPlot.cmap, norm = self.actPlot.norm)
                   else:
                     self.actPlot = self.plt.pcolormesh(xig, yig, ma.masked_where(np.isnan(Ci), Ci), cmap = self.mpl.cm.get_cmap(name = plotSettings['cmap']), **plotSettings.get('attributes', {}))
                     m = self.mpl.cm.ScalarMappable(cmap = self.actPlot.cmap, norm = self.actPlot.norm)

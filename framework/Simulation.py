@@ -23,6 +23,7 @@ import Steps
 import DataObjects
 import Files
 import Samplers
+import Optimizers
 import Models
 
 import Metrics
@@ -467,6 +468,7 @@ class Simulation(MessageHandler.MessageUser):
     self.addWhatDict['Steps'            ] = Steps
     self.addWhatDict['DataObjects'      ] = DataObjects
     self.addWhatDict['Samplers'         ] = Samplers
+    self.addWhatDict['Optimizers'       ] = Optimizers
     self.addWhatDict['Models'           ] = Models
     self.addWhatDict['Distributions'    ] = Distributions
     self.addWhatDict['Databases'        ] = Databases
@@ -483,6 +485,7 @@ class Simulation(MessageHandler.MessageUser):
     self.whichDict['Steps'           ] = self.stepsDict
     self.whichDict['DataObjects'     ] = self.dataDict
     self.whichDict['Samplers'        ] = self.samplersDict
+    self.whichDict['Optimizers'      ] = self.samplersDict
     self.whichDict['Models'          ] = self.modelsDict
     self.whichDict['RunInfo'         ] = self.runInfoDict
     self.whichDict['Files'           ] = self.filesDict
