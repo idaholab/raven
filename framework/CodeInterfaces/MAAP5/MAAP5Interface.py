@@ -67,7 +67,12 @@ class MAAP5(GenericCode):
     if 'DynamicEventTree' in samplerType:
       if Kwargs['parentID'] == 'root': self.oriInput(oriInputFiles) #original input files are checked only the first time
       self.stopSimulation(currentInputFiles, Kwargs)
-      if Kwargs['parentID'] != 'root': self.restart(currentInputFiles, Kwargs['parentID'])
+########################
+      if Kwargs['parentID'] != 'root':
+        print('Kwargs',Kwargs)
+        self.restart(currentInputFiles, Kwargs['parentID'])
+        if str(Kwargs['prefix'].split('-')[-1]) != '1': self.modifyBranch(currentInputFiles, Kwargs)
+########################
     return GenericCode.createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs)
 
   def oriInput(self, oriInputFiles):
@@ -143,7 +148,6 @@ class MAAP5(GenericCode):
 
     print('DET sampled Variables =',self.DETsampledVars)
     print('Hybrid sampled Variables =',self.HYBRIDsampledVars)
-    print('branching',branching)
 
     for var in self.DETsampledVars:
       if not var in branching: raise IOError('Please define a branch/add a branching marker for the variable: ', var)
@@ -230,7 +234,9 @@ class MAAP5(GenericCode):
     for line in lines:
       lineNumber=lineNumber+1
       if 'START TIME' in line:
-        restartTimeNew=math.floor(float(tilast)-float(self.printInterval))
+########################
+        restartTimeNew=max(0,math.floor(float(tilast)-float(self.printInterval)))
+########################
         correctRestart= 'RESTART TIME IS '+str(restartTimeNew)+'\n'
         if line == correctRestart:
           restartTime=True
@@ -272,6 +278,39 @@ class MAAP5(GenericCode):
       fileobject.write(linesNewInput)
       fileobject.close()
       print ('RESTART FILE name has been corrected',restarFileCorrect)
+
+########################
+  def modifyBranch(self,currentInputFiles,Kwargs):
+    block=False
+    lineNumber=0
+    n=0
+    newLine=''
+    for filename in currentInputFiles:
+      if '.inp' in str(filename):
+        break
+    inp=filename.getAbsFile()
+    #given tilast, then correct RESTART TIME is tilast-self.printInterval
+    fileobject = open(inp, "r") #open MAAP .inp for the current run
+    lines=fileobject.readlines()
+    fileobject.close()
+    for line in lines:
+      lineNumber=lineNumber+1
+      if 'C Branching '+str((self.branch[Kwargs['parentID']])[0]) in line: block=True
+      if n==len(Kwargs['branchChangedParam']):
+        block=False
+        break
+      if block:
+        for cont,var in enumerate(Kwargs['branchChangedParam']):
+          if (var in line) and ('=' in line):
+            newLine=' '+str(var)+'='+str(Kwargs['branchChangedParamValue'][cont])+'\n'
+            print('Line correctly modified. New line is: ',newLine)
+            lines[lineNumber-1]=newLine
+            fileobject = open(inp, "w")
+            linesNewInput = "".join(lines)
+            fileobject.write(linesNewInput)
+            fileobject.close()
+            n=n+1
+########################
 
   def finalizeCodeOutput(self, command, output, workingDir):
     """
@@ -385,16 +424,28 @@ class MAAP5(GenericCode):
         DictChanged=self.DictAllVars[DictBranchCurrent]
         self.branchXml(tilast, DictChanged,inp,dataDict)
 
+######################################################"
   def branchXml(self, tilast,Dict,inputFile,dataDict):
     """
-      ONLY FOR DET SAMPLER!
-      This method writes the xml files used by RAVEN to create the two branches at each stop condition reached
-      @ In, tilast, string, end time of the current simulation run
-      @ In, Dict, dict, dictionary containing the name and the value of the variables modified by the branch occurrence
-      @ In, inputFile, string, name of the current input file
-      @ In, dataDict, dict, dictionary containing the time evolution of the MAAP5 output variables contained in the csv output file
-      @ Out, None
+    ONLY FOR DET SAMPLER!
+    This method writes the xml files used by RAVEN to create the two branches at each stop condition reached
+    @ In, tilast, string, end time of the current simulation run
+    @ In, Dict, dict, dictionary containing the name and the value of the variables modified by the branch occurrence
+    @ In, inputFile, string, name of the current input file
+    @ In, dataDict, dict, dictionary containing the time evolution of the MAAP5 output variables contained in the csv output file
+    @ Out, None
     """
+    self.multiBranch=[]
+    try:
+      inpPath=inputFile
+      workingDir='/'.join(inpPath.split('/')[:-3])
+      sys.path.append(os.path.dirname(workingDir))
+      import multibranch as multi
+      for method in dir(multi):
+        method=str(method)
+        if method in self.DETsampledVars: self.multiBranch.append(method)
+      print('MultiBranch found for the following variables: ', (','.join(self.multiBranch)))
+    except: print('No multi-branch found')
     base=os.path.basename(inputFile).split('.')[0]
     path=os.path.dirname(inputFile)
     filename=os.path.join(path,'out~'+base+"_actual_branch_info.xml")
@@ -403,18 +454,59 @@ class MAAP5(GenericCode):
     variableBranch=''
     branchName=path.split('/')[-1]
     variableBranch=self.branch[str(branchName)][0]
-    DictName='Dict'+str(variableBranch)
-    dict1=self.DictAllVars[DictName]
-    variables = list(dict1.keys())
-    for var in variables: #e.g. for TIMELOCA variables are ABBN(1), ABBN(2), ABBN(3)
-      if var==self.branch[branchName]: #ignore if the variable coincides with the trigger
-        continue
-      else:
-        newValue=str(dict1[var])
-        oldValue=str(dataDict[var][0])
-        branch={'name':var, 'type':'auxiliar','old_value': oldValue, 'new_value': newValue.strip('\n')}
-        listDict.append(branch)
+
+    if variableBranch in self.DETsampledVars and variableBranch not in self.multiBranch:
+      DictName='Dict'+str(variableBranch)
+      dict1=self.DictAllVars[DictName]
+      variables = list(dict1.keys())
+
+      for var in variables: #e.g. for TIMELOCA variables are ABBN(1), ABBN(2), ABBN(3)
+        if var==(self.branch[branchName])[0]: #ignore if the variable coincides with the trigger
+          continue
+        else:
+          newValue=str(dict1[var])
+          oldValue=str(dataDict[var][0])
+          branch={'name':var, 'type':'auxiliar','old_value': oldValue, 'new_value': newValue.strip('\n')}
+          listDict.append(branch)
+        detU.writeXmlForDET(filename,variableBranch,listDict,stopInfo) #this function writes the xml file for DET
+    else:
+      methodToCall=getattr(multi,variableBranch)
+      listDict=methodToCall(self,dataDict)
       detU.writeXmlForDET(filename,variableBranch,listDict,stopInfo) #this function writes the xml file for DET
+
+######################################################"
+
+
+#  def branchXml(self, tilast,Dict,inputFile,dataDict):
+#    """
+#      ONLY FOR DET SAMPLER!
+#      This method writes the xml files used by RAVEN to create the two branches at each stop condition reached
+#      @ In, tilast, string, end time of the current simulation run
+#      @ In, Dict, dict, dictionary containing the name and the value of the variables modified by the branch occurrence
+#      @ In, inputFile, string, name of the current input file
+#      @ In, dataDict, dict, dictionary containing the time evolution of the MAAP5 output variables contained in the csv output file
+#      @ Out, None
+#    """
+#    base=os.path.basename(inputFile).split('.')[0]#
+#    path=os.path.dirname(inputFile)
+#    filename=os.path.join(path,'out~'+base+"_actual_branch_info.xml")
+#    stopInfo={'end_time':tilast}
+#    listDict=[]
+#    variableBranch=''
+#    branchName=path.split('/')[-1]
+#    variableBranch=self.branch[str(branchName)][0]
+#    DictName='Dict'+str(variableBranch)
+#    dict1=self.DictAllVars[DictName]
+#    variables = list(dict1.keys())
+#    for var in variables: #e.g. for TIMELOCA variables are ABBN(1), ABBN(2), ABBN(3)
+#      if var==(self.branch[branchName])[0]: #ignore if the variable coincides with the trigger
+#        continue
+#      else:
+#        newValue=str(dict1[var])
+#        oldValue=str(dataDict[var][0])
+#        branch={'name':var, 'type':'auxiliar','old_value': oldValue, 'new_value': newValue.strip('\n')}
+#        listDict.append(branch)
+#      detU.writeXmlForDET(filename,variableBranch,listDict,stopInfo) #this function writes the xml file for DET
 
   def dictVariables(self,currentInp):
     """
@@ -470,11 +562,21 @@ class MAAP5(GenericCode):
     parents=[]
     self.values[currentFolder]=Kwargs['SampledVars']
     lineStop = int(lines.index(str('C Stop Simulation condition\n')))+1
-
+########################
+    lineStopList=[lineStop]
+    while lines[lineStopList[-1]+1].split(' ')[0]=='OR': lineStopList.append(lineStopList[-1]+1)
+########################
     if Kwargs['parentID']== 'root':
       if self.stop!='mission_time':
         self.lineTimerComplete.append('TIMER '+str(self.stopTimer))
-      if all(str(i) in lines[lineStop] for i in self.lineTimerComplete) == False:
+####################
+      found=[False]*len(self.lineTimerComplete)
+      for cont,timer in enumerate(self.lineTimerComplete):
+        for line in lineStopList:
+          if timer in lines[line]: found[cont]=True
+      if all(i for i in found) == False:
+#      if all(str(i) in lines[lineStop] for i in self.lineTimerComplete) == False:
+####################
         raise IOError('All TIMER must be considered for the first simulation') #in the original input file all the timer must be mentioned
     else: #Kwargs['parentID'] != 'root'
       parent=currentFolder[:-2]
@@ -494,16 +596,22 @@ class MAAP5(GenericCode):
 
       listTimer=['IF']
       if len(lineTimer)>0:
+        timN=0
         for tim in lineTimer:
+          timN=timN+1
           listTimer.append('(' + str(tim))
           listTimer.append('>')
           listTimer.append('0)')
+          if (int(timN) % 4)==0: listTimer.append('\n')
           listTimer.append('OR')
-        listTimer.pop(-1)
-        newLine=' '.join(listTimer)+'\n'
-        lines[lineStop]=newLine
-      else: lines[lineStop-1:lineStop+3]='\n'
 
+        listTimer.pop(-1)
+        while len(lineStopList)-1 > (listTimer.count('\n')): listTimer.append('\n')
+        newLine=' '.join(listTimer)+'\n'
+#        lines[lineStop]=newLine
+        lines[lineStopList[0]:lineStopList[-1]+1]=newLine
+      else: lines[lineStopList[0]-1:lineStopList[-1]+3]='\n'
+#      else: lines[lineStop:lineStop+3]='\n'
       fileobject = open(inp, "w")
       linesNewInput = "".join(lines)
       fileobject.write(linesNewInput)

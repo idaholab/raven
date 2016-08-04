@@ -16,6 +16,7 @@ import scipy
 from math import gamma
 import os
 import operator
+from collections import OrderedDict
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -1290,7 +1291,7 @@ class Categorical(Distribution):
       @ Out, none
     """
     Distribution.__init__(self)
-    self.mapping = {}
+    self.mapping = OrderedDict()
     self.values = set()
     self.type     = 'Categorical'
     self.disttype = 'Discrete'
@@ -1305,7 +1306,9 @@ class Categorical(Distribution):
 
     for child in xmlNode:
       if child.tag == "state":
-        outcome = child.attrib['outcome']
+        if 'outcome' not in child.attrib.keys(): self.raiseAnError(IOError,'You must provide the outcome attribute!!!!!')
+        try              : outcome = float(child.attrib['outcome'])
+        except ValueError: outcome = child.attrib['outcome']
         self.mapping[outcome] = float(child.text)
         if float(outcome) in self.values:
           self.raiseAnError(IOError,'Categorical distribution has identical outcomes')
@@ -1337,7 +1340,7 @@ class Categorical(Distribution):
     """
     totPsum = 0.0
     for element in self.mapping:
-      totPsum += self.mapping[str(element)]
+      totPsum += self.mapping[element]
     if totPsum!=1.0: self.raiseAnError(IOError,'Categorical distribution cannot be initialized: sum of probabilities is not 1.0')
 
   def pdf(self,x):
@@ -1346,7 +1349,7 @@ class Categorical(Distribution):
       @ In, x, float/string, value to get the pdf at
       @ Out, pdfValue, float, requested pdf
     """
-    if x in self.values: pdfValue =  self.mapping[str(x)]
+    if x in self.values: pdfValue =  self.mapping[x]
     else: self.raiseAnError(IOError,'Categorical distribution cannot calculate pdf for ' + str(x))
     return pdfValue
 
@@ -1356,7 +1359,10 @@ class Categorical(Distribution):
       @ In, x, float/string, value to get the cdf at
       @ Out, cumulative, float, requested cdf
     """
-    sortedMapping = sorted(self.mapping.items(), key=operator.itemgetter(0))
+    if type(self.mapping.keys()[0]).__name__ == 'float':
+      sortedMapping = sorted(self.mapping.items(), key=operator.itemgetter(0))
+    else:
+      sortedMapping = self.mapping.items()
     if x in self.values:
       cumulative=0.0
       for element in sortedMapping:
@@ -1371,7 +1377,10 @@ class Categorical(Distribution):
       @ In, x, float, value to get the ppf at
       @ Out, element[0], float/string, requested inverse cdf
     """
-    sortedMapping = sorted(self.mapping.items(), key=operator.itemgetter(0))
+    if type(self.mapping.keys()[0]).__name__ == 'float':
+      sortedMapping = sorted(self.mapping.items(), key=operator.itemgetter(0))
+    else:
+      sortedMapping = self.mapping.items()
     cumulative=0.0
     for element in sortedMapping:
       cumulative += element[1]
