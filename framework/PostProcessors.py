@@ -3738,14 +3738,6 @@ class DataMining(BasePostProcessor):
         self.clusterLabels = self.unSupervisedEngine.labels_
       outputDict['output'][self.labelFeature] = self.clusterLabels
 
-      #noClusters seems to be unused
-      ## Get the total number of clusters
-      noClusters = 1
-      if hasattr(self.unSupervisedEngine, 'noClusters'):
-        noClusters = self.unSupervisedEngine.noClusters
-      if hasattr(self.unSupervisedEngine, 'clusterCentersIndices_'):
-        noClusters = len(self.unSupervisedEngine.clusterCentersIndices_)
-
       ## Get the centroids and push them to a SolutionExport data object.
       ## Also if we have the centers, assume we have the indices to match them
       if hasattr(self.unSupervisedEngine, 'clusterCenters_'):
@@ -3905,10 +3897,6 @@ class DataMining(BasePostProcessor):
         for t in range(numberOfHistoryStep):
           labels[:,t] = self.unSupervisedEngine.outputDict['labels'][t]
         outputDict['output'][self.labelFeature] = labels
-
-      #noClusters seems to be unused
-      if 'noClusters' in self.unSupervisedEngine.outputDict.keys():
-        noClusters = self.unSupervisedEngine.outputDict['noClusters']
 
       ## SKL will always enumerate cluster centers starting from zero, if this
       ## is violated, then the indexing below will break.
