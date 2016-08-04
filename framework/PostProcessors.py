@@ -3388,13 +3388,6 @@ class DataMining(BasePostProcessor):
     BasePostProcessor.__init__(self, messageHandler)
     self.printTag = 'POSTPROCESSOR DATAMINING'
 
-    self.algorithms = []                                  ## A list of Algorithm
-                                                          ## objects that
-                                                          ## contain definitions
-                                                          ## for all the
-                                                          ## algorithms the user
-                                                          ## wants
-
     self.requiredAssObject = (True, (['Label','PreProcessor','Metric'], ['-1','-1','-1']))  ## The Label is optional for now
     self.clusterLabels = None
     self.labelAlgorithms = []
@@ -3414,7 +3407,6 @@ class DataMining(BasePostProcessor):
                                                           ## to a clustering
                                                           ## algorithm
 
-    self.dataObjects = []
     self.PreProcessor = None
     self.metric = None
 
@@ -3642,13 +3634,7 @@ class DataMining(BasePostProcessor):
       @ In, inputIn, dict, dictionary of data to process
       @ Out, outputDict, dict, dictionary containing the post-processed results
     """
-    if len(self.dataObjects) > 0:
-      if type(self.dataObjects) == list:
-        dataObject = self.dataObjects[-1]
-      else:
-        dataObject = self.dataObjects
-    else:
-      dataObject = None
+    dataObject = None
     input = self.inputToInternal(inputIn)
     outputDict = {}
     self.unSupervisedEngine.features = input['Features']
