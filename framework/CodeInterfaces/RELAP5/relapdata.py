@@ -17,14 +17,14 @@ class relapdata:
       @ In, deckNumber, int, optional, the deckNumber from which the outputs need to be retrieved (default is the last)
       @ Out, None
     """
-    # self.totNumberOfDecks is set in gettimeDeck method!
+    # self.totNumberOfDecks is set in getTimeDeck method!
     self.lines           = open(filen,"r").readlines()
-    self.deckEndTimeInfo = self.gettimeDeck(self.lines,deckNumber)
+    self.deckEndTimeInfo = self.getTimeDeck(self.lines,deckNumber)
     self.deckNumberToTake= deckNumber if deckNumber != -1 else self.totNumberOfDecks
     startLine, endLine   = self.deckEndTimeInfo[self.deckNumberToTake]['sliceCoordinates'][0:2]
-    self.trips           = self.returntrip(self.lines[startLine:endLine])
-    self.minordata       = self.getminor(self.lines[startLine:endLine])
-    self.readraven()
+    self.trips           = self.returnTrip(self.lines[startLine:endLine])
+    self.minordata       = self.getMinor(self.lines[startLine:endLine])
+    self.readRaven()
 
   def hasAtLeastMinorData(self):
     """
@@ -35,15 +35,15 @@ class relapdata:
     hasMinor = self.minordata != None
     return hasMinor
 
-  def gettime(self,lines):
+  def getTime(self,lines):
     """
       Method to check ended time of the simulation
       @ In, lines, list, list of lines of the output file
       @ Out, time, float, Final time
     """
-    return self.gettimeDeck(lines).values()[-1]['time']
+    return self.getTimeDeck(lines).values()[-1]['time']
 
-  def gettimeDeck(self,lines, deckNumber=-1):
+  def getTimeDeck(self,lines, deckNumber=-1):
     """
       Method to check ended time of the simulation (multi-deck compatible)
       @ In, lines, list, list of lines of the output file
@@ -62,7 +62,7 @@ class relapdata:
     self.totNumberOfDecks = deckNum
     return times
 
-  def returntrip(self,lines):
+  def returnTrip(self,lines):
     """
       Method to return the trip information
       @ In, lines, list, list of lines of the output file
@@ -81,7 +81,7 @@ class relapdata:
           i=i+1;
     return tripArray;
 
-  def readminorblock(self,lines,i):
+  def readMinorBlock(self,lines,i):
     """
       Method that reads in a block of minor edit data and returns a dictionary of lists
       @ In, lines, list, list of lines of the output file
@@ -101,20 +101,20 @@ class relapdata:
         temp1.pop()
         temp2.pop()
         temp2.pop(0)
-        temparray=[]
+        tempArray=[]
         for j in range(len(temp1)):
           tempkeys.append(temp1[j]+'_'+temp2[j])
           edit_keys.append(temp1[j]+'_'+temp2[j])
-          temparray.append([]);     #   allocates array for data block
+          tempArray.append([]);     #   allocates array for data block
         i=i+4
         while not re.match('^\s*1 time|^1RELAP5|^\s*\n|^\s*1RELAP5|^\s*MINOR EDIT',lines[i]):
-          tempdata=lines[i].split()
-          takeIt = False if re.match("^\d+?\.\d+?$", tempdata[0]) is None else True
+          tempData=lines[i].split()
+          takeIt = False if re.match("^\d+?\.\d+?$", tempData[0]) is None else True
           if takeIt:
-            for k in range(len(temparray)): temparray[k].append(tempdata[k])
+            for k in range(len(tempArray)): tempArray[k].append(tempData[k])
           i=i+1
           if re.match('^\s*1 time|^\s*1\s*R5|^\s*\n|^1RELAP5',lines[i]) or re.match('^\s*0Final time',lines[i]) or re.match('^\s*Final time',lines[i]): break
-        for l in range(len(tempkeys)): minorDict.update({tempkeys[l]:temparray[l]})
+        for l in range(len(tempkeys)): minorDict.update({tempkeys[l]:tempArray[l]})
         if re.match('^\s*1\s*R5|^\s*\n|^\s*1RELAP5|^\s*MINOR EDIT',lines[i]): #or i+1 > len(lines) -1:
           flagg2=1
           flagg1=1
@@ -129,7 +129,7 @@ class relapdata:
           flagg2=1
     return minorDict
 
-  def getminor(self,lines):
+  def getMinor(self,lines):
     """
       Method that looks for key word MINOR EDIT for reading minor edit block
       and calls readminor block to read in the block of minor edit data
@@ -141,14 +141,14 @@ class relapdata:
     for i in range(len(lines)):
       if re.match('^1 time',lines[i]):
         count=count+1
-        tempdict=self.readminorblock(lines,i)
+        tempdict=self.readMinorBlock(lines,i)
         if (count==1): minorDict=tempdict;
         else:
           for k in minorDict.keys():
             minorDict[k].extend(tempdict.get(k))
     return minorDict
 
-  def readraven(self):
+  def readRaven(self):
     """
       Method that looks for the RAVEN keyword where the sampled vars are stored
       @ In, None
@@ -165,7 +165,7 @@ class relapdata:
           i=i+1
     return
 
-  def write_csv(self,filen):
+  def writeCSV(self,filen):
     """
       Method that writes the csv file from minor edit data
       @ In, filen, string, input file name

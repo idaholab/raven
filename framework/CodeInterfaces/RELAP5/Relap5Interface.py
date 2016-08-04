@@ -51,9 +51,9 @@ class Relap5(CodeInterfaceBase):
         break
     if not found: raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
     outputfile = 'out~'+inputFiles[index].getBase()
-    if clargs: addflags = ' '+clargs['text']
-    else     : addflags = ''
-    commandToRun = executable + ' -i ' + inputFiles[index].getFilename() + ' -o ' + outputfile  + '.o' + addflags
+    if clargs: addFlags = ' '+clargs['text']
+    else     : addFlags = ''
+    commandToRun = executable + ' -i ' + inputFiles[index].getFilename() + ' -o ' + outputfile  + '.o' + addFlags
     commandToRun = commandToRun.replace("\n"," ")
     commandToRun  = re.sub("\s\s+" , " ", commandToRun )
     returnCommand = [('parallel',commandToRun)], outputfile
@@ -70,7 +70,7 @@ class Relap5(CodeInterfaceBase):
     """
     outfile = os.path.join(workingDir,output+'.o')
     outputobj=relapdata.relapdata(outfile,self.outputDeck)
-    if outputobj.hasAtLeastMinorData(): outputobj.write_csv(os.path.join(workingDir,output+'.csv'))
+    if outputobj.hasAtLeastMinorData(): outputobj.writeCSV(os.path.join(workingDir,output+'.csv'))
     else: raise IOError('Relap5 output file '+ command.split('-o')[0].split('-i')[-1].strip()+'.o' + ' does not contain any minor edits. It might be crashed!')
 
   def checkForOutputFailure(self,output,workingDir):
@@ -84,7 +84,7 @@ class Relap5(CodeInterfaceBase):
       @ In, workingDir, string, current working dir
       @ Out, failure, bool, True if the job is failed, False otherwise
     """
-    from  __builtin__ import any as b_any
+    from  __builtin__ import any as bAny
     failure = True
     errorWord = "Transient terminated by end of time step cards"
     try   : outputToRead = open(os.path.join(workingDir,output+'.o'),"r")
@@ -93,7 +93,7 @@ class Relap5(CodeInterfaceBase):
     for x in outputToRead.readlines():
       try: toCheck.append(x.strip())
       except:pass
-    failure = not b_any(toCheck)
+    failure = not bAny(toCheck)
     return failure
 
   def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
