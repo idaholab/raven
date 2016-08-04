@@ -12,6 +12,7 @@ import sys, os
 import inspect
 import subprocess
 import platform
+import numpy
 
 class Object(object):pass
 
@@ -298,6 +299,34 @@ def toBytesIterative(s):
     return tempdict
   else: return toBytes(s)
 
+def toListFromNumpyOrC1array(array):
+  """
+    Method aimed to numpy or C1array into list
+    @ In, array, numpy or c1array,  array to be converted
+    @ Out, response, list, the casted value
+  """
+  response = array
+  if type(array).__name__ == 'ndarray':
+    response = array.tolist()
+  elif type(array).__name__.split(".")[0] == 'c1darray':  
+    response = numpy.asarray(array).tolist()
+  return response
+
+def toListFromNumpyOrC1arrayIterative(array):
+  """
+    Method aimed to convert all the string-compatible content of
+    an object (dict, list, or string) in type list from numpy and c1darray types (recursively call toBytes(s))
+    @ In, array, object,  object whose content needs to be converted
+    @ Out, response, object, a copy of the object in which the string-compatible has been converted
+  """
+  if type(array) == list: return [toListFromNumpyOrC1array(x) for x in array]
+  elif type(array) == dict:
+    if len(array.keys()) == 0: return None
+    tempdict = {}
+    for key,value in array.items(): tempdict[toBytes(key)] = toListFromNumpyOrC1arrayIterative(value)
+    return tempdict
+  else: return toBytes(array)
+  
 def toStrish(s):
   """
     Method aimed to convert a string in str type

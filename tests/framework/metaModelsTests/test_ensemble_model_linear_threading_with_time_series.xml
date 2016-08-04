@@ -51,7 +51,9 @@
       </variable>
     </Grid>
   </Samplers>
-
+  <Databases>
+      <HDF5 name="testOutputDatabase" readMode="overwrite"/>
+  </Databases>
   <Steps>
     <MultiRun name="testMetamodelHeatTransfer">
       <Input class="DataObjects"  type="PointSet">inputHolder</Input>
@@ -59,6 +61,7 @@
       <Sampler class="Samplers"   type="Grid">MonteCarloTemperature</Sampler>
       <Output class="DataObjects" type="PointSet">metaModelOutputTest</Output>
       <Output class="OutStreams"  type="Print">metaModelOutputTestDump</Output>
+      <Output class="Databases"   type="HDF5">testOutputDatabase</Output>
     </MultiRun>
     <IOStep name="dumpResults" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">heatTransferContainer</Input>

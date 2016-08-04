@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <RunInfo>
-    <WorkingDir>/Users/alfoa/projects/raven/tests/framework/metaModelsTests/metaModelLinearThreadWithTimeSeries</WorkingDir>
+      <WorkingDir>/Users/alfoa/projects/raven/tests/framework/metaModelsTests/metaModelLinearThreadWithTimeSeries</WorkingDir>
     <Sequence>testMetamodelHeatTransfer,dumpResults</Sequence>
     <batchSize>1</batchSize>
     <internalParallel>False</internalParallel>
@@ -19,11 +19,11 @@
   </Distributions>
 
   <Models>
-    <ExternalModel ModuleToLoad="/Users/alfoa/projects/raven/tests/framework/metaModelsTests/EM1nonlinearForTimeSeries" name="heatTransfer" subType="">
-      <variables>leftTemperature,rightTemperature,k,solution,timeFromFirstModel,solutionK</variables>
+    <ExternalModel ModuleToLoad="/Users/alfoa/projects/raven/tests/framework/metaModelsTests/EM1linearForTimeSeries" name="heatTransfer" subType="">
+      <variables>leftTemperature,rightTemperature,k,solution,timeFromFirstModel</variables>
     </ExternalModel>
-    <ExternalModel ModuleToLoad="/Users/alfoa/projects/raven/tests/framework/metaModelsTests/EM2nonlinearForTimeSeries" name="thermalConductivityComputation" subType="">
-      <variables>leftTemperature,rightTemperature,k,averageTemperature,timeFromFirstModel,solutionK</variables>
+    <ExternalModel ModuleToLoad="/Users/alfoa/projects/raven/tests/framework/metaModelsTests/EM2linearForTimeSeries" name="thermalConductivityComputation" subType="">
+      <variables>leftTemperature,rightTemperature,k,averageTemperature,timeFromFirstModel</variables>
     </ExternalModel>
     <EnsembleModel name="heatTransferEnsembleModel" subType="">
       <Model class="Models" type="ExternalModel">
@@ -34,13 +34,8 @@
       <Model class="Models" type="ExternalModel">
           heatTransfer
         <Input            class="DataObjects" type="PointSet">inputHolder</Input>
-        <TargetEvaluation class="DataObjects" type="HistorySet">heatTransferContainer</TargetEvaluation>
+        <TargetEvaluation class="DataObjects" type="PointSet">heatTransferContainer</TargetEvaluation>
       </Model>
-      <settings>
-         <initialConditions>
-           <solutionK repeat="10">0.1</solutionK>
-         </initialConditions>
-      </settings>
     </EnsembleModel>
   </Models>
 
@@ -48,15 +43,17 @@
     <Grid name="MonteCarloTemperature">
       <variable name="leftTemperature">
         <distribution>leftTemperatureDist</distribution>
-        <grid construction="equal" steps="2" type="value">500 600</grid>
+        <grid construction="equal" steps="7" type="value">500 600</grid>
       </variable>
       <variable name="rightTemperature">
         <distribution>rightTemperatureDist</distribution>
-        <grid construction="equal" steps="2" type="value">500 600</grid>
+        <grid construction="equal" steps="7" type="value">500 600</grid>
       </variable>
     </Grid>
   </Samplers>
-
+  <Databases>
+      <HDF5 name="testOutputDatabase" readMode="overwrite"/>
+  </Databases>
   <Steps>
     <MultiRun name="testMetamodelHeatTransfer">
       <Input class="DataObjects"  type="PointSet">inputHolder</Input>
@@ -64,6 +61,7 @@
       <Sampler class="Samplers"   type="Grid">MonteCarloTemperature</Sampler>
       <Output class="DataObjects" type="PointSet">metaModelOutputTest</Output>
       <Output class="OutStreams"  type="Print">metaModelOutputTestDump</Output>
+      <Output class="Databases"   type="HDF5">testOutputDatabase</Output>
     </MultiRun>
     <IOStep name="dumpResults" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">heatTransferContainer</Input>
@@ -152,17 +150,17 @@
       <Input>leftTemperature,rightTemperature</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
-    <HistorySet name="heatTransferContainer">
+    <PointSet name="heatTransferContainer">
       <Input>leftTemperature,rightTemperature,k,timeFromFirstModel</Input>
-      <Output>solution,solutionK</Output>
-    </HistorySet>
+      <Output>solution</Output>
+    </PointSet>
     <HistorySet name="thermalConductivityComputationContainer">
-      <Input>leftTemperature,rightTemperature,solutionK</Input>
+      <Input>leftTemperature,rightTemperature</Input>
       <Output>k,timeFromFirstModel</Output>
     </HistorySet>
     <PointSet name="metaModelOutputTest">
       <Input>leftTemperature,rightTemperature</Input>
-      <Output>k,solution,solutionK</Output>
+      <Output>k,solution</Output>
     </PointSet>
   </DataObjects>
 

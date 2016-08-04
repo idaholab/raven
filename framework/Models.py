@@ -1783,7 +1783,7 @@ class EnsembleModel(Dummy, Assembler):
         self.modelsDictionary[modelIn]['TargetEvaluation'].updateMetadata(key,metadataValues[key])
       # end of update of TargetEvaluation
       for typeInfo,values in outcomes[modelIn].items():
-        for key in values.keys(): exportDict[typeInfo][key] = values[key]
+        for key in values.keys(): exportDict[typeInfo][key] = np.asarray(values[key])
       if output.name == self.modelsDictionary[modelIn]['TargetEvaluation'].name: self.raiseAnError(RuntimeError, "The Step output can not be one of the target evaluation outputs!")
     if output.type == 'HDF5': output.addGroupDataObjects({'group':self.name+str(finishedJob.identifier)},exportDict,False)
     else:
