@@ -60,7 +60,7 @@
      </ExternalModel>
 
     <PostProcessor name='DirichletProcessGMM1' subType='DataMining'>
-      <KDD lib='temporalSciKitLearn' labelFeature='labels'>
+      <KDD lib='SciKitLearn' labelFeature='labels'>
         <SKLtype>mixture|DPGMM</SKLtype>
         <Features>x,y</Features>
         <covariance_type>diag</covariance_type>

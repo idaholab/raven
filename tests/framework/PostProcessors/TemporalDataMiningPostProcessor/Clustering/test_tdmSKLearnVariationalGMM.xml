@@ -60,7 +60,7 @@
       <variables>cluster,dx,dy,ddx,ddy,Time,x,y</variables>
     </ExternalModel>
     <PostProcessor name='VBGMM1' subType='DataMining'>
-      <KDD lib='temporalSciKitLearn' labelFeature='labels'>
+      <KDD lib='SciKitLearn' labelFeature='labels'>
         <SKLtype>mixture|VBGMM</SKLtype>
         <Features>x,y</Features>
         <covariance_type>diag</covariance_type>

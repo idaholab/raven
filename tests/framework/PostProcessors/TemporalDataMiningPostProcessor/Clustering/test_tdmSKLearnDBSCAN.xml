@@ -12,7 +12,7 @@
 
   <Models>
     <PostProcessor name='DBSCAN1' subType='DataMining'>
-      <KDD lib='temporalSciKitLearn' labelFeature='labels'>
+      <KDD lib='SciKitLearn' labelFeature='labels'>
         <SKLtype>cluster|DBSCAN</SKLtype>
         <Features>x1,x2</Features>
         <min_samples>1</min_samples>

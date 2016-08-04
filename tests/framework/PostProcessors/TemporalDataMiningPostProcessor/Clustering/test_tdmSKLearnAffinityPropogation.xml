@@ -12,7 +12,7 @@
 
   <Models>
     <PostProcessor name='AffinityPropogation1' subType='DataMining'>
-      <KDD lib='temporalSciKitLearn' labelFeature='labels'>
+      <KDD lib='SciKitLearn' labelFeature='labels'>
         <SKLtype>cluster|AffinityPropogation</SKLtype>
         <Features>x1,x2</Features>
         <damping>0.99</damping>

@@ -10,7 +10,7 @@
   </Files>
   <Models>
     <PostProcessor name='KMeans1' subType='DataMining'>
-      <KDD lib='temporalSciKitLearn'  labelFeature='labels'>
+      <KDD lib='SciKitLearn'  labelFeature='labels'>
         <SKLtype>cluster|KMeans</SKLtype>
         <Features>x1,x2</Features>
         <n_clusters>3</n_clusters>

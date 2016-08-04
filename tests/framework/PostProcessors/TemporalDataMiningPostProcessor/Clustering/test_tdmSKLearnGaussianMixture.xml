@@ -13,7 +13,7 @@
 
   <Models>
     <PostProcessor name='GaussianMixture1' subType='DataMining'>
-      <KDD lib='temporalSciKitLearn' labelFeature='labels'>
+      <KDD lib='SciKitLearn' labelFeature='labels'>
         <SKLtype>mixture|GMM</SKLtype>
         <Features>x1,x2</Features>
         <covariance_type>full</covariance_type>

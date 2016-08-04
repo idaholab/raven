@@ -12,7 +12,7 @@
 
   <Models>
     <PostProcessor name='MiniBatchKMeans1' subType='DataMining'>
-      <KDD lib='temporalSciKitLearn' labelFeature='labels'>
+      <KDD lib='SciKitLearn' labelFeature='labels'>
         <SKLtype>cluster|MiniBatchKMeans</SKLtype>
         <Features>x1,x2</Features>
         <n_clusters>3</n_clusters>

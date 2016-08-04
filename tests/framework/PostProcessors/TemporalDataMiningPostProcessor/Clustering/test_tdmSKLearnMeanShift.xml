@@ -12,7 +12,7 @@
 
   <Models>
     <PostProcessor name='MeanShift1' subType='DataMining'>
-      <KDD lib='temporalSciKitLearn' labelFeature='labels'>
+      <KDD lib='SciKitLearn' labelFeature='labels'>
         <Features>x1,x2</Features>
         <SKLtype>cluster|MeanShift</SKLtype>
         <bin_seeding>True</bin_seeding>
