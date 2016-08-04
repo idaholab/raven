@@ -559,13 +559,13 @@ class Scipy(unSupervisedLearning):
      @ In, messageHandler, MessageHandler, Message handler object
      @ In, kwargs, dict, arguments for the Scipy algorithm
      @ Out, None
-    """    
+    """  
     unSupervisedLearning.__init__(self, messageHandler, **kwargs)
     self.printTag = 'SCIPY'
     if 'SCIPYtype' not in self.initOptionDict.keys(): 
       self.raiseAnError(IOError, ' to define a Scipy unSupervisedLearning Method the SCIPYtype keyword is needed (from KDD ' + self.name + ')')
     
-    SCIPYtype, SCIPYsubType = self.initOptionDict['SCIPY'].split('|')
+    SCIPYtype, SCIPYsubType = self.initOptionDict['Scipy'].split('|')
     self.initOptionDict.pop('SCIPYtype')
     
     if not SCIPYtype in self.__class__.availImpl.keys(): 
@@ -616,8 +616,11 @@ def returnInstance(modelClass, caller, **kwargs):
     @ In, kwargs, dict, a dictionary specifying the keywords and values needed to create the instance.
     @ Out, object, an instance of a Model
   """
-  try: return __interfaceDict[modelClass](caller.messageHandler, **kwargs)
-  except KeyError: caller.raiseAnError(NameError, 'unSuperVisedLEarning', 'Not known ' + __base + ' type ' + str(modelClass))
+  __interfaceDict[modelClass](caller.messageHandler, **kwargs)
+  try: 
+    return __interfaceDict[modelClass](caller.messageHandler, **kwargs)
+  except Exception as(ae): 
+    caller.raiseAnError(NameError, 'unSuperVisedLEarning', 'Not known ' + __base + ' type ' + str(modelClass)+'.Error: '+ str(ae))
 
 def returnClass(modelClass, caller):
   """
