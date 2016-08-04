@@ -6,6 +6,7 @@ Created on Mar 7, 2013
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
+from __builtin__ import None
 warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
@@ -16,6 +17,7 @@ import scipy
 from math import gamma
 import os
 import operator
+from scipy.interpolate import UnivariateSpline
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -1782,9 +1784,114 @@ class Weibull(BoostDistribution):
         self.upperBound = b
       else:b = self.upperBound
       self._distribution = distribution1D.BasicWeibullDistribution(self.k,self.lambdaVar,a,b,self.low)
+      
 
+class custom1D(Distribution):
+  
+  def __init__(self):
+    """
+      Constructor
+      @ In, None
+      @ Out, None
+    """
+    self.dataFilename    = None
+    self.functionType    = None
+    self.type            = 'custom1Ddistribution'   
+    self.functionID      = None
+    self.variableID      = None
+    self.dimensionality  = 1 
+    
+  def _readMoreXML(self,xmlNode):
+    """
+      Read the the xml node of the MultivariateNormal distribution
+      @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
+      @ Out, None
+    """
+    Distribution._readMoreXML(self, xmlNode)
+    workingDir = xmlNode.find('workingDir')
+    if workingDir != None:
+      self.workingDir = workingDir.text
+      
+    self.functionType = xmlNode.find('dataFilename').text.lower()
+    if self.functionType == None:
+      self.raiseAnError(IOError,' functionType parameter is needed for custom1Ddistribution distribution')
+    if not self.functionType in ['cdf','pdf']:
+      self.raiseAnError(IOError,' wrong functionType parameter specified for custom1Ddistribution distribution (pdf or cdf)')
+      
+    dataFilename = xmlNode.find('dataFilename')
+    if dataFilename != None:
+      self.dataFilename = os.path.join(self.workingDir,dataFilename.text)
+    else:
+      self.raiseAnError(IOError,'<dataFilename> parameter needed for custom1Ddistribution distribution')
+      
+    self.functionID = xmlNode.find('functionID').text
+    if self.functionID == None:
+      self.raiseAnError(IOError,' functionID parameter is needed for custom1Ddistribution distribution')
 
+    self.variableID = xmlNode.find('variableID').text
+    if self.variableID == None:
+      self.raiseAnError(IOError,' variableID parameter is needed for custom1Ddistribution distribution')
+            
+    self.initializeDistribution()
+    
 
+  def initializeDistribution(self):
+    """
+      Method to initialize the distribution
+      @ In, None
+      @ Out, None
+    """
+    
+    f = open(self.dataFilename, 'rb')
+    reader = csv.reader(f)
+    headers = reader.next()
+    indexFunctionID = headers.index(self.functionID)
+    indexVariableID = headers.index(self.variableID)
+    f.close()
+    rawData = np.genfromtxt(self.dataFilename, delimiter="," , skip_header=1, usecols=(indexVariableID,indexFunctionID))
+    
+    self.data = rawData[rawData[:,indexVariableID].argsort()]
+    
+    if self.functionType == 'cdf':
+      spl = UnivariateSpline(self.data[indexVariableID], self.data[indexFunctionID], k=4, s=0)
+      derivative = spl.derivative()
+      pdf = derivative(data[indexVariableID])
+      self._distribution = distribution1D.BasicMultiDimensionalCartesianSpline(data[indexVariableID],pdf,0,0,False)
+    else:
+      self._distribution = distribution1D.BasicMultiDimensionalCartesianSpline(data[indexVariableID],data[indexFunctionID],0,0,False)
+      
+  def pdf(self,x):
+    """
+      Function that calculates the pdf value of x
+      @ In, x, scalar , coordinates to get the pdf at
+      @ Out, pdfValue, scalar, requested pdf
+    """
+    coordinate = distribution1D.vectord_cxx(1)
+    coordinate[i] = x
+    pdfValue = self._distribution.Pdf(coordinate)
+    return pdfValue   
+   
+  def cdf(self,x):
+    """
+      Function that calculates the cdf value of x
+      @ In, x, scalar , coordinates to get the cdf at
+      @ Out, pdfValue, scalar, requested pdf
+    """
+    coordinate = distribution1D.vectord_cxx(1)
+    coordinate[i] = x
+    cdfValue = self._distribution.Cdf(coordinate)
+    return cdfValue  
+    
+  def ppf(self,x):
+    """
+      Return the ppf of given coordinate
+      @ In, x, float, the x coordinates
+      @ Out, ppfValue, float, ppf values
+    """
+    spl = UnivariateSpline(self.data[indexFunctionID], self.data[indexVariableID], k=4, s=0)
+    ppfValue = spl(x)
+    return ppfValue
+    
 class NDimensionalDistributions(Distribution):
   """
     General base class for NDimensional distributions
@@ -2541,6 +2648,7 @@ __interFaceDict['Logistic'          ] = Logistic
 __interFaceDict['Exponential'       ] = Exponential
 __interFaceDict['LogNormal'         ] = LogNormal
 __interFaceDict['Weibull'           ] = Weibull
+__interFaceDict['custom1D'          ] = custom1D
 __interFaceDict['NDInverseWeight'   ] = NDInverseWeight
 __interFaceDict['NDCartesianSpline' ] = NDCartesianSpline
 __interFaceDict['MultivariateNormal'] = MultivariateNormal
