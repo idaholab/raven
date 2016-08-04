@@ -675,8 +675,8 @@ def tryParse(text):
     attempts to create an integer, and falls back to a float if the value has
     a decimal, and finally resorting to just returning the string in the case
     where the data cannot be converted).
-  @ In, text, string we are trying to parse
-  @ Out, value, int/float/string, the possibly converted type
+    @ In, text, string we are trying to parse
+    @ Out, value, int/float/string, the possibly converted type
   """
 
   ## FIXME is there anything that is a float that will raise an
@@ -699,12 +699,12 @@ def tryParse(text):
 
 def makeDir(dirName):
   """
-      Function that will attempt to create a directory. If the directory already
-      exists, this function will return silently with no error, however if it
-      fails to create the directory for any other reason, then an error is
-      raised.
-      @ In, dirName, string specifying the new directory to be created
-      @ Out, None
+    Function that will attempt to create a directory. If the directory already
+    exists, this function will return silently with no error, however if it
+    fails to create the directory for any other reason, then an error is
+    raised.
+    @ In, dirName, string, specifying the new directory to be created
+    @ Out, None
   """
   try:
     os.makedirs(dirName)
@@ -719,18 +719,18 @@ def makeDir(dirName):
 
 class pickleSafeSubprocessPopen(subprocess.Popen):
   """
-  Subclass of subprocess.Popen used internally to prevent _handle member from being pickled.  On
-  Windows, _handle contains an operating system reference that throws an exception when deep copied.
+    Subclass of subprocess.Popen used internally to prevent _handle member from being pickled.  On
+    Windows, _handle contains an operating system reference that throws an exception when deep copied.
   """
   # Only define these methods on Windows to override deep copy/pickle (member may not exist on other
   #   platforms.
   if platform.system() == 'Windows':
     def __getstate__(self):
       """
-      Returns a dictionary of the object state for pickling/deep copying.  Omits member '_handle',
-      which cannot be deep copied when non-None.
-      @ In, None
-      @ Out, result, dict, the get state dict
+        Returns a dictionary of the object state for pickling/deep copying.  Omits member '_handle',
+        which cannot be deep copied when non-None.
+        @ In, None
+        @ Out, result, dict, the get state dict
       """
       result = self.__dict__.copy()
       del result['_handle']
@@ -738,10 +738,10 @@ class pickleSafeSubprocessPopen(subprocess.Popen):
 
     def __setstate__(self, d):
       """
-      Used to load an object dictionary when unpickling.  Since member '_handle' could not be
-      deep copied, load it back as value None.
-      @ In, d, dict, previously stored namespace to restore
-      @ Out, None
+        Used to load an object dictionary when unpickling.  Since member '_handle' could not be
+        deep copied, load it back as value None.
+        @ In, d, dict, previously stored namespace to restore
+        @ Out, None
       """
       self.__dict__ = d
       self._handle = None
