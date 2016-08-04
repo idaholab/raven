@@ -3719,7 +3719,6 @@ class DataMining(BasePostProcessor):
       self.unSupervisedEngine.train(Input['Features'], self.metric)
     self.unSupervisedEngine.confidence()
     outputDict['output'] = {}
-    noClusters = 1
 
     ## These are very different things, shouldn't each one be its own class?
     ## Proposed hierarchy:
@@ -3739,7 +3738,9 @@ class DataMining(BasePostProcessor):
         self.clusterLabels = self.unSupervisedEngine.labels_
       outputDict['output'][self.labelFeature] = self.clusterLabels
 
+      #noClusters seems to be unused
       ## Get the total number of clusters
+      noClusters = 1
       if hasattr(self.unSupervisedEngine, 'noClusters'):
         noClusters = self.unSupervisedEngine.noClusters
       if hasattr(self.unSupervisedEngine, 'clusterCentersIndices_'):
@@ -3886,25 +3887,26 @@ class DataMining(BasePostProcessor):
       @ Out, outputDict, dict, dictionary containing the post-processed results
     """
     Input = self.inputToInternal(inputIn)
+
     outputDict = {}
     self.unSupervisedEngine.features = Input['Features']
     self.unSupervisedEngine.pivotVariable = self.pivotVariable
 
     if not self.unSupervisedEngine.amITrained:
       self.unSupervisedEngine.train(Input['Features'])
-
     self.unSupervisedEngine.confidence()
     outputDict['output'] = {}
     numberOfHistoryStep = self.unSupervisedEngine.numberOfHistoryStep
     numberOfSample = self.unSupervisedEngine.numberOfSample
 
-    if self.unSupervisedEngine.SKLtype in ['cluster']:
+    if 'cluster' == self.unSupervisedEngine.SKLtype:
       if 'labels' in self.unSupervisedEngine.outputDict.keys():
         labels = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
         for t in range(numberOfHistoryStep):
           labels[:,t] = self.unSupervisedEngine.outputDict['labels'][t]
         outputDict['output'][self.labelFeature] = labels
 
+      #noClusters seems to be unused
       if 'noClusters' in self.unSupervisedEngine.outputDict.keys():
         noClusters = self.unSupervisedEngine.outputDict['noClusters']
 
@@ -3957,7 +3959,7 @@ class DataMining(BasePostProcessor):
       if 'inertia' in self.unSupervisedEngine.outputDict.keys():
         inertia = self.unSupervisedEngine.outputDict['inertia']
 
-    elif self.unSupervisedEngine.SKLtype in ['mixture']:
+    elif 'mixture' == self.unSupervisedEngine.SKLtype:
       if 'labels' in self.unSupervisedEngine.outputDict.keys():
         labels = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
         for t in range(numberOfHistoryStep):
@@ -4027,7 +4029,7 @@ class DataMining(BasePostProcessor):
                   timeSeries[timeIdx] = mixtureCovars[timeIdx][clusterIdx][i,j]
                 self.solutionExport.updateOutputValue('cov_'+str(row)+'_'+str(col),timeSeries)
 
-    elif self.unSupervisedEngine.SKLtype in ['manifold']:
+    elif 'manifold' == self.unSupervisedEngine.SKLtype:
       noComponents = self.unSupervisedEngine.outputDict['noComponents'][0]
 
       if 'embeddingVectors_' in self.unSupervisedEngine.outputDict.keys():
@@ -4049,7 +4051,7 @@ class DataMining(BasePostProcessor):
         for t in range(numberOfHistoryStep):
           outputDict['output'][self.name+'EmbeddingVector' + str(i + 1)][:,t] =  embeddingVectors[t][:, i]
 
-    elif self.unSupervisedEngine.SKLtype in ['decomposition']:
+    elif 'decomposition' == self.unSupervisedEngine.SKLtype:
       decompositionValues = self.unSupervisedEngine.normValues
 
       noComponents = self.unSupervisedEngine.outputDict['noComponents'][0]
