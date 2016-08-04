@@ -109,10 +109,12 @@ class HistorySet(Data):
       @ In, value, newer value
       @ Out, None
     """
+    # if this flag is true, we accept realizations in the input space that are not only scalar but can be 1-D arrays!
+    acceptArrayRealizations = False if options == None else options.get('acceptArrayRealizations',False)
     if (not isinstance(value,(float,int,bool,np.ndarray,c1darray))):
       self.raiseAnError(NotConsistentData,'HistorySet Data accepts only a numpy array (dim 1) or a single value for method <_updateSpecializedInputValue>. Got type ' + str(type(value)))
     if isinstance(value,(np.ndarray,c1darray)):
-      if value.size != 1: self.raiseAnError(NotConsistentData,'HistorySet Data accepts only a numpy array of dim 1 or a single value for method <_updateSpecializedInputValue>. Size is ' + str(value.size))
+      if value.size != 1 and not acceptArrayRealizations: self.raiseAnError(NotConsistentData,'HistorySet Data accepts only a numpy array of dim 1 or a single value for method <_updateSpecializedInputValue>. Size is ' + str(value.size))
 
     if options and self._dataParameters['hierarchical']:
       # we retrieve the node in which the specialized 'History' has been stored

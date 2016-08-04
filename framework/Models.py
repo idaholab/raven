@@ -265,11 +265,12 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     pass
 
-  def collectOutput(self,collectFrom,storeTo):
+  def collectOutput(self,collectFrom,storeTo,options=None):
     """
       Method that collects the outputs from the previous run
       @ In, collectFrom, InternalRunner object, instance of the run just finished
       @ In, storeTo, "DataObjects" object, output where the results of the calculation needs to be stored
+      @ In, options, dict, optional, dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
     #if a addOutput is present in nameSpace of storeTo it is used
@@ -414,11 +415,12 @@ class Dummy(Model):
     uniqueHandler = Input[1]['uniqueHandler'] if 'uniqueHandler' in Input[1].keys() else 'any'
     jobHandler.submitDict['Internal']((inRun,Input[1]['prefix']),lambdaReturnOut,str(Input[1]['prefix']),metadata=Input[1], modulesToImport = self.mods, uniqueHandler=uniqueHandler)
 
-  def collectOutput(self,finishedJob,output):
+  def collectOutput(self,finishedJob,output,options=None):
     """
       Method that collects the outputs from the previous run
       @ In, finishedJob, InternalRunner object, instance of the run just finished
       @ In, output, "DataObjects" object, output where the results of the calculation needs to be stored
+      @ In, options, dict, optional, dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
     if finishedJob.returnEvaluation() == -1:
@@ -429,15 +431,19 @@ class Dummy(Model):
     else:
       outputeval = evaluation[1]
     exportDict = copy.deepcopy({'inputSpaceParams':evaluation[0],'outputSpaceParams':outputeval,'metadata':finishedJob.returnMetadata()})
-    if output.type == 'HDF5': output.addGroupDataObjects({'group':self.name+str(finishedJob.identifier)},exportDict,False)
+    if output.type == 'HDF5':
+      optionsIn = {'group':self.name+str(finishedJob.identifier)}
+      if options is not None: optionsIn.update(options)
+      output.addGroupDataObjects(optionsIn,exportDict,False)
     else:
-      self.collectOutputFromDict(exportDict,output)
+      self.collectOutputFromDict(exportDict,output,options)
 
-  def collectOutputFromDict(self,exportDict,output):
+  def collectOutputFromDict(self,exportDict,output,options=None):
     """
       Collect results from a dictionary
       @ In, exportDict, dict, contains 'inputSpaceParams','outputSpaceParams','metadata'
       @ In, output, DataObject, to whom we write the data
+      @ In, options, dict, optional, dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
     #prefix is not generally useful for dummy-related models, so we remove it but store it
@@ -455,7 +461,7 @@ class Dummy(Model):
       self.raiseAnError(RuntimeError,"the model "+ self.name+" does not generate all the outputs requested in output object "+ output.name +". Missing parameters are: " + ','.join(list(missingParameters)) +".")
     for key in exportDict[inKey ]:
       if key in output.getParaKeys('inputs'):
-        output.updateInputValue (key,exportDict[inKey][key])
+        output.updateInputValue (key,exportDict[inKey][key],options)
     for key in exportDict[outKey]:
       if key in output.getParaKeys('outputs'):
         output.updateOutputValue(key,exportDict[outKey][key])
@@ -965,11 +971,12 @@ class ExternalModel(Dummy):
     uniqueHandler = Input[0][1]['uniqueHandler'] if 'uniqueHandler' in Input[0][1].keys() else 'any'
     jobHandler.submitDict['Internal']((inRun,Input[1],),self.__externalRun,str(Input[0][1]['prefix']),metadata=Input[0][1], modulesToImport = self.mods,uniqueHandler=uniqueHandler)
 
-  def collectOutput(self,finishedJob,output):
+  def collectOutput(self,finishedJob,output,options=None):
     """
       Method that collects the outputs from the previous run
       @ In, finishedJob, InternalRunner object, instance of the run just finished
       @ In, output, "DataObjects" object, output where the results of the calculation needs to be stored
+      @ In, options, dict, optional, dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
     if finishedJob.returnEvaluation() == -1:
@@ -985,13 +992,33 @@ class ExternalModel(Dummy):
       typeVar = type(var)
       return typeVar.__name__ == varTypeStr or \
         typeVar.__module__+"."+typeVar.__name__ == varTypeStr
+    def sizeMatch(var,sizeToCheck):
+      """
+        This method is aimed to check if a variable has an expected size
+        @ In, var, python datatype, the first variable to compare
+        @ In, sizeToCheck, int, the size this variable should have
+        @ Out, sizeMatched, bool, is the size ok?
+      """
+      sizeMatched = True
+      if len(np.atleast_1d(var)) != sizeToCheck: sizeMatched = False
+      return sizeMatched
     # check type consistency... This is needed in order to keep under control the external model... In order to avoid problems in collecting the outputs in our internal structures
     instanciatedSelf = finishedJob.returnEvaluation()[1][1]
     outcomes         = finishedJob.returnEvaluation()[1][0]
     for key in instanciatedSelf.modelVariableType.keys():
       if not (typeMatch(outcomes[key],instanciatedSelf.modelVariableType[key])):
         self.raiseAnError(RuntimeError,'type of variable '+ key + ' is ' + str(type(outcomes[key]))+' and mismatches with respect to the input ones (' + instanciatedSelf.modelVariableType[key] +')!!!')
-    Dummy.collectOutput(self, finishedJob, output)
+    for key in instanciatedSelf.modelVariableType.keys():
+      if not (typeMatch(outcomes[key],instanciatedSelf.modelVariableType[key])):
+        self.raiseAnError(RuntimeError,'type of variable '+ key + ' is ' + str(type(outcomes[key]))+' and mismatches with respect to the input ones (' + instanciatedSelf.modelVariableType[key] +')!!!')    
+    
+    if output.type in ['HistorySet']:
+      outputSize = -1
+      for key in output.getParaKeys('outputs'):
+        if key in instanciatedSelf.modelVariableType.keys():
+          if outputSize == -1: outputSize = len(np.atleast_1d(outcomes[key]))
+          if not sizeMatch(outcomes[key],outputSize): self.raiseAnError(Exception,"the time series size needs to be the same for the output space in a HistorySet!") 
+    Dummy.collectOutput(self, finishedJob, output, options)
 #
 #
 #
@@ -1268,11 +1295,12 @@ class Code(Model):
       out = self.code.finalizeCodeOutput(finishedJob.command,finishedJob.output,finishedJob.getWorkingDir())
       if out: finishedJob.output = out
 
-  def collectOutput(self,finishedjob,output):
+  def collectOutput(self,finishedjob,output,options=None):
     """
       Method that collects the outputs from the previous run
       @ In, finishedJob, InternalRunner object, instance of the run just finished
       @ In, output, "DataObjects" object, output where the results of the calculation needs to be stored
+      @ In, options, dict, optional, dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
     outputFilelocation = finishedjob.getWorkingDir()
@@ -1288,11 +1316,12 @@ class Code(Model):
         for key,value in metadata.items(): output.updateMetadata(key,value,attributes)
     else: self.raiseAnError(ValueError,"output type "+ output.type + " unknown for Model Code "+self.name)
 
-  def collectOutputFromDict(self,exportDict,output):
+  def collectOutputFromDict(self,exportDict,output,options=None):
     """
       Collect results from dictionary
       @ In, exportDict, dict, contains 'inputs','outputs','metadata'
-      @ In, output, the place to write to
+      @ In, output, instance, the place to write to
+      @ In, options, dict, optional, dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
     prefix = exportDict.pop('prefix')
@@ -1308,7 +1337,7 @@ class Code(Model):
     else: #point set
       for key in exportDict['inputSpaceParams']:
         if key in output.getParaKeys('inputs'):
-          output.updateInputValue(key,exportDict['inputSpaceParams'][key])
+          output.updateInputValue(key,exportDict['inputSpaceParams'][key],options)
       for key in exportDict['outputSpaceParams']:
         if key in output.getParaKeys('outputs'):
           output.updateOutputValue(key,exportDict['outputSpaceParams'][key])
@@ -1464,11 +1493,12 @@ class PostProcessor(Model, Assembler):
     if len(Input) > 0 : jobHandler.submitDict['Internal']((Input,),self.interface.run,str(0),modulesToImport = self.mods, forceUseThreads = True)
     else: jobHandler.submitDict['Internal']((None,),self.interface.run,str(0),modulesToImport = self.mods, forceUseThreads = True)
 
-  def collectOutput(self,finishedjob,output):
+  def collectOutput(self,finishedjob,output,options=None):
     """
       Method that collects the outputs from the previous run
       @ In, finishedJob, InternalRunner object, instance of the run just finished
       @ In, output, "DataObjects" object, output where the results of the calculation needs to be stored
+      @ In, options, dict, optional, dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
     self.interface.collectOutput(finishedjob,output)
@@ -1746,9 +1776,9 @@ class EnsembleModel(Dummy, Assembler):
       outputsValues  = outputsValues if targetEvaluations[modelIn].type != 'HistorySet' else outputsValues.values()[-1] 
       
       for key in targetEvaluations[modelIn].getParaKeys('inputs'):
-        self.modelsDictionary[modelIn]['TargetEvaluation'].updateInputValue (key,inputsValues[key])
+        self.modelsDictionary[modelIn]['TargetEvaluation'].updateInputValue (key,inputsValues[key],options={'acceptArrayRealizations':True})
       for key in targetEvaluations[modelIn].getParaKeys('outputs'):
-        self.modelsDictionary[modelIn]['TargetEvaluation'].updateOutputValue (key,outputsValues[key])
+        self.modelsDictionary[modelIn]['TargetEvaluation'].updateOutputValue (key,outputsValues[key],options={'acceptArrayRealizations':True})
       for key in metadataValues.keys():
         self.modelsDictionary[modelIn]['TargetEvaluation'].updateMetadata(key,metadataValues[key])
       # end of update of TargetEvaluation
@@ -1758,9 +1788,9 @@ class EnsembleModel(Dummy, Assembler):
     if output.type == 'HDF5': output.addGroupDataObjects({'group':self.name+str(finishedJob.identifier)},exportDict,False)
     else:
       for key in exportDict['inputSpaceParams' ] :
-        if key in output.getParaKeys('inputs') : output.updateInputValue (key,exportDict['inputSpaceParams' ][key][-1])
+        if key in output.getParaKeys('inputs') : output.updateInputValue (key,exportDict['inputSpaceParams' ][key],options={'acceptArrayRealizations':True})
       for key in exportDict['outputSpaceParams'] :
-        if key in output.getParaKeys('outputs'): output.updateOutputValue(key,exportDict['outputSpaceParams'][key][-1])
+        if key in output.getParaKeys('outputs'): output.updateOutputValue(key,exportDict['outputSpaceParams'][key])
       for key in exportDict['metadata'] :  output.updateMetadata(key,exportDict['metadata'][key][-1])
 
   def getAdditionalInputEdits(self,inputInfo):
@@ -1794,7 +1824,7 @@ class EnsembleModel(Dummy, Assembler):
     for previousOutputs, outputType in zip(listOfOutputs,typeOutputs):
       if len(previousOutputs.values()) > 0:
         for input in self.modelsDictionary[modelIn]['Input']:
-          if input in previousOutputs.keys(): dependentOutputs[input] =  previousOutputs[input][-1] if outputType != 'HistorySet' else previousOutputs[input]
+          if input in previousOutputs.keys(): dependentOutputs[input] =  previousOutputs[input][-1] if outputType != 'HistorySet' else np.asarray(previousOutputs[input])
     return dependentOutputs
 
   def __externalRun(self,inRun):
@@ -1858,7 +1888,7 @@ class EnsembleModel(Dummy, Assembler):
               if modelToRemove != modelIn: jobHandler.getFinished(jobIdentifier = modelToRemove + "|" + identifier, uniqueHandler = self.name + identifier)
             self.raiseAnError(RuntimeError,"The Model "+modelIn + " failed!")
           # get back the output in a general format
-          self.modelsDictionary[modelIn]['Instance'].collectOutput(finishedRun[0],tempTargetEvaluations[modelIn])
+          self.modelsDictionary[modelIn]['Instance'].collectOutput(finishedRun[0],tempTargetEvaluations[modelIn],options={'acceptArrayRealizations':True})
           returnDict[modelIn]  = {}
           responseSpace = tempTargetEvaluations[modelIn].getParametersValues('outputs', nodeId = 'RecontructEnding')
           inputSpace    = tempTargetEvaluations[modelIn].getParametersValues('inputs', nodeId = 'RecontructEnding')
@@ -1875,7 +1905,6 @@ class EnsembleModel(Dummy, Assembler):
             for out in gotOutputs[modelCnt].keys(): 
               residueContainer[modelIn]['iterValues'][0][out] = copy.copy(gotOutputs[modelCnt][out])
               if iterationCount == 1: residueContainer[modelIn]['iterValues'][1][out] = np.zeros(len(residueContainer[modelIn]['iterValues'][0][out]))
-              
             for out in gotOutputs[modelCnt].keys():
               residueContainer[modelIn]['residue'][out] = abs(np.asarray(residueContainer[modelIn]['iterValues'][0][out]) - np.asarray(residueContainer[modelIn]['iterValues'][1][out]))
             residueContainer[modelIn]['Norm'] =  np.linalg.norm(np.asarray(residueContainer[modelIn]['iterValues'][1].values())-np.asarray(residueContainer[modelIn]['iterValues'][0].values()))

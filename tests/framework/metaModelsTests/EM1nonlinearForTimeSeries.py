@@ -11,7 +11,7 @@ import threading
 localLock = threading.RLock()
 
 def initialize(self, runInfo, inputs):
-  self.N                       = 10 # number of points to discretize
+  self.N                       = 12 # number of points to discretize
   self.L                       = 1.0 # lenght of the rod
   self.X                       = np.linspace(0, self.L, self.N) # position along the rod
   self.h                       = self.L / (self.N - 1) # discretization step
@@ -36,6 +36,6 @@ def run(self, Input):
   self.initialTemperatures[-1] = self.rightTemperature # the other boundary condition
   with localLock:
     solution = odeint(odeFuncion, self.initialTemperatures, self.timeDiscretization, args=copy.deepcopy((self.shapeToUse,self.N,self.h,self.k,self.timeFromFirstModel)),full_output = 1)
-    self.solution = solution[0][-1,5]
+    self.solution = solution[0][:,5]
     self.solutionK = (self.solution/10000.0)*self.k
 
