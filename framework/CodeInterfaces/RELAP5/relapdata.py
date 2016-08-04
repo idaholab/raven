@@ -93,11 +93,11 @@ class relapdata:
     flagg1 = 0
     flagg2 = 0
     block_count=0
-    
+
     # The following object is a list of keywords that RELAP5 might generate in the minor edits which would
     # corrupt the .csv files. If more keywords are discovered add them here in the list
     errorKeywords = ['Reducing','Thermodynamic','ncount','0$$$$$$$$']
-    
+
     while(flagg1==0 & flagg2==0):
       if flagg1==0:
         tempkeys=[]
