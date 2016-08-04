@@ -3734,6 +3734,7 @@ class DataMining(BasePostProcessor):
     ##       - Linear projection methods
     if 'cluster' == self.unSupervisedEngine.SKLtype:
       ## Get the cluster labels and store as a new column in the output
+      #assert  'labels' in self.unSupervisedEngine.outputDict.keys()== hasattr(self.unSupervisedEngine, 'labels_')
       if hasattr(self.unSupervisedEngine, 'labels_'):
         self.clusterLabels = self.unSupervisedEngine.labels_
       outputDict['output'][self.labelFeature] = self.clusterLabels
