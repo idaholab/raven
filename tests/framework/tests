@@ -21,7 +21,7 @@
    type = 'RavenFramework'
    input = 'test_2steps_same_db.xml'
    csv = 'test_2steps/fullprint_HistorySet_3.csv'
-   xml = 'test_2steps/fullprint_HistorySet.xml'
+   UnorderedXml = 'test_2steps/fullprint_HistorySet.xml'
  [../]
 
  [./external_xml]
