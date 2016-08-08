@@ -496,9 +496,9 @@
  [./custom1D]
    type   = 'RavenFramework'
    input  = 'test_distributionCustom1D.xml'
-   output = 'PointSet2_dump.csv PointSet2_dump.xml PointSet3_dump.csv PointSet3_dump.xml'
-   csv    = 'PointSet2_dump.csv PointSet3_dump.csv'
-   xml    = 'PointSet2_dump.xml PointSet3_dump.xml'
+   output = 'custom1D/PointSet2_dump.csv custom1D/PointSet2_dump.xml custom1D/PointSet3_dump.csv custom1D/PointSet3_dump.xml'
+   csv    = 'custom1D/PointSet2_dump.csv custom1D/PointSet3_dump.csv'
+   xml    = 'custom1D/PointSet2_dump.xml custom1D/PointSet3_dump.xml'
  [../]
 
 []
