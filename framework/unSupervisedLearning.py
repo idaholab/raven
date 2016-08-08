@@ -88,10 +88,10 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
     ## Labels are passed, if known a priori (optional), they used in quality
     ## estimate
     if 'Labels' in self.initOptionDict.keys():
-      self.labels = self.initOptionDict['Labels'  ]
+      self.labelFeature = self.initOptionDict['Labels'  ]
       self.initOptionDict.pop('Labels')
     else:
-      self.labels = None
+      self.labelFeature = None
 
     if 'Features' in self.initOptionDict.keys():
       self.features = self.initOptionDict['Features'].split(',')
@@ -126,54 +126,75 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
     if type(tdict) != dict:
       self.raiseAnError(IOError, ' method "train". The training set needs to be provided through a dictionary. Type of the in-object is ' + str(type(tdict)))
 
-    ## Information from the training data passed in:
-    names = tdict.keys()
-    values = tdict.values()
-
-    ## Information this object is looking for:
-    ## self.labels
-    ## self.features
-
-
     featureCount = len(self.features)
-    realizationCount = values[0].size
+    if not isinstance(tdict[tdict.keys()[0]],dict):
+      realizationCount = tdict.values()[0].size
+
+    ############################################################################
+    ## Error-handling
+
+    ## Do all of our error handling upfront to make the meat of the code more
+    ## readable:
+
+    ## Check if the user requested something that is not available
+    unidentifiedFeatures = set(self.features) - set(tdict.keys())
+    if len(unidentifiedFeatures) > 0:
+      ## Me write English good!
+      if len(unidentifiedFeatures) == 1:
+        msg = 'The requested feature: %s does not exist in the training set.' % list(unidentifiedFeatures)[0]
+      else:
+        msg = 'The requested features: %s do not exist in the training set.' % str(list(unidentifiedFeatures))
+      self.raiseAnError(IOError, msg)
+
     ## Check that all of the values have the same length
-    for name,val in tdict.iteritems():
-      if realizationCount != val.size:
-        self.raiseAnError(IOError, ' In training set, the number of realizations are inconsistent among the requested features')
+    if not isinstance(tdict.values()[0],dict):
+      for name,val in tdict.iteritems():
+        if name in self.features and realizationCount != val.size:
+          self.raiseAnError(IOError, ' In training set, the number of realizations are inconsistent among the requested features.')
 
-    self.normValues = np.zeros(shape = (realizationCount, featureCount))
-
-    if self.labels in names:
-      self.labelValues = values[names.index(self.labels)]
+    ## Check if a label feature is provided by the user and in the training data
+    if self.labelFeature in tdict:
+      self.labelValues = tidct[self.labelFeature]
       resp = self.checkArrayConsistency(self.labelValues)
       if not resp[0]:
-        self.raiseAnError(IOError, 'In training set for ground truth labels ' + self.labels + ':' + resp[1])
+        self.raiseAnError(IOError, 'In training set for ground truth labels ' + self.labelFeature + ':' + resp[1])
     else:
       self.raiseAWarning(' The ground truth labels are not known a priori')
+      self.labelValues = None
+
+    ## Not sure when this would ever happen, but check that the data you are
+    ## given is a 1D array?
+    # for name,val in tdict.iteritems():
+    #   if name in self.features:
+    #     resp = self.checkArrayConsistency(val)
+    #     if not resp[0]:
+    #       self.raiseAnError(IOError, ' In training set for feature ' + name + ':' + resp[1])
+
+    ## End Error-handling
+    ############################################################################
 
     if metric is None:
+      self.normValues = np.zeros(shape = (realizationCount, featureCount))
       for cnt, feat in enumerate(self.features):
+        featureValues = tdict[feat]
+        (mu,sigma) = mathUtils.normalizationFactors(featureValues)
 
-        if feat not in names:
-          self.raiseAnError(IOError, ' The feature sought ' + feat + ' is not in the training set')
-
-        featureValues = values[names.index(feat)]
-        resp = self.checkArrayConsistency(featureValues)
-        if not resp[0]:
-          self.raiseAnError(IOError, ' In training set for feature ' + feat + ':' + resp[1])
-
-        self.muAndSigmaFeatures[feat] = mathUtils.normalizationFactors(featureValues)
-        (mu,sigma) = self.muAndSigmaFeatures[feat]
-
+        ## Store the normalized training data, and the normalization factors for
+        ## later use
         self.normValues[:, cnt] = (featureValues - mu) / sigma
+        self.muAndSigmaFeatures[feat] = (mu,sigma)
     else:    # metric != None
       ## The dictionary represents a HistorySet
-      if isinstance(tdict[tdict.keys()[0]],dict):
-        # normalize data
-        for key in tdict.keys():
+      if isinstance(tdict.values()[0],dict):
+        ## normalize data
+        ## But why this way? This should be one of the options, this looks like
+        ## a form of shape matching, however what if I don't want similar
+        ## shapes, I want similar valued curves in space? sigma and mu should
+        ## not be forced to be computed within a curve.
+        for key in tdict:
           for var in tdict[key]:
-            tdict[key][var] = (tdict[key][var]-np.average(tdict[key][var]))/np.std(tdict[key][var])
+            (mu,sigma) = mathUtils.normalizationFactors(tdict[key][var])
+            tdict[key][var] = (tdict[key][var]-mu)/sigma
 
         cardinality = len(tdict.keys())
         self.normValues = np.zeros((cardinality,cardinality))
@@ -184,66 +205,93 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
             self.normValues[j][i] = self.normValues[i][j]
 
       else:   ## PointSet
+        normValues = np.zeros(shape = (realizationCount, featureCount))
+        self.normValues = np.zeros(shape =(realizationCount, realizationCount))
         for cnt, feat in enumerate(self.features):
-          if feat not in names:
-            self.raiseAnError(IOError, ' The feature sought ' + feat + ' is not in the training set')
-
-          featureValues = values[names.index(feat)]
-          resp = self.checkArrayConsistency(featureValues)
-          if not resp[0]:
-            self.raiseAnError(IOError, ' In training set for feature ' + feat + ':' + resp[1])
-
-          normValues = np.zeros(shape = (featureValues.size, len(self.features)))
-          if featureValues.size != normValues[:, 0].size:
-            self.raiseAnError(IOError, ' In training set, the number of values provided for feature ' + feat + ' are != number of target outcomes!')
-
+          featureValues = tdict[feat]
           (mu,sigma) = mathUtils.normalizationFactors(featureValues)
-
           normValues[:, cnt] = (featureValues - mu) / sigma
 
-          ## this should operate on the normed data
-          for i in range(cardinality):
-            for j in range(i,cardinality):
-              self.normValues[i][j] = metric.distance(tdict[i],tdict[j])
-              self.normValues[j][i] = self.normValues[i][j]
+        ## this should operate on the normed data
+        for i in range(realizationCount):
+          rowI = normValues[i,:]
+          for j in range(i,realizationCount):
+            rowJ = normValues[j,:]
+            self.normValues[i][j] = metric.distance(rowI,rowJ)
+            self.normValues[j][i] = self.normValues[i][j]
+
     self.__trainLocal__()
     self.amITrained = True
 
+  ## I'd be willing to bet this never gets called, and if it did it would crash
+  ## under specific settings, namely using a history set.
   def evaluate(self, edict):
     """
-      Method to perform the evaluation of a point or a set of points through the previous trained unSuperVisedLearning algorithm
-      NB.the superVisedLearning object is committed to convert the dictionary that is passed (in), into the local format
-      the interface with the kernels requires.
+      Method to perform the evaluation of a point or a set of points through
+      the previous trained unSuperVisedLearning algorithm
+      NB. The superVisedLearning object is committed to convert the dictionary
+      that is passed (in), into the local format the interface with the kernels
+      requires.
       @ In, edict, dict, evaluation dictionary
       @ Out, evaluation, numpy.array, array of evaluated points
     """
-    if type(edict) != dict: self.raiseAnError(IOError, ' Method "evaluate". The evaluate request/s need/s to be provided through a dictionary. Type of the in-object is ' + str(type(edict)))
-    names, values = list(edict.keys()), list(edict.values())
-    for index in range(len(values)):
-      resp = self.checkArrayConsistency(values[index])
-      if not resp[0]: self.raiseAnError(IOError, ' In evaluate request for feature ' + names[index] + ':' + resp[1])
-    if self.labels in names:
-      self.labelValues = values[names.index(self.labels)]
-    # construct the evaluation matrix
-    featureValues = np.zeros(shape = (values[0].size, len(self.features)))
-    for cnt, feat in enumerate(self.features):
-      if feat not in names: self.raiseAnError(IOError, ' The feature sought ' + feat + ' is not in the evaluate set')
+    if type(edict) != dict:
+      self.raiseAnError(IOError, ' Method "evaluate". The evaluate request/s need/s to be provided through a dictionary. Type of the in-object is ' + str(type(edict)))
+
+    names = edict.keys()
+
+    realizationCount = edict.values()[0].size
+    featureCount = len(self.features)
+
+    ############################################################################
+    ## Error-handling
+
+    ## Do all of our error handling upfront to make the meat of the code more
+    ## readable:
+
+    ## Check if the user requested something that is not available
+    unidentifiedFeatures = set(self.features) - set(edict.keys())
+    if len(unidentifiedFeatures) > 0:
+      ## Me write English good!
+      if len(unidentifiedFeatures) == 1:
+        msg = 'The requested feature: %s does not exist in the evaluate set.' % list(unidentifiedFeatures)[0]
       else:
-        resp = self.checkArrayConsistency(values[names.index(feat)])
-        if not resp[0]: self.raiseAnError(IOError, ' In training set for feature ' + feat + ':' + resp[1])
-        featureValues[:, cnt] = ((values[names.index(feat)] - self.muAndSigmaFeatures[feat][0])) / self.muAndSigmaFeatures[feat][1]
-    evaluation = self.__evaluateLocal__(featureValues)
+        msg = 'The requested features: %s do not exist in the evaluate set.' % str(list(unidentifiedFeatures))
+      self.raiseAnError(IOError, msg)
+
+    for name,values in edict.iteritems():
+      resp = self.checkArrayConsistency(values)
+      if not resp[0]:
+        self.raiseAnError(IOError, ' In evaluate request for feature ' + name + ':' + resp[1])
+
+    ## End Error-handling
+    ############################################################################
+
+    ## I don't think this is necessary?
+    # if self.labelFeature in edict.keys():
+    #   self.labelValues = edict[self.labelFeature]
+
+    # construct the evaluation matrix
+    normedValues = np.zeros(shape = (realizationCount, featureCount))
+    for cnt, feature in enumerate(self.features):
+      featureValues = edict[feature]
+      (mu,sigma) = self.muAndSigmaFeatures[feature]
+      normedValues[:, cnt] = (featureValues - mu) / sigma
+    evaluation = self.__evaluateLocal__(normedValues)
     return evaluation
 
   def confidence(self):
     """
-      This call is used to get an estimate of the confidence in the prediction of the clusters.
-      The base class self.confidence checks if the clusters are already evaluated (trained) then calls the local confidence
-      @ In, none
+      This call is used to get an estimate of the confidence in the prediction
+      of the clusters. The base class self.confidence checks if the clusters are
+      already evaluated (trained) then calls the local confidence
+      @ In, None
       @ Out, confidence, float, the confidence
     """
-    if self.amITrained: return self.__confidenceLocal__()
-    else:               self.raiseAnError(IOError, ' The confidence check is performed before evaluating the clusters.')
+    if self.amITrained:
+      return self.__confidenceLocal__()
+    else:
+      self.raiseAnError(IOError, ' The confidence check is performed before training.')
 
 
   @abc.abstractmethod
@@ -366,37 +414,22 @@ class SciKitLearn(unSupervisedLearning):
 
     paramsDict = self.Method.get_params()
 
-    if 'cluster' == SKLtype:
-      if 'n_clusters' in paramsDict.keys():
-        if 'n_clusters' not in self.initOptionDict.keys():
-          self.initOptionDict['n_clusters'] = 8
-      else:
-        if 'n_clusters' in self.initOptionDict.keys():
-          self.initOptionDict.pop('n_clusters')
-
-      if 'preference'   in paramsDict.keys():
-        self.initOptionDict['preference'  ] = None  # AffinityPropogation
-
-      if 'leaf_size'    in paramsDict.keys():
-        self.initOptionDict['leaf_size'   ] = 30  # DBSCAN
-
-      if 'eps'          in paramsDict.keys():
-        self.initOptionDict['eps'         ] = 0.2  # DBSCAN
-
-      if 'random_state' in paramsDict.keys():
-        self.initOptionDict['random_state'] = 0
-    # These parameters above and some more effects the quality of the Cardinality Reduction algorithms...Look at TODO list at the top of the source
-
-    if 'mixture' == SKLtype:
-      if 'n_components' in paramsDict.keys():
-        if 'n_components' not in self.initOptionDict.keys(): self.initOptionDict['n_components'] = 5
-      else :
-        if 'n_components' in self.initOptionDict.keys(): self.initOptionDict.pop('n_components')
+    if 'n_components' in self.initOptionDict:
       self.noComponents_ = self.initOptionDict['n_components']
-    if 'decomposition' == SKLtype or 'manifold' == SKLtype: self.noComponents_ = self.initOptionDict['n_components']
+
+    ## Let's only keep the parameters that the Method understands, throw
+    ## everything else away, maybe with a warning message?
+    tempDict = {}
     for key, value in self.initOptionDict.items():
-      try   : self.initOptionDict[key] = ast.literal_eval(value)
-      except: pass
+      try:
+        if key in paramsDict:
+          tempDict[key] = ast.literal_eval(value)
+        else:
+          self.raiseAWarning('Ignoring unknown parameter %s to the method of type %s' % (key, SKLsubType))
+      except:
+        pass
+    self.initOptionDict = tempDict
+
     self.Method.set_params(**self.initOptionDict)
     self.normValues = None
     self.outputDict = {}
@@ -404,159 +437,153 @@ class SciKitLearn(unSupervisedLearning):
 
   def __trainLocal__(self):
     """
-      Perform training on samples in self.normValues: array, shape = [n_samples, n_features] or [n_samples, n_samples]
+      Perform training on samples in self.normValues: array,
+      shape = [n_samples, n_features] or [n_samples, n_samples]
       @ In, None
       @ Out, None
     """
-    if hasattr(self.Method, 'bandwidth'):  # set bandwidth for MeanShift clustering
+    ## set bandwidth for MeanShift clustering
+    if hasattr(self.Method, 'bandwidth'):
       if 'bandwidth' not in self.initOptionDict.keys():
         self.initOptionDict['bandwidth'] = cluster.estimate_bandwidth(self.normValues,quantile=0.3)
       self.Method.set_params(**self.initOptionDict)
-    if hasattr(self.Method, 'connectivity'):  # We need this connectivity if we want to use structured ward
-      connectivity = kneighbors_graph(self.normValues, n_neighbors = 10)  # we should find a smart way to define the number of neighbors instead of default constant integer value(10)
+
+    ## We need this connectivity if we want to use structured ward
+    if hasattr(self.Method, 'connectivity'):
+      ## we should find a smart way to define the number of neighbors instead of
+      ## default constant integer value(10)
+      connectivity = kneighbors_graph(self.normValues, n_neighbors = 10)
       connectivity = 0.5 * (connectivity + connectivity.T)
       self.initOptionDict['connectivity'] = connectivity
       self.Method.set_params(**self.initOptionDict)
 
     self.outputDict['outputs'] = {}
     self.outputDict['inputs' ] = self.normValues
+
+    ## This is the stuff that will go into the solution export or just float
+    ## around and maybe never be used
+    self.metaDict = {}
+
     ## What are you doing here? Calling half of these methods does nothing
     ## unless you store the data somewhere. If you are going to blindly call
     ## whatever methods that exist in the class, then at least store them for
     ## later. Why is this done again on the PostProcessor side? I am struggling
     ## to understand what this code's purpose is except to obfuscate our
     ## interaction with skl.
-    if   hasattr(self.Method, 'fit_predict'):
-        self.Method.fit_predict(self.normValues)
-    elif hasattr(self.Method, 'predict'):
-        self.Method.fit(self.normValues)
-        self.Method.predict(self.normValues)
-    elif hasattr(self.Method, 'fit_transform'):
-        self.Method.fit_transform(self.normValues)
-    elif hasattr(self.Method, 'transform'):
-        self.Method.fit(self.normValues)
-        self.Method.transform(self.normValues)
-    # Below generates the output Dictionary from the trained algorithm, can be defined in a new method....
+    # if   hasattr(self.Method, 'fit_predict'):
+    #   self.Method.fit_predict(self.normValues)
+    # elif hasattr(self.Method, 'predict'):
+    #   self.Method.fit(self.normValues)
+    #   self.Method.predict(self.normValues)
+    # elif hasattr(self.Method, 'fit_transform'):
+    #   self.Method.fit_transform(self.normValues)
+    # elif hasattr(self.Method, 'transform'):
+    #   self.Method.fit(self.normValues)
+    #   self.Method.transform(self.normValues)
+    self.Method.fit(self.normValues)
+
+    ## I don't care what algorithm you ran, these are the only things I care
+    ## about, if I find one of them, then I am going to save it in our defined
+    ## variable names
+    variableMap = {'labels_': 'labels',
+                   'embedding_': 'embeddingVectors',
+                   'embedding_vectors_': 'embeddingVectors'}
+
+    ## This will store stuff that should go into the solution export, but
+    ## these each need some massaging so we will not handle this automatically.
+    # metaMap = {'cluster_centers_': 'clusterCenters',
+    #            'means_': 'means',
+    #            'covars_': 'covars'}
+
+    ## Not used right now, but maybe someone will want it?
+    # otherMap = {'n_clusters': 'noClusters',
+    #             'weights_': 'weights',
+    #             'cluster_centers_indices_': 'clusterCentersIndices',
+    #             'precs_': 'precs',
+    #             'noComponents_': 'noComponents',
+    #             'reconstructionError': 'reconstruction_error_',
+    #             'explained_variance_': 'explainedVariance',
+    #             'explained_variance_ratio_': 'explainedVarianceRatio'}
+
+    for key,val in self.Method.__dict__.items():
+      if key in variableMap:
+        ## Translate the skl name to our naming convention
+        self.outputDict['outputs'][variableMap[key]] = copy.deepcopy(val)
+      ## The meta information needs special handling otherwise, we could just
+      ## do this here and be done in two lines
+      # if key in metaMap:
+      #   self.metaDict[metaMap[key]] = copy.deepcopy(val)
+
+    ## Below generates the output Dictionary from the trained algorithm, can be
+    ## defined in a new method....
     if 'cluster' == self.SKLtype:
-        if hasattr(self.Method, 'n_clusters') :
-            self.noClusters = self.Method.n_clusters
-            self.outputDict['outputs']['noClusters'           ] = copy.deepcopy(self.noClusters)
-        else:
-            self.outputDict['outputs']['noClusters'           ] = None
-        if hasattr(self.Method, 'labels_') :
-            self.labels_ = self.Method.labels_
-            self.outputDict['outputs']['labels'               ] = copy.deepcopy(self.labels_)
-            labelsIDs = set(self.labels_)
-            if not len(labelsIDs) == self.outputDict['outputs']['noClusters']:
-                self.outputDict['outputs']['noClusters'] = len(labelsIDs)
-                self.noClusters = len(labelsIDs)
-        if hasattr(self.Method, 'cluster_centers_') :
-            self.clusterCenters_ = copy.deepcopy(self.Method.cluster_centers_)
-            ## I hope these arrays are consistently ordered...
-            ## We are mixing our internal storage of muAndSigma with SKLs
-            ## representation of our data, I believe it is fair to say that we
-            ## hand the data to SKL in the same order that we have it stored.
-            for cnt, feat in enumerate(self.features):
-              for center in self.clusterCenters_:
-                center[cnt] = center[cnt] * self.muAndSigmaFeatures[feat][1] + self.muAndSigmaFeatures[feat][0]
-            self.outputDict['outputs']['clusterCenters'       ] = self.clusterCenters_
-        else:
-            # this methods is used by any other clustering algorithm that does not generatecluster_centers_ to generate the cluster centers. E.g., Agglomerative
-            # clustering in Sklearn does not in fact compute cluster centers. This if condition computes
-            # self.outputDict['outputs']['clusterCenters'] for this particular clustering method
-            centroids = np.zeros([self.noClusters,len(self.features)])
-            counter = np.zeros(self.noClusters)
-            for val,index in enumerate(self.Method.labels_):
-              centroids[index] += self.normValues[val]
-              counter[index]+=1
-            for index,val in enumerate(centroids):
-              if counter[index] == 0.:
-                self.raiseAnError(RuntimeError, 'The data-mining clustering method '+ str(self.Method) +' has generated a 0-size cluster' )
-              centroids[index] = centroids[index]/float(counter[index])
-            for cnt, feat in enumerate(self.features):
-              for center in centroids:
-                center[cnt] = center[cnt] * self.muAndSigmaFeatures[feat][1] + self.muAndSigmaFeatures[feat][0]
-            self.clusterCenters_ = copy.deepcopy(centroids)
-            self.outputDict['outputs']['clusterCenters'] = centroids
-        if hasattr(self.Method, 'cluster_centers_indices_') :
-            self.clusterCentersIndices_ = copy.deepcopy(self.Method.cluster_centers_indices_)
-            self.outputDict['outputs']['clusterCentersIndices'] = self.clusterCentersIndices_
-        if hasattr(self.Method, 'inertia_') :
-            self.inertia_ = self.Method.inertia_
-            self.outputDict['outputs']['inertia'              ] = self.inertia_
+      if hasattr(self.Method, 'cluster_centers_') :
+        centers = self.Method.cluster_centers_
+      else:
+        ## This methods is used by any other clustering algorithm that does
+        ## not generatecluster_centers_ to generate the cluster centers as the
+        ## average location of all points in the cluster.
+        centers = np.zeros([self.noClusters,len(self.features)])
+        counter = np.zeros(self.noClusters)
+        for val,index in enumerate(self.Method.labels_):
+          centers[index] += self.normValues[val]
+          counter[index] += 1
+
+        for index,val in enumerate(centers):
+          if counter[index] == 0.:
+            self.raiseAnError(RuntimeError, 'The data-mining clustering method '+ str(self.Method) +' has generated a 0-size cluster' )
+          centers[index] = centers[index] / float(counter[index])
+
+      ## I hope these arrays are consistently ordered...
+      ## We are mixing our internal storage of muAndSigma with SKLs
+      ## representation of our data, I believe it is fair to say that we
+      ## hand the data to SKL in the same order that we have it stored.
+      for cnt, feature in enumerate(self.features):
+        (mu,sigma) = self.muAndSigmaFeatures[feature]
+        for center in centers:
+          center[cnt] = center[cnt] * sigma + mu
+
+      self.metaDict['clusterCenters'] = centers
+
     elif 'mixture' == self.SKLtype:
-        if hasattr(self.Method, 'weights_') :
-            self.weights_ = copy.deepcopy(self.Method.weights_)
-            self.outputDict['outputs']['weights'  ] = copy.deepcopy(self.weights_)
-        if hasattr(self.Method, 'means_') :
-            self.means_ = copy.deepcopy(self.Method.means_)
 
-            ## I hope these arrays are consistently ordered...
-            ## We are mixing our internal storage of muAndSigma with SKLs
-            ## representation of our data, I believe it is fair to say that we
-            ## hand the data to SKL in the same order that we have it stored.
-            for cnt, feat in enumerate(self.features):
-              for center in self.means_:
-                center[cnt] = center[cnt] * self.muAndSigmaFeatures[feat][1] + self.muAndSigmaFeatures[feat][0]
+      if hasattr(self.Method, 'converged_'):
+        if not self.Method.converged_:
+          self.raiseAnError(RuntimeError, self.SKLtype + '|' + self.SKLsubType + ' did not converged. (from KDD->' + self.SKLsubType + ')')
 
-            self.outputDict['outputs']['means'    ] = self.means_
-        if hasattr(self.Method, 'covars_') :
-            self.covars_ = copy.deepcopy(self.Method.covars_)
+      ## For both means and covars below:
+      ##   We are mixing our internal storage of muAndSigma with SKLs
+      ##   representation of our data, I believe it is fair to say that we
+      ##   hand the data to SKL in the same order that we have it stored.
+      if hasattr(self.Method, 'means_'):
+        means = copy.deepcopy(self.Method.means_)
 
-            ## I hope these arrays are consistently ordered...
-            ## We are mixing our internal storage of muAndSigma with SKLs
-            ## representation of our data, I believe it is fair to say that we
-            ## hand the data to SKL in the same order that we have it stored.
-            for row, rowFeat in enumerate(self.features):
-              for col, colFeat in enumerate(self.features):
-                self.covars_[row,col] = self.covars_[row,col] * self.muAndSigmaFeatures[rowFeat][1] * self.muAndSigmaFeatures[colFeat][1]
+        for cnt, feat in enumerate(self.features):
+          (mu,sigma) = self.muAndSigmaFeatures[feature]
+          for center in means:
+            center[cnt] = center[cnt] * sigma + mu
+        self.metaDict['means'] = means
 
-            self.outputDict['outputs']['covars'   ] = self.covars_
-        if hasattr(self.Method, 'precs_') :
-            self.precs_ = copy.deepcopy(self.Method.precs_)
-            self.outputDict['outputs']['precs_'   ] = self.precs_
-        if hasattr(self.Method, 'converged_') :
-            if not self.Method.converged_ : self.raiseAnError(RuntimeError, self.SKLtype + '|' + self.SKLsubType + ' did not converged. (from KDD->' + self.SKLsubType + ')')
-            self.converged_ = copy.deepcopy(self.Method.converged_)
-            self.outputDict['outputs']['converged'] = self.converged_
-    elif 'manifold' == self.SKLtype:
-        self.outputDict['outputs']['noComponents'] = copy.deepcopy(self.noComponents_)
-        if hasattr(self.Method, 'embedding_'):
-            self.embeddingVectors_ = copy.deepcopy(self.Method.embedding_)
-            self.outputDict['outputs']['embeddingVectors_'] = copy.deepcopy(self.embeddingVectors_)
-        if hasattr(self.Method, 'reconstruction_error_'):
-            self.reconstructionError_ = copy.deepcopy(self.Method.reconstruction_error_)
-            self.outputDict['outputs']['reconstructionError_'] = copy.deepcopy(self.reconstructionError_)
+      if hasattr(self.Method, 'covars_') :
+        covariance = copy.deepcopy(self.Method.covars_)
+
+        for row, rowFeat in enumerate(self.features):
+          rowSigma = self.muAndSigmaFeatures[rowFeat][1]
+          for col, colFeat in enumerate(self.features):
+            colSigma = self.muAndSigmaFeatures[colFeat][1]
+            covariance[row,col] = covariance[row,col] * rowSigma * colSigma
+        self.metaDict['covars'] = covariance
     elif 'decomposition' == self.SKLtype:
-        self.outputDict['outputs']['noComponents'] = copy.deepcopy(self.noComponents_)
-        if hasattr(self.Method, 'components_'):
-            self.components_ = copy.deepcopy(self.Method.components_)
-            self.outputDict['outputs']['components'] = self.components_
-        if hasattr(self.Method, 'means_'):
-            self.means_ = copy.deepcopy(self.Method.means_)
-            self.outputDict['outputs']['means'] = self.means_
-        if hasattr(self.Method, 'explained_variance_'):
-            self.explainedVariance_ = copy.deepcopy(self.Method.explained_variance_)
-            self.outputDict['outputs']['explainedVariance'] = self.explainedVariance_
-        if hasattr(self.Method, 'explained_variance_ratio_'):
-            self.explainedVarianceRatio_ = copy.deepcopy(self.Method.explained_variance_ratio_)
-            self.outputDict['outputs']['explainedVarianceRatio'] = self.explainedVarianceRatio_
-    else: print ('Not Implemented yet!...', self.SKLtype)
-
-    # elif 'bicluster' == self.SKLtype:
-    #     if hasattr(self.Method, 'n_clusters') :
-    #         self.noClusters = self.Method.n_clusters
-    #         self.outputDict['outputs']['noClusters'           ] = self.noClusters
-    #     if hasattr(self.Method, 'row_labels_') :
-    #         self.rowLabels_ = self.Method.row_labels_
-    #         self.outputDict['outputs']['rowLabels'            ] = self.rowLabels_
-    #     if hasattr(self.Method, 'column_labels_') :
-    #         self.columnLabels_ = self.Method.column_labels_
-    #         self.outputDict['outputs']['columnLabels'         ] = self.columnLabels_
-    #     if hasattr(self.Method, 'bicluster_') :
-    #         self.biClusters_ = self.Method.biClusters_
-    #         self.outputDict['outputs']['biClusters'           ] = self.biClusters_
-
+      self.metaDict['noComponents'] = copy.deepcopy(self.noComponents_)
+      if hasattr(self.Method, 'components_'):
+        self.metaDict['components'] = self.Method.components_
+      if hasattr(self.Method, 'means_'):
+        self.metaDict['means'] = self.Method.means_
+      if hasattr(self.Method, 'explained_variance_'):
+        self.explainedVariance_ = copy.deepcopy(self.Method.explained_variance_)
+        self.metaDict['explainedVariance'] = self.explainedVariance_
+      if hasattr(self.Method, 'explained_variance_ratio_'):
+        self.metaDict['explainedVarianceRatio'] = self.Method.explained_variance_ratio_
 
   def __evaluateLocal__(self, featureVals):
     """
@@ -564,15 +591,12 @@ class SciKitLearn(unSupervisedLearning):
       @ In, featureVals, numpy.array, feature values
       @ Out, self.labels_, numpy.array, labels
     """
-    self.normValues = featureVals
-    if hasattr(self.Method, 'predict'): self.labels_ = self.Method.predict(featureVals)
-    else                              : self.labels_ = self.Method.fit_predict(featureVals)
-    self.outputDict['outputs']['labels'] = self.labels_
+    if hasattr(self.Method, 'predict'):
+      labels = self.Method.predict(featureVals)
+    else:
+      labels = self.Method.fit_predict(featureVals)
 
-    if hasattr(self.Method, 'inertia_') :
-        self.inertia_ = self.Method.inertia_
-        self.outputDict['outputs']['inertia'] = self.inertia_
-    return self.labels_
+    return labels
 
   def __confidenceLocal__(self):
     """
@@ -581,22 +605,31 @@ class SciKitLearn(unSupervisedLearning):
       @ Out, self.outputdict['confidence'], dict, dictionary of the confidence metrics of the algorithms
     """
     self.outputDict['confidence'] = {}
-    if 'cluster' == self.SKLtype:
-        if hasattr(self.Method, 'labels_'):
-            if np.unique(self.labels_).size > 1:
-              self.outputDict['confidence']['silhouetteCoefficient'  ] = metrics.silhouette_score          (self.normValues , self.labels_)
-        if hasattr(self.Method, 'inertia_'):
-            self.outputDict['confidence']['inertia'                  ] = self.inertia_
-        if  self.labels:
-            self.outputDict['confidence']['homogeneity'              ] = metrics.homogeneity_score         (self.labelValues, self.labels_)
-            self.outputDict['confidence']['completenes'              ] = metrics.completeness_score        (self.labelValues, self.labels_)
-            self.outputDict['confidence']['vMeasure'                 ] = metrics.v_measure_score           (self.labelValues, self.labels_)
-            self.outputDict['confidence']['adjustedRandIndex'        ] = metrics.adjusted_rand_score       (self.labelValues, self.labels_)
-            self.outputDict['confidence']['adjustedMutualInformation'] = metrics.adjusted_mutual_info_score(self.labelValues, self.labels_)
+
+    ## I believe you should always have labels populated when dealing with a
+    ## clustering algorithm, this second condition may be redundant
+    if 'cluster' == self.SKLtype and 'labels' in self.outputDict['outputs']:
+      labels = self.outputDict['outputs']['labels']
+
+      if np.unique(labels).size > 1:
+        self.outputDict['confidence']['silhouetteCoefficient'] = metrics.silhouette_score(self.normValues , labels)
+
+      if hasattr(self.Method, 'inertia_'):
+        self.outputDict['confidence']['inertia'] = self.Method.inertia_
+
+      ## If we have ground truth labels, then compute some additional confidence
+      ## metrics
+      if self.labelValues is not None:
+        self.outputDict['confidence']['homogeneity'              ] =          metrics.homogeneity_score(self.labelValues, labels)
+        self.outputDict['confidence']['completenes'              ] =         metrics.completeness_score(self.labelValues, labels)
+        self.outputDict['confidence']['vMeasure'                 ] =            metrics.v_measure_score(self.labelValues, labels)
+        self.outputDict['confidence']['adjustedRandIndex'        ] =        metrics.adjusted_rand_score(self.labelValues, labels)
+        self.outputDict['confidence']['adjustedMutualInformation'] = metrics.adjusted_mutual_info_score(self.labelValues, labels)
     elif 'mixture' == self.SKLtype:
-        self.outputDict['confidence']['aic'  ] = self.Method.aic(self.normValues)  # Akaike Information Criterion
-        self.outputDict['confidence']['bic'  ] = self.Method.bic(self.normValues)  # Bayesian Information Criterion
-        self.outputDict['confidence']['score'] = self.Method.score(self.normValues)  # log probabilities of each data point
+      self.outputDict['confidence']['aic'  ] = self.Method.aic(self.normValues)   ## Akaike Information Criterion
+      self.outputDict['confidence']['bic'  ] = self.Method.bic(self.normValues)   ## Bayesian Information Criterion
+      self.outputDict['confidence']['score'] = self.Method.score(self.normValues) ## log probabilities of each data point
+
     return self.outputDict['confidence']
 
 #
@@ -613,8 +646,10 @@ def returnInstance(modelClass, caller, **kwargs):
     @ In, kwargs, dict, a dictionary specifying the keywords and values needed to create the instance.
     @ Out, object, an instance of a Model
   """
-  try: return __interfaceDict[modelClass](caller.messageHandler, **kwargs)
-  except KeyError: caller.raiseAnError(NameError, 'unSuperVisedLEarning', 'Not known ' + __base + ' type ' + str(modelClass))
+  try:
+    return __interfaceDict[modelClass](caller.messageHandler, **kwargs)
+  except KeyError:
+    caller.raiseAnError(NameError, 'unSuperVisedLEarning', 'Not known ' + __base + ' type ' + str(modelClass))
 
 def returnClass(modelClass, caller):
   """
@@ -623,5 +658,7 @@ def returnClass(modelClass, caller):
     @ In, caller, object, object that will share its messageHandler instance
     @ Out, the class definition of the Model
   """
-  try: return __interfaceDict[modelClass]
-  except KeyError: caller.raiseanError(NameError, 'unSuperVisedLEarning', 'not known ' + __base + ' type ' + modelClass)
+  try:
+    return __interfaceDict[modelClass]
+  except KeyError:
+    caller.raiseanError(NameError, 'unSuperVisedLEarning', 'not known ' + __base + ' type ' + modelClass)

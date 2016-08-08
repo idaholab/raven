@@ -3611,7 +3611,9 @@ class DataMining(BasePostProcessor):
 
     self.raiseADebug(str(finishedJob.returnEvaluation()))
 
+    print(finishedJob.returnEvaluation())
     dataMineDict = finishedJob.returnEvaluation()[1]
+    print(dataMineDict)
     for key in dataMineDict['output']:
       for param in output.getParaKeys('output'):
         if key == param:
@@ -3641,95 +3643,64 @@ class DataMining(BasePostProcessor):
     if not self.unSupervisedEngine.amITrained:
       self.unSupervisedEngine.train(input['Features'], self.metric)
     self.unSupervisedEngine.confidence()
-    outputDict['output'] = {}
-    noClusters = 1
+    # outputDict['output'] = {}
 
-    ## These are very different things, shouldn't each one be its own class?
-    ## Proposed hierarchy:
-    ##   - DataMining
-    ##     - Classification
-    ##       - GMM
-    ##       - Clustering
-    ##         - Biclustering
-    ##         - Hierarchical
-    ##           - Topological
-    ##     - Dimensionality Reduction
-    ##       - Manifold Learning
-    ##       - Linear projection methods
-    if 'cluster' == self.unSupervisedEngine.SKLtype:
+    outputDict = self.unSupervisedEngine.outputDict
+    print(outputDict.keys())
 
-      ## Get the cluster labels and store as a new column in the output
-      if hasattr(self.unSupervisedEngine, 'labels_'):
-        self.clusterLabels = self.unSupervisedEngine.labels_
-      outputDict['output'][self.labelFeature] = self.clusterLabels
+    if 'bicluster' == self.unSupervisedEngine.SKLtype:
+      self.raiseAnError(RuntimeError, 'Bicluster has not yet been implemented.')
 
-      ## Get the total number of clusters
-      if hasattr(self.unSupervisedEngine, 'noClusters'):
-        noClusters = self.unSupervisedEngine.noClusters
-      elif hasattr(self.unSupervisedEngine, 'clusterCentersIndices_'):
-        noClusters = len(self.unSupervisedEngine.clusterCentersIndices_)
+    ## Rename it to point to the user-defined label feature
+    if 'labels' in outputDict['outputs']:
+      outputDict['output'][self.labelFeature] = outputDict['output'].pop('labels')
 
-      ## Get the centroids and push them to a SolutionExport data object, if
-      ## we have both, also if we have the centers, assume we have the indices
-      ## to match them.
-      if hasattr(self.unSupervisedEngine, 'clusterCenters_'):
-        centers = self.unSupervisedEngine.clusterCenters_
+    if 'cluster' == self.unSupervisedEngine.SKLtype and self.solutionExport is not None:
+      if 'clusterCenters' in outputDict['outputs']:
+        centers = outputDict['outputs']['clusterCenters']
         ## Does skl not provide a correlation between label ids and cluster centers?
-        if hasattr(self.unSupervisedEngine, 'clusterCentersIndices_'):
-          indices = self.unSupervisedEngine.clusterCentersIndices_
+        if 'clusterCentersIndices' in outputDict['output']:
+          indices = outputDict['outputs']['clusterCentersIndices']
         else:
           indices = list(range(len(centers)))
 
-        if self.solutionExport is not None:
-          if self.PreProcessor is None:
-            for index,center in zip(indices,centers):
-              self.solutionExport.updateInputValue(self.labelFeature,index)
-              ## Can I be sure of the order of dimensions in the features dict, is
-              ## the same order as the data held in the UnSupervisedLearning object?
-              for key,value in zip(self.unSupervisedEngine.features.keys(),center):
-                self.solutionExport.updateOutputValue(key,value)
+        if self.PreProcessor is None:
+          for index,center in zip(indices,centers):
+            self.solutionExport.updateInputValue(self.labelFeature,index)
+            ## Can I be sure of the order of dimensions in the features dict, is
+            ## the same order as the data held in the UnSupervisedLearning object?
+            for key,value in zip(self.unSupervisedEngine.features.keys(),center):
+              self.solutionExport.updateOutputValue(key,value)
+        else:
+          # if a pre-processor is used it is here assumed that the pre-processor has internally a
+          # method (called "inverse") which converts the cluster centers back to their original format. If this method
+          # does not exist a warning will be generated
+          tempDict = {}
+          for index,center in zip(indices,centers):
+            tempDict[index] = center
+          centers = self.PreProcessor.interface._inverse(tempDict)
+
+          for index,center in zip(indices,centers):
+            self.solutionExport.updateInputValue(self.labelFeature,index)
+
+          listOutputParams = self.solutionExport.getParaKeys('outputs')
+          if self.solutionExport.type == 'HistorySet':
+            for hist in centers.keys():
+              for key in centers[hist].keys():
+                self.solutionExport.updateOutputValue(key,centers[hist][key])
           else:
-            # if a pre-processor is used it is here assumed that the pre-processor has internally a
-            # method (called "inverse") which converts the cluster centers back to their original format. If this method
-            # does not exist a warning will be generated
-            tempDict = {}
-            for index,center in zip(indices,centers):
-              tempDict[index] = center
-            centers = self.PreProcessor.interface._inverse(tempDict)
+            for key in centers.keys():
+              if key in self.solutionExport.getParaKeys('outputs'):
+                for value in centers[key]:
+                  self.solutionExport.updateOutputValue(key,value)
 
-            for index,center in zip(indices,centers):
-              self.solutionExport.updateInputValue(self.labelFeature,index)
-
-            listOutputParams = self.solutionExport.getParaKeys('outputs')
-            if self.solutionExport.type == 'HistorySet':
-              for hist in centers.keys():
-                for key in centers[hist].keys():
-                  self.solutionExport.updateOutputValue(key,centers[hist][key])
-            else:
-              for key in centers.keys():
-                if key in self.solutionExport.getParaKeys('outputs'):
-                  for value in centers[key]:
-                    self.solutionExport.updateOutputValue(key,value)
-
-      if hasattr(self.unSupervisedEngine, 'inertia_'):
-        inertia = self.unSupervisedEngine.inertia_
-
-    elif 'bicluster' == self.unSupervisedEngine.SKLtype:
-      self.raiseAnError(RuntimeError, 'Bicluster has not yet been implemented.')
     elif 'mixture' == self.unSupervisedEngine.SKLtype:
-
-      if   hasattr(self.unSupervisedEngine, 'covars_'):
-        mixtureCovars = self.unSupervisedEngine.covars_
-
-      if hasattr(self.unSupervisedEngine, 'precs_'):
-        mixturePrecisions = self.unSupervisedEngine.precs_
-
-      mixtureValues = self.unSupervisedEngine.normValues
-      mixtureMeans = self.unSupervisedEngine.means_
+      normedValues = self.unSupervisedEngine.normValues
       mixtureLabels = self.unSupervisedEngine.evaluate(input['Features'])
-      outputDict['output'][self.labelFeature] = mixtureLabels
+      outputDict['outputs'][self.labelFeature] = mixtureLabels
 
       if self.solutionExport is not None:
+        mixtureMeans = self.unSupervisedEngine.means_
         ## TODO: Export Gaussian centers to SolutionExport
         ## Get the centroids and push them to a SolutionExport data object, if
         ## we have both, also if we have the centers, assume we have the indices
