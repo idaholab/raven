@@ -127,8 +127,6 @@
       <Input>dummy_for_branch</Input>
       <Output>pump_mass_flow_rate,time</Output>
     </HistorySet>
-    <HistorySet>
-    </HistorySet>
   </DataObjects>
 
 </Simulation>
