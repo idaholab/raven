@@ -1,0 +1,186 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+
+  <RunInfo>
+    <WorkingDir>custom1D/</WorkingDir>
+    <!--<Sequence>fileGen2,fileGen3</Sequence>  Use this sequence only to generate the data that is going to be used to initialize the 1D custom distribution -->
+    <Sequence>MRun2,plot2,MRun3,plot3</Sequence> 
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Steps>
+    
+    <MultiRun name="fileGen2"> 
+      <Input   class="DataObjects" type="PointSet"      >inputPlaceHolder</Input>
+      <Model   class="Models"      type="ExternalModel" >PythonModule2</Model>
+      <Sampler class="Samplers"    type="Grid"          >Grid2</Sampler>
+      <Output  class="DataObjects" type="PointSet"      >PointSetFile2</Output>
+      <Output  class="OutStreams"  type="Print"         >PointSetFile2_dump</Output>
+    </MultiRun>
+    <MultiRun name="fileGen3"> 
+      <Input   class="DataObjects" type="PointSet"      >inputPlaceHolder</Input>
+      <Model   class="Models"      type="ExternalModel" >PythonModule3</Model>
+      <Sampler class="Samplers"    type="Grid"          >Grid3</Sampler>
+      <Output  class="DataObjects" type="PointSet"      >PointSetFile3</Output>
+      <Output  class="OutStreams"  type="Print"         >PointSetFile3_dump</Output>
+    </MultiRun>
+    <MultiRun name="MRun2"> 
+      <Input   class="DataObjects" type="PointSet"      >inputPlaceHolder</Input>
+      <Model   class="Models"      type="ExternalModel" >PythonModule</Model>
+      <Sampler class="Samplers"    type="MonteCarlo"    >my_MC2</Sampler>
+      <Output  class="DataObjects" type="PointSet"      >PointSet2</Output>
+      <Output  class="OutStreams"  type="Print"         >PointSet2_dump</Output>
+    </MultiRun>
+    <IOStep name="plot2" pauseAtEnd="false">
+      <Input   class="DataObjects" type="PointSet"      >PointSet2</Input>
+      <Output  class="OutStreams"  type="Plot"          >plot2</Output>
+    </IOStep>
+    <MultiRun name="MRun3"> 
+      <Input   class="DataObjects" type="PointSet"      >inputPlaceHolder</Input>
+      <Model   class="Models"      type="ExternalModel" >PythonModule</Model>
+      <Sampler class="Samplers"    type="MonteCarlo"    >my_MC3</Sampler>
+      <Output  class="DataObjects" type="PointSet"      >PointSet3</Output>
+      <Output  class="OutStreams"  type="Print"         >PointSet3_dump</Output>
+    </MultiRun>
+    <IOStep name="plot3" pauseAtEnd="false">
+      <Input   class="DataObjects" type="PointSet"      >PointSet3</Input>
+      <Output  class="OutStreams"  type="Plot"          >plot3</Output>
+    </IOStep>
+  </Steps>
+
+  <Models>
+    <ExternalModel ModuleToLoad="pdfCdf_norm" name="PythonModule2" subType="">
+      <variables>x,cdf,pdf</variables>
+    </ExternalModel>
+    <ExternalModel ModuleToLoad="pdfCdf_exp" name="PythonModule3" subType="">
+      <variables>x,cdf,pdf</variables>
+    </ExternalModel>
+    <ExternalModel ModuleToLoad="simple" name="PythonModule" subType="">
+      <variables>x,y</variables>
+    </ExternalModel>
+  </Models>
+
+  <Distributions>
+    <Normal name="x_dist2">
+      <mean>0</mean>
+      <sigma>1</sigma>
+    </Normal>
+    <Exponential name='x_dist3'>
+      <lambda>2.0</lambda>
+    </Exponential>
+    <Custom1D name="pdf_custom">
+      <dataFilename>PointSetFile2_dump.csv</dataFilename>
+      <functionID>pdf</functionID>
+      <variableID>x</variableID>
+      <functionType>pdf</functionType>
+      <workingDir>custom1D/</workingDir>
+    </Custom1D>
+    <Custom1D name="cdf_custom">
+      <dataFilename>PointSetFile3_dump.csv</dataFilename>
+      <functionID>cdf</functionID>
+      <variableID>x</variableID>
+      <functionType>cdf</functionType>
+      <workingDir>custom1D/</workingDir>
+    </Custom1D>
+  </Distributions>
+
+  <Samplers>
+    <Grid name="Grid2">
+      <variable name="x">
+        <distribution>x_dist2</distribution>
+        <grid construction="equal" steps="100" type="value">-5.0 5.0</grid>
+      </variable>
+    </Grid>
+    <Grid name="Grid3">
+      <variable name="x">
+        <distribution>x_dist3</distribution>
+        <grid construction="equal" steps="100" type="value">0.0 4.0</grid>
+      </variable>
+    </Grid>
+    <MonteCarlo name="my_MC2">
+      <samplerInit>
+        <limit>10</limit>
+      </samplerInit>
+      <variable name="x">
+        <distribution>cdf_custom</distribution>
+      </variable>
+    </MonteCarlo>
+    <MonteCarlo name="my_MC3">
+      <samplerInit>
+        <limit>10</limit>
+      </samplerInit>
+      <variable name="x">
+        <distribution>pdf_custom</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <OutStreams>
+    <Print name="PointSetFile2_dump">
+      <type>csv</type>
+      <source>PointSetFile2</source>
+    </Print>
+    <Print name="PointSetFile3_dump">
+      <type>csv</type>
+      <source>PointSetFile3</source>
+    </Print>
+    <Print name="PointSet2_dump">
+      <type>csv</type>
+      <source>PointSet2</source>
+    </Print>
+    <Print name="PointSet3_dump">
+      <type>csv</type>
+      <source>PointSet3</source>
+    </Print>
+    <Plot dim="2" name="plot2" overwrite="false" verbosity="debug">
+      <plotSettings>
+        <plot>
+          <type>histogram</type>
+          <x>PointSet2|Output|y</x>
+          <bins>30</bins>
+        </plot>
+        <xlabel>x</xlabel>
+      </plotSettings>
+      <actions>
+        <how>pdf</how>
+      </actions>
+    </Plot>
+    <Plot dim="2" name="plot3" overwrite="false" verbosity="debug">
+      <plotSettings>
+        <plot>
+          <type>histogram</type>
+          <x>PointSet3|Output|y</x>
+          <bins>30</bins>
+        </plot>
+        <xlabel>x</xlabel>
+      </plotSettings>
+      <actions>
+        <how>pdf</how>
+      </actions>
+    </Plot>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="inputPlaceHolder">
+      <Input>x</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="PointSetFile2">
+      <Input>x</Input>
+      <Output>pdf,cdf</Output>
+    </PointSet>
+    <PointSet name="PointSetFile3">
+      <Input>x</Input>
+      <Output>pdf,cdf</Output>
+    </PointSet>
+    <PointSet name="PointSet2">
+      <Input>x</Input>
+      <Output>y</Output>
+    </PointSet>
+    <PointSet name="PointSet3">
+      <Input>x</Input>
+      <Output>y</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>
