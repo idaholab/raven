@@ -2,7 +2,7 @@
 <Simulation printTimeStamps="false" verbosity="debug">
   <RunInfo>
     <WorkingDir>DETshort</WorkingDir>
-    <Sequence>DETrunTest,extract_hist_example</Sequence>
+    <Sequence>DETrunTest</Sequence>
     <batchSize>4</batchSize>
   </RunInfo>
 
