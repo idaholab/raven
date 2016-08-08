@@ -3,7 +3,6 @@
   type = 'RavenFramework'
   input = 'testDETshort.xml'
   output = 'DETshort/DETrunTest/DET_test_1-1-2/out~ideal_pump DETshort/testprint_tpset_hier_variables.csv DETshort/3-2DHistoryPlot_tps_scatter.pdf'
-  csv = 'DETshort/testprint_tpset_hier_variables.csv'
   required_executable = '../../../../RAVEN-%METHOD%'
  [../]
 
