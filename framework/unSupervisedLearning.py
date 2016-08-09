@@ -27,7 +27,6 @@ warnings.simplefilter('default', DeprecationWarning)
 from sklearn import cluster, mixture, manifold, decomposition, covariance, neural_network
 from sklearn import metrics
 from sklearn.neighbors import kneighbors_graph
-from scipy.cluster import hierarchy
 import numpy as np
 import abc
 import ast
@@ -543,69 +542,10 @@ class SciKitLearn(unSupervisedLearning):
         self.outputDict['confidence']['score'] = self.Method.score(self.normValues)  # log probabilities of each data point
     return self.outputDict['confidence']
 
-
-class Scipy(unSupervisedLearning):
-  """
-    Scipy interface for hierarchical Learning
-  """
-  modelType = 'Scipy'
-  availImpl = {}
-  availImpl['cluster'] = {}
-  availImpl['cluster']['Hierarchical'] = (hierarchy, 'float')  # Perform Hierarchical Clustering of data.
-
-  def __init__(self, messageHandler, **kwargs):
-    """
-     constructor for Scipy class.
-     @ In, messageHandler, MessageHandler, Message handler object
-     @ In, kwargs, dict, arguments for the Scipy algorithm
-     @ Out, None
-    """
-    unSupervisedLearning.__init__(self, messageHandler, **kwargs)
-    self.printTag = 'SCIPY'
-    if 'SCIPYtype' not in self.initOptionDict.keys():
-      self.raiseAnError(IOError, ' to define a Scipy unSupervisedLearning Method the SCIPYtype keyword is needed (from KDD ' + self.name + ')')
-
-    SCIPYtype, SCIPYsubType = self.initOptionDict['Scipy'].split('|')
-    self.initOptionDict.pop('SCIPYtype')
-
-    if not SCIPYtype in self.__class__.availImpl.keys():
-      self.raiseAnError(IOError, ' Unknown SCIPYtype ' + SCIPYtype + '(from KDD ' + self.name + ')')
-    if not SCIPYtype in self.__class__.availImpl[SCIPYtype].keys():
-      self.raiseAnError(IOError, ' Unknown SCIPYsubType ' + SCIPYsubType + '(from KDD ' + self.name + ')')
-
-    self.__class__.returnType = self.__class__.availImpl[SCIPYtype][SCIPYsubType][1]
-    self.Method = self.__class__.availImpl[SCIPYtype][SCIPYsubType][0]()
-    self.SCIPYtype = SCIPYtype
-    self.SCIPYsubType = SCIPYsubType
-
-    self.Method.set_params(**self.initOptionDict)
-    self.normValues = None
-    self.outputDict = {}
-
-  def __trainLocal__(self):
-    """
-      Perform training on samples in self.normValues: array, shape = [n_samples, n_features] or [n_samples, n_samples]
-      @ In, None
-      @ Out, None
-    """
-    if hasattr(self.Method, 'linkage'):
-        self.linkage = self.Method.linkage(self.normValues,**self.initOptionDict)
-
-  def __evaluateLocal__(self):
-    """
-      Method to return output of an already trained scipy algorithm.
-      @ In, featureVals, numpy.array, feature values
-      @ Out, self.dData, numpy.array, dendrogram
-    """
-    self.dData = dendrogram(self.linkage,**self.initOptionDict)
-
-  def __confidenceLocal__(self):
-    pass
 #
 #
 __interfaceDict = {}
 __interfaceDict['SciKitLearn'] = SciKitLearn
-__interfaceDict['Scipy'] = Scipy
 __base = 'unSuperVisedLearning'
 
 def returnInstance(modelClass, caller, **kwargs):

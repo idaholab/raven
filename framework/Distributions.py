@@ -1857,13 +1857,19 @@ class Custom1D(Distribution):
     self.data = rawData[rawData[:,indexVariableID].argsort()]
 
     if self.functionType == 'cdf':
-      spl = UnivariateSpline(self.data[:,0], self.data[:,1], k=4, s=0)
-      self.derivative = spl.derivative()
-      self.pdfFunc = self.derivative(self.data[indexVariableID])
+      self.cdfFunc = UnivariateSpline(self.data[:,0], self.data[:,1], k=4, s=0)
+      self.derivative = self.cdfFunc.derivative()  
+      self.invCDF  = UnivariateSpline(self.data[:,1], self.data[:,0], k=4, s=0) 
     else:  # self.functionType == 'pdf'
-      self.pdfFunc = UnivariateSpline(self.data[:,0], self.data[:,1], k=4, s=0)
-
-
+      self.pdfFunc = UnivariateSpline(self.data[:,0], self.data[:,1], k=4, s=0) 
+      cdfValues = np.zeros(self.data[:,0].size)
+      for i in range(self.data[:,0].size):
+        cdfValues[i] = self.pdfFunc.integral(self.data[0][0],self.data[i,0])
+      self.invCDF = UnivariateSpline(cdfValues, self.data[:,0] , k=4, s=0) 
+    
+    # Note that self.invCDF is creating a new spline where I switch its term. 
+    # Instead of doing spline(x,f(x)) I am creating its inverse spline(f(x),x) 
+    # This can be done if f(x) is monothonic increasing with x (which is true for cdf)
   def pdf(self,x):
     """
       Function that calculates the pdf value of x
@@ -1883,7 +1889,7 @@ class Custom1D(Distribution):
       @ Out, pdfValue, scalar, requested pdf
     """
     if self.functionType == 'cdf':
-      cdfValue = self.derivative(x)
+      cdfValue = self.cdfFunc(x)
     else:
       cdfValue = self.pdf.integral(self.data[0][0],x)
     return cdfValue
@@ -1894,16 +1900,7 @@ class Custom1D(Distribution):
       @ In, x, float, the x coordinates
       @ Out, ppfValue, float, ppf values
     """
-    if self.functionType == 'pdf':
-      cdfValues = np.zeros(self.data[:,0].size)
-      for i in range(self.data[:,0].size):
-        cdfValues[i] = self.pdfFunc.integral(self.data[0][0],self.data[i,0])
-      spl = UnivariateSpline(cdfValues, self.data[:,0] , k=4, s=0)
-    else:
-      spl = UnivariateSpline(self.data[:,1], self.data[:,0], k=4, s=0)
-
-    ppfValue = spl(x)
-
+    ppfValue = self.invCDF(x)
     return ppfValue
 
   def rvs(self):

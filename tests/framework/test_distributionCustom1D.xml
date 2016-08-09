@@ -85,18 +85,6 @@
   </Distributions>
 
   <Samplers>
-    <Grid name="Grid2">
-      <variable name="x">
-        <distribution>x_dist2</distribution>
-        <grid construction="equal" steps="100" type="value">-5.0 5.0</grid>
-      </variable>
-    </Grid>
-    <Grid name="Grid3">
-      <variable name="x">
-        <distribution>x_dist3</distribution>
-        <grid construction="equal" steps="100" type="value">0.0 4.0</grid>
-      </variable>
-    </Grid>
     <MonteCarlo name="my_MC2">
       <samplerInit>
         <limit>10</limit>
@@ -113,6 +101,18 @@
         <distribution>pdf_custom</distribution>
       </variable>
     </MonteCarlo>
+    <Grid name="Grid2">
+      <variable name="x">
+        <distribution>x_dist2</distribution>
+        <grid construction="equal" steps="100" type="value">-5.0 5.0</grid>
+      </variable>
+    </Grid>
+    <Grid name="Grid3">
+      <variable name="x">
+        <distribution>x_dist3</distribution>
+        <grid construction="equal" steps="100" type="value">0.0 4.0</grid>
+      </variable>
+    </Grid>
   </Samplers>
 
   <OutStreams>
