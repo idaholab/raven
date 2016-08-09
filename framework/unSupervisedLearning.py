@@ -404,15 +404,15 @@ class SciKitLearn(unSupervisedLearning):
               for center in self.clusterCenters_:
                 center[cnt] = center[cnt] * self.muAndSigmaFeatures[feat][1] + self.muAndSigmaFeatures[feat][0]
             self.outputDict['outputs']['clusterCenters'       ] = self.clusterCenters_
-        else:            
+        else:
             # this methods is used by any other clustering algorithm that does not generatecluster_centers_ to generate the cluster centers. E.g., Agglomerative
-            # clustering in Sklearn does not in fact compute cluster centers. This if condition computes 
+            # clustering in Sklearn does not in fact compute cluster centers. This if condition computes
             # self.outputDict['outputs']['clusterCenters'] for this particular clustering method
             centroids = np.zeros([self.noClusters,len(self.features)])
             counter = np.zeros(self.noClusters)
             for val,index in enumerate(self.Method.labels_):
               centroids[index] += self.normValues[val]
-              counter[index]+=1 
+              counter[index]+=1
             for index,val in enumerate(centroids):
               if counter[index] == 0.:
                 self.raiseAnError(RuntimeError, 'The data-mining clustering method '+ str(self.Method) +' has generated a 0-size cluster' )
@@ -421,7 +421,7 @@ class SciKitLearn(unSupervisedLearning):
               for center in centroids:
                 center[cnt] = center[cnt] * self.muAndSigmaFeatures[feat][1] + self.muAndSigmaFeatures[feat][0]
             self.clusterCenters_ = copy.deepcopy(centroids)
-            self.outputDict['outputs']['clusterCenters'] = centroids    
+            self.outputDict['outputs']['clusterCenters'] = centroids
         if hasattr(self.Method, 'cluster_centers_indices_') :
             self.clusterCentersIndices_ = copy.deepcopy(self.Method.cluster_centers_indices_)
             self.outputDict['outputs']['clusterCentersIndices'] = self.clusterCentersIndices_
@@ -547,10 +547,10 @@ class SciKitLearn(unSupervisedLearning):
 class Scipy(unSupervisedLearning):
   """
     Scipy interface for hierarchical Learning
-  """  
+  """
   modelType = 'Scipy'
   availImpl = {}
-  availImpl['cluster'] = {}  
+  availImpl['cluster'] = {}
   availImpl['cluster']['Hierarchical'] = (hierarchy, 'float')  # Perform Hierarchical Clustering of data.
 
   def __init__(self, messageHandler, **kwargs):
@@ -559,25 +559,25 @@ class Scipy(unSupervisedLearning):
      @ In, messageHandler, MessageHandler, Message handler object
      @ In, kwargs, dict, arguments for the Scipy algorithm
      @ Out, None
-    """  
+    """
     unSupervisedLearning.__init__(self, messageHandler, **kwargs)
     self.printTag = 'SCIPY'
-    if 'SCIPYtype' not in self.initOptionDict.keys(): 
+    if 'SCIPYtype' not in self.initOptionDict.keys():
       self.raiseAnError(IOError, ' to define a Scipy unSupervisedLearning Method the SCIPYtype keyword is needed (from KDD ' + self.name + ')')
-    
+
     SCIPYtype, SCIPYsubType = self.initOptionDict['Scipy'].split('|')
     self.initOptionDict.pop('SCIPYtype')
-    
-    if not SCIPYtype in self.__class__.availImpl.keys(): 
+
+    if not SCIPYtype in self.__class__.availImpl.keys():
       self.raiseAnError(IOError, ' Unknown SCIPYtype ' + SCIPYtype + '(from KDD ' + self.name + ')')
-    if not SCIPYtype in self.__class__.availImpl[SCIPYtype].keys(): 
+    if not SCIPYtype in self.__class__.availImpl[SCIPYtype].keys():
       self.raiseAnError(IOError, ' Unknown SCIPYsubType ' + SCIPYsubType + '(from KDD ' + self.name + ')')
-    
+
     self.__class__.returnType = self.__class__.availImpl[SCIPYtype][SCIPYsubType][1]
     self.Method = self.__class__.availImpl[SCIPYtype][SCIPYsubType][0]()
     self.SCIPYtype = SCIPYtype
     self.SCIPYsubType = SCIPYsubType
-    
+
     self.Method.set_params(**self.initOptionDict)
     self.normValues = None
     self.outputDict = {}
@@ -598,9 +598,9 @@ class Scipy(unSupervisedLearning):
       @ Out, self.dData, numpy.array, dendrogram
     """
     self.dData = dendrogram(self.linkage,**self.initOptionDict)
-    
+
   def __confidenceLocal__(self):
-    pass 
+    pass
 #
 #
 __interfaceDict = {}
@@ -617,9 +617,9 @@ def returnInstance(modelClass, caller, **kwargs):
     @ Out, object, an instance of a Model
   """
   __interfaceDict[modelClass](caller.messageHandler, **kwargs)
-  try: 
+  try:
     return __interfaceDict[modelClass](caller.messageHandler, **kwargs)
-  except Exception as(ae): 
+  except Exception as(ae):
     caller.raiseAnError(NameError, 'unSuperVisedLEarning', 'Not known ' + __base + ' type ' + str(modelClass)+'.Error: '+ str(ae))
 
 def returnClass(modelClass, caller):

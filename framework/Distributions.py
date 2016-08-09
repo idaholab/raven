@@ -1786,10 +1786,10 @@ class Weibull(BoostDistribution):
         self.upperBound = b
       else:b = self.upperBound
       self._distribution = distribution1D.BasicWeibullDistribution(self.k,self.lambdaVar,a,b,self.low)
-      
+
 
 class Custom1D(Distribution):
-  
+
   def __init__(self):
     """
       Constructor
@@ -1799,12 +1799,12 @@ class Custom1D(Distribution):
     Distribution.__init__(self)
     self.dataFilename    = None
     self.functionType    = None
-    self.type            = 'Custom1D'   
+    self.type            = 'Custom1D'
     self.functionID      = None
     self.variableID      = None
-    self.dimensionality  = 1 
+    self.dimensionality  = 1
     self.disttype        = 'Continuous'
-    
+
   def _readMoreXML(self,xmlNode):
     """
       Read the the xml node of the Custom1D distribution
@@ -1815,19 +1815,19 @@ class Custom1D(Distribution):
     workingDir = xmlNode.find('workingDir')
     if workingDir != None:
       self.workingDir = workingDir.text
-      
+
     self.functionType = xmlNode.find('functionType').text.lower()
     if self.functionType == None:
       self.raiseAnError(IOError,' functionType parameter is needed for custom1Ddistribution distribution')
     if not self.functionType in ['cdf','pdf']:
       self.raiseAnError(IOError,' wrong functionType parameter specified for custom1Ddistribution distribution (pdf or cdf)')
-      
+
     dataFilename = xmlNode.find('dataFilename')
     if dataFilename != None:
       self.dataFilename = os.path.join(self.workingDir,dataFilename.text)
     else:
       self.raiseAnError(IOError,'<dataFilename> parameter needed for custom1Ddistribution distribution')
-      
+
     self.functionID = xmlNode.find('functionID').text
     if self.functionID == None:
       self.raiseAnError(IOError,' functionID parameter is needed for custom1Ddistribution distribution')
@@ -1835,9 +1835,9 @@ class Custom1D(Distribution):
     self.variableID = xmlNode.find('variableID').text
     if self.variableID == None:
       self.raiseAnError(IOError,' variableID parameter is needed for custom1Ddistribution distribution')
-            
+
     self.initializeDistribution()
-    
+
 
   def initializeDistribution(self):
     """
@@ -1845,7 +1845,7 @@ class Custom1D(Distribution):
       @ In, None
       @ Out, None
     """
-    
+
     f = open(self.dataFilename, 'rb')
     reader = csv.reader(f)
     headers = reader.next()
@@ -1853,9 +1853,9 @@ class Custom1D(Distribution):
     indexVariableID = headers.index(self.variableID)
     f.close()
     rawData = np.genfromtxt(self.dataFilename, delimiter="," , skip_header=1, usecols=(indexVariableID,indexFunctionID))
-    
+
     self.data = rawData[rawData[:,indexVariableID].argsort()]
-    
+
     if self.functionType == 'cdf':
       spl = UnivariateSpline(self.data[:,0], self.data[:,1], k=4, s=0)
       self.derivative = spl.derivative()
@@ -1863,7 +1863,7 @@ class Custom1D(Distribution):
     else:  # self.functionType == 'pdf'
       self.pdfFunc = UnivariateSpline(self.data[:,0], self.data[:,1], k=4, s=0)
 
-      
+
   def pdf(self,x):
     """
       Function that calculates the pdf value of x
@@ -1874,8 +1874,8 @@ class Custom1D(Distribution):
       pdfValue = self.derivative(x)
     else:
       pdfValue = self.pdfFunc(x)
-    return pdfValue   
-   
+    return pdfValue
+
   def cdf(self,x):
     """
       Function that calculates the cdf value of x
@@ -1886,8 +1886,8 @@ class Custom1D(Distribution):
       cdfValue = self.derivative(x)
     else:
       cdfValue = self.pdf.integral(self.data[0][0],x)
-    return cdfValue  
-    
+    return cdfValue
+
   def ppf(self,x):
     """
       Return the ppf of given coordinate
@@ -1897,15 +1897,15 @@ class Custom1D(Distribution):
     if self.functionType == 'pdf':
       cdfValues = np.zeros(self.data[:,0].size)
       for i in range(self.data[:,0].size):
-        cdfValues[i] = self.pdfFunc.integral(self.data[0][0],self.data[i,0])   
-      spl = UnivariateSpline(cdfValues, self.data[:,0] , k=4, s=0)  
+        cdfValues[i] = self.pdfFunc.integral(self.data[0][0],self.data[i,0])
+      spl = UnivariateSpline(cdfValues, self.data[:,0] , k=4, s=0)
     else:
       spl = UnivariateSpline(self.data[:,1], self.data[:,0], k=4, s=0)
-    
+
     ppfValue = spl(x)
 
     return ppfValue
-  
+
   def rvs(self):
     """
       Return a random state of the custom1D distribution
@@ -1914,8 +1914,8 @@ class Custom1D(Distribution):
     """
     rvsValue = self.ppf(random())
     return rvsValue
- 
-    
+
+
 class NDimensionalDistributions(Distribution):
   """
     General base class for NDimensional distributions
