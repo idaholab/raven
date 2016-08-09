@@ -778,8 +778,7 @@ class Simulation(MessageHandler.MessageUser):
           xmlDirectory = os.path.dirname(os.path.abspath(xmlFilename))
           rawRelativeWorkingDir = element.text.strip()
           self.runInfoDict['WorkingDir'] = os.path.join(xmlDirectory,rawRelativeWorkingDir)
-        #check/generate the existence of the working directory
-        if not os.path.exists(self.runInfoDict['WorkingDir']): os.makedirs(self.runInfoDict['WorkingDir'])
+        utils.makeDir(self.runInfoDict['WorkingDir'])
       elif element.tag == 'RemoteRunCommand':
         tempName = element.text
         if '~' in tempName : tempName = os.path.expanduser(tempName)

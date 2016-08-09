@@ -9530,6 +9530,16 @@ MINOR EDIT time=  9.90000000E+01 adv=  1387 M.Ed. Lines   100
    97.0000       965.30       898.79       892.58      0.18804      0.17436      1.30933E-02   902.54    
    98.0000       964.78       898.32       892.19      0.18937      0.17543      1.30226E-02   903.95    
    99.0000       964.25       897.86       891.80      0.19056      0.17651      1.29478E-02   905.32    
+ Reducing time step due to max number of repeats               1493911
+ Reducing time step due to max number of repeats               1493914
+ Reducing time step due to max number of repeats               1493917
+ Reducing time step due to max number of repeats               1493920
+ Reducing time step due to max number of repeats               1493923
+0$$$$$$$$ isamic property error during time step repeat or noncondensable appearance repeat.
+ncount =1495485     volno =   5010000     vctrl =          1107886080
+ Reducing time step due to max number of repeats               1496712
+ Reducing time step due to max number of repeats               1496715
+ Reducing time step due to max number of repeats               1496718
 1RELAP5-3D/Ver:4.0.3      Reactor Excursion Leak Analysis Program
  typical pwr model -- 4 inch cold leg break 36.05 check case                      16/03/22     17:01:32      
 0MAJOR EDIT !!!time=   100.000000     sec, M. Edit # =         2

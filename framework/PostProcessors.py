@@ -3389,6 +3389,7 @@ class DataMining(BasePostProcessor):
     self.printTag = 'POSTPROCESSOR DATAMINING'
 
     self.requiredAssObject = (True, (['Label','PreProcessor','Metric'], ['-1','-1','-1']))  ## The Label is optional for now
+
     self.clusterLabels = None
     self.labelAlgorithms = []
     self.solutionExport = None                            ## A data object to
@@ -3435,8 +3436,42 @@ class DataMining(BasePostProcessor):
         data objects handed to the post-processor
       @ Out, inputDict, dict, An input dictionary this object can process
     """
-    if type(currentInp) == list: currentInput = currentInp[-1]
-    else                       : currentInput = currentInp
+
+    if type(currentInp) == list:
+      currentInput = currentInp[-1]
+    else:
+      currentInput = currentInp
+
+    if currentInput.type == 'HistorySet' and self.PreProcessor is None: # for testing time dependent dm - time dependent clustering
+      inputDict = {'Features':{}, 'parameters':{}, 'Labels':{}, 'metadata':{}}
+
+      # FIXME, this needs to be changed for asynchronous HistorySet
+      if self.pivotParameter in currentInput.getParam('output',1).keys():
+        self.pivotVariable = currentInput.getParam('output',1)[self.pivotParameter]
+      else:
+        self.raiseAnError(ValueError, 'Pivot variable not found in input historyset')
+      # end of FIXME
+
+      historyKey = currentInput.getOutParametersValues().keys()
+      numberOfSample = len(historyKey)
+      numberOfHistoryStep = len(self.pivotVariable)
+
+      if self.initializationOptionDict['KDD']['Features'] == 'input':
+        self.raiseAnError(ValueError, 'To perform data mining over input please use SciKitLearn library')
+      elif self.initializationOptionDict['KDD']['Features'] in ['output', 'all']:
+        features = currentInput.getParaKeys('output')
+        features.remove(self.pivotParameter)
+      else:
+        features = self.initializationOptionDict['KDD']['Features'].split(',')
+
+      for param in features:
+        inputDict['Features'][param] = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
+        for cnt, keyH in enumerate(historyKey):
+          inputDict['Features'][param][cnt,:] = currentInput.getParam('output', keyH)[param]
+
+      inputDict['metadata'] = currentInput.getAllMetadata()
+      return inputDict
+
     if type(currentInp) == dict:
       if 'Features' in currentInput.keys(): return
     if isinstance(currentInp, Files.File):
@@ -3524,6 +3559,7 @@ class DataMining(BasePostProcessor):
     #   self.raiseAnError(IOError, 'Unsupported input type (' + currentInput.subtype + ') for PostProcessor ' + self.name + ' must be a PointSet.')
     else:
       self.raiseAnError(IOError, 'Unsupported input type (' + currentInput.type + ') for PostProcessor ' + self.name + ' must be a PointSet.')
+
     return inputDict
 
   def initialize(self, runInfo, inputs, initDict):
@@ -3590,9 +3626,21 @@ class DataMining(BasePostProcessor):
             self.initializationOptionDict[child.tag][childChild.tag] = dict(childChild.attrib)
           else:
             self.initializationOptionDict[child.tag][childChild.tag] = utils.tryParse(childChild.text)
+      elif child.tag == 'pivotParameter':
+        self.pivotParameter = child.text
+
+    if not hasattr(self, 'pivotParameter'):
+      #TODO, if doing time dependent data mining that needs this, an error
+      # should be thrown
+      self.pivotParameter = None
 
     if self.type:
-      self.unSupervisedEngine = unSupervisedLearning.returnInstance(self.type, self, **self.initializationOptionDict['KDD'])
+      #TODO unSurpervisedEngine needs to be able to handle both methods
+      # without this if statement.
+      if self.pivotParameter is not None:
+        self.unSupervisedEngine = unSupervisedLearning.returnInstance("temporalSciKitLearn", self, **self.initializationOptionDict['KDD'])
+      else:
+        self.unSupervisedEngine = unSupervisedLearning.returnInstance(self.type, self, **self.initializationOptionDict['KDD'])
     else:
       self.raiseAnError(IOError, 'No Data Mining Algorithm is supplied!')
 
@@ -3609,8 +3657,6 @@ class DataMining(BasePostProcessor):
     if finishedJob.returnEvaluation() == -1:
       self.raiseAnError(RuntimeError, 'No available Output to collect (Run probably is not finished yet)')
 
-    self.raiseADebug(str(finishedJob.returnEvaluation()))
-
     dataMineDict = finishedJob.returnEvaluation()[1]
     for key in dataMineDict['outputs']:
       for param in output.getParaKeys('output'):
@@ -3620,12 +3666,19 @@ class DataMining(BasePostProcessor):
         for value in dataMineDict['outputs'][key]:
           output.updateOutputValue(key, copy.copy(value))
       elif output.type == 'HistorySet':
-        for index,value in np.ndenumerate(dataMineDict['outputs'][key]):
-          firstHist = output._dataContainer['outputs'].keys()[0]
-          firstVar  = output._dataContainer['outputs'][firstHist].keys()[0]
-          timeLength = output._dataContainer['outputs'][firstHist][firstVar].size
-          arrayBase = value * np.ones(timeLength)
-          output.updateOutputValue([index[0]+1,key], arrayBase)
+        if self.PreProcessor is not None:
+          for index,value in np.ndenumerate(dataMineDict['outputs'][key]):
+            firstHist = output._dataContainer['outputs'].keys()[0]
+            firstVar  = output._dataContainer['outputs'][firstHist].keys()[0]
+            timeLength = output._dataContainer['outputs'][firstHist][firstVar].size
+            arrayBase = value * np.ones(timeLength)
+            output.updateOutputValue([index[0]+1,key], arrayBase)
+        else:
+          tlDict = finishedJob.returnEvaluation()[1]
+          historyKey = output.getOutParametersValues().keys()
+          for index, keyH in enumerate(historyKey):
+            for keyL in tlDict['output'].keys():
+              output.updateOutputValue([keyH,keyL], tlDict['outputs'][keyL][index,:])
 
   def run(self, inputIn):
     """
@@ -3634,13 +3687,31 @@ class DataMining(BasePostProcessor):
       @ In, inputIn, dict, dictionary of data to process
       @ Out, outputDict, dict, dictionary containing the post-processed results
     """
-    dataObject = None
-    input = self.inputToInternal(inputIn)
+    Input = self.inputToInternal(inputIn)
+    if type(inputIn) == list:
+      currentInput = inputIn[-1]
+    else:
+      currentInput = inputIn
+
+    if currentInput.type == 'HistorySet' and self.PreProcessor is None:
+      return self.__runTemporalSciKitLearn(Input)
+    else:
+      return self.__runSciKitLearn(Input)
+
+  def __runSciKitLearn(self, Input):
+    """
+      This method executes the postprocessor action. In this case it loads the
+      results to specified dataObject.  This is for SciKitLearn
+      @ In, Input, dict, dictionary of data to process
+      @ Out, outputDict, dict, dictionary containing the post-processed results
+    """
+
     outputDict = {}
-    self.unSupervisedEngine.features = input['Features']
+    self.unSupervisedEngine.features = Input['Features']
     if not self.unSupervisedEngine.amITrained:
-      self.unSupervisedEngine.train(input['Features'], self.metric)
+      self.unSupervisedEngine.train(Input['Features'], self.metric)
     self.unSupervisedEngine.confidence()
+
     # outputDict['output'] = {}
 
     outputDict = self.unSupervisedEngine.outputDict
@@ -3656,6 +3727,7 @@ class DataMining(BasePostProcessor):
     if 'cluster' == self.unSupervisedEngine.SKLtype and self.solutionExport is not None:
       if 'clusterCenters' in outputDict['outputs']:
         centers = outputDict['outputs']['clusterCenters']
+
         ## Does skl not provide a correlation between label ids and cluster centers?
         if 'clusterCentersIndices' in outputDict['outputs']:
           indices = outputDict['outputs']['clusterCentersIndices']
@@ -3703,15 +3775,23 @@ class DataMining(BasePostProcessor):
         ## Get the centroids and push them to a SolutionExport data object, if
         ## we have both, also if we have the centers, assume we have the indices
         ## to match them.
+
         ## Does skl not provide a correlation between label ids and Gaussian
         ## centers?
         indices = list(range(len(mixtureMeans)))
         for index,center in zip(indices,mixtureMeans):
           self.solutionExport.updateInputValue(self.labelFeature,index)
           ## Can I be sure of the order of dimensions in the features dict, is
-          ## the same order as the data held in the UnSupervisedLearning object?
+          ## the same order as the data held in the UnSupervisedLearning
+          ## object?
           for key,value in zip(self.unSupervisedEngine.features.keys(),center):
             self.solutionExport.updateOutputValue(key,value)
+          ## You may also want to output the covariances of each pair of
+          ## dimensions as well
+          for i,row in enumerate(self.unSupervisedEngine.features.keys()):
+            for joffset,col in enumerate(self.unSupervisedEngine.features.keys()[i:]):
+              j = i+joffset
+              self.solutionExport.updateOutputValue('cov_'+str(row)+'_'+str(col),mixtureCovars[index][i,j])
 
     elif 'manifold' == self.unSupervisedEngine.SKLtype:
       manifoldValues = self.unSupervisedEngine.normValues
@@ -3726,8 +3806,9 @@ class DataMining(BasePostProcessor):
       if hasattr(self.unSupervisedEngine, 'reconstructionError_'):
         reconstructionError = self.unSupervisedEngine.reconstructionError_
 
-      ## information stored on a per point basis, no need to use a solution
-      ## export here
+      ## information stored on a per point basis, so no need to use a solution
+      ## export. Manifold methods do not give us a global transformation
+      ## matrix.
       for i in range(len(embeddingVectors[0, :])):
         outputDict['outputs'][self.name+'EmbeddingVector' + str(i + 1)] =  embeddingVectors[:, i]
 
@@ -3746,14 +3827,180 @@ class DataMining(BasePostProcessor):
       ## SCORE method does not work for SciKit Learn 0.14
       # if hasattr(self.unSupervisedEngine.Method, 'score'):
       #   score = self.unSupervisedEngine.Method.score(decompositionValues)
-      if hasattr(self.unSupervisedEngine.Method, 'transform'):
-        components = self.unSupervisedEngine.Method.transform(decompositionValues)
-      elif hasattr(self.unSupervisedEngine.Method, 'fit_transform'):
-        components = self.unSupervisedEngine.Method.fit_transform(decompositionValues)
+      if   'transform'     in dir(self.unSupervisedEngine.Method):
+        transformedData = self.unSupervisedEngine.Method.transform(decompositionValues)
+      elif 'fit_transform' in dir(self.unSupervisedEngine.Method):
+        transformedData = self.unSupervisedEngine.Method.fit_transform(decompositionValues)
 
-      ## information stored on a per point basis, no need to use a solution
-      ## export here, this could potentially change, if we are sure these
-      ## use a single projection matrix.
+      ## information stored on a per point basis
+      for i in range(noComponents):
+        outputDict['output'][self.name+'PCAComponent' + str(i + 1)] =  transformedData[:, i]
+
+      if self.solutionExport is not None:
+        ## Get the transformation matrix and push it to a SolutionExport
+        ## data object.
+        ## Can I be sure of the order of dimensions in the features dict, is
+        ## the same order as the data held in the UnSupervisedLearning object?
+        for row,values in enumerate(components):
+          self.solutionExport.updateInputValue('component', row+1)
+          for col,value in zip(self.unSupervisedEngine.features.keys(),values):
+            self.solutionExport.updateOutputValue(col,value)
+
+    return outputDict
+
+
+  def __runTemporalSciKitLearn(self, Input):
+    """
+      This method executes the postprocessor action. In this case it loads the
+      results to specified dataObject.  This is for temporalSciKitLearn
+      @ In, Input, dict, dictionary of data to process
+      @ Out, outputDict, dict, dictionary containing the post-processed results
+    """
+
+    outputDict = {}
+    self.unSupervisedEngine.features = Input['Features']
+    self.unSupervisedEngine.pivotVariable = self.pivotVariable
+
+    if not self.unSupervisedEngine.amITrained:
+      self.unSupervisedEngine.train(Input['Features'])
+    self.unSupervisedEngine.confidence()
+    outputDict['output'] = {}
+    numberOfHistoryStep = self.unSupervisedEngine.numberOfHistoryStep
+    numberOfSample = self.unSupervisedEngine.numberOfSample
+
+    if 'cluster' == self.unSupervisedEngine.SKLtype:
+      if 'labels' in self.unSupervisedEngine.outputDict.keys():
+        labels = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
+        for t in range(numberOfHistoryStep):
+          labels[:,t] = self.unSupervisedEngine.outputDict['labels'][t]
+        outputDict['output'][self.labelFeature] = labels
+
+      ## SKL will always enumerate cluster centers starting from zero, if this
+      ## is violated, then the indexing below will break.
+      if 'clusterCentersIndices' in self.unSupervisedEngine.outputDict.keys():
+        clusterCentersIndices = self.unSupervisedEngine.outputDict['clusterCentersIndices']
+
+      if 'clusterCenters' in self.unSupervisedEngine.outputDict.keys():
+        clusterCenters = self.unSupervisedEngine.outputDict['clusterCenters']
+        # Output cluster centroid to solutionExport
+        if self.solutionExport is not None:
+          ## We will process each cluster in turn
+          for clusterIdx in xrange(int(np.max(labels))+1):
+            ## First store the label as the input for this cluster
+            self.solutionExport.updateInputValue(self.labelFeature,clusterIdx)
+
+            ## The time series will be the first output
+            ## TODO: Ensure user requests this
+            self.solutionExport.updateOutputValue(self.pivotParameter, self.pivotVariable)
+
+            ## Now we will process each feature available
+            ## TODO: Ensure user requests each of these
+            for featureIdx, feat in enumerate(self.unSupervisedEngine.features):
+              ## We will go through the time series and find every instance
+              ## where this cluster exists, if it does not, then we put a NaN
+              ## to signal that the information is missing for this timestep
+              timeSeries = np.zeros(numberOfHistoryStep)
+
+              for timeIdx in range(numberOfHistoryStep):
+                ## Here we use the assumption that SKL provides clusters that
+                ## are integer values beginning at zero, which make for nice
+                ## indexes with no need to add another layer of obfuscation
+                if clusterIdx in clusterCentersIndices[timeIdx]:
+                  timeSeries[timeIdx] = self.unSupervisedEngine.outputDict['clusterCenters'][timeIdx][clusterIdx,featureIdx]
+                else:
+                  timeSeries[timeIdx] = np.nan
+
+              ## In summary, for each feature, we fill a temporary array and
+              ## stuff it into the solutionExport, one question is how do we
+              ## tell it which item we are exporting? I am assuming that if
+              ## I add an input, then I need to do the corresponding
+              ## updateOutputValue to associate everything with it? Once I
+              ## call updateInputValue again, it will move the pointer? This
+              ## needs verified
+              self.solutionExport.updateOutputValue(feat, timeSeries)
+
+      if 'inertia' in self.unSupervisedEngine.outputDict.keys():
+        inertia = self.unSupervisedEngine.outputDict['inertia']
+
+    elif 'mixture' == self.unSupervisedEngine.SKLtype:
+      if 'labels' in self.unSupervisedEngine.outputDict.keys():
+        labels = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
+        for t in range(numberOfHistoryStep):
+          labels[:,t] = self.unSupervisedEngine.outputDict['labels'][t]
+        outputDict['output'][self.labelFeature] = labels
+
+      if 'covars' in self.unSupervisedEngine.outputDict.keys():
+        mixtureCovars = self.unSupervisedEngine.outputDict['covars']
+      else:
+        mixtureCovars = None
+
+      if 'precs' in self.unSupervisedEngine.outputDict.keys():
+        mixturePrecs = self.unSupervisedEngine.outputDict['precs']
+      else:
+        mixturePrecs = None
+
+      if 'componentMeanIndices' in self.unSupervisedEngine.outputDict.keys():
+        componentMeanIndices = self.unSupervisedEngine.outputDict['componentMeanIndices']
+      else:
+        componentMeanIndices = None
+
+      if 'means' in self.unSupervisedEngine.outputDict.keys():
+        mixtureMeans = self.unSupervisedEngine.outputDict['means']
+      else:
+        mixtureMeans = None
+
+      # Output cluster centroid to solutionExport
+      if self.solutionExport is not None:
+        ## We will process each cluster in turn
+        for clusterIdx in xrange(int(np.max(componentMeanIndices.values()))+1):
+          ## First store the label as the input for this cluster
+          self.solutionExport.updateInputValue(self.labelFeature,clusterIdx)
+
+          ## The time series will be the first output
+          ## TODO: Ensure user requests this
+          self.solutionExport.updateOutputValue(self.pivotParameter, self.pivotVariable)
+
+          ## Now we will process each feature available
+          ## TODO: Ensure user requests each of these
+          if mixtureMeans is not None:
+            for featureIdx, feat in enumerate(self.unSupervisedEngine.features):
+              ## We will go through the time series and find every instance
+              ## where this cluster exists, if it does not, then we put a NaN
+              ## to signal that the information is missing for this timestep
+              timeSeries = np.zeros(numberOfHistoryStep)
+
+              for timeIdx in range(numberOfHistoryStep):
+                timeSeries[timeIdx] = mixtureMeans[timeIdx][clusterIdx,featureIdx]
+
+              ## In summary, for each feature, we fill a temporary array and
+              ## stuff it into the solutionExport, one question is how do we
+              ## tell it which item we are exporting? I am assuming that if
+              ## I add an input, then I need to do the corresponding
+              ## updateOutputValue to associate everything with it? Once I
+              ## call updateInputValue again, it will move the pointer? This
+              ## needs verified
+              self.solutionExport.updateOutputValue(feat, timeSeries)
+
+          ## You may also want to output the covariances of each pair of
+          ## dimensions as well
+          if mixtureCovars is not None:
+            for i,row in enumerate(self.unSupervisedEngine.features.keys()):
+              for joffset,col in enumerate(self.unSupervisedEngine.features.keys()[i:]):
+                j = i+joffset
+                timeSeries = np.zeros(numberOfHistoryStep)
+                for timeIdx in range(numberOfHistoryStep):
+                  timeSeries[timeIdx] = mixtureCovars[timeIdx][clusterIdx][i,j]
+                self.solutionExport.updateOutputValue('cov_'+str(row)+'_'+str(col),timeSeries)
+
+    elif 'manifold' == self.unSupervisedEngine.SKLtype:
+      noComponents = self.unSupervisedEngine.outputDict['noComponents'][0]
+
+      if 'embeddingVectors_' in self.unSupervisedEngine.outputDict.keys():
+        embeddingVectors = self.unSupervisedEngine.outputDict['embeddingVectors_']
+
+      if 'reconstructionError_' in self.unSupervisedEngine.outputDict.keys():
+        reconstructionError = self.unSupervisedEngine.outputDict['reconstructionError_']
+
       for i in range(noComponents):
         outputDict['outputs'][self.name+'PCAComponent' + str(i + 1)] =  components[:, i]
 
@@ -3941,6 +4188,7 @@ class RavenOutput(BasePostProcessor):
     if desiredNode is None:
       self.raiseAnError(RuntimeError,'Did not find "%s|%s" in file "%s"' %(root.tag,path,fileName))
     return desiredNode
+
 
 
 
