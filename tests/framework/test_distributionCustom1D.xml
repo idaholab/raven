@@ -8,8 +8,7 @@
     <batchSize>1</batchSize>
   </RunInfo>
 
-  <Steps>
-    
+  <Steps>   
     <MultiRun name="fileGen2"> 
       <Input   class="DataObjects" type="PointSet"      >inputPlaceHolder</Input>
       <Model   class="Models"      type="ExternalModel" >PythonModule2</Model>
