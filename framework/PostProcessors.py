@@ -3611,18 +3611,16 @@ class DataMining(BasePostProcessor):
 
     self.raiseADebug(str(finishedJob.returnEvaluation()))
 
-    print(finishedJob.returnEvaluation())
     dataMineDict = finishedJob.returnEvaluation()[1]
-    print(dataMineDict)
-    for key in dataMineDict['output']:
+    for key in dataMineDict['outputs']:
       for param in output.getParaKeys('output'):
         if key == param:
           output.removeOutputValue(key)
       if output.type == 'PointSet':
-        for value in dataMineDict['output'][key]:
+        for value in dataMineDict['outputs'][key]:
           output.updateOutputValue(key, copy.copy(value))
       elif output.type == 'HistorySet':
-        for index,value in np.ndenumerate(dataMineDict['output'][key]):
+        for index,value in np.ndenumerate(dataMineDict['outputs'][key]):
           firstHist = output._dataContainer['outputs'].keys()[0]
           firstVar  = output._dataContainer['outputs'][firstHist].keys()[0]
           timeLength = output._dataContainer['outputs'][firstHist][firstVar].size
@@ -3653,13 +3651,13 @@ class DataMining(BasePostProcessor):
 
     ## Rename it to point to the user-defined label feature
     if 'labels' in outputDict['outputs']:
-      outputDict['output'][self.labelFeature] = outputDict['output'].pop('labels')
+      outputDict['outputs'][self.labelFeature] = outputDict['outputs'].pop('labels')
 
     if 'cluster' == self.unSupervisedEngine.SKLtype and self.solutionExport is not None:
       if 'clusterCenters' in outputDict['outputs']:
         centers = outputDict['outputs']['clusterCenters']
         ## Does skl not provide a correlation between label ids and cluster centers?
-        if 'clusterCentersIndices' in outputDict['output']:
+        if 'clusterCentersIndices' in outputDict['outputs']:
           indices = outputDict['outputs']['clusterCentersIndices']
         else:
           indices = list(range(len(centers)))
@@ -3731,7 +3729,7 @@ class DataMining(BasePostProcessor):
       ## information stored on a per point basis, no need to use a solution
       ## export here
       for i in range(len(embeddingVectors[0, :])):
-        outputDict['output'][self.name+'EmbeddingVector' + str(i + 1)] =  embeddingVectors[:, i]
+        outputDict['outputs'][self.name+'EmbeddingVector' + str(i + 1)] =  embeddingVectors[:, i]
 
     elif 'decomposition' == self.unSupervisedEngine.SKLtype:
       decompositionValues = self.unSupervisedEngine.normValues
@@ -3757,7 +3755,7 @@ class DataMining(BasePostProcessor):
       ## export here, this could potentially change, if we are sure these
       ## use a single projection matrix.
       for i in range(noComponents):
-        outputDict['output'][self.name+'PCAComponent' + str(i + 1)] =  components[:, i]
+        outputDict['outputs'][self.name+'PCAComponent' + str(i + 1)] =  components[:, i]
 
     return outputDict
 #
