@@ -2,6 +2,10 @@
 
 num_fails=0
 
+pushd ../../framework
+RAVEN_FRAMEWORK_DIR=$(pwd)
+popd
+
 wait_lines ()
 {
     LS_DATA="$1"
