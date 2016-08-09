@@ -1858,7 +1858,7 @@ class Custom1D(Distribution):
 
     if self.functionType == 'cdf':
       self.cdfFunc = UnivariateSpline(self.data[:,0], self.data[:,1], k=4, s=0)
-      self.derivative = self.cdfFunc.derivative()  
+      self.pdfFunc = self.cdfFunc.derivative()  
       self.invCDF  = UnivariateSpline(self.data[:,1], self.data[:,0], k=4, s=0) 
     else:  # self.functionType == 'pdf'
       self.pdfFunc = UnivariateSpline(self.data[:,0], self.data[:,1], k=4, s=0) 
@@ -1876,10 +1876,7 @@ class Custom1D(Distribution):
       @ In, x, scalar , coordinates to get the pdf at
       @ Out, pdfValue, scalar, requested pdf
     """
-    if self.functionType == 'cdf':
-      pdfValue = self.derivative(x)
-    else:
-      pdfValue = self.pdfFunc(x)
+    pdfValue = self.pdfFunc(x)
     return pdfValue
 
   def cdf(self,x):
