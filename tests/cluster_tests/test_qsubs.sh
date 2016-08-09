@@ -16,7 +16,6 @@ wait_lines ()
     fi
     if test $lines -eq $COUNT; then
         echo PASS $NAME
-        rm $RAVEN_FRAMEWORK_DIR/raven_qsub.[eo]*
     else
         echo FAIL $NAME
         num_fails=$(($num_fails+1))
@@ -25,6 +24,7 @@ wait_lines ()
         echo '\n\nStandard Output:\n'
         cat $RAVEN_FRAMEWORK_DIR/raven_qsub.o*
     fi
+    rm $RAVEN_FRAMEWORK_DIR/raven_qsub.[eo]*
 
 }
 
