@@ -87,6 +87,7 @@
     <MonteCarlo name="my_MC2">
       <samplerInit>
         <limit>10</limit>
+        <initialSeed>1234</initialSeed>
       </samplerInit>
       <variable name="x">
         <distribution>cdf_custom</distribution>
@@ -95,6 +96,7 @@
     <MonteCarlo name="my_MC3">
       <samplerInit>
         <limit>10</limit>
+        <initialSeed>1234</initialSeed>
       </samplerInit>
       <variable name="x">
         <distribution>pdf_custom</distribution>
