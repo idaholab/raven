@@ -1789,7 +1789,9 @@ class Weibull(BoostDistribution):
 
 
 class Custom1D(Distribution):
-
+  """
+    Custom1D univariate distribution which is initialized by a dataObject compatible .csv file
+  """
   def __init__(self):
     """
       Constructor
