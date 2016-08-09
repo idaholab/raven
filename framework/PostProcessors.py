@@ -3943,8 +3943,6 @@ class DataMining(BasePostProcessor):
               ## needs verified
               self.solutionExport.updateOutputValue(feat, timeSeries)
 
-            # print('self.solutionExport', self.solutionExport._dataContainer)
-
       if 'inertia' in self.unSupervisedEngine.outputDict.keys():
         inertia = self.unSupervisedEngine.outputDict['inertia']
 
@@ -4031,10 +4029,8 @@ class DataMining(BasePostProcessor):
         ## Looking at the lines between the initialization of
         ## outputDict['output'] and here, how is this ever possible? I don't
         ## think the if is necessary here.
-        if self.name+'EmbeddingVector' + str(i + 1) not in outputDict['output'].keys():
-          outputDict['output'][self.name+'EmbeddingVector' + str(i + 1)] = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
-        else:
-          print('DEAD CODE')
+        # if self.name+'EmbeddingVector' + str(i + 1) not in outputDict['output'].keys():
+        outputDict['output'][self.name+'EmbeddingVector' + str(i + 1)] = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
 
         ## Shouldn't this only happen if embeddingVectors is set above?
         for t in range(numberOfHistoryStep):
@@ -4062,10 +4058,9 @@ class DataMining(BasePostProcessor):
         ## Looking at the lines between the initialization of
         ## outputDict['output'] and here, how is this ever possible? I don't
         ## think the if is necessary here.
-        if self.name+'PCAComponent' + str(i + 1) not in outputDict['output'].keys():
-          outputDict['output'][self.name+'PCAComponent' + str(i + 1)] = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
-        else:
-          print('DEAD CODE 2')
+        # if self.name+'PCAComponent' + str(i + 1) not in outputDict['output'].keys():
+        outputDict['output'][self.name+'PCAComponent' + str(i + 1)] = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
+
 
         if transformedData is not None:
           for t in range(numberOfHistoryStep):
@@ -4087,7 +4082,7 @@ class DataMining(BasePostProcessor):
             self.solutionExport.updateOutputValue(col,timeSeries)
 
     else:
-      print ('Not yet implemented!...', self.unSupervisedEngine.SKLtype)
+      self.raiseAnError(IOError,'%s has not yet implemented.' % self.unSupervisedEngine.SKLtype)
 
     return outputDict
 #
