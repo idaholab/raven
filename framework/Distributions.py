@@ -1891,7 +1891,7 @@ class Custom1D(Distribution):
     if self.functionType == 'cdf':
       cdfValue = self.cdfFunc(x)
     else:
-      cdfValue = self.pdf.integral(self.data[0][0],x)
+      cdfValue = self.pdfFunc.integral(self.data[0][0],x)
     return cdfValue
 
   def ppf(self,x):

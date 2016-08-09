@@ -1046,6 +1046,27 @@ checkAnswer("Categorical  ppf(0.1)" , Categorical.ppf(0.1),10)
 checkAnswer("Categorical  ppf(0.5)" , Categorical.ppf(0.5),50)
 checkAnswer("Categorical  ppf(0.9)" , Categorical.ppf(0.9),60)
 
+# Test Custom1D
+Custom1DElement = ET.Element("Custom1D")
+Custom1DElement.append(createElement("dataFilename", text="PointSetFile2_dump.csv"))
+Custom1DElement.append(createElement("functionID",   text="pdf"))
+Custom1DElement.append(createElement("variableID",   text="x"))
+Custom1DElement.append(createElement("functionType", text="pdf"))
+Custom1DElement.append(createElement("workingDir",   text="custom1D/"))
+
+Custom1D = Distributions.Custom1D()
+Custom1D._readMoreXML(Custom1DElement)
+Custom1D.initializeDistribution()
+
+checkAnswer("Custom1D pdf(-2.2)",Custom1D.pdf(-2.2),0.0354745928462)
+checkAnswer("Custom1D pdf(1.9)",Custom1D.pdf(1.9) ,0.0656158147747)
+
+checkAnswer("Custom1D cdf(-2.2)",Custom1D.cdf(-2.2),0.0139031606668)
+checkAnswer("Custom1D cdf(1.9)",Custom1D.cdf(1.9), 0.971283153684)
+
+checkAnswer("Custom1D ppf(0.0139034475135)",Custom1D.ppf(0.0139034475135),-2.19999191499)
+checkAnswer("Custom1D ppf(00.971283440184)",Custom1D.ppf(0.971283440184),1.90000436617)
+
 
 print(results)
 
