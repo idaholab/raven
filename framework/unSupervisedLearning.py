@@ -553,6 +553,9 @@ class SciKitLearn(unSupervisedLearning):
       self.metaDict['clusterCenters'] = centers
 
     elif 'mixture' == self.SKLtype:
+      labels = self.Method.fit_predict(self.normValues)
+      self.outputDict['outputs']['labels'] = labels
+
       if hasattr(self.Method, 'converged_'):
         if not self.Method.converged_:
           self.raiseAnError(RuntimeError, self.SKLtype + '|' + self.SKLsubType + ' did not converged. (from KDD->' + self.SKLsubType + ')')
@@ -563,6 +566,8 @@ class SciKitLearn(unSupervisedLearning):
       ##   hand the data to SKL in the same order that we have it stored.
       if hasattr(self.Method, 'means_'):
         means = copy.deepcopy(self.Method.means_)
+
+      outputDict['outputs'][self.labelFeature] = mixtureLabels
 
         for cnt, feature in enumerate(self.features):
           (mu,sigma) = self.muAndSigmaFeatures[feature]
@@ -580,14 +585,28 @@ class SciKitLearn(unSupervisedLearning):
             covariance[row,col] = covariance[row,col] * rowSigma * colSigma
         self.metaDict['covars'] = covariance
     elif 'decomposition' == self.SKLtype:
+
+      if 'embeddingVectors' not in self.outputDict['outputs']:
+        if hasattr(self.unSupervisedEngine.Method, 'transform'):
+          evs = self.unSupervisedEngine.Method.transform(self.normValues)
+          self.outputDict['outputs'] = embeddingVectors
+        elif hasattr(self.unSupervisedEngine.Method, 'fit_transform'):
+          evs = self.unSupervisedEngine.Method.fit_transform(self.normValues)
+          self.outputDict['outputs']['embeddingVectors'] = evs
+        else:
+          self.raiseAWarning('The embedding vectors could not be computed.')
+
       self.metaDict['noComponents'] = copy.deepcopy(self.noComponents_)
       if hasattr(self.Method, 'components_'):
         self.metaDict['components'] = self.Method.components_
+
       if hasattr(self.Method, 'means_'):
         self.metaDict['means'] = self.Method.means_
+
       if hasattr(self.Method, 'explained_variance_'):
         self.explainedVariance_ = copy.deepcopy(self.Method.explained_variance_)
         self.metaDict['explainedVariance'] = self.explainedVariance_
+
       if hasattr(self.Method, 'explained_variance_ratio_'):
         self.metaDict['explainedVarianceRatio'] = self.Method.explained_variance_ratio_
 
