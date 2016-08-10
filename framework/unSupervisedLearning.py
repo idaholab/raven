@@ -564,7 +564,7 @@ class SciKitLearn(unSupervisedLearning):
       if hasattr(self.Method, 'means_'):
         means = copy.deepcopy(self.Method.means_)
 
-        for cnt, feat in enumerate(self.features):
+        for cnt, feature in enumerate(self.features):
           (mu,sigma) = self.muAndSigmaFeatures[feature]
           for center in means:
             center[cnt] = center[cnt] * sigma + mu
@@ -573,10 +573,10 @@ class SciKitLearn(unSupervisedLearning):
       if hasattr(self.Method, 'covars_') :
         covariance = copy.deepcopy(self.Method.covars_)
 
-        for row, rowFeat in enumerate(self.features):
-          rowSigma = self.muAndSigmaFeatures[rowFeat][1]
-          for col, colFeat in enumerate(self.features):
-            colSigma = self.muAndSigmaFeatures[colFeat][1]
+        for row, rowFeature in enumerate(self.features):
+          rowSigma = self.muAndSigmaFeatures[rowFeature][1]
+          for col, colFeature in enumerate(self.features):
+            colSigma = self.muAndSigmaFeatures[colFeature][1]
             covariance[row,col] = covariance[row,col] * rowSigma * colSigma
         self.metaDict['covars'] = covariance
     elif 'decomposition' == self.SKLtype:

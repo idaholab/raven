@@ -3766,11 +3766,13 @@ class DataMining(BasePostProcessor):
 
     elif 'mixture' == self.unSupervisedEngine.SKLtype:
       normedValues = self.unSupervisedEngine.normValues
-      mixtureLabels = self.unSupervisedEngine.evaluate(input['Features'])
+      mixtureLabels = self.unSupervisedEngine.evaluate(Input['Features'])
       outputDict['outputs'][self.labelFeature] = mixtureLabels
 
       if self.solutionExport is not None:
-        mixtureMeans = self.unSupervisedEngine.means_
+        solutionExportDict = self.unSupervisedEngine.metaDict
+        mixtureMeans = solutionExportDict['means']
+        mixtureCovars = solutionExportDict['covars']
         ## TODO: Export Gaussian centers to SolutionExport
         ## Get the centroids and push them to a SolutionExport data object, if
         ## we have both, also if we have the centers, assume we have the indices
