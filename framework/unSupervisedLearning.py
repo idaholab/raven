@@ -423,13 +423,13 @@ class SciKitLearn(unSupervisedLearning):
     ## everything else away, maybe with a warning message?
     tempDict = {}
     for key, value in self.initOptionDict.items():
-      try:
-        if key in paramsDict:
+      if key in paramsDict:
+        try:
           tempDict[key] = ast.literal_eval(value)
-        else:
-          self.raiseAWarning('Ignoring unknown parameter %s to the method of type %s' % (key, SKLsubType))
-      except:
-        pass
+        except:
+          tempDict[key] = value
+      else:
+        self.raiseAWarning('Ignoring unknown parameter %s to the method of type %s' % (key, SKLsubType))
     self.initOptionDict = tempDict
 
     self.Method.set_params(**self.initOptionDict)
@@ -525,8 +525,13 @@ class SciKitLearn(unSupervisedLearning):
         ## This methods is used by any other clustering algorithm that does
         ## not generatecluster_centers_ to generate the cluster centers as the
         ## average location of all points in the cluster.
-        centers = np.zeros([self.noClusters,len(self.features)])
-        counter = np.zeros(self.noClusters)
+        if hasattr(self.Method,'n_clusters'):
+          numClusters = self.Method.n_clusters
+        else:
+          numClusters = len(set(self.Method.labels_))
+
+        centers = np.zeros([numClusters,len(self.features)])
+        counter = np.zeros(numClusters)
         for val,index in enumerate(self.Method.labels_):
           centers[index] += self.normValues[val]
           counter[index] += 1

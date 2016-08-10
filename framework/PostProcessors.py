@@ -3725,12 +3725,13 @@ class DataMining(BasePostProcessor):
       outputDict['outputs'][self.labelFeature] = outputDict['outputs'].pop('labels')
 
     if 'cluster' == self.unSupervisedEngine.SKLtype and self.solutionExport is not None:
-      if 'clusterCenters' in outputDict['outputs']:
-        centers = outputDict['outputs']['clusterCenters']
+      solutionExportDict = self.unSupervisedEngine.metaDict
+      if 'clusterCenters' in solutionExportDict:
+        centers = solutionExportDict['clusterCenters']
 
         ## Does skl not provide a correlation between label ids and cluster centers?
-        if 'clusterCentersIndices' in outputDict['outputs']:
-          indices = outputDict['outputs']['clusterCentersIndices']
+        if 'clusterCentersIndices' in solutionExportDict:
+          indices = solutionExportDict['clusterCentersIndices']
         else:
           indices = list(range(len(centers)))
 
@@ -3753,7 +3754,6 @@ class DataMining(BasePostProcessor):
           for index,center in zip(indices,centers):
             self.solutionExport.updateInputValue(self.labelFeature,index)
 
-          listOutputParams = self.solutionExport.getParaKeys('outputs')
           if self.solutionExport.type == 'HistorySet':
             for hist in centers.keys():
               for key in centers[hist].keys():
