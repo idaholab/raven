@@ -528,7 +528,7 @@ class YakMultigroupLibraryParser():
             elif aliasType == 'abs':
               groupValues.append(0.0)
           else:
-            raise IOError('The user wants to perturb ' + var + ', but this variable is defined in Sampler!')
+            raise IOError('The user wants to perturb ' + var + ', but this variable is not defined in the Sampler!')
         groupValues = np.asarray(groupValues)
         factors[libKey] = groupValues
         if not lib['perturbTransport'] and libKey == 'Transport':
