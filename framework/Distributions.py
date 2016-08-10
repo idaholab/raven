@@ -1856,7 +1856,7 @@ class Custom1D(Distribution):
     f.close()
     rawData = np.genfromtxt(self.dataFilename, delimiter="," , skip_header=1, usecols=(indexVariableID,indexFunctionID))
 
-    self.data = rawData[rawData[:,indexVariableID].argsort()]
+    self.data = rawData[rawData[:,0].argsort()]
 
     if self.functionType == 'cdf':
       self.cdfFunc = UnivariateSpline(self.data[:,0], self.data[:,1], k=4, s=0)
