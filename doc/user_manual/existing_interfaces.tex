@@ -1444,6 +1444,7 @@ libraries. The following is an example of a typical alias file:
         <Capture gridIndex="1" mat="pseudo-seed1-dup" gIndex="1">c11</Capture>
         <TotalScattering gridIndex="1" mat="pseudo-seed1-dup" gIndex="1">t11</TotalScattering>
         <Nu gridIndex="1" mat="pseudo-seed1-dup" gIndex="1">n11</Nu>
+        <Transport gridIndex="1" mat="pseudo-seed1-dup" gIndex="1">d11</Transport>
     </Multigroup_Cross_Section_Library>
 </Multigroup_Cross_Section_Libraries>
 \end{lstlisting}
@@ -1470,6 +1471,9 @@ the user choose \xmlAttr{Type="abs"}, the cross sections will be perturbed absol
 the user needs to provide an absolute covariance matrix and specify `zeros' for \xmlNode{mu} in \xmlNode{MultivariateNormal}
 distribution.
 
+\nb Currently, only the following cross sections can be perturbed by the user: Fission, Capture, Nu, TotalScattering,
+and Transport.
+
 \paragraph{Perturb Instant format Cross Section Libraries}
 If the user would like to perturb the Instant cross section libraries, the user need to use the 
 \xmlString{InstantXSInput} for the \xmlAttr{type} of the libaries. In addition, the \xmlAttr{type} of the
@@ -1495,6 +1499,7 @@ libraries. The following is an example of a typical alias file:
       <CaptureXS gIndex="1">c11</CaptureXS>
       <TotalScatteringXS gIndex="1">t11<TotalScatteringXS>
       <Nu gIndex="1">n11</Nu>
+      <DiffusionCoefficient gIndex="1">d11</DiffusionCoefficient>
     </material>
   </Macros>
 </Materials>
@@ -1513,6 +1518,9 @@ percents). In this case, the user also needs to specify a relative covariance ma
 the user choose \xmlAttr{Type="abs"}, the cross sections will be perturbed absolutely (i.e. perturbed by values), and 
 the user needs to provide an absolute covariance matrix and specify `zeros' for \xmlNode{mu} in \xmlNode{MultivariateNormal}
 distribution.
+
+\nb Currently, only the following cross sections can be perturbed by the user: FissionXS, CaptureXS, Nu, TotalScatteringXS,
+and DiffusionCoefficient.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Models}

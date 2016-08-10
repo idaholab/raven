@@ -1,15 +1,16 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <RunInfo>
-    <WorkingDir>TestRattlesnake</WorkingDir>
-    <Sequence>MCTestYak</Sequence>
-    <batchSize>1</batchSize>
+    <WorkingDir>IAEA2D</WorkingDir>
+    <Sequence>diffCoeff</Sequence>
+    <batchSize>3</batchSize>
   </RunInfo>
 
   <Files>
-    <Input name="twigl_mixing.i" type="RattlesnakeInput">twigl_mixing.i</Input>
-    <Input name="xs.xml" type="YakXSInput">xs.xml</Input>
-    <Input name="alias.xml" type="YakXSAliasInput">alias.xml</Input>
+    <Input name="rattlesnakeInput" type="RattlesnakeInput">iaea2d.i</Input>
+    <Input name="xs.xml" type="InstantXSInput">xs.xml</Input>
+    <Input name="alias.xml" type="InstantXSAliasInput">alias_1.xml</Input>
+    <Input name="meshInput" type="rattlesnakeMesh">iaea2d.e</Input>
   </Files>
 
   <Models>
@@ -27,7 +28,7 @@
     </Normal>
     <Normal name="G2">
       <mean>1</mean>
-      <sigma>0.02</sigma>
+      <sigma>0.1</sigma>
       <lowerBound>0.0001</lowerBound>
       <upperBound>10</upperBound>
     </Normal>
@@ -36,43 +37,19 @@
   <Samplers>
     <MonteCarlo name="MC1">
       <samplerInit>
-        <limit>10</limit>
+        <limit>3</limit>
       </samplerInit>
-      <variable name="f11">
-        <distribution>G1</distribution>
-      </variable>
-      <variable name="c11">
-        <distribution>G1</distribution>
-      </variable>
-      <variable name="t11">
-        <distribution>G1</distribution>
-      </variable>
-      <variable name="n11">
-        <distribution>G1</distribution>
-      </variable>
-      <variable name="f22">
-        <distribution>G1</distribution>
-      </variable>
-      <variable name="c22">
-        <distribution>G1</distribution>
-      </variable>
-      <variable name="t22">
-        <distribution>G1</distribution>
-      </variable>
-      <variable name="n22">
-        <distribution>G1</distribution>
-      </variable>
-      <variable name="tr11">
+      <variable name="d11">
         <distribution>G2</distribution>
       </variable>
-      <variable name="tr22">
+      <variable name="d22">
         <distribution>G2</distribution>
       </variable>
     </MonteCarlo>
   </Samplers>
 
   <OutStreams>
-    <Print name="out_mc_yak_dump">
+    <Print name="out_diffCoeff">
       <type>csv</type>
       <source>outMC</source>
     </Print>
@@ -80,20 +57,21 @@
 
   <DataObjects>
     <PointSet name="outMC">
-      <Input>f11,f22,c11,c22,t11,t22,n11,n22,tr11,tr22</Input>
+      <Input>d11,d22</Input>
       <Output>eigenvalue</Output>
     </PointSet>
   </DataObjects>
 
   <Steps>
-    <MultiRun name="MCTestYak">
-      <Input class="Files" type="">twigl_mixing.i</Input>
+    <MultiRun name="diffCoeff">
+      <Input class="Files" type="">rattlesnakeInput</Input>
       <Input class="Files" type="">xs.xml</Input>
       <Input class="Files" type="">alias.xml</Input>
+      <Input class="Files" type="">meshInput</Input>
       <Model class="Models" type="Code">Rattlesnake</Model>
       <Sampler class="Samplers" type="MonteCarlo">MC1</Sampler>
       <Output class="DataObjects" type="PointSet">outMC</Output>
-      <Output class="OutStreams" type="Print">out_mc_yak_dump</Output>
+      <Output class="OutStreams" type="Print">out_diffCoeff</Output>
     </MultiRun>
   </Steps>
 
