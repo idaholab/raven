@@ -3388,10 +3388,8 @@ class DataMining(BasePostProcessor):
     BasePostProcessor.__init__(self, messageHandler)
     self.printTag = 'POSTPROCESSOR DATAMINING'
 
-    self.requiredAssObject = (True, (['Label','PreProcessor','Metric'], ['-1','-1','-1']))  ## The Label is optional for now
+    self.requiredAssObject = (True, (['PreProcessor','Metric'], ['-1','-1']))
 
-    self.clusterLabels = None
-    self.labelAlgorithms = []
     self.solutionExport = None                            ## A data object to
                                                           ## hold derived info
                                                           ## about the algorithm
@@ -3402,10 +3400,11 @@ class DataMining(BasePostProcessor):
                                                           ## for dimensionality
                                                           ## reduction methods
 
-    self.labelFeature = 'labels'                          ## User customizable
+    self.labelFeature = None                              ## User customizable
                                                           ## column name for the
                                                           ## labels associated
                                                           ## to a clustering
+                                                          ## algorithm or a DR
                                                           ## algorithm
 
     self.PreProcessor = None
@@ -3574,10 +3573,6 @@ class DataMining(BasePostProcessor):
     BasePostProcessor.initialize(self, runInfo, inputs, initDict)
     self.__workingDir = runInfo['WorkingDir']
 
-    if 'Label' in self.assemblerDict:
-      for val in self.assemblerDict['Label']:
-        self.labelAlgorithms.append(val[3])
-
     if "SolutionExport" in initDict:
       self.solutionExport = initDict["SolutionExport"]
 
@@ -3600,7 +3595,8 @@ class DataMining(BasePostProcessor):
     ## By default, we want to name the 'labels' by the name of this
     ## postprocessor, but that name is not available before processing the XML
     ## At this point, we have that information
-    self.labelFeature = self.name+'Labels'
+    self.labelFeature = None
+
     self.initializationOptionDict = {}
 
     for child in xmlNode:
@@ -3643,6 +3639,17 @@ class DataMining(BasePostProcessor):
         self.unSupervisedEngine = unSupervisedLearning.returnInstance(self.type, self, **self.initializationOptionDict['KDD'])
     else:
       self.raiseAnError(IOError, 'No Data Mining Algorithm is supplied!')
+
+    ## If the user has not defined a label feature, then we will force it to be
+    ## named by the PostProcessor name followed by:
+    ## the word 'Labels' for clustering/GMM models;
+    ## the word 'Dimension' + a numeric id for dimensionality reduction
+    ## algorithms
+    if self.labelFeature is None:
+      if self.unSupervisedEngine.SKLtype in ['cluster','mixture']:
+        self.labelFeature = self.name+'Labels'
+      elif self.unSupervisedEngine.SKLtype in ['decomposition','manifold']:
+        self.labelFeature = self.name+'Dimension'
 
   def collectOutput(self, finishedJob, output):
     """
@@ -3715,9 +3722,16 @@ class DataMining(BasePostProcessor):
     if 'bicluster' == self.unSupervisedEngine.SKLtype:
       self.raiseAnError(RuntimeError, 'Bicluster has not yet been implemented.')
 
-    ## Rename it to point to the user-defined label feature
+    ## Rename the algorithm output to point to the user-defined label feature
     if 'labels' in outputDict['outputs']:
       outputDict['outputs'][self.labelFeature] = outputDict['outputs'].pop('labels')
+    elif 'embeddingVectors' in outputDict['outputs']:
+      transformedData = outputDict['outputs'].pop('embeddingVectors')
+      reducedDimensionality = transformedData.shape[1]
+
+      for i in range(reducedDimensionality):
+        newColumnName = self.labelFeature + str(i + 1)
+        outputDict['outputs'][newColumnName] =  transformedData[:, i]
 
     if self.solutionExport is not None:
       if 'cluster' == self.unSupervisedEngine.SKLtype:
@@ -3795,29 +3809,6 @@ class DataMining(BasePostProcessor):
             self.solutionExport.updateInputValue('component', row+1)
             for col,value in zip(self.unSupervisedEngine.features.keys(),values):
               self.solutionExport.updateOutputValue(col,value)
-
-    if 'manifold' == self.unSupervisedEngine.SKLtype:
-      ## Remove these and store them in a slightly different fashion, I know
-      ## this is inconvenient
-      embeddingVectors = outputDict['outputs'].pop('embeddingVectors')
-
-      ## information stored on a per point basis, so no need to use a solution
-      ## export. Manifold methods do not give us a global transformation
-      ## matrix.
-      for i in range(len(embeddingVectors[0, :])):
-        outputDict['outputs'][self.name+'EmbeddingVector' + str(i + 1)] =  embeddingVectors[:, i]
-
-    elif 'decomposition' == self.unSupervisedEngine.SKLtype:
-      transformedData = outputDict['outputs'].pop('embeddingVectors')
-
-      if hasattr(self.unSupervisedEngine, 'noComponents_'):
-        noComponents = self.unSupervisedEngine.noComponents_
-      else:
-        noComponents = transformedData.size[1]
-
-      ## information stored on a per point basis
-      for i in range(noComponents):
-        outputDict['output'][self.name+'Component' + str(i + 1)] =  transformedData[:, i]
 
     return outputDict
 

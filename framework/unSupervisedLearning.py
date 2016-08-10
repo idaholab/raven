@@ -567,8 +567,6 @@ class SciKitLearn(unSupervisedLearning):
       if hasattr(self.Method, 'means_'):
         means = copy.deepcopy(self.Method.means_)
 
-      outputDict['outputs'][self.labelFeature] = mixtureLabels
-
         for cnt, feature in enumerate(self.features):
           (mu,sigma) = self.muAndSigmaFeatures[feature]
           for center in means:
@@ -587,12 +585,12 @@ class SciKitLearn(unSupervisedLearning):
     elif 'decomposition' == self.SKLtype:
 
       if 'embeddingVectors' not in self.outputDict['outputs']:
-        if hasattr(self.unSupervisedEngine.Method, 'transform'):
-          evs = self.unSupervisedEngine.Method.transform(self.normValues)
-          self.outputDict['outputs'] = embeddingVectors
-        elif hasattr(self.unSupervisedEngine.Method, 'fit_transform'):
-          evs = self.unSupervisedEngine.Method.fit_transform(self.normValues)
-          self.outputDict['outputs']['embeddingVectors'] = evs
+        if hasattr(self.Method, 'transform'):
+          embeddingVectors = self.Method.transform(self.normValues)
+          self.outputDict['outputs']['embeddingVectors'] = embeddingVectors
+        elif hasattr(self.Method, 'fit_transform'):
+          embeddingVectors = self.Method.fit_transform(self.normValues)
+          self.outputDict['outputs']['embeddingVectors'] = embeddingVectors
         else:
           self.raiseAWarning('The embedding vectors could not be computed.')
 
