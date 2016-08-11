@@ -1321,7 +1321,16 @@ class ImportanceRank(BasePostProcessor):
     for what in options.keys():
       if what == 'pcaIndex': continue
       if what == 'transformation' or what == 'inverseTransformation': continue
+      if what == 'manifestSensitivity': continue
       for target in options[what].keys():
+        valueDict = OrderedDict()
+        for var,index,dim in options[what][target]:
+          valueDict[var] = index
+        outFile.addVector(target,what,valueDict)
+    if 'manifestSensitivity' in options.keys():
+      what = 'manifestSensitivity'
+      for target in options[what].keys():
+        outFile.addScalar(target,'type',self.mvnDistribution.covarianceType)
         valueDict = OrderedDict()
         for var,index,dim in options[what][target]:
           valueDict[var] = index
@@ -1586,7 +1595,10 @@ class ImportanceRank(BasePostProcessor):
           # recompute the sensitivities for manifest variables
           for target in self.targets:
             latentSen = np.asarray(senCoeffDict[target])
-            manifestSen = list(np.dot(latentSen,inverseTransformationMatrix))
+            if self.mvnDistribution.covarianceType == 'abs':
+              manifestSen = list(np.dot(latentSen,inverseTransformationMatrix))
+            else:
+              manifestSen = list(np.dot(latentSen,inverseTransformationMatrix)/inputDict['targets'][target])
             entries = list(zip(self.manifest,manifestSen,self.manifestDim))
             entries.sort(key=lambda x: abs(x[1]),reverse=True)
             outputDict[what][target] = entries

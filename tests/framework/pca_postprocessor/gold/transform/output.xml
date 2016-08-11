@@ -1,6 +1,7 @@
 <?xml version="1.0" ?>
 <ImportanceRankPP type="Static">
   <y>
+    <type>abs</type>
     <manifestSensitivity>
       <z0>0.439537753824</z0>
       <y0>0.392980852163</y0>
@@ -9,6 +10,7 @@
   </y>
 
   <x>
+    <type>abs</type>
     <manifestSensitivity>
       <x0>0.537898072953</x0>
       <y0>0.409666903055</y0>
@@ -17,6 +19,7 @@
   </x>
 
   <z>
+    <type>abs</type>
     <manifestSensitivity>
       <y0>0.757814665769</y0>
       <x0>0.391162104735</x0>
