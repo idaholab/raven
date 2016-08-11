@@ -7,7 +7,7 @@
   </RunInfo>
 
   <Files>
-    <Input name="dataFile">./DataSets.csv</Input>
+    <Input name="dataFile">../sharedData/DataSets.csv</Input>
   </Files>
 
   <Models>
