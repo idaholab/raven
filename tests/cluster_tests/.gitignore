@@ -1,4 +1,14 @@
+AdaptiveSobol/states.txt
+AdaptiveSobol/workdir/
 FirstMRun/
+FirstMNRun/
 FirstMQRun/
 FirstPRun/
 DatabaseStorage/
+*.log
+InternalParallel/InternalParallelExtModel/test*Set_dump.xml
+InternalParallel/InternalParallelMSR/outDataParallel.xml
+InternalParallel/InternalParallelPostProcessorLS/*_dump.xml
+InternalParallel/InternalParallelScikit/PrintDataData*.xml
+*.png
+InternalParallel/metaModel*LinearParallel/*Dump.xml
