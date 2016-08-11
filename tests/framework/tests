@@ -492,6 +492,14 @@
    input = 'test_stratified_dummy_model_large_grid_size.xml'
    output = 'stratifiedLargeGridSize/reprint_16var.csv stratifiedLargeGridSize/reprint_16var.xml stratifiedLargeGridSize/reprint_16var2.csv stratifiedLargeGridSize/reprint_16var2.xml stratifiedLargeGridSize/reprint_2var.csv stratifiedLargeGridSize/reprint_2var.xml'
  [../]
+
+ [./custom1D]
+   type   = 'RavenFramework'
+   input  = 'test_distributionCustom1D.xml'
+   output = 'custom1D/PointSet2_dump.csv custom1D/PointSet2_dump.xml custom1D/PointSet3_dump.csv custom1D/PointSet3_dump.xml'
+   csv    = 'custom1D/PointSet2_dump.csv custom1D/PointSet3_dump.csv'
+ [../]
+
 []
 
 
