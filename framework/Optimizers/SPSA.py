@@ -124,10 +124,10 @@ class SPSA(GradientBasedOptimizer):
       Local method to evaluate gradient.
       @ In, optVarsValues, dict, Dictionary containing perturbed points.
                                  optVarsValues should have the form {pertIndex: {varName: [varValue1 varValue2]}}
-                                 Therefore, each optVarsValues[pertIndex] should return a dict of variable values 
-                                 that is sufficient for gradient evaluation for at least one variable 
+                                 Therefore, each optVarsValues[pertIndex] should return a dict of variable values
+                                 that is sufficient for gradient evaluation for at least one variable
                                  (depending on specific optimization algorithm)
-      @ In, gradient, dict, optional, dictionary containing gradient estimation by the caller. 
+      @ In, gradient, dict, optional, dictionary containing gradient estimation by the caller.
                                       gradient should have the form {varName: gradEstimation}
       @ Out, gradient, dict, dictionary containing gradient estimation. gradient should have the form {varName: gradEstimation}
     """

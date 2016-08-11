@@ -138,7 +138,7 @@ class HDF5(DateBase):
     DateBase._readMoreXML(self, xmlNode)
     # Check if database directory exist, otherwise create it
     if '~' in self.databaseDir: self.databaseDir = copy.copy(os.path.expanduser(self.databaseDir))
-    if not os.path.exists(self.databaseDir): os.makedirs(self.databaseDir)
+    utils.makeDir(self.databaseDir)
     self.raiseAMessage('Database Directory is',self.databaseDir,'.')
     # Check if a filename has been provided
     # if yes, we assume the user wants to load the data from there

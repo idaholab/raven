@@ -145,9 +145,9 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     for tester in cls.validateDict[who]:
       if tester['required']==True:
         if tester['multiplicity']=='n' and tester['tempCounter']<1:
-          raise IOError('The number of time class = '+str(tester['class'])+' type= ' +str(tester['type'])+' is used as '+str(who)+' is improper')
-        if tester['multiplicity']!='n' and tester['tempCounter']!=tester['multiplicity']:
-          raise IOError('The number of time class = '+str(tester['class'])+' type= ' +str(tester['type'])+' is used as '+str(who)+' is improper')
+          raise IOError('The number of times class = '+str(tester['class'])+' type= ' +str(tester['type'])+' is used as '+str(who)+' is improper. At least one object must be present!')
+      if tester['multiplicity']!='n' and tester['tempCounter']!=tester['multiplicity']:
+        raise IOError('The number of times class = '+str(tester['class'])+' type= ' +str(tester['type'])+' is used as '+str(who)+' is improper. Number of allowable times is '+str(tester['multiplicity'])+'.Got '+str(tester['tempCounter']))
     #testing if all argument to be tested have been found
     for anItem in what:
       if anItem['found']==False:
@@ -1373,12 +1373,12 @@ class PostProcessor(Model, Assembler):
     cls.validateDict['Function'  ][0]['class'       ] = 'Functions'
     cls.validateDict['Function'  ][0]['type'        ] = ['External','Internal']
     cls.validateDict['Function'  ][0]['required'    ] = False
-    cls.validateDict['Function'  ][0]['multiplicity'] = '1'
+    cls.validateDict['Function'  ][0]['multiplicity'] = 1
     cls.validateDict['ROM'] = [cls.testDict.copy()]
     cls.validateDict['ROM'       ][0]['class'       ] = 'Models'
     cls.validateDict['ROM'       ][0]['type'        ] = ['ROM']
     cls.validateDict['ROM'       ][0]['required'    ] = False
-    cls.validateDict['ROM'       ][0]['multiplicity'] = '1'
+    cls.validateDict['ROM'       ][0]['multiplicity'] = 1
     cls.validateDict['KDD'] = [cls.testDict.copy()]
     cls.validateDict['KDD'       ][0]['class'       ] = 'Models'
     cls.validateDict['KDD'       ][0]['type'        ] = ['KDD']

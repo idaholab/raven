@@ -409,7 +409,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
   def _generateDistributions(self,availableDist,availableFunc):
     """
-      Generates the distrbutions and functions.
+      Generates the distributions and functions.
       @ In, availableDist, dict, dict of distributions
       @ In, availableFunc, dict, dict of functions
       @ Out, None

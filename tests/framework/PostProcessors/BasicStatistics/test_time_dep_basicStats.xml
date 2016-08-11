@@ -2,7 +2,7 @@
 <Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>basicStatisticsTimeDependent</WorkingDir>
-    <Sequence>FirstMRun,timeDepBasicStatPP</Sequence>
+    <Sequence>FirstMRun,timeDepBasicStatPP, readStats, printExtracted</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
@@ -21,6 +21,16 @@
       <what>covariance,pearson,expectedValue,sigma,variationCoefficient,variance,skewness,kurtosis,median,percentile,samples</what>
       <parameters>x0,y0,z0,x,y,z</parameters>
       <pivotParameter>time</pivotParameter>
+    </PostProcessor>
+    <PostProcessor name="readStats" subType="RavenOutput">
+      <dynamic/>
+      <File name='output_basicStatistics_timedep_PP1.xml' ID="0">
+        <output name="mean">x | expectedValue </output>
+        <output name="median"> x | median </output>
+        <output name="percentile_5"> x | percentile_5 </output>
+        <output name="percentile_95"> x | percentile_95 </output>
+        <output name="sigma"> x | sigma </output>
+      </File>
     </PostProcessor>
   </Models>
 
@@ -48,6 +58,15 @@
       <Output class="DataObjects" type="HistorySet">HistorySetPostProcTest</Output>
       <Output class="OutStreams" type="Print">HistorySetPostProcTest_dump</Output>
     </PostProcess>
+    <PostProcess name="readStats">
+      <Input class="Files" type="">output_basicStatistics_timedep_PP1.xml</Input>
+      <Model class="Models" type="PostProcessor">readStats</Model>
+      <Output class="DataObjects" type="PointSet">stats</Output>
+    </PostProcess>
+    <IOStep name="printExtracted">
+      <Input class="DataObjects" type="PointSet">stats</Input>
+      <Output class="OutStreams" type="Print">ExtractedStats_dump</Output>
+    </IOStep>
   </Steps>
 
   <OutStreams>
@@ -55,9 +74,17 @@
       <type>csv</type>
       <source>HistorySetPostProcTest</source>
     </Print>
+    <Print name="ExtractedStats_dump">
+      <type>csv</type>
+      <source>stats</source>
+    </Print>
   </OutStreams>
 
   <DataObjects>
+    <PointSet name="stats">
+      <Input>time</Input>
+      <Output>mean,median,percentile_5,percentile_95,sigma</Output>
+    </PointSet>
     <HistorySet name="HistorySetPostProcTest">
       <Input>x0,y0,z0</Input>
       <Output>time,x,y,z</Output>

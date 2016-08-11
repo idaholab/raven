@@ -664,7 +664,8 @@ class Simulation(MessageHandler.MessageUser):
               #now we can read the info for this object
               #if globalAttributes and 'verbosity' in globalAttributes.keys(): localVerbosity = globalAttributes['verbosity']
               #else                                                      : localVerbosity = self.verbosity
-              if Class != 'OutStreams': self.whichDict[Class][name].readXML(childChild, self.messageHandler, varGroups, globalAttributes=globalAttributes)
+              if Class != 'OutStreams':
+                self.whichDict[Class][name].readXML(childChild, self.messageHandler, varGroups, globalAttributes=globalAttributes)
               else: self.whichDict[Class][subType][name].readXML(childChild, self.messageHandler, globalAttributes=globalAttributes)
             else: self.raiseAnError(IOError,'not found name attribute for one '+Class)
       else: self.raiseAnError(IOError,'the '+child.tag+' is not among the known simulation components '+ET.tostring(child))
@@ -778,8 +779,7 @@ class Simulation(MessageHandler.MessageUser):
           xmlDirectory = os.path.dirname(os.path.abspath(xmlFilename))
           rawRelativeWorkingDir = element.text.strip()
           self.runInfoDict['WorkingDir'] = os.path.join(xmlDirectory,rawRelativeWorkingDir)
-        #check/generate the existence of the working directory
-        if not os.path.exists(self.runInfoDict['WorkingDir']): os.makedirs(self.runInfoDict['WorkingDir'])
+        utils.makeDir(self.runInfoDict['WorkingDir'])
       elif element.tag == 'RemoteRunCommand':
         tempName = element.text
         if '~' in tempName : tempName = os.path.expanduser(tempName)

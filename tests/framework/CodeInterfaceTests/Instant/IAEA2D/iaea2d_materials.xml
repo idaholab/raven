@@ -1,6 +1,6 @@
   <Materials>
-     <Macros NG="2">
-        <material ID="1" NA="0" fissile="true">
+     <Macros NG="  2  ">
+        <material ID="  1  " NA="  0  " fissile="true">
           <name>Assembly type 1</name>
           <TotalXS>0.22222222222222222222222222222222   0.83333333333333333333333333333333</TotalXS>
           <NuFissionXS>0.000   0.1350</NuFissionXS>

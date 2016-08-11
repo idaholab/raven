@@ -250,17 +250,6 @@
   rel_err = 0.0001
  [../]
 
-
- [./testCreateInternalObjFromCSVs]
-  type = 'RavenFramework'
-  input = 'test_CreateInternalObjFromCSVs.xml'
-  output = 'CreateInternalObjFromCSVs/PointSetPostProcTest_DUMP.csv'
-  csv = 'CreateInternalObjFromCSVs/PointSetPostProcTest_DUMP.csv'
-  max_time = 500
-  rel_err = 0.001
-  prereq = testGrid_RELAP7
- [../]
-
  [./test_bison_mc_simple_&_alias_system]
   #REQUIREMENT_TEST R-IS-6
   type = 'RavenFramework'
@@ -492,6 +481,14 @@
    input = 'test_stratified_dummy_model_large_grid_size.xml'
    output = 'stratifiedLargeGridSize/reprint_16var.csv stratifiedLargeGridSize/reprint_16var.xml stratifiedLargeGridSize/reprint_16var2.csv stratifiedLargeGridSize/reprint_16var2.xml stratifiedLargeGridSize/reprint_2var.csv stratifiedLargeGridSize/reprint_2var.xml'
  [../]
+
+ [./custom1D]
+   type   = 'RavenFramework'
+   input  = 'test_distributionCustom1D.xml'
+   output = 'custom1D/PointSet2_dump.csv custom1D/PointSet2_dump.xml custom1D/PointSet3_dump.csv custom1D/PointSet3_dump.xml'
+   csv    = 'custom1D/PointSet2_dump.csv custom1D/PointSet3_dump.csv'
+ [../]
+
 []
 
 

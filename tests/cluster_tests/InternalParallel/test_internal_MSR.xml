@@ -18,6 +18,7 @@
     </mode>
     <expectedTime>00:10:00</expectedTime>
     <clusterParameters>-W block=true</clusterParameters>
+    <JobName>test_qsub</JobName>
   </RunInfo>
 
   <Models>

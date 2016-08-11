@@ -16,9 +16,6 @@
     <Code name="MyRAVEN" subType="RELAP7">
       <executable>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</executable>
     </Code>
-    <PostProcessor name="csv_from_hdf5" subType="PrintCSV">
-      <paramters>all</paramters>
-    </PostProcessor>
   </Models>
 
   <Distributions>

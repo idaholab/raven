@@ -152,38 +152,41 @@ if __name__ == '__main__':
     if simulation.app is not None:
       simulation.app.quit()
 
-  try:
-    ## Create the thread that will run RAVEN, and make sure that it will die if
-    ## the main thread dies by making it a daemon, then start it up
-    ravenThread = threading.Thread(target=raven)
-    ravenThread.daemon = True
-    ravenThread.start()
+  if simulation.app is not None:
+    try:
+      ## Create the thread that will run RAVEN, and make sure that it will die if
+      ## the main thread dies by making it a daemon, then start it up
+      ravenThread = threading.Thread(target=raven)
+      ravenThread.daemon = True
+      ravenThread.start()
 
-    ## If there is an associated application, then we can start it up now as
-    ## well. It will listen for UI update requests from the ravenThread.
-    if simulation.app is not None:
-      simulation.app.exec_()
+      ## If there is an associated application, then we can start it up now as
+      ## well. It will listen for UI update requests from the ravenThread.
+      if simulation.app is not None:
+        simulation.app.exec_()
 
-    ## This makes sure that the main thread waits for RAVEN to complete before
-    ## exiting, however join will block the main thread until ravenThread is
-    ## complete, thus ignoring any kill signals until after it has completed
-    # ravenThread.join()
+      ## This makes sure that the main thread waits for RAVEN to complete before
+      ## exiting, however join will block the main thread until ravenThread is
+      ## complete, thus ignoring any kill signals until after it has completed
+      # ravenThread.join()
 
-    waitTime = 0.1 ## in seconds
+      waitTime = 0.1 ## in seconds
 
-    ## So, in order to live wait for ravenThread, we need a spinlock that will
-    ## allow us to accept keyboard input.
-    while ravenThread.isAlive():
-      ## Use one of these two alternatives, effectively they should be the same
-      ## not sure if there is any advantage to one over the other
-      time.sleep(waitTime)
-      # ravenThread.join(waitTime)
+      ## So, in order to live wait for ravenThread, we need a spinlock that will
+      ## allow us to accept keyboard input.
+      while ravenThread.isAlive():
+        ## Use one of these two alternatives, effectively they should be the same
+        ## not sure if there is any advantage to one over the other
+        time.sleep(waitTime)
+        # ravenThread.join(waitTime)
 
-  except KeyboardInterrupt:
-    if ravenThread.isAlive():
-      traceback.print_stack(sys._current_frames()[ravenThread.ident])
-    print ('\n\n! Received keyboard interrupt, exiting RAVEN.\n\n')
-  except SystemExit:
-    if ravenThread.isAlive():
-      traceback.print_stack(sys._current_frames()[ravenThread.ident])
-    print ('\n\n! Exit called, exiting RAVEN.\n\n')
+    except KeyboardInterrupt:
+      if ravenThread.isAlive():
+        traceback.print_stack(sys._current_frames()[ravenThread.ident])
+      print ('\n\n! Received keyboard interrupt, exiting RAVEN.\n\n')
+    except SystemExit:
+      if ravenThread.isAlive():
+        traceback.print_stack(sys._current_frames()[ravenThread.ident])
+      print ('\n\n! Exit called, exiting RAVEN.\n\n')
+  else:
+    raven()

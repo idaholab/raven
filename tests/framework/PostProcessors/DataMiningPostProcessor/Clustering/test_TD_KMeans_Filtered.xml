@@ -78,14 +78,16 @@
 	</Samplers>
 
   <Models>
-    <!--PostProcessor name="MeanShift" subType="DataMining">
-      <PreProcessor  class="Models" type="PostProcessor">dataPreProc</PreProcessor>
-      <KDD lib="SciKitLearn">
-        <SKLtype>cluster|MeanShift</SKLtype>
-        <Features>output</Features>
-        <bandwidth>1.0e-2</bandwidth>
-      </KDD>
-    </PostProcessor-->
+    <!--
+      <PostProcessor name="MeanShift" subType="DataMining">
+        <PreProcessor  class="Models" type="PostProcessor">dataPreProc</PreProcessor>
+        <KDD lib="SciKitLearn">
+          <SKLtype>cluster|MeanShift</SKLtype>
+          <Features>output</Features>
+          <bandwidth>1.0e-2</bandwidth>
+        </KDD>
+      </PostProcessor>
+    -->
     <PostProcessor name="KMeans1" subType="DataMining">
       <PreProcessor  class="Models" type="PostProcessor">dataPreProc</PreProcessor>
       <KDD lib="SciKitLearn">
@@ -214,7 +216,9 @@
           <x>outMC|Output|time</x>
           <y>outMC|Output|y</y>
           <colorMap>outMC|Output|KMeans1Labels</colorMap>
-          <!--cmap>Dark2</cmap-->
+          <!--
+               <cmap>Dark2</cmap>
+          -->
         </plot>
         <xlabel>time</xlabel>
         <ylabel>x</ylabel>
@@ -234,7 +238,9 @@
           <y>outMC|Output|y</y>
           <z>outMC|Output|z</z>
           <colorMap>outMC|Output|KMeans1Labels</colorMap>
-          <!--cmap>Dark2</cmap-->
+          <!--
+               <cmap>Dark2</cmap>
+          -->
         </plot>
         <xlabel>time</xlabel>
         <ylabel>x</ylabel>

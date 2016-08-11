@@ -26,21 +26,21 @@
 
   <Steps>
     <IOStep name="input" pauseAtEnd="True">
-      <Input class="Files" type="">dataFile</Input>
-      <Output class="DataObjects" type="PointSet">data</Output>
+      <Input  class="Files"       type=""          >dataFile</Input>
+      <Output class="DataObjects" type="PointSet"  >data</Output>
     </IOStep>
     <IOStep name="output" pauseAtEnd="True">
-      <Input class="DataObjects" type="PointSet">data</Input>
-      <Input class="DataObjects" type="PointSet">clusterInfo</Input>
-      <Output class="OutStreams" type="Plot">plot</Output>
-      <Output class="OutStreams" type="Print">info</Output>
+      <Input  class="DataObjects" type="PointSet"  >data</Input>
+      <Input  class="DataObjects" type="PointSet"  >clusterInfo</Input>
+      <Output class="OutStreams"  type="Plot"      >plot</Output>
+      <Output class="OutStreams"  type="Print"     >info</Output>
     </IOStep>
     <PostProcess name="cluster" pauseAtEnd="True">
-      <Input class="DataObjects" type="PointSet">data</Input>
-      <Model class="Models" type="PostProcessor">kMeans</Model>
-      <SolutionExport class="DataObjects" type="PointSet">clusterInfo</SolutionExport>
-      <Output class="DataObjects" type="PointSet">data</Output>
-      <Output class="OutStreams" type="Print">dummy</Output>
+      <Input          class="DataObjects"   type="PointSet"      >data</Input>
+      <Model          class="Models"        type="PostProcessor" >kMeans</Model>
+      <SolutionExport class="DataObjects"   type="PointSet"      >clusterInfo</SolutionExport>
+      <Output         class="DataObjects"   type="PointSet"      >data</Output>
+      <Output         class="OutStreams"    type="Print"         >dummy</Output>
     </PostProcess>
   </Steps>
 
