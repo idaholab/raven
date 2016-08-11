@@ -44,6 +44,7 @@
     <Print name="dummy">
       <type>csv</type>
       <source>DataSets</source>
+      <what>Output|labels</what>
     </Print>
     <Plot dim="2" name="PlotAffinityBlobs" overwrite="false">
       <plotSettings>

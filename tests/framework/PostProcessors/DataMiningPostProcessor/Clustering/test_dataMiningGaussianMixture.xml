@@ -48,6 +48,7 @@
     <Print name="dummy">
       <type>csv</type>
       <source>data</source>
+      <what>Output|labels</what>
     </Print>
     <Print name="info">
       <type>csv</type>

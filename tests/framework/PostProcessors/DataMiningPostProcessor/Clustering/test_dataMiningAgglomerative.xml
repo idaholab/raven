@@ -49,6 +49,7 @@
     <Print name="dummy">
       <type>csv</type>
       <source>data</source>
+      <what>Output|labels</what>
     </Print>
 
     <Plot dim="2" name="plot" overwrite="false">
