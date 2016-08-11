@@ -79,7 +79,7 @@
   type = 'RavenFramework'
   input = 'test_time_dep_basicStats.xml'
   output = 'basicStatisticsTimeDependent/output_basicStatistics_timedep_PP1.csv basicStatisticsTimeDependent/output_basicStatistics_timedep_PP1.xml'
-  UnorderedCsv = 'basicStatisticsTimeDependent/HistorySetPostProcTest_dump_3.csv'
+  UnorderedCsv = 'basicStatisticsTimeDependent/HistorySetPostProcTest_dump_3.csv basicStatisticsTimeDependent/ExtractedStats_dump.csv'
    UnorderedXml = 'basicStatisticsTimeDependent/HistorySetPostProcTest_dump.xml basicStatisticsTimeDependent/output_basicStatistics_timedep_PP1.xml'
    rel_err = 1e-5
    zero_threshold = 1e-14
