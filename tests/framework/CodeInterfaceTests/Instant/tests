@@ -11,6 +11,18 @@
    skip_if_env = BUILD_ROOT
    method = 'devel opt'
  [../]
+
+ [./test_diffCoeff]
+   type = 'RavenFramework'
+   input = 'test_diffusioncoefficient.xml'
+   UnorderedCsv = 'IAEA2D/out_diffCoeff.csv'
+   xml = 'IAEA2D/diffCoeff/1/xs.xml IAEA2D/diffCoeff/2/xs.xml'
+   max_time = 200 
+   rel_err = 0.0001
+   required_executable = '../../../../../rattlesnake/rattlesnake-%METHOD%'
+   skip_if_env = BUILD_ROOT
+   method = 'devel opt'
+ [../]
  
  [./testInstant_noexec]
    type = 'RavenFramework'

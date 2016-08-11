@@ -1,5 +1,5 @@
-<Multigroup_Cross_Section_Libraries Name="twigl" NGroup="2">
-<Multigroup_Cross_Section_Library ID="1" Ver="1.0" Generator="Yaqi Wang">
+<Multigroup_Cross_Section_Libraries Name="  twigl  " NGroup="  2">
+<Multigroup_Cross_Section_Library ID=" 1 " Ver="1.0" Generator="Yaqi Wang">
 
   <!--
     Tabulation.
@@ -27,10 +27,10 @@
   <!--
     A single mixing table.
   -->
-  <Table gridIndex="1">
-    <Isotope Name="pseudo-seed1" L="0" I="1" NS="1">
+  <Table gridIndex="  1  ">
+    <Isotope Name="  pseudo-seed1  " L="  0 " I="  1 " NS=" 1 ">
       <Total index="g">0.23809523809523809523809523809524  0.83333333333333333333333333333333</Total>
-      <Scattering index="pgl" profile="1" has2l="false">
+      <Scattering index="pgl" profile=" 1" has2l="false">
           <Profile>
             1 1
             1 2

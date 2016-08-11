@@ -11,6 +11,7 @@
     </mode>
     <clusterParameters>-W block=true</clusterParameters>
     <expectedTime>00:10:00</expectedTime>
+    <JobName>test_qsub</JobName>
   </RunInfo>
 
   <Files>

@@ -9,6 +9,7 @@
     <CustomMode class="PBSDSHSimulationMode" file="%BASE_WORKING_DIR%/pbsdsh_custom/pbsdsh_mode.py">pbsdsh</CustomMode>
     <RemoteRunCommand>raven_qsub_command.sh</RemoteRunCommand>
     <mode>pbsdsh</mode>
+    <JobName>test_qsub</JobName>
   </RunInfo>
 
   <Files>

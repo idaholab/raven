@@ -1072,8 +1072,8 @@ def returnInstance(modelClass, caller, **kwargs):
   """
   try:
     return __interfaceDict[modelClass](caller.messageHandler, **kwargs)
-  except KeyError:
-    caller.raiseAnError(NameError, 'unSuperVisedLEarning', 'Not known ' + __base + ' type ' + str(modelClass))
+  except KeyError as ae:  # except Exception as(ae):
+    caller.raiseAnError(NameError, 'unSuperVisedLEarning', 'Unknown ' + __base + ' type ' + str(modelClass)+'.Error: '+ str(ae))
 
 def returnClass(modelClass, caller):
   """

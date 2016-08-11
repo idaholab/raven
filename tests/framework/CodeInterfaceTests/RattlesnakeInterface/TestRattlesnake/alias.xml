@@ -12,5 +12,7 @@
         <Capture gridIndex="1" mat="pseudo-seed1-dup" gIndex="1">c11</Capture>
         <TotalScattering gridIndex="1" mat="pseudo-seed1-dup" gIndex="1">t11</TotalScattering>
         <Nu gridIndex="1" mat="pseudo-seed1-dup" gIndex="1">n11</Nu>
+        <Transport gridIndex="1" mat="pseudo-seed1" gIndex="1">tr11</Transport>
+        <Transport gridIndex="1" mat="pseudo-seed1" gIndex="2">tr22</Transport>
     </Multigroup_Cross_Section_Library>
 </Multigroup_Cross_Section_Libraries>
