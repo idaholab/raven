@@ -4132,7 +4132,7 @@ class RavenOutput(BasePostProcessor):
           found = True
           break
       if not found:
-        self.raiseAnError(IOError,'Did not find file named "%s" among the Step inputs!')
+        self.raiseAnError(IOError,'Did not find file named "%s" among the Step inputs!' % (input.name))
 
   def _localReadMoreXML(self,xmlNode):
     """
@@ -4185,7 +4185,7 @@ class RavenOutput(BasePostProcessor):
               self.raiseAnError(IOError,'Must specify a "name" for each "output" block!  Missing for:',cchild.text)
             varName = cchild.attrib['name'].strip()
             if varName in self.files[id]['paths'].keys():
-              self.raiseAnError(IOError,'Multiple "output" blocks for "%s" have the same "name":' %self.files[id]['name'],label)
+              self.raiseAnError(IOError,'Multiple "output" blocks for "%s" have the same "name":' %self.files[id]['name'],varName)
             self.files[id]['paths'][varName] = cchild.text.strip()
     #if dynamic, only one File can be specified currently; to fix this, how do you handle different-lengthed times in same data object?
     if self.dynamic and numberOfSources > 1:
