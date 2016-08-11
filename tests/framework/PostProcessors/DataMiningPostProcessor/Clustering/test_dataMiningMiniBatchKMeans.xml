@@ -1,32 +1,32 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="silent">
+<Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>MiniBatchKMeans</WorkingDir>
     <Sequence>readIn,MiniBatchKMeansBlobs,MiniBatchKMeansCircles,MiniBatchKMeansMoons,output</Sequence>
-    <batchSize>100</batchSize>
+    <batchSize>1</batchSize>
   </RunInfo>
 
   <Files>
-    <Input name="DataSetsFile">./DataSets.csv</Input>
+    <Input name="DataSetsFile">../sharedData/DataSets.csv</Input>
   </Files>
 
   <Models>
     <PostProcessor name="MiniBatchKMeansBlobs" subType="DataMining" verbosity="quiet">
-      <KDD lib="SciKitLearn">
+      <KDD lib="SciKitLearn" labelFeature='BlobLabels'>
         <Features>x1,x2</Features>
         <SKLtype>cluster|MiniBatchKMeans</SKLtype>
         <n_clusters>2</n_clusters>
       </KDD>
     </PostProcessor>
     <PostProcessor name="MiniBatchKMeansCircles" subType="DataMining" verbosity="quiet">
-      <KDD lib="SciKitLearn">
+      <KDD lib="SciKitLearn" labelFeature='CircleLabels'>
         <Features>y1,y2</Features>
         <SKLtype>cluster|MiniBatchKMeans</SKLtype>
         <n_clusters>2</n_clusters>
       </KDD>
     </PostProcessor>
     <PostProcessor name="MiniBatchKMeansMoons" subType="DataMining" verbosity="quiet">
-      <KDD lib="SciKitLearn">
+      <KDD lib="SciKitLearn" labelFeature='MoonLabels'>
         <Features>z1,z2</Features>
         <SKLtype>cluster|MiniBatchKMeans</SKLtype>
         <n_clusters>2</n_clusters>
@@ -42,24 +42,22 @@
     <IOStep name="output" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">DataSets</Input>
       <Output class="OutStreams" type="Plot">PlotMiniBatchKMeans</Output>
+      <Output class="OutStreams" type="Print">dummy</Output>
     </IOStep>
     <PostProcess name="MiniBatchKMeansBlobs" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">DataSets</Input>
       <Model class="Models" type="PostProcessor">MiniBatchKMeansBlobs</Model>
       <Output class="DataObjects" type="PointSet">DataSets</Output>
-      <Output class="OutStreams" type="Print">dummy</Output>
     </PostProcess>
     <PostProcess name="MiniBatchKMeansCircles" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">DataSets</Input>
       <Model class="Models" type="PostProcessor">MiniBatchKMeansCircles</Model>
       <Output class="DataObjects" type="PointSet">DataSets</Output>
-      <Output class="OutStreams" type="Print">dummy</Output>
     </PostProcess>
     <PostProcess name="MiniBatchKMeansMoons" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">DataSets</Input>
       <Model class="Models" type="PostProcessor">MiniBatchKMeansMoons</Model>
       <Output class="DataObjects" type="PointSet">DataSets</Output>
-      <Output class="OutStreams" type="Print">dummy</Output>
     </PostProcess>
   </Steps>
 
@@ -67,6 +65,7 @@
     <Print name="dummy">
       <type>csv</type>
       <source>DataSets</source>
+      <what>Output|CircleLabels,Output|MoonLabels,Output|BlobLabels</what>
     </Print>
     <Plot dim="2" name="PlotMiniBatchKMeans" overwrite="false">
       <plotSettings>
@@ -76,7 +75,7 @@
           <x>DataSets|input|x1</x>
           <y>DataSets|input|x2</y>
           <cmap>Set1</cmap>
-          <colorMap>DataSets|Output|MiniBatchKMeansBlobsLabels</colorMap>
+          <colorMap>DataSets|Output|BlobLabels</colorMap>
           <gridLocation>
             <x>0</x>
             <y>0</y>
@@ -96,7 +95,7 @@
           <x>DataSets|input|y1</x>
           <y>DataSets|input|y2</y>
           <cmap>Set1</cmap>
-          <colorMap>DataSets|Output|MiniBatchKMeansCirclesLabels</colorMap>
+          <colorMap>DataSets|Output|CircleLabels</colorMap>
           <gridLocation>
             <x>1</x>
             <y>0</y>
@@ -116,7 +115,7 @@
           <x>DataSets|input|z1</x>
           <y>DataSets|input|z2</y>
           <cmap>Set1</cmap>
-          <colorMap>DataSets|Output|MiniBatchKMeansMoonsLabels</colorMap>
+          <colorMap>DataSets|Output|MoonLabels</colorMap>
           <gridLocation>
             <x>2</x>
             <y>0</y>
