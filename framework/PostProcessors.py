@@ -3652,6 +3652,9 @@ class DataMining(BasePostProcessor):
           for col,value in zip(self.unSupervisedEngine.features.keys(),values):
             self.solutionExport.updateOutputValue(col,value)
 
+          columnName = self.name+'PCAComponent' + str(row+1) + 'ExplainedVarianceRatio'
+          self.solutionExport.updateOutputValue(columnName,explainedVarianceRatio[row])
+
     return outputDict
 
 
@@ -3835,6 +3838,8 @@ class DataMining(BasePostProcessor):
 
       if 'explainedVarianceRatio' in self.unSupervisedEngine.outputDict.keys():
         explainedVarianceRatio = self.unSupervisedEngine.outputDict['explainedVarianceRatio']
+      else:
+        explainedVarianceRatio = None
 
       for i in range(noComponents):
         ## Looking at the lines between the initialization of
@@ -3862,6 +3867,12 @@ class DataMining(BasePostProcessor):
             for timeIdx in range(numberOfHistoryStep):
               timeSeries[timeIdx] = components[timeIdx][row][i]
             self.solutionExport.updateOutputValue(col,timeSeries)
+          if explainedVarianceRatio is not None:
+            timeSeries = np.zeros(numberOfHistoryStep)
+            for timeIdx in range(numberOfHistoryStep):
+              timeSeries[timeIdx] = explainedVarianceRatio[timeIdx][row]
+            columnName = self.name+'PCAComponent' + str(row+1) + 'ExplainedVarianceRatio'
+            self.solutionExport.updateOutputValue(columnName,timeSeries)
 
     else:
       self.raiseAnError(IOError,'%s has not yet implemented.' % self.unSupervisedEngine.SKLtype)
