@@ -326,7 +326,7 @@ class SciKitLearn(unSupervisedLearning):
         if 'n_clusters' not in self.initOptionDict.keys(): self.initOptionDict['n_clusters'] = 8
       else:
         if 'n_clusters' in self.initOptionDict.keys(): self.initOptionDict.pop('n_clusters')
-      if 'preference'   in paramsDict.keys(): self.initOptionDict['preference'  ] = None  # AffinityPropogation
+      # if 'preference'   in paramsDict.keys(): self.initOptionDict['preference'  ] = None  # AffinityPropogation
       if 'leaf_size'    in paramsDict.keys(): self.initOptionDict['leaf_size'   ] = 30  # DBSCAN
       if 'eps'          in paramsDict.keys(): self.initOptionDict['eps'         ] = 0.2  # DBSCAN
       if 'random_state' in paramsDict.keys(): self.initOptionDict['random_state'] = 0
@@ -362,6 +362,7 @@ class SciKitLearn(unSupervisedLearning):
       connectivity = 0.5 * (connectivity + connectivity.T)
       self.initOptionDict['connectivity'] = connectivity
       self.Method.set_params(**self.initOptionDict)
+
     self.outputDict['outputs'] = {}
     self.outputDict['inputs' ] = self.normValues
     ## What are you doing here? Calling half of these methods does nothing

@@ -7,7 +7,7 @@
   </RunInfo>
 
   <Files>
-    <Input name="dataFile">./../KMeans/data.csv</Input>
+    <Input name="dataFile">../sharedData/DataSets.csv</Input>
   </Files>
 
   <Models>
@@ -49,8 +49,9 @@
     <Print name="dummy">
       <type>csv</type>
       <source>data</source>
+      <what>Output|labels</what>
     </Print>
-    
+
     <Plot dim="2" name="plot" overwrite="false">
       <plotSettings>
         <plot>
