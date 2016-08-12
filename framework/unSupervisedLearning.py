@@ -416,9 +416,6 @@ class SciKitLearn(unSupervisedLearning):
 
     paramsDict = self.Method.get_params()
 
-    if 'n_components' in self.initOptionDict:
-      self.noComponents_ = self.initOptionDict['n_components']
-
     ## Let's only keep the parameters that the Method understands, throw
     ## everything else away, maybe with a warning message?
     tempDict = {}
@@ -594,7 +591,6 @@ class SciKitLearn(unSupervisedLearning):
         else:
           self.raiseAWarning('The embedding vectors could not be computed.')
 
-      self.metaDict['noComponents'] = copy.deepcopy(self.noComponents_)
       if hasattr(self.Method, 'components_'):
         self.metaDict['components'] = self.Method.components_
 
@@ -679,7 +675,6 @@ class temporalSciKitLearn(unSupervisedLearning):
     self.SKLEngine = returnInstance('SciKitLearn',self, **self.initOptionDict)
     self.normValues = None
     self.outputDict = {}
-    if 'decomposition' == self.SKLtype or 'manifold' == self.SKLtype: self.noComponents_ = self.initOptionDict['n_components']
 
   @staticmethod
   def checkArrayConsistency(arrayin, shape):
