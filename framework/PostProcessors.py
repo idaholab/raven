@@ -3652,9 +3652,7 @@ class DataMining(BasePostProcessor):
           for col,value in zip(self.unSupervisedEngine.features.keys(),values):
             self.solutionExport.updateOutputValue(col,value)
 
-          columnName = self.name+'PCAComponent' + str(row+1) + 'ExplainedVarianceRatio'
-          self.solutionExport.updateOutputValue(columnName,explainedVarianceRatio[row])
-
+          self.solutionExport.updateOutputValue('ExplainedVarianceRatio',explainedVarianceRatio[row])
     return outputDict
 
 
@@ -3871,8 +3869,7 @@ class DataMining(BasePostProcessor):
             timeSeries = np.zeros(numberOfHistoryStep)
             for timeIdx in range(numberOfHistoryStep):
               timeSeries[timeIdx] = explainedVarianceRatio[timeIdx][row]
-            columnName = self.name+'PCAComponent' + str(row+1) + 'ExplainedVarianceRatio'
-            self.solutionExport.updateOutputValue(columnName,timeSeries)
+            self.solutionExport.updateOutputValue('ExplainedVarianceRatio',timeSeries)
 
     else:
       self.raiseAnError(IOError,'%s has not yet implemented.' % self.unSupervisedEngine.SKLtype)
