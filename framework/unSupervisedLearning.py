@@ -760,13 +760,8 @@ class temporalSciKitLearn(unSupervisedLearning):
 
       elif 'decomposition' == self.SKLtype:
 
-        if 'noComponents' not in self.outputDict.keys():
-          self.outputDict['noComponents'] = {}
-        if 'components' not in self.outputDict.keys():
-          self.outputDict['components'] = {}
-        if 'transformedData' not in self.outputDict.keys():
-          self.outputDict['transformedData'] = {}
-        for var in ['explainedVarianceRatio','means','explainedVariance']:
+        for var in ['explainedVarianceRatio','means','explainedVariance',
+                    'noComponents','components','transformedData']:
           if var not in self.outputDict:
             self.outputDict[var] = {}
 
