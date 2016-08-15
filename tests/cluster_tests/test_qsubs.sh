@@ -2,6 +2,10 @@
 
 num_fails=0
 
+pushd ../../framework
+RAVEN_FRAMEWORK_DIR=$(pwd)
+popd
+
 wait_lines ()
 {
     LS_DATA="$1"
@@ -19,7 +23,12 @@ wait_lines ()
     else
         echo FAIL $NAME
         num_fails=$(($num_fails+1))
+        printf '\n\nStandard Error:\n'
+        cat $RAVEN_FRAMEWORK_DIR/test_qsub.e*
+        printf '\n\nStandard Output:\n'
+        cat $RAVEN_FRAMEWORK_DIR/test_qsub.o*
     fi
+    rm $RAVEN_FRAMEWORK_DIR/test_qsub.[eo]*
 
 }
 

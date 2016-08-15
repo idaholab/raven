@@ -1055,142 +1055,6 @@ class InterfacedPostProcessor(BasePostProcessor):
 #
 #
 #
-class PrintCSV(BasePostProcessor):
-  """
-    PrintCSV PostProcessor class. It prints a CSV file loading data from a hdf5 database or other sources
-  """
-  def __init__(self, messageHandler):
-    """
-      Constructor
-      @ In, messageHandler, MessageHandler, message handler object
-      @ Out, None
-    """
-    BasePostProcessor.__init__(self, messageHandler)
-    self.paramters = ['all']
-    self.inObj = None
-    self.workingDir = None
-    self.printTag = 'POSTPROCESSOR PRINTCSV'
-
-  def inputToInternal(self, currentInput):
-    """
-      Method to convert an input object into the internal format that is
-      understandable by this pp.
-      @ In, currentInput, object, an object that needs to be converted
-      @ Out, [(currentInput)], list, the resulting converted object is stored as an attribute of this class
-    """
-    return [(currentInput)]
-
-  def initialize(self, runInfo, inputs, initDict):
-    """
-      Method to initialize the PrintCSV pp. In here, the workingdir is collected and eventually created
-      @ In, runInfo, dict, dictionary of run info (e.g. working dir, etc)
-      @ In, inputs, list, list of inputs
-      @ In, initDict, dict, dictionary with initialization options
-      @ Out, None
-    """
-    BasePostProcessor.initialize(self, runInfo, inputs, initDict)
-    self.workingDir = os.path.join(runInfo['WorkingDir'], runInfo['stepName'])  # generate current working dir
-    runInfo['TempWorkingDir'] = self.workingDir
-    try:                            os.mkdir(self.workingDir)
-    except:                         self.raiseAWarning('current working dir ' + self.workingDir + ' already exists, this might imply deletion of present files')
-    # if type(inputs[-1]).__name__ == "HDF5" : self.inObj = inputs[-1]      # this should go in run return but if HDF5, it is not pickable
-
-  def _localReadMoreXML(self, xmlNode):
-    """
-      Function to read the portion of the xml input that belongs to this specialized class
-      and initialize some stuff based on the inputs got
-      @ In, xmlNode, xml.etree.Element, Xml element node
-      @ Out, None
-    """
-    for child in xmlNode:
-      if child.tag == 'parameters':
-        param = child.text
-        if(param.lower() != 'all'): self.paramters = param.strip().split(',')
-        else: self.paramters[param]
-
-  def collectOutput(self, finishedJob, output):
-    """
-      Function to place all of the computed data into the output object
-      @ In, finishedJob, JobHandler External or Internal instance, A JobHandler object that is in charge of running this post-processor
-      @ In, output, dataObjects, The object where we want to place our computed results
-      @ Out, None
-    """
-    # Check the input type
-    if finishedJob.returnEvaluation() == -1: self.raiseAnError(RuntimeError, 'No available Output to collect (Run probabably is not finished yet)')
-    self.inObj = finishedJob.returnEvaluation()[1]
-    if(self.inObj.type == "HDF5"):
-      #  input source is a database (HDF5)
-      #  Retrieve the ending groups' names
-      endGroupNames = self.inObj.getEndingGroupNames()
-      HistorySet = {}
-
-      #  Construct a dictionary of all the HistorySet
-      for index in range(len(endGroupNames)): HistorySet[endGroupNames[index]] = self.inObj.returnHistory({'history':endGroupNames[index], 'filter':'whole'})
-      #  If file, split the strings and add the working directory if present
-      for key in HistorySet:
-        #  Loop over HistorySet
-        #  Retrieve the metadata (posion 1 of the history tuple)
-        attributes = HistorySet[key][1]
-        #  Construct the header in csv format (first row of the file)
-        headers = b",".join([HistorySet[key][1]['outputSpaceHeaders'][i] for i in
-                             range(len(attributes['outputSpaceHeaders']))])
-        #  Construct history name
-        hist = key
-        #  If file, split the strings and add the working directory if present
-        if self.workingDir:
-          output.setPath(self.workingDir)
-          # original if os.path.split(output.getAbsFile())[1] == '': output.setAbsFile(output.getAbsFile()[:-1])
-          # I don't think this applies anymore # if output.getFilename() == '': output.setAbsFile(output.getAbsFile()[:-1])
-          #splitted_1 = (output.getPath,output.getFilename() #os.path.split(output.getAbsFile())
-          #output.setAbsFile(splitted_1[1])
-        #splitted = output.getAbsFile().split('.')
-        #  Create csv files
-        addfile = Files.returnInstance('CSV',self)
-        csvfile = Files.returnInstance('CSV',self)
-        addfilename = output.getBase() + '_additional_info_' + hist + '.' + output.getExt()
-        csvfilename = output.getBase() + '_'                 + hist + '.' + output.getExt()
-        addfile.initialize(addfilename,self.messageHandler,output.getPath(),subtype='AdditionalInfo')
-        csvfile.initialize(csvfilename,self.messageHandler,output.getPath(),subtype='AdditionalInfo')
-        #  Check if workingDir is present and in case join the two paths
-        if self.workingDir:
-          addfile.setPath(os.path.join(self.workingDir,addfile.getPath()))
-          csvfile.setPath(os.path.join(self.workingDir,csvfile.getPath()))
-
-        #  Save the data
-        csvfile.open('w')
-        addfile.open('w')
-        #  Add history to the csv file
-        np.savetxt(csvfile, HistorySet[key][0], delimiter = ",", header = utils.toString(headers))
-        csvfile.write(os.linesep)
-        #  process the attributes in a different csv file (different kind of informations)
-        #  Add metadata to additional info csv file
-        addfile.write('# History Metadata, ' + os.linesep)
-        addfile.write('# ______________________________,' + '_' * len(key) + ',' + os.linesep)
-        addfile.write('#number of parameters,' + os.linesep)
-        addfile.write(str(attributes['nParams']) + ',' + os.linesep)
-        addfile.write('#parameters,' + os.linesep)
-        addfile.write(headers + os.linesep)
-        addfile.write('#parentID,' + os.linesep)
-        addfile.write(attributes['parentID'] + os.linesep)
-        addfile.write('#start time,' + os.linesep)
-        addfile.write(str(attributes['startTime']) + os.linesep)
-        addfile.write('#end time,' + os.linesep)
-        addfile.write(str(attributes['end_time']) + os.linesep)
-        addfile.write('#number of time-steps,' + os.linesep)
-        addfile.write(str(attributes['nTimeSteps']) + os.linesep)
-        addfile.write(os.linesep)
-    else: self.raiseAnError(NotImplementedError, 'for input type ' + self.inObj.type + ' not yet implemented.')
-
-  def run(self, input):
-    """
-     This method executes the postprocessor action. In this case, it just returns the input
-     @ In,  input, object, object contained the data to process. (inputToInternal output)
-     @ Out, input, object, the input
-    """
-    return input[-1]
-#
-#
-#
 class ImportanceRank(BasePostProcessor):
   """
     ImportantRank class. It computes the important rank for given input parameters
@@ -2210,89 +2074,7 @@ class BasicStatistics(BasePostProcessor):
       corrMatrix = covM / covM
     # to prevent numerical instability
     return corrMatrix
-#
-#
-#
-class LoadCsvIntoInternalObject(BasePostProcessor):
-  """
-    LoadCsvIntoInternalObject pp class. It is in charge of loading CSV files into one of the internal object (Data(s) or HDF5)
-  """
-  def __init__(self, messageHandler):
-    """
-      Constructor
-      @ In, messageHandler, MessageHandler, message handler object
-      @ Out, None
-    """
-    BasePostProcessor.__init__(self, messageHandler)
-    self.sourceDirectory = None
-    self.listOfCsvFiles = []
-    self.printTag = 'POSTPROCESSOR LoadCsv'
 
-  def initialize(self, runInfo, inputs, initDict):
-    """
-      Method to initialize the LoadCSV pp.
-      @ In, runInfo, dict, dictionary of run info (e.g. working dir, etc)
-      @ In, inputs, list, list of inputs
-      @ In, initDict, dict, dictionary with initialization options
-      @ Out, None
-    """
-    BasePostProcessor.initialize(self, runInfo, inputs, initDict)
-    self.__workingDir = runInfo['WorkingDir']
-    if '~' in self.sourceDirectory               : self.sourceDirectory = os.path.expanduser(self.sourceDirectory)
-    if not os.path.isabs(self.sourceDirectory)   : self.sourceDirectory = os.path.normpath(os.path.join(self.__workingDir, self.sourceDirectory))
-    if not os.path.exists(self.sourceDirectory)  : self.raiseAnError(IOError, "The directory indicated for PostProcessor " + self.name + "does not exist. Path: " + self.sourceDirectory)
-    for _dir, _, _ in os.walk(self.sourceDirectory): self.listOfCsvFiles.extend(glob(os.path.join(_dir, "*.csv")))
-    if len(self.listOfCsvFiles) == 0             : self.raiseAnError(IOError, "The directory indicated for PostProcessor " + self.name + "does not contain any csv file. Path: " + self.sourceDirectory)
-    self.listOfCsvFiles.sort()
-
-  def inputToInternal(self, currentInput):
-    """
-      Method to convert an input object into the internal format that is
-      understandable by this pp.
-      @ In, currentInput, object, an object that needs to be converted
-      @ Out, self.listOfCsvFiles, list, list of csv files
-    """
-    return self.listOfCsvFiles
-
-  def _localReadMoreXML(self, xmlNode):
-    """
-      Function to read the portion of the xml input that belongs to this specialized class
-      and initialize some stuff based on the inputs got
-      @ In, xmlNode, xml.etree.Element, Xml element node
-      @ Out, None
-    """
-    for child in xmlNode:
-      if child.tag == "directory": self.sourceDirectory = child.text
-    if not self.sourceDirectory: self.raiseAnError(IOError, "The PostProcessor " + self.name + "needs a directory for loading the csv files!")
-
-  def collectOutput(self, finishedJob, output):
-    """
-      Function to place all of the computed data into the output object
-      @ In, finishedJob, JobHandler External or Internal instance, A JobHandler object that is in charge of running this post-processor
-      @ In, output, dataObjects, The object where we want to place our computed results
-      @ Out, None
-    """
-    for index, csvFile in enumerate(self.listOfCsvFiles):
-      attributes = {"prefix":str(index), "inputFile":self.name, "type":"csv", "name":csvFile}
-      metadata = finishedJob.returnMetadata()
-      if metadata:
-        for key in metadata: attributes[key] = metadata[key]
-      try:                   output.addGroup(attributes, attributes)
-      except AttributeError:
-        outfile = Files.returnInstance('CSV',self)
-
-        outfile.initialize(csvFile,self.messageHandler,path=os.path.dirname(csvFile))
-        output.addOutput(outfile, attributes)
-        if metadata:
-          for key, value in metadata.items(): output.updateMetadata(key, value, attributes)
-
-  def run(self, inputIn):
-    """
-      This method executes the postprocessor action. In this case, it just returns the list of csv files
-      @ In,  inputIn, object, object contained the data to process. (inputToInternal output)
-      @ Out, self.listOfCsvFiles, list, list of csv files
-    """
-    return self.listOfCsvFiles
 #
 #
 #
@@ -3395,7 +3177,7 @@ class DataMining(BasePostProcessor):
                                                           ## algorithms the user
                                                           ## wants
 
-    self.requiredAssObject = (True, (['Label','PreProcessor','Metric'], ['-1','-1','-1']))  ## The Label is optional for now
+    self.requiredAssObject = (True, (['Label', 'PreProcessor','Metric'], ['-1','-1','-1']))  ## The Label is optional for now
     self.clusterLabels = None
     self.labelAlgorithms = []
     self.solutionExport = None                            ## A data object to
@@ -3443,8 +3225,42 @@ class DataMining(BasePostProcessor):
         data objects handed to the post-processor
       @ Out, inputDict, dict, An input dictionary this object can process
     """
-    if type(currentInp) == list: currentInput = currentInp[-1]
-    else                       : currentInput = currentInp
+
+    if type(currentInp) == list:
+      currentInput = currentInp[-1]
+    else:
+      currentInput = currentInp
+
+    if currentInput.type == 'HistorySet' and self.PreProcessor is None: # for testing time dependent dm - time dependent clustering
+      inputDict = {'Features':{}, 'parameters':{}, 'Labels':{}, 'metadata':{}}
+
+      # FIXME, this needs to be changed for asynchronous HistorySet
+      if self.pivotParameter in currentInput.getParam('output',1).keys():
+        self.pivotVariable = currentInput.getParam('output',1)[self.pivotParameter]
+      else:
+        self.raiseAnError(ValueError, 'Pivot variable not found in input historyset')
+      # end of FIXME
+
+      historyKey = currentInput.getOutParametersValues().keys()
+      numberOfSample = len(historyKey)
+      numberOfHistoryStep = len(self.pivotVariable)
+
+      if self.initializationOptionDict['KDD']['Features'] == 'input':
+        self.raiseAnError(ValueError, 'To perform data mining over input please use SciKitLearn library')
+      elif self.initializationOptionDict['KDD']['Features'] in ['output', 'all']:
+        features = currentInput.getParaKeys('output')
+        features.remove(self.pivotParameter)
+      else:
+        features = self.initializationOptionDict['KDD']['Features'].split(',')
+
+      for param in features:
+        inputDict['Features'][param] = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
+        for cnt, keyH in enumerate(historyKey):
+          inputDict['Features'][param][cnt,:] = currentInput.getParam('output', keyH)[param]
+
+      inputDict['metadata'] = currentInput.getAllMetadata()
+      return inputDict
+
     if type(currentInp) == dict:
       if 'Features' in currentInput.keys(): return
     if isinstance(currentInp, Files.File):
@@ -3532,6 +3348,7 @@ class DataMining(BasePostProcessor):
     #   self.raiseAnError(IOError, 'Unsupported input type (' + currentInput.subtype + ') for PostProcessor ' + self.name + ' must be a PointSet.')
     else:
       self.raiseAnError(IOError, 'Unsupported input type (' + currentInput.type + ') for PostProcessor ' + self.name + ' must be a PointSet.')
+
     return inputDict
 
   def initialize(self, runInfo, inputs, initDict):
@@ -3598,9 +3415,21 @@ class DataMining(BasePostProcessor):
             self.initializationOptionDict[child.tag][childChild.tag] = dict(childChild.attrib)
           else:
             self.initializationOptionDict[child.tag][childChild.tag] = utils.tryParse(childChild.text)
+      elif child.tag == 'pivotParameter':
+        self.pivotParameter = child.text
+
+    if not hasattr(self, 'pivotParameter'):
+      #TODO, if doing time dependent data mining that needs this, an error
+      # should be thrown
+      self.pivotParameter = None
 
     if self.type:
-      self.unSupervisedEngine = unSupervisedLearning.returnInstance(self.type, self, **self.initializationOptionDict['KDD'])
+      #TODO unSurpervisedEngine needs to be able to handle both methods
+      # without this if statement.
+      if self.pivotParameter is not None:
+        self.unSupervisedEngine = unSupervisedLearning.returnInstance("temporalSciKitLearn", self, **self.initializationOptionDict['KDD'])
+      else:
+        self.unSupervisedEngine = unSupervisedLearning.returnInstance(self.type, self, **self.initializationOptionDict['KDD'])
     else:
       self.raiseAnError(IOError, 'No Data Mining Algorithm is supplied!')
 
@@ -3617,8 +3446,6 @@ class DataMining(BasePostProcessor):
     if finishedJob.returnEvaluation() == -1:
       self.raiseAnError(RuntimeError, 'No available Output to collect (Run probably is not finished yet)')
 
-    self.raiseADebug(str(finishedJob.returnEvaluation()))
-
     dataMineDict = finishedJob.returnEvaluation()[1]
     for key in dataMineDict['output']:
       for param in output.getParaKeys('output'):
@@ -3628,12 +3455,20 @@ class DataMining(BasePostProcessor):
         for value in dataMineDict['output'][key]:
           output.updateOutputValue(key, copy.copy(value))
       elif output.type == 'HistorySet':
-        for index,value in np.ndenumerate(dataMineDict['output'][key]):
-          firstHist = output._dataContainer['outputs'].keys()[0]
-          firstVar  = output._dataContainer['outputs'][firstHist].keys()[0]
-          timeLength = output._dataContainer['outputs'][firstHist][firstVar].size
-          arrayBase = value * np.ones(timeLength)
-          output.updateOutputValue([index[0]+1,key], arrayBase)
+        if self.PreProcessor is not None:
+          for index,value in np.ndenumerate(dataMineDict['output'][key]):
+            firstHist = output._dataContainer['outputs'].keys()[0]
+            firstVar  = output._dataContainer['outputs'][firstHist].keys()[0]
+            timeLength = output._dataContainer['outputs'][firstHist][firstVar].size
+            arrayBase = value * np.ones(timeLength)
+            output.updateOutputValue([index[0]+1,key], arrayBase)
+        else:
+          tlDict = finishedJob.returnEvaluation()[1]
+          historyKey = output.getOutParametersValues().keys()
+          for index, keyH in enumerate(historyKey):
+            for keyL in tlDict['output'].keys():
+              output.updateOutputValue([keyH,keyL], tlDict['output'][keyL][index,:])
+
 
   def run(self, inputIn):
     """
@@ -3642,21 +3477,31 @@ class DataMining(BasePostProcessor):
       @ In, inputIn, dict, dictionary of data to process
       @ Out, outputDict, dict, dictionary containing the post-processed results
     """
-    if len(self.dataObjects) > 0:
-      if type(self.dataObjects) == list:
-        dataObject = self.dataObjects[-1]
-      else:
-        dataObject = self.dataObjects
+    Input = self.inputToInternal(inputIn)
+    if type(inputIn) == list:
+      currentInput = inputIn[-1]
     else:
-      dataObject = None
-    input = self.inputToInternal(inputIn)
+      currentInput = inputIn
+
+    if currentInput.type == 'HistorySet' and self.PreProcessor is None:
+      return self.__runTemporalSciKitLearn(Input)
+    else:
+      return self.__runSciKitLearn(Input)
+
+  def __runSciKitLearn(self, Input):
+    """
+      This method executes the postprocessor action. In this case it loads the
+      results to specified dataObject.  This is for SciKitLearn
+      @ In, Input, dict, dictionary of data to process
+      @ Out, outputDict, dict, dictionary containing the post-processed results
+    """
+
     outputDict = {}
-    self.unSupervisedEngine.features = input['Features']
+    self.unSupervisedEngine.features = Input['Features']
     if not self.unSupervisedEngine.amITrained:
-      self.unSupervisedEngine.train(input['Features'], self.metric)
+      self.unSupervisedEngine.train(Input['Features'], self.metric)
     self.unSupervisedEngine.confidence()
     outputDict['output'] = {}
-    noClusters = 1
 
     ## These are very different things, shouldn't each one be its own class?
     ## Proposed hierarchy:
@@ -3671,21 +3516,14 @@ class DataMining(BasePostProcessor):
     ##       - Manifold Learning
     ##       - Linear projection methods
     if 'cluster' == self.unSupervisedEngine.SKLtype:
-
       ## Get the cluster labels and store as a new column in the output
+      #assert  'labels' in self.unSupervisedEngine.outputDict.keys()== hasattr(self.unSupervisedEngine, 'labels_')
       if hasattr(self.unSupervisedEngine, 'labels_'):
         self.clusterLabels = self.unSupervisedEngine.labels_
       outputDict['output'][self.labelFeature] = self.clusterLabels
 
-      ## Get the total number of clusters
-      if hasattr(self.unSupervisedEngine, 'noClusters'):
-        noClusters = self.unSupervisedEngine.noClusters
-      elif hasattr(self.unSupervisedEngine, 'clusterCentersIndices_'):
-        noClusters = len(self.unSupervisedEngine.clusterCentersIndices_)
-
-      ## Get the centroids and push them to a SolutionExport data object, if
-      ## we have both, also if we have the centers, assume we have the indices
-      ## to match them.
+      ## Get the centroids and push them to a SolutionExport data object.
+      ## Also if we have the centers, assume we have the indices to match them
       if hasattr(self.unSupervisedEngine, 'clusterCenters_'):
         centers = self.unSupervisedEngine.clusterCenters_
         ## Does skl not provide a correlation between label ids and cluster centers?
@@ -3731,7 +3569,6 @@ class DataMining(BasePostProcessor):
     elif 'bicluster' == self.unSupervisedEngine.SKLtype:
       self.raiseAnError(RuntimeError, 'Bicluster has not yet been implemented.')
     elif 'mixture' == self.unSupervisedEngine.SKLtype:
-
       if   hasattr(self.unSupervisedEngine, 'covars_'):
         mixtureCovars = self.unSupervisedEngine.covars_
 
@@ -3740,23 +3577,27 @@ class DataMining(BasePostProcessor):
 
       mixtureValues = self.unSupervisedEngine.normValues
       mixtureMeans = self.unSupervisedEngine.means_
-      mixtureLabels = self.unSupervisedEngine.evaluate(input['Features'])
+      mixtureLabels = self.unSupervisedEngine.evaluate(Input['Features'])
       outputDict['output'][self.labelFeature] = mixtureLabels
 
       if self.solutionExport is not None:
-        ## TODO: Export Gaussian centers to SolutionExport
-        ## Get the centroids and push them to a SolutionExport data object, if
-        ## we have both, also if we have the centers, assume we have the indices
-        ## to match them.
+        ## Get the means and push them to a SolutionExport data object.
         ## Does skl not provide a correlation between label ids and Gaussian
         ## centers?
         indices = list(range(len(mixtureMeans)))
         for index,center in zip(indices,mixtureMeans):
           self.solutionExport.updateInputValue(self.labelFeature,index)
           ## Can I be sure of the order of dimensions in the features dict, is
-          ## the same order as the data held in the UnSupervisedLearning object?
+          ## the same order as the data held in the UnSupervisedLearning
+          ## object?
           for key,value in zip(self.unSupervisedEngine.features.keys(),center):
             self.solutionExport.updateOutputValue(key,value)
+          ## You may also want to output the covariances of each pair of
+          ## dimensions as well
+          for i,row in enumerate(self.unSupervisedEngine.features.keys()):
+            for joffset,col in enumerate(self.unSupervisedEngine.features.keys()[i:]):
+              j = i+joffset
+              self.solutionExport.updateOutputValue('cov_'+str(row)+'_'+str(col),mixtureCovars[index][i,j])
 
     elif 'manifold' == self.unSupervisedEngine.SKLtype:
       manifoldValues = self.unSupervisedEngine.normValues
@@ -3771,8 +3612,9 @@ class DataMining(BasePostProcessor):
       if hasattr(self.unSupervisedEngine, 'reconstructionError_'):
         reconstructionError = self.unSupervisedEngine.reconstructionError_
 
-      ## information stored on a per point basis, no need to use a solution
-      ## export here
+      ## information stored on a per point basis, so no need to use a solution
+      ## export. Manifold methods do not give us a global transformation
+      ## matrix.
       for i in range(len(embeddingVectors[0, :])):
         outputDict['output'][self.name+'EmbeddingVector' + str(i + 1)] =  embeddingVectors[:, i]
 
@@ -3791,16 +3633,246 @@ class DataMining(BasePostProcessor):
       ## SCORE method does not work for SciKit Learn 0.14
       # if hasattr(self.unSupervisedEngine.Method, 'score'):
       #   score = self.unSupervisedEngine.Method.score(decompositionValues)
-      if hasattr(self.unSupervisedEngine.Method, 'transform'):
-        components = self.unSupervisedEngine.Method.transform(decompositionValues)
-      elif hasattr(self.unSupervisedEngine.Method, 'fit_transform'):
-        components = self.unSupervisedEngine.Method.fit_transform(decompositionValues)
+      if   'transform'     in dir(self.unSupervisedEngine.Method):
+        transformedData = self.unSupervisedEngine.Method.transform(decompositionValues)
+      elif 'fit_transform' in dir(self.unSupervisedEngine.Method):
+        transformedData = self.unSupervisedEngine.Method.fit_transform(decompositionValues)
 
-      ## information stored on a per point basis, no need to use a solution
-      ## export here, this could potentially change, if we are sure these
-      ## use a single projection matrix.
+      ## information stored on a per point basis
       for i in range(noComponents):
-        outputDict['output'][self.name+'PCAComponent' + str(i + 1)] =  components[:, i]
+        outputDict['output'][self.name+'PCAComponent' + str(i + 1)] =  transformedData[:, i]
+
+      if self.solutionExport is not None:
+        ## Get the transformation matrix and push it to a SolutionExport
+        ## data object.
+        ## Can I be sure of the order of dimensions in the features dict, is
+        ## the same order as the data held in the UnSupervisedLearning object?
+        for row,values in enumerate(components):
+          self.solutionExport.updateInputValue('component', row+1)
+          for col,value in zip(self.unSupervisedEngine.features.keys(),values):
+            self.solutionExport.updateOutputValue(col,value)
+
+          self.solutionExport.updateOutputValue('ExplainedVarianceRatio',explainedVarianceRatio[row])
+    return outputDict
+
+
+  def __runTemporalSciKitLearn(self, Input):
+    """
+      This method executes the postprocessor action. In this case it loads the
+      results to specified dataObject.  This is for temporalSciKitLearn
+      @ In, Input, dict, dictionary of data to process
+      @ Out, outputDict, dict, dictionary containing the post-processed results
+    """
+
+    outputDict = {}
+    self.unSupervisedEngine.features = Input['Features']
+    self.unSupervisedEngine.pivotVariable = self.pivotVariable
+
+    if not self.unSupervisedEngine.amITrained:
+      self.unSupervisedEngine.train(Input['Features'])
+    self.unSupervisedEngine.confidence()
+    outputDict['output'] = {}
+    numberOfHistoryStep = self.unSupervisedEngine.numberOfHistoryStep
+    numberOfSample = self.unSupervisedEngine.numberOfSample
+
+    if 'cluster' == self.unSupervisedEngine.SKLtype:
+      if 'labels' in self.unSupervisedEngine.outputDict.keys():
+        labels = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
+        for t in range(numberOfHistoryStep):
+          labels[:,t] = self.unSupervisedEngine.outputDict['labels'][t]
+        outputDict['output'][self.labelFeature] = labels
+
+      ## SKL will always enumerate cluster centers starting from zero, if this
+      ## is violated, then the indexing below will break.
+      if 'clusterCentersIndices' in self.unSupervisedEngine.outputDict.keys():
+        clusterCentersIndices = self.unSupervisedEngine.outputDict['clusterCentersIndices']
+
+      if 'clusterCenters' in self.unSupervisedEngine.outputDict.keys():
+        clusterCenters = self.unSupervisedEngine.outputDict['clusterCenters']
+        # Output cluster centroid to solutionExport
+        if self.solutionExport is not None:
+          ## We will process each cluster in turn
+          for clusterIdx in xrange(int(np.max(labels))+1):
+            ## First store the label as the input for this cluster
+            self.solutionExport.updateInputValue(self.labelFeature,clusterIdx)
+
+            ## The time series will be the first output
+            ## TODO: Ensure user requests this
+            self.solutionExport.updateOutputValue(self.pivotParameter, self.pivotVariable)
+
+            ## Now we will process each feature available
+            ## TODO: Ensure user requests each of these
+            for featureIdx, feat in enumerate(self.unSupervisedEngine.features):
+              ## We will go through the time series and find every instance
+              ## where this cluster exists, if it does not, then we put a NaN
+              ## to signal that the information is missing for this timestep
+              timeSeries = np.zeros(numberOfHistoryStep)
+
+              for timeIdx in range(numberOfHistoryStep):
+                ## Here we use the assumption that SKL provides clusters that
+                ## are integer values beginning at zero, which make for nice
+                ## indexes with no need to add another layer of obfuscation
+                if clusterIdx in clusterCentersIndices[timeIdx]:
+                  timeSeries[timeIdx] = self.unSupervisedEngine.outputDict['clusterCenters'][timeIdx][clusterIdx,featureIdx]
+                else:
+                  timeSeries[timeIdx] = np.nan
+
+              ## In summary, for each feature, we fill a temporary array and
+              ## stuff it into the solutionExport, one question is how do we
+              ## tell it which item we are exporting? I am assuming that if
+              ## I add an input, then I need to do the corresponding
+              ## updateOutputValue to associate everything with it? Once I
+              ## call updateInputValue again, it will move the pointer? This
+              ## needs verified
+              self.solutionExport.updateOutputValue(feat, timeSeries)
+
+      if 'inertia' in self.unSupervisedEngine.outputDict.keys():
+        inertia = self.unSupervisedEngine.outputDict['inertia']
+
+    elif 'mixture' == self.unSupervisedEngine.SKLtype:
+      if 'labels' in self.unSupervisedEngine.outputDict.keys():
+        labels = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
+        for t in range(numberOfHistoryStep):
+          labels[:,t] = self.unSupervisedEngine.outputDict['labels'][t]
+        outputDict['output'][self.labelFeature] = labels
+
+      if 'covars' in self.unSupervisedEngine.outputDict.keys():
+        mixtureCovars = self.unSupervisedEngine.outputDict['covars']
+      else:
+        mixtureCovars = None
+
+      if 'precs' in self.unSupervisedEngine.outputDict.keys():
+        mixturePrecs = self.unSupervisedEngine.outputDict['precs']
+      else:
+        mixturePrecs = None
+
+      if 'componentMeanIndices' in self.unSupervisedEngine.outputDict.keys():
+        componentMeanIndices = self.unSupervisedEngine.outputDict['componentMeanIndices']
+      else:
+        componentMeanIndices = None
+
+      if 'means' in self.unSupervisedEngine.outputDict.keys():
+        mixtureMeans = self.unSupervisedEngine.outputDict['means']
+      else:
+        mixtureMeans = None
+
+      # Output cluster centroid to solutionExport
+      if self.solutionExport is not None:
+        ## We will process each cluster in turn
+        for clusterIdx in xrange(int(np.max(componentMeanIndices.values()))+1):
+          ## First store the label as the input for this cluster
+          self.solutionExport.updateInputValue(self.labelFeature,clusterIdx)
+
+          ## The time series will be the first output
+          ## TODO: Ensure user requests this
+          self.solutionExport.updateOutputValue(self.pivotParameter, self.pivotVariable)
+
+          ## Now we will process each feature available
+          ## TODO: Ensure user requests each of these
+          if mixtureMeans is not None:
+            for featureIdx, feat in enumerate(self.unSupervisedEngine.features):
+              ## We will go through the time series and find every instance
+              ## where this cluster exists, if it does not, then we put a NaN
+              ## to signal that the information is missing for this timestep
+              timeSeries = np.zeros(numberOfHistoryStep)
+
+              for timeIdx in range(numberOfHistoryStep):
+                timeSeries[timeIdx] = mixtureMeans[timeIdx][clusterIdx,featureIdx]
+
+              ## In summary, for each feature, we fill a temporary array and
+              ## stuff it into the solutionExport, one question is how do we
+              ## tell it which item we are exporting? I am assuming that if
+              ## I add an input, then I need to do the corresponding
+              ## updateOutputValue to associate everything with it? Once I
+              ## call updateInputValue again, it will move the pointer? This
+              ## needs verified
+              self.solutionExport.updateOutputValue(feat, timeSeries)
+
+          ## You may also want to output the covariances of each pair of
+          ## dimensions as well
+          if mixtureCovars is not None:
+            for i,row in enumerate(self.unSupervisedEngine.features.keys()):
+              for joffset,col in enumerate(self.unSupervisedEngine.features.keys()[i:]):
+                j = i+joffset
+                timeSeries = np.zeros(numberOfHistoryStep)
+                for timeIdx in range(numberOfHistoryStep):
+                  timeSeries[timeIdx] = mixtureCovars[timeIdx][clusterIdx][i,j]
+                self.solutionExport.updateOutputValue('cov_'+str(row)+'_'+str(col),timeSeries)
+
+    elif 'manifold' == self.unSupervisedEngine.SKLtype:
+      noComponents = self.unSupervisedEngine.outputDict['noComponents'][0]
+
+      if 'embeddingVectors_' in self.unSupervisedEngine.outputDict.keys():
+        embeddingVectors = self.unSupervisedEngine.outputDict['embeddingVectors_']
+
+      if 'reconstructionError_' in self.unSupervisedEngine.outputDict.keys():
+        reconstructionError = self.unSupervisedEngine.outputDict['reconstructionError_']
+
+      for i in range(noComponents):
+        ## Looking at the lines between the initialization of
+        ## outputDict['output'] and here, how is this ever possible? I don't
+        ## think the if is necessary here.
+        # if self.name+'EmbeddingVector' + str(i + 1) not in outputDict['output'].keys():
+        outputDict['output'][self.name+'EmbeddingVector' + str(i + 1)] = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
+
+        ## Shouldn't this only happen if embeddingVectors is set above?
+        for t in range(numberOfHistoryStep):
+          outputDict['output'][self.name+'EmbeddingVector' + str(i + 1)][:,t] =  embeddingVectors[t][:, i]
+
+    elif 'decomposition' == self.unSupervisedEngine.SKLtype:
+      decompositionValues = self.unSupervisedEngine.normValues
+
+      noComponents = self.unSupervisedEngine.outputDict['noComponents'][0]
+
+      if 'components' in self.unSupervisedEngine.outputDict.keys():
+        components = self.unSupervisedEngine.outputDict['components']
+      else:
+        components = None
+
+      if 'transformedData' in self.unSupervisedEngine.outputDict.keys():
+        transformedData = self.unSupervisedEngine.outputDict['transformedData']
+      else:
+        transformedData = None
+
+      if 'explainedVarianceRatio' in self.unSupervisedEngine.outputDict.keys():
+        explainedVarianceRatio = self.unSupervisedEngine.outputDict['explainedVarianceRatio']
+      else:
+        explainedVarianceRatio = None
+
+      for i in range(noComponents):
+        ## Looking at the lines between the initialization of
+        ## outputDict['output'] and here, how is this ever possible? I don't
+        ## think the if is necessary here.
+        # if self.name+'PCAComponent' + str(i + 1) not in outputDict['output'].keys():
+        outputDict['output'][self.name+'PCAComponent' + str(i + 1)] = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
+
+
+        if transformedData is not None:
+          for t in range(numberOfHistoryStep):
+            outputDict['output'][self.name+'PCAComponent' + str(i + 1)][:,t] = transformedData[t][:, i]
+
+
+      if self.solutionExport is not None and components is not None:
+        ## Get the transformation matrix and push it to a SolutionExport
+        ## data object.
+        ## Can I be sure of the order of dimensions in the features dict, is
+        ## the same order as the data held in the UnSupervisedLearning object?
+        for row in range(noComponents):
+          self.solutionExport.updateInputValue('component', row+1)
+          self.solutionExport.updateOutputValue(self.pivotParameter, self.pivotVariable)
+          for i,col in enumerate(self.unSupervisedEngine.features.keys()):
+            timeSeries = np.zeros(numberOfHistoryStep)
+            for timeIdx in range(numberOfHistoryStep):
+              timeSeries[timeIdx] = components[timeIdx][row][i]
+            self.solutionExport.updateOutputValue(col,timeSeries)
+          if explainedVarianceRatio is not None:
+            timeSeries = np.zeros(numberOfHistoryStep)
+            for timeIdx in range(numberOfHistoryStep):
+              timeSeries[timeIdx] = explainedVarianceRatio[timeIdx][row]
+            self.solutionExport.updateOutputValue('ExplainedVarianceRatio',timeSeries)
+
+    else:
+      self.raiseAnError(IOError,'%s has not yet implemented.' % self.unSupervisedEngine.SKLtype)
 
     return outputDict
 #
@@ -3850,7 +3922,7 @@ class RavenOutput(BasePostProcessor):
           found = True
           break
       if not found:
-        self.raiseAnError(IOError,'Did not find file named "%s" among the Step inputs!')
+        self.raiseAnError(IOError,'Did not find file named "%s" among the Step inputs!' % (input.name))
 
   def _localReadMoreXML(self,xmlNode):
     """
@@ -3903,7 +3975,7 @@ class RavenOutput(BasePostProcessor):
               self.raiseAnError(IOError,'Must specify a "name" for each "output" block!  Missing for:',cchild.text)
             varName = cchild.attrib['name'].strip()
             if varName in self.files[id]['paths'].keys():
-              self.raiseAnError(IOError,'Multiple "output" blocks for "%s" have the same "name":' %self.files[id]['name'],label)
+              self.raiseAnError(IOError,'Multiple "output" blocks for "%s" have the same "name":' %self.files[id]['name'],varName)
             self.files[id]['paths'][varName] = cchild.text.strip()
     #if dynamic, only one File can be specified currently; to fix this, how do you handle different-lengthed times in same data object?
     if self.dynamic and numberOfSources > 1:
@@ -3990,6 +4062,7 @@ class RavenOutput(BasePostProcessor):
 
 
 
+
 """
  Interface Dictionary (factory) (private)
 """
@@ -3997,10 +4070,8 @@ __base = 'PostProcessor'
 __interFaceDict = {}
 __interFaceDict['SafestPoint'              ] = SafestPoint
 __interFaceDict['LimitSurfaceIntegral'     ] = LimitSurfaceIntegral
-__interFaceDict['PrintCSV'                 ] = PrintCSV
 __interFaceDict['BasicStatistics'          ] = BasicStatistics
 __interFaceDict['InterfacedPostProcessor'  ] = InterfacedPostProcessor
-__interFaceDict['LoadCsvIntoInternalObject'] = LoadCsvIntoInternalObject
 __interFaceDict['LimitSurface'             ] = LimitSurface
 __interFaceDict['ComparisonStatistics'     ] = ComparisonStatistics
 __interFaceDict['External'                 ] = ExternalPostProcessor

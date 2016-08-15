@@ -67,20 +67,51 @@ class RELAPparser():
         for var in modiDictionaryList[j]:
           temp.append('* card: '+j+' word: '+str(var['position'])+' value: '+str(var['value'])+'\n')
       temp.append('*RAVEN INPUT VALUES\n')
-      for line in self.deckLines[deckNum]: #     fileinput.input(self.inputfile, mode='r'):
-        temp1=line
+
+      temp+=self.deckLines[deckNum]
+      cardLines = {}
+      foundAllCards = dict.fromkeys(modiDictionaryList.keys(),False)
+      for lineNum, line in enumerate(temp):
+        if all(foundAllCards.values()): break
         if not re.match('^\s*\n',line):
           card = line.split()[0].strip()
           if card in modiDictionaryList.keys():
-            temp2 = line
-            for var in modiDictionaryList[card]:
-              temp1 = self.replaceword(temp2,var['position'],var['value'])
-              temp2 = temp1
-            #temp1 = self.replaceword(line,modiDictionaryList[card]['position'],modiDictionaryList[card]['value'])
-        temp.append(temp1)
+            cardLines[card] = {'lineNumber':lineNum,'numberOfLevels':1,'numberOfAvailableWords':self.countNumberOfWords(line)}
+            foundAllCards[card] = True
+            moveToNextLine      = True
+            cnt                 = 1
+            while moveToNextLine:
+              if temp[lineNum+cnt].strip().startswith("+"):
+                cardLines[card]['numberOfLevels'        ]+=1
+                cardLines[card]['numberOfAvailableWords']+=self.countNumberOfWords(temp[lineNum+cnt])
+                cnt+=1
+              else: moveToNextLine=False
+      # modify the cards
+      for card in cardLines.keys():
+        for var in modiDictionaryList[card]:
+          if cardLines[card]['numberOfAvailableWords'] >= var['position']:
+            totalNumberOfWords = 0
+            for i in range(cardLines[card]['numberOfLevels']):
+              numberOfWords = self.countNumberOfWords(temp[cardLines[card]['lineNumber']+i])
+              if totalNumberOfWords+numberOfWords>=var['position']:
+                temp[cardLines[card]['lineNumber']+i] = self.replaceword(temp[cardLines[card]['lineNumber']+i],var['position']-totalNumberOfWords,var['value'])
+                break
+              totalNumberOfWords+=numberOfWords
+          else:
+            raise IOError("RELAP5 Interface: The word that needs to be sampled is in a position ("+str(var['position'])+") > then the actual number of words ("+str(cardLines[card]['numberOfAvailableWords'])+")!!")
       if save: self.deckLines[deckNum]=temp
       lines = lines + temp
     return lines
+
+  def countNumberOfWords(self,line,additionFactor=-1):
+    """
+      Method to count the number of words in a certain line
+      @ In, line, string, line to be evaluated
+      @ In, additionFactor, int, addition factor
+      @ Out, number, int, the number of words
+    """
+    number = len(line.split())+additionFactor
+    return number
 
   def replaceword(self,line,position,value):
     """

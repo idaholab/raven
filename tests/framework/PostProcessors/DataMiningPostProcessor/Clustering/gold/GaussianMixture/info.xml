@@ -1,1 +1,1 @@
-<data name="info" type="Pointset"><input>labels</input><output>x2,x1</output><inputFilename>info.csv</inputFilename></data>
+<data name="info" type="Pointset"><input>labels</input><output>x2,cov_x1_x1,x1,cov_x2_x1,cov_x2_x2</output><inputFilename>info.csv</inputFilename></data>
