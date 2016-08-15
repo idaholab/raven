@@ -25,7 +25,7 @@ import Files
 
 class Metric(utils.metaclass_insert(abc.ABCMeta,BaseType)):
 
-  def __init__(self,runInfoDict):
+  def __init__(self):
     BaseType.__init__(self)
     self.type = self.__class__.__name__
     self.name = self.__class__.__name__
