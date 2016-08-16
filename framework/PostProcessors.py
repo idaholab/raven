@@ -3231,7 +3231,7 @@ class DataMining(BasePostProcessor):
     else:
       currentInput = currentInp
 
-    if currentInput.type == 'HistorySet' and self.PreProcessor is None: # for testing time dependent dm - time dependent clustering
+    if currentInput.type == 'HistorySet' and self.PreProcessor is None and self.metric is None: # for testing time dependent dm - time dependent clustering
       inputDict = {'Features':{}, 'parameters':{}, 'Labels':{}, 'metadata':{}}
 
       # FIXME, this needs to be changed for asynchronous HistorySet
@@ -3348,7 +3348,6 @@ class DataMining(BasePostProcessor):
     #   self.raiseAnError(IOError, 'Unsupported input type (' + currentInput.subtype + ') for PostProcessor ' + self.name + ' must be a PointSet.')
     else:
       self.raiseAnError(IOError, 'Unsupported input type (' + currentInput.type + ') for PostProcessor ' + self.name + ' must be a PointSet.')
-
     return inputDict
 
   def initialize(self, runInfo, inputs, initDict):
@@ -3445,7 +3444,6 @@ class DataMining(BasePostProcessor):
     ## When does this actually happen?
     if finishedJob.returnEvaluation() == -1:
       self.raiseAnError(RuntimeError, 'No available Output to collect (Run probably is not finished yet)')
-
     dataMineDict = finishedJob.returnEvaluation()[1]
     for key in dataMineDict['output']:
       for param in output.getParaKeys('output'):
@@ -3455,7 +3453,7 @@ class DataMining(BasePostProcessor):
         for value in dataMineDict['output'][key]:
           output.updateOutputValue(key, copy.copy(value))
       elif output.type == 'HistorySet':
-        if self.PreProcessor is not None:
+        if self.PreProcessor is not None or self.metric is not None:
           for index,value in np.ndenumerate(dataMineDict['output'][key]):
             firstHist = output._dataContainer['outputs'].keys()[0]
             firstVar  = output._dataContainer['outputs'][firstHist].keys()[0]
@@ -3483,7 +3481,7 @@ class DataMining(BasePostProcessor):
     else:
       currentInput = inputIn
 
-    if currentInput.type == 'HistorySet' and self.PreProcessor is None:
+    if currentInput.type == 'HistorySet' and self.PreProcessor is None and self.metric is None:
       return self.__runTemporalSciKitLearn(Input)
     else:
       return self.__runSciKitLearn(Input)

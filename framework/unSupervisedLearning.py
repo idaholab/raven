@@ -99,6 +99,7 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
       @ In, tdict, dict, training dictionary
       @ Out, None
     """
+    self.metric = metric
     if type(tdict) != dict: self.raiseAnError(IOError, ' method "train". The training set needs to be provided through a dictionary. Type of the in-object is ' + str(type(tdict)))
     names, values = list(tdict.keys()), list(tdict.values())
     if self.labels in names:
@@ -106,7 +107,7 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
       resp = self.checkArrayConsistency(self.labelValues)
       if not resp[0]: self.raiseAnError(IOError, 'In training set for ground truth labels ' + self.labels + ':' + resp[1])
     else            : self.raiseAWarning(' The ground truth labels are not known a priori')
-    if metric == None:
+    if self.metric == None:
       for cnt, feat in enumerate(self.features):
         if feat not in names:
           self.raiseAnError(IOError, ' The feature sought ' + feat + ' is not in the training set')
@@ -124,7 +125,7 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
           if self.muAndSigmaFeatures[feat][1] == 0:
             self.muAndSigmaFeatures[feat] = (self.muAndSigmaFeatures[feat][0], 1.0)
           self.normValues[:, cnt] = (values[names.index(feat)] - self.muAndSigmaFeatures[feat][0]) / self.muAndSigmaFeatures[feat][1]
-    else:    # metric != None
+    else:    # self.metric != None
       if isinstance(tdict[tdict.keys()[0]],dict): #  the dictionary represents an HistorySet
         # normalize data
         for key in tdict.keys():
@@ -135,10 +136,9 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
         self.normValues = np.zeros((cardinality,cardinality))
         keys = tdict.keys()
         for i in range(cardinality):
-          for j in range(i,cardinality):
-            self.normValues[i][j] = metric.distance(tdict[keys[i]],tdict[keys[j]])
-            self.normValues[j][i] = self.normValues[i][j]
-        print(self.normValues[0])
+          for j in range(i+1,cardinality):
+            self.normValues[i,j] = self.metric.distance(tdict[keys[i]],tdict[keys[j]])
+            self.normValues[j,i] = self.normValues[i,j]
       else:   # PointSet
         for cnt, feat in enumerate(self.features):
           if feat not in names:
@@ -159,7 +159,7 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
 
             for i in range(cardinality):
               for j in range(i,cardinality):
-                self.normValues[i][j] = metric.distance(tdict[i],tdict[j])
+                self.normValues[i][j] = self.metric.distance(tdict[i],tdict[j])
                 self.normValues[j][i] = self.normValues[i][j]
     self.__trainLocal__()
     self.amITrained = True
@@ -405,7 +405,7 @@ class SciKitLearn(unSupervisedLearning):
               for center in self.clusterCenters_:
                 center[cnt] = center[cnt] * self.muAndSigmaFeatures[feat][1] + self.muAndSigmaFeatures[feat][0]
             self.outputDict['outputs']['clusterCenters'       ] = self.clusterCenters_
-        else:
+        elif self.metric == None:
             # this methods is used by any other clustering algorithm that does not generatecluster_centers_ to generate the cluster centers. E.g., Agglomerative
             # clustering in Sklearn does not in fact compute cluster centers. This if condition computes
             # self.outputDict['outputs']['clusterCenters'] for this particular clustering method

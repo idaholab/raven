@@ -7,7 +7,8 @@ import abc
 import importlib
 import inspect
 import atexit
-from sklearn.metrics.pairwise import *
+import copy
+import sklearn.metrics.pairwise as pairwise
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -25,74 +26,82 @@ from .Metric import Metric
 class DTW(Metric):
 
   def initialize(self,inputDict):
-    self.allowedKeywords = Set(['pivotParameter','order','localDistance'])
     self.pivotParameter = None
     self.order          = None
     self.localDistance  = None
 
   def _readMoreXML(self,xmlNode):
-    self.wrongKeywords = Set([])
-    
+    self.allowedKeywords = set(['pivotParameter','order','localDistance'])
+    self.wrongKeywords = set()
     for child in xmlNode:
       if child.tag == 'order':
-        if child.text in [0,1]:
+        if child.text in ['0','1']:
           self.order = float(child.text)
         else:
           self.raiseAnError(IOError,'DTW metrics - specified order ' + str(child.text) + ' is not recognized (allowed values are 0 or 1)')
-        self.allowedKeywords.pop('order')
+        self.allowedKeywords.remove('order')
       if child.tag == 'pivotParameter':
         self.pivotParameter = child.text
-        self.allowedKeywords.pop('pivotParameter')
+        self.allowedKeywords.remove('pivotParameter')
       if child.tag == 'localDistance':
         self.localDistance = child.text
-        self.allowedKeywords.pop('localDistance')
+        self.allowedKeywords.remove('localDistance')
       if child.tag not in self.allowedKeywords:
-        self.wrongKeywords.add(child.text)
+        self.wrongKeywords.add(child.tag)
     
-    if not self.allowedKeywords.isEmpty():
+    if self.allowedKeywords:
       self.raiseAnError(IOError,'The DTW metrics is missing the following parameters: ' + str(self.allowedKeywords))
-    if not self.wrongKeywords.isEmpty():
-      self.raiseAnError(IOError,'The DTW metrics block contained the following not recognized parameters: ' + str(self.wrongKeywords))
+    if not self.wrongKeywords:
+      self.raiseAnError(IOError,'The DTW metrics block contains parameters that are not recognized: ' + str(self.wrongKeywords))
         
   def distance(self,x,y):
-    if isinstance(x,np.ndarray) and isinstance(y,np.ndarray):
+    tempX = copy.deepcopy(x)
+    tempY = copy.deepcopy(y)
+    if isinstance(tempX,np.ndarray) and isinstance(tempY,np.ndarray):
       self.raiseAnError(IOError,'The DTW metrics is being used only for historySet')
-    elif isinstance(x,dict) and isinstance(y,dict):
-      if x.keys() == y.keys():
-        X = np.empty(x.keys().len,x[self.pivotParameter].size)
-        Y = np.empty(y.keys().len,y[self.pivotParameter].size)
-        index=0
-        for key in x.keys():
-          if key is not self.pivotParameter:
-            X[index] = x[key]
-            Y[index] = y[key]
-        if self.order == 1.0:
+    elif isinstance(tempX,dict) and isinstance(tempY,dict):
+      if tempX.keys() == tempY.keys():
+        timeLengthX = tempX[self.pivotParameter].size
+        timeLengthY = tempY[self.pivotParameter].size
+        del tempX[self.pivotParameter]
+        del tempY[self.pivotParameter]
+        X = np.empty((len(tempX.keys()),timeLengthX))
+        Y = np.empty((len(tempY.keys()),timeLengthY))
+        for index, key in enumerate(tempX):
+          X[index] = tempX[key]
+          Y[index] = tempY[key]
+        if self.order == 1:
           X,Y = derivative(X,Y)
-        value = dtwDistance(X,Y)
+        value = self.dtwDistance(X,Y)
+        return value
       else:
-        print('Metric DTW error: the two data sets do not contain the same variables')
+        self.raiseAnError('Metric DTW error: the two data sets do not contain the same variables')
     else:
-      print('Metric DTW error: the structures of the two data sets are different')
+      self.raiseAnError('Metric DTW error: the structures of the two data sets are different')
       
-  def dtwDistance(self,X,Y):
-    tempMatrix = np.zeros((len(X) + 1, len(Y) + 1))
-    tempMatrix[0, 1:] = np.inf
-    tempMatrix[1:, 0] = np.inf
-    distMatrix = tempMatrix[1:, 1:] 
-    for i in range(len(x[0])):
-        for j in range(len(y[0])):
-            distMatrix[i,j] = self.localDistance(X[:][i], Y[:][j])
-    C = distMatrix.copy()
-    for i in range(len(x)):
-        for j in range(len(y)):
-            distMatrix[i,j] += min(tempMatrix[i, j], tempMatrix[i, j+1], tempMatrix[i+1, j])
-    if len(X)==1:
-        path = zeros(len(y)), range(len(y))
-    elif len(Y) == 1:
-        path = range(len(x)), zeros(len(x))
+  def dtwDistance(self,x,y):
+    assert len(x)
+    assert len(y)
+    r, c = len(x), len(y)
+    D0 = np.zeros((r + 1, c + 1))
+    D0[0, 1:] = np.inf
+    D0[1:, 0] = np.inf
+    D1 = D0[1:, 1:] 
+    for i in range(r):
+        for j in range(c):
+            D1[i, j] = pairwise.pairwise_distances(x[:,i], y[:,j], metric=self.localDistance)
+            #D1[i, j] = dist(d_x[i], d_y[j])
+    C = D1.copy()
+    for i in range(r):
+        for j in range(c):
+            D1[i, j] += min(D0[i, j], D0[i, j+1], D0[i+1, j])
+    if len(x)==1:
+        path = np.zeros(len(y)), range(len(y))
+    elif len(y) == 1:
+        path = range(len(x)), np.zeros(len(x))
     else:
-        path = tracePath(tempMatrix)
-    return distMatrix[-1, -1] / sum(distMatrix.shape)    
+        path = self.tracePath(D0)
+    return D1[-1, -1]   
 
   def tracePath(self,D):
     i,j = np.array(D.shape) - 2
@@ -110,5 +119,5 @@ class DTW(Metric):
       q.insert(0, j)
     return np.array(p), np.array(q)
   
-  def derivative(self,X,Y):
+#  def derivative(self,X,Y):
     
