@@ -326,7 +326,7 @@ class SciKitLearn(unSupervisedLearning):
         if 'n_clusters' not in self.initOptionDict.keys(): self.initOptionDict['n_clusters'] = 8
       else:
         if 'n_clusters' in self.initOptionDict.keys(): self.initOptionDict.pop('n_clusters')
-      if 'preference'   in paramsDict.keys(): self.initOptionDict['preference'  ] = None  # AffinityPropogation
+      # if 'preference'   in paramsDict.keys(): self.initOptionDict['preference'  ] = None  # AffinityPropogation
       if 'leaf_size'    in paramsDict.keys(): self.initOptionDict['leaf_size'   ] = 30  # DBSCAN
       if 'eps'          in paramsDict.keys(): self.initOptionDict['eps'         ] = 0.2  # DBSCAN
       if 'random_state' in paramsDict.keys(): self.initOptionDict['random_state'] = 0
@@ -362,6 +362,7 @@ class SciKitLearn(unSupervisedLearning):
       connectivity = 0.5 * (connectivity + connectivity.T)
       self.initOptionDict['connectivity'] = connectivity
       self.Method.set_params(**self.initOptionDict)
+
     self.outputDict['outputs'] = {}
     self.outputDict['inputs' ] = self.normValues
     ## What are you doing here? Calling half of these methods does nothing
@@ -760,12 +761,10 @@ class temporalSciKitLearn(unSupervisedLearning):
 
       elif 'decomposition' == self.SKLtype:
 
-        if 'noComponents' not in self.outputDict.keys():
-          self.outputDict['noComponents'] = {}
-        if 'components' not in self.outputDict.keys():
-          self.outputDict['components'] = {}
-        if 'transformedData' not in self.outputDict.keys():
-          self.outputDict['transformedData'] = {}
+        for var in ['explainedVarianceRatio','means','explainedVariance',
+                    'noComponents','components','transformedData']:
+          if var not in self.outputDict:
+            self.outputDict[var] = {}
 
         self.outputDict['noComponents'][t] = self.SKLEngine.noComponents_
 
@@ -784,11 +783,11 @@ class temporalSciKitLearn(unSupervisedLearning):
           self.outputDict['transformedData'][t] = self.SKLEngine.Method.fit_transform(self.SKLEngine.normValues)
 
         if hasattr(self.SKLEngine.Method, 'means_'):
-            self.outputDict['means'] = self.SKLEngine.Method.means_
+            self.outputDict['means'][t] = self.SKLEngine.Method.means_
         if hasattr(self.SKLEngine.Method, 'explained_variance_'):
-            self.outputDict['explainedVariance'] = self.SKLEngine.Method.explained_variance_
+            self.outputDict['explainedVariance'][t] = self.SKLEngine.Method.explained_variance_
         if hasattr(self.SKLEngine.Method, 'explained_variance_ratio_'):
-            self.outputDict['explainedVarianceRatio'] = self.SKLEngine.Method.explained_variance_ratio_
+            self.outputDict['explainedVarianceRatio'][t] = self.SKLEngine.Method.explained_variance_ratio_
 
       else: print ('Not Implemented yet!...', self.SKLtype)
 
