@@ -73,7 +73,7 @@ class DTW(Metric):
         if self.order == 1:
           X,Y = derivative(X,Y)
         value = self.dtwDistance(X,Y)
-        return value
+        return value 
       else:
         self.raiseAnError('Metric DTW error: the two data sets do not contain the same variables')
     else:
@@ -90,7 +90,7 @@ class DTW(Metric):
     for i in range(r):
         for j in range(c):
             D1[i, j] = pairwise.pairwise_distances(x[:,i], y[:,j], metric=self.localDistance)
-            #D1[i, j] = dist(d_x[i], d_y[j])
+    #D1[i, j] = (pairwise.pairwise_distances(x[:,i], y[:,j], metric=self.localDistance) for i in range(r) for j in range(c))
     C = D1.copy()
     for i in range(r):
         for j in range(c):

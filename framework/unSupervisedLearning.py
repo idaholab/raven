@@ -27,6 +27,7 @@ warnings.simplefilter('default', DeprecationWarning)
 from sklearn import cluster, mixture, manifold, decomposition, covariance, neural_network
 from sklearn import metrics
 from sklearn.neighbors import kneighbors_graph
+import scipy.cluster as hier
 import numpy as np
 import abc
 import ast
@@ -128,16 +129,18 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
     else:    # self.metric != None
       if isinstance(tdict[tdict.keys()[0]],dict): #  the dictionary represents an HistorySet
         # normalize data
+        normedValues = {}
         for key in tdict.keys():
+          normedValues[key]={}
           for var in tdict[key]:
-            tdict[key][var] = (tdict[key][var]-np.average(tdict[key][var]))/np.std(tdict[key][var])
+            normedValues[key][var] = (tdict[key][var]-np.average(tdict[key][var]))/np.std(tdict[key][var])
 
-        cardinality = len(tdict.keys())
+        cardinality = len(normedValues.keys())
         self.normValues = np.zeros((cardinality,cardinality))
-        keys = tdict.keys()
+        keys = normedValues.keys()
         for i in range(cardinality):
           for j in range(i+1,cardinality):
-            self.normValues[i,j] = self.metric.distance(tdict[keys[i]],tdict[keys[j]])
+            self.normValues[i,j] = self.metric.distance(normedValues[keys[i]],normedValues[keys[j]])
             self.normValues[j,i] = self.normValues[i,j]
       else:   # PointSet
         for cnt, feat in enumerate(self.features):
@@ -211,7 +214,10 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
     if self.amITrained: return self.__confidenceLocal__()
     else:               self.raiseAnError(IOError, ' The confidence check is performed before evaluating the clusters.')
 
-
+  def returnDataminingType(self):
+    pass
+  
+  
   @abc.abstractmethod
   def __trainLocal__(self):
     """
@@ -543,6 +549,9 @@ class SciKitLearn(unSupervisedLearning):
         self.outputDict['confidence']['bic'  ] = self.Method.bic(self.normValues)  # Bayesian Information Criterion
         self.outputDict['confidence']['score'] = self.Method.score(self.normValues)  # log probabilities of each data point
     return self.outputDict['confidence']
+  
+  def returnDataminingType(self):
+    return self.SKLtype
 
 #
 #
@@ -943,10 +952,137 @@ class temporalSciKitLearn(unSupervisedLearning):
       Not implemented for this class
     """
     pass
+  
+  def returnDataminingType(self):
+    return self.SKLtype
+  
+  
+class Scipy(unSupervisedLearning):
+  """
+    Scipy interface for hierarchical Learning
+  """
+  modelType = 'Scipy'
+  availImpl = {}
+  availImpl['cluster'] = {}
+  availImpl['cluster']['Hierarchical'] = (hier.hierarchy, 'float')  # Perform Hierarchical Clustering of data.
+
+  def __init__(self, messageHandler, **kwargs):
+    """
+     constructor for Scipy class.
+     @ In, messageHandler, MessageHandler, Message handler object
+     @ In, kwargs, dict, arguments for the Scipy algorithm
+     @ Out, None
+    """
+    unSupervisedLearning.__init__(self, messageHandler, **kwargs)
+    self.printTag = 'SCIPY'
+    if 'SCIPYtype' not in self.initOptionDict.keys():
+      self.raiseAnError(IOError, ' to define a Scipy unSupervisedLearning Method the SCIPYtype keyword is needed (from KDD ' + self.name + ')')
+    
+    SCIPYtype, SCIPYsubType = self.initOptionDict['SCIPYtype'].split('|')
+    self.initOptionDict.pop('SCIPYtype')
+
+    if not SCIPYtype in self.__class__.availImpl.keys():
+      self.raiseAnError(IOError, ' Unknown SCIPYtype ' + SCIPYtype)
+    if not SCIPYsubType in self.__class__.availImpl[SCIPYtype].keys():
+      self.raiseAnError(IOError, ' Unknown SCIPYsubType ' + SCIPYsubType)
+
+    self.__class__.returnType = self.__class__.availImpl[SCIPYtype][SCIPYsubType][1]
+    self.Method = self.__class__.availImpl[SCIPYtype][SCIPYsubType][0]
+    self.SCIPYtype = SCIPYtype
+    self.SCIPYsubType = SCIPYsubType
+    self.normValues = None
+    self.outputDict = {}
+
+  def __trainLocal__(self):
+    """
+      Perform training on samples in self.normValues: array, shape = [n_samples, n_features] or [n_samples, n_samples]
+      @ In, None
+      @ Out, None
+    """
+    self.outputDict['outputs'] = {}
+    self.outputDict['inputs' ] = self.normValues
+    if hasattr(self.Method, 'linkage'):
+      self.linkage = self.Method.linkage(self.normValues,self.initOptionDict['method'],self.initOptionDict['metric'])
+      self.tree = self.Method.to_tree(self.linkage)
+      
+      if self.initOptionDict['dendrogram'] == 'true':
+        self.ddata = self.advDendrogram(self.linkage, 
+                                        p                = float(self.initOptionDict['p']),
+                                        leaf_rotation    = 90., 
+                                        leaf_font_size   = 12.,
+                                        truncate_mode    = self.initOptionDict['truncationMode'],
+                                        show_leaf_counts = self.initOptionDict['leafCounts'],
+                                        show_contracted  = self.initOptionDict['showContracted'], 
+                                        annotate_above   = self.initOptionDict['annotatedAbove'],
+                                        #orientation      = self.initOptionDict['orientation'],
+                                        max_d            = self.initOptionDict['level']) 
+      
+      self.labels_ = hier.hierarchy.fcluster(self.linkage, self.initOptionDict['level'],self.initOptionDict['criterion'])
+      self.outputDict['outputs']['labels'] = self.labels_
+      return self.labels_
+
+  def advDendrogram(self,*args, **kwargs):
+    import matplotlib.pylab as plt
+    plt.figure()
+    max_d = kwargs.pop('max_d', None)
+    if max_d and 'color_threshold' not in kwargs:
+      kwargs['color_threshold'] = max_d
+    annotate_above = kwargs.pop('annotate_above', 0)
+
+    ddata = hier.hierarchy.dendrogram(*args, **kwargs)
+
+    if not kwargs.get('no_plot', False):
+      plt.title('Hierarchical Clustering Dendrogram')
+      plt.xlabel('sample index')
+      plt.ylabel('distance')
+      for i, d, c in zip(ddata['icoord'], ddata['dcoord'], ddata['color_list']):
+        x = 0.5 * sum(i[1:3])
+        y = d[1]
+        if y > annotate_above:
+          plt.plot(x, y, 'o', c=c)
+          plt.annotate("%.3g" % y, (x, y), xytext=(0, -5),
+                       textcoords='offset points',
+                       va='top', ha='center')
+      if max_d:
+        plt.axhline(y=max_d, c='0.1')
+    plt.savefig('dendrogram.pdf')
+    return ddata
+
+  def get_cluster_classes(den, label='ivl'):
+      cluster_idxs = defaultdict(list)
+      for c, pi in zip(den['color_list'], den['icoord']):
+          for leg in pi[1:3]:
+              i = (leg - 5.0) / 10.0
+              if abs(i - int(i)) < 1e-5:
+                  cluster_idxs[c].append(int(i))
+      
+      cluster_classes = {}
+      for c, l in cluster_idxs.items():
+          i_l = [den[label][i] for i in l]
+          cluster_classes[c] = i_l
+      
+      return cluster_classes          
+        
+  def __evaluateLocal__(self,*args, **kwargs):
+    """
+      Method to return output of an already trained scipy algorithm.
+      @ In, featureVals, numpy.array, feature values
+      @ Out, self.dData, numpy.array, dendrogram
+    """
+    pass
+
+  def __confidenceLocal__(self):
+    pass
+  
+  
+  def returnDataminingType(self):
+    return self.SCIPYtype  
+  
 
 __interfaceDict = {}
 __interfaceDict['SciKitLearn'] = SciKitLearn
 __interfaceDict['temporalSciKitLearn'] = temporalSciKitLearn
+__interfaceDict['Scipy'] = Scipy
 __base = 'unSuperVisedLearning'
 
 def returnInstance(modelClass, caller, **kwargs):
