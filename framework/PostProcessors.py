@@ -3281,7 +3281,6 @@ class DataMining(BasePostProcessor):
       tempData = self.PreProcessor.interface.inputToInternal(currentInp)
 
       preProcessedData = self.PreProcessor.interface.run(tempData)
-
       if self.initializationOptionDict['KDD']['Features'] == 'input':
         inputDict['Features'] = copy.deepcopy(preProcessedData['data']['input'])
       elif self.initializationOptionDict['KDD']['Features'] == 'output':
@@ -3333,15 +3332,34 @@ class DataMining(BasePostProcessor):
           inputDict['Features'][param] = currentInput.getParam('input', param)
         for param in outParams:
           inputDict['Features'][param] = currentInput.getParam('output', param)
+    
     elif currentInput.type in ['HistorySet']:
       if self.initializationOptionDict['KDD']['Features'] == 'input':
         for param in currentInput.getParaKeys('input'):
           inputDict['Features'][param] = currentInput.getParam('input', param)
       elif self.initializationOptionDict['KDD']['Features'] == 'output':
-        inputDict['Features'] = currentInput.getOutParametersValues()
+        inputDict['Features'] = currentInput.getOutParametersValues() 
+      elif self.initializationOptionDict['KDD']['Features'] == 'all':
+        for param in allInputFeatures:
+          inputDict['Features'][param] = currentInput.getParam('input', param)
+        for param in allOutputFeatures:
+          inputDict['Features'][param] = currentInput.getParam('output', param)
+      else:  
+        features = set(self.initializationOptionDict['KDD']['Features'].split(',')) 
+        allInputFeatures = currentInput.getParaKeys('input')
+        allOutputFeatures = currentInput.getParaKeys('output')
+        inParams = list(features.intersection(allInputFeatures))
+        outParams = list(features.intersection(allOutputFeatures))
+        inputDict['Features'] = {}
+        for hist in currentInput._dataContainer['outputs'].keys():
+          inputDict['Features'][hist] = {}
+          for param in inParams:
+            inputDict['Features'][hist][param] = currentInput._dataContainer['inputs'][hist][param]
+          for param in outParams:
+            inputDict['Features'][hist][param] = currentInput._dataContainer['outputs'][hist][param]
+                    
       inputDict['metadata'] = currentInput.getAllMetadata()
 
-      inputDict['metadata'] = currentInput.getAllMetadata()
     ## Redundant if-conditional preserved as a placeholder for potential future
     ## development working directly with files
     # elif isinstance(currentInp, Files.File):

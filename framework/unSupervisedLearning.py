@@ -1040,7 +1040,7 @@ class Scipy(unSupervisedLearning):
         y = d[1]
         if y > annotate_above:
           plt.plot(x, y, 'o', c=c)
-          plt.annotate("%.3g" % y, (x, y), xytext=(0, -5),
+          plt.annotate("%.3g" % y, (x, y), xytext=(15, 11),
                        textcoords='offset points',
                        va='top', ha='center')
       if max_d:
