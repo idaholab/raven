@@ -3537,7 +3537,7 @@ class DataMining(BasePostProcessor):
       if hasattr(self.unSupervisedEngine, 'labels_'):
         self.clusterLabels = self.unSupervisedEngine.labels_
       outputDict['output'][self.labelFeature] = self.clusterLabels
-      print(self.clusterLabels)
+      print(set(self.clusterLabels))
 
       ## Get the centroids and push them to a SolutionExport data object.
       ## Also if we have the centers, assume we have the indices to match them
