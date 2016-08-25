@@ -3581,18 +3581,20 @@ class DataMining(BasePostProcessor):
               j = i+joffset
               self.solutionExport.updateOutputValue('cov_'+str(row)+'_'+str(col),mixtureCovars[index][i,j])
       elif 'decomposition' == self.unSupervisedEngine.SKLtype:
+        solutionExportDict = self.unSupervisedEngine.metaDict
         ## Get the transformation matrix and push it to a SolutionExport
         ## data object.
         ## Can I be sure of the order of dimensions in the features dict, is
         ## the same order as the data held in the UnSupervisedLearning object?
-        if hasattr(self.unSupervisedEngine, 'components_'):
-          components = self.unSupervisedEngine.components_
+        if 'components' in solutionExportDict:
+          components = solutionExportDict['components']
           for row,values in enumerate(components):
             self.solutionExport.updateInputValue('component', row+1)
             for col,value in zip(self.unSupervisedEngine.features.keys(),values):
               self.solutionExport.updateOutputValue(col,value)
 
-          self.solutionExport.updateOutputValue('ExplainedVarianceRatio',explainedVarianceRatio[row])
+            if 'explainedVarianceRatio' in solutionExportDict:
+              self.solutionExport.updateOutputValue('ExplainedVarianceRatio',solutionExportDict['explainedVarianceRatio'][row])
     return outputDict
 
 
