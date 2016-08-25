@@ -3592,6 +3592,7 @@ class DataMining(BasePostProcessor):
             for col,value in zip(self.unSupervisedEngine.features.keys(),values):
               self.solutionExport.updateOutputValue(col,value)
 
+          self.solutionExport.updateOutputValue('ExplainedVarianceRatio',explainedVarianceRatio[row])
     return outputDict
 
 

@@ -21,7 +21,7 @@
    type = 'RavenFramework'
    input = 'test_2steps_same_db.xml'
    csv = 'test_2steps/fullprint_HistorySet_3.csv'
-   xml = 'test_2steps/fullprint_HistorySet.xml'
+   UnorderedXml = 'test_2steps/fullprint_HistorySet.xml'
  [../]
 
  [./external_xml]
@@ -111,7 +111,7 @@
   input = 'test_rom_trainer.xml'
   #skip = 'working in progress'
   output = ''
-  csv = 'test_rom_trainer/outputMontecarloRom_dump.csv test_rom_trainer/outputMontecarloRomND_dump.csv'
+  UnorderedCsv = 'test_rom_trainer/outputMontecarloRom_dump.csv test_rom_trainer/outputMontecarloRomND_dump.csv'
   max_time = 1500
   rel_err = 0.001
  [../]

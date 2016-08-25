@@ -419,6 +419,7 @@ class SciKitLearn(unSupervisedLearning):
     ## Let's only keep the parameters that the Method understands, throw
     ## everything else away, maybe with a warning message?
     tempDict = {}
+
     for key, value in self.initOptionDict.items():
       if key in paramsDict:
         try:
@@ -455,6 +456,7 @@ class SciKitLearn(unSupervisedLearning):
       connectivity = 0.5 * (connectivity + connectivity.T)
       self.initOptionDict['connectivity'] = connectivity
       self.Method.set_params(**self.initOptionDict)
+
     self.outputDict['outputs'] = {}
     self.outputDict['inputs' ] = self.normValues
 
@@ -867,12 +869,10 @@ class temporalSciKitLearn(unSupervisedLearning):
 
       elif 'decomposition' == self.SKLtype:
 
-        if 'noComponents' not in self.outputDict.keys():
-          self.outputDict['noComponents'] = {}
-        if 'components' not in self.outputDict.keys():
-          self.outputDict['components'] = {}
-        if 'transformedData' not in self.outputDict.keys():
-          self.outputDict['transformedData'] = {}
+        for var in ['explainedVarianceRatio','means','explainedVariance',
+                    'noComponents','components','transformedData']:
+          if var not in self.outputDict:
+            self.outputDict[var] = {}
 
         self.outputDict['noComponents'][t] = self.SKLEngine.noComponents_
 
@@ -891,11 +891,11 @@ class temporalSciKitLearn(unSupervisedLearning):
           self.outputDict['transformedData'][t] = self.SKLEngine.Method.fit_transform(self.SKLEngine.normValues)
 
         if hasattr(self.SKLEngine.Method, 'means_'):
-            self.outputDict['means'] = self.SKLEngine.Method.means_
+            self.outputDict['means'][t] = self.SKLEngine.Method.means_
         if hasattr(self.SKLEngine.Method, 'explained_variance_'):
-            self.outputDict['explainedVariance'] = self.SKLEngine.Method.explained_variance_
+            self.outputDict['explainedVariance'][t] = self.SKLEngine.Method.explained_variance_
         if hasattr(self.SKLEngine.Method, 'explained_variance_ratio_'):
-            self.outputDict['explainedVarianceRatio'] = self.SKLEngine.Method.explained_variance_ratio_
+            self.outputDict['explainedVarianceRatio'][t] = self.SKLEngine.Method.explained_variance_ratio_
 
       else: print ('Not Implemented yet!...', self.SKLtype)
 
