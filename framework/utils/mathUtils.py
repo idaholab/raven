@@ -292,8 +292,8 @@ def normalizationFactors(values, mode='z'):
     offset = np.min(values)
     scale = np.max(values) - offset
   else:
-    offset = 0
-    scale = 1
+    offset = 0.0
+    scale = 1.0
 
   ## All of the values must be the same, okay just take the scale of the data
   ## to be the maximum value
