@@ -49,6 +49,7 @@
         <random_state>1</random_state>
         <init>k-means++</init>
         <precompute_distances>True</precompute_distances>
+        <random_state>0</random_state>
       </KDD>
     </PostProcessor>
     <PostProcessor name="PCA1" subType="DataMining">
