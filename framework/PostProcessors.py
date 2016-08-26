@@ -1384,7 +1384,9 @@ class BasicStatistics(BasePostProcessor):
                               'kurtosis',
                               'median',
                               'percentile',
-                              'samples']  # accepted calculation parameters
+                              'samples',
+                              'maximum',
+                              'minimum']  # accepted calculation parameters
     self.what = self.acceptedCalcParam  # what needs to be computed... default...all
     self.methodsToRun = []  # if a function is present, its outcome name is here stored... if it matches one of the known outcomes, the pp is going to use the function to compute it
     self.externalFunction = []
@@ -1925,6 +1927,14 @@ class BasicStatistics(BasePostProcessor):
             outputDict[what][myIndex] = np.zeros(len(parameterSet))
             for cnt,param in enumerate(parameterSet):
               outputDict[what][myIndex][cnt] = sensitivityCoeffDict[param]*expValues[cnt]/expValues[myIndex]
+      # maximum value
+      if what == 'maximum':
+        for myIndex, targetP in enumerate(parameterSet):
+          outputDict[what][targetP] = np.amax(input['targets'][targetP])
+      # minimum value
+      if what == 'minimum':
+        for myIndex, targetP in enumerate(parameterSet):
+          outputDict[what][targetP] = np.amin(input['targets'][targetP])
     # print on screen
     self.raiseADebug('BasicStatistics ' + str(self.name) + 'pp outputs')
     methodToTest = []
