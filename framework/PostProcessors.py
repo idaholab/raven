@@ -3466,7 +3466,7 @@ class DataMining(BasePostProcessor):
           tlDict = finishedJob.returnEvaluation()[1]
           historyKey = output.getOutParametersValues().keys()
           for index, keyH in enumerate(historyKey):
-            for keyL in tlDict['output'].keys():
+            for keyL in tlDict['outputs'].keys():
               output.updateOutputValue([keyH,keyL], tlDict['outputs'][keyL][index,:])
 
   def run(self, inputIn):
@@ -3613,7 +3613,7 @@ class DataMining(BasePostProcessor):
     if not self.unSupervisedEngine.amITrained:
       self.unSupervisedEngine.train(Input['Features'])
     self.unSupervisedEngine.confidence()
-    outputDict['output'] = {}
+    outputDict['outputs'] = {}
     numberOfHistoryStep = self.unSupervisedEngine.numberOfHistoryStep
     numberOfSample = self.unSupervisedEngine.numberOfSample
 
@@ -3622,7 +3622,7 @@ class DataMining(BasePostProcessor):
         labels = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
         for t in range(numberOfHistoryStep):
           labels[:,t] = self.unSupervisedEngine.outputDict['labels'][t]
-        outputDict['output'][self.labelFeature] = labels
+        outputDict['outputs'][self.labelFeature] = labels
 
       ## SKL will always enumerate cluster centers starting from zero, if this
       ## is violated, then the indexing below will break.
