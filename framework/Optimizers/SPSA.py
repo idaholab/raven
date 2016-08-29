@@ -41,11 +41,11 @@ class SPSA(GradientBasedOptimizer):
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None
     """
-    self.gainParamDict['alpha'] = self.paramDict.get('alpha', 0.602)
-    self.gainParamDict['gamma'] = self.paramDict.get('gamma', 0.101)
-    self.gainParamDict['A'] = self.paramDict.get('A', self.limit['mdlEval']/10)
-    self.gainParamDict['a'] = self.paramDict.get('a', 0.16)
-    self.gainParamDict['c'] = self.paramDict.get('c', 0.005)
+    self.gainParamDict['alpha'] = float(self.paramDict.get('alpha', 0.602))
+    self.gainParamDict['gamma'] = float(self.paramDict.get('gamma', 0.101))
+    self.gainParamDict['A'] = float(self.paramDict.get('A', self.limit['mdlEval']/10))
+    self.gainParamDict['a'] = float(self.paramDict.get('a', 0.16))
+    self.gainParamDict['c'] = float(self.paramDict.get('c', 0.005))
 
     self.gradDict['pertNeeded'] = self.gradDict['numIterForAve'] * 2
 
@@ -107,7 +107,7 @@ class SPSA(GradientBasedOptimizer):
       loc1 = self.counter['perturbation'] % 2
       loc2 = np.floor(self.counter['perturbation'] / 2) if loc1 == 1 else np.floor(self.counter['perturbation'] / 2) - 1
       for var in self.optVars:
-        self.values[var] = self.gradDict['pertPoints'][loc2][var][loc1]
+        self.values[var] = copy.deepcopy(self.gradDict['pertPoints'][loc2][var][loc1])
 
     else: # Enough gradient evaluation for decision variable update
       ak = self._computeGainSequenceAk(self.gainParamDict,self.counter['varsUpdate']) # Compute the new ak
@@ -115,9 +115,28 @@ class SPSA(GradientBasedOptimizer):
 
       self.optVarsHist[self.counter['varsUpdate']] = {}
       varK = copy.deepcopy(self.optVarsHist[self.counter['varsUpdate']-1])
-      for var in self.optVars:
-        self.values[var] = copy.copy(varK[var]-ak*gradient[var]*1.0)
-        self.optVarsHist[self.counter['varsUpdate']][var] = copy.copy(self.values[var])
+      varKPlus = {}
+      
+      varKPlus = self.__generateVarsUpdateConstrained(ak,gradient,varK)
+      
+#       for var in self.optVars:
+#         varKPlus[var] = copy.copy(varK[var]-ak*gradient[var]*1.0)
+        
+      if self.checkConstraint(varKPlus):
+        self.raiseADebug(self.checkConstraint(varKPlus))
+      else:
+        pass
+#         self.raiseAnError(IOError, 'constraint violated')
+        
+      for var in self.optVars:  
+        self.values[var] = copy.deepcopy(varKPlus[var])
+        self.optVarsHist[self.counter['varsUpdate']][var] = copy.deepcopy(self.values[var])
+
+  def __generateVarsUpdateConstrained(self,ak,gradient,varK):
+    tempVarKPlus = {} 
+    for var in self.optVars:
+      tempVarKPlus[var] = copy.copy(varK[var]-ak*gradient[var]*1.0)
+    return tempVarKPlus
 
   def localEvaluateGradient(self, optVarsValues, gradient = None):
     """
@@ -162,4 +181,12 @@ class SPSA(GradientBasedOptimizer):
       @ Out, convergence, bool, variable indicating whether the convergence criteria has been met.
     """
     return convergence
-
+  
+  def localCheckConstraint(self, optVars, satisfaction = True):
+    """
+      Local method to check whether a set of decision variables satisfy the constraint or not
+      @ In, optVars, dict, dictionary containing the value of decision variables to be checked, in form of {varName: varValue}
+      @ In, satisfaction, bool, optional, variable indicating how the caller determines the constraint satisfaction at the point optVars
+      @ Out, satisfaction, bool, variable indicating the satisfaction of constraints at the point optVars
+    """
+    return satisfaction  

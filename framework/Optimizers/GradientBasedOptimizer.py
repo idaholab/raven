@@ -224,8 +224,16 @@ class GradientBasedOptimizer(Optimizer):
       @ Out, convergence, bool, variable indicating whether the convergence criteria has been met.
     """
     return convergence
-
-
+  
+  @abc.abstractmethod
+  def localCheckConstraint(self, optVars, satisfaction = True):
+    """
+      Local method to check whether a set of decision variables satisfy the constraint or not
+      @ In, optVars, dict, dictionary containing the value of decision variables to be checked, in form of {varName: varValue}
+      @ In, satisfaction, bool, optional, variable indicating how the caller determines the constraint satisfaction at the point optVars
+      @ Out, satisfaction, bool, variable indicating the satisfaction of constraints at the point optVars
+    """
+    return satisfaction  
 
 
 
