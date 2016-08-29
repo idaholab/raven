@@ -2,8 +2,8 @@
 <Simulation verbosity="silent">
   <RunInfo>
     <WorkingDir>MultiDimensionalScaling</WorkingDir>
-    <Sequence>readIn,KMeans,PCAIris,output</Sequence>
-    <batchSize>100</batchSize>
+    <Sequence>readIn,PCAIris,output</Sequence>
+    <batchSize>1</batchSize>
   </RunInfo>
 
   <Files>
@@ -11,15 +11,6 @@
   </Files>
 
   <Models>
-    <PostProcessor name="KMeans" subType="DataMining">
-      <KDD lib="SciKitLearn">
-        <SKLtype>cluster|KMeans</SKLtype>
-        <Features>x1,x2,x3,x4</Features>
-        <n_clusters>3</n_clusters>
-        <tol>0.0001</tol>
-        <init>random</init>
-      </KDD>
-    </PostProcessor>
     <PostProcessor name="PCA" subType="DataMining" verbosity="quiet">
       <KDD lib="SciKitLearn">
         <Features>x1,x2,x3,x4</Features>
@@ -40,12 +31,6 @@
       <Input class="DataObjects" type="PointSet">DataSets</Input>
       <Output class="OutStreams" type="Plot">PlotIris</Output>
     </IOStep>
-    <PostProcess name="KMeans" pauseAtEnd="True">
-      <Input class="DataObjects" type="PointSet">DataSets</Input>
-      <Model class="Models" type="PostProcessor">KMeans</Model>
-      <Output class="DataObjects" type="PointSet">DataSets</Output>
-      <Output class="OutStreams" type="Print">dummy</Output>
-    </PostProcess>
     <PostProcess name="PCAIris" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">DataSets</Input>
       <Model class="Models" type="PostProcessor">PCA</Model>
@@ -70,8 +55,8 @@
           <kwargs>
                     </kwargs>
         </plot>
-        <xlabel>PCAEmbeddingVector1</xlabel>
-        <ylabel>PCAEmbeddingVector2</ylabel>
+        <xlabel>Embedding Vector 1</xlabel>
+        <ylabel>Embedding Vector 2</ylabel>
       </plotSettings>
       <actions>
         <how>png</how>
