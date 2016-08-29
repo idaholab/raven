@@ -846,23 +846,12 @@ class temporalSciKitLearn(unSupervisedLearning):
         # re-order clusters
         if t > 0:
           remap = self.__reMapCluster__(t, self.outputDict['clusterCenters'], self.outputDict['clusterCentersIndices'])
-          print(t, remap)
-
-          print(self.outputDict['labels'][t])
           for n in range(len(self.outputDict['clusterCentersIndices'][t])):
             self.outputDict['clusterCentersIndices'][t][n] = remap[self.outputDict['clusterCentersIndices'][t][n]]
           for n in range(len(self.outputDict['labels'][t])):
             if self.outputDict['labels'][t][n] >=0:
               self.outputDict['labels'][t][n] = remap[self.SKLEngine.Method.labels_[n]]
-
           ## TODO: Remap the cluster centers now...
-          clusterCenters = copy.deepcopy(self.outputDict['clusterCenters'][t])
-
-          print(clusterCenters)
-          self.outputDict['clusterCenters'][t] = np.zeros(shape=clusterCenters.shape)
-          for oldIdx,newIdx in remap.iteritems():
-            self.outputDict['clusterCenters'][t][newIdx,:] = clusterCenters[oldIdx,:]
-          # print(self.outputDict['clusterCenters'][t])
 
       elif self.SKLtype in ['mixture']:
         if 'labels' not in self.outputDict.keys():
