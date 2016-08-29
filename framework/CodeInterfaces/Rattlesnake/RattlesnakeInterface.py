@@ -42,19 +42,19 @@ class Rattlesnake(CodeInterfaceBase):
     instantInput = []
     instantAlias = []
     for inputFile in inputFiles:
-      if inputFile.getType().lower() == "yakxsinput":
+      if inputFile.getType().strip().lower() == "yakxsinput":
         inputDict['FoundYakXSInput'] = True
         yakInput.append(inputFile)
-      elif inputFile.getType().lower() == "rattlesnakeinput":
+      elif inputFile.getType().strip().lower().split("|")[-1] == "rattlesnakeinput":
         inputDict['FoundRattlesnakeInput'] = True
         rattlesnakeInput.append(inputFile)
-      elif inputFile.getType().lower() == "yakxsaliasinput":
+      elif inputFile.getType().strip().lower() == "yakxsaliasinput":
         inputDict['FoundYakXSAliasInput'] = True
         aliasInput.append(inputFile)
-      elif inputFile.getType().lower() == "instantxsaliasinput":
+      elif inputFile.getType().strip().lower() == "instantxsaliasinput":
         inputDict['FoundInstantXSAliasInput'] = True
         instantAlias.append(inputFile)
-      elif inputFile.getType().lower() == "instantxsinput":
+      elif inputFile.getType().strip().lower() == "instantxsinput":
         inputDict['FoundInstantXSInput'] = True
         instantInput.append(inputFile)
     if inputDict['FoundYakXSInput']: inputDict['YakXSInput'] = yakInput
