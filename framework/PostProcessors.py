@@ -1809,8 +1809,9 @@ class BasicStatistics(BasePostProcessor):
           sigma = self._computeSigma(input['targets'][targetP],expValues[myIndex],relWeight)
           if (outputDict['expectedValue'][targetP] == 0):
             self.raiseAWarning('Expected Value for ' + targetP + ' is zero! Variation Coefficient can not be calculated in PP: ' + self.name)
-            outputDict['expectedValue'][targetP] = np.Infinity
-          outputDict[what][targetP] = sigma / outputDict['expectedValue'][targetP]
+            outputDict[what][targetP] = np.Infinity
+          else:
+            outputDict[what][targetP] = sigma / outputDict['expectedValue'][targetP]
       # kurtosis
       if what == 'kurtosis':
         for myIndex, targetP in enumerate(parameterSet):
