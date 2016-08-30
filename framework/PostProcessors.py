@@ -3399,7 +3399,6 @@ class DataMining(BasePostProcessor):
     ## By default, we want to name the 'labels' by the name of this
     ## postprocessor, but that name is not available before processing the XML
     ## At this point, we have that information
-    self.labelFeature = self.name+'Labels'
     self.initializationOptionDict = {}
 
     for child in xmlNode:
@@ -3672,7 +3671,7 @@ class DataMining(BasePostProcessor):
         ## Can I be sure of the order of dimensions in the features dict, is
         ## the same order as the data held in the UnSupervisedLearning object?
         for row,values in enumerate(components):
-          self.solutionExport.updateInputValue('component', row+1)
+          self.solutionExport.updateInputValue(self.labelFeature, row+1)
           for col,value in zip(self.unSupervisedEngine.features.keys(),values):
             self.solutionExport.updateOutputValue(col,value)
 
