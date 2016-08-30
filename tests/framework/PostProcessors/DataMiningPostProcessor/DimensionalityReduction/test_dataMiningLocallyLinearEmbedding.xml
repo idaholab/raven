@@ -12,7 +12,7 @@
 
   <Models>
     <PostProcessor name="PCA" subType="DataMining" verbosity="quiet">
-      <KDD lib="SciKitLearn">
+      <KDD lib="SciKitLearn" labelFeature='component'>
         <Features>x1,x2,x3,x4</Features>
         <SKLtype>manifold|LocallyLinearEmbedding</SKLtype>
         <eigen_solver>dense</eigen_solver>
@@ -50,8 +50,8 @@
         <plot>
           <type>scatter</type>
           <SKLtype>cluster</SKLtype>
-          <x>DataSets|Output|PCAEmbeddingVector1</x>
-          <y>DataSets|Output|PCAEmbeddingVector2</y>
+          <x>DataSets|Output|component1</x>
+          <y>DataSets|Output|component2</y>
           <kwargs> </kwargs>
         </plot>
         <xlabel>Embedding Vector 1</xlabel>

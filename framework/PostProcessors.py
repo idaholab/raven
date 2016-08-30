@@ -3187,7 +3187,7 @@ class DataMining(BasePostProcessor):
                                                           ## algorithms the user
                                                           ## wants
 
-    self.requiredAssObject = (True, (['Label', 'PreProcessor','Metric'], ['-1','-1','-1']))  ## The Label is optional for now
+    self.requiredAssObject = (True, (['PreProcessor','Metric'], ['-1','-1']))
     self.clusterLabels = None
     self.labelAlgorithms = []
     self.solutionExport = None                            ## A data object to
@@ -3200,11 +3200,11 @@ class DataMining(BasePostProcessor):
                                                           ## for dimensionality
                                                           ## reduction methods
 
-    self.labelFeature = 'labels'                          ## User customizable
+    self.labelFeature = None                              ## User customizable
                                                           ## column name for the
                                                           ## labels associated
-                                                          ## to a clustering
-                                                          ## algorithm
+                                                          ## to a clustering or
+                                                          ## a DR algorithm
 
     self.dataObjects = []
     self.PreProcessor = None
@@ -3443,6 +3443,18 @@ class DataMining(BasePostProcessor):
     else:
       self.raiseAnError(IOError, 'No Data Mining Algorithm is supplied!')
 
+    ## If the user has not defined a label feature, then we will force it to be
+    ## named by the PostProcessor name followed by:
+    ## the word 'Labels' for clustering/GMM models;
+    ## the word 'Dimension' + a numeric id for dimensionality reduction
+    ## algorithms
+    if self.labelFeature is None:
+      if self.unSupervisedEngine.SKLtype in ['cluster','mixture']:
+        self.labelFeature = self.name+'Labels'
+      elif self.unSupervisedEngine.SKLtype in ['decomposition','manifold']:
+        self.labelFeature = self.name+'Dimension'
+
+
   def collectOutput(self, finishedJob, output):
     """
       Function to place all of the computed data into the output object
@@ -3626,7 +3638,8 @@ class DataMining(BasePostProcessor):
       ## export. Manifold methods do not give us a global transformation
       ## matrix.
       for i in range(len(embeddingVectors[0, :])):
-        outputDict['output'][self.name+'EmbeddingVector' + str(i + 1)] =  embeddingVectors[:, i]
+        newColumnName = self.labelFeature + str(i + 1)
+        outputDict['output'][newColumnName] =  embeddingVectors[:, i]
 
     elif 'decomposition' == self.unSupervisedEngine.SKLtype:
       decompositionValues = self.unSupervisedEngine.normValues
@@ -3650,7 +3663,8 @@ class DataMining(BasePostProcessor):
 
       ## information stored on a per point basis
       for i in range(noComponents):
-        outputDict['output'][self.name+'PCAComponent' + str(i + 1)] =  transformedData[:, i]
+        newColumnName = self.labelFeature + str(i + 1)
+        outputDict['output'][newColumnName] =  transformedData[:, i]
 
       if self.solutionExport is not None:
         ## Get the transformation matrix and push it to a SolutionExport
