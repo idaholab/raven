@@ -45,24 +45,37 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
     This is the general interface to any unSuperisedLearning learning method.
     Essentially it contains a train, and evaluate methods
   """
-  returnType = ''  # this describe the type of information generated the possibility are 'boolean', 'integer', 'float'
-  modelType = ''  # the broad class of the interpolator
+  returnType = ''         ## this describe the type of information generated the
+                          ## possibility are 'boolean', 'integer', 'float'
+
+  modelType = ''          ## the broad class of the interpolator
 
   @staticmethod
   def checkArrayConsistency(arrayIn):
     """
       This method checks the consistency of the in-array
-      @ In, arrayIn, object,  It should be an array
-      @ Out, (consistent, 'error msg'), tuple, tuple[0] is a bool (True -> everything is ok, False -> something wrong), tuple[1], string ,the error mesg
+      @ In, arrayIn, a 1D numpy array, the array to validate
+      @ Out, (consistent, errorMsg), tuple,
+        consistent is a boolean where false means the input array is not a
+        1D numpy array.
+        errorMsg, string, the error message if the input array is inconsistent.
     """
-    if type(arrayIn) != np.ndarray: return (False, ' The object is not a numpy array')
-    # The input data matrix kind is different for different clustering algorithms
-    # e.g. [n_samples, n_features] for MeanShift and KMeans
-    #     [n_samples,n_samples]   for AffinityPropogation and SpectralCLustering
-    # In other words, MeanShift and KMeans work with points in a vector space,
-    # whereas AffinityPropagation and SpectralClustering can work with arbitrary objects, as long as a similarity measure exists for such objects
-    # The input matrix supplied to unSupervisedLearning models as 1-D arrays of size [n_samples], (either n_features of or n_samples of them)
-    if len(arrayIn.shape) != 1: return(False, ' The array must be 1-d')
+    if type(arrayIn) != np.ndarray:
+      return (False, ' The object is not a numpy array')
+
+    ## The input data matrix kind is different for different clustering
+    ## algorithms, e.g.:
+    ##  [n_samples, n_features] for MeanShift and KMeans
+    ##  [n_samples,n_samples]   for AffinityPropogation and SpectralCLustering
+
+    ## In other words, MeanShift and KMeans work with points in a vector space,
+    ## whereas AffinityPropagation and SpectralClustering can work with
+    ## arbitrary objects, as long as a similarity measure exists for such
+    ## objects. The input matrix supplied to unSupervisedLearning models as 1-D
+    ## arrays of size [n_samples], (either n_features of or n_samples of them)
+    if len(arrayIn.shape) != 1:
+      return(False, ' The array must be 1-d')
+
     return (True, '')
 
   def __init__(self, messageHandler, **kwargs):
@@ -73,23 +86,40 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
     """
     self.printTag = 'unSupervised'
     self.messageHandler = messageHandler
-    # booleanFlag that controls the normalization procedure. If true, the normalization is performed. Default = True
-    if kwargs != None: self.initOptionDict = kwargs
-    else             : self.initOptionDict = {}
-    if 'Labels'       in self.initOptionDict.keys():  # Labels are passed, if known a priori (optional), they used in quality estimate
-      self.labels = self.initOptionDict['Labels'  ]
+    ## booleanFlag that controls the normalization procedure. If true, the
+    ## normalization is performed. Default = True
+    if kwargs != None:
+      self.initOptionDict = kwargs
+    else:
+      self.initOptionDict = {}
+
+    ## Labels are passed, if known a priori (optional), they used in quality
+    ## estimate
+    if 'Labels' in self.initOptionDict.keys():
+      self.labels = self.initOptionDict['Labels']
       self.initOptionDict.pop('Labels')
-    else: self.labels = None
-    if 'Features'     in self.initOptionDict.keys():
+    else:
+      self.labels = None
+
+    if 'Features' in self.initOptionDict.keys():
       self.features = self.initOptionDict['Features'].split(',')
       self.initOptionDict.pop('Features')
-    else: self.features = None
-    self.verbosity = self.initOptionDict['verbosity'] if 'verbosity' in self.initOptionDict else None
+    else:
+      self.features = None
+
+    if 'verbosity' in self.initOptionDict:
+      self.verbosity = self.initOptionDict['verbosity']
+    else:
+      self.verbosity = None
+
     # average value and sigma are used for normalization of the feature data
     # a dictionary where for each feature a tuple (average value, sigma)
     self.muAndSigmaFeatures = {}
     #these need to be declared in the child classes!!!!
     self.amITrained = False
+
+    ## The normalized training data
+    self.normValues = None
 
 
   def train(self, tdict, metric = None):
