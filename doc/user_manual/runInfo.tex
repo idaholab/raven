@@ -39,13 +39,25 @@ the settings of the calculation flow that is being performed through RAVEN:
 %string from the \emph{WorkingDir}.
 
 %%%%%% REMOTE RUN COMMAND
-\item \xmlNode{RemoteRunCommand}, \xmlDesc{string, required field},
+\item \xmlNode{RemoteRunCommand}, \xmlDesc{string, optional field},
   specifies the absolute or relative (with respect to the framework
   directory) path to a command that can be used on a remote machine to
   execute a command.  The command is passed in as the environmental
   variable COMMAND.
 %
-\default{raven\_qsub\_command.sh}
+  \default{raven\_qsub\_command.sh}
+
+  %%%%%% NODE PARAMETER
+
+\item \xmlNode{NodeParameter}, \xmlDesc{string, optional field},
+  specifies the flag used to specify a node file for the MPIExec command.  This will be followed by a file with the nodes that a single batch will run on.
+  %
+  \default{-f}
+
+  %%%%%% MPI EXEC
+\item \xmlNode{MPIExec}, \xmlDesc{string, optional field}, specifies the command used to run mpi.  This will be followed by the \xmlNode{NodeParameter} and then the node file and then the code command.
+  %
+  \default{mpiexec}
 
 %%%%%% BATCH SIZE
 \item \xmlNode{batchSize}, \xmlDesc{integer, optional field},
@@ -246,7 +258,7 @@ RAVEN currently supports one pre-defined ``mode'':
                   to find the nodes' information in the enviroment variable
                   \texttt{PBS\_NODEFILE}.
            \end{itemize}
-           \item The mpi exec can be forced to run on one shared memory node with the \xmlNode{NoSplitNode}.  If this is present, the splitting apart the batches will put each batch on one shared memory node.  Without \xmlNode{NoSplitNode}, the they can be split across nodes.  There is an option \xmlAttr{maxOnNode} which puts at most \xmlAttr{maxOnNode} number of mpi processes on one node.  \xmlNode{NoSplitNode} can cause processes to not be placed, so \xmlNode{NoSplitNode} should not be used unless needed.
+           \item The mpi exec can be forced to run on one shared memory node with the \xmlNode{NoSplitNode}.  If this is present, the splitting apart of the batches will put each batch on one shared memory node.  Without \xmlNode{NoSplitNode}, they can be split across nodes.  There is an option \xmlAttr{maxOnNode} which puts at most \xmlAttr{maxOnNode} number of mpi processes on one node.  \xmlNode{NoSplitNode} can cause processes to not be placed, so \xmlNode{NoSplitNode} should not be used unless needed.  If limiting the number of mpi processes on one node is desired without forcing them to only run on one node, \xmlNode{LimitNode} can be used.  Both \xmlNode{NoSplitNode} and  \xmlNode{LimitNode} can have a \xmlAttr{noOverlap} which prevents multiple batches from running on a single node.
          \end{itemize}
          In addition, this flag activates the remote (PBS) execution of internal Models (e.g. ROMs,
          ExternalModels, PostProcessors, etc.). If this node is not present, the internal Models
