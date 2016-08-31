@@ -107,7 +107,7 @@ In the \xmlNode{SPSA} input block, the user needs to specify the objective varia
   \end{itemize}
 \end{itemize}
 \begin{itemize}
-\item \xmlNode{Convergence}, \xmlDesc{XML node, optional parameter} will specify parameters associated with optimization convergence. This node accepts the following sub-nodes:
+\item \xmlNode{convergence}, \xmlDesc{XML node, optional parameter} will specify parameters associated with optimization convergence. This node accepts the following sub-nodes:
   \begin{itemize}
   \item \xmlNode{iterationLimit}, \xmlDesc{integer, optional field}, user-defined maximum number of optimization iterations.
   \item \xmlNode{threshold}, \xmlDesc{float, optional field}, specifies the convergence criteria to determine the optimality. When the change of objective variable in two successive model evaluations is smaller than this pre-specified threshold, the \xmlNode{SPSA} optimizer decides optimality and terminates the simulation.
@@ -142,10 +142,10 @@ Example:
       <initialSeed>30</initialSeed>
     </initialization>
     <TargetEvaluation class="DataObjects" type="PointSet">dataObjectName</TargetEvaluation>
-    <Convergence>
+    <convergence>
       <iterationLimit>50</iterationLimit>
       <threshold>1e-3</threshold>
-    </Convergence>
+    </convergence>
     <parameter>
       <numGradAvgIterations>3</numGradAvgIterations>
     </parameter>

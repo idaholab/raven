@@ -116,35 +116,33 @@ class SPSA(GradientBasedOptimizer):
       self.optVarsHist[self.counter['varsUpdate']] = {}
       varK = copy.deepcopy(self.optVarsHist[self.counter['varsUpdate']-1])
       varKPlus = {}
-      
+
       varKPlus = self._generateVarsUpdateConstrained(ak,gradient,varK)
-       
-      for var in self.optVars:  
+
+      for var in self.optVars:
         self.values[var] = copy.deepcopy(varKPlus[var])
         self.optVarsHist[self.counter['varsUpdate']][var] = copy.deepcopy(self.values[var])
 
   def _generateVarsUpdateConstrained(self,ak,gradient,varK):
-    tempVarKPlus = {} 
+    tempVarKPlus = {}
     foundVarsUpdate = False
     for var in self.optVars:
       tempVarKPlus[var] = copy.copy(varK[var]-ak*gradient[var]*1.0)
-    
+
     if self.checkConstraint(tempVarKPlus):                  foundVarsUpdate = True
-    
+
     # Try to find varKPlus by shorten the gradient vector
     if not foundVarsUpdate:
       foundVarsUpdate, tempVarKPlus = self._bisectionForConstrainedInput(varK, ak, gradient)
 
-    # Try to find varKPlus by rotate the gradient towards its orthogonal           
+    # Try to find varKPlus by rotate the gradient towards its orthogonal
     if not foundVarsUpdate:
       pass
-    
+
     if not foundVarsUpdate:
-      tempVarKPlus = {}
-      for var in self.optVars:
-        tempVarKPlus[var] = copy.copy(varK[var]-ak*gradient[var]*1.0)
-#       self.raiseAnError(ValueError, 'varKPlus not found')    
-    
+      return varK
+#       self.raiseAnError(ValueError, 'varKPlus not found')
+
     return tempVarKPlus
 
   def _bisectionForConstrainedInput(self,varK,gain,vector):
@@ -154,9 +152,9 @@ class SPSA(GradientBasedOptimizer):
     tempVarNew = {}
     frac = 0.5
     while np.absolute(bounds[1]-bounds[0]) >= paraBoundError:
-      for var in self.optVars:  
+      for var in self.optVars:
         tempVarNew[var] = copy.copy(varK[var]-gain*vector[var]*1.0*frac)
-          
+
       if self.checkConstraint(tempVarNew):
         bounds[0] = copy.deepcopy(frac)
         if np.absolute(bounds[1]-bounds[0]) < paraBoundError:
@@ -166,10 +164,10 @@ class SPSA(GradientBasedOptimizer):
           break
         frac = copy.deepcopy(bounds[1]+bounds[0])/2
       else:
-        bounds[1] = copy.deepcopy(frac) 
+        bounds[1] = copy.deepcopy(frac)
         frac = copy.deepcopy(bounds[1]+bounds[0])/2
-    return False, None    
-     
+    return False, None
+
 
   def localEvaluateGradient(self, optVarsValues, gradient = None):
     """
@@ -214,7 +212,7 @@ class SPSA(GradientBasedOptimizer):
       @ Out, convergence, bool, variable indicating whether the convergence criteria has been met.
     """
     return convergence
-  
+
   def localCheckConstraint(self, optVars, satisfaction = True):
     """
       Local method to check whether a set of decision variables satisfy the constraint or not
@@ -222,4 +220,4 @@ class SPSA(GradientBasedOptimizer):
       @ In, satisfaction, bool, optional, variable indicating how the caller determines the constraint satisfaction at the point optVars
       @ Out, satisfaction, bool, variable indicating the satisfaction of constraints at the point optVars
     """
-    return satisfaction  
+    return satisfaction
