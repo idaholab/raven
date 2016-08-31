@@ -142,8 +142,11 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
     if self.labels in names:
       self.labelValues = values[names.index(self.labels)]
       resp = self.checkArrayConsistency(self.labelValues)
-      if not resp[0]: self.raiseAnError(IOError, 'In training set for ground truth labels ' + self.labels + ':' + resp[1])
-    else            : self.raiseAWarning(' The ground truth labels are not known a priori')
+      if not resp[0]:
+        self.raiseAnError(IOError, 'In training set for ground truth labels ' + self.labels + ':' + resp[1])
+    else:
+      self.raiseAWarning(' The ground truth labels are not known a priori')
+
     if metric is None:
       self.normValues = np.zeros(shape = (realizationCount, featureCount))
       for cnt, feat in enumerate(self.features):
