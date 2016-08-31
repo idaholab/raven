@@ -63,6 +63,12 @@ python ../../framework/Driver.py test_pbs.xml cluster_runinfo.xml
 
 wait_lines 'FirstMQRun/1/*eqn.csv FirstMQRun/2/*eqn.csv FirstMQRun/3/*eqn.csv FirstMQRun/4/*eqn.csv FirstMQRun/5/*eqn.csv FirstMQRun/6/*eqn.csv' 6 pbsdsh
 
+rm -Rf FirstMFRun/
+
+python ../../framework/Driver.py test_mpiqsub_flex.xml cluster_runinfo.xml
+
+wait_lines 'FirstMFRun/[1-6]/*.csv' 6 mpiqsub_flex
+
 ######################################
 # test parallel for internal Objects #
 ######################################
