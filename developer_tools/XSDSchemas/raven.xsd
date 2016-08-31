@@ -151,6 +151,11 @@
                             <xsd:attribute name="maxOnNode" type="xsd:integer" />
                           </xsd:complexType>
                         </xsd:element>
+                        <xsd:element name="LimitNode" minOccurs="0">
+                          <xsd:complexType>
+                            <xsd:attribute name="maxOnNode" type="xsd:integer" use="required"/>
+                          </xsd:complexType>
+                        </xsd:element>
                     </xsd:choice>
                 </xsd:complexType>
             </xsd:element>

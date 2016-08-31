@@ -190,8 +190,11 @@ class MPISimulationMode(SimulationMode):
     self.__nodefile = False
     self.__runQsub = False
     self.__noSplitNode = False #If true, don't split mpi processes across nodes
-    self.__maxOnNode = None #Used with __noSplitNode.  If __noSplitNode and
-    # __maxOnNode is not None, don't put more than that on on single shared memory node
+    self.__limitNode = False #If true, fiddle with max on Node
+    self.__maxOnNode = None #Used with __noSplitNode and __limitNode to limit number on a node
+    self.__noOverlap = False #Used with __limitNode to prevent multiple batches from being on one node
+    # If (__noSplitNode or __limitNode) and  __maxOnNode is not None,
+    # don't put more than that on on single shared memory node
     self.printTag = 'MPI SIMULATION MODE'
 
   def modifySimulation(self):
@@ -217,18 +220,18 @@ class MPISimulationMode(SimulationMode):
       maxBatchsize = max(int(math.floor(len(lines)/numMPI)),1)
       if maxBatchsize < oldBatchsize:
         self.__simulation.runInfoDict['batchSize'] = maxBatchsize
-        self.raiseAWarning("changing batchsize from "+str(oldBatchsize)+" to "+str(maxBatchsize))
+        self.raiseAWarning("changing batchsize from "+str(oldBatchsize)+" to "+str(maxBatchsize)+" to fit on "+str(len(lines))+" processors")
       newBatchsize = self.__simulation.runInfoDict['batchSize']
       if newBatchsize > 1:
         #need to split node lines so that numMPI nodes are available per run
         workingDir = self.__simulation.runInfoDict['WorkingDir']
-        if not self.__noSplitNode:
+        if not (self.__noSplitNode or self.__limitNode):
           for i in range(newBatchsize):
             nodeFile = open(os.path.join(workingDir,"node_"+str(i)),"w")
             for line in lines[i*numMPI:(i+1)*numMPI]:
               nodeFile.write(line)
             nodeFile.close()
-        else: #self.__noSplitNode == True
+        else: #self.__noSplitNode == True or self.__limitNode == True
           nodes = []
           for line in lines:
             nodes.append(line.strip())
@@ -237,19 +240,29 @@ class MPISimulationMode(SimulationMode):
 
           currentNode = ""
           countOnNode = 0
-          groups = []
+          nodeUsed = False
+
+          if self.__noSplitNode:
+            groups = []
+          else:
+            groups = [[]]
 
           for i in range(len(nodes)):
             node = nodes[i]
             if node != currentNode:
               currentNode = node
               countOnNode = 0
-              groups.append([])
+              nodeUsed = False
+              if self.__noSplitNode:
+                #When switching node, make new group
+                groups.append([])
             if self.__maxOnNode is None or countOnNode < self.__maxOnNode:
               countOnNode += 1
               if len(groups[-1]) >= numMPI:
                 groups.append([])
-              groups[-1].append(node)
+                nodeUsed = True
+              if not self.__noOverlap or not nodeUsed:
+                groups[-1].append(node)
 
           fullGroupCount = 0
           for group in groups:
@@ -262,9 +275,9 @@ class MPISimulationMode(SimulationMode):
               nodeFile.close()
               fullGroupCount += 1
           if fullGroupCount == 0:
-            self.raiseAnError(IOError, "Cannot run with given parameters because no nodes have numMPI "+str(numMPI)+" available and NoSplitNode is on.")
+            self.raiseAnError(IOError, "Cannot run with given parameters because no nodes have numMPI "+str(numMPI)+" available and NoSplitNode is "+str(self.__noSplitNode)+" and LimitNode is "+str(self.__limitNode))
           if fullGroupCount != self.__simulation.runInfoDict['batchSize']:
-            self.raiseAWarning("changing batchsize to "+str(fullGroupCount)+" because NoSplitNode is on and some nodes could not be used.")
+            self.raiseAWarning("changing batchsize to "+str(fullGroupCount)+" because NoSplitNode is "+str(self.__noSplitNode)+" and LimitNode is "+str(self.__limitNode)+" and some nodes could not be used.")
             self.__simulation.runInfoDict['batchSize'] = fullGroupCount
 
         #then give each index a separate file.
@@ -333,6 +346,17 @@ class MPISimulationMode(SimulationMode):
         self.__maxOnNode = child.attrib.get("maxOnNode",None)
         if self.__maxOnNode is not None:
           self.__maxOnNode = int(self.__maxOnNode)
+        if "noOverlap" in child.attrib:
+          self.__noOverlap = True
+      elif child.tag.lower() == "limitnode":
+        self.__limitNode = True
+        self.__maxOnNode = child.attrib.get("maxOnNode",None)
+        if self.__maxOnNode is not None:
+          self.__maxOnNode = int(self.__maxOnNode)
+        else:
+          self.raiseAnError(IOError, "maxOnNode must be specified with LimitNode")
+        if "noOverlap" in child.attrib and child.attrib["noOverlap"].lower() in utils.stringsThatMeanTrue():
+          self.__noOverlap = True
       else:
         self.raiseADebug("We should do something with child "+str(child))
 #
