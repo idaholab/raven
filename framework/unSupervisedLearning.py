@@ -156,17 +156,6 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
     self.__trainLocal__()
     self.amITrained = True
 
-  def _localNormalizeData(self, values, names, feat):
-    """
-      Method to normalize data based on the mean and standard deviation.  If undesired for a particular algorithm,
-      this method can be overloaded to simply pass.
-      @ In, values, list,  list of feature values (from tdict)
-      @ In, names,  list,  names of features (from tdict)
-      @ In, feat, list, list of features (from Model)
-      @ Out, None
-    """
-    self.muAndSigmaFeatures[feat] = (np.average(values[names.index(feat)]), np.std(values[names.index(feat)]))
-
   def evaluate(self, edict):
     """
       Method to perform the evaluation of a point or a set of points through the previous trained unSuperVisedLearning algorithm
