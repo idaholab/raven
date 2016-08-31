@@ -1,8 +1,8 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <RunInfo>
-    <WorkingDir>MammothInterface/QuarterPellet_Example_2D</WorkingDir>
-    <Sequence>MCTestMammoth,print</Sequence>
+    <WorkingDir>MammothInterface/Rattlesnake_Bison</WorkingDir>
+    <Sequence>perturbAll,print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
@@ -34,6 +34,8 @@
     <Input name="M21" type="yakxsinput">M21_2D.xml</Input>
     <Input name="M22" type="yakxsinput">M22_2D.xml</Input>
     <Input name="M23" type="yakxsinput">M23_2D.xml</Input>
+    <Input name="alias_1" type="YakXSAliasInput">alias_1.xml</Input>
+    <Input name="alias_2" type="YakXSAliasInput">alias_2.xml</Input>
   </Files>
 
   <Models>
@@ -47,12 +49,24 @@
 
   <Distributions>
     <Normal name="G1">
+      <mean>1</mean>
+      <sigma>0.05</sigma>
+      <lowerBound>0.00001</lowerBound>
+      <upperBound>10</upperBound>
+    </Normal>
+    <Normal name="G2">
+      <mean>1</mean>
+      <sigma>0.1</sigma>
+      <lowerBound>0.0001</lowerBound>
+      <upperBound>10</upperBound>
+    </Normal>
+    <Normal name="G3">
       <mean>622</mean>
       <sigma>10</sigma>
       <lowerBound>0.001</lowerBound>
       <upperBound>10000</upperBound>
     </Normal>
-    <Normal name="G2">
+    <Normal name="G4">
       <mean>0.345</mean>
       <sigma>0.05</sigma>
       <lowerBound>0.0001</lowerBound>
@@ -63,19 +77,43 @@
   <Samplers>
     <MonteCarlo name="MC1">
       <samplerInit>
-        <limit>3</limit>
+        <limit>2</limit>
       </samplerInit>
-      <variable name="AuxVariables|Temp|initial_condition:Rattlesnake">
+      <variable name="Rattlesnake@f11">
         <distribution>G1</distribution>
       </variable>
-      <variable name="Materials|fuel_solid_mechanics_elastic|poissons_ratio:Bison">
-        <distribution>G2</distribution>
+      <variable name="Rattlesnake@c11">
+        <distribution>G1</distribution>
+      </variable>
+      <variable name="Rattlesnake@t11">
+        <distribution>G1</distribution>
+      </variable>
+      <variable name="Rattlesnake@n11">
+        <distribution>G1</distribution>
+      </variable>
+      <variable name="Rattlesnake@f22">
+        <distribution>G1</distribution>
+      </variable>
+      <variable name="Rattlesnake@c22">
+        <distribution>G1</distribution>
+      </variable>
+      <variable name="Rattlesnake@t22">
+        <distribution>G1</distribution>
+      </variable>
+      <variable name="Rattlesnake@n22">
+        <distribution>G1</distribution>
+      </variable>
+      <variable name="Rattlesnake@AuxVariables|Temp|initial_condition">
+        <distribution>G3</distribution>
+      </variable>
+      <variable name="Bison@Materials|fuel_solid_mechanics_elastic|poissons_ratio">
+        <distribution>G4</distribution>
       </variable>
     </MonteCarlo>
   </Samplers>
 
   <Steps>
-    <MultiRun name="MCTestMammoth">
+    <MultiRun name="perturbAll">
       <Input class="Files" type="">bisonInput</Input>
       <Input class="Files" type="">bisonMesh</Input>
       <Input class="Files" type="">rattlesnakeMesh</Input>
@@ -103,26 +141,30 @@
       <Input class="Files" type="">M12</Input>
       <Input class="Files" type="">M11</Input>
       <Input class="Files" type="">M10</Input>
+      <Input class="Files" type="">alias_1</Input>
+      <Input class="Files" type="">alias_2</Input>
       <Model class="Models" type="Code">Mammoth</Model>
       <Sampler class="Samplers" type="MonteCarlo">MC1</Sampler>
       <Output class="DataObjects" type="HistorySet">solns</Output>
     </MultiRun>
     <IOStep name='print'>
       <Input class="DataObjects" type="HistorySet">solns</Input>
-      <Output class="OutStreams" type="Print">perturb_mammoth</Output>
+      <Output class="OutStreams" type="Print">perturb_all</Output>
     </IOStep>
   </Steps>
+  <DataObjects>
+      <HistorySet name="solns">
+          <Input>Rattlesnake@AuxVariables|Temp|initial_condition,Bison@Materials|fuel_solid_mechanics_elastic|poissons_ratio</Input>
+          <Output>time,TotalReactorPower,burnup,burnup_FIMA_pp,k-eff-correction,k-eff-prediction,power_scaling,raw_total_power</Output>
+      </HistorySet>
+  </DataObjects>
+  
   <OutStreams>
-    <Print name="perturb_mammoth">
+    <Print name="perturb_all">
       <type>csv</type>
       <source>solns</source>
     </Print>
   </OutStreams>
-  <DataObjects>
-      <HistorySet name="solns">
-          <Input>AuxVariables|Temp|initial_condition:Rattlesnake,Materials|fuel_solid_mechanics_elastic|poissons_ratio:Bison</Input>
-          <Output>time,TotalReactorPower,burnup,burnup_FIMA_pp,k-eff-correction,k-eff-prediction,power_scaling,raw_total_power</Output>
-      </HistorySet>
-  </DataObjects>
+
 
 </Simulation>
