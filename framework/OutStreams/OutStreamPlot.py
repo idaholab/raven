@@ -96,7 +96,7 @@ class OutStreamPlot(OutStreamManager):
     self.printTag = 'OUTSTREAM PLOT'
 
     ## default plot is 2D
-    self.dim = 2
+    self.dim = None
 
     ## list of source names
     self.sourceName = []
@@ -813,12 +813,12 @@ class OutStreamPlot(OutStreamManager):
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None
     """
-    if not 'dim' in xmlNode.attrib.keys():
-      self.dim = 2
-    else:
-      self.dim = int(xmlNode.attrib['dim'])
-    if self.dim not in [2, 3]:
-      self.raiseAnError(IOError, 'Wrong dimension... 2D or 3D only!!! Got ' + str(self.dim) + 'D')
+#     if not 'dim' in xmlNode.attrib.keys():
+#       self.dim = 2
+#     else:
+#       self.dim = int(xmlNode.attrib['dim'])
+#     if self.dim not in [2, 3]:
+#       self.raiseAnError(IOError, 'Wrong dimension... 2D or 3D only!!! Got ' + str(self.dim) + 'D')
     foundPlot = False
     for subnode in xmlNode:
       # if actions, read actions block
@@ -880,6 +880,17 @@ class OutStreamPlot(OutStreamManager):
       if not 'type' in self.options['plotSettings']['plot'][pltindex].keys():
         self.raiseAnError(IOError, 'For plot named' + self.name + ', No plot type keyword has been found in the plotSettings/plot block!')
       else:
+        # check the dimension and check the consistency
+        if   set(['x','y','z']) < set(self.options['plotSettings']['plot'][pltindex].keys()):
+          if self.dim is not None and self.dim != 3: self.raiseAnError(IOError, 'The OutStream Plot '+self.name+' combines 2D and 3D plots. This is not supported!')
+          self.dim = 3
+        elif set(['x','y']) < set(self.options['plotSettings']['plot'][pltindex].keys()):
+          if self.dim is not None and self.dim != 2: self.raiseAnError(IOError, 'The OutStream Plot '+self.name+' combines 2D and 3D plots. This is not supported!')
+          self.dim = 2
+        else:
+          self.raiseAnError(IOError, 'Wrong dimension... 2D or 3D only!!!')
+        
+        
         if self.availableOutStreamTypes[self.dim].count(self.options['plotSettings']['plot'][pltindex]['type']) == 0:
           self.raiseAMessage('For plot named' + self.name + ', type ' + self.options['plotSettings']['plot'][pltindex]['type'] + ' is not among pre-defined plots! \n The OutstreamSystem will try to construct a call on the fly!', 'ExceptedError')
         self.outStreamTypes.append(self.options['plotSettings']['plot'][pltindex]['type'])
