@@ -108,28 +108,26 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
     else            : self.raiseAWarning(' The ground truth labels are not known a priori')
     if metric == None:
       for cnt, feat in enumerate(self.features):
-        if feat not in names:
-          self.raiseAnError(IOError, ' The feature sought ' + feat + ' is not in the training set')
-        else:
-          resp = self.checkArrayConsistency(values[names.index(feat)])
-          if not resp[0]:
-            self.raiseAnError(IOError, ' In training set for feature ' + feat + ':' + resp[1])
-          if self.normValues is None:
-            self.normValues = np.zeros(shape = (values[names.index(feat)].size, len(self.features)))
-          if values[names.index(feat)].size != self.normValues[:, 0].size:
-            self.raiseAnError(IOError, ' In training set, the number of values provided for feature ' + feat + ' are != number of target outcomes!')
-          self._localNormalizeData(values, names, feat)
-          if self.muAndSigmaFeatures[feat][1] == 0:
-            self.muAndSigmaFeatures[feat] = (self.muAndSigmaFeatures[feat][0], np.max(np.absolute(values[names.index(feat)])))
-          if self.muAndSigmaFeatures[feat][1] == 0:
-            self.muAndSigmaFeatures[feat] = (self.muAndSigmaFeatures[feat][0], 1.0)
-          self.normValues[:, cnt] = (values[names.index(feat)] - self.muAndSigmaFeatures[feat][0]) / self.muAndSigmaFeatures[feat][1]
+        featureValues = tdict[feat]
+        (mu,sigma) = mathUtils.normalizationFactors(featureValues)
+
+        ## Store the normalized training data, and the normalization factors for
+        ## later use
+        self.normValues[:, cnt] = (featureValues - mu) / sigma
+        self.muAndSigmaFeatures[feat] = (mu,sigma)
+
     else:    # metric != None
-      if isinstance(tdict[tdict.keys()[0]],dict): #  the dictionary represents an HistorySet
-        # normalize data
-        for key in tdict.keys():
+      ## The dictionary represents a HistorySet
+      if isinstance(tdict.values()[0],dict):
+        ## normalize data
+        ## But why this way? This should be one of the option, this looks like
+        ## a form of shape matching, however what if I don't want similar
+        ## shapes, I want similar valued curves in space? sigma and mu should
+        ## not be forced to be computed within a curve.
+        for key in tdict:
           for var in tdict[key]:
-            tdict[key][var] = (tdict[key][var]-np.average(tdict[key][var]))/np.std(tdict[key][var])
+            (mu,sigma) = mathUtils.normalizationFactors(tdict[key][var])
+            tdict[key][var] = (tdict[key][var]-mu)/sigma
 
         cardinality = len(tdict.keys())
         self.normValues = np.zeros((cardinality,cardinality))
@@ -139,28 +137,22 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
             self.normValues[i][j] = metric.distance(tdict[keys[i]],tdict[keys[j]])
             self.normValues[j][i] = self.normValues[i][j]
         print(self.normValues[0])
-      else:   # PointSet
+      else:   ## PointSet
+        normValues = np.zeros(shape = (realizationCount, featureCount))
+        self.normValues = np.zeros(shape =(realizationCount, realizationCount))
         for cnt, feat in enumerate(self.features):
-          if feat not in names:
-            self.raiseAnError(IOError, ' The feature sought ' + feat + ' is not in the training set')
-          else:
-            resp = self.checkArrayConsistency(values[names.index(feat)])
-            if not resp[0]:
-              self.raiseAnError(IOError, ' In training set for feature ' + feat + ':' + resp[1])
-            normValues = np.zeros(shape = (values[names.index(feat)].size, len(self.features)))
-            if values[names.index(feat)].size != normValues[:, 0].size:
-              self.raiseAnError(IOError, ' In training set, the number of values provided for feature ' + feat + ' are != number of target outcomes!')
-            self._localNormalizeData(values, names, feat)
-            if self.muAndSigmaFeatures[feat][1] == 0:
-              self.muAndSigmaFeatures[feat] = (self.muAndSigmaFeatures[feat][0], np.max(np.absolute(values[names.index(feat)])))
-            if self.muAndSigmaFeatures[feat][1] == 0:
-              self.muAndSigmaFeatures[feat] = (self.muAndSigmaFeatures[feat][0], 1.0)
-            normValues[:, cnt] = (values[names.index(feat)] - self.muAndSigmaFeatures[feat][0]) / self.muAndSigmaFeatures[feat][1]
+          featureValues = tdict[feat]
+          (mu,sigma) = mathUtils.normalizationFactors(featureValues)
+          normValues[:, cnt] = (featureValues - mu) / sigma
 
-            for i in range(cardinality):
-              for j in range(i,cardinality):
-                self.normValues[i][j] = metric.distance(tdict[i],tdict[j])
-                self.normValues[j][i] = self.normValues[i][j]
+        ## this should operate on the normed data
+        for i in range(realizationCount):
+          rowI = normValues[i,:]
+          for j in range(i,realizationCount):
+            rowJ = normValues[j,:]
+            self.normValues[i][j] = metric.distance(rowI,rowJ)
+            self.normValues[j][i] = self.normValues[i][j]
+
     self.__trainLocal__()
     self.amITrained = True
 
