@@ -95,19 +95,27 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
   def train(self, tdict, metric = None):
     """
       Method to perform the training of the unSuperVisedLearning algorithm
-      NB.the unSuperVisedLearning object is committed to convert the dictionary that is passed (in), into the local format
-      the interface with the kernels requires. So far the base class will do the translation into numpy
+      NB. The unSuperVisedLearning object is committed to convert the dictionary
+      that is passed (in), into the local format the interface with the kernels
+      requires. So far the base class will do the translation into numpy.
       @ In, tdict, dict, training dictionary
       @ Out, None
     """
-    if type(tdict) != dict: self.raiseAnError(IOError, ' method "train". The training set needs to be provided through a dictionary. Type of the in-object is ' + str(type(tdict)))
+    if type(tdict) != dict:
+      self.raiseAnError(IOError, ' method "train". The training set needs to be provided through a dictionary. Type of the in-object is ' + str(type(tdict)))
+
+    featureCount = len(self.features)
+    if not isinstance(tdict[tdict.keys()[0]],dict):
+      realizationCount = tdict.values()[0].size
+
     names, values = list(tdict.keys()), list(tdict.values())
     if self.labels in names:
       self.labelValues = values[names.index(self.labels)]
       resp = self.checkArrayConsistency(self.labelValues)
       if not resp[0]: self.raiseAnError(IOError, 'In training set for ground truth labels ' + self.labels + ':' + resp[1])
     else            : self.raiseAWarning(' The ground truth labels are not known a priori')
-    if metric == None:
+    if metric is None:
+      self.normValues = np.zeros(shape = (realizationCount, featureCount))
       for cnt, feat in enumerate(self.features):
         featureValues = tdict[feat]
         (mu,sigma) = mathUtils.normalizationFactors(featureValues)
@@ -140,7 +148,7 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
         print(self.normValues[0])
       else:   ## PointSet
         normValues = np.zeros(shape = (realizationCount, featureCount))
-        self.normValues = np.zeros(shape =(realizationCount, realizationCount))
+        self.normValues = np.zeros(shape = (realizationCount, realizationCount))
         for cnt, feat in enumerate(self.features):
           featureValues = tdict[feat]
           (mu,sigma) = mathUtils.normalizationFactors(featureValues)
