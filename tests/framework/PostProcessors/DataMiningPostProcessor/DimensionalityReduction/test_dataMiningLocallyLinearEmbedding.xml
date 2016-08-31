@@ -50,13 +50,12 @@
         <plot>
           <type>scatter</type>
           <SKLtype>cluster</SKLtype>
-          <x>DataSets|Output|PCAEmbeddingVector1</x>
-          <y>DataSets|Output|PCAEmbeddingVector2</y>
-          <kwargs>
-                    </kwargs>
+          <x>DataSets|Output|component1</x>
+          <y>DataSets|Output|component2</y>
+          <kwargs> </kwargs>
         </plot>
-        <xlabel>EmbeddingVector1</xlabel>
-        <ylabel>EmbeddingVector2</ylabel>
+        <xlabel>Embedding Vector 1</xlabel>
+        <ylabel>Embedding Vector 2</ylabel>
       </plotSettings>
       <actions>
         <how>png</how>

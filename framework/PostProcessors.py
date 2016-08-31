@@ -3195,9 +3195,8 @@ class DataMining(BasePostProcessor):
     self.labelFeature = None                              ## User customizable
                                                           ## column name for the
                                                           ## labels associated
-                                                          ## to a clustering
-                                                          ## algorithm or a DR
-                                                          ## algorithm
+                                                          ## to a clustering or
+                                                          ## a DR algorithm
 
     self.PreProcessor = None
     self.metric = None
@@ -3387,8 +3386,6 @@ class DataMining(BasePostProcessor):
     ## By default, we want to name the 'labels' by the name of this
     ## postprocessor, but that name is not available before processing the XML
     ## At this point, we have that information
-    self.labelFeature = None
-
     self.initializationOptionDict = {}
 
     for child in xmlNode:
@@ -3605,6 +3602,7 @@ class DataMining(BasePostProcessor):
 
             if 'explainedVarianceRatio' in solutionExportDict:
               self.solutionExport.updateOutputValue('ExplainedVarianceRatio',solutionExportDict['explainedVarianceRatio'][row])
+
     return outputDict
 
 

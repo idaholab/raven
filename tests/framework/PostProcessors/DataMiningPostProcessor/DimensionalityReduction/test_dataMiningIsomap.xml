@@ -52,8 +52,8 @@
           <clusterLabels>DataSets|Input|labels</clusterLabels>
           <kwargs> </kwargs>
         </plot>
-        <xlabel>EmbeddingVector1</xlabel>
-        <ylabel>EmbeddingVector2</ylabel>
+        <xlabel>Embedding Vector 1</xlabel>
+        <ylabel>Embedding Vector 2</ylabel>
       </plotSettings>
       <actions>
         <how>png</how>
