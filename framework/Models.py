@@ -1668,7 +1668,8 @@ class EnsembleModel(Dummy, Assembler):
     selectedKwargs = copy.copy(kwargs)
     selectedKwargs['SampledVars'], selectedKwargs['SampledVarsPb'] = {}, {}
     for key in kwargs["SampledVars"].keys():
-      if key in self.modelsDictionary[modelName]['Input']: selectedKwargs['SampledVars'][key], selectedKwargs['SampledVarsPb'][key] =  kwargs["SampledVars"][key], kwargs["SampledVarsPb"][key]
+      if key in self.modelsDictionary[modelName]['Input']:
+        selectedKwargs['SampledVars'][key], selectedKwargs['SampledVarsPb'][key] =  kwargs["SampledVars"][key],  kwargs["SampledVarsPb"][key] if 'SampledVarsPb' in kwargs.keys() else 1.0
     return copy.deepcopy(selectedKwargs)
 
   def _inputToInternal(self, myInput, sampledVarsKeys, full=False):
