@@ -7,6 +7,8 @@
   </RunInfo>
   <!--
     This test is used to test the defect mentioned in issue #666
+    This test will make sure the expectedValue and the variationCoefficient are correctly computed.
+    If the expectedValues are zero, the variationCoefficient will be INF.
   -->
   <Files>
     <Input name="output.csv" type="">output_variation_coefficient.csv</Input>
