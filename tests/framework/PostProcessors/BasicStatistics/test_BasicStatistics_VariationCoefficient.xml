@@ -5,7 +5,9 @@
     <Sequence>FirstMRun,PP</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
-
+  <!--
+    This test is used to test the defect mentioned in issue #666
+  -->
   <Files>
     <Input name="output.csv" type="">output_variation_coefficient.csv</Input>
     <Input name="output.xml" type="">output_variation_coefficient.xml</Input>
