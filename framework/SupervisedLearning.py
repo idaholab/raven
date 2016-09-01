@@ -143,10 +143,6 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
           self.raiseAWarning('target values:',values[names.index(feat)].size,tag='ERROR')
           self.raiseAnError(IOError,'In training set, the number of values provided for feature '+feat+' are != number of target outcomes!')
         self._localNormalizeData(values,names,feat)
-        if self.muAndSigmaFeatures[feat][1]==0:
-          self.muAndSigmaFeatures[feat] = (self.muAndSigmaFeatures[feat][0],np.max(np.absolute(values[names.index(feat)])))
-        if self.muAndSigmaFeatures[feat][1]==0:
-          self.muAndSigmaFeatures[feat] = (self.muAndSigmaFeatures[feat][0],1.0)
         featureValues[:,cnt] = (values[names.index(feat)] - self.muAndSigmaFeatures[feat][0])/self.muAndSigmaFeatures[feat][1]
     self.__trainLocal__(featureValues,targetValues)
     self.amITrained = True
@@ -160,7 +156,7 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
       @ In, feat, list, list of features (from ROM)
       @ Out, None
     """
-    self.muAndSigmaFeatures[feat] = (np.average(values[names.index(feat)]),np.std(values[names.index(feat)]))
+    self.muAndSigmaFeatures[feat] = mathUtils.normalizationFactors(values[names.index(feat)])
 
   def confidence(self,edict):
     """
