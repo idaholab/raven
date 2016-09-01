@@ -5,4 +5,9 @@
   input = 'test_optFSPSA.xml'
   csv = 'SPSA/mdlDataDump.csv SPSA/optimizationHistoryDump.csv'
  [../]
+ [./SPSAwConstraint]
+  type = 'RavenFramework'
+  input = 'test_spsaWConstraint.xml'
+  csv = 'SPSAwConstraint/mdlDataDump.csv SPSAwConstraint/optimizationHistoryDump.csv'
+ [../] 
 []

@@ -142,11 +142,10 @@ class SPSA(GradientBasedOptimizer):
 
     # Try to find varKPlus by rotate the gradient towards its orthogonal, since we consider the gradient as perpendicular
     # with respect to the constraints hyper-surface
-    if not foundVarsUpdate:
-      pass
-    
-    # the constrain is not satisfied. We consider the gradient as perpendicular with respect the constrain hyper-surface
-    
+    paraLoopLimit = 1000
+    loopCounter = 0
+    while not foundVarsUpdate and loopCounter < paraLoopLimit: 
+      loopCounter += 1   
       depVarPos = Distributions.randomIntegers(0,self.nVar-1,self)
       pendVector = {}
       npDot = 0
@@ -161,12 +160,13 @@ class SPSA(GradientBasedOptimizer):
       for var in self.optVars:
         pendVector[var] = copy.deepcopy(pendVector[var])*r
       
-      normalizedGradient = copy.deepcopy(gradient)/LA.norm(gradient)
-      self.stochasticEngineForConstraintHandling
-      pendVector = np.asarray([self.stochasticEngineForConstraintHandling.rvs() if i != depVarPos else 0.0 for i in range(self.nVar)]) # we compute a random normal vector
-      pendVector = -np.dot(gradient[:])
-      
-          
+      tempVarKPlus = {}
+      for var in self.optVars:
+        tempVarKPlus[var] = copy.copy(varK[var]-ak*pendVector[var]*1.0)
+      if self.checkConstraint(tempVarKPlus):                  foundVarsUpdate = True
+      if not foundVarsUpdate:
+        foundVarsUpdate, tempVarKPlus = self._bisectionForConstrainedInput(varK, ak, pendVector)
+                
 #             for  varId, key in enumerate(self.axisName): # recompute Thetak and check the constrain, if satisfied, exit the loop, if not continue
 #               self.thetakCurrent[key]                 = copy.copy(thetakCurrentSaved[key] + self.optimizationSign * self.ak * randVector[varId])
 #               self.values[key]                        = self.thetakCurrent[key]
@@ -181,7 +181,7 @@ class SPSA(GradientBasedOptimizer):
 
     if not foundVarsUpdate:
       return varK
-#       self.raiseAnError(ValueError, 'varKPlus not found')
+      self.raiseAnError(ValueError, 'varKPlus not found')
 
     return tempVarKPlus
 
