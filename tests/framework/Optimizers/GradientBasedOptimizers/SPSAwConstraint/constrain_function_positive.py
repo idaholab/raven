@@ -23,10 +23,7 @@ def constrain(self):
 #   f = normal1.InverseCdf(rand2)
   # End of debug
   if B + R * f - d > 0:
-#   if self.B + self.R * self.f - self.d > 0:
     returnValue = 1
-    if B < 0.0 or R < 0.0 or B > 1 or R > 1:
-      returnValue = 0
   else:
   	returnValue = 0
   #print("f " + str(self.f) + " d " + str(self.d))
