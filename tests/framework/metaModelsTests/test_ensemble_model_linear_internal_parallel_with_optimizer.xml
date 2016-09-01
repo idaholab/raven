@@ -107,62 +107,6 @@
       <type>csv</type>
       <source>metaModelOutputTest</source>
     </Print>
-    <Plot dim="3" name="metaModelOutputTestSolution" overwrite="false" verbosity="debug">
-      <plotSettings>
-        <plot>
-          <type>scatter</type>
-          <x>metaModelOutputTest|Input|leftTemperature</x>
-          <y>metaModelOutputTest|Input|rightTemperature</y>
-          <z>metaModelOutputTest|Output|solution</z>
-        </plot>
-        <xlabel>left Temperature (K)</xlabel>
-        <ylabel>right Temperature (K)</ylabel>
-        <zlabel>Temperature(K)</zlabel>
-      </plotSettings>
-      <actions>
-        <how>png</how>
-        <figureProperties>
-          <frameon>true</frameon>
-        </figureProperties>
-        <labelFormat>
-          <style>sci</style>
-        </labelFormat>
-        <grid>
-          <b>true</b>
-        </grid>
-        <title>
-          <text> </text>
-        </title>
-      </actions>
-    </Plot>
-    <Plot dim="3" name="metaModelOutputTestK" overwrite="false" verbosity="debug">
-      <plotSettings>
-        <plot>
-          <type>scatter</type>
-          <x>metaModelOutputTest|Input|leftTemperature</x>
-          <y>metaModelOutputTest|Input|rightTemperature</y>
-          <z>metaModelOutputTest|Output|k</z>
-        </plot>
-        <xlabel>left Temperature (K)</xlabel>
-        <ylabel>right Temperature (K)</ylabel>
-        <zlabel>k (W m-1 K)</zlabel>
-      </plotSettings>
-      <actions>
-        <how>png</how>
-        <figureProperties>
-          <frameon>true</frameon>
-        </figureProperties>
-        <labelFormat>
-          <style>sci</style>
-        </labelFormat>
-        <grid>
-          <b>true</b>
-        </grid>
-        <title>
-          <text> </text>
-        </title>
-      </actions>
-    </Plot>
     
     
     <Print name="optimizationHistoryDump">
@@ -227,6 +171,62 @@
             
             
         </plotSettings>
+    </Plot>
+    <Plot dim="3" name="metaModelOutputTestSolution" overwrite="false" verbosity="debug">
+      <plotSettings>
+        <plot>
+          <type>scatter</type>
+          <x>metaModelOutputTest|Input|leftTemperature</x>
+          <y>metaModelOutputTest|Input|rightTemperature</y>
+          <z>metaModelOutputTest|Output|solution</z>
+        </plot>
+        <xlabel>left Temperature (K)</xlabel>
+        <ylabel>right Temperature (K)</ylabel>
+        <zlabel>Temperature(K)</zlabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+        <figureProperties>
+          <frameon>true</frameon>
+        </figureProperties>
+        <labelFormat>
+          <style>sci</style>
+        </labelFormat>
+        <grid>
+          <b>true</b>
+        </grid>
+        <title>
+          <text> </text>
+        </title>
+      </actions>
+    </Plot>
+    <Plot dim="3" name="metaModelOutputTestK" overwrite="false" verbosity="debug">
+      <plotSettings>
+        <plot>
+          <type>scatter</type>
+          <x>metaModelOutputTest|Input|leftTemperature</x>
+          <y>metaModelOutputTest|Input|rightTemperature</y>
+          <z>metaModelOutputTest|Output|k</z>
+        </plot>
+        <xlabel>left Temperature (K)</xlabel>
+        <ylabel>right Temperature (K)</ylabel>
+        <zlabel>k (W m-1 K)</zlabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+        <figureProperties>
+          <frameon>true</frameon>
+        </figureProperties>
+        <labelFormat>
+          <style>sci</style>
+        </labelFormat>
+        <grid>
+          <b>true</b>
+        </grid>
+        <title>
+          <text> </text>
+        </title>
+      </actions>
     </Plot>
     
   </OutStreams>
