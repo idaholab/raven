@@ -646,7 +646,7 @@ class temporalSciKitLearn(unSupervisedLearning):
       self.labelValues = values[names.index(self.labels)]
       resp = self.checkArrayConsistency(self.labelValues,[self.numberOfSample, self.numberOfHistoryStep])
       if not resp[0]: self.raiseAnError(IOError, 'In training set for ground truth labels ' + self.labels + ':' + resp[1])
-    else            : self.raiseAWarning(' The ground truth labels are not known appriori')
+    else            : self.raiseAWarning(' The ground truth labels are not known a priori')
 #     for cnt, feat in enumerate(self.features):
     for feat in self.features:
       if feat not in names: self.raiseAnError(IOError, ' The feature sought ' + feat + ' is not in the training set')
@@ -1028,7 +1028,6 @@ class Scipy(unSupervisedLearning):
     if max_d and 'color_threshold' not in kwargs:
       kwargs['color_threshold'] = max_d
     annotate_above = kwargs.pop('annotate_above', 0)
-
     ddata = hier.hierarchy.dendrogram(*args, **kwargs)
 
     if not kwargs.get('no_plot', False):
@@ -1045,6 +1044,7 @@ class Scipy(unSupervisedLearning):
                        va='top', ha='center')
       if max_d:
         plt.axhline(y=max_d, c='0.1')
+    #plotTitle = dendrogram + self.initOptionDict
     plt.savefig('dendrogram.pdf')
     return ddata
 

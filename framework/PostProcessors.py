@@ -3474,8 +3474,8 @@ class DataMining(BasePostProcessor):
         if self.PreProcessor is not None or self.metric is not None:
           for index,value in np.ndenumerate(dataMineDict['output'][key]):
             firstHist = output._dataContainer['outputs'].keys()[0]
-            firstVar  = output._dataContainer['outputs'][firstHist].keys()[0]
-            timeLength = output._dataContainer['outputs'][firstHist][firstVar].size
+            firstVar  = output._dataContainer['outputs'][index[0]+1].keys()[0]
+            timeLength = output._dataContainer['outputs'][index[0]+1][firstVar].size
             arrayBase = value * np.ones(timeLength)
             output.updateOutputValue([index[0]+1,key], arrayBase)
         else:
