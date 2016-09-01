@@ -16,6 +16,7 @@ import sys
 import os
 import copy
 import numpy as np
+from numpy import linalg as LA
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -34,7 +35,11 @@ class SPSA(GradientBasedOptimizer):
     GradientBasedOptimizer.__init__(self)
     self.stochasticDistribution = None                        # Distribution used to generate perturbations
     self.stochasticEngine = None                              # Random number generator used to generate perturbations
-
+    self.stochasticEngineForConstraintHandling = Distributions.returnInstance('Normal',self)
+    self.stochasticEngineForConstraintHandling.mean, self.stochasticEngineForConstraintHandling.sigma = 0, 1
+    self.stochasticEngineForConstraintHandling.upperBoundUsed, self.stochasticEngineForConstraintHandling.lowerBoundUsed = False, False
+    self.stochasticEngineForConstraintHandling.initializeDistribution()
+    
   def localLocalInputAndChecks(self, xmlNode):
     """
       Local method for additional reading.
@@ -135,9 +140,44 @@ class SPSA(GradientBasedOptimizer):
     if not foundVarsUpdate:
       foundVarsUpdate, tempVarKPlus = self._bisectionForConstrainedInput(varK, ak, gradient)
 
-    # Try to find varKPlus by rotate the gradient towards its orthogonal
+    # Try to find varKPlus by rotate the gradient towards its orthogonal, since we consider the gradient as perpendicular
+    # with respect to the constraints hyper-surface
     if not foundVarsUpdate:
       pass
+    
+    # the constrain is not satisfied. We consider the gradient as perpendicular with respect the constrain hyper-surface
+    
+      depVarPos = Distributions.randomIntegers(0,self.nVar-1,self)
+      pendVector = {}
+      npDot = 0
+      for varID, var in enumerate(self.optVars):
+        pendVector[var] = self.stochasticEngineForConstraintHandling.rvs() if varID != depVarPos else 0.0
+        npDot += pendVector[var]*gradient[var]
+      for varID, var in enumerate(self.optVars):
+        if varID == depVarPos:
+          pendVector[var] = -npDot/gradient[var]
+      
+      r = LA.norm(np.asarray([gradient[var] for var in self.optVars]))/LA.norm(np.asarray([pendVector[var] for var in self.optVars]))  
+      for var in self.optVars:
+        pendVector[var] = copy.deepcopy(pendVector[var])*r
+      
+      normalizedGradient = copy.deepcopy(gradient)/LA.norm(gradient)
+      self.stochasticEngineForConstraintHandling
+      pendVector = np.asarray([self.stochasticEngineForConstraintHandling.rvs() if i != depVarPos else 0.0 for i in range(self.nVar)]) # we compute a random normal vector
+      pendVector = -np.dot(gradient[:])
+      
+          
+#             for  varId, key in enumerate(self.axisName): # recompute Thetak and check the constrain, if satisfied, exit the loop, if not continue
+#               self.thetakCurrent[key]                 = copy.copy(thetakCurrentSaved[key] + self.optimizationSign * self.ak * randVector[varId])
+#               self.values[key]                        = self.thetakCurrent[key]
+#             tempDict.update(self.thetakCurrent)
+#             __testConstraintSatisfied = True if self.constrainFunction.evaluate("constrain",tempDict) == 1 else False
+#             # Debug
+#             self.raiseADebug('old', self.oldThetak,self.oldThetak['B']+self.oldThetak['R']*tempDict['f']-tempDict['d'])
+#             self.raiseADebug('current', self.thetakCurrent,tempDict['B']+tempDict['R']*tempDict['f']-tempDict['d'])
+#             # End of debug
+            
+            
 
     if not foundVarsUpdate:
       return varK
