@@ -143,7 +143,7 @@
         </arrow>
       </actions>
     </Plot>
-    <Plot dim="3" name="plot2" overwrite="false" verbosity="debug">
+    <Plot   name="plot2" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>line</type>
@@ -244,7 +244,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot dim="3" name="plot4" overwrite="false" verbosity="debug">
+    <Plot   name="plot4" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>scatter</type>
@@ -296,7 +296,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot dim="3" name="plot6" overwrite="false" verbosity="debug">
+    <Plot   name="plot6" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>histogram</type>
@@ -330,7 +330,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot dim="3" name="plot8" overwrite="false" verbosity="debug">
+    <Plot   name="plot8" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>stem</type>
@@ -365,7 +365,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot dim="3" name="plot10" overwrite="false" verbosity="debug">
+    <Plot   name="plot10" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>stem</type>
@@ -419,7 +419,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot dim="3" name="plot13" overwrite="false" verbosity="debug">
+    <Plot   name="plot13" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>surface</type>
@@ -454,7 +454,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot dim="3" name="plot14" overwrite="false" verbosity="debug">
+    <Plot   name="plot14" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>tri-surface</type>
@@ -485,7 +485,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot dim="3" name="plot15" overwrite="false" verbosity="debug">
+    <Plot   name="plot15" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>wireframe</type>
@@ -543,7 +543,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot dim="3" name="plot17" overwrite="false" verbosity="debug">
+    <Plot   name="plot17" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>contour3D</type>
@@ -590,7 +590,7 @@
         <ylabel>cosine</ylabel>
       </plotSettings>
     </Plot>
-    <Plot dim="3" name="plot19" overwrite="false" verbosity="debug">
+    <Plot   name="plot19" overwrite="false" verbosity="debug">
       <actions>
         <how>png</how>
       </actions>

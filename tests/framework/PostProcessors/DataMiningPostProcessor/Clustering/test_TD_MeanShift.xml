@@ -158,7 +158,7 @@
 	    <source>outMC</source>
 	  </Print>
 
-    <Plot dim="3" name="plot1" overwrite="false" verbosity="debug">
+    <Plot   name="plot1" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>line</type>
@@ -176,7 +176,7 @@
       </actions>
     </Plot>
     
-    <Plot dim="3" name="clusterCenters" overwrite="false" verbosity="debug">
+    <Plot   name="clusterCenters" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>line</type>
@@ -216,7 +216,7 @@
       </actions>
     </Plot>
 
-    <Plot dim="3" name="Clustered_HS" overwrite="false" verbosity="debug">
+    <Plot   name="Clustered_HS" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>line</type>
@@ -247,7 +247,7 @@
       </actions>
     </Plot>
 
-    <Plot dim="3" name="Cluster_0" overwrite="false" verbosity="debug">
+    <Plot   name="Cluster_0" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>line</type>
@@ -274,7 +274,7 @@
       </actions>
     </Plot>
 
-    <Plot dim="3" name="Cluster_1" overwrite="false" verbosity="debug">
+    <Plot   name="Cluster_1" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>line</type>
@@ -301,7 +301,7 @@
       </actions>
     </Plot>
     
-    <Plot dim="3" name="Cluster_2" overwrite="false" verbosity="debug">
+    <Plot   name="Cluster_2" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>line</type>
@@ -328,7 +328,7 @@
       </actions>
     </Plot>
     
-    <Plot dim="3" name="Cluster_3" overwrite="false" verbosity="debug">
+    <Plot   name="Cluster_3" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>line</type>
@@ -511,7 +511,7 @@
       </actions>
     </Plot>    
     
-    <Plot dim="3" name="plot5" overwrite="false" verbosity="debug">
+    <Plot   name="plot5" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>histogram</type>
@@ -538,7 +538,7 @@
       </actions>
     </Plot>
     
-    <Plot dim="3" name="plot7" overwrite="false" verbosity="debug">
+    <Plot   name="plot7" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>histogram</type>

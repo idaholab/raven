@@ -65,7 +65,7 @@
       <type>csv</type>
       <source>bisonData</source>
     </Print>
-    <Plot dim="3" name="PlotKMeans1" verbosity="debug">
+    <Plot   name="PlotKMeans1" verbosity="debug">
       <plotSettings>
         <plot>
           <type>dataMining</type>

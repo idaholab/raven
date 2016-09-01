@@ -73,7 +73,7 @@
     </Print>
 
 
-    <Plot name='plotAFW' dim='2' overwrite='False'>
+    <Plot name='plotAFW'   overwrite='False'>
       <plotSettings>
           <plot>
               <type>line</type>
