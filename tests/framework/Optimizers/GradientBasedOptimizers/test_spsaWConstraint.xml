@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <RunInfo>
-	<WorkingDir>optConstraintTesting</WorkingDir>
+	<WorkingDir>SPSAwConstraint</WorkingDir>
     <Sequence>optimization,optimizationdump</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
@@ -55,13 +55,13 @@
 		<threshold>1e-5</threshold>
 	  </convergence>
 	  <variable name="R">
-        <upperBound>100</upperBound>
-		<lowerBound>-100</lowerBound>
+        <upperBound>1.0</upperBound>
+		<lowerBound>0</lowerBound>
 		<initial>0.9</initial>
       </variable>
 	  <variable name="B">
-        <upperBound>100</upperBound>
-		<lowerBound>-100</lowerBound>
+        <upperBound>1.0</upperBound>
+		<lowerBound>0</lowerBound>
 		<initial>0.9</initial>
       </variable>
 	  <objectVar>c</objectVar>
