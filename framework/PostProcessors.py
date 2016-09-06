@@ -3736,7 +3736,12 @@ class DataMining(BasePostProcessor):
                 ## are integer values beginning at zero, which make for nice
                 ## indexes with no need to add another layer of obfuscation
                 if clusterIdx in clusterCentersIndices[timeIdx]:
-                  timeSeries[timeIdx] = self.unSupervisedEngine.outputDict['clusterCenters'][timeIdx][clusterIdx,featureIdx]
+                  loc = -1
+                  for cnt, idx in enumerate(clusterCentersIndices[timeIdx]):
+                    if clusterIdx == idx: 
+                      loc = cnt
+                      break
+                  timeSeries[timeIdx] = self.unSupervisedEngine.outputDict['clusterCenters'][timeIdx][loc,featureIdx]
                 else:
                   timeSeries[timeIdx] = np.nan
 
@@ -3800,7 +3805,12 @@ class DataMining(BasePostProcessor):
               timeSeries = np.zeros(numberOfHistoryStep)
 
               for timeIdx in range(numberOfHistoryStep):
-                timeSeries[timeIdx] = mixtureMeans[timeIdx][clusterIdx,featureIdx]
+                loc = -1
+                for cnt, idx in enumerate(componentMeanIndices[timeIdx]):
+                  if clusterIdx == idx: 
+                    loc = cnt
+                    break
+                timeSeries[timeIdx] = mixtureMeans[timeIdx][loc,featureIdx]
 
               ## In summary, for each feature, we fill a temporary array and
               ## stuff it into the solutionExport, one question is how do we
@@ -3819,7 +3829,11 @@ class DataMining(BasePostProcessor):
                 j = i+joffset
                 timeSeries = np.zeros(numberOfHistoryStep)
                 for timeIdx in range(numberOfHistoryStep):
-                  timeSeries[timeIdx] = mixtureCovars[timeIdx][clusterIdx][i,j]
+                  for cnt, idx in enumerate(componentMeanIndices[timeIdx]):
+                    if clusterIdx == idx: 
+                      loc = cnt
+                      break
+                  timeSeries[timeIdx] = mixtureCovars[timeIdx][loc][i,j]
                 self.solutionExport.updateOutputValue('cov_'+str(row)+'_'+str(col),timeSeries)
 
     elif 'manifold' == self.unSupervisedEngine.SKLtype:
