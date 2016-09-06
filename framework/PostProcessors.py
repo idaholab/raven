@@ -3736,11 +3736,7 @@ class DataMining(BasePostProcessor):
                 ## are integer values beginning at zero, which make for nice
                 ## indexes with no need to add another layer of obfuscation
                 if clusterIdx in clusterCentersIndices[timeIdx]:
-                  loc = -1
-                  for cnt, idx in enumerate(clusterCentersIndices[timeIdx]):
-                    if clusterIdx == idx: 
-                      loc = cnt
-                      break
+                  loc = clusterCentersIndices[timeIdx].index(clusterIdx)
                   timeSeries[timeIdx] = self.unSupervisedEngine.outputDict['clusterCenters'][timeIdx][loc,featureIdx]
                 else:
                   timeSeries[timeIdx] = np.nan
@@ -3805,11 +3801,7 @@ class DataMining(BasePostProcessor):
               timeSeries = np.zeros(numberOfHistoryStep)
 
               for timeIdx in range(numberOfHistoryStep):
-                loc = -1
-                for cnt, idx in enumerate(componentMeanIndices[timeIdx]):
-                  if clusterIdx == idx: 
-                    loc = cnt
-                    break
+                loc = componentMeanIndices[timeIdx].index(clusterIdx)
                 timeSeries[timeIdx] = mixtureMeans[timeIdx][loc,featureIdx]
 
               ## In summary, for each feature, we fill a temporary array and
@@ -3829,10 +3821,7 @@ class DataMining(BasePostProcessor):
                 j = i+joffset
                 timeSeries = np.zeros(numberOfHistoryStep)
                 for timeIdx in range(numberOfHistoryStep):
-                  for cnt, idx in enumerate(componentMeanIndices[timeIdx]):
-                    if clusterIdx == idx: 
-                      loc = cnt
-                      break
+                  loc = componentMeanIndices[timeIdx].index(clusterIdx)
                   timeSeries[timeIdx] = mixtureCovars[timeIdx][loc][i,j]
                 self.solutionExport.updateOutputValue('cov_'+str(row)+'_'+str(col),timeSeries)
 
