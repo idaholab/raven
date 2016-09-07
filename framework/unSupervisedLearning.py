@@ -586,7 +586,8 @@ class temporalSciKitLearn(unSupervisedLearning):
     if 'SKLtype' not in self.initOptionDict.keys(): self.raiseAnError(IOError, ' to define a scikit learn unSupervisedLearning Method the SKLtype keyword is needed (from KDD ' + self.name + ')')
     self.SKLtype, self.SKLsubType = self.initOptionDict['SKLtype'].split('|')
     self.pivotParameter = self.initOptionDict.get('pivotParameter', 'Time')
-    self.reOrderStep = int(self.initOptionDict.get('reOrderStep', 5))
+    #Pop necessary to keep from confusing SciKitLearn with extra option
+    self.reOrderStep = int(self.initOptionDict.pop('reOrderStep', 5))
     # return a SciKitLearn instance as engine for SKL data mining
     self.SKLEngine = returnInstance('SciKitLearn',self, **self.initOptionDict)
     self.normValues = None
