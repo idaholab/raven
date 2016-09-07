@@ -1371,22 +1371,23 @@ class BasicStatistics(BasePostProcessor):
     """
     BasePostProcessor.__init__(self, messageHandler)
     self.parameters = {}  # parameters dictionary (they are basically stored into a dictionary identified by tag "targets"
-    self.acceptedCalcParam = ['covariance',
-                              'NormalizedSensitivity',
-                              'VarianceDependentSensitivity',
-                              'sensitivity',
-                              'pearson',
-                              'expectedValue',
-                              'sigma',
-                              'variationCoefficient',
-                              'variance',
-                              'skewness',
-                              'kurtosis',
-                              'median',
-                              'percentile',
-                              'samples',
-                              'maximum',
-                              'minimum']  # accepted calculation parameters
+    self.scalarVals = ['expectedValue',
+                       'sigma',
+                       'variationCoefficient',
+                       'variance',
+                       'skewness',
+                       'kurtosis',
+                       'median',
+                       'percentile',
+                       'samples',
+                       'maximum',
+                       'minimum']
+    self.vectorVals = ['covariance',
+                       'NormalizedSensitivity',
+                       'VarianceDependentSensitivity',
+                       'sensitivity',
+                       'pearson']
+    self.acceptedCalcParam = self.scalarVals + self.vectorVals
     self.what = self.acceptedCalcParam  # what needs to be computed... default...all
     self.methodsToRun = []  # if a function is present, its outcome name is here stored... if it matches one of the known outcomes, the pp is going to use the function to compute it
     self.externalFunction = []
@@ -1458,31 +1459,78 @@ class BasicStatistics(BasePostProcessor):
       @ In, xmlNode, xml.etree.Element, Xml element node
       @ Out, None
     """
+    self.toDo = {}
+    lowerScalar = list(s.lower() for s in self.scalarVals)
+    lowerVector = list(s.lower() for s in self.vectorVals)
     for child in xmlNode:
-      if child.tag == "what":
-        self.what = child.text
-        if self.what == 'all': self.what = self.acceptedCalcParam
+      tag = child.tag.strip()
+      if tag.lower() in lowerScalar:
+        if tag in self.toDo.keys():
+          self.toDo[tag].update(set(a.strip() for a in child.text.split(',')))
         else:
-          toCompute = []
-          for whatc in self.what.split(','):
-            toCompute.append(whatc.strip())
-            if whatc not in self.acceptedCalcParam:
-              if whatc.split("_")[0] != 'percentile':self.raiseAnError(IOError, 'BasicStatistics postprocessor asked unknown operation ' + whatc + '. Available ' + str(self.acceptedCalcParam))
-              else:
-                # check if the percentile is correct
-                requestedPercentile = whatc.split("_")[-1]
-                integerPercentile = utils.intConversion(requestedPercentile.replace("%",""))
-                if integerPercentile is None: self.raiseAnError(IOError,"Could not convert the inputted percentile. The percentile needs to an integer between 1 and 100. Got "+requestedPercentile)
-                floatPercentile = utils.floatConversion(requestedPercentile.replace("%",""))
-                if floatPercentile < 1.0 or floatPercentile > 100.0: self.raiseAnError(IOError,"the percentile needs to an integer between 1 and 100. Got "+str(floatPercentile))
-                if -float(integerPercentile)/floatPercentile + 1.0 > 0.0001: self.raiseAnError(IOError,"the percentile needs to an integer between 1 and 100. Got "+str(floatPercentile))
-          self.what = toCompute
-      elif child.tag == "parameters"   : self.parameters['targets'] = child.text.split(',')
-      elif child.tag == "methodsToRun" : self.methodsToRun = child.text.split(',')
+          self.toDo[tag] = set(a.strip() for a in child.text.split(','))
+      elif tag.lower() in lowerVector:
+        self.toDo[tag] = [] #'inputs':[],'outputs':[]}
+        tnode = child.find('targets')
+        if tnode is None:
+          self.raiseAnError('Request for vector value',tag,'requires a "targets" node, and none was found!')
+        fnode = child.find('features')
+        if fnode is None:
+          self.raiseAnError('Request for vector value',tag,'requires a "features" node, and none was found!')
+        if tag in self.toDo.keys():
+          self.toDo[tag].append({'targets':set(a.strip() for a in fnode.text.split(',')),
+                            'features':set(a.strip() for a in tnode.text.split(','))})
+        else:
+          self.toDo[tag] = [{'targets':set(a.strip() for a in fnode.text.split(',')),
+                            'features':set(a.strip() for a in tnode.text.split(','))}]
+      elif tag == 'all':
+        tnode = child.find('targets')
+        if tnode is None:
+          self.raiseAnError('When using "all" node, you must specify a "targets" and a "features" node!  "targets" is missing.')
+        fnode = child.find('features')
+        if fnode is None:
+          self.raiseAnError('When using "all" node, you must specify a "targets" and a "features" node!  "features" is missing.')
+        if tag not in self.toDo.keys():
+          self.toDo[tag] = set()
+        for scalar in self.scalarVals:
+          self.toDo[tag].update(set(a.strip() for a in tnode.text.split(',')))
+        for vector in self.vectorVals:
+          self.toDo[tag].append({'targets':set(a.strip() for a in fnode.text.split(',')),
+                                 'features':set(a.strip() for a in tnode.text.split(','))})
+      #if child.tag == "what":
+      #  self.what = child.text
+      #  if self.what == 'all': self.what = self.acceptedCalcParam
+      #  else:
+      #    toCompute = []
+      #    for whatc in self.what.split(','):
+      #      toCompute.append(whatc.strip())
+      #      if whatc not in self.acceptedCalcParam:
+      #        if whatc.split("_")[0] != 'percentile':self.raiseAnError(IOError, 'BasicStatistics postprocessor asked unknown operation ' + whatc + '. Available ' + str(self.acceptedCalcParam))
+      #        else:
+      #          # check if the percentile is correct
+      #          requestedPercentile = whatc.split("_")[-1]
+      #          integerPercentile = utils.intConversion(requestedPercentile.replace("%",""))
+      #          if integerPercentile is None: self.raiseAnError(IOError,"Could not convert the inputted percentile. The percentile needs to an integer between 1 and 100. Got "+requestedPercentile)
+      #          floatPercentile = utils.floatConversion(requestedPercentile.replace("%",""))
+      #          if floatPercentile < 1.0 or floatPercentile > 100.0: self.raiseAnError(IOError,"the percentile needs to an integer between 1 and 100. Got "+str(floatPercentile))
+      #          if -float(integerPercentile)/floatPercentile + 1.0 > 0.0001: self.raiseAnError(IOError,"the percentile needs to an integer between 1 and 100. Got "+str(floatPercentile))
+      #    self.what = toCompute
+      #elif child.tag == "parameters"   : self.parameters['targets'] = child.text.split(',')
+      #elif child.tag == "methodsToRun" : self.methodsToRun = child.text.split(',')
       elif child.tag == "biased"       :
         if child.text.lower() in utils.stringsThatMeanTrue(): self.biased = True
       elif child.tag == "pivotParameter": self.pivotParameter = child.text
-      assert (self.parameters is not []), self.raiseAnError(IOError, 'I need parameters to work on! Please check your input for PP: ' + self.name)
+      else:
+        self.raiseAWarning('Unrecognized node in BasicStatistics "',child.tag,'" has been ignored!')
+      assert (len(self.toDo)>0), self.raiseAnError(IOError, 'BasicStatistics needs parameters to work on! Please check input for PP: ' + self.name)
+    self.allUsedParams = set()
+    for scalar in self.scalarVals:
+      if scalar in self.toDo.keys():
+        self.allUsedParams.update(self.toDo[scalar])
+    for vector in self.vectorVals:
+      if vector in self.toDo.keys():
+        self.allUsedParams.update(toDo[vector]['targets'])
+        self.allUsedParams.update(toDo[vector]['features'])
 
   def collectOutput(self, finishedJob, output):
     """
@@ -1492,8 +1540,9 @@ class BasicStatistics(BasePostProcessor):
       @ Out, None
     """
     # output
-    parameterSet = list(set(list(self.parameters['targets'])))
-    if finishedJob.returnEvaluation() == -1: self.raiseAnError(RuntimeError, ' No available Output to collect (Run probably is not finished yet)')
+    #parameterSet = list(set(list(self.parameters['targets'])))
+    # TODO FIXME
+    if finishedJob.returnEvaluation() == -1: self.raiseAnError(RuntimeError, ' No available Output to collect (run possibly not finished yet)')
     outputDictionary = finishedJob.returnEvaluation()[1]
     methodToTest = []
     for key in self.methodsToRun:
@@ -1652,38 +1701,40 @@ class BasicStatistics(BasePostProcessor):
       elif order == 4: corrFactor = (float(weightsOrN)*(float(weightsOrN)**2.0-2.0*float(weightsOrN)+3.0))/((float(weightsOrN)-1)*(float(weightsOrN)-2)*(float(weightsOrN)-3)),(3.0*float(weightsOrN)*(2.0*float(weightsOrN)-3.0))/((float(weightsOrN)-1)*(float(weightsOrN)-2)*(float(weightsOrN)-3))
     return corrFactor
 
-  def _computeKurtosis(self,arrayIn,expValue,pbWeight=None):
+  def _computeKurtosis(self,arrayIn,expValue,variance,pbWeight=None):
     """
       Method to compute the Kurtosis (fisher) of an array of observations
       @ In, arrayIn, list/numpy.array, the array of values from which the Kurtosis needs to be estimated
       @ In, expValue, float, expected value of arrayIn
+      @ In, variance, float, variance of arrayIn
       @ In, pbWeight, list/numpy.array, optional, the reliability weights that correspond to the values in 'array'. If not present, an unweighted approach is used
       @ Out, result, float, the Kurtosis of the array of data
     """
     if pbWeight is not None:
       unbiasCorr = self.__computeUnbiasedCorrection(4,pbWeight) if not self.biased else 1.0
-      if not self.biased: result = -3.0 + ((1.0/self.__computeVp(1,pbWeight))*np.sum(np.dot(np.power(arrayIn - expValue,4.0),pbWeight))*unbiasCorr[0]-unbiasCorr[1]*np.power(((1.0/self.__computeVp(1,pbWeight))*np.sum(np.dot(np.power(arrayIn - expValue,2.0),pbWeight))),2.0))/np.power(self._computeVariance(arrayIn,expValue,pbWeight),2.0)
-      else              : result = -3.0 + ((1.0/self.__computeVp(1,pbWeight))*np.sum(np.dot(np.power(arrayIn - expValue,4.0),pbWeight))*unbiasCorr)/np.power(self._computeVariance(arrayIn,expValue,pbWeight),2.0)
+      if not self.biased: result = -3.0 + ((1.0/self.__computeVp(1,pbWeight))*np.sum(np.dot(np.power(arrayIn - expValue,4.0),pbWeight))*unbiasCorr[0]-unbiasCorr[1]*np.power(((1.0/self.__computeVp(1,pbWeight))*np.sum(np.dot(np.power(arrayIn - expValue,2.0),pbWeight))),2.0))/np.power(variance,2.0)
+      else              : result = -3.0 + ((1.0/self.__computeVp(1,pbWeight))*np.sum(np.dot(np.power(arrayIn - expValue,4.0),pbWeight))*unbiasCorr)/np.power(variance,2.0)
     else:
       unbiasCorr = self.__computeUnbiasedCorrection(4,len(arrayIn)) if not self.biased else 1.0
-      if not self.biased: result = -3.0 + ((1.0/float(len(arrayIn)))*np.sum((arrayIn - expValue)**4)*unbiasCorr[0]-unbiasCorr[1]*(np.average((arrayIn - expValue)**2))**2.0)/(self._computeVariance(arrayIn,expValue))**2.0
-      else              : result = -3.0 + ((1.0/float(len(arrayIn)))*np.sum((arrayIn - expValue)**4)*unbiasCorr)/(self._computeVariance(arrayIn,expValue))**2.0
+      if not self.biased: result = -3.0 + ((1.0/float(len(arrayIn)))*np.sum((arrayIn - expValue)**4)*unbiasCorr[0]-unbiasCorr[1]*(np.average((arrayIn - expValue)**2))**2.0)/(variance)**2.0
+      else              : result = -3.0 + ((1.0/float(len(arrayIn)))*np.sum((arrayIn - expValue)**4)*unbiasCorr)/(variance)**2.0
     return result
 
-  def _computeSkewness(self,arrayIn,expValue,pbWeight=None):
+  def _computeSkewness(self,arrayIn,expValue,variance,pbWeight=None):
     """
       Method to compute the skewness of an array of observations
       @ In, arrayIn, list/numpy.array, the array of values from which the skewness needs to be estimated
       @ In, expValue, float, expected value of arrayIn
+      @ In, variance, float, variance value of arrayIn
       @ In, pbWeight, list/numpy.array, optional, the reliability weights that correspond to the values in 'array'. If not present, an unweighted approach is used
       @ Out, result, float, the skewness of the array of data
     """
     if pbWeight is not None:
       unbiasCorr = self.__computeUnbiasedCorrection(3,pbWeight) if not self.biased else 1.0
-      result = (1.0/self.__computeVp(1,pbWeight))*np.sum(np.dot(np.power(arrayIn - expValue,3.0),pbWeight))*unbiasCorr/np.power(self._computeVariance(arrayIn,expValue,pbWeight),1.5)
+      result = (1.0/self.__computeVp(1,pbWeight))*np.sum(np.dot(np.power(arrayIn - expValue,3.0),pbWeight))*unbiasCorr/np.power(variance,1.5)
     else:
       unbiasCorr = self.__computeUnbiasedCorrection(3,len(arrayIn)) if not self.biased else 1.0
-      result = ((1.0/float(len(arrayIn)))*np.sum((arrayIn - expValue)**3)*unbiasCorr)/np.power(self._computeVariance(arrayIn,expValue,pbWeight),1.5)
+      result = ((1.0/float(len(arrayIn)))*np.sum((arrayIn - expValue)**3)*unbiasCorr)/np.power(variance,1.5)
     return result
 
   def _computeVariance(self,arrayIn,expValue,pbWeight=None):
@@ -1702,15 +1753,15 @@ class BasicStatistics(BasePostProcessor):
       result = np.average((arrayIn - expValue)**2)*unbiasCorr
     return result
 
-  def _computeSigma(self,arrayIn,expValue,pbWeight=None):
+  def _computeSigma(self,arrayIn,variance,pbWeight=None):
     """
       Method to compute the sigma of an array of observations
       @ In, arrayIn, list/numpy.array, the array of values from which the sigma needs to be estimated
-      @ In, expValue, float, expected value of arrayIn
+      @ In, variance, float, variance of arrayIn
       @ In, pbWeight, list/numpy.array, optional, the reliability weights that correspond to the values in 'array'. If not present, an unweighted approach is used
       @ Out, sigma, float, the sigma of the array of data
     """
-    return np.sqrt(self._computeVariance(arrayIn,expValue,pbWeight))
+    return np.sqrt(variance)
 
   def _computeWeightedPercentile(self,arrayIn,pbWeight,percent=0.5):
     """
@@ -1752,7 +1803,7 @@ class BasicStatistics(BasePostProcessor):
             if type(outputDict[what]) != np.ndarray: self.raiseAnError(IOError, 'BasicStatistics postprocessor: You have overwritten the "' + what + '" method through an external function, it must be a numpy.ndarray!!')
             if len(outputDict[what].shape) != 2    : self.raiseAnError(IOError, 'BasicStatistics postprocessor: You have overwritten the "' + what + '" method through an external function, it must be a 2D numpy.ndarray!!')
     # setting some convenience values
-    parameterSet = list(set(list(self.parameters['targets'])))  # @Andrea I am using set to avoid the test: if targetP not in outputDict[what].keys()
+    parameterSet = list(set(self.allUsedParams['targets']).update(set(self.allUsedParams['features'])))  # @Andrea I am using set to avoid the test: if targetP not in outputDict[what].keys()
     if 'metadata' in input.keys(): pbPresent = 'ProbabilityWeight' in input['metadata'].keys() if 'metadata' in input.keys() else False
     if not pbPresent:
       if 'metadata' in input.keys():
@@ -1768,61 +1819,162 @@ class BasicStatistics(BasePostProcessor):
         if 'ProbabilityWeight-'+target in input['metadata'].keys():
           pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target] = np.asarray(input['metadata']['ProbabilityWeight-'+target])
           pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target][:] = pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target][:]/np.sum(pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target])
-    # if here because the user could have overwritten the method through the external function
-    if 'expectedValue' not in outputDict.keys(): outputDict['expectedValue'] = {}
-    expValues = np.zeros(len(parameterSet))
-    for myIndex, targetP in enumerate(parameterSet):
-      if pbPresent: relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
-      else        : relWeight  = None
-      if relWeight is None: outputDict['expectedValue'][targetP] = np.mean(input['targets'][targetP])
-      else                : outputDict['expectedValue'][targetP] = np.average(input['targets'][targetP], weights = relWeight)
-      expValues[myIndex] = outputDict['expectedValue'][targetP]
-    for what in self.what:
-      if what not in outputDict.keys(): outputDict[what] = {}
-      # samples
-      if what == 'samples':
-        for p in parameterSet:
-          outputDict[what][p] = len(input['targets'].values()[0])
-      # sigma
-      if what == 'sigma':
-        for myIndex, targetP in enumerate(parameterSet):
-          if pbPresent: relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
-          else        : relWeight  = None
-          outputDict[what][targetP] = self._computeSigma(input['targets'][targetP],expValues[myIndex],relWeight)
-          if (outputDict[what][targetP] == 0):
-            self.raiseAWarning('The variable: ' + targetP + ' is not dispersed (sigma = 0)! Please check your input in PP: ' + self.name)
-            outputDict[what][targetP] = np.Infinity
-      # variance
-      if what == 'variance':
-        for myIndex, targetP in enumerate(parameterSet):
-          if pbPresent: relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
-          else        : relWeight  = None
-          outputDict[what][targetP] = self._computeVariance(input['targets'][targetP],expValues[myIndex],pbWeight=relWeight)
-          if (outputDict[what][targetP] == 0):
-            self.raiseAWarning('The variable: ' + targetP + ' has zero variance! Please check your input in PP: ' + self.name)
-            outputDict[what][targetP] = np.Infinity
-      # coefficient of variation (sigma/mu)
-      if what == 'variationCoefficient':
-        for myIndex, targetP in enumerate(parameterSet):
-          if pbPresent: relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
-          else        : relWeight  = None
-          sigma = self._computeSigma(input['targets'][targetP],expValues[myIndex],relWeight)
-          if (outputDict['expectedValue'][targetP] == 0):
-            self.raiseAWarning('Expected Value for ' + targetP + ' is zero! Variation Coefficient can not be calculated in PP: ' + self.name)
-            outputDict['expectedValue'][targetP] = np.Infinity
-          outputDict[what][targetP] = sigma / outputDict['expectedValue'][targetP]
-      # kurtosis
-      if what == 'kurtosis':
-        for myIndex, targetP in enumerate(parameterSet):
-          if pbPresent: relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
-          else        : relWeight  = None
-          outputDict[what][targetP] = self._computeKurtosis(input['targets'][targetP],expValues[myIndex],pbWeight=relWeight)
-      # skewness
-      if what == 'skewness':
-        for myIndex, targetP in enumerate(parameterSet):
-          if pbPresent: relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
-          else        : relWeight  = None
-          outputDict[what][targetP] = self._computeSkewness(input['targets'][targetP],expValues[myIndex],pbWeight=relWeight)
+
+    #construct a dict of required computations
+    needed = dict((metric,set()) for metric in self.acceptedCalcParam) #for each metric (keys), the list of parameters we need that value for
+    #add things requested by the user
+    for metric,params in self.toDo.items():
+      if type(params) == set: #scalar parameter
+        needed[metric].update(params)
+      else: #dict, vector parameter
+        needed[metric].update(params['targets'])
+    # variable                     | needs                  | needed for
+    # skewness needs               | expectedValue,variance |
+    # kurtosis needs               | expectedValue,variance |
+    # median needs                 |                        |
+    # percentile needs             |                        |
+    # maximum needs                |                        |
+    # minimum needs                |                        |
+    # covariance needs             |                        | pearson,VarianceDependentSensitivity,NormalizedSensitivity
+    # NormalizedSensitivity        | covariance             |
+    # VarianceDependentSensitivity | covariance             |
+    # sensitivity needs            |                        |
+    # pearson needs                | covariance             |
+    # sigma needs                  | variance               | variationCoefficient
+    # variance                     | expectedValue          | sigma
+    # expectedValue                |                        | variance, variationCoefficient, skewness, kurtosis
+    needed['covariance'].update(needed.get('pearson',set()))
+    needed['covariance'].update(needed.get('VarianceDependentSensitivity',set()))
+    needed['covariance'].update(needed.get('NormalizedSensitivity',set()))
+    needed['sigma'].update(needed.get('variationCoefficient'))
+    needed['variance'].update(needed.get('sigma',set()))
+    needed['expectedValue'].update(needed.get('sigma',set()))
+    needed['expectedValue'].update(needed.get('variationCoefficient',set()))
+    needed['expectedValue'].update(needed.get('variance',set()))
+    needed['expectedValue'].update(needed.get('skewness',set()))
+    needed['expectedValue'].update(needed.get('kurtosis',set()))
+    #
+    # BEGIN actual calculations
+    #
+    calculations = {}
+    # do things in order to preserve prereqs
+    # FIXME many of these could be sped up through vectorization
+    #
+    # samples
+    #
+    self.raiseADebug('Starting "samples"...')
+    if len(needed['samples'])>0:
+      calculations['samples']={}
+    for targetP in needed['samples']:
+      calculations['sigma'][targetP] = len(input['targets'].values()[0])
+    #
+    # expected value
+    #
+    self.raiseADebug('Starting "expectedValue"...')
+    if len(needed['expectedValue'])>0:
+      calculations['expectedValue']={}
+    for targetP in needed['expectedValue']:
+      if pbPresent:
+        relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
+        calculations['expectedValue'][targetP] = np.average(input['targets'][targetP], weights = relWeight)
+      else:
+        relWeight  = None
+        calculations['expectedValue'][targetP] = np.mean(input['targets'][targetP])
+    #
+    # variance
+    #
+    self.raiseADebug('Starting "variance"...')
+    if len(needed['variance'])>0:
+      calculations['variance']={}
+    for targetP in needed['variance']:
+      if pbPresent:
+        relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
+      else:
+        relWeight  = None
+      calculations['variance'][targetP] = self._computeVariance(input['targets'][targetP],calculations['expectedValue'][targetP],pbWeight=relWeight)
+      #sanity check
+      if (calculations[metric][targetP] == 0):
+        self.raiseAWarning('The variable: ' + targetP + ' has zero variance! Please check your input in PP: ' + self.name)
+        calculations[metric][targetP] = np.Infinity
+    #
+    # sigma
+    #
+    self.raiseADebug('Starting "sigma"...')
+    if len(needed['sigma'])>0:
+      calculations['sigma']={}
+    for targetP in needed['sigma']:
+      if calculations['variance'][targetP] == np.Infinity:
+        self.raiseAWarning('The variable: ' + targetP + ' has zero sigma! Please check your input in PP: ' + self.name)
+        calculations['sigma'][targetP] = np.Infinity
+      else:
+        calculations['sigma'][targetP] = self._computeSigma(input['targets'][targetP],calculations['variance'][targetP])
+    #
+    # coeff of variation (sigma/mu)
+    #
+    self.raiseADebug('Starting "variationCoefficient"...')
+    if len(needed['variationCoefficient'])>0:
+      calculations['variationCoefficient']={}
+    for targetP in needed['variationCoefficient']:
+      calculations['variationCoefficient'][targetP] = calculations['sigma'][targetP]/calculations['expectedValue'][targetP]
+    #
+    # skewness
+    #
+    self.raiseADebug('Starting "skewness"...')
+    if len(needed['skewness'])>0:
+      calculations['skewness']={}
+    for targetP in needed['skewness']:
+      if pbPresent:
+        relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
+      else:
+        relWeight  = None
+      calculations['skewness'][targetP] = self._computeSkewness(input['targets'][targetP],calculations['expectedValue'][targetP],calculations['variance'][targetP],pbWeight=relWeight)
+    #
+    # kurtosis
+    #
+    self.raiseADebug('Starting "kurtosis"...')
+    if len(needed['kurtosis'])>0:
+      calculations['kurtosis']={}
+    for targetP in needed['kurtosis']:
+      if pbPresent:
+        relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
+      else:
+        relWeight  = None
+        calculations['kurtosis'][targetP] = self._computeKurtosis(input['targets'][targetP],calculations['expectedValue'][targetP],calculations['variance'][tagetP],pbWeight=relWeight)
+    #
+    # median
+    #
+    self.raiseADebug('Starting "kurtosis"...')
+    if len(needed['kurtosis'])>0:
+      calculations['kurtosis']={}
+    for targetP in needed['kurtosis']:
+
+    #
+    # maximum
+    #
+      outputDict[what][targetP] = np.amax(input['targets'][targetP])
+
+    #
+    # minimum
+    #
+
+    #
+    # percentile
+    #
+
+    #
+    # covariance matrix
+    #
+
+    #
+    # pearson matrix
+    #
+
+    #
+    # sensitivity matrix
+    #
+
+
+        #TODO CONVERTING HERE FIXME
       # median
       if what == 'median':
         if pbPresent:
@@ -1997,7 +2149,6 @@ class BasicStatistics(BasePostProcessor):
           msg += '              ' + '**' + '*' * len(what) + '***' + 6 * '*' + '*' * 8 + '***' + os.linesep
     self.raiseADebug(msg)
     return outputDict
-
 
   def run(self, inputIn):
     """
