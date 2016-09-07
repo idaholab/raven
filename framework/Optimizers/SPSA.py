@@ -130,21 +130,23 @@ class SPSA(GradientBasedOptimizer):
 
   def _generateVarsUpdateConstrained(self,ak,gradient,varK):
     tempVarKPlus = {}
-    foundVarsUpdate = False
     for var in self.optVars:
       tempVarKPlus[var] = copy.copy(varK[var]-ak*gradient[var]*1.0)
 
-    if self.checkConstraint(tempVarKPlus):                  foundVarsUpdate = True
+    if self.checkConstraint(tempVarKPlus):
+      return tempVarKPlus
 
     # Try to find varKPlus by shorten the gradient vector
-    if not foundVarsUpdate:
-      foundVarsUpdate, tempVarKPlus = self._bisectionForConstrainedInput(varK, ak, gradient)
-
+    foundVarsUpdate, tempVarKPlus = self._bisectionForConstrainedInput(varK, ak, gradient)
+    if foundVarsUpdate:
+      return tempVarKPlus 
+    
     # Try to find varKPlus by rotate the gradient towards its orthogonal, since we consider the gradient as perpendicular
     # with respect to the constraints hyper-surface
     paraLoopLimit = 1000
     loopCounter = 0
-    while not foundVarsUpdate and loopCounter < paraLoopLimit: 
+    foundPendVector = False
+    while not foundPendVector and loopCounter < paraLoopLimit: 
       loopCounter += 1   
       depVarPos = Distributions.randomIntegers(0,self.nVar-1,self)
       pendVector = {}
@@ -163,26 +165,35 @@ class SPSA(GradientBasedOptimizer):
       tempVarKPlus = {}
       for var in self.optVars:
         tempVarKPlus[var] = copy.copy(varK[var]-ak*pendVector[var]*1.0)
-      if self.checkConstraint(tempVarKPlus):                  foundVarsUpdate = True
-      if not foundVarsUpdate:
-        foundVarsUpdate, tempVarKPlus = self._bisectionForConstrainedInput(varK, ak, pendVector)
+      if self.checkConstraint(tempVarKPlus):                  foundPendVector = True
+      if not foundPendVector:
+        foundPendVector, tempVarKPlus = self._bisectionForConstrainedInput(varK, ak, pendVector)
                 
-#             for  varId, key in enumerate(self.axisName): # recompute Thetak and check the constrain, if satisfied, exit the loop, if not continue
-#               self.thetakCurrent[key]                 = copy.copy(thetakCurrentSaved[key] + self.optimizationSign * self.ak * randVector[varId])
-#               self.values[key]                        = self.thetakCurrent[key]
-#             tempDict.update(self.thetakCurrent)
-#             __testConstraintSatisfied = True if self.constrainFunction.evaluate("constrain",tempDict) == 1 else False
-#             # Debug
-#             self.raiseADebug('old', self.oldThetak,self.oldThetak['B']+self.oldThetak['R']*tempDict['f']-tempDict['d'])
-#             self.raiseADebug('current', self.thetakCurrent,tempDict['B']+tempDict['R']*tempDict['f']-tempDict['d'])
-#             # End of debug
-            
-            
-
-    if not foundVarsUpdate:
-      return varK
-      self.raiseAnError(ValueError, 'varKPlus not found')
-
+    if foundPendVector:      
+      lenPendVector = 0
+      for var in self.optVars:
+        lenPendVector += pendVector[var]**2
+      lenPendVector = np.sqrt(lenPendVector)
+      
+      while self.angle_between(gradient, pendVector) > 2:
+        sumVector, lenSumVector = {}, 0
+        for var in self.optVars:
+          sumVector[var] = gradient[var] + pendVector[var]
+          lenSumVector += sumVector[var]**2
+          
+        tempTempVarKPlus = {}
+        for var in self.optVars:
+          sumVector[var] = copy.deepcopy(sumVector[var]/np.sqrt(lenSumVector)*lenPendVector)
+          tempTempVarKPlus[var] = copy.copy(varK[var]-ak*sumVector[var]*1.0)
+        if self.checkConstraint(tempTempVarKPlus):
+          tempVarKPlus = copy.deepcopy(tempTempVarKPlus)
+          pendVector = copy.deepcopy(sumVector)
+        else:
+          gradient = copy.deepcopy(sumVector)
+     
+      return tempVarKPlus    
+    
+    tempVarKPlus = varK
     return tempVarKPlus
 
   def _bisectionForConstrainedInput(self,varK,gain,vector):
@@ -208,6 +219,22 @@ class SPSA(GradientBasedOptimizer):
         frac = copy.deepcopy(bounds[1]+bounds[0])/2
     return False, None
 
+  def angle_between(self, d1, d2):
+    """ Evaluate the angle between the two dictionaries of vars (d1 and d2) by means of the dot product. Unit: degree
+    @In, d1, first dictionary
+    @In, d2, second dictionary
+    @Out, angleD, angle between d1 and d2 with unit of degree
+    """    
+    v1, v2 = np.zeros(shape=[self.nVar,]), np.zeros(shape=[self.nVar,])
+    for cnt, var in enumerate(self.optVars):
+      v1[cnt], v2[cnt] = copy.deepcopy(d1[var]), copy.deepcopy(d2[var])
+    angle = np.arccos(np.dot(v1, v2)/np.linalg.norm(v1)/np.linalg.norm(v2))
+    if np.isnan(angle):
+      if (v1 == v2).all(): angle = 0.0
+      else: angle = np.pi
+    angleD = np.rad2deg(angle)
+    self.raiseADebug(angleD)
+    return angleD
 
   def localEvaluateGradient(self, optVarsValues, gradient = None):
     """
