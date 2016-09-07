@@ -26,20 +26,20 @@
   </x5>
 
   <ans>
-    <importanceindex>
+    <importanceIndex>
       <x5>0.878275386514</x5>
       <x1>0.0790447847862</x1>
       <x3>0.0351310154606</x3>
       <x2>0.00725847426871</x2>
-      <x4>0.000290338970748</x4>
-    </importanceindex>
-    <sensitivityindex>
+      <x4>0.000290338970749</x4>
+    </importanceIndex>
+    <sensitivityIndex>
       <x5>0.621468926554</x5>
       <x1>0.186440677966</x1>
       <x3>0.124293785311</x3>
       <x2>0.0564971751412</x2>
       <x4>0.0112994350283</x4>
-    </sensitivityindex>
+    </sensitivityIndex>
   </ans>
 
 </ImportanceRankPP>

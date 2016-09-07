@@ -42,6 +42,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
   validateDict['Input'  ]       = []
   validateDict['Output' ]       = []
   validateDict['Sampler']       = []
+  validateDict['Optimizer']     = []
   testDict                      = {}
   testDict                      = {'class':'','type':[''],'multiplicity':0,'required':False}
   #FIXME: a multiplicity value is needed to control role that can have different class
@@ -92,6 +93,11 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
                                                 'AdaptiveSobol',
                                                 'EnsembleForward',
                                                 'CustomSampler']
+  validateDict['Optimizer'].append(testDict.copy())
+  validateDict['Optimizer'][0]['class'       ] ='Optimizers'
+  validateDict['Optimizer'][0]['required'    ] = False
+  validateDict['Optimizer'][0]['multiplicity'] = 1
+  validateDict['Optimizer'][0]['type']         = ['SPSA']
 
   @classmethod
   def generateValidateDict(cls):
@@ -139,9 +145,9 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     for tester in cls.validateDict[who]:
       if tester['required']==True:
         if tester['multiplicity']=='n' and tester['tempCounter']<1:
-          raise IOError('The number of time class = '+str(tester['class'])+' type= ' +str(tester['type'])+' is used as '+str(who)+' is improper')
-        if tester['multiplicity']!='n' and tester['tempCounter']!=tester['multiplicity']:
-          raise IOError('The number of time class = '+str(tester['class'])+' type= ' +str(tester['type'])+' is used as '+str(who)+' is improper')
+          raise IOError('The number of times class = '+str(tester['class'])+' type= ' +str(tester['type'])+' is used as '+str(who)+' is improper. At least one object must be present!')
+      if tester['multiplicity']!='n' and tester['tempCounter']!=tester['multiplicity']:
+        raise IOError('The number of times class = '+str(tester['class'])+' type= ' +str(tester['type'])+' is used as '+str(who)+' is improper. Number of allowable times is '+str(tester['multiplicity'])+'.Got '+str(tester['tempCounter']))
     #testing if all argument to be tested have been found
     for anItem in what:
       if anItem['found']==False:
@@ -1250,7 +1256,7 @@ class Code(Model):
         break
     if not found: self.raiseAnError(IOError,'None of the input files has one of the extensions requested by code '
                                   + self.subType +': ' + ' '.join(self.getInputExtension()))
-    self.raiseAMessage('job "'+ str(identifier) + "_" + self.currentInputFiles[index].getBase() +'" submitted!')
+    self.raiseAMessage('job "'+ str(identifier)  +'" submitted!')
 
   def finalizeModelOutput(self,finishedJob):
     """
@@ -1367,12 +1373,12 @@ class PostProcessor(Model, Assembler):
     cls.validateDict['Function'  ][0]['class'       ] = 'Functions'
     cls.validateDict['Function'  ][0]['type'        ] = ['External','Internal']
     cls.validateDict['Function'  ][0]['required'    ] = False
-    cls.validateDict['Function'  ][0]['multiplicity'] = '1'
+    cls.validateDict['Function'  ][0]['multiplicity'] = 1
     cls.validateDict['ROM'] = [cls.testDict.copy()]
     cls.validateDict['ROM'       ][0]['class'       ] = 'Models'
     cls.validateDict['ROM'       ][0]['type'        ] = ['ROM']
     cls.validateDict['ROM'       ][0]['required'    ] = False
-    cls.validateDict['ROM'       ][0]['multiplicity'] = '1'
+    cls.validateDict['ROM'       ][0]['multiplicity'] = 1
     cls.validateDict['KDD'] = [cls.testDict.copy()]
     cls.validateDict['KDD'       ][0]['class'       ] = 'Models'
     cls.validateDict['KDD'       ][0]['type'        ] = ['KDD']
@@ -1662,7 +1668,8 @@ class EnsembleModel(Dummy, Assembler):
     selectedKwargs = copy.copy(kwargs)
     selectedKwargs['SampledVars'], selectedKwargs['SampledVarsPb'] = {}, {}
     for key in kwargs["SampledVars"].keys():
-      if key in self.modelsDictionary[modelName]['Input']: selectedKwargs['SampledVars'][key], selectedKwargs['SampledVarsPb'][key] =  kwargs["SampledVars"][key], kwargs["SampledVarsPb"][key]
+      if key in self.modelsDictionary[modelName]['Input']:
+        selectedKwargs['SampledVars'][key], selectedKwargs['SampledVarsPb'][key] =  kwargs["SampledVars"][key],  kwargs["SampledVarsPb"][key] if 'SampledVarsPb' in kwargs.keys() else 1.0
     return copy.deepcopy(selectedKwargs)
 
   def _inputToInternal(self, myInput, sampledVarsKeys, full=False):
@@ -1701,6 +1708,7 @@ class EnsembleModel(Dummy, Assembler):
       inputForModel = []
       for input in myInput:
         if input.name in self.modelsDictionary[modelIn]['inputNames']: inputForModel.append(input)
+      if len(inputForModel) == 0: self.raiseAnError(IOError,"inputs " + " ".join(self.modelsDictionary[modelIn]['inputNames']) + " has not been found!")
       inputDict = [self._inputToInternal(inputForModel[0],newKwargs['SampledVars'].keys())] if specs['Instance'].type != 'Code' else  inputForModel
       newInputs[modelIn] = specs['Instance'].createNewInput(inputDict,samplerType,**newKwargs)
       if specs['Instance'].type == 'Code':

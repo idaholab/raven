@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="silent">
+<Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>DBSCAN</WorkingDir>
     <Sequence>readIn,DBSCANBlobs,output</Sequence>
@@ -7,7 +7,7 @@
   </RunInfo>
 
   <Files>
-    <Input name="DataSetsFile">./DataSets.csv</Input>
+    <Input name="DataSetsFile">../sharedData/DataSets.csv</Input>
   </Files>
 
   <Models>
@@ -22,8 +22,8 @@
 
   <Steps>
     <IOStep name="readIn" pauseAtEnd="True">
-      <Input class="Files" type="">DataSetsFile</Input>
-      <Output class="DataObjects" type="PointSet">DataSets</Output>
+      <Input  class="Files" type=""               >DataSetsFile</Input>
+      <Output class="DataObjects" type="PointSet" >DataSets</Output>
     </IOStep>
     <IOStep name="output" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">DataSets</Input>
@@ -48,6 +48,7 @@
     <Print name="dummy">
       <type>csv</type>
       <source>DataSets</source>
+      <what>Output|labels</what>
     </Print>
     <Plot dim="2" name="PlotDBSCANBlobs" overwrite="false">
       <plotSettings>

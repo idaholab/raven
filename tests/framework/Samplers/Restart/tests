@@ -36,4 +36,11 @@
   csv = 'csv/CSVdump.csv'
   prereq = MC
  [../]
+
+ [./LoadFromLargeCSV]
+  type = 'RavenFramework'
+  input = 'large_load_from_csv.xml'
+  output = 'large/large_restart.xml'
+  csv = 'large/large_restart.csv'
+ [../]
 []

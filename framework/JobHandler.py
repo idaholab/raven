@@ -347,7 +347,7 @@ class InternalRunner(MessageHandler.MessageUser):
     if not self.__hasBeenAdded:
       if self.ppserver is not None and not self.__forceUseThreads:
         for row in self.ppserver.collect_stats_in_list(): self.raiseADebug(row)
-        self.__runReturn = self.__thread()
+        self.__runReturn = self.__thread() if self.__thread is not None else None
       else:
         if len(self.subque) == 0:
           self.__runReturn = None #queue is empty!

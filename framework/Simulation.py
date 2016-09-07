@@ -15,6 +15,7 @@ import sys
 import io
 import string
 import datetime
+import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -22,7 +23,10 @@ import Steps
 import DataObjects
 import Files
 import Samplers
+import Optimizers
 import Models
+
+import Metrics
 import Distributions
 import Databases
 import Functions
@@ -186,8 +190,11 @@ class MPISimulationMode(SimulationMode):
     self.__nodefile = False
     self.__runQsub = False
     self.__noSplitNode = False #If true, don't split mpi processes across nodes
-    self.__maxOnNode = None #Used with __noSplitNode.  If __noSplitNode and
-    # __maxOnNode is not None, don't put more than that on on single shared memory node
+    self.__limitNode = False #If true, fiddle with max on Node
+    self.__maxOnNode = None #Used with __noSplitNode and __limitNode to limit number on a node
+    self.__noOverlap = False #Used with __limitNode to prevent multiple batches from being on one node
+    # If (__noSplitNode or __limitNode) and  __maxOnNode is not None,
+    # don't put more than that on on single shared memory node
     self.printTag = 'MPI SIMULATION MODE'
 
   def modifySimulation(self):
@@ -213,18 +220,18 @@ class MPISimulationMode(SimulationMode):
       maxBatchsize = max(int(math.floor(len(lines)/numMPI)),1)
       if maxBatchsize < oldBatchsize:
         self.__simulation.runInfoDict['batchSize'] = maxBatchsize
-        self.raiseAWarning("changing batchsize from "+str(oldBatchsize)+" to "+str(maxBatchsize))
+        self.raiseAWarning("changing batchsize from "+str(oldBatchsize)+" to "+str(maxBatchsize)+" to fit on "+str(len(lines))+" processors")
       newBatchsize = self.__simulation.runInfoDict['batchSize']
       if newBatchsize > 1:
         #need to split node lines so that numMPI nodes are available per run
         workingDir = self.__simulation.runInfoDict['WorkingDir']
-        if not self.__noSplitNode:
+        if not (self.__noSplitNode or self.__limitNode):
           for i in range(newBatchsize):
             nodeFile = open(os.path.join(workingDir,"node_"+str(i)),"w")
             for line in lines[i*numMPI:(i+1)*numMPI]:
               nodeFile.write(line)
             nodeFile.close()
-        else: #self.__noSplitNode == True
+        else: #self.__noSplitNode == True or self.__limitNode == True
           nodes = []
           for line in lines:
             nodes.append(line.strip())
@@ -233,19 +240,29 @@ class MPISimulationMode(SimulationMode):
 
           currentNode = ""
           countOnNode = 0
-          groups = []
+          nodeUsed = False
+
+          if self.__noSplitNode:
+            groups = []
+          else:
+            groups = [[]]
 
           for i in range(len(nodes)):
             node = nodes[i]
             if node != currentNode:
               currentNode = node
               countOnNode = 0
-              groups.append([])
+              nodeUsed = False
+              if self.__noSplitNode:
+                #When switching node, make new group
+                groups.append([])
             if self.__maxOnNode is None or countOnNode < self.__maxOnNode:
               countOnNode += 1
               if len(groups[-1]) >= numMPI:
                 groups.append([])
-              groups[-1].append(node)
+                nodeUsed = True
+              if not self.__noOverlap or not nodeUsed:
+                groups[-1].append(node)
 
           fullGroupCount = 0
           for group in groups:
@@ -258,16 +275,16 @@ class MPISimulationMode(SimulationMode):
               nodeFile.close()
               fullGroupCount += 1
           if fullGroupCount == 0:
-            self.raiseAnError(IOError, "Cannot run with given parameters because no nodes have numMPI "+str(numMPI)+" available and NoSplitNode is on.")
+            self.raiseAnError(IOError, "Cannot run with given parameters because no nodes have numMPI "+str(numMPI)+" available and NoSplitNode is "+str(self.__noSplitNode)+" and LimitNode is "+str(self.__limitNode))
           if fullGroupCount != self.__simulation.runInfoDict['batchSize']:
-            self.raiseAWarning("changing batchsize to "+str(fullGroupCount)+" because NoSplitNode is on and some nodes could not be used.")
+            self.raiseAWarning("changing batchsize to "+str(fullGroupCount)+" because NoSplitNode is "+str(self.__noSplitNode)+" and LimitNode is "+str(self.__limitNode)+" and some nodes could not be used.")
             self.__simulation.runInfoDict['batchSize'] = fullGroupCount
 
         #then give each index a separate file.
-        nodeCommand = "-f %BASE_WORKING_DIR%/node_%INDEX% "
+        nodeCommand = self.__simulation.runInfoDict["NodeParameter"]+" %BASE_WORKING_DIR%/node_%INDEX% "
       else:
         #If only one batch just use original node file
-        nodeCommand = "-f "+nodefile
+        nodeCommand = self.__simulation.runInfoDict["NodeParameter"]+" "+nodefile
     else:
       #Not in PBS, so can't look at PBS_NODEFILE and none supplied in input
       newBatchsize = self.__simulation.runInfoDict['batchSize']
@@ -281,7 +298,8 @@ class MPISimulationMode(SimulationMode):
     os.environ["MV2_ENABLE_AFFINITY"] = "0"
 
     # Create the mpiexec pre command
-    self.__simulation.runInfoDict['precommand'] = "mpiexec "+nodeCommand+" -n "+str(numMPI)+" "+self.__simulation.runInfoDict['precommand']
+    # Note, with defaults the precommand is "mpiexec -f nodeFile -n numMPI"
+    self.__simulation.runInfoDict['precommand'] = self.__simulation.runInfoDict["MPIExec"]+" "+nodeCommand+" -n "+str(numMPI)+" "+self.__simulation.runInfoDict['precommand']
     if(self.__simulation.runInfoDict['NumThreads'] > 1):
       #add number of threads to the post command.
       self.__simulation.runInfoDict['postcommand'] = " --n-threads=%NUM_CPUS% "+self.__simulation.runInfoDict['postcommand']
@@ -329,6 +347,17 @@ class MPISimulationMode(SimulationMode):
         self.__maxOnNode = child.attrib.get("maxOnNode",None)
         if self.__maxOnNode is not None:
           self.__maxOnNode = int(self.__maxOnNode)
+        if "noOverlap" in child.attrib:
+          self.__noOverlap = True
+      elif child.tag.lower() == "limitnode":
+        self.__limitNode = True
+        self.__maxOnNode = child.attrib.get("maxOnNode",None)
+        if self.__maxOnNode is not None:
+          self.__maxOnNode = int(self.__maxOnNode)
+        else:
+          self.raiseAnError(IOError, "maxOnNode must be specified with LimitNode")
+        if "noOverlap" in child.attrib and child.attrib["noOverlap"].lower() in utils.stringsThatMeanTrue():
+          self.__noOverlap = True
       else:
         self.raiseADebug("We should do something with child "+str(child))
 #
@@ -390,6 +419,8 @@ class Simulation(MessageHandler.MessageUser):
       @ Out, None
     """
     self.FIXME          = False
+    #set the numpy print threshold to avoid ellipses in array truncation
+    np.set_printoptions(threshold=np.inf)
     #establish message handling: the error, warning, message, and debug print handler
     self.messageHandler = MessageHandler.MessageHandler()
     self.verbosity      = verbosity
@@ -409,6 +440,8 @@ class Simulation(MessageHandler.MessageUser):
     self.runInfoDict['ScriptDir'         ] = os.path.join(os.path.dirname(frameworkDir),"scripts") # the location of the pbs script interfaces
     self.runInfoDict['FrameworkDir'      ] = frameworkDir # the directory where the framework is located
     self.runInfoDict['RemoteRunCommand'  ] = os.path.join(frameworkDir,'raven_qsub_command.sh')
+    self.runInfoDict['NodeParameter'     ] = '-f'         # the parameter used to specify the files where the nodes are listed
+    self.runInfoDict['MPIExec'           ] = 'mpiexec'    # the command used to run mpi commands
     self.runInfoDict['WorkingDir'        ] = ''           # the directory where the framework should be running
     self.runInfoDict['TempWorkingDir'    ] = ''           # the temporary directory where a simulation step is run
     self.runInfoDict['NumMPI'            ] = 1            # the number of mpi process by run
@@ -442,6 +475,7 @@ class Simulation(MessageHandler.MessageUser):
     self.dataBasesDict        = {}
     self.functionsDict        = {}
     self.filesDict            = {} #  for each file returns an instance of a Files class
+    self.metricsDict          = {}
     self.OutStreamManagerPlotDict  = {}
     self.OutStreamManagerPrintDict = {}
     self.stepSequenceList     = [] #the list of step of the simulation
@@ -461,26 +495,31 @@ class Simulation(MessageHandler.MessageUser):
     self.addWhatDict['Steps'            ] = Steps
     self.addWhatDict['DataObjects'      ] = DataObjects
     self.addWhatDict['Samplers'         ] = Samplers
+    self.addWhatDict['Optimizers'       ] = Optimizers
     self.addWhatDict['Models'           ] = Models
     self.addWhatDict['Distributions'    ] = Distributions
     self.addWhatDict['Databases'        ] = Databases
     self.addWhatDict['Functions'        ] = Functions
     self.addWhatDict['Files'            ] = Files
+    self.addWhatDict['Metrics'          ] = Metrics
     self.addWhatDict['OutStreams' ] = {}
     self.addWhatDict['OutStreams' ]['Plot' ] = OutStreams
     self.addWhatDict['OutStreams' ]['Print'] = OutStreams
+
 
     #Mapping between an entity type and the dictionary containing the instances for the simulation
     self.whichDict = {}
     self.whichDict['Steps'           ] = self.stepsDict
     self.whichDict['DataObjects'     ] = self.dataDict
     self.whichDict['Samplers'        ] = self.samplersDict
+    self.whichDict['Optimizers'      ] = self.samplersDict
     self.whichDict['Models'          ] = self.modelsDict
     self.whichDict['RunInfo'         ] = self.runInfoDict
     self.whichDict['Files'           ] = self.filesDict
     self.whichDict['Distributions'   ] = self.distributionsDict
     self.whichDict['Databases'       ] = self.dataBasesDict
     self.whichDict['Functions'       ] = self.functionsDict
+    self.whichDict['Metrics'         ] = self.metricsDict
     self.whichDict['OutStreams'] = {}
     self.whichDict['OutStreams']['Plot' ] = self.OutStreamManagerPlotDict
     self.whichDict['OutStreams']['Print'] = self.OutStreamManagerPrintDict
@@ -652,7 +691,8 @@ class Simulation(MessageHandler.MessageUser):
               #now we can read the info for this object
               #if globalAttributes and 'verbosity' in globalAttributes.keys(): localVerbosity = globalAttributes['verbosity']
               #else                                                      : localVerbosity = self.verbosity
-              if Class != 'OutStreams': self.whichDict[Class][name].readXML(childChild, self.messageHandler, varGroups, globalAttributes=globalAttributes)
+              if Class != 'OutStreams':
+                self.whichDict[Class][name].readXML(childChild, self.messageHandler, varGroups, globalAttributes=globalAttributes)
               else: self.whichDict[Class][subType][name].readXML(childChild, self.messageHandler, globalAttributes=globalAttributes)
             else: self.raiseAnError(IOError,'not found name attribute for one '+Class)
       else: self.raiseAnError(IOError,'the '+child.tag+' is not among the known simulation components '+ET.tostring(child))
@@ -766,8 +806,7 @@ class Simulation(MessageHandler.MessageUser):
           xmlDirectory = os.path.dirname(os.path.abspath(xmlFilename))
           rawRelativeWorkingDir = element.text.strip()
           self.runInfoDict['WorkingDir'] = os.path.join(xmlDirectory,rawRelativeWorkingDir)
-        #check/generate the existence of the working directory
-        if not os.path.exists(self.runInfoDict['WorkingDir']): os.makedirs(self.runInfoDict['WorkingDir'])
+        utils.makeDir(self.runInfoDict['WorkingDir'])
       elif element.tag == 'RemoteRunCommand':
         tempName = element.text
         if '~' in tempName : tempName = os.path.expanduser(tempName)
@@ -775,6 +814,8 @@ class Simulation(MessageHandler.MessageUser):
           self.runInfoDict['RemoteRunCommand'] = tempName
         else:
           self.runInfoDict['RemoteRunCommand'] = os.path.abspath(os.path.join(self.runInfoDict['FrameworkDir'],tempName))
+      elif element.tag == 'NodeParameter'     : self.runInfoDict['NodeParameter'] = element.text.strip()
+      elif element.tag == 'MPIExec'           : self.runInfoDict['MPIExec'] = element.text.strip()
       elif element.tag == 'JobName'           : self.runInfoDict['JobName'           ] = element.text.strip()
       elif element.tag == 'ParallelCommand'   : self.runInfoDict['ParallelCommand'   ] = element.text.strip()
       elif element.tag == 'queueingSoftware'  : self.runInfoDict['queueingSoftware'  ] = element.text.strip()
@@ -844,6 +885,8 @@ class Simulation(MessageHandler.MessageUser):
     msg=__prntDict(self.dataDict,msg)
     msg=__prntDict(self.samplersDict,msg)
     msg=__prntDict(self.modelsDict,msg)
+    msg=__prntDict(self.metricsDict,msg)
+    #msg=__prntDict(self.testsDict,msg)
     msg=__prntDict(self.filesDict,msg)
     msg=__prntDict(self.dataBasesDict,msg)
     msg=__prntDict(self.OutStreamManagerPlotDict,msg)

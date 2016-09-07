@@ -13,7 +13,7 @@
     type = 'RavenFramework'
     input = 'test_BasicStatsGridInValueAnalytic.xml'
     output = 'basicStatsGridInValueAnalytic/outputDatagrid_dump.csv basicStatsGridInValueAnalytic/outputDatagrid_dump.xml'
-    xml = 'basicStatsGridInValueAnalytic/outputDatagrid_dump.xml'
+    UnorderedXml = 'basicStatsGridInValueAnalytic/outputDatagrid_dump.xml'
     rel_err = 0.00001
     zero_threshold = 1e-14
     remove_whitespace = True
@@ -57,7 +57,7 @@
   #REQUIREMENT_TEST R-RA-5
   type = 'RavenFramework'
   input = 'test_BasicStatistics.xml'
-  output = 'basicStatisticsGeneral/PointSetPostProcTest_dump.csv basicStatisticsGeneral/output_basicStatistics_PP1.csv basicStatisticsGeneral/output_basicStatistics_PP2.csv basicStatisticsGeneral/PointSetPostProcTest_dump.xml basicStatisticsGeneral/output_basicStatistics_PP3.csv basicStatisticsGeneral/output_basicStatistics_PP4.csv basicStatisticsGeneral/output_basicStatistics_PP5.csv'
+  output = 'basicStatisticsGeneral/PointSetPostProcTest_dump.csv basicStatisticsGeneral/output_basicStatistics_PP1.csv basicStatisticsGeneral/output_basicStatistics_PP2.csv basicStatisticsGeneral/PointSetPostProcTest_dump.xml basicStatisticsGeneral/output_basicStatistics_PP3.csv basicStatisticsGeneral/output_basicStatistics_PP4.csv basicStatisticsGeneral/output_basicStatistics_PP5.csv basicStatisticsGeneral/output_basicStatistics_PP6.csv'
   csv = 'basicStatisticsGeneral/PointSetPostProcTest_dump.csv'
   xml = 'basicStatisticsGeneral/PointSetPostProcTest_dump.xml'
   max_time = 500
@@ -79,7 +79,7 @@
   type = 'RavenFramework'
   input = 'test_time_dep_basicStats.xml'
   output = 'basicStatisticsTimeDependent/output_basicStatistics_timedep_PP1.csv basicStatisticsTimeDependent/output_basicStatistics_timedep_PP1.xml'
-  UnorderedCsv = 'basicStatisticsTimeDependent/HistorySetPostProcTest_dump_3.csv'
+  UnorderedCsv = 'basicStatisticsTimeDependent/HistorySetPostProcTest_dump_3.csv basicStatisticsTimeDependent/ExtractedStats_dump.csv'
    UnorderedXml = 'basicStatisticsTimeDependent/HistorySetPostProcTest_dump.xml basicStatisticsTimeDependent/output_basicStatistics_timedep_PP1.xml'
    rel_err = 1e-5
    zero_threshold = 1e-14
@@ -92,6 +92,14 @@
    UnorderedXml = 'basicStatisticsTimeDependentAsynchronousHistories/HistorySetPostProcTest_dump.xml basicStatisticsTimeDependentAsynchronousHistories/output_basicStatistics_timedep_PP1.xml'
    rel_err = 1e-5
    zero_threshold = 1e-14
+ [../]
+ [./testBasicStatisticsVariationCoefficient]
+  type = 'RavenFramework'
+  input = 'test_BasicStatistics_VariationCoefficient.xml'
+  output = 'basicStatisticsGeneral/output_variation_coefficient.csv'
+  xml = 'basicStatisticsGeneral/output_variation_coefficient.xml'
+  max_time = 500
+  rel_err = 0.00001
  [../]
 
 

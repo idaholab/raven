@@ -78,8 +78,8 @@
     <Code name="Bison-opt" subType="BisonAndMesh">
       <executable>%FRAMEWORK_DIR%/../../bison/bison-%METHOD%</executable>
       <preexec>%FRAMEWORK_DIR%/../../bison/tools/UO2/mesh_script.py</preexec>
-      <alias variable="pellet_radius">Cubit|Pellet1|outer_radius</alias>
-      <alias variable="clad_thickness">Cubit|clad|clad_thickness</alias>
+      <alias variable="pellet_radius">Cubit@Pellet1|outer_radius</alias>
+      <alias variable="clad_thickness">Cubit@clad|clad_thickness</alias>
       <alias variable="fuel_k">Materials|fuel_thermal|thermal_conductivity</alias>
       <alias variable="clad_k">Materials|clad_thermal|thermal_conductivity</alias>
     </Code>
