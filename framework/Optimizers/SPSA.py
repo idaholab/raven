@@ -129,6 +129,13 @@ class SPSA(GradientBasedOptimizer):
         self.optVarsHist[self.counter['varsUpdate']][var] = copy.deepcopy(self.values[var])
 
   def _generateVarsUpdateConstrained(self,ak,gradient,varK):
+    """
+      Method to generate input for model to run
+      @ In, ak, float, it is gain for variable update
+      @ In, gradient, dictionary, contains the gradient information for variable update
+      @ In, varK, dictionary, current variable values
+      @ Out, tempVarKPlus, dictionary, variable values for next iteration. 
+    """
     tempVarKPlus = {}
     for var in self.optVars:
       tempVarKPlus[var] = copy.copy(varK[var]-ak*gradient[var]*1.0)
