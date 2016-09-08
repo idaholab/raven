@@ -582,7 +582,8 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
             variablesToPrint.extend(self.__getVariablesToPrint(var,'input'))
           elif lvar.startswith('output'):
             variablesToPrint.extend(self.__getVariablesToPrint(var,'output'))
-          else: self.raiseAnError(RuntimeError,'variable ' + var + ' is unknown in Data ' + self.name + '. You need to specify an input or a output')
+          else:
+            self.raiseAnError(RuntimeError,'variable ' + var + ' is unknown in Data ' + self.name + '. When specifying \'what\' remember to prepend parameter names with \'Input|\' or \'Output|\'')
         optionsInt['what'] = variablesToPrint
     else: filenameLocal = self.name + '_dump'
     if 'what' not in optionsInt.keys():
@@ -943,14 +944,21 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       # get the variables from the metadata if the variables are in the list metaAdditionalInOrOut
       if varName in self.metaAdditionalInOrOut:
         varKeys = self._dataContainer['metadata'].keys()
-        if varName not in varKeys: self.raiseAnError(RuntimeError,'variable ' + varName + ' is not present among the ' +inOrOuts+' of Data ' + self.name)
+        if varName not in varKeys:
+          self.raiseAnError(RuntimeError,'variable ' + varName + ' is not present among the ' +inOrOuts+' of Data ' + self.name)
         if type(self._dataContainer['metadata'][varName]) not in self.metatype:
           self.raiseAnError(NotConsistentData,inOrOut + var.split('|')[1]+' not compatible with CSV output. Its type needs to be one of '+str(self.metatype))
-        else: variablesToPrint.append('metadata'+'|'+str(varName))
+        else:
+          variablesToPrint.append('metadata'+'|'+str(varName))
       else:
-        if type(list(self._dataContainer[inOrOuts].values())[0]) == dict: varKeys = list(self._dataContainer[inOrOuts].values())[0].keys()
-        else: varKeys = self._dataContainer[inOrOuts].keys()
-        if varName not in varKeys: self.raiseAnError(RuntimeError,'variable ' + varName + ' is not present among the '+inOrOuts+' of Data ' + self.name)
-        else: variablesToPrint.append(inOrOut+'|'+str(varName))
-    else: self.raiseAnError(RuntimeError,'unexpected variable '+ var)
+        if type(list(self._dataContainer[inOrOuts].values())[0]) == dict:
+          varKeys = list(self._dataContainer[inOrOuts].values())[0].keys()
+        else:
+          varKeys = self._dataContainer[inOrOuts].keys()
+        if varName not in varKeys:
+          self.raiseAnError(RuntimeError,'variable %s is not present among the %s of Data %s (available: %s)' % (varName,inOrOuts,self.name,varKeys))
+        else:
+          variablesToPrint.append(inOrOut+'|'+str(varName))
+    else:
+      self.raiseAnError(RuntimeError,'unexpected variable '+ var)
     return variablesToPrint

@@ -34,6 +34,7 @@ import copy
 #External Modules End--------------------------------------------------------------------------------
 #Internal Modules------------------------------------------------------------------------------------
 import utils
+import mathUtils
 import MessageHandler
 import PostProcessors #import returnFilterInterface
 import DataObjects
@@ -44,24 +45,37 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
     This is the general interface to any unSuperisedLearning learning method.
     Essentially it contains a train, and evaluate methods
   """
-  returnType = ''  # this describe the type of information generated the possibility are 'boolean', 'integer', 'float'
-  modelType = ''  # the broad class of the interpolator
+  returnType = ''         ## this describe the type of information generated the
+                          ## possibility are 'boolean', 'integer', 'float'
+
+  modelType = ''          ## the broad class of the interpolator
 
   @staticmethod
   def checkArrayConsistency(arrayIn):
     """
       This method checks the consistency of the in-array
-      @ In, arrayIn, object,  It should be an array
-      @ Out, (consistent, 'error msg'), tuple, tuple[0] is a bool (True -> everything is ok, False -> something wrong), tuple[1], string ,the error mesg
+      @ In, arrayIn, a 1D numpy array, the array to validate
+      @ Out, (consistent, errorMsg), tuple,
+        consistent is a boolean where false means the input array is not a
+        1D numpy array.
+        errorMsg, string, the error message if the input array is inconsistent.
     """
-    if type(arrayIn) != np.ndarray: return (False, ' The object is not a numpy array')
-    # The input data matrix kind is different for different clustering algorithms
-    # e.g. [n_samples, n_features] for MeanShift and KMeans
-    #     [n_samples,n_samples]   for AffinityPropogation and SpectralCLustering
-    # In other words, MeanShift and KMeans work with points in a vector space,
-    # whereas AffinityPropagation and SpectralClustering can work with arbitrary objects, as long as a similarity measure exists for such objects
-    # The input matrix supplied to unSupervisedLearning models as 1-D arrays of size [n_samples], (either n_features of or n_samples of them)
-    if len(arrayIn.shape) != 1: return(False, ' The array must be 1-d')
+    if type(arrayIn) != np.ndarray:
+      return (False, ' The object is not a numpy array')
+
+    ## The input data matrix kind is different for different clustering
+    ## algorithms, e.g.:
+    ##  [n_samples, n_features] for MeanShift and KMeans
+    ##  [n_samples,n_samples]   for AffinityPropogation and SpectralCLustering
+
+    ## In other words, MeanShift and KMeans work with points in a vector space,
+    ## whereas AffinityPropagation and SpectralClustering can work with
+    ## arbitrary objects, as long as a similarity measure exists for such
+    ## objects. The input matrix supplied to unSupervisedLearning models as 1-D
+    ## arrays of size [n_samples], (either n_features of or n_samples of them)
+    if len(arrayIn.shape) != 1:
+      return(False, ' The array must be 1-d')
+
     return (True, '')
 
   def __init__(self, messageHandler, **kwargs):
@@ -72,64 +86,90 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
     """
     self.printTag = 'unSupervised'
     self.messageHandler = messageHandler
-    # booleanFlag that controls the normalization procedure. If true, the normalization is performed. Default = True
-    if kwargs != None: self.initOptionDict = kwargs
-    else             : self.initOptionDict = {}
-    if 'Labels'       in self.initOptionDict.keys():  # Labels are passed, if known a priori (optional), they used in quality estimate
-      self.labels = self.initOptionDict['Labels'  ]
+    ## booleanFlag that controls the normalization procedure. If true, the
+    ## normalization is performed. Default = True
+    if kwargs != None:
+      self.initOptionDict = kwargs
+    else:
+      self.initOptionDict = {}
+
+    ## Labels are passed, if known a priori (optional), they used in quality
+    ## estimate
+    if 'Labels' in self.initOptionDict.keys():
+      self.labels = self.initOptionDict['Labels']
       self.initOptionDict.pop('Labels')
-    else: self.labels = None
-    if 'Features'     in self.initOptionDict.keys():
+    else:
+      self.labels = None
+
+    if 'Features' in self.initOptionDict.keys():
       self.features = self.initOptionDict['Features'].split(',')
       self.initOptionDict.pop('Features')
-    else: self.features = None
-    self.verbosity = self.initOptionDict['verbosity'] if 'verbosity' in self.initOptionDict else None
+    else:
+      self.features = None
+
+    if 'verbosity' in self.initOptionDict:
+      self.verbosity = self.initOptionDict['verbosity']
+    else:
+      self.verbosity = None
+
     # average value and sigma are used for normalization of the feature data
     # a dictionary where for each feature a tuple (average value, sigma)
     self.muAndSigmaFeatures = {}
     #these need to be declared in the child classes!!!!
     self.amITrained = False
 
+    ## The normalized training data
+    self.normValues = None
+
 
   def train(self, tdict, metric = None):
     """
       Method to perform the training of the unSuperVisedLearning algorithm
-      NB.the unSuperVisedLearning object is committed to convert the dictionary that is passed (in), into the local format
-      the interface with the kernels requires. So far the base class will do the translation into numpy
+      NB. The unSuperVisedLearning object is committed to convert the dictionary
+      that is passed (in), into the local format the interface with the kernels
+      requires. So far the base class will do the translation into numpy.
       @ In, tdict, dict, training dictionary
       @ Out, None
     """
-    if type(tdict) != dict: self.raiseAnError(IOError, ' method "train". The training set needs to be provided through a dictionary. Type of the in-object is ' + str(type(tdict)))
+    if type(tdict) != dict:
+      self.raiseAnError(IOError, ' method "train". The training set needs to be provided through a dictionary. Type of the in-object is ' + str(type(tdict)))
+
+    featureCount = len(self.features)
+    if not isinstance(tdict[tdict.keys()[0]],dict):
+      realizationCount = tdict.values()[0].size
+
     names, values = list(tdict.keys()), list(tdict.values())
     if self.labels in names:
       self.labelValues = values[names.index(self.labels)]
       resp = self.checkArrayConsistency(self.labelValues)
-      if not resp[0]: self.raiseAnError(IOError, 'In training set for ground truth labels ' + self.labels + ':' + resp[1])
-    else            : self.raiseAWarning(' The ground truth labels are not known a priori')
-    if metric == None:
+      if not resp[0]:
+        self.raiseAnError(IOError, 'In training set for ground truth labels ' + self.labels + ':' + resp[1])
+    else:
+      self.raiseAWarning(' The ground truth labels are not known a priori')
+
+    if metric is None:
+      self.normValues = np.zeros(shape = (realizationCount, featureCount))
       for cnt, feat in enumerate(self.features):
-        if feat not in names:
-          self.raiseAnError(IOError, ' The feature sought ' + feat + ' is not in the training set')
-        else:
-          resp = self.checkArrayConsistency(values[names.index(feat)])
-          if not resp[0]:
-            self.raiseAnError(IOError, ' In training set for feature ' + feat + ':' + resp[1])
-          if self.normValues is None:
-            self.normValues = np.zeros(shape = (values[names.index(feat)].size, len(self.features)))
-          if values[names.index(feat)].size != self.normValues[:, 0].size:
-            self.raiseAnError(IOError, ' In training set, the number of values provided for feature ' + feat + ' are != number of target outcomes!')
-          self._localNormalizeData(values, names, feat)
-          if self.muAndSigmaFeatures[feat][1] == 0:
-            self.muAndSigmaFeatures[feat] = (self.muAndSigmaFeatures[feat][0], np.max(np.absolute(values[names.index(feat)])))
-          if self.muAndSigmaFeatures[feat][1] == 0:
-            self.muAndSigmaFeatures[feat] = (self.muAndSigmaFeatures[feat][0], 1.0)
-          self.normValues[:, cnt] = (values[names.index(feat)] - self.muAndSigmaFeatures[feat][0]) / self.muAndSigmaFeatures[feat][1]
+        featureValues = tdict[feat]
+        (mu,sigma) = mathUtils.normalizationFactors(featureValues)
+
+        ## Store the normalized training data, and the normalization factors for
+        ## later use
+        self.normValues[:, cnt] = (featureValues - mu) / sigma
+        self.muAndSigmaFeatures[feat] = (mu,sigma)
+
     else:    # metric != None
-      if isinstance(tdict[tdict.keys()[0]],dict): #  the dictionary represents an HistorySet
-        # normalize data
-        for key in tdict.keys():
+      ## The dictionary represents a HistorySet
+      if isinstance(tdict.values()[0],dict):
+        ## normalize data
+        ## But why this way? This should be one of the option, this looks like
+        ## a form of shape matching, however what if I don't want similar
+        ## shapes, I want similar valued curves in space? sigma and mu should
+        ## not be forced to be computed within a curve.
+        for key in tdict:
           for var in tdict[key]:
-            tdict[key][var] = (tdict[key][var]-np.average(tdict[key][var]))/np.std(tdict[key][var])
+            (mu,sigma) = mathUtils.normalizationFactors(tdict[key][var])
+            tdict[key][var] = (tdict[key][var]-mu)/sigma
 
         cardinality = len(tdict.keys())
         self.normValues = np.zeros((cardinality,cardinality))
@@ -139,41 +179,24 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
             self.normValues[i][j] = metric.distance(tdict[keys[i]],tdict[keys[j]])
             self.normValues[j][i] = self.normValues[i][j]
         print(self.normValues[0])
-      else:   # PointSet
+      else:   ## PointSet
+        normValues = np.zeros(shape = (realizationCount, featureCount))
+        self.normValues = np.zeros(shape = (realizationCount, realizationCount))
         for cnt, feat in enumerate(self.features):
-          if feat not in names:
-            self.raiseAnError(IOError, ' The feature sought ' + feat + ' is not in the training set')
-          else:
-            resp = self.checkArrayConsistency(values[names.index(feat)])
-            if not resp[0]:
-              self.raiseAnError(IOError, ' In training set for feature ' + feat + ':' + resp[1])
-            normValues = np.zeros(shape = (values[names.index(feat)].size, len(self.features)))
-            if values[names.index(feat)].size != normValues[:, 0].size:
-              self.raiseAnError(IOError, ' In training set, the number of values provided for feature ' + feat + ' are != number of target outcomes!')
-            self._localNormalizeData(values, names, feat)
-            if self.muAndSigmaFeatures[feat][1] == 0:
-              self.muAndSigmaFeatures[feat] = (self.muAndSigmaFeatures[feat][0], np.max(np.absolute(values[names.index(feat)])))
-            if self.muAndSigmaFeatures[feat][1] == 0:
-              self.muAndSigmaFeatures[feat] = (self.muAndSigmaFeatures[feat][0], 1.0)
-            normValues[:, cnt] = (values[names.index(feat)] - self.muAndSigmaFeatures[feat][0]) / self.muAndSigmaFeatures[feat][1]
+          featureValues = tdict[feat]
+          (mu,sigma) = mathUtils.normalizationFactors(featureValues)
+          normValues[:, cnt] = (featureValues - mu) / sigma
 
-            for i in range(cardinality):
-              for j in range(i,cardinality):
-                self.normValues[i][j] = metric.distance(tdict[i],tdict[j])
-                self.normValues[j][i] = self.normValues[i][j]
+        ## this should operate on the normed data
+        for i in range(realizationCount):
+          rowI = normValues[i,:]
+          for j in range(i,realizationCount):
+            rowJ = normValues[j,:]
+            self.normValues[i][j] = metric.distance(rowI,rowJ)
+            self.normValues[j][i] = self.normValues[i][j]
+
     self.__trainLocal__()
     self.amITrained = True
-
-  def _localNormalizeData(self, values, names, feat):
-    """
-      Method to normalize data based on the mean and standard deviation.  If undesired for a particular algorithm,
-      this method can be overloaded to simply pass.
-      @ In, values, list,  list of feature values (from tdict)
-      @ In, names,  list,  names of features (from tdict)
-      @ In, feat, list, list of features (from Model)
-      @ Out, None
-    """
-    self.muAndSigmaFeatures[feat] = (np.average(values[names.index(feat)]), np.std(values[names.index(feat)]))
 
   def evaluate(self, edict):
     """

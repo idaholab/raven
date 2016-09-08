@@ -83,8 +83,8 @@ data objects, depending on the type of statistics the user wants to compute:
     \item \textbf{pearson}: matrix of correlation coefficients
     \item \textbf{expectedValue}: expected value or mean
     \item \textbf{sigma}: standard deviation
-    \item \textbf{variationCoefficient}: coefficient of variation
-    (sigma/expected value)
+    \item \textbf{variationCoefficient}: coefficient of variation, i.e. \textbf{sigma}/\textbf{expectedValue}. \nb If the \textbf{expectedValue} is zero,
+    the \textbf{variationCoefficient} will be \textbf{INF}.
     \item \textbf{variance}: variance
     \item \textbf{skewness}: skewness
     \item \textbf{kurtosis}: excess kurtosis (also known as Fisher's kurtosis)

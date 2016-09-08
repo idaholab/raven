@@ -270,6 +270,42 @@ def historySetWindow(vars,numberOfTimeStep):
 
   return outDic
 
+def normalizationFactors(values, mode='z'):
+  """
+    Method to normalize data based on various criteria.
+    @ In, values, list,  data for which to obtain normalization factors
+    @ In, mode, str, the mode of normalization to perform, e.g.: z = z-score
+      standardization, 'scale' = 0,1 scaling of the data, anything else will
+      be ignored and the values returned will not alter the data, namely offset
+      of zero and a scale of 1.
+    @ Out, (offset,scale), 2-tuple of floats, the first represents the offset
+      for the data, and the latter represents the scaling factor.
+      i.e., (x - offset)/ scale
+  """
+  if mode is None:
+    mode = 'none'
+
+  if mode == 'z':
+    offset = np.average(values)
+    scale = np.std(values)
+  elif mode == 'scale':
+    offset = np.min(values)
+    scale = np.max(values) - offset
+  else:
+    offset = 0.0
+    scale = 1.0
+
+  ## All of the values must be the same, okay just take the scale of the data
+  ## to be the maximum value
+  if scale == 0:
+    scale = np.max(np.absolute(values))
+
+  ## All of the values must be zero, okay use 1 to prevent a 0/0 issue
+  if scale == 0:
+    scale = 1.0
+
+  return (offset, scale)
+
 #
 # I need to convert it in multi-dimensional
 # Not a priority yet. Andrea
