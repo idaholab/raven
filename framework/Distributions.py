@@ -2125,6 +2125,25 @@ class Weibull(BoostDistribution):
       else:b = self.upperBound
       self._distribution = distribution1D.BasicWeibullDistribution(self.k,self.lambdaVar,a,b,self.low)
 
+WorkingDirParameterInput = InputData.parameterInputFactory("workingDir", contentType=InputData.StringType)
+FunctionTypeParameterInput = InputData.parameterInputFactory("functionType", contentType=InputData.StringType)
+DataFilenameParameterInput = InputData.parameterInputFactory("dataFilename", contentType=InputData.StringType)
+FunctionIDParameterInput = InputData.parameterInputFactory("functionID", contentType=InputData.StringType)
+VariableIDParameterInput = InputData.parameterInputFactory("variableID", contentType=InputData.StringType)
+
+class Custom1DDistributionInput(InputData.ParameterInput):
+  """
+    Class for reading in custom 1D distribution input.
+  """
+
+Custom1DDistributionInput.createClass("Custom1D", False, baseNode=DistributionInput)
+Custom1DDistributionInput.addSub(WorkingDirParameterInput)
+Custom1DDistributionInput.addSub(FunctionTypeParameterInput)
+Custom1DDistributionInput.addSub(DataFilenameParameterInput)
+Custom1DDistributionInput.addSub(FunctionIDParameterInput)
+Custom1DDistributionInput.addSub(VariableIDParameterInput)
+
+DistributionsCollection.addSub(Custom1DDistributionInput)
 
 class Custom1D(Distribution):
   """
@@ -2151,28 +2170,38 @@ class Custom1D(Distribution):
       @ In, xmlNode, xml.etree.ElementTree.Element, the contents of Custom1D node.
       @ Out, None
     """
-    Distribution._readMoreXML(self, xmlNode)
-    workingDir = xmlNode.find('workingDir')
-    if workingDir != None:
-      self.workingDir = workingDir.text
+    paramInput = Custom1DDistributionInput()
+    paramInput.parseNode(xmlNode)
+    self._handleInput(paramInput)
 
-    self.functionType = xmlNode.find('functionType').text.lower()
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the common parts of the distribution parameter input.
+      @ In, paramInput, ParameterInput, the already parsed input.
+      @ Out, None
+    """
+    #BoostDistribution._handleInput(self, paramInput)
+    workingDir = paramInput.findFirst('workingDir')
+    if workingDir != None:
+      self.workingDir = workingDir.value
+
+    self.functionType = paramInput.findFirst('functionType').value.lower()
     if self.functionType == None:
       self.raiseAnError(IOError,' functionType parameter is needed for custom1Ddistribution distribution')
     if not self.functionType in ['cdf','pdf']:
       self.raiseAnError(IOError,' wrong functionType parameter specified for custom1Ddistribution distribution (pdf or cdf)')
 
-    dataFilename = xmlNode.find('dataFilename')
+    dataFilename = paramInput.findFirst('dataFilename')
     if dataFilename != None:
-      self.dataFilename = os.path.join(self.workingDir,dataFilename.text)
+      self.dataFilename = os.path.join(self.workingDir,dataFilename.value)
     else:
       self.raiseAnError(IOError,'<dataFilename> parameter needed for custom1Ddistribution distribution')
 
-    self.functionID = xmlNode.find('functionID').text
+    self.functionID = paramInput.findFirst('functionID').value
     if self.functionID == None:
       self.raiseAnError(IOError,' functionID parameter is needed for custom1Ddistribution distribution')
 
-    self.variableID = xmlNode.find('variableID').text
+    self.variableID = paramInput.findFirst('variableID').value
     if self.variableID == None:
       self.raiseAnError(IOError,' variableID parameter is needed for custom1Ddistribution distribution')
 
