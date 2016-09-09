@@ -8,6 +8,7 @@ from subprocess import Popen
 from CodeInterfaceBaseClass import CodeInterfaceBase
 from MooseBasedAppInterface import MooseBasedApp
 from RattlesnakeInterface   import Rattlesnake
+from RELAP7Interface        import RELAP7
 
 class MAMMOTHInterface(CodeInterfaceBase):
   """
@@ -20,11 +21,15 @@ class MAMMOTHInterface(CodeInterfaceBase):
       @ Out, None
     """
     CodeInterfaceBase.__init__(self)
-    self.MooseInterface = MooseBasedApp() #used to perturb MAMMOTH input files
+    self.MooseInterface = MooseBasedApp()       #used to perturb MAMMOTH input files
     self.MooseInterface.addDefaultExtension()
-    self.RattlesnakeInterface  = Rattlesnake() #used to perturb Rattlesnake and Yak input files
-    self.BisonInterface = MooseBasedApp() #used to perturb Bison input files
+    self.BisonInterface = MooseBasedApp()       #used to perturb Bison input files
     self.BisonInterface.addDefaultExtension()
+    self.RattlesnakeInterface  = Rattlesnake()  #used to perturb Rattlesnake and Yak input files
+    #FIXME Would like to use RELAP7() as interface, but Distributions block appears to be out of date when running Mammoth
+    #self.Relap7Interface = RELAP7()             #used to perturb RELAP7 input files
+    self.Relap7Interface = MooseBasedApp()
+    self.Relap7Interface.addDefaultExtension()
 
   def findInps(self,inputFiles):
     """
@@ -33,33 +38,41 @@ class MAMMOTHInterface(CodeInterfaceBase):
       @ Out, inputDict, dict, dictionary containing MAMMOTH required input files
     """
     inputDict = {}
-    inputDict['FoundMammothInput'] = False
-    inputDict['FoundBisonInput'] = False
-    inputDict['FoundRattlesnakeInput'] = False
-    rattlesnakeInput = []
-    mammothInput = []
-    bisonInput = []
+    inputDict['MammothInput'] = []
+    inputDict['BisonInput'] = []
+    inputDict['RattlesnakeInput'] = []
+    inputDict['Relap7Input'] = []
+    allowedDriverAppInput = ['bisoninput','rattlesnakeinput','relap7input']
     for inputFile in inputFiles:
       fileType = inputFile.getType()
-      if fileType.strip().lower() == "mammothinput|rattlesnakeinput":
-        inputDict['FoundMammothInput'] = True
-        inputDict['FoundRattlesnakeInput'] = True
-        mammothInput.append(inputFile)
-        rattlesnakeInput.append(inputFile)
-      elif fileType.strip().lower() == "bisoninput":
-        inputDict['FoundBisonInput'] = True
-        bisonInput.append(inputFile)
-    if inputDict['FoundBisonInput']: inputDict['BisonInput'] = bisonInput
-    if inputDict['FoundRattlesnakeInput']: inputDict['RattlesnakeInput'] = rattlesnakeInput
-    if not inputDict['FoundMammothInput']:
-      errorMessage = 'This interface is only support the calculations via Rattlesnake coupled with Bison through MAMMOTH. \n'
-      errorMessage = errorMessage + 'The type of MAMMOTH input file should be MammothInput|RattlesnakeInput. \n'
-      errorMessage = errorMessage + 'But, none of the input files has this type. This is required by MAMMOTH interface.'
+      if fileType.strip().lower().split('|')[0] == "mammothinput":
+        inputDict['MammothInput'].append(inputFile)
+        inputDict['DriverAppInput'] = fileType.strip().lower().split('|')[-1]
+      if fileType.strip().lower().split('|')[-1] == "bisoninput":
+        inputDict['BisonInput'].append(inputFile)
+      elif fileType.strip().lower().split('|')[-1] == "rattlesnakeinput" or \
+           fileType.strip().lower() == "yakxsinput" or                      \
+           fileType.strip().lower() == "yakxsaliasinput" or                 \
+           fileType.strip().lower() == "instantxsinput" or                  \
+           fileType.strip().lower() == "instantxsaliasinput":
+        inputDict['RattlesnakeInput'].append(inputFile)
+      elif fileType.strip().lower().split('|')[-1] == "relap7input":
+        inputDict['Relap7Input'].append(inputFile)
+    # Mammoth input is not found
+    if len(inputDict['MammothInput']) == 0:
+      errorMessage = 'No MAMMOTH input file specified! Please prepend "MAMMOTHInput|" to the driver App input \n'
+      errorMessage += 'file\'s type in the RAVEN input file.'
       raise IOError(errorMessage)
-    elif len(mammothInput) != 1:
-      raise IOError('Multiple MAMMOTH input files are provided! Please limit the number of input files to one!')
-    else:
-      inputDict['MammothInput'] = mammothInput
+    # Multiple mammoth files are found
+    elif len(inputDict['MammothInput']) > 1:
+      raise IOError('Multiple MAMMOTH input files are provided! Please limit the number of input files to one.')
+    # Mammoth input found, but driverAppInput is not in the allowedDriverAppInput list
+    elif len(inputDict['MammothInput']) == 1 and inputDict['DriverAppInput'] not in allowedDriverAppInput:
+      errorMessage = 'A MAMMOTH input file was specified, but the driver app is not currently supported by this\n'
+      errorMessage += 'interface. The MAMMOTH input file can only be specified as one of the following types:'
+      for goodDriverAppInput in allowedDriverAppInput:
+        errorMessage += '\nMAMMOTHInput|' + goodDriverAppInput
+      raise IOError(errorMessage)
     return inputDict
 
   def generateCommand(self, inputFiles, executable, clargs=None, fargs=None):
@@ -94,59 +107,113 @@ class MAMMOTHInterface(CodeInterfaceBase):
         where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
       @ Out, newInputFiles, list, list of new input files (modified or not)
     """
-    #split up sampledAars in Kwargs between Mammoth:Rattlesnake and Bison
-    rattlesnakeArgs = copy.deepcopy(Kwargs)
+    #split up sampledAars in Kwargs between Bison, Rattlesnake and Relap-7
     bisonArgs = copy.deepcopy(Kwargs)
-    perturbRattlesnake = False
+    bisonArgs['SampledVars'] = {}
     perturbBison = False
+    rattlesnakeArgs = copy.deepcopy(Kwargs)
+    rattlesnakeArgs['SampledVars'] = {}
+    perturbRattlesnake = False
+    relap7Args = copy.deepcopy(Kwargs)
+    relap7Args['SampledVars'] = {}
+    perturbRelap7 = False
+    foundAlias = False
+    if 'alias' in Kwargs.keys():
+      del bisonArgs['alias']
+      del rattlesnakeArgs['alias']
+      del relap7Args['alias']
     for varName,varValue in Kwargs['SampledVars'].items():
+      # Get the variable's full name from either the alias or given name
       if 'alias' in Kwargs.keys():
         fullName = Kwargs['alias'].get(varName,varName)
       else:
         fullName = varName
-      if fullName.split(':')[-1].lower() == 'rattlesnake':
-        del bisonArgs['SampledVars'][varName]
-        perturbRattlesnake = True
-        if 'alias' in Kwargs.keys():
-          if varName in Kwargs['alias']:
-            del bisonArgs['alias'][varName]
-      elif fullName.split(':')[-1].lower() == 'bison':
-        del rattlesnakeArgs['SampledVars'][varName]
+      appName = fullName.split('@')[0].lower()
+      baseVarName = fullName.split('@')[-1]
+      # Identify which app's input the variable goes into and separate appArgs
+      if appName == 'bison':
+        bisonArgs['SampledVars'][baseVarName] = varValue
         perturbBison = True
-        if 'alias' in Kwargs.keys():
-          if varName in Kwargs['alias']: del rattlesnakeArgs['alias'][varName]
-    #reset the type
-    for inputFile in currentInputFiles:
-      fileType = inputFile.getType()
-      if fileType.strip().lower() == "mammothinput|rattlesnakeinput":
-        inputFile.subtype = "rattlesnakeinput"
-        break
-    #check if the user want to perturb yak xs libraries
+      elif appName == 'rattlesnake':
+        rattlesnakeArgs['SampledVars'][baseVarName] = varValue
+        perturbRattlesnake = True
+      elif appName == 'relap7':
+        relap7Args['SampledVars'][baseVarName] = varValue
+        perturbRelap7 = True
+      else:
+        errorMessage = fullName+' does not specify to which App\'s input it belongs!\n'
+        errorMessage += 'Please prepend the the App\'s name followed by "@" to the\n'
+        errorMessage += 'base variable\'s name or alias.'
+        raise IOError(errorMessage)
+    # Check if the user wants to perturb yak xs libraries
     for inputFile in currentInputFiles:
       fileType = inputFile.getType()
       if fileType.strip().lower() == "yakxsaliasinput":
-        foundAlias= True
+        foundAlias = True
         break
-    #Rattlesnake interface
-    #if perturbRattlesnake or foundAlias:
-    currentInputFiles = self.RattlesnakeInterface.createNewInput(currentInputFiles,origInputFiles,samplerType,**rattlesnakeArgs)
-    #reset the type
-    for inputFile in currentInputFiles:
-      fileType = inputFile.getType()
-      if fileType.strip().lower() == "rattlesnakeinput":
-        inputFile.subtype = "mammothinput|rattlesnakeinput"
+      elif fileType.strip().lower() == "instantxsaliasinput":
+        foundAlias = True
         break
     inputDicts = self.findInps(currentInputFiles)
-    #Bison interface
+
+    # Bison Interface
     if perturbBison:
-      if inputDicts['FoundBisonInput']:
-        bisonInp = inputDicts['BisonInput']
-        #FIXME this need to be changed if MAMMOTH can accept multiple Bision input files
-        if len(bisonInp) != 1: raise IOError('Multiple Bison input files are found!')
-        origBisonInp = origInputFiles[currentInputFiles.index(bisonInp[0])]
-        bisonInp = self.BisonInterface.createNewInput(bisonInp,[origBisonInp],samplerType,**bisonArgs)
-      else:
-        raise IOError('The user tried to perturb Bison input files, but no Bison input file is found!')
+      bisonInps = inputDicts['BisonInput']
+      bisonInTypes = []
+      for bisonIn in bisonInps:
+        bisonInTypes.append(bisonIn.getType().strip().lower().split('|')[-1])
+      if 'bisoninput' not in bisonInTypes:
+        errorMessage = 'Variable(s):\n'
+        for bisonVarName in bisonArgs['SampledVars'].keys():
+          errorMessage += bisonVarName + '\n'
+        errorMessage += 'are specified as Bison parameters, but no Bison input file is listed!'
+        raise IOError(errorMessage)
+      elif bisonInTypes.count('bisoninput') > 1:
+        errorMessage = 'Multiple Bison input files specified! This interface currently only\n'
+        errorMessage += 'supports one input for each App utilized.'
+        raise IOError(errorMessage)
+      origBisonInps = origInputFiles[currentInputFiles.index(bisonInps[0])]
+      bisonInps = self.BisonInterface.createNewInput(bisonInps,[origBisonInps],samplerType,**bisonArgs)
+
+    # Rattlesnake Interface
+    if perturbRattlesnake or foundAlias:
+      rattlesnakeInps = inputDicts['RattlesnakeInput']
+      rattlesnakeInTypes = []
+      for rattlesnakeIn in rattlesnakeInps:
+        rattlesnakeInTypes.append(rattlesnakeIn.getType().strip().lower().split('|')[-1])
+      if 'rattlesnakeinput' not in rattlesnakeInTypes:
+        errorMessage = 'Variable(s):\n'
+        for rattlesnakeVarName in rattlesnakeArgs['SampledVars'].keys():
+          errorMessage += rattlesnakeVarName + '\n'
+        errorMessage += 'are specified as Rattlesnake parameters, but no Rattlesnake input file is listed!'
+        raise IOError(errorMessage)
+      elif rattlesnakeInTypes.count('rattlesnakeinput') > 1:
+        errorMessage = 'Multiple Rattlesnake input files specified! This interface currently only\n'
+        errorMessage += 'supports one input for each App utilized.'
+        raise IOError(errorMessage)
+      origRattlesnakeInps = origInputFiles[currentInputFiles.index(rattlesnakeInps[0])]
+      rattlesnakeInps = self.RattlesnakeInterface.createNewInput(rattlesnakeInps,
+                              [origRattlesnakeInps],samplerType,**rattlesnakeArgs)
+
+    # Relap7 Interface
+    if perturbRelap7:
+      relap7Inps = inputDicts['Relap7Input']
+      relap7InTypes = []
+      for relap7In in relap7Inps:
+        relap7InTypes.append(relap7In.getType().strip().lower().split('|')[-1])
+      if 'relap7input' not in relap7InTypes:
+        errorMessage = 'Variable(s):\n'
+        for relap7VarName in relap7Args['SampledVars'].keys():
+          errorMessage += relap7VarName + '\n'
+        errorMessage += 'are specified as Relap7 parameters, but no Relap7 input file is listed!'
+        raise IOError(errorMessage)
+      elif relap7InTypes.count('relap7input') > 1:
+        errorMessage = 'Multiple Relap7 input files specified! This interface currently only\n'
+        errorMessage += 'supports one input for each App utilized.'
+        raise IOError(errorMessage)
+      origRelap7Inps = origInputFiles[currentInputFiles.index(relap7Inps[0])]
+      relap7Inps = self.Relap7Interface.createNewInput(relap7Inps,[origRelap7Inps],samplerType,**relap7Args)
+
     return currentInputFiles
 
   def finalizeCodeOutput(self, command, output, workingDir):

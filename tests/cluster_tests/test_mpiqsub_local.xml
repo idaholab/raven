@@ -12,6 +12,7 @@
     </mode>
     <NumMPI>2</NumMPI>
     <expectedTime>10:00:00</expectedTime>
+    <JobName>test_qsub</JobName>
   </RunInfo>
 
   <Files>

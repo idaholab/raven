@@ -1,0 +1,72 @@
+\section{Metrics}
+\label{sec:Metrics}
+
+The Metrics block allows the user to specify the similarity/dissimilarity metrics to be used in specific clustering algorithms available in RAVEN.
+These metrics are used to calculate the distance values among points and histories.
+The data mining algorithms in RAVEN which accept the definition of a metric are the following:
+\begin{itemize}
+  \item DBSCAN (see Section~\ref{subparagraph:DBSCAN})
+  \item Affinity Propagation (see Section~\ref{subparagraph:Affinity})
+\end{itemize}
+Both of these algorithms can take as input an $N \times N$ square matrix $D=[d_{ij}]$ where each element $d_{ij}$ of $D$ is the distance between element $i$ $(i=1,\ldots,N)$ and $j$
+$(j=1,\ldots,N)$.
+
+Available metrics are as follows:
+\begin{itemize}
+  \item Minkowski (see Section~\ref{subsection:Minkowski})
+\end{itemize}
+
+In the RAVEN input file these metrics are defined as follows:
+\begin{lstlisting}[style=XML]
+<Simulation>
+  ...
+  <Metrics>
+    ...
+    <MetricID name='metricName'>
+      ...
+     <param1>value</param1>
+      ...
+    </MetricID>
+    ...
+  </Metrics>
+  ...
+</Simulation>
+\end{lstlisting}
+
+\subsection{Minkowski}
+\label{subsection:Minkowski}
+Minkowski distance is the most basic and used metric in any data mining algorithm.
+Given two multi-dimensional vectors $X=(x_1,x_2,\ldots,x_n)$ and $Y=(y_1,y_2,\ldots,y_n)$, the Minkowski distance $d_p$ of order $p$ between these two vectors is:
+\begin{equation}
+d_p = \left ( \sum_{i=1}^{n} \left \| x_i-y_i \right \|^p \right )^\frac{1}{p}
+\end{equation}
+Minkowski distance is typically used with $p$ being 1 or 2. The latter one is the Euclidean distance, while the former is sometimes known as the Manhattan distance. 
+
+The specifications of a Minkowski distance must be defined within the XML block
+\xmlNode{Minkowski}.
+%
+This XML node needs to contain the attributes:
+
+\begin{itemize}
+  \item \xmlNode{p}, \xmlDesc{float, required field}, value for the parameter $p$
+  \item \xmlNode{timeID}, \xmlDesc{string, optional field}, the ID of the time variable; this is required in case the metric is applied to historysets instead of pointsets
+\end{itemize}
+
+An example of Minkowski distance defined in RAVEN is provided below:
+\begin{lstlisting}[style=XML]
+<Simulation> 
+  ...
+  <Metrics>
+    ...
+    <Minkowski name="example" subType="">
+      <p>2</p>
+      <timeID>time</timeID>
+    </Minkowski>
+    ...
+  </Metrics>
+  ...
+</Simulation>
+\end{lstlisting}
+
+
+

@@ -16,6 +16,7 @@ Statistical analysis includes the following major capabilities:
 - statistical estimation and sensitivity analysis (e.g., mean,
   variance, sensitivity coefficients and covariance matrix).
 
+
 Applications
 
 The RAVEN statistical analysis framework can be employed for several
@@ -35,9 +36,9 @@ from data generation, data processing and data visualization.
 A full set of RAVEN computational capabilities are listed below:
 
 Computing capabilities:
-- parallel computation capabilities (multi-thread and multi-core)
-- supported operating systems: MAC, linux and windows
-- workstation and high performance computing systems
+- Parallel computation capabilities (multi-thread and multi-core)
+- Supported operating systems: MAC, Linux and Windows
+- Workstation and high performance computing (HPC) systems
 
 Multi-steps analyses: RAVEN analyses are performed through a series of
 simulation steps. Each simulation step allows the user to perform a
@@ -51,19 +52,20 @@ set of basic actions:
 More complex analyses are performed by simply assembling and linking a
 series of steps listed above.
 
-Creation and use of reduced order models (scikit-learn and CROW library)
+
+Creation and use of reduced order models (scikit-learn and CROW library):
 - SVM
-- Gaussian Process Models
-- Linear Models
-- Multi-Class classifiers
-- Decision Trees
+- Gaussian process models
+- Linear models
+- Multi-class classifiers
+- Decision trees
 - Naive Bayes
 - Neighbors classifiers and regressors
 - Multi-dimensional interpolators
 - High dimension model reduction (HDMR)
 - Morse-Smale complex
 
-Forward propagation of uncertainties
+Forward propagation of uncertainties:
 - MonteCarlo sampling
 - Grid sampling
 - Stratified Sampling
@@ -83,7 +85,7 @@ Model capabilities:
 - Custom code interfaces
 - Custom ad-hoc external models
 
-Data Post-Processing capabilities
+Data Post-Processing capabilities:
 - Data clustering
 - Data regression
 - Data dimensionality Reduction
@@ -91,10 +93,10 @@ Data Post-Processing capabilities
 - Time-dependent data analysis
 - Data plotting
 
-Model parameter optimization
+Model parameter optimization:
 - Simultaneous perturbation stochastic approximation method
 
-Data management
+Data management:
 - Data importing and exporting
 - Databases creation
 

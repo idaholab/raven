@@ -1158,7 +1158,7 @@ An example \xmlNode{Models} block follows.
     <executable>%FRAMEWORK_DIR%/../../moose/modules/combined/...
       modules-%METHOD%</executable>
     <preexec>/hpc-common/apps/local/cubit/13.2/bin/cubit</preexec>
-    <alias variable="length">Cubit|y</alias>
+    <alias variable="length">Cubit@y</alias>
     <alias variable="bot_BC">BCs|bottom|value</alias>
   </Code>
 </Models>
@@ -1303,8 +1303,8 @@ An example \xmlNode{Models} block follows.
   <Code name="Bison-opt" subType="BisonAndMesh">
     <executable>%FRAMEWORK_DIR%/../../bison/bison-%METHOD%</executable>
     <preexec>%FRAMEWORK_DIR%/../../bison/tools/UO2/mesh_script.py</preexec>
-    <alias variable="pellet_radius" >Cubit|Pellet1|outer_radius</alias>
-    <alias variable="clad_thickness">Cubit|clad|clad_thickness</alias>
+    <alias variable="pellet_radius" >Cubit@Pellet1|outer_radius</alias>
+    <alias variable="clad_thickness">Cubit@clad|clad_thickness</alias>
     <alias variable="fuel_k"        >Materials|fuel_thermal|thermal_conductivity</alias>
     <alias variable="clad_k"        >Materials|clad_thermal|thermal_conductivity</alias>
   </Code>
@@ -1444,6 +1444,7 @@ libraries. The following is an example of a typical alias file:
         <Capture gridIndex="1" mat="pseudo-seed1-dup" gIndex="1">c11</Capture>
         <TotalScattering gridIndex="1" mat="pseudo-seed1-dup" gIndex="1">t11</TotalScattering>
         <Nu gridIndex="1" mat="pseudo-seed1-dup" gIndex="1">n11</Nu>
+        <Transport gridIndex="1" mat="pseudo-seed1-dup" gIndex="1">d11</Transport>
     </Multigroup_Cross_Section_Library>
 </Multigroup_Cross_Section_Libraries>
 \end{lstlisting}
@@ -1470,6 +1471,9 @@ the user choose \xmlAttr{Type="abs"}, the cross sections will be perturbed absol
 the user needs to provide an absolute covariance matrix and specify `zeros' for \xmlNode{mu} in \xmlNode{MultivariateNormal}
 distribution.
 
+\nb Currently, only the following cross sections can be perturbed by the user: Fission, Capture, Nu, TotalScattering,
+and Transport.
+
 \paragraph{Perturb Instant format Cross Section Libraries}
 If the user would like to perturb the Instant cross section libraries, the user need to use the 
 \xmlString{InstantXSInput} for the \xmlAttr{type} of the libaries. In addition, the \xmlAttr{type} of the
@@ -1495,6 +1499,7 @@ libraries. The following is an example of a typical alias file:
       <CaptureXS gIndex="1">c11</CaptureXS>
       <TotalScatteringXS gIndex="1">t11<TotalScatteringXS>
       <Nu gIndex="1">n11</Nu>
+      <DiffusionCoefficient gIndex="1">d11</DiffusionCoefficient>
     </material>
   </Macros>
 </Materials>
@@ -1513,6 +1518,9 @@ percents). In this case, the user also needs to specify a relative covariance ma
 the user choose \xmlAttr{Type="abs"}, the cross sections will be perturbed absolutely (i.e. perturbed by values), and 
 the user needs to provide an absolute covariance matrix and specify `zeros' for \xmlNode{mu} in \xmlNode{MultivariateNormal}
 distribution.
+
+\nb Currently, only the following cross sections can be perturbed by the user: FissionXS, CaptureXS, Nu, TotalScatteringXS,
+and DiffusionCoefficient.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Models}
@@ -1809,7 +1817,7 @@ If one of these variables is not contained into one of csv files, RAVEN will giv
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%% MAMMOTH INTERFACE %%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{MAMMOTH Interfaces}
+\subsection{MAMMOTH Interface}
 %
 This section covers the input specification for running MAMMOTH (couple Rattlesnake with Bison) through RAVEN. 
 It is important to notice that this short explanation assumes that the reader already knows how to use MAMMOTH.
@@ -1823,7 +1831,7 @@ cross section libraries XML input files.
 attributes for each node entry.  The \xmlAttr{name} attribute is a user-chosen internal
 name for the file contained in the node, and \xmlAttr{type} identifies which base-level
 interface the file is used within.  \xmlNode{type} should only be specified for inputs
-that RAVEN will perturb.  For MAMMOTH input files, \xmlNode{type} should be \xmlString{MAMMOTHInput|RattlesnakeInput}, 
+that RAVEN will perturb.  For MAMMOTH input files, \xmlNode{type} should be \xmlString{MAMMOTHInput|appNameInput}, 
 for Yak multigroup cross section libraries, the \xmlNode{type} should be \xmlString{YakXSInput}, and for the Yak 
 alias files that are used to perturb the Yak multigroup cross section libraries, the \xmlNode{type} should be
 \xmlString{YakXSAliasInput}. For Bison input files, the \xmlNode{type} should be \xmlString{BisonInput}. In addition, 
@@ -1862,7 +1870,7 @@ An example \xmlNode{Models} block follows.
 \begin{lstlisting}[style=XML]
 <Models>
   <Code name="Mammoth" subType="MAMMOTH">
-    <executable>%FRAMEWORK_DIR%/../../mammoth/ 
+    <executable>\%FRAMEWORK_DIR\%/../../mammoth/ 
      mammoth-%METHOD%</executable>
   </Code>
 </Models>
@@ -1887,7 +1895,7 @@ After defining a sampling scheme, the variables to be sampled and
 their distributions are identified in the \xmlNode{variable} blocks.
 The name attribute in the \xmlNode{variable} block must either be the
 full MooseBasedApp model variable name, the alias name specifed in
-\xmlNode{Models}, or the variable name specified in the provided alias files.  
+\xmlNode{Models}, or the variable name specified in the provided alias files.
 
 For listings of available samplers, please refer to the Samplers chapter (see~\ref{sec:Samplers}).
 See the following for an example of a grid based sampler used to generate the samples for
@@ -1898,19 +1906,19 @@ input file and the poissons ratio defined in Bison input files.
 \begin{lstlisting}[style=XML]
 <Samplers>
   <Grid name="Grid_sampling">
-    <variable name="fission_group_1" >
+    <variable name="Rattlesnake@fission_group_1" >
       <distribution>fission_dist</distribution>
       <grid type="value" construction="custom">1.0 2.0</grid>
     </variable>
-    <variable name="capture_group_1">
+    <variable name="Rattlesnake@capture_group_1">
       <distribution>capture_dist</distribution>
       <grid type="value" construction="custom">3.0 6.0</grid>
     </variable>
-    <variable name="AuxVariables|Temp|initial_condition:Rattlesnake">
+    <variable name="Rattlesnake@AuxVariables|Temp|initial_condition">
       <distribution>uniform</distribution>
       <grid type="value" construction="custom">3.0 6.0</grid>
     </variable>
-    <variable name="Materials|fuel_solid_mechanics_elastic|poissons_ratio:Bison">
+    <variable name="Bison@Materials|fuel_solid_mechanics_elastic|poissons_ratio">
       <distribution>normal</distribution>
       <grid type="value" construction="custom">3.0 6.0</grid>
     </variable>
@@ -1918,8 +1926,13 @@ input file and the poissons ratio defined in Bison input files.
 </Samplers>
 \end{lstlisting}
 %
-In order to make the input variables of Rattlesnake be distinct from the input variables of Bison, \xmlString{:Rattlesnake}
-or \xmlString{:Bison} is used at the end of each full MooseBasedApp model variable name. 
+In order to make the input variables of one application distinct from the input variabels of another,
+the app's name followed by the '@' symbol is prepended to the variable name (or alias) (e.g. \xmlString{appName@varName}).
+Each variable sampled in the MAMMOTH interface is required to have a destination app specified.
+All variables utilizing Rattlesnake's executable (whether they are in the
+Rattlesnake input file or not) are listed as Rattlesnake variables
+as that application's interface will sort input file and cross section
+variables itself.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Steps}
 For a MAMMOTH interface, the \xmlNode{MultiRun} step type will most likely be used. First, the step needs

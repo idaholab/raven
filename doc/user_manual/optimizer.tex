@@ -1,0 +1,161 @@
+\section{Optimizers}
+\label{sec:Optimizers}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% If you are confused by the input of this document, please make sure you see
+% these defined commands first. There is no point writing the same thing over
+% and over and over and over and over again, so these will help us reduce typos,
+% by just editing a template sentence or paragraph.
+\renewcommand{\nameDescription}
+{
+  \xmlAttr{name},
+  \xmlDesc{required string attribute}, user-defined name of this optimizer.
+  \nb As with other objects, this identifier can be used to reference this
+  specific entity from other input blocks in the XML.
+}
+\renewcommand{\specBlock}[2]
+{
+  The specifications of this optimizer must be defined within #1 \xmlNode{#2} XML
+  block.
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+The optimizer is another important entity in the RAVEN framework. It performs the driving of a specific goal function over the model for value optimization. The difference between an optimizer and a sampler is that the former does not require sampling over a distribution, although certain specific optimizers may utilize stochastic approach to locate the optimality.
+The optimizers currently available in RAVEN can be categorized into the following class(es):
+\begin{itemize}
+\item \textbf{Gradient Based Optimizer} (see Section~\ref{subsec:gradientBasedOptimizers})
+\end{itemize}
+
+Before analyzing each optimizer in detail, it is important to mention that each type needs to be contained in the main XML node \xmlNode{Optimizers}, as reported below:
+
+\textbf{Example:}
+
+\begin{lstlisting}[style=XML]
+<Simulation>
+  ...
+  <Optimizers>
+    ...
+    <WhatEverOptimizer name='whatever'>
+      ...
+    </WhatEverOptimizer>
+    ...
+  </Optimizers>
+  ...
+</Simulation>
+\end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%      Gradient Based Optimizers      %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Gradient Based Optimizers}
+\label{subsec:gradientBasedOptimizers}
+The Gradient Based Optimizer category collects all the strategies that perform the optimization based on gradient information, either directly provided or estimated by optimization strategy. In the RAVEN framework, currently implemented optimizer in this category are:
+\begin{itemize}
+\item \textbf{Simultaneous Perturbation Stochastic Approximation (SPSA)}
+\end{itemize}
+
+From a practical point of view, these optimization strategies represent different ways to estimate the gradient based on information from previously performed model evaluation. In the following paragraphs, the input requirements and a small explanation of the different sampling methodologies are reported.
+
+
+%%% Gradient Based Optimizers: SPSA
+\subsubsection{Simultaneous Perturbation Stochastic Approximation (SPSA)}
+\label{subsubsubsec:SPSA}
+The \textbf{SPSA} optimization approach is one of the optimization strategies that are based on gradient estimation. The main idea is to simultaneously perturb all decision variables in order to estimate the gradient. Consequently a minimal number of two model evaluations are required in order to approximate the gradient. The theory behind SPSA can be found in \cite{spall1998implementation}.
+%
+
+\specBlock{a}{SPSA}
+%
+\attrsIntro
+\vspace{-5mm}
+\begin{itemize}
+\itemsep0em
+\item \xmlAttr{name}, \xmlDesc{required string attribute}, user-defined name of this optimizer. \nb As for the other objects, this is the name that can be used to refer to this specific entity from other input blocks (xml);
+\end{itemize}
+\vspace{-5mm}
+
+In the \xmlNode{SPSA} input block, the user needs to specify the objective variable to be optimized, the decision variables, the DataObject storing previously performed model evaluation, as well as convergence criteira. In addition, the settings for this optimization can be specified in the \xmlNode{initialization} and \xmlNode{parameter} XML blocks:
+\begin{itemize}
+\item \xmlNode{initialization},  \xmlDesc{XML node, optional parameter}. In this xml-node,the following xml sub-nodes can be specified:
+  \begin{itemize}
+    \item \xmlNode{limit}, \xmlDesc{integer,optional field}, number of samples to be generated, which is same as the number of model evaluation;
+    \item \xmlNode{initialSeed}, \xmlDesc{integer, optional field}, initial seeding of random number generator for stochastic perturbations;
+    \item \xmlNode{type},  \xmlDesc{string (case insensitive), optional field}, specifies whether this optimizer performs maximization or minimization. Available options are \xmlString{max} and \xmlString{min}.
+    \default{Min};
+  \end{itemize}
+\end{itemize}
+\begin{itemize}
+\item \xmlNode{TargetEvaluation}, \xmlDesc{XML node, required parameter},
+        represents the container where the model evaluations are stored.
+        %
+        From a practical point of view, this XML node must contain the name of
+        a data object defined in the \xmlNode{DataObjects} block (see
+        Section~\ref{sec:DataObjects}). The object here specified must be
+        input as  \xmlNode{Output} in the Steps that employ this optimization strategy.
+        %
+        The \xmlNode{SPSA} optimizer accepts ``DataObjects'' of type ``PointSet'' only;
+\item \xmlNode{objectVar}, \xmlDesc{XML node, required parameter}. The objective variable to be optimized. This variable must be output of the DataObject specified in \xmlNode{TargetEvaluation}.
+\end{itemize}
+\begin{itemize}
+\item \variableDescription
+ The variable specified here must be input of the DataObject specified in \xmlNode{TargetEvaluation}.
+ \variableChildrenIntro
+ \begin{itemize}
+    \item \xmlNode{upperBound}, \xmlDesc{float, optional field}, the upper bound of this variable;
+    \item \xmlNode{lowerBound}, \xmlDesc{float, optional field}, the lower bound of this variable;
+    \item \xmlNode{initial}, \xmlDesc{float, optional field}, the initial value for this variable.
+  \end{itemize}
+\end{itemize}
+\begin{itemize}
+\item \xmlNode{convergence}, \xmlDesc{XML node, optional parameter} will specify parameters associated with optimization convergence. This node accepts the following sub-nodes:
+  \begin{itemize}
+  \item \xmlNode{iterationLimit}, \xmlDesc{integer, optional field}, user-defined maximum number of optimization iterations.
+  \item \xmlNode{threshold}, \xmlDesc{float, optional field}, specifies the convergence criteria to determine the optimality. When the change of objective variable in two successive model evaluations is smaller than this pre-specified threshold, the \xmlNode{SPSA} optimizer decides optimality and terminates the simulation.
+      \default{1e-3}
+  \end{itemize}
+\item \xmlNode{Parameter}, \xmlDesc{XML node, optional parameter} will accepts the following sub-nodes:
+  \begin{itemize}
+  \item \xmlNode{numGradAvgIterations}, \xmlDesc{integer, optional field} is the number of iterations for gradient estimation.
+        \default{1}
+  \item \xmlNode{alpha}, \xmlDesc{float, optional field} a parameter for updating gain sequence for variable update. See \cite{spall1998implementation}.
+        \default{0.602}
+  \item \xmlNode{A}, \xmlDesc{float, optional field} a parameter for updating gain sequence for variable update. See \cite{spall1998implementation}.
+        \default{\xmlNode{iterationLimit} divided by 10}
+  \item \xmlNode{a}, \xmlDesc{float, optional field} a parameter for updating gain sequence for variable update. See \cite{spall1998implementation}.
+        \default{0.16}
+  \item \xmlNode{gamma}, \xmlDesc{float, optional field} a parameter updating gain sequence for perturbation. See \cite{spall1998implementation}.
+        \default{0.101}
+  \item \xmlNode{c}, \xmlDesc{float, optional field} a parameter for updating gain sequence for perturbation. See \cite{spall1998implementation}.
+        \default{0.005}
+  \end{itemize}
+\end{itemize}
+
+
+Example:
+\begin{lstlisting}[style=XML]
+<Optimizers>
+  ...
+  <SPSA name="SPSAname">
+    <initialization>
+      <limit>300</limit>
+      <type>min</type>
+      <initialSeed>30</initialSeed>
+    </initialization>
+    <TargetEvaluation class="DataObjects" type="PointSet">dataObjectName</TargetEvaluation>
+    <convergence>
+      <iterationLimit>50</iterationLimit>
+      <threshold>1e-3</threshold>
+    </convergence>
+    <parameter>
+      <numGradAvgIterations>3</numGradAvgIterations>
+    </parameter>
+    <variable name="var1">
+      <upperBound>100</upperBound>
+      <lowerBound>-100</lowerBound>
+      <initial>0</initial>
+    </variable>
+    <objectVar>c</objectVar>
+  </SPSA>
+  ...
+</Optimizers>
+\end{lstlisting}

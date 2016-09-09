@@ -15,6 +15,7 @@
       <numProcByRun/>
       <totalNumCoresUsed/>
     -->
+    <JobName>test_qsub</JobName>
   </RunInfo>
 
   <Files>

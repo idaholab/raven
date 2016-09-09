@@ -83,8 +83,8 @@ data objects, depending on the type of statistics the user wants to compute:
     \item \textbf{pearson}: matrix of correlation coefficients
     \item \textbf{expectedValue}: expected value or mean
     \item \textbf{sigma}: standard deviation
-    \item \textbf{variationCoefficient}: coefficient of variation
-    (sigma/expected value)
+    \item \textbf{variationCoefficient}: coefficient of variation, i.e. \textbf{sigma}/\textbf{expectedValue}. \nb If the \textbf{expectedValue} is zero,
+    the \textbf{variationCoefficient} will be \textbf{INF}.
     \item \textbf{variance}: variance
     \item \textbf{skewness}: skewness
     \item \textbf{kurtosis}: excess kurtosis (also known as Fisher's kurtosis)
@@ -93,10 +93,19 @@ data objects, depending on the type of statistics the user wants to compute:
                                Otherwise the user can specify this quantity as \textit{percentile\_$X\%$}, where \textit{X} represents the requested
                                percentile (an integer value between 1 and 100)
     \item \textbf{samples}: the number of samples in the data set used to determine the statistics.
+    \item \textbf{minimum}: The minimum value of the samples.
+    \item \textbf{maximum}: The maximum value of the samples.
     %
   \end{itemize}
    %
   \nb If the weights are present in the system then weighted quantities are calculated automatically. In addition, if a matrix quantity is requested (e.g. Covariance matrix, etc.), only the weights in the output space are going to be used for both input and output space (the computation of the joint probability between input and output spaces is not implemented yet).
+  \\
+  \nb Certain ROMs provide their own statistical information (e.g., those using
+  the sparse grid collocation sampler such as: \xmlString{GaussPolynomialRom}
+  and \xmlString{HDMRRom}) which can be obtained by printing the ROM to file
+  (xml). For these ROMs, computing the basic statistics on data generated from
+  one of these sampler/ROM combinations may not provide the information that the
+  user expects.
   \\
   \\  If all the quantities need to be computed, the user can input in the body of
   \xmlNode{what} the string ``all''.
@@ -743,12 +752,11 @@ Section~\ref{sec:functions} for more details).
     ...
     <PostProcessor name="externalPP" subType='External' verbosity='debug'>
       <method>Delta,Sum</method>
-        <Function class='Functions' type='External'>operators</Function>
-          <!--Here, you can add a Function defined in the
-              Functions block. This should be present or
-              else RAVEN will not know where to find the
-              defined methods.
-            -->
+      <Function class='Functions' type='External'>operators</Function>
+        <!-- Here, you can add a Function defined in the
+             Functions block. This should be present or
+             else RAVEN will not know where to find the
+             defined methods. -->
     </PostProcessor>
     ...
   </Models>

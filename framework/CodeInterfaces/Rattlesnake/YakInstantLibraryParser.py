@@ -17,8 +17,9 @@ class YakInstantLibraryParser():
     perturb the libraries with variables defined in alias files and values from Raven Sampler.
     Cross sections will be reblanced based on provided information.
     In addition, this interface can be used to perturb Fission, Capture, TotalScattering, Nu, Kappa
-    for given isotopes inside the libraries. In the future, we may need to add the capability to perturb the
-    Tablewise and Librarywise data.
+    for given isotopes inside the libraries. The user can also perturb the diffusion coefficient if it
+    exists in the input XS library.
+    In the future, we may need to add the capability to perturb the Tablewise and Librarywise data.
   """
   #Functions Used for Reading Yak Multigroup Cross Section Library (Also including some functions for checking and recalculations)
   def __init__(self,inputFiles):
@@ -39,12 +40,15 @@ class YakInstantLibraryParser():
     self.aliases        = {} #alias to XML node dict
     self.validReactions = ['TotalXS','FissionXS','RemovalXS','DiffusionCoefficient','ScatteringXS','NuFissionXS','KappaFissionXS',
                            'ChiXS','DNFraction','DNSpectrum','NeutronSpeed','DNPlambda','AbsorptionXS','CaptureXS','Nu','Kappa'] #These are all valid reactions for Yak XS format
-    self.perturbableReactions = ['FissionXS','CaptureXS','TotalScatteringXS','Nu','Kappa'] #These are all valid perturbable reactions for RAVEN
+    self.perturbableReactions = ['FissionXS','CaptureXS','TotalScatteringXS','Nu','Kappa','DiffusionCoefficient'] #These are all valid perturbable reactions for RAVEN
     self.level0Element  = 'Materials' #root element tag is always the same for Yak XS format
     self.level1Element  = 'Macros'   #level 1 element tag is always Macros
     self.level2Element  = ['material'] #These are some of the level 2 element tag with string vector xmlnode.text, without xml subnodes
     self.toBeReadXML    = [] #list of XML nodes that need to be read.
     self.libsKeys       = {} #dict to store library keys: {material_ID:{reaction:[]}}
+    self.nGroup         = None # total energy groups
+    self.aliasesNG      = None # total energy groups defined in alias files
+    self.aliasesType    = {} # dict to store the perturbation type given in the alias files.
 
     #read in cross-section files, unperturbed files
     for xmlFile in inputFiles:
@@ -59,9 +63,12 @@ class YakInstantLibraryParser():
         raise IOError(msg)
       macrosLib = root.find(self.level1Element)
       if macrosLib != None:
-        self.nGroup = int(macrosLib.attrib['NG']) #total number of neutron energy groups
+        if self.nGroup == None:
+          self.nGroup = int(macrosLib.attrib['NG']) #total number of neutron energy groups
+        elif self.nGroup != int(macrosLib.attrib['NG']):
+          raise IOError('Inconsistent energy structures for give XS library ' + xmlFile.getFilename() + ' is found!')
         for matLib in macrosLib:
-          matID = matLib.attrib['ID']
+          matID = matLib.attrib['ID'].strip()
           scatteringOrder = int(matLib.attrib['NA'])
           self.libs[matID] = {}
           self.libsKeys[matID] = {}
@@ -82,8 +89,6 @@ class YakInstantLibraryParser():
       @ Out, None
     """
     self.aliases = {}
-    if len(aliasFiles) != 1:
-      raise IOError('We only accept one alias file that can be used to perturb Yak instant cross section library, but the user provided: ' + len(aliasFiles) + ' alias files')
     for xmlFile in aliasFiles:
       if not os.path.exists(xmlFile.getPath()): raise IOError('The following Yak cross section alias file: ' + xmlFile + ' is not found!')
       aliasTree = ET.parse(xmlFile.getAbsFile())
@@ -93,12 +98,17 @@ class YakInstantLibraryParser():
       for child in root:
         if child.tag != self.level1Element:
           raise IOError('Invalid subnode tag: ' + child.tag +' is provided.' + ' The valid subnode tag should be: ' + self.level1Element)
-        self.aliasesNG = int(child.attrib['NG'])
-        self.aliasesType = child.attrib['Type']
+        if self.aliasesNG == None:
+          self.aliasesNG = int(child.attrib['NG'])
+        elif self.aliasesNG != int(child.attrib['NG']):
+          raise IOError('Inconsistent total engergy groups were found in XS library: ' + xmlFile.getFilename())
         for matNode in child:
-          self.aliases[matNode.attrib['ID']] = {}
+          matNodeID = matNode.attrib['ID'].strip()
+          self.aliases[matNodeID] = {}
+          aliasType = child.attrib['Type'].strip()
+          self.aliasesType[matNodeID] = aliasType
           #read the cross section alias for each library (or material)
-          self._readXSAlias(matNode,self.aliases[matNode.attrib['ID']],self.aliasesNG)
+          self._readXSAlias(matNode,self.aliases[matNodeID],self.aliasesNG)
 
   def _readXSAlias(self,xmlNode,aliasXS,aliasXSGroup):
     """
@@ -111,7 +121,7 @@ class YakInstantLibraryParser():
     for child in xmlNode:
       if child.tag in self.perturbableReactions:
         mt = child.tag
-        if mt not in aliasXS.keys(): aliasXS[mt] = [0]*aliasXSGroup
+        if mt not in aliasXS.keys(): aliasXS[mt] = [None]*aliasXSGroup
         groupIndex = child.get('gIndex')
         if groupIndex == None:
           varsList = list(var.strip() for var in child.text.strip().split(','))
@@ -229,7 +239,7 @@ class YakInstantLibraryParser():
     #calculate Total Scattering
     totScattering = np.zeros(self.nGroup)
     for g in range(self.nGroup):
-      totScattering[g] = np.sum(pDict[scattering.tag][0:self.nGroup][g])
+      totScattering[g] = np.sum(pDict[scattering.tag][0:self.nGroup,g])
     pDict['TotalScatteringXS'] = totScattering
 
   def _checkYakXS(self,reactionDict):
@@ -265,6 +275,10 @@ class YakInstantLibraryParser():
           else:
             kappa.append(self.defaultKappa)
         reactionDict['Kappa'] = np.asarray(kappa)
+    if 'DiffusionCoefficient' in reactionList:
+      reactionDict['perturbDiffusionCoefficient'] = True
+    else:
+      reactionDict['perturbDiffusionCoefficient'] = False
     #check and calculate total or  transport cross sections
     if 'TotalXS' not in reactionList:
       if 'DiffusionCoefficient' not in reactionList:
@@ -276,7 +290,7 @@ class YakInstantLibraryParser():
         elif reactionDict['ScatteringOrder'] == 0:
           reactionDict['TotalXS'] = [1.0/(3.0*value) for value in reactionDict['DiffusionCoefficient']]
         else:
-          reactionDict['TotalXS'] =  [1.0/(3.0*value) for value in reactionDict['DiffusionCoefficient']] + np.sum(reactionDict['ScatteringXS'][self.nGroup:2*self.nGroup],1)
+          reactionDict['TotalXS'] =  [1.0/(3.0*value) for value in reactionDict['DiffusionCoefficient']] + np.sum(reactionDict['ScatteringXS'][self.nGroup:2*self.nGroup])
     else:
       if 'DiffusionCoefficient' not in reactionList:
         #calculate transport cross sections
@@ -285,7 +299,7 @@ class YakInstantLibraryParser():
         elif reactionDict['ScatteringOrder'] == 0:
           reactionDict['DiffusionCoefficient'] =  [1.0/(3.0*value) for value in reactionDict['TotalXS']]
         else:
-          xs = reactionDict['TotalXS'] - np.sum(reactionDict['ScatteringXS'][self.nGroup:2*self.nGroup],1)
+          xs = reactionDict['TotalXS'] - np.sum(reactionDict['ScatteringXS'][self.nGroup:2*self.nGroup])
           reactionDict['DiffusionCoefficient'] =  [1.0/(3.0*value) for value in xs]
 
     #Metod 1: Currently, rattlesnake will not check the consistent of provided cross sections, rattlesnake will only use Total,
@@ -316,9 +330,9 @@ class YakInstantLibraryParser():
     pertFactor = copy.deepcopy(self.aliases)
     #generate the pertLib
     for matID, mtDict in pertFactor.items():
-      self._computePerturbations(mtDict,self.pertLib[matID],self.aliasesType)
+      self._computePerturbations(mtDict,self.pertLib[matID],self.aliasesType[matID])
     for matID, mtDict in pertFactor.items():
-      self._rebalanceXS(self.pertLib[matID],pertFactor[matID],self.aliasesType)
+      self._rebalanceXS(self.pertLib[matID],pertFactor[matID],self.aliasesType[matID])
 
   def _computePerturbations(self,factors,lib,aliasType):
     """
@@ -334,13 +348,17 @@ class YakInstantLibraryParser():
       for var in libValue:
         if var in self.modDict.keys():
           groupValues.append(self.modDict[var])
-        else:
+        elif var ==None:
           if aliasType == 'rel':
             groupValues.append(1.0)
           elif aliasType == 'abs':
             groupValues.append(0.0)
+        else:
+          raise IOError('The user wants to perturb ' + var + ', but this variable is not defined in the Sampler!')
       groupValues = np.asarray(groupValues)
       factors[mtID] = groupValues
+      if not lib['perturbDiffusionCoefficient'] and mtID == 'DiffusionCoefficient':
+        raise IOError('Diffusion Coefficient can not be perturbed since it does not exist in the XS library!')
       if aliasType == 'rel':
         lib[mtID] *= groupValues
       elif aliasType == 'abs':
@@ -373,15 +391,16 @@ class YakInstantLibraryParser():
           reactionDict['ScatteringXS'][0:self.nGroup,g] *= perturbDict['TotalScatteringXS'][g]
         elif aliasType == 'abs':
           factor = perturbDict['TotalScatteringXS'][g]/self.nGroup
-          reactionDict['ScatteringXS'][0:self.nGroup][g] += factor
+          reactionDict['ScatteringXS'][0:self.nGroup,g] += factor
     #recalculate Removal cross sections
     reactionDict['RemovalXS'] = np.asarray(list(reactionDict['TotalXS'][g] - reactionDict['ScatteringXS'][g][g] for g in range(self.nGroup)))
     #recalculate diffusion coefficient cross sections
-    if reactionDict['ScatteringXS'].shape[0] >= self.nGroup*2:
-      transport = reactionDict['TotalXS'] - np.sum(reactionDict['ScatteringXS'][self.nGroup:self.nGroup*2],1)
-      reactionDict['DiffusionCoefficient'] = [1.0/(3.0*value) for value in transport]
-    else:
-      reactionDict['DiffusionCoefficient'] = [1.0/(3.0*value) for value in reactionDict['TotalXS']]
+    if not reactionDict['perturbDiffusionCoefficient']:
+      if reactionDict['ScatteringXS'].shape[0] >= self.nGroup*2:
+        transport = reactionDict['TotalXS'] - np.sum(reactionDict['ScatteringXS'][self.nGroup:self.nGroup*2])
+        reactionDict['DiffusionCoefficient'] = [1.0/(3.0*value) for value in transport]
+      else:
+        reactionDict['DiffusionCoefficient'] = [1.0/(3.0*value) for value in reactionDict['TotalXS']]
 
 
   def _replaceXMLNodeText(self,xmlNode,reactionDict):
@@ -403,18 +422,13 @@ class YakInstantLibraryParser():
 
   def _prettify(self,tree):
     """
-      Script for turning XML tree into something mostly RAVEN-preferred.  Does not align attributes as some devs like.
+      Script for turning XML tree to be more user friendly.
       @ In, tree, xml.etree.ElementTree object, the tree form of an input file
-      @ Out, toWrite, string, the entire contents of the desired file to write, including newlines
+      @ Out, pretty, string, the entire contents of the desired file to write
     """
     #make the first pass at pretty.  This will insert way too many newlines, because of how we maintain XML format.
     pretty = pxml.parseString(ET.tostring(tree.getroot())).toprettyxml(indent='  ')
-    #loop over each "line" and toss empty ones, but for ending main nodes, insert a newline after.
-    toWrite=''
-    for line in pretty.split('\n'):
-      if line.strip()=='':continue
-      toWrite += line.rstrip()+'\n'
-    return toWrite
+    return pretty
 
   def writeNewInput(self,inFiles=None,**Kwargs):
     """
@@ -429,7 +443,7 @@ class YakInstantLibraryParser():
       root = tree.getroot()
       for child in root:
         for mat in child:
-          matID = mat.attrib['ID']
+          matID = mat.attrib['ID'].strip()
           if matID not in self.aliases.keys(): continue
           self._replaceXMLNodeText(mat,self.pertLib[matID])
 

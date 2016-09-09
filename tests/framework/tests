@@ -21,7 +21,7 @@
    type = 'RavenFramework'
    input = 'test_2steps_same_db.xml'
    csv = 'test_2steps/fullprint_HistorySet_3.csv'
-   xml = 'test_2steps/fullprint_HistorySet.xml'
+   UnorderedXml = 'test_2steps/fullprint_HistorySet.xml'
  [../]
 
  [./external_xml]
@@ -29,6 +29,17 @@
    input = 'test_External_XML.xml'
    output = 'ExternalXMLTest/outGrid_dump.xml'
    csv = 'ExternalXMLTest/outGrid_dump.csv'
+ [../]
+
+ ## This test will exercise our ability to parse command line options
+ [./simple_command_line_args]
+   type = 'RavenFramework'
+   input = 'test_simple.xml quiet silent all quiet'
+   output = 'revirD_tset/FirstMRun/1/out~ideal_pump revirD_tset/FirstMRun/6/out~ideal_pump'
+   csv = 'revirD_tset/FirstMRun/6/out~ideal_pump.csv'
+   required_executable = '../../RAVEN-%METHOD%'
+   ## Skip this test, if its duplicated failed
+   prereq = simple_framework
  [../]
 
  [./test_output]
@@ -111,7 +122,7 @@
   input = 'test_rom_trainer.xml'
   #skip = 'working in progress'
   output = ''
-  csv = 'test_rom_trainer/outputMontecarloRom_dump.csv test_rom_trainer/outputMontecarloRomND_dump.csv'
+  UnorderedCsv = 'test_rom_trainer/outputMontecarloRom_dump.csv test_rom_trainer/outputMontecarloRomND_dump.csv'
   max_time = 1500
   rel_err = 0.001
  [../]
@@ -248,17 +259,6 @@
   csv = 'limitSurfaceMultiGrid/limitSurfaceTwoIslandsCSV.csv'
   max_time = 300
   rel_err = 0.0001
- [../]
-
-
- [./testCreateInternalObjFromCSVs]
-  type = 'RavenFramework'
-  input = 'test_CreateInternalObjFromCSVs.xml'
-  output = 'CreateInternalObjFromCSVs/PointSetPostProcTest_DUMP.csv'
-  csv = 'CreateInternalObjFromCSVs/PointSetPostProcTest_DUMP.csv'
-  max_time = 500
-  rel_err = 0.001
-  prereq = testGrid_RELAP7
  [../]
 
  [./test_bison_mc_simple_&_alias_system]
@@ -492,6 +492,14 @@
    input = 'test_stratified_dummy_model_large_grid_size.xml'
    output = 'stratifiedLargeGridSize/reprint_16var.csv stratifiedLargeGridSize/reprint_16var.xml stratifiedLargeGridSize/reprint_16var2.csv stratifiedLargeGridSize/reprint_16var2.xml stratifiedLargeGridSize/reprint_2var.csv stratifiedLargeGridSize/reprint_2var.xml'
  [../]
+
+ [./custom1D]
+   type   = 'RavenFramework'
+   input  = 'test_distributionCustom1D.xml'
+   output = 'custom1D/PointSet2_dump.csv custom1D/PointSet2_dump.xml custom1D/PointSet3_dump.csv custom1D/PointSet3_dump.xml'
+   csv    = 'custom1D/PointSet2_dump.csv custom1D/PointSet3_dump.csv'
+ [../]
+
 []
 
 

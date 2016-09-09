@@ -1,0 +1,10 @@
+<Materials>
+  <Macros NG="2" Type="rel">
+    <material ID="1">
+      <DiffusionCoefficient gIndex="1">d11</DiffusionCoefficient>
+    </material>
+    <material ID="2">
+      <DiffusionCoefficient gIndex="2">d22</DiffusionCoefficient>
+    </material>
+  </Macros>
+</Materials>
