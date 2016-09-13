@@ -643,7 +643,12 @@ class DynamicXMLOutput(StaticXMLOutput):
       #make sure it's an eligible node
       if child.tag != self.pivotParam:
         continue
-      if abs(float(child.attrib['value']) - pivotVal) <= 1e-10*pivotVal:
+      # inequality changes signs depending on the sign of pivotVal
+      if pivotVal < 0:
+        foundCondition = abs(float(child.attrib['value']) - pivotVal) >= 1e-10*pivotVal
+      else:
+        foundCondition = abs(float(child.attrib['value']) - pivotVal) <= 1e-10*pivotVal
+      if foundCondition:
         pivotNode = child
         found = True
         break
