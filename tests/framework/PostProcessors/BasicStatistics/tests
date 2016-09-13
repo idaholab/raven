@@ -30,8 +30,8 @@
     type = 'RavenFramework'
     input = 'stratified.xml'
     UnorderedCsv = 'basicStatsStratifiedAnalytic/outputDataStratified_dump.csv'
+    UnorderedXml = 'basicStatsStratifiedAnalytic/output_basicStatistics_PP1Stratified.xml'
     output = 'basicStatsStratifiedAnalytic/outputDataStratified_dump.csv basicStatsStratifiedAnalytic/outputDataStratified_dump.xml'
-    xml = 'basicStatsStratifiedAnalytic/outputDataStratified_dump.xml'
     rel_err = 1e-6
     zero_threshold = 1e-14
   [../]
