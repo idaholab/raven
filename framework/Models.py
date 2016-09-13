@@ -1724,7 +1724,7 @@ class EnsembleModel(Dummy, Assembler):
       @ Out, None
     """
     if finishedJob.getEvaluation() == -1: self.raiseAnError(RuntimeError,"Job " + finishedJob.identifier +" failed!")
-    out, inputs = finishedJob.getEvaluation()[1], finishedJob.getEvaluation()[0]
+    inputs, out = finishedJob.getEvaluation()[:2]
     exportDict = {'inputSpaceParams':{},'outputSpaceParams':{},'metadata':{}}
     outcomes, targetEvaluations = out
     for modelIn in self.modelsDictionary.keys():

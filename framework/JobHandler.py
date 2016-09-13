@@ -241,19 +241,19 @@ class JobHandler(MessageHandler.MessageUser):
       self.__initializeParallelPython()
 
     if self.ppserver is None or forceUseThreads:
-      internalJob = Runners.InternalThreadedRunner(self.messageHandler, Input,
-                                                   functionToRun,
-                                                   modulesToImport, identifier,
-                                                   metadata,
-                                                   functionToSkip=[utils.metaclass_insert(abc.ABCMeta,BaseType)],
-                                                   uniqueHandler = uniqueHandler)
+      internalJob = Runners.SharedMemoryRunner(self.messageHandler, Input,
+                                               functionToRun, modulesToImport,
+                                               identifier, metadata,
+                                               functionToSkip=[utils.metaclass_insert(abc.ABCMeta,BaseType)],
+                                               uniqueHandler = uniqueHandler)
     else:
-      internalJob = Runners.InternalRunner(self.messageHandler, self.ppserver,
-                                           Input, functionToRun,
-                                           modulesToImport, identifier,
-                                           metadata,
-                                           functionToSkip=[utils.metaclass_insert(abc.ABCMeta,BaseType)],
-                                           uniqueHandler = uniqueHandler)
+      internalJob = Runners.DistributedMemoryRunner(self.messageHandler,
+                                                    self.ppserver, Input,
+                                                    functionToRun,
+                                                    modulesToImport, identifier,
+                                                    metadata,
+                                                    functionToSkip=[utils.metaclass_insert(abc.ABCMeta,BaseType)],
+                                                    uniqueHandler = uniqueHandler)
     with self.__queueLock:
       if not clientQueue:
         self.__queue.append(internalJob)
@@ -425,10 +425,10 @@ class JobHandler(MessageHandler.MessageUser):
           if os.path.exists(outputFilename): self.raiseAMessage(open(outputFilename,"r").read())
           else: self.raiseAMessage(" No output "+outputFilename)
       else:
-        if self.runInfoDict['delSucLogFiles'] and not isinstance(running, Runners.InternalRunner):
+        if self.runInfoDict['delSucLogFiles'] and isinstance(running, Runners.ExternalRunner):
           self.raiseAMessage(' Run "' +running.identifier+'" ended smoothly, removing log file!')
           if os.path.exists(running.getOutputFilename()): os.remove(running.getOutputFilename())
-        if len(self.runInfoDict['deleteOutExtension']) >= 1 and not isinstance(running, Runners.InternalRunner):
+        if len(self.runInfoDict['deleteOutExtension']) >= 1 and isinstance(running, Runners.ExternalRunner):
           for fileExt in self.runInfoDict['deleteOutExtension']:
             if not fileExt.startswith("."): fileExt = "." + fileExt
             fileList = [ f for f in os.listdir(running.getWorkingDir()) if f.endswith(fileExt) ]

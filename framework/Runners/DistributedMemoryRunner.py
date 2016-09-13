@@ -30,18 +30,20 @@ else:
   print("pp does not support python3")
 # end internal parallel module
 import MessageHandler
-from .Runner import Runner
+from .InternalRunner import InternalRunner
 #Internal Modules End--------------------------------------------------------------------------------
 
-class InternalRunner(Runner):
+class DistributedMemoryRunner(InternalRunner):
   """
-    Generic base Class for running internal objects
+    Class for running internal objects in distributed memory fashion using
+    ppserver
   """
-  def __init__(self, messageHandler, Input, functionToRun, frameworkModules = [], identifier=None, metadata=None, functionToSkip = None, uniqueHandler = "any"):
+  def __init__(self, messageHandler, ppserver, Input, functionToRun, frameworkModules = [], identifier=None, metadata=None, functionToSkip = None, uniqueHandler = "any"):
     """
       Init method
       @ In, messageHandler, MessageHandler object, the global RAVEN message
         handler object
+      @ In, ppserver, ppserver, instance of the ppserver object
       @ In, Input, list, list of inputs that are going to be passed to the
         function as *args
       @ In, functionToRun, method or function, function that needs to be run
@@ -65,72 +67,58 @@ class InternalRunner(Runner):
     ## First, allow the base class to handle the commonalities
     ##   We keep the command here, in order to have the hook for running exec
     ##   code into internal models
-    super(InternalRunner, self).__init__(messageHandler, 'internal', identifier, metadata, uniqueHandler)
+    super(DistributedMemoryRunner, self).__init__(messageHandler, Input, functionToRun, frameworkModules, identifier, metadata, functionToSkip, uniqueHandler)
 
     ## Other parameters passed at initialization
-    self.input          = copy.copy(Input)
-    self.functionToRun  = functionToRun
-    self.frameworkMods  = copy.copy(frameworkModules)
-    self.functionToSkip = functionToSkip
+    self.__ppserver = ppserver
 
-    ## Other parameters manipulated internally
-    self.thread         = None
-    self.runReturn      = None
-    self.hasBeenAdded   = False
-    self.returnCode     = 0
-
-    ## These things cannot be deep copied
-    self.skipOnCopy = ['functionToRun','thread','__queueLock']
-
-    ## The Input needs to be a tuple. The first entry is the actual input (what
-    ## is going to be stored here), the others are other arg the function needs
-    if type(Input) != tuple:
-      self.raiseAnError(IOError,"The input for " + self.__class__.__name__ + " should be a tuple. Instead received " + Input.__class__.__name__)
-
-  def __deepcopy__(self,memo):
+  def isDone(self):
     """
-      This is the method called with copy.deepcopy.  Overwritten to remove some keys.
-      @ In, memo, dict, dictionary required by deepcopy method
-      @ Out, newobj, object, deep copy of this object
+      Method to check if the calculation associated with this Runner is finished
+      @ In, None
+      @ Out, finished, bool, is it finished?
     """
-    cls = self.__class__
-    newobj = cls.__new__(cls)
-    memo[id(self)] = newobj
-    for k,v in self.__dict__.items():
-      if k not in self.skipOnCopy:
-        setattr(newobj,k,copy.deepcopy(v,memo))
-    return newobj
+    if self.thread is None:
+      return True
+    else:
+      return self.thread.finished
 
   def __collectRunnerResponse(self):
     """
       Method to add the process response in the internal variable (pointer)
-      self.runReturn
+      self.__runReturn
       @ In, None
       @ Out, None
     """
-    pass
+    if not self.hasBeenAdded:
+      for row in self.__ppserver.collect_stats_in_list():
+        self.raiseADebug(row)
+      if self.thread is not None:
+        self.runReturn = self.thread()
+      else:
+        self.runReturn = None
+      self.hasBeenAdded = True
 
-  def getReturnCode(self):
+  def start(self):
     """
-      Returns the return code from running the code.
+      Method to start the job associated to this Runner
       @ In, None
-      @ Out, returnCode, int,  the return code of this evaluation
+      @ Out, None
     """
-    return self.returnCode
+    try:
+      if len(self.input) == 1:
+        self.thread = self.__ppserver.submit(self.functionToRun, args= (self.input[0],), depfuncs=(), modules = tuple(list(set(self.frameworkMods))),functionToSkip=self.functionToSkip)
+      else:
+        self.thread = self.__ppserver.submit(self.functionToRun, args= self.input, depfuncs=(), modules = tuple(list(set(self.frameworkMods))),functionToSkip=self.functionToSkip)
+    except Exception as ae:
+      self.raiseAWarning(self.__class__.__name__ + " job "+self.identifier+" failed with error:"+ str(ae) +" !",'ExceptedError')
+      self.returnCode = -1
 
-  def getEvaluation(self):
+  def kill(self):
     """
-      Method to return the results of the function evaluation associated with
-      this Runner
+      Method to kill the job associated to this Runner
       @ In, None
-      @ Out, (Input,response), tuple, tuple containing the results of the
-        evaluation (list of Inputs, function return value)
+      @ Out, None
     """
-    if self.isDone():
-      self.__collectRunnerResponse()
-      if self.runReturn is None:
-        self.returnCode = -1
-        return self.returnCode
-      return (self.input[0],self.runReturn)
-    else:
-      return -1 #control return code
+    self.raiseAWarning("Terminating " + self.thread.tid + " Identifier " + self.identifier)
+    os.kill(self.thread.tid, signal.SIGTERM)

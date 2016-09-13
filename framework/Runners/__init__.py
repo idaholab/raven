@@ -14,11 +14,12 @@ from __future__ import absolute_import
 from .Runner import Runner
 from .ExternalRunner import ExternalRunner
 from .InternalRunner import InternalRunner
-from .InternalThreadedRunner import InternalThreadedRunner
+from .SharedMemoryRunner import SharedMemoryRunner
+from .DistributedMemoryRunner import DistributedMemoryRunner
 
 # from .Factory import knownTypes
 # from .Factory import returnInstance
 # from .Factory import returnClass
 
 # We should not really need this as we do not use wildcard imports
-__all__ = ['Runner', 'ExternalRunner', 'InternalRunner', 'InternalThreadedRunner']
+__all__ = ['Runner', 'ExternalRunner', 'InternalRunner', 'SharedMemoryRunner', 'DistributedMemoryRunner']

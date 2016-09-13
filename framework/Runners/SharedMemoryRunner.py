@@ -30,52 +30,46 @@ import MessageHandler
 from .InternalRunner import InternalRunner
 #Internal Modules End--------------------------------------------------------------------------------
 
-class InternalThreadedRunner(InternalRunner):
+class SharedMemoryRunner(InternalRunner):
   """
-    Class for running internal objects in a threaded fashion
+    Class for running internal objects in a threaded fashion using the built-in
+    threading library
   """
   def __init__(self, messageHandler, Input, functionToRun, frameworkModules = [], identifier=None, metadata=None, functionToSkip = None, uniqueHandler = "any"):
     """
       Init method
-      @ In, messageHandler, MessageHandler object, the global RAVEN message handler object
-      @ In, Input, list, list of inputs that are going to be passed to the function as *args
+      @ In, messageHandler, MessageHandler object, the global RAVEN message
+        handler object
+      @ In, Input, list, list of inputs that are going to be passed to the
+        function as *args
       @ In, functionToRun, method or function, function that needs to be run
-      @ In, frameworkModules, list, optional, list of modules that need to be imported for internal parallelization (parallel python).
-                                             this list should be generated with the method returnImportModuleString in utils.py
+      @ In, frameworkModules, list, optional, list of modules that need to be
+        imported for internal parallelization (parallel python). This list
+        should be generated with the method returnImportModuleString in utils.py
       @ In, identifier, string, optional, id of this job
-      @ In, metadata, dict, optional, dictionary of metadata associated with this run
-      @ In, functionToSkip, list, optional, list of functions, classes and modules that need to be skipped in pickling the function dependencies
-      @ In, uniqueHandler, string, optional, it is a special keyword attached to this runner. For example, if present, to retrieve this runner using the method jobHandler.getFinished, the uniqueHandler needs to be provided.
-                                            if uniqueHandler == 'any', every "client" can get this runner
+      @ In, metadata, dict, optional, dictionary of metadata associated with
+        this run
+      @ In, functionToSkip, list, optional, list of functions, classes and
+        modules that need to be skipped in pickling the function dependencies
+      @ In, uniqueHandler, string, optional, it is a special keyword attached to
+        this runner. For example, if present, to retrieve this runner using the
+        method jobHandler.getFinished, the uniqueHandler needs to be provided.
+        If uniqueHandler == 'any', every "client" can get this runner
       @ Out, None
     """
     ## First, allow the base class handle the commonalities
     # we keep the command here, in order to have the hook for running exec code into internal models
-    super(InternalThreadedRunner, self).__init__(messageHandler, None, Input, functionToRun, frameworkModules, identifier, metadata, functionToSkip, uniqueHandler)
+    super(SharedMemoryRunner, self).__init__(messageHandler, Input, functionToRun, frameworkModules, identifier, metadata, functionToSkip, uniqueHandler)
 
     ## Other parameters manipulated internally
     self.subque = collections.deque()
     #self.subque = queue.Queue()
 
-  def __deepcopy__(self,memo):
-    """
-      This is the method called with copy.deepcopy.  Overwritten to remove some keys.
-      @ In, memo, dict, dictionary required by deepcopy method
-      @ Out, newobj, object, deep copy of this object
-    """
-    cls = self.__class__
-    newobj = cls.__new__(cls)
-    memo[id(self)] = newobj
-    ### these things can't be deepcopied ###
-    toRemove = ['functionToRun','subque','thread','__queueLock']
-    for k,v in self.__dict__.items():
-      if k not in toRemove:
-        setattr(newobj,k,copy.deepcopy(v,memo))
-    return newobj
+    self.skipOnCopy.append('subque')
 
   def isDone(self):
     """
-      Method to check if the calculation associated with this InternalRunner is finished
+      Method to check if the calculation associated with this Runner is finished
       @ In, None
       @ Out, finished, bool, is it finished?
     """
@@ -86,7 +80,8 @@ class InternalThreadedRunner(InternalRunner):
 
   def getReturnCode(self):
     """
-      Returns the return code from running the code.  If return code not yet set, set it.
+      Returns the return code from running the code.  If return code not yet
+      set, then set it.
       @ In, None
       @ Out, returnCode, int,  the return code of this evaluation
     """
@@ -101,7 +96,8 @@ class InternalThreadedRunner(InternalRunner):
 
   def __collectRunnerResponse(self):
     """
-      Method to add the process response in the internal variable (pointer) self.runReturn
+      Method to add the process response in the internal variable (pointer)
+      self.runReturn
       @ In, None
       @ Out, None
     """
@@ -116,7 +112,7 @@ class InternalThreadedRunner(InternalRunner):
 
   def start(self):
     """
-      Method to start the job associated to this InternalRunner
+      Method to start the job associated to this Runner
       @ In, None
       @ Out, None
     """
@@ -134,7 +130,7 @@ class InternalThreadedRunner(InternalRunner):
 
   def kill(self):
     """
-      Method to kill the job associated to this InternalRunner
+      Method to kill the job associated to this Runner
       @ In, None
       @ Out, None
     """
