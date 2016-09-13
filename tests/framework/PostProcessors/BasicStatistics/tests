@@ -3,8 +3,8 @@
     type = 'RavenFramework'
     input = 'test_BasicStatsGridAnalytic.xml'
     UnorderedCsv = 'basicStatsGridAnalytic/outputDatagrid_dump.csv'
+    UnorderedXml = 'basicStatsGridAnalytic/output_basicStatistics_PP1grid.xml'
     output = 'basicStatsGridAnalytic/outputDatagrid_dump.csv basicStatsGridAnalytic/outputDatagrid_dump.xml'
-    xml = 'basicStatsGridAnalytic/outputDatagrid_dump.xml'
     rel_err = 0.00001
     zero_threshold = 1e-9
     remove_whitespace = True
@@ -12,8 +12,8 @@
   [./basicStatsGridInValue]
     type = 'RavenFramework'
     input = 'test_BasicStatsGridInValueAnalytic.xml'
+    UnorderedXml = 'basicStatsGridInValueAnalytic/output_basicStatistics_PP1grid.xml'
     output = 'basicStatsGridInValueAnalytic/outputDatagrid_dump.csv basicStatsGridInValueAnalytic/outputDatagrid_dump.xml'
-    UnorderedXml = 'basicStatsGridInValueAnalytic/outputDatagrid_dump.xml'
     rel_err = 0.00001
     zero_threshold = 1e-14
     remove_whitespace = True
