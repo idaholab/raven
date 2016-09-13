@@ -8,6 +8,7 @@
 
   <Files>
     <Input name="output_basicStatistics_PP1grid.csv" type="">output_basicStatistics_PP1grid.csv</Input>
+    <Input name="output_basicStatistics_PP1grid.xml" type="">output_basicStatistics_PP1grid.xml</Input>
   </Files>
 
   <Models>
@@ -15,8 +16,27 @@
       <variables>x,y,x1,y1</variables>
     </ExternalModel>
     <PostProcessor name="analyticalTest" subType="BasicStatistics" verbosity="debug">
-      <what>covariance,pearson,sensitivity,VarianceDependentSensitivity,NormalizedSensitivity,variance</what>
-      <parameters>x1,y1</parameters>
+      <covariance>
+        <targets>x1,y1</targets>
+        <features>x1,y1</features>
+      </covariance>
+      <pearson>
+        <targets>x1,y1</targets>
+        <features>x1,y1</features>
+      </pearson>
+      <sensitivity>
+        <targets>x1,y1</targets>
+        <features>x1,y1</features>
+      </sensitivity>
+      <VarianceDependentSensitivity>
+        <targets>x1,y1</targets>
+        <features>x1,y1</features>
+      </VarianceDependentSensitivity>
+      <NormalizedSensitivity>
+        <targets>x1,y1</targets>
+        <features>x1,y1</features>
+      </NormalizedSensitivity>
+      <variance>x1,y1</variance>
     </PostProcessor>
   </Models>
 
@@ -59,6 +79,7 @@
       <Input class="DataObjects" type="PointSet">outputDataGrid</Input>
       <Model class="Models" type="PostProcessor">analyticalTest</Model>
       <Output class="Files" type="">output_basicStatistics_PP1grid.csv</Output>
+      <Output class="Files" type="">output_basicStatistics_PP1grid.xml</Output>
       <Output class="DataObjects" type="PointSet">outputDataGrid</Output>
       <Output class="OutStreams" type="Print">outputDatagrid_dump</Output>
     </PostProcess>

@@ -22,8 +22,8 @@
     type = 'RavenFramework'
     input = 'test_BasicStatsMonteCarloAnalytic.xml'
     UnorderedCsv = 'basicStatsMonteCarloAnalytic/outputDataMC_dump.csv'
+    UnorderedXml = 'basicStatsMonteCarloAnalytic/output_basicStatistics_PP1mc.xml'
     output = 'basicStatsMonteCarloAnalytic/outputDataMC_dump.csv basicStatsMonteCarloAnalytic/outputDataMC_dump.xml'
-    xml = 'basicStatsMonteCarloAnalytic/outputDataMC_dump.xml'
     rel_err = 1e-6
   [../]
   [./basicStatsStratified]
