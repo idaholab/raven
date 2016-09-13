@@ -244,10 +244,10 @@ class LimitSurfaceIntegral(BasePostProcessor):
       @ In, output, dataObjects, The object where we want to place our computed results
       @ Out, None
     """
-    if finishedJob.returnEvaluation() == -1: self.raiseAnError(RuntimeError, 'no available output to collect.')
+    if finishedJob.getEvaluation() == -1: self.raiseAnError(RuntimeError, 'no available output to collect.')
     else:
-      pb = finishedJob.returnEvaluation()[1]
-      lms = finishedJob.returnEvaluation()[0][0]
+      pb = finishedJob.getEvaluation()[1]
+      lms = finishedJob.getEvaluation()[0][0]
       if output.type == 'PointSet':
         # we store back the limitsurface
         for key, value in lms.getParametersValues('input').items():
@@ -565,10 +565,10 @@ class SafestPoint(BasePostProcessor):
       @ In, output, dataObjects, The object where we want to place our computed results
       @ Out, None
     """
-    if finishedJob.returnEvaluation() == -1:
+    if finishedJob.getEvaluation() == -1:
       self.raiseAnError(RuntimeError, 'no available output to collect (the run is likely not over yet).')
     else:
-      dataCollector = finishedJob.returnEvaluation()[1]
+      dataCollector = finishedJob.getEvaluation()[1]
       if output.type != 'PointSet':
         self.raiseAnError(TypeError, 'output item type must be "PointSet".')
       else:
@@ -708,8 +708,8 @@ class ComparisonStatistics(BasePostProcessor):
       @ Out, None
     """
     self.raiseADebug("finishedJob: " + str(finishedJob) + ", output " + str(output))
-    if finishedJob.returnEvaluation() == -1: self.raiseAnError(RuntimeError, 'no available output to collect.')
-    else: self.dataDict.update(finishedJob.returnEvaluation()[1])
+    if finishedJob.getEvaluation() == -1: self.raiseAnError(RuntimeError, 'no available output to collect.')
+    else: self.dataDict.update(finishedJob.getEvaluation()[1])
 
     dataToProcess = []
     for compareGroup in self.compareGroups:
@@ -991,9 +991,9 @@ class InterfacedPostProcessor(BasePostProcessor):
       @ In, output, dataObjects, The object where we want to place our computed results
       @ Out, None
     """
-    if finishedJob.returnEvaluation() == -1:
+    if finishedJob.getEvaluation() == -1:
       self.raiseAnError(RuntimeError, ' No available Output to collect (Run probably is not finished yet)')
-    evaluation = finishedJob.returnEvaluation()[1]
+    evaluation = finishedJob.getEvaluation()[1]
 
     exportDict = {'inputSpaceParams':evaluation['data']['input'],'outputSpaceParams':evaluation['data']['output'],'metadata':evaluation['metadata']}
 
@@ -1182,8 +1182,8 @@ class ImportanceRank(BasePostProcessor):
       @ Out, None
     """
     parameterSet = list(set(list(self.features)))
-    if finishedJob.returnEvaluation() == -1: self.raiseAnError(RuntimeError, ' No available output to collect (Run probably is not finished yet)')
-    outputDict = finishedJob.returnEvaluation()[-1]
+    if finishedJob.getEvaluation() == -1: self.raiseAnError(RuntimeError, ' No available output to collect (Run probably is not finished yet)')
+    outputDict = finishedJob.getEvaluation()[-1]
     # Output to file
     if isinstance(output, Files.File):
       availExtens = ['xml','csv', 'txt']
@@ -1493,8 +1493,8 @@ class BasicStatistics(BasePostProcessor):
     """
     # output
     parameterSet = list(set(list(self.parameters['targets'])))
-    if finishedJob.returnEvaluation() == -1: self.raiseAnError(RuntimeError, ' No available Output to collect (Run probably is not finished yet)')
-    outputDictionary = finishedJob.returnEvaluation()[1]
+    if finishedJob.getEvaluation() == -1: self.raiseAnError(RuntimeError, ' No available Output to collect (Run probably is not finished yet)')
+    outputDictionary = finishedJob.getEvaluation()[1]
     methodToTest = []
     for key in self.methodsToRun:
       if key not in self.acceptedCalcParam: methodToTest.append(key)
@@ -2335,9 +2335,9 @@ class LimitSurface(BasePostProcessor):
       @ In, output, dataObjects, The object where we want to place our computed results
       @ Out, None
     """
-    if finishedJob.returnEvaluation() == -1: self.raiseAnError(RuntimeError, 'No available Output to collect (Run probably is not finished yet)')
-    self.raiseADebug(str(finishedJob.returnEvaluation()))
-    limitSurf = finishedJob.returnEvaluation()[1]
+    if finishedJob.getEvaluation() == -1: self.raiseAnError(RuntimeError, 'No available Output to collect (Run probably is not finished yet)')
+    self.raiseADebug(str(finishedJob.getEvaluation()))
+    limitSurf = finishedJob.getEvaluation()[1]
     if limitSurf[0] is not None:
       for varName in output.getParaKeys('inputs'):
         for varIndex in range(len(self.axisName)):
@@ -2593,12 +2593,12 @@ class ExternalPostProcessor(BasePostProcessor):
         results
       @ Out, None
     """
-    if finishedJob.returnEvaluation() == -1:
+    if finishedJob.getEvaluation() == -1:
       # #TODO This does not feel right
       self.raiseAnError(RuntimeError, 'No available Output to collect (Run probably did not finish yet)')
 
-    inputList = finishedJob.returnEvaluation()[0]
-    outputDict = finishedJob.returnEvaluation()[1]
+    inputList = finishedJob.getEvaluation()[0]
+    outputDict = finishedJob.getEvaluation()[1]
 
     if isinstance(output,Files.File):
       self.raiseAWarning('Output type File not yet implemented. I am going to skip it.')
@@ -2877,11 +2877,11 @@ class TopologicalDecomposition(BasePostProcessor):
       @ In, output, dataObjects, The object where we want to place our computed results
       @ Out, None
     """
-    if finishedJob.returnEvaluation() == -1:
+    if finishedJob.getEvaluation() == -1:
       # TODO This does not feel right
       self.raiseAnError(RuntimeError,'No available output to collect (run probably did not finish yet)')
-    inputList = finishedJob.returnEvaluation()[0]
-    outputDict = finishedJob.returnEvaluation()[1]
+    inputList = finishedJob.getEvaluation()[0]
+    outputDict = finishedJob.getEvaluation()[1]
 
     if type(output).__name__ in ["str", "unicode", "bytes"]:
       self.raiseAWarning('Output type ' + type(output).__name__ + ' not'
@@ -3465,10 +3465,10 @@ class DataMining(BasePostProcessor):
       @ Out, None
     """
     ## When does this actually happen?
-    if finishedJob.returnEvaluation() == -1:
+    if finishedJob.getEvaluation() == -1:
       self.raiseAnError(RuntimeError, 'No available Output to collect (Run probably is not finished yet)')
 
-    dataMineDict = finishedJob.returnEvaluation()[1]
+    dataMineDict = finishedJob.getEvaluation()[1]
     for key in dataMineDict['output']:
       for param in output.getParaKeys('output'):
         if key == param:
@@ -3485,7 +3485,7 @@ class DataMining(BasePostProcessor):
             arrayBase = value * np.ones(timeLength)
             output.updateOutputValue([index[0]+1,key], arrayBase)
         else:
-          tlDict = finishedJob.returnEvaluation()[1]
+          tlDict = finishedJob.getEvaluation()[1]
           historyKey = output.getOutParametersValues().keys()
           for index, keyH in enumerate(historyKey):
             for keyL in tlDict['output'].keys():
@@ -4061,8 +4061,8 @@ class RavenOutput(BasePostProcessor):
       @ In, output, dataObjects, The object where we want to place our computed results
       @ Out, None
     """
-    if finishedJob.returnEvaluation() == -1: self.raiseAnError(RuntimeError, 'No available Output to collect (Run probably is not finished yet)')
-    realizations = finishedJob.returnEvaluation()[1]['realizations']
+    if finishedJob.getEvaluation() == -1: self.raiseAnError(RuntimeError, 'No available Output to collect (Run probably is not finished yet)')
+    realizations = finishedJob.getEvaluation()[1]['realizations']
     for real in realizations:
       for key in output.getParaKeys('inputs'):
         output.updateInputValue(key,real['inputs'][key])

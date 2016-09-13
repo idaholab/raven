@@ -38,364 +38,8 @@ else:
   print("pp does not support python3")
 # end internal parallel module
 import MessageHandler
+import Runners
 #Internal Modules End--------------------------------------------------------------------------------
-
-class ExternalRunner(MessageHandler.MessageUser):
-  """
-    Class for running external codes
-  """
-  def __init__(self,messageHandler, command, workingDir, bufferSize, identifier = None, output = None ,metadata = None, codePointer = None, uniqueHandler = "any"):
-    """
-      Initialize command variable
-      @ In, messageHandler, MessageHandler instance, the global RAVEN message handler instance
-      @ In, command, list, list of commands that needs to be executed
-      @ In, workingDir, string, absolute path of the working directory
-      @ In, bufferSize, int, buffer size for logger
-      @ In, identifier, string, optional, id of this job
-      @ In, output, string, optional, output filename root
-      @ In, metadata, dict, optional, dictionary of metadata associated with this ExternalRunner
-      @ In, codePointer, CodeInterface instance, optional, instance of the code interface associated with this ExternalRunner
-      @ In, uniqueHandler, string, optional, it is a special keyword attached to this runner. For example, if present, to retrieve this runner using the method jobHandler.getFinished, the uniqueHandler needs to be provided.
-                                             if uniqueHandler == 'any', every "client" can get this runner
-      @ Out, None
-    """
-    self.uniqueHandler     = uniqueHandler
-    self.codePointerFailed = None
-    self.messageHandler    = messageHandler
-    self.command           = command
-    self.bufferSize        = bufferSize
-    if output is not None:
-      self.output   = output
-      if identifier is not None: self.identifier =  str(identifier).split("~")[1] if "~" in identifier else str(identifier)
-      else:
-        if metadata is not None:
-          if 'prefix' in metadata.keys(): self.identifier = metadata['prefix']
-          else:
-            splitted = __splitall(str(output))
-            if len(splitted) >= 2: self.identifier= splitted[-2]
-            else: self.identifier= 'generalOut'
-        else:
-          # try to find the identifier in the folder name
-          # to eliminate when the identifier is passed from outside
-          splitted = __splitall(str(output))
-          if len(splitted) >= 2: self.identifier= splitted[-2]
-          else: self.identifier= 'generalOut'
-    else:
-      self.output   = os.path.join(workingDir,'generalOut')
-      if identifier is not None: self.identifier =  str(identifier).split("~")[1] if "~" in identifier else str(identifier)
-      else                     : self.identifier = 'generalOut'
-    self.__workingDir = workingDir
-    ####### WARNING: THIS DEEPCOPY MUST STAY!!!! DO NOT REMOVE IT ANYMORE. ANDREA #######
-    self.__metadata   = copy.deepcopy(metadata)
-    ####### WARNING: THIS DEEPCOPY MUST STAY!!!! DO NOT REMOVE IT ANYMORE. ANDREA #######
-    self.codePointer  = codePointer
-
-    def __splitall(path):
-      """
-        Method to split a path into its components
-        @ In, path, string, the path to be splitted
-        @ Out, allParts, list, the list of the path components
-      """
-      allParts = []
-      while 1:
-        parts = os.path.split(path)
-        if parts[0] == path:  # sentinel for absolute paths
-          allParts.insert(0, parts[0])
-          break
-        elif parts[1] == path: # sentinel for relative paths
-          allParts.insert(0, parts[1])
-          break
-        else:
-          path = parts[0]
-          allParts.insert(0, parts[1])
-      return allParts
-
-
-# BEGIN: KEEP THIS COMMENTED PORTION HERE, I NEED IT FOR LATER USE. ANDREA
-    # Initialize logger
-    #self.logger     = self.createLogger(self.identifier)
-    #self.addLoggerHandler(self.identifier, self.output, 100000, 1)
-#   def createLogger(self,name):
-#     """
-#     Function to create a logging object
-#     @ In, name: name of the logging object
-#     @ Out, logging object
-#     """
-#     return logging.getLogger(name)
-#
-#   def addLoggerHandler(self,logger_name,filename,max_size,max_number_files):
-#     """
-#     Function to create a logging object
-#     @ In, logger_name     : name of the logging object
-#     @ In, filename        : log file name (with path)
-#     @ In, max_size        : maximum file size (bytes)
-#     @ In, max_number_files: maximum number of files to be created
-#     @ Out, None
-#     """
-#     hadler = logging.handlers.RotatingFileHandler(filename,'a',max_size,max_number_files)
-#     logging.getLogger(logger_name).addHandler(hadler)
-#     logging.getLogger(logger_name).setLevel(logging.INFO)
-#     return
-#
-#   def outStreamReader(self, out_stream):
-#     """
-#     Function that logs every line received from the out stream
-#     @ In, out_stream: output stream
-#     @ In, logger    : the instance of the logger object
-#     @ Out, logger   : the logger itself
-#     """
-#     while True:
-#       line = out_stream.readline()
-#       if len(line) == 0 or not line:
-#         break
-#       self.logger.info('%s', line)
-#       #self.logger.debug('%s', line.srip())
-#   END: KEEP THIS COMMENTED PORTION HERE, I NEED IT FOR LATER USE. ANDREA
-
-  def isDone(self):
-    """
-      Function to inquire the process to check if the calculation is finished
-      @ In, None
-      @ Out, finished, bool, is this run finished?
-    """
-    self.__process.poll()
-    finished = self.__process.returncode != None
-    return finished
-
-  def getReturnCode(self):
-    """
-      Function to inquire the process to get the return code
-      If the self.codePointer is available (!= None), this method
-      inquires it to check if the process return code is a false negative (or positive).
-      The first time the codePointer is inquired, it calls the function and store the result
-      => sub-sequential calls to getReturnCode will not inquire the codePointer anymore but
-      just return the stored value
-      @ In, None
-      @ Out, returnCode, int, return code.  1 if the checkForOutputFailure is true, otherwise the process return code.
-    """
-    returnCode = self.__process.returncode
-    if self.codePointer != None:
-      if 'checkForOutputFailure' in dir(self.codePointer):
-        if  self.codePointerFailed == None: self.codePointerFailed = self.codePointer.checkForOutputFailure(self.output,self.getWorkingDir())
-      if self.codePointerFailed: returnCode = 1
-    return returnCode
-
-  def returnEvaluation(self):
-    """
-      Function to return the External runner evaluation (outcome/s). Since in process, return None
-      @ In, None
-      @ Out, evaluation, tuple, the evaluation or None if run failed
-    """
-    return None
-
-  def returnMetadata(self):
-    """
-      Function to return the External runner metadata
-      @ In, None
-      @ Out, __metadata, dict, return the dictionary of metadata associated with this ExternalRunner
-    """
-    return self.__metadata
-
-  def start(self):
-    """
-      Function to run the driven code
-      @ In, None
-      @ Out, None
-    """
-    oldDir = os.getcwd()
-    os.chdir(self.__workingDir)
-    localenv = dict(os.environ)
-    outFile = open(self.output,'w', self.bufferSize)
-    self.__process = utils.pickleSafeSubprocessPopen(self.command,shell=True,stdout=outFile,stderr=outFile,cwd=self.__workingDir,env=localenv)
-    os.chdir(oldDir)
-
-  def kill(self):
-    """
-      Function to kill the subprocess of the driven code
-      @ In, None
-      @ Out, None
-    """
-    self.raiseAMessage("Terminating "+self.__process.pid+' '+self.command)
-    self.__process.terminate()
-
-  def getWorkingDir(self):
-    """
-      Function to get the working directory path
-      @ In, None
-      @ Out, __workingDir, string, working directory
-    """
-    return self.__workingDir
-
-  def getOutputFilename(self):
-    """
-      Function to get the output filenames
-      @ In, None
-      @ Out, self.output, string, output filename root
-    """
-    return os.path.join(self.__workingDir,self.output)
-#
-#
-#
-#
-class InternalRunner(MessageHandler.MessageUser):
-  """
-    Class for running internal objects
-  """
-  def __init__(self,messageHandler,ppserver, Input, functionToRun, frameworkModules = [], identifier=None, metadata=None, functionToSkip = None, forceUseThreads = False, uniqueHandler = "any"):
-    """
-      Init method
-      @ In, messageHandler, MessageHandler object, the global RAVEN message handler object
-      @ In, ppserver, ppserver, instance of the ppserver object
-      @ In, Input, list, list of inputs that are going to be passed to the function as *args
-      @ In, functionToRun, method or function, function that needs to be run
-      @ In, frameworkModules, list, optional, list of modules that need to be imported for internal parallelization (parallel python).
-                                             this list should be generated with the method returnImportModuleString in utils.py
-      @ In, identifier, string, optional, id of this job
-      @ In, metadata, dict, optional, dictionary of metadata associated with this run
-      @ In, functionToSkip, list, optional, list of functions, classes and modules that need to be skipped in pickling the function dependencies
-      @ In, forceUseThreads, bool, optional, flag that, if True, is going to force the usage of multi-threading even if parallel python is activated
-      @ In, uniqueHandler, string, optional, it is a special keyword attached to this runner. For example, if present, to retrieve this runner using the method jobHandler.getFinished, the uniqueHandler needs to be provided.
-                                            if uniqueHandler == 'any', every "client" can get this runner
-      @ Out, None
-    """
-    # we keep the command here, in order to have the hook for running exec code into internal models
-    self.uniqueHandler     = uniqueHandler
-    self.command           = "internal"
-    self.messageHandler    = messageHandler
-    self.ppserver          = ppserver
-    self.__thread          = None
-    if    identifier!=None:
-      if "~" in identifier: self.identifier =  str(identifier).split("~")[1]
-      else                : self.identifier =  str(identifier)
-    else: self.identifier = 'generalOut'
-    if type(Input) != tuple: self.raiseAnError(IOError,"The input for InternalRunner needs to be a tuple!!!!")
-    #the Input needs to be a tuple. The first entry is the actual input (what is going to be stored here), the others are other arg the function needs
-    if self.ppserver == None or forceUseThreads: self.subque = collections.deque() #self.subque = queue.Queue()
-    self.functionToRun    = functionToRun
-    self.__runReturn      = None
-    self.__hasBeenAdded   = False
-    self.__forceUseThreads= forceUseThreads
-    self.__input          = copy.copy(Input)
-    self.__metadata       = copy.copy(metadata)
-    self.__frameworkMods  = copy.copy(frameworkModules)
-    self._functionToSkip  = functionToSkip
-    self.returnCode       = 0
-
-  def __deepcopy__(self,memo):
-    """
-      This is the method called with copy.deepcopy.  Overwritten to remove some keys.
-      @ In, memo, dict, dictionary required by deepcopy method
-      @ Out, newobj, object, deep copy of this object
-    """
-    cls = self.__class__
-    newobj = cls.__new__(cls)
-    memo[id(self)] = newobj
-    copydict = self.__dict__
-    ### these things can't be deepcopied ###
-    toRemove = ['functionToRun','subque','_InternalRunner__thread','__queueLock']
-    for k,v in copydict.items():
-      if k in toRemove: continue
-      setattr(newobj,k,copy.deepcopy(v,memo))
-    return newobj
-
-  def startParallelPython(self):
-    """
-      Method to start the calculation associated with this InternalRunner is finished
-      @ In, None
-      @ Out, None
-    """
-    if self.ppserver != None and not self.__forceUseThreads:
-      if len(self.__input) == 1: self.__thread = self.ppserver.submit(self.functionToRun, args= (self.__input[0],), depfuncs=(), modules = tuple(list(set(self.__frameworkMods))),functionToSkip=self._functionToSkip)
-      else                     : self.__thread = self.ppserver.submit(self.functionToRun, args= self.__input, depfuncs=(), modules = tuple(list(set(self.__frameworkMods))),functionToSkip=self._functionToSkip)
-    else:
-      if len(self.__input) == 1: self.__thread = threading.Thread(target = lambda q,  arg : q.append(self.functionToRun(arg)), name = self.identifier, args=(self.subque,self.__input[0]))
-      else                     : self.__thread = threading.Thread(target = lambda q, *arg : q.append(self.functionToRun(*arg)), name = self.identifier, args=(self.subque,)+tuple(self.__input))
-      self.__thread.daemon = True
-      self.__thread.start()
-
-  def isDone(self):
-    """
-      Method to check if the calculation associated with this InternalRunner is finished
-      @ In, None
-      @ Out, finished, bool, is it finished?
-    """
-    if self.__thread == None: return True
-    else:
-      if self.ppserver != None and not self.__forceUseThreads: return self.__thread.finished
-      else                                                   : return not self.__thread.is_alive()
-
-  def getReturnCode(self):
-    """
-      Returns the return code from running the code.  If return code not yet set, set it.
-      @ In, None
-      @ Out, returnCode, int,  the return code of this evaluation
-    """
-    if self.ppserver is None and hasattr(self,'subque'):
-      if not self.__hasBeenAdded:
-        self.__collectRunnerResponse()
-      if len(self.subque) == 0 and self.__runReturn is None: #is this necessary and sufficient for all failed runs?
-        self.__runReturn = None
-        self.returnCode     = -1
-    return self.returnCode
-
-  def __collectRunnerResponse(self):
-    """
-      Method to add the process response in the internal variable (pointer) self.__runReturn
-      @ In, None
-      @ Out, None
-    """
-    if not self.__hasBeenAdded:
-      if self.ppserver is not None and not self.__forceUseThreads:
-        for row in self.ppserver.collect_stats_in_list(): self.raiseADebug(row)
-        self.__runReturn = self.__thread() if self.__thread is not None else None
-      else:
-        if len(self.subque) == 0:
-          self.__runReturn = None #queue is empty!
-        else: self.__runReturn = self.subque.popleft()
-      self.__hasBeenAdded = True
-
-  def returnEvaluation(self):
-    """
-      Method to return the results of the function evaluation associated with this InternalRunner
-      @ In, None
-      @ Out, (Input,response), tuple, tuple containing the results of the evaluation (list of Inputs, function return value)
-    """
-    if self.isDone():
-      self.__collectRunnerResponse()
-      if self.__runReturn is None:
-        self.returnCode = -1
-        return self.returnCode
-      return (self.__input[0],self.__runReturn)
-    else: return -1 #control return code
-
-  def returnMetadata(self):
-    """
-      Function to return the Internal runner metadata
-      @ In, None
-      @ Out, __metadata, dict, return the dictionary of metadata associated with this ExternalRunner
-    """
-    return self.__metadata
-
-  def start(self):
-    """
-      Method to start the job associated to this InternalRunner
-      @ In, None
-      @ Out, None
-    """
-    try: self.startParallelPython()
-    except Exception as ae:
-      self.raiseAMessage("InternalRunner job "+self.identifier+" failed with error:"+ str(ae) +" !",'ExceptedError')
-      self.returnCode = -1
-
-  def kill(self):
-    """
-      Method to kill the job associated to this InternalRunner
-      @ In, None
-      @ Out, None
-    """
-    self.raiseAMessage("Terminating "+self.__thread.pid+ " Identifier " + self.identifier)
-    if self.ppserver != None and not self.__forceUseThreads: os.kill(self.__thread.tid,signal.SIGTERM)
-    else                                                   : os.kill(self.__thread.pid,signal.SIGTERM)
 
 class JobHandler(MessageHandler.MessageUser):
   """
@@ -570,7 +214,7 @@ class JobHandler(MessageHandler.MessageUser):
         self.raiseAnError(IOError,'For execution command <'+cmd+'> the run type was neither "serial" nor "parallel"!  Instead got:',runtype,'\nCheck the code interface.')
     command= ' && '.join(commands)+' '
     with self.__queueLock:
-      self.__queue.append(ExternalRunner(self.messageHandler,command,workingDir,self.runInfoDict['logfileBuffer'],identifier, outputFile,metadata,codePointer,uniqueHandler))
+      self.__queue.append(Runners.ExternalRunner(self.messageHandler,command,workingDir,self.runInfoDict['logfileBuffer'],identifier, outputFile,metadata,codePointer,uniqueHandler))
     self.raiseAMessage('Execution command submitted:',command)
     self.__numSubmitted += 1
     self.addRuns()
@@ -593,13 +237,29 @@ class JobHandler(MessageHandler.MessageUser):
       @ Out, None
     """
     #internal serve is initialized only in case an internal calc is requested
-    if not self.initParallelPython: self.__initializeParallelPython()
-    internalJob = InternalRunner(self.messageHandler,self.ppserver, Input, functionToRun, modulesToImport,
-                                       identifier, metadata, functionToSkip=[utils.metaclass_insert(abc.ABCMeta,BaseType)],
-                                       forceUseThreads = forceUseThreads,uniqueHandler = uniqueHandler)
+    if not self.initParallelPython:
+      self.__initializeParallelPython()
+
+    if self.ppserver is None or forceUseThreads:
+      internalJob = Runners.InternalThreadedRunner(self.messageHandler, Input,
+                                                   functionToRun,
+                                                   modulesToImport, identifier,
+                                                   metadata,
+                                                   functionToSkip=[utils.metaclass_insert(abc.ABCMeta,BaseType)],
+                                                   uniqueHandler = uniqueHandler)
+    else:
+      internalJob = Runners.InternalRunner(self.messageHandler, self.ppserver,
+                                           Input, functionToRun,
+                                           modulesToImport, identifier,
+                                           metadata,
+                                           functionToSkip=[utils.metaclass_insert(abc.ABCMeta,BaseType)],
+                                           uniqueHandler = uniqueHandler)
     with self.__queueLock:
-      if not clientQueue: self.__queue.append(internalJob)
-      else              : self.__clientQueue.append(internalJob)
+      if not clientQueue:
+        self.__queue.append(internalJob)
+      else:
+        self.__clientQueue.append(internalJob)
+
     self.__numSubmitted += 1
     self.addRuns()
     #if self.howManyFreeSpots()>0: self.addRuns()
@@ -759,16 +419,16 @@ class JobHandler(MessageHandler.MessageUser):
       if returnCode != 0:
         self.raiseAMessage(" Process Failed "+str(running)+' '+str(running.command)+" returnCode "+str(returnCode))
         self.__numFailed += 1
-        self.__failedJobs[running.identifier]=(returnCode,copy.deepcopy(running.returnMetadata()))
+        self.__failedJobs[running.identifier]=(returnCode,copy.deepcopy(running.getMetadata()))
         if type(running).__name__ == "External":
           outputFilename = running.getOutputFilename()
           if os.path.exists(outputFilename): self.raiseAMessage(open(outputFilename,"r").read())
           else: self.raiseAMessage(" No output "+outputFilename)
       else:
-        if self.runInfoDict['delSucLogFiles'] and running.__class__.__name__ != 'InternalRunner':
+        if self.runInfoDict['delSucLogFiles'] and not isinstance(running, Runners.InternalRunner):
           self.raiseAMessage(' Run "' +running.identifier+'" ended smoothly, removing log file!')
           if os.path.exists(running.getOutputFilename()): os.remove(running.getOutputFilename())
-        if len(self.runInfoDict['deleteOutExtension']) >= 1 and running.__class__.__name__ != 'InternalRunner':
+        if len(self.runInfoDict['deleteOutExtension']) >= 1 and not isinstance(running, Runners.InternalRunner):
           for fileExt in self.runInfoDict['deleteOutExtension']:
             if not fileExt.startswith("."): fileExt = "." + fileExt
             fileList = [ f for f in os.listdir(running.getWorkingDir()) if f.endswith(fileExt) ]
