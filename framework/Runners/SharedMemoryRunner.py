@@ -73,6 +73,10 @@ class SharedMemoryRunner(InternalRunner):
       @ In, None
       @ Out, finished, bool, is it finished?
     """
+    ## If the process has not been started yet, then return False
+    if not self.started:
+      return False
+
     if self.thread is None:
       return True
     else:
@@ -124,6 +128,7 @@ class SharedMemoryRunner(InternalRunner):
 
       self.thread.daemon = True
       self.thread.start()
+      self.started = True
     except Exception as ae:
       self.raiseAWarning(self.__class__.__name__ + " job "+self.identifier+" failed with error:"+ str(ae) +" !",'ExceptedError')
       self.returnCode = -1

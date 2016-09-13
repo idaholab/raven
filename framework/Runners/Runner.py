@@ -42,6 +42,7 @@ class Runner(MessageHandler.MessageUser):
     self.identifier     = 'generalOut'  ## Default identifier name
     self.metadata       = copy.copy(metadata)
     self.uniqueHandler  = uniqueHandler
+    self.started        = False
 
     ## First attempt to use a user-specified identifier name
     if identifier is not None:
@@ -53,6 +54,10 @@ class Runner(MessageHandler.MessageUser):
       @ In, None
       @ Out, finished, bool, is this run finished?
     """
+    ## If the process has not been started yet, then return False
+    if not self.started:
+      return False
+
     return True
 
   def getReturnCode(self):
@@ -69,7 +74,7 @@ class Runner(MessageHandler.MessageUser):
       @ In, None
       @ Out, evaluation, tuple, the evaluation or None if run failed
     """
-    return None
+    return -1
 
   def getMetadata(self):
     """
@@ -85,7 +90,7 @@ class Runner(MessageHandler.MessageUser):
       @ In, None
       @ Out, None
     """
-    pass
+    self.started = True
 
   def kill(self):
     """

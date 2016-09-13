@@ -78,6 +78,10 @@ class DistributedMemoryRunner(InternalRunner):
       @ In, None
       @ Out, finished, bool, is it finished?
     """
+    ## If the process has not been started yet, then return False
+    if not self.started:
+      return False
+
     if self.thread is None:
       return True
     else:
@@ -110,6 +114,7 @@ class DistributedMemoryRunner(InternalRunner):
         self.thread = self.__ppserver.submit(self.functionToRun, args= (self.input[0],), depfuncs=(), modules = tuple(list(set(self.frameworkMods))),functionToSkip=self.functionToSkip)
       else:
         self.thread = self.__ppserver.submit(self.functionToRun, args= self.input, depfuncs=(), modules = tuple(list(set(self.frameworkMods))),functionToSkip=self.functionToSkip)
+      self.started = True
     except Exception as ae:
       self.raiseAWarning(self.__class__.__name__ + " job "+self.identifier+" failed with error:"+ str(ae) +" !",'ExceptedError')
       self.returnCode = -1
