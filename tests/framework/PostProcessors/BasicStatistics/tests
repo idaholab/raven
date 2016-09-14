@@ -48,8 +48,8 @@
     type = 'RavenFramework'
     input = 'responseSurfaceDoE_analytic.xml'
     UnorderedCsv = 'basicStatsResponseSurfaceDoEAnalytic/outputDataBoxBehnkenRespDesign_dump.csv basicStatsResponseSurfaceDoEAnalytic/outputDataCentralCompositeRespDesign_dump.csv'
+    UnorderedXml = 'basicStatsResponseSurfaceDoEAnalytic/boxBehnkenRespDesign.xml basicStatsResponseSurfaceDoEAnalytic/centralCompositeRespDesign.xml'
     output = 'basicStatsResponseSurfaceDoEAnalytic/outputDataBoxBehnkenRespDesign_dump.csv basicStatsResponseSurfaceDoEAnalytic/outputDataCentralCompositeRespDesign_dump.csv basicStatsResponseSurfaceDoEAnalytic/outputDataBoxBehnkenRespDesign_dump.xml basicStatsResponseSurfaceDoEAnalytic/outputDataCentralCompositeRespDesign_dump.xml'
-    xml = 'basicStatsResponseSurfaceDoEAnalytic/outputDataBoxBehnkenRespDesign_dump.xml basicStatsResponseSurfaceDoEAnalytic/outputDataCentralCompositeRespDesign_dump.xml'
     rel_err = 0.00001
     zero_threshold = 1e-14
   [../]
