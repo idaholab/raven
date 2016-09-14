@@ -87,7 +87,7 @@ class DistributedMemoryRunner(InternalRunner):
     else:
       return self.thread.finished
 
-  def __collectRunnerResponse(self):
+  def _collectRunnerResponse(self):
     """
       Method to add the process response in the internal variable (pointer)
       self.__runReturn

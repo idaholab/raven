@@ -101,7 +101,7 @@ class InternalRunner(Runner):
         setattr(newobj,k,copy.deepcopy(v,memo))
     return newobj
 
-  def __collectRunnerResponse(self):
+  def _collectRunnerResponse(self):
     """
       Method to add the process response in the internal variable (pointer)
       self.runReturn
@@ -127,7 +127,7 @@ class InternalRunner(Runner):
         evaluation (list of Inputs, function return value)
     """
     if self.isDone():
-      self.__collectRunnerResponse()
+      self._collectRunnerResponse()
       if self.runReturn is None:
         self.returnCode = -1
         return self.returnCode

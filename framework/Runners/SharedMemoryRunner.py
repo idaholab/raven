@@ -98,7 +98,7 @@ class SharedMemoryRunner(InternalRunner):
 
     return self.returnCode
 
-  def __collectRunnerResponse(self):
+  def _collectRunnerResponse(self):
     """
       Method to add the process response in the internal variable (pointer)
       self.runReturn
