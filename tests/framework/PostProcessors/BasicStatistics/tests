@@ -60,7 +60,6 @@
   output = 'basicStatisticsGeneral/PointSetPostProcTest_dump.xml'
   UnorderedXml = 'basicStatisticsGeneral/autoCorrelated.xml basicStatisticsGeneral/unCorrelated.xml basicStatisticsGeneral/inverseCorrelated.xml basicStatisticsGeneral/inputOutput.xml basicStatisticsGeneral/infinite.xml basicStatisticsGeneral/matrixComputable.xml'
   csv = 'basicStatisticsGeneral/PointSetPostProcTest_dump.csv'
-  xml = 'basicStatisticsGeneral/PointSetPostProcTest_dump.xml'
   max_time = 500
   rel_err = 0.00001
  [../]
@@ -72,9 +71,9 @@
  [./sensitivity]
   type = 'RavenFramework'
   input = 'sensitivity.xml'
-  output = 'basicStatsSensitivity/csv_database.csv basicStatsSensitivity/output_basicStatistics.csv'
+  output = 'basicStatsSensitivity/csv_database.csv basicStatsSensitivity/csv_database.xml basicStatsSensitivity/output_basicStatistics.csv'
   csv = 'basicStatsSensitivity/csv_database.csv'
-  xml = 'basicStatsSensitivity/csv_database.xml'
+  UnorderedXml = 'stats.xml'
  [../]
  [./timeDependent]
   type = 'RavenFramework'
