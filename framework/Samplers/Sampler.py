@@ -298,7 +298,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         self.initSeed = Distributions.randomIntegers(0,2**31,self)
         for childChild in child:
           if childChild.tag == "limit":
-            self.limit = childChild.text
+            self.limit = int(childChild.text)
           elif childChild.tag == "initialSeed":
             self.initSeed = int(childChild.text)
           elif childChild.tag == "reseedEachIteration":
