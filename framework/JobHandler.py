@@ -298,19 +298,17 @@ class JobHandler(MessageHandler.MessageUser):
 
     skipFunctions = [utils.metaclass_insert(abc.ABCMeta,BaseType)]
     if self.ppserver is None or forceUseThreads:
-      internalJob = Runners.InternalThreadedRunner(self.messageHandler, Input,
-                                                   functionToRun,
-                                                   modulesToImport, identifier,
-                                                   metadata,
-                                                   functionToSkip = skipFunctions,
-                                                   uniqueHandler = uniqueHandler)
+      internalJob = Runners.SharedMemoryRunner(self.messageHandler, Input,
+                                               functionToRun, modulesToImport,
+                                               identifier, metadata,
+                                               skipFunctions, uniqueHandler)
     else:
-      internalJob = Runners.InternalRunner(self.messageHandler, self.ppserver,
-                                           Input, functionToRun,
-                                           modulesToImport, identifier,
-                                           metadata,
-                                           functionToSkip = skipFunctions,
-                                           uniqueHandler = uniqueHandler)
+      internalJob = Runners.DistributedMemoryRunner(self.messageHandler,
+                                                    self.ppserver, Input,
+                                                    functionToRun,
+                                                    modulesToImport, identifier,
+                                                    metadata, skipFunctions,
+                                                    uniqueHandler)
     with self.__queueLock:
       if not clientQueue:
         self.__queue.append(internalJob)

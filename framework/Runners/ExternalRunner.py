@@ -127,6 +127,10 @@ class ExternalRunner(Runner):
       @ In, None
       @ Out, finished, bool, is this run finished?
     """
+    ## If the process has not been started yet, then return False
+    if not self.started:
+      return False
+
     self.__process.poll()
     finished = self.__process.returncode != None
     return finished
@@ -169,6 +173,7 @@ class ExternalRunner(Runner):
     outFile = open(self.output,'w', self.bufferSize)
     self.__process = utils.pickleSafeSubprocessPopen(self.command,shell=True,stdout=outFile,stderr=outFile,cwd=self.workingDir,env=localenv)
     os.chdir(oldDir)
+    self.started = True
 
   def kill(self):
     """
