@@ -42,6 +42,10 @@ import MessageHandler
 import Runners
 #Internal Modules End-----------------------------------------------------------
 
+
+## FIXME: Finished jobs can bog down the queue waiting for other objects to take
+## them away. Can we shove them onto a different list and free up the job queue?
+
 class JobHandler(MessageHandler.MessageUser):
   """
     JobHandler class. This handles the execution of any job in the RAVEN
@@ -53,28 +57,45 @@ class JobHandler(MessageHandler.MessageUser):
       @ In, None
       @ Out, None
     """
-    self.printTag                     = 'Job Handler'
-    self.runInfoDict                  = {}
-    self.mpiCommand                   = ''
-    self.threadingCommand             = ''
-    self.initParallelPython           = False
+    self.printTag         = 'Job Handler'
+    self.runInfoDict      = {}
 
+    ## Is it one or the other?
+    self.mpiCommand       = ''
+    self.threadingCommand = ''
+
+    self.isParallelPythonInitialized = False
+
+    ############################################################################
     ## The following variables are protected by the __queueLock
-    self.__running                    = []
-    self.__queue                      = collections.deque()
-    self.__clientQueue                = collections.deque()
-    self.__clientRunning              = collections.deque()
-    self.__nextId                     = 0
-    ## End block of __queueLock protected variables
 
-    self.__queueLock                  = threading.RLock()
+    ## Placeholders for each actively running job. When a job finishes, its
+    ## spot in one of these lists will be reset to None and the next Runner will
+    ## be placed in a free None spot, and set to start
+    self.__running       = []
+    self.__clientRunning = []
+
+    ## Queue of jobs to be run, when something on the list above opens up, the
+    ## corresponding queue will pop a job (Runner) and put it into that location
+    ## and set it to start
+    self.__queue       = collections.deque()
+    self.__clientQueue = collections.deque()
+
+    ## A counter used for uniquely identifying the next id for an ExternalRunner
+    ## InternalRunners will increment this counter, but do not use it currently
+    self.__nextId = 0
+
+    ## End block of __queueLock protected variables
+    ############################################################################
+
+    self.__queueLock = threading.RLock()
 
     ## List of submitted job identifiers
-    self.__submittedJobs              = []
+    self.__submittedJobs = []
     ## Dict of failed jobs of the form { identifer: metadata }
-    self.__failedJobs                 = {}
+    self.__failedJobs = {}
 
-    #self.__noResourcesJobs            = []
+    #self.__noResourcesJobs = []
 
   def initialize(self,runInfoDict,messageHandler):
     """
@@ -96,6 +117,46 @@ class JobHandler(MessageHandler.MessageUser):
     with self.__queueLock:
       self.__running       = [None]*self.runInfoDict['batchSize']
       self.__clientRunning = [None]*self.runInfoDict['batchSize']
+
+  def __checkAndRemoveFinished(self, running):
+    """
+      Method to check if a run is finished and remove it from the queque
+      @ In, running, instance, the job instance (InternalRunner or ExternalRunner)
+      @ Out, None
+    """
+    with self.__queueLock:
+      returnCode = running.getReturnCode()
+      if returnCode != 0:
+        self.raiseAMessage(" Process Failed "+str(running)+' '+str(running.command)+" returnCode "+str(returnCode))
+        self.__failedJobs[running.identifier]=(returnCode,copy.deepcopy(running.getMetadata()))
+
+        if isinstance(running, Runners.ExternalRunner):
+          outputFilename = running.getOutputFilename()
+          if os.path.exists(outputFilename):
+            self.raiseAMessage(open(outputFilename,"r").read())
+          else:
+            self.raiseAMessage(" No output "+outputFilename)
+      else:
+        ## The following code performs any user-specified file cleanup and only
+        ## applies to ExternalRunners, since InternalRunners do not generate
+        ## any of their own output currently (Subject to change).
+        if isinstance(running, Runners.ExternalRunner):
+          ## Check if the user specified to delete the log files of successful
+          ## runs
+          if self.runInfoDict['delSucLogFiles']:
+            self.raiseAMessage(' Run "' +running.identifier+'" ended smoothly, removing log file!')
+            if os.path.exists(running.getOutputFilename()):
+              os.remove(running.getOutputFilename())
+
+          ## Check if the user specified any file extensions for clean up
+          for fileExt in self.runInfoDict['deleteOutExtension']:
+            if not fileExt.startswith("."):
+              fileExt = "." + fileExt
+
+            fileList = [ f for f in os.listdir(running.getWorkingDir()) if f.endswith(fileExt) ]
+
+            for f in fileList:
+              os.remove(f)
 
   def __initializeParallelPython(self):
     """
@@ -135,7 +196,7 @@ class JobHandler(MessageHandler.MessageUser):
       ## We are just using threading
       self.ppserver = None
 
-    self.initParallelPython = True
+    self.isParallelPythonInitialized = True
 
   def __getLocalAndRemoteMachineNames(self):
     """
@@ -258,7 +319,7 @@ class JobHandler(MessageHandler.MessageUser):
     command = ' && '.join(commands)+' '
 
     with self.__queueLock:
-      runner = Runners.ExternalRunner(self.messageHandler, command,workingDir,
+      runner = Runners.ExternalRunner(self.messageHandler, command, workingDir,
                                       self.runInfoDict['logfileBuffer'],
                                       identifier, outputFile, metadata,
                                       codePointer, uniqueHandler)
@@ -267,7 +328,7 @@ class JobHandler(MessageHandler.MessageUser):
     self.raiseAMessage('Execution command submitted:',command)
     self.__submittedJobs.append(identifier)
     self.addRuns()
-    #if self.howManyFreeSpots()>0: self.addRuns()
+    #if self.numFreeSpots()>0: self.addRuns()
 
   def addInternal(self,Input,functionToRun,identifier,metadata=None, modulesToImport = [], forceUseThreads = False, uniqueHandler="any",clientQueue = False):
     """
@@ -293,7 +354,7 @@ class JobHandler(MessageHandler.MessageUser):
       @ Out, None
     """
     ## internal server is initialized only in case an internal calc is requested
-    if not self.initParallelPython:
+    if not self.isParallelPythonInitialized:
       self.__initializeParallelPython()
 
     skipFunctions = [utils.metaclass_insert(abc.ABCMeta,BaseType)]
@@ -317,7 +378,7 @@ class JobHandler(MessageHandler.MessageUser):
 
     self.__submittedJobs.append(identifier)
     self.addRuns()
-    #if self.howManyFreeSpots()>0: self.addRuns()
+    #if self.numFreeSpots()>0: self.addRuns()
 
   def addInternalClient(self,Input,functionToRun,identifier,metadata=None, uniqueHandler="any"):
     """
@@ -351,15 +412,14 @@ class JobHandler(MessageHandler.MessageUser):
       @ Out, isFinished, bool, True all the runs in the queue are finished
     """
     with self.__queueLock:
-      if not len(self.__queue) == 0:
+      ## If there is still something left in the queue, we are not done yet.
+      if len(self.__queue) > 0 or len(self.__clientQueue) > 0:
         return False
 
-      for i in range(len(self.__running)):
-        if self.__running[i] and not self.__running[i].isDone():
-          return False
-
-      for elem in self.__clientRunning:
-        if elem and not elem.isDone():
+      ## Otherwise, let's look at our running lists and see if there is a job
+      ## that is not done.
+      for run in self.__running+self.__clientRunning:
+        if run and not run.isDone():
           return False
 
     return True
@@ -373,70 +433,24 @@ class JobHandler(MessageHandler.MessageUser):
     """
     isFinished = None
     with self.__queueLock:
-      for i in range(len(self.__running)):
-        if self.__running[i] is not None and self.__running[i].identifier.strip() == identifier.strip():
-          isFinished = self.__running[i].isDone()
+      ## Look through the running jobs and attempt to find a matching identifier
+      for run in self.__running+self.__clientRunning:
+        if run is not None and run.identifier.strip() == identifier.strip():
+          isFinished = run.isDone()
           break
-
-      if isFinished is None:
-        for elem in self.__clientRunning:
-          if elem is not None:
-            if elem.identifier.strip() == identifier.strip():
-              isFinished = elem.isDone()
-              break
 
     if isFinished is None:
       self.raiseAnError(RuntimeError,"Job "+identifier+" is unknown!")
 
     return isFinished
 
-  def getNumberOfFailures(self):
-    """
-      Method to get the number of executions that failed
-      @ In, None
-      @ Out, len(self.__failedJobs), int, number of failures
-    """
-    return len(self.__failedJobs)
-
-  def getListOfFailedJobs(self):
+  def getFailedJobs(self):
     """
       Method to get list of failed jobs
       @ In, None
       @ Out, __failedJobs, list, list of the identifiers (jobs) that failed
     """
     return self.__failedJobs
-
-  def howManyFreeSpots(self):
-    """
-      Method to get the number of free spots in the running queue
-      @ In, None
-      @ Out, cntFreeSpots, int, number of free spots
-    """
-    cntFreeSpots = 0
-    #if len(self.__queue) == 0:
-    with self.__queueLock:
-      for i in range(len(self.__running)):
-        ## Why this if conditional?
-        if self.__running[i] is not None and self.__running[i].isDone():
-          cntFreeSpots += 1
-        else:
-          cntFreeSpots += 1
-    #cntFreeSpots-=len(self.__queue)
-    return cntFreeSpots
-
-  def howManyFreeSpotsForClients(self):
-    """
-      Method to get the number of free spots in the client queue (same size of
-      __running queue)
-      @ In, None
-      @ Out, cntFreeSpots, int, number of free spots
-    """
-    cntFreeSpots = 0
-    with self.__queueLock:
-      for i in range(len(self.__clientRunning)):
-        if self.__clientRunning[i] and self.__clientRunning[i].isDone():
-          cntFreeSpots += 1
-    return cntFreeSpots
 
   def getFinished(self, removeFinished=True, jobIdentifier = '', uniqueHandler = "any"):
     """
@@ -451,9 +465,14 @@ class JobHandler(MessageHandler.MessageUser):
         which no uniqueIdentifier has been set up are going to be retrieved
       @ Out, finished, list, list of finished jobs (InternalRunner or
         ExternalRunner objects) (if jobIdentifier is None), else the finished
-        job identified by jobIdentifier
+        jobs matching the base case jobIdentifier
     """
-    finished             = []
+    finished = []
+
+    ## If the user does not specify a jobIdentifier, then set it to the empty
+    ## string because every job will match this starting string.
+    if jobIdentifier is None:
+      jobIdentifier = ''
 
     with self.__queueLock:
       ## The code handling these two lists was the exact same, I have taken the
@@ -481,45 +500,60 @@ class JobHandler(MessageHandler.MessageUser):
     #end with self.__queueLock
     return finished
 
-  def __checkAndRemoveFinished(self, running):
+  def getFinishedNoPop(self):
     """
-      Method to check if a run is finished and remove it from the queque
-      @ In, running, instance, the job instance (InternalRunner or ExternalRunner)
-      @ Out, None
+      Method to get the list of jobs that ended (list of objects) without
+      removing them from the queue
+      @ In, None
+      @ Out, finished, list, list of finished jobs (InternalRunner or
+        ExternalRunner objects)
     """
+    finished = self.getFinished(False)
+    return finished
+
+  def numFreeSpots(self, client=False):
+    """
+      Method to get the number of free spots in one of the running queues
+      @ In, client, bool, if true, then return the values for the
+        __clientRunning list, otherwise use __running
+      @ Out, cntFreeSpots, int, number of free spots
+    """
+    cntFreeSpots = 0
     with self.__queueLock:
-      returnCode = running.getReturnCode()
-      if returnCode != 0:
-        self.raiseAMessage(" Process Failed "+str(running)+' '+str(running.command)+" returnCode "+str(returnCode))
-        self.__failedJobs[running.identifier]=(returnCode,copy.deepcopy(running.getMetadata()))
 
-        if isinstance(running, Runners.ExternalRunner):
-          outputFilename = running.getOutputFilename()
-          if os.path.exists(outputFilename):
-            self.raiseAMessage(open(outputFilename,"r").read())
-          else:
-            self.raiseAMessage(" No output "+outputFilename)
+      ## The process is the same for both lists, so let's establish which one
+      ## we are working on and then get to business.
+      if client:
+        runList = self.__clientRunning
+        # queue = self.__clientQueue
       else:
-        ## The following code performs any user-specified file cleanup and only
-        ## applies to ExternalRunners, since InternalRunners do not generate
-        ## any of their own output currently (Subject to change).
-        if isinstance(running, Runners.ExternalRunner):
-          ## Check if the user specified to delete the log files of successful
-          ## runs
-          if self.runInfoDict['delSucLogFiles']:
-            self.raiseAMessage(' Run "' +running.identifier+'" ended smoothly, removing log file!')
-            if os.path.exists(running.getOutputFilename()):
-              os.remove(running.getOutputFilename())
+        runList = self.__running
+        # queue = self.__queue
 
-          ## Check if the user specified any file extensions for clean up
-          for fileExt in self.runInfoDict['deleteOutExtension']:
-            if not fileExt.startswith("."):
-              fileExt = "." + fileExt
+      for run in runList:
+        if run is None: # or run.isDone():
+          cntFreeSpots += 1
+        # else:
+          # cntFreeSpots += 1
+    #cntFreeSpots-=len(queue)
+    return cntFreeSpots
 
-            fileList = [ f for f in os.listdir(running.getWorkingDir()) if f.endswith(fileExt) ]
+  def numRunning(self):
+    """
+      Returns the number of runs currently running.
+      @ In, None
+      @ Out, activeRuns, int, number of active runs
+    """
+    activeRuns = sum(run is not None for run in self.__running)
+    return activeRuns
 
-            for f in fileList:
-              os.remove(f)
+  def numSubmitted(self):
+    """
+      Method to get the number of submitted jobs
+      @ In, None
+      @ Out, len(self.__submittedJobs), int, number of submitted jobs
+    """
+    return len(self.__submittedJobs)
 
   def addRuns(self):
     """
@@ -529,53 +563,39 @@ class JobHandler(MessageHandler.MessageUser):
       @ Out, None
     """
     with self.__queueLock:
-      if self.howManyFreeSpots() > 0:
-        for i in range(len(self.__running)):
-          if self.__running[i] == None and len(self.__queue) > 0:
-            item = self.__queue.popleft()
-            if isinstance(running, Runners.ExternalRunner):
-              command = item.command
-              command = command.replace("%INDEX%",str(i))
-              command = command.replace("%INDEX1%",str(i+1))
-              command = command.replace("%CURRENT_ID%",str(self.__nextId))
-              command = command.replace("%CURRENT_ID1%",str(self.__nextId+1))
-              command = command.replace("%SCRIPT_DIR%",self.runInfoDict['ScriptDir'])
-              command = command.replace("%FRAMEWORK_DIR%",self.runInfoDict['FrameworkDir'])
-              command = command.replace("%WORKING_DIR%",item.getWorkingDir())
-              command = command.replace("%BASE_WORKING_DIR%",self.runInfoDict['WorkingDir'])
-              command = command.replace("%METHOD%",os.environ.get("METHOD","opt"))
-              command = command.replace("%NUM_CPUS%",str(self.runInfoDict['NumThreads']))
-              item.command = command
-            self.__running[i] = item
-            self.__running[i].start() #FIXME this call is really expensive; can it be reduced?
-            self.__nextId += 1
+      emptySlots = [i for i,run in enumerate(self.__running) if run is None]
+      for i in emptySlots:
+        if len(self.__queue) > 0:
+          item = self.__queue.popleft()
+          if isinstance(item, Runners.ExternalRunner):
+            command = item.command
+            command = command.replace("%INDEX%",str(i))
+            command = command.replace("%INDEX1%",str(i+1))
+            command = command.replace("%CURRENT_ID%",str(self.__nextId))
+            command = command.replace("%CURRENT_ID1%",str(self.__nextId+1))
+            command = command.replace("%SCRIPT_DIR%",self.runInfoDict['ScriptDir'])
+            command = command.replace("%FRAMEWORK_DIR%",self.runInfoDict['FrameworkDir'])
+            command = command.replace("%WORKING_DIR%",item.getWorkingDir())
+            command = command.replace("%BASE_WORKING_DIR%",self.runInfoDict['WorkingDir'])
+            command = command.replace("%METHOD%",os.environ.get("METHOD","opt"))
+            command = command.replace("%NUM_CPUS%",str(self.runInfoDict['NumThreads']))
+            item.command = command
+          self.__running[i] = item
+          ##FIXME this call is really expensive; can it be reduced?
+          self.__running[i].start()
+          self.__nextId += 1
+        else:
+          break
+
     with self.__queueLock:
-      if self.__clientRunning.count(None) > 0 and len(self.__clientQueue) !=0:
-        for i in range(len(self.__clientRunning)):
-          if len(self.__clientQueue) == 0:
-            break
-          if self.__clientRunning[i] is None:
-            self.__clientRunning[i] = self.__clientQueue.popleft()
-            self.__clientRunning[i].start()
-            self.__nextId += 1
-
-
-  def getFinishedNoPop(self):
-    """
-      Method to get the list of jobs that ended (list of objects) without removing them from the queue
-      @ In, None
-      @ Out, finished, list, list of finished jobs (InternalRunner or ExternalRunner objects)
-    """
-    finished = self.getFinished(False)
-    return finished
-
-  def getNumSubmitted(self):
-    """
-      Method to get the number of submitted jobs
-      @ In, None
-      @ Out, len(self.__submittedJobs), int, number of submitted jobs
-    """
-    return len(self.__submittedJobs)
+      emptySlots = [i for i,run in enumerate(self.__clientRunning) if run is None]
+      for i in emptySlots:
+        if len(self.__clientQueue) > 0:
+          self.__clientRunning[i] = self.__clientQueue.popleft()
+          self.__clientRunning[i].start()
+          self.__nextId += 1
+        else:
+          break
 
   def startingNewStep(self):
     """
@@ -592,19 +612,10 @@ class JobHandler(MessageHandler.MessageUser):
       @ Out, None
     """
     with self.__queueLock:
-      while not len(self.__queue) == 0        : self.__queue.popleft()
-      while not len(self.__clientQueue) == 0  : self.__clientQueue.popleft()
-      for i in range(len(self.__running))     :
-        if self.__running[i] is not None: self.__running[i].kill()
-      if self.__clientRunning.count(None) != len(self.__clientRunning):
-        for i in range(len(self.__clientRunning))     :
-          if self.__running[i] is not None: self.__clientRunning[i].kill()
+      for queue in [self.__queue, self.__clientQueue]:
+        queue.clear()
 
-  def numRunning(self):
-    """
-      Returns the number of runs currently running.
-      @ In, None
-      @ Out, activeRuns, int, number of active runs
-    """
-    activeRuns = sum(run is not None for run in self.__running)
-    return activeRuns
+      for runList in [self.__running, self.__clientRunning]:
+        unfinishedRuns = [run for run in runList if run is not None]
+        for run in unfinishedRuns:
+          run.kill()
