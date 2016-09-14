@@ -5,11 +5,13 @@
     <Sequence>FirstMRun,PP</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <!--
     This test is used to test the defect mentioned in issue #666
     This test will make sure the expectedValue and the variationCoefficient are correctly computed.
     If the expectedValues are zero, the variationCoefficient will be INF.
   -->
+
   <Files>
     <Input name="output.csv" type="">output_variation_coefficient.csv</Input>
     <Input name="output.xml" type="">output_variation_coefficient.xml</Input>
@@ -21,8 +23,7 @@
       <variables>x,y,z,time,x0,x01,x02,y0,y02,y01,z0,z02,z01</variables>
     </ExternalModel>
     <PostProcessor name="variationCoefficient" subType="BasicStatistics" verbosity="debug">
-      <what>variationCoefficient</what>
-      <parameters>x0,y0,z0,x,y,z</parameters>
+      <variationCoefficient>x0,y0,z0,x,y,z</variationCoefficient>
     </PostProcessor>
   </Models>
 
@@ -44,16 +45,16 @@
   <Samplers>
     <Grid name="grid_external">
       <variable name="x0">
-          <distribution>x0_distrib</distribution>
-          <grid construction="equal" steps="1" type="value">-0.5 0.5</grid>
+        <distribution>x0_distrib</distribution>
+        <grid construction="equal" steps="1" type="value">-0.5 0.5</grid>
       </variable>
       <variable name="y0">
-          <distribution>y0_distrib</distribution>
-          <grid construction="equal" steps="1" type="CDF">0.1 0.8</grid>
+        <distribution>y0_distrib</distribution>
+        <grid construction="equal" steps="1" type="CDF">0.1 0.8</grid>
       </variable>
       <variable name="z0">
-          <distribution>z0_distrib</distribution>
-          <grid construction="equal" steps="1" type="CDF">0.2 0.6</grid>
+        <distribution>z0_distrib</distribution>
+        <grid construction="equal" steps="1" type="CDF">0.2 0.6</grid>
       </variable>
     </Grid>
   </Samplers>

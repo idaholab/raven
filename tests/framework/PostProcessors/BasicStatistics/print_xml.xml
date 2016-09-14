@@ -16,8 +16,10 @@
       <variables>x,y,z,time,x0,x01,x02,y0,y02,y01,z0,z02,z01</variables>
     </ExternalModel>
     <PostProcessor name="InputOutput" subType="BasicStatistics" verbosity="debug">
-      <what>all</what>
-      <parameters>x0,x01,y0,y02</parameters>
+      <all>
+        <targets>x0,x01,y0,y02</targets>
+        <features>x0,x01,y0,y02</features>
+      </all>
     </PostProcessor>
   </Models>
 

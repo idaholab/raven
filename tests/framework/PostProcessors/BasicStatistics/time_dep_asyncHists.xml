@@ -16,26 +16,41 @@
   </Files>
 
   <Distributions>
-      <Uniform name="unif">
-          <lowerBound>0.0</lowerBound>
-          <upperBound>1.0</upperBound>
-      </Uniform>
-      <Normal name="norm">
-          <mean>0.5</mean>
-          <sigma>0.2</sigma>
-          <lowerBound>0</lowerBound>
-          <upperBound>1</upperBound>
-      </Normal>
+    <Uniform name="unif">
+      <lowerBound>0.0</lowerBound>
+      <upperBound>1.0</upperBound>
+    </Uniform>
+    <Normal name="norm">
+      <mean>0.5</mean>
+      <sigma>0.2</sigma>
+      <lowerBound>0</lowerBound>
+      <upperBound>1</upperBound>
+    </Normal>
   </Distributions>
-  
+
   <Models>
     <ExternalModel ModuleToLoad="basicStatisticsExternalModelTest" name="PythonModule" subType="">
       <variables>x,y,z,time,x0,x01,x02,y0,y02,y01,z0,z02,z01</variables>
     </ExternalModel>
     <PostProcessor name="timeDepBasicStat" subType="BasicStatistics" verbosity="debug">
-      <what>covariance,pearson,expectedValue,sigma,variationCoefficient,variance,skewness,kurtosis,median,percentile,samples</what>
-      <parameters>x0,y0,z0,x,y,z</parameters>
       <pivotParameter>time</pivotParameter>
+      <covariance>
+        <targets>x0,y0,z0,x,y,z</targets>
+        <features>x0,y0,z0,x,y,z</features>
+      </covariance>
+      <pearson>
+        <targets>x0,y0,z0,x,y,z</targets>
+        <features>x0,y0,z0,x,y,z</features>
+      </pearson>
+      <expectedValue>x0,y0,z0,x,y,z</expectedValue>
+      <sigma>x0,y0,z0,x,y,z</sigma>
+      <variationCoefficient>x0,y0,z0,x,y,z</variationCoefficient>
+      <variance>x0,y0,z0,x,y,z</variance>
+      <skewness>x0,y0,z0,x,y,z</skewness>
+      <kurtosis>x0,y0,z0,x,y,z</kurtosis>
+      <median>x0,y0,z0,x,y,z</median>
+      <percentile>x0,y0,z0,x,y,z</percentile>
+      <samples>x0,y0,z0,x,y,z</samples>
     </PostProcessor>
     <PostProcessor name="syncronizeHistorySet" subType="InterfacedPostProcessor">
       <method>HistorySetSync</method>
@@ -46,36 +61,36 @@
   </Models>
 
   <Samplers>
-      <CustomSampler name="customSamplerFile">
-          <Source   class="Files"  type="">samples.csv</Source>
-          <variable name="x0"/>
-          <variable name="y0"/>
-          <variable name="z0"/>
+    <CustomSampler name="customSamplerFile">
+      <Source class="Files" type="">samples.csv</Source>
+      <variable name="x0"/>
+      <variable name="y0"/>
+      <variable name="z0"/>
+    </CustomSampler>
+    <EnsembleForward name="ensemble">
+      <Grid name="notNeeded">
+        <variable name="y0">
+          <distribution>unif</distribution>
+          <grid construction="custom" type="value">0.02 0.5 0.6</grid>
+        </variable>
+        <variable name="z0">
+          <distribution>norm</distribution>
+          <grid construction="custom" type="CDF">0.0 0.5 1.0</grid>
+        </variable>
+      </Grid>
+      <CustomSampler name="customSamplerFiles">
+        <Source class="Files" type="">samples.csv</Source>
+        <variable name="x0"/>
       </CustomSampler>
-      <EnsembleForward name="ensemble">
-          <Grid name="notNeeded">
-              <variable name="y0">
-                  <distribution>unif</distribution>
-                  <grid construction="custom" type="value">0.02 0.5 0.6</grid>
-              </variable>
-              <variable name="z0">
-                  <distribution>norm</distribution>
-                  <grid construction="custom" type="CDF">0.0 0.5 1.0</grid>
-              </variable>
-          </Grid>
-          <CustomSampler name="customSamplerFiles">
-              <Source   class="Files"  type="">samples.csv</Source>
-              <variable name="x0"/>
-          </CustomSampler>
-      </EnsembleForward>
+    </EnsembleForward>
   </Samplers>
 
   <Steps>
     <MultiRun name="FirstMRun">
-      <Input   class="Files" type="">basicStatisticsExternalModelTest.py</Input>
-      <Model   class="Models" type="ExternalModel">PythonModule</Model>
+      <Input class="Files" type="">basicStatisticsExternalModelTest.py</Input>
+      <Model class="Models" type="ExternalModel">PythonModule</Model>
       <Sampler class="Samplers" type="CustomSampler">customSamplerFile</Sampler>
-      <Output  class="DataObjects" type="HistorySet">HistorySetPostProcTest</Output>
+      <Output class="DataObjects" type="HistorySet">HistorySetPostProcTest</Output>
     </MultiRun>
     <PostProcess name="syncronizeHistorySetStep">
       <Input class="DataObjects" type="HistorySet">HistorySetPostProcTest</Input>
@@ -92,24 +107,24 @@
       <Output class="DataObjects" type="HistorySet">HistorySetPostProcTestSyncronized</Output>
     </PostProcess>
     <MultiRun name="FirstMRunEnsemble">
-        <Input   class="Files" type="">basicStatisticsExternalModelTest.py</Input>
-        <Model   class="Models" type="ExternalModel">PythonModule</Model>
-        <Sampler class="Samplers" type="CustomSampler">ensemble</Sampler>
-        <Output  class="DataObjects" type="HistorySet">HistorySetPostProcTestEnsemble</Output>
+      <Input class="Files" type="">basicStatisticsExternalModelTest.py</Input>
+      <Model class="Models" type="ExternalModel">PythonModule</Model>
+      <Sampler class="Samplers" type="CustomSampler">ensemble</Sampler>
+      <Output class="DataObjects" type="HistorySet">HistorySetPostProcTestEnsemble</Output>
     </MultiRun>
     <PostProcess name="syncronizeHistorySetStepEnsemble">
-        <Input class="DataObjects" type="HistorySet">HistorySetPostProcTestEnsemble</Input>
-        <Model class="Models" type="PostProcessor">syncronizeHistorySet</Model>
-        <Output class="DataObjects" type="HistorySet">HistorySetPostProcTestSyncronizedEnsemble</Output>
-        <Output class="OutStreams" type="Print">HistorySetPostProcTestEnsemble_dump</Output>
-        <Output class="OutStreams" type="Print">HistorySetPostProcTestSyncronizedEnsemble_dump</Output>
+      <Input class="DataObjects" type="HistorySet">HistorySetPostProcTestEnsemble</Input>
+      <Model class="Models" type="PostProcessor">syncronizeHistorySet</Model>
+      <Output class="DataObjects" type="HistorySet">HistorySetPostProcTestSyncronizedEnsemble</Output>
+      <Output class="OutStreams" type="Print">HistorySetPostProcTestEnsemble_dump</Output>
+      <Output class="OutStreams" type="Print">HistorySetPostProcTestSyncronizedEnsemble_dump</Output>
     </PostProcess>
     <PostProcess name="timeDepBasicStatPPEnsemble">
-        <Input class="DataObjects" type="HistorySet">HistorySetPostProcTestSyncronized</Input>
-        <Model class="Models" type="PostProcessor">timeDepBasicStat</Model>
-        <Output class="Files" type="">output_basicStatistics_timedep_Ensemble_PP1.csv</Output>
-        <Output class="Files" type="">output_basicStatistics_timedep_Ensemble_PP1.xml</Output>
-        <Output class="DataObjects" type="HistorySet">HistorySetPostProcTestSyncronizedEnsemble</Output>
+      <Input class="DataObjects" type="HistorySet">HistorySetPostProcTestSyncronized</Input>
+      <Model class="Models" type="PostProcessor">timeDepBasicStat</Model>
+      <Output class="Files" type="">output_basicStatistics_timedep_Ensemble_PP1.csv</Output>
+      <Output class="Files" type="">output_basicStatistics_timedep_Ensemble_PP1.xml</Output>
+      <Output class="DataObjects" type="HistorySet">HistorySetPostProcTestSyncronizedEnsemble</Output>
     </PostProcess>
   </Steps>
 
@@ -123,12 +138,12 @@
       <source>HistorySetPostProcTestSyncronized</source>
     </Print>
     <Print name="HistorySetPostProcTestEnsemble_dump">
-        <type>csv</type>
-        <source>HistorySetPostProcTestEnsemble</source>
+      <type>csv</type>
+      <source>HistorySetPostProcTestEnsemble</source>
     </Print>
     <Print name="HistorySetPostProcTestSyncronizedEnsemble_dump">
-        <type>csv</type>
-        <source>HistorySetPostProcTestSyncronizedEnsemble</source>
+      <type>csv</type>
+      <source>HistorySetPostProcTestSyncronizedEnsemble</source>
     </Print>
   </OutStreams>
 
@@ -142,12 +157,12 @@
       <Output>time,x,y,z</Output>
     </HistorySet>
     <HistorySet name="HistorySetPostProcTestEnsemble">
-        <Input>x0,y0,z0</Input>
-        <Output>time,x,y,z</Output>
+      <Input>x0,y0,z0</Input>
+      <Output>time,x,y,z</Output>
     </HistorySet>
     <HistorySet name="HistorySetPostProcTestSyncronizedEnsemble">
-        <Input>x0,y0,z0</Input>
-        <Output>time,x,y,z</Output>
+      <Input>x0,y0,z0</Input>
+      <Output>time,x,y,z</Output>
     </HistorySet>
   </DataObjects>
 

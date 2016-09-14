@@ -28,7 +28,7 @@
   [../]
   [./stratified]
     type = 'RavenFramework'
-    input = 'stratified.xml'
+    input = 'stratified_analytic.xml'
     UnorderedCsv = 'basicStatsStratifiedAnalytic/outputDataStratified_dump.csv'
     UnorderedXml = 'basicStatsStratifiedAnalytic/output_basicStatistics_PP1Stratified.xml'
     output = 'basicStatsStratifiedAnalytic/outputDataStratified_dump.csv basicStatsStratifiedAnalytic/outputDataStratified_dump.xml'
@@ -73,16 +73,16 @@
   input = 'sensitivity.xml'
   output = 'basicStatsSensitivity/csv_database.csv basicStatsSensitivity/csv_database.xml basicStatsSensitivity/output_basicStatistics.csv'
   csv = 'basicStatsSensitivity/csv_database.csv'
-  UnorderedXml = 'stats.xml'
+  UnorderedXml = 'basicStatsSensitivity/stats.xml'
  [../]
  [./timeDependent]
   type = 'RavenFramework'
   input = 'time_dep.xml'
   output = 'basicStatisticsTimeDependent/output_basicStatistics_timedep_PP1.csv basicStatisticsTimeDependent/output_basicStatistics_timedep_PP1.xml'
   UnorderedCsv = 'basicStatisticsTimeDependent/HistorySetPostProcTest_dump_3.csv basicStatisticsTimeDependent/ExtractedStats_dump.csv'
-   UnorderedXml = 'basicStatisticsTimeDependent/HistorySetPostProcTest_dump.xml basicStatisticsTimeDependent/output_basicStatistics_timedep_PP1.xml'
-   rel_err = 1e-5
-   zero_threshold = 1e-14
+  UnorderedXml = 'basicStatisticsTimeDependent/HistorySetPostProcTest_dump.xml basicStatisticsTimeDependent/output_basicStatistics_timedep_PP1.xml'
+  rel_err = 1e-5
+  zero_threshold = 1e-14
  [../]
  [./timeDependentAsyncHistories]
   type = 'RavenFramework'
