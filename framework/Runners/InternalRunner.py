@@ -22,13 +22,6 @@ import abc
 #Internal Modules------------------------------------------------------------------------------------
 import utils
 from BaseClasses import BaseType
-# for internal parallel
-if sys.version_info.major == 2:
-  import pp
-  import ppserver
-else:
-  print("pp does not support python3")
-# end internal parallel module
 import MessageHandler
 from .Runner import Runner
 #Internal Modules End--------------------------------------------------------------------------------

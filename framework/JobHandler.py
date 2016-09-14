@@ -343,9 +343,7 @@ class JobHandler(MessageHandler.MessageUser):
     #if len(self.__queue) == 0:
     with self.__queueLock:
       for i in range(len(self.__running)):
-        if self.__running[i] is not None and self.__running[i].isDone():
-          cntFreeSpots += 1
-        else:
+        if self.__running[i] is None:
           cntFreeSpots += 1
     #cntFreeSpots-=len(self.__queue)
     return cntFreeSpots
@@ -359,7 +357,7 @@ class JobHandler(MessageHandler.MessageUser):
     cntFreeSpots = 0
     with self.__queueLock:
       for i in range(len(self.__clientRunning)):
-        if self.__clientRunning[i] and self.__clientRunning[i].isDone():
+        if self.__clientRunning[i] is None:
           cntFreeSpots += 1
     return cntFreeSpots
 
