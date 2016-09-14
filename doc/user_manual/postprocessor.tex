@@ -347,6 +347,12 @@ matrix and the inverse transformation matrix when the PCA reduction is used.
     \item \xmlString{PCAIndex}: the indices of principal component directions, used to measure the impact
     of principal component directions on input covariance matrix.
     \nb \xmlString{PCAIndex} can be only requested when subnode \xmlNode{latent} is defined in \xmlNode{features}.
+    \item \xmlString{transformation}: the transformation matrix used to map the latent variables to the manifest variables in the original input space.
+    \item \xmlString{InverseTransformation}: the inverse transformation matrix used to map the manifest variables to the latent variables in the transformed space.
+    \item \xmlString{ManifestSensitivity}: the sensitivity coefficients of \xmlNode{target} with respect to \xmlNode{manifest} variables defined in \xmlNode{features}.
+    
+    \nb In order to request \xmlString{transformation} matrix or \xmlString{InverseTransformation} matrix or \xmlString{ManifestSensitivity},
+    the subnodes \xmlNode{latent} and \xmlNode{manifest} under \xmlNode{features} are required (more details can be found in the following).
     %
   \end{itemize}
    %
@@ -356,9 +362,7 @@ matrix and the inverse transformation matrix when the PCA reduction is used.
   Since the transformation and InverseTransformation matrix can be very large, they are not printed with option \xmlString{all}.
   In order to request the transformation matrix (or inverse transformation matrix) from this post processor,
   the user need to specify \xmlString{transformation} or \xmlString{InverseTransformation} in \xmlNode{what}. In addition,
-  both  \xmlNode{manifest} and \xmlNode{latent} subnodes should be defined in node \xmlNode{features}. The transformation matrix
-  is used to map the latent variables in the transformed space to the manifest variables in the original input space, while the inverse transformation
-  matrix is used to map the manifest variables to the latent variables in the transformed space. For example, let $\mathbf{L, P}$ represent
+  both  \xmlNode{manifest} and \xmlNode{latent} subnodes are required and should be defined in node \xmlNode{features}. For example, let $\mathbf{L, P}$ represent
   the transformation and inverse transformation matrices, respectively. We will define vectors $\mathbf x$ as manifest variables and vectors $\mathbf y$
   as latent variables. If a absolute covariance matrix is used in given distribution, the following equation will be used:
 
@@ -382,7 +386,6 @@ matrix and the inverse transformation matrix when the PCA reduction is used.
 
   where $\mathbf{\delta x}$ denotes the changes in the input vector $\mathbf x$, and $\mathbf \mu$ denotes the mean values of the input vector $\mathbf x$.
 
-  In the following, we will show the user how to request the transformation matrix or the inverse transformation matrix.
   %
   %
   \item \xmlNode{features}, \xmlDesc{XML node, required parameter}, used to specify the information for the input variables.
@@ -412,8 +415,8 @@ matrix and the inverse transformation matrix when the PCA reduction is used.
 \end{itemize}
   %
   %
-  Moreover, if both \xmlNode{manifest} and \xmlNode{latent} are provided, the user can input \xmlString{ManifestSensitivity} in \xmlNode{what}
-  to request the sensitivities for the manifest variables.
+  Here is an example to show the user how to request the transformation matrix, the inverse transformation matrix, the
+  manifest sensitivities and other quantities.
   %
 
 \textbf{Example:}
