@@ -90,7 +90,7 @@ class SharedMemoryRunner(InternalRunner):
       @ Out, returnCode, int,  the return code of this evaluation
     """
     if not self.hasBeenAdded:
-      self.__collectRunnerResponse()
+      self._collectRunnerResponse()
     ## Is this necessary and sufficient for all failed runs?
     if len(self.subque) == 0 and self.runReturn is None:
       self.runReturn = None
