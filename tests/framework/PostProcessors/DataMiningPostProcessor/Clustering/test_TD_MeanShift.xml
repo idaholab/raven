@@ -28,9 +28,7 @@
       <Output         class="OutStreams"       type="Plot"           >plot5</Output>
       <Output         class="OutStreams"       type="Plot"           >plot6</Output>
       <Output         class="OutStreams"       type="Plot"           >plot7</Output>
-      <!--
-           <Output         class="OutStreams"       type="Print"          >print2</Output>
-      -->
+      <!--Output         class="OutStreams"       type="Print"          >print2</Output-->
     </PostProcess>
     <PostProcess name="filter0" pauseAtEnd="True">
       <Input  class="DataObjects"      type="HistorySet"     >outMC</Input>
@@ -64,7 +62,7 @@
 	<Samplers>
 	  <MonteCarlo name="MC_external">
 	    <samplerInit>
-	      <limit>10</limit>
+	      <limit>1000</limit>
 	      <initialSeed>1</initialSeed>
 	    </samplerInit>
 	    <variable name="x0">

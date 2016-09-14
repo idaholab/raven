@@ -992,6 +992,7 @@ class Scipy(unSupervisedLearning):
     self.SCIPYsubType = SCIPYsubType
     self.normValues = None
     self.outputDict = {}
+    print(self.initOptionDict)
 
   def __trainLocal__(self):
     """
@@ -1044,7 +1045,6 @@ class Scipy(unSupervisedLearning):
                        va='top', ha='center')
       if max_d:
         plt.axhline(y=max_d, c='0.1')
-    #plotTitle = dendrogram + self.initOptionDict
     plt.savefig('dendrogram.pdf')
     return ddata
 

@@ -65,13 +65,14 @@ class DTW(Metric):
         timeLengthY = tempY[self.pivotParameter].size
         del tempX[self.pivotParameter]
         del tempY[self.pivotParameter]
+        if self.order == 1:
+          x = self.derivative(x)
+          y = self.derivative(y)
         X = np.empty((len(tempX.keys()),timeLengthX))
         Y = np.empty((len(tempY.keys()),timeLengthY))
         for index, key in enumerate(tempX):
           X[index] = tempX[key]
           Y[index] = tempY[key]
-        if self.order == 1:
-          X,Y = derivative(X,Y)
         value = self.dtwDistance(X,Y)
         return value 
       else:
@@ -90,7 +91,6 @@ class DTW(Metric):
     for i in range(r):
         for j in range(c):
             D1[i, j] = pairwise.pairwise_distances(x[:,i], y[:,j], metric=self.localDistance)
-    #D1[i, j] = (pairwise.pairwise_distances(x[:,i], y[:,j], metric=self.localDistance) for i in range(r) for j in range(c))
     C = D1.copy()
     for i in range(r):
         for j in range(c):
@@ -119,5 +119,16 @@ class DTW(Metric):
       q.insert(0, j)
     return np.array(p), np.array(q)
   
-#  def derivative(self,X,Y):
+  def derivative(self,x):
+    y={}
+    for key in x.keys():
+      y[key] = np.zeros(len(x[key]))
+      for i in range(len(x[key])):
+        if i==0:
+          y[key][i] = 0.0
+        elif i == len(x[key])-1:
+          y[key][i] = 0.0
+        else:
+          y[key][i] = ((x[key][i]-x[key][i-1])+(x[key][i+1]-x[key][i-1])/2.0)/2.0  
+    return y
     

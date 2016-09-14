@@ -7,6 +7,7 @@ import abc
 import importlib
 import inspect
 import atexit
+import scipy.spatial.distance as spDist
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -36,10 +37,8 @@ class Minkowski(Metric):
 
   def distance(self,x,y):
     if isinstance(x,np.ndarray) and isinstance(y,np.ndarray):
-      value = 0
-      for i in range(x.size):
-        value += (math.abs(x[i]-y[i]))**self.p
-      return math.pow(value,1/p)
+      value = spDist.minkowski(x, y, self.p)     
+      return value
     elif isinstance(x,dict) and isinstance(y,dict):
       if self.timeID == None:
         self.raiseAnError(IOError,'The Minkowski metrics is being used on a historySet without the parameter timeID being specified')
@@ -48,8 +47,9 @@ class Minkowski(Metric):
         for key in x.keys():
           if x[key].size == y[key].size:
             if key != self.timeID:
-              for i in range(x[key].size):
-                value += (abs(x[key][i]-y[key][i]))**self.p
+              value += spDist.minkowski(x[key], y[key], self.p)
+              '''for i in range(x[key].size):
+                value += (abs(x[key][i]-y[key][i]))**self.p'''
             return math.pow(value,1.0/self.p)
           else:
             print('Metric Minkowski error: the length of the variable array ' + str(key) +' is not consistent among the two data sets')
