@@ -98,7 +98,7 @@
 	
     <Plot dim="3" name="optPath" overwrite="false" verbosity="debug">
         <actions>
-            <how>pdf,eps,png</how>
+            <how>pdf</how>
         </actions>
         <plotSettings>
             <plot>
@@ -115,7 +115,7 @@
 	
     <Plot dim="2" name="plotIteration" overwrite="false" verbosity="debug">
         <actions>
-            <how>pdf,eps,png</how>
+            <how>pdf</how>
         </actions>
         <plotSettings>
 			<gridSpace>3 1</gridSpace>
