@@ -189,7 +189,8 @@ class LimitSurfaceIntegral(BasePostProcessor):
     """
     self.inputToInternal(inputs)
     if self.integralType in ['montecarlo']:
-      self.stat.parameters['targets'] = [self.target]
+      #self.stat.parameters['targets'] = [self.target]
+      self.stat.toDo = {'expectedValue':set([self.target])}
       self.stat.initialize(runInfo, inputs, initDict)
     self.functionS = SupervisedLearning.returnInstance('SciKitLearn', self, **{'SKLtype':'neighbors|KNeighborsClassifier', 'Features':','.join(list(self.variableDist.keys())), 'Target':self.target})
     self.functionS.train(self.matrixDict)
@@ -293,7 +294,7 @@ class SafestPoint(BasePostProcessor):
     self.nonControllableOrd = []  # list containing the controllable variables' names in the same order as they appear inside the non-controllable space (self.nonControllableSpace)
     self.surfPointsMatrix = None  # 2D-matrix containing the coordinates of the points belonging to the failure boundary (coordinates are derived from both the controllable and non-controllable space)
     self.stat = returnInstance('BasicStatistics', self)  # instantiation of the 'BasicStatistics' processor, which is used to compute the expected value of the safest point through the coordinates and probability values collected in the 'run' function
-    self.stat.what = ['expectedValue']
+    #self.stat.toDo = ['expectedValue'] -> moved to "initialize" where we know the targets too
     self.addAssemblerObject('Distribution','n', True)
     self.printTag = 'POSTPROCESSOR SAFESTPOINT'
 
@@ -380,7 +381,9 @@ class SafestPoint(BasePostProcessor):
     self.__gridSetting__()
     self.__gridGeneration__()
     self.inputToInternal(inputs)
-    self.stat.parameters['targets'] = self.controllableOrd
+    #self.stat.parameters['targets'] = self.controllableOrd -> don't set directly, just set up the toDo
+    #FIXME this is quite invasive use of the basic statistics; a more standardized construction would be nice
+    self.stat.toDo = {'expectedValue':set(self.controllableOrd)}
     self.stat.initialize(runInfo, inputs, initDict)
     self.raiseADebug('GRID INFO:')
     self.raiseADebug(self.gridInfo)
@@ -1448,6 +1451,20 @@ class BasicStatistics(BasePostProcessor):
       @ In, initDict, dict, dictionary with initialization options
       @ Out, None
     """
+    self.allUsedParams = set()
+    for scalar in self.scalarVals:
+      if scalar in self.toDo.keys():
+        if scalar == 'percentile':
+          for pct,targs in self.toDo[scalar].items():
+            self.allUsedParams.update(targs)
+        else:
+          self.allUsedParams.update(self.toDo[scalar])
+    for vector in self.vectorVals:
+      if vector in self.toDo.keys():
+        for entry in self.toDo[vector]:
+          self.allUsedParams.update(entry['targets'])
+          self.allUsedParams.update(entry['features'])
+    self.parameters['targets'] = list(self.allUsedParams)
     BasePostProcessor.initialize(self, runInfo, inputs, initDict)
     self.__workingDir = runInfo['WorkingDir']
 
@@ -1542,46 +1559,14 @@ class BasicStatistics(BasePostProcessor):
             self.toDo[vector] = []
           self.toDo[vector].append({'targets':set(a.strip() for a in fnode.text.split(',')),
                                  'features':set(a.strip() for a in tnode.text.split(','))})
-      #if child.tag == "what":
-      #  self.what = child.text
-      #  if self.what == 'all': self.what = self.acceptedCalcParam
-      #  else:
-      #    toCompute = []
-      #    for whatc in self.what.split(','):
-      #      toCompute.append(whatc.strip())
-      #      if whatc not in self.acceptedCalcParam:
-      #        if whatc.split("_")[0] != 'percentile':self.raiseAnError(IOError, 'BasicStatistics postprocessor asked unknown operation ' + whatc + '. Available ' + str(self.acceptedCalcParam))
-      #        else:
-      #          # check if the percentile is correct
-      #          requestedPercentile = whatc.split("_")[-1]
-      #          integerPercentile = utils.intConversion(requestedPercentile.replace("%",""))
-      #          if integerPercentile is None: self.raiseAnError(IOError,"Could not convert the inputted percentile. The percentile needs to an integer between 1 and 100. Got "+requestedPercentile)
-      #          floatPercentile = utils.floatConversion(requestedPercentile.replace("%",""))
-      #          if floatPercentile < 1.0 or floatPercentile > 100.0: self.raiseAnError(IOError,"the percentile needs to an integer between 1 and 100. Got "+str(floatPercentile))
-      #          if -float(integerPercentile)/floatPercentile + 1.0 > 0.0001: self.raiseAnError(IOError,"the percentile needs to an integer between 1 and 100. Got "+str(floatPercentile))
-      #    self.what = toCompute
-      #elif child.tag == "parameters"   : self.parameters['targets'] = child.text.split(',')
-      #elif child.tag == "methodsToRun" : self.methodsToRun = child.text.split(',')
-      elif child.tag == "biased"       :
-        if child.text.lower() in utils.stringsThatMeanTrue(): self.biased = True
-      elif child.tag == "pivotParameter": self.pivotParameter = child.text
+      elif child.tag == "biased":
+        if child.text.lower() in utils.stringsThatMeanTrue():
+          self.biased = True
+      elif child.tag == "pivotParameter":
+        self.pivotParameter = child.text
       else:
         self.raiseAWarning('Unrecognized node in BasicStatistics "',child.tag,'" has been ignored!')
     assert (len(self.toDo)>0), self.raiseAnError(IOError, 'BasicStatistics needs parameters to work on! Please check input for PP: ' + self.name)
-    self.allUsedParams = set()
-    for scalar in self.scalarVals:
-      if scalar in self.toDo.keys():
-        if scalar == 'percentile':
-          for pct,targs in self.toDo[scalar].items():
-            self.allUsedParams.update(targs)
-        else:
-          self.allUsedParams.update(self.toDo[scalar])
-    for vector in self.vectorVals:
-      if vector in self.toDo.keys():
-        for entry in self.toDo[vector]:
-          self.allUsedParams.update(entry['targets'])
-          self.allUsedParams.update(entry['features'])
-    self.parameters['targets'] = list(self.allUsedParams)
 
   def collectOutput(self, finishedJob, output):
     """
@@ -1928,11 +1913,13 @@ class BasicStatistics(BasePostProcessor):
           needed[metric][pct] = targets
       elif type(params) == set: #scalar parameter
         needed[metric].update(params)
-      else: #dict, vector parameter
+      elif type(params) == list and type(params[0]) == dict:  # vector parameter
         needed[metric] = {'targets':set(),'features':set()}
         for entry in params:
           needed[metric]['targets'].update(entry['targets'])
           needed[metric]['features'].update(entry['features'])
+      else:
+        self.raiseAWarning('Unrecognized format for metric "'+metric+'!  Expected "set" or "dict" but got',type(params))
     # variable                     | needs                  | needed for
     # --------------------------------------------------------------------
     # skewness needs               | expectedValue,variance |

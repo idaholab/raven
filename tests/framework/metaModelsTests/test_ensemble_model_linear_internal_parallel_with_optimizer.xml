@@ -39,30 +39,30 @@
 
   <Optimizers>
     <SPSA name="opt_smp">
-        <initialization>
-            <limit>100</limit>
-            <type>min</type>
-            <initialSeed>30</initialSeed>
-        </initialization>
-        <TargetEvaluation class="DataObjects" type="PointSet">optOutput</TargetEvaluation>
-        <convergence>
-            <iterationLimit>100</iterationLimit>
-            <threshold>1e-4</threshold>
-        </convergence>
-        <variable name="leftTemperature">
-            <upperBound>600</upperBound>
-            <lowerBound>500</lowerBound>
-            <initial>250</initial>
-        </variable>
-        <variable name="rightTemperature">
-            <upperBound>600</upperBound>
-            <lowerBound>500</lowerBound>
-            <initial>250</initial>
-        </variable>
-        <objectVar>solution</objectVar>
-        <parameter>
-            <numGradAvgIterations>1</numGradAvgIterations>
-        </parameter>
+      <initialization>
+        <limit>100</limit>
+        <type>min</type>
+        <initialSeed>30</initialSeed>
+      </initialization>
+      <TargetEvaluation class="DataObjects" type="PointSet">optOutput</TargetEvaluation>
+      <convergence>
+        <iterationLimit>100</iterationLimit>
+        <threshold>1e-4</threshold>
+      </convergence>
+      <variable name="leftTemperature">
+        <upperBound>600</upperBound>
+        <lowerBound>500</lowerBound>
+        <initial>250</initial>
+      </variable>
+      <variable name="rightTemperature">
+        <upperBound>600</upperBound>
+        <lowerBound>500</lowerBound>
+        <initial>250</initial>
+      </variable>
+      <objectVar>solution</objectVar>
+      <parameter>
+        <numGradAvgIterations>1</numGradAvgIterations>
+      </parameter>
     </SPSA>
   </Optimizers>
 
@@ -74,7 +74,6 @@
       <SolutionExport class="DataObjects" type="PointSet">optData</SolutionExport>
       <Output class="DataObjects" type="PointSet">metaModelOutputTest</Output>
       <Output class="DataObjects" type="PointSet">optOutput</Output>
-      
       <Output class="OutStreams" type="Print">metaModelOutputTestDump</Output>
     </MultiRun>
     <IOStep name="dumpResults" pauseAtEnd="True">
@@ -107,70 +106,70 @@
       <type>csv</type>
       <source>metaModelOutputTest</source>
     </Print>
-    
-    
     <Print name="optimizationHistoryDump">
-        <type>csv</type>
-        <source>optData</source>
+      <type>csv</type>
+      <source>optData</source>
     </Print>
     <Print name="mdlDataDump">
-        <type>csv</type>
-        <source>optOutput</source>
+      <type>csv</type>
+      <source>optOutput</source>
     </Print>
-    
     <Plot dim="3" name="optPath" overwrite="false" verbosity="debug">
-        <actions>
-            <how>pdf</how>
-        </actions>
-        <plotSettings>
-            <plot>
-                <type>scatter</type>
-                <x>optData|Input|leftTemperature</x>
-                <y>optData|Input|rightTemperature</y>
-                <z>optData|Input|solution</z>
-            </plot>
-            <xlabel>leftTemperature</xlabel>
-            <ylabel>rightTemperature</ylabel>
-            <zlabel>Loss Function</zlabel>
-        </plotSettings>
+      <actions>
+        <how>pdf</how>
+      </actions>
+      <plotSettings>
+        <plot>
+          <type>scatter</type>
+          <x>optData|Input|leftTemperature</x>
+          <y>optData|Input|rightTemperature</y>
+          <z>optData|Input|solution</z>
+        </plot>
+        <xlabel>leftTemperature</xlabel>
+        <ylabel>rightTemperature</ylabel>
+        <zlabel>Loss Function</zlabel>
+      </plotSettings>
     </Plot>
-    
     <Plot dim="2" name="plotIteration" overwrite="false" verbosity="debug">
-        <actions>
-            <how>pdf</how>
-        </actions>
-        <plotSettings>
-            <gridSpace>3 1</gridSpace>
-            <plot>
-                <type>line</type>
-                <x>optData|Output|varsUpdate</x>
-                <y>optData|Input|leftTemperature</y>
-                <interpPointsX>300</interpPointsX>
-                <gridLocation><x>0</x><y>0</y></gridLocation>
-                <ylabel>x1</ylabel>
-            </plot>
-            
-            <plot>
-                <type>line</type>
-                <x>optData|Output|varsUpdate</x>
-                <y>optData|Input|rightTemperature</y>
-                <interpPointsX>300</interpPointsX>
-                <gridLocation><x>1</x><y>0</y></gridLocation>
-                <ylabel>2</ylabel>
-            </plot>
-            
-            
-            <plot>
-                <type>line</type>
-                <x>optData|Output|varsUpdate</x>
-                <y>optData|Input|solution</y>
-                <interpPointsX>300</interpPointsX>
-                <gridLocation><x>2</x><y>0</y></gridLocation>	
-                <ylabel>c</ylabel>				
-            </plot>
-            
-            
-        </plotSettings>
+      <actions>
+        <how>pdf</how>
+      </actions>
+      <plotSettings>
+        <gridSpace>3 1</gridSpace>
+        <plot>
+          <type>line</type>
+          <x>optData|Output|varsUpdate</x>
+          <y>optData|Input|leftTemperature</y>
+          <interpPointsX>300</interpPointsX>
+          <gridLocation>
+            <x>0</x>
+            <y>0</y>
+          </gridLocation>
+          <ylabel>x1</ylabel>
+        </plot>
+        <plot>
+          <type>line</type>
+          <x>optData|Output|varsUpdate</x>
+          <y>optData|Input|rightTemperature</y>
+          <interpPointsX>300</interpPointsX>
+          <gridLocation>
+            <x>1</x>
+            <y>0</y>
+          </gridLocation>
+          <ylabel>2</ylabel>
+        </plot>
+        <plot>
+          <type>line</type>
+          <x>optData|Output|varsUpdate</x>
+          <y>optData|Input|solution</y>
+          <interpPointsX>300</interpPointsX>
+          <gridLocation>
+            <x>2</x>
+            <y>0</y>
+          </gridLocation>
+          <ylabel>c</ylabel>
+        </plot>
+      </plotSettings>
     </Plot>
     <Plot dim="3" name="metaModelOutputTestSolution" overwrite="false" verbosity="debug">
       <plotSettings>
@@ -228,17 +227,16 @@
         </title>
       </actions>
     </Plot>
-    
   </OutStreams>
 
   <DataObjects>
     <PointSet name="optOutput">
-        <Input>rightTemperature,leftTemperature</Input>
-        <Output>solution</Output>
+      <Input>rightTemperature,leftTemperature</Input>
+      <Output>solution</Output>
     </PointSet>
     <PointSet name="optData">
-        <Input>rightTemperature,leftTemperature,varsUpdate</Input>
-        <Output>solution</Output>
+      <Input>rightTemperature,leftTemperature,varsUpdate</Input>
+      <Output>solution</Output>
     </PointSet>
     <PointSet name="inputHolder">
       <Input>leftTemperature,rightTemperature</Input>

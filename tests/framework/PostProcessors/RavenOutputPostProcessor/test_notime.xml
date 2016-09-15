@@ -1,10 +1,11 @@
 <?xml version="1.0" ?>
-<Simulation verbosity='debug'>
+<Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>static</WorkingDir>
     <Sequence>basic,basicpp,coll,colltrain,collprint,pp</Sequence>
     <batchSize>4</batchSize>
   </RunInfo>
+
   <!--Creates both a BasicStatistics and collocation ROM dump XML
        for loading, then loads comparable values from them.-->
   <Files>
@@ -98,18 +99,19 @@
 
   <Models>
     <PostProcessor name="ravenout" subType="RavenOutput">
-      <File name="first" ID="1">
+      <File ID="1" name="first">
         <output name="mean">ans|expectedValue</output>
         <output name="variance">ans|variance</output>
       </File>
-      <File name="second" ID="2">
+      <File ID="2" name="second">
         <output name="mean">ans|mean</output>
         <output name="variance">ans|variance</output>
       </File>
     </PostProcessor>
     <PostProcessor name="stats" subType="BasicStatistics">
-      <what>expectedValue,variance,kurtosis</what>
-      <parameters>x1,x2,ans</parameters>
+      <expectedValue>x1,x2,ans</expectedValue>
+      <variance>x1,x2,ans</variance>
+      <kurtosis>x1,x2,ans</kurtosis>
     </PostProcessor>
     <ExternalModel ModuleToLoad="../../../AnalyticModels/attenuate" name="model" subType="">
       <variables>x1,x2,ans</variables>

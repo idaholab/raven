@@ -12,7 +12,7 @@
 
   <Models>
     <PostProcessor name="agglomerative" subType="DataMining" verbosity="quiet">
-      <KDD lib="SciKitLearn" labelFeature='labels'>
+      <KDD labelFeature="labels" lib="SciKitLearn">
         <Features>x1,x2</Features>
         <SKLtype>cluster|Agglomerative</SKLtype>
         <n_clusters>3</n_clusters>
@@ -23,21 +23,21 @@
 
   <Steps>
     <IOStep name="input" pauseAtEnd="True">
-      <Input  class="Files"       type=""         >dataFile</Input>
-      <Output class="DataObjects" type="PointSet" >data</Output>
+      <Input class="Files" type="">dataFile</Input>
+      <Output class="DataObjects" type="PointSet">data</Output>
     </IOStep>
     <IOStep name="output" pauseAtEnd="True">
-      <Input  class="DataObjects" type="PointSet" >data</Input>
-      <Input  class="DataObjects" type="PointSet" >clusterInfo</Input>
-      <Output class="OutStreams"  type="Plot"     >plot</Output>
-      <Output class="OutStreams"  type="Print"    >info</Output>
+      <Input class="DataObjects" type="PointSet">data</Input>
+      <Input class="DataObjects" type="PointSet">clusterInfo</Input>
+      <Output class="OutStreams" type="Plot">plot</Output>
+      <Output class="OutStreams" type="Print">info</Output>
     </IOStep>
     <PostProcess name="cluster" pauseAtEnd="True">
-      <Input          class="DataObjects" type="PointSet"      >data</Input>
-      <Model          class="Models"      type="PostProcessor" >agglomerative</Model>
-      <SolutionExport class="DataObjects" type="PointSet"      >clusterInfo</SolutionExport>
-      <Output         class="DataObjects" type="PointSet"      >data</Output>
-      <Output         class="OutStreams"  type="Print"         >dummy</Output>
+      <Input class="DataObjects" type="PointSet">data</Input>
+      <Model class="Models" type="PostProcessor">agglomerative</Model>
+      <SolutionExport class="DataObjects" type="PointSet">clusterInfo</SolutionExport>
+      <Output class="DataObjects" type="PointSet">data</Output>
+      <Output class="OutStreams" type="Print">dummy</Output>
     </PostProcess>
   </Steps>
 
@@ -51,7 +51,6 @@
       <source>data</source>
       <what>Output|labels</what>
     </Print>
-
     <Plot dim="2" name="plot" overwrite="false">
       <plotSettings>
         <plot>

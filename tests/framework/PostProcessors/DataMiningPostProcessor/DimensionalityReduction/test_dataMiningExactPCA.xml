@@ -57,7 +57,7 @@
           <x>DataSets|Output|PCADimension1</x>
           <y>DataSets|Output|PCADimension2</y>
           <clusterLabels>DataSets|Input|labels</clusterLabels>
-          <kwargs></kwargs>
+          <kwargs/>
         </plot>
         <xlabel>Component 1</xlabel>
         <ylabel>Component 2</ylabel>

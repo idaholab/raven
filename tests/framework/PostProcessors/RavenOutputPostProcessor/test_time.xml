@@ -16,13 +16,17 @@
       <variables>x,y,z,time,x0,x01,x02,y0,y02,y01,z0,z02,z01</variables>
     </ExternalModel>
     <PostProcessor name="stats" subType="BasicStatistics">
-      <what>percentile,expectedValue,pearson</what>
-      <parameters>x0,y0,z0,x,y,z</parameters>
       <pivotParameter>time</pivotParameter>
+      <percentile>x0,y0,z0,x,y,z</percentile>
+      <expectedValue>x0,y0,z0,x,y,z</expectedValue>
+      <pearson>
+        <targets>x0,y0,z0,x,y,z</targets>
+        <features>x0,y0,z0,x,y,z</features>
+      </pearson>
     </PostProcessor>
     <PostProcessor name="statsReader" subType="RavenOutput">
       <dynamic/>
-      <File name='statsfile'>
+      <File name="statsfile">
         <output name="mean"> x | expectedValue </output>
         <output name="high"> x | percentile_5 </output>
         <output name="low"> x | percentile_95 </output>
@@ -31,23 +35,23 @@
   </Models>
 
   <Samplers>
-      <CustomSampler name="customSamplerFile">
-          <Source   class="Files"  type="">samples.csv</Source>
-          <variable name="x0"/>
-          <variable name="y0"/>
-          <variable name="z0"/>
-      </CustomSampler>
+    <CustomSampler name="customSamplerFile">
+      <Source class="Files" type="">samples.csv</Source>
+      <variable name="x0"/>
+      <variable name="y0"/>
+      <variable name="z0"/>
+    </CustomSampler>
   </Samplers>
 
   <Steps>
     <MultiRun name="sample">
-      <Input   class="Files" type="">model.py</Input>
-      <Model   class="Models" type="ExternalModel">PythonModule</Model>
+      <Input class="Files" type="">model.py</Input>
+      <Model class="Models" type="ExternalModel">PythonModule</Model>
       <Sampler class="Samplers" type="CustomSampler">customSamplerFile</Sampler>
-      <Output  class="DataObjects" type="HistorySet">history</Output>
+      <Output class="DataObjects" type="HistorySet">history</Output>
     </MultiRun>
     <IOStep name="print">
-      <Input class='DataObjects' type='PointSet'>points</Input>
+      <Input class="DataObjects" type="PointSet">points</Input>
       <Output class="OutStreams" type="Print">point_dump</Output>
     </IOStep>
     <PostProcess name="stats">

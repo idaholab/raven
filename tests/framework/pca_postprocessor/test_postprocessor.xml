@@ -5,7 +5,7 @@
     <Sequence>modelRun,computeRank</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
-  
+
   <Files>
     <Input name="output.xml" type="">output.xml</Input>
     <Input name="output.csv" type="">output.csv</Input>

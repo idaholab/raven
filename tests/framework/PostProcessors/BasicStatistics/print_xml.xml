@@ -19,6 +19,10 @@
       <all>
         <targets>x0,x01,y0,y02</targets>
         <features>x0,x01,y0,y02</features>
+        <targets>
+        </targets>
+        <features>
+        </features>
       </all>
     </PostProcessor>
   </Models>

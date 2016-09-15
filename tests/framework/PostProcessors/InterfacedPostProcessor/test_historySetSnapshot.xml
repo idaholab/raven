@@ -12,12 +12,12 @@
 
   <Steps>
     <MultiRun name="FirstMRun" pauseAtEnd="True">
-      <Input   class="DataObjects" type="PointSet">inputPlaceHolder</Input>
-      <Model   class="Models"      type="ExternalModel">PythonModule</Model>
-      <Sampler class="Samplers"    type="MonteCarlo">MC_external</Sampler>
-      <Output  class="DataObjects" type="PointSet">outMC</Output>
-      <Output  class="Databases"   type="HDF5">out_db</Output>
-      <Output  class="OutStreams"  type="Print">PrintHistorySet_dump</Output>
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
+      <Model class="Models" type="ExternalModel">PythonModule</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
+      <Output class="DataObjects" type="PointSet">outMC</Output>
+      <Output class="Databases" type="HDF5">out_db</Output>
+      <Output class="OutStreams" type="Print">PrintHistorySet_dump</Output>
     </MultiRun>
     <IOStep name="plot1">
       <Input class="DataObjects" type="PointSet">outMC_PP1</Input>
@@ -35,39 +35,39 @@
       <Output class="OutStreams" type="Plot">plot3</Output>
     </IOStep>
     <IOStep name="plot4">
-      <Input  class="DataObjects" type="PointSet">outMC_PP4</Input>
-      <Input  class="DataObjects" type="HistorySet">outMC</Input>
-      <Output class="OutStreams"  type="Plot">plot4</Output>
+      <Input class="DataObjects" type="PointSet">outMC_PP4</Input>
+      <Input class="DataObjects" type="HistorySet">outMC</Input>
+      <Output class="OutStreams" type="Plot">plot4</Output>
     </IOStep>
     <PostProcess name="PP">
-      <Input  class="DataObjects"  type="HistorySet">outMC</Input>
-      <Model  class="Models"       type="PostProcessor">historySamplingPP</Model>
-      <Output class="DataObjects"  type="PointSet">outMC_PP</Output>
-      <Output class="OutStreams"   type="Print">PrintPPpointSet_dump</Output>
+      <Input class="DataObjects" type="HistorySet">outMC</Input>
+      <Model class="Models" type="PostProcessor">historySamplingPP</Model>
+      <Output class="DataObjects" type="PointSet">outMC_PP</Output>
+      <Output class="OutStreams" type="Print">PrintPPpointSet_dump</Output>
     </PostProcess>
     <PostProcess name="PP1">
-      <Input  class="DataObjects"  type="HistorySet">outMC</Input>
-      <Model  class="Models"       type="PostProcessor">historySamplingMin</Model>
-      <Output class="DataObjects"  type="PointSet">outMC_PP1</Output>
-      <Output class="OutStreams"   type="Print">PrintPPpointSet_dump1</Output>
+      <Input class="DataObjects" type="HistorySet">outMC</Input>
+      <Model class="Models" type="PostProcessor">historySamplingMin</Model>
+      <Output class="DataObjects" type="PointSet">outMC_PP1</Output>
+      <Output class="OutStreams" type="Print">PrintPPpointSet_dump1</Output>
     </PostProcess>
     <PostProcess name="PP2">
-      <Input  class="DataObjects"  type="HistorySet">outMC</Input>
-      <Model  class="Models"       type="PostProcessor">historySamplingMax</Model>
-      <Output class="DataObjects"  type="PointSet">outMC_PP2</Output>
-      <Output class="OutStreams"   type="Print">PrintPPpointSet_dump2</Output>
+      <Input class="DataObjects" type="HistorySet">outMC</Input>
+      <Model class="Models" type="PostProcessor">historySamplingMax</Model>
+      <Output class="DataObjects" type="PointSet">outMC_PP2</Output>
+      <Output class="OutStreams" type="Print">PrintPPpointSet_dump2</Output>
     </PostProcess>
     <PostProcess name="PP3">
-      <Input  class="DataObjects"  type="HistorySet">outMC</Input>
-      <Model  class="Models"       type="PostProcessor">historySamplingAvg</Model>
-      <Output class="DataObjects"  type="PointSet">outMC_PP3</Output>
-      <Output class="OutStreams"   type="Print">PrintPPpointSet_dump3</Output>
+      <Input class="DataObjects" type="HistorySet">outMC</Input>
+      <Model class="Models" type="PostProcessor">historySamplingAvg</Model>
+      <Output class="DataObjects" type="PointSet">outMC_PP3</Output>
+      <Output class="OutStreams" type="Print">PrintPPpointSet_dump3</Output>
     </PostProcess>
     <PostProcess name="PP4">
-      <Input  class="DataObjects"  type="HistorySet">outMC</Input>
-      <Model  class="Models"       type="PostProcessor">historySamplingValue</Model>
-      <Output class="DataObjects"  type="PointSet">outMC_PP4</Output>
-      <Output class="OutStreams"   type="Print">PrintPPpointSet_dump4</Output>
+      <Input class="DataObjects" type="HistorySet">outMC</Input>
+      <Model class="Models" type="PostProcessor">historySamplingValue</Model>
+      <Output class="DataObjects" type="PointSet">outMC_PP4</Output>
+      <Output class="OutStreams" type="Print">PrintPPpointSet_dump4</Output>
     </PostProcess>
   </Steps>
 

@@ -49,8 +49,8 @@
       </variable>
     </Grid>
   </Samplers>
-  <ExternalXML node="Steps" xmlToLoad="sharedSteps.xml"/>
 
+  <ExternalXML node="Steps" xmlToLoad="sharedSteps.xml"/>
   <OutStreams>
     <!-- A csv file containing the output of the example -->
     <Print name="outData">
@@ -61,5 +61,4 @@
   </OutStreams>
 
   <ExternalXML node="DataObjects" xmlToLoad="sharedDataObjects.xml"/>
-
 </Simulation>

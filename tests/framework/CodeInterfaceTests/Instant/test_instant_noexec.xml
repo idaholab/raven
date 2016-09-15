@@ -15,10 +15,10 @@
 
   <Models>
     <Code name="Rattlesnake" subType="Rattlesnake">
-        <executable>
+      <executable>
         <!--  /path/to/rattlesnake/executable -->
         <!-- here we should put the executable. Since we want to test the interface only, it is going to be empty -->
-        </executable>
+      </executable>
     </Code>
   </Models>
 

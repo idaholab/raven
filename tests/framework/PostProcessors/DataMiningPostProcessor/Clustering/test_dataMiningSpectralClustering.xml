@@ -12,7 +12,7 @@
 
   <Models>
     <PostProcessor name="SpectralCircles" subType="DataMining" verbosity="quiet">
-      <KDD lib="SciKitLearn" labelFeature='labels'>
+      <KDD labelFeature="labels" lib="SciKitLearn">
         <Features>y1,y2</Features>
         <SKLtype>cluster|SpectralClustering</SKLtype>
         <n_clusters>2</n_clusters>

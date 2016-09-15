@@ -12,7 +12,7 @@
 
   <Models>
     <PostProcessor name="DirichletProcessGMMBlobs" subType="DataMining" verbosity="quiet">
-      <KDD lib="SciKitLearn" labelFeature='labels'>
+      <KDD labelFeature="labels" lib="SciKitLearn">
         <Features>x1,x2</Features>
         <SKLtype>mixture|DPGMM</SKLtype>
         <covariance_type>diag</covariance_type>
