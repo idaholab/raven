@@ -62,37 +62,49 @@ if __name__ == '__main__':
   """This is the main driver for the RAVEN framework"""
   # Retrieve the framework directory path and working dir
   printStatement()
+
   verbosity      = 'all'
   interfaceCheck = False
   interactive = False
   workingDir = os.getcwd()
+
+  ## Remove duplicate command line options and preserve order so if they try
+  ## conflicting options, the last one will take precedence.
+  sys.argv = utils.removeDuplicates(sys.argv)
+
+  itemsToRemove = []
   for item in sys.argv:
-    if   item.lower() == 'silent':
-      verbosity = 'silent'
-      sys.argv.pop(sys.argv.index(item))
-    elif item.lower() == 'quiet':
-      verbosity = 'quiet'
-      sys.argv.pop(sys.argv.index(item))
-    elif item.lower() == 'all':
-      verbosity = 'all'
-      sys.argv.pop(sys.argv.index(item))
+    if item.lower() in ['silent','quiet','all']:
+      verbosity = item.lower()
+      itemsToRemove.append(item)
     elif item.lower() == 'interfacecheck':
       interfaceCheck = True
-      sys.argv.pop(sys.argv.index(item))
+      itemsToRemove.append(item)
     elif item.lower() == 'interactive':
       if __PySideAvailable:
         interactive = True
       else:
         print('\nPySide is not installed, disabling interactive mode.\n')
-      sys.argv.pop(sys.argv.index(item))
-  if interfaceCheck: os.environ['RAVENinterfaceCheck'] = 'True'
-  else             : os.environ['RAVENinterfaceCheck'] = 'False'
-  simulation = Simulation(frameworkDir,verbosity=verbosity,interactive=interactive)
+      itemsToRemove.append(item)
+
+  ## Now outside of the loop iterating on the object we want to modify, we are
+  ## safe to remove each of the items
+  for item in itemsToRemove:
+    sys.argv.remove(item)
+
+  if interfaceCheck:
+    os.environ['RAVENinterfaceCheck'] = 'True'
+  else:
+    os.environ['RAVENinterfaceCheck'] = 'False'
+
+  simulation = Simulation(frameworkDir, verbosity=verbosity, interactive=interactive)
+
   #If a configuration file exists, read it in
   configFile = os.path.join(os.path.expanduser("~"),".raven","default_runinfo.xml")
   if os.path.exists(configFile):
     tree = ET.parse(configFile)
     root = tree.getroot()
+
     if root.tag == 'Simulation' and [x.tag for x in root] == ["RunInfo"]:
       simulation.XMLread(root,runInfoSkip=set(["totNumCoresUsed"]),xmlFilename=configFile)
     else:
@@ -108,6 +120,7 @@ if __name__ == '__main__':
     inputFiles = [simulation.getDefaultInputFile()]
   else:
     inputFiles = sys.argv[1:]
+
   for i in range(len(inputFiles)):
     if not os.path.isabs(inputFiles[i]):
       inputFiles[i] = os.path.join(workingDir,inputFiles[i])
@@ -118,17 +131,22 @@ if __name__ == '__main__':
   #  are still thrown while parsing the XML tree.  Otherwise any error made by
   #  the developer or user might be obfuscated.
   for inputFile in inputFiles:
-    try: tree = ET.parse(inputFile)
+    try:
+      tree = ET.parse(inputFile)
     except ET.ParseError as e:
       print('\nXML Parsing error!',e,'\n')
       sys.exit(1)
+
     #except?  riseanIOError('not possible to parse (xml based) the input file '+inputFile)
-    if verbosity=='debug': print('DRIVER','opened file '+inputFile)
+    if verbosity=='debug':
+      print('DRIVER','opened file '+inputFile)
+
     root = tree.getroot()
     if root.tag != 'Simulation':
       e=IOError('The outermost block of the input file '+inputFile+' it is not Simulation')
       print('\nInput XML Error!',e,'\n')
       sys.exit(1)
+
     # call the function to load the external xml files into the ET
     simulation.XMLpreprocess(root,xmlFileName=inputFile)
     #generate all the components of the simulation

@@ -90,8 +90,8 @@ postprocessor are suplied with subnode \xmlNode{Features} in the parent node
 \end{itemize}
 
 The \xmlNode{KDD} node can have either optional or required subnodes depending
- on the dataMining algorithm used. The possible subnodes will be described seperately
- for each algorithm below.
+ on the dataMining algorithm used. The possible subnodes will be described separately
+ for each algorithm below. The time dependent clustering data mining algorithms have a \xmlNode{reOrderStep} option that will try and keep the same labels on the clusters.  The higher the number, the longer the history that the clustering algorithm will look through to maintain the same labeling between time steps.
 
 All the available algorithms are described in the following sections.
 

@@ -421,14 +421,14 @@ class Dummy(Model):
       @ In, output, "DataObjects" object, output where the results of the calculation needs to be stored
       @ Out, None
     """
-    if finishedJob.returnEvaluation() == -1:
+    if finishedJob.getEvaluation() == -1:
       self.raiseAnError(AttributeError,"No available Output to collect")
-    evaluation = finishedJob.returnEvaluation()
+    evaluation = finishedJob.getEvaluation()
     if type(evaluation[1]).__name__ == "tuple":
       outputeval = evaluation[1][0]
     else:
       outputeval = evaluation[1]
-    exportDict = copy.deepcopy({'inputSpaceParams':evaluation[0],'outputSpaceParams':outputeval,'metadata':finishedJob.returnMetadata()})
+    exportDict = copy.deepcopy({'inputSpaceParams':evaluation[0],'outputSpaceParams':outputeval,'metadata':finishedJob.getMetadata()})
     if output.type == 'HDF5': output.addGroupDataObjects({'group':self.name+str(finishedJob.identifier)},exportDict,False)
     else:
       self.collectOutputFromDict(exportDict,output)
@@ -972,7 +972,7 @@ class ExternalModel(Dummy):
       @ In, output, "DataObjects" object, output where the results of the calculation needs to be stored
       @ Out, None
     """
-    if finishedJob.returnEvaluation() == -1:
+    if finishedJob.getEvaluation() == -1:
       #is it still possible for the run to not be finished yet?  Should we be erroring out if so?
       self.raiseAnError(RuntimeError,"No available Output to collect")
     def typeMatch(var,varTypeStr):
@@ -986,8 +986,8 @@ class ExternalModel(Dummy):
       return typeVar.__name__ == varTypeStr or \
         typeVar.__module__+"."+typeVar.__name__ == varTypeStr
     # check type consistency... This is needed in order to keep under control the external model... In order to avoid problems in collecting the outputs in our internal structures
-    instanciatedSelf = finishedJob.returnEvaluation()[1][1]
-    outcomes         = finishedJob.returnEvaluation()[1][0]
+    instanciatedSelf = finishedJob.getEvaluation()[1][1]
+    outcomes         = finishedJob.getEvaluation()[1][0]
     for key in instanciatedSelf.modelVariableType.keys():
       if not (typeMatch(outcomes[key],instanciatedSelf.modelVariableType[key])):
         self.raiseAnError(RuntimeError,'type of variable '+ key + ' is ' + str(type(outcomes[key]))+' and mismatches with respect to the input ones (' + instanciatedSelf.modelVariableType[key] +')!!!')
@@ -1277,7 +1277,7 @@ class Code(Model):
     """
     outputFilelocation = finishedjob.getWorkingDir()
     attributes={"inputFile":self.currentInputFiles,"type":"csv","name":os.path.join(outputFilelocation,finishedjob.output+'.csv')}
-    metadata = finishedjob.returnMetadata()
+    metadata = finishedjob.getMetadata()
     if metadata: attributes['metadata'] = metadata
     if output.type == "HDF5"        : output.addGroup(attributes,attributes)
     elif output.type in ['PointSet','HistorySet']:
@@ -1723,8 +1723,8 @@ class EnsembleModel(Dummy, Assembler):
       @ In, output, "DataObjects" object, output where the results of the calculation needs to be stored
       @ Out, None
     """
-    if finishedJob.returnEvaluation() == -1: self.raiseAnError(RuntimeError,"Job " + finishedJob.identifier +" failed!")
-    out, inputs = finishedJob.returnEvaluation()[1], finishedJob.returnEvaluation()[0]
+    if finishedJob.getEvaluation() == -1: self.raiseAnError(RuntimeError,"Job " + finishedJob.identifier +" failed!")
+    inputs, out = finishedJob.getEvaluation()[:2]
     exportDict = {'inputSpaceParams':{},'outputSpaceParams':{},'metadata':{}}
     outcomes, targetEvaluations = out
     for modelIn in self.modelsDictionary.keys():
@@ -1839,7 +1839,7 @@ class EnsembleModel(Dummy, Assembler):
           # get job that just finished
           #with self.lockSystem:
           finishedRun = jobHandler.getFinished(jobIdentifier = modelIn+"|"+identifier, uniqueHandler=self.name+identifier)
-          if finishedRun[0].returnEvaluation() == -1:
+          if finishedRun[0].getEvaluation() == -1:
             for modelToRemove in self.orderList:
               if modelToRemove != modelIn: jobHandler.getFinished(jobIdentifier = modelToRemove + "|" + identifier, uniqueHandler = self.name + identifier)
             self.raiseAnError(RuntimeError,"The Model "+modelIn + " failed!")
