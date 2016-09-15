@@ -2664,7 +2664,7 @@ class ExternalPostProcessor(BasePostProcessor):
         for param in item.getParaKeys('output'):
           inputDict['targets'][param] = [value[param] for value in outs.values()]
         for param in item.getParaKeys('input'):
-          inputDict['targets'][param] =  [value[param] for value in ins.values()]      
+          inputDict['targets'][param] =  [value[param] for value in ins.values()]
         metadata.append(item.getAllMetadata())
       elif inType != 'list':
         self.raiseAWarning(self, 'Input type ' + type(item).__name__ + ' not recognized. I am going to skip it.')
@@ -2741,7 +2741,7 @@ class ExternalPostProcessor(BasePostProcessor):
       self.raiseAWarning('Output type ' + type(output).__name__
                          + ' not yet implemented. I am going to skip it.')
     elif output.type in ['PointSet','HistorySet'] :
-    #elif output.type == 'PointSet':  
+    #elif output.type == 'PointSet':
       requestedInput = output.getParaKeys('input')
       ## If you want to be able to dynamically add columns to your data, then
       ## you should use this commented line, otherwise only the information
