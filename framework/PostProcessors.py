@@ -1516,10 +1516,10 @@ class BasicStatistics(BasePostProcessor):
         #   and features are for the matrix operations
         tnode = child.find('targets')
         if tnode is None:
-          self.raiseAnError('When using "all" node, you must specify a "targets" and a "features" node!  "targets" is missing.')
+          self.raiseAnError(IOError,'When using "all" node, you must specify a "targets" and a "features" node!  "targets" is missing.')
         fnode = child.find('features')
         if fnode is None:
-          self.raiseAnError('When using "all" node, you must specify a "targets" and a "features" node!  "features" is missing.')
+          self.raiseAnError(IOError,'When using "all" node, you must specify a "targets" and a "features" node!  "features" is missing.')
         targets = set(a.strip() for a in tnode.text.split(','))
         features = set(a.strip() for a in fnode.text.split(','))
         for scalar in self.scalarVals:
@@ -1601,7 +1601,7 @@ class BasicStatistics(BasePostProcessor):
       availExtens = ['xml']
       outputExtension = output.getExt().lower()
       if outputExtension not in availExtens:
-        self.raiseAMessage('BasicStatistics did not recognize extension "'+str(outputExtension)+'" as ".xml", so writing text output...')
+        self.raiseAMessage('BasicStatistics did not recognize extension ".'+str(outputExtension)+'" as ".xml", so writing text output...')
       output.setPath(self.__workingDir)
       self.raiseADebug('Writing statistics output in file named ' + output.getAbsFile())
       output.open('w')
@@ -1615,14 +1615,15 @@ class BasicStatistics(BasePostProcessor):
       for ts, outputDict in enumerate(outputResults):
         appendix = '-'+self.pivotParameter+'-'+str(outputDictionary.keys()[ts]) if self.dynamic else ''
         for what in outputDict.keys():
-          if what not in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity'] + methodToTest:
-            for targetP in parameterSet:
+          if what not in self.vectorVals + methodToTest:
+            for targetP in outputDict[what].keys():
               self.raiseADebug('Dumping variable ' + targetP + '. Parameter: ' + what + '. Metadata name = ' + targetP + '-' + what)
               output.updateMetadata(targetP + '-' + what + appendix, outputDict[what][targetP])
           else:
-            if what not in methodToTest and len(parameterSet) > 1:
-              self.raiseADebug('Dumping matrix ' + what + '. Metadata name = ' + what + '. Targets stored in ' + 'targets-' + what)
-              output.updateMetadata('targets-' + what + appendix, parameterSet)
+            if what not in methodToTest and len(self.allUsedParams) > 1:
+              #self.raiseADebug('Dumping matrix ' + what + '. Metadata name = ' + what + '. Targets stored in ' + 'targets-' + what)
+              #output.updateMetadata('targets-' + what + appendix, parameterSet)
+              self.raiseADebug('Dumping vector metric',what)
               output.updateMetadata(what.replace("|","-") + appendix, outputDict[what])
         if self.externalFunction:
           self.raiseADebug('Dumping External Function results')
@@ -1715,7 +1716,11 @@ class BasicStatistics(BasePostProcessor):
         #do scalars first
         for metric in self.scalarVals:
           #TODO percentile
-          if metric in outputDict.keys() and target in outputDict[metric]:
+          if metric == 'percentile':
+            for key in outputDict.keys():
+              if key.startswith(metric) and target in outputDict[key].keys():
+                output.addScalar(target,key,outputDict[key][target],pivotVal=pivotVal)
+          elif metric in outputDict.keys() and target in outputDict[metric]:
             output.addScalar(target,metric,outputDict[metric][target],pivotVal=pivotVal)
         #do matrix values
         for metric in self.vectorVals:
@@ -1775,7 +1780,6 @@ class BasicStatistics(BasePostProcessor):
         corrFactor = numer1/denom ,numer2/denom
     else:
       if   order == 2:
-        print('DEBUGG took MC path')
         corrFactor   = float(weightsOrN)/(float(weightsOrN)-1.0)
       elif order == 3: corrFactor   = (float(weightsOrN)**2.0)/((float(weightsOrN)-1)*(float(weightsOrN)-2))
       elif order == 4: corrFactor = (float(weightsOrN)*(float(weightsOrN)**2.0-2.0*float(weightsOrN)+3.0))/((float(weightsOrN)-1)*(float(weightsOrN)-2)*(float(weightsOrN)-3)),(3.0*float(weightsOrN)*(2.0*float(weightsOrN)-3.0))/((float(weightsOrN)-1)*(float(weightsOrN)-2)*(float(weightsOrN)-3))
@@ -1831,7 +1835,6 @@ class BasicStatistics(BasePostProcessor):
     else:
       unbiasCorr = self.__computeUnbiasedCorrection(2,len(arrayIn)) if not self.biased else 1.0
       result = np.average((arrayIn - expValue)**2)*unbiasCorr
-    print('DEBUGG correction factor is',unbiasCorr)
     return result
 
   def _computeSigma(self,arrayIn,variance,pbWeight=None):
@@ -1906,6 +1909,9 @@ class BasicStatistics(BasePostProcessor):
     parameter2index = dict((param,p) for p,param in enumerate(input['targets'].keys()))
     for p,param in enumerate(input['targets'].keys()):
       parameter2index[param] = p
+
+    #storage dictionary for skipped metrics
+    self.skipped = {}
 
     #construct a dict of required computations
     needed = dict((metric,set()) for metric in self.scalarVals) #for each metric (keys), the list of parameters we need that value for
@@ -2065,7 +2071,7 @@ class BasicStatistics(BasePostProcessor):
         relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
       else:
         relWeight  = None
-        calculations[metric][targetP] = self._computeKurtosis(input['targets'][targetP],calculations['expectedValue'][targetP],calculations['variance'][targetP],pbWeight=relWeight)
+      calculations[metric][targetP] = self._computeKurtosis(input['targets'][targetP],calculations['expectedValue'][targetP],calculations['variance'][targetP],pbWeight=relWeight)
     #
     # median
     #
@@ -2103,6 +2109,7 @@ class BasicStatistics(BasePostProcessor):
     metric = 'percentile'
     self.raiseADebug('Starting "'+metric+'"...')
     for percent,targets in needed[metric].items():
+      self.raiseADebug('...',percent,'...')
       label = metric+'_'+str(percent)
       calculations[label] = {}
       for targetP in targets:
@@ -2121,18 +2128,31 @@ class BasicStatistics(BasePostProcessor):
         @ Out, features, list(str), list of feature parameter names (evaluate with respect to these)
         @ Out, skip, bool, if True it means either features or parameters were missing, so don't calculate anything
       """
-      if len(needed[metric])>0:
+      # default to skipping, change that if we find criteria
+      targets = []
+      features = []
+      skip = True
+      allParams = set(needed[metric]['targets'])
+      allParams.update(set(needed[metric]['features']))
+      if len(needed[metric]['targets'])>0 and len(allParams)>=2:
         self.raiseADebug('Starting "'+metric+'"...')
         calculations[metric]={}
-      targets = needed[metric]['targets']
-      features = needed[metric]['features']
-      skip = False #True only if we don't have targets and features
-      if len(targets)<1:
-        self.raiseAWarning('No targets specified for <'+metric+'>!  Please specify targets in a <targets> node (see the manual).  Skipping...')
-        skip = True
-      if len(features)<1:
-        self.raiseAWarning('No features specified for <'+metric+'>!  Please specify features in a <featuress> node (see the manual).  Skipping...')
-        skip = True
+        targets = needed[metric]['targets']
+        features = needed[metric]['features']
+        skip = False #True only if we don't have targets and features
+        if len(features)<1:
+          self.raiseAWarning('No features specified for <'+metric+'>!  Please specify features in a <features> node (see the manual).  Skipping...')
+          skip = True
+      elif len(needed[metric]['targets']) == 0:
+        #unrequested, no message needed
+        pass
+      elif len(allParams) < 2:
+        #insufficient target/feature combinations (usually when only 1 target and 1 feature, and they are the same)
+        self.raiseAWarning('A total of',len(allParams),'were provided for metric',metric,'but at least 2 are required!  Skipping...')
+      if skip:
+        if metric not in self.skipped.keys():
+          self.skipped[metric] = {}
+        self.skipped[metric].update(needed[metric])
       return targets,features,skip
 
     metric = 'sensitivity'
@@ -2166,15 +2186,12 @@ class BasicStatistics(BasePostProcessor):
       params = list(set(targets).union(set(features)))
       paramSamples = np.zeros((len(params), utils.first(input['targets'].values()).size))
       pbWeightsList = [None]*len(input['targets'].keys())
-      print('DEBUGG pbWeights[realization] is',pbWeights['realization'])
       for p,param in enumerate(params):
         dataIndex = parameter2index[param]
         paramSamples[p,:] = input['targets'][param][:]
-        print('DEBUGG param in pbWeights:',param in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys())
         pbWeightsList[p] = pbWeights['realization'] if param not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][param]
       pbWeightsList.append(pbWeights['realization'])
       if None in pbWeightsList:
-        print('DEBUGG None.')
         covar = self.covariance(paramSamples)
       else:
         covar = self.covariance(paramSamples, weights = pbWeightsList)
@@ -2253,6 +2270,8 @@ class BasicStatistics(BasePostProcessor):
     #collect only the requested calculations
     outputDict = {}
     for metric,params in self.toDo.items():
+      #TODO someday we might need to expand the "skipped" check to include scalars, but for now
+      #   the only reason to skip is if an invalid matrix is requested
       #if percentile, special treatment
       if metric == 'percentile':
         for pct,targets in params.items():
@@ -2262,23 +2281,31 @@ class BasicStatistics(BasePostProcessor):
       elif metric in self.scalarVals:
         outputDict[metric] = dict((target,calculations[metric][target]) for target in params)
       #if a matrix block, extract desired values
-      elif metric in ['pearson','covariance']:
-        outputDict[metric] = {}
-        for entry in params:
-          for target in entry['targets']:
-            if target not in outputDict[metric].keys():
-              outputDict[metric][target] = {}
-            targetIndex = calculations[metric]['params'].index(target)
-            for feature in entry['features']:
-              featureIndex = calculations[metric]['params'].index(feature)
-              #FIXME did I do this indexing right? should be metric of target w.r.t. feature that I'm grabbing
-              outputDict[metric][target][feature] = calculations[metric]['matrix'][targetIndex,featureIndex]
-      #if matrix but stored in dictionaries, just grab the values
-      elif metric in ['sensitivity','NormalizedSensitivity','VarianceDependentSensitivity']:
-        outputDict[metric] = {}
-        for entry in params:
-          for target in entry['targets']:
-            outputDict[metric][target] = dict((feature,calculations[metric][target][feature]) for feature in entry['features'])
+      else:
+        if metric in ['pearson','covariance']:
+          outputDict[metric] = {}
+          for entry in params:
+            #check if it was skipped for some reason
+            if entry == self.skipped.get(metric,None):
+              self.raiseADebug('Metric',metric,'was skipped for parameters',entry,'!  See warnings for details.  Ignoring...')
+              continue
+            for target in entry['targets']:
+              if target not in outputDict[metric].keys():
+                outputDict[metric][target] = {}
+              targetIndex = calculations[metric]['params'].index(target)
+              for feature in entry['features']:
+                featureIndex = calculations[metric]['params'].index(feature)
+                outputDict[metric][target][feature] = calculations[metric]['matrix'][targetIndex,featureIndex]
+        #if matrix but stored in dictionaries, just grab the values
+        elif metric in ['sensitivity','NormalizedSensitivity','VarianceDependentSensitivity']:
+          outputDict[metric] = {}
+          for entry in params:
+            #check if it was skipped for some reason
+            if entry == self.skipped.get(metric,None):
+              self.raiseADebug('Metric',metric,'was skipped for parameters',entry,'!  See warnings for details.  Ignoring...')
+              continue
+            for target in entry['targets']:
+              outputDict[metric][target] = dict((feature,calculations[metric][target][feature]) for feature in entry['features'])
 
     # print on screen
     methodToTest = []
