@@ -65,11 +65,9 @@ The \textbf{SPSA} optimization approach is one of the optimization strategies th
 
 In addition to the algorithm in \cite{spall1998implementation}, current implementation of \textbf{SPSA} can also handles constrained optimization problem. This paragraph briefly describes how current implementation ensures the input satisfies the constraints. When when updating the variables (not perturbing), if constraint is violated, \textbf{SPSA} does the following in sequence:
 \begin{itemize}
-
-\item Try to shorten the gradient vector so that it satisfies the constraints.
-\item if by shorternning the gradient constraint cannot be satisfied, then find a random vector orthogonal to gradient that satisfy constraint, and rotate it towards the constraints. When doing so, the length of new vector is taken care of as well.
-\item otherwise do not update the variables and the spsa will conclude the optimal (which may not be true optimal).
-
+\item Try to find, through bisection method, the longest fraction of gradient vector so that the variable update satisfies the constraints; 
+\item When such fraction cannot be found, then find a random vector orthogonal to gradient vector so that, by using this orthogonal vector as gradient, the variable update satisfies the constraints. Rotate the orthogonal vector towards the gradient, through bisection methods, until constraints can no longer be satisfied; 
+\item If all above cannot return a constraint satisfying variable update, then do not update the variables and the \textbf{SPSA} will terminate. 
 \end{itemize}
  
 
@@ -96,6 +94,9 @@ In the \xmlNode{SPSA} input block, the user needs to specify the objective varia
   \end{itemize}
 \end{itemize}
 \begin{itemize}
+\item \xmlNode{Function}, \xmlDesc{XML node, optional parameter},
+        indicates the external function where the constraints are stored. From a practical point of view, this XML node must contain the name of
+        a function defined in the \xmlNode{Functions} block (see Section~\ref{sec:functions}). This external function must contain a method called ``constrain'', which returns 1 for inputs satisfying the constraints and 0 otherwise. When this block is absent and all the \xmlNode{upperBound} blocks of \xmlNode{variable} are absent (see below), then \xmlNode{SPSA} considers it as an unconstrained optimization problem;
 \item \xmlNode{TargetEvaluation}, \xmlDesc{XML node, required parameter},
         represents the container where the model evaluations are stored.
         %
@@ -121,7 +122,7 @@ In the \xmlNode{SPSA} input block, the user needs to specify the objective varia
 \item \xmlNode{convergence}, \xmlDesc{XML node, optional parameter} will specify parameters associated with optimization convergence. This node accepts the following sub-nodes:
   \begin{itemize}
   \item \xmlNode{iterationLimit}, \xmlDesc{integer, optional field}, user-defined maximum number of optimization iterations.
-  \item \xmlNode{threshold}, \xmlDesc{float, optional field}, specifies the convergence criteria to determine the optimality. When the change of objective variable in two successive model evaluations is smaller than this pre-specified threshold, the \xmlNode{SPSA} optimizer decides optimality and terminates the simulation.
+  \item \xmlNode{threshold}, \xmlDesc{float, optional field}, specifies the convergence criteria to determine the optimality. If it is given a positive value, then when the absolute change of objective variable in two successive model evaluations is smaller than this pre-specified threshold, the \xmlNode{SPSA} optimizer decides optimality and terminates the simulation. If it is given a negative value, then \xmlNode{SPSA} optimizer will run all the iterations specified. 
       \default{1e-3}
   \end{itemize}
 \item \xmlNode{Parameter}, \xmlDesc{XML node, optional parameter} will accepts the following sub-nodes:
@@ -138,6 +139,10 @@ In the \xmlNode{SPSA} input block, the user needs to specify the objective varia
         \default{0.101}
   \item \xmlNode{c}, \xmlDesc{float, optional field} a parameter for updating gain sequence for perturbation. See \cite{spall1998implementation}.
         \default{0.005}
+  \item \xmlNode{innerBisectionThreshold}, \xmlDesc{float, optional field} a parameter specifying the convergence threshold of the bisection method used in constraint handling (See above). This parameter shall be in the open inverval $(0,1)$.
+        \default{0.01}
+  \item \xmlNode{innerLoopLimit}, \xmlDesc{integer, optional field} a parameter specifying the number of orthogonal vectors to try when handling the constraints (See above).
+        \default{1000}        
   \end{itemize}
 \end{itemize}
 

@@ -186,7 +186,8 @@ class SPSA(GradientBasedOptimizer):
         lenPendVector += pendVector[var]**2
       lenPendVector = np.sqrt(lenPendVector)
       
-      while self.angle_between(gradient, pendVector) > 2:
+      rotateDegreeUpperLimit = 2
+      while self.angle_between(gradient, pendVector) > rotateDegreeUpperLimit:
         sumVector, lenSumVector = {}, 0
         for var in self.optVars:
           sumVector[var] = gradient[var] + pendVector[var]
@@ -217,7 +218,7 @@ class SPSA(GradientBasedOptimizer):
     """
     innerBisectionThreshold = self.constraintHandlingPara['innerBisectionThreshold']
     if innerBisectionThreshold <= 0 or innerBisectionThreshold >= 1: self.raiseAnError(ValueError, 'The ')
-    paraFracLowerLimit = 1e-2
+    fracLowerLimit = 1e-2
     bounds = [0, 1.0]
     tempVarNew = {}
     frac = 0.5
@@ -228,7 +229,7 @@ class SPSA(GradientBasedOptimizer):
       if self.checkConstraint(tempVarNew):
         bounds[0] = copy.deepcopy(frac)
         if np.absolute(bounds[1]-bounds[0]) < innerBisectionThreshold:
-          if frac >= paraFracLowerLimit:
+          if frac >= fracLowerLimit:
             varKPlus = copy.deepcopy(tempVarNew)
             return True, varKPlus
           break
