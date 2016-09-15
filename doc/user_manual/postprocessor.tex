@@ -69,33 +69,43 @@ data objects, depending on the type of statistics the user wants to compute:
 %
 \ppType{BasicStatistics post-processor}{BasicStatistics}
 \begin{itemize}
-  \item \xmlNode{what}, \xmlDesc{comma separated string, required field},
+  \item \xmlNode{(metric)}, \xmlDesc{comma separated string or node list, required field},
+    specifications for the metric to be calculated.  The name of each node is the requested metric.  There are
+    two forms for specifying the requested parameters of the metric.  For scalar values such as
+    \xmlNode{expectedValue} and \xmlNode{variance}, the text of the node is a comma-separated list of the
+    parameters for which the metric should be calculated.  For matrix values such as \xmlNode{sensitivty} and
+    \xmlNode{covariance}, the matrix node requires two sub-nodes, \xmlNode{targets} and \xmlNode{features},
+    each of which is a comma-separated list of the targets for which the metric should be calculated, and the
+    features for which the metric should be calculated for that target.  See the example below.
+  %\item \xmlNode{what}, \xmlDesc{comma separated string, required field},
   %
-  List of quantities to be computed.
+  %List of quantities to be computed.
   %
-  Currently the quantities available are:
+  Currently the scalar quantities available for request are:
   \begin{itemize}
-    \item \textbf{covariance}: covariance matrix
-    \item \textbf{NormalizedSensitivity}: matrix of normalized sensitivity
-    coefficients. \nb{It is the matrix of normalized VarianceDependentSensitivity}
-    \item \textbf{VarianceDependentSensitivity}: matrix of sensitivity coefficients dependent on the variance of the variables
-    \item \textbf{sensitivity}: matrix of sensitivity coefficients, computed via linear regression method.
-    \item \textbf{pearson}: matrix of correlation coefficients
     \item \textbf{expectedValue}: expected value or mean
-    \item \textbf{sigma}: standard deviation
-    \item \textbf{variationCoefficient}: coefficient of variation, i.e. \textbf{sigma}/\textbf{expectedValue}. \nb If the \textbf{expectedValue} is zero,
-    the \textbf{variationCoefficient} will be \textbf{INF}.
-    \item \textbf{variance}: variance
-    \item \textbf{skewness}: skewness
-    \item \textbf{kurtosis}: excess kurtosis (also known as Fisher's kurtosis)
+    \item \textbf{minimum}: The minimum value of the samples.
+    \item \textbf{maximum}: The maximum value of the samples.
     \item \textbf{median}: median
+    \item \textbf{variance}: variance
+    \item \textbf{sigma}: standard deviation
     \item \textbf{percentile}: the percentile. If this quantity is inputted as \textit{percentile} the $5\%$ and $95\%$ percentile(s) are going to be computed.
                                Otherwise the user can specify this quantity as \textit{percentile\_$X\%$}, where \textit{X} represents the requested
                                percentile (an integer value between 1 and 100)
+    \item \textbf{variationCoefficient}: coefficient of variation, i.e. \textbf{sigma}/\textbf{expectedValue}. \nb If the \textbf{expectedValue} is zero,
+    the \textbf{variationCoefficient} will be \textbf{INF}.
+    \item \textbf{skewness}: skewness
+    \item \textbf{kurtosis}: excess kurtosis (also known as Fisher's kurtosis)
+  \end{itemize}
+  The matrix quantities available for request are:
+  \begin{itemize}
+    \item \textbf{sensitivity}: matrix of sensitivity coefficients, computed via linear regression method.
+    \item \textbf{covariance}: covariance matrix
+    \item \textbf{pearson}: matrix of correlation coefficients
+    \item \textbf{NormalizedSensitivity}: matrix of normalized sensitivity
+    coefficients. \nb{It is the matrix of normalized VarianceDependentSensitivity}
+    \item \textbf{VarianceDependentSensitivity}: matrix of sensitivity coefficients dependent on the variance of the variables
     \item \textbf{samples}: the number of samples in the data set used to determine the statistics.
-    \item \textbf{minimum}: The minimum value of the samples.
-    \item \textbf{maximum}: The maximum value of the samples.
-    %
   \end{itemize}
    %
   \nb If the weights are present in the system then weighted quantities are calculated automatically. In addition, if a matrix quantity is requested (e.g. Covariance matrix, etc.), only the weights in the output space are going to be used for both input and output space (the computation of the joint probability between input and output spaces is not implemented yet).
@@ -110,13 +120,20 @@ data objects, depending on the type of statistics the user wants to compute:
   \\  If all the quantities need to be computed, the user can input in the body of
   \xmlNode{what} the string ``all''.
   %
+  %\item \xmlNode{parameters}, \xmlDesc{comma separated string, required field},
+  %lists the parameters on which the previous operations need to be applied
+  %(e.g., massFlow, Temperature)
+   \item \xmlNode{pivotParameter}, \xmlDesc{string, optional field}, name of the parameter that needs
+   to be used for the computation of the Dynamic BasicStatistics (e.g. time). This node needs to
+   be inputted just in case an \textbf{HistorySet} is used as Input. It represents the reference
+   monotonic variable based on which the statistics is going to be computed (e.g. time-dependent
+   statistical moments).
+    \default{None}
+  %
   \item \xmlNode{biased}, \xmlDesc{string (boolean), optional field}, if \textit{True} biased
   quantities are going to be calculated, if \textit{False} unbiased.
   \default{False}
   %
-  \item \xmlNode{parameters}, \xmlDesc{comma separated string, required field},
-  lists the parameters on which the previous operations need to be applied
-  (e.g., massFlow, Temperature)
   \item \xmlNode{methodsToRun}, \xmlDesc{comma separated string, optional
   field}, specifies the method names of an external Function that need to be run
   before computing any of the predefined quantities.
@@ -150,26 +167,21 @@ data objects, depending on the type of statistics the user wants to compute:
     This object needs to contain the methods listed in the node
     \xmlNode{methodsToRun}.
   \end{itemize}
-   \item \xmlNode{pivotParameter}, \xmlDesc{string, optional field}, name of the parameter that needs
-   to be used for the computation of the Dynamic BasicStatistics (e.g. time). This node needs to
-   be inputted just in case an \textbf{HistorySet} is used as Input. It represents the reference
-   monotonic variable based on which the statistics is going to be computed (e.g. time-dependent
-   statistical moments).
-    \default{None}
-  %
 \end{itemize}
-\textbf{Example (Static Statistics):}
+\textbf{Example (Static Statistics):}  This example demonstrates how to request the expected value of
+\xmlString{x01} and \xmlString{x02}, along with the sensitivity of both \xmlString{x01} and \xmlString{x02} to 
+\xmlString{a} and \xmlString{b}.
 \begin{lstlisting}[style=XML,morekeywords={name,subType,debug}]
 <Simulation>
   ...
   <Models>
     ...
     <PostProcessor name='aUserDefinedName' subType='BasicStatistics' verbosity='debug'>
-      <!-- Here you can specify what type of figure of merit
-          you need to compute: expectedValue, sigma, variance, kurtosis, pearson, covariance, etc.
-       -->
-      <what>expectedValue</what>
-      <parameters>x01,x02</parameters>
+      <expectedValue>x01,x02</expectedValue>
+      <sensitivity>
+        <targets>x01,x02</targets>
+        <features>a,b</features>
+      </sensitivity>
       <methodsToRun>failureProbability</methodsToRun>
     </PostProcessor>
     ...
@@ -185,11 +197,11 @@ data objects, depending on the type of statistics the user wants to compute:
   <Models>
     ...
     <PostProcessor name='aUserDefinedNameForDynamicPP' subType='BasicStatistics' verbosity='debug'>
-      <!-- Here you can specify what type of figure of merit
-          you need to compute: expectedValue, sigma, variance, kurtosis, pearson, covariance, etc.
-       -->
-      <what>expectedValue,covariance,variance</what>
-      <parameters>x01,x02</parameters>
+      <expectedValue>x01,x02</expectedValue>
+      <sensitivity>
+        <targets>x01,x02</targets>
+        <features>a,b</features>
+      </sensitivity>
       <methodsToRun>failureProbability</methodsToRun>
       <pivotParameter>time</pivotParameter>
     </PostProcessor>
