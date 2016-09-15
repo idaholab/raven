@@ -61,7 +61,18 @@ From a practical point of view, these optimization strategies represent differen
 %%% Gradient Based Optimizers: SPSA
 \subsubsection{Simultaneous Perturbation Stochastic Approximation (SPSA)}
 \label{subsubsubsec:SPSA}
-The \textbf{SPSA} optimization approach is one of the optimization strategies that are based on gradient estimation. The main idea is to simultaneously perturb all decision variables in order to estimate the gradient. Consequently a minimal number of two model evaluations are required in order to approximate the gradient. The theory behind SPSA can be found in \cite{spall1998implementation}.
+The \textbf{SPSA} optimization approach is one of the optimization strategies that are based on gradient estimation. The main idea is to simultaneously perturb all decision variables in order to estimate the gradient. Consequently a minimal number of two model evaluations are required in order to approximate the gradient. The theory behind SPSA can be found in \cite{spall1998implementation}. 
+
+In addition to the algorithm in \cite{spall1998implementation}, current implementation of \textbf{SPSA} can also handles constrained optimization problem. This paragraph briefly describes how current implementation ensures the input satisfies the constraints. When when updating the variables (not perturbing), if constraint is violated, \textbf{SPSA} does the following in sequence:
+\begin{itemize}
+
+\item Try to shorten the gradient vector so that it satisfies the constraints.
+\item if by shorternning the gradient constraint cannot be satisfied, then find a random vector orthogonal to gradient that satisfy constraint, and rotate it towards the constraints. When doing so, the length of new vector is taken care of as well.
+\item otherwise do not update the variables and the spsa will conclude the optimal (which may not be true optimal).
+
+\end{itemize}
+ 
+
 %
 
 \specBlock{a}{SPSA}

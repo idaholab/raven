@@ -52,7 +52,7 @@ class SPSA(GradientBasedOptimizer):
     self.gainParamDict['a'] = float(self.paramDict.get('a', 0.16))
     self.gainParamDict['c'] = float(self.paramDict.get('c', 0.005))
 
-    self.constraintHandlingPara['innerLoopThreshold'] = float(self.paramDict.get('innerLoopThreshold', 1e-2))
+    self.constraintHandlingPara['innerBisectionThreshold'] = float(self.paramDict.get('innerBisectionThreshold', 1e-2))
     self.constraintHandlingPara['innerLoopLimit'] = float(self.paramDict.get('innerLoopLimit', 1000))
 
     self.gradDict['pertNeeded'] = self.gradDict['numIterForAve'] * 2
@@ -215,19 +215,19 @@ class SPSA(GradientBasedOptimizer):
       @ In, vector, dictionary, contains the gradient information for variable update
       @ Out, _bisectionForConstrainedInput, tuple(bool,dict), (indicating whether a fraction vector is found, contains the fraction of gradient that satisfies constraint)
     """
-    innerLoopThreshold = self.constraintHandlingPara['innerLoopThreshold']
-    if innerLoopThreshold <= 0 or innerLoopThreshold >= 1: self.raiseAnError(ValueError, 'The ')
+    innerBisectionThreshold = self.constraintHandlingPara['innerBisectionThreshold']
+    if innerBisectionThreshold <= 0 or innerBisectionThreshold >= 1: self.raiseAnError(ValueError, 'The ')
     paraFracLowerLimit = 1e-2
     bounds = [0, 1.0]
     tempVarNew = {}
     frac = 0.5
-    while np.absolute(bounds[1]-bounds[0]) >= innerLoopThreshold:
+    while np.absolute(bounds[1]-bounds[0]) >= innerBisectionThreshold:
       for var in self.optVars:
         tempVarNew[var] = copy.copy(varK[var]-gain*vector[var]*1.0*frac)
 
       if self.checkConstraint(tempVarNew):
         bounds[0] = copy.deepcopy(frac)
-        if np.absolute(bounds[1]-bounds[0]) < innerLoopThreshold:
+        if np.absolute(bounds[1]-bounds[0]) < innerBisectionThreshold:
           if frac >= paraFracLowerLimit:
             varKPlus = copy.deepcopy(tempVarNew)
             return True, varKPlus
