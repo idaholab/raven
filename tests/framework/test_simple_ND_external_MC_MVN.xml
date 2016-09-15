@@ -17,10 +17,7 @@
       <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0</variables>
     </ExternalModel>
     <PostProcessor name="CorrelationTest" subType="BasicStatistics">
-      <all>
-        <targets>x0,y0</targets>
-        <features>x0,y0</features>
-      </all>
+      <all>x0,y0</all>
     </PostProcessor>
   </Models>
 

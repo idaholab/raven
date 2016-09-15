@@ -21,10 +21,6 @@
       <all>
         <targets>x,y,z</targets>
         <features>x,y,z</features>
-        <targets>
-        </targets>
-        <features>
-        </features>
       </all>
     </PostProcessor>
   </Models>

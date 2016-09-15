@@ -69,7 +69,6 @@
         <n_components>3</n_components>
         <n_iter>10000</n_iter>
         <alpha>1</alpha>
-        <reOrderStep>10</reOrderStep>
       </KDD>
       <pivotParameter>Time</pivotParameter>
     </PostProcessor>
