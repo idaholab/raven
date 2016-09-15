@@ -1702,7 +1702,7 @@ class BasicStatistics(BasePostProcessor):
       @ Out, None
     """
     if finishedJob.getEvaluation() == -1: self.raiseAnError(RuntimeError, ' No available Output to collect (run possibly not finished yet)')
-    outputDictionary = finishedJob.returnEvaluation()[1]
+    outputDictionary = finishedJob.getEvaluation()[1]
     methodToTest = []
     for key in self.methodsToRun:
       if key not in self.acceptedCalcParam: methodToTest.append(key)
