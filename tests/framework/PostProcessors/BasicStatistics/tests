@@ -93,6 +93,14 @@
    rel_err = 1e-5
    zero_threshold = 1e-14
  [../]
+ [./testBasicStatisticsVariationCoefficient]
+  type = 'RavenFramework'
+  input = 'test_BasicStatistics_VariationCoefficient.xml'
+  output = 'basicStatisticsGeneral/output_variation_coefficient.csv'
+  xml = 'basicStatisticsGeneral/output_variation_coefficient.xml'
+  max_time = 500
+  rel_err = 0.00001
+ [../]
 
 
 []

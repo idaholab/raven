@@ -1,5 +1,5 @@
 SRCFILE = raven_user_manual
-MANUAL_FILES = rom.tex postprocessor.tex database_data.tex OutStreamSystem.tex sampler.tex existing_interfaces.tex ProbabilityDistributions.tex  step.tex functions.tex ravenStructure.tex Summary.tex introduction.tex raven_user_manual.tex model.tex runInfo.tex install.tex libraries.tex
+MANUAL_FILES = rom.tex postprocessor.tex database_data.tex OutStreamSystem.tex sampler.tex existing_interfaces.tex ProbabilityDistributions.tex  step.tex functions.tex ravenStructure.tex Summary.tex introduction.tex raven_user_manual.tex model.tex runInfo.tex install.tex libraries.tex DataMining.tex
 LATEX_FLAGS=-interaction=nonstopmode
 
 all: raven_user_manual.pdf
