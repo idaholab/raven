@@ -562,7 +562,6 @@ class JobHandler(MessageHandler.MessageUser):
     """
     cntFreeSpots = 0
     with self.__queueLock:
-
       ## The process is the same for both lists, so let's establish which one
       ## we are working on and then get to business.
       if client:
@@ -573,11 +572,9 @@ class JobHandler(MessageHandler.MessageUser):
         # queue = self.__queue
 
       for run in runList:
-        if run is None: # or run.isDone():
+        if run is None:
           cntFreeSpots += 1
-        # else:
-          # cntFreeSpots += 1
-    #cntFreeSpots-=len(queue)
+
     return cntFreeSpots
 
   def numRunning(self):
