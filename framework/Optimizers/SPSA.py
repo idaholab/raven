@@ -52,6 +52,9 @@ class SPSA(GradientBasedOptimizer):
     self.gainParamDict['a'] = float(self.paramDict.get('a', 0.16))
     self.gainParamDict['c'] = float(self.paramDict.get('c', 0.005))
 
+    self.constraintHandlingPara['innerLoopThreshold'] = float(self.paramDict.get('innerLoopThreshold', 1e-2))
+    self.constraintHandlingPara['innerLoopLimit'] = float(self.paramDict.get('innerLoopLimit', 1000))
+
     self.gradDict['pertNeeded'] = self.gradDict['numIterForAve'] * 2
 
     if self.paramDict.get('stochasticDistribution', 'Bernoulli') == 'Bernoulli':
@@ -130,7 +133,7 @@ class SPSA(GradientBasedOptimizer):
 
   def _generateVarsUpdateConstrained(self,ak,gradient,varK):
     """
-      Method to generate input for model to run
+      Method to generate input for model to run, considering also that the input satisfies the constraint
       @ In, ak, float, it is gain for variable update
       @ In, gradient, dictionary, contains the gradient information for variable update
       @ In, varK, dictionary, current variable values
@@ -150,10 +153,11 @@ class SPSA(GradientBasedOptimizer):
     
     # Try to find varKPlus by rotate the gradient towards its orthogonal, since we consider the gradient as perpendicular
     # with respect to the constraints hyper-surface
-    paraLoopLimit = 1000
+    innerLoopLimit = self.constraintHandlingPara['innerLoopLimit']
+    if innerLoopLimit < 0:   self.raiseAnError(IOError, 'Limit for internal loop for constraint handling shall be nonnegative')
     loopCounter = 0
     foundPendVector = False
-    while not foundPendVector and loopCounter < paraLoopLimit: 
+    while not foundPendVector and loopCounter < innerLoopLimit: 
       loopCounter += 1   
       depVarPos = Distributions.randomIntegers(0,self.nVar-1,self)
       pendVector = {}
@@ -204,18 +208,26 @@ class SPSA(GradientBasedOptimizer):
     return tempVarKPlus
 
   def _bisectionForConstrainedInput(self,varK,gain,vector):
-    paraBoundError = 1e-2
+    """
+      Method to find the maximum fraction of 'vector' that, when using as gradient, the input can satisfy the constraint
+      @ In, varK, dictionary, current variable values
+      @ In, gain, float, it is gain for variable update
+      @ In, vector, dictionary, contains the gradient information for variable update
+      @ Out, _bisectionForConstrainedInput, tuple(bool,dict), (indicating whether a fraction vector is found, contains the fraction of gradient that satisfies constraint)
+    """
+    innerLoopThreshold = self.constraintHandlingPara['innerLoopThreshold']
+    if innerLoopThreshold <= 0 or innerLoopThreshold >= 1: self.raiseAnError(ValueError, 'The ')
     paraFracLowerLimit = 1e-2
     bounds = [0, 1.0]
     tempVarNew = {}
     frac = 0.5
-    while np.absolute(bounds[1]-bounds[0]) >= paraBoundError:
+    while np.absolute(bounds[1]-bounds[0]) >= innerLoopThreshold:
       for var in self.optVars:
         tempVarNew[var] = copy.copy(varK[var]-gain*vector[var]*1.0*frac)
 
       if self.checkConstraint(tempVarNew):
         bounds[0] = copy.deepcopy(frac)
-        if np.absolute(bounds[1]-bounds[0]) < paraBoundError:
+        if np.absolute(bounds[1]-bounds[0]) < innerLoopThreshold:
           if frac >= paraFracLowerLimit:
             varKPlus = copy.deepcopy(tempVarNew)
             return True, varKPlus
@@ -228,9 +240,9 @@ class SPSA(GradientBasedOptimizer):
 
   def angle_between(self, d1, d2):
     """ Evaluate the angle between the two dictionaries of vars (d1 and d2) by means of the dot product. Unit: degree
-    @In, d1, first dictionary
-    @In, d2, second dictionary
-    @Out, angleD, angle between d1 and d2 with unit of degree
+    @In, d1, dictionary, first vector
+    @In, d2, dictionary, second vector
+    @Out, angleD, float, angle between d1 and d2 with unit of degree
     """    
     v1, v2 = np.zeros(shape=[self.nVar,]), np.zeros(shape=[self.nVar,])
     for cnt, var in enumerate(self.optVars):

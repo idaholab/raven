@@ -42,6 +42,7 @@ class GradientBasedOptimizer(Optimizer):
     """
     Optimizer.__init__(self)
     self.gainParamDict = {}                           # Dict containing parameters for gain used for update decision variables
+    self.constraintHandlingPara = {}                  # Dict containing parameters for parameters related to constraints handling
     self.gradDict = {}                                # Dict containing information for gradient related operations
     self.gradDict['numIterForAve'] = 1                # Number of iterations for gradient estimation averaging
     self.gradDict['pertNeeded'] = 1                   # Number of perturbation needed to evaluate gradient

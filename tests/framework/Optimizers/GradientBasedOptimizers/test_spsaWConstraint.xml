@@ -67,6 +67,8 @@
 	  <objectVar>c</objectVar>
 	  <parameter>
 		<numGradAvgIterations>1</numGradAvgIterations>
+		<innerLoopThreshold>0.01</innerLoopThreshold>
+		<innerLoopLimit>1000</innerLoopLimit>
 	  </parameter>
     </SPSA>
   </Optimizers>
