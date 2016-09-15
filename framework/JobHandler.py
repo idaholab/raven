@@ -475,9 +475,10 @@ class JobHandler(MessageHandler.MessageUser):
 
       ## Look through the pending jobs and attempt to find a matching identifier
       ## If the job exists here, it is not finished
-      for run in self.__queue+self.__clientQueue:
-        if run.identifier.strip() == identifier.strip():
-          return False
+      for queue in [self.__queue, self.__clientQueue]:
+        for run in queue:
+          if run.identifier.strip() == identifier.strip():
+            return False
 
       ## Look through the running jobs and attempt to find a matching identifier
       ## If the job exists here, it is not finished
