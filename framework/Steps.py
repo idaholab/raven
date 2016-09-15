@@ -464,6 +464,7 @@ class MultiRun(SingleRun):
       ## If all of the jobs given to the job handler have finished, and the sampler
       ## has nothing else to provide, then we are done with this step.
       if jobHandler.isFinished() and not sampler.amIreadyToProvideAnInput():
+        self.raiseADebug('Finished with %d runs submitted, %d jobs running and %d jobs finished.' % (jobHandler.numSubmitted(),jobHandler.numRunning(),len(jobHandler.getFinishedNoPop())) )
         break
       time.sleep(self.sleepTime)
     sampler.handleFailedRuns(self.failedRuns)

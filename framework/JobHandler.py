@@ -85,13 +85,13 @@ class JobHandler(MessageHandler.MessageUser):
     self.__queue       = collections.deque()
     self.__clientQueue = collections.deque()
 
-    ## List of finished jobs. When a job finishes, it is placed here until
-    ## something from the main thread can remove them.
-    self.__finished = []
-
     ## A counter used for uniquely identifying the next id for an ExternalRunner
     ## InternalRunners will increment this counter, but do not use it currently
     self.__nextId = 0
+
+    ## List of finished jobs. When a job finishes, it is placed here until
+    ## something from the main thread can remove them.
+    self.__finished = []
 
     ## End block of __queueLock protected variables
     ############################################################################
@@ -100,7 +100,6 @@ class JobHandler(MessageHandler.MessageUser):
     ## thread has lock1 and requests lock2 and the other thread has lock2 and
     ## requests lock1.
     self.__queueLock = threading.RLock()
-    self.__finishedLock = threading.RLock()
 
     ## List of submitted job identifiers
     self.__submittedJobs = []
@@ -435,13 +434,13 @@ class JobHandler(MessageHandler.MessageUser):
       ## Otherwise, let's look at our running lists and see if there is a job
       ## that is not done.
       for run in self.__running+self.__clientRunning:
-        if run and not run.isDone():
+        if run:
           return False
 
-      ## Are there runs that need to be claimed? If so, then I cannot say I am
-      ## done.
-      if len(self.getFinishedNoPop()) == 0:
-        return False
+    ## Are there runs that need to be claimed? If so, then I cannot say I am
+    ## done.
+    if len(self.getFinishedNoPop()) > 0:
+      return False
 
     return True
 
@@ -467,18 +466,28 @@ class JobHandler(MessageHandler.MessageUser):
       @ Out, isFinished, bool, True if the job identified by "identifier" is
         finished
     """
-    isFinished = None
     with self.__queueLock:
+      ## Look through the finished jobs and attempt to find a matching
+      ## identifier. If the job exists here, it is finished
+      for run in self.__finished:
+        if run.identifier.strip() == identifier.strip():
+          return True
+
+      ## Look through the pending jobs and attempt to find a matching identifier
+      ## If the job exists here, it is not finished
+      for run in self.__queue+self.__clientQueue:
+        if run.identifier.strip() == identifier.strip():
+          return False
+
       ## Look through the running jobs and attempt to find a matching identifier
+      ## If the job exists here, it is not finished
       for run in self.__running+self.__clientRunning:
         if run is not None and run.identifier.strip() == identifier.strip():
-          isFinished = run.isDone()
-          break
+          return False
 
-    if isFinished is None:
-      self.raiseAnError(RuntimeError,"Job "+identifier+" is unknown!")
-
-    return isFinished
+    ##  If you made it here and we still have not found anything, we have got
+    ## problems.
+    self.raiseAnError(RuntimeError,"Job "+identifier+" is unknown!")
 
   def getFailedJobs(self):
     """
@@ -510,7 +519,7 @@ class JobHandler(MessageHandler.MessageUser):
     if jobIdentifier is None:
       jobIdentifier = ''
 
-    with self.__finishedLock:
+    with self.__queueLock:
       runsToBeRemoved = []
       for i,run in enumerate(self.__finished):
         ## If the jobIdentifier does not match or the uniqueHandler does not
@@ -529,7 +538,7 @@ class JobHandler(MessageHandler.MessageUser):
       ## than it.
       for i in reversed(runsToBeRemoved):
         del self.__finished[i]
-    ## end with self.__finishedLock
+    ## end with self.__queueLock
 
     return finished
 
@@ -637,7 +646,6 @@ class JobHandler(MessageHandler.MessageUser):
     @ In, None
     @ Out, None
     """
-    finished = []
     with self.__queueLock:
       ## The code handling these two lists was the exact same, I have taken the
       ## liberty of condensing these loops into one and removing some of the
@@ -645,15 +653,8 @@ class JobHandler(MessageHandler.MessageUser):
       for runList in [self.__running, self.__clientRunning]:
         for i,run in enumerate(runList):
           if run is not None and run.isDone():
-            finished.append(run)
+            self.__finished.append(run)
             runList[i] = None
-
-    #end with self.__queueLock
-
-    with self.__finishedLock:
-      for run in finished:
-        self.__finished.append(run)
-    #end with self.__finishedLock
 
   def startingNewStep(self):
     """
@@ -661,7 +662,8 @@ class JobHandler(MessageHandler.MessageUser):
       @ In, None
       @ Out, None
     """
-    self.__submittedJobs = []
+    with self.__queueLock:
+      self.__submittedJobs = []
 
   def terminateAll(self):
     """

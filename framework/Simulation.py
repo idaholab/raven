@@ -540,6 +540,7 @@ class Simulation(MessageHandler.MessageUser):
 
 
     self.pollingThread = threading.Thread(target=self.jobHandler.startLoop)
+    ## This allows RAVEN to exit when the only thing left is the JobHandler
     self.pollingThread.daemon = True
     self.pollingThread.start()
 
