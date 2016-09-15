@@ -16,6 +16,7 @@ import io
 import string
 import datetime
 import numpy as np
+import threading
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -536,6 +537,11 @@ class Simulation(MessageHandler.MessageUser):
     self.__modeHandler = SimulationMode(self)
     self.printTag = 'SIMULATION'
     self.raiseAMessage('Simulation started at',readtime,verbosity='silent')
+
+
+    self.pollingThread = threading.Thread(target=self.jobHandler.startLoop)
+    self.pollingThread.daemon = True
+    self.pollingThread.start()
 
   def setInputFiles(self,inputFiles):
     """

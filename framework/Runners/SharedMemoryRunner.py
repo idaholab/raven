@@ -35,7 +35,7 @@ class SharedMemoryRunner(InternalRunner):
     Class for running internal objects in a threaded fashion using the built-in
     threading library
   """
-  def __init__(self, messageHandler, Input, functionToRun, frameworkModules = [], identifier=None, metadata=None, functionToSkip = None, uniqueHandler = "any"):
+  def __init__(self, messageHandler, Input, functionToRun, identifier=None, metadata=None, uniqueHandler = "any"):
     """
       Init method
       @ In, messageHandler, MessageHandler object, the global RAVEN message
@@ -43,9 +43,6 @@ class SharedMemoryRunner(InternalRunner):
       @ In, Input, list, list of inputs that are going to be passed to the
         function as *args
       @ In, functionToRun, method or function, function that needs to be run
-      @ In, frameworkModules, list, optional, list of modules that need to be
-        imported for internal parallelization (parallel python). This list
-        should be generated with the method returnImportModuleString in utils.py
       @ In, identifier, string, optional, id of this job
       @ In, metadata, dict, optional, dictionary of metadata associated with
         this run
@@ -59,7 +56,7 @@ class SharedMemoryRunner(InternalRunner):
     """
     ## First, allow the base class handle the commonalities
     # we keep the command here, in order to have the hook for running exec code into internal models
-    super(SharedMemoryRunner, self).__init__(messageHandler, Input, functionToRun, frameworkModules, identifier, metadata, functionToSkip, uniqueHandler)
+    super(SharedMemoryRunner, self).__init__(messageHandler, Input, functionToRun, identifier, metadata, uniqueHandler)
 
     ## Other parameters manipulated internally
     self.subque = collections.deque()

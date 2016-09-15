@@ -15,10 +15,8 @@ if not 'xrange' in dir(__builtins__):
 import time
 import collections
 import subprocess
-try               : import Queue as queue
-except ImportError: import queue
+
 import os
-import signal
 import copy
 import sys
 import abc
@@ -31,6 +29,8 @@ import socket
 #Internal Modules---------------------------------------------------------------
 import utils
 from BaseClasses import BaseType
+import MessageHandler
+import Runners
 # for internal parallel
 if sys.version_info.major == 2:
   import pp
@@ -38,8 +38,6 @@ if sys.version_info.major == 2:
 else:
   print("pp does not support python3")
 # end internal parallel module
-import MessageHandler
-import Runners
 #Internal Modules End-----------------------------------------------------------
 
 
@@ -66,6 +64,12 @@ class JobHandler(MessageHandler.MessageUser):
 
     self.isParallelPythonInitialized = False
 
+    self.sleepTime  = 0.005
+
+    ## Stops the pending queue from getting too big. TODO: expose this to the
+    ## user
+    self.maxQueueSize = 1000
+
     ############################################################################
     ## The following variables are protected by the __queueLock
 
@@ -81,6 +85,10 @@ class JobHandler(MessageHandler.MessageUser):
     self.__queue       = collections.deque()
     self.__clientQueue = collections.deque()
 
+    ## List of finished jobs. When a job finishes, it is placed here until
+    ## something from the main thread can remove them.
+    self.__finished = []
+
     ## A counter used for uniquely identifying the next id for an ExternalRunner
     ## InternalRunners will increment this counter, but do not use it currently
     self.__nextId = 0
@@ -88,7 +96,11 @@ class JobHandler(MessageHandler.MessageUser):
     ## End block of __queueLock protected variables
     ############################################################################
 
+    ## Do not overlap usage of these locks, this may cause a deadlock if one
+    ## thread has lock1 and requests lock2 and the other thread has lock2 and
+    ## requests lock1.
     self.__queueLock = threading.RLock()
+    self.__finishedLock = threading.RLock()
 
     ## List of submitted job identifiers
     self.__submittedJobs = []
@@ -276,6 +288,19 @@ class JobHandler(MessageHandler.MessageUser):
 
     return qualifiedHostName, ppservers
 
+  def startLoop(self):
+    """
+    This function begins the polling loop for the JobHandler where it will
+    constantly fill up its running queue with jobs in its pending queue and
+    unload finished jobs into its finished queue to be extracted by
+    """
+    while True:
+      self.addRuns()
+      self.cleanRuns()
+      ## TODO May want to revisit this:
+      ## http://stackoverflow.com/questions/29082268/python-time-sleep-vs-event-wait
+      time.sleep(self.sleepTime)
+
   def addExternal(self,executeCommands,outputFile,workingDir,identifier = None, metadata=None,codePointer=None,uniqueHandler="any"):
     """
       Method to add an external runner (an external code) in the handler list
@@ -324,11 +349,9 @@ class JobHandler(MessageHandler.MessageUser):
                                       identifier, outputFile, metadata,
                                       codePointer, uniqueHandler)
       self.__queue.append(runner)
+      self.__submittedJobs.append(identifier)
 
     self.raiseAMessage('Execution command submitted:',command)
-    self.__submittedJobs.append(identifier)
-    self.addRuns()
-    #if self.numFreeSpots()>0: self.addRuns()
 
   def addInternal(self,Input,functionToRun,identifier,metadata=None, modulesToImport = [], forceUseThreads = False, uniqueHandler="any",clientQueue = False):
     """
@@ -357,13 +380,12 @@ class JobHandler(MessageHandler.MessageUser):
     if not self.isParallelPythonInitialized:
       self.__initializeParallelPython()
 
-    skipFunctions = [utils.metaclass_insert(abc.ABCMeta,BaseType)]
     if self.ppserver is None or forceUseThreads:
       internalJob = Runners.SharedMemoryRunner(self.messageHandler, Input,
-                                               functionToRun, modulesToImport,
-                                               identifier, metadata,
-                                               skipFunctions, uniqueHandler)
+                                               functionToRun, identifier,
+                                               metadata, uniqueHandler)
     else:
+      skipFunctions = [utils.metaclass_insert(abc.ABCMeta,BaseType)]
       internalJob = Runners.DistributedMemoryRunner(self.messageHandler,
                                                     self.ppserver, Input,
                                                     functionToRun,
@@ -375,10 +397,7 @@ class JobHandler(MessageHandler.MessageUser):
         self.__queue.append(internalJob)
       else:
         self.__clientQueue.append(internalJob)
-
-    self.__submittedJobs.append(identifier)
-    self.addRuns()
-    #if self.numFreeSpots()>0: self.addRuns()
+      self.__submittedJobs.append(identifier)
 
   def addInternalClient(self,Input,functionToRun,identifier,metadata=None, uniqueHandler="any"):
     """
@@ -398,12 +417,9 @@ class JobHandler(MessageHandler.MessageUser):
         If uniqueHandler == 'any', every "client" can get this runner.
       @ Out, None
     """
-    #self.__clientQueue.append()
-    #self.__running.append(None)
     self.addInternal(Input, functionToRun, identifier, metadata,
                      forceUseThreads = True, uniqueHandler = uniqueHandler,
                      clientQueue = True)
-    #self.__noResourcesJobs.append(identifier)
 
   def isFinished(self):
     """
@@ -422,7 +438,27 @@ class JobHandler(MessageHandler.MessageUser):
         if run and not run.isDone():
           return False
 
+      ## Are there runs that need to be claimed? If so, then I cannot say I am
+      ## done.
+      if len(self.getFinishedNoPop()) == 0:
+        return False
+
     return True
+
+  def availability(self, client=False):
+    """
+    Returns the number of runs that can be added until we consider our queue
+    saturated
+    @ In, client, bool, if true, then return the values for the
+    __clientQueue, otherwise use __queue
+    @ Out, availability, int the number of runs that can be added until we
+      reach saturation
+    """
+    if client:
+      availability = self.maxQueueSize - len(self.__clientQueue)
+    else:
+      availability = self.maxQueueSize - len(self.__queue)
+    return availability
 
   def isThisJobFinished(self, identifier):
     """
@@ -474,30 +510,27 @@ class JobHandler(MessageHandler.MessageUser):
     if jobIdentifier is None:
       jobIdentifier = ''
 
-    with self.__queueLock:
-      ## The code handling these two lists was the exact same, I have taken the
-      ## liberty of condensing these loops into one and removing some of the
-      ## redundant checks to make this code a bit simpler.
-      for runList in [self.__running, self.__clientRunning]:
-        runsToBeRemoved = []
-        for i,run in enumerate(runList):
-          if run is not None and run.isDone():
-            ## If the jobIdentifier does not match or the uniqueHandler does not
-            ## match, then don't bother trying to do anything with it
-            if not run.identifier.startswith(jobIdentifier) \
-            or uniqueHandler != run.uniqueHandler:
-              continue
+    with self.__finishedLock:
+      runsToBeRemoved = []
+      for i,run in enumerate(self.__finished):
+        ## If the jobIdentifier does not match or the uniqueHandler does not
+        ## match, then don't bother trying to do anything with it
+        if not run.identifier.startswith(jobIdentifier) \
+        or uniqueHandler != run.uniqueHandler:
+          continue
 
-            finished.append(run)
-            if removeFinished:
-              self.__checkAndRemoveFinished(run)
-              runsToBeRemoved.append(i)
+        finished.append(run)
+        if removeFinished:
+          runsToBeRemoved.append(i)
+          self.__checkAndRemoveFinished(run)
 
-        for i in runsToBeRemoved:
-          runList[i] = None
+      ##Since these indices are sorted, reverse them to ensure that when we
+      ## delete something it will not shift anything to the left (lower index)
+      ## than it.
+      for i in reversed(runsToBeRemoved):
+        del self.__finished[i]
+    ## end with self.__finishedLock
 
-      self.addRuns()
-    #end with self.__queueLock
     return finished
 
   def getFinishedNoPop(self):
@@ -596,6 +629,31 @@ class JobHandler(MessageHandler.MessageUser):
           self.__nextId += 1
         else:
           break
+
+  def cleanRuns(self):
+    """
+    Method that will remove finished jobs from the queue and place them into the
+    finished queue to be read by some other thread.
+    @ In, None
+    @ Out, None
+    """
+    finished = []
+    with self.__queueLock:
+      ## The code handling these two lists was the exact same, I have taken the
+      ## liberty of condensing these loops into one and removing some of the
+      ## redundant checks to make this code a bit simpler.
+      for runList in [self.__running, self.__clientRunning]:
+        for i,run in enumerate(runList):
+          if run is not None and run.isDone():
+            finished.append(run)
+            runList[i] = None
+
+    #end with self.__queueLock
+
+    with self.__finishedLock:
+      for run in finished:
+        self.__finished.append(run)
+    #end with self.__finishedLock
 
   def startingNewStep(self):
     """

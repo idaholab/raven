@@ -37,7 +37,7 @@ class InternalRunner(Runner):
   """
     Generic base Class for running internal objects
   """
-  def __init__(self, messageHandler, Input, functionToRun, frameworkModules = [], identifier=None, metadata=None, functionToSkip = None, uniqueHandler = "any"):
+  def __init__(self, messageHandler, Input, functionToRun, identifier=None, metadata=None, uniqueHandler = "any"):
     """
       Init method
       @ In, messageHandler, MessageHandler object, the global RAVEN message
@@ -45,14 +45,9 @@ class InternalRunner(Runner):
       @ In, Input, list, list of inputs that are going to be passed to the
         function as *args
       @ In, functionToRun, method or function, function that needs to be run
-      @ In, frameworkModules, list, optional, list of modules that need to be
-        imported for internal parallelization (parallel python). This list
-        should be generated with the method returnImportModuleString in utils.py
       @ In, identifier, string, optional, id of this job
       @ In, metadata, dict, optional, dictionary of metadata associated with
         this run
-      @ In, functionToSkip, list, optional, list of functions, classes and
-        modules that need to be skipped in pickling the function dependencies
       @ In, forceUseThreads, bool, optional, flag that, if True, is going to
         force the usage of multi-threading even if parallel python is activated
       @ In, uniqueHandler, string, optional, it is a special keyword attached to
@@ -70,8 +65,6 @@ class InternalRunner(Runner):
     ## Other parameters passed at initialization
     self.input          = copy.copy(Input)
     self.functionToRun  = functionToRun
-    self.frameworkMods  = copy.copy(frameworkModules)
-    self.functionToSkip = functionToSkip
 
     ## Other parameters manipulated internally
     self.thread         = None

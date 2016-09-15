@@ -342,6 +342,7 @@ class SingleRun(Step):
 #
 #
 #
+
 class MultiRun(SingleRun):
   """
     this class implements one step of the simulation pattern' where several runs are needed
@@ -443,15 +444,27 @@ class MultiRun(SingleRun):
           self.failedRuns.append(copy.copy(finishedJob))
           self.raiseADebug('the job failed... call the handler for this situation... not yet implemented...')
           self.raiseADebug('the JOBS that failed are tracked in the JobHandler... hence, we can retrieve and treat them separately. skipping here is Ok. Andrea')
-        for _ in range(min(jobHandler.numFreeSpots(),sampler.endJobRunnable())): # put back this loop (do not take it away again. it is NEEDED for NOT-POINT samplers(aka DET)). Andrea
-          self.raiseADebug('Testing the sampler if it is ready to generate a new input')
+
+        # put back this loop (do not take it away again. it is NEEDED for NOT-POINT samplers(aka DET)). Andrea
+        ## In order to ensure that the queue does not grow too large, we will
+        ## employ a threshold on the number of jobs the jobHandler can take,
+        ## in addition, we cannot provide more jobs than the sampler can provide.
+        ## So, we take the minimum of these two values.
+        for _ in range(min(jobHandler.availability(),sampler.endJobRunnable())):
+          # self.raiseADebug('Testing the sampler if it is ready to generate a new input')
           if sampler.amIreadyToProvideAnInput():
             try:
               newInput = self._findANewInputToRun(inDictionary)
               model.run(newInput,jobHandler)
             except utils.NoMoreSamplesNeeded:
               self.raiseAMessage('Sampler returned "NoMoreSamplesNeeded".  Continuing...')
-      if jobHandler.isFinished() and len(jobHandler.getFinishedNoPop()) == 0: break
+              break
+          else:
+            break
+      ## If all of the jobs given to the job handler have finished, and the sampler
+      ## has nothing else to provide, then we are done with this step.
+      if jobHandler.isFinished() and not sampler.amIreadyToProvideAnInput():
+        break
       time.sleep(self.sleepTime)
     sampler.handleFailedRuns(self.failedRuns)
 

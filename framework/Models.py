@@ -1465,8 +1465,10 @@ class PostProcessor(Model, Assembler):
       @ In,  jobHandler, JobHandler instance, the global job handler instance
       @ Out, None
     """
-    if len(Input) > 0 : jobHandler.addInternal((Input,),self.interface.run,str(0),modulesToImport = self.mods, forceUseThreads = True)
-    else: jobHandler.addInternal((None,),self.interface.run,str(0),modulesToImport = self.mods, forceUseThreads = True)
+    if len(Input) > 0:
+      jobHandler.addInternal((Input,),self.interface.run,str(0),modulesToImport = self.mods, forceUseThreads = True)
+    else:
+      jobHandler.addInternal((None,),self.interface.run,str(0),modulesToImport = self.mods, forceUseThreads = True)
 
   def collectOutput(self,finishedjob,output):
     """
@@ -1834,7 +1836,7 @@ class EnsembleModel(Dummy, Assembler):
         while not nextModel:
           moveOn = False
           while not moveOn:
-            if jobHandler.numFreeSpots() > 0:
+            if jobHandler.availability() > 0:
               #with self.lockSystem:
               self.modelsDictionary[modelIn]['Instance'].run(copy.deepcopy(Input[modelIn]),jobHandler)
               while not jobHandler.isThisJobFinished(modelIn+"|"+identifier): time.sleep(1.e-3)
