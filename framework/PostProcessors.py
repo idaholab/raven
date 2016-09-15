@@ -2658,7 +2658,13 @@ class ExternalPostProcessor(BasePostProcessor):
           inputDict['targets'][param] = item.getParam('input', param)
         for param in item.getParaKeys('output'):
           inputDict['targets'][param] = item.getParam('output', param)
-
+        metadata.append(item.getAllMetadata())
+      elif inType =='HistorySet':
+        outs, ins = item.getOutParametersValues(nodeId = 'ending'), item.getInpParametersValues(nodeId = 'ending')
+        for param in item.getParaKeys('output'):
+          inputDict['targets'][param] = [value[param] for value in outs.values()]
+        for param in item.getParaKeys('input'):
+          inputDict['targets'][param] =  [value[param] for value in ins.values()]      
         metadata.append(item.getAllMetadata())
       elif inType != 'list':
         self.raiseAWarning(self, 'Input type ' + type(item).__name__ + ' not recognized. I am going to skip it.')
@@ -2734,7 +2740,8 @@ class ExternalPostProcessor(BasePostProcessor):
     elif output.type == 'HDF5':
       self.raiseAWarning('Output type ' + type(output).__name__
                          + ' not yet implemented. I am going to skip it.')
-    elif output.type == 'PointSet':
+    elif output.type in ['PointSet','HistorySet'] :
+    #elif output.type == 'PointSet':  
       requestedInput = output.getParaKeys('input')
       ## If you want to be able to dynamically add columns to your data, then
       ## you should use this commented line, otherwise only the information
@@ -2774,13 +2781,13 @@ class ExternalPostProcessor(BasePostProcessor):
           foundCount = 0
           if key in requestedInput:
             for inputData in inputList:
-              if key in inputData.getParametersValues('input').keys():
-                value = inputData.getParametersValues('input')[key]
+              if key in inputData.getParametersValues('input',nodeId = 'ending').keys() if inputData.type == 'PointSet' else inputData.getParametersValues('input',nodeId = 'ending').values()[-1].keys():
+                value = inputData.getParametersValues('input',nodeId = 'ending')[key] if inputData.type == 'PointSet' else [value[key] for value in inputData.getParametersValues('input',nodeId = 'ending').values()]
                 foundCount += 1
           else:
             for inputData in inputList:
-                if key in inputData.getParametersValues('output').keys():
-                  value = inputData.getParametersValues('output')[key]
+                if key in inputData.getParametersValues('output',nodeId = 'ending').keys() if inputData.type == 'PointSet' else inputData.getParametersValues('output',nodeId = 'ending').values()[-1].keys():
+                  value = inputData.getParametersValues('output',nodeId = 'ending')[key] if inputData.type == 'PointSet' else [value[key] for value in inputData.getParametersValues('output',nodeId = 'ending').values()]
                   foundCount += 1
 
           if foundCount == 0:
@@ -2811,11 +2818,13 @@ class ExternalPostProcessor(BasePostProcessor):
         ## accessible
         if storeInOutput:
           if key in requestedInput:
-            for val in value:
-              output.updateInputValue(key, val)
+            for histNum, val in enumerate(value):
+              param = key if output.type == 'PointSet' else [histNum+1,key]
+              output.updateInputValue(param, val)
           else:
-            for val in value:
-              output.updateOutputValue(key, val)
+            for histNum, val in enumerate(value):
+              param = key if output.type == 'PointSet' else [histNum+1,key]
+              output.updateOutputValue(param, val)
         else:
           if not hasattr(value, "__iter__"):
             value = [value]

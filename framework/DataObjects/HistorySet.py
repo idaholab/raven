@@ -151,10 +151,10 @@ class HistorySet(Data):
         # there are info regarding the history number
         if name[0] in self._dataContainer['inputs'].keys():
           gethistory = self._dataContainer['inputs'].pop(name[0])
-          popped = gethistory[name[1]]
-          if name[1] in popped.keys():
-            gethistory[name[1]] = c1darray(values=np.atleast_1d(np.array(value,dtype=float))) #np.atleast_1d(np.array(value))
-            self._dataContainer['inputs'][name[0]] = gethistory
+          #popped = gethistory[name[1]]
+          #if name[1] in gethistory.keys():
+          gethistory[name[1]] = c1darray(values=np.atleast_1d(np.array(value,dtype=float))) #np.atleast_1d(np.array(value))
+          self._dataContainer['inputs'][name[0]] = gethistory
         else:
           self._dataContainer['inputs'][name[0]] = {name[1]:c1darray(values=np.atleast_1d(np.array(value,dtype=float)))}
       else:
@@ -380,7 +380,9 @@ class HistorySet(Data):
               outKeys_h.append(var.split('|')[1])
               outValues_h.append(outValues[n][variableName])
         else:
-          inpKeys_h   = list(inpValues[n].keys())
+          try: inpKeys_h   = list(inpValues[n].keys())
+          except:
+            pass
           inpValues_h = list(inpValues[n].values())
           outKeys_h   = list(outValues[n].keys())
           outValues_h = list(outValues[n].values())

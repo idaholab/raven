@@ -1,0 +1,116 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <!-- RUNINFO -->
+
+  <RunInfo>
+    <WorkingDir>testHistorySet</WorkingDir>
+    <Sequence>FirstMRun,applyFunctions</Sequence>
+    <batchSize>2</batchSize>
+  </RunInfo>
+
+<!-- The external methods will be defined in the files pointed to by these guys -->
+<Functions>
+    <External file="partitionHistorySet" name="partitionHistorySet">
+        <variable>x</variable>
+        <variable>y</variable>
+        <variable>z</variable>
+        <variable>time</variable>
+    </External>
+</Functions>
+
+
+  <!-- STEPS -->
+  <Steps>
+    <MultiRun name="FirstMRun" re-seeding="20021986">
+      <Input   class="DataObjects" type="PointSet"     >inputPlaceHolder</Input>
+      <Model   class="Models"      type="ExternalModel">PythonModule</Model>
+      <Sampler class="Samplers"    type="MonteCarlo"   >MC_external</Sampler>
+      <Output  class="DataObjects" type="HistorySet"   >originalHistorySet</Output>
+    </MultiRun>
+    <!-- Perform the partitioning of the history set -->
+    <PostProcess name="applyFunctions">
+        <Input  class="DataObjects" type="HistorySet"   >originalHistorySet</Input>
+        <Model  class="Models"      type="PostProcessor">functionPP</Model>
+        <Output class="DataObjects" type="HistorySet"   >partitionedHistorySet</Output>
+        <Output class="OutStreams"  type="Print"        >originalHistorySet_dump</Output>
+        <Output class="OutStreams"  type="Print"        >partitionedHistorySet_dump</Output>
+    </PostProcess>
+  </Steps>
+
+  <!-- MODELS -->
+  <Models>
+    <ExternalModel ModuleToLoad="lorentzAttractorWithCustomNode" name="PythonModule" subType="">
+      <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0,customVariable2</variables>
+      <customNode1>It is a string that is read in the external model directly</customNode1>
+      <customNode2>20021986</customNode2>
+    </ExternalModel>
+    
+    <!-- This post-processor will call methods defined in two external python
+     scripts compatible with RAVEN -->
+    <PostProcessor name="functionPP" subType="External" verbosity="debug">
+        <method>time,x,y,z</method>
+        <Function class="Functions" type="External">partitionHistorySet</Function>
+    </PostProcessor>
+  </Models>
+
+  <!-- DISTRIBUTIONS -->
+  <Distributions>
+    <Normal name="x0_distrib">
+      <mean>4</mean>
+      <sigma>1</sigma>
+    </Normal>
+    <Normal name="y0_distrib">
+      <mean>4</mean>
+      <sigma>1</sigma>
+    </Normal>
+    <Normal name="z0_distrib">
+      <mean>4</mean>
+      <sigma>1</sigma>
+    </Normal>
+  </Distributions>
+
+  <!-- SAMPLERS -->
+  <Samplers>
+    <MonteCarlo name="MC_external">
+      <samplerInit> <limit>100</limit> </samplerInit>
+      <variable name="x0">
+        <distribution>x0_distrib</distribution>
+      </variable>
+      <variable name="y0">
+        <distribution>y0_distrib</distribution>
+      </variable>
+      <variable name="z0">
+        <distribution>z0_distrib</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <!-- OUTSTREAMS -->
+  <OutStreams>
+    <Print name="originalHistorySet_dump">
+      <type>csv</type>
+      <source>originalHistorySet</source>
+    </Print>
+    <Print name="partitionedHistorySet_dump">
+      <type>csv</type>
+      <source>partitionedHistorySet</source>
+    </Print>
+  </OutStreams>
+
+  <!-- DATA OBJECTS -->
+  <DataObjects>
+    <PointSet name="inputPlaceHolder">
+      <Input>x0,y0,z0</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <HistorySet name="originalHistorySet">
+      <Input>x0,y0,z0</Input>
+      <Output>time,x,y,z</Output>
+    </HistorySet>
+    <HistorySet name="partitionedHistorySet">
+        <Input>x0,y0,z0</Input>
+        <Output>time,x,y,z</Output>
+    </HistorySet>
+  </DataObjects>
+
+</Simulation>
