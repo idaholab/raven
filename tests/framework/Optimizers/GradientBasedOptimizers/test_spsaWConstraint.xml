@@ -80,7 +80,7 @@
   </Models>
 
   <Functions>
-	<External file="constrain_function_positive" name="constraintFuncPositive">
+	<External file="constrain_function" name="constraintFuncPositive">
       <variable>B</variable>
       <variable>R</variable>
     </External>

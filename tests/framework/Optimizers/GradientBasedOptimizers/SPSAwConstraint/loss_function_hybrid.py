@@ -20,9 +20,6 @@ def run(self,Input):
   rand2  = stochasticEnv.random()
   self.d = normal1.InverseCdf(rand1)
   self.f = normal1.InverseCdf(rand2)
-#   # Debug
-#   self.d, self.f = 0.5, 0.5
-#   # End of Debug
   B      = self.B
   R      = self.R
   d      = self.d
