@@ -465,7 +465,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     if len(failedRuns)>0:
       self.raiseAWarning('There were %i failed runs!  Run with verbosity = debug for more details.' %(len(failedRuns)))
       for run in failedRuns:
-        metadata = run.returnMetadata()
+        metadata = run.getMetadata()
         self.raiseADebug('  Run number %s FAILED:' %run.identifier,run.command)
         self.raiseADebug('      return code :',run.getReturnCode())
         if metadata is not None:
