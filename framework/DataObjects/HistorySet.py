@@ -377,7 +377,8 @@ class HistorySet(Data):
             if varType == 'output':
               outKeys_h.append(var.split('|')[1])
               outValues_h.append(outValues[n][variableName])
-        else:s
+        else:
+          inpKeys_h   = list(inpValues[n].keys())
           inpValues_h = list(inpValues[n].values())
           outKeys_h   = list(outValues[n].keys())
           outValues_h = list(outValues[n].values())
