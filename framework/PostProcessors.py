@@ -2728,7 +2728,7 @@ class ExternalPostProcessor(BasePostProcessor):
     if finishedJob.getEvaluation() == -1:
       # #TODO This does not feel right
       self.raiseAnError(RuntimeError, 'No available Output to collect (Run probably did not finish yet)')
-
+    dataLenghtHistory = {}
     inputList = finishedJob.getEvaluation()[0]
     outputDict = finishedJob.getEvaluation()[1]
 
@@ -2823,6 +2823,10 @@ class ExternalPostProcessor(BasePostProcessor):
               output.updateInputValue(param, val)
           else:
             for histNum, val in enumerate(value):
+              if output.type == 'HistorySet':
+                if histNum+1 in dataLenghtHistory.keys():
+                  if dataLenghtHistory[histNum+1] != len(val): self.raiseAnError(IOError, key + ' the size of the arrays for history '+str(histNum+1)+' are different!')
+                else: dataLenghtHistory[histNum+1] = len(val)
               param = key if output.type == 'PointSet' else [histNum+1,key]
               output.updateOutputValue(param, val)
         else:
