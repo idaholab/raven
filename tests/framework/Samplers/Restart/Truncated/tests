@@ -3,18 +3,18 @@
    type = 'RavenFramework'
    input = 'grid.xml'
    output = 'grid/coarse.xml grid/fine.xml'
-   UorderedCsv = 'grid/coarse.csv grid/fine.csv'
+   UnorderedCsv = 'grid/coarse.csv grid/fine.csv'
  [../]
  [./SparseGridCollocation]
    type = 'RavenFramework'
    input = 'sparse_grid_collocation.xml'
    output = 'sparse_grid_collocation/coarse.xml sparse_grid_collocation/fine.xml'
-   UorderedCsv = 'sparse_grid_collocation/coarse.csv sparse_grid_collocation/fine.csv'
+   UnorderedCsv = 'sparse_grid_collocation/coarse.csv sparse_grid_collocation/fine.csv'
  [../]
  [./Sobol]
    type = 'RavenFramework'
    input = 'sobol.xml'
    output = 'sobol/coarse.xml sobol/fine.xml'
-   UorderedCsv = 'sobol/coarse.csv sobol/fine.csv'
+   UnorderedCsv = 'sobol/coarse.csv sobol/fine.csv'
  [../]
 []
