@@ -20,7 +20,7 @@ def convert(tree,fileName=None):
         #fix one botched attempt
         if model.find('all') is not None:
           anode = model.find('all')
-          if anode.find('target') is None:
+          if anode.find('targets') is None:
             params = anode.text
             anode.text = ''
             targetNode = ET.Element('targets')

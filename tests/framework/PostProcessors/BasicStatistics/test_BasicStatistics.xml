@@ -8,12 +8,12 @@
 
   <Files>
     <Input name="basicStatisticsExternalModelTest.py" type="">basicStatisticsExternalModelTest.py</Input>
-    <Input name="autoCorrelated.xml"    type="">autoCorrelated.xml</Input>
-    <Input name="unCorrelated.xml"      type="">unCorrelated.xml</Input>
+    <Input name="autoCorrelated.xml" type="">autoCorrelated.xml</Input>
+    <Input name="unCorrelated.xml" type="">unCorrelated.xml</Input>
     <Input name="inverseCorrelated.xml" type="">inverseCorrelated.xml</Input>
-    <Input name="inputOutput.xml"       type="">inputOutput.xml</Input>
-    <Input name="infinite.xml"          type="">infinite.xml</Input>
-    <Input name="matrixComputable.xml"  type="">matrixComputable.xml</Input>
+    <Input name="inputOutput.xml" type="">inputOutput.xml</Input>
+    <Input name="infinite.xml" type="">infinite.xml</Input>
+    <Input name="matrixComputable.xml" type="">matrixComputable.xml</Input>
   </Files>
 
   <Models>
