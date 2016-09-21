@@ -96,7 +96,7 @@ class relapdata:
 
     # The following object is a list of keywords that RELAP5 might generate in the minor edits which would
     # corrupt the .csv files. If more keywords are discovered add them here in the list
-    errorKeywords = ['Reducing','Thermodynamic','ncount','0$$$$$$$$']
+    errorKeywords = ['Reducing','Thermodynamic','ncount','0$$$$$$$$','written','block']
 
     while(flagg1==0 & flagg2==0):
       if flagg1==0:
@@ -115,7 +115,7 @@ class relapdata:
         while not re.match('^\s*1 time|^1RELAP5|^\s*\n|^\s*1RELAP5|^\s*MINOR EDIT',lines[i]):
           tempdata=lines[i].split()
           # Here I check that none of the keywords contained in errorKeywords are contained in tempdata
-          if not list(set(tempdata) & set(errorKeywords)):
+          if (not list(set(tempdata) & set(errorKeywords))) and (len(temparray)==len(tempdata)):
             for k in range(len(temparray)): temparray[k].append(tempdata[k])
           i=i+1
           if re.match('^\s*1 time|^\s*1\s*R5|^\s*\n|^1RELAP5',lines[i]): break

@@ -37,9 +37,10 @@ def run(self,Input):
     self.x[t+1]    = self.x[t] + self.sigma*(self.y[t]-self.x[t]) * t_step
     self.y[t+1]    = self.y[t] + (self.x[t]*(self.rho-self.z[t])-self.y[t]) * t_step
     self.z[t+1]    = self.z[t] + (self.x[t]*self.y[t]-self.beta*self.z[t]) * t_step
-
-    #self.ax.plot3D(self.x,self.y,self.z)
-
-    #pyl.savefig('test.png')
-
+  
+    if self.x[t+1]>10.0:
+      self.x[t+1] = self.x[t]
+      self.y[t+1] = self.y[t]
+      self.z[t+1] = self.z[t]
+  print('here')
 

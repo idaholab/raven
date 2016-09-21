@@ -133,7 +133,11 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
         for key in tdict.keys():
           normedValues[key]={}
           for var in tdict[key]:
-            normedValues[key][var] = (tdict[key][var]-np.average(tdict[key][var]))/np.std(tdict[key][var])
+            stdVar = np.std(tdict[key][var])
+            if stdVar > 0:
+              normedValues[key][var] = (tdict[key][var]-np.average(tdict[key][var]))/stdVar 
+            else:
+              normedValues[key][var] = tdict[key][var]-np.average(tdict[key][var])
 
         cardinality = len(normedValues.keys())
         self.normValues = np.zeros((cardinality,cardinality))

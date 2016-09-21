@@ -121,7 +121,6 @@ class HistorySetSampling(PostProcessorInterfaceBase):
       else:
         interp = interpolate.interp1d(vars[self.timeID], vars[key], self.interpolation)
         newVars[key]=interp(newTime)
-
     return newVars
 
 
@@ -134,14 +133,27 @@ class HistorySetSampling(PostProcessorInterfaceBase):
 
     normalizedVar = {}
 
-    # data normalization
-    for keys in var.keys():
-      if keys != self.timeID:
-        total = np.sum(var[keys])
-      else:
-        total=np.float64(1.0)
+     # data normalization
+    '''for keys in var.keys():
+       if keys != self.timeID:
+         total = np.sum(var[keys])
+       else:
+         total=np.float64(1.0)
       normalizedVar[keys] = var[keys]/total
-
+      normalizedVar[keys] = var[keys]/total'''
+    
+    for keys in var.keys():
+      normalizedVar[keys] = var[keys]/np.float64(1.0)
+      if keys != self.timeID:
+        min = np.min(var[keys])
+        max = np.max(var[keys])
+        if not max == min:
+          normalizedVar[keys] = (var[keys] - min)/(max - min)
+        else:
+          normalizedVar[keys] = var[keys]/np.float64(1.0) 
+      else:
+        normalizedVar[keys]=var[keys]/np.float64(1.0)
+        
     if self.samplingType=='firstDerivative':
       for t in range(1, normalizedVar[self.timeID].shape[0]):
         t_contrib=0.0
@@ -159,12 +171,12 @@ class HistorySetSampling(PostProcessorInterfaceBase):
 
     else:self.raiseAnError(RuntimeError,'type ' + self.samplingType + ' is not a valid type. Function: derivativeTimeValues')
 
-    cumDamageInstant = np.linspace(0,cumDerivative[-1],self.numberOfSamples)
+    cumDamageInstant = np.linspace(cumDerivative[0],cumDerivative[-1],self.numberOfSamples)
 
     for i in range(self.numberOfSamples-1):
       index = (np.abs(cumDerivative - cumDamageInstant[i])).argmin()
-      newTime[i] = normalizedVar[self.timeID][index]
-    newTime[-1] = normalizedVar[self.timeID][-1]
+      newTime[i] = var[self.timeID][index]
+    newTime[-1] = var[self.timeID][-1]
     return newTime
 
 def timeSeriesFilter(timeID, vars, filterType, filterValue):
