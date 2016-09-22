@@ -72,7 +72,7 @@ class DTW(Metric):
         Y = np.empty((len(tempY.keys()),timeLengthY))
         for index, key in enumerate(tempX):
           X[index] = tempX[key]
-          Y[index] = tempY[key]
+          Y[index] = tempY[key] 
         value = self.dtwDistance(X,Y)
         return value 
       else:
@@ -83,24 +83,26 @@ class DTW(Metric):
   def dtwDistance(self,x,y):
     assert len(x)
     assert len(y)
-    r, c = len(x), len(y)
+    r, c = len(x[0,:]), len(y[0,:])
+    print(r)
+    print(c)
     D0 = np.zeros((r + 1, c + 1))
     D0[0, 1:] = np.inf
     D0[1:, 0] = np.inf
     D1 = D0[1:, 1:] 
     for i in range(r):
-        for j in range(c):
-            D1[i, j] = pairwise.pairwise_distances(x[:,i], y[:,j], metric=self.localDistance)
+      for j in range(c):        
+        D1[i, j] = pairwise.pairwise_distances(x[:,i], y[:,j], metric=self.localDistance)
     C = D1.copy()
     for i in range(r):
-        for j in range(c):
-            D1[i, j] += min(D0[i, j], D0[i, j+1], D0[i+1, j])
+      for j in range(c):
+        D1[i, j] += min(D0[i, j], D0[i, j+1], D0[i+1, j])
     if len(x)==1:
-        path = np.zeros(len(y)), range(len(y))
+      path = np.zeros(len(y)), range(len(y))
     elif len(y) == 1:
-        path = range(len(x)), np.zeros(len(x))
+      path = range(len(x)), np.zeros(len(x))
     else:
-        path = self.tracePath(D0)
+      path = self.tracePath(D0)
     return D1[-1, -1]   
 
   def tracePath(self,D):
