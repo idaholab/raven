@@ -3,7 +3,7 @@
   <RunInfo>
     <WorkingDir>DirichletProcessGMM</WorkingDir>
     <Sequence>sampleGen,pp1,writeOut</Sequence>
-    <batchSize>100</batchSize>
+    <batchSize>1</batchSize>
   </RunInfo>
     <Files>
     <Input name="data_generator">../ClusterMoveData/data_generator.py</Input>
