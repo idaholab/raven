@@ -84,19 +84,16 @@ class DTW(Metric):
     assert len(x)
     assert len(y)
     r, c = len(x[0,:]), len(y[0,:])
-    print(r)
-    print(c)
     D0 = np.zeros((r + 1, c + 1))
     D0[0, 1:] = np.inf
     D0[1:, 0] = np.inf
     D1 = D0[1:, 1:] 
-    for i in range(r):
-      for j in range(c):        
-        D1[i, j] = pairwise.pairwise_distances(x[:,i], y[:,j], metric=self.localDistance)
+    #D1 = pairwise.pairwise_distances(np.transpose(x),np.transpose(y), metric=self.localDistance) 
+    D1 = pairwise.pairwise_distances(x.T,y.T, metric=self.localDistance) 
     C = D1.copy()
     for i in range(r):
       for j in range(c):
-        D1[i, j] += min(D0[i, j], D0[i, j+1], D0[i+1, j])
+        D1[i, j] += min(D0[i, j], D0[i, j+1], D0[i+1, j])   
     if len(x)==1:
       path = np.zeros(len(y)), range(len(y))
     elif len(y) == 1:
