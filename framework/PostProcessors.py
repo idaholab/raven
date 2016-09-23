@@ -1081,12 +1081,15 @@ class ImportanceRank(BasePostProcessor):
     self.mvnDistribution = None
     self.acceptedMetric = ['sensitivityindex','importanceindex','pcaindex','transformation','inversetransformation','manifestsensitivity']
     self.all = ['sensitivityindex','importanceindex','pcaindex']
+    self.statAcceptedMetric = ['pcaindex','transformation','inversetransformation']
     self.what = self.acceptedMetric # what needs to be computed, default is all
     self.printTag = 'POSTPROCESSOR IMPORTANTANCE RANK'
     self.requiredAssObject = (True,(['Distributions'],[-1]))
     self.transformation = False
     self.latentSen = False
     self.reconstructSen = False
+    self.pivotParameter = None # time-dependent pivot parameter
+    self.dynamic        = False # is it time-dependent?
 
   def _localWhatDoINeed(self):
     """
@@ -1158,6 +1161,7 @@ class ImportanceRank(BasePostProcessor):
                 self.raiseAnError(IOError, 'Unrecognized xml node name:',subSubNode.tag,'in',self.printTag)
       elif child.tag == 'mvnDistribution':
         self.mvnDistribution = child.text.strip()
+      elif child.tag == "pivotParameter": self.pivotParameter = child.text
       else:
         self.raiseAnError(IOError, 'Unrecognized xml node name: ' + child.tag + '!')
     if not self.latentDim and len(self.latent) != 0:
@@ -1174,67 +1178,74 @@ class ImportanceRank(BasePostProcessor):
       self.reconstructSen = True
       self.transformation = True
 
-  def _localPrintXML(self,outFile,options=None):
+  def _localPrintXML(self,outFile,options=None,pivotVal=None):
     """
       Adds requested entries to XML node.
       @ In, outFile, Files.StaticXMLOutput, file to which entries will be printed
       @ In, options, dict, optional, list of requests and options
         May include: 'what': comma-separated string list, the qualities to print out
+      @ In, pivotVal,
       @ Out, None
     """
-    #dimension node needs only be set once, but it is given for each index type
-    dimDict = None
-    settingDim = False
     #build tree
     for what in options.keys():
-      if what == 'pcaIndex': continue
-      if what == 'transformation' or what == 'inverseTransformation': continue
+      if what.lower() in self.statAcceptedMetric: continue
       if what == 'manifestSensitivity': continue
       for target in options[what].keys():
         valueDict = OrderedDict()
         for var,index,dim in options[what][target]:
           valueDict[var] = index
-        outFile.addVector(target,what,valueDict)
+        outFile.addVector(target,what,valueDict,pivotVal=pivotVal)
     if 'manifestSensitivity' in options.keys():
       what = 'manifestSensitivity'
       for target in options[what].keys():
-        outFile.addScalar(target,'type',self.mvnDistribution.covarianceType)
+        outFile.addScalar(target,'type',self.mvnDistribution.covarianceType,pivotVal=pivotVal)
         valueDict = OrderedDict()
         for var,index,dim in options[what][target]:
           valueDict[var] = index
-        outFile.addVector(target,what,valueDict)
+        outFile.addVector(target,what,valueDict,pivotVal=pivotVal)
+
+  def _localPrintPCAInformation(self,outFile,options=None,pivotVal=None):
+    """
+      Adds requested entries to XML node.
+      @ In, outFile, Files.StaticXMLOutput, file to which entries will be printed
+      @ In, options, dict, optional, list of requests and options
+        May include: 'what': comma-separated string list, the qualities to print out
+      @ In, pivotVal,
+      @ Out, None
+    """
     # output variables and dimensions
     latentDict = OrderedDict()
     if self.latentSen:
       for index,var in enumerate(self.latent):
         latentDict[var] = self.latentDim[index]
-      outFile.addVector('dimensions','latent',latentDict)
+      outFile.addVector('dimensions','latent',latentDict,pivotVal=pivotVal)
     manifestDict = OrderedDict()
     if len(self.manifest) > 0:
       for index,var in enumerate(self.manifest):
         manifestDict[var] = self.manifestDim[index]
-      outFile.addVector('dimensions','manifest',manifestDict)
+      outFile.addVector('dimensions','manifest',manifestDict,pivotVal=pivotVal)
     #pca index is a feature only of target, not with respect to anything else
     if 'pcaIndex' in options.keys():
       pca = options['pcaIndex']
       for var,index,dim in pca:
-        outFile.addScalar('pcaIndex',var,index)
+        outFile.addScalar('pcaIndex',var,index,pivotVal=pivotVal)
     if 'transformation' in options.keys():
       what = 'transformation'
-      outFile.addScalar(what,'type',self.mvnDistribution.covarianceType)
+      outFile.addScalar(what,'type',self.mvnDistribution.covarianceType,pivotVal=pivotVal)
       for target in options[what].keys():
         valueDict = OrderedDict()
         for var, index, dim in options[what][target]:
           valueDict[var] = index
-        outFile.addVector(what,target,valueDict)
+        outFile.addVector(what,target,valueDict,pivotVal=pivotVal)
     if 'inverseTransformation' in options.keys():
       what = 'inverseTransformation'
-      outFile.addScalar(what,'type',self.mvnDistribution.covarianceType)
+      outFile.addScalar(what,'type',self.mvnDistribution.covarianceType,pivotVal=pivotVal)
       for target in options[what].keys():
         valueDict = OrderedDict()
         for var, index, dim in options[what][target]:
           valueDict[var] = index
-        outFile.addVector(what,target,valueDict)
+        outFile.addVector(what,target,valueDict,pivotVal=pivotVal)
 
   def collectOutput(self,finishedJob, output):
     """
@@ -1243,60 +1254,121 @@ class ImportanceRank(BasePostProcessor):
       @ In, output, object, the object where we want to place our computed results
       @ Out, None
     """
-    parameterSet = list(set(list(self.features)))
     if finishedJob.getEvaluation() == -1: self.raiseAnError(RuntimeError, ' No available output to collect (Run probably is not finished yet) via',self.printTag)
     outputDict = finishedJob.getEvaluation()[-1]
     # Output to file
     if isinstance(output, Files.File):
-      availExtens = ['xml','csv', 'txt']
+      availExtens = ['xml','csv']
       outputExtension = output.getExt().lower()
       if outputExtension not in availExtens:
         self.raiseAWarning('Output extension you input is ' + outputExtension)
         self.raiseAWarning('Available are ' + str(availExtens) + '. Converting extension to ' + str(availExtens[0]) + '!')
         outputExtensions = availExtens[0]
         output.setExtension(outputExtensions)
-      if outputExtension != 'csv': separator = ' '
-      else: separator = ','
       output.setPath(self.__workingDir)
       self.raiseADebug('Dumping output in file named ' + output.getAbsFile())
       output.open('w')
-      if outputExtension != 'xml':
-        maxLength = max(len(max(parameterSet, key = len)) + 5, 16)
-        # Output all metrics to given file
-        for what in outputDict.keys():
-          if what.lower() in self.acceptedMetric:
-            if what == 'pcaIndex': continue
-            self.raiseADebug('Writing parameter rank for metric ' + what)
-            for target in outputDict[what].keys():
-              if outputExtension != 'csv':
-                output.write('Target,' + target + '\n')
-                output.write('Parameters' + ' ' * maxLength + ''.join([str(item[0]) + ' ' * (maxLength - len(item)) for item in outputDict[what][target]]) + os.linesep)
-                output.write(what + ' ' * maxLength + ''.join(['%.8E' % item[1] + ' ' * (maxLength -14) for item in outputDict[what][target]]) + os.linesep)
-              else:
-                output.write('Target,' + target + '\n')
-                output.write('Parameters'  + ''.join([separator + str(item[0])  for item in outputDict[what][target]]) + os.linesep)
-                output.write(what + ''.join([separator + '%.8E' % item[1] for item in outputDict[what][target]]) + os.linesep)
-            output.write(os.linesep)
-        output.close()
+      if outputExtension == 'csv':
+        self._writeCSV(output,outputDict)
       else:
-        #convert output into an XML output file
-        outFile = Files.returnInstance('StaticXMLOutput',self)
-        outFile.initialize(output.getFilename(),self.messageHandler,path=output.getPath())
-        outFile.newTree('ImportanceRankPP')
-        self._localPrintXML(outFile,outputDict)
-        outFile.writeFile()
-        self.raiseAMessage('ImportanceRank XML printed to "'+output.getFilename()+'"!')
+        self._writeXML(output,outputDict)
     # Output to DataObjects
     elif output.type in ['PointSet','HistorySet']:
       self.raiseADebug('Dumping output in data object named ' + output.name)
+      self._writeDataObject(output,outputDict)
+    elif output.type == 'HDF5' : self.raiseAWarning('Output type ' + str(output.type) + ' not yet implemented. Skip it !!!!!')
+    else: self.raiseAnError(IOError, 'Output type ' + str(output.type) + ' unknown.')
+
+  def _writeCSV(self,output,outputDictionary):
+    """
+      Defines the method for writing the post-processor to a .csv file
+      @ In, output, File object, file to write to
+      @ In, outputDictionary, dict, dictionary stores importance ranking outputs
+      @ Out, None
+    """
+    separator = ','
+    if self.dynamic:
+      output.write('Importance Rank' + separator + 'Pivot Parameter' + separator + self.pivotParameter + os.linesep)
+    outputResults = [outputDictionary] if not self.dynamic else outputDictionary.values()
+    for step, outputDict in enumerate(outputResults):
+      if self.dynamic: output.write('Pivot Value'+separator+str(outputDictionary.keys()[step])+os.linesep)
+      #only output 'pcaindex','transformation','inversetransformation' for the first step.
+      if step == 0:
+        for what in outputDict.keys():
+          if what.lower() in self.statAcceptedMetric:
+            self.raiseADebug('Writing parameter rank for metric ' + what)
+            if what.lower() == 'pcaindex':
+              output.write('pcaIndex,' + '\n')
+              output.write('Parameters'  + ''.join([separator + str(item[0])  for item in outputDict[what]]) + os.linesep)
+              output.write(what + ''.join([separator + '%.8E' % item[1] for item in outputDict[what]]) + os.linesep)
+              output.write(os.linesep)
+            else:
+              for target in outputDict[what].keys():
+                output.write('Target,' + target + '\n')
+                output.write('Parameters'  + ''.join([separator + str(item[0])  for item in outputDict[what][target]]) + os.linesep)
+                output.write(what + ''.join([separator + '%.8E' % item[1] for item in outputDict[what][target]]) + os.linesep)
+              output.write(os.linesep)
       for what in outputDict.keys():
-        if what == 'pcaIndex': continue
+        if what.lower() in self.statAcceptedMetric: continue
+        if what.lower() in self.acceptedMetric:
+          self.raiseADebug('Writing parameter rank for metric ' + what)
+          for target in outputDict[what].keys():
+            output.write('Target,' + target + '\n')
+            output.write('Parameters'  + ''.join([separator + str(item[0])  for item in outputDict[what][target]]) + os.linesep)
+            output.write(what + ''.join([separator + '%.8E' % item[1] for item in outputDict[what][target]]) + os.linesep)
+          output.write(os.linesep)
+    output.close()
+
+  def _writeXML(self,output,outputDictionary):
+    """
+      Defines the method for writing the post-processor to a .csv file
+      @ In, output, File object, file to write to
+      @ In, outputDictionary, dict, dictionary stores importance ranking outputs
+      @ Out, None
+    """
+    if output.isOpen(): output.close()
+    if self.dynamic:
+      outFile = Files.returnInstance('DynamicXMLOutput',self)
+    else:
+      outFile = Files.returnInstance('StaticXMLOutput',self)
+    outFile.initialize(output.getFilename(),self.messageHandler,path=output.getPath())
+    outFile.newTree('ImportanceRankPP',pivotParam=self.pivotParameter)
+    outputResults = [outputDictionary] if not self.dynamic else outputDictionary.values()
+    for step, outputDict in enumerate(outputResults):
+      pivotVal = outputDictionary.keys()[step]
+      self._localPrintXML(outFile,outputDict,pivotVal)
+      if step == 0:
+        self._localPrintPCAInformation(outFile,outputDict,pivotVal)
+    outFile.writeFile()
+    self.raiseAMessage('ImportanceRank XML printed to "'+output.getFilename()+'"!')
+
+  def _writeDataObject(self,output,outputDictionary):
+    """
+      Defines the method for writing the post-processor to a .csv file
+      @ In, output, File object, file to write to
+      @ In, outputDictionary, dict, dictionary stores importance ranking outputs
+      @ Out, None
+    """
+    outputResults = [outputDictionary] if not self.dynamic else outputDictionary.values()
+    for step, outputDict in enumerate(outputResults):
+      if step == 0:
+        for what in outputDict.keys():
+          if what.lower() not in self.statAcceptedMetric:
+            continue
+          elif what.lower() == 'pcaindex':
+            self.raiseADebug('Dumping ' + what + '. Metadata name = ' + what)
+            output.updateMetadata(what,outputDict[what])
+          else:
+            for target in outputDict[what].keys():
+              self.raiseADebug('Dumping ' + target + '-' + what + '. Metadata name = ' + target + '-' + what + '. Targets stored in ' +  target + '-'  + what)
+              output.updateMetadata(target + '-' + what, outputDict[what][target])
+      appendix = '-'+self.pivotParameter+'-'+str(outputDictionary.keys()[step]) if self.dynamic else ''
+      for what in outputDict.keys():
+        if what.lower() in self.statAcceptedMetric: continue
         if what.lower() in self.acceptedMetric:
           for target in outputDict[what].keys():
             self.raiseADebug('Dumping ' + target + '-' + what + '. Metadata name = ' + target + '-' + what + '. Targets stored in ' +  target + '-'  + what)
-            output.updateMetadata(target + '-'  + what, outputDict[what][target])
-    elif output.type == 'HDF5' : self.raiseAWarning('Output type ' + str(output.type) + ' not yet implemented. Skip it !!!!!')
-    else: self.raiseAnError(IOError, 'Output type ' + str(output.type) + ' unknown.')
+            output.updateMetadata(target + '-'  + what+appendix, outputDict[what][target])
 
   def initialize(self, runInfo, inputs, initDict) :
     """
@@ -1317,20 +1389,22 @@ class ImportanceRank(BasePostProcessor):
     if type(currentInp) == list  : currentInput = currentInp[-1]
     else                         : currentInput = currentInp
     if type(currentInput) == dict:
-      if 'targets' in currentInput.keys(): return currentInput
-    inputDict = {'targets':{}, 'metadata':{}, 'features':{}}
+      if 'targets' not in currentInput.keys() and 'timeDepData' not in currentInput.keys(): self.raiseAnError(IOError, 'Did not find targets or timeDepData in input dictionary')
+      return currentInput
+
     if hasattr(currentInput,'type'):
       inType = currentInput.type
     else:
       if type(currentInput).__name__ == 'list'    : inType = 'list'
       else: self.raiseAnError(IOError, self, 'ImportanceRank postprocessor accepts Files, HDF5, PointSet, DataObject(s) only! Got ' + str(type(currentInput)))
-    if inType not in ['HDF5', 'PointSet', 'list'] and not isinstance(inType,Files.File):
-      self.raiseAnError(IOError, self, 'ImportanceRank postprocessor accepts Files, HDF5, PointSet, DataObject(s) only! Got ' + str(inType) + '!!!!')
+    if inType not in ['HDF5', 'PointSet','HistorySet', 'list'] and not isinstance(inType,Files.File):
+      self.raiseAnError(IOError, self, 'ImportanceRank postprocessor accepts Files, HDF5, HistorySet, PointSet, DataObject(s) only! Got ' + str(inType) + '!!!!')
     # get input from the external csv file
     if isinstance(inType,Files.File):
       if currentInput.subtype == 'csv': pass # to be implemented
     # get input from PointSet DataObject
     if inType in ['PointSet']:
+      inputDict = {'targets':{}, 'metadata':{}, 'features':{}}
       for feat in self.features:
         if feat in currentInput.getParaKeys('input'):
           inputDict['features'][feat] = currentInput.getParam('input', feat)
@@ -1339,11 +1413,38 @@ class ImportanceRank(BasePostProcessor):
       for targetP in self.targets:
         if targetP in currentInput.getParaKeys('output'):
           inputDict['targets'][targetP] = currentInput.getParam('output', targetP)
-        elif targetP in currentInput.getParaKeys('input'):
-          inputDict['targets'][targetP] = currentInput.getParam('input',targetP)
         else:
-          self.raiseAnError(IOError,'Parameter ' + str(targetP) + ' is listed ImportanceRank postprocessor targets, but not found in the provided input!')
+          self.raiseAnError(IOError,'Parameter ' + str(targetP) + ' is listed ImportanceRank postprocessor targets, but not found in the provided output!')
       inputDict['metadata'] = currentInput.getAllMetadata()
+    # get input from HistorySet DataObject
+    if inType in ['HistorySet']:
+      if self.pivotParameter is None: self.raiseAnError(IOError, self, 'Time-dependent importance ranking is requested (HistorySet) but no pivotParameter got inputted!')
+      inputs  = currentInput.getParametersValues('inputs',nodeId = 'ending')
+      outputs = currentInput.getParametersValues('outputs',nodeId = 'ending')
+      numSteps = len(outputs.values()[0].values()[0])
+      self.dynamic = True
+      if self.pivotParameter not in currentInput.getParaKeys('output'):
+        self.raiseAnError(IOError, self, 'Pivot parameter ' + self.pivotParameter + ' has not been found in output space of data object '+currentInput.name)
+      pivotParameter = []
+      for step in range(len(outputs.values()[0][self.pivotParameter])):
+        currentSnapShot = [outputs[i][self.pivotParameter][step] for i in outputs.keys()]
+        if len(set(currentSnapShot)) > 1: self.raiseAnError(IOError, self, 'Histories are not syncronized! Please, pre-process the data using Interfaced PostProcessor HistorySetSync!')
+        pivotParameter.append(currentSnapShot[-1])
+      inputDict = {'timeDepData':OrderedDict.fromkeys(pivotParameter,None)}
+      for step in range(numSteps):
+        inputDict['timeDepData'][pivotParameter[step]] = {'targets':{},'features':{}}
+        for targetP in self.targets:
+          if targetP in currentInput.getParaKeys('output') :
+            inputDict['timeDepData'][pivotParameter[step]]['targets'][targetP] = np.asarray([outputs[i][targetP][step] for i in outputs.keys()])
+          else:
+            self.raiseAnError(IOError, self, 'Target ' + targetP + ' has not been found in data object '+currentInput.name)
+        for feat in self.features:
+          if feat in currentInput.getParaKeys('input'):
+            inputDict['timeDepData'][pivotParameter[step]]['features'][feat] = np.asarray([inputs[i][feat][-1] for i in inputs.keys()])
+          else:
+            self.raiseAnError(IOError, self, 'Feature ' + feat + ' has not been found in data object '+currentInput.name)
+        inputDict['timeDepData'][pivotParameter[step]]['metadata'] = currentInput.getAllMetadata()
+
     # get input from HDF5 Database
     if inType == 'HDF5': pass  # to be implemented
 
@@ -1351,11 +1452,25 @@ class ImportanceRank(BasePostProcessor):
 
   def run(self, inputIn):
     """
-      This method executes the postprocessor action.
-      @ In, inputIn, object, object contained the data to process. (inputToInternal output)
-      @ Out, outputDict, dict, dictionary containing the evaluated data
+      This method executes the postprocessor action. In this case, it computes all the requested statistical FOMs
+      @ In,  inputIn, object, object contained the data to process. (inputToInternal output)
+      @ Out, outputDict, dict, Dictionary containing the results
     """
     inputDict = self.inputToInternal(inputIn)
+    if not self.dynamic: outputDict = self.__runLocal(inputDict)
+    else:
+      # time dependent (actually pivot-dependent)
+      outputDict = OrderedDict()
+      for pivotParamValue in inputDict['timeDepData'].keys():
+        outputDict[pivotParamValue] = self.__runLocal(inputDict['timeDepData'][pivotParamValue])
+    return outputDict
+
+  def __runLocal(self, inputDict):
+    """
+      This method executes the postprocessor action.
+      @ In, inputDict, object, object contained the data to process. (inputToInternal output)
+      @ Out, outputDict, dict, dictionary containing the evaluated data
+    """
     outputDict = {}
     senCoeffDict = {}
     senWeightDict = {}
@@ -1482,6 +1597,7 @@ class ImportanceRank(BasePostProcessor):
       #  self.raiseAnError(NotImplementedError,'CumulativeImportanceIndex is not yet implemented for ' + self.printTag)
 
     return outputDict
+
 #
 #
 #
