@@ -22,4 +22,14 @@
   UnorderedXml = 'transform/output.xml'
   csv = 'transform/importantRank.csv'
  [../]
+ 
+ [./timeDepImportanceRank]
+  type = 'RavenFramework'
+  input = 'test_time_dependent.xml'
+  output = 'transform/importantRank_timeDep.csv transform/importantRank_timeDep.xml'
+  UnorderedXml = 'transform/output_timeDep.xml'
+  csv = 'transform/importantRank_timeDep_3.csv'
+  rel_err = 1e-5
+  zero_threshold = 1e-14
+ [../]
 []
