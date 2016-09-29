@@ -1184,7 +1184,7 @@ class ImportanceRank(BasePostProcessor):
       @ In, outFile, Files.StaticXMLOutput, file to which entries will be printed
       @ In, options, dict, optional, list of requests and options
         May include: 'what': comma-separated string list, the qualities to print out
-      @ In, pivotVal,
+      @ In, pivotVal, float, value of the pivot parameter, i.e. time, burnup, ...
       @ Out, None
     """
     #build tree
@@ -1211,7 +1211,7 @@ class ImportanceRank(BasePostProcessor):
       @ In, outFile, Files.StaticXMLOutput, file to which entries will be printed
       @ In, options, dict, optional, list of requests and options
         May include: 'what': comma-separated string list, the qualities to print out
-      @ In, pivotVal,
+      @ In, pivotVal, float, value of the pivot parameter, i.e. time, burnup, ...
       @ Out, None
     """
     # output variables and dimensions
