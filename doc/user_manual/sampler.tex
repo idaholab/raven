@@ -111,7 +111,7 @@ XML node and the requirements for other attributes change:
   required field}, name of the distribution that is associated to this variable.
   Its name needs to be contained in the \xmlNode{Distributions} block explained
   in Section \ref{sec:distributions}. In addition, if NDDistribution is used,
-  the attribute \xmlAttr{dim} is required. \nb{Alternatively, this node must be ommitted
+  the attribute \xmlAttr{dim} is required. \nb{Alternatively, this node must be omitted
   if the \xmlNode{function} node is supplied.}
 }
 \newcommand{\functionDescription}
@@ -419,9 +419,9 @@ a variable \xmlString{outer\_radius}, there may be a third variable \xmlString{t
 is actually derived from the previous two, as \xmlString{thickness} = \xmlString{outer\_radius} - \xmlString{inner\_radius}.
 RAVEN supports this type of redundant input through a Function entity.  In this case,
 instead of a \xmlNode{distribution} node in the \xmlNode{variable} block, there is a
-\xmlNode{Function} node, specifying the name of the function (defined in the \xmlNode{Functions} block).
+\xmlNode{function} node, specifying the name of the function (defined in the \xmlNode{Functions} block).
 In order to work properly, this function must have a method named ``evaluate''
-that returns a single python float object. In this way, multiple variables can be associated with the same Function.  For example,
+that returns a single python float object. In this way, multiple variables can be associated with the same function.  For example,
 \begin{lstlisting}[style=XML]
 ...
 <Functions>
@@ -440,7 +440,7 @@ that returns a single python float object. In this way, multiple variables can b
       <distribution>outer_dist</distribution>
     </variable>
     <variable name='thickness'>
-      <Function>torus_calcs</Function>
+      <function>torus_calcs</function>
     </variable>
   </WhatEverSampler>
 </Samplers>
@@ -452,6 +452,8 @@ def evaluate(self):
 \end{lstlisting}
 The \xmlString{thickness} parameter will still be treated as an input for the sake of csv
 printing and DataObjects storage.
+\\\nb It is important to notice that if the user use variables with no-Python compatible names (e.g. parenthesis, etc.),
+the \xmlNode{alias} system needs to be used to alias the variables.
 
 In the sampler class a special node exists: the \xmlNode{sampler\textunderscore init} node.
 This node contains specific parameters that characterize each particular sampler.
