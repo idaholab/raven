@@ -3,17 +3,20 @@
   <!-- RUNINFO -->
 
   <RunInfo>
-    <WorkingDir>testHistorySet</WorkingDir>
+    <WorkingDir>testHistorySetDeletingHistories</WorkingDir>
     <Sequence>FirstMRun,applyFunctions</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
 <!-- The external methods will be defined in the files pointed to by these guys -->
 <Functions>
-    <External file="partitionHistorySet" name="partitionHistorySet">
+    <External file="partitionHistorySetAndRemoveSomeHistories" name="partitionHistorySetAndRemoveSomeHistories">
         <variable>x</variable>
         <variable>y</variable>
         <variable>z</variable>
+        <variable>x0</variable>
+        <variable>y0</variable>
+        <variable>z0</variable>
         <variable>time</variable>
     </External>
 </Functions>
@@ -49,7 +52,7 @@
      scripts compatible with RAVEN -->
     <PostProcessor name="functionPP" subType="External" verbosity="debug">
         <method>time,x,y,z</method>
-        <Function class="Functions" type="External">partitionHistorySet</Function>
+        <Function class="Functions" type="External">partitionHistorySetAndRemoveSomeHistories</Function>
     </PostProcessor>
   </Models>
 
