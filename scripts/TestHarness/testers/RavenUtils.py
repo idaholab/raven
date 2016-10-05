@@ -98,8 +98,12 @@ def __checkVersion(i, ev, qa, found, version):
     missing.append(i)
   elif distutils.version.LooseVersion(version) < distutils.version.LooseVersion(ev):
     tooOld.append(i+" should be at least version "+ev+" but is "+version)
-  elif distutils.version.StrictVersion(version) != distutils.version.StrictVersion(qa):
-    notQA.append(i + " has version " + version + " but tested version is " + qa)
+  else:
+    try:
+      if distutils.version.StrictVersion(version) != distutils.version.StrictVersion(qa):
+        notQA.append(i + " has version " + version + " but tested version is " + qa)
+    except ValueError:
+      notQA.append(i + " has version " + version + " but tested version is " + qa + " and unable to parse version")
   return missing, tooOld, notQA
 
 def checkForMissingModules():
