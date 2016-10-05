@@ -100,10 +100,13 @@ class GradientBasedOptimizer(Optimizer):
       return ready # Return if we exceed the max iterations or converges...
     if self.mdlEvalHist == None and self.counter['perturbation'] < self.gradDict['pertNeeded']:
       return ready # Return if we just initialize
-    elif self.mdlEvalHist.isItEmpty() and self.counter['perturbation'] < self.gradDict['pertNeeded']:
-      return ready # Return if we just initialize
+    elif self.mdlEvalHist.isItEmpty():
+      if self.counter['perturbation'] < self.gradDict['pertNeeded']: # Return if we just initialize
+        return ready
+      else:
+        ready = False # Waiting for the model output for gradient evaluation
     elif self.counter['perturbation'] >= self.gradDict['pertNeeded']:
-      if len(self.mdlEvalHist) % (self.gradDict['pertNeeded']+1): ready = False
+      if len(self.mdlEvalHist) % (self.gradDict['pertNeeded']+1): ready = False # Waiting for the model output for gradient evaluation
 
     ready = self.localLocalStillReady(ready, convergence)
 
