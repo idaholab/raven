@@ -146,7 +146,29 @@ Object-Oriented Simulation Environment (MOOSE).
 \label{miniconda}
 
 For OSX, the simplest and most robust way to install the RAVEN dependencies
-is to install and use Miniconda to obtain them (see \url{http://conda.pydata.org/miniconda.html} for more information).
+is with Miniconda.
+
+For OSX Yosemite and OSX El Capitan there is a package available
+called raven\_miniconda.pkg The package includes both miniconda and
+the dependencies RAVEN needs. If you get an error that the package is
+not signed, then Control click the package, and choose ``Open With''
+and then Installer.
+
+The files will be installed into \texttt{/opt/raven\_libs}.
+
+Your \texttt{.bash\_profile} will be modified to source
+the\\ \texttt{/opt/raven\_libs/environments/raven\_libs\_profile}
+file.  This needs to be sourced.  Reopening the terminal will put the
+correct Miniconda python in the path.
+
+Once this is installed you can go on to Section \ref{raven_installation} and install RAVEN.
+
+Advanced note: This creates a conda environment called
+\texttt{raven\_libraries} and the command used to create this the \texttt{raven\_libraries} environment can be found by by running:
+\texttt{python scripts/TestHarness/testers/RavenUtils.py --conda-create}
+
+Alternatively, Miniconda can be obtained and installed directly. See
+\url{http://conda.pydata.org/miniconda.html} for more information.
 
 To install Miniconda, download and install the appropriate file from \url{http://conda.pydata.org/miniconda.html}.
 
