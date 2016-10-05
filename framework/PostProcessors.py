@@ -2857,7 +2857,6 @@ class ExternalPostProcessor(BasePostProcessor):
       self.raiseAWarning('Output type ' + type(output).__name__
                          + ' not yet implemented. I am going to skip it.')
     elif output.type in ['PointSet','HistorySet'] :
-    #elif output.type == 'PointSet':
       requestedInput = output.getParaKeys('input')
       ## If you want to be able to dynamically add columns to your data, then
       ## you should use this commented line, otherwise only the information
@@ -2898,12 +2897,18 @@ class ExternalPostProcessor(BasePostProcessor):
           if key in requestedInput:
             for inputData in inputList:
               if key in inputData.getParametersValues('input',nodeId = 'ending').keys() if inputData.type == 'PointSet' else inputData.getParametersValues('input',nodeId = 'ending').values()[-1].keys():
-                value = inputData.getParametersValues('input',nodeId = 'ending')[key] if inputData.type == 'PointSet' else [value[key] for value in inputData.getParametersValues('input',nodeId = 'ending').values()]
+                if inputData.type == 'PointSet':
+                  value = inputData.getParametersValues('input',nodeId = 'ending')[key]
+                else:
+                  value = [value[key] for value in inputData.getParametersValues('input',nodeId = 'ending').values()]
                 foundCount += 1
           else:
             for inputData in inputList:
                 if key in inputData.getParametersValues('output',nodeId = 'ending').keys() if inputData.type == 'PointSet' else inputData.getParametersValues('output',nodeId = 'ending').values()[-1].keys():
-                  value = inputData.getParametersValues('output',nodeId = 'ending')[key] if inputData.type == 'PointSet' else [value[key] for value in inputData.getParametersValues('output',nodeId = 'ending').values()]
+                  if inputData.type == 'PointSet':
+                    value = inputData.getParametersValues('output',nodeId = 'ending')[key]
+                  else:
+                    value = [value[key] for value in inputData.getParametersValues('output',nodeId = 'ending').values()]
                   foundCount += 1
 
           if foundCount == 0:
