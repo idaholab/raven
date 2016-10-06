@@ -223,6 +223,8 @@ class HDF5(DateBase):
       if not loadFrom.type in ['PointSet','HistorySet']: self.raiseAnError(IOError,'addGroupDataObjects function needs to have a Data(s) as input source')
       source['type'] = 'DataObjects'
     source['name'] = loadFrom
+    print(attributes)
+    print(source)
     self.database.addGroupDataObjects(attributes['group'],attributes,source,upGroup)
     self.built = True
 

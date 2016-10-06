@@ -1149,7 +1149,7 @@ class OutStreamPlot(OutStreamManager):
                           self.actcm.set_label(self.colorMapCoordinates[pltindex][0].split('|')[-1].replace(')', ''))
                         else:
                           self.actcm.set_clim(vmin = min(self.colorMapValues[pltindex][key][-1]), vmax = max(self.colorMapValues[pltindex][key][-1]))
-                          self.actcm.draw_all()
+                          self.actcm.draw_all()  
                   else:
                     scatterPlotOptions['c'] = plotSettings['c']
                     self.actPlot = self.plt3D.scatter(self.xValues[pltindex][key][xIndex], self.yValues[pltindex][key][yIndex], self.zValues[pltindex][key][zIndex], **scatterPlotOptions)

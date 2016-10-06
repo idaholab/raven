@@ -83,21 +83,21 @@
     <PostProcessor name="historySamplingPP_uniform" subType="InterfacedPostProcessor">
       <method>HistorySetSampling</method>
       <samplingType>uniform</samplingType>
-      <numberOfSamples>10</numberOfSamples>
+      <numberOfSamples>15</numberOfSamples>
       <timeID>time</timeID>
       <interpolation>cubic</interpolation>
     </PostProcessor>
     <PostProcessor name="historySamplingPP_first" subType="InterfacedPostProcessor">
       <method>HistorySetSampling</method>
       <samplingType>firstDerivative</samplingType>
-      <numberOfSamples>10</numberOfSamples>
+      <numberOfSamples>15</numberOfSamples>
       <timeID>time</timeID>
       <interpolation>cubic</interpolation>
     </PostProcessor>
     <PostProcessor name="historySamplingPP_second" subType="InterfacedPostProcessor">
       <method>HistorySetSampling</method>
       <samplingType>secondDerivative</samplingType>
-      <numberOfSamples>10</numberOfSamples>
+      <numberOfSamples>15</numberOfSamples>
       <timeID>time</timeID>
       <interpolation>cubic</interpolation>
     </PostProcessor>
@@ -190,6 +190,13 @@
           <x>outMC_PP1|Output|time</x>
           <y>outMC_PP1|Output|x</y>
         </plot>
+        <plot>
+          <type>line</type>
+          <interpolationType>linear</interpolationType>
+          <interpPointsX>100</interpPointsX>
+          <x>outMC_PP1|Output|time</x>
+          <y>outMC_PP1|Output|x</y>
+        </plot>
         <xlabel>time</xlabel>
         <ylabel>x</ylabel>
       </plotSettings>
@@ -214,6 +221,13 @@
           <x>outMC_PP2|Output|time</x>
           <y>outMC_PP2|Output|x</y>
         </plot>
+        <plot>
+          <type>line</type>
+          <interpolationType>linear</interpolationType>
+          <interpPointsX>100</interpPointsX>
+          <x>outMC_PP2|Output|time</x>
+          <y>outMC_PP2|Output|x</y>
+        </plot>
         <xlabel>time</xlabel>
         <ylabel>x</ylabel>
       </plotSettings>
@@ -235,6 +249,13 @@
         </plot>
         <plot>
           <type>scatter</type>
+          <x>outMC_PP3|Output|time</x>
+          <y>outMC_PP3|Output|x</y>
+        </plot>
+        <plot>
+          <type>line</type>
+          <interpolationType>linear</interpolationType>
+          <interpPointsX>100</interpPointsX>
           <x>outMC_PP3|Output|time</x>
           <y>outMC_PP3|Output|x</y>
         </plot>
