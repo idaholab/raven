@@ -4,13 +4,13 @@ LATEX_FLAGS=-interaction=nonstopmode
 
 all: raven_user_manual.pdf
 
-raven_user_manual.pdf: $(MANUAL_FILES) ../version.tex
+raven_user_manual.pdf: $(MANUAL_FILES) ../version.tex conda_command.txt
 	pdflatex $(LATEX_FLAGS) $(SRCFILE).tex
 	bibtex $(SRCFILE)
 	pdflatex $(LATEX_FLAGS) $(SRCFILE).tex
 	pdflatex $(LATEX_FLAGS) $(SRCFILE).tex
 
-draft: $(MANUAL_FILES) ../version.tex
+draft: $(MANUAL_FILES) ../version.tex conda_command.txt
 	pdflatex $(LATEX_FLAGS) "\def\DRAFT{1}\input{$(SRCFILE).tex}"
 	bibtex $(SRCFILE)
 	pdflatex $(LATEX_FLAGS) "\def\DRAFT{1}\input{$(SRCFILE).tex}"
@@ -27,3 +27,7 @@ clean:
 
 libraries.tex : ../../scripts/TestHarness/testers/RavenUtils.py
 	python ../../scripts/TestHarness/testers/RavenUtils.py --manual-list > libraries.tex
+
+conda_command.txt : ../../scripts/TestHarness/testers/RavenUtils.py
+	python ../../scripts/TestHarness/testers/RavenUtils.py --conda-create | fold -s -w60 | sed 's/$$/\\/' > conda_command.txt
+	truncate --size=-2 conda_command.txt
