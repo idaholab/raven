@@ -63,8 +63,9 @@ class SPSA(GradientBasedOptimizer):
       @ In, solutionExport, DataObject, optional, a PointSet to hold the solution
       @ Out, None
     """
-    self._endJobRunnable = 1 # batch mode currently not implemented for SPSA
-    self.gradDict['pertNeeded'] = self.gradDict['numIterForAve'] * 2
+    self._endJobRunnable = 1 
+    for traj in self.optTraj:
+      self.gradDict['pertNeeded'][traj] = self.gradDict['numIterForAve'] * 2
 
   def localLocalStillReady(self, ready, convergence = False):
     """
@@ -155,11 +156,11 @@ class SPSA(GradientBasedOptimizer):
     ak = a / (iterNum + A) ** alpha *1.0
     return ak
 
-  def localCheckConvergence(self, convergence = False):
-    """
-      Local method to check convergence.
-      @ In, convergence, bool, optional, variable indicating how the caller determines the convergence.
-      @ Out, convergence, bool, variable indicating whether the convergence criteria has been met.
-    """
-    return convergence
+#   def localCheckConvergence(self, convergence = False):
+#     """
+#       Local method to check convergence.
+#       @ In, convergence, bool, optional, variable indicating how the caller determines the convergence.
+#       @ Out, convergence, bool, variable indicating whether the convergence criteria has been met.
+#     """
+#     return convergence
 

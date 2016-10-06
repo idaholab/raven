@@ -44,10 +44,17 @@ class GradientBasedOptimizer(Optimizer):
     self.gainParamDict = {}                           # Dict containing parameters for gain used for update decision variables
     self.gradDict = {}                                # Dict containing information for gradient related operations
     self.gradDict['numIterForAve'] = 1                # Number of iterations for gradient estimation averaging
-    self.gradDict['pertNeeded'] = 1                   # Number of perturbation needed to evaluate gradient
+    self.gradDict['pertNeeded'] = {}                   # Number of perturbation needed to evaluate gradient
     self.gradDict['pertPoints'] = {}                  # Dict containing inputs sent to model for gradient evaluation
-    self.counter['perturbation'] = 0                  # Counter for the perturbation performed.
-    self.readyVarsUpdate = None                       # Bool variable indicating the finish of gradient evaluation and the ready to update decision variables
+    self.counter['perturbation'] = {}                  # Counter for the perturbation performed.
+    self.readyVarsUpdate = {}                       # Bool variable indicating the finish of gradient evaluation and the ready to update decision variables
+    self.counter['varsUpdate'] = {}
+    for traj in self.optTraj:
+      self.gradDict['pertNeeded'][traj]   = 1
+      self.gradDict['pertPoints'][traj]   = {}
+      self.counter['perturbation'][traj]  = 0
+      self.counter['varsUpdate'][traj]    = 0
+      self.readyVarsUpdate[traj]          = False
 
   def localInputAndChecks(self, xmlNode):
     """
@@ -74,7 +81,8 @@ class GradientBasedOptimizer(Optimizer):
       @ In, solutionExport, DataObject, optional, a PointSet to hold the solution
       @ Out, None
     """
-    self.gradDict['pertPoints'] = {}
+    for traj in self.optTraj:
+      self.gradDict['pertPoints'][traj] = {}
 
     #specializing the self.localLocalInitialize()
     if solutionExport != None : self.localLocalInitialize(solutionExport=solutionExport)
@@ -98,6 +106,15 @@ class GradientBasedOptimizer(Optimizer):
     """
     if ready == False:
       return ready # Return if we exceed the max iterations or converges...
+    
+    readyFlag = False
+    for traj in self.optTrajLive:
+      if self.counter['varsUpdate'][traj] < self.limit['varsUpdate']:
+        readyFlag = True
+    if readyFlag == False:
+      ready = False
+      return ready # Return not ready if all trajectories has more them permitted variable updates.  
+     
     if self.mdlEvalHist == None and self.counter['perturbation'] < self.gradDict['pertNeeded']:
       return ready # Return if we just initialize
     elif self.mdlEvalHist.isItEmpty():
@@ -221,13 +238,33 @@ class GradientBasedOptimizer(Optimizer):
     """
     return gradient
 
-  @abc.abstractmethod
-  def localCheckConvergence(self, convergence = False):
+  def checkConvergence(self):
+    """
+      Method to check whether the convergence criteria has been met.
+      @ In, none,
+      @ Out, convergence, list, list of bool variable indicating whether the convergence criteria has been met for each trajectory.
+    """
+    convergeTraj = [False]*len(self.optTrajLive)
+    for trajInd, traj in enumerate(self.optTrajLive):
+      if self.counter['varsUpdate'][traj] >= 2:
+        optVal1 = copy.deepcopy(self.lossFunctionEval(self.optVarsHist[traj][self.counter['varsUpdate']]))
+        optVal2 = copy.deepcopy(self.lossFunctionEval(self.optVarsHist[traj][self.counter['varsUpdate']-1]))
+        if abs(optVal1-optVal2) < self.convergenceTol:
+          convergeTraj[traj] = True
+          self.optTrajLive.pop(trajInd)
+   
+    convergence = self.localCheckConvergence(convergeTraj)
+    return convergence
+  
+#   @abc.abstractmethod
+  def localCheckConvergence(self, convergeTraj = [False]):
     """
       Local method to check convergence.
-      @ In, convergence, bool, optional, variable indicating how the caller determines the convergence.
+      @ In, convergeTraj, list, optional, list of bool variables indicating how the caller determines the convergence for each trajectory.
       @ Out, convergence, bool, variable indicating whether the convergence criteria has been met.
     """
+    if False in convergeTraj:           convergence = False
+    else:                               convergence = True
     return convergence
 
 

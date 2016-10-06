@@ -94,6 +94,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.nVar                           = 0                         # Number of decision variables
     self.objVar                         = None                      # Objective variable to be optimized
     self.optType                        = None                      # Either maximize or minimize
+    self.optTraj                        = None                      # Identifiers of parallel optimization trajectories
     self.paramDict                      = {}                        # Dict containing additional parameters for derived class
     self.convergenceTol                 = 1e-3                      # Convergence threshold
     self.solutionExport                 = None                      #This is the data used to export the solution (it could also not be present)
@@ -161,10 +162,13 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         for childChild in child:
           if   childChild.tag == "upperBound": self.optVarsInit['upperBound'][varname] = float(childChild.text)
           elif childChild.tag == "lowerBound": self.optVarsInit['lowerBound'][varname] = float(childChild.text)
-          elif childChild.tag == "initial"   : self.optVarsInit['initial'][varname] = float(childChild.text)
-        if varname not in self.optVarsInit['upperBound'].keys(): self.optVarsInit['upperBound'][varname] = sys.maxsize
-        if varname not in self.optVarsInit['lowerBound'].keys(): self.optVarsInit['lowerBound'][varname] = -sys.maxsize
-        if varname not in self.optVarsInit['initial'].keys()   : self.optVarsInit['initial'][varname] = 0.0
+          elif childChild.tag == "initial"   : 
+            self.optVarsInit['initial'][varname] = {}
+            temp = childChild.text.split(',')
+            for trajInd, initVal in enumerate(temp):
+              self.optVarsInit['initial'][varname][trajInd] = float(initVal)
+            if self.optTraj == None:
+              self.optTraj = range(len(self.optVarsInit['initial'][varname].keys()))
 
       elif child.tag == "objectVar":
         self.objVar = child.text
@@ -199,11 +203,25 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     if self.optType == None:    self.optType = 'min'
     if self.initSeed == None:   self.initSeed = Distributions.randomIntegers(0,2**31,self)
     if self.objVar == None:     self.raiseAnError(IOError, 'Object variable is not specified for optimizer!')
-    if self.optVars == None:
-      self.raiseAnError(IOError, 'Decision variable is not specified for optimizer!')
-    else:
-      self.optVars.sort()
-
+    if self.optVars == None:    self.raiseAnError(IOError, 'Decision variable is not specified for optimizer!')
+    else:                       self.optVars.sort()
+    if self.optTraj == None:    self.optTraj = [0]
+    for varname in self.optVars:
+      if varname not in self.optVarsInit['upperBound'].keys(): self.optVarsInit['upperBound'][varname] = sys.maxsize
+      if varname not in self.optVarsInit['lowerBound'].keys(): self.optVarsInit['lowerBound'][varname] = -sys.maxsize
+      if varname not in self.optVarsInit['initial'].keys()   :
+        self.optVarsInit['initial'][varname] = {}
+        for trajInd in self.optTraj:
+          self.optVarsInit['initial'][varname][trajInd] = 0.0
+      if len(self.optTraj) != len(self.optVarsInit['initial'][varname].keys()):
+        self.raiseAnError(ValueError, 'Number of initial values does not equal to the number of parallel optimization trajectories')
+    self.optTrajLive = copy.deepcopy(self.optTraj)  
+    # debug
+    self.raiseADebug(self.optVarsInit['initial'])
+    self.raiseADebug(self.optTraj)
+#     self.raiseAnError(ValueError, 't')
+    # end of debug  
+    
   def localInputAndChecks(self,xmlNode):
     """
       Local method. Place here the additional reading, remember to add initial parameters in the method localGetInitParams
@@ -287,7 +305,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ Out, None
     """
     self.counter['mdlEval'] = 0
-    self.counter['varsUpdate'] = 0
+    self.counter['varsUpdate'] = [0]*len(self.optTraj)
     self.nVar = len(self.optVars)
 
     self.mdlEvalHist = self.assemblerDict['TargetEvaluation'][0][3]
@@ -325,7 +343,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ In, None
       @ Out, ready, bool, indicating the readiness of the optimizer to generate a new input.
     """
-    ready = True if self.counter['mdlEval'] < self.limit['mdlEval'] and self.counter['varsUpdate'] < self.limit['varsUpdate'] else False
+    ready = True if self.counter['mdlEval'] < self.limit['mdlEval'] else False
     convergence = self.checkConvergence()
     ready = self.localStillReady(ready, convergence)
     return ready
@@ -378,20 +396,13 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     return satisfaction # To be overwritten by subclass
 
+  @abc.abstractmethod
   def checkConvergence(self):
     """
       Method to check whether the convergence criteria has been met.
       @ In, none,
       @ Out, convergence, bool, variable indicating whether the convergence criteria has been met.
     """
-    if self.counter['varsUpdate'] < 2:
-      convergence = False
-    elif abs(self.lossFunctionEval(self.optVarsHist[self.counter['varsUpdate']])-self.lossFunctionEval(self.optVarsHist[self.counter['varsUpdate']-1])) < self.convergenceTol:
-      convergence = True
-    else:
-      convergence = False
-    convergence = self.localCheckConvergence(convergence)
-    return convergence
 
   @abc.abstractmethod
   def localCheckConvergence(self, convergence = False):
