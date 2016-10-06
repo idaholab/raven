@@ -17,6 +17,7 @@ import os
 import copy
 import abc
 import numpy as np
+from sklearn.neighbors import NearestNeighbors
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -41,6 +42,7 @@ class GradientBasedOptimizer(Optimizer):
       @ Out, None
     """
     Optimizer.__init__(self)
+    self.ROMModelFinishCheck = NearestNeighbors(n_neighbors=1) # ROM to check whether result is returned from Model
     self.gainParamDict = {}                           # Dict containing parameters for gain used for update decision variables
     self.gradDict = {}                                # Dict containing information for gradient related operations
     self.gradDict['numIterForAve'] = 1                # Number of iterations for gradient estimation averaging
@@ -55,7 +57,7 @@ class GradientBasedOptimizer(Optimizer):
       self.counter['perturbation'][traj]  = 0
       self.counter['varsUpdate'][traj]    = 0
       self.readyVarsUpdate[traj]          = False
-
+  
   def localInputAndChecks(self, xmlNode):
     """
       Method to read the portion of the xml input that belongs to all gradient based optimizer only
@@ -153,6 +155,18 @@ class GradientBasedOptimizer(Optimizer):
 
     return ready
 
+  def _checkModelFinish(self, optVarsValues):
+    tempDict = copy.copy(self.mdlEvalHist.getParametersValues('inputs', nodeId = 'RecontructEnding'))
+    tempSamp = np.zeros(shape=(len(self.mdlEvalHist),self.nVar))
+    tempX = np.zeros(shape=(1,self.nVar))
+    for varInd, var in enumerate(self.optVars):
+      tempSamp[:,varInd] = tempDict[var]
+      tempX[0,varInd] = optVarsValues[var]
+    self.ROMModelFinishCheck.fit(tempSamp)
+    self.ROMModelFinishCheck.kneighbors(tempX, n_neighbors=1, return_distance=True)
+      
+      
+    
   @abc.abstractmethod
   def localLocalStillReady(self, ready, convergence = False):
     """
