@@ -29,5 +29,4 @@ libraries.tex : ../../scripts/TestHarness/testers/RavenUtils.py
 	python ../../scripts/TestHarness/testers/RavenUtils.py --manual-list > libraries.tex
 
 conda_command.txt : ../../scripts/TestHarness/testers/RavenUtils.py
-	python ../../scripts/TestHarness/testers/RavenUtils.py --conda-create | fold -s -w60 | sed 's/$$/\\/' > conda_command.txt
-	truncate --size=-2 conda_command.txt
+	./create_command.sh
