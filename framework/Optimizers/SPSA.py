@@ -35,12 +35,13 @@ class SPSA(GradientBasedOptimizer):
     self.stochasticDistribution = None                        # Distribution used to generate perturbations
     self.stochasticEngine = None                              # Random number generator used to generate perturbations
 
-  def localLocalInputAndChecks(self, xmlNode):
+  def localInputAndChecks(self, xmlNode):
     """
       Local method for additional reading.
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None
     """
+    GradientBasedOptimizer.localInputAndChecks(self, xmlNode)
     self.gainParamDict['alpha'] = self.paramDict.get('alpha', 0.602)
     self.gainParamDict['gamma'] = self.paramDict.get('gamma', 0.101)
     self.gainParamDict['A'] = self.paramDict.get('A', self.limit['mdlEval']/10)
@@ -64,8 +65,7 @@ class SPSA(GradientBasedOptimizer):
       @ Out, None
     """
     self._endJobRunnable = 1 
-    for traj in self.optTraj:
-      self.gradDict['pertNeeded'][traj] = self.gradDict['numIterForAve'] * 2
+    self.gradDict['pertNeeded'] = self.gradDict['numIterForAve'] * 2
 
   def localLocalStillReady(self, ready, convergence = False):
     """
@@ -78,47 +78,117 @@ class SPSA(GradientBasedOptimizer):
     else:                       ready = True and ready
     return ready
 
-  def localLocalGenerateInput(self,model,oldInput):
+  def localGenerateInput(self,model,oldInput):
     """
       Method to generate input for model to run
       @ In, model, model instance, it is the instance of a RAVEN model
       @ In, oldInput, list, a list of the original needed inputs for the model (e.g. list of files, etc. etc)
       @ Out, None
     """
-    if self.counter['mdlEval'] == 1: # Just started
-      self.optVarsHist[self.counter['varsUpdate']] = {}
+    GradientBasedOptimizer.localGenerateInput(self,model,oldInput)    
+    
+    if self.counter['mdlEval'] <= len(self.optTraj): # Just started
+      traj = self.optTrajLive.pop(0)
+      self.optTrajLive.append(traj)
+      self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = {}
       for var in self.optVars:
-        self.values[var] = self.optVarsInit['initial'][var]
-        self.optVarsHist[self.counter['varsUpdate']][var] = copy.copy(self.values[var])
+        self.values[var] = self.optVarsInit['initial'][var][traj]
+        self.optVarsHist[traj][self.counter['varsUpdate'][traj]][var] = copy.copy(self.values[var])
+        
+    else:
+      while True:
+        traj = self.optTrajLive.pop(0)
+        self.optTrajLive.append(traj)
+        if self.counter['perturbation'][traj] < self.gradDict['pertNeeded']:
+          self.counter['perturbation'][traj] += 1
+        else:
+          self.readyVarsUpdate[traj] = True
+        if not self.readyVarsUpdate[traj]: # Not ready to update decision variables; continue to perturb for gradient evaluation
+          if self.counter['perturbation'][traj] == 1: # Generate all the perturbations at once
+            self.gradDict['pertPoints'][traj] = {}
+            ck = self._computeGainSequenceCk(self.gainParamDict,self.counter['varsUpdate'][traj]+1)
+            varK = copy.deepcopy(self.optVarsHist[traj][self.counter['varsUpdate'][traj]])
+            for ind in range(self.gradDict['numIterForAve']):
+              self.gradDict['pertPoints'][traj][ind] = {}
+              delta = self.stochasticEngine()
+              for varID, var in enumerate(self.optVars):
+                if var not in self.gradDict['pertPoints'][traj][ind].keys():
+                  p1 = np.asarray([varK[var]+ck*delta[varID]*1.0]).reshape((1,))
+                  p2 = np.asarray([varK[var]-ck*delta[varID]*1.0]).reshape((1,))
+                  self.gradDict['pertPoints'][traj][ind][var] = np.concatenate((p1, p2))
 
-    elif not self.readyVarsUpdate: # Not ready to update decision variables; continue to perturb for gradient evaluation
-      if self.counter['perturbation'] == 1: # Generate all the perturbations at once
-        self.gradDict['pertPoints'] = {}
-        ck = self._computeGainSequenceCk(self.gainParamDict,self.counter['varsUpdate']+1)
-        varK = copy.deepcopy(self.optVarsHist[self.counter['varsUpdate']])
-        for ind in range(self.gradDict['numIterForAve']):
-          self.gradDict['pertPoints'][ind] = {}
-          delta = self.stochasticEngine()
-          for varID, var in enumerate(self.optVars):
-            if var not in self.gradDict['pertPoints'][ind].keys():
-              p1 = np.asarray([varK[var]+ck*delta[varID]*1.0]).reshape((1,))
-              p2 = np.asarray([varK[var]-ck*delta[varID]*1.0]).reshape((1,))
-              self.gradDict['pertPoints'][ind][var] = np.concatenate((p1, p2))
+          loc1 = self.counter['perturbation'][traj] % 2
+          loc2 = np.floor(self.counter['perturbation'][traj] / 2) if loc1 == 1 else np.floor(self.counter['perturbation'][traj] / 2) - 1
+          for var in self.optVars:
+            self.values[var] = self.gradDict['pertPoints'][traj][loc2][var][loc1]
+          break
+        else: # Enough gradient evaluation for decision variable update
+          evalNotFinish = False     
+          for locI in range(self.gradDict['numIterForAve']):
+            for locP in range(self.gradDict['pertPoints'][traj][locI][self.optVars[0]].size):
+              optVars = {}
+              for var in self.optVars:
+                optVars[var] = self.gradDict['pertPoints'][traj][locI][var][locP]
+              if not self._checkModelFinish(optVars):
+                evalNotFinish = True
+                break
+            if evalNotFinish: break
+          if evalNotFinish:  # evaluation not completed for gradient evaluation
+            continue
+          else:  # evaluation completed for gradient evaluation
+            self.counter['perturbation'][traj] = 0
+            self.counter['varsUpdate'][traj] += 1
+          
+            ak = self._computeGainSequenceAk(self.gainParamDict,self.counter['varsUpdate'][traj]) # Compute the new ak
+            gradient = self.evaluateGradient(self.gradDict['pertPoints'][traj])
 
-      loc1 = self.counter['perturbation'] % 2
-      loc2 = np.floor(self.counter['perturbation'] / 2) if loc1 == 1 else np.floor(self.counter['perturbation'] / 2) - 1
-      for var in self.optVars:
-        self.values[var] = self.gradDict['pertPoints'][loc2][var][loc1]
+            self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = {}
+            varK = copy.deepcopy(self.optVarsHist[traj][self.counter['varsUpdate'][traj]-1])
+            for var in self.optVars:
+              self.values[var] = copy.copy(varK[var]-ak*gradient[var]*1.0)
+              self.optVarsHist[traj][self.counter['varsUpdate'][traj]][var] = copy.copy(self.values[var])
+            break
+#     if self.counter['mdlEval'] > len(self.optTraj):
+#       if self.counter['perturbation'] < self.gradDict['pertNeeded']:
+#         self.readyVarsUpdate = False
+#         self.counter['perturbation'] += 1
+#       else: # Got enough perturbation
+#         self.readyVarsUpdate = True
+#         self.counter['perturbation'] = 0
+#         self.counter['varsUpdate'] += 1
+#     else:
+#       self.readyVarsUpdate = False
+    
+      
+# 
+#     elif not self.readyVarsUpdate: # Not ready to update decision variables; continue to perturb for gradient evaluation
+#       if self.counter['perturbation'] == 1: # Generate all the perturbations at once
+#         self.gradDict['pertPoints'] = {}
+#         ck = self._computeGainSequenceCk(self.gainParamDict,self.counter['varsUpdate']+1)
+#         varK = copy.deepcopy(self.optVarsHist[self.counter['varsUpdate']])
+#         for ind in range(self.gradDict['numIterForAve']):
+#           self.gradDict['pertPoints'][ind] = {}
+#           delta = self.stochasticEngine()
+#           for varID, var in enumerate(self.optVars):
+#             if var not in self.gradDict['pertPoints'][ind].keys():
+#               p1 = np.asarray([varK[var]+ck*delta[varID]*1.0]).reshape((1,))
+#               p2 = np.asarray([varK[var]-ck*delta[varID]*1.0]).reshape((1,))
+#               self.gradDict['pertPoints'][ind][var] = np.concatenate((p1, p2))
+# 
+#       loc1 = self.counter['perturbation'] % 2
+#       loc2 = np.floor(self.counter['perturbation'] / 2) if loc1 == 1 else np.floor(self.counter['perturbation'] / 2) - 1
+#       for var in self.optVars:
+#         self.values[var] = self.gradDict['pertPoints'][loc2][var][loc1]
 
-    else: # Enough gradient evaluation for decision variable update
-      ak = self._computeGainSequenceAk(self.gainParamDict,self.counter['varsUpdate']) # Compute the new ak
-      gradient = self.evaluateGradient(self.gradDict['pertPoints'])
-
-      self.optVarsHist[self.counter['varsUpdate']] = {}
-      varK = copy.deepcopy(self.optVarsHist[self.counter['varsUpdate']-1])
-      for var in self.optVars:
-        self.values[var] = copy.copy(varK[var]-ak*gradient[var]*1.0)
-        self.optVarsHist[self.counter['varsUpdate']][var] = copy.copy(self.values[var])
+#     else: # Enough gradient evaluation for decision variable update
+#       ak = self._computeGainSequenceAk(self.gainParamDict,self.counter['varsUpdate']) # Compute the new ak
+#       gradient = self.evaluateGradient(self.gradDict['pertPoints'])
+# 
+#       self.optVarsHist[self.counter['varsUpdate']] = {}
+#       varK = copy.deepcopy(self.optVarsHist[self.counter['varsUpdate']-1])
+#       for var in self.optVars:
+#         self.values[var] = copy.copy(varK[var]-ak*gradient[var]*1.0)
+#         self.optVarsHist[self.counter['varsUpdate']][var] = copy.copy(self.values[var])
 
   def localEvaluateGradient(self, optVarsValues, gradient = None):
     """
