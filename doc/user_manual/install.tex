@@ -145,16 +145,46 @@ Object-Oriented Simulation Environment (MOOSE).
 \subsubsection{Installing Miniconda and Packages}
 \label{miniconda}
 
-For OSX, the simplest and most robust way to install the RAVEN dependencies
-is to install and use Miniconda to obtain them (see \url{http://conda.pydata.org/miniconda.html} for more information).
+For OSX, the simplest and most robust way to install the RAVEN
+dependencies is with Miniconda.  Miniconda is a package manager for
+python packages and can be used to install the third party packages
+that RAVEN depends on.
 
-To install Miniconda, download and install the appropriate file from \url{http://conda.pydata.org/miniconda.html}.
+For OSX Yosemite and OSX El Capitan there is a package called
+raven\_miniconda.pkg available.  The package includes both miniconda
+and the dependencies RAVEN needs. If you get an error that the package
+is not signed, then Control click the package, and choose ``Open
+With'' and then Installer.  The file can be gotten from the RAVEN wiki
+from a link on the page:
+\url{https://hpcgitlab.inl.gov/idaholab/raven/wikis/installationMAC}
 
-After Miniconda has been installed, it may then be used to install the rest of the packages needed to run RAVEN:
+The files will be installed into \texttt{/opt/raven\_libs}.
 
+Your \texttt{.bash\_profile} will be modified to source
+the\\ \texttt{/opt/raven\_libs/environments/raven\_libs\_profile}
+file.  This needs to be sourced either with the command:
 \begin{lstlisting}[language=bash]
-conda install numpy hdf5 h5py scipy scikit-learn matplotlib swig
+source $HOME/.bash_profile
 \end{lstlisting}
+or by reopening the terminal will put the correct Miniconda python in
+the path.
+
+Once this is installed you can go on to Section \ref{raven_installation} and install RAVEN.
+
+Advanced note: This creates a conda environment called
+\texttt{raven\_libraries} and the command used to create this the \texttt{raven\_libraries} environment can be found by by running:
+\texttt{python scripts/TestHarness/testers/RavenUtils.py --conda-create}
+
+Alternatively, Miniconda can be obtained and installed directly. See
+\url{http://conda.pydata.org/miniconda.html} for more information and
+installation files to download.  If your system already has Miniconda,
+you may use that installation to load these packages.
+
+After Miniconda has been installed, it may then be used to install the
+rest of the packages needed to run RAVEN (this command also creates a
+separate environment for the RAVEN libraries):
+
+\lstinputlisting[language=bash]{conda_command.txt}
 
 \subsection{Preparing a Windows System for RAVEN}
 \label{sysprep_windows}
