@@ -83,4 +83,11 @@
     input  = 'test_TD_hierarchical_dtw.xml'
     output = 'dendrogram.pdf 1-Cluster_0_line.pdf 1-Cluster_1_line.pdf 1-plot1_line.pdf'
     csv    = 'printAllHists.xml printAllHists.csv printAllHists_0.csv printAllHists_1.csv printAllHists_2.csv printAllHists_3.csv printAllHists_4.csv printAllHists_5.csv printAllHists_6.csv printAllHists_7.csv printAllHists_8.csv printAllHists_9.csv'
+  [../]
+  [./HierarchicalScipy]
+    type   = 'RavenFramework'
+    input  = 'test_dataMiningHierarchical.xml'
+    csv    = 'Hierarchical/dummy.csv Hierarchical/dummy.xml'
+    output = 'Hierarchical/1-PlotHierarchical_scatter.png'
+  [../]
 []
