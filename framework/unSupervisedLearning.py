@@ -180,12 +180,11 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
 
         cardinality = len(tdict.keys())
         self.normValues = np.zeros((cardinality,cardinality))
-        keys = normedValues.keys()
+        keys = tdict.keys()
         for i in range(cardinality):
           for j in range(i+1,cardinality):
             self.normValues[i][j] = metric.distance(tdict[keys[i]],tdict[keys[j]])
             self.normValues[j][i] = self.normValues[i][j]
-        print(self.normValues[0])
       else:   ## PointSet
         normValues = np.zeros(shape = (realizationCount, featureCount))
         self.normValues = np.zeros(shape = (realizationCount, realizationCount))
