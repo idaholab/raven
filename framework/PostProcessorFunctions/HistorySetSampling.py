@@ -184,13 +184,14 @@ def timeSeriesFilter(timeID, vars, filterType, filterValue):
     for t in range(1, len(vars[timeID])):
       t_contrib=0.0
       for keys in vars.keys():
-        t_contrib += abs((vars[keys][t] - vars[keys][t-1])/(vars[keys][t]))
+        if keys != timeID:
+          t_contrib += abs((vars[keys][t] - vars[keys][t-1])/(vars[timeID][t] - vars[timeID][t-1]))
       derivative[t] = t_contrib
   elif filterType=='filteredSecondDerivative':
     for t in range(1, vars[timeID].size-1):
       t_contrib=0.0
       for keys in vars.keys():
-        t_contrib += abs((vars[keys][t+1] - 2.0 * vars[keys][t] + vars[keys][t-1])/(vars[keys][t]))
+        t_contrib += abs((vars[keys][t+1] - 2.0 * vars[keys][t] + vars[keys][t-1])/(vars[timeID][t] - vars[timeID][t-1])**2)
       derivative[t] = t_contrib
     derivative[-1] = derivative[len(vars[timeID])-2]
 

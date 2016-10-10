@@ -8,7 +8,8 @@ The data mining algorithms in RAVEN which accept the definition of a metric are 
   \item DBSCAN (see Section~\ref{subparagraph:DBSCAN})
   \item Affinity Propagation (see Section~\ref{subparagraph:Affinity})
 \end{itemize}
-Both of these algorithms can take as input an $N \times N$ square matrix $D=[d_{ij}]$ where each element $d_{ij}$ of $D$ is the distance between element $i$ $(i=1,\ldots,N)$ and $j$
+Both of these algorithms can take as input an $N \times N$ square matrix $D=[d_{ij}]$ where each element $d_{ij}$ of $D$ is the distance between 
+element $i$ $(i=1,\ldots,N)$ and $j$
 $(j=1,\ldots,N)$.
 
 Available metrics are as follows:
@@ -36,11 +37,14 @@ In the RAVEN input file these metrics are defined as follows:
 \subsection{Minkowski}
 \label{subsection:Minkowski}
 Minkowski distance is the most basic and used metric in any data mining algorithm.
-Given two multi-dimensional vectors $X=(x_1,x_2,\ldots,x_n)$ and $Y=(y_1,y_2,\ldots,y_n)$, the Minkowski distance $d_p$ of order $p$ between these two vectors is:
+Given two multi-dimensional vectors $X=(x_1,x_2,\ldots,x_n)$ and $Y=(y_1,y_2,\ldots,y_n)$, the Minkowski distance $d_p$ of order $p$ between these 
+two vectors is:
 \begin{equation}
 d_p = \left ( \sum_{i=1}^{n} \left \| x_i-y_i \right \|^p \right )^\frac{1}{p}
 \end{equation}
-Minkowski distance is typically used with $p$ being 1 or 2. The latter one is the Euclidean distance, while the former is sometimes known as the Manhattan distance. 
+Minkowski distance is typically used with $p$ being 1 or 2. The latter one is the Euclidean distance, while the former is sometimes known as the 
+Manhattan distance. 
+Note that this metric can be employed for both PointSets and HisotrySets.
 
 The specifications of a Minkowski distance must be defined within the XML block
 \xmlNode{Minkowski}.
@@ -69,4 +73,7 @@ An example of Minkowski distance defined in RAVEN is provided below:
 \end{lstlisting}
 
 
+\subsection{DTW}
+\label{subsection:DTW}
+The Dynamic Time Warping
 

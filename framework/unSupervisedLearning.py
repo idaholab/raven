@@ -144,8 +144,7 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
     names, values = list(tdict.keys()), list(tdict.values())
     if self.labels in names:
       self.labelValues = values[names.index(self.labels)]
-      resp = self.checkArrayConsistency(self.labelValues)
-      
+      resp = self.checkArrayConsistency(self.labelValues)      
       if not resp[0]:
         self.raiseAnError(IOError, 'In training set for ground truth labels ' + self.labels + ':' + resp[1])
     else:
