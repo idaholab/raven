@@ -96,4 +96,10 @@
     csv    = 'agglomerative_dtw/printAll.csv agglomerative_dtw/printAll.xml agglomerative_dtw/printAll_0.csv agglomerative_dtw/printAll_1.csv agglomerative_dtw/printAll_2.csv agglomerative_dtw/printAll_3.csv agglomerative_dtw/printAll_4.csv agglomerative_dtw/printAll_5.csv agglomerative_dtw/printAll_6.csv agglomerative_dtw/printAll_7.csv agglomerative_dtw/printAll_8.csv agglomerative_dtw/printAll_9.csv'
     output = 'agglomerative_dtw/1-plot1_line.pdf agglomerative_dtw/1-Cluster_0_line.pdf agglomerative_dtw/1-Cluster_1_line.pdf'
   [../]
+  [./agglomerativeEuclidean]
+    type   = 'RavenFramework'
+    input  = 'test_TD_agglomerative_dtw.xml'
+    csv    = 'agglomerative_euclidean/printAll.csv agglomerative_euclidean/printAll.xml agglomerative_euclidean/printAll_0.csv agglomerative_euclidean/printAll_1.csv agglomerative_euclidean/printAll_2.csv agglomerative_euclidean/printAll_3.csv agglomerative_euclidean/printAll_4.csv agglomerative_euclidean/printAll_5.csv agglomerative_euclidean/printAll_6.csv agglomerative_euclidean/printAll_7.csv agglomerative_euclidean/printAll_8.csv agglomerative_euclidean/printAll_9.csv'
+    output = 'agglomerative_euclidean/1-plot1_line.pdf agglomerative_euclidean/1-Cluster_0_line.pdf agglomerative_euclidean/1-Cluster_1_line.pdf'
+  [../]
 []
