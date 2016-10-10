@@ -59,6 +59,8 @@ class RELAPparser():
       if 'decks' not in i.keys(): raise IOError(self.printTag+"ERROR: no card inputs found!!")
       else                      : decks.update(i['decks'])
     for deckNum in decks.keys():
+      a = self.deckLines.keys()
+      if deckNum not in self.deckLines.keys(): raise IOError("RELAP5 Interface: The number of deck found in the original input file is "+str(self.maxNumberOfDecks)+" while the user requested to modify the deck number "+str(deckNum))
       temp               = []
       modiDictionaryList = decks[deckNum]
       temp.append('*RAVEN INPUT VALUES\n')

@@ -7,14 +7,12 @@
   </RunInfo>
 
   <Files>
-    <Input name="massflowrate_3eqn.i" type="">clg_massflowrate_3eqn.i</Input>
-    <Input name="massflowrate_3eqn_control.py" type="">clg_massflowrate_3eqn_control.py</Input>
   </Files>
 
   <Models>
-    <Code name="MyRAVEN" subType="RELAP7">
-      <executable>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</executable>
-    </Code>
+    <ExternalModel ModuleToLoad="massflowrate_fake" name="PythonModule" subType="">
+      <variables>time,Tw,Dummy1,pipe_Area,pipe_Tw,pipe_Hw</variables>
+    </ExternalModel>
   </Models>
 
   <Distributions>
@@ -32,28 +30,29 @@
 
   <Samplers>
     <Grid name="myGrid">
-      <variable name="Components|pipe|Tw">
+      <variable name="Tw">
         <distribution>Gauss1</distribution>
         <grid construction="equal" steps="1" type="value">300 303</grid>
       </variable>
-      <Distribution name="Dummy1">
+      <variable name="Dummy1">
         <distribution>ANormalDistribution</distribution>
         <grid construction="equal" steps="2" type="CDF">0.1 0.5</grid>
-      </Distribution>
+      </variable>
     </Grid>
   </Samplers>
 
   <Steps>
     <MultiRun name="TestDataObjectAttributes">
-      <Input class="Files" type="">massflowrate_3eqn.i</Input>
-      <Input class="Files" type="">massflowrate_3eqn_control.py</Input>
-      <Model class="Models" type="Code">MyRAVEN</Model>
+      <Input class="DataObjects" type="PointSet">inputHolder</Input>
+      <Model class="Models" type="ExternalModel">PythonModule</Model>
       <Sampler class="Samplers" type="Grid">myGrid</Sampler>
       <Output class="Databases" type="HDF5">testGridRavenDatabase</Output>
+      <Output class="DataObjects" type="HistorySet">allStories</Output>
       <Output class="DataObjects" type="HistorySet">stories1</Output>
       <Output class="DataObjects" type="HistorySet">stories2</Output>
       <Output class="DataObjects" type="PointSet">outGridTPS1</Output>
       <Output class="DataObjects" type="PointSet">outGridTPS2</Output>
+      <Output class="OutStreams" type="Print">allStories_dump</Output>
       <Output class="OutStreams" type="Print">stories1_dump</Output>
       <Output class="OutStreams" type="Print">stories2_dump</Output>
       <Output class="OutStreams" type="Print">outGridTPS1_dump</Output>
@@ -112,9 +111,17 @@
       <type>csv</type>
       <source>outGridTPS2</source>
     </Print>
+    <Print name="allStories_dump">
+      <type>csv</type>
+      <source>allStories</source>
+    </Print>
   </OutStreams>
 
   <DataObjects>
+    <PointSet name="inputHolder">
+      <Input>Tw, Dummy1</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
     <PointSet name="outGridTPS1">
       <options>
         <inputRow>1</inputRow>
@@ -149,11 +156,15 @@
       <Input>pipe_Area,Dummy1</Input>
       <Output>pipe_Hw,pipe_Tw,time</Output>
     </PointSet>
+    <HistorySet name="allStories">
+      <Input>Tw,Dummy1</Input>
+      <Output>pipe_Hw,pipe_Tw,time</Output>
+    </HistorySet>
     <HistorySet name="stories1">
       <options>
         <inputRow>1</inputRow>
       </options>
-      <Input>pipe_Area</Input>
+      <Input>Tw</Input>
       <Output>pipe_Hw,pipe_Tw,time</Output>
     </HistorySet>
     <HistorySet name="stories2">
@@ -162,7 +173,7 @@
         <pivotParameter>time</pivotParameter>
         <outputPivotValue>0.0002 0.0003 0.0004</outputPivotValue>
       </options>
-      <Input>pipe_Area</Input>
+      <Input>Tw</Input>
       <Output>pipe_Hw,pipe_Tw,time</Output>
     </HistorySet>
     <HistorySet name="stories1_from_DB">

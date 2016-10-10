@@ -15,7 +15,7 @@ def initialize(self,runInfoDict,inputFiles):
   self.x               = np.zeros(self.numberTimeSteps)
   self.y               = np.zeros(self.numberTimeSteps)
   self.z               = np.zeros(self.numberTimeSteps)
-  self.time            = np.zeros(self.numberTimeSteps)
+  self.time            = np.zeros(self.numberTimeSteps)-self.t_step
   self.cnt             = 0.0
   return
 
@@ -32,7 +32,7 @@ def run(self,Input):
   self.z02 = 101.0 - copy.deepcopy(self.cnt+Input['x0'])
   self.y01  = copy.deepcopy(Input['x0'])
   self.y02 = copy.deepcopy(Input['y0'])
-  self.time[0]= 0
+  self.time[0]= -self.t_step*5.0
   self.x[0] =  copy.deepcopy(self.cnt+Input['x0'])
   self.y[0] =  copy.deepcopy(self.cnt+Input['y0'])
   self.z[0] =  copy.deepcopy(self.cnt+Input['z0'])

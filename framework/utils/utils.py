@@ -747,6 +747,28 @@ class pickleSafeSubprocessPopen(subprocess.Popen):
       self._handle = None
 
 
-
+def removeDuplicates(objectList):
+  """
+    Method to efficiently remove duplicates from a list and maintain their
+    order based on first appearance. See the url below for a description of why
+    this is optimal:
+    http://stackoverflow.com/questions/480214/how-do-you-remove-duplicates-from-a-list-in-python-whilst-preserving-order
+    @ In, objectList, list, list from which to remove duplicates
+    @ Out, uniqueObjectList, list, list with unique values ordered by their
+      first appearance in objectList
+  """
+  seen = set()
+  ## Store this locally so it doesn't have to be re-evaluated at each iteration
+  ## below
+  seen_add = seen.add
+  ## Iterate through the list and only take x if it has not been seen.
+  ## The 'or' here acts as a short circuit if the first condition is True, then
+  ## the second will not be executed, otherwise x will be added to seen and
+  ## since adding to a set is not a conditional operation, it will always return
+  ## False, so in conjunction with the 'not' this will ensure that the first
+  ## occurrence of x is added to seen and uniqueObjectList. Long explanation,
+  ## but efficient computation.
+  uniqueObjectList = [x for x in objectList if not (x in seen or seen_add(x))]
+  return uniqueObjectList
 
 

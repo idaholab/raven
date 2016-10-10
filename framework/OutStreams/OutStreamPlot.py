@@ -1175,6 +1175,7 @@ class OutStreamPlot(OutStreamManager):
                 xi, yi = mathUtils.interpolateFunction(self.xValues[pltindex][key][xIndex], self.yValues[pltindex][key][yIndex], plotSettings, returnCoordinate = True)
                 if self.colorMapCoordinates[pltindex] != None:
                   # if a color map has been added, we use a scattered plot instead...
+                  ## Here we should construct a colormap to pass into the plt.plot rather than depend on a scatter plot to give us one - DM
                   if self.actcm:
                     first = False
                   else:

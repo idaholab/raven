@@ -31,6 +31,17 @@
    csv = 'ExternalXMLTest/outGrid_dump.csv'
  [../]
 
+ ## This test will exercise our ability to parse command line options
+ [./simple_command_line_args]
+   type = 'RavenFramework'
+   input = 'test_simple.xml quiet silent all quiet'
+   output = 'revirD_tset/FirstMRun/1/out~ideal_pump revirD_tset/FirstMRun/6/out~ideal_pump'
+   csv = 'revirD_tset/FirstMRun/6/out~ideal_pump.csv'
+   required_executable = '../../RAVEN-%METHOD%'
+   ## Skip this test, if its duplicated failed
+   prereq = simple_framework
+ [../]
+
  [./test_output]
   #REQUIREMENT_TEST R-RA-3
   type = 'RavenFramework'

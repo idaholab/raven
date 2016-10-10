@@ -311,8 +311,8 @@ Its default support is $x \in (0, +\infty)$.
 \vspace{-5mm}
 \subnodesIntro
 \begin{itemize}
-  \item \xmlNode{mean}, \xmlDesc{float, required parameter}, the distribution
-  mean or expected value (in log-scale).
+  \item \xmlNode{mean}, \xmlDesc{float, required parameter}, the log of the distribution
+  mean or expected value.
   %
   \item \xmlNode{sigma}, \xmlDesc{float, required parameter}, standard
   deviation.
@@ -320,6 +320,25 @@ Its default support is $x \in (0, +\infty)$.
   boundary. \default{0.0}
   %
 \end{itemize}
+\nb The \xmlNode{mean} and \xmlNode{sigma} listed above are NOT the mean and standard deviation of the
+distribution; they are the mean and standard deviation of the log of the distribution.  Using the following
+notation:
+\begin{itemize}
+  \item $\mu_\ell$: the $\mu$ parameter of the lognormal distribution, which RAVEN expects in the
+    \xmlNode{mean} node;
+  \item $\sigma_\ell$: the $\sigma$ parameter of the lognormal distribution, which RAVEN expects in the
+    \xmlNode{sigma} node;
+  \item $M$: the user-desired mean value of the distribution;
+  \item $S$: the user-desired standard deviation of the distribution;
+\end{itemize}
+a conversion is defined to translate from mean $M$ and standard deviation $S$ into the parameters RAVEN
+expects:
+\begin{equation}
+  \mu_\ell = \log\left(\frac{M}{\sqrt{1+\frac{S^2}{M^2}}}\right),
+\end{equation}
+\begin{equation}
+  \sigma_\ell = \sqrt{\log{1+\frac{S^2}{M^2} }}.
+\end{equation}
 
 Example:
 \begin{lstlisting}[style=XML]

@@ -102,6 +102,8 @@ class GradientBasedOptimizer(Optimizer):
       return ready # Return if we just initialize
     elif self.mdlEvalHist.isItEmpty() and self.counter['perturbation'] < self.gradDict['pertNeeded']:
       return ready # Return if we just initialize
+    elif self.counter['perturbation'] >= self.gradDict['pertNeeded']:
+      if len(self.mdlEvalHist) % (self.gradDict['pertNeeded']+1): ready = False
 
     ready = self.localLocalStillReady(ready, convergence)
 
