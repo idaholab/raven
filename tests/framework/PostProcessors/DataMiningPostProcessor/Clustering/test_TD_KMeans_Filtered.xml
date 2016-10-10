@@ -62,7 +62,7 @@
 	<Samplers>
 	  <MonteCarlo name="MC_external">
 	    <samplerInit>
-	      <limit>1000</limit>
+	      <limit>10</limit>
 	      <initialSeed>1</initialSeed>
 	    </samplerInit>
 	    <variable name="x0">

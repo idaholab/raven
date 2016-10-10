@@ -24,13 +24,26 @@ from .Metric import Metric
 #Internal Modules End--------------------------------------------------------------------------------
 
 class DTW(Metric):
-
+  """
+    Dynamic Time Warping metrics which can be employed only for historySets
+  """
   def initialize(self,inputDict):
+    """
+      This method initialize the metric object
+      @ In, inputDict, dict, dictionary containing initialization parameters
+      @ Out, none
+    """
     self.pivotParameter = None
     self.order          = None
     self.localDistance  = None
 
   def _readMoreXML(self,xmlNode):
+    """
+      Method that reads the portion of the xml input that belongs to this specialized class
+      and initialize internal parameters
+      @ In, xmlNode, xml.etree.Element, Xml element node
+      @ Out, None
+    """
     self.allowedKeywords = set(['pivotParameter','order','localDistance'])
     self.wrongKeywords = set()
     for child in xmlNode:
@@ -55,6 +68,12 @@ class DTW(Metric):
       self.raiseAnError(IOError,'The DTW metrics block contains parameters that are not recognized: ' + str(self.wrongKeywords))
         
   def distance(self,x,y):
+    """
+      This method set the datareturn the distance between two histories x and y
+      @ In, x, dict, dictionary containing data of x
+      @ In, y, dict, dictionary containing data of y
+      @ Out, value, float, distance between x and y
+    """
     tempX = copy.deepcopy(x)
     tempY = copy.deepcopy(y)
     if isinstance(tempX,np.ndarray) and isinstance(tempY,np.ndarray):
@@ -81,6 +100,12 @@ class DTW(Metric):
       self.raiseAnError('Metric DTW error: the structures of the two data sets are different')
       
   def dtwDistance(self,x,y):
+    """
+      This method actually calculates the distance between two histories x and y
+      @ In, x, dict, dictionary containing data of x
+      @ In, y, dict, dictionary containing data of y
+      @ Out, value, float, distance between x and y
+    """
     assert len(x)
     assert len(y)
     r, c = len(x[0,:]), len(y[0,:])
@@ -88,7 +113,6 @@ class DTW(Metric):
     D0[0, 1:] = np.inf
     D0[1:, 0] = np.inf
     D1 = D0[1:, 1:] 
-    #D1 = pairwise.pairwise_distances(np.transpose(x),np.transpose(y), metric=self.localDistance) 
     D1 = pairwise.pairwise_distances(x.T,y.T, metric=self.localDistance) 
     C = D1.copy()
     for i in range(r):
@@ -103,6 +127,12 @@ class DTW(Metric):
     return D1[-1, -1]   
 
   def tracePath(self,D):
+    """
+      This method calculate the time warping path given a local distance matrix D 
+      @ In, D, numpy array (2D), local distance matrix D
+      @ Out, p, numpy array (1D), path along horizontal direction
+      @ Out, q, numpy array (1D), path along vertical direction
+    """
     i,j = np.array(D.shape) - 2
     p,q = [i], [j]
     while ((i > 0) or (j > 0)):
@@ -119,6 +149,11 @@ class DTW(Metric):
     return np.array(p), np.array(q)
   
   def derivative(self,x):
+    """
+      This method calculate the derivative of an history x. Note that method is computational expensive 
+      @ In, x, dict, dictionary containing data of y
+      @ Out, value, float, distance between x and y
+    """
     y={}
     for key in x.keys():
       y[key] = np.zeros(len(x[key]))

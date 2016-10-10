@@ -593,8 +593,9 @@ class temporalSciKitLearn(unSupervisedLearning):
   def __init__(self, messageHandler, **kwargs):
     """
       constructor for temporalSciKitLearn class.
-      @ In: messageHandler, Message handler object
-      @ In: kwargs, arguments for the SciKitLearn algorithm
+      @ In, messageHandler, Message handler object
+      @ In, kwargs, arguments for the SciKitLearn algorithm
+      @ Out, None
     """
     unSupervisedLearning.__init__(self, messageHandler, **kwargs)
     self.printTag = 'TEMPORALSCIKITLEARN'

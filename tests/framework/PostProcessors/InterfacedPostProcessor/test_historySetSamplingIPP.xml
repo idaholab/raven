@@ -83,21 +83,21 @@
     <PostProcessor name="historySamplingPP_uniform" subType="InterfacedPostProcessor">
       <method>HistorySetSampling</method>
       <samplingType>uniform</samplingType>
-      <numberOfSamples>15</numberOfSamples>
+      <numberOfSamples>10</numberOfSamples>
       <timeID>time</timeID>
       <interpolation>cubic</interpolation>
     </PostProcessor>
     <PostProcessor name="historySamplingPP_first" subType="InterfacedPostProcessor">
       <method>HistorySetSampling</method>
       <samplingType>firstDerivative</samplingType>
-      <numberOfSamples>15</numberOfSamples>
+      <numberOfSamples>10</numberOfSamples>
       <timeID>time</timeID>
       <interpolation>cubic</interpolation>
     </PostProcessor>
     <PostProcessor name="historySamplingPP_second" subType="InterfacedPostProcessor">
       <method>HistorySetSampling</method>
       <samplingType>secondDerivative</samplingType>
-      <numberOfSamples>15</numberOfSamples>
+      <numberOfSamples>10</numberOfSamples>
       <timeID>time</timeID>
       <interpolation>cubic</interpolation>
     </PostProcessor>

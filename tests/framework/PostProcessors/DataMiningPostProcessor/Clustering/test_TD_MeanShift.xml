@@ -62,7 +62,7 @@
 	<Samplers>
 	  <MonteCarlo name="MC_external">
 	    <samplerInit>
-	      <limit>1000</limit>
+	      <limit>10</limit>
 	      <initialSeed>1</initialSeed>
 	    </samplerInit>
 	    <variable name="x0">
@@ -83,7 +83,7 @@
       <KDD lib="SciKitLearn">
         <SKLtype>cluster|MeanShift</SKLtype>
         <Features>output</Features>
-        <bandwidth>12</bandwidth>
+        <bandwidth>9</bandwidth>
       </KDD>
     </PostProcessor>
     <PostProcessor name="dataPreProc" subType="InterfacedPostProcessor">

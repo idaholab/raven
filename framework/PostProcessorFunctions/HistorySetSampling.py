@@ -132,15 +132,6 @@ class HistorySetSampling(PostProcessorInterfaceBase):
     cumDerivative = np.zeros(var[self.timeID].size)
 
     normalizedVar = {}
-
-     # data normalization
-    '''for keys in var.keys():
-       if keys != self.timeID:
-         total = np.sum(var[keys])
-       else:
-         total=np.float64(1.0)
-      normalizedVar[keys] = var[keys]/total
-      normalizedVar[keys] = var[keys]/total'''
     
     for keys in var.keys():
       normalizedVar[keys] = var[keys]/np.float64(1.0)

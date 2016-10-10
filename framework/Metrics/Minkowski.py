@@ -23,12 +23,25 @@ from .Metric import Metric
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Minkowski(Metric):
-
+  """
+    Minkowski metrics which can be employed for both pointSets and historySets
+  """
   def initialize(self,inputDict):
+    """
+      This method initialize the metric object
+      @ In, inputDict, dict, dictionary containing initialization parameters
+      @ Out, none
+    """
     self.p = None
     self.timeID = None
 
   def _readMoreXML(self,xmlNode):  
+    """
+      Method that reads the portion of the xml input that belongs to this specialized class
+      and initialize internal parameters
+      @ In, xmlNode, xml.etree.Element, Xml element node
+      @ Out, None
+    """
     for child in xmlNode:
       if child.tag == 'p':
         self.p = float(child.text)
@@ -36,6 +49,12 @@ class Minkowski(Metric):
         self.timeID = child.text
 
   def distance(self,x,y):
+    """
+      This method actually calculates the distance between two dataObects x and y
+      @ In, x, dict, dictionary containing data of x
+      @ In, y, dict, dictionary containing data of y
+      @ Out, value, float, distance between x and y
+    """
     if isinstance(x,np.ndarray) and isinstance(y,np.ndarray):
       value = spDist.minkowski(x, y, self.p)     
       return value
@@ -48,9 +67,8 @@ class Minkowski(Metric):
           if x[key].size == y[key].size:
             if key != self.timeID:
               value += spDist.minkowski(x[key], y[key], self.p)
-              '''for i in range(x[key].size):
-                value += (abs(x[key][i]-y[key][i]))**self.p'''
-            return math.pow(value,1.0/self.p)
+            value = math.pow(value,1.0/self.p)
+            return value
           else:
             print('Metric Minkowski error: the length of the variable array ' + str(key) +' is not consistent among the two data sets')
       else:
