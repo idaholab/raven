@@ -97,8 +97,7 @@
   [../]
   [./agglomerativeEuclidean]
     type   = 'RavenFramework'
-    input  = 'test_TD_agglomerative_dtw.xml'
+    input  = 'test_TD_agglomerative_euclidean.xml'
     csv    = 'agglomerative_euclidean/printAll_0.csv agglomerative_euclidean/printAll_1.csv agglomerative_euclidean/printAll_2.csv agglomerative_euclidean/printAll_3.csv agglomerative_euclidean/printAll_4.csv agglomerative_euclidean/printAll_5.csv agglomerative_euclidean/printAll_6.csv agglomerative_euclidean/printAll_7.csv agglomerative_euclidean/printAll_8.csv agglomerative_euclidean/printAll_9.csv'
-    output = 'agglomerative_euclidean/1-plot1_line.pdf agglomerative_euclidean/1-Cluster_0_line.pdf agglomerative_euclidean/1-Cluster_1_line.pdf'
   [../]
 []

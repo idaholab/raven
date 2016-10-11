@@ -1,8 +1,8 @@
-\subsubsection{DataMining (\textit{aka: Knowledge Discovery in DataBases)}}
+\subsubsection{DataMining}
 \label{subsubsec:DataMining}
 
 Knowledge discovery in databases (KDD) is the process of discovering
- useful knowledge from a collection of data.This widely used data
+ useful knowledge from a collection of data. This widely used data
 mining technique is a process that includes data preparation and
 selection, data cleansing, incorporating prior knowledge on data
 sets and interpreting accurate solutions from the observed results.
@@ -50,6 +50,44 @@ The following is a list of acceptable sub-nodes:
   have three new outputs named ``drDimension1,'' ``drDimension2,'' and
   ``drDimension3.'').
 \end{itemize}
+
+\paragraph{Scipy}
+\xmlString{Scipy} provides a Hierarchical clustering that performs clustering over PointSet and HistorySet. 
+This algorithm also automatically generates a dendrogram in .pdf format (i.e., dendrogram.pdf).
+\skltype{Gaussian Mixture Model}{mixture|GMM}
+\begin{itemize}
+  \item \xmlNode{n\_components}, \xmlDesc{integer, optional field}, Number of mixture components. \default{1}
+\end{itemize}
+
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <PostProcessor name="hierarchical" subType="DataMining" verbosity="quiet">
+      <KDD lib="Scipy" labelFeature='labels'>
+        <Features>output</Features>
+        <SCIPYtype>cluster|Hierarchical</SCIPYtype>
+        <method>single</method>
+        <metric>euclidean</metric>
+        <level>75</level> 
+        <criterion>distance</criterion>
+        <dendrogram>true</dendrogram>
+        <truncationMode>lastp</truncationMode>
+        <p>20</p>
+        <leafCounts>True</leafCounts>
+        <showContracted>True</showContracted>
+        <annotatedAbove>10</annotatedAbove>
+      </KDD>
+    </PostProcessor>
+    ...
+  <Models>
+  ...
+<Simulation>
+\end{lstlisting}
+
+
 
 \paragraph{SciKitLearn}
 \xmlString{SciKitLearn} is based on algorithms in SciKit-Learn library, and it performs data mining over PointSet and HistorySet. Note that for HistorySet's \xmlString{SciKitLearn} performs the task given in \xmlNode{SKLType} (see below) for each time step, and so only synchronized HistorySet can be used as input to this model. For unsynchronized HistorySet, use \xmlString{HistorySetSync} method in \xmlString{Interfaced} post-processor to synchronize the input data before using \xmlString{SciKitLearn}. The rest of this subsection and following subsection is dedicated to the \xmlString{SciKitLearn} library.

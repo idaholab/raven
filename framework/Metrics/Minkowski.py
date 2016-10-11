@@ -45,7 +45,7 @@ class Minkowski(Metric):
     for child in xmlNode:
       if child.tag == 'p':
         self.p = float(child.text)
-      if child.tag == 'timeID':
+      if child.tag == 'pivotParameter':
         self.timeID = child.text
 
   def distance(self,x,y):

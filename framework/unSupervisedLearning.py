@@ -146,7 +146,7 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
       self.labelValues = values[names.index(self.labels)]
       resp = self.checkArrayConsistency(self.labelValues)      
       if not resp[0]:
-        self.raiseAnError(IOError, 'In training set for ground truth labels ' + self.labels + ':' + resp[1])
+        self.raiseAnError(IOError, 'In training set for ground truth labels ' + self.labels + ': ' + resp[1])
     else:
       self.raiseAWarning(' The ground truth labels are not known a priori')
 
@@ -170,19 +170,21 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
         ## a form of shape matching, however what if I don't want similar
         ## shapes, I want similar valued curves in space? sigma and mu should
         ## not be forced to be computed within a curve.
+        tdictNorm={}
         for key in tdict:
+          tdictNorm[key]={}
           for var in tdict[key]:
             (mu,sigma) = mathUtils.normalizationFactors(tdict[key][var])
             if sigma==0.0:
               sigma = 1.0
-            tdict[key][var] = (tdict[key][var]-mu)/sigma
+            tdictNorm[key][var] = (tdict[key][var]-mu)/sigma
 
-        cardinality = len(tdict.keys())
+        cardinality = len(tdictNorm.keys())
         self.normValues = np.zeros((cardinality,cardinality))
-        keys = tdict.keys()
+        keys = tdictNorm.keys()
         for i in range(cardinality):
           for j in range(i+1,cardinality):
-            self.normValues[i][j] = metric.distance(tdict[keys[i]],tdict[keys[j]])
+            self.normValues[i][j] = metric.distance(tdictNorm[keys[i]],tdictNorm[keys[j]])
             self.normValues[j][i] = self.normValues[i][j]
       else:   ## PointSet
         normValues = np.zeros(shape = (realizationCount, featureCount))
@@ -223,10 +225,12 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
     # construct the evaluation matrix
     featureValues = np.zeros(shape = (values[0].size, len(self.features)))
     for cnt, feat in enumerate(self.features):
-      if feat not in names: self.raiseAnError(IOError, ' The feature sought ' + feat + ' is not in the evaluate set')
+      if feat not in names: 
+        self.raiseAnError(IOError, ' The feature sought ' + feat + ' is not in the evaluate set')
       else:
         resp = self.checkArrayConsistency(values[names.index(feat)])
-        if not resp[0]: self.raiseAnError(IOError, ' In training set for feature ' + feat + ':' + resp[1])
+        if not resp[0]: 
+          self.raiseAnError(IOError, ' In training set for feature ' + feat + ':' + resp[1])
         featureValues[:, cnt] = ((values[names.index(feat)] - self.muAndSigmaFeatures[feat][0])) / self.muAndSigmaFeatures[feat][1]
     evaluation = self.__evaluateLocal__(featureValues)
     return evaluation

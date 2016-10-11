@@ -36,34 +36,34 @@
   <Metrics>
     <Minkowski name="example" subType="">
 	    <p>2</p>
-	    <timeID>time</timeID>
+	    <pivotParameter>time</pivotParameter>
     </Minkowski>
   </Metrics>
       
   <Steps>
-    <MultiRun name="FirstMRun" pauseAtEnd="True">
+    <MultiRun name="FirstMRun">
       <Input    class="DataObjects"      type="PointSet"       >inputPlaceHolder</Input>
       <Model    class="Models"           type="ExternalModel"  >PythonModule</Model>
       <Sampler  class="Samplers"         type="MonteCarlo"     >MC_external</Sampler>
       <Output   class="DataObjects"      type="HistorySet"     >outMC</Output>
     </MultiRun>
-    <IOStep name="plotAllHists" pauseAtEnd="false">
+    <IOStep name="plotAllHists">
       <Input    class="DataObjects"      type="HistorySet"     >outMC</Input>
       <Output   class="OutStreams"       type="Plot"           >plot1</Output>
     </IOStep>
-    <PostProcess name="clustering" pauseAtEnd="True">
+    <PostProcess name="clustering">
       <Input    class="DataObjects"      type="HistorySet"     >outMC</Input>
       <Model    class="Models"           type="PostProcessor"  >agglomerative</Model>
       <Output   class="DataObjects"      type="HistorySet"     >outMC</Output>
       <Output   class="OutStreams"       type="Print"          >printAll</Output>
     </PostProcess>
-    <PostProcess name="filter0" pauseAtEnd="True">
+    <PostProcess name="filter0">
       <Input    class="DataObjects"      type="HistorySet"     >outMC</Input>
       <Model    class="Models"           type="PostProcessor"  >filter0</Model>
       <Output   class="DataObjects"      type="HistorySet"     >outMC0</Output>
       <Output   class="OutStreams"       type="Plot"           >Cluster_0</Output>
     </PostProcess>
-    <PostProcess name="filter1" pauseAtEnd="True">
+    <PostProcess name="filter1">
       <Input    class="DataObjects"      type="HistorySet"     >outMC</Input>
       <Model    class="Models"           type="PostProcessor"  >filter1</Model>
       <Output   class="DataObjects"      type="HistorySet"     >outMC1</Output>

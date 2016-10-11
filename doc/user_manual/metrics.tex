@@ -53,7 +53,7 @@ This XML node needs to contain the attributes:
 
 \begin{itemize}
   \item \xmlNode{p}, \xmlDesc{float, required field}, value for the parameter $p$
-  \item \xmlNode{timeID}, \xmlDesc{string, optional field}, the ID of the time variable; this is required in case the metric is applied to historysets instead of pointsets
+  \item \xmlNode{pivotParameter}, \xmlDesc{string, optional field}, the ID of the temporal variable; this is required in case the metric is applied to historysets instead of pointsets
 \end{itemize}
 
 An example of Minkowski distance defined in RAVEN is provided below:
@@ -64,7 +64,7 @@ An example of Minkowski distance defined in RAVEN is provided below:
     ...
     <Minkowski name="example" subType="">
       <p>2</p>
-      <timeID>time</timeID>
+      <pivotParameter>time</pivotParameter>
     </Minkowski>
     ...
   </Metrics>
@@ -73,7 +73,41 @@ An example of Minkowski distance defined in RAVEN is provided below:
 \end{lstlisting}
 
 
-\subsection{DTW}
+\subsection{Dynamic Time Warping}
 \label{subsection:DTW}
-The Dynamic Time Warping
+The Dynamic Time Warping (DTW) is a distance metric that can be employed only for HistorySets (i.e., time dependent data).
 
+The specifications of a DTW distance must be defined within the XML block.
+\xmlNode{DTW}.
+
+This XML node needs to contain the attributes:
+
+
+\begin{itemize}
+  \item \xmlNode{order},          \xmlDesc{int, required field},    order of the DTW calculation: $0$ specifices a classical DTW caluclation and $1$ specifies 
+                                                                    a derivative DTW calculation 
+  \item \xmlNode{pivotParameter}, \xmlDesc{string, optional field}, the ID of the temporal variable
+  \item \xmlNode{localDistance},  \xmlDesc{string, optional field}, the ID of the distance function to be employed to determine the local distance 
+                                                                    evaluation of two time series. Available options are provided by the sklearn 
+                                                                    pairwise\_distances (cityblock, cosine, euclidean, $l1$, $l2$, manhattan,
+                                                                    braycurtis, canberra, chebyshev, correlation, dice, hamming, jaccard, 
+                                                                    kulsinski, mahalanobis, matching, minkowski, rogerstanimoto, russellrao, 
+                                                                    seuclidean, sokalmichener, sokalsneath, sqeuclidean, yule)
+\end{itemize}
+
+An example of Minkowski distance defined in RAVEN is provided below:
+\begin{lstlisting}[style=XML]
+<Simulation> 
+  ...
+  <Metrics>
+    ...
+    <DTW name="example" subType="">
+      <order>0</order>
+      <pivotParameter>time</pivotParameter>
+      <localDistance>euclidean</localDistance>
+    </DTW>
+    ...
+  </Metrics>
+  ...
+</Simulation>
+\end{lstlisting}

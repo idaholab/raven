@@ -3835,7 +3835,7 @@ class DataMining(BasePostProcessor):
       if hasattr(self.unSupervisedEngine, 'labels_'):
         self.clusterLabels = self.unSupervisedEngine.labels_
       outputDict['output'][self.labelFeature] = self.clusterLabels
-      print(set(self.clusterLabels))
+      self.raiseAWarning('The clustering algorithm have identified the following cluster labels: ' + str(set(self.clusterLabels)))
 
       ## Get the centroids and push them to a SolutionExport data object.
       ## Also if we have the centers, assume we have the indices to match them
@@ -3969,7 +3969,7 @@ class DataMining(BasePostProcessor):
           for col,value in zip(self.unSupervisedEngine.features.keys(),values):
             self.solutionExport.updateOutputValue(col,value)
 
-          self.solutionExport.updateOutputValue('ExplainedVarianceRatio',explainedVarianceRatio[row])
+          self.solutionExport.updateOutputValue('ExplainedVarianceRatio',explainedVarianceRatio[row]) 
     return outputDict
 
 
