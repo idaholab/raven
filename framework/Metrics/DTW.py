@@ -69,7 +69,7 @@ class DTW(Metric):
         
   def distance(self,x,y):
     """
-      This method set the datareturn the distance between two histories x and y
+      This method set the data return the distance between two histories x and y
       @ In, x, dict, dictionary containing data of x
       @ In, y, dict, dictionary containing data of y
       @ Out, value, float, distance between x and y
