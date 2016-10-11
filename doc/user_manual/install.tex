@@ -263,18 +263,44 @@ Once the RAVEN dependencies have been installed (See Section
 
 There are several different ways to get RAVEN.  There are trade offs
 between how easy it is to setup and how easy it is to develop with the
-method.  If you are using several MOOSE applications and want to share
-the MOOSE directory go to Section \ref{parallel_directory_git}.  If
-you want to do development on RAVEN and RAVEN is the only MOOSE
-application you are using or you don't mind having duplicate MOOSE
-directories, go to Section \ref{submodule_git}.  If you don't need to
-do RAVEN development but want to keep up with the latest version of
-RAVEN, the RAVEN Whole repository can be used as described in Section
+method.  If you want to do development on RAVEN and RAVEN is the only
+MOOSE application you are using or you don't mind having duplicate
+MOOSE directories, go to Section \ref{submodule_git}. If you are using
+several MOOSE applications and want to share the MOOSE directory go to
+Section \ref{parallel_directory_git}.  If you don't need to do RAVEN
+development but want to keep up with the latest version of RAVEN, the
+RAVEN Whole repository can be used as described in Section
 \ref{raven_whole_devel}.  If you don't need to do RAVEN development,
 and want to track a stable version of RAVEN, the RAVEN Whole
 repository with a stable branch can be used as described in Section
-\ref{raven_whole_stable}.  If git is not used, the Source Code
-Package in Section \ref{raven_source_package} can be used.
+\ref{raven_whole_stable}.  If git is not used, the Source Code Package
+in Section \ref{raven_source_package} can be used.
+
+\subsection{Submodule Git}
+\label{submodule_git}
+
+This install method uses git to obtain the software and uses
+submodules to get Crow and MOOSE.  This can be used for RAVEN and Crow
+development.
+
+First RAVEN needs to be cloned, and then the submodules initialized.
+
+\begin{lstlisting}[language=bash]
+git clone git@hpcgitlab.inl.gov:idaholab/raven.git
+cd raven
+git submodule update --init crow moose
+\end{lstlisting}
+
+Next follow the compilation and testing instructions in Section \ref{raven_compilation}.
+
+To update the software, the git pull and submodule update commands can
+be used:
+
+\begin{lstlisting}[language=bash]
+git pull
+git submodule update
+\end{lstlisting}
+
 
 \subsection{Parallel Directory Git}
 \label{parallel_directory_git}
@@ -302,14 +328,10 @@ git clone git@hpcgitlab.inl.gov:idaholab/crow.git
 git clone git@hpcgitlab.inl.gov:idaholab/raven.git
 \end{lstlisting}
 
-If RELAP-7 will be used, only IAPWS should be initialized instead of
-all the submodules:
+If RELAP-7 will be used, it should be cloned:
 
 \begin{lstlisting}[language=bash]
 git clone git@hpcgitlab.inl.gov:idaholab/relap-7.git
-cd relap-7
-git submodule update --init contrib/iapws
-cd ..
 \end{lstlisting}
 
 Next the RAVEN modules should be compiled:
@@ -366,32 +388,6 @@ git pull
 cd ../raven
 git pull
 \end{lstlisting}
-
-\subsection{Submodule Git}
-\label{submodule_git}
-
-This install method uses git to obtain the software and uses
-submodules to get Crow and MOOSE.  This can be used for RAVEN and Crow
-development.
-
-First RAVEN needs to be cloned, and then the submodules initialized.
-
-\begin{lstlisting}[language=bash]
-git clone git@hpcgitlab.inl.gov:idaholab/raven.git
-cd raven
-git submodule update --init crow moose
-\end{lstlisting}
-
-Next follow the compilation and testing instructions in Section \ref{raven_compilation}.
-
-To update the software, the git pull and submodule update commands can
-be used:
-
-\begin{lstlisting}[language=bash]
-git pull
-git submodule update
-\end{lstlisting}
-
 
 \subsection{RAVEN Whole Devel Branch}
 \label{raven_whole_devel}
