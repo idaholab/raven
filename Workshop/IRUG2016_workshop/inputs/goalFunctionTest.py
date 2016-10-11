@@ -1,8 +1,8 @@
-'''
-Created on NO NEED TO KNOW
+"""
+Created on Oct. 2016
 
 @author: alfoa
-'''
+"""
 import numpy
 import math
 
