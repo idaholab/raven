@@ -51,85 +51,6 @@ The following is a list of acceptable sub-nodes:
   ``drDimension3.'').
 \end{itemize}
 
-\paragraph{Scipy}
-\xmlString{Scipy} provides a Hierarchical clustering that performs clustering over PointSet and HistorySet. 
-This algorithm also automatically generates a dendrogram in .pdf format (i.e., dendrogram.pdf).
-\skltype{Gaussian Mixture Model}{mixture|GMM}
-\begin{itemize}
-  \item \xmlNode{SCIPYtype}, \xmlDesc{string, required field}, SCIPY algorithm to be employed.
-  \item \xmlNode{Features}, \xmlDesc{string, required field}, defines the data to be used for training the data mining algorithm. It can be:
-    \begin{itemize}
-      \item the name of the variable in the defined dataObject entity
-      \item the location (i.e. input or output). In this case the data mining is applied to all the variables in the defined space.
-    \end{itemize}
-  \item \xmlNode{method},         \xmlDesc{string, required field}, The linkage algorithm to be used  \default{single, complete, weighted, centroids, median, ward}.
-  \item \xmlNode{metric},         \xmlDesc{string, required field}, The distance metric to be used \default{ ‘braycurtis’, ‘canberra’, ‘chebyshev’, ‘cityblock’,
-                                                                    ‘correlation’, ‘cosine’, ‘dice’, ‘euclidean’, ‘hamming’, ‘jaccard’, ‘kulsinski’, 
-                                                                    ‘mahalanobis’, ‘matching’, ‘minkowski’, ‘rogerstanimoto’, ‘russellrao’, ‘seuclidean’, 
-                                                                    ‘sokalmichener’, ‘sokalsneath’, ‘sqeuclidean’, ‘yule’}.
-  \item \xmlNode{level},          \xmlDesc{float, required field},  Clustering distance level where actual clusters are formed.
-  \item \xmlNode{criterion},      \xmlDesc{string, required field}, The criterion to use in forming flat clusters. This can be any of the following values:
-    \begin{itemize}
-      \item   ``inconsistent''     : If a cluster node and all its descendants have an inconsistent value less than or equal to `t` then all its leaf descendants 
-                                     belong to the same flat cluster. When no non-singleton cluster meets this criterion, every node is assigned to its own 
-                                     cluster. (Default)
-      \item   ``distance''         : Forms flat clusters so that the original observations in each flat cluster have no greater a cophenetic distance than $t$.  
-      \item   ``maxclust''         : Finds a minimum threshold ``r'' so that the cophenetic distance between any two original observations in the same flat cluster 
-                                     is no more than ``r'' and no more than $t$ flat clusters are formed. 
-      \item   ``monocrit''         : Forms a flat cluster from a cluster node c with index i when $monocrit[j] <= t$.
-       \item  ``maxclust\_monocrit'' : Forms a flat cluster from a non-singleton cluster node ``c'' when $monocrit[i] <= r$ for all cluster indices ``i'' 
-                                       below and including ``c''. ``r'' is minimized such that no more than ``t'' flat clusters are formed. monocrit must be
-                                       monotonic.
-    \end{itemize}
-  \item \xmlNode{dendrogram},     \xmlDesc{boolean, required field}, If True the dendrogram is actually created.
-  \item \xmlNode{truncationMode}, \xmlDesc{string, required field}, The dendrogram can be hard to read when the original observation matrix from which the 
-                                                                    linkage is derived is large. Truncation is used to condense the dendrogram. There are several
-                                                                    modes:
-                                                                    \begin{itemize}
-                                                                      \item ``None'': No truncation is performed (Default).
-                                                                      \item ``lastp'': The last p non-singleton formed in the linkage are the only non-leaf nodes
-                                                                       in the linkage; they correspond to rows $Z[n-p-2:end]$ in Z. All other non-singleton 
-                                                                       clusters are contracted into leaf nodes.
-                                                                      \item ``level''/``mtica'': No more than p levels of the dendrogram tree are displayed. 
-                                                                      This corresponds to Mathematica behavior.
-                                                                    \end{itemize}
-  \item \xmlNode{p},              \xmlDesc{int, required field},     The $p$ parameter for truncationMode.
-  \item \xmlNode{leafCounts},     \xmlDesc{boolean, required field}, When True the cardinality non singleton nodes contracted into a leaf node is indiacted in 
-                                                                     parenthesis.
-  \item \xmlNode{showContracted}, \xmlDesc{boolean, required field}, When True the heights of non singleton nodes contracted into a leaf node are plotted as 
-                                                                     crosses along the link connecting that leaf node.
-  \item \xmlNode{annotatedAbove}, \xmlDesc{float, required field},  Clustering level above which the branching level is annotated.
-\end{itemize}
-
-\textbf{Example:}
-\begin{lstlisting}[style=XML,morekeywords={subType}]
-<Simulation>
-  ...
-  <Models>
-    ...
-    <PostProcessor name="hierarchical" subType="DataMining" verbosity="quiet">
-      <KDD lib="Scipy" labelFeature='labels'>
-        <SCIPYtype>cluster|Hierarchical</SCIPYtype>
-        <Features>output</Features>
-        <method>single</method>
-        <metric>euclidean</metric>
-        <level>75</level> 
-        <criterion>distance</criterion>
-        <dendrogram>true</dendrogram>
-        <truncationMode>lastp</truncationMode>
-        <p>20</p>
-        <leafCounts>True</leafCounts>
-        <showContracted>True</showContracted>
-        <annotatedAbove>10</annotatedAbove>
-      </KDD>
-    </PostProcessor>
-    ...
-  <Models>
-  ...
-<Simulation>
-\end{lstlisting}
-
-
 
 \paragraph{SciKitLearn}
 \xmlString{SciKitLearn} is based on algorithms in SciKit-Learn library, and it performs data mining over PointSet and HistorySet. Note that for HistorySet's \xmlString{SciKitLearn} performs the task given in \xmlNode{SKLType} (see below) for each time step, and so only synchronized HistorySet can be used as input to this model. For unsynchronized HistorySet, use \xmlString{HistorySetSync} method in \xmlString{Interfaced} post-processor to synchronize the input data before using \xmlString{SciKitLearn}. The rest of this subsection and following subsection is dedicated to the \xmlString{SciKitLearn} library.
@@ -1213,3 +1134,84 @@ Spectral embedding for non-linear dimensionality reduction, it forms an affinity
 	\item \xmlNode{dissimilarity}, \xmlDesc{string, optional field}, Which dissimilarity
 	measure to use. Supported are ‘euclidean’ and ‘precomputed’. \default{euclidean}
 \end{itemize}
+
+
+\paragraph{Scipy}
+\xmlString{Scipy} provides a Hierarchical clustering that performs clustering over PointSet and HistorySet. 
+This algorithm also automatically generates a dendrogram in .pdf format (i.e., dendrogram.pdf).
+\skltype{Gaussian Mixture Model}{mixture|GMM}
+\begin{itemize}
+  \item \xmlNode{SCIPYtype}, \xmlDesc{string, required field}, SCIPY algorithm to be employed.
+  \item \xmlNode{Features}, \xmlDesc{string, required field}, defines the data to be used for training the data mining algorithm. It can be:
+    \begin{itemize}
+      \item the name of the variable in the defined dataObject entity
+      \item the location (i.e. input or output). In this case the data mining is applied to all the variables in the defined space.
+    \end{itemize}
+  \item \xmlNode{method},         \xmlDesc{string, required field}, The linkage algorithm to be used  \default{single, complete, weighted, centroids, median, ward}.
+  \item \xmlNode{metric},         \xmlDesc{string, required field}, The distance metric to be used \default{ ‘braycurtis’, ‘canberra’, ‘chebyshev’, ‘cityblock’,
+                                                                    ‘correlation’, ‘cosine’, ‘dice’, ‘euclidean’, ‘hamming’, ‘jaccard’, ‘kulsinski’, 
+                                                                    ‘mahalanobis’, ‘matching’, ‘minkowski’, ‘rogerstanimoto’, ‘russellrao’, ‘seuclidean’, 
+                                                                    ‘sokalmichener’, ‘sokalsneath’, ‘sqeuclidean’, ‘yule’}.
+  \item \xmlNode{level},          \xmlDesc{float, required field},  Clustering distance level where actual clusters are formed.
+  \item \xmlNode{criterion},      \xmlDesc{string, required field}, The criterion to use in forming flat clusters. This can be any of the following values:
+    \begin{itemize}
+      \item   ``inconsistent''     : If a cluster node and all its descendants have an inconsistent value less than or equal to `t` then all its leaf descendants 
+                                     belong to the same flat cluster. When no non-singleton cluster meets this criterion, every node is assigned to its own 
+                                     cluster. (Default)
+      \item   ``distance''         : Forms flat clusters so that the original observations in each flat cluster have no greater a cophenetic distance than $t$.  
+      \item   ``maxclust''         : Finds a minimum threshold ``r'' so that the cophenetic distance between any two original observations in the same flat cluster 
+                                     is no more than ``r'' and no more than $t$ flat clusters are formed. 
+      \item   ``monocrit''         : Forms a flat cluster from a cluster node c with index i when $monocrit[j] <= t$.
+       \item  ``maxclust\_monocrit'' : Forms a flat cluster from a non-singleton cluster node ``c'' when $monocrit[i] <= r$ for all cluster indices ``i'' 
+                                       below and including ``c''. ``r'' is minimized such that no more than ``t'' flat clusters are formed. monocrit must be
+                                       monotonic.
+    \end{itemize}
+  \item \xmlNode{dendrogram},     \xmlDesc{boolean, required field}, If True the dendrogram is actually created.
+  \item \xmlNode{truncationMode}, \xmlDesc{string, required field}, The dendrogram can be hard to read when the original observation matrix from which the 
+                                                                    linkage is derived is large. Truncation is used to condense the dendrogram. There are several
+                                                                    modes:
+                                                                    \begin{itemize}
+                                                                      \item ``None'': No truncation is performed (Default).
+                                                                      \item ``lastp'': The last p non-singleton formed in the linkage are the only non-leaf nodes
+                                                                       in the linkage; they correspond to rows $Z[n-p-2:end]$ in Z. All other non-singleton 
+                                                                       clusters are contracted into leaf nodes.
+                                                                      \item ``level''/``mtica'': No more than p levels of the dendrogram tree are displayed. 
+                                                                      This corresponds to Mathematica behavior.
+                                                                    \end{itemize}
+  \item \xmlNode{p},              \xmlDesc{int, required field},     The $p$ parameter for truncationMode.
+  \item \xmlNode{leafCounts},     \xmlDesc{boolean, required field}, When True the cardinality non singleton nodes contracted into a leaf node is indiacted in 
+                                                                     parenthesis.
+  \item \xmlNode{showContracted}, \xmlDesc{boolean, required field}, When True the heights of non singleton nodes contracted into a leaf node are plotted as 
+                                                                     crosses along the link connecting that leaf node.
+  \item \xmlNode{annotatedAbove}, \xmlDesc{float, required field},  Clustering level above which the branching level is annotated.
+\end{itemize}
+
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <PostProcessor name="hierarchical" subType="DataMining" verbosity="quiet">
+      <KDD lib="Scipy" labelFeature='labels'>
+        <SCIPYtype>cluster|Hierarchical</SCIPYtype>
+        <Features>output</Features>
+        <method>single</method>
+        <metric>euclidean</metric>
+        <level>75</level> 
+        <criterion>distance</criterion>
+        <dendrogram>true</dendrogram>
+        <truncationMode>lastp</truncationMode>
+        <p>20</p>
+        <leafCounts>True</leafCounts>
+        <showContracted>True</showContracted>
+        <annotatedAbove>10</annotatedAbove>
+      </KDD>
+    </PostProcessor>
+    ...
+  <Models>
+  ...
+<Simulation>
+\end{lstlisting}
+
+
