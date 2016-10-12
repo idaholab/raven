@@ -404,14 +404,14 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ Out, convergence, bool, variable indicating whether the convergence criteria has been met.
     """
 
-  @abc.abstractmethod
-  def localCheckConvergence(self, convergence = False):
-    """
-      Local method to check convergence.
-      @ In, convergence, bool, optional, variable indicating how the caller determines the convergence.
-      @ Out, convergence, bool, variable indicating whether the convergence criteria has been met.
-    """
-    return convergence
+#   @abc.abstractmethod
+#   def localCheckConvergence(self, convergence = False):
+#     """
+#       Local method to check convergence.
+#       @ In, convergence, bool, optional, variable indicating how the caller determines the convergence.
+#       @ Out, convergence, bool, variable indicating whether the convergence criteria has been met.
+#     """
+#     return convergence
 
   def generateInput(self,model,oldInput):
     """

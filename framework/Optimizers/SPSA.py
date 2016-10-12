@@ -94,7 +94,7 @@ class SPSA(GradientBasedOptimizer):
       for var in self.optVars:
         self.values[var] = self.optVarsInit['initial'][var][traj]
         self.optVarsHist[traj][self.counter['varsUpdate'][traj]][var] = copy.copy(self.values[var])
-        
+
     else:
       while True:
         traj = self.optTrajLive.pop(0)

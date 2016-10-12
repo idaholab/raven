@@ -30,7 +30,6 @@ class GradientBasedOptimizer(Optimizer):
     This is the base class for gradient based optimizer. The following methods need to be overridden by all derived class
     self.localLocalInputAndChecks(self, xmlNode)
     self.localLocalInitialize(self, solutionExport = None)
-    self.localCheckConvergence(self, convergence = False)
     self.localLocalGenerateInput(self,model,oldInput)
     self.localEvaluateGradient(self, optVarsValues, gradient = None)
   """
@@ -52,7 +51,8 @@ class GradientBasedOptimizer(Optimizer):
     self.readyVarsUpdate = {}                       # Bool variable indicating the finish of gradient evaluation and the ready to update decision variables
     self.counter['varsUpdate'] = {}
     self.counter['solutionUpdate'] = {}
-  
+    self.convergeTraj = {}
+    
   def localInputAndChecks(self, xmlNode):
     """
       Method to read the portion of the xml input that belongs to all gradient based optimizer only
@@ -68,6 +68,7 @@ class GradientBasedOptimizer(Optimizer):
       self.counter['solutionUpdate'][traj]    = 0
       self.optVarsHist[traj]                  = {}
       self.readyVarsUpdate[traj]              = False
+      self.convergeTraj[traj]                 = False
 
   def localInitialize(self,solutionExport=None):
     """
@@ -161,7 +162,25 @@ class GradientBasedOptimizer(Optimizer):
 #           if var == self.objVar:
 #             self.solutionExport.updateInputValue(self.objVar, self.lossFunctionEval(self.optVarsHist[traj][self.counter['varsUpdate'][traj]-1]))
 # 
-#       if convergence:
+#     if convergence:
+#       if self.solutionExport != None:
+#         for traj in self.optTrajLive:
+#           
+#         
+#         self.raiseADebug('*************************************************************')
+#             self.raiseADebug(n, self.counter['varsUpdate'][traj])
+# #             self.raiseAnError(ValueError, 't')
+#             hasUpdateFlag = True
+#             for var in self.solutionExport.getParaKeys('inputs'):
+#               if var in self.optVars:
+#                 self.solutionExport.updateInputValue(var,self.optVarsHist[traj][n][var])
+#             if 'varsUpdate' in self.solutionExport.getParaKeys('inputs'):
+#               self.solutionExport.updateOutputValue('varsUpdate', n)
+#             for var in self.solutionExport.getParaKeys('outputs'):
+#               if var == self.objVar:
+#                 self.solutionExport.updateInputValue(var, self.lossFunctionEval(self.optVarsHist[traj][n]))
+#           else:
+#         
 #         if self.solutionExport != None:
 #           for var in self.solutionExport.getParaKeys('inputs'):
 #             if var in self.optVars:
@@ -279,29 +298,41 @@ class GradientBasedOptimizer(Optimizer):
       Method to check whether the convergence criteria has been met.
       @ In, none,
       @ Out, convergence, list, list of bool variable indicating whether the convergence criteria has been met for each trajectory.
-    """
-    convergeTraj = [False]*len(self.optTrajLive)
-    for trajInd, traj in enumerate(self.optTrajLive):
-      if self.counter['varsUpdate'][traj] >= 2:
-        optVal1 = copy.deepcopy(self.lossFunctionEval(self.optVarsHist[traj][self.counter['varsUpdate'][traj]]))
-        optVal2 = copy.deepcopy(self.lossFunctionEval(self.optVarsHist[traj][self.counter['varsUpdate'][traj]-1]))
-        if abs(optVal1-optVal2) < self.convergenceTol:
-          convergeTraj[traj] = True
-          self.optTrajLive.pop(trajInd)
-   
-    convergence = self.localCheckConvergence(convergeTraj)
+    """   
+    convergence = True
+    for traj in self.optTraj:
+      if self.convergeTraj[traj] == False:
+        convergence = False
+        break
     return convergence
   
-#   @abc.abstractmethod
-  def localCheckConvergence(self, convergeTraj = [False]):
+  def _updateConvergenceVector(self, traj, varsUpdate, currentLossValue):
     """
-      Local method to check convergence.
-      @ In, convergeTraj, list, optional, list of bool variables indicating how the caller determines the convergence for each trajectory.
-      @ Out, convergence, bool, variable indicating whether the convergence criteria has been met.
+      Local method to update convergence vector.
+      @ In, traj, int, identifier of the trajector to update
+      @ In, varsUpdate, int, current variables update iteration number
+      @ In, currentLossValue, float, current loss function value
+      @ Out, None
     """
-    if False in convergeTraj:           convergence = False
-    else:                               convergence = True
-    return convergence
+    if self.convergeTraj[traj] == False:
+      if varsUpdate > 1: 
+        oldVal = copy.deepcopy(self.lossFunctionEval(self.optVarsHist[traj][varsUpdate-1]))
+        if abs(currentLossValue-oldVal) < self.convergenceTol:
+          self.convergeTraj[traj] = True
+          for trajInd, tr in enumerate(self.optTrajLive):
+            if tr == traj:
+              self.optTrajLive.pop(trajInd)
+    
+#     convergeTraj = [False]*len(self.optTrajLive)
+#     for trajInd, traj in enumerate(self.optTrajLive):
+#       if self.counter['varsUpdate'][traj] >= 2:
+#         optVal1 = copy.deepcopy(self.lossFunctionEval(self.optVarsHist[traj][self.counter['varsUpdate'][traj]]))
+#         optVal2 = copy.deepcopy(self.lossFunctionEval(self.optVarsHist[traj][self.counter['varsUpdate'][traj]-1]))
+#         if abs(optVal1-optVal2) < self.convergenceTol:
+#           convergeTraj[trajInd] = True
+#           self.optTrajLive.pop(trajInd)
+
+
 
   def localFinalizeActualSampling(self,jobObject,model,myInput):
     """
@@ -311,38 +342,45 @@ class GradientBasedOptimizer(Optimizer):
       @ In, model, model instance, it is the instance of a RAVEN model
       @ In, myInput, list, the generating input
     """
-    self.raiseADebug(self.mdlEvalHist.getParametersValues('inputs', nodeId = 'RecontructEnding'))
-    if self.solutionExport != None:    
+#     self.raiseADebug(self.mdlEvalHist.getParametersValues('inputs', nodeId = 'RecontructEnding'))
+#     self.raiseADebug(jobObject.getEvaluation())
+    
+    if self.solutionExport != None:
+      evaluation = jobObject.getEvaluation()
+      inputeval = evaluation[0]
+      if type(evaluation[1]).__name__ == "tuple":
+        outputeval = evaluation[1][0]
+      else:
+        outputeval = evaluation[1]
+      
+#       solutionExportUpdatedFlag = False
       for traj in self.optTrajLive:
-        hasUpdateFlag = False        
-        allUpdateFlag = True
-        self.raiseADebug(self.counter['varsUpdate'][traj])
-        self.raiseADebug(range(self.counter['solutionUpdate'][traj],self.counter['varsUpdate'][traj]+1))
-        for n in range(self.counter['solutionUpdate'][traj],self.counter['varsUpdate'][traj]+1):
-          if n == 8:
-            self.raiseADebug(self.optVarsHist[traj][n],self._checkModelFinish(self.optVarsHist[traj][n]))
-            self.raiseADebug(self.mdlEvalHist.getParametersValues('inputs', nodeId = 'RecontructEnding'))
-            self.raiseADebug(myInput[0])
-          if self._checkModelFinish(self.optVarsHist[traj][n]):
-            self.raiseADebug('*************************************************************')
-            self.raiseADebug(n, self.counter['varsUpdate'][traj])
-#             self.raiseAnError(ValueError, 't')
-            hasUpdateFlag = True
-            for var in self.solutionExport.getParaKeys('inputs'):
-              if var in self.optVars:
-                self.solutionExport.updateInputValue(var,self.optVarsHist[traj][n][var])
-            if 'varsUpdate' in self.solutionExport.getParaKeys('inputs'):
-              self.solutionExport.updateOutputValue('varsUpdate', n)
-            for var in self.solutionExport.getParaKeys('outputs'):
-              if var == self.objVar:
-                self.solutionExport.updateInputValue(var, self.lossFunctionEval(self.optVarsHist[traj][n]))
-          else:
-            self.counter['solutionUpdate'][traj] = copy.deepcopy(n)
-            allUpdateFlag = False
-            break
-        if hasUpdateFlag and allUpdateFlag:
-          self.counter['solutionUpdate'][traj] = copy.deepcopy(self.counter['varsUpdate'][traj]+1)
-
+        solutionExportUpdatedFlag = True
+        if self.counter['solutionUpdate'][traj] <= self.counter['varsUpdate'][traj] and self.counter['solutionUpdate'][traj] in self.optVarsHist[traj].keys():
+          for var in self.optVars:
+#             self.raiseADebug(traj, self.optVarsHist[traj], self.optTrajLive)
+            if self.optVarsHist[traj][self.counter['solutionUpdate'][traj]][var] != inputeval[var]:
+              solutionExportUpdatedFlag = False
+              break
+        else:
+          solutionExportUpdatedFlag = False
+        if solutionExportUpdatedFlag:
+          # check convergence
+          self._updateConvergenceVector(traj, self.counter['solutionUpdate'][traj], outputeval[self.objVar])
+          
+          # update solution export
+          for var in self.solutionExport.getParaKeys('inputs'):
+            if var in self.optVars:
+              self.solutionExport.updateInputValue(var,inputeval[var])
+          if 'varsUpdate' in self.solutionExport.getParaKeys('inputs'):
+            self.solutionExport.updateInputValue('varsUpdate', np.asarray([self.counter['solutionUpdate'][traj]]))
+          if 'traj' in self.solutionExport.getParaKeys('inputs'):
+            self.solutionExport.updateInputValue('traj', np.asarray([traj]))
+          for var in self.solutionExport.getParaKeys('outputs'):
+            if var == self.objVar:
+              self.solutionExport.updateOutputValue(var, outputeval[var])
+          self.counter['solutionUpdate'][traj] += 1
+          break
 
 
 
