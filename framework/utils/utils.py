@@ -8,7 +8,7 @@ warnings.simplefilter('default',DeprecationWarning)
 # built into python.  Otherwise the import can fail, and since utils
 # are used by --library-report, this can cause diagnostic messages to fail.
 import bisect
-import sys, os
+import sys, os, errno
 import inspect
 import subprocess
 import platform
@@ -704,8 +704,8 @@ def tryParse(text):
     attempts to create an integer, and falls back to a float if the value has
     a decimal, and finally resorting to just returning the string in the case
     where the data cannot be converted).
-  @ In, text, string we are trying to parse
-  @ Out, value, int/float/string, the possibly converted type
+    @ In, text, string we are trying to parse
+    @ Out, value, int/float/string, the possibly converted type
   """
 
   ## FIXME is there anything that is a float that will raise an
@@ -726,20 +726,40 @@ def tryParse(text):
     return True
   return value
 
+def makeDir(dirName):
+  """
+    Function that will attempt to create a directory. If the directory already
+    exists, this function will return silently with no error, however if it
+    fails to create the directory for any other reason, then an error is
+    raised.
+    @ In, dirName, string, specifying the new directory to be created
+    @ Out, None
+  """
+  try:
+    os.makedirs(dirName)
+  except OSError as exc:
+    if exc.errno == errno.EEXIST and os.path.isdir(dirName):
+      ## The path already exists so we can safely ignore this exception
+      pass
+    else:
+      ## If it failed for some other reason, we want to see what the
+      ## error is still
+      raise
+
 class pickleSafeSubprocessPopen(subprocess.Popen):
   """
-  Subclass of subprocess.Popen used internally to prevent _handle member from being pickled.  On
-  Windows, _handle contains an operating system reference that throws an exception when deep copied.
+    Subclass of subprocess.Popen used internally to prevent _handle member from being pickled.  On
+    Windows, _handle contains an operating system reference that throws an exception when deep copied.
   """
   # Only define these methods on Windows to override deep copy/pickle (member may not exist on other
   #   platforms.
   if platform.system() == 'Windows':
     def __getstate__(self):
       """
-      Returns a dictionary of the object state for pickling/deep copying.  Omits member '_handle',
-      which cannot be deep copied when non-None.
-      @ In, None
-      @ Out, result, dict, the get state dict
+        Returns a dictionary of the object state for pickling/deep copying.  Omits member '_handle',
+        which cannot be deep copied when non-None.
+        @ In, None
+        @ Out, result, dict, the get state dict
       """
       result = self.__dict__.copy()
       del result['_handle']
@@ -747,15 +767,37 @@ class pickleSafeSubprocessPopen(subprocess.Popen):
 
     def __setstate__(self, d):
       """
-      Used to load an object dictionary when unpickling.  Since member '_handle' could not be
-      deep copied, load it back as value None.
-      @ In, d, dict, previously stored namespace to restore
-      @ Out, None
+        Used to load an object dictionary when unpickling.  Since member '_handle' could not be
+        deep copied, load it back as value None.
+        @ In, d, dict, previously stored namespace to restore
+        @ Out, None
       """
       self.__dict__ = d
       self._handle = None
 
 
-
+def removeDuplicates(objectList):
+  """
+    Method to efficiently remove duplicates from a list and maintain their
+    order based on first appearance. See the url below for a description of why
+    this is optimal:
+    http://stackoverflow.com/questions/480214/how-do-you-remove-duplicates-from-a-list-in-python-whilst-preserving-order
+    @ In, objectList, list, list from which to remove duplicates
+    @ Out, uniqueObjectList, list, list with unique values ordered by their
+      first appearance in objectList
+  """
+  seen = set()
+  ## Store this locally so it doesn't have to be re-evaluated at each iteration
+  ## below
+  seen_add = seen.add
+  ## Iterate through the list and only take x if it has not been seen.
+  ## The 'or' here acts as a short circuit if the first condition is True, then
+  ## the second will not be executed, otherwise x will be added to seen and
+  ## since adding to a set is not a conditional operation, it will always return
+  ## False, so in conjunction with the 'not' this will ensure that the first
+  ## occurrence of x is added to seen and uniqueObjectList. Long explanation,
+  ## but efficient computation.
+  uniqueObjectList = [x for x in objectList if not (x in seen or seen_add(x))]
+  return uniqueObjectList
 
 

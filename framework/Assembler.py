@@ -77,7 +77,7 @@ class Assembler(MessageHandler.MessageUser):
     """
     for subNode in subXmlNode:
       for token in self.requiredAssObject[1][0]:
-        if subNode.tag in token:
+        if subNode.tag == token:
           found[token] = True
           if 'class' not in subNode.attrib.keys(): self.raiseAnError(IOError,'In '+self.type+' Object ' + self.name+ ', block ' + subNode.tag + ' does not have the attribute class!!')
           if  subNode.tag not in self.assemblerObjects.keys(): self.assemblerObjects[subNode.tag.strip()] = []

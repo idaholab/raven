@@ -65,6 +65,9 @@
       <variable name="e">
         <function>raven_e_calc</function>
       </variable>
+      <variable name="z,l">
+          <function>raven_e_calc</function>
+      </variable>
     </MonteCarlo>
     <Grid name="grid">
       <variable name="a">
@@ -84,6 +87,9 @@
       </variable>
       <variable name="e">
         <function>raven_e_calc</function>
+      </variable>
+      <variable name="z,l">
+          <function>raven_e_calc</function>
       </variable>
     </Grid>
   </Samplers>
@@ -112,11 +118,11 @@
 
   <DataObjects>
     <PointSet name="mcset">
-      <Input>a,b,c,d,e</Input>
+      <Input>a,b,c,d,e,z,l</Input>
       <Output>f,g,h</Output>
     </PointSet>
     <PointSet name="gridset">
-      <Input>a,b,c,d,e</Input>
+      <Input>a,b,c,d,e,z,l</Input>
       <Output>f,g,h</Output>
     </PointSet>
   </DataObjects>
