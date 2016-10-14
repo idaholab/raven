@@ -1634,6 +1634,8 @@ class EnsembleModel(Dummy, Assembler):
     """
     self.tree = TreeStructure.NodeTree(TreeStructure.Node(self.name))
     rootNode = self.tree.getrootnode()
+    moldelNodes = {}
+    
     for modelIn in self.assemblerDict['Model']:
       self.modelsDictionary[modelIn[2]]['Instance'] = modelIn[3]
       inputInstancesForModel = []
@@ -1650,11 +1652,51 @@ class EnsembleModel(Dummy, Assembler):
       modelNode = TreeStructure.Node(modelIn[2])
       modelNode.add( 'inputs', self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getParaKeys("inputs"))
       modelNode.add('outputs', self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getParaKeys("outputs"))
+      moldelNodes[modelIn[2]] = modelNode
       rootNode.appendBranch(modelNode)
   
     # construct chain connections
     self.orderList        = self.modelsDictionary.keys()
     self.isConnected      = {}
+    
+    executionList         = [[]]
+#     
+#     realTree = TreeStructure.NodeTree(TreeStructure.Node(self.name))
+#     rootBranch = TreeStructure.Node(self.name)
+#     modelToCheck = []
+#     for modelIn in self.modelsDictionary.keys():
+#       for i in range(len(self.modelsDictionary[modelIn]['Output'])):
+#         inputtMatch   = self.__findMatchingModel('Output',self.modelsDictionary[modelIn]['Input'][i]) 
+#         if inputtMatch is None and modelIn not in executionList[0]: executionList[0].append(modelIn)
+#         else:
+#           if modelIn not in modelToCheck: modelToCheck.append(modelIn)
+#     
+#     for modelIn in modelToCheck:
+#       inputtMatch     = []
+#       inExecutionList = []
+#       for i in range(len(self.modelsDictionary[modelIn]['Input'])):
+#         inputtMatch.append(self.__findMatchingModel('Output',self.modelsDictionary[modelIn]['Input'][i]) )
+#         inExecutionList.append(False)    
+#       for
+#       print(inputtMatch)
+#     
+#     
+#     for modelIn in self.modelsDictionary.keys():
+#       for i in range(len(self.modelsDictionary[modelIn]['Output'])):
+#         outputMatch   = self.__findMatchingModel('Input',self.modelsDictionary[modelIn]['Output'][i])
+#         inputtMatch   = self.__findMatchingModel('Output',self.modelsDictionary[modelIn]['Input'][i])
+#         
+# 
+#         
+#         
+#         
+#         if outputMatch is not None:
+#           for match in outputMatch:   
+#            if not moldelNodes[match].isAnActualBranch(modelIn):
+#              moldelNodes[match].appendBranch(moldelNodes[modelIn],True)
+#         else:
+#           if not rootBranch.isAnActualBranch(modelIn):
+#             rootBranch.appendBranch(moldelNodes[modelIn],True)    
     for modelIn in self.modelsDictionary.keys():
       topModelNode = self.tree.find(modelIn)
       for i in range(len(self.modelsDictionary[modelIn]['Input'])):
@@ -1666,6 +1708,8 @@ class EnsembleModel(Dummy, Assembler):
             indexModelIn = self.orderList.index(modelIn)
             self.orderList.pop(self.orderList.index(modelIn))
             self.orderList.insert(int(max(self.orderList.index(match)+1,indexModelIn)), modelIn)
+        else:
+          if modelIn not in executionList[0]: executionList[0].append(modelIn)   
     # check if Picard needs to be activated
     for modelIn in self.modelsDictionary.keys():
       if not self.activatePicard:
