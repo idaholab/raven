@@ -1855,10 +1855,7 @@ class OutStreamPlot(OutStreamManager):
       ## We are skipping a few of the sanity checks done in that function,
       ## since we are sure we have an interactive backend and access to the
       ## correct type of canvas and figure.
-      ## Note that "stale" is not available in matplotlib 1.4,
-      ## so alway draw if it is not available.
-      if "stale" not in dir(self.fig) or self.fig.stale:
-        self.fig.canvas.draw()
+      self.fig.canvas.draw()
       self.plt.show(block=False)
       ## If your graphs are unresponsive to user input, you may want to consider
       ## adjusting this timeout, to allow more time for the input to be handled.
