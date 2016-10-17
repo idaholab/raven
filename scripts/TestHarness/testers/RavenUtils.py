@@ -43,6 +43,11 @@ __condaList = [("numpy",__lookUpPreferredVersion("numpy")),
               ("hdf5",""),
               ("swig","")]
 
+__pipList = [("numpy",__lookUpPreferredVersion("numpy")),
+             ("h5py",__lookUpPreferredVersion("h5py")),
+             ("scipy",__lookUpPreferredVersion("scipy")),
+             ("scikit-learn",__lookUpPreferredVersion("sklearn")),
+             ("matplotlib",__lookUpPreferredVersion("matplotlib"))]
 
 def moduleReport(module,version=''):
   """Checks if the module exists.
@@ -154,6 +159,11 @@ if __name__ == '__main__':
   elif '--conda-install' in sys.argv:
     print("conda install --name raven_libraries -y ",end=" ")
     print(__condaString())
+  elif '--pip-install' in sys.argv:
+    print("pip install",end=" ")
+    for i,qa in __pipList:
+      print(i+"=="+qa,end=" ")
+    print()
   elif '--manual-list' in sys.argv:
     for i,fv,ev,qa,mv in modules_to_try:
       print("\item",i+"-"+qa)
