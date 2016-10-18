@@ -46,11 +46,11 @@ class SPSA(GradientBasedOptimizer):
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None
     """
-    self.gainParamDict['alpha'] = float(self.paramDict.get('alpha', 0.602))
-    self.gainParamDict['gamma'] = float(self.paramDict.get('gamma', 0.101))
-    self.gainParamDict['A'] = float(self.paramDict.get('A', self.limit['mdlEval']/10))
-    self.gainParamDict['a'] = float(self.paramDict.get('a', 0.16))
-    self.gainParamDict['c'] = float(self.paramDict.get('c', 0.005))
+    self.paramDict['alpha'] = float(self.paramDict.get('alpha', 0.602))
+    self.paramDict['gamma'] = float(self.paramDict.get('gamma', 0.101))
+    self.paramDict['A']     = float(self.paramDict.get('A', self.limit['mdlEval']/10))
+    self.paramDict['a']     = float(self.paramDict.get('a', 0.16))
+    self.paramDict['c']     = float(self.paramDict.get('c', 0.005))
 
     self.constraintHandlingPara['innerBisectionThreshold'] = float(self.paramDict.get('innerBisectionThreshold', 1e-2))
     self.constraintHandlingPara['innerLoopLimit'] = float(self.paramDict.get('innerLoopLimit', 1000))
@@ -101,7 +101,7 @@ class SPSA(GradientBasedOptimizer):
     elif not self.readyVarsUpdate: # Not ready to update decision variables; continue to perturb for gradient evaluation
       if self.counter['perturbation'] == 1: # Generate all the perturbations at once
         self.gradDict['pertPoints'] = {}
-        ck = self._computeGainSequenceCk(self.gainParamDict,self.counter['varsUpdate']+1)
+        ck = self._computeGainSequenceCk(self.paramDict,self.counter['varsUpdate']+1)
         varK = copy.deepcopy(self.optVarsHist[self.counter['varsUpdate']])
         for ind in range(self.gradDict['numIterForAve']):
           self.gradDict['pertPoints'][ind] = {}
@@ -118,12 +118,11 @@ class SPSA(GradientBasedOptimizer):
         self.values[var] = copy.deepcopy(self.gradDict['pertPoints'][loc2][var][loc1])
 
     else: # Enough gradient evaluation for decision variable update
-      ak = self._computeGainSequenceAk(self.gainParamDict,self.counter['varsUpdate']) # Compute the new ak
+      ak = self._computeGainSequenceAk(self.paramDict,self.counter['varsUpdate']) # Compute the new ak
       gradient = self.evaluateGradient(self.gradDict['pertPoints'])
 
       self.optVarsHist[self.counter['varsUpdate']] = {}
       varK = copy.deepcopy(self.optVarsHist[self.counter['varsUpdate']-1])
-      varKPlus = {}
 
       varKPlus = self._generateVarsUpdateConstrained(ak,gradient,varK)
 
@@ -187,7 +186,7 @@ class SPSA(GradientBasedOptimizer):
       lenPendVector = np.sqrt(lenPendVector)
       
       rotateDegreeUpperLimit = 2
-      while self.angle_between(gradient, pendVector) > rotateDegreeUpperLimit:
+      while self.angleBetween(gradient, pendVector) > rotateDegreeUpperLimit:
         sumVector, lenSumVector = {}, 0
         for var in self.optVars:
           sumVector[var] = gradient[var] + pendVector[var]
@@ -239,11 +238,11 @@ class SPSA(GradientBasedOptimizer):
         frac = copy.deepcopy(bounds[1]+bounds[0])/2
     return False, None
 
-  def angle_between(self, d1, d2):
+  def angleBetween(self, d1, d2):
     """ Evaluate the angle between the two dictionaries of vars (d1 and d2) by means of the dot product. Unit: degree
-    @In, d1, dictionary, first vector
-    @In, d2, dictionary, second vector
-    @Out, angleD, float, angle between d1 and d2 with unit of degree
+    @ In, d1, dict, first vector
+    @ In, d2, dict, second vector
+    @ Out, angleD, float, angle between d1 and d2 with unit of degree
     """    
     v1, v2 = np.zeros(shape=[self.nVar,]), np.zeros(shape=[self.nVar,])
     for cnt, var in enumerate(self.optVars):
@@ -255,20 +254,6 @@ class SPSA(GradientBasedOptimizer):
     angleD = np.rad2deg(angle)
     self.raiseADebug(angleD)
     return angleD
-
-  def localEvaluateGradient(self, optVarsValues, gradient = None):
-    """
-      Local method to evaluate gradient.
-      @ In, optVarsValues, dict, Dictionary containing perturbed points.
-                                 optVarsValues should have the form {pertIndex: {varName: [varValue1 varValue2]}}
-                                 Therefore, each optVarsValues[pertIndex] should return a dict of variable values
-                                 that is sufficient for gradient evaluation for at least one variable
-                                 (depending on specific optimization algorithm)
-      @ In, gradient, dict, optional, dictionary containing gradient estimation by the caller.
-                                      gradient should have the form {varName: gradEstimation}
-      @ Out, gradient, dict, dictionary containing gradient estimation. gradient should have the form {varName: gradEstimation}
-    """
-    return gradient
 
   def _computeGainSequenceCk(self,paramDict,iterNum):
     """
@@ -291,20 +276,3 @@ class SPSA(GradientBasedOptimizer):
     a, A, alpha = paramDict['a'], paramDict['A'], paramDict['alpha']
     ak = a / (iterNum + A) ** alpha *1.0
     return ak
-
-  def localCheckConvergence(self, convergence = False):
-    """
-      Local method to check convergence.
-      @ In, convergence, bool, optional, variable indicating how the caller determines the convergence.
-      @ Out, convergence, bool, variable indicating whether the convergence criteria has been met.
-    """
-    return convergence
-
-  def localCheckConstraint(self, optVars, satisfaction = True):
-    """
-      Local method to check whether a set of decision variables satisfy the constraint or not
-      @ In, optVars, dict, dictionary containing the value of decision variables to be checked, in form of {varName: varValue}
-      @ In, satisfaction, bool, optional, variable indicating how the caller determines the constraint satisfaction at the point optVars
-      @ Out, satisfaction, bool, variable indicating the satisfaction of constraints at the point optVars
-    """
-    return satisfaction
