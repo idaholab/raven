@@ -47,6 +47,7 @@ class GradientBasedOptimizer(Optimizer):
     self.gradDict['pertNeeded'] = 1                   # Number of perturbation needed to evaluate gradient
     self.gradDict['pertPoints'] = {}                  # Dict containing inputs sent to model for gradient evaluation
     self.counter['perturbation'] = 0                  # Counter for the perturbation performed.
+    self.counter['solutionUpdate'] = 0
     self.readyVarsUpdate = None                       # Bool variable indicating the finish of gradient evaluation and the ready to update decision variables
 
   def localInputAndChecks(self, xmlNode):
@@ -106,30 +107,6 @@ class GradientBasedOptimizer(Optimizer):
       if len(self.mdlEvalHist) % (self.gradDict['pertNeeded']+1): ready = False
 
     ready = self.localLocalStillReady(ready, convergence)
-
-    ############### export optimization solution to self.solutionExport if present ######################
-    if self.readyVarsUpdate:
-      if self.solutionExport != None:
-        for var in self.solutionExport.getParaKeys('inputs'):
-          if var in self.optVars:
-            self.solutionExport.updateInputValue(var,self.optVarsHist[self.counter['varsUpdate']-1][var])
-        if 'varsUpdate' in self.solutionExport.getParaKeys('inputs'):
-          self.solutionExport.updateOutputValue('varsUpdate', self.counter['varsUpdate']-1)
-        for var in self.solutionExport.getParaKeys('outputs'):
-          if var == self.objVar:
-            self.solutionExport.updateInputValue(self.objVar, self.lossFunctionEval(self.optVarsHist[self.counter['varsUpdate']-1]))
-
-      if convergence:
-        if self.solutionExport != None:
-          for var in self.solutionExport.getParaKeys('inputs'):
-            if var in self.optVars:
-              self.solutionExport.updateInputValue(var,self.optVarsHist[self.counter['varsUpdate']][var])
-          if 'varsUpdate' in self.solutionExport.getParaKeys('inputs'):
-            self.solutionExport.updateOutputValue('varsUpdate', self.counter['varsUpdate'])
-          for var in self.solutionExport.getParaKeys('outputs'):
-            if var == self.objVar:
-              self.solutionExport.updateInputValue(self.objVar, self.lossFunctionEval(self.optVarsHist[self.counter['varsUpdate']]))
-    ######################################################################################################
 
     return ready
 
@@ -234,7 +211,38 @@ class GradientBasedOptimizer(Optimizer):
     """
     return satisfaction
 
+  def localFinalizeActualSampling(self,jobObject,model,myInput):
+    """
+      Overwrite only if you need something special at the end of each run....
+      This function is used by optimizers that need to collect information from the just ended run
+      @ In, jobObject, instance, an instance of a JobHandler
+      @ In, model, model instance, it is the instance of a RAVEN model
+      @ In, myInput, list, the generating input
+    """    
+    if self.solutionExport != None:
+      evaluation = jobObject.getEvaluation()
+      inputeval = evaluation[0]
+      if type(evaluation[1]).__name__ == "tuple":
+        outputeval = evaluation[1][0]
+      else:
+        outputeval = evaluation[1]
 
-
-
-
+      solutionExportUpdatedFlag = True
+      if self.counter['solutionUpdate'] <= self.counter['varsUpdate']:# and self.counter['solutionUpdate'] in self.optVarsHist.keys():
+        for var in self.optVars:
+          if self.optVarsHist[self.counter['solutionUpdate']][var] != inputeval[var]:
+            solutionExportUpdatedFlag = False
+            break
+      else:
+        solutionExportUpdatedFlag = False
+      if solutionExportUpdatedFlag:
+        # update solution export
+        for var in self.solutionExport.getParaKeys('inputs'):
+          if var in self.optVars:
+            self.solutionExport.updateInputValue(var,inputeval[var])
+        if 'varsUpdate' in self.solutionExport.getParaKeys('inputs'):
+          self.solutionExport.updateInputValue('varsUpdate', np.asarray([self.counter['solutionUpdate']]))
+        for var in self.solutionExport.getParaKeys('outputs'):
+          if var == self.objVar:
+            self.solutionExport.updateOutputValue(var, outputeval[var])
+        self.counter['solutionUpdate'] += 1
