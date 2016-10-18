@@ -1116,7 +1116,8 @@ class OutStreamPlot(OutStreamManager):
                         self.actcm.set_clim(vmin = min(self.colorMapValues[pltindex][key][-1]), vmax = max(self.colorMapValues[pltindex][key][-1]))
                         self.actcm.draw_all()
                 else:
-                  scatterPlotOptions['c'] = plotSettings['c']
+                  if 'color' not in scatterPlotOptions:
+                    scatterPlotOptions['c'] = plotSettings['c']
                   self.actPlot = self.plt.scatter(self.xValues[pltindex][key][xIndex], self.yValues[pltindex][key][yIndex], **scatterPlotOptions)
               elif self.dim == 3:
                 scatterPlotOptions['rasterized'] = True
@@ -1151,7 +1152,8 @@ class OutStreamPlot(OutStreamManager):
                           self.actcm.set_clim(vmin = min(self.colorMapValues[pltindex][key][-1]), vmax = max(self.colorMapValues[pltindex][key][-1]))
                           self.actcm.draw_all()
                   else:
-                    scatterPlotOptions['c'] = plotSettings['c']
+                    if 'color' not in scatterPlotOptions:
+                      scatterPlotOptions['c'] = plotSettings['c']
                     self.actPlot = self.plt3D.scatter(self.xValues[pltindex][key][xIndex], self.yValues[pltindex][key][yIndex], self.zValues[pltindex][key][zIndex], **scatterPlotOptions)
 
       #################
