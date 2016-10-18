@@ -218,7 +218,7 @@ class GradientBasedOptimizer(Optimizer):
       @ In, jobObject, instance, an instance of a JobHandler
       @ In, model, model instance, it is the instance of a RAVEN model
       @ In, myInput, list, the generating input
-    """    
+    """
     if self.solutionExport != None:
       evaluation = jobObject.getEvaluation()
       inputeval = evaluation[0]
