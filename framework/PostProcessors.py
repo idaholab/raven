@@ -2774,7 +2774,13 @@ class ExternalPostProcessor(BasePostProcessor):
           inputDict['targets'][param] = item.getParam('input', param)
         for param in item.getParaKeys('output'):
           inputDict['targets'][param] = item.getParam('output', param)
-
+        metadata.append(item.getAllMetadata())
+      elif inType =='HistorySet':
+        outs, ins = item.getOutParametersValues(nodeId = 'ending'), item.getInpParametersValues(nodeId = 'ending')
+        for param in item.getParaKeys('output'):
+          inputDict['targets'][param] = [value[param] for value in outs.values()]
+        for param in item.getParaKeys('input'):
+          inputDict['targets'][param] =  [value[param] for value in ins.values()]
         metadata.append(item.getAllMetadata())
       elif inType != 'list':
         self.raiseAWarning(self, 'Input type ' + type(item).__name__ + ' not recognized. I am going to skip it.')
@@ -2838,7 +2844,7 @@ class ExternalPostProcessor(BasePostProcessor):
     if finishedJob.getEvaluation() == -1:
       # #TODO This does not feel right
       self.raiseAnError(RuntimeError, 'No available Output to collect (Run probably did not finish yet)')
-
+    dataLenghtHistory = {}
     inputList = finishedJob.getEvaluation()[0]
     outputDict = finishedJob.getEvaluation()[1]
 
@@ -2850,7 +2856,7 @@ class ExternalPostProcessor(BasePostProcessor):
     elif output.type == 'HDF5':
       self.raiseAWarning('Output type ' + type(output).__name__
                          + ' not yet implemented. I am going to skip it.')
-    elif output.type == 'PointSet':
+    elif output.type in ['PointSet','HistorySet'] :
       requestedInput = output.getParaKeys('input')
       ## If you want to be able to dynamically add columns to your data, then
       ## you should use this commented line, otherwise only the information
@@ -2890,13 +2896,19 @@ class ExternalPostProcessor(BasePostProcessor):
           foundCount = 0
           if key in requestedInput:
             for inputData in inputList:
-              if key in inputData.getParametersValues('input').keys():
-                value = inputData.getParametersValues('input')[key]
+              if key in inputData.getParametersValues('input',nodeId = 'ending').keys() if inputData.type == 'PointSet' else inputData.getParametersValues('input',nodeId = 'ending').values()[-1].keys():
+                if inputData.type == 'PointSet':
+                  value = inputData.getParametersValues('input',nodeId = 'ending')[key]
+                else:
+                  value = [value[key] for value in inputData.getParametersValues('input',nodeId = 'ending').values()]
                 foundCount += 1
           else:
             for inputData in inputList:
-                if key in inputData.getParametersValues('output').keys():
-                  value = inputData.getParametersValues('output')[key]
+                if key in inputData.getParametersValues('output',nodeId = 'ending').keys() if inputData.type == 'PointSet' else inputData.getParametersValues('output',nodeId = 'ending').values()[-1].keys():
+                  if inputData.type == 'PointSet':
+                    value = inputData.getParametersValues('output',nodeId = 'ending')[key]
+                  else:
+                    value = [value[key] for value in inputData.getParametersValues('output',nodeId = 'ending').values()]
                   foundCount += 1
 
           if foundCount == 0:
@@ -2927,11 +2939,17 @@ class ExternalPostProcessor(BasePostProcessor):
         ## accessible
         if storeInOutput:
           if key in requestedInput:
-            for val in value:
-              output.updateInputValue(key, val)
+            for histNum, val in enumerate(value):
+              param = key if output.type == 'PointSet' else [histNum+1,key]
+              output.updateInputValue(param, val)
           else:
-            for val in value:
-              output.updateOutputValue(key, val)
+            for histNum, val in enumerate(value):
+              if output.type == 'HistorySet':
+                if histNum+1 in dataLenghtHistory.keys():
+                  if dataLenghtHistory[histNum+1] != len(val): self.raiseAnError(IOError, key + ' the size of the arrays for history '+str(histNum+1)+' are different!')
+                else: dataLenghtHistory[histNum+1] = len(val)
+              param = key if output.type == 'PointSet' else [histNum+1,key]
+              output.updateOutputValue(param, val)
         else:
           if not hasattr(value, "__iter__"):
             value = [value]
@@ -2962,8 +2980,6 @@ class ExternalPostProcessor(BasePostProcessor):
       for interface in self.externalInterfaces:
         if method in interface.availableMethods():
           matchingInterfaces.append(interface)
-
-
       if len(matchingInterfaces) == 0:
         self.raiseAWarning(method + ' not found. I will skip it.')
       elif len(matchingInterfaces) == 1:
@@ -2977,11 +2993,29 @@ class ExternalPostProcessor(BasePostProcessor):
 
     ## Evaluate the method and add it to the outputDict, also if the method
     ## adjusts the input data, then you should update it as well.
+    warningMessages = []
     for methodName, (interface, method) in methodMap.iteritems():
       outputDict[methodName] = interface.evaluate(method, input['targets'])
+      if outputDict[methodName] is None: self.raiseAnError(Exception,"the method "+methodName+" has not produced any result. It needs to return a result!")
       for target in input['targets']:
         if hasattr(interface, target):
-          outputDict[target] = getattr(interface, target)
+          #if target not in outputDict.keys():
+          if target not in methodMap.keys():
+            attributeInSelf = getattr(interface, target)
+            if len(np.atleast_1d(attributeInSelf)) != len(np.atleast_1d(input['targets'][target])) or (np.atleast_1d(attributeInSelf) - np.atleast_1d(input['targets'][target])).all():
+              if target in outputDict.keys(): self.raiseAWarning("In Post-Processor "+ self.name +" the modified variable "+target+
+                               " has the same name of a one already modified throuhg another Function method." +
+                               " This method overwrites the input DataObject variable value")
+              outputDict[target] = attributeInSelf
+          else:
+            warningMessages.append("In Post-Processor "+ self.name +" the method "+method+
+                               " has the same name of a variable contained in the input DataObject." +
+                               " This method overwrites the input DataObject variable value")
+    for msg in list(set(warningMessages)): self.raiseAWarning(msg)
+
+    for target in input['targets'].keys():
+      if target not in outputDict.keys() and target in input['targets'].keys():
+        outputDict[target] = input['targets'][target]
 
     return outputDict
 
