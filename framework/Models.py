@@ -1660,7 +1660,18 @@ class EnsembleModel(Dummy, Assembler):
     self.isConnected      = {}
     
     executionList         = [[]]
-#     
+    
+    modelsToInputModels = dict.fromkeys(self.modelsDictionary.keys(),None)
+    for modelIn in self.modelsDictionary.keys():
+      inputtMatch = []
+      for i in range(len(self.modelsDictionary[modelIn]['Output'])):
+        match = self.__findMatchingModel('Output',self.modelsDictionary[modelIn]['Input'][i])
+        inputtMatch.extend(match if match is not None else [])
+      inputMatch = list(set(inputMatch)) 
+      modelsToInputModels[modelIn] = inputMatch
+      
+      
+#       
 #     realTree = TreeStructure.NodeTree(TreeStructure.Node(self.name))
 #     rootBranch = TreeStructure.Node(self.name)
 #     modelToCheck = []
