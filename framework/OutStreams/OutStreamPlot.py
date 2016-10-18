@@ -1116,7 +1116,8 @@ class OutStreamPlot(OutStreamManager):
                         self.actcm.set_clim(vmin = min(self.colorMapValues[pltindex][key][-1]), vmax = max(self.colorMapValues[pltindex][key][-1]))
                         self.actcm.draw_all()
                 else:
-                  scatterPlotOptions['c'] = plotSettings['c']
+                  if 'color' not in scatterPlotOptions:
+                    scatterPlotOptions['c'] = plotSettings['c']
                   self.actPlot = self.plt.scatter(self.xValues[pltindex][key][xIndex], self.yValues[pltindex][key][yIndex], **scatterPlotOptions)
               elif self.dim == 3:
                 scatterPlotOptions['rasterized'] = True
@@ -1151,7 +1152,8 @@ class OutStreamPlot(OutStreamManager):
                           self.actcm.set_clim(vmin = min(self.colorMapValues[pltindex][key][-1]), vmax = max(self.colorMapValues[pltindex][key][-1]))
                           self.actcm.draw_all()
                   else:
-                    scatterPlotOptions['c'] = plotSettings['c']
+                    if 'color' not in scatterPlotOptions:
+                      scatterPlotOptions['c'] = plotSettings['c']
                     self.actPlot = self.plt3D.scatter(self.xValues[pltindex][key][xIndex], self.yValues[pltindex][key][yIndex], self.zValues[pltindex][key][zIndex], **scatterPlotOptions)
 
       #################
@@ -1855,8 +1857,7 @@ class OutStreamPlot(OutStreamManager):
       ## We are skipping a few of the sanity checks done in that function,
       ## since we are sure we have an interactive backend and access to the
       ## correct type of canvas and figure.
-      if self.fig.stale:
-        self.fig.canvas.draw()
+      self.fig.canvas.draw()
       self.plt.show(block=False)
       ## If your graphs are unresponsive to user input, you may want to consider
       ## adjusting this timeout, to allow more time for the input to be handled.
