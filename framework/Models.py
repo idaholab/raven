@@ -1661,14 +1661,30 @@ class EnsembleModel(Dummy, Assembler):
     
     executionList         = [[]]
     
-    modelsToInputModels = dict.fromkeys(self.modelsDictionary.keys(),None)
+    modelsToInputModels  = dict.fromkeys(self.modelsDictionary.keys(),None)
+    modelsToOutputModels = dict.fromkeys(self.modelsDictionary.keys(),None)
+    
     for modelIn in self.modelsDictionary.keys():
       inputtMatch = []
-      for i in range(len(self.modelsDictionary[modelIn]['Output'])):
+      for i in range(len(self.modelsDictionary[modelIn]['Input'])):
         match = self.__findMatchingModel('Output',self.modelsDictionary[modelIn]['Input'][i])
         inputtMatch.extend(match if match is not None else [])
-      inputMatch = list(set(inputMatch)) 
-      modelsToInputModels[modelIn] = inputMatch
+      inputtMatch = list(set(inputtMatch)) 
+      modelsToInputModels[modelIn] = inputtMatch
+      outputMatch = []
+      for i in range(len(self.modelsDictionary[modelIn]['Output'])):
+        match = self.__findMatchingModel('Input',self.modelsDictionary[modelIn]['Output'][i])
+        outputMatch.extend(match if match is not None else [])
+      outputMatch = list(set(outputMatch)) 
+      modelsToOutputModels[modelIn] = outputMatch
+    
+    print("ok")
+    
+    
+    
+    
+    
+    
       
       
 #       
