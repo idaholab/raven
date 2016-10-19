@@ -84,33 +84,33 @@
       <method>HistorySetSampling</method>
       <samplingType>uniform</samplingType>
       <numberOfSamples>10</numberOfSamples>
-      <timeID>time</timeID>
+      <pivotParameter>time</pivotParameter>
       <interpolation>cubic</interpolation>
     </PostProcessor>
     <PostProcessor name="historySamplingPP_first" subType="InterfacedPostProcessor">
       <method>HistorySetSampling</method>
       <samplingType>firstDerivative</samplingType>
       <numberOfSamples>10</numberOfSamples>
-      <timeID>time</timeID>
+      <pivotParameter>time</pivotParameter>
       <interpolation>cubic</interpolation>
     </PostProcessor>
     <PostProcessor name="historySamplingPP_second" subType="InterfacedPostProcessor">
       <method>HistorySetSampling</method>
       <samplingType>secondDerivative</samplingType>
       <numberOfSamples>10</numberOfSamples>
-      <timeID>time</timeID>
+      <pivotParameter>time</pivotParameter>
       <interpolation>cubic</interpolation>
     </PostProcessor>
     <PostProcessor name="historySamplingPP_filt_first" subType="InterfacedPostProcessor">
       <method>HistorySetSampling</method>
       <samplingType>filteredFirstDerivative</samplingType>
-      <timeID>time</timeID>
+      <pivotParameter>time</pivotParameter>
       <tolerance>200</tolerance>
     </PostProcessor>
     <PostProcessor name="historySamplingPP_filt_second" subType="InterfacedPostProcessor">
       <method>HistorySetSampling</method>
       <samplingType>filteredSecondDerivative</samplingType>
-      <timeID>time</timeID>
+      <pivotParameter>time</pivotParameter>
       <tolerance>5000</tolerance>
     </PostProcessor>
   </Models>

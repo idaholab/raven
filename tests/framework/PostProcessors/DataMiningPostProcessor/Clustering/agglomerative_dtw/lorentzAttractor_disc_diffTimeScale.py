@@ -24,7 +24,7 @@ def run(self,Input):
     self.sigma = 10.0
     self.rho   = -28.0
     self.beta  = 8.0/3.0
-      
+
   numberTimeSteps = int(max_time/t_step)
 
   self.x    = np.zeros(numberTimeSteps)
@@ -40,7 +40,7 @@ def run(self,Input):
   self.y[0] = Input['y0']
   self.z[0] = Input['z0']
   self.time[0]= 0.0
-  
+
   for t in range (numberTimeSteps-1):
     self.time[t+1] = self.time[t] + t_step
     self.x[t+1]    = self.x[t] + disc*self.sigma*(self.y[t]-self.x[t]) * t_step

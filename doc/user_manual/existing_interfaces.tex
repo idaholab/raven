@@ -172,13 +172,13 @@ EDITS block and those variables are the only one the INTERFACE will read and mak
 \end{itemize}
 }
 
-Remeber also that a RELAP5 simulation run is considered succesfull (i.e., the simualtion did not crash) if it terminates with the following message:
+Remeber also that a RELAP5 simulation run is considered successfull (i.e., the simualtion did not crash) if it terminates with the following message:
 
 \textcolor{red}{Transient terminated by end of time step cards}
 
 If the a RELAP5 simulation run stops with messages other than this one (e.g., `` Transient terminated by failure.'') than the simulation is considered as 
 crashed, i.e., it will not be saved.
-Hence, it is strongly recommended to set up the RELAP5 input file so that the simualtion exiting conditions are set through control logic trip variables 
+Hence, it is strongly recommended to set up the RELAP5 input file so that the simulation exiting conditions are set through control logic trip variables 
 (e.g., simulation mission time and clad temperature equal to clad failure temperature).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

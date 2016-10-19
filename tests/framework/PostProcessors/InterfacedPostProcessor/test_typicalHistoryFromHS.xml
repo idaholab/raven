@@ -14,7 +14,7 @@
 		<PostProcessor name = 'TypicalHistory' subType = 'InterfacedPostProcessor'>
 			<method>TypicalHistoryFromHistorySet</method>
 			<subseqLen>3600</subseqLen>
-			<timeID>Time</timeID>
+			<pivotParameter>Time</pivotParameter>
 		</PostProcessor>			
     </Models>
     <Steps>

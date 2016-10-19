@@ -33,7 +33,7 @@
     </ExternalModel>
     <PostProcessor name="HS2PS" subType="InterfacedPostProcessor">
       <method>HS2PS</method>
-      <timeID>time</timeID>
+      <pivotParameter>time</pivotParameter>
     </PostProcessor>
   </Models>
 

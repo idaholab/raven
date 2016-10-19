@@ -86,7 +86,7 @@
   [./HierarchicalScipy]
     type   = 'RavenFramework'
     input  = 'test_dataMiningHierarchical.xml'
-    csv    = 'Hierarchical/dummy.csv Hierarchical/dummy.xml'
+    csv    = 'Hierarchical/dummy.csv'
     output = 'Hierarchical/1-PlotHierarchical_scatter.png'
   [../]
   [./agglomerativeDTW]

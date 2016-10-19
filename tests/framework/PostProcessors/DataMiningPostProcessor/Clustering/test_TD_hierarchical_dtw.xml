@@ -42,7 +42,7 @@
   </Models>
 
   <Metrics>
-    <DTW name="example" subType="">
+    <DTW name="example">
       <order>0</order>
       <pivotParameter>time</pivotParameter>
       <localDistance>euclidean</localDistance>

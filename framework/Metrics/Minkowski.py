@@ -33,9 +33,9 @@ class Minkowski(Metric):
       @ Out, none
     """
     self.p = None
-    self.timeID = None
+    self.pivotParameter = None
 
-  def _readMoreXML(self,xmlNode):  
+  def readMoreXML(self,xmlNode):
     """
       Method that reads the portion of the xml input that belongs to this specialized class
       and initialize internal parameters
@@ -46,7 +46,7 @@ class Minkowski(Metric):
       if child.tag == 'p':
         self.p = float(child.text)
       if child.tag == 'pivotParameter':
-        self.timeID = child.text
+        self.pivotParameter = child.text
 
   def distance(self,x,y):
     """
@@ -56,16 +56,16 @@ class Minkowski(Metric):
       @ Out, value, float, distance between x and y
     """
     if isinstance(x,np.ndarray) and isinstance(y,np.ndarray):
-      value = spDist.minkowski(x, y, self.p)     
+      value = spDist.minkowski(x, y, self.p)
       return value
     elif isinstance(x,dict) and isinstance(y,dict):
-      if self.timeID == None:
-        self.raiseAnError(IOError,'The Minkowski metrics is being used on a historySet without the parameter timeID being specified')
+      if self.pivotParameter == None:
+        self.raiseAnError(IOError,'The Minkowski metrics is being used on a historySet without the parameter pivotParameter being specified')
       if x.keys() == y.keys():
         value = 0
         for key in x.keys():
           if x[key].size == y[key].size:
-            if key != self.timeID:
+            if key != self.pivotParameter:
               value += spDist.minkowski(x[key], y[key], self.p)
             value = math.pow(value,1.0/self.p)
             return value

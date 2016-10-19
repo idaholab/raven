@@ -3619,20 +3619,20 @@ class DataMining(BasePostProcessor):
           inputDict['Features'][param] = currentInput.getParam('input', param)
         for param in outParams:
           inputDict['Features'][param] = currentInput.getParam('output', param)
-    
+
     elif currentInput.type in ['HistorySet']:
       if self.initializationOptionDict['KDD']['Features'] == 'input':
         for param in currentInput.getParaKeys('input'):
           inputDict['Features'][param] = currentInput.getParam('input', param)
       elif self.initializationOptionDict['KDD']['Features'] == 'output':
-        inputDict['Features'] = currentInput.getOutParametersValues() 
+        inputDict['Features'] = currentInput.getOutParametersValues()
       elif self.initializationOptionDict['KDD']['Features'] == 'all':
         for param in allInputFeatures:
           inputDict['Features'][param] = currentInput.getParam('input', param)
         for param in allOutputFeatures:
           inputDict['Features'][param] = currentInput.getParam('output', param)
-      else:  
-        features = set(self.initializationOptionDict['KDD']['Features'].split(',')) 
+      else:
+        features = set(self.initializationOptionDict['KDD']['Features'].split(','))
         allInputFeatures = currentInput.getParaKeys('input')
         allOutputFeatures = currentInput.getParaKeys('output')
         inParams = list(features.intersection(allInputFeatures))
@@ -3644,7 +3644,7 @@ class DataMining(BasePostProcessor):
             inputDict['Features'][hist][param] = currentInput._dataContainer['inputs'][hist][param]
           for param in outParams:
             inputDict['Features'][hist][param] = currentInput._dataContainer['outputs'][hist][param]
-                    
+
       inputDict['metadata'] = currentInput.getAllMetadata()
 
     ## Redundant if-conditional preserved as a placeholder for potential future
@@ -3829,7 +3829,7 @@ class DataMining(BasePostProcessor):
     ##     - Dimensionality Reduction
     ##       - Manifold Learning
     ##       - Linear projection methods
-    if 'cluster' == self.unSupervisedEngine.returnDataminingType():
+    if 'cluster' == self.unSupervisedEngine.getDataMiningType():
       ## Get the cluster labels and store as a new column in the output
       #assert  'labels' in self.unSupervisedEngine.outputDict.keys()== hasattr(self.unSupervisedEngine, 'labels_')
       if hasattr(self.unSupervisedEngine, 'labels_'):
@@ -3881,9 +3881,9 @@ class DataMining(BasePostProcessor):
       if hasattr(self.unSupervisedEngine, 'inertia_'):
         inertia = self.unSupervisedEngine.inertia_
 
-    elif 'bicluster' == self.unSupervisedEngine.returnDataminingType():
+    elif 'bicluster' == self.unSupervisedEngine.getDataMiningType():
       self.raiseAnError(RuntimeError, 'Bicluster has not yet been implemented.')
-    elif 'mixture' == self.unSupervisedEngine.returnDataminingType():
+    elif 'mixture' == self.unSupervisedEngine.getDataMiningType():
       if   hasattr(self.unSupervisedEngine, 'covars_'):
         mixtureCovars = self.unSupervisedEngine.covars_
 
@@ -3914,7 +3914,7 @@ class DataMining(BasePostProcessor):
               j = i+joffset
               self.solutionExport.updateOutputValue('cov_'+str(row)+'_'+str(col),mixtureCovars[index][i,j])
 
-    elif 'manifold' == self.unSupervisedEngine.returnDataminingType():
+    elif 'manifold' == self.unSupervisedEngine.getDataMiningType():
       manifoldValues = self.unSupervisedEngine.normValues
 
       if hasattr(self.unSupervisedEngine, 'embeddingVectors_'):
@@ -3934,7 +3934,7 @@ class DataMining(BasePostProcessor):
         newColumnName = self.labelFeature + str(i + 1)
         outputDict['output'][newColumnName] =  embeddingVectors[:, i]
 
-    elif 'decomposition' == self.unSupervisedEngine.returnDataminingType():
+    elif 'decomposition' == self.unSupervisedEngine.getDataMiningType():
       decompositionValues = self.unSupervisedEngine.normValues
 
       if hasattr(self.unSupervisedEngine, 'noComponents_'):
@@ -3969,7 +3969,7 @@ class DataMining(BasePostProcessor):
           for col,value in zip(self.unSupervisedEngine.features.keys(),values):
             self.solutionExport.updateOutputValue(col,value)
 
-          self.solutionExport.updateOutputValue('ExplainedVarianceRatio',explainedVarianceRatio[row]) 
+          self.solutionExport.updateOutputValue('ExplainedVarianceRatio',explainedVarianceRatio[row])
     return outputDict
 
 
@@ -3992,7 +3992,7 @@ class DataMining(BasePostProcessor):
     numberOfHistoryStep = self.unSupervisedEngine.numberOfHistoryStep
     numberOfSample = self.unSupervisedEngine.numberOfSample
 
-    if 'cluster' == self.unSupervisedEngine.returnDataminingType():
+    if 'cluster' == self.unSupervisedEngine.getDataMiningType():
       if 'labels' in self.unSupervisedEngine.outputDict.keys():
         labels = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
         for t in range(numberOfHistoryStep):
@@ -4047,7 +4047,7 @@ class DataMining(BasePostProcessor):
       if 'inertia' in self.unSupervisedEngine.outputDict.keys():
         inertia = self.unSupervisedEngine.outputDict['inertia']
 
-    elif 'mixture' == self.unSupervisedEngine.returnDataminingType():
+    elif 'mixture' == self.unSupervisedEngine.getDataMiningType():
       if 'labels' in self.unSupervisedEngine.outputDict.keys():
         labels = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
         for t in range(numberOfHistoryStep):
@@ -4119,7 +4119,7 @@ class DataMining(BasePostProcessor):
                   timeSeries[timeIdx] = mixtureCovars[timeIdx][loc][i,j]
                 self.solutionExport.updateOutputValue('cov_'+str(row)+'_'+str(col),timeSeries)
 
-    elif 'manifold' == self.unSupervisedEngine.returnDataminingType():
+    elif 'manifold' == self.unSupervisedEngine.getDataMiningType():
       noComponents = self.unSupervisedEngine.outputDict['noComponents'][0]
 
       if 'embeddingVectors_' in self.unSupervisedEngine.outputDict.keys():
@@ -4139,7 +4139,7 @@ class DataMining(BasePostProcessor):
         for t in range(numberOfHistoryStep):
           outputDict['output'][self.name+'EmbeddingVector' + str(i + 1)][:,t] =  embeddingVectors[t][:, i]
 
-    elif 'decomposition' == self.unSupervisedEngine.returnDataminingType():
+    elif 'decomposition' == self.unSupervisedEngine.getDataMiningType():
       decompositionValues = self.unSupervisedEngine.normValues
 
       noComponents = self.unSupervisedEngine.outputDict['noComponents'][0]
@@ -4192,7 +4192,7 @@ class DataMining(BasePostProcessor):
             self.solutionExport.updateOutputValue('ExplainedVarianceRatio',timeSeries)
 
     else:
-      self.raiseAnError(IOError,'%s has not yet implemented.' % self.unSupervisedEngine.returnDataminingType())
+      self.raiseAnError(IOError,'%s has not yet implemented.' % self.unSupervisedEngine.getDataMiningType())
 
     return outputDict
 #

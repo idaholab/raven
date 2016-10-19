@@ -281,9 +281,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
     if type(solutionExport).__name__ != "PointSet": self.raiseAnError(IOError,'solutionExport type is not a PointSet. Got '+ type(solutionExport).__name__+'!')
     self.surfPoint         = None             #coordinate of the points considered on the limit surface
     self.oldTestMatrix     = OrderedDict()    #This is the test matrix to use to store the old evaluation of the function
-    self.persistenceMatrix = OrderedDict()    #this is a matrix that for each point of the testing grid tracks the persistence of the limit surface position    
-    print(self.goalFunction.name)
-    print(self.solutionExport.getParaKeys('output'))
+    self.persistenceMatrix = OrderedDict()    #this is a matrix that for each point of the testing grid tracks the persistence of the limit surface position
     if self.goalFunction.name not in self.solutionExport.getParaKeys('output'): self.raiseAnError(IOError,'Goal function name does not match solution export data output.')
     # set number of job request-able after a new evaluation
     self._endJobRunnable   = 1

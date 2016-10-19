@@ -50,7 +50,7 @@
     <PostProcessor name="historySamplingPP1" subType="InterfacedPostProcessor">
       <method>HistorySetSync</method>
       <numberOfSamples>20</numberOfSamples>
-      <timeID>time</timeID>
+      <pivotParameter>time</pivotParameter>
       <extension>zeroed</extension>
       <syncMethod>grid</syncMethod>
     </PostProcessor>
@@ -58,7 +58,7 @@
       <method>HistorySetSync</method>
       <syncMethod>grid</syncMethod>
       <numberOfSamples>20</numberOfSamples>
-      <timeID>time</timeID>
+      <pivotParameter>time</pivotParameter>
       <extension>extended</extension>
       <syncMethod>grid</syncMethod>
     </PostProcessor>

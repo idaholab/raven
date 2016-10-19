@@ -40,13 +40,13 @@ class HistorySetSnapShot(PostProcessorInterfaceBase):
     self.outputFormat = 'PointSet'
 
     self.type     = None
-    self.timeID   = None
+    self.pivotParameter   = None
     self.pivotVar = None
     self.pivotVal = None
     self.timeInstant = None
 
     self.numberOfSamples = None
-    self.timeID          = None
+    self.pivotParameter          = None
     self.interpolation   = None
 
     self.classifiers = {} #for "mixed" mode
@@ -65,8 +65,8 @@ class HistorySetSnapShot(PostProcessorInterfaceBase):
         self.numberOfSamples = int(child.text)
       elif tag == 'extension':
         self.extension = child.text
-      elif tag == 'timeID':
-        self.timeID = child.text
+      elif tag == 'pivotParameter':
+        self.pivotParameter = child.text
       elif tag == 'pivotVar':
         self.pivotVar = child.text
       elif tag == 'pivotVal':
@@ -101,10 +101,10 @@ class HistorySetSnapShot(PostProcessorInterfaceBase):
       elif tag !='method':
         self.raiseAnError(IOError, 'HistorySetSnapShot Interfaced Post-Processor ' + str(self.name) + ' : XML node ' + str(child.tag) + ' is not recognized')
 
-    needsTimeID = ['average','timeSlice']
-    if self.type in needsTimeID or any(mode in self.classifiers.keys() for mode in needsTimeID):
-      if self.timeID is None:
-        self.raiseAnError(IOError,'"timeID" is required for',needsTimeID,'but not provided!')
+    needspivotParameter = ['average','timeSlice']
+    if self.type in needspivotParameter or any(mode in self.classifiers.keys() for mode in needspivotParameter):
+      if self.pivotParameter is None:
+        self.raiseAnError(IOError,'"pivotParameter" is required for',needspivotParameter,'but not provided!')
 
     #sync if needed
     if self.type == 'timeSlice':
@@ -118,7 +118,7 @@ class HistorySetSnapShot(PostProcessorInterfaceBase):
       #perform sync
       PostProcessorInterfaces = importlib.import_module("PostProcessorInterfaces")
       self.HSsyncPP = PostProcessorInterfaces.returnPostProcessorInterface('HistorySetSync',self)
-      self.HSsyncPP.initialize(self.numberOfSamples,self.timeID,self.extension,syncMethod='grid')
+      self.HSsyncPP.initialize(self.numberOfSamples,self.pivotParameter,self.extension,syncMethod='grid')
 
     if self.type not in set(['min','max','average','value','timeSlice','mixed']):
       self.raiseAnError(IOError, 'HistorySetSnapShot Interfaced Post-Processor "' + str(self.name) + '" : type "%s" is not recognized' %self.type)
@@ -136,11 +136,11 @@ class HistorySetSnapShot(PostProcessorInterfaceBase):
     #for timeSlice we call historySetWindow
     if self.type == 'timeSlice':
       outputHSDic = self.HSsyncPP.run(inputDic)
-      outputPSDic = historySetWindow(outputHSDic,self.timeInstant,self.timeID)
+      outputPSDic = historySetWindow(outputHSDic,self.timeInstant,self.pivotParameter)
       return outputPSDic
     #for other non-mixed methods we call historySnapShot
     elif self.type != 'mixed':
-      outputPSDic = historySnapShot(inputDic,self.pivotVar,self.type,self.pivotVal,self.timeID)
+      outputPSDic = historySnapShot(inputDic,self.pivotVar,self.type,self.pivotVal,self.pivotParameter)
       return outputPSDic
     #mixed is more complicated: we pull out values by method instead of a single slice type
     #   We use the same methods to get slices, then pick out only the requested variables
@@ -159,16 +159,16 @@ class HistorySetSnapShot(PostProcessorInterfaceBase):
           for var in entries:
             getDict = historySnapShot(inputDic,var,method)
             outDict['data']['output'][var] = getDict['data']['output'][var]
-        #average requires the timeID
+        #average requires the pivotParameter
         elif method == 'average':
           for var in entries:
-            getDict = historySnapShot(inputDic,var,method,tempID=self.timeID)
+            getDict = historySnapShot(inputDic,var,method,tempID=self.pivotParameter)
             outDict['data']['output'][var] = getDict['data']['output'][var]
         #timeSlice requires the time value
         #functionality removed for now until we recall why it's desirable
         #elif method == 'timeSlice':
         #  for var,time in entries:
-        #    getDict = historySetWindow(inputDic,time,self.timeID)
+        #    getDict = historySetWindow(inputDic,time,self.pivotParameter)
         #value requires the dependent variable and value
         elif method == 'value':
           for var,depVar,depVal in entries:
@@ -241,12 +241,12 @@ def historySnapShot(inputDic, pivotVar, snapShotType, pivotVal=None, tempID = No
   return outputDic
 
 
-def historySetWindow(inputDic,timeStepID,timeID):
+def historySetWindow(inputDic,timeStepID,pivotParameter):
   """
   Method do to compute a conversion from HistorySet to PointSet using the temporal slice of the historySet
   @ In, inputDic, dict, it is an historySet
   @ In, timeStepID, int, number of time sample of each history
-  @ In, timeID, string, ID name of the temporal variable
+  @ In, pivotParameter, string, ID name of the temporal variable
   @ Out, outDic, dict, it contains the temporal slice of all histories
   """
 
@@ -259,7 +259,7 @@ def historySetWindow(inputDic,timeStepID,timeID):
   historiesID = inputDic['data']['output'].keys()
   inVars  = inputDic['data']['input'][historiesID[0]].keys()
   outVars = inputDic['data']['output'][historiesID[0]].keys()
-  outVars.remove(timeID)
+  outVars.remove(pivotParameter)
 
   for var in inVars:
     outputDic['data']['input'][var] = np.zeros(0)

@@ -44,7 +44,9 @@ d_p = \left ( \sum_{i=1}^{n} \left \| x_i-y_i \right \|^p \right )^\frac{1}{p}
 \end{equation}
 Minkowski distance is typically used with $p$ being 1 or 2. The latter one is the Euclidean distance, while the former is sometimes known as the 
 Manhattan distance. 
-Note that this metric can be employed for both PointSets and HisotrySets.
+Note that this metric can be employed for both PointSets and HistorySets.
+
+Note that for HistorySets, all histories must contain an equal number of samples.
 
 The specifications of a Minkowski distance must be defined within the XML block
 \xmlNode{Minkowski}.
@@ -75,7 +77,7 @@ An example of Minkowski distance defined in RAVEN is provided below:
 
 \subsection{Dynamic Time Warping}
 \label{subsection:DTW}
-The Dynamic Time Warping (DTW) is a distance metric that can be employed only for HistorySets (i.e., time dependent data).
+The Dynamic Time Warping (DTW) is a distanc metrice that can be employed only for HistorySets (i.e., time dependent data).
 
 The specifications of a DTW distance must be defined within the XML block.
 \xmlNode{DTW}.

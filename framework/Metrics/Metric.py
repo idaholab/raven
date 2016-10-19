@@ -34,10 +34,8 @@ class Metric(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     pass
 
   def _readMoreXML(self,xmlNode):
-    pass
+    self.readMoreXML(xmlNode)
 
-  def readMoreXML(self,xmlNode):
-    pass
 
   def distance(self,x,y,weights=None,paramDict=None):
     pass

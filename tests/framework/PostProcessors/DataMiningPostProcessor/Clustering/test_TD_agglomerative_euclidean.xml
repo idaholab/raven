@@ -34,7 +34,7 @@
   </Models>
 
   <Metrics>
-    <Minkowski name="example" subType="">
+    <Minkowski name="example">
 	    <p>2</p>
 	    <pivotParameter>time</pivotParameter>
     </Minkowski>
