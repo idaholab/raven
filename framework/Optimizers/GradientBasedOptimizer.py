@@ -41,7 +41,7 @@ class GradientBasedOptimizer(Optimizer):
       @ Out, None
     """
     Optimizer.__init__(self)
-    self.gainParamDict = {}                           # Dict containing parameters for gain used for update decision variables
+    self.constraintHandlingPara = {}                  # Dict containing parameters for parameters related to constraints handling
     self.gradDict = {}                                # Dict containing information for gradient related operations
     self.gradDict['numIterForAve'] = 1                # Number of iterations for gradient estimation averaging
     self.gradDict['pertNeeded'] = 1                   # Number of perturbation needed to evaluate gradient
@@ -203,7 +203,6 @@ class GradientBasedOptimizer(Optimizer):
     gradient = self.localEvaluateGradient(optVarsValues, gradient)
     return gradient
 
-  @abc.abstractmethod
   def localEvaluateGradient(self, optVarsValues, gradient = None):
     """
       Local method to evaluate gradient.
@@ -218,7 +217,6 @@ class GradientBasedOptimizer(Optimizer):
     """
     return gradient
 
-  @abc.abstractmethod
   def localCheckConvergence(self, convergence = False):
     """
       Local method to check convergence.
@@ -227,7 +225,14 @@ class GradientBasedOptimizer(Optimizer):
     """
     return convergence
 
-
+  def localCheckConstraint(self, optVars, satisfaction = True):
+    """
+      Local method to check whether a set of decision variables satisfy the constraint or not
+      @ In, optVars, dict, dictionary containing the value of decision variables to be checked, in form of {varName: varValue}
+      @ In, satisfaction, bool, optional, variable indicating how the caller determines the constraint satisfaction at the point optVars
+      @ Out, satisfaction, bool, variable indicating the satisfaction of constraints at the point optVars
+    """
+    return satisfaction
 
 
 
