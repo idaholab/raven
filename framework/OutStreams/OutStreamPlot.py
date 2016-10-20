@@ -869,26 +869,24 @@ class OutStreamPlot(OutStreamManager):
 
     if not foundPlot:
       self.raiseAnError(IOError, 'For plot named' + self.name + ', No plot section has been found in the plotSettings block!')
-    self.outStreamTypes = []
 
+    self.outStreamTypes = []
+    xyz, xy             = sorted(['x','y','z']), sorted(['x','y'])
     for pltindex in range(len(self.options['plotSettings']['plot'])):
       if not 'type' in self.options['plotSettings']['plot'][pltindex].keys():
         self.raiseAnError(IOError, 'For plot named' + self.name + ', No plot type keyword has been found in the plotSettings/plot block!')
       else:
         # check the dimension and check the consistency
-        if   set(['x','y','z']) < set(self.options['plotSettings']['plot'][pltindex].keys()):
-          if self.dim is not None and self.dim != 3: self.raiseAnError(IOError, 'The OutStream Plot '+self.name+' combines 2D and 3D plots. This is not supported!')
-          self.dim = 3
-        elif set(['x','y']) < set(self.options['plotSettings']['plot'][pltindex].keys()):
-          if self.options['plotSettings']['plot'][pltindex]['type'] == 'histogram':
-            if self.dim is not None and self.dim != 3: self.raiseAnError(IOError, 'The OutStream Plot '+self.name+' combines 2D and 3D plots. This is not supported!')
-            self.dim = 3
-          else:
-            if self.dim is not None and self.dim != 2: self.raiseAnError(IOError, 'The OutStream Plot '+self.name+' combines 2D and 3D plots. This is not supported!')
-            self.dim = 2
+        if set(xyz) < set(self.options['plotSettings']['plot'][pltindex].keys()):
+          dim = 3
+        elif set(xy) < set(self.options['plotSettings']['plot'][pltindex].keys()):
+          dim = 2 if self.options['plotSettings']['plot'][pltindex]['type'] != 'histogram' else 3
+        elif set(['x']) < set(self.options['plotSettings']['plot'][pltindex].keys()) and self.options['plotSettings']['plot'][pltindex]['type'] == 'histogram':
+          dim = 2
         else:
-          if self.options['plotSettings']['plot'][pltindex]['type'] != 'histogram': self.raiseAnError(IOError, 'Wrong dimension for plot '+self.name+'. 2D or 3D only!!!')
-          else                                                                    : self.dim = 2
+          self.raiseAnError(IOError, 'Wrong dimensionality or axis specification for plot '+self.name+'.')
+        if self.dim is not None and self.dim != dim: self.raiseAnError(IOError, 'The OutStream Plot '+self.name+' combines 2D and 3D plots. This is not supported!')
+        self.dim = dim
         if self.availableOutStreamTypes[self.dim].count(self.options['plotSettings']['plot'][pltindex]['type']) == 0:
           self.raiseAMessage('For plot named' + self.name + ', type ' + self.options['plotSettings']['plot'][pltindex]['type'] + ' is not among pre-defined plots! \n The OutstreamSystem will try to construct a call on the fly!', 'ExceptedError')
         self.outStreamTypes.append(self.options['plotSettings']['plot'][pltindex]['type'])
