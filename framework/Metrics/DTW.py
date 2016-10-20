@@ -78,8 +78,8 @@ class DTW(Metric):
         del tempX[self.pivotParameter]
         del tempY[self.pivotParameter]
         if self.order == 1:
-          tempX = self.derivative(tempX)
-          tempY = self.derivative(tempY)
+          tempX = np.gradient(tempX)
+          tempY = np.gradient(tempY)
         X = np.empty((len(tempX.keys()),timeLengthX))
         Y = np.empty((len(tempY.keys()),timeLengthY))
         for index, key in enumerate(tempX):
@@ -141,21 +141,4 @@ class DTW(Metric):
       q.insert(0, j)
     return np.array(p), np.array(q)
 
-  def derivative(self,x):
-    """
-      This method calculate the derivative of an history x. Note that method is computational expensive
-      @ In,  x, dict, dictionary containing data of y
-      @ Out, y, float, distance between x and y
-    """
-    y={}
-    for key in x.keys():
-      y[key] = np.zeros(len(x[key]))
-      for i in range(len(x[key])):
-        if i==0:
-          y[key][i] = 0.0
-        elif i == len(x[key])-1:
-          y[key][i] = 0.0
-        else:
-          y[key][i] = ((x[key][i]-x[key][i-1])+(x[key][i+1]-x[key][i-1])/2.0)/2.0
-    return y
 
