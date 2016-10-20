@@ -215,6 +215,7 @@ namespace ngl
 	};
 }
 
+/*
 template struct ngl::NGLParams<float>;
 template class ngl::NGLPointSet<float>;
 template class ngl::NGMethod<float>;
@@ -224,5 +225,6 @@ template struct ngl::NGLParams<double>;
 template class ngl::NGLPointSet<double>;
 template class ngl::NGMethod<double>;
 template class ngl::KNNMethod<double>;
+*/
 
 #endif

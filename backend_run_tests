@@ -102,15 +102,15 @@ else:
   from TestHarness import TestHarness
   sys.path.append(os.path.join("scripts","TestHarness","testers"))
   import RavenUtils
-  missing,tooOld,notQA = RavenUtils.checkForMissingModules()
-  if len(missing) + len(tooOld) > 0:
-    print("ERROR: too old or missing raven libraries, not running:")
-    for error in missing + tooOld + notQA:
+  missing,outOfRange,notQA = RavenUtils.checkForMissingModules()
+  if len(missing) + len(outOfRange) > 0 and RavenUtils.checkVersions():
+    print("ERROR: too old, too new, or missing raven libraries, not running:")
+    for error in missing + outOfRange + notQA:
       print(error)
   else:
     if len(notQA) > 0:
       print("WARNING: not using tested versions of the libraries:")
-      for warning in notQA:
+      for warning in notQA + missing + outOfRange:
         print(warning)
     # Run the tests!
     TestHarness.buildAndRun(sys.argv, app_name, MOOSE_DIR)

@@ -174,10 +174,11 @@ namespace ngl
 	 */
 }
 
+/*
 template struct ngl::NGLPoint<float>;
 template class ngl::Geometry<float>;
 
 template struct ngl::NGLPoint<double>;
 template class ngl::Geometry<double>;
-
+*/
 #endif

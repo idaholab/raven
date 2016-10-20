@@ -230,6 +230,32 @@ checkAnswer('NDInArray %s found' %str(findLarge),int(found),1)
 checkAnswer('NDInArray %s idx' %str(findLarge),idx,0)
 checkArray('NDInArray %s entry' %str(findLarge),entry,points[0])
 
+### check "normalizationFactors"
+zeroList       = [0,0,0,0,0]
+fourList       = [4,4,4,4,4]
+sequentialList = [0,1,2,3,4]
+
+factors = mathUtils.normalizationFactors(zeroList, mode='z')
+checkArray('Z-score normalization zeroList: ', factors, (0,1))
+factors = mathUtils.normalizationFactors(zeroList, mode='scale')
+checkArray('0-1 scaling zeroList: ', factors, (0,1))
+factors = mathUtils.normalizationFactors(zeroList, mode='none')
+checkArray('No scaling zeroList: ', factors, (0,1))
+
+factors = mathUtils.normalizationFactors(fourList, mode='z')
+checkArray('Z-score normalization fourList: ', factors, (4,4))
+factors = mathUtils.normalizationFactors(fourList, mode='scale')
+checkArray('0-1 scaling fourList: ', factors, (4,4))
+factors = mathUtils.normalizationFactors(fourList, mode='none')
+checkArray('No scaling fourList: ', factors, (0,1))
+
+factors = mathUtils.normalizationFactors(sequentialList, mode='z')
+checkArray('Z-score normalization sequentialList: ', factors, (2,1.41421356237))
+factors = mathUtils.normalizationFactors(sequentialList, mode='scale')
+checkArray('0-1 scaling sequentialList: ', factors, (0,4))
+factors = mathUtils.normalizationFactors(sequentialList, mode='none')
+checkArray('No scaling sequentialList: ', factors,(0,1))
+
 print(results)
 
 sys.exit(results["fail"])

@@ -433,6 +433,7 @@ namespace ngl
 	};
 }
 
+/*
 template class ngl::EdgeInfo<float>;
 template class ngl::EmptyRegionTest<float>;
 template class ngl::UmbraTest<float>;
@@ -444,4 +445,5 @@ template class ngl::EmptyRegionTest<double>;
 template class ngl::UmbraTest<double>;
 template class ngl::RelaxedEmptyRegionMethod<double>;
 template class ngl::EmptyRegionMethod<double>;
+*/
 #endif
