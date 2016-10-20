@@ -97,7 +97,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot dim="2" name="subPlot2" overwrite="false" verbosity="silent">
+    <Plot  name="subPlot2" overwrite="false" verbosity="silent">
       <plotSettings>
         <gridSpace>3 3 </gridSpace>
         <plot>
@@ -141,7 +141,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot dim="2" name="subPlot3" overwrite="false" verbosity="silent">
+    <Plot  name="subPlot3" overwrite="false" verbosity="silent">
       <plotSettings>
         <gridSpace>3 3 </gridSpace>
         <plot>

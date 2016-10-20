@@ -48,13 +48,6 @@
     </xsd:all>
   </xsd:complexType>
 
-  <xsd:simpleType name="dimInteger">
-    <xsd:restriction base="xsd:integer">
-      <xsd:minInclusive value="2"/>
-      <xsd:maxInclusive value="3"/>
-    </xsd:restriction>
-  </xsd:simpleType>
-
   <xsd:complexType name="PlotData">
     <xsd:all>
       <xsd:element name="kwargs" type="kwargsType" minOccurs="0"/>
@@ -63,7 +56,6 @@
       <xsd:element name="filename"     type="xsd:string" minOccurs="0"/>
     </xsd:all>
     <xsd:attribute name="name"        type="xsd:string" use="required"/>
-    <xsd:attribute name="dim"         type="dimInteger" use="required"/>
     <xsd:attribute name="interactive" type="RavenBool" default="false"/>
     <xsd:attribute name="overwrite"   type="RavenBool" default="false"/>
     <!-- Does this exist? -->
