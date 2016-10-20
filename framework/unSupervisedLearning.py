@@ -886,25 +886,25 @@ class temporalSciKitLearn(unSupervisedLearning):
         self.outputDict['componentMeanIndices'][t] = range(self.outputDict['noComponents'][t])
 
         # collect optional output
-        if hasattr(self.SKLEngine, 'weights_'):
+        if hasattr(self.SKLEngine.Method, 'weights_'):
           if 'weights' not in self.outputDict.keys():
             self.outputDict['weights'] = {}
-          self.outputDict['weights'][t] = self.SKLEngine.weights_
+          self.outputDict['weights'][t] = self.SKLEngine.Method.weights_
 
-        if hasattr(self.SKLEngine, 'covars_'):
+        if hasattr(self.SKLEngine.Method, 'covars_'):
           if 'covars' not in self.outputDict.keys():
             self.outputDict['covars'] = {}
-          self.outputDict['covars'][t] = self.SKLEngine.covars_
+          self.outputDict['covars'][t] = self.SKLEngine.Method.covars_
 
-        if hasattr(self.SKLEngine, 'precs_'):
+        if hasattr(self.SKLEngine.Method, 'precs_'):
           if 'precs' not in self.outputDict.keys():
             self.outputDict['precs'] = {}
-          self.outputDict['precs'][t] = self.SKLEngine.precs_
+          self.outputDict['precs'][t] = self.SKLEngine.Method.precs_
 
-        if hasattr(self.SKLEngine, 'converged_'):
+        if hasattr(self.SKLEngine.Method, 'converged_'):
           if 'converged' not in self.outputDict.keys():
             self.outputDict['converged'] = {}
-          self.outputDict['converged'][t] = self.SKLEngine.converged_
+          self.outputDict['converged'][t] = self.SKLEngine.Method.converged_
 
         # re-order components
         if t > 0:

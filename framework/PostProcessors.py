@@ -3962,7 +3962,7 @@ class DataMining(BasePostProcessor):
         labels = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
         for t in range(numberOfHistoryStep):
           labels[:,t] = self.unSupervisedEngine.outputDict['labels'][t]
-        outputDict['output'][self.labelFeature] = labels
+        outputDict['outputs'][self.labelFeature] = labels
 
       if 'covars' in self.unSupervisedEngine.outputDict.keys():
         mixtureCovars = self.unSupervisedEngine.outputDict['covars']
