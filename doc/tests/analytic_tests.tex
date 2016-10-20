@@ -33,6 +33,7 @@
 \usepackage{textcomp}
 \usepackage{graphicx}
 \usepackage{float}
+\usepackage[toc,page]{appendix}
 %\usepackage{authblk}         % For making the author list look prettier
 %\renewcommand\Authsep{,~\,}
 
@@ -302,6 +303,11 @@ showstringspaces=false            %
 \input{attenuate.tex}
 \input{tensor_poly.tex}
 \input{sobol_sens.tex}
+\begin{appendices}
+  \section{Document Version Information}
+  \input{../version.tex}
+\end{appendices}
+
 
     % ---------------------------------------------------------------------- %
     % References
