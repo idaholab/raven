@@ -49,10 +49,10 @@
 		<initialSeed>30</initialSeed>
       </initialization>
       <TargetEvaluation class="DataObjects" type="PointSet">optOutput</TargetEvaluation>
-	  <Convergence>
+	  <convergence>
 		<iterationLimit>50</iterationLimit>
 		<threshold>1e-3</threshold>
-	  </Convergence>
+	  </convergence>
 	  <variable name="x1">
         <upperBound>100</upperBound>
 		<lowerBound>-100</lowerBound>

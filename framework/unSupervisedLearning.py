@@ -121,7 +121,7 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
       Method to perform the training of the unSuperVisedLearning algorithm
       NB. The unSuperVisedLearning object is committed to convert the dictionary
       that is passed (in), into the local format the interface with the kernels
-      requires. So far the base class will do the translation into numpy
+      requires. So far the base class will do the translation into numpy.
       @ In, tdict, dict, training dictionary
       @ Out, None
     """
@@ -189,6 +189,7 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
       ## The dictionary represents a HistorySet
       if isinstance(tdict.values()[0],dict):
         ## normalize data
+
         ## But why this way? This should be one of the options, this looks like
         ## a form of shape matching, however what if I don't want similar
         ## shapes, I want similar valued curves in space? sigma and mu should
@@ -205,7 +206,6 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
           for j in range(i,cardinality):
             self.normValues[i][j] = metric.distance(tdict[keys[i]],tdict[keys[j]])
             self.normValues[j][i] = self.normValues[i][j]
-
       else:   ## PointSet
         normValues = np.zeros(shape = (realizationCount, featureCount))
         self.normValues = np.zeros(shape =(realizationCount, realizationCount))
@@ -675,7 +675,9 @@ class temporalSciKitLearn(unSupervisedLearning):
 
     self.SKLtype, self.SKLsubType = self.initOptionDict['SKLtype'].split('|')
     self.pivotParameter = self.initOptionDict.get('pivotParameter', 'Time')
-    self.reOrderStep = int(self.initOptionDict.get('reOrderStep', 5))
+
+    #Pop necessary to keep from confusing SciKitLearn with extra option
+    self.reOrderStep = int(self.initOptionDict.pop('reOrderStep', 5))
 
     # return a SciKitLearn instance as engine for SKL data mining
     self.SKLEngine = returnInstance('SciKitLearn',self, **self.initOptionDict)

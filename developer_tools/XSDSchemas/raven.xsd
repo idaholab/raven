@@ -159,6 +159,8 @@
                     </xsd:choice>
                 </xsd:complexType>
             </xsd:element>
+            <xsd:element name="MPIExec"            type="xsd:string"  minOccurs="0" default="mpiexec"/>
+            <xsd:element name="NodeParameter"      type="xsd:string"  minOccurs="0" default="-f"/>
             <xsd:element name="NumMPI"             type="xsd:integer" minOccurs="0" default="1"/>
             <xsd:element name="totalNumCoresUsed"  type="xsd:integer" minOccurs="0" default="1"/>
             <xsd:element name="precommand"         type="xsd:string"  minOccurs="0" default="None"/>
