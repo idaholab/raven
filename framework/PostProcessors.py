@@ -285,10 +285,10 @@ class LimitSurfaceIntegral(BasePostProcessor):
       @ In, output, dataObjects, The object where we want to place our computed results
       @ Out, None
     """
-    if finishedJob.returnEvaluation() == -1: self.raiseAnError(RuntimeError, 'no available output to collect.')
+    if finishedJob.getEvaluation() == -1: self.raiseAnError(RuntimeError, 'no available output to collect.')
     else:
-      pb = finishedJob.returnEvaluation()[1]
-      lms = finishedJob.returnEvaluation()[0][0]
+      pb = finishedJob.getEvaluation()[1]
+      lms = finishedJob.getEvaluation()[0][0]
       if output.type == 'PointSet':
         # we store back the limitsurface
         for key, value in lms.getParametersValues('input').items():
@@ -622,10 +622,10 @@ class SafestPoint(BasePostProcessor):
       @ In, output, dataObjects, The object where we want to place our computed results
       @ Out, None
     """
-    if finishedJob.returnEvaluation() == -1:
+    if finishedJob.getEvaluation() == -1:
       self.raiseAnError(RuntimeError, 'no available output to collect (the run is likely not over yet).')
     else:
-      dataCollector = finishedJob.returnEvaluation()[1]
+      dataCollector = finishedJob.getEvaluation()[1]
       if output.type != 'PointSet':
         self.raiseAnError(TypeError, 'output item type must be "PointSet".')
       else:
@@ -797,8 +797,8 @@ class ComparisonStatistics(BasePostProcessor):
       @ Out, None
     """
     self.raiseADebug("finishedJob: " + str(finishedJob) + ", output " + str(output))
-    if finishedJob.returnEvaluation() == -1: self.raiseAnError(RuntimeError, 'no available output to collect.')
-    else: self.dataDict.update(finishedJob.returnEvaluation()[1])
+    if finishedJob.getEvaluation() == -1: self.raiseAnError(RuntimeError, 'no available output to collect.')
+    else: self.dataDict.update(finishedJob.getEvaluation()[1])
 
     dataToProcess = []
     for compareGroup in self.compareGroups:
@@ -1080,9 +1080,9 @@ class InterfacedPostProcessor(BasePostProcessor):
       @ In, output, dataObjects, The object where we want to place our computed results
       @ Out, None
     """
-    if finishedJob.returnEvaluation() == -1:
+    if finishedJob.getEvaluation() == -1:
       self.raiseAnError(RuntimeError, ' No available Output to collect (Run probably is not finished yet)')
-    evaluation = finishedJob.returnEvaluation()[1]
+    evaluation = finishedJob.getEvaluation()[1]
 
     exportDict = {'inputSpaceParams':evaluation['data']['input'],'outputSpaceParams':evaluation['data']['output'],'metadata':evaluation['metadata']}
 
@@ -1153,15 +1153,26 @@ class ImportanceRankInput(InputData.ParameterInput):
 ImportanceRankInput.createClass("PostProcessor", False, baseNode=ModelInput)
 WhatInput = InputData.parameterInputFactory("what", contentType=InputData.StringType)
 ImportanceRankInput.addSub(WhatInput)
+VariablesInput = InputData.parameterInputFactory("variables", contentType=InputData.StringType)
+DimensionsInput = InputData.parameterInputFactory("dimensions", contentType=InputData.StringType)
+ManifestInput = InputData.parameterInputFactory("manifest", contentType=InputData.StringType)
+ManifestInput.addSub(VariablesInput)
+ManifestInput.addSub(DimensionsInput)
+LatentInput = InputData.parameterInputFactory("latent", contentType=InputData.StringType)
+LatentInput.addSub(VariablesInput)
+LatentInput.addSub(DimensionsInput)
 FeaturesInput = InputData.parameterInputFactory("features", contentType=InputData.StringType)
-FeaturesInput.addParam("type", InputData.StringType)
+FeaturesInput.addSub(ManifestInput)
+FeaturesInput.addSub(LatentInput)
 ImportanceRankInput.addSub(FeaturesInput)
 TargetsInput = InputData.parameterInputFactory("targets", contentType=InputData.StringType)
 ImportanceRankInput.addSub(TargetsInput)
-DimensionsInput = InputData.parameterInputFactory("dimensions", contentType=InputData.StringType)
-ImportanceRankInput.addSub(DimensionsInput)
+#DimensionsInput = InputData.parameterInputFactory("dimensions", contentType=InputData.StringType)
+#ImportanceRankInput.addSub(DimensionsInput)
 MVNDistributionInput = InputData.parameterInputFactory("mvnDistribution", contentType=InputData.StringType)
 ImportanceRankInput.addSub(MVNDistributionInput)
+PivotParameterInput = InputData.parameterInputFactory("pivotParameter", contentType=InputData.StringType)
+ImportanceRankInput.addSub(PivotParameterInput)
 
 #
 class ImportanceRank(BasePostProcessor):
@@ -1182,13 +1193,23 @@ class ImportanceRank(BasePostProcessor):
     BasePostProcessor.__init__(self, messageHandler)
     self.targets = []
     self.features = []
+    self.latent = []
+    self.latentDim = []
+    self.manifest = []
+    self.manifestDim = []
     self.dimensions = []
     self.mvnDistribution = None
-    self.acceptedMetric = ['sensitivityindex','importanceindex','pcaindex']
+    self.acceptedMetric = ['sensitivityindex','importanceindex','pcaindex','transformation','inversetransformation','manifestsensitivity']
+    self.all = ['sensitivityindex','importanceindex','pcaindex']
+    self.statAcceptedMetric = ['pcaindex','transformation','inversetransformation']
     self.what = self.acceptedMetric # what needs to be computed, default is all
     self.printTag = 'POSTPROCESSOR IMPORTANTANCE RANK'
     self.requiredAssObject = (True,(['Distributions'],[-1]))
     self.transformation = False
+    self.latentSen = False
+    self.reconstructSen = False
+    self.pivotParameter = None # time-dependent pivot parameter
+    self.dynamic        = False # is it time-dependent?
 
   def _localWhatDoINeed(self):
     """
@@ -1221,69 +1242,132 @@ class ImportanceRank(BasePostProcessor):
     paramInput.parseNode(xmlNode)
     for child in paramInput.subparts:
       if child.getName() == 'what':
-        self.what = child.value
-        if self.what == 'all': self.what = self.acceptedMetric
+        what = child.value.strip()
+        if what.lower() == 'all': self.what = self.all
         else:
+          requestMetric = list(var.strip() for var in what.split(','))
           toCalculate = []
-          for metric in self.what.split(','):
-            toCalculate.append(metric.strip())
-            if metric.lower() not in self.acceptedMetric:
-              self.raiseAnError(IOError, 'Importance rank postprocessor asked unknown operation ' + metric + '. Available ' + str(self.acceptedMetric))
+          for metric in requestMetric:
+            if metric.lower() == 'all':
+              toCalculate.extend(self.all)
+            elif metric.lower() in self.acceptedMetric:
+              if metric.lower() not in toCalculate:
+                toCalculate.append(metric.lower())
+              else:
+                self.raiseAWarning('Duplicate calculations',metric,'are removed from XML node <what> in',self.printTag)
+            else:
+              self.raiseAnError(IOError, self.printTag,'asked unknown operation', metric, '. Available',str(self.acceptedMetric))
           self.what = toCalculate
-      if child.getName() == 'targets':
+      elif child.getName() == 'targets':
         self.targets = list(inp.strip() for inp in child.value.strip().split(','))
-      if child.getName() == 'features':
-        if 'type' in child.parameterValues:
-          featureType = child.parameterValues['type']
-          if featureType.strip() == 'latent':
-            self.transformation = True
-          elif featureType.strip() == '':
-            self.transformation = False
-          else:
-            self.raiseAnError(IOError,'type: ' + str(child.parameterValues['type']) + ' is unsupported for node: ' + str(child.getName()) + '!')
-        self.features = list(inp.strip() for inp in child.value.strip().split(','))
-      if child.getName() == 'dimensions':
-        self.dimensions = list(int(inp.strip()) for inp in child.value.strip().split(','))
-      if child.getName() == 'mvnDistribution':
+      elif child.getName() == 'features':
+        for subNode in child.subparts:
+          if subNode.getName() == 'manifest':
+            for subSubNode in subNode.subparts:
+              if subSubNode.getName() == 'variables':
+                self.manifest = list(inp.strip() for inp in subSubNode.value.strip().split(','))
+                self.features.extend(self.manifest)
+              elif subSubNode.getName() == 'dimensions':
+                self.manifestDim = list(int(inp.strip()) for inp in subSubNode.value.strip().split(','))
+              else:
+                self.raiseAnError(IOError, 'Unrecognized xml node name:',subSubNode.getName(),'in',self.printTag)
+          if subNode.getName() == 'latent':
+            self.latentSen = True
+            for subSubNode in subNode.subparts:
+              if subSubNode.getName() == 'variables':
+                self.latent = list(inp.strip() for inp in subSubNode.value.strip().split(','))
+                self.features.extend(self.latent)
+              elif subSubNode.getName() == 'dimensions':
+                self.latentDim = list(int(inp.strip()) for inp in subSubNode.value.strip().split(','))
+              else:
+                self.raiseAnError(IOError, 'Unrecognized xml node name:',subSubNode.getName(),'in',self.printTag)
+      elif child.getName() == 'mvnDistribution':
         self.mvnDistribution = child.value.strip()
-    if not self.dimensions:
-      self.dimensions = range(1,len(self.features)+1)
-      self.raiseAWarning('The dimensions for given features: ' + str(self.features) + ' is not provided! Default dimensions will be used: ' + str(self.dimensions) + '!')
+      elif child.getName() == "pivotParameter": self.pivotParameter = child.value
+      else:
+        self.raiseAnError(IOError, 'Unrecognized xml node name: ' + child.getName() + '!')
+    if not self.latentDim and len(self.latent) != 0:
+      self.latentDim = range(1,len(self.latent)+1)
+      self.raiseAWarning('The dimensions for given latent variables: ' + str(self.latent) + ' is not provided! Default dimensions will be used: ' + str(self.latentDim) + ' in ' + self.printTag)
+    if not self.manifestDim and len(self.manifest) !=0:
+      self.manifestDim = range(1,len(self.manifest)+1)
+      self.raiseAWarning('The dimensions for given latent variables: ' + str(self.manifest) + ' is not provided! Default dimensions will be used: ' + str(self.manifestDim) + ' in ' + self.printTag)
+    if not self.features:
+      self.raiseAnError(IOError, 'No variables provided for XML node: features in',self.printTag)
+    if not self.targets:
+      self.raiseAnError(IOError, 'No variables provided for XML node: targets in', self.printTag)
+    if len(self.latent) !=0 and len(self.manifest) !=0:
+      self.reconstructSen = True
+      self.transformation = True
 
-  def _localPrintXML(self,outFile,options=None):
+  def _localPrintXML(self,outFile,options=None,pivotVal=None):
     """
       Adds requested entries to XML node.
       @ In, outFile, Files.StaticXMLOutput, file to which entries will be printed
       @ In, options, dict, optional, list of requests and options
         May include: 'what': comma-separated string list, the qualities to print out
+      @ In, pivotVal, float, value of the pivot parameter, i.e. time, burnup, ...
       @ Out, None
     """
-    #dimension node needs only be set once, but it is given for each index type
-    dimDict = None
-    settingDim = False
+    #build tree
+    for what in options.keys():
+      if what.lower() in self.statAcceptedMetric: continue
+      if what == 'manifestSensitivity': continue
+      for target in options[what].keys():
+        valueDict = OrderedDict()
+        for var,index,dim in options[what][target]:
+          valueDict[var] = index
+        outFile.addVector(target,what,valueDict,pivotVal=pivotVal)
+    if 'manifestSensitivity' in options.keys():
+      what = 'manifestSensitivity'
+      for target in options[what].keys():
+        outFile.addScalar(target,'type',self.mvnDistribution.covarianceType,pivotVal=pivotVal)
+        valueDict = OrderedDict()
+        for var,index,dim in options[what][target]:
+          valueDict[var] = index
+        outFile.addVector(target,what,valueDict,pivotVal=pivotVal)
+
+  def _localPrintPCAInformation(self,outFile,options=None,pivotVal=None):
+    """
+      Adds requested entries to XML node.
+      @ In, outFile, Files.StaticXMLOutput, file to which entries will be printed
+      @ In, options, dict, optional, list of requests and options
+        May include: 'what': comma-separated string list, the qualities to print out
+      @ In, pivotVal, float, value of the pivot parameter, i.e. time, burnup, ...
+      @ Out, None
+    """
+    # output variables and dimensions
+    latentDict = OrderedDict()
+    if self.latentSen:
+      for index,var in enumerate(self.latent):
+        latentDict[var] = self.latentDim[index]
+      outFile.addVector('dimensions','latent',latentDict,pivotVal=pivotVal)
+    manifestDict = OrderedDict()
+    if len(self.manifest) > 0:
+      for index,var in enumerate(self.manifest):
+        manifestDict[var] = self.manifestDim[index]
+      outFile.addVector('dimensions','manifest',manifestDict,pivotVal=pivotVal)
     #pca index is a feature only of target, not with respect to anything else
     if 'pcaIndex' in options.keys():
-      pca = options['pcaIndex'].values()[0]
-      for var,index,_ in pca:
-        outFile.addScalar(var,'pcaIndex',index)
-    #build tree
-    targets = options.values()[0].keys()
-    for target in targets:
-      valueDict = OrderedDict()
-      for what in options.keys():
-        if what.lower() in self.acceptedMetric and what.lower()!='pcaindex':
-          if dimDict is None:
-            dimDict = {}
-            settingDim = True
-          for var,index,dim in options[what][target]:
-            valueDict[var]=index #dims?
-            if settingDim:
-              dimDict[var] = dim
-          if settingDim:
-            for key,val in dimDict.items():
-              outFile.addScalar(key,'dimension',val)
-            settingDim = False
-          outFile.addVector(target,what,valueDict)
+      pca = options['pcaIndex']
+      for var,index,dim in pca:
+        outFile.addScalar('pcaIndex',var,index,pivotVal=pivotVal)
+    if 'transformation' in options.keys():
+      what = 'transformation'
+      outFile.addScalar(what,'type',self.mvnDistribution.covarianceType,pivotVal=pivotVal)
+      for target in options[what].keys():
+        valueDict = OrderedDict()
+        for var, index, dim in options[what][target]:
+          valueDict[var] = index
+        outFile.addVector(what,target,valueDict,pivotVal=pivotVal)
+    if 'inverseTransformation' in options.keys():
+      what = 'inverseTransformation'
+      outFile.addScalar(what,'type',self.mvnDistribution.covarianceType,pivotVal=pivotVal)
+      for target in options[what].keys():
+        valueDict = OrderedDict()
+        for var, index, dim in options[what][target]:
+          valueDict[var] = index
+        outFile.addVector(what,target,valueDict,pivotVal=pivotVal)
 
   def collectOutput(self,finishedJob, output):
     """
@@ -1292,58 +1376,121 @@ class ImportanceRank(BasePostProcessor):
       @ In, output, object, the object where we want to place our computed results
       @ Out, None
     """
-    parameterSet = list(set(list(self.features)))
-    if finishedJob.returnEvaluation() == -1: self.raiseAnError(RuntimeError, ' No available output to collect (Run probably is not finished yet)')
-    outputDict = finishedJob.returnEvaluation()[-1]
+    if finishedJob.getEvaluation() == -1: self.raiseAnError(RuntimeError, ' No available output to collect (Run probably is not finished yet) via',self.printTag)
+    outputDict = finishedJob.getEvaluation()[-1]
     # Output to file
     if isinstance(output, Files.File):
-      availExtens = ['xml','csv', 'txt']
+      availExtens = ['xml','csv']
       outputExtension = output.getExt().lower()
       if outputExtension not in availExtens:
         self.raiseAWarning('Output extension you input is ' + outputExtension)
         self.raiseAWarning('Available are ' + str(availExtens) + '. Converting extension to ' + str(availExtens[0]) + '!')
         outputExtensions = availExtens[0]
         output.setExtension(outputExtensions)
-      if outputExtension != 'csv': separator = ' '
-      else: separator = ','
       output.setPath(self.__workingDir)
       self.raiseADebug('Dumping output in file named ' + output.getAbsFile())
       output.open('w')
-      if outputExtension != 'xml':
-        maxLength = max(len(max(parameterSet, key = len)) + 5, 16)
-        # Output all metrics to given file
-        for what in outputDict.keys():
-          if what.lower() in self.acceptedMetric:
-            self.raiseADebug('Writing parameter rank for metric ' + what)
-            for target in self.targets:
-              if outputExtension != 'csv':
-                output.write('Target,' + target + '\n')
-                output.write('Parameters' + ' ' * maxLength + ''.join([str(item[0]) + ' ' * (maxLength - len(item)) for item in outputDict[what][target]]) + os.linesep)
-                output.write(what + ' ' * maxLength + ''.join(['%.8E' % item[1] + ' ' * (maxLength -14) for item in outputDict[what][target]]) + os.linesep)
-              else:
-                output.write('Target,' + target + '\n')
-                output.write('Parameters'  + ''.join([separator + str(item[0])  for item in outputDict[what][target]]) + os.linesep)
-                output.write(what + ''.join([separator + '%.8E' % item[1] for item in outputDict[what][target]]) + os.linesep)
-            output.write(os.linesep)
-        output.close()
+      if outputExtension == 'csv':
+        self._writeCSV(output,outputDict)
       else:
-        #convert output into an XML output file
-        outFile = Files.returnInstance('StaticXMLOutput',self)
-        outFile.initialize(output.getFilename(),self.messageHandler,path=output.getPath())
-        outFile.newTree('ImportanceRankPP')
-        self._localPrintXML(outFile,outputDict)
-        outFile.writeFile()
-        self.raiseAMessage('ImportanceRank XML printed to "'+output.getFilename()+'"!')
+        self._writeXML(output,outputDict)
     # Output to DataObjects
     elif output.type in ['PointSet','HistorySet']:
       self.raiseADebug('Dumping output in data object named ' + output.name)
-      for what in outputDict.keys():
-        if what.lower() in self.acceptedMetric:
-          for target in self.targets:
-            self.raiseADebug('Dumping ' + target + '-' + what + '. Metadata name = ' + target + '-' + what + '. Targets stored in ' +  target + '-'  + what)
-            output.updateMetadata(target + '-'  + what, outputDict[what][target])
+      self._writeDataObject(output,outputDict)
     elif output.type == 'HDF5' : self.raiseAWarning('Output type ' + str(output.type) + ' not yet implemented. Skip it !!!!!')
     else: self.raiseAnError(IOError, 'Output type ' + str(output.type) + ' unknown.')
+
+  def _writeCSV(self,output,outputDictionary):
+    """
+      Defines the method for writing the post-processor to a .csv file
+      @ In, output, File object, file to write to
+      @ In, outputDictionary, dict, dictionary stores importance ranking outputs
+      @ Out, None
+    """
+    separator = ','
+    if self.dynamic:
+      output.write('Importance Rank' + separator + 'Pivot Parameter' + separator + self.pivotParameter + os.linesep)
+    outputResults = [outputDictionary] if not self.dynamic else outputDictionary.values()
+    for step, outputDict in enumerate(outputResults):
+      if self.dynamic: output.write('Pivot Value'+separator+str(outputDictionary.keys()[step])+os.linesep)
+      #only output 'pcaindex','transformation','inversetransformation' for the first step.
+      if step == 0:
+        for what in outputDict.keys():
+          if what.lower() in self.statAcceptedMetric:
+            self.raiseADebug('Writing parameter rank for metric ' + what)
+            if what.lower() == 'pcaindex':
+              output.write('pcaIndex,' + '\n')
+              output.write('Parameters'  + ''.join([separator + str(item[0])  for item in outputDict[what]]) + os.linesep)
+              output.write(what + ''.join([separator + '%.8E' % item[1] for item in outputDict[what]]) + os.linesep)
+              output.write(os.linesep)
+            else:
+              for target in outputDict[what].keys():
+                output.write('Target,' + target + '\n')
+                output.write('Parameters'  + ''.join([separator + str(item[0])  for item in outputDict[what][target]]) + os.linesep)
+                output.write(what + ''.join([separator + '%.8E' % item[1] for item in outputDict[what][target]]) + os.linesep)
+              output.write(os.linesep)
+      for what in outputDict.keys():
+        if what.lower() in self.statAcceptedMetric: continue
+        if what.lower() in self.acceptedMetric:
+          self.raiseADebug('Writing parameter rank for metric ' + what)
+          for target in outputDict[what].keys():
+            output.write('Target,' + target + '\n')
+            output.write('Parameters'  + ''.join([separator + str(item[0])  for item in outputDict[what][target]]) + os.linesep)
+            output.write(what + ''.join([separator + '%.8E' % item[1] for item in outputDict[what][target]]) + os.linesep)
+          output.write(os.linesep)
+    output.close()
+
+  def _writeXML(self,output,outputDictionary):
+    """
+      Defines the method for writing the post-processor to a .csv file
+      @ In, output, File object, file to write to
+      @ In, outputDictionary, dict, dictionary stores importance ranking outputs
+      @ Out, None
+    """
+    if output.isOpen(): output.close()
+    if self.dynamic:
+      outFile = Files.returnInstance('DynamicXMLOutput',self)
+    else:
+      outFile = Files.returnInstance('StaticXMLOutput',self)
+    outFile.initialize(output.getFilename(),self.messageHandler,path=output.getPath())
+    outFile.newTree('ImportanceRankPP',pivotParam=self.pivotParameter)
+    outputResults = [outputDictionary] if not self.dynamic else outputDictionary.values()
+    for step, outputDict in enumerate(outputResults):
+      pivotVal = outputDictionary.keys()[step]
+      self._localPrintXML(outFile,outputDict,pivotVal)
+      if step == 0:
+        self._localPrintPCAInformation(outFile,outputDict,pivotVal)
+    outFile.writeFile()
+    self.raiseAMessage('ImportanceRank XML printed to "'+output.getFilename()+'"!')
+
+  def _writeDataObject(self,output,outputDictionary):
+    """
+      Defines the method for writing the post-processor to a .csv file
+      @ In, output, File object, file to write to
+      @ In, outputDictionary, dict, dictionary stores importance ranking outputs
+      @ Out, None
+    """
+    outputResults = [outputDictionary] if not self.dynamic else outputDictionary.values()
+    for step, outputDict in enumerate(outputResults):
+      if step == 0:
+        for what in outputDict.keys():
+          if what.lower() not in self.statAcceptedMetric:
+            continue
+          elif what.lower() == 'pcaindex':
+            self.raiseADebug('Dumping ' + what + '. Metadata name = ' + what)
+            output.updateMetadata(what,outputDict[what])
+          else:
+            for target in outputDict[what].keys():
+              self.raiseADebug('Dumping ' + target + '-' + what + '. Metadata name = ' + target + '-' + what + '. Targets stored in ' +  target + '-'  + what)
+              output.updateMetadata(target + '-' + what, outputDict[what][target])
+      appendix = '-'+self.pivotParameter+'-'+str(outputDictionary.keys()[step]) if self.dynamic else ''
+      for what in outputDict.keys():
+        if what.lower() in self.statAcceptedMetric: continue
+        if what.lower() in self.acceptedMetric:
+          for target in outputDict[what].keys():
+            self.raiseADebug('Dumping ' + target + '-' + what + '. Metadata name = ' + target + '-' + what + '. Targets stored in ' +  target + '-'  + what)
+            output.updateMetadata(target + '-'  + what+appendix, outputDict[what][target])
 
   def initialize(self, runInfo, inputs, initDict) :
     """
@@ -1364,20 +1511,22 @@ class ImportanceRank(BasePostProcessor):
     if type(currentInp) == list  : currentInput = currentInp[-1]
     else                         : currentInput = currentInp
     if type(currentInput) == dict:
-      if 'targets' in currentInput.keys(): return currentInput
-    inputDict = {'targets':{}, 'metadata':{}, 'features':{}}
+      if 'targets' not in currentInput.keys() and 'timeDepData' not in currentInput.keys(): self.raiseAnError(IOError, 'Did not find targets or timeDepData in input dictionary')
+      return currentInput
+
     if hasattr(currentInput,'type'):
       inType = currentInput.type
     else:
       if type(currentInput).__name__ == 'list'    : inType = 'list'
       else: self.raiseAnError(IOError, self, 'ImportanceRank postprocessor accepts Files, HDF5, PointSet, DataObject(s) only! Got ' + str(type(currentInput)))
-    if inType not in ['HDF5', 'PointSet', 'list'] and not isinstance(inType,Files.File):
-      self.raiseAnError(IOError, self, 'ImportanceRank postprocessor accepts Files, HDF5, PointSet, DataObject(s) only! Got ' + str(inType) + '!!!!')
+    if inType not in ['HDF5', 'PointSet','HistorySet', 'list'] and not isinstance(inType,Files.File):
+      self.raiseAnError(IOError, self, 'ImportanceRank postprocessor accepts Files, HDF5, HistorySet, PointSet, DataObject(s) only! Got ' + str(inType) + '!!!!')
     # get input from the external csv file
     if isinstance(inType,Files.File):
       if currentInput.subtype == 'csv': pass # to be implemented
     # get input from PointSet DataObject
     if inType in ['PointSet']:
+      inputDict = {'targets':{}, 'metadata':{}, 'features':{}}
       for feat in self.features:
         if feat in currentInput.getParaKeys('input'):
           inputDict['features'][feat] = currentInput.getParam('input', feat)
@@ -1387,8 +1536,37 @@ class ImportanceRank(BasePostProcessor):
         if targetP in currentInput.getParaKeys('output'):
           inputDict['targets'][targetP] = currentInput.getParam('output', targetP)
         else:
-          self.raiseAnError(IOError,'Parameter ' + str(targetP) + ' is listed ImportanceRank postprocessor targets, but not found in the provided input!')
+          self.raiseAnError(IOError,'Parameter ' + str(targetP) + ' is listed ImportanceRank postprocessor targets, but not found in the provided output!')
       inputDict['metadata'] = currentInput.getAllMetadata()
+    # get input from HistorySet DataObject
+    if inType in ['HistorySet']:
+      if self.pivotParameter is None: self.raiseAnError(IOError, self, 'Time-dependent importance ranking is requested (HistorySet) but no pivotParameter got inputted!')
+      inputs  = currentInput.getParametersValues('inputs',nodeId = 'ending')
+      outputs = currentInput.getParametersValues('outputs',nodeId = 'ending')
+      numSteps = len(outputs.values()[0].values()[0])
+      self.dynamic = True
+      if self.pivotParameter not in currentInput.getParaKeys('output'):
+        self.raiseAnError(IOError, self, 'Pivot parameter ' + self.pivotParameter + ' has not been found in output space of data object '+currentInput.name)
+      pivotParameter = []
+      for step in range(len(outputs.values()[0][self.pivotParameter])):
+        currentSnapShot = [outputs[i][self.pivotParameter][step] for i in outputs.keys()]
+        if len(set(currentSnapShot)) > 1: self.raiseAnError(IOError, self, 'Histories are not syncronized! Please, pre-process the data using Interfaced PostProcessor HistorySetSync!')
+        pivotParameter.append(currentSnapShot[-1])
+      inputDict = {'timeDepData':OrderedDict.fromkeys(pivotParameter,None)}
+      for step in range(numSteps):
+        inputDict['timeDepData'][pivotParameter[step]] = {'targets':{},'features':{}}
+        for targetP in self.targets:
+          if targetP in currentInput.getParaKeys('output') :
+            inputDict['timeDepData'][pivotParameter[step]]['targets'][targetP] = np.asarray([outputs[i][targetP][step] for i in outputs.keys()])
+          else:
+            self.raiseAnError(IOError, self, 'Target ' + targetP + ' has not been found in data object '+currentInput.name)
+        for feat in self.features:
+          if feat in currentInput.getParaKeys('input'):
+            inputDict['timeDepData'][pivotParameter[step]]['features'][feat] = np.asarray([inputs[i][feat][-1] for i in inputs.keys()])
+          else:
+            self.raiseAnError(IOError, self, 'Feature ' + feat + ' has not been found in data object '+currentInput.name)
+        inputDict['timeDepData'][pivotParameter[step]]['metadata'] = currentInput.getAllMetadata()
+
     # get input from HDF5 Database
     if inType == 'HDF5': pass  # to be implemented
 
@@ -1396,25 +1574,47 @@ class ImportanceRank(BasePostProcessor):
 
   def run(self, inputIn):
     """
-      This method executes the postprocessor action.
-      @ In, inputIn, object, object contained the data to process. (inputToInternal output)
-      @ Out, outputDict, dict, dictionary containing the evaluated data
+      This method executes the postprocessor action. In this case, it computes all the requested statistical FOMs
+      @ In,  inputIn, object, object contained the data to process. (inputToInternal output)
+      @ Out, outputDict, dict, Dictionary containing the results
     """
     inputDict = self.inputToInternal(inputIn)
+    if not self.dynamic: outputDict = self.__runLocal(inputDict)
+    else:
+      # time dependent (actually pivot-dependent)
+      outputDict = OrderedDict()
+      for pivotParamValue in inputDict['timeDepData'].keys():
+        outputDict[pivotParamValue] = self.__runLocal(inputDict['timeDepData'][pivotParamValue])
+    return outputDict
+
+  def __runLocal(self, inputDict):
+    """
+      This method executes the postprocessor action.
+      @ In, inputDict, object, object contained the data to process. (inputToInternal output)
+      @ Out, outputDict, dict, dictionary containing the evaluated data
+    """
     outputDict = {}
     senCoeffDict = {}
     senWeightDict = {}
     # compute sensitivities of targets with respect to features
     featValues = []
-    for feat in self.features:
-      featValues.append(inputDict['features'][feat])
+    # compute importance rank
+    if self.latentSen:
+      for feat in self.latent:
+        featValues.append(inputDict['features'][feat])
+      feats = self.latent
+      self.dimensions = self.latentDim
+    else:
+      for feat in self.manifest:
+        featValues.append(inputDict['features'][feat])
+      feats = self.manifest
+      self.dimensions = self.manifestDim
     sampledFeatMatrix = np.atleast_2d(np.asarray(featValues)).T
     for target in self.targets:
       featCoeffs = LinearRegression().fit(sampledFeatMatrix, inputDict['targets'][target]).coef_
       featWeights = abs(featCoeffs)/np.sum(abs(featCoeffs))
-      senWeightDict[target] = list(zip(self.features,featWeights,self.dimensions))
+      senWeightDict[target] = list(zip(feats,featWeights,self.dimensions))
       senCoeffDict[target] = featCoeffs
-    # compute importance rank
     for what in self.what:
       if what.lower() == 'sensitivityindex':
         what = 'sensitivityIndex'
@@ -1429,8 +1629,8 @@ class ImportanceRank(BasePostProcessor):
         for target in self.targets:
           featCoeffs = senCoeffDict[target]
           featWeights = []
-          if not self.transformation:
-            for index,feat in enumerate(self.features):
+          if not self.latentSen:
+            for index,feat in enumerate(self.manifest):
               totDim = self.mvnDistribution.dimension
               covIndex = totDim * (self.dimensions[index] - 1) + self.dimensions[index] - 1
               if self.mvnDistribution.covarianceType == 'abs':
@@ -1440,26 +1640,78 @@ class ImportanceRank(BasePostProcessor):
                 covTarget = featCoeffs[index] * covFeature * featCoeffs[index]
               featWeights.append(covTarget)
             featWeights = featWeights/np.sum(featWeights)
-            entries = list(zip(self.features,featWeights,self.dimensions))
+            entries = list(zip(self.manifest,featWeights,self.dimensions))
             entries.sort(key=lambda x: x[1],reverse=True)
             outputDict[what][target] = entries
           # if the features type is 'latent', since latentVariables are used to compute the sensitivities
           # the covariance for latentVariances are identity matrix
           else:
-           entries = senWeightDict[target]
-           entries.sort(key=lambda x: x[1],reverse=True)
-           outputDict[what][target] = entries
+            entries = senWeightDict[target]
+            entries.sort(key=lambda x: x[1],reverse=True)
+            outputDict[what][target] = entries
       #calculate PCA index
       if what.lower() == 'pcaindex':
-        what = 'pcaIndex'
-        if what not in outputDict.keys(): outputDict[what] = {}
-        index = [dim-1 for dim in self.dimensions]
-        singularValues = self.mvnDistribution.returnSingularValues(index)
-        singularValues = list(singularValues/np.sum(singularValues))
-        entries = list(zip(self.features,singularValues,self.dimensions))
-        entries.sort(key=lambda x: x[1],reverse=True)
-        for target in self.targets:
-          outputDict[what][target] = entries
+        if not self.latentSen:
+          self.raiseAWarning('pcaIndex can be not requested because no latent variable is provided!')
+        else:
+          what = 'pcaIndex'
+          if what not in outputDict.keys(): outputDict[what] = {}
+          index = [dim-1 for dim in self.dimensions]
+          singularValues = self.mvnDistribution.returnSingularValues(index)
+          singularValues = list(singularValues/np.sum(singularValues))
+          entries = list(zip(self.latent,singularValues,self.dimensions))
+          entries.sort(key=lambda x: x[1],reverse=True)
+          outputDict[what] = entries
+
+      if what.lower() == 'transformation':
+        if self.transformation:
+          what = 'transformation'
+          if what not in outputDict.keys(): outputDict[what] = {}
+          index = [dim-1 for dim in self.latentDim]
+          manifestIndex = [dim-1 for dim in self.manifestDim]
+          transformMatrix = self.mvnDistribution.transformationMatrix(index)
+          for ind,var in enumerate(self.manifest):
+            entries = list(zip(self.latent,transformMatrix[manifestIndex[ind]],self.latentDim))
+            outputDict[what][var] = entries
+        else:
+          self.raiseAnError(IOError,'Unable to output the transformation matrix, please provide both "manifest" and "latent" variables in XML node "features" in',self.printTag)
+      if what.lower() == 'inversetransformation':
+        if self.transformation:
+          what = 'inverseTransformation'
+          if what not in outputDict.keys(): outputDict[what] = {}
+          index = [dim-1 for dim in self.latentDim]
+          manifestIndex = [dim-1 for dim in self.manifestDim]
+          inverseTransformationMatrix = self.mvnDistribution.inverseTransformationMatrix(manifestIndex)
+          for ind,var in enumerate(self.latent):
+            entries = list(zip(self.manifest,inverseTransformationMatrix[index[ind]],self.manifestDim))
+            outputDict[what][var] = entries
+        else:
+          self.raiseAnError(IOError,'Unable to output the inverse transformation matrix, please provide both "manifest" and "latent" variables in XML node "features" in', self.printTag)
+
+      if what.lower() == 'manifestsensitivity':
+        if self.reconstructSen:
+          what = 'manifestSensitivity'
+          if what not in outputDict.keys(): outputDict[what] = {}
+          # compute the inverse transformation matrix
+          index = [dim-1 for dim in self.latentDim]
+          manifestIndex = [dim-1 for dim in self.manifestDim]
+          inverseTransformationMatrix = self.mvnDistribution.inverseTransformationMatrix(manifestIndex)
+          inverseTransformationMatrix = inverseTransformationMatrix[index]
+          # recompute the sensitivities for manifest variables
+          for target in self.targets:
+            latentSen = np.asarray(senCoeffDict[target])
+            if self.mvnDistribution.covarianceType == 'abs':
+              manifestSen = list(np.dot(latentSen,inverseTransformationMatrix))
+            else:
+              manifestSen = list(np.dot(latentSen,inverseTransformationMatrix)/inputDict['targets'][target])
+            entries = list(zip(self.manifest,manifestSen,self.manifestDim))
+            entries.sort(key=lambda x: abs(x[1]),reverse=True)
+            outputDict[what][target] = entries
+        elif self.latentSen:
+          self.raiseAnError(IOError, 'Unable to reconstruct the sensitivities for manifest variables, this is because no manifest variable is provided in',self.printTag)
+        else:
+          self.raiseAWarning('No latent variables, and there is no need to reconstruct the sensitivities for manifest variables!')
+
       # To be implemented
       #if what == 'CumulativeSenitivityIndex':
       #  self.raiseAnError(NotImplementedError,'CumulativeSensitivityIndex is not yet implemented for ' + self.printTag)
@@ -1467,6 +1719,7 @@ class ImportanceRank(BasePostProcessor):
       #  self.raiseAnError(NotImplementedError,'CumulativeImportanceIndex is not yet implemented for ' + self.printTag)
 
     return outputDict
+
 #
 #
 
@@ -1629,8 +1882,8 @@ class BasicStatistics(BasePostProcessor):
     """
     # output
     parameterSet = list(set(list(self.parameters['targets'])))
-    if finishedJob.returnEvaluation() == -1: self.raiseAnError(RuntimeError, ' No available Output to collect (Run probably is not finished yet)')
-    outputDictionary = finishedJob.returnEvaluation()[1]
+    if finishedJob.getEvaluation() == -1: self.raiseAnError(RuntimeError, ' No available Output to collect (Run probably is not finished yet)')
+    outputDictionary = finishedJob.getEvaluation()[1]
     methodToTest = []
     for key in self.methodsToRun:
       if key not in self.acceptedCalcParam: methodToTest.append(key)
@@ -2488,9 +2741,9 @@ class LimitSurface(BasePostProcessor):
       @ In, output, dataObjects, The object where we want to place our computed results
       @ Out, None
     """
-    if finishedJob.returnEvaluation() == -1: self.raiseAnError(RuntimeError, 'No available Output to collect (Run probably is not finished yet)')
-    self.raiseADebug(str(finishedJob.returnEvaluation()))
-    limitSurf = finishedJob.returnEvaluation()[1]
+    if finishedJob.getEvaluation() == -1: self.raiseAnError(RuntimeError, 'No available Output to collect (Run probably is not finished yet)')
+    self.raiseADebug(str(finishedJob.getEvaluation()))
+    limitSurf = finishedJob.getEvaluation()[1]
     if limitSurf[0] is not None:
       for varName in output.getParaKeys('inputs'):
         for varIndex in range(len(self.axisName)):
@@ -2699,7 +2952,13 @@ class ExternalPostProcessor(BasePostProcessor):
           inputDict['targets'][param] = item.getParam('input', param)
         for param in item.getParaKeys('output'):
           inputDict['targets'][param] = item.getParam('output', param)
-
+        metadata.append(item.getAllMetadata())
+      elif inType =='HistorySet':
+        outs, ins = item.getOutParametersValues(nodeId = 'ending'), item.getInpParametersValues(nodeId = 'ending')
+        for param in item.getParaKeys('output'):
+          inputDict['targets'][param] = [value[param] for value in outs.values()]
+        for param in item.getParaKeys('input'):
+          inputDict['targets'][param] =  [value[param] for value in ins.values()]
         metadata.append(item.getAllMetadata())
       elif inType != 'list':
         self.raiseAWarning(self, 'Input type ' + type(item).__name__ + ' not recognized. I am going to skip it.')
@@ -2762,12 +3021,12 @@ class ExternalPostProcessor(BasePostProcessor):
         results
       @ Out, None
     """
-    if finishedJob.returnEvaluation() == -1:
+    if finishedJob.getEvaluation() == -1:
       # #TODO This does not feel right
       self.raiseAnError(RuntimeError, 'No available Output to collect (Run probably did not finish yet)')
-
-    inputList = finishedJob.returnEvaluation()[0]
-    outputDict = finishedJob.returnEvaluation()[1]
+    dataLenghtHistory = {}
+    inputList = finishedJob.getEvaluation()[0]
+    outputDict = finishedJob.getEvaluation()[1]
 
     if isinstance(output,Files.File):
       self.raiseAWarning('Output type File not yet implemented. I am going to skip it.')
@@ -2777,7 +3036,7 @@ class ExternalPostProcessor(BasePostProcessor):
     elif output.type == 'HDF5':
       self.raiseAWarning('Output type ' + type(output).__name__
                          + ' not yet implemented. I am going to skip it.')
-    elif output.type == 'PointSet':
+    elif output.type in ['PointSet','HistorySet'] :
       requestedInput = output.getParaKeys('input')
       ## If you want to be able to dynamically add columns to your data, then
       ## you should use this commented line, otherwise only the information
@@ -2817,13 +3076,19 @@ class ExternalPostProcessor(BasePostProcessor):
           foundCount = 0
           if key in requestedInput:
             for inputData in inputList:
-              if key in inputData.getParametersValues('input').keys():
-                value = inputData.getParametersValues('input')[key]
+              if key in inputData.getParametersValues('input',nodeId = 'ending').keys() if inputData.type == 'PointSet' else inputData.getParametersValues('input',nodeId = 'ending').values()[-1].keys():
+                if inputData.type == 'PointSet':
+                  value = inputData.getParametersValues('input',nodeId = 'ending')[key]
+                else:
+                  value = [value[key] for value in inputData.getParametersValues('input',nodeId = 'ending').values()]
                 foundCount += 1
           else:
             for inputData in inputList:
-                if key in inputData.getParametersValues('output').keys():
-                  value = inputData.getParametersValues('output')[key]
+                if key in inputData.getParametersValues('output',nodeId = 'ending').keys() if inputData.type == 'PointSet' else inputData.getParametersValues('output',nodeId = 'ending').values()[-1].keys():
+                  if inputData.type == 'PointSet':
+                    value = inputData.getParametersValues('output',nodeId = 'ending')[key]
+                  else:
+                    value = [value[key] for value in inputData.getParametersValues('output',nodeId = 'ending').values()]
                   foundCount += 1
 
           if foundCount == 0:
@@ -2854,11 +3119,17 @@ class ExternalPostProcessor(BasePostProcessor):
         ## accessible
         if storeInOutput:
           if key in requestedInput:
-            for val in value:
-              output.updateInputValue(key, val)
+            for histNum, val in enumerate(value):
+              param = key if output.type == 'PointSet' else [histNum+1,key]
+              output.updateInputValue(param, val)
           else:
-            for val in value:
-              output.updateOutputValue(key, val)
+            for histNum, val in enumerate(value):
+              if output.type == 'HistorySet':
+                if histNum+1 in dataLenghtHistory.keys():
+                  if dataLenghtHistory[histNum+1] != len(val): self.raiseAnError(IOError, key + ' the size of the arrays for history '+str(histNum+1)+' are different!')
+                else: dataLenghtHistory[histNum+1] = len(val)
+              param = key if output.type == 'PointSet' else [histNum+1,key]
+              output.updateOutputValue(param, val)
         else:
           if not hasattr(value, "__iter__"):
             value = [value]
@@ -2889,8 +3160,6 @@ class ExternalPostProcessor(BasePostProcessor):
       for interface in self.externalInterfaces:
         if method in interface.availableMethods():
           matchingInterfaces.append(interface)
-
-
       if len(matchingInterfaces) == 0:
         self.raiseAWarning(method + ' not found. I will skip it.')
       elif len(matchingInterfaces) == 1:
@@ -2904,11 +3173,29 @@ class ExternalPostProcessor(BasePostProcessor):
 
     ## Evaluate the method and add it to the outputDict, also if the method
     ## adjusts the input data, then you should update it as well.
+    warningMessages = []
     for methodName, (interface, method) in methodMap.iteritems():
       outputDict[methodName] = interface.evaluate(method, input['targets'])
+      if outputDict[methodName] is None: self.raiseAnError(Exception,"the method "+methodName+" has not produced any result. It needs to return a result!")
       for target in input['targets']:
         if hasattr(interface, target):
-          outputDict[target] = getattr(interface, target)
+          #if target not in outputDict.keys():
+          if target not in methodMap.keys():
+            attributeInSelf = getattr(interface, target)
+            if len(np.atleast_1d(attributeInSelf)) != len(np.atleast_1d(input['targets'][target])) or (np.atleast_1d(attributeInSelf) - np.atleast_1d(input['targets'][target])).all():
+              if target in outputDict.keys(): self.raiseAWarning("In Post-Processor "+ self.name +" the modified variable "+target+
+                               " has the same name of a one already modified throuhg another Function method." +
+                               " This method overwrites the input DataObject variable value")
+              outputDict[target] = attributeInSelf
+          else:
+            warningMessages.append("In Post-Processor "+ self.name +" the method "+method+
+                               " has the same name of a variable contained in the input DataObject." +
+                               " This method overwrites the input DataObject variable value")
+    for msg in list(set(warningMessages)): self.raiseAWarning(msg)
+
+    for target in input['targets'].keys():
+      if target not in outputDict.keys() and target in input['targets'].keys():
+        outputDict[target] = input['targets'][target]
 
     return outputDict
 
@@ -3076,11 +3363,11 @@ class TopologicalDecomposition(BasePostProcessor):
       @ In, output, dataObjects, The object where we want to place our computed results
       @ Out, None
     """
-    if finishedJob.returnEvaluation() == -1:
+    if finishedJob.getEvaluation() == -1:
       # TODO This does not feel right
       self.raiseAnError(RuntimeError,'No available output to collect (run probably did not finish yet)')
-    inputList = finishedJob.returnEvaluation()[0]
-    outputDict = finishedJob.returnEvaluation()[1]
+    inputList = finishedJob.getEvaluation()[0]
+    outputDict = finishedJob.getEvaluation()[1]
 
     if type(output).__name__ in ["str", "unicode", "bytes"]:
       self.raiseAWarning('Output type ' + type(output).__name__ + ' not'
@@ -3664,10 +3951,10 @@ class DataMining(BasePostProcessor):
       @ Out, None
     """
     ## When does this actually happen?
-    if finishedJob.returnEvaluation() == -1:
+    if finishedJob.getEvaluation() == -1:
       self.raiseAnError(RuntimeError, 'No available Output to collect (Run probably is not finished yet)')
 
-    dataMineDict = finishedJob.returnEvaluation()[1]
+    dataMineDict = finishedJob.getEvaluation()[1]
     for key in dataMineDict['output']:
       for param in output.getParaKeys('output'):
         if key == param:
@@ -3684,7 +3971,7 @@ class DataMining(BasePostProcessor):
             arrayBase = value * np.ones(timeLength)
             output.updateOutputValue([index[0]+1,key], arrayBase)
         else:
-          tlDict = finishedJob.returnEvaluation()[1]
+          tlDict = finishedJob.getEvaluation()[1]
           historyKey = output.getOutParametersValues().keys()
           for index, keyH in enumerate(historyKey):
             for keyL in tlDict['output'].keys():
@@ -4260,8 +4547,8 @@ class RavenOutput(BasePostProcessor):
       @ In, output, dataObjects, The object where we want to place our computed results
       @ Out, None
     """
-    if finishedJob.returnEvaluation() == -1: self.raiseAnError(RuntimeError, 'No available Output to collect (Run probably is not finished yet)')
-    realizations = finishedJob.returnEvaluation()[1]['realizations']
+    if finishedJob.getEvaluation() == -1: self.raiseAnError(RuntimeError, 'No available Output to collect (Run probably is not finished yet)')
+    realizations = finishedJob.getEvaluation()[1]['realizations']
     for real in realizations:
       for key in output.getParaKeys('inputs'):
         output.updateInputValue(key,real['inputs'][key])

@@ -230,7 +230,6 @@
           <colorMap>stories|Output|square</colorMap>
           <cmap>summer</cmap>
           <kwargs>
-            <color>red</color>
             <label>time sine square</label>
           </kwargs>
         </plot>
