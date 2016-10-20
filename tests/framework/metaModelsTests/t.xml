@@ -31,6 +31,9 @@
     <ExternalModel ModuleToLoad="/Users/alfoa/projects/raven/tests/framework/metaModelsTests/EM_D_dummy" name="D" subType="">
         <variables>squareSumPlusAverageTemperature,sumPlusAverageTemperature</variables>
     </ExternalModel>
+    <ExternalModel ModuleToLoad="/Users/alfoa/projects/raven/tests/framework/metaModelsTests/EM_E_dummy" name="E" subType="">
+        <variables>cubeSumPlusAverageTemperature,sumPlusAverageTemperature</variables>
+    </ExternalModel>
     <EnsembleModel name="fork" subType="">
       <Model class="Models" type="ExternalModel">
           A
@@ -52,8 +55,15 @@
           <Input class="DataObjects" type="PointSet">inputHolder</Input>
           <TargetEvaluation class="DataObjects" type="PointSet">Dcontainer</TargetEvaluation>
       </Model>
+      <Model class="Models" type="ExternalModel">
+          E
+          <Input class="DataObjects" type="PointSet">inputHolder</Input>
+          <TargetEvaluation class="DataObjects" type="PointSet">Econtainer</TargetEvaluation>
+      </Model>
     </EnsembleModel>
   </Models>
+  
+  <!--                ,'" force_density="',mix_mat_array(i)%isotopes(j)%force_density   -->
 
   <Samplers>
     <Grid name="MonteCarloTemperature">
@@ -116,6 +126,10 @@
         <Input>sumPlusAverageTemperature</Input>
         <Output>squareSumPlusAverageTemperature</Output>
     </PointSet>
+    <PointSet name="Econtainer">
+        <Input>sumPlusAverageTemperature</Input>
+        <Output>cubeSumPlusAverageTemperature</Output>
+    </PointSet>
     <PointSet name="Ccontainer">
       <Input>sumTemperature,averageTemperature</Input>
       <Output>sumPlusAverageTemperature</Output>
@@ -130,7 +144,7 @@
     </PointSet>
     <PointSet name="metaModelOutputTest">
       <Input>leftTemperature,rightTemperature</Input>
-      <Output>sumPlusAverageTemperature,averageTemperature,sumTemperature,squareSumPlusAverageTemperature</Output>
+      <Output>sumPlusAverageTemperature,averageTemperature,sumTemperature,squareSumPlusAverageTemperature,cubeSumPlusAverageTemperature</Output>
     </PointSet>
   </DataObjects>
  

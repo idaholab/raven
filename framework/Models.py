@@ -1661,8 +1661,7 @@ class EnsembleModel(Dummy, Assembler):
     
     executionList         = [[]]
     
-    modelsToInputModels  = dict.fromkeys(self.modelsDictionary.keys(),None)
-    modelsToOutputModels = dict.fromkeys(self.modelsDictionary.keys(),None)
+    modelsToInputModels, modelsToOutputModels  = dict.fromkeys(self.modelsDictionary.keys(),None), dict.fromkeys(self.modelsDictionary.keys(),None)
     
     for modelIn in self.modelsDictionary.keys():
       inputtMatch = []
@@ -1679,6 +1678,9 @@ class EnsembleModel(Dummy, Assembler):
       modelsToOutputModels[modelIn] = outputMatch
     
     print("ok")
+    
+    
+    
     
     
     
@@ -1750,7 +1752,13 @@ class EnsembleModel(Dummy, Assembler):
       self.raiseAMessage("Multi-model connections determined a non-linear system. Picard's iterations activated!")
       if len(self.initialConditions.keys()) == 0: self.raiseAnError(IOError,"Picard's iterations mode activated but no intial conditions provided!")
     else                  : self.raiseAMessage("Multi-model connections determined a linear system. Picard's iterations not activated!")
-
+    
+    for modelIn in reversed(self.orderList):
+      inputModels = modelsToInputModels[modelIn]
+      for modelInner in self.orderList:
+        
+    
+     
     self.allOutputs = []
     self.needToCheckInputs = True
     #if self.activatePicard:
