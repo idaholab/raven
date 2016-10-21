@@ -185,7 +185,7 @@ class c1darray(object):
       @ Out, __array__, numpy.ndarray, the requested array
     """
     if dtype != None:
-      return ndarray((self.size,), dtype, buff=None, offset=0, strides=None, order=None)
+      return ndarray((self.size,), dtype, buffer=None, offset=0, strides=None, order=None)
     else            :
       return self.values[:self.size]
 

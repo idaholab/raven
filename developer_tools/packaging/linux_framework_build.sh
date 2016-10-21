@@ -14,6 +14,6 @@ OS_NAME=`lsb_release -i -s || echo unknown`
 cd $CHECKOUT_DIR/raven
 make framework_modules
 ./run_tests -j$JOBS --re=framework --skip-config-checks || exit
-cd $CHECKOUT_DIR/raven/doc/user_manual && make -j$JOBS
+cd $CHECKOUT_DIR/raven/doc && ./make_docs.sh || exit
 cd $CHECKOUT_DIR
 tar --exclude=.git -cvzf raven_framework_${GIT_VERSION}_${OS_NAME}.tar.gz raven

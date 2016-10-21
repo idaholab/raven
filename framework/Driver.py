@@ -58,10 +58,34 @@ def printStatement():
   this sentence, must appear on any copies of this computer software.
   """)
 
+def checkVersions():
+  """
+    Method to check if versions of modules are new enough. Will call sys.exit
+    if they are not in the range specified.
+    @ In, None
+    @ Out, None
+  """
+  sys.path.append(os.path.join(os.path.dirname(frameworkDir),"scripts","TestHarness","testers"))
+  import RavenUtils
+  sys.path.pop() #remove testers path
+  missing,outOfRange,notQA = RavenUtils.checkForMissingModules()
+  if len(missing) + len(outOfRange) > 0 and RavenUtils.checkVersions():
+    print("ERROR: too old, too new, or missing raven libraries, not running:")
+    for error in missing + outOfRange + notQA:
+      print(error)
+    sys.exit(-4)
+  else:
+    if len(notQA) > 0:
+      print("WARNING: not using tested versions of the libraries:")
+      for warning in notQA + missing + outOfRange:
+        print(warning)
+
 if __name__ == '__main__':
   """This is the main driver for the RAVEN framework"""
   # Retrieve the framework directory path and working dir
   printStatement()
+
+  checkVersions()
 
   verbosity      = 'all'
   interfaceCheck = False
