@@ -220,49 +220,69 @@ class GradientBasedOptimizer(Optimizer):
       @ In, myInput, list, the generating input
     """
     if self.solutionExport != None and len(self.mdlEvalHist) > 0:
-      prefix = self.mdlEvalHist.getMetadata('prefix')
-      self.raiseADebug(self.mdlEvalHist.getMetadata('prefix'))
+      
 #       self.raiseAnError(IOError, 't')
-      if self.counter['solutionUpdate'] <= self.counter['varsUpdate']:
+      while self.counter['solutionUpdate'] <= self.counter['varsUpdate']:
+        solutionExportUpdatedFlag = False
+        prefix = self.mdlEvalHist.getMetadata('prefix')
         pre = (self.counter['solutionUpdate'])*(self.gradDict['pertNeeded']+1)+1
         pre = str(pre)
-        if str(pre) in prefix:
-          for pr, index in enumerate(prefix):
-            if pr == str(pre):
-              break
-          self.raiseADebug(prefix)
-          t=self.mdlEvalHist.getParametersValues('inputs', nodeId = 'RecontructEnding')
-          k=self.mdlEvalHist.getParametersValues('outputs', nodeId = 'RecontructEnding')
-          self.raiseADebug(t)
-          self.raiseADebug('*********************')
-          self.raiseADebug(k)
-      
-      evaluation = jobObject.getEvaluation()
-      if type(evaluation[0]).__name__ == "tuple":
-        inputeval = evaluation[0][0]
-      else:
-        inputeval = evaluation[0]
-      if type(evaluation[1]).__name__ == "tuple":
-        outputeval = evaluation[1][0]
-      else:
-        outputeval = evaluation[1]
- 
-      solutionExportUpdatedFlag = True
-      if self.counter['solutionUpdate'] <= self.counter['varsUpdate']:# and self.counter['solutionUpdate'] in self.optVarsHist.keys():
-        for var in self.optVars:
-          if self.optVarsHist[self.counter['solutionUpdate']][var] != inputeval[var]:
-            solutionExportUpdatedFlag = False
+        for index, pr in enumerate(prefix):
+          if '|' in pr:
+            pr = pr.split('|')[0]
+          if pr == str(pre):
+            solutionExportUpdatedFlag = True
             break
-      else:
-        solutionExportUpdatedFlag = False
-      if solutionExportUpdatedFlag:
-        # update solution export
-        for var in self.solutionExport.getParaKeys('inputs'):
-          if var in self.optVars:
-            self.solutionExport.updateInputValue(var,inputeval[var])
-        if 'varsUpdate' in self.solutionExport.getParaKeys('inputs'):
-          self.solutionExport.updateInputValue('varsUpdate', np.asarray([self.counter['solutionUpdate']]))
-        for var in self.solutionExport.getParaKeys('outputs'):
-          if var == self.objVar:
-            self.solutionExport.updateOutputValue(var, outputeval[var])
-        self.counter['solutionUpdate'] += 1
+        
+        if solutionExportUpdatedFlag:
+          inputeval=self.mdlEvalHist.getParametersValues('inputs', nodeId = 'RecontructEnding')
+          outputeval=self.mdlEvalHist.getParametersValues('outputs', nodeId = 'RecontructEnding')
+          # update solution export
+          for var in self.solutionExport.getParaKeys('inputs'):
+            if var in self.optVars:
+              self.solutionExport.updateInputValue(var,inputeval[var][index])
+          if 'varsUpdate' in self.solutionExport.getParaKeys('inputs'):
+            self.solutionExport.updateInputValue('varsUpdate', np.asarray([self.counter['solutionUpdate']]))
+          for var in self.solutionExport.getParaKeys('outputs'):
+            if var == self.objVar:
+              self.solutionExport.updateOutputValue(var, outputeval[var][index])
+          self.counter['solutionUpdate'] += 1
+        else:
+          break 
+            
+          
+#           self.raiseADebug(prefix)
+#           
+#           self.raiseADebug(t)
+#           self.raiseADebug('*********************')
+#           self.raiseADebug(k)
+#       
+#       evaluation = jobObject.getEvaluation()
+#       if type(evaluation[0]).__name__ == "tuple":
+#         inputeval = evaluation[0][0]
+#       else:
+#         inputeval = evaluation[0]
+#       if type(evaluation[1]).__name__ == "tuple":
+#         outputeval = evaluation[1][0]
+#       else:
+#         outputeval = evaluation[1]
+#  
+#       solutionExportUpdatedFlag = True
+#       if self.counter['solutionUpdate'] <= self.counter['varsUpdate']:# and self.counter['solutionUpdate'] in self.optVarsHist.keys():
+#         for var in self.optVars:
+#           if self.optVarsHist[self.counter['solutionUpdate']][var] != inputeval[var]:
+#             solutionExportUpdatedFlag = False
+#             break
+#       else:
+#         solutionExportUpdatedFlag = False
+#       if solutionExportUpdatedFlag:
+#         # update solution export
+#         for var in self.solutionExport.getParaKeys('inputs'):
+#           if var in self.optVars:
+#             self.solutionExport.updateInputValue(var,inputeval[var])
+#         if 'varsUpdate' in self.solutionExport.getParaKeys('inputs'):
+#           self.solutionExport.updateInputValue('varsUpdate', np.asarray([self.counter['solutionUpdate']]))
+#         for var in self.solutionExport.getParaKeys('outputs'):
+#           if var == self.objVar:
+#             self.solutionExport.updateOutputValue(var, outputeval[var])
+#         self.counter['solutionUpdate'] += 1
