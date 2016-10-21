@@ -52,7 +52,7 @@
       <type>csv</type>
       <source>DataSets</source>
     </Print>
-    <Plot dim="2" name="PlotHierarchical" overwrite="false">
+    <Plot name="PlotHierarchical" overwrite="false">
       <plotSettings>
         <plot>
           <type>scatter</type>
