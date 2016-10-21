@@ -77,12 +77,12 @@ class DTW(Metric):
         timeLengthY = tempY[self.pivotParameter].size
         del tempX[self.pivotParameter]
         del tempY[self.pivotParameter]
-        if self.order == 1:
-          tempX = np.gradient(tempX)
-          tempY = np.gradient(tempY)
         X = np.empty((len(tempX.keys()),timeLengthX))
         Y = np.empty((len(tempY.keys()),timeLengthY))
         for index, key in enumerate(tempX):
+          if self.order == 1:
+            tempX[key] = np.gradient(tempX[key])
+            tempY[key] = np.gradient(tempY[key])
           X[index] = tempX[key]
           Y[index] = tempY[key]
         value = self.dtwDistance(X,Y)
