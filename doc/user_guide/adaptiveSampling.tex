@@ -89,7 +89,7 @@ C\left (\overline{\theta}, \overline{x},\overline{p},t \right ) = C\left (H\left
 \end{equation}
 Without loss of generality, lets assume
 that $C$ does not depend on time (e.g. $C\leftarrow
-\bigintssss_{t_{0}}^{t_{end}}dtC\left(  \overline{x},\overline{p},t \right )$):
+\int_{t_{0}}^{t_{end}}dtC\left(  \overline{x},\overline{p},t \right )$):
 \begin{equation}
   \label{eq:goalFunction}
   C = C\left (\overline{x},\overline{p}\right )
@@ -140,12 +140,12 @@ where $\overline{x}$ is the random variate realization of the stochastic variabl
 If $pdf_{\overline{X}}\left ( \overline{x} \right ) $ is the probability density function of $ \overline{X}$, the failure probability of the system $\left ( P_{F} \right )$ is:
 \begin{equation}
 \label{eq:probabilityFailure}
-P_{F} = \bigintssss_{V}d\overline{x}C\left ( \overline{x} \right )pdf_{\overline{X}}\left ( \overline{x} \right ) = \bigintssss_{V_{F}+V_{F}^{c}}d\overline{x}C\left ( \overline{x} \right )pdf_{\overline{X}}\left ( \overline{x} \right )
+P_{F} = \int_{V}d\overline{x}C\left ( \overline{x} \right )pdf_{\overline{X}}\left ( \overline{x} \right ) = \int_{V_{F}+V_{F}^{c}}d\overline{x}C\left ( \overline{x} \right )pdf_{\overline{X}}\left ( \overline{x} \right )
 \end{equation}
 And, based on the definition given in Equations~\ref{eq:goalFunctionCodazzi} and \ref{eq:failureRegion}:
 \begin{equation}
  \label{eq:failureProbIntegral}
- \bigintssss_{V_{F}}d\overline{x}pdf_{\overline{X}}\left ( \overline{x} \right )
+ \int_{V_{F}}d\overline{x}pdf_{\overline{X}}\left ( \overline{x} \right )
  \end{equation}
 Equations \ref{eq:probabilityFailure} and \ref{eq:failureProbIntegral} are summarized by stating that the system failure probability is
 equivalent to the probability of the system being in the uncertain
@@ -199,10 +199,10 @@ The LS, failure region, and active part of the failure region (failure region wi
 In this case, the transition/failure probability is evaluated as follows:
 \begin{equation}
 \begin{matrix}
-P_{F} = \bigintssss_{V_{F}}d\overline{x}\: pdf_{\overline{X}}\left ( \overline{x} \right )
-= \bigintssss_{0}^{+\infty }d\overline{t_{F}}\: pdf_{T_{F}}\left ( T_{F} \right )\: \: \bigintssss_{\sqrt{\frac{t_{F}-t_{0}}{\alpha}}}^{+\infty } d\, rt_{DGs} \: pdf_{RT_{DGs}}\left ( rt_{DGs} \right )  =
+P_{F} = \int_{V_{F}}d\overline{x}\: pdf_{\overline{X}}\left ( \overline{x} \right )
+= \int_{0}^{+\infty }d\overline{t_{F}}\: pdf_{T_{F}}\left ( T_{F} \right )\: \: \int_{\sqrt{\frac{t_{F}-t_{0}}{\alpha}}}^{+\infty } d\, rt_{DGs} \: pdf_{RT_{DGs}}\left ( rt_{DGs} \right )  =
 \\
-= \bigintssss_{t_{F_{min}}}^{t_{F_{max}}} dt_{F}\frac{1}{t_{F_{max}}-t_{F_{min}}}\: \: \bigintssss_{\sqrt{\frac{t_{F}-t_{0}}{\alpha}}}^{ rt_{DGs_{max}}}\: d\, rt_{DGs} \frac{1}{rt_{DGs_{max}}-rt_{DGs_{min}}} =
+= \int_{t_{F_{min}}}^{t_{F_{max}}} dt_{F}\frac{1}{t_{F_{max}}-t_{F_{min}}}\: \: \int_{\sqrt{\frac{t_{F}-t_{0}}{\alpha}}}^{ rt_{DGs_{max}}}\: d\, rt_{DGs} \frac{1}{rt_{DGs_{max}}-rt_{DGs_{min}}} =
 \\
 = \frac{rt_{DGs_{max}}}{\Delta rt_{DGs}} + \frac{2\alpha}{3\left ( \Delta rt_{DGs}\Delta t_{F} \right )}
 \left ( \sqrt[3/2]{\frac{t_{F_{min}}-t_{0}}{\alpha}} - \sqrt[3/2]{\frac{t_{F_{max}}-t_{0}}{\alpha}} \right )
@@ -409,8 +409,8 @@ the uncertain parameters’ probability density functions
 $pdf_{\overline{X}}\left ( \overline{x} \right )$ could be introduced;
 Equation ~\ref{eq:Pf} is recast, using a Taylor expansion, as follows:
  \begin{equation}
-P_{F}= \bigintssss_{V} C\left ( \overline{x} \right )\: pdf_{\overline{X}}\left (
-\overline{x}  \right )\: d\overline{x} =\bigintssss_{V_{A}}C\left ( \overline{x}
+P_{F}= \int_{V} C\left ( \overline{x} \right )\: pdf_{\overline{X}}\left (
+\overline{x}  \right )\: d\overline{x} =\int_{V_{A}}C\left ( \overline{x}
 \right )\:
 \left [
 \mathlarger{\sum}_{\overline{j}=\overline{I}}^{\overline{N}}\varphi_{\overline{j}}\left (
@@ -425,7 +425,7 @@ And, considering the evaluation grid as:
 \label{eq:PfEq}
 P_{F}= \mathlarger{\sum}_{\begin{matrix}
 \overline{j}=\overline{I} \\ \overline{x}_{\overline{j}} \in V_{A} \end{matrix}}^{\overline{N}}
-\bigintssss_{\overline{x}_{\overline{j}} - \overline{h}/2}^{\overline{x}_{\overline{j}} + \overline{h}/2} C\left ( \overline{x} \right )\:
+\int_{\overline{x}_{\overline{j}} - \overline{h}/2}^{\overline{x}_{\overline{j}} + \overline{h}/2} C\left ( \overline{x} \right )\:
 \left [  \mathlarger{\sum}_{\overline{j}=\overline{I}}^{\overline{N}}\varphi_{\overline{j}}\left ( \overline{x} \right )
 \left ( pdf_{\overline{X}}\left ( \overline{x}_{\overline{j}} \right ) +
 \mathlarger{\sum}_{i=1}^{D} \frac{\partial pdf_{\overline{X}}}{\partial x_{i}}|_{\overline{x}_{\overline{j}}} \: \left ( x_{i} - x_{j_{i}} \right ) \right ) \right ] d\overline{x}
@@ -440,7 +440,7 @@ V_{\partial V_{F}}$.
 \begin{equation}
 \mathlarger{\sum}_{\begin{matrix}
 \overline{j}=\overline{I} \\ \overline{x}_{\overline{j}} \in V_{A} \cap V_{C(\overline{x})=0} \end{matrix}}^{\overline{N}}
-\bigintssss_{\overline{x}_{\overline{j}} - \overline{h}/2}^{\overline{x}_{\overline{j}} + \overline{h}/2} C\left ( \overline{x} \right )\:
+\int_{\overline{x}_{\overline{j}} - \overline{h}/2}^{\overline{x}_{\overline{j}} + \overline{h}/2} C\left ( \overline{x} \right )\:
 \left ( pdf_{\overline{X}}\left ( \overline{x}_{\overline{j}} \right ) +
 \mathlarger{\sum}_{i=1}^{D} \frac{\partial pdf_{\overline{X}}}{\partial x_{i}}|_{\overline{x}_{\overline{j}}} \: \left ( x_{i} - x_{j_{i}} \right ) \right )   d\overline{x}
 \end{equation}
@@ -449,13 +449,13 @@ in which the  ``goal''  function $C(\overline{x})$ is equal to $1$ ($V_{A} \cap 
 \begin{matrix}
 \mathlarger{\sum}_{\begin{matrix}
 \overline{j}=\overline{I} \\ \overline{x}_{\overline{j}} \in V_{A} \cap V_{C(\overline{x})=1} \end{matrix}}^{\overline{N}}
-\bigintssss_{\overline{x}_{\overline{j}} - \overline{h}/2}^{\overline{x}_{\overline{j}} + \overline{h}/2} C\left ( \overline{x} \right )\:
+\int_{\overline{x}_{\overline{j}} - \overline{h}/2}^{\overline{x}_{\overline{j}} + \overline{h}/2} C\left ( \overline{x} \right )\:
 \left ( pdf_{\overline{X}}\left ( \overline{x}_{\overline{j}} \right ) +
 \mathlarger{\sum}_{i=1}^{D} \frac{\partial pdf_{\overline{X}}}{\partial x_{i}}|_{\overline{x}_{\overline{j}}} \: \left ( x_{i} - x_{j_{i}} \right ) \right )   d\overline{x} =
 \\
 = \mathlarger{\sum}_{\begin{matrix}
 \overline{j}=\overline{I} \\ \overline{x}_{\overline{j}} \in V_{A} \cap V_{C(\overline{x})=1} \end{matrix}}^{\overline{N}}
-\bigintssss_{\overline{x}_{\overline{j}} - \overline{h}/2}^{\overline{x}_{\overline{j}} + \overline{h}/2}
+\int_{\overline{x}_{\overline{j}} - \overline{h}/2}^{\overline{x}_{\overline{j}} + \overline{h}/2}
 \left ( pdf_{\overline{X}}\left ( \overline{x}_{\overline{j}} \right ) +
 \mathlarger{\sum}_{i=1}^{D} \frac{\partial pdf_{\overline{X}}}{\partial x_{i}}|_{\overline{x}_{\overline{j}}} \: \left ( x_{i} - x_{j_{i}} \right ) \right )   d\overline{x}
 \end{matrix}
@@ -474,7 +474,7 @@ V_{C(\overline{x})=1} \end{matrix}}^{\overline{N}}
  + \mathlarger{\sum}_{\begin{matrix}
 \overline{j}=\overline{I} \\ \overline{x}_{\overline{j}} \in V_{A} \cap
 V_{\partial V_{f}} \end{matrix}}^{\overline{N}}
-\bigintssss_{\overline{x}_{\overline{j}} -
+\int_{\overline{x}_{\overline{j}} -
 \overline{h}/2}^{\overline{x}_{\overline{j}} + \overline{h}/2} C\left (
 \overline{x} \right )\: \left ( pdf_{\overline{X}}\left (
 \overline{x}_{\overline{j}} \right ) +

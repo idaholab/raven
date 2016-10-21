@@ -176,7 +176,7 @@
       <type>csv</type>
       <source>outMC_PP5</source>
     </Print>
-    <Plot dim="2" name="plot1" overwrite="False">
+    <Plot  name="plot1" overwrite="False">
       <plotSettings>
         <plot>
           <type>line</type>
@@ -207,7 +207,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot dim="2" name="plot2" overwrite="False">
+    <Plot  name="plot2" overwrite="False">
       <plotSettings>
         <plot>
           <type>line</type>
@@ -238,7 +238,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot dim="2" name="plot3" overwrite="False">
+    <Plot  name="plot3" overwrite="False">
       <plotSettings>
         <plot>
           <type>line</type>
@@ -269,7 +269,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot dim="2" name="plot4" overwrite="False">
+    <Plot  name="plot4" overwrite="False">
       <plotSettings>
         <plot>
           <type>line</type>
@@ -293,7 +293,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot dim="2" name="plot5" overwrite="False">
+    <Plot  name="plot5" overwrite="False">
       <plotSettings>
         <plot>
           <type>line</type>

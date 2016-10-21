@@ -50,7 +50,7 @@
       <source>DataSets</source>
       <what>Output|labels</what>
     </Print>
-    <Plot dim="2" name="PlotDBSCANBlobs" overwrite="false">
+    <Plot  name="PlotDBSCANBlobs" overwrite="false">
       <plotSettings>
         <plot>
           <type>scatter</type>
