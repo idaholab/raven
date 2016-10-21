@@ -7,12 +7,12 @@
   </RunInfo>
 
   <Files>
-    <Input name="DataSetsFile">./DataSets.csv</Input>
+    <Input name="DataSetsFile">../sharedData/DataSets.csv</Input>
   </Files>
 
   <Models>
     <PostProcessor name="VariationalGMMBlobs" subType="DataMining" verbosity="quiet">
-      <KDD lib="SciKitLearn">
+      <KDD lib="SciKitLearn" labelFeature='labels'>
         <Features>x1,x2</Features>
         <SKLtype>mixture|VBGMM</SKLtype>
         <covariance_type>diag</covariance_type>
@@ -45,6 +45,7 @@
     <Print name="dummy">
       <type>csv</type>
       <source>DataSets</source>
+      <what>Output|labels</what>
     </Print>
     <Plot dim="2" name="PlotVariationalGMMBlobs" overwrite="false">
       <plotSettings>
@@ -53,7 +54,7 @@
           <x>DataSets|input|x1</x>
           <y>DataSets|input|x2</y>
           <cmap>Set1</cmap>
-          <colorMap>DataSets|Output|VariationalGMMBlobsLabels</colorMap>
+          <colorMap>DataSets|Output|labels</colorMap>
           <kwargs>
             <edgecolor>None</edgecolor>
           </kwargs>

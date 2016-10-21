@@ -3,16 +3,16 @@
   <RunInfo>
     <WorkingDir>KMeans</WorkingDir>
     <Sequence>input,cluster,output</Sequence>
-    <batchSize>100</batchSize>
+    <batchSize>1</batchSize>
   </RunInfo>
 
   <Files>
-    <Input name="dataFile">./data.csv</Input>
+    <Input name="dataFile">../sharedData/DataSets.csv</Input>
   </Files>
 
   <Models>
     <PostProcessor name="kMeans" subType="DataMining" verbosity="quiet">
-      <KDD lib="SciKitLearn" labelFeature='labels'>
+      <KDD lib="SciKitLearn">
         <Features>x1,x2</Features>
         <SKLtype>cluster|KMeans</SKLtype>
         <n_clusters>3</n_clusters>
@@ -52,6 +52,7 @@
     <Print name="dummy">
       <type>csv</type>
       <source>data</source>
+      <what>Output|kMeansLabels</what>
     </Print>
     <Plot dim="2" name="plot" overwrite="false">
       <plotSettings>
@@ -60,7 +61,7 @@
           <x>data|input|x1</x>
           <y>data|input|x2</y>
           <cmap>Set1</cmap>
-          <colorMap>data|Output|labels</colorMap>
+          <colorMap>data|Output|kMeansLabels</colorMap>
           <kwargs>
             <edgecolor>None</edgecolor>
           </kwargs>
@@ -70,7 +71,7 @@
           <x>clusterInfo|output|x1</x>
           <y>clusterInfo|output|x2</y>
           <cmap>Set1</cmap>
-          <colorMap>clusterInfo|input|labels</colorMap>
+          <colorMap>clusterInfo|input|kMeansLabels</colorMap>
           <kwargs>
             <edgecolor>black</edgecolor>
           </kwargs>

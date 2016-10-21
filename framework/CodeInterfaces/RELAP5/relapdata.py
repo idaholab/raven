@@ -93,6 +93,11 @@ class relapdata:
     flagg1 = 0
     flagg2 = 0
     block_count=0
+
+    # The following object is a list of keywords that RELAP5 might generate in the minor edits which would
+    # corrupt the .csv files. If more keywords are discovered add them here in the list
+    errorKeywords = ['Reducing','Thermodynamic','ncount','0$$$$$$$$']
+
     while(flagg1==0 & flagg2==0):
       if flagg1==0:
         tempkeys=[]
@@ -109,9 +114,12 @@ class relapdata:
         i=i+4
         while not re.match('^\s*1 time|^1RELAP5|^\s*\n|^\s*1RELAP5|^\s*MINOR EDIT',lines[i]):
           tempData=lines[i].split()
-          takeIt = False if re.match("^\d+?\.\d+?$", tempData[0]) is None else True
-          if takeIt:
-            for k in range(len(tempArray)): tempArray[k].append(tempData[k])
+          #takeIt = False if re.match("^\d+?\.\d+?$", tempData[0]) is None else True
+          #if takeIt:
+          #  for k in range(len(tempArray)): tempArray[k].append(tempData[k])
+          # Here I check that none of the keywords contained in errorKeywords are contained in tempdata
+          if not list(set(tempData) & set(errorKeywords)):
+            for k in range(len(temparray)): temparray[k].append(tempData[k])
           i=i+1
           if re.match('^\s*1 time|^\s*1\s*R5|^\s*\n|^1RELAP5',lines[i]) or re.match('^\s*0Final time',lines[i]) or re.match('^\s*Final time',lines[i]): break
         for l in range(len(tempkeys)): minorDict.update({tempkeys[l]:tempArray[l]})
