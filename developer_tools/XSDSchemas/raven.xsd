@@ -3,7 +3,7 @@
 
     <xsd:include schemaLocation="Distributions.xsd"/>
     <xsd:include schemaLocation="Samplers.xsd"/>
-	  <xsd:include schemaLocation="Optimizers.xsd"/>
+    <xsd:include schemaLocation="Optimizers.xsd"/>
     <xsd:include schemaLocation="Models.xsd"/>
     <xsd:include schemaLocation="Functions.xsd"/>
     <xsd:include schemaLocation="Files.xsd"/>
@@ -98,7 +98,7 @@
                 <xsd:element name="Files"          type="FilesType"        minOccurs="0"/>
                 <xsd:element name="VariableGroups" type="VarGroupsType"    minOccurs="0"/>
                 <xsd:element name="Samplers"       type="SamplerData"      minOccurs="0"/>
-				        <xsd:element name="Optimizers"     type="OptimizerData"    minOccurs="0"/>
+                <xsd:element name="Optimizers"     type="OptimizerData"    minOccurs="0"/>
                 <xsd:element name="DataObjects"    type="DataObjectsData"  minOccurs="0"/>
                 <xsd:element name="Distributions"  type="DistributionData" minOccurs="0"/>
                 <xsd:element name="Functions"      type="FunctionType"     minOccurs="0"/>
