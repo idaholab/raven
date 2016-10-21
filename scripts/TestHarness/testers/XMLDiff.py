@@ -227,10 +227,16 @@ def compareUnorderedElement(a,b,*args,**kwargs):
     """ adds the fail message to the list
     args: The arguments to the fail message (will be converted with str())
     """
-    printArgs = [path]
+    printArgs = []
     printArgs.extend(args)
     argsExpanded = " ".join([str(x) for x in printArgs])
     message.append(argsExpanded)
+  if a.text != b.text:
+    succeeded, note = compareStringsWithFloats(a.text, b.text, options["rel_err"], options["zero_threshold"], options["remove_whitespace"])
+    if not succeeded:
+      same = False
+      failMessage(note)
+      return (same, message)
   aList = treeToList(a)
   bList = treeToList(b)
   #search a for matches in b
