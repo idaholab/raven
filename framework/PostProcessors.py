@@ -3873,7 +3873,7 @@ class DataMining(BasePostProcessor):
         if 'components' in solutionExportDict:
           components = solutionExportDict['components']
           for row,values in enumerate(components):
-            self.solutionExport.updateInputValue('component', row+1)
+            self.solutionExport.updateInputValue(self.labelFeature, row+1)
             for col,value in zip(self.unSupervisedEngine.features.keys(),values):
               self.solutionExport.updateOutputValue(col,value)
 
@@ -3890,17 +3890,20 @@ class DataMining(BasePostProcessor):
       @ In, Input, dict, dictionary of data to process
       @ Out, outputDict, dict, dictionary containing the post-processed results
     """
-
-    outputDict = {}
     self.unSupervisedEngine.features = Input['Features']
     self.unSupervisedEngine.pivotVariable = self.pivotVariable
 
     if not self.unSupervisedEngine.amITrained:
       self.unSupervisedEngine.train(Input['Features'])
     self.unSupervisedEngine.confidence()
-    outputDict['outputs'] = {}
+    outputDict = self.unSupervisedEngine.outputDict
+
+
     numberOfHistoryStep = self.unSupervisedEngine.numberOfHistoryStep
     numberOfSample = self.unSupervisedEngine.numberOfSample
+
+    if 'bicluster' == self.unSupervisedEngine.SKLtype:
+      self.raiseAnError(RuntimeError, 'Bicluster has not yet been implemented.')
 
     if 'cluster' == self.unSupervisedEngine.SKLtype:
       if 'labels' in self.unSupervisedEngine.outputDict.keys():
@@ -4039,7 +4042,7 @@ class DataMining(BasePostProcessor):
         reconstructionError = self.unSupervisedEngine.outputDict['reconstructionError_']
 
       for i in range(noComponents):
-        outputDict['outputs'][self.name+'PCAComponent' + str(i + 1)] =  components[:, i]
+        outputDict['outputs'][self.labelFeature + str(i + 1)] =  components[:, i]
 
     return outputDict
 #

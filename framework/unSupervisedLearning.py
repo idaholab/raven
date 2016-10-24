@@ -923,7 +923,6 @@ class temporalSciKitLearn(unSupervisedLearning):
         if 'embeddingVectors_' not in self.outputDict.keys():
           self.outputDict['embeddingVectors_'] = {}
 
-        self.outputDict['noComponents'][t] = self.SKLEngine.noComponents_
         if hasattr(self.SKLEngine.Method, 'embedding_'):
           self.outputDict['embeddingVectors_'][t] = self.SKLEngine.Method.embedding_
 
@@ -943,8 +942,6 @@ class temporalSciKitLearn(unSupervisedLearning):
                     'noComponents','components','transformedData']:
           if var not in self.outputDict:
             self.outputDict[var] = {}
-
-        self.outputDict['noComponents'][t] = self.SKLEngine.noComponents_
 
         if hasattr(self.SKLEngine.Method, 'components_'):
           self.outputDict['components'][t] = self.SKLEngine.Method.components_
