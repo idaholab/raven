@@ -10,20 +10,20 @@ false,false,false,false,false,false,false
 0
 #1 Interfacial friction in bundle
 false
-7.02461008228e-05
+$RAVEN-modelpar004$
 -1
 #2 Interfacial friction in pipe
 false
-1.0
+$RAVEN-modelpar005$
 -1
 #3 Horizontal stratification 
 false
-1.0
+$RAVEN-modelpar009$
 -1
 -1
 #4 Fuel clad oxidization
 false
-1.0
+$RAVEN-modelpar010$
 0
 -1
 #5 Uncovered core heat transfer

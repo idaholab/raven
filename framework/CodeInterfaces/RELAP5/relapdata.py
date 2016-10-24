@@ -119,7 +119,7 @@ class relapdata:
           #  for k in range(len(tempArray)): tempArray[k].append(tempData[k])
           # Here I check that none of the keywords contained in errorKeywords are contained in tempdata
           if not list(set(tempData) & set(errorKeywords)):
-            for k in range(len(temparray)): temparray[k].append(tempData[k])
+            for k in range(len(tempArray)): tempArray[k].append(tempData[k])
           i=i+1
           if re.match('^\s*1 time|^\s*1\s*R5|^\s*\n|^1RELAP5',lines[i]) or re.match('^\s*0Final time',lines[i]) or re.match('^\s*Final time',lines[i]): break
         for l in range(len(tempkeys)): minorDict.update({tempkeys[l]:tempArray[l]})
@@ -164,13 +164,26 @@ class relapdata:
     """
     flagg=0
     self.ravenData={}
+    ravenLines = []
+    deckCounter = 0
     for i in range(len(self.lines)):
       if re.search('RAVEN',self.lines[i]):
+        ravenLines.append([])
+        deckNum = None
         i=i+1
         while flagg==0:
           if re.search('RAVEN',self.lines[i]): flagg=1
-          else: self.ravenData[self.lines[i].split()[1].replace("*","")]=self.lines[i].split()[3]
+          else:
+            splitted = self.lines[i].split()
+            if   'deckNum:' in splitted: deckNum = splitted[-1].strip()
+            elif 'card:'    in splitted:
+              sampleVar = splitted[splitted.index('card:')+1].strip()+(":"+splitted[splitted.index('word:')+1].strip() if splitted[splitted.index('word:')+1].strip() != '0' else '')
+              value     = splitted[splitted.index('value:')+1].strip()
+              if deckNum is not None: sampleVar = str(deckNum)+'|'+sampleVar
+              self.ravenData[sampleVar]=value
           i=i+1
+        deckCounter+=1
+
     return
 
   def writeCSV(self,filen):
