@@ -45,7 +45,7 @@
       <source>DataSets</source>
       <what>Output|labels</what>
     </Print>
-    <Plot dim="2" name="PlotSpectralCircles" overwrite="false">
+    <Plot  name="PlotSpectralCircles" overwrite="false">
       <plotSettings>
         <plot>
           <type>scatter</type>

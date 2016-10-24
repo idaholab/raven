@@ -56,7 +56,7 @@
       <source>clusterInfo</source>
     </Print>
 
-    <Plot dim="2" name="plotRawData" overwrite="True" >
+    <Plot  name="plotRawData" overwrite="True" >
       <plotSettings>
         <gridSpace>2 1</gridSpace>
         <plot>
@@ -89,7 +89,7 @@
       </actions>
     </Plot>
 
-    <Plot dim="2" name="plotPPDataLabel" overwrite="True" >
+    <Plot  name="plotPPDataLabel" overwrite="True" >
       <plotSettings>
         <plot>
           <type>line</type>
@@ -103,7 +103,7 @@
       </actions>
     </Plot>
 
-    <Plot dim="2" name="plotPPDataCentroid" overwrite="True" >
+    <Plot  name="plotPPDataCentroid" overwrite="True" >
       <plotSettings>
         <gridSpace>2 1</gridSpace>
         <plot>

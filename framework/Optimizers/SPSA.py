@@ -39,7 +39,7 @@ class SPSA(GradientBasedOptimizer):
     self.stochasticEngineForConstraintHandling.mean, self.stochasticEngineForConstraintHandling.sigma = 0, 1
     self.stochasticEngineForConstraintHandling.upperBoundUsed, self.stochasticEngineForConstraintHandling.lowerBoundUsed = False, False
     self.stochasticEngineForConstraintHandling.initializeDistribution()
-    
+
   def localLocalInputAndChecks(self, xmlNode):
     """
       Local method for additional reading.
@@ -136,7 +136,7 @@ class SPSA(GradientBasedOptimizer):
       @ In, ak, float, it is gain for variable update
       @ In, gradient, dictionary, contains the gradient information for variable update
       @ In, varK, dictionary, current variable values
-      @ Out, tempVarKPlus, dictionary, variable values for next iteration. 
+      @ Out, tempVarKPlus, dictionary, variable values for next iteration.
     """
     tempVarKPlus = {}
     for var in self.optVars:
@@ -148,16 +148,16 @@ class SPSA(GradientBasedOptimizer):
     # Try to find varKPlus by shorten the gradient vector
     foundVarsUpdate, tempVarKPlus = self._bisectionForConstrainedInput(varK, ak, gradient)
     if foundVarsUpdate:
-      return tempVarKPlus 
-    
+      return tempVarKPlus
+
     # Try to find varKPlus by rotate the gradient towards its orthogonal, since we consider the gradient as perpendicular
     # with respect to the constraints hyper-surface
     innerLoopLimit = self.constraintHandlingPara['innerLoopLimit']
     if innerLoopLimit < 0:   self.raiseAnError(IOError, 'Limit for internal loop for constraint handling shall be nonnegative')
     loopCounter = 0
     foundPendVector = False
-    while not foundPendVector and loopCounter < innerLoopLimit: 
-      loopCounter += 1   
+    while not foundPendVector and loopCounter < innerLoopLimit:
+      loopCounter += 1
       depVarPos = Distributions.randomIntegers(0,self.nVar-1,self)
       pendVector = {}
       npDot = 0
@@ -167,31 +167,31 @@ class SPSA(GradientBasedOptimizer):
       for varID, var in enumerate(self.optVars):
         if varID == depVarPos:
           pendVector[var] = -npDot/gradient[var]
-      
-      r = LA.norm(np.asarray([gradient[var] for var in self.optVars]))/LA.norm(np.asarray([pendVector[var] for var in self.optVars]))  
+
+      r = LA.norm(np.asarray([gradient[var] for var in self.optVars]))/LA.norm(np.asarray([pendVector[var] for var in self.optVars]))
       for var in self.optVars:
         pendVector[var] = copy.deepcopy(pendVector[var])*r
-      
+
       tempVarKPlus = {}
       for var in self.optVars:
         tempVarKPlus[var] = copy.copy(varK[var]-ak*pendVector[var]*1.0)
       if self.checkConstraint(tempVarKPlus):                  foundPendVector = True
       if not foundPendVector:
         foundPendVector, tempVarKPlus = self._bisectionForConstrainedInput(varK, ak, pendVector)
-                
-    if foundPendVector:      
+
+    if foundPendVector:
       lenPendVector = 0
       for var in self.optVars:
         lenPendVector += pendVector[var]**2
       lenPendVector = np.sqrt(lenPendVector)
-      
+
       rotateDegreeUpperLimit = 2
       while self.angleBetween(gradient, pendVector) > rotateDegreeUpperLimit:
         sumVector, lenSumVector = {}, 0
         for var in self.optVars:
           sumVector[var] = gradient[var] + pendVector[var]
           lenSumVector += sumVector[var]**2
-          
+
         tempTempVarKPlus = {}
         for var in self.optVars:
           sumVector[var] = copy.deepcopy(sumVector[var]/np.sqrt(lenSumVector)*lenPendVector)
@@ -201,9 +201,9 @@ class SPSA(GradientBasedOptimizer):
           pendVector = copy.deepcopy(sumVector)
         else:
           gradient = copy.deepcopy(sumVector)
-     
-      return tempVarKPlus    
-    
+
+      return tempVarKPlus
+
     tempVarKPlus = varK
     return tempVarKPlus
 
@@ -243,7 +243,7 @@ class SPSA(GradientBasedOptimizer):
     @ In, d1, dict, first vector
     @ In, d2, dict, second vector
     @ Out, angleD, float, angle between d1 and d2 with unit of degree
-    """    
+    """
     v1, v2 = np.zeros(shape=[self.nVar,]), np.zeros(shape=[self.nVar,])
     for cnt, var in enumerate(self.optVars):
       v1[cnt], v2[cnt] = copy.deepcopy(d1[var]), copy.deepcopy(d2[var])

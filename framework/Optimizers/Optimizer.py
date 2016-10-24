@@ -370,7 +370,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       if optVars[var] > self.optVarsInit['upperBound'][var] or optVars[var] < self.optVarsInit['lowerBound'][var]:
         satisfaction = False
         break
-    
+
     satisfaction = self.localCheckConstraint(optVars, satisfaction)
     return satisfaction
 
