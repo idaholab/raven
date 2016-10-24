@@ -572,7 +572,8 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     # generate the function variable values
     for var in self.dependentSample.keys():
       test=self.funcDict[var].evaluate("evaluate",self.values)
-      self.values[var] = test
+      for corrVar in var.split(","):
+        self.values[corrVar.strip()] = test
     ##### RESTART #####
     #check if point already exists
     if self.restartData is not None:
