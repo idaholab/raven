@@ -245,10 +245,18 @@ class File(BaseType):
     """
     if self.isOpen(): self.raiseAnError('Tried to change the name of an open file: %s! Close it first.' %self.getAbsFile())
     filename = filename.strip()
-    if filename != '.': self.setBase(os.path.basename(filename).split()[0].split('.')[0])
-    else: self.setBase(filename)
-    if len(filename.split(".")) > 1: self.setExt(filename.split(".")[-1].lower())
-    else: self.setExt(None)
+
+    # This will split the file name at the rightmost '.'
+    base, ext = os.path.splitext(filename)
+
+    # The rightmost '.' will be the first character of ext
+    # (unless there is no '.' in the file name, in which case ext is '')
+    self.setBase(base)
+
+    if (ext == ''):
+      self.setExt(None)
+    else:
+      self.setExt(ext.lstrip('.'))
 
   def setAbsFile(self,pathandfile):
     """
