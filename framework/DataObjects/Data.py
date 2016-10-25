@@ -642,12 +642,12 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ Out, foundNodes, TreeStructure.Node, the found nodes
     """
     if not self.TSData: # there is no tree yet
-      self.TSData = {nodeName:TS.NodeTree(self.messageHandler,TS.Node(nodeName))}
+      self.TSData = {nodeName:TS.NodeTree(self.messageHandler,TS.Node(self.messageHandler,nodeName))}
       return self.TSData[nodeName].getrootnode()
     else:
       if nodeName in self.TSData.keys(): return self.TSData[nodeName].getrootnode()
       elif parentName == 'root':
-        self.TSData[nodeName] = TS.NodeTree(self.messageHandler,TS.Node(nodeName))
+        self.TSData[nodeName] = TS.NodeTree(self.messageHandler,TS.Node(self.messageHandler,nodeName))
         return self.TSData[nodeName].getrootnode()
       else:
         for TSDat in self.TSData.values():
