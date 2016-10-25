@@ -83,8 +83,7 @@
       <type>csv</type>
       <source>Temporal_Evolution</source>
     </Print>
-
-    <Plot name='plotWWBBN'   overwrite='False'>
+    <Plot name="plotWWBBN" overwrite="False">
       <plotSettings>
         <plot>
           <type>line</type>
@@ -102,8 +101,7 @@
         </title>
       </actions>
     </Plot>
-
-    <Plot name='plotAFW'   overwrite='False'>
+    <Plot name="plotAFW" overwrite="False">
       <plotSettings>
         <plot>
           <type>line</type>

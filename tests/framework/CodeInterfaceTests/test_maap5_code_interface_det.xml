@@ -70,9 +70,7 @@
       <type>csv</type>
       <source>Temporal_Evolution</source>
     </Print>
-
-
-    <Plot name='plotAFW'   overwrite='False'>
+    <Plot name="plotAFW" overwrite="False">
       <plotSettings>
         <plot>
           <type>line</type>
