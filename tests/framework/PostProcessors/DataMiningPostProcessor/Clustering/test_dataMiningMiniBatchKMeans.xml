@@ -72,7 +72,7 @@
       <source>DataSets</source>
       <what>Output|CircleLabels,Output|MoonLabels,Output|BlobLabels</what>
     </Print>
-    <Plot dim="2" name="PlotBlobs" overwrite="false">
+    <Plot name="PlotBlobs" overwrite="false">
       <plotSettings>
         <plot>
           <type>scatter</type>

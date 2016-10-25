@@ -66,7 +66,7 @@
       <type>csv</type>
       <source>bisonData</source>
     </Print>
-    <Plot dim="3" name="PlotKMeans1" verbosity="debug">
+    <Plot   name="PlotKMeans1" verbosity="debug">
       <plotSettings>
         <plot>
           <type>dataMining</type>
@@ -90,7 +90,7 @@
         </labelFormat>
       </actions>
     </Plot>
-    <Plot dim="2" name="PlotPCA1" overwrite="false" verbosity="debug">
+    <Plot  name="PlotPCA1" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>dataMining</type>
@@ -108,7 +108,7 @@
         <how>png</how>
       </actions>
     </Plot>
-    <Plot dim="2" name="PlotAll" overwrite="false" verbosity="debug">
+    <Plot  name="PlotAll" overwrite="false" verbosity="debug">
       <plotSettings>
         <gridSpace>5 1</gridSpace>
         <plot>

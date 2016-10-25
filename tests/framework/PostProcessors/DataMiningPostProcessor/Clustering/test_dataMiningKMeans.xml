@@ -54,7 +54,7 @@
       <source>data</source>
       <what>Output|kMeansLabels</what>
     </Print>
-    <Plot dim="2" name="plot" overwrite="false">
+    <Plot  name="plot" overwrite="false">
       <plotSettings>
         <plot>
           <type>scatter</type>

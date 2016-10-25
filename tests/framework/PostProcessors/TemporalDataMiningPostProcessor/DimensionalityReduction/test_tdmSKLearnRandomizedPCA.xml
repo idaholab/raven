@@ -60,7 +60,7 @@
       <type>csv</type>
       <source>mData</source>
     </Print>
-    <Plot dim="2" name="plotPCAData" overwrite="True" >
+    <Plot  name="plotPCAData" overwrite="True" >
       <plotSettings>
         <gridSpace>2 1</gridSpace>
         <plot>
