@@ -96,7 +96,7 @@ class OutStreamPlot(OutStreamManager):
     self.printTag = 'OUTSTREAM PLOT'
 
     ## default plot is 2D
-    self.dim = 2
+    self.dim = None
 
     ## list of source names
     self.sourceName = []
@@ -813,12 +813,7 @@ class OutStreamPlot(OutStreamManager):
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None
     """
-    if not 'dim' in xmlNode.attrib.keys():
-      self.dim = 2
-    else:
-      self.dim = int(xmlNode.attrib['dim'])
-    if self.dim not in [2, 3]:
-      self.raiseAnError(IOError, 'Wrong dimension... 2D or 3D only!!! Got ' + str(self.dim) + 'D')
+    if 'dim' in xmlNode.attrib.keys(): self.raiseAWarning("the 'dim' attribute has been deprecated. This warning will become an error in January 2017")
     foundPlot = False
     for subnode in xmlNode:
       # if actions, read actions block
@@ -874,12 +869,24 @@ class OutStreamPlot(OutStreamManager):
 
     if not foundPlot:
       self.raiseAnError(IOError, 'For plot named' + self.name + ', No plot section has been found in the plotSettings block!')
-    self.outStreamTypes = []
 
+    self.outStreamTypes = []
+    xyz, xy             = sorted(['x','y','z']), sorted(['x','y'])
     for pltindex in range(len(self.options['plotSettings']['plot'])):
       if not 'type' in self.options['plotSettings']['plot'][pltindex].keys():
         self.raiseAnError(IOError, 'For plot named' + self.name + ', No plot type keyword has been found in the plotSettings/plot block!')
       else:
+        # check the dimension and check the consistency
+        if set(xyz) < set(self.options['plotSettings']['plot'][pltindex].keys()):
+          dim = 3
+        elif set(xy) < set(self.options['plotSettings']['plot'][pltindex].keys()):
+          dim = 2 if self.options['plotSettings']['plot'][pltindex]['type'] != 'histogram' else 3
+        elif set(['x']) < set(self.options['plotSettings']['plot'][pltindex].keys()) and self.options['plotSettings']['plot'][pltindex]['type'] == 'histogram':
+          dim = 2
+        else:
+          self.raiseAnError(IOError, 'Wrong dimensionality or axis specification for plot '+self.name+'.')
+        if self.dim is not None and self.dim != dim: self.raiseAnError(IOError, 'The OutStream Plot '+self.name+' combines 2D and 3D plots. This is not supported!')
+        self.dim = dim
         if self.availableOutStreamTypes[self.dim].count(self.options['plotSettings']['plot'][pltindex]['type']) == 0:
           self.raiseAMessage('For plot named' + self.name + ', type ' + self.options['plotSettings']['plot'][pltindex]['type'] + ' is not among pre-defined plots! \n The OutstreamSystem will try to construct a call on the fly!', 'ExceptedError')
         self.outStreamTypes.append(self.options['plotSettings']['plot'][pltindex]['type'])

@@ -390,7 +390,7 @@ def interpolateFunction(x,y,option,z = None,returnCoordinate=False):
   options = copy.copy(option)
   if x.size <= 2: xi = x
   else          : xi = np.linspace(x.min(),x.max(),int(options['interpPointsX']))
-  if z != None:
+  if z is not None:
     if y.size <= 2: yi = y
     else          : yi = np.linspace(y.min(),y.max(),int(options['interpPointsY']))
     xig, yig = np.meshgrid(xi, yi)

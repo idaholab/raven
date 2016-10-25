@@ -60,7 +60,7 @@
         <source>history</source>
         <what>Output|A,Output|D</what>
     </Print>
-    <Plot dim="2" name="historyPlot" overwrite="false" verbosity="debug">
+    <Plot   name="historyPlot" overwrite="false" verbosity="debug">
         <plotSettings>
             <gridSpace>2 2</gridSpace>
             <plot>

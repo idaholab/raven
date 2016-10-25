@@ -128,7 +128,7 @@
         <type>csv</type>
         <source>histories</source>
     </Print>
-    <Plot dim="2" name="historyPlot" overwrite="false" verbosity="debug">
+    <Plot   name="historyPlot" overwrite="false" verbosity="debug">
         <plotSettings>
             <gridSpace>2 2</gridSpace>
             <interpPointsX>60</interpPointsX>
@@ -189,7 +189,7 @@
             </title>
         </actions>
     </Plot>
-    <Plot dim="2" name="limitSurfacePlot" overwrite="false" verbosity="debug">
+    <Plot   name="limitSurfacePlot" overwrite="false" verbosity="debug">
         <plotSettings>
             <plot>
                 <type>scatter</type>
