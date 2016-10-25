@@ -86,7 +86,7 @@
         <source>optOutput</source>
     </Print>
 	
-    <Plot dim="3" name="optPath" overwrite="false" verbosity="debug">
+    <Plot   name="optPath" overwrite="false" verbosity="debug">
         <actions>
             <how>pdf</how>
         </actions>
@@ -103,7 +103,7 @@
         </plotSettings>
     </Plot>
 	
-    <Plot dim="2" name="plotIteration" overwrite="false" verbosity="debug">
+    <Plot  name="plotIteration" overwrite="false" verbosity="debug">
         <actions>
             <how>pdf</how>
         </actions>
