@@ -35,7 +35,10 @@ import Files
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Metric(utils.metaclass_insert(abc.ABCMeta,BaseType)):
-
+  """
+    This is the general interface to any RAVEN metric object.
+    It contains an initialize, a _readMoreXML, and an evaluation (i.e., distance) methods
+  """
   def __init__(self):
     """
       This is the basic method initialize the metric object
