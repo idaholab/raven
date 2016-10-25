@@ -497,6 +497,44 @@ class NewMode(Simulation.SimulationMode):
     # get extra parameters needed for the simulation mode.
     pass
 \end{lstlisting}
+
+Essentially, the SimulationMode class allows modifications to the way
+RAVEN runs in two ways.  First of all, it allows modifying the various
+run info parameters before the code is run.  Secondly, it allows
+overriding how Simulation runs. This second bit can be used if for
+example RAVEN needs to be run on a different machine such as a head
+node.  In this case, the runOverride can be done to somehow call RAVEN
+to be run on the head node, and then on the head node, it will run
+RAVEN normally.
+
+For modification of the run info parameters, generally the two most
+important are precommand and postcommand. They are placed in front and
+back before running the code.  So for example if precommand is
+`mpiexec -n 3' and postcommand is `--number-threads=4' and the code
+command is `runIt' then the full command would be: `mpiexec -n 3 runIt
+--number-threads=4' The precommand and postcommand are used for any
+run type that is `parallel', but not for `serial' codes.
+
+To help with these commands, there are several variables that are
+substituted in before running the command.  These are:
+
+\begin{description}
+\item[\%INDEX\%]  0 based index in list of running jobs.  Note that this is stable for the life of the job.
+\item[\%INDEX1\%] 1 based index in the list of running jobs, same as \%INDEX\%+1
+\item[\%CURRENT\_ID\%]  0 based id for the job handler.  This starts as 0, and increases for each job the job handler starts.
+\item[\%CURRENT\_ID1\%] 1 based id for the job handler, same as \%CURRENT\_ID\%+1
+\item[\%SCRIPT\_DIR\%] Expands to the full path of the script directory (raven/scripts)
+\item[\%FRAMEWORK\_DIR\%]  Expands to the full path of the framework directory (raven/framework)
+\item[\%WORKING\_DIR\%]  Expands to the working directory where the input is
+\item[\%BASE\_WORKING\_DIR\%]  Expands to the base working directory given in RunInfo.  This will likely be a parent of WORKING\_DIR
+\item[\%METHOD\%]  Expands to the environmental variable \$METHOD
+\item[\%NUM\_CPUS\%]  Expands to the number of cpus to use per single batch.  This is NumThreads in the XML file.
+
+\end{description}
+
+The final joining of the commands and substituting the variables is
+done in JobHandler.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%% RUN INFO EXAMPLES %%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
