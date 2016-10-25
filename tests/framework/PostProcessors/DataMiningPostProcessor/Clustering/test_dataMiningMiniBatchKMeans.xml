@@ -67,7 +67,7 @@
       <source>DataSets</source>
       <what>Output|CircleLabels,Output|MoonLabels,Output|BlobLabels</what>
     </Print>
-    <Plot dim="2" name="PlotMiniBatchKMeans" overwrite="false">
+    <Plot  name="PlotMiniBatchKMeans" overwrite="false">
       <plotSettings>
         <gridSpace>3 1</gridSpace>
         <plot>

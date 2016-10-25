@@ -89,7 +89,7 @@
       <type>csv</type>
       <source>metaModelOutputTest</source>
     </Print>
-    <Plot dim="3" name="metaModelOutputTestSolution" overwrite="false" verbosity="debug">
+    <Plot   name="metaModelOutputTestSolution" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>scatter</type>
@@ -117,7 +117,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot dim="3" name="metaModelOutputTestK" overwrite="false" verbosity="debug">
+    <Plot   name="metaModelOutputTestK" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>scatter</type>

@@ -151,10 +151,8 @@ class HistorySet(Data):
         # there are info regarding the history number
         if name[0] in self._dataContainer['inputs'].keys():
           gethistory = self._dataContainer['inputs'].pop(name[0])
-          popped = gethistory[name[1]]
-          if name[1] in popped.keys():
-            gethistory[name[1]] = c1darray(values=np.atleast_1d(np.array(value,dtype=float))) #np.atleast_1d(np.array(value))
-            self._dataContainer['inputs'][name[0]] = gethistory
+          gethistory[name[1]] = c1darray(values=np.atleast_1d(np.array(value,dtype=float)))
+          self._dataContainer['inputs'][name[0]] = gethistory
         else:
           self._dataContainer['inputs'][name[0]] = {name[1]:c1darray(values=np.atleast_1d(np.array(value,dtype=float)))}
       else:
@@ -175,6 +173,8 @@ class HistorySet(Data):
       @ Out, None
       NB. This method, if the metadata name is already present, replaces it with the new value. No appending here, since the metadata are dishomogenius and a common updating strategy is not feasable.
     """
+    valueType = type(value) if type(value).__name__ not in ['str','unicode','bytes'] else object
+    
     if options and self._dataParameters['hierarchical']:
       # we retrieve the node in which the specialized 'Point' has been stored
       parentID = None
@@ -206,13 +206,13 @@ class HistorySet(Data):
       if name in self._dataContainer['metadata'].keys():
         self._dataContainer['metadata'][name].append(np.atleast_1d(np.array(value))) #= copy.copy(np.concatenate((self._dataContainer['metadata'][name],np.atleast_1d(value))))
       else:
-        self._dataContainer['metadata'][name] = copy.copy(c1darray(values=np.atleast_1d(np.array(value)),dtype=type(value)))
+        self._dataContainer['metadata'][name] = copy.copy(c1darray(values=np.atleast_1d(np.array(value,dtype=valueType))))
       self.addNodeInTreeMode(tsnode,options)
     else:
       if name in self._dataContainer['metadata'].keys():
         self._dataContainer['metadata'][name].append(np.atleast_1d(value)) # = copy.copy(np.concatenate((self._dataContainer['metadata'][name],np.atleast_1d(value))))
       else:
-        self._dataContainer['metadata'][name] = copy.copy(c1darray(values=np.atleast_1d(np.array(value)),dtype=type(value)))
+        self._dataContainer['metadata'][name] = copy.copy(c1darray(values=np.atleast_1d(np.array(value,dtype=valueType))))
 
   def _updateSpecializedOutputValue(self,name,value,options=None):
     """

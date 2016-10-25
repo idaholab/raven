@@ -46,7 +46,7 @@
       <source>DataSets</source>
       <what>Output|labels</what>
     </Print>
-    <Plot dim="2" name="PlotAffinityBlobs" overwrite="false">
+    <Plot  name="PlotAffinityBlobs" overwrite="false">
       <plotSettings>
         <plot>
           <type>scatter</type>

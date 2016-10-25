@@ -39,30 +39,26 @@
 
   <Optimizers>
     <SPSA name="opt_smp">
-      <initialization>
-        <limit>100</limit>
-        <type>min</type>
-        <initialSeed>30</initialSeed>
-      </initialization>
-      <TargetEvaluation class="DataObjects" type="PointSet">optOutput</TargetEvaluation>
-      <convergence>
-        <iterationLimit>100</iterationLimit>
-        <threshold>1e-4</threshold>
-      </convergence>
-      <variable name="leftTemperature">
-        <upperBound>600</upperBound>
-        <lowerBound>500</lowerBound>
-        <initial>250</initial>
-      </variable>
-      <variable name="rightTemperature">
-        <upperBound>600</upperBound>
-        <lowerBound>500</lowerBound>
-        <initial>250</initial>
-      </variable>
-      <objectVar>solution</objectVar>
-      <parameter>
-        <numGradAvgIterations>1</numGradAvgIterations>
-      </parameter>
+        <initialization>
+            <limit>100</limit>
+            <type>min</type>
+            <initialSeed>30</initialSeed>
+        </initialization>
+        <TargetEvaluation class="DataObjects" type="PointSet">optOutput</TargetEvaluation>
+        <convergence>
+            <iterationLimit>100</iterationLimit>
+            <threshold>1e-4</threshold>
+        </convergence>
+        <variable name="leftTemperature">
+            <initial>250</initial>
+        </variable>
+        <variable name="rightTemperature">
+            <initial>250</initial>
+        </variable>
+        <objectVar>solution</objectVar>
+        <parameter>
+            <numGradAvgIterations>1</numGradAvgIterations>
+        </parameter>
     </SPSA>
   </Optimizers>
 
@@ -114,64 +110,62 @@
       <type>csv</type>
       <source>optOutput</source>
     </Print>
-    <Plot dim="3" name="optPath" overwrite="false" verbosity="debug">
-      <actions>
-        <how>pdf</how>
-      </actions>
-      <plotSettings>
-        <plot>
-          <type>scatter</type>
-          <x>optData|Input|leftTemperature</x>
-          <y>optData|Input|rightTemperature</y>
-          <z>optData|Input|solution</z>
-        </plot>
-        <xlabel>leftTemperature</xlabel>
-        <ylabel>rightTemperature</ylabel>
-        <zlabel>Loss Function</zlabel>
-      </plotSettings>
+    
+    <Plot  name="optPath" overwrite="false" verbosity="debug">
+        <actions>
+            <how>pdf</how>
+        </actions>
+        <plotSettings>
+            <plot>
+                <type>scatter</type>
+                <x>optData|Input|leftTemperature</x>
+                <y>optData|Input|rightTemperature</y>
+                <z>optData|Input|solution</z>
+            </plot>
+            <xlabel>leftTemperature</xlabel>
+            <ylabel>rightTemperature</ylabel>
+            <zlabel>Loss Function</zlabel>
+        </plotSettings>
     </Plot>
-    <Plot dim="2" name="plotIteration" overwrite="false" verbosity="debug">
-      <actions>
-        <how>pdf</how>
-      </actions>
-      <plotSettings>
-        <gridSpace>3 1</gridSpace>
-        <plot>
-          <type>line</type>
-          <x>optData|Output|varsUpdate</x>
-          <y>optData|Input|leftTemperature</y>
-          <interpPointsX>300</interpPointsX>
-          <gridLocation>
-            <x>0</x>
-            <y>0</y>
-          </gridLocation>
-          <ylabel>x1</ylabel>
-        </plot>
-        <plot>
-          <type>line</type>
-          <x>optData|Output|varsUpdate</x>
-          <y>optData|Input|rightTemperature</y>
-          <interpPointsX>300</interpPointsX>
-          <gridLocation>
-            <x>1</x>
-            <y>0</y>
-          </gridLocation>
-          <ylabel>2</ylabel>
-        </plot>
-        <plot>
-          <type>line</type>
-          <x>optData|Output|varsUpdate</x>
-          <y>optData|Input|solution</y>
-          <interpPointsX>300</interpPointsX>
-          <gridLocation>
-            <x>2</x>
-            <y>0</y>
-          </gridLocation>
-          <ylabel>c</ylabel>
-        </plot>
-      </plotSettings>
+    
+    <Plot  name="plotIteration" overwrite="false" verbosity="debug">
+        <actions>
+            <how>pdf</how>
+        </actions>
+        <plotSettings>
+            <gridSpace>3 1</gridSpace>
+            <plot>
+                <type>line</type>
+                <x>optData|Output|varsUpdate</x>
+                <y>optData|Input|leftTemperature</y>
+                <interpPointsX>300</interpPointsX>
+                <gridLocation><x>0</x><y>0</y></gridLocation>
+                <ylabel>x1</ylabel>
+            </plot>
+            
+            <plot>
+                <type>line</type>
+                <x>optData|Output|varsUpdate</x>
+                <y>optData|Input|rightTemperature</y>
+                <interpPointsX>300</interpPointsX>
+                <gridLocation><x>1</x><y>0</y></gridLocation>
+                <ylabel>2</ylabel>
+            </plot>
+            
+            
+            <plot>
+                <type>line</type>
+                <x>optData|Output|varsUpdate</x>
+                <y>optData|Input|solution</y>
+                <interpPointsX>300</interpPointsX>
+                <gridLocation><x>2</x><y>0</y></gridLocation>	
+                <ylabel>c</ylabel>				
+            </plot>
+            
+            
+        </plotSettings>
     </Plot>
-    <Plot dim="3" name="metaModelOutputTestSolution" overwrite="false" verbosity="debug">
+    <Plot  name="metaModelOutputTestSolution" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>scatter</type>
@@ -199,7 +193,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot dim="3" name="metaModelOutputTestK" overwrite="false" verbosity="debug">
+    <Plot  name="metaModelOutputTestK" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>scatter</type>

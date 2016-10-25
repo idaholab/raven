@@ -52,7 +52,6 @@ import Models
 import PostProcessors
 import MessageHandler
 import GridEntities
-from AMSC_Object import AMSC_Object
 distribution1D = utils.find_distribution1D()
 #Internal Modules End--------------------------------------------------------------------------------
 

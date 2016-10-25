@@ -47,7 +47,7 @@
       <source>DataSets</source>
       <what>Output|labels</what>
     </Print>
-    <Plot dim="2" name="PlotDirichletProcessGMMBlobs" overwrite="false">
+    <Plot  name="PlotDirichletProcessGMMBlobs" overwrite="false">
       <plotSettings>
         <plot>
           <type>scatter</type>

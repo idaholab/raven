@@ -82,7 +82,7 @@
       <type>csv</type>
       <source>outMC_PP</source>
     </Print>
-    <Plot dim="2" name="plot1" overwrite="False">
+    <Plot  name="plot1" overwrite="False">
       <plotSettings>
         <plot>
           <type>line</type>
