@@ -37,18 +37,41 @@ import Files
 class Metric(utils.metaclass_insert(abc.ABCMeta,BaseType)):
 
   def __init__(self):
+    """
+      This is the basic method initialize the metric object
+      @ In, none
+      @ Out, none
+    """
     BaseType.__init__(self)
     self.type = self.__class__.__name__
     self.name = self.__class__.__name__
 
   def initialize(self,inputDict):
+    """
+      This method initialize each metric object
+      @ In, inputDict, dict, dictionary containing initialization parameters
+      @ Out, none
+    """
     pass
 
   def _readMoreXML(self,xmlNode):
+    """
+      Method that reads the portion of the xml input that belongs to this specialized class
+      and initialize internal parameters
+      @ In, xmlNode, xml.etree.Element, Xml element node
+      @ Out, None
+    """
     self._localReadMoreXML(xmlNode)
 
 
   def distance(self,x,y,weights=None,paramDict=None):
+    """
+      This method actually calculates the distance between two dataObects x and y
+      @ In, x, dict, dictionary containing data of x
+      @ In, y, dict, dictionary containing data of y
+      @ In, weights, dictionary of probably weights
+      @ Out, value, float, distance between x and y
+    """
     pass
 
 
