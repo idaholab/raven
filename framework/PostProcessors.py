@@ -3898,12 +3898,22 @@ class DataMining(BasePostProcessor):
     self.unSupervisedEngine.confidence()
     outputDict = self.unSupervisedEngine.outputDict
 
-
     numberOfHistoryStep = self.unSupervisedEngine.numberOfHistoryStep
     numberOfSample = self.unSupervisedEngine.numberOfSample
 
     if 'bicluster' == self.unSupervisedEngine.SKLtype:
       self.raiseAnError(RuntimeError, 'Bicluster has not yet been implemented.')
+
+    ## Rename the algorithm output to point to the user-defined label feature
+    # if 'labels' in outputDict:
+    #   outputDict['outputs'][self.labelFeature] = outputDict['outputs'].pop('labels')
+    # elif 'embeddingVectors' in outputDict['outputs']:
+    #   transformedData = outputDict['outputs'].pop('embeddingVectors')
+    #   reducedDimensionality = transformedData.shape[1]
+
+    #   for i in range(reducedDimensionality):
+    #     newColumnName = self.labelFeature + str(i + 1)
+    #     outputDict['outputs'][newColumnName] =  transformedData[:, i]
 
     if 'cluster' == self.unSupervisedEngine.SKLtype:
       if 'labels' in self.unSupervisedEngine.outputDict.keys():
