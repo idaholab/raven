@@ -118,7 +118,7 @@
       <type>csv</type>
       <source>histories</source>
     </Print>
-    <Plot dim="2" name="historyPlot" overwrite="false">
+    <Plot name="historyPlot" overwrite="false">
       <plotSettings>
         <gridSpace>2 2</gridSpace>
         <plot>
@@ -174,7 +174,7 @@
         <how>png</how>
       </actions>
     </Plot>
-    <Plot dim="2" name="samplePlot" overwrite="false">
+    <Plot name="samplePlot" overwrite="false">
       <plotSettings>
         <gridSpace>3 2</gridSpace>
         <plot>
