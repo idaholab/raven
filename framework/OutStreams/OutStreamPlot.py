@@ -21,6 +21,7 @@ import importlib  # it is used in exec code so it might be detected as unused
 import platform
 import os
 import re
+import matplotlib
 ## External Modules End---------------------------------------------------------
 
 ## Internal Modules-------------------------------------------------------------
@@ -1170,7 +1171,6 @@ class OutStreamPlot(OutStreamManager):
         minV = 0
         maxV = 0
         ## If the user does not define an appropriate cmap, then use matplotlib's default.
-        import matplotlib as matplotlib
         if 'cmap' not in plotSettings or plotSettings['cmap'] not in matplotlib.cm.datad.keys():
           plotSettings['cmap'] = None
         if bool(self.colorMapValues):
@@ -1204,7 +1204,7 @@ class OutStreamPlot(OutStreamManager):
                   if self.zValues[pltindex][key][zIndex].size <= 3:
                     return
                   if self.colorMapCoordinates[pltindex] != None:
-                    self.plt3D.plot(self.xValues[pltindex][key][xIndex], self.yValues[pltindex][key][yIndex],self.zValues[pltindex][key][zIndex], 
+                    self.plt3D.plot(self.xValues[pltindex][key][xIndex], self.yValues[pltindex][key][yIndex],self.zValues[pltindex][key][zIndex],
                                     c = cmap.cmap(self.colorMapValues[pltindex][key][-1][-1]/(maxV-minV)))
                     if 'colorbar' not in self.options.keys() or self.options['colorbar']['colorbar'] != 'off':
                       if self.actcm is None:
@@ -1214,7 +1214,8 @@ class OutStreamPlot(OutStreamManager):
                       else:
                         self.actcm.draw_all()
                   else:
-                    self.actPlot = self.plt3D.plot(self.xValues[pltindex][key][xIndex], self.yValues[pltindex][key][yIndex], self.zValues[pltindex][key][zIndex], **plotSettings.get('attributes', {}))      ##################
+                    self.actPlot = self.plt3D.plot(self.xValues[pltindex][key][xIndex], self.yValues[pltindex][key][yIndex], self.zValues[pltindex][key][zIndex], **plotSettings.get('attributes', {}))
+      ##################
       # HISTOGRAM PLOT #
       ##################
       elif self.outStreamTypes[pltindex] == 'histogram':
