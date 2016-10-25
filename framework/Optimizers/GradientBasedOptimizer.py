@@ -220,17 +220,16 @@ class GradientBasedOptimizer(Optimizer):
       @ In, myInput, list, the generating input
     """
     if self.solutionExport != None and len(self.mdlEvalHist) > 0:
-      
-#       self.raiseAnError(IOError, 't')
       while self.counter['solutionUpdate'] <= self.counter['varsUpdate']:
         solutionExportUpdatedFlag = False
         prefix = self.mdlEvalHist.getMetadata('prefix')
-        pre = (self.counter['solutionUpdate'])*(self.gradDict['pertNeeded']+1)+1
-        pre = str(pre)
+        # This MR does not include multiple trajectory, use following simple solution
+        # This will be replaced by "smart prefix management that is included in next MR that comes with parallel trajectory"  
+        pre = str((self.counter['solutionUpdate'])*(self.gradDict['pertNeeded']+1)+1)
         for index, pr in enumerate(prefix):
           if '|' in pr:
-            pr = pr.split('|')[0]
-          if pr == str(pre):
+            pr = pr.split('|')[-1]
+          if pr == pre:
             solutionExportUpdatedFlag = True
             break
         
