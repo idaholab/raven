@@ -26,10 +26,13 @@ class Node(MessageHandler.MessageUser):
       @ In, valuesIn, dict, optional, is a dictionary of values
       @ In, text, string, optional, the node's text, as <name>text</name>
     """
+    #check message handler is first object
     values         = valuesIn.copy()
     self.name      = name
     self.type      = 'Node'
     self.printTag  = 'Node:<'+self.name+'>'
+    if type(messageHandler) != MessageHandler.MessageHandler:
+      raise(IOError,'Tried to initialize '+self.type+' without a message handler!  Was given: '+str(messageHandler))
     self.values    = values
     self.text      = text
     self._branches = []
@@ -381,6 +384,11 @@ class NodeTree(MessageHandler.MessageUser):
       @ In, node, Node, optional, the rootnode
       @ Out, None
     """
+    if not hasattr(self,"type"):
+      self.type = 'NodeTree'
+    self.printTag  = self.type+'<'+str(node)+'>'
+    if type(messageHandler) != MessageHandler.MessageHandler:
+      raise(IOError,'Tried to initialize NodeTree without a message handler!  Was given: '+str(messageHandler))
     self.messageHandler = messageHandler
     self._rootnode = node
     if node: node.parentname='root'
@@ -510,8 +518,6 @@ class MetadataTree(NodeTree):
     RAVEN Output type of Files object.
   """
   def __init__(self,messageHandler,rootName):
-    self.messageHandler = messageHandler
-    self.printTag = self.type
     self.pivotParam = None
     node = Node(self.messageHandler,rootName, valuesIn={'dynamic':str(self.dynamic)})
     NodeTree.__init__(self,messageHandler,node)
