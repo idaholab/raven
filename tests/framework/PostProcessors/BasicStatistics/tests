@@ -78,9 +78,9 @@
  [./timeDependent]
   type = 'RavenFramework'
   input = 'time_dep.xml'
-  output = 'basicStatisticsTimeDependent/output_basicStatistics_timedep_PP1.csv basicStatisticsTimeDependent/output_basicStatistics_timedep_PP1.xml'
+  output = 'basicStatisticsTimeDependent/output_basicStatistics_timedep_PP1.csv basicStatisticsTimeDependent/output_basicStatistics_timedep_PP1.xml basicStatisticsTimeDependent/HistorySetPostProcTest_dump.xml'
   UnorderedCsv = 'basicStatisticsTimeDependent/HistorySetPostProcTest_dump_3.csv basicStatisticsTimeDependent/ExtractedStats_dump.csv'
-  UnorderedXml = 'basicStatisticsTimeDependent/HistorySetPostProcTest_dump.xml basicStatisticsTimeDependent/output_basicStatistics_timedep_PP1.xml'
+  UnorderedXml = 'basicStatisticsTimeDependent/output_basicStatistics_timedep_PP1.xml'
   rel_err = 1e-5
   zero_threshold = 1e-14
  [../]
