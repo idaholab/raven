@@ -821,7 +821,7 @@ class temporalSciKitLearn(unSupervisedLearning):
       for feat in self.features.keys():
         sklInput[feat] = self.inputDict[feat][:,t]
 
-      self.SKLEngine.features = self.features.keys()
+      self.SKLEngine.features = sklInput
       self.SKLEngine.train(sklInput)
       self.SKLEngine.confidence()
 
@@ -838,14 +838,9 @@ class temporalSciKitLearn(unSupervisedLearning):
         self.metaDict[key].append(val)
 
       if self.SKLtype in ['cluster']:
-        # if 'labels' not in self.outputDict.keys():
-        #   self.outputDict['labels'] = {}
 
-        # if 'clusterCenters' not in self.outputDict.keys():
-        #   self.outputDict['clusterCenters'] = {}
-
-        # if 'noClusters' not in self.outputDict.keys():
-        #   self.outputDict['noClusters'] = {}
+        if 'clusterCenters' not in self.metaDict.keys():
+          self.metaDict['clusterCenters'] = {}
 
         if 'clusterCentersIndices' not in self.outputDict.keys():
           self.metaDict['clusterCentersIndices'] = {}
@@ -855,12 +850,12 @@ class temporalSciKitLearn(unSupervisedLearning):
         #   self.outputDict['labels'][t] = self.SKLEngine.Method.labels_
 
         # # collect cluster centers
-        # if hasattr(self.SKLEngine.Method, 'cluster_centers_'):
-        #   self.outputDict['clusterCenters'][t] = np.zeros(shape=self.SKLEngine.metaDict['clusterCenters'].shape)
-        #   for cnt, feat in enumerate(self.features):
-        #     self.outputDict['clusterCenters'][t][:,cnt] = self.SKLEngine.metaDict['clusterCenters'][:,cnt]
-        # else:
-        #   self.outputDict['clusterCenters'][t] = self.__computeCenter__(Input['Features'], self.outputDict['labels'][t])
+        if hasattr(self.SKLEngine.Method, 'cluster_centers_'):
+          self.metaDict['clusterCenters'][t] = np.zeros(shape=self.SKLEngine.metaDict['clusterCenters'].shape)
+          for cnt, feat in enumerate(self.features):
+            self.metaDict['clusterCenters'][t][:,cnt] = self.SKLEngine.metaDict['clusterCenters'][:,cnt]
+        else:
+          self.metaDict['clusterCenters'][t] = self.__computeCenter__(sklInput, self.outputDict['labels'][t])
 
         # collect number of clusters
         if hasattr(self.SKLEngine.Method, 'n_clusters'):
