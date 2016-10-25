@@ -46,7 +46,7 @@ class Minkowski(Metric):
     self.p = None
     self.pivotParameter = None
 
-  def readMoreXML(self,xmlNode):
+  def _localReadMoreXML(self,xmlNode):
     """
       Method that reads the portion of the xml input that belongs to this specialized class
       and initialize internal parameters
