@@ -1044,9 +1044,10 @@ class Scipy(unSupervisedLearning):
     self.outputDict['outputs'] = {}
     self.outputDict['inputs' ] = self.normValues
     if hasattr(self.Method, 'linkage'):
-      self.linkage = self.Method.linkage(self.normValues,self.initOptionDict['method'],self.initOptionDict['metric'])
+      self.linkage = self.Method.linkage(self.normValues,self.initOptionDict['method'],self.initOptionDict['metric'])     
       self.tree = self.Method.to_tree(self.linkage)
-
+      print(self.linkage)
+      
       if self.initOptionDict['dendrogram'] == 'true':
         self.ddata = self.advDendrogram(self.linkage,
                                         p                = float(self.initOptionDict['p']),
@@ -1091,7 +1092,11 @@ class Scipy(unSupervisedLearning):
                        va='top', ha='center')
       if max_d:
         plt.axhline(y=max_d, c='0.1')
-    plt.savefig('dendrogram.pdf')
+    if 'dendFileID' in self.initOptionDict:
+      title = self.initOptionDict['dendFileID'] + '.pdf'
+    else:
+      title = 'dendrogram.pdf'
+    plt.savefig(title)
     return ddata
 
   def __evaluateLocal__(self,*args, **kwargs):
