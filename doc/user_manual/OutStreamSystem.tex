@@ -348,8 +348,8 @@ In addition, the Plot block accepts the following attributes:
 \vspace{-5mm}
 \begin{itemize}
   \itemsep0em
-  \item \xmlAttr{dim}, \xmlDesc{required integer attribute}, defines the
-  dimensionality of the plot: 2 (2D) or 3 (3D).
+  %\item \xmlAttr{dim}, \xmlDesc{required integer attribute}, defines the
+  %dimensionality of the plot: 2 (2D) or 3 (3D).
   %
   \item \xmlAttr{interactive}, \xmlDesc{optional bool attribute}, specifies if
   the Plot needs to be interactively created (real-time screen visualization).
@@ -829,9 +829,9 @@ The number of rows and number of columns of the grid need to be set.
 For example, in the following XML cut, a ``line'' and a ``scatter'' type are
 combined in the same figure.
 %
-\begin{lstlisting}[style=XML,morekeywords={dim,name},deletekeywords={type}]
+\begin{lstlisting}[style=XML,morekeywords={name},deletekeywords={type}]
 <OutStreams>
-  <Plot name='example2PlotsCombined' dim='2'>
+  <Plot name='example2PlotsCombined'>
     <actions>
       <!-- Actions -->
     </actions>
@@ -1520,9 +1520,9 @@ additional to the coordinate inputs \xmlNode{x},  \xmlNode{y}, or \xmlNode{z} de
 %\subsubsection{Interpreted Plotting instruction \label{sec:Interpretedplotting}}
 
 \subsubsection{Example XML input}
-\begin{lstlisting}[style=XML,morekeywords={name,dim,interactive,overwrite}]
+\begin{lstlisting}[style=XML,morekeywords={name,interactive,overwrite}]
 <OutStreams>
-  <Plot name='2DHistoryPlot' dim='2' interactive='False' overwrite='False'>
+  <Plot name='2DHistoryPlot' interactive='False' overwrite='False'>
     <actions>
       <how>pdf,png,eps</how>
       <title>

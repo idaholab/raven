@@ -38,7 +38,7 @@
 		</Grid>
 	</Samplers>
 	<OutStreams>
-		<Plot name="plotResponse" dim="3" overwrite="False">
+		<Plot name="plotResponse"   overwrite="False">
 			<plotSettings>
 				<plot>
 					<type>scatter</type>
