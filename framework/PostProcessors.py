@@ -33,7 +33,6 @@ import Files
 from RAVENiterators import ravenArrayIterator
 import unSupervisedLearning
 from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
-import TreeStructure
 #Internal Modules End--------------------------------------------------------------------------------
 
 #

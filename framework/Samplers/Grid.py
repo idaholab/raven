@@ -43,7 +43,6 @@ from BaseClasses import BaseType
 from Assembler import Assembler
 import Distributions
 import DataObjects
-import TreeStructure as ETS
 import SupervisedLearning
 import pyDOE as doe
 import Quadratures
