@@ -3,7 +3,7 @@
   <RunInfo>
     <WorkingDir>RELAP5interfaceTestModifiedVersionINSS</WorkingDir>
     <Sequence>INSS_RELAP5_step,io_test</Sequence>
-    <batchSize>4</batchSize>
+    <batchSize>1</batchSize>
   </RunInfo>
 
   <Files>
@@ -27,13 +27,6 @@
   </Models>
 
   <Distributions>
-   <!--    
-    <Uniform name="break_size">
-      <lowerBound>0.00004072</lowerBound>
-      <upperBound>0.00008171</upperBound>
-    </Uniform>
-   -->
-
     <Uniform name="distribution004">
       <lowerBound>0.58</lowerBound>
       <upperBound>1.88</upperBound>
@@ -71,12 +64,6 @@
         <initialSeed>509</initialSeed>
       </samplerInit>
   
-    <!--    
-      <variable name="9100101:3">
-        <distribution>break_size</distribution>
-      </variable>
-    -->
-
        <variable name="1060110:3">
         <distribution>distribution008</distribution>
       </variable>
@@ -94,18 +81,6 @@
         <distribution>distribution005</distribution>
       </variable>
   
-   <!--    
-      <variable name="modelpar006">
-        <distribution>distribution006</distribution>
-      </variable>
-   --> 
-    
-   <!--  
-      <variable name="modelpar007">
-        <distribution>distribution007</distribution>
-      </variable>
-   -->
-
       <variable name="modelpar009">
         <distribution>distribution009</distribution>
       </variable>
