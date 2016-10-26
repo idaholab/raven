@@ -299,6 +299,10 @@
   type = 'RavenPython'
   input = '../../framework/utils/testCachedNDArray.py'
  [../]
+ [./test_treeStructure]
+  type = 'RavenPython'
+  input = '../../framework/utils/testTreeStructure.py'
+ [../]
 
  [./test_xsd_input_data]
   type = 'RavenPython'

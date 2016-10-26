@@ -87,26 +87,11 @@ class Node(MessageHandler.MessageUser):
       @ In, None
       @ Out, self, Node instance, iterate over self
     """
-    return self
-
-  def __next__(self):
-    """
-      For compatability with Python 3.  Iteration method.
-      @ In, None
-      @ Out, next, Node instance, next node in list of branches
-    """
-    if self.iterCounter >= self.numberBranches():
-      raise StopIteration
-    self.iterCounter += 1
-    return self._branches[self.iterCounter - 1]
-
-  def next(self):
-    """
-      For compatability with Python 2.  Iteration method.
-      @ In, None
-      @ Out, next, Node instance, next node in list of branches
-    """
-    return self.__next__()
+    i=0
+    while i<len(self._branches):
+      yield self._branches[i]
+      i+=1
+    #return self
 
   def __repr__(self):
     """
@@ -519,7 +504,7 @@ class MetadataTree(NodeTree):
   """
   def __init__(self,messageHandler,rootName):
     self.pivotParam = None
-    node = Node(self.messageHandler,rootName, valuesIn={'dynamic':str(self.dynamic)})
+    node = Node(messageHandler,rootName, valuesIn={'dynamic':str(self.dynamic)})
     NodeTree.__init__(self,messageHandler,node)
 
   def __repr__(self):
@@ -555,10 +540,8 @@ class MetadataTree(NodeTree):
       @ In, pivotVal, float, optional, not used in this method but kept for consistency
       @ Out, tNode, Node object, target node (either created or existing)
     """
-    print('base finding in',root)
     tNode = root.findBranch(target)
     if tNode is None:
-      print(' ... adding',target)
       tNode = Node(self.messageHandler,target)
       root.appendBranch(tNode)
     return tNode
@@ -622,12 +605,10 @@ class DynamicMetadataTree(MetadataTree):
       @ In, tol, float, tolerance for match
       @ Out, pNode, Node instance, matching node
     """
-    print('dynamic finding in',root)
     found = False
     for child in root:
       #make sure we're looking at a pivot node
       if child.name != self.pivotParam:
-        print('skipping',child)
         continue
       # careful with inequality signs to check for match
       if pivotVal > 0:
