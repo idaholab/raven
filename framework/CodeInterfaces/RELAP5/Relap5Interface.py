@@ -11,6 +11,7 @@ import os
 import copy
 import relapdata
 import re
+from  __builtin__ import any as bAny
 from CodeInterfaceBaseClass import CodeInterfaceBase
 
 class Relap5(CodeInterfaceBase):
@@ -91,7 +92,7 @@ class Relap5(CodeInterfaceBase):
     try   : outputToRead = open(os.path.join(workingDir,output+'.o'),"r")
     except: return failure
     #failure = not b_any(errorWord in x.strip() for x in outputToRead.readlines())
-    failure = not b_any(x.strip() in errorWord for x in outputToRead.readlines())
+    failure = not bAny(x.strip() in errorWord for x in outputToRead.readlines())
     return failure
 
   def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):

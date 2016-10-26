@@ -117,9 +117,9 @@ class relapdata:
           #takeIt = False if re.match("^\d+?\.\d+?$", tempData[0]) is None else True
           #if takeIt:
           #  for k in range(len(tempArray)): tempArray[k].append(tempData[k])
-          # Here I check that none of the keywords contained in errorKeywords are contained in tempdata
-          if (not list(set(tempdata) & set(errorKeywords))) and (len(temparray)==len(tempdata)):
-            for k in range(len(temparray)): temparray[k].append(tempdata[k])
+          # Here I check that none of the keywords contained in errorKeywords are contained in tempData
+          if (not list(set(tempData) & set(errorKeywords))) and (len(tempArray)==len(tempData)):
+            for k in range(len(tempArray)): tempArray[k].append(tempData[k])
           i=i+1
           if re.match('^\s*1 time|^\s*1\s*R5|^\s*\n|^1RELAP5',lines[i]) or re.match('^\s*0Final time',lines[i]) or re.match('^\s*Final time',lines[i]): break
         for l in range(len(tempkeys)): minorDict.update({tempkeys[l]:tempArray[l]})
