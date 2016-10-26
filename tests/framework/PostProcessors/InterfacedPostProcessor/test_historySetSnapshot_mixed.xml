@@ -44,7 +44,7 @@
       <average>x</average>
       <value pivotVar="time" pivotVal="0.245">y</value>
       <value pivotVar="x" pivotVal="4.0">z</value>
-      <timeID>time</timeID>
+      <pivotParameter>time</pivotParameter>
       <extension>zeroed</extension>
       <numberOfSamples>5</numberOfSamples>
     </PostProcessor>
