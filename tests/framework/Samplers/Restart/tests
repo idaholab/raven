@@ -29,6 +29,13 @@
   csv = 'grid/coarse.csv grid/restart.csv grid/fine.csv'
  [../]
 
+ [./Scaled]
+   type = 'RavenFramework'
+   input = 'scale_test.xml'
+   output = 'scale/coarse.xml scale/restart.xml scale/fine.xml'
+   csv = 'scale/coarse.csv scale/restart.csv scale/fine.csv'
+ [../]
+
  [./CSV]
   type = 'RavenFramework'
   input = 'test_restart_csv.xml'
