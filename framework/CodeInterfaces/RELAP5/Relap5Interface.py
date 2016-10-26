@@ -51,9 +51,10 @@ class Relap5(CodeInterfaceBase):
         break
     if not found: raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
     outputfile = 'out~'+inputFiles[index].getBase()
-    if clargs: addFlags = ' '+clargs['text']
-    else     : addFlags = ''
-    commandToRun = executable + ' -i ' + inputFiles[index].getFilename() + ' -o ' + outputfile  + '.o' + addFlags
+    if clargs: addflags = clargs['text']
+    else     : addflags = ''
+    #commandToRun = executable + ' -i ' + inputFiles[index].getFilename() + ' -o ' + outputfile  + '.o' + ' -r ' + outputfile  + '.r' + addflags
+    commandToRun = executable + ' -i ' + inputFiles[index].getFilename() + ' -o ' + outputfile  + '.o' +  addflags
     commandToRun = commandToRun.replace("\n"," ")
     commandToRun  = re.sub("\s\s+" , " ", commandToRun )
     returnCommand = [('parallel',commandToRun)], outputfile
@@ -86,14 +87,11 @@ class Relap5(CodeInterfaceBase):
     """
     from  __builtin__ import any as bAny
     failure = True
-    errorWord = "Transient terminated by end of time step cards"
+    errorWord = ["Transient terminated by end of time step cards.","Transient terminated by trip."]
     try   : outputToRead = open(os.path.join(workingDir,output+'.o'),"r")
     except: return failure
-    toCheck = []
-    for x in outputToRead.readlines():
-      try: toCheck.append(x.strip())
-      except:pass
-    failure = not bAny(toCheck)
+    #failure = not b_any(errorWord in x.strip() for x in outputToRead.readlines())
+    failure = not b_any(x.strip() in errorWord for x in outputToRead.readlines())
     return failure
 
   def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):

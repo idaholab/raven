@@ -15,4 +15,4 @@ from .Factory import knownTypes
 from .Factory import returnInstance
 from .Factory import returnClass
 
-__all__ = ['Minkowski']
+__all__ = ['Minkowski','DTW']

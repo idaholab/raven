@@ -28,9 +28,7 @@
       <Output         class="OutStreams"       type="Plot"           >plot5</Output>
       <Output         class="OutStreams"       type="Plot"           >plot6</Output>
       <Output         class="OutStreams"       type="Plot"           >plot7</Output>
-      <!--
-           <Output         class="OutStreams"       type="Print"          >print2</Output>
-      -->
+      <!--Output         class="OutStreams"       type="Print"          >print2</Output-->
     </PostProcess>
     <PostProcess name="filter0" pauseAtEnd="True">
       <Input  class="DataObjects"      type="HistorySet"     >outMC</Input>
@@ -90,7 +88,7 @@
     </PostProcessor>
     <PostProcessor name="dataPreProc" subType="InterfacedPostProcessor">
        <method>HS2PS</method>
-       <timeID>time</timeID>
+       <pivotParameter>time</pivotParameter>
     </PostProcessor>
     <ExternalModel ModuleToLoad="../../../../AnalyticModels/lorentzAttractor_disc" name="PythonModule" subType="">
       <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0</variables>
