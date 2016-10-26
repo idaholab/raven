@@ -70,7 +70,7 @@
     <PostProcessor name="syncer" subType="InterfacedPostProcessor">
       <method>HistorySetSync</method>
       <syncMethod>min</syncMethod>
-      <timeID>t</timeID>
+      <pivotParameter>t</pivotParameter>
       <extension>extended</extension>
     </PostProcessor>
     <ROM name="rom" subType="HDMRRom">
