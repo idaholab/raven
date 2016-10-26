@@ -3916,19 +3916,19 @@ class DataMining(BasePostProcessor):
     #     outputDict['outputs'][newColumnName] =  transformedData[:, i]
 
     if 'cluster' == self.unSupervisedEngine.SKLtype:
-      if 'labels' in self.unSupervisedEngine.outputDict.keys():
+      if 'labels' in self.unSupervisedEngine.outputDict['outputs'].keys():
         labels = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
         for t in range(numberOfHistoryStep):
-          labels[:,t] = self.unSupervisedEngine.outputDict['labels'][t]
+          labels[:,t] = self.unSupervisedEngine.outputDict['outputs']['labels'][t]
         outputDict['outputs'][self.labelFeature] = labels
 
       ## SKL will always enumerate cluster centers starting from zero, if this
       ## is violated, then the indexing below will break.
-      if 'clusterCentersIndices' in self.unSupervisedEngine.outputDict.keys():
-        clusterCentersIndices = self.unSupervisedEngine.outputDict['clusterCentersIndices']
+      if 'clusterCentersIndices' in self.unSupervisedEngine.metaDict.keys():
+        clusterCentersIndices = self.unSupervisedEngine.metaDict['clusterCentersIndices']
 
-      if 'clusterCenters' in self.unSupervisedEngine.outputDict.keys():
-        clusterCenters = self.unSupervisedEngine.outputDict['clusterCenters']
+      if 'clusterCenters' in self.unSupervisedEngine.metaDict.keys():
+        clusterCenters = self.unSupervisedEngine.metaDict['clusterCenters']
         # Output cluster centroid to solutionExport
         if self.solutionExport is not None:
           ## We will process each cluster in turn
@@ -3954,7 +3954,7 @@ class DataMining(BasePostProcessor):
                 ## indexes with no need to add another layer of obfuscation
                 if clusterIdx in clusterCentersIndices[timeIdx]:
                   loc = clusterCentersIndices[timeIdx].index(clusterIdx)
-                  timeSeries[timeIdx] = self.unSupervisedEngine.outputDict['clusterCenters'][timeIdx][loc,featureIdx]
+                  timeSeries[timeIdx] = self.unSupervisedEngine.metaDict['clusterCenters'][timeIdx][loc,featureIdx]
                 else:
                   timeSeries[timeIdx] = np.nan
 
@@ -3971,29 +3971,29 @@ class DataMining(BasePostProcessor):
         inertia = self.unSupervisedEngine.outputDict['inertia']
 
     elif 'mixture' == self.unSupervisedEngine.SKLtype:
-      if 'labels' in self.unSupervisedEngine.outputDict.keys():
+      if 'labels' in self.unSupervisedEngine.outputDict['outputs'].keys():
         labels = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
         for t in range(numberOfHistoryStep):
-          labels[:,t] = self.unSupervisedEngine.outputDict['labels'][t]
+          labels[:,t] = self.unSupervisedEngine.outputDict['outputs']['labels'][t]
         outputDict['outputs'][self.labelFeature] = labels
 
-      if 'covars' in self.unSupervisedEngine.outputDict.keys():
-        mixtureCovars = self.unSupervisedEngine.outputDict['covars']
+      if 'covars' in self.unSupervisedEngine.metaDict.keys():
+        mixtureCovars = self.unSupervisedEngine.metaDict['covars']
       else:
         mixtureCovars = None
 
-      if 'precs' in self.unSupervisedEngine.outputDict.keys():
-        mixturePrecs = self.unSupervisedEngine.outputDict['precs']
+      if 'precs' in self.unSupervisedEngine.metaDict.keys():
+        mixturePrecs = self.unSupervisedEngine.metaDict['precs']
       else:
         mixturePrecs = None
 
-      if 'componentMeanIndices' in self.unSupervisedEngine.outputDict.keys():
-        componentMeanIndices = self.unSupervisedEngine.outputDict['componentMeanIndices']
+      if 'componentMeanIndices' in self.unSupervisedEngine.metaDict.keys():
+        componentMeanIndices = self.unSupervisedEngine.metaDict['componentMeanIndices']
       else:
         componentMeanIndices = None
 
-      if 'means' in self.unSupervisedEngine.outputDict.keys():
-        mixtureMeans = self.unSupervisedEngine.outputDict['means']
+      if 'means' in self.unSupervisedEngine.metaDict.keys():
+        mixtureMeans = self.unSupervisedEngine.metaDict['means']
       else:
         mixtureMeans = None
 
