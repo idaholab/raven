@@ -72,6 +72,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     self.metaAdditionalInOrOut           = ['PointProbability','ProbabilityWeight']            # list of metadata keys that will be printed in the CSV one
     self.acceptHierarchy                 = False                      # flag to tell if a sub-type accepts hierarchy
     self.inputKDTree                     = None                       # KDTree for speedy querying of input space
+    self.treeScalingFactors = {}                                      # dictionary of means, scaling factors for KDTree searches
     self.notAllowedInputs  = []                                       # this is a list of keyword that are not allowed as Inputs
     self.notAllowedOutputs = []                                       # this is a list of keyword that are not allowed as Outputs
     # This is a list of metadata types that are CSV-compatible...we build the list this way to catch when a python implementation doesn't
@@ -397,11 +398,20 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     #  This speedup was realized both in formatting, as well as creating the tree/querying the tree
     #if inputs have changed or this if first query, build the tree
     if self.inputKDTree is None:
+      #set up data scaling
+      for v in requested.keys():
+        #mean,scale = (0.0,1.0)
+        mean,scale = mathUtils.normalizationFactors(inpVals[v])
+        self.treeScalingFactors[v] = (mean,scale)
       #convert data into a matrix in the order of requested
-      data = np.dstack(tuple(inpVals[v] for v in requested.keys()))[0] #[0] is for the way dstack constructs the stack
+      data = np.dstack(tuple((np.array(inpVals[v])-self.treeScalingFactors[v][0])/self.treeScalingFactors[v][1] for v in requested.keys()))[0] #[0] is for the way dstack constructs the stack
       self.inputKDTree = spatial.KDTree(data)
     #query the tree
-    distances,indices = self.inputKDTree.query(tuple(v for v in requested.values()),distance_upper_bound=tol)
+    distances,indices = self.inputKDTree.query(tuple((v-self.treeScalingFactors[k][0])/self.treeScalingFactors[k][1] for k,v in requested.items()),\
+                  distance_upper_bound=tol, #acceptable distance
+                  k=1, #number of points to find
+                  p=2)#np.inf) #use maximum-coordinate-difference distance
+
     #if multiple entries were within tolerance, accept the minimum one
     if hasattr(distances,'__len__'):
       index = indices[distances.index(min(distances))]
@@ -556,6 +566,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ Out, None
     """
     self.inputKDTree = None
+    self.treeScalingFactors = {}
     self._specializedLoadXMLandCSV(filenameRoot,options)
 
   def printCSV(self,options=None):
@@ -605,6 +616,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     else:
       if name in self._dataContainer['inputs'].keys(): self._dataContainer['inputs'].pop(name)
     self.inputKDTree = None
+    self.treeScalingFactors = {}
 
   def removeOutputValue(self,name):
     """
@@ -631,6 +643,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       self._dataContainer                  = {'inputs':{},'outputs':{}}
       self._dataContainer['metadata'     ] = {}
     self.inputKDTree = None
+    self.treeScalingFactors = {}
 
   def retrieveNodeInTreeMode(self,nodeName,parentName=None):
     """
@@ -701,6 +714,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ Out, None
     """
     self.inputKDTree = None
+    self.treeScalingFactors = {}
     self._updateSpecializedInputValue(name,value,options)
 
   def updateOutputValue(self,name,value,options=None):
