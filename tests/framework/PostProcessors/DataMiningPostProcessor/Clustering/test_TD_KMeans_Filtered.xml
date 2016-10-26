@@ -101,8 +101,8 @@
       </KDD>
     </PostProcessor>
     <PostProcessor name="dataPreProc" subType="InterfacedPostProcessor">
-      <method>HS2PS</method>
-      <timeID>time</timeID>
+       <method>HS2PS</method>
+       <pivotParameter>time</pivotParameter>
     </PostProcessor>
     <ExternalModel ModuleToLoad="../../../../AnalyticModels/lorentzAttractor_disc" name="PythonModule" subType="">
       <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0</variables>

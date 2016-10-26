@@ -80,7 +80,7 @@
       <type>timeSlice</type>
       <numberOfSamples>10</numberOfSamples>
       <extension>zeroed</extension>
-      <timeID>time</timeID>
+      <pivotParameter>time</pivotParameter>
       <timeInstant>0</timeInstant>
     </PostProcessor>
     <PostProcessor name="historySamplingMin" subType="InterfacedPostProcessor">
@@ -97,7 +97,7 @@
       <method>HistorySetSnapShot</method>
       <type>average</type>
       <pivotVar>x</pivotVar>
-      <timeID>time</timeID>
+      <pivotParameter>time</pivotParameter>
     </PostProcessor>
     <PostProcessor name="historySamplingValue" subType="InterfacedPostProcessor">
       <method>HistorySetSnapShot</method>

@@ -1059,7 +1059,7 @@ independent of the \xmlAttr{subType} specified:
    \item \xmlNode{samplingType}, \xmlDesc{string, required field}, specifies the type of sampling method to be used (uniform, firstDerivative secondDerivative, filteredFirstDerivative or
    filteredSecondDerivative).
    \item \xmlNode{numberOfSamples}, \xmlDesc{integer, optional field}, number of samples (required only for the following sampling types: uniform, firstDerivative secondDerivative)
-   \item \xmlNode{timeID}, \xmlDesc{string, required field}, ID of the temporal variable
+   \item \xmlNode{pivotParameter}, \xmlDesc{string, required field}, ID of the temporal variable
    \item \xmlNode{interpolation}, \xmlDesc{string, optional field}, type of interpolation to be employed for the history recostruction (required only for the following sampling types: uniform,
    firstDerivative secondDerivative)
    \item \xmlNode{tolerance}, \xmlDesc{string, optional field}, tolerance level (required only for the following sampling types: filteredFirstDerivative or filteredSecondDerivative)
@@ -1086,7 +1086,7 @@ In the \xmlNode{PostProcessor} input block, the following XML sub-nodes are requ
 independent of the \xmlAttr{subType} specified:
 
 \begin{itemize}
-   \item \xmlNode{timeID}, \xmlDesc{string, required field}, ID of the temporal variable
+   \item \xmlNode{pivotParameter}, \xmlDesc{string, required field}, ID of the temporal variable
    \item \xmlNode{extension}, \xmlDesc{string, required field}, type of extension when the sync process goes outside the boundaries of the history (zeroed or extended)
    \item \xmlNode{syncMethod}, \xmlDesc{string, required field}, synchronization strategy to employ (see
      description above).  Options are \xmlString{grid}, \xmlString{all}, \xmlString{max}, \xmlString{min}.
@@ -1120,7 +1120,7 @@ independent of the \xmlAttr{subType} specified:
   \item \xmlNode{type}, \xmlDesc{string, required field}, type of operation: \xmlString{min}, \xmlString{max},
                         \xmlString{average}, \xmlString{value}, \xmlString{timeSlice}, or \xmlString{mixed}
    \item \xmlNode{extension}, \xmlDesc{string, required field}, type of extension when the sync process goes outside the boundaries of the history (zeroed or extended)
-   \item \xmlNode{timeID}, \xmlDesc{string, optional field}, name of the temporal variable.  Required for the
+   \item \xmlNode{pivotParameter}, \xmlDesc{string, optional field}, name of the temporal variable.  Required for the
      \xmlString{average} and \xmlString{timeSlice} methods.
 \end{itemize}
 
@@ -1146,7 +1146,7 @@ Lastly, if a \xmlString{mixed} approach is used, the following nodes apply:
   \item \xmlNode{min}, \xmlDesc{string, optional field}, the names of variables whose output should be their
     own minimum value within the history.
   \item \xmlNode{average}, \xmlDesc{string, optional field}, the names of variables whose output should be their
-    own average value within the history. Note that a \xmlNode{timeID} node is required to perform averages.
+    own average value within the history. Note that a \xmlNode{pivotParameter} node is required to perform averages.
   \item \xmlNode{value}, \xmlDesc{string, optional field}, the names of variables whose output should be taken
     at a time slice determined by another variable.  As with the non-mixed \xmlString{value} type, the first
     time the \xmlAttr{pivotVar} crosses the specified \xmlAttr{pivotVal} will be the time slice taken.
@@ -1177,7 +1177,7 @@ time$=0.245$ for $y$, and the value of $z$ at $x=4.0$ for $z$.
       <average>x</average>
       <value pivotVar="time" pivotVal="0.245">y</value>
       <value pivotVar="x" pivotVal="4.0">z</value>
-      <timeID>time</timeID>
+      <pivotParameter>time</pivotParameter>
       <extension>zeroed</extension>
     </PostProcessor>
     ...
@@ -1198,7 +1198,7 @@ In the \xmlNode{PostProcessor} input block, the following XML sub-nodes are requ
 independent of the \xmlAttr{subType} specified (min, max, avg and value case):
 
 \begin{itemize}
-   \item \xmlNode{timeID}, \xmlDesc{string, optional field}, ID of the temporal variable (only for avg)
+   \item \xmlNode{pivotParameter}, \xmlDesc{string, optional field}, ID of the temporal variable (only for avg)
 \end{itemize}
 
 \paragraph{Method: TypicalHistoryFromHistorySet}
@@ -1217,7 +1217,7 @@ In the \xmlNode{PostProcessor} input block, the following XML sub-nodes are requ
 independent of the \xmlAttr{subType} specified:
 
 \begin{itemize}
-   \item \xmlNode{timeID}, \xmlDesc{string, optional field}, ID of the temporal variable
+   \item \xmlNode{pivotParameter}, \xmlDesc{string, optional field}, ID of the temporal variable
    \default{Time}
    \item \xmlNode{subseqLen}, \xmlDesc{integers, required field}, length of the divided subsequence (see above)
 \end{itemize}

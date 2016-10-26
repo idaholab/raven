@@ -7,8 +7,8 @@
   </RunInfo>
 
   <Files>
-    <Input name="snc01.i" type="">snc01.i</Input>
-    <Input name="tpfh2o" type="">tpfh2o</Input>
+    <Input name="snc01.i" type="" >snc01.i</Input>
+    <Input name="tpfh2o"  type="" >tpfh2o</Input>
   </Files>
 
   <Models>

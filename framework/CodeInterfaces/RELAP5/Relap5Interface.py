@@ -53,7 +53,8 @@ class Relap5(CodeInterfaceBase):
     outputfile = 'out~'+inputFiles[index].getBase()
     if clargs: addflags = clargs['text']
     else     : addflags = ''
-    commandToRun = executable + ' -i ' + inputFiles[index].getFilename() + ' -o ' + outputfile  + '.o' + ' -r ' + outputfile  + '.r' + addflags
+    #commandToRun = executable + ' -i ' + inputFiles[index].getFilename() + ' -o ' + outputfile  + '.o' + ' -r ' + outputfile  + '.r' + addflags
+    commandToRun = executable + ' -i ' + inputFiles[index].getFilename() + ' -o ' + outputfile  + '.o' +  addflags
     commandToRun = commandToRun.replace("\n"," ")
     commandToRun  = re.sub("\s\s+" , " ", commandToRun )
     returnCommand = [('parallel',commandToRun)], outputfile
@@ -86,10 +87,13 @@ class Relap5(CodeInterfaceBase):
     """
     from  __builtin__ import any as b_any
     failure = True
-    errorWord = "Transient terminated by end of time step cards"
-    try   : outputToRead = open(os.path.join(workingDir,output+'.o'),"r")
-    except: return failure
-    failure = not b_any(errorWord in x.strip() for x in outputToRead.readlines())
+    errorWord = ["Transient terminated by end of time step cards.","Transient terminated by trip."]
+    try:
+      outputToRead = open(os.path.join(workingDir,output+'.o'),"r")
+    except:
+      return failure
+    #failure = not b_any(errorWord in x.strip() for x in outputToRead.readlines())
+    failure = not b_any(x.strip() in errorWord for x in outputToRead.readlines())
     return failure
 
   def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
