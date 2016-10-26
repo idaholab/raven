@@ -398,9 +398,9 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     #  This speedup was realized both in formatting, as well as creating the tree/querying the tree
     #if inputs have changed or this if first query, build the tree
     if self.inputKDTree is None:
-      #set up data scaling
+      #set up data scaling, so that relative distances are used
+      # scaling is so that scaled = (actual - mean)/scale
       for v in requested.keys():
-        #mean,scale = (0.0,1.0)
         mean,scale = mathUtils.normalizationFactors(inpVals[v])
         self.treeScalingFactors[v] = (mean,scale)
       #convert data into a matrix in the order of requested
@@ -410,8 +410,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     distances,indices = self.inputKDTree.query(tuple((v-self.treeScalingFactors[k][0])/self.treeScalingFactors[k][1] for k,v in requested.items()),\
                   distance_upper_bound=tol, #acceptable distance
                   k=1, #number of points to find
-                  p=2)#np.inf) #use maximum-coordinate-difference distance
-
+                  p=2) #use Euclidean distance
     #if multiple entries were within tolerance, accept the minimum one
     if hasattr(distances,'__len__'):
       index = indices[distances.index(min(distances))]
