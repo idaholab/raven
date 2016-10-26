@@ -74,6 +74,7 @@
   output = 'basicStatsSensitivity/csv_database.csv basicStatsSensitivity/csv_database.xml basicStatsSensitivity/output_basicStatistics.csv'
   csv = 'basicStatsSensitivity/csv_database.csv'
   UnorderedXml = 'basicStatsSensitivity/stats.xml'
+  rel_err = 0.0000001
  [../]
  [./timeDependent]
   type = 'RavenFramework'
