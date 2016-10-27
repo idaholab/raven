@@ -1728,8 +1728,8 @@ class EnsembleModel(Dummy, Assembler):
 #             rootBranch.appendBranch(moldelNodes[modelIn],True)    
     for modelIn in self.modelsDictionary.keys():
       topModelNode = self.tree.find(modelIn)
-      for i in range(len(self.modelsDictionary[modelIn]['Input'])):
-        inputMatch   = self.__findMatchingModel('Output',self.modelsDictionary[modelIn]['Input'][i])
+      for i in range(len(self.modelsDictionary[modelIn]['Output'])):
+        inputMatch   = self.__findMatchingModel('Input',self.modelsDictionary[modelIn]['Output'][i])
         if inputMatch is not None:
           for match in inputMatch:
             if not topModelNode.isAnActualBranch(match):
