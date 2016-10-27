@@ -430,7 +430,7 @@ class Dummy(Model):
       outputeval = evaluation[1][0]
     else:
       outputeval = evaluation[1]
-    exportDict = copy.deepcopy({'inputSpaceParams':evaluation[0],'outputSpaceParams':outputeval,'metadata':finishedJob.returnMetadata()})
+    exportDict = copy.deepcopy({'inputSpaceParams':evaluation[0],'outputSpaceParams':outputeval,'metadata':finishedJob.getMetadata()})
     if output.type == 'HDF5':
       optionsIn = {'group':self.name+str(finishedJob.identifier)}
       if options is not None: optionsIn.update(options)
@@ -1608,8 +1608,25 @@ class EnsembleModel(Dummy, Assembler):
             self.initialConditions[var.tag] = np.repeat([float(var.text.split()[0])], int(var.attrib['repeat'])) #np.array([float(var.text.split()[0]) for _ in range(int(var.attrib['repeat']))])
           else:
             self.initialConditions[var.tag] = np.array(var.text.split())
+  
+  def __createDictOfInputsAndModels(self):
+    allInputs = {}
+    for modelIn, modelOptions in self.modelsDictionary.items():
+     for inp in modelOptions['Input']:
+       if inp not in allInputs.keys(): allInputs[inp] = []
+       allInputs[inp].append(modelIn)
+    return allInputs
         
-
+  def __findModelWithSameInput(self,inputList):
+    """
+      Method to find the models that have certain inputs. If not found, return None
+      @ In, inputList, list, list of inputs that need to be checked
+      @ Out, models, list, list of model names that match the input list
+    """
+    models = []
+    for modelIn, modelOptions in self.modelsDictionary.items():
+      if set(modelOptions['Input']) == set(inputList): models.append(modelIn)
+    return models
 
   def __findMatchingModel(self,what,subWhat):
     """
@@ -1624,6 +1641,40 @@ class EnsembleModel(Dummy, Assembler):
     if len(models) == 0: models = None
     return models
    
+  def findAllPaths(self, graph, start, end, path=[]):
+    path = path + [start]
+    if start == end: return [path]
+    if not graph.has_key(start): return []
+    paths = []
+    for node in graph[start]:
+      if node not in path:
+        newpaths = self.findAllPaths(graph, node, end, path)
+        for newpath in newpaths: paths.append(newpath)
+    return paths   
+
+  def isALoop(self,g):
+      """
+        Return True if the directed graph g has a cycle.
+        g must be represented as a dictionary mapping vertices to
+        iterables of neighbouring vertices. For example:
+  
+        >>> isALoop({1: (2,), 2: (3,), 3: (1,)})
+        True
+        >>> isALoop({1: (2,), 2: (3,), 3: (4,)})
+        False
+  
+      """
+      path = set()
+  
+      def visit(vertex):
+          path.add(vertex)
+          for neighbour in g.get(vertex, ()):
+            if neighbour in path or visit(neighbour): return True
+          path.remove(vertex)
+          return False
+  
+      return any(visit(v) for v in g)
+
   def initialize(self,runInfo,inputs,initDict=None):
     """
       Method to initialize the EnsembleModel
@@ -1663,6 +1714,8 @@ class EnsembleModel(Dummy, Assembler):
     
     modelsToInputModels, modelsToOutputModels  = dict.fromkeys(self.modelsDictionary.keys(),None), dict.fromkeys(self.modelsDictionary.keys(),None)
     
+    
+      
     for modelIn in self.modelsDictionary.keys():
       inputtMatch = []
       for i in range(len(self.modelsDictionary[modelIn]['Input'])):
@@ -1677,59 +1730,31 @@ class EnsembleModel(Dummy, Assembler):
       outputMatch = list(set(outputMatch)) 
       modelsToOutputModels[modelIn] = outputMatch
     
+    allInputs = self.__createDictOfInputsAndModels()
     print("ok")
     
+    lupo = {}
+    AAAAA = self.findAllPaths(modelsToOutputModels,modelsToOutputModels.keys()[0],modelsToOutputModels.keys()[-1])
+    BBBBB = self.findAllPaths(modelsToOutputModels,modelsToOutputModels.keys()[-1],modelsToOutputModels.keys()[0])
     
+    orderList        = self.modelsDictionary.keys()
     
-    
-    
-    
-    
-    
-    
-      
-      
-#       
-#     realTree = TreeStructure.NodeTree(TreeStructure.Node(self.name))
-#     rootBranch = TreeStructure.Node(self.name)
-#     modelToCheck = []
-#     for modelIn in self.modelsDictionary.keys():
-#       for i in range(len(self.modelsDictionary[modelIn]['Output'])):
-#         inputtMatch   = self.__findMatchingModel('Output',self.modelsDictionary[modelIn]['Input'][i]) 
-#         if inputtMatch is None and modelIn not in executionList[0]: executionList[0].append(modelIn)
-#         else:
-#           if modelIn not in modelToCheck: modelToCheck.append(modelIn)
-#     
-#     for modelIn in modelToCheck:
-#       inputtMatch     = []
-#       inExecutionList = []
-#       for i in range(len(self.modelsDictionary[modelIn]['Input'])):
-#         inputtMatch.append(self.__findMatchingModel('Output',self.modelsDictionary[modelIn]['Input'][i]) )
-#         inExecutionList.append(False)    
-#       for
-#       print(inputtMatch)
-#     
-#     
-#     for modelIn in self.modelsDictionary.keys():
-#       for i in range(len(self.modelsDictionary[modelIn]['Output'])):
-#         outputMatch   = self.__findMatchingModel('Input',self.modelsDictionary[modelIn]['Output'][i])
-#         inputtMatch   = self.__findMatchingModel('Output',self.modelsDictionary[modelIn]['Input'][i])
-#         
-# 
-#         
-#         
-#         
-#         if outputMatch is not None:
-#           for match in outputMatch:   
-#            if not moldelNodes[match].isAnActualBranch(modelIn):
-#              moldelNodes[match].appendBranch(moldelNodes[modelIn],True)
-#         else:
-#           if not rootBranch.isAnActualBranch(modelIn):
-#             rootBranch.appendBranch(moldelNodes[modelIn],True)    
+    for modelIn in self.modelsDictionary.keys():
+      for i in range(len(self.modelsDictionary[modelIn]['Input'])):
+        inputMatch   = self.__findMatchingModel('Output',self.modelsDictionary[modelIn]['Input'][i])
+        if inputMatch is not None:
+          for match in inputMatch:
+            indexModelIn = orderList.index(modelIn)
+            orderList.pop(orderList.index(modelIn))
+            orderList.insert(int(max(orderList.index(match)+1,indexModelIn)), modelIn)
+        else:
+          if modelIn not in executionList[0]: executionList[0].append(modelIn)
+
+    # check if Picard needs to be activated
     for modelIn in self.modelsDictionary.keys():
       topModelNode = self.tree.find(modelIn)
-      for i in range(len(self.modelsDictionary[modelIn]['Output'])):
-        inputMatch   = self.__findMatchingModel('Input',self.modelsDictionary[modelIn]['Output'][i])
+      for i in range(len(self.modelsDictionary[modelIn]['Input'])):
+        inputMatch   = self.__findMatchingModel('Output',self.modelsDictionary[modelIn]['Input'][i])
         if inputMatch is not None:
           for match in inputMatch:
             if not topModelNode.isAnActualBranch(match):
@@ -1740,26 +1765,21 @@ class EnsembleModel(Dummy, Assembler):
         else:
           if modelIn not in executionList[0]: executionList[0].append(modelIn)   
     # check if Picard needs to be activated
-    for modelIn in self.modelsDictionary.keys():
-      if not self.activatePicard:
-        branch, testDict = self.tree.getrootnode().findBranch(modelIn), dict.fromkeys(self.modelsDictionary.keys(),-1)
-        for node in branch.iter():
-          testDict[node.name] +=1
-          if testDict[node.name] > 0:
-            self.activatePicard = True
-            break
+    self.activatePicard = self.isALoop(modelsToOutputModels)
+    
+#     for modelIn in self.modelsDictionary.keys():
+#       if not self.activatePicard:
+#         branch, testDict = self.tree.getrootnode().findBranch(modelIn), dict.fromkeys(self.modelsDictionary.keys(),-1)
+#         for node in branch.iter():
+#           testDict[node.name] +=1
+#           if testDict[node.name] > 0:
+#             self.activatePicard = True
+#             break
     if self.activatePicard: 
       self.raiseAMessage("Multi-model connections determined a non-linear system. Picard's iterations activated!")
       if len(self.initialConditions.keys()) == 0: self.raiseAnError(IOError,"Picard's iterations mode activated but no intial conditions provided!")
     else                  : self.raiseAMessage("Multi-model connections determined a linear system. Picard's iterations not activated!")
     
-    for modelIn in reversed(self.orderList):
-      inputModels = modelsToInputModels[modelIn]
-      for modelInner in self.orderList:
-        print("")
-        
-    
-     
     self.allOutputs = []
     self.needToCheckInputs = True
     #if self.activatePicard:
