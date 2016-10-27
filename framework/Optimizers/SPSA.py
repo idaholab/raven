@@ -16,6 +16,7 @@ import sys
 import os
 import copy
 import numpy as np
+from numpy import linalg as LA
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -34,6 +35,10 @@ class SPSA(GradientBasedOptimizer):
     GradientBasedOptimizer.__init__(self)
     self.stochasticDistribution = None                        # Distribution used to generate perturbations
     self.stochasticEngine = None                              # Random number generator used to generate perturbations
+    self.stochasticEngineForConstraintHandling = Distributions.returnInstance('Normal',self)
+    self.stochasticEngineForConstraintHandling.mean, self.stochasticEngineForConstraintHandling.sigma = 0, 1
+    self.stochasticEngineForConstraintHandling.upperBoundUsed, self.stochasticEngineForConstraintHandling.lowerBoundUsed = False, False
+    self.stochasticEngineForConstraintHandling.initializeDistribution()
 
   def localInputAndChecks(self, xmlNode):
     """
@@ -42,11 +47,14 @@ class SPSA(GradientBasedOptimizer):
       @ Out, None
     """
     GradientBasedOptimizer.localInputAndChecks(self, xmlNode)
-    self.gainParamDict['alpha'] = self.paramDict.get('alpha', 0.602)
-    self.gainParamDict['gamma'] = self.paramDict.get('gamma', 0.101)
-    self.gainParamDict['A'] = self.paramDict.get('A', self.limit['mdlEval']/10)
-    self.gainParamDict['a'] = self.paramDict.get('a', 0.16)
-    self.gainParamDict['c'] = self.paramDict.get('c', 0.005)
+    self.paramDict['alpha'] = float(self.paramDict.get('alpha', 0.602))
+    self.paramDict['gamma'] = float(self.paramDict.get('gamma', 0.101))
+    self.paramDict['A']     = float(self.paramDict.get('A', self.limit['mdlEval']/10))
+    self.paramDict['a']     = float(self.paramDict.get('a', 0.16))
+    self.paramDict['c']     = float(self.paramDict.get('c', 0.005))
+    
+    self.constraintHandlingPara['innerBisectionThreshold'] = float(self.paramDict.get('innerBisectionThreshold', 1e-2))
+    self.constraintHandlingPara['innerLoopLimit'] = float(self.paramDict.get('innerLoopLimit', 1000))
 
     self.gradDict['pertNeeded'] = self.gradDict['numIterForAve'] * 2
 
@@ -144,65 +152,137 @@ class SPSA(GradientBasedOptimizer):
 
             self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = {}
             varK = copy.deepcopy(self.optVarsHist[traj][self.counter['varsUpdate'][traj]-1])
+            
+            varKPlus = self._generateVarsUpdateConstrained(ak,gradient,varK)
+
             for var in self.optVars:
-              self.values[var] = copy.copy(varK[var]-ak*gradient[var]*1.0)
-              self.optVarsHist[traj][self.counter['varsUpdate'][traj]][var] = copy.copy(self.values[var])
-            break
-#     if self.counter['mdlEval'] > len(self.optTraj):
-#       if self.counter['perturbation'] < self.gradDict['pertNeeded']:
-#         self.readyVarsUpdate = False
-#         self.counter['perturbation'] += 1
-#       else: # Got enough perturbation
-#         self.readyVarsUpdate = True
-#         self.counter['perturbation'] = 0
-#         self.counter['varsUpdate'] += 1
-#     else:
-#       self.readyVarsUpdate = False
-    
-      
-# 
-#     elif not self.readyVarsUpdate: # Not ready to update decision variables; continue to perturb for gradient evaluation
-#       if self.counter['perturbation'] == 1: # Generate all the perturbations at once
-#         self.gradDict['pertPoints'] = {}
-#         ck = self._computeGainSequenceCk(self.gainParamDict,self.counter['varsUpdate']+1)
-#         varK = copy.deepcopy(self.optVarsHist[self.counter['varsUpdate']])
-#         for ind in range(self.gradDict['numIterForAve']):
-#           self.gradDict['pertPoints'][ind] = {}
-#           delta = self.stochasticEngine()
-#           for varID, var in enumerate(self.optVars):
-#             if var not in self.gradDict['pertPoints'][ind].keys():
-#               p1 = np.asarray([varK[var]+ck*delta[varID]*1.0]).reshape((1,))
-#               p2 = np.asarray([varK[var]-ck*delta[varID]*1.0]).reshape((1,))
-#               self.gradDict['pertPoints'][ind][var] = np.concatenate((p1, p2))
-# 
-#       loc1 = self.counter['perturbation'] % 2
-#       loc2 = np.floor(self.counter['perturbation'] / 2) if loc1 == 1 else np.floor(self.counter['perturbation'] / 2) - 1
-#       for var in self.optVars:
-#         self.values[var] = self.gradDict['pertPoints'][loc2][var][loc1]
+              self.values[var] = copy.deepcopy(varKPlus[var])
+              self.optVarsHist[self.counter['varsUpdate']][var] = copy.deepcopy(self.values[var])
 
-#     else: # Enough gradient evaluation for decision variable update
-#       ak = self._computeGainSequenceAk(self.gainParamDict,self.counter['varsUpdate']) # Compute the new ak
-#       gradient = self.evaluateGradient(self.gradDict['pertPoints'])
-# 
-#       self.optVarsHist[self.counter['varsUpdate']] = {}
-#       varK = copy.deepcopy(self.optVarsHist[self.counter['varsUpdate']-1])
-#       for var in self.optVars:
-#         self.values[var] = copy.copy(varK[var]-ak*gradient[var]*1.0)
-#         self.optVarsHist[self.counter['varsUpdate']][var] = copy.copy(self.values[var])
+  def _generateVarsUpdateConstrained(self,ak,gradient,varK):
+    """
+      Method to generate input for model to run, considering also that the input satisfies the constraint
+      @ In, ak, float, it is gain for variable update
+      @ In, gradient, dictionary, contains the gradient information for variable update
+      @ In, varK, dictionary, current variable values
+      @ Out, tempVarKPlus, dictionary, variable values for next iteration.
+    """
+    tempVarKPlus = {}
+    for var in self.optVars:
+      tempVarKPlus[var] = copy.copy(varK[var]-ak*gradient[var]*1.0)
 
-  def localEvaluateGradient(self, optVarsValues, gradient = None):
+    if self.checkConstraint(tempVarKPlus):
+      return tempVarKPlus
+
+    # Try to find varKPlus by shorten the gradient vector
+    foundVarsUpdate, tempVarKPlus = self._bisectionForConstrainedInput(varK, ak, gradient)
+    if foundVarsUpdate:
+      return tempVarKPlus
+
+    # Try to find varKPlus by rotate the gradient towards its orthogonal, since we consider the gradient as perpendicular
+    # with respect to the constraints hyper-surface
+    innerLoopLimit = self.constraintHandlingPara['innerLoopLimit']
+    if innerLoopLimit < 0:   self.raiseAnError(IOError, 'Limit for internal loop for constraint handling shall be nonnegative')
+    loopCounter = 0
+    foundPendVector = False
+    while not foundPendVector and loopCounter < innerLoopLimit:
+      loopCounter += 1
+      depVarPos = Distributions.randomIntegers(0,self.nVar-1,self)
+      pendVector = {}
+      npDot = 0
+      for varID, var in enumerate(self.optVars):
+        pendVector[var] = self.stochasticEngineForConstraintHandling.rvs() if varID != depVarPos else 0.0
+        npDot += pendVector[var]*gradient[var]
+      for varID, var in enumerate(self.optVars):
+        if varID == depVarPos:
+          pendVector[var] = -npDot/gradient[var]
+
+      r = LA.norm(np.asarray([gradient[var] for var in self.optVars]))/LA.norm(np.asarray([pendVector[var] for var in self.optVars]))
+      for var in self.optVars:
+        pendVector[var] = copy.deepcopy(pendVector[var])*r
+
+      tempVarKPlus = {}
+      for var in self.optVars:
+        tempVarKPlus[var] = copy.copy(varK[var]-ak*pendVector[var]*1.0)
+      if self.checkConstraint(tempVarKPlus):                  foundPendVector = True
+      if not foundPendVector:
+        foundPendVector, tempVarKPlus = self._bisectionForConstrainedInput(varK, ak, pendVector)
+
+    if foundPendVector:
+      lenPendVector = 0
+      for var in self.optVars:
+        lenPendVector += pendVector[var]**2
+      lenPendVector = np.sqrt(lenPendVector)
+
+      rotateDegreeUpperLimit = 2
+      while self.angleBetween(gradient, pendVector) > rotateDegreeUpperLimit:
+        sumVector, lenSumVector = {}, 0
+        for var in self.optVars:
+          sumVector[var] = gradient[var] + pendVector[var]
+          lenSumVector += sumVector[var]**2
+
+        tempTempVarKPlus = {}
+        for var in self.optVars:
+          sumVector[var] = copy.deepcopy(sumVector[var]/np.sqrt(lenSumVector)*lenPendVector)
+          tempTempVarKPlus[var] = copy.copy(varK[var]-ak*sumVector[var]*1.0)
+        if self.checkConstraint(tempTempVarKPlus):
+          tempVarKPlus = copy.deepcopy(tempTempVarKPlus)
+          pendVector = copy.deepcopy(sumVector)
+        else:
+          gradient = copy.deepcopy(sumVector)
+
+      return tempVarKPlus
+
+    tempVarKPlus = varK
+    return tempVarKPlus
+
+  def _bisectionForConstrainedInput(self,varK,gain,vector):
     """
-      Local method to evaluate gradient.
-      @ In, optVarsValues, dict, Dictionary containing perturbed points.
-                                 optVarsValues should have the form {pertIndex: {varName: [varValue1 varValue2]}}
-                                 Therefore, each optVarsValues[pertIndex] should return a dict of variable values
-                                 that is sufficient for gradient evaluation for at least one variable
-                                 (depending on specific optimization algorithm)
-      @ In, gradient, dict, optional, dictionary containing gradient estimation by the caller.
-                                      gradient should have the form {varName: gradEstimation}
-      @ Out, gradient, dict, dictionary containing gradient estimation. gradient should have the form {varName: gradEstimation}
+      Method to find the maximum fraction of 'vector' that, when using as gradient, the input can satisfy the constraint
+      @ In, varK, dictionary, current variable values
+      @ In, gain, float, it is gain for variable update
+      @ In, vector, dictionary, contains the gradient information for variable update
+      @ Out, _bisectionForConstrainedInput, tuple(bool,dict), (indicating whether a fraction vector is found, contains the fraction of gradient that satisfies constraint)
     """
-    return gradient
+    innerBisectionThreshold = self.constraintHandlingPara['innerBisectionThreshold']
+    if innerBisectionThreshold <= 0 or innerBisectionThreshold >= 1: self.raiseAnError(ValueError, 'The ')
+    fracLowerLimit = 1e-2
+    bounds = [0, 1.0]
+    tempVarNew = {}
+    frac = 0.5
+    while np.absolute(bounds[1]-bounds[0]) >= innerBisectionThreshold:
+      for var in self.optVars:
+        tempVarNew[var] = copy.copy(varK[var]-gain*vector[var]*1.0*frac)
+
+      if self.checkConstraint(tempVarNew):
+        bounds[0] = copy.deepcopy(frac)
+        if np.absolute(bounds[1]-bounds[0]) < innerBisectionThreshold:
+          if frac >= fracLowerLimit:
+            varKPlus = copy.deepcopy(tempVarNew)
+            return True, varKPlus
+          break
+        frac = copy.deepcopy(bounds[1]+bounds[0])/2
+      else:
+        bounds[1] = copy.deepcopy(frac)
+        frac = copy.deepcopy(bounds[1]+bounds[0])/2
+    return False, None
+
+  def angleBetween(self, d1, d2):
+    """ Evaluate the angle between the two dictionaries of vars (d1 and d2) by means of the dot product. Unit: degree
+    @ In, d1, dict, first vector
+    @ In, d2, dict, second vector
+    @ Out, angleD, float, angle between d1 and d2 with unit of degree
+    """
+    v1, v2 = np.zeros(shape=[self.nVar,]), np.zeros(shape=[self.nVar,])
+    for cnt, var in enumerate(self.optVars):
+      v1[cnt], v2[cnt] = copy.deepcopy(d1[var]), copy.deepcopy(d2[var])
+    angle = np.arccos(np.dot(v1, v2)/np.linalg.norm(v1)/np.linalg.norm(v2))
+    if np.isnan(angle):
+      if (v1 == v2).all(): angle = 0.0
+      else: angle = np.pi
+    angleD = np.rad2deg(angle)
+    self.raiseADebug(angleD)
+    return angleD
 
   def _computeGainSequenceCk(self,paramDict,iterNum):
     """
@@ -233,4 +313,3 @@ class SPSA(GradientBasedOptimizer):
 #       @ Out, convergence, bool, variable indicating whether the convergence criteria has been met.
 #     """
 #     return convergence
-

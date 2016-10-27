@@ -10,10 +10,10 @@ version.tex
 new_version.tex
 user_manual/libraries.tex
 user_manual/new_libraries.tex
+user_manual/conda_command.txt
 *.toc
 doxygen/html/
 doxygen/latex/
 analytic_tests.pdf
 pdfs/
 raven_user_guide.pdf
-

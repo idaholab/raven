@@ -97,10 +97,10 @@ endif
 delete_list := $(RAVEN_APP) $(RAVEN_LIB) $(RAVEN_DIR)/libRAVEN-$(METHOD).*
 
 clean::
-	@rm -f $(RAVEN_DIR)/framework/contrib/_amsc.so \
-          $(RAVEN_DIR)/framework/contrib/amsc*egg-info \
-          $(RAVEN_DIR)/framework/contrib/amsc.py \
-          $(RAVEN_DIR)/framework/contrib/amsc.pyc \
+	@rm -f $(RAVEN_DIR)/framework/contrib/AMSC/_amsc.so \
+          $(RAVEN_DIR)/framework/contrib/AMSC/amsc*egg-info \
+          $(RAVEN_DIR)/framework/contrib/AMSC/amsc.py \
+          $(RAVEN_DIR)/framework/contrib/AMSC/amsc.pyc \
           $(RAVEN_DIR)/src/contrib/amsc_wrap.cxx \
           $(RAVEN_DIR)/src/contrib/amsc_wrap.cpp \
           $(RAVEN_DIR)/src/contrib/amsc.py \
@@ -108,9 +108,8 @@ clean::
           $(RAVEN_objects) \
           $(RAVEN_app_objects) \
           $(RAVEN_APP) \
-          build/*/amsc.py \
-          build/*/_amsc.so \
           $(RAVEN_plugins)
+	@rm -Rf $(RAVEN_DIR)/build/temp.* $(RAVEN_DIR)/build/lib.*
 	@find $(RAVEN_DIR)/framework  -name '*.pyc' -exec rm '{}' \;
 
 cleanall::

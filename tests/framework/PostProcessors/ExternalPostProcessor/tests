@@ -12,4 +12,16 @@
     csv = 'externalPostProcessor/multiple_usage_1.csv externalPostProcessor/multiple_usage_2.csv'
     output = 'externalPostProcessor/multiple_usage_1.xml externalPostProcessor/multiple_usage_2.xml'
   [../]
+  [./history_set_partitioning]
+    type = 'RavenFramework'
+    input = 'test_history_set_partitioning.xml'
+    csv = 'testHistorySet/partitionedHistorySet_dump_90.csv testHistorySet/partitionedHistorySet_dump_80.csv'
+    output = 'testHistorySet/partitionedHistorySet_dump_99.csv testHistorySet/partitionedHistorySet_dump_95.csv'
+  [../]
+  [./history_set_deleting_histories]
+    type = 'RavenFramework'
+    input = 'test_history_set_partitioning_and_remove_some_histories.xml'
+    csv = 'testHistorySetDeletingHistories/partitionedHistorySet_dump_90.csv testHistorySetDeletingHistories/partitionedHistorySet_dump_80.csv'
+    output = 'testHistorySetDeletingHistories/partitionedHistorySet_dump_97.csv testHistorySetDeletingHistories/partitionedHistorySet_dump_95.csv'
+  [../]
 []

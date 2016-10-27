@@ -19,16 +19,19 @@ git checkout $RAVEN_REV -- framework
 git checkout $RAVEN_REV -- README.txt
 git checkout $RAVEN_REV -- Makefile
 git checkout $RAVEN_REV -- *.mk
-git checkout $RAVEN_REV -- raven_libs_script.sh
 git checkout $RAVEN_REV -- developer_tools/py3_raven_libs_script.sh
 git checkout $RAVEN_REV -- developer_tools/backend_raven_libs_script.sh
 git checkout $RAVEN_REV -- tests/framework
 git checkout $RAVEN_REV -- tests/cluster_tests
 git checkout $RAVEN_REV -- run_tests
+git checkout $RAVEN_REV -- backend_run_tests
 git checkout $RAVEN_REV -- run_framework_tests
 git checkout $RAVEN_REV -- scripts
 git checkout $RAVEN_REV -- doc/user_manual
 git checkout $RAVEN_REV -- doc/user_guide
+git checkout $RAVEN_REV -- doc/make_docs.sh
+git checkout $RAVEN_REV -- doc/qa_docs
+git checkout $RAVEN_REV -- doc/tests
 git checkout $RAVEN_REV -- raven_framework
 git checkout $RAVEN_REV -- src/contrib
 git checkout $RAVEN_REV -- include/contrib
@@ -43,7 +46,7 @@ MOOSE_REV=`git submodule status moose | tr -d - | cut -d ' ' -f 1`
 
 #fix version tex file.
 cd $MAIN_DIR/raven/doc/user_manual
-make version.tex
+make ../version.tex
 
 cd $MAIN_DIR/raven/
 echo RAVEN revision `git describe` > Version.txt
@@ -69,7 +72,6 @@ git checkout $MOOSE_REV -- framework/app.mk
 git checkout $MOOSE_REV -- modules/modules.mk
 git checkout $MOOSE_REV -- COPYRIGHT
 git checkout $MOOSE_REV -- COPYING
-git checkout $MOOSE_REV -- EXPORT_CONTROL
 git checkout $MOOSE_REV -- LICENSE
 git checkout $MOOSE_REV -- README.md
 

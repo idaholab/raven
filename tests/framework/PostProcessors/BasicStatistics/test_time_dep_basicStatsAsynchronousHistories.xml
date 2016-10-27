@@ -40,7 +40,7 @@
     <PostProcessor name="syncronizeHistorySet" subType="InterfacedPostProcessor">
       <method>HistorySetSync</method>
       <syncMethod>all</syncMethod>
-      <timeID>time</timeID>
+      <pivotParameter>time</pivotParameter>
       <extension>extended</extension>
     </PostProcessor>
   </Models>

@@ -11,6 +11,7 @@ import os
 import copy
 import relapdata
 import re
+from  __builtin__ import any as bAny
 from CodeInterfaceBaseClass import CodeInterfaceBase
 
 class Relap5(CodeInterfaceBase):
@@ -53,7 +54,8 @@ class Relap5(CodeInterfaceBase):
     outputfile = 'out~'+inputFiles[index].getBase()
     if clargs: addflags = clargs['text']
     else     : addflags = ''
-    commandToRun = executable + ' -i ' + inputFiles[index].getFilename() + ' -o ' + outputfile  + '.o' + ' -r ' + outputfile  + '.r' + addflags
+    #commandToRun = executable + ' -i ' + inputFiles[index].getFilename() + ' -o ' + outputfile  + '.o' + ' -r ' + outputfile  + '.r' + addflags
+    commandToRun = executable + ' -i ' + inputFiles[index].getFilename() + ' -o ' + outputfile  + '.o' +  addflags
     commandToRun = commandToRun.replace("\n"," ")
     commandToRun  = re.sub("\s\s+" , " ", commandToRun )
     returnCommand = [('parallel',commandToRun)], outputfile
@@ -70,7 +72,7 @@ class Relap5(CodeInterfaceBase):
     """
     outfile = os.path.join(workingDir,output+'.o')
     outputobj=relapdata.relapdata(outfile,self.outputDeck)
-    if outputobj.hasAtLeastMinorData(): outputobj.write_csv(os.path.join(workingDir,output+'.csv'))
+    if outputobj.hasAtLeastMinorData(): outputobj.writeCSV(os.path.join(workingDir,output+'.csv'))
     else: raise IOError('Relap5 output file '+ command.split('-o')[0].split('-i')[-1].strip()+'.o' + ' does not contain any minor edits. It might be crashed!')
 
   def checkForOutputFailure(self,output,workingDir):
@@ -84,12 +86,13 @@ class Relap5(CodeInterfaceBase):
       @ In, workingDir, string, current working dir
       @ Out, failure, bool, True if the job is failed, False otherwise
     """
-    from  __builtin__ import any as b_any
+    from  __builtin__ import any as bAny
     failure = True
-    errorWord = "Transient terminated by end of time step cards"
+    errorWord = ["0Transient terminated by end of time step cards.","0Transient terminated by trip."]
     try   : outputToRead = open(os.path.join(workingDir,output+'.o'),"r")
     except: return failure
-    failure = not b_any(errorWord in x.strip() for x in outputToRead.readlines())
+    #failure = not b_any(errorWord in x.strip() for x in outputToRead.readlines())
+    failure = not bAny(x.strip() in errorWord for x in outputToRead.readlines())
     return failure
 
   def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):

@@ -78,4 +78,31 @@
     csv    = 'time_dep_meanshift/print0_0.csv time_dep_meanshift/print0_1.csv time_dep_meanshift/print0_2.csv time_dep_meanshift/print1_0.csv time_dep_meanshift/print1_1.csv' 
     output = 'time_dep_meanshift/1-Clustered_HS_line.png time_dep_meanshift/1-Cluster_0_line.png time_dep_meanshift/1-Cluster_1_line.png time_dep_meanshift/1-hist0x_histogram.png time_dep_meanshift/1-hist0y_histogram.png time_dep_meanshift/1-hist0z_histogram.png time_dep_meanshift/1-plot5_histogram.png time_dep_meanshift/1-plot7_histogram.png'
   [../] 
+  [./time_dep_hierarchicalScipy_DTW]
+    type   = 'RavenFramework'
+    input  = 'test_TD_hierarchical_dtw.xml'
+    csv    = 'HierarchicalDTW/printAllHists_0.csv HierarchicalDTW/printAllHists_1.csv HierarchicalDTW/printAllHists_2.csv HierarchicalDTW/printAllHists_3.csv HierarchicalDTW/printAllHists_4.csv HierarchicalDTW/printAllHists_5.csv HierarchicalDTW/printAllHists_6.csv HierarchicalDTW/printAllHists_7.csv HierarchicalDTW/printAllHists_8.csv HierarchicalDTW/printAllHists_9.csv'
+  [../]
+  [./time_dep_hierarchicalScipy_DTW_derivative]
+    type   = 'RavenFramework'
+    input  = 'test_TD_hierarchical_dtw_derivative.xml'
+    csv    = 'HierarchicalDTWderivative/printAllHists_0.csv HierarchicalDTWderivative/printAllHists_1.csv HierarchicalDTWderivative/printAllHists_2.csv HierarchicalDTWderivative/printAllHists_3.csv HierarchicalDTWderivative/printAllHists_4.csv HierarchicalDTWderivative/printAllHists_5.csv HierarchicalDTWderivative/printAllHists_6.csv HierarchicalDTWderivative/printAllHists_7.csv HierarchicalDTWderivative/printAllHists_8.csv HierarchicalDTWderivative/printAllHists_9.csv'
+  [../]
+  [./HierarchicalScipy]
+    type   = 'RavenFramework'
+    input  = 'test_dataMiningHierarchical.xml'
+    csv    = 'Hierarchical/dummy.csv'
+    output = 'Hierarchical/1-PlotHierarchical_scatter.png'
+  [../]
+  [./agglomerativeDTW]
+    type   = 'RavenFramework'
+    input  = 'test_TD_agglomerative_dtw.xml'
+    csv    = 'agglomerative_dtw/printAll_0.csv agglomerative_dtw/printAll_1.csv agglomerative_dtw/printAll_2.csv agglomerative_dtw/printAll_3.csv agglomerative_dtw/printAll_4.csv agglomerative_dtw/printAll_5.csv agglomerative_dtw/printAll_6.csv agglomerative_dtw/printAll_7.csv agglomerative_dtw/printAll_8.csv agglomerative_dtw/printAll_9.csv'
+    output = 'agglomerative_dtw/1-plot1_line.pdf agglomerative_dtw/1-Cluster_0_line.pdf agglomerative_dtw/1-Cluster_1_line.pdf'
+  [../]
+  [./agglomerativeEuclidean]
+    type   = 'RavenFramework'
+    input  = 'test_TD_agglomerative_euclidean.xml'
+    csv    = 'agglomerative_euclidean/printAll_0.csv agglomerative_euclidean/printAll_1.csv agglomerative_euclidean/printAll_2.csv agglomerative_euclidean/printAll_3.csv agglomerative_euclidean/printAll_4.csv agglomerative_euclidean/printAll_5.csv agglomerative_euclidean/printAll_6.csv agglomerative_euclidean/printAll_7.csv agglomerative_euclidean/printAll_8.csv agglomerative_euclidean/printAll_9.csv'
+  [../]
 []

@@ -2774,7 +2774,13 @@ class ExternalPostProcessor(BasePostProcessor):
           inputDict['targets'][param] = item.getParam('input', param)
         for param in item.getParaKeys('output'):
           inputDict['targets'][param] = item.getParam('output', param)
-
+        metadata.append(item.getAllMetadata())
+      elif inType =='HistorySet':
+        outs, ins = item.getOutParametersValues(nodeId = 'ending'), item.getInpParametersValues(nodeId = 'ending')
+        for param in item.getParaKeys('output'):
+          inputDict['targets'][param] = [value[param] for value in outs.values()]
+        for param in item.getParaKeys('input'):
+          inputDict['targets'][param] =  [value[param] for value in ins.values()]
         metadata.append(item.getAllMetadata())
       elif inType != 'list':
         self.raiseAWarning(self, 'Input type ' + type(item).__name__ + ' not recognized. I am going to skip it.')
@@ -2838,7 +2844,7 @@ class ExternalPostProcessor(BasePostProcessor):
     if finishedJob.getEvaluation() == -1:
       # #TODO This does not feel right
       self.raiseAnError(RuntimeError, 'No available Output to collect (Run probably did not finish yet)')
-
+    dataLenghtHistory = {}
     inputList = finishedJob.getEvaluation()[0]
     outputDict = finishedJob.getEvaluation()[1]
 
@@ -2850,7 +2856,7 @@ class ExternalPostProcessor(BasePostProcessor):
     elif output.type == 'HDF5':
       self.raiseAWarning('Output type ' + type(output).__name__
                          + ' not yet implemented. I am going to skip it.')
-    elif output.type == 'PointSet':
+    elif output.type in ['PointSet','HistorySet'] :
       requestedInput = output.getParaKeys('input')
       ## If you want to be able to dynamically add columns to your data, then
       ## you should use this commented line, otherwise only the information
@@ -2890,13 +2896,19 @@ class ExternalPostProcessor(BasePostProcessor):
           foundCount = 0
           if key in requestedInput:
             for inputData in inputList:
-              if key in inputData.getParametersValues('input').keys():
-                value = inputData.getParametersValues('input')[key]
+              if key in inputData.getParametersValues('input',nodeId = 'ending').keys() if inputData.type == 'PointSet' else inputData.getParametersValues('input',nodeId = 'ending').values()[-1].keys():
+                if inputData.type == 'PointSet':
+                  value = inputData.getParametersValues('input',nodeId = 'ending')[key]
+                else:
+                  value = [value[key] for value in inputData.getParametersValues('input',nodeId = 'ending').values()]
                 foundCount += 1
           else:
             for inputData in inputList:
-                if key in inputData.getParametersValues('output').keys():
-                  value = inputData.getParametersValues('output')[key]
+                if key in inputData.getParametersValues('output',nodeId = 'ending').keys() if inputData.type == 'PointSet' else inputData.getParametersValues('output',nodeId = 'ending').values()[-1].keys():
+                  if inputData.type == 'PointSet':
+                    value = inputData.getParametersValues('output',nodeId = 'ending')[key]
+                  else:
+                    value = [value[key] for value in inputData.getParametersValues('output',nodeId = 'ending').values()]
                   foundCount += 1
 
           if foundCount == 0:
@@ -2927,11 +2939,17 @@ class ExternalPostProcessor(BasePostProcessor):
         ## accessible
         if storeInOutput:
           if key in requestedInput:
-            for val in value:
-              output.updateInputValue(key, val)
+            for histNum, val in enumerate(value):
+              param = key if output.type == 'PointSet' else [histNum+1,key]
+              output.updateInputValue(param, val)
           else:
-            for val in value:
-              output.updateOutputValue(key, val)
+            for histNum, val in enumerate(value):
+              if output.type == 'HistorySet':
+                if histNum+1 in dataLenghtHistory.keys():
+                  if dataLenghtHistory[histNum+1] != len(val): self.raiseAnError(IOError, key + ' the size of the arrays for history '+str(histNum+1)+' are different!')
+                else: dataLenghtHistory[histNum+1] = len(val)
+              param = key if output.type == 'PointSet' else [histNum+1,key]
+              output.updateOutputValue(param, val)
         else:
           if not hasattr(value, "__iter__"):
             value = [value]
@@ -2962,8 +2980,6 @@ class ExternalPostProcessor(BasePostProcessor):
       for interface in self.externalInterfaces:
         if method in interface.availableMethods():
           matchingInterfaces.append(interface)
-
-
       if len(matchingInterfaces) == 0:
         self.raiseAWarning(method + ' not found. I will skip it.')
       elif len(matchingInterfaces) == 1:
@@ -2977,11 +2993,29 @@ class ExternalPostProcessor(BasePostProcessor):
 
     ## Evaluate the method and add it to the outputDict, also if the method
     ## adjusts the input data, then you should update it as well.
+    warningMessages = []
     for methodName, (interface, method) in methodMap.iteritems():
       outputDict[methodName] = interface.evaluate(method, input['targets'])
+      if outputDict[methodName] is None: self.raiseAnError(Exception,"the method "+methodName+" has not produced any result. It needs to return a result!")
       for target in input['targets']:
         if hasattr(interface, target):
-          outputDict[target] = getattr(interface, target)
+          #if target not in outputDict.keys():
+          if target not in methodMap.keys():
+            attributeInSelf = getattr(interface, target)
+            if len(np.atleast_1d(attributeInSelf)) != len(np.atleast_1d(input['targets'][target])) or (np.atleast_1d(attributeInSelf) - np.atleast_1d(input['targets'][target])).all():
+              if target in outputDict.keys(): self.raiseAWarning("In Post-Processor "+ self.name +" the modified variable "+target+
+                               " has the same name of a one already modified throuhg another Function method." +
+                               " This method overwrites the input DataObject variable value")
+              outputDict[target] = attributeInSelf
+          else:
+            warningMessages.append("In Post-Processor "+ self.name +" the method "+method+
+                               " has the same name of a variable contained in the input DataObject." +
+                               " This method overwrites the input DataObject variable value")
+    for msg in list(set(warningMessages)): self.raiseAWarning(msg)
+
+    for target in input['targets'].keys():
+      if target not in outputDict.keys() and target in input['targets'].keys():
+        outputDict[target] = input['targets'][target]
 
     return outputDict
 
@@ -3484,7 +3518,7 @@ class DataMining(BasePostProcessor):
     else:
       currentInput = currentInp
 
-    if currentInput.type == 'HistorySet' and self.PreProcessor is None: # for testing time dependent dm - time dependent clustering
+    if currentInput.type == 'HistorySet' and self.PreProcessor is None and self.metric is None: # for testing time dependent dm - time dependent clustering
       inputDict = {'Features':{}, 'parameters':{}, 'Labels':{}, 'metadata':{}}
 
       # FIXME, this needs to be changed for asynchronous HistorySet
@@ -3534,7 +3568,6 @@ class DataMining(BasePostProcessor):
       tempData = self.PreProcessor.interface.inputToInternal(currentInp)
 
       preProcessedData = self.PreProcessor.interface.run(tempData)
-
       if self.initializationOptionDict['KDD']['Features'] == 'input':
         inputDict['Features'] = copy.deepcopy(preProcessedData['data']['input'])
       elif self.initializationOptionDict['KDD']['Features'] == 'output':
@@ -3586,22 +3619,40 @@ class DataMining(BasePostProcessor):
           inputDict['Features'][param] = currentInput.getParam('input', param)
         for param in outParams:
           inputDict['Features'][param] = currentInput.getParam('output', param)
+
     elif currentInput.type in ['HistorySet']:
       if self.initializationOptionDict['KDD']['Features'] == 'input':
         for param in currentInput.getParaKeys('input'):
           inputDict['Features'][param] = currentInput.getParam('input', param)
       elif self.initializationOptionDict['KDD']['Features'] == 'output':
         inputDict['Features'] = currentInput.getOutParametersValues()
-      inputDict['metadata'] = currentInput.getAllMetadata()
+      elif self.initializationOptionDict['KDD']['Features'] == 'all':
+        for param in allInputFeatures:
+          inputDict['Features'][param] = currentInput.getParam('input', param)
+        for param in allOutputFeatures:
+          inputDict['Features'][param] = currentInput.getParam('output', param)
+      else:
+        features = set(self.initializationOptionDict['KDD']['Features'].split(','))
+        allInputFeatures = currentInput.getParaKeys('input')
+        allOutputFeatures = currentInput.getParaKeys('output')
+        inParams = list(features.intersection(allInputFeatures))
+        outParams = list(features.intersection(allOutputFeatures))
+        inputDict['Features'] = {}
+        for hist in currentInput._dataContainer['outputs'].keys():
+          inputDict['Features'][hist] = {}
+          for param in inParams:
+            inputDict['Features'][hist][param] = currentInput._dataContainer['inputs'][hist][param]
+          for param in outParams:
+            inputDict['Features'][hist][param] = currentInput._dataContainer['outputs'][hist][param]
 
       inputDict['metadata'] = currentInput.getAllMetadata()
+
     ## Redundant if-conditional preserved as a placeholder for potential future
     ## development working directly with files
     # elif isinstance(currentInp, Files.File):
     #   self.raiseAnError(IOError, 'Unsupported input type (' + currentInput.subtype + ') for PostProcessor ' + self.name + ' must be a PointSet.')
     else:
       self.raiseAnError(IOError, 'Unsupported input type (' + currentInput.type + ') for PostProcessor ' + self.name + ' must be a PointSet.')
-
     return inputDict
 
   def initialize(self, runInfo, inputs, initDict):
@@ -3709,7 +3760,6 @@ class DataMining(BasePostProcessor):
     ## When does this actually happen?
     if finishedJob.getEvaluation() == -1:
       self.raiseAnError(RuntimeError, 'No available Output to collect (Run probably is not finished yet)')
-
     dataMineDict = finishedJob.getEvaluation()[1]
     for key in dataMineDict['output']:
       for param in output.getParaKeys('output'):
@@ -3719,11 +3769,11 @@ class DataMining(BasePostProcessor):
         for value in dataMineDict['output'][key]:
           output.updateOutputValue(key, copy.copy(value))
       elif output.type == 'HistorySet':
-        if self.PreProcessor is not None:
+        if self.PreProcessor is not None or self.metric is not None:
           for index,value in np.ndenumerate(dataMineDict['output'][key]):
             firstHist = output._dataContainer['outputs'].keys()[0]
-            firstVar  = output._dataContainer['outputs'][firstHist].keys()[0]
-            timeLength = output._dataContainer['outputs'][firstHist][firstVar].size
+            firstVar  = output._dataContainer['outputs'][index[0]+1].keys()[0]
+            timeLength = output._dataContainer['outputs'][index[0]+1][firstVar].size
             arrayBase = value * np.ones(timeLength)
             output.updateOutputValue([index[0]+1,key], arrayBase)
         else:
@@ -3747,7 +3797,7 @@ class DataMining(BasePostProcessor):
     else:
       currentInput = inputIn
 
-    if currentInput.type == 'HistorySet' and self.PreProcessor is None:
+    if currentInput.type == 'HistorySet' and self.PreProcessor is None and self.metric is None:
       return self.__runTemporalSciKitLearn(Input)
     else:
       return self.__runSciKitLearn(Input)
@@ -3779,12 +3829,13 @@ class DataMining(BasePostProcessor):
     ##     - Dimensionality Reduction
     ##       - Manifold Learning
     ##       - Linear projection methods
-    if 'cluster' == self.unSupervisedEngine.SKLtype:
+    if 'cluster' == self.unSupervisedEngine.getDataMiningType():
       ## Get the cluster labels and store as a new column in the output
       #assert  'labels' in self.unSupervisedEngine.outputDict.keys()== hasattr(self.unSupervisedEngine, 'labels_')
       if hasattr(self.unSupervisedEngine, 'labels_'):
         self.clusterLabels = self.unSupervisedEngine.labels_
       outputDict['output'][self.labelFeature] = self.clusterLabels
+      self.raiseAWarning('The clustering algorithm have identified the following cluster labels: ' + str(set(self.clusterLabels)))
 
       ## Get the centroids and push them to a SolutionExport data object.
       ## Also if we have the centers, assume we have the indices to match them
@@ -3830,9 +3881,9 @@ class DataMining(BasePostProcessor):
       if hasattr(self.unSupervisedEngine, 'inertia_'):
         inertia = self.unSupervisedEngine.inertia_
 
-    elif 'bicluster' == self.unSupervisedEngine.SKLtype:
+    elif 'bicluster' == self.unSupervisedEngine.getDataMiningType():
       self.raiseAnError(RuntimeError, 'Bicluster has not yet been implemented.')
-    elif 'mixture' == self.unSupervisedEngine.SKLtype:
+    elif 'mixture' == self.unSupervisedEngine.getDataMiningType():
       if   hasattr(self.unSupervisedEngine, 'covars_'):
         mixtureCovars = self.unSupervisedEngine.covars_
 
@@ -3863,7 +3914,7 @@ class DataMining(BasePostProcessor):
               j = i+joffset
               self.solutionExport.updateOutputValue('cov_'+str(row)+'_'+str(col),mixtureCovars[index][i,j])
 
-    elif 'manifold' == self.unSupervisedEngine.SKLtype:
+    elif 'manifold' == self.unSupervisedEngine.getDataMiningType():
       manifoldValues = self.unSupervisedEngine.normValues
 
       if hasattr(self.unSupervisedEngine, 'embeddingVectors_'):
@@ -3883,7 +3934,7 @@ class DataMining(BasePostProcessor):
         newColumnName = self.labelFeature + str(i + 1)
         outputDict['output'][newColumnName] =  embeddingVectors[:, i]
 
-    elif 'decomposition' == self.unSupervisedEngine.SKLtype:
+    elif 'decomposition' == self.unSupervisedEngine.getDataMiningType():
       decompositionValues = self.unSupervisedEngine.normValues
 
       if hasattr(self.unSupervisedEngine, 'noComponents_'):
@@ -3941,7 +3992,7 @@ class DataMining(BasePostProcessor):
     numberOfHistoryStep = self.unSupervisedEngine.numberOfHistoryStep
     numberOfSample = self.unSupervisedEngine.numberOfSample
 
-    if 'cluster' == self.unSupervisedEngine.SKLtype:
+    if 'cluster' == self.unSupervisedEngine.getDataMiningType():
       if 'labels' in self.unSupervisedEngine.outputDict.keys():
         labels = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
         for t in range(numberOfHistoryStep):
@@ -3996,7 +4047,7 @@ class DataMining(BasePostProcessor):
       if 'inertia' in self.unSupervisedEngine.outputDict.keys():
         inertia = self.unSupervisedEngine.outputDict['inertia']
 
-    elif 'mixture' == self.unSupervisedEngine.SKLtype:
+    elif 'mixture' == self.unSupervisedEngine.getDataMiningType():
       if 'labels' in self.unSupervisedEngine.outputDict.keys():
         labels = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
         for t in range(numberOfHistoryStep):
@@ -4068,7 +4119,7 @@ class DataMining(BasePostProcessor):
                   timeSeries[timeIdx] = mixtureCovars[timeIdx][loc][i,j]
                 self.solutionExport.updateOutputValue('cov_'+str(row)+'_'+str(col),timeSeries)
 
-    elif 'manifold' == self.unSupervisedEngine.SKLtype:
+    elif 'manifold' == self.unSupervisedEngine.getDataMiningType():
       noComponents = self.unSupervisedEngine.outputDict['noComponents'][0]
 
       if 'embeddingVectors_' in self.unSupervisedEngine.outputDict.keys():
@@ -4088,7 +4139,7 @@ class DataMining(BasePostProcessor):
         for t in range(numberOfHistoryStep):
           outputDict['output'][self.name+'EmbeddingVector' + str(i + 1)][:,t] =  embeddingVectors[t][:, i]
 
-    elif 'decomposition' == self.unSupervisedEngine.SKLtype:
+    elif 'decomposition' == self.unSupervisedEngine.getDataMiningType():
       decompositionValues = self.unSupervisedEngine.normValues
 
       noComponents = self.unSupervisedEngine.outputDict['noComponents'][0]
@@ -4141,7 +4192,7 @@ class DataMining(BasePostProcessor):
             self.solutionExport.updateOutputValue('ExplainedVarianceRatio',timeSeries)
 
     else:
-      self.raiseAnError(IOError,'%s has not yet implemented.' % self.unSupervisedEngine.SKLtype)
+      self.raiseAnError(IOError,'%s has not yet implemented.' % self.unSupervisedEngine.getDataMiningType())
 
     return outputDict
 #

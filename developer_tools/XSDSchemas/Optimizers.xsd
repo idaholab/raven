@@ -50,6 +50,8 @@
 						<xsd:element name="a"           	 type="xsd:float"  minOccurs="0" maxOccurs="1"/>
 						<xsd:element name="gamma"         	 type="xsd:float"  minOccurs="0" maxOccurs="1"/>
 						<xsd:element name="c"             	 type="xsd:float"  minOccurs="0" maxOccurs="1"/>
+						<xsd:element name="innerBisectionThreshold"             	 type="xsd:float"  minOccurs="0" maxOccurs="1"/>
+						<xsd:element name="innerLoopLimit"   type="xsd:float"  minOccurs="0" maxOccurs="1"/>
 					</xsd:sequence>
 				</xsd:complexType>
             </xsd:element>				

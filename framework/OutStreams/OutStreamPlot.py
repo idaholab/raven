@@ -21,6 +21,7 @@ import importlib  # it is used in exec code so it might be detected as unused
 import platform
 import os
 import re
+import matplotlib
 ## External Modules End---------------------------------------------------------
 
 ## Internal Modules-------------------------------------------------------------
@@ -96,7 +97,7 @@ class OutStreamPlot(OutStreamManager):
     self.printTag = 'OUTSTREAM PLOT'
 
     ## default plot is 2D
-    self.dim = 2
+    self.dim = None
 
     ## list of source names
     self.sourceName = []
@@ -813,12 +814,7 @@ class OutStreamPlot(OutStreamManager):
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None
     """
-    if not 'dim' in xmlNode.attrib.keys():
-      self.dim = 2
-    else:
-      self.dim = int(xmlNode.attrib['dim'])
-    if self.dim not in [2, 3]:
-      self.raiseAnError(IOError, 'Wrong dimension... 2D or 3D only!!! Got ' + str(self.dim) + 'D')
+    if 'dim' in xmlNode.attrib.keys(): self.raiseAWarning("the 'dim' attribute has been deprecated. This warning will become an error in January 2017")
     foundPlot = False
     for subnode in xmlNode:
       # if actions, read actions block
@@ -874,12 +870,24 @@ class OutStreamPlot(OutStreamManager):
 
     if not foundPlot:
       self.raiseAnError(IOError, 'For plot named' + self.name + ', No plot section has been found in the plotSettings block!')
-    self.outStreamTypes = []
 
+    self.outStreamTypes = []
+    xyz, xy             = sorted(['x','y','z']), sorted(['x','y'])
     for pltindex in range(len(self.options['plotSettings']['plot'])):
       if not 'type' in self.options['plotSettings']['plot'][pltindex].keys():
         self.raiseAnError(IOError, 'For plot named' + self.name + ', No plot type keyword has been found in the plotSettings/plot block!')
       else:
+        # check the dimension and check the consistency
+        if set(xyz) < set(self.options['plotSettings']['plot'][pltindex].keys()):
+          dim = 3
+        elif set(xy) < set(self.options['plotSettings']['plot'][pltindex].keys()):
+          dim = 2 if self.options['plotSettings']['plot'][pltindex]['type'] != 'histogram' else 3
+        elif set(['x']) < set(self.options['plotSettings']['plot'][pltindex].keys()) and self.options['plotSettings']['plot'][pltindex]['type'] == 'histogram':
+          dim = 2
+        else:
+          self.raiseAnError(IOError, 'Wrong dimensionality or axis specification for plot '+self.name+'.')
+        if self.dim is not None and self.dim != dim: self.raiseAnError(IOError, 'The OutStream Plot '+self.name+' combines 2D and 3D plots. This is not supported!')
+        self.dim = dim
         if self.availableOutStreamTypes[self.dim].count(self.options['plotSettings']['plot'][pltindex]['type']) == 0:
           self.raiseAMessage('For plot named' + self.name + ', type ' + self.options['plotSettings']['plot'][pltindex]['type'] + ' is not among pre-defined plots! \n The OutstreamSystem will try to construct a call on the fly!', 'ExceptedError')
         self.outStreamTypes.append(self.options['plotSettings']['plot'][pltindex]['type'])
@@ -1116,7 +1124,8 @@ class OutStreamPlot(OutStreamManager):
                         self.actcm.set_clim(vmin = min(self.colorMapValues[pltindex][key][-1]), vmax = max(self.colorMapValues[pltindex][key][-1]))
                         self.actcm.draw_all()
                 else:
-                  scatterPlotOptions['c'] = plotSettings['c']
+                  if 'color' not in scatterPlotOptions:
+                    scatterPlotOptions['c'] = plotSettings['c']
                   self.actPlot = self.plt.scatter(self.xValues[pltindex][key][xIndex], self.yValues[pltindex][key][yIndex], **scatterPlotOptions)
               elif self.dim == 3:
                 scatterPlotOptions['rasterized'] = True
@@ -1151,7 +1160,8 @@ class OutStreamPlot(OutStreamManager):
                           self.actcm.set_clim(vmin = min(self.colorMapValues[pltindex][key][-1]), vmax = max(self.colorMapValues[pltindex][key][-1]))
                           self.actcm.draw_all()
                   else:
-                    scatterPlotOptions['c'] = plotSettings['c']
+                    if 'color' not in scatterPlotOptions:
+                      scatterPlotOptions['c'] = plotSettings['c']
                     self.actPlot = self.plt3D.scatter(self.xValues[pltindex][key][xIndex], self.yValues[pltindex][key][yIndex], self.zValues[pltindex][key][zIndex], **scatterPlotOptions)
 
       #################
@@ -1160,10 +1170,15 @@ class OutStreamPlot(OutStreamManager):
       elif self.outStreamTypes[pltindex] == 'line':
         minV = 0
         maxV = 0
+        ## If the user does not define an appropriate cmap, then use matplotlib's default.
+        if 'cmap' not in plotSettings or plotSettings['cmap'] not in matplotlib.cm.datad.keys():
+          plotSettings['cmap'] = None
         if bool(self.colorMapValues):
           for key in self.xValues[pltindex].keys():
             minV = min(minV,self.colorMapValues[pltindex][key][-1][-1])
             maxV = max(maxV,self.colorMapValues[pltindex][key][-1][-1])
+          cmap = matplotlib.cm.ScalarMappable(matplotlib.colors.Normalize(minV,maxV,True), plotSettings['cmap'])
+          cmap.set_array([minV,maxV])
         for key in self.xValues[pltindex].keys():
           for xIndex in range(len(self.xValues[pltindex][key])):
             if self.colorMapCoordinates[pltindex] != None:
@@ -1174,37 +1189,14 @@ class OutStreamPlot(OutStreamManager):
                   return
                 xi, yi = mathUtils.interpolateFunction(self.xValues[pltindex][key][xIndex], self.yValues[pltindex][key][yIndex], plotSettings, returnCoordinate = True)
                 if self.colorMapCoordinates[pltindex] != None:
-                  # if a color map has been added, we use a scattered plot instead...
-                  ## Here we should construct a colormap to pass into the plt.plot rather than depend on a scatter plot to give us one - DM
-                  if self.actcm:
-                    first = False
-                  else:
-                    first = True
-                  if plotSettings['cmap'] == 'None':
-                    self.actPlot = self.plt.scatter(self.xValues[pltindex][key][xIndex], self.yValues[pltindex][key][yIndex], c = self.colorMapValues[pltindex][key][-1], vmin=minV, vmax=maxV, marker='.',linewidths=0, **plotSettings.get('attributes', {}))
-                    self.plt.plot(xi, yi, c = self.actPlot.get_cmap()(self.colorMapValues[pltindex][key][-1][-1]/(maxV-minV)))
-
-                    if 'colorbar' not in self.options.keys() or self.options['colorbar']['colorbar'] != 'off':
-                      if first:
-                        m = self.mpl.cm.ScalarMappable(cmap = self.actPlot.cmap, norm = self.actPlot.norm)
-                        m.set_array(self.colorMapValues[pltindex][key])
-                        self.actcm = self.fig.colorbar(m)
-                        self.actcm.set_label(self.colorMapCoordinates[pltindex][0].split('|')[-1].replace(')', ''))
-                      else:
-                        self.actcm.set_clim(vmin = min(self.colorMapValues[pltindex][key][-1]), vmax = max(self.colorMapValues[pltindex][key][-1]))
-                        self.actcm.draw_all()
-                  else:
-                    if first:
-                      self.actPlot.cmap = self.mpl.cm.get_cmap(name = plotSettings['cmap'])
-                    if 'colorbar' not in self.options.keys() or self.options['colorbar']['colorbar'] != 'off':
-                      if first:
-                        m = self.mpl.cm.ScalarMappable(cmap = self.actPlot.cmap, norm = self.actPlot.norm)
-                        m.set_array(self.colorMapValues[pltindex][key])
-                        self.actcm = self.fig.colorbar(m)
-                        self.actcm.set_label(self.colorMapCoordinates[pltindex][0].split('|')[-1].replace(')', ''))
-                      else:
-                        self.actcm.set_clim(vmin = min(self.colorMapValues[pltindex][key][-1]), vmax = max(self.colorMapValues[pltindex][key][-1]))
-                        self.actcm.draw_all()
+                  self.plt.plot(xi, yi, c = cmap.cmap(self.colorMapValues[pltindex][key][-1][-1]/(maxV-minV)))
+                  if 'colorbar' not in self.options.keys() or self.options['colorbar']['colorbar'] != 'off':
+                    if self.actcm is None:
+                      self.actcm = self.fig.colorbar(cmap)
+                      self.actcm.set_label(self.colorMapCoordinates[pltindex][0].split('|')[-1].replace(')', ''))
+                      # self.actcm.set_clim(vmin = minV, vmax = maxV)
+                    else:
+                      self.actcm.draw_all()
                 else:
                   self.actPlot = self.plt.plot(xi, yi, **plotSettings.get('attributes', {}))
               elif self.dim == 3:
@@ -1212,36 +1204,15 @@ class OutStreamPlot(OutStreamManager):
                   if self.zValues[pltindex][key][zIndex].size <= 3:
                     return
                   if self.colorMapCoordinates[pltindex] != None:
-                    # if a color map has been added, we use a scattered plot instead...
-                    if self.actcm:
-                      first = False
-                    else:
-                      first = True
-                    if plotSettings['cmap'] == 'None':
-                        self.actPlot = self.plt3D.scatter(self.xValues[pltindex][key][xIndex], self.yValues[pltindex][key][yIndex], self.zValues[pltindex][key][zIndex], c = self.colorMapValues[pltindex][key][-1], vmin=minV, vmax=maxV, marker='.',linewidths=0)
-                        self.plt3D.plot(self.xValues[pltindex][key][xIndex], self.yValues[pltindex][key][yIndex],self.zValues[pltindex][key][zIndex], c = self.actPlot.get_cmap()(self.colorMapValues[pltindex][key][-1][-1]/(maxV-minV)))
-                        if 'colorbar' not in self.options.keys() or self.options['colorbar']['colorbar'] != 'off':
-                          if first:
-                            m = self.mpl.cm.ScalarMappable(cmap = self.actPlot.cmap, norm = self.actPlot.norm)
-                            m.set_array(self.colorMapValues[pltindex][key][-1])
-                            self.actcm = self.fig.colorbar(m)
-                            self.actcm.set_label(self.colorMapCoordinates[pltindex][0].split('|')[-1].replace(')', ''))
-                        else:
-                            self.actcm.set_clim(vmin = min(self.colorMapValues[pltindex][key][-1]), vmax = max(self.colorMapValues[pltindex][key][-1]))
-                            self.actcm.draw_all()
-                    else:
-                        self.actPlot = self.plt3D.scatter(self.xValues[pltindex][key][xIndex], self.yValues[pltindex][key][yIndex], self.zValues[pltindex][key][zIndex],
-                                                          c = self.colorMapValues[pltindex][key], vmin=minV, vmax=maxV , cmap = self.mpl.cm.get_cmap(name = plotSettings['cmap']), marker = '.')
-                        self.plt3D.plot(self.xValues[pltindex][key][xIndex], self.yValues[pltindex][key][yIndex], self.zValues[pltindex][key][zIndex], c = self.actPlot.get_cmap()(self.colorMapValues[pltindex][key][-1][-1]))
-                        if 'colorbar' not in self.options.keys() or self.options['colorbar']['colorbar'] != 'off':
-                          if first:
-                            m = self.mpl.cm.ScalarMappable(cmap = self.actPlot.cmap, norm = self.actPlot.norm)
-                            m.set_array(self.colorMapValues[pltindex][key])
-                            self.actcm = self.fig.colorbar(m)
-                            self.actcm.set_label(self.colorMapCoordinates[pltindex][0].split('|')[-1].replace(')', ''))
-                          else:
-                            self.actcm.set_clim(vmin = min(self.colorMapValues[pltindex][key][-1]), vmax = max(self.colorMapValues[pltindex][key][-1]))
-                            self.actcm.draw_all()
+                    self.plt3D.plot(self.xValues[pltindex][key][xIndex], self.yValues[pltindex][key][yIndex],self.zValues[pltindex][key][zIndex],
+                                    c = cmap.cmap(self.colorMapValues[pltindex][key][-1][-1]/(maxV-minV)))
+                    if 'colorbar' not in self.options.keys() or self.options['colorbar']['colorbar'] != 'off':
+                      if self.actcm is None:
+                        self.actcm = self.fig.colorbar(cmap)
+                        self.actcm.set_label(self.colorMapCoordinates[pltindex][0].split('|')[-1].replace(')', ''))
+                        # self.actcm.set_clim(vmin = minV, vmax = maxV)
+                      else:
+                        self.actcm.draw_all()
                   else:
                     self.actPlot = self.plt3D.plot(self.xValues[pltindex][key][xIndex], self.yValues[pltindex][key][yIndex], self.zValues[pltindex][key][zIndex], **plotSettings.get('attributes', {}))
       ##################
@@ -1855,8 +1826,7 @@ class OutStreamPlot(OutStreamManager):
       ## We are skipping a few of the sanity checks done in that function,
       ## since we are sure we have an interactive backend and access to the
       ## correct type of canvas and figure.
-      if self.fig.stale:
-        self.fig.canvas.draw()
+      self.fig.canvas.draw()
       self.plt.show(block=False)
       ## If your graphs are unresponsive to user input, you may want to consider
       ## adjusting this timeout, to allow more time for the input to be handled.

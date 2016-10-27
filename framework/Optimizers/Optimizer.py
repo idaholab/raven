@@ -317,7 +317,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
     if 'Function' in self.assemblerDict.keys():
       self.constraintFunction = self.assemblerDict['Function'][0][3]
-      if 'constrain' not in self.constrainFunction.availableMethods():
+      if 'constrain' not in self.constraintFunction.availableMethods():
         self.raiseAnError(IOError,'the function provided to define the constraints must have an implemented method called "constrain"')
 
     if self.initSeed != None:           Distributions.randomSeed(self.initSeed)
@@ -384,9 +384,15 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       satisfaction = True
     else:
       satisfaction = True if self.constraintFunction.evaluate("constrain",optVars) == 1 else False
+    for var in optVars:
+      if optVars[var] > self.optVarsInit['upperBound'][var] or optVars[var] < self.optVarsInit['lowerBound'][var]:
+        satisfaction = False
+        break
+
     satisfaction = self.localCheckConstraint(optVars, satisfaction)
     return satisfaction
 
+  @abc.abstractmethod
   def localCheckConstraint(self, optVars, satisfaction = True):
     """
       Local method to check whether a set of decision variables satisfy the constraint or not
@@ -394,7 +400,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ In, satisfaction, bool, optional, variable indicating how the caller determines the constraint satisfaction at the point optVars
       @ Out, satisfaction, bool, variable indicating the satisfaction of constraints at the point optVars
     """
-    return satisfaction # To be overwritten by subclass
+    return satisfaction
 
   @abc.abstractmethod
   def checkConvergence(self):

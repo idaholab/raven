@@ -80,7 +80,7 @@
       <type>timeSlice</type>
       <numberOfSamples>10</numberOfSamples>
       <extension>zeroed</extension>
-      <timeID>time</timeID>
+      <pivotParameter>time</pivotParameter>
       <timeInstant>0</timeInstant>
     </PostProcessor>
     <PostProcessor name="historySamplingMin" subType="InterfacedPostProcessor">
@@ -97,7 +97,7 @@
       <method>HistorySetSnapShot</method>
       <type>average</type>
       <pivotVar>x</pivotVar>
-      <timeID>time</timeID>
+      <pivotParameter>time</pivotParameter>
     </PostProcessor>
     <PostProcessor name="historySamplingValue" subType="InterfacedPostProcessor">
       <method>HistorySetSnapShot</method>
@@ -168,7 +168,7 @@
       <type>csv</type>
       <source>outMC_PP4</source>
     </Print>
-    <Plot dim="2" name="plot1" overwrite="False">
+    <Plot  name="plot1" overwrite="False">
       <plotSettings>
         <plot>
           <type>line</type>
@@ -192,7 +192,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot dim="2" name="plot2" overwrite="False">
+    <Plot  name="plot2" overwrite="False">
       <plotSettings>
         <plot>
           <type>line</type>
@@ -216,7 +216,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot dim="2" name="plot3" overwrite="False">
+    <Plot  name="plot3" overwrite="False">
       <plotSettings>
         <plot>
           <type>line</type>
@@ -240,7 +240,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot dim="2" name="plot4" overwrite="False">
+    <Plot  name="plot4" overwrite="False">
       <plotSettings>
         <plot>
           <type>line</type>

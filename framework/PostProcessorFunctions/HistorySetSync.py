@@ -27,7 +27,7 @@ class HistorySetSync(PostProcessorInterfaceBase):
    It can be used to allow the histories to be sampled at the same time instant.
   """
 
-  def initialize(self, numberOfSamples=None, timeID=None, extension=None, syncMethod=None):
+  def initialize(self, numberOfSamples=None, pivotParameter=None, extension=None, syncMethod=None):
     """
      Method to initialize the Interfaced Post-processor
      @ In, None,
@@ -39,7 +39,7 @@ class HistorySetSync(PostProcessorInterfaceBase):
     self.outputFormat = 'HistorySet'
 
     self.numberOfSamples = numberOfSamples
-    self.timeID          = timeID
+    self.pivotParameter          = pivotParameter
     self.extension       = extension
     self.syncMethod      = syncMethod
 
@@ -55,8 +55,8 @@ class HistorySetSync(PostProcessorInterfaceBase):
         self.numberOfSamples = int(child.text)
       elif child.tag == 'syncMethod':
         self.syncMethod = child.text
-      elif child.tag == 'timeID':
-        self.timeID = child.text
+      elif child.tag == 'pivotParameter':
+        self.pivotParameter = child.text
       elif child.tag == 'extension':
         self.extension = child.text
       elif child.tag !='method':
@@ -67,8 +67,8 @@ class HistorySetSync(PostProcessorInterfaceBase):
       self.raiseAnError(NotImplementedError,'Method for synchronizing was not recognized: \"',self.syncMethod,'\". Options are:',validSyncMethods)
     if self.syncMethod is 'grid' and not isinstance(self.numberOfSamples, int):
       self.raiseAnError(IOError, 'HistorySetSync Interfaced Post-Processor ' + str(self.name) + ' : number of samples is not correctly specified (either not specified or not integer)')
-    if self.timeID == None:
-      self.raiseAnError(IOError, 'HistorySetSync Interfaced Post-Processor ' + str(self.name) + ' : timeID is not specified')
+    if self.pivotParameter == None:
+      self.raiseAnError(IOError, 'HistorySetSync Interfaced Post-Processor ' + str(self.name) + ' : pivotParameter is not specified')
     if self.extension == None or not (self.extension == 'zeroed' or self.extension == 'extended'):
       self.raiseAnError(IOError, 'HistorySetSync Interfaced Post-Processor ' + str(self.name) + ' : extension type is not correctly specified (either not specified or not one of its possible allowed values: zeroed or extended)')
 
@@ -88,15 +88,15 @@ class HistorySetSync(PostProcessorInterfaceBase):
       maxEndTime = []
       minInitTime = []
       for hist in inputDic['data']['output']:
-        maxEndTime.append(inputDic['data']['output'][hist][self.timeID][-1])
-        minInitTime.append(inputDic['data']['output'][hist][self.timeID][0])
+        maxEndTime.append(inputDic['data']['output'][hist][self.pivotParameter][-1])
+        minInitTime.append(inputDic['data']['output'][hist][self.pivotParameter][0])
       maxTime = max(maxEndTime)
       minTime = min(minInitTime)
       newTime = np.linspace(minTime,maxTime,self.numberOfSamples)
     elif self.syncMethod == 'all':
       times = set()
       for hist in inputDic['data']['output']:
-        for value in inputDic['data']['output'][hist][self.timeID]:
+        for value in inputDic['data']['output'][hist][self.pivotParameter]:
           times.add(value)
       times = list(times)
       times.sort()
@@ -105,9 +105,9 @@ class HistorySetSync(PostProcessorInterfaceBase):
       notableHist = None   #set on first iteration
       notableLength = None #set on first iteration
       for h,hist in enumerate(inputDic['data']['output'].keys()):
-        l = len(inputDic['data']['output'][hist][self.timeID])
+        l = len(inputDic['data']['output'][hist][self.pivotParameter])
         if (h==0) or (self.syncMethod == 'max' and l > notableLength) or (self.syncMethod == 'min' and l < notableLength):
-          notableHist = inputDic['data']['output'][hist][self.timeID][:]
+          notableHist = inputDic['data']['output'][hist][self.pivotParameter][:]
           notableLength = l
       newTime = np.array(notableHist)
     for hist in inputDic['data']['output']:
@@ -117,26 +117,26 @@ class HistorySetSync(PostProcessorInterfaceBase):
   def resampleHist(self, vars, newTime):
     newVars={}
     for key in vars.keys():
-      if key != self.timeID:
+      if key != self.pivotParameter:
         newVars[key]=np.zeros(newTime.size)
         pos=0
         for newT in newTime:
-          if newT<vars[self.timeID][0]:
+          if newT<vars[self.pivotParameter][0]:
             if self.extension == 'extended':
               newVars[key][pos] = vars[key][0]
             elif self.extension == 'zeroed':
               newVars[key][pos] = 0.0
-          elif newT>vars[self.timeID][-1]:
+          elif newT>vars[self.pivotParameter][-1]:
             if self.extension == 'extended':
               newVars[key][pos] = vars[key][-1]
             elif self.extension == 'zeroed':
               newVars[key][pos] = 0.0
           else:
-            index = np.searchsorted(vars[self.timeID],newT)
-            newVars[key][pos] = vars[key][index-1] + (vars[key][index]-vars[key][index-1])/(vars[self.timeID][index]-vars[self.timeID][index-1])*(newT-vars[self.timeID][index-1])
+            index = np.searchsorted(vars[self.pivotParameter],newT)
+            newVars[key][pos] = vars[key][index-1] + (vars[key][index]-vars[key][index-1])/(vars[self.pivotParameter][index]-vars[self.pivotParameter][index-1])*(newT-vars[self.pivotParameter][index-1])
           pos=pos+1
 
-    newVars[self.timeID] = copy.deepcopy(newTime)
+    newVars[self.pivotParameter] = copy.deepcopy(newTime)
     return newVars
 
 

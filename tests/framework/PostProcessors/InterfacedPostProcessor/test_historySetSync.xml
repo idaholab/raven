@@ -50,7 +50,7 @@
     <PostProcessor name="historySamplingPP1" subType="InterfacedPostProcessor">
       <method>HistorySetSync</method>
       <numberOfSamples>20</numberOfSamples>
-      <timeID>time</timeID>
+      <pivotParameter>time</pivotParameter>
       <extension>zeroed</extension>
       <syncMethod>grid</syncMethod>
     </PostProcessor>
@@ -58,7 +58,7 @@
       <method>HistorySetSync</method>
       <syncMethod>grid</syncMethod>
       <numberOfSamples>20</numberOfSamples>
-      <timeID>time</timeID>
+      <pivotParameter>time</pivotParameter>
       <extension>extended</extension>
       <syncMethod>grid</syncMethod>
     </PostProcessor>
@@ -113,7 +113,7 @@
       <type>csv</type>
       <source>outMC_PP2</source>
     </Print>
-    <Plot dim="2" name="plot1" overwrite="False">
+    <Plot  name="plot1" overwrite="False">
       <plotSettings>
         <plot>
           <type>line</type>
@@ -137,7 +137,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot dim="2" name="plot2" overwrite="False">
+    <Plot  name="plot2" overwrite="False">
       <plotSettings>
         <plot>
           <type>line</type>
