@@ -918,10 +918,10 @@ class temporalSciKitLearn(unSupervisedLearning):
             self.metaDict['weights'] = {}
           self.metaDict['weights'][t] = self.SKLEngine.Method.weights_
 
-        if hasattr(self.SKLEngine.Method, 'covars_'):
+        if 'covars' in self.SKLEngine.metaDict:
           if 'covars' not in self.metaDict.keys():
             self.metaDict['covars'] = {}
-          self.metaDict['covars'][t] = self.SKLEngine.Method.covars_
+          self.metaDict['covars'][t] = self.SKLEngine.metaDict['covars']
 
         if hasattr(self.SKLEngine.Method, 'precs_'):
           if 'precs' not in self.metaDict.keys():
