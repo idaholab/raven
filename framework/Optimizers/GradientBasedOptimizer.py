@@ -224,13 +224,13 @@ class GradientBasedOptimizer(Optimizer):
         solutionExportUpdatedFlag = False
         prefix = self.mdlEvalHist.getMetadata('prefix')
         # This MR does not include multiple trajectory, use following simple solution
-        # This will be replaced by "smart prefix management that is included in next MR that comes with parallel trajectory"  
+        # This will be replaced by "smart prefix management that is included in next MR that comes with parallel trajectory"
         pre = str((self.counter['solutionUpdate'])*(self.gradDict['pertNeeded']+1)+1)
         for index, pr in enumerate(prefix):
           if pr.split('|')[-1] == pre:
             solutionExportUpdatedFlag = True
             break
-        
+
         if solutionExportUpdatedFlag:
           inputeval=self.mdlEvalHist.getParametersValues('inputs', nodeId = 'RecontructEnding')
           outputeval=self.mdlEvalHist.getParametersValues('outputs', nodeId = 'RecontructEnding')
