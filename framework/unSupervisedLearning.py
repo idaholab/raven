@@ -554,7 +554,7 @@ class SciKitLearn(unSupervisedLearning):
     elif 'mixture' == self.SKLtype:
       labels = self.Method.fit_predict(self.normValues)
       # print('fit_predict',labels)
-      # self.outputDict['outputs']['labels'] = labels
+      self.outputDict['outputs']['labels'] = labels
 
       if hasattr(self.Method, 'converged_'):
         if not self.Method.converged_:
