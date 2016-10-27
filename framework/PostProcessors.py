@@ -3915,13 +3915,23 @@ class DataMining(BasePostProcessor):
     #     newColumnName = self.labelFeature + str(i + 1)
     #     outputDict['outputs'][newColumnName] =  transformedData[:, i]
 
-    if 'cluster' == self.unSupervisedEngine.SKLtype:
-      if 'labels' in self.unSupervisedEngine.outputDict['outputs'].keys():
-        labels = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
-        for t in range(numberOfHistoryStep):
-          labels[:,t] = self.unSupervisedEngine.outputDict['outputs']['labels'][t]
-        outputDict['outputs'][self.labelFeature] = labels
+    if 'labels' in self.unSupervisedEngine.outputDict['outputs'].keys():
+      labels = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
+      for t in range(numberOfHistoryStep):
+        labels[:,t] = self.unSupervisedEngine.outputDict['outputs']['labels'][t]
+      outputDict['outputs'][self.labelFeature] = labels
+    elif 'embeddingVectors' in outputDict['outputs']:
+      transformedData = outputDict['outputs'].pop('embeddingVectors')
+      reducedDimensionality = transformedData.values()[0].shape[1]
 
+      for i in range(reducedDimensionality):
+        dimensionI = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
+        newColumnName = self.labelFeature + str(i + 1)
+        for t in range(numberOfHistoryStep):
+          dimensionI[:, t] =  transformedData[t][:, i]
+        outputDict['outputs'][newColumnName] = dimensionI
+
+    if 'cluster' == self.unSupervisedEngine.SKLtype:
       ## SKL will always enumerate cluster centers starting from zero, if this
       ## is violated, then the indexing below will break.
       if 'clusterCentersIndices' in self.unSupervisedEngine.metaDict.keys():
@@ -3971,12 +3981,6 @@ class DataMining(BasePostProcessor):
         inertia = self.unSupervisedEngine.outputDict['inertia']
 
     elif 'mixture' == self.unSupervisedEngine.SKLtype:
-      if 'labels' in self.unSupervisedEngine.outputDict['outputs'].keys():
-        labels = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
-        for t in range(numberOfHistoryStep):
-          labels[:,t] = self.unSupervisedEngine.outputDict['outputs']['labels'][t]
-        outputDict['outputs'][self.labelFeature] = labels
-
       if 'covars' in self.unSupervisedEngine.metaDict.keys():
         mixtureCovars = self.unSupervisedEngine.metaDict['covars']
       else:
@@ -4041,18 +4045,44 @@ class DataMining(BasePostProcessor):
                   loc = componentMeanIndices[timeIdx].index(clusterIdx)
                   timeSeries[timeIdx] = mixtureCovars[timeIdx][loc][i,j]
                 self.solutionExport.updateOutputValue('cov_'+str(row)+'_'+str(col),timeSeries)
+    elif 'decomposition' == self.unSupervisedEngine.SKLtype:
+      if self.solutionExport is not None:
+        solutionExportDict = self.unSupervisedEngine.metaDict
+        ## Get the transformation matrix and push it to a SolutionExport
+        ## data object.
+        ## Can I be sure of the order of dimensions in the features dict, is
+        ## the same order as the data held in the UnSupervisedLearning object?
+        if 'components' in solutionExportDict:
+          components = solutionExportDict['components']
 
-    elif 'manifold' == self.unSupervisedEngine.SKLtype:
-      noComponents = self.unSupervisedEngine.outputDict['noComponents'][0]
+          ## Note, this implies some data exists (Really this information should
+          ## be stored in a dictionary to begin with)
+          numComponents,numDimensions = components[0].shape
 
-      if 'embeddingVectors_' in self.unSupervisedEngine.outputDict.keys():
-        embeddingVectors = self.unSupervisedEngine.outputDict['embeddingVectors_']
+          componentsArray = np.zeros((numberOfHistoryStep,numComponents, numDimensions))
+          evrArray = np.zeros((numberOfHistoryStep,numComponents))
 
-      if 'reconstructionError_' in self.unSupervisedEngine.outputDict.keys():
-        reconstructionError = self.unSupervisedEngine.outputDict['reconstructionError_']
+          for timeIdx in range(numberOfHistoryStep):
+            for componentIdx,values in enumerate(components[timeIdx]):
+              componentsArray[timeIdx,componentIdx,:] = values
+              evrArray[timeIdx,componentIdx] = solutionExportDict['explainedVarianceRatio'][timeIdx][componentIdx]
 
-      for i in range(noComponents):
-        outputDict['outputs'][self.labelFeature + str(i + 1)] =  components[:, i]
+          for componentIdx in range(numComponents):
+            ## First store the dimension name as the input for this component
+            self.solutionExport.updateInputValue(self.labelFeature, componentIdx+1)
+
+            ## The time series will be the first output
+            ## TODO: Ensure user requests this
+            self.solutionExport.updateOutputValue(self.pivotParameter, self.pivotVariable)
+
+            ## Now we will process each feature available
+            ## TODO: Ensure user requests each of these
+            for dimIdx,dimName in enumerate(self.unSupervisedEngine.features.keys()):
+              values = componentsArray[:,componentIdx,dimIdx]
+              self.solutionExport.updateOutputValue(dimName,values)
+
+            if 'explainedVarianceRatio' in solutionExportDict:
+              self.solutionExport.updateOutputValue('ExplainedVarianceRatio',evrArray[:,componentIdx])
 
     return outputDict
 #

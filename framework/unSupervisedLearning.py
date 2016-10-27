@@ -551,10 +551,10 @@ class SciKitLearn(unSupervisedLearning):
           center[cnt] = center[cnt] * sigma + mu
 
       self.metaDict['clusterCenters'] = centers
-
     elif 'mixture' == self.SKLtype:
       labels = self.Method.fit_predict(self.normValues)
-      self.outputDict['outputs']['labels'] = labels
+      # print('fit_predict',labels)
+      # self.outputDict['outputs']['labels'] = labels
 
       if hasattr(self.Method, 'converged_'):
         if not self.Method.converged_:
@@ -620,6 +620,7 @@ class SciKitLearn(unSupervisedLearning):
     else:
       labels = self.Method.fit_predict(featureVals)
 
+    # print('evaluate',labels)
     return labels
 
   def __confidenceLocal__(self):
@@ -885,7 +886,6 @@ class temporalSciKitLearn(unSupervisedLearning):
             if self.outputDict['outputs']['labels'][t][n] >=0:
               self.outputDict['outputs']['labels'][t][n] = remap[self.SKLEngine.Method.labels_[n]]
           ## TODO: Remap the cluster centers now...
-
       elif self.SKLtype in ['mixture']:
         if 'means' not in self.metaDict.keys():
           self.metaDict['means'] = {}
@@ -893,7 +893,9 @@ class temporalSciKitLearn(unSupervisedLearning):
           self.metaDict['componentMeanIndices'] = {}
 
         # # collect component membership
-        # self.outputDict['labels'][t] = self.SKLEngine.evaluate(Input['Features'])
+        if 'labels' not in self.outputDict['outputs']:
+          self.outputDict['outputs']['labels'] = {}
+        self.outputDict['outputs']['labels'][t] = self.SKLEngine.evaluate(sklInput)
 
         # # collect component means
         if hasattr(self.SKLEngine.Method, 'means_'):
@@ -942,55 +944,53 @@ class temporalSciKitLearn(unSupervisedLearning):
           for n in range(len(self.outputDict['outputs']['labels'][t])):
             if self.outputDict['outputs']['labels'][t][n] >=0:
               self.outputDict['outputs']['labels'][t][n] = remap[self.outputDict['outputs']['labels'][t][n]]
-
       elif 'manifold' == self.SKLtype:
-        pass
         # if 'noComponents' not in self.outputDict.keys():
         #   self.outputDict['noComponents'] = {}
 
-        # if 'embeddingVectors_' not in self.outputDict.keys():
-        #   self.outputDict['embeddingVectors_'] = {}
+        if 'embeddingVectors' not in self.outputDict['outputs']:
+          self.outputDict['outputs']['embeddingVectors'] = {}
 
-        # if hasattr(self.SKLEngine.Method, 'embedding_'):
-        #   self.outputDict['embeddingVectors_'][t] = self.SKLEngine.Method.embedding_
+        if hasattr(self.SKLEngine.Method, 'embedding_'):
+          self.outputDict['outputs']['embeddingVectors'][t] = self.SKLEngine.Method.embedding_
 
-        # if 'transform' in dir(self.SKLEngine.Method):
-        #   self.outputDict['embeddingVectors_'][t] = self.SKLEngine.Method.transform(self.SKLEngine.normValues)
-        # elif 'fit_transform' in dir(self.SKLEngine.Method):
-        #   self.outputDict['embeddingVectors_'][t] = self.SKLEngine.Method.fit_transform(self.SKLEngine.normValues)
+        if 'transform' in dir(self.SKLEngine.Method):
+          self.outputDict['outputs']['embeddingVectors'][t] = self.SKLEngine.Method.transform(self.SKLEngine.normValues)
+        elif 'fit_transform' in dir(self.SKLEngine.Method):
+          self.outputDict['outputs']['embeddingVectors'][t] = self.SKLEngine.Method.fit_transform(self.SKLEngine.normValues)
 
         # if hasattr(self.SKLEngine.Method, 'reconstruction_error_'):
         #   if 'reconstructionError_' not in self.outputDict.keys():
         #     self.outputDict['reconstructionError_'] = {}
         #   self.outputDict['reconstructionError_'][t] = self.SKLEngine.Method.reconstruction_error_
-
       elif 'decomposition' == self.SKLtype:
-        pass
-        # for var in ['explainedVarianceRatio','means','explainedVariance',
-        #             'noComponents','components','transformedData']:
-        #   if var not in self.outputDict:
-        #     self.outputDict[var] = {}
+        for var in ['explainedVarianceRatio','means','explainedVariance',
+                    'components']:
+          if var not in self.metaDict:
+            self.metaDict[var] = {}
 
-        # if hasattr(self.SKLEngine.Method, 'components_'):
-        #   self.outputDict['components'][t] = self.SKLEngine.Method.components_
+        if hasattr(self.SKLEngine.Method, 'components_'):
+          self.metaDict['components'][t] = self.SKLEngine.Method.components_
 
-        # ## This is not the same thing as the components above! This is the
-        # ## transformed data, the other composes the transformation matrix to get
-        # ## this. Whoever designed this, you are causing me no end of headaches
-        # ## with this code... I am pretty sure this can all be handled within the
-        # ## post-processor rather than adding this frankenstein of code just to
-        # ## gain access to the skl techniques.
-        # if   'transform'     in dir(self.SKLEngine.Method):
-        #   self.outputDict['transformedData'][t] = self.SKLEngine.Method.transform(self.SKLEngine.normValues)
-        # elif 'fit_transform' in dir(self.SKLEngine.Method):
-        #   self.outputDict['transformedData'][t] = self.SKLEngine.Method.fit_transform(self.SKLEngine.normValues)
+        ## This is not the same thing as the components above! This is the
+        ## transformed data, the other composes the transformation matrix to get
+        ## this. Whoever designed this, you are causing me no end of headaches
+        ## with this code... I am pretty sure this can all be handled within the
+        ## post-processor rather than adding this frankenstein of code just to
+        ## gain access to the skl techniques.
+        if 'embeddingVectors' not in self.outputDict['outputs']:
+          if 'transform' in dir(self.SKLEngine.Method):
+            embeddingVectors = self.SKLEngine.Method.transform(self.SKLEngine.normValues)
+          elif 'fit_transform' in dir(self.SKLEngine.Method):
+            embeddingVectors = self.SKLEngine.Method.fit_transform(self.SKLEngine.normValues)
+          self.outputDict['outputs']['embeddingVectors'][t] = embeddingVectors
 
-        # if hasattr(self.SKLEngine.Method, 'means_'):
-        #     self.outputDict['means'][t] = self.SKLEngine.Method.means_
-        # if hasattr(self.SKLEngine.Method, 'explained_variance_'):
-        #     self.outputDict['explainedVariance'][t] = self.SKLEngine.Method.explained_variance_
-        # if hasattr(self.SKLEngine.Method, 'explained_variance_ratio_'):
-        #     self.outputDict['explainedVarianceRatio'][t] = self.SKLEngine.Method.explained_variance_ratio_
+        if hasattr(self.SKLEngine.Method, 'means_'):
+            self.metaDict['means'][t] = self.SKLEngine.Method.means_
+        if hasattr(self.SKLEngine.Method, 'explained_variance_'):
+            self.metaDict['explainedVariance'][t] = self.SKLEngine.Method.explained_variance_
+        if hasattr(self.SKLEngine.Method, 'explained_variance_ratio_'):
+          self.metaDict['explainedVarianceRatio'][t] = self.SKLEngine.Method.explained_variance_ratio_
 
       else:
         self.raiseAnError(IOError, 'Unknown type: ' + str(self.SKLtype))
