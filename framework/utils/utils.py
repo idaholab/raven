@@ -308,7 +308,7 @@ def toListFromNumpyOrC1array(array):
   response = array
   if type(array).__name__ == 'ndarray':
     response = array.tolist()
-  elif type(array).__name__.split(".")[0] == 'c1darray':  
+  elif type(array).__name__.split(".")[0] == 'c1darray':
     response = numpy.asarray(array).tolist()
   return response
 
@@ -326,7 +326,7 @@ def toListFromNumpyOrC1arrayIterative(array):
     for key,value in array.items(): tempdict[toBytes(key)] = toListFromNumpyOrC1arrayIterative(value)
     return tempdict
   else: return toBytes(array)
-  
+
 def toStrish(s):
   """
     Method aimed to convert a string in str type

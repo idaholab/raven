@@ -149,7 +149,7 @@ class Assembler(MessageHandler.MessageUser):
     assemblerObject = None
     if objectMainClass in self.assemblerDict.keys():
       for assemblerObj in self.assemblerDict[objectMainClass]:
-        if objectName == assemblerObj[2]: 
+        if objectName == assemblerObj[2]:
           assemblerObject = assemblerObj[3]
           break
     return assemblerObject

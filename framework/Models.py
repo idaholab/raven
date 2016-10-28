@@ -1010,14 +1010,14 @@ class ExternalModel(Dummy):
         self.raiseAnError(RuntimeError,'type of variable '+ key + ' is ' + str(type(outcomes[key]))+' and mismatches with respect to the input ones (' + instanciatedSelf.modelVariableType[key] +')!!!')
     for key in instanciatedSelf.modelVariableType.keys():
       if not (typeMatch(outcomes[key],instanciatedSelf.modelVariableType[key])):
-        self.raiseAnError(RuntimeError,'type of variable '+ key + ' is ' + str(type(outcomes[key]))+' and mismatches with respect to the input ones (' + instanciatedSelf.modelVariableType[key] +')!!!')    
-    
+        self.raiseAnError(RuntimeError,'type of variable '+ key + ' is ' + str(type(outcomes[key]))+' and mismatches with respect to the input ones (' + instanciatedSelf.modelVariableType[key] +')!!!')
+
     if output.type in ['HistorySet']:
       outputSize = -1
       for key in output.getParaKeys('outputs'):
         if key in instanciatedSelf.modelVariableType.keys():
           if outputSize == -1: outputSize = len(np.atleast_1d(outcomes[key]))
-          if not sizeMatch(outcomes[key],outputSize): self.raiseAnError(Exception,"the time series size needs to be the same for the output space in a HistorySet!") 
+          if not sizeMatch(outcomes[key],outputSize): self.raiseAnError(Exception,"the time series size needs to be the same for the output space in a HistorySet!")
     Dummy.collectOutput(self, finishedJob, output, options)
 #
 #
@@ -1587,7 +1587,7 @@ class EnsembleModel(Dummy, Assembler):
         #if len(self.modelsDictionary[child.text.strip()].values()) > 2: self.raiseAnError(IOError, "TargetEvaluation xml block is the only XML sub-block allowed!")
         #if 'inputNames' not in child.attrib.keys(): self.raiseAnError(IOError, "inputNames attribute for Model" + child.text.strip() +" has not been inputted!")
         #self.modelsDictionary[modelName]['inputNames'] = [utils.toStrish(inpName) for inpName in child.attrib["inputNames"].split(",")]
-        if len(self.modelsDictionary[modelName]['Input']) == 0 : self.raiseAnError(IOError, "Input XML node for Model" + modelName +" has not been inputted!") 
+        if len(self.modelsDictionary[modelName]['Input']) == 0 : self.raiseAnError(IOError, "Input XML node for Model" + modelName +" has not been inputted!")
         if len(self.modelsDictionary[modelName].values()) > 3  : self.raiseAnError(IOError, "TargetEvaluation and Input XML blocks are the only XML sub-blocks allowed!")
       if child.tag == 'settings':
         self.__readSettings(child)
@@ -1608,7 +1608,7 @@ class EnsembleModel(Dummy, Assembler):
             self.initialConditions[var.tag] = np.repeat([float(var.text.split()[0])], int(var.attrib['repeat'])) #np.array([float(var.text.split()[0]) for _ in range(int(var.attrib['repeat']))])
           else:
             self.initialConditions[var.tag] = np.array(var.text.split())
-  
+
   def __createDictOfInputsAndModels(self):
     allInputs = {}
     for modelIn, modelOptions in self.modelsDictionary.items():
@@ -1616,7 +1616,7 @@ class EnsembleModel(Dummy, Assembler):
        if inp not in allInputs.keys(): allInputs[inp] = []
        allInputs[inp].append(modelIn)
     return allInputs
-        
+
   def __findModelWithSameInput(self,inputList):
     """
       Method to find the models that have certain inputs. If not found, return None
@@ -1640,7 +1640,26 @@ class EnsembleModel(Dummy, Assembler):
       if subWhat in value[what]: models.append(key)
     if len(models) == 0: models = None
     return models
-   
+
+
+    def findPath(self, graph, start_vertex, end_vertex, path=[]):
+      """
+      find a path from start_vertex to end_vertex
+            in graph
+      """
+      graph = self.__graph_dict
+      path = path + [start_vertex]
+      if start_vertex == end_vertex:
+          return path
+      if start_vertex not in graph:
+          return None
+      for vertex in graph[start_vertex]:
+        if vertex not in path:
+          extended_path = self.findPath(graph,vertex,end_vertex,path)
+          if extended_path:return extended_path
+      return None
+
+
   def findAllPaths(self, graph, start, end, path=[]):
     path = path + [start]
     if start == end: return [path]
@@ -1650,30 +1669,58 @@ class EnsembleModel(Dummy, Assembler):
       if node not in path:
         newpaths = self.findAllPaths(graph, node, end, path)
         for newpath in newpaths: paths.append(newpath)
-    return paths   
+    return paths
 
   def isALoop(self,g):
       """
         Return True if the directed graph g has a cycle.
         g must be represented as a dictionary mapping vertices to
         iterables of neighbouring vertices. For example:
-  
+
         >>> isALoop({1: (2,), 2: (3,), 3: (1,)})
         True
         >>> isALoop({1: (2,), 2: (3,), 3: (4,)})
         False
-  
+
       """
       path = set()
-  
+
       def visit(vertex):
           path.add(vertex)
           for neighbour in g.get(vertex, ()):
             if neighbour in path or visit(neighbour): return True
           path.remove(vertex)
           return False
-  
+
       return any(visit(v) for v in g)
+
+  def __getExecutionList(self, orderedNodes, allPath):
+    """
+    """
+    numberPath = len(allPath)
+    maxComponents = 0
+    for path in allPath:
+      if len(path) > maxComponents: maxComponents = len(path)
+    executionList = [ [] for _ in range(maxComponents)]
+    executionCounter = -1
+    for node in orderedNodes:
+      nodeCtn = 0
+      for path in allPath:
+        if node in path: nodeCtn +=1
+      if nodeCtn == numberPath:
+        executionCounter+=1
+        executionList[executionCounter] = [node]
+      else:
+        previousNodesInPath = []
+        for path in allPath:
+          if path.count(node) > 0: previousNodesInPath.append(path[path.index(node)-1])
+        for previousNode in previousNodesInPath:
+          if previousNode in executionList[executionCounter]:
+            executionCounter+=1
+            break
+        executionList[executionCounter].append(node)
+    return executionList
+
 
   def initialize(self,runInfo,inputs,initDict=None):
     """
@@ -1683,10 +1730,7 @@ class EnsembleModel(Dummy, Assembler):
       @ In, initDict, optional, dictionary of all objects available in the step is using this model
       @ Out, None
     """
-    self.tree = TreeStructure.NodeTree(TreeStructure.Node(self.name))
-    rootNode = self.tree.getrootnode()
     moldelNodes = {}
-    
     for modelIn in self.assemblerDict['Model']:
       self.modelsDictionary[modelIn[2]]['Instance'] = modelIn[3]
       inputInstancesForModel = []
@@ -1705,92 +1749,42 @@ class EnsembleModel(Dummy, Assembler):
       modelNode.add('outputs', self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getParaKeys("outputs"))
       moldelNodes[modelIn[2]] = modelNode
       rootNode.appendBranch(modelNode)
-  
+
     # construct chain connections
-    self.orderList        = self.modelsDictionary.keys()
-    self.isConnected      = {}
-    
-    executionList         = [[]]
-    
-    modelsToInputModels, modelsToOutputModels  = dict.fromkeys(self.modelsDictionary.keys(),None), dict.fromkeys(self.modelsDictionary.keys(),None)
-    
-    
-      
+    modelsToOutputModels  = dict.fromkeys(self.modelsDictionary.keys(),None)
+
     for modelIn in self.modelsDictionary.keys():
-      inputtMatch = []
-      for i in range(len(self.modelsDictionary[modelIn]['Input'])):
-        match = self.__findMatchingModel('Output',self.modelsDictionary[modelIn]['Input'][i])
-        inputtMatch.extend(match if match is not None else [])
-      inputtMatch = list(set(inputtMatch)) 
-      modelsToInputModels[modelIn] = inputtMatch
       outputMatch = []
       for i in range(len(self.modelsDictionary[modelIn]['Output'])):
         match = self.__findMatchingModel('Input',self.modelsDictionary[modelIn]['Output'][i])
         outputMatch.extend(match if match is not None else [])
-      outputMatch = list(set(outputMatch)) 
+      outputMatch = list(set(outputMatch))
       modelsToOutputModels[modelIn] = outputMatch
-    
-    allInputs = self.__createDictOfInputsAndModels()
-    print("ok")
-    
-    lupo = {}
-    AAAAA = self.findAllPaths(modelsToOutputModels,modelsToOutputModels.keys()[0],modelsToOutputModels.keys()[-1])
-    BBBBB = self.findAllPaths(modelsToOutputModels,modelsToOutputModels.keys()[-1],modelsToOutputModels.keys()[0])
-    
     orderList        = self.modelsDictionary.keys()
-    
     for modelIn in self.modelsDictionary.keys():
       for i in range(len(self.modelsDictionary[modelIn]['Input'])):
         inputMatch   = self.__findMatchingModel('Output',self.modelsDictionary[modelIn]['Input'][i])
         if inputMatch is not None:
           for match in inputMatch:
             indexModelIn = orderList.index(modelIn)
-            orderList.pop(orderList.index(modelIn))
+            orderList.pop(indexModelIn)
             orderList.insert(int(max(orderList.index(match)+1,indexModelIn)), modelIn)
-        else:
-          if modelIn not in executionList[0]: executionList[0].append(modelIn)
-
-    # check if Picard needs to be activated
-    for modelIn in self.modelsDictionary.keys():
-      topModelNode = self.tree.find(modelIn)
-      for i in range(len(self.modelsDictionary[modelIn]['Input'])):
-        inputMatch   = self.__findMatchingModel('Output',self.modelsDictionary[modelIn]['Input'][i])
-        if inputMatch is not None:
-          for match in inputMatch:
-            if not topModelNode.isAnActualBranch(match):
-              topModelNode.appendBranch(self.tree.getrootnode().findBranch(match),True)
-            indexModelIn = self.orderList.index(modelIn)
-            self.orderList.pop(self.orderList.index(modelIn))
-            self.orderList.insert(int(max(self.orderList.index(match)+1,indexModelIn)), modelIn)
-        else:
-          if modelIn not in executionList[0]: executionList[0].append(modelIn)   
+    allPath = self.findAllPaths(modelsToOutputModels,orderList[0],orderList[-1])
+    ###################################################
+    # to be removed once executionList can be handled #
+    self.orderList = orderList                        #
+    ###################################################
+    if len(allPath) > 1: self.executionList = self.__getExecutionList(orderList,allPath)
+    else               : self.executionList = allPath[-1]
     # check if Picard needs to be activated
     self.activatePicard = self.isALoop(modelsToOutputModels)
-    
-#     for modelIn in self.modelsDictionary.keys():
-#       if not self.activatePicard:
-#         branch, testDict = self.tree.getrootnode().findBranch(modelIn), dict.fromkeys(self.modelsDictionary.keys(),-1)
-#         for node in branch.iter():
-#           testDict[node.name] +=1
-#           if testDict[node.name] > 0:
-#             self.activatePicard = True
-#             break
-    if self.activatePicard: 
+    if self.activatePicard:
       self.raiseAMessage("Multi-model connections determined a non-linear system. Picard's iterations activated!")
       if len(self.initialConditions.keys()) == 0: self.raiseAnError(IOError,"Picard's iterations mode activated but no intial conditions provided!")
     else                  : self.raiseAMessage("Multi-model connections determined a linear system. Picard's iterations not activated!")
-    
+
     self.allOutputs = []
     self.needToCheckInputs = True
-    #if self.activatePicard:
-    for modelIn in self.modelsDictionary.keys():
-      for modelCheck in self.modelsDictionary.keys():
-        for modelInOut in self.modelsDictionary[modelIn]['Output']:
-          if modelInOut not in self.allOutputs: self.allOutputs.append(modelInOut)
-          if modelInOut not in self.isConnected.keys(): self.isConnected[modelInOut] = {'input':[],'output':None}
-          if modelInOut in self.modelsDictionary[modelCheck]['Input']:
-            self.isConnected[modelInOut]['input' ].append(modelCheck)
-            self.isConnected[modelInOut]['output'] = modelIn
 
   def localAddInitParams(self,tempDict):
     """
@@ -1873,9 +1867,9 @@ class EnsembleModel(Dummy, Assembler):
       inputsValues   = targetEvaluations[modelIn].getParametersValues('inputs', nodeId = 'RecontructEnding')
       outputsValues  = targetEvaluations[modelIn].getParametersValues('outputs', nodeId = 'RecontructEnding')
       metadataValues = targetEvaluations[modelIn].getAllMetadata(nodeId = 'RecontructEnding')
-      inputsValues   = inputsValues if targetEvaluations[modelIn].type != 'HistorySet' else inputsValues.values()[-1]      
-      outputsValues  = outputsValues if targetEvaluations[modelIn].type != 'HistorySet' else outputsValues.values()[-1] 
-      
+      inputsValues   = inputsValues if targetEvaluations[modelIn].type != 'HistorySet' else inputsValues.values()[-1]
+      outputsValues  = outputsValues if targetEvaluations[modelIn].type != 'HistorySet' else outputsValues.values()[-1]
+
       for key in targetEvaluations[modelIn].getParaKeys('inputs'):
         self.modelsDictionary[modelIn]['TargetEvaluation'].updateInputValue (key,inputsValues[key],options={'acceptArrayRealizations':True})
       for key in targetEvaluations[modelIn].getParaKeys('outputs'):
@@ -2001,9 +1995,9 @@ class EnsembleModel(Dummy, Assembler):
           returnDict[modelIn]['metadata'         ] = tempTargetEvaluations[modelIn].getAllMetadata()
           #returnDict[modelIn] = {'outputSpaceParams':gotOutputs[modelCnt],'inputSpaceParams':tempTargetEvaluations[modelIn].getParametersValues('inputs', nodeId = 'RecontructEnding'),'metadata':tempTargetEvaluations[modelIn].getAllMetadata()}
           if self.activatePicard:
-            # compute residue 
+            # compute residue
             residueContainer[modelIn]['iterValues'][1] = copy.copy(residueContainer[modelIn]['iterValues'][0])
-            for out in gotOutputs[modelCnt].keys(): 
+            for out in gotOutputs[modelCnt].keys():
               residueContainer[modelIn]['iterValues'][0][out] = copy.copy(gotOutputs[modelCnt][out])
               if iterationCount == 1: residueContainer[modelIn]['iterValues'][1][out] = np.zeros(len(residueContainer[modelIn]['iterValues'][0][out]))
             for out in gotOutputs[modelCnt].keys():

@@ -265,7 +265,7 @@ class hdf5Database(MessageHandler.MessageUser):
                 inpValues.append(invalue)
             if len(inpHeaders) > 0:
               grp.attrs[b'inputSpaceHeaders'] = inpHeaders
-              grp.attrs[b'inputSpaceValues' ] = json.dumps(list(utils.toListFromNumpyOrC1arrayIterative(list( inpValues))))   
+              grp.attrs[b'inputSpaceValues' ] = json.dumps(list(utils.toListFromNumpyOrC1arrayIterative(list( inpValues))))
         objectToConvert = mathUtils.convertNumpyToLists(attributes[attr])
         for o,obj in enumerate(objectToConvert):
           if isinstance(obj,Files.File): objectToConvert[o]=obj.getFilename()
@@ -492,7 +492,7 @@ class hdf5Database(MessageHandler.MessageUser):
                 inpValues.append(invalue)
             if len(inpHeaders) > 0:
               sgrp.attrs[b'inputSpaceHeaders'] = inpHeaders
-              sgrp.attrs[b'inputSpaceValues' ] = json.dumps(list(utils.toListFromNumpyOrC1arrayIterative(list(inpValues))))                    
+              sgrp.attrs[b'inputSpaceValues' ] = json.dumps(list(utils.toListFromNumpyOrC1arrayIterative(list(inpValues))))
         #Files objects are not JSON serializable, so we have to cover that.
         #this doesn't cover all possible circumstance, but it covers the DET case.
         if attr == 'inputFile' and isinstance(attributes[attr][0],Files.File):
@@ -684,9 +684,9 @@ class hdf5Database(MessageHandler.MessageUser):
         except:
           try:    attrs["inputSpaceHeaders"]  = gbAttrs[0]["inputSpaceHeaders"]
           except: pass
-        try:    attrs["inputSpaceValues"]     = json.dumps(list(utils.toListFromNumpyOrC1arrayIterative(list(gbAttrs[0]["inputSpaceValues"].tolist()))))  
+        try:    attrs["inputSpaceValues"]     = json.dumps(list(utils.toListFromNumpyOrC1arrayIterative(list(gbAttrs[0]["inputSpaceValues"].tolist()))))
         except:
-          try:    attrs["inputSpaceValues"]   = json.dumps(list(utils.toListFromNumpyOrC1arrayIterative(list(gbAttrs[0]["inputSpaceValues"]))))   
+          try:    attrs["inputSpaceValues"]   = json.dumps(list(utils.toListFromNumpyOrC1arrayIterative(list(gbAttrs[0]["inputSpaceValues"]))))
           except: pass
         attrs["nParams"]        = gbAttrs[0]["nParams"]
         attrs["parentID"]       = whereList[0]
@@ -763,9 +763,9 @@ class hdf5Database(MessageHandler.MessageUser):
           except:
             try:    attrs["inputSpaceHeaders"]  = gbAttrs[0]["inputSpaceHeaders"]
             except: pass
-          try:    attrs["inputSpaceValues"]     = json.dumps(list(utils.toListFromNumpyOrC1arrayIterative(list( gbAttrs[0]["inputSpaceValues"].tolist())))) 
+          try:    attrs["inputSpaceValues"]     = json.dumps(list(utils.toListFromNumpyOrC1arrayIterative(list( gbAttrs[0]["inputSpaceValues"].tolist()))))
           except:
-            try:    attrs["inputSpaceValues"]   = json.dumps(list(utils.toListFromNumpyOrC1arrayIterative(list( gbAttrs[0]["inputSpaceValues"]))))  
+            try:    attrs["inputSpaceValues"]   = json.dumps(list(utils.toListFromNumpyOrC1arrayIterative(list( gbAttrs[0]["inputSpaceValues"]))))
             except: pass
           attrs["nParams"]        = gbAttrs[0]["nParams"]
           attrs["parent"]          = whereList[0]
