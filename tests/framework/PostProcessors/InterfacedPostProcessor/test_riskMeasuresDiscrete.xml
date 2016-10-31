@@ -1,0 +1,95 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
+    <WorkingDir>RiskMeasuresDiscrete</WorkingDir>
+    <Sequence>FirstMRun,PP</Sequence>
+    <batchSize>1</batchSize>
+    <internalParallel>True</internalParallel>
+  </RunInfo>
+
+  <Files>
+    <Input name="lorentzAttractor.py" type="">lorentzAttractor.py</Input>
+  </Files>
+  
+  <Distributions>
+    <Exponential name='valveTime_distExp'>
+      <lambda>0.00069444</lambda>
+    </Exponential>
+    <Exponential name='pump1Time_distExp'>
+      <lambda>0.00138889</lambda>
+    </Exponential>
+    <Exponential name='pump2Time_distExp'>
+      <lambda>0.00138889</lambda>
+    </Exponential>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name='MC'>
+      <samplerInit>
+        <limit>1000</limit>
+      </samplerInit>
+      <variable name='valveTime'>
+        <distribution>valveTime_distExp</distribution>
+      </variable>
+      <variable name='pump1Time'>
+        <distribution>pump1Time_distExp</distribution>
+      </variable>
+      <variable name='pump2Time'>
+        <distribution>pump2Time_distExp</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="FirstMRun" pauseAtEnd="True">
+      <Input   class="DataObjects"  type="PointSet"        >inputPlaceHolder</Input>
+      <Model   class="Models"       type="ExternalModel"   >PythonModule</Model>
+      <Sampler class="Samplers"     type="MonteCarlo"      >MC_external</Sampler>
+      <Output  class="DataObjects"  type="PointSet"        >outRun</Output>
+    </MultiRun>
+    <PostProcess name="PP">
+      <Input   class="DataObjects"  type="HistorySet"      >outRun</Input>
+      <Model   class="Models"       type="PostProcessor"   >riskMeasuresDiscrete</Model>
+      <Output  class="DataObjects"  type="PointSet"        >outPPS</Output>
+      <Output  class="OutStreams"   type="Print"           >PrintPPS_dump</Output>
+    </PostProcess>
+  </Steps>
+
+  <Models>
+	  <ExternalModel name='PythonModule' subType='' ModuleToLoad='modelTH'>
+	    <variables>pump1Time,pump2Time,valveTime,Tmax,outcome,pump1State,pump2State,valveState,failureTime</variables>
+	  </ExternalModel>
+    <PostProcessor name="riskMeasuresDiscrete" subType="InterfacedPostProcessor">
+      <method>riskMeasuresDiscrete</method>
+      <types>B,FV,RAW,RRW</types>
+      <variables>pump1State,pump2State,valveState</variables>
+      <target>outcome</target>
+    </PostProcessor>
+  </Models>
+
+  <DataObjects>
+    <PointSet name="inputPlaceHolder">
+      <Input>pump1Time,pump2Time,valveTime</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+	  <PointSet name="outRun">
+	    <Input>pump1Time,pump2Time,valveTime</Input>
+	    <Output>Tmax,outcome,pump1State,pump2State,valveState,failureTime</Output>
+	  </PointSet>
+    <PointSet name="outPPS">
+      <Input>pump1Time_avg,pump2Time_avg,valveTime_avg</Input>
+      <Output>pump1Time_B   , pump2Time_B   , valveTime_B,
+              pump1Time_FV  , pump2Time_FV  , valveTime_FV,
+              pump1Time_RAW , pump2Time_RAW , valveTime_RAW,
+              pump1Time_RRW , pump2Time_RRW , valveTime_RRW  </Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="PrintPPS_dump">
+      <type>csv</type>
+      <source>outPPS</source>
+    </Print>
+  </OutStreams>
+  
+</Simulation>
