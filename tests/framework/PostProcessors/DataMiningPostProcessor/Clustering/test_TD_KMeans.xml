@@ -110,7 +110,7 @@
 	    <source>outMC</source>
 	  </Print>
 	  
-    <Plot dim="2" name="plot3" overwrite="false" verbosity="debug">
+    <Plot  name="plot3" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
 	        <type>line</type>
@@ -129,7 +129,7 @@
       </actions>
     </Plot>
 
-    <Plot dim="3" name="plot4" overwrite="false" verbosity="debug">
+    <Plot   name="plot4" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>line</type>
@@ -150,7 +150,7 @@
       </actions>
     </Plot>
      
-    <Plot dim="3" name="plot5" overwrite="false" verbosity="debug">
+    <Plot   name="plot5" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>histogram</type>
@@ -165,7 +165,7 @@
       </actions>
     </Plot>
 
-    <Plot dim="2" name="plot6" overwrite="false" verbosity="debug">
+    <Plot  name="plot6" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>histogram</type>
@@ -179,7 +179,7 @@
       </actions>
     </Plot>
     
-    <Plot dim="3" name="plot7" overwrite="false" verbosity="debug">
+    <Plot   name="plot7" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>histogram</type>

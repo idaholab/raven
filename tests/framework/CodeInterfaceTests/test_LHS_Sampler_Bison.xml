@@ -71,7 +71,7 @@
   </Databases>
 
   <OutStreams>
-    <Plot dim="2" name="test" overwrite="false" verbosity="debug">
+    <Plot  name="test" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>scatter</type>

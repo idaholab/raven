@@ -54,7 +54,7 @@
       <type>csv</type>
       <source>clusterInfo</source>
     </Print>
-    <Plot dim="2" name="PlotGaussianMixtureBlobs" overwrite="false">
+    <Plot  name="PlotGaussianMixtureBlobs" overwrite="false">
       <plotSettings>
         <plot>
           <type>scatter</type>

@@ -434,7 +434,6 @@ class MultiRun(SingleRun):
       for finishedJob in finishedJobs:
         self.counter +=1
         model.finalizeModelOutput(finishedJob)
-        sampler.finalizeActualSampling(finishedJob,model,inputs)
         if finishedJob.getReturnCode() == 0:
           for myLambda, outIndex in self._outputCollectionLambda:
             myLambda([finishedJob,outputs[outIndex]])
@@ -445,13 +444,18 @@ class MultiRun(SingleRun):
           self.raiseADebug('the job failed... call the handler for this situation... not yet implemented...')
           self.raiseADebug('the JOBS that failed are tracked in the JobHandler... hence, we can retrieve and treat them separately. skipping here is Ok. Andrea')
 
+        # finalize actual sampler
+        sampler.finalizeActualSampling(finishedJob,model,inputs)
+        # add new job
+
         # put back this loop (do not take it away again. it is NEEDED for NOT-POINT samplers(aka DET)). Andrea
         ## In order to ensure that the queue does not grow too large, we will
         ## employ a threshold on the number of jobs the jobHandler can take,
         ## in addition, we cannot provide more jobs than the sampler can provide.
         ## So, we take the minimum of these two values.
         for _ in range(min(jobHandler.availability(),sampler.endJobRunnable())):
-          # self.raiseADebug('Testing the sampler if it is ready to generate a new input')
+          self.raiseADebug('Testing the sampler if it is ready to generate a new input')
+
           if sampler.amIreadyToProvideAnInput():
             try:
               newInput = self._findANewInputToRun(inDictionary)
