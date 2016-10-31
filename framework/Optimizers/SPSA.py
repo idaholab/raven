@@ -7,6 +7,7 @@
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
+from __builtin__ import False
 warnings.simplefilter('default',DeprecationWarning)
 #if not 'xrange' in dir(__builtins__): xrange = range
 #End compatibility block for Python 3----------------------------------------------------------------
@@ -135,16 +136,11 @@ class SPSA(GradientBasedOptimizer):
           self.inputInfo['prefix'] = str(traj) + '_' + str(self.counter['varsUpdate'][traj]) + '_' + str(self.counter['perturbation'][traj]) + '_' + str(self.counter['mdlEval'])
           break
         else: # Enough gradient evaluation for decision variable update
-          evalNotFinish = False     
-          for locI in range(self.gradDict['numIterForAve']):
-            for locP in range(self.gradDict['pertPoints'][traj][locI][self.optVars[0]].size):
-              optVars = {}
-              for var in self.optVars:
-                optVars[var] = self.gradDict['pertPoints'][traj][locI][var][locP]
-              if not self._checkModelFinish(optVars):
-                evalNotFinish = True
-                break
-            if evalNotFinish: break
+          evalNotFinish = False
+          for pertID in range(1,self.gradDict['pertNeeded']+1):
+            if not self._checkModelFinish(traj,self.counter['varsUpdate'][traj],pertID)[0]:
+              evalNotFinish = True
+              break
           if evalNotFinish:  # evaluation not completed for gradient evaluation
             continue
           else:  # evaluation completed for gradient evaluation
@@ -161,8 +157,19 @@ class SPSA(GradientBasedOptimizer):
             for var in self.optVars:
               self.values[var] = copy.deepcopy(varKPlus[var])
               self.optVarsHist[traj][self.counter['varsUpdate'][traj]][var] = copy.deepcopy(self.values[var])
+            
             # use 'prefix' to locate the input sent out. The format is: trajID + iterID + (v for variable update; otherwise id for gradient evaluation) + global ID
             self.inputInfo['prefix'] = str(traj) + '_' + str(self.counter['varsUpdate'][traj]) + '_v_' + str(self.counter['mdlEval'])
+            
+            # remove redundant trajectory
+            if len(self.optTrajLive) > 1 and self.counter['solutionUpdate'][traj] > 0:
+#               currentInput = {}
+#               for var in inputeval.keys():
+#                 currentInput[var] = inputeval[var][index]
+              self._removeRedundantTraj(traj, self.values)
+            
+            
+            
             break
 
   def _generateVarsUpdateConstrained(self,ak,gradient,varK):
