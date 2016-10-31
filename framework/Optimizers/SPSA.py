@@ -102,9 +102,11 @@ class SPSA(GradientBasedOptimizer):
       for var in self.optVars:
         self.values[var] = self.optVarsInit['initial'][var][traj]
         self.optVarsHist[traj][self.counter['varsUpdate'][traj]][var] = copy.copy(self.values[var])
+      # use 'prefix' to locate the input sent out. The format is: trajID + iterID + (v for variable update; otherwise id for gradient evaluation) + global ID
+      self.inputInfo['prefix'] = str(traj) + '_' + str(self.counter['varsUpdate'][traj]) + '_v_' + str(self.counter['mdlEval'])
 
     else:
-      while True:
+      while True: # this while loop is needed to loop over all trajectories to find one that is ready for update. 
         traj = self.optTrajLive.pop(0)
         self.optTrajLive.append(traj)
         if self.counter['perturbation'][traj] < self.gradDict['pertNeeded']:
@@ -114,7 +116,7 @@ class SPSA(GradientBasedOptimizer):
         if not self.readyVarsUpdate[traj]: # Not ready to update decision variables; continue to perturb for gradient evaluation
           if self.counter['perturbation'][traj] == 1: # Generate all the perturbations at once
             self.gradDict['pertPoints'][traj] = {}
-            ck = self._computeGainSequenceCk(self.gainParamDict,self.counter['varsUpdate'][traj]+1)
+            ck = self._computeGainSequenceCk(self.paramDict,self.counter['varsUpdate'][traj]+1)
             varK = copy.deepcopy(self.optVarsHist[traj][self.counter['varsUpdate'][traj]])
             for ind in range(self.gradDict['numIterForAve']):
               self.gradDict['pertPoints'][traj][ind] = {}
@@ -129,6 +131,8 @@ class SPSA(GradientBasedOptimizer):
           loc2 = np.floor(self.counter['perturbation'][traj] / 2) if loc1 == 1 else np.floor(self.counter['perturbation'][traj] / 2) - 1
           for var in self.optVars:
             self.values[var] = self.gradDict['pertPoints'][traj][loc2][var][loc1]
+          # use 'prefix' to locate the input sent out. The format is: trajID + iterID + (v for variable update; otherwise id for gradient evaluation) + global ID
+          self.inputInfo['prefix'] = str(traj) + '_' + str(self.counter['varsUpdate'][traj]) + '_' + str(self.counter['perturbation'][traj]) + '_' + str(self.counter['mdlEval'])
           break
         else: # Enough gradient evaluation for decision variable update
           evalNotFinish = False     
@@ -147,17 +151,19 @@ class SPSA(GradientBasedOptimizer):
             self.counter['perturbation'][traj] = 0
             self.counter['varsUpdate'][traj] += 1
           
-            ak = self._computeGainSequenceAk(self.gainParamDict,self.counter['varsUpdate'][traj]) # Compute the new ak
+            ak = self._computeGainSequenceAk(self.paramDict,self.counter['varsUpdate'][traj]) # Compute the new ak
             gradient = self.evaluateGradient(self.gradDict['pertPoints'][traj])
 
             self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = {}
             varK = copy.deepcopy(self.optVarsHist[traj][self.counter['varsUpdate'][traj]-1])
             
             varKPlus = self._generateVarsUpdateConstrained(ak,gradient,varK)
-
             for var in self.optVars:
               self.values[var] = copy.deepcopy(varKPlus[var])
-              self.optVarsHist[self.counter['varsUpdate']][var] = copy.deepcopy(self.values[var])
+              self.optVarsHist[traj][self.counter['varsUpdate'][traj]][var] = copy.deepcopy(self.values[var])
+            # use 'prefix' to locate the input sent out. The format is: trajID + iterID + (v for variable update; otherwise id for gradient evaluation) + global ID
+            self.inputInfo['prefix'] = str(traj) + '_' + str(self.counter['varsUpdate'][traj]) + '_v_' + str(self.counter['mdlEval'])
+            break
 
   def _generateVarsUpdateConstrained(self,ak,gradient,varK):
     """
@@ -245,7 +251,7 @@ class SPSA(GradientBasedOptimizer):
       @ Out, _bisectionForConstrainedInput, tuple(bool,dict), (indicating whether a fraction vector is found, contains the fraction of gradient that satisfies constraint)
     """
     innerBisectionThreshold = self.constraintHandlingPara['innerBisectionThreshold']
-    if innerBisectionThreshold <= 0 or innerBisectionThreshold >= 1: self.raiseAnError(ValueError, 'The ')
+    if innerBisectionThreshold <= 0 or innerBisectionThreshold >= 1: self.raiseAnError(ValueError, 'The innerBisectionThreshold shall be greater than 0 and less than 1')
     fracLowerLimit = 1e-2
     bounds = [0, 1.0]
     tempVarNew = {}

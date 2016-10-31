@@ -343,23 +343,28 @@ class GradientBasedOptimizer(Optimizer):
         while self.counter['solutionUpdate'][traj] <= self.counter['varsUpdate'][traj]:
           solutionExportUpdatedFlag = False
           prefix = self.mdlEvalHist.getMetadata('prefix')
-          # This MR does not include multiple trajectory, use following simple solution
-          # This will be replaced by "smart prefix management that is included in next MR that comes with parallel trajectory"  
-          pre = str((self.counter['solutionUpdate'][traj])*(self.gradDict['pertNeeded']+1)+1)
+          # use 'prefix' to locate the input sent out. The format is: trajID + iterID + (v for variable update; otherwise id for gradient evaluation) + global ID
+          pre = str(traj) + '_' + str(self.counter['varsUpdate'][traj]) + '_v_' + str(self.counter['mdlEval'])
           for index, pr in enumerate(prefix):
-            if pr.split('|')[-1] == pre:
+            pr = pr.split('|')[-1].split('_')
+            if pr[0] == str(traj) and pr[1] == str(self.counter['varsUpdate'][traj]) and pr[2] == 'v':
+#             if pr.split('|')[-1] == pre:
               solutionExportUpdatedFlag = True
               break
           
           if solutionExportUpdatedFlag:
             inputeval=self.mdlEvalHist.getParametersValues('inputs', nodeId = 'RecontructEnding')
             outputeval=self.mdlEvalHist.getParametersValues('outputs', nodeId = 'RecontructEnding')
+            
+            # check convergence
+            self._updateConvergenceVector(traj, self.counter['solutionUpdate'][traj], outputeval[self.objVar][index])
+
             # update solution export
             for var in self.solutionExport.getParaKeys('inputs'):
               if var in self.optVars:
                 self.solutionExport.updateInputValue(var,inputeval[var][index])
             if 'varsUpdate' in self.solutionExport.getParaKeys('inputs'):
-              self.solutionExport.updateInputValue('varsUpdate', np.asarray([self.counter['solutionUpdate']]))
+              self.solutionExport.updateInputValue('varsUpdate', np.asarray([self.counter['solutionUpdate'][traj]]))
             for var in self.solutionExport.getParaKeys('outputs'):
               if var == self.objVar:
                 self.solutionExport.updateOutputValue(var, outputeval[var][index])
