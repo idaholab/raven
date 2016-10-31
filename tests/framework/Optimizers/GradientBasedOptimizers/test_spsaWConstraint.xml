@@ -11,13 +11,13 @@
       <Input class="DataObjects" type="PointSet">optInput</Input>
       <Model class="Models" type="ExternalModel">optObjModel</Model>
       <Optimizer class="Optimizers" type="SPSA">opt_smp</Optimizer>	  
-      <SolutionExport class="DataObjects" type="PointSet">optData</SolutionExport>
+      <SolutionExport class="DataObjects" type="HistorySet">optData</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOutput</Output>
       <Output class="OutStreams" type="Print">optimizationHistoryDump</Output>
       <Output class="OutStreams" type="Print">mdlDataDump</Output>
     </MultiRun>
     <IOStep name="optimizationdump" pauseAtEnd="true">
-      <Input class="DataObjects" type="PointSet">optData</Input>
+      <Input class="DataObjects" type="HistorySet">optData</Input>
       <Input class="DataObjects" type="PointSet">optOutput</Input>
       <Output class="OutStreams" type="Print">optimizationHistoryDump</Output>
       <Output class="OutStreams" type="Print">mdlDataDump</Output>
@@ -35,10 +35,10 @@
       <Input>R,B</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
-    <PointSet name="optData">
-      <Input>R,B,varsUpdate</Input>
-      <Output>c</Output>
-    </PointSet>
+    <HistorySet name="optData">
+      <Input>trajID</Input>
+      <Output>c,R,B,varsUpdate</Output>
+    </HistorySet>
   </DataObjects>
 
   <Optimizers>
@@ -103,8 +103,8 @@
         <plotSettings>
             <plot>
                 <type>scatter</type>
-                <x>optData|Input|B</x>
-                <y>optData|Input|R</y>
+                <x>optData|Output|B</x>
+                <y>optData|Output|R</y>
                 <z>optData|Output|c</z>
             </plot>
             <xlabel>B</xlabel>
@@ -121,8 +121,8 @@
 			<gridSpace>3 1</gridSpace>
             <plot>
                 <type>line</type>
-                <x>optData|Input|varsUpdate</x>
-                <y>optData|Input|B</y>
+                <x>optData|Output|varsUpdate</x>
+                <y>optData|Output|B</y>
 				<interpPointsX>300</interpPointsX>
 				<gridLocation><x>0</x><y>0</y></gridLocation>	
 				<ylabel>B</ylabel>				
@@ -130,8 +130,8 @@
 			
 			<plot>
                 <type>line</type>
-                <x>optData|Input|varsUpdate</x>
-                <y>optData|Input|R</y>
+                <x>optData|Output|varsUpdate</x>
+                <y>optData|Output|R</y>
 				<interpPointsX>300</interpPointsX>
 				<gridLocation><x>1</x><y>0</y></gridLocation>	
 				<ylabel>R</ylabel>				
@@ -140,7 +140,7 @@
 			
 			<plot>
                 <type>line</type>
-                <x>optData|Input|varsUpdate</x>
+                <x>optData|Output|varsUpdate</x>
                 <y>optData|Output|c</y>
 				<interpPointsX>300</interpPointsX>
 				<gridLocation><x>2</x><y>0</y></gridLocation>	

@@ -366,7 +366,7 @@ class GradientBasedOptimizer(Optimizer):
               trajID = traj+1 # This is needed to be compatible with historySet object
               self.solutionExport.updateInputValue([trajID,'trajID'], traj)
 #               self.raiseADebug(self.solutionExport.getParametersValues('inputs', nodeId = 'RecontructEnding'))
-              self.raiseADebug(self.solutionExport.getParaKeys('outputs'))
+#               self.raiseADebug(self.solutionExport.getParaKeys('outputs'))
               
               tempOutput = self.solutionExport.getParametersValues('outputs', nodeId = 'RecontructEnding')
               
@@ -381,8 +381,8 @@ class GradientBasedOptimizer(Optimizer):
               if 'varsUpdate' in self.solutionExport.getParaKeys('outputs'):
                 tempTrajOutputVar = copy.deepcopy(tempTrajOutput.get('varsUpdate', np.asarray([])))
                 self.solutionExport.updateOutputValue([trajID,'varsUpdate'], np.append(tempTrajOutputVar,np.asarray([self.counter['solutionUpdate'][traj]])))
-              self.raiseADebug(self.solutionExport.getParametersValues('inputs', nodeId = 'RecontructEnding'))
-              self.raiseADebug(self.solutionExport.getParametersValues('outputs', nodeId = 'RecontructEnding'))
+#               self.raiseADebug(self.solutionExport.getParametersValues('inputs', nodeId = 'RecontructEnding'))
+#               self.raiseADebug(self.solutionExport.getParametersValues('outputs', nodeId = 'RecontructEnding'))
               self.counter['solutionUpdate'][traj] += 1  
 
 #               if traj not in tempOutput.keys():
