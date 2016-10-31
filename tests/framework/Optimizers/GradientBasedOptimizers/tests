@@ -3,7 +3,7 @@
   #REQUIREMENT_TEST R-RM-1
   type = 'RavenFramework'
   input = 'test_optFSPSA.xml'
-  csv = 'SPSA/mdlDataDump.csv SPSA/optimizationHistoryDump.csv'
+  csv = 'SPSA/mdlDataDump.csv SPSA/optimizationHistoryDump.csv SPSA/optimizationHistoryDump_0.csv'
  [../]
  [./SPSAwConstraint]
   type = 'RavenFramework'

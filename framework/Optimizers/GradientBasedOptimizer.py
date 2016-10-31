@@ -343,12 +343,12 @@ class GradientBasedOptimizer(Optimizer):
         while self.counter['solutionUpdate'][traj] <= self.counter['varsUpdate'][traj]:
           solutionExportUpdatedFlag = False
           prefix = self.mdlEvalHist.getMetadata('prefix')
-          # use 'prefix' to locate the input sent out. The format is: trajID + iterID + (v for variable update; otherwise id for gradient evaluation) + global ID
-          pre = str(traj) + '_' + str(self.counter['varsUpdate'][traj]) + '_v_' + str(self.counter['mdlEval'])
+#           # use 'prefix' to locate the input sent out. The format is: trajID + iterID + (v for variable update; otherwise id for gradient evaluation) + global ID
+#           pre = str(traj) + '_' + str(self.counter['varsUpdate'][traj]) + '_v_' + str(self.counter['mdlEval'])
           for index, pr in enumerate(prefix):
             pr = pr.split('|')[-1].split('_')
-            if pr[0] == str(traj) and pr[1] == str(self.counter['varsUpdate'][traj]) and pr[2] == 'v':
-#             if pr.split('|')[-1] == pre:
+            # use 'prefix' to locate the input sent out. The format is: trajID + iterID + (v for variable update; otherwise id for gradient evaluation) + global ID
+            if pr[0] == str(traj) and pr[1] == str(self.counter['solutionUpdate'][traj]) and pr[2] == 'v':
               solutionExportUpdatedFlag = True
               break
           
@@ -360,14 +360,70 @@ class GradientBasedOptimizer(Optimizer):
             self._updateConvergenceVector(traj, self.counter['solutionUpdate'][traj], outputeval[self.objVar][index])
 
             # update solution export
-            for var in self.solutionExport.getParaKeys('inputs'):
-              if var in self.optVars:
-                self.solutionExport.updateInputValue(var,inputeval[var][index])
-            if 'varsUpdate' in self.solutionExport.getParaKeys('inputs'):
-              self.solutionExport.updateInputValue('varsUpdate', np.asarray([self.counter['solutionUpdate'][traj]]))
-            for var in self.solutionExport.getParaKeys('outputs'):
-              if var == self.objVar:
-                self.solutionExport.updateOutputValue(var, outputeval[var][index])
-            self.counter['solutionUpdate'][traj] += 1
+            if 'trajID' not in self.solutionExport.getParaKeys('inputs'):
+              self.raiseAnError(ValueError, 'trajID is not in the input space of solutionExport')
+            else:
+              trajID = traj+1 # This is needed to be compatible with historySet object
+              self.solutionExport.updateInputValue([trajID,'trajID'], traj)
+#               self.raiseADebug(self.solutionExport.getParametersValues('inputs', nodeId = 'RecontructEnding'))
+              self.raiseADebug(self.solutionExport.getParaKeys('outputs'))
+              
+              tempOutput = self.solutionExport.getParametersValues('outputs', nodeId = 'RecontructEnding')
+              
+              tempTrajOutput = tempOutput.get(trajID, {})
+              for var in self.solutionExport.getParaKeys('outputs'):
+                if var in self.optVars:
+                  tempTrajOutputVar = copy.deepcopy(tempTrajOutput.get(var, np.asarray([])))
+                  self.solutionExport.updateOutputValue([trajID,var],np.append(tempTrajOutputVar,np.asarray(inputeval[var][index])))
+                elif var == self.objVar:
+                  tempTrajOutputVar = copy.deepcopy(tempTrajOutput.get(var, np.asarray([])))
+                  self.solutionExport.updateOutputValue([trajID,var], np.append(tempTrajOutputVar,np.asarray(outputeval[var][index])))
+              if 'varsUpdate' in self.solutionExport.getParaKeys('outputs'):
+                tempTrajOutputVar = copy.deepcopy(tempTrajOutput.get('varsUpdate', np.asarray([])))
+                self.solutionExport.updateOutputValue([trajID,'varsUpdate'], np.append(tempTrajOutputVar,np.asarray([self.counter['solutionUpdate'][traj]])))
+              self.raiseADebug(self.solutionExport.getParametersValues('inputs', nodeId = 'RecontructEnding'))
+              self.raiseADebug(self.solutionExport.getParametersValues('outputs', nodeId = 'RecontructEnding'))
+              self.counter['solutionUpdate'][traj] += 1  
+
+#               if traj not in tempOutput.keys():
+#                 
+#                 
+#                 for var in self.solutionExport.getParaKeys('outputs'):
+#                   if var in self.optVars:
+#                     self.solutionExport.updateOutputValue([traj,var],np.asarray(inputeval[var][index]))
+#                   elif var == self.objVar:
+#                     self.solutionExport.updateOutputValue([traj,var], np.asarray(outputeval[var][index]))
+#                 if 'varsUpdate' in self.solutionExport.getParaKeys('outputs'):
+#                   self.solutionExport.updateOutputValue([traj,'varsUpdate'], np.asarray([self.counter['solutionUpdate'][traj]]))
+#               else:
+#                 
+#                 
+#                 pass
+              
+#               for var in self.solutionExport.getParaKeys('outputs'):
+#                 if var in self.optVars:
+#                   self.solutionExport.updateInputValue(var,inputeval[var][index])
+#                 if 'varsUpdate' in self.solutionExport.getParaKeys('inputs'):
+#                   self.solutionExport.updateInputValue('varsUpdate', np.asarray([self.counter['solutionUpdate'][traj]]))
+#                 for var in self.solutionExport.getParaKeys('outputs'):
+#                   if var == self.objVar:
+#                     self.solutionExport.updateOutputValue(var, outputeval[var][index])
+
+#               self.raiseAnError(IOError, 'sgege')
+#               self.counter['solutionUpdate'][traj] += 1
+              
+##   Back up codes below for solutionExport as Pointset
+#            # update solution export
+#             for var in self.solutionExport.getParaKeys('inputs'):
+#               if var in self.optVars:
+#                 self.solutionExport.updateInputValue(var,inputeval[var][index])
+#             if 'varsUpdate' in self.solutionExport.getParaKeys('inputs'):
+#               self.solutionExport.updateInputValue('varsUpdate', np.asarray([self.counter['solutionUpdate'][traj]]))
+#             for var in self.solutionExport.getParaKeys('outputs'):
+#               if var == self.objVar:
+#                 self.solutionExport.updateOutputValue(var, outputeval[var][index])
+#             self.counter['solutionUpdate'][traj] += 1
+##   Back up codes above for solutionExport as Pointset            
+            
           else:
             break

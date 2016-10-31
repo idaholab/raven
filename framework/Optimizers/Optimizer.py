@@ -312,8 +312,8 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.objSearchingROM = SupervisedLearning.returnInstance('SciKitLearn', self, **{'SKLtype':'neighbors|KNeighborsRegressor', 'Features':','.join(list(self.optVars)), 'Target':self.objVar, 'n_neighbors':1})
     self.solutionExport = solutionExport
 
-    if solutionExport != None and type(solutionExport).__name__ != "PointSet":
-      self.raiseAnError(IOError,'solutionExport type is not a PointSet. Got '+ type(solutionExport).__name__+ '!')
+    if solutionExport != None and type(solutionExport).__name__ != "HistorySet":
+      self.raiseAnError(IOError,'solutionExport type is not a HistorySet. Got '+ type(solutionExport).__name__+ '!')
 
     if 'Function' in self.assemblerDict.keys():
       self.constraintFunction = self.assemblerDict['Function'][0][3]
