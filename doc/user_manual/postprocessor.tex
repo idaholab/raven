@@ -77,9 +77,6 @@ data objects, depending on the type of statistics the user wants to compute:
     \xmlNode{covariance}, the matrix node requires two sub-nodes, \xmlNode{targets} and \xmlNode{features},
     each of which is a comma-separated list of the targets for which the metric should be calculated, and the
     features for which the metric should be calculated for that target.  See the example below.
-  %\item \xmlNode{what}, \xmlDesc{comma separated string, required field},
-  %
-  %List of quantities to be computed.
   %
   Currently the scalar quantities available for request are:
   \begin{itemize}
@@ -117,12 +114,9 @@ data objects, depending on the type of statistics the user wants to compute:
   one of these sampler/ROM combinations may not provide the information that the
   user expects.
   \\
-  \\  If all the quantities need to be computed, the user can input in the body of
-  \xmlNode{what} the string ``all''.
+  \\  If all the quantities need to be computed, this can be done through the \xmlNode{all} node, which
+  requires the \xmlNode{targets} and \xmlNode{features} sub-nodes. 
   %
-  %\item \xmlNode{parameters}, \xmlDesc{comma separated string, required field},
-  %lists the parameters on which the previous operations need to be applied
-  %(e.g., massFlow, Temperature)
    \item \xmlNode{pivotParameter}, \xmlDesc{string, optional field}, name of the parameter that needs
    to be used for the computation of the Dynamic BasicStatistics (e.g. time). This node needs to
    be inputted just in case an \textbf{HistorySet} is used as Input. It represents the reference
@@ -171,6 +165,24 @@ data objects, depending on the type of statistics the user wants to compute:
 \textbf{Example (Static Statistics):}  This example demonstrates how to request the expected value of
 \xmlString{x01} and \xmlString{x02}, along with the sensitivity of both \xmlString{x01} and \xmlString{x02} to 
 \xmlString{a} and \xmlString{b}.
+\begin{lstlisting}[style=XML,morekeywords={name,subType,debug}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <PostProcessor name='aUserDefinedName' subType='BasicStatistics' verbosity='debug'>
+      <all>
+        <targets>x01,x02</targets>
+        <features>a,b</features>
+      </all>
+    </PostProcessor>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+\textbf{Example (Static using \xmlNode{all}):} This example is similar to the one above, but shows using the
+\xmlNode{all} node.
 \begin{lstlisting}[style=XML,morekeywords={name,subType,debug}]
 <Simulation>
   ...
