@@ -18,6 +18,7 @@ import inspect
 import atexit
 import time
 import threading
+from collections import OrderedDict
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -30,6 +31,7 @@ import utils
 import mathUtils
 import TreeStructure
 import Files
+import directedGraph
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
@@ -1565,6 +1567,7 @@ class EnsembleModel(Dummy, Assembler):
     self.maxIterations         = 30
     self.convergenceTol        = 1.e-3
     self.initialConditions     = {}
+    self.ensembleModelGraph    = None
     self.lockSystem = threading.RLock()
 
   def localInputAndChecks(self,xmlNode):
@@ -1609,24 +1612,6 @@ class EnsembleModel(Dummy, Assembler):
           else:
             self.initialConditions[var.tag] = np.array(var.text.split())
 
-  def __createDictOfInputsAndModels(self):
-    allInputs = {}
-    for modelIn, modelOptions in self.modelsDictionary.items():
-     for inp in modelOptions['Input']:
-       if inp not in allInputs.keys(): allInputs[inp] = []
-       allInputs[inp].append(modelIn)
-    return allInputs
-
-  def __findModelWithSameInput(self,inputList):
-    """
-      Method to find the models that have certain inputs. If not found, return None
-      @ In, inputList, list, list of inputs that need to be checked
-      @ Out, models, list, list of model names that match the input list
-    """
-    models = []
-    for modelIn, modelOptions in self.modelsDictionary.items():
-      if set(modelOptions['Input']) == set(inputList): models.append(modelIn)
-    return models
 
   def __findMatchingModel(self,what,subWhat):
     """
@@ -1642,60 +1627,30 @@ class EnsembleModel(Dummy, Assembler):
     return models
 
 
-    def findPath(self, graph, start_vertex, end_vertex, path=[]):
-      """
-      find a path from start_vertex to end_vertex
-            in graph
-      """
-      graph = self.__graph_dict
-      path = path + [start_vertex]
-      if start_vertex == end_vertex:
-          return path
-      if start_vertex not in graph:
-          return None
-      for vertex in graph[start_vertex]:
-        if vertex not in path:
-          extended_path = self.findPath(graph,vertex,end_vertex,path)
-          if extended_path:return extended_path
-      return None
+#   def findPath(self, graph, start_vertex, end_vertex, path=[]):
+#     """
+#     find a path from start_vertex to end_vertex
+#           in graph
+#     """
+#     graph = self.__graph_dict
+#     path = path + [start_vertex]
+#     if start_vertex == end_vertex:
+#         return path
+#     if start_vertex not in graph:
+#         return None
+#     for vertex in graph[start_vertex]:
+#       if vertex not in path:
+#         extended_path = self.findPath(graph,vertex,end_vertex,path)
+#         if extended_path:return extended_path
+#     return None
 
-
-  def findAllPaths(self, graph, start, end, path=[]):
-    path = path + [start]
-    if start == end: return [path]
-    if not graph.has_key(start): return []
-    paths = []
-    for node in graph[start]:
-      if node not in path:
-        newpaths = self.findAllPaths(graph, node, end, path)
-        for newpath in newpaths: paths.append(newpath)
-    return paths
-
-  def isALoop(self,g):
-      """
-        Return True if the directed graph g has a cycle.
-        g must be represented as a dictionary mapping vertices to
-        iterables of neighbouring vertices. For example:
-
-        >>> isALoop({1: (2,), 2: (3,), 3: (1,)})
-        True
-        >>> isALoop({1: (2,), 2: (3,), 3: (4,)})
-        False
-
-      """
-      path = set()
-
-      def visit(vertex):
-          path.add(vertex)
-          for neighbour in g.get(vertex, ()):
-            if neighbour in path or visit(neighbour): return True
-          path.remove(vertex)
-          return False
-
-      return any(visit(v) for v in g)
 
   def __getExecutionList(self, orderedNodes, allPath):
     """
+      Method to get the execution list
+      @ In, orderedNodes, list, list of models ordered based on the input/output relationships
+      @ In, allPath, list, list of lists containing all the path from orderedNodes[0] to orderedNodes[-1]
+      @ Out, executionList, list, list of lists with the execution order (e.g. [[model1],[model2.1,model2.2],[model3], etc.]
     """
     numberPath = len(allPath)
     maxComponents = 0
@@ -1748,7 +1703,6 @@ class EnsembleModel(Dummy, Assembler):
       modelNode.add( 'inputs', self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getParaKeys("inputs"))
       modelNode.add('outputs', self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getParaKeys("outputs"))
       moldelNodes[modelIn[2]] = modelNode
-      rootNode.appendBranch(modelNode)
 
     # construct chain connections
     modelsToOutputModels  = dict.fromkeys(self.modelsDictionary.keys(),None)
@@ -1769,7 +1723,14 @@ class EnsembleModel(Dummy, Assembler):
             indexModelIn = orderList.index(modelIn)
             orderList.pop(indexModelIn)
             orderList.insert(int(max(orderList.index(match)+1,indexModelIn)), modelIn)
-    allPath = self.findAllPaths(modelsToOutputModels,orderList[0],orderList[-1])
+    # construct the ensemble model directed graph 
+    self.ensembleModelGraph = directedGraph.graphObject(modelsToOutputModels)
+    # make some checks
+    if not self.ensembleModelGraph.isConnected(): 
+      isolatedModels = self.ensembleModelGraph.findIsolatedVertices()
+      self.raiseAnError(IOError, "Some models are not connected: "+' '.join(isolatedModels)) 
+    # get all paths
+    allPath = self.ensembleModelGraph.findAllPaths(orderList[0],orderList[-1])
     ###################################################
     # to be removed once executionList can be handled #
     self.orderList = orderList                        #
@@ -1777,23 +1738,31 @@ class EnsembleModel(Dummy, Assembler):
     if len(allPath) > 1: self.executionList = self.__getExecutionList(orderList,allPath)
     else               : self.executionList = allPath[-1]
     # check if Picard needs to be activated
-    self.activatePicard = self.isALoop(modelsToOutputModels)
+    self.activatePicard = self.ensembleModelGraph.isALoop()
     if self.activatePicard:
-      self.raiseAMessage("Multi-model connections determined a non-linear system. Picard's iterations activated!")
+      self.raiseAMessage("EnsembleModel connections determined a non-linear system. Picard's iterations activated!")
       if len(self.initialConditions.keys()) == 0: self.raiseAnError(IOError,"Picard's iterations mode activated but no intial conditions provided!")
-    else                  : self.raiseAMessage("Multi-model connections determined a linear system. Picard's iterations not activated!")
+    else                  : self.raiseAMessage("EnsembleModel connections determined a linear system. Picard's iterations not activated!")
 
     self.allOutputs = []
     self.needToCheckInputs = True
 
-  def localAddInitParams(self,tempDict):
+  def getInitParams(self):
     """
       Method used to export to the printer in the base class the additional PERMANENT your local class have
-      @ In, tempDict, dict, dictionary to be updated. {'attribute name':value}
-      @ Out, None
+      @ In, None
+      @ Out, tempDict, dict, dictionary to be updated. {'attribute name':value}
     """
+    tempDict = OrderedDict()
     tempDict['Models contained in EnsembleModel are '] = self.modelsDictionary.keys()
-
+    for modelIn in self.modelsDictionary.keys():
+      tempDict['Model '+modelIn+' TargetEvaluation is '] = self.modelsDictionary[modelIn]['TargetEvaluation']
+      tempDict['Model '+modelIn+' Inputs are '] = self.modelsDictionary[modelIn]['Input']
+    return tempDict
+    
+  def getCurrentSetting(self):
+    return {} 
+    
   def __selectInputSubset(self,modelName, kwargs ):
     """
       Method aimed to select the input subset for a certain model
@@ -1839,7 +1808,8 @@ class EnsembleModel(Dummy, Assembler):
     for modelIn, specs in self.modelsDictionary.items():
       if self.needToCheckInputs:
         for inp in specs['Input']:
-          if inp not in allCoveredVariables: self.raiseAnError(RuntimeError,"for sub-model "+ modelIn + "the input "+inp+" has not been found among other models' outputs and sampled variables!")
+          if inp not in allCoveredVariables: 
+            self.raiseAnError(RuntimeError,"for sub-model "+ modelIn + " the input "+inp+" has not been found among other models' outputs and sampled variables!")
       newKwargs = self.__selectInputSubset(modelIn,Kwargs)
       #inputForModel = []
       #for input in myInput:
