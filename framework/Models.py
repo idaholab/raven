@@ -1745,8 +1745,11 @@ class EnsembleModel(Dummy, Assembler):
     else                  : self.raiseAMessage("EnsembleModel connections determined a linear system. Picard's iterations not activated!")
 
     self.allOutputs = []
-    self.needToCheckInputs = True
-
+    for modelIn in self.modelsDictionary.keys():
+      for modelInOut in self.modelsDictionary[modelIn]['Output']:
+        if modelInOut not in self.allOutputs: self.allOutputs.append(modelInOut)
+    self.needToCheckInputs = True    
+            
   def getInitParams(self):
     """
       Method used to export to the printer in the base class the additional PERMANENT your local class have
