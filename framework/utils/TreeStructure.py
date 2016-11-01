@@ -51,13 +51,10 @@ class Node(MessageHandler.MessageUser):
     if isinstance(other,self.__class__):
       same = True
       if self.name != other.name:
-        #self.raiseADebug('equality check: name not same!')
         same = False
       elif self.text != other.text:
-        #self.raiseADebug('equality check: text not same!')
         same = False
       elif self.values != other.values:
-        #self.raiseADebug('equality check: values not same!')
         same = False
       # TODO ... check parent and children?
       return same

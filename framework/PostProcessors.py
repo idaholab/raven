@@ -188,7 +188,6 @@ class LimitSurfaceIntegral(BasePostProcessor):
     """
     self.inputToInternal(inputs)
     if self.integralType in ['montecarlo']:
-      #self.stat.parameters['targets'] = [self.target]
       self.stat.toDo = {'expectedValue':set([self.target])}
       self.stat.initialize(runInfo, inputs, initDict)
     self.functionS = SupervisedLearning.returnInstance('SciKitLearn', self, **{'SKLtype':'neighbors|KNeighborsClassifier', 'Features':','.join(list(self.variableDist.keys())), 'Target':self.target})
@@ -293,7 +292,6 @@ class SafestPoint(BasePostProcessor):
     self.nonControllableOrd = []  # list containing the controllable variables' names in the same order as they appear inside the non-controllable space (self.nonControllableSpace)
     self.surfPointsMatrix = None  # 2D-matrix containing the coordinates of the points belonging to the failure boundary (coordinates are derived from both the controllable and non-controllable space)
     self.stat = returnInstance('BasicStatistics', self)  # instantiation of the 'BasicStatistics' processor, which is used to compute the expected value of the safest point through the coordinates and probability values collected in the 'run' function
-    #self.stat.toDo = ['expectedValue'] -> moved to "initialize" where we know the targets too
     self.addAssemblerObject('Distribution','n', True)
     self.printTag = 'POSTPROCESSOR SAFESTPOINT'
 
@@ -380,9 +378,9 @@ class SafestPoint(BasePostProcessor):
     self.__gridSetting__()
     self.__gridGeneration__()
     self.inputToInternal(inputs)
-    #self.stat.parameters['targets'] = self.controllableOrd -> don't set directly, just set up the toDo
     #FIXME this is quite invasive use of the basic statistics; a more standardized construction would be nice
-    self.stat.toDo = {'expectedValue':set(self.controllableOrd)}
+    #we set the toDo here, since at this point we know the targets for the basic statistics
+    self.stat.toDo = {'expectedValue':set(self.controllableOrd)} #don't set directly, just set up the toDo for basicStats
     self.stat.initialize(runInfo, inputs, initDict)
     self.raiseADebug('GRID INFO:')
     self.raiseADebug(self.gridInfo)
@@ -1692,19 +1690,24 @@ class BasicStatistics(BasePostProcessor):
       @ In, initDict, dict, dictionary with initialization options
       @ Out, None
     """
+    #construct a list of all the parameters that have requested values into self.allUsedParams
     self.allUsedParams = set()
+    #first collect parameters for which scalar values were requested
     for scalar in self.scalarVals:
       if scalar in self.toDo.keys():
+        #special treatment of percentile since the user can specify the percents directly
         if scalar == 'percentile':
           for pct,targs in self.toDo[scalar].items():
             self.allUsedParams.update(targs)
         else:
           self.allUsedParams.update(self.toDo[scalar])
+    #second collect parameters for which matrix values were requested, either as targets or features
     for vector in self.vectorVals:
       if vector in self.toDo.keys():
         for entry in self.toDo[vector]:
           self.allUsedParams.update(entry['targets'])
           self.allUsedParams.update(entry['features'])
+    #for backward compatability, compile the full list of parameters used in Basic Statistics calculations
     self.parameters['targets'] = list(self.allUsedParams)
     BasePostProcessor.initialize(self, runInfo, inputs, initDict)
     self.__workingDir = runInfo['WorkingDir']
@@ -1735,7 +1738,7 @@ class BasicStatistics(BasePostProcessor):
         else:
           #user specified a percentage!
           splitTag = tag.split('_')
-          if len(splitTag) < 2:
+          if len(splitTag) != 2:
             self.raiseAWarning('Not able to parse "'+tag+'" to obtain percentile!  Expected "percentile_##%". Using 95% instead...')
             integerPercentile = [95]
           else:
@@ -1762,6 +1765,10 @@ class BasicStatistics(BasePostProcessor):
         if fnode is None:
           self.raiseAnError('Request for vector value <'+tag+'> requires a "features" node, and none was found!')
         if tag in self.toDo.keys():
+          # we're storing toDo[tag] as a list of dictionaries.  This is because the user might specify multiple
+          #   nodes with the same metric (tag), but with different targets and features.  For instance, the user might
+          #   want the sensitivity of A and B to X and Y, and the sensitivity of C to W and Z, but not the sensitivity
+          #   of A to W.  If we didn't keep them separate, we could potentially waste a fair number of calculations.
           self.toDo[tag].append({'targets':set(a.strip() for a in fnode.text.split(',')),
                             'features':set(a.strip() for a in tnode.text.split(','))})
         else:
@@ -1845,8 +1852,6 @@ class BasicStatistics(BasePostProcessor):
               output.updateMetadata(targetP + '-' + what + appendix, outputDict[what][targetP])
           else:
             if what not in methodToTest and len(self.allUsedParams) > 1:
-              #self.raiseADebug('Dumping matrix ' + what + '. Metadata name = ' + what + '. Targets stored in ' + 'targets-' + what)
-              #output.updateMetadata('targets-' + what + appendix, parameterSet)
               self.raiseADebug('Dumping vector metric',what)
               output.updateMetadata(what.replace("|","-") + appendix, outputDict[what])
         if self.externalFunction:
@@ -1867,13 +1872,11 @@ class BasicStatistics(BasePostProcessor):
     """
     separator = '  '
     if self.dynamic: output.write('Dynamic BasicStatistics'+ separator+ 'Pivot Parameter' + separator + self.pivotParameter + separator + os.linesep)
-    #output.write('ComputedQuantities'+separator+separator.join(parameterSet) + os.linesep)
     quantitiesToWrite = {}
     outputResults = [outputDictionary] if not self.dynamic else outputDictionary.values()
     longestParam = max(list(len(param) for param in self.allUsedParams)+[9]) #9 is for 'Metric:'
     # use format functions to make writing matrices easier
     paramFormat = ('{:>'+str(longestParam)+'.'+str(longestParam)+'}').format
-    #paramF = ('{:<.'+str(longestParam)+'}').format
     for ts, outputDict in enumerate(outputResults):
       if self.dynamic:
         output.write('Pivot Value' +separator+ str(outputDictionary.keys()[ts]) + os.linesep)
@@ -1951,22 +1954,6 @@ class BasicStatistics(BasePostProcessor):
           if metric in outputDict.keys() and target in outputDict[metric]:
             output.addVector(target,metric,outputDict[metric][target],pivotVal=pivotVal)
 
-
-        #for stat,val in outputDict.items():
-        #  if stat not in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity'] + methodToTest:
-        #    output.addScalar(target,stat,val[target],pivotVal=pivotVal)
-        #for stat,val in outputDict.items():
-        #  if stat in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity'] and len(parameterSet) > 1:
-        #    valueDict = {}
-        #    valRow = val[t]
-        #    for p,param in enumerate(parameterSet):
-        #      actVal = valRow[p]
-        #      valueDict[param] = actVal
-        #    output.addVector(target,stat,valueDict,pivotVal=pivotVal)
-        #TODO if self.externalFunction:
-        #  for stat in self.methodsToRun:
-        #    if stat not in self.acceptedCalcParam:
-        #      output.addScalar(target,stat,val[target],pivotVal=pivotVal)
     output.writeFile()
 
   def __computeVp(self,p,weights):
@@ -2112,7 +2099,7 @@ class BasicStatistics(BasePostProcessor):
     parameterSet = list(self.allUsedParams)
     if 'metadata' in input.keys(): pbPresent = 'ProbabilityWeight' in input['metadata'].keys() if 'metadata' in input.keys() else False
     if not pbPresent:
-      pbWeights['realization'] = None #np.asarray([1.0 / len(input['targets'][self.parameters['targets'][0]])]*len(input['targets'][self.parameters['targets'][0]]))
+      pbWeights['realization'] = None
       if 'metadata' in input.keys():
         if 'SamplerType' in input['metadata'].keys():
           if input['metadata']['SamplerType'][0] != 'MC' :
@@ -2200,8 +2187,8 @@ class BasicStatistics(BasePostProcessor):
     #
     calculations = {}
     # do things in order to preserve prereqs
-    # FIXME many of these could be sped up through vectorization
-    # TODO additionally, this could be done in a more object-oriented way with some work
+    # TODO many of these could be sped up through vectorization
+    # TODO additionally, this could be done with less code duplication, probably
     #################
     # SCALAR VALUES #
     #################
@@ -2244,7 +2231,6 @@ class BasicStatistics(BasePostProcessor):
       #sanity check
       if (calculations[metric][targetP] == 0):
         self.raiseAWarning('The variable: ' + targetP + ' has zero variance! Please check your input in PP: ' + self.name)
-        #calculations[metric][targetP] = np.Infinity
     #
     # sigma
     #
@@ -2255,7 +2241,6 @@ class BasicStatistics(BasePostProcessor):
     for targetP in needed[metric]:
       if calculations['variance'][targetP] == 0:#np.Infinity:
         self.raiseAWarning('The variable: ' + targetP + ' has zero sigma! Please check your input in PP: ' + self.name)
-        #calculations[metric][targetP] = np.Infinity
         calculations[metric][targetP] = 0.0
       else:
         calculations[metric][targetP] = self._computeSigma(input['targets'][targetP],calculations['variance'][targetP])
