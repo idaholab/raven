@@ -3509,7 +3509,7 @@ class DataMining(BasePostProcessor):
     else:
       currentInput = currentInp
 
-    if currentInput.type == 'HistorySet' and self.PreProcessor is None: # for testing time dependent dm - time dependent clustering
+    if currentInput.type == 'HistorySet' and self.PreProcessor is None and self.metric is None: # for testing time dependent dm - time dependent clustering
       inputDict = {'Features':{}, 'parameters':{}, 'Labels':{}, 'metadata':{}}
 
       # FIXME, this needs to be changed for asynchronous HistorySet
@@ -3559,7 +3559,6 @@ class DataMining(BasePostProcessor):
       tempData = self.PreProcessor.interface.inputToInternal(currentInp)
 
       preProcessedData = self.PreProcessor.interface.run(tempData)
-
       if self.initializationOptionDict['KDD']['Features'] == 'input':
         inputDict['Features'] = copy.deepcopy(preProcessedData['data']['input'])
       elif self.initializationOptionDict['KDD']['Features'] == 'output':
@@ -3611,22 +3610,40 @@ class DataMining(BasePostProcessor):
           inputDict['Features'][param] = currentInput.getParam('input', param)
         for param in outParams:
           inputDict['Features'][param] = currentInput.getParam('output', param)
+
     elif currentInput.type in ['HistorySet']:
       if self.initializationOptionDict['KDD']['Features'] == 'input':
         for param in currentInput.getParaKeys('input'):
           inputDict['Features'][param] = currentInput.getParam('input', param)
       elif self.initializationOptionDict['KDD']['Features'] == 'output':
         inputDict['Features'] = currentInput.getOutParametersValues()
-      inputDict['metadata'] = currentInput.getAllMetadata()
+      elif self.initializationOptionDict['KDD']['Features'] == 'all':
+        for param in allInputFeatures:
+          inputDict['Features'][param] = currentInput.getParam('input', param)
+        for param in allOutputFeatures:
+          inputDict['Features'][param] = currentInput.getParam('output', param)
+      else:
+        features = set(self.initializationOptionDict['KDD']['Features'].split(','))
+        allInputFeatures = currentInput.getParaKeys('input')
+        allOutputFeatures = currentInput.getParaKeys('output')
+        inParams = list(features.intersection(allInputFeatures))
+        outParams = list(features.intersection(allOutputFeatures))
+        inputDict['Features'] = {}
+        for hist in currentInput._dataContainer['outputs'].keys():
+          inputDict['Features'][hist] = {}
+          for param in inParams:
+            inputDict['Features'][hist][param] = currentInput._dataContainer['inputs'][hist][param]
+          for param in outParams:
+            inputDict['Features'][hist][param] = currentInput._dataContainer['outputs'][hist][param]
 
       inputDict['metadata'] = currentInput.getAllMetadata()
+
     ## Redundant if-conditional preserved as a placeholder for potential future
     ## development working directly with files
     # elif isinstance(currentInp, Files.File):
     #   self.raiseAnError(IOError, 'Unsupported input type (' + currentInput.subtype + ') for PostProcessor ' + self.name + ' must be a PointSet.')
     else:
       self.raiseAnError(IOError, 'Unsupported input type (' + currentInput.type + ') for PostProcessor ' + self.name + ' must be a PointSet.')
-
     return inputDict
 
   def initialize(self, runInfo, inputs, initDict):
@@ -3729,7 +3746,6 @@ class DataMining(BasePostProcessor):
     ## When does this actually happen?
     if finishedJob.getEvaluation() == -1:
       self.raiseAnError(RuntimeError, 'No available Output to collect (Run probably is not finished yet)')
-
     dataMineDict = finishedJob.getEvaluation()[1]
     for key in dataMineDict['outputs']:
       for param in output.getParaKeys('output'):
@@ -3739,11 +3755,11 @@ class DataMining(BasePostProcessor):
         for value in dataMineDict['outputs'][key]:
           output.updateOutputValue(key, copy.copy(value))
       elif output.type == 'HistorySet':
-        if self.PreProcessor is not None:
+        if self.PreProcessor is not None or self.metric is not None:
           for index,value in np.ndenumerate(dataMineDict['outputs'][key]):
             firstHist = output._dataContainer['outputs'].keys()[0]
-            firstVar  = output._dataContainer['outputs'][firstHist].keys()[0]
-            timeLength = output._dataContainer['outputs'][firstHist][firstVar].size
+            firstVar  = output._dataContainer['outputs'][index[0]+1].keys()[0]
+            timeLength = output._dataContainer['outputs'][index[0]+1][firstVar].size
             arrayBase = value * np.ones(timeLength)
             output.updateOutputValue([index[0]+1,key], arrayBase)
         else:
@@ -3766,7 +3782,7 @@ class DataMining(BasePostProcessor):
     else:
       currentInput = inputIn
 
-    if currentInput.type == 'HistorySet' and self.PreProcessor is None:
+    if currentInput.type == 'HistorySet' and self.PreProcessor is None and self.metric is None:
       return self.__runTemporalSciKitLearn(Input)
     else:
       return self.__runSciKitLearn(Input)
@@ -3839,7 +3855,7 @@ class DataMining(BasePostProcessor):
                 if key in self.solutionExport.getParaKeys('outputs'):
                   for value in centers[key]:
                     self.solutionExport.updateOutputValue(key,value)
-      elif 'mixture' == self.unSupervisedEngine.SKLtype:
+      elif 'mixture' == self.unSupervisedEngine.getDataMiningType():
         solutionExportDict = self.unSupervisedEngine.metaDict
         mixtureMeans = solutionExportDict['means']
         mixtureCovars = solutionExportDict['covars']
@@ -3864,8 +3880,9 @@ class DataMining(BasePostProcessor):
             for joffset,col in enumerate(self.unSupervisedEngine.features.keys()[i:]):
               j = i+joffset
               self.solutionExport.updateOutputValue('cov_'+str(row)+'_'+str(col),mixtureCovars[index][i,j])
-      elif 'decomposition' == self.unSupervisedEngine.SKLtype:
+      elif 'decomposition' == self.unSupervisedEngine.getDataMiningType():
         solutionExportDict = self.unSupervisedEngine.metaDict
+
         ## Get the transformation matrix and push it to a SolutionExport
         ## data object.
         ## Can I be sure of the order of dimensions in the features dict, is
@@ -3901,7 +3918,7 @@ class DataMining(BasePostProcessor):
     numberOfHistoryStep = self.unSupervisedEngine.numberOfHistoryStep
     numberOfSample = self.unSupervisedEngine.numberOfSample
 
-    if 'bicluster' == self.unSupervisedEngine.SKLtype:
+    if 'bicluster' == self.unSupervisedEngine.getDataMiningType():
       self.raiseAnError(RuntimeError, 'Bicluster has not yet been implemented.')
 
     ## Rename the algorithm output to point to the user-defined label feature
@@ -3927,11 +3944,12 @@ class DataMining(BasePostProcessor):
       for i in range(reducedDimensionality):
         dimensionI = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
         newColumnName = self.labelFeature + str(i + 1)
+
         for t in range(numberOfHistoryStep):
           dimensionI[:, t] =  transformedData[t][:, i]
         outputDict['outputs'][newColumnName] = dimensionI
 
-    if 'cluster' == self.unSupervisedEngine.SKLtype:
+    if 'cluster' == self.unSupervisedEngine.getDataMiningType():
       ## SKL will always enumerate cluster centers starting from zero, if this
       ## is violated, then the indexing below will break.
       if 'clusterCentersIndices' in self.unSupervisedEngine.metaDict.keys():
@@ -3980,7 +3998,7 @@ class DataMining(BasePostProcessor):
       if 'inertia' in self.unSupervisedEngine.outputDict.keys():
         inertia = self.unSupervisedEngine.outputDict['inertia']
 
-    elif 'mixture' == self.unSupervisedEngine.SKLtype:
+    elif 'mixture' == self.unSupervisedEngine.getDataMiningType():
       if 'covars' in self.unSupervisedEngine.metaDict.keys():
         mixtureCovars = self.unSupervisedEngine.metaDict['covars']
       else:
@@ -4045,7 +4063,7 @@ class DataMining(BasePostProcessor):
                   loc = componentMeanIndices[timeIdx].index(clusterIdx)
                   timeSeries[timeIdx] = mixtureCovars[timeIdx][loc][i,j]
                 self.solutionExport.updateOutputValue('cov_'+str(row)+'_'+str(col),timeSeries)
-    elif 'decomposition' == self.unSupervisedEngine.SKLtype:
+    elif 'decomposition' == self.unSupervisedEngine.getDataMiningType():
       if self.solutionExport is not None:
         solutionExportDict = self.unSupervisedEngine.metaDict
         ## Get the transformation matrix and push it to a SolutionExport

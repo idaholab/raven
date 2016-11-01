@@ -1,0 +1,78 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
+    <internalParallel>False</internalParallel>
+    <WorkingDir>Hierarchical</WorkingDir>
+    <Sequence>readIn,Hierarchical,output</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="DataSetsFile">./data.csv</Input>
+  </Files>
+
+  <Models>
+    <PostProcessor name="hierarchical" subType="DataMining" verbosity="quiet">
+      <KDD lib="Scipy" labelFeature='labels'>
+        <Features>x1,x2</Features>
+        <SCIPYtype>cluster|Hierarchical</SCIPYtype>
+        <method>single</method>
+        <metric>euclidean</metric>
+        <level>0.3</level>
+        <criterion>distance</criterion>
+        <dendrogram>true</dendrogram>
+        <truncationMode>lastp</truncationMode>
+        <p>20</p>
+        <leafCounts>True</leafCounts>
+        <showContracted>True</showContracted>
+        <annotatedAbove>10</annotatedAbove>
+      </KDD>
+    </PostProcessor>
+  </Models>
+
+  <Steps>
+    <IOStep name="readIn" pauseAtEnd="True">
+      <Input    class="Files"         type=""               >DataSetsFile</Input>
+      <Output   class="DataObjects"   type="PointSet"       >DataSets</Output>
+    </IOStep>
+    <PostProcess name="Hierarchical" pauseAtEnd="True">
+      <Input    class="DataObjects"   type="PointSet"       >DataSets</Input>
+      <Model    class="Models"        type="PostProcessor"  >hierarchical</Model>
+      <Output   class="DataObjects"   type="PointSet"       >DataSets</Output>
+      <Output   class="OutStreams"    type="Print"          >dummy</Output>
+    </PostProcess>
+    <IOStep name="output" pauseAtEnd="True">
+      <Input    class="DataObjects"   type="PointSet"       >DataSets</Input>
+      <Output   class="OutStreams"    type="Plot"           >PlotHierarchical</Output>
+    </IOStep>
+  </Steps>
+
+  <OutStreams>
+    <Print name="dummy">
+      <type>csv</type>
+      <source>DataSets</source>
+    </Print>
+    <Plot name="PlotHierarchical" overwrite="false">
+      <plotSettings>
+        <plot>
+          <type>scatter</type>
+          <x>DataSets|input|x1</x>
+          <y>DataSets|input|x2</y>
+          <colorMap>DataSets|Output|labels</colorMap>
+          <cmap>rainbow</cmap>
+        </plot>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="DataSets">
+      <Input>x1,x2,y1,y2,z1,z2</Input>
+      <Output>Output</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>
