@@ -5,7 +5,7 @@ Created on Nov 24, 2015
 
 comments: Interface for Dymola Simulation
 
-Modelica is "a non-proprietary, object-oriented, equation-based language to conveniently model complex physical systems containing,
+Modelica is an object-oriented, equation-based language to conveniently model complex physical systems containing,
 e.g., mechanical, electrical, electronic, hydraulic, thermal, control, electric power or process-oriented subcomponents.
 Modelica models (with a file extension of .mo) are built, translated (compiled), and simulated in Dymola (http://www.modelon.com/products/dymola/),
 which is a commercial modeling and simulation environment based on the Modelica modeling language.
