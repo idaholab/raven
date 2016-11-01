@@ -553,7 +553,6 @@ class SciKitLearn(unSupervisedLearning):
       self.metaDict['clusterCenters'] = centers
     elif 'mixture' == self.SKLtype:
       labels = self.Method.fit_predict(self.normValues)
-      # print('fit_predict',labels)
       self.outputDict['outputs']['labels'] = labels
 
       if hasattr(self.Method, 'converged_'):
@@ -620,7 +619,6 @@ class SciKitLearn(unSupervisedLearning):
     else:
       labels = self.Method.fit_predict(featureVals)
 
-    # print('evaluate',labels)
     return labels
 
   def __confidenceLocal__(self):
