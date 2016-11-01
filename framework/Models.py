@@ -1929,13 +1929,13 @@ class EnsembleModel(Dummy, Assembler):
         dependentOutput = self.__retrieveDependentOutput(modelIn, gotOutputs, typeOutputs)
         if iterationCount == 1  and self.activatePicard:
           try              : sampledVars = Input[modelIn][0][1]['SampledVars'].keys()
-          except IndexError: sampledVars = Input[modelIn][1]['SampledVars'].keys()
+          except           : sampledVars = Input[modelIn][1]['SampledVars'].keys()
           for initCondToSet in [x for x in self.modelsDictionary[modelIn]['Input'] if x not in set(dependentOutput.keys()+sampledVars)]:
             if initCondToSet in self.initialConditions.keys(): dependentOutput[initCondToSet] = np.asarray(self.initialConditions[initCondToSet])
             else                                             : self.raiseAnError(IOError,"No initial conditions provided for variable "+ initCondToSet)
         Input[modelIn]  = self.modelsDictionary[modelIn]['Instance'].updateInputFromOutside(Input[modelIn], dependentOutput)
         try              : Input[modelIn][0][1]['prefix'], Input[modelIn][0][1]['uniqueHandler'] = modelIn+"|"+identifier, self.name+identifier
-        except IndexError: Input[modelIn][1]['prefix'   ], Input[modelIn][1]['uniqueHandler'   ] = modelIn+"|"+identifier, self.name+identifier
+        except           : Input[modelIn][1]['prefix'   ], Input[modelIn][1]['uniqueHandler'   ] = modelIn+"|"+identifier, self.name+identifier
         nextModel = False
         while not nextModel:
           moveOn = False
