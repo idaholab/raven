@@ -2160,7 +2160,7 @@ class BasicStatistics(BasePostProcessor):
     # sensitivity needs            |                        |
     # pearson needs                | covariance             |
     # sigma needs                  | variance               | variationCoefficient
-    # variance                     | expectedValue          | sigma
+    # variance                     | expectedValue          | sigma, skewness, kurtosis
     # expectedValue                |                        | variance, variationCoefficient, skewness, kurtosis
     needed['sigma'].update(needed.get('variationCoefficient'))
     needed['variance'].update(needed.get('sigma',set()))
@@ -2192,22 +2192,27 @@ class BasicStatistics(BasePostProcessor):
     #################
     # SCALAR VALUES #
     #################
+    def startMetric(metric):
+      """
+        Common starting for each metric calculation.
+        @ In, metric, string, name of metric
+        @ Out, None
+      """
+      if len(needed[metric])>0:
+        self.raiseADebug('Starting "'+metric+'"...')
+        calculations[metric]={}
     #
     # samples
     #
     metric = 'samples'
-    if len(needed[metric])>0:
-      self.raiseADebug('Starting "'+metric+'"...')
-      calculations[metric]={}
+    startMetric(metric)
     for targetP in needed[metric]:
       calculations[metric][targetP] = len(input['targets'].values()[0])
     #
     # expected value
     #
     metric = 'expectedValue'
-    if len(needed[metric])>0:
-      self.raiseADebug('Starting "'+metric+'"...')
-      calculations[metric]={}
+    startMetric(metric)
     for targetP in needed[metric]:
       if pbPresent:
         relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
@@ -2219,9 +2224,7 @@ class BasicStatistics(BasePostProcessor):
     # variance
     #
     metric = 'variance'
-    if len(needed[metric])>0:
-      self.raiseADebug('Starting "'+metric+'"...')
-      calculations[metric]={}
+    startMetric(metric)
     for targetP in needed[metric]:
       if pbPresent:
         relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
@@ -2235,9 +2238,7 @@ class BasicStatistics(BasePostProcessor):
     # sigma
     #
     metric = 'sigma'
-    if len(needed[metric])>0:
-      self.raiseADebug('Starting "'+metric+'"...')
-      calculations[metric]={}
+    startMetric(metric)
     for targetP in needed[metric]:
       if calculations['variance'][targetP] == 0:#np.Infinity:
         self.raiseAWarning('The variable: ' + targetP + ' has zero sigma! Please check your input in PP: ' + self.name)
@@ -2248,9 +2249,7 @@ class BasicStatistics(BasePostProcessor):
     # coeff of variation (sigma/mu)
     #
     metric = 'variationCoefficient'
-    if len(needed[metric])>0:
-      self.raiseADebug('Starting "'+metric+'"...')
-      calculations[metric]={}
+    startMetric(metric)
     for targetP in needed[metric]:
       if calculations['expectedValue'][targetP] == 0:
         self.raiseAWarning('Expected Value for ' + targetP + ' is zero! Variation Coefficient cannot be calculated, so setting as infinite.')
@@ -2261,9 +2260,7 @@ class BasicStatistics(BasePostProcessor):
     # skewness
     #
     metric = 'skewness'
-    if len(needed[metric])>0:
-      self.raiseADebug('Starting "'+metric+'"...')
-      calculations[metric]={}
+    startMetric(metric)
     for targetP in needed[metric]:
       if pbPresent:
         relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
@@ -2274,9 +2271,7 @@ class BasicStatistics(BasePostProcessor):
     # kurtosis
     #
     metric = 'kurtosis'
-    if len(needed[metric])>0:
-      self.raiseADebug('Starting "'+metric+'"...')
-      calculations[metric]={}
+    startMetric(metric)
     for targetP in needed[metric]:
       if pbPresent:
         relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
@@ -2287,9 +2282,7 @@ class BasicStatistics(BasePostProcessor):
     # median
     #
     metric = 'median'
-    if len(needed[metric])>0:
-      self.raiseADebug('Starting "'+metric+'"...')
-      calculations[metric]={}
+    startMetric(metric)
     for targetP in needed[metric]:
       if pbPresent:
         relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
@@ -2300,18 +2293,14 @@ class BasicStatistics(BasePostProcessor):
     # maximum
     #
     metric = 'maximum'
-    if len(needed[metric])>0:
-      self.raiseADebug('Starting "'+metric+'"...')
-      calculations[metric]={}
+    startMetric(metric)
     for targetP in needed[metric]:
       calculations[metric][targetP] = np.amax(input['targets'][targetP])
     #
     # minimum
     #
     metric = 'minimum'
-    if len(needed[metric])>0:
-      self.raiseADebug('Starting "'+metric+'"...')
-      calculations[metric]={}
+    startMetric(metric)
     for targetP in needed[metric]:
       calculations[metric][targetP] = np.amin(input['targets'][targetP])
     #
@@ -2606,7 +2595,7 @@ class BasicStatistics(BasePostProcessor):
     covMatrix = np.ones((featuresNumber,featuresNumber), dtype = np.result_type(feature, np.float64))
     for myIndex in range(featuresNumber):
       for myIndexTwo in range(featuresNumber):
-        # The weights that are used here should represent the joint probability (P(x,y)). i
+        # The weights that are used here should represent the joint probability (P(x,y)).
         # Since I have no way yet to compute the joint probability with weights only (eventually I can think to use an estimation of the P(x,y) computed through a 2D histogram construction and weighted a posteriori with the 1-D weights),
         # I decided to construct a weighting function that is defined as Wi = (2.0*Wi,x*Wi,y)/(Wi,x+Wi,y) that respects the constrains of the
         # covariance (symmetric and that the diagonal is == variance) but that is completely arbitrary and for that not used. As already mentioned, I need the joint probability to compute the E[XY] = integral[xy*p(x,y)dxdy]. Andrea
