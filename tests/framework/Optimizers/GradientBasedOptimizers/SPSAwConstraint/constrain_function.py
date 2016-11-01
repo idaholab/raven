@@ -15,5 +15,5 @@ def constrain(self):
   if B + R * f - d > 0:
     returnValue = 1
   else:
-  	returnValue = 0
+    returnValue = 0
   return returnValue
