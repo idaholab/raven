@@ -367,10 +367,42 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     tempDict = copy.copy(self.mdlEvalHist.getParametersValues('inputs', nodeId = 'RecontructEnding'))
     tempDict.update(self.mdlEvalHist.getParametersValues('outputs', nodeId = 'RecontructEnding'))
     for key in tempDict.keys():                   tempDict[key] = np.asarray(tempDict[key])
+    
+#     for key in optVars.keys():                    optVars[key] = np.atleast_1d(optVars[key])
+#     
+#     numInputToEvaluate = 1 if np.isscalar(optVars[optVars.keys()[0]]) else len(optVars[optVars.keys()[0]])
+#     numModelEval = 1 if np.isscalar(tempDict[tempDict.keys()[0]]) else len(tempDict[tempDict.keys()[0]])
+#     lossFunctionValue = [0] * numInputToEvaluate
+#     lossFunctionFound = [False] * numInputToEvaluate
+#     for idxInput in range(numInputToEvaluate):
+#       tempOptVars = {}
+#       for key in optVars.keys():            tempOptVars[key] = np.atleast_1d(optVars[key][idxInput])      
+#       # find exact model output when optVars has been evaluated by the model
+#       for n in range(numModelEval):
+#         findOutputFlag = True
+#         for var in self.optVars:
+#           if tempDict[var][n] != tempOptVars[key]:
+#             findOutputFlag = False
+#             break
+#         if findOutputFlag:
+#           break
+#       if findOutputFlag: # This input has been evaluated by the Model
+#           lossFunctionValue[idxInput] = tempDict[self.objVar][n]
+#           lossFunctionFound[idxInput] = True
+#       else: # This input has not been evaluated by the Model; use ROM for loss function evaluation
+#         self.objSearchingROM.train(tempDict)
+#         lossFunctionValue[idxInput] = self.objSearchingROM.evaluate(tempOptVars)
+#         lossFunctionFound[idxInput] = True
+#         
+#     for idxInput in range(numInputToEvaluate):
+#       if not lossFunctionFound[idxInput]:   
+#         self.raiseAnError(ValueError, 'loss function cannot be evaluated for input ' + str(idxInput))
+        
+        
     self.objSearchingROM.train(tempDict)
-
     for key in optVars.keys():                    optVars[key] = np.atleast_1d(optVars[key])
     lossFunctionValue = self.objSearchingROM.evaluate(optVars)
+    
     if self.optType == 'min':           return lossFunctionValue
     else:                               return lossFunctionValue*-1.0
 

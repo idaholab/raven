@@ -265,15 +265,19 @@ class GradientBasedOptimizer(Optimizer):
         for var in self.optVars:
           if self.optVarsHist[traj][updateKey][var] > max[var]: max[var] = copy.deepcopy(self.optVarsHist[traj][updateKey][var])
           if self.optVarsHist[traj][updateKey][var] < min[var]: min[var] = copy.deepcopy(self.optVarsHist[traj][updateKey][var])
+    self.raiseADebug('max',max)
+    self.raiseADebug('min',min)
     
     removeFlag = False
     for traj in self.optTraj:
       if traj != trajToRemove:
         for updateKey in self.optVarsHist[traj].keys():
-          inp = self.optVarsHist[traj][updateKey]
+          inp = copy.deepcopy(self.optVarsHist[traj][updateKey])
           removeLocalFlag = True
+          self.raiseADebug(inp, currentInput)
           for var in self.optVars:
-            if (abs(inp[var] - currentInput[var])-min[var])/(max[var]-min[var]) > threshold:
+            self.raiseADebug('-------------------', (abs(inp[var] - currentInput[var]))/(max[var]-min[var]))
+            if (abs(inp[var] - currentInput[var]))/(max[var]-min[var]) > threshold:
               removeLocalFlag = False
               break
           if removeLocalFlag:
@@ -290,8 +294,11 @@ class GradientBasedOptimizer(Optimizer):
     
     if removeFlag:
       for trajInd, tr in enumerate(self.optTrajLive):
-        if tr == traj:
+        if tr == trajToRemove:
+          self.raiseADebug(self.optTrajLive)
           self.optTrajLive.pop(trajInd)
+          self.raiseADebug(self.optTrajLive)
+#           self.raiseAnError(IOError, 't')
           break      
 
   def localCheckConstraint(self, optVars, satisfaction = True):
@@ -312,7 +319,8 @@ class GradientBasedOptimizer(Optimizer):
       @ In, myInput, list, the generating input
     """
     if self.solutionExport != None and len(self.mdlEvalHist) > 0:
-      for traj in self.optTraj:        
+      for traj in self.optTraj:   
+        self.raiseADebug('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ ',self.optTrajLive)     
         while self.counter['solutionUpdate'][traj] <= self.counter['varsUpdate'][traj]:
           (solutionExportUpdatedFlag, index) = self._checkModelFinish(traj, self.counter['solutionUpdate'][traj], 'v')        
           if solutionExportUpdatedFlag:

@@ -11,5 +11,5 @@
   input = 'test_spsaWConstraint.xml'
   output = 'SPSAwConstraint/optimizationHistoryDump.csv'
   csv = 'SPSAwConstraint/mdlDataDump.csv SPSAwConstraint/optimizationHistoryDump_0.csv'
- [../] 
+ [../]
 []
