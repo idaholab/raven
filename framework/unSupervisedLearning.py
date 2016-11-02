@@ -212,7 +212,7 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
             self.normValues[j][i] = self.normValues[i][j]
       else:   ## PointSet
         normValues = np.zeros(shape = (realizationCount, featureCount))
-        self.normValues = np.zeros(shape =(realizationCount, realizationCount))
+        self.normValues = np.zeros(shape = (realizationCount, realizationCount))
         for cnt, feat in enumerate(self.features):
           featureValues = tdict[feat]
           (mu,sigma) = mathUtils.normalizationFactors(featureValues)
@@ -631,6 +631,7 @@ class SciKitLearn(unSupervisedLearning):
       labels = self.Method.predict(featureVals)
     else:
       labels = self.Method.fit_predict(featureVals)
+
 
     return labels
 
