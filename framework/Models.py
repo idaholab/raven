@@ -1952,6 +1952,7 @@ class EnsembleModel(Dummy, Assembler):
               if modelToRemove != modelIn: jobHandler.getFinished(jobIdentifier = modelToRemove + "|" + identifier, uniqueHandler = self.name + identifier)
             self.raiseAnError(RuntimeError,"The Model "+modelIn + " failed!")
           # get back the output in a general format
+          self.modelsDictionary[modelIn]['Instance'].finalizeModelOutput(finishedRun)
           self.modelsDictionary[modelIn]['Instance'].collectOutput(finishedRun[0],tempTargetEvaluations[modelIn],options={'acceptArrayRealizations':True})
           returnDict[modelIn]  = {}
           responseSpace = tempTargetEvaluations[modelIn].getParametersValues('outputs', nodeId = 'RecontructEnding')
