@@ -1,9 +1,9 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="debug">
+<Simulation verbosity="silent">
   <RunInfo>
     <WorkingDir>basicStatisticsXml</WorkingDir>
     <Sequence>FirstMRun,PP</Sequence>
-    <batchSize>1</batchSize>
+    <batchSize>100</batchSize>
   </RunInfo>
 
   <Files>
@@ -39,7 +39,7 @@
   <Samplers>
     <MonteCarlo name="MC_external">
       <samplerInit>
-        <limit>4</limit>
+        <limit>100000</limit>
       </samplerInit>
       <variable name="x0">
         <distribution>x0_distrib</distribution>
@@ -59,12 +59,12 @@
       <Model class="Models" type="ExternalModel">PythonModule</Model>
       <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
       <Output class="DataObjects" type="PointSet">PointSetPostProcTest</Output>
-      <Output class="OutStreams" type="Print">PointSetPostProcTest_dump</Output>
     </MultiRun>
     <PostProcess name="PP">
       <Input class="DataObjects" type="PointSet">PointSetPostProcTest</Input>
       <Model class="Models" type="PostProcessor">InputOutput</Model>
       <Output class="Files" type="">xmldump</Output>
+      <Output class="OutStreams" type="Print">PointSetPostProcTest_dump</Output>
     </PostProcess>
   </Steps>
 

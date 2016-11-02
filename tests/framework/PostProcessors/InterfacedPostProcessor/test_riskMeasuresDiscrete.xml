@@ -26,7 +26,7 @@
   <Samplers>
     <MonteCarlo name='MC'>
       <samplerInit>
-        <limit>1000</limit>
+        <limit>10</limit>
       </samplerInit>
       <variable name='valveTime'>
         <distribution>valveTime_distExp</distribution>
@@ -44,11 +44,11 @@
     <MultiRun name="FirstMRun" pauseAtEnd="True">
       <Input   class="DataObjects"  type="PointSet"        >inputPlaceHolder</Input>
       <Model   class="Models"       type="ExternalModel"   >PythonModule</Model>
-      <Sampler class="Samplers"     type="MonteCarlo"      >MC_external</Sampler>
+      <Sampler class="Samplers"     type="MonteCarlo"      >MC</Sampler>
       <Output  class="DataObjects"  type="PointSet"        >outRun</Output>
     </MultiRun>
     <PostProcess name="PP">
-      <Input   class="DataObjects"  type="HistorySet"      >outRun</Input>
+      <Input   class="DataObjects"  type="PointSet"        >outRun</Input>
       <Model   class="Models"       type="PostProcessor"   >riskMeasuresDiscrete</Model>
       <Output  class="DataObjects"  type="PointSet"        >outPPS</Output>
       <Output  class="OutStreams"   type="Print"           >PrintPPS_dump</Output>
@@ -60,8 +60,8 @@
 	    <variables>pump1Time,pump2Time,valveTime,Tmax,outcome,pump1State,pump2State,valveState,failureTime</variables>
 	  </ExternalModel>
     <PostProcessor name="riskMeasuresDiscrete" subType="InterfacedPostProcessor">
-      <method>riskMeasuresDiscrete</method>
-      <types>B,FV,RAW,RRW</types>
+      <method>RiskMeasuresDiscrete</method>
+      <measures>B,FV,RAW,RRW</measures>
       <variables>pump1State,pump2State,valveState</variables>
       <target>outcome</target>
     </PostProcessor>

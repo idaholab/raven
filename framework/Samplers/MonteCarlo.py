@@ -128,7 +128,7 @@ class MonteCarlo(ForwardSampler):
 
     if len(self.inputInfo['SampledVarsPb'].keys()) > 0:
       self.inputInfo['PointProbability'  ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
-      #self.inputInfo['ProbabilityWeight' ] = 1.0 #MC weight is 1/N => weight is one
+      self.inputInfo['ProbabilityWeight' ] = 1.0 #MC weight is 1/N => weight is one
     self.inputInfo['SamplerType'] = 'MC'
 
   def _localHandleFailedRuns(self,failedRuns):
