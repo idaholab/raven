@@ -1925,22 +1925,17 @@ class EnsembleModel(Dummy, Assembler):
       returnDict     = {}
       iterationCount += 1
       if self.activatePicard: self.raiseAMessage("Picard's Iteration "+ str(iterationCount))
-      modelCnt = 0
-      for executionLevel in self.executionList:
-
-        for modelIn in executionLevel:
-          modelCnt+=1
-        #for modelCnt, modelIn in enumerate(self.orderList):
-          dependentOutput = self.__retrieveDependentOutput(modelIn, gotOutputs, typeOutputs)
-          if iterationCount == 1  and self.activatePicard:
-            try              : sampledVars = Input[modelIn][0][1]['SampledVars'].keys()
-            except           : sampledVars = Input[modelIn][1]['SampledVars'].keys()
-            for initCondToSet in [x for x in self.modelsDictionary[modelIn]['Input'] if x not in set(dependentOutput.keys()+sampledVars)]:
-              if initCondToSet in self.initialConditions.keys(): dependentOutput[initCondToSet] = np.asarray(self.initialConditions[initCondToSet])
-              else                                             : self.raiseAnError(IOError,"No initial conditions provided for variable "+ initCondToSet)
-          Input[modelIn]  = self.modelsDictionary[modelIn]['Instance'].updateInputFromOutside(Input[modelIn], dependentOutput)
-          try              : Input[modelIn][0][1]['prefix'], Input[modelIn][0][1]['uniqueHandler'] = modelIn+"|"+identifier, self.name+identifier
-          except           : Input[modelIn][1]['prefix'   ], Input[modelIn][1]['uniqueHandler'   ] = modelIn+"|"+identifier, self.name+identifier
+      for modelCnt, modelIn in enumerate(self.orderList):
+        dependentOutput = self.__retrieveDependentOutput(modelIn, gotOutputs, typeOutputs)
+        if iterationCount == 1  and self.activatePicard:
+          try              : sampledVars = Input[modelIn][0][1]['SampledVars'].keys()
+          except           : sampledVars = Input[modelIn][1]['SampledVars'].keys()
+          for initCondToSet in [x for x in self.modelsDictionary[modelIn]['Input'] if x not in set(dependentOutput.keys()+sampledVars)]:
+            if initCondToSet in self.initialConditions.keys(): dependentOutput[initCondToSet] = np.asarray(self.initialConditions[initCondToSet])
+            else                                             : self.raiseAnError(IOError,"No initial conditions provided for variable "+ initCondToSet)
+        Input[modelIn]  = self.modelsDictionary[modelIn]['Instance'].updateInputFromOutside(Input[modelIn], dependentOutput)
+        try              : Input[modelIn][0][1]['prefix'], Input[modelIn][0][1]['uniqueHandler'] = modelIn+"|"+identifier, self.name+identifier
+        except           : Input[modelIn][1]['prefix'   ], Input[modelIn][1]['uniqueHandler'   ] = modelIn+"|"+identifier, self.name+identifier
         nextModel = False
         while not nextModel:
           moveOn = False
@@ -1987,6 +1982,68 @@ class EnsembleModel(Dummy, Assembler):
         if residueContainer['TotalResidue'] <= self.convergenceTol:
           self.raiseAMessage("Picard's Iteration converged. Norm: "+ str(residueContainer['TotalResidue']))
           break
+#       modelCnt = -1
+#       for executionLevel in self.executionList:
+# 
+#         for modelIn in executionLevel:
+#           modelCnt+=1
+#         #for modelCnt, modelIn in enumerate(self.orderList):
+#           dependentOutput = self.__retrieveDependentOutput(modelIn, gotOutputs, typeOutputs)
+#           if iterationCount == 1  and self.activatePicard:
+#             try              : sampledVars = Input[modelIn][0][1]['SampledVars'].keys()
+#             except           : sampledVars = Input[modelIn][1]['SampledVars'].keys()
+#             for initCondToSet in [x for x in self.modelsDictionary[modelIn]['Input'] if x not in set(dependentOutput.keys()+sampledVars)]:
+#               if initCondToSet in self.initialConditions.keys(): dependentOutput[initCondToSet] = np.asarray(self.initialConditions[initCondToSet])
+#               else                                             : self.raiseAnError(IOError,"No initial conditions provided for variable "+ initCondToSet)
+#           Input[modelIn]  = self.modelsDictionary[modelIn]['Instance'].updateInputFromOutside(Input[modelIn], dependentOutput)
+#           try              : Input[modelIn][0][1]['prefix'], Input[modelIn][0][1]['uniqueHandler'] = modelIn+"|"+identifier, self.name+identifier
+#           except           : Input[modelIn][1]['prefix'   ], Input[modelIn][1]['uniqueHandler'   ] = modelIn+"|"+identifier, self.name+identifier
+#         nextModel = False
+#         while not nextModel:
+#           moveOn = False
+#           while not moveOn:
+#             if jobHandler.howManyFreeSpots() > 0:
+#               self.modelsDictionary[modelIn]['Instance'].run(copy.deepcopy(Input[modelIn]),jobHandler)
+#               while not jobHandler.isThisJobFinished(modelIn+"|"+identifier): time.sleep(1.e-3)
+#               nextModel, moveOn = True, True
+#             else: time.sleep(1.e-3)
+#           # get job that just finished
+#           finishedRun = jobHandler.getFinished(jobIdentifier = modelIn+"|"+identifier, uniqueHandler=self.name+identifier)
+#           if finishedRun[0].getEvaluation() == -1:
+#             for modelToRemove in self.orderList:
+#               if modelToRemove != modelIn: jobHandler.getFinished(jobIdentifier = modelToRemove + "|" + identifier, uniqueHandler = self.name + identifier)
+#             self.raiseAnError(RuntimeError,"The Model "+modelIn + " failed!")
+#           # get back the output in a general format
+#           self.modelsDictionary[modelIn]['Instance'].collectOutput(finishedRun[0],tempTargetEvaluations[modelIn],options={'acceptArrayRealizations':True})
+#           returnDict[modelIn]  = {}
+#           responseSpace = tempTargetEvaluations[modelIn].getParametersValues('outputs', nodeId = 'RecontructEnding')
+#           inputSpace    = tempTargetEvaluations[modelIn].getParametersValues('inputs', nodeId = 'RecontructEnding')
+#           typeOutputs[modelCnt] = tempTargetEvaluations[modelIn].type
+#           gotOutputs[modelCnt]  = responseSpace if typeOutputs[modelCnt] != 'HistorySet' else responseSpace.values()[-1]
+#           #store the result in return dictionary
+#           returnDict[modelIn]['outputSpaceParams'] = gotOutputs[modelCnt]
+#           returnDict[modelIn]['inputSpaceParams' ] = inputSpace if typeOutputs[modelCnt] != 'HistorySet' else inputSpace.values()[-1]
+#           returnDict[modelIn]['metadata'         ] = tempTargetEvaluations[modelIn].getAllMetadata()
+#           #returnDict[modelIn] = {'outputSpaceParams':gotOutputs[modelCnt],'inputSpaceParams':tempTargetEvaluations[modelIn].getParametersValues('inputs', nodeId = 'RecontructEnding'),'metadata':tempTargetEvaluations[modelIn].getAllMetadata()}
+#           if self.activatePicard:
+#             # compute residue
+#             residueContainer[modelIn]['iterValues'][1] = copy.copy(residueContainer[modelIn]['iterValues'][0])
+#             for out in gotOutputs[modelCnt].keys():
+#               residueContainer[modelIn]['iterValues'][0][out] = copy.copy(gotOutputs[modelCnt][out])
+#               if iterationCount == 1: residueContainer[modelIn]['iterValues'][1][out] = np.zeros(len(residueContainer[modelIn]['iterValues'][0][out]))
+#             for out in gotOutputs[modelCnt].keys():
+#               residueContainer[modelIn]['residue'][out] = abs(np.asarray(residueContainer[modelIn]['iterValues'][0][out]) - np.asarray(residueContainer[modelIn]['iterValues'][1][out]))
+#             residueContainer[modelIn]['Norm'] =  np.linalg.norm(np.asarray(residueContainer[modelIn]['iterValues'][1].values())-np.asarray(residueContainer[modelIn]['iterValues'][0].values()))
+#       if self.activatePicard:
+#         iterZero, iterOne = [],[]
+#         for modelIn in self.orderList:
+#           iterZero += residueContainer[modelIn]['iterValues'][0].values()
+#           iterOne  += residueContainer[modelIn]['iterValues'][1].values()
+#         residueContainer['TotalResidue'] = np.linalg.norm(np.asarray(iterOne)-np.asarray(iterZero))
+#         self.raiseAMessage("Picard's Iteration Norm: "+ str(residueContainer['TotalResidue']))
+#         if residueContainer['TotalResidue'] <= self.convergenceTol:
+#           self.raiseAMessage("Picard's Iteration converged. Norm: "+ str(residueContainer['TotalResidue']))
+#           break
     returnEvaluation = returnDict, tempTargetEvaluations
     return returnEvaluation
 #
