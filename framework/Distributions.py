@@ -179,7 +179,7 @@ class Distribution(BaseType):
       @ In, upperBound, float, upper bound
       @ Out,randResult, float, random number
     """
-    randResult = self._distribution.InverseCdf(float(np.random.rand(1))*(upperBound-lowerBound)+lowerBound)
+    randResult = self._distribution.inverseCdf(float(np.random.rand(1))*(upperBound-lowerBound)+lowerBound)
     return randResult
 
   def rvsWithinbounds(self,lowerBound,upperBound):
@@ -370,7 +370,7 @@ class BoostDistribution(Distribution):
       @ In, x, float, value to get the inverse cdf at
       @ Out, retunrPpf, float, requested inverse cdf
     """
-    retunrPpf = self._distribution.InverseCdf(x)
+    retunrPpf = self._distribution.inverseCdf(x)
     return retunrPpf
 
   def pdf(self,x):
@@ -2074,7 +2074,7 @@ class NDInverseWeight(NDimensionalDistributions):
       @ In, x, np.array, the x coordinates
       @ Out, ppfValue, np.array, ppf values
     """
-    ppfValue = self._distribution.InverseCdf(x,random())
+    ppfValue = self._distribution.inverseCdf(x,random())
     return ppfValue
 
   def pdf(self,x):
@@ -2162,7 +2162,7 @@ class NDInverseWeight(NDimensionalDistributions):
       @ In, args, dict, arguments (for future usage)
       @ Out, rvsValue, np.array, the random coordinate
     """
-    rvsValue = self._distribution.InverseCdf(random(),random())
+    rvsValue = self._distribution.inverseCdf(random(),random())
     return rvsValue
 
 class NDCartesianSpline(NDimensionalDistributions):
@@ -2235,7 +2235,7 @@ class NDCartesianSpline(NDimensionalDistributions):
       @ In, x, np.array, the x coordinates
       @ Out, ppfValue, np.array, ppf values
     """
-    ppfValue = self._distribution.InverseCdf(x,random())
+    ppfValue = self._distribution.inverseCdf(x,random())
     return ppfValue
 
   def pdf(self,x):
@@ -2323,7 +2323,7 @@ class NDCartesianSpline(NDimensionalDistributions):
       @ In, args, dict, arguments (for future usage)
       @ Out, rvsValue, np.array, the random coordinate
     """
-    rvsValue = self._distribution.InverseCdf(random(),random())
+    rvsValue = self._distribution.inverseCdf(random(),random())
     return rvsValue
 
 class MultivariateNormal(NDimensionalDistributions):
@@ -2543,7 +2543,7 @@ class MultivariateNormal(NDimensionalDistributions):
       @ Out, ppfValue, np.array, ppf values
     """
     if self.method == 'spline':
-      ppfValue = self._distribution.InverseCdf(x,random())
+      ppfValue = self._distribution.inverseCdf(x,random())
     else:
       self.raiseAnError(NotImplementedError,'ppf is not yet implemented for ' + self.method + ' method')
     return ppfValue
@@ -2675,7 +2675,7 @@ class MultivariateNormal(NDimensionalDistributions):
       @ Out, rvsValue, np.array, the random coordinate
     """
     if self.method == 'spline':
-      rvsValue = self._distribution.InverseCdf(random(),random())
+      rvsValue = self._distribution.inverseCdf(random(),random())
     # if no transformation, then return the coordinate for the original input parameters
     # if there is a transformation, then return the coordinate in the reduced space
     elif self.method == 'pca':

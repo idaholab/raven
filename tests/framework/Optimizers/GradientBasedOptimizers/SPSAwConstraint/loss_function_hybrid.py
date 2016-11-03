@@ -18,8 +18,8 @@ def run(self,Input):
   # sample f and d
   rand1  = stochasticEnv.random()
   rand2  = stochasticEnv.random()
-  self.d = normal1.InverseCdf(rand1)
-  self.f = normal1.InverseCdf(rand2)
+  self.d = normal1.inverseCdf(rand1)
+  self.f = normal1.inverseCdf(rand2)
   B      = self.B
   R      = self.R
   d      = self.d
