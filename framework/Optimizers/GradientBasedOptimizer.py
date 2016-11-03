@@ -107,7 +107,7 @@ class GradientBasedOptimizer(Optimizer):
         readyFlag = True
     if readyFlag == False:
       ready = False
-      return ready # Return not ready if all trajectories has more them permitted variable updates.  
+      return ready # Return not ready if all trajectories has more them permitted variable updates.
 
     if self.mdlEvalHist.isItEmpty():
       for traj in self.optTrajLive:
@@ -127,9 +127,9 @@ class GradientBasedOptimizer(Optimizer):
             if not self._checkModelFinish(traj,self.counter['varsUpdate'][traj],pertID)[0]:
               evalNotFinish = True
               break
-          if evalNotFinish: 
+          if evalNotFinish:
             pass
-          else: 
+          else:
             readyFlag = True
             break
       if readyFlag: ready = True
@@ -145,11 +145,11 @@ class GradientBasedOptimizer(Optimizer):
       @ In, traj, ind, traj on which the input is being checked
       @ In, updateKey, int, the id of variable update on which the input is being checked
       @ In, evalID, int or string, indicating the id of the perturbation (int) or its a variable update (string 'v')
-      @ Out, _checkModelFinish, tuple(bool, int), (1,realization dictionary), 
-            (indicating whether the Model has finished the evaluation over input identified by traj+updateKey+evalID, the index of the location of the input in dataobject) 
+      @ Out, _checkModelFinish, tuple(bool, int), (1,realization dictionary),
+            (indicating whether the Model has finished the evaluation over input identified by traj+updateKey+evalID, the index of the location of the input in dataobject)
     """
     if self.mdlEvalHist.isItEmpty():    return False
-    
+
     prefix = self.mdlEvalHist.getMetadata('prefix')
     for index, pr in enumerate(prefix):
       pr = pr.split('|')[-1].split('_')
@@ -157,7 +157,7 @@ class GradientBasedOptimizer(Optimizer):
       if pr[0] == str(traj) and pr[1] == str(updateKey) and pr[2] == str(evalID):
         return (True, index)
     return (False, -1)
-    
+
   @abc.abstractmethod
   def localLocalStillReady(self, ready, convergence = False):
     """
@@ -225,14 +225,14 @@ class GradientBasedOptimizer(Optimizer):
       Method to check whether the convergence criteria has been met.
       @ In, none,
       @ Out, convergence, list, list of bool variable indicating whether the convergence criteria has been met for each trajectory.
-    """   
+    """
     convergence = True
     for traj in self.optTraj:
       if self.convergeTraj[traj] == False:
         convergence = False
         break
     return convergence
-  
+
   def _updateConvergenceVector(self, traj, varsUpdate, currentLossValue):
     """
       Local method to update convergence vector.
@@ -242,7 +242,7 @@ class GradientBasedOptimizer(Optimizer):
       @ Out, None
     """
     if self.convergeTraj[traj] == False:
-      if varsUpdate > 1: 
+      if varsUpdate > 1:
         oldVal = copy.deepcopy(self.lossFunctionEval(self.optVarsHist[traj][varsUpdate-1]))
         if abs(currentLossValue-oldVal) < self.convergenceTol:
           self.convergeTraj[traj] = True
@@ -267,7 +267,7 @@ class GradientBasedOptimizer(Optimizer):
           if self.optVarsHist[traj][updateKey][var] < min[var]: min[var] = copy.deepcopy(self.optVarsHist[traj][updateKey][var])
     self.raiseADebug('max',max)
     self.raiseADebug('min',min)
-    
+
     removeFlag = False
     for traj in self.optTraj:
       if traj != trajToRemove:
@@ -291,7 +291,7 @@ class GradientBasedOptimizer(Optimizer):
             break
         if removeFlag:
           break
-    
+
     if removeFlag:
       for trajInd, tr in enumerate(self.optTrajLive):
         if tr == trajToRemove:
@@ -299,7 +299,7 @@ class GradientBasedOptimizer(Optimizer):
           self.optTrajLive.pop(trajInd)
           self.raiseADebug(self.optTrajLive)
 #           self.raiseAnError(IOError, 't')
-          break      
+          break
 
   def localCheckConstraint(self, optVars, satisfaction = True):
     """
@@ -319,14 +319,14 @@ class GradientBasedOptimizer(Optimizer):
       @ In, myInput, list, the generating input
     """
     if self.solutionExport != None and len(self.mdlEvalHist) > 0:
-      for traj in self.optTraj:   
-        self.raiseADebug('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ ',self.optTrajLive)     
+      for traj in self.optTraj:
+        self.raiseADebug('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ ',self.optTrajLive)
         while self.counter['solutionUpdate'][traj] <= self.counter['varsUpdate'][traj]:
-          (solutionExportUpdatedFlag, index) = self._checkModelFinish(traj, self.counter['solutionUpdate'][traj], 'v')        
+          (solutionExportUpdatedFlag, index) = self._checkModelFinish(traj, self.counter['solutionUpdate'][traj], 'v')
           if solutionExportUpdatedFlag:
             inputeval=self.mdlEvalHist.getParametersValues('inputs', nodeId = 'RecontructEnding')
             outputeval=self.mdlEvalHist.getParametersValues('outputs', nodeId = 'RecontructEnding')
-            
+
             # check convergence
             self._updateConvergenceVector(traj, self.counter['solutionUpdate'][traj], outputeval[self.objVar][index])
 
@@ -335,9 +335,9 @@ class GradientBasedOptimizer(Optimizer):
               self.raiseAnError(ValueError, 'trajID is not in the input space of solutionExport')
             else:
               trajID = traj+1 # This is needed to be compatible with historySet object
-              self.solutionExport.updateInputValue([trajID,'trajID'], traj)             
+              self.solutionExport.updateInputValue([trajID,'trajID'], traj)
               tempOutput = self.solutionExport.getParametersValues('outputs', nodeId = 'RecontructEnding')
-              
+
               tempTrajOutput = tempOutput.get(trajID, {})
               for var in self.solutionExport.getParaKeys('outputs'):
                 if var in self.optVars:

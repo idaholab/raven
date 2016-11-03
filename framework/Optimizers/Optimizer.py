@@ -162,7 +162,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         for childChild in child:
           if   childChild.tag == "upperBound": self.optVarsInit['upperBound'][varname] = float(childChild.text)
           elif childChild.tag == "lowerBound": self.optVarsInit['lowerBound'][varname] = float(childChild.text)
-          elif childChild.tag == "initial"   : 
+          elif childChild.tag == "initial"   :
             self.optVarsInit['initial'][varname] = {}
             temp = childChild.text.split(',')
             for trajInd, initVal in enumerate(temp):
@@ -215,13 +215,13 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
           self.optVarsInit['initial'][varname][trajInd] = 0.0
       if len(self.optTraj) != len(self.optVarsInit['initial'][varname].keys()):
         self.raiseAnError(ValueError, 'Number of initial values does not equal to the number of parallel optimization trajectories')
-    self.optTrajLive = copy.deepcopy(self.optTraj)  
+    self.optTrajLive = copy.deepcopy(self.optTraj)
     # debug
     self.raiseADebug(self.optVarsInit['initial'])
     self.raiseADebug(self.optTraj)
 #     self.raiseAnError(ValueError, 't')
-    # end of debug  
-    
+    # end of debug
+
   def localInputAndChecks(self,xmlNode):
     """
       Local method. Place here the additional reading, remember to add initial parameters in the method localGetInitParams
@@ -367,16 +367,16 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     tempDict = copy.copy(self.mdlEvalHist.getParametersValues('inputs', nodeId = 'RecontructEnding'))
     tempDict.update(self.mdlEvalHist.getParametersValues('outputs', nodeId = 'RecontructEnding'))
     for key in tempDict.keys():                   tempDict[key] = np.asarray(tempDict[key])
-    
+
 #     for key in optVars.keys():                    optVars[key] = np.atleast_1d(optVars[key])
-#     
+#
 #     numInputToEvaluate = 1 if np.isscalar(optVars[optVars.keys()[0]]) else len(optVars[optVars.keys()[0]])
 #     numModelEval = 1 if np.isscalar(tempDict[tempDict.keys()[0]]) else len(tempDict[tempDict.keys()[0]])
 #     lossFunctionValue = [0] * numInputToEvaluate
 #     lossFunctionFound = [False] * numInputToEvaluate
 #     for idxInput in range(numInputToEvaluate):
 #       tempOptVars = {}
-#       for key in optVars.keys():            tempOptVars[key] = np.atleast_1d(optVars[key][idxInput])      
+#       for key in optVars.keys():            tempOptVars[key] = np.atleast_1d(optVars[key][idxInput])
 #       # find exact model output when optVars has been evaluated by the model
 #       for n in range(numModelEval):
 #         findOutputFlag = True
@@ -393,16 +393,16 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 #         self.objSearchingROM.train(tempDict)
 #         lossFunctionValue[idxInput] = self.objSearchingROM.evaluate(tempOptVars)
 #         lossFunctionFound[idxInput] = True
-#         
+#
 #     for idxInput in range(numInputToEvaluate):
-#       if not lossFunctionFound[idxInput]:   
+#       if not lossFunctionFound[idxInput]:
 #         self.raiseAnError(ValueError, 'loss function cannot be evaluated for input ' + str(idxInput))
-        
-        
+
+
     self.objSearchingROM.train(tempDict)
     for key in optVars.keys():                    optVars[key] = np.atleast_1d(optVars[key])
     lossFunctionValue = self.objSearchingROM.evaluate(optVars)
-    
+
     if self.optType == 'min':           return lossFunctionValue
     else:                               return lossFunctionValue*-1.0
 

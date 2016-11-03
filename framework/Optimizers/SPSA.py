@@ -53,7 +53,7 @@ class SPSA(GradientBasedOptimizer):
     self.paramDict['A']     = float(self.paramDict.get('A', self.limit['mdlEval']/10))
     self.paramDict['a']     = float(self.paramDict.get('a', 0.16))
     self.paramDict['c']     = float(self.paramDict.get('c', 0.005))
-    
+
     self.constraintHandlingPara['innerBisectionThreshold'] = float(self.paramDict.get('innerBisectionThreshold', 1e-2))
     self.constraintHandlingPara['innerLoopLimit'] = float(self.paramDict.get('innerLoopLimit', 1000))
 
@@ -73,7 +73,7 @@ class SPSA(GradientBasedOptimizer):
       @ In, solutionExport, DataObject, optional, a PointSet to hold the solution
       @ Out, None
     """
-    self._endJobRunnable = 1 
+    self._endJobRunnable = 1
     self.gradDict['pertNeeded'] = self.gradDict['numIterForAve'] * 2
 
   def localLocalStillReady(self, ready, convergence = False):
@@ -94,8 +94,8 @@ class SPSA(GradientBasedOptimizer):
       @ In, oldInput, list, a list of the original needed inputs for the model (e.g. list of files, etc. etc)
       @ Out, None
     """
-    GradientBasedOptimizer.localGenerateInput(self,model,oldInput)    
-    
+    GradientBasedOptimizer.localGenerateInput(self,model,oldInput)
+
     if self.counter['mdlEval'] <= len(self.optTraj): # Just started
       traj = self.optTrajLive.pop(0)
       self.optTrajLive.append(traj)
@@ -107,7 +107,7 @@ class SPSA(GradientBasedOptimizer):
       self.inputInfo['prefix'] = str(traj) + '_' + str(self.counter['varsUpdate'][traj]) + '_v_' + str(self.counter['mdlEval'])
 
     else:
-      while True: # this while loop is needed to loop over all trajectories to find one that is ready for update. 
+      while True: # this while loop is needed to loop over all trajectories to find one that is ready for update.
         traj = self.optTrajLive.pop(0)
         self.optTrajLive.append(traj)
         if self.counter['perturbation'][traj] < self.gradDict['pertNeeded']:
@@ -146,30 +146,30 @@ class SPSA(GradientBasedOptimizer):
           else:  # evaluation completed for gradient evaluation
             self.counter['perturbation'][traj] = 0
             self.counter['varsUpdate'][traj] += 1
-          
+
             ak = self._computeGainSequenceAk(self.paramDict,self.counter['varsUpdate'][traj]) # Compute the new ak
             gradient = self.evaluateGradient(self.gradDict['pertPoints'][traj])
 
             self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = {}
             varK = copy.deepcopy(self.optVarsHist[traj][self.counter['varsUpdate'][traj]-1])
-            
+
             varKPlus = self._generateVarsUpdateConstrained(ak,gradient,varK)
             for var in self.optVars:
               self.values[var] = copy.deepcopy(varKPlus[var])
               self.optVarsHist[traj][self.counter['varsUpdate'][traj]][var] = copy.deepcopy(self.values[var])
-            
+
             # use 'prefix' to locate the input sent out. The format is: trajID + iterID + (v for variable update; otherwise id for gradient evaluation) + global ID
             self.inputInfo['prefix'] = str(traj) + '_' + str(self.counter['varsUpdate'][traj]) + '_v_' + str(self.counter['mdlEval'])
-            
+
             # remove redundant trajectory
             if len(self.optTrajLive) > 1 and self.counter['solutionUpdate'][traj] > 0:
 #               currentInput = {}
 #               for var in inputeval.keys():
 #                 currentInput[var] = inputeval[var][index]
               self._removeRedundantTraj(traj, self.values)
-            
-            
-            
+
+
+
             break
 
   def _generateVarsUpdateConstrained(self,ak,gradient,varK):
