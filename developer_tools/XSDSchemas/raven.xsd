@@ -3,7 +3,7 @@
 
     <xsd:include schemaLocation="Distributions.xsd"/>
     <xsd:include schemaLocation="Samplers.xsd"/>
-	<xsd:include schemaLocation="Optimizers.xsd"/>
+    <xsd:include schemaLocation="Optimizers.xsd"/>
     <xsd:include schemaLocation="Models.xsd"/>
     <xsd:include schemaLocation="Functions.xsd"/>
     <xsd:include schemaLocation="Files.xsd"/>
@@ -12,6 +12,7 @@
     <xsd:include schemaLocation="Steps.xsd"/>
     <xsd:include schemaLocation="Databases.xsd"/>
     <xsd:include schemaLocation="DataObjects.xsd"/>
+    <xsd:include schemaLocation="Metrics.xsd"/>
 
     <!-- Common simple types -->
     <xsd:simpleType name="floatList">
@@ -97,12 +98,13 @@
                 <xsd:element name="Files"          type="FilesType"        minOccurs="0"/>
                 <xsd:element name="VariableGroups" type="VarGroupsType"    minOccurs="0"/>
                 <xsd:element name="Samplers"       type="SamplerData"      minOccurs="0"/>
-				<xsd:element name="Optimizers"     type="OptimizerData"    minOccurs="0"/>
+                <xsd:element name="Optimizers"     type="OptimizerData"    minOccurs="0"/>
                 <xsd:element name="DataObjects"    type="DataObjectsData"  minOccurs="0"/>
                 <xsd:element name="Distributions"  type="DistributionData" minOccurs="0"/>
                 <xsd:element name="Functions"      type="FunctionType"     minOccurs="0"/>
                 <xsd:element name="Databases"      type="DatabaseType"     minOccurs="0"/>
                 <xsd:element name="OutStreams"     type="OutStreamData"    minOccurs="0"/>
+                <xsd:element name="Metrics"        type="MetricsData"      minOccurs="0"/>
             </xsd:all>
             <xsd:attribute name="verbosity"       type="verbosityAttr" default="all"/>
             <xsd:attribute name="printTimeStamps" type="RavenBool" />
@@ -151,9 +153,16 @@
                             <xsd:attribute name="maxOnNode" type="xsd:integer" />
                           </xsd:complexType>
                         </xsd:element>
+                        <xsd:element name="LimitNode" minOccurs="0">
+                          <xsd:complexType>
+                            <xsd:attribute name="maxOnNode" type="xsd:integer" use="required"/>
+                          </xsd:complexType>
+                        </xsd:element>
                     </xsd:choice>
                 </xsd:complexType>
             </xsd:element>
+            <xsd:element name="MPIExec"            type="xsd:string"  minOccurs="0" default="mpiexec"/>
+            <xsd:element name="NodeParameter"      type="xsd:string"  minOccurs="0" default="-f"/>
             <xsd:element name="NumMPI"             type="xsd:integer" minOccurs="0" default="1"/>
             <xsd:element name="totalNumCoresUsed"  type="xsd:integer" minOccurs="0" default="1"/>
             <xsd:element name="precommand"         type="xsd:string"  minOccurs="0" default="None"/>

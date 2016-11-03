@@ -58,41 +58,77 @@ def printStatement():
   this sentence, must appear on any copies of this computer software.
   """)
 
+def checkVersions():
+  """
+    Method to check if versions of modules are new enough. Will call sys.exit
+    if they are not in the range specified.
+    @ In, None
+    @ Out, None
+  """
+  sys.path.append(os.path.join(os.path.dirname(frameworkDir),"scripts","TestHarness","testers"))
+  import RavenUtils
+  sys.path.pop() #remove testers path
+  missing,outOfRange,notQA = RavenUtils.checkForMissingModules()
+  if len(missing) + len(outOfRange) > 0 and RavenUtils.checkVersions():
+    print("ERROR: too old, too new, or missing raven libraries, not running:")
+    for error in missing + outOfRange + notQA:
+      print(error)
+    sys.exit(-4)
+  else:
+    if len(notQA) > 0:
+      print("WARNING: not using tested versions of the libraries:")
+      for warning in notQA + missing + outOfRange:
+        print(warning)
+
 if __name__ == '__main__':
   """This is the main driver for the RAVEN framework"""
   # Retrieve the framework directory path and working dir
   printStatement()
+
+  checkVersions()
+
   verbosity      = 'all'
   interfaceCheck = False
   interactive = False
   workingDir = os.getcwd()
+
+  ## Remove duplicate command line options and preserve order so if they try
+  ## conflicting options, the last one will take precedence.
+  sys.argv = utils.removeDuplicates(sys.argv)
+
+  itemsToRemove = []
   for item in sys.argv:
-    if   item.lower() == 'silent':
-      verbosity = 'silent'
-      sys.argv.pop(sys.argv.index(item))
-    elif item.lower() == 'quiet':
-      verbosity = 'quiet'
-      sys.argv.pop(sys.argv.index(item))
-    elif item.lower() == 'all':
-      verbosity = 'all'
-      sys.argv.pop(sys.argv.index(item))
+    if item.lower() in ['silent','quiet','all']:
+      verbosity = item.lower()
+      itemsToRemove.append(item)
     elif item.lower() == 'interfacecheck':
       interfaceCheck = True
-      sys.argv.pop(sys.argv.index(item))
+      itemsToRemove.append(item)
     elif item.lower() == 'interactive':
       if __PySideAvailable:
         interactive = True
       else:
         print('\nPySide is not installed, disabling interactive mode.\n')
-      sys.argv.pop(sys.argv.index(item))
-  if interfaceCheck: os.environ['RAVENinterfaceCheck'] = 'True'
-  else             : os.environ['RAVENinterfaceCheck'] = 'False'
-  simulation = Simulation(frameworkDir,verbosity=verbosity,interactive=interactive)
+      itemsToRemove.append(item)
+
+  ## Now outside of the loop iterating on the object we want to modify, we are
+  ## safe to remove each of the items
+  for item in itemsToRemove:
+    sys.argv.remove(item)
+
+  if interfaceCheck:
+    os.environ['RAVENinterfaceCheck'] = 'True'
+  else:
+    os.environ['RAVENinterfaceCheck'] = 'False'
+
+  simulation = Simulation(frameworkDir, verbosity=verbosity, interactive=interactive)
+
   #If a configuration file exists, read it in
   configFile = os.path.join(os.path.expanduser("~"),".raven","default_runinfo.xml")
   if os.path.exists(configFile):
     tree = ET.parse(configFile)
     root = tree.getroot()
+
     if root.tag == 'Simulation' and [x.tag for x in root] == ["RunInfo"]:
       simulation.XMLread(root,runInfoSkip=set(["totNumCoresUsed"]),xmlFilename=configFile)
     else:
@@ -108,6 +144,7 @@ if __name__ == '__main__':
     inputFiles = [simulation.getDefaultInputFile()]
   else:
     inputFiles = sys.argv[1:]
+
   for i in range(len(inputFiles)):
     if not os.path.isabs(inputFiles[i]):
       inputFiles[i] = os.path.join(workingDir,inputFiles[i])
@@ -118,17 +155,22 @@ if __name__ == '__main__':
   #  are still thrown while parsing the XML tree.  Otherwise any error made by
   #  the developer or user might be obfuscated.
   for inputFile in inputFiles:
-    try: tree = ET.parse(inputFile)
+    try:
+      tree = ET.parse(inputFile)
     except ET.ParseError as e:
       print('\nXML Parsing error!',e,'\n')
       sys.exit(1)
+
     #except?  riseanIOError('not possible to parse (xml based) the input file '+inputFile)
-    if verbosity=='debug': print('DRIVER','opened file '+inputFile)
+    if verbosity=='debug':
+      print('DRIVER','opened file '+inputFile)
+
     root = tree.getroot()
     if root.tag != 'Simulation':
       e=IOError('The outermost block of the input file '+inputFile+' it is not Simulation')
       print('\nInput XML Error!',e,'\n')
       sys.exit(1)
+
     # call the function to load the external xml files into the ET
     simulation.XMLpreprocess(root,xmlFileName=inputFile)
     #generate all the components of the simulation
@@ -152,38 +194,41 @@ if __name__ == '__main__':
     if simulation.app is not None:
       simulation.app.quit()
 
-  try:
-    ## Create the thread that will run RAVEN, and make sure that it will die if
-    ## the main thread dies by making it a daemon, then start it up
-    ravenThread = threading.Thread(target=raven)
-    ravenThread.daemon = True
-    ravenThread.start()
+  if simulation.app is not None:
+    try:
+      ## Create the thread that will run RAVEN, and make sure that it will die if
+      ## the main thread dies by making it a daemon, then start it up
+      ravenThread = threading.Thread(target=raven)
+      ravenThread.daemon = True
+      ravenThread.start()
 
-    ## If there is an associated application, then we can start it up now as
-    ## well. It will listen for UI update requests from the ravenThread.
-    if simulation.app is not None:
-      simulation.app.exec_()
+      ## If there is an associated application, then we can start it up now as
+      ## well. It will listen for UI update requests from the ravenThread.
+      if simulation.app is not None:
+        simulation.app.exec_()
 
-    ## This makes sure that the main thread waits for RAVEN to complete before
-    ## exiting, however join will block the main thread until ravenThread is
-    ## complete, thus ignoring any kill signals until after it has completed
-    # ravenThread.join()
+      ## This makes sure that the main thread waits for RAVEN to complete before
+      ## exiting, however join will block the main thread until ravenThread is
+      ## complete, thus ignoring any kill signals until after it has completed
+      # ravenThread.join()
 
-    waitTime = 0.1 ## in seconds
+      waitTime = 0.1 ## in seconds
 
-    ## So, in order to live wait for ravenThread, we need a spinlock that will
-    ## allow us to accept keyboard input.
-    while ravenThread.isAlive():
-      ## Use one of these two alternatives, effectively they should be the same
-      ## not sure if there is any advantage to one over the other
-      time.sleep(waitTime)
-      # ravenThread.join(waitTime)
+      ## So, in order to live wait for ravenThread, we need a spinlock that will
+      ## allow us to accept keyboard input.
+      while ravenThread.isAlive():
+        ## Use one of these two alternatives, effectively they should be the same
+        ## not sure if there is any advantage to one over the other
+        time.sleep(waitTime)
+        # ravenThread.join(waitTime)
 
-  except KeyboardInterrupt:
-    if ravenThread.isAlive():
-      traceback.print_stack(sys._current_frames()[ravenThread.ident])
-    print ('\n\n! Received keyboard interrupt, exiting RAVEN.\n\n')
-  except SystemExit:
-    if ravenThread.isAlive():
-      traceback.print_stack(sys._current_frames()[ravenThread.ident])
-    print ('\n\n! Exit called, exiting RAVEN.\n\n')
+    except KeyboardInterrupt:
+      if ravenThread.isAlive():
+        traceback.print_stack(sys._current_frames()[ravenThread.ident])
+      print ('\n\n! Received keyboard interrupt, exiting RAVEN.\n\n')
+    except SystemExit:
+      if ravenThread.isAlive():
+        traceback.print_stack(sys._current_frames()[ravenThread.ident])
+      print ('\n\n! Exit called, exiting RAVEN.\n\n')
+  else:
+    raven()

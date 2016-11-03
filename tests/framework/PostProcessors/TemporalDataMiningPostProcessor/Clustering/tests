@@ -1,0 +1,51 @@
+[Tests]
+  [./KMeans]
+    type    = 'RavenFramework'
+    input   = 'test_tdmSKLearnKMeans.xml'
+    csv     = 'KMeans/centroid_0.csv KMeans/centroid_2.csv KMeans/dummy_0.csv KMeans/dummy_9.csv'
+    rel_err = 0.001
+  [../]
+  [./MiniBatchKMeans]
+    type   = 'RavenFramework'
+    input  = 'test_tdmSKLearnMiniBatchKMeans.xml'
+    csv    = 'MiniBatchKMeans/centroid_0.csv MiniBatchKMeans/centroid_2.csv MiniBatchKMeans/dummy_0.csv MiniBatchKMeans/dummy_9.csv'
+  [../]
+  [./MeanShift]
+    type   = 'RavenFramework'
+    input  = 'test_tdmSKLearnMeanShift.xml'
+    csv    = 'MeanShift/centroid_0.csv MeanShift/centroid_2.csv MeanShift/dummy_0.csv MeanShift/dummy_9.csv'
+  [../]
+  [./DBSCAN]
+    type   = 'RavenFramework'
+    input  = 'test_tdmSKLearnDBSCAN.xml'
+    csv    = 'DBSCAN/centroid_0.csv DBSCAN/centroid_7.csv DBSCAN/dummy_0.csv DBSCAN/dummy_9.csv'
+  [../]
+  [./AffinityPropogation]
+    type   = 'RavenFramework'
+    input  = 'test_tdmSKLearnAffinityPropogation.xml'
+    csv    = 'AffinityPropogation/centroid_0.csv AffinityPropogation/dummy_0.csv AffinityPropogation/dummy_9.csv'
+  [../]
+  [./SpectralClustering]
+    type   = 'RavenFramework'
+    input  = 'test_tdmSKLearnSpectralClustering.xml'
+    csv    = 'SpectralClustering/centroid_0.csv SpectralClustering/centroid_2.csv
+			  SpectralClustering/dummy_0.csv SpectralClustering/dummy_9.csv'
+  [../]
+  [./GaussianMixture]
+    type   = 'RavenFramework'
+    input  = 'test_tdmSKLearnGaussianMixture.xml'
+    csv    = 'GaussianMixture/centroid_0.csv GaussianMixture/centroid_2.csv
+			  GaussianMixture/dummy_0.csv GaussianMixture/dummy_9.csv'
+  [../]
+  [./DirichletProcessGMM]
+    type   = 'RavenFramework'
+    input  = 'test_tdmSKLearnDirichletProcessGMM.xml'
+    csv    = 'DirichletProcessGMM/centroid_0.csv
+              DirichletProcessGMM/dummy_0.csv DirichletProcessGMM/dummy_2.csv'
+  [../]
+  [./VariationalGMM]
+    type   = 'RavenFramework'
+    input  = 'test_tdmSKLearnVariationalGMM.xml'
+    csv    = 'VariationalGMM/centroid_0.csv VariationalGMM/dummy_0.csv VariationalGMM/dummy_2.csv'
+  [../]
+[]

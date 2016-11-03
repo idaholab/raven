@@ -2,6 +2,10 @@
 
 num_fails=0
 
+pushd ../../framework
+RAVEN_FRAMEWORK_DIR=$(pwd)
+popd
+
 wait_lines ()
 {
     LS_DATA="$1"
@@ -19,7 +23,12 @@ wait_lines ()
     else
         echo FAIL $NAME
         num_fails=$(($num_fails+1))
+        printf '\n\nStandard Error:\n'
+        cat $RAVEN_FRAMEWORK_DIR/test_qsub.e*
+        printf '\n\nStandard Output:\n'
+        cat $RAVEN_FRAMEWORK_DIR/test_qsub.o*
     fi
+    rm $RAVEN_FRAMEWORK_DIR/test_qsub.[eo]*
 
 }
 
@@ -36,6 +45,12 @@ python ../../framework/Driver.py test_mpiqsub_nosplit.xml cluster_runinfo.xml
 
 wait_lines 'FirstMNRun/[1-6]/*.csv' 6 mpiqsub_nosplit
 
+rm -Rf FirstMLRun/
+
+python ../../framework/Driver.py test_mpiqsub_limitnode.xml cluster_runinfo.xml
+
+wait_lines 'FirstMLRun/[1-6]/*.csv' 6 mpiqsub_limitnode
+
 rm -Rf FirstMRun/
 
 qsub -P moose -l select=6:ncpus=4:mpiprocs=1 -l walltime=10:00:00 -l place=free -W block=true ./run_mpi_test.sh
@@ -47,6 +62,12 @@ rm -Rf FirstPRun/
 python ../../framework/Driver.py test_pbs.xml cluster_runinfo.xml
 
 wait_lines 'FirstMQRun/1/*eqn.csv FirstMQRun/2/*eqn.csv FirstMQRun/3/*eqn.csv FirstMQRun/4/*eqn.csv FirstMQRun/5/*eqn.csv FirstMQRun/6/*eqn.csv' 6 pbsdsh
+
+rm -Rf FirstMFRun/
+
+python ../../framework/Driver.py test_mpiqsub_flex.xml cluster_runinfo.xml
+
+wait_lines 'FirstMFRun/[1-6]/*.csv' 6 mpiqsub_flex
 
 ######################################
 # test parallel for internal Objects #

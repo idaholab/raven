@@ -452,7 +452,7 @@ class SmolyakSparseGrid(SparseGrid):
       #finishedJobs = handler.getFinished(prefix=prefix) #FIXME this is by far the most expensive line in this method
       for job in finishedJobs:
         if job.getReturnCode() == 0:
-          new = job.returnEvaluation()[1]
+          new = job.getEvaluation()[1]
           for i in range(len(new[0])):
             newpt = tuple(new[0][i])
             newwt = new[1][i]*float(str(job.identifier).replace(prefix, ""))
@@ -513,7 +513,7 @@ class SmolyakSparseGrid(SparseGrid):
       finishedJobs = handler.getFinished(jobIdentifier=prefix)
       for job in finishedJobs:
         if job.getReturnCode() == 0:
-          self.c[int(str(job.identifier).replace(prefix, ""))]=job.returnEvaluation()[1]
+          self.c[int(str(job.identifier).replace(prefix, ""))]=job.getEvaluation()[1]
         else:
           self.raiseAMessage('Sparse grid index '+job.identifier+' failed...')
       if i<N-1: #load new inputs, up to 100 at a time

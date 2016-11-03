@@ -51,7 +51,6 @@ import Models
 import PostProcessors
 import MessageHandler
 import GridEntities
-from AMSC_Object import AMSC_Object
 distribution1D = utils.find_distribution1D()
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -409,7 +408,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
   def _generateDistributions(self,availableDist,availableFunc):
     """
-      Generates the distrbutions and functions.
+      Generates the distributions and functions.
       @ In, availableDist, dict, dict of distributions
       @ In, availableFunc, dict, dict of functions
       @ Out, None
@@ -572,7 +571,8 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     # generate the function variable values
     for var in self.dependentSample.keys():
       test=self.funcDict[var].evaluate("evaluate",self.values)
-      self.values[var] = test
+      for corrVar in var.split(","):
+        self.values[corrVar.strip()] = test
     ##### RESTART #####
     #check if point already exists
     if self.restartData is not None:
@@ -689,7 +689,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     if len(failedRuns)>0:
       self.raiseAWarning('There were %i failed runs!  Run with verbosity = debug for more details.' %(len(failedRuns)))
       for run in failedRuns:
-        metadata = run.returnMetadata()
+        metadata = run.getMetadata()
         self.raiseADebug('  Run number %s FAILED:' %run.identifier,run.command)
         self.raiseADebug('      return code :',run.getReturnCode())
         if metadata is not None:

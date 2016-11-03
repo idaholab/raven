@@ -72,7 +72,7 @@
       <source>Temporal_Evolution</source>
     </Print>
 
-    <Plot name='plotWWBBN' dim='2' overwrite='False'>
+    <Plot name='plotWWBBN'   overwrite='False'>
       <plotSettings>
           <plot>
               <type>line</type>
@@ -90,7 +90,7 @@
       </actions>
     </Plot>
 
-    <Plot name='plotAFW' dim='2' overwrite='False'>
+    <Plot name='plotAFW'   overwrite='False'>
       <plotSettings>
           <plot>
               <type>line</type>

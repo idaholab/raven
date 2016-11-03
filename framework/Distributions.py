@@ -6,6 +6,7 @@ Created on Mar 7, 2013
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
+#from __builtin__ import None
 warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
@@ -17,6 +18,8 @@ from math import gamma
 import os
 import operator
 from collections import OrderedDict
+import csv
+from scipy.interpolate import UnivariateSpline
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -39,7 +42,7 @@ stochasticEnv = distribution1D.DistributionContainer.Instance()
 """
   Mapping between internal framework and Crow distribution name
 """
-_FrameworkToCrowDistNames = {'Uniform':'UniformDistribution',
+_FrameworkToCrowDistNames = { 'Uniform':'UniformDistribution',
                               'Normal':'NormalDistribution',
                               'Gamma':'GammaDistribution',
                               'Beta':'BetaDistribution',
@@ -48,6 +51,7 @@ _FrameworkToCrowDistNames = {'Uniform':'UniformDistribution',
                               'Binomial':'BinomialDistribution',
                               'Bernoulli':'BernoulliDistribution',
                               'Logistic':'LogisticDistribution',
+                              'Custom1D':'Custom1DDistribution',
                               'Exponential':'ExponentialDistribution',
                               'Categorical':'Categorical',
                               'LogNormal':'LogNormalDistribution',
@@ -1298,7 +1302,7 @@ class Categorical(Distribution):
 
   def _readMoreXML(self,xmlNode):
     """
-      Function that retrive data to initialize the categorical distribution from the xmlNode
+      Function that retrieves data to initialize the categorical distribution from the xmlNode
       @ In, None
       @ Out, None
     """
@@ -1315,7 +1319,7 @@ class Categorical(Distribution):
         else:
           self.values.add(float(outcome))
       else:
-        self.raiseAnError(IOError,'Invalide xml node for Categorical distribution; only "state" is allowed')
+        self.raiseAnError(IOError,'Invalid xml node for Categorical distribution; only "state" is allowed')
 
     self.initializeDistribution()
 
@@ -1793,6 +1797,129 @@ class Weibull(BoostDistribution):
       else:b = self.upperBound
       self._distribution = distribution1D.BasicWeibullDistribution(self.k,self.lambdaVar,a,b,self.low)
 
+
+class Custom1D(Distribution):
+  """
+    Custom1D univariate distribution which is initialized by a dataObject compatible .csv file
+  """
+  def __init__(self):
+    """
+      Constructor
+      @ In, None
+      @ Out, None
+    """
+    Distribution.__init__(self)
+    self.dataFilename    = None
+    self.functionType    = None
+    self.type            = 'Custom1D'
+    self.functionID      = None
+    self.variableID      = None
+    self.dimensionality  = 1
+    self.disttype        = 'Continuous'
+
+  def _readMoreXML(self,xmlNode):
+    """
+      Read the the xml node of the Custom1D distribution
+      @ In, xmlNode, xml.etree.ElementTree.Element, the contents of Custom1D node.
+      @ Out, None
+    """
+    Distribution._readMoreXML(self, xmlNode)
+    workingDir = xmlNode.find('workingDir')
+    if workingDir != None:
+      self.workingDir = workingDir.text
+
+    self.functionType = xmlNode.find('functionType').text.lower()
+    if self.functionType == None:
+      self.raiseAnError(IOError,' functionType parameter is needed for custom1Ddistribution distribution')
+    if not self.functionType in ['cdf','pdf']:
+      self.raiseAnError(IOError,' wrong functionType parameter specified for custom1Ddistribution distribution (pdf or cdf)')
+
+    dataFilename = xmlNode.find('dataFilename')
+    if dataFilename != None:
+      self.dataFilename = os.path.join(self.workingDir,dataFilename.text)
+    else:
+      self.raiseAnError(IOError,'<dataFilename> parameter needed for custom1Ddistribution distribution')
+
+    self.functionID = xmlNode.find('functionID').text
+    if self.functionID == None:
+      self.raiseAnError(IOError,' functionID parameter is needed for custom1Ddistribution distribution')
+
+    self.variableID = xmlNode.find('variableID').text
+    if self.variableID == None:
+      self.raiseAnError(IOError,' variableID parameter is needed for custom1Ddistribution distribution')
+
+    self.initializeDistribution()
+
+
+  def initializeDistribution(self):
+    """
+      Method to initialize the distribution
+      @ In, None
+      @ Out, None
+    """
+
+    f = open(self.dataFilename, 'rb')
+    reader = csv.reader(f)
+    headers = reader.next()
+    indexFunctionID = headers.index(self.functionID)
+    indexVariableID = headers.index(self.variableID)
+    f.close()
+    rawData = np.genfromtxt(self.dataFilename, delimiter="," , skip_header=1, usecols=(indexVariableID,indexFunctionID))
+
+    self.data = rawData[rawData[:,0].argsort()]
+
+    if self.functionType == 'cdf':
+      self.cdfFunc = UnivariateSpline(self.data[:,0], self.data[:,1], k=4, s=0)
+      self.pdfFunc = self.cdfFunc.derivative()
+      self.invCDF  = UnivariateSpline(self.data[:,1], self.data[:,0], k=4, s=0)
+    else:  # self.functionType == 'pdf'
+      self.pdfFunc = UnivariateSpline(self.data[:,0], self.data[:,1], k=4, s=0)
+      cdfValues = np.zeros(self.data[:,0].size)
+      for i in range(self.data[:,0].size):
+        cdfValues[i] = self.pdfFunc.integral(self.data[0][0],self.data[i,0])
+      self.invCDF = UnivariateSpline(cdfValues, self.data[:,0] , k=4, s=0)
+
+    # Note that self.invCDF is creating a new spline where I switch its term.
+    # Instead of doing spline(x,f(x)) I am creating its inverse spline(f(x),x)
+    # This can be done if f(x) is monothonic increasing with x (which is true for cdf)
+  def pdf(self,x):
+    """
+      Function that calculates the pdf value of x
+      @ In, x, scalar , coordinates to get the pdf at
+      @ Out, pdfValue, scalar, requested pdf
+    """
+    pdfValue = self.pdfFunc(x)
+    return pdfValue
+
+  def cdf(self,x):
+    """
+      Function that calculates the cdf value of x
+      @ In, x, scalar , coordinates to get the cdf at
+      @ Out, pdfValue, scalar, requested pdf
+    """
+    if self.functionType == 'cdf':
+      cdfValue = self.cdfFunc(x)
+    else:
+      cdfValue = self.pdfFunc.integral(self.data[0][0],x)
+    return cdfValue
+
+  def ppf(self,x):
+    """
+      Return the ppf of given coordinate
+      @ In, x, float, the x coordinates
+      @ Out, ppfValue, float, ppf values
+    """
+    ppfValue = self.invCDF(x)
+    return ppfValue
+
+  def rvs(self):
+    """
+      Return a random state of the custom1D distribution
+      @ In, None
+      @ Out, rvsValue, float/string, the random state
+    """
+    rvsValue = self.ppf(random())
+    return rvsValue
 
 
 class NDimensionalDistributions(Distribution):
@@ -2308,36 +2435,68 @@ class MultivariateNormal(NDimensionalDistributions):
       coordinate = distribution1D.vectord_cxx(len(x))
       for i in range(len(x)): coordinate[i] = x[i]
       cdfValue = self._distribution.Cdf(coordinate)
-    elif self.method == 'pca':
+    else:
       self.raiseAnError(NotImplementedError,'cdf not yet implemented for ' + self.method + ' method')
     return cdfValue
 
-  def transformationMatrix(self):
+  def transformationMatrix(self,index=None):
     """
       Return the transformation matrix from Crow
       @ In, None
+      @ In, index, list, optional, input coordinate index, list values for the index of the latent variables
       @ Out, L, np.array, the transformation matrix
     """
-    if self.method == 'spline':
-      self.raiseAnError(NotImplementedError,' transformationMatrix is not yet implemented for ' + self.method + ' method')
-    elif self.method == 'pca':
-      matrixDim = self._distribution.getTransformationMatrixDimensions()
+    if self.method == 'pca':
+      if index is not None:
+        coordinateIndex = distribution1D.vectori_cxx(len(index))
+        for i in range(len(index)):
+          coordinateIndex[i] = index[i]
+          matrixDim = self._distribution.getTransformationMatrixDimensions(coordinateIndex)
+          transformation = self._distribution.getTransformationMatrix(coordinateIndex)
+      else:
+        matrixDim = self._distribution.getTransformationMatrixDimensions()
+        transformation = self._distribution.getTransformationMatrix()
       row = matrixDim[0]
       column = matrixDim[1]
-      transformation = self._distribution.getTransformationMatrix()
       # convert 1D vector to 2D array
       L = np.atleast_1d(transformation).reshape(row,column)
-      return L
+    else:
+      self.raiseAnError(NotImplementedError,' transformationMatrix is not yet implemented for ' + self.method + ' method')
+    return L
+
+  def inverseTransformationMatrix(self,index=None):
+    """
+      Return the inverse transformation matrix from Crow
+      @ In, None
+      @ In, index, list, optional, input coordinate index, list values for the index of the original variables
+      @ Out, L, np.array, the inverse transformation matrix
+    """
+    if self.method == 'pca':
+      if index is not None:
+        coordinateIndex = distribution1D.vectori_cxx(len(index))
+        for i in range(len(index)):
+          coordinateIndex[i] = index[i]
+          matrixDim = self._distribution.getInverseTransformationMatrixDimensions(coordinateIndex)
+          inverseTransformation = self._distribution.getInverseTransformationMatrix(coordinateIndex)
+      else:
+        matrixDim = self._distribution.getInverseTransformationMatrixDimensions()
+        inverseTransformation = self._distribution.getInverseTransformationMatrix()
+      row = matrixDim[0]
+      column = matrixDim[1]
+      # convert 1D vector to 2D array
+      L = np.atleast_1d(inverseTransformation).reshape(row,column)
+    else:
+      self.raiseAnError(NotImplementedError,' inverse transformationMatrix is not yet implemented for ' + self.method + ' method')
+    return L
 
   def returnSingularValues(self,index=None):
     """
       Return the singular values from Crow
       @ In, None
+      @ In, index, list, optional, input coordinate index, list values for the index of the input variables
       @ Out, singularValues, np.array, the singular values vector
     """
-    if self.method == 'spline':
-      self.raiseAnError(NotImplementedError,' returnSingularValues is not available for ' + self.method + ' method')
-    elif self.method == 'pca':
+    if self.method == 'pca':
       if index is not None:
         coordinateIndex = distribution1D.vectori_cxx(len(index))
         for i in range(len(index)):
@@ -2346,7 +2505,9 @@ class MultivariateNormal(NDimensionalDistributions):
       else:
         singularValues = self._distribution.getSingularValues()
       singularValues = np.atleast_1d(singularValues).tolist()
-      return singularValues
+    else:
+      self.raiseAnError(NotImplementedError,' returnSingularValues is not available for ' + self.method + ' method')
+    return singularValues
 
   def pcaInverseTransform(self,x,index=None):
     """
@@ -2355,9 +2516,7 @@ class MultivariateNormal(NDimensionalDistributions):
       @ In, index, list, optional, input coordinate index, list values for the index of the latent variables
       @ Out, values, list, return the values of manifest variables with type of list
     """
-    if self.method == 'spline':
-      self.raiseAnError(NotImplementedError,'ppfTransformedSpace not yet implemented for ' + self.method + ' method')
-    elif self.method == 'pca':
+    if self.method == 'pca':
       if len(x) > self.rank: self.raiseAnError(IOError,'The dimension of the latent variables defined in <Samples> is large than the rank defined in <Distributions>')
       coordinate = distribution1D.vectord_cxx(len(x))
       for i in range(len(x)):
@@ -2370,7 +2529,9 @@ class MultivariateNormal(NDimensionalDistributions):
       else:
         originalCoordinate = self._distribution.coordinateInverseTransformed(coordinate)
       values = np.atleast_1d(originalCoordinate).tolist()
-      return values
+    else:
+      self.raiseAnError(NotImplementedError,'ppfTransformedSpace not yet implemented for ' + self.method + ' method')
+    return values
 
   def coordinateInTransformedSpace(self):
     """
@@ -2378,10 +2539,10 @@ class MultivariateNormal(NDimensionalDistributions):
       @ In, None
       @ Out, coordinateInTransformedSpace, np.array, coordinates
     """
-    if self.method == 'spline':
-      self.raiseAnError(NotImplementedError,'ppfTransformedSpace not yet implemented for ' + self.method + ' method')
-    elif self.method == 'pca':
+    if self.method == 'pca':
       coordinateInTransformedSpace = self._distribution.coordinateInTransformedSpace(self.rank)
+    else:
+      self.raiseAnError(NotImplementedError,'ppfTransformedSpace not yet implemented for ' + self.method + ' method')
     return coordinateInTransformedSpace
 
   def ppf(self,x):
@@ -2417,13 +2578,13 @@ class MultivariateNormal(NDimensionalDistributions):
       @ In, x, np.array, the x coordinates
       @ Out, pdfInTransformedSpace, np.array, pdf values in the transformed space
     """
-    if self.method == 'spline':
-      self.raiseAnError(NotImplementedError,'ppfTransformedSpace not yet implemented for ' + self.method + ' method')
-    elif self.method == 'pca':
+    if self.method == 'pca':
       coordinate = distribution1D.vectord_cxx(len(x))
       for i in range(len(x)):
         coordinate[i] = x[i]
       pdfInTransformedSpace = self._distribution.pdfInTransformedSpace(coordinate)
+    else:
+      self.raiseAnError(NotImplementedError,'ppfTransformedSpace not yet implemented for ' + self.method + ' method')
     return pdfInTransformedSpace
 
   def cellIntegral(self,x,dx):
@@ -2456,7 +2617,7 @@ class MultivariateNormal(NDimensionalDistributions):
     """
     if self.method == 'pca':
       marginalCdfForPCA = self._distribution.marginalCdfForPCA(x)
-    elif self.method == 'spline':
+    else:
       self.raiseAnError(NotImplementedError,'marginalCdf  not yet implemented for ' + self.method + ' method')
     return marginalCdfForPCA
 
@@ -2551,6 +2712,7 @@ __interFaceDict['Logistic'          ] = Logistic
 __interFaceDict['Exponential'       ] = Exponential
 __interFaceDict['LogNormal'         ] = LogNormal
 __interFaceDict['Weibull'           ] = Weibull
+__interFaceDict['Custom1D'          ] = Custom1D
 __interFaceDict['NDInverseWeight'   ] = NDInverseWeight
 __interFaceDict['NDCartesianSpline' ] = NDCartesianSpline
 __interFaceDict['MultivariateNormal'] = MultivariateNormal

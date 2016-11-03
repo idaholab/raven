@@ -49,6 +49,14 @@ def shortText(a,b):
     prefix = ""
   return prefix+a[start:firstDiff+halfDisplay]+" "+prefix+b[start:firstDiff+halfDisplay]
 
+def setDefaultOptions(options):
+  """ sets all the options to defaults
+  options: dictionary to add default options to
+  """
+  options["rel_err"] = float(options.get("rel_err",1.e-10))
+  options["zero_threshold"] = float(options.get("zero_threshold",sys.float_info.min*4.0))
+  options["remove_whitespace"] = options.get("remove_whitespace",False)
+
 def removeWhitespaceChars(s):
   """ Removes whitespace characters
   s: string to remove characters from
@@ -125,7 +133,7 @@ def treeToList(node):
   flattened = findBranches(node,[node],[])
   return list(tuple(f) for f in flattened)
 
-def compareListEntry(aList,bList):
+def compareListEntry(aList,bList,**kwargs):
   """
     Comparse flattened XML entries for equality
     aList: list(ET.Element)
@@ -138,6 +146,7 @@ def compareListEntry(aList,bList):
   totalMatchable = 0 #total tag, text, and attributes available to match
   match = True        #True if entries match
   diff = []           #tuple of (element, diff code, correct (a) value, test (b) value)
+  options = kwargs
   for i in range(len(aList)):
     if i > len(bList) - 1:
       match = False
@@ -150,7 +159,7 @@ def compareListEntry(aList,bList):
     a = aList[i]
     b = bList[i]
     #match tag
-    same,note = compareStringsWithFloats(a.tag,b.tag)
+    same,note = compareStringsWithFloats(a.tag,b.tag,options["rel_err"], options["zero_threshold"], options["remove_whitespace"])
     totalMatchable += 1
     if not same:
       match = False
@@ -159,7 +168,7 @@ def compareListEntry(aList,bList):
       numMatch += 1
     #match text
     #if (a.text is None or len(a.text)>0) and (b.text is None or len(b.text)>0):
-    same,note = compareStringsWithFloats(a.text,b.text)
+    same,note = compareStringsWithFloats(a.text,b.text,options["rel_err"], options["zero_threshold"], options["remove_whitespace"])
     if not same:
       match = False
       diff.append((b,XMLDiff.notMatchText,str(a.text),str(b.text)))
@@ -175,7 +184,7 @@ def compareListEntry(aList,bList):
         match = False
         diff.append((b,XMLDiff.missingAttribute,attrib,None))
         continue
-      same,note = compareStringsWithFloats(a.attrib[attrib],b.attrib[attrib])
+      same,note = compareStringsWithFloats(a.attrib[attrib],b.attrib[attrib],options["rel_err"], options["zero_threshold"], options["remove_whitespace"])
       if not same:
         match = False
         diff.append((b,XMLDiff.notMatchAttribute,(a,attrib),(b,attrib)))
@@ -209,16 +218,25 @@ def compareUnorderedElement(a,b,*args,**kwargs):
   """
   same = True
   message = []
+  options = kwargs
   matchvals = {}
   diffs = {}
+  setDefaultOptions(options)
+
   def failMessage(*args):
     """ adds the fail message to the list
     args: The arguments to the fail message (will be converted with str())
     """
-    printArgs = [path]
+    printArgs = []
     printArgs.extend(args)
     argsExpanded = " ".join([str(x) for x in printArgs])
     message.append(argsExpanded)
+  if a.text != b.text:
+    succeeded, note = compareStringsWithFloats(a.text, b.text, options["rel_err"], options["zero_threshold"], options["remove_whitespace"])
+    if not succeeded:
+      same = False
+      failMessage(note)
+      return (same, message)
   aList = treeToList(a)
   bList = treeToList(b)
   #search a for matches in b
@@ -226,7 +244,7 @@ def compareUnorderedElement(a,b,*args,**kwargs):
     matchvals[aEntry] = {}
     diffs[aEntry] = {}
     for bEntry in bList:
-      same,matchval,diff = compareListEntry(aEntry,bEntry)
+      same,matchval,diff = compareListEntry(aEntry,bEntry,**options)
       if same:
         bList.remove(bEntry)
         del matchvals[aEntry]
@@ -303,6 +321,7 @@ def compareOrderedElement(a,b,*args,**kwargs):
   options = kwargs
   path = kwargs.get('path','')
   counter = kwargs.get('counter',0)
+  setDefaultOptions(options)
 
   def failMessage(*args):
     """ adds the fail message to the list
@@ -319,7 +338,7 @@ def compareOrderedElement(a,b,*args,**kwargs):
   else:
     path += a.tag + "/"
   if a.text != b.text:
-    succeeded, note = compareStringsWithFloats(a.text, b.text, float(options.get("rel_err",1.e-10)), float(options.get("zero_threshold",sys.float_info.min*4.0)),options.get("remove_whitespace",False))
+    succeeded, note = compareStringsWithFloats(a.text, b.text, options["rel_err"], options["zero_threshold"], options["remove_whitespace"])
     if not succeeded:
       same = False
       failMessage(note)

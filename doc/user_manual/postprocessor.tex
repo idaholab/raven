@@ -83,8 +83,8 @@ data objects, depending on the type of statistics the user wants to compute:
     \item \textbf{pearson}: matrix of correlation coefficients
     \item \textbf{expectedValue}: expected value or mean
     \item \textbf{sigma}: standard deviation
-    \item \textbf{variationCoefficient}: coefficient of variation
-    (sigma/expected value)
+    \item \textbf{variationCoefficient}: coefficient of variation, i.e. \textbf{sigma}/\textbf{expectedValue}. \nb If the \textbf{expectedValue} is zero,
+    the \textbf{variationCoefficient} will be \textbf{INF}.
     \item \textbf{variance}: variance
     \item \textbf{skewness}: skewness
     \item \textbf{kurtosis}: excess kurtosis (also known as Fisher's kurtosis)
@@ -93,6 +93,8 @@ data objects, depending on the type of statistics the user wants to compute:
                                Otherwise the user can specify this quantity as \textit{percentile\_$X\%$}, where \textit{X} represents the requested
                                percentile (an integer value between 1 and 100)
     \item \textbf{samples}: the number of samples in the data set used to determine the statistics.
+    \item \textbf{minimum}: The minimum value of the samples.
+    \item \textbf{maximum}: The maximum value of the samples.
     %
   \end{itemize}
    %
@@ -328,7 +330,8 @@ points to approximations in the calculation.
 \label{ImportanceRank}
 The \textbf{ImportanceRank} post-processor is specifically used
 to compute sensitivity indices and importance indices with respect to input parameters
-associated with multivariate normal distributions.
+associated with multivariate normal distributions. In addition, the user can also request the transformation
+matrix and the inverse transformation matrix when the PCA reduction is used.
 %
 \ppType{ImportanceRank}{ImportanceRank}
 %
@@ -339,30 +342,83 @@ associated with multivariate normal distributions.
   %
   Currently the quantities available are:
   \begin{itemize}
-    \item \textbf{SensitivityIndex}: used to measure the impact of sensitivities on the model.
-    \item \textbf{ImportanceIndex}: used to measure the impact of sensitivities and input uncertainties on the model.
-    \item \textbf{PCAIndex}: the indices of principal component directions, used to measure the impact
-    of principal component directions on input covariance matrix
+    \item \xmlString{SensitivityIndex}: used to measure the impact of sensitivities on the model.
+    \item \xmlString{ImportanceIndex}: used to measure the impact of sensitivities and input uncertainties on the model.
+    \item \xmlString{PCAIndex}: the indices of principal component directions, used to measure the impact
+    of principal component directions on input covariance matrix.
+    \nb \xmlString{PCAIndex} can be only requested when subnode \xmlNode{latent} is defined in \xmlNode{features}.
+    \item \xmlString{transformation}: the transformation matrix used to map the latent variables to the manifest variables in the original input space.
+    \item \xmlString{InverseTransformation}: the inverse transformation matrix used to map the manifest variables to the latent variables in the transformed space.
+    \item \xmlString{ManifestSensitivity}: the sensitivity coefficients of \xmlNode{target} with respect to \xmlNode{manifest} variables defined in \xmlNode{features}.
+    
+    \nb In order to request \xmlString{transformation} matrix or \xmlString{InverseTransformation} matrix or \xmlString{ManifestSensitivity},
+    the subnodes \xmlNode{latent} and \xmlNode{manifest} under \xmlNode{features} are required (more details can be found in the following).
     %
   \end{itemize}
    %
-  If all the quantities need to be computed, the user can input in the body of
-  \xmlNode{what} the string ``all''.
+  If all the quantities need to be computed, the user can input in the body of \xmlNode{what} the string \xmlString{all}.
+  \nb \xmlString{all} equivalent to \xmlString {SensitivityIndex, ImportanceIndex, PCAIndex}.
+  
+  Since the transformation and InverseTransformation matrix can be very large, they are not printed with option \xmlString{all}.
+  In order to request the transformation matrix (or inverse transformation matrix) from this post processor,
+  the user need to specify \xmlString{transformation} or \xmlString{InverseTransformation} in \xmlNode{what}. In addition,
+  both  \xmlNode{manifest} and \xmlNode{latent} subnodes are required and should be defined in node \xmlNode{features}. For example, let $\mathbf{L, P}$ represent
+  the transformation and inverse transformation matrices, respectively. We will define vectors $\mathbf x$ as manifest variables and vectors $\mathbf y$
+  as latent variables. If a absolute covariance matrix is used in given distribution, the following equation will be used:
+
+  $
+  \mathbf{\delta x} = \mathbf L * \mathbf y
+  $
+
+  $
+  \mathbf y = \mathbf P * \mathbf \delta \mathbf x
+  $
+
+  If a relative covariance matrix is used in given distribution, the following equation will be used:
+
+  $
+  \frac{\mathbf \delta \mathbf x}{\mathbf \mu} = \mathbf L * \mathbf y
+  $
+
+  $
+  \mathbf y = \mathbf P * {\frac{\mathbf \delta \mathbf x}{\mathbf \mu}}
+  $
+
+  where $\mathbf{\delta x}$ denotes the changes in the input vector $\mathbf x$, and $\mathbf \mu$ denotes the mean values of the input vector $\mathbf x$.
+
   %
   %
-  \item \xmlNode{features}, \xmlDesc{comma separated string, required field},
-  lists input parameters on which the previous operations need to be applied.
-  %
-  \item \xmlNode{targets}, \xmlDesc{comma separated string, required field},
-  lists output responses on which previous operations need to be applied.
-  %
-  \item \xmlNode{dimensions}, \xmlDesc{comma separated integer, optional field},
-  lists the dimensions corresponding to \xmlNode{features}.
+  \item \xmlNode{features}, \xmlDesc{XML node, required parameter}, used to specify the information for the input variables.
+  In this xml-node, the following xml sub-nodes need to be specified:
+    \begin{itemize}
+      \item \xmlNode{manifest},\xmlDesc{XML node, optional parameter}, used to indicate the input variables belongs to the original input space.
+      It can accept the following child node:
+        \begin{itemize}
+          \item \xmlNode{variables},\xmlDesc{comma separated string, required field}, lists manifest variables.
+          \item \xmlNode{dimensions}, \xmlDesc{comma separated integer, optional field}, lists the dimensions corresponding to the manifest variables.
+          If not provided, the dimensions are determined by the order indices of given manifest variables.
+        \end{itemize}
+      \item \xmlNode{latent},\xmlDesc{XML node, optional parameter}, used to indicate the input variables belongs to the transformed space.
+      It can accept the following child node:
+        \begin{itemize}
+          \item \xmlNode{variables},\xmlDesc{comma separated string, required field}, lists latent variables.
+          \item \xmlNode{dimensions}, \xmlDesc{comma separated integer, optional field}, lists the dimensions corresponding to the latent variables.
+          If not provided, the dimensions are determined by the order indices of given latent variables.
+        \end{itemize}
+      \nb At least one of the subnodes, i.e. \xmlNode{manifest} and \xmlNode{latent} needs to be specified.
+    \end{itemize}
+  % 
+  \item \xmlNode{targets}, \xmlDesc{comma separated string, required field}, lists output responses.
   %
   \item \xmlNode{mvnDistribution}, \xmlDesc{string, required field}, specifies the
   multivariate normal distribution name. The \xmlNode{MultivariateNormal} node must be present.
-  %
 \end{itemize}
+  %
+  %
+  Here is an example to show the user how to request the transformation matrix, the inverse transformation matrix, the
+  manifest sensitivities and other quantities.
+  %
+
 \textbf{Example:}
 \begin{lstlisting}[style=XML,morekeywords={name,subType,debug}]
 <Simulation>
@@ -370,10 +426,18 @@ associated with multivariate normal distributions.
   <Models>
     ...
     <PostProcessor name='aUserDefinedName' subType='ImportanceRank'>
-      <what>SensitivityIndex,ImportanceIndex</what>
-      <features>x1,x2</features>
+      <what>SensitivityIndex,ImportanceIndex,Transformation, InverseTransformation,ManifestSensitivity</what>
+      <features>
+        <manifest>
+          <variables>x1,x2</variables>
+          <dimensions>1,2</dimensions>
+        </manifest>
+        <latent>
+          <variables>latent_1, latent_2</variables>
+          <dimensions>1,2</dimensions>
+        </latent>
+      </features>
       <targets>y1,y2</targets>
-      <dimensions>1,2<dimensions>
       <mvnDistribution>MVN</mvnDistribution>
     </PostProcessor>
     ...
@@ -661,14 +725,15 @@ Section~\ref{sec:functions} for more details).
 \begin{itemize}
   \item \xmlNode{method}, \xmlDesc{comma separated string, required field},
   lists the method names of an external Function that will be computed (each
-  returning a post-processing value).
+  returning a post-processing value). The name of the method represents a new
+  variable that can be stored in a new \textbf{\textit{DataObjects}} entity. 
   \item \xmlNode{Function}, \xmlDesc{xml node, required string field}, specifies
   the name of a Function where the \textit{methods} listed above are defined.
   %
   \nb This name should match one of the Functions defined in the
   \xmlNode{Functions} block of the input file.
   %
-  The objects must be listed with a rigorous syntax that, except for the xml
+  The objects must be listed with a rigorous syntax that, except for the XML
   node tag, is common among all the objects.
   %
   Each of these sub-nodes must contain 2 attributes that are used to map them
@@ -683,6 +748,44 @@ Section~\ref{sec:functions} for more details).
      \xmlString{External}.
   \end{itemize}
 \end{itemize}
+  
+  This Post-Processor accepts as Input/Output both \xmlString{PointSet} and \xmlString{HistorySet}:
+   \begin{itemize}
+    \item If a \xmlString{PointSet}  is used as Input, the parameters are passed in the external  \xmlString{Function}
+  as numpy arrays. The methods' return type must be either a new array or a scalar. In the following it is reported an example
+  with two methods, one that returns a scalar and the other one that returns an array:
+      \begin{lstlisting}[language=python]
+import numpy as np        
+def sum(self):
+  return np.sum(self.aParameterInPointSet)
+          
+def sumTwoArraysAndReturnAnotherone(self):
+  return self.aParamInPointSet1+self.aParamInPointSet2    
+      \end{lstlisting}
+    \item If a \xmlString{HistorySet}  is used as Input, the parameters are passed in the external  \xmlString{Function}
+     as a list of numpy arrays. The methods' return type must be either a new list of arrays (if the Output is another  
+     \xmlString{HistorySet}), a scalar or a single array (if the  Output is  \xmlString{PointSet} . In the following it 
+     is reported an example
+     with two methods, one that returns a new list of arrays (Output = HistorySet) and the other one that returns an array (Output = 
+     PointSet):
+      \begin{lstlisting}[language=python]
+import numpy as np        
+def newHistorySetParameter(self):
+  x = []*len(self.time)
+  for history in range(len(self.time)):
+    for ts in range(len(self.time[history])):
+      if self.time[history][ts] >= 0.001: break
+    x[history] = self.x[history][ts:]
+  return x 
+ 
+def aNewPointSetParameter(self):
+  x = []*len(self.time)
+  for history in range(len(self.time)):
+    x[history] = self.x[history][-1]
+  return x  
+      \end{lstlisting}
+   \end{itemize}
+
 \textbf{Example:}
 \begin{lstlisting}[style=XML,morekeywords={subType,debug,name,class,type}]
 <Simulation>
@@ -944,7 +1047,7 @@ independent of the \xmlAttr{subType} specified:
    \item \xmlNode{samplingType}, \xmlDesc{string, required field}, specifies the type of sampling method to be used (uniform, firstDerivative secondDerivative, filteredFirstDerivative or
    filteredSecondDerivative).
    \item \xmlNode{numberOfSamples}, \xmlDesc{integer, optional field}, number of samples (required only for the following sampling types: uniform, firstDerivative secondDerivative)
-   \item \xmlNode{timeID}, \xmlDesc{string, required field}, ID of the temporal variable
+   \item \xmlNode{pivotParameter}, \xmlDesc{string, required field}, ID of the temporal variable
    \item \xmlNode{interpolation}, \xmlDesc{string, optional field}, type of interpolation to be employed for the history recostruction (required only for the following sampling types: uniform,
    firstDerivative secondDerivative)
    \item \xmlNode{tolerance}, \xmlDesc{string, optional field}, tolerance level (required only for the following sampling types: filteredFirstDerivative or filteredSecondDerivative)
@@ -971,7 +1074,7 @@ In the \xmlNode{PostProcessor} input block, the following XML sub-nodes are requ
 independent of the \xmlAttr{subType} specified:
 
 \begin{itemize}
-   \item \xmlNode{timeID}, \xmlDesc{string, required field}, ID of the temporal variable
+   \item \xmlNode{pivotParameter}, \xmlDesc{string, required field}, ID of the temporal variable
    \item \xmlNode{extension}, \xmlDesc{string, required field}, type of extension when the sync process goes outside the boundaries of the history (zeroed or extended)
    \item \xmlNode{syncMethod}, \xmlDesc{string, required field}, synchronization strategy to employ (see
      description above).  Options are \xmlString{grid}, \xmlString{all}, \xmlString{max}, \xmlString{min}.
@@ -1005,7 +1108,7 @@ independent of the \xmlAttr{subType} specified:
   \item \xmlNode{type}, \xmlDesc{string, required field}, type of operation: \xmlString{min}, \xmlString{max},
                         \xmlString{average}, \xmlString{value}, \xmlString{timeSlice}, or \xmlString{mixed}
    \item \xmlNode{extension}, \xmlDesc{string, required field}, type of extension when the sync process goes outside the boundaries of the history (zeroed or extended)
-   \item \xmlNode{timeID}, \xmlDesc{string, optional field}, name of the temporal variable.  Required for the
+   \item \xmlNode{pivotParameter}, \xmlDesc{string, optional field}, name of the temporal variable.  Required for the
      \xmlString{average} and \xmlString{timeSlice} methods.
 \end{itemize}
 
@@ -1031,7 +1134,7 @@ Lastly, if a \xmlString{mixed} approach is used, the following nodes apply:
   \item \xmlNode{min}, \xmlDesc{string, optional field}, the names of variables whose output should be their
     own minimum value within the history.
   \item \xmlNode{average}, \xmlDesc{string, optional field}, the names of variables whose output should be their
-    own average value within the history. Note that a \xmlNode{timeID} node is required to perform averages.
+    own average value within the history. Note that a \xmlNode{pivotParameter} node is required to perform averages.
   \item \xmlNode{value}, \xmlDesc{string, optional field}, the names of variables whose output should be taken
     at a time slice determined by another variable.  As with the non-mixed \xmlString{value} type, the first
     time the \xmlAttr{pivotVar} crosses the specified \xmlAttr{pivotVal} will be the time slice taken.
@@ -1062,7 +1165,7 @@ time$=0.245$ for $y$, and the value of $z$ at $x=4.0$ for $z$.
       <average>x</average>
       <value pivotVar="time" pivotVal="0.245">y</value>
       <value pivotVar="x" pivotVal="4.0">z</value>
-      <timeID>time</timeID>
+      <pivotParameter>time</pivotParameter>
       <extension>zeroed</extension>
     </PostProcessor>
     ...
@@ -1083,7 +1186,7 @@ In the \xmlNode{PostProcessor} input block, the following XML sub-nodes are requ
 independent of the \xmlAttr{subType} specified (min, max, avg and value case):
 
 \begin{itemize}
-   \item \xmlNode{timeID}, \xmlDesc{string, optional field}, ID of the temporal variable (only for avg)
+   \item \xmlNode{pivotParameter}, \xmlDesc{string, optional field}, ID of the temporal variable (only for avg)
 \end{itemize}
 
 \paragraph{Method: TypicalHistoryFromHistorySet}
@@ -1102,7 +1205,7 @@ In the \xmlNode{PostProcessor} input block, the following XML sub-nodes are requ
 independent of the \xmlAttr{subType} specified:
 
 \begin{itemize}
-   \item \xmlNode{timeID}, \xmlDesc{string, optional field}, ID of the temporal variable
+   \item \xmlNode{pivotParameter}, \xmlDesc{string, optional field}, ID of the temporal variable
    \default{Time}
    \item \xmlNode{subseqLen}, \xmlDesc{integers, required field}, length of the divided subsequence (see above)
 \end{itemize}

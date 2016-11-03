@@ -245,10 +245,10 @@ class LimitSurfaceIntegral(BasePostProcessor):
       @ In, output, dataObjects, The object where we want to place our computed results
       @ Out, None
     """
-    if finishedJob.returnEvaluation() == -1: self.raiseAnError(RuntimeError, 'no available output to collect.')
+    if finishedJob.getEvaluation() == -1: self.raiseAnError(RuntimeError, 'no available output to collect.')
     else:
-      pb = finishedJob.returnEvaluation()[1]
-      lms = finishedJob.returnEvaluation()[0][0]
+      pb = finishedJob.getEvaluation()[1]
+      lms = finishedJob.getEvaluation()[0][0]
       if output.type == 'PointSet':
         # we store back the limitsurface
         for key, value in lms.getParametersValues('input').items():
@@ -566,10 +566,10 @@ class SafestPoint(BasePostProcessor):
       @ In, output, dataObjects, The object where we want to place our computed results
       @ Out, None
     """
-    if finishedJob.returnEvaluation() == -1:
+    if finishedJob.getEvaluation() == -1:
       self.raiseAnError(RuntimeError, 'no available output to collect (the run is likely not over yet).')
     else:
-      dataCollector = finishedJob.returnEvaluation()[1]
+      dataCollector = finishedJob.getEvaluation()[1]
       if output.type != 'PointSet':
         self.raiseAnError(TypeError, 'output item type must be "PointSet".')
       else:
@@ -709,8 +709,8 @@ class ComparisonStatistics(BasePostProcessor):
       @ Out, None
     """
     self.raiseADebug("finishedJob: " + str(finishedJob) + ", output " + str(output))
-    if finishedJob.returnEvaluation() == -1: self.raiseAnError(RuntimeError, 'no available output to collect.')
-    else: self.dataDict.update(finishedJob.returnEvaluation()[1])
+    if finishedJob.getEvaluation() == -1: self.raiseAnError(RuntimeError, 'no available output to collect.')
+    else: self.dataDict.update(finishedJob.getEvaluation()[1])
 
     dataToProcess = []
     for compareGroup in self.compareGroups:
@@ -992,9 +992,9 @@ class InterfacedPostProcessor(BasePostProcessor):
       @ In, output, dataObjects, The object where we want to place our computed results
       @ Out, None
     """
-    if finishedJob.returnEvaluation() == -1:
+    if finishedJob.getEvaluation() == -1:
       self.raiseAnError(RuntimeError, ' No available Output to collect (Run probably is not finished yet)')
-    evaluation = finishedJob.returnEvaluation()[1]
+    evaluation = finishedJob.getEvaluation()[1]
 
     exportDict = {'inputSpaceParams':evaluation['data']['input'],'outputSpaceParams':evaluation['data']['output'],'metadata':evaluation['metadata']}
 
@@ -1056,142 +1056,6 @@ class InterfacedPostProcessor(BasePostProcessor):
 #
 #
 #
-class PrintCSV(BasePostProcessor):
-  """
-    PrintCSV PostProcessor class. It prints a CSV file loading data from a hdf5 database or other sources
-  """
-  def __init__(self, messageHandler):
-    """
-      Constructor
-      @ In, messageHandler, MessageHandler, message handler object
-      @ Out, None
-    """
-    BasePostProcessor.__init__(self, messageHandler)
-    self.paramters = ['all']
-    self.inObj = None
-    self.workingDir = None
-    self.printTag = 'POSTPROCESSOR PRINTCSV'
-
-  def inputToInternal(self, currentInput):
-    """
-      Method to convert an input object into the internal format that is
-      understandable by this pp.
-      @ In, currentInput, object, an object that needs to be converted
-      @ Out, [(currentInput)], list, the resulting converted object is stored as an attribute of this class
-    """
-    return [(currentInput)]
-
-  def initialize(self, runInfo, inputs, initDict):
-    """
-      Method to initialize the PrintCSV pp. In here, the workingdir is collected and eventually created
-      @ In, runInfo, dict, dictionary of run info (e.g. working dir, etc)
-      @ In, inputs, list, list of inputs
-      @ In, initDict, dict, dictionary with initialization options
-      @ Out, None
-    """
-    BasePostProcessor.initialize(self, runInfo, inputs, initDict)
-    self.workingDir = os.path.join(runInfo['WorkingDir'], runInfo['stepName'])  # generate current working dir
-    runInfo['TempWorkingDir'] = self.workingDir
-    try:                            os.mkdir(self.workingDir)
-    except:                         self.raiseAWarning('current working dir ' + self.workingDir + ' already exists, this might imply deletion of present files')
-    # if type(inputs[-1]).__name__ == "HDF5" : self.inObj = inputs[-1]      # this should go in run return but if HDF5, it is not pickable
-
-  def _localReadMoreXML(self, xmlNode):
-    """
-      Function to read the portion of the xml input that belongs to this specialized class
-      and initialize some stuff based on the inputs got
-      @ In, xmlNode, xml.etree.Element, Xml element node
-      @ Out, None
-    """
-    for child in xmlNode:
-      if child.tag == 'parameters':
-        param = child.text
-        if(param.lower() != 'all'): self.paramters = param.strip().split(',')
-        else: self.paramters[param]
-
-  def collectOutput(self, finishedJob, output):
-    """
-      Function to place all of the computed data into the output object
-      @ In, finishedJob, JobHandler External or Internal instance, A JobHandler object that is in charge of running this post-processor
-      @ In, output, dataObjects, The object where we want to place our computed results
-      @ Out, None
-    """
-    # Check the input type
-    if finishedJob.returnEvaluation() == -1: self.raiseAnError(RuntimeError, 'No available Output to collect (Run probabably is not finished yet)')
-    self.inObj = finishedJob.returnEvaluation()[1]
-    if(self.inObj.type == "HDF5"):
-      #  input source is a database (HDF5)
-      #  Retrieve the ending groups' names
-      endGroupNames = self.inObj.getEndingGroupNames()
-      HistorySet = {}
-
-      #  Construct a dictionary of all the HistorySet
-      for index in range(len(endGroupNames)): HistorySet[endGroupNames[index]] = self.inObj.returnHistory({'history':endGroupNames[index], 'filter':'whole'})
-      #  If file, split the strings and add the working directory if present
-      for key in HistorySet:
-        #  Loop over HistorySet
-        #  Retrieve the metadata (posion 1 of the history tuple)
-        attributes = HistorySet[key][1]
-        #  Construct the header in csv format (first row of the file)
-        headers = b",".join([HistorySet[key][1]['outputSpaceHeaders'][i] for i in
-                             range(len(attributes['outputSpaceHeaders']))])
-        #  Construct history name
-        hist = key
-        #  If file, split the strings and add the working directory if present
-        if self.workingDir:
-          output.setPath(self.workingDir)
-          # original if os.path.split(output.getAbsFile())[1] == '': output.setAbsFile(output.getAbsFile()[:-1])
-          # I don't think this applies anymore # if output.getFilename() == '': output.setAbsFile(output.getAbsFile()[:-1])
-          #splitted_1 = (output.getPath,output.getFilename() #os.path.split(output.getAbsFile())
-          #output.setAbsFile(splitted_1[1])
-        #splitted = output.getAbsFile().split('.')
-        #  Create csv files
-        addfile = Files.returnInstance('CSV',self)
-        csvfile = Files.returnInstance('CSV',self)
-        addfilename = output.getBase() + '_additional_info_' + hist + '.' + output.getExt()
-        csvfilename = output.getBase() + '_'                 + hist + '.' + output.getExt()
-        addfile.initialize(addfilename,self.messageHandler,output.getPath(),subtype='AdditionalInfo')
-        csvfile.initialize(csvfilename,self.messageHandler,output.getPath(),subtype='AdditionalInfo')
-        #  Check if workingDir is present and in case join the two paths
-        if self.workingDir:
-          addfile.setPath(os.path.join(self.workingDir,addfile.getPath()))
-          csvfile.setPath(os.path.join(self.workingDir,csvfile.getPath()))
-
-        #  Save the data
-        csvfile.open('w')
-        addfile.open('w')
-        #  Add history to the csv file
-        np.savetxt(csvfile, HistorySet[key][0], delimiter = ",", header = utils.toString(headers))
-        csvfile.write(os.linesep)
-        #  process the attributes in a different csv file (different kind of informations)
-        #  Add metadata to additional info csv file
-        addfile.write('# History Metadata, ' + os.linesep)
-        addfile.write('# ______________________________,' + '_' * len(key) + ',' + os.linesep)
-        addfile.write('#number of parameters,' + os.linesep)
-        addfile.write(str(attributes['nParams']) + ',' + os.linesep)
-        addfile.write('#parameters,' + os.linesep)
-        addfile.write(headers + os.linesep)
-        addfile.write('#parentID,' + os.linesep)
-        addfile.write(attributes['parentID'] + os.linesep)
-        addfile.write('#start time,' + os.linesep)
-        addfile.write(str(attributes['startTime']) + os.linesep)
-        addfile.write('#end time,' + os.linesep)
-        addfile.write(str(attributes['end_time']) + os.linesep)
-        addfile.write('#number of time-steps,' + os.linesep)
-        addfile.write(str(attributes['nTimeSteps']) + os.linesep)
-        addfile.write(os.linesep)
-    else: self.raiseAnError(NotImplementedError, 'for input type ' + self.inObj.type + ' not yet implemented.')
-
-  def run(self, input):
-    """
-     This method executes the postprocessor action. In this case, it just returns the input
-     @ In,  input, object, object contained the data to process. (inputToInternal output)
-     @ Out, input, object, the input
-    """
-    return input[-1]
-#
-#
-#
 class ImportanceRank(BasePostProcessor):
   """
     ImportantRank class. It computes the important rank for given input parameters
@@ -1210,13 +1074,23 @@ class ImportanceRank(BasePostProcessor):
     BasePostProcessor.__init__(self, messageHandler)
     self.targets = []
     self.features = []
+    self.latent = []
+    self.latentDim = []
+    self.manifest = []
+    self.manifestDim = []
     self.dimensions = []
     self.mvnDistribution = None
-    self.acceptedMetric = ['sensitivityindex','importanceindex','pcaindex']
+    self.acceptedMetric = ['sensitivityindex','importanceindex','pcaindex','transformation','inversetransformation','manifestsensitivity']
+    self.all = ['sensitivityindex','importanceindex','pcaindex']
+    self.statAcceptedMetric = ['pcaindex','transformation','inversetransformation']
     self.what = self.acceptedMetric # what needs to be computed, default is all
     self.printTag = 'POSTPROCESSOR IMPORTANTANCE RANK'
     self.requiredAssObject = (True,(['Distributions'],[-1]))
     self.transformation = False
+    self.latentSen = False
+    self.reconstructSen = False
+    self.pivotParameter = None # time-dependent pivot parameter
+    self.dynamic        = False # is it time-dependent?
 
   def _localWhatDoINeed(self):
     """
@@ -1247,69 +1121,132 @@ class ImportanceRank(BasePostProcessor):
     """
     for child in xmlNode:
       if child.tag == 'what':
-        self.what = child.text
-        if self.what == 'all': self.what = self.acceptedMetric
+        what = child.text.strip()
+        if what.lower() == 'all': self.what = self.all
         else:
+          requestMetric = list(var.strip() for var in what.split(','))
           toCalculate = []
-          for metric in self.what.split(','):
-            toCalculate.append(metric.strip())
-            if metric.lower() not in self.acceptedMetric:
-              self.raiseAnError(IOError, 'Importance rank postprocessor asked unknown operation ' + metric + '. Available ' + str(self.acceptedMetric))
+          for metric in requestMetric:
+            if metric.lower() == 'all':
+              toCalculate.extend(self.all)
+            elif metric.lower() in self.acceptedMetric:
+              if metric.lower() not in toCalculate:
+                toCalculate.append(metric.lower())
+              else:
+                self.raiseAWarning('Duplicate calculations',metric,'are removed from XML node <what> in',self.printTag)
+            else:
+              self.raiseAnError(IOError, self.printTag,'asked unknown operation', metric, '. Available',str(self.acceptedMetric))
           self.what = toCalculate
-      if child.tag == 'targets':
+      elif child.tag == 'targets':
         self.targets = list(inp.strip() for inp in child.text.strip().split(','))
-      if child.tag == 'features':
-        if 'type' in child.attrib.keys():
-          featureType = child.attrib['type']
-          if featureType.strip() == 'latent':
-            self.transformation = True
-          elif featureType.strip() == '':
-            self.transformation = False
-          else:
-            self.raiseAnError(IOError,'type: ' + str(child.attrib['type']) + ' is unsupported for node: ' + str(child.tag) + '!')
-        self.features = list(inp.strip() for inp in child.text.strip().split(','))
-      if child.tag == 'dimensions':
-        self.dimensions = list(int(inp.strip()) for inp in child.text.strip().split(','))
-      if child.tag == 'mvnDistribution':
+      elif child.tag == 'features':
+        for subNode in child:
+          if subNode.tag == 'manifest':
+            for subSubNode in subNode:
+              if subSubNode.tag == 'variables':
+                self.manifest = list(inp.strip() for inp in subSubNode.text.strip().split(','))
+                self.features.extend(self.manifest)
+              elif subSubNode.tag == 'dimensions':
+                self.manifestDim = list(int(inp.strip()) for inp in subSubNode.text.strip().split(','))
+              else:
+                self.raiseAnError(IOError, 'Unrecognized xml node name:',subSubNode.tag,'in',self.printTag)
+          if subNode.tag == 'latent':
+            self.latentSen = True
+            for subSubNode in subNode:
+              if subSubNode.tag == 'variables':
+                self.latent = list(inp.strip() for inp in subSubNode.text.strip().split(','))
+                self.features.extend(self.latent)
+              elif subSubNode.tag == 'dimensions':
+                self.latentDim = list(int(inp.strip()) for inp in subSubNode.text.strip().split(','))
+              else:
+                self.raiseAnError(IOError, 'Unrecognized xml node name:',subSubNode.tag,'in',self.printTag)
+      elif child.tag == 'mvnDistribution':
         self.mvnDistribution = child.text.strip()
-    if not self.dimensions:
-      self.dimensions = range(1,len(self.features)+1)
-      self.raiseAWarning('The dimensions for given features: ' + str(self.features) + ' is not provided! Default dimensions will be used: ' + str(self.dimensions) + '!')
+      elif child.tag == "pivotParameter": self.pivotParameter = child.text
+      else:
+        self.raiseAnError(IOError, 'Unrecognized xml node name: ' + child.tag + '!')
+    if not self.latentDim and len(self.latent) != 0:
+      self.latentDim = range(1,len(self.latent)+1)
+      self.raiseAWarning('The dimensions for given latent variables: ' + str(self.latent) + ' is not provided! Default dimensions will be used: ' + str(self.latentDim) + ' in ' + self.printTag)
+    if not self.manifestDim and len(self.manifest) !=0:
+      self.manifestDim = range(1,len(self.manifest)+1)
+      self.raiseAWarning('The dimensions for given latent variables: ' + str(self.manifest) + ' is not provided! Default dimensions will be used: ' + str(self.manifestDim) + ' in ' + self.printTag)
+    if not self.features:
+      self.raiseAnError(IOError, 'No variables provided for XML node: features in',self.printTag)
+    if not self.targets:
+      self.raiseAnError(IOError, 'No variables provided for XML node: targets in', self.printTag)
+    if len(self.latent) !=0 and len(self.manifest) !=0:
+      self.reconstructSen = True
+      self.transformation = True
 
-  def _localPrintXML(self,outFile,options=None):
+  def _localPrintXML(self,outFile,options=None,pivotVal=None):
     """
       Adds requested entries to XML node.
       @ In, outFile, Files.StaticXMLOutput, file to which entries will be printed
       @ In, options, dict, optional, list of requests and options
         May include: 'what': comma-separated string list, the qualities to print out
+      @ In, pivotVal, float, value of the pivot parameter, i.e. time, burnup, ...
       @ Out, None
     """
-    #dimension node needs only be set once, but it is given for each index type
-    dimDict = None
-    settingDim = False
+    #build tree
+    for what in options.keys():
+      if what.lower() in self.statAcceptedMetric: continue
+      if what == 'manifestSensitivity': continue
+      for target in options[what].keys():
+        valueDict = OrderedDict()
+        for var,index,dim in options[what][target]:
+          valueDict[var] = index
+        outFile.addVector(target,what,valueDict,pivotVal=pivotVal)
+    if 'manifestSensitivity' in options.keys():
+      what = 'manifestSensitivity'
+      for target in options[what].keys():
+        outFile.addScalar(target,'type',self.mvnDistribution.covarianceType,pivotVal=pivotVal)
+        valueDict = OrderedDict()
+        for var,index,dim in options[what][target]:
+          valueDict[var] = index
+        outFile.addVector(target,what,valueDict,pivotVal=pivotVal)
+
+  def _localPrintPCAInformation(self,outFile,options=None,pivotVal=None):
+    """
+      Adds requested entries to XML node.
+      @ In, outFile, Files.StaticXMLOutput, file to which entries will be printed
+      @ In, options, dict, optional, list of requests and options
+        May include: 'what': comma-separated string list, the qualities to print out
+      @ In, pivotVal, float, value of the pivot parameter, i.e. time, burnup, ...
+      @ Out, None
+    """
+    # output variables and dimensions
+    latentDict = OrderedDict()
+    if self.latentSen:
+      for index,var in enumerate(self.latent):
+        latentDict[var] = self.latentDim[index]
+      outFile.addVector('dimensions','latent',latentDict,pivotVal=pivotVal)
+    manifestDict = OrderedDict()
+    if len(self.manifest) > 0:
+      for index,var in enumerate(self.manifest):
+        manifestDict[var] = self.manifestDim[index]
+      outFile.addVector('dimensions','manifest',manifestDict,pivotVal=pivotVal)
     #pca index is a feature only of target, not with respect to anything else
     if 'pcaIndex' in options.keys():
-      pca = options['pcaIndex'].values()[0]
-      for var,index,_ in pca:
-        outFile.addScalar(var,'pcaIndex',index)
-    #build tree
-    targets = options.values()[0].keys()
-    for target in targets:
-      valueDict = OrderedDict()
-      for what in options.keys():
-        if what.lower() in self.acceptedMetric and what.lower()!='pcaindex':
-          if dimDict is None:
-            dimDict = {}
-            settingDim = True
-          for var,index,dim in options[what][target]:
-            valueDict[var]=index #dims?
-            if settingDim:
-              dimDict[var] = dim
-          if settingDim:
-            for key,val in dimDict.items():
-              outFile.addScalar(key,'dimension',val)
-            settingDim = False
-          outFile.addVector(target,what,valueDict)
+      pca = options['pcaIndex']
+      for var,index,dim in pca:
+        outFile.addScalar('pcaIndex',var,index,pivotVal=pivotVal)
+    if 'transformation' in options.keys():
+      what = 'transformation'
+      outFile.addScalar(what,'type',self.mvnDistribution.covarianceType,pivotVal=pivotVal)
+      for target in options[what].keys():
+        valueDict = OrderedDict()
+        for var, index, dim in options[what][target]:
+          valueDict[var] = index
+        outFile.addVector(what,target,valueDict,pivotVal=pivotVal)
+    if 'inverseTransformation' in options.keys():
+      what = 'inverseTransformation'
+      outFile.addScalar(what,'type',self.mvnDistribution.covarianceType,pivotVal=pivotVal)
+      for target in options[what].keys():
+        valueDict = OrderedDict()
+        for var, index, dim in options[what][target]:
+          valueDict[var] = index
+        outFile.addVector(what,target,valueDict,pivotVal=pivotVal)
 
   def collectOutput(self,finishedJob, output):
     """
@@ -1318,58 +1255,121 @@ class ImportanceRank(BasePostProcessor):
       @ In, output, object, the object where we want to place our computed results
       @ Out, None
     """
-    parameterSet = list(set(list(self.features)))
-    if finishedJob.returnEvaluation() == -1: self.raiseAnError(RuntimeError, ' No available output to collect (Run probably is not finished yet)')
-    outputDict = finishedJob.returnEvaluation()[-1]
+    if finishedJob.getEvaluation() == -1: self.raiseAnError(RuntimeError, ' No available output to collect (Run probably is not finished yet) via',self.printTag)
+    outputDict = finishedJob.getEvaluation()[-1]
     # Output to file
     if isinstance(output, Files.File):
-      availExtens = ['xml','csv', 'txt']
+      availExtens = ['xml','csv']
       outputExtension = output.getExt().lower()
       if outputExtension not in availExtens:
         self.raiseAWarning('Output extension you input is ' + outputExtension)
         self.raiseAWarning('Available are ' + str(availExtens) + '. Converting extension to ' + str(availExtens[0]) + '!')
         outputExtensions = availExtens[0]
         output.setExtension(outputExtensions)
-      if outputExtension != 'csv': separator = ' '
-      else: separator = ','
       output.setPath(self.__workingDir)
       self.raiseADebug('Dumping output in file named ' + output.getAbsFile())
       output.open('w')
-      if outputExtension != 'xml':
-        maxLength = max(len(max(parameterSet, key = len)) + 5, 16)
-        # Output all metrics to given file
-        for what in outputDict.keys():
-          if what.lower() in self.acceptedMetric:
-            self.raiseADebug('Writing parameter rank for metric ' + what)
-            for target in self.targets:
-              if outputExtension != 'csv':
-                output.write('Target,' + target + '\n')
-                output.write('Parameters' + ' ' * maxLength + ''.join([str(item[0]) + ' ' * (maxLength - len(item)) for item in outputDict[what][target]]) + os.linesep)
-                output.write(what + ' ' * maxLength + ''.join(['%.8E' % item[1] + ' ' * (maxLength -14) for item in outputDict[what][target]]) + os.linesep)
-              else:
-                output.write('Target,' + target + '\n')
-                output.write('Parameters'  + ''.join([separator + str(item[0])  for item in outputDict[what][target]]) + os.linesep)
-                output.write(what + ''.join([separator + '%.8E' % item[1] for item in outputDict[what][target]]) + os.linesep)
-            output.write(os.linesep)
-        output.close()
+      if outputExtension == 'csv':
+        self._writeCSV(output,outputDict)
       else:
-        #convert output into an XML output file
-        outFile = Files.returnInstance('StaticXMLOutput',self)
-        outFile.initialize(output.getFilename(),self.messageHandler,path=output.getPath())
-        outFile.newTree('ImportanceRankPP')
-        self._localPrintXML(outFile,outputDict)
-        outFile.writeFile()
-        self.raiseAMessage('ImportanceRank XML printed to "'+output.getFilename()+'"!')
+        self._writeXML(output,outputDict)
     # Output to DataObjects
     elif output.type in ['PointSet','HistorySet']:
       self.raiseADebug('Dumping output in data object named ' + output.name)
-      for what in outputDict.keys():
-        if what.lower() in self.acceptedMetric:
-          for target in self.targets:
-            self.raiseADebug('Dumping ' + target + '-' + what + '. Metadata name = ' + target + '-' + what + '. Targets stored in ' +  target + '-'  + what)
-            output.updateMetadata(target + '-'  + what, outputDict[what][target])
+      self._writeDataObject(output,outputDict)
     elif output.type == 'HDF5' : self.raiseAWarning('Output type ' + str(output.type) + ' not yet implemented. Skip it !!!!!')
     else: self.raiseAnError(IOError, 'Output type ' + str(output.type) + ' unknown.')
+
+  def _writeCSV(self,output,outputDictionary):
+    """
+      Defines the method for writing the post-processor to a .csv file
+      @ In, output, File object, file to write to
+      @ In, outputDictionary, dict, dictionary stores importance ranking outputs
+      @ Out, None
+    """
+    separator = ','
+    if self.dynamic:
+      output.write('Importance Rank' + separator + 'Pivot Parameter' + separator + self.pivotParameter + os.linesep)
+    outputResults = [outputDictionary] if not self.dynamic else outputDictionary.values()
+    for step, outputDict in enumerate(outputResults):
+      if self.dynamic: output.write('Pivot Value'+separator+str(outputDictionary.keys()[step])+os.linesep)
+      #only output 'pcaindex','transformation','inversetransformation' for the first step.
+      if step == 0:
+        for what in outputDict.keys():
+          if what.lower() in self.statAcceptedMetric:
+            self.raiseADebug('Writing parameter rank for metric ' + what)
+            if what.lower() == 'pcaindex':
+              output.write('pcaIndex,' + '\n')
+              output.write('Parameters'  + ''.join([separator + str(item[0])  for item in outputDict[what]]) + os.linesep)
+              output.write(what + ''.join([separator + '%.8E' % item[1] for item in outputDict[what]]) + os.linesep)
+              output.write(os.linesep)
+            else:
+              for target in outputDict[what].keys():
+                output.write('Target,' + target + '\n')
+                output.write('Parameters'  + ''.join([separator + str(item[0])  for item in outputDict[what][target]]) + os.linesep)
+                output.write(what + ''.join([separator + '%.8E' % item[1] for item in outputDict[what][target]]) + os.linesep)
+              output.write(os.linesep)
+      for what in outputDict.keys():
+        if what.lower() in self.statAcceptedMetric: continue
+        if what.lower() in self.acceptedMetric:
+          self.raiseADebug('Writing parameter rank for metric ' + what)
+          for target in outputDict[what].keys():
+            output.write('Target,' + target + '\n')
+            output.write('Parameters'  + ''.join([separator + str(item[0])  for item in outputDict[what][target]]) + os.linesep)
+            output.write(what + ''.join([separator + '%.8E' % item[1] for item in outputDict[what][target]]) + os.linesep)
+          output.write(os.linesep)
+    output.close()
+
+  def _writeXML(self,output,outputDictionary):
+    """
+      Defines the method for writing the post-processor to a .csv file
+      @ In, output, File object, file to write to
+      @ In, outputDictionary, dict, dictionary stores importance ranking outputs
+      @ Out, None
+    """
+    if output.isOpen(): output.close()
+    if self.dynamic:
+      outFile = Files.returnInstance('DynamicXMLOutput',self)
+    else:
+      outFile = Files.returnInstance('StaticXMLOutput',self)
+    outFile.initialize(output.getFilename(),self.messageHandler,path=output.getPath())
+    outFile.newTree('ImportanceRankPP',pivotParam=self.pivotParameter)
+    outputResults = [outputDictionary] if not self.dynamic else outputDictionary.values()
+    for step, outputDict in enumerate(outputResults):
+      pivotVal = outputDictionary.keys()[step]
+      self._localPrintXML(outFile,outputDict,pivotVal)
+      if step == 0:
+        self._localPrintPCAInformation(outFile,outputDict,pivotVal)
+    outFile.writeFile()
+    self.raiseAMessage('ImportanceRank XML printed to "'+output.getFilename()+'"!')
+
+  def _writeDataObject(self,output,outputDictionary):
+    """
+      Defines the method for writing the post-processor to a .csv file
+      @ In, output, File object, file to write to
+      @ In, outputDictionary, dict, dictionary stores importance ranking outputs
+      @ Out, None
+    """
+    outputResults = [outputDictionary] if not self.dynamic else outputDictionary.values()
+    for step, outputDict in enumerate(outputResults):
+      if step == 0:
+        for what in outputDict.keys():
+          if what.lower() not in self.statAcceptedMetric:
+            continue
+          elif what.lower() == 'pcaindex':
+            self.raiseADebug('Dumping ' + what + '. Metadata name = ' + what)
+            output.updateMetadata(what,outputDict[what])
+          else:
+            for target in outputDict[what].keys():
+              self.raiseADebug('Dumping ' + target + '-' + what + '. Metadata name = ' + target + '-' + what + '. Targets stored in ' +  target + '-'  + what)
+              output.updateMetadata(target + '-' + what, outputDict[what][target])
+      appendix = '-'+self.pivotParameter+'-'+str(outputDictionary.keys()[step]) if self.dynamic else ''
+      for what in outputDict.keys():
+        if what.lower() in self.statAcceptedMetric: continue
+        if what.lower() in self.acceptedMetric:
+          for target in outputDict[what].keys():
+            self.raiseADebug('Dumping ' + target + '-' + what + '. Metadata name = ' + target + '-' + what + '. Targets stored in ' +  target + '-'  + what)
+            output.updateMetadata(target + '-'  + what+appendix, outputDict[what][target])
 
   def initialize(self, runInfo, inputs, initDict) :
     """
@@ -1390,20 +1390,22 @@ class ImportanceRank(BasePostProcessor):
     if type(currentInp) == list  : currentInput = currentInp[-1]
     else                         : currentInput = currentInp
     if type(currentInput) == dict:
-      if 'targets' in currentInput.keys(): return currentInput
-    inputDict = {'targets':{}, 'metadata':{}, 'features':{}}
+      if 'targets' not in currentInput.keys() and 'timeDepData' not in currentInput.keys(): self.raiseAnError(IOError, 'Did not find targets or timeDepData in input dictionary')
+      return currentInput
+
     if hasattr(currentInput,'type'):
       inType = currentInput.type
     else:
       if type(currentInput).__name__ == 'list'    : inType = 'list'
       else: self.raiseAnError(IOError, self, 'ImportanceRank postprocessor accepts Files, HDF5, PointSet, DataObject(s) only! Got ' + str(type(currentInput)))
-    if inType not in ['HDF5', 'PointSet', 'list'] and not isinstance(inType,Files.File):
-      self.raiseAnError(IOError, self, 'ImportanceRank postprocessor accepts Files, HDF5, PointSet, DataObject(s) only! Got ' + str(inType) + '!!!!')
+    if inType not in ['HDF5', 'PointSet','HistorySet', 'list'] and not isinstance(inType,Files.File):
+      self.raiseAnError(IOError, self, 'ImportanceRank postprocessor accepts Files, HDF5, HistorySet, PointSet, DataObject(s) only! Got ' + str(inType) + '!!!!')
     # get input from the external csv file
     if isinstance(inType,Files.File):
       if currentInput.subtype == 'csv': pass # to be implemented
     # get input from PointSet DataObject
     if inType in ['PointSet']:
+      inputDict = {'targets':{}, 'metadata':{}, 'features':{}}
       for feat in self.features:
         if feat in currentInput.getParaKeys('input'):
           inputDict['features'][feat] = currentInput.getParam('input', feat)
@@ -1413,8 +1415,37 @@ class ImportanceRank(BasePostProcessor):
         if targetP in currentInput.getParaKeys('output'):
           inputDict['targets'][targetP] = currentInput.getParam('output', targetP)
         else:
-          self.raiseAnError(IOError,'Parameter ' + str(targetP) + ' is listed ImportanceRank postprocessor targets, but not found in the provided input!')
+          self.raiseAnError(IOError,'Parameter ' + str(targetP) + ' is listed ImportanceRank postprocessor targets, but not found in the provided output!')
       inputDict['metadata'] = currentInput.getAllMetadata()
+    # get input from HistorySet DataObject
+    if inType in ['HistorySet']:
+      if self.pivotParameter is None: self.raiseAnError(IOError, self, 'Time-dependent importance ranking is requested (HistorySet) but no pivotParameter got inputted!')
+      inputs  = currentInput.getParametersValues('inputs',nodeId = 'ending')
+      outputs = currentInput.getParametersValues('outputs',nodeId = 'ending')
+      numSteps = len(outputs.values()[0].values()[0])
+      self.dynamic = True
+      if self.pivotParameter not in currentInput.getParaKeys('output'):
+        self.raiseAnError(IOError, self, 'Pivot parameter ' + self.pivotParameter + ' has not been found in output space of data object '+currentInput.name)
+      pivotParameter = []
+      for step in range(len(outputs.values()[0][self.pivotParameter])):
+        currentSnapShot = [outputs[i][self.pivotParameter][step] for i in outputs.keys()]
+        if len(set(currentSnapShot)) > 1: self.raiseAnError(IOError, self, 'Histories are not syncronized! Please, pre-process the data using Interfaced PostProcessor HistorySetSync!')
+        pivotParameter.append(currentSnapShot[-1])
+      inputDict = {'timeDepData':OrderedDict.fromkeys(pivotParameter,None)}
+      for step in range(numSteps):
+        inputDict['timeDepData'][pivotParameter[step]] = {'targets':{},'features':{}}
+        for targetP in self.targets:
+          if targetP in currentInput.getParaKeys('output') :
+            inputDict['timeDepData'][pivotParameter[step]]['targets'][targetP] = np.asarray([outputs[i][targetP][step] for i in outputs.keys()])
+          else:
+            self.raiseAnError(IOError, self, 'Target ' + targetP + ' has not been found in data object '+currentInput.name)
+        for feat in self.features:
+          if feat in currentInput.getParaKeys('input'):
+            inputDict['timeDepData'][pivotParameter[step]]['features'][feat] = np.asarray([inputs[i][feat][-1] for i in inputs.keys()])
+          else:
+            self.raiseAnError(IOError, self, 'Feature ' + feat + ' has not been found in data object '+currentInput.name)
+        inputDict['timeDepData'][pivotParameter[step]]['metadata'] = currentInput.getAllMetadata()
+
     # get input from HDF5 Database
     if inType == 'HDF5': pass  # to be implemented
 
@@ -1422,25 +1453,47 @@ class ImportanceRank(BasePostProcessor):
 
   def run(self, inputIn):
     """
-      This method executes the postprocessor action.
-      @ In, inputIn, object, object contained the data to process. (inputToInternal output)
-      @ Out, outputDict, dict, dictionary containing the evaluated data
+      This method executes the postprocessor action. In this case, it computes all the requested statistical FOMs
+      @ In,  inputIn, object, object contained the data to process. (inputToInternal output)
+      @ Out, outputDict, dict, Dictionary containing the results
     """
     inputDict = self.inputToInternal(inputIn)
+    if not self.dynamic: outputDict = self.__runLocal(inputDict)
+    else:
+      # time dependent (actually pivot-dependent)
+      outputDict = OrderedDict()
+      for pivotParamValue in inputDict['timeDepData'].keys():
+        outputDict[pivotParamValue] = self.__runLocal(inputDict['timeDepData'][pivotParamValue])
+    return outputDict
+
+  def __runLocal(self, inputDict):
+    """
+      This method executes the postprocessor action.
+      @ In, inputDict, object, object contained the data to process. (inputToInternal output)
+      @ Out, outputDict, dict, dictionary containing the evaluated data
+    """
     outputDict = {}
     senCoeffDict = {}
     senWeightDict = {}
     # compute sensitivities of targets with respect to features
     featValues = []
-    for feat in self.features:
-      featValues.append(inputDict['features'][feat])
+    # compute importance rank
+    if self.latentSen:
+      for feat in self.latent:
+        featValues.append(inputDict['features'][feat])
+      feats = self.latent
+      self.dimensions = self.latentDim
+    else:
+      for feat in self.manifest:
+        featValues.append(inputDict['features'][feat])
+      feats = self.manifest
+      self.dimensions = self.manifestDim
     sampledFeatMatrix = np.atleast_2d(np.asarray(featValues)).T
     for target in self.targets:
       featCoeffs = LinearRegression().fit(sampledFeatMatrix, inputDict['targets'][target]).coef_
       featWeights = abs(featCoeffs)/np.sum(abs(featCoeffs))
-      senWeightDict[target] = list(zip(self.features,featWeights,self.dimensions))
+      senWeightDict[target] = list(zip(feats,featWeights,self.dimensions))
       senCoeffDict[target] = featCoeffs
-    # compute importance rank
     for what in self.what:
       if what.lower() == 'sensitivityindex':
         what = 'sensitivityIndex'
@@ -1455,8 +1508,8 @@ class ImportanceRank(BasePostProcessor):
         for target in self.targets:
           featCoeffs = senCoeffDict[target]
           featWeights = []
-          if not self.transformation:
-            for index,feat in enumerate(self.features):
+          if not self.latentSen:
+            for index,feat in enumerate(self.manifest):
               totDim = self.mvnDistribution.dimension
               covIndex = totDim * (self.dimensions[index] - 1) + self.dimensions[index] - 1
               if self.mvnDistribution.covarianceType == 'abs':
@@ -1466,26 +1519,78 @@ class ImportanceRank(BasePostProcessor):
                 covTarget = featCoeffs[index] * covFeature * featCoeffs[index]
               featWeights.append(covTarget)
             featWeights = featWeights/np.sum(featWeights)
-            entries = list(zip(self.features,featWeights,self.dimensions))
+            entries = list(zip(self.manifest,featWeights,self.dimensions))
             entries.sort(key=lambda x: x[1],reverse=True)
             outputDict[what][target] = entries
           # if the features type is 'latent', since latentVariables are used to compute the sensitivities
           # the covariance for latentVariances are identity matrix
           else:
-           entries = senWeightDict[target]
-           entries.sort(key=lambda x: x[1],reverse=True)
-           outputDict[what][target] = entries
+            entries = senWeightDict[target]
+            entries.sort(key=lambda x: x[1],reverse=True)
+            outputDict[what][target] = entries
       #calculate PCA index
       if what.lower() == 'pcaindex':
-        what = 'pcaIndex'
-        if what not in outputDict.keys(): outputDict[what] = {}
-        index = [dim-1 for dim in self.dimensions]
-        singularValues = self.mvnDistribution.returnSingularValues(index)
-        singularValues = list(singularValues/np.sum(singularValues))
-        entries = list(zip(self.features,singularValues,self.dimensions))
-        entries.sort(key=lambda x: x[1],reverse=True)
-        for target in self.targets:
-          outputDict[what][target] = entries
+        if not self.latentSen:
+          self.raiseAWarning('pcaIndex can be not requested because no latent variable is provided!')
+        else:
+          what = 'pcaIndex'
+          if what not in outputDict.keys(): outputDict[what] = {}
+          index = [dim-1 for dim in self.dimensions]
+          singularValues = self.mvnDistribution.returnSingularValues(index)
+          singularValues = list(singularValues/np.sum(singularValues))
+          entries = list(zip(self.latent,singularValues,self.dimensions))
+          entries.sort(key=lambda x: x[1],reverse=True)
+          outputDict[what] = entries
+
+      if what.lower() == 'transformation':
+        if self.transformation:
+          what = 'transformation'
+          if what not in outputDict.keys(): outputDict[what] = {}
+          index = [dim-1 for dim in self.latentDim]
+          manifestIndex = [dim-1 for dim in self.manifestDim]
+          transformMatrix = self.mvnDistribution.transformationMatrix(index)
+          for ind,var in enumerate(self.manifest):
+            entries = list(zip(self.latent,transformMatrix[manifestIndex[ind]],self.latentDim))
+            outputDict[what][var] = entries
+        else:
+          self.raiseAnError(IOError,'Unable to output the transformation matrix, please provide both "manifest" and "latent" variables in XML node "features" in',self.printTag)
+      if what.lower() == 'inversetransformation':
+        if self.transformation:
+          what = 'inverseTransformation'
+          if what not in outputDict.keys(): outputDict[what] = {}
+          index = [dim-1 for dim in self.latentDim]
+          manifestIndex = [dim-1 for dim in self.manifestDim]
+          inverseTransformationMatrix = self.mvnDistribution.inverseTransformationMatrix(manifestIndex)
+          for ind,var in enumerate(self.latent):
+            entries = list(zip(self.manifest,inverseTransformationMatrix[index[ind]],self.manifestDim))
+            outputDict[what][var] = entries
+        else:
+          self.raiseAnError(IOError,'Unable to output the inverse transformation matrix, please provide both "manifest" and "latent" variables in XML node "features" in', self.printTag)
+
+      if what.lower() == 'manifestsensitivity':
+        if self.reconstructSen:
+          what = 'manifestSensitivity'
+          if what not in outputDict.keys(): outputDict[what] = {}
+          # compute the inverse transformation matrix
+          index = [dim-1 for dim in self.latentDim]
+          manifestIndex = [dim-1 for dim in self.manifestDim]
+          inverseTransformationMatrix = self.mvnDistribution.inverseTransformationMatrix(manifestIndex)
+          inverseTransformationMatrix = inverseTransformationMatrix[index]
+          # recompute the sensitivities for manifest variables
+          for target in self.targets:
+            latentSen = np.asarray(senCoeffDict[target])
+            if self.mvnDistribution.covarianceType == 'abs':
+              manifestSen = list(np.dot(latentSen,inverseTransformationMatrix))
+            else:
+              manifestSen = list(np.dot(latentSen,inverseTransformationMatrix)/inputDict['targets'][target])
+            entries = list(zip(self.manifest,manifestSen,self.manifestDim))
+            entries.sort(key=lambda x: abs(x[1]),reverse=True)
+            outputDict[what][target] = entries
+        elif self.latentSen:
+          self.raiseAnError(IOError, 'Unable to reconstruct the sensitivities for manifest variables, this is because no manifest variable is provided in',self.printTag)
+        else:
+          self.raiseAWarning('No latent variables, and there is no need to reconstruct the sensitivities for manifest variables!')
+
       # To be implemented
       #if what == 'CumulativeSenitivityIndex':
       #  self.raiseAnError(NotImplementedError,'CumulativeSensitivityIndex is not yet implemented for ' + self.printTag)
@@ -1493,6 +1598,7 @@ class ImportanceRank(BasePostProcessor):
       #  self.raiseAnError(NotImplementedError,'CumulativeImportanceIndex is not yet implemented for ' + self.printTag)
 
     return outputDict
+
 #
 #
 #
@@ -1521,7 +1627,9 @@ class BasicStatistics(BasePostProcessor):
                               'kurtosis',
                               'median',
                               'percentile',
-                              'samples']  # accepted calculation parameters
+                              'samples',
+                              'maximum',
+                              'minimum']  # accepted calculation parameters
     self.what = self.acceptedCalcParam  # what needs to be computed... default...all
     self.methodsToRun = []  # if a function is present, its outcome name is here stored... if it matches one of the known outcomes, the pp is going to use the function to compute it
     self.externalFunction = []
@@ -1628,8 +1736,8 @@ class BasicStatistics(BasePostProcessor):
     """
     # output
     parameterSet = list(set(list(self.parameters['targets'])))
-    if finishedJob.returnEvaluation() == -1: self.raiseAnError(RuntimeError, ' No available Output to collect (Run probably is not finished yet)')
-    outputDictionary = finishedJob.returnEvaluation()[1]
+    if finishedJob.getEvaluation() == -1: self.raiseAnError(RuntimeError, ' No available Output to collect (Run probably is not finished yet)')
+    outputDictionary = finishedJob.getEvaluation()[1]
     methodToTest = []
     for key in self.methodsToRun:
       if key not in self.acceptedCalcParam: methodToTest.append(key)
@@ -1944,8 +2052,9 @@ class BasicStatistics(BasePostProcessor):
           sigma = self._computeSigma(input['targets'][targetP],expValues[myIndex],relWeight)
           if (outputDict['expectedValue'][targetP] == 0):
             self.raiseAWarning('Expected Value for ' + targetP + ' is zero! Variation Coefficient can not be calculated in PP: ' + self.name)
-            outputDict['expectedValue'][targetP] = np.Infinity
-          outputDict[what][targetP] = sigma / outputDict['expectedValue'][targetP]
+            outputDict[what][targetP] = np.Infinity
+          else:
+            outputDict[what][targetP] = sigma / outputDict['expectedValue'][targetP]
       # kurtosis
       if what == 'kurtosis':
         for myIndex, targetP in enumerate(parameterSet):
@@ -2062,6 +2171,14 @@ class BasicStatistics(BasePostProcessor):
             outputDict[what][myIndex] = np.zeros(len(parameterSet))
             for cnt,param in enumerate(parameterSet):
               outputDict[what][myIndex][cnt] = sensitivityCoeffDict[param]*expValues[cnt]/expValues[myIndex]
+      # maximum value
+      if what == 'maximum':
+        for myIndex, targetP in enumerate(parameterSet):
+          outputDict[what][targetP] = np.amax(input['targets'][targetP])
+      # minimum value
+      if what == 'minimum':
+        for myIndex, targetP in enumerate(parameterSet):
+          outputDict[what][targetP] = np.amin(input['targets'][targetP])
     # print on screen
     self.raiseADebug('BasicStatistics ' + str(self.name) + 'pp outputs')
     methodToTest = []
@@ -2211,89 +2328,7 @@ class BasicStatistics(BasePostProcessor):
       corrMatrix = covM / covM
     # to prevent numerical instability
     return corrMatrix
-#
-#
-#
-class LoadCsvIntoInternalObject(BasePostProcessor):
-  """
-    LoadCsvIntoInternalObject pp class. It is in charge of loading CSV files into one of the internal object (Data(s) or HDF5)
-  """
-  def __init__(self, messageHandler):
-    """
-      Constructor
-      @ In, messageHandler, MessageHandler, message handler object
-      @ Out, None
-    """
-    BasePostProcessor.__init__(self, messageHandler)
-    self.sourceDirectory = None
-    self.listOfCsvFiles = []
-    self.printTag = 'POSTPROCESSOR LoadCsv'
 
-  def initialize(self, runInfo, inputs, initDict):
-    """
-      Method to initialize the LoadCSV pp.
-      @ In, runInfo, dict, dictionary of run info (e.g. working dir, etc)
-      @ In, inputs, list, list of inputs
-      @ In, initDict, dict, dictionary with initialization options
-      @ Out, None
-    """
-    BasePostProcessor.initialize(self, runInfo, inputs, initDict)
-    self.__workingDir = runInfo['WorkingDir']
-    if '~' in self.sourceDirectory               : self.sourceDirectory = os.path.expanduser(self.sourceDirectory)
-    if not os.path.isabs(self.sourceDirectory)   : self.sourceDirectory = os.path.normpath(os.path.join(self.__workingDir, self.sourceDirectory))
-    if not os.path.exists(self.sourceDirectory)  : self.raiseAnError(IOError, "The directory indicated for PostProcessor " + self.name + "does not exist. Path: " + self.sourceDirectory)
-    for _dir, _, _ in os.walk(self.sourceDirectory): self.listOfCsvFiles.extend(glob(os.path.join(_dir, "*.csv")))
-    if len(self.listOfCsvFiles) == 0             : self.raiseAnError(IOError, "The directory indicated for PostProcessor " + self.name + "does not contain any csv file. Path: " + self.sourceDirectory)
-    self.listOfCsvFiles.sort()
-
-  def inputToInternal(self, currentInput):
-    """
-      Method to convert an input object into the internal format that is
-      understandable by this pp.
-      @ In, currentInput, object, an object that needs to be converted
-      @ Out, self.listOfCsvFiles, list, list of csv files
-    """
-    return self.listOfCsvFiles
-
-  def _localReadMoreXML(self, xmlNode):
-    """
-      Function to read the portion of the xml input that belongs to this specialized class
-      and initialize some stuff based on the inputs got
-      @ In, xmlNode, xml.etree.Element, Xml element node
-      @ Out, None
-    """
-    for child in xmlNode:
-      if child.tag == "directory": self.sourceDirectory = child.text
-    if not self.sourceDirectory: self.raiseAnError(IOError, "The PostProcessor " + self.name + "needs a directory for loading the csv files!")
-
-  def collectOutput(self, finishedJob, output):
-    """
-      Function to place all of the computed data into the output object
-      @ In, finishedJob, JobHandler External or Internal instance, A JobHandler object that is in charge of running this post-processor
-      @ In, output, dataObjects, The object where we want to place our computed results
-      @ Out, None
-    """
-    for index, csvFile in enumerate(self.listOfCsvFiles):
-      attributes = {"prefix":str(index), "inputFile":self.name, "type":"csv", "name":csvFile}
-      metadata = finishedJob.returnMetadata()
-      if metadata:
-        for key in metadata: attributes[key] = metadata[key]
-      try:                   output.addGroup(attributes, attributes)
-      except AttributeError:
-        outfile = Files.returnInstance('CSV',self)
-
-        outfile.initialize(csvFile,self.messageHandler,path=os.path.dirname(csvFile))
-        output.addOutput(outfile, attributes)
-        if metadata:
-          for key, value in metadata.items(): output.updateMetadata(key, value, attributes)
-
-  def run(self, inputIn):
-    """
-      This method executes the postprocessor action. In this case, it just returns the list of csv files
-      @ In,  inputIn, object, object contained the data to process. (inputToInternal output)
-      @ Out, self.listOfCsvFiles, list, list of csv files
-    """
-    return self.listOfCsvFiles
 #
 #
 #
@@ -2546,9 +2581,9 @@ class LimitSurface(BasePostProcessor):
       @ In, output, dataObjects, The object where we want to place our computed results
       @ Out, None
     """
-    if finishedJob.returnEvaluation() == -1: self.raiseAnError(RuntimeError, 'No available Output to collect (Run probably is not finished yet)')
-    self.raiseADebug(str(finishedJob.returnEvaluation()))
-    limitSurf = finishedJob.returnEvaluation()[1]
+    if finishedJob.getEvaluation() == -1: self.raiseAnError(RuntimeError, 'No available Output to collect (Run probably is not finished yet)')
+    self.raiseADebug(str(finishedJob.getEvaluation()))
+    limitSurf = finishedJob.getEvaluation()[1]
     if limitSurf[0] is not None:
       for varName in output.getParaKeys('inputs'):
         for varIndex in range(len(self.axisName)):
@@ -2743,7 +2778,13 @@ class ExternalPostProcessor(BasePostProcessor):
           inputDict['targets'][param] = item.getParam('input', param)
         for param in item.getParaKeys('output'):
           inputDict['targets'][param] = item.getParam('output', param)
-
+        metadata.append(item.getAllMetadata())
+      elif inType =='HistorySet':
+        outs, ins = item.getOutParametersValues(nodeId = 'ending'), item.getInpParametersValues(nodeId = 'ending')
+        for param in item.getParaKeys('output'):
+          inputDict['targets'][param] = [value[param] for value in outs.values()]
+        for param in item.getParaKeys('input'):
+          inputDict['targets'][param] =  [value[param] for value in ins.values()]
         metadata.append(item.getAllMetadata())
       elif inType != 'list':
         self.raiseAWarning(self, 'Input type ' + type(item).__name__ + ' not recognized. I am going to skip it.')
@@ -2804,12 +2845,12 @@ class ExternalPostProcessor(BasePostProcessor):
         results
       @ Out, None
     """
-    if finishedJob.returnEvaluation() == -1:
+    if finishedJob.getEvaluation() == -1:
       # #TODO This does not feel right
       self.raiseAnError(RuntimeError, 'No available Output to collect (Run probably did not finish yet)')
-
-    inputList = finishedJob.returnEvaluation()[0]
-    outputDict = finishedJob.returnEvaluation()[1]
+    dataLenghtHistory = {}
+    inputList = finishedJob.getEvaluation()[0]
+    outputDict = finishedJob.getEvaluation()[1]
 
     if isinstance(output,Files.File):
       self.raiseAWarning('Output type File not yet implemented. I am going to skip it.')
@@ -2819,7 +2860,7 @@ class ExternalPostProcessor(BasePostProcessor):
     elif output.type == 'HDF5':
       self.raiseAWarning('Output type ' + type(output).__name__
                          + ' not yet implemented. I am going to skip it.')
-    elif output.type == 'PointSet':
+    elif output.type in ['PointSet','HistorySet'] :
       requestedInput = output.getParaKeys('input')
       ## If you want to be able to dynamically add columns to your data, then
       ## you should use this commented line, otherwise only the information
@@ -2859,13 +2900,19 @@ class ExternalPostProcessor(BasePostProcessor):
           foundCount = 0
           if key in requestedInput:
             for inputData in inputList:
-              if key in inputData.getParametersValues('input').keys():
-                value = inputData.getParametersValues('input')[key]
+              if key in inputData.getParametersValues('input',nodeId = 'ending').keys() if inputData.type == 'PointSet' else inputData.getParametersValues('input',nodeId = 'ending').values()[-1].keys():
+                if inputData.type == 'PointSet':
+                  value = inputData.getParametersValues('input',nodeId = 'ending')[key]
+                else:
+                  value = [value[key] for value in inputData.getParametersValues('input',nodeId = 'ending').values()]
                 foundCount += 1
           else:
             for inputData in inputList:
-                if key in inputData.getParametersValues('output').keys():
-                  value = inputData.getParametersValues('output')[key]
+                if key in inputData.getParametersValues('output',nodeId = 'ending').keys() if inputData.type == 'PointSet' else inputData.getParametersValues('output',nodeId = 'ending').values()[-1].keys():
+                  if inputData.type == 'PointSet':
+                    value = inputData.getParametersValues('output',nodeId = 'ending')[key]
+                  else:
+                    value = [value[key] for value in inputData.getParametersValues('output',nodeId = 'ending').values()]
                   foundCount += 1
 
           if foundCount == 0:
@@ -2896,11 +2943,17 @@ class ExternalPostProcessor(BasePostProcessor):
         ## accessible
         if storeInOutput:
           if key in requestedInput:
-            for val in value:
-              output.updateInputValue(key, val)
+            for histNum, val in enumerate(value):
+              param = key if output.type == 'PointSet' else [histNum+1,key]
+              output.updateInputValue(param, val)
           else:
-            for val in value:
-              output.updateOutputValue(key, val)
+            for histNum, val in enumerate(value):
+              if output.type == 'HistorySet':
+                if histNum+1 in dataLenghtHistory.keys():
+                  if dataLenghtHistory[histNum+1] != len(val): self.raiseAnError(IOError, key + ' the size of the arrays for history '+str(histNum+1)+' are different!')
+                else: dataLenghtHistory[histNum+1] = len(val)
+              param = key if output.type == 'PointSet' else [histNum+1,key]
+              output.updateOutputValue(param, val)
         else:
           if not hasattr(value, "__iter__"):
             value = [value]
@@ -2931,8 +2984,6 @@ class ExternalPostProcessor(BasePostProcessor):
       for interface in self.externalInterfaces:
         if method in interface.availableMethods():
           matchingInterfaces.append(interface)
-
-
       if len(matchingInterfaces) == 0:
         self.raiseAWarning(method + ' not found. I will skip it.')
       elif len(matchingInterfaces) == 1:
@@ -2946,11 +2997,29 @@ class ExternalPostProcessor(BasePostProcessor):
 
     ## Evaluate the method and add it to the outputDict, also if the method
     ## adjusts the input data, then you should update it as well.
+    warningMessages = []
     for methodName, (interface, method) in methodMap.iteritems():
       outputDict[methodName] = interface.evaluate(method, input['targets'])
+      if outputDict[methodName] is None: self.raiseAnError(Exception,"the method "+methodName+" has not produced any result. It needs to return a result!")
       for target in input['targets']:
         if hasattr(interface, target):
-          outputDict[target] = getattr(interface, target)
+          #if target not in outputDict.keys():
+          if target not in methodMap.keys():
+            attributeInSelf = getattr(interface, target)
+            if len(np.atleast_1d(attributeInSelf)) != len(np.atleast_1d(input['targets'][target])) or (np.atleast_1d(attributeInSelf) - np.atleast_1d(input['targets'][target])).all():
+              if target in outputDict.keys(): self.raiseAWarning("In Post-Processor "+ self.name +" the modified variable "+target+
+                               " has the same name of a one already modified throuhg another Function method." +
+                               " This method overwrites the input DataObject variable value")
+              outputDict[target] = attributeInSelf
+          else:
+            warningMessages.append("In Post-Processor "+ self.name +" the method "+method+
+                               " has the same name of a variable contained in the input DataObject." +
+                               " This method overwrites the input DataObject variable value")
+    for msg in list(set(warningMessages)): self.raiseAWarning(msg)
+
+    for target in input['targets'].keys():
+      if target not in outputDict.keys() and target in input['targets'].keys():
+        outputDict[target] = input['targets'][target]
 
     return outputDict
 
@@ -3088,11 +3157,11 @@ class TopologicalDecomposition(BasePostProcessor):
       @ In, output, dataObjects, The object where we want to place our computed results
       @ Out, None
     """
-    if finishedJob.returnEvaluation() == -1:
+    if finishedJob.getEvaluation() == -1:
       # TODO This does not feel right
       self.raiseAnError(RuntimeError,'No available output to collect (run probably did not finish yet)')
-    inputList = finishedJob.returnEvaluation()[0]
-    outputDict = finishedJob.returnEvaluation()[1]
+    inputList = finishedJob.getEvaluation()[0]
+    outputDict = finishedJob.getEvaluation()[1]
 
     if type(output).__name__ in ["str", "unicode", "bytes"]:
       self.raiseAWarning('Output type ' + type(output).__name__ + ' not'
@@ -3399,7 +3468,7 @@ class DataMining(BasePostProcessor):
                                                           ## algorithms the user
                                                           ## wants
 
-    self.requiredAssObject = (True, (['Label','PreProcessor','Metric'], ['-1','-1','-1']))  ## The Label is optional for now
+    self.requiredAssObject = (True, (['PreProcessor','Metric'], ['-1','-1']))
     self.clusterLabels = None
     self.labelAlgorithms = []
     self.solutionExport = None                            ## A data object to
@@ -3412,11 +3481,11 @@ class DataMining(BasePostProcessor):
                                                           ## for dimensionality
                                                           ## reduction methods
 
-    self.labelFeature = 'labels'                          ## User customizable
+    self.labelFeature = None                              ## User customizable
                                                           ## column name for the
                                                           ## labels associated
-                                                          ## to a clustering
-                                                          ## algorithm
+                                                          ## to a clustering or
+                                                          ## a DR algorithm
 
     self.dataObjects = []
     self.PreProcessor = None
@@ -3447,8 +3516,42 @@ class DataMining(BasePostProcessor):
         data objects handed to the post-processor
       @ Out, inputDict, dict, An input dictionary this object can process
     """
-    if type(currentInp) == list: currentInput = currentInp[-1]
-    else                       : currentInput = currentInp
+
+    if type(currentInp) == list:
+      currentInput = currentInp[-1]
+    else:
+      currentInput = currentInp
+
+    if currentInput.type == 'HistorySet' and self.PreProcessor is None and self.metric is None: # for testing time dependent dm - time dependent clustering
+      inputDict = {'Features':{}, 'parameters':{}, 'Labels':{}, 'metadata':{}}
+
+      # FIXME, this needs to be changed for asynchronous HistorySet
+      if self.pivotParameter in currentInput.getParam('output',1).keys():
+        self.pivotVariable = currentInput.getParam('output',1)[self.pivotParameter]
+      else:
+        self.raiseAnError(ValueError, 'Pivot variable not found in input historyset')
+      # end of FIXME
+
+      historyKey = currentInput.getOutParametersValues().keys()
+      numberOfSample = len(historyKey)
+      numberOfHistoryStep = len(self.pivotVariable)
+
+      if self.initializationOptionDict['KDD']['Features'] == 'input':
+        self.raiseAnError(ValueError, 'To perform data mining over input please use SciKitLearn library')
+      elif self.initializationOptionDict['KDD']['Features'] in ['output', 'all']:
+        features = currentInput.getParaKeys('output')
+        features.remove(self.pivotParameter)
+      else:
+        features = self.initializationOptionDict['KDD']['Features'].split(',')
+
+      for param in features:
+        inputDict['Features'][param] = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
+        for cnt, keyH in enumerate(historyKey):
+          inputDict['Features'][param][cnt,:] = currentInput.getParam('output', keyH)[param]
+
+      inputDict['metadata'] = currentInput.getAllMetadata()
+      return inputDict
+
     if type(currentInp) == dict:
       if 'Features' in currentInput.keys(): return
     if isinstance(currentInp, Files.File):
@@ -3469,7 +3572,6 @@ class DataMining(BasePostProcessor):
       tempData = self.PreProcessor.interface.inputToInternal(currentInp)
 
       preProcessedData = self.PreProcessor.interface.run(tempData)
-
       if self.initializationOptionDict['KDD']['Features'] == 'input':
         inputDict['Features'] = copy.deepcopy(preProcessedData['data']['input'])
       elif self.initializationOptionDict['KDD']['Features'] == 'output':
@@ -3521,15 +3623,34 @@ class DataMining(BasePostProcessor):
           inputDict['Features'][param] = currentInput.getParam('input', param)
         for param in outParams:
           inputDict['Features'][param] = currentInput.getParam('output', param)
+
     elif currentInput.type in ['HistorySet']:
       if self.initializationOptionDict['KDD']['Features'] == 'input':
         for param in currentInput.getParaKeys('input'):
           inputDict['Features'][param] = currentInput.getParam('input', param)
       elif self.initializationOptionDict['KDD']['Features'] == 'output':
         inputDict['Features'] = currentInput.getOutParametersValues()
-      inputDict['metadata'] = currentInput.getAllMetadata()
+      elif self.initializationOptionDict['KDD']['Features'] == 'all':
+        for param in allInputFeatures:
+          inputDict['Features'][param] = currentInput.getParam('input', param)
+        for param in allOutputFeatures:
+          inputDict['Features'][param] = currentInput.getParam('output', param)
+      else:
+        features = set(self.initializationOptionDict['KDD']['Features'].split(','))
+        allInputFeatures = currentInput.getParaKeys('input')
+        allOutputFeatures = currentInput.getParaKeys('output')
+        inParams = list(features.intersection(allInputFeatures))
+        outParams = list(features.intersection(allOutputFeatures))
+        inputDict['Features'] = {}
+        for hist in currentInput._dataContainer['outputs'].keys():
+          inputDict['Features'][hist] = {}
+          for param in inParams:
+            inputDict['Features'][hist][param] = currentInput._dataContainer['inputs'][hist][param]
+          for param in outParams:
+            inputDict['Features'][hist][param] = currentInput._dataContainer['outputs'][hist][param]
 
       inputDict['metadata'] = currentInput.getAllMetadata()
+
     ## Redundant if-conditional preserved as a placeholder for potential future
     ## development working directly with files
     # elif isinstance(currentInp, Files.File):
@@ -3576,7 +3697,6 @@ class DataMining(BasePostProcessor):
     ## By default, we want to name the 'labels' by the name of this
     ## postprocessor, but that name is not available before processing the XML
     ## At this point, we have that information
-    self.labelFeature = self.name+'Labels'
     self.initializationOptionDict = {}
 
     for child in xmlNode:
@@ -3602,11 +3722,35 @@ class DataMining(BasePostProcessor):
             self.initializationOptionDict[child.tag][childChild.tag] = dict(childChild.attrib)
           else:
             self.initializationOptionDict[child.tag][childChild.tag] = utils.tryParse(childChild.text)
+      elif child.tag == 'pivotParameter':
+        self.pivotParameter = child.text
+
+    if not hasattr(self, 'pivotParameter'):
+      #TODO, if doing time dependent data mining that needs this, an error
+      # should be thrown
+      self.pivotParameter = None
 
     if self.type:
-      self.unSupervisedEngine = unSupervisedLearning.returnInstance(self.type, self, **self.initializationOptionDict['KDD'])
+      #TODO unSurpervisedEngine needs to be able to handle both methods
+      # without this if statement.
+      if self.pivotParameter is not None:
+        self.unSupervisedEngine = unSupervisedLearning.returnInstance("temporalSciKitLearn", self, **self.initializationOptionDict['KDD'])
+      else:
+        self.unSupervisedEngine = unSupervisedLearning.returnInstance(self.type, self, **self.initializationOptionDict['KDD'])
     else:
       self.raiseAnError(IOError, 'No Data Mining Algorithm is supplied!')
+
+    ## If the user has not defined a label feature, then we will force it to be
+    ## named by the PostProcessor name followed by:
+    ## the word 'Labels' for clustering/GMM models;
+    ## the word 'Dimension' + a numeric id for dimensionality reduction
+    ## algorithms
+    if self.labelFeature is None:
+      if self.unSupervisedEngine.SKLtype in ['cluster','mixture']:
+        self.labelFeature = self.name+'Labels'
+      elif self.unSupervisedEngine.SKLtype in ['decomposition','manifold']:
+        self.labelFeature = self.name+'Dimension'
+
 
   def collectOutput(self, finishedJob, output):
     """
@@ -3618,12 +3762,9 @@ class DataMining(BasePostProcessor):
       @ Out, None
     """
     ## When does this actually happen?
-    if finishedJob.returnEvaluation() == -1:
+    if finishedJob.getEvaluation() == -1:
       self.raiseAnError(RuntimeError, 'No available Output to collect (Run probably is not finished yet)')
-
-    self.raiseADebug(str(finishedJob.returnEvaluation()))
-
-    dataMineDict = finishedJob.returnEvaluation()[1]
+    dataMineDict = finishedJob.getEvaluation()[1]
     for key in dataMineDict['output']:
       for param in output.getParaKeys('output'):
         if key == param:
@@ -3632,12 +3773,20 @@ class DataMining(BasePostProcessor):
         for value in dataMineDict['output'][key]:
           output.updateOutputValue(key, copy.copy(value))
       elif output.type == 'HistorySet':
-        for index,value in np.ndenumerate(dataMineDict['output'][key]):
-          firstHist = output._dataContainer['outputs'].keys()[0]
-          firstVar  = output._dataContainer['outputs'][firstHist].keys()[0]
-          timeLength = output._dataContainer['outputs'][firstHist][firstVar].size
-          arrayBase = value * np.ones(timeLength)
-          output.updateOutputValue([index[0]+1,key], arrayBase)
+        if self.PreProcessor is not None or self.metric is not None:
+          for index,value in np.ndenumerate(dataMineDict['output'][key]):
+            firstHist = output._dataContainer['outputs'].keys()[0]
+            firstVar  = output._dataContainer['outputs'][index[0]+1].keys()[0]
+            timeLength = output._dataContainer['outputs'][index[0]+1][firstVar].size
+            arrayBase = value * np.ones(timeLength)
+            output.updateOutputValue([index[0]+1,key], arrayBase)
+        else:
+          tlDict = finishedJob.getEvaluation()[1]
+          historyKey = output.getOutParametersValues().keys()
+          for index, keyH in enumerate(historyKey):
+            for keyL in tlDict['output'].keys():
+              output.updateOutputValue([keyH,keyL], tlDict['output'][keyL][index,:])
+
 
   def run(self, inputIn):
     """
@@ -3646,21 +3795,31 @@ class DataMining(BasePostProcessor):
       @ In, inputIn, dict, dictionary of data to process
       @ Out, outputDict, dict, dictionary containing the post-processed results
     """
-    if len(self.dataObjects) > 0:
-      if type(self.dataObjects) == list:
-        dataObject = self.dataObjects[-1]
-      else:
-        dataObject = self.dataObjects
+    Input = self.inputToInternal(inputIn)
+    if type(inputIn) == list:
+      currentInput = inputIn[-1]
     else:
-      dataObject = None
-    input = self.inputToInternal(inputIn)
+      currentInput = inputIn
+
+    if currentInput.type == 'HistorySet' and self.PreProcessor is None and self.metric is None:
+      return self.__runTemporalSciKitLearn(Input)
+    else:
+      return self.__runSciKitLearn(Input)
+
+  def __runSciKitLearn(self, Input):
+    """
+      This method executes the postprocessor action. In this case it loads the
+      results to specified dataObject.  This is for SciKitLearn
+      @ In, Input, dict, dictionary of data to process
+      @ Out, outputDict, dict, dictionary containing the post-processed results
+    """
+
     outputDict = {}
-    self.unSupervisedEngine.features = input['Features']
+    self.unSupervisedEngine.features = Input['Features']
     if not self.unSupervisedEngine.amITrained:
-      self.unSupervisedEngine.train(input['Features'], self.metric)
+      self.unSupervisedEngine.train(Input['Features'], self.metric)
     self.unSupervisedEngine.confidence()
     outputDict['output'] = {}
-    noClusters = 1
 
     ## These are very different things, shouldn't each one be its own class?
     ## Proposed hierarchy:
@@ -3674,22 +3833,16 @@ class DataMining(BasePostProcessor):
     ##     - Dimensionality Reduction
     ##       - Manifold Learning
     ##       - Linear projection methods
-    if 'cluster' == self.unSupervisedEngine.SKLtype:
-
+    if 'cluster' == self.unSupervisedEngine.getDataMiningType():
       ## Get the cluster labels and store as a new column in the output
+      #assert  'labels' in self.unSupervisedEngine.outputDict.keys()== hasattr(self.unSupervisedEngine, 'labels_')
       if hasattr(self.unSupervisedEngine, 'labels_'):
         self.clusterLabels = self.unSupervisedEngine.labels_
       outputDict['output'][self.labelFeature] = self.clusterLabels
+      self.raiseAWarning('The clustering algorithm have identified the following cluster labels: ' + str(set(self.clusterLabels)))
 
-      ## Get the total number of clusters
-      if hasattr(self.unSupervisedEngine, 'noClusters'):
-        noClusters = self.unSupervisedEngine.noClusters
-      elif hasattr(self.unSupervisedEngine, 'clusterCentersIndices_'):
-        noClusters = len(self.unSupervisedEngine.clusterCentersIndices_)
-
-      ## Get the centroids and push them to a SolutionExport data object, if
-      ## we have both, also if we have the centers, assume we have the indices
-      ## to match them.
+      ## Get the centroids and push them to a SolutionExport data object.
+      ## Also if we have the centers, assume we have the indices to match them
       if hasattr(self.unSupervisedEngine, 'clusterCenters_'):
         centers = self.unSupervisedEngine.clusterCenters_
         ## Does skl not provide a correlation between label ids and cluster centers?
@@ -3732,10 +3885,9 @@ class DataMining(BasePostProcessor):
       if hasattr(self.unSupervisedEngine, 'inertia_'):
         inertia = self.unSupervisedEngine.inertia_
 
-    elif 'bicluster' == self.unSupervisedEngine.SKLtype:
+    elif 'bicluster' == self.unSupervisedEngine.getDataMiningType():
       self.raiseAnError(RuntimeError, 'Bicluster has not yet been implemented.')
-    elif 'mixture' == self.unSupervisedEngine.SKLtype:
-
+    elif 'mixture' == self.unSupervisedEngine.getDataMiningType():
       if   hasattr(self.unSupervisedEngine, 'covars_'):
         mixtureCovars = self.unSupervisedEngine.covars_
 
@@ -3744,25 +3896,29 @@ class DataMining(BasePostProcessor):
 
       mixtureValues = self.unSupervisedEngine.normValues
       mixtureMeans = self.unSupervisedEngine.means_
-      mixtureLabels = self.unSupervisedEngine.evaluate(input['Features'])
+      mixtureLabels = self.unSupervisedEngine.evaluate(Input['Features'])
       outputDict['output'][self.labelFeature] = mixtureLabels
 
       if self.solutionExport is not None:
-        ## TODO: Export Gaussian centers to SolutionExport
-        ## Get the centroids and push them to a SolutionExport data object, if
-        ## we have both, also if we have the centers, assume we have the indices
-        ## to match them.
+        ## Get the means and push them to a SolutionExport data object.
         ## Does skl not provide a correlation between label ids and Gaussian
         ## centers?
         indices = list(range(len(mixtureMeans)))
         for index,center in zip(indices,mixtureMeans):
           self.solutionExport.updateInputValue(self.labelFeature,index)
           ## Can I be sure of the order of dimensions in the features dict, is
-          ## the same order as the data held in the UnSupervisedLearning object?
+          ## the same order as the data held in the UnSupervisedLearning
+          ## object?
           for key,value in zip(self.unSupervisedEngine.features.keys(),center):
             self.solutionExport.updateOutputValue(key,value)
+          ## You may also want to output the covariances of each pair of
+          ## dimensions as well
+          for i,row in enumerate(self.unSupervisedEngine.features.keys()):
+            for joffset,col in enumerate(self.unSupervisedEngine.features.keys()[i:]):
+              j = i+joffset
+              self.solutionExport.updateOutputValue('cov_'+str(row)+'_'+str(col),mixtureCovars[index][i,j])
 
-    elif 'manifold' == self.unSupervisedEngine.SKLtype:
+    elif 'manifold' == self.unSupervisedEngine.getDataMiningType():
       manifoldValues = self.unSupervisedEngine.normValues
 
       if hasattr(self.unSupervisedEngine, 'embeddingVectors_'):
@@ -3775,12 +3931,14 @@ class DataMining(BasePostProcessor):
       if hasattr(self.unSupervisedEngine, 'reconstructionError_'):
         reconstructionError = self.unSupervisedEngine.reconstructionError_
 
-      ## information stored on a per point basis, no need to use a solution
-      ## export here
+      ## information stored on a per point basis, so no need to use a solution
+      ## export. Manifold methods do not give us a global transformation
+      ## matrix.
       for i in range(len(embeddingVectors[0, :])):
-        outputDict['output'][self.name+'EmbeddingVector' + str(i + 1)] =  embeddingVectors[:, i]
+        newColumnName = self.labelFeature + str(i + 1)
+        outputDict['output'][newColumnName] =  embeddingVectors[:, i]
 
-    elif 'decomposition' == self.unSupervisedEngine.SKLtype:
+    elif 'decomposition' == self.unSupervisedEngine.getDataMiningType():
       decompositionValues = self.unSupervisedEngine.normValues
 
       if hasattr(self.unSupervisedEngine, 'noComponents_'):
@@ -3795,16 +3953,250 @@ class DataMining(BasePostProcessor):
       ## SCORE method does not work for SciKit Learn 0.14
       # if hasattr(self.unSupervisedEngine.Method, 'score'):
       #   score = self.unSupervisedEngine.Method.score(decompositionValues)
-      if hasattr(self.unSupervisedEngine.Method, 'transform'):
-        components = self.unSupervisedEngine.Method.transform(decompositionValues)
-      elif hasattr(self.unSupervisedEngine.Method, 'fit_transform'):
-        components = self.unSupervisedEngine.Method.fit_transform(decompositionValues)
+      if   'transform'     in dir(self.unSupervisedEngine.Method):
+        transformedData = self.unSupervisedEngine.Method.transform(decompositionValues)
+      elif 'fit_transform' in dir(self.unSupervisedEngine.Method):
+        transformedData = self.unSupervisedEngine.Method.fit_transform(decompositionValues)
 
-      ## information stored on a per point basis, no need to use a solution
-      ## export here, this could potentially change, if we are sure these
-      ## use a single projection matrix.
+      ## information stored on a per point basis
       for i in range(noComponents):
-        outputDict['output'][self.name+'PCAComponent' + str(i + 1)] =  components[:, i]
+        newColumnName = self.labelFeature + str(i + 1)
+        outputDict['output'][newColumnName] =  transformedData[:, i]
+
+      if self.solutionExport is not None:
+        ## Get the transformation matrix and push it to a SolutionExport
+        ## data object.
+        ## Can I be sure of the order of dimensions in the features dict, is
+        ## the same order as the data held in the UnSupervisedLearning object?
+        for row,values in enumerate(components):
+          self.solutionExport.updateInputValue(self.labelFeature, row+1)
+          for col,value in zip(self.unSupervisedEngine.features.keys(),values):
+            self.solutionExport.updateOutputValue(col,value)
+
+          self.solutionExport.updateOutputValue('ExplainedVarianceRatio',explainedVarianceRatio[row])
+    return outputDict
+
+
+  def __runTemporalSciKitLearn(self, Input):
+    """
+      This method executes the postprocessor action. In this case it loads the
+      results to specified dataObject.  This is for temporalSciKitLearn
+      @ In, Input, dict, dictionary of data to process
+      @ Out, outputDict, dict, dictionary containing the post-processed results
+    """
+
+    outputDict = {}
+    self.unSupervisedEngine.features = Input['Features']
+    self.unSupervisedEngine.pivotVariable = self.pivotVariable
+
+    if not self.unSupervisedEngine.amITrained:
+      self.unSupervisedEngine.train(Input['Features'])
+    self.unSupervisedEngine.confidence()
+    outputDict['output'] = {}
+    numberOfHistoryStep = self.unSupervisedEngine.numberOfHistoryStep
+    numberOfSample = self.unSupervisedEngine.numberOfSample
+
+    if 'cluster' == self.unSupervisedEngine.getDataMiningType():
+      if 'labels' in self.unSupervisedEngine.outputDict.keys():
+        labels = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
+        for t in range(numberOfHistoryStep):
+          labels[:,t] = self.unSupervisedEngine.outputDict['labels'][t]
+        outputDict['output'][self.labelFeature] = labels
+
+      ## SKL will always enumerate cluster centers starting from zero, if this
+      ## is violated, then the indexing below will break.
+      if 'clusterCentersIndices' in self.unSupervisedEngine.outputDict.keys():
+        clusterCentersIndices = self.unSupervisedEngine.outputDict['clusterCentersIndices']
+
+      if 'clusterCenters' in self.unSupervisedEngine.outputDict.keys():
+        clusterCenters = self.unSupervisedEngine.outputDict['clusterCenters']
+        # Output cluster centroid to solutionExport
+        if self.solutionExport is not None:
+          ## We will process each cluster in turn
+          for clusterIdx in xrange(int(np.max(labels))+1):
+            ## First store the label as the input for this cluster
+            self.solutionExport.updateInputValue(self.labelFeature,clusterIdx)
+
+            ## The time series will be the first output
+            ## TODO: Ensure user requests this
+            self.solutionExport.updateOutputValue(self.pivotParameter, self.pivotVariable)
+
+            ## Now we will process each feature available
+            ## TODO: Ensure user requests each of these
+            for featureIdx, feat in enumerate(self.unSupervisedEngine.features):
+              ## We will go through the time series and find every instance
+              ## where this cluster exists, if it does not, then we put a NaN
+              ## to signal that the information is missing for this timestep
+              timeSeries = np.zeros(numberOfHistoryStep)
+
+              for timeIdx in range(numberOfHistoryStep):
+                ## Here we use the assumption that SKL provides clusters that
+                ## are integer values beginning at zero, which make for nice
+                ## indexes with no need to add another layer of obfuscation
+                if clusterIdx in clusterCentersIndices[timeIdx]:
+                  loc = clusterCentersIndices[timeIdx].index(clusterIdx)
+                  timeSeries[timeIdx] = self.unSupervisedEngine.outputDict['clusterCenters'][timeIdx][loc,featureIdx]
+                else:
+                  timeSeries[timeIdx] = np.nan
+
+              ## In summary, for each feature, we fill a temporary array and
+              ## stuff it into the solutionExport, one question is how do we
+              ## tell it which item we are exporting? I am assuming that if
+              ## I add an input, then I need to do the corresponding
+              ## updateOutputValue to associate everything with it? Once I
+              ## call updateInputValue again, it will move the pointer? This
+              ## needs verified
+              self.solutionExport.updateOutputValue(feat, timeSeries)
+
+      if 'inertia' in self.unSupervisedEngine.outputDict.keys():
+        inertia = self.unSupervisedEngine.outputDict['inertia']
+
+    elif 'mixture' == self.unSupervisedEngine.getDataMiningType():
+      if 'labels' in self.unSupervisedEngine.outputDict.keys():
+        labels = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
+        for t in range(numberOfHistoryStep):
+          labels[:,t] = self.unSupervisedEngine.outputDict['labels'][t]
+        outputDict['output'][self.labelFeature] = labels
+
+      if 'covars' in self.unSupervisedEngine.outputDict.keys():
+        mixtureCovars = self.unSupervisedEngine.outputDict['covars']
+      else:
+        mixtureCovars = None
+
+      if 'precs' in self.unSupervisedEngine.outputDict.keys():
+        mixturePrecs = self.unSupervisedEngine.outputDict['precs']
+      else:
+        mixturePrecs = None
+
+      if 'componentMeanIndices' in self.unSupervisedEngine.outputDict.keys():
+        componentMeanIndices = self.unSupervisedEngine.outputDict['componentMeanIndices']
+      else:
+        componentMeanIndices = None
+
+      if 'means' in self.unSupervisedEngine.outputDict.keys():
+        mixtureMeans = self.unSupervisedEngine.outputDict['means']
+      else:
+        mixtureMeans = None
+
+      # Output cluster centroid to solutionExport
+      if self.solutionExport is not None:
+        ## We will process each cluster in turn
+        for clusterIdx in xrange(int(np.max(componentMeanIndices.values()))+1):
+          ## First store the label as the input for this cluster
+          self.solutionExport.updateInputValue(self.labelFeature,clusterIdx)
+
+          ## The time series will be the first output
+          ## TODO: Ensure user requests this
+          self.solutionExport.updateOutputValue(self.pivotParameter, self.pivotVariable)
+
+          ## Now we will process each feature available
+          ## TODO: Ensure user requests each of these
+          if mixtureMeans is not None:
+            for featureIdx, feat in enumerate(self.unSupervisedEngine.features):
+              ## We will go through the time series and find every instance
+              ## where this cluster exists, if it does not, then we put a NaN
+              ## to signal that the information is missing for this timestep
+              timeSeries = np.zeros(numberOfHistoryStep)
+
+              for timeIdx in range(numberOfHistoryStep):
+                loc = componentMeanIndices[timeIdx].index(clusterIdx)
+                timeSeries[timeIdx] = mixtureMeans[timeIdx][loc,featureIdx]
+
+              ## In summary, for each feature, we fill a temporary array and
+              ## stuff it into the solutionExport, one question is how do we
+              ## tell it which item we are exporting? I am assuming that if
+              ## I add an input, then I need to do the corresponding
+              ## updateOutputValue to associate everything with it? Once I
+              ## call updateInputValue again, it will move the pointer? This
+              ## needs verified
+              self.solutionExport.updateOutputValue(feat, timeSeries)
+
+          ## You may also want to output the covariances of each pair of
+          ## dimensions as well
+          if mixtureCovars is not None:
+            for i,row in enumerate(self.unSupervisedEngine.features.keys()):
+              for joffset,col in enumerate(self.unSupervisedEngine.features.keys()[i:]):
+                j = i+joffset
+                timeSeries = np.zeros(numberOfHistoryStep)
+                for timeIdx in range(numberOfHistoryStep):
+                  loc = componentMeanIndices[timeIdx].index(clusterIdx)
+                  timeSeries[timeIdx] = mixtureCovars[timeIdx][loc][i,j]
+                self.solutionExport.updateOutputValue('cov_'+str(row)+'_'+str(col),timeSeries)
+
+    elif 'manifold' == self.unSupervisedEngine.getDataMiningType():
+      noComponents = self.unSupervisedEngine.outputDict['noComponents'][0]
+
+      if 'embeddingVectors_' in self.unSupervisedEngine.outputDict.keys():
+        embeddingVectors = self.unSupervisedEngine.outputDict['embeddingVectors_']
+
+      if 'reconstructionError_' in self.unSupervisedEngine.outputDict.keys():
+        reconstructionError = self.unSupervisedEngine.outputDict['reconstructionError_']
+
+      for i in range(noComponents):
+        ## Looking at the lines between the initialization of
+        ## outputDict['output'] and here, how is this ever possible? I don't
+        ## think the if is necessary here.
+        # if self.name+'EmbeddingVector' + str(i + 1) not in outputDict['output'].keys():
+        outputDict['output'][self.name+'EmbeddingVector' + str(i + 1)] = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
+
+        ## Shouldn't this only happen if embeddingVectors is set above?
+        for t in range(numberOfHistoryStep):
+          outputDict['output'][self.name+'EmbeddingVector' + str(i + 1)][:,t] =  embeddingVectors[t][:, i]
+
+    elif 'decomposition' == self.unSupervisedEngine.getDataMiningType():
+      decompositionValues = self.unSupervisedEngine.normValues
+
+      noComponents = self.unSupervisedEngine.outputDict['noComponents'][0]
+
+      if 'components' in self.unSupervisedEngine.outputDict.keys():
+        components = self.unSupervisedEngine.outputDict['components']
+      else:
+        components = None
+
+      if 'transformedData' in self.unSupervisedEngine.outputDict.keys():
+        transformedData = self.unSupervisedEngine.outputDict['transformedData']
+      else:
+        transformedData = None
+
+      if 'explainedVarianceRatio' in self.unSupervisedEngine.outputDict.keys():
+        explainedVarianceRatio = self.unSupervisedEngine.outputDict['explainedVarianceRatio']
+      else:
+        explainedVarianceRatio = None
+
+      for i in range(noComponents):
+        ## Looking at the lines between the initialization of
+        ## outputDict['output'] and here, how is this ever possible? I don't
+        ## think the if is necessary here.
+        # if self.name+'PCAComponent' + str(i + 1) not in outputDict['output'].keys():
+        outputDict['output'][self.name+'PCAComponent' + str(i + 1)] = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
+
+
+        if transformedData is not None:
+          for t in range(numberOfHistoryStep):
+            outputDict['output'][self.name+'PCAComponent' + str(i + 1)][:,t] = transformedData[t][:, i]
+
+
+      if self.solutionExport is not None and components is not None:
+        ## Get the transformation matrix and push it to a SolutionExport
+        ## data object.
+        ## Can I be sure of the order of dimensions in the features dict, is
+        ## the same order as the data held in the UnSupervisedLearning object?
+        for row in range(noComponents):
+          self.solutionExport.updateInputValue('component', row+1)
+          self.solutionExport.updateOutputValue(self.pivotParameter, self.pivotVariable)
+          for i,col in enumerate(self.unSupervisedEngine.features.keys()):
+            timeSeries = np.zeros(numberOfHistoryStep)
+            for timeIdx in range(numberOfHistoryStep):
+              timeSeries[timeIdx] = components[timeIdx][row][i]
+            self.solutionExport.updateOutputValue(col,timeSeries)
+          if explainedVarianceRatio is not None:
+            timeSeries = np.zeros(numberOfHistoryStep)
+            for timeIdx in range(numberOfHistoryStep):
+              timeSeries[timeIdx] = explainedVarianceRatio[timeIdx][row]
+            self.solutionExport.updateOutputValue('ExplainedVarianceRatio',timeSeries)
+
+    else:
+      self.raiseAnError(IOError,'%s has not yet implemented.' % self.unSupervisedEngine.getDataMiningType())
 
     return outputDict
 #
@@ -3854,7 +4246,7 @@ class RavenOutput(BasePostProcessor):
           found = True
           break
       if not found:
-        self.raiseAnError(IOError,'Did not find file named "%s" among the Step inputs!')
+        self.raiseAnError(IOError,'Did not find file named "%s" among the Step inputs!' % (input.name))
 
   def _localReadMoreXML(self,xmlNode):
     """
@@ -3907,7 +4299,7 @@ class RavenOutput(BasePostProcessor):
               self.raiseAnError(IOError,'Must specify a "name" for each "output" block!  Missing for:',cchild.text)
             varName = cchild.attrib['name'].strip()
             if varName in self.files[id]['paths'].keys():
-              self.raiseAnError(IOError,'Multiple "output" blocks for "%s" have the same "name":' %self.files[id]['name'],label)
+              self.raiseAnError(IOError,'Multiple "output" blocks for "%s" have the same "name":' %self.files[id]['name'],varName)
             self.files[id]['paths'][varName] = cchild.text.strip()
     #if dynamic, only one File can be specified currently; to fix this, how do you handle different-lengthed times in same data object?
     if self.dynamic and numberOfSources > 1:
@@ -3966,8 +4358,8 @@ class RavenOutput(BasePostProcessor):
       @ In, output, dataObjects, The object where we want to place our computed results
       @ Out, None
     """
-    if finishedJob.returnEvaluation() == -1: self.raiseAnError(RuntimeError, 'No available Output to collect (Run probably is not finished yet)')
-    realizations = finishedJob.returnEvaluation()[1]['realizations']
+    if finishedJob.getEvaluation() == -1: self.raiseAnError(RuntimeError, 'No available Output to collect (Run probably is not finished yet)')
+    realizations = finishedJob.getEvaluation()[1]['realizations']
     for real in realizations:
       for key in output.getParaKeys('inputs'):
         output.updateInputValue(key,real['inputs'][key])
@@ -3994,6 +4386,7 @@ class RavenOutput(BasePostProcessor):
 
 
 
+
 """
  Interface Dictionary (factory) (private)
 """
@@ -4001,10 +4394,8 @@ __base = 'PostProcessor'
 __interFaceDict = {}
 __interFaceDict['SafestPoint'              ] = SafestPoint
 __interFaceDict['LimitSurfaceIntegral'     ] = LimitSurfaceIntegral
-__interFaceDict['PrintCSV'                 ] = PrintCSV
 __interFaceDict['BasicStatistics'          ] = BasicStatistics
 __interFaceDict['InterfacedPostProcessor'  ] = InterfacedPostProcessor
-__interFaceDict['LoadCsvIntoInternalObject'] = LoadCsvIntoInternalObject
 __interFaceDict['LimitSurface'             ] = LimitSurface
 __interFaceDict['ComparisonStatistics'     ] = ComparisonStatistics
 __interFaceDict['External'                 ] = ExternalPostProcessor

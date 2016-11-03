@@ -12,7 +12,7 @@
   <ExternalXML node="Samplers" xmlToLoad="sharedSamplers.xml"/>
 
   <OutStreams>
-    <Plot dim="2" name="test" overwrite="false">
+    <Plot  name="test" overwrite="false">
       <plotSettings>
         <plot>
           <type>scatter</type>

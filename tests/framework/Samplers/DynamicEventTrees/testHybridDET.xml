@@ -16,9 +16,6 @@
     <Code name="MyRAVEN" subType="RELAP7">
       <executable>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</executable>
     </Code>
-    <PostProcessor name="csv_from_hdf5" subType="PrintCSV">
-      <paramters>all</paramters>
-    </PostProcessor>
   </Models>
 
   <Distributions>
@@ -110,7 +107,7 @@
       <source>Pointset</source>
       <what>Output,Input|dummy_for_branch</what>
     </Print>
-    <Plot dim="2" interactive="false" name="2DHistoryPlot" overwrite="true">
+    <Plot  interactive="false" name="2DHistoryPlot" overwrite="true">
       <plotSettings>
         <plot>
           <type>line</type>
@@ -130,7 +127,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot dim="2" interactive="false" name="2DHistoryPlot_tps" overwrite="true">
+    <Plot  interactive="false" name="2DHistoryPlot_tps" overwrite="true">
       <plotSettings>
         <plot>
           <type>scatter</type>
