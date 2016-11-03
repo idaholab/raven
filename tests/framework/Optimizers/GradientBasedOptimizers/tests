@@ -12,4 +12,10 @@
   output = 'SPSAwConstraint/optimizationHistoryDump.csv'
   csv = 'SPSAwConstraint/mdlDataDump.csv SPSAwConstraint/optimizationHistoryDump_0.csv'
  [../]
+ [./SPSAParallel]
+  type = 'RavenFramework'
+  input = 'test_SPSAParallel.xml'
+  output = 'SPSAParallel/optimizationHistoryDump.csv'
+  csv = 'SPSAParallel/mdlDataDump.csv SPSAParallel/optimizationHistoryDump_0.csv SPSAParallel/optimizationHistoryDump_1.csv SPSAParallel/optimizationHistoryDump_2.csv'
+ [../] 
 []
