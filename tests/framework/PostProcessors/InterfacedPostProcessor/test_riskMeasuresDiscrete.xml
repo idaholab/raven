@@ -3,7 +3,7 @@
   <RunInfo>
     <WorkingDir>RiskMeasuresDiscrete</WorkingDir>
     <Sequence>FirstMRun,PP</Sequence>
-    <batchSize>1</batchSize>
+    <batchSize>10</batchSize>
     <internalParallel>True</internalParallel>
   </RunInfo>
 
@@ -26,7 +26,7 @@
   <Samplers>
     <MonteCarlo name='MC'>
       <samplerInit>
-        <limit>10</limit>
+        <limit>100</limit>
       </samplerInit>
       <variable name='valveTime'>
         <distribution>valveTime_distExp</distribution>
@@ -77,11 +77,11 @@
 	    <Output>Tmax,outcome,pump1State,pump2State,valveState,failureTime</Output>
 	  </PointSet>
     <PointSet name="outPPS">
-      <Input>pump1Time_avg,pump2Time_avg,valveTime_avg</Input>
-      <Output>pump1Time_B   , pump2Time_B   , valveTime_B,
-              pump1Time_FV  , pump2Time_FV  , valveTime_FV,
-              pump1Time_RAW , pump2Time_RAW , valveTime_RAW,
-              pump1Time_RRW , pump2Time_RRW , valveTime_RRW  </Output>
+      <Input> pump1Time_avg  , pump2Time_avg  , valveTime_avg</Input>
+      <Output>pump1State_B   , pump2State_B   , valveState_B,
+              pump1State_FV  , pump2State_FV  , valveState_FV,
+              pump1State_RAW , pump2State_RAW , valveState_RAW,
+              pump1State_RRW , pump2State_RRW , valveState_RRW</Output>
     </PointSet>
   </DataObjects>
 
