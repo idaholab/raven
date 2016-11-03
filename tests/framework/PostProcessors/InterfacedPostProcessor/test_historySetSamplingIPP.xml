@@ -12,67 +12,67 @@
 
   <Steps>
     <MultiRun name="FirstMRun" pauseAtEnd="True">
-      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
-      <Model class="Models" type="ExternalModel">PythonModule</Model>
-      <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
-      <Output class="DataObjects" type="PointSet">outMC</Output>
-      <Output class="Databases" type="HDF5">out_db</Output>
-      <Output class="OutStreams" type="Print">PrintHistorySet_dump</Output>
+      <Input   class="DataObjects"  type="PointSet"      >inputPlaceHolder</Input>
+      <Model   class="Models"       type="ExternalModel" >PythonModule</Model>
+      <Sampler class="Samplers"     type="MonteCarlo"    >MC_external</Sampler>
+      <Output  class="DataObjects"  type="PointSet"      >outMC</Output>
+      <Output  class="Databases"    type="HDF5"          >out_db</Output>
+      <Output  class="OutStreams"   type="Print"         >PrintHistorySet_dump</Output>
     </MultiRun>
     <IOStep name="plot1">
-      <Input class="DataObjects" type="HistorySet">outMC_PP1</Input>
-      <Input class="DataObjects" type="HistorySet">outMC</Input>
-      <Output class="OutStreams" type="Plot">plot1</Output>
+      <Input   class="DataObjects"  type="HistorySet"    >outMC_PP1</Input>
+      <Input   class="DataObjects"  type="HistorySet"    >outMC</Input>
+      <Output  class="OutStreams"   type="Plot"          >plot1</Output>
     </IOStep>
     <IOStep name="plot2">
-      <Input class="DataObjects" type="HistorySet">outMC_PP2</Input>
-      <Input class="DataObjects" type="HistorySet">outMC</Input>
-      <Output class="OutStreams" type="Plot">plot2</Output>
+      <Input   class="DataObjects"  type="HistorySet"    >outMC_PP2</Input>
+      <Input   class="DataObjects"  type="HistorySet"    >outMC</Input>
+      <Output  class="OutStreams"   type="Plot"          >plot2</Output>
     </IOStep>
     <IOStep name="plot3">
-      <Input class="DataObjects" type="HistorySet">outMC_PP3</Input>
-      <Input class="DataObjects" type="HistorySet">outMC</Input>
-      <Output class="OutStreams" type="Plot">plot3</Output>
+      <Input   class="DataObjects"  type="HistorySet"    >outMC_PP3</Input>
+      <Input   class="DataObjects"  type="HistorySet"    >outMC</Input>
+      <Output  class="OutStreams"   type="Plot"          >plot3</Output>
     </IOStep>
     <IOStep name="plot4">
-      <Input class="DataObjects" type="HistorySet">outMC_PP4</Input>
-      <Input class="DataObjects" type="HistorySet">outMC</Input>
-      <Output class="OutStreams" type="Plot">plot4</Output>
+      <Input   class="DataObjects"  type="HistorySet"    >outMC_PP4</Input>
+      <Input   class="DataObjects"  type="HistorySet"    >outMC</Input>
+      <Output  class="OutStreams"   type="Plot"          >plot4</Output>
     </IOStep>
     <IOStep name="plot5">
-      <Input class="DataObjects" type="HistorySet">outMC_PP5</Input>
-      <Input class="DataObjects" type="HistorySet">outMC</Input>
-      <Output class="OutStreams" type="Plot">plot5</Output>
+      <Input   class="DataObjects"  type="HistorySet"    >outMC_PP5</Input>
+      <Input   class="DataObjects"  type="HistorySet"    >outMC</Input>
+      <Output  class="OutStreams"   type="Plot"          >plot5</Output>
     </IOStep>
     <PostProcess name="PP1">
-      <Input class="DataObjects" type="HistorySet">outMC</Input>
-      <Model class="Models" type="PostProcessor">historySamplingPP_uniform</Model>
-      <Output class="DataObjects" type="HistorySet">outMC_PP1</Output>
-      <Output class="OutStreams" type="Print">PrintPPHistorySet_dump1</Output>
+      <Input   class="DataObjects"  type="HistorySet"    >outMC</Input>
+      <Model   class="Models"       type="PostProcessor" >historySamplingPP_uniform</Model>
+      <Output  class="DataObjects"  type="HistorySet"    >outMC_PP1</Output>
+      <Output  class="OutStreams"   type="Print"         >PrintPPHistorySet_dump1</Output>
     </PostProcess>
     <PostProcess name="PP2">
-      <Input class="DataObjects" type="HistorySet">outMC</Input>
-      <Model class="Models" type="PostProcessor">historySamplingPP_first</Model>
-      <Output class="DataObjects" type="HistorySet">outMC_PP2</Output>
-      <Output class="OutStreams" type="Print">PrintPPHistorySet_dump2</Output>
+      <Input   class="DataObjects"  type="HistorySet"    >outMC</Input>
+      <Model   class="Models"       type="PostProcessor" >historySamplingPP_first</Model>
+      <Output  class="DataObjects"  type="HistorySet"    >outMC_PP2</Output>
+      <Output  class="OutStreams"   type="Print"         >PrintPPHistorySet_dump2</Output>
     </PostProcess>
     <PostProcess name="PP3">
-      <Input class="DataObjects" type="HistorySet">outMC</Input>
-      <Model class="Models" type="PostProcessor">historySamplingPP_second</Model>
-      <Output class="DataObjects" type="HistorySet">outMC_PP3</Output>
-      <Output class="OutStreams" type="Print">PrintPPHistorySet_dump3</Output>
+      <Input   class="DataObjects"  type="HistorySet"    >outMC</Input>
+      <Model   class="Models"       type="PostProcessor" >historySamplingPP_second</Model>
+      <Output  class="DataObjects"  type="HistorySet"    >outMC_PP3</Output>
+      <Output  class="OutStreams"   type="Print"         >PrintPPHistorySet_dump3</Output>
     </PostProcess>
     <PostProcess name="PP4">
-      <Input class="DataObjects" type="HistorySet">outMC</Input>
-      <Model class="Models" type="PostProcessor">historySamplingPP_filt_first</Model>
-      <Output class="DataObjects" type="HistorySet">outMC_PP4</Output>
-      <Output class="OutStreams" type="Print">PrintPPHistorySet_dump4</Output>
+      <Input   class="DataObjects"  type="HistorySet"    >outMC</Input>
+      <Model   class="Models"       type="PostProcessor" >historySamplingPP_filt_first</Model>
+      <Output  class="DataObjects"  type="HistorySet"    >outMC_PP4</Output>
+      <Output  class="OutStreams"   type="Print"         >PrintPPHistorySet_dump4</Output>
     </PostProcess>
     <PostProcess name="PP5">
-      <Input class="DataObjects" type="HistorySet">outMC</Input>
-      <Model class="Models" type="PostProcessor">historySamplingPP_filt_second</Model>
-      <Output class="DataObjects" type="HistorySet">outMC_PP5</Output>
-      <Output class="OutStreams" type="Print">PrintPPHistorySet_dump5</Output>
+      <Input   class="DataObjects"  type="HistorySet"    >outMC</Input>
+      <Model   class="Models"       type="PostProcessor" >historySamplingPP_filt_second</Model>
+      <Output  class="DataObjects"  type="HistorySet"    >outMC_PP5</Output>
+      <Output  class="OutStreams"   type="Print"         >PrintPPHistorySet_dump5</Output>
     </PostProcess>
   </Steps>
 
@@ -84,34 +84,34 @@
       <method>HistorySetSampling</method>
       <samplingType>uniform</samplingType>
       <numberOfSamples>10</numberOfSamples>
-      <timeID>time</timeID>
+      <pivotParameter>time</pivotParameter>
       <interpolation>cubic</interpolation>
     </PostProcessor>
     <PostProcessor name="historySamplingPP_first" subType="InterfacedPostProcessor">
       <method>HistorySetSampling</method>
       <samplingType>firstDerivative</samplingType>
       <numberOfSamples>10</numberOfSamples>
-      <timeID>time</timeID>
+      <pivotParameter>time</pivotParameter>
       <interpolation>cubic</interpolation>
     </PostProcessor>
     <PostProcessor name="historySamplingPP_second" subType="InterfacedPostProcessor">
       <method>HistorySetSampling</method>
       <samplingType>secondDerivative</samplingType>
       <numberOfSamples>10</numberOfSamples>
-      <timeID>time</timeID>
+      <pivotParameter>time</pivotParameter>
       <interpolation>cubic</interpolation>
     </PostProcessor>
     <PostProcessor name="historySamplingPP_filt_first" subType="InterfacedPostProcessor">
       <method>HistorySetSampling</method>
       <samplingType>filteredFirstDerivative</samplingType>
-      <timeID>time</timeID>
-      <tolerance>0.5</tolerance>
+      <pivotParameter>time</pivotParameter>
+      <tolerance>200</tolerance>
     </PostProcessor>
     <PostProcessor name="historySamplingPP_filt_second" subType="InterfacedPostProcessor">
       <method>HistorySetSampling</method>
       <samplingType>filteredSecondDerivative</samplingType>
-      <timeID>time</timeID>
-      <tolerance>0.1</tolerance>
+      <pivotParameter>time</pivotParameter>
+      <tolerance>5000</tolerance>
     </PostProcessor>
   </Models>
 
@@ -190,6 +190,13 @@
           <x>outMC_PP1|Output|time</x>
           <y>outMC_PP1|Output|x</y>
         </plot>
+        <plot>
+          <type>line</type>
+          <interpolationType>linear</interpolationType>
+          <interpPointsX>100</interpPointsX>
+          <x>outMC_PP1|Output|time</x>
+          <y>outMC_PP1|Output|x</y>
+        </plot>
         <xlabel>time</xlabel>
         <ylabel>x</ylabel>
       </plotSettings>
@@ -214,6 +221,13 @@
           <x>outMC_PP2|Output|time</x>
           <y>outMC_PP2|Output|x</y>
         </plot>
+        <plot>
+          <type>line</type>
+          <interpolationType>linear</interpolationType>
+          <interpPointsX>100</interpPointsX>
+          <x>outMC_PP2|Output|time</x>
+          <y>outMC_PP2|Output|x</y>
+        </plot>
         <xlabel>time</xlabel>
         <ylabel>x</ylabel>
       </plotSettings>
@@ -235,6 +249,13 @@
         </plot>
         <plot>
           <type>scatter</type>
+          <x>outMC_PP3|Output|time</x>
+          <y>outMC_PP3|Output|x</y>
+        </plot>
+        <plot>
+          <type>line</type>
+          <interpolationType>linear</interpolationType>
+          <interpPointsX>100</interpPointsX>
           <x>outMC_PP3|Output|time</x>
           <y>outMC_PP3|Output|x</y>
         </plot>

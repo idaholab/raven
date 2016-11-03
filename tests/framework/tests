@@ -313,6 +313,11 @@
   required_libraries = lxml
  [../]
 
+ [./test_xml_differ]
+  type = 'RavenPython'
+  input = 'TestDiffer/TestXMLDiffer.py'
+ [../]
+
  [./test_iostep_load]
    #REQUIREMENT_TEST R-RA-2
    type = 'RavenFramework'
