@@ -98,8 +98,8 @@
       </variable>
 	  <objectVar>c</objectVar>
 	  <parameter>
-		<a>0.1</a>
 		<numGradAvgIterations>4</numGradAvgIterations>
+		<a>0.1</a>
 	  </parameter>
     </SPSA>
   </Optimizers>
