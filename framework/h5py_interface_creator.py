@@ -324,6 +324,7 @@ class hdf5Database(MessageHandler.MessageUser):
       # I keep this structure here because I want to maintain the possibility to add a whatever dictionary even if not prepared and divided into output and input sub-sets. A.A.
       if set(['inputSpaceParams']).issubset(set(source['name'].keys())):
         groups.attrs[b'inputSpaceHeaders' ] = list(utils.toBytesIterative(source['name']['inputSpaceParams'].keys()))
+        aaaa = json.dumps(list(utils.toListFromNumpyOrC1arrayIterative(list(utils.toBytesIterative(source['name']['inputSpaceParams'].values())))))
         groups.attrs[b'inputSpaceValues'  ] = json.dumps(list(utils.toListFromNumpyOrC1arrayIterative(list(utils.toBytesIterative(source['name']['inputSpaceParams'].values())))))
       if set(['outputSpaceParams']).issubset(set(source['name'].keys())): outDict = source['name']['outputSpaceParams']
       else: outDict = dict((key,value) for (key,value) in source['name'].iteritems() if key not in ['inputSpaceParams'])

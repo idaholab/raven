@@ -111,7 +111,8 @@ class PointSet(Data):
     # if this flag is true, we accept realizations in the input space that are not only scalar but can be 1-D arrays!
     acceptArrayRealizations = False if options == None else options.get('acceptArrayRealizations',False)
     if isinstance(value,(np.ndarray,c1darray)):
-      if value.size != 1 and not acceptArrayRealizations: self.raiseAnError(NotConsistentData,'PointSet Data accepts only a numpy array of dim 1 or a single value for method <_updateSpecializedInputValue>. Size is ' + str(value.size))
+      if len(value.shape) > 1: self.raiseAnError(NotConsistentData,'PointSet Data accepts only a 1 Dimensional numpy array or a single value for method <_updateSpecializedInputValue>. Array shape is ' + str(value.shape))
+      #if value.size != 1 and not acceptArrayRealizations: self.raiseAnError(NotConsistentData,'PointSet Data accepts only a numpy array of dim 1 or a single value for method <_updateSpecializedInputValue>. Size is ' + str(value.size))
     if options and self._dataParameters['hierarchical']:
       # we retrieve the node in which the specialized 'Point' has been stored
       parentID = None
@@ -139,7 +140,9 @@ class PointSet(Data):
         else                          : self._dataContainer['inputs'][name].append(np.atleast_1d(np.atleast_1d(value)))
         #self._dataContainer['inputs'][name] = c1darray(values=np.atleast_1d(np.atleast_1d(value)[-1]))                     copy.copy(np.concatenate((np.atleast_1d(np.array(popped)), np.atleast_1d(np.atleast_1d(value)[-1]))))
       else:
-        if name not in self._dataParameters['inParam']: self._dataParameters['inParam'].append(name)
+        #if name not in self._dataParameters['inParam']: self._dataParameters['inParam'].append(name)
+        if name not in self._dataParameters['inParam']: self.raiseAnError(NotConsistentData,'The input variable '+name+'is not among the input space of the DataObject '+self.name)
+        #self._dataContainer['inputs'][name] = c1darray(values=np.atleast_1d(np.atleast_1d(value)[-1])) if not acceptArrayRealizations else c1darray(values=np.atleast_1d(np.atleast_1d(value)))
         self._dataContainer['inputs'][name] = c1darray(values=np.atleast_1d(np.atleast_1d(value)[-1])) if not acceptArrayRealizations else c1darray(values=np.atleast_1d(np.atleast_1d(value)))
 
   def _updateSpecializedMetadata(self,name,value,options=None):

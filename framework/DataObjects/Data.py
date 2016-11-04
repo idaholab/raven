@@ -68,6 +68,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     self._dataParameters['hierarchical'] = False                      # the structure of this data is hierarchical?
     self._toLoadFromList                 = []                         # loading source
     self._dataContainer                  = {'inputs':{},'outputs':{}} # Dict that contains the actual data. self._dataContainer['inputs'] contains the input space, self._dataContainer['output'] the output space
+    self._inputShape                     = {}                         # This is a dictionary that contains information about the input shape (0 = Scalar, 1 = 1 Dimensional array)
     self._dataContainer['metadata'     ] = {}                         # In this dictionary we store metadata (For example, probability,input file names, etc)
     self.metaAdditionalInOrOut           = ['PointProbability','ProbabilityWeight']            # list of metadata keys that will be printed in the CSV one
     self.acceptHierarchy                 = False                      # flag to tell if a sub-type accepts hierarchy
