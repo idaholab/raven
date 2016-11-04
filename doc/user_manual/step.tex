@@ -306,10 +306,10 @@ This XML node recognizes the following attributes:
     See Section \ref{sec:Optimizers} for all the different types currently
     supported.
 \end{itemize}
-\nb For Multi-Run, either one \xmlNode{Sampler} or one \xmlNode{Optimizer} is required. 
+\nb For Multi-Run, either one \xmlNode{Sampler} or one \xmlNode{Optimizer} is required.
 \item \xmlNode{SolutionExport}, \xmlDesc{string, optional parameter} identifies
 an entity to be used for exporting key information coming from the
-\textbf{Sampler} object during the simulation.
+\textbf{Sampler} or \textbf{Optimizer} object during the simulation.
 This XML node accepts the following attributes:
 \begin{itemize}
   \item \xmlAttr{class}, \xmlDesc{required string attribute}, main object class
@@ -318,20 +318,21 @@ This XML node accepts the following attributes:
     input.
     For this role, only \xmlString{DataObjects} can be used.
   \item \xmlAttr{type}, \xmlDesc{required string attribute}, the actual entity
-    type.
+    type. 
     This attribute needs to specify the object type within the \texttt{DataObjects}
     object class.
-    For example, the \xmlAttr{type} attribute might be \xmlString{Code},
-    \xmlString{ROM}, etc. \\
+    For example, the \xmlAttr{type} attribute might be \xmlString{PointSet},
+    \xmlString{HistorySet}, etc. \\
     \nb Whether or not it is possible to export the \textbf{Sampler} solution
     depends on the \xmlAttr{type}.
-    Currently, only the Samplers in the \xmlString{Adaptive} category can
-    export their solution into a \xmlNode{SolutionExport} entity. The \xmlNode{Outputs} node
-    in the \texttt{DataObjects} needs to contain the goal  \xmlNode{Function} name.
+    Currently, only the Samplers in the \xmlString{Adaptive} category and all Optimizers can
+    export their solution into a \xmlNode{SolutionExport} entity. For Samplers, the \xmlNode{Outputs} node
+    in the \texttt{DataObjects} needs to contain the goal \xmlNode{Function} name.
     For example, if  \xmlNode{Sampler} is of type \xmlString{Adaptive}, the
     \xmlNode{SolutionExport} needs to be of type \xmlString{PointSet} and
     it will contain the coordinates, in the input space, that belong to the
-    ``Limit Surface.''
+    ``Limit Surface''. For Optimizers, the
+    \xmlNode{SolutionExport} needs to be of type \xmlString{HistorySet} and it will contains all the optimization trajectories, each as a history, that record how the variables are updated along each optimization trajectory. 
 \end{itemize}
 \item \xmlNode{Output}, \xmlDesc{string, required parameter} identifies an
 entity to be used as output for this step.

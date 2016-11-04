@@ -61,15 +61,15 @@ From a practical point of view, these optimization strategies represent differen
 %%% Gradient Based Optimizers: SPSA
 \subsubsection{Simultaneous Perturbation Stochastic Approximation (SPSA)}
 \label{subsubsubsec:SPSA}
-The \textbf{SPSA} optimization approach is one of the optimization strategies that are based on gradient estimation. The main idea is to simultaneously perturb all decision variables in order to estimate the gradient. Consequently a minimal number of two model evaluations are required in order to approximate the gradient. The theory behind SPSA can be found in \cite{spall1998implementation}. 
+The \textbf{SPSA} optimization approach is one of the optimization strategies that are based on gradient estimation. The main idea is to simultaneously perturb all decision variables in order to estimate the gradient. Consequently a minimal number of two model evaluations are required in order to approximate the gradient. The theory behind SPSA can be found in \cite{spall1998implementation}.
 
 In addition to the algorithm in \cite{spall1998implementation}, current implementation of \textbf{SPSA} can also handles constrained optimization problem. This paragraph briefly describes how current implementation ensures the input satisfies the constraints. When when updating the variables (not perturbing), if constraint is violated, \textbf{SPSA} does the following in sequence:
 \begin{itemize}
-\item Try to find, through bisection method, the longest fraction of gradient vector so that the variable update satisfies the constraints; 
-\item When such fraction cannot be found, then find a random vector orthogonal to gradient vector so that, by using this orthogonal vector as gradient, the variable update satisfies the constraints. Rotate the orthogonal vector towards the gradient, through bisection methods, until constraints can no longer be satisfied; 
-\item If all above cannot return a constraint satisfying variable update, then do not update the variables and the \textbf{SPSA} will terminate. 
+\item Try to find, through bisection method, the longest fraction of gradient vector so that the variable update satisfies the constraints;
+\item When such fraction cannot be found, then find a random vector orthogonal to gradient vector so that, by using this orthogonal vector as gradient, the variable update satisfies the constraints. Rotate the orthogonal vector towards the gradient, through bisection methods, until constraints can no longer be satisfied;
+\item If all above cannot return a constraint satisfying variable update, then do not update the variables and the \textbf{SPSA} will terminate.
 \end{itemize}
- 
+
 
 %
 
@@ -115,14 +115,14 @@ In the \xmlNode{SPSA} input block, the user needs to specify the objective varia
  \begin{itemize}
     \item \xmlNode{upperBound}, \xmlDesc{float, optional field}, the upper bound of this variable;
     \item \xmlNode{lowerBound}, \xmlDesc{float, optional field}, the lower bound of this variable;
-    \item \xmlNode{initial}, \xmlDesc{float, optional field}, the initial value for this variable.
+    \item \xmlNode{initial}, \xmlDesc{comma separated strings, optional field}, the initial value(s) for this variable. If there are more than one initial values specified for a variable, then all the variables need to have the same number of initial values. In this case, \xmlNode{SPSA} optimizer will maintain multiple trajectories to fully utilize potential parallel computing capability.  
   \end{itemize}
 \end{itemize}
 \begin{itemize}
 \item \xmlNode{convergence}, \xmlDesc{XML node, optional parameter} will specify parameters associated with optimization convergence. This node accepts the following sub-nodes:
   \begin{itemize}
   \item \xmlNode{iterationLimit}, \xmlDesc{integer, optional field}, user-defined maximum number of optimization iterations.
-  \item \xmlNode{threshold}, \xmlDesc{float, optional field}, specifies the convergence criteria to determine the optimality. If it is given a positive value, then when the absolute change of objective variable in two successive model evaluations is smaller than this pre-specified threshold, the \xmlNode{SPSA} optimizer decides optimality and terminates the simulation. If it is given a negative value, then \xmlNode{SPSA} optimizer will run all the iterations specified. 
+  \item \xmlNode{threshold}, \xmlDesc{float, optional field}, specifies the convergence criteria to determine the optimality. If it is given a positive value, then when the absolute change of objective variable in two successive model evaluations is smaller than this pre-specified threshold, the \xmlNode{SPSA} optimizer decides optimality and terminates the simulation. If it is given a negative value, then \xmlNode{SPSA} optimizer will run all the iterations specified.
       \default{1e-3}
   \end{itemize}
 \item \xmlNode{Parameter}, \xmlDesc{XML node, optional parameter} will accepts the following sub-nodes:
@@ -142,7 +142,7 @@ In the \xmlNode{SPSA} input block, the user needs to specify the objective varia
   \item \xmlNode{innerBisectionThreshold}, \xmlDesc{float, optional field} a parameter specifying the convergence threshold of the bisection method used in constraint handling (See above). This parameter shall be in the open inverval $(0,1)$.
         \default{0.01}
   \item \xmlNode{innerLoopLimit}, \xmlDesc{integer, optional field} a parameter specifying the number of orthogonal vectors to try when handling the constraints (See above).
-        \default{1000}        
+        \default{1000}
   \end{itemize}
 \end{itemize}
 
