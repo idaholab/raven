@@ -189,8 +189,8 @@ class Distribution(BaseType):
       @ In, upperBound, float, upper bound
       @ Out,randResult, float, random number
     """
-    CDFupper = self._distribution.Cdf(upperBound)
-    CDFlower = self._distribution.Cdf(lowerBound)
+    CDFupper = self._distribution.cdf(upperBound)
+    CDFlower = self._distribution.cdf(lowerBound)
     randResult = self.rvsWithinCDFbounds(CDFlower,CDFupper)
     return randResult
 
@@ -361,7 +361,7 @@ class BoostDistribution(Distribution):
       @ In, x, float, value to get the cdf at
       @ Out, retunrCdf, float, requested cdf
     """
-    retunrCdf = self._distribution.Cdf(x)
+    retunrCdf = self._distribution.cdf(x)
     return retunrCdf
 
   def ppf(self,x):
@@ -2065,7 +2065,7 @@ class NDInverseWeight(NDimensionalDistributions):
     """
     coordinate = distribution1D.vectord_cxx(len(x))
     for i in range(len(x)): coordinate[i] = x[i]
-    cdfValue = self._distribution.Cdf(coordinate)
+    cdfValue = self._distribution.cdf(coordinate)
     return cdfValue
 
   def ppf(self,x):
@@ -2226,7 +2226,7 @@ class NDCartesianSpline(NDimensionalDistributions):
     """
     coordinate = distribution1D.vectord_cxx(len(x))
     for i in range(len(x)): coordinate[i] = x[i]
-    cdfValue = self._distribution.Cdf(coordinate)
+    cdfValue = self._distribution.cdf(coordinate)
     return cdfValue
 
   def ppf(self,x):
@@ -2425,7 +2425,7 @@ class MultivariateNormal(NDimensionalDistributions):
     if self.method == 'spline':
       coordinate = distribution1D.vectord_cxx(len(x))
       for i in range(len(x)): coordinate[i] = x[i]
-      cdfValue = self._distribution.Cdf(coordinate)
+      cdfValue = self._distribution.cdf(coordinate)
     else:
       self.raiseAnError(NotImplementedError,'cdf not yet implemented for ' + self.method + ' method')
     return cdfValue
