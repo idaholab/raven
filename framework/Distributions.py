@@ -379,7 +379,7 @@ class BoostDistribution(Distribution):
       @ In, x, float, value to get the pdf at
       @ Out, returnPdf, float, requested pdf
     """
-    returnPdf = self._distribution.Pdf(x)
+    returnPdf = self._distribution.pdf(x)
     return returnPdf
 
   def untruncatedCdfComplement(self, x):
@@ -2085,7 +2085,7 @@ class NDInverseWeight(NDimensionalDistributions):
     """
     coordinate = distribution1D.vectord_cxx(len(x))
     for i in range(len(x)): coordinate[i] = x[i]
-    pdfValue = self._distribution.Pdf(coordinate)
+    pdfValue = self._distribution.pdf(coordinate)
     return pdfValue
 
   def cellIntegral(self,x,dx):
@@ -2246,7 +2246,7 @@ class NDCartesianSpline(NDimensionalDistributions):
     """
     coordinate = distribution1D.vectord_cxx(len(x))
     for i in range(len(x)): coordinate[i] = x[i]
-    pdfValue = self._distribution.Pdf(coordinate)
+    pdfValue = self._distribution.pdf(coordinate)
     return pdfValue
 
   def cellIntegral(self,x,dx):
@@ -2560,7 +2560,7 @@ class MultivariateNormal(NDimensionalDistributions):
       coordinate = distribution1D.vectord_cxx(len(x))
       for i in range(len(x)):
         coordinate[i] = x[i]
-      pdfValue = self._distribution.Pdf(coordinate)
+      pdfValue = self._distribution.pdf(coordinate)
     return pdfValue
 
   def pdfInTransformedSpace(self,x):
