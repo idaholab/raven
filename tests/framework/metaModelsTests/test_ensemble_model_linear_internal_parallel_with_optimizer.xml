@@ -232,10 +232,6 @@
         <Input>rightTemperature,leftTemperature</Input>
         <Output>solution</Output>
     </PointSet>
-    <HistorySet name="optData">
-        <Input>trajID</Input>
-        <Output>solution,rightTemperature,leftTemperature,varsUpdate</Output>
-    </HistorySet>
     <PointSet name="inputHolder">
       <Input>leftTemperature,rightTemperature</Input>
       <Output>OutputPlaceHolder</Output>
@@ -252,6 +248,10 @@
       <Input>leftTemperature,rightTemperature</Input>
       <Output>k,solution</Output>
     </PointSet>
+    <HistorySet name="optData">
+        <Input>trajID</Input>
+        <Output>solution,rightTemperature,leftTemperature,varsUpdate</Output>
+    </HistorySet>
   </DataObjects>
 
 </Simulation>
