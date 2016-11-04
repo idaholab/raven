@@ -98,7 +98,6 @@
       </variable>
 	  <objectVar>c</objectVar>
 	  <parameter>
-		<!-- <alpha>0.1</alpha> -->
 		<a>0.1</a>
 		<numGradAvgIterations>4</numGradAvgIterations>
 	  </parameter>
