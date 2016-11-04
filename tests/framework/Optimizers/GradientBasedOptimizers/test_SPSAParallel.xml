@@ -37,10 +37,6 @@
       <Input>x1,x2</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
-    <HistorySet name="optData">
-      <Input>trajID</Input>
-      <Output>c,x1,x2,varsUpdate</Output>
-    </HistorySet>
 	<PointSet name="gridInput">
       <Input>x1,x2</Input>
       <Output>OutputPlaceHolder</Output>
@@ -49,6 +45,10 @@
       <Input>x1,x2</Input>
       <Output>c</Output>
     </PointSet>
+	<HistorySet name="optData">
+      <Input>trajID</Input>
+      <Output>c,x1,x2,varsUpdate</Output>
+    </HistorySet>
   </DataObjects>
 
   <Distributions>
@@ -124,7 +124,7 @@
         <source>gridOutput</source>
     </Print>
 	
-    <Plot dim="3" name="optPath" overwrite="false" verbosity="debug">
+    <Plot name="optPath" overwrite="false" verbosity="debug">
         <actions>
             <how>pdf</how>
         </actions>
@@ -141,7 +141,7 @@
         </plotSettings>
     </Plot>
 	
-    <Plot dim="2" name="optVars" overwrite="false" verbosity="debug">
+    <Plot name="optVars" overwrite="false" verbosity="debug">
         <actions>
             <how>pdf</how>
         </actions>
@@ -157,7 +157,7 @@
         </plotSettings>
     </Plot>
 	
-    <Plot dim="2" name="plotIteration" overwrite="false" verbosity="debug">
+    <Plot name="plotIteration" overwrite="false" verbosity="debug">
         <actions>
             <how>pdf</how>
         </actions>
