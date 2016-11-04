@@ -504,6 +504,13 @@
    output = 'custom1D/PointSet2_dump.csv custom1D/PointSet2_dump.xml custom1D/PointSet3_dump.csv custom1D/PointSet3_dump.xml'
    csv    = 'custom1D/PointSet2_dump.csv custom1D/PointSet3_dump.csv'
  [../]
+ 
+ [./categorical]
+   type   = 'RavenFramework'
+   input  = 'test_distributionsCategorical.xml'
+   output = 'test_categorical/Grid_dump.csv test_categorical/MC_dump.csv test_categorical/output_basicStatistics_Grid.csv test_categorical/output_basicStatistics_MC.csv' 
+   csv    = 'test_categorical/Grid_dump.csv test_categorical/MC_dump.csv'
+ [../]
 
 []
 
