@@ -1609,25 +1609,6 @@ class EnsembleModel(Dummy, Assembler):
           else:
             self.initialConditions[var.tag] = np.array(var.text.split())
 
-  def __createDictOfInputsAndModels(self):
-    allInputs = {}
-    for modelIn, modelOptions in self.modelsDictionary.items():
-     for inp in modelOptions['Input']:
-       if inp not in allInputs.keys(): allInputs[inp] = []
-       allInputs[inp].append(modelIn)
-    return allInputs
-
-  def __findModelWithSameInput(self,inputList):
-    """
-      Method to find the models that have certain inputs. If not found, return None
-      @ In, inputList, list, list of inputs that need to be checked
-      @ Out, models, list, list of model names that match the input list
-    """
-    models = []
-    for modelIn, modelOptions in self.modelsDictionary.items():
-      if set(modelOptions['Input']) == set(inputList): models.append(modelIn)
-    return models
-
   def __findMatchingModel(self,what,subWhat):
     """
       Method to find the matching models with respect a some input/output. If not found, return None
@@ -1641,24 +1622,22 @@ class EnsembleModel(Dummy, Assembler):
     if len(models) == 0: models = None
     return models
 
-
-    def findPath(self, graph, start_vertex, end_vertex, path=[]):
-      """
-      find a path from start_vertex to end_vertex
-            in graph
-      """
-      graph = self.__graph_dict
-      path = path + [start_vertex]
-      if start_vertex == end_vertex:
-          return path
-      if start_vertex not in graph:
-          return None
-      for vertex in graph[start_vertex]:
-        if vertex not in path:
-          extended_path = self.findPath(graph,vertex,end_vertex,path)
-          if extended_path:return extended_path
-      return None
-
+#   def findPath(self, graph, start_vertex, end_vertex, path=[]):
+#     """
+#     find a path from start_vertex to end_vertex
+#           in graph
+#     """
+#     graph = self.__graph_dict
+#     path = path + [start_vertex]
+#     if start_vertex == end_vertex:
+#         return path
+#     if start_vertex not in graph:
+#         return None
+#     for vertex in graph[start_vertex]:
+#       if vertex not in path:
+#         extended_path = self.findPath(graph,vertex,end_vertex,path)
+#         if extended_path:return extended_path
+#     return None
 
   def findAllPaths(self, graph, start, end, path=[]):
     path = path + [start]
@@ -1744,11 +1723,6 @@ class EnsembleModel(Dummy, Assembler):
       #if type(self.tempTargetEvaluations[modelIn[2]]).__name__ != 'PointSet': self.raiseAnError(IOError, "The TargetEvaluation needs to be an instance of PointSet. Got "+type(self.tempTargetEvaluations[modelIn[2]]).__name__)
       self.modelsDictionary[modelIn[2]]['Input' ] = self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getParaKeys("inputs")
       self.modelsDictionary[modelIn[2]]['Output'] = self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getParaKeys("outputs")
-      modelNode = TreeStructure.Node(modelIn[2])
-      modelNode.add( 'inputs', self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getParaKeys("inputs"))
-      modelNode.add('outputs', self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getParaKeys("outputs"))
-      moldelNodes[modelIn[2]] = modelNode
-      rootNode.appendBranch(modelNode)
 
     # construct chain connections
     modelsToOutputModels  = dict.fromkeys(self.modelsDictionary.keys(),None)
