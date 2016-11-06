@@ -18,6 +18,7 @@ import inspect
 import atexit
 import time
 import threading
+from collections import OrderedDict
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -30,6 +31,7 @@ import utils
 import mathUtils
 import TreeStructure
 import Files
+import directedGraph
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
@@ -1244,7 +1246,7 @@ class Code(Model):
       shutil.copy(self.oriInputFiles[index].getAbsFile(),subDirectory)
     Kwargs['subDirectory'] = subDirectory
     if len(self.alias.keys()) != 0: Kwargs['alias']   = self.alias
-    return (self.code.createNewInput(newInputSet,self.oriInputFiles,samplerType,**Kwargs),Kwargs)
+    return (self.code.createNewInput(newInputSet,self.oriInputFiles,samplerType,**copy.deepcopy(Kwargs)),Kwargs)
 
   def updateInputFromOutside(self, Input, externalDict):
     """
@@ -1565,6 +1567,7 @@ class EnsembleModel(Dummy, Assembler):
     self.maxIterations         = 30
     self.convergenceTol        = 1.e-3
     self.initialConditions     = {}
+    self.ensembleModelGraph    = None
     self.lockSystem = threading.RLock()
 
   def localInputAndChecks(self,xmlNode):
@@ -1622,59 +1625,12 @@ class EnsembleModel(Dummy, Assembler):
     if len(models) == 0: models = None
     return models
 
-#   def findPath(self, graph, start_vertex, end_vertex, path=[]):
-#     """
-#     find a path from start_vertex to end_vertex
-#           in graph
-#     """
-#     graph = self.__graph_dict
-#     path = path + [start_vertex]
-#     if start_vertex == end_vertex:
-#         return path
-#     if start_vertex not in graph:
-#         return None
-#     for vertex in graph[start_vertex]:
-#       if vertex not in path:
-#         extended_path = self.findPath(graph,vertex,end_vertex,path)
-#         if extended_path:return extended_path
-#     return None
-
-  def findAllPaths(self, graph, start, end, path=[]):
-    path = path + [start]
-    if start == end: return [path]
-    if not graph.has_key(start): return []
-    paths = []
-    for node in graph[start]:
-      if node not in path:
-        newpaths = self.findAllPaths(graph, node, end, path)
-        for newpath in newpaths: paths.append(newpath)
-    return paths
-
-  def isALoop(self,g):
-      """
-        Return True if the directed graph g has a cycle.
-        g must be represented as a dictionary mapping vertices to
-        iterables of neighbouring vertices. For example:
-
-        >>> isALoop({1: (2,), 2: (3,), 3: (1,)})
-        True
-        >>> isALoop({1: (2,), 2: (3,), 3: (4,)})
-        False
-
-      """
-      path = set()
-
-      def visit(vertex):
-          path.add(vertex)
-          for neighbour in g.get(vertex, ()):
-            if neighbour in path or visit(neighbour): return True
-          path.remove(vertex)
-          return False
-
-      return any(visit(v) for v in g)
-
   def __getExecutionList(self, orderedNodes, allPath):
     """
+      Method to get the execution list
+      @ In, orderedNodes, list, list of models ordered based on the input/output relationships
+      @ In, allPath, list, list of lists containing all the path from orderedNodes[0] to orderedNodes[-1]
+      @ Out, executionList, list, list of lists with the execution order (e.g. [[model1],[model2.1,model2.2],[model3], etc.]
     """
     numberPath = len(allPath)
     maxComponents = 0
@@ -1743,7 +1699,14 @@ class EnsembleModel(Dummy, Assembler):
             indexModelIn = orderList.index(modelIn)
             orderList.pop(indexModelIn)
             orderList.insert(int(max(orderList.index(match)+1,indexModelIn)), modelIn)
-    allPath = self.findAllPaths(modelsToOutputModels,orderList[0],orderList[-1])
+    # construct the ensemble model directed graph
+    self.ensembleModelGraph = directedGraph.graphObject(modelsToOutputModels)
+    # make some checks
+    if not self.ensembleModelGraph.isConnected():
+      isolatedModels = self.ensembleModelGraph.findIsolatedVertices()
+      self.raiseAnError(IOError, "Some models are not connected: "+' '.join(isolatedModels))
+    # get all paths
+    allPath = self.ensembleModelGraph.findAllPaths(orderList[0],orderList[-1])
     ###################################################
     # to be removed once executionList can be handled #
     self.orderList = orderList                        #
@@ -1751,22 +1714,33 @@ class EnsembleModel(Dummy, Assembler):
     if len(allPath) > 1: self.executionList = self.__getExecutionList(orderList,allPath)
     else               : self.executionList = allPath[-1]
     # check if Picard needs to be activated
-    self.activatePicard = self.isALoop(modelsToOutputModels)
+    self.activatePicard = self.ensembleModelGraph.isALoop()
     if self.activatePicard:
-      self.raiseAMessage("Multi-model connections determined a non-linear system. Picard's iterations activated!")
+      self.raiseAMessage("EnsembleModel connections determined a non-linear system. Picard's iterations activated!")
       if len(self.initialConditions.keys()) == 0: self.raiseAnError(IOError,"Picard's iterations mode activated but no intial conditions provided!")
-    else                  : self.raiseAMessage("Multi-model connections determined a linear system. Picard's iterations not activated!")
+    else                  : self.raiseAMessage("EnsembleModel connections determined a linear system. Picard's iterations not activated!")
 
     self.allOutputs = []
+    for modelIn in self.modelsDictionary.keys():
+      for modelInOut in self.modelsDictionary[modelIn]['Output']:
+        if modelInOut not in self.allOutputs: self.allOutputs.append(modelInOut)
     self.needToCheckInputs = True
 
-  def localAddInitParams(self,tempDict):
+  def getInitParams(self):
     """
       Method used to export to the printer in the base class the additional PERMANENT your local class have
-      @ In, tempDict, dict, dictionary to be updated. {'attribute name':value}
-      @ Out, None
+      @ In, None
+      @ Out, tempDict, dict, dictionary to be updated. {'attribute name':value}
     """
+    tempDict = OrderedDict()
     tempDict['Models contained in EnsembleModel are '] = self.modelsDictionary.keys()
+    for modelIn in self.modelsDictionary.keys():
+      tempDict['Model '+modelIn+' TargetEvaluation is '] = self.modelsDictionary[modelIn]['TargetEvaluation']
+      tempDict['Model '+modelIn+' Inputs are '] = self.modelsDictionary[modelIn]['Input']
+    return tempDict
+
+  def getCurrentSetting(self):
+    return {}
 
   def __selectInputSubset(self,modelName, kwargs ):
     """
@@ -1813,7 +1787,8 @@ class EnsembleModel(Dummy, Assembler):
     for modelIn, specs in self.modelsDictionary.items():
       if self.needToCheckInputs:
         for inp in specs['Input']:
-          if inp not in allCoveredVariables: self.raiseAnError(RuntimeError,"for sub-model "+ modelIn + "the input "+inp+" has not been found among other models' outputs and sampled variables!")
+          if inp not in allCoveredVariables:
+            self.raiseAnError(RuntimeError,"for sub-model "+ modelIn + " the input "+inp+" has not been found among other models' outputs and sampled variables!")
       newKwargs = self.__selectInputSubset(modelIn,Kwargs)
       #inputForModel = []
       #for input in myInput:
@@ -1927,36 +1902,33 @@ class EnsembleModel(Dummy, Assembler):
       iterationCount += 1
       if self.activatePicard: self.raiseAMessage("Picard's Iteration "+ str(iterationCount))
       for modelCnt, modelIn in enumerate(self.orderList):
-        #with self.lockSystem:
         dependentOutput = self.__retrieveDependentOutput(modelIn, gotOutputs, typeOutputs)
         if iterationCount == 1  and self.activatePicard:
           try              : sampledVars = Input[modelIn][0][1]['SampledVars'].keys()
-          except IndexError: sampledVars = Input[modelIn][1]['SampledVars'].keys()
+          except           : sampledVars = Input[modelIn][1]['SampledVars'].keys()
           for initCondToSet in [x for x in self.modelsDictionary[modelIn]['Input'] if x not in set(dependentOutput.keys()+sampledVars)]:
             if initCondToSet in self.initialConditions.keys(): dependentOutput[initCondToSet] = np.asarray(self.initialConditions[initCondToSet])
             else                                             : self.raiseAnError(IOError,"No initial conditions provided for variable "+ initCondToSet)
-        #with self.lockSystem:
         Input[modelIn]  = self.modelsDictionary[modelIn]['Instance'].updateInputFromOutside(Input[modelIn], dependentOutput)
         try              : Input[modelIn][0][1]['prefix'], Input[modelIn][0][1]['uniqueHandler'] = modelIn+"|"+identifier, self.name+identifier
-        except IndexError: Input[modelIn][1]['prefix'   ], Input[modelIn][1]['uniqueHandler'   ] = modelIn+"|"+identifier, self.name+identifier
+        except           : Input[modelIn][1]['prefix'   ], Input[modelIn][1]['uniqueHandler'   ] = modelIn+"|"+identifier, self.name+identifier
         nextModel = False
         while not nextModel:
           moveOn = False
           while not moveOn:
             if jobHandler.howManyFreeSpots() > 0:
-              #with self.lockSystem:
               self.modelsDictionary[modelIn]['Instance'].run(copy.deepcopy(Input[modelIn]),jobHandler)
               while not jobHandler.isThisJobFinished(modelIn+"|"+identifier): time.sleep(1.e-3)
               nextModel, moveOn = True, True
             else: time.sleep(1.e-3)
           # get job that just finished
-          #with self.lockSystem:
           finishedRun = jobHandler.getFinished(jobIdentifier = modelIn+"|"+identifier, uniqueHandler=self.name+identifier)
           if finishedRun[0].getEvaluation() == -1:
             for modelToRemove in self.orderList:
               if modelToRemove != modelIn: jobHandler.getFinished(jobIdentifier = modelToRemove + "|" + identifier, uniqueHandler = self.name + identifier)
             self.raiseAnError(RuntimeError,"The Model "+modelIn + " failed!")
           # get back the output in a general format
+          self.modelsDictionary[modelIn]['Instance'].finalizeModelOutput(finishedRun[0])
           self.modelsDictionary[modelIn]['Instance'].collectOutput(finishedRun[0],tempTargetEvaluations[modelIn],options={'acceptArrayRealizations':True})
           returnDict[modelIn]  = {}
           responseSpace = tempTargetEvaluations[modelIn].getParametersValues('outputs', nodeId = 'RecontructEnding')
@@ -1987,6 +1959,68 @@ class EnsembleModel(Dummy, Assembler):
         if residueContainer['TotalResidue'] <= self.convergenceTol:
           self.raiseAMessage("Picard's Iteration converged. Norm: "+ str(residueContainer['TotalResidue']))
           break
+#       modelCnt = -1
+#       for executionLevel in self.executionList:
+#
+#         for modelIn in executionLevel:
+#           modelCnt+=1
+#         #for modelCnt, modelIn in enumerate(self.orderList):
+#           dependentOutput = self.__retrieveDependentOutput(modelIn, gotOutputs, typeOutputs)
+#           if iterationCount == 1  and self.activatePicard:
+#             try              : sampledVars = Input[modelIn][0][1]['SampledVars'].keys()
+#             except           : sampledVars = Input[modelIn][1]['SampledVars'].keys()
+#             for initCondToSet in [x for x in self.modelsDictionary[modelIn]['Input'] if x not in set(dependentOutput.keys()+sampledVars)]:
+#               if initCondToSet in self.initialConditions.keys(): dependentOutput[initCondToSet] = np.asarray(self.initialConditions[initCondToSet])
+#               else                                             : self.raiseAnError(IOError,"No initial conditions provided for variable "+ initCondToSet)
+#           Input[modelIn]  = self.modelsDictionary[modelIn]['Instance'].updateInputFromOutside(Input[modelIn], dependentOutput)
+#           try              : Input[modelIn][0][1]['prefix'], Input[modelIn][0][1]['uniqueHandler'] = modelIn+"|"+identifier, self.name+identifier
+#           except           : Input[modelIn][1]['prefix'   ], Input[modelIn][1]['uniqueHandler'   ] = modelIn+"|"+identifier, self.name+identifier
+#         nextModel = False
+#         while not nextModel:
+#           moveOn = False
+#           while not moveOn:
+#             if jobHandler.howManyFreeSpots() > 0:
+#               self.modelsDictionary[modelIn]['Instance'].run(copy.deepcopy(Input[modelIn]),jobHandler)
+#               while not jobHandler.isThisJobFinished(modelIn+"|"+identifier): time.sleep(1.e-3)
+#               nextModel, moveOn = True, True
+#             else: time.sleep(1.e-3)
+#           # get job that just finished
+#           finishedRun = jobHandler.getFinished(jobIdentifier = modelIn+"|"+identifier, uniqueHandler=self.name+identifier)
+#           if finishedRun[0].getEvaluation() == -1:
+#             for modelToRemove in self.orderList:
+#               if modelToRemove != modelIn: jobHandler.getFinished(jobIdentifier = modelToRemove + "|" + identifier, uniqueHandler = self.name + identifier)
+#             self.raiseAnError(RuntimeError,"The Model "+modelIn + " failed!")
+#           # get back the output in a general format
+#           self.modelsDictionary[modelIn]['Instance'].collectOutput(finishedRun[0],tempTargetEvaluations[modelIn],options={'acceptArrayRealizations':True})
+#           returnDict[modelIn]  = {}
+#           responseSpace = tempTargetEvaluations[modelIn].getParametersValues('outputs', nodeId = 'RecontructEnding')
+#           inputSpace    = tempTargetEvaluations[modelIn].getParametersValues('inputs', nodeId = 'RecontructEnding')
+#           typeOutputs[modelCnt] = tempTargetEvaluations[modelIn].type
+#           gotOutputs[modelCnt]  = responseSpace if typeOutputs[modelCnt] != 'HistorySet' else responseSpace.values()[-1]
+#           #store the result in return dictionary
+#           returnDict[modelIn]['outputSpaceParams'] = gotOutputs[modelCnt]
+#           returnDict[modelIn]['inputSpaceParams' ] = inputSpace if typeOutputs[modelCnt] != 'HistorySet' else inputSpace.values()[-1]
+#           returnDict[modelIn]['metadata'         ] = tempTargetEvaluations[modelIn].getAllMetadata()
+#           #returnDict[modelIn] = {'outputSpaceParams':gotOutputs[modelCnt],'inputSpaceParams':tempTargetEvaluations[modelIn].getParametersValues('inputs', nodeId = 'RecontructEnding'),'metadata':tempTargetEvaluations[modelIn].getAllMetadata()}
+#           if self.activatePicard:
+#             # compute residue
+#             residueContainer[modelIn]['iterValues'][1] = copy.copy(residueContainer[modelIn]['iterValues'][0])
+#             for out in gotOutputs[modelCnt].keys():
+#               residueContainer[modelIn]['iterValues'][0][out] = copy.copy(gotOutputs[modelCnt][out])
+#               if iterationCount == 1: residueContainer[modelIn]['iterValues'][1][out] = np.zeros(len(residueContainer[modelIn]['iterValues'][0][out]))
+#             for out in gotOutputs[modelCnt].keys():
+#               residueContainer[modelIn]['residue'][out] = abs(np.asarray(residueContainer[modelIn]['iterValues'][0][out]) - np.asarray(residueContainer[modelIn]['iterValues'][1][out]))
+#             residueContainer[modelIn]['Norm'] =  np.linalg.norm(np.asarray(residueContainer[modelIn]['iterValues'][1].values())-np.asarray(residueContainer[modelIn]['iterValues'][0].values()))
+#       if self.activatePicard:
+#         iterZero, iterOne = [],[]
+#         for modelIn in self.orderList:
+#           iterZero += residueContainer[modelIn]['iterValues'][0].values()
+#           iterOne  += residueContainer[modelIn]['iterValues'][1].values()
+#         residueContainer['TotalResidue'] = np.linalg.norm(np.asarray(iterOne)-np.asarray(iterZero))
+#         self.raiseAMessage("Picard's Iteration Norm: "+ str(residueContainer['TotalResidue']))
+#         if residueContainer['TotalResidue'] <= self.convergenceTol:
+#           self.raiseAMessage("Picard's Iteration converged. Norm: "+ str(residueContainer['TotalResidue']))
+#           break
     returnEvaluation = returnDict, tempTargetEvaluations
     return returnEvaluation
 #

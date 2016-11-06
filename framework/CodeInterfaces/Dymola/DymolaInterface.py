@@ -5,7 +5,7 @@ Created on Nov 24, 2015
 
 comments: Interface for Dymola Simulation
 
-Modelica is "a non-proprietary, object-oriented, equation-based language to conveniently model complex physical systems containing,
+Modelica is an object-oriented, equation-based language to conveniently model complex physical systems containing,
 e.g., mechanical, electrical, electronic, hydraulic, thermal, control, electric power or process-oriented subcomponents.
 Modelica models (with a file extension of .mo) are built, translated (compiled), and simulated in Dymola (http://www.modelon.com/products/dymola/),
 which is a commercial modeling and simulation environment based on the Modelica modeling language.
@@ -128,30 +128,20 @@ class Dymola(CodeInterfaceBase):
       @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the code (string), returnCommand[1] is the name of the output root
     """
 
-    # Find the first file in the inputFiles that is a text file, which is what we need to work with.
-    found = False
+    # Find the file in the inputFiles that has the type "DymolaInitialisation", which is what we need to work with.
+    foundInit = False
     for index, inputFile in enumerate(inputFiles):
-      if self._isValidInput(inputFile):
-        found = True
-        break
-    if not found: raise Exception('Dymola INTERFACE ERROR -> A TEXT file was not found in the input files!')
+      if inputFile.getType() == "DymolaInitialisation":
+        foundInit = True
+        indexInit = index
+    if not foundInit: raise Exception('Dymola INTERFACE ERROR -> None of the input files has the type "DymolaInitialisation"!')
     # Build an output file name of the form: rawout~<Base Name>, where base name is generated from the
     #   input file passed in: /path/to/file/<Base Name>.ext. 'rawout' indicates that this is the direct
     #   output from running the Dymola executable.
-    outputfile = 'rawout~' + inputFiles[index].getBase()
-    executeCommand = [('parallel', executable +' -s '+ inputFiles[index].getFilename() +' '+ outputfile+ '.mat')]
+    outputfile = 'rawout~' + inputFiles[indexInit].getBase()
+    executeCommand = [('parallel', executable +' -s '+ inputFiles[indexInit].getFilename() +' '+ outputfile+ '.mat')]
     returnCommand = executeCommand, outputfile
     return returnCommand
-
-  def _isValidInput(self, inputFile):
-    """
-      Check if an input file is a text file, with an extension of .txt or .TXT.
-      @ In, inputFile, string, the file name to be checked
-      @ Out, valid, bool, 'True' if an input file has an extenstion of .txt or .TXT., otherwise 'False'.
-    """
-    valid = False
-    if inputFile.getExt() in ('txt', 'TXT'): valid = True
-    return valid
 
   def getInputExtension(self):
     """
@@ -165,7 +155,8 @@ class Dymola(CodeInterfaceBase):
   def createNewInput(self, currentInputFiles, oriInputFiles, samplerType, **Kwargs):
     """
       Generate a new Dymola input file (txt format) from the original, changing parameters
-      as specified in Kwargs['SampledVars']
+      as specified in Kwargs['SampledVars']. In addition, it creaes an additional input file including the vector data to be
+      passed to Dymola.
       @ In, currentInputFiles, list,  list of current input files (input files from last this method call)
       @ In, oriInputFiles, list, list of the original input files
       @ In, samplerType, string, Sampler type (e.g. MonteCarlo, Adaptive, etc. see manual Samplers section)
@@ -174,16 +165,21 @@ class Dymola(CodeInterfaceBase):
       @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
     """
     # Start with the original input file, which we have to find first.
-    found = False
+    # The types have to be "DymolaInitialisation" and "DymolaVectors"
+    foundInit = False
+    foundVect = False
     for index, inputFile in enumerate(oriInputFiles):
-      if self._isValidInput(inputFile):
-        found = True
-        break
-    if not found:
-      raise Exception('Dymola INTERFACE ERROR -> An text (.txt) file was not found in the input files!')
+      if inputFile.getType() == "DymolaInitialisation":
+        foundInit = True
+        indexInit = index
+      if inputFile.getType() == "DymolaVectors":
+        foundVect = True
+        indexVect = index
+    if not foundInit: raise Exception('Dymola INTERFACE ERROR -> None of the input files has the type "DymolaInitialisation"!')
+    if not foundVect: print('Dymola INTERFACE WARNING -> None of the input files has the type "DymolaVectors"! ')
     # Figure out the new file name and put it into the proper place in the return list
     #newInputFiles = copy.deepcopy(currentInputFiles)
-    originalPath = oriInputFiles[index].getAbsFile()
+    originalPath = oriInputFiles[indexInit].getAbsFile()
     #newPath = os.path.join(os.path.split(originalPath)[0], "DM" + Kwargs['prefix'] + os.path.split(originalPath)[1])
     #currentInputFiles[index].setAbsFile(newPath)
     # Define dictionary of parameters and pre-process the values.
@@ -194,14 +190,35 @@ class Dymola(CodeInterfaceBase):
     #   automatically mapped to 1 and 0. Enumerations must be given explicitly as the unsigned integer
     #   equivalent. Strings, functions, redeclarations, etc. are not supported.
     varDict = Kwargs['SampledVars']
+
+    VectorsToPass= {}
     for key, value in varDict.items():
       if isinstance(value, bool):
         varDict[key] = 1 if value else 0
-      assert not isinstance(value, numpy.ndarray), ("Arrays must be split "
-        "into scalars for the simulation initialization file.")
+      if isinstance(value, numpy.ndarray):
+        # print warning here (no access to RAVEN Message Handler)
+        print("Dymola INTERFACE WARNING -> Dymola interface found vector data to be passed. If %s" %key)
+        print("                            is supposed to go into the simulation initialisation file of type")
+        print("                            'DymolaInitialisation' the array must be split into scalars.")
+        print("                            => It is assumed that the array goes into the input file with type 'DymolaVectors'")
+        if not foundVect: raise Exception('Dymola INTERFACE ERROR -> None of the input files has the type "DymolaVectors"! ')
+        # extract dict entry
+        VectorsToPass[key] = varDict.pop(key)
       assert not type(value).__name__ in ['str','bytes','unicode'], ("Strings cannot be "
         "used as values in the simulation initialization file.")
 
+    # create aditional input file for vectors if needed
+    if bool(VectorsToPass):
+      with open(currentInputFiles[indexVect].getAbsFile(), 'w') as Fvect:
+        Fvect.write("#1\n")
+        for key, value in VectorsToPass.items() :
+          inc = 0
+          Fvect.write("double %s(%s,2) #Comments here\n" %(key, len(value)))
+          for val in value:
+            Fvect.write("%s\t%s\n" %(inc,val[0]))
+            inc += 1
+
+    # Do the search and replace in input file "DymolaInitialisation"
     # Aliases for some regular sub-expressions.
     u = '\d+' # Unsigned integer
     i = '[+-]?' + u # Integer
@@ -266,7 +283,7 @@ class Dymola(CodeInterfaceBase):
           "in %s." % (name, originalPath))
 
     # Re-write the file.
-    with open(currentInputFiles[index].getAbsFile(), 'w') as src:
+    with open(currentInputFiles[indexInit].getAbsFile(), 'w') as src:
       src.write(text)
 
     return currentInputFiles
