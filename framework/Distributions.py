@@ -36,7 +36,7 @@ def factorial(x):
   fact = gamma(x+1)
   return fact
 
-stochasticEnv = distribution1D.DistributionContainer.Instance()
+stochasticEnv = distribution1D.DistributionContainer.instance()
 
 """
   Mapping between internal framework and Crow distribution name
