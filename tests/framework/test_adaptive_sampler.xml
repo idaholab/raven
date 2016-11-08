@@ -3,7 +3,7 @@
   <RunInfo>
     <WorkingDir>Adapt</WorkingDir>
     <Sequence>adapt,adaptdump</Sequence>
-    <batchSize>1</batchSize>
+    <batchSize>100</batchSize>
   </RunInfo>
 
   <Steps>

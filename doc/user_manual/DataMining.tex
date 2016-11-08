@@ -166,50 +166,11 @@ process. Can contain any combination of ‘w’ for weights, ‘m’ for means,
 \end{lstlisting}
 
 
-\subparagraph{ Dirichlet Process GMM Classifier (DPGMM)} \hfill
-\label{subparagraph:DPGMM}
-
-The DPGMM implements a variant of the Gaussian mixture model with
- a variable (but bounded) number of components using the Dirichlet
- Process. The API is identical to GMM. This class doesn’t require
-the user to choose the number of components, and at the expense of
- extra computational time the user only needs to specify a loose
- upper bound on this number and a concentration parameter.
-
-\skltype{Dirichlet Process Gaussian Mixture Model}{mixture|DPGMM}
-\begin{itemize}
-	\item \xmlNode{n\_components}, \xmlDesc{integer, optional
-field} Number of mixture components. \default{1}
-	\item \xmlNode{covariance\_type}, \xmlDesc{string, optional
-field}, describes the type of covariance parameters to use.
-Must be one of ‘spherical’, ‘tied’, ‘diag’, ‘full’. \default{diag}
-	\item \xmlNode{alpha}, \xmlDesc{float, optional field},
-represents the concentration parameter of the dirichlet process.
-Intuitively, the Dirichlet Process is as likely to start a new cluster
- for a point as it is to add that point to a cluster with alpha
- elements. A higher alpha means more clusters, as the expected
-number of clusters is ${\alpha*log(N)}$. \default{1}.
-	\item \xmlNode{thresh}, \xmlDesc{float, optional field},
-convergence threshold. \default{0.01}
-	\item \xmlNode{n\_iter}, \xmlDesc{integer, optional field},
-Number of EM iterations to perform. \default{100}
-	\item \xmlNode{params}, \xmlDesc{string, optional field},
- Controls which parameters are updated in the training process.
-Can contain any combination of ‘w’ for weights, ‘m’ for means, and
-‘c’ for covars. \default{‘wmc’}
-	\item \xmlNode{init\_params}, \xmlDesc{string, optional
-field}, Controls which parameters are updated in the initialization
-process. Can contain any combination of ‘w’ for weights, ‘m’ for means,
- and ‘c’ for covars. \default{‘wmc’}.
-\end{itemize}
-
 \subparagraph{ Variational GMM Classifier (VBGMM)} \hfill
 \label{subparagraph:VBGMM}
 
 The VBGMM object implements a variant of the Gaussian mixture model
  with variational inference algorithms. The API is identical to GMM.
- It is essentially a middle-ground between GMM and DPGMM, as it has
-some of the properties of the Dirichlet process.
 
 \skltype{Variational Gaussian Mixture Model}{mixture|VBGMM}
 \begin{itemize}
