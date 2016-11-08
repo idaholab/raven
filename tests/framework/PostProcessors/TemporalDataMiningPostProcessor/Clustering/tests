@@ -37,12 +37,6 @@
     csv    = 'GaussianMixture/centroid_0.csv GaussianMixture/centroid_2.csv
 			  GaussianMixture/dummy_0.csv GaussianMixture/dummy_9.csv'
   [../]
-  [./DirichletProcessGMM]
-    type   = 'RavenFramework'
-    input  = 'test_tdmSKLearnDirichletProcessGMM.xml'
-    csv    = 'DirichletProcessGMM/centroid_0.csv
-              DirichletProcessGMM/dummy_0.csv DirichletProcessGMM/dummy_2.csv'
-  [../]
   [./VariationalGMM]
     type   = 'RavenFramework'
     input  = 'test_tdmSKLearnVariationalGMM.xml'

@@ -48,12 +48,6 @@
     csv    = 'GaussianMixture/dummy.csv GaussianMixture/info.csv'
     output = 'GaussianMixture/scatter.png'
   [../]
-  [./DirichletProcessGMM]
-    type   = 'RavenFramework'
-    input  = 'test_dataMiningDirichletProcessGMM.xml'
-    csv    = 'DirichletProcessGMM/dummy.csv'
-    output = 'DirichletProcessGMM/scatter.png'
-  [../]
   [./time_dep_clustering_filtered]
     type   = 'RavenFramework'
     input  = 'test_TD_KMeans_Filtered.xml'
