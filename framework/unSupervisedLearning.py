@@ -571,7 +571,11 @@ class SciKitLearn(unSupervisedLearning):
 
         self.metaDict['clusterCenters'] = centers
     elif 'mixture' == self.SKLtype:
-      labels = self.Method.fit_predict(self.normValues)
+      # labels = self.Method.fit_predict(self.normValues)
+      ## The fit_predict is not available in all versions of sklearn for GMMs
+      ## besides the data should already be fit above
+      labels = self.Method.predict(self.normValues)
+
       self.outputDict['outputs']['labels'] = labels
 
       if hasattr(self.Method, 'converged_'):
