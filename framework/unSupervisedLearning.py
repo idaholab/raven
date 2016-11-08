@@ -357,7 +357,10 @@ class SciKitLearn(unSupervisedLearning):
 
   availImpl['mixture'] = {}  # Generalized Gaussion Mixture Models (Classification)
   availImpl['mixture']['GMM'  ] = (mixture.GMM  , 'float')  # Gaussian Mixture Model
-  availImpl['mixture']['DPGMM'] = (mixture.DPGMM, 'float')  # Variational Inference for the Infinite Gaussian Mixture Model.
+  ## Comment is not even right on it, but the DPGMM is being deprecated by SKL who
+  ## admits that it is not working correctly which also explains why it is buried in
+  ## their documentation.
+  # availImpl['mixture']['DPGMM'] = (mixture.DPGMM, 'float')  # Variational Inference for the Infinite Gaussian Mixture Model.
   availImpl['mixture']['VBGMM'] = (mixture.VBGMM, 'float')  # Variational Inference for the Gaussian Mixture Model
 
   availImpl['manifold'] = {}  # Manifold Learning (Embedding techniques)
