@@ -1851,4 +1851,4 @@ class OutStreamPlot(OutStreamManager):
         name = prefix + self.name + '_' + str(self.outStreamTypes).replace("'", "").replace("[", "").replace("]", "").replace(",", "-").replace(" ", "")
 
       self.plt.savefig(name + '.' + fileType, format = fileType)
-      self.plt.close()
+    self.plt.close()
