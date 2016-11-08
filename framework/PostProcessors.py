@@ -3729,9 +3729,9 @@ class DataMining(BasePostProcessor):
     ## the word 'Dimension' + a numeric id for dimensionality reduction
     ## algorithms
     if self.labelFeature is None:
-      if self.unSupervisedEngine.SKLtype in ['cluster','mixture']:
+      if self.unSupervisedEngine.getDataMiningType() in ['cluster','mixture']:
         self.labelFeature = self.name+'Labels'
-      elif self.unSupervisedEngine.SKLtype in ['decomposition','manifold']:
+      elif self.unSupervisedEngine.getDataMiningType() in ['decomposition','manifold']:
         self.labelFeature = self.name+'Dimension'
 
   def collectOutput(self, finishedJob, output):
@@ -3801,7 +3801,7 @@ class DataMining(BasePostProcessor):
 
     outputDict = self.unSupervisedEngine.outputDict
 
-    if 'bicluster' == self.unSupervisedEngine.SKLtype:
+    if 'bicluster' == self.unSupervisedEngine.getDataMiningType():
       self.raiseAnError(RuntimeError, 'Bicluster has not yet been implemented.')
 
     ## Rename the algorithm output to point to the user-defined label feature
@@ -3816,7 +3816,7 @@ class DataMining(BasePostProcessor):
         outputDict['outputs'][newColumnName] =  transformedData[:, i]
 
     if self.solutionExport is not None:
-      if 'cluster' == self.unSupervisedEngine.SKLtype:
+      if 'cluster' == self.unSupervisedEngine.getDataMiningType():
         solutionExportDict = self.unSupervisedEngine.metaDict
         if 'clusterCenters' in solutionExportDict:
           centers = solutionExportDict['clusterCenters']
