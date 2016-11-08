@@ -11,8 +11,11 @@ warnings.simplefilter('default',DeprecationWarning)
 import os,sys
 import numpy as np
 
-frameworkDir = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir))
+frameworkDir = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,os.pardir,'framework'))
+print('framework:',frameworkDir)
+utilsDir = os.path.join(frameworkDir,'utils')
 sys.path.append(frameworkDir)
+sys.path.append(utilsDir)
 
 import MessageHandler
 mh = MessageHandler.MessageHandler()
