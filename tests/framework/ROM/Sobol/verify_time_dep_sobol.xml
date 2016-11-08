@@ -1,8 +1,8 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="all">
+<Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>SobolTime</WorkingDir>
-    <Sequence>sample,train,dump,print</Sequence>
+    <Sequence>load,sampleRom,sampleModel,print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
@@ -11,31 +11,33 @@
   </Files>
 
   <Steps>
-    <MultiRun name="sample">
+    <MultiRun name="sampleModel">
       <Input class="DataObjects" type="PointSet">dummyIN</Input>
       <Model class="Models" type="ExternalModel">proj</Model>
-      <Sampler class="Samplers" type="SparseGridCollocation">samp</Sampler>
-      <Output class="DataObjects" type="HistorySet">trainset</Output>
+      <Sampler class="Samplers" type="Grid">samp</Sampler>
+      <Output class="DataObjects" type="HistorySet">modelSamples</Output>
     </MultiRun>
-    <IOStep name="dump">
-      <Input class="Models" type="ROM">rom</Input>
-      <Output class="Files" type="">rom_pk</Output>
+    <MultiRun name="sampleRom">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ROM">rom</Model>
+      <Sampler class="Samplers" type="Grid">samp</Sampler>
+      <Output class="DataObjects" type="HistorySet">romSamples</Output>
+    </MultiRun>
+    <IOStep name="load">
+      <Input class="Files" type="">rom_pk</Input>
+      <Output class="Models" type="ROM">rom</Output>
     </IOStep>
     <IOStep name="print">
-      <Input class="DataObjects" type="HistorySet">trainset</Input>
-      <Input class="Models" type="ROM">rom</Input>
-      <Output class="OutStreams" type="Print">train_data</Output>
-      <Output class="OutStreams" type="Print">trom_dump</Output>
+      <Input class="DataObjects" type="HistorySet">modelSamples</Input>
+      <Input class="DataObjects" type="HistorySet">romSamples</Input>
+      <Output class="OutStreams" type="Print">rom_samples</Output>
+      <Output class="OutStreams" type="Print">model_samples</Output>
     </IOStep>
-    <RomTrainer name="train">
-      <Input class="DataObjects" type="HistorySet">trainset</Input>
-      <Output class="Models" type="ROM">rom</Output>
-    </RomTrainer>
   </Steps>
 
   <Models>
     <ExternalModel ModuleToLoad="../../AnalyticModels/projectile" name="proj" subType="">
-      <variables>x0,y0,time,r,x,y</variables>
+      <variables>x,y,r,time,x0,y0</variables>
     </ExternalModel>
     <ROM name="rom" subType="HDMRRom">
       <SobolOrder>1</SobolOrder>
@@ -58,26 +60,27 @@
   </Distributions>
 
   <Samplers>
-    <Sobol name="samp">
+    <Grid name="samp">
       <variable name="x0">
         <distribution>x0_distrib</distribution>
+        <grid construction="equal" steps="4" type="CDF">0.01 0.99</grid>
       </variable>
       <variable name="y0">
         <distribution>y0_distrib</distribution>
+        <grid construction="equal" steps="4" type="CDF">0.01 0.99</grid>
       </variable>
       <ROM class="Models" type="ROM">rom</ROM>
-    </Sobol>
+    </Grid>
   </Samplers>
 
   <OutStreams>
-    <Print name="train_data">
+    <Print name="rom_samples">
       <type>csv</type>
-      <source>trainset</source>
+      <source>romSamples</source>
     </Print>
-    <Print name="trom_dump">
-      <type>xml</type>
-      <source>rom</source>
-      <what>all</what>
+    <Print name="model_samples">
+      <type>csv</type>
+      <source>modelSamples</source>
     </Print>
   </OutStreams>
 
@@ -86,7 +89,11 @@
       <Input>x0,y0</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
-    <HistorySet name="trainset">
+    <HistorySet name="romSamples">
+      <Input>x0,y0</Input>
+      <Output>time,x,y,r</Output>
+    </HistorySet>
+    <HistorySet name="modelSamples">
       <Input>x0,y0</Input>
       <Output>time,x,y,r</Output>
     </HistorySet>
