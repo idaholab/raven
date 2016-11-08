@@ -535,7 +535,7 @@ class SciKitLearn(unSupervisedLearning):
     if 'cluster' == self.SKLtype:
       if hasattr(self.Method, 'cluster_centers_') :
         centers = self.Method.cluster_centers_
-      else:
+      elif self.metric is None:
         ## This methods is used by any other clustering algorithm that does
         ## not generatecluster_centers_ to generate the cluster centers as the
         ## average location of all points in the cluster.
@@ -556,17 +556,20 @@ class SciKitLearn(unSupervisedLearning):
                                             + str(self.Method)
                                             + ' has generated a 0-size cluster')
           centers[index] = centers[index] / float(counter[index])
+      else:
+        centers = None
 
-      ## I hope these arrays are consistently ordered...
-      ## We are mixing our internal storage of muAndSigma with SKLs
-      ## representation of our data, I believe it is fair to say that we
-      ## hand the data to SKL in the same order that we have it stored.
-      for cnt, feature in enumerate(self.features):
-        (mu,sigma) = self.muAndSigmaFeatures[feature]
-        for center in centers:
-          center[cnt] = center[cnt] * sigma + mu
+      if centers is not None:
+        ## I hope these arrays are consistently ordered...
+        ## We are mixing our internal storage of muAndSigma with SKLs
+        ## representation of our data, I believe it is fair to say that we
+        ## hand the data to SKL in the same order that we have it stored.
+        for cnt, feature in enumerate(self.features):
+          (mu,sigma) = self.muAndSigmaFeatures[feature]
+          for center in centers:
+            center[cnt] = center[cnt] * sigma + mu
 
-      self.metaDict['clusterCenters'] = centers
+        self.metaDict['clusterCenters'] = centers
     elif 'mixture' == self.SKLtype:
       labels = self.Method.fit_predict(self.normValues)
       self.outputDict['outputs']['labels'] = labels
