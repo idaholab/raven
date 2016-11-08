@@ -79,4 +79,14 @@
     csv = 'SobolTime/train_data_0.csv SobolTime/train_data_1.csv SobolTime/train_data_2.csv SobolTime/train_data_3.csv SobolTime/train_data_4.csv SobolTime/train_data_5.csv SobolTime/train_data_6.csv'
     UnorderedXml = 'SobolTime/trom_dump.xml'
   [../]
+
+  #verification
+  [./verifyHDMRRom]
+    # tests that the ROM constructed produces the same outputs as the original model
+    #   - this test is analytic and uses the "projectile.py" model to determine x, y, and r based on x0, y0, and time
+    #   - it is documented in the analytic tests manual
+    type  = 'RavenFramework'
+    input = 'verify_time_dep_sobol.xml'
+    csv = 'SobolTime/model_data_0.csv SobolTime/model_data_4.csv SobolTime/model_data_8.csv SobolTime/rom_data_0.csv SobolTime/rom_data_4.csv SobolTime/rom_d
+  [../]
 []

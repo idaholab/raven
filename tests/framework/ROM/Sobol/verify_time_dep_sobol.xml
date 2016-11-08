@@ -63,11 +63,11 @@
     <Grid name="samp">
       <variable name="x0">
         <distribution>x0_distrib</distribution>
-        <grid construction="equal" steps="4" type="CDF">0.01 0.99</grid>
+        <grid construction="equal" steps="2" type="CDF">0.01 0.99</grid>
       </variable>
       <variable name="y0">
         <distribution>y0_distrib</distribution>
-        <grid construction="equal" steps="4" type="CDF">0.01 0.99</grid>
+        <grid construction="equal" steps="2" type="CDF">0.01 0.99</grid>
       </variable>
       <ROM class="Models" type="ROM">rom</ROM>
     </Grid>
