@@ -1294,10 +1294,11 @@ class Categorical(Distribution):
       @ Out, none
     """
     Distribution.__init__(self)
-    self.mapping = {}
-    self.values = set()
-    self.type     = 'Categorical'
-    self.disttype = 'Discrete'
+    self.mapping        = {}
+    self.values         = set()
+    self.type           = 'Categorical'
+    self.dimensionality = 1
+    self.disttype       = 'Discrete'
 
   def _readMoreXML(self,xmlNode):
     """
@@ -1309,7 +1310,7 @@ class Categorical(Distribution):
 
     for child in xmlNode:
       if child.tag == "state":
-        outcome = child.attrib['outcome']
+        outcome = float(child.attrib['outcome'])
         self.mapping[outcome] = float(child.text)
         if float(outcome) in self.values:
           self.raiseAnError(IOError,'Categorical distribution has identical outcomes')
@@ -1341,7 +1342,7 @@ class Categorical(Distribution):
     """
     totPsum = 0.0
     for element in self.mapping:
-      totPsum += self.mapping[str(element)]
+      totPsum += self.mapping[element]
     if totPsum!=1.0: self.raiseAnError(IOError,'Categorical distribution cannot be initialized: sum of probabilities is not 1.0')
 
   def pdf(self,x):
@@ -1350,7 +1351,7 @@ class Categorical(Distribution):
       @ In, x, float/string, value to get the pdf at
       @ Out, pdfValue, float, requested pdf
     """
-    if x in self.values: pdfValue =  self.mapping[str(x)]
+    if x in self.values: pdfValue =  self.mapping[x]
     else: self.raiseAnError(IOError,'Categorical distribution cannot calculate pdf for ' + str(x))
     return pdfValue
 

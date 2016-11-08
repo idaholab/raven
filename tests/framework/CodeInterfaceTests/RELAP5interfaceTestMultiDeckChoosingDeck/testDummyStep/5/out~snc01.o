@@ -178,11 +178,12 @@
  detectr  on          hstccsv  on          hscpcsv  on 
  Listing of input data for case  1                                                                                      
                                                                                                                         
-     1    *RAVEN INPUT VALUES                                                                                           
-     2    *20100157    2   36.9161869369                                                                                
-     3    *20100156    2   40.7408163976                                                                                
-     4    *20100155    2   45.4512734238                                                                                
-     5    *20100154    2   44.6308615451                                                                                
+     1    *RAVEN INPUT VALUES              
+     1    * deckNum: 1                                                                               
+     2    * card: 20100157 word: 2 value: 36.9161869369                                                                                
+     3    * card: 20100156 word: 2 value: 40.7408163976                                                                                
+     4    * card: 20100155 word: 2 value: 45.4512734238                                                                                
+     5    * card: 20100154 word: 2 value: 44.6308615451                                                                                
      6    *RAVEN INPUT VALUES                                                                                           
      7    =typical pwr model -- 4 inch cold leg break 36.05 check case                                                  
      8    *                    Configuration Control Problem                                                            
