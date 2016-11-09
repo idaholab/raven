@@ -87,7 +87,7 @@
     #   - it is documented in the analytic tests manual
     type  = 'RavenFramework'
     input = 'verify_time_dep_sobol.xml'
-    csv = 'SobolTime/model_data_0.csv SobolTime/model_data_4.csv SobolTime/model_data_8.csv SobolTime/rom_data_0.csv SobolTime/rom_data_4.csv'
+    csv = 'SobolTime/model_samples_0.csv SobolTime/model_samples_4.csv SobolTime/model_samples_8.csv SobolTime/rom_samples_0.csv SobolTime/rom_samples_4.csv'
     prereq = TimeDependent
   [../]
 []
