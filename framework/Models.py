@@ -1837,16 +1837,20 @@ class EnsembleModel(Dummy, Assembler):
     outcomes, targetEvaluations = out
     for modelIn in self.modelsDictionary.keys():
       # update TargetEvaluation
-      inputsValues   = targetEvaluations[modelIn].getParametersValues('inputs', nodeId = 'RecontructEnding')
-      outputsValues  = targetEvaluations[modelIn].getParametersValues('outputs', nodeId = 'RecontructEnding')
-      metadataValues = targetEvaluations[modelIn].getAllMetadata(nodeId = 'RecontructEnding')
-      inputsValues   = inputsValues if targetEvaluations[modelIn].type != 'HistorySet' else inputsValues.values()[-1]
+      inputsValues               = targetEvaluations[modelIn].getParametersValues('inputs', nodeId = 'RecontructEnding')
+      unstructuredInputsValues   = targetEvaluations[modelIn].getParametersValues('unstructuredInputs', nodeId = 'RecontructEnding')
+      outputsValues              = targetEvaluations[modelIn].getParametersValues('outputs', nodeId = 'RecontructEnding')
+      metadataValues             = targetEvaluations[modelIn].getAllMetadata(nodeId = 'RecontructEnding')
+      inputsValues  = inputsValues if targetEvaluations[modelIn].type != 'HistorySet' else inputsValues.values()[-1]
+      if len(unstructuredInputsValues.keys()) > 0: 
+        unstructuredInputsValues  = unstructuredInputsValues if targetEvaluations[modelIn].type != 'HistorySet' else unstructuredInputsValues.values()[-1]
+        inputsValues.update(unstructuredInputsValues)
       outputsValues  = outputsValues if targetEvaluations[modelIn].type != 'HistorySet' else outputsValues.values()[-1]
 
       for key in targetEvaluations[modelIn].getParaKeys('inputs'):
-        self.modelsDictionary[modelIn]['TargetEvaluation'].updateInputValue (key,inputsValues[key],options={'acceptArrayRealizations':True})
+        self.modelsDictionary[modelIn]['TargetEvaluation'].updateInputValue (key,inputsValues[key])
       for key in targetEvaluations[modelIn].getParaKeys('outputs'):
-        self.modelsDictionary[modelIn]['TargetEvaluation'].updateOutputValue (key,outputsValues[key],options={'acceptArrayRealizations':True})
+        self.modelsDictionary[modelIn]['TargetEvaluation'].updateOutputValue (key,outputsValues[key])
       for key in metadataValues.keys():
         self.modelsDictionary[modelIn]['TargetEvaluation'].updateMetadata(key,metadataValues[key])
       # end of update of TargetEvaluation

@@ -344,7 +344,7 @@ class hdf5Database(MessageHandler.MessageUser):
       groups.attrs[b'nTimeSteps'  ] = maxSize
       dataout = np.zeros((maxSize,len(outHeaders)))
       for index in range(len(outHeaders)):
-        if type(outValues[index]) == np.ndarray or type(value).__name__ == 'c1darray':  dataout[0:outValues[index].size,index] =  outValues[index][:]
+        if type(outValues[index]) == np.ndarray or type(value).__name__ == 'c1darray':  dataout[0:outValues[index].size,index] =  np.ravel(outValues[index])[:]
         else: dataout[0,index] = outValues[index]
       # create the data set
       groups.create_dataset(groupName + "_data", dtype="float", data=dataout)
