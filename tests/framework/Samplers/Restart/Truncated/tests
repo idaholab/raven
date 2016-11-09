@@ -21,6 +21,6 @@
    type = 'RavenFramework'
    input = 'scale_test.xml'
    output = 'scale/coarse.xml scale/fine.xml'
-   csv = 'scale/coarse.csv scale/fine.csv'
+   UnorderedCsv = 'scale/coarse.csv scale/fine.csv'
  [../]
 []
