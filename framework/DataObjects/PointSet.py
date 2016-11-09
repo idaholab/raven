@@ -110,8 +110,9 @@ class PointSet(Data):
     """
     # if this flag is true, we accept realizations in the input space that are not only scalar but can be 1-D arrays!
     #acceptArrayRealizations = False if options == None else options.get('acceptArrayRealizations',False)
+    unstructuredInput = False
     if isinstance(value,(np.ndarray,c1darray)):
-      if len(value.shape) > 1 and max(value.shape) != value.size: self.raiseAnError(NotConsistentData,'PointSet Data accepts only a 1 Dimensional numpy array or a single value for method <_updateSpecializedInputValue>. Array shape is ' + str(value.shape))
+      if np.asarray(value).ndim > 1 and max(np.asarray(value).shape) != np.asarray(value).size: self.raiseAnError(NotConsistentData,'PointSet Data accepts only a 1 Dimensional numpy array or a single value for method <_updateSpecializedInputValue>. Array shape is ' + str(value.shape))
       #if value.size != 1 and not acceptArrayRealizations: self.raiseAnError(NotConsistentData,'PointSet Data accepts only a numpy array of dim 1 or a single value for method <_updateSpecializedInputValue>. Size is ' + str(value.size))
       unstructuredInput = True if value.size > 1 else False
     if options and self._dataParameters['hierarchical']:
@@ -334,7 +335,7 @@ class PointSet(Data):
         outValues = self._dataContainer['outputs'].values()
       if len(inpKeys) > 0 or len(outKeys) > 0: myFile = open(filenameLocal + '.csv', 'w')
       else: return
-      if len(unstructuredInpKeys_h) > 0: 
+      if len(unstructuredInpKeys) > 0: 
         unstructuredFileName = filenameLocal +'_unstructuredInputs' + '.xml'
         unstructuredDataFile = open(unstructuredFileName,'w')
       fileNamesExt = ['unstructuredInputFileName'] if len(unstructuredInpKeys) > 0 else []

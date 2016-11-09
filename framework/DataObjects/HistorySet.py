@@ -115,7 +115,7 @@ class HistorySet(Data):
     if (not isinstance(value,(float,int,bool,np.ndarray,c1darray))):
       self.raiseAnError(NotConsistentData,'HistorySet Data accepts only a numpy array  or a single value for method <_updateSpecializedInputValue>. Got type ' + str(type(value)))
     if isinstance(value,(np.ndarray,c1darray)):
-      if np.asarray(value).ndim > 1 and max(value.shape) != value.size: self.raiseAnError(NotConsistentData,'HistorySet Data accepts only a 1 Dimensional numpy array or a single value for method <_updateSpecializedInputValue>. Array shape is ' + str(value.shape))
+      if np.asarray(value).ndim > 1 and max(value.shape) != np.asarray(value).size: self.raiseAnError(NotConsistentData,'HistorySet Data accepts only a 1 Dimensional numpy array or a single value for method <_updateSpecializedInputValue>. Array shape is ' + str(value.shape))
       #if value.size != 1 and not acceptArrayRealizations: self.raiseAnError(NotConsistentData,'HistorySet Data accepts only a numpy array of dim 1 or a single value for method <_updateSpecializedInputValue>. Size is ' + str(value.size))
       unstructuredInput = True if value.size > 1 else False
     containerType = 'inputs' if not unstructuredInput else 'unstructuredInputs'

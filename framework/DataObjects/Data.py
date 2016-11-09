@@ -137,14 +137,15 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
         for key in tupleVar[0][hist].keys(): self.updateInputValue(key, tupleVar[0][hist][key], options)
       else:
         if self.type in ['PointSet']:
-          for index in range(tupleVar[0][hist].size): self.updateInputValue(hist, tupleVar[0][hist][index], options)
+          for index in range(len(tupleVar[0][hist])): 
+            self.updateInputValue(hist, tupleVar[0][hist][index], options)
         else: self.updateInputValue(hist, tupleVar[0][hist], options)
     for hist in tupleVar[1].keys():
       if type(tupleVar[1][hist]) == dict:
         for key in tupleVar[1][hist].keys(): self.updateOutputValue(key, tupleVar[1][hist][key], options)
       else:
         if self.type in ['PointSet']:
-          for index in range(tupleVar[1][hist].size): self.updateOutputValue(hist, tupleVar[1][hist][index], options)
+          for index in range(np.asarray(tupleVar[1][hist]).size): self.updateOutputValue(hist, tupleVar[1][hist][index], options)
         else: self.updateOutputValue(hist, tupleVar[1][hist], options)
     if len(tupleVar) > 2:
       #metadata
