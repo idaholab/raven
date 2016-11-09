@@ -69,7 +69,6 @@
         <distribution>y0_distrib</distribution>
         <grid construction="equal" steps="2" type="CDF">0.01 0.99</grid>
       </variable>
-      <ROM class="Models" type="ROM">rom</ROM>
     </Grid>
   </Samplers>
 
