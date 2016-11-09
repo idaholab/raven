@@ -278,7 +278,7 @@ class CsvLoader(MessageHandler.MessageUser):
         else: self.fieldNames = outParam
       #fill input param dictionary
       for key in inParam:
-        if i == 0: inDict[key] = [0.0]*len(filesIn) #np.zeros(len(filesIn))
+        if i == 0: inDict[key] = np.zeros(len(filesIn),dtype=object) #[0.0]*len(filesIn) #
         ix = self.allFieldNames.index(key) if key in self.allFieldNames else None
         if ix != None:
           if inputPivotVal != None:
