@@ -76,7 +76,7 @@
     type  = 'RavenFramework'
     input = 'test_time_dep_sobol.xml'
     output = 'SobolTime/train_data.xml'
-    csv = 'SobolTime/train_data_0.csv SobolTime/train_data_1.csv SobolTime/train_data_2.csv SobolTime/train_data_3.csv SobolTime/train_data_4.csv SobolTime/train_data_5.csv SobolTime/train_data_6.csv'
+    csv = 'SobolTime/train_data_0.csv SobolTime/train_data_1.csv SobolTime/train_data_2.csv SobolTime/train_data_3.csv SobolTime/train_data_4.csv'
     UnorderedXml = 'SobolTime/trom_dump.xml'
   [../]
 
