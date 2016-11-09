@@ -96,7 +96,7 @@
       </actions>
       <filename>blobs</filename>
     </Plot>
-    <Plot dim="2" name="PlotCircles" overwrite="false">
+    <Plot name="PlotCircles" overwrite="false">
       <plotSettings>
         <plot>
           <type>scatter</type>
@@ -120,7 +120,7 @@
       </actions>
       <filename>circles</filename>
     </Plot>
-    <Plot dim="2" name="PlotMoons" overwrite="false">
+    <Plot name="PlotMoons" overwrite="false">
       <plotSettings>
         <plot>
           <type>scatter</type>

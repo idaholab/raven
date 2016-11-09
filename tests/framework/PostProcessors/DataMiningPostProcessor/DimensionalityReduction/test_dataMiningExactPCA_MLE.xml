@@ -51,7 +51,7 @@
       <type>csv</type>
       <source>drInfo</source>
     </Print>
-    <Plot dim="3" name="PlotIris" overwrite="false" verbosity="debug">
+    <Plot name="PlotIris" overwrite="false" verbosity="debug">
       <filename>PlotIris_mle</filename>
       <plotSettings>
         <plot>
@@ -65,7 +65,7 @@
         </plot>
         <xlabel>Principal Component 1</xlabel>
         <ylabel>Principal Component 2</ylabel>
-        <ylabel>Principal Component 3</ylabel>
+        <zlabel>Principal Component 3</zlabel>
       </plotSettings>
       <actions>
         <colorbar>off</colorbar>

@@ -28,7 +28,7 @@
       <Output         class="OutStreams"       type="Plot"           >plot5</Output>
       <Output         class="OutStreams"       type="Plot"           >plot6</Output>
       <Output         class="OutStreams"       type="Plot"           >plot7</Output>
-      <!--Output         class="OutStreams"       type="Print"          >print2</Output-->
+      <!-- <Output         class="OutStreams"       type="Print"          >print2</Output> -->
     </PostProcess>
     <PostProcess name="filter0" pauseAtEnd="True">
       <Input  class="DataObjects"      type="HistorySet"     >outMC</Input>
@@ -51,14 +51,14 @@
       <Output class="OutStreams"       type="Print"          >print1</Output>
     </PostProcess>
   </Steps>
-  
+
 	<Distributions>
 	  <Normal name="distrib">
 	    <mean>4</mean>
 	    <sigma>1</sigma>
 	  </Normal>
 	</Distributions>
-  
+
 	<Samplers>
 	  <MonteCarlo name="MC_external">
 	    <samplerInit>
@@ -173,12 +173,12 @@
         <how>png</how>
       </actions>
     </Plot>
-    
+
     <Plot   name="clusterCenters" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>line</type>
-          <interpolationType>cubic</interpolationType>         
+          <interpolationType>cubic</interpolationType>
           <interpPointsX>1000</interpPointsX>
           <x>clusterInfo|Output|time</x>
           <y>clusterInfo|Output|y</y>
@@ -192,7 +192,7 @@
         <how>png</how>
       </actions>
     </Plot>
-	  
+
     <Plot  name="plot3" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
@@ -218,7 +218,7 @@
       <plotSettings>
         <plot>
           <type>line</type>
-          <interpolationType>cubic</interpolationType>         
+          <interpolationType>cubic</interpolationType>
           <interpPointsX>1000</interpPointsX>
           <x>outMC|Output|time</x>
           <y>outMC|Output|y</y>
@@ -236,8 +236,8 @@
         <how>png</how>
         <range>
           <xmin>0.0</xmin>
-          <xmax>0.5</xmax>   
-          <ymin>-15.0</ymin>    
+          <xmax>0.5</xmax>
+          <ymin>-15.0</ymin>
           <ymax>30.0</ymax>
           <zmin>0.0</zmin>
           <zmax>60.0</zmax>
@@ -249,7 +249,7 @@
       <plotSettings>
         <plot>
           <type>line</type>
-          <interpolationType>cubic</interpolationType>         
+          <interpolationType>cubic</interpolationType>
           <interpPointsX>1000</interpPointsX>
           <x>outMC0|Output|time</x>
           <y>outMC0|Output|y</y>
@@ -263,8 +263,8 @@
         <how>png</how>
         <range>
           <xmin>0.0</xmin>
-          <xmax>0.5</xmax>   
-          <ymin>-15.0</ymin>    
+          <xmax>0.5</xmax>
+          <ymin>-15.0</ymin>
           <ymax>30.0</ymax>
           <zmin>0.0</zmin>
           <zmax>60.0</zmax>
@@ -276,7 +276,7 @@
       <plotSettings>
         <plot>
           <type>line</type>
-          <interpolationType>cubic</interpolationType>         
+          <interpolationType>cubic</interpolationType>
           <interpPointsX>1000</interpPointsX>
           <x>outMC1|Output|time</x>
           <y>outMC1|Output|y</y>
@@ -290,20 +290,20 @@
         <how>png</how>
         <range>
           <xmin>0.0</xmin>
-          <xmax>0.5</xmax>   
-          <ymin>-15.0</ymin>    
+          <xmax>0.5</xmax>
+          <ymin>-15.0</ymin>
           <ymax>30.0</ymax>
           <zmin>0.0</zmin>
           <zmax>60.0</zmax>
         </range>
       </actions>
     </Plot>
-    
+
     <Plot   name="Cluster_2" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>line</type>
-          <interpolationType>cubic</interpolationType>         
+          <interpolationType>cubic</interpolationType>
           <interpPointsX>1000</interpPointsX>
           <x>outMC2|Output|time</x>
           <y>outMC2|Output|y</y>
@@ -317,20 +317,20 @@
         <how>png</how>
         <range>
           <xmin>0.0</xmin>
-          <xmax>0.5</xmax>   
-          <ymin>-15.0</ymin>    
+          <xmax>0.5</xmax>
+          <ymin>-15.0</ymin>
           <ymax>30.0</ymax>
           <zmin>0.0</zmin>
           <zmax>60.0</zmax>
         </range>
       </actions>
     </Plot>
-    
+
     <Plot   name="Cluster_3" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>line</type>
-          <interpolationType>cubic</interpolationType>         
+          <interpolationType>cubic</interpolationType>
           <interpPointsX>1000</interpPointsX>
           <x>outMC3|Output|time</x>
           <y>outMC3|Output|y</y>
@@ -344,15 +344,15 @@
         <how>png</how>
         <range>
           <xmin>0.0</xmin>
-          <xmax>0.5</xmax>   
-          <ymin>-15.0</ymin>    
+          <xmax>0.5</xmax>
+          <ymin>-15.0</ymin>
           <ymax>30.0</ymax>
           <zmin>0.0</zmin>
           <zmax>60.0</zmax>
         </range>
       </actions>
-    </Plot>  
-    
+    </Plot>
+
 		<Plot  name="hist0x" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
@@ -365,7 +365,7 @@
         <how>png</how>
       </actions>
     </Plot>
-    
+
     <Plot  name="hist0y" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
@@ -378,7 +378,7 @@
         <how>png</how>
       </actions>
     </Plot>
- 
+
     <Plot  name="hist0z" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
@@ -391,7 +391,7 @@
         <how>png</how>
       </actions>
     </Plot>
-    
+
     <Plot  name="hist1x" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
@@ -404,7 +404,7 @@
         <how>png</how>
       </actions>
     </Plot>
-    
+
     <Plot  name="hist1y" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
@@ -417,7 +417,7 @@
         <how>png</how>
       </actions>
     </Plot>
- 
+
     <Plot  name="hist1z" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
@@ -430,7 +430,7 @@
         <how>png</how>
       </actions>
     </Plot>
-    
+
     <Plot  name="hist2x" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
@@ -443,7 +443,7 @@
         <how>png</how>
       </actions>
     </Plot>
-    
+
     <Plot  name="hist2y" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
@@ -456,7 +456,7 @@
         <how>png</how>
       </actions>
     </Plot>
- 
+
     <Plot  name="hist2z" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
@@ -482,7 +482,7 @@
         <how>png</how>
       </actions>
     </Plot>
-    
+
     <Plot  name="hist3y" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
@@ -495,7 +495,7 @@
         <how>png</how>
       </actions>
     </Plot>
- 
+
     <Plot  name="hist3z" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
@@ -507,8 +507,8 @@
       <actions>
         <how>png</how>
       </actions>
-    </Plot>    
-    
+    </Plot>
+
     <Plot   name="plot5" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
@@ -535,7 +535,7 @@
         <how>png</how>
       </actions>
     </Plot>
-    
+
     <Plot   name="plot7" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
@@ -550,6 +550,6 @@
         <how>png</how>
       </actions>
     </Plot>
-                                     
-  </OutStreams>  
+
+  </OutStreams>
 </Simulation>
