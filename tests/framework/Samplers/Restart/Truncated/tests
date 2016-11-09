@@ -17,4 +17,10 @@
    output = 'sobol/coarse.xml sobol/fine.xml'
    UnorderedCsv = 'sobol/coarse.csv sobol/fine.csv'
  [../]
+ [./Scaled]
+   type = 'RavenFramework'
+   input = 'scale_test.xml'
+   output = 'scale/coarse.xml scale/fine.xml'
+   csv = 'scale/coarse.csv scale/fine.csv'
+ [../]
 []
