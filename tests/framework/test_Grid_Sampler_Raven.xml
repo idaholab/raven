@@ -7,7 +7,7 @@
   </RunInfo>
 
   <Files>
-    <Input name="clg_massflowrate_3eqn.i" type="">clg_massflowrate_3eqn.i</Input>
+    <Input name="clg_massflowrate_3eqn.i" type="">clg.massflowrate.3eqn.i</Input>
     <Input name="clg_massflowrate_3eqn_control.py" type="">clg_massflowrate_3eqn_control.py</Input>
   </Files>
 
