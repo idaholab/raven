@@ -101,7 +101,8 @@ class JobHandler(MessageHandler.MessageUser):
     ## requests lock1.
     self.__queueLock = threading.RLock()
 
-    ## List of submitted job identifiers
+    ## List of submitted job identifiers, includes jobs that have completed as
+    ## this list is not cleared until a new step is entered
     self.__submittedJobs = []
     ## Dict of failed jobs of the form { identifer: metadata }
     self.__failedJobs = {}
