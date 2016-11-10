@@ -61,7 +61,7 @@
       <ROM class="Models" type="ROM">accelerated_ROM</ROM>
       <Function class="Functions" type="External">decision</Function>
       <TargetEvaluation class="DataObjects" type="PointSet">sampledPoints</TargetEvaluation>
-      <Convergence forceIteration="False" limit="3000" persistence="40" weight="value">1e-3</Convergence>
+      <Convergence forceIteration="False" limit="3000" persistence="50" weight="value">1e-3</Convergence>
       <variable name="x1">
         <distribution>x1_dst</distribution>
       </variable>
@@ -86,6 +86,7 @@
       <gamma>10</gamma>
       <tol>1e-5</tol>
       <C>50</C>
+      <random_state>0</random_state>
     </ROM>
   </Models>
 
