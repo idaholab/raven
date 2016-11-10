@@ -54,32 +54,6 @@
     </PostProcess>
   </Steps>
 
-<<<<<<< HEAD
-	<Distributions>
-	  <Normal name="distrib">
-	    <mean>4</mean>
-	    <sigma>1</sigma>
-	  </Normal>
-	</Distributions>
-
-	<Samplers>
-	  <MonteCarlo name="MC_external">
-	    <samplerInit>
-	      <limit>10</limit>
-	      <initialSeed>1</initialSeed>
-	    </samplerInit>
-	    <variable name="x0">
-	      <distribution>distrib</distribution>
-	    </variable>
-	    <variable name="y0">
-	      <distribution>distrib</distribution>
-	    </variable>
-	    <variable name="z0">
-	      <distribution>distrib</distribution>
-	    </variable>
-	  </MonteCarlo>
-	</Samplers>
-=======
   <Distributions>
     <Normal name="distrib">
       <mean>4</mean>
@@ -104,7 +78,6 @@
       </variable>
     </MonteCarlo>
   </Samplers>
->>>>>>> devel
 
   <Models>
     <PostProcessor name="MeanShift" subType="DataMining">
@@ -579,11 +552,5 @@
         <how>png</how>
       </actions>
     </Plot>
-<<<<<<< HEAD
-
   </OutStreams>
-=======
-  </OutStreams>
-
->>>>>>> devel
 </Simulation>
