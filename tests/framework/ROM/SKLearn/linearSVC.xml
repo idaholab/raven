@@ -22,7 +22,9 @@
       <Target>Z</Target>
       <C>1.0</C>
       <!-- This does not work with 0.15.2 of sklearn -->
-      <!-- <loss>squared_hinge</loss> -->
+      <!--
+        <loss>squared_hinge</loss>
+      -->
       <penalty>l2</penalty>
       <dual>True</dual>
       <tol>1e-4</tol>
@@ -38,7 +40,6 @@
   <ExternalXML node="Distributions" xmlToLoad="sharedDistributions.xml"/>
   <ExternalXML node="Samplers" xmlToLoad="sharedSamplers.xml"/>
   <ExternalXML node="Steps" xmlToLoad="sharedSteps.xml"/>
-
   <OutStreams>
     <!-- A csv file containing the output of the example -->
     <Print name="outData">
@@ -49,5 +50,4 @@
   </OutStreams>
 
   <ExternalXML node="DataObjects" xmlToLoad="sharedDataObjects.xml"/>
-
 </Simulation>

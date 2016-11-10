@@ -94,7 +94,7 @@
           <x>stories|Output|time</x>
           <y>stories|Output|sine</y>
           <!--
-               <colorMap>stories|Output|square</colorMap>
+            <colorMap>stories|Output|square</colorMap>
           -->
           <cmap>gist_ncar</cmap>
           <range>
@@ -132,8 +132,8 @@
         <title>
           <text> </text>
         </title>
-        <!-- 
-             custom action (not predefined in the code) 
+        <!--
+             custom action (not predefined in the code)
         -->
         <arrow>
           <x>0.0</x>

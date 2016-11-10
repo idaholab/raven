@@ -65,16 +65,16 @@
         <distribution>heat_capacity_157</distribution>
       </variable>
       <variable name="2|20100154:2">
-          <distribution>heat_capacity_154</distribution>
+        <distribution>heat_capacity_154</distribution>
       </variable>
       <variable name="2|20100155:2">
-          <distribution>heat_capacity_155</distribution>
+        <distribution>heat_capacity_155</distribution>
       </variable>
       <variable name="2|20100156:2">
-          <distribution>heat_capacity_156</distribution>
+        <distribution>heat_capacity_156</distribution>
       </variable>
       <variable name="2|20100157:2">
-          <distribution>heat_capacity_157</distribution>
+        <distribution>heat_capacity_157</distribution>
       </variable>
     </MonteCarlo>
   </Samplers>

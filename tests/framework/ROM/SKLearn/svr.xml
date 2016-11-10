@@ -25,7 +25,9 @@
       <kernel>rbf</kernel>
       <degree>3.0</degree>
       <!-- This does not work with 0.15.2 of sklearn -->
-      <!-- <gamma>auto</gamma> -->
+      <!--
+        <gamma>auto</gamma>
+      -->
       <coef0>0.0</coef0>
       <shrinking>True</shrinking>
       <tol>1e-3</tol>
@@ -38,7 +40,6 @@
   <ExternalXML node="Distributions" xmlToLoad="sharedDistributions.xml"/>
   <ExternalXML node="Samplers" xmlToLoad="sharedSamplers.xml"/>
   <ExternalXML node="Steps" xmlToLoad="sharedSteps.xml"/>
-
   <OutStreams>
     <!-- A csv file containing the output of the example -->
     <Print name="outData">
@@ -49,5 +50,4 @@
   </OutStreams>
 
   <ExternalXML node="DataObjects" xmlToLoad="sharedDataObjects.xml"/>
-
 </Simulation>

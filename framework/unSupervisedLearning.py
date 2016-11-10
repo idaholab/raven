@@ -1318,6 +1318,7 @@ class Scipy(unSupervisedLearning):
     else:
       title = 'dendrogram.pdf'
     plt.savefig(title)
+    plt.close()
     return ddata
 
   def __evaluateLocal__(self,*args, **kwargs):

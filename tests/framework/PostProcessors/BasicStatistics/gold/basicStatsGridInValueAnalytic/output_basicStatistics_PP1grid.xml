@@ -1,0 +1,51 @@
+<?xml version="1.0" ?>
+<BasicStatisticsPP type="Static">
+  <y1>
+    <variance>4.45406415835</variance>
+    <sensitivity>
+      <y1>1.0</y1>
+      <x1>-1.75940526006e-17</x1>
+    </sensitivity>
+    <covariance>
+      <y1>4.45406415835</y1>
+      <x1>-1.79401578228e-17</x1>
+    </covariance>
+    <pearson>
+      <y1>1.0</y1>
+      <x1>-6.7680587445e-18</x1>
+    </pearson>
+    <NormalizedSensitivity>
+      <y1>1.0</y1>
+      <x1>-8.1232611007e-18</x1>
+    </NormalizedSensitivity>
+    <VarianceDependentSensitivity>
+      <y1>1.0</y1>
+      <x1>-1.1372565541e-17</x1>
+    </VarianceDependentSensitivity>
+  </y1>
+
+  <x1>
+    <variance>1.57749434446</variance>
+    <sensitivity>
+      <y1>9.38039515881e-18</y1>
+      <x1>1.0</x1>
+    </sensitivity>
+    <covariance>
+      <y1>-1.79401578228e-17</y1>
+      <x1>1.57749434446</x1>
+    </covariance>
+    <pearson>
+      <y1>-6.7680587445e-18</y1>
+      <x1>1.0</x1>
+    </pearson>
+    <NormalizedSensitivity>
+      <y1>-5.63894458163e-18</y1>
+      <x1>1.0</x1>
+    </NormalizedSensitivity>
+    <VarianceDependentSensitivity>
+      <y1>-4.02781755831e-18</y1>
+      <x1>1.0</x1>
+    </VarianceDependentSensitivity>
+  </x1>
+
+</BasicStatisticsPP>

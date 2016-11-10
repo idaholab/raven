@@ -12,7 +12,7 @@
 
   <Models>
     <PostProcessor name="MiniBatchKMeansBlobs" subType="DataMining" verbosity="quiet">
-      <KDD lib="SciKitLearn" labelFeature='BlobLabels'>
+      <KDD labelFeature="BlobLabels" lib="SciKitLearn">
         <Features>x1,x2</Features>
         <SKLtype>cluster|MiniBatchKMeans</SKLtype>
         <n_clusters>2</n_clusters>
@@ -20,7 +20,7 @@
       </KDD>
     </PostProcessor>
     <PostProcessor name="MiniBatchKMeansCircles" subType="DataMining" verbosity="quiet">
-      <KDD lib="SciKitLearn" labelFeature='CircleLabels'>
+      <KDD labelFeature="CircleLabels" lib="SciKitLearn">
         <Features>y1,y2</Features>
         <SKLtype>cluster|MiniBatchKMeans</SKLtype>
         <n_clusters>2</n_clusters>
@@ -28,7 +28,7 @@
       </KDD>
     </PostProcessor>
     <PostProcessor name="MiniBatchKMeansMoons" subType="DataMining" verbosity="quiet">
-      <KDD lib="SciKitLearn" labelFeature='MoonLabels'>
+      <KDD labelFeature="MoonLabels" lib="SciKitLearn">
         <Features>z1,z2</Features>
         <SKLtype>cluster|MiniBatchKMeans</SKLtype>
         <n_clusters>2</n_clusters>
