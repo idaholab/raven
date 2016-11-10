@@ -1,7 +1,6 @@
 """
 Created on Jan 28, 2014
 @ author: alfoa
-TreeStructure. 2 classes Node, NodeTree
 """
 
 #for future compatibility with Python 3--------------------------------------------------------------
@@ -10,25 +9,86 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
-class Node(object):
+#message handler
+import os, sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir)))
+import MessageHandler
+
+class Node(MessageHandler.MessageUser):
   """
     The Node class. It represents the base for each TreeStructure construction
   """
-  def __init__(self, name, valuesIn={}, text=''):
+  def __init__(self, messageHandler, name, valuesIn={}, text=''):
     """
       Initialize Tree,
+      @ In, messageHandler, MessageHandler instance, the message handler to use
       @ In, name, string, is the node name
       @ In, valuesIn, dict, optional, is a dictionary of values
       @ In, text, string, optional, the node's text, as <name>text</name>
     """
+    #check message handler is first object
     values         = valuesIn.copy()
     self.name      = name
+    self.type      = 'Node'
+    self.printTag  = 'Node:<'+self.name+'>'
+    if type(messageHandler) != MessageHandler.MessageHandler:
+      raise(IOError,'Tried to initialize '+self.type+' without a message handler!  Was given: '+str(messageHandler))
     self.values    = values
     self.text      = text
     self._branches = []
     self.parentname= None
     self.parent    = None
     self.depth     = 0
+    self.messageHandler = messageHandler
+    self.iterCounter = 0
+
+  def __eq__(self,other):
+    """
+      Overrides the default equality check
+      @ In, other, object, comparison object
+      @ Out, eq, bool, True if both are the same
+    """
+    if isinstance(other,self.__class__):
+      same = True
+      if self.name != other.name:
+        same = False
+      elif self.text != other.text:
+        same = False
+      elif self.values != other.values:
+        same = False
+      # TODO ... check parent and children?
+      return same
+    return NotImplemented
+
+  def __ne__(self,other):
+    """
+      Overrides the default equality check
+      @ In, other, object, comparison object
+      @ Out, ne, bool, True if both aren't the same
+    """
+    if isinstance(other,self.__class__):
+      return not self.__eq__(other)
+    return NotImplemented
+
+  def __hash__(self):
+    """
+      Overrides the default hash.
+      @ In, None
+      @ Out, hash, tuple, name and values and text
+    """
+    return hash(tuple(self.name,tuple(sorted(self.values.items())),self.text))
+
+  def __iter__(self):
+    """
+      basic iteration method
+      @ In, None
+      @ Out, self, Node instance, iterate over self
+    """
+    i=0
+    while i<len(self._branches):
+      yield self._branches[i]
+      i+=1
+    #return self
 
   def __repr__(self):
     """
@@ -36,7 +96,7 @@ class Node(object):
       @ In, None
       @ Out, __repr__, string, the representation of this object
     """
-    return "<Node %s at 0x%x containing %s branches>" % (repr(self.name), id(self), repr(len(self._branches)))
+    return "<Node %s values=%s at 0x%x containing %s branches>" % (repr(self.name), str(self.values), id(self), repr(len(self._branches)))
 
   def copyNode(self):
     """
@@ -276,13 +336,13 @@ class Node(object):
     for e in self._branches: e.writeNode(dumpFileObj)
     if self.numberBranches()>0: dumpFileObj.write(' '+'  '*self.depth + '</branch>\n')
 
-  def stringNode(self,msg):
+  def stringNode(self,msg=''):
     """
       As writeNode, but returns a string representation of the tree instead of writing it to file.
-      @ In, msg, string, the string to populate
+      @ In, msg, string, optional, the string to populate
       @ Out, msg, string, the modified string
     """
-    msg+=''+'  '*self.depth + '<' + self.name + '>'+self.text
+    msg+=''+'  '*self.depth + '<' + self.name + '>'+str(self.text)
     if self.numberBranches()==0:msg+='</'+self.name+'>'
     msg+='\n'
     if len(self.values.keys()) >0: msg+=''+'  '*self.depth +'  <attributes>\n'
@@ -295,16 +355,23 @@ class Node(object):
 #################
 #   NODE TREE   #
 #################
-class NodeTree(object):
+class NodeTree(MessageHandler.MessageUser):
   """
     NodeTree class. The class tha realizes the Tree Structure
   """
-  def __init__(self, node=None):
+  def __init__(self, messageHandler, node=None):
     """
       Constructor
+      @ In, messageHandler, MessageHandler instance, the message handler to use
       @ In, node, Node, optional, the rootnode
       @ Out, None
     """
+    if not hasattr(self,"type"):
+      self.type = 'NodeTree'
+    self.printTag  = self.type+'<'+str(node)+'>'
+    if type(messageHandler) != MessageHandler.MessageHandler:
+      raise(IOError,'Tried to initialize NodeTree without a message handler!  Was given: '+str(messageHandler))
+    self.messageHandler = messageHandler
     self._rootnode = node
     if node: node.parentname='root'
 
@@ -422,6 +489,139 @@ class NodeTree(object):
     msg=str(msg)
     msg=self._rootnode.stringNode(msg)
     return msg
+
+##################
+# METADATA TREE #
+#################
+class MetadataTree(NodeTree):
+  """
+    Class for construction of metadata xml trees used in data objects.  Usually contains summary data
+    such as that produced by postprocessor models.  Two types of tree exist: dynamic and static.  See
+    RAVEN Output type of Files object.
+  """
+  def __init__(self,messageHandler,rootName):
+    self.pivotParam = None
+    node = Node(messageHandler,rootName, valuesIn={'dynamic':str(self.dynamic)})
+    NodeTree.__init__(self,messageHandler,node)
+
+  def __repr__(self):
+    """
+      Overridden print method
+      @ In, None
+      @ Out, repr, string, string of tree
+    """
+    return self.stringNodeTree()
+
+  def addScalar(self,target,name,value,root=None,pivotVal=None):
+    """
+      Adds a node entry named "name" with value "value" to "target" node
+      Note that Static uses this method exactly, and Dynamic extends it a little
+      @ In, target, string, target parameter to add node value to
+      @ In, name, string, name of characteristic of target to add
+      @ In, value, string/float/etc, value of characteristic
+      @ In, root, Node object, optional, node to which "target" belongs or should be added to
+      @ In, pivotVal, float, optional, if specified the value of the pivotParam to add target value to
+      @ Out, None
+    """
+    if root is None:
+      root = self.getrootnode()
+    #FIXME it's possible the user could provide illegal characters here.  What are illegal characters for us?
+    targ = self._findTarget(root,target,pivotVal)
+    targ.appendBranch(Node(self.messageHandler,name,text=value))
+
+  def _findTarget(self,root,target,pivotVal=None):
+    """
+      Used to find target node.  This implementation is specific to static, extend it for dynamic.
+      @ In, root, Node object, node to search for target
+      @ In, target, string, name of target to find/create
+      @ In, pivotVal, float, optional, not used in this method but kept for consistency
+      @ Out, tNode, Node object, target node (either created or existing)
+    """
+    tNode = root.findBranch(target)
+    if tNode is None:
+      tNode = Node(self.messageHandler,target)
+      root.appendBranch(tNode)
+    return tNode
+
+
+
+class StaticMetadataTree(MetadataTree):
+  """
+    Class for construction of metadata xml trees used in data objects.  Usually contains summary data
+    such as that produced by postprocessor models.  Two types of tree exist: dynamic and static.  See
+    RAVEN Output type of Files object.
+  """
+  def __init__(self,messageHandler,rootName):
+    """
+      Constructor.
+      @ In, node, Node object, optional, root of tree if provided
+      @ Out, None
+    """
+    self.dynamic = False
+    self.type = 'StaticMetadataTree'
+    MetadataTree.__init__(self,messageHandler,rootName)
+
+
+
+
+class DynamicMetadataTree(MetadataTree):
+  """
+    Class for construction of metadata xml trees used in data objects.  Usually contains summary data
+    such as that produced by postprocessor models.  Two types of tree exist: dynamic and static.  See
+    RAVEN Output type of Files object.
+  """
+  def __init__(self,messageHandler,rootName,pivotParam):
+    """
+      Constructor.
+      @ In, node, Node object, optional, root of tree if provided
+      @ Out, None
+    """
+    self.dynamic = True
+    self.type = 'DynamicMetadataTree'
+    MetadataTree.__init__(self,messageHandler,rootName)
+    self.pivotParam = pivotParam
+
+  def _findTarget(self,root,target,pivotVal):
+    """
+      Used to find target node.  Extension of base class method for Dynamic mode
+      @ In, root, Node object, node to search for target
+      @ In, target, string, name of target to find/create
+      @ In, pivotVal, float, value of pivotParam to use for searching
+      @ Out, tNode, Node object, target node (either created or existing)
+    """
+    pivotVal = float(pivotVal)
+    pNode = self._findPivot(root,pivotVal)
+    tNode = MetadataTree._findTarget(self,pNode,target)
+    return tNode
+
+  def _findPivot(self,root,pivotVal,tol=1e-10):
+    """
+      Finds the node with the desired pivotValue to the given tolerance
+      @ In, root, Node instance, the node to search under
+      @ In, pivotVal, float, match to search for
+      @ In, tol, float, tolerance for match
+      @ Out, pNode, Node instance, matching node
+    """
+    found = False
+    for child in root:
+      #make sure we're looking at a pivot node
+      if child.name != self.pivotParam:
+        continue
+      # careful with inequality signs to check for match
+      if pivotVal > 0:
+        foundCondition = abs(float(child.get('value')) - pivotVal) <= 1e-10*pivotVal
+      else:
+        foundCondition = abs(float(child.get('value')) - pivotVal) >= 1e-10*pivotVal
+      if foundCondition:
+        pivotNode = child
+        found = True
+        break
+    #if not found, make it!
+    if not found:
+      pivotNode = Node(self.messageHandler,self.pivotParam,valuesIn={'value':pivotVal})
+      root.appendBranch(pivotNode)
+    return pivotNode
+
 
 ####################
 #  NodePath Class  #

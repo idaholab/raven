@@ -9,6 +9,8 @@
   <Files>
     <Input name="output_basicStatistics_PP1BoxBehnkenRespDesign.csv" type="">output_basicStatistics_PP1BoxBehnkenRespDesign.csv</Input>
     <Input name="output_basicStatistics_PP1CentralCompositeRespDesign.csv" type="">output_basicStatistics_PP1CentralCompositeRespDesign.csv</Input>
+    <Input name="boxBehnken.xml" type="">boxBehnkenRespDesign.xml</Input>
+    <Input name="centralComposite.xml" type="">centralCompositeRespDesign.xml</Input>
   </Files>
 
   <Models>
@@ -16,8 +18,10 @@
       <variables>x,y,z,x1</variables>
     </ExternalModel>
     <PostProcessor name="analyticalTest" subType="BasicStatistics" verbosity="debug">
-      <what>all</what>
-      <parameters>x,y,z</parameters>
+      <all>
+        <targets>x,y,z</targets>
+        <features>x,y,z</features>
+      </all>
     </PostProcessor>
   </Models>
 
@@ -94,6 +98,7 @@
       <Input class="DataObjects" type="PointSet">outputDataBoxBehnkenRespDesign</Input>
       <Model class="Models" type="PostProcessor">analyticalTest</Model>
       <Output class="Files" type="">output_basicStatistics_PP1BoxBehnkenRespDesign.csv</Output>
+      <Output class="Files" type="">boxBehnken.xml</Output>
       <Output class="DataObjects" type="PointSet">outputDataBoxBehnkenRespDesign</Output>
       <Output class="OutStreams" type="Print">outputDataBoxBehnkenRespDesign_dump</Output>
     </PostProcess>
@@ -101,6 +106,7 @@
       <Input class="DataObjects" type="PointSet">outputDataCentralCompositeRespDesign</Input>
       <Model class="Models" type="PostProcessor">analyticalTest</Model>
       <Output class="Files" type="">output_basicStatistics_PP1CentralCompositeRespDesign.csv</Output>
+      <Output class="Files" type="">centralComposite.xml</Output>
       <Output class="DataObjects" type="PointSet">outputDataCentralCompositeRespDesign</Output>
       <Output class="OutStreams" type="Print">outputDataCentralCompositeRespDesign_dump</Output>
     </PostProcess>

@@ -1,7 +1,6 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <!-- RUNINFO -->
-
   <RunInfo>
     <WorkingDir>externalModel</WorkingDir>
     <Sequence>FirstMRun,FirstMRun2</Sequence>
@@ -20,14 +19,14 @@
       <Output class="DataObjects" type="PointSet">testPointSet</Output>
       <Output class="OutStreams" type="Print">testPointSet_dump</Output>
     </MultiRun>
-    <MultiRun name="FirstMRun2" re-seeding="25061978">   
-      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>  
-      <Model class="Models" type="ExternalModel">PythonModule</Model> 
-      <Sampler class="Samplers" type="Grid">myGrid</Sampler>  
-      <Output class="DataObjects" type="HistorySet">testPrintHistorySet</Output>   
-      <Output class="OutStreams" type="Print">testPrintHistorySet_dump</Output>   
-      <Output class="DataObjects" type="PointSet">testPointSet</Output>   
-      <Output class="OutStreams" type="Print">testPointSet_dump</Output>   
+    <MultiRun name="FirstMRun2" re-seeding="25061978">
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
+      <Model class="Models" type="ExternalModel">PythonModule</Model>
+      <Sampler class="Samplers" type="Grid">myGrid</Sampler>
+      <Output class="DataObjects" type="HistorySet">testPrintHistorySet</Output>
+      <Output class="OutStreams" type="Print">testPrintHistorySet_dump</Output>
+      <Output class="DataObjects" type="PointSet">testPointSet</Output>
+      <Output class="OutStreams" type="Print">testPointSet_dump</Output>
     </MultiRun>
   </Steps>
 

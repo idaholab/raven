@@ -8,23 +8,23 @@
 
   <Steps>
     <MultiRun name="FirstMRun" pauseAtEnd="True">
-      <Input   class="DataObjects" type="PointSet">inputPlaceHolder</Input>
-      <Model   class="Models"      type="ExternalModel">PythonModule</Model>
-      <Sampler class="Samplers"    type="MonteCarlo">MC_external</Sampler>
-      <Output  class="DataObjects" type="HistorySet">hist</Output>
-      <Output  class="OutStreams"  type="Print">history_dump</Output>
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
+      <Model class="Models" type="ExternalModel">PythonModule</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
+      <Output class="DataObjects" type="HistorySet">hist</Output>
+      <Output class="OutStreams" type="Print">history_dump</Output>
     </MultiRun>
     <PostProcess name="snap">
-      <Input  class="DataObjects"  type="HistorySet">hist</Input>
-      <Model  class="Models"       type="PostProcessor">mampp</Model>
-      <Output class="DataObjects"  type="PointSet">point1</Output>
-      <Output class="OutStreams"   type="Print">point_dump1</Output>
+      <Input class="DataObjects" type="HistorySet">hist</Input>
+      <Model class="Models" type="PostProcessor">mampp</Model>
+      <Output class="DataObjects" type="PointSet">point1</Output>
+      <Output class="OutStreams" type="Print">point_dump1</Output>
     </PostProcess>
     <PostProcess name="snap2">
-      <Input  class="DataObjects"  type="HistorySet">hist</Input>
-      <Model  class="Models"       type="PostProcessor">mampp2</Model>
-      <Output class="DataObjects"  type="PointSet">point2</Output>
-      <Output class="OutStreams"   type="Print">point_dump2</Output>
+      <Input class="DataObjects" type="HistorySet">hist</Input>
+      <Model class="Models" type="PostProcessor">mampp2</Model>
+      <Output class="DataObjects" type="PointSet">point2</Output>
+      <Output class="OutStreams" type="Print">point_dump2</Output>
     </PostProcess>
   </Steps>
 

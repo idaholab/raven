@@ -74,7 +74,6 @@
       <SolutionExport class="DataObjects" type="HistorySet">optData</SolutionExport>
       <Output class="DataObjects" type="PointSet">metaModelOutputTest</Output>
       <Output class="DataObjects" type="PointSet">optOutput</Output>
-      
       <Output class="OutStreams" type="Print">metaModelOutputTestDump</Output>
     </MultiRun>
     <IOStep name="dumpResults" pauseAtEnd="True">
@@ -107,15 +106,13 @@
       <type>csv</type>
       <source>metaModelOutputTest</source>
     </Print>
-    
-    
     <Print name="optimizationHistoryDump">
-        <type>csv</type>
-        <source>optData</source>
+      <type>csv</type>
+      <source>optData</source>
     </Print>
     <Print name="mdlDataDump">
-        <type>csv</type>
-        <source>optOutput</source>
+      <type>csv</type>
+      <source>optOutput</source>
     </Print>
     
     <Plot  name="optPath" overwrite="false" verbosity="debug">
@@ -228,13 +225,12 @@
         </title>
       </actions>
     </Plot>
-    
   </OutStreams>
 
   <DataObjects>
     <PointSet name="optOutput">
-        <Input>rightTemperature,leftTemperature</Input>
-        <Output>solution</Output>
+      <Input>rightTemperature,leftTemperature</Input>
+      <Output>solution</Output>
     </PointSet>
     <PointSet name="inputHolder">
       <Input>leftTemperature,rightTemperature</Input>

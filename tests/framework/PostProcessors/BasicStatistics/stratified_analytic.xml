@@ -8,6 +8,7 @@
 
   <Files>
     <Input name="output_basicStatistics_PP1Stratified.csv" type="">output_basicStatistics_PP1Stratified.csv</Input>
+    <Input name="output_basicStatistics_PP1Stratified.xml" type="">output_basicStatistics_PP1Stratified.xml</Input>
   </Files>
 
   <Models>
@@ -15,8 +16,10 @@
       <variables>x,y,x1</variables>
     </ExternalModel>
     <PostProcessor name="analyticalTest" subType="BasicStatistics" verbosity="debug">
-      <what>all</what>
-      <parameters>x,y</parameters>
+      <all>
+        <targets>x,y</targets>
+        <features>x,y</features>
+      </all>
     </PostProcessor>
   </Models>
 
@@ -55,6 +58,7 @@
       <Input class="DataObjects" type="PointSet">outputDataStratified</Input>
       <Model class="Models" type="PostProcessor">analyticalTest</Model>
       <Output class="Files" type="">output_basicStatistics_PP1Stratified.csv</Output>
+      <Output class="Files" type="">output_basicStatistics_PP1Stratified.xml</Output>
       <Output class="DataObjects" type="PointSet">outputDataStratified</Output>
       <Output class="OutStreams" type="Print">outputDataStratified_dump</Output>
     </PostProcess>

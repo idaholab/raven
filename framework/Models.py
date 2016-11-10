@@ -1589,7 +1589,7 @@ class EnsembleModel(Dummy, Assembler):
       @ In, initDict, optional, dictionary of all objects available in the step is using this model
       @ Out, None
     """
-    self.tree = TreeStructure.NodeTree(TreeStructure.Node(self.name))
+    self.tree = TreeStructure.NodeTree(self.messageHandler,TreeStructure.Node(self.messageHandler,self.name))
     rootNode = self.tree.getrootnode()
     for modelIn in self.assemblerDict['Model']:
       self.modelsDictionary[modelIn[2]]['Instance'] = modelIn[3]
@@ -1607,7 +1607,7 @@ class EnsembleModel(Dummy, Assembler):
           if type(targetEval[3]).__name__ != 'PointSet': self.raiseAnError(IOError, "The TargetEvaluation needs to be an instance of PointSet. Got "+type(targetEval[3]).__name__)
           self.modelsDictionary[modelIn]['Input'] = targetEval[3].getParaKeys("inputs")
           self.modelsDictionary[modelIn]['Output'] = targetEval[3].getParaKeys("outputs")
-          modelNode = TreeStructure.Node(modelIn)
+          modelNode = TreeStructure.Node(self.messageHandler,modelIn)
           modelNode.add( 'inputs', targetEval[3].getParaKeys("inputs"))
           modelNode.add('outputs', targetEval[3].getParaKeys("outputs"))
           rootNode.appendBranch(modelNode)
