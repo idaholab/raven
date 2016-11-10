@@ -45,7 +45,7 @@ class GradientBasedOptimizer(Optimizer):
     self.gradDict = {}                                # Dict containing information for gradient related operations
     self.gradDict['numIterForAve'] = 1                # Number of iterations for gradient estimation averaging
     self.gradDict['pertNeeded'] = 1                   # Number of perturbation needed to evaluate gradient
-    self.gradDict['pertPoints'] = {}                  # Dict containing inputs sent to model for gradient evaluation
+    self.gradDict['pertPoints'] = {}                  # Dict containing normalized inputs sent to model for gradient evaluation
     self.counter['perturbation'] = {}                 # Counter for the perturbation performed.
     self.readyVarsUpdate = {}                         # Bool variable indicating the finish of gradient evaluation and the ready to update decision variables
     self.counter['varsUpdate'] = {}
@@ -258,15 +258,14 @@ class GradientBasedOptimizer(Optimizer):
       @ In, currentInput, dict, the last variable on trajectory traj
       @ Out, None
     """
-    currentInp = self.normalizeData(currentInput)
     removeFlag = False
     for traj in self.optTraj:
       if traj != trajToRemove:
         for updateKey in self.optVarsHist[traj].keys():
-          inp = self.normalizeData(self.optVarsHist[traj][updateKey])
+          inp = copy.deepcopy(self.optVarsHist[traj][updateKey])
           removeLocalFlag = True
           for var in self.optVars:
-            if abs(inp[var] - currentInp[var]) > self.thresholdTrajRemoval:
+            if abs(inp[var] - currentInput[var]) > self.thresholdTrajRemoval:
               removeLocalFlag = False
               break
           if removeLocalFlag:

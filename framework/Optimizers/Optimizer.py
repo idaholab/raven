@@ -90,7 +90,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.optVarsInit['upperBound']      = {}                        # Dict containing upper bounds of each decision variables
     self.optVarsInit['lowerBound']      = {}                        # Dict containing lower bounds of each decision variables
     self.optVarsInit['initial']         = {}                        # Dict containing initial values of each decision variables
-    self.optVarsHist                    = {}                        # History of decision variables for each iteration
+    self.optVarsHist                    = {}                        # History of normalized decision variables for each iteration
     self.nVar                           = 0                         # Number of decision variables
     self.objVar                         = None                      # Objective variable to be optimized
     self.optType                        = None                      # Either maximize or minimize
@@ -216,15 +216,10 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       if varname not in self.optVarsInit['initial'].keys()   :
         self.optVarsInit['initial'][varname] = {}
         for trajInd in self.optTraj:
-          self.optVarsInit['initial'][varname][trajInd] = 0.0
+          self.optVarsInit['initial'][varname][trajInd] = 1.0*(self.optVarsInit['upperBound'][varname]+self.optVarsInit['lowerBound'][varname])/2
       if len(self.optTraj) != len(self.optVarsInit['initial'][varname].keys()):
         self.raiseAnError(ValueError, 'Number of initial values does not equal to the number of parallel optimization trajectories')
     self.optTrajLive = copy.deepcopy(self.optTraj)
-    # debug
-    self.raiseADebug(self.optVarsInit['initial'])
-    self.raiseADebug(self.optTraj)
-#     self.raiseAnError(ValueError, 't')
-    # end of debug
 
   def localInputAndChecks(self,xmlNode):
     """
@@ -373,6 +368,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     for key in tempDict.keys():                   tempDict[key] = np.asarray(tempDict[key])
 
     self.objSearchingROM.train(tempDict)
+    optVars = self.denormalizeData(optVars)
     for key in optVars.keys():                    optVars[key] = np.atleast_1d(optVars[key])
     lossFunctionValue = self.objSearchingROM.evaluate(optVars)
 
@@ -389,6 +385,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       satisfaction = True
     else:
       satisfaction = True if self.constraintFunction.evaluate("constrain",optVars) == 1 else False
+    optVars = self.denormalizeData(optVars)
     for var in optVars:
       if optVars[var] > self.optVarsInit['upperBound'][var] or optVars[var] < self.optVarsInit['lowerBound'][var]:
         satisfaction = False
@@ -421,7 +418,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ In, optVars, dict, dictionary containing the value of decision variables to be normalized, in form of {varName: varValue}
       @ Out, optVarsNorm, dict, dictionary containing the value of normalized decision variables, in form of {varName: varValue}
     """
-    optVarsNorm = copy.deepcopy(optVars)
+    optVarsNorm = {}
     for var in optVars.keys():
       optVarsNorm[var] = (optVars[var]-self.optVarsInit['lowerBound'][var])/(self.optVarsInit['upperBound'][var]-self.optVarsInit['lowerBound'][var])
     return optVarsNorm
@@ -432,7 +429,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ In, optVars, dict, dictionary containing the value of decision variables to be deormalized, in form of {varName: varValue}
       @ Out, optVarsDenorm, dict, dictionary containing the value of denormalized decision variables, in form of {varName: varValue}
     """
-    optVarsDenorm = copy.deepcopy(optVars)
+    optVarsDenorm = {}
     for var in optVars.keys():
       optVarsDenorm[var] = optVars[var]*(self.optVarsInit['upperBound'][var]-self.optVarsInit['lowerBound'][var])+self.optVarsInit['lowerBound'][var]
     return optVarsDenorm

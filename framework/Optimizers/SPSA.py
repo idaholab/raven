@@ -54,6 +54,14 @@ class SPSA(GradientBasedOptimizer):
     self.paramDict['a']     = float(self.paramDict.get('a', 0.16))
     self.paramDict['c']     = float(self.paramDict.get('c', 0.005))
 
+    # Normalize the parameters...
+    tempMax = -1
+    for var in self.optVars:
+      if self.optVarsInit['upperBound'][var]-self.optVarsInit['lowerBound'][var] > tempMax:
+        tempMax = self.optVarsInit['upperBound'][var]-self.optVarsInit['lowerBound'][var]
+    self.paramDict['c'] = copy.deepcopy(self.paramDict['c']/tempMax)
+    self.paramDict['a'] = copy.deepcopy(self.paramDict['a']/(tempMax**2))
+
     self.constraintHandlingPara['innerBisectionThreshold'] = float(self.paramDict.get('innerBisectionThreshold', 1e-2))
     self.constraintHandlingPara['innerLoopLimit'] = float(self.paramDict.get('innerLoopLimit', 1000))
 
@@ -102,7 +110,7 @@ class SPSA(GradientBasedOptimizer):
       self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = {}
       for var in self.optVars:
         self.values[var] = self.optVarsInit['initial'][var][traj]
-        self.optVarsHist[traj][self.counter['varsUpdate'][traj]][var] = copy.copy(self.values[var])
+      self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = copy.deepcopy(self.normalizeData(self.values))
       # use 'prefix' to locate the input sent out. The format is: trajID + iterID + (v for variable update; otherwise id for gradient evaluation) + global ID
       self.inputInfo['prefix'] = str(traj) + '_' + str(self.counter['varsUpdate'][traj]) + '_v_' + str(self.counter['mdlEval'])
 
@@ -130,8 +138,12 @@ class SPSA(GradientBasedOptimizer):
 
           loc1 = self.counter['perturbation'][traj] % 2
           loc2 = np.floor(self.counter['perturbation'][traj] / 2) if loc1 == 1 else np.floor(self.counter['perturbation'][traj] / 2) - 1
+          tempOptVars = {}
           for var in self.optVars:
-            self.values[var] = self.gradDict['pertPoints'][traj][loc2][var][loc1]
+            tempOptVars[var] = self.gradDict['pertPoints'][traj][loc2][var][loc1]
+          tempOptVarsDenorm = copy.deepcopy(self.denormalizeData(tempOptVars))
+          for var in self.optVars:
+            self.values[var] = tempOptVarsDenorm[var]
           # use 'prefix' to locate the input sent out. The format is: trajID + iterID + (v for variable update; otherwise id for gradient evaluation) + global ID
           self.inputInfo['prefix'] = str(traj) + '_' + str(self.counter['varsUpdate'][traj]) + '_' + str(self.counter['perturbation'][traj]) + '_' + str(self.counter['mdlEval'])
           break
@@ -154,21 +166,16 @@ class SPSA(GradientBasedOptimizer):
             varK = copy.deepcopy(self.optVarsHist[traj][self.counter['varsUpdate'][traj]-1])
 
             varKPlus = self._generateVarsUpdateConstrained(ak,gradient,varK)
+            varKPlusDenorm = self.denormalizeData(varKPlus)
             for var in self.optVars:
-              self.values[var] = copy.deepcopy(varKPlus[var])
-              self.optVarsHist[traj][self.counter['varsUpdate'][traj]][var] = copy.deepcopy(self.values[var])
-
+              self.values[var] = copy.deepcopy(varKPlusDenorm[var])
+              self.optVarsHist[traj][self.counter['varsUpdate'][traj]][var] = copy.deepcopy(varKPlus[var])
             # use 'prefix' to locate the input sent out. The format is: trajID + iterID + (v for variable update; otherwise id for gradient evaluation) + global ID
             self.inputInfo['prefix'] = str(traj) + '_' + str(self.counter['varsUpdate'][traj]) + '_v_' + str(self.counter['mdlEval'])
 
             # remove redundant trajectory
             if len(self.optTrajLive) > 1 and self.counter['solutionUpdate'][traj] > 0:
-#               currentInput = {}
-#               for var in inputeval.keys():
-#                 currentInput[var] = inputeval[var][index]
-              self._removeRedundantTraj(traj, self.values)
-
-
+              self._removeRedundantTraj(traj, self.optVarsHist[traj][self.counter['varsUpdate'][traj]])
 
             break
 
