@@ -5,7 +5,7 @@ sys.path.append(os.path.join(frameworkDir,'utils'))
 import utils
 utils.find_crow(frameworkDir)
 distribution1D = utils.find_distribution1D()
-stochasticEnv = distribution1D.DistributionContainer.Instance()
+stochasticEnv = distribution1D.DistributionContainer.instance()
 import math
 normal1 = distribution1D.BasicNormalDistribution(0.5, 0.05, 0.0,1.0)
 
