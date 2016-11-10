@@ -34,17 +34,17 @@
 
   <Samplers>
     <EnsembleForward name="testEnsembleForward">
-        <MonteCarlo name="notNeeded">
-            <samplerInit>
-                <limit>2</limit>
-            </samplerInit>
-            <variable name="x5">
-                <distribution>norm</distribution>
-            </variable>
-            <variable name="x6">
-                <distribution>unif</distribution>
-            </variable>
-        </MonteCarlo>
+      <MonteCarlo name="notNeeded">
+        <samplerInit>
+          <limit>2</limit>
+        </samplerInit>
+        <variable name="x5">
+          <distribution>norm</distribution>
+        </variable>
+        <variable name="x6">
+          <distribution>unif</distribution>
+        </variable>
+      </MonteCarlo>
       <Grid name="notNeeded">
         <variable name="x1">
           <distribution>unif</distribution>
@@ -65,7 +65,6 @@
           <grid construction="equal" steps="2" type="value">0.5 0.8</grid>
         </variable>
       </Stratified>
-
       <ResponseSurfaceDesign name="notNeeded">
         <ResponseSurfaceDesignSettings>
           <algorithmType>CentralComposite</algorithmType>
@@ -96,10 +95,10 @@
         </variable>
       </FactorialDesign>
       <CustomSampler name="customSamplerFile">
-          <Source   class="Files"  type="">samples.csv</Source>
-          <variable name="x11"/>
-          <variable name="x12"/>
-          <variable name="x13"/>
+        <Source class="Files" type="">samples.csv</Source>
+        <variable name="x11"/>
+        <variable name="x12"/>
+        <variable name="x13"/>
       </CustomSampler>
     </EnsembleForward>
   </Samplers>
@@ -113,14 +112,14 @@
 
   <Steps>
     <MultiRun name="EnsembleForwardStep" sleepTime="0.0000001">
-      <Input   class="DataObjects" type="PointSet"       >PointsetEnsembleForward</Input>
-      <Model   class="Models"      type="Dummy"          >MyDummy1</Model>
-      <Sampler class="Samplers"    type="EnsembleForward">testEnsembleForward</Sampler>
-      <Output  class="DataObjects" type="PointSet"       >PointsetEnsembleForward</Output>
+      <Input class="DataObjects" type="PointSet">PointsetEnsembleForward</Input>
+      <Model class="Models" type="Dummy">MyDummy1</Model>
+      <Sampler class="Samplers" type="EnsembleForward">testEnsembleForward</Sampler>
+      <Output class="DataObjects" type="PointSet">PointsetEnsembleForward</Output>
     </MultiRun>
     <IOStep name="EnsembleForwardOutstreamStep">
-      <Input   class="DataObjects"      type="PointSet">PointsetEnsembleForward</Input>
-      <Output  class="OutStreams" type="Print"   >PointsetEnsembleForward</Output>
+      <Input class="DataObjects" type="PointSet">PointsetEnsembleForward</Input>
+      <Output class="OutStreams" type="Print">PointsetEnsembleForward</Output>
     </IOStep>
   </Steps>
 

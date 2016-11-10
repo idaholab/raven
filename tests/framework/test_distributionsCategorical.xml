@@ -50,8 +50,7 @@
       <variables>x,y</variables>
     </ExternalModel>
     <PostProcessor name="BS" subType="BasicStatistics" verbosity="debug">
-      <what>expectedValue</what>
-      <parameters>x,y</parameters>
+      <expectedValue>x,y</expectedValue>
     </PostProcessor>
   </Models>
 

@@ -13,10 +13,10 @@
 
   <Models>
     <Code name="Mammoth" subType="MAMMOTH">
-        <executable>
-          <!--  /path/to/mammoth/executable -->
-          <!-- here we should put the executable. Since we want to test the interface only, it is going to be empty -->
-        </executable>
+      <executable>
+        <!--  /path/to/mammoth/executable -->
+        <!-- here we should put the executable. Since we want to test the interface only, it is going to be empty -->
+      </executable>
     </Code>
   </Models>
 
@@ -57,22 +57,24 @@
       <Sampler class="Samplers" type="MonteCarlo">MC1</Sampler>
       <Output class="DataObjects" type="HistorySet">solns</Output>
     </MultiRun>
-    <IOStep name='print'>
+    <IOStep name="print">
       <Input class="DataObjects" type="HistorySet">solns</Input>
       <Output class="OutStreams" type="Print">perturb_mammoth</Output>
     </IOStep>
   </Steps>
+
   <OutStreams>
     <Print name="perturb_mammoth">
       <type>csv</type>
       <source>solns</source>
     </Print>
   </OutStreams>
+
   <DataObjects>
-      <HistorySet name="solns">
-          <Input>Relap7@GlobalParams|initial_T_liquid,Bison@Materials|fuel_mechanical|poissons_ratio</Input>
-          <Output>time,ave_temp_interior,peak_temp,peak_clad_temp,gas_volume</Output>
-      </HistorySet>
+    <HistorySet name="solns">
+      <Input>Relap7@GlobalParams|initial_T_liquid,Bison@Materials|fuel_mechanical|poissons_ratio</Input>
+      <Output>time,ave_temp_interior,peak_temp,peak_clad_temp,gas_volume</Output>
+    </HistorySet>
   </DataObjects>
 
 </Simulation>

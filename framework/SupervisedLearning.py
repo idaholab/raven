@@ -35,7 +35,6 @@ from collections import OrderedDict
 import utils
 import mathUtils
 import MessageHandler
-import TreeStructure
 interpolationND = utils.find_interpolationND()
 #Internal Modules End--------------------------------------------------------------------------------
 

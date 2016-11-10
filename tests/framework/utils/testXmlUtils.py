@@ -10,11 +10,12 @@ warnings.simplefilter('default',DeprecationWarning)
 
 import os,sys
 import numpy as np
-import xmlUtils
 import xml.etree.ElementTree as ET
 
-frameworkDir = os.path.dirname(os.path.abspath(sys.argv[0]))
-sys.path.append(frameworkDir)
+frameworkDir = os.path.normpath(os.path.join(os.path.dirname(__file__),os.pardir,os.pardir,os.pardir,'framework'))
+utilsDir = os.path.join(frameworkDir,'utils')
+sys.path.append(utilsDir)
+import xmlUtils
 
 print (xmlUtils)
 
@@ -107,7 +108,7 @@ toRemove = attemptFileClear(inFileName,toRemove)
 pretty = xmlUtils.prettify(xmlTree)
 prettyFileName = 'testXMLPretty.xml'
 file(prettyFileName,'w').writelines(pretty)
-gold = ''.join(line for line in file(os.path.join(frameworkDir,'gold',prettyFileName),'r'))
+gold = ''.join(line for line in file(os.path.join(os.path.dirname(__file__),'gold',prettyFileName),'r'))
 test = ''.join(line for line in file(                    prettyFileName ,'r'))
 if gold==test:
   results['pass']+=1
