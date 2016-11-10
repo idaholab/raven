@@ -95,6 +95,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.objVar                         = None                      # Objective variable to be optimized
     self.optType                        = None                      # Either maximize or minimize
     self.optTraj                        = None                      # Identifiers of parallel optimization trajectories
+    self.thresholdTrajRemoval           = None                      # Threshold used to determine the convergence of parallel optimization trajectories
     self.paramDict                      = {}                        # Dict containing additional parameters for derived class
     self.convergenceTol                 = 1e-3                      # Convergence threshold
     self.solutionExport                 = None                      #This is the data used to export the solution (it could also not be present)
@@ -184,6 +185,8 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
               self.raiseAnError(IOError, 'Unknown optimization type '+childChild.text+'. Available: mix or max')
           elif childChild.tag == "initialSeed":
             self.initSeed = int(childChild.text)
+          elif childChild.tag == 'thresholdTrajRemoval':
+            self.thresholdTrajRemoval = float(childChild.text)
           else: self.raiseAnError(IOError,'Unknown tag '+childChild.tag+' .Available: limit, type, initialSeed!')
 
       elif child.tag == "convergence":
@@ -201,14 +204,15 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
           self.paramDict[childChild.tag] = childChild.text
 
     if self.optType == None:    self.optType = 'min'
+    if self.thresholdTrajRemoval == None: self.thresholdTrajRemoval = 0.05
     if self.initSeed == None:   self.initSeed = Distributions.randomIntegers(0,2**31,self)
     if self.objVar == None:     self.raiseAnError(IOError, 'Object variable is not specified for optimizer!')
     if self.optVars == None:    self.raiseAnError(IOError, 'Decision variable is not specified for optimizer!')
     else:                       self.optVars.sort()
     if self.optTraj == None:    self.optTraj = [0]
     for varname in self.optVars:
-      if varname not in self.optVarsInit['upperBound'].keys(): self.optVarsInit['upperBound'][varname] = sys.maxsize
-      if varname not in self.optVarsInit['lowerBound'].keys(): self.optVarsInit['lowerBound'][varname] = -sys.maxsize
+      if varname not in self.optVarsInit['upperBound'].keys(): self.raiseAnError(IOError, 'Upper bound for '+varname+' is not provided' )
+      if varname not in self.optVarsInit['lowerBound'].keys(): self.raiseAnError(IOError, 'Lower bound for '+varname+' is not provided' )
       if varname not in self.optVarsInit['initial'].keys()   :
         self.optVarsInit['initial'][varname] = {}
         for trajInd in self.optTraj:
@@ -368,37 +372,6 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     tempDict.update(self.mdlEvalHist.getParametersValues('outputs', nodeId = 'RecontructEnding'))
     for key in tempDict.keys():                   tempDict[key] = np.asarray(tempDict[key])
 
-#     for key in optVars.keys():                    optVars[key] = np.atleast_1d(optVars[key])
-#
-#     numInputToEvaluate = 1 if np.isscalar(optVars[optVars.keys()[0]]) else len(optVars[optVars.keys()[0]])
-#     numModelEval = 1 if np.isscalar(tempDict[tempDict.keys()[0]]) else len(tempDict[tempDict.keys()[0]])
-#     lossFunctionValue = [0] * numInputToEvaluate
-#     lossFunctionFound = [False] * numInputToEvaluate
-#     for idxInput in range(numInputToEvaluate):
-#       tempOptVars = {}
-#       for key in optVars.keys():            tempOptVars[key] = np.atleast_1d(optVars[key][idxInput])
-#       # find exact model output when optVars has been evaluated by the model
-#       for n in range(numModelEval):
-#         findOutputFlag = True
-#         for var in self.optVars:
-#           if tempDict[var][n] != tempOptVars[key]:
-#             findOutputFlag = False
-#             break
-#         if findOutputFlag:
-#           break
-#       if findOutputFlag: # This input has been evaluated by the Model
-#           lossFunctionValue[idxInput] = tempDict[self.objVar][n]
-#           lossFunctionFound[idxInput] = True
-#       else: # This input has not been evaluated by the Model; use ROM for loss function evaluation
-#         self.objSearchingROM.train(tempDict)
-#         lossFunctionValue[idxInput] = self.objSearchingROM.evaluate(tempOptVars)
-#         lossFunctionFound[idxInput] = True
-#
-#     for idxInput in range(numInputToEvaluate):
-#       if not lossFunctionFound[idxInput]:
-#         self.raiseAnError(ValueError, 'loss function cannot be evaluated for input ' + str(idxInput))
-
-
     self.objSearchingROM.train(tempDict)
     for key in optVars.keys():                    optVars[key] = np.atleast_1d(optVars[key])
     lossFunctionValue = self.objSearchingROM.evaluate(optVars)
@@ -442,15 +415,28 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ Out, convergence, bool, variable indicating whether the convergence criteria has been met.
     """
 
-#   @abc.abstractmethod
-#   def localCheckConvergence(self, convergence = False):
-#     """
-#       Local method to check convergence.
-#       @ In, convergence, bool, optional, variable indicating how the caller determines the convergence.
-#       @ Out, convergence, bool, variable indicating whether the convergence criteria has been met.
-#     """
-#     return convergence
-
+  def normalizeData(self, optVars):
+    """
+      Method to normalize the data
+      @ In, optVars, dict, dictionary containing the value of decision variables to be normalized, in form of {varName: varValue}
+      @ Out, optVarsNorm, dict, dictionary containing the value of normalized decision variables, in form of {varName: varValue}
+    """
+    optVarsNorm = copy.deepcopy(optVars)
+    for var in optVars.keys():
+      optVarsNorm[var] = (optVars[var]-self.optVarsInit['lowerBound'][var])/(self.optVarsInit['upperBound'][var]-self.optVarsInit['lowerBound'][var])
+    return optVarsNorm
+    
+  def denormalizeData(self, optVars):
+    """
+      Method to normalize the data
+      @ In, optVars, dict, dictionary containing the value of decision variables to be deormalized, in form of {varName: varValue}
+      @ Out, optVarsDenorm, dict, dictionary containing the value of denormalized decision variables, in form of {varName: varValue}
+    """
+    optVarsDenorm = copy.deepcopy(optVars)
+    for var in optVars.keys():
+      optVarsDenorm[var] = optVars[var]*(self.optVarsInit['upperBound'][var]-self.optVarsInit['lowerBound'][var])+self.optVarsInit['lowerBound'][var]
+    return optVarsDenorm
+        
   def generateInput(self,model,oldInput):
     """
       Method to generate input for model to run

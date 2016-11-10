@@ -80,6 +80,7 @@
 		<limit>300</limit>
 		<type>min</type>
 		<initialSeed>30</initialSeed>
+		<!-- <thresholdTrajRemoval>0.05</thresholdTrajRemoval> -->
       </initialization>
       <TargetEvaluation class="DataObjects" type="PointSet">optOutput</TargetEvaluation>
 	  <convergence>
@@ -87,13 +88,13 @@
 		<threshold>1e-5</threshold>
 	  </convergence>
 	  <variable name="x1">
-        <upperBound>100</upperBound>
-		<lowerBound>-100</lowerBound>
+        <upperBound>1</upperBound>
+		<lowerBound>-1</lowerBound>
 		<initial>-1,0,1</initial>
       </variable>
 	  <variable name="x2">
-        <upperBound>100</upperBound>
-		<lowerBound>-100</lowerBound>
+        <upperBound>1</upperBound>
+		<lowerBound>-1</lowerBound>
 		<initial>0,0,0</initial>
       </variable>
 	  <objectVar>c</objectVar>

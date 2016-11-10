@@ -91,6 +91,8 @@ In the \xmlNode{SPSA} input block, the user needs to specify the objective varia
     \item \xmlNode{initialSeed}, \xmlDesc{integer, optional field}, initial seeding of random number generator for stochastic perturbations;
     \item \xmlNode{type},  \xmlDesc{string (case insensitive), optional field}, specifies whether this optimizer performs maximization or minimization. Available options are \xmlString{max} and \xmlString{min}.
     \default{Min};
+    \item \xmlNode{thresholdTrajRemoval}, \xmlDesc{float, optional field}, this will be used to determine the convergence of different optimization trajectories when multiple trajectories is handled by \xmlNode{SPSA}.
+    \default{0.05}    
   \end{itemize}
 \end{itemize}
 \begin{itemize}
@@ -115,7 +117,7 @@ In the \xmlNode{SPSA} input block, the user needs to specify the objective varia
  \begin{itemize}
     \item \xmlNode{upperBound}, \xmlDesc{float, optional field}, the upper bound of this variable;
     \item \xmlNode{lowerBound}, \xmlDesc{float, optional field}, the lower bound of this variable;
-    \item \xmlNode{initial}, \xmlDesc{comma separated strings, optional field}, the initial value(s) for this variable. If there are more than one initial values specified for a variable, then all the variables need to have the same number of initial values. In this case, \xmlNode{SPSA} optimizer will maintain multiple trajectories to fully utilize potential parallel computing capability.  
+    \item \xmlNode{initial}, \xmlDesc{comma separated strings, optional field}, the initial value(s) for this variable. If there are more than one initial values specified for a variable, then all the variables need to have the same number of initial values. In this case, \xmlNode{SPSA} optimizer will maintain multiple trajectories to fully utilize potential parallel computing capability.
   \end{itemize}
 \end{itemize}
 \begin{itemize}

@@ -258,35 +258,18 @@ class GradientBasedOptimizer(Optimizer):
       @ In, currentInput, dict, the last variable on trajectory traj
       @ Out, None
     """
-    max, min = {var:-sys.maxsize for var in self.optVars}, {var:sys.maxsize for var in self.optVars}
-    threshold = 0.05
-    for traj in self.optTraj:
-      for updateKey in self.optVarsHist[traj].keys():
-        for var in self.optVars:
-          if self.optVarsHist[traj][updateKey][var] > max[var]: max[var] = copy.deepcopy(self.optVarsHist[traj][updateKey][var])
-          if self.optVarsHist[traj][updateKey][var] < min[var]: min[var] = copy.deepcopy(self.optVarsHist[traj][updateKey][var])
-    self.raiseADebug('max',max)
-    self.raiseADebug('min',min)
-
+    currentInp = self.normalizeData(currentInput)
     removeFlag = False
     for traj in self.optTraj:
       if traj != trajToRemove:
         for updateKey in self.optVarsHist[traj].keys():
-          inp = copy.deepcopy(self.optVarsHist[traj][updateKey])
+          inp = self.normalizeData(self.optVarsHist[traj][updateKey])
           removeLocalFlag = True
-          self.raiseADebug(inp, currentInput)
           for var in self.optVars:
-            self.raiseADebug('-------------------', (abs(inp[var] - currentInput[var]))/(max[var]-min[var]))
-            if (abs(inp[var] - currentInput[var]))/(max[var]-min[var]) > threshold:
+            if abs(inp[var] - currentInp[var]) > self.thresholdTrajRemoval:
               removeLocalFlag = False
               break
           if removeLocalFlag:
-            self.raiseADebug(inp)
-            self.raiseADebug(currentInput)
-            self.raiseADebug(traj, trajToRemove)
-            self.raiseADebug(len(self.optVarsHist[traj]),self.optVarsHist[traj])
-            self.raiseADebug(len(self.optVarsHist[trajToRemove]),self.optVarsHist[trajToRemove])
-#             self.raiseAnError(IOError, 'sss')
             removeFlag = True
             break
         if removeFlag:

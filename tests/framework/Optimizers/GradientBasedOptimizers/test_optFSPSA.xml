@@ -54,13 +54,13 @@
 		<threshold>1e-3</threshold>
 	  </convergence>
 	  <variable name="x1">
-        <upperBound>100</upperBound>
-		<lowerBound>-100</lowerBound>
+        <upperBound>1</upperBound>
+		<lowerBound>0</lowerBound>
 		<initial>0</initial>
       </variable>
 	  <variable name="x2">
-        <upperBound>100</upperBound>
-		<lowerBound>-100</lowerBound>
+        <upperBound>1</upperBound>
+		<lowerBound>0</lowerBound>
 		<initial>0</initial>
       </variable>
 	  <objectVar>c</objectVar>
