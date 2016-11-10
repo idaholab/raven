@@ -63,9 +63,9 @@
       <KDD lib='SciKitLearn' labelFeature='labels'>
         <SKLtype>mixture|VBGMM</SKLtype>
         <Features>x,y</Features>
-        <covariance_type>diag</covariance_type>
+        <covariance_type>full</covariance_type>
         <random_state>0</random_state>
-        <n_components>3</n_components>
+        <n_components>2</n_components>
         <n_iter>10000</n_iter>
         <alpha>1</alpha>
         <reOrderStep>10</reOrderStep>
