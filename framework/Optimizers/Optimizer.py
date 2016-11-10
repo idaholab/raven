@@ -422,7 +422,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     for var in optVars.keys():
       optVarsNorm[var] = (optVars[var]-self.optVarsInit['lowerBound'][var])/(self.optVarsInit['upperBound'][var]-self.optVarsInit['lowerBound'][var])
     return optVarsNorm
-    
+
   def denormalizeData(self, optVars):
     """
       Method to normalize the data
@@ -433,7 +433,7 @@ class Optimizer(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     for var in optVars.keys():
       optVarsDenorm[var] = optVars[var]*(self.optVarsInit['upperBound'][var]-self.optVarsInit['lowerBound'][var])+self.optVarsInit['lowerBound'][var]
     return optVarsDenorm
-        
+
   def generateInput(self,model,oldInput):
     """
       Method to generate input for model to run

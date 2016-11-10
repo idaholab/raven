@@ -50,9 +50,13 @@
             <threshold>1e-4</threshold>
         </convergence>
         <variable name="leftTemperature">
+			<upperBound>250</upperBound>
+			<lowerBound>249</lowerBound>
             <initial>250</initial>
         </variable>
         <variable name="rightTemperature">
+			<upperBound>250</upperBound>
+			<lowerBound>249</lowerBound>
             <initial>250</initial>
         </variable>
         <objectVar>solution</objectVar>
