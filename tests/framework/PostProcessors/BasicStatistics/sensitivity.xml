@@ -8,6 +8,7 @@
 
   <Files>
     <Input name="output_basicStatistics.csv" type="">output_basicStatistics.csv</Input>
+    <Input name="stats.xml" type="">stats.xml</Input>
   </Files>
 
   <DataObjects>
@@ -74,8 +75,10 @@
       <variables>x1,x2,x3,x4,x5,ans</variables>
     </ExternalModel>
     <PostProcessor name="InputOutput" subType="BasicStatistics" verbosity="debug">
-      <what>all</what>
-      <parameters>ans,x1,x2,x3,x4,x5</parameters>
+      <all>
+        <targets>ans,x1,x2,x3,x4,x5</targets>
+        <features>ans,x1,x2,x3,x4,x5</features>
+      </all>
     </PostProcessor>
   </Models>
 
@@ -90,6 +93,7 @@
       <Input class="DataObjects" type="PointSet">collset</Input>
       <Model class="Models" type="PostProcessor">InputOutput</Model>
       <Output class="Files" type="">output_basicStatistics.csv</Output>
+      <Output class="Files" type="">stats.xml</Output>
       <Output class="DataObjects" type="PointSet">collset</Output>
       <Output class="OutStreams" type="Print">csv_database</Output>
     </PostProcess>

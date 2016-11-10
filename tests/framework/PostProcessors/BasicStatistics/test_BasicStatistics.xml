@@ -8,12 +8,12 @@
 
   <Files>
     <Input name="basicStatisticsExternalModelTest.py" type="">basicStatisticsExternalModelTest.py</Input>
-    <Input name="output_basicStatistics_PP1.csv" type="">output_basicStatistics_PP1.csv</Input>
-    <Input name="output_basicStatistics_PP2.csv" type="">output_basicStatistics_PP2.csv</Input>
-    <Input name="output_basicStatistics_PP3.csv" type="">output_basicStatistics_PP3.csv</Input>
-    <Input name="output_basicStatistics_PP4.csv" type="">output_basicStatistics_PP4.csv</Input>
-    <Input name="output_basicStatistics_PP5.csv" type="">output_basicStatistics_PP5.csv</Input>
-    <Input name="output_basicStatistics_PP6.csv" type="">output_basicStatistics_PP6.csv</Input>
+    <Input name="autoCorrelated.xml"    type="">autoCorrelated.xml</Input>
+    <Input name="unCorrelated.xml"      type="">unCorrelated.xml</Input>
+    <Input name="inverseCorrelated.xml" type="">inverseCorrelated.xml</Input>
+    <Input name="inputOutput.xml"       type="">inputOutput.xml</Input>
+    <Input name="infinite.xml"          type="">infinite.xml</Input>
+    <Input name="matrixComputable.xml"  type="">matrixComputable.xml</Input>
   </Files>
 
   <Models>
@@ -25,30 +25,39 @@
          =&gt; you can here specify what type of figure of merit you need to compute
         <what>expectedValue,sigma,variance,kurtois,pearson,covariance</what>
       -->
-      <what>expectedValue</what>
-      <parameters>x01,x02</parameters>
       <methodsToRun>failureProbability</methodsToRun>
+      <expectedValue>x01,x02</expectedValue>
     </PostProcessor>
     <PostProcessor name="NotCorrellatedTest" subType="BasicStatistics" verbosity="debug">
-      <what>all</what>
       <biased>true</biased>
-      <parameters>y01,y02</parameters>
+      <all>
+        <targets>y01,y02</targets>
+        <features>y01,y02</features>
+      </all>
     </PostProcessor>
     <PostProcessor name="InverseCorrelatedTest" subType="BasicStatistics" verbosity="debug">
-      <what>all</what>
-      <parameters>z01,z02</parameters>
+      <all>
+        <targets>z01,z02</targets>
+        <features>z01,z02</features>
+      </all>
     </PostProcessor>
     <PostProcessor name="InputOutput" subType="BasicStatistics" verbosity="debug">
-      <what>all</what>
-      <parameters>x0,x01,y0,y02</parameters>
+      <all>
+        <targets>x0,x01,y0,y02</targets>
+        <features>x0,x01,y0,y02</features>
+      </all>
     </PostProcessor>
     <PostProcessor name="checkIfMatrixCanBeComputed" subType="BasicStatistics" verbosity="debug">
-        <what>all</what>
-        <parameters>x</parameters>
+      <all>
+        <targets>x</targets>
+        <features>x</features>
+      </all>
     </PostProcessor>
     <PostProcessor name="CreateInfinity" subType="BasicStatistics" verbosity="debug">
-      <what>all</what>
-      <parameters>time,x0,y0,y02</parameters>
+      <all>
+        <targets>time,x0,y0,y02</targets>
+        <features>time,x0,y0,y02</features>
+      </all>
     </PostProcessor>
   </Models>
 
@@ -102,32 +111,32 @@
       <Input class="DataObjects" type="PointSet">PointSetPostProcTest</Input>
       <Function class="Functions" type="External">testFunctionComputeProbability</Function>
       <Model class="Models" type="PostProcessor">autoCorrelationTest</Model>
-      <Output class="Files" type="">output_basicStatistics_PP1.csv</Output>
+      <Output class="Files" type="">autoCorrelated.xml</Output>
     </PostProcess>
     <PostProcess name="PP2">
       <Input class="DataObjects" type="PointSet">PointSetPostProcTest</Input>
       <Model class="Models" type="PostProcessor">NotCorrellatedTest</Model>
-      <Output class="Files" type="">output_basicStatistics_PP2.csv</Output>
+      <Output class="Files" type="">unCorrelated.xml</Output>
     </PostProcess>
     <PostProcess name="PP3">
       <Input class="DataObjects" type="PointSet">PointSetPostProcTest</Input>
       <Model class="Models" type="PostProcessor">InverseCorrelatedTest</Model>
-      <Output class="Files" type="">output_basicStatistics_PP3.csv</Output>
+      <Output class="Files" type="">inverseCorrelated.xml</Output>
     </PostProcess>
     <PostProcess name="PP4">
       <Input class="DataObjects" type="PointSet">PointSetPostProcTest</Input>
       <Model class="Models" type="PostProcessor">InputOutput</Model>
-      <Output class="Files" type="">output_basicStatistics_PP4.csv</Output>
+      <Output class="Files" type="">inputOutput.xml</Output>
     </PostProcess>
     <PostProcess name="PP5">
       <Input class="DataObjects" type="PointSet">PointSetPostProcTest</Input>
       <Model class="Models" type="PostProcessor">CreateInfinity</Model>
-      <Output class="Files" type="">output_basicStatistics_PP5.csv</Output>
+      <Output class="Files" type="">infinite.xml</Output>
     </PostProcess>
     <PostProcess name="PP6">
-        <Input class="DataObjects" type="PointSet">PointSetPostProcTest</Input>
-        <Model class="Models" type="PostProcessor">checkIfMatrixCanBeComputed</Model>
-        <Output class="Files" type="">output_basicStatistics_PP6.csv</Output>
+      <Input class="DataObjects" type="PointSet">PointSetPostProcTest</Input>
+      <Model class="Models" type="PostProcessor">checkIfMatrixCanBeComputed</Model>
+      <Output class="Files" type="">matrixComputable.xml</Output>
     </PostProcess>
   </Steps>
 

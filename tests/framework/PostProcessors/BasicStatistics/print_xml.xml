@@ -1,34 +1,31 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <RunInfo>
-    <WorkingDir>basicStatisticsGeneral</WorkingDir>
+    <WorkingDir>basicStatisticsXml</WorkingDir>
     <Sequence>FirstMRun,PP</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
-  <!--
-    This test is used to test the defect mentioned in issue #666
-    This test will make sure the expectedValue and the variationCoefficient are correctly computed.
-    If the expectedValues are zero, the variationCoefficient will be INF.
-  -->
+
   <Files>
-    <Input name="output.csv" type="">output_variation_coefficient.csv</Input>
-    <Input name="output.xml" type="">output_variation_coefficient.xml</Input>
     <Input name="basicStatisticsExternalModelTest.py" type="">basicStatisticsExternalModelTest.py</Input>
+    <Input name="xmldump" type="">output_basicStatistics.xml</Input>
   </Files>
 
   <Models>
     <ExternalModel ModuleToLoad="basicStatisticsGeneral/basicStatisticsExternalModelTest" name="PythonModule" subType="">
       <variables>x,y,z,time,x0,x01,x02,y0,y02,y01,z0,z02,z01</variables>
     </ExternalModel>
-    <PostProcessor name="variationCoefficient" subType="BasicStatistics" verbosity="debug">
-      <what>variationCoefficient</what>
-      <parameters>x0,y0,z0,x,y,z</parameters>
+    <PostProcessor name="InputOutput" subType="BasicStatistics" verbosity="debug">
+      <all>
+        <targets>x0,x01,y0,y02</targets>
+        <features>x0,x01,y0,y02</features>
+      </all>
     </PostProcessor>
   </Models>
 
   <Distributions>
     <Normal name="x0_distrib">
-      <mean>0</mean>
+      <mean>4</mean>
       <sigma>1</sigma>
     </Normal>
     <Normal name="y0_distrib">
@@ -42,36 +39,43 @@
   </Distributions>
 
   <Samplers>
-    <Grid name="grid_external">
+    <MonteCarlo name="MC_external">
+      <samplerInit>
+        <limit>4</limit>
+      </samplerInit>
       <variable name="x0">
-          <distribution>x0_distrib</distribution>
-          <grid construction="equal" steps="1" type="value">-0.5 0.5</grid>
+        <distribution>x0_distrib</distribution>
       </variable>
       <variable name="y0">
-          <distribution>y0_distrib</distribution>
-          <grid construction="equal" steps="1" type="CDF">0.1 0.8</grid>
+        <distribution>y0_distrib</distribution>
       </variable>
       <variable name="z0">
-          <distribution>z0_distrib</distribution>
-          <grid construction="equal" steps="1" type="CDF">0.2 0.6</grid>
+        <distribution>z0_distrib</distribution>
       </variable>
-    </Grid>
+    </MonteCarlo>
   </Samplers>
 
   <Steps>
     <MultiRun name="FirstMRun" re-seeding="25061978">
       <Input class="Files" type="">basicStatisticsExternalModelTest.py</Input>
       <Model class="Models" type="ExternalModel">PythonModule</Model>
-      <Sampler class="Samplers" type="Grid">grid_external</Sampler>
+      <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
       <Output class="DataObjects" type="PointSet">PointSetPostProcTest</Output>
+      <Output class="OutStreams" type="Print">PointSetPostProcTest_dump</Output>
     </MultiRun>
     <PostProcess name="PP">
       <Input class="DataObjects" type="PointSet">PointSetPostProcTest</Input>
-      <Model class="Models" type="PostProcessor">variationCoefficient</Model>
-      <Output class="Files" type="">output.csv</Output>
-      <Output class="Files" type="">output.xml</Output>
+      <Model class="Models" type="PostProcessor">InputOutput</Model>
+      <Output class="Files" type="">xmldump</Output>
     </PostProcess>
   </Steps>
+
+  <OutStreams>
+    <Print name="PointSetPostProcTest_dump">
+      <type>csv</type>
+      <source>PointSetPostProcTest</source>
+    </Print>
+  </OutStreams>
 
   <DataObjects>
     <PointSet name="PointSetPostProcTest">

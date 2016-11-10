@@ -1,13 +1,14 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="all">
   <RunInfo>
-    <WorkingDir>basicStatsGridInValueAnalytic</WorkingDir>
+    <WorkingDir>basicStatsGridAnalytic</WorkingDir>
     <Sequence>SamplingMirrowModelGrid,PP1grid</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
   <Files>
     <Input name="output_basicStatistics_PP1grid.csv" type="">output_basicStatistics_PP1grid.csv</Input>
+    <Input name="output_basicStatistics_PP1grid.xml" type="">output_basicStatistics_PP1grid.xml</Input>
   </Files>
 
   <Models>
@@ -15,8 +16,10 @@
       <variables>x,y,x1,y1</variables>
     </ExternalModel>
     <PostProcessor name="analyticalTest" subType="BasicStatistics" verbosity="debug">
-      <what>covariance,pearson,sensitivity,VarianceDependentSensitivity,NormalizedSensitivity,variance</what>
-      <parameters>x1,y1</parameters>
+      <all>
+        <targets>x1,y1</targets>
+        <features>x1,y1</features>
+      </all>
     </PostProcessor>
   </Models>
 
@@ -24,14 +27,10 @@
     <Normal name="x0_distrib">
       <mean>1.</mean>
       <sigma>.5</sigma>
-      <lowerBound>-2.0</lowerBound>
-      <upperBound>4.0</upperBound>
     </Normal>
     <Normal name="y0_distrib">
       <mean>1.</mean>
-      <sigma>.6</sigma>
-      <lowerBound>-2.0</lowerBound>
-      <upperBound>4.0</upperBound>
+      <sigma>.5</sigma>
     </Normal>
   </Distributions>
 
@@ -39,11 +38,11 @@
     <Grid name="Grid_external">
       <variable name="x">
         <distribution>x0_distrib</distribution>
-        <grid construction="equal" steps="50" type="value">-2 4</grid>
+        <grid construction="equal" steps="20" type="CDF">0.0013 0.998</grid>
       </variable>
       <variable name="y">
         <distribution>y0_distrib</distribution>
-        <grid construction="equal" steps="40" type="value">-2 4</grid>
+        <grid construction="equal" steps="20" type="value">-0.5 2.5</grid>
       </variable>
     </Grid>
   </Samplers>
@@ -59,6 +58,7 @@
       <Input class="DataObjects" type="PointSet">outputDataGrid</Input>
       <Model class="Models" type="PostProcessor">analyticalTest</Model>
       <Output class="Files" type="">output_basicStatistics_PP1grid.csv</Output>
+      <Output class="Files" type="">output_basicStatistics_PP1grid.xml</Output>
       <Output class="DataObjects" type="PointSet">outputDataGrid</Output>
       <Output class="OutStreams" type="Print">outputDatagrid_dump</Output>
     </PostProcess>
