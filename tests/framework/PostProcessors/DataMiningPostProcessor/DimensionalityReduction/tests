@@ -6,6 +6,7 @@
     UnorderedCsv = 'ExactPCA/dummy.csv ExactPCA/info.csv'
     check_absolute_value = True
     output = 'ExactPCA/1-PlotIris_dataMining.png'
+    rel_err = 0.00001
   [../]
   [./RandomizedPCA]
     type   = 'RavenFramework'
