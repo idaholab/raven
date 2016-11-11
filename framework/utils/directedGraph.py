@@ -12,12 +12,12 @@ warnings.simplefilter('default',DeprecationWarning)
 #External Modules End--------------------------------------------------------------------------------
 
 class graphObject(object):
-  """ 
+  """
     This is a class that crates a graph object.
     It is inspired from the webisite http://www.python-course.eu/graphs_python.php
   """
   def __init__(self, graphDict=None):
-    """ 
+    """
       Initializes a graph object
       If no dictionary or None is given, an empty dictionary will be used
       @ In, graphDict, dict, the graph dictionary ({'Node':[connectedNode1,connectedNode2, etc.]}
@@ -26,25 +26,25 @@ class graphObject(object):
     self.__graphDict = graphDict
 
   def vertices(self):
-    """ 
-      Returns the vertices of a graph 
+    """
+      Returns the vertices of a graph
       @ In, None
       @ Out, vertices, list, list of vertices
     """
     return list(self.__graphDict.keys())
 
   def edges(self):
-    """ 
+    """
       This method returns the edges of the graph
-      Edges are represented as sets with one (a loop 
+      Edges are represented as sets with one (a loop
       back to the vertex) or two vertices
       @ In, None
-      @ Out, edges, list, list of edges ([set(vertex,neighboor)] 
+      @ Out, edges, list, list of edges ([set(vertex,neighboor)]
     """
     return self.__generateEdges()
 
   def addVertex(self, vertex):
-    """ 
+    """
       If the vertex "vertex" is not in
       self.__graphDict, a key "vertex" with an empty
       list as a value is added to the dictionary.
@@ -55,8 +55,8 @@ class graphObject(object):
     if vertex not in self.__graphDict: self.__graphDict[vertex] = []
 
   def addEdge(self, edge):
-    """ 
-      Method to add edges 
+    """
+      Method to add edges
       It assumes that edge is of type set, tuple or list;
       between two vertices can be multiple edges
       @ In, edge, set, the new edge
@@ -76,13 +76,13 @@ class graphObject(object):
       self.__graphDict[vertex1] = [vertex2]
 
   def __generateEdges(self):
-    """ 
+    """
       A static method generating the edges of the
       graph "graph". Edges are represented as sets
       with one (a loop back to the vertex) or two
       vertices
       @ In, None
-      @ Out, edges, list, list of edges ([set(vertex,neighboor)] 
+      @ Out, edges, list, list of edges ([set(vertex,neighboor)]
     """
     edges = []
     for vertex in self.__graphDict:
@@ -100,8 +100,8 @@ class graphObject(object):
 #       return res
 
   def findIsolatedVertices(self):
-    """ 
-      This method ispects the graph and returns a list of isolated vertices. 
+    """
+      This method ispects the graph and returns a list of isolated vertices.
       @ In, None
       @ Out, isolated, list, list of isolated nodes (verteces)
     """
@@ -114,8 +114,8 @@ class graphObject(object):
     return isolated
 
   def findPath(self, startVertex, endVertex, path=[]):
-    """ 
-      Method to find a path from startVertex to endVertex in graph 
+    """
+      Method to find a path from startVertex to endVertex in graph
       @ In, startVertex, string, the starting vertex
       @ In, endVertex, string, the ending vertex
       @ Out, extendedPath, list, list of verteces (path)
@@ -123,9 +123,9 @@ class graphObject(object):
     graph = self.__graphDict
     path = path + [startVertex]
     extendedPath = None
-    if startVertex == endVertex: 
+    if startVertex == endVertex:
       extendedPath = path
-    elif startVertex not in graph: 
+    elif startVertex not in graph:
       extendedPath = None
     else:
       for vertex in graph[startVertex]:
@@ -136,7 +136,7 @@ class graphObject(object):
 
   def isALoop(self):
     """
-      Method to check if the graph has some loops 
+      Method to check if the graph has some loops
       Return True if the directed graph self.__graphDict has a cycle.
       @ In, None
       @ Out, isALoop, bool, is a loop?
@@ -160,9 +160,9 @@ class graphObject(object):
 
 
   def findAllPaths(self, startVertex, endVertex, path=[]):
-    """ 
+    """
       Method to find all paths from startVertex to
-      endVertex in graph 
+      endVertex in graph
       @ In, startVertex, string, the starting vertex
       @ In, endVertex, string, the ending vertex
       @ Out, paths, list, list of list of verteces (paths)
@@ -179,8 +179,8 @@ class graphObject(object):
     return paths
 
   def isConnected(self, verticesEncountered = None, startVertex=None):
-    """ 
-      Method that determines if the graph is connected 
+    """
+      Method that determines if the graph is connected
       @ In, verticesEncountered, set, the encountered vertices (generally it is None when called from outside)
       @ In, startVertex, string, the starting vertex
       @ Out, isConnected, bool, is the graph fully connected?
@@ -200,11 +200,11 @@ class graphObject(object):
     return False
 
   def vertexDegree(self, vertex):
-    """ 
+    """
       Method to get the degree of a vertex is the number of edges connecting
-      it (i.e. the number of adjacent vertices). Loops are counted double (i.e. every 
+      it (i.e. the number of adjacent vertices). Loops are counted double (i.e. every
       occurence of vertex in the list
-      of adjacent vertices. 
+      of adjacent vertices.
       @ In, vertex, string, the vertex whose degree needs to be reported
       @ Out, degree, int, the degree of the vertex
     """
@@ -213,8 +213,8 @@ class graphObject(object):
     return degree
 
   def degreeSequence(self):
-    """ 
-      Method to calculate the degree sequence 
+    """
+      Method to calculate the degree sequence
       @ In, None
       @ Out, seq, tuple, the degree sequence
     """
@@ -226,7 +226,7 @@ class graphObject(object):
 
   @staticmethod
   def isDegreeSequence(sequence):
-    """ 
+    """
       Method returns True, if the sequence "sequence" is a
       degree sequence, i.e. a non-increasing sequence.
       Otherwise False is returned.
@@ -237,8 +237,8 @@ class graphObject(object):
     return all( x>=y for x, y in zip(sequence, sequence[1:]))
 
   def minDelta(self):
-    """ 
-      Method to compute the minimum degree of the vertices 
+    """
+      Method to compute the minimum degree of the vertices
       @ In, None
       @ Out, minDegree, integer, the minimum degree of the vertices
     """
@@ -249,8 +249,8 @@ class graphObject(object):
     return minDegree
 
   def maxDelta(self):
-    """ 
-      Method to compute the maximum degree of the vertices 
+    """
+      Method to compute the maximum degree of the vertices
       @ In, None
       @ Out, maxDegree, integer, the minimum degree of the vertices
     """
@@ -261,7 +261,7 @@ class graphObject(object):
     return maxDegree
 
   def density(self):
-    """ 
+    """
       Method to compute the density of the graph
       @ In, None
       @ Out, density, integer, ensity of a graph
@@ -271,7 +271,7 @@ class graphObject(object):
     return 2.0 * E / (V *(V - 1))
 
   def diameter(self):
-    """ 
+    """
       Method to compute the diameter of the graph
       @ In, None
       @ Out, diameter, integer, ensity of a graph
@@ -291,7 +291,7 @@ class graphObject(object):
 
   @staticmethod
   def erdoesGallai(sequence):
-    """ 
+    """
       Static methoed to check if the condition of the Erdoes-Gallai inequality is fullfilled
       @ In, sequence, list, list of integer representing the sequence
       @ Out, erdoesGallai, bool, True if the Erdoes-Gallai inequality is fullfilled

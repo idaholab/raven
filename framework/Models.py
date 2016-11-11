@@ -1685,7 +1685,7 @@ class EnsembleModel(Dummy, Assembler):
       @ In, initDict, optional, dictionary of all objects available in the step is using this model
       @ Out, None
     """
-    moldelNodes = {}
+    #moldelNodes = {}
     for modelIn in self.assemblerDict['Model']:
       self.modelsDictionary[modelIn[2]]['Instance'] = modelIn[3]
       inputInstancesForModel = []
@@ -1699,10 +1699,10 @@ class EnsembleModel(Dummy, Assembler):
       #if type(self.tempTargetEvaluations[modelIn[2]]).__name__ != 'PointSet': self.raiseAnError(IOError, "The TargetEvaluation needs to be an instance of PointSet. Got "+type(self.tempTargetEvaluations[modelIn[2]]).__name__)
       self.modelsDictionary[modelIn[2]]['Input' ] = self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getParaKeys("inputs")
       self.modelsDictionary[modelIn[2]]['Output'] = self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getParaKeys("outputs")
-      modelNode = TreeStructure.Node(modelIn[2])
-      modelNode.add( 'inputs', self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getParaKeys("inputs"))
-      modelNode.add('outputs', self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getParaKeys("outputs"))
-      moldelNodes[modelIn[2]] = modelNode
+      #modelNode = TreeStructure.Node(modelIn[2])
+      #modelNode.add( 'inputs', self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getParaKeys("inputs"))
+      #modelNode.add('outputs', self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getParaKeys("outputs"))
+      #moldelNodes[modelIn[2]] = modelNode
     # construct chain connections
     modelsToOutputModels  = dict.fromkeys(self.modelsDictionary.keys(),None)
 
@@ -1722,12 +1722,12 @@ class EnsembleModel(Dummy, Assembler):
             indexModelIn = orderList.index(modelIn)
             orderList.pop(indexModelIn)
             orderList.insert(int(max(orderList.index(match)+1,indexModelIn)), modelIn)
-    # construct the ensemble model directed graph 
+    # construct the ensemble model directed graph
     self.ensembleModelGraph = directedGraph.graphObject(modelsToOutputModels)
     # make some checks
-    if not self.ensembleModelGraph.isConnected(): 
+    if not self.ensembleModelGraph.isConnected():
       isolatedModels = self.ensembleModelGraph.findIsolatedVertices()
-      self.raiseAnError(IOError, "Some models are not connected: "+' '.join(isolatedModels)) 
+      self.raiseAnError(IOError, "Some models are not connected: "+' '.join(isolatedModels))
     # get all paths
     allPath = self.ensembleModelGraph.findAllPaths(orderList[0],orderList[-1])
     ###################################################
@@ -1747,8 +1747,14 @@ class EnsembleModel(Dummy, Assembler):
     for modelIn in self.modelsDictionary.keys():
       for modelInOut in self.modelsDictionary[modelIn]['Output']:
         if modelInOut not in self.allOutputs: self.allOutputs.append(modelInOut)
-    self.needToCheckInputs = True    
-            
+    self.needToCheckInputs = True
+
+    # write debug statements
+    self.raiseAMessage("Specs of directed Graph formed by EnsembleModel:")
+    self.raiseAMessage("Graph Degree Sequence is    : "+str(self.ensembleModelGraph.degreeSequence()))
+    self.raiseAMessage("Graph Minimum/Maximum degree: "+str( (self.ensembleModelGraph.minDelta(), self.ensembleModelGraph.maxDelta())))
+    self.raiseAMessage("Graph density/diameter      : "+str( (self.ensembleModelGraph.density(),  self.ensembleModelGraph.diameter())))
+
   def getInitParams(self):
     """
       Method used to export to the printer in the base class the additional PERMANENT your local class have
@@ -1761,10 +1767,10 @@ class EnsembleModel(Dummy, Assembler):
       tempDict['Model '+modelIn+' TargetEvaluation is '] = self.modelsDictionary[modelIn]['TargetEvaluation']
       tempDict['Model '+modelIn+' Inputs are '] = self.modelsDictionary[modelIn]['Input']
     return tempDict
-    
+
   def getCurrentSetting(self):
-    return {} 
-    
+    return {}
+
   def __selectInputSubset(self,modelName, kwargs ):
     """
       Method aimed to select the input subset for a certain model
@@ -1810,7 +1816,7 @@ class EnsembleModel(Dummy, Assembler):
     for modelIn, specs in self.modelsDictionary.items():
       if self.needToCheckInputs:
         for inp in specs['Input']:
-          if inp not in allCoveredVariables: 
+          if inp not in allCoveredVariables:
             self.raiseAnError(RuntimeError,"for sub-model "+ modelIn + " the input "+inp+" has not been found among other models' outputs and sampled variables!")
       newKwargs = self.__selectInputSubset(modelIn,Kwargs)
       #inputForModel = []
@@ -1841,13 +1847,14 @@ class EnsembleModel(Dummy, Assembler):
       outputsValues              = targetEvaluations[modelIn].getParametersValues('outputs', nodeId = 'RecontructEnding')
       metadataValues             = targetEvaluations[modelIn].getAllMetadata(nodeId = 'RecontructEnding')
       inputsValues  = inputsValues if targetEvaluations[modelIn].type != 'HistorySet' else inputsValues.values()[-1]
-      if len(unstructuredInputsValues.keys()) > 0: 
+      if len(unstructuredInputsValues.keys()) > 0:
         unstructuredInputsValues  = unstructuredInputsValues if targetEvaluations[modelIn].type != 'HistorySet' else unstructuredInputsValues.values()[-1]
         inputsValues.update(unstructuredInputsValues)
       outputsValues  = outputsValues if targetEvaluations[modelIn].type != 'HistorySet' else outputsValues.values()[-1]
 
       for key in targetEvaluations[modelIn].getParaKeys('inputs'):
-        self.modelsDictionary[modelIn]['TargetEvaluation'].updateInputValue (key,inputsValues[key])
+        for histValue in inputsValues[key]:
+          self.modelsDictionary[modelIn]['TargetEvaluation'].updateInputValue (key,histValue)
       for key in targetEvaluations[modelIn].getParaKeys('outputs'):
         self.modelsDictionary[modelIn]['TargetEvaluation'].updateOutputValue (key,outputsValues[key])
       for key in metadataValues.keys():
@@ -1988,7 +1995,7 @@ class EnsembleModel(Dummy, Assembler):
           break
 #       modelCnt = -1
 #       for executionLevel in self.executionList:
-# 
+#
 #         for modelIn in executionLevel:
 #           modelCnt+=1
 #         #for modelCnt, modelIn in enumerate(self.orderList):

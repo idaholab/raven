@@ -68,7 +68,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     self._dataParameters['hierarchical'] = False                      # the structure of this data is hierarchical?
     self._toLoadFromList                 = []                         # loading source
     self._dataContainer                  = {'inputs':{},'unstructuredInputs':{}, 'outputs':{}} # Dict that contains the actual data: self._dataContainer['inputs'] contains the input space in scalar form. self._dataContainer['output'] the output space
-    #self._unstructuredInputContainer     = {}                         # Dict that contains the input space in unstrctured form (e.g. 1-D arrays) 
+    #self._unstructuredInputContainer     = {}                         # Dict that contains the input space in unstrctured form (e.g. 1-D arrays)
     self._dataContainer['metadata'     ] = {}                         # In this dictionary we store metadata (For example, probability,input file names, etc)
     self.metaAdditionalInOrOut           = ['PointProbability','ProbabilityWeight']            # list of metadata keys that will be printed in the CSV one
     self.acceptHierarchy                 = False                      # flag to tell if a sub-type accepts hierarchy
@@ -138,7 +138,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
         for key in tupleVar[0][hist].keys(): self.updateInputValue(key, tupleVar[0][hist][key], options)
       else:
         if self.type in ['PointSet']:
-          for index in range(len(tupleVar[0][hist])): 
+          for index in range(len(tupleVar[0][hist])):
             self.updateInputValue(hist, tupleVar[0][hist][index], options)
         else: self.updateInputValue(hist, tupleVar[0][hist], options)
     for hist in tupleVar[1].keys():
@@ -524,13 +524,13 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
         if keyword in self._dataContainer['inputs'].keys() + self._dataContainer['unstructuredInputs'].keys():
           returnDict[keyword] = {}
           if self.type == 'HistorySet':
-            for key in self._dataContainer['inputs'][keyword].keys(): 
+            for key in self._dataContainer['inputs'][keyword].keys():
               returnDict[keyword][key] = np.resize(self._dataContainer['inputs'][keyword][key],len(self._dataContainer['outputs'][keyword].values()[0]))
             for key in self._dataContainer['unstructuredInputs'][keyword].keys():
               returnDict[keyword][key] = self._dataContainer['unstructuredInputs'][keyword][key]
             return convertArr(returnDict[keyword])
           else:
-            return convertArr(self._dataContainer['inputs'][keyword] if keyword in self._dataContainer['inputs'].keys() else self._dataContainer['unstructuredInputs'][keyword]) 
+            return convertArr(self._dataContainer['inputs'][keyword] if keyword in self._dataContainer['inputs'].keys() else self._dataContainer['unstructuredInputs'][keyword])
         else: self.raiseAnError(RuntimeError,self.name+' : parameter ' + str(keyword) + ' not found in inpParametersValues dictionary. Available keys are '+str(self._dataContainer['inputs'].keys())+'.Function: Data.getParam')
       elif typeVar.lower() in ['output','outputs']:
         if keyword in self._dataContainer['outputs'].keys(): return convertArr(self._dataContainer['outputs'][keyword])
@@ -622,7 +622,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       for inKey in inputKeys  : variablesToPrint.append('input|'+inKey)
       for outKey in outputKeys: variablesToPrint.append('output|'+outKey)
     self.specializedPrintCSV(filenameLocal,optionsInt)
-  
+
   def _writeUnstructuredInputInXML(self,fileRoot,historyVariableKeys,historyVariableValues):
     """
       Method to write the unstrctured inputs into an XML file
@@ -633,15 +633,15 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     """
     unstructuredDataFile = open(fileRoot+".xml","w")
     for histNum in range(len(historyVariableKeys)):
-      unstructuredDataFile.write("<unstructuredInputData Id='"+str(histNum)+"'>\n")  
+      unstructuredDataFile.write("<unstructuredInputData id='"+str(histNum)+"'>\n")
       for cnt,var in enumerate(historyVariableKeys[histNum]):
-        unstructuredDataFile.write(" "*5+"<"+var.strip()+">\n")  
+        unstructuredDataFile.write(" "*5+"<"+var.strip()+">\n")
         unstructuredDataFile.write(" "*7+np.array_str(np.asarray(historyVariableValues[histNum][cnt])).replace("[","").replace("]","")+"\n")
         unstructuredDataFile.write(" "*5+"</"+var.strip()+">\n")
-      unstructuredDataFile.write("</unstructuredInputData>\n")   
-    unstructuredDataFile.close() 
-    
-  
+      unstructuredDataFile.write("</unstructuredInputData>\n")
+    unstructuredDataFile.close()
+
+
   def removeInputValue(self,name):
     """
       Function to remove a value from the dictionary inpParametersValues
@@ -798,7 +798,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
 #       @ In, nodeId , string, optional, in hierarchical mode, is the node from which the value needs to be extracted... by default is the root
 #       @ Out, value, the requested value
 #     """
-# 
+#
 #     if   varName in self._dataParameters['inParam' ]: inOutType = 'input'
 #     elif varName in self._dataParameters['outParam']: inOutType = 'output'
 #     else: self.raiseAnError(RuntimeError,'the variable named '+varName+' was not found in the data: '+self.name)

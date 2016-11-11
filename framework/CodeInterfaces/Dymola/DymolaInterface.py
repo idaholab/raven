@@ -155,7 +155,7 @@ class Dymola(CodeInterfaceBase):
   def createNewInput(self, currentInputFiles, oriInputFiles, samplerType, **Kwargs):
     """
       Generate a new Dymola input file (txt format) from the original, changing parameters
-      as specified in Kwargs['SampledVars']. In addition, it creaes an additional input file including the vector data to be 
+      as specified in Kwargs['SampledVars']. In addition, it creaes an additional input file including the vector data to be
       passed to Dymola.
       @ In, currentInputFiles, list,  list of current input files (input files from last this method call)
       @ In, oriInputFiles, list, list of the original input files
@@ -201,8 +201,8 @@ class Dymola(CodeInterfaceBase):
         print("                            is supposed to go into the simulation initialisation file of type")
         print("                            'DymolaInitialisation' the array must be split into scalars.")
         print("                            => It is assumed that the array goes into the input file with type 'DymolaVectors'")
-        if not foundVect: raise Exception('Dymola INTERFACE ERROR -> None of the input files has the type "DymolaVectors"! ') 
-        # extract dict entry 
+        if not foundVect: raise Exception('Dymola INTERFACE ERROR -> None of the input files has the type "DymolaVectors"! ')
+        # extract dict entry
         VectorsToPass[key] = varDict.pop(key)
       assert not type(value).__name__ in ['str','bytes','unicode'], ("Strings cannot be "
         "used as values in the simulation initialization file.")

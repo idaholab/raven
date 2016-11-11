@@ -372,7 +372,7 @@ class HistorySet(Data):
       unstructuredInpValues = list(self._dataContainer['unstructuredInputs'].values())
       #Create Input file
       myFile = open(filenameLocal + '.csv','w')
-      if len(unstructuredInpValues[0].keys())>0: 
+      if len(unstructuredInpValues[0].keys())>0:
         unstructuredInpKeysFiltered, unstructuredInpValuesFiltered = [], []
       else: unstructuredInpKeysFiltered, unstructuredInpValuesFiltered = None, None
       for n in range(len(outKeys)):
@@ -383,7 +383,7 @@ class HistorySet(Data):
         if unstructuredInpKeysFiltered is not None:
           unstructuredInpKeysFiltered.append([])
           unstructuredInpValuesFiltered.append([])
-        
+
         if 'what' in options.keys():
           for var in options['what']:
             splitted = var.split('|')
@@ -405,14 +405,14 @@ class HistorySet(Data):
           inpKeys_h   = list(inpValues[n].keys())
           inpValues_h = list(inpValues[n].values())
           unstructuredInpKeysFiltered[n] = list(unstructuredInpValues[n].keys())
-          unstructuredInpValuesFiltered[n] =  list(unstructuredInpValues[n].values()) 
+          unstructuredInpValuesFiltered[n] =  list(unstructuredInpValues[n].values())
           outKeys_h   = list(outValues[n].keys())
           outValues_h = list(outValues[n].values())
 
         dataFilename = filenameLocal + '_'+ str(n) + '.csv'
         if len(inpKeys_h) > 0 or len(outKeys_h) > 0: myDataFile = open(dataFilename, 'w')
         else: return #XXX should this just skip this iteration?
- 
+
         #Write header for main file
         if n == 0:
           myFile.write(','.join([item for item in itertools.chain(inpKeys_h,['filename'])]))
@@ -432,10 +432,10 @@ class HistorySet(Data):
             myDataFile.write('\n')
         myDataFile.close()
       myFile.close()
-      if len(unstructuredInpKeysFiltered) > 0: 
+      if len(unstructuredInpKeysFiltered) > 0:
         # write unstructuredData
-        self._writeUnstructuredInputInXML(filenameLocal +'_unstructuredInputs',unstructuredInpKeysFiltered,unstructuredInpValuesFiltered)
-      
+        self._writeUnstructuredInputInXML(filenameLocal +'_unstructured_inputs',unstructuredInpKeysFiltered,unstructuredInpValuesFiltered)
+
   def _specializedLoadXMLandCSV(self, filenameRoot, options):
     """
       Function to load the xml additional file of the csv for data

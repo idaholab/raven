@@ -138,7 +138,7 @@ class PointSet(Data):
       #self._dataContainer['inputs'][name] = c1darray(values=np.atleast_1d(np.atleast_1d(value)[-1])) if not acceptArrayRealizations else c1darray(values=np.atleast_1d(np.atleast_1d(value)))
       self.addNodeInTreeMode(tsnode,options)
     else:
-      if name in self._dataContainer['inputs'].keys():
+      if name in self._dataContainer['inputs'].keys()+self._dataContainer['unstructuredInputs'].keys():
         #popped = self._dataContainer['inputs'].pop(name)
         if not unstructuredInput: self._dataContainer['inputs'][name].append(np.atleast_1d(np.ravel(value)[-1]))
         else                    : self._dataContainer['unstructuredInputs'][name].append(np.atleast_1d(np.ravel(value)))
@@ -318,7 +318,7 @@ class PointSet(Data):
               inpValues.append(self._dataContainer['inputs'][variableName])
             else:
               unstructuredInpKeys.append(variableName)
-              unstructuredInpValues.append(self._dataContainer['unstructuredInputs'][variableName]) 
+              unstructuredInpValues.append(self._dataContainer['unstructuredInputs'][variableName])
           if varType == 'output':
             if variableName not in self.getParaKeys('output'): self.raiseAnError(Exception,"variable named "+variableName+" is not among the "+varType+"s!")
             outKeys.append(variableName)
@@ -327,30 +327,32 @@ class PointSet(Data):
             inpKeys.append(variableName)
             inpValues.append(self._dataContainer['metadata'][variableName])
       else:
-        unstructuredInpKeys   = self._dataContainer['unstructuredInputs'].keys()
-        unstructuredInpValues = list(self._dataContainer['unstructuredInputs'].values())
+        unstructuredInpKeys   = sorted(self._dataContainer['unstructuredInputs'].keys())
+        unstructuredInpValues = [self._dataContainer['unstructuredInputs'][var] for var in unstructuredInpKeys]
         inpKeys   = self._dataContainer['inputs'].keys()
         inpValues = self._dataContainer['inputs'].values()
         outKeys   = self._dataContainer['outputs'].keys()
         outValues = self._dataContainer['outputs'].values()
       if len(inpKeys) > 0 or len(outKeys) > 0: myFile = open(filenameLocal + '.csv', 'w')
       else: return
-      if len(unstructuredInpKeys) > 0: 
-        unstructuredFileName = filenameLocal +'_unstructuredInputs' + '.xml'
-        unstructuredDataFile = open(unstructuredFileName,'w')
-      fileNamesExt = ['unstructuredInputFileName'] if len(unstructuredInpKeys) > 0 else []
+      if len(unstructuredInpKeys) > 0:
+        filteredUnstructuredInpKeys   = [unstructuredInpKeys]*len(unstructuredInpValues[0])
+        filteredUnstructuredInpValues = [[unstructuredInpValues[cnt][histNum] for cnt in range(len(unstructuredInpValues))] for histNum in range(len(unstructuredInpValues[0])) ]
       #Print header
-      myFile.write(','.join([str(item) for item in itertools.chain(inpKeys,outKeys,fileNamesExt)]))
+      myFile.write(','.join([str(item) for item in itertools.chain(inpKeys,outKeys)]))
       myFile.write('\n')
       #Print values
       for j in range(len(next(iter(itertools.chain(inpValues,outValues))))):
         #myFile.write(','.join(['{:.17f}'.format(item[j]) for item in itertools.chain(inpValues,outValues)]))
         #str(item) can truncate the accuracy of the value.  However, we've lost that truncation before this point...
         #  ...as shown by the line above.
-        myFile.write(','.join([str(item[j]) for item in itertools.chain(inpValues,outValues,[unstructuredFileName])]))
+        myFile.write(','.join([str(item[j]) for item in itertools.chain(inpValues,outValues)]))
         myFile.write('\n')
       myFile.close()
       self._createXMLFile(filenameLocal,'Pointset',inpKeys,outKeys)
+      if len(unstructuredInpKeys) > 0:
+        # write unstructuredData
+        self._writeUnstructuredInputInXML(filenameLocal +'_unstructured_inputs',filteredUnstructuredInpKeys,filteredUnstructuredInpValues)
 
   def _specializedLoadXMLandCSV(self, filenameRoot, options):
     """
