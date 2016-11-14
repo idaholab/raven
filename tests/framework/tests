@@ -207,7 +207,7 @@
  [./testGrid_RELAP7]
    type = 'RavenFramework'
    input = 'test_Grid_Sampler_Raven.xml'
-   output = 'GridTestRaven/FirstMRun/1/out~clg_massflowrate_3eqn'
+   output = 'GridTestRaven/FirstMRun/1/out~clg.massflowrate.3eqn'
    UnorderedCsv = 'GridTestRaven/outGrid_dump.csv'
    method = 'devel opt'
    required_executable = '../../RAVEN-%METHOD%'
@@ -285,19 +285,6 @@
   #python_command = python3
   input = '../../framework/TestDistributions.py'
   requires_swig2 = True
- [../]
-
- [./test_mathUtils]
-  type = 'RavenPython'
-  input = '../../framework/utils/testMathUtils.py'
- [../]
- [./test_xmlUtils]
-  type = 'RavenPython'
-  input = '../../framework/utils/testXmlUtils.py'
- [../]
- [./test_cachedNDArray]
-  type = 'RavenPython'
-  input = '../../framework/utils/testCachedNDArray.py'
  [../]
 
  [./test_xsd_input_data]

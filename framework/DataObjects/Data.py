@@ -596,10 +596,12 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
             self.raiseAnError(RuntimeError,'variable ' + var + ' is unknown in Data ' + self.name + '. When specifying \'what\' remember to prepend parameter names with \'Input|\' or \'Output|\'')
         optionsInt['what'] = variablesToPrint
     else: filenameLocal = self.name + '_dump'
-    if 'what' not in optionsInt.keys():
-      inputKeys, outputKeys = sorted(self.getParaKeys('inputs')), sorted(self.getParaKeys('outputs'))
-      for inKey in inputKeys  : variablesToPrint.append('input|'+inKey)
-      for outKey in outputKeys: variablesToPrint.append('output|'+outKey)
+    # this not needed since the variables are taken from inside
+    #if 'what' not in optionsInt.keys():
+    #  inputKeys, outputKeys = sorted(self.getParaKeys('inputs')), sorted(self.getParaKeys('outputs'))
+    #  for inKey in inputKeys  : variablesToPrint.append('input|'+inKey)
+    #  for outKey in outputKeys: variablesToPrint.append('output|'+outKey)
+    #  optionsInt['what'] = variablesToPrint
     self.specializedPrintCSV(filenameLocal,optionsInt)
 
   def removeInputValue(self,name):
@@ -654,18 +656,18 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ Out, foundNodes, TreeStructure.Node, the found nodes
     """
     if not self.TSData: # there is no tree yet
-      self.TSData = {nodeName:TS.NodeTree(TS.Node(nodeName))}
+      self.TSData = {nodeName:TS.NodeTree(self.messageHandler,TS.Node(self.messageHandler,nodeName))}
       return self.TSData[nodeName].getrootnode()
     else:
       if nodeName in self.TSData.keys(): return self.TSData[nodeName].getrootnode()
       elif parentName == 'root':
-        self.TSData[nodeName] = TS.NodeTree(TS.Node(nodeName))
+        self.TSData[nodeName] = TS.NodeTree(self.messageHandler,TS.Node(self.messageHandler,nodeName))
         return self.TSData[nodeName].getrootnode()
       else:
         for TSDat in self.TSData.values():
           foundNodes = list(TSDat.iter(nodeName))
           if len(foundNodes) > 0: break
-        if len(foundNodes) == 0: return TS.Node(nodeName)
+        if len(foundNodes) == 0: return TS.Node(self.messageHandler,nodeName)
         else:
           if parentName:
             for node in foundNodes:

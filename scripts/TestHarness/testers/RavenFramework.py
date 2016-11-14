@@ -40,6 +40,7 @@ class RavenFramework(Tester):
     params.addParam('minimum_library_versions','','Skip test if the library listed is below the supplied version (e.g. minimum_library_versions = \"name1 version1 name2 version2\")')
     params.addParam('skip_if_env','','Skip test if this environmental variable is defined')
     params.addParam('test_interface_only','False','Test the interface only (without running the driven code')
+    params.addParam('check_absolute_value','False','if true the values are compared in absolute value (abs(trueValue)-abs(testValue)')
     params.addParam('zero_threshold',sys.float_info.min*4.0,'it represents the value below which a float is considered zero (XML comparison only)')
     params.addParam('remove_whitespace','False','Removes whitespace before comparing xml node text if True')
     params.addParam('expected_fail', 'False', 'if true, then the test should fails, and if it passes, it fails.')
@@ -148,10 +149,13 @@ class RavenFramework(Tester):
       return (message,output)
 
     #unordered csv
+    checkAbsoluteValue = False
+    if len(self.specs["check_absolute_value"]) > 0:
+      if self.specs["check_absolute_value"].lower() in ['true','t']: checkAbsoluteValue = True
     if len(self.specs["rel_err"]) > 0:
-      ucsv_diff = UnorderedCSVDiffer(self.specs['test_dir'],self.ucsv_files,relative_error=float(self.specs["rel_err"]))
+      ucsv_diff = UnorderedCSVDiffer(self.specs['test_dir'],self.ucsv_files,relative_error=float(self.specs["rel_err"]),absolute_check=checkAbsoluteValue)
     else:
-      ucsv_diff = UnorderedCSVDiffer(self.specs['test_dir'],self.ucsv_files)
+      ucsv_diff = UnorderedCSVDiffer(self.specs['test_dir'],self.ucsv_files,absolute_check=checkAbsoluteValue)
     ucsv_same,ucsv_messages = ucsv_diff.diff()
     if not ucsv_same:
       return ucsv_messages,output

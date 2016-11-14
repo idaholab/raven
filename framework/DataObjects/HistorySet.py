@@ -380,10 +380,10 @@ class HistorySet(Data):
               outKeys_h.append(var.split('|')[1])
               outValues_h.append(outValues[n][variableName])
         else:
-          inpKeys_h   = list(inpValues[n].keys())
-          inpValues_h = list(inpValues[n].values())
-          outKeys_h   = list(outValues[n].keys())
-          outValues_h = list(outValues[n].values())
+          inpKeys_h   = list(inpValues[n].keys())   #sorted(list(inpValues[n].keys()))
+          inpValues_h = list(inpValues[n].values()) # [inpValues[n][key] for key in inpKeys_h]
+          outKeys_h   = list(outValues[n].keys())   # sorted(list(outValues[n].keys()))
+          outValues_h = list(outValues[n].values()) # [outValues[n][key] for key in outKeys_h]
 
         dataFilename = filenameLocal + '_'+ str(n) + '.csv'
         if len(inpKeys_h) > 0 or len(outKeys_h) > 0: myDataFile = open(dataFilename, 'w')

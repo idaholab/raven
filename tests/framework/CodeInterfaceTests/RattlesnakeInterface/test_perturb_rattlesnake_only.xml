@@ -13,7 +13,7 @@
 
   <Models>
     <Code name="Rattlesnake" subType="Rattlesnake">
-        <executable>%FRAMEWORK_DIR%/../../rattlesnake/rattlesnake-%METHOD%</executable>
+      <executable>%FRAMEWORK_DIR%/../../rattlesnake/rattlesnake-%METHOD%</executable>
     </Code>
   </Models>
 

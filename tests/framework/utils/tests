@@ -1,0 +1,20 @@
+[Tests]
+ [./mathUtils]
+  type = 'RavenPython'
+  input = 'testMathUtils.py'
+ [../]
+ [./xmlUtils]
+  type = 'RavenPython'
+  input = 'testXmlUtils.py'
+ [../]
+ [./cachedNDArray]
+  type = 'RavenPython'
+  input = 'testCachedNDArray.py'
+ [../]
+ [./treeStructure]
+  type = 'RavenPython'
+  input = 'testTreeStructure.py'
+ [../]
+[]
+
+

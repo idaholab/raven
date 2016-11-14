@@ -8,7 +8,7 @@
 
   <Files>
     <Input name="output_basicStatistics_PP1mc.csv" type="">output_basicStatistics_PP1mc.csv</Input>
-    <Input name="output_basicStatistics_PP1grid.csv" type="">output_basicStatistics_PP1grid.csv</Input>
+    <Input name="output_basicStatistics_PP1mc.xml" type="">output_basicStatistics_PP1mc.xml</Input>
   </Files>
 
   <Models>
@@ -16,8 +16,10 @@
       <variables>x,y,x1</variables>
     </ExternalModel>
     <PostProcessor name="analyticalTest" subType="BasicStatistics" verbosity="debug">
-      <what>all</what>
-      <parameters>x,y</parameters>
+      <all>
+        <targets>x,y</targets>
+        <features>x,y</features>
+      </all>
     </PostProcessor>
   </Models>
 
@@ -57,6 +59,7 @@
       <Input class="DataObjects" type="PointSet">outputDataMC</Input>
       <Model class="Models" type="PostProcessor">analyticalTest</Model>
       <Output class="Files" type="">output_basicStatistics_PP1mc.csv</Output>
+      <Output class="Files" type="">output_basicStatistics_PP1mc.xml</Output>
       <Output class="OutStreams" type="Print">outputDataMC_dump</Output>
     </PostProcess>
   </Steps>
