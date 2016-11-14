@@ -1612,7 +1612,6 @@ class EnsembleModel(Dummy, Assembler):
           else:
             self.initialConditions[var.tag] = np.array(var.text.split())
 
-
   def __findMatchingModel(self,what,subWhat):
     """
       Method to find the matching models with respect a some input/output. If not found, return None
@@ -1625,25 +1624,6 @@ class EnsembleModel(Dummy, Assembler):
       if subWhat in value[what]: models.append(key)
     if len(models) == 0: models = None
     return models
-
-
-#   def findPath(self, graph, start_vertex, end_vertex, path=[]):
-#     """
-#     find a path from start_vertex to end_vertex
-#           in graph
-#     """
-#     graph = self.__graph_dict
-#     path = path + [start_vertex]
-#     if start_vertex == end_vertex:
-#         return path
-#     if start_vertex not in graph:
-#         return None
-#     for vertex in graph[start_vertex]:
-#       if vertex not in path:
-#         extended_path = self.findPath(graph,vertex,end_vertex,path)
-#         if extended_path:return extended_path
-#     return None
-
 
   def __getExecutionList(self, orderedNodes, allPath):
     """
@@ -1699,10 +1679,6 @@ class EnsembleModel(Dummy, Assembler):
       #if type(self.tempTargetEvaluations[modelIn[2]]).__name__ != 'PointSet': self.raiseAnError(IOError, "The TargetEvaluation needs to be an instance of PointSet. Got "+type(self.tempTargetEvaluations[modelIn[2]]).__name__)
       self.modelsDictionary[modelIn[2]]['Input' ] = self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getParaKeys("inputs")
       self.modelsDictionary[modelIn[2]]['Output'] = self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getParaKeys("outputs")
-      #modelNode = TreeStructure.Node(modelIn[2])
-      #modelNode.add( 'inputs', self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getParaKeys("inputs"))
-      #modelNode.add('outputs', self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getParaKeys("outputs"))
-      #moldelNodes[modelIn[2]] = modelNode
     # construct chain connections
     modelsToOutputModels  = dict.fromkeys(self.modelsDictionary.keys(),None)
 
