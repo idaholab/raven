@@ -109,10 +109,12 @@ class PointSet(Data):
       @ Out, None
     """
     # if this flag is true, we accept realizations in the input space that are not only scalar but can be 1-D arrays!
-    acceptArrayRealizations = False if options == None else options.get('acceptArrayRealizations',False)
+    #acceptArrayRealizations = False if options == None else options.get('acceptArrayRealizations',False)
+    unstructuredInput = False
     if isinstance(value,(np.ndarray,c1darray)):
-      if len(value.shape) > 1: self.raiseAnError(NotConsistentData,'PointSet Data accepts only a 1 Dimensional numpy array or a single value for method <_updateSpecializedInputValue>. Array shape is ' + str(value.shape))
+      if np.asarray(value).ndim > 1 and max(np.asarray(value).shape) != np.asarray(value).size: self.raiseAnError(NotConsistentData,'PointSet Data accepts only a 1 Dimensional numpy array or a single value for method <_updateSpecializedInputValue>. Array shape is ' + str(value.shape))
       #if value.size != 1 and not acceptArrayRealizations: self.raiseAnError(NotConsistentData,'PointSet Data accepts only a numpy array of dim 1 or a single value for method <_updateSpecializedInputValue>. Size is ' + str(value.size))
+      unstructuredInput = True if value.size > 1 else False
     if options and self._dataParameters['hierarchical']:
       # we retrieve the node in which the specialized 'Point' has been stored
       parentID = None
@@ -126,24 +128,28 @@ class PointSet(Data):
       else:                             tsnode = self.retrieveNodeInTreeMode(prefix)
       self._dataContainer = tsnode.get('dataContainer')
       if not self._dataContainer:
-        tsnode.add('dataContainer',{'inputs':{},'outputs':{}})
+        tsnode.add('dataContainer',{'inputs':{},'unstructuredInputs':{},'outputs':{}})
         self._dataContainer = tsnode.get('dataContainer')
-      if name in self._dataContainer['inputs'].keys():
-        self._dataContainer['inputs'].pop(name)
+      if name in self._dataContainer['inputs'].keys()            : self._dataContainer['inputs'].pop(name)
+      if name in self._dataContainer['unstructuredInputs'].keys(): self._dataContainer['unstructuredInputs'].pop(name)
       if name not in self._dataParameters['inParam']: self._dataParameters['inParam'].append(name)
-      self._dataContainer['inputs'][name] = c1darray(values=np.atleast_1d(np.atleast_1d(value)[-1])) if not acceptArrayRealizations else c1darray(values=np.atleast_1d(np.atleast_1d(value)))
+      if not unstructuredInput: self._dataContainer['inputs'][name]             = c1darray(values=np.atleast_1d(np.ravel(value)[-1]))
+      else                    : self._dataContainer['unstructuredInputs'][name] = [c1darray(values=np.atleast_1d(np.ravel(value)))]
+      #self._dataContainer['inputs'][name] = c1darray(values=np.atleast_1d(np.atleast_1d(value)[-1])) if not acceptArrayRealizations else c1darray(values=np.atleast_1d(np.atleast_1d(value)))
       self.addNodeInTreeMode(tsnode,options)
     else:
-      if name in self._dataContainer['inputs'].keys():
+      if name in self._dataContainer['inputs'].keys()+self._dataContainer['unstructuredInputs'].keys():
         #popped = self._dataContainer['inputs'].pop(name)
-        if not acceptArrayRealizations: self._dataContainer['inputs'][name].append(np.atleast_1d(np.atleast_1d(value)[-1]))
-        else                          : self._dataContainer['inputs'][name].append(np.atleast_1d(np.atleast_1d(value)))
+        if not unstructuredInput: self._dataContainer['inputs'][name].append(np.atleast_1d(np.ravel(value)[-1]))
+        else                    : self._dataContainer['unstructuredInputs'][name].append(np.atleast_1d(np.ravel(value)))
         #self._dataContainer['inputs'][name] = c1darray(values=np.atleast_1d(np.atleast_1d(value)[-1]))                     copy.copy(np.concatenate((np.atleast_1d(np.array(popped)), np.atleast_1d(np.atleast_1d(value)[-1]))))
       else:
         #if name not in self._dataParameters['inParam']: self._dataParameters['inParam'].append(name)
         if name not in self._dataParameters['inParam']: self.raiseAnError(NotConsistentData,'The input variable '+name+'is not among the input space of the DataObject '+self.name)
         #self._dataContainer['inputs'][name] = c1darray(values=np.atleast_1d(np.atleast_1d(value)[-1])) if not acceptArrayRealizations else c1darray(values=np.atleast_1d(np.atleast_1d(value)))
-        self._dataContainer['inputs'][name] = c1darray(values=np.atleast_1d(np.atleast_1d(value)[-1])) if not acceptArrayRealizations else c1darray(values=np.atleast_1d(np.atleast_1d(value)))
+        if not unstructuredInput: self._dataContainer['inputs'][name]             = c1darray(values=np.atleast_1d(np.ravel(value)[-1]))
+        else                    : self._dataContainer['unstructuredInputs'][name] = [c1darray(values=np.atleast_1d(np.ravel(value)))]
+        #self._dataContainer['inputs'][name] = c1darray(values=np.atleast_1d(np.atleast_1d(value)[-1])) if not acceptArrayRealizations else c1darray(values=np.atleast_1d(np.atleast_1d(value)))
 
   def _updateSpecializedMetadata(self,name,value,options=None):
     """
@@ -224,10 +230,12 @@ class PointSet(Data):
       @ In,  options, dict, dictionary of printing options
       @ Out, None (a csv is gonna be printed)
     """
-    inpKeys   = []
-    inpValues = []
-    outKeys   = []
-    outValues = []
+    inpKeys               = []
+    inpValues             = []
+    unstructuredInpKeys   = []
+    unstructuredInpValues = []
+    outKeys               = []
+    outValues             = []
     #Print input values
     if self._dataParameters['hierarchical']:
       # retrieve a serialized of DataObjects from the tree
@@ -304,22 +312,32 @@ class PointSet(Data):
           variableName = "|".join(splitted[1:])
           varType = splitted[0]
           if varType == 'input':
-            inpKeys.append(variableName)
-            inpValues.append(self._dataContainer['inputs'][variableName])
+            if variableName not in self.getParaKeys('input'): self.raiseAnError(Exception,"variable named "+variableName+" is not among the "+varType+"s!")
+            if variableName in self._dataContainer['inputs'].keys():
+              inpKeys.append(variableName)
+              inpValues.append(self._dataContainer['inputs'][variableName])
+            else:
+              unstructuredInpKeys.append(variableName)
+              unstructuredInpValues.append(self._dataContainer['unstructuredInputs'][variableName])
           if varType == 'output':
+            if variableName not in self.getParaKeys('output'): self.raiseAnError(Exception,"variable named "+variableName+" is not among the "+varType+"s!")
             outKeys.append(variableName)
             outValues.append(self._dataContainer['outputs'][variableName])
           if varType == 'metadata':
             inpKeys.append(variableName)
             inpValues.append(self._dataContainer['metadata'][variableName])
       else:
+        unstructuredInpKeys   = sorted(self._dataContainer['unstructuredInputs'].keys())
+        unstructuredInpValues = [self._dataContainer['unstructuredInputs'][var] for var in unstructuredInpKeys]
         inpKeys   = self._dataContainer['inputs'].keys()
         inpValues = self._dataContainer['inputs'].values()
         outKeys   = self._dataContainer['outputs'].keys()
         outValues = self._dataContainer['outputs'].values()
       if len(inpKeys) > 0 or len(outKeys) > 0: myFile = open(filenameLocal + '.csv', 'w')
       else: return
-
+      if len(unstructuredInpKeys) > 0:
+        filteredUnstructuredInpKeys   = [unstructuredInpKeys]*len(unstructuredInpValues[0])
+        filteredUnstructuredInpValues = [[unstructuredInpValues[cnt][histNum] for cnt in range(len(unstructuredInpValues))] for histNum in range(len(unstructuredInpValues[0])) ]
       #Print header
       myFile.write(','.join([str(item) for item in itertools.chain(inpKeys,outKeys)]))
       myFile.write('\n')
@@ -332,6 +350,9 @@ class PointSet(Data):
         myFile.write('\n')
       myFile.close()
       self._createXMLFile(filenameLocal,'Pointset',inpKeys,outKeys)
+      if len(unstructuredInpKeys) > 0:
+        # write unstructuredData
+        self._writeUnstructuredInputInXML(filenameLocal +'_unstructured_inputs',filteredUnstructuredInpKeys,filteredUnstructuredInpValues)
 
   def _specializedLoadXMLandCSV(self, filenameRoot, options):
     """
@@ -386,37 +407,38 @@ class PointSet(Data):
     for key in self.getParaKeys('outputs'):
       self._dataContainer["outputs"][key] = c1darray(values=np.array(inoutDict[key]))
 
-  def __extractValueLocal__(self,inOutType,varTyp,varName,varID=None,stepID=None,nodeId='root'):
-    """
-      specialization of extractValue for this data type
-      @ In, inOutType, string, the type of data to extract (input or output)
-      @ In, varTyp, string, is the requested type of the variable to be returned (bool, int, float, numpy.ndarray, etc)
-      @ In, varName, string, is the name of the variable that should be recovered
-      @ In, varID, tuple or int, optional, is the ID of the value that should be retrieved within a set
-        if varID.type!=tuple only one point along sampling of that variable is retrieved
-          else:
-            if varID=(int,int) the slicing is [varID[0]:varID[1]]
-            if varID=(int,None) the slicing is [varID[0]:]
-      @ In, stepID, tuple or int, optional, it  determines the slicing of an history.
-          if stepID.type!=tuple only one point along the history is retrieved
-          else:
-            if stepID=(int,int) the slicing is [stepID[0]:stepID[1]]
-            if stepID=(int,None) the slicing is [stepID[0]:]
-      @ In, nodeId, string, in hierarchical mode, is the node from which the value needs to be extracted... by default is the root
-      @ Out, value, varTyp, the requested value
-    """
-    if stepID!=None: self.raiseAnError(RuntimeError,'seeking to extract a history slice over an PointSet type of data is not possible. Data name: '+self.name+' variable: '+varName)
-    if varTyp!='numpy.ndarray':
-      if varID!=None:
-        if self._dataParameters['hierarchical']: exec('extractedValue ='+varTyp +'(self.getHierParam(inOutType,nodeId,varName,serialize=False)[nodeId])')
-        else: exec('extractedValue ='+varTyp +'(self.getParam(inOutType,varName)[varID])')
-        return extractedValue
-      #if varID!=None: exec ('return varTyp(self.getParam('+inOutType+','+varName+')[varID])')
-      else: self.raiseAnError(RuntimeError,'trying to extract a scalar value from a time point set without an index')
-    else:
-      if self._dataParameters['hierarchical']:
-        paramss = self.getHierParam(inOutType,nodeId,varName,serialize=True)
-        extractedValue = np.zeros(len(paramss[nodeId]))
-        for index in range(len(paramss[nodeId])): extractedValue[index] = paramss[nodeId][index]
-        return extractedValue
-      else: return self.getParam(inOutType,varName)
+#   COMMENTED BECUASE NOT USED. NEED TO BE REMOVED IN THE FUTURE
+#   def __extractValueLocal__(self,inOutType,varTyp,varName,varID=None,stepID=None,nodeId='root'):
+#     """
+#       specialization of extractValue for this data type
+#       @ In, inOutType, string, the type of data to extract (input or output)
+#       @ In, varTyp, string, is the requested type of the variable to be returned (bool, int, float, numpy.ndarray, etc)
+#       @ In, varName, string, is the name of the variable that should be recovered
+#       @ In, varID, tuple or int, optional, is the ID of the value that should be retrieved within a set
+#         if varID.type!=tuple only one point along sampling of that variable is retrieved
+#           else:
+#             if varID=(int,int) the slicing is [varID[0]:varID[1]]
+#             if varID=(int,None) the slicing is [varID[0]:]
+#       @ In, stepID, tuple or int, optional, it  determines the slicing of an history.
+#           if stepID.type!=tuple only one point along the history is retrieved
+#           else:
+#             if stepID=(int,int) the slicing is [stepID[0]:stepID[1]]
+#             if stepID=(int,None) the slicing is [stepID[0]:]
+#       @ In, nodeId, string, in hierarchical mode, is the node from which the value needs to be extracted... by default is the root
+#       @ Out, value, varTyp, the requested value
+#     """
+#     if stepID!=None: self.raiseAnError(RuntimeError,'seeking to extract a history slice over an PointSet type of data is not possible. Data name: '+self.name+' variable: '+varName)
+#     if varTyp!='numpy.ndarray':
+#       if varID!=None:
+#         if self._dataParameters['hierarchical']: exec('extractedValue ='+varTyp +'(self.getHierParam(inOutType,nodeId,varName,serialize=False)[nodeId])')
+#         else: exec('extractedValue ='+varTyp +'(self.getParam(inOutType,varName)[varID])')
+#         return extractedValue
+#       #if varID!=None: exec ('return varTyp(self.getParam('+inOutType+','+varName+')[varID])')
+#       else: self.raiseAnError(RuntimeError,'trying to extract a scalar value from a time point set without an index')
+#     else:
+#       if self._dataParameters['hierarchical']:
+#         paramss = self.getHierParam(inOutType,nodeId,varName,serialize=True)
+#         extractedValue = np.zeros(len(paramss[nodeId]))
+#         for index in range(len(paramss[nodeId])): extractedValue[index] = paramss[nodeId][index]
+#         return extractedValue
+#       else: return self.getParam(inOutType,varName)

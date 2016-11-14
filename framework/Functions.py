@@ -45,7 +45,7 @@ class Function(BaseType):
     self.__inputVariables                = []                                # list of variables' names' given in input (xml)
     self.__inputFromWhat                 = {}                                # dictionary of input data type
     self.__inputFromWhat['dict']         = self.__inputFromDict
-    self.__inputFromWhat['Data']         = self.__inputFromData
+    #self.__inputFromWhat['Data']         = self.__inputFromData
     self.printTag                        = 'FUNCTIONS'
 
   def _readMoreXML(self,xmlNode):
@@ -140,37 +140,39 @@ class Function(BaseType):
       @ Out, None
     """
     if type(myInput)==dict         :self.__inputFromWhat['dict'](myInput)
-    elif 'Data' in myInput.__base__:self.__inputFromWhat['Data'](myInput)
+    #elif 'Data' in myInput.__base__:self.__inputFromWhat['Data'](myInput)
     else: self.raiseAnError(IOError,'Unknown type of input provided to the function '+str(self.name))
 
-  def __inputFromData(self,inputData):
-    """
-      This is meant to be used to collect the input from a Data. A conversion to the declared type of data is attempted by inputData.extractValue
-      @ In, inputData, dataObjects, dataObject from which the data need to be imported
-      @ Out, None
-    """
-    for key in self.__inputVariables:
-      ##### TEMPORARY FIXXXXXXXX - ALIAS NEEDED#######
-      self.raiseAMessage('Alias are already in place why we have still the fixme (once done see also if the loop should contain the myType?','FIXME')
-      foundperfectly = False
-      for index in range(len(inputData.dataParameters['inParam'])):
-        if key == inputData.dataParameters['inParam'][index]: foundperfectly = True
-      if not foundperfectly:
-        for index in range(len(inputData.dataParameters['outParam'])):
-          if key == inputData.dataParameters['outParam'][index]: foundperfectly = True
-      if foundperfectly: execCommand('self.'+key+'=object.extractValue(myType,"'+key+'")',self=self,object=inputData)
-      if not foundperfectly:
-        semifound = False
-        for index in range(len(inputData.dataParameters['inParam'])):
-          if key in inputData.dataParameters['inParam'][index]:
-            similarVariable = inputData.dataParameters['inParam'][index]
-            semifound = True
-        if not semifound:
-          for index in range(len(inputData.dataParameters['outParam'])):
-            if key in inputData.dataParameters['outParam'][index]:
-              similarVariable = inputData.dataParameters['outParam'][index]
-              semifound = True
-        if semifound: execCommand('self.'+key+'=object.extractValue(myType,"'+similarVariable+'")',self=self,object=inputData)
+#   COMMENTED BECAUSE NOT USED
+#   def __inputFromData(self,inputData):
+#     """
+#       This is meant to be used to collect the input from a Data. A conversion to the declared type of data is attempted by inputData.extractValue
+#       @ In, inputData, dataObjects, dataObject from which the data need to be imported
+#       @ Out, None
+#     """
+#     for key in self.__inputVariables:
+#       ##### TEMPORARY FIXXXXXXXX - ALIAS NEEDED#######
+#       self.raiseAMessage('Alias are already in place why we have still the fixme (once done see also if the loop should contain the myType?','FIXME')
+#       foundperfectly = False
+#       for index in range(len(inputData.dataParameters['inParam'])):
+#         if key == inputData.dataParameters['inParam'][index]: foundperfectly = True
+#       if not foundperfectly:
+#         for index in range(len(inputData.dataParameters['outParam'])):
+#           if key == inputData.dataParameters['outParam'][index]: foundperfectly = True
+#       #if foundperfectly: execCommand('self.'+key+'=object.extractValue(myType,"'+key+'")',self=self,object=inputData)
+#       if foundperfectly: execCommand('self.'+key+'=object.extractValue(myType,"'+key+'")',self=self,object=inputData)
+#       if not foundperfectly:
+#         semifound = False
+#         for index in range(len(inputData.dataParameters['inParam'])):
+#           if key in inputData.dataParameters['inParam'][index]:
+#             similarVariable = inputData.dataParameters['inParam'][index]
+#             semifound = True
+#         if not semifound:
+#           for index in range(len(inputData.dataParameters['outParam'])):
+#             if key in inputData.dataParameters['outParam'][index]:
+#               similarVariable = inputData.dataParameters['outParam'][index]
+#               semifound = True
+#         if semifound: execCommand('self.'+key+'=object.extractValue(myType,"'+similarVariable+'")',self=self,object=inputData)
 
   def __inputFromDict(self,myInputDict):
     """

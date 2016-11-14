@@ -308,6 +308,8 @@ class HDF5(DateBase):
           if inInKey != None:
             ix = histVar[1]['inputSpaceHeaders'].index(inInKey)
             if i == 0: inDict[key] = np.zeros(len(histList))
+
+
             inDict[key][i] = np.atleast_1d(histVar[1]['inputSpaceValues'][ix])[0]
           elif inOutKey != None and inInKey == None:
             ix = histVar[1]['outputSpaceHeaders'].index(inOutKey)

@@ -1665,7 +1665,7 @@ class EnsembleModel(Dummy, Assembler):
       @ In, initDict, optional, dictionary of all objects available in the step is using this model
       @ Out, None
     """
-    moldelNodes = {}
+    #moldelNodes = {}
     for modelIn in self.assemblerDict['Model']:
       self.modelsDictionary[modelIn[2]]['Instance'] = modelIn[3]
       inputInstancesForModel = []
@@ -1679,7 +1679,6 @@ class EnsembleModel(Dummy, Assembler):
       #if type(self.tempTargetEvaluations[modelIn[2]]).__name__ != 'PointSet': self.raiseAnError(IOError, "The TargetEvaluation needs to be an instance of PointSet. Got "+type(self.tempTargetEvaluations[modelIn[2]]).__name__)
       self.modelsDictionary[modelIn[2]]['Input' ] = self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getParaKeys("inputs")
       self.modelsDictionary[modelIn[2]]['Output'] = self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getParaKeys("outputs")
-
     # construct chain connections
     modelsToOutputModels  = dict.fromkeys(self.modelsDictionary.keys(),None)
 
@@ -1725,6 +1724,12 @@ class EnsembleModel(Dummy, Assembler):
       for modelInOut in self.modelsDictionary[modelIn]['Output']:
         if modelInOut not in self.allOutputs: self.allOutputs.append(modelInOut)
     self.needToCheckInputs = True
+
+    # write debug statements
+    self.raiseAMessage("Specs of directed Graph formed by EnsembleModel:")
+    self.raiseAMessage("Graph Degree Sequence is    : "+str(self.ensembleModelGraph.degreeSequence()))
+    self.raiseAMessage("Graph Minimum/Maximum degree: "+str( (self.ensembleModelGraph.minDelta(), self.ensembleModelGraph.maxDelta())))
+    self.raiseAMessage("Graph density/diameter      : "+str( (self.ensembleModelGraph.density(),  self.ensembleModelGraph.diameter())))
 
   def getInitParams(self):
     """
@@ -1813,16 +1818,21 @@ class EnsembleModel(Dummy, Assembler):
     outcomes, targetEvaluations = out
     for modelIn in self.modelsDictionary.keys():
       # update TargetEvaluation
-      inputsValues   = targetEvaluations[modelIn].getParametersValues('inputs', nodeId = 'RecontructEnding')
-      outputsValues  = targetEvaluations[modelIn].getParametersValues('outputs', nodeId = 'RecontructEnding')
-      metadataValues = targetEvaluations[modelIn].getAllMetadata(nodeId = 'RecontructEnding')
-      inputsValues   = inputsValues if targetEvaluations[modelIn].type != 'HistorySet' else inputsValues.values()[-1]
+      inputsValues               = targetEvaluations[modelIn].getParametersValues('inputs', nodeId = 'RecontructEnding')
+      unstructuredInputsValues   = targetEvaluations[modelIn].getParametersValues('unstructuredInputs', nodeId = 'RecontructEnding')
+      outputsValues              = targetEvaluations[modelIn].getParametersValues('outputs', nodeId = 'RecontructEnding')
+      metadataValues             = targetEvaluations[modelIn].getAllMetadata(nodeId = 'RecontructEnding')
+      inputsValues  = inputsValues if targetEvaluations[modelIn].type != 'HistorySet' else inputsValues.values()[-1]
+      if len(unstructuredInputsValues.keys()) > 0:
+        unstructuredInputsValues  = unstructuredInputsValues if targetEvaluations[modelIn].type != 'HistorySet' else unstructuredInputsValues.values()[-1]
+        inputsValues.update(unstructuredInputsValues)
       outputsValues  = outputsValues if targetEvaluations[modelIn].type != 'HistorySet' else outputsValues.values()[-1]
 
       for key in targetEvaluations[modelIn].getParaKeys('inputs'):
-        self.modelsDictionary[modelIn]['TargetEvaluation'].updateInputValue (key,inputsValues[key],options={'acceptArrayRealizations':True})
+        for histValue in inputsValues[key]:
+          self.modelsDictionary[modelIn]['TargetEvaluation'].updateInputValue (key,histValue)
       for key in targetEvaluations[modelIn].getParaKeys('outputs'):
-        self.modelsDictionary[modelIn]['TargetEvaluation'].updateOutputValue (key,outputsValues[key],options={'acceptArrayRealizations':True})
+        self.modelsDictionary[modelIn]['TargetEvaluation'].updateOutputValue (key,outputsValues[key])
       for key in metadataValues.keys():
         self.modelsDictionary[modelIn]['TargetEvaluation'].updateMetadata(key,metadataValues[key])
       # end of update of TargetEvaluation
