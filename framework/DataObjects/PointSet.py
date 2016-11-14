@@ -305,10 +305,10 @@ class PointSet(Data):
             inpKeys.append(variableName)
             inpValues.append(self._dataContainer['metadata'][variableName])
       else:
-        inpKeys   = self._dataContainer['inputs'].keys()
-        inpValues = self._dataContainer['inputs'].values()
-        outKeys   = self._dataContainer['outputs'].keys()
-        outValues = self._dataContainer['outputs'].values()
+        inpKeys   = self._dataContainer['inputs'].keys()   # sorted(self._dataContainer['inputs'].keys())
+        inpValues = self._dataContainer['inputs'].values() #[self._dataContainer['inputs'][key] for key in inpKeys]
+        outKeys   = self._dataContainer['outputs'].keys() # sorted(self._dataContainer['outputs'].keys())
+        outValues = self._dataContainer['outputs'].values() # [self._dataContainer['outputs'][key] for key in outKeys]
       if len(inpKeys) > 0 or len(outKeys) > 0: myFile = open(filenameLocal + '.csv', 'w')
       else: return
 
