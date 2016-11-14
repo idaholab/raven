@@ -2154,25 +2154,9 @@ class ARMA(superVisedLearning):
         fSeriesBest = copy.deepcopy(fSeries)
         self.fourierResult['residues'] = copy.deepcopy(r)
         criterionBest = copy.deepcopy(criterionCurrent) 
-#       self.raiseADebug(fOrder)
-# #       self.raiseADebug(np.average(fSeries,axis=0))
-#       self.raiseADebug(fourierEngine.coef_)  
-#       self.raiseADebug(fourierEngine.intercept_) 
-# #       self.raiseADebug(self.fourierResult['fOrder'])    
-#       self.raiseADebug(criterionCurrent, criterionBest)
-#       self.raiseADebug(self.timeSeriesDatabase[0:10])
-#       self.raiseADebug(self.timeSeriesDatabase[-10:])
-# #       self.raiseAnError(ValueError, 'fOrder')
       
     fourierEngine.fit(fSeriesBest,self.timeSeriesDatabase)
     self.fourierResult['predict'] = fourierEngine.predict(fSeriesBest)
-    
-#     self.raiseADebug(np.average(self.timeSeriesDatabase))
-#     self.raiseADebug(self.timeSeriesDatabase[0:2])
-#     self.raiseADebug(self.fourierResult['fOrder'], self.fourierResult['residues'])
-#     self.raiseADebug(fourierEngine.coef_)
-#     self.raiseADebug(self.fourierResult['predict'][0,0])
-#     self.raiseAnError(ValueError, 's')
     
   def __trainARMA__(self):
     """
@@ -2245,7 +2229,7 @@ class ARMA(superVisedLearning):
   def __generateCDF__(self, data):
     """
       Generate empirical CDF function of the input data, and save the results in self  
-      @In, data, array, shape = [n_timeSteps, n_dimension]
+      @In, data, array, shape = [n_timeSteps, n_dimension], data over which the CDF will be generated
       @Out, none, 
     """     
     self.armaNormPara = {}
@@ -2273,20 +2257,20 @@ class ARMA(superVisedLearning):
     """
       Compute number of bins determined by Freedman Diaconis rule
       https://en.wikipedia.org/wiki/Freedman%E2%80%93Diaconis_rule
-      @In, data, shape = [n_sample]
-      @Out, noBin, number of bins
+      @In, data, array, shape = [n_sample], data over which the number of bins is decided
+      @Out, numBin, int, number of bins determined by Freedman Diaconis rule
     """
     IQR = np.percentile(data, 75) - np.percentile(data, 25)
     binSize = 2.0*IQR*(data.size**(-1.0/3.0))
-    noBin = int((max(data)-min(data))/binSize)
-    return noBin
+    numBin = int((max(data)-min(data))/binSize)
+    return numBin
   
   def __getCDF__(self,d,x):
     """
       Get residue CDF value at point x for d-th dimension      
-      @In, d, dimension id
-      @In, x, variable value
-      @Out, y, CDF value
+      @In, d, int, dimension id
+      @In, x, float, variable value for which the CDF is computed
+      @Out, y, float, CDF value
     """    
     if x <= self.armaNormPara['resCDF'][d]['binsMin']:    y = self.armaNormPara['resCDF'][d]['CDF'][0]
     elif x >= self.armaNormPara['resCDF'][d]['binsMax']:  y = self.armaNormPara['resCDF'][d]['CDF'][-1]
@@ -2302,9 +2286,9 @@ class ARMA(superVisedLearning):
   def __getInvCDF__(self,d,x):   
     """
       Get inverse residue CDF at point x for d-th dimension      
-      @In, d, dimension id
-      @In, x, CDF value
-      @Out, y, variable value
+      @In, d, int, dimension id
+      @In, x, float, the CDF value for which the inverse value is computed
+      @Out, y, float, variable value
     """ 
     if x < 0 or x > 1:    self.raiseAnError(ValueError, 'Input to __getRInvCDF__ is not in unit interval' )
     elif x <= self.armaNormPara['resCDF'][d]['CDFMin']:   y = self.armaNormPara['resCDF'][d]['bins'][0]
@@ -2312,7 +2296,6 @@ class ARMA(superVisedLearning):
     else:
       ind = self.armaNormPara['resCDF'][d]['cdfSearchEng'].kneighbors(x, return_distance=False)
       X, Y = self.armaNormPara['resCDF'][d]['CDF'][ind], self.armaNormPara['resCDF'][d]['bins'][ind]
-#       x1, x2 = min(X.T), max(X.T)
       if X[0,0] <= X[0,1]:        x1, x2, y1, y2 = X[0,0], X[0,1], Y[0,0], Y[0,1]
       else:                       x1, x2, y1, y2 = X[0,1], X[0,0], Y[0,1], Y[0,0]
       if x1 == x2:                y = (y1+y2)/2.0
@@ -2368,13 +2351,13 @@ class ARMA(superVisedLearning):
   def __armaParamAssemb__(self,x,p,q,N): 
     """
       Assemble ARMA parameter into matrices      
-      @In, x, ARMA parameter stored as vector
-      @In, p, AR order
-      @In, q, MA order
-      @In, N, dimensionality
-      @Out Phi, AR parameter
-      @Out Theta, MA parameter
-      @Out Cov, covariance matrix of the noise
+      @In, x, list, ARMA parameter stored as vector
+      @In, p, int, AR order
+      @In, q, int, MA order
+      @In, N, int, dimensionality of x
+      @Out Phi, list, list of Phi parameters (each as an array) for each AR order
+      @Out Theta, list, list of Theta parameters (each as an array) for each MA order
+      @Out Cov, array, covariance matrix of the noise
     """
     Phi, Theta, Cov = {}, {}, np.identity(N)
     for i in range(1,p+1):
@@ -2389,9 +2372,9 @@ class ARMA(superVisedLearning):
   def __computeARMALikelihood__(self,x,*args):
     """
       Compute the likelihood given a ARMA model
-      @In, x, ARMA parameter stored as vector
-      @In, args, additional argument
-      @Out, lkHood, output likelihood
+      @In, x, list, ARMA parameter stored as vector
+      @In, args, dict, additional argument
+      @Out, lkHood, float, output likelihood
   
     """  
     if len(args) != 2:    self.raiseAnError(ValueError, 'args to __computeARMALikelihood__ should have exactly 2 elements')
@@ -2423,7 +2406,6 @@ class ARMA(superVisedLearning):
     sigHat = sigHat / noTimeStep
     self.armaResult['sigHat'] = sigHat[0,0]
     lkHood = -L
-#     self.raiseADebug(lkHood)
     return lkHood
         
   def __computeAICorBIC(self,maxL,noPara,cType,obj='max'):
@@ -2470,10 +2452,8 @@ class ARMA(superVisedLearning):
         tSeriesNorm[t,:] += np.dot(tSeriesNorm[t-i,:], self.armaResult['Phi'][i])
       for j in range(1,min(self.armaResult['Q'], t)+1):
         tSeriesNorm[t,:] += np.dot(tSeriesNoise[t-j,:], self.armaResult['Theta'][j])
-      tSeriesNorm[t,:] += tSeriesNoise[t,:] 
-    
-    
-    
+      tSeriesNorm[t,:] += tSeriesNoise[t,:]
+
     # Convert data back to empirically distributed
     tSeries = self.__dataConversion__(tSeriesNorm, obj='denormalize')       
     # Add fourier trends
