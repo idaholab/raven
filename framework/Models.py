@@ -1610,7 +1610,8 @@ class EnsembleModel(Dummy, Assembler):
           if "repeat" in var.attrib.keys():
             self.initialConditions[var.tag] = np.repeat([float(var.text.split()[0])], int(var.attrib['repeat'])) #np.array([float(var.text.split()[0]) for _ in range(int(var.attrib['repeat']))])
           else:
-            self.initialConditions[var.tag] = np.array(var.text.split())
+            try   : self.initialConditions[var.tag] = np.array([float(varValue) for varValue in var.text.split()])
+            except: self.raiseAnError(IOError,"unable to read text from XML node "+var.tag) 
 
   def __findMatchingModel(self,what,subWhat):
     """

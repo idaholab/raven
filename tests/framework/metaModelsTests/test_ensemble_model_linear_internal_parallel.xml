@@ -26,12 +26,13 @@
       <variables>leftTemperature,rightTemperature,k,averageTemperature</variables>
     </ExternalModel>
     <EnsembleModel name="heatTransferEnsembleModel" subType="">
-      <Model class="Models" inputNames="inputHolder" type="ExternalModel">
+      <Model class="Models" type="ExternalModel">
         thermalConductivityComputation
         <TargetEvaluation class="DataObjects" type="PointSet">thermalConductivityComputationContainer</TargetEvaluation>
       </Model>
-      <Model class="Models" inputNames="inputHolder" type="ExternalModel">
+      <Model class="Models" type="ExternalModel">
           heatTransfer
+        <Input class="DataObjects" type="PointSet">inputHolder</Input>
         <TargetEvaluation class="DataObjects" type="PointSet">heatTransferContainer</TargetEvaluation>
       </Model>
     </EnsembleModel>
