@@ -372,7 +372,7 @@ class HistorySet(Data):
       unstructuredInpValues = list(self._dataContainer['unstructuredInputs'].values())
       #Create Input file
       myFile = open(filenameLocal + '.csv','w')
-      if len(unstructuredInpValues[0].keys())>0:
+      if len(unstructuredInpValues) > 0 and len(unstructuredInpValues[0].keys())>0:
         unstructuredInpKeysFiltered, unstructuredInpValuesFiltered = [], []
       else: unstructuredInpKeysFiltered, unstructuredInpValuesFiltered = None, None
       for n in range(len(outKeys)):
@@ -395,8 +395,10 @@ class HistorySet(Data):
                 inpKeys_h.append(variableName)
                 inpValues_h.append(inpValues[n][variableName])
               else:
-                unstructuredInpKeysFiltered[n].append(variableName)
-                unstructuredInpValuesFiltered[n].append(unstructuredInpValues[n][variableName])
+                if unstructuredInpKeysFiltered is not None:
+                  unstructuredInpKeysFiltered[n].append(variableName)
+                  unstructuredInpValuesFiltered[n].append(unstructuredInpValues[n][variableName])
+                else: elf.raiseAnError(Exception,"variable named "+variableName+" is not among the "+varType+"s!")
             if varType == 'output':
               if variableName not in self.getParaKeys('output'): self.raiseAnError(Exception,"variable named "+variableName+" is not among the "+varType+"s!")
               outKeys_h.append(variableName)
@@ -404,8 +406,9 @@ class HistorySet(Data):
         else:
           inpKeys_h   = list(inpValues[n].keys())
           inpValues_h = list(inpValues[n].values())
-          unstructuredInpKeysFiltered[n] = list(unstructuredInpValues[n].keys())
-          unstructuredInpValuesFiltered[n] =  list(unstructuredInpValues[n].values())
+          if unstructuredInpKeysFiltered is not None:
+            unstructuredInpKeysFiltered[n] = list(unstructuredInpValues[n].keys())
+            unstructuredInpValuesFiltered[n] =  list(unstructuredInpValues[n].values())
           outKeys_h   = list(outValues[n].keys())
           outValues_h = list(outValues[n].values())
 
@@ -432,7 +435,7 @@ class HistorySet(Data):
             myDataFile.write('\n')
         myDataFile.close()
       myFile.close()
-      if len(unstructuredInpKeysFiltered) > 0:
+      if unstructuredInpKeysFiltered is not None and len(unstructuredInpKeysFiltered) > 0:
         # write unstructuredData
         self._writeUnstructuredInputInXML(filenameLocal +'_unstructured_inputs',unstructuredInpKeysFiltered,unstructuredInpValuesFiltered)
 

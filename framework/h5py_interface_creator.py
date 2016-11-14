@@ -324,7 +324,7 @@ class hdf5Database(MessageHandler.MessageUser):
       # I keep this structure here because I want to maintain the possibility to add a whatever dictionary even if not prepared and divided into output and input sub-sets. A.A.
       if set(['inputSpaceParams']).issubset(set(source['name'].keys())):
         groups.attrs[b'inputSpaceHeaders' ] = list(utils.toBytesIterative(source['name']['inputSpaceParams'].keys()))
-        aaaa = json.dumps(list(utils.toListFromNumpyOrC1arrayIterative(list(utils.toBytesIterative(source['name']['inputSpaceParams'].values())))))
+
         groups.attrs[b'inputSpaceValues'  ] = json.dumps(list(utils.toListFromNumpyOrC1arrayIterative(list(utils.toBytesIterative(source['name']['inputSpaceParams'].values())))))
       if set(['outputSpaceParams']).issubset(set(source['name'].keys())): outDict = source['name']['outputSpaceParams']
       else: outDict = dict((key,value) for (key,value) in source['name'].iteritems() if key not in ['inputSpaceParams'])
@@ -397,7 +397,6 @@ class hdf5Database(MessageHandler.MessageUser):
           else:
             groups[run].attrs[b'inputSpaceHeaders' ] = [utils.toBytes(headersIn[i])  for i in range(len(headersIn))]
             groups[run].attrs[b'outputSpaceHeaders'] = [utils.toBytes(headersOut[i])  for i in range(len(headersOut))]
-            json.dumps(list(utils.toListFromNumpyOrC1arrayIterative(np.atleast_1d(np.array(dataIn[x][run])).tolist())))
             groups[run].attrs[b'inputSpaceValues'  ] = json.dumps([json.dumps(list(utils.toListFromNumpyOrC1arrayIterative(np.atleast_1d(np.array(dataIn[x][run])).tolist()))) for x in range(len(dataIn))])
             groups[run].attrs[b'nParams'            ] = len(headersOut)
             groups[run].attrs[b'nTimeSteps'                ] = 1
@@ -685,9 +684,9 @@ class hdf5Database(MessageHandler.MessageUser):
         except:
           try:    attrs["inputSpaceHeaders"]  = gbAttrs[0]["inputSpaceHeaders"]
           except: pass
-        try:    attrs["inputSpaceValues"]     = json.dumps(list(utils.toListFromNumpyOrC1arrayIterative(list(gbAttrs[0]["inputSpaceValues"].tolist()))))
+        try:    attrs["inputSpaceValues"]     = list(utils.toListFromNumpyOrC1arrayIterative(list(json.loads(gbAttrs[0]["inputSpaceValues"]).tolist())))  #json.loads(list(utils.toListFromNumpyOrC1arrayIterative(list(gbAttrs[0]["inputSpaceValues"].tolist())))) #json.dumps(list(utils.toListFromNumpyOrC1arrayIterative(list(gbAttrs[0]["inputSpaceValues"].tolist()))))
         except:
-          try:    attrs["inputSpaceValues"]   = json.dumps(list(utils.toListFromNumpyOrC1arrayIterative(list(gbAttrs[0]["inputSpaceValues"]))))
+          try:    attrs["inputSpaceValues"]   = list(utils.toListFromNumpyOrC1arrayIterative(list(json.loads(gbAttrs[0]["inputSpaceValues"]))))
           except: pass
         attrs["nParams"]        = gbAttrs[0]["nParams"]
         attrs["parentID"]       = whereList[0]
