@@ -1070,7 +1070,7 @@ class HDMRRom(GaussPolynomialRom):
     tot = 0
     for term,mult in self.reducedTerms.items():
       if term == ():
-        tot += self.refSoln
+        tot += self.refSoln*mult
       else:
         cutVals = [list(featureVals[0][self.features.index(j)] for j in term)]
         tot += self.ROMs[term].__evaluateLocal__(cutVals)*mult
