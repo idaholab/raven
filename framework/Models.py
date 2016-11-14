@@ -1945,10 +1945,17 @@ class EnsembleModel(Dummy, Assembler):
           responseSpace = tempTargetEvaluations[modelIn].getParametersValues('outputs', nodeId = 'RecontructEnding')
           inputSpace    = tempTargetEvaluations[modelIn].getParametersValues('inputs', nodeId = 'RecontructEnding')
           typeOutputs[modelCnt] = tempTargetEvaluations[modelIn].type
-          gotOutputs[modelCnt]  = responseSpace if typeOutputs[modelCnt] != 'HistorySet' else responseSpace.values()[-1]
+          
+          if typeOutputs[modelCnt] != 'HistorySet':
+            gotOutputs[modelCnt] = {}
+            for key,value in responseSpace.items(): gotOutputs[modelCnt][key] = np.atleast_1d(value[-1])
+            for key,value in inputSpace.items()   : inputSpace[key]           = np.atleast_1d(value[-1])
+          else:
+            gotOutputs[modelCnt], inputSpace = responseSpace.values()[-1], inputSpace.values()[-1]
+          #gotOutputs[modelCnt]  = responseSpace if typeOutputs[modelCnt] != 'HistorySet' else responseSpace.values()[-1]
           #store the result in return dictionary
           returnDict[modelIn]['outputSpaceParams'] = gotOutputs[modelCnt]
-          returnDict[modelIn]['inputSpaceParams' ] = inputSpace if typeOutputs[modelCnt] != 'HistorySet' else inputSpace.values()[-1]
+          returnDict[modelIn]['inputSpaceParams' ] = inputSpace #inputSpace if typeOutputs[modelCnt] != 'HistorySet' else inputSpace.values()[-1]
           returnDict[modelIn]['metadata'         ] = tempTargetEvaluations[modelIn].getAllMetadata()
           #returnDict[modelIn] = {'outputSpaceParams':gotOutputs[modelCnt],'inputSpaceParams':tempTargetEvaluations[modelIn].getParametersValues('inputs', nodeId = 'RecontructEnding'),'metadata':tempTargetEvaluations[modelIn].getAllMetadata()}
           if self.activatePicard:
@@ -1958,6 +1965,8 @@ class EnsembleModel(Dummy, Assembler):
               residueContainer[modelIn]['iterValues'][0][out] = copy.copy(gotOutputs[modelCnt][out])
               if iterationCount == 1: residueContainer[modelIn]['iterValues'][1][out] = np.zeros(len(residueContainer[modelIn]['iterValues'][0][out]))
             for out in gotOutputs[modelCnt].keys():
+              if np.asarray(residueContainer[modelIn]['iterValues'][0][out]).shape != np.asarray(residueContainer[modelIn]['iterValues'][1][out]).shape:
+                pass
               residueContainer[modelIn]['residue'][out] = abs(np.asarray(residueContainer[modelIn]['iterValues'][0][out]) - np.asarray(residueContainer[modelIn]['iterValues'][1][out]))
             residueContainer[modelIn]['Norm'] =  np.linalg.norm(np.asarray(residueContainer[modelIn]['iterValues'][1].values())-np.asarray(residueContainer[modelIn]['iterValues'][0].values()))
       if self.activatePicard:
