@@ -13,8 +13,9 @@
   [./ExactPCA]
     type   = 'RavenFramework'
     input  = 'test_tdmSKLearnExactPCA.xml'
-    csv    = 'ExactPCA/dummy_0.csv ExactPCA/dummy_149.csv ExactPCA/info_0.csv ExactPCA/info_1.csv'
+    UnorderedCsv    = 'ExactPCA/dummy_0.csv ExactPCA/dummy_149.csv ExactPCA/info_0.csv ExactPCA/info_1.csv'
     output = 'ExactPCA/dummy.csv ExactPCA/info.csv'
+    check_absolute_value = True
   [../]
   [./RandomizedPCA]
     type   = 'RavenFramework'

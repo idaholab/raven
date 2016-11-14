@@ -467,7 +467,7 @@ class SciKitLearn(unSupervisedLearning):
     if hasattr(self.Method, 'connectivity'):
       ## we should find a smart way to define the number of neighbors instead of
       ## default constant integer value(10)
-      connectivity = kneighbors_graph(self.normValues, n_neighbors = 10)
+      connectivity = kneighbors_graph(self.normValues, n_neighbors = min(10,len(self.normValues[:,0])-1))
       connectivity = 0.5 * (connectivity + connectivity.T)
       self.initOptionDict['connectivity'] = connectivity
       self.Method.set_params(**self.initOptionDict)

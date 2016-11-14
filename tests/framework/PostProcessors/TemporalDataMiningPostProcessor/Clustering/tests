@@ -28,8 +28,9 @@
   [./SpectralClustering]
     type   = 'RavenFramework'
     input  = 'test_tdmSKLearnSpectralClustering.xml'
-    csv    = 'SpectralClustering/centroid_0.csv SpectralClustering/centroid_2.csv
+    csv    = 'SpectralClustering/centroid_0.csv SpectralClustering/centroid_1.csv
 			  SpectralClustering/dummy_0.csv SpectralClustering/dummy_9.csv'
+    minimum_library_versions = 'sklearn 0.18'
   [../]
   [./GaussianMixture]
     type   = 'RavenFramework'
@@ -41,5 +42,6 @@
     type   = 'RavenFramework'
     input  = 'test_tdmSKLearnVariationalGMM.xml'
     csv    = 'VariationalGMM/centroid_0.csv VariationalGMM/dummy_0.csv VariationalGMM/dummy_2.csv'
+    rel_err = 0.001
   [../]
 []
