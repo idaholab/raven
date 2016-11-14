@@ -57,7 +57,7 @@
         <type>csv</type>
         <source>history</source>
     </Print>
-    <Plot dim="2" name="historyPlot" overwrite="false" verbosity="debug">
+    <Plot   name="historyPlot" overwrite="false" verbosity="debug">
         <plotSettings>
             <plot>
                 <type>line</type>

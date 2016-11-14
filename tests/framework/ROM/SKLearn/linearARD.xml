@@ -30,7 +30,7 @@
       <compute_score>False</compute_score>
       <threshold_lambda>1e4</threshold_lambda>
       <fit_intercept>True</fit_intercept>
-      <normalize>False</normalize>
+      <normalize>True</normalize>
       <verbose>False</verbose>
     </ROM>
   </Models>
@@ -38,7 +38,6 @@
   <ExternalXML node="Distributions" xmlToLoad="sharedDistributions.xml"/>
   <ExternalXML node="Samplers" xmlToLoad="sharedSamplers.xml"/>
   <ExternalXML node="Steps" xmlToLoad="sharedSteps.xml"/>
-
   <OutStreams>
     <!-- A csv file containing the output of the example -->
     <Print name="outData">
@@ -49,5 +48,4 @@
   </OutStreams>
 
   <ExternalXML node="DataObjects" xmlToLoad="sharedDataObjects.xml"/>
-
 </Simulation>

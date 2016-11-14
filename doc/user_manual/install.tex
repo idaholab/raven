@@ -30,7 +30,7 @@ be inversely correlated).
 \section{RAVEN Dependencies Installation}
 \label{raven_dependencies}
 
-RAVEN is built upon several freely available open-source software packages, 
+RAVEN is built upon several freely available open-source software packages,
 which must  be installed before it will function properly:
 
 \begin{center}
@@ -41,9 +41,9 @@ which must  be installed before it will function properly:
         support code in the RAVEN package) \\
     \hline libtool & Generic library management tool \\
     \hline python & Scripting language RAVEN is written in \\
-    \hline swig & Simplified Wrapper and Interface Generator 
+    \hline swig & Simplified Wrapper and Interface Generator
         (Used to create Python interfaces to supporting C++ code) \\
-    \hline hdf5 & Library providing interface to HDF5 database 
+    \hline hdf5 & Library providing interface to HDF5 database
         file format used by RAVEN \\
     \hline h5py & Python interface to HDF5 database library \\
     \hline numpy & N-Dimensional array package for Python \\
@@ -57,7 +57,7 @@ which must  be installed before it will function properly:
 
 RAVEN is supported on three separate computing platforms:
 Linux, OSX (Apple Macintosh), and Microsoft Windows.  Depending
-on which of these systems is used, the preparation of the system 
+on which of these systems is used, the preparation of the system
 to run RAVEN varies.
 
 \subsection{Preparing a Linux System for RAVEN}
@@ -66,14 +66,14 @@ to run RAVEN varies.
 When installing RAVEN on a Linux system, it is recommended that the
 distribution's package manager be used to install the dependencies.
 Doing so automates the process and automatically includes any needed
-dependencies of the requested packages.  Below are instructions for 
+dependencies of the requested packages.  Below are instructions for
 doing so for two popular Linux distributions, Ubuntu and Fedora.
 
 \subsubsection{Ubuntu}
 
-The Ubuntu distribution of Linux makes use of the Advanced Package Tool 
+The Ubuntu distribution of Linux makes use of the Advanced Package Tool
 (APT) to automate the installation of preconfigured software.  The following
-command uses the APT to add the needed packages and any needed 
+command uses the APT to add the needed packages and any needed
 dependencies not already on the system:
 
 \begin{lstlisting}[language=bash]
@@ -92,7 +92,7 @@ sudo apt-get install texlive-latex-base texlive-extra-utils \
 
 \subsubsection{Fedora}
 
-When using the Fedora Linux distribution, use the RPM package manager to 
+When using the Fedora Linux distribution, use the RPM package manager to
 install needed dependencies:
 
 \begin{lstlisting}[language=bash]
@@ -101,8 +101,8 @@ dnf install swig libtool gcc-c++ redhat-rpm-config python-devel \
   python-matplotlib-qt4
 \end{lstlisting}
 
-In addition, if you would like to be able to build the documentation 
-included in the RAVEN software distribution it is necessary to install 
+In addition, if you would like to be able to build the documentation
+included in the RAVEN software distribution it is necessary to install
 \TeX~Live and its related packages:
 \begin{lstlisting}[language=bash]
 dnf install texlive texlive-subfigure texlive-stmaryrd \
@@ -119,15 +119,15 @@ Fedora Linux.
 \label{sysprep_osx}
 
 When using an Apple Macintosh computer, the above dependencies are met
-by following three steps: Installing the XCode command line tools from Apple, 
+by following three steps: Installing the XCode command line tools from Apple,
 installing the XQuartz  X-Window system server, and then installing and using the Miniconda
 package system to add the rest of the dependencies.
 
 \subsubsection{Installing XCode Command Line Tools}
 
-The XCode command line tools package from Apple Computer provides the C++ 
+The XCode command line tools package from Apple Computer provides the C++
 compilers and git source code control tools needed to obtain and build RAVEN.
-It is freely available from the Apple developer site (download and install the appropriate link 
+It is freely available from the Apple developer site (download and install the appropriate link
 for your version of OSX):
 \begin{itemize}
     \item For El Capitan download and install: \url{https://developer.apple.com/downloads/index.action?name=for%20Xcode}
@@ -135,8 +135,8 @@ for your version of OSX):
 \end{itemize}
 
 \subsubsection{Installing XQuartz}
-XQuartz is an implementation of the X Server for the Mac OSX operating system.  It is required 
-becuase RAVEN is often used with applications developed with the Multiphysics 
+XQuartz is an implementation of the X Server for the Mac OSX operating system.  It is required
+becuase RAVEN is often used with applications developed with the Multiphysics
 Object-Oriented Simulation Environment (MOOSE).
 \begin{itemize}
     \item Download and install: \url{https://dl.bintray.com/xquartz/downloads/XQuartz-2.7.9.dmg}
@@ -145,29 +145,59 @@ Object-Oriented Simulation Environment (MOOSE).
 \subsubsection{Installing Miniconda and Packages}
 \label{miniconda}
 
-For OSX, the simplest and most robust way to install the RAVEN dependencies
-is to install and use Miniconda to obtain them (see \url{http://conda.pydata.org/miniconda.html} for more information).
+For OSX, the simplest and most robust way to install the RAVEN
+dependencies is with Miniconda.  Miniconda is a package manager for
+python packages and can be used to install the third party packages
+that RAVEN depends on.
 
-To install Miniconda, download and install the appropriate file from \url{http://conda.pydata.org/miniconda.html}.
+For OSX Yosemite and OSX El Capitan there is a package called
+raven\_miniconda.pkg available.  The package includes both miniconda
+and the dependencies RAVEN needs. If you get an error that the package
+is not signed, then Control click the package, and choose ``Open
+With'' and then Installer.  The file can be gotten from the RAVEN wiki
+from a link on the page:
+\url{https://hpcgitlab.inl.gov/idaholab/raven/wikis/installationMAC}
 
-After Miniconda has been installed, it may then be used to install the rest of the packages needed to run RAVEN:
+The files will be installed into \texttt{/opt/raven\_libs}.
 
+Your \texttt{.bash\_profile} will be modified to source
+the\\ \texttt{/opt/raven\_libs/environments/raven\_libs\_profile}
+file.  This needs to be sourced either with the command:
 \begin{lstlisting}[language=bash]
-conda install numpy hdf5 h5py scipy scikit-learn matplotlib swig
+source $HOME/.bash_profile
 \end{lstlisting}
+or by reopening the terminal will put the correct Miniconda python in
+the path.
+
+Once this is installed you can go on to Section \ref{raven_installation} and install RAVEN.
+
+Advanced note: This creates a conda environment called
+\texttt{raven\_libraries} and the command used to create this the \texttt{raven\_libraries} environment can be found by by running:
+\texttt{python scripts/TestHarness/testers/RavenUtils.py --conda-create}
+
+Alternatively, Miniconda can be obtained and installed directly. See
+\url{http://conda.pydata.org/miniconda.html} for more information and
+installation files to download.  If your system already has Miniconda,
+you may use that installation to load these packages.
+
+After Miniconda has been installed, it may then be used to install the
+rest of the packages needed to run RAVEN (this command also creates a
+separate environment for the RAVEN libraries):
+
+\lstinputlisting[language=bash]{conda_command.txt}
 
 \subsection{Preparing a Windows System for RAVEN}
 \label{sysprep_windows}
 
 Since RAVEN requires a UNIX-like shell to function, one must be installed for a Microsoft
 Windows system to run it.  A freely available software package called MSYS2 is used to
-provide this functionality.  More information about MSYS2 is available at 
+provide this functionality.  More information about MSYS2 is available at
 \url{https://sourceforge.net/p/msys2/wiki/MSYS2%20introduction/}.
 
 \subsubsection{Prerequisites to use RAVEN on Windows}
 \begin{itemize}
-    \item A system running a 64-bit version of Microsoft Windows. Installation and operation 
-        has been verified on Windows 7 and Windows Server 2012 R2 Standard. While there 
+    \item A system running a 64-bit version of Microsoft Windows. Installation and operation
+        has been verified on Windows 7 and Windows Server 2012 R2 Standard. While there
         is also a 32-bit version of MSYS2 available, the RAVEN installation described here will not work with it.
     \item At least 7 Gigabytes of available disk space:
     \begin{itemize}
@@ -180,17 +210,17 @@ provide this functionality.  More information about MSYS2 is available at
 \subsubsection{Installation}
 \begin{enumerate}
     \item Obtain and run the latest basic 64-bit MSYS2 installer from \url{ https://msys2.github.io/} (As of this writing it is named
-	msys2-x86\_64-20160205.exe and is approximately 50 Megabytes in size).  
-    \item The page with the download also contains installation instructions. Perform the steps described there up to 
-	step 4 to install a minimal MSYS2 system. Make sure that you install to path C:\textbackslash{}msys64. There 
-	is no need to go past step 4 because the balance of what is needed to run RAVEN under MSYS2 have been 
-	pre-packaged together in one large archive file. 
+	msys2-x86\_64-20160205.exe and is approximately 50 Megabytes in size).
+    \item The page with the download also contains installation instructions. Perform the steps described there up to
+	step 4 to install a minimal MSYS2 system. Make sure that you install to path C:\textbackslash{}msys64. There
+	is no need to go past step 4 because the balance of what is needed to run RAVEN under MSYS2 have been
+	pre-packaged together in one large archive file.
     \item Download the pre-built archive file containing MSYS2 packages needed to run RAVEN.  A link to the current version of
-	this file may be found in the Windows installation section of the RAVEN Wiki: 
+	this file may be found in the Windows installation section of the RAVEN Wiki:
 	\url{https://hpcgitlab.inl.gov/idaholab/raven/wikis/installationWindows#obtain-and-install-the-pre-built-archive-containing-msys2-packages-needed-for-raven}
-    \item Use a Windows archive file program such as WinZip to open the large zip file just downloaded.  Shut down any 
-	MSYS2 shells you have open and then copy the "msys64" folder from the large zip file so that it is copied right 
-	on top of the MSYS2 installation performed above. When the file copying is done (which will take a while) 
+    \item Use a Windows archive file program such as WinZip to open the large zip file just downloaded.  Shut down any
+	MSYS2 shells you have open and then copy the "msys64" folder from the large zip file so that it is copied right
+	on top of the MSYS2 installation performed above. When the file copying is done (which will take a while)
 	you should have an environment ready to receive RAVEN.
     \item This installation will create shortcuts that may be used to start UNIX-Like shells:
 	\begin{itemize}
@@ -205,7 +235,7 @@ provide this functionality.  More information about MSYS2 is available at
 
 
 \subsubsection{For More Information}
-Note: An illustrated version of this procedure may be found on the Wiki page at 
+Note: An illustrated version of this procedure may be found on the Wiki page at
 \url{https://hpcgitlab.inl.gov/idaholab/raven/wikis/installationWindows}.
 
 \subsection{Manual Dependency Install}
@@ -233,18 +263,44 @@ Once the RAVEN dependencies have been installed (See Section
 
 There are several different ways to get RAVEN.  There are trade offs
 between how easy it is to setup and how easy it is to develop with the
-method.  If you are using several MOOSE applications and want to share
-the MOOSE directory go to Section \ref{parallel_directory_git}.  If
-you want to do development on RAVEN and RAVEN is the only MOOSE
-application you are using or you don't mind having duplicate MOOSE
-directories, go to Section \ref{submodule_git}.  If you don't need to
-do RAVEN development but want to keep up with the latest version of
-RAVEN, the RAVEN Whole repository can be used as described in Section
+method.  If you want to do development on RAVEN and RAVEN is the only
+MOOSE application you are using or you don't mind having duplicate
+MOOSE directories, go to Section \ref{submodule_git}. If you are using
+several MOOSE applications and want to share the MOOSE directory go to
+Section \ref{parallel_directory_git}.  If you don't need to do RAVEN
+development but want to keep up with the latest version of RAVEN, the
+RAVEN Whole repository can be used as described in Section
 \ref{raven_whole_devel}.  If you don't need to do RAVEN development,
 and want to track a stable version of RAVEN, the RAVEN Whole
 repository with a stable branch can be used as described in Section
-\ref{raven_whole_stable}.  If git is not used, the Source Code
-Package in Section \ref{raven_source_package} can be used.
+\ref{raven_whole_stable}.  If git is not used, the Source Code Package
+in Section \ref{raven_source_package} can be used.
+
+\subsection{Submodule Git}
+\label{submodule_git}
+
+This install method uses git to obtain the software and uses
+submodules to get Crow and MOOSE.  This can be used for RAVEN and Crow
+development.
+
+First RAVEN needs to be cloned, and then the submodules initialized.
+
+\begin{lstlisting}[language=bash]
+git clone git@hpcgitlab.inl.gov:idaholab/raven.git
+cd raven
+git submodule update --init crow moose
+\end{lstlisting}
+
+Next follow the compilation and testing instructions in Section \ref{raven_compilation}.
+
+To update the software, the git pull and submodule update commands can
+be used:
+
+\begin{lstlisting}[language=bash]
+git pull
+git submodule update
+\end{lstlisting}
+
 
 \subsection{Parallel Directory Git}
 \label{parallel_directory_git}
@@ -272,14 +328,10 @@ git clone git@hpcgitlab.inl.gov:idaholab/crow.git
 git clone git@hpcgitlab.inl.gov:idaholab/raven.git
 \end{lstlisting}
 
-If RELAP-7 will be used, only IAPWS should be initialized instead of
-all the submodules:
+If RELAP-7 will be used, it should be cloned:
 
 \begin{lstlisting}[language=bash]
 git clone git@hpcgitlab.inl.gov:idaholab/relap-7.git
-cd relap-7
-git submodule update --init contrib/iapws
-cd ..
 \end{lstlisting}
 
 Next the RAVEN modules should be compiled:
@@ -336,32 +388,6 @@ git pull
 cd ../raven
 git pull
 \end{lstlisting}
-
-\subsection{Submodule Git}
-\label{submodule_git}
-
-This install method uses git to obtain the software and uses
-submodules to get Crow and MOOSE.  This can be used for RAVEN and Crow
-development.
-
-First RAVEN needs to be cloned, and then the submodules initialized.
-
-\begin{lstlisting}[language=bash]
-git clone git@hpcgitlab.inl.gov:idaholab/raven.git
-cd raven
-git submodule update --init crow moose
-\end{lstlisting}
-
-Next follow the compilation and testing instructions in Section \ref{raven_compilation}.
-
-To update the software, the git pull and submodule update commands can
-be used:
-
-\begin{lstlisting}[language=bash]
-git pull
-git submodule update
-\end{lstlisting}
-
 
 \subsection{RAVEN Whole Devel Branch}
 \label{raven_whole_devel}
@@ -445,6 +471,25 @@ At the end, there should be a line that looks similar to the output below:
 Normally there are skipped tests because either some of the codes are
 not available, or some of the test are not currently working.  The
 output will explain why each is skipped.
+
+Note, that when using RAVEN remotely in a graphical session with X11 forwarded
+to the client, some tests may depend on live X11 forwarding to the remote
+client. If the user is not using X11 forwarding then RAVEN should degrade
+gracefully and still be able to pass all of the test cases, this case only
+arises when the user has forwarded their X11 environment to a ssh client, for
+example. The standard timeout of X for an untrusted connection is 20 minutes.
+Users wanting to run the full test suite including those involving
+graphical output may note that the this process can take longer than the
+aforementioned timeout. One way to alleviate this is to login to the remote
+host of RAVEN using a trusted connection by using the -Y flag:
+
+\begin{lstlisting}[language=bash]
+ssh -Y hostname
+\end{lstlisting}
+
+This should only be done when the user is using a secure connection to a known
+host though, as there are security concerns to the client machine when allowing
+a remote computer access to its graphical user interface.
 
 If all the tests pass, you are ready to read about Running RAVEN in
 Section \ref{HowToRun}.

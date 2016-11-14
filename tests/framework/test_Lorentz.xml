@@ -1,7 +1,6 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <!-- RUNINFO -->
-
   <RunInfo>
     <WorkingDir>externalModel</WorkingDir>
     <Sequence>FirstMRun,FirstMRun2</Sequence>

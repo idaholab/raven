@@ -1,3 +1,20 @@
+\newcommand{\zNormalizationPerformed}[1]
+{
+  \textcolor{red}{\\It is important to NOTE that RAVEN uses a Z-score normalization of the training data before 
+  constructing the \textit{#1} ROM:
+\begin{equation}
+  \mathit{\mathbf{X}} = \frac{(\mathit{\mathbf{X}}-\mu )}{\sigma }
+\end{equation} 
+ } 
+}
+
+\newcommand{\zNormalizationNotPerformed}[1]
+{
+  \textcolor{red}{
+  \\It is important to NOTE that RAVEN does not pre-normalize the training data before 
+  constructing the \textit{#1} ROM.}
+}
+
 \subsection{ROM}
 \label{subsec:models_ROM}
 A Reduced Order Model (ROM) is a mathematical model consisting of a fast
@@ -74,10 +91,17 @@ independent of the \xmlAttr{subType} specified:
 
 The types and meaning of the remaining sub-nodes depend on the sub-type
 specified in the attribute \xmlAttr{subType}.
+
 %
 Note that if an HistorySet is provided in the training step then a temporal ROM is created, i.e. a ROM that generates not a single value prediction of each element indicated in the  \xmlNode{Target} block but its full temporal profile.
+\\ 
+\textcolor{red}{\\\textbf{It is important to NOTE that RAVEN uses a Z-score normalization of the training data before constructing most of the 
+Reduced Order Models (e.g. most of the SciKitLearn-based ROMs):}}
+\begin{equation}
+  \mathit{\mathbf{X}} = \frac{(\mathit{\mathbf{X}}-\mu )}{\sigma }
+\end{equation}
+\\In the following sections the specifications of each ROM type are reported, highlighting when a \textbf{Z-score normalization} is performed by RAVEN before constructing the ROM or when it is not performed.
 
-In the sections that follow, the specifications of each type are reported.
 %
 %%%%% ROM Model - NDspline  %%%%%%%
 \subsubsection{NDspline}
@@ -104,6 +128,8 @@ No further XML sub-nodes are required.
 \nb This ROM type must be trained from a regular Cartesian grid.
 %
 Thus, it can only be trained from the outcomes of a grid sampling strategy.
+
+\zNormalizationPerformed{NDspline}
 
 \textbf{Example:}
 \begin{lstlisting}[style=XML,morekeywords={name,subType}]
@@ -220,6 +246,8 @@ Thus, it can only be trained from the outcomes of a SparseGridCollocation sample
 Also, this ROM must be referenced in the SparseGridCollocation sampler in order to
 accurately produce the necessary sparse grid points to train this ROM.
 
+\zNormalizationNotPerformed{GaussPolynomialRom}
+
 \textbf{Example:}
 {\footnotesize
 \begin{lstlisting}[style=XML,morekeywords={name,subType}]
@@ -298,6 +326,8 @@ Also, this ROM must be referenced in the Sobol sampler in order to
 accurately produce the necessary sparse grid points to train this ROM.
 Experience has shown order 2 Sobol decompositions to include the great majority of
   uncertainty in most models.
+
+\zNormalizationNotPerformed{HDMRRom}
 
 \textbf{Example:}
 {\footnotesize
@@ -446,6 +476,8 @@ be \xmlString{MSR} (see the associated example).
   \default{1.}
 \end{itemize}
 
+\zNormalizationNotPerformed{MSR}
+
 \textbf{Example:}
 \begin{lstlisting}[style=XML,morekeywords={name,subType}]
 <Simulation>
@@ -504,6 +536,8 @@ below).
   $p$ means greater importance for points far away).
   %
 \end{itemize}
+
+\zNormalizationPerformed{NDinvDistWeight}
 
 \textbf{Example:}
 \begin{lstlisting}[style=XML,morekeywords={name,subType}]
@@ -617,6 +651,8 @@ ARD optimizes these hyperparameters to discover which inputs are relevant.
   %
   \item \verDescriptionA{False}
 \end{itemize}
+
+\zNormalizationNotPerformed{ARDRegression}
 %%%%%%%%
 \subparagraph{Linear Model: Bayesian ridge regression}
 \mbox{}
@@ -674,6 +710,8 @@ The parameters are estimated by maximizing the marginal log likelihood.
   \item \normalizeDescription{False}
   \item \verDescriptionA{False}
 \end{itemize}
+
+\zNormalizationNotPerformed{BayesianRidge}
 %%%%%%%
 \subparagraph{Linear Model: Elastic Net}
 \mbox{}
@@ -712,6 +750,7 @@ It minimizes the objective function:
   \item \positiveDescription{False}
   %
 \end{itemize}
+\zNormalizationNotPerformed{ElasticNet}
 %%%%%%%%
 \subparagraph{Linear Model: Elastic Net CV}
 \mbox{}
@@ -758,6 +797,7 @@ The best model is selected by cross-validation.
   \item \positiveDescription{False}
   %
 \end{itemize}
+\zNormalizationNotPerformed{ElasticNetCV}
 %%%%%%
 \subparagraph{Linear Model: Least Angle Regression model}
 \mbox{}
@@ -797,6 +837,7 @@ determined by a linear combination of a subset of potential covariates.
   \default{True}
   %
 \end{itemize}
+\zNormalizationNotPerformed{Lars}
 %%%%%%
 \subparagraph{Linear Model: Cross-validated Least Angle Regression model}
 \mbox{}
@@ -856,7 +897,7 @@ absolute values of the coefficients.
   \item \warmStartDescription{False}
   \item \positiveDescription{False}
 \end{itemize}
-
+\zNormalizationNotPerformed{LarsCV}
 \subparagraph{Lasso linear model with iterative fitting along a regularization
   path}
 \mbox{}
@@ -892,7 +933,7 @@ regressor}{linear\_model|LassoCV}
   \item \verDescriptionB{False}
   \item \positiveDescription{False}
 \end{itemize}
-
+\zNormalizationNotPerformed{LassoCV}
 \subparagraph{Lasso model fit with Least Angle Regression}
 \mbox{}
 
@@ -923,7 +964,7 @@ regressor}{linear\_model|LassoLars}
   %
   \default{2.2204460492503131e-16}
 \end{itemize}
-
+\zNormalizationNotPerformed{LassoLars}
 \subparagraph{Cross-validated Lasso, using the LARS algorithm}
 \mbox{}
 
@@ -947,7 +988,7 @@ regressor}{linear\_model|LassoLarsCV}
   %
   \default{2.2204460492503131e-16}
 \end{itemize}
-
+\zNormalizationNotPerformed{LassoLarsCV}
 \subparagraph{Lasso model fit with Lars using BIC or AIC for model selection}
 \mbox{}
 
@@ -989,7 +1030,7 @@ A good model explains the data well while maintaining simplicity.
   %
   \default{2.2204460492503131e-16}
 \end{itemize}
-
+\zNormalizationNotPerformed{LassoLarsIC}
 \subparagraph{Ordinary least squares Linear Regression}
 \mbox{}
 
@@ -1005,7 +1046,7 @@ Regressor}{linear\_model|LinearRegression}
   \item \fitInterceptDescription{True}
   \item \normalizeDescription{False}
 \end{itemize}
-
+\zNormalizationNotPerformed{LinearRegression}
 \subparagraph{Logistic Regression}
 \mbox{}
 \\The \textit{Logistic Regression} implements L1 and L2 regularized logistic
@@ -1071,7 +1112,7 @@ for optimal performance; any other input format will be converted (and copied).
   \item \randomStateDescription{None}
   \item \tolDescriptionC{0.0001}
 \end{itemize}
-
+\zNormalizationPerformed{LogisticRegression}
 \subparagraph{Multi-task Lasso model trained with L1/L2 mixed-norm as
   regularizer}
 \mbox{}
@@ -1095,7 +1136,7 @@ i.e. the sum of norm of each row.
   \item \tolDescriptionB{1.e-4}
   \item \warmStartDescription{False}
 \end{itemize}
-
+\zNormalizationNotPerformed{MultiTaskLasso}
 \subparagraph{Multi-task Elastic Net model trained with L1/L2 mixed-norm as
   regularizer}
 \mbox{}
@@ -1135,7 +1176,7 @@ i.e. the sum of norm of each row.
   \item \tolDescriptionB{1.e-4}
   \item \warmStartDescription{False}
 \end{itemize}
-
+\zNormalizationNotPerformed{MultiTaskElasticNet}
 \subparagraph{Orthogonal Mathching Pursuit model (OMP)}
 \mbox{}
 
@@ -1171,7 +1212,7 @@ regressor}{linear\_model|OrthogonalMatchingPursuit}
   %
   \default{`auto'}
 \end{itemize}
-
+\zNormalizationNotPerformed{OrthogonalMatchingPursuit}
 \subparagraph{Cross-validated Orthogonal Mathching Pursuit model (OMP)}
 \mbox{}
 
@@ -1195,7 +1236,7 @@ regressor}{linear\_model|OrthogonalMatchingPursuitCV}
   \default{None}
   \item \verDescriptionB{False}
 \end{itemize}
-
+\zNormalizationNotPerformed{OrthogonalMatchingPursuitCV}
 \subparagraph{Passive Aggressive Classifier}
 \mbox{}
 \\The \textit{Passive Aggressive Classifier} is a principled approach to linear
@@ -1226,7 +1267,7 @@ Classifier}{linear\_model|PassiveAggressiveClassifier}
   %
   \item \warmStartDescription{False}
 \end{itemize}
-
+\zNormalizationPerformed{PassiveAggressiveClassifier}
 \subparagraph{Passive Aggressive Regressor}
 \mbox{}
 \\The \textit{Passive Aggressive Regressor} is similar to the Perceptron in that
@@ -1266,7 +1307,7 @@ parameter, $C$.
   %
   \item \warmStartDescription{False}
 \end{itemize}
-
+\zNormalizationPerformed{PassiveAggressiveRegressor}
 \subparagraph{Perceptron}
 \mbox{}
 
@@ -1311,7 +1352,7 @@ training set one at a time.
   %
   \item \warmStartDescription{False}
 \end{itemize}
-
+\zNormalizationPerformed{PassiveAggressiveRegressor}
 \subparagraph{Linear least squares with l2 regularization}
 \mbox{}
 \\The \textit{Linear least squares with l2 regularization} solves a regression
@@ -1345,7 +1386,7 @@ is a 2d-array of shape [n\_samples, n\_targets]).
   \item \solverDescription
   \default{`auto'}
 \end{itemize}
-
+\zNormalizationNotPerformed{Ridge}
 %TODO document copy_X
 %TODO document tol
 %TODO document random_state
@@ -1382,7 +1423,7 @@ least squares with l2 regularization.
   solution.
   \default{0.001}
 \end{itemize}
-
+\zNormalizationNotPerformed{RidgeClassifier}
 %TODO document random_state
 %TODO document copy_X
 
@@ -1429,7 +1470,7 @@ classifier}{linear\_model|RidgeClassifierCV}
   \default{None}
   %
 \end{itemize}
-
+\zNormalizationNotPerformed{RidgeClassifierCV}
 \subparagraph{Ridge regression with built-in cross-validation}
 \mbox{}
 
@@ -1487,7 +1528,7 @@ cross-validation.
   %
   \default{False}
 \end{itemize}
-
+\zNormalizationNotPerformed{RidgeCV}
 \subparagraph{Linear classifiers (SVM, logistic regression, a.o.) with SGD
 training}
 \mbox{}
@@ -1610,7 +1651,7 @@ training}{linear\_model|SGDClassifier}
   \item \warmStartDescription{False}
   %
 \end{itemize}
-
+\zNormalizationPerformed{SGDClassifier}
 %TODO document average
 
 \subparagraph{Linear model fitted by minimizing a regularized empirical loss
@@ -1710,7 +1751,7 @@ floating point values for the features.
   \item \warmStartDescription{False}
   %
 \end{itemize}
-
+\zNormalizationPerformed{SGDRegressor}
 %TODO document average
 
 %%%%% ROM Model - SciKitLearn: Support Vector Machines %%%%%%%
@@ -1737,6 +1778,8 @@ In addition to performing linear classification, SVMs can efficiently perform a
 non-linear classification using what is called the kernel trick, implicitly
 mapping their inputs into high-dimensional feature spaces.
 %
+\zNormalizationPerformed{SVM-based}
+
 In the following, all the SVM models available in RAVEN are reported.
 
 \subparagraph{Linear Support Vector Classifier}
@@ -1921,6 +1964,9 @@ or pears.
 Multiclass classification makes the assumption that each sample is assigned to
 one and only one label: a fruit can be either an apple or a pear but not both at
 the same time.
+
+\zNormalizationNotPerformed{multi-class-based}
+
 %
 In the following, all the multi-class models available in RAVEN are reported.
 %
@@ -2097,6 +2143,8 @@ set the sub-node:
 
 There are no additional sub-nodes available for this method.
 %
+
+\zNormalizationPerformed{GaussianNB}
 %%%%%%%%%%%%
 \subparagraph{Multinomial Naive Bayes}
 \mbox{}
@@ -2134,7 +2182,7 @@ Lidstone smoothing.
   \item \fitPriorDescription{True}
   \item \classPriorDescription{None}
 \end{itemize}
-
+\zNormalizationNotPerformed{MultinomialNB}
 %%%%%%%%%%%%
 \subparagraph{Bernoulli Naive Bayes}
 \mbox{}
@@ -2177,7 +2225,7 @@ It is advisable to evaluate both models, if time permits.
   \item \classPriorDescription{None}
   %
 \end{itemize}
-
+\zNormalizationPerformed{BernoulliNB}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  %%%%% ROM Model - SciKitLearn: Neighbors %%%%%%%
 \paragraph{Neighbors}
@@ -2206,6 +2254,8 @@ is the most common choice.
 Neighbor-based methods are known as non-generalizing machine learning methods,
 since they simply ``remember'' all of its training data (possibly transformed
 into a fast indexing structure such as a Ball Tree or KD Tree.).
+
+\zNormalizationPerformed{Neighbors-based}
 
 In the following, all the Neighbors' models available in RAVEN are reported.
 %
@@ -2355,7 +2405,7 @@ The model fits a Gaussian density to each class.
   \default{0.0}
   %
 \end{itemize}
-
+\zNormalizationNotPerformed{QDA}
  %%%%% ROM Model - SciKitLearn: Tree %%%%%%%
 \paragraph{Tree}
 \label{tree}
@@ -2443,7 +2493,9 @@ The disadvantages of decision trees include:
   %
 \end{itemize}
 
-In the following, all the linear models available in RAVEN are reported.
+\zNormalizationPerformed{tree-based}
+
+In the following, all the tree-based algorithms available in RAVEN are reported.
 
 %%%%%%%%%%%%%%%
 \subparagraph{Decision Tree Classifier}
@@ -2676,6 +2728,8 @@ The disadvantages of Gaussian Processes for Machine Learning include:
   \default{None}
   %
 \end{itemize}
+
+\zNormalizationNotPerformed{GaussianProcess}
 
 \textbf{Example:}
 \begin{lstlisting}[style=XML,morekeywords={name,subType}]

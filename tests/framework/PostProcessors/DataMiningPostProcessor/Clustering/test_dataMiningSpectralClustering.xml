@@ -2,19 +2,22 @@
 <Simulation verbosity="silent">
   <RunInfo>
     <WorkingDir>SpectralClustering</WorkingDir>
-    <Sequence>readIn,SpectralBlobs,output</Sequence>
+    <Sequence>readIn,SpectralCircles,output</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
   <Files>
-    <Input name="DataSetsFile">./DataSets.csv</Input>
+    <Input name="DataSetsFile">../sharedData/DataSets.csv</Input>
   </Files>
 
   <Models>
-    <PostProcessor name="SpectralBlobs" subType="DataMining" verbosity="quiet">
-      <KDD lib="SciKitLearn">
-        <Features>x1,x2</Features>
+    <PostProcessor name="SpectralCircles" subType="DataMining" verbosity="quiet">
+      <KDD labelFeature="labels" lib="SciKitLearn">
+        <Features>y1,y2</Features>
         <SKLtype>cluster|SpectralClustering</SKLtype>
+        <n_clusters>2</n_clusters>
+        <eigen_solver>arpack</eigen_solver>
+        <affinity>nearest_neighbors</affinity>
       </KDD>
     </PostProcessor>
   </Models>
@@ -26,11 +29,11 @@
     </IOStep>
     <IOStep name="output" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">DataSets</Input>
-      <Output class="OutStreams" type="Plot">PlotSpectralBlobs</Output>
+      <Output class="OutStreams" type="Plot">PlotSpectralCircles</Output>
     </IOStep>
-    <PostProcess name="SpectralBlobs" pauseAtEnd="True">
+    <PostProcess name="SpectralCircles" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">DataSets</Input>
-      <Model class="Models" type="PostProcessor">SpectralBlobs</Model>
+      <Model class="Models" type="PostProcessor">SpectralCircles</Model>
       <Output class="DataObjects" type="PointSet">DataSets</Output>
       <Output class="OutStreams" type="Print">dummy</Output>
     </PostProcess>
@@ -40,15 +43,16 @@
     <Print name="dummy">
       <type>csv</type>
       <source>DataSets</source>
+      <what>Output|labels</what>
     </Print>
-    <Plot dim="2" name="PlotSpectralBlobs" overwrite="false">
+    <Plot  name="PlotSpectralCircles" overwrite="false">
       <plotSettings>
         <plot>
           <type>scatter</type>
-          <x>DataSets|input|x1</x>
-          <y>DataSets|input|x2</y>
+          <x>DataSets|input|y1</x>
+          <y>DataSets|input|y2</y>
           <cmap>Set1</cmap>
-          <colorMap>DataSets|Output|SpectralBlobsLabels</colorMap>
+          <colorMap>DataSets|Output|labels</colorMap>
           <kwargs>
             <edgecolor>None</edgecolor>
           </kwargs>

@@ -16,6 +16,7 @@
             <xsd:element name="Binomial"      type="BinomialDistribution"      minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="Poisson"       type="PoissonDistribution"       minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="Categorical"   type="CategoricalDistribution"   minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="Custom1D"      type="Custom1DDistribution"      minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="NDInverseWeight"   type="NDInverseWeightDistribution"   minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="NDCartesianSpline" type="NDCartesianSplineDistribution" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="MultivariateNormal" type="MultivariateNormalDistribution" minOccurs="0" maxOccurs="unbounded"/>
@@ -157,6 +158,17 @@
         <xsd:sequence>
             <xsd:element name="state" type="stateType" minOccurs="1" maxOccurs="200"/>
         </xsd:sequence>
+        <xsd:attribute name="name" type="xsd:string" use="required"/>
+    </xsd:complexType>
+    
+    <xsd:complexType name="Custom1DDistribution">
+        <xsd:all>
+            <xsd:element name="dataFilename" type="xsd:string" minOccurs="1"/>
+            <xsd:element name="functionID"   type="xsd:string" minOccurs="1"/>
+            <xsd:element name="variableID"   type="xsd:string" minOccurs="1"/>
+            <xsd:element name="functionType" type="xsd:string" minOccurs="1"/>
+            <xsd:element name="workingDir"   type="xsd:string" minOccurs="1"/>
+        </xsd:all>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
     </xsd:complexType>
 

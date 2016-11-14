@@ -9,11 +9,9 @@
   <!-- The essence of this test is to demonstrate the input space when generated from restart or from scratch
        are identical.  The external models are organized so that outputs from the restart data have an
        output value of 1.0, and from the higher-fidelity sampler have an output value of 2.0.  Obviously using
-       different models with restarts is a terrible idea in general, but makes this test work. 
-       
-       In the end, "fine.csv" and "restart.csv" should have identical input space, but different output space;
-       all the output of "fine.csv" should be 2.0, while the restarted points in "restart.csv" should be 1.0-->
-
+       different models with restarts is a terrible idea in general, but makes this test work.
+       In the end, &quot;fine.csv&quot; and &quot;restart.csv&quot; should have identical input space, but different output space;
+       all the output of &quot;fine.csv&quot; should be 2.0, while the restarted points in &quot;restart.csv&quot; should be 1.0-->
   <Steps>
     <MultiRun name="makeCoarse">
       <Input class="DataObjects" type="PointSet">dummyIN</Input>
@@ -90,8 +88,8 @@
 
   <Models>
     <Dummy name="MyDummy" subType=""/>
-    <!-- The "coarsemod" model will output a reponse of 1.0, while "finemod" gives 2.0.
-         This allows the test to distinguish which samples originated in "coarse" and which in "fine".-->
+    <!-- The &quot;coarsemod&quot; model will output a reponse of 1.0, while &quot;finemod&quot; gives 2.0.
+         This allows the test to distinguish which samples originated in &quot;coarse&quot; and which in &quot;fine&quot;.-->
     <ExternalModel ModuleToLoad="../coarse" name="coarsemod" subType="">
       <variables>x1,x2,ans</variables>
     </ExternalModel>

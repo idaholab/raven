@@ -11,6 +11,7 @@
     </mode>
     <expectedTime>00:10:00</expectedTime>
     <clusterParameters>-W block=true</clusterParameters>
+    <JobName>test_qsub</JobName>
   </RunInfo>
 
   <Distributions>
@@ -89,7 +90,7 @@
       <type>csv</type>
       <source>metaModelOutputTest</source>
     </Print>
-    <Plot dim="3" name="metaModelOutputTestSolution" overwrite="false" verbosity="debug">
+    <Plot   name="metaModelOutputTestSolution" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>scatter</type>
@@ -117,7 +118,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot dim="3" name="metaModelOutputTestLinearHeat" overwrite="false" verbosity="debug">
+    <Plot   name="metaModelOutputTestLinearHeat" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>scatter</type>
@@ -145,7 +146,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot dim="3" name="metaModelOutputTestK" overwrite="false" verbosity="debug">
+    <Plot   name="metaModelOutputTestK" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>scatter</type>

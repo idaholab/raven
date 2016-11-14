@@ -3,6 +3,12 @@ import os, sys
 import subprocess
 import distutils.version
 
+def checkVersions():
+  """
+  Returns true if versions should be checked.
+  @Out, checkVersions, bool, if true versions should be checked.
+  """
+  return not os.environ.get("RAVEN_IGNORE_VERSIONS","0") == "1"
 
 def inPython3():
   """returns true if raven should be using python3
@@ -10,12 +16,12 @@ def inPython3():
   return os.environ.get("CHECK_PYTHON3","0") == "1"
 
 #This list is made of (module, how to check the version, minimum version,
-# quality assurance module)
-modules_to_try = [("numpy",'numpy.version.version',"1.8.0","1.9.3"),
-                  ("h5py",'h5py.__version__','2.2.1','2.3.1'),
-                  ("scipy",'scipy.__version__',"0.13.3","0.14.0"),
-                  ("sklearn",'sklearn.__version__',"0.16.0","0.16.1"),
-                  ("matplotlib",'matplotlib.__version__',"1.3.1","1.4.3")]
+# quality assurance module version, maximum version)
+modules_to_try = [("numpy",'numpy.version.version',"1.8.0","1.9.3",None),
+                  ("h5py",'h5py.__version__','2.2.1','2.3.1',None),
+                  ("scipy",'scipy.__version__',"0.13.3","0.14.0",None),
+                  ("sklearn",'sklearn.__version__',"0.16.0","0.16.1","0.18.1"),
+                  ("matplotlib",'matplotlib.__version__',"1.3.1","1.4.3",None)]
 
 def __lookUpPreferredVersion(name):
   """
@@ -23,7 +29,7 @@ def __lookUpPreferredVersion(name):
     @In, name, string, the name of the module
     @Out, result, string, returns the version as a string or "" if unknown
   """
-  for  i,fv,ev,qa in modules_to_try:
+  for  i,fv,ev,qa,mv in modules_to_try:
     if name == i:
       return qa
   return ""
@@ -37,6 +43,11 @@ __condaList = [("numpy",__lookUpPreferredVersion("numpy")),
               ("hdf5",""),
               ("swig","")]
 
+__pipList = [("numpy",__lookUpPreferredVersion("numpy")),
+             ("h5py",__lookUpPreferredVersion("h5py")),
+             ("scipy",__lookUpPreferredVersion("scipy")),
+             ("scikit-learn",__lookUpPreferredVersion("sklearn")),
+             ("matplotlib",__lookUpPreferredVersion("matplotlib"))]
 
 def moduleReport(module,version=''):
   """Checks if the module exists.
@@ -69,59 +80,64 @@ def modulesReport():
   Returns a list of [(module_name,found_boolean,message,version)]
   """
   report_list = []
-  for i,fv,ev,qa in modules_to_try:
+  for i,fv,ev,qa,mv in modules_to_try:
     found, message, version = moduleReport(i,fv)
     if found:
-      missing, tooOld, notQA = __checkVersion(i, ev, qa, found, version)
-      if len(tooOld) > 0:
-        message += " ".join(tooOld)
+      missing, outOfRange, notQA = __checkVersion(i, ev, qa, mv, found, version)
+      if len(outOfRange) > 0:
+        message += " ".join(outOfRange)
       elif len(notQA) > 0:
         message += " ".join(notQA)
     report_list.append((i,found,message, version))
   return report_list
 
-def __checkVersion(i, ev, qa, found, version):
+def __checkVersion(i, ev, qa, mv, found, version):
   """
     Checks that the version found is new enough, and also if it matches the
     tested version
     @In, i, string, module name
     @In, ev, string, minimum version
     @In, qa, string, tested version
+    @In, mv, string, maximum allowed version
     @In, found, bool, if true module was found
     @In, version, string, found version
-    @Out, result, tuple, returns (missing, tooOld, notQA)
+    @Out, result, tuple, returns (missing, outOfRange, notQA)
   """
   missing = []
-  tooOld = []
+  outOfRange = []
   notQA = []
   if not found:
     missing.append(i)
   elif distutils.version.LooseVersion(version) < distutils.version.LooseVersion(ev):
-    tooOld.append(i+" should be at least version "+ev+" but is "+version)
-  elif distutils.version.StrictVersion(version) != distutils.version.StrictVersion(qa):
-    notQA.append(i + " has version " + version + " but tested version is " + qa)
-  return missing, tooOld, notQA
+    outOfRange.append(i+" should be at least version "+ev+" but is "+version)
+  elif mv is not None and distutils.version.LooseVersion(version) > distutils.version.LooseVersion(mv):
+    outOfRange.append(i+" should not be more than version "+mv+" but is "+version)
+  else:
+    try:
+      if distutils.version.StrictVersion(version) != distutils.version.StrictVersion(qa):
+        notQA.append(i + " has version " + version + " but tested version is " + qa)
+    except ValueError:
+      notQA.append(i + " has version " + version + " but tested version is " + qa + " and unable to parse version")
+  return missing, outOfRange, notQA
 
 def checkForMissingModules():
   """
   Looks for a list of modules, and the version numbers.
-  returns (missing, tooOld, notQA) where if they are all found is ([], [], []),
-  but if they are missing or too old will put a error message in the result for
-  each missing or too old module or not on the quality assurance version.
+  returns (missing, outOfRange, notQA) where if they are all found is
+  ([], [], []), but if they are missing or too old or too new  will put a
+  error message in the result for each missing or too old module or not on
+  the quality assurance version.
   """
   missing = []
-  tooOld = []
+  outOfRange = []
   notQA = []
-  for i,fv,ev, qa in modules_to_try:
+  for i,fv,ev, qa, mv in modules_to_try:
     found, message, version = moduleReport(i, fv)
-    moduleMissing, moduleTooOld, moduleNotQA = __checkVersion(i, ev, qa, found, version)
+    moduleMissing, moduleOutOfRange, moduleNotQA = __checkVersion(i, ev, qa, mv, found, version)
     missing.extend(moduleMissing)
-    tooOld.extend(moduleTooOld)
+    outOfRange.extend(moduleOutOfRange)
     notQA.extend(moduleNotQA)
-    #moduleMissing, moduleTooOld = checkForMissingModule(i, fv, ev)
-    #missing.extend(moduleMissing)
-    #tooOld.extend(moduleTooOld)
-  return missing, tooOld, notQA
+  return missing, outOfRange, notQA
 
 def __condaString():
   """
@@ -143,6 +159,11 @@ if __name__ == '__main__':
   elif '--conda-install' in sys.argv:
     print("conda install --name raven_libraries -y ",end=" ")
     print(__condaString())
+  elif '--pip-install' in sys.argv:
+    print("pip install",end=" ")
+    for i,qa in __pipList:
+      print(i+"=="+qa,end=" ")
+    print()
   elif '--manual-list' in sys.argv:
-    for i,fv,ev,qa in modules_to_try:
+    for i,fv,ev,qa,mv in modules_to_try:
       print("\item",i+"-"+qa)

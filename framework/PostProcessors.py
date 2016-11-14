@@ -33,7 +33,6 @@ import Files
 from RAVENiterators import ravenArrayIterator
 import unSupervisedLearning
 from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
-import TreeStructure
 #Internal Modules End--------------------------------------------------------------------------------
 
 #
@@ -80,14 +79,14 @@ class BasePostProcessor(Assembler, MessageHandler.MessageUser):
   def run(self, input):
     """
       This method executes the postprocessor action.
-      @ In,  input, object, object contained the data to process. (inputToInternal output)
+      @ In,  input, object, object containing the data to process. (inputToInternal output)
       @ Out, None
     """
     pass
 
 class LimitSurfaceIntegral(BasePostProcessor):
   """
-    This post-processor is aimed to compute the n-dimensional integral of an inputted Limit Surface
+    This post-processor computes the n-dimensional integral of a Limit Surface
   """
   def __init__(self, messageHandler):
     """
@@ -189,7 +188,7 @@ class LimitSurfaceIntegral(BasePostProcessor):
     """
     self.inputToInternal(inputs)
     if self.integralType in ['montecarlo']:
-      self.stat.parameters['targets'] = [self.target]
+      self.stat.toDo = {'expectedValue':set([self.target])}
       self.stat.initialize(runInfo, inputs, initDict)
     self.functionS = SupervisedLearning.returnInstance('SciKitLearn', self, **{'SKLtype':'neighbors|KNeighborsClassifier', 'Features':','.join(list(self.variableDist.keys())), 'Target':self.target})
     self.functionS.train(self.matrixDict)
@@ -244,10 +243,10 @@ class LimitSurfaceIntegral(BasePostProcessor):
       @ In, output, dataObjects, The object where we want to place our computed results
       @ Out, None
     """
-    if finishedJob.returnEvaluation() == -1: self.raiseAnError(RuntimeError, 'no available output to collect.')
+    if finishedJob.getEvaluation() == -1: self.raiseAnError(RuntimeError, 'no available output to collect.')
     else:
-      pb = finishedJob.returnEvaluation()[1]
-      lms = finishedJob.returnEvaluation()[0][0]
+      pb = finishedJob.getEvaluation()[1]
+      lms = finishedJob.getEvaluation()[0][0]
       if output.type == 'PointSet':
         # we store back the limitsurface
         for key, value in lms.getParametersValues('input').items():
@@ -284,16 +283,15 @@ class SafestPoint(BasePostProcessor):
       @ Out, None
     """
     BasePostProcessor.__init__(self, messageHandler)
-    self.controllableDist = {}  # dictionary created upon the .xml input file reading. It stores the distributions for each controllale variable.
-    self.nonControllableDist = {}  # dictionary created upon the .xml input file reading. It stores the distributions for each non-controllale variable.
+    self.controllableDist = {}  # dictionary created upon the .xml input file reading. It stores the distributions for each controllable variable.
+    self.nonControllableDist = {}  # dictionary created upon the .xml input file reading. It stores the distributions for each non-controllable variable.
     self.controllableGrid = {}  # dictionary created upon the .xml input file reading. It stores the grid type ('value' or 'CDF'), the number of steps and the step length for each controllale variable.
     self.nonControllableGrid = {}  # dictionary created upon the .xml input file reading. It stores the grid type ('value' or 'CDF'), the number of steps and the step length for each non-controllale variable.
-    self.gridInfo = {}  # dictionary contaning the grid type ('value' or 'CDF'), the grid construction type ('equal', set by default) and the list of sampled points for each variable.
-    self.controllableOrd = []  # list contaning the controllable variables' names in the same order as they appear inside the controllable space (self.controllableSpace)
-    self.nonControllableOrd = []  # list contaning the controllable variables' names in the same order as they appear inside the non-controllable space (self.nonControllableSpace)
+    self.gridInfo = {}  # dictionary containing the grid type ('value' or 'CDF'), the grid construction type ('equal', set by default) and the list of sampled points for each variable.
+    self.controllableOrd = []  # list containing the controllable variables' names in the same order as they appear inside the controllable space (self.controllableSpace)
+    self.nonControllableOrd = []  # list containing the controllable variables' names in the same order as they appear inside the non-controllable space (self.nonControllableSpace)
     self.surfPointsMatrix = None  # 2D-matrix containing the coordinates of the points belonging to the failure boundary (coordinates are derived from both the controllable and non-controllable space)
     self.stat = returnInstance('BasicStatistics', self)  # instantiation of the 'BasicStatistics' processor, which is used to compute the expected value of the safest point through the coordinates and probability values collected in the 'run' function
-    self.stat.what = ['expectedValue']
     self.addAssemblerObject('Distribution','n', True)
     self.printTag = 'POSTPROCESSOR SAFESTPOINT'
 
@@ -380,7 +378,9 @@ class SafestPoint(BasePostProcessor):
     self.__gridSetting__()
     self.__gridGeneration__()
     self.inputToInternal(inputs)
-    self.stat.parameters['targets'] = self.controllableOrd
+    #FIXME this is quite invasive use of the basic statistics; a more standardized construction would be nice
+    #we set the toDo here, since at this point we know the targets for the basic statistics
+    self.stat.toDo = {'expectedValue':set(self.controllableOrd)} #don't set directly, just set up the toDo for basicStats
     self.stat.initialize(runInfo, inputs, initDict)
     self.raiseADebug('GRID INFO:')
     self.raiseADebug(self.gridInfo)
@@ -565,10 +565,10 @@ class SafestPoint(BasePostProcessor):
       @ In, output, dataObjects, The object where we want to place our computed results
       @ Out, None
     """
-    if finishedJob.returnEvaluation() == -1:
+    if finishedJob.getEvaluation() == -1:
       self.raiseAnError(RuntimeError, 'no available output to collect (the run is likely not over yet).')
     else:
-      dataCollector = finishedJob.returnEvaluation()[1]
+      dataCollector = finishedJob.getEvaluation()[1]
       if output.type != 'PointSet':
         self.raiseAnError(TypeError, 'output item type must be "PointSet".')
       else:
@@ -708,8 +708,8 @@ class ComparisonStatistics(BasePostProcessor):
       @ Out, None
     """
     self.raiseADebug("finishedJob: " + str(finishedJob) + ", output " + str(output))
-    if finishedJob.returnEvaluation() == -1: self.raiseAnError(RuntimeError, 'no available output to collect.')
-    else: self.dataDict.update(finishedJob.returnEvaluation()[1])
+    if finishedJob.getEvaluation() == -1: self.raiseAnError(RuntimeError, 'no available output to collect.')
+    else: self.dataDict.update(finishedJob.getEvaluation()[1])
 
     dataToProcess = []
     for compareGroup in self.compareGroups:
@@ -940,12 +940,6 @@ class InterfacedPostProcessor(BasePostProcessor):
       @ Out, None
     """
     BasePostProcessor.initialize(self, runInfo, inputs, initDict)
-     #self.postProcessor.initialize()
-
-     #if self.postProcessor.inputFormat not in set(['HistorySet','PointSet']):
-     #  self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.inputFormat not correctly initialized')
-     #if self.postProcessor.outputFormat not in set(['HistorySet','PointSet']):
-     #  self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.outputFormat not correctly initialized')
 
   def _localReadMoreXML(self, xmlNode):
     """
@@ -961,11 +955,11 @@ class InterfacedPostProcessor(BasePostProcessor):
       self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : not correctly coded; it must inherit the PostProcessorInterfaceBase class')
 
     self.postProcessor.initialize()
+    self.postProcessor.readMoreXML(xmlNode)
     if self.postProcessor.inputFormat not in set(['HistorySet','PointSet']):
       self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.inputFormat not correctly initialized')
     if self.postProcessor.outputFormat not in set(['HistorySet','PointSet']):
       self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.outputFormat not correctly initialized')
-    self.postProcessor.readMoreXML(xmlNode)
 
 
   def run(self, inputIn):
@@ -974,12 +968,21 @@ class InterfacedPostProcessor(BasePostProcessor):
       @ In, inputIn, dict, dictionary of data to process
       @ Out, outputDic, dict, dict containing the post-processed results
     """
+    if self.postProcessor.inputFormat not in set(['HistorySet','PointSet']):
+      self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.inputFormat not correctly initialized')
+    if self.postProcessor.outputFormat not in set(['HistorySet','PointSet']):
+      self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : self.outputFormat not correctly initialized')
     inputDic= self.inputToInternal(inputIn)
+
     outputDic = self.postProcessor.run(inputDic)
     if self.postProcessor.checkGeneratedDicts(outputDic):
       return outputDic
     else:
-      self.raiseAnError(RuntimeError,'InterfacedPostProcessor Post-Processor: function has generated a not valid output dictionary')
+      self.raiseAnError(RuntimeError,'InterfacedPostProcessor Post-Processor '+ self.name +' : function has generated a not valid output dictionary')
+
+  def _inverse(self, inputIn):
+    outputDic = self.postProcessor._inverse(inputIn)
+    return outputDic
 
   def collectOutput(self, finishedJob, output):
     """
@@ -988,9 +991,10 @@ class InterfacedPostProcessor(BasePostProcessor):
       @ In, output, dataObjects, The object where we want to place our computed results
       @ Out, None
     """
-    if finishedJob.returnEvaluation() == -1:
+    if finishedJob.getEvaluation() == -1:
       self.raiseAnError(RuntimeError, ' No available Output to collect (Run probably is not finished yet)')
-    evaluation = finishedJob.returnEvaluation()[1]
+    evaluation = finishedJob.getEvaluation()[1]
+
     exportDict = {'inputSpaceParams':evaluation['data']['input'],'outputSpaceParams':evaluation['data']['output'],'metadata':evaluation['metadata']}
 
     listInputParms   = output.getParaKeys('inputs')
@@ -1000,29 +1004,27 @@ class InterfacedPostProcessor(BasePostProcessor):
       for hist in exportDict['inputSpaceParams']:
         if type(exportDict['inputSpaceParams'].values()[0]).__name__ == "dict":
           for key in listInputParms:
-            output.updateInputValue(key,exportDict['inputSpaceParams'][hist][key])
+            output.updateInputValue(key,exportDict['inputSpaceParams'][hist][str(key)])
           for key in listOutputParams:
-            output.updateOutputValue(key,exportDict['outputSpaceParams'][hist][key])
-          for key in exportDict['metadata'][0]:
-            output.updateMetadata(key,exportDict['metadata'][0][key])
+            output.updateOutputValue(key,exportDict['outputSpaceParams'][hist][str(key)])
         else:
           for key in exportDict['inputSpaceParams']:
             if key in output.getParaKeys('inputs'):
               output.updateInputValue(key,exportDict['inputSpaceParams'][key])
           for key in exportDict['outputSpaceParams']:
             if key in output.getParaKeys('outputs'):
-              output.updateOutputValue(key,exportDict['outputSpaceParams'][key])
-          for key in exportDict['metadata'][0]:
-            output.updateMetadata(key,exportDict['metadata'][0][key])
-    elif output.type == 'PointSet':
+              output.updateOutputValue(key,exportDict['outputSpaceParams'][str(key)])
+      for key in exportDict['metadata'][0]:
+        output.updateMetadata(key,exportDict['metadata'][0][key])
+    else:   # output.type == 'PointSet':
       for key in exportDict['inputSpaceParams']:
         if key in output.getParaKeys('inputs'):
           for value in exportDict['inputSpaceParams'][key]:
-            output.updateInputValue(key,value)
+            output.updateInputValue(str(key),value)
       for key in exportDict['outputSpaceParams']:
-        if key in output.getParaKeys('outputs'):
+        if str(key) in output.getParaKeys('outputs'):
           for value in exportDict['outputSpaceParams'][key]:
-            output.updateOutputValue(key,value)
+            output.updateOutputValue(str(key),value)
       for key in exportDict['metadata'][0]:
         output.updateMetadata(key,exportDict['metadata'][0][key])
 
@@ -1039,150 +1041,16 @@ class InterfacedPostProcessor(BasePostProcessor):
     if type(input) == dict:
       return input
     else:
+      if len(input[0]) == 0: self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +' : The input dataObject named '+input[0].name + ' is empty. Check your input!')
       inputDict['data']['input']  = copy.deepcopy(input[0].getInpParametersValues())
       inputDict['data']['output'] = copy.deepcopy(input[0].getOutParametersValues())
     for item in input:
       metadata.append(copy.deepcopy(item.getAllMetadata()))
     metadata.append(item.getAllMetadata())
     inputDict['metadata']=metadata
+
     return inputDict
 
-#
-#
-#
-class PrintCSV(BasePostProcessor):
-  """
-    PrintCSV PostProcessor class. It prints a CSV file loading data from a hdf5 database or other sources
-  """
-  def __init__(self, messageHandler):
-    """
-      Constructor
-      @ In, messageHandler, MessageHandler, message handler object
-      @ Out, None
-    """
-    BasePostProcessor.__init__(self, messageHandler)
-    self.paramters = ['all']
-    self.inObj = None
-    self.workingDir = None
-    self.printTag = 'POSTPROCESSOR PRINTCSV'
-
-  def inputToInternal(self, currentInput):
-    """
-      Method to convert an input object into the internal format that is
-      understandable by this pp.
-      @ In, currentInput, object, an object that needs to be converted
-      @ Out, [(currentInput)], list, the resulting converted object is stored as an attribute of this class
-    """
-    return [(currentInput)]
-
-  def initialize(self, runInfo, inputs, initDict):
-    """
-      Method to initialize the PrintCSV pp. In here, the workingdir is collected and eventually created
-      @ In, runInfo, dict, dictionary of run info (e.g. working dir, etc)
-      @ In, inputs, list, list of inputs
-      @ In, initDict, dict, dictionary with initialization options
-      @ Out, None
-    """
-    BasePostProcessor.initialize(self, runInfo, inputs, initDict)
-    self.workingDir = os.path.join(runInfo['WorkingDir'], runInfo['stepName'])  # generate current working dir
-    runInfo['TempWorkingDir'] = self.workingDir
-    try:                            os.mkdir(self.workingDir)
-    except:                         self.raiseAWarning('current working dir ' + self.workingDir + ' already exists, this might imply deletion of present files')
-    # if type(inputs[-1]).__name__ == "HDF5" : self.inObj = inputs[-1]      # this should go in run return but if HDF5, it is not pickable
-
-  def _localReadMoreXML(self, xmlNode):
-    """
-      Function to read the portion of the xml input that belongs to this specialized class
-      and initialize some stuff based on the inputs got
-      @ In, xmlNode, xml.etree.Element, Xml element node
-      @ Out, None
-    """
-    for child in xmlNode:
-      if child.tag == 'parameters':
-        param = child.text
-        if(param.lower() != 'all'): self.paramters = param.strip().split(',')
-        else: self.paramters[param]
-
-  def collectOutput(self, finishedJob, output):
-    """
-      Function to place all of the computed data into the output object
-      @ In, finishedJob, JobHandler External or Internal instance, A JobHandler object that is in charge of running this post-processor
-      @ In, output, dataObjects, The object where we want to place our computed results
-      @ Out, None
-    """
-    # Check the input type
-    if finishedJob.returnEvaluation() == -1: self.raiseAnError(RuntimeError, 'No available Output to collect (Run probabably is not finished yet)')
-    self.inObj = finishedJob.returnEvaluation()[1]
-    if(self.inObj.type == "HDF5"):
-      #  input source is a database (HDF5)
-      #  Retrieve the ending groups' names
-      endGroupNames = self.inObj.getEndingGroupNames()
-      HistorySet = {}
-
-      #  Construct a dictionary of all the HistorySet
-      for index in range(len(endGroupNames)): HistorySet[endGroupNames[index]] = self.inObj.returnHistory({'history':endGroupNames[index], 'filter':'whole'})
-      #  If file, split the strings and add the working directory if present
-      for key in HistorySet:
-        #  Loop over HistorySet
-        #  Retrieve the metadata (posion 1 of the history tuple)
-        attributes = HistorySet[key][1]
-        #  Construct the header in csv format (first row of the file)
-        headers = b",".join([HistorySet[key][1]['outputSpaceHeaders'][i] for i in
-                             range(len(attributes['outputSpaceHeaders']))])
-        #  Construct history name
-        hist = key
-        #  If file, split the strings and add the working directory if present
-        if self.workingDir:
-          output.setPath(self.workingDir)
-          # original if os.path.split(output.getAbsFile())[1] == '': output.setAbsFile(output.getAbsFile()[:-1])
-          # I don't think this applies anymore # if output.getFilename() == '': output.setAbsFile(output.getAbsFile()[:-1])
-          #splitted_1 = (output.getPath,output.getFilename() #os.path.split(output.getAbsFile())
-          #output.setAbsFile(splitted_1[1])
-        #splitted = output.getAbsFile().split('.')
-        #  Create csv files
-        addfile = Files.returnInstance('CSV',self)
-        csvfile = Files.returnInstance('CSV',self)
-        addfilename = output.getBase() + '_additional_info_' + hist + '.' + output.getExt()
-        csvfilename = output.getBase() + '_'                 + hist + '.' + output.getExt()
-        addfile.initialize(addfilename,self.messageHandler,output.getPath(),subtype='AdditionalInfo')
-        csvfile.initialize(csvfilename,self.messageHandler,output.getPath(),subtype='AdditionalInfo')
-        #  Check if workingDir is present and in case join the two paths
-        if self.workingDir:
-          addfile.setPath(os.path.join(self.workingDir,addfile.getPath()))
-          csvfile.setPath(os.path.join(self.workingDir,csvfile.getPath()))
-
-        #  Save the data
-        csvfile.open('w')
-        addfile.open('w')
-        #  Add history to the csv file
-        np.savetxt(csvfile, HistorySet[key][0], delimiter = ",", header = utils.toString(headers))
-        csvfile.write(os.linesep)
-        #  process the attributes in a different csv file (different kind of informations)
-        #  Add metadata to additional info csv file
-        addfile.write('# History Metadata, ' + os.linesep)
-        addfile.write('# ______________________________,' + '_' * len(key) + ',' + os.linesep)
-        addfile.write('#number of parameters,' + os.linesep)
-        addfile.write(str(attributes['nParams']) + ',' + os.linesep)
-        addfile.write('#parameters,' + os.linesep)
-        addfile.write(headers + os.linesep)
-        addfile.write('#parentID,' + os.linesep)
-        addfile.write(attributes['parentID'] + os.linesep)
-        addfile.write('#start time,' + os.linesep)
-        addfile.write(str(attributes['startTime']) + os.linesep)
-        addfile.write('#end time,' + os.linesep)
-        addfile.write(str(attributes['end_time']) + os.linesep)
-        addfile.write('#number of time-steps,' + os.linesep)
-        addfile.write(str(attributes['nTimeSteps']) + os.linesep)
-        addfile.write(os.linesep)
-    else: self.raiseAnError(NotImplementedError, 'for input type ' + self.inObj.type + ' not yet implemented.')
-
-  def run(self, input):
-    """
-     This method executes the postprocessor action. In this case, it just returns the input
-     @ In,  input, object, object contained the data to process. (inputToInternal output)
-     @ Out, input, object, the input
-    """
-    return input[-1]
 #
 #
 #
@@ -1204,13 +1072,23 @@ class ImportanceRank(BasePostProcessor):
     BasePostProcessor.__init__(self, messageHandler)
     self.targets = []
     self.features = []
+    self.latent = []
+    self.latentDim = []
+    self.manifest = []
+    self.manifestDim = []
     self.dimensions = []
     self.mvnDistribution = None
-    self.acceptedMetric = ['sensitivityindex','importanceindex','pcaindex']
+    self.acceptedMetric = ['sensitivityindex','importanceindex','pcaindex','transformation','inversetransformation','manifestsensitivity']
+    self.all = ['sensitivityindex','importanceindex','pcaindex']
+    self.statAcceptedMetric = ['pcaindex','transformation','inversetransformation']
     self.what = self.acceptedMetric # what needs to be computed, default is all
     self.printTag = 'POSTPROCESSOR IMPORTANTANCE RANK'
     self.requiredAssObject = (True,(['Distributions'],[-1]))
     self.transformation = False
+    self.latentSen = False
+    self.reconstructSen = False
+    self.pivotParameter = None # time-dependent pivot parameter
+    self.dynamic        = False # is it time-dependent?
 
   def _localWhatDoINeed(self):
     """
@@ -1241,69 +1119,132 @@ class ImportanceRank(BasePostProcessor):
     """
     for child in xmlNode:
       if child.tag == 'what':
-        self.what = child.text
-        if self.what == 'all': self.what = self.acceptedMetric
+        what = child.text.strip()
+        if what.lower() == 'all': self.what = self.all
         else:
+          requestMetric = list(var.strip() for var in what.split(','))
           toCalculate = []
-          for metric in self.what.split(','):
-            toCalculate.append(metric.strip())
-            if metric.lower() not in self.acceptedMetric:
-              self.raiseAnError(IOError, 'Importance rank postprocessor asked unknown operation ' + metric + '. Available ' + str(self.acceptedMetric))
+          for metric in requestMetric:
+            if metric.lower() == 'all':
+              toCalculate.extend(self.all)
+            elif metric.lower() in self.acceptedMetric:
+              if metric.lower() not in toCalculate:
+                toCalculate.append(metric.lower())
+              else:
+                self.raiseAWarning('Duplicate calculations',metric,'are removed from XML node <what> in',self.printTag)
+            else:
+              self.raiseAnError(IOError, self.printTag,'asked unknown operation', metric, '. Available',str(self.acceptedMetric))
           self.what = toCalculate
-      if child.tag == 'targets':
+      elif child.tag == 'targets':
         self.targets = list(inp.strip() for inp in child.text.strip().split(','))
-      if child.tag == 'features':
-        if 'type' in child.attrib.keys():
-          featureType = child.attrib['type']
-          if featureType.strip() == 'latent':
-            self.transformation = True
-          elif featureType.strip() == '':
-            self.transformation = False
-          else:
-            self.raiseAnError(IOError,'type: ' + str(child.attrib['type']) + ' is unsupported for node: ' + str(child.tag) + '!')
-        self.features = list(inp.strip() for inp in child.text.strip().split(','))
-      if child.tag == 'dimensions':
-        self.dimensions = list(int(inp.strip()) for inp in child.text.strip().split(','))
-      if child.tag == 'mvnDistribution':
+      elif child.tag == 'features':
+        for subNode in child:
+          if subNode.tag == 'manifest':
+            for subSubNode in subNode:
+              if subSubNode.tag == 'variables':
+                self.manifest = list(inp.strip() for inp in subSubNode.text.strip().split(','))
+                self.features.extend(self.manifest)
+              elif subSubNode.tag == 'dimensions':
+                self.manifestDim = list(int(inp.strip()) for inp in subSubNode.text.strip().split(','))
+              else:
+                self.raiseAnError(IOError, 'Unrecognized xml node name:',subSubNode.tag,'in',self.printTag)
+          if subNode.tag == 'latent':
+            self.latentSen = True
+            for subSubNode in subNode:
+              if subSubNode.tag == 'variables':
+                self.latent = list(inp.strip() for inp in subSubNode.text.strip().split(','))
+                self.features.extend(self.latent)
+              elif subSubNode.tag == 'dimensions':
+                self.latentDim = list(int(inp.strip()) for inp in subSubNode.text.strip().split(','))
+              else:
+                self.raiseAnError(IOError, 'Unrecognized xml node name:',subSubNode.tag,'in',self.printTag)
+      elif child.tag == 'mvnDistribution':
         self.mvnDistribution = child.text.strip()
-    if not self.dimensions:
-      self.dimensions = range(1,len(self.features)+1)
-      self.raiseAWarning('The dimensions for given features: ' + str(self.features) + ' is not provided! Default dimensions will be used: ' + str(self.dimensions) + '!')
+      elif child.tag == "pivotParameter": self.pivotParameter = child.text
+      else:
+        self.raiseAnError(IOError, 'Unrecognized xml node name: ' + child.tag + '!')
+    if not self.latentDim and len(self.latent) != 0:
+      self.latentDim = range(1,len(self.latent)+1)
+      self.raiseAWarning('The dimensions for given latent variables: ' + str(self.latent) + ' is not provided! Default dimensions will be used: ' + str(self.latentDim) + ' in ' + self.printTag)
+    if not self.manifestDim and len(self.manifest) !=0:
+      self.manifestDim = range(1,len(self.manifest)+1)
+      self.raiseAWarning('The dimensions for given latent variables: ' + str(self.manifest) + ' is not provided! Default dimensions will be used: ' + str(self.manifestDim) + ' in ' + self.printTag)
+    if not self.features:
+      self.raiseAnError(IOError, 'No variables provided for XML node: features in',self.printTag)
+    if not self.targets:
+      self.raiseAnError(IOError, 'No variables provided for XML node: targets in', self.printTag)
+    if len(self.latent) !=0 and len(self.manifest) !=0:
+      self.reconstructSen = True
+      self.transformation = True
 
-  def _localPrintXML(self,outFile,options=None):
+  def _localPrintXML(self,outFile,options=None,pivotVal=None):
     """
       Adds requested entries to XML node.
       @ In, outFile, Files.StaticXMLOutput, file to which entries will be printed
       @ In, options, dict, optional, list of requests and options
         May include: 'what': comma-separated string list, the qualities to print out
+      @ In, pivotVal, float, value of the pivot parameter, i.e. time, burnup, ...
       @ Out, None
     """
-    #dimension node needs only be set once, but it is given for each index type
-    dimDict = None
-    settingDim = False
-    #pca index is a feature only of target, not with respect to anything else
-    if 'pcaindex' in options.keys():
-      pca = options['pcaindex'].values()[0]
-      for var,index,_ in pca:
-        outFile.addScalar(var,'pcaIndex',index)
     #build tree
-    targets = options.values()[0].keys()
-    for target in targets:
-      valueDict = OrderedDict()
-      for what in options.keys():
-        if what.lower() in self.acceptedMetric and what.lower()!='pcaindex':
-          if dimDict is None:
-            dimDict = {}
-            settingDim = True
-          for var,index,dim in options[what][target]:
-            valueDict[var]=index #dims?
-            if settingDim:
-              dimDict[var] = dim
-          if settingDim:
-            for key,val in dimDict.items():
-              outFile.addScalar(key,'dimension',val)
-            settingDim = False
-          outFile.addVector(target,what,valueDict)
+    for what in options.keys():
+      if what.lower() in self.statAcceptedMetric: continue
+      if what == 'manifestSensitivity': continue
+      for target in options[what].keys():
+        valueDict = OrderedDict()
+        for var,index,dim in options[what][target]:
+          valueDict[var] = index
+        outFile.addVector(target,what,valueDict,pivotVal=pivotVal)
+    if 'manifestSensitivity' in options.keys():
+      what = 'manifestSensitivity'
+      for target in options[what].keys():
+        outFile.addScalar(target,'type',self.mvnDistribution.covarianceType,pivotVal=pivotVal)
+        valueDict = OrderedDict()
+        for var,index,dim in options[what][target]:
+          valueDict[var] = index
+        outFile.addVector(target,what,valueDict,pivotVal=pivotVal)
+
+  def _localPrintPCAInformation(self,outFile,options=None,pivotVal=None):
+    """
+      Adds requested entries to XML node.
+      @ In, outFile, Files.StaticXMLOutput, file to which entries will be printed
+      @ In, options, dict, optional, list of requests and options
+        May include: 'what': comma-separated string list, the qualities to print out
+      @ In, pivotVal, float, value of the pivot parameter, i.e. time, burnup, ...
+      @ Out, None
+    """
+    # output variables and dimensions
+    latentDict = OrderedDict()
+    if self.latentSen:
+      for index,var in enumerate(self.latent):
+        latentDict[var] = self.latentDim[index]
+      outFile.addVector('dimensions','latent',latentDict,pivotVal=pivotVal)
+    manifestDict = OrderedDict()
+    if len(self.manifest) > 0:
+      for index,var in enumerate(self.manifest):
+        manifestDict[var] = self.manifestDim[index]
+      outFile.addVector('dimensions','manifest',manifestDict,pivotVal=pivotVal)
+    #pca index is a feature only of target, not with respect to anything else
+    if 'pcaIndex' in options.keys():
+      pca = options['pcaIndex']
+      for var,index,dim in pca:
+        outFile.addScalar('pcaIndex',var,index,pivotVal=pivotVal)
+    if 'transformation' in options.keys():
+      what = 'transformation'
+      outFile.addScalar(what,'type',self.mvnDistribution.covarianceType,pivotVal=pivotVal)
+      for target in options[what].keys():
+        valueDict = OrderedDict()
+        for var, index, dim in options[what][target]:
+          valueDict[var] = index
+        outFile.addVector(what,target,valueDict,pivotVal=pivotVal)
+    if 'inverseTransformation' in options.keys():
+      what = 'inverseTransformation'
+      outFile.addScalar(what,'type',self.mvnDistribution.covarianceType,pivotVal=pivotVal)
+      for target in options[what].keys():
+        valueDict = OrderedDict()
+        for var, index, dim in options[what][target]:
+          valueDict[var] = index
+        outFile.addVector(what,target,valueDict,pivotVal=pivotVal)
 
   def collectOutput(self,finishedJob, output):
     """
@@ -1312,58 +1253,121 @@ class ImportanceRank(BasePostProcessor):
       @ In, output, object, the object where we want to place our computed results
       @ Out, None
     """
-    parameterSet = list(set(list(self.features)))
-    if finishedJob.returnEvaluation() == -1: self.raiseAnError(RuntimeError, ' No available output to collect (Run probably is not finished yet)')
-    outputDict = finishedJob.returnEvaluation()[-1]
+    if finishedJob.getEvaluation() == -1: self.raiseAnError(RuntimeError, ' No available output to collect (Run probably is not finished yet) via',self.printTag)
+    outputDict = finishedJob.getEvaluation()[-1]
     # Output to file
     if isinstance(output, Files.File):
-      availExtens = ['xml','csv', 'txt']
+      availExtens = ['xml','csv']
       outputExtension = output.getExt().lower()
       if outputExtension not in availExtens:
         self.raiseAWarning('Output extension you input is ' + outputExtension)
         self.raiseAWarning('Available are ' + str(availExtens) + '. Converting extension to ' + str(availExtens[0]) + '!')
         outputExtensions = availExtens[0]
         output.setExtension(outputExtensions)
-      if outputExtension != 'csv': separator = ' '
-      else: separator = ','
       output.setPath(self.__workingDir)
       self.raiseADebug('Dumping output in file named ' + output.getAbsFile())
       output.open('w')
-      if outputExtension != 'xml':
-        maxLength = max(len(max(parameterSet, key = len)) + 5, 16)
-        # Output all metrics to given file
-        for what in outputDict.keys():
-          if what.lower() in self.acceptedMetric:
-            self.raiseADebug('Writing parameter rank for metric ' + what)
-            for target in self.targets:
-              if outputExtension != 'csv':
-                output.write('Target,' + target + '\n')
-                output.write('Parameters' + ' ' * maxLength + ''.join([str(item[0]) + ' ' * (maxLength - len(item)) for item in outputDict[what][target]]) + os.linesep)
-                output.write(what + ' ' * maxLength + ''.join(['%.8E' % item[1] + ' ' * (maxLength -14) for item in outputDict[what][target]]) + os.linesep)
-              else:
-                output.write('Target,' + target + '\n')
-                output.write('Parameters'  + ''.join([separator + str(item[0])  for item in outputDict[what][target]]) + os.linesep)
-                output.write(what + ''.join([separator + '%.8E' % item[1] for item in outputDict[what][target]]) + os.linesep)
-            output.write(os.linesep)
-        output.close()
+      if outputExtension == 'csv':
+        self._writeCSV(output,outputDict)
       else:
-        #convert output into an XML output file
-        outFile = Files.returnInstance('StaticXMLOutput',self)
-        outFile.initialize(output.getFilename(),self.messageHandler,path=output.getPath())
-        outFile.newTree('ImportanceRankPP')
-        self._localPrintXML(outFile,outputDict)
-        outFile.writeFile()
-        self.raiseAMessage('ImportanceRank XML printed to "'+output.getFilename()+'"!')
+        self._writeXML(output,outputDict)
     # Output to DataObjects
     elif output.type in ['PointSet','HistorySet']:
       self.raiseADebug('Dumping output in data object named ' + output.name)
-      for what in outputDict.keys():
-        if what.lower() in self.acceptedMetric:
-          for target in self.targets:
-            self.raiseADebug('Dumping ' + target + '-' + what + '. Metadata name = ' + target + '-' + what + '. Targets stored in ' +  target + '-'  + what)
-            output.updateMetadata(target + '-'  + what, outputDict[what][target])
+      self._writeDataObject(output,outputDict)
     elif output.type == 'HDF5' : self.raiseAWarning('Output type ' + str(output.type) + ' not yet implemented. Skip it !!!!!')
     else: self.raiseAnError(IOError, 'Output type ' + str(output.type) + ' unknown.')
+
+  def _writeCSV(self,output,outputDictionary):
+    """
+      Defines the method for writing the post-processor to a .csv file
+      @ In, output, File object, file to write to
+      @ In, outputDictionary, dict, dictionary stores importance ranking outputs
+      @ Out, None
+    """
+    separator = ','
+    if self.dynamic:
+      output.write('Importance Rank' + separator + 'Pivot Parameter' + separator + self.pivotParameter + os.linesep)
+    outputResults = [outputDictionary] if not self.dynamic else outputDictionary.values()
+    for step, outputDict in enumerate(outputResults):
+      if self.dynamic: output.write('Pivot Value'+separator+str(outputDictionary.keys()[step])+os.linesep)
+      #only output 'pcaindex','transformation','inversetransformation' for the first step.
+      if step == 0:
+        for what in outputDict.keys():
+          if what.lower() in self.statAcceptedMetric:
+            self.raiseADebug('Writing parameter rank for metric ' + what)
+            if what.lower() == 'pcaindex':
+              output.write('pcaIndex,' + '\n')
+              output.write('Parameters'  + ''.join([separator + str(item[0])  for item in outputDict[what]]) + os.linesep)
+              output.write(what + ''.join([separator + '%.8E' % item[1] for item in outputDict[what]]) + os.linesep)
+              output.write(os.linesep)
+            else:
+              for target in outputDict[what].keys():
+                output.write('Target,' + target + '\n')
+                output.write('Parameters'  + ''.join([separator + str(item[0])  for item in outputDict[what][target]]) + os.linesep)
+                output.write(what + ''.join([separator + '%.8E' % item[1] for item in outputDict[what][target]]) + os.linesep)
+              output.write(os.linesep)
+      for what in outputDict.keys():
+        if what.lower() in self.statAcceptedMetric: continue
+        if what.lower() in self.acceptedMetric:
+          self.raiseADebug('Writing parameter rank for metric ' + what)
+          for target in outputDict[what].keys():
+            output.write('Target,' + target + '\n')
+            output.write('Parameters'  + ''.join([separator + str(item[0])  for item in outputDict[what][target]]) + os.linesep)
+            output.write(what + ''.join([separator + '%.8E' % item[1] for item in outputDict[what][target]]) + os.linesep)
+          output.write(os.linesep)
+    output.close()
+
+  def _writeXML(self,output,outputDictionary):
+    """
+      Defines the method for writing the post-processor to a .csv file
+      @ In, output, File object, file to write to
+      @ In, outputDictionary, dict, dictionary stores importance ranking outputs
+      @ Out, None
+    """
+    if output.isOpen(): output.close()
+    if self.dynamic:
+      outFile = Files.returnInstance('DynamicXMLOutput',self)
+    else:
+      outFile = Files.returnInstance('StaticXMLOutput',self)
+    outFile.initialize(output.getFilename(),self.messageHandler,path=output.getPath())
+    outFile.newTree('ImportanceRankPP',pivotParam=self.pivotParameter)
+    outputResults = [outputDictionary] if not self.dynamic else outputDictionary.values()
+    for step, outputDict in enumerate(outputResults):
+      pivotVal = outputDictionary.keys()[step]
+      self._localPrintXML(outFile,outputDict,pivotVal)
+      if step == 0:
+        self._localPrintPCAInformation(outFile,outputDict,pivotVal)
+    outFile.writeFile()
+    self.raiseAMessage('ImportanceRank XML printed to "'+output.getFilename()+'"!')
+
+  def _writeDataObject(self,output,outputDictionary):
+    """
+      Defines the method for writing the post-processor to a .csv file
+      @ In, output, File object, file to write to
+      @ In, outputDictionary, dict, dictionary stores importance ranking outputs
+      @ Out, None
+    """
+    outputResults = [outputDictionary] if not self.dynamic else outputDictionary.values()
+    for step, outputDict in enumerate(outputResults):
+      if step == 0:
+        for what in outputDict.keys():
+          if what.lower() not in self.statAcceptedMetric:
+            continue
+          elif what.lower() == 'pcaindex':
+            self.raiseADebug('Dumping ' + what + '. Metadata name = ' + what)
+            output.updateMetadata(what,outputDict[what])
+          else:
+            for target in outputDict[what].keys():
+              self.raiseADebug('Dumping ' + target + '-' + what + '. Metadata name = ' + target + '-' + what + '. Targets stored in ' +  target + '-'  + what)
+              output.updateMetadata(target + '-' + what, outputDict[what][target])
+      appendix = '-'+self.pivotParameter+'-'+str(outputDictionary.keys()[step]) if self.dynamic else ''
+      for what in outputDict.keys():
+        if what.lower() in self.statAcceptedMetric: continue
+        if what.lower() in self.acceptedMetric:
+          for target in outputDict[what].keys():
+            self.raiseADebug('Dumping ' + target + '-' + what + '. Metadata name = ' + target + '-' + what + '. Targets stored in ' +  target + '-'  + what)
+            output.updateMetadata(target + '-'  + what+appendix, outputDict[what][target])
 
   def initialize(self, runInfo, inputs, initDict) :
     """
@@ -1384,20 +1388,22 @@ class ImportanceRank(BasePostProcessor):
     if type(currentInp) == list  : currentInput = currentInp[-1]
     else                         : currentInput = currentInp
     if type(currentInput) == dict:
-      if 'targets' in currentInput.keys(): return currentInput
-    inputDict = {'targets':{}, 'metadata':{}, 'features':{}}
+      if 'targets' not in currentInput.keys() and 'timeDepData' not in currentInput.keys(): self.raiseAnError(IOError, 'Did not find targets or timeDepData in input dictionary')
+      return currentInput
+
     if hasattr(currentInput,'type'):
       inType = currentInput.type
     else:
       if type(currentInput).__name__ == 'list'    : inType = 'list'
       else: self.raiseAnError(IOError, self, 'ImportanceRank postprocessor accepts Files, HDF5, PointSet, DataObject(s) only! Got ' + str(type(currentInput)))
-    if inType not in ['HDF5', 'PointSet', 'list'] and not isinstance(inType,Files.File):
-      self.raiseAnError(IOError, self, 'ImportanceRank postprocessor accepts Files, HDF5, PointSet, DataObject(s) only! Got ' + str(inType) + '!!!!')
+    if inType not in ['HDF5', 'PointSet','HistorySet', 'list'] and not isinstance(inType,Files.File):
+      self.raiseAnError(IOError, self, 'ImportanceRank postprocessor accepts Files, HDF5, HistorySet, PointSet, DataObject(s) only! Got ' + str(inType) + '!!!!')
     # get input from the external csv file
     if isinstance(inType,Files.File):
       if currentInput.subtype == 'csv': pass # to be implemented
     # get input from PointSet DataObject
     if inType in ['PointSet']:
+      inputDict = {'targets':{}, 'metadata':{}, 'features':{}}
       for feat in self.features:
         if feat in currentInput.getParaKeys('input'):
           inputDict['features'][feat] = currentInput.getParam('input', feat)
@@ -1407,8 +1413,37 @@ class ImportanceRank(BasePostProcessor):
         if targetP in currentInput.getParaKeys('output'):
           inputDict['targets'][targetP] = currentInput.getParam('output', targetP)
         else:
-          self.raiseAnError(IOError,'Parameter ' + str(targetP) + ' is listed ImportanceRank postprocessor targets, but not found in the provided input!')
+          self.raiseAnError(IOError,'Parameter ' + str(targetP) + ' is listed ImportanceRank postprocessor targets, but not found in the provided output!')
       inputDict['metadata'] = currentInput.getAllMetadata()
+    # get input from HistorySet DataObject
+    if inType in ['HistorySet']:
+      if self.pivotParameter is None: self.raiseAnError(IOError, self, 'Time-dependent importance ranking is requested (HistorySet) but no pivotParameter got inputted!')
+      inputs  = currentInput.getParametersValues('inputs',nodeId = 'ending')
+      outputs = currentInput.getParametersValues('outputs',nodeId = 'ending')
+      numSteps = len(outputs.values()[0].values()[0])
+      self.dynamic = True
+      if self.pivotParameter not in currentInput.getParaKeys('output'):
+        self.raiseAnError(IOError, self, 'Pivot parameter ' + self.pivotParameter + ' has not been found in output space of data object '+currentInput.name)
+      pivotParameter = []
+      for step in range(len(outputs.values()[0][self.pivotParameter])):
+        currentSnapShot = [outputs[i][self.pivotParameter][step] for i in outputs.keys()]
+        if len(set(currentSnapShot)) > 1: self.raiseAnError(IOError, self, 'Histories are not syncronized! Please, pre-process the data using Interfaced PostProcessor HistorySetSync!')
+        pivotParameter.append(currentSnapShot[-1])
+      inputDict = {'timeDepData':OrderedDict.fromkeys(pivotParameter,None)}
+      for step in range(numSteps):
+        inputDict['timeDepData'][pivotParameter[step]] = {'targets':{},'features':{}}
+        for targetP in self.targets:
+          if targetP in currentInput.getParaKeys('output') :
+            inputDict['timeDepData'][pivotParameter[step]]['targets'][targetP] = np.asarray([outputs[i][targetP][step] for i in outputs.keys()])
+          else:
+            self.raiseAnError(IOError, self, 'Target ' + targetP + ' has not been found in data object '+currentInput.name)
+        for feat in self.features:
+          if feat in currentInput.getParaKeys('input'):
+            inputDict['timeDepData'][pivotParameter[step]]['features'][feat] = np.asarray([inputs[i][feat][-1] for i in inputs.keys()])
+          else:
+            self.raiseAnError(IOError, self, 'Feature ' + feat + ' has not been found in data object '+currentInput.name)
+        inputDict['timeDepData'][pivotParameter[step]]['metadata'] = currentInput.getAllMetadata()
+
     # get input from HDF5 Database
     if inType == 'HDF5': pass  # to be implemented
 
@@ -1416,38 +1451,63 @@ class ImportanceRank(BasePostProcessor):
 
   def run(self, inputIn):
     """
-      This method executes the postprocessor action.
-      @ In, inputIn, object, object contained the data to process. (inputToInternal output)
-      @ Out, outputDict, dict, dictionary containing the evaluated data
+      This method executes the postprocessor action. In this case, it computes all the requested statistical FOMs
+      @ In,  inputIn, object, object contained the data to process. (inputToInternal output)
+      @ Out, outputDict, dict, Dictionary containing the results
     """
     inputDict = self.inputToInternal(inputIn)
+    if not self.dynamic: outputDict = self.__runLocal(inputDict)
+    else:
+      # time dependent (actually pivot-dependent)
+      outputDict = OrderedDict()
+      for pivotParamValue in inputDict['timeDepData'].keys():
+        outputDict[pivotParamValue] = self.__runLocal(inputDict['timeDepData'][pivotParamValue])
+    return outputDict
+
+  def __runLocal(self, inputDict):
+    """
+      This method executes the postprocessor action.
+      @ In, inputDict, object, object contained the data to process. (inputToInternal output)
+      @ Out, outputDict, dict, dictionary containing the evaluated data
+    """
     outputDict = {}
     senCoeffDict = {}
     senWeightDict = {}
     # compute sensitivities of targets with respect to features
     featValues = []
-    for feat in self.features:
-      featValues.append(inputDict['features'][feat])
+    # compute importance rank
+    if self.latentSen:
+      for feat in self.latent:
+        featValues.append(inputDict['features'][feat])
+      feats = self.latent
+      self.dimensions = self.latentDim
+    else:
+      for feat in self.manifest:
+        featValues.append(inputDict['features'][feat])
+      feats = self.manifest
+      self.dimensions = self.manifestDim
     sampledFeatMatrix = np.atleast_2d(np.asarray(featValues)).T
     for target in self.targets:
       featCoeffs = LinearRegression().fit(sampledFeatMatrix, inputDict['targets'][target]).coef_
       featWeights = abs(featCoeffs)/np.sum(abs(featCoeffs))
-      senWeightDict[target] = list(zip(self.features,featWeights,self.dimensions))
+      senWeightDict[target] = list(zip(feats,featWeights,self.dimensions))
       senCoeffDict[target] = featCoeffs
-    # compute importance rank
     for what in self.what:
-      if what not in outputDict.keys(): outputDict[what] = {}
       if what.lower() == 'sensitivityindex':
+        what = 'sensitivityIndex'
+        if what not in outputDict.keys(): outputDict[what] = {}
         for target in self.targets:
           entries = senWeightDict[target]
           entries.sort(key=lambda x: x[1],reverse=True)
           outputDict[what][target] = entries
       if what.lower() == 'importanceindex':
+        what = 'importanceIndex'
+        if what not in outputDict.keys(): outputDict[what] = {}
         for target in self.targets:
           featCoeffs = senCoeffDict[target]
           featWeights = []
-          if not self.transformation:
-            for index,feat in enumerate(self.features):
+          if not self.latentSen:
+            for index,feat in enumerate(self.manifest):
               totDim = self.mvnDistribution.dimension
               covIndex = totDim * (self.dimensions[index] - 1) + self.dimensions[index] - 1
               if self.mvnDistribution.covarianceType == 'abs':
@@ -1457,24 +1517,78 @@ class ImportanceRank(BasePostProcessor):
                 covTarget = featCoeffs[index] * covFeature * featCoeffs[index]
               featWeights.append(covTarget)
             featWeights = featWeights/np.sum(featWeights)
-            entries = list(zip(self.features,featWeights,self.dimensions))
+            entries = list(zip(self.manifest,featWeights,self.dimensions))
             entries.sort(key=lambda x: x[1],reverse=True)
             outputDict[what][target] = entries
           # if the features type is 'latent', since latentVariables are used to compute the sensitivities
           # the covariance for latentVariances are identity matrix
           else:
-           entries = senWeightDict[target]
-           entries.sort(key=lambda x: x[1],reverse=True)
-           outputDict[what][target] = entries
+            entries = senWeightDict[target]
+            entries.sort(key=lambda x: x[1],reverse=True)
+            outputDict[what][target] = entries
       #calculate PCA index
       if what.lower() == 'pcaindex':
-        index = [dim-1 for dim in self.dimensions]
-        singularValues = self.mvnDistribution.returnSingularValues(index)
-        singularValues = list(singularValues/np.sum(singularValues))
-        entries = list(zip(self.features,singularValues,self.dimensions))
-        entries.sort(key=lambda x: x[1],reverse=True)
-        for target in self.targets:
-          outputDict[what][target] = entries
+        if not self.latentSen:
+          self.raiseAWarning('pcaIndex can be not requested because no latent variable is provided!')
+        else:
+          what = 'pcaIndex'
+          if what not in outputDict.keys(): outputDict[what] = {}
+          index = [dim-1 for dim in self.dimensions]
+          singularValues = self.mvnDistribution.returnSingularValues(index)
+          singularValues = list(singularValues/np.sum(singularValues))
+          entries = list(zip(self.latent,singularValues,self.dimensions))
+          entries.sort(key=lambda x: x[1],reverse=True)
+          outputDict[what] = entries
+
+      if what.lower() == 'transformation':
+        if self.transformation:
+          what = 'transformation'
+          if what not in outputDict.keys(): outputDict[what] = {}
+          index = [dim-1 for dim in self.latentDim]
+          manifestIndex = [dim-1 for dim in self.manifestDim]
+          transformMatrix = self.mvnDistribution.transformationMatrix(index)
+          for ind,var in enumerate(self.manifest):
+            entries = list(zip(self.latent,transformMatrix[manifestIndex[ind]],self.latentDim))
+            outputDict[what][var] = entries
+        else:
+          self.raiseAnError(IOError,'Unable to output the transformation matrix, please provide both "manifest" and "latent" variables in XML node "features" in',self.printTag)
+      if what.lower() == 'inversetransformation':
+        if self.transformation:
+          what = 'inverseTransformation'
+          if what not in outputDict.keys(): outputDict[what] = {}
+          index = [dim-1 for dim in self.latentDim]
+          manifestIndex = [dim-1 for dim in self.manifestDim]
+          inverseTransformationMatrix = self.mvnDistribution.inverseTransformationMatrix(manifestIndex)
+          for ind,var in enumerate(self.latent):
+            entries = list(zip(self.manifest,inverseTransformationMatrix[index[ind]],self.manifestDim))
+            outputDict[what][var] = entries
+        else:
+          self.raiseAnError(IOError,'Unable to output the inverse transformation matrix, please provide both "manifest" and "latent" variables in XML node "features" in', self.printTag)
+
+      if what.lower() == 'manifestsensitivity':
+        if self.reconstructSen:
+          what = 'manifestSensitivity'
+          if what not in outputDict.keys(): outputDict[what] = {}
+          # compute the inverse transformation matrix
+          index = [dim-1 for dim in self.latentDim]
+          manifestIndex = [dim-1 for dim in self.manifestDim]
+          inverseTransformationMatrix = self.mvnDistribution.inverseTransformationMatrix(manifestIndex)
+          inverseTransformationMatrix = inverseTransformationMatrix[index]
+          # recompute the sensitivities for manifest variables
+          for target in self.targets:
+            latentSen = np.asarray(senCoeffDict[target])
+            if self.mvnDistribution.covarianceType == 'abs':
+              manifestSen = list(np.dot(latentSen,inverseTransformationMatrix))
+            else:
+              manifestSen = list(np.dot(latentSen,inverseTransformationMatrix)/inputDict['targets'][target])
+            entries = list(zip(self.manifest,manifestSen,self.manifestDim))
+            entries.sort(key=lambda x: abs(x[1]),reverse=True)
+            outputDict[what][target] = entries
+        elif self.latentSen:
+          self.raiseAnError(IOError, 'Unable to reconstruct the sensitivities for manifest variables, this is because no manifest variable is provided in',self.printTag)
+        else:
+          self.raiseAWarning('No latent variables, and there is no need to reconstruct the sensitivities for manifest variables!')
+
       # To be implemented
       #if what == 'CumulativeSenitivityIndex':
       #  self.raiseAnError(NotImplementedError,'CumulativeSensitivityIndex is not yet implemented for ' + self.printTag)
@@ -1482,6 +1596,7 @@ class ImportanceRank(BasePostProcessor):
       #  self.raiseAnError(NotImplementedError,'CumulativeImportanceIndex is not yet implemented for ' + self.printTag)
 
     return outputDict
+
 #
 #
 #
@@ -1497,20 +1612,23 @@ class BasicStatistics(BasePostProcessor):
     """
     BasePostProcessor.__init__(self, messageHandler)
     self.parameters = {}  # parameters dictionary (they are basically stored into a dictionary identified by tag "targets"
-    self.acceptedCalcParam = ['covariance',
-                              'NormalizedSensitivity',
-                              'VarianceDependentSensitivity',
-                              'sensitivity',
-                              'pearson',
-                              'expectedValue',
-                              'sigma',
-                              'variationCoefficient',
-                              'variance',
-                              'skewness',
-                              'kurtosis',
-                              'median',
-                              'percentile',
-                              'samples']  # accepted calculation parameters
+    self.scalarVals = ['expectedValue',
+                       'minimum',
+                       'maximum',
+                       'median',
+                       'variance',
+                       'sigma',
+                       'percentile',
+                       'variationCoefficient',
+                       'skewness',
+                       'kurtosis',
+                       'samples']
+    self.vectorVals = ['sensitivity',
+                       'covariance',
+                       'pearson',
+                       'NormalizedSensitivity',
+                       'VarianceDependentSensitivity']
+    self.acceptedCalcParam = self.scalarVals + self.vectorVals
     self.what = self.acceptedCalcParam  # what needs to be computed... default...all
     self.methodsToRun = []  # if a function is present, its outcome name is here stored... if it matches one of the known outcomes, the pp is going to use the function to compute it
     self.externalFunction = []
@@ -1519,7 +1637,6 @@ class BasicStatistics(BasePostProcessor):
     self.biased = False # biased statistics?
     self.pivotParameter = None # time-dependent statistics pivot parameter
     self.dynamic        = False # is it time-dependent?
-
 
   def inputToInternal(self, currentInp):
     """
@@ -1531,6 +1648,8 @@ class BasicStatistics(BasePostProcessor):
     # each post processor knows how to handle the coming inputs. The BasicStatistics postprocessor accept all the input type (files (csv only), hdf5 and datas
     self.dynamic = False
     currentInput = currentInp [-1] if type(currentInp) == list else currentInp
+    if len(currentInput) == 0: self.raiseAnError(IOError, "In post-processor " +self.name+" the input "+currentInput.name+" is empty.")
+
     if type(currentInput).__name__ =='dict':
       if 'targets' not in currentInput.keys() and 'timeDepData' not in currentInput.keys(): self.raiseAnError(IOError, 'Did not find targets or timeDepData in input dictionary')
       return currentInput
@@ -1570,6 +1689,25 @@ class BasicStatistics(BasePostProcessor):
       @ In, initDict, dict, dictionary with initialization options
       @ Out, None
     """
+    #construct a list of all the parameters that have requested values into self.allUsedParams
+    self.allUsedParams = set()
+    #first collect parameters for which scalar values were requested
+    for scalar in self.scalarVals:
+      if scalar in self.toDo.keys():
+        #special treatment of percentile since the user can specify the percents directly
+        if scalar == 'percentile':
+          for pct,targs in self.toDo[scalar].items():
+            self.allUsedParams.update(targs)
+        else:
+          self.allUsedParams.update(self.toDo[scalar])
+    #second collect parameters for which matrix values were requested, either as targets or features
+    for vector in self.vectorVals:
+      if vector in self.toDo.keys():
+        for entry in self.toDo[vector]:
+          self.allUsedParams.update(entry['targets'])
+          self.allUsedParams.update(entry['features'])
+    #for backward compatability, compile the full list of parameters used in Basic Statistics calculations
+    self.parameters['targets'] = list(self.allUsedParams)
     BasePostProcessor.initialize(self, runInfo, inputs, initDict)
     self.__workingDir = runInfo['WorkingDir']
 
@@ -1580,31 +1718,102 @@ class BasicStatistics(BasePostProcessor):
       @ In, xmlNode, xml.etree.Element, Xml element node
       @ Out, None
     """
+    self.toDo = {}
     for child in xmlNode:
-      if child.tag == "what":
-        self.what = child.text
-        if self.what == 'all': self.what = self.acceptedCalcParam
+      tag = child.tag.strip()
+      #because percentile is strange (has an attached parameter), we address it first
+      if tag.startswith('percentile'):
+        #get targets
+        targets = set(a.strip() for a in child.text.split(','))
+        #what if user didn't give any targets?
+        if len(targets)<1:
+          self.raiseAWarning('No targets were specified in text of <'+tag+'>!  Skipping metric...')
+          continue
+        #prepare storage dictionary, keys are percentiles, values are set(targets)
+        if 'percentile' not in self.toDo.keys():
+          self.toDo['percentile']={}
+        if tag == 'percentile':
+          integerPercentile = [5,95]
         else:
-          toCompute = []
-          for whatc in self.what.split(','):
-            toCompute.append(whatc.strip())
-            if whatc not in self.acceptedCalcParam:
-              if whatc.split("_")[0] != 'percentile':self.raiseAnError(IOError, 'BasicStatistics postprocessor asked unknown operation ' + whatc + '. Available ' + str(self.acceptedCalcParam))
+          #user specified a percentage!
+          splitTag = tag.split('_')
+          if len(splitTag) != 2:
+            self.raiseAWarning('Not able to parse "'+tag+'" to obtain percentile!  Expected "percentile_##%". Using 95% instead...')
+            integerPercentile = [95]
+          else:
+            integerPercentile = [utils.intConversion(splitTag[1].replace("%",""))]
+            if integerPercentile[0] is None:
+              self.raiseAWarning('Not able to parse "'+tag+'" to obtain percentile!  Could not parse',strPercent,'as a percentile. Using 95% instead...')
+              integerPercentile = [95]
+        for reqPercent in integerPercentile:
+          if reqPercent in self.toDo['percentile'].keys():
+            self.toDo['percentile'][reqPercent].update(targets)
+          else:
+            self.toDo['percentile'][reqPercent] = set(targets)
+      elif tag in self.scalarVals:
+        if tag in self.toDo.keys():
+          self.toDo[tag].update(set(a.strip() for a in child.text.split(',')))
+        else:
+          self.toDo[tag] = set(a.strip() for a in child.text.split(','))
+      elif tag in self.vectorVals:
+        self.toDo[tag] = [] #'inputs':[],'outputs':[]}
+        tnode = child.find('targets')
+        if tnode is None:
+          self.raiseAnError('Request for vector value <'+tag+'> requires a "targets" node, and none was found!')
+        fnode = child.find('features')
+        if fnode is None:
+          self.raiseAnError('Request for vector value <'+tag+'> requires a "features" node, and none was found!')
+        if tag in self.toDo.keys():
+          # we're storing toDo[tag] as a list of dictionaries.  This is because the user might specify multiple
+          #   nodes with the same metric (tag), but with different targets and features.  For instance, the user might
+          #   want the sensitivity of A and B to X and Y, and the sensitivity of C to W and Z, but not the sensitivity
+          #   of A to W.  If we didn't keep them separate, we could potentially waste a fair number of calculations.
+          self.toDo[tag].append({'targets':set(a.strip() for a in fnode.text.split(',')),
+                            'features':set(a.strip() for a in tnode.text.split(','))})
+        else:
+          self.toDo[tag] = [{'targets':set(a.strip() for a in fnode.text.split(',')),
+                            'features':set(a.strip() for a in tnode.text.split(','))}]
+      elif tag == 'all':
+        #do all the metrics
+        #establish targets and features
+        # - as currently done, we only do the scalar metrics for the targets
+        #   and features are for the matrix operations
+        tnode = child.find('targets')
+        if tnode is None:
+          self.raiseAnError(IOError,'When using "all" node, you must specify a "targets" and a "features" node!  "targets" is missing.')
+        fnode = child.find('features')
+        if fnode is None:
+          self.raiseAnError(IOError,'When using "all" node, you must specify a "targets" and a "features" node!  "features" is missing.')
+        targets = set(a.strip() for a in tnode.text.split(','))
+        features = set(a.strip() for a in fnode.text.split(','))
+        for scalar in self.scalarVals:
+          #percentile is a little different
+          if scalar == 'percentile':
+            if scalar not in self.toDo.keys():
+              self.toDo[scalar] = {}
+            for pct in [5,95]:
+              if pct in self.toDo[scalar].keys():
+                self.toDo[scalar][pct].update(targets)
               else:
-                # check if the percentile is correct
-                requestedPercentile = whatc.split("_")[-1]
-                integerPercentile = utils.intConversion(requestedPercentile.replace("%",""))
-                if integerPercentile is None: self.raiseAnError(IOError,"Could not convert the inputted percentile. The percentile needs to an integer between 1 and 100. Got "+requestedPercentile)
-                floatPercentile = utils.floatConversion(requestedPercentile.replace("%",""))
-                if floatPercentile < 1.0 or floatPercentile > 100.0: self.raiseAnError(IOError,"the percentile needs to an integer between 1 and 100. Got "+str(floatPercentile))
-                if -float(integerPercentile)/floatPercentile + 1.0 > 0.0001: self.raiseAnError(IOError,"the percentile needs to an integer between 1 and 100. Got "+str(floatPercentile))
-          self.what = toCompute
-      elif child.tag == "parameters"   : self.parameters['targets'] = child.text.split(',')
-      elif child.tag == "methodsToRun" : self.methodsToRun = child.text.split(',')
-      elif child.tag == "biased"       :
-        if child.text.lower() in utils.stringsThatMeanTrue(): self.biased = True
-      elif child.tag == "pivotParameter": self.pivotParameter = child.text
-      assert (self.parameters is not []), self.raiseAnError(IOError, 'I need parameters to work on! Please check your input for PP: ' + self.name)
+                self.toDo[scalar][pct] = set(targets)
+          #other scalars are simple
+          else:
+            if scalar not in self.toDo.keys():
+              self.toDo[scalar] = set()
+            self.toDo[scalar].update(set(a.strip() for a in tnode.text.split(',')))
+        for vector in self.vectorVals:
+          if vector not in self.toDo.keys():
+            self.toDo[vector] = []
+          self.toDo[vector].append({'targets':set(a.strip() for a in fnode.text.split(',')),
+                                 'features':set(a.strip() for a in tnode.text.split(','))})
+      elif child.tag == "biased":
+        if child.text.lower() in utils.stringsThatMeanTrue():
+          self.biased = True
+      elif child.tag == "pivotParameter":
+        self.pivotParameter = child.text
+      else:
+        self.raiseAWarning('Unrecognized node in BasicStatistics "',child.tag,'" has been ignored!')
+    assert (len(self.toDo)>0), self.raiseAnError(IOError, 'BasicStatistics needs parameters to work on! Please check input for PP: ' + self.name)
 
   def collectOutput(self, finishedJob, output):
     """
@@ -1613,40 +1822,36 @@ class BasicStatistics(BasePostProcessor):
       @ In, output, dataObjects, The object where we want to place our computed results
       @ Out, None
     """
-    # output
-    parameterSet = list(set(list(self.parameters['targets'])))
-    if finishedJob.returnEvaluation() == -1: self.raiseAnError(RuntimeError, ' No available Output to collect (Run probabably is not finished yet)')
-    outputDictionary = finishedJob.returnEvaluation()[1]
+    if finishedJob.getEvaluation() == -1: self.raiseAnError(RuntimeError, ' No available Output to collect (run possibly not finished yet)')
+    outputDictionary = finishedJob.getEvaluation()[1]
     methodToTest = []
     for key in self.methodsToRun:
       if key not in self.acceptedCalcParam: methodToTest.append(key)
     if isinstance(output,Files.File):
-      availExtens = ['xml','csv']
+      availExtens = ['xml']
       outputExtension = output.getExt().lower()
       if outputExtension not in availExtens:
-        self.raiseAWarning('BasicStatistics postprocessor output extension you input is ' + outputExtension)
-        self.raiseAWarning('Available are ' + str(availExtens) + '. Converting extension to ' + str(availExtens[0]) + '!')
-        outputExtension = availExtens[0]
-        output.setExtension(outputExtension)
+        self.raiseAMessage('BasicStatistics did not recognize extension ".'+str(outputExtension)+'" as ".xml", so writing text output...')
       output.setPath(self.__workingDir)
-      self.raiseADebug('Dumping output in file named ' + output.getAbsFile())
+      self.raiseADebug('Writing statistics output in file named ' + output.getAbsFile())
       output.open('w')
-      if outputExtension == 'csv': self._writeCSV(output,outputDictionary,parameterSet,outputExtension,methodToTest)
-      else                       : self._writeXML(output,outputDictionary,parameterSet,methodToTest)
+      if outputExtension == 'xml':
+        self._writeXML(output,outputDictionary,methodToTest)
+      else:
+        self._writeText(output,outputDictionary,methodToTest)
     elif output.type in ['PointSet','HistorySet']:
       self.raiseADebug('Dumping output in data object named ' + output.name)
       outputResults = [outputDictionary] if not self.dynamic else outputDictionary.values()
       for ts, outputDict in enumerate(outputResults):
         appendix = '-'+self.pivotParameter+'-'+str(outputDictionary.keys()[ts]) if self.dynamic else ''
         for what in outputDict.keys():
-          if what not in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity'] + methodToTest:
-            for targetP in parameterSet:
+          if what not in self.vectorVals + methodToTest:
+            for targetP in outputDict[what].keys():
               self.raiseADebug('Dumping variable ' + targetP + '. Parameter: ' + what + '. Metadata name = ' + targetP + '-' + what)
               output.updateMetadata(targetP + '-' + what + appendix, outputDict[what][targetP])
           else:
-            if what not in methodToTest:
-              self.raiseADebug('Dumping matrix ' + what + '. Metadata name = ' + what + '. Targets stored in ' + 'targets-' + what)
-              output.updateMetadata('targets-' + what + appendix, parameterSet)
+            if what not in methodToTest and len(self.allUsedParams) > 1:
+              self.raiseADebug('Dumping vector metric',what)
               output.updateMetadata(what.replace("|","-") + appendix, outputDict[what])
         if self.externalFunction:
           self.raiseADebug('Dumping External Function results')
@@ -1656,53 +1861,69 @@ class BasicStatistics(BasePostProcessor):
               self.raiseADebug('Dumping External Function parameter ' + what)
     else: self.raiseAnError(IOError, 'Output type ' + str(output.type) + ' unknown.')
 
-  def _writeCSV(self,output,outputDictionary,parameterSet,outputExtension,methodToTest):
+  def _writeText(self,output,outputDictionary,methodToTest):
     """
-      Defines the method for writing the basic statistics to a .csv file.
+      Defines the method for writing the basic statistics to a text file (space and newline delimited)
       @ In, output, File object, file to write to
-      @ In, outputDictionary, dict, dictionary of statistics values
-      @ In, parameterSet, list, list of parameters in use
-      @ In, outputExtension, string, extension of the file to write
+      @ In, outputDictionary, dict, dictionary of statistics values (or list of the same if self.dynamic)
       @ In, methodToTest, list, strings of methods to test
       @ Out, None
     """
-    separator = ','
+    separator = '  '
     if self.dynamic: output.write('Dynamic BasicStatistics'+ separator+ 'Pivot Parameter' + separator + self.pivotParameter + separator + os.linesep)
-    output.write('ComputedQuantities'+separator+separator.join(parameterSet) + os.linesep)
     quantitiesToWrite = {}
     outputResults = [outputDictionary] if not self.dynamic else outputDictionary.values()
+    longestParam = max(list(len(param) for param in self.allUsedParams)+[9]) #9 is for 'Metric:'
+    # use format functions to make writing matrices easier
+    paramFormat = ('{:>'+str(longestParam)+'.'+str(longestParam)+'}').format
     for ts, outputDict in enumerate(outputResults):
-      if self.dynamic: output.write('Pivot Value' +separator+ str(outputDictionary.keys()[ts]) + os.linesep)
-      for what in outputDict.keys():
-        if what not in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity'] + methodToTest:
-          if what not in quantitiesToWrite.keys():quantitiesToWrite[what] = []
-          for targetP in parameterSet:
-            quantitiesToWrite[what].append('%.8E' % copy.deepcopy(outputDict[what][targetP]))
-          output.write(what + separator +  separator.join(quantitiesToWrite[what])+os.linesep)
-      maxLength = max(len(max(parameterSet, key = len)) + 5, 16)
-      for what in outputDict.keys():
-        if what in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity','sensitivity']:
-          self.raiseADebug('Writing parameter matrix ' + what)
-          output.write(os.linesep)
-          output.write(what + os.linesep)
-          output.write('matrix' + separator + ''.join([str(item) + separator for item in parameterSet]) + os.linesep)
-          for index in range(len(parameterSet)):
-            output.write(parameterSet[index] + ''.join([separator + '%.8E' % item for item in outputDict[what][index]]) + os.linesep)
-      if self.externalFunction:
-        self.raiseADebug('Writing External Function results')
-        output.write(os.linesep + 'EXT FUNCTION ' + os.linesep)
-        output.write(os.linesep)
-        for what in self.methodsToRun:
-          if what not in self.acceptedCalcParam:
-            self.raiseADebug('Writing External Function parameter ' + what)
-            output.write(what + separator + '%.8E' % outputDict[what] + os.linesep)
+      if self.dynamic:
+        output.write('Pivot Value' +separator+ str(outputDictionary.keys()[ts]) + os.linesep)
+      # do scalars metrics first
+      #header
+      haveScalars = list(scalar for scalar in self.scalarVals if scalar in outputDict.keys())
+      longestScalar = max(18,max(len(scalar) for scalar in haveScalars))
+      valueStrFormat = ('{:^22.22}').format
+      valueFormat = '{:+.15e}'.format
+      output.write(paramFormat('Metric:') + separator)
+      output.write(separator.join(valueStrFormat(scalar) for scalar in haveScalars) + os.linesep)
+      #body
+      for param in self.allUsedParams:
+        output.write(paramFormat(param) + separator)
+        values = [None]*len(haveScalars)
+        for s,scalar in enumerate(haveScalars):
+          if param in outputDict.get(scalar,{}).keys():
+            values[s] = valueFormat(outputDict[scalar][param])
+          else:
+            value[s] = valueStrFormat('---')
+        output.write(separator.join(values) + os.linesep)
+      # then do vector metrics (matrix style)
+      haveVectors = list(vector for vector in self.vectorVals if vector in outputDict.keys())
+      for vector in haveVectors:
+        #label
+        output.write(os.linesep + os.linesep)
+        output.write(vector+':'+os.linesep)
+        #header
+        vecTargets = sorted(outputDict[vector].keys())
+        output.write(separator.join(valueStrFormat(v) for v in [' ']+vecTargets)+os.linesep)
+        #populate feature list
+        vecFeatures = set()
+        list(vecFeatures.update(set(outputDict[vector][t].keys())) for t in vecTargets)
+        vecFeatures = sorted(list(vecFeatures))
+        #body
+        for feature in vecFeatures:
+          output.write(valueStrFormat(feature)+separator)
+          values = [valueStrFormat('---')]*len(vecTargets)
+          for t,target in enumerate(vecTargets):
+            if feature in outputDict[vector][target].keys():
+              values[t] = valueFormat(outputDict[vector][target][feature])
+          output.write(separator.join(values)+os.linesep)
 
-  def _writeXML(self,origOutput,outputDictionary,parameterSet,methodToTest):
+  def _writeXML(self,origOutput,outputDictionary,methodToTest):
     """
       Defines the method for writing the basic statistics to a .xml file.
       @ In, origOutput, File object, file to write
       @ In, outputDictionary, dict, dictionary of statistics values
-      @ In, parameterSet, list, list of parameters in use
       @ In, methodToTest, list, strings of methods to test
       @ Out, None
     """
@@ -1717,22 +1938,21 @@ class BasicStatistics(BasePostProcessor):
     outputResults = [outputDictionary] if not self.dynamic else outputDictionary.values()
     for ts, outputDict in enumerate(outputResults):
       pivotVal = outputDictionary.keys()[ts]
-      for t,target in enumerate(parameterSet):
-        for stat,val in outputDict.items():
-          if stat not in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity'] + methodToTest:
-            output.addScalar(target,stat,val[target],pivotVal=pivotVal)
-        for stat,val in outputDict.items():
-          if stat in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity']:
-            valueDict = {}
-            valRow = val[t]
-            for p,param in enumerate(parameterSet):
-              actVal = valRow[p]
-              valueDict[param] = actVal
-            output.addVector(target,stat,valueDict,pivotVal=pivotVal)
-        if self.externalFunction:
-          for stat in self.methodsToRun:
-            if stat not in self.acceptedCalcParam:
-              output.addScalar(target,stat,val[target],pivotVal=pivotVal)
+      for t,target in enumerate(self.allUsedParams):
+        #do scalars first
+        for metric in self.scalarVals:
+          #TODO percentile
+          if metric == 'percentile':
+            for key in outputDict.keys():
+              if key.startswith(metric) and target in outputDict[key].keys():
+                output.addScalar(target,key,outputDict[key][target],pivotVal=pivotVal)
+          elif metric in outputDict.keys() and target in outputDict[metric]:
+            output.addScalar(target,metric,outputDict[metric][target],pivotVal=pivotVal)
+        #do matrix values
+        for metric in self.vectorVals:
+          if metric in outputDict.keys() and target in outputDict[metric]:
+            output.addVector(target,metric,outputDict[metric][target],pivotVal=pivotVal)
+
     output.writeFile()
 
   def __computeVp(self,p,weights):
@@ -1769,43 +1989,46 @@ class BasicStatistics(BasePostProcessor):
         denom = (v1Square-V2)*(v1Square**2.0-6.0*v1Square*V2+8.0*V1*V3+3.0*V2**2.0-6.0*V4)
         corrFactor = numer1/denom ,numer2/denom
     else:
-      if   order == 2: corrFactor   = float(weightsOrN)/(float(weightsOrN)-1.0)
+      if   order == 2:
+        corrFactor   = float(weightsOrN)/(float(weightsOrN)-1.0)
       elif order == 3: corrFactor   = (float(weightsOrN)**2.0)/((float(weightsOrN)-1)*(float(weightsOrN)-2))
       elif order == 4: corrFactor = (float(weightsOrN)*(float(weightsOrN)**2.0-2.0*float(weightsOrN)+3.0))/((float(weightsOrN)-1)*(float(weightsOrN)-2)*(float(weightsOrN)-3)),(3.0*float(weightsOrN)*(2.0*float(weightsOrN)-3.0))/((float(weightsOrN)-1)*(float(weightsOrN)-2)*(float(weightsOrN)-3))
     return corrFactor
 
-  def _computeKurtosis(self,arrayIn,expValue,pbWeight=None):
+  def _computeKurtosis(self,arrayIn,expValue,variance,pbWeight=None):
     """
       Method to compute the Kurtosis (fisher) of an array of observations
       @ In, arrayIn, list/numpy.array, the array of values from which the Kurtosis needs to be estimated
       @ In, expValue, float, expected value of arrayIn
+      @ In, variance, float, variance of arrayIn
       @ In, pbWeight, list/numpy.array, optional, the reliability weights that correspond to the values in 'array'. If not present, an unweighted approach is used
       @ Out, result, float, the Kurtosis of the array of data
     """
     if pbWeight is not None:
       unbiasCorr = self.__computeUnbiasedCorrection(4,pbWeight) if not self.biased else 1.0
-      if not self.biased: result = -3.0 + ((1.0/self.__computeVp(1,pbWeight))*np.sum(np.dot(np.power(arrayIn - expValue,4.0),pbWeight))*unbiasCorr[0]-unbiasCorr[1]*np.power(((1.0/self.__computeVp(1,pbWeight))*np.sum(np.dot(np.power(arrayIn - expValue,2.0),pbWeight))),2.0))/np.power(self._computeVariance(arrayIn,expValue,pbWeight),2.0)
-      else              : result = -3.0 + ((1.0/self.__computeVp(1,pbWeight))*np.sum(np.dot(np.power(arrayIn - expValue,4.0),pbWeight))*unbiasCorr)/np.power(self._computeVariance(arrayIn,expValue,pbWeight),2.0)
+      if not self.biased: result = -3.0 + ((1.0/self.__computeVp(1,pbWeight))*np.sum(np.dot(np.power(arrayIn - expValue,4.0),pbWeight))*unbiasCorr[0]-unbiasCorr[1]*np.power(((1.0/self.__computeVp(1,pbWeight))*np.sum(np.dot(np.power(arrayIn - expValue,2.0),pbWeight))),2.0))/np.power(variance,2.0)
+      else              : result = -3.0 + ((1.0/self.__computeVp(1,pbWeight))*np.sum(np.dot(np.power(arrayIn - expValue,4.0),pbWeight))*unbiasCorr)/np.power(variance,2.0)
     else:
       unbiasCorr = self.__computeUnbiasedCorrection(4,len(arrayIn)) if not self.biased else 1.0
-      if not self.biased: result = -3.0 + ((1.0/float(len(arrayIn)))*np.sum((arrayIn - expValue)**4)*unbiasCorr[0]-unbiasCorr[1]*(np.average((arrayIn - expValue)**2))**2.0)/(self._computeVariance(arrayIn,expValue))**2.0
-      else              : result = -3.0 + ((1.0/float(len(arrayIn)))*np.sum((arrayIn - expValue)**4)*unbiasCorr)/(self._computeVariance(arrayIn,expValue))**2.0
+      if not self.biased: result = -3.0 + ((1.0/float(len(arrayIn)))*np.sum((arrayIn - expValue)**4)*unbiasCorr[0]-unbiasCorr[1]*(np.average((arrayIn - expValue)**2))**2.0)/(variance)**2.0
+      else              : result = -3.0 + ((1.0/float(len(arrayIn)))*np.sum((arrayIn - expValue)**4)*unbiasCorr)/(variance)**2.0
     return result
 
-  def _computeSkewness(self,arrayIn,expValue,pbWeight=None):
+  def _computeSkewness(self,arrayIn,expValue,variance,pbWeight=None):
     """
       Method to compute the skewness of an array of observations
       @ In, arrayIn, list/numpy.array, the array of values from which the skewness needs to be estimated
       @ In, expValue, float, expected value of arrayIn
+      @ In, variance, float, variance value of arrayIn
       @ In, pbWeight, list/numpy.array, optional, the reliability weights that correspond to the values in 'array'. If not present, an unweighted approach is used
       @ Out, result, float, the skewness of the array of data
     """
     if pbWeight is not None:
       unbiasCorr = self.__computeUnbiasedCorrection(3,pbWeight) if not self.biased else 1.0
-      result = (1.0/self.__computeVp(1,pbWeight))*np.sum(np.dot(np.power(arrayIn - expValue,3.0),pbWeight))*unbiasCorr/np.power(self._computeVariance(arrayIn,expValue,pbWeight),1.5)
+      result = (1.0/self.__computeVp(1,pbWeight))*np.sum(np.dot(np.power(arrayIn - expValue,3.0),pbWeight))*unbiasCorr/np.power(variance,1.5)
     else:
       unbiasCorr = self.__computeUnbiasedCorrection(3,len(arrayIn)) if not self.biased else 1.0
-      result = ((1.0/float(len(arrayIn)))*np.sum((arrayIn - expValue)**3)*unbiasCorr)/np.power(self._computeVariance(arrayIn,expValue,pbWeight),1.5)
+      result = ((1.0/float(len(arrayIn)))*np.sum((arrayIn - expValue)**3)*unbiasCorr)/np.power(variance,1.5)
     return result
 
   def _computeVariance(self,arrayIn,expValue,pbWeight=None):
@@ -1824,15 +2047,15 @@ class BasicStatistics(BasePostProcessor):
       result = np.average((arrayIn - expValue)**2)*unbiasCorr
     return result
 
-  def _computeSigma(self,arrayIn,expValue,pbWeight=None):
+  def _computeSigma(self,arrayIn,variance,pbWeight=None):
     """
       Method to compute the sigma of an array of observations
       @ In, arrayIn, list/numpy.array, the array of values from which the sigma needs to be estimated
-      @ In, expValue, float, expected value of arrayIn
+      @ In, variance, float, variance of arrayIn
       @ In, pbWeight, list/numpy.array, optional, the reliability weights that correspond to the values in 'array'. If not present, an unweighted approach is used
       @ Out, sigma, float, the sigma of the array of data
     """
-    return np.sqrt(self._computeVariance(arrayIn,expValue,pbWeight))
+    return np.sqrt(variance)
 
   def _computeWeightedPercentile(self,arrayIn,pbWeight,percent=0.5):
     """
@@ -1859,8 +2082,6 @@ class BasicStatistics(BasePostProcessor):
       @ In,  input, object, object contained the data to process. (inputToInternal output)
       @ Out, outputDict, dict, Dictionary containing the results
     """
-    #input = self.inputToInternal(inputIn)
-    outputDict = {}
     pbWeights, pbPresent  = {'realization':None}, False
     if self.externalFunction:
       # there is an external function
@@ -1874,15 +2095,18 @@ class BasicStatistics(BasePostProcessor):
             if type(outputDict[what]) != np.ndarray: self.raiseAnError(IOError, 'BasicStatistics postprocessor: You have overwritten the "' + what + '" method through an external function, it must be a numpy.ndarray!!')
             if len(outputDict[what].shape) != 2    : self.raiseAnError(IOError, 'BasicStatistics postprocessor: You have overwritten the "' + what + '" method through an external function, it must be a 2D numpy.ndarray!!')
     # setting some convenience values
-    parameterSet = list(set(list(self.parameters['targets'])))  # @Andrea I am using set to avoid the test: if targetP not in outputDict[what].keys()
+    parameterSet = list(self.allUsedParams)
     if 'metadata' in input.keys(): pbPresent = 'ProbabilityWeight' in input['metadata'].keys() if 'metadata' in input.keys() else False
     if not pbPresent:
+      pbWeights['realization'] = None
       if 'metadata' in input.keys():
         if 'SamplerType' in input['metadata'].keys():
-          if input['metadata']['SamplerType'][0] != 'MC' : self.raiseAWarning('BasicStatistics postprocessor can not compute expectedValue without ProbabilityWeights. Use unit weight')
-        else: self.raiseAWarning('BasicStatistics can not compute expectedValue without ProbabilityWeights. Use unit weight')
-      pbWeights['realization'] = np.asarray([1.0 / len(input['targets'][self.parameters['targets'][0]])]*len(input['targets'][self.parameters['targets'][0]]))
-    else: pbWeights['realization'] = input['metadata']['ProbabilityWeight']/np.sum(input['metadata']['ProbabilityWeight'])
+          if input['metadata']['SamplerType'][0] != 'MC' :
+            self.raiseAWarning('BasicStatistics postprocessor did not detect ProbabilityWeights! Assuming unit weights instead...')
+        else:
+          self.raiseAWarning('BasicStatistics postprocessor did not detect ProbabilityWeights. Assuming unit weights instead...')
+    else:
+      pbWeights['realization'] = input['metadata']['ProbabilityWeight']/np.sum(input['metadata']['ProbabilityWeight'])
     #This section should take the probability weight for each sampling variable
     pbWeights['SampledVarsPbWeight'] = {'SampledVarsPbWeight':{}}
     if 'metadata' in input.keys():
@@ -1890,218 +2114,424 @@ class BasicStatistics(BasePostProcessor):
         if 'ProbabilityWeight-'+target in input['metadata'].keys():
           pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target] = np.asarray(input['metadata']['ProbabilityWeight-'+target])
           pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target][:] = pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target][:]/np.sum(pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][target])
-    # if here because the user could have overwritten the method through the external function
-    if 'expectedValue' not in outputDict.keys(): outputDict['expectedValue'] = {}
-    expValues = np.zeros(len(parameterSet))
-    for myIndex, targetP in enumerate(parameterSet):
-      if pbPresent: relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
-      else        : relWeight  = None
-      if relWeight is None: outputDict['expectedValue'][targetP] = np.mean(input['targets'][targetP])
-      else                : outputDict['expectedValue'][targetP] = np.average(input['targets'][targetP], weights = relWeight)
-      expValues[myIndex] = outputDict['expectedValue'][targetP]
-    for what in self.what:
-      if what not in outputDict.keys(): outputDict[what] = {}
-      # samples
-      if what == 'samples':
-        for p in parameterSet:
-          outputDict[what][p] = len(input['targets'].values()[0])
-      # sigma
-      if what == 'sigma':
-        for myIndex, targetP in enumerate(parameterSet):
-          if pbPresent: relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
-          else        : relWeight  = None
-          outputDict[what][targetP] = self._computeSigma(input['targets'][targetP],expValues[myIndex],relWeight)
-          if (outputDict[what][targetP] == 0):
-            self.raiseAWarning('The variable: ' + targetP + ' is not dispersed (sigma = 0)! Please check your input in PP: ' + self.name)
-            outputDict[what][targetP] = np.Infinity
-      # variance
-      if what == 'variance':
-        for myIndex, targetP in enumerate(parameterSet):
-          if pbPresent: relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
-          else        : relWeight  = None
-          outputDict[what][targetP] = self._computeVariance(input['targets'][targetP],expValues[myIndex],pbWeight=relWeight)
-          if (outputDict[what][targetP] == 0):
-            self.raiseAWarning('The variable: ' + targetP + ' has zero variance! Please check your input in PP: ' + self.name)
-            outputDict[what][targetP] = np.Infinity
-      # coefficient of variation (sigma/mu)
-      if what == 'variationCoefficient':
-        for myIndex, targetP in enumerate(parameterSet):
-          if pbPresent: relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
-          else        : relWeight  = None
-          sigma = self._computeSigma(input['targets'][targetP],expValues[myIndex],relWeight)
-          if (outputDict['expectedValue'][targetP] == 0):
-            self.raiseAWarning('Expected Value for ' + targetP + ' is zero! Variation Coefficient can not be calculated in PP: ' + self.name)
-            outputDict['expectedValue'][targetP] = np.Infinity
-          outputDict[what][targetP] = sigma / outputDict['expectedValue'][targetP]
-      # kurtosis
-      if what == 'kurtosis':
-        for myIndex, targetP in enumerate(parameterSet):
-          if pbPresent: relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
-          else        : relWeight  = None
-          outputDict[what][targetP] = self._computeKurtosis(input['targets'][targetP],expValues[myIndex],pbWeight=relWeight)
-      # skewness
-      if what == 'skewness':
-        for myIndex, targetP in enumerate(parameterSet):
-          if pbPresent: relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
-          else        : relWeight  = None
-          outputDict[what][targetP] = self._computeSkewness(input['targets'][targetP],expValues[myIndex],pbWeight=relWeight)
-      # median
-      if what == 'median':
-        if pbPresent:
-          for targetP in parameterSet:
-            relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
-            outputDict[what][targetP] = self._computeWeightedPercentile(input['targets'][targetP],relWeight,percent=0.5)
-        else:
-          for targetP in parameterSet: outputDict[what][targetP] = np.median(input['targets'][targetP])
-      # percentile
-      if what.split("_")[0] == 'percentile':
-        outputDict.pop(what)
-        if "_" not in what: whatPercentile = [what + '_5', what + '_95']
-        else              : whatPercentile = [what.replace("%","")]
-        for whatPerc in whatPercentile:
-          if whatPerc not in outputDict.keys(): outputDict[whatPerc] = {}
-          for targetP in self.parameters['targets'  ]:
-            if targetP not in outputDict[whatPerc].keys() :
-              if pbPresent: relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
-              integerPercentile             = utils.intConversion(whatPerc.split("_")[-1].replace("%",""))
-              outputDict[whatPerc][targetP] = np.percentile(input['targets'][targetP], integerPercentile) if not pbPresent else self._computeWeightedPercentile(input['targets'][targetP],relWeight,percent=float(integerPercentile)/100.0)
-      # cov matrix
-      if what == 'covariance':
-        feat = np.zeros((len(input['targets'].keys()), utils.first(input['targets'].values()).size))
-        pbWeightsList = [None]*len(input['targets'].keys())
-        for myIndex, targetP in enumerate(parameterSet):
-          feat[myIndex, :] = input['targets'][targetP][:]
-          pbWeightsList[myIndex] = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
-        pbWeightsList.append(pbWeights['realization'])
-        outputDict[what] = self.covariance(feat, weights = pbWeightsList)
-      # pearson matrix
-      if what == 'pearson':
-        feat          = np.zeros((len(input['targets'].keys()), utils.first(input['targets'].values()).size))
-        pbWeightsList = [None]*len(input['targets'].keys())
-        for myIndex, targetP in enumerate(parameterSet):
-          feat[myIndex, :] = input['targets'][targetP][:]
-          pbWeightsList[myIndex] = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
-        outputDict[what] = self.corrCoeff(feat, weights = pbWeightsList)  # np.corrcoef(feat)
-      # sensitivity matrix
-      if what == 'sensitivity':
-        for myIndex, target in enumerate(parameterSet):
-          values, targetCoefs = list(input['targets'].values()), list(input['targets'].keys())
-          values.pop(list(input['targets'].keys()).index(target)), targetCoefs.pop(list(input['targets'].keys()).index(target))
-          sampledMatrix = np.atleast_2d(np.asarray(values)).T
-          regressorsByTarget = dict(zip(targetCoefs, LinearRegression().fit(sampledMatrix, input['targets'][target]).coef_))
-          regressorsByTarget[target] = 1.0
-          outputDict[what][myIndex] = np.zeros(len(parameterSet))
-          for cnt, param in enumerate(parameterSet): outputDict[what][myIndex][cnt] = regressorsByTarget[param]
-      # VarianceDependentSensitivity matrix
-      # The formular for this calculation is coming from: http://www.math.uah.edu/stat/expect/Matrices.html
-      # The best linear predictor: L(Y|X) = expectedValue(Y) + cov(Y,X) * [vc(X)]^(-1) * [X-expectedValue(X)]
-      # where Y is a vector of outputs, and X is a vector of inputs, cov(Y,X) is the covariance matrix of Y and X,
-      # vc(X) is the covariance matrix of X with itself.
-      # The variance dependent sensitivity matrix is defined as: cov(Y,X) * [vc(X)]^(-1)
-      if what == 'VarianceDependentSensitivity':
-        feat = np.zeros((len(input['targets'].keys()), utils.first(input['targets'].values()).size))
-        pbWeightsList = [None]*len(input['targets'].keys())
-        for myIndex, targetP in enumerate(parameterSet):
-          feat[myIndex, :] = input['targets'][targetP][:]
-          pbWeightsList[myIndex] = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
-        pbWeightsList.append(pbWeights['realization'])
-        covMatrix = self.covariance(feat, weights = pbWeightsList)
-        for myIndex, targetP in enumerate(parameterSet):
-          targetCoefs = list(parameterSet)
-          targetCoefs.pop(myIndex)
-          inputParameters = np.delete(feat,myIndex,axis=0)
-          inputCovMatrix = np.delete(covMatrix,myIndex,axis=0)
-          inputCovMatrix = np.delete(inputCovMatrix,myIndex,axis=1)
-          outputInputCov = np.delete(covMatrix[myIndex,:],myIndex)
-          sensitivityCoeffDict = dict(zip(targetCoefs,np.dot(outputInputCov, np.linalg.pinv(inputCovMatrix))))
-          sensitivityCoeffDict[targetP] = 1.0
-          outputDict[what][myIndex] = np.zeros(len(parameterSet))
-          for cnt,param in enumerate(parameterSet):
-            outputDict[what][myIndex][cnt] = sensitivityCoeffDict[param]
-      # Normalized variance dependent sensitivity matrix: variance dependent sensitivity  normalized by the mean (% change of output)/(% change of input)
-      if what == 'NormalizedSensitivity':
-        feat = np.zeros((len(input['targets'].keys()), utils.first(input['targets'].values()).size))
-        pbWeightsList = [None]*len(input['targets'].keys())
-        for myIndex, targetP in enumerate(parameterSet):
-          feat[myIndex, :] = input['targets'][targetP][:]
-          pbWeightsList[myIndex] = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
-        pbWeightsList.append(pbWeights['realization'])
-        covMatrix = self.covariance(feat, weights = pbWeightsList)
-        for myIndex, targetP in enumerate(parameterSet):
-          targetCoefs = list(parameterSet)
-          targetCoefs.pop(myIndex)
-          inputParameters = np.delete(feat,myIndex,axis=0)
-          inputCovMatrix = np.delete(covMatrix,myIndex,axis=0)
-          inputCovMatrix = np.delete(inputCovMatrix,myIndex,axis=1)
-          outputInputCov = np.delete(covMatrix[myIndex,:],myIndex)
-          sensitivityCoeffDict = dict(zip(targetCoefs,np.dot(outputInputCov, np.linalg.pinv(inputCovMatrix))))
-          sensitivityCoeffDict[targetP] = 1.0
-          outputDict[what][myIndex] = np.zeros(len(parameterSet))
-          for cnt,param in enumerate(parameterSet):
-            outputDict[what][myIndex][cnt] = sensitivityCoeffDict[param]*expValues[cnt]/expValues[myIndex]
+
+    #establish a dict of indices to parameters and vice versa
+    parameter2index = dict((param,p) for p,param in enumerate(input['targets'].keys()))
+    for p,param in enumerate(input['targets'].keys()):
+      parameter2index[param] = p
+
+    #storage dictionary for skipped metrics
+    self.skipped = {}
+
+    #construct a dict of required computations
+    needed = dict((metric,set()) for metric in self.scalarVals) #for each metric (keys), the list of parameters we need that value for
+    needed.update(dict((metric,{'targets':set(),'features':set()}) for metric in self.vectorVals))
+    #percentile is a special exception
+    if 'percentile' in needed.keys():
+      needed['percentile'] = {}
+    #add things requested by the user
+    #start by adding the exact request by the user, then add the dependencies
+    for metric,params in self.toDo.items():
+      #percentile is a special case, and it neither relies on anything nor is relied upon by anything
+      if metric == 'percentile':
+        for pct,targets in params.items():
+          needed[metric][pct] = targets
+      elif type(params) == set: #scalar parameter
+        needed[metric].update(params)
+      elif type(params) == list and type(params[0]) == dict:  # vector parameter
+        needed[metric] = {'targets':set(),'features':set()}
+        for entry in params:
+          needed[metric]['targets'].update(entry['targets'])
+          needed[metric]['features'].update(entry['features'])
+      else:
+        self.raiseAWarning('Unrecognized format for metric "'+metric+'!  Expected "set" or "dict" but got',type(params))
+    # variable                     | needs                  | needed for
+    # --------------------------------------------------------------------
+    # skewness needs               | expectedValue,variance |
+    # kurtosis needs               | expectedValue,variance |
+    # median needs                 |                        |
+    # percentile needs             |                        |
+    # maximum needs                |                        |
+    # minimum needs                |                        |
+    # covariance needs             |                        | pearson,VarianceDependentSensitivity,NormalizedSensitivity
+    # NormalizedSensitivity        | covariance,VarDepSens  |
+    # VarianceDependentSensitivity | covariance             | NormalizedSensitivity
+    # sensitivity needs            |                        |
+    # pearson needs                | covariance             |
+    # sigma needs                  | variance               | variationCoefficient
+    # variance                     | expectedValue          | sigma, skewness, kurtosis
+    # expectedValue                |                        | variance, variationCoefficient, skewness, kurtosis
+    needed['sigma'].update(needed.get('variationCoefficient'))
+    needed['variance'].update(needed.get('sigma',set()))
+    needed['expectedValue'].update(needed.get('sigma',set()))
+    needed['expectedValue'].update(needed.get('variationCoefficient',set()))
+    needed['expectedValue'].update(needed.get('variance',set()))
+    needed['expectedValue'].update(needed.get('skewness',set()))
+    needed['expectedValue'].update(needed.get('kurtosis',set()))
+    if 'NormalizedSensitivity' in needed.keys():
+      needed['expectedValue'].update(needed['NormalizedSensitivity']['targets'])
+      needed['expectedValue'].update(needed['NormalizedSensitivity']['features'])
+      needed['covariance']['targets'].update(needed['NormalizedSensitivity']['targets'])
+      needed['covariance']['features'].update(needed['NormalizedSensitivity']['features'])
+      needed['VarianceDependentSensitivity']['targets'].update(needed['NormalizedSensitivity']['targets'])
+      needed['VarianceDependentSensitivity']['features'].update(needed['NormalizedSensitivity']['features'])
+    if 'pearson' in needed.keys():
+      needed['covariance']['targets'].update(needed['pearson']['targets'])
+      needed['covariance']['features'].update(needed['pearson']['features'])
+    if 'VarianceDependentSensitivity' in needed.keys():
+      needed['covariance']['targets'].update(needed['VarianceDependentSensitivity']['targets'])
+      needed['covariance']['features'].update(needed['VarianceDependentSensitivity']['features'])
+    #
+    # BEGIN actual calculations
+    #
+    calculations = {}
+    # do things in order to preserve prereqs
+    # TODO many of these could be sped up through vectorization
+    # TODO additionally, this could be done with less code duplication, probably
+    #################
+    # SCALAR VALUES #
+    #################
+    def startMetric(metric):
+      """
+        Common starting for each metric calculation.
+        @ In, metric, string, name of metric
+        @ Out, None
+      """
+      if len(needed[metric])>0:
+        self.raiseADebug('Starting "'+metric+'"...')
+        calculations[metric]={}
+    #
+    # samples
+    #
+    metric = 'samples'
+    startMetric(metric)
+    for targetP in needed[metric]:
+      calculations[metric][targetP] = len(input['targets'].values()[0])
+    #
+    # expected value
+    #
+    metric = 'expectedValue'
+    startMetric(metric)
+    for targetP in needed[metric]:
+      if pbPresent:
+        relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
+        calculations[metric][targetP] = np.average(input['targets'][targetP], weights = relWeight)
+      else:
+        relWeight  = None
+        calculations[metric][targetP] = np.mean(input['targets'][targetP])
+    #
+    # variance
+    #
+    metric = 'variance'
+    startMetric(metric)
+    for targetP in needed[metric]:
+      if pbPresent:
+        relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
+      else:
+        relWeight  = None
+      calculations[metric][targetP] = self._computeVariance(input['targets'][targetP],calculations['expectedValue'][targetP],pbWeight=relWeight)
+      #sanity check
+      if (calculations[metric][targetP] == 0):
+        self.raiseAWarning('The variable: ' + targetP + ' has zero variance! Please check your input in PP: ' + self.name)
+    #
+    # sigma
+    #
+    metric = 'sigma'
+    startMetric(metric)
+    for targetP in needed[metric]:
+      if calculations['variance'][targetP] == 0:#np.Infinity:
+        self.raiseAWarning('The variable: ' + targetP + ' has zero sigma! Please check your input in PP: ' + self.name)
+        calculations[metric][targetP] = 0.0
+      else:
+        calculations[metric][targetP] = self._computeSigma(input['targets'][targetP],calculations['variance'][targetP])
+    #
+    # coeff of variation (sigma/mu)
+    #
+    metric = 'variationCoefficient'
+    startMetric(metric)
+    for targetP in needed[metric]:
+      if calculations['expectedValue'][targetP] == 0:
+        self.raiseAWarning('Expected Value for ' + targetP + ' is zero! Variation Coefficient cannot be calculated, so setting as infinite.')
+        calculations[metric][targetP] = np.Infinity
+      else:
+        calculations[metric][targetP] = calculations['sigma'][targetP]/calculations['expectedValue'][targetP]
+    #
+    # skewness
+    #
+    metric = 'skewness'
+    startMetric(metric)
+    for targetP in needed[metric]:
+      if pbPresent:
+        relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
+      else:
+        relWeight  = None
+      calculations[metric][targetP] = self._computeSkewness(input['targets'][targetP],calculations['expectedValue'][targetP],calculations['variance'][targetP],pbWeight=relWeight)
+    #
+    # kurtosis
+    #
+    metric = 'kurtosis'
+    startMetric(metric)
+    for targetP in needed[metric]:
+      if pbPresent:
+        relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
+      else:
+        relWeight  = None
+      calculations[metric][targetP] = self._computeKurtosis(input['targets'][targetP],calculations['expectedValue'][targetP],calculations['variance'][targetP],pbWeight=relWeight)
+    #
+    # median
+    #
+    metric = 'median'
+    startMetric(metric)
+    for targetP in needed[metric]:
+      if pbPresent:
+        relWeight  = pbWeights['realization'] if targetP not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][targetP]
+        calculations[metric][targetP] = self._computeWeightedPercentile(input['targets'][targetP],relWeight,percent=0.5)
+      else:
+        calculations[metric][targetP] = np.median(input['targets'][targetP])
+    #
+    # maximum
+    #
+    metric = 'maximum'
+    startMetric(metric)
+    for targetP in needed[metric]:
+      calculations[metric][targetP] = np.amax(input['targets'][targetP])
+    #
+    # minimum
+    #
+    metric = 'minimum'
+    startMetric(metric)
+    for targetP in needed[metric]:
+      calculations[metric][targetP] = np.amin(input['targets'][targetP])
+    #
+    # percentile
+    #
+    metric = 'percentile'
+    self.raiseADebug('Starting "'+metric+'"...')
+    for percent,targets in needed[metric].items():
+      self.raiseADebug('...',percent,'...')
+      label = metric+'_'+str(percent)
+      calculations[label] = {}
+      for targetP in targets:
+        calculations[label][targetP] = np.percentile(input['targets'][targetP], percent) if not pbPresent else self._computeWeightedPercentile(input['targets'][targetP],relWeight,percent=float(percent)/100.0)
+    #################
+    # VECTOR VALUES #
+    #################
+    #
+    # sensitivity matrix
+    #
+    def startVector(metric):
+      """
+        Common method among all metrics for establishing parameters
+        @ In, metric, string, the name of the statistics metric to calculate
+        @ Out, targets, list(str), list of target parameter names (evaluate metrics for these)
+        @ Out, features, list(str), list of feature parameter names (evaluate with respect to these)
+        @ Out, skip, bool, if True it means either features or parameters were missing, so don't calculate anything
+      """
+      # default to skipping, change that if we find criteria
+      targets = []
+      features = []
+      skip = True
+      allParams = set(needed[metric]['targets'])
+      allParams.update(set(needed[metric]['features']))
+      if len(needed[metric]['targets'])>0 and len(allParams)>=2:
+        self.raiseADebug('Starting "'+metric+'"...')
+        calculations[metric]={}
+        targets = needed[metric]['targets']
+        features = needed[metric]['features']
+        skip = False #True only if we don't have targets and features
+        if len(features)<1:
+          self.raiseAWarning('No features specified for <'+metric+'>!  Please specify features in a <features> node (see the manual).  Skipping...')
+          skip = True
+      elif len(needed[metric]['targets']) == 0:
+        #unrequested, no message needed
+        pass
+      elif len(allParams) < 2:
+        #insufficient target/feature combinations (usually when only 1 target and 1 feature, and they are the same)
+        self.raiseAWarning('A total of',len(allParams),'were provided for metric',metric,'but at least 2 are required!  Skipping...')
+      if skip:
+        if metric not in self.skipped.keys():
+          self.skipped[metric] = {}
+        self.skipped[metric].update(needed[metric])
+      return targets,features,skip
+
+    metric = 'sensitivity'
+    targets,features,skip = startVector(metric)
+    #NOTE sklearn expects the transpose of what we usually do in RAVEN, so #samples by #features
+    if not skip:
+      #for sensitivity matrix, we don't use numpy/scipy methods to calculate matrix operations,
+      #so we loop over targets and features
+      for t,target in enumerate(targets):
+        calculations[metric][target] = {}
+        targetVals = input['targets'][target]
+        #don't do self-sensitivity
+        inpSamples = np.atleast_2d(np.asarray(list(input['targets'][f] for f in features if f!=target))).T
+        useFeatures = list(f for f in features if f != target)
+        #use regressor coefficients as sensitivity
+        regressDict = dict(zip(useFeatures, LinearRegression().fit(inpSamples,targetVals).coef_))
+        for f,feature in enumerate(features):
+          calculations[metric][target][feature] = 1.0 if feature==target else regressDict[feature]
+    #
+    # covariance matrix
+    #
+    metric = 'covariance'
+    targets,features,skip = startVector(metric)
+    if not skip:
+      # because the C implementation is much faster than picking out individual values,
+      #   we do the full covariance matrix with all the targets and features.
+      # FIXME adding an alternative for users to choose pick OR do all, defaulting to something smart
+      #   dependent on the percentage of the full matrix desired, would be better.
+      # IF this is fixed, make sure all the features and targets are requested for all the metrics
+      #   dependent on this metric
+      params = list(set(targets).union(set(features)))
+      paramSamples = np.zeros((len(params), utils.first(input['targets'].values()).size))
+      pbWeightsList = [None]*len(input['targets'].keys())
+      for p,param in enumerate(params):
+        dataIndex = parameter2index[param]
+        paramSamples[p,:] = input['targets'][param][:]
+        pbWeightsList[p] = pbWeights['realization'] if param not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][param]
+      pbWeightsList.append(pbWeights['realization'])
+      if None in pbWeightsList:
+        covar = self.covariance(paramSamples)
+      else:
+        covar = self.covariance(paramSamples, weights = pbWeightsList)
+      calculations[metric]['matrix'] = covar
+      calculations[metric]['params'] = params
+
+    def getCovarianceSubset(desired):
+      """
+        @ In, desired, list(str), list of parameters to extract from covariance matrix
+        @ Out, reducedSecond, np.array, reduced covariance matrix
+        @ Out, wantedParams, list(str), parameter labels for reduced covar matrix
+      """
+      wantedIndices = list(calculations['covariance']['params'].index(d) for d in desired)
+      wantedParams = list(calculations['covariance']['params'][i] for i in wantedIndices)
+      #retain rows, colums
+      reducedFirst = calculations['covariance']['matrix'][wantedIndices]
+      reducedSecond = reducedFirst[:,wantedIndices]
+      return reducedSecond, wantedParams
+    #
+    # pearson matrix
+    #
+    # see comments in covariance for notes on C implementation
+    metric = 'pearson'
+    targets,features,skip = startVector(metric)
+    if not skip:
+      params = list(set(targets).union(set(features)))
+      reducedCovar,reducedParams = getCovarianceSubset(params)
+      calculations[metric]['matrix'] = self.corrCoeff(reducedCovar)
+      calculations[metric]['params'] = reducedParams
+    #
+    # VarianceDependentSensitivity matrix
+    # The formula for this calculation is coming from: http://www.math.uah.edu/stat/expect/Matrices.html
+    # The best linear predictor: L(Y|X) = expectedValue(Y) + cov(Y,X) * [vc(X)]^(-1) * [X-expectedValue(X)]
+    # where Y is a vector of outputs, and X is a vector of inputs, cov(Y,X) is the covariance matrix of Y and X,
+    # vc(X) is the covariance matrix of X with itself.
+    # The variance dependent sensitivity matrix is defined as: cov(Y,X) * [vc(X)]^(-1)
+    #
+    metric = 'VarianceDependentSensitivity'
+    targets,features,skip = startVector(metric)
+    if not skip:
+      params = list(set(targets).union(set(features)))
+      reducedCovar,reducedParams = getCovarianceSubset(params)
+      inputSamples = np.zeros((len(params),utils.first(input['targets'].values()).size))
+      pbWeightsList = [None]*len(params)
+      for p,param in enumerate(reducedParams):
+        inputSamples[p,:] = input['targets'][param][:]
+        pbWeightsList[p] = pbWeights['realization'] if param not in pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'].keys() else pbWeights['SampledVarsPbWeight']['SampledVarsPbWeight'][param]
+      pbWeightsList.append(pbWeights['realization'])
+      for p,param in enumerate(reducedParams):
+        calculations[metric][param] = {}
+        targCoefs = list(r for r in reducedParams if r!=param)
+        inpParams = np.delete(inputSamples,p,axis=0)
+        inpCovMatrix = np.delete(reducedCovar,p,axis=0)
+        inpCovMatrix = np.delete(inpCovMatrix,p,axis=1)
+        outInpCov = np.delete(reducedCovar[p,:],p)
+        sensCoefDict = dict(zip(targCoefs,np.dot(outInpCov,np.linalg.pinv(inpCovMatrix))))
+        for f,feature in enumerate(reducedParams):
+          if param == feature:
+            calculations[metric][param][feature] = 1.0
+          else:
+            calculations[metric][param][feature] = sensCoefDict[feature]
+    #
+    # Normalized variance dependent sensitivity matrix
+    # variance dependent sensitivity  normalized by the mean (% change of output)/(% change of input)
+    #
+    metric = 'NormalizedSensitivity'
+    targets,features,skip = startVector(metric)
+    if not skip:
+      reducedCovar,reducedParams = getCovarianceSubset(params)
+      for p,param in enumerate(reducedParams):
+        calculations[metric][param] = {}
+        for f,feature in enumerate(reducedParams):
+          expValueRatio = calculations['expectedValue'][feature]/calculations['expectedValue'][param]
+          calculations[metric][param][feature] = calculations['VarianceDependentSensitivity'][param][feature]*expValueRatio
+
+    #collect only the requested calculations
+    outputDict = {}
+    for metric,params in self.toDo.items():
+      #TODO someday we might need to expand the "skipped" check to include scalars, but for now
+      #   the only reason to skip is if an invalid matrix is requested
+      #if percentile, special treatment
+      if metric == 'percentile':
+        for pct,targets in params.items():
+          label = 'percentile_'+str(pct)
+          outputDict[label] = dict((target,calculations[label][target]) for target in targets)
+      #if other scalar, just report the result
+      elif metric in self.scalarVals:
+        outputDict[metric] = dict((target,calculations[metric][target]) for target in params)
+      #if a matrix block, extract desired values
+      else:
+        if metric in ['pearson','covariance']:
+          outputDict[metric] = {}
+          for entry in params:
+            #check if it was skipped for some reason
+            if entry == self.skipped.get(metric,None):
+              self.raiseADebug('Metric',metric,'was skipped for parameters',entry,'!  See warnings for details.  Ignoring...')
+              continue
+            for target in entry['targets']:
+              if target not in outputDict[metric].keys():
+                outputDict[metric][target] = {}
+              targetIndex = calculations[metric]['params'].index(target)
+              for feature in entry['features']:
+                featureIndex = calculations[metric]['params'].index(feature)
+                outputDict[metric][target][feature] = calculations[metric]['matrix'][targetIndex,featureIndex]
+        #if matrix but stored in dictionaries, just grab the values
+        elif metric in ['sensitivity','NormalizedSensitivity','VarianceDependentSensitivity']:
+          outputDict[metric] = {}
+          for entry in params:
+            #check if it was skipped for some reason
+            if entry == self.skipped.get(metric,None):
+              self.raiseADebug('Metric',metric,'was skipped for parameters',entry,'!  See warnings for details.  Ignoring...')
+              continue
+            for target in entry['targets']:
+              outputDict[metric][target] = dict((feature,calculations[metric][target][feature]) for feature in entry['features'])
+
     # print on screen
-    self.raiseADebug('BasicStatistics ' + str(self.name) + 'pp outputs')
     methodToTest = []
     for key in self.methodsToRun:
       if key not in self.acceptedCalcParam: methodToTest.append(key)
-    msg = os.linesep
-    for targetP in parameterSet:
-      msg += '        *************' + '*' * len(targetP) + '***' + os.linesep
-      msg += '        * Variable * ' + targetP + '  *' + os.linesep
-      msg += '        *************' + '*' * len(targetP) + '***' + os.linesep
-      for what in outputDict.keys():
-        if what not in ['covariance', 'pearson', 'NormalizedSensitivity', 'VarianceDependentSensitivity', 'sensitivity'] + methodToTest:
-          msg += '               ' + '**' + '*' * len(what) + '***' + 6 * '*' + '*' * 8 + '***' + os.linesep
-          msg += '               ' + '* ' + what + ' * ' + '%.8E' % outputDict[what][targetP] + '  *' + os.linesep
-          msg += '               ' + '**' + '*' * len(what) + '***' + 6 * '*' + '*' * 8 + '***' + os.linesep
-    maxLength = max(len(max(parameterSet, key = len)) + 5, 16)
-    if 'covariance' in outputDict.keys():
-      msg += ' ' * maxLength + '*****************************' + os.linesep
-      msg += ' ' * maxLength + '*         Covariance        *' + os.linesep
-      msg += ' ' * maxLength + '*****************************' + os.linesep
-      msg += ' ' * maxLength + ''.join([str(item) + ' ' * (maxLength - len(item)) for item in parameterSet]) + os.linesep
-      for index in range(len(parameterSet)):
-        msg += parameterSet[index] + ' ' * (maxLength - len(parameterSet[index])) + ''.join(['%.8E' % item + ' ' * (maxLength - 14) for item in outputDict['covariance'][index]]) + os.linesep
-    if 'pearson' in outputDict.keys():
-      msg += ' ' * maxLength + '*****************************' + os.linesep
-      msg += ' ' * maxLength + '*    Pearson/Correlation    *' + os.linesep
-      msg += ' ' * maxLength + '*****************************' + os.linesep
-      msg += ' ' * maxLength + ''.join([str(item) + ' ' * (maxLength - len(item)) for item in parameterSet]) + os.linesep
-      for index in range(len(parameterSet)):
-        msg += parameterSet[index] + ' ' * (maxLength - len(parameterSet[index])) + ''.join(['%.8E' % item + ' ' * (maxLength - 14) for item in outputDict['pearson'][index]]) + os.linesep
-    if 'VarianceDependentSensitivity' in outputDict.keys():
-      msg += ' ' * maxLength + '******************************' + os.linesep
-      msg += ' ' * maxLength + '*VarianceDependentSensitivity*' + os.linesep
-      msg += ' ' * maxLength + '******************************' + os.linesep
-      msg += ' ' * maxLength + ''.join([str(item) + ' ' * (maxLength - len(item)) for item in parameterSet]) + os.linesep
-      for index in range(len(parameterSet)):
-        msg += parameterSet[index] + ' ' * (maxLength - len(parameterSet[index])) + ''.join(['%.8E' % item + ' ' * (maxLength - 14) for item in outputDict['VarianceDependentSensitivity'][index]]) + os.linesep
-    if 'NormalizedSensitivity' in outputDict.keys():
-      msg += ' ' * maxLength + '******************************' + os.linesep
-      msg += ' ' * maxLength + '* Normalized V.D.Sensitivity *' + os.linesep
-      msg += ' ' * maxLength + '******************************' + os.linesep
-      msg += ' ' * maxLength + ''.join([str(item) + ' ' * (maxLength - len(item)) for item in parameterSet]) + os.linesep
-      for index in range(len(parameterSet)):
-        msg += parameterSet[index] + ' ' * (maxLength - len(parameterSet[index])) + ''.join(['%.8E' % item + ' ' * (maxLength - 14) for item in outputDict['NormalizedSensitivity'][index]]) + os.linesep
-    if 'sensitivity' in outputDict.keys():
-      msg += ' ' * maxLength + '******************************' + os.linesep
-      msg += ' ' * maxLength + '*        Sensitivity         *' + os.linesep
-      msg += ' ' * maxLength + '******************************' + os.linesep
-      msg += ' ' * maxLength + ''.join([str(item) + ' ' * (maxLength - len(item)) for item in parameterSet]) + os.linesep
-      for index in range(len(parameterSet)):
-        msg += parameterSet[index] + ' ' * (maxLength - len(parameterSet[index])) + ''.join(['%.8E' % item + ' ' * (maxLength - 14) for item in outputDict['sensitivity'][index]]) + os.linesep
-    if self.externalFunction:
-      msg += ' ' * maxLength + '+++++++++++++++++++++++++++++' + os.linesep
-      msg += ' ' * maxLength + '+ OUTCOME FROM EXT FUNCTION +' + os.linesep
-      msg += ' ' * maxLength + '+++++++++++++++++++++++++++++' + os.linesep
-      for what in self.methodsToRun:
-        if what not in self.acceptedCalcParam:
-          msg += '              ' + '**' + '*' * len(what) + '***' + 6 * '*' + '*' * 8 + '***' + os.linesep
-          msg += '              ' + '* ' + what + ' * ' + '%.8E' % outputDict[what] + '  *' + os.linesep
-          msg += '              ' + '**' + '*' * len(what) + '***' + 6 * '*' + '*' * 8 + '***' + os.linesep
-    self.raiseADebug(msg)
+    self.printToScreen(outputDict)
     return outputDict
 
+  def printToScreen(self,outputDict):
+    """
+      Prints all results of BasicStatistics to screen.
+      @ In, outputDict, dict, dictionary of results
+      @ Out, None
+    """
+    self.raiseADebug('BasicStatistics ' + str(self.name) + 'results:')
+    for metric,valueDict in outputDict.items():
+      self.raiseADebug('BasicStatistics Metric:',metric)
+      if metric in self.scalarVals or metric.startswith('percentile'):
+        for target,value in valueDict.items():
+          self.raiseADebug('   ',target+':',value)
+      elif metric in self.vectorVals:
+        for target,wrt in valueDict.items():
+          self.raiseADebug('   ',target,'with respect to:')
+          for feature,value in wrt.items():
+            self.raiseADebug('     ',feature+':',value)
+      else:
+        self.raiseADebug('   ',valueDict)
 
   def run(self, inputIn):
     """
@@ -2136,14 +2566,27 @@ class BasicStatistics(BasePostProcessor):
     """
     X = np.array(feature, ndmin = 2, dtype = np.result_type(feature, np.float64))
     w = np.zeros(feature.shape, dtype = np.result_type(feature, np.float64))
-    if X.shape[0] == 1: rowVar = 1
+    if X.shape[0] == 1:
+      rowVar = 1
     if rowVar:
-      N, featuresNumber, axis = X.shape[1], X.shape[0], 0
-      for myIndex in range(featuresNumber): w[myIndex,:] = np.array(weights[myIndex], dtype = np.result_type(feature, np.float64))[:] if weights is not None else np.ones(len(w[myIndex,:]), dtype = np.result_type(feature, np.float64))[:]
+      N = X.shape[1]
+      featuresNumber = X.shape[0]
+      axis = 0
+      for myIndex in range(featuresNumber):
+        if weights is None:
+          w[myIndex,:] = np.ones(N)/float(N)
+        else:
+          w[myIndex,:] = np.array(weights[myIndex],dtype=np.result_type(feature, np.float64))[:] if weights is not None else np.ones(len(w[myIndex,:]),dtype =np.result_type(feature, np.float64))[:]
     else:
-      N, featuresNumber,axis = X.shape[0], X.shape[1], 1
-      for myIndex in range(featuresNumber): w[:,myIndex] = np.array(weights[myIndex], dtype = np.result_type(feature, np.float64))[:] if weights is not None else np.ones(len(w[:,myIndex]), dtype = np.result_type(feature, np.float64))[:]
-    realizationWeights = weights[-1]
+      N = X.shape[0]
+      featuresNumber = X.shape[1]
+      axis = 1
+      for myIndex in range(featuresNumber):
+        if weights is None:
+          w[myIndex,:] = np.ones(N)/float(N)
+        else:
+          w[:,myIndex] = np.array(weights[myIndex], dtype=np.result_type(feature, np.float64))[:] if weights is not None else np.ones(len(w[:,myIndex]),dtype=np.result_type(feature, np.float64))[:]
+    realizationWeights = weights[-1] if weights is not None else np.ones(N)/float(N)
     if N <= 1:
       self.raiseAWarning("Degrees of freedom <= 0")
       return np.zeros((featuresNumber,featuresNumber), dtype = np.result_type(feature, np.float64))
@@ -2151,21 +2594,22 @@ class BasicStatistics(BasePostProcessor):
     covMatrix = np.ones((featuresNumber,featuresNumber), dtype = np.result_type(feature, np.float64))
     for myIndex in range(featuresNumber):
       for myIndexTwo in range(featuresNumber):
-        # The weights that are used here should represent the joint probability (P(x,y)). Since I have no way yet to compute the joint probability with weights only (eventually I can think to use an estimation of the
-        # P(x,y) computed through a 2D histogram construction and weighted a posteriori with the 1-D weights), I decided to construct a weighting fanction that is defined as Wi = (2.0*Wi,x*Wi,y)/(Wi,x+Wi,y) that respects the constrains of the
+        # The weights that are used here should represent the joint probability (P(x,y)).
+        # Since I have no way yet to compute the joint probability with weights only (eventually I can think to use an estimation of the P(x,y) computed through a 2D histogram construction and weighted a posteriori with the 1-D weights),
+        # I decided to construct a weighting function that is defined as Wi = (2.0*Wi,x*Wi,y)/(Wi,x+Wi,y) that respects the constrains of the
         # covariance (symmetric and that the diagonal is == variance) but that is completely arbitrary and for that not used. As already mentioned, I need the joint probability to compute the E[XY] = integral[xy*p(x,y)dxdy]. Andrea
         # for now I just use the realization weights
         #jointWeights = (2.0*weights[myIndex][:]*weights[myIndexTwo][:])/(weights[myIndex][:]+weights[myIndexTwo][:])
         #jointWeights = jointWeights[:]/np.sum(jointWeights)
         if myIndex == myIndexTwo:
-          jointWeights = weights[myIndex]/np.sum(weights[myIndex])
+          jointWeights = w[myIndex]/np.sum(w[myIndex])
         else:
           jointWeights = realizationWeights/np.sum(realizationWeights)
         fact = self.__computeUnbiasedCorrection(2,jointWeights) if not self.biased else 1.0/np.sum(jointWeights)
         covMatrix[myIndex,myIndexTwo] = np.sum(diff[:,myIndex]*diff[:,myIndexTwo]*jointWeights[:]*fact) if not rowVar else np.sum(diff[myIndex,:]*diff[myIndexTwo,:]*jointWeights[:]*fact)
     return covMatrix
 
-  def corrCoeff(self, feature, weights = None, rowVar = 1):
+  def corrCoeff(self, covM):
     """
       This method calculates the correlation coefficient Matrix (pearson) for the given data.
       Unbiased unweighted covariance matrix, weights is None, bias is 0 (default)
@@ -2173,13 +2617,9 @@ class BasicStatistics(BasePostProcessor):
       Unbiased weighted covariance matrix,   weights is not None, bias is 0
       Biased weighted covariance matrix,     weights is not None, bias is 1
       can be calcuated depending on the selection of the inputs.
-      @ In,  feature, list/numpy.array, [#targets,#samples]  features' samples
-      @ In,  weights, list/numpy.array, optional, [#samples]  reliability weights. Default is None
-      @ In,  rowVar, int, optional, If rowVar is non-zero, then each row represents a variable,
-                                    with samples in the columns. Otherwise, the relationship is transposed. Default=1
+      @ In,  covM, list/numpy.array, [#targets,#targets] covariance matrix
       @ Out, corrMatrix, list/numpy.array, [#targets,#targets] the correlation matrix
     """
-    covM = self.covariance(feature, weights, rowVar)
     try:
       d = np.diag(covM)
       corrMatrix = covM / np.sqrt(np.multiply.outer(d, d))
@@ -2188,89 +2628,7 @@ class BasicStatistics(BasePostProcessor):
       corrMatrix = covM / covM
     # to prevent numerical instability
     return corrMatrix
-#
-#
-#
-class LoadCsvIntoInternalObject(BasePostProcessor):
-  """
-    LoadCsvIntoInternalObject pp class. It is in charge of loading CSV files into one of the internal object (Data(s) or HDF5)
-  """
-  def __init__(self, messageHandler):
-    """
-      Constructor
-      @ In, messageHandler, MessageHandler, message handler object
-      @ Out, None
-    """
-    BasePostProcessor.__init__(self, messageHandler)
-    self.sourceDirectory = None
-    self.listOfCsvFiles = []
-    self.printTag = 'POSTPROCESSOR LoadCsv'
 
-  def initialize(self, runInfo, inputs, initDict):
-    """
-      Method to initialize the LoadCSV pp.
-      @ In, runInfo, dict, dictionary of run info (e.g. working dir, etc)
-      @ In, inputs, list, list of inputs
-      @ In, initDict, dict, dictionary with initialization options
-      @ Out, None
-    """
-    BasePostProcessor.initialize(self, runInfo, inputs, initDict)
-    self.__workingDir = runInfo['WorkingDir']
-    if '~' in self.sourceDirectory               : self.sourceDirectory = os.path.expanduser(self.sourceDirectory)
-    if not os.path.isabs(self.sourceDirectory)   : self.sourceDirectory = os.path.normpath(os.path.join(self.__workingDir, self.sourceDirectory))
-    if not os.path.exists(self.sourceDirectory)  : self.raiseAnError(IOError, "The directory indicated for PostProcessor " + self.name + "does not exist. Path: " + self.sourceDirectory)
-    for _dir, _, _ in os.walk(self.sourceDirectory): self.listOfCsvFiles.extend(glob(os.path.join(_dir, "*.csv")))
-    if len(self.listOfCsvFiles) == 0             : self.raiseAnError(IOError, "The directory indicated for PostProcessor " + self.name + "does not contain any csv file. Path: " + self.sourceDirectory)
-    self.listOfCsvFiles.sort()
-
-  def inputToInternal(self, currentInput):
-    """
-      Method to convert an input object into the internal format that is
-      understandable by this pp.
-      @ In, currentInput, object, an object that needs to be converted
-      @ Out, self.listOfCsvFiles, list, list of csv files
-    """
-    return self.listOfCsvFiles
-
-  def _localReadMoreXML(self, xmlNode):
-    """
-      Function to read the portion of the xml input that belongs to this specialized class
-      and initialize some stuff based on the inputs got
-      @ In, xmlNode, xml.etree.Element, Xml element node
-      @ Out, None
-    """
-    for child in xmlNode:
-      if child.tag == "directory": self.sourceDirectory = child.text
-    if not self.sourceDirectory: self.raiseAnError(IOError, "The PostProcessor " + self.name + "needs a directory for loading the csv files!")
-
-  def collectOutput(self, finishedJob, output):
-    """
-      Function to place all of the computed data into the output object
-      @ In, finishedJob, JobHandler External or Internal instance, A JobHandler object that is in charge of running this post-processor
-      @ In, output, dataObjects, The object where we want to place our computed results
-      @ Out, None
-    """
-    for index, csvFile in enumerate(self.listOfCsvFiles):
-      attributes = {"prefix":str(index), "inputFile":self.name, "type":"csv", "name":csvFile}
-      metadata = finishedJob.returnMetadata()
-      if metadata:
-        for key in metadata: attributes[key] = metadata[key]
-      try:                   output.addGroup(attributes, attributes)
-      except AttributeError:
-        outfile = Files.returnInstance('CSV',self)
-
-        outfile.initialize(csvFile,self.messageHandler,path=os.path.dirname(csvFile))
-        output.addOutput(outfile, attributes)
-        if metadata:
-          for key, value in metadata.items(): output.updateMetadata(key, value, attributes)
-
-  def run(self, inputIn):
-    """
-      This method executes the postprocessor action. In this case, it just returns the list of csv files
-      @ In,  inputIn, object, object contained the data to process. (inputToInternal output)
-      @ Out, self.listOfCsvFiles, list, list of csv files
-    """
-    return self.listOfCsvFiles
 #
 #
 #
@@ -2293,7 +2651,7 @@ class LimitSurface(BasePostProcessor):
     self.functionValue     = {}               #This a dictionary that contains np vectors with the value for each variable and for the goal function
     self.ROM               = None             #Pointer to a ROM
     self.externalFunction  = None             #Pointer to an external Function
-    self.tolerance         = 1.0e-4           #SubGrid tollerance
+    self.tolerance         = 1.0e-4           #SubGrid tolerance
     self.gridFromOutside   = False            #The grid has been passed from outside (self._initFromDict)?
     self.lsSide            = "negative"       # Limit surface side to compute the LS for (negative,positive,both)
     self.gridEntity        = None
@@ -2394,7 +2752,7 @@ class LimitSurface(BasePostProcessor):
 
   def _initializeLSppROM(self, inp, raiseErrorIfNotFound = True):
     """
-      Method to initialize the LS accelleration rom
+      Method to initialize the LS acceleration rom
       @ In, inp, Data(s) object, data object containing the training set
       @ In, raiseErrorIfNotFound, bool, throw an error if the limit surface is not found
       @ Out, None
@@ -2520,9 +2878,9 @@ class LimitSurface(BasePostProcessor):
       @ In, output, dataObjects, The object where we want to place our computed results
       @ Out, None
     """
-    if finishedJob.returnEvaluation() == -1: self.raiseAnError(RuntimeError, 'No available Output to collect (Run probably is not finished yet)')
-    self.raiseADebug(str(finishedJob.returnEvaluation()))
-    limitSurf = finishedJob.returnEvaluation()[1]
+    if finishedJob.getEvaluation() == -1: self.raiseAnError(RuntimeError, 'No available Output to collect (Run probably is not finished yet)')
+    self.raiseADebug(str(finishedJob.getEvaluation()))
+    limitSurf = finishedJob.getEvaluation()[1]
     if limitSurf[0] is not None:
       for varName in output.getParaKeys('inputs'):
         for varIndex in range(len(self.axisName)):
@@ -2717,7 +3075,13 @@ class ExternalPostProcessor(BasePostProcessor):
           inputDict['targets'][param] = item.getParam('input', param)
         for param in item.getParaKeys('output'):
           inputDict['targets'][param] = item.getParam('output', param)
-
+        metadata.append(item.getAllMetadata())
+      elif inType =='HistorySet':
+        outs, ins = item.getOutParametersValues(nodeId = 'ending'), item.getInpParametersValues(nodeId = 'ending')
+        for param in item.getParaKeys('output'):
+          inputDict['targets'][param] = [value[param] for value in outs.values()]
+        for param in item.getParaKeys('input'):
+          inputDict['targets'][param] =  [value[param] for value in ins.values()]
         metadata.append(item.getAllMetadata())
       elif inType != 'list':
         self.raiseAWarning(self, 'Input type ' + type(item).__name__ + ' not recognized. I am going to skip it.')
@@ -2778,12 +3142,12 @@ class ExternalPostProcessor(BasePostProcessor):
         results
       @ Out, None
     """
-    if finishedJob.returnEvaluation() == -1:
+    if finishedJob.getEvaluation() == -1:
       # #TODO This does not feel right
       self.raiseAnError(RuntimeError, 'No available Output to collect (Run probably did not finish yet)')
-
-    inputList = finishedJob.returnEvaluation()[0]
-    outputDict = finishedJob.returnEvaluation()[1]
+    dataLenghtHistory = {}
+    inputList = finishedJob.getEvaluation()[0]
+    outputDict = finishedJob.getEvaluation()[1]
 
     if isinstance(output,Files.File):
       self.raiseAWarning('Output type File not yet implemented. I am going to skip it.')
@@ -2793,7 +3157,7 @@ class ExternalPostProcessor(BasePostProcessor):
     elif output.type == 'HDF5':
       self.raiseAWarning('Output type ' + type(output).__name__
                          + ' not yet implemented. I am going to skip it.')
-    elif output.type == 'PointSet':
+    elif output.type in ['PointSet','HistorySet'] :
       requestedInput = output.getParaKeys('input')
       ## If you want to be able to dynamically add columns to your data, then
       ## you should use this commented line, otherwise only the information
@@ -2833,13 +3197,19 @@ class ExternalPostProcessor(BasePostProcessor):
           foundCount = 0
           if key in requestedInput:
             for inputData in inputList:
-              if key in inputData.getParametersValues('input').keys():
-                value = inputData.getParametersValues('input')[key]
+              if key in inputData.getParametersValues('input',nodeId = 'ending').keys() if inputData.type == 'PointSet' else inputData.getParametersValues('input',nodeId = 'ending').values()[-1].keys():
+                if inputData.type == 'PointSet':
+                  value = inputData.getParametersValues('input',nodeId = 'ending')[key]
+                else:
+                  value = [value[key] for value in inputData.getParametersValues('input',nodeId = 'ending').values()]
                 foundCount += 1
           else:
             for inputData in inputList:
-                if key in inputData.getParametersValues('output').keys():
-                  value = inputData.getParametersValues('output')[key]
+                if key in inputData.getParametersValues('output',nodeId = 'ending').keys() if inputData.type == 'PointSet' else inputData.getParametersValues('output',nodeId = 'ending').values()[-1].keys():
+                  if inputData.type == 'PointSet':
+                    value = inputData.getParametersValues('output',nodeId = 'ending')[key]
+                  else:
+                    value = [value[key] for value in inputData.getParametersValues('output',nodeId = 'ending').values()]
                   foundCount += 1
 
           if foundCount == 0:
@@ -2870,18 +3240,22 @@ class ExternalPostProcessor(BasePostProcessor):
         ## accessible
         if storeInOutput:
           if key in requestedInput:
-            for val in value:
-              output.updateInputValue(key, val)
+            for histNum, val in enumerate(value):
+              param = key if output.type == 'PointSet' else [histNum+1,key]
+              output.updateInputValue(param, val)
           else:
-            for val in value:
-              output.updateOutputValue(key, val)
+            for histNum, val in enumerate(value):
+              if output.type == 'HistorySet':
+                if histNum+1 in dataLenghtHistory.keys():
+                  if dataLenghtHistory[histNum+1] != len(val): self.raiseAnError(IOError, key + ' the size of the arrays for history '+str(histNum+1)+' are different!')
+                else: dataLenghtHistory[histNum+1] = len(val)
+              param = key if output.type == 'PointSet' else [histNum+1,key]
+              output.updateOutputValue(param, val)
         else:
           if not hasattr(value, "__iter__"):
             value = [value]
           for val in value:
             output.updateMetadata(key, val)
-
-      # print(output._dataContainer['inputs'],output._dataContainer['outputs'])
     else:
       self.raiseAnError(IOError, 'Unknown output type: ' + str(output.type))
 
@@ -2907,8 +3281,6 @@ class ExternalPostProcessor(BasePostProcessor):
       for interface in self.externalInterfaces:
         if method in interface.availableMethods():
           matchingInterfaces.append(interface)
-
-
       if len(matchingInterfaces) == 0:
         self.raiseAWarning(method + ' not found. I will skip it.')
       elif len(matchingInterfaces) == 1:
@@ -2922,11 +3294,29 @@ class ExternalPostProcessor(BasePostProcessor):
 
     ## Evaluate the method and add it to the outputDict, also if the method
     ## adjusts the input data, then you should update it as well.
+    warningMessages = []
     for methodName, (interface, method) in methodMap.iteritems():
       outputDict[methodName] = interface.evaluate(method, input['targets'])
+      if outputDict[methodName] is None: self.raiseAnError(Exception,"the method "+methodName+" has not produced any result. It needs to return a result!")
       for target in input['targets']:
         if hasattr(interface, target):
-          outputDict[target] = getattr(interface, target)
+          #if target not in outputDict.keys():
+          if target not in methodMap.keys():
+            attributeInSelf = getattr(interface, target)
+            if len(np.atleast_1d(attributeInSelf)) != len(np.atleast_1d(input['targets'][target])) or (np.atleast_1d(attributeInSelf) - np.atleast_1d(input['targets'][target])).all():
+              if target in outputDict.keys(): self.raiseAWarning("In Post-Processor "+ self.name +" the modified variable "+target+
+                               " has the same name of a one already modified throuhg another Function method." +
+                               " This method overwrites the input DataObject variable value")
+              outputDict[target] = attributeInSelf
+          else:
+            warningMessages.append("In Post-Processor "+ self.name +" the method "+method+
+                               " has the same name of a variable contained in the input DataObject." +
+                               " This method overwrites the input DataObject variable value")
+    for msg in list(set(warningMessages)): self.raiseAWarning(msg)
+
+    for target in input['targets'].keys():
+      if target not in outputDict.keys() and target in input['targets'].keys():
+        outputDict[target] = input['targets'][target]
 
     return outputDict
 
@@ -3064,11 +3454,11 @@ class TopologicalDecomposition(BasePostProcessor):
       @ In, output, dataObjects, The object where we want to place our computed results
       @ Out, None
     """
-    if finishedJob.returnEvaluation() == -1:
+    if finishedJob.getEvaluation() == -1:
       # TODO This does not feel right
       self.raiseAnError(RuntimeError,'No available output to collect (run probably did not finish yet)')
-    inputList = finishedJob.returnEvaluation()[0]
-    outputDict = finishedJob.returnEvaluation()[1]
+    inputList = finishedJob.getEvaluation()[0]
+    outputDict = finishedJob.getEvaluation()[1]
 
     if type(output).__name__ in ["str", "unicode", "bytes"]:
       self.raiseAWarning('Output type ' + type(output).__name__ + ' not'
@@ -3375,9 +3765,7 @@ class DataMining(BasePostProcessor):
                                                           ## algorithms the user
                                                           ## wants
 
-    self.requiredAssObject = (True, (['Label'], ['-1']))  ## The Label is
-                                                          ## optional for now
-    self.initializationOptionDict = {}
+    self.requiredAssObject = (True, (['PreProcessor','Metric'], ['-1','-1']))
     self.clusterLabels = None
     self.labelAlgorithms = []
     self.solutionExport = None                            ## A data object to
@@ -3387,14 +3775,35 @@ class DataMining(BasePostProcessor):
                                                           ## e.g., cluster
                                                           ## centers or a
                                                           ## projection matrix
-                                                          ## for dimensiionality
+                                                          ## for dimensionality
                                                           ## reduction methods
 
-    self.labelFeature = 'labels'                          ## User customizable
+    self.labelFeature = None                              ## User customizable
                                                           ## column name for the
                                                           ## labels associated
-                                                          ## to a clustering
-                                                          ## algorithm
+                                                          ## to a clustering or
+                                                          ## a DR algorithm
+
+    self.dataObjects = []
+    self.PreProcessor = None
+    self.metric = None
+
+  def _localWhatDoINeed(self):
+    """
+    This method is a local mirror of the general whatDoINeed method.
+    It is implemented by the samplers that need to request special objects
+    @ In , None, None
+    @ Out, dict, dictionary of objects needed
+    """
+    return {'internal':[(None,'jobHandler')]}
+
+  def _localGenerateAssembler(self,initDict):
+    """Generates the assembler.
+    @ In, initDict, dict, init objects
+    @ Out, None
+    """
+    self.jobHandler = initDict['internal']['jobHandler']
+
 
   def inputToInternal(self, currentInp):
     """
@@ -3404,22 +3813,88 @@ class DataMining(BasePostProcessor):
         data objects handed to the post-processor
       @ Out, inputDict, dict, An input dictionary this object can process
     """
-    if type(currentInp) == list: currentInput = currentInp[-1]
-    else                       : currentInput = currentInp
+
+    if type(currentInp) == list:
+      currentInput = currentInp[-1]
+    else:
+      currentInput = currentInp
+
+    if currentInput.type == 'HistorySet' and self.PreProcessor is None and self.metric is None: # for testing time dependent dm - time dependent clustering
+      inputDict = {'Features':{}, 'parameters':{}, 'Labels':{}, 'metadata':{}}
+
+      # FIXME, this needs to be changed for asynchronous HistorySet
+      if self.pivotParameter in currentInput.getParam('output',1).keys():
+        self.pivotVariable = currentInput.getParam('output',1)[self.pivotParameter]
+      else:
+        self.raiseAnError(ValueError, 'Pivot variable not found in input historyset')
+      # end of FIXME
+
+      historyKey = currentInput.getOutParametersValues().keys()
+      numberOfSample = len(historyKey)
+      numberOfHistoryStep = len(self.pivotVariable)
+
+      if self.initializationOptionDict['KDD']['Features'] == 'input':
+        self.raiseAnError(ValueError, 'To perform data mining over input please use SciKitLearn library')
+      elif self.initializationOptionDict['KDD']['Features'] in ['output', 'all']:
+        features = currentInput.getParaKeys('output')
+        features.remove(self.pivotParameter)
+      else:
+        features = self.initializationOptionDict['KDD']['Features'].split(',')
+
+      for param in features:
+        inputDict['Features'][param] = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
+        for cnt, keyH in enumerate(historyKey):
+          inputDict['Features'][param][cnt,:] = currentInput.getParam('output', keyH)[param]
+
+      inputDict['metadata'] = currentInput.getAllMetadata()
+      return inputDict
+
     if type(currentInp) == dict:
-      if 'Features' in currentInput.keys():
-        return
+      if 'Features' in currentInput.keys(): return
+    if isinstance(currentInp, Files.File):
+      if currentInput.subtype == 'csv':
+        self.raiseAnError(IOError, 'CSV File received as an input!')
+    if currentInput.type == 'HDF5':
+      self.raiseAnError(IOError, 'HDF5 Object received as an input!')
+
+    if self.PreProcessor != None:
+      inputDict = {'Features':{}, 'parameters':{}, 'Labels':{}, 'metadata':{}}
+      if self.initializationOptionDict['KDD']['Features'] == 'input':
+        features = currentInput.getParaKeys('input')
+      elif self.initializationOptionDict['KDD']['Features'] == 'output':
+        features = currentInput.getParaKeys('output')
+      else:
+        features = self.initializationOptionDict['KDD']['Features'].split(',')
+
+      tempData = self.PreProcessor.interface.inputToInternal(currentInp)
+
+      preProcessedData = self.PreProcessor.interface.run(tempData)
+      if self.initializationOptionDict['KDD']['Features'] == 'input':
+        inputDict['Features'] = copy.deepcopy(preProcessedData['data']['input'])
+      elif self.initializationOptionDict['KDD']['Features'] == 'output':
+        inputDict['Features'] = copy.deepcopy(preProcessedData['data']['output'])
+      else:
+        features = self.initializationOptionDict['KDD']['Features'].split(',')
+        for param in currentInput.getParaKeys('input'):
+           if param in features:
+             inputDict['Features'][param] = copy.deepcopy(preProcessedData['data']['input'][param])
+        for param in currentInput.getParaKeys('output'):
+           if param in features:
+             inputDict['Features'][param] = copy.deepcopy(preProcessedData['data']['output'][param])
+
+      inputDict['metadata'] = currentInput.getAllMetadata()
+
+      return inputDict
 
     inputDict = {'Features':{}, 'parameters':{}, 'Labels':{}, 'metadata':{}}
-    if currentInput.type == 'PointSet':
 
+    if currentInput.type in ['PointSet']:
       ## Get what is available in the data object being operated on
       ## This is potentially more information than we need at the moment, but
       ## it will make the code below easier to read and highlights where objects
       ## are reused more readily
       allInputFeatures = currentInput.getParaKeys('input')
       allOutputFeatures = currentInput.getParaKeys('output')
-
       if self.initializationOptionDict['KDD']['Features'] == 'input':
         for param in allInputFeatures:
           inputDict['Features'][param] = currentInput.getParam('input', param)
@@ -3446,7 +3921,33 @@ class DataMining(BasePostProcessor):
         for param in outParams:
           inputDict['Features'][param] = currentInput.getParam('output', param)
 
+    elif currentInput.type in ['HistorySet']:
+      if self.initializationOptionDict['KDD']['Features'] == 'input':
+        for param in currentInput.getParaKeys('input'):
+          inputDict['Features'][param] = currentInput.getParam('input', param)
+      elif self.initializationOptionDict['KDD']['Features'] == 'output':
+        inputDict['Features'] = currentInput.getOutParametersValues()
+      elif self.initializationOptionDict['KDD']['Features'] == 'all':
+        for param in allInputFeatures:
+          inputDict['Features'][param] = currentInput.getParam('input', param)
+        for param in allOutputFeatures:
+          inputDict['Features'][param] = currentInput.getParam('output', param)
+      else:
+        features = set(self.initializationOptionDict['KDD']['Features'].split(','))
+        allInputFeatures = currentInput.getParaKeys('input')
+        allOutputFeatures = currentInput.getParaKeys('output')
+        inParams = list(features.intersection(allInputFeatures))
+        outParams = list(features.intersection(allOutputFeatures))
+        inputDict['Features'] = {}
+        for hist in currentInput._dataContainer['outputs'].keys():
+          inputDict['Features'][hist] = {}
+          for param in inParams:
+            inputDict['Features'][hist][param] = currentInput._dataContainer['inputs'][hist][param]
+          for param in outParams:
+            inputDict['Features'][hist][param] = currentInput._dataContainer['outputs'][hist][param]
+
       inputDict['metadata'] = currentInput.getAllMetadata()
+
     ## Redundant if-conditional preserved as a placeholder for potential future
     ## development working directly with files
     # elif isinstance(currentInp, Files.File):
@@ -3463,26 +3964,37 @@ class DataMining(BasePostProcessor):
       @ In, initDict, dict, dictionary with initialization options
       @ Out, None
     """
+
     BasePostProcessor.initialize(self, runInfo, inputs, initDict)
     self.__workingDir = runInfo['WorkingDir']
+
     if 'Label' in self.assemblerDict:
-      for val in self.assmeblerDict['Label']:
+      for val in self.assemblerDict['Label']:
         self.labelAlgorithms.append(val[3])
 
     if "SolutionExport" in initDict:
       self.solutionExport = initDict["SolutionExport"]
 
+    if "PreProcessor" in self.assemblerDict:
+       self.PreProcessor = self.assemblerDict['PreProcessor'][0][3]
+       if not '_inverse' in dir(self.PreProcessor.interface):
+         self.raiseAnError(IOError, 'PostProcessor ' + self.name + ' is using a pre-processor where the method inverse has not implemented')
+
+
+    if 'Metric' in self.assemblerDict:
+      self.metric = self.assemblerDict['Metric'][0][3]
+
   def _localReadMoreXML(self, xmlNode):
     """
-      Function to read the portion of the xml input that belongs to this specialized class
-      and initialize some stuff based on the inputs got
+      Function that reads the portion of the xml input that belongs to this specialized class
+      and initializes some elements based on the inputs got
       @ In, xmlNode, xml.etree.Element, Xml element node
       @ Out, None
     """
     ## By default, we want to name the 'labels' by the name of this
     ## postprocessor, but that name is not available before processing the XML
     ## At this point, we have that information
-    self.labelFeature = self.name+'Labels'
+    self.initializationOptionDict = {}
 
     for child in xmlNode:
       if child.tag == 'KDD':
@@ -3503,15 +4015,39 @@ class DataMining(BasePostProcessor):
           self.initializationOptionDict[child.tag] = utils.tryParse(child.text)
 
         for childChild in child:
-          if childChild.attrib:
+          if childChild.attrib and not childChild.tag == 'PreProcessor':
             self.initializationOptionDict[child.tag][childChild.tag] = dict(childChild.attrib)
           else:
             self.initializationOptionDict[child.tag][childChild.tag] = utils.tryParse(childChild.text)
+      elif child.tag == 'pivotParameter':
+        self.pivotParameter = child.text
+
+    if not hasattr(self, 'pivotParameter'):
+      #TODO, if doing time dependent data mining that needs this, an error
+      # should be thrown
+      self.pivotParameter = None
 
     if self.type:
-      self.unSupervisedEngine = unSupervisedLearning.returnInstance(self.type, self, **self.initializationOptionDict['KDD'])
+      #TODO unSurpervisedEngine needs to be able to handle both methods
+      # without this if statement.
+      if self.pivotParameter is not None:
+        self.unSupervisedEngine = unSupervisedLearning.returnInstance("temporalSciKitLearn", self, **self.initializationOptionDict['KDD'])
+      else:
+        self.unSupervisedEngine = unSupervisedLearning.returnInstance(self.type, self, **self.initializationOptionDict['KDD'])
     else:
       self.raiseAnError(IOError, 'No Data Mining Algorithm is supplied!')
+
+    ## If the user has not defined a label feature, then we will force it to be
+    ## named by the PostProcessor name followed by:
+    ## the word 'Labels' for clustering/GMM models;
+    ## the word 'Dimension' + a numeric id for dimensionality reduction
+    ## algorithms
+    if self.labelFeature is None:
+      if self.unSupervisedEngine.SKLtype in ['cluster','mixture']:
+        self.labelFeature = self.name+'Labels'
+      elif self.unSupervisedEngine.SKLtype in ['decomposition','manifold']:
+        self.labelFeature = self.name+'Dimension'
+
 
   def collectOutput(self, finishedJob, output):
     """
@@ -3523,18 +4059,31 @@ class DataMining(BasePostProcessor):
       @ Out, None
     """
     ## When does this actually happen?
-    if finishedJob.returnEvaluation() == -1:
+    if finishedJob.getEvaluation() == -1:
       self.raiseAnError(RuntimeError, 'No available Output to collect (Run probably is not finished yet)')
-
-    self.raiseADebug(str(finishedJob.returnEvaluation()))
-
-    dataMineDict = finishedJob.returnEvaluation()[1]
+    dataMineDict = finishedJob.getEvaluation()[1]
     for key in dataMineDict['output']:
-      ## This seems inefficient...
-      if key in output.getParaKeys('output'):
-        output.removeOutputValue(key)
-      for value in dataMineDict['output'][key]:
-        output.updateOutputValue(key, copy.copy(value))
+      for param in output.getParaKeys('output'):
+        if key == param:
+          output.removeOutputValue(key)
+      if output.type == 'PointSet':
+        for value in dataMineDict['output'][key]:
+          output.updateOutputValue(key, copy.copy(value))
+      elif output.type == 'HistorySet':
+        if self.PreProcessor is not None or self.metric is not None:
+          for index,value in np.ndenumerate(dataMineDict['output'][key]):
+            firstHist = output._dataContainer['outputs'].keys()[0]
+            firstVar  = output._dataContainer['outputs'][index[0]+1].keys()[0]
+            timeLength = output._dataContainer['outputs'][index[0]+1][firstVar].size
+            arrayBase = value * np.ones(timeLength)
+            output.updateOutputValue([index[0]+1,key], arrayBase)
+        else:
+          tlDict = finishedJob.getEvaluation()[1]
+          historyKey = output.getOutParametersValues().keys()
+          for index, keyH in enumerate(historyKey):
+            for keyL in tlDict['output'].keys():
+              output.updateOutputValue([keyH,keyL], tlDict['output'][keyL][index,:])
+
 
   def run(self, inputIn):
     """
@@ -3543,17 +4092,31 @@ class DataMining(BasePostProcessor):
       @ In, inputIn, dict, dictionary of data to process
       @ Out, outputDict, dict, dictionary containing the post-processed results
     """
+    Input = self.inputToInternal(inputIn)
+    if type(inputIn) == list:
+      currentInput = inputIn[-1]
+    else:
+      currentInput = inputIn
 
-    input = self.inputToInternal(inputIn)
+    if currentInput.type == 'HistorySet' and self.PreProcessor is None and self.metric is None:
+      return self.__runTemporalSciKitLearn(Input)
+    else:
+      return self.__runSciKitLearn(Input)
+
+  def __runSciKitLearn(self, Input):
+    """
+      This method executes the postprocessor action. In this case it loads the
+      results to specified dataObject.  This is for SciKitLearn
+      @ In, Input, dict, dictionary of data to process
+      @ Out, outputDict, dict, dictionary containing the post-processed results
+    """
 
     outputDict = {}
-    self.unSupervisedEngine.features = input['Features']
+    self.unSupervisedEngine.features = Input['Features']
     if not self.unSupervisedEngine.amITrained:
-      self.unSupervisedEngine.train(input['Features'])
-
+      self.unSupervisedEngine.train(Input['Features'], self.metric)
     self.unSupervisedEngine.confidence()
     outputDict['output'] = {}
-    noClusters = 1
 
     ## These are very different things, shouldn't each one be its own class?
     ## Proposed hierarchy:
@@ -3567,47 +4130,61 @@ class DataMining(BasePostProcessor):
     ##     - Dimensionality Reduction
     ##       - Manifold Learning
     ##       - Linear projection methods
-    if 'cluster' == self.unSupervisedEngine.SKLtype:
-
+    if 'cluster' == self.unSupervisedEngine.getDataMiningType():
       ## Get the cluster labels and store as a new column in the output
+      #assert  'labels' in self.unSupervisedEngine.outputDict.keys()== hasattr(self.unSupervisedEngine, 'labels_')
       if hasattr(self.unSupervisedEngine, 'labels_'):
         self.clusterLabels = self.unSupervisedEngine.labels_
-      outputDict['output'][self.labelFeature] = self.clusterLabels;
+      outputDict['output'][self.labelFeature] = self.clusterLabels
+      self.raiseAWarning('The clustering algorithm have identified the following cluster labels: ' + str(set(self.clusterLabels)))
 
-      ## Get the total number of clusters
-      if hasattr(self.unSupervisedEngine, 'noClusters'):
-        noClusters = self.unSupervisedEngine.noClusters
-      elif hasattr(self.unSupervisedEngine, 'clusterCentersIndices_'):
-        noClusters = len(self.unSupervisedEngine.clusterCentersIndices_)
-
-      ## Get the centroids and push them to a SolutionExport data object, if
-      ## we have both, also if we have the centers, assume we have the indices
-      ## to match them.
+      ## Get the centroids and push them to a SolutionExport data object.
+      ## Also if we have the centers, assume we have the indices to match them
       if hasattr(self.unSupervisedEngine, 'clusterCenters_'):
         centers = self.unSupervisedEngine.clusterCenters_
-        ## Does skl not provide a correlation between label ids and cluster
-        ## centers?
+        ## Does skl not provide a correlation between label ids and cluster centers?
         if hasattr(self.unSupervisedEngine, 'clusterCentersIndices_'):
           indices = self.unSupervisedEngine.clusterCentersIndices_
         else:
           indices = list(range(len(centers)))
 
         if self.solutionExport is not None:
-          for index,center in zip(indices,centers):
-            self.solutionExport.updateInputValue(self.labelFeature,index)
-            ## Can I be sure of the order of dimensions in the features dict, is
-            ## the same order as the data held in the UnSupervisedLearning
-            ## object?
-            for key,value in zip(self.unSupervisedEngine.features.keys(),center):
-              self.solutionExport.updateOutputValue(key,value)
+          if self.PreProcessor is None:
+            for index,center in zip(indices,centers):
+              self.solutionExport.updateInputValue(self.labelFeature,index)
+              ## Can I be sure of the order of dimensions in the features dict, is
+              ## the same order as the data held in the UnSupervisedLearning object?
+              for key,value in zip(self.unSupervisedEngine.features.keys(),center):
+                self.solutionExport.updateOutputValue(key,value)
+          else:
+            # if a pre-processor is used it is here assumed that the pre-processor has internally a
+            # method (called "inverse") which converts the cluster centers back to their original format. If this method
+            # does not exist a warning will be generated
+            tempDict = {}
+            for index,center in zip(indices,centers):
+              tempDict[index] = center
+            centers = self.PreProcessor.interface._inverse(tempDict)
+
+            for index,center in zip(indices,centers):
+              self.solutionExport.updateInputValue(self.labelFeature,index)
+
+            listOutputParams = self.solutionExport.getParaKeys('outputs')
+            if self.solutionExport.type == 'HistorySet':
+              for hist in centers.keys():
+                for key in centers[hist].keys():
+                  self.solutionExport.updateOutputValue(key,centers[hist][key])
+            else:
+              for key in centers.keys():
+                if key in self.solutionExport.getParaKeys('outputs'):
+                  for value in centers[key]:
+                    self.solutionExport.updateOutputValue(key,value)
 
       if hasattr(self.unSupervisedEngine, 'inertia_'):
         inertia = self.unSupervisedEngine.inertia_
 
-    elif 'bicluster' == self.unSupervisedEngine.SKLtype:
+    elif 'bicluster' == self.unSupervisedEngine.getDataMiningType():
       self.raiseAnError(RuntimeError, 'Bicluster has not yet been implemented.')
-    elif 'mixture' == self.unSupervisedEngine.SKLtype:
-
+    elif 'mixture' == self.unSupervisedEngine.getDataMiningType():
       if   hasattr(self.unSupervisedEngine, 'covars_'):
         mixtureCovars = self.unSupervisedEngine.covars_
 
@@ -3616,25 +4193,29 @@ class DataMining(BasePostProcessor):
 
       mixtureValues = self.unSupervisedEngine.normValues
       mixtureMeans = self.unSupervisedEngine.means_
-      mixtureLabels = self.unSupervisedEngine.evaluate(input['Features'])
+      mixtureLabels = self.unSupervisedEngine.evaluate(Input['Features'])
       outputDict['output'][self.labelFeature] = mixtureLabels
 
       if self.solutionExport is not None:
-        ## TODO: Export Gaussian centers to SolutionExport
-        ## Get the centroids and push them to a SolutionExport data object, if
-        ## we have both, also if we have the centers, assume we have the indices
-        ## to match them.
+        ## Get the means and push them to a SolutionExport data object.
         ## Does skl not provide a correlation between label ids and Gaussian
         ## centers?
         indices = list(range(len(mixtureMeans)))
         for index,center in zip(indices,mixtureMeans):
           self.solutionExport.updateInputValue(self.labelFeature,index)
           ## Can I be sure of the order of dimensions in the features dict, is
-          ## the same order as the data held in the UnSupervisedLearning object?
+          ## the same order as the data held in the UnSupervisedLearning
+          ## object?
           for key,value in zip(self.unSupervisedEngine.features.keys(),center):
             self.solutionExport.updateOutputValue(key,value)
+          ## You may also want to output the covariances of each pair of
+          ## dimensions as well
+          for i,row in enumerate(self.unSupervisedEngine.features.keys()):
+            for joffset,col in enumerate(self.unSupervisedEngine.features.keys()[i:]):
+              j = i+joffset
+              self.solutionExport.updateOutputValue('cov_'+str(row)+'_'+str(col),mixtureCovars[index][i,j])
 
-    elif 'manifold' == self.unSupervisedEngine.SKLtype:
+    elif 'manifold' == self.unSupervisedEngine.getDataMiningType():
       manifoldValues = self.unSupervisedEngine.normValues
 
       if hasattr(self.unSupervisedEngine, 'embeddingVectors_'):
@@ -3647,12 +4228,14 @@ class DataMining(BasePostProcessor):
       if hasattr(self.unSupervisedEngine, 'reconstructionError_'):
         reconstructionError = self.unSupervisedEngine.reconstructionError_
 
-      ## information stored on a per point basis, no need to use a solution
-      ## export here
+      ## information stored on a per point basis, so no need to use a solution
+      ## export. Manifold methods do not give us a global transformation
+      ## matrix.
       for i in range(len(embeddingVectors[0, :])):
-        outputDict['output'][self.name+'EmbeddingVector' + str(i + 1)] =  embeddingVectors[:, i]
+        newColumnName = self.labelFeature + str(i + 1)
+        outputDict['output'][newColumnName] =  embeddingVectors[:, i]
 
-    elif 'decomposition' == self.unSupervisedEngine.SKLtype:
+    elif 'decomposition' == self.unSupervisedEngine.getDataMiningType():
       decompositionValues = self.unSupervisedEngine.normValues
 
       if hasattr(self.unSupervisedEngine, 'noComponents_'):
@@ -3667,16 +4250,250 @@ class DataMining(BasePostProcessor):
       ## SCORE method does not work for SciKit Learn 0.14
       # if hasattr(self.unSupervisedEngine.Method, 'score'):
       #   score = self.unSupervisedEngine.Method.score(decompositionValues)
-      if hasattr(self.unSupervisedEngine.Method, 'transform'):
-        components = self.unSupervisedEngine.Method.transform(decompositionValues)
-      elif hasattr(self.unSupervisedEngine.Method, 'fit_transform'):
-        components = self.unSupervisedEngine.Method.fit_transform(decompositionValues)
+      if   'transform'     in dir(self.unSupervisedEngine.Method):
+        transformedData = self.unSupervisedEngine.Method.transform(decompositionValues)
+      elif 'fit_transform' in dir(self.unSupervisedEngine.Method):
+        transformedData = self.unSupervisedEngine.Method.fit_transform(decompositionValues)
 
-      ## information stored on a per point basis, no need to use a solution
-      ## export here, this could potentially change, if we are sure these
-      ## use a single projection matrix.
+      ## information stored on a per point basis
       for i in range(noComponents):
-        outputDict['output'][self.name+'PCAComponent' + str(i + 1)] =  components[:, i]
+        newColumnName = self.labelFeature + str(i + 1)
+        outputDict['output'][newColumnName] =  transformedData[:, i]
+
+      if self.solutionExport is not None:
+        ## Get the transformation matrix and push it to a SolutionExport
+        ## data object.
+        ## Can I be sure of the order of dimensions in the features dict, is
+        ## the same order as the data held in the UnSupervisedLearning object?
+        for row,values in enumerate(components):
+          self.solutionExport.updateInputValue(self.labelFeature, row+1)
+          for col,value in zip(self.unSupervisedEngine.features.keys(),values):
+            self.solutionExport.updateOutputValue(col,value)
+
+          self.solutionExport.updateOutputValue('ExplainedVarianceRatio',explainedVarianceRatio[row])
+    return outputDict
+
+
+  def __runTemporalSciKitLearn(self, Input):
+    """
+      This method executes the postprocessor action. In this case it loads the
+      results to specified dataObject.  This is for temporalSciKitLearn
+      @ In, Input, dict, dictionary of data to process
+      @ Out, outputDict, dict, dictionary containing the post-processed results
+    """
+
+    outputDict = {}
+    self.unSupervisedEngine.features = Input['Features']
+    self.unSupervisedEngine.pivotVariable = self.pivotVariable
+
+    if not self.unSupervisedEngine.amITrained:
+      self.unSupervisedEngine.train(Input['Features'])
+    self.unSupervisedEngine.confidence()
+    outputDict['output'] = {}
+    numberOfHistoryStep = self.unSupervisedEngine.numberOfHistoryStep
+    numberOfSample = self.unSupervisedEngine.numberOfSample
+
+    if 'cluster' == self.unSupervisedEngine.getDataMiningType():
+      if 'labels' in self.unSupervisedEngine.outputDict.keys():
+        labels = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
+        for t in range(numberOfHistoryStep):
+          labels[:,t] = self.unSupervisedEngine.outputDict['labels'][t]
+        outputDict['output'][self.labelFeature] = labels
+
+      ## SKL will always enumerate cluster centers starting from zero, if this
+      ## is violated, then the indexing below will break.
+      if 'clusterCentersIndices' in self.unSupervisedEngine.outputDict.keys():
+        clusterCentersIndices = self.unSupervisedEngine.outputDict['clusterCentersIndices']
+
+      if 'clusterCenters' in self.unSupervisedEngine.outputDict.keys():
+        clusterCenters = self.unSupervisedEngine.outputDict['clusterCenters']
+        # Output cluster centroid to solutionExport
+        if self.solutionExport is not None:
+          ## We will process each cluster in turn
+          for clusterIdx in xrange(int(np.max(labels))+1):
+            ## First store the label as the input for this cluster
+            self.solutionExport.updateInputValue(self.labelFeature,clusterIdx)
+
+            ## The time series will be the first output
+            ## TODO: Ensure user requests this
+            self.solutionExport.updateOutputValue(self.pivotParameter, self.pivotVariable)
+
+            ## Now we will process each feature available
+            ## TODO: Ensure user requests each of these
+            for featureIdx, feat in enumerate(self.unSupervisedEngine.features):
+              ## We will go through the time series and find every instance
+              ## where this cluster exists, if it does not, then we put a NaN
+              ## to signal that the information is missing for this timestep
+              timeSeries = np.zeros(numberOfHistoryStep)
+
+              for timeIdx in range(numberOfHistoryStep):
+                ## Here we use the assumption that SKL provides clusters that
+                ## are integer values beginning at zero, which make for nice
+                ## indexes with no need to add another layer of obfuscation
+                if clusterIdx in clusterCentersIndices[timeIdx]:
+                  loc = clusterCentersIndices[timeIdx].index(clusterIdx)
+                  timeSeries[timeIdx] = self.unSupervisedEngine.outputDict['clusterCenters'][timeIdx][loc,featureIdx]
+                else:
+                  timeSeries[timeIdx] = np.nan
+
+              ## In summary, for each feature, we fill a temporary array and
+              ## stuff it into the solutionExport, one question is how do we
+              ## tell it which item we are exporting? I am assuming that if
+              ## I add an input, then I need to do the corresponding
+              ## updateOutputValue to associate everything with it? Once I
+              ## call updateInputValue again, it will move the pointer? This
+              ## needs verified
+              self.solutionExport.updateOutputValue(feat, timeSeries)
+
+      if 'inertia' in self.unSupervisedEngine.outputDict.keys():
+        inertia = self.unSupervisedEngine.outputDict['inertia']
+
+    elif 'mixture' == self.unSupervisedEngine.getDataMiningType():
+      if 'labels' in self.unSupervisedEngine.outputDict.keys():
+        labels = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
+        for t in range(numberOfHistoryStep):
+          labels[:,t] = self.unSupervisedEngine.outputDict['labels'][t]
+        outputDict['output'][self.labelFeature] = labels
+
+      if 'covars' in self.unSupervisedEngine.outputDict.keys():
+        mixtureCovars = self.unSupervisedEngine.outputDict['covars']
+      else:
+        mixtureCovars = None
+
+      if 'precs' in self.unSupervisedEngine.outputDict.keys():
+        mixturePrecs = self.unSupervisedEngine.outputDict['precs']
+      else:
+        mixturePrecs = None
+
+      if 'componentMeanIndices' in self.unSupervisedEngine.outputDict.keys():
+        componentMeanIndices = self.unSupervisedEngine.outputDict['componentMeanIndices']
+      else:
+        componentMeanIndices = None
+
+      if 'means' in self.unSupervisedEngine.outputDict.keys():
+        mixtureMeans = self.unSupervisedEngine.outputDict['means']
+      else:
+        mixtureMeans = None
+
+      # Output cluster centroid to solutionExport
+      if self.solutionExport is not None:
+        ## We will process each cluster in turn
+        for clusterIdx in xrange(int(np.max(componentMeanIndices.values()))+1):
+          ## First store the label as the input for this cluster
+          self.solutionExport.updateInputValue(self.labelFeature,clusterIdx)
+
+          ## The time series will be the first output
+          ## TODO: Ensure user requests this
+          self.solutionExport.updateOutputValue(self.pivotParameter, self.pivotVariable)
+
+          ## Now we will process each feature available
+          ## TODO: Ensure user requests each of these
+          if mixtureMeans is not None:
+            for featureIdx, feat in enumerate(self.unSupervisedEngine.features):
+              ## We will go through the time series and find every instance
+              ## where this cluster exists, if it does not, then we put a NaN
+              ## to signal that the information is missing for this timestep
+              timeSeries = np.zeros(numberOfHistoryStep)
+
+              for timeIdx in range(numberOfHistoryStep):
+                loc = componentMeanIndices[timeIdx].index(clusterIdx)
+                timeSeries[timeIdx] = mixtureMeans[timeIdx][loc,featureIdx]
+
+              ## In summary, for each feature, we fill a temporary array and
+              ## stuff it into the solutionExport, one question is how do we
+              ## tell it which item we are exporting? I am assuming that if
+              ## I add an input, then I need to do the corresponding
+              ## updateOutputValue to associate everything with it? Once I
+              ## call updateInputValue again, it will move the pointer? This
+              ## needs verified
+              self.solutionExport.updateOutputValue(feat, timeSeries)
+
+          ## You may also want to output the covariances of each pair of
+          ## dimensions as well
+          if mixtureCovars is not None:
+            for i,row in enumerate(self.unSupervisedEngine.features.keys()):
+              for joffset,col in enumerate(self.unSupervisedEngine.features.keys()[i:]):
+                j = i+joffset
+                timeSeries = np.zeros(numberOfHistoryStep)
+                for timeIdx in range(numberOfHistoryStep):
+                  loc = componentMeanIndices[timeIdx].index(clusterIdx)
+                  timeSeries[timeIdx] = mixtureCovars[timeIdx][loc][i,j]
+                self.solutionExport.updateOutputValue('cov_'+str(row)+'_'+str(col),timeSeries)
+
+    elif 'manifold' == self.unSupervisedEngine.getDataMiningType():
+      noComponents = self.unSupervisedEngine.outputDict['noComponents'][0]
+
+      if 'embeddingVectors_' in self.unSupervisedEngine.outputDict.keys():
+        embeddingVectors = self.unSupervisedEngine.outputDict['embeddingVectors_']
+
+      if 'reconstructionError_' in self.unSupervisedEngine.outputDict.keys():
+        reconstructionError = self.unSupervisedEngine.outputDict['reconstructionError_']
+
+      for i in range(noComponents):
+        ## Looking at the lines between the initialization of
+        ## outputDict['output'] and here, how is this ever possible? I don't
+        ## think the if is necessary here.
+        # if self.name+'EmbeddingVector' + str(i + 1) not in outputDict['output'].keys():
+        outputDict['output'][self.name+'EmbeddingVector' + str(i + 1)] = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
+
+        ## Shouldn't this only happen if embeddingVectors is set above?
+        for t in range(numberOfHistoryStep):
+          outputDict['output'][self.name+'EmbeddingVector' + str(i + 1)][:,t] =  embeddingVectors[t][:, i]
+
+    elif 'decomposition' == self.unSupervisedEngine.getDataMiningType():
+      decompositionValues = self.unSupervisedEngine.normValues
+
+      noComponents = self.unSupervisedEngine.outputDict['noComponents'][0]
+
+      if 'components' in self.unSupervisedEngine.outputDict.keys():
+        components = self.unSupervisedEngine.outputDict['components']
+      else:
+        components = None
+
+      if 'transformedData' in self.unSupervisedEngine.outputDict.keys():
+        transformedData = self.unSupervisedEngine.outputDict['transformedData']
+      else:
+        transformedData = None
+
+      if 'explainedVarianceRatio' in self.unSupervisedEngine.outputDict.keys():
+        explainedVarianceRatio = self.unSupervisedEngine.outputDict['explainedVarianceRatio']
+      else:
+        explainedVarianceRatio = None
+
+      for i in range(noComponents):
+        ## Looking at the lines between the initialization of
+        ## outputDict['output'] and here, how is this ever possible? I don't
+        ## think the if is necessary here.
+        # if self.name+'PCAComponent' + str(i + 1) not in outputDict['output'].keys():
+        outputDict['output'][self.name+'PCAComponent' + str(i + 1)] = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
+
+
+        if transformedData is not None:
+          for t in range(numberOfHistoryStep):
+            outputDict['output'][self.name+'PCAComponent' + str(i + 1)][:,t] = transformedData[t][:, i]
+
+
+      if self.solutionExport is not None and components is not None:
+        ## Get the transformation matrix and push it to a SolutionExport
+        ## data object.
+        ## Can I be sure of the order of dimensions in the features dict, is
+        ## the same order as the data held in the UnSupervisedLearning object?
+        for row in range(noComponents):
+          self.solutionExport.updateInputValue('component', row+1)
+          self.solutionExport.updateOutputValue(self.pivotParameter, self.pivotVariable)
+          for i,col in enumerate(self.unSupervisedEngine.features.keys()):
+            timeSeries = np.zeros(numberOfHistoryStep)
+            for timeIdx in range(numberOfHistoryStep):
+              timeSeries[timeIdx] = components[timeIdx][row][i]
+            self.solutionExport.updateOutputValue(col,timeSeries)
+          if explainedVarianceRatio is not None:
+            timeSeries = np.zeros(numberOfHistoryStep)
+            for timeIdx in range(numberOfHistoryStep):
+              timeSeries[timeIdx] = explainedVarianceRatio[timeIdx][row]
+            self.solutionExport.updateOutputValue('ExplainedVarianceRatio',timeSeries)
+
+    else:
+      self.raiseAnError(IOError,'%s has not yet implemented.' % self.unSupervisedEngine.getDataMiningType())
 
     return outputDict
 #
@@ -3726,7 +4543,7 @@ class RavenOutput(BasePostProcessor):
           found = True
           break
       if not found:
-        self.raiseAnError(IOError,'Did not find file named "%s" among the Step inputs!')
+        self.raiseAnError(IOError,'Did not find file named "%s" among the Step inputs!' % (input.name))
 
   def _localReadMoreXML(self,xmlNode):
     """
@@ -3779,7 +4596,7 @@ class RavenOutput(BasePostProcessor):
               self.raiseAnError(IOError,'Must specify a "name" for each "output" block!  Missing for:',cchild.text)
             varName = cchild.attrib['name'].strip()
             if varName in self.files[id]['paths'].keys():
-              self.raiseAnError(IOError,'Multiple "output" blocks for "%s" have the same "name":' %self.files[id]['name'],label)
+              self.raiseAnError(IOError,'Multiple "output" blocks for "%s" have the same "name":' %self.files[id]['name'],varName)
             self.files[id]['paths'][varName] = cchild.text.strip()
     #if dynamic, only one File can be specified currently; to fix this, how do you handle different-lengthed times in same data object?
     if self.dynamic and numberOfSources > 1:
@@ -3838,8 +4655,8 @@ class RavenOutput(BasePostProcessor):
       @ In, output, dataObjects, The object where we want to place our computed results
       @ Out, None
     """
-    if finishedJob.returnEvaluation() == -1: self.raiseAnError(RuntimeError, 'No available Output to collect (Run probably is not finished yet)')
-    realizations = finishedJob.returnEvaluation()[1]['realizations']
+    if finishedJob.getEvaluation() == -1: self.raiseAnError(RuntimeError, 'No available Output to collect (Run probably is not finished yet)')
+    realizations = finishedJob.getEvaluation()[1]['realizations']
     for real in realizations:
       for key in output.getParaKeys('inputs'):
         output.updateInputValue(key,real['inputs'][key])
@@ -3866,6 +4683,7 @@ class RavenOutput(BasePostProcessor):
 
 
 
+
 """
  Interface Dictionary (factory) (private)
 """
@@ -3873,10 +4691,8 @@ __base = 'PostProcessor'
 __interFaceDict = {}
 __interFaceDict['SafestPoint'              ] = SafestPoint
 __interFaceDict['LimitSurfaceIntegral'     ] = LimitSurfaceIntegral
-__interFaceDict['PrintCSV'                 ] = PrintCSV
 __interFaceDict['BasicStatistics'          ] = BasicStatistics
 __interFaceDict['InterfacedPostProcessor'  ] = InterfacedPostProcessor
-__interFaceDict['LoadCsvIntoInternalObject'] = LoadCsvIntoInternalObject
 __interFaceDict['LimitSurface'             ] = LimitSurface
 __interFaceDict['ComparisonStatistics'     ] = ComparisonStatistics
 __interFaceDict['External'                 ] = ExternalPostProcessor

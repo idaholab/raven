@@ -14,7 +14,7 @@
 
   <Models>
     <Code name="Rattlesnake" subType="Rattlesnake">
-        <executable>%FRAMEWORK_DIR%/../../rattlesnake/rattlesnake-%METHOD%</executable>
+      <executable>%FRAMEWORK_DIR%/../../rattlesnake/rattlesnake-%METHOD%</executable>
     </Code>
   </Models>
 
@@ -29,6 +29,12 @@
       <mean>1</mean>
       <sigma>0.1</sigma>
       <lowerBound>0.0001</lowerBound>
+      <upperBound>10</upperBound>
+    </Normal>
+    <Normal name="G3">
+      <mean>1</mean>
+      <sigma>0.02</sigma>
+      <lowerBound>0.00001</lowerBound>
       <upperBound>10</upperBound>
     </Normal>
   </Distributions>
@@ -65,6 +71,12 @@
       <variable name="Materials|seed11|densities">
         <distribution>G2</distribution>
       </variable>
+      <variable name="tr11">
+        <distribution>G3</distribution>
+      </variable>
+      <variable name="tr22">
+        <distribution>G3</distribution>
+      </variable>
     </MonteCarlo>
   </Samplers>
 
@@ -77,7 +89,7 @@
 
   <DataObjects>
     <PointSet name="outMC">
-      <Input>f11,f22,c11,c22,t11,t22,n11,n22,Materials|seed11|densities</Input>
+      <Input>f11,f22,c11,c22,t11,t22,n11,n22,tr11,tr22,Materials|seed11|densities</Input>
       <Output>eigenvalue</Output>
     </PointSet>
   </DataObjects>

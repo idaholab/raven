@@ -42,6 +42,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
   validateDict['Input'  ]       = []
   validateDict['Output' ]       = []
   validateDict['Sampler']       = []
+  validateDict['Optimizer']     = []
   testDict                      = {}
   testDict                      = {'class':'','type':[''],'multiplicity':0,'required':False}
   #FIXME: a multiplicity value is needed to control role that can have different class
@@ -92,6 +93,11 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
                                                 'AdaptiveSobol',
                                                 'EnsembleForward',
                                                 'CustomSampler']
+  validateDict['Optimizer'].append(testDict.copy())
+  validateDict['Optimizer'][0]['class'       ] ='Optimizers'
+  validateDict['Optimizer'][0]['required'    ] = False
+  validateDict['Optimizer'][0]['multiplicity'] = 1
+  validateDict['Optimizer'][0]['type']         = ['SPSA']
 
   @classmethod
   def generateValidateDict(cls):
@@ -139,9 +145,9 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     for tester in cls.validateDict[who]:
       if tester['required']==True:
         if tester['multiplicity']=='n' and tester['tempCounter']<1:
-          raise IOError('The number of time class = '+str(tester['class'])+' type= ' +str(tester['type'])+' is used as '+str(who)+' is improper')
-        if tester['multiplicity']!='n' and tester['tempCounter']!=tester['multiplicity']:
-          raise IOError('The number of time class = '+str(tester['class'])+' type= ' +str(tester['type'])+' is used as '+str(who)+' is improper')
+          raise IOError('The number of times class = '+str(tester['class'])+' type= ' +str(tester['type'])+' is used as '+str(who)+' is improper. At least one object must be present!')
+      if tester['multiplicity']!='n' and tester['tempCounter']!=tester['multiplicity']:
+        raise IOError('The number of times class = '+str(tester['class'])+' type= ' +str(tester['type'])+' is used as '+str(who)+' is improper. Number of allowable times is '+str(tester['multiplicity'])+'.Got '+str(tester['tempCounter']))
     #testing if all argument to be tested have been found
     for anItem in what:
       if anItem['found']==False:
@@ -415,14 +421,14 @@ class Dummy(Model):
       @ In, output, "DataObjects" object, output where the results of the calculation needs to be stored
       @ Out, None
     """
-    if finishedJob.returnEvaluation() == -1:
+    if finishedJob.getEvaluation() == -1:
       self.raiseAnError(AttributeError,"No available Output to collect")
-    evaluation = finishedJob.returnEvaluation()
+    evaluation = finishedJob.getEvaluation()
     if type(evaluation[1]).__name__ == "tuple":
       outputeval = evaluation[1][0]
     else:
       outputeval = evaluation[1]
-    exportDict = copy.deepcopy({'inputSpaceParams':evaluation[0],'outputSpaceParams':outputeval,'metadata':finishedJob.returnMetadata()})
+    exportDict = copy.deepcopy({'inputSpaceParams':evaluation[0],'outputSpaceParams':outputeval,'metadata':finishedJob.getMetadata()})
     if output.type == 'HDF5': output.addGroupDataObjects({'group':self.name+str(finishedJob.identifier)},exportDict,False)
     else:
       self.collectOutputFromDict(exportDict,output)
@@ -995,7 +1001,7 @@ class ExternalModel(Dummy):
       @ In, output, "DataObjects" object, output where the results of the calculation needs to be stored
       @ Out, None
     """
-    if finishedJob.returnEvaluation() == -1:
+    if finishedJob.getEvaluation() == -1:
       #is it still possible for the run to not be finished yet?  Should we be erroring out if so?
       self.raiseAnError(RuntimeError,"No available Output to collect")
     def typeMatch(var,varTypeStr):
@@ -1009,8 +1015,8 @@ class ExternalModel(Dummy):
       return typeVar.__name__ == varTypeStr or \
         typeVar.__module__+"."+typeVar.__name__ == varTypeStr
     # check type consistency... This is needed in order to keep under control the external model... In order to avoid problems in collecting the outputs in our internal structures
-    instanciatedSelf = finishedJob.returnEvaluation()[1][1]
-    outcomes         = finishedJob.returnEvaluation()[1][0]
+    instanciatedSelf = finishedJob.getEvaluation()[1][1]
+    outcomes         = finishedJob.getEvaluation()[1][0]
     for key in instanciatedSelf.modelVariableType.keys():
       if not (typeMatch(outcomes[key],instanciatedSelf.modelVariableType[key])):
         self.raiseAnError(RuntimeError,'type of variable '+ key + ' is ' + str(type(outcomes[key]))+' and mismatches with respect to the input ones (' + instanciatedSelf.modelVariableType[key] +')!!!')
@@ -1279,7 +1285,7 @@ class Code(Model):
         break
     if not found: self.raiseAnError(IOError,'None of the input files has one of the extensions requested by code '
                                   + self.subType +': ' + ' '.join(self.getInputExtension()))
-    self.raiseAMessage('job "'+ str(identifier) + "_" + self.currentInputFiles[index].getBase() +'" submitted!')
+    self.raiseAMessage('job "'+ str(identifier)  +'" submitted!')
 
   def finalizeModelOutput(self,finishedJob):
     """
@@ -1300,7 +1306,7 @@ class Code(Model):
     """
     outputFilelocation = finishedjob.getWorkingDir()
     attributes={"inputFile":self.currentInputFiles,"type":"csv","name":os.path.join(outputFilelocation,finishedjob.output+'.csv')}
-    metadata = finishedjob.returnMetadata()
+    metadata = finishedjob.getMetadata()
     if metadata: attributes['metadata'] = metadata
     if output.type == "HDF5"        : output.addGroup(attributes,attributes)
     elif output.type in ['PointSet','HistorySet']:
@@ -1396,12 +1402,12 @@ class PostProcessor(Model, Assembler):
     cls.validateDict['Function'  ][0]['class'       ] = 'Functions'
     cls.validateDict['Function'  ][0]['type'        ] = ['External','Internal']
     cls.validateDict['Function'  ][0]['required'    ] = False
-    cls.validateDict['Function'  ][0]['multiplicity'] = '1'
+    cls.validateDict['Function'  ][0]['multiplicity'] = 1
     cls.validateDict['ROM'] = [cls.testDict.copy()]
     cls.validateDict['ROM'       ][0]['class'       ] = 'Models'
     cls.validateDict['ROM'       ][0]['type'        ] = ['ROM']
     cls.validateDict['ROM'       ][0]['required'    ] = False
-    cls.validateDict['ROM'       ][0]['multiplicity'] = '1'
+    cls.validateDict['ROM'       ][0]['multiplicity'] = 1
     cls.validateDict['KDD'] = [cls.testDict.copy()]
     cls.validateDict['KDD'       ][0]['class'       ] = 'Models'
     cls.validateDict['KDD'       ][0]['type'        ] = ['KDD']
@@ -1612,7 +1618,7 @@ class EnsembleModel(Dummy, Assembler):
       @ In, initDict, optional, dictionary of all objects available in the step is using this model
       @ Out, None
     """
-    self.tree = TreeStructure.NodeTree(TreeStructure.Node(self.name))
+    self.tree = TreeStructure.NodeTree(self.messageHandler,TreeStructure.Node(self.messageHandler,self.name))
     rootNode = self.tree.getrootnode()
     for modelIn in self.assemblerDict['Model']:
       self.modelsDictionary[modelIn[2]]['Instance'] = modelIn[3]
@@ -1630,7 +1636,7 @@ class EnsembleModel(Dummy, Assembler):
           if type(targetEval[3]).__name__ != 'PointSet': self.raiseAnError(IOError, "The TargetEvaluation needs to be an instance of PointSet. Got "+type(targetEval[3]).__name__)
           self.modelsDictionary[modelIn]['Input'] = targetEval[3].getParaKeys("inputs")
           self.modelsDictionary[modelIn]['Output'] = targetEval[3].getParaKeys("outputs")
-          modelNode = TreeStructure.Node(modelIn)
+          modelNode = TreeStructure.Node(self.messageHandler,modelIn)
           modelNode.add( 'inputs', targetEval[3].getParaKeys("inputs"))
           modelNode.add('outputs', targetEval[3].getParaKeys("outputs"))
           rootNode.appendBranch(modelNode)
@@ -1691,7 +1697,8 @@ class EnsembleModel(Dummy, Assembler):
     selectedKwargs = copy.copy(kwargs)
     selectedKwargs['SampledVars'], selectedKwargs['SampledVarsPb'] = {}, {}
     for key in kwargs["SampledVars"].keys():
-      if key in self.modelsDictionary[modelName]['Input']: selectedKwargs['SampledVars'][key], selectedKwargs['SampledVarsPb'][key] =  kwargs["SampledVars"][key], kwargs["SampledVarsPb"][key]
+      if key in self.modelsDictionary[modelName]['Input']:
+        selectedKwargs['SampledVars'][key], selectedKwargs['SampledVarsPb'][key] =  kwargs["SampledVars"][key],  kwargs["SampledVarsPb"][key] if 'SampledVarsPb' in kwargs.keys() else 1.0
     return copy.deepcopy(selectedKwargs)
 
   def _inputToInternal(self, myInput, sampledVarsKeys, full=False):
@@ -1745,8 +1752,8 @@ class EnsembleModel(Dummy, Assembler):
       @ In, output, "DataObjects" object, output where the results of the calculation needs to be stored
       @ Out, None
     """
-    if finishedJob.returnEvaluation() == -1: self.raiseAnError(RuntimeError,"Job " + finishedJob.identifier +" failed!")
-    out, inputs = finishedJob.returnEvaluation()[1], finishedJob.returnEvaluation()[0]
+    if finishedJob.getEvaluation() == -1: self.raiseAnError(RuntimeError,"Job " + finishedJob.identifier +" failed!")
+    inputs, out = finishedJob.getEvaluation()[:2]
     exportDict = {'inputSpaceParams':{},'outputSpaceParams':{},'metadata':{}}
     outcomes, targetEvaluations = out
     for modelIn in self.modelsDictionary.keys():
@@ -1861,7 +1868,7 @@ class EnsembleModel(Dummy, Assembler):
           # get job that just finished
           #with self.lockSystem:
           finishedRun = jobHandler.getFinished(jobIdentifier = modelIn+"|"+identifier, uniqueHandler=self.name+identifier)
-          if finishedRun[0].returnEvaluation() == -1:
+          if finishedRun[0].getEvaluation() == -1:
             for modelToRemove in self.orderList:
               if modelToRemove != modelIn: jobHandler.getFinished(jobIdentifier = modelToRemove + "|" + identifier, uniqueHandler = self.name + identifier)
             self.raiseAnError(RuntimeError,"The Model "+modelIn + " failed!")

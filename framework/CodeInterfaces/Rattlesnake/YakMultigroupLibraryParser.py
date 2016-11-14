@@ -17,8 +17,9 @@ class YakMultigroupLibraryParser():
     perturb the libraries with variables defined in alias files and values from Raven Sampler.
     Cross sections will be reblanced based on provided information.
     In addition, this interface can be used to perturb Fission, Capture, TotalScattering, Nu, Kappa
-    for given isotopes inside the libraries. In the future, we may need to add the capability to perturb the
-    Tablewise and Librarywise data.
+    for given isotopes inside the libraries. In addition, the user can also perturb Transport if it
+    exists in the XS library. In this case, we will treat Transport as independent variable.
+    In the future, we may need to add the capability to perturb the Tablewise and Librarywise data.
   """
   #Functions Used for Reading Yak Multigroup Cross Section Library (Also including some functions for checking and recalculations)
   def __init__(self,inputFiles):
@@ -41,7 +42,7 @@ class YakMultigroupLibraryParser():
                            'FissionSpectrum','DNFraction','DNSpectrum','NeutronVelocity','DNPlambda','Absorption',
                            'Capture','Nalpha','NGamma','Flux','N2Alpha','N2N','N3N','N4N','NNProton','NProton',
                            'NDeuteron','NTriton'] #These are all valid reactions for Yak XS format
-    self.perturbableReactions = ['Fission','Capture','TotalScattering','Nu','Kappa'] #These are all valid perturbable reactions for RAVEN
+    self.perturbableReactions = ['Fission','Capture','TotalScattering','Nu','Kappa','Transport'] #These are all valid perturbable reactions for RAVEN
     self.level0Element  = 'Multigroup_Cross_Section_Libraries' #root element tag is always the same for Yak XS format
     self.level1Element  = 'Multigroup_Cross_Section_Library'   #level 1 element tag is always Multigroup_Cross_Section_Library
     self.level2Element  = ['Tabulation','AllReactions','TablewiseReactions','LibrarywiseReactions'] #These are some of the level 2 element tag with string vector xmlnode.text, without xml subnodes
@@ -54,24 +55,26 @@ class YakMultigroupLibraryParser():
       tree = ET.parse(xmlFile.getAbsFile())
       root = tree.getroot()
       if root.tag == self.level0Element:
-        self.xmlsDict[root.attrib['Name']] = tree
-        self.filesDict[xmlFile] = root.attrib['Name']
-        self.filesMap[xmlFile.getFilename()] = root.attrib['Name']
-        self.libs[root.attrib['Name']] = {}
-        self.libsKeys[root.attrib['Name']] = {}
-        mgDict = self.libs[root.attrib['Name']]
-        mgDictKeys =  self.libsKeys[root.attrib['Name']]
+        rootName = root.attrib['Name'].strip()
+        self.xmlsDict[rootName] = tree
+        self.filesDict[xmlFile] = rootName
+        self.filesMap[xmlFile.getFilename()] = rootName
+        self.libs[rootName] = {}
+        self.libsKeys[rootName] = {}
+        mgDict = self.libs[rootName]
+        mgDictKeys =  self.libsKeys[rootName]
         self.nGroup = int(root.attrib['NGroup']) #total number of neutron energy groups
         for mgLib in root:
-          self.matLibMaps[mgLib.attrib['ID']] = root.attrib['Name']
-          self.matTreeMaps[mgLib.attrib['ID']] = mgLib
-          mgDict[mgLib.attrib['ID']] = {}
-          mgDictKeys[mgLib.attrib['ID']] = {}
-          self._readYakXSInternal(mgLib,mgDict[mgLib.attrib['ID']],mgDictKeys[mgLib.attrib['ID']])
-          self._readAdditionalYakXS(mgLib,mgDict[mgLib.attrib['ID']])
-          self._checkYakXS(mgDict[mgLib.attrib['ID']],mgDictKeys[mgLib.attrib['ID']])
+          mgLibID = mgLib.attrib['ID'].strip()
+          self.matLibMaps[mgLibID] = rootName
+          self.matTreeMaps[mgLibID] = mgLib
+          mgDict[mgLibID] = {}
+          mgDictKeys[mgLibID] = {}
+          self._readYakXSInternal(mgLib,mgDict[mgLibID],mgDictKeys[mgLibID])
+          self._readAdditionalYakXS(mgLib,mgDict[mgLibID])
+          self._checkYakXS(mgDict[mgLibID],mgDictKeys[mgLibID])
       else:
-        msg = 'In YakMultigroupLibraryParser, root element of XS file is always ' + self.rootElement + ';\n'
+        msg = 'In YakMultigroupLibraryParser, root element of XS file is always ' + self.level0Element + ';\n'
         msg = msg + 'while the given XS file has different root element: ' + root.tag + "!"
         raise IOError(msg)
 
@@ -90,18 +93,20 @@ class YakMultigroupLibraryParser():
       root = aliasTree.getroot()
       if root.tag != self.level0Element:
         raise IOError('Invalid root tag: ' + root.tag +' is provided.' + ' The valid root tag should be: ' + self.level0Element)
-      if root.attrib['Name'] in self.aliases.keys(): raise IOError('Duplicated libraries name: ' + root.attrib['Name'] + ' is found in provided alias files!')
-      self.aliases[root.attrib['Name']] ={}
-      self.aliasesNGroup[root.attrib['Name']] = int(root.attrib['NGroup'])
+      rootName = root.attrib['Name'].strip()
+      if rootName in self.aliases.keys(): raise IOError('Duplicated libraries name: ' + rootName + ' is found in provided alias files!')
+      self.aliases[rootName] ={}
+      self.aliasesNGroup[rootName] = int(root.attrib['NGroup'])
       aliasNGroup = int(root.attrib['NGroup'])
-      self.aliasesType[root.attrib['Name']] = root.attrib['Type']
-      subAlias = self.aliases[root.attrib['Name']]
+      self.aliasesType[rootName] = root.attrib['Type'].strip()
+      subAlias = self.aliases[rootName]
       for child in root:
         if child.tag != self.level1Element:
           raise IOError('Invalid subnode tag: ' + child.tag +' is provided.' + ' The valid subnode tag should be: ' + self.level1Element)
-        subAlias[child.attrib['ID']] = {}
+        libID = child.attrib['ID'].strip()
+        subAlias[libID] = {}
         #read the cross section alias for each library (or material)
-        self._readXSAlias(child,subAlias[child.attrib['ID']],aliasNGroup)
+        self._readXSAlias(child,subAlias[libID],aliasNGroup)
 
   def _readXSAlias(self,xmlNode,aliasXS,aliasXSGroup):
     """
@@ -115,10 +120,10 @@ class YakMultigroupLibraryParser():
       if child.tag in self.perturbableReactions:
         grid = self._stringSpacesToTuple(child.attrib['gridIndex'])
         if grid not in aliasXS.keys(): aliasXS[grid] = {}
-        mat = child.attrib['mat']
+        mat = child.attrib['mat'].strip()
         if mat not in aliasXS[grid].keys(): aliasXS[grid][mat] = {}
         mt = child.tag
-        if mt not in aliasXS[grid][mat].keys(): aliasXS[grid][mat][mt] = [0]*aliasXSGroup
+        if mt not in aliasXS[grid][mat].keys(): aliasXS[grid][mat][mt] = [None]*aliasXSGroup
         groupIndex = child.get('gIndex')
         if groupIndex == None:
           varsList = list(var.strip() for var in child.text.strip().split(','))
@@ -230,15 +235,15 @@ class YakMultigroupLibraryParser():
       self._readTablewise(xmlNode,pDict[xmlNode.tag])
     elif xmlNode.tag == 'Isotope':
       #check if the subnode includes the XS
-      pDict[xmlNode.attrib['Name']] = {}
-      keyDict[xmlNode.attrib['Name']] = []
+      pDict[xmlNode.attrib['Name'].strip()] = {}
+      keyDict[xmlNode.attrib['Name'].strip()] = []
       hasSubNode = False
       for child in xmlNode:
         if child != None:
           hasSubNode = True
           break
       if hasSubNode:
-        self._readIsotopeXS(xmlNode,pDict[xmlNode.attrib['Name']],keyDict[xmlNode.attrib['Name']])
+        self._readIsotopeXS(xmlNode,pDict[xmlNode.attrib['Name'].strip()],keyDict[xmlNode.attrib['Name'].strip()])
     #store the xmlNode tags that have not been parsed
     else:
       self.toBeReadXML.append(xmlNode.tag)
@@ -319,7 +324,7 @@ class YakMultigroupLibraryParser():
     #calculate Total Scattering
     totScattering = np.zeros(self.nGroup)
     for g in range(self.nGroup):
-      totScattering[g] = np.sum(pDict['Scattering'][0:self.nGroup][g])
+      totScattering[g] = np.sum(pDict['Scattering'][0:self.nGroup,g])
     pDict['TotalScattering'] = totScattering
 
   def _readAdditionalYakXS(self,xmlNode,pDict):
@@ -405,6 +410,11 @@ class YakMultigroupLibraryParser():
           else:
             kappa.append(self.defaultKappa)
         reactionDict['Kappa'] = np.asarray(kappa)
+    # enable Transport perturbation if it exists.
+    if 'Transport' in reactionList:
+      reactionDict['perturbTransport'] = True
+    else:
+      reactionDict['perturbTransport'] = False
     #check and calculate total or  transport cross sections
     if 'Total' not in reactionList:
       if 'Transport' not in reactionList:
@@ -416,7 +426,7 @@ class YakMultigroupLibraryParser():
         elif reactionDict['ScatteringOrder'] == 0:
           reactionDict['Total'] = copy.copy(reactionDict['Transport'])
         else:
-          reactionDict['Total'] = reactionDict['Transport'] + np.sum(reactionDict['Scattering'][self.nGroup:2*self.nGroup],1)
+          reactionDict['Total'] = reactionDict['Transport'] + np.sum(reactionDict['Scattering'][self.nGroup:2*self.nGroup])
     else:
       if 'Transport' not in reactionList:
         #calculate transport cross sections
@@ -425,7 +435,7 @@ class YakMultigroupLibraryParser():
         elif reactionDict['ScatteringOrder'] == 0:
           reactionDict['Transport'] = copy.copy(reactionDict['Total'])
         else:
-          reactionDict['Transport'] = reactionDict['Total'] - np.sum(reactionDict['Scattering'][self.nGroup:2*self.nGroup],1)
+          reactionDict['Transport'] = reactionDict['Total'] - np.sum(reactionDict['Scattering'][self.nGroup:2*self.nGroup])
 
     #Metod 1: Currently, rattlesnake will not check the consistent of provided cross sections, rattlesnake will only use Total,
     #Scattering and nuFission for the transport calculation. In this case, we will recalculate the rest cross sections
@@ -512,13 +522,17 @@ class YakMultigroupLibraryParser():
         for var in libValue:
           if var in self.modDict.keys():
             groupValues.append(self.modDict[var])
-          else:
+          elif var == None:
             if aliasType == 'rel':
               groupValues.append(1.0)
             elif aliasType == 'abs':
               groupValues.append(0.0)
+          else:
+            raise IOError('The user wants to perturb ' + var + ', but this variable is not defined in the Sampler!')
         groupValues = np.asarray(groupValues)
         factors[libKey] = groupValues
+        if not lib['perturbTransport'] and libKey == 'Transport':
+          raise IOError('Transport can not be perturbed since it does not exist in the input XS library!')
         if aliasType == 'rel':
           lib[libKey] *= groupValues
         elif aliasType == 'abs':
@@ -565,15 +579,16 @@ class YakMultigroupLibraryParser():
           reactionDict['Scattering'][0:self.nGroup,g] *= perturbDict['TotalScattering'][g]
         elif aliasType == 'abs':
           factor = perturbDict['TotalScattering'][g]/self.nGroup
-          reactionDict['Scattering'][0:self.nGroup][g] += factor
+          reactionDict['Scattering'][0:self.nGroup,g] += factor
     #recalculate Removal cross sections
     reactionDict['Removal'] = np.asarray(list(reactionDict['Total'][g] - reactionDict['Scattering'][g][g] for g in range(self.nGroup)))
     #recalculate Transport cross sections
-    if reactionDict['Scattering'].shape[0] >= self.nGroup*2:
-      reactionDict['Transport'] = reactionDict['Total'] - np.sum(reactionDict['Scattering'][self.nGroup:self.nGroup*2],1)
-    else:
-      #recalculate Transport cross sections
-      reactionDict['Transport'] = copy.copy(reactionDict['Total'])
+    if not reactionDict['perturbTransport']:
+      if reactionDict['Scattering'].shape[0] >= self.nGroup*2:
+        reactionDict['Transport'] = reactionDict['Total'] - np.sum(reactionDict['Scattering'][self.nGroup:self.nGroup*2])
+      else:
+        #recalculate Transport cross sections
+        reactionDict['Transport'] = copy.copy(reactionDict['Total'])
 
   def _addSubElementForIsotope(self,xmlNode):
     """
@@ -614,18 +629,13 @@ class YakMultigroupLibraryParser():
 
   def _prettify(self,tree):
     """
-      Script for turning XML tree into something mostly RAVEN-preferred.  Does not align attributes as some devs like.
+      Script for turning XML tree to be more user friendly.
       @ In, tree, xml.etree.ElementTree object, the tree form of an input file
-      @ Out, toWrite, string, the entire contents of the desired file to write, including newlines
+      @ Out, pretty, string, the entire contents of the desired file to write
     """
     #make the first pass at pretty.  This will insert way too many newlines, because of how we maintain XML format.
     pretty = pxml.parseString(ET.tostring(tree.getroot())).toprettyxml(indent='  ')
-    #loop over each "line" and toss empty ones, but for ending main nodes, insert a newline after.
-    toWrite=''
-    for line in pretty.split('\n'):
-      if line.strip()=='':continue
-      toWrite += line.rstrip()+'\n'
-    return toWrite
+    return pretty
 
   def writeNewInput(self,inFiles=None,**Kwargs):
     """
@@ -644,14 +654,12 @@ class YakMultigroupLibraryParser():
           libsKey = self.filesMap[inFile.getFilename()]
           if libsKey not in self.aliases.keys(): continue
           outFiles[inFile.getAbsFile()] = libsKey
-
     for outFile,libsKey in outFiles.items():
-      newFile = open(outFile,'w')
       tree = self.xmlsDict[libsKey]
       if libsKey not in self.aliases.keys(): continue
       root = tree.getroot()
       for child in root:
-        libID = child.attrib['ID']
+        libID = child.attrib['ID'].strip()
         if libID not in self.aliases[libsKey].keys(): continue
         for table in child.findall('Table'):
           gridIndex = self._stringSpacesToTuple(table.attrib['gridIndex'])
@@ -659,10 +667,10 @@ class YakMultigroupLibraryParser():
             self._addSubElementForIsotope(table)
             for subNode in table:
               if subNode.tag == 'Isotope':
-                mat = subNode.attrib['Name']
+                mat = subNode.attrib['Name'].strip()
                 if mat not in self.aliases[libsKey][libID][gridIndex].keys(): continue
                 self._replaceXMLNodeText(subNode,self.pertLib[libsKey][libID][gridIndex][mat])
-
+      newFile = open(outFile,'w')
       toWrite = self._prettify(tree)
       newFile.writelines(toWrite)
       newFile.close()

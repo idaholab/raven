@@ -7,8 +7,8 @@
   </RunInfo>
 
   <Files>
-    <Input name="snc01.i" type="">snc01.i</Input>
-    <Input name="tpfh2o" type="">tpfh2o</Input>
+    <Input name="snc01.i" type="" >snc01.i</Input>
+    <Input name="tpfh2o"  type="" >tpfh2o</Input>
   </Files>
 
   <Models>
@@ -45,6 +45,12 @@
       <upperBound>28</upperBound>
       <lowerBound>37</lowerBound>
     </Normal>
+    <Normal name="testMultiLine">
+      <mean>0.5</mean>
+      <sigma>0.1</sigma>
+      <upperBound>0</upperBound>
+      <lowerBound>1</lowerBound>
+    </Normal>
   </Distributions>
 
   <Samplers>
@@ -63,6 +69,9 @@
       </variable>
       <variable name="20100157:2">
         <distribution>heat_capacity_157</distribution>
+      </variable>
+      <variable name="13550801:6">
+        <distribution>testMultiLine</distribution>
       </variable>
     </MonteCarlo>
   </Samplers>

@@ -68,7 +68,7 @@
       </variable>
       <ROM class="Models" type="ROM">fineROM</ROM>
       <Restart class="DataObjects" type="PointSet">restart</Restart>
-      <restartTolerance>1e-3</restartTolerance>
+      <restartTolerance>5.001e-3</restartTolerance>
     </SparseGridCollocation>
   </Samplers>
 

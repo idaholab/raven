@@ -22,14 +22,13 @@
       <Features>X,Y</Features>
       <Target>Z</Target>
       <fit_intercept>True</fit_intercept>
-      <normalize>False</normalize>
+      <normalize>True</normalize>
     </ROM>
   </Models>
 
   <ExternalXML node="Distributions" xmlToLoad="sharedDistributions.xml"/>
   <ExternalXML node="Samplers" xmlToLoad="sharedSamplers.xml"/>
   <ExternalXML node="Steps" xmlToLoad="sharedSteps.xml"/>
-
   <OutStreams>
     <!-- A csv file containing the output of the example -->
     <Print name="outData">
@@ -40,5 +39,4 @@
   </OutStreams>
 
   <ExternalXML node="DataObjects" xmlToLoad="sharedDataObjects.xml"/>
-
 </Simulation>

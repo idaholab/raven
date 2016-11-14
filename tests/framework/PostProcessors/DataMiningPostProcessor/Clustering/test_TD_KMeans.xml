@@ -1,0 +1,198 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
+    <WorkingDir>time_dep_clustering</WorkingDir>
+    <Sequence>FirstMRun,pp1</Sequence>
+    <batchSize>20</batchSize>
+  </RunInfo>
+  
+	<Databases>
+	  <HDF5 name="out_db"/>
+	</Databases>
+
+  <Steps>
+    <MultiRun name="FirstMRun" pauseAtEnd="True">
+      <Input   class="DataObjects"      type="Point"         >inputPlaceHolder</Input>
+      <Model   class="Models"           type="ExternalModel" >PythonModule</Model>
+      <Sampler class="Samplers"         type="MonteCarlo"    >MC_external</Sampler>
+      <Output  class="DataObjects"      type="HistorySet"    >outMC</Output>
+      <Output  class="Databases"        type="HDF5"          >out_db</Output>
+    </MultiRun>
+    <PostProcess name="pp1" pauseAtEnd="True">
+      <Input  class="DataObjects"      type="HistorySet"     >outMC</Input>
+      <Model  class="Models"           type="PostProcessor"  >KMeans1</Model>
+      <Output class="DataObjects"      type="HistorySet"     >outMC</Output>
+      <Output class="OutStreams" type="Plot"                 >plot3</Output>
+      <Output class="OutStreams" type="Plot"                 >plot4</Output>
+      <Output class="OutStreams" type="Plot"                 >plot5</Output>
+      <Output class="OutStreams" type="Plot"                 >plot6</Output>
+      <Output class="OutStreams" type="Plot"                 >plot7</Output>
+    </PostProcess>
+  </Steps>
+  
+	<Distributions>
+	  <Normal name="x0_distrib">
+	    <mean>4</mean>
+	    <sigma>1</sigma>
+	  </Normal>
+	  <Normal name="y0_distrib">
+	    <mean>4</mean>
+	    <sigma>1</sigma>
+	  </Normal>
+	  <Normal name="z0_distrib">
+	    <mean>4</mean>
+	    <sigma>1</sigma>
+	  </Normal>
+	</Distributions>
+  
+	<Samplers>
+	  <MonteCarlo name="MC_external">
+	    <samplerInit>
+	      <limit>100</limit>
+	      <initialSeed>1</initialSeed>
+	    </samplerInit>
+	    <variable name="x0">
+	      <distribution>x0_distrib</distribution>
+	    </variable>
+	    <variable name="y0">
+	      <distribution>y0_distrib</distribution>
+	    </variable>
+	    <variable name="z0">
+	      <distribution>z0_distrib</distribution>
+	    </variable>
+	  </MonteCarlo>
+	</Samplers>
+
+  <Models>
+    <PostProcessor name="MeanShift" subType="DataMining">
+      <PreProcessor  class="Models" type="PostProcessor">dataPreProc</PreProcessor>
+      <KDD lib="SciKitLearn">
+        <SKLtype>cluster|MeanShift</SKLtype>
+        <Features>output</Features>
+        <bandwidth>1.0e-2</bandwidth>
+      </KDD>
+    </PostProcessor>
+    <PostProcessor name="KMeans1" subType="DataMining">
+      <PreProcessor  class="Models" type="PostProcessor">dataPreProc</PreProcessor>
+      <KDD lib="SciKitLearn">
+        <SKLtype>cluster|KMeans</SKLtype>
+        <Features>output</Features>
+        <n_clusters>4</n_clusters>
+        <tol>1E-10</tol>
+        <random_state>1</random_state>
+        <init>k-means++</init>
+        <precompute_distances>True</precompute_distances>
+      </KDD>
+    </PostProcessor>
+    <PostProcessor name="dataPreProc" subType="InterfacedPostProcessor">
+       <method>HS2PS</method>
+       <timeID>time</timeID>
+    </PostProcessor>
+    <ExternalModel ModuleToLoad="lorentzAttractor_disc" name="PythonModule" subType="">
+      <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0</variables>
+    </ExternalModel>
+  </Models>
+
+	<DataObjects>
+	    <Point name="inputPlaceHolder">
+	      <Input>x0,y0,z0</Input>
+	      <Output>OutputPlaceHolder</Output>
+	    </Point>
+	    <HistorySet name="outMC">
+	      <Input>x0,y0,z0</Input>
+	      <Output>time,x,y,z</Output>
+	    </HistorySet>
+	</DataObjects>
+
+	<OutStreamManager>
+	  <Print name="PrintHistorySet_dump">
+	    <type>csv</type>
+	    <source>outMC</source>
+	  </Print>
+	  
+    <Plot  name="plot3" overwrite="false" verbosity="debug">
+      <plotSettings>
+        <plot>
+	        <type>line</type>
+	        <interpolationType>cubic</interpolationType>
+	        <interpPointsX>100</interpPointsX>
+          <x>outMC|Output|time</x>
+          <y>outMC|Output|y</y>
+          <colorMap>outMC|Output|KMeans1Labels</colorMap>
+          <!--cmap>Dark2</cmap-->
+        </plot>
+        <xlabel>time</xlabel>
+        <ylabel>x</ylabel>
+      </plotSettings>
+      <actions>
+        <how>pdf</how>
+      </actions>
+    </Plot>
+
+    <Plot   name="plot4" overwrite="false" verbosity="debug">
+      <plotSettings>
+        <plot>
+          <type>line</type>
+          <interpolationType>cubic</interpolationType>         
+          <interpPointsX>1000</interpPointsX>
+          <x>outMC|Output|time</x>
+          <y>outMC|Output|y</y>
+          <z>outMC|Output|z</z>
+          <colorMap>outMC|Output|KMeans1Labels</colorMap>
+          <!--cmap>Dark2</cmap-->
+        </plot>
+        <xlabel>time</xlabel>
+        <ylabel>y</ylabel>
+        <zlabel>z</zlabel>
+      </plotSettings>
+      <actions>
+        <how>pdf</how>
+      </actions>
+    </Plot>
+     
+    <Plot   name="plot5" overwrite="false" verbosity="debug">
+      <plotSettings>
+        <plot>
+          <type>histogram</type>
+          <x>outMC|Input|y0</x>
+          <y>outMC|Input|z0</y>
+          <normed>True</normed>
+          <bins>6</bins>
+        </plot>
+      </plotSettings>
+      <actions>
+        <how>pdf</how>
+      </actions>
+    </Plot>
+
+    <Plot  name="plot6" overwrite="false" verbosity="debug">
+      <plotSettings>
+        <plot>
+          <type>histogram</type>
+          <x>outMC|Input|y0</x>
+          <normed>True</normed>
+          <bins>6</bins>
+        </plot>
+      </plotSettings>
+      <actions>
+        <how>pdf</how>
+      </actions>
+    </Plot>
+    
+    <Plot   name="plot7" overwrite="false" verbosity="debug">
+      <plotSettings>
+        <plot>
+          <type>histogram</type>
+          <x>outMC|Output|y</x>
+          <y>outMC|Output|z</y>
+          <normed>True</normed>
+          <bins>6</bins>
+        </plot>
+      </plotSettings>
+      <actions>
+        <how>pdf</how>
+      </actions>
+    </Plot>
+                   
+  </OutStreamManager>  
+</Simulation>

@@ -72,7 +72,7 @@
       <type>csv</type>
       <source>PointSets</source>
     </Print>
-    <Plot dim="2" name="test" overwrite="false" verbosity="debug">
+    <Plot  name="test" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>line</type>
@@ -93,7 +93,9 @@
           <type>line</type>
           <x>stories|Output|time</x>
           <y>stories|Output|sine</y>
-          <colorMap>stories|Output|square</colorMap>
+          <!--
+            <colorMap>stories|Output|square</colorMap>
+          -->
           <cmap>gist_ncar</cmap>
           <range>
             <xmin>0</xmin>
@@ -130,7 +132,9 @@
         <title>
           <text> </text>
         </title>
-        <!-- custom action (not predefined in the code -->
+        <!--
+             custom action (not predefined in the code)
+        -->
         <arrow>
           <x>0.0</x>
           <y>0.0</y>
@@ -139,13 +143,14 @@
         </arrow>
       </actions>
     </Plot>
-    <Plot dim="3" name="plot2" overwrite="false" verbosity="debug">
+    <Plot   name="plot2" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>line</type>
           <x>stories|Input|var1</x>
           <z>stories|Input|var2</z>
           <y>stories|Output|square</y>
+          <colorMap>stories|Output|cosine</colorMap>
           <range>
             <xmin>0</xmin>
             <ymin>1</ymin>
@@ -208,7 +213,7 @@
         </autoscale>
       </actions>
     </Plot>
-    <Plot dim="2" name="plot3" overwrite="false" verbosity="debug">
+    <Plot  name="plot3" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>scatter</type>
@@ -225,7 +230,6 @@
           <colorMap>stories|Output|square</colorMap>
           <cmap>summer</cmap>
           <kwargs>
-            <color>red</color>
             <label>time sine square</label>
           </kwargs>
         </plot>
@@ -239,7 +243,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot dim="3" name="plot4" overwrite="false" verbosity="debug">
+    <Plot   name="plot4" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>scatter</type>
@@ -275,7 +279,7 @@
         </autoscale>
       </actions>
     </Plot>
-    <Plot dim="2" name="plot5" overwrite="false" verbosity="debug">
+    <Plot  name="plot5" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>histogram</type>
@@ -291,7 +295,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot dim="3" name="plot6" overwrite="false" verbosity="debug">
+    <Plot   name="plot6" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>histogram</type>
@@ -308,7 +312,7 @@
         </camera>
       </actions>
     </Plot>
-    <Plot dim="2" name="plot7" overwrite="false" verbosity="debug">
+    <Plot  name="plot7" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>stem</type>
@@ -325,7 +329,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot dim="3" name="plot8" overwrite="false" verbosity="debug">
+    <Plot   name="plot8" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>stem</type>
@@ -343,7 +347,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot dim="2" name="plot9" overwrite="false" verbosity="debug">
+    <Plot  name="plot9" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>stem</type>
@@ -360,7 +364,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot dim="3" name="plot10" overwrite="false" verbosity="debug">
+    <Plot   name="plot10" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>stem</type>
@@ -378,7 +382,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot dim="2" name="plot11" overwrite="false" verbosity="debug">
+    <Plot  name="plot11" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>step</type>
@@ -395,7 +399,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot dim="2" name="plot12" overwrite="false" verbosity="debug">
+    <Plot  name="plot12" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>pseudocolor</type>
@@ -414,7 +418,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot dim="3" name="plot13" overwrite="false" verbosity="debug">
+    <Plot   name="plot13" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>surface</type>
@@ -449,7 +453,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot dim="3" name="plot14" overwrite="false" verbosity="debug">
+    <Plot   name="plot14" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>tri-surface</type>
@@ -480,7 +484,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot dim="3" name="plot15" overwrite="false" verbosity="debug">
+    <Plot   name="plot15" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>wireframe</type>
@@ -512,7 +516,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot dim="2" name="plot16" overwrite="false" verbosity="debug">
+    <Plot  name="plot16" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>contour</type>
@@ -538,7 +542,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot dim="3" name="plot17" overwrite="false" verbosity="debug">
+    <Plot   name="plot17" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>contour3D</type>
@@ -567,7 +571,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot dim="2" name="plot18" overwrite="false" verbosity="debug">
+    <Plot  name="plot18" overwrite="false" verbosity="debug">
       <actions>
         <how>png</how>
       </actions>
@@ -585,7 +589,7 @@
         <ylabel>cosine</ylabel>
       </plotSettings>
     </Plot>
-    <Plot dim="3" name="plot19" overwrite="false" verbosity="debug">
+    <Plot   name="plot19" overwrite="false" verbosity="debug">
       <actions>
         <how>png</how>
       </actions>
@@ -605,7 +609,7 @@
         <zlabel>cosine</zlabel>
       </plotSettings>
     </Plot>
-    <Plot dim="2" name="historyPlot2D" overwrite="false" verbosity="debug">
+    <Plot  name="historyPlot2D" overwrite="false" verbosity="debug">
       <filename>1-2DHistoryPlot_histogram</filename>
       <plotSettings>
         <plot>
@@ -622,7 +626,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot dim="2" name="2DHistoryPlot2" overwrite="false" verbosity="debug">
+    <Plot  name="2DHistoryPlot2" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>histogram</type>

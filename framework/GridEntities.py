@@ -3,6 +3,11 @@ Created on Mar 30, 2015
 
 @author: alfoa
 """
+#for future compatibility with Python 3--------------------------------------------------------------
+from __future__ import division, print_function, unicode_literals, absolute_import
+import warnings
+warnings.simplefilter('default',DeprecationWarning)
+#End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
 #import itertools
@@ -618,7 +623,7 @@ class MultiGridEntity(GridBase):
     GridBase.__init__(self, messageHandler)
     self.multiGridActivated     = False                                # boolean flag to check if the multigrid approach has been activated
     self.subGridVolumetricRatio = None                                 # initial subgrid volumetric ratio
-    self.grid                   = ETS.NodeTree(
+    self.grid                   = ETS.NodeTree(self.messageHandler,
                                   self.__createNewNode("InitialGrid",
                                   {"grid":returnInstance("GridEntity",self,
                                    self.messageHandler),"level":"1"})) # grid hierarchical Container
@@ -704,7 +709,7 @@ class MultiGridEntity(GridBase):
       @ In, attributes, dict, initial attributes
       @ Out, node, Node, new node
     """
-    node = ETS.Node(nodeName)
+    node = ETS.Node(self.messageHandler,nodeName)
     node.add("grid",returnInstance("GridEntity",self.messageHandler))
     for key, attribute in attributes.items():
       node.add(key,attribute)

@@ -8,7 +8,7 @@ warnings.simplefilter('default',DeprecationWarning)
 # built into python.  Otherwise the import can fail, and since utils
 # are used by --library-report, this can cause diagnostic messages to fail.
 import bisect
-import sys, os
+import sys, os, errno
 import inspect
 import subprocess
 import platform
@@ -464,6 +464,79 @@ def metaclass_insert(metaclass,*baseClasses):
   namespace={}
   return metaclass("NewMiddleClass",baseClasses,namespace)
 
+def interpolateFunction(x,y,option,z=None,returnCoordinate=False):
+  """
+    Method to interpolate 2D/3D points
+    @ In, x, ndarray or cached_ndarray, the array of x coordinates
+    @ In, y, ndarray or cached_ndarray, the array of y coordinates
+    @ In, z, ndarray or cached_ndarray, optional, the array of z coordinates
+    @ In, returnCoordinate, boolean, optional, true if the new coordinates need to be returned
+    @ Out, i, ndarray or cached_ndarray or tuple, the interpolated values
+  """
+  options = copy.copy(option)
+  if x.size <= 2:
+    xi = x
+  else:
+    xi = np.linspace(x.min(),x.max(),int(options['interpPointsX']))
+  if z != None:
+    if y.size <= 2:
+      yi = y
+    else:
+      yi = np.linspace(y.min(),y.max(),int(options['interpPointsY']))
+    xig, yig = np.meshgrid(xi, yi)
+    try:
+      if ['nearest','linear','cubic'].count(options['interpolationType']) > 0 or z.size <= 3:
+        if options['interpolationType'] != 'nearest' and z.size > 3:
+          zi = griddata((x,y), z, (xi[None,:], yi[:,None]), method=options['interpolationType'])
+        else:
+          zi = griddata((x,y), z, (xi[None,:], yi[:,None]), method='nearest')
+      else:
+        rbf = Rbf(x,y,z,function=str(str(options['interpolationType']).replace('Rbf', '')), epsilon=int(options.pop('epsilon',2)), smooth=float(options.pop('smooth',0.0)))
+        zi  = rbf(xig, yig)
+    except Exception as ae:
+      if 'interpolationTypeBackUp' in options.keys():
+        print(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('Warning') + '->   The interpolation process failed with error : ' + str(ae) + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ options['interpolationTypeBackUp'])
+        options['interpolationTypeBackUp'] = options.pop('interpolationTypeBackUp')
+        zi = interpolateFunction(x,y,z,options)
+      else:
+        raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('ERROR') + '-> Interpolation failed with error: ' +  str(ae))
+    if returnCoordinate: return xig,yig,zi
+    else               : return zi
+  else:
+    try:
+      if ['nearest','linear','cubic'].count(options['interpolationType']) > 0 or y.size <= 3:
+        if options['interpolationType'] != 'nearest' and y.size > 3: yi = griddata((x), y, (xi[:]), method=options['interpolationType'])
+        else: yi = griddata((x), y, (xi[:]), method='nearest')
+      else:
+        xig, yig = np.meshgrid(xi, yi)
+        rbf = Rbf(x, y,function=str(str(options['interpolationType']).replace('Rbf', '')),epsilon=int(options.pop('epsilon',2)), smooth=float(options.pop('smooth',0.0)))
+        yi  = rbf(xi)
+    except Exception as ae:
+      if 'interpolationTypeBackUp' in options.keys():
+        print(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('Warning') + '->   The interpolation process failed with error : ' + str(ae) + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ options['interpolationTypeBackUp'])
+        options['interpolationTypeBackUp'] = options.pop('interpolationTypeBackUp')
+        yi = interpolateFunction(x,y,options)
+      else: raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('ERROR') + '-> Interpolation failed with error: ' +  str(ae))
+    if returnCoordinate:
+      return xi,yi
+    else:
+      return yi
+
+def line3DInterpolation(x,y,z,nPoints):
+  """
+    Method to interpolate 3D points on a line
+    @ In, x, ndarray or cached_ndarray, the array of x coordinates
+    @ In, y, ndarray or cached_ndarray, the array of y coordinates
+    @ In, z, ndarray or cached_ndarray, the array of z coordinates
+    @ In, nPoints, int, number of desired inteporlation points
+    @ Out, i, ndarray or cached_ndarray or tuple, the interpolated values
+  """
+  options = copy.copy(option)
+  data = np.vstack((x,y,z))
+  tck , u= interpolate.splprep(data, s=1e-6, k=3)
+  new = interpolate.splev(np.linspace(0,1,nPoints), tck)
+  return new[0], new[1], new[2]
+
 class abstractstatic(staticmethod):
   """
     This can be make an abstract static method
@@ -602,8 +675,8 @@ def tryParse(text):
     attempts to create an integer, and falls back to a float if the value has
     a decimal, and finally resorting to just returning the string in the case
     where the data cannot be converted).
-  @ In, text, string we are trying to parse
-  @ Out, value, int/float/string, the possibly converted type
+    @ In, text, string we are trying to parse
+    @ Out, value, int/float/string, the possibly converted type
   """
 
   ## FIXME is there anything that is a float that will raise an
@@ -624,20 +697,40 @@ def tryParse(text):
     return True
   return value
 
+def makeDir(dirName):
+  """
+    Function that will attempt to create a directory. If the directory already
+    exists, this function will return silently with no error, however if it
+    fails to create the directory for any other reason, then an error is
+    raised.
+    @ In, dirName, string, specifying the new directory to be created
+    @ Out, None
+  """
+  try:
+    os.makedirs(dirName)
+  except OSError as exc:
+    if exc.errno == errno.EEXIST and os.path.isdir(dirName):
+      ## The path already exists so we can safely ignore this exception
+      pass
+    else:
+      ## If it failed for some other reason, we want to see what the
+      ## error is still
+      raise
+
 class pickleSafeSubprocessPopen(subprocess.Popen):
   """
-  Subclass of subprocess.Popen used internally to prevent _handle member from being pickled.  On
-  Windows, _handle contains an operating system reference that throws an exception when deep copied.
+    Subclass of subprocess.Popen used internally to prevent _handle member from being pickled.  On
+    Windows, _handle contains an operating system reference that throws an exception when deep copied.
   """
   # Only define these methods on Windows to override deep copy/pickle (member may not exist on other
   #   platforms.
   if platform.system() == 'Windows':
     def __getstate__(self):
       """
-      Returns a dictionary of the object state for pickling/deep copying.  Omits member '_handle',
-      which cannot be deep copied when non-None.
-      @ In, None
-      @ Out, result, dict, the get state dict
+        Returns a dictionary of the object state for pickling/deep copying.  Omits member '_handle',
+        which cannot be deep copied when non-None.
+        @ In, None
+        @ Out, result, dict, the get state dict
       """
       result = self.__dict__.copy()
       del result['_handle']
@@ -645,15 +738,37 @@ class pickleSafeSubprocessPopen(subprocess.Popen):
 
     def __setstate__(self, d):
       """
-      Used to load an object dictionary when unpickling.  Since member '_handle' could not be
-      deep copied, load it back as value None.
-      @ In, d, dict, previously stored namespace to restore
-      @ Out, None
+        Used to load an object dictionary when unpickling.  Since member '_handle' could not be
+        deep copied, load it back as value None.
+        @ In, d, dict, previously stored namespace to restore
+        @ Out, None
       """
       self.__dict__ = d
       self._handle = None
 
 
-
+def removeDuplicates(objectList):
+  """
+    Method to efficiently remove duplicates from a list and maintain their
+    order based on first appearance. See the url below for a description of why
+    this is optimal:
+    http://stackoverflow.com/questions/480214/how-do-you-remove-duplicates-from-a-list-in-python-whilst-preserving-order
+    @ In, objectList, list, list from which to remove duplicates
+    @ Out, uniqueObjectList, list, list with unique values ordered by their
+      first appearance in objectList
+  """
+  seen = set()
+  ## Store this locally so it doesn't have to be re-evaluated at each iteration
+  ## below
+  seen_add = seen.add
+  ## Iterate through the list and only take x if it has not been seen.
+  ## The 'or' here acts as a short circuit if the first condition is True, then
+  ## the second will not be executed, otherwise x will be added to seen and
+  ## since adding to a set is not a conditional operation, it will always return
+  ## False, so in conjunction with the 'not' this will ensure that the first
+  ## occurrence of x is added to seen and uniqueObjectList. Long explanation,
+  ## but efficient computation.
+  uniqueObjectList = [x for x in objectList if not (x in seen or seen_add(x))]
+  return uniqueObjectList
 
 

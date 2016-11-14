@@ -27,13 +27,14 @@ class CustomBuild(build):
 
 include_dirs=[RAVEN_INCLUDE_DIR,BOOST_INCLUDE_DIR]
 swig_opts=['-c++','-I'+RAVEN_INCLUDE_DIR, '-I'+BOOST_INCLUDE_DIR]
+extra_compile_args=['-std=c++11']
 setup(name='amsc',
       version='0.0',
       description='A library for computing the Approximate Morse-Smale Complex (AMSC)',
       ext_modules=[Extension('_amsc',['src/contrib/amsc.i',
                                       'src/contrib/UnionFind.cpp',
                                       'src/contrib/AMSC.cpp'],
-                             include_dirs=include_dirs, swig_opts=swig_opts)],
+                             include_dirs=include_dirs, swig_opts=swig_opts,extra_compile_args=extra_compile_args)],
       package_dir={'':'src/contrib'},
       py_modules=['amsc'],
       cmdclass={'build': CustomBuild})

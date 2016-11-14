@@ -2,7 +2,7 @@
  [./importanceRankAbsCov]
   type = 'RavenFramework'
   input = 'test_postprocessor.xml'
-  UnorderedXml = 'absCov/postProcessorDump.xml absCov/output.xml'
+  UnorderedXml = 'absCov/output.xml'
   csv = 'absCov/postProcessorDump.csv'
   output = 'absCov/output.csv'
  [../]
@@ -11,8 +11,25 @@
   type = 'RavenFramework'
   input = 'test_postprocessor_rel.xml'
   output = 'relCov/output.csv'
-  UnorderedXml = 'relCov/postProcessorDump.xml relCov/output.xml'
+  UnorderedXml = 'relCov/output.xml'
   csv = 'relCov/postProcessorDump.csv'
  [../]
 
+ [./transformationMatrix]
+  type = 'RavenFramework'
+  input = 'test_transformation.xml'
+  output = 'transform/output.csv'
+  UnorderedXml = 'transform/output.xml'
+  csv = 'transform/importantRank.csv'
+ [../]
+ 
+ [./timeDepImportanceRank]
+  type = 'RavenFramework'
+  input = 'test_time_dependent.xml'
+  output = 'transform/importantRank_timeDep.csv transform/importantRank_timeDep.xml'
+  UnorderedXml = 'transform/output_timeDep.xml'
+  csv = 'transform/importantRank_timeDep_3.csv'
+  rel_err = 1e-5
+  zero_threshold = 1e-14
+ [../]
 []

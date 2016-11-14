@@ -43,7 +43,6 @@ from BaseClasses import BaseType
 from Assembler import Assembler
 import Distributions
 import DataObjects
-import TreeStructure as ETS
 import SupervisedLearning
 import pyDOE as doe
 import Quadratures
@@ -53,7 +52,6 @@ import Models
 import PostProcessors
 import MessageHandler
 import GridEntities
-from AMSC_Object import AMSC_Object
 distribution1D = utils.find_distribution1D()
 #Internal Modules End--------------------------------------------------------------------------------
 

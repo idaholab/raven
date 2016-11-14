@@ -230,6 +230,7 @@ class SingleRun(Step):
       @ Out, None
     """
     Step.__init__(self)
+    self.splType = 'Sampler'
     self.failedRuns = []
     self.printTag = 'STEP SINGLERUN'
 
@@ -252,6 +253,10 @@ class SingleRun(Step):
     if found > 1: self.raiseAnError(IOError,'Only one model is allowed for the step named '+str(self.name))
     elif found == 0: self.raiseAnError(IOError,'No model has been found for the step named '+str(self.name))
     roles      = set(rolesItem)
+    if 'Optimizer' in roles:
+      self.splType = 'Optimizer'
+      if 'Sampler' in roles:
+        self.raiseAnError(IOError, 'Only Sampler or Optimizer is alloweed for the step named '+str(self.name))
     toBeTested = {}
     for role in roles: toBeTested[role]=[]
     for  myInput in self.parList:
@@ -300,7 +305,7 @@ class SingleRun(Step):
     """
     jobHandler     = inDictionary['jobHandler']
     model          = inDictionary['Model'     ]
-    sampler        = inDictionary.get('Sampler',None)
+    sampler        = inDictionary.get(self.splType,None)
     inputs         = inDictionary['Input'     ]
     outputs        = inDictionary['Output'    ]
 
@@ -360,7 +365,7 @@ class MultiRun(SingleRun):
       @ Out, None
     """
     SingleRun._localInputAndChecks(self,xmlNode)
-    if 'Sampler' not in [item[0] for item in self.parList]: self.raiseAnError(IOError,'It is not possible a multi-run without a sampler!')
+    if self.splType not in [item[0] for item in self.parList]: self.raiseAnError(IOError,'It is not possible a multi-run without a sampler or optimizer!')
 
   def _initializeSampler(self,inDictionary):
     """
@@ -370,8 +375,8 @@ class MultiRun(SingleRun):
     """
     if 'SolutionExport' in inDictionary.keys(): self._samplerInitDict['solutionExport']=inDictionary['SolutionExport']
 
-    inDictionary['Sampler'].initialize(**self._samplerInitDict)
-    self.raiseADebug('for the role of sampler the item of class '+inDictionary['Sampler'].type+' and name '+inDictionary['Sampler'].name+' has been initialized')
+    inDictionary[self.splType].initialize(**self._samplerInitDict)
+    self.raiseADebug('for the role of sampler the item of class '+inDictionary[self.splType].type+' and name '+inDictionary[self.splType].name+' has been initialized')
     self.raiseADebug('Sampler initialization dictionary: '+str(self._samplerInitDict))
 
   def _localInitializeStep(self,inDictionary):
@@ -404,7 +409,7 @@ class MultiRun(SingleRun):
         self._outputDictCollectionLambda.append((lambda x: x[1].addOutput(), outIndex))
     self.raiseADebug('Generating input batch of size '+str(inDictionary['jobHandler'].runInfoDict['batchSize']))
     for inputIndex in range(inDictionary['jobHandler'].runInfoDict['batchSize']):
-      if inDictionary['Sampler'].amIreadyToProvideAnInput():
+      if inDictionary[self.splType].amIreadyToProvideAnInput():
         try:
           newinp = self._findANewInputToRun(inDictionary)
           inDictionary["Model"].run(newinp,inDictionary['jobHandler'])
@@ -422,13 +427,12 @@ class MultiRun(SingleRun):
     model      = inDictionary['Model'     ]
     inputs     = inDictionary['Input'     ]
     outputs    = inDictionary['Output'    ]
-    sampler    = inDictionary['Sampler'   ]
+    sampler    = inDictionary[self.splType]
     while True:
       finishedJobs = jobHandler.getFinished()
       for finishedJob in finishedJobs:
         self.counter +=1
         model.finalizeModelOutput(finishedJob)
-        sampler.finalizeActualSampling(finishedJob,model,inputs)
         if finishedJob.getReturnCode() == 0:
           for myLambda, outIndex in self._outputCollectionLambda:
             myLambda([finishedJob,outputs[outIndex]])
@@ -438,6 +442,9 @@ class MultiRun(SingleRun):
           self.failedRuns.append(copy.copy(finishedJob))
           self.raiseADebug('the job failed... call the handler for this situation... not yet implemented...')
           self.raiseADebug('the JOBS that failed are tracked in the JobHandler... hence, we can retrieve and treat them separately. skipping here is Ok. Andrea')
+        # finalize actual sampler
+        sampler.finalizeActualSampling(finishedJob,model,inputs)
+        # add new job
         for _ in range(min(jobHandler.howManyFreeSpots(),sampler.endJobRunnable())): # put back this loop (do not take it away again. it is NEEDED for NOT-POINT samplers(aka DET)). Andrea
           self.raiseADebug('Testing the sampler if it is ready to generate a new input')
           if sampler.amIreadyToProvideAnInput():
@@ -461,7 +468,7 @@ class MultiRun(SingleRun):
     #  case 1: found the input in restart, and newInp is a realization dicitonary of data to use
     found = None
     while found != 0:
-      found,newInp = inDictionary['Sampler'].generateInput(inDictionary['Model'],inDictionary['Input'])
+      found,newInp = inDictionary[self.splType].generateInput(inDictionary['Model'],inDictionary['Input'])
       if found == 1:
         for collector, outIndex in self._outputDictCollectionLambda:
           collector([newInp,inDictionary['Output'][outIndex]])

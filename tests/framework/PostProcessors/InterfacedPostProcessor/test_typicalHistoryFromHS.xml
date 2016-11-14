@@ -14,7 +14,7 @@
 		<PostProcessor name = 'TypicalHistory' subType = 'InterfacedPostProcessor'>
 			<method>TypicalHistoryFromHistorySet</method>
 			<subseqLen>3600</subseqLen>
-			<timeID>Time</timeID>
+			<pivotParameter>Time</pivotParameter>
 		</PostProcessor>			
     </Models>
     <Steps>
@@ -41,7 +41,7 @@
             <source>windTypicalData</source>
         </Print>
 			
-		<Plot dim="2" name="plotWindTypData" overwrite="false" >
+		<Plot  name="plotWindTypData" overwrite="false" >
 			<plotSettings>
 			<gridSpace>2 1</gridSpace>
 				<plot>

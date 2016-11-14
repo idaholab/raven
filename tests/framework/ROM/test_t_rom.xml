@@ -90,7 +90,7 @@
       <type>csv</type>
       <source>HistorySet_ROM</source>
     </Print>
-    <Plot dim="3" name="plot_model" overwrite="False">
+    <Plot   name="plot_model" overwrite="False">
       <plotSettings>
         <plot>
           <type>scatter</type>
@@ -113,7 +113,7 @@
         </camera>
       </actions>
     </Plot>
-    <Plot dim="3" name="plot_ROM" overwrite="False">
+    <Plot   name="plot_ROM" overwrite="False">
       <plotSettings>
         <plot>
           <type>scatter</type>

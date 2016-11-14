@@ -2,8 +2,8 @@
 <Simulation verbosity="silent">
   <RunInfo>
     <WorkingDir>SpectralEmbedding</WorkingDir>
-    <Sequence>readIn,KMeans,PCAIris,output</Sequence>
-    <batchSize>100</batchSize>
+    <Sequence>readIn,PCAIris,output</Sequence>
+    <batchSize>1</batchSize>
   </RunInfo>
 
   <Files>
@@ -11,17 +11,8 @@
   </Files>
 
   <Models>
-    <PostProcessor name="KMeans" subType="DataMining">
-      <KDD lib="SciKitLearn">
-        <SKLtype>cluster|KMeans</SKLtype>
-        <Features>x1,x2,x3,x4</Features>
-        <n_clusters>3</n_clusters>
-        <tol>0.0001</tol>
-        <init>random</init>
-      </KDD>
-    </PostProcessor>
     <PostProcessor name="PCA" subType="DataMining" verbosity="quiet">
-      <KDD lib="SciKitLearn">
+      <KDD labelFeature="component" lib="SciKitLearn">
         <Features>x1,x2,x3,x4</Features>
         <SKLtype>manifold|SpectralEmbedding</SKLtype>
         <n_components>2</n_components>
@@ -38,12 +29,6 @@
       <Input class="DataObjects" type="PointSet">DataSets</Input>
       <Output class="OutStreams" type="Plot">PlotIris</Output>
     </IOStep>
-    <PostProcess name="KMeans" pauseAtEnd="True">
-      <Input class="DataObjects" type="PointSet">DataSets</Input>
-      <Model class="Models" type="PostProcessor">KMeans</Model>
-      <Output class="DataObjects" type="PointSet">DataSets</Output>
-      <Output class="OutStreams" type="Print">dummy</Output>
-    </PostProcess>
     <PostProcess name="PCAIris" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">DataSets</Input>
       <Model class="Models" type="PostProcessor">PCA</Model>
@@ -57,16 +42,15 @@
       <type>csv</type>
       <source>DataSets</source>
     </Print>
-    <Plot dim="2" name="PlotIris" overwrite="false" verbosity="debug">
+    <Plot  name="PlotIris" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>dataMining</type>
           <SKLtype>cluster</SKLtype>
-          <x>DataSets|Output|PCAEmbeddingVector1</x>
-          <y>DataSets|Output|PCAEmbeddingVector2</y>
+          <x>DataSets|Output|component1</x>
+          <y>DataSets|Output|component2</y>
           <clusterLabels>DataSets|Input|labels</clusterLabels>
-          <kwargs>
-                    </kwargs>
+          <kwargs> </kwargs>
         </plot>
         <xlabel>EmbeddingVector1</xlabel>
         <ylabel>EmbeddingVector2</ylabel>

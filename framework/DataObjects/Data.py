@@ -72,6 +72,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     self.metaAdditionalInOrOut           = ['PointProbability','ProbabilityWeight']            # list of metadata keys that will be printed in the CSV one
     self.acceptHierarchy                 = False                      # flag to tell if a sub-type accepts hierarchy
     self.inputKDTree                     = None                       # KDTree for speedy querying of input space
+    self.treeScalingFactors = {}                                      # dictionary of means, scaling factors for KDTree searches
     self.notAllowedInputs  = []                                       # this is a list of keyword that are not allowed as Inputs
     self.notAllowedOutputs = []                                       # this is a list of keyword that are not allowed as Outputs
     # This is a list of metadata types that are CSV-compatible...we build the list this way to catch when a python implementation doesn't
@@ -397,11 +398,19 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     #  This speedup was realized both in formatting, as well as creating the tree/querying the tree
     #if inputs have changed or this if first query, build the tree
     if self.inputKDTree is None:
+      #set up data scaling, so that relative distances are used
+      # scaling is so that scaled = (actual - mean)/scale
+      for v in requested.keys():
+        mean,scale = mathUtils.normalizationFactors(inpVals[v])
+        self.treeScalingFactors[v] = (mean,scale)
       #convert data into a matrix in the order of requested
-      data = np.dstack(tuple(inpVals[v] for v in requested.keys()))[0] #[0] is for the way dstack constructs the stack
+      data = np.dstack(tuple((np.array(inpVals[v])-self.treeScalingFactors[v][0])/self.treeScalingFactors[v][1] for v in requested.keys()))[0] #[0] is for the way dstack constructs the stack
       self.inputKDTree = spatial.KDTree(data)
     #query the tree
-    distances,indices = self.inputKDTree.query(tuple(v for v in requested.values()),distance_upper_bound=tol)
+    distances,indices = self.inputKDTree.query(tuple((v-self.treeScalingFactors[k][0])/self.treeScalingFactors[k][1] for k,v in requested.items()),\
+                  distance_upper_bound=tol, #acceptable distance
+                  k=1, #number of points to find
+                  p=2) #use Euclidean distance
     #if multiple entries were within tolerance, accept the minimum one
     if hasattr(distances,'__len__'):
       index = indices[distances.index(min(distances))]
@@ -556,6 +565,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ Out, None
     """
     self.inputKDTree = None
+    self.treeScalingFactors = {}
     self._specializedLoadXMLandCSV(filenameRoot,options)
 
   def printCSV(self,options=None):
@@ -582,13 +592,16 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
             variablesToPrint.extend(self.__getVariablesToPrint(var,'input'))
           elif lvar.startswith('output'):
             variablesToPrint.extend(self.__getVariablesToPrint(var,'output'))
-          else: self.raiseAnError(RuntimeError,'variable ' + var + ' is unknown in Data ' + self.name + '. You need to specify an input or a output')
+          else:
+            self.raiseAnError(RuntimeError,'variable ' + var + ' is unknown in Data ' + self.name + '. When specifying \'what\' remember to prepend parameter names with \'Input|\' or \'Output|\'')
         optionsInt['what'] = variablesToPrint
     else: filenameLocal = self.name + '_dump'
-    if 'what' not in optionsInt.keys():
-      inputKeys, outputKeys = sorted(self.getParaKeys('inputs')), sorted(self.getParaKeys('outputs'))
-      for inKey in inputKeys  : variablesToPrint.append('input|'+inKey)
-      for outKey in outputKeys: variablesToPrint.append('output|'+outKey)
+    # this not needed since the variables are taken from inside
+    #if 'what' not in optionsInt.keys():
+    #  inputKeys, outputKeys = sorted(self.getParaKeys('inputs')), sorted(self.getParaKeys('outputs'))
+    #  for inKey in inputKeys  : variablesToPrint.append('input|'+inKey)
+    #  for outKey in outputKeys: variablesToPrint.append('output|'+outKey)
+    #  optionsInt['what'] = variablesToPrint
     self.specializedPrintCSV(filenameLocal,optionsInt)
 
   def removeInputValue(self,name):
@@ -604,6 +617,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     else:
       if name in self._dataContainer['inputs'].keys(): self._dataContainer['inputs'].pop(name)
     self.inputKDTree = None
+    self.treeScalingFactors = {}
 
   def removeOutputValue(self,name):
     """
@@ -630,6 +644,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       self._dataContainer                  = {'inputs':{},'outputs':{}}
       self._dataContainer['metadata'     ] = {}
     self.inputKDTree = None
+    self.treeScalingFactors = {}
 
   def retrieveNodeInTreeMode(self,nodeName,parentName=None):
     """
@@ -641,18 +656,18 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ Out, foundNodes, TreeStructure.Node, the found nodes
     """
     if not self.TSData: # there is no tree yet
-      self.TSData = {nodeName:TS.NodeTree(TS.Node(nodeName))}
+      self.TSData = {nodeName:TS.NodeTree(self.messageHandler,TS.Node(self.messageHandler,nodeName))}
       return self.TSData[nodeName].getrootnode()
     else:
       if nodeName in self.TSData.keys(): return self.TSData[nodeName].getrootnode()
       elif parentName == 'root':
-        self.TSData[nodeName] = TS.NodeTree(TS.Node(nodeName))
+        self.TSData[nodeName] = TS.NodeTree(self.messageHandler,TS.Node(self.messageHandler,nodeName))
         return self.TSData[nodeName].getrootnode()
       else:
         for TSDat in self.TSData.values():
           foundNodes = list(TSDat.iter(nodeName))
           if len(foundNodes) > 0: break
-        if len(foundNodes) == 0: return TS.Node(nodeName)
+        if len(foundNodes) == 0: return TS.Node(self.messageHandler,nodeName)
         else:
           if parentName:
             for node in foundNodes:
@@ -700,6 +715,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ Out, None
     """
     self.inputKDTree = None
+    self.treeScalingFactors = {}
     self._updateSpecializedInputValue(name,value,options)
 
   def updateOutputValue(self,name,value,options=None):
@@ -943,14 +959,21 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       # get the variables from the metadata if the variables are in the list metaAdditionalInOrOut
       if varName in self.metaAdditionalInOrOut:
         varKeys = self._dataContainer['metadata'].keys()
-        if varName not in varKeys: self.raiseAnError(RuntimeError,'variable ' + varName + ' is not present among the ' +inOrOuts+' of Data ' + self.name)
+        if varName not in varKeys:
+          self.raiseAnError(RuntimeError,'variable ' + varName + ' is not present among the ' +inOrOuts+' of Data ' + self.name)
         if type(self._dataContainer['metadata'][varName]) not in self.metatype:
           self.raiseAnError(NotConsistentData,inOrOut + var.split('|')[1]+' not compatible with CSV output. Its type needs to be one of '+str(self.metatype))
-        else: variablesToPrint.append('metadata'+'|'+str(varName))
+        else:
+          variablesToPrint.append('metadata'+'|'+str(varName))
       else:
-        if type(list(self._dataContainer[inOrOuts].values())[0]) == dict: varKeys = list(self._dataContainer[inOrOuts].values())[0].keys()
-        else: varKeys = self._dataContainer[inOrOuts].keys()
-        if varName not in varKeys: self.raiseAnError(RuntimeError,'variable ' + varName + ' is not present among the '+inOrOuts+' of Data ' + self.name)
-        else: variablesToPrint.append(inOrOut+'|'+str(varName))
-    else: self.raiseAnError(RuntimeError,'unexpected variable '+ var)
+        if type(list(self._dataContainer[inOrOuts].values())[0]) == dict:
+          varKeys = list(self._dataContainer[inOrOuts].values())[0].keys()
+        else:
+          varKeys = self._dataContainer[inOrOuts].keys()
+        if varName not in varKeys:
+          self.raiseAnError(RuntimeError,'variable %s is not present among the %s of Data %s (available: %s)' % (varName,inOrOuts,self.name,varKeys))
+        else:
+          variablesToPrint.append(inOrOut+'|'+str(varName))
+    else:
+      self.raiseAnError(RuntimeError,'unexpected variable '+ var)
     return variablesToPrint

@@ -2,20 +2,32 @@
 <Simulation verbosity="debug">
     <RunInfo>
       <WorkingDir>Data</WorkingDir>
-      <Sequence>readIn,stats</Sequence>
+      <Sequence>readIn,stats,readStats,outputStats</Sequence>
     </RunInfo>
 
     <Files>
       <Input name="rawDataFile">dataSet.csv</Input>
+      <Input name="timedep_stats.xml">timedep_stats.xml</Input>
     </Files>
 
     <Models>
-      <PostProcessor name='TDS' subType='DataMining'>
-        <KDD lib='temporalBasicStatistics'>
-          <timeID>time</timeID>
-          <parameters>x,y</parameters>
-          <what>all</what>
-        </KDD>
+      <PostProcessor name="TDS" subType="BasicStatistics">
+        <what>all</what>
+        <parameters>x,y</parameters>
+        <pivotParameter>time</pivotParameter>
+      </PostProcessor>
+      <PostProcessor name="readStats" subType="RavenOutput">
+        <dynamic/>
+        <File name='timedep_stats.xml' ID="0">
+          <output name="x-mean">x | expectedValue </output>
+          <output name="x-median"> x | median </output>
+          <output name="x-percentile_5"> x | percentile_5 </output>
+          <output name="x-percentile_95"> x | percentile_95 </output>
+          <output name="y-mean">y | expectedValue </output>
+          <output name="y-median"> y | median </output>
+          <output name="y-percentile_5"> y | percentile_5 </output>
+          <output name="y-percentile_95"> y | percentile_95 </output>
+        </File>
       </PostProcessor>
     </Models>
 
@@ -27,42 +39,51 @@
       <PostProcess name='stats'>
         <Input class='DataObjects' type='HistorySet'>rawData</Input>
         <Model class='Models' type='PostProcessor'>TDS</Model>
-        <Output class='DataObjects' type='History'>ppData</Output>
-        <Output class='OutStreams' type='Print'>dummy</Output>
+        <Output class="Files" type="">timedep_stats.xml</Output>
+        <Output class='DataObjects' type='HistorySet'>rawData</Output>
+      </PostProcess>
+      <PostProcess name="readStats">
+        <Input class="Files" type="">timedep_stats.xml</Input>
+        <Model class="Models" type="PostProcessor">readStats</Model>
+        <Output class="DataObjects" type="PointSet">stats</Output>
+      </PostProcess>
+      <IOStep name="outputStats">
+        <Input class="DataObjects" type="PointSet">stats</Input>
+        <Output class='OutStreams' type='Print'>stats_dump</Output>
         <Output class='OutStreams' type='Plot'>plotPPDataMeanX</Output>
         <Output class='OutStreams' type='Plot'>plotPPDataMeanY</Output>
-      </PostProcess>
+      </IOStep>
     </Steps>
 
     <OutStreams>
-      <Print name='dummy'>
+      <Print name='stats_dump'>
         <type>csv</type>
-        <source>ppData</source>
+        <source>stats</source>
       </Print>
       <Plot dim="2" name="plotPPDataMeanX" overwrite="True" >
         <plotSettings>
           <plot>
             <type>line</type>
-            <x>ppData|Output|time</x>
-            <y>ppData|Output|x-expectedValue</y>
+            <x>stats|Input|time</x>
+            <y>stats|Output|x-mean</y>
             <interpPointsX>300</interpPointsX>
           </plot>
           <plot>
             <type>line</type>
-            <x>ppData|Output|time</x>
-            <y>ppData|Output|x-median</y>
+            <x>stats|Input|time</x>
+            <y>stats|Output|x-median</y>
             <interpPointsX>300</interpPointsX>
           </plot>
           <plot>
             <type>line</type>
-            <x>ppData|Output|time</x>
-            <y>ppData|Output|x-percentile_5</y>
+            <x>stats|Input|time</x>
+            <y>stats|Output|x-percentile_5</y>
             <interpPointsX>300</interpPointsX>
           </plot>
           <plot>
             <type>line</type>
-            <x>ppData|Output|time</x>
-            <y>ppData|Output|x-percentile_95</y>
+            <x>stats|Input|time</x>
+            <y>stats|Output|x-percentile_95</y>
             <interpPointsX>300</interpPointsX>
           </plot>
           <xlabel>Time</xlabel>
@@ -76,26 +97,26 @@
         <plotSettings>
           <plot>
             <type>line</type>
-            <x>ppData|Output|time</x>
-            <y>ppData|Output|y-expectedValue</y>
+            <x>stats|Input|time</x>
+            <y>stats|Output|y-mean</y>
             <interpPointsX>300</interpPointsX>
           </plot>
           <plot>
             <type>line</type>
-            <x>ppData|Output|time</x>
-            <y>ppData|Output|y-median</y>
+            <x>stats|Input|time</x>
+            <y>stats|Output|y-median</y>
             <interpPointsX>300</interpPointsX>
           </plot>
           <plot>
             <type>line</type>
-            <x>ppData|Output|time</x>
-            <y>ppData|Output|y-percentile_5</y>
+            <x>stats|Input|time</x>
+            <y>stats|Output|y-percentile_5</y>
             <interpPointsX>300</interpPointsX>
           </plot>
           <plot>
             <type>line</type>
-            <x>ppData|Output|time</x>
-            <y>ppData|Output|y-percentile_95</y>
+            <x>stats|Input|time</x>
+            <y>stats|Output|y-percentile_95</y>
             <interpPointsX>300</interpPointsX>
           </plot>
           <xlabel>Time</xlabel>
@@ -109,10 +130,14 @@
     </OutStreams>
 
     <DataObjects>
-      <History name='ppData'>
+      <PointSet name="stats">
+        <Input>time</Input>
+        <Output>x-mean,x-median,x-percentile_5,x-percentile_95,y-mean,y-median,y-percentile_5,y-percentile_95</Output>
+      </PointSet>
+      <!-- <HistorySet name='ppData'>
         <Input>n</Input>
         <Output>time</Output>
-      </History>
+      </HistorySet> -->
       <HistorySet name='rawData'>
         <Input>n</Input>
         <Output>time,x,y</Output>

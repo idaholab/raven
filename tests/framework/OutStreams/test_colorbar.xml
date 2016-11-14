@@ -1,0 +1,48 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="silent">
+  <RunInfo>
+    <WorkingDir>plot</WorkingDir>
+    <Sequence>sample,plot</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files/>
+  <ExternalXML node="Models" xmlToLoad="sharedModel.xml"/>
+  <ExternalXML node="Distributions" xmlToLoad="sharedDistributions.xml"/>
+  <ExternalXML node="Samplers" xmlToLoad="sharedSamplers.xml"/>
+
+
+  <OutStreams>
+    <Plot name='test'   interactive='True' overwrite='True'>
+      <filename>colorbarTest</filename>
+      <actions>
+        <how>png</how>
+        <figureProperties>
+          <frameon>false</frameon>
+          <figsize>1,1</figsize>
+        </figureProperties>
+        <title>
+          <text> </text>
+        </title>
+        <axis>off</axis>
+        <grid>off</grid>
+        <axesBox>off</axesBox>
+      </actions>
+      <plotSettings>
+        <plot>
+          <type>scatter</type>
+            <x>PointSet|Input|X</x>
+            <y>PointSet|Input|Y</y>
+            <colorMap>PointSet|Output|Z</colorMap>
+            <!-- Testing default behavior if a cmap is not specified -->
+         </plot>
+        <xlabel>X</xlabel>
+        <ylabel>Y</ylabel>
+      </plotSettings>
+    </Plot>
+  </OutStreams>
+
+  <ExternalXML node="Steps" xmlToLoad="sharedSteps.xml"/>
+  <ExternalXML node="DataObjects" xmlToLoad="sharedDataObjects.xml"/>
+
+</Simulation>

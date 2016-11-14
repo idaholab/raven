@@ -4,4 +4,14 @@
         input = 'test_noSteps.xml'
         expect_err = 'IOError: The step list:'
  [../]
+ [./MVNnotSquare]
+        type = 'RavenErrors'
+        input = 'test_MVN_not_square.xml'
+        expect_err = 'IOError: Covariance matrix is not square!'
+ [../]
+ [./MVNbadDims]
+        type = 'RavenErrors'
+        input = 'test_MVN_bad_dims.xml'
+        expect_err = 'IOError: Invalid dimensions! Covariance'
+ [../]
 []

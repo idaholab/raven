@@ -23,7 +23,7 @@
       <Target>Z</Target>
       <alphas>0.1,1.0,10.0</alphas>
       <fit_intercept>True</fit_intercept>
-      <normalize>False</normalize>
+      <normalize>True</normalize>
       <scoring>None</scoring>
       <cv>None</cv>
       <class_weight>None</class_weight>
@@ -33,7 +33,6 @@
   <ExternalXML node="Distributions" xmlToLoad="sharedDistributions.xml"/>
   <ExternalXML node="Samplers" xmlToLoad="sharedSamplers.xml"/>
   <ExternalXML node="Steps" xmlToLoad="sharedSteps.xml"/>
-
   <OutStreams>
     <!-- A csv file containing the output of the example -->
     <Print name="outData">
@@ -44,5 +43,4 @@
   </OutStreams>
 
   <ExternalXML node="DataObjects" xmlToLoad="sharedDataObjects.xml"/>
-
 </Simulation>

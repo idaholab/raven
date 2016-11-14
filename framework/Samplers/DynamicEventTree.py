@@ -56,7 +56,6 @@ import Models
 import PostProcessors
 import MessageHandler
 import GridEntities
-from AMSC_Object import AMSC_Object
 distribution1D = utils.find_distribution1D()
 #Internal Modules End-------------------------------------------------------------------------------
 
@@ -444,7 +443,7 @@ class DynamicEventTree(Grid):
       rname = endInfo['parentNode'].get('name') + '-' + str(self.branchCountOnLevel)
 
       # create a subgroup that will be appended to the parent element in the xml tree structure
-      subGroup = ETS.Node(rname.encode())
+      subGroup = ETS.Node(self.messageHandler,rname.encode())
       subGroup.add('parent', endInfo['parentNode'].get('name'))
       subGroup.add('name', rname)
       subGroup.add('completedHistory', False)
@@ -786,7 +785,7 @@ class DynamicEventTree(Grid):
     else: hybridNumber = 1
     self.TreeInfo = {}
     for precSample in range(hybridNumber):
-      elm = ETS.Node(self.name + '_' + str(precSample+1))
+      elm = ETS.Node(self.messageHandler,self.name + '_' + str(precSample+1))
       elm.add('name', self.name + '_'+ str(precSample+1))
       elm.add('startTime', str(0.0))
       # Initialize the endTime to be equal to the start one...
@@ -805,7 +804,7 @@ class DynamicEventTree(Grid):
       elm.add('branchedLevel', self.branchedLevel[0])
       # Here it is stored all the info regarding the DET => we create the info for all the
       # branchings and we store them
-      self.TreeInfo[self.name + '_' + str(precSample+1)] = ETS.NodeTree(elm)
+      self.TreeInfo[self.name + '_' + str(precSample+1)] = ETS.NodeTree(self.messageHandler,elm)
 
     for key in self.branchProbabilities.keys():
       #kk = self.toBeSampled.values().index(key)

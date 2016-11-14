@@ -30,7 +30,7 @@ else
 endif
 ###############################################################################
 
-CURR_DIR    := $(shell pwd)
+CURR_DIR    := $(CURDIR)
 
 # framework
 include $(FRAMEWORK_DIR)/build.mk
@@ -40,6 +40,7 @@ include $(FRAMEWORK_DIR)/moose.mk
 HEAT_CONDUCTION   := yes
 NAVIER_STOKES     := yes
 MISC              := yes
+FLUID_PROPERTIES  := yes
 include           $(MOOSE_DIR)/modules/modules.mk
 ###############################################################################
 
