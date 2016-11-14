@@ -107,6 +107,7 @@ else:
     print("ERROR: too old, too new, or missing raven libraries, not running:")
     for error in missing + outOfRange + notQA:
       print(error)
+    sys.exit(-1)
   else:
     if  len(missing) + len(outOfRange) > 0:
       print("WARNING: not using tested versions of the libraries:")
