@@ -954,6 +954,8 @@ class ExternalModel(Dummy):
       errorFound = False
       for key in self.modelVariableType.keys():
         self.modelVariableType[key] = type(modelVariableValues[key]).__name__
+        if key == 'k':
+          print (self.modelVariableType[key],self.name)
         if self.modelVariableType[key] not in self._availableVariableTypes:
           if not errorFound: self.raiseADebug('Unsupported type found. Available ones are: '+ str(self._availableVariableTypes).replace('[','').replace(']', ''),verbosity='silent')
           errorFound = True
@@ -1610,7 +1612,9 @@ class EnsembleModel(Dummy, Assembler):
           if "repeat" in var.attrib.keys():
             self.initialConditions[var.tag] = np.repeat([float(var.text.split()[0])], int(var.attrib['repeat'])) #np.array([float(var.text.split()[0]) for _ in range(int(var.attrib['repeat']))])
           else:
-            try   : self.initialConditions[var.tag] = np.array([float(varValue) for varValue in var.text.split()])
+            try:
+              values = var.text.split() 
+              self.initialConditions[var.tag] = float(values[0]) if len(values) == 1 else np.asarray([float(varValue) for varValue in values])
             except: self.raiseAnError(IOError,"unable to read text from XML node "+var.tag) 
 
   def __findMatchingModel(self,what,subWhat):
@@ -1880,6 +1884,7 @@ class EnsembleModel(Dummy, Assembler):
       if len(previousOutputs.values()) > 0:
         for input in self.modelsDictionary[modelIn]['Input']:
           if input in previousOutputs.keys(): dependentOutputs[input] =  previousOutputs[input][-1] if outputType != 'HistorySet' else np.asarray(previousOutputs[input])
+          #if input in previousOutputs.keys(): dependentOutputs[input] =  previousOutputs[input] if outputType != 'HistorySet' else np.asarray(previousOutputs[input])
     return dependentOutputs
 
   def __externalRun(self,inRun):
@@ -1893,6 +1898,7 @@ class EnsembleModel(Dummy, Assembler):
     Input, jobHandler = inRun[0], inRun[1]
     identifier = Input.pop('prefix')
     #with self.lockSystem:
+ 
     for modelIn in self.orderList:
       self.tempTargetEvaluations[modelIn].resetData()
     tempTargetEvaluations = copy.deepcopy(self.tempTargetEvaluations)
@@ -1913,6 +1919,7 @@ class EnsembleModel(Dummy, Assembler):
       iterationCount += 1
       if self.activatePicard: self.raiseAMessage("Picard's Iteration "+ str(iterationCount))
       for modelCnt, modelIn in enumerate(self.orderList):
+        tempTargetEvaluations[modelIn].resetData()
         dependentOutput = self.__retrieveDependentOutput(modelIn, gotOutputs, typeOutputs)
         if iterationCount == 1  and self.activatePicard:
           try              : sampledVars = Input[modelIn][0][1]['SampledVars'].keys()
@@ -1940,22 +1947,22 @@ class EnsembleModel(Dummy, Assembler):
             self.raiseAnError(RuntimeError,"The Model "+modelIn + " failed!")
           # get back the output in a general format
           self.modelsDictionary[modelIn]['Instance'].finalizeModelOutput(finishedRun[0])
-          self.modelsDictionary[modelIn]['Instance'].collectOutput(finishedRun[0],tempTargetEvaluations[modelIn],options={'acceptArrayRealizations':True})
+          self.modelsDictionary[modelIn]['Instance'].collectOutput(finishedRun[0],tempTargetEvaluations[modelIn])
           returnDict[modelIn]  = {}
           responseSpace = tempTargetEvaluations[modelIn].getParametersValues('outputs', nodeId = 'RecontructEnding')
-          inputSpace    = tempTargetEvaluations[modelIn].getParametersValues('inputs', nodeId = 'RecontructEnding')
-          typeOutputs[modelCnt] = tempTargetEvaluations[modelIn].type
-          
-          if typeOutputs[modelCnt] != 'HistorySet':
-            gotOutputs[modelCnt] = {}
-            for key,value in responseSpace.items(): gotOutputs[modelCnt][key] = np.atleast_1d(value[-1])
-            for key,value in inputSpace.items()   : inputSpace[key]           = np.atleast_1d(value[-1])
-          else:
-            gotOutputs[modelCnt], inputSpace = responseSpace.values()[-1], inputSpace.values()[-1]
-          #gotOutputs[modelCnt]  = responseSpace if typeOutputs[modelCnt] != 'HistorySet' else responseSpace.values()[-1]
+          inputSpace = tempTargetEvaluations[modelIn].getParametersValues('inputs', nodeId = 'RecontructEnding')
+          #inputSpaceOut = tempTargetEvaluations[modelIn].getParametersValues('inputs', nodeId = 'RecontructEnding')
+          typeOutputs[modelCnt] = tempTargetEvaluations[modelIn].type 
+#           if typeOutputs[modelCnt] != 'HistorySet':
+#             gotOutputs[modelCnt], inputSpace = {}, {}
+#             for key,value in responseSpace.items(): gotOutputs[modelCnt][key] = np.atleast_1d(value[-1])
+#             for key,value in inputSpace.items()   : inputSpace[key]           = np.atleast_1d(value[-1])
+#           else:
+#             gotOutputs[modelCnt], inputSpace = responseSpace.values()[-1], inputSpace.values()[-1]
+          gotOutputs[modelCnt]  = responseSpace if typeOutputs[modelCnt] != 'HistorySet' else responseSpace.values()[-1]
           #store the result in return dictionary
           returnDict[modelIn]['outputSpaceParams'] = gotOutputs[modelCnt]
-          returnDict[modelIn]['inputSpaceParams' ] = inputSpace #inputSpace if typeOutputs[modelCnt] != 'HistorySet' else inputSpace.values()[-1]
+          returnDict[modelIn]['inputSpaceParams' ] = inputSpace if typeOutputs[modelCnt] != 'HistorySet' else inputSpace.values()[-1]
           returnDict[modelIn]['metadata'         ] = tempTargetEvaluations[modelIn].getAllMetadata()
           #returnDict[modelIn] = {'outputSpaceParams':gotOutputs[modelCnt],'inputSpaceParams':tempTargetEvaluations[modelIn].getParametersValues('inputs', nodeId = 'RecontructEnding'),'metadata':tempTargetEvaluations[modelIn].getAllMetadata()}
           if self.activatePicard:
