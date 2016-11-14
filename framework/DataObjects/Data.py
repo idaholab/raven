@@ -617,10 +617,12 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
             self.raiseAnError(RuntimeError,'variable ' + var + ' is unknown in Data ' + self.name + '. When specifying \'what\' remember to prepend parameter names with \'Input|\' or \'Output|\'')
         optionsInt['what'] = variablesToPrint
     else: filenameLocal = self.name + '_dump'
-    if 'what' not in optionsInt.keys():
-      inputKeys, outputKeys = sorted(self.getParaKeys('inputs')), sorted(self.getParaKeys('outputs'))
-      for inKey in inputKeys  : variablesToPrint.append('input|'+inKey)
-      for outKey in outputKeys: variablesToPrint.append('output|'+outKey)
+    # this not needed since the variables are taken from inside
+    #if 'what' not in optionsInt.keys():
+    #  inputKeys, outputKeys = sorted(self.getParaKeys('inputs')), sorted(self.getParaKeys('outputs'))
+    #  for inKey in inputKeys  : variablesToPrint.append('input|'+inKey)
+    #  for outKey in outputKeys: variablesToPrint.append('output|'+outKey)
+    #  optionsInt['what'] = variablesToPrint
     self.specializedPrintCSV(filenameLocal,optionsInt)
 
   def _writeUnstructuredInputInXML(self,fileRoot,historyVariableKeys,historyVariableValues):
