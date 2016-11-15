@@ -23,9 +23,9 @@ def odeFuncion(u, t, xshape, N, h, k, timeFromFirstModel):
   dudt     = np.zeros(xshape)
   dudt[0] = 0 # constant at boundary condition
   dudt[-1] = 0
-  
+
   # k and timeFromFirstModel are arrays that need to be interpolated! (interp)
-  
+
   # now for the internal nodes
   for i in range(1, N-1): dudt[i] = interp(t, timeFromFirstModel, k) * (u[i + 1] - 2*u[i] + u[i - 1]) / h**2
   return dudt
