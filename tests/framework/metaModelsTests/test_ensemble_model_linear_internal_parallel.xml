@@ -28,6 +28,7 @@
     <EnsembleModel name="heatTransferEnsembleModel" subType="">
       <Model class="Models" type="ExternalModel">
         thermalConductivityComputation
+        <Input class="DataObjects" type="PointSet">inputHolder</Input>
         <TargetEvaluation class="DataObjects" type="PointSet">thermalConductivityComputationContainer</TargetEvaluation>
       </Model>
       <Model class="Models" type="ExternalModel">

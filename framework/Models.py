@@ -954,8 +954,6 @@ class ExternalModel(Dummy):
       errorFound = False
       for key in self.modelVariableType.keys():
         self.modelVariableType[key] = type(modelVariableValues[key]).__name__
-        if key == 'k':
-          print (self.modelVariableType[key],self.name)
         if self.modelVariableType[key] not in self._availableVariableTypes:
           if not errorFound: self.raiseADebug('Unsupported type found. Available ones are: '+ str(self._availableVariableTypes).replace('[','').replace(']', ''),verbosity='silent')
           errorFound = True
@@ -994,8 +992,14 @@ class ExternalModel(Dummy):
         @ Out, typeMatch, bool, is the datatype changed?
       """
       typeVar = type(var)
-      return typeVar.__name__ == varTypeStr or \
-        typeVar.__module__+"."+typeVar.__name__ == varTypeStr
+      match = typeVar.__name__ == varTypeStr or typeVar.__module__+"."+typeVar.__name__ == varTypeStr
+      if not match:
+        # check if the types start with the same root
+        if len(typeVar.__name__) <= len(varTypeStr):
+          if varTypeStr.startswith(typeVar.__name__): match = True
+        else:
+          if typeVar.__name__.startswith(varTypeStr): match = True
+      return match
     def sizeMatch(var,sizeToCheck):
       """
         This method is aimed to check if a variable has an expected size
@@ -1925,7 +1929,7 @@ class EnsembleModel(Dummy, Assembler):
           try              : sampledVars = Input[modelIn][0][1]['SampledVars'].keys()
           except           : sampledVars = Input[modelIn][1]['SampledVars'].keys()
           for initCondToSet in [x for x in self.modelsDictionary[modelIn]['Input'] if x not in set(dependentOutput.keys()+sampledVars)]:
-            if initCondToSet in self.initialConditions.keys(): dependentOutput[initCondToSet] = np.asarray(self.initialConditions[initCondToSet])
+            if initCondToSet in self.initialConditions.keys(): dependentOutput[initCondToSet] = self.initialConditions[initCondToSet]
             else                                             : self.raiseAnError(IOError,"No initial conditions provided for variable "+ initCondToSet)
         Input[modelIn]  = self.modelsDictionary[modelIn]['Instance'].updateInputFromOutside(Input[modelIn], dependentOutput)
         try              : Input[modelIn][0][1]['prefix'], Input[modelIn][0][1]['uniqueHandler'] = modelIn+"|"+identifier, self.name+identifier
