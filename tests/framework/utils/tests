@@ -15,6 +15,10 @@
   type = 'RavenPython'
   input = 'testTreeStructure.py'
  [../]
+ [./inputParsing]
+  type = 'RavenPython'
+  input = 'testParse.py'
+ [../]
 []
 
 
