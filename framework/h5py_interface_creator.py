@@ -362,11 +362,13 @@ class hdf5Database(MessageHandler.MessageUser):
     else:
       # Data(structure)
       # Retrieve the headers from the data (inputs and outputs)
-      headersIn  = list(source['name'].getInpParametersValues().keys())
-      headersOut = list(source['name'].getOutParametersValues().keys())
+      headersIn              = list(source['name'].getInpParametersValues().keys())
+      headersOut             = list(source['name'].getOutParametersValues().keys())
       # for a "HistorySet" type we create a number of groups = number of HistorySet (compatibility with loading structure)
       dataIn  = list(source['name'].getInpParametersValues().values())
       dataOut = list(source['name'].getOutParametersValues().values())
+      headersInUnstructured = list(source['name'].getInpParametersValues(self,unstructuredInputs=True).keys())
+      dataInUnstructured    = list(source['name'].getInpParametersValues(self,unstructuredInputs=True).values())
       metadata = source['name'].getAllMetadata()
       if source['name'].type in ['HistorySet','PointSet']:
         groups = []
@@ -397,7 +399,7 @@ class hdf5Database(MessageHandler.MessageUser):
           else:
             groups[run].attrs[b'inputSpaceHeaders' ] = [utils.toBytes(headersIn[i])  for i in range(len(headersIn))]
             groups[run].attrs[b'outputSpaceHeaders'] = [utils.toBytes(headersOut[i])  for i in range(len(headersOut))]
-            groups[run].attrs[b'inputSpaceValues'  ] = json.dumps([json.dumps(list(utils.toListFromNumpyOrC1arrayIterative(np.atleast_1d(np.array(dataIn[x][run])).tolist()))) for x in range(len(dataIn))])
+            groups[run].attrs[b'inputSpaceValues'  ] = json.dumps([list(utils.toListFromNumpyOrC1arrayIterative(np.atleast_1d(np.array(dataIn[x][run])).tolist())) for x in range(len(dataIn))])
             groups[run].attrs[b'nParams'            ] = len(headersOut)
             groups[run].attrs[b'nTimeSteps'                ] = 1
             #collect the outputs

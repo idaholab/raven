@@ -1617,9 +1617,9 @@ class EnsembleModel(Dummy, Assembler):
             self.initialConditions[var.tag] = np.repeat([float(var.text.split()[0])], int(var.attrib['repeat'])) #np.array([float(var.text.split()[0]) for _ in range(int(var.attrib['repeat']))])
           else:
             try:
-              values = var.text.split() 
+              values = var.text.split()
               self.initialConditions[var.tag] = float(values[0]) if len(values) == 1 else np.asarray([float(varValue) for varValue in values])
-            except: self.raiseAnError(IOError,"unable to read text from XML node "+var.tag) 
+            except: self.raiseAnError(IOError,"unable to read text from XML node "+var.tag)
 
   def __findMatchingModel(self,what,subWhat):
     """
@@ -1902,7 +1902,7 @@ class EnsembleModel(Dummy, Assembler):
     Input, jobHandler = inRun[0], inRun[1]
     identifier = Input.pop('prefix')
     #with self.lockSystem:
- 
+
     for modelIn in self.orderList:
       self.tempTargetEvaluations[modelIn].resetData()
     tempTargetEvaluations = copy.deepcopy(self.tempTargetEvaluations)
@@ -1956,7 +1956,7 @@ class EnsembleModel(Dummy, Assembler):
           responseSpace = tempTargetEvaluations[modelIn].getParametersValues('outputs', nodeId = 'RecontructEnding')
           inputSpace = tempTargetEvaluations[modelIn].getParametersValues('inputs', nodeId = 'RecontructEnding')
           #inputSpaceOut = tempTargetEvaluations[modelIn].getParametersValues('inputs', nodeId = 'RecontructEnding')
-          typeOutputs[modelCnt] = tempTargetEvaluations[modelIn].type 
+          typeOutputs[modelCnt] = tempTargetEvaluations[modelIn].type
 #           if typeOutputs[modelCnt] != 'HistorySet':
 #             gotOutputs[modelCnt], inputSpace = {}, {}
 #             for key,value in responseSpace.items(): gotOutputs[modelCnt][key] = np.atleast_1d(value[-1])
