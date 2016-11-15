@@ -36,6 +36,8 @@
 			<Pmin>2</Pmin>
 			<Qmax>1</Qmax>
 			<Qmin>1</Qmin>
+			<outTimeLength>86400</outTimeLength>
+			<outTruncation>positive</outTruncation>
 			<Fourier>604800,86400</Fourier>
 			<FourierOrder>2, 2</FourierOrder>
 		</ROM>
@@ -70,7 +72,7 @@
             <type>csv</type>
             <source>synData</source>
         </Print>	
-		<Plot dim="2" name="plotSynData" overwrite="false" >
+		<Plot name="plotSynData" overwrite="false" >
 			<plotSettings>
 				<plot>
 					<type>line</type>
@@ -80,9 +82,6 @@
 				</plot>
 			</plotSettings>
 			<actions>
-				<range>
-					<xmin>0</xmin><xmax>1209600</xmax>
-				</range>
 				<how>png</how>
 			</actions>
 	    </Plot>

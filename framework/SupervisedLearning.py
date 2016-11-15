@@ -2047,8 +2047,10 @@ class ARMA(superVisedLearning):
     self.armaPara['Pmax'] = kwargs.get('Pmax', 3)
     self.armaPara['Pmin'] = kwargs.get('Pmin', 0)    
     self.armaPara['Qmax'] = kwargs.get('Qmax', 3)
-    self.armaPara['Qmin'] = kwargs.get('Qmin', 0)    
+    self.armaPara['Qmin'] = kwargs.get('Qmin', 0)
     self.armaPara['dimension'] = len(self.features)
+    self.outTimeLength = kwargs.get('outTimeLength', None)
+    self.outTruncation = kwargs.get('outTruncation', None)
     
     # Initialize parameters for Fourier detrending
     if 'Fourier' not in self.initOptionDict.keys():
@@ -2439,13 +2441,20 @@ class ARMA(superVisedLearning):
     normEvaluateEngine.initializeDistribution()
     
     noTimeStep = len(self.time)
+    if self.outTimeLength is not None:
+      for t in range(noTimeStep):
+        if self.time[t] > self.outTimeLength:
+          break
+      noTimeStep = copy.copy(t)
+#     self.raiseAnError(ValueError, self.outTimeLength)
+      
     tSeriesNoise = np.zeros(shape=self.armaPara['rSeriesNorm'].shape)
     for t in range(noTimeStep):
       for n in range(self.armaPara['dimension']):
         tSeriesNoise[t,n] = normEvaluateEngine.rvs()*self.armaResult['sig'][0,n]
     
 
-    tSeriesNorm = np.zeros(shape=self.armaPara['rSeriesNorm'].shape)
+    tSeriesNorm = np.zeros(shape=(noTimeStep,self.armaPara['rSeriesNorm'].shape[1]))
     tSeriesNorm[0,:] = self.armaPara['rSeriesNorm'][0,:]    
     for t in range(noTimeStep):
       for i in range(1,min(self.armaResult['P'], t)+1):
@@ -2457,9 +2466,11 @@ class ARMA(superVisedLearning):
     # Convert data back to empirically distributed
     tSeries = self.__dataConversion__(tSeriesNorm, obj='denormalize')       
     # Add fourier trends
-    if self.hasFourierSeries:     tSeries += self.fourierResult['predict']    
+    if self.hasFourierSeries:     tSeries += self.fourierResult['predict'][0:noTimeStep,:]   
     # Ensure positivity --- FIXME
-    tSeries = np.absolute(tSeries)
+    if self.outTruncation is not None:
+      if self.outTruncation == 'positive':      tSeries = np.absolute(tSeries)
+      elif self.outTruncation == 'negative':    tSeries = -np.absolute(tSeries)
     
 #     self.raiseADebug(self.fourierResult['predict'][0,0])
 #     self.raiseADebug(self.armaResult['Phi'])
@@ -2474,7 +2485,7 @@ class ARMA(superVisedLearning):
     self.raiseADebug('mean', np.mean(tSeries), 'std', np.std(tSeries))
     # end of debug
     generatedData = np.zeros(shape=[noTimeStep,self.armaPara['dimension']+1])
-    generatedData[:,0] = self.time
+    generatedData[:,0] = self.time[0:noTimeStep]
     generatedData[:,1:] = tSeries
     return generatedData
 
