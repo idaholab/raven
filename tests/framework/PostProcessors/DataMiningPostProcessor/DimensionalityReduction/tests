@@ -13,7 +13,8 @@
   [./ExactPCA_MLE]
     type   = 'RavenFramework'
     input  = 'test_dataMiningExactPCA_MLE.xml'
-    csv    = 'ExactPCA/dummy_mle.csv ExactPCA/info_mle.csv'
+    UnorderedCsv    = 'ExactPCA/dummy_mle.csv ExactPCA/info_mle.csv'
+    check_absolute_value = True
     output = 'ExactPCA/PlotIris_mle.png'
   [../]
   [./RandomizedPCA]
