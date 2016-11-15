@@ -1754,7 +1754,13 @@ class EnsembleModel(Dummy, Assembler):
     return tempDict
 
   def getCurrentSetting(self):
-    return {}
+    """
+      Function to inject the name and values of the parameters that might change during the simulation
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys and each parameter's initial value as the dictionary values
+    """
+    paramDict = self.getInitParams()
+    return paramDict
 
   def __selectInputSubset(self,modelName, kwargs ):
     """
