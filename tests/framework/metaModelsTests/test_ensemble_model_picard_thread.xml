@@ -28,7 +28,6 @@
     <EnsembleModel name="heatTransferEnsembleModel" subType="">
       <settings>
         <initialConditions>
-          <k>10.0</k>
           <averageTemperature>1000.0</averageTemperature>
         </initialConditions>
       </settings>

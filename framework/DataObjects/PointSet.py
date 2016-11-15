@@ -144,8 +144,8 @@ class PointSet(Data):
         else                    : self._dataContainer['unstructuredInputs'][name].append(np.atleast_1d(np.ravel(value)))
         #self._dataContainer['inputs'][name] = c1darray(values=np.atleast_1d(np.atleast_1d(value)[-1]))                     copy.copy(np.concatenate((np.atleast_1d(np.array(popped)), np.atleast_1d(np.atleast_1d(value)[-1]))))
       else:
-        #if name not in self._dataParameters['inParam']: self._dataParameters['inParam'].append(name)
-        if name not in self._dataParameters['inParam']: self.raiseAnError(NotConsistentData,'The input variable '+name+'is not among the input space of the DataObject '+self.name)
+        if name not in self._dataParameters['inParam']: self._dataParameters['inParam'].append(name)
+        #if name not in self._dataParameters['inParam']: self.raiseAnError(NotConsistentData,'The input variable '+name+'is not among the input space of the DataObject '+self.name)
         #self._dataContainer['inputs'][name] = c1darray(values=np.atleast_1d(np.atleast_1d(value)[-1])) if not acceptArrayRealizations else c1darray(values=np.atleast_1d(np.atleast_1d(value)))
         if not unstructuredInput: self._dataContainer['inputs'][name]             = c1darray(values=np.atleast_1d(np.ravel(value)[-1]))
         else                    : self._dataContainer['unstructuredInputs'][name] = [c1darray(values=np.atleast_1d(np.ravel(value)))]
