@@ -362,11 +362,13 @@ class hdf5Database(MessageHandler.MessageUser):
     else:
       # Data(structure)
       # Retrieve the headers from the data (inputs and outputs)
-      headersIn  = list(source['name'].getInpParametersValues().keys())
-      headersOut = list(source['name'].getOutParametersValues().keys())
+      headersIn              = list(source['name'].getInpParametersValues().keys())
+      headersOut             = list(source['name'].getOutParametersValues().keys())
       # for a "HistorySet" type we create a number of groups = number of HistorySet (compatibility with loading structure)
       dataIn  = list(source['name'].getInpParametersValues().values())
       dataOut = list(source['name'].getOutParametersValues().values())
+      headersInUnstructured = list(source['name'].getInpParametersValues(self,unstructuredInputs=True).keys())
+      dataInUnstructured    = list(source['name'].getInpParametersValues(self,unstructuredInputs=True).values())
       metadata = source['name'].getAllMetadata()
       if source['name'].type in ['HistorySet','PointSet']:
         groups = []
