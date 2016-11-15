@@ -1,5 +1,0 @@
-<data name="ghostData" type="Pointset">
-<input>Speed</input>
-<output>y,z</output>
-<inputFilename>ghostData.csv</inputFilename>
-</data>

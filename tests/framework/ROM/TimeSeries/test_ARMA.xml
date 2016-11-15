@@ -2,12 +2,11 @@
 <Simulation verbosity="debug">
     <RunInfo>
         <WorkingDir>ARMA</WorkingDir>
-		<Sequence>readIn,readInGhostData,ARMATrain,runARMA,writeOut</Sequence>
+		<Sequence>readIn,ARMATrain,runARMA,writeOut</Sequence>
         <batchSize>1</batchSize>
     </RunInfo>
     <Files>
         <Input name="rawDataFile">./dataSet.csv</Input>
-		<Input name="ghostDataFile">./ghostData.csv</Input>
     </Files>
     <Distributions>
 		<Uniform name="smallUniformDist">
@@ -23,6 +22,9 @@
 				<initialSeed>888</initialSeed>
 			</samplerInit>
 			<variable name="Speed">
+				<distribution>smallUniformDist</distribution>
+			</variable>
+			<variable name="x">
 				<distribution>smallUniformDist</distribution>
 			</variable>
 		</MonteCarlo>
@@ -46,10 +48,6 @@
         <IOStep name='readIn' pauseAtEnd = 'True'>
             <Input    class = 'Files'             type = ''              >rawDataFile</Input>
             <Output   class = 'DataObjects'       type = 'HistorySet'       >rawData</Output>          
-        </IOStep>
-		<IOStep name='readInGhostData' pauseAtEnd = 'True'>
-            <Input    class = 'Files'             type = ''              >ghostDataFile</Input>
-            <Output   class = 'DataObjects'       type = 'PointSet'       >ghostData</Output>           
         </IOStep>
 		<RomTrainer name='ARMATrain'>
 			<Input    class = 'DataObjects'       type = 'HistorySet'       >rawData</Input>
@@ -94,10 +92,10 @@
         </HistorySet>
 		<PointSet name="ghostData">
             <Input>Speed</Input>
-            <Output>y,z</Output>
+            <Output>OutputPlaceHolder</Output>
         </PointSet>
 		<HistorySet name="synData">
-            <Input>y</Input>
+            <Input>x</Input>
             <Output>Time,Speed</Output>
         </HistorySet>
     </DataObjects>
