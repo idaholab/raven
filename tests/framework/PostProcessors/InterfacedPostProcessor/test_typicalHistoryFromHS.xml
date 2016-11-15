@@ -42,7 +42,7 @@
             <source>windTypicalData</source>
         </Print>
 			
-		<Plot  name="plotWindTypData" overwrite="false" >
+		<Plot name="plotWindTypData" overwrite="false" >
 			<plotSettings>
 			<gridSpace>2 1</gridSpace>
 				<plot>
