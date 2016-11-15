@@ -26,7 +26,8 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
     PostProcessorInterfaceBase.initialize(self)
     self.inputFormat  = 'HistorySet'
     self.outputFormat = 'HistorySet'
-    if not hasattr(self, 'timeID'):   self.timeID = 'Time'
+    if not hasattr(self, 'pivotParameterID'):   self.pivotParameterID = 'Time'
+    if not hasattr(self, 'outputLen'):          self.outputLen = None
 
   def run(self,inputDic):
     """
@@ -35,18 +36,22 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
     """
     inputDict = inputDic['data']
     self.features = inputDict['output'][inputDict['output'].keys()[0]].keys()
-    self.features.remove(self.timeID)
+    self.features.remove(self.pivotParameterID)
     self.noHistory = len(inputDict['output'].keys())
-    self.time = np.asarray(inputDict['output'][inputDict['output'].keys()[0]][self.timeID])
+    self.pivotParameter = np.asarray(inputDict['output'][inputDict['output'].keys()[0]][self.pivotParameterID])
+    if self.outputLen is None: self.outputLen = self.pivotParameter[-1]
+    
+    
+
 
     self.subsequence = {}
     startLocation, n = 0, 0
     while True:
       subsequenceLength = self.subseqLen[n % len(self.subseqLen)]
-      if startLocation + subsequenceLength < self.time[-1]:
+      if startLocation + subsequenceLength < self.pivotParameter[-1]:
         self.subsequence[n] = [startLocation, startLocation+subsequenceLength]
       else:
-        self.subsequence[n] = [startLocation, self.time[-1]]
+        self.subsequence[n] = [startLocation, self.pivotParameter[-1]]
         break
       startLocation += subsequenceLength
       n+= 1
@@ -60,12 +65,20 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
         tempData['all'][keyF] = np.concatenate((tempData['all'][keyF],inputDict['output'][keyH][keyF]))
     for keySub in subKeys:
       tempData[keySub] = {}
-      extractCondition = (self.time>=self.subsequence[keySub][0]) * (self.time<self.subsequence[keySub][1])
-      tempData[keySub][self.timeID] = np.extract(extractCondition, self.time)
+      extractCondition = (self.pivotParameter>=self.subsequence[keySub][0]) * (self.pivotParameter<self.subsequence[keySub][1])
+      tempData[keySub][self.pivotParameterID] = np.extract(extractCondition, self.pivotParameter)
+      if self.pivotParameter[-1] == self.subsequence[keySub][1]:
+        tempData[keySub][self.pivotParameterID] = np.concatenate((tempData[keySub][self.pivotParameterID], np.asarray([self.pivotParameter[-1]])))
+        
       for keyF in self.features:
-        tempData[keySub][keyF] = np.zeros(shape=(self.noHistory,len(tempData[keySub][self.timeID])))
+        tempData[keySub][keyF] = np.zeros(shape=(self.noHistory,len(tempData[keySub][self.pivotParameterID])))
         for cnt, keyH in enumerate(inputDict['output'].keys()):
-          tempData[keySub][keyF][cnt,:] = np.extract(extractCondition, inputDict['output'][keyH][keyF])
+#           tempData[keySub][keyF][cnt,:] = np.extract(extractCondition, inputDict['output'][keyH][keyF])
+          if self.pivotParameter[-1] == self.subsequence[keySub][1]:
+            tempData[keySub][keyF][cnt,0:-1] = np.extract(extractCondition, inputDict['output'][keyH][keyF])
+            tempData[keySub][keyF][cnt,-1] = inputDict['output'][keyH][keyF][-1]
+          else:
+            tempData[keySub][keyF][cnt,:] = np.extract(extractCondition, inputDict['output'][keyH][keyF])
 
     tempCDF = {'all':{}}
     for keyF in self.features:
@@ -86,7 +99,7 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
     tempTyp = {}
     for keySub in subKeys:
       tempTyp[keySub] = {}
-      tempTyp[keySub][self.timeID] = tempData[keySub][self.timeID]
+      tempTyp[keySub][self.pivotParameterID] = tempData[keySub][self.pivotParameterID]
       d = np.inf
       for cnt, keyH in enumerate(inputDict['output'].keys()):
         FS = 0
@@ -97,15 +110,15 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
           for keyF in self.features:
             tempTyp[keySub][keyF] = tempData[keySub][keyF][cnt,:]
 
-    typicalTS = {self.timeID:np.array([])}
+    typicalTS = {self.pivotParameterID:np.array([])}
     for keySub in subKeys:
-      typicalTS[self.timeID] = np.concatenate((typicalTS[self.timeID], tempTyp[keySub][self.timeID]))
+      typicalTS[self.pivotParameterID] = np.concatenate((typicalTS[self.pivotParameterID], tempTyp[keySub][self.pivotParameterID]))
       for keyF in self.features:
         if keyF not in typicalTS.keys():  typicalTS[keyF] = np.array([])
         typicalTS[keyF] = np.concatenate((typicalTS[keyF], tempTyp[keySub][keyF]))
 
-    for t in range(1,len(typicalTS[self.timeID])):
-      if typicalTS[self.timeID][t] < typicalTS[self.timeID][t-1]: return None
+    for t in range(1,len(typicalTS[self.pivotParameterID])):
+      if typicalTS[self.pivotParameterID][t] < typicalTS[self.pivotParameterID][t-1]: return None
 
     outputDic ={'data':{'input':{},'output':{}}, 'metadata':{0:{}}}
     outputDic['data']['output'][1] = typicalTS
@@ -144,6 +157,8 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
     for child in xmlNode:
       if child.tag == 'subseqLen':
         self.subseqLen = map(int, child.text.split(','))
-      elif child.tag == 'timeID':
-        self.timeID = child.text
+      elif child.tag == 'pivotParameter':
+        self.pivotParameterID = child.text
+      elif child.tag == 'outputLen':
+        self.outputLen = float(child.text)
 
