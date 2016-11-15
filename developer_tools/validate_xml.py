@@ -34,15 +34,18 @@ def validateTests():
         print colors.neutral+'Could not check for ExternalXML since a backup file exists! Please remove it to validate.'
       # Since directing output of shell commands to file /dev/null is problematic on Windows, this equivalent form is used
       #   which is better supported on all platforms.
-      subprocess.call('python '+os.path.join(conversionDir,'externalXMLNode.py')+' '+fullpath,
-                shell = True, stdout=devnull)
-      #run xmllint
+      cmd = 'python '+os.path.join(conversionDir,'externalXMLNode.py')+' '+fullpath
+      result = subprocess.call(cmd, shell = True, stdout=devnull)
+      err = 'Error running ' + cmd
+
       print colors.neutral+startmsg,
-      cmd = 'xmllint --noout --schema '+os.path.join(scriptDir,'XSDSchemas','raven.xsd')+' '+fullpath
-      proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-      #collect output
-      out,err = proc.communicate()
-      result = proc.returncode
+      if result == 0:
+        #run xmllint
+        cmd = 'xmllint --noout --schema '+os.path.join(scriptDir,'XSDSchemas','raven.xsd')+' '+fullpath
+        proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        #collect output
+        out,err = proc.communicate()
+        result = proc.returncode
       if result == 0: #success
         res[1]+=1
         endmsg = 'validated'

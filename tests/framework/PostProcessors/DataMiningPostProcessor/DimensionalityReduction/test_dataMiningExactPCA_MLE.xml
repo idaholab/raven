@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="silent">
   <RunInfo>
-    <WorkingDir>FastICA</WorkingDir>
+    <WorkingDir>ExactPCA</WorkingDir>
     <Sequence>readIn,PCAIris,output</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
@@ -12,11 +12,10 @@
 
   <Models>
     <PostProcessor name="PCA" subType="DataMining" verbosity="quiet">
-      <KDD labelFeature="component" lib="SciKitLearn">
+      <KDD lib="SciKitLearn" labelFeature='component'>
         <Features>x1,x2,x3,x4</Features>
-        <SKLtype>decomposition|FastICA</SKLtype>
-        <random_state>0</random_state>
-        <n_components>2</n_components>
+        <SKLtype>decomposition|PCA</SKLtype>
+        <n_components>mle</n_components>
       </KDD>
     </PostProcessor>
   </Models>
@@ -28,11 +27,14 @@
     </IOStep>
     <IOStep name="output" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">DataSets</Input>
+      <Input class="DataObjects" type="PointSet">drInfo</Input>
       <Output class="OutStreams" type="Plot">PlotIris</Output>
+      <Output class="OutStreams" type="Print">info</Output>
     </IOStep>
     <PostProcess name="PCAIris" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">DataSets</Input>
       <Model class="Models" type="PostProcessor">PCA</Model>
+      <SolutionExport class="DataObjects" type="PointSet">drInfo</SolutionExport>
       <Output class="DataObjects" type="PointSet">DataSets</Output>
       <Output class="OutStreams" type="Print">dummy</Output>
     </PostProcess>
@@ -40,23 +42,33 @@
 
   <OutStreams>
     <Print name="dummy">
+      <filename>dummy_mle</filename>
       <type>csv</type>
       <source>DataSets</source>
     </Print>
-    <Plot  name="PlotIris" overwrite="false" verbosity="debug">
+    <Print name="info">
+      <filename>info_mle</filename>
+      <type>csv</type>
+      <source>drInfo</source>
+    </Print>
+    <Plot name="PlotIris" overwrite="false" verbosity="debug">
+      <filename>PlotIris_mle</filename>
       <plotSettings>
         <plot>
-          <type>dataMining</type>
+          <type>scatter</type>
           <SKLtype>cluster</SKLtype>
           <x>DataSets|Output|component1</x>
           <y>DataSets|Output|component2</y>
-          <clusterLabels>DataSets|Input|labels</clusterLabels>
-          <kwargs> </kwargs>
+          <z>DataSets|Output|component3</z>
+          <colorMap>DataSets|Input|labels</colorMap>
+          <kwargs></kwargs>
         </plot>
-        <xlabel>Component 1</xlabel>
-        <ylabel>Component 2</ylabel>
+        <xlabel>Principal Component 1</xlabel>
+        <ylabel>Principal Component 2</ylabel>
+        <zlabel>Principal Component 3</zlabel>
       </plotSettings>
       <actions>
+        <colorbar>off</colorbar>
         <how>png</how>
       </actions>
     </Plot>
@@ -66,6 +78,10 @@
     <PointSet name="DataSets">
       <Input>x1,x2,x3,x4,labels</Input>
       <Output>Output</Output>
+    </PointSet>
+    <PointSet name="drInfo">
+      <Input>x1,x2</Input>
+      <Output>placeholder</Output>
     </PointSet>
   </DataObjects>
 
