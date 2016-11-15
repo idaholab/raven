@@ -38,16 +38,12 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
     inputDict = inputDic['data']
     self.features = inputDict['output'][inputDict['output'].keys()[0]].keys()
     self.features.remove(self.pivotParameterID)
-    
-#     self.pivotParameter = np.asarray(inputDict['output'][inputDict['output'].keys()[0]][self.pivotParameterID])
-    
+
     if self.outputLen is None: self.outputLen = np.asarray(inputDict['output'][inputDict['output'].keys()[0]][self.pivotParameterID])[-1]
-    
+
     tempInData = {}
     keyNewH = 0
-    
-    
-    for keyH in inputDict['output'].keys():      
+    for keyH in inputDict['output'].keys():
       localPivotParameter = np.asarray(inputDict['output'][keyH][self.pivotParameterID])
       if self.outputLen >= localPivotParameter[-1]:
         tempInData[keyNewH] = inputDict['output'][keyH]
@@ -55,7 +51,7 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
       else:
         startL, endL = 0, self.outputLen
         while endL <= localPivotParameter[-1]:
-          tempInDataH = {}        
+          tempInDataH = {}
           extractCondition = (localPivotParameter>=startL) * (localPivotParameter<=endL)
           tempInDataH[self.pivotParameterID] = np.extract(extractCondition, localPivotParameter)-startL
           for keyF in self.features:
@@ -94,14 +90,14 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
       tempData[keySub][self.pivotParameterID] = np.extract(extractCondition, self.pivotParameter)
       if self.pivotParameter[-1] == self.subsequence[keySub][1]:
         tempData[keySub][self.pivotParameterID] = np.concatenate((tempData[keySub][self.pivotParameterID], np.asarray([self.pivotParameter[-1]])))
-        
+
       for keyF in self.features:
         tempData[keySub][keyF] = np.zeros(shape=(self.numHistory,len(tempData[keySub][self.pivotParameterID])))
         for cnt, keyH in enumerate(inputDict['output'].keys()):
           if self.pivotParameter[-1] == self.subsequence[keySub][1]:
             tempData[keySub][keyF][cnt,0:-1] = np.extract(extractCondition, inputDict['output'][keyH][keyF])
             tempData[keySub][keyF][cnt,-1] = inputDict['output'][keyH][keyF][-1]
-          else:            
+          else:
             tempData[keySub][keyF][cnt,:] = np.extract(extractCondition, inputDict['output'][keyH][keyF])
 
     tempCDF = {'all':{}}
@@ -185,4 +181,3 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
         self.pivotParameterID = child.text
       elif child.tag == 'outputLen':
         self.outputLen = float(child.text)
-
