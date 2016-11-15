@@ -1839,13 +1839,15 @@ class EnsembleModel(Dummy, Assembler):
       metadataValues             = targetEvaluations[modelIn].getAllMetadata(nodeId = 'RecontructEnding')
       inputsValues  = inputsValues if targetEvaluations[modelIn].type != 'HistorySet' else inputsValues.values()[-1]
       if len(unstructuredInputsValues.keys()) > 0:
-        unstructuredInputsValues  = unstructuredInputsValues if targetEvaluations[modelIn].type != 'HistorySet' else unstructuredInputsValues.values()[-1]
+        if targetEvaluations[modelIn].type != 'HistorySet':
+          for key in unstructuredInputsValues.keys(): unstructuredInputsValues[key] = unstructuredInputsValues[key][-1]
+        else: unstructuredInputsValues  =  unstructuredInputsValues.values()[-1]
         inputsValues.update(unstructuredInputsValues)
       outputsValues  = outputsValues if targetEvaluations[modelIn].type != 'HistorySet' else outputsValues.values()[-1]
 
       for key in targetEvaluations[modelIn].getParaKeys('inputs'):
-        for histValue in inputsValues[key]:
-          self.modelsDictionary[modelIn]['TargetEvaluation'].updateInputValue (key,histValue)
+        #for histValue in inputsValues[key]:
+        self.modelsDictionary[modelIn]['TargetEvaluation'].updateInputValue (key,inputsValues[key])
       for key in targetEvaluations[modelIn].getParaKeys('outputs'):
         self.modelsDictionary[modelIn]['TargetEvaluation'].updateOutputValue (key,outputsValues[key])
       for key in metadataValues.keys():

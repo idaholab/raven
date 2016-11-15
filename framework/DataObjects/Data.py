@@ -635,13 +635,15 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ Out, None
     """
     unstructuredDataFile = open(fileRoot+".xml","w")
+    unstructuredDataFile.write("<unstructuredInputSpace>\n")
     for histNum in range(len(historyVariableKeys)):
-      unstructuredDataFile.write("<unstructuredInputData id='"+str(histNum)+"'>\n")
+      unstructuredDataFile.write(" "*3+"<unstructuredInputData id='"+str(histNum)+"'>\n")
       for cnt,var in enumerate(historyVariableKeys[histNum]):
         unstructuredDataFile.write(" "*5+"<"+var.strip()+">\n")
         unstructuredDataFile.write(" "*7+np.array_str(np.asarray(historyVariableValues[histNum][cnt])).replace("[","").replace("]","")+"\n")
         unstructuredDataFile.write(" "*5+"</"+var.strip()+">\n")
-      unstructuredDataFile.write("</unstructuredInputData>\n")
+      unstructuredDataFile.write(" "*3+"</unstructuredInputData>\n")
+    unstructuredDataFile.write("</unstructuredInputSpace>\n")
     unstructuredDataFile.close()
 
 
