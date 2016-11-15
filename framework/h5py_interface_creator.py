@@ -397,7 +397,7 @@ class hdf5Database(MessageHandler.MessageUser):
           else:
             groups[run].attrs[b'inputSpaceHeaders' ] = [utils.toBytes(headersIn[i])  for i in range(len(headersIn))]
             groups[run].attrs[b'outputSpaceHeaders'] = [utils.toBytes(headersOut[i])  for i in range(len(headersOut))]
-            groups[run].attrs[b'inputSpaceValues'  ] = json.dumps([json.dumps(list(utils.toListFromNumpyOrC1arrayIterative(np.atleast_1d(np.array(dataIn[x][run])).tolist()))) for x in range(len(dataIn))])
+            groups[run].attrs[b'inputSpaceValues'  ] = json.dumps([list(utils.toListFromNumpyOrC1arrayIterative(np.atleast_1d(np.array(dataIn[x][run])).tolist())) for x in range(len(dataIn))])
             groups[run].attrs[b'nParams'            ] = len(headersOut)
             groups[run].attrs[b'nTimeSteps'                ] = 1
             #collect the outputs
