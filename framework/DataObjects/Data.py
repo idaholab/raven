@@ -526,8 +526,9 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
           if self.type == 'HistorySet':
             for key in self._dataContainer['inputs'][keyword].keys():
               returnDict[keyword][key] = np.resize(self._dataContainer['inputs'][keyword][key],len(self._dataContainer['outputs'][keyword].values()[0]))
-            for key in self._dataContainer['unstructuredInputs'][keyword].keys():
-              returnDict[keyword][key] = self._dataContainer['unstructuredInputs'][keyword][key]
+            if len(self._dataContainer['unstructuredInputs'].keys()) > 0:
+              for key in self._dataContainer['unstructuredInputs'][keyword].keys():
+                returnDict[keyword][key] = self._dataContainer['unstructuredInputs'][keyword][key]
             return convertArr(returnDict[keyword])
           else:
             return convertArr(self._dataContainer['inputs'][keyword] if keyword in self._dataContainer['inputs'].keys() else self._dataContainer['unstructuredInputs'][keyword])
