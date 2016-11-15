@@ -27,8 +27,7 @@
     [../]
   [../]
 
-  #generic comment
-  [./Objects]
+  [./Objects] #generic comment
     [./Object]
       name = MyObj
       type = OtherObj

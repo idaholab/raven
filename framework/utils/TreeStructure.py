@@ -9,15 +9,460 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
+import xml.etree.ElementTree as ET
+import xmlUtils
+
 #message handler
 import os, sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir)))
 import MessageHandler
 
-class Node(MessageHandler.MessageUser):
+##################
+# MODULE METHODS #
+##################
+def dump(node):
+  """
+    Write a node or tree to stdout.
+  """
+  print(node.printMe())
+
+def parse(file,dType='XML'):
+  """
+    Given a file (GetPot or XML), process it into a node.
+  """
+  if dType.lower()=='xml':
+    xmltree = ET.parse(file,parser=parser) #parser is defined below, under XMLCommentParser
+    tree = xmlToInputTree(xmltree)
+  elif dType.lower()=='getpot':
+    tree = getpotToInputTree(file)
+  else:
+    raise NotImplementedError('Unrecognized file type for:',file)
+  return tree
+
+def tostring(node):
+  """
+    Generates a string representation of the tree, in a format determined by the user.
+    @ In, node, InputNode or InputTree, item to turn into a string
+    @ Out, tostring, string, full tree in string form
+  """
+  if isinstance(node,InputNode) or isinstance(node,InputTree):
+    return node.printMe()
+  else:
+    raise NotImplementedError('TreeStructure.tostring received "'+str(node)+'" but was expecting InputNode or InputTree.')
+
+def xmlToInputTree(xml):
+  """
+    Converts an XML tree into an InputTree object.
+    @ In, xml, xml.etree.ElementTree, tree to convert
+    @ Out, tree, NodeTree, tree with sorted information
+  """
+  xmlRoot = xml.getroot() #TODO what if they hand in element instead of tree?
+  rootName = xmlRoot.tag
+  rootAttrib = xmlRoot.attrib
+  tsRoot = InputNode(rootName,rootAttrib)
+  def readChild(parent,child,commentsToAdd):
+    """
+      reads child from XML node and appends it to parent
+      @ In, parent, InputNode, parent whose children are being added
+      @ In, child, InputNode, child being read
+      @ In, commentsToAdd, list, comment objects that have been saved
+      @ Out, commentsToAdd, list, comments objects to preserve
+    """
+    #case: comment
+    if type(child.tag).__name__ == 'function':
+      commentsToAdd.append(child)
+    #case: normal entry
+    else:
+      #childNode is the TreeStructure node that will replicate "child"
+      #clear out extra space from formatting
+      if child.text is not None:
+        child.text = child.text.strip()
+      #create child node
+      childNode = InputNode(child.tag,attrib=child.attrib,text=child.text)
+      #handle comments collected
+      for comment in commentsToAdd:
+        if ':' in comment.text:
+          attribName = comment.text.split(':').strip()
+          if attribName in childNode.attrib.keys():
+            childNode.setAttribComment(':'.join(comment.text.split(':')[1:]))
+          else:
+            childNode.addComment(comment.text)
+        else:
+          childNode.addComment(comment.text)
+      #clear existing comments
+      commentsToAdd = []
+      #add children of current child node
+      for cchild in child:
+        commentsToAdd = readChild(childNode,cchild,commentsToAdd)
+      #add childNode to the parent
+      parent.append(childNode)
+    return commentsToAdd
+  #end readChild
+  commentsToAdd = []
+  for child in xml.__dict__['_root']:
+    commentsToAdd = readChild(tsRoot,child,commentsToAdd)
+  return InputTree(tsRoot)
+
+def getpotToInputTree(getpot):
+  """
+    Converts a getpot file into an InputTree object.
+    @ In, getpot, file, file object with getpot syntax
+    @ Out, tree, NodeTree, tree with sorted information
+  """
+  #root = Node()
+  parentNodes = []#root]
+  currentNode = None
+  global comment
+  comment = None
+  def addComment(node):
+    """
+      If comment is not None, adds it to node
+      @ In, node, Node, node
+    """
+    global comment
+    if comment is not None:
+      node.addComment(comment)
+      comment = None
+  #end addComment
+  for line in getpot:
+    line = line.strip()
+    #if comment in line, store it for now
+    if '#' in line:
+      if comment is not None:
+        raise NotImplementedError('need to handle comments better!')
+        #need to stash comments, attributes for node
+      comment = '#'.join(line.split('#')[1:])
+      line = line.split('#')[0].strip()
+    #if starting new node
+    if line.startswith('[./') and line.endswith(']'):
+      #if child node, stash the parent for now
+      if currentNode is not None:
+        parentNodes.append(currentNode)
+      currentNode = InputNode(tag=line[3:-1])#,attrib={})
+      addComment(currentNode)
+    #if at end of node
+    elif line == '[../]':
+      #FIXME what if parentNodes is empty, i.e., back to the beginning?  Simulation node wrapper?
+      #add currently-building node to its parent
+      if len(parentNodes)>0:
+        parentNodes[-1].append(currentNode)
+        #make parent the active node
+        currentNode = parentNodes.pop()
+      else:
+        #this is the root
+        root = currentNode
+      addComment(currentNode) #FIXME should belong to next child? Hard to say.
+    #empty line
+    elif line == '':
+      currentNode.addComment(comment)
+    #attribute setting line
+    elif '=' in line:
+      #TODO FIXME add attribute comment!
+      attribute,value = list(i.strip() for i in line.split('='))
+      if attribute in currentNode.attrib.keys():
+        raise IOError('Multiple attributes defined with same name! "'+attribute+'" = "'+value+'"')
+      #special keywords: "name" and "value"
+      #if attribute == 'name':
+      #  currentNode.tag = value
+      elif attribute == 'value':
+        currentNode.text = value
+        #FIXME default lists: spaces, commas, and etc (might just work anyway?)
+      else:
+        currentNode.attrib[attribute] = value
+    else:
+      addComment(currentNode)
+      raise IOError('Unrecognized line syntax:',line)
+  return InputTree(root)
+
+def inputTreeToXml(ts,fromNode=False):
+  """
+    Converts InputTree into XML
+    @ In, ts, InputTree, tree to convert
+    @ In, fromNode, bool, if True means input is a node instead of a tree
+    @ Out, xTree, xml.etree.ElementTree.ElementTree, tree in xml style
+  """
+  if fromNode:
+    tRoot = ts
+  else:
+    tRoot = ts.getroot()
+  xRoot = xmlUtils.newNode(tRoot.tag,tRoot.text,tRoot.attrib)
+  def addChildren(xNode,tNode):
+    """
+      Adds children of tnode to xnode, translating
+      @ In, xnode, xml.etree.ElementTree.Element, xml node
+      @ In, tnode, Node, tree structure node
+      @ Out, None
+    """
+    for child in tNode:
+      #TODO case: comment
+      for comment in child.comments:
+        if comment is not None and len(comment.strip())>0:
+          #append comments before children
+          xNode.append(ET.Comment(comment))
+      if child.text is None:
+        child.text = ''
+      childNode = xmlUtils.newNode(child.tag,text=child.text,attrib=child.attrib)
+      xNode.append(childNode)
+      addChildren(childNode,child)
+  #end addChildren
+  addChildren(xRoot,tRoot)
+  if fromNode:
+    return xRoot
+  else:
+    return ET.ElementTree(element=xRoot)
+
+def inputTreeToGetpot(ts,fromNode=False):
+  """
+    Converts InputTree into XML
+    @ In, ts, InputTree, tree to convert
+    @ In, fromNode, bool, if True means input is a node instead of a tree
+    @ Out, gTree, string, getpot-formatted string
+  """
+  if fromNode:
+    tRoot = ts
+  else:
+    tRoot = ts.getroot()
+  def addChild(gNode,tNode,depth=0):
+    """
+      Adds tnode to gnode, translating
+      @ In, gNode, string, getpot-style string format
+      @ In, tNode, Node, tree structure node
+      @ Out, None
+    """
+    #start the block
+    if depth == 0:
+      newlines = ''
+    elif depth == 1:
+      newlines = '\n\n'
+    else:
+      newlines = '\n'
+    gNode += newlines + '  '*depth + '[./' + tNode.tag + ']'
+    #add a comment if it's not about an attribute
+    for comment in tNode.comments:
+      if comment.split(':')[0] not in tNode.attrib.keys():
+        gNode += ' #'+comment
+    #write out the attributes - sort them for consistency
+    sortedAttr = sorted(tNode.attrib.keys())
+    for attr in sortedAttr:
+      val = tNode.attrib[attr]
+      gNode += '\n'+'  '*(depth+1) + attr + ' = '
+      if ' ' in val:
+        gNode += "'" + val + "'"
+      else:
+        gNode += val
+      for comment in tNode.comments:
+        if comment.split(':')[0] == attr:
+          gNode += '#'+comment
+    #write out the value
+    if len(tNode.text) > 0:
+      attr = 'value'
+      val = tNode.text
+      gNode += '\n'+'  '*(depth+1) + attr + ' = '
+      if ' ' in val:
+        gNode += "'" + val + "'"
+      else:
+        gNode += val
+    #add child blocks
+    for child in tNode:
+      gNode = addChild(gNode,child,depth+1)
+    #close the block
+    gNode += '\n'+'  '*depth+'[../]'
+    return gNode
+  #end addChild method
+  gRoot = addChild('',tRoot)
+  gRoot += '\n'
+  return gRoot
+
+###########
+# PARSERS #
+###########
+class XMLCommentParser(ET.XMLTreeBuilder):
+  """
+    A parser that expands on the default that preserves comments
+  """
+  def __init__(self):
+    """
+      Constructor.
+      @ In, None
+      @ Out, None
+    """
+    ET.XMLTreeBuilder.__init__(self)
+    self._parser.CommentHandler = self.handleComment
+
+  def handleComment(self,data):
+    """
+      Constructor.
+      @ In, data, string object to parse into comment
+      @ Out, None
+    """
+    self._target.start(ET.Comment,{})
+    self._target.data(data)
+    self._target.end(ET.Comment)
+
+#set up a parser for this module
+parser = XMLCommentParser()
+
+
+#########
+# NODES #
+#########
+class InputNode:
+  """
+    Node in an input tree.  Simulates all the behavior of an XML node.
+  """
+  #built-in functions
+  def __init__(self,tag='',attrib=None,text='',comment=None):
+    """
+      Constructor.
+      @ In, tag, string, node name
+      @ In, attrib, dict, attributes
+      @ In, text, string, text of node
+      @ Out, None
+    """
+    if attrib is None:
+      self.attrib = {}
+    else:
+      self.attrib = attrib #structure: {name: {value='',comment=''}}
+
+    self.tag = tag       #node name, in XML known as "tag"
+    self.text = text     #node text, same in XML
+    self.children = []   #branches off of this node
+    self.comments = [comment] if comment is not None else [] #allow for multiple comments
+
+  def __eq__(self,other):
+    """
+      Determines if this object is NOT the same as "other".
+      @ In, other, the object to compare to
+      @ Out, same, boolan, true if same
+    """
+    if isinstance(other,self.__class__):
+      same = True
+      if self.tag != other.tag or \
+             self.text != other.text or \
+             self.attrib != other.attrib:
+        same = False
+      #else: TODO compare children!
+      #TODO use XML differ for this whole thing?
+      return same
+    else:
+      return NotImplemented
+
+  def __ne__(self,other):
+    """
+      Determines if this object is NOT the same as "other".
+      @ In, other, the object to compare to
+      @ Out, same, boolan, true if not same
+    """
+    return not self.__eq__(other)
+
+  def __hash__(self):
+    """
+      Overrides the default hash.
+      @ In, None
+      @ Out, hash, tuple, name and values and text
+    """
+    return hash(tuple(self.tag,tuple(sorted(self.attrib.items())),self.texxt))
+
+  def __iter__(self):
+    """
+      Provides a method to iterate over the child nodes of this node.
+      @ In, None
+      @ Out, __iter__, iterator, generator for the children
+    """
+    i = 0
+    while i < len(self):
+      yield self.children[i]
+      i += 1
+
+  def __len__(self):
+    """
+      Returns the number of child nodes for this node.
+      @ In, None
+      @ Out, __len__, int, number of children
+    """
+    return len(self.children)
+
+  def __repr__(self):
+    """
+      String representation.
+      @ In, None
+      @ Out, __repr__, string, representation of the object
+    """
+    return "<Node %s attrib=%s at 0x%x containing %s branches>" %(repr(self.tag),str(self.attrib),id(self),repr(len(self)))
+
+  #methods
+  def add(self, key, value):
+    """
+      Method to add a new value into this node
+      If the key is already present, the corresponding value gets updated
+      @ In, key, string, id name of this value
+      @ In, value, whatever type, the newer value
+    """
+    self.attrib[key] = value
+
+  def addComment(self,comment):
+    """
+      Adds comment to node.
+      @ In, comment, string, comment to add
+      @ Out, None
+    """
+    if comment is not None:
+      self.comments.append(comment)
+
+  def append(self,node):
+    """
+      Add a new child node to this node.
+      @ In, node, Node, node to append to children
+      @ Out, None
+    """
+    assert isinstance(node,InputNode)
+    self.children.append(node)
+
+  def debugPrint(self,tabs=0):
+    print('DEBUGG '+' '*tabs+'tag:',self.tag)
+    print('DEBUGG '+' '*tabs+'  text:',self.text)
+    print('DEBUGG '+' '*tabs+'  comment:',self.comment)
+    print('DEBUGG '+' '*tabs+'  attrib:')
+    for key,val in self.attrib.items():
+      print('DEBUGG '+' '*tabs+'   ',key,val)
+    print('DEBUGG '+' '*tabs+'  Children:')
+    for child in self:
+      child.debugPrint(tabs=tabs+2)
+
+  def get(self, key, default=None):
+    """
+      Method to get a value from this element tree
+      If the key is not present, None is returned
+      @ In, key, string, id name of this value
+      @ In, default, object, optional, an optional default value returned if not found
+      @ Out, object, object, the coresponding value or default
+    """
+    return self.attrib.get(key, default)
+
+  def printMe(self):
+    """
+      Returns string representation of tree (in XML format).
+      @ In, None
+      @ Out, msg, string, string representation
+    """
+    xml = inputTreeToXml(self,fromNode=True)
+    return xmlUtils.prettify(xml)
+
+  def printGetPot(self):
+    """
+      Returns tree in getpot string.
+      @ In, None
+      @ Out, printGetPot, string, formatted input in getpot style
+    """
+    return inputTreeToGetpot(self,fromNode=True)
+
+
+class HierarchalNode(MessageHandler.MessageUser):
   """
     The Node class. It represents the base for each TreeStructure construction
+    These Nodes are particularly for heirarchal structures.
   """
+  #TODO the common elements between this and InputNode should be abstracted to a Node class.
   def __init__(self, messageHandler, name, valuesIn={}, text=''):
     """
       Initialize Tree,
@@ -352,13 +797,62 @@ class Node(MessageHandler.MessageUser):
     if self.numberBranches()>0: msg+=''+'  '*self.depth + '</'+self.name+'>\n'
     return msg
 
-#################
-#   NODE TREE   #
-#################
-class NodeTree(MessageHandler.MessageUser):
+##################
+#   NODE TREES   #
+##################
+class InputTree:
   """
-    NodeTree class. The class tha realizes the Tree Structure
+    The class that realizes an Input Tree Structure
   """
+  #built-in functions
+  def __init__(self,rootNode=None):
+    """
+      Constructor.
+      @ In, None
+      @ Out, None
+    """
+    self.rootNode = rootNode
+
+  def __repr__(self):
+    """
+      String representation.
+      @ In, None
+      @ Out, __repr__, string, representation
+    """
+    return "{TreeStructure with root node "+str(self.rootNode)+"}"
+
+  #methods
+  def getroot(self):
+    """
+      Method to get root node
+      @ In, None
+      @ Out, rootNode, Node, root of tree
+    """
+    return self.rootNode
+
+  def printGetPot(self):
+    """
+      Returns tree in getpot string.
+      @ In, None
+      @ Out, printGetPot, string, formatted input in getpot style
+    """
+    return self.rootNode.printGetPot()
+
+  def printMe(self):
+    """
+      Returns string of full XML tree by returning string of root node.
+      @ In, None
+      @ Out, msg, string, full XML tree
+    """
+    return self.rootNode.printMe()
+
+
+
+class HierarchalTree(MessageHandler.MessageUser):
+  """
+    The class that realizes a hierarchal Tree Structure
+  """
+  #TODO the common elements between HierarchalTree and InputTree should be extracted to a Tree class.
   def __init__(self, messageHandler, node=None):
     """
       Constructor
@@ -493,12 +987,13 @@ class NodeTree(MessageHandler.MessageUser):
 ##################
 # METADATA TREE #
 #################
-class MetadataTree(NodeTree):
+class MetadataTree(HierarchalTree):
   """
     Class for construction of metadata xml trees used in data objects.  Usually contains summary data
     such as that produced by postprocessor models.  Two types of tree exist: dynamic and static.  See
     RAVEN Output type of Files object.
   """
+  #TODO change to inherit from InputTree or base Tree
   def __init__(self,messageHandler,rootName):
     self.pivotParam = None
     node = Node(messageHandler,rootName, valuesIn={'dynamic':str(self.dynamic)})
@@ -629,7 +1124,7 @@ class DynamicMetadataTree(MetadataTree):
 ####################
 class NodePath(object):
   """
-    NodePath class. It is used to perform iterations over the Tree
+    NodePath class. It is used to perform iterations over the HierarchalTree
   """
   def find(self, node, name):
     """

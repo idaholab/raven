@@ -29,39 +29,81 @@ def checkSameFile(a,b):
     except StopIteration:
       return False,msg + ['file '+str(a)+' has more lines than '+str(b)]
     if al != bl:
-      print 'not the same:\n'+al+bl
       same = False
       msg += ['line '+str(i)+' is not the same!']
 
+
+
 #first test XML to XML
+print 'Testing XML to XML ...'
 tree = TS.parse(file(os.path.join('parse','example_xml.xml'),'r'))
 strTree = TS.tostring(tree)
-xmlToXmlFileName = os.path.join('parse','fromXmltoXML.xml')
-file(xmlToXmlFileName,'w').write(strTree)
-same,msg = checkSameFile(file(xmlToXmlFileName,'r'),file(os.path.join('gold',xmlToXmlFileName),'r'))
+fname = os.path.join('parse','fromXmltoXML.xml')
+file(fname,'w').write(strTree)
+same,msg = checkSameFile(file(fname,'r'),file(os.path.join('gold',fname),'r'))
 if same:
   results['passed']+=1
+  print '  ... passed!'
 else:
   results['failed']+=1
-  print 'Failures in XML to XML:'
-  for m in msg:
-    print '  ',msg
+  print '  ... failures in XML to XML:'
+  print '     ',msg[0]
 
 
-#second test GetPot to XML
+
 getpot = file(os.path.join('parse','example_getpot.i'),'r')
-tree = TS.parse(getpot,dType='GetPot')
-strTree = TS.tostring(tree)
-getpotToXmlFileName = os.path.join('parse','fromGetpotToXml.xml')
-file(getpotToXmlFileName,'w').write(strTree)
-same,msg = checkSameFile(file(getpotToXmlFileName,'r'),file(os.path.join('gold',getpotToXmlFileName),'r'))
+gtree = TS.parse(getpot,dType='GetPot')
+#third test GetPot to XML
+print 'Testing GetPot to XML ...'
+strTree = TS.tostring(gtree)
+fname = os.path.join('parse','fromGetpotToXml.xml')
+file(fname,'w').write(strTree)
+same,msg = checkSameFile(file(fname,'r'),file(os.path.join('gold',fname),'r'))
 if same:
   results['passed']+=1
+  print '  ... passed!'
 else:
   results['failed']+=1
-  print 'Failures in GetPot to XML:'
-  for m in msg:
-    print '  ',msg
+  print '  ... failures in GetPot to XML:'
+  print '     ',msg[0]
+
+
+#finally test XML to GetPot
+print 'Testing XML to GetPot ...'
+strTree = tree.printGetPot()
+fname = os.path.join('parse','fromXmltoGetpot.i')
+file(fname,'w').write(strTree)
+same,msg = checkSameFile(file(fname,'r'),file(os.path.join('gold',fname),'r'))
+if same:
+  results['passed']+=1
+  print '  ... passed!'
+else:
+  results['failed']+=1
+  print '  ... failures in GetPot to XML:'
+  print '     ',msg[0]
+
+
+#second test Getpot to GetPot
+print 'Testing GetPot to GetPot ...'
+getpot = file(os.path.join('parse','example_getpot.i'),'r')
+gtree = TS.parse(getpot,dType='GetPot')
+strTree = gtree.printGetPot()
+fname = os.path.join('parse','fromGetpotToGetpot.i')
+file(fname,'w').write(strTree)
+same,msg = checkSameFile(file(fname,'r'),file(os.path.join('gold',fname),'r'))
+if same:
+  results['passed']+=1
+  print '  ... passed!'
+else:
+  results['failed']+=1
+  print '  ... failures in GetPot to Getpot:'
+  print '     ',msg[0]
+
+
+
+
+
+
 
 
 print 'Results:', list('%s: %i' %(k,v) for k,v in results.items())
