@@ -314,7 +314,7 @@ class HistorySet(Data):
                 axa[index] = O_o[key][index]['inputs'][variableName][0]
               inpValues[-1].append(axa)
             if varType == 'output':
-              if variableName not in self.getParaKeys('input'): self.raiseAnError(Exception,"variable named "+variableName+" is not among the "+varType+"s!")
+              if variableName not in self.getParaKeys('output'): self.raiseAnError(Exception,"variable named "+variableName+" is not among the "+varType+"s!")
               outKeys[-1].append(variableName)
               axa = O_o[key][0]['outputs'][variableName]
               for index in range(len(O_o[key])-1): axa = np.concatenate((axa,O_o[key][index+1]['outputs'][variableName]))
