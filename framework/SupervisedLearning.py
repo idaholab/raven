@@ -2049,7 +2049,6 @@ class ARMA(superVisedLearning):
     self.armaPara['Qmax'] = kwargs.get('Qmax', 3)
     self.armaPara['Qmin'] = kwargs.get('Qmin', 0)
     self.armaPara['dimension'] = len(self.features)
-    self.outTimeLength = kwargs.get('outTimeLength', None)
     self.outTruncation = kwargs.get('outTruncation', None)
 
     # Initialize parameters for Fourier detrending
@@ -2428,7 +2427,7 @@ class ARMA(superVisedLearning):
 
   def __evaluateLocal__(self,featureVals):
     """
-      @ In,
+      @ In, featureVals, float, a scalar feature value is passed as scaling factor
       @ Out, generatedData , n-D numpy array [n_timeStep, n_dimension+1]
     """
     # FIXME, featureVals is not needed for ARMA __evaluateLocal__
@@ -2441,13 +2440,6 @@ class ARMA(superVisedLearning):
     normEvaluateEngine.initializeDistribution()
 
     noTimeStep = len(self.time)
-    if self.outTimeLength is not None:
-      for t in range(noTimeStep):
-        if self.time[t] > self.outTimeLength:
-          break
-      noTimeStep = copy.copy(t)
-#     self.raiseAnError(ValueError, self.outTimeLength)
-
     tSeriesNoise = np.zeros(shape=self.armaPara['rSeriesNorm'].shape)
     for t in range(noTimeStep):
       for n in range(self.armaPara['dimension']):
