@@ -703,7 +703,7 @@ class ROM(Dummy):
         if type(self.trainingSet) is dict:
           self.amITrained = True
           for instrom in self.SupervisedEngine.values():
-            instrom.pivotParameter = np.asarray(trainingSet.getParam('output',1)[instrom.pivotParameterID])    
+            instrom.pivotParameter = np.asarray(trainingSet.getParam('output',1)[instrom.pivotParameterID])
             instrom.train(self.trainingSet)
             self.amITrained = self.amITrained and instrom.amITrained
           self.raiseADebug('add self.amITrained to currentParamters','FIXME')

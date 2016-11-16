@@ -2090,7 +2090,7 @@ class ARMA(superVisedLearning):
 #     self.raiseADebug('target', targetVals)
 #     self.raiseADebug('pivotParameterID', self.pivotParameterID)
 #     self.raiseADebug('time', self.pivotParameter)
-    
+
 #     if len(self.pivotParameter.shape) == 1: self.pivotParameter = np.reshape(self.pivotParameter, newshape=(self.pivotParameter.shape[0],1))
 # #     self.pivotParameter = copy.deepcopy(targetVals)
 #     if len(targetVals.shape) == 1:
@@ -2232,7 +2232,7 @@ class ARMA(superVisedLearning):
     """
     self.armaNormPara = {}
     self.armaNormPara['resCDF'] = {}
-    
+
     if len(data.shape) == 1: data = np.reshape(data, newshape = (data.shape[0],1))
     num_bins = [0]*data.shape[1] # initialize num_bins, which will be calculated later by Freedman Diacoins rule
 
@@ -2458,7 +2458,7 @@ class ARMA(superVisedLearning):
     tSeries = self.__dataConversion__(tSeriesNorm, obj='denormalize')
     # Add fourier trends
     self.raiseADebug(self.fourierResult['predict'].shape, tSeries.shape)
-    if self.hasFourierSeries:     
+    if self.hasFourierSeries:
       if len(self.fourierResult['predict'].shape) == 1:
         tempFour = np.reshape(self.fourierResult['predict'], newshape=(self.fourierResult['predict'].shape[0],1))
       else:
