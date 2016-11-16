@@ -2116,7 +2116,7 @@ class ARMA(superVisedLearning):
 
   # For debug only;
     del self.timeSeriesDatabase
-    del self.dataObject
+#     del self.dataObject
 #     self.raiseADebug('****************************************************************')
 #     self.raiseADebug(self.dataObject)
 #     self.armaPara['rDenorm'] = self.__denormalizeRes__(self.armaPara['rSeriesNorm'], obj='denormalize')
