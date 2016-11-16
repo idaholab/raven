@@ -68,7 +68,7 @@ class HistorySetSampling(PostProcessorInterfaceBase):
     if self.samplingType == 'uniform' or self.samplingType == 'firstDerivative' or self.samplingType == 'secondDerivative':
       if self.numberOfSamples == None or self.numberOfSamples < 0:
         self.raiseAnError(IOError, 'HistorySetSampling Interfaced Post-Processor ' + str(self.name) + ' : number of samples is not specified or less than 0')
-      if self.interpolation not in set(['linear', 'nearest', 'zero', 'slinear', 'quadratic', 'cubic']):
+      if self.interpolation not in set(['linear', 'nearest', 'zero', 'slinear', 'quadratic', 'cubic', 'intervalAverage']):
         self.raiseAnError(IOError, 'HistorySetSampling Interfaced Post-Processor ' + str(self.name) + ' : interpolation is not correctly specified; possible values: linear, nearest, zero, slinear, quadratic, cubic')
 
     if self.samplingType == 'filteredFirstDerivative' or self.samplingType == 'filteredSecondDerivative':
@@ -109,7 +109,10 @@ class HistorySetSampling(PostProcessorInterfaceBase):
     newVars={}
 
     if self.samplingType == 'uniform':
-      newTime = np.linspace(t_min,t_max,self.numberOfSamples)
+      if self.interpolation == 'intervalAverage':
+        newTime = np.linspace(t_min,t_max,self.numberOfSamples+1)[0:-1]
+      else:
+        newTime = np.linspace(t_min,t_max,self.numberOfSamples)
     elif self.samplingType == 'firstDerivative' or self.samplingType == 'secondDerivative':
       newTime = self.derivativeTimeValues(vars)
     else:
@@ -119,8 +122,16 @@ class HistorySetSampling(PostProcessorInterfaceBase):
       if key == self.pivotParameter:
         newVars[key] = newTime
       else:
-        interp = interpolate.interp1d(vars[self.pivotParameter], vars[key], self.interpolation)
-        newVars[key]=interp(newTime)
+        if self.interpolation == 'intervalAverage':
+          newVars[key] = np.zeros(shape=newTime.shape)
+          deltaT = newTime[1]-newTime[0] if len(newTime) > 1 else t_max
+          for tIdx in range(len(newTime)):
+            t = newTime[tIdx]
+            extractCondition = (vars[self.pivotParameter]>=t) * (vars[self.pivotParameter]<t+deltaT)
+            newVars[key][tIdx] = np.average(np.extract(extractCondition, vars[key]))
+        else:
+          interp = interpolate.interp1d(vars[self.pivotParameter], vars[key], self.interpolation)
+          newVars[key]=interp(newTime)
     return newVars
 
 
