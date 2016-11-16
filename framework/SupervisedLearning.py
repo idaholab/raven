@@ -2114,20 +2114,8 @@ class ARMA(superVisedLearning):
 
     self.__trainARMA__() # Fit ARMA model: x_t = \sum_{i=1}^P \phi_i*x_{t-i} + \alpha_t + \sum_{j=1}^Q \theta_j*\alpha_{t-j}
 
-  # For debug only;
+    # Delete to reduce the pickle size
     del self.timeSeriesDatabase
-#     del self.dataObject
-#     self.raiseADebug('****************************************************************')
-#     self.raiseADebug(self.dataObject)
-#     self.armaPara['rDenorm'] = self.__denormalizeRes__(self.armaPara['rSeriesNorm'], obj='denormalize')
-#     self.dataObject.updateOutputValue('rDenorm', self.armaPara['rDenorm'][:,0])
-#     self.dataObject.updateOutputValue('rSeriesNorm', self.armaPara['rSeriesNorm'][:,0])
-#     for index,feat in enumerate(self.features):
-#       temp = fourierEngine.predict(self.fourierResult['fSeries'])
-#       self.raiseADebug(index,feat)
-#       self.dataObject.updateOutputValue('fTrend-' + feat, temp[:,index])
-#       self.dataObject.updateOutputValue(feat + '-deTrend', self.armaPara['rSeries'][:,index])
-    ##########################################################################################
 
   def __trainFourier__(self):
     """
