@@ -2091,7 +2091,6 @@ class ARMA(superVisedLearning):
 #     self.raiseADebug('pivotParameterID', self.pivotParameterID)
 #     self.raiseADebug('time', self.pivotParameter)
     
-    
 #     if len(self.pivotParameter.shape) == 1: self.pivotParameter = np.reshape(self.pivotParameter, newshape=(self.pivotParameter.shape[0],1))
 # #     self.pivotParameter = copy.deepcopy(targetVals)
 #     if len(targetVals.shape) == 1:
