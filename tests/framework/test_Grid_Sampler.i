@@ -16,7 +16,7 @@
   [./Models]
     [./Dummy]
       name = MyDummy
-      subType = 
+      subType =
     [../]
   [../]
 
