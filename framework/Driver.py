@@ -27,6 +27,7 @@ os.environ["MV2_ENABLE_AFFINITY"]="0"
 frameworkDir = os.path.dirname(os.path.abspath(sys.argv[0]))
 sys.path.append(os.path.join(frameworkDir,'utils'))
 import utils
+import TreeStructure as TS
 utils.find_crow(frameworkDir)
 utils.add_path_recursively(os.path.join(frameworkDir,'contrib'))
 #Internal Modules
@@ -156,9 +157,9 @@ if __name__ == '__main__':
   #  the developer or user might be obfuscated.
   for inputFile in inputFiles:
     try:
-      tree = ET.parse(inputFile)
-    except ET.ParseError as e:
-      print('\nXML Parsing error!',e,'\n')
+      tree = TS.parse(file(inputFile,'r'))
+    except TS.InputParsingError as e:
+      print('\nInput Parsing error!',e,'\n')
       sys.exit(1)
 
     #except?  riseanIOError('not possible to parse (xml based) the input file '+inputFile)
@@ -171,8 +172,8 @@ if __name__ == '__main__':
       print('\nInput XML Error!',e,'\n')
       sys.exit(1)
 
-    # call the function to load the external xml files into the ET
-    simulation.XMLpreprocess(root,xmlFileName=inputFile)
+    # call the function to load the external xml files into the input tree
+    simulation.XMLpreprocess(root,inputFileName=inputFile)
     #generate all the components of the simulation
     #Call the function to read and construct each single module of the simulation
     simulation.XMLread(root,runInfoSkip=set(["DefaultInputFile"]),xmlFilename=inputFile)

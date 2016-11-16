@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation>
+<Simulation verbosity="debug">
   <Files>
     <Input name="BouncingBall_init.xml" type="">BouncingBall_init.xml</Input>
   </Files>

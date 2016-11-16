@@ -20,23 +20,53 @@ import MessageHandler
 ##################
 # MODULE METHODS #
 ##################
+class InputParsingError(IOError):
+  """
+    Specific error for input parsing problems
+  """
+  pass
+
 def dump(node):
   """
     Write a node or tree to stdout.
+    @ In, node, InputNode, node to print
+    @ Out, dump, string, string representation of node
   """
-  print(node.printMe())
+  print(node.printXML())
 
-def parse(file,dType='XML'):
+def parse(inFile,dType=None):
   """
     Given a file (GetPot or XML), process it into a node.
+    @ In, inFile, file, file to process, or string acceptable
+    @ In, dType, string, optional, type of processing to use (xml or getpot)
+    @ Out, tree, InputTree, structured input
   """
+  #check type of file, make sure it's a file
+  if not isinstance(inFile,file):
+    inFile = file(inFile,'r')
+  if dType is None:
+    extension = inFile.name.split('.')[-1].lower()
+    if extension == 'xml':
+      dType = 'xml'
+    elif extension in ['i','inp','in']:
+      dType = 'getpot'
+    else:
+      raise InputParsingError('Unrecognized file type for:',inFile,' | Expected .xml, .i, .in, or .inp')
   if dType.lower()=='xml':
-    xmltree = ET.parse(file,parser=parser) #parser is defined below, under XMLCommentParser
+    #try:
+    xmltree = ET.parse(inFile,parser=XMLCommentParser()) #parser is defined below, under XMLCommentParser
     tree = xmlToInputTree(xmltree)
+    #except Exception as e:
+    #  print('ERROR: Input parsing error!')
+    #  raise e
   elif dType.lower()=='getpot':
-    tree = getpotToInputTree(file)
+    try:
+      tree = getpotToInputTree(inFile)
+    except:
+      e = sys.exc_info()[0]
+      raise InputParsingError(e)
   else:
-    raise NotImplementedError('Unrecognized file type for:',file)
+    raise InputParsingError('Unrecognized file type for:',inFile)
   return tree
 
 def tostring(node):
@@ -46,7 +76,7 @@ def tostring(node):
     @ Out, tostring, string, full tree in string form
   """
   if isinstance(node,InputNode) or isinstance(node,InputTree):
-    return node.printMe()
+    return node.printXML()
   else:
     raise NotImplementedError('TreeStructure.tostring received "'+str(node)+'" but was expecting InputNode or InputTree.')
 
@@ -59,7 +89,8 @@ def xmlToInputTree(xml):
   xmlRoot = xml.getroot() #TODO what if they hand in element instead of tree?
   rootName = xmlRoot.tag
   rootAttrib = xmlRoot.attrib
-  tsRoot = InputNode(rootName,rootAttrib)
+  rootText = xmlRoot.text.strip()
+  tsRoot = InputNode(rootName,rootAttrib,rootText)
   def readChild(parent,child,commentsToAdd):
     """
       reads child from XML node and appends it to parent
@@ -82,7 +113,7 @@ def xmlToInputTree(xml):
       #handle comments collected
       for comment in commentsToAdd:
         if ':' in comment.text:
-          attribName = comment.text.split(':').strip()
+          attribName = comment.text.split(':')[0].strip()
           if attribName in childNode.attrib.keys():
             childNode.setAttribComment(':'.join(comment.text.split(':')[1:]))
           else:
@@ -118,6 +149,7 @@ def getpotToInputTree(getpot):
     """
       If comment is not None, adds it to node
       @ In, node, Node, node
+      @ Out, None
     """
     global comment
     if comment is not None:
@@ -159,14 +191,15 @@ def getpotToInputTree(getpot):
     elif '=' in line:
       #TODO FIXME add attribute comment!
       attribute,value = list(i.strip() for i in line.split('='))
+      value = value.strip("'")
       if attribute in currentNode.attrib.keys():
         raise IOError('Multiple attributes defined with same name! "'+attribute+'" = "'+value+'"')
       #special keywords: "name" and "value"
-      #if attribute == 'name':
-      #  currentNode.tag = value
       elif attribute == 'value':
         currentNode.text = value
-        #FIXME default lists: spaces, commas, and etc (might just work anyway?)
+        #TODO default lists: spaces, commas, or ??? (might just work anyway?)
+        # -> getpot uses spaces surrounded by apostrophes, '1 2 3'
+        # -> raven sometimes does spaces <a>1 2 3</> and sometimes commas <a>1,2,3</a>
       else:
         currentNode.attrib[attribute] = value
     else:
@@ -254,7 +287,7 @@ def inputTreeToGetpot(ts,fromNode=False):
         if comment.split(':')[0] == attr:
           gNode += '#'+comment
     #write out the value
-    if len(tNode.text) > 0:
+    if tNode.text is not None and len(tNode.text) > 0:
       attr = 'value'
       val = tNode.text
       gNode += '\n'+'  '*(depth+1) + attr + ' = '
@@ -278,7 +311,7 @@ def inputTreeToGetpot(ts,fromNode=False):
 ###########
 class XMLCommentParser(ET.XMLTreeBuilder):
   """
-    A parser that expands on the default that preserves comments
+    An XML parser that expands on the default to preserves comments
   """
   def __init__(self):
     """
@@ -344,8 +377,7 @@ class InputNode:
       #else: TODO compare children!
       #TODO use XML differ for this whole thing?
       return same
-    else:
-      return NotImplemented
+    return False
 
   def __ne__(self,other):
     """
@@ -418,28 +450,48 @@ class InputNode:
     assert isinstance(node,InputNode)
     self.children.append(node)
 
-  def debugPrint(self,tabs=0):
-    print('DEBUGG '+' '*tabs+'tag:',self.tag)
-    print('DEBUGG '+' '*tabs+'  text:',self.text)
-    print('DEBUGG '+' '*tabs+'  comment:',self.comment)
-    print('DEBUGG '+' '*tabs+'  attrib:')
-    for key,val in self.attrib.items():
-      print('DEBUGG '+' '*tabs+'   ',key,val)
-    print('DEBUGG '+' '*tabs+'  Children:')
+  def find(self,nodeName):
+    """
+      Searches children for node with name matching nodeName.
+      @ In, nodeName, string, name to match
+      @ Out, node, InputNode, match is present else None
+    """
     for child in self:
-      child.debugPrint(tabs=tabs+2)
+      if child.tag == nodeName:
+        return child
+    return None
 
-  def get(self, key, default=None):
+  def get(self,attr):
     """
-      Method to get a value from this element tree
-      If the key is not present, None is returned
-      @ In, key, string, id name of this value
-      @ In, default, object, optional, an optional default value returned if not found
-      @ Out, object, object, the coresponding value or default
+      Obtains attribute value for "attr"
+      @ In, attr, string, name of attribute to obtain
+      @ Out, get, string, value if present else None
     """
-    return self.attrib.get(key, default)
+    return self.attrib.get(attr,None)
 
-  def printMe(self):
+  def getiterator(self,tag=None):
+    """
+      Deprecated.  Used for compatability with xml.etree.ElementTree.getiterator.
+      @ In, tag, string, only return tags matching this type in the iteration
+      @ Out, iterator, iterator, tree iterator with matching tag
+    """
+
+  def iter(self, name=None):
+    """
+      Creates a tree iterator.  The iterator loops over this node
+      and all subnodes and returns all nodes with a matching name.
+      @ In, name, string, optional, name of the branch wanted
+      @ Out, e, iterator, the iterator
+    """
+    if name == "*":
+      name = None
+    if name is None or self.name == name:
+      yield self
+    for e in self.children:
+      for e in e.iter(name):
+        yield e
+
+  def printXML(self):
     """
       Returns string representation of tree (in XML format).
       @ In, None
@@ -456,6 +508,13 @@ class InputNode:
     """
     return inputTreeToGetpot(self,fromNode=True)
 
+  def remove(self,node):
+    """
+      Removes a child from the tree.
+      @ In, node, InputNode, node to remove
+      @ Out, None
+    """
+    self.children.remove(node)
 
 class HierarchalNode(MessageHandler.MessageUser):
   """
@@ -808,7 +867,7 @@ class InputTree:
   def __init__(self,rootNode=None):
     """
       Constructor.
-      @ In, None
+      @ In, rootNode, InputNode, optional, root node for tree
       @ Out, None
     """
     self.rootNode = rootNode
@@ -838,13 +897,13 @@ class InputTree:
     """
     return self.rootNode.printGetPot()
 
-  def printMe(self):
+  def printXML(self):
     """
       Returns string of full XML tree by returning string of root node.
       @ In, None
       @ Out, msg, string, full XML tree
     """
-    return self.rootNode.printMe()
+    return self.rootNode.printXML()
 
 
 
@@ -996,8 +1055,8 @@ class MetadataTree(HierarchalTree):
   #TODO change to inherit from InputTree or base Tree
   def __init__(self,messageHandler,rootName):
     self.pivotParam = None
-    node = Node(messageHandler,rootName, valuesIn={'dynamic':str(self.dynamic)})
-    NodeTree.__init__(self,messageHandler,node)
+    node = HierarchalNode(messageHandler,rootName, valuesIn={'dynamic':str(self.dynamic)})
+    HierarchalTree.__init__(self,messageHandler,node)
 
   def __repr__(self):
     """
@@ -1022,7 +1081,7 @@ class MetadataTree(HierarchalTree):
       root = self.getrootnode()
     #FIXME it's possible the user could provide illegal characters here.  What are illegal characters for us?
     targ = self._findTarget(root,target,pivotVal)
-    targ.appendBranch(Node(self.messageHandler,name,text=value))
+    targ.appendBranch(HierarchalNode(self.messageHandler,name,text=value))
 
   def _findTarget(self,root,target,pivotVal=None):
     """
@@ -1034,7 +1093,7 @@ class MetadataTree(HierarchalTree):
     """
     tNode = root.findBranch(target)
     if tNode is None:
-      tNode = Node(self.messageHandler,target)
+      tNode = HierarchalNode(self.messageHandler,target)
       root.appendBranch(tNode)
     return tNode
 
@@ -1113,7 +1172,7 @@ class DynamicMetadataTree(MetadataTree):
         break
     #if not found, make it!
     if not found:
-      pivotNode = Node(self.messageHandler,self.pivotParam,valuesIn={'value':pivotVal})
+      pivotNode = HierarchalNode(self.messageHandler,self.pivotParam,valuesIn={'value':pivotVal})
       root.appendBranch(pivotNode)
     return pivotNode
 

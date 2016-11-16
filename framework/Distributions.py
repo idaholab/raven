@@ -129,13 +129,13 @@ class Distribution(BaseType):
       @ In, xmlNode, xml.etree.ElementTree.Element, XML element node that represents the portion of the input that belongs to this class
       @ Out, None
     """
-    if xmlNode.find('upperBound') !=None:
+    if xmlNode.find('upperBound') is not None:
       self.upperBound = float(xmlNode.find('upperBound').text)
       self.upperBoundUsed = True
-    if xmlNode.find('lowerBound')!=None:
+    if xmlNode.find('lowerBound') is not None:
       self.lowerBound = float(xmlNode.find('lowerBound').text)
       self.lowerBoundUsed = True
-    if xmlNode.find('adjustment') !=None: self.__adjustment = xmlNode.find('adjustment').text
+    if xmlNode.find('adjustment') is not None: self.__adjustment = xmlNode.find('adjustment').text
     else: self.__adjustment = 'scaling'
 
   def getCrowDistDict(self):
@@ -597,11 +597,15 @@ class Normal(BoostDistribution):
     """
     BoostDistribution._readMoreXML(self, xmlNode)
     meanFind = xmlNode.find('mean' )
-    if meanFind != None: self.mean  = float(meanFind.text)
-    else: self.raiseAnError(IOError,'mean value needed for normal distribution')
+    if meanFind is not None:
+      self.mean  = float(meanFind.text)
+    else:
+      self.raiseAnError(IOError,'mean value needed for normal distribution')
     sigmaFind = xmlNode.find('sigma')
-    if sigmaFind != None: self.sigma = float(sigmaFind.text)
-    else: self.raiseAnError(IOError,'sigma value needed for normal distribution')
+    if sigmaFind is not None:
+      self.sigma = float(sigmaFind.text)
+    else:
+      self.raiseAnError(IOError,'sigma value needed for normal distribution')
     self.initializeDistribution() #FIXME no other distros have this...needed?
 
   def getInitParams(self):

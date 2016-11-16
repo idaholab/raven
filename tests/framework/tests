@@ -30,6 +30,13 @@
    output = 'ExternalXMLTest/outGrid_dump.xml'
    csv = 'ExternalXMLTest/outGrid_dump.csv'
  [../]
+ [./getpot_with_externalXML]
+   type = 'RavenFramework'
+   input = 'test_getpot_ext.i'
+   output = 'ExternalXMLTest/outGrid_dump.xml'
+   csv = 'ExternalXMLTest/outGrid_dump.csv'
+   prereq = external_xml
+ [../]
 
  ## This test will exercise our ability to parse command line options
  [./simple_command_line_args]
@@ -174,6 +181,15 @@
   csv = 'GridTest/outGrid_dump.csv'
   max_time = 500
   rel_err = 0.001
+ [../]
+ [./testGrid_GetPot]
+  type = 'RavenFramework'
+  input = 'test_Grid_Sampler.i'
+  output = 'GridTest/outGrid_dump.csv'
+  csv = 'GridTest/outGrid_dump.csv'
+  max_time = 500
+  rel_err = 0.001
+  prereq = testGrid
  [../]
 
  [./testRandom]

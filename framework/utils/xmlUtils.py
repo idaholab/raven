@@ -91,7 +91,7 @@ def newNode(tag,text='',attrib={}):
   cleanAttrib = {}
   for key,value in attrib.items():
     value = str(value)
-    cleanAttrib[fixXmlTag(key)] = fixXmlText(value)
+    cleanAttrib[fixXmlText(key)] = fixXmlText(value)
   el = ET.Element(tag,attrib=cleanAttrib)
   el.text = fixXmlText(text)
   return el
