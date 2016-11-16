@@ -36,7 +36,6 @@ class HistorySet(Data):
       @ Out, None
     """
     Data.__init__(self)
-    self.acceptHierarchy = True
 
   def _specializedInputCheck(self,xmlNode):
     """

@@ -102,14 +102,6 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
 
   ## Public Methods
 
-  def acceptHierarchical(self):
-    """
-      This function returns a boolean. True if the specialized Data accepts the hierarchical structure
-      @ In, None
-      @ Out, acceptHierarchy, bool, flag is True if this class accepts the hierarchical structure
-    """
-    return self.acceptHierarchy
-
   def addOutput(self,toLoadFrom,options=None):
     """
       Function to construct a data from a source
@@ -867,8 +859,10 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ Out, None
     """
     # retrieve input/outputs parameters' keywords
-    self._dataParameters['inParam']  = list(inp.strip() for inp in xmlNode.find('Input' ).text.strip().split(','))
-    self._dataParameters['outParam'] = list(out.strip() for out in xmlNode.find('Output').text.strip().split(','))
+    if xmlNode.find('Input' ) is None and xmlNode.find('Output' ) is None: self.raiseAnError(IOError,"At least one of the Input or Output XML block needs to be inputted!")
+    # we allow to avoid to have an <Input> block if not needed (InputPlaceHolder) or a <Output> block if not needed (OutputPlaceHolder)
+    self._dataParameters['inParam']  = list(inp.strip() for inp in xmlNode.find('Input' ).text.strip().split(',')) if xmlNode.find('Input' ) is not None else ['InputPlaceHolder']
+    self._dataParameters['outParam'] = list(out.strip() for out in xmlNode.find('Output').text.strip().split(',')) if xmlNode.find('Output') is not None else ['OutputPlaceHolder']
     if '' in self._dataParameters['inParam'] : self.raiseAnError(IOError, 'In DataObject  ' +self.name+' there is a trailing comma in the "Input" XML block!')
     if '' in self._dataParameters['outParam']: self.raiseAnError(IOError, 'In DataObject  ' +self.name+' there is a trailing comma in the "Output" XML block!')
     #test for keywords not allowed
@@ -890,10 +884,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     if 'hierarchical' in xmlNode.attrib.keys():
       if xmlNode.attrib['hierarchical'].lower() in utils.stringsThatMeanTrue(): self._dataParameters['hierarchical'] = True
       else                                                                    : self._dataParameters['hierarchical'] = False
-      if self._dataParameters['hierarchical'] and not self.acceptHierarchical():
-        self.raiseAWarning('hierarchical fashion is not available (No Sense) for Data named '+ self.name + 'of type ' + self.type + '!!!')
-        self._dataParameters['hierarchical'] = False
-      else: self.TSData, self.rootToBranch = None, {}
+      if self._dataParameters['hierarchical']: self.TSData, self.rootToBranch = None, {}
     else: self._dataParameters['hierarchical'] = False
 
   def _specializedInputCheck(self,xmlNode):

@@ -36,7 +36,6 @@ class PointSet(Data):
     """
     Data.__init__(self)
     self.numAdditionalLoadPoints = 0 #if points are loaded into csv, this will help keep tally
-    self.acceptHierarchy = True
 
   def addSpecializedReadingSettings(self):
     """
