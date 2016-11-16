@@ -2445,7 +2445,6 @@ class ARMA(superVisedLearning):
       for n in range(self.armaPara['dimension']):
         tSeriesNoise[t,n] = normEvaluateEngine.rvs()*self.armaResult['sig'][0,n]
 
-
     tSeriesNorm = np.zeros(shape=(numTimeStep,self.armaPara['rSeriesNorm'].shape[1]))
     tSeriesNorm[0,:] = self.armaPara['rSeriesNorm'][0,:]
     for t in range(numTimeStep):
