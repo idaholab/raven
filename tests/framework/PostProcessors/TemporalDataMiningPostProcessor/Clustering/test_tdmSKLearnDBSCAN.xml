@@ -16,6 +16,7 @@
         <SKLtype>cluster|DBSCAN</SKLtype>
         <Features>x1,x2</Features>
         <min_samples>1</min_samples>
+        <eps>0.2</eps>
       </KDD>
       <pivotParameter>Time</pivotParameter>
     </PostProcessor>

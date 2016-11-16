@@ -30,7 +30,7 @@ else
 endif
 ###############################################################################
 
-CURR_DIR    := $(shell pwd)
+CURR_DIR    := $(CURDIR)
 
 # framework
 include $(FRAMEWORK_DIR)/build.mk
