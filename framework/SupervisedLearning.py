@@ -2470,18 +2470,18 @@ class ARMA(superVisedLearning):
       if self.outTruncation == 'positive':      tSeries = np.absolute(tSeries)
       elif self.outTruncation == 'negative':    tSeries = -np.absolute(tSeries)
 
-#     self.raiseADebug(self.fourierResult['predict'][0,0])
-#     self.raiseADebug(self.armaResult['Phi'])
-#     self.raiseADebug(self.armaResult['Theta'])
-#     self.raiseADebug(self.armaResult['sig'])
-#     self.raiseADebug(tSeriesNoise[0,0]/self.armaResult['sig'][0,0])
-#     self.raiseADebug(tSeriesNoise[0,0])
-#     self.raiseADebug(tSeriesNorm[0,0])
-#     self.raiseADebug(tSeries[0,0])
-#     self.raiseAnError(ValueError, 'ddd')
-    # debug
-    self.raiseADebug('mean', np.mean(tSeries), 'std', np.std(tSeries))
-    # end of debug
+# #     self.raiseADebug(self.fourierResult['predict'][0,0])
+# #     self.raiseADebug(self.armaResult['Phi'])
+# #     self.raiseADebug(self.armaResult['Theta'])
+# #     self.raiseADebug(self.armaResult['sig'])
+# #     self.raiseADebug(tSeriesNoise[0,0]/self.armaResult['sig'][0,0])
+# #     self.raiseADebug(tSeriesNoise[0,0])
+# #     self.raiseADebug(tSeriesNorm[0,0])
+# #     self.raiseADebug(tSeries[0,0])
+# #     self.raiseAnError(ValueError, 'ddd')
+#     # debug
+#     self.raiseADebug('mean', np.mean(tSeries), 'std', np.std(tSeries))
+#     # end of debug
     generatedData = np.zeros(shape=[numTimeStep,self.armaPara['dimension']+1])
     generatedData[:,0] = self.pivotParameter[0:numTimeStep]
     generatedData[:,1:] = tSeries*featureVals
