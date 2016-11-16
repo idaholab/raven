@@ -2032,7 +2032,6 @@ class ARMA(superVisedLearning):
 
     Time series Y: Y = X + \sum_{i}\sum_k [\delta_ki1*sin(2pi*k/basePeriod_i)+\delta_ki2*cos(2pi*k/basePeriod_i)]
     ARMA series X: x_t = \sum_{i=1}^P \phi_i*x_{t-i} + \alpha_t + \sum_{j=1}^Q \theta_j*\alpha_{t-j}
-    FIXME, this note marks successful pull and push with the forced devel
   """
   def __init__(self,messageHandler,**kwargs):
     """
