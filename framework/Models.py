@@ -807,10 +807,10 @@ class ROM(Dummy):
     returnDict = {}
 
     if self.subType == 'ARMA':
-      eval = self.evaluate(inRun,self.SupervisedEngine.keys()[0])
-      returnDict[self.SupervisedEngine.values()[0].pivotParameterID] = eval[:,0]
+      evalDict = self.evaluate(inRun,self.SupervisedEngine.keys()[0])
+      returnDict[self.SupervisedEngine.values()[0].pivotParameterID] = evalDict[:,0]
       for index,key in enumerate(self.initializationOptionDict['Target'].split(',')):
-        returnDict[key] = eval[:,index+1]
+        returnDict[key] = evalDict[:,index+1]
       return returnDict
 
     if type(self.SupervisedEngine).__name__ == 'list':
