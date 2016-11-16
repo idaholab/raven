@@ -113,7 +113,7 @@ data objects, depending on the type of statistics the user wants to compute:
     \item \textbf{samples}: the number of samples in the data set used to determine the statistics.
   \end{itemize}
   If all the quantities need to be computed, this can be done through the \xmlNode{all} node, which
-  requires the \xmlNode{targets} and \xmlNode{features} sub-nodes. 
+  requires the \xmlNode{targets} and \xmlNode{features} sub-nodes.
 
    %
   \nb If the weights are present in the system then weighted quantities are calculated automatically. In addition, if a matrix quantity is requested (e.g. Covariance matrix, etc.), only the weights in the output space are going to be used for both input and output space (the computation of the joint probability between input and output spaces is not implemented yet).
@@ -172,7 +172,7 @@ data objects, depending on the type of statistics the user wants to compute:
   \end{itemize}
 \end{itemize}
 \textbf{Example (Static Statistics):}  This example demonstrates how to request the expected value of
-\xmlString{x01} and \xmlString{x02}, along with the sensitivity of both \xmlString{x01} and \xmlString{x02} to 
+\xmlString{x01} and \xmlString{x02}, along with the sensitivity of both \xmlString{x01} and \xmlString{x02} to
 \xmlString{a} and \xmlString{b}.
 \begin{lstlisting}[style=XML,morekeywords={name,subType,debug}]
 <Simulation>
@@ -409,7 +409,7 @@ matrix and the inverse transformation matrix when the PCA reduction is used.
     \item \xmlString{transformation}: the transformation matrix used to map the latent variables to the manifest variables in the original input space.
     \item \xmlString{InverseTransformation}: the inverse transformation matrix used to map the manifest variables to the latent variables in the transformed space.
     \item \xmlString{ManifestSensitivity}: the sensitivity coefficients of \xmlNode{target} with respect to \xmlNode{manifest} variables defined in \xmlNode{features}.
-    
+
     \nb In order to request \xmlString{transformation} matrix or \xmlString{InverseTransformation} matrix or \xmlString{ManifestSensitivity},
     the subnodes \xmlNode{latent} and \xmlNode{manifest} under \xmlNode{features} are required (more details can be found in the following).
     %
@@ -417,7 +417,7 @@ matrix and the inverse transformation matrix when the PCA reduction is used.
    %
   If all the quantities need to be computed, the user can input in the body of \xmlNode{what} the string \xmlString{all}.
   \nb \xmlString{all} equivalent to \xmlString {SensitivityIndex, ImportanceIndex, PCAIndex}.
-  
+
   Since the transformation and InverseTransformation matrix can be very large, they are not printed with option \xmlString{all}.
   In order to request the transformation matrix (or inverse transformation matrix) from this post processor,
   the user need to specify \xmlString{transformation} or \xmlString{InverseTransformation} in \xmlNode{what}. In addition,
@@ -466,7 +466,7 @@ matrix and the inverse transformation matrix when the PCA reduction is used.
         \end{itemize}
       \nb At least one of the subnodes, i.e. \xmlNode{manifest} and \xmlNode{latent} needs to be specified.
     \end{itemize}
-  % 
+  %
   \item \xmlNode{targets}, \xmlDesc{comma separated string, required field}, lists output responses.
   %
   \item \xmlNode{mvnDistribution}, \xmlDesc{string, required field}, specifies the
@@ -785,7 +785,7 @@ Section~\ref{sec:functions} for more details).
   \item \xmlNode{method}, \xmlDesc{comma separated string, required field},
   lists the method names of an external Function that will be computed (each
   returning a post-processing value). The name of the method represents a new
-  variable that can be stored in a new \textbf{\textit{DataObjects}} entity. 
+  variable that can be stored in a new \textbf{\textit{DataObjects}} entity.
   \item \xmlNode{Function}, \xmlDesc{xml node, required string field}, specifies
   the name of a Function where the \textit{methods} listed above are defined.
   %
@@ -807,41 +807,41 @@ Section~\ref{sec:functions} for more details).
      \xmlString{External}.
   \end{itemize}
 \end{itemize}
-  
+
   This Post-Processor accepts as Input/Output both \xmlString{PointSet} and \xmlString{HistorySet}:
    \begin{itemize}
     \item If a \xmlString{PointSet}  is used as Input, the parameters are passed in the external  \xmlString{Function}
   as numpy arrays. The methods' return type must be either a new array or a scalar. In the following it is reported an example
   with two methods, one that returns a scalar and the other one that returns an array:
       \begin{lstlisting}[language=python]
-import numpy as np        
+import numpy as np
 def sum(self):
   return np.sum(self.aParameterInPointSet)
-          
+
 def sumTwoArraysAndReturnAnotherone(self):
-  return self.aParamInPointSet1+self.aParamInPointSet2    
+  return self.aParamInPointSet1+self.aParamInPointSet2
       \end{lstlisting}
     \item If a \xmlString{HistorySet}  is used as Input, the parameters are passed in the external  \xmlString{Function}
-     as a list of numpy arrays. The methods' return type must be either a new list of arrays (if the Output is another  
-     \xmlString{HistorySet}), a scalar or a single array (if the  Output is  \xmlString{PointSet} . In the following it 
+     as a list of numpy arrays. The methods' return type must be either a new list of arrays (if the Output is another
+     \xmlString{HistorySet}), a scalar or a single array (if the  Output is  \xmlString{PointSet} . In the following it
      is reported an example
-     with two methods, one that returns a new list of arrays (Output = HistorySet) and the other one that returns an array (Output = 
+     with two methods, one that returns a new list of arrays (Output = HistorySet) and the other one that returns an array (Output =
      PointSet):
       \begin{lstlisting}[language=python]
-import numpy as np        
+import numpy as np
 def newHistorySetParameter(self):
   x = []*len(self.time)
   for history in range(len(self.time)):
     for ts in range(len(self.time[history])):
       if self.time[history][ts] >= 0.001: break
     x[history] = self.x[history][ts:]
-  return x 
- 
+  return x
+
 def aNewPointSetParameter(self):
   x = []*len(self.time)
   for history in range(len(self.time)):
     x[history] = self.x[history][-1]
-  return x  
+  return x
       \end{lstlisting}
    \end{itemize}
 
@@ -1108,7 +1108,7 @@ independent of the \xmlAttr{subType} specified:
    \item \xmlNode{numberOfSamples}, \xmlDesc{integer, optional field}, number of samples (required only for the following sampling types: uniform, firstDerivative secondDerivative)
    \item \xmlNode{pivotParameter}, \xmlDesc{string, required field}, ID of the temporal variable
    \item \xmlNode{interpolation}, \xmlDesc{string, optional field}, type of interpolation to be employed for the history recostruction (required only for the following sampling types: uniform,
-   firstDerivative secondDerivative)
+   firstDerivative secondDerivative). Valid types of interpolation to specified: linear, nearest, zero, slinear, quadratic, cubic, intervalAverage; 
    \item \xmlNode{tolerance}, \xmlDesc{string, optional field}, tolerance level (required only for the following sampling types: filteredFirstDerivative or filteredSecondDerivative)
 \end{itemize}
 
