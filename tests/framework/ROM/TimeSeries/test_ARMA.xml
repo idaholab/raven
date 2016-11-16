@@ -9,22 +9,22 @@
         <Input name="rawDataFile">./dataSet.csv</Input>
     </Files>
     <Distributions>
-		<Uniform name="smallUniformDist">
-			<lowerBound>2</lowerBound>
-			<upperBound>3</upperBound>
-		</Uniform>
+		<Uniform name="uniDist">
+			<lowerBound>0</lowerBound>
+			<upperBound>1</upperBound>
+		</Uniform>		
 	</Distributions>
 
 	<Samplers>
-		<MonteCarlo name="mcSampler">
+		<Grid name="gridSampler">
 			<samplerInit>
 				<limit>1</limit>
-				<initialSeed>888</initialSeed>
 			</samplerInit>
 			<variable name="scaling">
-				<distribution>smallUniformDist</distribution>
+				<distribution>uniDist</distribution>
+                <grid type='value' construction='equal' steps='1'>1.0 2.0</grid>
 			</variable>
-		</MonteCarlo>
+        </Grid>
 	</Samplers> 
 	
 	<Models>			
@@ -52,7 +52,7 @@
 		</RomTrainer>
 		<MultiRun name='runARMA'>
 			<Input    class = 'DataObjects'       type = 'PointSet'       >dataIn</Input>
-			<Sampler class="Samplers"  type="MonteCarlo"  >mcSampler</Sampler>
+			<Sampler class="Samplers"  type="MonteCarlo"  >gridSampler</Sampler>
 			<Model   class='Models' 			  type = 'ROM' 	 		 >ARMA</Model>
 			<Output    class = 'DataObjects'       type = 'HistorySet'    >synData</Output> 
 		</MultiRun>
