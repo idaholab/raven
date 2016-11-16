@@ -17,7 +17,7 @@
       <executable>
       </executable>
       <clargs extension=".inp" type="input"/>
-      <boolMaapOutputVariables>691</boolMaapOutputVariables>
+      <boolMaapOutputVariables>IEVNT(691)</boolMaapOutputVariables>
       <contMaapOutputVariables>PPS, PSGGEN(1), ZWDC2SG(1), WWTOTFW(1) </contMaapOutputVariables>
       <stopSimulation>mission_time</stopSimulation>
       <includeForTimer>include_900_502</includeForTimer>
