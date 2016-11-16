@@ -2391,10 +2391,10 @@ class ARMA(superVisedLearning):
 
     CovInv = np.linalg.inv(Cov)
     d = self.armaPara['rSeriesNorm']
-    noTimeStep = d.shape[0]
+    numTimeStep = d.shape[0]
     alpha = np.zeros(shape=d.shape)
-    L = -N*noTimeStep/2.0*np.log(2*np.pi) - noTimeStep/2.0*np.log(np.linalg.det(Cov))
-    for t in range(noTimeStep):
+    L = -N*numTimeStep/2.0*np.log(2*np.pi) - numTimeStep/2.0*np.log(np.linalg.det(Cov))
+    for t in range(numTimeStep):
       alpha[t,:] = d[t,:]
       for i in range(1,min(p,t)+1):     alpha[t,:] -= np.dot(Phi[i],d[t-i,:])
       for j in range(1,min(q,t)+1):     alpha[t,:] -= np.dot(Theta[j],alpha[t-j,:])
@@ -2404,7 +2404,7 @@ class ARMA(superVisedLearning):
     while sigHat.size > 1:
       sigHat = sum(sigHat)
       sigHat = sum(sigHat.T)
-    sigHat = sigHat / noTimeStep
+    sigHat = sigHat / numTimeStep
     self.armaResult['sigHat'] = sigHat[0,0]
     lkHood = -L
     return lkHood
@@ -2430,8 +2430,8 @@ class ARMA(superVisedLearning):
       @ In, featureVals, float, a scalar feature value is passed as scaling factor
       @ Out, generatedData , n-D numpy array [n_timeStep, n_dimension+1]
     """
-    # FIXME, featureVals is not needed for ARMA __evaluateLocal__
-    # End of FIXME
+    if featureVals.size > 1:
+      self.raiseAnError(ValueError, 'The input feature for ARMA for evaluation cannot have size greater than 1. ')
 
     # Instantiate a normal distribution for time series synthesis (noise part)
     normEvaluateEngine = Distributions.returnInstance('Normal',self)
@@ -2439,16 +2439,16 @@ class ARMA(superVisedLearning):
     normEvaluateEngine.upperBoundUsed, normEvaluateEngine.lowerBoundUsed = False, False
     normEvaluateEngine.initializeDistribution()
 
-    noTimeStep = len(self.time)
+    numTimeStep = len(self.time)
     tSeriesNoise = np.zeros(shape=self.armaPara['rSeriesNorm'].shape)
-    for t in range(noTimeStep):
+    for t in range(numTimeStep):
       for n in range(self.armaPara['dimension']):
         tSeriesNoise[t,n] = normEvaluateEngine.rvs()*self.armaResult['sig'][0,n]
 
 
-    tSeriesNorm = np.zeros(shape=(noTimeStep,self.armaPara['rSeriesNorm'].shape[1]))
+    tSeriesNorm = np.zeros(shape=(numTimeStep,self.armaPara['rSeriesNorm'].shape[1]))
     tSeriesNorm[0,:] = self.armaPara['rSeriesNorm'][0,:]
-    for t in range(noTimeStep):
+    for t in range(numTimeStep):
       for i in range(1,min(self.armaResult['P'], t)+1):
         tSeriesNorm[t,:] += np.dot(tSeriesNorm[t-i,:], self.armaResult['Phi'][i])
       for j in range(1,min(self.armaResult['Q'], t)+1):
@@ -2458,7 +2458,7 @@ class ARMA(superVisedLearning):
     # Convert data back to empirically distributed
     tSeries = self.__dataConversion__(tSeriesNorm, obj='denormalize')
     # Add fourier trends
-    if self.hasFourierSeries:     tSeries += self.fourierResult['predict'][0:noTimeStep,:]
+    if self.hasFourierSeries:     tSeries += self.fourierResult['predict'][0:numTimeStep,:]
     # Ensure positivity --- FIXME
     if self.outTruncation is not None:
       if self.outTruncation == 'positive':      tSeries = np.absolute(tSeries)
@@ -2476,9 +2476,9 @@ class ARMA(superVisedLearning):
     # debug
     self.raiseADebug('mean', np.mean(tSeries), 'std', np.std(tSeries))
     # end of debug
-    generatedData = np.zeros(shape=[noTimeStep,self.armaPara['dimension']+1])
-    generatedData[:,0] = self.time[0:noTimeStep]
-    generatedData[:,1:] = tSeries
+    generatedData = np.zeros(shape=[numTimeStep,self.armaPara['dimension']+1])
+    generatedData[:,0] = self.time[0:numTimeStep]
+    generatedData[:,1:] = tSeries*featureVals
     return generatedData
 
   def __confidenceLocal__(self,featureVals):
