@@ -699,14 +699,14 @@ class ROM(Dummy):
           for entries in trainingSet.getParaKeys('outputs'):
             if not trainingSet.isItEmpty(): localInput[entries] = copy.copy(np.array(trainingSet.getParam('output',1)[entries]))
             else:                      localInput[entries] = None
-
         self.trainingSet = copy.copy(localInput)
         if type(self.trainingSet) is dict:
           self.amITrained = True
           for instrom in self.SupervisedEngine.values():
+            instrom.pivotParameter = np.asarray(trainingSet.getParam('output',1)[instrom.pivotParameterID])
             #FIXME: This is added for ARMA testing only. Remove if a SingleRun can be used to run ARMA
             if self.subType == 'ARMA': instrom.dataObject = trainingSet
-            #..End of FIXME
+            #..End of FIXME        
             instrom.train(self.trainingSet)
             self.amITrained = self.amITrained and instrom.amITrained
           self.raiseADebug('add self.amITrained to currentParamters','FIXME')
@@ -808,8 +808,8 @@ class ROM(Dummy):
 
     if self.subType == 'ARMA':
       eval = self.evaluate(inRun,self.SupervisedEngine.keys()[0])
-      returnDict['Time'] = eval[:,0]
-      for index,key in enumerate(self.initializationOptionDict['Features'].split(',')):
+      returnDict[self.SupervisedEngine.values()[0].pivotParameterID] = eval[:,0]
+      for index,key in enumerate(self.initializationOptionDict['Target'].split(',')):
         returnDict[key] = eval[:,index+1]
       return returnDict
 

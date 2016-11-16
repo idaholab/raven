@@ -2050,6 +2050,7 @@ class ARMA(superVisedLearning):
     self.armaPara['Qmin'] = kwargs.get('Qmin', 0)
     self.armaPara['dimension'] = len(self.features)
     self.outTruncation = kwargs.get('outTruncation', None)
+    self.pivotParameterID = kwargs.get('pivotParameter', 'Time')
 
     # Initialize parameters for Fourier detrending
     if 'Fourier' not in self.initOptionDict.keys():
@@ -2083,13 +2084,23 @@ class ARMA(superVisedLearning):
     """
       Perform training on input database stored in featureVals.
 
-      @In, featureVals, array, shape=[n_timeStep, n_dimensions], an array of input data
-      @In, targetVals, array, shape = [n_timeStep], data for time variable
+      @In, featureVals, array, shape=[n_timeStep, n_dimensions], an array of input data # Not use for ARMA training
+      @In, targetVals, array, shape = [n_timeStep, n_dimensions], an array of time series data
     """
-    self.time = copy.deepcopy(targetVals)
-    self.historySteps = self.time
-    self.timeSeriesDatabase = featureVals
+#     self.raiseADebug('feature', featureVals)
+#     self.raiseADebug('target', targetVals)
+#     self.raiseADebug('pivotParameterID', self.pivotParameterID)
+#     self.raiseADebug('time', self.pivotParameter)
+    
+    
+#     if len(self.pivotParameter.shape) == 1: self.pivotParameter = np.reshape(self.pivotParameter, newshape=(self.pivotParameter.shape[0],1))
+# #     self.pivotParameter = copy.deepcopy(targetVals)
+#     if len(targetVals.shape) == 1:
+#       self.timeSeriesDatabase = np.reshape(targetVals, newshape=(targetVals.shape[0],1))
+#     else:
+#       self.timeSeriesDatabase = targetVals
 
+    self.timeSeriesDatabase = copy.deepcopy(targetVals)
     # Fit fourier seires
     if self.hasFourierSeries:
       self.__trainFourier__()
@@ -2126,7 +2137,7 @@ class ARMA(superVisedLearning):
       @In, none,
       @Out, none,
     """
-    fourierSeriesAll = self.__generateFourierSignal__(self.time, self.fourierPara['basePeriod'], self.fourierPara['FourierOrder'])
+    fourierSeriesAll = self.__generateFourierSignal__(self.pivotParameter, self.fourierPara['basePeriod'], self.fourierPara['FourierOrder'])
     fourierEngine = linear_model.LinearRegression()
     temp = {}
     for bp in self.fourierPara['FourierOrder'].keys():
@@ -2140,7 +2151,7 @@ class ARMA(superVisedLearning):
     self.fourierResult['fOrder'] = []
 
     for fOrder in fourOrders:
-      fSeries = np.zeros(shape=(self.time.size,2*sum(fOrder)))
+      fSeries = np.zeros(shape=(self.pivotParameter.size,2*sum(fOrder)))
       indexTemp = 0
       for index,bp in enumerate(self.fourierPara['FourierOrder'].keys()):
         fSeries[:,indexTemp:indexTemp+fOrder[index]*2] = fourierSeriesAll[bp][:,0:fOrder[index]*2]
@@ -2148,7 +2159,7 @@ class ARMA(superVisedLearning):
       fourierEngine.fit(fSeries,self.timeSeriesDatabase)
       r = (fourierEngine.predict(fSeries)-self.timeSeriesDatabase)**2
       if r.size > 1:    r = sum(r)
-      r = r/self.time.size
+      r = r/self.pivotParameter.size
       criterionCurrent = r #self.__computeAICorBIC(r,noPara=sum(fOrder)*2,cType='None',obj='min')
       if  criterionCurrent< criterionBest:
         self.fourierResult['fOrder'] = copy.deepcopy(fOrder)
@@ -2157,7 +2168,7 @@ class ARMA(superVisedLearning):
         criterionBest = copy.deepcopy(criterionCurrent)
 
     fourierEngine.fit(fSeriesBest,self.timeSeriesDatabase)
-    self.fourierResult['predict'] = fourierEngine.predict(fSeriesBest)
+    self.fourierResult['predict'] = np.asarray(fourierEngine.predict(fSeriesBest))
 
   def __trainARMA__(self):
     """
@@ -2206,7 +2217,7 @@ class ARMA(superVisedLearning):
 
         rOpt = {}
         rOpt = optimize.fmin(self.__computeARMALikelihood__,init, args=(p,q) ,full_output = True)
-        tmp = (p+q)*self.armaPara['dimension']**2/self.time.size
+        tmp = (p+q)*self.armaPara['dimension']**2/self.pivotParameter.size
         criterionCurrent = self.__computeAICorBIC(self.armaResult['sigHat'],noPara=tmp,cType='BIC',obj='min')
         if criterionCurrent < criterionBest or 'P' not in self.armaResult.keys(): # to save the first iteration results
           self.armaResult['P'] = p
@@ -2235,6 +2246,8 @@ class ARMA(superVisedLearning):
     """
     self.armaNormPara = {}
     self.armaNormPara['resCDF'] = {}
+    
+    if len(data.shape) == 1: data = np.reshape(data, newshape = (data.shape[0],1))
     num_bins = [0]*data.shape[1] # initialize num_bins, which will be calculated later by Freedman Diacoins rule
 
     for d in range(data.shape[1]):
@@ -2317,6 +2330,7 @@ class ARMA(superVisedLearning):
     normTransEngine.upperBoundUsed, normTransEngine.lowerBoundUsed = False, False
     normTransEngine.initializeDistribution()
 
+    if len(data.shape) == 1: data = np.reshape(data, newshape = (data.shape[0],1))
     # Transform data
     transformedData = np.zeros(shape=data.shape)
     for n1 in range(data.shape[0]):
@@ -2420,7 +2434,7 @@ class ARMA(superVisedLearning):
     """
     if obj == 'min':        flag = -1
     else:                   flag = 1
-    if cType == 'BIC':      criterionValue = -1*flag*np.log(maxL)+noPara*np.log(self.time.size)
+    if cType == 'BIC':      criterionValue = -1*flag*np.log(maxL)+noPara*np.log(self.pivotParameter.size)
     elif cType == 'AIC':    criterionValue = -1*flag*np.log(maxL)+noPara*2
     else:                   criterionValue = maxL
     return criterionValue
@@ -2439,7 +2453,7 @@ class ARMA(superVisedLearning):
     normEvaluateEngine.upperBoundUsed, normEvaluateEngine.lowerBoundUsed = False, False
     normEvaluateEngine.initializeDistribution()
 
-    numTimeStep = len(self.time)
+    numTimeStep = len(self.pivotParameter)
     tSeriesNoise = np.zeros(shape=self.armaPara['rSeriesNorm'].shape)
     for t in range(numTimeStep):
       for n in range(self.armaPara['dimension']):
@@ -2458,7 +2472,13 @@ class ARMA(superVisedLearning):
     # Convert data back to empirically distributed
     tSeries = self.__dataConversion__(tSeriesNorm, obj='denormalize')
     # Add fourier trends
-    if self.hasFourierSeries:     tSeries += self.fourierResult['predict'][0:numTimeStep,:]
+    self.raiseADebug(self.fourierResult['predict'].shape, tSeries.shape)
+    if self.hasFourierSeries:     
+      if len(self.fourierResult['predict'].shape) == 1:
+        tempFour = np.reshape(self.fourierResult['predict'], newshape=(self.fourierResult['predict'].shape[0],1))
+      else:
+        tempFour = self.fourierResult['predict'][0:numTimeStep,:]
+      tSeries += tempFour
     # Ensure positivity --- FIXME
     if self.outTruncation is not None:
       if self.outTruncation == 'positive':      tSeries = np.absolute(tSeries)
@@ -2477,7 +2497,7 @@ class ARMA(superVisedLearning):
     self.raiseADebug('mean', np.mean(tSeries), 'std', np.std(tSeries))
     # end of debug
     generatedData = np.zeros(shape=[numTimeStep,self.armaPara['dimension']+1])
-    generatedData[:,0] = self.time[0:numTimeStep]
+    generatedData[:,0] = self.pivotParameter[0:numTimeStep]
     generatedData[:,1:] = tSeries*featureVals
     return generatedData
 

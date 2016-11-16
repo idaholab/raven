@@ -21,10 +21,7 @@
 				<limit>1</limit>
 				<initialSeed>888</initialSeed>
 			</samplerInit>
-			<variable name="Speed">
-				<distribution>smallUniformDist</distribution>
-			</variable>
-			<variable name="x">
+			<variable name="scaling">
 				<distribution>smallUniformDist</distribution>
 			</variable>
 		</MonteCarlo>
@@ -32,8 +29,9 @@
 	
 	<Models>			
 		<ROM name='ARMA' subType='ARMA'>
-			<Target>Time</Target>
-			<Features>Speed</Features>
+			<Target>Speed</Target>
+			<Features>scaling</Features>
+			<pivotParameter>Time</pivotParameter>
 			<Pmax>2</Pmax>
 			<Pmin>2</Pmin>
 			<Qmax>1</Qmax>
@@ -53,7 +51,7 @@
 			<Output   class='Models' 			  type ='ROM' 	 		 >ARMA</Output>
 		</RomTrainer>
 		<MultiRun name='runARMA'>
-			<Input    class = 'DataObjects'       type = 'PointSet'       >ghostData</Input>
+			<Input    class = 'DataObjects'       type = 'PointSet'       >dataIn</Input>
 			<Sampler class="Samplers"  type="MonteCarlo"  >mcSampler</Sampler>
 			<Model   class='Models' 			  type = 'ROM' 	 		 >ARMA</Model>
 			<Output    class = 'DataObjects'       type = 'HistorySet'    >synData</Output> 
@@ -86,15 +84,15 @@
 	
     <DataObjects>
         <HistorySet name="rawData">
-            <Input>x</Input>
+            <Input>scaling</Input>
             <Output>Time,Speed</Output>
         </HistorySet>
-		<PointSet name="ghostData">
-            <Input>Speed</Input>
+		<PointSet name="dataIn">
+            <Input>scaling</Input>
             <Output>OutputPlaceHolder</Output>
         </PointSet>
 		<HistorySet name="synData">
-            <Input>x</Input>
+            <Input>scaling</Input>
             <Output>Time,Speed</Output>
         </HistorySet>
     </DataObjects>
