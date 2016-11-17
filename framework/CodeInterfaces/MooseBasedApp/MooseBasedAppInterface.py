@@ -100,7 +100,7 @@ class MooseBasedApp(CodeInterfaceBase):
     # the position in, eventually, a vector variable is not available yet...
     # the MOOSEparser needs to be modified in order to accept this variable type
     # for now the position (i.e. ':' at the end of a variable name) is discarded
-    listDict = self.expandVarNames(**Kwargs)
+    listDict = self._expandVarNames(**Kwargs)
     return listDict
 
   def dynamicEventTreeForMooseBasedApp(self,**Kwargs):
@@ -141,3 +141,26 @@ class MooseBasedApp(CodeInterfaceBase):
       outputObj = MooseData.mooseData(files2Merge,workingDir,output,self.mooseVPPFile)
       vppFiles.append(os.path.join(workingDir,str(outputObj.vppFiles)))
     return vppFiles
+
+  def _expandVarNames(self,**Kwargs):
+    """
+      This method will assure the full proper variable names are returned in a dictionary.
+      It primarily expands aliases. I will admit I don't know what colons do.
+      @ In, Kwargs, dict, keyworded dictionary. Arguments include:
+          - alias, the alias -> TrueName dictionary
+          - SampleVars, short name -> sampled value dictionary
+      @ Out, listDict, list, list of dictionaries. The dictionaries contain:
+               ['name'][path,to,name]
+               [short varname][var value]
+    """
+    listDict=[]
+    modifDict={}
+    for var in Kwargs['SampledVars']:
+      key = var.split(':')
+      modifDict = {}
+      if '|' not in key[0]: continue
+      modifDict['name'] = key[0].split('|')[:-1]
+      modifDict[key[0].split('|')[-1]] = Kwargs['SampledVars'][var]
+      listDict.append(modifDict)
+      del modifDict
+    return listDict

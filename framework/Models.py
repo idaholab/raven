@@ -1216,8 +1216,17 @@ class Code(Model):
       newInputSet[index].setPath(subDirectory)
       shutil.copy(self.oriInputFiles[index].getAbsFile(),subDirectory)
     Kwargs['subDirectory'] = subDirectory
-    if len(self.alias.keys()) != 0: Kwargs['alias']   = self.alias
-    return (self.code.createNewInput(newInputSet,self.oriInputFiles,samplerType,**Kwargs),Kwargs)
+    if len(self.alias.keys()) != 0:
+      if 'SampledVars' in Kwargs.keys():
+        sampledVars = Kwargs.pop('SampledVars')
+        Kwargs['SampledVars'] = copy.deepcopy(sampledVars)
+        for varFramework,varCode in self.alias.items():
+          Kwargs['SampledVars'].pop(varFramework)
+          Kwargs['SampledVars'][varCode] = sampledVars[varFramework]
+      #Kwargs['alias']   = self.alias
+    newInput = self.code.createNewInput(newInputSet,self.oriInputFiles,samplerType,**copy.deepcopy(Kwargs))
+    if 'SampledVars' in Kwargs.keys() and len(self.alias.keys()) != 0: Kwargs['SampledVars'] = sampledVars
+    return (newInput,Kwargs)
 
   def updateInputFromOutside(self, Input, externalDict):
     """

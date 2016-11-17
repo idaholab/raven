@@ -118,18 +118,18 @@ class MAMMOTHInterface(CodeInterfaceBase):
     relap7Args['SampledVars'] = {}
     perturbRelap7 = False
     foundAlias = False
-    if 'alias' in Kwargs.keys():
-      del bisonArgs['alias']
-      del rattlesnakeArgs['alias']
-      del relap7Args['alias']
+#     if 'alias' in Kwargs.keys():
+#       del bisonArgs['alias']
+#       del rattlesnakeArgs['alias']
+#       del relap7Args['alias']
     for varName,varValue in Kwargs['SampledVars'].items():
       # Get the variable's full name from either the alias or given name
-      if 'alias' in Kwargs.keys():
-        fullName = Kwargs['alias'].get(varName,varName)
-      else:
-        fullName = varName
-      appName = fullName.split('@')[0].lower()
-      baseVarName = fullName.split('@')[-1]
+#       if 'alias' in Kwargs.keys():
+#         varName = Kwargs['alias'].get(varName,varName)
+#       else:
+#         varName = varName
+      appName = varName.split('@')[0].lower()
+      baseVarName = varName.split('@')[-1]
       # Identify which app's input the variable goes into and separate appArgs
       if appName == 'bison':
         bisonArgs['SampledVars'][baseVarName] = varValue
@@ -141,9 +141,9 @@ class MAMMOTHInterface(CodeInterfaceBase):
         relap7Args['SampledVars'][baseVarName] = varValue
         perturbRelap7 = True
       else:
-        errorMessage = fullName+' does not specify to which App\'s input it belongs!\n'
+        errorMessage = varName+' does not specify to which App\'s input it belongs!\n'
         errorMessage += 'Please prepend the the App\'s name followed by "@" to the\n'
-        errorMessage += 'base variable\'s name or alias.'
+        errorMessage += 'base variable\'s name.'
         raise IOError(errorMessage)
     # Check if the user wants to perturb yak xs libraries
     for inputFile in currentInputFiles:

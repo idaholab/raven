@@ -55,11 +55,11 @@ class BisonMeshScript(CodeInterfaceBase):
         break
     parser = BISONMESHSCRIPTparser.BISONMESHSCRIPTparser(currentInputFiles[index])
     # Copy dictionary of sampled vars sent to interface and change name of alias (if it exists)
-    sampledDict = copy.deepcopy(Kwargs['SampledVars'])
-    for alias,var in Kwargs['alias'].items():
-      sampledDict[var] = Kwargs['SampledVars'][alias]
-      del sampledDict[alias]
-    parser.modifyInternalDictionary(**sampledDict)
+#     sampledDict = copy.deepcopy(Kwargs['SampledVars'])
+#     for alias,var in Kwargs['alias'].items():
+#       sampledDict[var] = Kwargs['SampledVars'][alias]
+#       del sampledDict[alias]
+    parser.modifyInternalDictionary(**copy.deepcopy(Kwargs['SampledVars']))
     parser.writeNewInput(currentInputFiles[index].getAbsFile())
     return currentInputFiles
 
