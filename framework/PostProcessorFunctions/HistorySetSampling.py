@@ -12,6 +12,7 @@ from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
 import os
 import numpy as np
 from scipy import interpolate
+from scipy import integrate
 import copy
 
 
@@ -103,8 +104,9 @@ class HistorySetSampling(PostProcessorInterfaceBase):
 
     """
 
-    t_min = vars[self.pivotParameter][0]
-    t_max = vars[self.pivotParameter][-1]
+    localPivotParameter = vars[self.pivotParameter]
+    t_min = localPivotParameter[0]
+    t_max = localPivotParameter[-1]    
 
     newVars={}
 
@@ -126,9 +128,26 @@ class HistorySetSampling(PostProcessorInterfaceBase):
           newVars[key] = np.zeros(shape=newTime.shape)
           deltaT = newTime[1]-newTime[0] if len(newTime) > 1 else t_max
           for tIdx in range(len(newTime)):
+#             t = newTime[tIdx]
+#             extractCondition = (localPivotParameter>=t) * (localPivotParameter<t+deltaT)
+#             extractVar = np.extract(extractCondition, vars[key])
+#             extractTime = np.extract(extractCondition, localPivotParameter)
+#             integral = 0.0
+#             for n in range(len(extractTime)):
+#               nextT = extractTime[n+1] if n < len(extractTime)-1 else t+deltaT 
+#               integral += 1.0*extractVar[n]*(nextT-extractTime[n])
+#             newVars[key][tIdx] = integral / deltaT
+# #             newVars[key][tIdx] = np.average(np.extract(extractCondition, vars[key]))
             t = newTime[tIdx]
-            extractCondition = (vars[self.pivotParameter]>=t) * (vars[self.pivotParameter]<t+deltaT)
-            newVars[key][tIdx] = np.average(np.extract(extractCondition, vars[key]))
+            extractCondition = (localPivotParameter>=t) * (localPivotParameter<=t+deltaT)
+            extractVar = np.extract(extractCondition, vars[key])
+            extractTime = np.extract(extractCondition, localPivotParameter)
+#             integral = 0.0
+#             for n in range(len(extractTime)):
+#               nextT = extractTime[n+1] if n < len(extractTime)-1 else t+deltaT 
+#               integral += 1.0*extractVar[n]*(nextT-extractTime[n])
+            newVars[key][tIdx] = integrate.trapz(extractVar, extractTime) / deltaT
+#             newVars[key][tIdx] = np.average(np.extract(extractCondition, vars[key]))
         else:
           interp = interpolate.interp1d(vars[self.pivotParameter], vars[key], self.interpolation)
           newVars[key]=interp(newTime)
