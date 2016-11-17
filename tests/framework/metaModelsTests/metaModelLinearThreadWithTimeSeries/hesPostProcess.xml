@@ -19,8 +19,6 @@
         <IOStep name="importData" pauseAtEnd="True">
             <Input          class="Databases"       type="HDF5">hesData</Input>
             <Output         class="DataObjects"     type="pointset">outputData</Output>
-            <!--<Input          class="Databases"       type="HDF5">lsdatabase</Input>-->
-            <!--<Output         class="DataObjects"     type="pointset">lmt_srf_dt</Output>-->
         </IOStep>
         <IOStep name="testOutstreamStep1" pauseAtEnd="True">
             <Input          class="DataObjects"     type="PointSet">outputData</Input>
@@ -29,10 +27,6 @@
             <Output         class="OutStreams"      type="Plot">plot3</Output>
             <Output         class="OutStreams"      type="Plot">plot4</Output>
         </IOStep>
-        <!--<IOStep name="testOutstreamStep2" pauseAtEnd="True">-->
-            <!--<Input          class="DataObjects"     type="PointSet">lmt_srf_dt</Input>-->
-            <!--<Output         class="OutStreams"      type="Plot">plot6</Output>-->
-        <!--</IOStep>-->
     </Steps>
 
     <DataObjects>
@@ -140,26 +134,5 @@
                 </title>
             </actions>
         </Plot>
-
-        <!--<Plot dim="3" name="plot6" overwrite="True">-->
-            <!--<plotSettings>-->
-                <!--<plot>-->
-                    <!--<type>scatter</type>-->
-                    <!--<x>lmt_srf_dt|Input|reCapacity</x>-->
-                    <!--<y>lmt_srf_dt|Input|ngCapacity</y>-->
-                    <!--<z>lmt_srf_dt|Input|meanDemand</z>-->
-                    <!--<colorMap>lmt_srf_dt|Output|BlackOut</colorMap>-->
-                <!--</plot>-->
-                <!--<xlabel>Renewable Nameplate Capacity</xlabel>-->
-                <!--<ylabel>Natural Gas Capacity</ylabel>-->
-                <!--<zlabel>Battery Storage Capacity</zlabel>-->
-            <!--</plotSettings>-->
-            <!--<actions>-->
-            <!--<how>screen</how>-->
-            <!--<title>-->
-            <!--<text>Limit Surface for less than 30 hours of uncovered demand</text>-->
-            <!--</title>-->
-            <!--</actions>-->
-        <!--</Plot>-->
     </OutStreams>
 </Simulation>

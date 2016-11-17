@@ -628,7 +628,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
 
   def _writeUnstructuredInputInXML(self,fileRoot,historyVariableKeys,historyVariableValues):
     """
-      Method to write the unstrctured inputs into an XML file
+      Method to write the unstructured inputs into an XML file
       @ In, fileRoot, string, filename root (the generated file will be <fileRoot>.xml
       @ In, historyVariableKeys, list, list of lists containing the variable keys ([[varName1,varName2]i  i=1,n histories])
       @ In, historyVariableValues, list, list of lists containing the variable values ([[varValue1,varValue2]i  i=1,n histories])
@@ -782,32 +782,6 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ Out, None
     """
     self._updateSpecializedMetadata(name,value,options)
-
-#   COMMENTED BECUASE NOT USED. NEED TO BE REMOVED IN THE FUTURE
-#   def extractValue(self,varTyp,varName,varID=None,stepID=None,nodeId='root'):
-#     """
-#       this a method that is used to extract a value (both array or scalar) attempting an implicit conversion for scalars
-#       the value is returned without link to the original
-#       @ In, varTyp, string, is the requested type of the variable to be returned (bool, int, float, numpy.ndarray, etc)
-#       @ In, varName, string, is the name of the variable that should be recovered
-#       @ In, varID, tuple or int, optional, is the ID of the value that should be retrieved within a set
-#         if varID.type!=tuple only one point along sampling of that variable is retrieved
-#           else:
-#             if varID=(int,int) the slicing is [varID[0]:varID[1]]
-#             if varID=(int,None) the slicing is [varID[0]:]
-#       @ In, stepID, tuple or int, optional, it  determines the slicing of an history.
-#           if stepID.type!=tuple only one point along the history is retrieved
-#           else:
-#             if stepID=(int,int) the slicing is [stepID[0]:stepID[1]]
-#             if stepID=(int,None) the slicing is [stepID[0]:]
-#       @ In, nodeId , string, optional, in hierarchical mode, is the node from which the value needs to be extracted... by default is the root
-#       @ Out, value, the requested value
-#     """
-#
-#     if   varName in self._dataParameters['inParam' ]: inOutType = 'input'
-#     elif varName in self._dataParameters['outParam']: inOutType = 'output'
-#     else: self.raiseAnError(RuntimeError,'the variable named '+varName+' was not found in the data: '+self.name)
-#     return self.__extractValueLocal__(inOutType,varTyp,varName,varID,stepID,nodeId)
 
   def addNodeInTreeMode(self,tsnode,options):
     """
