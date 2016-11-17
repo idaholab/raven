@@ -106,7 +106,7 @@ class HistorySetSampling(PostProcessorInterfaceBase):
 
     localPivotParameter = vars[self.pivotParameter]
     t_min = localPivotParameter[0]
-    t_max = localPivotParameter[-1]    
+    t_max = localPivotParameter[-1]
 
     newVars={}
 
