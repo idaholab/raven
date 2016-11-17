@@ -75,7 +75,7 @@
   l_max_its = 100
   dump_raven_init = False
   start_time = 0.0
-  num_steps = 1 # The number of timesteps in a transient run
+  num_steps = 10 # The number of timesteps in a transient run
 
   [./Quadrature]
     type = GAUSS
@@ -121,6 +121,11 @@
 []
 [Auxiliary]
   [./Dummy1]
+    print_csv = true
+    data_type = double
+    initial_value = 0.0
+  [../]
+  [./func]
     print_csv = true
     data_type = double
     initial_value = 0.0
