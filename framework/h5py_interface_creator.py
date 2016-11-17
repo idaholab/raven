@@ -224,6 +224,15 @@ class hdf5Database(MessageHandler.MessageUser):
       firstRow = f.readline().strip(b"\r\n")
       #firstRow = f.readline().translate(None,"\r\n")
       headers = firstRow.split(b",")
+      # if there is the alias system, replace the variable name
+      if 'alias' in attributes.keys():
+        for aliasType in attributes['alias'].keys():
+          for var in attributes['alias'][aliasType].keys():
+            if attributes['alias'][aliasType][var].strip() in headers:
+              headers[headers.index(attributes['alias'][aliasType][var].strip())] = var.strip()
+            else:
+              self.raiseAWarning('the ' + aliasType +' alias"'+var.strip()+'" has been defined but has not been found among the variables!')
+
       # Load the csv into a numpy array(n time steps, n parameters)
       data = np.loadtxt(f,dtype='float',delimiter=',',ndmin=2)
       # First parent group is the root name

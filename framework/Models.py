@@ -162,10 +162,12 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     BaseType.__init__(self)
     Assembler.__init__(self)
+    #if alias are defined in the input it defines a mapping between the variable names in the framework and the one for the generation of the input
+    #self.alias[framework variable name] = [input code name]. For Example, for a MooseBasedApp, the alias would be self.alias['internal_variable_name'] = 'Material|Fuel|thermal_conductivity'
+    self.alias    = {'input':{},'output':{}}
     self.subType  = ''
     self.runQueue = []
     self.printTag = 'MODEL'
-
 
   def _readMoreXML(self,xmlNode):
     """
@@ -179,10 +181,36 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     except KeyError:
       self.raiseADebug(" Failed in Node: "+str(xmlNode),verbostiy='silent')
       self.raiseAnError(IOError,'missed subType for the model '+self.name)
-
     del(xmlNode.attrib['subType'])
+    for child in xmlNode:
+      if child.tag =='alias':
+        # the input would be <alias variable='internal_variable_name'>Material|Fuel|thermal_conductivity</alias>
+        if 'variable' in child.attrib.keys():
+          aliasType = 'input'
+          if 'type' in child.attrib.keys():
+            if child.attrib['type'].lower() not in ['input','output']: self.raiseAnError(IOError,'the type of alias can be either "input" or "output". Got '+child.attrib['type'].lower())
+            aliasType = child.attrib['type'].lower().strip()
+          self.alias[aliasType][child.attrib['variable']] = child.text.strip()
+        else: self.raiseAnError(IOError,'not found the attribute variable in the definition of one of the alias for model '+str(self.name) +' of type '+self.type)
     # read local information
     self.localInputAndChecks(xmlNode)
+
+  def _convertKwargsWithAliasSystem(self, Kwargs):
+    """
+      Method to convert kwargs Sampled vars with the alias system
+      @ In , Kwargs, dict, dictionary of Kwargs that are going to be modified
+      @ Out, sampledVars, dict, dictionary of the original sampled variables
+    """
+
+    if len(self.alias['input'].keys()) != 0:
+      if 'SampledVars' in Kwargs.keys():
+        sampledVars = Kwargs.pop('SampledVars')
+        Kwargs['SampledVars'] = copy.deepcopy(sampledVars)
+        for varFramework,varCode in self.alias['input'].items():
+          found = Kwargs['SampledVars'].pop(varFramework,None)
+          if found is not None: Kwargs['SampledVars'][varCode] = sampledVars[varFramework]
+          else                : self.raiseAWarning('the input alias"'+varFramework+'" has been defined but has not been found among the sampled variables!')
+    return sampledVars
 
   def localInputAndChecks(self,xmlNode):
     """
@@ -204,6 +232,10 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     paramDict = {}
     paramDict['subType'] = self.subType
+    for key, value in self.alias['input'].items():
+      paramDict['The model input variable '+str(value)+' is filled using the framework variable '] = key
+    for key, value in self.alias['output'].items():
+      paramDict['The model output variable '+str(value)+' is filled using the framework variable '] = key
     return paramDict
 
   def finalizeModelOutput(self,finishedJob):
@@ -1029,9 +1061,6 @@ class Code(Model):
     self.outFileRoot        = ''   #root to be used to generate the sequence of output files
     self.currentInputFiles  = []   #list of the modified (possibly) input files (abs path)
     self.codeFlags          = None #flags that need to be passed into code interfaces(if present)
-    #if alias are defined in the input it defines a mapping between the variable names in the framework and the one for the generation of the input
-    #self.alias[framework variable name] = [input code name]. For Example, for a MooseBasedApp, the alias would be self.alias['internal_variable_name'] = 'Material|Fuel|thermal_conductivity'
-    self.alias              = {}
     self.printTag           = 'CODE MODEL'
     self.lockedFileName     = "ravenLocked.raven"
 
@@ -1050,10 +1079,6 @@ class Code(Model):
         self.executable = str(child.text)
       if child.tag =='preexec':
         self.preExec = str(child.text)
-      elif child.tag =='alias':
-        # the input would be <alias variable='internal_variable_name'>Material|Fuel|thermal_conductivity</alias>
-        if 'variable' in child.attrib.keys(): self.alias[child.attrib['variable']] = child.text
-        else: self.raiseAnError(IOError,'not found the attribute variable in the definition of one of the alias for code model '+str(self.name))
       elif child.tag == 'clargs':
         argtype = child.attrib['type']      if 'type'      in child.attrib.keys() else None
         arg     = child.attrib['arg']       if 'arg'       in child.attrib.keys() else None
@@ -1128,8 +1153,6 @@ class Code(Model):
     """
     paramDict = Model.getInitParams(self)
     paramDict['executable']=self.executable
-    for key, value in self.alias.items():
-      paramDict['The code variable '+str(value)+' it is filled using the framework variable '] = key
     return paramDict
 
   def getCurrentSetting(self):
@@ -1216,16 +1239,9 @@ class Code(Model):
       newInputSet[index].setPath(subDirectory)
       shutil.copy(self.oriInputFiles[index].getAbsFile(),subDirectory)
     Kwargs['subDirectory'] = subDirectory
-    if len(self.alias.keys()) != 0:
-      if 'SampledVars' in Kwargs.keys():
-        sampledVars = Kwargs.pop('SampledVars')
-        Kwargs['SampledVars'] = copy.deepcopy(sampledVars)
-        for varFramework,varCode in self.alias.items():
-          Kwargs['SampledVars'].pop(varFramework)
-          Kwargs['SampledVars'][varCode] = sampledVars[varFramework]
-      #Kwargs['alias']   = self.alias
-    newInput = self.code.createNewInput(newInputSet,self.oriInputFiles,samplerType,**copy.deepcopy(Kwargs))
-    if 'SampledVars' in Kwargs.keys() and len(self.alias.keys()) != 0: Kwargs['SampledVars'] = sampledVars
+    sampledVars = self._convertKwargsWithAliasSystem(Kwargs)
+    newInput    = self.code.createNewInput(newInputSet,self.oriInputFiles,samplerType,**copy.deepcopy(Kwargs))
+    if 'SampledVars' in Kwargs.keys() and len(self.alias['input'].keys()) != 0: Kwargs['SampledVars'] = sampledVars
     return (newInput,Kwargs)
 
   def updateInputFromOutside(self, Input, externalDict):
@@ -1286,6 +1302,7 @@ class Code(Model):
     """
     outputFilelocation = finishedjob.getWorkingDir()
     attributes={"inputFile":self.currentInputFiles,"type":"csv","name":os.path.join(outputFilelocation,finishedjob.output+'.csv')}
+    attributes['alias'] = self.alias
     metadata = finishedjob.getMetadata()
     if metadata: attributes['metadata'] = metadata
     if output.type == "HDF5"        : output.addGroup(attributes,attributes)
