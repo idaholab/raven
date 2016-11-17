@@ -1,17 +1,17 @@
 \newcommand{\zNormalizationPerformed}[1]
 {
-  \textcolor{red}{\\It is important to NOTE that RAVEN uses a Z-score normalization of the training data before 
+  \textcolor{red}{\\It is important to NOTE that RAVEN uses a Z-score normalization of the training data before
   constructing the \textit{#1} ROM:
 \begin{equation}
   \mathit{\mathbf{X}} = \frac{(\mathit{\mathbf{X}}-\mu )}{\sigma }
-\end{equation} 
- } 
+\end{equation}
+ }
 }
 
 \newcommand{\zNormalizationNotPerformed}[1]
 {
   \textcolor{red}{
-  \\It is important to NOTE that RAVEN does not pre-normalize the training data before 
+  \\It is important to NOTE that RAVEN does not pre-normalize the training data before
   constructing the \textit{#1} ROM.}
 }
 
@@ -94,8 +94,8 @@ specified in the attribute \xmlAttr{subType}.
 
 %
 Note that if an HistorySet is provided in the training step then a temporal ROM is created, i.e. a ROM that generates not a single value prediction of each element indicated in the  \xmlNode{Target} block but its full temporal profile.
-\\ 
-\textcolor{red}{\\\textbf{It is important to NOTE that RAVEN uses a Z-score normalization of the training data before constructing most of the 
+\\
+\textcolor{red}{\\\textbf{It is important to NOTE that RAVEN uses a Z-score normalization of the training data before constructing most of the
 Reduced Order Models (e.g. most of the SciKitLearn-based ROMs):}}
 \begin{equation}
   \mathit{\mathbf{X}} = \frac{(\mathit{\mathbf{X}}-\mu )}{\sigma }
@@ -2775,9 +2775,10 @@ below).
 \subnodeIntro
 
 \begin{itemize}
-  \item \xmlNode{TimeID}, \xmlDesc{string, optional field}, defines the variable that is Time in the input HistorySet.
+  \item \xmlNode{pivotParameter}, \xmlDesc{string, optional field}, defines the pivot variable (e.g., time) that is non-decreasing in the input HistorySet.
   \default{Time}
-  \item \xmlNode{Features}, \xmlDesc{string, required field}, defines the variables of the time series.
+  \item \xmlNode{Features}, \xmlDesc{string, required field}, defines the features (e.g., scaling). Note that only one feature is allowed for \xmlString{ARMA} and in current implementation this is used for evaluation only.
+  \item \xmlNode{Target}, \xmlDesc{string, required field}, defines the variables of the time series. 
   \item \xmlNode{Pmax}, \xmlDesc{integer, optional field}, defines the maximum value of $p$.
   \default{3}
   \item \xmlNode{Pmin}, \xmlDesc{integer, optional field}, defines the minimum value of $p$.
@@ -2788,6 +2789,8 @@ below).
   \default{0}
   \item \xmlNode{Fourier}, \xmlDesc{integers, optional field}, must be positive integers. This defines the based period (with unit of second) that would be used for Fourier detrending, i.e., this field defines $1/f_m$ in the above equation. When this filed is not specified, the ARMA considers no Fourier detrend.
   \item \xmlNode{FourierOrder}, \xmlDesc{integers, optional field}, must be positive integers. The number of integers specified in this field should be exactly same as the number of base periods specified in the node \xmlNode{Fourier}. This field defines $K_m$ in the above equation.
+  \item \xmlNode{outTruncation}, \xmlDesc{string, optional field}, defines whether and how the output time series is truncated. Currently available options are: positive, negative. 
+  \default{None}
 \end{itemize}
 
 \textbf{Example:}
