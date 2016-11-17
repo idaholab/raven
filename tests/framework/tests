@@ -208,7 +208,7 @@
    type = 'RavenFramework'
    input = 'test_Grid_Sampler_Raven.xml'
    output = 'GridTestRaven/FirstMRun/1/out~clg.massflowrate.3eqn'
-   UnorderedCsv = 'GridTestRaven/outGrid_dump.csv'
+   UnorderedCsv = 'GridTestRaven/outGrid_dump.csv GridTestRaven/outGridMax_dump.csv GridTestRaven/outGridMin_dump.csv GridTestRaven/outGridAverage_dump.csv GridTestRaven/outGridMaxFromHDF5_dump.csv GridTestRaven/outGridMinFromHDF5_dump.csv GridTestRaven/outGridAverageFromHDF5_dump.csv'
    method = 'devel opt'
    required_executable = '../../RAVEN-%METHOD%'
  [../]
