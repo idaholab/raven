@@ -1108,11 +1108,9 @@ independent of the \xmlAttr{subType} specified:
    \item \xmlNode{numberOfSamples}, \xmlDesc{integer, optional field}, number of samples (required only for the following sampling types: uniform, firstDerivative secondDerivative)
    \item \xmlNode{pivotParameter}, \xmlDesc{string, required field}, ID of the temporal variable
    \item \xmlNode{interpolation}, \xmlDesc{string, optional field}, type of interpolation to be employed for the history recostruction (required only for the following sampling types: uniform,
-   firstDerivative secondDerivative). Valid types of interpolation to specified: linear, nearest, zero, slinear, quadratic, cubic, intervalAverage; 
+   firstDerivative secondDerivative). Valid types of interpolation to specified: linear, nearest, zero, slinear, quadratic, cubic, intervalAverage;
    \item \xmlNode{tolerance}, \xmlDesc{string, optional field}, tolerance level (required only for the following sampling types: filteredFirstDerivative or filteredSecondDerivative)
 \end{itemize}
-
-Note that when the \xmlNode{samplingType} type is set to uniform and \xmlNode{interpolation} is set to intervalAverage, the input historySet shall be evenly spaced in time. If this is not the case, use Post-Processor method \textbf{HistorySetSync} to synchronize the data before running this method.
 
 \paragraph{Method: HistorySetSync}
 This Post-Processor performs the conversion from HistorySet to HistorySet
