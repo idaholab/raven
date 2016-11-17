@@ -145,9 +145,7 @@ class MooseBasedApp(CodeInterfaceBase):
   def _expandVarNames(self,**Kwargs):
     """
       This method will assure the full proper variable names are returned in a dictionary.
-      It primarily expands aliases. I will admit I don't know what colons do.
       @ In, Kwargs, dict, keyworded dictionary. Arguments include:
-          - alias, the alias -> TrueName dictionary
           - SampleVars, short name -> sampled value dictionary
       @ Out, listDict, list, list of dictionaries. The dictionaries contain:
                ['name'][path,to,name]

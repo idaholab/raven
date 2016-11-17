@@ -118,16 +118,7 @@ class MAMMOTHInterface(CodeInterfaceBase):
     relap7Args['SampledVars'] = {}
     perturbRelap7 = False
     foundAlias = False
-#     if 'alias' in Kwargs.keys():
-#       del bisonArgs['alias']
-#       del rattlesnakeArgs['alias']
-#       del relap7Args['alias']
     for varName,varValue in Kwargs['SampledVars'].items():
-      # Get the variable's full name from either the alias or given name
-#       if 'alias' in Kwargs.keys():
-#         varName = Kwargs['alias'].get(varName,varName)
-#       else:
-#         varName = varName
       appName = varName.split('@')[0].lower()
       baseVarName = varName.split('@')[-1]
       # Identify which app's input the variable goes into and separate appArgs
