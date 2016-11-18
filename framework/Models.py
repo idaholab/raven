@@ -13,6 +13,7 @@ import copy
 import shutil
 import numpy as np
 import abc
+import sys
 import importlib
 import inspect
 import atexit
@@ -194,23 +195,22 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         else: self.raiseAnError(IOError,'not found the attribute variable in the definition of one of the alias for model '+str(self.name) +' of type '+self.type)
     # read local information
     self.localInputAndChecks(xmlNode)
-
-  def _convertKwargsWithAliasSystem(self, Kwargs):
+   
+  def _replaceVariablesNamesWithAliasSystem(self, sampledVars, aliasType='input'):
     """
       Method to convert kwargs Sampled vars with the alias system
-      @ In , Kwargs, dict, dictionary of Kwargs that are going to be modified
-      @ Out, sampledVars, dict, dictionary of the original sampled variables
+      @ In , sampledVars, dict, dictionary that are going to be modified
+      @ In, aliasType, str, optional, type of alias to be replaced
+      @ Out, originalVariables, dict, dictionary of the original sampled variables
     """
-
-    if len(self.alias['input'].keys()) != 0:
-      if 'SampledVars' in Kwargs.keys():
-        sampledVars = Kwargs.pop('SampledVars')
-        Kwargs['SampledVars'] = copy.deepcopy(sampledVars)
-        for varFramework,varCode in self.alias['input'].items():
-          found = Kwargs['SampledVars'].pop(varFramework,None)
-          if found is not None: Kwargs['SampledVars'][varCode] = sampledVars[varFramework]
-          else                : self.raiseAWarning('the input alias"'+varFramework+'" has been defined but has not been found among the sampled variables!')
-    return sampledVars
+    if len(self.alias[aliasType].keys()) != 0:
+      originalVariables = copy.deepcopy(sampledVars)
+      for varFramework,varCode in self.alias[aliasType].items():
+        found = sampledVars.pop(varFramework,sys.maxint)
+        if found != sys.maxint: sampledVars[varCode] = originalVariables[varFramework]
+        else                : self.raiseAWarning('the ' +aliasType+ ' alias"'+varFramework+'" has been defined but has not been found among the inputted variables!')
+    else: originalVariables = sampledVars
+    return originalVariables
 
   def localInputAndChecks(self,xmlNode):
     """
@@ -398,16 +398,16 @@ class Dummy(Model):
       @ Out, ([(inputDict)],copy.deepcopy(Kwargs)), tuple, return the new input in a tuple form
     """
     if len(myInput)>1: self.raiseAnError(IOError,'Only one input is accepted by the model type '+self.type+' with name'+self.name)
-    inputDict = self._inputToInternal(myInput[0])
-    #test if all sampled variables are in the inputs category of the data
-    # fixme? -congjian
-    #if set(list(Kwargs['SampledVars'].keys())+list(inputDict.keys())) != set(list(inputDict.keys())):
-    #  self.raiseAnError(IOError,'When trying to sample the input for the model '+self.name+' of type '+self.type+' the sampled variable are '+str(Kwargs['SampledVars'].keys())+' while the variable in the input are'+str(inputDict.keys()))
+    inputDict   = self._inputToInternal(myInput[0])
+    if 'SampledVars' in Kwargs.keys(): 
+      sampledVars = self._replaceVariablesNamesWithAliasSystem(Kwargs['SampledVars'])
+      self._replaceVariablesNamesWithAliasSystem(inputDict)
     for key in Kwargs['SampledVars'].keys(): inputDict[key] = np.atleast_1d(Kwargs['SampledVars'][key])
     for val in inputDict.values():
       if val is None: self.raiseAnError(IOError,'While preparing the input for the model '+self.type+' with name '+self.name+' found a None input variable '+ str(inputDict.items()))
     #the inputs/outputs should not be store locally since they might be used as a part of a list of input for the parallel runs
     #same reason why it should not be used the value of the counter inside the class but the one returned from outside as a part of the input
+    if 'SampledVars' in Kwargs.keys() and len(self.alias['input'].keys()) != 0: Kwargs['SampledVars'] = sampledVars
     return [(inputDict)],copy.deepcopy(Kwargs)
 
   def updateInputFromOutside(self, Input, externalDict):
@@ -898,14 +898,18 @@ class ExternalModel(Dummy):
       @ Out, ([(inputDict)],copy.deepcopy(Kwargs)), tuple, return the new input in a tuple form
     """
     modelVariableValues ={}
-    sampledVars = self._convertKwargsWithAliasSystem(Kwargs)
-    for key in Kwargs['SampledVars'].keys(): modelVariableValues[key] = Kwargs['SampledVars'][key]
     if 'createNewInput' in dir(self.sim):
+      if 'SampledVars' in Kwargs.keys(): sampledVars = self._replaceVariablesNamesWithAliasSystem(Kwargs['SampledVars'])
       extCreateNewInput = self.sim.createNewInput(self,myInput,samplerType,**Kwargs)
       if extCreateNewInput== None: self.raiseAnError(AttributeError,'in external Model '+self.ModuleToLoad+' the method createNewInput must return something. Got: None')
-      return ([(extCreateNewInput)],copy.deepcopy(Kwargs)),copy.copy(modelVariableValues)
-    else: return Dummy.createNewInput(self, myInput,samplerType,**Kwargs),copy.copy(modelVariableValues)
-
+      if 'SampledVars' in Kwargs.keys() and len(self.alias['input'].keys()) != 0: Kwargs['SampledVars'] = sampledVars
+      newInput = ([(extCreateNewInput)],copy.deepcopy(Kwargs))
+      #return ([(extCreateNewInput)],copy.deepcopy(Kwargs)),copy.copy(modelVariableValues)
+    else: 
+      newInput =  Dummy.createNewInput(self, myInput,samplerType,**Kwargs)
+    for key in Kwargs['SampledVars'].keys(): modelVariableValues[key] = Kwargs['SampledVars'][key]
+    return newInput, copy.copy(modelVariableValues)
+    
   def updateInputFromOutside(self, Input, externalDict):
     """
       Method to update an input from outside
@@ -941,7 +945,10 @@ class ExternalModel(Dummy):
         for var in son.text.split(','):
           var = var.strip()
           self.modelVariableType[var] = None
-          self.listOfRavenAwareVars.append(var)
+          #self.listOfRavenAwareVars.append(var)
+    self._replaceVariablesNamesWithAliasSystem(self.modelVariableType)
+    self._replaceVariablesNamesWithAliasSystem(self.modelVariableType,'output')
+    self.listOfRavenAwareVars.extend(self.modelVariableType.keys())
     # check if there are other information that the external module wants to load
     if '_readMoreXML' in dir(self.sim): self.sim._readMoreXML(self.initExtSelf,xmlNode)
 
@@ -1240,7 +1247,8 @@ class Code(Model):
       newInputSet[index].setPath(subDirectory)
       shutil.copy(self.oriInputFiles[index].getAbsFile(),subDirectory)
     Kwargs['subDirectory'] = subDirectory
-    sampledVars = self._convertKwargsWithAliasSystem(Kwargs)
+    if 'SampledVars' in Kwargs.keys(): 
+      sampledVars = self._replaceVariablesNamesWithAliasSystem(Kwargs['SampledVars'])
     newInput    = self.code.createNewInput(newInputSet,self.oriInputFiles,samplerType,**copy.deepcopy(Kwargs))
     if 'SampledVars' in Kwargs.keys() and len(self.alias['input'].keys()) != 0: Kwargs['SampledVars'] = sampledVars
     return (newInput,Kwargs)

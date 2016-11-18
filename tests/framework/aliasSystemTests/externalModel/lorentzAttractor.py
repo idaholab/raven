@@ -27,9 +27,9 @@ def run(self,Input):
   self.secondVar = Input['secondVar']
   self.thirdVar  = Input['thirdVar']
 
-  self.firstOut[0] = Input['x0']
-  self.secondOut[0] = Input['y0']
-  self.z[0] = Input['z0']
+  self.firstOut[0] = Input['firstVar']
+  self.secondOut[0] = Input['secondVar']
+  self.z[0] = Input['thirdVar']
   self.time[0]= 0
 
   for t in range (numberTimeSteps-1):
