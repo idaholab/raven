@@ -32,10 +32,14 @@
 
   <!-- MODELS -->
   <Models>
-    <ExternalModel ModuleToLoad="lorentzAttractorWithCustomNode" name="PythonModule" subType="">
-      <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0,customVariable2</variables>
-      <customNode1>It is a string that is read in the external model directly</customNode1>
-      <customNode2>20021986</customNode2>
+    <ExternalModel ModuleToLoad="lorentzAttractor" name="PythonModule" subType="">
+      <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0</variables>
+      <alias variable="x0" type="input">firstVar</alias>
+      <alias variable="y0" type="input">secondVar</alias>
+      <alias variable="z0" type="input">thirdVar</alias>
+      <alias variable="x"  type="output">firstOut</alias>
+      <alias variable="y"  type="output">secondOut</alias>
+      <alias variable="z"  type="output">thirdOut</alias>
     </ExternalModel>
   </Models>
 
@@ -111,12 +115,12 @@
       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="testPointSet">
-      <Input>x0,y0,z0</Input>
-      <Output>time,x,y,z</Output>
+      <Input>firstVar,secondVar,thirdVar</Input>
+      <Output>time,firstOut,secondOut,thirdOut</Output>
     </PointSet>
     <HistorySet name="testPrintHistorySet">
-      <Input>x0,y0,z0</Input>
-      <Output>time,x,y,z</Output>
+      <Input>firstVar,secondVar,thirdVar</Input>
+      <Output>time,firstOut,secondOut,thirdOut</Output>
     </HistorySet>
   </DataObjects>
 

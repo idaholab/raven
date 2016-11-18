@@ -898,6 +898,7 @@ class ExternalModel(Dummy):
       @ Out, ([(inputDict)],copy.deepcopy(Kwargs)), tuple, return the new input in a tuple form
     """
     modelVariableValues ={}
+    sampledVars = self._convertKwargsWithAliasSystem(Kwargs)
     for key in Kwargs['SampledVars'].keys(): modelVariableValues[key] = Kwargs['SampledVars'][key]
     if 'createNewInput' in dir(self.sim):
       extCreateNewInput = self.sim.createNewInput(self,myInput,samplerType,**Kwargs)
