@@ -480,19 +480,28 @@ class BoostDistribution(Distribution):
     else             : rvsValue = [self.rvs() for _ in range(args[0])]
     return rvsValue
 
-class UniformDistributionInput(InputData.ParameterInput):
-  """
-    Class for reading in uniform distribution input.
-  """
-
-UniformDistributionInput.createClass("Uniform", False, baseNode=DistributionInput)
-
-DistributionsCollection.addSub(UniformDistributionInput)
 
 class Uniform(BoostDistribution):
   """
     Uniform univariate distribution
   """
+
+  @staticmethod
+  def getInputData():
+    """
+      Method to get class that stores the input data
+      @ In, None
+      @ Out, UniformDistributionInput, InputData.ParameterInput, class to use for input data.
+    """
+    class UniformDistributionInput(InputData.ParameterInput):
+      """
+        Class for reading in uniform distribution input.
+      """
+
+    UniformDistributionInput.createClass("Uniform", False, baseNode=DistributionInput)
+
+    return UniformDistributionInput
+
   def __init__(self):
     """
       Constructor
@@ -537,7 +546,7 @@ class Uniform(BoostDistribution):
       @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
       @ Out, None
     """
-    paramInput = UniformDistributionInput()
+    paramInput = Uniform.getInputData()()
     paramInput.parseNode(xmlNode)
     self._handleInput(paramInput)
 
@@ -601,24 +610,37 @@ class Uniform(BoostDistribution):
     """
     return self.range/2.*x+self.untruncatedMean()
 
-MeanParameterInput = InputData.parameterInputFactory("mean", contentType=InputData.FloatType)
-SigmaParameterInput = InputData.parameterInputFactory("sigma", contentType=InputData.FloatType)
+DistributionsCollection.addSub(Uniform.getInputData())
 
-class NormalDistributionInput(InputData.ParameterInput):
-  """
-    Class for reading in normal distribution input
-  """
 
-NormalDistributionInput.createClass("Normal", False, baseNode=DistributionInput)
-NormalDistributionInput.addSub(MeanParameterInput)
-NormalDistributionInput.addSub(SigmaParameterInput)
 
-DistributionsCollection.addSub(NormalDistributionInput)
 
 class Normal(BoostDistribution):
   """
     Normal univariate distribution
   """
+
+  @staticmethod
+  def getInputData():
+    """
+      Method to get class that stores the input data
+      @ In, None
+      @ Out, CategoricalDistributionInput, InputData.ParameterInput, class to use for input data.
+    """
+    MeanParameterInput = InputData.parameterInputFactory("mean", contentType=InputData.FloatType)
+    SigmaParameterInput = InputData.parameterInputFactory("sigma", contentType=InputData.FloatType)
+
+    class NormalDistributionInput(InputData.ParameterInput):
+      """
+        Class for reading in normal distribution input
+      """
+
+    NormalDistributionInput.createClass("Normal", False, baseNode=DistributionInput)
+    NormalDistributionInput.addSub(MeanParameterInput)
+    NormalDistributionInput.addSub(SigmaParameterInput)
+
+    return NormalDistributionInput
+
   def __init__(self):
     """
       Constructor
@@ -664,7 +686,7 @@ class Normal(BoostDistribution):
       @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
       @ Out, None
     """
-    paramInput = NormalDistributionInput()
+    paramInput = Normal.getInputData()()
     paramInput.parseNode(xmlNode)
     self._handleInput(paramInput)
 
@@ -754,26 +776,40 @@ class Normal(BoostDistribution):
     """
     return self.sigma*x+self.untruncatedMean()
 
-LowParameterInput = InputData.parameterInputFactory("low", contentType=InputData.FloatType)
-AlphaParameterInput = InputData.parameterInputFactory("alpha", contentType=InputData.FloatType)
-BetaParameterInput = InputData.parameterInputFactory("beta", contentType=InputData.FloatType)
 
-class GammaDistributionInput(InputData.ParameterInput):
-  """
-    Class for reading in gamma distribution input.
-  """
+DistributionsCollection.addSub(Normal.getInputData())
 
-GammaDistributionInput.createClass("Gamma", False, baseNode=DistributionInput)
-GammaDistributionInput.addSub(LowParameterInput)
-GammaDistributionInput.addSub(AlphaParameterInput)
-GammaDistributionInput.addSub(BetaParameterInput)
 
-DistributionsCollection.addSub(GammaDistributionInput)
 
 class Gamma(BoostDistribution):
   """
     Gamma univariate distribution
   """
+
+  @staticmethod
+  def getInputData():
+    """
+      Method to get class that stores the input data
+      @ In, None
+      @ Out, GammaDistributionInput, InputData.ParameterInput, class to use for input data.
+    """
+
+    LowParameterInput = InputData.parameterInputFactory("low", contentType=InputData.FloatType)
+    AlphaParameterInput = InputData.parameterInputFactory("alpha", contentType=InputData.FloatType)
+    BetaParameterInput = InputData.parameterInputFactory("beta", contentType=InputData.FloatType)
+
+    class GammaDistributionInput(InputData.ParameterInput):
+      """
+        Class for reading in gamma distribution input.
+      """
+
+    GammaDistributionInput.createClass("Gamma", False, baseNode=DistributionInput)
+    GammaDistributionInput.addSub(LowParameterInput)
+    GammaDistributionInput.addSub(AlphaParameterInput)
+    GammaDistributionInput.addSub(BetaParameterInput)
+
+    return GammaDistributionInput
+
   def __init__(self):
     """
       Constructor
@@ -821,7 +857,7 @@ class Gamma(BoostDistribution):
       @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
       @ Out, None
     """
-    paramInput = GammaDistributionInput()
+    paramInput = Gamma.getInputData()()
     paramInput.parseNode(xmlNode)
     self._handleInput(paramInput)
 
@@ -909,27 +945,44 @@ class Gamma(BoostDistribution):
     #return self.beta**self.alpha/factorial(self.alpha-1.)
     return 1./factorial(self.alpha-1)
 
-HighParameterInput = InputData.parameterInputFactory("high", contentType=InputData.FloatType)
-PeakFactorParameterInput = InputData.parameterInputFactory("peakFactor", contentType=InputData.FloatType)
 
-class BetaDistributionInput(InputData.ParameterInput):
-  """
-    Class for reading in beta distribution input.
-  """
+DistributionsCollection.addSub(Gamma.getInputData())
 
-BetaDistributionInput.createClass("Beta", False, baseNode=DistributionInput)
-BetaDistributionInput.addSub(LowParameterInput)
-BetaDistributionInput.addSub(HighParameterInput)
-BetaDistributionInput.addSub(AlphaParameterInput)
-BetaDistributionInput.addSub(BetaParameterInput)
-BetaDistributionInput.addSub(PeakFactorParameterInput)
 
-DistributionsCollection.addSub(BetaDistributionInput)
 
 class Beta(BoostDistribution):
   """
     Beta univariate distribution
   """
+
+  @staticmethod
+  def getInputData():
+    """
+      Method to get class that stores the input data
+      @ In, None
+      @ Out, BetaDistributionInput, InputData.ParameterInput, class to use for input data.
+    """
+
+    LowParameterInput = InputData.parameterInputFactory("low", contentType=InputData.FloatType)
+    AlphaParameterInput = InputData.parameterInputFactory("alpha", contentType=InputData.FloatType)
+    BetaParameterInput = InputData.parameterInputFactory("beta", contentType=InputData.FloatType)
+    HighParameterInput = InputData.parameterInputFactory("high", contentType=InputData.FloatType)
+    PeakFactorParameterInput = InputData.parameterInputFactory("peakFactor", contentType=InputData.FloatType)
+
+    class BetaDistributionInput(InputData.ParameterInput):
+      """
+        Class for reading in beta distribution input.
+      """
+
+    BetaDistributionInput.createClass("Beta", False, baseNode=DistributionInput)
+    BetaDistributionInput.addSub(LowParameterInput)
+    BetaDistributionInput.addSub(HighParameterInput)
+    BetaDistributionInput.addSub(AlphaParameterInput)
+    BetaDistributionInput.addSub(BetaParameterInput)
+    BetaDistributionInput.addSub(PeakFactorParameterInput)
+
+    return BetaDistributionInput
+
   def __init__(self):
     """
       Constructor
@@ -980,7 +1033,7 @@ class Beta(BoostDistribution):
       @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
       @ Out, None
     """
-    paramInput = BetaDistributionInput()
+    paramInput = Beta.getInputData()()
     paramInput.parseNode(xmlNode)
     self._handleInput(paramInput)
 
@@ -1084,26 +1137,39 @@ class Beta(BoostDistribution):
     norm = 1.0/(2**(self.alpha+self.beta-1)*B)
     return norm
 
-ApexParameterInput = InputData.parameterInputFactory("apex", contentType=InputData.FloatType)
-MinParameterInput = InputData.parameterInputFactory("min", contentType=InputData.FloatType)
-MaxParameterInput = InputData.parameterInputFactory("max", contentType=InputData.FloatType)
+DistributionsCollection.addSub(Beta.getInputData())
 
-class TriangularDistributionInput(InputData.ParameterInput):
-  """
-    Class for reading in the triangular distribution input.
-  """
 
-TriangularDistributionInput.createClass("Triangular", False, baseNode=DistributionInput)
-TriangularDistributionInput.addSub(ApexParameterInput)
-TriangularDistributionInput.addSub(MinParameterInput)
-TriangularDistributionInput.addSub(MaxParameterInput)
-
-DistributionsCollection.addSub(TriangularDistributionInput)
 
 class Triangular(BoostDistribution):
   """
     Triangular univariate distribution
   """
+
+  @staticmethod
+  def getInputData():
+    """
+      Method to get class that stores the input data
+      @ In, None
+      @ Out, TriangularDistributionInput, InputData.ParameterInput, class to use for input data.
+    """
+
+    ApexParameterInput = InputData.parameterInputFactory("apex", contentType=InputData.FloatType)
+    MinParameterInput = InputData.parameterInputFactory("min", contentType=InputData.FloatType)
+    MaxParameterInput = InputData.parameterInputFactory("max", contentType=InputData.FloatType)
+
+    class TriangularDistributionInput(InputData.ParameterInput):
+      """
+        Class for reading in the triangular distribution input.
+      """
+
+    TriangularDistributionInput.createClass("Triangular", False, baseNode=DistributionInput)
+    TriangularDistributionInput.addSub(ApexParameterInput)
+    TriangularDistributionInput.addSub(MinParameterInput)
+    TriangularDistributionInput.addSub(MaxParameterInput)
+
+    return TriangularDistributionInput
+
   def __init__(self):
     """
       Constructor
@@ -1149,7 +1215,7 @@ class Triangular(BoostDistribution):
       @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
       @ Out, None
     """
-    paramInput = TriangularDistributionInput()
+    paramInput = Triangular.getInputData()()
     paramInput.parseNode(xmlNode)
     self._handleInput(paramInput)
 
@@ -1203,22 +1269,32 @@ class Triangular(BoostDistribution):
     else:
       self.raiseAnError(IOError,'Truncated triangular not yet implemented')
 
-MuParameterInput = InputData.parameterInputFactory("mu", contentType=InputData.FloatType)
+DistributionsCollection.addSub(Triangular.getInputData())
 
-class PoissonDistributionInput(InputData.ParameterInput):
-  """
-    Class for reading in poisson distribution input.
-  """
-
-PoissonDistributionInput.createClass("Poisson", False, baseNode=DistributionInput)
-PoissonDistributionInput.addSub(MuParameterInput)
-
-DistributionsCollection.addSub(PoissonDistributionInput)
 
 class Poisson(BoostDistribution):
   """
     Poisson univariate distribution
   """
+  @staticmethod
+  def getInputData():
+    """
+      Method to get class that stores the input data
+      @ In, None
+      @ Out, PoissonDistributionInput, InputData.ParameterInput, class to use for input data.
+    """
+    MuParameterInput = InputData.parameterInputFactory("mu", contentType=InputData.FloatType)
+
+    class PoissonDistributionInput(InputData.ParameterInput):
+      """
+        Class for reading in poisson distribution input.
+      """
+
+    PoissonDistributionInput.createClass("Poisson", False, baseNode=DistributionInput)
+    PoissonDistributionInput.addSub(MuParameterInput)
+
+    return PoissonDistributionInput
+
   def __init__(self):
     """
       Constructor
@@ -1259,7 +1335,7 @@ class Poisson(BoostDistribution):
       @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
       @ Out, None
     """
-    paramInput = PoissonDistributionInput()
+    paramInput = Poisson.getInputData()()
     paramInput.parseNode(xmlNode)
     self._handleInput(paramInput)
 
@@ -1300,24 +1376,35 @@ class Poisson(BoostDistribution):
     else:
       self.raiseAnError(IOError,'Truncated poisson not yet implemented')
 
-NParameterInput = InputData.parameterInputFactory("n", contentType=InputData.IntegerType)
-PParameterInput = InputData.parameterInputFactory("p", contentType=InputData.FloatType)
+DistributionsCollection.addSub(Poisson.getInputData())
 
-class BinomialDistributionInput(InputData.ParameterInput):
-  """
-    Class for reading in binomial distribution input.
-  """
 
-BinomialDistributionInput.createClass("Binomial", False, baseNode=DistributionInput)
-BinomialDistributionInput.addSub(NParameterInput)
-BinomialDistributionInput.addSub(PParameterInput)
-
-DistributionsCollection.addSub(BinomialDistributionInput)
 
 class Binomial(BoostDistribution):
   """
     Binomial univariate distribution
   """
+  @staticmethod
+  def getInputData():
+    """
+      Method to get class that stores the input data
+      @ In, None
+      @ Out, BinomialDistributionInput, InputData.ParameterInput, class to use for input data.
+    """
+    NParameterInput = InputData.parameterInputFactory("n", contentType=InputData.IntegerType)
+    PParameterInput = InputData.parameterInputFactory("p", contentType=InputData.FloatType)
+
+    class BinomialDistributionInput(InputData.ParameterInput):
+      """
+        Class for reading in binomial distribution input.
+      """
+
+    BinomialDistributionInput.createClass("Binomial", False, baseNode=DistributionInput)
+    BinomialDistributionInput.addSub(NParameterInput)
+    BinomialDistributionInput.addSub(PParameterInput)
+
+    return BinomialDistributionInput
+
   def __init__(self):
     """
       Constructor
@@ -1361,7 +1448,7 @@ class Binomial(BoostDistribution):
       @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
       @ Out, None
     """
-    paramInput = BinomialDistributionInput()
+    paramInput = Binomial.getInputData()()
     paramInput.parseNode(xmlNode)
     self._handleInput(paramInput)
 
@@ -1405,20 +1492,34 @@ class Binomial(BoostDistribution):
 #
 #
 #
-class BernoulliDistributionInput(InputData.ParameterInput):
-  """
-    Class for reading in bernoulli distribution input.
-  """
+DistributionsCollection.addSub(Binomial.getInputData())
 
-BernoulliDistributionInput.createClass("Bernoulli", False, baseNode=DistributionInput)
-BernoulliDistributionInput.addSub(PParameterInput)
 
-DistributionsCollection.addSub(BernoulliDistributionInput)
+
 
 class Bernoulli(BoostDistribution):
   """
     Bernoulli univariate distribution
   """
+
+  @staticmethod
+  def getInputData():
+    """
+      Method to get class that stores the input data
+      @ In, None
+      @ Out, BernoulliDistributionInput, InputData.ParameterInput, class to use for input data.
+    """
+    class BernoulliDistributionInput(InputData.ParameterInput):
+      """
+        Class for reading in bernoulli distribution input.
+      """
+
+    BernoulliDistributionInput.createClass("Bernoulli", False, baseNode=DistributionInput)
+    PParameterInput = InputData.parameterInputFactory("p", contentType=InputData.FloatType)
+    BernoulliDistributionInput.addSub(PParameterInput)
+
+    return BernoulliDistributionInput
+
   def __init__(self):
     """
       Constructor
@@ -1460,7 +1561,7 @@ class Bernoulli(BoostDistribution):
       @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
       @ Out, None
     """
-    paramInput = BernoulliDistributionInput()
+    paramInput = Bernoulli.getInputData()()
     paramInput.parseNode(xmlNode)
     self._handleInput(paramInput)
 
@@ -1497,6 +1598,8 @@ class Bernoulli(BoostDistribution):
     if self.lowerBoundUsed == False and self.upperBoundUsed == False:
       self._distribution = distribution1D.BasicBernoulliDistribution(self.p)
     else:  self.raiseAnError(IOError,'Truncated Bernoulli not yet implemented')
+
+DistributionsCollection.addSub(Bernoulli.getInputData())
 
 
 class Categorical(Distribution):
@@ -1769,24 +1872,35 @@ class Logistic(BoostDistribution):
 
 DistributionsCollection.addSub(Logistic.getInputData())
 
-LambdaParameterInput = InputData.parameterInputFactory("lambda", contentType=InputData.FloatType)
 
 
-class ExponentialDistributionInput(InputData.ParameterInput):
-  """
-    Class for reading in exponential distribution input.
-  """
-
-ExponentialDistributionInput.createClass("Exponential", False, baseNode=DistributionInput)
-ExponentialDistributionInput.addSub(LambdaParameterInput)
-ExponentialDistributionInput.addSub(LowParameterInput)
-
-DistributionsCollection.addSub(ExponentialDistributionInput)
 
 class Exponential(BoostDistribution):
   """
     Exponential univariate distribution
   """
+  @staticmethod
+  def getInputData():
+    """
+      Method to get class that stores the input data
+      @ In, None
+      @ Out, ExponentialDistributionInput, InputData.ParameterInput, class to use for input data.
+    """
+    LowParameterInput = InputData.parameterInputFactory("low", contentType=InputData.FloatType)
+    LambdaParameterInput = InputData.parameterInputFactory("lambda", contentType=InputData.FloatType)
+
+
+    class ExponentialDistributionInput(InputData.ParameterInput):
+      """
+        Class for reading in exponential distribution input.
+      """
+
+    ExponentialDistributionInput.createClass("Exponential", False, baseNode=DistributionInput)
+    ExponentialDistributionInput.addSub(LambdaParameterInput)
+    ExponentialDistributionInput.addSub(LowParameterInput)
+
+    return ExponentialDistributionInput
+
   def __init__(self):
     """
       Constructor
@@ -1830,7 +1944,7 @@ class Exponential(BoostDistribution):
       @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
       @ Out, None
     """
-    paramInput = ExponentialDistributionInput()
+    paramInput = Exponential.getInputData()()
     paramInput.parseNode(xmlNode)
     self._handleInput(paramInput)
 
@@ -1909,22 +2023,38 @@ class Exponential(BoostDistribution):
     else: converted = Distribution.convertStdPointsToDistr(self,x)
     return converted
 
-class LogNormalDistributionInput(InputData.ParameterInput):
-  """
-    Class for reading in lognormal distribution input.
-  """
 
-LogNormalDistributionInput.createClass("LogNormal", False, baseNode=DistributionInput)
-LogNormalDistributionInput.addSub(MeanParameterInput)
-LogNormalDistributionInput.addSub(SigmaParameterInput)
-LogNormalDistributionInput.addSub(LowParameterInput)
+DistributionsCollection.addSub(Exponential.getInputData())
 
-DistributionsCollection.addSub(LogNormalDistributionInput)
+
 
 class LogNormal(BoostDistribution):
   """
     LogNormal univariate distribution
   """
+  @staticmethod
+  def getInputData():
+    """
+      Method to get class that stores the input data
+      @ In, None
+      @ Out, CategoricalDistributionInput, InputData.ParameterInput, class to use for input data.
+    """
+    MeanParameterInput = InputData.parameterInputFactory("mean", contentType=InputData.FloatType)
+    SigmaParameterInput = InputData.parameterInputFactory("sigma", contentType=InputData.FloatType)
+    LowParameterInput = InputData.parameterInputFactory("low", contentType=InputData.FloatType)
+
+    class LogNormalDistributionInput(InputData.ParameterInput):
+      """
+        Class for reading in lognormal distribution input.
+      """
+
+    LogNormalDistributionInput.createClass("LogNormal", False, baseNode=DistributionInput)
+    LogNormalDistributionInput.addSub(MeanParameterInput)
+    LogNormalDistributionInput.addSub(SigmaParameterInput)
+    LogNormalDistributionInput.addSub(LowParameterInput)
+
+    return LogNormalDistributionInput
+
   def __init__(self):
     """
       Constructor
@@ -1970,7 +2100,7 @@ class LogNormal(BoostDistribution):
       @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
       @ Out, None
     """
-    paramInput = LogNormalDistributionInput()
+    paramInput = LogNormal.getInputData()()
     paramInput.parseNode(xmlNode)
     self._handleInput(paramInput)
 
@@ -2027,24 +2157,37 @@ class LogNormal(BoostDistribution):
       else:b = self.upperBound
       self._distribution = distribution1D.BasicLogNormalDistribution(self.mean,self.sigma,self.low,a,b)
 
-KParameterInput = InputData.parameterInputFactory("k", contentType=InputData.FloatType)
+DistributionsCollection.addSub(LogNormal.getInputData())
 
-class WeibullDistributionInput(InputData.ParameterInput):
-  """
-    Class for reading in weibull distribution input.
-  """
 
-WeibullDistributionInput.createClass("Weibull", False, baseNode=DistributionInput)
-WeibullDistributionInput.addSub(LambdaParameterInput)
-WeibullDistributionInput.addSub(KParameterInput)
-WeibullDistributionInput.addSub(LowParameterInput)
-
-DistributionsCollection.addSub(WeibullDistributionInput)
 
 class Weibull(BoostDistribution):
   """
     Weibull univariate distribution
   """
+  @staticmethod
+  def getInputData():
+    """
+      Method to get class that stores the input data
+      @ In, None
+      @ Out, CategoricalDistributionInput, InputData.ParameterInput, class to use for input data.
+    """
+    LowParameterInput = InputData.parameterInputFactory("low", contentType=InputData.FloatType)
+    KParameterInput = InputData.parameterInputFactory("k", contentType=InputData.FloatType)
+    LambdaParameterInput = InputData.parameterInputFactory("lambda", contentType=InputData.FloatType)
+
+    class WeibullDistributionInput(InputData.ParameterInput):
+      """
+        Class for reading in weibull distribution input.
+      """
+
+    WeibullDistributionInput.createClass("Weibull", False, baseNode=DistributionInput)
+    WeibullDistributionInput.addSub(LambdaParameterInput)
+    WeibullDistributionInput.addSub(KParameterInput)
+    WeibullDistributionInput.addSub(LowParameterInput)
+
+    return WeibullDistributionInput
+
   def __init__(self):
     """
       Constructor
@@ -2090,7 +2233,7 @@ class Weibull(BoostDistribution):
       @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
       @ Out, None
     """
-    paramInput = WeibullDistributionInput()
+    paramInput = Weibull.getInputData()()
     paramInput.parseNode(xmlNode)
     self._handleInput(paramInput)
 
@@ -2150,30 +2293,41 @@ class Weibull(BoostDistribution):
       else:b = self.upperBound
       self._distribution = distribution1D.BasicWeibullDistribution(self.k,self.lambdaVar,a,b,self.low)
 
-WorkingDirParameterInput = InputData.parameterInputFactory("workingDir", contentType=InputData.StringType)
-FunctionTypeParameterInput = InputData.parameterInputFactory("functionType", contentType=InputData.StringType)
-DataFilenameParameterInput = InputData.parameterInputFactory("dataFilename", contentType=InputData.StringType)
-FunctionIDParameterInput = InputData.parameterInputFactory("functionID", contentType=InputData.StringType)
-VariableIDParameterInput = InputData.parameterInputFactory("variableID", contentType=InputData.StringType)
+DistributionsCollection.addSub(Weibull.getInputData())
 
-class Custom1DDistributionInput(InputData.ParameterInput):
-  """
-    Class for reading in custom 1D distribution input.
-  """
 
-Custom1DDistributionInput.createClass("Custom1D", False, baseNode=DistributionInput)
-Custom1DDistributionInput.addSub(WorkingDirParameterInput)
-Custom1DDistributionInput.addSub(FunctionTypeParameterInput)
-Custom1DDistributionInput.addSub(DataFilenameParameterInput)
-Custom1DDistributionInput.addSub(FunctionIDParameterInput)
-Custom1DDistributionInput.addSub(VariableIDParameterInput)
-
-DistributionsCollection.addSub(Custom1DDistributionInput)
 
 class Custom1D(Distribution):
   """
     Custom1D univariate distribution which is initialized by a dataObject compatible .csv file
   """
+  @staticmethod
+  def getInputData():
+    """
+      Method to get class that stores the input data
+      @ In, None
+      @ Out, Custom1DDistributionInput, InputData.ParameterInput, class to use for input data.
+    """
+    WorkingDirParameterInput = InputData.parameterInputFactory("workingDir", contentType=InputData.StringType)
+    FunctionTypeParameterInput = InputData.parameterInputFactory("functionType", contentType=InputData.StringType)
+    DataFilenameParameterInput = InputData.parameterInputFactory("dataFilename", contentType=InputData.StringType)
+    FunctionIDParameterInput = InputData.parameterInputFactory("functionID", contentType=InputData.StringType)
+    VariableIDParameterInput = InputData.parameterInputFactory("variableID", contentType=InputData.StringType)
+
+    class Custom1DDistributionInput(InputData.ParameterInput):
+      """
+        Class for reading in custom 1D distribution input.
+      """
+
+    Custom1DDistributionInput.createClass("Custom1D", False, baseNode=DistributionInput)
+    Custom1DDistributionInput.addSub(WorkingDirParameterInput)
+    Custom1DDistributionInput.addSub(FunctionTypeParameterInput)
+    Custom1DDistributionInput.addSub(DataFilenameParameterInput)
+    Custom1DDistributionInput.addSub(FunctionIDParameterInput)
+    Custom1DDistributionInput.addSub(VariableIDParameterInput)
+
+    return Custom1DDistributionInput
+
   def __init__(self):
     """
       Constructor
@@ -2195,7 +2349,7 @@ class Custom1D(Distribution):
       @ In, xmlNode, xml.etree.ElementTree.Element, the contents of Custom1D node.
       @ Out, None
     """
-    paramInput = Custom1DDistributionInput()
+    paramInput = Custom1D.getInputData()()
     paramInput.parseNode(xmlNode)
     self._handleInput(paramInput)
 
@@ -2304,26 +2458,37 @@ class Custom1D(Distribution):
     return rvsValue
 
 
-WorkingDirInput = InputData.parameterInputFactory("workingDir", contentType=InputData.StringType)
+DistributionsCollection.addSub(Custom1D.getInputData())
 
-class NDimensionalDistributionInput(InputData.ParameterInput):
-  """
-    Base class for reading N-Dimensional distribution input
-  """
 
-NDimensionalDistributionInput.createClass("NDimensionalDistribution", False,
-                                          baseNode=DistributionInput)
-NDimensionalDistributionInput.addSub(WorkingDirInput)
-#TODO remove this when NDimentionalDistribution inherits from BaseClass
-NDimensionalDistributionInput.addParam("name", InputData.StringType, True)
-
-DistributionsCollection.addSub(NDimensionalDistributionInput)
 
 
 class NDimensionalDistributions(Distribution):
   """
     General base class for NDimensional distributions
   """
+  @staticmethod
+  def getInputData():
+    """
+      Method to get class that stores the input data
+      @ In, None
+      @ Out, NDimentionalDistributionInput, InputData.ParameterInput, class to use for input data.
+    """
+    WorkingDirInput = InputData.parameterInputFactory("workingDir", contentType=InputData.StringType)
+
+    class NDimensionalDistributionInput(InputData.ParameterInput):
+      """
+        Base class for reading N-Dimensional distribution input
+      """
+
+    NDimensionalDistributionInput.createClass("NDimensionalDistribution", False,
+                                              baseNode=DistributionInput)
+    NDimensionalDistributionInput.addSub(WorkingDirInput)
+    #TODO remove this when NDimentionalDistribution inherits from BaseClass
+    NDimensionalDistributionInput.addParam("name", InputData.StringType, True)
+
+    return NDimensionalDistributionInput
+
   def __init__(self):
     """
       Constructor
@@ -2356,7 +2521,7 @@ class NDimensionalDistributions(Distribution):
       @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
       @ Out, None
     """
-    paramInput = NDimensionalDistributionInput()
+    paramInput = NDimensionalDistributions.getInputData()()
     paramInput.parseNode(xmlNode)
     self._handleInput(paramInput)
 
@@ -2416,24 +2581,36 @@ class NDimensionalDistributions(Distribution):
     return value
 
 
-DataFilenameParameterInput = InputData.parameterInputFactory("dataFilename", contentType=InputData.StringType)
-DataFilenameParameterInput.addParam("type", InputData.StringType, True)
+DistributionsCollection.addSub(NDimensionalDistributions.getInputData())
 
-class NDInverseWeightInput(InputData.ParameterInput):
-  """
-    Class for reading in N-D inverse weight input
-  """
 
-NDInverseWeightInput.createClass("NDInverseWeight", False, baseNode=NDimensionalDistributionInput)
-NDInverseWeightInput.addSub(PParameterInput)
-NDInverseWeightInput.addSub(DataFilenameParameterInput)
-
-DistributionsCollection.addSub(NDInverseWeightInput)
 
 class NDInverseWeight(NDimensionalDistributions):
   """
     NDInverseWeight multi-variate distribution (inverse weight interpolation)
   """
+  @staticmethod
+  def getInputData():
+    """
+      Method to get class that stores the input data
+      @ In, None
+      @ Out, NDInverseWeightDistributionInput, InputData.ParameterInput, class to use for input data.
+    """
+    DataFilenameParameterInput = InputData.parameterInputFactory("dataFilename", contentType=InputData.StringType)
+    DataFilenameParameterInput.addParam("type", InputData.StringType, True)
+
+    class NDInverseWeightInput(InputData.ParameterInput):
+      """
+        Class for reading in N-D inverse weight input
+      """
+
+    PParameterInput = InputData.parameterInputFactory("p", contentType=InputData.FloatType)
+    NDInverseWeightInput.createClass("NDInverseWeight", False, baseNode=NDimensionalDistributions.getInputData())
+    NDInverseWeightInput.addSub(PParameterInput)
+    NDInverseWeightInput.addSub(DataFilenameParameterInput)
+
+    return NDInverseWeightInput
+
   def __init__(self):
     """
       Constructor
@@ -2450,7 +2627,7 @@ class NDInverseWeight(NDimensionalDistributions):
       @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
       @ Out, None
     """
-    paramInput = NDInverseWeightInput()
+    paramInput = NDInverseWeight.getInputData()()
     paramInput.parseNode(xmlNode)
     self._handleInput(paramInput)
 
@@ -2606,20 +2783,33 @@ class NDInverseWeight(NDimensionalDistributions):
     rvsValue = self._distribution.inverseCdf(random(),random())
     return rvsValue
 
-class NDCartesianSplineInput(InputData.ParameterInput):
-  """
-    Class for reading in N-D Cartesian Spline distribution input.
-  """
+DistributionsCollection.addSub(NDInverseWeight.getInputData())
 
-NDCartesianSplineInput.createClass("NDCartesianSpline", False, baseNode=NDimensionalDistributionInput)
-NDCartesianSplineInput.addSub(DataFilenameParameterInput)
 
-DistributionsCollection.addSub(NDCartesianSplineInput)
 
 class NDCartesianSpline(NDimensionalDistributions):
   """
     NDCartesianSpline multi-variate distribution (cubic spline interpolation)
   """
+  @staticmethod
+  def getInputData():
+    """
+      Method to get class that stores the input data
+      @ In, None
+      @ Out, NDCartesianSplineDistributionInput, InputData.ParameterInput, class to use for input data.
+    """
+    class NDCartesianSplineInput(InputData.ParameterInput):
+      """
+        Class for reading in N-D Cartesian Spline distribution input.
+      """
+
+    NDCartesianSplineInput.createClass("NDCartesianSpline", False, baseNode=NDimensionalDistributions.getInputData())
+    DataFilenameParameterInput = InputData.parameterInputFactory("dataFilename", contentType=InputData.StringType)
+    DataFilenameParameterInput.addParam("type", InputData.StringType, True)
+    NDCartesianSplineInput.addSub(DataFilenameParameterInput)
+
+    return NDCartesianSplineInput
+
   def __init__(self):
     """
       Constructor
@@ -2635,7 +2825,7 @@ class NDCartesianSpline(NDimensionalDistributions):
       @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
       @ Out, None
     """
-    paramInput = NDCartesianSplineInput()
+    paramInput = NDCartesianSpline.getInputData()()
     paramInput.parseNode(xmlNode)
     self._handleInput(paramInput)
 
@@ -2787,39 +2977,50 @@ class NDCartesianSpline(NDimensionalDistributions):
     rvsValue = self._distribution.inverseCdf(random(),random())
     return rvsValue
 
-MuListParameterInput = InputData.parameterInputFactory("mu", contentType=InputData.StringType)
-CovarianceListParameterInput = InputData.parameterInputFactory("covariance", contentType=InputData.StringType)
-CovarianceListParameterInput.addParam("type", InputData.StringType, False)
-TransformationParameterInput = InputData.parameterInputFactory("transformation")
-RankParameterInput = InputData.parameterInputFactory("rank", contentType=InputData.IntegerType)
-TransformationParameterInput.addSub(RankParameterInput)
+DistributionsCollection.addSub(NDCartesianSpline.getInputData())
 
-class MultivariateNormalInput(InputData.ParameterInput):
-  """
-    Class for reanding in Multivariate normal input
-  """
 
-MultivariateNormalInput.createClass("MultivariateNormal", False)
-class MultivariateMethodType(InputData.EnumBaseType):
-  """
-    A type for the multivariate method
-  """
-
-MultivariateMethodType.createClass("multivariateMethod","multivariateMethodType",["pca","spline"])
-
-MultivariateNormalInput.addParam("method", MultivariateMethodType, True)
-MultivariateNormalInput.addSub(MuListParameterInput)
-MultivariateNormalInput.addSub(CovarianceListParameterInput)
-MultivariateNormalInput.addSub(TransformationParameterInput)
-#TODO Remove this when MultivariateNormalInput inherits from BaseClass
-MultivariateNormalInput.addParam("name", InputData.StringType, True)
-
-DistributionsCollection.addSub(MultivariateNormalInput)
 
 class MultivariateNormal(NDimensionalDistributions):
   """
     MultivariateNormal multi-variate distribution (analytic)
   """
+  @staticmethod
+  def getInputData():
+    """
+      Method to get class that stores the input data
+      @ In, None
+      @ Out, MultivariateNormalDistributionInput, InputData.ParameterInput, class to use for input data.
+    """
+    MuListParameterInput = InputData.parameterInputFactory("mu", contentType=InputData.StringType)
+    CovarianceListParameterInput = InputData.parameterInputFactory("covariance", contentType=InputData.StringType)
+    CovarianceListParameterInput.addParam("type", InputData.StringType, False)
+    TransformationParameterInput = InputData.parameterInputFactory("transformation")
+    RankParameterInput = InputData.parameterInputFactory("rank", contentType=InputData.IntegerType)
+    TransformationParameterInput.addSub(RankParameterInput)
+
+    class MultivariateNormalInput(InputData.ParameterInput):
+      """
+        Class for reanding in Multivariate normal input
+      """
+
+    MultivariateNormalInput.createClass("MultivariateNormal", False)
+    class MultivariateMethodType(InputData.EnumBaseType):
+      """
+        A type for the multivariate method
+      """
+
+    MultivariateMethodType.createClass("multivariateMethod","multivariateMethodType",["pca","spline"])
+
+    MultivariateNormalInput.addParam("method", MultivariateMethodType, True)
+    MultivariateNormalInput.addSub(MuListParameterInput)
+    MultivariateNormalInput.addSub(CovarianceListParameterInput)
+    MultivariateNormalInput.addSub(TransformationParameterInput)
+    #TODO Remove this when MultivariateNormalInput inherits from BaseClass
+    MultivariateNormalInput.addParam("name", InputData.StringType, True)
+
+    return MultivariateNormalInput
+
   def __init__(self):
     """
       Constructor
@@ -2845,7 +3046,7 @@ class MultivariateNormal(NDimensionalDistributions):
       @ Out, None
     """
     #NDimensionalDistributions._readMoreXML(self, xmlNode)
-    paramInput = MultivariateNormalInput()
+    paramInput = MultivariateNormal.getInputData()()
     paramInput.parseNode(xmlNode)
     self._handleInput(paramInput)
 
@@ -3187,6 +3388,8 @@ class MultivariateNormal(NDimensionalDistributions):
     else:
       self.raiseAnError(NotImplementedError,'rvs is not yet implemented for ' + self.method + ' method')
     return rvsValue
+
+DistributionsCollection.addSub(MultivariateNormal.getInputData())
 
 __base                                = 'Distribution'
 __interFaceDict                       = {}
