@@ -103,7 +103,6 @@ class HistorySetSampling(PostProcessorInterfaceBase):
       @ In, vars, dict, data set that contained the information of the multi-variate temporal function (this is supposed to be a dictionary:
                       {'pivotParameter':time_array, 'var1':var1_array, ..., 'varn':varn_array})
       @ Out, newVars, dict, data set that is a sampled version of vars
-
     """
 
     localPivotParameter = vars[self.pivotParameter]
