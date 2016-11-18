@@ -1498,30 +1498,39 @@ class Bernoulli(BoostDistribution):
       self._distribution = distribution1D.BasicBernoulliDistribution(self.p)
     else:  self.raiseAnError(IOError,'Truncated Bernoulli not yet implemented')
 
-class StatePartInput(InputData.ParameterInput):
-  """
-    Class for reading the state part of a categorical distribution.
-  """
-
-StatePartInput.createClass("state", contentType=InputData.FloatType)
-StatePartInput.addParam("outcome", InputData.FloatType, True)
-
-class CategoricalDistributionInput(InputData.ParameterInput):
-  """
-    Class for reading in a Categorical distribution
-  """
-
-CategoricalDistributionInput.createClass("Categorical", True)
-CategoricalDistributionInput.addSub(StatePartInput, InputData.Quantity.one_to_infinity)
-CategoricalDistributionInput.addParam("name", InputData.StringType, True)
-
-DistributionsCollection.addSub(CategoricalDistributionInput)
 
 class Categorical(Distribution):
   """
     Class for the categorical distribution also called " generalized Bernoulli distribution"
     Note: this distribution can have only numerical (float) outcome; in the future we might want to include also the possibility to give symbolic outcome
   """
+
+  @staticmethod
+  def getInputData():
+    """
+      Method to get class that stores the input data
+      @ In, None
+      @ Out, CategoricalDistributionInput, InputData.ParameterInput, class to use for input data.
+    """
+    class StatePartInput(InputData.ParameterInput):
+      """
+        Class for reading the state part of a categorical distribution.
+      """
+
+    StatePartInput.createClass("state", contentType=InputData.FloatType)
+    StatePartInput.addParam("outcome", InputData.FloatType, True)
+
+    class CategoricalDistributionInput(InputData.ParameterInput):
+      """
+        Class for reading in a Categorical distribution
+      """
+
+    CategoricalDistributionInput.createClass("Categorical", True)
+    CategoricalDistributionInput.addSub(StatePartInput, InputData.Quantity.one_to_infinity)
+    CategoricalDistributionInput.addParam("name", InputData.StringType, True)
+
+    return CategoricalDistributionInput
+
 
   def __init__(self):
     """
@@ -1544,7 +1553,7 @@ class Categorical(Distribution):
     """
     #Distribution._readMoreXML(self, xmlNode)
 
-    paramInput = CategoricalDistributionInput()
+    paramInput = Categorical.getInputData()()
     paramInput.parseNode(xmlNode)
     self._handleInput(paramInput)
 
@@ -1638,24 +1647,36 @@ class Categorical(Distribution):
     rvsValue = self.ppf(random())
     return rvsValue
 
-LocationParameterInput = InputData.parameterInputFactory("location", contentType=InputData.FloatType)
-ScaleParameterInput = InputData.parameterInputFactory("scale", contentType=InputData.FloatType)
+DistributionsCollection.addSub(Categorical.getInputData())
 
-class LogisticDistributionInput(InputData.ParameterInput):
-  """
-    Class for reading in logistic distribution input
-  """
 
-LogisticDistributionInput.createClass("Logistic", False, baseNode=DistributionInput)
-LogisticDistributionInput.addSub(LocationParameterInput)
-LogisticDistributionInput.addSub(ScaleParameterInput)
-
-DistributionsCollection.addSub(LogisticDistributionInput)
 
 class Logistic(BoostDistribution):
   """
     Logistic univariate distribution
   """
+
+  @staticmethod
+  def getInputData():
+    """
+      Method to get class that stores the input data
+      @ In, None
+      @ Out, LogisticDistributionInput, InputData.ParameterInput, class to use for input data.
+    """
+    LocationParameterInput = InputData.parameterInputFactory("location", contentType=InputData.FloatType)
+    ScaleParameterInput = InputData.parameterInputFactory("scale", contentType=InputData.FloatType)
+
+    class LogisticDistributionInput(InputData.ParameterInput):
+      """
+        Class for reading in logistic distribution input
+      """
+
+    LogisticDistributionInput.createClass("Logistic", False, baseNode=DistributionInput)
+    LogisticDistributionInput.addSub(LocationParameterInput)
+    LogisticDistributionInput.addSub(ScaleParameterInput)
+
+    return LogisticDistributionInput
+
   def __init__(self):
     """
       Constructor
@@ -1699,7 +1720,7 @@ class Logistic(BoostDistribution):
       @ In, xmlNode, xml.etree.ElementTree.Element, the contents of MultivariateNormal node.
       @ Out, None
     """
-    paramInput = LogisticDistributionInput()
+    paramInput = Logistic.getInputData()()
     paramInput.parseNode(xmlNode)
     self._handleInput(paramInput)
 
@@ -1745,6 +1766,8 @@ class Logistic(BoostDistribution):
       if self.upperBoundUsed == False: b = sys.float_info.max
       else:b = self.upperBound
       self._distribution = distribution1D.BasicLogisticDistribution(self.location,self.scale,a,b)
+
+DistributionsCollection.addSub(Logistic.getInputData())
 
 LambdaParameterInput = InputData.parameterInputFactory("lambda", contentType=InputData.FloatType)
 
