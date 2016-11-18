@@ -98,9 +98,11 @@ class HistorySetSampling(PostProcessorInterfaceBase):
     return outputDic
 
   def varsTimeInterp(self, vars):
-    """ This function sample a multi-variate temporal function
-    vars        : data set that contained the information of the multi-variate temporal function (this is supposed to be a dictionary:
-                  {'pivotParameter':time_array, 'var1':var1_array, ..., 'varn':varn_array})
+    """
+      This function sample a multi-variate temporal function
+      @ In, vars, dict, data set that contained the information of the multi-variate temporal function (this is supposed to be a dictionary:
+                      {'pivotParameter':time_array, 'var1':var1_array, ..., 'varn':varn_array})
+      @ Out, newVars, dict, data set that is a sampled version of vars
 
     """
 
@@ -126,7 +128,7 @@ class HistorySetSampling(PostProcessorInterfaceBase):
       else:
         if self.interpolation == 'intervalAverage':
           newVars[key] = np.zeros(shape=newTime.shape)
-          deltaT = newTime[1]-newTime[0] if len(newTime) > 1 else t_max
+          deltaT = newTime[1]-newTime[0] if len(newTime) > 1 else tMax
           for tIdx in range(len(newTime)):
             t = newTime[tIdx]
             extractCondition = (localPivotParameter>=t) * (localPivotParameter<=t+deltaT)
@@ -140,8 +142,12 @@ class HistorySetSampling(PostProcessorInterfaceBase):
 
 
   def derivativeTimeValues(self, var):
-    t_min=self.pivotParameter[0]
-    t_max=self.pivotParameter[-1]
+    """
+      This function computes the new temporal variable
+      @ In, vars, dict, data set that contained the information of the multi-variate temporal function (this is supposed to be a dictionary:
+                      {'pivotParameter':time_array, 'var1':var1_array, ..., 'varn':varn_array})
+      @ Out, newTime, list, values of the new temporal variable
+    """
 
     newTime = np.zeros(self.numberOfSamples)
     cumDerivative = np.zeros(var[self.pivotParameter].size)
