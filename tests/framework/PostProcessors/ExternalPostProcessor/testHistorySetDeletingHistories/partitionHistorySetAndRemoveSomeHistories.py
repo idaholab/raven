@@ -19,9 +19,9 @@ def time(self):
       x0.append(self.x0[history])
       y0.append(self.y0[history])
       z0.append(self.z0[history])
-  self.x0 = x0 
-  self.y0 = y0 
-  self.z0 = z0     
+  self.x0 = x0
+  self.y0 = y0
+  self.z0 = z0
   return newTime
 
 def x(self):

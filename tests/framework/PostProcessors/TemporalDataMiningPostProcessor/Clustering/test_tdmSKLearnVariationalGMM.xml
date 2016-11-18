@@ -32,10 +32,11 @@
       <sigma>0.01</sigma>
     </Normal>
   </Distributions>
+
   <Samplers>
     <MonteCarlo name="useless">
       <samplerInit>
-         <limit>100</limit>
+        <limit>100</limit>
       </samplerInit>
       <variable name="cluster">
         <distribution>cluster</distribution>
@@ -52,23 +53,22 @@
       <variable name="ddy">
         <distribution>ddy</distribution>
       </variable>
-     </MonteCarlo>
-   </Samplers>
+    </MonteCarlo>
+  </Samplers>
 
   <Models>
     <ExternalModel ModuleToLoad="../ClusterMoveData/data_generator" name="DataGeneratorModel" subType="">
       <variables>cluster,dx,dy,ddx,ddy,Time,x,y</variables>
     </ExternalModel>
-    <PostProcessor name='VBGMM1' subType='DataMining'>
-      <KDD lib='SciKitLearn' labelFeature='labels'>
+    <PostProcessor name="VBGMM1" subType="DataMining">
+      <KDD labelFeature="labels" lib="SciKitLearn">
         <SKLtype>mixture|VBGMM</SKLtype>
         <Features>x,y</Features>
-        <covariance_type>diag</covariance_type>
+        <covariance_type>full</covariance_type>
         <random_state>0</random_state>
-        <n_components>3</n_components>
+        <n_components>2</n_components>
         <n_iter>10000</n_iter>
         <alpha>1</alpha>
-        <reOrderStep>10</reOrderStep>
       </KDD>
       <pivotParameter>Time</pivotParameter>
     </PostProcessor>
@@ -79,39 +79,36 @@
       <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
       <Model class="Models" type="ExternalModel">DataGeneratorModel</Model>
       <Sampler class="Samplers" type="MonteCarlo">useless</Sampler>
-      <Output class='DataObjects' type='HistorySet'>mData</Output>
+      <Output class="DataObjects" type="HistorySet">mData</Output>
     </MultiRun>
-
-    <PostProcess name='pp1' pauseAtEnd='True'>
-      <Input          class='DataObjects' type='HistorySet'   >mData</Input>
-      <Model          class='Models'      type='PostProcessor'>VBGMM1</Model>
-      <SolutionExport class="DataObjects" type="HistorySet"   >clusterInfo</SolutionExport>
-      <Output         class='DataObjects' type='HistorySet'   >mData</Output>
-      <Output         class='OutStreams'  type='Print'        >dummy</Output>
+    <PostProcess name="pp1" pauseAtEnd="True">
+      <Input class="DataObjects" type="HistorySet">mData</Input>
+      <Model class="Models" type="PostProcessor">VBGMM1</Model>
+      <SolutionExport class="DataObjects" type="HistorySet">clusterInfo</SolutionExport>
+      <Output class="DataObjects" type="HistorySet">mData</Output>
+      <Output class="OutStreams" type="Print">dummy</Output>
     </PostProcess>
-
-    <IOStep name='writeOut' pauseAtEnd='True'>
-      <Input  class='DataObjects' type='HistorySet'>mData</Input>
-      <Input  class='DataObjects' type='HistorySet'>clusterInfo</Input>
-      <Output class='OutStreams'  type='Plot'      >plotRawData</Output>
-      <Output class='OutStreams'  type='Plot'      >plotPPDataLabel</Output>
-      <Output class='OutStreams'  type='Plot'      >plotPPDataCentroid</Output>
-      <Output class='OutStreams'  type='Print'     >centroid</Output>
+    <IOStep name="writeOut" pauseAtEnd="True">
+      <Input class="DataObjects" type="HistorySet">mData</Input>
+      <Input class="DataObjects" type="HistorySet">clusterInfo</Input>
+      <Output class="OutStreams" type="Plot">plotRawData</Output>
+      <Output class="OutStreams" type="Plot">plotPPDataLabel</Output>
+      <Output class="OutStreams" type="Plot">plotPPDataCentroid</Output>
+      <Output class="OutStreams" type="Print">centroid</Output>
     </IOStep>
-
   </Steps>
+
   <OutStreams>
-    <Print name='dummy'>
+    <Print name="dummy">
       <type>csv</type>
       <source>mData</source>
     </Print>
-
-    <Print name='centroid'>
+    <Print name="centroid">
       <type>csv</type>
       <source>clusterInfo</source>
     </Print>
 
-    <Plot dim="2" name="plotRawData" overwrite="True" >
+    <Plot  name="plotRawData" overwrite="True" >
       <plotSettings>
         <gridSpace>2 1</gridSpace>
         <plot>
@@ -143,7 +140,7 @@
         <how>png</how>
       </actions>
     </Plot>
-    <Plot dim="2" name="plotPPDataLabel" overwrite="True" >
+    <Plot  name="plotPPDataLabel" overwrite="True" >
       <plotSettings>
         <plot>
           <type>line</type>
@@ -157,7 +154,7 @@
       </actions>
     </Plot>
 
-    <Plot dim="2" name="plotPPDataCentroid" overwrite="True" >
+    <Plot  name="plotPPDataCentroid" overwrite="True" >
       <plotSettings>
         <gridSpace>2 1</gridSpace>
         <plot>
@@ -196,7 +193,7 @@
       <Input>cluster,dx,dy,ddx,ddy</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
-    <HistorySet name='clusterInfo'>
+    <HistorySet name="clusterInfo">
       <Input>labels</Input>
       <Output>Time,x,y</Output>
     </HistorySet>
@@ -205,4 +202,5 @@
       <Output>Time,x,y</Output>
     </HistorySet>
   </DataObjects>
+
 </Simulation>

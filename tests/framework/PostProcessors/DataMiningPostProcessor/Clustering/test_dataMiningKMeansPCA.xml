@@ -41,7 +41,7 @@
 
   <Models>
     <PostProcessor name="KMeans1" subType="DataMining">
-      <KDD lib="SciKitLearn">
+      <KDD lib="SciKitLearn" labelFeature='labels'>
         <SKLtype>cluster|KMeans</SKLtype>
         <Features>output</Features>
         <n_clusters>3</n_clusters>
@@ -49,6 +49,7 @@
         <random_state>1</random_state>
         <init>k-means++</init>
         <precompute_distances>True</precompute_distances>
+        <random_state>0</random_state>
       </KDD>
     </PostProcessor>
     <PostProcessor name="PCA1" subType="DataMining">
@@ -65,7 +66,7 @@
       <type>csv</type>
       <source>bisonData</source>
     </Print>
-    <Plot dim="3" name="PlotKMeans1" verbosity="debug">
+    <Plot   name="PlotKMeans1" verbosity="debug">
       <plotSettings>
         <plot>
           <type>dataMining</type>
@@ -74,7 +75,7 @@
           <y>bisonData|Input|grainradius_scalef</y>
           <z>bisonData|Input|thermal_expansion</z>
           <noClusters>3</noClusters>
-          <clusterLabels>bisonData|Output|KMeans1Labels</clusterLabels>
+          <clusterLabels>bisonData|Output|labels</clusterLabels>
           <kwargs/>
         </plot>
         <xlabel>Power Scaling Factor</xlabel>
@@ -89,7 +90,7 @@
         </labelFormat>
       </actions>
     </Plot>
-    <Plot dim="2" name="PlotPCA1" overwrite="false" verbosity="debug">
+    <Plot  name="PlotPCA1" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>dataMining</type>
@@ -97,9 +98,8 @@
           <x>bisonData|Output|PCA1PCAComponent1</x>
           <y>bisonData|Output|PCA1PCAComponent2</y>
           <noClusters>3</noClusters>
-          <clusterLabels>bisonData|Output|KMeans1Labels</clusterLabels>
-          <kwargs>
-                    </kwargs>
+          <clusterLabels>bisonData|Output|labels</clusterLabels>
+          <kwargs></kwargs>
         </plot>
         <xlabel>PCAComponent1</xlabel>
         <ylabel>PCAComponent2</ylabel>
@@ -108,7 +108,7 @@
         <how>png</how>
       </actions>
     </Plot>
-    <Plot dim="2" name="PlotAll" overwrite="false" verbosity="debug">
+    <Plot  name="PlotAll" overwrite="false" verbosity="debug">
       <plotSettings>
         <gridSpace>5 1</gridSpace>
         <plot>
@@ -117,10 +117,9 @@
           <x>bisonData|Input|power_scalef</x>
           <y>bisonData|Output|midplane_vonmises_stress</y>
           <xlabel>Power Scaling Factor</xlabel>
-          <ylabel>Midplane Von Mises
-Stress</ylabel>
+          <ylabel>Midplane Von MisesStress</ylabel>
           <noClusters>3</noClusters>
-          <clusterLabels>bisonData|Output|KMeans1Labels</clusterLabels>
+          <clusterLabels>bisonData|Output|labels</clusterLabels>
           <gridLocation>
             <x>0</x>
             <y>0 1</y>
@@ -135,10 +134,9 @@ Stress</ylabel>
           <x>bisonData|Input|grainradius_scalef</x>
           <y>bisonData|Output|midplane_vonmises_stress</y>
           <xlabel>Grain Radius Factor</xlabel>
-          <ylabel>Midplane Von Mises
-Stress</ylabel>
+          <ylabel>Midplane Von Mises Stress</ylabel>
           <noClusters>3</noClusters>
-          <clusterLabels>bisonData|Output|KMeans1Labels</clusterLabels>
+          <clusterLabels>bisonData|Output|labels</clusterLabels>
           <gridLocation>
             <x>2</x>
             <y>0 1</y>
@@ -153,10 +151,9 @@ Stress</ylabel>
           <x>bisonData|Input|thermal_expansion</x>
           <y>bisonData|Output|midplane_vonmises_stress</y>
           <xlabel>Thermal Expansion Factor</xlabel>
-          <ylabel>Midplane Von Mises
-Stress</ylabel>
+          <ylabel>Midplane Von Mises Stress</ylabel>
           <noClusters>3</noClusters>
-          <clusterLabels>bisonData|Output|KMeans1Labels</clusterLabels>
+          <clusterLabels>bisonData|Output|labels</clusterLabels>
           <gridLocation>
             <x>4</x>
             <y>0 1</y>

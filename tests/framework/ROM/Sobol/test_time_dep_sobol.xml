@@ -1,23 +1,26 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="debug">
+<Simulation verbosity="all">
   <RunInfo>
     <WorkingDir>SobolTime</WorkingDir>
-    <Sequence>sample,train,print</Sequence>
+    <Sequence>sample,train,dump,print</Sequence>
     <batchSize>1</batchSize>
-    <internalParallel>True</internalParallel>
   </RunInfo>
 
   <Files>
-    <Input name="lorentzAttractor.py" type="">lorentzAttractor.py</Input>
+    <Input name="rom_pk" type="">rom.pk</Input>
   </Files>
 
   <Steps>
     <MultiRun name="sample">
       <Input class="DataObjects" type="PointSet">dummyIN</Input>
-      <Model class="Models" type="ExternalModel">lorentz</Model>
+      <Model class="Models" type="ExternalModel">proj</Model>
       <Sampler class="Samplers" type="SparseGridCollocation">samp</Sampler>
       <Output class="DataObjects" type="HistorySet">trainset</Output>
     </MultiRun>
+    <IOStep name="dump">
+      <Input class="Models" type="ROM">rom</Input>
+      <Output class="Files" type="">rom_pk</Output>
+    </IOStep>
     <IOStep name="print">
       <Input class="DataObjects" type="HistorySet">trainset</Input>
       <Input class="Models" type="ROM">rom</Input>
@@ -31,30 +34,26 @@
   </Steps>
 
   <Models>
-    <ExternalModel ModuleToLoad="../../externalModel/lorentzAttractor" name="lorentz" subType="">
-      <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0</variables>
+    <ExternalModel ModuleToLoad="../../AnalyticModels/projectile" name="proj" subType="">
+      <variables>x0,y0,time,r,x,y</variables>
     </ExternalModel>
     <ROM name="rom" subType="HDMRRom">
-      <SobolOrder>2</SobolOrder>
-      <Features>x0,y0,z0</Features>
-      <Target>time,x,y,z</Target>
+      <SobolOrder>1</SobolOrder>
+      <Features>x0,y0</Features>
+      <Target>time,x,y,r</Target>
       <IndexSet>TotalDegree</IndexSet>
-      <PolynomialOrder>1</PolynomialOrder>
+      <PolynomialOrder>2</PolynomialOrder>
     </ROM>
   </Models>
 
   <Distributions>
     <Normal name="x0_distrib">
-      <mean>4</mean>
+      <mean>0</mean>
       <sigma>1</sigma>
     </Normal>
     <Normal name="y0_distrib">
-      <mean>4</mean>
-      <sigma>1</sigma>
-    </Normal>
-    <Normal name="z0_distrib">
-      <mean>4</mean>
-      <sigma>1</sigma>
+      <mean>1</mean>
+      <sigma>0.2</sigma>
     </Normal>
   </Distributions>
 
@@ -65,9 +64,6 @@
       </variable>
       <variable name="y0">
         <distribution>y0_distrib</distribution>
-      </variable>
-      <variable name="z0">
-        <distribution>z0_distrib</distribution>
       </variable>
       <ROM class="Models" type="ROM">rom</ROM>
     </Sobol>
@@ -87,12 +83,12 @@
 
   <DataObjects>
     <PointSet name="dummyIN">
-      <Input>x0,y0,z0</Input>
+      <Input>x0,y0</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <HistorySet name="trainset">
-      <Input>x0,y0,z0</Input>
-      <Output>time,x,y,z</Output>
+      <Input>x0,y0</Input>
+      <Output>time,x,y,r</Output>
     </HistorySet>
   </DataObjects>
 

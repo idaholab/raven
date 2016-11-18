@@ -1,49 +1,51 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
-
   <RunInfo>
     <WorkingDir>custom1D/</WorkingDir>
-    <!--<Sequence>fileGen2,fileGen3</Sequence>  Use this sequence only to generate the data that is going to be used to initialize the 1D custom distribution -->
-    <Sequence>MRun2,plot2,MRun3,plot3</Sequence> 
+    <!--
+      <Sequence>fileGen2,fileGen3</Sequence>
+        Use this sequence only to generate the data that is going to be used to initialize the 1D custom distribution
+    -->
+    <Sequence>MRun2,plot2,MRun3,plot3</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
-  <Steps>   
-    <MultiRun name="fileGen2"> 
-      <Input   class="DataObjects" type="PointSet"      >inputPlaceHolder</Input>
-      <Model   class="Models"      type="ExternalModel" >PythonModule2</Model>
-      <Sampler class="Samplers"    type="Grid"          >Grid2</Sampler>
-      <Output  class="DataObjects" type="PointSet"      >PointSetFile2</Output>
-      <Output  class="OutStreams"  type="Print"         >PointSetFile2_dump</Output>
+  <Steps>
+    <MultiRun name="fileGen2">
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
+      <Model class="Models" type="ExternalModel">PythonModule2</Model>
+      <Sampler class="Samplers" type="Grid">Grid2</Sampler>
+      <Output class="DataObjects" type="PointSet">PointSetFile2</Output>
+      <Output class="OutStreams" type="Print">PointSetFile2_dump</Output>
     </MultiRun>
-    <MultiRun name="fileGen3"> 
-      <Input   class="DataObjects" type="PointSet"      >inputPlaceHolder</Input>
-      <Model   class="Models"      type="ExternalModel" >PythonModule3</Model>
-      <Sampler class="Samplers"    type="Grid"          >Grid3</Sampler>
-      <Output  class="DataObjects" type="PointSet"      >PointSetFile3</Output>
-      <Output  class="OutStreams"  type="Print"         >PointSetFile3_dump</Output>
+    <MultiRun name="fileGen3">
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
+      <Model class="Models" type="ExternalModel">PythonModule3</Model>
+      <Sampler class="Samplers" type="Grid">Grid3</Sampler>
+      <Output class="DataObjects" type="PointSet">PointSetFile3</Output>
+      <Output class="OutStreams" type="Print">PointSetFile3_dump</Output>
     </MultiRun>
-    <MultiRun name="MRun2"> 
-      <Input   class="DataObjects" type="PointSet"      >inputPlaceHolder</Input>
-      <Model   class="Models"      type="ExternalModel" >PythonModule</Model>
-      <Sampler class="Samplers"    type="MonteCarlo"    >my_MC2</Sampler>
-      <Output  class="DataObjects" type="PointSet"      >PointSet2</Output>
-      <Output  class="OutStreams"  type="Print"         >PointSet2_dump</Output>
+    <MultiRun name="MRun2">
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
+      <Model class="Models" type="ExternalModel">PythonModule</Model>
+      <Sampler class="Samplers" type="MonteCarlo">my_MC2</Sampler>
+      <Output class="DataObjects" type="PointSet">PointSet2</Output>
+      <Output class="OutStreams" type="Print">PointSet2_dump</Output>
     </MultiRun>
     <IOStep name="plot2" pauseAtEnd="false">
-      <Input   class="DataObjects" type="PointSet"      >PointSet2</Input>
-      <Output  class="OutStreams"  type="Plot"          >plot2</Output>
+      <Input class="DataObjects" type="PointSet">PointSet2</Input>
+      <Output class="OutStreams" type="Plot">plot2</Output>
     </IOStep>
-    <MultiRun name="MRun3"> 
-      <Input   class="DataObjects" type="PointSet"      >inputPlaceHolder</Input>
-      <Model   class="Models"      type="ExternalModel" >PythonModule</Model>
-      <Sampler class="Samplers"    type="MonteCarlo"    >my_MC3</Sampler>
-      <Output  class="DataObjects" type="PointSet"      >PointSet3</Output>
-      <Output  class="OutStreams"  type="Print"         >PointSet3_dump</Output>
+    <MultiRun name="MRun3">
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
+      <Model class="Models" type="ExternalModel">PythonModule</Model>
+      <Sampler class="Samplers" type="MonteCarlo">my_MC3</Sampler>
+      <Output class="DataObjects" type="PointSet">PointSet3</Output>
+      <Output class="OutStreams" type="Print">PointSet3_dump</Output>
     </MultiRun>
     <IOStep name="plot3" pauseAtEnd="false">
-      <Input   class="DataObjects" type="PointSet"      >PointSet3</Input>
-      <Output  class="OutStreams"  type="Plot"          >plot3</Output>
+      <Input class="DataObjects" type="PointSet">PointSet3</Input>
+      <Output class="OutStreams" type="Plot">plot3</Output>
     </IOStep>
   </Steps>
 
@@ -64,7 +66,7 @@
       <mean>0</mean>
       <sigma>1</sigma>
     </Normal>
-    <Exponential name='x_dist3'>
+    <Exponential name="x_dist3">
       <lambda>2.0</lambda>
     </Exponential>
     <Custom1D name="pdf_custom">
@@ -133,7 +135,7 @@
       <type>csv</type>
       <source>PointSet3</source>
     </Print>
-    <Plot dim="2" name="plot2" overwrite="false" verbosity="debug">
+    <Plot  name="plot2" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>histogram</type>
@@ -146,7 +148,7 @@
         <how>pdf</how>
       </actions>
     </Plot>
-    <Plot dim="2" name="plot3" overwrite="false" verbosity="debug">
+    <Plot  name="plot3" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>histogram</type>

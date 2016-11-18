@@ -145,6 +145,8 @@ class PointSet(Data):
       @ Out, None
       NB. This method, if the metadata name is already present, replaces it with the new value. No appending here, since the metadata are dishomogenius and a common updating strategy is not feasable.
     """
+    valueType = type(value) if type(value).__name__ not in ['str','unicode','bytes'] else object
+
     if options and self._dataParameters['hierarchical']:
       # we retrieve the node in which the specialized 'Point' has been stored
       parentID = None
@@ -163,11 +165,11 @@ class PointSet(Data):
       else:
         if 'metadata' not in self._dataContainer.keys(): self._dataContainer['metadata'] ={}
       if name in self._dataContainer['metadata'].keys(): self._dataContainer['metadata'][name].append(np.atleast_1d(value)) # = np.concatenate((self._dataContainer['metadata'][name],np.atleast_1d(value)))
-      else                                             : self._dataContainer['metadata'][name] = c1darray(values=np.atleast_1d(value),dtype=type(value))
+      else                                             : self._dataContainer['metadata'][name] = c1darray(values=np.atleast_1d(np.array(value,dtype=valueType)))
       self.addNodeInTreeMode(tsnode,options)
     else:
       if name in self._dataContainer['metadata'].keys(): self._dataContainer['metadata'][name].append(np.atleast_1d(value)) # = np.concatenate((self._dataContainer['metadata'][name],np.atleast_1d(value)))
-      else                                             : self._dataContainer['metadata'][name] = c1darray(values=np.atleast_1d(value),dtype=type(value))
+      else                                             : self._dataContainer['metadata'][name] = c1darray(values=np.atleast_1d(np.array(value,dtype=valueType)))
 
   def _updateSpecializedOutputValue(self,name,value,options=None):
     """
@@ -303,10 +305,10 @@ class PointSet(Data):
             inpKeys.append(variableName)
             inpValues.append(self._dataContainer['metadata'][variableName])
       else:
-        inpKeys   = self._dataContainer['inputs'].keys()
-        inpValues = self._dataContainer['inputs'].values()
-        outKeys   = self._dataContainer['outputs'].keys()
-        outValues = self._dataContainer['outputs'].values()
+        inpKeys   = self._dataContainer['inputs'].keys()   # sorted(self._dataContainer['inputs'].keys())
+        inpValues = self._dataContainer['inputs'].values() #[self._dataContainer['inputs'][key] for key in inpKeys]
+        outKeys   = self._dataContainer['outputs'].keys() # sorted(self._dataContainer['outputs'].keys())
+        outValues = self._dataContainer['outputs'].values() # [self._dataContainer['outputs'][key] for key in outKeys]
       if len(inpKeys) > 0 or len(outKeys) > 0: myFile = open(filenameLocal + '.csv', 'w')
       else: return
 

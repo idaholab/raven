@@ -9,7 +9,7 @@
   <Models>
     <Dummy name="MyDummy" subType=""/>
   </Models>
-  
+
   <Files>
     <Input name="samples.csv" type="">samples.csv</Input>
     <Input name="pointset">../CustomSamplerFromFile/outCustomSampler_dump.csv</Input>
@@ -17,7 +17,7 @@
 
   <Samplers>
     <CustomSampler name="customSamplerDataObject">
-      <Source   class="DataObjects"  type="PointSet">outCustomSamplerFromFile</Source>
+      <Source class="DataObjects" type="PointSet">outCustomSamplerFromFile</Source>
       <variable name="x"/>
       <variable name="y"/>
       <variable name="z"/>
@@ -30,8 +30,8 @@
       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="outCustomSamplerFromFile">
-        <Input>x,y,z</Input>
-        <Output>OutputPlaceHolder</Output>
+      <Input>x,y,z</Input>
+      <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="dummyIN">
       <Input>x,y,z</Input>
@@ -47,17 +47,17 @@
   </OutStreams>
 
   <Steps>
-      <IOStep name="loadDataSet">
-          <Input class="Files" type="">pointset</Input>
-          <Output class="DataObjects" type="PointSet">outCustomSamplerFromFile</Output>
-      </IOStep>
+    <IOStep name="loadDataSet">
+      <Input class="Files" type="">pointset</Input>
+      <Output class="DataObjects" type="PointSet">outCustomSamplerFromFile</Output>
+    </IOStep>
     <MultiRun name="CustomSampler">
-      <Input   class="DataObjects"  type="PointSet">dummyIN</Input>
-      <Model   class="Models"       type="Dummy">MyDummy</Model>
-      <Sampler class="Samplers"     type="CustomSampler">customSamplerDataObject</Sampler>
-      <Output  class="DataObjects"  type="PointSet">outCustomSampler</Output>
-      <Output  class="Databases"    type="HDF5">test_DummyModel_db</Output>
-      <Output  class="OutStreams"   type="Print">outCustomSampler_dump</Output>
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="Dummy">MyDummy</Model>
+      <Sampler class="Samplers" type="CustomSampler">customSamplerDataObject</Sampler>
+      <Output class="DataObjects" type="PointSet">outCustomSampler</Output>
+      <Output class="Databases" type="HDF5">test_DummyModel_db</Output>
+      <Output class="OutStreams" type="Print">outCustomSampler_dump</Output>
     </MultiRun>
   </Steps>
 

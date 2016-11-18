@@ -72,7 +72,7 @@ class RavenPython(Tester):
     if len(missing) > 0:
       return (False,'skipped (Missing python modules: '+" ".join(missing)+
               " PYTHONPATH="+os.environ.get("PYTHONPATH","")+')')
-    if len(too_old) > 0:
+    if len(too_old) > 0 and RavenUtils.checkVersions():
       return (False,'skipped (Old version python modules: '+" ".join(too_old)+
               " PYTHONPATH="+os.environ.get("PYTHONPATH","")+')')
     for lib in self.required_libraries:

@@ -1,33 +1,27 @@
 <?xml version="1.0" ?>
 <BasicStatisticsPP type="Static">
-  <x>
-    <variationCoefficient>0.176795081939</variationCoefficient>
-    <expectedValue>2.97812816676</expectedValue>
-  </x>
+  <y0>
+    <variationCoefficient>0.0113128983744</variationCoefficient>
+  </y0>
 
   <y>
     <variationCoefficient>0.0112455433226</variationCoefficient>
-    <expectedValue>99.0441839612</expectedValue>
   </y>
 
-  <y0>
-    <variationCoefficient>0.0113128983744</variationCoefficient>
-    <expectedValue>99.886193474</expectedValue>
-  </y0>
+  <x>
+    <variationCoefficient>0.176795081939</variationCoefficient>
+  </x>
 
   <x0>
     <variationCoefficient>inf</variationCoefficient>
-    <expectedValue>0.0</expectedValue>
   </x0>
 
   <z>
     <variationCoefficient>0.156545224383</variationCoefficient>
-    <expectedValue>7.71590954402</expectedValue>
   </z>
 
   <z0>
     <variationCoefficient>0.150734289937</variationCoefficient>
-    <expectedValue>3.81535976845</expectedValue>
   </z0>
 
 </BasicStatisticsPP>

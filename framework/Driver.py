@@ -75,7 +75,7 @@ def checkVersions():
       print(error)
     sys.exit(-4)
   else:
-    if len(notQA) > 0:
+    if len(missing) + len(outOfRange) > 0:
       print("WARNING: not using tested versions of the libraries:")
       for warning in notQA + missing + outOfRange:
         print(warning)

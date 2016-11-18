@@ -10,7 +10,18 @@
     type  = 'RavenFramework'
     input = 'test_time_dep_scgpc.xml'
     output = 'scgpc/train_data.xml'
-    csv = 'scgpc/train_data_0.csv scgpc/train_data_1.csv scgpc/train_data_2.csv scgpc/train_data_3.csv scgpc/train_data_4.csv scgpc/train_data_5.csv scgpc/train_data_6.csv'
+    csv = 'scgpc/train_data_0.csv scgpc/train_data_1.csv scgpc/train_data_2.csv scgpc/train_data_3.csv scgpc/train_data_4.csv'
     UnorderedXml = 'scgpc/trom_dump.xml'
   [../]
+
+  [./verifyGaussPolyRom]
+    # tests that the ROM constructed produces the same outputs as the original model
+    #   - this test is analytic and uses the "projectile.py" model to determine x, y, and r based on x0, y0, and time
+    #   - it is documented in the analytic tests manual
+    type  = 'RavenFramework'
+    input = 'verify_time_scgpc.xml'
+    csv = 'scgpc/model_data_0.csv scgpc/model_data_4.csv scgpc/model_data_8.csv scgpc/rom_data_0.csv scgpc/rom_data_4.csv scgpc/rom_data_8.csv'
+    prereq = timeDepGaussPoly
+  [../]
+
 []

@@ -1,0 +1,100 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
+    <WorkingDir>scgpc</WorkingDir>
+    <Sequence>load,sampleRom,sampleModel,print</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="rom_pk" type="">rom.pk</Input>
+  </Files>
+
+  <Steps>
+    <MultiRun name="sampleModel">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">proj</Model>
+      <Sampler class="Samplers" type="Grid">samp</Sampler>
+      <Output class="DataObjects" type="HistorySet">modelSamples</Output>
+    </MultiRun>
+    <MultiRun name="sampleRom">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ROM">rom</Model>
+      <Sampler class="Samplers" type="Grid">samp</Sampler>
+      <Output class="DataObjects" type="HistorySet">romSamples</Output>
+    </MultiRun>
+    <IOStep name="load">
+      <Input class="Files" type="">rom_pk</Input>
+      <Output class="Models" type="ROM">rom</Output>
+    </IOStep>
+    <IOStep name="print">
+      <Input class="DataObjects" type="HistorySet">romSamples</Input>
+      <Input class="DataObjects" type="HistorySet">modelSamples</Input>
+      <Output class="OutStreams" type="Print">model_data</Output>
+      <Output class="OutStreams" type="Print">rom_data</Output>
+    </IOStep>
+  </Steps>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../AnalyticModels/projectile" name="proj" subType="">
+      <variables>x,y,r,time,x0,y0</variables>
+    </ExternalModel>
+    <ROM name="rom" subType="GaussPolynomialRom">
+      <Features>x0,y0</Features>
+      <Target>time,x,y,r</Target>
+      <IndexSet>TotalDegree</IndexSet>
+      <PolynomialOrder>1</PolynomialOrder>
+    </ROM>
+  </Models>
+
+  <Distributions>
+    <Normal name="x0_distrib">
+      <mean>0</mean>
+      <sigma>1</sigma>
+    </Normal>
+    <Normal name="y0_distrib">
+      <mean>1</mean>
+      <sigma>0.2</sigma>
+    </Normal>
+  </Distributions>
+
+  <Samplers>
+    <Grid name="samp">
+      <variable name="x0">
+        <distribution>x0_distrib</distribution>
+        <grid construction="equal" steps="2" type="CDF">0.01 0.99</grid>
+      </variable>
+      <variable name="y0">
+        <distribution>y0_distrib</distribution>
+        <grid construction="equal" steps="2" type="CDF">0.01 0.99</grid>
+      </variable>
+    </Grid>
+  </Samplers>
+
+  <OutStreams>
+    <Print name="model_data">
+      <type>csv</type>
+      <source>modelSamples</source>
+    </Print>
+    <Print name="rom_data">
+      <type>csv</type>
+      <source>romSamples</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="dummyIN">
+      <Input>x0,y0</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <HistorySet name="romSamples">
+      <Input>x0,y0</Input>
+      <Output>time,x,y,r</Output>
+    </HistorySet>
+    <HistorySet name="modelSamples">
+      <Input>x0,y0</Input>
+      <Output>time,x,y,r</Output>
+    </HistorySet>
+  </DataObjects>
+
+</Simulation>

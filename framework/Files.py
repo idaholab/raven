@@ -36,7 +36,7 @@ class File(BaseType):
     self.__base             = ''    # file base
     self.__ext              = None  # file extension
     self.__linkedModel      = None  # hard link to a certain Code subtype (e.g. RELAP-7, MooseBasedApp, etc,)
-    self.subtype            = None  # subtype ("type" in the input) to label a file to any particular subcode in the code interface
+    self.type               = None  # type ("type" in the input) to label a file to any particular subcode in the code interface
     self.perturbable        = False # is this file perturbable by a sampling strategy?
 
   def __del__(self):
@@ -83,7 +83,7 @@ class File(BaseType):
     statedict={'path':self.__path,
                'base':self.__base,
                'ext' :self.__ext,
-               'subtype':self.subtype}
+               'type':self.type}
     return statedict
 
   def __setstate__(self,statedict):
@@ -95,7 +95,7 @@ class File(BaseType):
     self.__path  = statedict['path']
     self.__base  = statedict['base']
     self.__ext   = statedict['ext' ]
-    self.subtype = statedict['subtype' ]
+    self.type    = statedict['type' ]
     self.updateFilename()
 
   def __repr__(self):
@@ -220,13 +220,13 @@ class File(BaseType):
 
   def getType(self):
     """
-      Retrieves the subtype set in the XML (UserGenerated) or by the developer.
-      Note that this gives the subtype, since type is reserved for internal RAVEN use.
+      Retrieves the type set in the XML (UserGenerated) or by the developer.
+      Note that this gives the type, since type is reserved for internal RAVEN use.
       @ In, None
-      @ Out, subType, string, subtype if not None, else ''
+      @ Out, type, string, type if not None, else ''
     """
-    subType = '' if self.subtype is None else self.subtype
-    return subType
+    type = '' if self.type is None else self.type
+    return type
 
   def getPerturbable(self):
     """
@@ -245,10 +245,18 @@ class File(BaseType):
     """
     if self.isOpen(): self.raiseAnError('Tried to change the name of an open file: %s! Close it first.' %self.getAbsFile())
     filename = filename.strip()
-    if filename != '.': self.setBase(os.path.basename(filename).split()[0].split('.')[0])
-    else: self.setBase(filename)
-    if len(filename.split(".")) > 1: self.setExt(filename.split(".")[-1].lower())
-    else: self.setExt(None)
+
+    # This will split the file name at the rightmost '.'
+    base, ext = os.path.splitext(filename)
+
+    # The rightmost '.' will be the first character of ext
+    # (unless there is no '.' in the file name, in which case ext is '')
+    self.setBase(base)
+
+    if (ext == ''):
+      self.setExt(None)
+    else:
+      self.setExt(ext.lstrip('.'))
 
   def setAbsFile(self,pathandfile):
     """
@@ -435,22 +443,21 @@ class RAVENGenerated(File):
     This class is for file objects that are created and used internally by RAVEN.
     Initialization is through calling self.initialize
   """
-  def initialize(self,filename,messageHandler,path='.',subtype=None):
+  def initialize(self,filename,messageHandler,path='.',type='internal'):
     """
       Since this is internally generated, set up all the basic information.
       @ In, filename, string, name of the file
       @ In, messageHandler, MessageHandler object, message handler
       @ In, path, string, optional, path to file object
-      @ In, subtype, string, optional, subtype for labeling
+      @ In, type, string, optional, type for labeling
       @ Out, None
     """
     self.messageHandler = messageHandler
-    self.type = 'internal'
+    self.type = type
     self.printTag = 'Internal File'
     self.setPath(path)
     self.setFilename(filename)
     self.perturbed = False
-    self.subtype   = subtype
     self.name      = filename
 
 #
@@ -665,17 +672,16 @@ class CSV(RAVENGenerated):
   """
     Specialized class specific to CSVs.  Was useful, may not be now, might be again.
   """
-  def initialize(self,filename,messageHandler,path='.',subtype=None):
+  def initialize(self,filename,messageHandler,path='.',type='csv'):
     """
       Since this is internally generated, set up all the basic information.
       @ In, filename, string, name of the file
       @ In, messageHandler, MessageHandler object, message handler
       @ In, path, string, optional, path to file object
-      @ In, subtype, string, optional, subtype for labeling
+      @ In, type, string, optional, type for labeling
       @ Out, None
     """
-    RAVENGenerated.initialize(self,filename,messageHandler,path,subtype)
-    self.type='csv'
+    RAVENGenerated.initialize(self,filename,messageHandler,path,type)
     self.printTag = 'Internal CSV'
 #
 #
@@ -692,12 +698,13 @@ class UserGenerated(File):
       @ In, xmlNode, XML node
       @ Out, None
     """
-    self.type = node.tag #XSD should confirm valid types
+    self.type = node.attrib.get('type','UserGenerated') #XSD should confirm valid types
+    #used to be node.tag, but this caused issues, since many things in raven
+    #access "type" directly instead of through an accessor like getType
     self.printTag = self.type+' File'
     self.setAbsFile(node.text.strip())
     self.__linkedModel = node.attrib.get('linkedCode' ,None)
     self.perturbed     = node.attrib.get('perturbable',True)
-    self.subtype       = node.attrib.get('type'       ,None)
     self.alias         = node.attrib.get('name'       ,self.getFilename())
 
 #

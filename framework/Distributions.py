@@ -37,7 +37,7 @@ def factorial(x):
   fact = gamma(x+1)
   return fact
 
-stochasticEnv = distribution1D.DistributionContainer.Instance()
+stochasticEnv = distribution1D.DistributionContainer.instance()
 
 """
   Mapping between internal framework and Crow distribution name
@@ -217,7 +217,7 @@ class Distribution(BaseType):
       @ In, upperBound, float, upper bound
       @ Out,randResult, float, random number
     """
-    randResult = self._distribution.InverseCdf(float(np.random.rand(1))*(upperBound-lowerBound)+lowerBound)
+    randResult = self._distribution.inverseCdf(float(np.random.rand(1))*(upperBound-lowerBound)+lowerBound)
     return randResult
 
   def rvsWithinbounds(self,lowerBound,upperBound):
@@ -227,8 +227,8 @@ class Distribution(BaseType):
       @ In, upperBound, float, upper bound
       @ Out,randResult, float, random number
     """
-    CDFupper = self._distribution.Cdf(upperBound)
-    CDFlower = self._distribution.Cdf(lowerBound)
+    CDFupper = self._distribution.cdf(upperBound)
+    CDFlower = self._distribution.cdf(lowerBound)
     randResult = self.rvsWithinCDFbounds(CDFlower,CDFupper)
     return randResult
 
@@ -399,7 +399,7 @@ class BoostDistribution(Distribution):
       @ In, x, float, value to get the cdf at
       @ Out, retunrCdf, float, requested cdf
     """
-    retunrCdf = self._distribution.Cdf(x)
+    retunrCdf = self._distribution.cdf(x)
     return retunrCdf
 
   def ppf(self,x):
@@ -408,7 +408,7 @@ class BoostDistribution(Distribution):
       @ In, x, float, value to get the inverse cdf at
       @ Out, retunrPpf, float, requested inverse cdf
     """
-    retunrPpf = self._distribution.InverseCdf(x)
+    retunrPpf = self._distribution.inverseCdf(x)
     return retunrPpf
 
   def pdf(self,x):
@@ -417,7 +417,7 @@ class BoostDistribution(Distribution):
       @ In, x, float, value to get the pdf at
       @ Out, returnPdf, float, requested pdf
     """
-    returnPdf = self._distribution.Pdf(x)
+    returnPdf = self._distribution.pdf(x)
     return returnPdf
 
   def untruncatedCdfComplement(self, x):
@@ -1529,10 +1529,11 @@ class Categorical(Distribution):
       @ Out, none
     """
     Distribution.__init__(self)
-    self.mapping = {}
-    self.values = set()
-    self.type     = 'Categorical'
-    self.disttype = 'Discrete'
+    self.mapping        = {}
+    self.values         = set()
+    self.type           = 'Categorical'
+    self.dimensionality = 1
+    self.disttype       = 'Discrete'
 
   def _readMoreXML(self,xmlNode):
     """
@@ -1586,7 +1587,7 @@ class Categorical(Distribution):
     """
     totPsum = 0.0
     for element in self.mapping:
-      totPsum += self.mapping[str(element)]
+      totPsum += self.mapping[element]
     if totPsum!=1.0: self.raiseAnError(IOError,'Categorical distribution cannot be initialized: sum of probabilities is not 1.0')
 
   def pdf(self,x):
@@ -1595,7 +1596,7 @@ class Categorical(Distribution):
       @ In, x, float/string, value to get the pdf at
       @ Out, pdfValue, float, requested pdf
     """
-    if x in self.values: pdfValue =  self.mapping[str(x)]
+    if x in self.values: pdfValue =  self.mapping[x]
     else: self.raiseAnError(IOError,'Categorical distribution cannot calculate pdf for ' + str(x))
     return pdfValue
 
@@ -2481,7 +2482,7 @@ class NDInverseWeight(NDimensionalDistributions):
     """
     coordinate = distribution1D.vectord_cxx(len(x))
     for i in range(len(x)): coordinate[i] = x[i]
-    cdfValue = self._distribution.Cdf(coordinate)
+    cdfValue = self._distribution.cdf(coordinate)
     return cdfValue
 
   def ppf(self,x):
@@ -2490,7 +2491,7 @@ class NDInverseWeight(NDimensionalDistributions):
       @ In, x, np.array, the x coordinates
       @ Out, ppfValue, np.array, ppf values
     """
-    ppfValue = self._distribution.InverseCdf(x,random())
+    ppfValue = self._distribution.inverseCdf(x,random())
     return ppfValue
 
   def pdf(self,x):
@@ -2501,7 +2502,7 @@ class NDInverseWeight(NDimensionalDistributions):
     """
     coordinate = distribution1D.vectord_cxx(len(x))
     for i in range(len(x)): coordinate[i] = x[i]
-    pdfValue = self._distribution.Pdf(coordinate)
+    pdfValue = self._distribution.pdf(coordinate)
     return pdfValue
 
   def cellIntegral(self,x,dx):
@@ -2578,7 +2579,7 @@ class NDInverseWeight(NDimensionalDistributions):
       @ In, args, dict, arguments (for future usage)
       @ Out, rvsValue, np.array, the random coordinate
     """
-    rvsValue = self._distribution.InverseCdf(random(),random())
+    rvsValue = self._distribution.inverseCdf(random(),random())
     return rvsValue
 
 class NDCartesianSplineInput(InputData.ParameterInput):
@@ -2662,7 +2663,7 @@ class NDCartesianSpline(NDimensionalDistributions):
     """
     coordinate = distribution1D.vectord_cxx(len(x))
     for i in range(len(x)): coordinate[i] = x[i]
-    cdfValue = self._distribution.Cdf(coordinate)
+    cdfValue = self._distribution.cdf(coordinate)
     return cdfValue
 
   def ppf(self,x):
@@ -2671,7 +2672,7 @@ class NDCartesianSpline(NDimensionalDistributions):
       @ In, x, np.array, the x coordinates
       @ Out, ppfValue, np.array, ppf values
     """
-    ppfValue = self._distribution.InverseCdf(x,random())
+    ppfValue = self._distribution.inverseCdf(x,random())
     return ppfValue
 
   def pdf(self,x):
@@ -2682,7 +2683,7 @@ class NDCartesianSpline(NDimensionalDistributions):
     """
     coordinate = distribution1D.vectord_cxx(len(x))
     for i in range(len(x)): coordinate[i] = x[i]
-    pdfValue = self._distribution.Pdf(coordinate)
+    pdfValue = self._distribution.pdf(coordinate)
     return pdfValue
 
   def cellIntegral(self,x,dx):
@@ -2759,7 +2760,7 @@ class NDCartesianSpline(NDimensionalDistributions):
       @ In, args, dict, arguments (for future usage)
       @ Out, rvsValue, np.array, the random coordinate
     """
-    rvsValue = self._distribution.InverseCdf(random(),random())
+    rvsValue = self._distribution.inverseCdf(random(),random())
     return rvsValue
 
 MuListParameterInput = InputData.parameterInputFactory("mu", contentType=InputData.StringType)
@@ -2900,7 +2901,7 @@ class MultivariateNormal(NDimensionalDistributions):
     if self.method == 'spline':
       coordinate = distribution1D.vectord_cxx(len(x))
       for i in range(len(x)): coordinate[i] = x[i]
-      cdfValue = self._distribution.Cdf(coordinate)
+      cdfValue = self._distribution.cdf(coordinate)
     else:
       self.raiseAnError(NotImplementedError,'cdf not yet implemented for ' + self.method + ' method')
     return cdfValue
@@ -3018,7 +3019,7 @@ class MultivariateNormal(NDimensionalDistributions):
       @ Out, ppfValue, np.array, ppf values
     """
     if self.method == 'spline':
-      ppfValue = self._distribution.InverseCdf(x,random())
+      ppfValue = self._distribution.inverseCdf(x,random())
     else:
       self.raiseAnError(NotImplementedError,'ppf is not yet implemented for ' + self.method + ' method')
     return ppfValue
@@ -3035,7 +3036,7 @@ class MultivariateNormal(NDimensionalDistributions):
       coordinate = distribution1D.vectord_cxx(len(x))
       for i in range(len(x)):
         coordinate[i] = x[i]
-      pdfValue = self._distribution.Pdf(coordinate)
+      pdfValue = self._distribution.pdf(coordinate)
     return pdfValue
 
   def pdfInTransformedSpace(self,x):
@@ -3150,7 +3151,7 @@ class MultivariateNormal(NDimensionalDistributions):
       @ Out, rvsValue, np.array, the random coordinate
     """
     if self.method == 'spline':
-      rvsValue = self._distribution.InverseCdf(random(),random())
+      rvsValue = self._distribution.inverseCdf(random(),random())
     # if no transformation, then return the coordinate for the original input parameters
     # if there is a transformation, then return the coordinate in the reduced space
     elif self.method == 'pca':

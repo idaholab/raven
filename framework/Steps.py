@@ -433,7 +433,6 @@ class MultiRun(SingleRun):
       for finishedJob in finishedJobs:
         self.counter +=1
         model.finalizeModelOutput(finishedJob)
-        sampler.finalizeActualSampling(finishedJob,model,inputs)
         if finishedJob.getReturnCode() == 0:
           for myLambda, outIndex in self._outputCollectionLambda:
             myLambda([finishedJob,outputs[outIndex]])
@@ -443,6 +442,9 @@ class MultiRun(SingleRun):
           self.failedRuns.append(copy.copy(finishedJob))
           self.raiseADebug('the job failed... call the handler for this situation... not yet implemented...')
           self.raiseADebug('the JOBS that failed are tracked in the JobHandler... hence, we can retrieve and treat them separately. skipping here is Ok. Andrea')
+        # finalize actual sampler
+        sampler.finalizeActualSampling(finishedJob,model,inputs)
+        # add new job
         for _ in range(min(jobHandler.howManyFreeSpots(),sampler.endJobRunnable())): # put back this loop (do not take it away again. it is NEEDED for NOT-POINT samplers(aka DET)). Andrea
           self.raiseADebug('Testing the sampler if it is ready to generate a new input')
           if sampler.amIreadyToProvideAnInput():

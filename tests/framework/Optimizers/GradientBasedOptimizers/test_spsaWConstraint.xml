@@ -96,7 +96,7 @@
         <source>optOutput</source>
     </Print>
 	
-    <Plot dim="3" name="optPath" overwrite="false" verbosity="debug">
+    <Plot  name="optPath" overwrite="false" verbosity="debug">
         <actions>
             <how>pdf</how>
         </actions>
@@ -105,7 +105,7 @@
                 <type>scatter</type>
                 <x>optData|Input|B</x>
                 <y>optData|Input|R</y>
-                <z>optData|Input|c</z>
+                <z>optData|Output|c</z>
             </plot>
             <xlabel>B</xlabel>
             <ylabel>R</ylabel>
@@ -113,7 +113,7 @@
         </plotSettings>
     </Plot>
 	
-    <Plot dim="2" name="plotIteration" overwrite="false" verbosity="debug">
+    <Plot  name="plotIteration" overwrite="false" verbosity="debug">
         <actions>
             <how>pdf</how>
         </actions>
@@ -121,16 +121,16 @@
 			<gridSpace>3 1</gridSpace>
             <plot>
                 <type>line</type>
-                <x>optData|Output|varsUpdate</x>
+                <x>optData|Input|varsUpdate</x>
                 <y>optData|Input|B</y>
-				<interpPointsX>300</interpPointsX>
+		<interpPointsX>300</interpPointsX>
 				<gridLocation><x>0</x><y>0</y></gridLocation>	
 				<ylabel>B</ylabel>				
             </plot>
 			
 			<plot>
                 <type>line</type>
-                <x>optData|Output|varsUpdate</x>
+                <x>optData|Input|varsUpdate</x>
                 <y>optData|Input|R</y>
 				<interpPointsX>300</interpPointsX>
 				<gridLocation><x>1</x><y>0</y></gridLocation>	
@@ -140,8 +140,8 @@
 			
 			<plot>
                 <type>line</type>
-                <x>optData|Output|varsUpdate</x>
-                <y>optData|Input|c</y>
+                <x>optData|Input|varsUpdate</x>
+                <y>optData|Output|c</y>
 				<interpPointsX>300</interpPointsX>
 				<gridLocation><x>2</x><y>0</y></gridLocation>	
 				<ylabel>c</ylabel>				

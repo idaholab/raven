@@ -16,6 +16,7 @@
         <SKLtype>cluster|MiniBatchKMeans</SKLtype>
         <Features>x1,x2</Features>
         <n_clusters>3</n_clusters>
+        <random_state>0</random_state>
       </KDD>
       <pivotParameter>Time</pivotParameter>
     </PostProcessor>
@@ -52,7 +53,7 @@
       <type>csv</type>
       <source>clusterInfo</source>
     </Print>
-    <Plot dim="2" name="plotRawData" overwrite="True" >
+    <Plot  name="plotRawData" overwrite="True" >
       <plotSettings>
         <gridSpace>2 1</gridSpace>
         <plot>
@@ -84,7 +85,7 @@
         <how>png</how>
       </actions>
     </Plot>
-    <Plot dim="2" name="plotPPDataLabel" overwrite="True" >
+    <Plot  name="plotPPDataLabel" overwrite="True" >
       <plotSettings>
         <plot>
           <type>line</type>
@@ -97,7 +98,7 @@
         <how>png</how>
       </actions>
     </Plot>
-    <Plot dim="2" name="plotPPDataCentroid" overwrite="True" >
+    <Plot  name="plotPPDataCentroid" overwrite="True" >
       <plotSettings>
         <gridSpace>2 1</gridSpace>
         <plot>

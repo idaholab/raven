@@ -12,7 +12,7 @@
 
   <Models>
     <PostProcessor name="PCA" subType="DataMining" verbosity="quiet">
-      <KDD lib="SciKitLearn" labelFeature='component'>
+      <KDD labelFeature="component" lib="SciKitLearn">
         <Features>x1,x2,x3,x4</Features>
         <SKLtype>decomposition|MiniBatchSparsePCA</SKLtype>
         <n_components>2</n_components>
@@ -31,7 +31,7 @@
       <Input class="DataObjects" type="PointSet">DataSets</Input>
       <Output class="OutStreams" type="Plot">PlotIris</Output>
     </IOStep>
-   <PostProcess name="PCAIris" pauseAtEnd="True">
+    <PostProcess name="PCAIris" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">DataSets</Input>
       <Model class="Models" type="PostProcessor">PCA</Model>
       <Output class="DataObjects" type="PointSet">DataSets</Output>
@@ -44,7 +44,7 @@
       <type>csv</type>
       <source>DataSets</source>
     </Print>
-    <Plot dim="2" name="PlotIris" overwrite="false" verbosity="debug">
+    <Plot  name="PlotIris" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>dataMining</type>
