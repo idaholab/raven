@@ -105,16 +105,16 @@ class HistorySetSampling(PostProcessorInterfaceBase):
     """
 
     localPivotParameter = vars[self.pivotParameter]
-    t_min = localPivotParameter[0]
-    t_max = localPivotParameter[-1]
+    tMin = localPivotParameter[0]
+    tMax = localPivotParameter[-1]
 
     newVars={}
 
     if self.samplingType == 'uniform':
       if self.interpolation == 'intervalAverage':
-        newTime = np.linspace(t_min,t_max,self.numberOfSamples+1)[0:-1]
+        newTime = np.linspace(tMin,tMax,self.numberOfSamples+1)[0:-1]
       else:
-        newTime = np.linspace(t_min,t_max,self.numberOfSamples)
+        newTime = np.linspace(tMin,tMax,self.numberOfSamples)
     elif self.samplingType == 'firstDerivative' or self.samplingType == 'secondDerivative':
       newTime = self.derivativeTimeValues(vars)
     else:
