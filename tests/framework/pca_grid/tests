@@ -11,6 +11,7 @@
   input = 'test_grid_pca_cdf.xml'
   xml = 'gridPCACdf/testPrintPointSet_dump.xml'
   csv = 'gridPCACdf/testPrintPointSet_dump.csv'
+  remove_unicode_identifier = true
  [../]
 
  [./mcPCA]
