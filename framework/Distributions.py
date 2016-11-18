@@ -1504,7 +1504,7 @@ class StatePartInput(InputData.ParameterInput):
   """
 
 StatePartInput.createClass("state", contentType=InputData.FloatType)
-StatePartInput.addParam("outcome", InputData.StringType, True)
+StatePartInput.addParam("outcome", InputData.FloatType, True)
 
 class CategoricalDistributionInput(InputData.ParameterInput):
   """
@@ -1513,6 +1513,7 @@ class CategoricalDistributionInput(InputData.ParameterInput):
 
 CategoricalDistributionInput.createClass("Categorical", True)
 CategoricalDistributionInput.addSub(StatePartInput, InputData.Quantity.one_to_infinity)
+CategoricalDistributionInput.addParam("name", InputData.StringType, True)
 
 DistributionsCollection.addSub(CategoricalDistributionInput)
 
