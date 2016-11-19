@@ -133,17 +133,23 @@ class RiskMeasuresDiscrete(PostProcessorInterfaceBase):
       data[2] = inputDic['data']['output'][self.target['targetID']]
 
       ''' Calculate R0, Rminus, Rplus '''
-      indexSystemFailure = np.where(np.logical_and(data[2,:]<self.target['low'], data[2,:]>self.target['high']))    
+      
+      indexSystemFailure = np.where(np.logical_or(data[2,:]<self.target['low'], data[2,:]>self.target['high'])) 
       dataSystemFailure  = np.delete(data, indexSystemFailure,  axis=1)
       
-      minusValues = np.where(np.logical_and(dataSystemFailure[1,:]<self.variables[variable]['R1low'], dataSystemFailure[1,:]>self.variables[variable]['R1high']))  
-      plusValues  = np.where(np.logical_and(dataSystemFailure[1,:]<self.variables[variable]['R0low'], dataSystemFailure[1,:]>self.variables[variable]['R0high'])) 
-      dataMinus   = np.delete(dataSystemFailure, minusValues, axis=1)
-      dataPlus    = np.delete(dataSystemFailure, plusValues , axis=1)
+      minusValues     = np.where(np.logical_or(dataSystemFailure[1,:]<self.variables[variable]['R1low'], dataSystemFailure[1,:]>self.variables[variable]['R1high']))  
+      plusValues      = np.where(np.logical_or(dataSystemFailure[1,:]<self.variables[variable]['R0low'], dataSystemFailure[1,:]>self.variables[variable]['R0high'])) 
+      dataSystemMinus = np.delete(dataSystemFailure, minusValues, axis=1)
+      dataSystemPlus  = np.delete(dataSystemFailure, plusValues , axis=1)
+      
+      indexComponentFailureMinus = np.where(np.logical_or(data[1,:]<self.variables[variable]['R1low'], data[1,:]>self.variables[variable]['R1high']))
+      indexComponentFailurePlus  = np.where(np.logical_or(data[1,:]<self.variables[variable]['R0low'], data[1,:]>self.variables[variable]['R0high']))
+      dataComponentMinus = np.delete(data, indexComponentFailureMinus, axis=1)
+      dataComponentPlus  = np.delete(data, indexComponentFailurePlus,  axis=1)
 
       R0     = np.sum(dataSystemFailure[0,:])
-      Rminus = np.sum(dataMinus[0,:])
-      Rplus  = np.sum(dataPlus[0,:])
+      Rminus = np.sum(dataSystemMinus[0,:])/np.sum(dataComponentMinus[0,:])
+      Rplus  = np.sum(dataSystemPlus[0,:]) /np.sum(dataComponentPlus[0,:])
       
       print('--> ' + str(variable) + ' Rminus = ' + str(Rminus))
       print('--> ' + str(variable) + ' Rplus  = ' + str(Rplus))
@@ -168,9 +174,7 @@ class RiskMeasuresDiscrete(PostProcessorInterfaceBase):
         outputDic['data']['output'][variable + '_B']   = np.asanyarray([B])
         print('--> ' + str(variable) + 'B  = ' + str(B))
       
-      outputDic['data']['input'][variable + '_avg'] = np.asanyarray([np.sum(dataMinus[0,:])])
-      
-      
+      outputDic['data']['input'][variable + '_avg'] = np.asanyarray([np.sum(dataSystemMinus[0,:])])
    
     outputDic['metadata'] = copy.deepcopy(inputDic['metadata'])   
    

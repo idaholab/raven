@@ -3,7 +3,7 @@
   <RunInfo>
     <WorkingDir>RiskMeasuresDiscrete</WorkingDir>
     <Sequence>FirstMRun,PP</Sequence>
-    <batchSize>10</batchSize>
+    <batchSize>100</batchSize>
     <internalParallel>True</internalParallel>
   </RunInfo>
 
@@ -26,7 +26,7 @@
   <Samplers>
     <MonteCarlo name='MC'>
       <samplerInit>
-        <limit>100</limit>
+        <limit>10000</limit>
       </samplerInit>
       <variable name='valveTime'>
         <distribution>valveTime_distExp</distribution>
@@ -38,23 +38,6 @@
         <distribution>pump2Time_distExp</distribution>
       </variable>
     </MonteCarlo>
-    <!--MonteCarlo name='Reliability'>
-      <samplerInit>
-        <limit>15</limit>
-      </samplerInit>
-      <variable name='valveTime'>
-        <distribution>valveTime_distExp</distribution>
-        <value>0,24*60</value>
-      </variable>
-      <variable name='pump1Time'>
-        <distribution>pump1Time_distExp</distribution>
-        <value>0,24*60</value>
-      </variable>
-      <variable name='pump2Time'>
-        <distribution>pump2Time_distExp</distribution>
-        <value>0,24*60</value>
-      </variable>
-    </MonteCarlo-->
   </Samplers>
 
   <Steps>
@@ -97,9 +80,9 @@
     <PostProcessor name="riskMeasuresDiscrete" subType="InterfacedPostProcessor">
       <method>RiskMeasuresDiscrete</method>
       <measures>B,FV,RAW,RRW</measures>
-      <variable R0values='0,60' R1values='1440,2880' extendData='False'>pump1Time</variable>
-      <variable R0values='0,60' R1values='1440,2880' extendData='False'>pump2Time</variable>
-      <variable R0values='0,60' R1values='1440,2880' extendData='False'>valveTime</variable>
+      <variable R0values='0,60' R1values='1441,2880' extendData='False'>pump1Time</variable>
+      <variable R0values='0,60' R1values='1441,2880' extendData='False'>pump2Time</variable>
+      <variable R0values='0,60' R1values='1441,2880' extendData='False'>valveTime</variable>
       <target   values='1400,14000'>Tmax</target>
     </PostProcessor>
     
