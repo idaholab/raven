@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="debug">
+<Simulation verbosity="silent">
   <RunInfo>
     <WorkingDir>RiskMeasuresDiscrete</WorkingDir>
     <Sequence>FirstMRun,PP</Sequence>
@@ -38,12 +38,29 @@
         <distribution>pump2Time_distExp</distribution>
       </variable>
     </MonteCarlo>
+    <!--MonteCarlo name='Reliability'>
+      <samplerInit>
+        <limit>15</limit>
+      </samplerInit>
+      <variable name='valveTime'>
+        <distribution>valveTime_distExp</distribution>
+        <value>0,24*60</value>
+      </variable>
+      <variable name='pump1Time'>
+        <distribution>pump1Time_distExp</distribution>
+        <value>0,24*60</value>
+      </variable>
+      <variable name='pump2Time'>
+        <distribution>pump2Time_distExp</distribution>
+        <value>0,24*60</value>
+      </variable>
+    </MonteCarlo-->
   </Samplers>
 
   <Steps>
     <MultiRun name="FirstMRun" pauseAtEnd="True">
       <Input   class="DataObjects"  type="PointSet"        >inputPlaceHolder</Input>
-      <Model   class="Models"       type="ExternalModel"   >PythonModule</Model>
+      <Model   class="Models"       type="ExternalModel"   >PythonModuleReduced</Model>
       <Sampler class="Samplers"     type="MonteCarlo"      >MC</Sampler>
       <Output  class="DataObjects"  type="PointSet"        >outRun</Output>
     </MultiRun>
@@ -59,12 +76,33 @@
 	  <ExternalModel name='PythonModule' subType='' ModuleToLoad='modelTH'>
 	    <variables>pump1Time,pump2Time,valveTime,Tmax,outcome,pump1State,pump2State,valveState,failureTime</variables>
 	  </ExternalModel>
+    <ExternalModel name='PythonModuleReduced' subType='' ModuleToLoad='modelTHreduced'>
+      <variables>pump1Time,pump2Time,valveTime,Tmax,outcome,pump1State,pump2State,valveState,failureTime</variables>
+    </ExternalModel>
+    
+    <!--PostProcessor name="riskMeasuresDiscrete" subType="InterfacedPostProcessor">
+      <method>RiskMeasuresDiscrete</method>
+      <measures>B,FV,RAW,RRW</measures>
+      <variables>pump1State</variables>
+      <target>outcome</target>
+    </PostProcessor>   
+    <PostProcessor name="riskMeasuresDiscrete" subType="InterfacedPostProcessor">
+      <Function class="Functions" type="External">varsConverter</Function>
+      <method>RiskMeasuresDiscrete</method>
+      <measures>B,FV,RAW,RRW</measures>
+      <variable>pump1RelValue,pump2RelValue,valve1RelValue</variable>
+      <target>outcome</target>
+    </PostProcessor-->
+
     <PostProcessor name="riskMeasuresDiscrete" subType="InterfacedPostProcessor">
       <method>RiskMeasuresDiscrete</method>
       <measures>B,FV,RAW,RRW</measures>
-      <variables>pump1State,pump2State,valveState</variables>
-      <target>outcome</target>
+      <variable R0values='0,60' R1values='1440,2880' extendData='False'>pump1Time</variable>
+      <variable R0values='0,60' R1values='1440,2880' extendData='False'>pump2Time</variable>
+      <variable R0values='0,60' R1values='1440,2880' extendData='False'>valveTime</variable>
+      <target   values='1400,14000'>Tmax</target>
     </PostProcessor>
+    
   </Models>
 
   <DataObjects>
@@ -72,9 +110,13 @@
       <Input>pump1Time,pump2Time,valveTime</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
-	  <PointSet name="outRun">
+    <PointSet name="outRun">
+      <Input>pump1Time,pump2Time,valveTime</Input>
+      <Output>Tmax,outcome,failureTime</Output>
+    </PointSet>
+	  <PointSet name="outRunMod">
 	    <Input>pump1Time,pump2Time,valveTime</Input>
-	    <Output>Tmax,outcome,pump1State,pump2State,valveState,failureTime</Output>
+	    <Output>outcome,pump1State,pump2State,valveState,failureTime</Output>
 	  </PointSet>
     <PointSet name="outPPS">
       <Input> pump1Time_avg  , pump2Time_avg  , valveTime_avg</Input>

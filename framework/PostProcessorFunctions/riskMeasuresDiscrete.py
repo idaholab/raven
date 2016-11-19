@@ -42,17 +42,52 @@ class RiskMeasuresDiscrete(PostProcessorInterfaceBase):
       @ In, xmlNode, ElementTree, Xml element node
       @ Out, None
     """
+    self.variables = {}
+    self.target    = {}
+    
     for child in xmlNode:
       if child.tag == 'measures':
         self.measures = child.text.split(',')
-        print(self)
-      elif child.tag == 'variables':
-        self.variables = child.text.split(',')
+        
+      elif child.tag == 'variable':
+        variableID = child.text
+        self.variables[variableID] = {}
+        if 'R0values' in child.attrib.keys():
+          values = child.attrib['R0values'].split(',')
+          if len(values)>2 or len(values)==1:
+            self.raiseAnError(IOError, 'RiskMeasuresDiscrete Interfaced Post-Processor ' + str(self.name) + ' : attribute node R0 for XML node: ' + str(child) + ' has one or more than two values')
+          val1 = float(values[0])
+          val2 = float(values[1])
+          self.variables[variableID]['R0low']  = min(val1,val2)
+          self.variables[variableID]['R0high'] = max(val1,val2)
+        else:
+          self.raiseAnError(IOError, 'RiskMeasuresDiscrete Interfaced Post-Processor ' + str(self.name) + ' : attribute node R0 is not present for XML node: ' + str(child) )
+        if 'R1values' in child.attrib.keys():
+          values = child.attrib['R1values'].split(',')
+          if len(values)>2:
+            self.raiseAnError(IOError, 'RiskMeasuresDiscrete Interfaced Post-Processor ' + str(self.name) + ' : attribute node R1 for XML node: ' + str(child) + ' has more than two values')
+          val1 = float(values[0])
+          val2 = float(values[1])
+          self.variables[variableID]['R1low']  = min(val1,val2)
+          self.variables[variableID]['R1high'] = max(val1,val2)
+        else:
+          self.raiseAnError(IOError, 'RiskMeasuresDiscrete Interfaced Post-Processor ' + str(self.name) + ' : attribute node R1 is not present for XML node: ' + str(child) )
+      
       elif child.tag == 'target':
-        self.target = child.text
+        self.target['targetID'] = child.text
+        if 'values' in child.attrib.keys():
+          values = child.attrib['values'].split(',')
+          if len(values)>2 or len(values)==1:
+            self.raiseAnError(IOError, 'RiskMeasuresDiscrete Interfaced Post-Processor ' + str(self.name) + ' : attribute node values for XML node: ' + str(child) + ' has one or more than two values')
+          val1 = float(values[0])
+          val2 = float(values[1])
+          self.target['low']  = min(val1,val2)
+          self.target['high'] = max(val1,val2)
+        else:
+          self.raiseAnError(IOError, 'RiskMeasuresDiscrete Interfaced Post-Processor ' + str(self.name) + ' : attribute node values is not present for XML node: ' + str(child) )
+        
       elif child.tag !='method':
-        self.raiseAnError(IOError, 'RiskMeasuresDiscrete Interfaced Post-Processor ' + str(self.name) + ' : XML node ' 
-                          + str(child) + ' is not recognized')
+        self.raiseAnError(IOError, 'RiskMeasuresDiscrete Interfaced Post-Processor ' + str(self.name) + ' : XML node ' + str(child) + ' is not recognized')
         
     if not set(self.measures).issubset(['B','FV','RAW','RRW']):
       self.raiseAnError(IOError, 'RiskMeasuresDiscrete Interfaced Post-Processor ' + str(self.name) + ' : measures ' 
@@ -90,46 +125,35 @@ class RiskMeasuresDiscrete(PostProcessorInterfaceBase):
     outputDic['data']['input']  = {}
     
     print('======= Risk Measures =============')
-
     
     for variable in self.variables:
-      R0     = 0.0
-      Rminus = 0.0
-      Rplus  = 0.0
-
       data=np.zeros((3,N))
       data[0] = pbWeights
-      data[1] = inputDic['data']['output'][variable]
-      data[2] = inputDic['data']['output'][self.target]
-      
+      data[1] = inputDic['data']['input'][variable]
+      data[2] = inputDic['data']['output'][self.target['targetID']]
+
       ''' Calculate R0, Rminus, Rplus '''
-      minusValues = np.argwhere(data[1,:] == 0.0)
-      plusValues  = np.argwhere(data[1,:] == 1.0)
+      indexSystemFailure = np.where(np.logical_and(data[2,:]<self.target['low'], data[2,:]>self.target['high']))    
+      dataSystemFailure  = np.delete(data, indexSystemFailure,  axis=1)
       
-      dataMinus = np.delete(data, minusValues, axis=1)
-      dataPlus  = np.delete(data, plusValues , axis=1)
+      minusValues = np.where(np.logical_and(dataSystemFailure[1,:]<self.variables[variable]['R1low'], dataSystemFailure[1,:]>self.variables[variable]['R1high']))  
+      plusValues  = np.where(np.logical_and(dataSystemFailure[1,:]<self.variables[variable]['R0low'], dataSystemFailure[1,:]>self.variables[variable]['R0high'])) 
+      dataMinus   = np.delete(dataSystemFailure, minusValues, axis=1)
+      dataPlus    = np.delete(dataSystemFailure, plusValues , axis=1)
+
+      R0     = np.sum(dataSystemFailure[0,:])
+      Rminus = np.sum(dataMinus[0,:])
+      Rplus  = np.sum(dataPlus[0,:])
       
-      indexMinus = np.argwhere(dataMinus[2,:] == 1.0)
-      indexPlus  = np.argwhere(dataPlus[2,:]  == 1.0)
-      indexZero  = np.argwhere(data[2,:]      == 1.0)
-      
-      dataReducedMinus = np.delete(dataMinus, indexMinus, axis=1)
-      dataReducedPlus  = np.delete(dataPlus,  indexMinus, axis=1)
-      dataReducedZero  = np.delete(data,      indexZero,  axis=1)
-      
-      Rminus = np.sum(dataReducedMinus[0,:])
-      Rplus  = np.sum(dataReducedPlus[0,:])
-      R0     = np.sum(dataReducedZero[0,:])
-      
-      print('--> ' + str(variable) + 'Rminus = ' + str(Rminus))
-      print('--> ' + str(variable) + 'Rplus  = ' + str(Rplus))
-      print('--> ' + str(variable) + 'R0     = ' + str(R0))
+      print('--> ' + str(variable) + ' Rminus = ' + str(Rminus))
+      print('--> ' + str(variable) + ' Rplus  = ' + str(Rplus))
+      print('--> ' + str(variable) + ' R0     = ' + str(R0))
       
       ''' Calculate RRW, RAW, FV, B '''
       RRW = R0/Rminus
       RAW = Rplus/R0
       FV  = (R0-Rminus)/R0
-      B   = Rplus + Rminus
+      B   = Rplus+Rminus
             
       if 'RRW' in self.measures:
         outputDic['data']['output'][variable + '_RRW'] = np.asanyarray([RRW])
