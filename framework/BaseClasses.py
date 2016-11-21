@@ -19,6 +19,44 @@ class BaseType(MessageHandler.MessageUser):
   """
     this is the base class for each general type used by the simulation
   """
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    if cls.nodeName is None:
+      cls.nodeName = cls.__name__
+    inputSpecification = InputData.parameterInputFactory(cls, cls.__name__, ordered=False, baseNode=None)
+
+    for input in cls.registeredInputs():
+      ## The majority of parameters will use the default cardinality, but allow
+      ## developers to fully specify the signature for adding a "sub" for those
+      ## edge cases by passing in a tuple to this call
+      if isinstance(input,tuple):
+        inputSpecification.addSub(*input)
+      else:
+        inputSpecification.addSub(input)
+
+    inputSpecification.addParam("name", InputData.StringType, True)
+
+    return inputSpecification
+
+  @classmethod
+  def registeredInputs(cls):
+    """
+      Method to retrieve the local variables that can or need to be specified
+      by the user in an input file. (Each class that is exposed to the user
+      should override this function)
+      @ In, cls, the particular class for which we need to retrieve the input
+        specifications.
+    """
+    return []
+
   def __init__(self):
     self.name             = ''                                                          # name of this istance (alias)
     self.type             = type(self).__name__                                         # specific type within this class

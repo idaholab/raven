@@ -359,9 +359,10 @@ class ParameterInput(object):
       if parameterData["required"]:
         attributeNode.set('use','required')
 
-def parameterInputFactory(*paramList, **paramDict):
+def parameterInputFactory(cls, *paramList, **paramDict):
   """
     Creates a new ParameterInput class with the same parameters as ParameterInput.createClass
+    @ In, cls, the class for which we are generating the input specifications.
     @ In, same parameters as ParameterInput.createClass
     @ Out, newClass, ParameterInput, the newly created class.
   """
@@ -369,8 +370,10 @@ def parameterInputFactory(*paramList, **paramDict):
     """
       The new class to be created by the factory
     """
-
+  print('list',paramList)
+  print('dict',paramDict)
   newClass.createClass(*paramList, **paramDict)
+  newClass.__name__ = cls.__name__+'Input'
   return newClass
 
 def makeEnumType(name, xmlName, enumList):
