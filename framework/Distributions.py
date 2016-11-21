@@ -82,7 +82,7 @@ class Distribution(BaseType):
       @ In, cls, the particular class for which we need to retrieve the input
         specifications.
     """
-    inputs = super(cls, cls).registeredInputs()
+    inputs = super(Distribution, cls).registeredInputs()
 
     inputs.append(InputData.parameterInputFactory('upperBound',contentType=InputData.FloatType))
     inputs.append(InputData.parameterInputFactory('lowerBound', contentType=InputData.FloatType))
@@ -395,7 +395,7 @@ class BoostDistribution(Distribution):
       @ In, cls, the particular class for which we need to retrieve the input
         specifications.
     """
-    inputs = super(cls, cls).registeredInputs()
+    inputs = super(BoostDistribution, cls).registeredInputs()
 
     return inputs
 
@@ -510,7 +510,7 @@ class Uniform(BoostDistribution):
       @ In, cls, the particular class for which we need to retrieve the input
         specifications.
     """
-    inputs = super(cls, cls).registeredInputs()
+    inputs = super(Uniform, cls).registeredInputs()
 
     return inputs
 
@@ -637,7 +637,7 @@ class Normal(BoostDistribution):
       @ In, cls, the particular class for which we need to retrieve the input
         specifications.
     """
-    inputs = super(cls, cls).registeredInputs()
+    inputs = super(Normal, cls).registeredInputs()
 
     inputs.append(InputData.parameterInputFactory("mean", contentType=InputData.FloatType))
     inputs.append(InputData.parameterInputFactory("sigma", contentType=InputData.FloatType))
@@ -795,7 +795,7 @@ class Gamma(BoostDistribution):
       @ In, cls, the particular class for which we need to retrieve the input
         specifications.
     """
-    inputs = super(cls, cls).registeredInputs()
+    inputs = super(Gamma, cls).registeredInputs()
     inputs.append(InputData.parameterInputFactory("low", contentType=InputData.FloatType))
     inputs.append(InputData.parameterInputFactory("alpha", contentType=InputData.FloatType))
     inputs.append(InputData.parameterInputFactory("beta", contentType=InputData.FloatType))
@@ -953,7 +953,7 @@ class Beta(BoostDistribution):
       @ In, cls, the particular class for which we need to retrieve the input
         specifications.
     """
-    inputs = super(cls, cls).registeredInputs()
+    inputs = super(Beta, cls).registeredInputs()
 
     inputs.append(InputData.parameterInputFactory("low", contentType=InputData.FloatType))
     inputs.append(InputData.parameterInputFactory("alpha", contentType=InputData.FloatType))
@@ -1133,7 +1133,7 @@ class Triangular(BoostDistribution):
       @ In, cls, the particular class for which we need to retrieve the input
         specifications.
     """
-    inputs = super(cls, cls).registeredInputs()
+    inputs = super(Triangular, cls).registeredInputs()
 
     inputs.append(InputData.parameterInputFactory("apex", contentType=InputData.FloatType))
     inputs.append(InputData.parameterInputFactory("min", contentType=InputData.FloatType))
@@ -1256,7 +1256,7 @@ class Poisson(BoostDistribution):
       @ In, cls, the particular class for which we need to retrieve the input
         specifications.
     """
-    inputs = super(cls, cls).registeredInputs()
+    inputs = super(Poisson, cls).registeredInputs()
 
     inputs.append(InputData.parameterInputFactory("mu", contentType=InputData.FloatType))
 
@@ -1358,7 +1358,7 @@ class Binomial(BoostDistribution):
       @ In, cls, the particular class for which we need to retrieve the input
         specifications.
     """
-    inputs = super(cls, cls).registeredInputs()
+    inputs = super(Binomial, cls).registeredInputs()
 
     inputs.append(InputData.parameterInputFactory("n", contentType=InputData.IntegerType))
     inputs.append(InputData.parameterInputFactory("p", contentType=InputData.FloatType))
@@ -1466,7 +1466,7 @@ class Bernoulli(BoostDistribution):
       @ In, cls, the particular class for which we need to retrieve the input
         specifications.
     """
-    inputs = super(cls, cls).registeredInputs()
+    inputs = super(Bernoulli, cls).registeredInputs()
 
     inputs.append(InputData.parameterInputFactory("p", contentType=InputData.FloatType))
 
@@ -1715,7 +1715,7 @@ class Logistic(BoostDistribution):
       @ In, cls, the particular class for which we need to retrieve the input
         specifications.
     """
-    inputs = super(cls, cls).registeredInputs()
+    inputs = super(Logistic, cls).registeredInputs()
 
     inputs.append(InputData.parameterInputFactory("location", contentType=InputData.FloatType))
     inputs.append(InputData.parameterInputFactory("scale", contentType=InputData.FloatType))
@@ -1828,7 +1828,7 @@ class Exponential(BoostDistribution):
       @ In, cls, the particular class for which we need to retrieve the input
         specifications.
     """
-    inputs = super(cls, cls).registeredInputs()
+    inputs = super(Exponential, cls).registeredInputs()
 
     inputs.append(InputData.parameterInputFactory("low", contentType=InputData.FloatType))
     inputs.append(InputData.parameterInputFactory("lambda", contentType=InputData.FloatType))
@@ -1973,7 +1973,7 @@ class LogNormal(BoostDistribution):
       @ In, cls, the particular class for which we need to retrieve the input
         specifications.
     """
-    inputs = super(cls, cls).registeredInputs()
+    inputs = super(LogNormal, cls).registeredInputs()
     inputs.append(InputData.parameterInputFactory("mean", contentType=InputData.FloatType))
     inputs.append(InputData.parameterInputFactory("sigma", contentType=InputData.FloatType))
     inputs.append(InputData.parameterInputFactory("low", contentType=InputData.FloatType))
@@ -2098,7 +2098,7 @@ class Weibull(BoostDistribution):
       @ In, cls, the particular class for which we need to retrieve the input
         specifications.
     """
-    inputs = super(cls, cls).registeredInputs()
+    inputs = super(Weibull, cls).registeredInputs()
 
     inputs.append(InputData.parameterInputFactory("low", contentType=InputData.FloatType))
     inputs.append(InputData.parameterInputFactory("k", contentType=InputData.FloatType))
@@ -2227,7 +2227,7 @@ class Custom1D(Distribution):
       @ In, cls, the particular class for which we need to retrieve the input
         specifications.
     """
-    inputs = super(cls, cls).registeredInputs()
+    inputs = super(Custom1D, cls).registeredInputs()
 
 
     inputs.append(InputData.parameterInputFactory("workingDir", contentType=InputData.StringType))
@@ -2383,7 +2383,7 @@ class NDimensionalDistributions(Distribution):
       @ In, cls, the particular class for which we need to retrieve the input
         specifications.
     """
-    inputs = super(cls, cls).registeredInputs()
+    inputs = super(NDimensionalDistributions, cls).registeredInputs()
     inputs.append(InputData.parameterInputFactory("workingDir", contentType=InputData.StringType))
     return inputs
 
@@ -2494,7 +2494,7 @@ class NDInverseWeight(NDimensionalDistributions):
       @ In, cls, the particular class for which we need to retrieve the input
         specifications.
     """
-    inputs = super(cls, cls).registeredInputs()
+    inputs = super(NDInverseWeight, cls).registeredInputs()
 
     DataFilenameParameterInput = InputData.parameterInputFactory("dataFilename", contentType=InputData.StringType)
     DataFilenameParameterInput.addParam("type", InputData.StringType, True)
@@ -2692,7 +2692,7 @@ class NDCartesianSpline(NDimensionalDistributions):
       @ In, cls, the particular class for which we need to retrieve the input
         specifications.
     """
-    inputs = super(cls, cls).registeredInputs()
+    inputs = super(NDCartesianSpline, cls).registeredInputs()
 
     DataFilenameParameterInput = InputData.parameterInputFactory("dataFilename", contentType=InputData.StringType)
     DataFilenameParameterInput.addParam("type", InputData.StringType, True)
@@ -2912,7 +2912,7 @@ class MultivariateNormal(NDimensionalDistributions):
       @ In, None
       @ Out, inputSpecification, InputData.ParameterInput, class to use for input data.
     """
-    inputSpecification = super(cls, cls).getInputSpecification()
+    inputSpecification = super(MultivariateNormal, cls).getInputSpecification()
 
     class MultivariateMethodType(InputData.EnumBaseType):
       """
