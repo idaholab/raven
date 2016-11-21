@@ -373,7 +373,7 @@ def parameterInputFactory(cls, *paramList, **paramDict):
   print('list',paramList)
   print('dict',paramDict)
   newClass.createClass(*paramList, **paramDict)
-  newClass.__name__ = cls.__name__+'Input'
+  newClass.__name__ = str(cls.__name__+'Input')
   return newClass
 
 def makeEnumType(name, xmlName, enumList):

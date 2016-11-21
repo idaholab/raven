@@ -39,7 +39,7 @@ class Sub3Input(InputData.ParameterInput):
 Sub3Input.createClass("sub_3")
 Sub3Input.setContentType(InputData.IntegerType)
 
-Sub4Input = InputData.parameterInputFactory("sub_4", contentType=InputData.FloatType)
+Sub4Input = InputData.parameterInputFactory(object, "sub_4", contentType=InputData.FloatType)
 
 class InnerInput(InputData.ParameterInput):
   """
