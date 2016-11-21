@@ -32,7 +32,6 @@ import MessageHandler
 import GridEntities
 import Files
 import Models
-print(dir(Models))
 from Models import ModelInput
 from RAVENiterators import ravenArrayIterator
 import unSupervisedLearning

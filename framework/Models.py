@@ -740,9 +740,7 @@ class ROM(Dummy):
           self.initializationOptionDict[child.getName()]={}
         self.initializationOptionDict[child.getName()][child.value]=child.parameterValues
       else:
-        print("childName",repr(child.getName()))
         if child.getName() == 'estimator':
-          print("estimator",child.getName(),child.parameterValues,child.subparts, child.subs)
           self.initializationOptionDict[child.getName()] = {}
           for node in child.subparts:
             self.initializationOptionDict[child.getName()][node.getName()] = tryStrParse(node.value)
