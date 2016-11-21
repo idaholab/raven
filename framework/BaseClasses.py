@@ -13,6 +13,7 @@ import sys
 #Internal Modules------------------------------------------------------------------------------------
 import utils
 import MessageHandler
+import InputData
 #Internal Modules End--------------------------------------------------------------------------------
 
 class BaseType(MessageHandler.MessageUser):
@@ -29,9 +30,7 @@ class BaseType(MessageHandler.MessageUser):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
-    if cls.nodeName is None:
-      cls.nodeName = cls.__name__
-    inputSpecification = InputData.parameterInputFactory(cls, cls.__name__, ordered=False, baseNode=None)
+    inputSpecification = InputData.classInputFactory(cls, cls.__name__, ordered=False, baseNode=None)
 
     for input in cls.registeredInputs():
       ## The majority of parameters will use the default cardinality, but allow
