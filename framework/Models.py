@@ -30,20 +30,9 @@ import mathUtils
 import TreeStructure
 import Files
 import InputData
-#Internal Modules End--------------------------------------------------------------------------------
-
-class ModelInput(InputData.ParameterInput):
-  """
-    Class for reading in model input
-  """
-
-#Internal Modules------------------------------------------------------------------------------------
-#This needs to be after the definition of ModelInput
 import PostProcessors
 #Internal Modules End--------------------------------------------------------------------------------
 
-ModelInput.createClass("ModelInput")
-ModelInput.addParam("subType", InputData.StringType, True)
 
 class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
   """
@@ -51,6 +40,34 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     it could as complex as a stand alone code, a reduced order model trained somehow or something
     externally build and imported by the user
   """
+
+  @classmethod
+  def registeredInputs(cls):
+    """
+      Method to retrieve the local variables that can or need to be specified
+      by the user in an input file. (Each class that is exposed to the user
+      should override this function)
+      @ In, cls, the particular class for which we need to retrieve the input
+        specifications.
+    """
+    inputs = super(Model, cls).registeredInputs()
+
+    return inputs
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = super(Model, cls).getInputSpecification()
+    inputSpecification.addParam("subType", InputData.StringType, True)
+
+    return inputSpecification
+
   validateDict                  = {}
   validateDict['Input'  ]       = []
   validateDict['Output' ]       = []
@@ -309,14 +326,26 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ Out, None.
     """
     pass
-#
-#
-#
+
 class Dummy(Model):
   """
     This is a dummy model that just return the effect of the sampler. The values reported as input in the output
     are the output of the sampler and the output is the counter of the performed sampling
   """
+
+  @classmethod
+  def registeredInputs(cls):
+    """
+      Method to retrieve the local variables that can or need to be specified
+      by the user in an input file. (Each class that is exposed to the user
+      should override this function)
+      @ In, cls, the particular class for which we need to retrieve the input
+        specifications.
+    """
+    inputs = super(Dummy, cls).registeredInputs()
+
+    return inputs
+
   def __init__(self,runInfoDict):
     """
       Constructor
@@ -485,153 +514,153 @@ class Dummy(Model):
         output.updateOutputValue(key,exportDict[outKey][key])
     for key in exportDict['metadata']:
       output.updateMetadata(key,exportDict['metadata'][key])
-#
-#
 
-class ROMInput(InputData.ParameterInput):
-  """
-    Class for reading in ROM block
-  """
-
-ROMInput.createClass("ROM", False, baseNode=ModelInput)
-
-FeaturesInput = InputData.parameterInputFactory('Features',contentType=InputData.StringType)
-TargetInput = InputData.parameterInputFactory('Target',contentType=InputData.StringType)
-
-ROMInput.addSub(FeaturesInput)
-ROMInput.addSub(TargetInput)
-
-IndexSetInputType = InputData.makeEnumType("indexSet","indexSetType",["TensorProduct","TotalDegree","HyperbolicCross","Custom"])
-CriterionInputType = InputData.makeEnumType("criterion", "criterionType", ["bic","aic","gini","entropy","mse"])
-
-InterpolationInput = InputData.parameterInputFactory('Interpolation', contentType=InputData.StringType)
-InterpolationInput.addParam("quad", InputData.StringType, False)
-InterpolationInput.addParam("poly", InputData.StringType, False)
-InterpolationInput.addParam("weight", InputData.FloatType, False)
-
-
-def addSimpleSub(outer, name, inputType):
-  """
-    Adds a sub node to the outer.
-    @ In, outer, Inputdata.Parameterinput, the outer node
-    @ In, name, string, the name to use for the sub node
-    @ In, inputType, InputData.InputType, the type of the content in the sub node
-    @ Out, None
-  """
-  sub = InputData.parameterInputFactory(name, contentType=inputType)
-  outer.addSub(sub)
-
-addSimpleSub(ROMInput, "IndexPoints", InputData.StringType)
-addSimpleSub(ROMInput, "IndexSet",IndexSetInputType)
-ROMInput.addSub(InterpolationInput)
-addSimpleSub(ROMInput, "PolynomialOrder", InputData.IntegerType)
-addSimpleSub(ROMInput, "SobolOrder", InputData.IntegerType)
-addSimpleSub(ROMInput, "SparseGrid", InputData.StringType)
-addSimpleSub(ROMInput, "persistence", InputData.StringType)
-addSimpleSub(ROMInput, "gradient", InputData.StringType)
-addSimpleSub(ROMInput, "simplification", InputData.FloatType)
-addSimpleSub(ROMInput, "graph", InputData.StringType)
-addSimpleSub(ROMInput, "beta", InputData.FloatType)
-addSimpleSub(ROMInput, "knn", InputData.IntegerType)
-addSimpleSub(ROMInput, "partitionPredictor", InputData.StringType)
-addSimpleSub(ROMInput, "smooth", InputData.StringType)
-addSimpleSub(ROMInput, "kernel", InputData.StringType)
-addSimpleSub(ROMInput, "bandwidth", InputData.FloatType)
-addSimpleSub(ROMInput, "p", InputData.IntegerType)
-addSimpleSub(ROMInput, "SKLtype", InputData.StringType)
-addSimpleSub(ROMInput, "n_iter", InputData.IntegerType)
-addSimpleSub(ROMInput, "tol", InputData.StringType)
-addSimpleSub(ROMInput, "alpha_1", InputData.FloatType)
-addSimpleSub(ROMInput, "alpha_2", InputData.FloatType)
-addSimpleSub(ROMInput, "lambda_1", InputData.FloatType)
-addSimpleSub(ROMInput, "lambda_2", InputData.FloatType)
-addSimpleSub(ROMInput, "compute_score", InputData.StringType) #bool
-addSimpleSub(ROMInput, "threshold_lambda", InputData.FloatType)
-addSimpleSub(ROMInput, "fit_intercept", InputData.StringType) #bool
-addSimpleSub(ROMInput, "normalize", InputData.StringType) #bool
-addSimpleSub(ROMInput, "verbose", InputData.StringType) #bool
-addSimpleSub(ROMInput, "alpha", InputData.FloatType)
-addSimpleSub(ROMInput, "l1_ratio", InputData.FloatType)
-addSimpleSub(ROMInput, "max_iter", InputData.StringType)
-addSimpleSub(ROMInput, "warm_start", InputData.StringType) #bool
-addSimpleSub(ROMInput, "positive", InputData.StringType) #bool?
-addSimpleSub(ROMInput, "eps", InputData.FloatType)
-addSimpleSub(ROMInput, "n_alphas", InputData.IntegerType)
-addSimpleSub(ROMInput, "precompute", InputData.StringType)
-addSimpleSub(ROMInput, "n_nonzero_coefs", InputData.StringType)
-addSimpleSub(ROMInput, "fit_path", InputData.StringType) #bool
-addSimpleSub(ROMInput, "max_n_alphas", InputData.IntegerType)
-addSimpleSub(ROMInput, "criterion", CriterionInputType)
-addSimpleSub(ROMInput, "penalty", InputData.StringType) #enum
-addSimpleSub(ROMInput, "dual", InputData.StringType) #bool
-addSimpleSub(ROMInput, "C", InputData.FloatType)
-addSimpleSub(ROMInput, "intercept_scaling", InputData.FloatType)
-addSimpleSub(ROMInput, "class_weight", InputData.StringType)
-addSimpleSub(ROMInput, "random_state", InputData.StringType)
-addSimpleSub(ROMInput, "cv", InputData.StringType)
-addSimpleSub(ROMInput, "shuffle", InputData.StringType) #bool
-addSimpleSub(ROMInput, "loss", InputData.StringType) #enum
-addSimpleSub(ROMInput, "epsilon", InputData.FloatType)
-addSimpleSub(ROMInput, "eta0", InputData.FloatType)
-addSimpleSub(ROMInput, "solver", InputData.StringType) #enum
-addSimpleSub(ROMInput, "alphas", InputData.StringType)
-addSimpleSub(ROMInput, "scoring", InputData.StringType)
-addSimpleSub(ROMInput, "gcv_mode", InputData.StringType) #enum
-addSimpleSub(ROMInput, "store_cv_values", InputData.StringType) #bool
-addSimpleSub(ROMInput, "learning_rate", InputData.StringType), #enum
-addSimpleSub(ROMInput, "power_t", InputData.FloatType)
-addSimpleSub(ROMInput, "multi_class", InputData.StringType)
-addSimpleSub(ROMInput, "kernel", InputData.StringType) #enum
-addSimpleSub(ROMInput, "degree", InputData.IntegerType)
-addSimpleSub(ROMInput, "gamma", InputData.FloatType)
-addSimpleSub(ROMInput, "coef0", InputData.FloatType)
-addSimpleSub(ROMInput, "probability", InputData.StringType) #bool
-addSimpleSub(ROMInput, "shrinking", InputData.StringType) #bool
-addSimpleSub(ROMInput, "cache_size", InputData.FloatType)
-addSimpleSub(ROMInput, "nu", InputData.FloatType)
-addSimpleSub(ROMInput, "code_size", InputData.FloatType)
-addSimpleSub(ROMInput, "fit_prior", InputData.StringType) #bool
-addSimpleSub(ROMInput, "class_prior", InputData.StringType)
-addSimpleSub(ROMInput, "binarize", InputData.FloatType)
-addSimpleSub(ROMInput, "n_neighbors", InputData.IntegerType)
-addSimpleSub(ROMInput, "weights", InputData.StringType) #enum
-addSimpleSub(ROMInput, "algorithm", InputData.StringType) #enum
-addSimpleSub(ROMInput, "leaf_size", InputData.IntegerType)
-addSimpleSub(ROMInput, "metric", InputData.StringType) #enum?
-addSimpleSub(ROMInput, "radius", InputData.FloatType)
-addSimpleSub(ROMInput, "outlier_label", InputData.StringType)
-addSimpleSub(ROMInput, "shrink_threshold", InputData.StringType)
-addSimpleSub(ROMInput, "priors", InputData.StringType)
-addSimpleSub(ROMInput, "reg_param", InputData.FloatType)
-addSimpleSub(ROMInput, "splitter", InputData.StringType) #enum
-addSimpleSub(ROMInput, "max_features", InputData.StringType)
-addSimpleSub(ROMInput, "max_depth", InputData.StringType)
-addSimpleSub(ROMInput, "min_samples_split", InputData.IntegerType)
-addSimpleSub(ROMInput, "min_samples_leaf", InputData.IntegerType)
-addSimpleSub(ROMInput, "max_leaf_nodes", InputData.StringType)
-addSimpleSub(ROMInput, "regr", InputData.StringType) #enum
-addSimpleSub(ROMInput, "corr", InputData.StringType) #enum?
-addSimpleSub(ROMInput, "beta0", InputData.StringType)
-addSimpleSub(ROMInput, "storage_mode", InputData.StringType) #enum
-addSimpleSub(ROMInput, "theta0", InputData.StringType)
-addSimpleSub(ROMInput, "thetaL", InputData.StringType)
-addSimpleSub(ROMInput, "thetaU", InputData.StringType)
-addSimpleSub(ROMInput, "nugget", InputData.FloatType)
-addSimpleSub(ROMInput, "optimizer", InputData.StringType) #enum
-addSimpleSub(ROMInput, "random_start", InputData.IntegerType)
-
-#Estimators can include ROMs, and so because baseNode does a copy, this
-#needs to be after the rest of ROMInput is defined.
-EstimatorInput = InputData.parameterInputFactory('estimator', contentType=InputData.StringType, baseNode=ROMInput)
-EstimatorInput.addParam("estimatorType", InputData.StringType, True)
-ROMInput.addSub(EstimatorInput)
-
-
-#
 class ROM(Dummy):
   """
     ROM stands for Reduced Order Model. All the models here, first learn than predict the outcome
   """
+  @classmethod
+  def registeredInputs(cls):
+    """
+      Method to retrieve the local variables that can or need to be specified
+      by the user in an input file. (Each class that is exposed to the user
+      should override this function)
+      @ In, cls, the particular class for which we need to retrieve the input
+        specifications.
+    """
+    inputs = super(ROM, cls).registeredInputs()
+    inputs.append(InputData.parameterInputFactory('Features',contentType=InputData.StringType))
+    inputs.append(InputData.parameterInputFactory('Target',contentType=InputData.StringType))
+
+    IndexSetInputType = InputData.makeEnumType("indexSet","indexSetType",["TensorProduct","TotalDegree","HyperbolicCross","Custom"])
+    CriterionInputType = InputData.makeEnumType("criterion", "criterionType", ["bic","aic","gini","entropy","mse"])
+
+    InterpolationInput = InputData.parameterInputFactory('Interpolation', contentType=InputData.StringType)
+    InterpolationInput.addParam("quad", InputData.StringType, False)
+    InterpolationInput.addParam("poly", InputData.StringType, False)
+    InterpolationInput.addParam("weight", InputData.FloatType, False)
+
+    inputs.append(InputData.parameterInputFactory("IndexPoints", InputData.StringType))
+    inputs.append(InputData.parameterInputFactory("IndexSet",IndexSetInputType))
+    inputs.append(InterpolationInput)
+    inputs.append(InputData.parameterInputFactory("PolynomialOrder", InputData.IntegerType))
+    inputs.append(InputData.parameterInputFactory("SobolOrder", InputData.IntegerType))
+    inputs.append(InputData.parameterInputFactory("SparseGrid", InputData.StringType))
+    inputs.append(InputData.parameterInputFactory("persistence", InputData.StringType))
+    inputs.append(InputData.parameterInputFactory("gradient", InputData.StringType))
+    inputs.append(InputData.parameterInputFactory("simplification", InputData.FloatType))
+    inputs.append(InputData.parameterInputFactory("graph", InputData.StringType))
+    inputs.append(InputData.parameterInputFactory("beta", InputData.FloatType))
+    inputs.append(InputData.parameterInputFactory("knn", InputData.IntegerType))
+    inputs.append(InputData.parameterInputFactory("partitionPredictor", InputData.StringType))
+    inputs.append(InputData.parameterInputFactory("smooth", InputData.StringType))
+    inputs.append(InputData.parameterInputFactory("kernel", InputData.StringType))
+    inputs.append(InputData.parameterInputFactory("bandwidth", InputData.FloatType))
+    inputs.append(InputData.parameterInputFactory("p", InputData.IntegerType))
+    inputs.append(InputData.parameterInputFactory("SKLtype", InputData.StringType))
+    inputs.append(InputData.parameterInputFactory("n_iter", InputData.IntegerType))
+    inputs.append(InputData.parameterInputFactory("tol", InputData.StringType))
+    inputs.append(InputData.parameterInputFactory("alpha_1", InputData.FloatType))
+    inputs.append(InputData.parameterInputFactory("alpha_2", InputData.FloatType))
+    inputs.append(InputData.parameterInputFactory("lambda_1", InputData.FloatType))
+    inputs.append(InputData.parameterInputFactory("lambda_2", InputData.FloatType))
+    inputs.append(InputData.parameterInputFactory("compute_score", InputData.StringType)) #bool
+    inputs.append(InputData.parameterInputFactory("threshold_lambda", InputData.FloatType))
+    inputs.append(InputData.parameterInputFactory("fit_intercept", InputData.StringType))  #bool
+    inputs.append(InputData.parameterInputFactory("normalize", InputData.StringType))  #bool
+    inputs.append(InputData.parameterInputFactory("verbose", InputData.StringType)) #bool
+    inputs.append(InputData.parameterInputFactory("alpha", InputData.FloatType))
+    inputs.append(InputData.parameterInputFactory("l1_ratio", InputData.FloatType))
+    inputs.append(InputData.parameterInputFactory("max_iter", InputData.StringType))
+    inputs.append(InputData.parameterInputFactory("warm_start", InputData.StringType)) #bool
+    inputs.append(InputData.parameterInputFactory("positive", InputData.StringType)) #bool?
+    inputs.append(InputData.parameterInputFactory("eps", InputData.FloatType))
+    inputs.append(InputData.parameterInputFactory("n_alphas", InputData.IntegerType))
+    inputs.append(InputData.parameterInputFactory("precompute", InputData.StringType))
+    inputs.append(InputData.parameterInputFactory("n_nonzero_coefs", InputData.StringType))
+    inputs.append(InputData.parameterInputFactory("fit_path", InputData.StringType)) #bool
+    inputs.append(InputData.parameterInputFactory("max_n_alphas", InputData.IntegerType))
+    inputs.append(InputData.parameterInputFactory("criterion", CriterionInputType))
+    inputs.append(InputData.parameterInputFactory("penalty", InputData.StringType)) #enum
+    inputs.append(InputData.parameterInputFactory("dual", InputData.StringType)) #bool
+    inputs.append(InputData.parameterInputFactory("C", InputData.FloatType))
+    inputs.append(InputData.parameterInputFactory("intercept_scaling", InputData.FloatType))
+    inputs.append(InputData.parameterInputFactory("class_weight", InputData.StringType))
+    inputs.append(InputData.parameterInputFactory("random_state", InputData.StringType))
+    inputs.append(InputData.parameterInputFactory("cv", InputData.StringType))
+    inputs.append(InputData.parameterInputFactory("shuffle", InputData.StringType)) #bool
+    inputs.append(InputData.parameterInputFactory("loss", InputData.StringType)) #enum
+    inputs.append(InputData.parameterInputFactory("epsilon", InputData.FloatType))
+    inputs.append(InputData.parameterInputFactory("eta0", InputData.FloatType))
+    inputs.append(InputData.parameterInputFactory("solver", InputData.StringType)) #enum
+    inputs.append(InputData.parameterInputFactory("alphas", InputData.StringType))
+    inputs.append(InputData.parameterInputFactory("scoring", InputData.StringType))
+    inputs.append(InputData.parameterInputFactory("gcv_mode", InputData.StringType)) #enum
+    inputs.append(InputData.parameterInputFactory("store_cv_values", InputData.StringType)) #bool
+    inputs.append(InputData.parameterInputFactory("learning_rate", InputData.StringType)) #enum
+    inputs.append(InputData.parameterInputFactory("power_t", InputData.FloatType))
+    inputs.append(InputData.parameterInputFactory("multi_class", InputData.StringType))
+    inputs.append(InputData.parameterInputFactory("kernel", InputData.StringType)) #enum
+    inputs.append(InputData.parameterInputFactory("degree", InputData.IntegerType))
+    inputs.append(InputData.parameterInputFactory("gamma", InputData.FloatType))
+    inputs.append(InputData.parameterInputFactory("coef0", InputData.FloatType))
+    inputs.append(InputData.parameterInputFactory("probability", InputData.StringType)) #bool
+    inputs.append(InputData.parameterInputFactory("shrinking", InputData.StringType)) #bool
+    inputs.append(InputData.parameterInputFactory("cache_size", InputData.FloatType))
+    inputs.append(InputData.parameterInputFactory("nu", InputData.FloatType))
+    inputs.append(InputData.parameterInputFactory("code_size", InputData.FloatType))
+    inputs.append(InputData.parameterInputFactory("fit_prior", InputData.StringType)) #bool
+    inputs.append(InputData.parameterInputFactory("class_prior", InputData.StringType))
+    inputs.append(InputData.parameterInputFactory("binarize", InputData.FloatType))
+    inputs.append(InputData.parameterInputFactory("n_neighbors", InputData.IntegerType))
+    inputs.append(InputData.parameterInputFactory("weights", InputData.StringType)) #enum
+    inputs.append(InputData.parameterInputFactory("algorithm", InputData.StringType)) #enum
+    inputs.append(InputData.parameterInputFactory("leaf_size", InputData.IntegerType))
+    inputs.append(InputData.parameterInputFactory("metric", InputData.StringType)) #enum?
+    inputs.append(InputData.parameterInputFactory("radius", InputData.FloatType))
+    inputs.append(InputData.parameterInputFactory("outlier_label", InputData.StringType))
+    inputs.append(InputData.parameterInputFactory("shrink_threshold", InputData.StringType))
+    inputs.append(InputData.parameterInputFactory("priors", InputData.StringType))
+    inputs.append(InputData.parameterInputFactory("reg_param", InputData.FloatType))
+    inputs.append(InputData.parameterInputFactory("splitter", InputData.StringType)) #enum
+    inputs.append(InputData.parameterInputFactory("max_features", InputData.StringType))
+    inputs.append(InputData.parameterInputFactory("max_depth", InputData.StringType))
+    inputs.append(InputData.parameterInputFactory("min_samples_split", InputData.IntegerType))
+    inputs.append(InputData.parameterInputFactory("min_samples_leaf", InputData.IntegerType))
+    inputs.append(InputData.parameterInputFactory("max_leaf_nodes", InputData.StringType))
+    inputs.append(InputData.parameterInputFactory("regr", InputData.StringType)) #enum
+    inputs.append(InputData.parameterInputFactory("corr", InputData.StringType)) #enum?
+    inputs.append(InputData.parameterInputFactory("beta0", InputData.StringType))
+    inputs.append(InputData.parameterInputFactory("storage_mode", InputData.StringType)) #enum
+    inputs.append(InputData.parameterInputFactory("theta0", InputData.StringType))
+    inputs.append(InputData.parameterInputFactory("thetaL", InputData.StringType))
+    inputs.append(InputData.parameterInputFactory("thetaU", InputData.StringType))
+    inputs.append(InputData.parameterInputFactory("nugget", InputData.FloatType))
+    inputs.append(InputData.parameterInputFactory("optimizer", InputData.StringType)) #enum
+    inputs.append(InputData.parameterInputFactory("random_start", InputData.IntegerType))
+
+    return inputs
+
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = super(ROM, cls).getInputSpecification()
+
+    #Estimators can include ROMs, and so because baseNode does a copy, this
+    #needs to be after the rest of ROMInput is defined.
+    EstimatorInput = InputData.parameterInputFactory('estimator', contentType=InputData.StringType, baseNode=inputSpecification)
+    EstimatorInput.addParam("estimatorType", InputData.StringType, True)
+    inputSpecification.addSub(EstimatorInput)
+
+    return inputSpecification
+
   @classmethod
   def specializeValidateDict(cls):
     """
@@ -983,24 +1012,39 @@ class ROM(Dummy):
     inRun = self._manipulateInput(Input[0])
     uniqueHandler = Input[1]['uniqueHandler'] if 'uniqueHandler' in Input[1].keys() else 'any'
     jobHandler.submitDict['Internal']((inRun,), self.__externalRun, str(Input[1]['prefix']), metadata=Input[1], modulesToImport=self.mods, uniqueHandler=uniqueHandler)
-#
-#
 
-class ExternalModelInput(InputData.ParameterInput):
-  """
-    Class for reading in external model block
-  """
-
-ExternalModelInput.createClass("ExternalModel", False, baseNode=ModelInput)
-ExternalModelInput.addParam("ModuleToLoad", InputData.StringType, True)
-VariablesInput = InputData.parameterInputFactory("variables", contentType=InputData.StringType)
-ExternalModelInput.addSub(VariablesInput)
-
-#
 class ExternalModel(Dummy):
   """
     External model class: this model allows to interface with an external python module
   """
+
+  @classmethod
+  def registeredInputs(cls):
+    """
+      Method to retrieve the local variables that can or need to be specified
+      by the user in an input file. (Each class that is exposed to the user
+      should override this function)
+      @ In, cls, the particular class for which we need to retrieve the input
+        specifications.
+    """
+    inputs = super(ExternalModel, cls).registeredInputs()
+    inputs.append(InputData.parameterInputFactory("variables", contentType=InputData.StringType))
+    return inputs
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = super(Model, cls).getInputSpecification()
+    inputSpecification.addParam("ModuleToLoad", InputData.StringType, True)
+
+    return inputSpecification
+
   @classmethod
   def specializeValidateDict(cls):
     """
@@ -1183,57 +1227,60 @@ class ExternalModel(Dummy):
       if not (typeMatch(outcomes[key],instanciatedSelf.modelVariableType[key])):
         self.raiseAnError(RuntimeError,'type of variable '+ key + ' is ' + str(type(outcomes[key]))+' and mismatches with respect to the input ones (' + instanciatedSelf.modelVariableType[key] +')!!!')
     Dummy.collectOutput(self, finishedJob, output)
-#
 
-
-class CodeInput(InputData.ParameterInput):
-  """
-    Class for reading in code block
-  """
-
-CodeInput.createClass("Code", False, baseNode=ModelInput)
-
-ExecutableInput = InputData.parameterInputFactory("executable", contentType=InputData.StringType)
-CodeInput.addSub(ExecutableInput)
-
-PreexecInput = InputData.parameterInputFactory("preexec", contentType=InputData.StringType)
-CodeInput.addSub(PreexecInput)
-
-AliasInput = InputData.parameterInputFactory("alias", contentType=InputData.StringType)
-AliasInput.addParam("variable", InputData.StringType, True)
-CodeInput.addSub(AliasInput)
-
-class ClargsTypeInput(InputData.EnumBaseType):
-  """
-    input for the Clargs type attribute
-  """
-
-ClargsTypeInput.createClass("clargsType","clargsTypeType",["text","input","output","prepend","postpend"])
-ClargsInput = InputData.parameterInputFactory("clargs")
-ClargsInput.addParam("type", ClargsTypeInput, True)
-ClargsInput.addParam("arg", InputData.StringType, False)
-ClargsInput.addParam("extension", InputData.StringType, False)
-CodeInput.addSub(ClargsInput)
-
-class FileargsTypeInput(InputData.EnumBaseType):
-  """
-    input for the Fileargs type attribute
-  """
-
-FileargsTypeInput.createClass("fileargsType", "fileargsTypeType",["input","output","moosevpp"])
-FileargsInput = InputData.parameterInputFactory("fileargs")
-FileargsInput.addParam("type", FileargsTypeInput, True)
-FileargsInput.addParam("arg", InputData.StringType, False)
-FileargsInput.addParam("extension", InputData.StringType, False)
-CodeInput.addSub(FileargsInput)
-
-#
-#
 class Code(Model):
   """
     This is the generic class that import an external code into the framework
   """
   CodeInterfaces = importlib.import_module("CodeInterfaces")
+
+  @classmethod
+  def registeredInputs(cls):
+    """
+      Method to retrieve the local variables that can or need to be specified
+      by the user in an input file. (Each class that is exposed to the user
+      should override this function)
+      @ In, cls, the particular class for which we need to retrieve the input
+        specifications.
+    """
+    inputs = super(Model, cls).registeredInputs()
+
+    inputs.append(InputData.parameterInputFactory("executable", contentType=InputData.StringType))
+    inputs.append(InputData.parameterInputFactory("preexec", contentType=InputData.StringType))
+
+    AliasInput = InputData.parameterInputFactory("alias", contentType=InputData.StringType)
+    AliasInput.addParam("variable", InputData.StringType, True)
+    inputs.append(AliasInput)
+
+    ## TODO: possibly remove these class definitions and just have the developer
+    ## specify the necessary stuff to create them. Let the InputData file worry
+    ## about creating the classes.
+    class ClargsTypeInput(InputData.EnumBaseType):
+      """
+        input for the Clargs type attribute
+      """
+
+    ClargsTypeInput.createClass("clargsType","clargsTypeType",["text","input","output","prepend","postpend"])
+    ClargsInput = InputData.parameterInputFactory("clargs")
+    ClargsInput.addParam("type", ClargsTypeInput, True)
+    ClargsInput.addParam("arg", InputData.StringType, False)
+    ClargsInput.addParam("extension", InputData.StringType, False)
+    inputs.append(ClargsInput)
+
+    class FileargsTypeInput(InputData.EnumBaseType):
+      """
+        input for the Fileargs type attribute
+      """
+
+    FileargsTypeInput.createClass("fileargsType", "fileargsTypeType",["input","output","moosevpp"])
+    FileargsInput = InputData.parameterInputFactory("fileargs")
+    FileargsInput.addParam("type", FileargsTypeInput, True)
+    FileargsInput.addParam("arg", InputData.StringType, False)
+    FileargsInput.addParam("extension", InputData.StringType, False)
+    inputs.append(FileargsInput)
+
+    return inputs
+
   @classmethod
   def specializeValidateDict(cls):
     """
@@ -1563,15 +1610,25 @@ class Code(Model):
         output.updateMetadata(key,exportDict['metadata'][key])
       output.numAdditionalLoadPoints += 1 #prevents consistency problems for entries from restart
 
-
-#
-#
-#
-#
 class PostProcessor(Model, Assembler):
   """
     PostProcessor is an Action System. All the models here, take an input and perform an action
   """
+  @classmethod
+  def registeredInputs(cls):
+    """
+      Method to retrieve the local variables that can or need to be specified
+      by the user in an input file. (Each class that is exposed to the user
+      should override this function)
+      @ In, cls, the particular class for which we need to retrieve the input
+        specifications.
+    """
+    inputs = super(PostProcessor, cls).registeredInputs()
+
+    ## TODO: Fill this in.
+
+    return inputs
+
   @classmethod
   def specializeValidateDict(cls):
     """
@@ -1733,10 +1790,7 @@ class PostProcessor(Model, Assembler):
       @ Out, createNewInput, tuple, return the new input in a tuple form
     """
     return self.interface.inputToInternal(self,myInput)
-#
-#
-#
-#
+
 class EnsembleModel(Dummy, Assembler):
   """
     EnsembleModel class. This class is aimed to create a comunication 'pipe' among different models in terms of Input/Output relation
@@ -2114,10 +2168,7 @@ class EnsembleModel(Dummy, Assembler):
           break
     returnEvaluation = returnDict, tempTargetEvaluations
     return returnEvaluation
-#
-#
-#
-#
+
 """
  Factory......
 """
