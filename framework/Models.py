@@ -1213,7 +1213,7 @@ class Code(Model):
 
     ## Begin file arguments tag
     FileargsInput = InputData.parameterInputFactory("fileargs")
-    
+
     FileargsTypeInput = InputData.makeEnumType("fileargsType", "fileargsTypeType",["input","output","moosevpp"])
     FileargsInput.addParam("type", FileargsTypeInput, True)
 
@@ -1232,7 +1232,7 @@ class Code(Model):
       """
 
     FileargsTypeInput.createClass()
-    
+
 
     inputs.append(FileargsInput)
 

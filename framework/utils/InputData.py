@@ -371,6 +371,11 @@ class ParameterInput(object):
       if parameterData["required"]:
         attributeNode.set('use','required')
 
+## TODO: We should normalize the names of the following two functions, since they
+## do the same thing just on different input types.
+## e.g., parameterInputFactory and EnumFactory
+## makeClassSpecification and makeEnumSpecification
+
 def parameterInputFactory(*paramList, **paramDict):
   """
     Creates a new ParameterInput class with the same parameters as ParameterInput.createClass
