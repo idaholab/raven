@@ -207,8 +207,8 @@
  [./testGrid_RELAP7]
    type = 'RavenFramework'
    input = 'test_Grid_Sampler_Raven.xml'
-   output = 'GridTestRaven/FirstMRun/1/out~clg_massflowrate_3eqn'
-   UnorderedCsv = 'GridTestRaven/outGrid_dump.csv'
+   output = 'GridTestRaven/FirstMRun/1/out~clg.massflowrate.3eqn'
+   UnorderedCsv = 'GridTestRaven/outGrid_dump.csv GridTestRaven/outGridMax_dump.csv GridTestRaven/outGridMin_dump.csv GridTestRaven/outGridAverage_dump.csv GridTestRaven/outGridMaxFromHDF5_dump.csv GridTestRaven/outGridMinFromHDF5_dump.csv GridTestRaven/outGridAverageFromHDF5_dump.csv'
    method = 'devel opt'
    required_executable = '../../RAVEN-%METHOD%'
  [../]
@@ -285,19 +285,6 @@
   #python_command = python3
   input = '../../framework/TestDistributions.py'
   requires_swig2 = True
- [../]
-
- [./test_mathUtils]
-  type = 'RavenPython'
-  input = '../../framework/utils/testMathUtils.py'
- [../]
- [./test_xmlUtils]
-  type = 'RavenPython'
-  input = '../../framework/utils/testXmlUtils.py'
- [../]
- [./test_cachedNDArray]
-  type = 'RavenPython'
-  input = '../../framework/utils/testCachedNDArray.py'
  [../]
 
  [./test_xsd_input_data]
@@ -503,6 +490,13 @@
    input  = 'test_distributionCustom1D.xml'
    output = 'custom1D/PointSet2_dump.csv custom1D/PointSet2_dump.xml custom1D/PointSet3_dump.csv custom1D/PointSet3_dump.xml'
    csv    = 'custom1D/PointSet2_dump.csv custom1D/PointSet3_dump.csv'
+ [../]
+ 
+ [./categorical]
+   type   = 'RavenFramework'
+   input  = 'test_distributionsCategorical.xml'
+   output = 'test_categorical/Grid_dump.csv test_categorical/MC_dump.csv test_categorical/output_basicStatistics_Grid.csv test_categorical/output_basicStatistics_MC.csv' 
+   csv    = 'test_categorical/Grid_dump.csv test_categorical/MC_dump.csv'
  [../]
 
 []

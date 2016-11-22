@@ -15,7 +15,7 @@ def isANumber(x):
 class UnorderedCSVDiffer:
   """ Used for comparing a bunch of xml files.
   """
-  def __init__(self, test_dir, out_files,relative_error=1e-10):
+  def __init__(self, test_dir, out_files,relative_error=1e-10,absolute_check=False):
     """ Create an UnorderedCSVDiffer class
     test_dir:
     out_files:
@@ -29,6 +29,7 @@ class UnorderedCSVDiffer:
     self.__messages = ""
     self.__same = True
     self.__test_dir = test_dir
+    self.__check_absolute_values = absolute_check
     #self.__options = args
     self.__rel_err = relative_error
 
@@ -57,6 +58,15 @@ class UnorderedCSVDiffer:
         testHead, testData = self.loadCSV(test_filename)
         goldHead, goldData = self.loadCSV(gold_filename)
         #match headers
+        #this if can check the data in whatever column order
+        #if testHead != goldHead:
+        #  goldHeadList = goldHead.split(',')
+        #  testHeadList = testHead.split(',')
+        #  newTestData = np.zeros(np.array(testData).shape)
+        #  oldTestData = np.array(testData)
+        #  for cnt,goldVar in enumerate(goldHeadList):newTestData[:,cnt] = oldTestData[:,testHeadList.index(goldVar)]
+        #  testData = newTestData.tolist()
+        #  testHead = goldHead
         if testHead != goldHead:
           self.__same = False
           self.__messages+='\nHeaders are not the same!...\n...Test: %s\n...Gold: %s' %(testHead,goldHead)
@@ -92,7 +102,10 @@ class UnorderedCSVDiffer:
               for d,g in zip(datarow,goldrow):
                 if type(d) != type(g): allfound = False
                 if type(d) == float:
-                  check = abs(d-g)
+                  if not self.__check_absolute_values:
+                    check = abs(d-g)
+                  else:
+                    check = abs(abs(d)-abs(g))
                   #div by 0 error handling
                   if abs(g)>1e-15: check/=abs(g)
                   if check > self.__rel_err:

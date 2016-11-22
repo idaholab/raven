@@ -11,7 +11,7 @@ def createBackup(filename):
   """
   bakname = filename+'.bak'
   if not os.path.isfile(bakname):
-    bak = file(bakname,'wb')		# Use 'wb' to preserve whatever line endings the original file had
+    bak = file(bakname,'wb')  # Use 'wb' to preserve whatever line endings the original file had
     for line in file(filename,'r'):
       bak.writelines(line)
     bak.close()

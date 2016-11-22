@@ -1,0 +1,85 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="all">
+  <RunInfo>
+    <WorkingDir>basicStatsStratifiedAnalytic</WorkingDir>
+    <Sequence>SamplingMirrowModelStratified,PP1Stratified</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="output_basicStatistics_PP1Stratified.csv" type="">output_basicStatistics_PP1Stratified.csv</Input>
+    <Input name="output_basicStatistics_PP1Stratified.xml" type="">output_basicStatistics_PP1Stratified.xml</Input>
+  </Files>
+
+  <Models>
+    <ExternalModel ModuleToLoad="simpleMirrowModel" name="mirrowModel" subType="">
+      <variables>x,y,x1</variables>
+    </ExternalModel>
+    <PostProcessor name="analyticalTest" subType="BasicStatistics" verbosity="debug">
+      <all>
+        <targets>x,y</targets>
+        <features>x,y</features>
+      </all>
+    </PostProcessor>
+  </Models>
+
+  <Distributions>
+    <Normal name="x0_distrib">
+      <mean>1.</mean>
+      <sigma>.5</sigma>
+    </Normal>
+    <Normal name="y0_distrib">
+      <mean>1.</mean>
+      <sigma>.5</sigma>
+    </Normal>
+  </Distributions>
+
+  <Samplers>
+    <Stratified name="Stratified_external">
+      <variable name="x">
+        <distribution>x0_distrib</distribution>
+        <grid construction="equal" steps="500" type="CDF">0.0001 0.9999</grid>
+      </variable>
+      <variable name="y">
+        <distribution>y0_distrib</distribution>
+        <grid construction="equal" steps="500" type="CDF">0.0001 0.9999</grid>
+      </variable>
+    </Stratified>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="SamplingMirrowModelStratified" re-seeding="20021986">
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
+      <Model class="Models" type="ExternalModel">mirrowModel</Model>
+      <Sampler class="Samplers" type="Stratified">Stratified_external</Sampler>
+      <Output class="DataObjects" type="PointSet">outputDataStratified</Output>
+    </MultiRun>
+    <PostProcess name="PP1Stratified">
+      <Input class="DataObjects" type="PointSet">outputDataStratified</Input>
+      <Model class="Models" type="PostProcessor">analyticalTest</Model>
+      <Output class="Files" type="">output_basicStatistics_PP1Stratified.csv</Output>
+      <Output class="Files" type="">output_basicStatistics_PP1Stratified.xml</Output>
+      <Output class="DataObjects" type="PointSet">outputDataStratified</Output>
+      <Output class="OutStreams" type="Print">outputDataStratified_dump</Output>
+    </PostProcess>
+  </Steps>
+
+  <OutStreams>
+    <Print name="outputDataStratified_dump">
+      <type>csv</type>
+      <source>outputDataStratified</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="inputPlaceHolder">
+      <Input>x,y</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="outputDataStratified">
+      <Input>x,y</Input>
+      <Output>x1</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>

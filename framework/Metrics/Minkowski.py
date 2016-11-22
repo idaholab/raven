@@ -27,7 +27,6 @@ from Assembler import Assembler
 import CustomCommandExecuter
 import utils
 import mathUtils
-import TreeStructure
 import Files
 from .Metric import Metric
 

@@ -1,0 +1,87 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="silent">
+  <RunInfo>
+    <WorkingDir>basicStatisticsXml</WorkingDir>
+    <Sequence>FirstMRun,PP</Sequence>
+    <batchSize>100</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="basicStatisticsExternalModelTest.py" type="">basicStatisticsExternalModelTest.py</Input>
+    <Input name="xmldump" type="">output_basicStatistics.xml</Input>
+  </Files>
+
+  <Models>
+    <ExternalModel ModuleToLoad="basicStatisticsGeneral/basicStatisticsExternalModelTest" name="PythonModule" subType="">
+      <variables>x,y,z,time,x0,x01,x02,y0,y02,y01,z0,z02,z01</variables>
+    </ExternalModel>
+    <PostProcessor name="InputOutput" subType="BasicStatistics" verbosity="debug">
+      <all>
+        <targets>x0,x01,y0,y02</targets>
+        <features>x0,x01,y0,y02</features>
+      </all>
+    </PostProcessor>
+  </Models>
+
+  <Distributions>
+    <Normal name="x0_distrib">
+      <mean>4</mean>
+      <sigma>1</sigma>
+    </Normal>
+    <Normal name="y0_distrib">
+      <mean>100</mean>
+      <sigma>1</sigma>
+    </Normal>
+    <Normal name="z0_distrib">
+      <mean>4</mean>
+      <sigma>1</sigma>
+    </Normal>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="MC_external">
+      <samplerInit>
+        <limit>100000</limit>
+      </samplerInit>
+      <variable name="x0">
+        <distribution>x0_distrib</distribution>
+      </variable>
+      <variable name="y0">
+        <distribution>y0_distrib</distribution>
+      </variable>
+      <variable name="z0">
+        <distribution>z0_distrib</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="FirstMRun" re-seeding="25061978">
+      <Input class="Files" type="">basicStatisticsExternalModelTest.py</Input>
+      <Model class="Models" type="ExternalModel">PythonModule</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
+      <Output class="DataObjects" type="PointSet">PointSetPostProcTest</Output>
+    </MultiRun>
+    <PostProcess name="PP">
+      <Input class="DataObjects" type="PointSet">PointSetPostProcTest</Input>
+      <Model class="Models" type="PostProcessor">InputOutput</Model>
+      <Output class="Files" type="">xmldump</Output>
+      <Output class="OutStreams" type="Print">PointSetPostProcTest_dump</Output>
+    </PostProcess>
+  </Steps>
+
+  <OutStreams>
+    <Print name="PointSetPostProcTest_dump">
+      <type>csv</type>
+      <source>PointSetPostProcTest</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="PointSetPostProcTest">
+      <Input>x0,y0,z0</Input>
+      <Output>time,x02,y02,z02,x01,y01,z01,x,y,z</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>

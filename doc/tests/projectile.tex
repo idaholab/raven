@@ -1,0 +1,47 @@
+\section{Projectile (vacuum, gravity)}
+Associated external model: \texttt{projectile.py}
+
+Solves the projectile motion equations
+\begin{equation}
+  x = x_0 + v_{x,0} t,
+\end{equation}
+\begin{equation}
+  y = y_0 + v_{y,0} t + \frac{a}{2} t^2,
+\end{equation}
+with the following inputs
+\begin{itemize}
+  \item $x_0$, or \texttt{x0}, initial horizontal position,
+  \item $y_0$, or \texttt{y0}, initial vertical position,
+  \item $v_0$, or \texttt{v0}, initial speed (scalar),
+  \item $\theta$, or \texttt{ang}, angle with respect to horizontal plane,
+\end{itemize}
+and following responses:
+\begin{itemize}
+  \item $r$, or \texttt{r}, the horizontal distance traveled before hitting $y=0$,
+  \item $x$, or \texttt{x}, the time-dependent vertical position,
+  \item $y$, or \texttt{y}, the time-dependent horizontal position,
+  \item $t$, or \texttt{time}, the series of time steps taken.
+\end{itemize}
+The simulation takes 10 equally spaced time steps from 0 to 1 second, inclusive, and returns all four values
+as vector quantities.
+
+\subsection{Grid, $x_0,y_0$}
+If a Grid sampling strategy is used and the following distributions are applied to $x_0$ and $y_0$, with three
+samples equally spaced on the CDF between 0.01 and 0.99 for each input, the following are some of the samples obtained.
+\begin{itemize}
+  \item $x_0$ is distributed normally with mean 0 and standard deviation 1,
+  \item $y_0$ is distributed normally with mean 1 and standard deviation 0.2.
+\end{itemize}
+
+\begin{table}[h!]
+  \centering
+  \begin{tabular}{c c|c|c c}
+    $x_0$ & $y_0$ & $t$ & $x$ & $y$ \\ \hline
+    -2.32634787404 & 0.53473045192 & 0 & -2.32634787404 & 0.534730425192 \\
+                   &               & $1/3$ & -2.09064561365 & 0.225988241143 \\
+                   &               & 1 & -1.61924109285 & -3.65816279362 \\ \hline
+    1.0            & 0.0           & 0 & 1.0 & 0.0 \\
+                   &               & $1/3$ & 0.235702260396 & 0.691257815951 \\
+                   &               & 1 & 0.707106781187 & -3.19289321881
+  \end{tabular}
+\end{table}
