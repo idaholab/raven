@@ -3,7 +3,7 @@
   <!-- RUNINFO -->
   <RunInfo>
     <WorkingDir>externalModel</WorkingDir>
-    <Sequence>FirstMRunForTestAlias</Sequence>
+    <Sequence>FirstMRunForTestAlias,printContentOfHDF5</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
@@ -19,18 +19,26 @@
       <Output class="DataObjects" type="PointSet">testPointSet</Output>
       <Output class="OutStreams" type="Print">testPointSet_dump</Output>
     </MultiRun>
+    <IOStep name="printContentOfHDF5">
+      <Input class="Databases" type="HDF5">test_external_db</Input>
+      <Input class="Databases" type="HDF5">test_external_db</Input>
+      <Output class="DataObjects" type="PointSet">testPointSetFromHDF5</Output>
+      <Output class="DataObjects" type="HistorySet">testPrintHistorySetFromHDF5</Output>
+      <Output class="OutStreams" type="Print">testPrintHistorySetFromHDF5_dump</Output>
+      <Output class="OutStreams" type="Print">testPointSetFromHDF5_dump</Output>
+    </IOStep>
+    
+    
   </Steps>
 
   <!-- MODELS -->
   <Models>
     <ExternalModel ModuleToLoad="lorentzAttractor" name="PythonModule" subType="">
-      <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0</variables>
+      <variables>sigma,rho,beta,firstOut,secondOut,z,time,firstVar,secondVar,z0</variables>
       <alias variable="x0" type="input">firstVar</alias>
       <alias variable="y0" type="input">secondVar</alias>
-      <alias variable="z0" type="input">thirdVar</alias>
       <alias variable="x"  type="output">firstOut</alias>
       <alias variable="y"  type="output">secondOut</alias>
-      <alias variable="z"  type="output">thirdOut</alias>
     </ExternalModel>
   </Models>
 
@@ -83,6 +91,14 @@
       <type>csv</type>
       <source>testPointSet</source>
     </Print>
+    <Print name="testPrintHistorySetFromHDF5_dump">
+        <type>csv</type>
+        <source>testPrintHistorySetFromHDF5</source>
+    </Print>
+    <Print name="testPointSetFromHDF5_dump">
+        <type>csv</type>
+        <source>testPointSetFromHDF5</source>
+    </Print>
   </OutStreams>
 
   <!-- DATA OBJECTS -->
@@ -92,12 +108,20 @@
       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="testPointSet">
-      <Input>firstVar,secondVar,thirdVar</Input>
-      <Output>time,firstOut,secondOut,thirdOut</Output>
+      <Input>x0,y0,z0</Input>
+      <Output>time,x,y,z</Output>
     </PointSet>
     <HistorySet name="testPrintHistorySet">
-      <Input>firstVar,secondVar,thirdVar</Input>
-      <Output>time,firstOut,secondOut,thirdOut</Output>
+      <Input>x0,y0,z0</Input>
+      <Output>time,x,y,z</Output>
+    </HistorySet>
+    <PointSet name="testPointSetFromHDF5">
+        <Input>x0,y0,z0</Input>
+        <Output>time,x,y,z</Output>
+    </PointSet>
+    <HistorySet name="testPrintHistorySetFromHDF5">
+        <Input>x0,y0,z0</Input>
+        <Output>time,x,y,z</Output>
     </HistorySet>
   </DataObjects>
 

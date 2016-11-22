@@ -192,23 +192,27 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
             if child.attrib['type'].lower() not in ['input','output']: self.raiseAnError(IOError,'the type of alias can be either "input" or "output". Got '+child.attrib['type'].lower())
             aliasType = child.attrib['type'].lower().strip()
           self.alias[aliasType][child.attrib['variable']] = child.text.strip()
-        else: self.raiseAnError(IOError,'not found the attribute variable in the definition of one of the alias for model '+str(self.name) +' of type '+self.type)
+        else: self.raiseAnError(IOError,'not found the attribute "variable" in the definition of one of the alias for model '+str(self.name) +' of type '+self.type)
     # read local information
     self.localInputAndChecks(xmlNode)
    
-  def _replaceVariablesNamesWithAliasSystem(self, sampledVars, aliasType='input'):
+  def _replaceVariablesNamesWithAliasSystem(self, sampledVars, aliasType='input', fromModelToFramework=False):
     """
       Method to convert kwargs Sampled vars with the alias system
       @ In , sampledVars, dict, dictionary that are going to be modified
       @ In, aliasType, str, optional, type of alias to be replaced
+      @ In, fromModelToFramework, bool, optional, True if we need to replace the variable name from the model to the framework, False if opposite 
       @ Out, originalVariables, dict, dictionary of the original sampled variables
     """
     if len(self.alias[aliasType].keys()) != 0:
       originalVariables = copy.deepcopy(sampledVars)
-      for varFramework,varCode in self.alias[aliasType].items():
-        found = sampledVars.pop(varFramework,sys.maxint)
-        if found != sys.maxint: sampledVars[varCode] = originalVariables[varFramework]
-        else                : self.raiseAWarning('the ' +aliasType+ ' alias"'+varFramework+'" has been defined but has not been found among the inputted variables!')
+      for varFramework,varModel in self.alias[aliasType].items():
+        found = sampledVars.pop(varModel,[sys.maxint]) if fromModelToFramework else sampledVars.pop(varFramework,[sys.maxint])
+        if not np.array_equal(np.asarray(found), [sys.maxint]): 
+          if fromModelToFramework: sampledVars[varFramework] = originalVariables[varModel]
+          else                   : sampledVars[varModel]     = originalVariables[varFramework]
+        else: 
+          self.raiseAWarning('the ' +aliasType+ ' alias "'+varModel if fromModelToFramework else varFramework+'" has been defined but has not been found among the inputted variables!')
     else: originalVariables = sampledVars
     return originalVariables
 
@@ -382,7 +386,8 @@ class Dummy(Model):
         else:                      localInput[entries] = None
       #Now if an OutputPlaceHolder is used it is removed, this happens when the input data is not representing is internally manufactured
       if 'OutputPlaceHolder' in dataIN.getParaKeys('outputs'): localInput.pop('OutputPlaceHolder') # this remove the counter from the inputs to be placed among the outputs
-    else: localInput = dataIN #here we do not make a copy since we assume that the dictionary is for just for the model usage and any changes are not impacting outside
+    else: localInput = dataIN #here we do not make a copy since we assume that the dictionary is for just for the model usage and any changes are not impacting outside 
+    self._replaceVariablesNamesWithAliasSystem(localInput,'input',False)
     return localInput
 
   def createNewInput(self,myInput,samplerType,**Kwargs):
@@ -400,8 +405,8 @@ class Dummy(Model):
     if len(myInput)>1: self.raiseAnError(IOError,'Only one input is accepted by the model type '+self.type+' with name'+self.name)
     inputDict   = self._inputToInternal(myInput[0])
     if 'SampledVars' in Kwargs.keys(): 
-      sampledVars = self._replaceVariablesNamesWithAliasSystem(Kwargs['SampledVars'])
-      self._replaceVariablesNamesWithAliasSystem(inputDict)
+      sampledVars = self._replaceVariablesNamesWithAliasSystem(Kwargs['SampledVars'],'input',False)
+      self._replaceVariablesNamesWithAliasSystem(inputDict,'input',False)
     for key in Kwargs['SampledVars'].keys(): inputDict[key] = np.atleast_1d(Kwargs['SampledVars'][key])
     for val in inputDict.values():
       if val is None: self.raiseAnError(IOError,'While preparing the input for the model '+self.type+' with name '+self.name+' found a None input variable '+ str(inputDict.items()))
@@ -591,6 +596,7 @@ class ROM(Dummy):
     Dummy._readMoreXML(self, xmlNode)
     self.initializationOptionDict['name'] = self.name
     for child in xmlNode:
+      if child.tag == 'alias': continue
       if child.attrib:
         if child.tag not in self.initializationOptionDict.keys():
           self.initializationOptionDict[child.tag]={}
@@ -607,7 +613,7 @@ class ROM(Dummy):
     if not 'Target' in self.initializationOptionDict.keys(): self.raiseAnError(IOError,'No Targets specified!!!')
     targets = self.initializationOptionDict['Target'].split(',')
     self.howManyTargets = len(targets)
-
+    
     if 'SKLtype' in self.initializationOptionDict and 'MultiTask' in self.initializationOptionDict['SKLtype']:
       self.initializationOptionDict['Target'] = targets
       model = SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
@@ -751,6 +757,8 @@ class ROM(Dummy):
             newRom[target] =  copy.deepcopy(origRomCopies[target])
           for target,instrom in newRom.items():
             # train the ROM
+            self._replaceVariablesNamesWithAliasSystem(self.trainingSet[ts], 'input' )
+            self._replaceVariablesNamesWithAliasSystem(self.trainingSet[ts], 'output')
             instrom.train(self.trainingSet[ts])
             self.amITrained = self.amITrained and instrom.amITrained
           self.SupervisedEngine.append(newRom)
@@ -758,6 +766,7 @@ class ROM(Dummy):
       else:
         self.trainingSet = copy.copy(self._inputToInternal(trainingSet,full=True))
         if type(self.trainingSet) is dict:
+          self._replaceVariablesNamesWithAliasSystem(self.trainingSet, 'output')
           self.amITrained = True
           for instrom in self.SupervisedEngine.values():
             instrom.train(self.trainingSet)
@@ -826,6 +835,8 @@ class ROM(Dummy):
     else:
       for target in self.SupervisedEngine.keys():
         returnDict[target] = self.evaluate(inRun,target)
+    self._replaceVariablesNamesWithAliasSystem(returnDict, 'output',True)
+    self._replaceVariablesNamesWithAliasSystem(inRun, 'input',True)
     return returnDict
 
   def run(self,Input,jobHandler):
