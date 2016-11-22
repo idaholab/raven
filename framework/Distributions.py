@@ -1558,6 +1558,30 @@ class Categorical(Distribution):
 
     return inputs
 
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = InputData.classInputFactory(cls, cls.__name__, ordered=True, baseNode=None)
+
+    for input in cls.registeredInputs():
+      ## The majority of parameters will use the default cardinality, but allow
+      ## developers to fully specify the signature for adding a "sub" for those
+      ## edge cases by passing in a tuple to this call
+      if isinstance(input,tuple):
+        inputSpecification.addSub(*input)
+      else:
+        inputSpecification.addSub(input)
+
+    inputSpecification.addParam("name", InputData.StringType, True)
+
+    return inputSpecification
+
   def __init__(self):
     """
       Function that initializes the categorical distribution
