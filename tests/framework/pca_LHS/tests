@@ -4,6 +4,7 @@
   input = 'test_LHS_pca_value.xml'
   xml = 'LHSValue/testPrintPointSet_dump.xml'
   csv = 'LHSValue/testPrintPointSet_dump.csv'
+  remove_unicode_identifier = true
  [../]
 
  [./LHSCdf]
@@ -19,6 +20,7 @@
   input = 'test_stratified_pca_value.xml'
   xml = 'stratifiedValue/testPrintPointSet_dump.xml'
   csv = 'stratifiedValue/testPrintPointSet_dump.csv'
+  remove_unicode_identifier = true
  [../]
 
  [./stratifiedCdf]
@@ -34,17 +36,17 @@
   input = 'test_LHS.xml'
   csv = 'LHS/testPrintPointSet_dump.csv'
  [../]
- 
+
  [./LHScorrelated]
   type = 'RavenFramework'
   input = 'test_LHS_correlated_cdf.xml'
   csv = 'LHScorrelated/testPrintPointSet_dump.csv'
  [../]
- 
+
  [./LHSuncorrelated]
   type = 'RavenFramework'
   input = 'test_LHS_uncorrelated_cdf.xml'
   csv = 'LHSuncorrelated/testPrintPointSet_dump.csv'
  [../]
- 
+
 []

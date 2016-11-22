@@ -5,6 +5,7 @@
   xml = 'circle/greedy_d_samples.xml circle/greedy_d_ls.xml'
   csv = 'circle/greedy_d_samples.csv circle/greedy_d_ls.csv'
   required_libraries = 'AMSC'
+  remove_unicode_identifier = true
  [../]
  [./GreedyDistancePersistence]
   type = 'RavenFramework'
@@ -12,6 +13,7 @@
   xml = 'circle/greedy_dp_samples.xml circle/greedy_dp_ls.xml'
   csv = 'circle/greedy_dp_samples.csv circle/greedy_dp_ls.csv'
   required_libraries = 'AMSC'
+  remove_unicode_identifier = true
  [../]
  [./MaxPDistance]
   type = 'RavenFramework'
@@ -19,6 +21,7 @@
   xml = 'circle/maxP_d_samples.xml circle/maxP_d_ls.xml'
   csv = 'circle/maxP_d_samples.csv circle/maxP_d_ls.csv'
   required_libraries = 'AMSC'
+  remove_unicode_identifier = true
  [../]
  [./MaxPDistancePersistence]
   type = 'RavenFramework'
@@ -26,6 +29,7 @@
   xml = 'circle/maxP_dp_samples.xml circle/maxP_dp_ls.xml'
   csv = 'circle/maxP_dp_samples.csv circle/maxP_dp_ls.csv'
   required_libraries = 'AMSC'
+  remove_unicode_identifier = true
  [../]
  [./MaxVDistance]
   type = 'RavenFramework'
@@ -33,6 +37,7 @@
   xml = 'circle/maxV_d_samples.xml circle/maxV_d_ls.xml'
   csv = 'circle/maxV_d_samples.csv circle/maxV_d_ls.csv'
   required_libraries = 'AMSC'
+  remove_unicode_identifier = true
  [../]
  [./MaxVDistancePersistence]
   type = 'RavenFramework'
@@ -40,6 +45,7 @@
   xml = 'circle/maxV_dp_samples.xml circle/maxV_dp_ls.xml'
   csv = 'circle/maxV_dp_samples.csv circle/maxV_dp_ls.csv'
   required_libraries = 'AMSC'
+  remove_unicode_identifier = true
  [../]
  [./PreRankingSimplification]
   type = 'RavenFramework'
@@ -47,6 +53,7 @@
   xml = 'circle/pre_samples.xml circle/pre_ls.xml'
   csv = 'circle/pre_samples.csv circle/pre_ls.csv'
   required_libraries = 'AMSC'
+  remove_unicode_identifier = true
  [../]
  [./PostRankingThresholding]
   type = 'RavenFramework'
@@ -54,6 +61,7 @@
   xml = 'circle/post_samples.xml circle/post_ls.xml'
   csv = 'circle/post_samples.csv circle/post_ls.csv'
   required_libraries = 'AMSC'
+  remove_unicode_identifier = true
  [../]
  [./ThickenedBand]
   type = 'RavenFramework'
@@ -61,6 +69,7 @@
   xml = 'circle/thick_samples.xml circle/thick_ls.xml'
   csv = 'circle/thick_samples.csv circle/thick_ls.csv'
   required_libraries = 'AMSC'
+  remove_unicode_identifier = true
  [../]
  [./InvalidPreRankingSimplification]
   type = 'RavenFramework'
@@ -68,6 +77,7 @@
   xml = 'circle/invalid_pre_samples.xml circle/invalid_pre_ls.xml'
   csv = 'circle/invalid_pre_samples.csv circle/invalid_pre_ls.csv'
   required_libraries = 'AMSC'
+  remove_unicode_identifier = true
  [../]
  [./InvalidPostRankingSimplification]
   type = 'RavenFramework'
@@ -75,6 +85,7 @@
   xml = 'circle/invalid_post_samples.xml circle/invalid_post_ls.xml'
   csv = 'circle/invalid_post_samples.csv circle/invalid_post_ls.csv'
   required_libraries = 'AMSC'
+  remove_unicode_identifier = true
  [../]
  [./InvalidMaxBatchSize]
   type = 'RavenFramework'
@@ -82,6 +93,7 @@
   xml = 'circle/invalid_mbs_samples.xml circle/invalid_mbs_ls.xml'
   csv = 'circle/invalid_mbs_samples.csv circle/invalid_mbs_ls.csv'
   required_libraries = 'AMSC'
+  remove_unicode_identifier = true
  [../]
  [./InvalidScoringStrategy]
   type = 'RavenFramework'
@@ -99,5 +111,6 @@
   xml = 'circle/invalid_thick_samples.xml circle/invalid_thick_ls.xml'
   csv = 'circle/invalid_thick_samples.csv circle/invalid_thick_ls.csv'
   required_libraries = 'AMSC'
+  remove_unicode_identifier = true
  [../]
 []
