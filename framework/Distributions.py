@@ -84,7 +84,7 @@ class Distribution(BaseType):
     """
     inputs = super(Distribution, cls).registeredInputs()
 
-    inputs.append(InputData.parameterInputFactory('upperBound',contentType=InputData.FloatType))
+    inputs.append(InputData.parameterInputFactory('upperBound', contentType=InputData.FloatType))
     inputs.append(InputData.parameterInputFactory('lowerBound', contentType=InputData.FloatType))
 
     return inputs
@@ -386,19 +386,6 @@ class BoostDistribution(Distribution):
     Base distribution class based on boost
   """
 
-  @classmethod
-  def registeredInputs(cls):
-    """
-      Method to retrieve the local variables that can or need to be specified
-      by the user in an input file. (Each class that is exposed to the user
-      should override this function)
-      @ In, cls, the particular class for which we need to retrieve the input
-        specifications.
-    """
-    inputs = super(BoostDistribution, cls).registeredInputs()
-
-    return inputs
-
   def __init__(self):
     """
       Constructor
@@ -500,19 +487,6 @@ class Uniform(BoostDistribution):
   """
     Uniform univariate distribution
   """
-
-  @classmethod
-  def registeredInputs(cls):
-    """
-      Method to retrieve the local variables that can or need to be specified
-      by the user in an input file. (Each class that is exposed to the user
-      should override this function)
-      @ In, cls, the particular class for which we need to retrieve the input
-        specifications.
-    """
-    inputs = super(Uniform, cls).registeredInputs()
-
-    return inputs
 
   def __init__(self):
     """
