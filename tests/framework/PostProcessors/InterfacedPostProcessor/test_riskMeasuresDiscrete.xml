@@ -26,7 +26,7 @@
   <Samplers>
     <MonteCarlo name='MC'>
       <samplerInit>
-        <limit>10000</limit>
+        <limit>100</limit>
       </samplerInit>
       <variable name='valveTime'>
         <distribution>valveTime_distExp</distribution>
@@ -80,9 +80,9 @@
     <PostProcessor name="riskMeasuresDiscrete" subType="InterfacedPostProcessor">
       <method>RiskMeasuresDiscrete</method>
       <measures>B,FV,RAW,RRW</measures>
-      <variable R0values='0,60' R1values='1441,2880' extendData='False'>pump1Time</variable>
-      <variable R0values='0,60' R1values='1441,2880' extendData='False'>pump2Time</variable>
-      <variable R0values='0,60' R1values='1441,2880' extendData='False'>valveTime</variable>
+      <variable R0values='0,240' R1values='1441,2880' extendData='False'>pump1Time</variable>
+      <variable R0values='0,240' R1values='1441,2880' extendData='False'>pump2Time</variable>
+      <variable R0values='0,240' R1values='1441,2880' extendData='False'>valveTime</variable>
       <target   values='1400,14000'>Tmax</target>
     </PostProcessor>
     

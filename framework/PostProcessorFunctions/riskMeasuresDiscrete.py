@@ -159,20 +159,20 @@ class RiskMeasuresDiscrete(PostProcessorInterfaceBase):
       RRW = R0/Rminus
       RAW = Rplus/R0
       FV  = (R0-Rminus)/R0
-      B   = Rplus+Rminus
+      B   = Rplus-Rminus
             
       if 'RRW' in self.measures:
         outputDic['data']['output'][variable + '_RRW'] = np.asanyarray([RRW])
-        print('--> ' + str(variable) + 'RRW = ' + str(RRW))
+        #print('--> ' + str(variable) + ' RRW = ' + str(RRW))
       if 'RAW' in self.measures:
         outputDic['data']['output'][variable + '_RAW'] = np.asanyarray([RAW])
-        print('--> ' + str(variable) + 'RAW = ' + str(RAW))
+        #print('--> ' + str(variable) + ' RAW = ' + str(RAW))
       if 'FV' in self.measures:
         outputDic['data']['output'][variable + '_FV']  = np.asanyarray([FV])
-        print('--> ' + str(variable) + 'FV = ' + str(FV))
+        #print('--> ' + str(variable) + ' FV = ' + str(FV))
       if 'B' in self.measures:
         outputDic['data']['output'][variable + '_B']   = np.asanyarray([B])
-        print('--> ' + str(variable) + 'B  = ' + str(B))
+        #print('--> ' + str(variable) + ' B  = ' + str(B))
       
       outputDic['data']['input'][variable + '_avg'] = np.asanyarray([np.sum(dataSystemMinus[0,:])])
    
