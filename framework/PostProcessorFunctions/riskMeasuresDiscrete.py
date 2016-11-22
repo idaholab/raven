@@ -115,9 +115,6 @@ class RiskMeasuresDiscrete(PostProcessorInterfaceBase):
       pbWeights = inputDic['metadata'][0]['ProbabilityWeight']/np.sum(inputDic['metadata'][0]['ProbabilityWeight'])
 
     N = pbWeights.size
-
-    # 1.0 = failure
-    # 0.0 = OK
     
     outputDic = {}
     outputDic['data'] = {}
@@ -151,9 +148,9 @@ class RiskMeasuresDiscrete(PostProcessorInterfaceBase):
       Rminus = np.sum(dataSystemMinus[0,:])/np.sum(dataComponentMinus[0,:])
       Rplus  = np.sum(dataSystemPlus[0,:]) /np.sum(dataComponentPlus[0,:])
       
-      print('--> ' + str(variable) + ' Rminus = ' + str(Rminus))
-      print('--> ' + str(variable) + ' Rplus  = ' + str(Rplus))
-      print('--> ' + str(variable) + ' R0     = ' + str(R0))
+      #print('--> ' + str(variable) + ' Rminus = ' + str(Rminus))
+      #print('--> ' + str(variable) + ' Rplus  = ' + str(Rplus))
+      #print('--> ' + str(variable) + ' R0     = ' + str(R0))
       
       ''' Calculate RRW, RAW, FV, B '''
       RRW = R0/Rminus
@@ -163,16 +160,16 @@ class RiskMeasuresDiscrete(PostProcessorInterfaceBase):
             
       if 'RRW' in self.measures:
         outputDic['data']['output'][variable + '_RRW'] = np.asanyarray([RRW])
-        #print('--> ' + str(variable) + ' RRW = ' + str(RRW))
+        print('--> ' + str(variable) + ' RRW = ' + str(RRW))
       if 'RAW' in self.measures:
         outputDic['data']['output'][variable + '_RAW'] = np.asanyarray([RAW])
-        #print('--> ' + str(variable) + ' RAW = ' + str(RAW))
+        print('--> ' + str(variable) + ' RAW = ' + str(RAW))
       if 'FV' in self.measures:
         outputDic['data']['output'][variable + '_FV']  = np.asanyarray([FV])
-        #print('--> ' + str(variable) + ' FV = ' + str(FV))
+        print('--> ' + str(variable) + ' FV = ' + str(FV))
       if 'B' in self.measures:
         outputDic['data']['output'][variable + '_B']   = np.asanyarray([B])
-        #print('--> ' + str(variable) + ' B  = ' + str(B))
+        print('--> ' + str(variable) + ' B  = ' + str(B))
       
       outputDic['data']['input'][variable + '_avg'] = np.asanyarray([np.sum(dataSystemMinus[0,:])])
    

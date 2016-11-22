@@ -3,8 +3,8 @@
   <RunInfo>
     <WorkingDir>RiskMeasuresDiscrete</WorkingDir>
     <Sequence>FirstMRun,PP</Sequence>
-    <batchSize>100</batchSize>
-    <internalParallel>True</internalParallel>
+    <batchSize>1</batchSize>
+    <!--internalParallel>True</internalParallel-->
   </RunInfo>
 
   <Files>
@@ -26,7 +26,7 @@
   <Samplers>
     <MonteCarlo name='MC'>
       <samplerInit>
-        <limit>100</limit>
+        <limit>20</limit>
       </samplerInit>
       <variable name='valveTime'>
         <distribution>valveTime_distExp</distribution>
@@ -56,27 +56,9 @@
   </Steps>
 
   <Models>
-	  <ExternalModel name='PythonModule' subType='' ModuleToLoad='modelTH'>
-	    <variables>pump1Time,pump2Time,valveTime,Tmax,outcome,pump1State,pump2State,valveState,failureTime</variables>
-	  </ExternalModel>
     <ExternalModel name='PythonModuleReduced' subType='' ModuleToLoad='modelTHreduced'>
       <variables>pump1Time,pump2Time,valveTime,Tmax,outcome,pump1State,pump2State,valveState,failureTime</variables>
     </ExternalModel>
-    
-    <!--PostProcessor name="riskMeasuresDiscrete" subType="InterfacedPostProcessor">
-      <method>RiskMeasuresDiscrete</method>
-      <measures>B,FV,RAW,RRW</measures>
-      <variables>pump1State</variables>
-      <target>outcome</target>
-    </PostProcessor>   
-    <PostProcessor name="riskMeasuresDiscrete" subType="InterfacedPostProcessor">
-      <Function class="Functions" type="External">varsConverter</Function>
-      <method>RiskMeasuresDiscrete</method>
-      <measures>B,FV,RAW,RRW</measures>
-      <variable>pump1RelValue,pump2RelValue,valve1RelValue</variable>
-      <target>outcome</target>
-    </PostProcessor-->
-
     <PostProcessor name="riskMeasuresDiscrete" subType="InterfacedPostProcessor">
       <method>RiskMeasuresDiscrete</method>
       <measures>B,FV,RAW,RRW</measures>
@@ -84,8 +66,7 @@
       <variable R0values='0,240' R1values='1441,2880' extendData='False'>pump2Time</variable>
       <variable R0values='0,240' R1values='1441,2880' extendData='False'>valveTime</variable>
       <target   values='1400,14000'>Tmax</target>
-    </PostProcessor>
-    
+    </PostProcessor>   
   </Models>
 
   <DataObjects>
@@ -97,16 +78,12 @@
       <Input>pump1Time,pump2Time,valveTime</Input>
       <Output>Tmax,outcome,failureTime</Output>
     </PointSet>
-	  <PointSet name="outRunMod">
-	    <Input>pump1Time,pump2Time,valveTime</Input>
-	    <Output>outcome,pump1State,pump2State,valveState,failureTime</Output>
-	  </PointSet>
     <PointSet name="outPPS">
-      <Input> pump1Time_avg  , pump2Time_avg  , valveTime_avg</Input>
-      <Output>pump1State_B   , pump2State_B   , valveState_B,
-              pump1State_FV  , pump2State_FV  , valveState_FV,
-              pump1State_RAW , pump2State_RAW , valveState_RAW,
-              pump1State_RRW , pump2State_RRW , valveState_RRW</Output>
+      <Input> pump1Time_avg , pump2Time_avg , valveTime_avg</Input>
+      <Output>pump1Time_B   , pump2Time_B   , valveTime_B,
+              pump1Time_FV  , pump2Time_FV  , valveTime_FV,
+              pump1Time_RAW , pump2Time_RAW , valveTime_RAW,
+              pump1Time_RRW , pump2Time_RRW , valveTime_RRW</Output>
     </PointSet>
   </DataObjects>
 

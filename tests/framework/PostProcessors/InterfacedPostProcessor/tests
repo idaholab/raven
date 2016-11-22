@@ -71,4 +71,9 @@
     csv    = 'TypicalHistoryFromHS/writeTypDataOut_0.csv'
     output = 'TypicalHistoryFromHS/writeTypDataOut.csv TypicalHistoryFromHS/writeTypDataOut.xml'
   [../]
+  [./RiskMeasuresDiscrete]
+    type   = 'RavenFramework'
+    input  = 'test_riskMeasuresDiscrete.xml'
+    csv    = 'RiskMeasuresDiscrete/PrintPPS_dump.csv'
+  [../]
 []
