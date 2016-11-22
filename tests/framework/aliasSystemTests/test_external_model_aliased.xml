@@ -27,8 +27,6 @@
       <Output class="OutStreams" type="Print">testPrintHistorySetFromHDF5_dump</Output>
       <Output class="OutStreams" type="Print">testPointSetFromHDF5_dump</Output>
     </IOStep>
-    
-    
   </Steps>
 
   <!-- MODELS -->
@@ -62,7 +60,7 @@
   <Samplers>
     <MonteCarlo name="MC_external">
       <samplerInit>
-        <limit>100</limit>
+        <limit>10</limit>
       </samplerInit>
       <variable name="x0">
         <distribution>x0_distrib</distribution>

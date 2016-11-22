@@ -195,25 +195,26 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         else: self.raiseAnError(IOError,'not found the attribute "variable" in the definition of one of the alias for model '+str(self.name) +' of type '+self.type)
     # read local information
     self.localInputAndChecks(xmlNode)
-   
+
   def _replaceVariablesNamesWithAliasSystem(self, sampledVars, aliasType='input', fromModelToFramework=False):
     """
       Method to convert kwargs Sampled vars with the alias system
       @ In , sampledVars, dict, dictionary that are going to be modified
       @ In, aliasType, str, optional, type of alias to be replaced
-      @ In, fromModelToFramework, bool, optional, True if we need to replace the variable name from the model to the framework, False if opposite 
+      @ In, fromModelToFramework, bool, optional, True if we need to replace the variable name from the model to the framework, False if opposite
       @ Out, originalVariables, dict, dictionary of the original sampled variables
     """
-    if len(self.alias[aliasType].keys()) != 0:
-      originalVariables = copy.deepcopy(sampledVars)
-      for varFramework,varModel in self.alias[aliasType].items():
-        found = sampledVars.pop(varModel,[sys.maxint]) if fromModelToFramework else sampledVars.pop(varFramework,[sys.maxint])
-        if not np.array_equal(np.asarray(found), [sys.maxint]): 
-          if fromModelToFramework: sampledVars[varFramework] = originalVariables[varModel]
-          else                   : sampledVars[varModel]     = originalVariables[varFramework]
-        else: 
-          self.raiseAWarning('the ' +aliasType+ ' alias "'+varModel if fromModelToFramework else varFramework+'" has been defined but has not been found among the inputted variables!')
-    else: originalVariables = sampledVars
+    if aliasType =='inout': listAliasType = ['input','output']
+    else                  : listAliasType = [aliasType]
+    originalVariables = copy.deepcopy(sampledVars)
+    for aliasTyp in listAliasType:
+      if len(self.alias[aliasTyp].keys()) != 0:
+        for varFramework,varModel in self.alias[aliasTyp].items():
+          found = sampledVars.pop(varModel,[sys.maxint]) if fromModelToFramework else sampledVars.pop(varFramework,[sys.maxint])
+          if not np.array_equal(np.asarray(found), [sys.maxint]):
+            if fromModelToFramework: sampledVars[varFramework] = originalVariables[varModel]
+            else                   : sampledVars[varModel]     = originalVariables[varFramework]
+          else: self.raiseAWarning('the ' +aliasTyp+ ' alias "'+varModel if fromModelToFramework else varFramework+'" has been defined but has not been found among the inputted variables!')
     return originalVariables
 
   def localInputAndChecks(self,xmlNode):
@@ -386,8 +387,7 @@ class Dummy(Model):
         else:                      localInput[entries] = None
       #Now if an OutputPlaceHolder is used it is removed, this happens when the input data is not representing is internally manufactured
       if 'OutputPlaceHolder' in dataIN.getParaKeys('outputs'): localInput.pop('OutputPlaceHolder') # this remove the counter from the inputs to be placed among the outputs
-    else: localInput = dataIN #here we do not make a copy since we assume that the dictionary is for just for the model usage and any changes are not impacting outside 
-    self._replaceVariablesNamesWithAliasSystem(localInput,'input',False)
+    else: localInput = dataIN #here we do not make a copy since we assume that the dictionary is for just for the model usage and any changes are not impacting outside
     return localInput
 
   def createNewInput(self,myInput,samplerType,**Kwargs):
@@ -404,9 +404,9 @@ class Dummy(Model):
     """
     if len(myInput)>1: self.raiseAnError(IOError,'Only one input is accepted by the model type '+self.type+' with name'+self.name)
     inputDict   = self._inputToInternal(myInput[0])
-    if 'SampledVars' in Kwargs.keys(): 
+    self._replaceVariablesNamesWithAliasSystem(inputDict,'input',False)
+    if 'SampledVars' in Kwargs.keys():
       sampledVars = self._replaceVariablesNamesWithAliasSystem(Kwargs['SampledVars'],'input',False)
-      self._replaceVariablesNamesWithAliasSystem(inputDict,'input',False)
     for key in Kwargs['SampledVars'].keys(): inputDict[key] = np.atleast_1d(Kwargs['SampledVars'][key])
     for val in inputDict.values():
       if val is None: self.raiseAnError(IOError,'While preparing the input for the model '+self.type+' with name '+self.name+' found a None input variable '+ str(inputDict.items()))
@@ -427,6 +427,8 @@ class Dummy(Model):
       inputOut[0][0][key] =  externalDict[key]
       inputOut[1]["SampledVars"  ][key] =  externalDict[key]
       inputOut[1]["SampledVarsPb"][key] =  1.0    #FIXME it is a mistake (Andrea). The SampledVarsPb for this variable should be transfred from outside
+      self._replaceVariablesNamesWithAliasSystem(inputOut[1]["SampledVars"  ],'input',False)
+      self._replaceVariablesNamesWithAliasSystem(inputOut[1]["SampledVarsPb"],'input',False)
     return inputOut
 
   def run(self,Input,jobHandler):
@@ -613,7 +615,7 @@ class ROM(Dummy):
     if not 'Target' in self.initializationOptionDict.keys(): self.raiseAnError(IOError,'No Targets specified!!!')
     targets = self.initializationOptionDict['Target'].split(',')
     self.howManyTargets = len(targets)
-    
+
     if 'SKLtype' in self.initializationOptionDict and 'MultiTask' in self.initializationOptionDict['SKLtype']:
       self.initializationOptionDict['Target'] = targets
       model = SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
@@ -757,8 +759,7 @@ class ROM(Dummy):
             newRom[target] =  copy.deepcopy(origRomCopies[target])
           for target,instrom in newRom.items():
             # train the ROM
-            self._replaceVariablesNamesWithAliasSystem(self.trainingSet[ts], 'input' )
-            self._replaceVariablesNamesWithAliasSystem(self.trainingSet[ts], 'output')
+            self._replaceVariablesNamesWithAliasSystem(self.trainingSet[ts], 'inout', False)
             instrom.train(self.trainingSet[ts])
             self.amITrained = self.amITrained and instrom.amITrained
           self.SupervisedEngine.append(newRom)
@@ -766,7 +767,7 @@ class ROM(Dummy):
       else:
         self.trainingSet = copy.copy(self._inputToInternal(trainingSet,full=True))
         if type(self.trainingSet) is dict:
-          self._replaceVariablesNamesWithAliasSystem(self.trainingSet, 'output')
+          self._replaceVariablesNamesWithAliasSystem(self.trainingSet, 'inout', False)
           self.amITrained = True
           for instrom in self.SupervisedEngine.values():
             instrom.train(self.trainingSet)
@@ -910,17 +911,17 @@ class ExternalModel(Dummy):
     """
     modelVariableValues ={}
     if 'createNewInput' in dir(self.sim):
-      if 'SampledVars' in Kwargs.keys(): sampledVars = self._replaceVariablesNamesWithAliasSystem(Kwargs['SampledVars'])
+      if 'SampledVars' in Kwargs.keys(): sampledVars = self._replaceVariablesNamesWithAliasSystem(Kwargs['SampledVars'],'input',False)
       extCreateNewInput = self.sim.createNewInput(self,myInput,samplerType,**Kwargs)
       if extCreateNewInput== None: self.raiseAnError(AttributeError,'in external Model '+self.ModuleToLoad+' the method createNewInput must return something. Got: None')
       if 'SampledVars' in Kwargs.keys() and len(self.alias['input'].keys()) != 0: Kwargs['SampledVars'] = sampledVars
       newInput = ([(extCreateNewInput)],copy.deepcopy(Kwargs))
       #return ([(extCreateNewInput)],copy.deepcopy(Kwargs)),copy.copy(modelVariableValues)
-    else: 
+    else:
       newInput =  Dummy.createNewInput(self, myInput,samplerType,**Kwargs)
     for key in Kwargs['SampledVars'].keys(): modelVariableValues[key] = Kwargs['SampledVars'][key]
     return newInput, copy.copy(modelVariableValues)
-    
+
   def updateInputFromOutside(self, Input, externalDict):
     """
       Method to update an input from outside
@@ -940,7 +941,6 @@ class ExternalModel(Dummy):
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None
     """
-    #Model._readMoreXML(self, xmlNode)
     if 'ModuleToLoad' in xmlNode.attrib.keys():
       self.ModuleToLoad = str(xmlNode.attrib['ModuleToLoad'])
       moduleToLoadString, self.ModuleToLoad = utils.identifyIfExternalModelExists(self, self.ModuleToLoad, self.workingDir)
@@ -956,9 +956,6 @@ class ExternalModel(Dummy):
         for var in son.text.split(','):
           var = var.strip()
           self.modelVariableType[var] = None
-          #self.listOfRavenAwareVars.append(var)
-    self._replaceVariablesNamesWithAliasSystem(self.modelVariableType)
-    self._replaceVariablesNamesWithAliasSystem(self.modelVariableType,'output')
     self.listOfRavenAwareVars.extend(self.modelVariableType.keys())
     # check if there are other information that the external module wants to load
     if '_readMoreXML' in dir(self.sim): self.sim._readMoreXML(self.initExtSelf,xmlNode)
@@ -1003,6 +1000,11 @@ class ExternalModel(Dummy):
           self.raiseADebug('variable '+ key+' has an unsupported type -> '+ self.modelVariableType[key],verbosity='silent')
       if errorFound: self.raiseAnError(RuntimeError,'Errors detected. See above!!')
     outcomes = dict((k, modelVariableValues[k]) for k in self.listOfRavenAwareVars)
+    # check type consistency... This is needed in order to keep under control the external model... In order to avoid problems in collecting the outputs in our internal structures
+    for key in self.modelVariableType.keys():
+      if not (utils.typeMatch(outcomes[key],self.modelVariableType[key])):
+        self.raiseAnError(RuntimeError,'type of variable '+ key + ' is ' + str(type(outcomes[key]))+' and mismatches with respect to the input ones (' + self.modelVariableType[key] +')!!!')
+    self._replaceVariablesNamesWithAliasSystem(outcomes,'inout',True)
     return outcomes,self
 
   def run(self,Input,jobHandler):
@@ -1016,33 +1018,6 @@ class ExternalModel(Dummy):
     uniqueHandler = Input[0][1]['uniqueHandler'] if 'uniqueHandler' in Input[0][1].keys() else 'any'
     jobHandler.submitDict['Internal']((inRun,Input[1],),self.__externalRun,str(Input[0][1]['prefix']),metadata=Input[0][1], modulesToImport = self.mods,uniqueHandler=uniqueHandler)
 
-  def collectOutput(self,finishedJob,output):
-    """
-      Method that collects the outputs from the previous run
-      @ In, finishedJob, InternalRunner object, instance of the run just finished
-      @ In, output, "DataObjects" object, output where the results of the calculation needs to be stored
-      @ Out, None
-    """
-    if finishedJob.getEvaluation() == -1:
-      #is it still possible for the run to not be finished yet?  Should we be erroring out if so?
-      self.raiseAnError(RuntimeError,"No available Output to collect")
-    def typeMatch(var,varTypeStr):
-      """
-        This method is aimed to check if a variable changed datatype
-        @ In, var, python datatype, the first variable to compare
-        @ In, varTypeStr, string, the type that this variable should have
-        @ Out, typeMatch, bool, is the datatype changed?
-      """
-      typeVar = type(var)
-      return typeVar.__name__ == varTypeStr or \
-        typeVar.__module__+"."+typeVar.__name__ == varTypeStr
-    # check type consistency... This is needed in order to keep under control the external model... In order to avoid problems in collecting the outputs in our internal structures
-    instanciatedSelf = finishedJob.getEvaluation()[1][1]
-    outcomes         = finishedJob.getEvaluation()[1][0]
-    for key in instanciatedSelf.modelVariableType.keys():
-      if not (typeMatch(outcomes[key],instanciatedSelf.modelVariableType[key])):
-        self.raiseAnError(RuntimeError,'type of variable '+ key + ' is ' + str(type(outcomes[key]))+' and mismatches with respect to the input ones (' + instanciatedSelf.modelVariableType[key] +')!!!')
-    Dummy.collectOutput(self, finishedJob, output)
 #
 #
 #
@@ -1258,8 +1233,8 @@ class Code(Model):
       newInputSet[index].setPath(subDirectory)
       shutil.copy(self.oriInputFiles[index].getAbsFile(),subDirectory)
     Kwargs['subDirectory'] = subDirectory
-    if 'SampledVars' in Kwargs.keys(): 
-      sampledVars = self._replaceVariablesNamesWithAliasSystem(Kwargs['SampledVars'])
+    if 'SampledVars' in Kwargs.keys():
+      sampledVars = self._replaceVariablesNamesWithAliasSystem(Kwargs['SampledVars'],'input',False)
     newInput    = self.code.createNewInput(newInputSet,self.oriInputFiles,samplerType,**copy.deepcopy(Kwargs))
     if 'SampledVars' in Kwargs.keys() and len(self.alias['input'].keys()) != 0: Kwargs['SampledVars'] = sampledVars
     return (newInput,Kwargs)
@@ -1274,9 +1249,10 @@ class Code(Model):
     newKwargs = Input[1]
     newKwargs['SampledVars'].update(externalDict)
     # the following update should be done with the Pb value coming from the previous (in the model chain) model
-    newKwargs['SampledVarsPb'].update(dict.fromkeys(externalDict.keys(),0.0))
+    newKwargs['SampledVarsPb'].update(dict.fromkeys(externalDict.keys(),1.0))
+    self._replaceVariablesNamesWithAliasSystem(newKwargs['SampledVars'  ],'input',False)
+    self._replaceVariablesNamesWithAliasSystem(newKwargs['SampledVarsPb'],'input',False)
     inputOut = self.createNewInput(Input[1]['originalInput'], Input[1]['SamplerType'], **newKwargs)
-
     return inputOut
 
   def run(self,inputFiles,jobHandler):

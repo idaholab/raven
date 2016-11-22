@@ -1,22 +1,17 @@
 [Tests]
 
-[./test_rom_trainer_raven]
+[./testROMAliased]
   type = 'RavenFramework'
   input = 'test_rom_aliased.xml'
-  #skip = 'working in progress'
-  output = 'test_rom_trainer_raven/MC_for_rom_trainer/out~1~TMI test_rom_trainer_raven/MC_for_rom_trainer/out~2~TMI.csv'
-  csv = 'test_rom_trainer_raven/outputMontecarloRom_dump.csv test_rom_trainer_raven/outputMontecarloRomND_dump.csv'
-  max_time = 1500
+  output = 'rom_aliased/outputMontecarloRom_dump.xml rom_aliased/outputMontecarloRomND_dump.xml'
+  csv = 'rom_aliased/outputMontecarloRom_dump.csv rom_aliased/outputMontecarloRomND_dump.csv’
   rel_err = 0.001
-  required_executable = '../../RAVEN-%METHOD%'
-  skip = 'Relap issue #111'
  [../]
 
- [./testExternalModel]
+ [./testExternalModelAliased]
   type = 'RavenFramework'
   input = 'test_external_model_aliased.xml'
   output = 'externalModel/testPrintHistorySet_dump_0.csv externalModel/testPrintHistorySet_dump_1.csv externalModel/testPrintHistorySet_dump_2.csv externalModel/testPointSet_dump.csv externalModel/testPrintHistorySetFromHDF5_dump_0.csv externalModel/testPrintHistorySetFromHDF5_dump_1.csv externalModel/testPrintHistorySetFromHDF5_dump_2.csv externalModel/testPointSetFromHDF5_dump.csv'
-  max_time = 500
   csv    =  'externalModel/testPrintHistorySet_dump_0.csv externalModel/testPointSet_dump.csv externalModel/testPrintHistorySetFromHDF5_dump_0.csv externalModel/testPointSetFromHDF5_dump.csv'
   rel_err = 0.001
  [../]
@@ -27,3 +22,6 @@ cp externalModel/testPrintHistorySet_dump_0.csv ./gold/externalModel/testPrintHi
 cp externalModel/testPointSet_dump.csv  ./gold/externalModel/testPointSet_dump.csv
 cp externalModel/testPrintHistorySetFromHDF5_dump_0.csv  ./gold/externalModel/testPrintHistorySetFromHDF5_dump_0.csv
 cp externalModel/testPointSetFromHDF5_dump.csv ./gold/externalModel/testPointSetFromHDF5_dump.csv
+
+cp rom_aliased/outputMontecarloRom_dump.csv gold/rom_aliased/outputMontecarloRom_dump.csv
+cp rom_aliased/outputMontecarloRomND_dump.csv gold/rom_aliased/outputMontecarloRomND_dump.csv

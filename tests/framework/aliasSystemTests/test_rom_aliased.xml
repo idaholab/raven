@@ -28,8 +28,8 @@
       <variables>DeltaTimeScramToAux,DG1recoveryTime,time,CladTempThreshold</variables>
     </ExternalModel>
     <ROM name="ROM1" subType="SciKitLearn">
-      <Features>DeltaTimeScramToAux,DG1recoveryTime</Features>
-      <Target>CladTempThreshold</Target>
+      <Features>rom1FirstVarAlias,rom1SecondVarAlias</Features>
+      <Target>rom1FirstOut</Target>
       <SKLtype>svm|SVR</SKLtype>
       <kernel>linear</kernel>
       <C>10.0</C>
@@ -39,8 +39,8 @@
       <alias variable="CladTempThreshold"  type="output">rom1FirstOut</alias>
     </ROM>
     <ROM name="ROM2" subType="NDinvDistWeight">
-      <Features>DeltaTimeScramToAux,DG1recoveryTime</Features>
-      <Target>CladTempThreshold</Target>
+      <Features>rom2FirstVarAlias,rom2SecondVarAlias</Features>
+      <Target>rom2FirstOut</Target>
       <p>3</p>
       <alias variable="DeltaTimeScramToAux" type="input">rom2FirstVarAlias</alias>
       <alias variable="DG1recoveryTime" type="input">rom2SecondVarAlias</alias>
@@ -158,12 +158,12 @@
       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet  name="outputMontecarloRom">
-      <Input>rom1FirstVarAlias,rom1SecondVarAlias</Input>
-      <Output>rom1FirstOut</Output>
+      <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
+      <Output>CladTempThreshold</Output>
     </PointSet>
     <PointSet  name="outputMontecarloRomND">
-      <Input>rom2FirstVarAlias,rom2SecondVarAlias</Input>
-      <Output>rom2FirstOut</Output>
+      <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
+      <Output>CladTempThreshold</Output>
     </PointSet>
   </DataObjects>
 
