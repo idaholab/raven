@@ -751,7 +751,7 @@ class ROM(Dummy):
     """
     Dummy._readMoreXML(self, xmlNode)
     self.initializationOptionDict['name'] = self.name
-    paramInput = ROMInput()
+    paramInput = ROM.getInputSpecification()()
     paramInput.parseNode(xmlNode)
     def tryStrParse(s):
       """
@@ -1125,7 +1125,7 @@ class ExternalModel(Dummy):
       @ Out, None
     """
     #Model._readMoreXML(self, xmlNode)
-    paramInput = ExternalModelInput()
+    paramInput = ExternalModel.getInputSpecification()()
     paramInput.parseNode(xmlNode)
     if 'ModuleToLoad' in paramInput.parameterValues:
       self.ModuleToLoad = paramInput.parameterValues['ModuleToLoad']
@@ -1324,7 +1324,7 @@ class Code(Model):
       @ Out, None
     """
     Model._readMoreXML(self, xmlNode)
-    paramInput = CodeInput()
+    paramInput = Code.getInputSpecification()()
     paramInput.parseNode(xmlNode)
     self.clargs={'text':'', 'input':{'noarg':[]}, 'pre':'', 'post':''} #output:''
     self.fargs={'input':{}, 'output':'', 'moosevpp':''}

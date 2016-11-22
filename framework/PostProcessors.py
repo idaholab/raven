@@ -18,9 +18,11 @@ from collections import OrderedDict
 import time
 from sklearn.linear_model import LinearRegression
 import importlib
+import abc
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
+from BaseClasses import BaseType
 import utils
 import mathUtils
 import xmlUtils
@@ -32,7 +34,6 @@ import MessageHandler
 import GridEntities
 import Files
 import Models
-from Models import ModelInput
 from RAVENiterators import ravenArrayIterator
 import unSupervisedLearning
 from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
@@ -43,6 +44,14 @@ from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
 #  *  SPECIALIZED PostProcessor CLASSES  *
 #  ***************************************
 #
+
+class ModelInput(InputData.ParameterInput):
+  """
+    Class for reading in model input
+  """
+
+ModelInput.createClass("ModelInput")
+ModelInput.addParam("subType", InputData.StringType, True)
 
 class BasePostProcessor(Assembler, MessageHandler.MessageUser):
   """
