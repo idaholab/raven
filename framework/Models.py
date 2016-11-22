@@ -40,20 +40,6 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     it could as complex as a stand alone code, a reduced order model trained somehow or something
     externally build and imported by the user
   """
-
-  @classmethod
-  def registeredInputs(cls):
-    """
-      Method to retrieve the local variables that can or need to be specified
-      by the user in an input file. (Each class that is exposed to the user
-      should override this function)
-      @ In, cls, the particular class for which we need to retrieve the input
-        specifications.
-    """
-    inputs = super(Model, cls).registeredInputs()
-
-    return inputs
-
   @classmethod
   def getInputSpecification(cls):
     """
@@ -332,20 +318,6 @@ class Dummy(Model):
     This is a dummy model that just return the effect of the sampler. The values reported as input in the output
     are the output of the sampler and the output is the counter of the performed sampling
   """
-
-  @classmethod
-  def registeredInputs(cls):
-    """
-      Method to retrieve the local variables that can or need to be specified
-      by the user in an input file. (Each class that is exposed to the user
-      should override this function)
-      @ In, cls, the particular class for which we need to retrieve the input
-        specifications.
-    """
-    inputs = super(Dummy, cls).registeredInputs()
-
-    return inputs
-
   def __init__(self,runInfoDict):
     """
       Constructor
@@ -519,18 +491,17 @@ class ROM(Dummy):
   """
     ROM stands for Reduced Order Model. All the models here, first learn than predict the outcome
   """
+
   @classmethod
-  def registeredInputs(cls):
+  def getInputSpecification(cls):
     """
-      Method to retrieve the local variables that can or need to be specified
-      by the user in an input file. (Each class that is exposed to the user
-      should override this function)
-      @ In, cls, the particular class for which we need to retrieve the input
-        specifications.
+      Method to get a reference to a class that specifies the input data for
+      class cls. This one seems a bit excessive, are all of these for this class?
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
     """
-    inputs = super(ROM, cls).registeredInputs()
-    inputs.append(InputData.parameterInputFactory('Features',contentType=InputData.StringType))
-    inputs.append(InputData.parameterInputFactory('Target',contentType=InputData.StringType))
+    inputSpecification = super(ROM, cls).getInputSpecification()
 
     IndexSetInputType = InputData.makeEnumType("indexSet","indexSetType",["TensorProduct","TotalDegree","HyperbolicCross","Custom"])
     CriterionInputType = InputData.makeEnumType("criterion", "criterionType", ["bic","aic","gini","entropy","mse"])
@@ -540,118 +511,106 @@ class ROM(Dummy):
     InterpolationInput.addParam("poly", InputData.StringType, False)
     InterpolationInput.addParam("weight", InputData.FloatType, False)
 
-    inputs.append(InputData.parameterInputFactory("IndexPoints", InputData.StringType))
-    inputs.append(InputData.parameterInputFactory("IndexSet",IndexSetInputType))
-    inputs.append(InterpolationInput)
-    inputs.append(InputData.parameterInputFactory("PolynomialOrder", InputData.IntegerType))
-    inputs.append(InputData.parameterInputFactory("SobolOrder", InputData.IntegerType))
-    inputs.append(InputData.parameterInputFactory("SparseGrid", InputData.StringType))
-    inputs.append(InputData.parameterInputFactory("persistence", InputData.StringType))
-    inputs.append(InputData.parameterInputFactory("gradient", InputData.StringType))
-    inputs.append(InputData.parameterInputFactory("simplification", InputData.FloatType))
-    inputs.append(InputData.parameterInputFactory("graph", InputData.StringType))
-    inputs.append(InputData.parameterInputFactory("beta", InputData.FloatType))
-    inputs.append(InputData.parameterInputFactory("knn", InputData.IntegerType))
-    inputs.append(InputData.parameterInputFactory("partitionPredictor", InputData.StringType))
-    inputs.append(InputData.parameterInputFactory("smooth", InputData.StringType))
-    inputs.append(InputData.parameterInputFactory("kernel", InputData.StringType))
-    inputs.append(InputData.parameterInputFactory("bandwidth", InputData.FloatType))
-    inputs.append(InputData.parameterInputFactory("p", InputData.IntegerType))
-    inputs.append(InputData.parameterInputFactory("SKLtype", InputData.StringType))
-    inputs.append(InputData.parameterInputFactory("n_iter", InputData.IntegerType))
-    inputs.append(InputData.parameterInputFactory("tol", InputData.StringType))
-    inputs.append(InputData.parameterInputFactory("alpha_1", InputData.FloatType))
-    inputs.append(InputData.parameterInputFactory("alpha_2", InputData.FloatType))
-    inputs.append(InputData.parameterInputFactory("lambda_1", InputData.FloatType))
-    inputs.append(InputData.parameterInputFactory("lambda_2", InputData.FloatType))
-    inputs.append(InputData.parameterInputFactory("compute_score", InputData.StringType)) #bool
-    inputs.append(InputData.parameterInputFactory("threshold_lambda", InputData.FloatType))
-    inputs.append(InputData.parameterInputFactory("fit_intercept", InputData.StringType))  #bool
-    inputs.append(InputData.parameterInputFactory("normalize", InputData.StringType))  #bool
-    inputs.append(InputData.parameterInputFactory("verbose", InputData.StringType)) #bool
-    inputs.append(InputData.parameterInputFactory("alpha", InputData.FloatType))
-    inputs.append(InputData.parameterInputFactory("l1_ratio", InputData.FloatType))
-    inputs.append(InputData.parameterInputFactory("max_iter", InputData.StringType))
-    inputs.append(InputData.parameterInputFactory("warm_start", InputData.StringType)) #bool
-    inputs.append(InputData.parameterInputFactory("positive", InputData.StringType)) #bool?
-    inputs.append(InputData.parameterInputFactory("eps", InputData.FloatType))
-    inputs.append(InputData.parameterInputFactory("n_alphas", InputData.IntegerType))
-    inputs.append(InputData.parameterInputFactory("precompute", InputData.StringType))
-    inputs.append(InputData.parameterInputFactory("n_nonzero_coefs", InputData.StringType))
-    inputs.append(InputData.parameterInputFactory("fit_path", InputData.StringType)) #bool
-    inputs.append(InputData.parameterInputFactory("max_n_alphas", InputData.IntegerType))
-    inputs.append(InputData.parameterInputFactory("criterion", CriterionInputType))
-    inputs.append(InputData.parameterInputFactory("penalty", InputData.StringType)) #enum
-    inputs.append(InputData.parameterInputFactory("dual", InputData.StringType)) #bool
-    inputs.append(InputData.parameterInputFactory("C", InputData.FloatType))
-    inputs.append(InputData.parameterInputFactory("intercept_scaling", InputData.FloatType))
-    inputs.append(InputData.parameterInputFactory("class_weight", InputData.StringType))
-    inputs.append(InputData.parameterInputFactory("random_state", InputData.StringType))
-    inputs.append(InputData.parameterInputFactory("cv", InputData.StringType))
-    inputs.append(InputData.parameterInputFactory("shuffle", InputData.StringType)) #bool
-    inputs.append(InputData.parameterInputFactory("loss", InputData.StringType)) #enum
-    inputs.append(InputData.parameterInputFactory("epsilon", InputData.FloatType))
-    inputs.append(InputData.parameterInputFactory("eta0", InputData.FloatType))
-    inputs.append(InputData.parameterInputFactory("solver", InputData.StringType)) #enum
-    inputs.append(InputData.parameterInputFactory("alphas", InputData.StringType))
-    inputs.append(InputData.parameterInputFactory("scoring", InputData.StringType))
-    inputs.append(InputData.parameterInputFactory("gcv_mode", InputData.StringType)) #enum
-    inputs.append(InputData.parameterInputFactory("store_cv_values", InputData.StringType)) #bool
-    inputs.append(InputData.parameterInputFactory("learning_rate", InputData.StringType)) #enum
-    inputs.append(InputData.parameterInputFactory("power_t", InputData.FloatType))
-    inputs.append(InputData.parameterInputFactory("multi_class", InputData.StringType))
-    inputs.append(InputData.parameterInputFactory("kernel", InputData.StringType)) #enum
-    inputs.append(InputData.parameterInputFactory("degree", InputData.IntegerType))
-    inputs.append(InputData.parameterInputFactory("gamma", InputData.FloatType))
-    inputs.append(InputData.parameterInputFactory("coef0", InputData.FloatType))
-    inputs.append(InputData.parameterInputFactory("probability", InputData.StringType)) #bool
-    inputs.append(InputData.parameterInputFactory("shrinking", InputData.StringType)) #bool
-    inputs.append(InputData.parameterInputFactory("cache_size", InputData.FloatType))
-    inputs.append(InputData.parameterInputFactory("nu", InputData.FloatType))
-    inputs.append(InputData.parameterInputFactory("code_size", InputData.FloatType))
-    inputs.append(InputData.parameterInputFactory("fit_prior", InputData.StringType)) #bool
-    inputs.append(InputData.parameterInputFactory("class_prior", InputData.StringType))
-    inputs.append(InputData.parameterInputFactory("binarize", InputData.FloatType))
-    inputs.append(InputData.parameterInputFactory("n_neighbors", InputData.IntegerType))
-    inputs.append(InputData.parameterInputFactory("weights", InputData.StringType)) #enum
-    inputs.append(InputData.parameterInputFactory("algorithm", InputData.StringType)) #enum
-    inputs.append(InputData.parameterInputFactory("leaf_size", InputData.IntegerType))
-    inputs.append(InputData.parameterInputFactory("metric", InputData.StringType)) #enum?
-    inputs.append(InputData.parameterInputFactory("radius", InputData.FloatType))
-    inputs.append(InputData.parameterInputFactory("outlier_label", InputData.StringType))
-    inputs.append(InputData.parameterInputFactory("shrink_threshold", InputData.StringType))
-    inputs.append(InputData.parameterInputFactory("priors", InputData.StringType))
-    inputs.append(InputData.parameterInputFactory("reg_param", InputData.FloatType))
-    inputs.append(InputData.parameterInputFactory("splitter", InputData.StringType)) #enum
-    inputs.append(InputData.parameterInputFactory("max_features", InputData.StringType))
-    inputs.append(InputData.parameterInputFactory("max_depth", InputData.StringType))
-    inputs.append(InputData.parameterInputFactory("min_samples_split", InputData.IntegerType))
-    inputs.append(InputData.parameterInputFactory("min_samples_leaf", InputData.IntegerType))
-    inputs.append(InputData.parameterInputFactory("max_leaf_nodes", InputData.StringType))
-    inputs.append(InputData.parameterInputFactory("regr", InputData.StringType)) #enum
-    inputs.append(InputData.parameterInputFactory("corr", InputData.StringType)) #enum?
-    inputs.append(InputData.parameterInputFactory("beta0", InputData.StringType))
-    inputs.append(InputData.parameterInputFactory("storage_mode", InputData.StringType)) #enum
-    inputs.append(InputData.parameterInputFactory("theta0", InputData.StringType))
-    inputs.append(InputData.parameterInputFactory("thetaL", InputData.StringType))
-    inputs.append(InputData.parameterInputFactory("thetaU", InputData.StringType))
-    inputs.append(InputData.parameterInputFactory("nugget", InputData.FloatType))
-    inputs.append(InputData.parameterInputFactory("optimizer", InputData.StringType)) #enum
-    inputs.append(InputData.parameterInputFactory("random_start", InputData.IntegerType))
-
-    return inputs
-
-
-  @classmethod
-  def getInputSpecification(cls):
-    """
-      Method to get a reference to a class that specifies the input data for
-      class cls.
-      @ In, cls, the class for which we are retrieving the specification
-      @ Out, inputSpecification, InputData.ParameterInput, class to use for
-        specifying input of cls.
-    """
-    inputSpecification = super(ROM, cls).getInputSpecification()
+    inputSpecification.addSub(InputData.parameterInputFactory('Features',contentType=InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory('Target',contentType=InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("IndexPoints", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("IndexSet",IndexSetInputType))
+    inputSpecification.addSub(InterpolationInput)
+    inputSpecification.addSub(InputData.parameterInputFactory("PolynomialOrder", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("SobolOrder", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("SparseGrid", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("persistence", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("gradient", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("simplification", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("graph", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("beta", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("knn", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("partitionPredictor", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("smooth", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("kernel", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("bandwidth", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("p", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("SKLtype", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("n_iter", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("tol", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("alpha_1", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("alpha_2", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("lambda_1", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("lambda_2", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("compute_score", InputData.StringType)) #bool
+    inputSpecification.addSub(InputData.parameterInputFactory("threshold_lambda", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("fit_intercept", InputData.StringType))  #bool
+    inputSpecification.addSub(InputData.parameterInputFactory("normalize", InputData.StringType))  #bool
+    inputSpecification.addSub(InputData.parameterInputFactory("verbose", InputData.StringType)) #bool
+    inputSpecification.addSub(InputData.parameterInputFactory("alpha", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("l1_ratio", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("max_iter", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("warm_start", InputData.StringType)) #bool
+    inputSpecification.addSub(InputData.parameterInputFactory("positive", InputData.StringType)) #bool?
+    inputSpecification.addSub(InputData.parameterInputFactory("eps", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("n_alphas", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("precompute", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("n_nonzero_coefs", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("fit_path", InputData.StringType)) #bool
+    inputSpecification.addSub(InputData.parameterInputFactory("max_n_alphas", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("criterion", CriterionInputType))
+    inputSpecification.addSub(InputData.parameterInputFactory("penalty", InputData.StringType)) #enum
+    inputSpecification.addSub(InputData.parameterInputFactory("dual", InputData.StringType)) #bool
+    inputSpecification.addSub(InputData.parameterInputFactory("C", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("intercept_scaling", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("class_weight", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("random_state", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("cv", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("shuffle", InputData.StringType)) #bool
+    inputSpecification.addSub(InputData.parameterInputFactory("loss", InputData.StringType)) #enum
+    inputSpecification.addSub(InputData.parameterInputFactory("epsilon", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("eta0", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("solver", InputData.StringType)) #enum
+    inputSpecification.addSub(InputData.parameterInputFactory("alphas", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("scoring", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("gcv_mode", InputData.StringType)) #enum
+    inputSpecification.addSub(InputData.parameterInputFactory("store_cv_values", InputData.StringType)) #bool
+    inputSpecification.addSub(InputData.parameterInputFactory("learning_rate", InputData.StringType)) #enum
+    inputSpecification.addSub(InputData.parameterInputFactory("power_t", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("multi_class", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("kernel", InputData.StringType)) #enum
+    inputSpecification.addSub(InputData.parameterInputFactory("degree", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("gamma", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("coef0", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("probability", InputData.StringType)) #bool
+    inputSpecification.addSub(InputData.parameterInputFactory("shrinking", InputData.StringType)) #bool
+    inputSpecification.addSub(InputData.parameterInputFactory("cache_size", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("nu", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("code_size", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("fit_prior", InputData.StringType)) #bool
+    inputSpecification.addSub(InputData.parameterInputFactory("class_prior", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("binarize", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("n_neighbors", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("weights", InputData.StringType)) #enum
+    inputSpecification.addSub(InputData.parameterInputFactory("algorithm", InputData.StringType)) #enum
+    inputSpecification.addSub(InputData.parameterInputFactory("leaf_size", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("metric", InputData.StringType)) #enum?
+    inputSpecification.addSub(InputData.parameterInputFactory("radius", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("outlier_label", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("shrink_threshold", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("priors", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("reg_param", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("splitter", InputData.StringType)) #enum
+    inputSpecification.addSub(InputData.parameterInputFactory("max_features", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("max_depth", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("min_samples_split", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("min_samples_leaf", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("max_leaf_nodes", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("regr", InputData.StringType)) #enum
+    inputSpecification.addSub(InputData.parameterInputFactory("corr", InputData.StringType)) #enum?
+    inputSpecification.addSub(InputData.parameterInputFactory("beta0", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("storage_mode", InputData.StringType)) #enum
+    inputSpecification.addSub(InputData.parameterInputFactory("theta0", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("thetaL", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("thetaU", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("nugget", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("optimizer", InputData.StringType)) #enum
+    inputSpecification.addSub(InputData.parameterInputFactory("random_start", InputData.IntegerType))
 
     #Estimators can include ROMs, and so because baseNode does a copy, this
     #needs to be after the rest of ROMInput is defined.
@@ -1019,19 +978,6 @@ class ExternalModel(Dummy):
   """
 
   @classmethod
-  def registeredInputs(cls):
-    """
-      Method to retrieve the local variables that can or need to be specified
-      by the user in an input file. (Each class that is exposed to the user
-      should override this function)
-      @ In, cls, the particular class for which we need to retrieve the input
-        specifications.
-    """
-    inputs = super(ExternalModel, cls).registeredInputs()
-    inputs.append(InputData.parameterInputFactory("variables", contentType=InputData.StringType))
-    return inputs
-
-  @classmethod
   def getInputSpecification(cls):
     """
       Method to get a reference to a class that specifies the input data for
@@ -1040,8 +986,9 @@ class ExternalModel(Dummy):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
-    inputSpecification = super(Model, cls).getInputSpecification()
+    inputSpecification = super(ExternalModel, cls).getInputSpecification()
     inputSpecification.addParam("ModuleToLoad", InputData.StringType, True)
+    inputSpecification.addSub(InputData.parameterInputFactory("variables", contentType=InputData.StringType))
 
     return inputSpecification
 
@@ -1235,48 +1182,58 @@ class Code(Model):
   CodeInterfaces = importlib.import_module("CodeInterfaces")
 
   @classmethod
-  def registeredInputs(cls):
+  def getInputSpecification(cls):
     """
-      Method to retrieve the local variables that can or need to be specified
-      by the user in an input file. (Each class that is exposed to the user
-      should override this function)
-      @ In, cls, the particular class for which we need to retrieve the input
-        specifications.
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
     """
-    inputs = super(Model, cls).registeredInputs()
+    inputSpecification = super(Code, cls).getInputSpecification()
+    inputSpecification.addSub(InputData.parameterInputFactory("executable", contentType=InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("preexec", contentType=InputData.StringType))
 
-    inputs.append(InputData.parameterInputFactory("executable", contentType=InputData.StringType))
-    inputs.append(InputData.parameterInputFactory("preexec", contentType=InputData.StringType))
-
+    ## Begin alias tag
     AliasInput = InputData.parameterInputFactory("alias", contentType=InputData.StringType)
     AliasInput.addParam("variable", InputData.StringType, True)
-    inputs.append(AliasInput)
+    inputSpecification.addSub(AliasInput)
+    ## End alias tag
 
-    ## TODO: possibly remove these class definitions and just have the developer
-    ## specify the necessary stuff to create them. Let the InputData file worry
-    ## about creating the classes.
-    class ClargsTypeInput(InputData.EnumBaseType):
-      """
-        input for the Clargs type attribute
-      """
-
-    ClargsTypeInput.createClass("clargsType","clargsTypeType",["text","input","output","prepend","postpend"])
+    ## Begin command line arguments tag
     ClargsInput = InputData.parameterInputFactory("clargs")
+
+    ClargsTypeInput = InputData.makeEnumType("clargsType","clargsTypeType",["text","input","output","prepend","postpend"])
     ClargsInput.addParam("type", ClargsTypeInput, True)
+
     ClargsInput.addParam("arg", InputData.StringType, False)
     ClargsInput.addParam("extension", InputData.StringType, False)
-    inputs.append(ClargsInput)
+    inputSpecification.addSub(ClargsInput)
+    ## End command line arguments tag
 
+    ## Begin file arguments tag
+    FileargsInput = InputData.parameterInputFactory("fileargs")
+    
+    FileargsTypeInput = InputData.makeEnumType("fileargsType", "fileargsTypeType",["input","output","moosevpp"])
+    FileargsInput.addParam("type", FileargsTypeInput, True)
+
+    FileargsInput.addParam("arg", InputData.StringType, False)
+    FileargsInput.addParam("extension", InputData.StringType, False)
+    inputSpecification.addSub(FileargsInput)
+    ## End file arguments tag
+
+    return inputSpecification
+
+  @classmethod
+  def registeredInputs(cls):
     class FileargsTypeInput(InputData.EnumBaseType):
       """
         input for the Fileargs type attribute
       """
 
-    FileargsTypeInput.createClass("fileargsType", "fileargsTypeType",["input","output","moosevpp"])
-    FileargsInput = InputData.parameterInputFactory("fileargs")
-    FileargsInput.addParam("type", FileargsTypeInput, True)
-    FileargsInput.addParam("arg", InputData.StringType, False)
-    FileargsInput.addParam("extension", InputData.StringType, False)
+    FileargsTypeInput.createClass()
+    
+
     inputs.append(FileargsInput)
 
     return inputs
@@ -1614,21 +1571,6 @@ class PostProcessor(Model, Assembler):
   """
     PostProcessor is an Action System. All the models here, take an input and perform an action
   """
-  @classmethod
-  def registeredInputs(cls):
-    """
-      Method to retrieve the local variables that can or need to be specified
-      by the user in an input file. (Each class that is exposed to the user
-      should override this function)
-      @ In, cls, the particular class for which we need to retrieve the input
-        specifications.
-    """
-    inputs = super(PostProcessor, cls).registeredInputs()
-
-    ## TODO: Fill this in.
-
-    return inputs
-
   @classmethod
   def specializeValidateDict(cls):
     """

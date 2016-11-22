@@ -74,20 +74,19 @@ class Distribution(BaseType):
   """
 
   @classmethod
-  def registeredInputs(cls):
+  def getInputSpecification(cls):
     """
-      Method to retrieve the local variables that can or need to be specified
-      by the user in an input file. (Each class that is exposed to the user
-      should override this function)
-      @ In, cls, the particular class for which we need to retrieve the input
-        specifications.
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
     """
-    inputs = super(Distribution, cls).registeredInputs()
+    inputSpecification = super(Distribution, cls).getInputSpecification()
+    inputSpecification.addSub(InputData.parameterInputFactory('upperBound', contentType=InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory('lowerBound', contentType=InputData.FloatType))
 
-    inputs.append(InputData.parameterInputFactory('upperBound', contentType=InputData.FloatType))
-    inputs.append(InputData.parameterInputFactory('lowerBound', contentType=InputData.FloatType))
-
-    return inputs
+    return inputSpecification
 
   def __init__(self):
     """
@@ -603,20 +602,19 @@ class Normal(BoostDistribution):
     Normal univariate distribution
   """
   @classmethod
-  def registeredInputs(cls):
+  def getInputSpecification(cls):
     """
-      Method to retrieve the local variables that can or need to be specified
-      by the user in an input file. (Each class that is exposed to the user
-      should override this function)
-      @ In, cls, the particular class for which we need to retrieve the input
-        specifications.
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
     """
-    inputs = super(Normal, cls).registeredInputs()
+    inputSpecification = super(Normal, cls).getInputSpecification()
+    inputSpecification.addSub(InputData.parameterInputFactory("mean", contentType=InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("sigma", contentType=InputData.FloatType))
 
-    inputs.append(InputData.parameterInputFactory("mean", contentType=InputData.FloatType))
-    inputs.append(InputData.parameterInputFactory("sigma", contentType=InputData.FloatType))
-
-    return inputs
+    return inputSpecification
 
   def __init__(self):
     """
@@ -761,20 +759,20 @@ class Gamma(BoostDistribution):
   """
 
   @classmethod
-  def registeredInputs(cls):
+  def getInputSpecification(cls):
     """
-      Method to retrieve the local variables that can or need to be specified
-      by the user in an input file. (Each class that is exposed to the user
-      should override this function)
-      @ In, cls, the particular class for which we need to retrieve the input
-        specifications.
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
     """
-    inputs = super(Gamma, cls).registeredInputs()
-    inputs.append(InputData.parameterInputFactory("low", contentType=InputData.FloatType))
-    inputs.append(InputData.parameterInputFactory("alpha", contentType=InputData.FloatType))
-    inputs.append(InputData.parameterInputFactory("beta", contentType=InputData.FloatType))
+    inputSpecification = super(Gamma, cls).getInputSpecification()
+    inputSpecification.addSub(InputData.parameterInputFactory("low", contentType=InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("alpha", contentType=InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("beta", contentType=InputData.FloatType))
 
-    return inputs
+    return inputSpecification
 
   def __init__(self):
     """
@@ -919,23 +917,22 @@ class Beta(BoostDistribution):
   """
 
   @classmethod
-  def registeredInputs(cls):
+  def getInputSpecification(cls):
     """
-      Method to retrieve the local variables that can or need to be specified
-      by the user in an input file. (Each class that is exposed to the user
-      should override this function)
-      @ In, cls, the particular class for which we need to retrieve the input
-        specifications.
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
     """
-    inputs = super(Beta, cls).registeredInputs()
+    inputSpecification = super(Beta, cls).getInputSpecification()
+    inputSpecification.addSub(InputData.parameterInputFactory("low", contentType=InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("alpha", contentType=InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("beta", contentType=InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("high", contentType=InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("peakFactor", contentType=InputData.FloatType))
 
-    inputs.append(InputData.parameterInputFactory("low", contentType=InputData.FloatType))
-    inputs.append(InputData.parameterInputFactory("alpha", contentType=InputData.FloatType))
-    inputs.append(InputData.parameterInputFactory("beta", contentType=InputData.FloatType))
-    inputs.append(InputData.parameterInputFactory("high", contentType=InputData.FloatType))
-    inputs.append(InputData.parameterInputFactory("peakFactor", contentType=InputData.FloatType))
-
-    return inputs
+    return inputSpecification
 
   def __init__(self):
     """
@@ -1099,21 +1096,20 @@ class Triangular(BoostDistribution):
   """
 
   @classmethod
-  def registeredInputs(cls):
+  def getInputSpecification(cls):
     """
-      Method to retrieve the local variables that can or need to be specified
-      by the user in an input file. (Each class that is exposed to the user
-      should override this function)
-      @ In, cls, the particular class for which we need to retrieve the input
-        specifications.
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
     """
-    inputs = super(Triangular, cls).registeredInputs()
+    inputSpecification = super(Triangular, cls).getInputSpecification()
+    inputSpecification.addSub(InputData.parameterInputFactory("apex", contentType=InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("min", contentType=InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("max", contentType=InputData.FloatType))
 
-    inputs.append(InputData.parameterInputFactory("apex", contentType=InputData.FloatType))
-    inputs.append(InputData.parameterInputFactory("min", contentType=InputData.FloatType))
-    inputs.append(InputData.parameterInputFactory("max", contentType=InputData.FloatType))
-
-    return inputs
+    return inputSpecification
 
   def __init__(self):
     """
@@ -1222,19 +1218,18 @@ class Poisson(BoostDistribution):
   """
 
   @classmethod
-  def registeredInputs(cls):
+  def getInputSpecification(cls):
     """
-      Method to retrieve the local variables that can or need to be specified
-      by the user in an input file. (Each class that is exposed to the user
-      should override this function)
-      @ In, cls, the particular class for which we need to retrieve the input
-        specifications.
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
     """
-    inputs = super(Poisson, cls).registeredInputs()
+    inputSpecification = super(Poisson, cls).getInputSpecification()
+    inputSpecification.addSub(InputData.parameterInputFactory("mu", contentType=InputData.FloatType))
 
-    inputs.append(InputData.parameterInputFactory("mu", contentType=InputData.FloatType))
-
-    return inputs
+    return inputSpecification
 
   def __init__(self):
     """
@@ -1323,21 +1318,21 @@ class Binomial(BoostDistribution):
   """
     Binomial univariate distribution
   """
+
   @classmethod
-  def registeredInputs(cls):
+  def getInputSpecification(cls):
     """
-      Method to retrieve the local variables that can or need to be specified
-      by the user in an input file. (Each class that is exposed to the user
-      should override this function)
-      @ In, cls, the particular class for which we need to retrieve the input
-        specifications.
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
     """
-    inputs = super(Binomial, cls).registeredInputs()
+    inputSpecification = super(Binomial, cls).getInputSpecification()
+    inputSpecification.addSub(InputData.parameterInputFactory("n", contentType=InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("p", contentType=InputData.FloatType))
 
-    inputs.append(InputData.parameterInputFactory("n", contentType=InputData.IntegerType))
-    inputs.append(InputData.parameterInputFactory("p", contentType=InputData.FloatType))
-
-    return inputs
+    return inputSpecification
 
   def __init__(self):
     """
@@ -1432,20 +1427,18 @@ class Bernoulli(BoostDistribution):
   """
 
   @classmethod
-  def registeredInputs(cls):
+  def getInputSpecification(cls):
     """
-      Method to retrieve the local variables that can or need to be specified
-      by the user in an input file. (Each class that is exposed to the user
-      should override this function)
-      @ In, cls, the particular class for which we need to retrieve the input
-        specifications.
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
     """
-    inputs = super(Bernoulli, cls).registeredInputs()
+    inputSpecification = super(Bernoulli, cls).getInputSpecification()
+    inputSpecification.addSub(InputData.parameterInputFactory("p", contentType=InputData.FloatType))
 
-    inputs.append(InputData.parameterInputFactory("p", contentType=InputData.FloatType))
-
-    return inputs
-
+    return inputSpecification
 
   def __init__(self):
     """
@@ -1535,30 +1528,6 @@ class Categorical(Distribution):
   """
 
   @classmethod
-  def registeredInputs(cls):
-    """
-      Method to retrieve the local variables that can or need to be specified
-      by the user in an input file. (Each class that is exposed to the user
-      should override this function)
-      @ In, cls, the particular class for which we need to retrieve the input
-        specifications.
-    """
-
-    ## This sub-class will not inherit any nodes from the base distribution class
-    inputs = []
-
-    class StatePartInput(InputData.ParameterInput):
-      """
-        Class for reading the state part of a categorical distribution.
-      """
-
-    StatePartInput.createClass("state", contentType=InputData.FloatType)
-    StatePartInput.addParam("outcome", InputData.FloatType, True)
-    inputs.append((StatePartInput, InputData.Quantity.one_to_infinity))
-
-    return inputs
-
-  @classmethod
   def getInputSpecification(cls):
     """
       Method to get a reference to a class that specifies the input data for
@@ -1567,17 +1536,14 @@ class Categorical(Distribution):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
-    inputSpecification = InputData.classInputFactory(cls, cls.__name__, ordered=True, baseNode=None)
+    inputSpecification = InputData.parameterInputFactory(cls.__name__, ordered=True, baseNode=None)
 
-    for input in cls.registeredInputs():
-      ## The majority of parameters will use the default cardinality, but allow
-      ## developers to fully specify the signature for adding a "sub" for those
-      ## edge cases by passing in a tuple to this call
-      if isinstance(input,tuple):
-        inputSpecification.addSub(*input)
-      else:
-        inputSpecification.addSub(input)
+    StatePartInput = InputData.parameterInputFactory("state", contentType=InputData.FloatType)
+    StatePartInput.addParam("outcome", InputData.FloatType, True)
+    inputSpecification.addSub(StatePartInput, InputData.Quantity.one_to_infinity)
 
+    ## Because we do not inherit from the base class, we need to manually
+    ## add the name back in.
     inputSpecification.addParam("name", InputData.StringType, True)
 
     return inputSpecification
@@ -1705,20 +1671,19 @@ class Logistic(BoostDistribution):
   """
 
   @classmethod
-  def registeredInputs(cls):
+  def getInputSpecification(cls):
     """
-      Method to retrieve the local variables that can or need to be specified
-      by the user in an input file. (Each class that is exposed to the user
-      should override this function)
-      @ In, cls, the particular class for which we need to retrieve the input
-        specifications.
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
     """
-    inputs = super(Logistic, cls).registeredInputs()
+    inputSpecification = super(Logistic, cls).getInputSpecification()
+    inputSpecification.addSub(InputData.parameterInputFactory("location", contentType=InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("scale", contentType=InputData.FloatType))
 
-    inputs.append(InputData.parameterInputFactory("location", contentType=InputData.FloatType))
-    inputs.append(InputData.parameterInputFactory("scale", contentType=InputData.FloatType))
-
-    return inputs
+    return inputSpecification
 
   def __init__(self):
     """
@@ -1818,20 +1783,19 @@ class Exponential(BoostDistribution):
   """
 
   @classmethod
-  def registeredInputs(cls):
+  def getInputSpecification(cls):
     """
-      Method to retrieve the local variables that can or need to be specified
-      by the user in an input file. (Each class that is exposed to the user
-      should override this function)
-      @ In, cls, the particular class for which we need to retrieve the input
-        specifications.
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
     """
-    inputs = super(Exponential, cls).registeredInputs()
+    inputSpecification = super(Exponential, cls).getInputSpecification()
+    inputSpecification.addSub(InputData.parameterInputFactory("low", contentType=InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("lambda", contentType=InputData.FloatType))
 
-    inputs.append(InputData.parameterInputFactory("low", contentType=InputData.FloatType))
-    inputs.append(InputData.parameterInputFactory("lambda", contentType=InputData.FloatType))
-
-    return inputs
+    return inputSpecification
 
   def __init__(self):
     """
@@ -1963,20 +1927,20 @@ class LogNormal(BoostDistribution):
   """
 
   @classmethod
-  def registeredInputs(cls):
+  def getInputSpecification(cls):
     """
-      Method to retrieve the local variables that can or need to be specified
-      by the user in an input file. (Each class that is exposed to the user
-      should override this function)
-      @ In, cls, the particular class for which we need to retrieve the input
-        specifications.
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
     """
-    inputs = super(LogNormal, cls).registeredInputs()
-    inputs.append(InputData.parameterInputFactory("mean", contentType=InputData.FloatType))
-    inputs.append(InputData.parameterInputFactory("sigma", contentType=InputData.FloatType))
-    inputs.append(InputData.parameterInputFactory("low", contentType=InputData.FloatType))
+    inputSpecification = super(LogNormal, cls).getInputSpecification()
+    inputSpecification.addSub(InputData.parameterInputFactory("mean", contentType=InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("sigma", contentType=InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("low", contentType=InputData.FloatType))
 
-    return inputs
+    return inputSpecification
 
   def __init__(self):
     """
@@ -2088,21 +2052,20 @@ class Weibull(BoostDistribution):
   """
 
   @classmethod
-  def registeredInputs(cls):
+  def getInputSpecification(cls):
     """
-      Method to retrieve the local variables that can or need to be specified
-      by the user in an input file. (Each class that is exposed to the user
-      should override this function)
-      @ In, cls, the particular class for which we need to retrieve the input
-        specifications.
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
     """
-    inputs = super(Weibull, cls).registeredInputs()
+    inputSpecification = super(Weibull, cls).getInputSpecification()
+    inputSpecification.addSub(InputData.parameterInputFactory("low", contentType=InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("k", contentType=InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("lambda", contentType=InputData.FloatType))
 
-    inputs.append(InputData.parameterInputFactory("low", contentType=InputData.FloatType))
-    inputs.append(InputData.parameterInputFactory("k", contentType=InputData.FloatType))
-    inputs.append(InputData.parameterInputFactory("lambda", contentType=InputData.FloatType))
-
-    return inputs
+    return inputSpecification
 
   def __init__(self):
     """
@@ -2217,24 +2180,22 @@ class Custom1D(Distribution):
   """
 
   @classmethod
-  def registeredInputs(cls):
+  def getInputSpecification(cls):
     """
-      Method to retrieve the local variables that can or need to be specified
-      by the user in an input file. (Each class that is exposed to the user
-      should override this function)
-      @ In, cls, the particular class for which we need to retrieve the input
-        specifications.
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
     """
-    inputs = super(Custom1D, cls).registeredInputs()
+    inputSpecification = super(Custom1D, cls).getInputSpecification()
+    inputSpecification.addSub(InputData.parameterInputFactory("workingDir", contentType=InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("functionType", contentType=InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("dataFilename", contentType=InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("functionID", contentType=InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("variableID", contentType=InputData.StringType))
 
-
-    inputs.append(InputData.parameterInputFactory("workingDir", contentType=InputData.StringType))
-    inputs.append(InputData.parameterInputFactory("functionType", contentType=InputData.StringType))
-    inputs.append(InputData.parameterInputFactory("dataFilename", contentType=InputData.StringType))
-    inputs.append(InputData.parameterInputFactory("functionID", contentType=InputData.StringType))
-    inputs.append(InputData.parameterInputFactory("variableID", contentType=InputData.StringType))
-
-    return inputs
+    return inputSpecification
 
   def __init__(self):
     """
@@ -2373,17 +2334,18 @@ class NDimensionalDistributions(Distribution):
   """
 
   @classmethod
-  def registeredInputs(cls):
+  def getInputSpecification(cls):
     """
-      Method to retrieve the local variables that can or need to be specified
-      by the user in an input file. (Each class that is exposed to the user
-      should override this function)
-      @ In, cls, the particular class for which we need to retrieve the input
-        specifications.
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
     """
-    inputs = super(NDimensionalDistributions, cls).registeredInputs()
-    inputs.append(InputData.parameterInputFactory("workingDir", contentType=InputData.StringType))
-    return inputs
+    inputSpecification = super(NDimensionalDistributions, cls).getInputSpecification()
+    inputSpecification.addSub(InputData.parameterInputFactory("workingDir", contentType=InputData.StringType))
+
+    return inputSpecification
 
   def __init__(self):
     """
@@ -2484,23 +2446,24 @@ class NDInverseWeight(NDimensionalDistributions):
   """
 
   @classmethod
-  def registeredInputs(cls):
+  def getInputSpecification(cls):
     """
-      Method to retrieve the local variables that can or need to be specified
-      by the user in an input file. (Each class that is exposed to the user
-      should override this function)
-      @ In, cls, the particular class for which we need to retrieve the input
-        specifications.
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
     """
-    inputs = super(NDInverseWeight, cls).registeredInputs()
+    inputSpecification = super(NDInverseWeight, cls).getInputSpecification()
+
 
     DataFilenameParameterInput = InputData.parameterInputFactory("dataFilename", contentType=InputData.StringType)
     DataFilenameParameterInput.addParam("type", InputData.StringType, True)
+    inputSpecification.addSub(DataFilenameParameterInput)
 
-    inputs.append(DataFilenameParameterInput)
-    inputs.append(InputData.parameterInputFactory("p", contentType=InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("p", contentType=InputData.FloatType))
 
-    return inputs
+    return inputSpecification
 
   def __init__(self):
     """
@@ -2682,22 +2645,21 @@ class NDCartesianSpline(NDimensionalDistributions):
   """
 
   @classmethod
-  def registeredInputs(cls):
+  def getInputSpecification(cls):
     """
-      Method to retrieve the local variables that can or need to be specified
-      by the user in an input file. (Each class that is exposed to the user
-      should override this function)
-      @ In, cls, the particular class for which we need to retrieve the input
-        specifications.
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
     """
-    inputs = super(NDCartesianSpline, cls).registeredInputs()
+    inputSpecification = super(NDCartesianSpline, cls).getInputSpecification()
 
     DataFilenameParameterInput = InputData.parameterInputFactory("dataFilename", contentType=InputData.StringType)
     DataFilenameParameterInput.addParam("type", InputData.StringType, True)
+    inputSpecification.addSub(DataFilenameParameterInput)
 
-    inputs.append(DataFilenameParameterInput)
-
-    return inputs
+    return inputSpecification
 
   def __init__(self):
     """
@@ -2872,36 +2834,6 @@ class MultivariateNormal(NDimensionalDistributions):
   """
     MultivariateNormal multi-variate distribution (analytic)
   """
-
-  @classmethod
-  def registeredInputs(cls):
-    """
-      Method to retrieve the local variables that can or need to be specified
-      by the user in an input file. (Each class that is exposed to the user
-      should override this function)
-      @ In, cls, the particular class for which we need to retrieve the input
-        specifications.
-    """
-    ## This sub-class will not inherit any nodes from the base n-dimensional
-    ## distribution class
-    inputs = []
-
-    MuListParameterInput = InputData.parameterInputFactory("mu", contentType=InputData.StringType)
-
-    CovarianceListParameterInput = InputData.parameterInputFactory("covariance", contentType=InputData.StringType)
-    CovarianceListParameterInput.addParam("type", InputData.StringType, False)
-
-    TransformationParameterInput = InputData.parameterInputFactory("transformation")
-    RankParameterInput = InputData.parameterInputFactory("rank", contentType=InputData.IntegerType)
-    TransformationParameterInput.addSub(RankParameterInput)
-
-    inputs.append(MuListParameterInput)
-    inputs.append(CovarianceListParameterInput)
-    inputs.append(TransformationParameterInput)
-
-
-    return inputs
-
   @classmethod
   def getInputSpecification(cls):
     """
@@ -2912,12 +2844,20 @@ class MultivariateNormal(NDimensionalDistributions):
     """
     inputSpecification = super(MultivariateNormal, cls).getInputSpecification()
 
-    class MultivariateMethodType(InputData.EnumBaseType):
-      """
-        A type for the multivariate method
-      """
+    MuListParameterInput = InputData.parameterInputFactory("mu", contentType=InputData.StringType)
 
-    MultivariateMethodType.createClass("multivariateMethod","multivariateMethodType",["pca","spline"])
+    CovarianceListParameterInput = InputData.parameterInputFactory("covariance", contentType=InputData.StringType)
+    CovarianceListParameterInput.addParam("type", InputData.StringType, False)
+
+    TransformationParameterInput = InputData.parameterInputFactory("transformation")
+    RankParameterInput = InputData.parameterInputFactory("rank", contentType=InputData.IntegerType)
+    TransformationParameterInput.addSub(RankParameterInput)
+
+    inputSpecification.addSub(MuListParameterInput)
+    inputSpecification.addSub(CovarianceListParameterInput)
+    inputSpecification.addSub(TransformationParameterInput)
+
+    MultivariateMethodType = InputData.makeEnumType("multivariateMethod","multivariateMethodType",["pca","spline"])
     inputSpecification.addParam("method", MultivariateMethodType, True)
 
     return inputSpecification

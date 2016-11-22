@@ -45,6 +45,9 @@ from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
 #  ***************************************
 #
 
+##########################################################
+## Temporary addition, remove this code once this inherits
+## from the base type
 class ModelInput(InputData.ParameterInput):
   """
     Class for reading in model input
@@ -52,6 +55,7 @@ class ModelInput(InputData.ParameterInput):
 
 ModelInput.createClass("ModelInput")
 ModelInput.addParam("subType", InputData.StringType, True)
+##########################################################
 
 class BasePostProcessor(Assembler, MessageHandler.MessageUser):
   """
