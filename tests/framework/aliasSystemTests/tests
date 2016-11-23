@@ -17,11 +17,3 @@
  [../]
 
 []
-
-cp externalModel/testPrintHistorySet_dump_0.csv ./gold/externalModel/testPrintHistorySet_dump_0.csv 
-cp externalModel/testPointSet_dump.csv  ./gold/externalModel/testPointSet_dump.csv
-cp externalModel/testPrintHistorySetFromHDF5_dump_0.csv  ./gold/externalModel/testPrintHistorySetFromHDF5_dump_0.csv
-cp externalModel/testPointSetFromHDF5_dump.csv ./gold/externalModel/testPointSetFromHDF5_dump.csv
-
-cp rom_aliased/outputMontecarloRom_dump.csv gold/rom_aliased/outputMontecarloRom_dump.csv
-cp rom_aliased/outputMontecarloRomND_dump.csv gold/rom_aliased/outputMontecarloRomND_dump.csv

@@ -134,8 +134,10 @@ class CsvLoader(MessageHandler.MessageUser):
       for aliasType in options['alias'].keys():
         for var in options['alias'][aliasType].keys():
           if var.strip() in inParam if aliasType == 'input' else outParam:
-            if aliasType == 'input': inParam[inParam.index(var.strip())]  = options['alias'][aliasType][var]
-            else                   : outParam[outParam.index(var.strip())] = options['alias'][aliasType][var]
+            if aliasType == 'input' and var.strip() not in sampledVars.keys() if sampledVars is not None else []:
+              inParam[inParam.index(var.strip())]  = options['alias'][aliasType][var]
+            elif aliasType == 'output':
+              outParam[outParam.index(var.strip())] = options['alias'][aliasType][var]
           else:
             self.raiseAWarning('the ' + aliasType +' alias"'+var.strip()+'" has been defined but has not been found among the variables!')
 
@@ -270,8 +272,10 @@ class CsvLoader(MessageHandler.MessageUser):
       for aliasType in options['alias'].keys():
         for var in options['alias'][aliasType].keys():
           if var.strip() in inParam if aliasType == 'input' else outParam:
-            if aliasType == 'input': inParam[inParam.index(var.strip())]  = options['alias'][aliasType][var]
-            else                   : outParam[outParam.index(var.strip())] = options['alias'][aliasType][var]
+            if aliasType == 'input' and var.strip() not in sampledVars.keys() if sampledVars is not None else []:
+              inParam[inParam.index(var.strip())]  = options['alias'][aliasType][var]
+            elif aliasType == 'output':
+              outParam[outParam.index(var.strip())] = options['alias'][aliasType][var]
           else:
             self.raiseAWarning('the ' + aliasType +' alias"'+var.strip()+'" has been defined but has not been found among the variables!')
 
@@ -414,8 +418,9 @@ class CsvLoader(MessageHandler.MessageUser):
       for aliasType in options['alias'].keys():
         for var in options['alias'][aliasType].keys():
           if var.strip() in inParam if aliasType == 'input' else outParam:
-            if aliasType == 'input': inParam[inParam.index(var.strip())]  = options['alias'][aliasType][var]
-            else                   :
+            if aliasType == 'input' and var.strip() not in sampledVars.keys() if sampledVars is not None else []:
+              inParam[inParam.index(var.strip())]  = options['alias'][aliasType][var]
+            elif aliasType == 'output':
               outParam[outParam.index(var.strip())] = options['alias'][aliasType][var]
           else:
             self.raiseAWarning('the ' + aliasType +' alias"'+var.strip()+'" has been defined but has not been found among the variables!')

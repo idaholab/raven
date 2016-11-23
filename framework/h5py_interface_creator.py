@@ -231,8 +231,9 @@ class hdf5Database(MessageHandler.MessageUser):
             if attributes['alias'][aliasType][var].strip() in headers:
               headers[headers.index(attributes['alias'][aliasType][var].strip())] = var.strip()
             else:
-              self.raiseAWarning('the ' + aliasType +' alias"'+var.strip()+'" has been defined but has not been found among the variables!')
-
+              metadataPresent = True if 'metadata' in attributes.keys() and 'SampledVars' in attributes['metadata'].keys() else False
+              if not (metadataPresent and var.strip() in attributes['metadata']['SampledVars'].keys()):
+                self.raiseAWarning('the ' + aliasType +' alias"'+var.strip()+'" has been defined but has not been found among the variables!')
       # Load the csv into a numpy array(n time steps, n parameters)
       data = np.loadtxt(f,dtype='float',delimiter=',',ndmin=2)
       # First parent group is the root name
