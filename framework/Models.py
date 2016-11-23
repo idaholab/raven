@@ -1225,20 +1225,6 @@ class Code(Model):
     return inputSpecification
 
   @classmethod
-  def registeredInputs(cls):
-    class FileargsTypeInput(InputData.EnumBaseType):
-      """
-        input for the Fileargs type attribute
-      """
-
-    FileargsTypeInput.createClass()
-
-
-    inputs.append(FileargsInput)
-
-    return inputs
-
-  @classmethod
   def specializeValidateDict(cls):
     """
       This method describes the types of input accepted with a certain role by the model class specialization
