@@ -13,12 +13,28 @@ import sys
 #Internal Modules------------------------------------------------------------------------------------
 import utils
 import MessageHandler
+import InputData
 #Internal Modules End--------------------------------------------------------------------------------
 
 class BaseType(MessageHandler.MessageUser):
   """
     this is the base class for each general type used by the simulation
   """
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = InputData.parameterInputFactory(cls.__name__, ordered=False, baseNode=None)
+    inputSpecification.addParam("name", InputData.StringType, True)
+
+    return inputSpecification
+
   def __init__(self):
     self.name             = ''                                                          # name of this istance (alias)
     self.type             = type(self).__name__                                         # specific type within this class

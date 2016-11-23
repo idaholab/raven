@@ -315,6 +315,7 @@
    csv = 'test_iostep_load/reprint_HistorySet_1.csv test_iostep_load/reprint_Pointset.csv'
    xml = 'test_iostep_load/reprint_HistorySet.xml'
    prereq = test_output
+   remove_unicode_identifier = true
  [../]
 
  [./adaptive_sampler_ext_model]
@@ -345,6 +346,7 @@
   output = 'StochasticPolyPickleTest/Udump.xml StochasticPolyPickleTest/pdump.xml'
   xml = 'StochasticPolyPickleTest/Udump.xml StochasticPolyPickleTest/pdump.xml'
   csv = 'StochasticPolyPickleTest/Udump.csv StochasticPolyPickleTest/pdump.csv'
+  remove_unicode_identifier = true
  [../]
 
  [./ND_external_MC]
@@ -495,11 +497,11 @@
    output = 'custom1D/PointSet2_dump.csv custom1D/PointSet2_dump.xml custom1D/PointSet3_dump.csv custom1D/PointSet3_dump.xml'
    csv    = 'custom1D/PointSet2_dump.csv custom1D/PointSet3_dump.csv'
  [../]
- 
+
  [./categorical]
    type   = 'RavenFramework'
    input  = 'test_distributionsCategorical.xml'
-   output = 'test_categorical/Grid_dump.csv test_categorical/MC_dump.csv test_categorical/output_basicStatistics_Grid.csv test_categorical/output_basicStatistics_MC.csv' 
+   output = 'test_categorical/Grid_dump.csv test_categorical/MC_dump.csv test_categorical/output_basicStatistics_Grid.csv test_categorical/output_basicStatistics_MC.csv'
    csv    = 'test_categorical/Grid_dump.csv test_categorical/MC_dump.csv'
  [../]
 
