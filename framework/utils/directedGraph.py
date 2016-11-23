@@ -9,6 +9,7 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 #----- end python 2 - 3 compatibility
 #External Modules------------------------------------------------------------------------------------
+import sys
 #External Modules End--------------------------------------------------------------------------------
 
 class graphObject(object):
@@ -155,7 +156,7 @@ class graphObject(object):
         if neighbour in path or visit(neighbour): return True
       path.remove(vertex)
       return False
-
+    
     return any(visit(v) for v in g)
 
 
@@ -231,10 +232,11 @@ class graphObject(object):
       degree sequence, i.e. a non-increasing sequence.
       Otherwise False is returned.
       @ In, sequence, list, list of integer sequence
-      @ Out, isDegreeSequence, bool, is a degree sequence? (i.e. the sequence sequence is non-increasing)
+      @ Out, isDegreeSeq, bool, is a degree sequence? (i.e. the sequence sequence is non-increasing)
     """
     # check if the sequence sequence is non-increasing:
-    return all( x>=y for x, y in zip(sequence, sequence[1:]))
+    isDegreeSeq = all( x>=y for x, y in zip(sequence, sequence[1:]))
+    return isDegreeSeq
 
   def minDelta(self):
     """
@@ -242,7 +244,7 @@ class graphObject(object):
       @ In, None
       @ Out, minDegree, integer, the minimum degree of the vertices
     """
-    minDegree = 100000000
+    minDegree = sys.maxint
     for vertex in self.__graphDict:
       vertexDegree = self.vertexDegree(vertex)
       if vertexDegree < minDegree: minDegree = vertexDegree
@@ -292,19 +294,23 @@ class graphObject(object):
   @staticmethod
   def erdoesGallai(sequence):
     """
-      Static methoed to check if the condition of the Erdoes-Gallai inequality is fullfilled
+      Static method to check if the condition of the Erdoes-Gallai inequality is fullfilled
       @ In, sequence, list, list of integer representing the sequence
-      @ Out, erdoesGallai, bool, True if the Erdoes-Gallai inequality is fullfilled
+      @ Out, metConditions, bool, True if the Erdoes-Gallai inequality is fullfilled
     """
+    metConditions = True
     if sum(sequence) % 2:
       # sum of sequence is odd
-      return False
-    if Graph.isDegreeSequence(sequence):
-      for k in range(1,len(sequence) + 1):
-        left = sum(sequence[:k])
-        right =  k * (k-1) + sum([min(x,k) for x in sequence[k:]])
-        if left > right:return False
+      metConditions = False
     else:
-      # sequence is increasing
-      return False
-    return True
+      if Graph.isDegreeSequence(sequence):
+        for k in range(1,len(sequence) + 1):
+          left = sum(sequence[:k])
+          right =  k * (k-1) + sum([min(x,k) for x in sequence[k:]])
+          if left > right: 
+            metConditions = False
+            break
+      else:
+        # sequence is increasing
+        metConditions = False
+    return metConditions

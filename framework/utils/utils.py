@@ -301,7 +301,7 @@ def toBytesIterative(s):
 
 def toListFromNumpyOrC1array(array):
   """
-    Method aimed to numpy or C1array into list
+    This method converts a numpy or c1darray into list
     @ In, array, numpy or c1array,  array to be converted
     @ Out, response, list, the casted value
   """

@@ -1,9 +1,9 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <RunInfo>
-    <WorkingDir>/Users/alfoa/projects/raven/tests/framework/metaModelsTests/metaModelLinearThread</WorkingDir>
-    <Sequence>testTree,dumpResults</Sequence>
-    <batchSize>2</batchSize>
+    <WorkingDir>/Users/alfoa/projects/raven/tests/framework/metaModelsTests/metaModelLinearThreadWithTimeSeries</WorkingDir>
+    <Sequence>testMetamodelHeatTransfer,dumpResults</Sequence>
+    <batchSize>1</batchSize>
     <internalParallel>False</internalParallel>
   </RunInfo>
 
@@ -19,51 +19,25 @@
   </Distributions>
 
   <Models>
-    <ExternalModel ModuleToLoad="/Users/alfoa/projects/raven/tests/framework/metaModelsTests/EM_A_dummy" name="A" subType="">
-      <variables>leftTemperature,rightTemperature,sumTemperature</variables>
+    <ExternalModel ModuleToLoad="../EM1linearForTimeSeries" name="heatTransfer" subType="">
+      <variables>leftTemperature,rightTemperature,k,solution,timeFromFirstModel</variables>
     </ExternalModel>
-    <ExternalModel ModuleToLoad="/Users/alfoa/projects/raven/tests/framework/metaModelsTests/EM_B_dummy" name="B" subType="">
-      <variables>leftTemperature,rightTemperature,averageTemperature</variables>
+    <ExternalModel ModuleToLoad="../EM2linearForTimeSeries" name="thermalConductivityComputation" subType="">
+      <variables>leftTemperature,rightTemperature,k,averageTemperature,timeFromFirstModel</variables>
     </ExternalModel>
-    <ExternalModel ModuleToLoad="/Users/alfoa/projects/raven/tests/framework/metaModelsTests/EM_C_dummy" name="C" subType="">
-        <variables>sumTemperature,averageTemperature,sumPlusAverageTemperature</variables>
-    </ExternalModel>
-    <ExternalModel ModuleToLoad="/Users/alfoa/projects/raven/tests/framework/metaModelsTests/EM_D_dummy" name="D" subType="">
-        <variables>squareSumPlusAverageTemperature,sumPlusAverageTemperature</variables>
-    </ExternalModel>
-    <ExternalModel ModuleToLoad="/Users/alfoa/projects/raven/tests/framework/metaModelsTests/EM_E_dummy" name="E" subType="">
-        <variables>cubeSumPlusAverageTemperature,sumPlusAverageTemperature</variables>
-    </ExternalModel>
-    <EnsembleModel name="fork" subType="">
+    <EnsembleModel name="heatTransferEnsembleModel" subType="">
       <Model class="Models" type="ExternalModel">
-          A
-        <Input class="DataObjects" type="PointSet">inputHolder</Input>
-        <TargetEvaluation class="DataObjects" type="PointSet">Acontainer</TargetEvaluation>
-      </Model>
-      <Model class="Models"  type="ExternalModel">
-          B
-        <Input class="DataObjects" type="PointSet">inputHolder</Input>
-        <TargetEvaluation class="DataObjects" type="PointSet">Bcontainer</TargetEvaluation>
+         thermalConductivityComputation
+        <Input            class="DataObjects" type="PointSet">inputHolder</Input>
+        <TargetEvaluation class="DataObjects" type="HistorySet">thermalConductivityComputationContainer</TargetEvaluation>
       </Model>
       <Model class="Models" type="ExternalModel">
-          C
-        <Input class="DataObjects" type="PointSet">inputHolder</Input>
-        <TargetEvaluation class="DataObjects" type="PointSet">Ccontainer</TargetEvaluation>
-      </Model>
-      <Model class="Models" type="ExternalModel">
-          D
-          <Input class="DataObjects" type="PointSet">inputHolder</Input>
-          <TargetEvaluation class="DataObjects" type="PointSet">Dcontainer</TargetEvaluation>
-      </Model>
-      <Model class="Models" type="ExternalModel">
-          E
-          <Input class="DataObjects" type="PointSet">inputHolder</Input>
-          <TargetEvaluation class="DataObjects" type="PointSet">Econtainer</TargetEvaluation>
+          heatTransfer
+        <Input            class="DataObjects" type="PointSet">inputHolder</Input>
+        <TargetEvaluation class="DataObjects" type="PointSet">heatTransferContainer</TargetEvaluation>
       </Model>
     </EnsembleModel>
   </Models>
-  
-  <!--                ,'" force_density="',mix_mat_array(i)%isotopes(j)%force_density   -->
 
   <Samplers>
     <Grid name="MonteCarloTemperature">
@@ -77,44 +51,98 @@
       </variable>
     </Grid>
   </Samplers>
-
+  <Databases>
+      <HDF5 name="testOutputDatabase" readMode="overwrite"/>
+  </Databases>
   <Steps>
-    <MultiRun name="testTree">
-      <Input class="DataObjects" type="PointSet">inputHolder</Input>
-      <Model class="Models" type="EnsembleModel">fork</Model>
-      <Sampler class="Samplers" type="Grid">MonteCarloTemperature</Sampler>
+    <MultiRun name="testMetamodelHeatTransfer">
+      <Input class="DataObjects"  type="PointSet">inputHolder</Input>
+      <Model class="Models"       type="EnsembleModel">heatTransferEnsembleModel</Model>
+      <Sampler class="Samplers"   type="Grid">MonteCarloTemperature</Sampler>
       <Output class="DataObjects" type="PointSet">metaModelOutputTest</Output>
-      <Output class="OutStreams" type="Print">metaModelOutputTestDump</Output>
+      <Output class="OutStreams"  type="Print">metaModelOutputTestDump</Output>
+      <Output class="Databases"   type="HDF5">testOutputDatabase</Output>
     </MultiRun>
     <IOStep name="dumpResults" pauseAtEnd="True">
-      <Input class="DataObjects" type="PointSet">Acontainer</Input>
-      <Input class="DataObjects" type="PointSet">Bcontainer</Input>
-      <Input class="DataObjects" type="PointSet">Ccontainer</Input>
+      <Input class="DataObjects" type="PointSet">heatTransferContainer</Input>
+      <Input class="DataObjects" type="PointSet">thermalConductivityComputationContainer</Input>
       <Input class="DataObjects" type="PointSet">metaModelOutputTest</Input>
-      <Output class="OutStreams" type="Print">AcontainerDump</Output>
-      <Output class="OutStreams" type="Print">BcontainerDump</Output>
-      <Output class="OutStreams" type="Print">CcontainerDump</Output>
-      <Output class="OutStreams" type="Print">metaModelOutputTestDump</Output>
+      <Output class="OutStreams" type="Print">thermalConductivityComputationContainerDump</Output>
+      <Output class="OutStreams" type="Print">heatTransferContainerDump</Output>
+      <Output class="OutStreams" type="Plot">metaModelOutputTestSolution</Output>
+      <Output class="OutStreams" type="Plot">metaModelOutputTestK</Output>
     </IOStep>
   </Steps>
 
   <OutStreams>
-    <Print name="AcontainerDump">
-        <type>csv</type>
-        <source>Acontainer</source>
-    </Print>
-    <Print name="BcontainerDump">
+    <Print name="thermalConductivityComputationContainerDump">
       <type>csv</type>
-      <source>Bcontainer</source>
+      <source>thermalConductivityComputationContainer</source>
     </Print>
-    <Print name="CcontainerDump">
-        <type>csv</type>
-        <source>Ccontainer</source>
+    <Print name="heatTransferContainerDump">
+      <type>csv</type>
+      <source>heatTransferContainer</source>
     </Print>
     <Print name="metaModelOutputTestDump">
       <type>csv</type>
       <source>metaModelOutputTest</source>
     </Print>
+    <Plot dim="3" name="metaModelOutputTestSolution" overwrite="false" verbosity="debug">
+      <plotSettings>
+        <plot>
+          <type>scatter</type>
+          <x>metaModelOutputTest|Input|leftTemperature</x>
+          <y>metaModelOutputTest|Input|rightTemperature</y>
+          <z>metaModelOutputTest|Output|solution</z>
+        </plot>
+        <xlabel>left Temperature (K)</xlabel>
+        <ylabel>right Temperature (K)</ylabel>
+        <zlabel>Temperature(K)</zlabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+        <figureProperties>
+          <frameon>true</frameon>
+        </figureProperties>
+        <labelFormat>
+          <style>sci</style>
+        </labelFormat>
+        <grid>
+          <b>true</b>
+        </grid>
+        <title>
+          <text> </text>
+        </title>
+      </actions>
+    </Plot>
+    <Plot dim="3" name="metaModelOutputTestK" overwrite="false" verbosity="debug">
+      <plotSettings>
+        <plot>
+          <type>scatter</type>
+          <x>metaModelOutputTest|Input|leftTemperature</x>
+          <y>metaModelOutputTest|Input|rightTemperature</y>
+          <z>metaModelOutputTest|Output|k</z>
+        </plot>
+        <xlabel>left Temperature (K)</xlabel>
+        <ylabel>right Temperature (K)</ylabel>
+        <zlabel>k (W m-1 K)</zlabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+        <figureProperties>
+          <frameon>true</frameon>
+        </figureProperties>
+        <labelFormat>
+          <style>sci</style>
+        </labelFormat>
+        <grid>
+          <b>true</b>
+        </grid>
+        <title>
+          <text> </text>
+        </title>
+      </actions>
+    </Plot>
   </OutStreams>
 
   <DataObjects>
@@ -122,30 +150,18 @@
       <Input>leftTemperature,rightTemperature</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
-    <PointSet name="Dcontainer">
-        <Input>sumPlusAverageTemperature</Input>
-        <Output>squareSumPlusAverageTemperature</Output>
+    <PointSet name="heatTransferContainer">
+      <Input>leftTemperature,rightTemperature,k,timeFromFirstModel</Input>
+      <Output>solution</Output>
     </PointSet>
-    <PointSet name="Econtainer">
-        <Input>sumPlusAverageTemperature</Input>
-        <Output>cubeSumPlusAverageTemperature</Output>
-    </PointSet>
-    <PointSet name="Ccontainer">
-      <Input>sumTemperature,averageTemperature</Input>
-      <Output>sumPlusAverageTemperature</Output>
-    </PointSet>
-    <PointSet name="Acontainer">
+    <HistorySet name="thermalConductivityComputationContainer">
       <Input>leftTemperature,rightTemperature</Input>
-      <Output>sumTemperature</Output>
-    </PointSet>
-    <PointSet name="Bcontainer">
-        <Input>leftTemperature,rightTemperature</Input>
-        <Output>averageTemperature</Output>
-    </PointSet>
+      <Output>k,timeFromFirstModel</Output>
+    </HistorySet>
     <PointSet name="metaModelOutputTest">
       <Input>leftTemperature,rightTemperature</Input>
-      <Output>sumPlusAverageTemperature,averageTemperature,sumTemperature,squareSumPlusAverageTemperature,cubeSumPlusAverageTemperature</Output>
+      <Output>k,solution</Output>
     </PointSet>
   </DataObjects>
- 
+
 </Simulation>

@@ -398,7 +398,7 @@ class HistorySet(Data):
                 if unstructuredInpKeysFiltered is not None:
                   unstructuredInpKeysFiltered[n].append(variableName)
                   unstructuredInpValuesFiltered[n].append(unstructuredInpValues[n][variableName])
-                else: elf.raiseAnError(Exception,"variable named "+variableName+" is not among the "+varType+"s!")
+                else: self.raiseAnError(Exception,"variable named "+variableName+" is not among the "+varType+"s!")
             if varType == 'output':
               if variableName not in self.getParaKeys('output'): self.raiseAnError(Exception,"variable named "+variableName+" is not among the "+varType+"s!")
               outKeys_h.append(variableName)

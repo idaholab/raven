@@ -10,7 +10,7 @@
   <!--   1) The input files are perturbed correctly -->
   <!--   2) The raw output MAT files are properly processed for reading by RAVEN -->
   <RunInfo>
-    <WorkingDir>/Users/alfoa/projects/raven/tests/framework/CodeInterfaceTests/DMInterfaceTestTimedep</WorkingDir>
+    <WorkingDir>DMInterfaceTestTimedep</WorkingDir>
     <Sequence>testDummyStep,testPrintUnstructuredInputSpace</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>

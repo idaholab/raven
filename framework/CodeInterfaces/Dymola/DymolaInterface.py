@@ -191,7 +191,7 @@ class Dymola(CodeInterfaceBase):
     #   equivalent. Strings, functions, redeclarations, etc. are not supported.
     varDict = Kwargs['SampledVars']
 
-    VectorsToPass= {}
+    vectorsToPass= {}
     for key, value in varDict.items():
       if isinstance(value, bool):
         varDict[key] = 1 if value else 0
@@ -203,15 +203,15 @@ class Dymola(CodeInterfaceBase):
         print("                            => It is assumed that the array goes into the input file with type 'DymolaVectors'")
         if not foundVect: raise Exception('Dymola INTERFACE ERROR -> None of the input files has the type "DymolaVectors"! ')
         # extract dict entry
-        VectorsToPass[key] = varDict.pop(key)
+        vectorsToPass[key] = varDict.pop(key)
       assert not type(value).__name__ in ['str','bytes','unicode'], ("Strings cannot be "
         "used as values in the simulation initialization file.")
 
     # create aditional input file for vectors if needed
-    if bool(VectorsToPass):
+    if bool(vectorsToPass):
       with open(currentInputFiles[indexVect].getAbsFile(), 'w') as Fvect:
         Fvect.write("#1\n")
-        for key, value in VectorsToPass.items() :
+        for key, value in vectorsToPass.items() :
           inc = 0
           Fvect.write("double %s(%s,2) #Comments here\n" %(key, len(value)))
           for val in value:
