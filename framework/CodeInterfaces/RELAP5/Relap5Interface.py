@@ -88,11 +88,14 @@ class Relap5(CodeInterfaceBase):
     """
     from  __builtin__ import any as bAny
     failure = True
-    errorWord = ["0Transient terminated by end of time step cards.","0Transient terminated by trip."]
+    errorWord = ["Transient terminated by end of time step cards","Transient terminated by trip"]
     try   : outputToRead = open(os.path.join(workingDir,output+'.o'),"r")
     except: return failure
-    #failure = not b_any(errorWord in x.strip() for x in outputToRead.readlines())
-    failure = not bAny(x.strip() in errorWord for x in outputToRead.readlines())
+    readLines = outputToRead.readlines()
+    for goodMsg in errorWord:
+      if bAny(goodMsg in x for x in readLines):
+        failure = False
+        break
     return failure
 
   def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):

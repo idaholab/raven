@@ -56,12 +56,7 @@ class Cubit(CodeInterfaceBase):
     parser = CUBITparser.CUBITparser(oriInputFiles[index])
     self.outputfile = 'mesh~'+currentInputFiles[index].getBase()
     Kwargs['SampledVars']['Cubit|out_name'] = "\"'"+self.outputfile+".e'\""
-    # Copy dictionary of sampled vars sent to interface and change name of alias (if it exists)
-    sampledDict = copy.deepcopy(Kwargs['SampledVars'])
-    for alias,var in Kwargs['alias'].items():
-      sampledDict[var] = Kwargs['SampledVars'][alias]
-      del sampledDict[alias]
-    parser.modifyInternalDictionary(**sampledDict)
+    parser.modifyInternalDictionary(**copy.deepcopy(Kwargs['SampledVars']))
     # Write new input files
     parser.writeNewInput(currentInputFiles[index].getAbsFile())
     return currentInputFiles

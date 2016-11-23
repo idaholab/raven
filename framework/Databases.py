@@ -270,7 +270,9 @@ class HDF5(DateBase):
       if 'end' in outputPivotVal: outputPivotValEnd = True
       else:
         outputPivotValEnd, outputPivotVal = False,  float(outputPivotVal)
-    else: outputPivotValEnd = True
+    else:
+      if operator is None: outputPivotValEnd = True
+      else               : outputPivotValEnd = False
     if inputRow == None and inputPivotVal == None: inputRow = 0
     if inputRow == None and inputPivotVal == None: inputRow = 0
     if inputRow != None :
