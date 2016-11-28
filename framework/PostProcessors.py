@@ -18,18 +18,22 @@ from collections import OrderedDict
 import time
 from sklearn.linear_model import LinearRegression
 import importlib
+import abc
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
+from BaseClasses import BaseType
 import utils
 import mathUtils
 import xmlUtils
+import InputData
 import DataObjects
 from Assembler import Assembler
 import SupervisedLearning
 import MessageHandler
 import GridEntities
 import Files
+import Models
 from RAVENiterators import ravenArrayIterator
 import unSupervisedLearning
 from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
@@ -40,6 +44,18 @@ from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
 #  *  SPECIALIZED PostProcessor CLASSES  *
 #  ***************************************
 #
+
+##########################################################
+## Temporary addition, remove this code once this inherits
+## from the base type
+class ModelInput(InputData.ParameterInput):
+  """
+    Class for reading in model input
+  """
+
+ModelInput.createClass("ModelInput")
+ModelInput.addParam("subType", InputData.StringType, True)
+##########################################################
 
 class BasePostProcessor(Assembler, MessageHandler.MessageUser):
   """
@@ -83,6 +99,30 @@ class BasePostProcessor(Assembler, MessageHandler.MessageUser):
       @ Out, None
     """
     pass
+
+class LimitSurfaceIntegralInput(InputData.ParameterInput):
+  """
+    Class for reading in the limit surface integral block
+  """
+
+LimitSurfaceIntegralInput.createClass("PostProcessor", False, baseNode=ModelInput)
+LSIVariableInput = InputData.parameterInputFactory("variable")
+LSIVariableInput.addParam("name", InputData.StringType)
+LSIDistributionInput = InputData.parameterInputFactory("distribution", contentType=InputData.StringType)
+LSIVariableInput.addSub(LSIDistributionInput)
+LSILowerBoundInput = InputData.parameterInputFactory("lowerBound", contentType=InputData.FloatType)
+LSIVariableInput.addSub(LSILowerBoundInput)
+LSIUpperBoundInput = InputData.parameterInputFactory("upperBound", contentType=InputData.FloatType)
+LSIVariableInput.addSub(LSIUpperBoundInput)
+LimitSurfaceIntegralInput.addSub(LSIVariableInput)
+LSIToleranceInput = InputData.parameterInputFactory("tolerance", contentType=InputData.FloatType)
+LimitSurfaceIntegralInput.addSub(LSIToleranceInput)
+LSIIntegralTypeInput = InputData.parameterInputFactory("integralType", contentType=InputData.StringType)
+LimitSurfaceIntegralInput.addSub(LSIIntegralTypeInput)
+LSISeedInput = InputData.parameterInputFactory("seed", contentType=InputData.IntegerType)
+LimitSurfaceIntegralInput.addSub(LSISeedInput)
+LSITargetInput = InputData.parameterInputFactory("target", contentType=InputData.StringType)
+LimitSurfaceIntegralInput.addSub(LSITargetInput)
 
 class LimitSurfaceIntegral(BasePostProcessor):
   """
@@ -141,36 +181,49 @@ class LimitSurfaceIntegral(BasePostProcessor):
       @ In, xmlNode, xml.etree.Element, Xml element node
       @ Out, None
     """
-    for child in xmlNode:
+    paramInput = LimitSurfaceIntegralInput()
+    paramInput.parseNode(xmlNode)
+    for child in paramInput.subparts:
       varName = None
-      if child.tag == 'variable':
-        varName = child.attrib['name']
+      if child.getName() == 'variable':
+        varName = child.parameterValues['name']
         self.lowerUpperDict[varName] = {}
         self.variableDist[varName] = None
-        for childChild in child:
-          if childChild.tag == 'distribution': self.variableDist[varName] = childChild.text
-          elif childChild.tag == 'lowerBound':
-            if self.variableDist[varName] != None: self.raiseAnError(NameError, 'you can not specify both distribution and lower/upper bounds nodes for variable ' + varName + ' !')
-            self.lowerUpperDict[varName]['lowerBound'] = float(childChild.text)
-          elif childChild.tag == 'upperBound':
-            if self.variableDist[varName] != None: self.raiseAnError(NameError, 'you can not specify both distribution and lower/upper bounds nodes for variable ' + varName + ' !')
-            self.lowerUpperDict[varName]['upperBound'] = float(childChild.text)
+        for childChild in child.subparts:
+          if childChild.getName() == 'distribution':
+            self.variableDist[varName] = childChild.value
+          elif childChild.getName() == 'lowerBound':
+            if self.variableDist[varName] != None:
+              self.raiseAnError(NameError, 'you can not specify both distribution and lower/upper bounds nodes for variable ' + varName + ' !')
+            self.lowerUpperDict[varName]['lowerBound'] = childChild.value
+          elif childChild.getName() == 'upperBound':
+            if self.variableDist[varName] != None:
+              self.raiseAnError(NameError, 'you can not specify both distribution and lower/upper bounds nodes for variable ' + varName + ' !')
+            self.lowerUpperDict[varName]['upperBound'] = childChild.value
           else:
-            self.raiseAnError(NameError, 'invalid labels after the variable call. Only "distribution", "lowerBound" abd "upperBound" is accepted. tag: ' + child.tag)
-      elif child.tag == 'tolerance':
-        try              : self.tolerance = float(child.text)
-        except ValueError: self.raiseAnError(ValueError, "tolerance can not be converted into a float value!")
-      elif child.tag == 'integralType':
-        self.integralType = child.text.strip().lower()
-        if self.integralType not in ['montecarlo']: self.raiseAnError(IOError, 'only one integral types are available: MonteCarlo!')
-      elif child.tag == 'seed':
-        try              : self.seed = int(child.text)
-        except ValueError: self.raiseAnError(ValueError, 'seed can not be converted into a int value!')
-        if self.integralType != 'montecarlo': self.raiseAWarning('integral type is ' + self.integralType + ' but a seed has been inputted!!!')
-        else: np.random.seed(self.seed)
-      elif child.tag == 'target':
-        self.target = child.text
-      else: self.raiseAnError(NameError, 'invalid or missing labels after the variables call. Only "variable" is accepted.tag: ' + child.tag)
+            self.raiseAnError(NameError, 'invalid labels after the variable call. Only "distribution", "lowerBound" abd "upperBound" is accepted. tag: ' + child.getName())
+      elif child.getName() == 'tolerance':
+        try:
+          self.tolerance = child.value
+        except ValueError:
+          self.raiseAnError(ValueError, "tolerance can not be converted into a float value!")
+      elif child.getName() == 'integralType':
+        self.integralType = child.value.strip().lower()
+        if self.integralType not in ['montecarlo']:
+          self.raiseAnError(IOError, 'only one integral types are available: MonteCarlo!')
+      elif child.getName() == 'seed':
+        try:
+          self.seed = child.value
+        except ValueError:
+          self.raiseAnError(ValueError, 'seed can not be converted into a int value!')
+        if self.integralType != 'montecarlo':
+          self.raiseAWarning('integral type is ' + self.integralType + ' but a seed has been inputted!!!')
+        else:
+          np.random.seed(self.seed)
+      elif child.getName() == 'target':
+        self.target = child.value
+      else:
+        self.raiseAnError(NameError, 'invalid or missing labels after the variables call. Only "variable" is accepted.tag: ' + child.getName())
       # if no distribution, we look for the integration domain in the input
       if varName != None:
         if self.variableDist[varName] == None:
@@ -271,6 +324,32 @@ class LimitSurfaceIntegral(BasePostProcessor):
       else: self.raiseAnError(Exception, self.type + ' accepts PointSet or File type only')
 #
 #
+
+class SafestPointInput(InputData.ParameterInput):
+  """
+    class for reading in the Safest Point block
+  """
+
+SafestPointInput.createClass("PostProcessor", False, baseNode=ModelInput)
+OuterDistributionInput = InputData.parameterInputFactory("Distribution", contentType=InputData.StringType)
+OuterDistributionInput.addParam("class", InputData.StringType)
+OuterDistributionInput.addParam("type", InputData.StringType)
+SafestPointInput.addSub(OuterDistributionInput)
+VariableInput = InputData.parameterInputFactory("variable")
+VariableInput.addParam("name", InputData.StringType)
+InnerDistributionInput = InputData.parameterInputFactory("distribution", contentType=InputData.StringType)
+VariableInput.addSub(InnerDistributionInput)
+InnerGridInput = InputData.parameterInputFactory("grid", contentType=InputData.FloatType)
+InnerGridInput.addParam("type", InputData.StringType)
+InnerGridInput.addParam("steps", InputData.IntegerType)
+VariableInput.addSub(InnerGridInput)
+ControllableInput = InputData.parameterInputFactory("controllable", contentType=InputData.StringType)
+ControllableInput.addSub(VariableInput)
+SafestPointInput.addSub(ControllableInput)
+NoncontrollableInput = InputData.parameterInputFactory("non-controllable", contentType=InputData.StringType)
+NoncontrollableInput.addSub(VariableInput)
+SafestPointInput.addSub(NoncontrollableInput)
+
 #
 class SafestPoint(BasePostProcessor):
   """
@@ -318,18 +397,27 @@ class SafestPoint(BasePostProcessor):
       @ In, xmlNode, xml.etree.Element, Xml element node
       @ Out, None
     """
-    for child in xmlNode:
-      if child.tag == 'controllable':
-        for childChild in child:
-          if childChild.tag == 'variable':
-            varName = childChild.attrib['name']
-            for childChildChild in childChild:
-              if childChildChild.tag == 'distribution':
-                self.controllableDist[varName] = childChildChild.text
-              elif childChildChild.tag == 'grid':
-                if 'type' in childChildChild.attrib.keys():
-                  if 'steps' in childChildChild.attrib.keys():
-                    self.controllableGrid[varName] = (childChildChild.attrib['type'], int(childChildChild.attrib['steps']), float(childChildChild.text))
+    paramInput = SafestPointInput()
+    paramInput.parseNode(xmlNode)
+    for child in paramInput.subparts:
+      if child.getName() == 'controllable' or  child.getName() == 'non-controllable':
+        for childChild in child.subparts:
+          if childChild.getName() == 'variable':
+            varName = childChild.parameterValues['name']
+            for childChildChild in childChild.subparts:
+              if childChildChild.getName() == 'distribution':
+                if child.getName() == 'controllable':
+                  self.controllableDist[varName] = childChildChild.value
+                elif child.getName() == 'non-controllable':
+                  self.nonControllableDist[varName] = childChildChild.value
+              elif childChildChild.getName() == 'grid':
+                if 'type' in childChildChild.parameterValues:
+                  if 'steps' in childChildChild.parameterValues:
+                    childChildInfo = (childChildChild.parameterValues['type'], childChildChild.parameterValues['steps'], childChildChild.value)
+                    if child.getName() == 'controllable':
+                      self.controllableGrid[varName] = childChildInfo
+                    elif child.getName() == 'non-controllable':
+                      self.nonControllableGrid[varName] = childChildInfo
                   else:
                     self.raiseAnError(NameError, 'number of steps missing after the grid call.')
                 else:
@@ -337,26 +425,7 @@ class SafestPoint(BasePostProcessor):
               else:
                 self.raiseAnError(NameError, 'invalid labels after the variable call. Only "distribution" and "grid" are accepted.')
           else:
-            self.raiseAnError(NameError, 'invalid or missing labels after the controllable variables call. Only "variable" is accepted.')
-      elif child.tag == 'non-controllable':
-        for childChild in child:
-          if childChild.tag == 'variable':
-            varName = childChild.attrib['name']
-            for childChildChild in childChild:
-              if childChildChild.tag == 'distribution':
-                self.nonControllableDist[varName] = childChildChild.text
-              elif childChildChild.tag == 'grid':
-                if 'type' in childChildChild.attrib.keys():
-                  if 'steps' in childChildChild.attrib.keys():
-                    self.nonControllableGrid[varName] = (childChildChild.attrib['type'], int(childChildChild.attrib['steps']), float(childChildChild.text))
-                  else:
-                    self.raiseAnError(NameError, 'number of steps missing after the grid call.')
-                else:
-                  self.raiseAnError(NameError, 'grid type missing after the grid call.')
-              else:
-                self.raiseAnError(NameError, 'invalid labels after the variable call. Only "distribution" and "grid" are accepted.')
-          else:
-            self.raiseAnError(NameError, 'invalid or missing labels after the controllable variables call. Only "variable" is accepted.')
+            self.raiseAnError(NameError, 'invalid or missing labels after the '+child.getName()+' variables call. Only "variable" is accepted.')
     self.raiseADebug('CONTROLLABLE DISTRIBUTIONS:')
     self.raiseADebug(self.controllableDist)
     self.raiseADebug('CONTROLLABLE GRID:')
@@ -582,6 +651,36 @@ class SafestPoint(BasePostProcessor):
           for key, value in dataCollector.getAllMetadata().items(): output.updateMetadata(key, value)
 #
 #
+
+class ComparisonStatisticsInput(InputData.ParameterInput):
+  """
+    class for reading in comparison statistics block
+  """
+
+ComparisonStatisticsInput.createClass("PostProcessor", False, baseNode=ModelInput)
+KindInputEnumType = InputData.makeEnumType("kind","kindType",["uniformBins","equalProbability"])
+KindInput = InputData.parameterInputFactory("kind", contentType=KindInputEnumType)
+KindInput.addParam("numBins",InputData.IntegerType, False)
+KindInput.addParam("binMethod", InputData.StringType, False)
+ComparisonStatisticsInput.addSub(KindInput)
+class CSCompareInput(InputData.ParameterInput):
+  """
+    class for reading in the compare block in comparison statistics
+  """
+
+CSCompareInput.createClass("compare", False)
+CSDataInput = InputData.parameterInputFactory("data", contentType=InputData.StringType)
+CSCompareInput.addSub(CSDataInput)
+CSReferenceInput = InputData.parameterInputFactory("reference")
+CSReferenceInput.addParam("name", InputData.StringType, True)
+CSCompareInput.addSub(CSReferenceInput)
+ComparisonStatisticsInput.addSub(CSCompareInput)
+FZInput = InputData.parameterInputFactory("fz", contentType=InputData.StringType) #bool
+ComparisonStatisticsInput.addSub(FZInput)
+CSInterpolationEnumType = InputData.makeEnumType("csinterpolation","csinterpolationType",["linear","quadratic"])
+CSInterpolationInput = InputData.parameterInputFactory("interpolation",contentType=CSInterpolationEnumType)
+ComparisonStatisticsInput.addSub(CSInterpolationInput)
+
 #
 class ComparisonStatistics(BasePostProcessor):
   """
@@ -645,33 +744,35 @@ class ComparisonStatistics(BasePostProcessor):
       @ In, xmlNode, xml.etree.Element, Xml element node
       @ Out, None
     """
-    for outer in xmlNode:
-      if outer.tag == 'compare':
+    paramInput = ComparisonStatisticsInput()
+    paramInput.parseNode(xmlNode)
+    for outer in paramInput.subparts:
+      if outer.getName() == 'compare':
         compareGroup = ComparisonStatistics.CompareGroup()
-        for child in outer:
-          if child.tag == 'data':
-            dataName = child.text
+        for child in outer.subparts:
+          if child.getName() == 'data':
+            dataName = child.value
             splitName = dataName.split("|")
             name, kind = splitName[:2]
             rest = splitName[2:]
             compareGroup.dataPulls.append([name, kind, rest])
-          elif child.tag == 'reference':
+          elif child.getName() == 'reference':
             # This has name=distribution
-            compareGroup.referenceData = dict(child.attrib)
+            compareGroup.referenceData = dict(child.parameterValues)
             if "name" not in compareGroup.referenceData:
               self.raiseAnError(IOError, 'Did not find name in reference block')
 
         self.compareGroups.append(compareGroup)
-      if outer.tag == 'kind':
-        self.methodInfo['kind'] = outer.text
-        if 'numBins' in outer.attrib:
-          self.methodInfo['numBins'] = int(outer.attrib['numBins'])
-        if 'binMethod' in outer.attrib:
-          self.methodInfo['binMethod'] = outer.attrib['binMethod'].lower()
-      if outer.tag == 'fz':
-        self.fZStats = (outer.text.lower() in utils.stringsThatMeanTrue())
-      if outer.tag == 'interpolation':
-        interpolation = outer.text.lower()
+      if outer.getName() == 'kind':
+        self.methodInfo['kind'] = outer.value
+        if 'numBins' in outer.parameterValues:
+          self.methodInfo['numBins'] = outer.parameterValues['numBins']
+        if 'binMethod' in outer.parameterValues:
+          self.methodInfo['binMethod'] = outer.parameterValues['binMethod'].lower()
+      if outer.getName() == 'fz':
+        self.fZStats = (outer.value.lower() in utils.stringsThatMeanTrue())
+      if outer.getName() == 'interpolation':
+        interpolation = outer.value.lower()
         if interpolation == 'linear':
           self.interpolation = 'linear'
         elif interpolation == 'quadratic':
@@ -1055,6 +1156,37 @@ class InterfacedPostProcessor(BasePostProcessor):
 #
 #
 #
+
+class ImportanceRankInput(InputData.ParameterInput):
+  """
+    class for reading in the ImportanceRank block
+  """
+
+ImportanceRankInput.createClass("PostProcessor", False, baseNode=ModelInput)
+WhatInput = InputData.parameterInputFactory("what", contentType=InputData.StringType)
+ImportanceRankInput.addSub(WhatInput)
+VariablesInput = InputData.parameterInputFactory("variables", contentType=InputData.StringType)
+DimensionsInput = InputData.parameterInputFactory("dimensions", contentType=InputData.StringType)
+ManifestInput = InputData.parameterInputFactory("manifest", contentType=InputData.StringType)
+ManifestInput.addSub(VariablesInput)
+ManifestInput.addSub(DimensionsInput)
+LatentInput = InputData.parameterInputFactory("latent", contentType=InputData.StringType)
+LatentInput.addSub(VariablesInput)
+LatentInput.addSub(DimensionsInput)
+FeaturesInput = InputData.parameterInputFactory("features", contentType=InputData.StringType)
+FeaturesInput.addSub(ManifestInput)
+FeaturesInput.addSub(LatentInput)
+ImportanceRankInput.addSub(FeaturesInput)
+TargetsInput = InputData.parameterInputFactory("targets", contentType=InputData.StringType)
+ImportanceRankInput.addSub(TargetsInput)
+#DimensionsInput = InputData.parameterInputFactory("dimensions", contentType=InputData.StringType)
+#ImportanceRankInput.addSub(DimensionsInput)
+MVNDistributionInput = InputData.parameterInputFactory("mvnDistribution", contentType=InputData.StringType)
+ImportanceRankInput.addSub(MVNDistributionInput)
+PivotParameterInput = InputData.parameterInputFactory("pivotParameter", contentType=InputData.StringType)
+ImportanceRankInput.addSub(PivotParameterInput)
+
+#
 class ImportanceRank(BasePostProcessor):
   """
     ImportantRank class. It computes the important rank for given input parameters
@@ -1118,9 +1250,11 @@ class ImportanceRank(BasePostProcessor):
       @ In, xmlNode, xml.etree.ElementTree Element Objects, the xml element node that will be checked against the available options specific to this Sampler
       @ Out, None
     """
-    for child in xmlNode:
-      if child.tag == 'what':
-        what = child.text.strip()
+    paramInput = ImportanceRankInput()
+    paramInput.parseNode(xmlNode)
+    for child in paramInput.subparts:
+      if child.getName() == 'what':
+        what = child.value.strip()
         if what.lower() == 'all': self.what = self.all
         else:
           requestMetric = list(var.strip() for var in what.split(','))
@@ -1136,34 +1270,34 @@ class ImportanceRank(BasePostProcessor):
             else:
               self.raiseAnError(IOError, self.printTag,'asked unknown operation', metric, '. Available',str(self.acceptedMetric))
           self.what = toCalculate
-      elif child.tag == 'targets':
-        self.targets = list(inp.strip() for inp in child.text.strip().split(','))
-      elif child.tag == 'features':
-        for subNode in child:
-          if subNode.tag == 'manifest':
-            for subSubNode in subNode:
-              if subSubNode.tag == 'variables':
-                self.manifest = list(inp.strip() for inp in subSubNode.text.strip().split(','))
+      elif child.getName() == 'targets':
+        self.targets = list(inp.strip() for inp in child.value.strip().split(','))
+      elif child.getName() == 'features':
+        for subNode in child.subparts:
+          if subNode.getName() == 'manifest':
+            for subSubNode in subNode.subparts:
+              if subSubNode.getName() == 'variables':
+                self.manifest = list(inp.strip() for inp in subSubNode.value.strip().split(','))
                 self.features.extend(self.manifest)
-              elif subSubNode.tag == 'dimensions':
-                self.manifestDim = list(int(inp.strip()) for inp in subSubNode.text.strip().split(','))
+              elif subSubNode.getName() == 'dimensions':
+                self.manifestDim = list(int(inp.strip()) for inp in subSubNode.value.strip().split(','))
               else:
-                self.raiseAnError(IOError, 'Unrecognized xml node name:',subSubNode.tag,'in',self.printTag)
-          if subNode.tag == 'latent':
+                self.raiseAnError(IOError, 'Unrecognized xml node name:',subSubNode.getName(),'in',self.printTag)
+          if subNode.getName() == 'latent':
             self.latentSen = True
-            for subSubNode in subNode:
-              if subSubNode.tag == 'variables':
-                self.latent = list(inp.strip() for inp in subSubNode.text.strip().split(','))
+            for subSubNode in subNode.subparts:
+              if subSubNode.getName() == 'variables':
+                self.latent = list(inp.strip() for inp in subSubNode.value.strip().split(','))
                 self.features.extend(self.latent)
-              elif subSubNode.tag == 'dimensions':
-                self.latentDim = list(int(inp.strip()) for inp in subSubNode.text.strip().split(','))
+              elif subSubNode.getName() == 'dimensions':
+                self.latentDim = list(int(inp.strip()) for inp in subSubNode.value.strip().split(','))
               else:
-                self.raiseAnError(IOError, 'Unrecognized xml node name:',subSubNode.tag,'in',self.printTag)
-      elif child.tag == 'mvnDistribution':
-        self.mvnDistribution = child.text.strip()
-      elif child.tag == "pivotParameter": self.pivotParameter = child.text
+                self.raiseAnError(IOError, 'Unrecognized xml node name:',subSubNode.getName(),'in',self.printTag)
+      elif child.getName() == 'mvnDistribution':
+        self.mvnDistribution = child.value.strip()
+      elif child.getName() == "pivotParameter": self.pivotParameter = child.value
       else:
-        self.raiseAnError(IOError, 'Unrecognized xml node name: ' + child.tag + '!')
+        self.raiseAnError(IOError, 'Unrecognized xml node name: ' + child.getName() + '!')
     if not self.latentDim and len(self.latent) != 0:
       self.latentDim = range(1,len(self.latent)+1)
       self.raiseAWarning('The dimensions for given latent variables: ' + str(self.latent) + ' is not provided! Default dimensions will be used: ' + str(self.latentDim) + ' in ' + self.printTag)
@@ -1600,6 +1734,25 @@ class ImportanceRank(BasePostProcessor):
 
 #
 #
+
+#class BasicStatisticsInput(InputData.ParameterInput):
+#  """
+#    Class for reading the Basic Statistics block
+#  """
+
+#BasicStatisticsInput.createClass("PostProcessor", False, baseNode=ModelInput)
+#BasicStatisticsInput.addSub(WhatInput)
+#BiasedInput = InputData.parameterInputFactory("biased", contentType=InputData.StringType) #bool
+#BasicStatisticsInput.addSub(BiasedInput)
+#ParameterInput = InputData.parameterInputFactory("parameters", contentType=InputData.StringType)
+#BasicStatisticsInput.addSub(ParameterInput)
+#MethodsToRunInput = InputData.parameterInputFactory("methodsToRun", contentType=InputData.StringType)
+#BasicStatisticsInput.addSub(MethodsToRunInput)
+#FunctionInput = InputData.parameterInputFactory("Function", contentType=InputData.StringType)
+#BasicStatisticsInput.addSub(FunctionInput)
+#PivotParameterInput = InputData.parameterInputFactory("pivotParameter", contentType=InputData.StringType)
+#BasicStatisticsInput.addSub(PivotParameterInput)
+
 #
 class BasicStatistics(BasePostProcessor):
   """
@@ -2632,6 +2785,20 @@ class BasicStatistics(BasePostProcessor):
 
 #
 #
+
+class LimitSurfaceInput(InputData.ParameterInput):
+  """
+    Class for reading limit surface block
+  """
+
+LimitSurfaceInput.createClass("PostProcessor", False, baseNode=ModelInput)
+ParametersInput = InputData.parameterInputFactory("parameters", contentType=InputData.StringType)
+LimitSurfaceInput.addSub(ParametersInput)
+ToleranceInput = InputData.parameterInputFactory("tolerance", contentType=InputData.FloatType)
+LimitSurfaceInput.addSub(ToleranceInput)
+SideInput = InputData.parameterInputFactory("side", contentType=InputData.StringType)
+LimitSurfaceInput.addSub(SideInput)
+
 #
 class LimitSurface(BasePostProcessor):
   """
@@ -2867,9 +3034,12 @@ class LimitSurface(BasePostProcessor):
       @ In, xmlNode, xml.etree.Element, Xml element node
       @ Out, None
     """
+    paramInput = LimitSurfaceInput()
+    paramInput.parseNode(xmlNode)
     initDict = {}
-    for child in xmlNode: initDict[child.tag] = child.text
-    initDict.update(xmlNode.attrib)
+    for child in paramInput.subparts:
+      initDict[child.getName()] = child.value
+    initDict.update(paramInput.parameterValues)
     self._initFromDict(initDict)
 
   def collectOutput(self, finishedJob, output):
@@ -3015,6 +3185,20 @@ class LimitSurface(BasePostProcessor):
 #
 #
 #
+class ExternalInput(InputData.ParameterInput):
+  """
+    Class for reading in the External post processor.
+  """
+
+ExternalInput.createClass("PostProcessor", False, baseNode=ModelInput)
+EMethodInput = InputData.parameterInputFactory("method")
+ExternalInput.addSub(EMethodInput)
+EFunctionInput = InputData.parameterInputFactory("Function", contentType=InputData.StringType)
+EFunctionInput.addParam("class", InputData.StringType)
+EFunctionInput.addParam("type", InputData.StringType)
+ExternalInput.addSub(EFunctionInput)
+
+
 
 class ExternalPostProcessor(BasePostProcessor):
   """
@@ -3129,9 +3313,11 @@ class ExternalPostProcessor(BasePostProcessor):
       @ In, xmlNode, xml.etree.Element, Xml element node
       @ Out, None
     """
-    for child in xmlNode:
-      if child.tag == 'method':
-        methods = child.text.split(',')
+    paramInput = ExternalInput()
+    paramInput.parseNode(xmlNode)
+    for child in paramInput.subparts:
+      if child.getName() == 'method':
+        methods = child.value.split(',')
         self.methodsToRun.extend(methods)
 
   def collectOutput(self, finishedJob, output):
@@ -3324,6 +3510,34 @@ class ExternalPostProcessor(BasePostProcessor):
 #
 #
 #
+
+class TopologicalDecompositionInput(InputData.ParameterInput):
+  """
+    class for reading in the topological decomposition block
+  """
+
+TopologicalDecompositionInput.createClass("PostProcessor", False, baseNode=ModelInput)
+TDGraphInput = InputData.parameterInputFactory("graph", contentType=InputData.StringType)
+TopologicalDecompositionInput.addSub(TDGraphInput)
+TDGradientInput = InputData.parameterInputFactory("gradient", contentType=InputData.StringType)
+TopologicalDecompositionInput.addSub(TDGradientInput)
+TDBetaInput = InputData.parameterInputFactory("beta", contentType=InputData.FloatType)
+TopologicalDecompositionInput.addSub(TDBetaInput)
+TDKNNInput = InputData.parameterInputFactory("knn", contentType=InputData.IntegerType)
+TopologicalDecompositionInput.addSub(TDKNNInput)
+TDWeightedInput = InputData.parameterInputFactory("weighted", contentType=InputData.StringType) #bool
+TopologicalDecompositionInput.addSub(TDWeightedInput)
+TDPersistenceInput = InputData.parameterInputFactory("persistence", contentType=InputData.StringType)
+TopologicalDecompositionInput.addSub(TDPersistenceInput)
+TDSimplificationInput = InputData.parameterInputFactory("simplification", contentType=InputData.FloatType)
+TopologicalDecompositionInput.addSub(TDSimplificationInput)
+TDParametersInput = InputData.parameterInputFactory("parameters", contentType=InputData.StringType)
+TopologicalDecompositionInput.addSub(TDParametersInput)
+TDResponseInput = InputData.parameterInputFactory("response", contentType=InputData.StringType)
+TopologicalDecompositionInput.addSub(TDResponseInput)
+TDNormalizationInput = InputData.parameterInputFactory("normalization", contentType=InputData.StringType)
+TopologicalDecompositionInput.addSub(TDNormalizationInput)
+
 #
 class TopologicalDecomposition(BasePostProcessor):
   """
@@ -3405,44 +3619,46 @@ class TopologicalDecomposition(BasePostProcessor):
       @ In, xmlNode, xml.etree.Element, Xml element node
       @ Out, None
     """
-    for child in xmlNode:
-      if child.tag == "graph":
-        self.graph = child.text.encode('ascii').lower()
+    paramInput = TopologicalDecompositionInput()
+    paramInput.parseNode(xmlNode)
+    for child in paramInput.subparts:
+      if child.getName() == "graph":
+        self.graph = child.value.encode('ascii').lower()
         if self.graph not in self.acceptedGraphParam:
           self.raiseAnError(IOError, 'Requested unknown graph type: ',
                             self.graph, '. Available options: ',
                             self.acceptedGraphParam)
-      elif child.tag == "gradient":
-        self.gradient = child.text.encode('ascii').lower()
+      elif child.getName() == "gradient":
+        self.gradient = child.value.encode('ascii').lower()
         if self.gradient not in self.acceptedGradientParam:
           self.raiseAnError(IOError, 'Requested unknown gradient method: ',
                             self.gradient, '. Available options: ',
                             self.acceptedGradientParam)
-      elif child.tag == "beta":
-        self.beta = float(child.text)
+      elif child.getName() == "beta":
+        self.beta = child.value
         if self.beta <= 0 or self.beta > 2:
           self.raiseAnError(IOError, 'Requested invalid beta value: ',
                             self.beta, '. Allowable range: (0,2]')
-      elif child.tag == 'knn':
-        self.knn = int(child.text)
-      elif child.tag == 'simplification':
-        self.simplification = float(child.text)
-      elif child.tag == 'persistence':
-        self.persistence = child.text.encode('ascii').lower()
+      elif child.getName() == 'knn':
+        self.knn = child.value
+      elif child.getName() == 'simplification':
+        self.simplification = child.value
+      elif child.getName() == 'persistence':
+        self.persistence = child.value.encode('ascii').lower()
         if self.persistence not in self.acceptedPersistenceParam:
           self.raiseAnError(IOError, 'Requested unknown persistence method: ',
                             self.persistence, '. Available options: ',
                             self.acceptedPersistenceParam)
-      elif child.tag == 'parameters':
-        self.parameters['features'] = child.text.strip().split(',')
+      elif child.getName() == 'parameters':
+        self.parameters['features'] = child.value.strip().split(',')
         for i, parameter in enumerate(self.parameters['features']):
           self.parameters['features'][i] = self.parameters['features'][i].encode('ascii')
-      elif child.tag == 'weighted':
-        self.weighted = child.text in ['True', 'true']
-      elif child.tag == 'response':
-        self.parameters['targets'] = child.text
-      elif child.tag == 'normalization':
-        self.normalization = child.text.encode('ascii').lower()
+      elif child.getName() == 'weighted':
+        self.weighted = child.value in ['True', 'true']
+      elif child.getName() == 'response':
+        self.parameters['targets'] = child.value
+      elif child.getName() == 'normalization':
+        self.normalization = child.value.encode('ascii').lower()
         if self.normalization not in self.acceptedNormalizationParam:
           self.raiseAnError(IOError, 'Requested unknown normalization type: ',
                             self.normalization, '. Available options: ',
