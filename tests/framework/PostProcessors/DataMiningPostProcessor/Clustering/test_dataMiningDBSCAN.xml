@@ -12,7 +12,7 @@
 
   <Models>
     <PostProcessor name="DBSCANBlobs" subType="DataMining" verbosity="quiet">
-      <KDD lib="SciKitLearn" labelFeature='labels'>
+      <KDD labelFeature="labels" lib="SciKitLearn">
         <Features>x1,x2</Features>
         <SKLtype>cluster|DBSCAN</SKLtype>
         <eps>0.2</eps>
@@ -22,8 +22,8 @@
 
   <Steps>
     <IOStep name="readIn" pauseAtEnd="True">
-      <Input  class="Files"       type=""         >DataSetsFile</Input>
-      <Output class="DataObjects" type="PointSet" >DataSets</Output>
+      <Input class="Files" type="">DataSetsFile</Input>
+      <Output class="DataObjects" type="PointSet">DataSets</Output>
     </IOStep>
     <IOStep name="output" pauseAtEnd="True">
       <Input  class="DataObjects"   type="PointSet"  >DataSets</Input>

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" ?>
 <Simulation verbosity="silent">
 	<RunInfo>
 		<WorkingDir>plot</WorkingDir>
@@ -47,32 +47,37 @@
 					<z>outGRID|Output|y</z>
 					<colorMap>outGRID|Output|y</colorMap>
           <range>
-            <xmin>0.0</xmin><xmax>2.0</xmax>
-            <ymin>0.0</ymin><ymax>2.0</ymax>
-            <zmin>0.0</zmin><zmax>6.0</zmax>
+            <xmin>0.0</xmin>
+            <xmax>2.0</xmax>
+            <ymin>0.0</ymin>
+            <ymax>2.0</ymax>
+            <zmin>0.0</zmin>
+            <zmax>6.0</zmax>
           </range>
-				</plot>
-				<xlabel>x1</xlabel>
-				<ylabel>x2</ylabel>
-				<zlabel>y</zlabel>
-			</plotSettings>
-			<actions>
-				<how>screen</how>
-				<title>
-					<text>Sampled Response</text>
-				</title>
-				<colorbar>off</colorbar>
-			</actions>
-		</Plot>
-	</OutStreams>
-	<DataObjects>
-		<PointSet name="outGRID">
-			<Input>x1,x2</Input>
-			<Output>y</Output>
-		</PointSet>
-		<PointSet name="inputPlaceHolder">
-			<Input>x1,x2</Input>
-			<Output>OutputPlaceHolder</Output>
-		</PointSet>
-	</DataObjects>
+        </plot>
+        <xlabel>x1</xlabel>
+        <ylabel>x2</ylabel>
+        <zlabel>y</zlabel>
+      </plotSettings>
+      <actions>
+        <how>screen</how>
+        <title>
+          <text>Sampled Response</text>
+        </title>
+        <colorbar>off</colorbar>
+      </actions>
+    </Plot>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="outGRID">
+      <Input>x1,x2</Input>
+      <Output>y</Output>
+    </PointSet>
+    <PointSet name="inputPlaceHolder">
+      <Input>x1,x2</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+  </DataObjects>
+
 </Simulation>

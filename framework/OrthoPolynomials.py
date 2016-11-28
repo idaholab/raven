@@ -217,7 +217,7 @@ class Legendre(OrthogonalPolynomial):
       @ In, None
       @ Out, None
     """
-    uniformElement = ET.Element("uniform")
+    uniformElement = ET.Element("Uniform")
     element = ET.Element("lowerBound",{})
     element.text = "-1"
     uniformElement.append(element)
@@ -291,7 +291,7 @@ class Hermite(OrthogonalPolynomial):
       @ In, None
       @ Out, normal, Distribution, the normal distribution
     """
-    normalElement = ET.Element("normal")
+    normalElement = ET.Element("Normal")
     element = ET.Element("mean",{})
     element.text = "0"
     normalElement.append(element)
@@ -350,7 +350,7 @@ class Laguerre(OrthogonalPolynomial):
       @ In, None
       @ Out, gamma, Distribution, the gamma distribution
     """
-    gammaElement = ET.Element("gamma")
+    gammaElement = ET.Element("Gamma")
     element = ET.Element("low",{})
     element.text = "0"
     gammaElement.append(element)

@@ -4,6 +4,7 @@
   input = 'test_pca_index.xml'
   xml = 'pcaIndex/testPrintPointSet_dump.xml'
   csv = 'pcaIndex/testPrintPointSet_dump.csv'
+  remove_unicode_identifier = true
  [../]
 
  [./multiPCA]
@@ -11,13 +12,15 @@
   input = 'test_multi_pca.xml'
   xml = 'multiPCA/testPrintPointSet_dump.xml'
   csv = 'multiPCA/testPrintPointSet_dump.csv'
+  remove_unicode_identifier = true
  [../]
- 
+
  [./gridPCA]
   type = 'RavenFramework'
   input = 'test_pca_index_grid.xml'
   xml = 'gridPCAIndex/testPrintPointSet_dump.xml'
   csv = 'gridPCAIndex/testPrintPointSet_dump.csv'
+  remove_unicode_identifier = true
  [../]
 
 []

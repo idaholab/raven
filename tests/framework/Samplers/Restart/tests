@@ -25,6 +25,7 @@
   type = 'RavenFramework'
   input = 'test_restart_Grid.xml'
   UnorderedCsv = 'grid/coarse.csv grid/restart.csv grid/fine.csv'
+  remove_unicode_identifier = true
  [../]
 
  [./CSV]

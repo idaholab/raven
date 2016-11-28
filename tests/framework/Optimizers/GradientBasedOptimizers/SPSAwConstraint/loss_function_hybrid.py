@@ -5,7 +5,7 @@ sys.path.append(os.path.join(frameworkDir,'utils'))
 import utils
 utils.find_crow(frameworkDir)
 distribution1D = utils.find_distribution1D()
-stochasticEnv = distribution1D.DistributionContainer.Instance()
+stochasticEnv = distribution1D.DistributionContainer.instance()
 import math
 normal1 = distribution1D.BasicNormalDistribution(0.5, 0.05, 0.0,1.0)
 
@@ -18,8 +18,8 @@ def run(self,Input):
   # sample f and d
   rand1  = stochasticEnv.random()
   rand2  = stochasticEnv.random()
-  self.d = normal1.InverseCdf(rand1)
-  self.f = normal1.InverseCdf(rand2)
+  self.d = normal1.inverseCdf(rand1)
+  self.f = normal1.inverseCdf(rand2)
   B      = self.B
   R      = self.R
   d      = self.d

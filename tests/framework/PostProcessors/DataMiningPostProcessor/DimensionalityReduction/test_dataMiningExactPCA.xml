@@ -44,6 +44,7 @@
     <Print name="dummy">
       <type>csv</type>
       <source>DataSets</source>
+      <what>Input|x2,Input|x3,Input|labels,Input|x1,Input|x4,Output|Output,Output|PCADimension1,Output|PCADimension2</what>
     </Print>
     <Print name="info">
       <type>csv</type>
@@ -57,7 +58,6 @@
           <x>DataSets|Output|PCADimension1</x>
           <y>DataSets|Output|PCADimension2</y>
           <clusterLabels>DataSets|Input|labels</clusterLabels>
-          <kwargs></kwargs>
         </plot>
         <xlabel>Component 1</xlabel>
         <ylabel>Component 2</ylabel>
