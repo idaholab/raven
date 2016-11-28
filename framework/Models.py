@@ -53,6 +53,14 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     inputSpecification = super(Model, cls).getInputSpecification()
     inputSpecification.addParam("subType", InputData.StringType, True)
 
+    ## Begin alias tag
+    AliasInput = InputData.parameterInputFactory("alias", contentType=InputData.StringType)
+    AliasInput.addParam("variable", InputData.StringType, True)
+    AliasTypeInput = InputData.makeEnumType("aliasType","aliasTypeType",["input","output"])
+    AliasInput.addParam("type", AliasTypeInput, False)
+    inputSpecification.addSub(AliasInput)
+    ## End alias tag
+
     return inputSpecification
 
   validateDict                  = {}
@@ -1224,12 +1232,6 @@ class Code(Model):
     inputSpecification = super(Code, cls).getInputSpecification()
     inputSpecification.addSub(InputData.parameterInputFactory("executable", contentType=InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("preexec", contentType=InputData.StringType))
-
-    ## Begin alias tag
-    AliasInput = InputData.parameterInputFactory("alias", contentType=InputData.StringType)
-    AliasInput.addParam("variable", InputData.StringType, True)
-    inputSpecification.addSub(AliasInput)
-    ## End alias tag
 
     ## Begin command line arguments tag
     ClargsInput = InputData.parameterInputFactory("clargs")

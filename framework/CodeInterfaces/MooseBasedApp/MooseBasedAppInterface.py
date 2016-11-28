@@ -65,7 +65,7 @@ class MooseBasedApp(CodeInterfaceBase):
     self._samplersDictionary['StochasticCollocation'] = self.pointSamplerForMooseBasedApp
     self._samplersDictionary['FactorialDesign'      ] = self.pointSamplerForMooseBasedApp
     self._samplersDictionary['ResponseSurfaceDesign'] = self.pointSamplerForMooseBasedApp
-    self._samplersDictionary['Adaptive']              = self.pointSamplerForMooseBasedApp
+    self._samplersDictionary['LimitSurfaceSearch'   ] = self.pointSamplerForMooseBasedApp
     self._samplersDictionary['SparseGridCollocation'] = self.pointSamplerForMooseBasedApp
     self._samplersDictionary['EnsembleForward'      ] = self.pointSamplerForMooseBasedApp
     self._samplersDictionary['CustomSampler'        ] = self.pointSamplerForMooseBasedApp

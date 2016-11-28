@@ -109,14 +109,14 @@
       <Input>x0,y0,z0</Input>
       <Output>time,x,y,z</Output>
     </PointSet>
-    <HistorySet name="testPrintHistorySet">
-      <Input>x0,y0,z0</Input>
-      <Output>time,x,y,z</Output>
-    </HistorySet>
     <PointSet name="testPointSetFromHDF5">
         <Input>x0,y0,z0</Input>
         <Output>time,x,y,z</Output>
     </PointSet>
+    <HistorySet name="testPrintHistorySet">
+      <Input>x0,y0,z0</Input>
+      <Output>time,x,y,z</Output>
+    </HistorySet>
     <HistorySet name="testPrintHistorySetFromHDF5">
         <Input>x0,y0,z0</Input>
         <Output>time,x,y,z</Output>
