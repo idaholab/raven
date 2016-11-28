@@ -154,8 +154,6 @@ class MonteCarlo(ForwardSampler):
       self.inputInfo['PointProbability'  ]  = reduce(mul, self.inputInfo['SampledVarsPb'].values())
       if self.samplingType == 'uniform':
         self.inputInfo['ProbabilityWeight'  ] = weight
-      else:
-        self.inputInfo['ProbabilityWeight'  ] = 1.0
     self.inputInfo['SamplerType'] = 'MC'
 
   def _localHandleFailedRuns(self,failedRuns):
