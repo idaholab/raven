@@ -545,6 +545,7 @@ In the \textbf{MonteCarlo} input block, the user needs to specify the variables 
     \item \xmlNode{initialSeed}, \textit{\textbf{integer, optional field}}, initial seeding of random number generator
     \item \xmlNode{reseedEachIteration},  \textit{\textbf{boolean/string(case insensitive), optional field}}, perform a re-seeding for each sample generated (True values = True, yes, y, t). \default{False};
     \item \xmlNode{distInit},  \textit{\textbf{integer, optional field}}, in this node the user specifies the initialization of the random number generator function for each N-Dimensional Probability Distributions (see Section~\ref{subsec:NdDist}).
+    \item \xmlNode{samplingType}, \textit{\textbf{integer, optional field}}, sub-type of sampling
   \end{itemize}
 \end{itemize}
 \begin{itemize}
@@ -567,6 +568,11 @@ the case, the user needs to provide additional information, i.e. the \xmlNode{tr
 specified by \xmlNode{latentVariables} in the transformed space of input into variables spefified by \xmlNode{manifestVariables}
 in the input space. The variables listed in \xmlNode{latentVariables} should be predefined in \xmlNode{variable}, and the variables
 listed in \xmlNode{manifestVariables} are used by the \xmlNode{Models}.
+
+Regarding the \xmlNode{samplingType}, the user can choose to perform a Monte-Carlo sampling where the location of the samples in 
+the input space is uniformly distributed and not generated accordingly to the specific set of distributions. This can be specificed 
+in the \xmlNode{samplingType} with the kewyword ``uniform''. This option works only if all the distributions have an upper and lower 
+bound specified (i.e., \xmlNode{lowerBound} and \xmlNode{upperBound})
 
 \variablesTransformationDescription{MonteCarlo}
 \assemblerDescription{MonteCarlo}

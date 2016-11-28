@@ -1707,7 +1707,7 @@ class BasicStatistics(BasePostProcessor):
         for entry in self.toDo[vector]:
           self.allUsedParams.update(entry['targets'])
           self.allUsedParams.update(entry['features'])
-    #for backward compatability, compile the full list of parameters used in Basic Statistics calculations
+    #for backward compatibility, compile the full list of parameters used in Basic Statistics calculations
     self.parameters['targets'] = list(self.allUsedParams)
     BasePostProcessor.initialize(self, runInfo, inputs, initDict)
     self.__workingDir = runInfo['WorkingDir']
