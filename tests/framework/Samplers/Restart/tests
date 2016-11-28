@@ -27,6 +27,7 @@
   input = 'test_restart_Grid.xml'
   UnorderedXml = 'grid/coarse.xml grid/restart.xml grid/fine.xml'
   csv = 'grid/coarse.csv grid/restart.csv grid/fine.csv'
+  remove_unicode_identifier = true
  [../]
 
  [./CSV]
