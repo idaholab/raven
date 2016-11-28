@@ -1201,35 +1201,10 @@ class ExternalModel(Dummy):
     inRun = copy.copy(self._manipulateInput(Input[0][0]))
     uniqueHandler = Input[0][1]['uniqueHandler'] if 'uniqueHandler' in Input[0][1].keys() else 'any'
     jobHandler.submitDict['Internal']((inRun,Input[1],),self.__externalRun,str(Input[0][1]['prefix']),metadata=Input[0][1], modulesToImport = self.mods,uniqueHandler=uniqueHandler)
-
-#   def collectOutput(self,finishedJob,output):
-#     """
-#       Method that collects the outputs from the previous run
-#       @ In, finishedJob, InternalRunner object, instance of the run just finished
-#       @ In, output, "DataObjects" object, output where the results of the calculation needs to be stored
-#       @ Out, None
-#     """
-#     if finishedJob.getEvaluation() == -1:
-#       #is it still possible for the run to not be finished yet?  Should we be erroring out if so?
-#       self.raiseAnError(RuntimeError,"No available Output to collect")
-#     def typeMatch(var,varTypeStr):
-#       """
-#         This method is aimed to check if a variable changed datatype
-#         @ In, var, python datatype, the first
-#         variable to compare
-#         @ In, varTypeStr, string, the type that this variable should have
-#         @ Out, typeMatch, bool, is the datatype changed?
-#       """
-#       typeVar = type(var)
-#       return typeVar.__name__ == varTypeStr or \
-#         typeVar.__module__+"."+typeVar.__name__ == varTypeStr
-#     # check type consistency... This is needed in order to keep under control the external model... In order to avoid problems in collecting the outputs in our internal structures
-#     instanciatedSelf = finishedJob.getEvaluation()[1][1]
-#     outcomes         = finishedJob.getEvaluation()[1][0]
-#     for key in instanciatedSelf.modelVariableType.keys():
-#       if not (typeMatch(outcomes[key],instanciatedSelf.modelVariableType[key])):
-#         self.raiseAnError(RuntimeError,'type of variable '+ key + ' is ' + str(type(outcomes[key]))+' and mismatches with respect to the input ones (' + instanciatedSelf.modelVariableType[key] +')!!!')
-#     Dummy.collectOutput(self, finishedJob, output)
+#
+#
+#
+#
 
 class Code(Model):
   """

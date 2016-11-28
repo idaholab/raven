@@ -100,6 +100,16 @@
   test_interface_only = True
  [../]
 
+ [./RELAP5interfaceTestAliasAliasNoExecutable]
+  type = 'RavenFramework'
+  input = 'test_relap5_code_interface_alias.xml'
+  output = 'RELAP5interfaceTestAlias/testDummyStep/1/snc01.i RELAP5interfaceTestAlias/testDummyStep/2/snc01.i RELAP5interfaceTestAlias/testDummyStep/3/snc01.i RELAP5interfaceTestAlias/testDummyStep/4/snc01.i RELAP5interfaceTestAlias/testDummyStep/5/snc01.i RELAP5interfaceTestAlias/testDummyStep/1/out~snc01.csv RELAP5interfaceTestAlias/testDummyStep/2/out~snc01.csv RELAP5interfaceTestAlias/testDummyStep/3/out~snc01.csv RELAP5interfaceTestAlias/testDummyStep/4/out~snc01.csv RELAP5interfaceTestAlias/testDummyStep/5/out~snc01.csv'
+  csv = 'RELAP5interfaceTestAlias/testDummyStep/1/out~snc01.csv RELAP5interfaceTestAlias/testDummyStep/2/out~snc01.csv RELAP5interfaceTestAlias/testDummyStep/3/out~snc01.csv RELAP5interfaceTestAlias/testDummyStep/4/out~snc01.csv RELAP5interfaceTestAlias/testDummyStep/5/out~snc01.csv'
+  text = 'RELAP5interfaceTestAlias/testDummyStep/1/snc01.i RELAP5interfaceTestAlias/testDummyStep/2/snc01.i'
+  test_interface_only = True
+ [../]
+
+
  [./RELAP5interfaceMultDeckTestNoExecutable]
   type = 'RavenFramework'
   input = 'test_relap5_code_interface_multideck.xml'

@@ -17,10 +17,6 @@
         <!--  /path/to/relap/executable/relap5.x -->
         <!-- here we should put the executable. Since we want to test the interface only, it is going to be empty -->
       </executable>
-      <alias variable="heatCapacity154Alias" type="input">20100154:2</alias>
-      <alias variable="heatCapacity155Alias" type="input">20100155:2</alias>
-      <alias variable="massFlowRateAliasOutput" type="output">mflowj_505000000</alias>
-      <alias variable="pressureAliasOutput" type="output">p_280010000</alias>
     </Code>
   </Models>
 
@@ -62,10 +58,10 @@
       <samplerInit>
         <limit>5</limit>
       </samplerInit>
-      <variable name="heatCapacity154Alias">
+      <variable name="20100154:2">
         <distribution>heat_capacity_154</distribution>
       </variable>
-      <variable name="heatCapacity155Alias">
+      <variable name="20100155:2">
         <distribution>heat_capacity_155</distribution>
       </variable>
       <variable name="20100156:2">
