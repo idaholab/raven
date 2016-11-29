@@ -2066,11 +2066,11 @@ class EnsembleModel(Dummy, Assembler):
       inputsValues  = inputsValues if targetEvaluations[modelIn].type != 'HistorySet' else inputsValues.values()[-1]
       if len(unstructuredInputsValues.keys()) > 0:
         if targetEvaluations[modelIn].type != 'HistorySet':
+          castedUnstructuredInputsValues = {}
           for key in unstructuredInputsValues.keys():
-
-            unstructuredInputsValues[key] = unstructuredInputsValues[key][-1]
-        else: unstructuredInputsValues  =  unstructuredInputsValues.values()[-1]
-        inputsValues.update(unstructuredInputsValues)
+            castedUnstructuredInputsValues[key] = copy.copy(unstructuredInputsValues[key][-1])
+        else: castedUnstructuredInputsValues  =  unstructuredInputsValues.values()[-1]
+        inputsValues.update(castedUnstructuredInputsValues)
       outputsValues  = outputsValues if targetEvaluations[modelIn].type != 'HistorySet' else outputsValues.values()[-1]
 
       for key in targetEvaluations[modelIn].getParaKeys('inputs'):
@@ -2087,7 +2087,7 @@ class EnsembleModel(Dummy, Assembler):
     if output.type == 'HDF5': output.addGroupDataObjects({'group':self.name+str(finishedJob.identifier)},exportDict,False)
     else:
       for key in exportDict['inputSpaceParams' ] :
-        if key in output.getParaKeys('inputs') : output.updateInputValue (key,exportDict['inputSpaceParams' ][key],options={'acceptArrayRealizations':True})
+        if key in output.getParaKeys('inputs') : output.updateInputValue (key,exportDict['inputSpaceParams' ][key])
       for key in exportDict['outputSpaceParams'] :
         if key in output.getParaKeys('outputs'): output.updateOutputValue(key,exportDict['outputSpaceParams'][key])
       for key in exportDict['metadata'] :  output.updateMetadata(key,exportDict['metadata'][key][-1])

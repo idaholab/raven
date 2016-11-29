@@ -266,11 +266,13 @@ class graphObject(object):
     """
       Method to compute the density of the graph
       @ In, None
-      @ Out, density, integer, ensity of a graph
+      @ Out, dens, integer, density of a graph
     """
     V = len(self.__graphDict.keys())
     E = len(self.edges())
-    return 2.0 * E / (V *(V - 1))
+    try   : dens = 2.0 * E / (V *(V - 1))
+    except: dens = 0
+    return dens
 
   def diameter(self):
     """
