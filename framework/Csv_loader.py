@@ -134,7 +134,8 @@ class CsvLoader(MessageHandler.MessageUser):
       for aliasType in options['alias'].keys():
         for var in options['alias'][aliasType].keys():
           if var.strip() in inParam if aliasType == 'input' else outParam:
-            if aliasType == 'input' and var.strip() not in sampledVars.keys() if sampledVars is not None else []:
+            checkVars = sampledVars.keys() if sampledVars is not None else []
+            if aliasType == 'input' and var.strip() not in checkVars:
               inParam[inParam.index(var.strip())]  = options['alias'][aliasType][var]
             elif aliasType == 'output':
               outParam[outParam.index(var.strip())] = options['alias'][aliasType][var]
@@ -272,7 +273,8 @@ class CsvLoader(MessageHandler.MessageUser):
       for aliasType in options['alias'].keys():
         for var in options['alias'][aliasType].keys():
           if var.strip() in inParam if aliasType == 'input' else outParam:
-            if aliasType == 'input' and var.strip() not in sampledVars.keys() if sampledVars is not None else []:
+            checkVars = sampledVars.keys() if sampledVars is not None else []
+            if aliasType == 'input' and var.strip() not in checkVars:
               inParam[inParam.index(var.strip())]  = options['alias'][aliasType][var]
             elif aliasType == 'output':
               outParam[outParam.index(var.strip())] = options['alias'][aliasType][var]
