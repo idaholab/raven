@@ -22,7 +22,7 @@
       <Target>Z</Target>
       <nu>0.5</nu>
       <kernel>rbf</kernel>
-      <degree>3.0</degree>
+      <degree>3</degree>
       <!-- This does not work with 0.15.2 of sklearn -->
       <!--
         <gamma>auto</gamma>
