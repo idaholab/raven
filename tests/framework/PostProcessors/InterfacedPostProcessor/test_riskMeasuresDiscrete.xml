@@ -4,12 +4,25 @@
     <WorkingDir>RiskMeasuresDiscrete</WorkingDir>
     <Sequence>FirstMRun,PP</Sequence>
     <batchSize>1</batchSize>
-    <!--internalParallel>True</internalParallel-->
   </RunInfo>
 
   <Files>
     <Input name="lorentzAttractor.py" type="">lorentzAttractor.py</Input>
   </Files>
+  
+  <Models>
+    <ExternalModel name='PythonModuleReduced' subType='' ModuleToLoad='modelTHreduced'>
+      <variables>pump1Time,pump2Time,valveTime,Tmax,outcome,pump1State,pump2State,valveState,failureTime</variables>
+    </ExternalModel>
+    <PostProcessor name="riskMeasuresDiscrete" subType="InterfacedPostProcessor">
+      <method>RiskMeasuresDiscrete</method>
+      <measures>B,FV,RAW,RRW</measures>
+      <variable R0values='0,240' R1values='1441,2880'>pump1Time</variable>
+      <variable R0values='0,240' R1values='1441,2880'>pump2Time</variable>
+      <variable R0values='0,240' R1values='1441,2880'>valveTime</variable>
+      <target   values='1400,14000'>Tmax</target>
+    </PostProcessor>   
+  </Models>
   
   <Distributions>
     <Exponential name='valveTime_distExp'>
@@ -55,20 +68,13 @@
     </PostProcess>
   </Steps>
 
-  <Models>
-    <ExternalModel name='PythonModuleReduced' subType='' ModuleToLoad='modelTHreduced'>
-      <variables>pump1Time,pump2Time,valveTime,Tmax,outcome,pump1State,pump2State,valveState,failureTime</variables>
-    </ExternalModel>
-    <PostProcessor name="riskMeasuresDiscrete" subType="InterfacedPostProcessor">
-      <method>RiskMeasuresDiscrete</method>
-      <measures>B,FV,RAW,RRW</measures>
-      <variable R0values='0,240' R1values='1441,2880'>pump1Time</variable>
-      <variable R0values='0,240' R1values='1441,2880'>pump2Time</variable>
-      <variable R0values='0,240' R1values='1441,2880'>valveTime</variable>
-      <target   values='1400,14000'>Tmax</target>
-    </PostProcessor>   
-  </Models>
-
+  <OutStreams>
+    <Print name="PrintPPS_dump">
+      <type>csv</type>
+      <source>outPPS</source>
+    </Print>
+  </OutStreams>
+  
   <DataObjects>
     <PointSet name="inputPlaceHolder">
       <Input>pump1Time,pump2Time,valveTime</Input>
@@ -86,12 +92,5 @@
               pump1Time_RRW , pump2Time_RRW , valveTime_RRW</Output>
     </PointSet>
   </DataObjects>
-
-  <OutStreams>
-    <Print name="PrintPPS_dump">
-      <type>csv</type>
-      <source>outPPS</source>
-    </Print>
-  </OutStreams>
   
 </Simulation>
