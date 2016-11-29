@@ -44,6 +44,7 @@ class RavenFramework(Tester):
     params.addParam('zero_threshold',sys.float_info.min*4.0,'it represents the value below which a float is considered zero (XML comparison only)')
     params.addParam('remove_whitespace','False','Removes whitespace before comparing xml node text if True')
     params.addParam('expected_fail', 'False', 'if true, then the test should fails, and if it passes, it fails.')
+    params.addParam('remove_unicode_identifier', 'False', 'if true, then remove u infront of a single quote')
     return params
 
   def getCommand(self, options):
@@ -166,6 +167,7 @@ class RavenFramework(Tester):
     xmlopts['zero_threshold'] = float(self.specs["zero_threshold"])
     xmlopts['unordered'     ] = False
     xmlopts['remove_whitespace'] = self.specs['remove_whitespace'].lower().strip() == 'true'
+    xmlopts['remove_unicode_identifier'] = self.specs['remove_unicode_identifier'].lower().strip() == 'true'
     if len(self.specs['xmlopts'])>0: xmlopts['xmlopts'] = self.specs['xmlopts'].split(' ')
     xml_diff = XMLDiff(self.specs['test_dir'],self.xml_files,**xmlopts)
     (xml_same,xml_messages) = xml_diff.diff()
