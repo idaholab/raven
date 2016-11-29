@@ -156,7 +156,7 @@ class graphObject(object):
         if neighbour in path or visit(neighbour): return True
       path.remove(vertex)
       return False
-    
+
     return any(visit(v) for v in g)
 
 
@@ -307,7 +307,7 @@ class graphObject(object):
         for k in range(1,len(sequence) + 1):
           left = sum(sequence[:k])
           right =  k * (k-1) + sum([min(x,k) for x in sequence[k:]])
-          if left > right: 
+          if left > right:
             metConditions = False
             break
       else:

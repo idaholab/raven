@@ -2066,8 +2066,8 @@ class EnsembleModel(Dummy, Assembler):
       inputsValues  = inputsValues if targetEvaluations[modelIn].type != 'HistorySet' else inputsValues.values()[-1]
       if len(unstructuredInputsValues.keys()) > 0:
         if targetEvaluations[modelIn].type != 'HistorySet':
-          for key in unstructuredInputsValues.keys(): 
-            
+          for key in unstructuredInputsValues.keys():
+
             unstructuredInputsValues[key] = unstructuredInputsValues[key][-1]
         else: unstructuredInputsValues  =  unstructuredInputsValues.values()[-1]
         inputsValues.update(unstructuredInputsValues)
