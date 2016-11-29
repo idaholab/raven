@@ -4,7 +4,7 @@
   type = 'RavenFramework'
   input = 'test_rom_aliased.xml'
   output = 'rom_aliased/outputMontecarloRom_dump.xml rom_aliased/outputMontecarloRomND_dump.xml'
-  csv = 'rom_aliased/outputMontecarloRom_dump.csv rom_aliased/outputMontecarloRomND_dump.csv’
+  csv = 'rom_aliased/outputMontecarloRom_dump.csv rom_aliased/outputMontecarloRomND_dump.csv'
   rel_err = 0.001
  [../]
 

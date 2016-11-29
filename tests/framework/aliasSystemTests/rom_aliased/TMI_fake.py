@@ -2,6 +2,11 @@ import math
 import numpy
 
 def run(self, Input):
+  """
+    This is the method that is run by RAVEN
+    @ In, Input, dict, dictionary of input variables
+    @ Out, None
+  """
   number_of_steps = 16
   self.time = numpy.zeros(number_of_steps)
   DeltaTimeScramToAux = Input["DeltaTimeScramToAux"]

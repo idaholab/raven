@@ -23,7 +23,7 @@
 
 \newcommand{\aliasSystemDescription}[1]
 {
-  \xmlNode{alias} \xmlDesc{string, optional field} specifies aliases for
+  \xmlNode{alias} \xmlDesc{string, optional field} specifies alias for
   any variable of interest in the input or output space for the #1.
   %
   These aliases can be used anywhere in the RAVEN input to refer to the #1
@@ -764,21 +764,6 @@ to couple a new code.
   %
   \nb Either an absolute or relative path can be used.
   \item \aliasSystemDescription{Code}
-%  \item \xmlNode{alias} \xmlDesc{string, optional field} specifies aliases for
-%  any variables of interest coming from the code to which this model refers.
-%  %
-%  These aliases can be used anywhere in the RAVEN input to refer to the code
-%  variables.
-%  %
-%  In the body of this node the user specifies the name of the variable that
-%  RAVEN will look for in the output files of the code.
-%  %
-%  The actual alias, usable throughout the input, is instead defined in the
-%  \xmlAttr{variable} attribute of this tag.
-%  %
-%  \nb The user can specify as many aliases as needed.
-%  %
-%  \default{None}
   %
   \item \xmlNode{clargs} \xmlDesc{string, optional field} allows addition of
   command-line arguments to the execution command.  If the code interface
