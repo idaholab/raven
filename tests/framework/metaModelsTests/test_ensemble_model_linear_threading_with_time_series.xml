@@ -67,6 +67,7 @@
       <Input class="DataObjects" type="PointSet">heatTransferContainer</Input>
       <Input class="DataObjects" type="PointSet">thermalConductivityComputationContainer</Input>
       <Input class="DataObjects" type="PointSet">metaModelOutputTestPointSet</Input>
+      <Input class="DataObjects" type="HistorySet">metaModelOutputTestHistorySet</Input>
       <Output class="OutStreams" type="Print">thermalConductivityComputationContainerDump</Output>
       <Output class="OutStreams" type="Print">heatTransferContainerDump</Output>
       <Output class="OutStreams" type="Plot">metaModelOutputTestPointSetSolution</Output>
@@ -97,12 +98,11 @@
         <plotSettings>
             <plot>
                 <type>scatter</type>
-                <x>metaModelOutputTestPointSet|Input|k</x>
-                <y>metaModelOutputTestPointSet|Input|timeFromFirstModel</y>
+                <x>metaModelOutputTestHistorySet|Input|k</x>
+                <y>metaModelOutputTestHistorySet|Input|timeFromFirstModel</y>
             </plot>
-            <xlabel>left Temperature (K)</xlabel>
-            <ylabel>right Temperature (K)</ylabel>
-            <zlabel>Temperature(K)</zlabel>
+            <xlabel>thermal conductivity</xlabel>
+            <ylabel>time (s)</ylabel>
         </plotSettings>
         <actions>
             <how>png</how>
