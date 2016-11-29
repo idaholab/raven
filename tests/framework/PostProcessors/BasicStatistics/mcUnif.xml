@@ -57,7 +57,6 @@
       <Output  class="OutStreams"   type="Print"           >outputDataMC_dump</Output>
       <Output  class="Files"        type=""               >output_basicStatistics_PP.csv</Output>
       <Output  class="Files"        type=""               >output_basicStatistics_PP.xml</Output>
-      <!--Output  class="OutStreams"   type="Plot"           >scatter</Output-->
     </PostProcess>
   </Steps>
 
@@ -66,26 +65,6 @@
       <type>csv</type>
       <source>outputDataMC</source>
     </Print>
-    <Plot dim="2" name="scatter" overwrite="false" verbosity="debug">
-      <plotSettings>
-        <plot>
-          <type>scatter</type>
-          <x>outputDataMC|Input|x1</x>
-          <y>outputDataMC|Input|x2</y>
-        </plot>
-        <xlabel>x1</xlabel>
-        <ylabel>x2</ylabel>
-      </plotSettings>
-      <actions>
-        <how>png</how>
-        <range>
-          <xmin>-3.5</xmin>
-          <xmax>3.5</xmax>    
-          <ymin>-3.5</ymin>
-          <ymax>3.5</ymax>
-        </range>
-      </actions>
-    </Plot>
   </OutStreams>
 
   <DataObjects>
