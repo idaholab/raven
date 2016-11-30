@@ -107,7 +107,7 @@ class GradientBasedOptimizer(Optimizer):
         readyFlag = True
     if readyFlag == False:
       ready = False
-      return ready # Return not ready if all trajectories has more them permitted variable updates.
+      return ready # Return False if all trajectories has more them permitted variable updates.
 
     if self.mdlEvalHist.isItEmpty():
       for traj in self.optTrajLive:
@@ -118,7 +118,6 @@ class GradientBasedOptimizer(Optimizer):
       readyFlag = False
       for traj in self.optTrajLive:
         if self.counter['perturbation'][traj] < self.gradDict['pertNeeded']: # Return if we just initialize
-#           ready = True
           readyFlag = True
           break
         else:
