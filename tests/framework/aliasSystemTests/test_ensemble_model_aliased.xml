@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <RunInfo>
-    <WorkingDir>/Users/alfoa/projects/raven/tests/framework/aliasSystemTests/ensembleModelAliased</WorkingDir>
+    <WorkingDir>ensembleModelAliased</WorkingDir>
     <Sequence>testMetamodelHeatTransfer,dumpResults</Sequence>
     <batchSize>1</batchSize>
     <internalParallel>False</internalParallel>
