@@ -102,6 +102,13 @@
   max_time = 500
   rel_err = 0.00001
  [../]
-
+  [./mc_uniform]
+    type = 'RavenFramework'
+    input = 'mcUnif.xml'
+    UnorderedCsv = 'basicStatsMonteCarloUniformAnalytic/outputDataMC_dump.csv'
+    UnorderedXml = 'basicStatsMonteCarloUniformAnalytic/output_basicStatistics_PP.xml'
+    output = 'basicStatsMonteCarloUniformAnalytic/outputDataMC_dump.csv basicStatsMonteCarloUniformAnalytic/outputDataMC_dump.xml'
+    rel_err = 1e-6
+  [../]
 
 []
