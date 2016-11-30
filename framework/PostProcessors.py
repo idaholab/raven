@@ -3884,7 +3884,7 @@ try:
         uiID = unicode(id(self))
 
         ## Send the request for a UI thread to the main application
-        self.requestUI.emit('MainWindow', uiID,
+        self.requestUI.emit('TopologyWindow', uiID,
                             {'X':self.inputData, 'Y':self.outputData,
                              'w':self.weights, 'names':self.names,
                              'graph':self.graph, 'gradient': self.gradient,
@@ -3895,7 +3895,10 @@ try:
         while(not self.uiDone):
           time.sleep(1)
 
-        if hasattr(self.app.UIs[uiID],'amsc'):
+        ## First check that the requested UI exists, and then if that UI has the
+        ## requested information, if not proceed as if it were not an
+        ## interactive session.
+        if uiID in self.app.UIs and hasattr(self.app.UIs[uiID],'amsc'):
           self.__amsc = self.app.UIs[uiID].amsc
           self.simplification = self.app.UIs[uiID].amsc.Persistence()
         else:
@@ -4677,19 +4680,21 @@ try:
         ##  elements
         uiID = unicode(id(self))
 
-
         ## Send the request for a UI thread to the main application
         self.requestUI.emit('Window', uiID,
-                            {'tree': self.tree,
+                            {'tree': self.unSupervisedEngine.tree,
                              'debug': False,
-                             'level': self.initOptionDict['level']})
+                             'level': self.initializationOptionDict['KDD']['level']})
 
         ## Spinlock will wait until this instance's window has been closed
         while(not self.uiDone):
           time.sleep(1)
 
-        if hasattr(self.app.UIs[uiID],'level') and self.app.UIs[uiID].level is not None:
-          self.initOptionDict['level'] = self.app.UIs[uiID].level
+        ## First check that the requested UI exists, and then if that UI has the
+        ## requested information, if not proceed as if it were not an
+        ## interactive session.
+        if uiID in self.app.UIs and hasattr(self.app.UIs[uiID],'level') and self.app.UIs[uiID].level is not None:
+          self.initializationOptionDict['KDD']['level'] = self.app.UIs[uiID].level
 
     def signalDone(self,uiID):
       """

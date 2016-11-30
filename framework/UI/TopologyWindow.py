@@ -20,7 +20,7 @@ import re
 import random
 import numpy as np
 
-class MainWindow(qtg.QMainWindow):
+class TopologyWindow(qtg.QMainWindow):
   """
       A Main Window container for holding various subwindows related to the
       visualization and analysis of a dataset according to the approximate
@@ -67,7 +67,7 @@ class MainWindow(qtg.QMainWindow):
         @ In, debug, an optional boolean flag for whether debugging output
           should be enabled.
     """
-    super(MainWindow,self).__init__()
+    super(TopologyWindow,self).__init__()
     self.resize(800,600)
     self.setCentralWidget(None)
     self.setDockOptions(qtg.QMainWindow.AllowNestedDocks)
@@ -217,16 +217,17 @@ class MainWindow(qtg.QMainWindow):
         @ In, event, a QCloseEvent specifying the context of this event.
     """
     self.closed.emit(self)
-    return super(MainWindow,self).closeEvent(event)
+    return super(TopologyWindow,self).closeEvent(event)
 
-if __name__ == '__main__':
-  app = qtg.QApplication(sys.argv)
+## We will not support external running of this UI, it shall be run from RAVEN
+# if __name__ == '__main__':
+#   app = qtg.QApplication(sys.argv)
 
-  X = None
-  Y = None
-  if len(sys.argv) > 1:
-    print('\tYou probably want me to load a file...')
-    print('\tThe Maker has not included this in my programming.')
-  main = MainWindow(X,Y)
-  main.show()
-  sys.exit(app.exec_())
+#   X = None
+#   Y = None
+#   if len(sys.argv) > 1:
+#     print('\tYou probably want me to load a file...')
+#     print('\tThe Maker has not included this in my programming.')
+#   main = TopologyWindow(X,Y)
+#   main.show()
+#   sys.exit(app.exec_())
