@@ -90,7 +90,7 @@ class BisonAndMesh(CodeInterfaceBase):#MooseBasedAppInterface,BisonMeshScriptInt
     origMooseInp = origInputFiles[currentInputFiles.index(mooseInp)]
     origCubitInp = origInputFiles[currentInputFiles.index(cubitInp)]
     #split up sampledvars in kwargs between moose and Cubit script
-    #  NOTE This works by checking the pipe split for the keyword Cubit at first!
+    #  NOTE This works by checking the '@' split for the keyword Cubit at first!
     margs = copy.deepcopy(Kwargs)
     cargs = copy.deepcopy(Kwargs)
     for vname,var in Kwargs['SampledVars'].items():
@@ -107,7 +107,7 @@ class BisonAndMesh(CodeInterfaceBase):#MooseBasedAppInterface,BisonMeshScriptInt
 #           if vname in Kwargs['alias']:
 #             del cargs['alias'][vname]
       fullname = vname
-      if fullname.split('|')[0]=='Cubit':
+      if fullname.split('@')[0]=='Cubit':
         del margs['SampledVars'][vname]
 #         if 'alias' in Kwargs.keys():
 #           if vname in Kwargs['alias']:
