@@ -61,7 +61,7 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
             val1 = float(values[0])
             val2 = float(values[1])
           except:
-            self.raiseAnError(IOError,' Wrong R0values associated to riskMeasuresDiscrete Post-Processor')  
+            self.raiseAnError(IOError,' Wrong R0values associated to riskMeasuresDiscrete Post-Processor')
           self.variables[variableID]['R0low']  = min(val1,val2)
           self.variables[variableID]['R0high'] = max(val1,val2)
         else:
@@ -69,12 +69,12 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
         if 'R1values' in child.attrib.keys():
           values = child.attrib['R1values'].split(',')
           if len(values)>2:
-            self.raiseAnError(IOError, 'RiskMeasuresDiscrete Interfaced Post-Processor ' + str(self.name) + ' : attribute node R1 for XML node: ' + str(child) + ' has more than two values')         
+            self.raiseAnError(IOError, 'RiskMeasuresDiscrete Interfaced Post-Processor ' + str(self.name) + ' : attribute node R1 for XML node: ' + str(child) + ' has more than two values')
           try:
             val1 = float(values[0])
             val2 = float(values[1])
           except:
-            self.raiseAnError(IOError,' Wrong R1values associated to riskMeasuresDiscrete Post-Processor')  
+            self.raiseAnError(IOError,' Wrong R1values associated to riskMeasuresDiscrete Post-Processor')
           self.variables[variableID]['R1low']  = min(val1,val2)
           self.variables[variableID]['R1high'] = max(val1,val2)
         else:
@@ -90,7 +90,7 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
             val1 = float(values[0])
             val2 = float(values[1])
           except:
-            self.raiseAnError(IOError,' Wrong target values associated to riskMeasuresDiscrete Post-Processor')  
+            self.raiseAnError(IOError,' Wrong target values associated to riskMeasuresDiscrete Post-Processor')
           self.target['low']  = min(val1,val2)
           self.target['high'] = max(val1,val2)
         else:
@@ -137,7 +137,7 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
       data[1] = inputDic['data']['input'][variable]
       data[2] = inputDic['data']['output'][self.target['targetID']]
 
-      #Calculate R0, Rminus, Rplus 
+      #Calculate R0, Rminus, Rplus
 
       indexSystemFailure = np.where(np.logical_or(data[2,:]<self.target['low'], data[2,:]>self.target['high']))
       dataSystemFailure  = np.delete(data, indexSystemFailure,  axis=1)
@@ -156,7 +156,7 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
       Rminus = np.sum(dataSystemMinus[0,:])/np.sum(dataComponentMinus[0,:])
       Rplus  = np.sum(dataSystemPlus[0,:]) /np.sum(dataComponentPlus[0,:])
 
-      # Calculate RRW, RAW, FV, B 
+      # Calculate RRW, RAW, FV, B
       RRW = R0/Rminus
       RAW = Rplus/R0
       FV  = (R0-Rminus)/R0
