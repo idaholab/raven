@@ -96,9 +96,6 @@ class JobHandler(MessageHandler.MessageUser):
     ## End block of __queueLock protected variables
     ############################################################################
 
-    ## Do not overlap usage of these locks, this may cause a deadlock if one
-    ## thread has lock1 and requests lock2 and the other thread has lock2 and
-    ## requests lock1.
     self.__queueLock = threading.RLock()
 
     ## List of submitted job identifiers, includes jobs that have completed as
@@ -467,24 +464,25 @@ class JobHandler(MessageHandler.MessageUser):
       @ Out, isFinished, bool, True if the job identified by "identifier" is
         finished
     """
+    identifier = identifier.strip()
     with self.__queueLock:
       ## Look through the finished jobs and attempt to find a matching
       ## identifier. If the job exists here, it is finished
       for run in self.__finished:
-        if run.identifier.strip() == identifier.strip():
+        if run.identifier == identifier:
           return True
 
       ## Look through the pending jobs and attempt to find a matching identifier
       ## If the job exists here, it is not finished
       for queue in [self.__queue, self.__clientQueue]:
         for run in queue:
-          if run.identifier.strip() == identifier.strip():
+          if run.identifier == identifier:
             return False
 
       ## Look through the running jobs and attempt to find a matching identifier
       ## If the job exists here, it is not finished
       for run in self.__running+self.__clientRunning:
-        if run is not None and run.identifier.strip() == identifier.strip():
+        if run is not None and run.identifier == identifier:
           return False
 
     ##  If you made it here and we still have not found anything, we have got
@@ -505,7 +503,7 @@ class JobHandler(MessageHandler.MessageUser):
       @ In, removeFinished, bool, optional, flag to control if the finished jobs
         need to be removed from the queue
       @ In, jobIdentifier, string, optional, if specified, only collects
-        finished runs with a particular jobIdentifier.
+        finished runs that start with this text. If not specified collect all.
       @ In, uniqueHandler, string, optional, it is a special keyword attached to
         each runner. If provided, just the jobs that have the uniqueIdentifier
         will be retrieved. By default uniqueHandler = 'any' => all the jobs for
@@ -585,7 +583,8 @@ class JobHandler(MessageHandler.MessageUser):
       @ In, None
       @ Out, activeRuns, int, number of active runs
     """
-    activeRuns = sum(run is not None for run in self.__running)
+    with self.__queueLock:
+      activeRuns = sum(run is not None for run in self.__running)
     return activeRuns
 
   def numSubmitted(self):
