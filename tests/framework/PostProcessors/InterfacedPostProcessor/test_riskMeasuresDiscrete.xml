@@ -15,7 +15,7 @@
       <variables>pump1Time,pump2Time,valveTime,Tmax,outcome,pump1State,pump2State,valveState,failureTime</variables>
     </ExternalModel>
     <PostProcessor name="riskMeasuresDiscrete" subType="InterfacedPostProcessor">
-      <method>RiskMeasuresDiscrete</method>
+      <method>riskMeasuresDiscrete</method>
       <measures>B,FV,RAW,RRW</measures>
       <variable R0values='0,240' R1values='1441,2880'>pump1Time</variable>
       <variable R0values='0,240' R1values='1441,2880'>pump2Time</variable>

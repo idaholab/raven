@@ -1305,12 +1305,10 @@ independent of the \xmlAttr{subType} specified:
 \begin{itemize}
    \item \xmlNode{measures}, \xmlDesc{string, required field}, desired risk importance measures that have to be computed (RRW, RAW, FV, B)
    \item \xmlNode{variable}, \xmlDesc{string, required field}, ID of the input variable. This node is provided for each input variable. This nodes needs to contain also these attributes:
-                                                               \begin{itemize}
-                                                                 \item \xmlAttr{R0values}, \xmlDesc{string, required field}, interval of values that implies a reliability value equal to $0$ for the
-                                                                 input variable
-                                                                 \item \xmlAttr{R1values}, \xmlDesc{string, required field}, interval of values that implies a reliability value equal to $1$ for the
-                                                                 input variable
-                                                               \end{itemize}
+     \begin{itemize}
+       \item \xmlAttr{R0values}, \xmlDesc{float, required field}, interval of values (comma separated values) that implies a reliability value equal to $0$ for the input variable
+       \item \xmlAttr{R1values}, \xmlDesc{float, required field}, interval of values (comma separated values) that implies a reliability value equal to $1$ for the input variable
+     \end{itemize}
    \item \xmlNode{target}, \xmlDesc{string, required field}, ID of the output variable. This nodes needs to contain also the attribute \xmlAttr{values}, \xmlDesc{string, required field}, interval of
                                                              values of the output target variable that defines the desired outcome
 \end{itemize}

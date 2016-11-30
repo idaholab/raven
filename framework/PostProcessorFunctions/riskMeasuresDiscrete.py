@@ -1,7 +1,8 @@
-'''
-Created on December 1, 2015
+"""
+Created on November 2016
 
-'''
+@author: mandd
+"""
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
@@ -17,7 +18,7 @@ import copy
 
 from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
 
-class RiskMeasuresDiscrete(PostProcessorInterfaceBase):
+class riskMeasuresDiscrete(PostProcessorInterfaceBase):
   """ This class implements the four basic risk-importance measures
       This class inherits form the base class PostProcessorInterfaceBase and it contains three methods:
       - initialize
@@ -27,9 +28,9 @@ class RiskMeasuresDiscrete(PostProcessorInterfaceBase):
 
   def initialize(self):
     """
-     Method to initialize the Interfaced Post-processor
-     @ In, None,
-     @ Out, None,
+      Method to initialize the Interfaced Post-processor
+      @ In, None
+      @ Out, None
 
     """
     PostProcessorInterfaceBase.initialize(self)
@@ -54,10 +55,13 @@ class RiskMeasuresDiscrete(PostProcessorInterfaceBase):
         self.variables[variableID] = {}
         if 'R0values' in child.attrib.keys():
           values = child.attrib['R0values'].split(',')
-          if len(values)>2 or len(values)==1:
+          if len(values) != 2:
             self.raiseAnError(IOError, 'RiskMeasuresDiscrete Interfaced Post-Processor ' + str(self.name) + ' : attribute node R0 for XML node: ' + str(child) + ' has one or more than two values')
-          val1 = float(values[0])
-          val2 = float(values[1])
+          try:
+            val1 = float(values[0])
+            val2 = float(values[1])
+          except:
+            self.raiseAnError(IOError,' Wrong R0values associated to riskMeasuresDiscrete Post-Processor')  
           self.variables[variableID]['R0low']  = min(val1,val2)
           self.variables[variableID]['R0high'] = max(val1,val2)
         else:
@@ -65,9 +69,12 @@ class RiskMeasuresDiscrete(PostProcessorInterfaceBase):
         if 'R1values' in child.attrib.keys():
           values = child.attrib['R1values'].split(',')
           if len(values)>2:
-            self.raiseAnError(IOError, 'RiskMeasuresDiscrete Interfaced Post-Processor ' + str(self.name) + ' : attribute node R1 for XML node: ' + str(child) + ' has more than two values')
-          val1 = float(values[0])
-          val2 = float(values[1])
+            self.raiseAnError(IOError, 'RiskMeasuresDiscrete Interfaced Post-Processor ' + str(self.name) + ' : attribute node R1 for XML node: ' + str(child) + ' has more than two values')         
+          try:
+            val1 = float(values[0])
+            val2 = float(values[1])
+          except:
+            self.raiseAnError(IOError,' Wrong R1values associated to riskMeasuresDiscrete Post-Processor')  
           self.variables[variableID]['R1low']  = min(val1,val2)
           self.variables[variableID]['R1high'] = max(val1,val2)
         else:
@@ -77,10 +84,13 @@ class RiskMeasuresDiscrete(PostProcessorInterfaceBase):
         self.target['targetID'] = child.text
         if 'values' in child.attrib.keys():
           values = child.attrib['values'].split(',')
-          if len(values)>2 or len(values)==1:
+          if len(values) != 2:
             self.raiseAnError(IOError, 'RiskMeasuresDiscrete Interfaced Post-Processor ' + str(self.name) + ' : attribute node values for XML node: ' + str(child) + ' has one or more than two values')
-          val1 = float(values[0])
-          val2 = float(values[1])
+          try:
+            val1 = float(values[0])
+            val2 = float(values[1])
+          except:
+            self.raiseAnError(IOError,' Wrong target values associated to riskMeasuresDiscrete Post-Processor')  
           self.target['low']  = min(val1,val2)
           self.target['high'] = max(val1,val2)
         else:
@@ -95,7 +105,7 @@ class RiskMeasuresDiscrete(PostProcessorInterfaceBase):
 
   def run(self,inputDic):
     """
-    This method perform the actual calculation of the risk measures
+     This method perform the actual calculation of the risk measures
      @ In,  inputDic,  dict, dictionary which contains the data inside the input DataObject
      @ Out, outputDic, dict, dictionary which contains the risk measures
 
@@ -121,15 +131,13 @@ class RiskMeasuresDiscrete(PostProcessorInterfaceBase):
     outputDic['data']['output'] = {}
     outputDic['data']['input']  = {}
 
-    print('======= Risk Measures =============')
-
     for variable in self.variables:
       data=np.zeros((3,N))
       data[0] = pbWeights
       data[1] = inputDic['data']['input'][variable]
       data[2] = inputDic['data']['output'][self.target['targetID']]
 
-      ''' Calculate R0, Rminus, Rplus '''
+      #Calculate R0, Rminus, Rplus 
 
       indexSystemFailure = np.where(np.logical_or(data[2,:]<self.target['low'], data[2,:]>self.target['high']))
       dataSystemFailure  = np.delete(data, indexSystemFailure,  axis=1)
@@ -148,11 +156,7 @@ class RiskMeasuresDiscrete(PostProcessorInterfaceBase):
       Rminus = np.sum(dataSystemMinus[0,:])/np.sum(dataComponentMinus[0,:])
       Rplus  = np.sum(dataSystemPlus[0,:]) /np.sum(dataComponentPlus[0,:])
 
-      #print('--> ' + str(variable) + ' Rminus = ' + str(Rminus))
-      #print('--> ' + str(variable) + ' Rplus  = ' + str(Rplus))
-      #print('--> ' + str(variable) + ' R0     = ' + str(R0))
-
-      ''' Calculate RRW, RAW, FV, B '''
+      # Calculate RRW, RAW, FV, B 
       RRW = R0/Rminus
       RAW = Rplus/R0
       FV  = (R0-Rminus)/R0
@@ -160,16 +164,16 @@ class RiskMeasuresDiscrete(PostProcessorInterfaceBase):
 
       if 'RRW' in self.measures:
         outputDic['data']['output'][variable + '_RRW'] = np.asanyarray([RRW])
-        print('--> ' + str(variable) + ' RRW = ' + str(RRW))
+        self.raiseADebug(str(variable) + ' RRW = ' + str(RRW))
       if 'RAW' in self.measures:
         outputDic['data']['output'][variable + '_RAW'] = np.asanyarray([RAW])
-        print('--> ' + str(variable) + ' RAW = ' + str(RAW))
+        self.raiseADebug(str(variable) + ' RAW = ' + str(RAW))
       if 'FV' in self.measures:
         outputDic['data']['output'][variable + '_FV']  = np.asanyarray([FV])
-        print('--> ' + str(variable) + ' FV = ' + str(FV))
+        self.raiseADebug( str(variable) + ' FV = ' + str(FV))
       if 'B' in self.measures:
         outputDic['data']['output'][variable + '_B']   = np.asanyarray([B])
-        print('--> ' + str(variable) + ' B  = ' + str(B))
+        self.raiseADebug(str(variable) + ' B  = ' + str(B))
 
       outputDic['data']['input'][variable + '_avg'] = np.asanyarray([np.sum(dataSystemMinus[0,:])])
 
