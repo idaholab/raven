@@ -1269,8 +1269,7 @@ class Scipy(unSupervisedLearning):
       self.linkage = self.Method.linkage(self.normValues,self.initOptionDict['method'],self.initOptionDict['metric'])
       self.tree = self.Method.to_tree(self.linkage)
 
-
-      if self.initOptionDict['dendrogram'] == 'true':
+      if 'dendrogram' in self.initOptionDict and self.initOptionDict['dendrogram'] == 'true':
         self.ddata = self.advDendrogram(self.linkage,
                                         p                = float(self.initOptionDict['p']),
                                         leaf_rotation    = 90.,
@@ -1284,7 +1283,7 @@ class Scipy(unSupervisedLearning):
 
       self.labels_ = hier.hierarchy.fcluster(self.linkage, self.initOptionDict['level'],self.initOptionDict['criterion'])
       self.outputDict['outputs']['labels'] = self.labels_
-      return self.labels_
+    return self.labels_
 
   def advDendrogram(self,*args, **kwargs):
     """
@@ -1333,7 +1332,6 @@ class Scipy(unSupervisedLearning):
   def __confidenceLocal__(self):
     pass
 
-
   def getDataMiningType(self):
     """
       This method is used to return the type of data mining algorithm to be employed
@@ -1342,131 +1340,11 @@ class Scipy(unSupervisedLearning):
     """
     return self.SCIPYtype
 
-try:
-  import PySide.QtCore as qtc
-  class QScipy(Scipy,qtc.QObject):
-    """
-      Scipy class - Computes a hierarchical clustering from an input point cloud
-      consisting of an arbitrary number of input parameters
-    """
-    requestUI = qtc.Signal(str,str,dict)
-    def __init__(self, messageHandler):
-      """
-       Constructor
-       @ In, messageHandler, message handler object
-      """
-
-      Scipy.__init__(self, messageHandler)
-      qtc.QObject.__init__(self)
-
-      self.interactive = False
-      self.uiDone = True ## If it has not been requested, then we are not waiting for a UI
-
-    def _localWhatDoINeed(self):
-      """
-      This method is a local mirror of the general whatDoINeed method.
-      It is implemented by the samplers that need to request special objects
-      @ In , None, None
-      @ Out, needDict, list of objects needed
-      """
-      return {'internal':[(None,'app')]}
-
-    def _localGenerateAssembler(self,initDict):
-      """
-      Generates the assembler.
-      @ In, initDict, dict of init objects
-      @ Out, None
-      """
-      self.app = initDict['internal']['app']
-      if self.app is None:
-        self.interactive = False
-
-    def _localReadMoreXML(self, xmlNode):
-      """
-        Function to grab the names of the methods this post-processor will be
-        using
-        @ In, xmlNode    : Xml element node
-        @ Out, None
-      """
-      Scipy._localReadMoreXML(self, xmlNode)
-      for child in xmlNode:
-        if child.tag == 'interactive':
-          self.interactive = True
-
-    def __trainLocal__(self, *args, **kwargs):
-      """
-      """
-
-      self.outputDict['outputs'] = {}
-      self.outputDict['inputs' ] = self.normValues
-      if hasattr(self.Method, 'linkage'):
-        self.linkage = self.Method.linkage(self.normValues,self.initOptionDict['method'],self.initOptionDict['metric'])
-        self.tree = self.Method.to_tree(self.linkage)
-
-
-      if self.interactive:
-
-        ## Connect our own signal to the slot on the main thread
-        self.requestUI.connect(self.app.createUI)
-        ## Connect our own slot to listen for whenver the main thread signals a
-        ## window has been closed
-        self.app.windowClosed.connect(self.signalDone)
-
-        ## Give this UI a unique id in case other threads are requesting UI
-        ##  elements
-        uiID = unicode(id(self))
-        ## Set the flag to false before requesting the UI
-        self.uiDone = False
-
-        ## Send the request for a UI thread to the main application
-        self.requestUI.emit('DendrogramView', uiID,
-                            {'tree': self.tree,
-                             'debug': False,
-                             'level': self.initOptionDict['level']})
-
-        ## Spinlock will wait until this instance's window has been closed
-        while(not self.uiDone):
-          time.sleep(1)
-
-        if hasattr(self.app.UIs[uiID],'level') and self.app.UIs[uiID].level is not None:
-          self.initOptionDict['level'] = self.app.UIs[uiID].level
-
-      if self.initOptionDict['dendrogram'] == 'true':
-        self.ddata = self.advDendrogram(self.linkage,
-                                        p                = float(self.initOptionDict['p']),
-                                        leaf_rotation    = 90.,
-                                        leaf_font_size   = 12.,
-                                        truncate_mode    = self.initOptionDict['truncationMode'],
-                                        show_leaf_counts = self.initOptionDict['leafCounts'],
-                                        show_contracted  = self.initOptionDict['showContracted'],
-                                        annotate_above   = self.initOptionDict['annotatedAbove'],
-                                        #orientation      = self.initOptionDict['orientation'],
-                                        max_d            = self.initOptionDict['level'])
-
-      self.labels_ = hier.hierarchy.fcluster(self.linkage, self.initOptionDict['level'], self.initOptionDict['criterion'])
-      self.outputDict['outputs']['labels'] = self.labels_
-      return self.labels_
-
-    def signalDone(self,uiID):
-      """
-        In Qt language, this is a slot that will accept a signal from the UI
-        saying that it has completed, thus allowing the computation to begin
-        again with information updated by the user in the UI.
-        @In, uiID, string, the ID of the user interface that signaled its
-            completion. Thus, if several UI windows are open, we don't proceed,
-            until the correct one has signaled it is done.
-        @Out, None
-      """
-      if uiID == unicode(id(self)):
-        self.uiDone = True
-except ImportError as e:
-  pass
-
-
 __interfaceDict = {}
 __interfaceDict['SciKitLearn'] = SciKitLearn
 __interfaceDict['temporalSciKitLearn'] = temporalSciKitLearn
 __interfaceDict['Scipy'] = Scipy
+
 __base = 'unSuperVisedLearning'
 
 def returnInstance(modelClass, caller, **kwargs):
@@ -1480,7 +1358,7 @@ def returnInstance(modelClass, caller, **kwargs):
   try:
     return __interfaceDict[modelClass](caller.messageHandler, **kwargs)
   except KeyError as ae:  # except Exception as(ae):
-    caller.raiseAnError(NameError, 'unSuperVisedLEarning', 'Unknown ' + __base + ' type ' + str(modelClass)+'.Error: '+ str(ae))
+    caller.raiseAnError(NameError, 'unSupervisedLearning', 'Unknown ' + __base + ' type ' + str(modelClass)+'.Error: '+ str(ae))
 
 def returnClass(modelClass, caller):
   """
@@ -1492,4 +1370,4 @@ def returnClass(modelClass, caller):
   try:
     return __interfaceDict[modelClass]
   except KeyError:
-    caller.raiseanError(NameError, 'unSuperVisedLEarning', 'not known ' + __base + ' type ' + modelClass)
+    caller.raiseanError(NameError, 'unSupervisedLearning', 'not known ' + __base + ' type ' + modelClass)

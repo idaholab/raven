@@ -4,6 +4,7 @@ from PySide import QtCore as qtc
 from PySide import QtGui as qtg
 from PySide import QtSvg as qts
 
+from BaseView import BaseView
 from ZoomableGraphicsView import ZoomableGraphicsView
 from Tree import Node
 
@@ -11,13 +12,15 @@ import numpy as np
 
 import sys
 
-class DendrogramView(ZoomableGraphicsView):
+class DendrogramView(BaseView, ZoomableGraphicsView):
   """
-      A view that shows a hierarchical data object.
+    A view that shows a hierarchical data object.
   """
   maxDiameterMultiplier = 0.1
   minDiameterMultiplier = 0.01
   def __init__(self, parent=None, tree=None, level=None, debug=False):
+    """
+    """
     ZoomableGraphicsView.__init__(self,parent)
 
     self.tree = tree
@@ -49,6 +52,8 @@ class DendrogramView(ZoomableGraphicsView):
   #   self.scene().selectionChanged.connect(self.select)
 
   def select(self):
+    """
+    """
     selectedKeys = []
     for key,graphic in self.items.iteritems():
       if graphic in self.scene().selectedItems():
@@ -56,6 +61,8 @@ class DendrogramView(ZoomableGraphicsView):
     # self.tree.SetSelection(selectedKeys)
 
   def setLevel(self):
+    """
+    """
     levels = self.tree.getLevels()
     position = self.mapFromGlobal(self.rightClickMenu.pos())
     mousePt = self.mapToScene(position.x(),position.y()).y()
@@ -69,6 +76,8 @@ class DendrogramView(ZoomableGraphicsView):
     self.level = np.clip(wy,minLevel,maxLevel)
 
   def levelChanged(self):
+    """
+    """
     level = self.level
 
     self.animation = qtg.QGraphicsItemAnimation()
@@ -126,6 +135,8 @@ class DendrogramView(ZoomableGraphicsView):
     self.createScene()
 
   def animate(self):
+    """
+    """
     step = self.timer.currentValue()
     for animatingItem in self.animatingItems.values():
       item = animatingItem['item']
@@ -136,7 +147,8 @@ class DendrogramView(ZoomableGraphicsView):
     # self.scene().update()
 
   def createScene(self):
-    # print('###################################################################')
+    """
+    """
     self.items = {}
     scene = self.scene()
     scene.clear()
