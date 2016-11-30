@@ -212,9 +212,15 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         if 'variable' in child.attrib.keys():
           if 'type' in child.attrib.keys():
             if child.attrib['type'].lower() not in ['input','output']: self.raiseAnError(IOError,'the type of alias can be either "input" or "output". Got '+child.attrib['type'].lower())
-            aliasType = child.attrib['type'].lower().strip()
+            aliasType           = child.attrib['type'].lower().strip()
+            complementAliasType = 'output' if aliasType == 'input' else 'input'
           else: self.raiseAnError(IOError,'not found the attribute "type" in the definition of one of the alias for model '+str(self.name) +' of type '+self.type)
-          self.alias[aliasType][child.attrib['variable']] = child.text.strip()
+          varFramework, varModel = child.attrib['variable'], child.text.strip()
+          if varFramework in self.alias[aliasType].keys(): self.raiseAnError(IOError,' The alias for variable ' +varFramework+' has been already inputted in model '+str(self.name) +' of type '+self.type)
+          if varModel in self.alias[aliasType].values()  : self.raiseAnError(IOError,' The alias ' +varModel+' has been already used for another variable in model '+str(self.name) +' of type '+self.type)
+          if varFramework in self.alias[complementAliasType].keys(): self.raiseAnError(IOError,' The alias for variable ' +varFramework+' has been already inputted ('+complementAliasType+') in model '+str(self.name) +' of type '+self.type)
+          if varModel in self.alias[complementAliasType].values()  : self.raiseAnError(IOError,' The alias ' +varModel+' has been already used ('+complementAliasType+') for another variable in model '+str(self.name) +' of type '+self.type)
+          self.alias[aliasType][varFramework] = child.text.strip()
         else: self.raiseAnError(IOError,'not found the attribute "variable" in the definition of one of the alias for model '+str(self.name) +' of type '+self.type)
     # read local information
     self.localInputAndChecks(xmlNode)
