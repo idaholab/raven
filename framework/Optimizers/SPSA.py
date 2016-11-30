@@ -300,7 +300,6 @@ class SPSA(GradientBasedOptimizer):
       if (v1 == v2).all(): angle = 0.0
       else: angle = np.pi
     angleD = np.rad2deg(angle)
-    self.raiseADebug(angleD)
     return angleD
 
   def _computeGainSequenceCk(self,paramDict,iterNum):
