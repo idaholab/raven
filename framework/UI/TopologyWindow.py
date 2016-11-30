@@ -85,7 +85,7 @@ class TopologyWindow(qtg.QMainWindow):
     self.viewMenu = self.menuBar().addMenu('View')
     newMenu = self.viewMenu.addMenu('New...')
     self.addNewView('TopologyMapView')
-    self.addNewView('ProjectionView')
+    # self.addNewView('ProjectionView')
 
     for subclass in GenericView.__subclasses__():
       action = newMenu.addAction(subclass.__name__)

@@ -4681,8 +4681,9 @@ try:
         uiID = unicode(id(self))
 
         ## Send the request for a UI thread to the main application
-        self.requestUI.emit('Window', uiID,
-                            {'tree': self.unSupervisedEngine.tree,
+        self.requestUI.emit('HierarchyWindow', uiID,
+                            {'views': ['DendrogramView'],
+                             'tree': self.unSupervisedEngine.tree,
                              'debug': False,
                              'level': self.initializationOptionDict['KDD']['level']})
 
