@@ -16,4 +16,10 @@
   rel_err = 0.001
  [../]
 
+[./testEnsembleModelAliased]
+  type = 'RavenFramework'
+  input = 'test_ensemble_model_aliased.xml'
+  output = 'ensembleModelAliased/thermalConductivityComputationContainerDump.xml ensembleModelAliased/metaModelOutputTestDump.xml ensembleModelAliased/heatTransferContainerDump.xml ensembleModelAliased/1-metaModelOutputTestSolution_scatter.png ensembleModelAliased/1-metaModelOutputTestK_scatter.png'
+ [../]
+
 []

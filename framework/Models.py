@@ -57,7 +57,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     AliasInput = InputData.parameterInputFactory("alias", contentType=InputData.StringType)
     AliasInput.addParam("variable", InputData.StringType, True)
     AliasTypeInput = InputData.makeEnumType("aliasType","aliasTypeType",["input","output"])
-    AliasInput.addParam("type", AliasTypeInput, False)
+    AliasInput.addParam("type", AliasTypeInput, True)
     inputSpecification.addSub(AliasInput)
     ## End alias tag
 
@@ -206,15 +206,14 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     except KeyError:
       self.raiseADebug(" Failed in Node: "+str(xmlNode),verbostiy='silent')
       self.raiseAnError(IOError,'missed subType for the model '+self.name)
-    #del(xmlNode.attrib['subType'])
     for child in xmlNode:
       if child.tag =='alias':
         # the input would be <alias variable='internal_variable_name'>Material|Fuel|thermal_conductivity</alias>
         if 'variable' in child.attrib.keys():
-          aliasType = 'input'
           if 'type' in child.attrib.keys():
             if child.attrib['type'].lower() not in ['input','output']: self.raiseAnError(IOError,'the type of alias can be either "input" or "output". Got '+child.attrib['type'].lower())
             aliasType = child.attrib['type'].lower().strip()
+          else: self.raiseAnError(IOError,'not found the attribute "type" in the definition of one of the alias for model '+str(self.name) +' of type '+self.type)
           self.alias[aliasType][child.attrib['variable']] = child.text.strip()
         else: self.raiseAnError(IOError,'not found the attribute "variable" in the definition of one of the alias for model '+str(self.name) +' of type '+self.type)
     # read local information
@@ -234,11 +233,11 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     for aliasTyp in listAliasType:
       if len(self.alias[aliasTyp].keys()) != 0:
         for varFramework,varModel in self.alias[aliasTyp].items():
-          found = sampledVars.pop(varModel,[sys.maxint]) if fromModelToFramework else sampledVars.pop(varFramework,[sys.maxint])
+          whichVar =  varModel if fromModelToFramework else varFramework
+          found = sampledVars.pop(whichVar,[sys.maxint])
           if not np.array_equal(np.asarray(found), [sys.maxint]):
             if fromModelToFramework: sampledVars[varFramework] = originalVariables[varModel]
             else                   : sampledVars[varModel]     = originalVariables[varFramework]
-          else: self.raiseAWarning('the ' +aliasTyp+ ' alias "'+varModel if fromModelToFramework else varFramework+'" has been defined but has not been found among the inputted variables!')
     return originalVariables
 
   def _handleInput(self, paramInput):
@@ -502,6 +501,7 @@ class Dummy(Model):
     else:
       outputeval = evaluation[1]
     exportDict = copy.deepcopy({'inputSpaceParams':evaluation[0],'outputSpaceParams':outputeval,'metadata':finishedJob.getMetadata()})
+    self._replaceVariablesNamesWithAliasSystem(exportDict['inputSpaceParams'], 'input',True)
     if output.type == 'HDF5': output.addGroupDataObjects({'group':self.name+str(finishedJob.identifier)},exportDict,False)
     else:
       self.collectOutputFromDict(exportDict,output)
@@ -1118,8 +1118,10 @@ class ExternalModel(Dummy):
       @ Out, inputOut, list, updated list of inputs
     """
     dummyReturn =  Dummy.updateInputFromOutside(self,Input[0], externalDict)
+    self._replaceVariablesNamesWithAliasSystem(dummyReturn[0][0],'input',False)
     inputOut = (dummyReturn,Input[1])
     for key, value in externalDict.items(): inputOut[1][key] =  externalDict[key]
+    self._replaceVariablesNamesWithAliasSystem(inputOut[1],'input',False)
     return inputOut
 
   def localInputAndChecks(self,xmlNode):
@@ -1814,7 +1816,6 @@ class EnsembleModel(Dummy, Assembler):
       if childChild.tag == 'maxIterations': self.maxIterations  = int(childChild.text)
       if childChild.tag == 'tolerance'    : self.convergenceTol = float(childChild.text)
 
-
   def __findMatchingModel(self,what,subWhat):
     """
       Method to find the matching models with respect a some input/output. If not found, return None
@@ -1980,8 +1981,10 @@ class EnsembleModel(Dummy, Assembler):
       outputsValues = targetEvaluations[modelIn].getParametersValues('outputs', nodeId = 'RecontructEnding')
       metadataValues= targetEvaluations[modelIn].getAllMetadata(nodeId = 'RecontructEnding')
       for key in targetEvaluations[modelIn].getParaKeys('inputs'):
+        if key not in inputsValues.keys(): self.raiseAnError(Exception,"the variable "+key+" is not in the input space of the model!")
         self.modelsDictionary[modelIn]['TargetEvaluation'].updateInputValue (key,inputsValues[key])
       for key in targetEvaluations[modelIn].getParaKeys('outputs'):
+        if key not in outputsValues.keys(): self.raiseAnError(Exception,"the variable "+key+" is not in the output space of the model!")
         self.modelsDictionary[modelIn]['TargetEvaluation'].updateOutputValue (key,outputsValues[key])
       for key in metadataValues.keys():
         self.modelsDictionary[modelIn]['TargetEvaluation'].updateMetadata(key,metadataValues[key])

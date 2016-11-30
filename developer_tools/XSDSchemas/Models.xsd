@@ -41,17 +41,28 @@
         </xsd:simpleContent>
     </xsd:complexType>
 
-    <xsd:simpleType  name="fileArgType">
+    <xsd:simpleType  name="IOenumerator">
         <xsd:restriction   base="xsd:string">
             <xsd:enumeration value="input"  />
             <xsd:enumeration value="output" />
         </xsd:restriction>
     </xsd:simpleType>
-
+    
+    <xsd:complexType name="aliasSystem">
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:string">
+                <xsd:attribute name="type" type="IOenumerator" use="required">
+                </xsd:attribute>
+                <xsd:attribute name="variable" type="xsd:string" use="required">
+                </xsd:attribute>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    
     <xsd:complexType name="CodeFileArgsType">
         <xsd:simpleContent>
             <xsd:extension base="xsd:string">
-                <xsd:attribute name="type" type="fileArgType" use="required" />
+                <xsd:attribute name="type" type="IOenumerator" use="required" />
                 <!-- Will match entry in template input file? -->
                 <!-- I don't think this is testable since it depends on another -->
                 <!-- input file. -->
@@ -76,7 +87,7 @@
         <xsd:sequence>
             <xsd:element name="executable" type="xsd:string" minOccurs="1" maxOccurs="1"/>
             <xsd:element name="preexec" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-            <xsd:element name="alias" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="alias" type="aliasSystem" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="clargs" type="CodeCLArgsType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="fileargs" type="CodeFileArgsType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
@@ -86,7 +97,7 @@
 
     <xsd:complexType name="DummyModel">
         <xsd:sequence>
-          <xsd:element name="alias" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+          <xsd:element name="alias" type="aliasSystem" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attribute name="name"     type="xsd:string"  use="required"/>
         <xsd:attribute name="subType"  type="xsd:string"  use="required" fixed=""/>
@@ -96,7 +107,7 @@
     <xsd:complexType name="ExternalModel">
         <xsd:sequence>
             <xsd:element name="variables" type="xsd:string" minOccurs="1" maxOccurs="1"/>
-            <xsd:element name="alias" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="alias" type="aliasSystem" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attribute name="name"         type="xsd:string"  use="required"/>
         <xsd:attribute name="subType"      type="xsd:string"  use="required" fixed=""/>
@@ -107,7 +118,7 @@
         <xsd:sequence minOccurs="0">
             <xsd:element name="Features"  type="xsd:string" minOccurs="1"/>
             <xsd:element name="Target"  type="xsd:string" minOccurs="1"/>
-            <xsd:element name="alias" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="alias" type="aliasSystem" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attribute name="name"         type="xsd:string"  use="required" />
         <xsd:attribute name="subType"      type="xsd:string"  use="required" />

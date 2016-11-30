@@ -35,8 +35,7 @@
   The actual alias, usable throughout the RAVEN input, is instead defined in the
   \xmlAttr{variable} attribute of this tag. 
   \\The user can specify aliases for both the input and the output space. As sanity check, RAVEN
-  requires an additional optional attribute \xmlAttr{type}. This attribute can be either ``input'' or ``output''. 
-  If the attribute  \xmlAttr{type} is not inputted, RAVEN assumes that the alias is for the input space of the model.
+  requires an additional required attribute \xmlAttr{type}. This attribute can be either ``input'' or ``output''. 
   %
   \nb The user can specify as many aliases as needed.
   %
@@ -832,7 +831,7 @@ to couple a new code.
     ...
     <Code name='aUserDefinedName' subType='RAVEN_Driven_code'>
       <executable>path_to_executable</executable>
-      <alias variable='internal_RAVEN_input_variable_name1'>
+      <alias variable='internal_RAVEN_input_variable_name1' type="input">
          External_Code_input_Variable_Name_1
       </alias>
       <alias variable='internal_RAVEN_input_variable_name2' type='input'>
@@ -903,7 +902,7 @@ Section~\ref{sec:steps}).
     <Dummy name='aUserDefinedName1' subType=''/>
     
     <Dummy name='aUserDefinedName2' subType=''>
-      <alias variable="a_RAVEN_input_variable">
+      <alias variable="a_RAVEN_input_variable" type="input">
       another_name_for_this_variable_in_the_model
       </alias>
     </Dummy>
