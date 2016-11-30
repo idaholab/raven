@@ -141,7 +141,7 @@ class GradientBasedOptimizer(Optimizer):
   def _checkModelFinish(self, traj, updateKey, evalID):
     """
       Determines if the Model has finished running an input and returned the output
-      @ In, traj, ind, traj on which the input is being checked
+      @ In, traj, int, traj on which the input is being checked
       @ In, updateKey, int, the id of variable update on which the input is being checked
       @ In, evalID, int or string, indicating the id of the perturbation (int) or its a variable update (string 'v')
       @ Out, _checkModelFinish, tuple(bool, int), (1,realization dictionary),
@@ -276,10 +276,7 @@ class GradientBasedOptimizer(Optimizer):
     if removeFlag:
       for trajInd, tr in enumerate(self.optTrajLive):
         if tr == trajToRemove:
-          self.raiseADebug(self.optTrajLive)
           self.optTrajLive.pop(trajInd)
-          self.raiseADebug(self.optTrajLive)
-#           self.raiseAnError(IOError, 't')
           break
 
   def localCheckConstraint(self, optVars, satisfaction = True):
@@ -301,7 +298,6 @@ class GradientBasedOptimizer(Optimizer):
     """
     if self.solutionExport != None and len(self.mdlEvalHist) > 0:
       for traj in self.optTraj:
-        self.raiseADebug('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ ',self.optTrajLive)
         while self.counter['solutionUpdate'][traj] <= self.counter['varsUpdate'][traj]:
           (solutionExportUpdatedFlag, index) = self._checkModelFinish(traj, self.counter['solutionUpdate'][traj], 'v')
           if solutionExportUpdatedFlag:
