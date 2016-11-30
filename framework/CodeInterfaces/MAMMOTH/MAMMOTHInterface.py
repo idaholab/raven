@@ -123,17 +123,8 @@ class MAMMOTHInterface(CodeInterfaceBase):
     dummyArgs = copy.deepcopy(Kwargs)
     dummyArgs['SampledVars'] = {}
     foundAlias = False
-    if 'alias' in Kwargs.keys():
-      del bisonArgs['alias']
-      del rattlesnakeArgs['alias']
-      del relap7Args['alias']
-      del dummyArgs['alias']
     for varName,varValue in Kwargs['SampledVars'].items():
       # get the variable's full name from either the alias or given name
-      if 'alias' in Kwargs.keys():
-        fullName = Kwargs['alias'].get(varName,varName)
-      else:
-        fullName = varName
       appName = varName.split('@')[0].lower()
       baseVarName = varName.split('@')[-1]
       # Identify which app's input the variable goes into and separate appArgs

@@ -94,29 +94,11 @@ class BisonAndMesh(CodeInterfaceBase):#MooseBasedAppInterface,BisonMeshScriptInt
     margs = copy.deepcopy(Kwargs)
     cargs = copy.deepcopy(Kwargs)
     for vname,var in Kwargs['SampledVars'].items():
-#       if 'alias' in Kwargs.keys():
-#         fullname = Kwargs['alias'].get(vname,vname)
-#       if fullname.split('|')[0]=='Cubit':
-#         del margs['SampledVars'][vname]
-#         if 'alias' in Kwargs.keys():
-#           if vname in Kwargs['alias']:
-#             del margs['alias'][vname]
-#       else:
-#         del cargs['SampledVars'][vname]
-#         if 'alias' in Kwargs.keys():
-#           if vname in Kwargs['alias']:
-#             del cargs['alias'][vname]
       fullname = vname
       if fullname.split('@')[0]=='Cubit':
         del margs['SampledVars'][vname]
-#         if 'alias' in Kwargs.keys():
-#           if vname in Kwargs['alias']:
-#             del margs['alias'][vname]
       else:
         del cargs['SampledVars'][vname]
-#         if 'alias' in Kwargs.keys():
-#           if vname in Kwargs['alias']:
-#             del cargs['alias'][vname]
     # Generate new cubit input files and extract exodus file name to add to SampledVars going to moose
     newCubitInputs = self.BisonMeshInterface.createNewInput([cubitInp],[origCubitInp],samplerType,**cargs)
     margs['SampledVars']['Mesh|file'] = 'mesh~'+newCubitInputs[0].getBase()+'.e'
