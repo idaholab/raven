@@ -611,6 +611,13 @@ class ROM(Dummy):
     inputSpecification.addSub(InputData.parameterInputFactory("nugget", InputData.FloatType))
     inputSpecification.addSub(InputData.parameterInputFactory("optimizer", InputData.StringType)) #enum
     inputSpecification.addSub(InputData.parameterInputFactory("random_start", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("Pmax", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("Pmin", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("Qmax", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("Qmin", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("outTruncation", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("Fourier", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("FourierOrder", InputData.StringType))
 
     #Estimators can include ROMs, and so because baseNode does a copy, this
     #needs to be after the rest of ROMInput is defined.
