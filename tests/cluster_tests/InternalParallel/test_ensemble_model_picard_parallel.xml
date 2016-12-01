@@ -33,6 +33,11 @@
       <variables>k,averageTemperature</variables>
     </ExternalModel>
     <EnsembleModel name="heatTransferEnsembleModel" subType="">
+        <settings>
+            <initialConditions>
+                <averageTemperature>1000.0</averageTemperature>
+            </initialConditions>
+        </settings>
       <Model class="Models"  type="ExternalModel">
         thermalConductivityComputation
         <Input class="DataObjects" type="PointSet">inputHolder</Input>
