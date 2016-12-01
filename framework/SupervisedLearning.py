@@ -2048,7 +2048,7 @@ class ARMA(superVisedLearning):
     self.armaPara['Qmax'] = kwargs.get('Qmax', 3)
     self.armaPara['Qmin'] = kwargs.get('Qmin', 0)
     self.armaPara['dimension'] = len(self.features)
-    self.outTruncation = kwargs.get('outTruncation', None)
+    self.outTruncation = kwargs.get('outTruncation', None)            # Additional parameters to allow user to specify the time series to be all positive or all negative
     self.pivotParameterID = kwargs.get('pivotParameter', 'Time')
 
     # Initialize parameters for Fourier detrending
@@ -2069,7 +2069,7 @@ class ARMA(superVisedLearning):
       if len(self.fourierPara['basePeriod']) != len(self.fourierPara['FourierOrder']):
         self.raiseAnError(ValueError, 'Length of FourierOrder should be ' + str(len(self.fourierPara['basePeriod'])))
 
-  def _localNormalizeData(self,values,names,feat):
+  def _localNormalizeData(self,values,names,feat): # This function is not used in this class and can be removed
     """
       Overwrites default normalization procedure.
       @ In, values, unused
