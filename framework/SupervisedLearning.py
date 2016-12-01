@@ -2226,9 +2226,9 @@ class ARMA(superVisedLearning):
   def __getCDF__(self,d,x):
     """
       Get residue CDF value at point x for d-th dimension
-      @In, d, int, dimension id
-      @In, x, float, variable value for which the CDF is computed
-      @Out, y, float, CDF value
+      @ In, d, int, dimension id
+      @ In, x, float, variable value for which the CDF is computed
+      @ Out, y, float, CDF value
     """
     if x <= self.armaNormPara['resCDF'][d]['binsMin']:    y = self.armaNormPara['resCDF'][d]['CDF'][0]
     elif x >= self.armaNormPara['resCDF'][d]['binsMax']:  y = self.armaNormPara['resCDF'][d]['CDF'][-1]
@@ -2244,9 +2244,9 @@ class ARMA(superVisedLearning):
   def __getInvCDF__(self,d,x):
     """
       Get inverse residue CDF at point x for d-th dimension
-      @In, d, int, dimension id
-      @In, x, float, the CDF value for which the inverse value is computed
-      @Out, y, float, variable value
+      @ In, d, int, dimension id
+      @ In, x, float, the CDF value for which the inverse value is computed
+      @ Out, y, float, variable value
     """
     if x < 0 or x > 1:    self.raiseAnError(ValueError, 'Input to __getRInvCDF__ is not in unit interval' )
     elif x <= self.armaNormPara['resCDF'][d]['CDFMin']:   y = self.armaNormPara['resCDF'][d]['bins'][0]
@@ -2263,10 +2263,9 @@ class ARMA(superVisedLearning):
   def __dataConversion__(self, data, obj):
     """
       Transform input data to a Normal/empirical distribution data set.
-      @In, data, array, shape=[n_timeStep, n_dimension], input data to be transformed
-      @In, obj, string, specify whether to normalize or denormalize the data
-      @Out, transformedData, array, shape = [n_timeStep, n_dimension], output transformed data that has normal/empirical distribution
-
+      @ In, data, array, shape=[n_timeStep, n_dimension], input data to be transformed
+      @ In, obj, string, specify whether to normalize or denormalize the data
+      @ Out, transformedData, array, shape = [n_timeStep, n_dimension], output transformed data that has normal/empirical distribution
     """
     # Instantiate a normal distribution for data conversion
     normTransEngine = Distributions.returnInstance('Normal',self)
@@ -2282,6 +2281,8 @@ class ARMA(superVisedLearning):
         if obj in ['normalize']:
           temp = self.__getCDF__(n2, data[n1,n2])
           # for numerical issues, value less than 1 returned by __getCDF__ can be greater than 1 when stored in temp
+          # This might be a numerical issue of dependent library. 
+          # It seems gone now. Need further investigation. 
           if temp >= 1:                temp = 1 - np.finfo(float).eps
           elif temp <= 0:              temp = np.finfo(float).eps
           transformedData[n1,n2] = normTransEngine.ppf(temp)
@@ -2294,9 +2295,9 @@ class ARMA(superVisedLearning):
   def __generateFourierSignal__(self, Time, basePeriod, fourierOrder):
     """
       Generate fourier signal as specified by the input file
-      @In, basePeriod, list, list of base periods
-      @In, fourierOrder, dict, order for each base period
-      @Out, fourierSeriesAll, array, shape = [n_timeStep, n_basePeriod]
+      @ In, basePeriod, list, list of base periods
+      @ In, fourierOrder, dict, order for each base period
+      @ Out, fourierSeriesAll, array, shape = [n_timeStep, n_basePeriod]
     """
     fourierSeriesAll = {}
     for bp in basePeriod:
@@ -2304,19 +2305,18 @@ class ARMA(superVisedLearning):
       for orderBp in range(fourierOrder[bp]):
         fourierSeriesAll[bp][:, 2*orderBp] = np.sin(2*np.pi*(orderBp+1)/bp*Time)
         fourierSeriesAll[bp][:, 2*orderBp+1] = np.cos(2*np.pi*(orderBp+1)/bp*Time)
-
     return fourierSeriesAll
 
   def __armaParamAssemb__(self,x,p,q,N):
     """
       Assemble ARMA parameter into matrices
-      @In, x, list, ARMA parameter stored as vector
-      @In, p, int, AR order
-      @In, q, int, MA order
-      @In, N, int, dimensionality of x
-      @Out Phi, list, list of Phi parameters (each as an array) for each AR order
-      @Out Theta, list, list of Theta parameters (each as an array) for each MA order
-      @Out Cov, array, covariance matrix of the noise
+      @ In, x, list, ARMA parameter stored as vector
+      @ In, p, int, AR order
+      @ In, q, int, MA order
+      @ In, N, int, dimensionality of x
+      @ Out Phi, list, list of Phi parameters (each as an array) for each AR order
+      @ Out Theta, list, list of Theta parameters (each as an array) for each MA order
+      @ Out Cov, array, covariance matrix of the noise
     """
     Phi, Theta, Cov = {}, {}, np.identity(N)
     for i in range(1,p+1):
@@ -2330,11 +2330,10 @@ class ARMA(superVisedLearning):
 
   def __computeARMALikelihood__(self,x,*args):
     """
-      Compute the likelihood given a ARMA model
-      @In, x, list, ARMA parameter stored as vector
-      @In, args, dict, additional argument
-      @Out, lkHood, float, output likelihood
-
+      Compute the likelihood given an ARMA model
+      @ In, x, list, ARMA parameter stored as vector
+      @ In, args, dict, additional argument
+      @ Out, lkHood, float, output likelihood
     """
     if len(args) != 2:    self.raiseAnError(ValueError, 'args to __computeARMALikelihood__ should have exactly 2 elements')
 
@@ -2370,11 +2369,11 @@ class ARMA(superVisedLearning):
   def __computeAICorBIC(self,maxL,noPara,cType,obj='max'):
     """
       Compute the AIC or BIC criteria for model selection.
-      @In, maxL, float, likelihood of given parameters
-      @In, noPara, int, number of parameters
-      @In, cType, string, specify whether AIC or BIC should be returned
-      @In, obj, string, specify the optimization is for maximum or minimum.
-      @Out, criterionValue, float, value of AIC/BIC
+      @ In, maxL, float, likelihood of given parameters
+      @ In, noPara, int, number of parameters
+      @ In, cType, string, specify whether AIC or BIC should be returned
+      @ In, obj, string, specify the optimization is for maximum or minimum.
+      @ Out, criterionValue, float, value of AIC/BIC
     """
     if obj == 'min':        flag = -1
     else:                   flag = 1
@@ -2427,21 +2426,10 @@ class ARMA(superVisedLearning):
       if self.outTruncation == 'positive':      tSeries = np.absolute(tSeries)
       elif self.outTruncation == 'negative':    tSeries = -np.absolute(tSeries)
 
-# #     self.raiseADebug(self.fourierResult['predict'][0,0])
-# #     self.raiseADebug(self.armaResult['Phi'])
-# #     self.raiseADebug(self.armaResult['Theta'])
-# #     self.raiseADebug(self.armaResult['sig'])
-# #     self.raiseADebug(tSeriesNoise[0,0]/self.armaResult['sig'][0,0])
-# #     self.raiseADebug(tSeriesNoise[0,0])
-# #     self.raiseADebug(tSeriesNorm[0,0])
-# #     self.raiseADebug(tSeries[0,0])
-# #     self.raiseAnError(ValueError, 'ddd')
-#     # debug
-#     self.raiseADebug('mean', np.mean(tSeries), 'std', np.std(tSeries))
-#     # end of debug
     generatedData = np.zeros(shape=[numTimeStep,self.armaPara['dimension']+1])
     generatedData[:,0] = self.pivotParameter[0:numTimeStep]
     generatedData[:,1:] = tSeries*featureVals
+
     return generatedData
 
   def __confidenceLocal__(self,featureVals):
