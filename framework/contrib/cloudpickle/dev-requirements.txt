@@ -1,0 +1,6 @@
+# Dependencies for running the tests with py.test
+pytest
+pytest-cov
+mock
+# Code coverage uploader for Travis:
+codecov

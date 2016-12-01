@@ -20,7 +20,7 @@ else:
 import copy
 #import pickle as cloudpickle
 if sys.version_info.major == 2:
-  from serialization import cloudpickle
+  from cloudpickle import cloudpickle
 else:
   print("cloud does not support python3")
 #External Modules End--------------------------------------------------------------------------------
