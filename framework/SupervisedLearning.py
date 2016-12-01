@@ -2103,7 +2103,7 @@ class ARMA(superVisedLearning):
 
     self.__trainARMA__() # Fit ARMA model: x_t = \sum_{i=1}^P \phi_i*x_{t-i} + \alpha_t + \sum_{j=1}^Q \theta_j*\alpha_{t-j}
 
-    del self.timeSeriesDatabase       # Delete to reduce the pickle size, since from now the original data will no longer be used in the evaluation. 
+    del self.timeSeriesDatabase       # Delete to reduce the pickle size, since from now the original data will no longer be used in the evaluation.
 
   def __trainFourier__(self):
     """
@@ -2281,8 +2281,8 @@ class ARMA(superVisedLearning):
         if obj in ['normalize']:
           temp = self.__getCDF__(n2, data[n1,n2])
           # for numerical issues, value less than 1 returned by __getCDF__ can be greater than 1 when stored in temp
-          # This might be a numerical issue of dependent library. 
-          # It seems gone now. Need further investigation. 
+          # This might be a numerical issue of dependent library.
+          # It seems gone now. Need further investigation.
           if temp >= 1:                temp = 1 - np.finfo(float).eps
           elif temp <= 0:              temp = np.finfo(float).eps
           transformedData[n1,n2] = normTransEngine.ppf(temp)
