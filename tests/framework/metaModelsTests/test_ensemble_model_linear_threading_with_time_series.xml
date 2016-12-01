@@ -187,10 +187,6 @@
       <Input>leftTemperature,rightTemperature,k,timeFromFirstModel</Input>
       <Output>solution</Output>
     </PointSet>
-    <HistorySet name="thermalConductivityComputationContainer">
-      <Input>leftTemperature,rightTemperature</Input>
-      <Output>k,timeFromFirstModel</Output>
-    </HistorySet>
     <PointSet name="metaModelOutputTestPointSet">
       <Input>leftTemperature,rightTemperature</Input>
       <Output>k,solution</Output>
@@ -199,6 +195,10 @@
         <Input>leftTemperature,rightTemperature,k,timeFromFirstModel</Input>
         <Output>solution</Output>
     </PointSet>
+    <HistorySet name="thermalConductivityComputationContainer">
+        <Input>leftTemperature,rightTemperature</Input>
+        <Output>k,timeFromFirstModel</Output>
+    </HistorySet>
   </DataObjects>
 
 </Simulation>
