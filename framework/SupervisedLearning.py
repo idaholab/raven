@@ -2148,34 +2148,10 @@ class ARMA(superVisedLearning):
     """
       Fit ARMA model: x_t = \sum_{i=1}^P \phi_i*x_{t-i} + \alpha_t + \sum_{j=1}^Q \theta_j*\alpha_{t-j}
       Data series to this function has been normalized so that it is standard gaussian
-      @In, none,
-      @Out, none,
+      @ In, none,
+      @ Out, none,
     """
     self.armaResult = {}
-
-    # debug
-#     self.armaResult['P'] = 1
-#     self.armaResult['Q'] = 2
-#     # 2004
-#     self.armaResult['param'] = np.array([ 0.96716156, 0.31676405, 0.05270559, 0.035009831])
-# #     # 2005
-# #     self.armaResult['param'] = np.array([ 0.969449, 0.35504431, 0.05031696, 0.03093883])
-# #     # 2006
-# #     self.armaResult['param'] = np.array([ 0.96929539, 0.35903176, 0.04737716, 0.03107788])
-#
-#     p = self.armaResult['P']
-#     q = self.armaResult['Q']
-#     N = self.armaPara['dimension']
-#     Phi, Theta, Cov = self.__armaParamAssemb__(self.armaResult['param'],p,q,N)
-#     sig = np.zeros(shape=(1,N))
-#     for n in range(N):
-#       sig[0,n] = np.sqrt(Cov[n,n])
-#     self.armaResult['Phi'] = Phi
-#     self.armaResult['Theta'] = Theta
-#     self.armaResult['sig'] = sig
-#     return 1
-    # end of debug
-
     Pmax = self.armaPara['Pmax']
     Pmin = self.armaPara['Pmin']
     Qmax = self.armaPara['Qmax']
