@@ -2103,14 +2103,13 @@ class ARMA(superVisedLearning):
 
     self.__trainARMA__() # Fit ARMA model: x_t = \sum_{i=1}^P \phi_i*x_{t-i} + \alpha_t + \sum_{j=1}^Q \theta_j*\alpha_{t-j}
 
-    # Delete to reduce the pickle size
-    del self.timeSeriesDatabase
+    del self.timeSeriesDatabase       # Delete to reduce the pickle size, since from now the original data will no longer be used in the evaluation. 
 
   def __trainFourier__(self):
     """
       Perform fitting of Fourier series on self.timeSeriesDatabase
-      @In, none,
-      @Out, none,
+      @ In, none,
+      @ Out, none,
     """
     fourierSeriesAll = self.__generateFourierSignal__(self.pivotParameter, self.fourierPara['basePeriod'], self.fourierPara['FourierOrder'])
     fourierEngine = linear_model.LinearRegression()
@@ -2135,7 +2134,7 @@ class ARMA(superVisedLearning):
       r = (fourierEngine.predict(fSeries)-self.timeSeriesDatabase)**2
       if r.size > 1:    r = sum(r)
       r = r/self.pivotParameter.size
-      criterionCurrent = r #self.__computeAICorBIC(r,noPara=sum(fOrder)*2,cType='None',obj='min')
+      criterionCurrent = copy.copy(r)
       if  criterionCurrent< criterionBest:
         self.fourierResult['fOrder'] = copy.deepcopy(fOrder)
         fSeriesBest = copy.deepcopy(fSeries)
