@@ -2036,9 +2036,9 @@ class ARMA(superVisedLearning):
   def __init__(self,messageHandler,**kwargs):
     """
       A constructor that will appropriately intialize a supervised learning object
-      @In, messageHandler: a MessageHandler object in charge of raising errors,
+      @ In, messageHandler: a MessageHandler object in charge of raising errors,
                            and printing messages
-      @In, kwargs: an arbitrary dictionary of keywords and values
+      @ In, kwargs: an arbitrary dictionary of keywords and values
     """
     superVisedLearning.__init__(self,messageHandler,**kwargs)
     self.printTag = 'ARMA'
@@ -2083,20 +2083,9 @@ class ARMA(superVisedLearning):
     """
       Perform training on input database stored in featureVals.
 
-      @In, featureVals, array, shape=[n_timeStep, n_dimensions], an array of input data # Not use for ARMA training
-      @In, targetVals, array, shape = [n_timeStep, n_dimensions], an array of time series data
+      @ In, featureVals, array, shape=[n_timeStep, n_dimensions], an array of input data # Not use for ARMA training
+      @ In, targetVals, array, shape = [n_timeStep, n_dimensions], an array of time series data
     """
-#     self.raiseADebug('feature', featureVals)
-#     self.raiseADebug('target', targetVals)
-#     self.raiseADebug('pivotParameterID', self.pivotParameterID)
-#     self.raiseADebug('time', self.pivotParameter)
-
-#     if len(self.pivotParameter.shape) == 1: self.pivotParameter = np.reshape(self.pivotParameter, newshape=(self.pivotParameter.shape[0],1))
-# #     self.pivotParameter = copy.deepcopy(targetVals)
-#     if len(targetVals.shape) == 1:
-#       self.timeSeriesDatabase = np.reshape(targetVals, newshape=(targetVals.shape[0],1))
-#     else:
-#       self.timeSeriesDatabase = targetVals
 
     self.timeSeriesDatabase = copy.deepcopy(targetVals)
     # Fit fourier seires
