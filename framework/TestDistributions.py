@@ -97,7 +97,7 @@ except: print("error worked")
 
 #Test Uniform
 
-uniformElement = ET.Element("uniform")
+uniformElement = ET.Element("Uniform")
 uniformElement.append(createElement("lowerBound",text="1.0"))
 uniformElement.append(createElement("upperBound",text="3.0"))
 
@@ -153,7 +153,7 @@ Distributions.randomIntegers(2,1,uniform)
 #Test Normal
 mean=1.0
 sigma=2.0
-normalElement = ET.Element("normal")
+normalElement = ET.Element("Normal")
 normalElement.append(createElement("mean",text="%f" %mean))
 normalElement.append(createElement("sigma",text="%f" %sigma))
 
@@ -198,7 +198,7 @@ print(pnormal.rvs(5),pnormal.rvs())
 
 #Test Truncated Normal
 
-truncNormalElement = ET.Element("truncnorm")
+truncNormalElement = ET.Element("Normal")
 truncNormalElement.append(createElement("mean",text="1.0"))
 truncNormalElement.append(createElement("sigma",text="2.0"))
 truncNormalElement.append(createElement("lowerBound",text="-1.0"))
@@ -231,7 +231,7 @@ checkAnswer("ptruncNormal ppf(0.1)",ptruncNormal.ppf(0.1),-0.498029197939)
 checkAnswer("ptruncNormal ppf(0.5)",ptruncNormal.ppf(0.5),1.0)
 checkAnswer("ptruncNormal ppf(0.9)",ptruncNormal.ppf(0.9),2.49802919794)
 
-lowtruncNormalElement = ET.Element("lowtruncnorm")
+lowtruncNormalElement = ET.Element("Normal")
 lowtruncNormalElement.append(createElement("mean",text="1.0"))
 lowtruncNormalElement.append(createElement("sigma",text="2.0"))
 lowtruncNormalElement.append(createElement("lowerBound",text="-1.0"))
@@ -239,7 +239,7 @@ lowtruncNormal = Distributions.Normal()
 lowtruncNormal._readMoreXML(lowtruncNormalElement)
 lowtruncNormal.initializeDistribution()
 
-uptruncNormalElement = ET.Element("uptruncnorm")
+uptruncNormalElement = ET.Element("Normal")
 uptruncNormalElement.append(createElement("mean",text="1.0"))
 uptruncNormalElement.append(createElement("sigma",text="2.0"))
 uptruncNormalElement.append(createElement("upperBound",text="3.0"))
@@ -250,7 +250,7 @@ uptruncNormal.initializeDistribution()
 
 #Test Gamma
 
-gammaElement = ET.Element("gamma")
+gammaElement = ET.Element("Gamma")
 gammaElement.append(createElement("low",text="0.0"))
 gammaElement.append(createElement("alpha",text="1.0"))
 gammaElement.append(createElement("beta",text="0.5"))
@@ -287,7 +287,7 @@ checkAnswer("pgamma ppf(0.1)",pgamma.ppf(0.1),0.210721031316)
 checkAnswer("pgamma ppf(0.5)",pgamma.ppf(0.5),1.38629436112)
 checkAnswer("pgamma ppf(0.9)",pgamma.ppf(0.9),4.60517018599)
 
-nobeta_gammaElement = ET.Element("nobeta_gamma")
+nobeta_gammaElement = ET.Element("Gamma")
 nobeta_gammaElement.append(createElement("alpha",text="1.0"))
 nobeta_gammaElement.append(createElement("low",text="0.0"))
 nobeta_gammaElement.append(createElement("upperBound",text="10.0"))
@@ -298,7 +298,7 @@ nobeta_gamma.initializeDistribution()
 print(gamma.rvs(5),gamma.rvs())
 
 # shifted gamma
-gammaElement = ET.Element("gamma")
+gammaElement = ET.Element("Gamma")
 gammaElement.append(createElement("low",text="10.0"))
 gammaElement.append(createElement("alpha",text="1.0"))
 gammaElement.append(createElement("beta",text="0.5"))
@@ -325,7 +325,7 @@ checkAnswer("shifted gamma ppf(0.9)",gamma.ppf(0.9),14.60517018599)
 
 #Test Beta
 
-betaElement = ET.Element("beta")
+betaElement = ET.Element("Beta")
 betaElement.append(createElement("low",text="0.0"))
 betaElement.append(createElement("high",text="1.0"))
 betaElement.append(createElement("alpha",text="5.0"))
@@ -379,7 +379,7 @@ print(pbeta.rvs(5),pbeta.rvs())
 
 #Test Beta Scaled
 
-betaElement = ET.Element("beta")
+betaElement = ET.Element("Beta")
 betaElement.append(createElement("low",text="0.0"))
 betaElement.append(createElement("high",text="4.0"))
 betaElement.append(createElement("alpha",text="5.0"))
@@ -405,7 +405,7 @@ print(beta.rvs(5),beta.rvs())
 
 #Test Beta Shifted and Scaled
 
-betaElement = ET.Element("beta")
+betaElement = ET.Element("Beta")
 betaElement.append(createElement("low",text="-1.0"))
 betaElement.append(createElement("high",text="5.0"))
 betaElement.append(createElement("alpha",text="5.0"))
@@ -430,7 +430,7 @@ checkAnswer("shifted beta ppf(0.9)",beta.ppf(0.9),4.44442844652)
 print(beta.rvs(5),beta.rvs())
 
 #Test Truncated-Normal-Like Beta
-betanElement = ET.Element("beta")
+betanElement = ET.Element("Beta")
 betanElement.append(createElement("low",text="1.0"))
 betanElement.append(createElement("high",text="5.0"))
 betanElement.append(createElement("peakFactor",text="0.5"))
@@ -457,7 +457,7 @@ print(betan.rvs(5),betan.rvs())
 
 #Test Triangular
 
-triangularElement = ET.Element("triangular")
+triangularElement = ET.Element("Triangular")
 triangularElement.append(createElement("min",text="0.0"))
 triangularElement.append(createElement("apex",text="3.0"))
 triangularElement.append(createElement("max",text="4.0"))
@@ -496,7 +496,7 @@ print(ptriangular.rvs(5),ptriangular.rvs())
 
 #Shift Triangular
 
-triangularElement = ET.Element("triangular")
+triangularElement = ET.Element("Triangular")
 triangularElement.append(createElement("min",text="5.0"))
 triangularElement.append(createElement("apex",text="8.0"))
 triangularElement.append(createElement("max",text="9.0"))
@@ -519,7 +519,7 @@ checkAnswer("shift triangular ppf(0.9)",triangular.ppf(0.9),8.36754446797)
 
 #Test Poisson
 
-poissonElement = ET.Element("poisson")
+poissonElement = ET.Element("Poisson")
 poissonElement.append(createElement("mu",text="4.0"))
 
 poisson = Distributions.Poisson()
@@ -559,7 +559,7 @@ print(ppoisson.rvs(5),ppoisson.rvs())
 
 #Test Binomial
 
-binomialElement = ET.Element("binomial")
+binomialElement = ET.Element("Binomial")
 binomialElement.append(createElement("n",text="10"))
 binomialElement.append(createElement("p",text="0.25"))
 
@@ -598,7 +598,7 @@ checkAnswer("pbinomial ppf(0.9)",pbinomial.ppf(0.9),4.0)
 
 #Test Bernoulli
 
-bernoulliElement = ET.Element("bernoulli")
+bernoulliElement = ET.Element("Bernoulli")
 bernoulliElement.append(createElement("p",text="0.4"))
 
 bernoulli = Distributions.Bernoulli()
@@ -635,7 +635,7 @@ checkAnswer("pbernoulli ppf(0.9)",pbernoulli.ppf(0.9),1.0)
 
 #Test Logistic
 
-logisticElement = ET.Element("logistic")
+logisticElement = ET.Element("Logistic")
 logisticElement.append(createElement("location",text="4.0"))
 logisticElement.append(createElement("scale",text="1.0"))
 
@@ -671,7 +671,7 @@ checkAnswer("plogistic ppf(0.25)",plogistic.ppf(0.25),2.90138771133)
 checkAnswer("plogistic ppf(0.50)",plogistic.ppf(0.50),4.0)
 checkAnswer("plogistic ppf(0.75)",plogistic.ppf(0.75),5.09861228867)
 
-lowLogisticElement = ET.Element("lowlogistic")
+lowLogisticElement = ET.Element("Logistic")
 lowLogisticElement.append(createElement("location",text="4.0"))
 lowLogisticElement.append(createElement("scale",text="1.0"))
 lowLogisticElement.append(createElement("lowerBound",text="3.0"))
@@ -679,7 +679,7 @@ lowLogistic = Distributions.Logistic()
 lowLogistic._readMoreXML(lowLogisticElement)
 lowLogistic.initializeDistribution()
 
-upLogisticElement = ET.Element("uplogistic")
+upLogisticElement = ET.Element("Logistic")
 upLogisticElement.append(createElement("location",text="4.0"))
 upLogisticElement.append(createElement("scale",text="1.0"))
 upLogisticElement.append(createElement("upperBound",text="5.0"))
@@ -690,7 +690,7 @@ upLogistic.initializeDistribution()
 
 #Test Exponential
 
-exponentialElement = ET.Element("exponential")
+exponentialElement = ET.Element("Exponential")
 exponentialElement.append(createElement("lambda",text="5.0"))
 
 exponential = Distributions.Exponential()
@@ -722,13 +722,13 @@ checkAnswer("pexponential ppf(0.7768698399)",pexponential.ppf(0.7768698399),0.3)
 checkAnswer("pexponential ppf(0.2)",pexponential.ppf(0.2),0.0446287102628)
 checkAnswer("pexponential ppf(0.5)",pexponential.ppf(0.5),0.138629436112)
 
-lowExponentialElement = ET.Element("lowExponential")
+lowExponentialElement = ET.Element("Exponential")
 lowExponentialElement.append(createElement("lambda",text="5.0"))
 lowExponentialElement.append(createElement("lowerBound",text="0.0"))
 lowExponential = Distributions.Exponential()
 lowExponential._readMoreXML(lowExponentialElement)
 lowExponential.initializeDistribution()
-upExponentialElement = ET.Element("upExponential")
+upExponentialElement = ET.Element("Exponential")
 upExponentialElement.append(createElement("lambda",text="5.0"))
 upExponentialElement.append(createElement("upperBound",text="10.0"))
 upExponential = Distributions.Exponential()
@@ -736,7 +736,7 @@ upExponential._readMoreXML(upExponentialElement)
 upExponential.initializeDistribution()
 #Test truncated exponential
 
-truncExponentialElement = ET.Element("truncexponential")
+truncExponentialElement = ET.Element("Exponential")
 truncExponentialElement.append(createElement("lambda",text="5.0"))
 truncExponentialElement.append(createElement("lowerBound",text="0.0"))
 truncExponentialElement.append(createElement("upperBound",text="10.0"))
@@ -760,7 +760,7 @@ checkAnswer("truncExponential ppf(0.9)",truncExponential.ppf(0.9),0.460517018599
 
 #Shift Exponential
 
-exponentialElement = ET.Element("exponential")
+exponentialElement = ET.Element("Exponential")
 exponentialElement.append(createElement("lambda",text="5.0"))
 exponentialElement.append(createElement("low",text="10.0"))
 
@@ -783,7 +783,7 @@ checkAnswer("shifted exponential ppf(0.5)",exponential.ppf(0.5),10.138629436112)
 
 #Test log normal
 
-logNormalElement = ET.Element("logNormal")
+logNormalElement = ET.Element("LogNormal")
 logNormalElement.append(createElement("mean",text="3.0"))
 logNormalElement.append(createElement("sigma",text="2.0"))
 
@@ -819,7 +819,7 @@ checkAnswer("plogNormal ppf(0.1243677033)",plogNormal.ppf(0.124367703363),2.0)
 checkAnswer("plogNormal ppf(0.1)",plogNormal.ppf(0.1),1.54789643258)
 checkAnswer("plogNormal ppf(0.5)",plogNormal.ppf(0.5),20.0855369232)
 
-lowlogNormalElement = ET.Element("lowlogNormal")
+lowlogNormalElement = ET.Element("LogNormal")
 lowlogNormalElement.append(createElement("mean",text="3.0"))
 lowlogNormalElement.append(createElement("sigma",text="2.0"))
 lowlogNormalElement.append(createElement("lowerBound",text="0.0"))
@@ -827,7 +827,7 @@ lowlogNormal = Distributions.LogNormal()
 lowlogNormal._readMoreXML(lowlogNormalElement)
 lowlogNormal.initializeDistribution()
 
-uplogNormalElement = ET.Element("uplogNormal")
+uplogNormalElement = ET.Element("LogNormal")
 uplogNormalElement.append(createElement("mean",text="3.0"))
 uplogNormalElement.append(createElement("sigma",text="2.0"))
 uplogNormalElement.append(createElement("upperBound",text="10.0"))
@@ -837,7 +837,7 @@ uplogNormal.initializeDistribution()
 
 #shift log normal
 
-logNormalElement = ET.Element("logNormal")
+logNormalElement = ET.Element("LogNormal")
 logNormalElement.append(createElement("mean",text="3.0"))
 logNormalElement.append(createElement("sigma",text="2.0"))
 logNormalElement.append(createElement("low",text="10.0"))
@@ -863,7 +863,7 @@ checkAnswer("shift logNormal ppf(0.5)",logNormal.ppf(0.5),30.0855369232)
 
 #Test log normal with low mean
 
-logNormalLowMeanElement = ET.Element("logNormal")
+logNormalLowMeanElement = ET.Element("LogNormal")
 logNormalLowMeanElement.append(createElement("mean",text="-0.00002"))
 logNormalLowMeanElement.append(createElement("sigma",text="0.2"))
 
@@ -885,7 +885,7 @@ checkAnswer("logNormalLowMean ppf(0.5)",logNormalLowMean.ppf(0.5),0.9999800002)
 
 #Test Weibull
 
-weibullElement = ET.Element("weibull")
+weibullElement = ET.Element("Weibull")
 weibullElement.append(createElement("k", text="1.5"))
 weibullElement.append(createElement("lambda", text="1.0"))
 
@@ -923,7 +923,7 @@ checkAnswer("pweibull ppf(0.9)",pweibull.ppf(0.9),1.7437215136)
 
 #shift Weibull
 
-weibullElement = ET.Element("weibull")
+weibullElement = ET.Element("Weibull")
 weibullElement.append(createElement("k", text="1.5"))
 weibullElement.append(createElement("lambda", text="1.0"))
 weibullElement.append(createElement("low", text="10.0"))
@@ -947,7 +947,7 @@ checkAnswer("shift weibull ppf(0.29781149863)",weibull.ppf(0.29781149863),10.5)
 checkAnswer("shift weibull ppf(0.1)",weibull.ppf(0.1),10.223075525637)
 checkAnswer("shift weibull ppf(0.9)",weibull.ppf(0.9),11.7437215136)
 
-lowWeibullElement = ET.Element("lowweibull")
+lowWeibullElement = ET.Element("Weibull")
 lowWeibullElement.append(createElement("k", text="1.5"))
 lowWeibullElement.append(createElement("lambda", text="1.0"))
 lowWeibullElement.append(createElement("lowerBound",text="0.001"))
@@ -955,7 +955,7 @@ lowWeibull = Distributions.Weibull()
 lowWeibull._readMoreXML(lowWeibullElement)
 lowWeibull.initializeDistribution()
 
-upWeibullElement = ET.Element("upweibull")
+upWeibullElement = ET.Element("Weibull")
 upWeibullElement.append(createElement("k", text="1.5"))
 upWeibullElement.append(createElement("lambda", text="1.0"))
 upWeibullElement.append(createElement("upperBound",text="10.0"))
