@@ -38,7 +38,7 @@
 			<Qmin>1</Qmin>
 			<outTruncation>positive</outTruncation>
 			<Fourier>604800,86400</Fourier>
-			<FourierOrder>2, 2</FourierOrder>
+			<FourierOrder>2,2</FourierOrder>
 		</ROM>
     </Models>
     <Steps>
