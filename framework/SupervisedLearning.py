@@ -2160,7 +2160,7 @@ class ARMA(superVisedLearning):
     criterionBest = np.inf
     for p in range(Pmin,Pmax+1):
       for q in range(Qmin,Qmax+1):
-        if p is 0 and q is 0:     continue
+        if p is 0 and q is 0:     continue          # dump case so we pass
         init = [0.0]*(p+q)*self.armaPara['dimension']**2
         init_S = np.identity(self.armaPara['dimension'])
         for n1 in range(self.armaPara['dimension']):      init.append(init_S[n1,n1])
@@ -2175,12 +2175,6 @@ class ARMA(superVisedLearning):
           self.armaResult['param'] = rOpt[0]
           criterionBest = criterionCurrent
 
-    # Debug
-        self.raiseADebug(p,q,rOpt[0], rOpt[1], self.armaResult['sigHat'], criterionCurrent)
-        self.raiseADebug(self.armaResult['P'],self.armaResult['Q'],self.armaResult['param'],criterionBest)
-    self.raiseADebug(self.armaResult['P'],self.armaResult['Q'],self.armaResult['param'],criterionBest)
-    # end of debug
-
     # saving training results
     Phi, Theta, Cov = self.__armaParamAssemb__(self.armaResult['param'],self.armaResult['P'],self.armaResult['Q'],self.armaPara['dimension'] )
     self.armaResult['Phi'] = Phi
@@ -2191,8 +2185,8 @@ class ARMA(superVisedLearning):
   def __generateCDF__(self, data):
     """
       Generate empirical CDF function of the input data, and save the results in self
-      @In, data, array, shape = [n_timeSteps, n_dimension], data over which the CDF will be generated
-      @Out, none,
+      @ In, data, array, shape = [n_timeSteps, n_dimension], data over which the CDF will be generated
+      @ Out, none,
     """
     self.armaNormPara = {}
     self.armaNormPara['resCDF'] = {}
@@ -2221,8 +2215,8 @@ class ARMA(superVisedLearning):
     """
       Compute number of bins determined by Freedman Diaconis rule
       https://en.wikipedia.org/wiki/Freedman%E2%80%93Diaconis_rule
-      @In, data, array, shape = [n_sample], data over which the number of bins is decided
-      @Out, numBin, int, number of bins determined by Freedman Diaconis rule
+      @ In, data, array, shape = [n_sample], data over which the number of bins is decided
+      @ Out, numBin, int, number of bins determined by Freedman Diaconis rule
     """
     IQR = np.percentile(data, 75) - np.percentile(data, 25)
     binSize = 2.0*IQR*(data.size**(-1.0/3.0))
