@@ -49,7 +49,7 @@ import StringIO
 #import dill as pickle
 #import cPickle as pickle
 import pickle
-from cloudpickle import cloudpickle
+import cloudpickle
 import pptransport
 
 copyright = "Copyright (c) 2005-2012 Vitalii Vanovschi. All rights reserved"

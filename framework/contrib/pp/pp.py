@@ -41,7 +41,7 @@ import atexit
 import user
 #import dill as pickle
 import cPickle as pickle
-from cloudpickle import cloudpickle
+import cloudpickle
 #import pickle
 import pptransport
 import ppauto
