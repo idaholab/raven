@@ -157,31 +157,3 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
     """
     failure = False
     return failure
-
-  def expandVarNames(self,**Kwargs):
-    """
-      This method will assure the full proper variable names are returned in a dictionary.
-      It primarily expands aliases. I will admit I don't know what colons do.
-      @ In, Kwargs, dict, keyworded dictionary. Arguments include:
-          - alias, the alias -> TrueName dictionary
-          - SampleVars, short name -> sampled value dictionary
-      @ Out, listDict, list, list of dictionaries. The dictionaries contain:
-               ['name'][path,to,name]
-               [short varname][var value]
-    """
-    listDict=[]
-    modifDict={}
-    for var in Kwargs['SampledVars']:
-      if 'alias' in Kwargs.keys() and var in Kwargs['alias'].keys():
-        # for understending the alias system, plase check module Models.py (class Code)
-        #if var in Kwargs['alias'].keys():
-        key = Kwargs['alias'][var].split(':')
-      else:
-        key = var.split(':')
-      modifDict = {}
-      if '|' not in key[0]: continue
-      modifDict['name'] = key[0].split('|')[:-1]
-      modifDict[key[0].split('|')[-1]] = Kwargs['SampledVars'][var]
-      listDict.append(modifDict)
-      del modifDict
-    return listDict

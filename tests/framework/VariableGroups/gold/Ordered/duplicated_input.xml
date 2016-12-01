@@ -47,7 +47,7 @@
   </Samplers>
 
   <Models>
-    <Dummy name="MyDummy" />
+    <Dummy name="MyDummy" subType="" />
   </Models>
 
   <Steps>

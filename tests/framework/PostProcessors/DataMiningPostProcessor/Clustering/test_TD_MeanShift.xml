@@ -175,7 +175,7 @@
         <how>png</how>
       </actions>
     </Plot>
-    
+
     <Plot   name="clusterCenters" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
@@ -194,7 +194,7 @@
         <how>png</how>
       </actions>
     </Plot>
-	  
+
     <Plot  name="plot3" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
@@ -300,7 +300,7 @@
         </range>
       </actions>
     </Plot>
-    
+
     <Plot   name="Cluster_2" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
@@ -327,7 +327,7 @@
         </range>
       </actions>
     </Plot>
-    
+
     <Plot   name="Cluster_3" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
@@ -353,8 +353,8 @@
           <zmax>60.0</zmax>
         </range>
       </actions>
-    </Plot>  
-    
+    </Plot>
+
 		<Plot  name="hist0x" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
@@ -367,7 +367,7 @@
         <how>png</how>
       </actions>
     </Plot>
-    
+
     <Plot  name="hist0y" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
@@ -380,7 +380,7 @@
         <how>png</how>
       </actions>
     </Plot>
- 
+
     <Plot  name="hist0z" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
@@ -393,7 +393,7 @@
         <how>png</how>
       </actions>
     </Plot>
-    
+
     <Plot  name="hist1x" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
@@ -406,7 +406,7 @@
         <how>png</how>
       </actions>
     </Plot>
-    
+
     <Plot  name="hist1y" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
@@ -419,7 +419,7 @@
         <how>png</how>
       </actions>
     </Plot>
- 
+
     <Plot  name="hist1z" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
@@ -432,7 +432,7 @@
         <how>png</how>
       </actions>
     </Plot>
-    
+
     <Plot  name="hist2x" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
@@ -445,7 +445,7 @@
         <how>png</how>
       </actions>
     </Plot>
-    
+
     <Plot  name="hist2y" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
@@ -458,7 +458,7 @@
         <how>png</how>
       </actions>
     </Plot>
- 
+
     <Plot  name="hist2z" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
@@ -484,7 +484,7 @@
         <how>png</how>
       </actions>
     </Plot>
-    
+
     <Plot  name="hist3y" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
@@ -497,7 +497,7 @@
         <how>png</how>
       </actions>
     </Plot>
- 
+
     <Plot  name="hist3z" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
@@ -509,8 +509,8 @@
       <actions>
         <how>png</how>
       </actions>
-    </Plot>    
-    
+    </Plot>
+
     <Plot   name="plot5" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
@@ -537,7 +537,7 @@
         <how>png</how>
       </actions>
     </Plot>
-    
+
     <Plot   name="plot7" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
@@ -553,5 +553,4 @@
       </actions>
     </Plot>
   </OutStreams>
-
 </Simulation>

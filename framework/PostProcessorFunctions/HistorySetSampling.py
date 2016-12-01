@@ -12,6 +12,7 @@ from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
 import os
 import numpy as np
 from scipy import interpolate
+from scipy import integrate
 import copy
 
 
@@ -68,7 +69,7 @@ class HistorySetSampling(PostProcessorInterfaceBase):
     if self.samplingType == 'uniform' or self.samplingType == 'firstDerivative' or self.samplingType == 'secondDerivative':
       if self.numberOfSamples == None or self.numberOfSamples < 0:
         self.raiseAnError(IOError, 'HistorySetSampling Interfaced Post-Processor ' + str(self.name) + ' : number of samples is not specified or less than 0')
-      if self.interpolation not in set(['linear', 'nearest', 'zero', 'slinear', 'quadratic', 'cubic']):
+      if self.interpolation not in set(['linear', 'nearest', 'zero', 'slinear', 'quadratic', 'cubic', 'intervalAverage']):
         self.raiseAnError(IOError, 'HistorySetSampling Interfaced Post-Processor ' + str(self.name) + ' : interpolation is not correctly specified; possible values: linear, nearest, zero, slinear, quadratic, cubic')
 
     if self.samplingType == 'filteredFirstDerivative' or self.samplingType == 'filteredSecondDerivative':
@@ -97,19 +98,24 @@ class HistorySetSampling(PostProcessorInterfaceBase):
     return outputDic
 
   def varsTimeInterp(self, vars):
-    """ This function sample a multi-variate temporal function
-    vars        : data set that contained the information of the multi-variate temporal function (this is supposed to be a dictionary:
-                  {'pivotParameter':time_array, 'var1':var1_array, ..., 'varn':varn_array})
-
+    """
+      This function sample a multi-variate temporal function
+      @ In, vars, dict, data set that contained the information of the multi-variate temporal function (this is supposed to be a dictionary:
+                      {'pivotParameter':time_array, 'var1':var1_array, ..., 'varn':varn_array})
+      @ Out, newVars, dict, data set that is a sampled version of vars
     """
 
-    t_min = vars[self.pivotParameter][0]
-    t_max = vars[self.pivotParameter][-1]
+    localPivotParameter = vars[self.pivotParameter]
+    tMin = localPivotParameter[0]
+    tMax = localPivotParameter[-1]
 
     newVars={}
 
     if self.samplingType == 'uniform':
-      newTime = np.linspace(t_min,t_max,self.numberOfSamples)
+      if self.interpolation == 'intervalAverage':
+        newTime = np.linspace(tMin,tMax,self.numberOfSamples+1)[0:-1]
+      else:
+        newTime = np.linspace(tMin,tMax,self.numberOfSamples)
     elif self.samplingType == 'firstDerivative' or self.samplingType == 'secondDerivative':
       newTime = self.derivativeTimeValues(vars)
     else:
@@ -119,14 +125,28 @@ class HistorySetSampling(PostProcessorInterfaceBase):
       if key == self.pivotParameter:
         newVars[key] = newTime
       else:
-        interp = interpolate.interp1d(vars[self.pivotParameter], vars[key], self.interpolation)
-        newVars[key]=interp(newTime)
+        if self.interpolation == 'intervalAverage':
+          newVars[key] = np.zeros(shape=newTime.shape)
+          deltaT = newTime[1]-newTime[0] if len(newTime) > 1 else tMax
+          for tIdx in range(len(newTime)):
+            t = newTime[tIdx]
+            extractCondition = (localPivotParameter>=t) * (localPivotParameter<=t+deltaT)
+            extractVar = np.extract(extractCondition, vars[key])
+            extractTime = np.extract(extractCondition, localPivotParameter)
+            newVars[key][tIdx] = integrate.trapz(extractVar, extractTime) / deltaT
+        else:
+          interp = interpolate.interp1d(vars[self.pivotParameter], vars[key], self.interpolation)
+          newVars[key]=interp(newTime)
     return newVars
 
 
   def derivativeTimeValues(self, var):
-    t_min=self.pivotParameter[0]
-    t_max=self.pivotParameter[-1]
+    """
+      This function computes the new temporal variable
+      @ In, vars, dict, data set that contained the information of the multi-variate temporal function (this is supposed to be a dictionary:
+                      {'pivotParameter':time_array, 'var1':var1_array, ..., 'varn':varn_array})
+      @ Out, newTime, list, values of the new temporal variable
+    """
 
     newTime = np.zeros(self.numberOfSamples)
     cumDerivative = np.zeros(var[self.pivotParameter].size)

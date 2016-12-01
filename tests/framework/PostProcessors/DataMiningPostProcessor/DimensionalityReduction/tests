@@ -8,6 +8,16 @@
     output = 'ExactPCA/1-PlotIris_dataMining.png'
     rel_err = 0.00001
   [../]
+  ## This test exercises our ability to accept a string for n_components
+  ## See Issue #649
+  [./ExactPCA_MLE]
+    type   = 'RavenFramework'
+    input  = 'test_dataMiningExactPCA_MLE.xml'
+    UnorderedCsv = 'ExactPCA/dummy_mle.csv ExactPCA/info_mle.csv'
+    output = 'ExactPCA/PlotIris_mle.png'
+    rel_err = 0.00001
+    check_absolute_value = True
+  [../]
   [./RandomizedPCA]
     type   = 'RavenFramework'
     input  = 'test_dataMiningRandomizedPCA.xml'

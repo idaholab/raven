@@ -165,51 +165,11 @@ process. Can contain any combination of ‘w’ for weights, ‘m’ for means,
 <Simulation>
 \end{lstlisting}
 
-
-\subparagraph{ Dirichlet Process GMM Classifier (DPGMM)} \hfill
-\label{subparagraph:DPGMM}
-
-The DPGMM implements a variant of the Gaussian mixture model with
- a variable (but bounded) number of components using the Dirichlet
- Process. The API is identical to GMM. This class doesn’t require
-the user to choose the number of components, and at the expense of
- extra computational time the user only needs to specify a loose
- upper bound on this number and a concentration parameter.
-
-\skltype{Dirichlet Process Gaussian Mixture Model}{mixture|DPGMM}
-\begin{itemize}
-	\item \xmlNode{n\_components}, \xmlDesc{integer, optional
-field} Number of mixture components. \default{1}
-	\item \xmlNode{covariance\_type}, \xmlDesc{string, optional
-field}, describes the type of covariance parameters to use.
-Must be one of ‘spherical’, ‘tied’, ‘diag’, ‘full’. \default{diag}
-	\item \xmlNode{alpha}, \xmlDesc{float, optional field},
-represents the concentration parameter of the dirichlet process.
-Intuitively, the Dirichlet Process is as likely to start a new cluster
- for a point as it is to add that point to a cluster with alpha
- elements. A higher alpha means more clusters, as the expected
-number of clusters is ${\alpha*log(N)}$. \default{1}.
-	\item \xmlNode{thresh}, \xmlDesc{float, optional field},
-convergence threshold. \default{0.01}
-	\item \xmlNode{n\_iter}, \xmlDesc{integer, optional field},
-Number of EM iterations to perform. \default{100}
-	\item \xmlNode{params}, \xmlDesc{string, optional field},
- Controls which parameters are updated in the training process.
-Can contain any combination of ‘w’ for weights, ‘m’ for means, and
-‘c’ for covars. \default{‘wmc’}
-	\item \xmlNode{init\_params}, \xmlDesc{string, optional
-field}, Controls which parameters are updated in the initialization
-process. Can contain any combination of ‘w’ for weights, ‘m’ for means,
- and ‘c’ for covars. \default{‘wmc’}.
-\end{itemize}
-
 \subparagraph{ Variational GMM Classifier (VBGMM)} \hfill
 \label{subparagraph:VBGMM}
 
 The VBGMM object implements a variant of the Gaussian mixture model
  with variational inference algorithms. The API is identical to GMM.
- It is essentially a middle-ground between GMM and DPGMM, as it has
-some of the properties of the Dirichlet process.
 
 \skltype{Variational Gaussian Mixture Model}{mixture|VBGMM}
 \begin{itemize}
@@ -1137,7 +1097,7 @@ Spectral embedding for non-linear dimensionality reduction, it forms an affinity
 
 
 \paragraph{Scipy}
-\xmlString{Scipy} provides a Hierarchical clustering that performs clustering over PointSet and HistorySet. 
+\xmlString{Scipy} provides a Hierarchical clustering that performs clustering over PointSet and HistorySet.
 This algorithm also automatically generates a dendrogram in .pdf format (i.e., dendrogram.pdf).
 
 \begin{itemize}
@@ -1149,39 +1109,39 @@ This algorithm also automatically generates a dendrogram in .pdf format (i.e., d
     \end{itemize}
   \item \xmlNode{method},         \xmlDesc{string, required field}, The linkage algorithm to be used  \default{single, complete, weighted, centroids, median, ward}.
   \item \xmlNode{metric},         \xmlDesc{string, required field}, The distance metric to be used \default{ ‘braycurtis’, ‘canberra’, ‘chebyshev’, ‘cityblock’,
-                                                                    ‘correlation’, ‘cosine’, ‘dice’, ‘euclidean’, ‘hamming’, ‘jaccard’, ‘kulsinski’, 
-                                                                    ‘mahalanobis’, ‘matching’, ‘minkowski’, ‘rogerstanimoto’, ‘russellrao’, ‘seuclidean’, 
+                                                                    ‘correlation’, ‘cosine’, ‘dice’, ‘euclidean’, ‘hamming’, ‘jaccard’, ‘kulsinski’,
+                                                                    ‘mahalanobis’, ‘matching’, ‘minkowski’, ‘rogerstanimoto’, ‘russellrao’, ‘seuclidean’,
                                                                     ‘sokalmichener’, ‘sokalsneath’, ‘sqeuclidean’, ‘yule’}.
   \item \xmlNode{level},          \xmlDesc{float, required field},  Clustering distance level where actual clusters are formed.
   \item \xmlNode{criterion},      \xmlDesc{string, required field}, The criterion to use in forming flat clusters. This can be any of the following values:
     \begin{itemize}
-      \item   ``inconsistent''     : If a cluster node and all its descendants have an inconsistent value less than or equal to `t` then all its leaf descendants 
-                                     belong to the same flat cluster. When no non-singleton cluster meets this criterion, every node is assigned to its own 
+      \item   ``inconsistent''     : If a cluster node and all its descendants have an inconsistent value less than or equal to `t` then all its leaf descendants
+                                     belong to the same flat cluster. When no non-singleton cluster meets this criterion, every node is assigned to its own
                                      cluster. (Default)
-      \item   ``distance''         : Forms flat clusters so that the original observations in each flat cluster have no greater a cophenetic distance than $t$.  
-      \item   ``maxclust''         : Finds a minimum threshold ``r'' so that the cophenetic distance between any two original observations in the same flat cluster 
-                                     is no more than ``r'' and no more than $t$ flat clusters are formed. 
+      \item   ``distance''         : Forms flat clusters so that the original observations in each flat cluster have no greater a cophenetic distance than $t$.
+      \item   ``maxclust''         : Finds a minimum threshold ``r'' so that the cophenetic distance between any two original observations in the same flat cluster
+                                     is no more than ``r'' and no more than $t$ flat clusters are formed.
       \item   ``monocrit''         : Forms a flat cluster from a cluster node c with index i when $monocrit[j] <= t$.
-       \item  ``maxclust\_monocrit'' : Forms a flat cluster from a non-singleton cluster node ``c'' when $monocrit[i] <= r$ for all cluster indices ``i'' 
+       \item  ``maxclust\_monocrit'' : Forms a flat cluster from a non-singleton cluster node ``c'' when $monocrit[i] <= r$ for all cluster indices ``i''
                                        below and including ``c''. ``r'' is minimized such that no more than ``t'' flat clusters are formed. monocrit must be
                                        monotonic.
     \end{itemize}
   \item \xmlNode{dendrogram},     \xmlDesc{boolean, required field}, If True the dendrogram is actually created.
-  \item \xmlNode{truncationMode}, \xmlDesc{string, required field}, The dendrogram can be hard to read when the original observation matrix from which the 
+  \item \xmlNode{truncationMode}, \xmlDesc{string, required field}, The dendrogram can be hard to read when the original observation matrix from which the
                                                                     linkage is derived is large. Truncation is used to condense the dendrogram. There are several
                                                                     modes:
                                                                     \begin{itemize}
                                                                       \item ``None'': No truncation is performed (Default).
                                                                       \item ``lastp'': The last p non-singleton formed in the linkage are the only non-leaf nodes
-                                                                       in the linkage; they correspond to rows $Z[n-p-2:end]$ in Z. All other non-singleton 
+                                                                       in the linkage; they correspond to rows $Z[n-p-2:end]$ in Z. All other non-singleton
                                                                        clusters are contracted into leaf nodes.
-                                                                      \item ``level''/``mtica'': No more than p levels of the dendrogram tree are displayed. 
+                                                                      \item ``level''/``mtica'': No more than p levels of the dendrogram tree are displayed.
                                                                       This corresponds to Mathematica behavior.
                                                                     \end{itemize}
   \item \xmlNode{p},              \xmlDesc{int, required field},     The $p$ parameter for truncationMode.
-  \item \xmlNode{leafCounts},     \xmlDesc{boolean, required field}, When True the cardinality non singleton nodes contracted into a leaf node is indiacted in 
+  \item \xmlNode{leafCounts},     \xmlDesc{boolean, required field}, When True the cardinality non singleton nodes contracted into a leaf node is indiacted in
                                                                      parenthesis.
-  \item \xmlNode{showContracted}, \xmlDesc{boolean, required field}, When True the heights of non singleton nodes contracted into a leaf node are plotted as 
+  \item \xmlNode{showContracted}, \xmlDesc{boolean, required field}, When True the heights of non singleton nodes contracted into a leaf node are plotted as
                                                                      crosses along the link connecting that leaf node.
   \item \xmlNode{annotatedAbove}, \xmlDesc{float, required field},  Clustering level above which the branching level is annotated.
 \end{itemize}
@@ -1198,7 +1158,7 @@ This algorithm also automatically generates a dendrogram in .pdf format (i.e., d
         <Features>output</Features>
         <method>single</method>
         <metric>euclidean</metric>
-        <level>75</level> 
+        <level>75</level>
         <criterion>distance</criterion>
         <dendrogram>true</dendrogram>
         <truncationMode>lastp</truncationMode>
