@@ -188,7 +188,7 @@ class graphObject(object):
     """
     if verticesEncountered is None: verticesEncountered = set()
     gdict = self.__graphDict
-    vertices = gdict.keys()
+    vertices = list(gdict.keys())
     if not startVertex:
       # chosse a vertex from graph as a starting point
       startVertex = vertices[0]
