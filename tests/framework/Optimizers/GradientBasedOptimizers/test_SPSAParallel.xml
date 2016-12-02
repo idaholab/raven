@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <RunInfo>
-	<WorkingDir>SPSAwConstraint</WorkingDir>
+	<WorkingDir>SPSAParallel</WorkingDir>
     <Sequence>optimization,optimizationdump</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
@@ -16,76 +16,101 @@
       <Output class="OutStreams" type="Print">optimizationHistoryDump</Output>
       <Output class="OutStreams" type="Print">mdlDataDump</Output>
     </MultiRun>
+	
     <IOStep name="optimizationdump" pauseAtEnd="true">
       <Input class="DataObjects" type="HistorySet">optData</Input>
       <Input class="DataObjects" type="PointSet">optOutput</Input>
       <Output class="OutStreams" type="Print">optimizationHistoryDump</Output>
       <Output class="OutStreams" type="Print">mdlDataDump</Output>
       <Output class="OutStreams" type="Plot">optPath</Output>
+	  <Output class="OutStreams" type="Plot">optVars</Output>
 	  <Output class="OutStreams" type="Plot">plotIteration</Output>
     </IOStep>
   </Steps>
 
   <DataObjects>
     <PointSet name="optOutput">
-      <Input>R,B</Input>
+      <Input>x1,x2</Input>
       <Output>c</Output>
     </PointSet>
     <PointSet name="optInput">
-      <Input>R,B</Input>
+      <Input>x1,x2</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
-    <HistorySet name="optData">
+	<PointSet name="gridInput">
+      <Input>x1,x2</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+	<PointSet name="gridOutput">
+      <Input>x1,x2</Input>
+      <Output>c</Output>
+    </PointSet>
+	<HistorySet name="optData">
       <Input>trajID</Input>
-      <Output>c,R,B,varsUpdate</Output>
+      <Output>c,x1,x2,varsUpdate</Output>
     </HistorySet>
   </DataObjects>
 
+  <Distributions>
+    <Uniform name="uniDist">
+      <lowerBound>0.0</lowerBound>
+      <upperBound>1.0</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <Grid name="gridSampler">
+      <samplerInit>
+         <limit>200</limit>
+      </samplerInit>
+      <variable name="x1">
+        <distribution>uniDist</distribution>
+        <grid type='value' construction='equal' steps='2'>0.0 1.0</grid>
+      </variable>
+	  <variable name="x2">
+        <distribution>uniDist</distribution>
+        <grid type='value' construction='equal' steps='2'>0.0 1.0</grid>
+      </variable>
+    </Grid>
+  </Samplers>
+  
   <Optimizers>
     <SPSA name="opt_smp">
       <initialization>
-		<limit>1000</limit>
+		<limit>300</limit>
 		<type>min</type>
 		<initialSeed>30</initialSeed>
+		<!-- <thresholdTrajRemoval>0.05</thresholdTrajRemoval> -->
       </initialization>
-	  <Function class="Functions" type="External">constraintFuncPositive</Function>
       <TargetEvaluation class="DataObjects" type="PointSet">optOutput</TargetEvaluation>
 	  <convergence>
-		<iterationLimit>300</iterationLimit>
+		<iterationLimit>50</iterationLimit>
 		<threshold>1e-5</threshold>
 	  </convergence>
-	  <variable name="R">
-        <upperBound>1.0</upperBound>
-		<lowerBound>0</lowerBound>
-		<initial>0.9</initial>
+	  <variable name="x1">
+        <upperBound>1</upperBound>
+		<lowerBound>-1</lowerBound>
+		<initial>-1,0,1</initial>
       </variable>
-	  <variable name="B">
-        <upperBound>1.0</upperBound>
-		<lowerBound>0</lowerBound>
-		<initial>0.9</initial>
+	  <variable name="x2">
+        <upperBound>1</upperBound>
+		<lowerBound>-1</lowerBound>
+		<initial>0,0,0</initial>
       </variable>
 	  <objectVar>c</objectVar>
 	  <parameter>
-		<numGradAvgIterations>1</numGradAvgIterations>
-		<innerBisectionThreshold>0.01</innerBisectionThreshold>
-		<innerLoopLimit>1000</innerLoopLimit>
+		<numGradAvgIterations>4</numGradAvgIterations>
+		<a>0.1</a>
 	  </parameter>
     </SPSA>
   </Optimizers>
 
   <Models>
-	<ExternalModel ModuleToLoad="loss_function_hybrid" name="optObjModel" subType="">
-		<variables>R,B,c</variables>
+    <ExternalModel ModuleToLoad="loss_function_quadratic" name="optObjModel" subType="">
+		<variables>x1,x2,a1,a2,b1,b2,c</variables>
     </ExternalModel>
   </Models>
 
-  <Functions>
-	<External file="constrain_function" name="constraintFuncPositive">
-      <variable>B</variable>
-      <variable>R</variable>
-    </External>
-  </Functions>
-  
   <OutStreams>
     <Print name="optimizationHistoryDump">
       <type>csv</type>
@@ -95,25 +120,45 @@
         <type>csv</type>
         <source>optOutput</source>
     </Print>
+	<Print name="gridDataDump">
+        <type>csv</type>
+        <source>gridOutput</source>
+    </Print>
 	
-    <Plot  name="optPath" overwrite="false" verbosity="debug">
+    <Plot name="optPath" overwrite="false" verbosity="debug">
         <actions>
             <how>pdf</how>
         </actions>
         <plotSettings>
             <plot>
                 <type>scatter</type>
-                <x>optData|Output|B</x>
-                <y>optData|Output|R</y>
+                <x>optData|Output|x1</x>
+                <y>optData|Output|x2</y>
                 <z>optData|Output|c</z>
             </plot>
-            <xlabel>B</xlabel>
-            <ylabel>R</ylabel>
+            <xlabel>x1</xlabel>
+            <ylabel>x2</ylabel>
             <zlabel>Loss Function</zlabel>
         </plotSettings>
     </Plot>
 	
-    <Plot  name="plotIteration" overwrite="false" verbosity="debug">
+    <Plot name="optVars" overwrite="false" verbosity="debug">
+        <actions>
+            <how>pdf</how>
+        </actions>
+        <plotSettings>
+            <plot>
+                <type>scatter</type>
+                <x>optData|Output|x1</x>
+                <y>optData|Output|x2</y>
+				<colorMap>optData|Output|c</colorMap>
+            </plot>
+            <xlabel>x1</xlabel>
+            <ylabel>x2</ylabel>
+        </plotSettings>
+    </Plot>
+	
+    <Plot name="plotIteration" overwrite="false" verbosity="debug">
         <actions>
             <how>pdf</how>
         </actions>
@@ -122,19 +167,19 @@
             <plot>
                 <type>line</type>
                 <x>optData|Output|varsUpdate</x>
-                <y>optData|Output|B</y>
+                <y>optData|Output|x1</y>
 				<interpPointsX>300</interpPointsX>
 				<gridLocation><x>0</x><y>0</y></gridLocation>	
-				<ylabel>B</ylabel>				
+				<ylabel>x1</ylabel>				
             </plot>
 			
 			<plot>
                 <type>line</type>
                 <x>optData|Output|varsUpdate</x>
-                <y>optData|Output|R</y>
+                <y>optData|Output|x2</y>
 				<interpPointsX>300</interpPointsX>
 				<gridLocation><x>1</x><y>0</y></gridLocation>	
-				<ylabel>R</ylabel>				
+				<ylabel>x2</ylabel>				
             </plot>
 
 			
