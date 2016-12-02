@@ -56,6 +56,7 @@ def setDefaultOptions(options):
   options["rel_err"] = float(options.get("rel_err",1.e-10))
   options["zero_threshold"] = float(options.get("zero_threshold",sys.float_info.min*4.0))
   options["remove_whitespace"] = options.get("remove_whitespace",False)
+  options["remove_unicode_identifier"] = options.get("remove_unicode_identifier",False)
 
 def removeWhitespaceChars(s):
   """ Removes whitespace characters
@@ -69,7 +70,16 @@ def removeWhitespaceChars(s):
   #s = s.translate(removeWhitespaceTrans)
   return s
 
-def compareStringsWithFloats(a,b,numTol = 1e-10, zeroThreshold = sys.float_info.min*4.0, removeWhitespace = False):
+def removeUnicodeIdentifiers(s):
+  """ Removes the u infrount of a unicode string: u'string' -> 'string'
+  Note that this also removes a u at the end of string 'stru' -> 'str'
+  which is not intended.
+  s: string to remove characters from
+  """
+  s = s.replace("u'","'")
+  return s
+
+def compareStringsWithFloats(a,b,numTol = 1e-10, zeroThreshold = sys.float_info.min*4.0, removeWhitespace = False, removeUnicodeIdentifier = False):
   """ Compares two strings that have floats inside them.  This searches for
   floating point numbers, and compares them with a numeric tolerance.
   a: first string to use
@@ -86,6 +96,9 @@ def compareStringsWithFloats(a,b,numTol = 1e-10, zeroThreshold = sys.float_info.
   if removeWhitespace:
     a = removeWhitespaceChars(a)
     b = removeWhitespaceChars(b)
+  if removeUnicodeIdentifier:
+    a = removeUnicodeIdentifiers(a)
+    b = removeUnicodeIdentifiers(b)
   aList = splitIntoParts(a)
   bList = splitIntoParts(b)
   if len(aList) != len(bList):
@@ -159,7 +172,7 @@ def compareListEntry(aList,bList,**kwargs):
     a = aList[i]
     b = bList[i]
     #match tag
-    same,note = compareStringsWithFloats(a.tag,b.tag,options["rel_err"], options["zero_threshold"], options["remove_whitespace"])
+    same,note = compareStringsWithFloats(a.tag,b.tag,options["rel_err"], options["zero_threshold"], options["remove_whitespace"], options["remove_unicode_identifier"])
     totalMatchable += 1
     if not same:
       match = False
@@ -168,7 +181,7 @@ def compareListEntry(aList,bList,**kwargs):
       numMatch += 1
     #match text
     #if (a.text is None or len(a.text)>0) and (b.text is None or len(b.text)>0):
-    same,note = compareStringsWithFloats(a.text,b.text,options["rel_err"], options["zero_threshold"], options["remove_whitespace"])
+    same,note = compareStringsWithFloats(a.text,b.text,options["rel_err"], options["zero_threshold"], options["remove_whitespace"], options["remove_unicode_identifier"])
     if not same:
       match = False
       diff.append((b,XMLDiff.notMatchText,str(a.text),str(b.text)))
@@ -184,7 +197,7 @@ def compareListEntry(aList,bList,**kwargs):
         match = False
         diff.append((b,XMLDiff.missingAttribute,attrib,None))
         continue
-      same,note = compareStringsWithFloats(a.attrib[attrib],b.attrib[attrib],options["rel_err"], options["zero_threshold"], options["remove_whitespace"])
+      same,note = compareStringsWithFloats(a.attrib[attrib],b.attrib[attrib],options["rel_err"], options["zero_threshold"], options["remove_whitespace"], options["remove_unicode_identifier"])
       if not same:
         match = False
         diff.append((b,XMLDiff.notMatchAttribute,(a,attrib),(b,attrib)))
@@ -232,7 +245,7 @@ def compareUnorderedElement(a,b,*args,**kwargs):
     argsExpanded = " ".join([str(x) for x in printArgs])
     message.append(argsExpanded)
   if a.text != b.text:
-    succeeded, note = compareStringsWithFloats(a.text, b.text, options["rel_err"], options["zero_threshold"], options["remove_whitespace"])
+    succeeded, note = compareStringsWithFloats(a.text, b.text, options["rel_err"], options["zero_threshold"], options["remove_whitespace"], options["remove_unicode_identifier"])
     if not succeeded:
       same = False
       failMessage(note)
@@ -338,7 +351,7 @@ def compareOrderedElement(a,b,*args,**kwargs):
   else:
     path += a.tag + "/"
   if a.text != b.text:
-    succeeded, note = compareStringsWithFloats(a.text, b.text, options["rel_err"], options["zero_threshold"], options["remove_whitespace"])
+    succeeded, note = compareStringsWithFloats(a.text, b.text, options["rel_err"], options["zero_threshold"], options["remove_whitespace"], options["remove_unicode_identifier"])
     if not succeeded:
       same = False
       failMessage(note)

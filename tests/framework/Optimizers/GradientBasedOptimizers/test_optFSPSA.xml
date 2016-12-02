@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <RunInfo>
-	<WorkingDir>SPSA</WorkingDir>
+    <WorkingDir>SPSA</WorkingDir>
     <Sequence>optimization,optimizationdump</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
@@ -10,7 +10,7 @@
     <MultiRun name="optimization" pauseAtEnd="true">
       <Input class="DataObjects" type="PointSet">optInput</Input>
       <Model class="Models" type="ExternalModel">optObjModel</Model>
-      <Optimizer class="Optimizers" type="SPSA">opt_smp</Optimizer>	  
+      <Optimizer class="Optimizers" type="SPSA">opt_smp</Optimizer>
       <SolutionExport class="DataObjects" type="PointSet">optData</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOutput</Output>
       <Output class="OutStreams" type="Print">optimizationHistoryDump</Output>
@@ -22,7 +22,7 @@
       <Output class="OutStreams" type="Print">optimizationHistoryDump</Output>
       <Output class="OutStreams" type="Print">mdlDataDump</Output>
       <Output class="OutStreams" type="Plot">optPath</Output>
-	  <Output class="OutStreams" type="Plot">plotIteration</Output>
+      <Output class="OutStreams" type="Plot">plotIteration</Output>
     </IOStep>
   </Steps>
 
@@ -44,35 +44,35 @@
   <Optimizers>
     <SPSA name="opt_smp">
       <initialization>
-		<limit>300</limit>
-		<type>min</type>
-		<initialSeed>30</initialSeed>
+        <limit>300</limit>
+        <type>min</type>
+        <initialSeed>30</initialSeed>
       </initialization>
       <TargetEvaluation class="DataObjects" type="PointSet">optOutput</TargetEvaluation>
-	  <convergence>
-		<iterationLimit>50</iterationLimit>
-		<threshold>1e-3</threshold>
-	  </convergence>
-	  <variable name="x1">
+      <convergence>
+        <iterationLimit>50</iterationLimit>
+        <threshold>1e-3</threshold>
+      </convergence>
+      <variable name="x1">
         <upperBound>100</upperBound>
-		<lowerBound>-100</lowerBound>
-		<initial>0</initial>
+        <lowerBound>-100</lowerBound>
+        <initial>0</initial>
       </variable>
-	  <variable name="x2">
+      <variable name="x2">
         <upperBound>100</upperBound>
-		<lowerBound>-100</lowerBound>
-		<initial>0</initial>
+        <lowerBound>-100</lowerBound>
+        <initial>0</initial>
       </variable>
-	  <objectVar>c</objectVar>
-	  <parameter>
-		<numGradAvgIterations>3</numGradAvgIterations>
-	  </parameter>
+      <objectVar>c</objectVar>
+      <parameter>
+        <numGradAvgIterations>3</numGradAvgIterations>
+      </parameter>
     </SPSA>
   </Optimizers>
 
   <Models>
-	<ExternalModel ModuleToLoad="loss_function_quadratic" name="optObjModel" subType="">
-		<variables>x1,x2,a1,a2,b1,b2,c</variables>
+    <ExternalModel ModuleToLoad="loss_function_quadratic" name="optObjModel" subType="">
+      <variables>x1,x2,a1,a2,b1,b2,c</variables>
     </ExternalModel>
   </Models>
 
@@ -82,8 +82,8 @@
       <source>optData</source>
     </Print>
     <Print name="mdlDataDump">
-        <type>csv</type>
-        <source>optOutput</source>
+      <type>csv</type>
+      <source>optOutput</source>
     </Print>
 	
     <Plot   name="optPath" overwrite="false" verbosity="debug">
@@ -95,7 +95,7 @@
                 <type>scatter</type>
                 <x>optData|Input|x1</x>
                 <y>optData|Input|x2</y>
-                <z>optData|Input|c</z>
+                <z>optData|Output|c</z>
             </plot>
             <xlabel>x1</xlabel>
             <ylabel>x2</ylabel>
@@ -111,7 +111,7 @@
 			<gridSpace>3 1</gridSpace>
             <plot>
                 <type>line</type>
-                <x>optData|Output|varsUpdate</x>
+                <x>optData|Input|varsUpdate</x>
                 <y>optData|Input|x1</y>
 				<interpPointsX>300</interpPointsX>
 				<gridLocation><x>0</x><y>0</y></gridLocation>	
@@ -120,7 +120,7 @@
 			
 			<plot>
                 <type>line</type>
-                <x>optData|Output|varsUpdate</x>
+                <x>optData|Input|varsUpdate</x>
                 <y>optData|Input|x2</y>
 				<interpPointsX>300</interpPointsX>
 				<gridLocation><x>1</x><y>0</y></gridLocation>	
@@ -130,8 +130,8 @@
 			
 			<plot>
                 <type>line</type>
-                <x>optData|Output|varsUpdate</x>
-                <y>optData|Input|c</y>
+                <x>optData|Input|varsUpdate</x>
+                <y>optData|Output|c</y>
 				<interpPointsX>300</interpPointsX>
 				<gridLocation><x>2</x><y>0</y></gridLocation>	
 				<ylabel>c</ylabel>				

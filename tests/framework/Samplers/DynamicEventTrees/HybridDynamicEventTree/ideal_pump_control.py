@@ -1,5 +1,5 @@
 import distribution1D
-distcont  = distribution1D.DistributionContainer.Instance()
+distcont  = distribution1D.DistributionContainer.instance()
 
 
 def initial_function(monitored, controlled, auxiliary):

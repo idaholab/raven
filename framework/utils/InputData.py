@@ -26,6 +26,10 @@ class InputType(object):
       @ In, needGenerating, bool, optional, is true if the type needs to be generated.
       @ Out, None
     """
+
+    ## Rename the class to something understandable by a developer
+    cls.__name__ = str(name+'Spec')
+
     cls.name = name
     cls.xmlType = xmlType
     cls.needGenerating = needGenerating
@@ -119,6 +123,10 @@ class EnumBaseType(InputType):
       @ In, enumList, [string], a list of allowable strings.
       @ Out, None
     """
+
+    ## Rename the class to something understandable by a developer
+    cls.__name__ = str(name+'Spec')
+
     cls.name = name
     cls.xmlType = xmlType
     cls.needGenerating = True
@@ -187,6 +195,10 @@ class ParameterInput(object):
       @ In, baseNode, ParameterInput, optional, If not None, copy parameters and subnodes, subOrder, and contentType from baseNode.
       @ Out, None
     """
+
+    ## Rename the class to something understandable by a developer
+    cls.__name__ = str(name+'Spec')
+
     cls.name = name
     if baseNode is not None:
       #Make new copies of data from baseNode
@@ -359,6 +371,11 @@ class ParameterInput(object):
       if parameterData["required"]:
         attributeNode.set('use','required')
 
+## TODO: We should normalize the names of the following two functions, since they
+## do the same thing just on different input types.
+## e.g., parameterInputFactory and EnumFactory
+## makeClassSpecification and makeEnumSpecification
+
 def parameterInputFactory(*paramList, **paramDict):
   """
     Creates a new ParameterInput class with the same parameters as ParameterInput.createClass
@@ -369,7 +386,6 @@ def parameterInputFactory(*paramList, **paramDict):
     """
       The new class to be created by the factory
     """
-
   newClass.createClass(*paramList, **paramDict)
   return newClass
 

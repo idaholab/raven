@@ -9,25 +9,25 @@
   <Models>
     <Dummy name="MyDummy" subType=""/>
   </Models>
-  
+
   <Files>
     <Input name="samples.csv" type="">samples.csv</Input>
   </Files>
 
   <Samplers>
     <CustomSampler name="customSamplerFile">
-      <Source   class="Files"  type="">samples.csv</Source>
+      <Source class="Files" type="">samples.csv</Source>
       <variable name="x"/>
       <variable name="y"/>
       <variable name="z"/>
     </CustomSampler>
     <!--
-    <CustomSampler name="customSamplerDataObject">
-      <Source   class="DataObjects"  type="PointSet">outCustomSampler</Source>
-      <variable name="x"/>
-      <variable name="y"/>
-      <variable name="z"/>
-    </CustomSampler>
+      <CustomSampler name="customSamplerDataObject">
+        <Source class="DataObjects" type="PointSet">outCustomSampler</Source>
+        <variable name="x"/>
+        <variable name="y"/>
+        <variable name="z"/>
+      </CustomSampler>
     -->
   </Samplers>
 
@@ -51,12 +51,12 @@
 
   <Steps>
     <MultiRun name="CustomSampler">
-      <Input   class="DataObjects"  type="PointSet">dummyIN</Input>
-      <Model   class="Models"       type="Dummy">MyDummy</Model>
-      <Sampler class="Samplers"     type="CustomSampler">customSamplerFile</Sampler>
-      <Output  class="DataObjects"  type="PointSet">outCustomSampler</Output>
-      <Output  class="Databases"    type="HDF5">test_DummyModel_db</Output>
-      <Output  class="OutStreams"   type="Print">outCustomSampler_dump</Output>
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="Dummy">MyDummy</Model>
+      <Sampler class="Samplers" type="CustomSampler">customSamplerFile</Sampler>
+      <Output class="DataObjects" type="PointSet">outCustomSampler</Output>
+      <Output class="Databases" type="HDF5">test_DummyModel_db</Output>
+      <Output class="OutStreams" type="Print">outCustomSampler_dump</Output>
     </MultiRun>
   </Steps>
 

@@ -4,6 +4,7 @@
 %%%%%% Generic  INTERFACE  %%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Generic Interface}
+\label{subsec:genericInterface}
 The GenericCode interface is meant to handle a wide variety of generic codes
 that take take straightforward input files and produce output CSV files.  There are
 some limitations for this interface.
@@ -106,6 +107,7 @@ Where,
 %%%%%% RELAP5  INTERFACE  %%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{RELAP5 Interface}
+\label{subsec:RELAP5Interface}
 
 \subsubsection{Sequence}
 In the \xmlNode{Sequence} section, the names of the steps declared in the
@@ -199,13 +201,14 @@ wants to select the outputs coming from only one deck, the following XML node ne
    \item \xmlNode{outputDeckNumber}, \xmlDesc{integer, optional parameter}, the deck number from 
    which the results needs to be retrieved. \default{all}.
 \end{itemize}
-
+In addition, if some command line parameters need to be passed to RELAP5 \\(e.g. ``-r 
+$\: restartFileWithCustomName.r$''), the user might use (optionally) the \xmlNode{clargs} XML nodes.
 \begin{lstlisting}[style=XML]
 <Models>
   <Code name='MyRELAP' subType='Relap5'>
     <executable>~/path_to_the_executable</executable>
-    <!-- here is taking the output from the first deck only -->
     <outputDeckNumber>1</outputDeckNumber>
+    <clargs type="text" arg="-r restartFileWithCustomName.r"/>
   </Code>
 </Models>
 \end{lstlisting}
@@ -396,6 +399,37 @@ As listed before, this will create two databases.
 %
 The files will have names corresponding to their \xmlAttr{name} appended with
 the .h5 extension (i.e. \texttt{Grid\_out.h5} and \texttt{MC\_out.h5}).
+
+\subsubsection{Modified Version of the Institute of Nuclear Safety System Incorporated (Japan)}
+The Institute of Nuclear Safety System Incorporated (Japan) has modified the \textbf{RELAP5}  source code 
+in order to be able to control some additional parameters from an auxiliary input file (\textbf{modelPar.inp}).
+\\In order to use this interface, the user needs to input the $subType$ attribute\textbf{Relap5inssJp}:
+\begin{lstlisting}[style=XML]
+<Models>
+  <Code name='MyRELAP' subType='Relap5'>
+    <executable>~/path_to_the_executable</executable>
+    <!-- here is taking the output from the first deck only -->
+    <outputDeckNumber>1</outputDeckNumber>
+  </Code>
+</Models>
+\end{lstlisting}
+For perturbing such input file, the approach presented in section \ref{subsec:genericInterface} (Generic Interface)
+has been employed. For the standard \textbf{RELAP5} input, the same approach previously in this section is used.
+\\For example, in the following Sampler block, the card $9100101$ is perturbed with the same approach used in standard \textbf{RELAP5}; in addition, the variable $modelParTest$  is going to be perturbed in the \textbf{modelPar.inp} input file.
+\begin{lstlisting}[style=XML]
+    <MonteCarlo name="mc_loca">
+      <samplerInit>
+        <limit>1</limit>
+      </samplerInit>
+      <variable name="9100101:3">
+        <distribution>break_size</distribution>
+      </variable>
+      <variable name="modelParTest">
+          <distribution>break_size</distribution>
+      </variable>
+    </MonteCarlo>
+\end{lstlisting}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%% RELAP7 INTERFACE  %%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%

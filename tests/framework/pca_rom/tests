@@ -4,6 +4,7 @@
   input = 'test_input_pca.xml'
   xml = 'PCAReduction/testPrintPointSet_dump.xml'
   csv = 'PCAReduction/testPrintPointSet_dump.csv'
+  remove_unicode_identifier = true
  [../]
 
  [./MVNAbs]
@@ -34,5 +35,6 @@
   input = 'test_one_dim_pca.xml'
   xml = 'oneDimPCA/testPrintPointSet_dump.xml'
   csv = 'oneDimPCA/testPrintPointSet_dump.csv'
+  remove_unicode_identifier = true
  [../]
 []
