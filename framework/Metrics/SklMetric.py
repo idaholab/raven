@@ -29,7 +29,7 @@ from .Metric import Metric
 
 class SKL(Metric):
   """
-    Scikit-learn  metrics which can be employed only for PointSets
+    Scikit-learn metrics which can be employed only for PointSets
   """
   def initialize(self,inputDict):
     """
@@ -46,55 +46,26 @@ class SKL(Metric):
       @ In, xmlNode, xml.etree.Element, Xml element node
       @ Out, None
     """
-    self.requiredKeywords = set(['metricType'])
-    self.wrongKeywords = set()
+    self.distParams = {}
     for child in xmlNode:
       if child.tag == 'metricType':
-        self.localDistance = child.text
-        self.requiredKeywords.remove('metricType')
-      if child.tag not in self.requiredKeywords:
-        self.wrongKeywords.add(child.tag)
+        self.metricType = child.text
+      else:
+        self.distParams[child] = child.text
 
-    if self.requiredKeywords:
-      self.raiseAnError(IOError,'The SKL metric is missing the following parameters: ' + str(self.requiredKeywords))
-    if not self.wrongKeywords:
-      self.raiseAnError(IOError,'The SKL metric block contains parameters that are not recognized: ' + str(self.wrongKeywords))
-      
-  def distance(self,x):    
-    """
-      This method set the data return the distance matrix assuming a PointSet is provided 
-      @ In, x, dict, dictionary containing data of x
-      @ Out, value, float, distance between x and y
-    """
     
-  def distance(self,x,y):
+  def distance(self, x, y=None, **kwargs):
     """
       This method set the data return the distance between two points x and y
       @ In, x, dict, dictionary containing data of x
       @ In, y, dict, dictionary containing data of y
       @ Out, value, float, distance between x and y
     """
-    tempX = copy.deepcopy(x)
-    tempY = copy.deepcopy(y)
-    if isinstance(tempX,np.ndarray) and isinstance(tempY,np.ndarray):
-      self.raiseAnError(IOError,'The DTW metrics is being used only for historySet')
-    elif isinstance(tempX,dict) and isinstance(tempY,dict):
-      if tempX.keys() == tempY.keys():
-        timeLengthX = tempX[self.pivotParameter].size
-        timeLengthY = tempY[self.pivotParameter].size
-        del tempX[self.pivotParameter]
-        del tempY[self.pivotParameter]
-        X = np.empty((len(tempX.keys()),timeLengthX))
-        Y = np.empty((len(tempY.keys()),timeLengthY))
-        for index, key in enumerate(tempX):
-          if self.order == 1:
-            tempX[key] = np.gradient(tempX[key])
-            tempY[key] = np.gradient(tempY[key])
-          X[index] = tempX[key]
-          Y[index] = tempY[key]
-        value = self.dtwDistance(X,Y)
-        return value
-      else:
-        self.raiseAnError('Metric DTW error: the two data sets do not contain the same variables')
+    if isinstance(x,np.ndarray) and isinstance(y,np.ndarray):
+      if self.metricType in pairwise.kernel_metrics().keys():
+        value = pairwise.kernel_metrics()[self.metricType](X=x, Y=y, dict(**kwargs.items() + self.distParams.items()))
+      elif self.metricType in pairwise.distance_metrics():
+        value = pairwise.pairwise_distances()[self.metricType](X=x, Y=y, dict(**kwargs.items() + self.distParams.items()))       
+      return value
     else:
-      self.raiseAnError('Metric DTW error: the structures of the two data sets are different')
+      self.raiseAnError(IOError,'Metric SKL error: the structures of the two data sets are different')
