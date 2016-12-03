@@ -36,7 +36,7 @@ class Cubit(CodeInterfaceBase):
         found = True
         break
     if not found: raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
-    returnCommand = [('serial',executable+ ' -batch ' + inputFiles[index].getFilename())], self.outputfile
+    returnCommand = [('serial',executable+ ' -batch ' + inputFiles[index].getFilename())], self.outputFile
     return returnCommand
 
   def createNewInput(self, currentInputFiles, oriInputFiles, samplerType, **Kwargs):
@@ -54,8 +54,8 @@ class Cubit(CodeInterfaceBase):
       if inputFile.getExt() == self.getInputExtension():
         break
     parser = CUBITparser.CUBITparser(oriInputFiles[index])
-    self.outputfile = 'mesh~'+currentInputFiles[index].getBase()
-    Kwargs['SampledVars']['Cubit@out_name'] = "\"'"+self.outputfile+".e'\""
+    self.outputFile = 'mesh~'+currentInputFiles[index].getBase()
+    Kwargs['SampledVars']['Cubit@out_name'] = "\"'"+self.outputFile+".e'\""
     parser.modifyInternalDictionary(**copy.deepcopy(Kwargs['SampledVars']))
     # Write new input files
     parser.writeNewInput(currentInputFiles[index].getAbsFile())

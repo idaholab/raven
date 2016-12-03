@@ -1883,10 +1883,11 @@ Any other app's input file needs a \xmlAttr{type} with the app's name prepended 
 (e.g. \xmlString{BisonInput}, \xmlString{Relap7Input}, etc.).  In addition, the \xmlAttr{type} for any mesh 
 input is the app in which that mesh is utilized prepended to \xmlString{|Mesh}; so a Bison mesh would have
 a \xmlAttr{type} of \xmlString{Bison|Mesh} and similarly a mesh for Rattlesnake would have \xmlString{Rattlesnake|Mesh}
-as its \xmlAttr{type}. Some files may be necessary for codes to run, but need no perturbed variables from
-RAVEN; they only need to be copied to each perturbed run directory.  In this case, one can use
-the \xmlAttr{type} \xmlString{AncillaryInput} to specify that it is a part of the code run, but only needs to 
-be copied (with no changes) to each run directory.  For Yak multigroup cross section libraries, 
+as its \xmlAttr{type}. In cases where a file needs to be copied to each perturbed run
+directory (to be used as function input, control logic, etc.), one can use the \xmlAttr{type}
+\xmlString{AncillaryInput} to make it clear in the RAVEN input file that this is file 
+is required for the simulation to run but contains no perturbed parameters.
+For Yak multigroup cross section libraries, 
 the \xmlAttr{type} should be \xmlString{YakXSInput}, and for the Yak 
 alias files that are used to perturb the Yak multigroup cross section libraries, the \xmlAttr{type} should be
 \xmlString{YakXSAliasInput}.  
@@ -1978,11 +1979,11 @@ as inputs.
       <distribution>normal</distribution>
       <grid type="value" construction="custom">3.0 6.0</grid>
     </variable>
-    <variable name='Dummy@clad_outer_diam'>
+    <variable name='clad_outer_diam'>
       <distribution>clad_outer_diam_dist</distribution>
       <grid construction='equal' steps='144' type='CDF'>0.02275 0.97725</grid>
     </variable>
-    <variable name='Dummy@clad_inner_diam'>
+    <variable name='clad_inner_diam'>
       <distribution>clad_inner_diam_dist</distribution>
       <grid construction='equal' steps='144' type='CDF'>0.02275 0.97725</grid>
     </variable>
@@ -1996,16 +1997,17 @@ as inputs.
 </Samplers>
 \end{lstlisting}
 %
-In order to make the input variables of one application distinct from the input variabels of another,
-the app's name followed by the '@' symbol is prepended to the variable name (e.g. \xmlString{appName@varName}).
-Each variable sampled in the MAMMOTH interface is required to have a destination app specified.
-All variables utilizing Rattlesnake's executable (whether they are in the
-Rattlesnake input file or not) are listed as Rattlesnake variables
+In order to make the input variables of one application distinct from input variables of another,
+an app's name followed by the '@' symbol is prepended to the variable name (e.g. \xmlString{appName@varName}).
+Each variable to be used in an app's input file and sampled in the MAMMOTH interface is required 
+to have a destination app specified. All variables utilizing Rattlesnake's executable (whether 
+they are in the Rattlesnake input file or not) are listed as Rattlesnake variables
 as that application's interface will sort input file and cross section
-variables itself.  Notice that the clad inner and outer diameter sampled parameters have \xmlString{Dummy}
-specified as their destination app.  As these parameters are exclusively utilized to sample inputs
-for the clad thickness and gap width variables in BISON, the \xmlString{Dummy} tag
-allows passthrough of variables that aren't necessarily used in any app's input.
+variables itself.  Notice that the clad inner and outer diameter sampled parameters have no app
+name specified.  These parameters are utilized to sample values used as inputs
+for the clad thickness and gap width variables in BISON, so by not specifying a destination
+app, these are passed through the interface having only been used in an external function
+to calculate parameters usable in an app's input.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Steps}
 For a MAMMOTH interface run, the \xmlNode{MultiRun} step type will most likely be used. First, the step needs

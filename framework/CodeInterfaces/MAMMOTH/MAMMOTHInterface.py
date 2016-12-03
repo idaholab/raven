@@ -43,7 +43,7 @@ class MAMMOTHInterface(CodeInterfaceBase):
     inputDict['RattlesnakeInput'] = []
     inputDict['Relap7Input'] = []
     inputDict['AncillaryInput'] = []
-    allowedDriverAppInput = ['bisoninput','rattlesnakeinput','relap7input','ancillaryinput']
+    allowedDriverAppInput = ['bisoninput','rattlesnakeinput','relap7input']
     for inputFile in inputFiles:
       fileType = inputFile.getType()
       if fileType.strip().lower().split('|')[0] == "mammothinput":
@@ -120,13 +120,23 @@ class MAMMOTHInterface(CodeInterfaceBase):
     relap7Args = copy.deepcopy(Kwargs)
     relap7Args['SampledVars'] = {}
     perturbRelap7 = False
-    dummyArgs = copy.deepcopy(Kwargs)
-    dummyArgs['SampledVars'] = {}
     foundAlias = False
     for varName,varValue in Kwargs['SampledVars'].items():
-      # get the variable's full name from either the alias or given name
-      appName = varName.split('@')[0].lower()
-      baseVarName = varName.split('@')[-1]
+      # get the variable's full name
+      if len(varName.split('@')) == 2:
+        appName = varName.split('@')[0].lower()
+        baseVarName = varName.split('@')[-1]
+      elif len(varName.split('@')) == 1:
+        appName = None
+        baseVarName = varName
+      else:
+        errorMessage = 'Variable names passed to the MAMMOTH Code Interface must either\n'
+        errorMessage += 'specifiy to which App input they belong by prepending the App\'s name\n'
+        errorMessage += 'followed by "@" to the base variable\'s name or alias or have no App\n'
+        errorMessage += 'name to signify a passthrough variable. Please check that\n'
+        errorMessage += varName+'\n'
+        errorMessage += 'fits within this syntax specification.'
+        raise IOError(errorMessage)
       # Identify which app's input the variable goes into and separate appArgs
       if appName == 'bison':
         bisonArgs['SampledVars'][baseVarName] = varValue
@@ -137,14 +147,11 @@ class MAMMOTHInterface(CodeInterfaceBase):
       elif appName == 'relap7':
         relap7Args['SampledVars'][baseVarName] = varValue
         perturbRelap7 = True
-      elif appName == 'dummy':
-        dummyArgs['SampledVars'][baseVarName] = varValue
       else:
-        errorMessage = varName+' does not specify to which App\'s input it belongs!\n'
-        errorMessage += 'Please prepend the the App\'s name followed by "@" to the\n'
-        errorMessage += 'base variable\'s name or alias. If this is a variable used to\n'
-        errorMessage += 'calculate an input parameter, but unused in the input, please\n'
-        errorMessage += 'specify that it is a dummy variable by prepending "Dummy@".'
+        errorMessage = appName+' is not an App supported by the MAMMOTH Code Interface!\n'
+        errorMessage += 'Please specify a supported App in which to send \n'
+        errorMessage += baseVarName+'\n'
+        errorMessage += 'or add the desired App to the MAMMOTH Code Interface.'
         raise IOError(errorMessage)
     # Check if the user wants to perturb yak xs libraries
     for inputFile in currentInputFiles:

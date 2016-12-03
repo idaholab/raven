@@ -93,8 +93,8 @@ class CubitMoose(CodeInterfaceBase): #MooseBasedAppInterface,CubitInterface):
     margs = copy.deepcopy(Kwargs)
     cargs = copy.deepcopy(Kwargs)
     for vname,var in Kwargs['SampledVars'].items():
-      fullname = vname
-      if fullname.split('@')[0]=='Cubit':
+      fullName = vname
+      if fullName.split('@')[0]=='Cubit':
         del margs['SampledVars'][vname]
       else:
         del cargs['SampledVars'][vname]
