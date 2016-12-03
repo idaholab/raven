@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation>
   <RunInfo>
-    <WorkingDir>RELAP5interfaceTest</WorkingDir>
+    <WorkingDir>RELAP5interfaceTestAlias</WorkingDir>
     <Sequence>testDummyStep</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
@@ -17,6 +17,10 @@
         <!--  /path/to/relap/executable/relap5.x -->
         <!-- here we should put the executable. Since we want to test the interface only, it is going to be empty -->
       </executable>
+      <alias variable="heat_capacity_155_variable"    type="input">20100155:2</alias>
+      <alias variable="heat_capacity_154_variable"    type="input">20100154:2</alias>
+      <alias variable="massFlowRateAliasOutput" type="output">mflowj_505000000</alias>
+      <alias variable="pressureAliasOutput"     type="output">p_280010000</alias>
     </Code>
   </Models>
 
@@ -58,10 +62,10 @@
       <samplerInit>
         <limit>5</limit>
       </samplerInit>
-      <variable name="20100154:2">
+      <variable name="heat_capacity_154_variable">
         <distribution>heat_capacity_154</distribution>
       </variable>
-      <variable name="20100155:2">
+      <variable name="heat_capacity_155_variable">
         <distribution>heat_capacity_155</distribution>
       </variable>
       <variable name="20100156:2">

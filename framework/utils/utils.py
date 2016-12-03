@@ -746,7 +746,6 @@ class pickleSafeSubprocessPopen(subprocess.Popen):
       self.__dict__ = d
       self._handle = None
 
-
 def removeDuplicates(objectList):
   """
     Method to efficiently remove duplicates from a list and maintain their
@@ -770,5 +769,16 @@ def removeDuplicates(objectList):
   ## but efficient computation.
   uniqueObjectList = [x for x in objectList if not (x in seen or seen_add(x))]
   return uniqueObjectList
+
+def typeMatch(var,varTypeStr):
+  """
+    This method is aimed to check if a variable changed datatype
+    @ In, var, python datatype, the first variable to compare
+    @ In, varTypeStr, string, the type that this variable should have
+    @ Out, typeMatch, bool, is the datatype changed?
+  """
+  typeVar = type(var)
+  return typeVar.__name__ == varTypeStr or \
+    typeVar.__module__+"."+typeVar.__name__ == varTypeStr
 
 

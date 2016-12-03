@@ -19,6 +19,29 @@
   \nb As with other objects, this identifier can be used to reference this
   specific entity from other input blocks in the XML.
 }
+
+
+\newcommand{\aliasSystemDescription}[1]
+{
+  \xmlNode{alias} \xmlDesc{string, optional field} specifies alias for
+  any variable of interest in the input or output space for the #1.
+  %
+  These aliases can be used anywhere in the RAVEN input to refer to the #1
+  variables.
+  %
+  In the body of this node the user specifies the name of the variable that the model is going to use 
+  (during its execution).
+  %
+  The actual alias, usable throughout the RAVEN input, is instead defined in the
+  \xmlAttr{variable} attribute of this tag. 
+  \\The user can specify aliases for both the input and the output space. As sanity check, RAVEN
+  requires an additional required attribute \xmlAttr{type}. This attribute can be either ``input'' or ``output''. 
+  %
+  \nb The user can specify as many aliases as needed.
+  %
+  \default{None}
+}
+
 \renewcommand{\specBlock}[2]{
   The specifications of this model must be defined within #1 \xmlNode{#2} XML
   block.
@@ -739,21 +762,7 @@ to couple a new code.
   of the executable to be used.
   %
   \nb Either an absolute or relative path can be used.
-  \item \xmlNode{alias} \xmlDesc{string, optional field} specifies aliases for
-  any variables of interest coming from the code to which this model refers.
-  %
-  These aliases can be used anywhere in the RAVEN input to refer to the code
-  variables.
-  %
-  In the body of this node the user specifies the name of the variable that
-  RAVEN will look for in the output files of the code.
-  %
-  The actual alias, usable throughout the input, is instead defined in the
-  \xmlAttr{variable} attribute of this tag.
-  %
-  \nb The user can specify as many aliases as needed.
-  %
-  \default{None}
+  \item \aliasSystemDescription{Code}
   %
   \item \xmlNode{clargs} \xmlDesc{string, optional field} allows addition of
   command-line arguments to the execution command.  If the code interface
@@ -822,11 +831,14 @@ to couple a new code.
     ...
     <Code name='aUserDefinedName' subType='RAVEN_Driven_code'>
       <executable>path_to_executable</executable>
-      <alias variable='internal_variable_name1'>
-         External_Code_Variable_Name_1
+      <alias variable='internal_RAVEN_input_variable_name1' type="input">
+         External_Code_input_Variable_Name_1
       </alias>
-      <alias variable='internal_variable_name2'>
-         External_Code_Variable_Name_2
+      <alias variable='internal_RAVEN_input_variable_name2' type='input'>
+         External_Code_input_Variable_Name_2
+      </alias>
+      <alias variable='internal_RAVEN__output_variable_name' type='output'>
+         External_Code_output_Variable_Name_2
       </alias>
       <clargs type='prepend' arg='python'/>
       <clargs type='input' arg='-i' extension='.i'/>
@@ -868,6 +880,14 @@ requested.
   must be kept empty.
 \end{itemize}
 \vspace{-5mm}
+
+\subnodesIntro
+%
+\begin{itemize}
+  \item \aliasSystemDescription{Dummy}
+  \\Since the \textbf{Dummy} model represents a transfer function only, the usage of the alias is relatively meaningless.
+\end{itemize}
+
 Given a particular \textit{Step} using this model, if this model is linked to
 a \textit{Data} with the role of \textbf{Output}, it expects one of the output
 parameters will be identified by the keyword ``OutputPlaceHolder'' (see
@@ -879,7 +899,13 @@ Section~\ref{sec:steps}).
   ...
   <Models>
     ...
-    <Dummy name='aUserDefinedName' subType=''/>
+    <Dummy name='aUserDefinedName1' subType=''/>
+    
+    <Dummy name='aUserDefinedName2' subType=''>
+      <alias variable="a_RAVEN_input_variable" type="input">
+      another_name_for_this_variable_in_the_model
+      </alias>
+    </Dummy>
     ...
   </Models>
   ...
@@ -955,6 +981,12 @@ These variables are specified within a \xmlNode{variables} block:
   model.
   %
 \end{itemize}
+
+In addition, if the user wants to use the alias system, the following XML block can be inputted:
+\begin{itemize}
+  \item \aliasSystemDescription{ExternalModel}
+\end{itemize}
+
 
 When the external function variables are defined, at run time, RAVEN initializes
 them and tracks their values during the simulation.

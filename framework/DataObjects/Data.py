@@ -121,6 +121,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     self._toLoadFromList.append(toLoadFrom)
     self.addSpecializedReadingSettings()
     self._dataParameters['SampledVars'] = copy.deepcopy(options['metadata']['SampledVars']) if options != None and 'metadata' in options.keys() and 'SampledVars' in options['metadata'].keys() else None
+    if options is not None and 'alias' in options.keys(): self._dataParameters['alias'] = options['alias']
     self.raiseAMessage('Object type ' + self._toLoadFromList[-1].type + ' named "' + self._toLoadFromList[-1].name+'"')
     if(self._toLoadFromList[-1].type == 'HDF5'):
       tupleVar = self._toLoadFromList[-1].retrieveData(self._dataParameters)
