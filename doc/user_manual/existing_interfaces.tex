@@ -1025,11 +1025,18 @@ end BouncingBall;
 When a modelica model, e.g., BouncingBall model, is implemented in Dymola, the platform dependent C-code from a Modelica model and the corresponding executable code
 (i.e., by default dymosim.exe on the Windows operating system) are generated for simulation.  After the executable is generated, it may be run multiple times (with Dymola license).
 A separate TEXT file (by default dsin.txt) containing model parameters and initial conditions are also generated as part of the build process.  The RAVEN Dymola interface
-modifies input parameters by changing copies of this file.  Both the executable and TEXT parameter file (or simulation initialization file) names must be provided to RAVEN.  In the case of
+modifies input parameters by changing copies of this file.  Both the executable and TEXT parameter file (or simulation initialization file) names must be provided to RAVEN. The TEXT parameter file must be of type 'DymolaInitialisation'.  In the case of
 the BouncingBall model previously mentioned on the Windows operating system, the \textless Files\textgreater  specification would look like:
 \begin{lstlisting}[style=XML]
 <Files>
-  <Input name='dsin.txt' type=''>dsin.txt</Input>
+  <Input name='dsin.txt' type='DymolaInitialisation'>dsin.txt</Input>
+</Files>
+\end{lstlisting}
+
+The Dymola interface can only pass scalar values into the TEXT parameter file. If the user wants to pass vector information to Dymola, he can do so by providing an optional TEXT vector file to Dymola. This file must have the type 'DymolaVectors'. This additional file can then be read by the Dymola model. If vecor data is passed from RAVEN to the Dymola interface and the TEXT vector file is not specified, the interface will display an error and stop the Dymola execution. If the TEXT vector file is specified (and vector data is passed to the interface), the interface will write the datd into the specified file, but also display a warning, saying that the Dymola interface found vector data to be passed and if this data is supposed to go into the simulation initialisation file of type 'DymolaInitialisation' the array must be split into scalars. The \textless Files\textgreater specification for the vector data look as follows:
+\begin{lstlisting}[style=XML]
+<Files>
+  <Input name='timeSeriesData.txt' type='DymolaVectors'>timeSeriesData.txt</Input>
 </Files>
 \end{lstlisting}
 
@@ -1082,7 +1089,6 @@ The model executable is specified to RAVEN using the \textless Models\textgreate
 \end{lstlisting}
 RAVEN works best with Comma-Separated Value (CSV) files.  Therefore, the default .mat output type needs to be converted to .csv output.
 The Dymola interface will automatically convert the .mat output to human-readable forms, i.e., .csv output, through its implementation of the finalizeCodeOutput function.
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%% MESH GENERATION COUPLED INTERFACES %%%%%%%

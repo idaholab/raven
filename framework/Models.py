@@ -25,14 +25,16 @@ from collections import OrderedDict
 from BaseClasses import BaseType
 from Assembler import Assembler
 import SupervisedLearning
-import PostProcessors
 import CustomCommandExecuter
 import utils
 import mathUtils
 import TreeStructure
 import Files
 import directedGraph
+import InputData
+import PostProcessors
 #Internal Modules End--------------------------------------------------------------------------------
+
 
 class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
   """
@@ -40,6 +42,20 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     it could as complex as a stand alone code, a reduced order model trained somehow or something
     externally build and imported by the user
   """
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = super(Model, cls).getInputSpecification()
+    inputSpecification.addParam("subType", InputData.StringType, True)
+
+    return inputSpecification
+
   validateDict                  = {}
   validateDict['Input'  ]       = []
   validateDict['Output' ]       = []
@@ -181,10 +197,21 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     except KeyError:
       self.raiseADebug(" Failed in Node: "+str(xmlNode),verbostiy='silent')
       self.raiseAnError(IOError,'missed subType for the model '+self.name)
-
-    del(xmlNode.attrib['subType'])
     # read local information
     self.localInputAndChecks(xmlNode)
+
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the common parts of the model parameter input.
+      @ In, paramInput, ParameterInput, the already parsed input.
+      @ Out, None
+    """
+    if "subType" in paramInput.parameterValues:
+      self.subType = paraminput.parameterValues["subType"]
+    else:
+      self.raiseADebug(" Failed in Node: "+str(xmlNode),verbostiy='silent')
+      self.raiseAnError(IOError,'missed subType for the model '+self.name)
+
 
   def localInputAndChecks(self,xmlNode):
     """
@@ -288,9 +315,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ Out, None.
     """
     pass
-#
-#
-#
+
 class Dummy(Model):
   """
     This is a dummy model that just return the effect of the sampler. The values reported as input in the output
@@ -469,13 +494,140 @@ class Dummy(Model):
         output.updateOutputValue(key,exportDict[outKey][key])
     for key in exportDict['metadata']:
       output.updateMetadata(key,exportDict['metadata'][key])
-#
-#
-#
+
 class ROM(Dummy):
   """
     ROM stands for Reduced Order Model. All the models here, first learn than predict the outcome
   """
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls. This one seems a bit excessive, are all of these for this class?
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = super(ROM, cls).getInputSpecification()
+
+    IndexSetInputType = InputData.makeEnumType("indexSet","indexSetType",["TensorProduct","TotalDegree","HyperbolicCross","Custom"])
+    CriterionInputType = InputData.makeEnumType("criterion", "criterionType", ["bic","aic","gini","entropy","mse"])
+
+    InterpolationInput = InputData.parameterInputFactory('Interpolation', contentType=InputData.StringType)
+    InterpolationInput.addParam("quad", InputData.StringType, False)
+    InterpolationInput.addParam("poly", InputData.StringType, False)
+    InterpolationInput.addParam("weight", InputData.FloatType, False)
+
+    inputSpecification.addSub(InputData.parameterInputFactory('Features',contentType=InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory('Target',contentType=InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("IndexPoints", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("IndexSet",IndexSetInputType))
+    inputSpecification.addSub(InterpolationInput)
+    inputSpecification.addSub(InputData.parameterInputFactory("PolynomialOrder", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("SobolOrder", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("SparseGrid", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("persistence", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("gradient", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("simplification", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("graph", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("beta", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("knn", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("partitionPredictor", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("smooth", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("kernel", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("bandwidth", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("p", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("SKLtype", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("n_iter", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("tol", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("alpha_1", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("alpha_2", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("lambda_1", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("lambda_2", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("compute_score", InputData.StringType)) #bool
+    inputSpecification.addSub(InputData.parameterInputFactory("threshold_lambda", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("fit_intercept", InputData.StringType))  #bool
+    inputSpecification.addSub(InputData.parameterInputFactory("normalize", InputData.StringType))  #bool
+    inputSpecification.addSub(InputData.parameterInputFactory("verbose", InputData.StringType)) #bool
+    inputSpecification.addSub(InputData.parameterInputFactory("alpha", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("l1_ratio", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("max_iter", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("warm_start", InputData.StringType)) #bool
+    inputSpecification.addSub(InputData.parameterInputFactory("positive", InputData.StringType)) #bool?
+    inputSpecification.addSub(InputData.parameterInputFactory("eps", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("n_alphas", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("precompute", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("n_nonzero_coefs", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("fit_path", InputData.StringType)) #bool
+    inputSpecification.addSub(InputData.parameterInputFactory("max_n_alphas", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("criterion", CriterionInputType))
+    inputSpecification.addSub(InputData.parameterInputFactory("penalty", InputData.StringType)) #enum
+    inputSpecification.addSub(InputData.parameterInputFactory("dual", InputData.StringType)) #bool
+    inputSpecification.addSub(InputData.parameterInputFactory("C", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("intercept_scaling", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("class_weight", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("random_state", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("cv", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("shuffle", InputData.StringType)) #bool
+    inputSpecification.addSub(InputData.parameterInputFactory("loss", InputData.StringType)) #enum
+    inputSpecification.addSub(InputData.parameterInputFactory("epsilon", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("eta0", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("solver", InputData.StringType)) #enum
+    inputSpecification.addSub(InputData.parameterInputFactory("alphas", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("scoring", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("gcv_mode", InputData.StringType)) #enum
+    inputSpecification.addSub(InputData.parameterInputFactory("store_cv_values", InputData.StringType)) #bool
+    inputSpecification.addSub(InputData.parameterInputFactory("learning_rate", InputData.StringType)) #enum
+    inputSpecification.addSub(InputData.parameterInputFactory("power_t", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("multi_class", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("kernel", InputData.StringType)) #enum
+    inputSpecification.addSub(InputData.parameterInputFactory("degree", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("gamma", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("coef0", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("probability", InputData.StringType)) #bool
+    inputSpecification.addSub(InputData.parameterInputFactory("shrinking", InputData.StringType)) #bool
+    inputSpecification.addSub(InputData.parameterInputFactory("cache_size", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("nu", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("code_size", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("fit_prior", InputData.StringType)) #bool
+    inputSpecification.addSub(InputData.parameterInputFactory("class_prior", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("binarize", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("n_neighbors", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("weights", InputData.StringType)) #enum
+    inputSpecification.addSub(InputData.parameterInputFactory("algorithm", InputData.StringType)) #enum
+    inputSpecification.addSub(InputData.parameterInputFactory("leaf_size", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("metric", InputData.StringType)) #enum?
+    inputSpecification.addSub(InputData.parameterInputFactory("radius", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("outlier_label", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("shrink_threshold", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("priors", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("reg_param", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("splitter", InputData.StringType)) #enum
+    inputSpecification.addSub(InputData.parameterInputFactory("max_features", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("max_depth", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("min_samples_split", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("min_samples_leaf", InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("max_leaf_nodes", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("regr", InputData.StringType)) #enum
+    inputSpecification.addSub(InputData.parameterInputFactory("corr", InputData.StringType)) #enum?
+    inputSpecification.addSub(InputData.parameterInputFactory("beta0", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("storage_mode", InputData.StringType)) #enum
+    inputSpecification.addSub(InputData.parameterInputFactory("theta0", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("thetaL", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("thetaU", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("nugget", InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("optimizer", InputData.StringType)) #enum
+    inputSpecification.addSub(InputData.parameterInputFactory("random_start", InputData.IntegerType))
+
+    #Estimators can include ROMs, and so because baseNode does a copy, this
+    #needs to be after the rest of ROMInput is defined.
+    EstimatorInput = InputData.parameterInputFactory('estimator', contentType=InputData.StringType, baseNode=inputSpecification)
+    EstimatorInput.addParam("estimatorType", InputData.StringType, True)
+    inputSpecification.addSub(EstimatorInput)
+
+    return inputSpecification
+
   @classmethod
   def specializeValidateDict(cls):
     """
@@ -566,18 +718,31 @@ class ROM(Dummy):
     """
     Dummy._readMoreXML(self, xmlNode)
     self.initializationOptionDict['name'] = self.name
-    for child in xmlNode:
-      if child.attrib:
-        if child.tag not in self.initializationOptionDict.keys():
-          self.initializationOptionDict[child.tag]={}
-        self.initializationOptionDict[child.tag][child.text]=child.attrib
+    paramInput = ROM.getInputSpecification()()
+    paramInput.parseNode(xmlNode)
+    def tryStrParse(s):
+      """
+        Trys to parse if it is stringish
+        @ In, s, possible string
+        @ Out, s, original type, or possibly parsed string
+      """
+      if type(s).__name__ in ['str','unicode']:
+        return utils.tryParse(s)
+      return s
+
+    for child in paramInput.subparts:
+      if len(child.parameterValues) > 0:
+        if child.getName() not in self.initializationOptionDict.keys():
+          self.initializationOptionDict[child.getName()]={}
+        self.initializationOptionDict[child.getName()][child.value]=child.parameterValues
       else:
-        if child.tag == 'estimator':
-          self.initializationOptionDict[child.tag] = {}
-          for node in child:
-            self.initializationOptionDict[child.tag][node.tag] = utils.tryParse(node.text)
+        if child.getName() == 'estimator':
+          self.initializationOptionDict[child.getName()] = {}
+          for node in child.subparts:
+            self.initializationOptionDict[child.getName()][node.getName()] = tryStrParse(node.value)
         else:
-          self.initializationOptionDict[child.tag] = utils.tryParse(child.text)
+          self.initializationOptionDict[child.getName()] = tryStrParse(child.value)
+
     #the ROM is instanced and initialized
     # check how many targets
     if not 'Target' in self.initializationOptionDict.keys(): self.raiseAnError(IOError,'No Targets specified!!!')
@@ -814,13 +979,27 @@ class ROM(Dummy):
     inRun = self._manipulateInput(Input[0])
     uniqueHandler = Input[1]['uniqueHandler'] if 'uniqueHandler' in Input[1].keys() else 'any'
     jobHandler.submitDict['Internal']((inRun,), self.__externalRun, str(Input[1]['prefix']), metadata=Input[1], modulesToImport=self.mods, uniqueHandler=uniqueHandler)
-#
-#
-#
+
 class ExternalModel(Dummy):
   """
     External model class: this model allows to interface with an external python module
   """
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = super(ExternalModel, cls).getInputSpecification()
+    inputSpecification.addParam("ModuleToLoad", InputData.StringType, True)
+    inputSpecification.addSub(InputData.parameterInputFactory("variables", contentType=InputData.StringType))
+
+    return inputSpecification
+
   @classmethod
   def specializeValidateDict(cls):
     """
@@ -901,23 +1080,26 @@ class ExternalModel(Dummy):
       @ Out, None
     """
     #Model._readMoreXML(self, xmlNode)
-    if 'ModuleToLoad' in xmlNode.attrib.keys():
-      self.ModuleToLoad = str(xmlNode.attrib['ModuleToLoad'])
+    paramInput = ExternalModel.getInputSpecification()()
+    paramInput.parseNode(xmlNode)
+    if 'ModuleToLoad' in paramInput.parameterValues:
+      self.ModuleToLoad = paramInput.parameterValues['ModuleToLoad']
       moduleToLoadString, self.ModuleToLoad = utils.identifyIfExternalModelExists(self, self.ModuleToLoad, self.workingDir)
     else: self.raiseAnError(IOError,'ModuleToLoad not provided for module externalModule')
     # load the external module and point it to self.sim
     self.sim = utils.importFromPath(moduleToLoadString,self.messageHandler.getDesiredVerbosity(self)>1)
     # check if there are variables and, in case, load them
-    for son in xmlNode:
-      if son.tag=='variable':
+    for child in paramInput.subparts:
+      if child.getName() =='variable':
         self.raiseAnError(IOError,'"variable" node included but has been depreciated!  Please list variables in a "variables" node instead.  Remove this message by Dec 2016.')
-      elif son.tag=='variables':
-        if len(son.attrib.keys()) > 0: self.raiseAnError(IOError,'the block '+son.tag+' named '+son.text+' should not have attributes!!!!!')
-        for var in son.text.split(','):
+      elif child.getName() == 'variables':
+        if len(child.parameterValues) > 0: self.raiseAnError(IOError,'the block '+child.getName()+' named '+child.value+' should not have attributes!!!!!')
+        for var in child.value.split(','):
           var = var.strip()
           self.modelVariableType[var] = None
           self.listOfRavenAwareVars.append(var)
     # check if there are other information that the external module wants to load
+    #TODO this needs to be converted to work with paramInput
     if '_readMoreXML' in dir(self.sim): self.sim._readMoreXML(self.initExtSelf,xmlNode)
 
   def __externalRun(self, Input, modelVariables):
@@ -1035,6 +1217,50 @@ class Code(Model):
     This is the generic class that import an external code into the framework
   """
   CodeInterfaces = importlib.import_module("CodeInterfaces")
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = super(Code, cls).getInputSpecification()
+    inputSpecification.addSub(InputData.parameterInputFactory("executable", contentType=InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("preexec", contentType=InputData.StringType))
+
+    ## Begin alias tag
+    AliasInput = InputData.parameterInputFactory("alias", contentType=InputData.StringType)
+    AliasInput.addParam("variable", InputData.StringType, True)
+    inputSpecification.addSub(AliasInput)
+    ## End alias tag
+
+    ## Begin command line arguments tag
+    ClargsInput = InputData.parameterInputFactory("clargs")
+
+    ClargsTypeInput = InputData.makeEnumType("clargsType","clargsTypeType",["text","input","output","prepend","postpend"])
+    ClargsInput.addParam("type", ClargsTypeInput, True)
+
+    ClargsInput.addParam("arg", InputData.StringType, False)
+    ClargsInput.addParam("extension", InputData.StringType, False)
+    inputSpecification.addSub(ClargsInput)
+    ## End command line arguments tag
+
+    ## Begin file arguments tag
+    FileargsInput = InputData.parameterInputFactory("fileargs")
+
+    FileargsTypeInput = InputData.makeEnumType("fileargsType", "fileargsTypeType",["input","output","moosevpp"])
+    FileargsInput.addParam("type", FileargsTypeInput, True)
+
+    FileargsInput.addParam("arg", InputData.StringType, False)
+    FileargsInput.addParam("extension", InputData.StringType, False)
+    inputSpecification.addSub(FileargsInput)
+    ## End file arguments tag
+
+    return inputSpecification
+
   @classmethod
   def specializeValidateDict(cls):
     """
@@ -1078,21 +1304,25 @@ class Code(Model):
       @ Out, None
     """
     Model._readMoreXML(self, xmlNode)
+    paramInput = Code.getInputSpecification()()
+    paramInput.parseNode(xmlNode)
     self.clargs={'text':'', 'input':{'noarg':[]}, 'pre':'', 'post':''} #output:''
     self.fargs={'input':{}, 'output':'', 'moosevpp':''}
-    for child in xmlNode:
-      if child.tag =='executable':
-        self.executable = str(child.text)
-      if child.tag =='preexec':
-        self.preExec = str(child.text)
-      elif child.tag =='alias':
+    for child in paramInput.subparts:
+      if child.getName() =='executable':
+        self.executable = child.value
+      if child.getName() =='preexec':
+        self.preExec = child.value
+      elif child.getName() =='alias':
         # the input would be <alias variable='internal_variable_name'>Material|Fuel|thermal_conductivity</alias>
-        if 'variable' in child.attrib.keys(): self.alias[child.attrib['variable']] = child.text
-        else: self.raiseAnError(IOError,'not found the attribute variable in the definition of one of the alias for code model '+str(self.name))
-      elif child.tag == 'clargs':
-        argtype = child.attrib['type']      if 'type'      in child.attrib.keys() else None
-        arg     = child.attrib['arg']       if 'arg'       in child.attrib.keys() else None
-        ext     = child.attrib['extension'] if 'extension' in child.attrib.keys() else None
+        if 'variable' in child.parameterValues:
+          self.alias[child.parameterValues['variable']] = child.value
+        else:
+          self.raiseAnError(IOError,'the attribute variable was not found in the definition of one of the alias for code model '+str(self.name))
+      elif child.getName() == 'clargs':
+        argtype = child.parameterValues['type']      if 'type'      in child.parameterValues else None
+        arg     = child.parameterValues['arg']       if 'arg'       in child.parameterValues else None
+        ext     = child.parameterValues['extension'] if 'extension' in child.parameterValues else None
         if argtype == None: self.raiseAnError(IOError,'"type" for clarg not specified!')
         elif argtype == 'text':
           if ext != None: self.raiseAWarning('"text" nodes only accept "type" and "arg" attributes! Ignoring "extension"...')
@@ -1116,10 +1346,10 @@ class Code(Model):
           if arg == None: self.raiseAnError(IOError,'"arg" for clarg '+argtype+' not specified! Enter text to be used.')
           self.clargs['post'] = arg
         else: self.raiseAnError(IOError,'clarg type '+argtype+' not recognized!')
-      elif child.tag == 'fileargs':
-        argtype = child.attrib['type']      if 'type'      in child.attrib.keys() else None
-        arg     = child.attrib['arg']       if 'arg'       in child.attrib.keys() else None
-        ext     = child.attrib['extension'] if 'extension' in child.attrib.keys() else None
+      elif child.getName() == 'fileargs':
+        argtype = child.parameterValues['type']      if 'type'      in child.parameterValues else None
+        arg     = child.parameterValues['arg']       if 'arg'       in child.parameterValues else None
+        ext     = child.parameterValues['extension'] if 'extension' in child.parameterValues else None
         if argtype == None: self.raiseAnError(IOError,'"type" for filearg not specified!')
         elif argtype == 'input':
           if arg == None: self.raiseAnError(IOError,'filearg type "input" requires the template variable be specified in "arg" attribute!')
@@ -1147,7 +1377,7 @@ class Code(Model):
         self.preExec = abspath
       else: self.raiseAMessage('not found preexec '+self.preExec,'ExceptedError')
     self.code = Code.CodeInterfaces.returnCodeInterface(self.subType,self)
-    self.code.readMoreXML(xmlNode)
+    self.code.readMoreXML(xmlNode) #TODO figure out how to handle this with InputData
     self.code.setInputExtension(list(a.strip('.') for b in (c for c in self.clargs['input'].values()) for a in b))
     self.code.addInputExtension(list(a.strip('.') for b in (c for c in self.fargs ['input'].values()) for a in b))
     self.code.addDefaultExtension()
@@ -1251,8 +1481,16 @@ class Code(Model):
       newInputSet[index].setPath(subDirectory)
       shutil.copy(self.oriInputFiles[index].getAbsFile(),subDirectory)
     Kwargs['subDirectory'] = subDirectory
-    if len(self.alias.keys()) != 0: Kwargs['alias']   = self.alias
-    return (self.code.createNewInput(newInputSet,self.oriInputFiles,samplerType,**copy.deepcopy(Kwargs)),Kwargs)
+    if len(self.alias.keys()) != 0:
+      if 'SampledVars' in Kwargs.keys():
+        sampledVars = Kwargs.pop('SampledVars')
+        Kwargs['SampledVars'] = copy.deepcopy(sampledVars)
+        for varFramework,varCode in self.alias.items():
+          Kwargs['SampledVars'].pop(varFramework)
+          Kwargs['SampledVars'][varCode] = sampledVars[varFramework]
+    newInput = self.code.createNewInput(newInputSet,self.oriInputFiles,samplerType,**copy.deepcopy(Kwargs))
+    if 'SampledVars' in Kwargs.keys() and len(self.alias.keys()) != 0: Kwargs['SampledVars'] = sampledVars
+    return (newInput,Kwargs)
 
   def updateInputFromOutside(self, Input, externalDict):
     """
@@ -1353,11 +1591,6 @@ class Code(Model):
         output.updateMetadata(key,exportDict['metadata'][key])
       output.numAdditionalLoadPoints += 1 #prevents consistency problems for entries from restart
 
-
-#
-#
-#
-#
 class PostProcessor(Model, Assembler):
   """
     PostProcessor is an Action System. All the models here, take an input and perform an action
@@ -1524,10 +1757,7 @@ class PostProcessor(Model, Assembler):
       @ Out, createNewInput, tuple, return the new input in a tuple form
     """
     return self.interface.inputToInternal(self,myInput)
-#
-#
-#
-#
+
 class EnsembleModel(Dummy, Assembler):
   """
     EnsembleModel class. This class is aimed to create a comunication 'pipe' among different models in terms of Input/Output relation
@@ -1837,10 +2067,11 @@ class EnsembleModel(Dummy, Assembler):
       
       if len(unstructuredInputsValues.keys()) > 0:
         if targetEvaluations[modelIn].type != 'HistorySet':
-          for key in unstructuredInputsValues.keys(): 
-            unstructuredInputsValues[key] = unstructuredInputsValues[key][-1]
-        else: unstructuredInputsValues  =  unstructuredInputsValues.values()[-1]
-        inputsValues.update(unstructuredInputsValues)
+          castedUnstructuredInputsValues = {}
+          for key in unstructuredInputsValues.keys():
+            castedUnstructuredInputsValues[key] = copy.copy(unstructuredInputsValues[key][-1])
+        else: castedUnstructuredInputsValues  =  unstructuredInputsValues.values()[-1]
+        inputsValues.update(castedUnstructuredInputsValues)
       outputsValues  = outputsValues if targetEvaluations[modelIn].type != 'HistorySet' else outputsValues.values()[-1]
 
       for key in targetEvaluations[modelIn].getParaKeys('inputs'):
@@ -1857,7 +2088,7 @@ class EnsembleModel(Dummy, Assembler):
     if output.type == 'HDF5': output.addGroupDataObjects({'group':self.name+str(finishedJob.identifier)},exportDict,False)
     else:
       for key in exportDict['inputSpaceParams' ] :
-        if key in output.getParaKeys('inputs') : output.updateInputValue (key,exportDict['inputSpaceParams' ][key],options={'acceptArrayRealizations':True})
+        if key in output.getParaKeys('inputs') : output.updateInputValue (key,exportDict['inputSpaceParams' ][key])
       for key in exportDict['outputSpaceParams'] :
         if key in output.getParaKeys('outputs'): output.updateOutputValue(key,exportDict['outputSpaceParams'][key])
       for key in exportDict['metadata'] :  output.updateMetadata(key,exportDict['metadata'][key][-1])
@@ -1998,10 +2229,7 @@ class EnsembleModel(Dummy, Assembler):
           break
     returnEvaluation = returnDict, tempTargetEvaluations
     return returnEvaluation
-#
-#
-#
-#
+
 """
  Factory......
 """

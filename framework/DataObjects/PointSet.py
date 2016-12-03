@@ -140,8 +140,7 @@ class PointSet(Data):
     else:
       if name in self._dataContainer['inputs'].keys()+self._dataContainer['unstructuredInputs'].keys():
         #popped = self._dataContainer['inputs'].pop(name)
-        if not unstructuredInput: 
-          self._dataContainer['inputs'][name].append(np.atleast_1d(np.ravel(value)[-1]))
+        if not unstructuredInput: self._dataContainer['inputs'][name].append(np.atleast_1d(np.ravel(value)[-1]))
         else                    : self._dataContainer['unstructuredInputs'][name].append(np.atleast_1d(np.ravel(value)))
         #self._dataContainer['inputs'][name] = c1darray(values=np.atleast_1d(np.atleast_1d(value)[-1]))                     copy.copy(np.concatenate((np.atleast_1d(np.array(popped)), np.atleast_1d(np.atleast_1d(value)[-1]))))
       else:

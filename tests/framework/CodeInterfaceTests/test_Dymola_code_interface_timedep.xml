@@ -4,11 +4,12 @@
     <Input name="dsin.txt" type="DymolaInitialisation">dsin.txt</Input>
     <Input name="addinp.txt" type="DymolaVectors">addinp.txt</Input>
   </Files>
-
-  <!-- The purpose of this test is to exercise the Dymola external code interface without needing to have a built -->
-  <!--   executable.  It is directly modeled on the test_relap5_code_interface.xml test and works by making sure that -->
-  <!--   1) The input files are perturbed correctly -->
-  <!--   2) The raw output MAT files are properly processed for reading by RAVEN -->
+  <!-- 
+     The purpose of this test is to exercise the Dymola external code interface without needing to have a built
+     executable.  It is directly modeled on the test_relap5_code_interface.xml test and works by making sure that
+      1) The input files are perturbed correctly
+      2) The raw output MAT files are properly processed for reading by RAVEN 
+   -->
   <RunInfo>
     <WorkingDir>DMInterfaceTestTimedep</WorkingDir>
     <Sequence>testDummyStep,testPrintUnstructuredInputSpace</Sequence>
@@ -27,13 +28,11 @@
     </Code>
 
     <EnsembleModel name="Ensemble_Model" subType="">
-      <!-- <Model class="Models" type="ExternalModel" inputNames="CreateHIST_in"> -->
       <Model class="Models" type="ExternalModel">
          CreateHIST
          <Input            class="DataObjects" type="PointSet">CreateHIST_in</Input>
          <TargetEvaluation class="DataObjects" type="HistorySet">CreateHIST_out</TargetEvaluation>
       </Model>
-      <!-- <Model class="Models" type="Code" inputNames="BBHistorySet_in"> -->
       <Model class="Models" type="Code">
          BouncingBall
          <Input     class="Files"        type="DymolaInitialisation">dsin.txt</Input>
@@ -107,27 +106,14 @@
       </Print>
   </OutStreams>
   <DataObjects>
-    <!-- <PointSet name="BBHistorySet_in">
-      <Input>hstart</Input>
-      <Output>OutputPlaceHolder</Output>
-    </PointSet>
-     <PointSet name="BBHistorySet_out">
-     <Input>hstart, G_vect</Input>
-     <Output>Time,v,flying,impact</Output>
-     </PointSet>
-     -->
-     <HistorySet name="BBHistorySet_out">
-     <Input>hstart, G_vect</Input>
-     <Output>Time,v,flying,impact</Output>
-     </HistorySet>
-     
-    
-
-
     <PointSet name="CreateHIST_in">
-      <Input>G_a, G_b, G_c</Input>
-      <Output>OutputPlaceHolder</Output>
+       <Input>G_a, G_b, G_c</Input>
+       <Output>OutputPlaceHolder</Output>
     </PointSet>
+    <HistorySet name="BBHistorySet_out">
+       <Input>hstart, G_vect</Input>
+       <Output>Time,v,flying,impact</Output>
+     </HistorySet>
     <HistorySet name="CreateHIST_out">
       <Input>G_a, G_b, G_c</Input>
       <Output>G_vect</Output>

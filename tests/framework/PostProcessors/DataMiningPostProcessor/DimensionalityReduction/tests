@@ -16,6 +16,7 @@
     UnorderedCsv    = 'ExactPCA/dummy_mle.csv ExactPCA/info_mle.csv'
     check_absolute_value = True
     output = 'ExactPCA/PlotIris_mle.png'
+    rel_err = 0.00001
   [../]
   [./RandomizedPCA]
     type   = 'RavenFramework'

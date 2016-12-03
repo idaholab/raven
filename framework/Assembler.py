@@ -1,7 +1,7 @@
 """
 Created on Jan 20, 2015
 
-@author: senrs  
+@author: senrs
 based on alfoa design
 
 """

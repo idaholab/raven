@@ -17,6 +17,7 @@
         <!--  /path/to/relap/executable/relap5.x -->
         <!-- here we should put the executable. Since we want to test the interface only, it is going to be empty -->
       </executable>
+      <alias variable="heatCapacity154Alias">20100154:2</alias>
     </Code>
   </Models>
 
@@ -58,7 +59,7 @@
       <samplerInit>
         <limit>5</limit>
       </samplerInit>
-      <variable name="20100154:2">
+      <variable name="heatCapacity154Alias">
         <distribution>heat_capacity_154</distribution>
       </variable>
       <variable name="20100155:2">

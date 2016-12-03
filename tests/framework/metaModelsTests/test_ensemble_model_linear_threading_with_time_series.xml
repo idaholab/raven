@@ -59,18 +59,21 @@
       <Input class="DataObjects"  type="PointSet">inputHolder</Input>
       <Model class="Models"       type="EnsembleModel">heatTransferEnsembleModel</Model>
       <Sampler class="Samplers"   type="Grid">MonteCarloTemperature</Sampler>
-      <Output class="DataObjects" type="PointSet">metaModelOutputTest</Output>
-      <Output class="OutStreams"  type="Print">metaModelOutputTestDump</Output>
+      <Output class="DataObjects" type="PointSet">metaModelOutputTestPointSet</Output>
+      <Output class="DataObjects" type="PointSet">metaModelOutputTestHistorySet</Output>
       <Output class="Databases"   type="HDF5">testOutputDatabase</Output>
     </MultiRun>
     <IOStep name="dumpResults" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">heatTransferContainer</Input>
       <Input class="DataObjects" type="PointSet">thermalConductivityComputationContainer</Input>
-      <Input class="DataObjects" type="PointSet">metaModelOutputTest</Input>
+      <Input class="DataObjects" type="PointSet">metaModelOutputTestPointSet</Input>
+      <Input class="DataObjects" type="HistorySet">metaModelOutputTestHistorySet</Input>
       <Output class="OutStreams" type="Print">thermalConductivityComputationContainerDump</Output>
       <Output class="OutStreams" type="Print">heatTransferContainerDump</Output>
-      <Output class="OutStreams" type="Plot">metaModelOutputTestSolution</Output>
-      <Output class="OutStreams" type="Plot">metaModelOutputTestK</Output>
+      <Output class="OutStreams" type="Plot">metaModelOutputTestPointSetSolution</Output>
+      <Output class="OutStreams" type="Plot">metaModelOutputTestPointSetK</Output>
+      <Output class="OutStreams" type="Plot">metaModelOutputTestHistorySetk</Output>
+      <Output class="OutStreams"  type="Print">metaModelOutputTestPointSetDump</Output>
     </IOStep>
   </Steps>
 
@@ -83,17 +86,47 @@
       <type>csv</type>
       <source>heatTransferContainer</source>
     </Print>
-    <Print name="metaModelOutputTestDump">
+    <Print name="metaModelOutputTestPointSetDump">
       <type>csv</type>
-      <source>metaModelOutputTest</source>
+      <source>metaModelOutputTestPointSet</source>
     </Print>
-    <Plot dim="3" name="metaModelOutputTestSolution" overwrite="false" verbosity="debug">
+    <Print name="metaModelOutputTestHistorySetDump">
+        <type>csv</type>
+        <source>metaModelOutputTestHistorySet</source>
+    </Print>
+    <Plot name="metaModelOutputTestHistorySetk" overwrite="false" verbosity="debug">
+        <plotSettings>
+            <plot>
+                <type>scatter</type>
+                <x>metaModelOutputTestHistorySet|Input|k</x>
+                <y>metaModelOutputTestHistorySet|Input|timeFromFirstModel</y>
+            </plot>
+            <xlabel>thermal conductivity</xlabel>
+            <ylabel>time (s)</ylabel>
+        </plotSettings>
+        <actions>
+            <how>png</how>
+            <figureProperties>
+                <frameon>true</frameon>
+            </figureProperties>
+            <labelFormat>
+                <style>sci</style>
+            </labelFormat>
+            <grid>
+                <b>true</b>
+            </grid>
+            <title>
+                <text> </text>
+            </title>
+        </actions>
+    </Plot>
+    <Plot name="metaModelOutputTestPointSetSolution" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>scatter</type>
-          <x>metaModelOutputTest|Input|leftTemperature</x>
-          <y>metaModelOutputTest|Input|rightTemperature</y>
-          <z>metaModelOutputTest|Output|solution</z>
+          <x>metaModelOutputTestPointSet|Input|leftTemperature</x>
+          <y>metaModelOutputTestPointSet|Input|rightTemperature</y>
+          <z>metaModelOutputTestPointSet|Output|solution</z>
         </plot>
         <xlabel>left Temperature (K)</xlabel>
         <ylabel>right Temperature (K)</ylabel>
@@ -115,13 +148,13 @@
         </title>
       </actions>
     </Plot>
-    <Plot dim="3" name="metaModelOutputTestK" overwrite="false" verbosity="debug">
+    <Plot name="metaModelOutputTestPointSetK" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>scatter</type>
-          <x>metaModelOutputTest|Input|leftTemperature</x>
-          <y>metaModelOutputTest|Input|rightTemperature</y>
-          <z>metaModelOutputTest|Output|k</z>
+          <x>metaModelOutputTestPointSet|Input|leftTemperature</x>
+          <y>metaModelOutputTestPointSet|Input|rightTemperature</y>
+          <z>metaModelOutputTestPointSet|Output|k</z>
         </plot>
         <xlabel>left Temperature (K)</xlabel>
         <ylabel>right Temperature (K)</ylabel>
@@ -154,14 +187,18 @@
       <Input>leftTemperature,rightTemperature,k,timeFromFirstModel</Input>
       <Output>solution</Output>
     </PointSet>
-    <HistorySet name="thermalConductivityComputationContainer">
-      <Input>leftTemperature,rightTemperature</Input>
-      <Output>k,timeFromFirstModel</Output>
-    </HistorySet>
-    <PointSet name="metaModelOutputTest">
+    <PointSet name="metaModelOutputTestPointSet">
       <Input>leftTemperature,rightTemperature</Input>
       <Output>k,solution</Output>
     </PointSet>
+    <PointSet name="metaModelOutputTestHistorySet">
+        <Input>leftTemperature,rightTemperature,k,timeFromFirstModel</Input>
+        <Output>solution</Output>
+    </PointSet>
+    <HistorySet name="thermalConductivityComputationContainer">
+        <Input>leftTemperature,rightTemperature</Input>
+        <Output>k,timeFromFirstModel</Output>
+    </HistorySet>
   </DataObjects>
 
 </Simulation>

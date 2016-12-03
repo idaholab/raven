@@ -337,6 +337,14 @@ class OutStreamPlot(OutStreamManager):
               for index in range(len(parame.values())):
                 conarr[index] = parame.values()[index][0]
               self.colorMapValues[pltindex][1].append(np.asarray(conarr))
+        # check if the array sizes are consistent
+        sizeToMatch = self.xValues[pltindex][1][-1].size
+        if self.yCoordinates and self.yValues[pltindex][1][-1].size != sizeToMatch:
+          self.raiseAnError(Exception,"the <y> variable has a size ("+str(self.yValues[pltindex][1][-1].size)+") that is not consistent with respect the one ("+str(sizeToMatch)+") inputted in <x>")
+        if self.zCoordinates and self.dim > 2 and self.zValues[pltindex][1][-1].size != sizeToMatch:
+          self.raiseAnError(Exception,"the <z> variable has a size ("+str(self.zValues[pltindex][1][-1].size)+") that is not consistent with respect the one ("+str(sizeToMatch)+") inputted in <x>")
+        if self.colorMapCoordinates[pltindex] != None and self.colorMapValues[pltindex][1][-1].size != sizeToMatch:
+          self.raiseAnError(Exception,"the <colorMap> variable has a size ("+str(self.colorMapValues[pltindex][1][-1].size)+") that is not consistent with respect the one ("+str(sizeToMatch)+") inputted in <x>")
       else:
         # HistorySet
         self.xValues[pltindex] = {}
@@ -382,6 +390,15 @@ class OutStreamPlot(OutStreamManager):
               if colorSplit[2] not in dataColor.keys():
                 self.raiseAnError(IOError, "Parameter " + colorSplit[2] + " not found as " + colorSplit[1] + " in DataObject " + colorSplit[0])
               self.colorMapValues[pltindex][cnt].append(np.asarray(dataColor[colorSplit[2]]))
+          # check if the array sizes are consistent
+          sizeToMatch = len(self.xValues[pltindex][cnt][-1])
+          if self.yCoordinates and self.yValues[pltindex][cnt][-1].size != sizeToMatch:
+            self.raiseAnError(Exception,"the <y> variable has a size ("+str(self.yValues[pltindex][cnt][-1].size)+") that is not consistent with respect the one ("+str(sizeToMatch)+") inputted in <x>")
+          if self.zCoordinates and self.dim > 2 and self.zValues[pltindex][cnt][-1].size != sizeToMatch:
+            self.raiseAnError(Exception,"the <z> variable has a size ("+str(self.zValues[pltindex][cnt][-1].size)+") that is not consistent with respect the one ("+str(sizeToMatch)+") inputted in <x>")
+          if self.colorMapCoordinates[pltindex] != None and len(self.colorMapValues[pltindex][cnt][-1]) != sizeToMatch:
+            self.raiseAnError(Exception,"the <colorMap> variable has a size ("+str(self.colorMapValues[pltindex][cnt][-1].size)+") that is not consistent with respect the one ("+str(sizeToMatch)+") inputted in <x>")
+
       # check if something has been got or not
       if len(self.xValues[pltindex].keys()) == 0:
         return False

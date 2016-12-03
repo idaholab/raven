@@ -156,7 +156,7 @@ class graphObject(object):
         if neighbour in path or visit(neighbour): return True
       path.remove(vertex)
       return False
-    
+
     return any(visit(v) for v in g)
 
 
@@ -188,7 +188,7 @@ class graphObject(object):
     """
     if verticesEncountered is None: verticesEncountered = set()
     gdict = self.__graphDict
-    vertices = gdict.keys()
+    vertices = list(gdict.keys())
     if not startVertex:
       # chosse a vertex from graph as a starting point
       startVertex = vertices[0]
@@ -266,11 +266,13 @@ class graphObject(object):
     """
       Method to compute the density of the graph
       @ In, None
-      @ Out, density, integer, ensity of a graph
+      @ Out, dens, integer, density of a graph
     """
     V = len(self.__graphDict.keys())
     E = len(self.edges())
-    return 2.0 * E / (V *(V - 1))
+    try   : dens = 2.0 * E / (V *(V - 1))
+    except: dens = 0
+    return dens
 
   def diameter(self):
     """
@@ -307,7 +309,7 @@ class graphObject(object):
         for k in range(1,len(sequence) + 1):
           left = sum(sequence[:k])
           right =  k * (k-1) + sum([min(x,k) for x in sequence[k:]])
-          if left > right: 
+          if left > right:
             metConditions = False
             break
       else:
