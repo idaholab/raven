@@ -101,7 +101,6 @@ class _WorkerProcess(object):
                         print "An error has occured during the " + \
                               "function import"
                         sys.excepthook(*sys.exc_info())
-                import cloudpickle
                 __args = pickle.loads(__sargs)
                 __f = locals()[__fname]
                 try:

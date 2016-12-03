@@ -19,10 +19,7 @@ else:
   import cPickle as pickle
 import copy
 #import pickle as cloudpickle
-if sys.version_info.major == 2:
-  from cloudpickle import cloudpickle
-else:
-  print("cloud does not support python3")
+import cloudpickle
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
