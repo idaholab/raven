@@ -85,7 +85,7 @@
   [./HierarchicalScipy]
     type   = 'RavenFramework'
     input  = 'test_dataMiningHierarchical.xml'
-    csv    = 'Hierarchical/dummy_SKL_1.csv Hierarchical/dummy_SKL_2.csv Hierarchical/dummy_SKL_3.csv'
+    csv    = 'Hierarchical/dummy.csv Hierarchical/dummy_SKL_1.csv Hierarchical/dummy_SKL_2.csv Hierarchical/dummy_SKL_3.csv'
   [../]
   [./agglomerativeDTW]
     type   = 'RavenFramework'
