@@ -85,7 +85,7 @@
   [./HierarchicalScipy]
     type   = 'RavenFramework'
     input  = 'test_dataMiningHierarchical.xml'
-    csv    = 'Hierarchical/dummy.csv Hierarchical/dummy_SKL_1.csv Hierarchical/dummy_SKL_2.csv Hierarchical/dummy_SKL_3.csv'
+    csv    = 'Hierarchical/dummy.csv'
   [../]
   [./agglomerativeDTW]
     type   = 'RavenFramework'
@@ -97,5 +97,10 @@
     type   = 'RavenFramework'
     input  = 'test_TD_agglomerative_euclidean.xml'
     csv    = 'agglomerative_euclidean/printAll_0.csv agglomerative_euclidean/printAll_1.csv agglomerative_euclidean/printAll_2.csv agglomerative_euclidean/printAll_3.csv agglomerative_euclidean/printAll_4.csv agglomerative_euclidean/printAll_5.csv agglomerative_euclidean/printAll_6.csv agglomerative_euclidean/printAll_7.csv agglomerative_euclidean/printAll_8.csv agglomerative_euclidean/printAll_9.csv'
+  [../]
+  [./HierarchicalScipy_SKL]
+    type   = 'RavenFramework'
+    input  = 'test_dataMiningHierarchical_SKL_Pairwise.xml'
+    csv    = 'Hierarchical/dummy_SKL_1.csv Hierarchical/dummy_SKL_2.csv Hierarchical/dummy_SKL_3.csv'
   [../]
 []
