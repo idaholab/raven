@@ -51,7 +51,10 @@ class SKL(Metric):
       if child.tag == 'metricType':
         self.metricType = child.text
       else:
-        self.distParams[child] = child.text
+        self.distParams[str(child.tag)] = float(child.text)
+        
+    if (self.metricType not in pairwise.kernel_metrics().keys()) and (self.metricType not in pairwise.distance_metrics().keys()): 
+      self.raiseAnError(IOError,'Metric SKL error: metricType ' + str(self.metricType) + ' is not available: Available metrics are: ' + str(pairwise.distance_metrics().keys()) + ' and ' + str(pairwise.kernel_metrics().keys()))  
 
     
   def distance(self, x, y=None, **kwargs):
@@ -61,11 +64,28 @@ class SKL(Metric):
       @ In, y, dict, dictionary containing data of y
       @ Out, value, float, distance between x and y
     """
-    if isinstance(x,np.ndarray) and isinstance(y,np.ndarray):
-      if self.metricType in pairwise.kernel_metrics().keys():
-        value = pairwise.kernel_metrics()[self.metricType](X=x, Y=y, dict(**kwargs.items() + self.distParams.items()))
-      elif self.metricType in pairwise.distance_metrics():
-        value = pairwise.pairwise_distances()[self.metricType](X=x, Y=y, dict(**kwargs.items() + self.distParams.items()))       
-      return value
+    if y is not None:
+      if isinstance(x,np.ndarray) and isinstance(y,np.ndarray):
+      # To the reviewer: double check the following line
+      # I am not sure if this is correct/optimal. Maybe Josh can have give some directions   
+        dictTemp = dict(kwargs.items() + self.distParams.items())
+        if self.metricType in pairwise.kernel_metrics().keys():
+          value = pairwise.kernel_metrics(X=x, Y=y, metric=self.metricType, **dictTemp) 
+        elif self.metricType in pairwise.distance_metrics():
+          value = pairwise.pairwise_distances(X=x, Y=y, metric=self.metricType, **dictTemp)       
+        return value
+      else:
+        self.raiseAnError(IOError,'Metric SKL error: the structures of the two data sets are different')
     else:
-      self.raiseAnError(IOError,'Metric SKL error: the structures of the two data sets are different')
+      if self.metricType == 'mahalanobis':
+        covMAtrix = np.cov(x.T)
+        kwargs['VI'] = np.linalg.inv(covMAtrix)
+      # To the reviewer: double check the following line
+      # I am not sure if this is correct/optimal. Maybe Josh can have give some directions       
+      dictTemp = dict(kwargs.items() + self.distParams.items())
+      if self.metricType in pairwise.kernel_metrics().keys(): 
+        value = pairwise.pairwise_kernels(X=x, metric=self.metricType, **dictTemp)
+      elif self.metricType in pairwise.distance_metrics().keys():
+        value = pairwise.pairwise_distances(X=x, metric=self.metricType, **dictTemp)    
+      return value
+        

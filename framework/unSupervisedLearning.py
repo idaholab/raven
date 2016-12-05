@@ -216,15 +216,16 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
         for cnt, feat in enumerate(self.features):
           featureValues = tdict[feat]
           (mu,sigma) = mathUtils.normalizationFactors(featureValues)
-          normValues[:, cnt] = (featureValues - mu) / sigma
+          normValues[:, cnt] = (featureValues - mu) / sigma         
+        self.normValues = metric.distance(normValues)
 
-        ## this should operate on the normed data
-        for i in range(realizationCount):
-          rowI = normValues[i,:]
-          for j in range(i,realizationCount):
-            rowJ = normValues[j,:]
-            self.normValues[i][j] = metric.distance(rowI,rowJ)
-            self.normValues[j][i] = self.normValues[i][j]
+#        ## this should operate on the normed data
+#         for i in range(realizationCount):
+#           rowI = normValues[i,:]
+#           for j in range(i,realizationCount):
+#             rowJ = normValues[j,:]
+#             self.normValues[i][j] = metric.distance(rowI,rowJ)
+#             self.normValues[j][i] = self.normValues[i][j]
 
     self.__trainLocal__()
     self.amITrained = True
