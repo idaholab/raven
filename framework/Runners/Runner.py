@@ -48,6 +48,8 @@ class Runner(MessageHandler.MessageUser):
     if identifier is not None:
       self.identifier =  str(identifier).split("~",1)[-1]
 
+    self.identifier = self.identifier.strip()
+
   def isDone(self):
     """
       Function to inquire the process to check if the calculation is finished

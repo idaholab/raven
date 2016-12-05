@@ -441,12 +441,17 @@ class Dummy(Model):
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
       @ Out, ([(inputDict)],copy.deepcopy(Kwargs)), tuple, return the new input in a tuple form
     """
-    if len(myInput)>1: self.raiseAnError(IOError,'Only one input is accepted by the model type '+self.type+' with name'+self.name)
+    if len(myInput)>1:
+      self.raiseAnError(IOError,'Only one input is accepted by the model type '+self.type+' with name'+self.name)
+
     inputDict   = self._inputToInternal(myInput[0])
     self._replaceVariablesNamesWithAliasSystem(inputDict,'input',False)
+
     if 'SampledVars' in Kwargs.keys():
       sampledVars = self._replaceVariablesNamesWithAliasSystem(Kwargs['SampledVars'],'input',False)
-    for key in Kwargs['SampledVars'].keys(): inputDict[key] = np.atleast_1d(Kwargs['SampledVars'][key])
+
+    for key in Kwargs['SampledVars'].keys():
+      inputDict[key] = np.atleast_1d(Kwargs['SampledVars'][key])
     for val in inputDict.values():
       if val is None: self.raiseAnError(IOError,'While preparing the input for the model '+self.type+' with name '+self.name+' found a None input variable '+ str(inputDict.items()))
     #the inputs/outputs should not be store locally since they might be used as a part of a list of input for the parallel runs
@@ -490,7 +495,7 @@ class Dummy(Model):
       return {'OutputPlaceHolder':np.atleast_1d(np.float(prefix))}
 
     uniqueHandler = Input[1]['uniqueHandler'] if 'uniqueHandler' in Input[1].keys() else 'any'
-    jobHandler.submitDict['Internal']((inRun,Input[1]['prefix']),lambdaReturnOut,str(Input[1]['prefix']),metadata=Input[1], modulesToImport = self.mods, uniqueHandler=uniqueHandler)
+    jobHandler.addInternal((inRun,Input[1]['prefix']),lambdaReturnOut,str(Input[1]['prefix']),metadata=Input[1], modulesToImport = self.mods, uniqueHandler=uniqueHandler)
 
   def collectOutput(self,finishedJob,output):
     """
@@ -1029,7 +1034,10 @@ class ROM(Dummy):
     """
     inRun = self._manipulateInput(Input[0])
     uniqueHandler = Input[1]['uniqueHandler'] if 'uniqueHandler' in Input[1].keys() else 'any'
-    jobHandler.submitDict['Internal']((inRun,), self.__externalRun, str(Input[1]['prefix']), metadata=Input[1], modulesToImport=self.mods, uniqueHandler=uniqueHandler)
+    jobHandler.addInternal((inRun,), self.__externalRun, str(Input[1]['prefix']), metadata=Input[1], modulesToImport=self.mods, uniqueHandler=uniqueHandler)
+#
+#
+#
 
 class ExternalModel(Dummy):
   """
@@ -1216,7 +1224,8 @@ class ExternalModel(Dummy):
     """
     inRun = copy.copy(self._manipulateInput(Input[0][0]))
     uniqueHandler = Input[0][1]['uniqueHandler'] if 'uniqueHandler' in Input[0][1].keys() else 'any'
-    jobHandler.submitDict['Internal']((inRun,Input[1],),self.__externalRun,str(Input[0][1]['prefix']),metadata=Input[0][1], modulesToImport = self.mods,uniqueHandler=uniqueHandler)
+
+    jobHandler.addInternal((inRun,Input[1],),self.__externalRun,str(Input[0][1]['prefix']),metadata=Input[0][1], modulesToImport = self.mods,uniqueHandler=uniqueHandler)
 #
 #
 #
@@ -1510,7 +1519,7 @@ class Code(Model):
     executeCommand, self.outFileRoot = returnedCommand
     uniqueHandler = inputFiles[1]['uniqueHandler'] if 'uniqueHandler' in inputFiles[1].keys() else 'any'
     identifier    = inputFiles[1]['prefix'] if 'prefix' in inputFiles[1].keys() else None
-    jobHandler.submitDict['External'](executeCommand,self.outFileRoot,metaData.pop('subDirectory'),identifier=identifier,metadata=metaData,codePointer=self.code,uniqueHandler = uniqueHandler)
+    jobHandler.addExternal(executeCommand,self.outFileRoot,metaData.pop('subDirectory'),identifier=identifier,metadata=metaData,codePointer=self.code,uniqueHandler = uniqueHandler)
     found = False
     for index, inputFile in enumerate(self.currentInputFiles):
       if inputFile.getExt() in self.code.getInputExtension():
@@ -1719,8 +1728,10 @@ class PostProcessor(Model, Assembler):
       @ In,  jobHandler, JobHandler instance, the global job handler instance
       @ Out, None
     """
-    if len(Input) > 0 : jobHandler.submitDict['Internal']((Input,),self.interface.run,str(0),modulesToImport = self.mods, forceUseThreads = True)
-    else: jobHandler.submitDict['Internal']((None,),self.interface.run,str(0),modulesToImport = self.mods, forceUseThreads = True)
+    if len(Input) > 0:
+      jobHandler.addInternal((Input,),self.interface.run,str(0),modulesToImport = self.mods, forceUseThreads = True)
+    else:
+      jobHandler.addInternal((None,),self.interface.run,str(0),modulesToImport = self.mods, forceUseThreads = True)
 
   def collectOutput(self,finishedjob,output):
     """
@@ -2024,7 +2035,7 @@ class EnsembleModel(Dummy, Assembler):
     """
     for mm in utils.returnImportModuleString(jobHandler):
       if mm not in self.mods: self.mods.append(mm)
-    jobHandler.submitDict['InternalClient'](((copy.deepcopy(Input),jobHandler),), self.__externalRun,str(Input['prefix']))
+    jobHandler.addInternalClient(((copy.deepcopy(Input),jobHandler),), self.__externalRun,str(Input['prefix']))
 
   def __retrieveDependentOutput(self,modelIn,listOfOutputs):
     """
@@ -2086,7 +2097,7 @@ class EnsembleModel(Dummy, Assembler):
         while not nextModel:
           moveOn = False
           while not moveOn:
-            if jobHandler.howManyFreeSpots() > 0:
+            if jobHandler.availability() > 0:
               #with self.lockSystem:
               self.modelsDictionary[modelIn]['Instance'].run(copy.deepcopy(Input[modelIn]),jobHandler)
               while not jobHandler.isThisJobFinished(modelIn+"|"+identifier): time.sleep(1.e-3)

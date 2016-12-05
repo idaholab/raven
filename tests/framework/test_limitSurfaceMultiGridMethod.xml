@@ -3,7 +3,7 @@
   <RunInfo>
     <WorkingDir>limitSurfaceMultiGrid</WorkingDir>
     <Sequence>GoalOrientedStep,dumpLSout</Sequence>
-    <batchSize>3250</batchSize>
+    <batchSize>1</batchSize>
   </RunInfo>
 
   <Steps>

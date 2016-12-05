@@ -1,3 +1,5 @@
 def __residuumSign(self):
-  if self.g<0 : return  1
-  else        : return -1
+  if self.y1 < 0.25 or self.y2 < 0.25:
+    return  1
+  else:
+    return -1
