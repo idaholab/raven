@@ -775,7 +775,6 @@ class pickleSafeSubprocessPopen(subprocess.Popen):
       self.__dict__ = d
       self._handle = None
 
-
 def removeDuplicates(objectList):
   """
     Method to efficiently remove duplicates from a list and maintain their
@@ -800,4 +799,30 @@ def removeDuplicates(objectList):
   uniqueObjectList = [x for x in objectList if not (x in seen or seen_add(x))]
   return uniqueObjectList
 
+def typeMatch(var,varTypeStr):
+  """
+    This method is aimed to check if a variable changed datatype
+    @ In, var, python datatype, the first variable to compare
+    @ In, varTypeStr, string, the type that this variable should have
+    @ Out, typeMatch, bool, is the datatype changed?
+  """
+  typeVar = type(var)
+  match = typeVar.__name__ == varTypeStr or typeVar.__module__+"."+typeVar.__name__ == varTypeStr
+  if not match:
+    # check if the types start with the same root
+    if len(typeVar.__name__) <= len(varTypeStr):
+      if varTypeStr.startswith(typeVar.__name__): match = True
+    else:
+      if typeVar.__name__.startswith(varTypeStr): match = True
+  return match
 
+def sizeMatch(var,sizeToCheck):
+  """
+    This method is aimed to check if a variable has an expected size
+    @ In, var, python datatype, the first variable to compare
+    @ In, sizeToCheck, int, the size this variable should have
+    @ Out, sizeMatched, bool, is the size ok?
+  """
+  sizeMatched = True
+  if len(np.atleast_1d(var)) != sizeToCheck: sizeMatched = False
+  return sizeMatched
