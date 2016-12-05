@@ -804,11 +804,17 @@ def typeMatch(var,varTypeStr):
     This method is aimed to check if a variable changed datatype
     @ In, var, python datatype, the first variable to compare
     @ In, varTypeStr, string, the type that this variable should have
-    @ Out, typeMatch, bool, is the datatype changed?
+    @ Out, match, bool, is the datatype changed?
   """
   typeVar = type(var)
-  return typeVar.__name__ == varTypeStr or \
-    typeVar.__module__+"."+typeVar.__name__ == varTypeStr
+  match = typeVar.__name__ == varTypeStr or typeVar.__module__+"."+typeVar.__name__ == varTypeStr
+  if not match:
+    # check if the types start with the same root
+    if len(typeVar.__name__) <= len(varTypeStr):
+      if varTypeStr.startswith(typeVar.__name__): match = True
+    else:
+      if typeVar.__name__.startswith(varTypeStr): match = True
+  return match
 
 def sizeMatch(var,sizeToCheck):
   """

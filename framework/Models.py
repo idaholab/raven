@@ -2088,12 +2088,13 @@ class EnsembleModel(Dummy, Assembler):
         else: castedUnstructuredInputsValues  =  unstructuredInputsValues.values()[-1]
         inputsValues.update(castedUnstructuredInputsValues)
       outputsValues  = outputsValues if targetEvaluations[modelIn].type != 'HistorySet' else outputsValues.values()[-1]
-
+      print(inputsValues) 
+      print(outputsValues) 
       for key in targetEvaluations[modelIn].getParaKeys('inputs'):
-        if key not in inputsValues.keys(): self.raiseAnError(Exception,"the variable "+key+" is not in the input space of the model!")
+        if key not in inputsValues.keys(): self.raiseAnError(Exception,"the variable "+key+" is not in the input space of the model! Vars are:"+' '.join(inputsValues.keys()))
         self.modelsDictionary[modelIn]['TargetEvaluation'].updateInputValue (key,inputsValues[key])
       for key in targetEvaluations[modelIn].getParaKeys('outputs'):
-        if key not in outputsValues.keys(): self.raiseAnError(Exception,"the variable "+key+" is not in the output space of the model!")
+        if key not in outputsValues.keys(): self.raiseAnError(Exception,"the variable "+key+" is not in the output space of the model! Vars are:"+' '.join(outputsValues.keys()))
         self.modelsDictionary[modelIn]['TargetEvaluation'].updateOutputValue (key,outputsValues[key])
       for key in metadataValues.keys():
         self.modelsDictionary[modelIn]['TargetEvaluation'].updateMetadata(key,metadataValues[key])
