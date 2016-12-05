@@ -216,7 +216,7 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
         for cnt, feat in enumerate(self.features):
           featureValues = tdict[feat]
           (mu,sigma) = mathUtils.normalizationFactors(featureValues)
-          normValues[:, cnt] = (featureValues - mu) / sigma         
+          normValues[:, cnt] = (featureValues - mu) / sigma
         self.normValues = metric.distance(normValues)
 
 #        ## this should operate on the normed data
