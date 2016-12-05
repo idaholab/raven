@@ -2711,7 +2711,7 @@ class BasicStatistics(BasePostProcessor):
       Biased unweighted covariance matrix,   weights is None, bias is 1
       Unbiased weighted covariance matrix,   weights is not None, bias is 0
       Biased weighted covariance matrix,     weights is not None, bias is 1
-      can be calcuated depending on the selection of the inputs.
+      can be calculated depending on the selection of the inputs.
       @ In,  feature, list/numpy.array, [#targets,#samples]  features' samples
       @ In,  weights, list of list/numpy.array, optional, [#targets,#samples,realizationWeights]  reliability weights, and the last one in the list is the realization weights. Default is None
       @ In,  rowVar, int, optional, If rowVar is non-zero, then each row represents a variable,

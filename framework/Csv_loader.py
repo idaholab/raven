@@ -126,9 +126,22 @@ class CsvLoader(MessageHandler.MessageUser):
               <inputPivotValue>
       @ Out, (inDict,outDict), tuple, the tuple containing the input and output dictionaries
     """
-    inParam, outParam, inputRow, outputRow                 = options['inParam'], options['outParam'], copy.deepcopy(options.get('inputRow',None)), copy.deepcopy(options.get('outputRow',None))
+    inParam, outParam, inputRow, outputRow                 = copy.deepcopy(options['inParam']), copy.deepcopy(options['outParam']), copy.deepcopy(options.get('inputRow',None)), copy.deepcopy(options.get('outputRow',None))
     sampledVars, inputPivotVal, outputPivotVal, operator   = options.get('SampledVars',None), options.get('inputPivotValue',None), options.get('outputPivotValue',None), options.get('operator',None)
     pivotParameter                                         = options.get('pivotParameter',None)
+
+    if 'alias' in options.keys():
+      for aliasType in options['alias'].keys():
+        for var in options['alias'][aliasType].keys():
+          if var.strip() in inParam if aliasType == 'input' else outParam:
+            checkVars = sampledVars.keys() if sampledVars is not None else []
+            if aliasType == 'input' and var.strip() not in checkVars:
+              inParam[inParam.index(var.strip())]  = options['alias'][aliasType][var]
+            elif aliasType == 'output':
+              outParam[outParam.index(var.strip())] = options['alias'][aliasType][var]
+          else:
+            self.raiseAWarning('the ' + aliasType +' alias"'+var.strip()+'" has been defined but has not been found among the variables!')
+
 
     if 'all' in outParam: self.allOutParam = True
     else                : self.allOutParam = False
@@ -218,6 +231,17 @@ class CsvLoader(MessageHandler.MessageUser):
         for key in outParam:
           if key in self.allFieldNames: outDict[key] = np.atleast_1d(np.array(interp1d(data[:,pivotIndex], data[:,self.allFieldNames.index(key)], kind='linear')(outputPivotVal)))
           else                          : self.raiseAnError(IOError,"the parameter " + key + " has not been found")
+
+    if 'alias' in options.keys():
+      for aliasType in options['alias'].keys():
+        for var in options['alias'][aliasType].keys():
+          if options['alias'][aliasType][var] in inDict.keys():
+            varValue = inDict.pop(options['alias'][aliasType][var])
+            inDict[var] = varValue
+          elif  options['alias'][aliasType][var] in outDict.keys():
+            varValue = outDict.pop(options['alias'][aliasType][var])
+            outDict[var] = varValue
+
     return (inDict,outDict)
 
   def __csvLoaderForPointSet(self,filesIn,options):
@@ -241,9 +265,21 @@ class CsvLoader(MessageHandler.MessageUser):
               <inputPivotValue>
       @ Out, (inDict,outDict), tuple, the tuple containing the input and output dictionaries
     """
-    inParam, outParam, inputRow, outputRow                 = options['inParam'], options['outParam'], copy.deepcopy(options.get('inputRow',None)), copy.deepcopy(options.get('outputRow',None))
+    inParam, outParam, inputRow, outputRow                 = copy.deepcopy(options['inParam']), copy.deepcopy(options['outParam']), copy.deepcopy(options.get('inputRow',None)), copy.deepcopy(options.get('outputRow',None))
     sampledVars, inputPivotVal, outputPivotVal, operator   = options.get('SampledVars',None), options.get('inputPivotValue',None), options.get('outputPivotValue',None), options.get('operator',None)
     pivotParameter                                         = options.get('pivotParameter',None)
+
+    if 'alias' in options.keys():
+      for aliasType in options['alias'].keys():
+        for var in options['alias'][aliasType].keys():
+          if var.strip() in inParam if aliasType == 'input' else outParam:
+            checkVars = sampledVars.keys() if sampledVars is not None else []
+            if aliasType == 'input' and var.strip() not in checkVars:
+              inParam[inParam.index(var.strip())]  = options['alias'][aliasType][var]
+            elif aliasType == 'output':
+              outParam[outParam.index(var.strip())] = options['alias'][aliasType][var]
+          else:
+            self.raiseAWarning('the ' + aliasType +' alias"'+var.strip()+'" has been defined but has not been found among the variables!')
 
     if 'all' in outParam: self.allOutParam = True
     else                : self.allOutParam = False
@@ -346,6 +382,16 @@ class CsvLoader(MessageHandler.MessageUser):
             if key in self.allFieldNames: outDict[key][i] = interp1d(data[:,pivotIndex], data[:,self.allFieldNames.index(key)], kind='linear')(outputPivotVal)
             else                          : self.raiseAnError(IOError,"the parameter " + key + " has not been found")
       del data
+
+    if 'alias' in options.keys():
+      for aliasType in options['alias'].keys():
+        for var in options['alias'][aliasType].keys():
+          if options['alias'][aliasType][var] in inDict.keys():
+            varValue = inDict.pop(options['alias'][aliasType][var])
+            inDict[var] = varValue
+          elif  options['alias'][aliasType][var] in outDict.keys():
+            varValue = outDict.pop(options['alias'][aliasType][var])
+            outDict[var] = varValue
     return (inDict,outDict)
 
   def __csvLoaderForHistory(self,fileIn,options):
@@ -367,9 +413,20 @@ class CsvLoader(MessageHandler.MessageUser):
               <inputPivotValue>
       @ Out, (inDict,outDict), tuple, the tuple containing the input and output dictionaries
     """
-    inParam, outParam, inputRow                 = options['inParam'], options['outParam'], copy.deepcopy(options.get('inputRow',None))
+    inParam, outParam, inputRow                 = copy.deepcopy(options['inParam']), copy.deepcopy(options['outParam']), copy.deepcopy(options.get('inputRow',None))
     sampledVars, inputPivotVal, outputPivotVal  = options.get('SampledVars',None), options.get('inputPivotValue',None), options.get('outputPivotValue',None)
     pivotParameter                              = options.get('pivotParameter',None)
+    if 'alias' in options.keys():
+      for aliasType in options['alias'].keys():
+        for var in options['alias'][aliasType].keys():
+          if var.strip() in inParam if aliasType == 'input' else outParam:
+            if aliasType == 'input' and var.strip() not in sampledVars.keys() if sampledVars is not None else []:
+              inParam[inParam.index(var.strip())]  = options['alias'][aliasType][var]
+            elif aliasType == 'output':
+              outParam[outParam.index(var.strip())] = options['alias'][aliasType][var]
+          else:
+            self.raiseAWarning('the ' + aliasType +' alias"'+var.strip()+'" has been defined but has not been found among the variables!')
+
     #load the data into the numpy array
     data = self.loadCsvFile(fileIn)
     if 'all' in outParam: self.allOutParam = True
@@ -429,4 +486,15 @@ class CsvLoader(MessageHandler.MessageUser):
         for key in outParam:
           if key in self.allFieldNames: outDict[key] = np.atleast_1d(np.array(interp1d(data[:,pivotIndex], data[:,self.allFieldNames.index(key)], kind='linear')(outputPivotVal)))
           else                          : self.raiseAnError(IOError,"the parameter " + key + " has not been found")
+
+    if 'alias' in options.keys():
+      for aliasType in options['alias'].keys():
+        for var in options['alias'][aliasType].keys():
+          if options['alias'][aliasType][var] in inDict.keys():
+            varValue = inDict.pop(options['alias'][aliasType][var])
+            inDict[var] = varValue
+          elif  options['alias'][aliasType][var] in outDict.keys():
+            varValue = outDict.pop(options['alias'][aliasType][var])
+            outDict[var] = varValue
+
     return (inDict,outDict)
