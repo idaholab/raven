@@ -818,6 +818,6 @@ def sizeMatch(var,sizeToCheck):
     @ Out, sizeMatched, bool, is the size ok?
   """
   sizeMatched = True
-  if len(np.atleast_1d(var)) != sizeToCheck: sizeMatched = False
+  if len(numpy.atleast_1d(var)) != sizeToCheck: sizeMatched = False
   return sizeMatched
 
