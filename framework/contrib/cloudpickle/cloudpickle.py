@@ -9,10 +9,10 @@ The goals of it follow:
 It does not include an unpickler, as standard python unpickling suffices.
 
 This module was extracted from the `cloud` package, developed by `PiCloud, Inc.
-<http://www.picloud.com>`_.
+<https://web.archive.org/web/20140626004012/http://www.picloud.com/>`_.
 
 Copyright (c) 2012, Regents of the University of California.
-Copyright (c) 2009 `PiCloud, Inc. <http://www.picloud.com>`_.
+Copyright (c) 2009 `PiCloud, Inc. <https://web.archive.org/web/20140626004012/http://www.picloud.com/>`_.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -42,17 +42,19 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 from __future__ import print_function
 
-import operator
-import os
+import dis
+from functools import partial
+import imp
 import io
+import itertools
+import opcode
+import operator
 import pickle
 import struct
 import sys
-import types
-from functools import partial
-import itertools
-import dis
 import traceback
+import types
+import weakref
 
 if sys.version < '3':
     from pickle import Pickler
@@ -68,10 +70,10 @@ else:
     PY3 = True
 
 #relevant opcodes
-STORE_GLOBAL = dis.opname.index('STORE_GLOBAL')
-DELETE_GLOBAL = dis.opname.index('DELETE_GLOBAL')
-LOAD_GLOBAL = dis.opname.index('LOAD_GLOBAL')
-GLOBAL_OPS = [STORE_GLOBAL, DELETE_GLOBAL, LOAD_GLOBAL]
+STORE_GLOBAL = opcode.opmap['STORE_GLOBAL']
+DELETE_GLOBAL = opcode.opmap['DELETE_GLOBAL']
+LOAD_GLOBAL = opcode.opmap['LOAD_GLOBAL']
+GLOBAL_OPS = (STORE_GLOBAL, DELETE_GLOBAL, LOAD_GLOBAL)
 HAVE_ARGUMENT = dis.HAVE_ARGUMENT
 EXTENDED_ARG = dis.EXTENDED_ARG
 
@@ -88,6 +90,43 @@ for k, v in types.__dict__.items():
 
 def _builtin_type(name):
     return getattr(types, name)
+
+
+if sys.version_info < (3, 4):
+    def _walk_global_ops(code):
+        """
+        Yield (opcode, argument number) tuples for all
+        global-referencing instructions in *code*.
+        """
+        code = getattr(code, 'co_code', b'')
+        if not PY3:
+            code = map(ord, code)
+
+        n = len(code)
+        i = 0
+        extended_arg = 0
+        while i < n:
+            op = code[i]
+            i += 1
+            if op >= HAVE_ARGUMENT:
+                oparg = code[i] + code[i + 1] * 256 + extended_arg
+                extended_arg = 0
+                i += 2
+                if op == EXTENDED_ARG:
+                    extended_arg = oparg * 65536
+                if op in GLOBAL_OPS:
+                    yield op, oparg
+
+else:
+    def _walk_global_ops(code):
+        """
+        Yield (opcode, argument number) tuples for all
+        global-referencing instructions in *code*.
+        """
+        for instr in dis.get_instructions(code):
+            op = instr.opcode
+            if op in GLOBAL_OPS:
+                yield op, instr.arg
 
 
 class CloudPickler(Pickler):
@@ -135,8 +174,19 @@ class CloudPickler(Pickler):
         """
         Save a module as an import
         """
+        mod_name = obj.__name__
+        # If module is successfully found then it is not a dynamically created module
+        try:
+            _find_module(mod_name)
+            is_dynamic = False
+        except ImportError:
+            is_dynamic = True
+
         self.modules.add(obj)
-        self.save_reduce(subimport, (obj.__name__,), obj=obj)
+        if is_dynamic:
+            self.save_reduce(dynamic_subimport, (obj.__name__, vars(obj)), obj=obj)
+        else:
+            self.save_reduce(subimport, (obj.__name__,), obj=obj)
     dispatch[types.ModuleType] = save_module
 
     def save_codeobject(self, obj):
@@ -185,11 +235,32 @@ class CloudPickler(Pickler):
             if getattr(themodule, name, None) is obj:
                 return self.save_global(obj, name)
 
+        # a builtin_function_or_method which comes in as an attribute of some
+        # object (e.g., object.__new__, itertools.chain.from_iterable) will end
+        # up with modname "__main__" and so end up here. But these functions
+        # have no __code__ attribute in CPython, so the handling for 
+        # user-defined functions below will fail.
+        # So we pickle them here using save_reduce; have to do it differently
+        # for different python versions.
+        if not hasattr(obj, '__code__'):
+            if PY3:
+                if sys.version_info < (3, 4):
+                    raise pickle.PicklingError("Can't pickle %r" % obj)
+                else:
+                    rv = obj.__reduce_ex__(self.proto)
+            else:
+                if hasattr(obj, '__self__'):
+                    rv = (getattr, (obj.__self__, name))
+                else:
+                    raise pickle.PicklingError("Can't pickle %r" % obj)
+            return Pickler.save_reduce(self, obj=obj, *rv)
+
         # if func is lambda, def'ed at prompt, is in main, or is nested, then
         # we'll pickle the actual function object rather than simply saving a
         # reference (as is done in default pickler), via save_function_tuple.
-        if islambda(obj) or obj.__code__.co_filename == '<stdin>' or themodule is None:
-            #print("save global", islambda(obj), obj.__code__.co_filename, modname, themodule)
+        if (islambda(obj)
+                or getattr(obj.__code__, 'co_filename', None) == '<stdin>'
+                or themodule is None):
             self.save_function_tuple(obj)
             return
         else:
@@ -223,6 +294,11 @@ class CloudPickler(Pickler):
         safe, since this won't contain a ref to the func), and memoize it as
         soon as it's created.  The other stuff can then be filled in later.
         """
+        if is_tornado_coroutine(func):
+            self.save_reduce(_rebuild_tornado_coroutine, (func.__wrapped__,),
+                             obj=func)
+            return
+
         save = self.save
         write = self.write
 
@@ -244,38 +320,34 @@ class CloudPickler(Pickler):
         write(pickle.TUPLE)
         write(pickle.REDUCE)  # applies _fill_function on the tuple
 
-    @staticmethod
-    def extract_code_globals(co):
+    _extract_code_globals_cache = (
+        weakref.WeakKeyDictionary()
+        if sys.version_info >= (2, 7) and not hasattr(sys, "pypy_version_info")
+        else {})
+
+    @classmethod
+    def extract_code_globals(cls, co):
         """
         Find all globals names read or written to by codeblock co
         """
-        code = co.co_code
-        if not PY3:
-            code = [ord(c) for c in code]
-        names = co.co_names
-        out_names = set()
+        out_names = cls._extract_code_globals_cache.get(co)
+        if out_names is None:
+            try:
+                names = co.co_names
+            except AttributeError:
+                # PyPy "builtin-code" object
+                out_names = set()
+            else:
+                out_names = set(names[oparg]
+                                for op, oparg in _walk_global_ops(co))
 
-        n = len(code)
-        i = 0
-        extended_arg = 0
-        while i < n:
-            op = code[i]
+                # see if nested function have any global refs
+                if co.co_consts:
+                    for const in co.co_consts:
+                        if type(const) is types.CodeType:
+                            out_names |= cls.extract_code_globals(const)
 
-            i += 1
-            if op >= HAVE_ARGUMENT:
-                oparg = code[i] + code[i+1] * 256 + extended_arg
-                extended_arg = 0
-                i += 2
-                if op == EXTENDED_ARG:
-                    extended_arg = oparg*65536
-                if op in GLOBAL_OPS:
-                    out_names.add(names[oparg])
-
-        # see if nested function have any global refs
-        if co.co_consts:
-            for const in co.co_consts:
-                if type(const) is types.CodeType:
-                    out_names |= CloudPickler.extract_code_globals(const)
+            cls._extract_code_globals_cache[co] = out_names
 
         return out_names
 
@@ -310,7 +382,7 @@ class CloudPickler(Pickler):
         return (code, f_globals, defaults, closure, dct, base_globals)
 
     def save_builtin_function(self, obj):
-        if obj.__module__ is "__builtin__":
+        if obj.__module__ == "__builtin__":
             return self.save_global(obj)
         return self.save_function(obj)
     dispatch[types.BuiltinFunctionType] = save_builtin_function
@@ -359,10 +431,13 @@ class CloudPickler(Pickler):
 
     def save_instancemethod(self, obj):
         # Memoization rarely is ever useful due to python bounding
-        if PY3:
-            self.save_reduce(types.MethodType, (obj.__func__, obj.__self__), obj=obj)
+        if obj.__self__ is None:
+            self.save_reduce(getattr, (obj.im_class, obj.__name__))
         else:
-            self.save_reduce(types.MethodType, (obj.__func__, obj.__self__, obj.__self__.__class__),
+            if PY3:
+                self.save_reduce(types.MethodType, (obj.__func__, obj.__self__), obj=obj)
+            else:
+                self.save_reduce(types.MethodType, (obj.__func__, obj.__self__, obj.__self__.__class__),
                          obj=obj)
     dispatch[types.MethodType] = save_instancemethod
 
@@ -578,15 +653,44 @@ class CloudPickler(Pickler):
         self.save(retval)
         self.memoize(obj)
 
+    def save_ellipsis(self, obj):
+        self.save_reduce(_gen_ellipsis, ())
+
+    def save_not_implemented(self, obj):
+        self.save_reduce(_gen_not_implemented, ())
+
     if PY3:
         dispatch[io.TextIOWrapper] = save_file
     else:
         dispatch[file] = save_file
 
+    dispatch[type(Ellipsis)] = save_ellipsis
+    dispatch[type(NotImplemented)] = save_not_implemented
+
     """Special functions for Add-on libraries"""
     def inject_addons(self):
         """Plug in system. Register additional pickling functions if modules already loaded"""
         pass
+
+
+# Tornado support
+
+def is_tornado_coroutine(func):
+    """
+    Return whether *func* is a Tornado coroutine function.
+    Running coroutines are not supported.
+    """
+    if 'tornado.gen' not in sys.modules:
+        return False
+    gen = sys.modules['tornado.gen']
+    if not hasattr(gen, "is_coroutine_function"):
+        # Tornado version is too old
+        return False
+    return gen.is_coroutine_function(func)
+
+def _rebuild_tornado_coroutine(func):
+    from tornado import gen
+    return gen.coroutine(func)
 
 
 # Shorthands for legacy support
@@ -613,6 +717,12 @@ def subimport(name):
     __import__(name)
     return sys.modules[name]
 
+
+def dynamic_subimport(name, vars):
+    mod = imp.new_module(name)
+    mod.__dict__.update(vars)
+    sys.modules[name] = mod
+    return mod
 
 # restores function attributes
 def _restore_attr(obj, attr):
@@ -657,6 +767,11 @@ def _genpartial(func, args, kwds):
         kwds = {}
     return partial(func, *args, **kwds)
 
+def _gen_ellipsis():
+    return Ellipsis
+
+def _gen_not_implemented():
+    return NotImplemented
 
 def _fill_function(func, globals, defaults, dict):
     """ Fills in the rest of function data into the skeleton function object
@@ -692,9 +807,36 @@ def _make_skel_func(code, closures, base_globals = None):
                               None, None, closure)
 
 
+def _find_module(mod_name):
+    """
+    Iterate over each part instead of calling imp.find_module directly.
+    This function is able to find submodules (e.g. sickit.tree)
+    """
+    path = None
+    for part in mod_name.split('.'):
+        if path is not None:
+            path = [path]
+        file, path, description = imp.find_module(part, path)
+    return file, path, description
+
 """Constructors for 3rd party libraries
 Note: These can never be renamed due to client compatibility issues"""
 
 def _getobject(modname, attribute):
     mod = __import__(modname, fromlist=[attribute])
     return mod.__dict__[attribute]
+
+
+""" Use copy_reg to extend global pickle definitions """
+
+if sys.version_info < (3, 4):
+    method_descriptor = type(str.upper)
+
+    def _reduce_method_descriptor(obj):
+        return (getattr, (obj.__objclass__, obj.__name__))
+
+    try:
+        import copy_reg as copyreg
+    except ImportError:
+        import copyreg
+    copyreg.pickle(method_descriptor, _reduce_method_descriptor)
