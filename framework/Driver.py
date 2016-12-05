@@ -28,7 +28,10 @@ frameworkDir = os.path.dirname(os.path.abspath(sys.argv[0]))
 sys.path.append(os.path.join(frameworkDir,'utils'))
 import utils
 utils.find_crow(frameworkDir)
-utils.add_path_recursively(os.path.join(frameworkDir,'contrib'))
+#utils.add_path_recursively(os.path.join(frameworkDir,'contrib'))
+utils.add_path_recursively(os.path.join(frameworkDir,'contrib','pp'))
+utils.add_path(os.path.join(frameworkDir,'contrib','AMSC'))
+utils.add_path(os.path.join(frameworkDir,'contrib'))
 #Internal Modules
 from Simulation import Simulation
 from Application import __PySideAvailable
