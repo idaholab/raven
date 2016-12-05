@@ -1,0 +1,261 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
+    <internalParallel>False</internalParallel>
+    <WorkingDir>Hierarchical</WorkingDir>
+    <Sequence>readIn1,Hierarchical1,output1,readIn2,Hierarchical2,output2,readIn3,Hierarchical3,output3</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="DataSetsFile">./data.csv</Input>
+  </Files>
+  
+  <Metrics>
+    <SKL name="euclidean">
+      <metricType>euclidean</metricType>
+    </SKL>
+    <SKL name="rbf">
+      <metricType>rbf</metricType>
+      <gamma>0.5</gamma>
+    </SKL>
+    <SKL name="polynomial">
+      <metricType>poly</metricType>
+      <gamma>1.0</gamma>
+      <degree>2.0</degree>
+      <coef0>1.0</coef0>
+    </SKL> 
+  </Metrics>
+
+  <Models>
+    <PostProcessor name="hierarchical_1" subType="DataMining" verbosity="quiet">
+      <Metric class="Metrics" type="SKL">euclidean</Metric>
+      <KDD lib="Scipy" labelFeature='labels'>
+        <Features>x1,x2</Features>
+        <SCIPYtype>cluster|Hierarchical</SCIPYtype>
+        <method>single</method>
+        <metric>euclidean</metric>
+        <level>10</level>
+        <criterion>distance</criterion>
+        <dendrogram>false</dendrogram>
+        <truncationMode>lastp</truncationMode>
+        <p>20</p>
+        <leafCounts>True</leafCounts>
+        <showContracted>True</showContracted>
+        <annotatedAbove>10</annotatedAbove>
+      </KDD>
+    </PostProcessor>
+    <PostProcessor name="hierarchical_2" subType="DataMining" verbosity="quiet">
+      <Metric class="Metrics" type="SKL">rbf</Metric>
+      <KDD lib="Scipy" labelFeature='labels'>
+        <Features>x1,x2</Features>
+        <SCIPYtype>cluster|Hierarchical</SCIPYtype>
+        <method>single</method>
+        <metric>euclidean</metric>
+        <level>4</level>
+        <criterion>distance</criterion>
+        <dendrogram>false</dendrogram>
+        <truncationMode>lastp</truncationMode>
+        <p>20</p>
+        <leafCounts>True</leafCounts>
+        <showContracted>True</showContracted>
+        <annotatedAbove>10</annotatedAbove>
+      </KDD>
+    </PostProcessor>
+    <PostProcessor name="hierarchical_3" subType="DataMining" verbosity="quiet">
+      <Metric class="Metrics" type="SKL">polynomial</Metric>
+      <KDD lib="Scipy" labelFeature='labels'>
+        <Features>x1,x2</Features>
+        <SCIPYtype>cluster|Hierarchical</SCIPYtype>
+        <method>single</method>
+        <metric>euclidean</metric>
+        <level>24</level>
+        <criterion>distance</criterion>
+        <dendrogram>false</dendrogram>
+        <truncationMode>lastp</truncationMode>
+        <p>20</p>
+        <leafCounts>True</leafCounts>
+        <showContracted>True</showContracted>
+        <annotatedAbove>10</annotatedAbove>
+      </KDD>
+    </PostProcessor>
+    <PostProcessor name="hierarchical_4" subType="DataMining" verbosity="quiet">
+      <Metric class="Metrics" type="SKL">mahalanobis</Metric>
+      <KDD lib="Scipy" labelFeature='labels'>
+        <Features>x1,x2</Features>
+        <SCIPYtype>cluster|Hierarchical</SCIPYtype>
+        <method>single</method>
+        <metric>euclidean</metric>
+        <level>4</level>
+        <criterion>distance</criterion>
+        <dendrogram>true</dendrogram>
+        <truncationMode>lastp</truncationMode>
+        <p>20</p>
+        <leafCounts>True</leafCounts>
+        <showContracted>True</showContracted>
+        <annotatedAbove>10</annotatedAbove>
+      </KDD>
+    </PostProcessor>
+  </Models>
+
+  <Steps>
+    <IOStep name="readIn1" pauseAtEnd="True">
+      <Input    class="Files"         type=""               >DataSetsFile</Input>
+      <Output   class="DataObjects"   type="PointSet"       >DataSets_SKL_1</Output>
+    </IOStep>
+    <PostProcess name="Hierarchical1" pauseAtEnd="True">
+      <Input    class="DataObjects"   type="PointSet"       >DataSets_SKL_1</Input>
+      <Model    class="Models"        type="PostProcessor"  >hierarchical_1</Model>
+      <Output   class="DataObjects"   type="PointSet"       >DataSets_SKL_1</Output>
+      <Output   class="OutStreams"    type="Print"          >dummy_SKL_1</Output>
+    </PostProcess>
+    <IOStep name="output1" pauseAtEnd="True">
+      <Input    class="DataObjects"   type="PointSet"       >DataSets_SKL_1</Input>
+      <Output   class="OutStreams"    type="Plot"           >PlotHierarchical_1</Output>
+    </IOStep>
+    
+    <IOStep name="readIn2" pauseAtEnd="True">
+      <Input    class="Files"         type=""               >DataSetsFile</Input>
+      <Output   class="DataObjects"   type="PointSet"       >DataSets_SKL_2</Output>
+    </IOStep>
+    <PostProcess name="Hierarchical2" pauseAtEnd="True">
+      <Input    class="DataObjects"   type="PointSet"       >DataSets_SKL_2</Input>
+      <Model    class="Models"        type="PostProcessor"  >hierarchical_2</Model>
+      <Output   class="DataObjects"   type="PointSet"       >DataSets_SKL_2</Output>
+      <Output   class="OutStreams"    type="Print"          >dummy_SKL_2</Output>
+    </PostProcess>
+    <IOStep name="output2" pauseAtEnd="True">
+      <Input    class="DataObjects"   type="PointSet"       >DataSets_SKL_2</Input>
+      <Output   class="OutStreams"    type="Plot"           >PlotHierarchical_2</Output>
+    </IOStep>
+    
+    <IOStep name="readIn3" pauseAtEnd="True">
+      <Input    class="Files"         type=""               >DataSetsFile</Input>
+      <Output   class="DataObjects"   type="PointSet"       >DataSets_SKL_3</Output>
+    </IOStep>
+    <PostProcess name="Hierarchical3" pauseAtEnd="True">
+      <Input    class="DataObjects"   type="PointSet"       >DataSets_SKL_3</Input>
+      <Model    class="Models"        type="PostProcessor"  >hierarchical_3</Model>
+      <Output   class="DataObjects"   type="PointSet"       >DataSets_SKL_3</Output>
+      <Output   class="OutStreams"    type="Print"          >dummy_SKL_3</Output>
+    </PostProcess>
+    <IOStep name="output3" pauseAtEnd="True">
+      <Input    class="DataObjects"   type="PointSet"       >DataSets_SKL_3</Input>
+      <Output   class="OutStreams"    type="Plot"           >PlotHierarchical_3</Output>
+    </IOStep>
+    
+    <IOStep name="readIn4" pauseAtEnd="True">
+      <Input    class="Files"         type=""               >DataSetsFile</Input>
+      <Output   class="DataObjects"   type="PointSet"       >DataSets_SKL_4</Output>
+    </IOStep>
+    <PostProcess name="Hierarchical4" pauseAtEnd="True">
+      <Input    class="DataObjects"   type="PointSet"       >DataSets_SKL_4</Input>
+      <Model    class="Models"        type="PostProcessor"  >hierarchical_4</Model>
+      <Output   class="DataObjects"   type="PointSet"       >DataSets_SKL_4</Output>
+      <Output   class="OutStreams"    type="Print"          >dummy_SKL_4</Output>
+    </PostProcess>
+    <IOStep name="output4" pauseAtEnd="True">
+      <Input    class="DataObjects"   type="PointSet"       >DataSets_SKL_4</Input>
+      <Output   class="OutStreams"    type="Plot"           >PlotHierarchical_4</Output>
+    </IOStep>
+  </Steps>
+
+  <OutStreams>
+    <Print name="dummy_SKL_1">
+      <type>csv</type>
+      <source>DataSets_SKL_1</source>
+    </Print>
+    <Print name="dummy_SKL_2">
+      <type>csv</type>
+      <source>DataSets_SKL_2</source>
+    </Print>
+    <Print name="dummy_SKL_3">
+      <type>csv</type>
+      <source>DataSets_SKL_3</source>
+    </Print>
+    <Print name="dummy_SKL_4">
+      <type>csv</type>
+      <source>DataSets_SKL_4</source>
+    </Print>
+    <Plot name="PlotHierarchical_1" overwrite="false">
+      <plotSettings>
+        <plot>
+          <type>scatter</type>
+          <x>DataSets_SKL_1|input|x1</x>
+          <y>DataSets_SKL_1|input|x2</y>
+          <colorMap>DataSets_SKL_1|Output|labels</colorMap>
+          <cmap>rainbow</cmap>
+        </plot>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>
+    <Plot name="PlotHierarchical_2" overwrite="false">
+      <plotSettings>
+        <plot>
+          <type>scatter</type>
+          <x>DataSets_SKL_2|input|x1</x>
+          <y>DataSets_SKL_2|input|x2</y>
+          <colorMap>DataSets_SKL_2|Output|labels</colorMap>
+          <cmap>rainbow</cmap>
+        </plot>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>
+    <Plot name="PlotHierarchical_3" overwrite="false">
+      <plotSettings>
+        <plot>
+          <type>scatter</type>
+          <x>DataSets_SKL_3|input|x1</x>
+          <y>DataSets_SKL_3|input|x2</y>
+          <colorMap>DataSets_SKL_3|Output|labels</colorMap>
+          <cmap>rainbow</cmap>
+        </plot>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>
+    <Plot name="PlotHierarchical_4" overwrite="false">
+      <plotSettings>
+        <plot>
+          <type>scatter</type>
+          <x>DataSets_SKL_4|input|x1</x>
+          <y>DataSets_SKL_4|input|x2</y>
+          <colorMap>DataSets_SKL_4|Output|labels</colorMap>
+          <cmap>rainbow</cmap>
+        </plot>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="DataSets_SKL">
+      <Input>x1,x2,y1,y2,z1,z2</Input>
+      <Output>Output</Output>
+    </PointSet>
+    <PointSet name="DataSets_SKL_1">
+      <Input>x1,x2,y1,y2,z1,z2</Input>
+      <Output>Output</Output>
+    </PointSet>
+    <PointSet name="DataSets_SKL_2">
+      <Input>x1,x2,y1,y2,z1,z2</Input>
+      <Output>Output</Output>
+    </PointSet>
+    <PointSet name="DataSets_SKL_3">
+      <Input>x1,x2,y1,y2,z1,z2</Input>
+      <Output>Output</Output>
+    </PointSet>
+    <PointSet name="DataSets_SKL_4">
+      <Input>x1,x2,y1,y2,z1,z2</Input>
+      <Output>Output</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>
