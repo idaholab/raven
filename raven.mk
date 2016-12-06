@@ -94,6 +94,11 @@ $(APPLICATION_DIR)/src/executioners/RavenExecutioner.$(obj-suffix): $(APPLICATIO
 
 endif
 
+####################################################################################
+#           find and remove all the *.pyc files (better safe then sorry)           #
+$(shell find $(RAVEN_DIR)/framework -type f -name "*.pyc" -exec rm {} +)           #
+####################################################################################
+
 delete_list := $(RAVEN_APP) $(RAVEN_LIB) $(RAVEN_DIR)/libRAVEN-$(METHOD).*
 
 clean::

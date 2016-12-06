@@ -35,9 +35,13 @@ import inspect
 frameworkFolder = os.path.realpath(os.path.join(os.path.dirname(inspect.getfile(inspect.currentframe())),"..",".."))
 if frameworkFolder not in sys.path: sys.path.insert(0, frameworkFolder)
 sys.path.append(os.path.join(frameworkFolder,'utils'))
-from utils import add_path_recursively, find_crow
+from utils import add_path_recursively, add_path, find_crow
 find_crow(frameworkFolder)
-add_path_recursively(os.path.join(frameworkFolder,'contrib'))
+#add_path_recursively(os.path.join(frameworkFolder,'contrib'))
+add_path_recursively(os.path.join(frameworkFolder,'contrib','pp'))
+#add_path_recursively(os.path.join(frameworkFolder,'contrib','StringIO'))
+add_path(os.path.join(frameworkFolder,'contrib','AMSC'))
+add_path(os.path.join(frameworkFolder,'contrib'))
 
 
 #filepath = os.path.dirname(os.path.abspath(inspect.getsourcefile(lambda _: None)))
@@ -49,7 +53,7 @@ import StringIO
 #import dill as pickle
 #import cPickle as pickle
 import pickle
-from serialization import cloudpickle
+import cloudpickle
 import pptransport
 
 copyright = "Copyright (c) 2005-2012 Vitalii Vanovschi. All rights reserved"
@@ -101,7 +105,6 @@ class _WorkerProcess(object):
                         print "An error has occured during the " + \
                               "function import"
                         sys.excepthook(*sys.exc_info())
-
                 __args = pickle.loads(__sargs)
                 __f = locals()[__fname]
                 try:
