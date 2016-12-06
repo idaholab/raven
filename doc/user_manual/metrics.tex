@@ -47,7 +47,8 @@ Manhattan distance.
 Note that this metric can be employed for both PointSets and HistorySets.
 
 Note that this metric can be employed directly on HistorySets.
-For HistorySets, all histories must contain an equal number of samples.
+For HistorySets, all histories must contain an equal number of samples. Note that, in this respect, the interfaced Post-Processor (see Section~\ref{Interfaced}) 
+HistorySetSampling can be employed to perform such action. In addition, several more interfaced Post-Processors can be used to manipulate HistorySets.
 
 The specifications of a Minkowski distance must be defined within the XML block
 \xmlNode{Minkowski}.
@@ -119,6 +120,8 @@ An example of Minkowski distance defined in RAVEN is provided below:
 \label{subsection:SKL_metrics}
 
 This Metric class interfaces directly with the metric distances available within scikit-learn.
+Note that this metric applies only to PointSets. However, note that this distance metrics can be applied to HistorySets after the HistorySets are converted into PointSets.
+In this respect, the HSPS interfaced Post-Processor (see Section~\ref{Interfaced}) can be employed to perform such conversion.
 
 The specifications of a SKL metric must be defined within the XML block.
 \xmlNode{SKL}.

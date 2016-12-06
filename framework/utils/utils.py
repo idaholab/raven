@@ -12,6 +12,7 @@ import sys, os, errno
 import inspect
 import subprocess
 import platform
+import copy
 
 class Object(object):pass
 
@@ -780,5 +781,28 @@ def typeMatch(var,varTypeStr):
   typeVar = type(var)
   return typeVar.__name__ == varTypeStr or \
     typeVar.__module__+"."+typeVar.__name__ == varTypeStr
+
+def mergeDictionaries(dictA,dictB):
+  """
+    This method imerge two dictionaries
+    @ In, dictA, dict, first dictionary
+    @ In, dictA, dict, second dictionary
+    @ Out, mergedDict, dict, merged dictionary: dictA union dictB
+  """
+  setA = set(dictA.keys())
+  setB = set(dictB.keys())
+  intersection = setA.intersection(setB)
+
+  if intersection:
+    caller.raiseAnError(IOError,'Utils, mergeDictionaries: the two dictionaries have common keys')
+  else:
+    mergedDict = {}
+    for key in dictA.keys():
+      mergedDict[key] = copy.deepcopy(dictA[key])
+    for key in dictB.keys():
+      mergedDict[key] = copy.deepcopy(dictB[key])
+    return(mergedDict)
+
+
 
 
