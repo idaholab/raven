@@ -31,7 +31,7 @@ import utils
 import mathUtils
 import TreeStructure
 import Files
-import directedGraph
+import graphStructure
 import InputData
 import PostProcessors
 #Internal Modules End--------------------------------------------------------------------------------
@@ -1882,6 +1882,37 @@ class EnsembleModel(Dummy, Assembler):
     if len(models) == 0: models = None
     return models
 
+#   def __getExecutionList(self, orderedNodes, allPath):
+#     """
+#       Method to get the execution list
+#       @ In, orderedNodes, list, list of models ordered based on the input/output relationships
+#       @ In, allPath, list, list of lists containing all the path from orderedNodes[0] to orderedNodes[-1]
+#       @ Out, executionList, list, list of lists with the execution order (e.g. [[model1],[model2.1,model2.2],[model3], etc.]
+#     """
+#     numberPath = len(allPath)
+#     maxComponents = 0
+#     for path in allPath:
+#       if len(path) > maxComponents: maxComponents = len(path)
+#     executionList = [ [] for _ in range(maxComponents)]
+#     executionCounter = -1
+#     for node in orderedNodes:
+#       nodeCtn = 0
+#       for path in allPath:
+#         if node in path: nodeCtn +=1
+#       if nodeCtn == numberPath:
+#         executionCounter+=1
+#         executionList[executionCounter] = [node]
+#       else:
+#         previousNodesInPath = []
+#         for path in allPath:
+#           if path.count(node) > 0: previousNodesInPath.append(path[path.index(node)-1])
+#         for previousNode in previousNodesInPath:
+#           if previousNode in executionList[executionCounter]:
+#             executionCounter+=1
+#             break
+#         executionList[executionCounter].append(node)
+#     return executionList
+
   def __getExecutionList(self, orderedNodes, allPath):
     """
       Method to get the execution list
@@ -1889,10 +1920,9 @@ class EnsembleModel(Dummy, Assembler):
       @ In, allPath, list, list of lists containing all the path from orderedNodes[0] to orderedNodes[-1]
       @ Out, executionList, list, list of lists with the execution order (e.g. [[model1],[model2.1,model2.2],[model3], etc.]
     """
-    numberPath = len(allPath)
-    maxComponents = 0
-    for path in allPath:
-      if len(path) > maxComponents: maxComponents = len(path)
+    numberPath    = len(allPath)
+    maxComponents = max([len(path) for path in allPath])
+
     executionList = [ [] for _ in range(maxComponents)]
     executionCounter = -1
     for node in orderedNodes:
@@ -1912,7 +1942,6 @@ class EnsembleModel(Dummy, Assembler):
             break
         executionList[executionCounter].append(node)
     return executionList
-
 
   def initialize(self,runInfo,inputs,initDict=None):
     """
@@ -1956,17 +1985,20 @@ class EnsembleModel(Dummy, Assembler):
             orderList.pop(indexModelIn)
             orderList.insert(int(max(orderList.index(match)+1,indexModelIn)), modelIn)
     # construct the ensemble model directed graph
-    self.ensembleModelGraph = directedGraph.graphObject(modelsToOutputModels)
+    self.ensembleModelGraph = graphStructure.graphObject(modelsToOutputModels)
     # make some checks
-    if not self.ensembleModelGraph.isConnected():
+    if not self.ensembleModelGraph.isConnectedNet():
       isolatedModels = self.ensembleModelGraph.findIsolatedVertices()
-      self.raiseAnError(IOError, "Some models are not connected: "+' '.join(isolatedModels))
+      self.raiseAnError(IOError, "Some models are not connected. Possible candidates are: "+' '.join(isolatedModels))
     # get all paths
-    allPath = self.ensembleModelGraph.findAllPaths(orderList[0],orderList[-1])
+    allPath = self.ensembleModelGraph.findAllUniquePaths()
     ###################################################
     # to be removed once executionList can be handled #
-    self.orderList = orderList                        #
+    self.orderList = self.ensembleModelGraph.createSingleListOfVertices(allPath)                        #
     ###################################################
+
+    #orderList = self.ensembleModelGraph.createSingleListOfVertices(allPath)
+
     if len(allPath) > 1: self.executionList = self.__getExecutionList(orderList,allPath)
     else               : self.executionList = allPath[-1]
     # check if Picard needs to be activated

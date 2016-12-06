@@ -826,3 +826,35 @@ def sizeMatch(var,sizeToCheck):
   sizeMatched = True
   if len(numpy.atleast_1d(var)) != sizeToCheck: sizeMatched = False
   return sizeMatched
+
+
+def isASubset(setToTest,pileList):
+  """
+     Check if setToTest is ordered subset of pileList in O(n)
+     @ In, setToTest, list, set that needs to be tested
+     @ In, pileList, list, pile of sets
+     @ Out, isASubset, bool, True if setToTest is a subset
+  """
+
+  if len(pileList) < len(setToTest): return False
+
+  index = 0
+  for element in setToTest:
+    try              : index = pileList.index(element, index) + 1
+    except ValueError: return False
+  else:
+    return True
+
+def filterAllSubSets(listOfLists):
+  """
+    Given list of listOfLists, return new list of listOfLists without subsets
+    @ In, listOfLists, list of lists, all lists to check
+    @ Out, setToTest, iterator, iterator over the list without subsets
+  """
+  for setToTest in listOfLists:
+    if not any(isASubset(setToTest, pileList) for pileList in listOfLists
+      if setToTest is not pileList):
+      yield setToTest
+
+
+

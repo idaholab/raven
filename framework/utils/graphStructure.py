@@ -11,6 +11,10 @@ warnings.simplefilter('default',DeprecationWarning)
 #External Modules------------------------------------------------------------------------------------
 import sys
 #External Modules End--------------------------------------------------------------------------------
+#Internal Modules------------------------------------------------------------------------------------
+import utils
+#Internal Modules End--------------------------------------------------------------------------------
+
 
 class graphObject(object):
   """
@@ -78,7 +82,7 @@ class graphObject(object):
 
   def __generateEdges(self):
     """
-      A static method generating the edges of the
+      A method generating the edges of the
       graph "graph". Edges are represented as sets
       with one (a loop back to the vertex) or two
       vertices
@@ -109,7 +113,6 @@ class graphObject(object):
     graph = self.__graphDict
     isolated = []
     for vertex in graph:
-      print(isolated, vertex)
       if not graph[vertex]:
         isolated += [vertex]
     return isolated
@@ -181,7 +184,7 @@ class graphObject(object):
 
   def isConnected(self, verticesEncountered = None, startVertex=None):
     """
-      Method that determines if the graph is connected
+      Method that determines if the graph is connected (graph theory connectivity)
       @ In, verticesEncountered, set, the encountered vertices (generally it is None when called from outside)
       @ In, startVertex, string, the starting vertex
       @ Out, isConnected, bool, is the graph fully connected?
@@ -199,6 +202,54 @@ class graphObject(object):
           if self.isConnected(verticesEncountered, vertex): return True
     else: return True
     return False
+
+  def isConnectedNet(self, startVertex=None):
+    """
+      Method that determines if the graph is a connected net (all the vertices are connect with each other through other vertices)
+      This method can state that we have a connected net even if, based on graph theory, the graph is not connected
+      @ In, startVertex, string, the starting vertex
+      @ Out, graphNetConnected, bool, is the graph net fully connected?
+    """
+    graphNetConnected = self.isConnected()
+    if graphNetConnected: return graphNetConnected
+    # the graph is not connected (Graph theory)
+    uniquePaths = self.findAllUniquePaths()
+    # now check if there is at list a node that is common in all the paths
+    if len(uniquePaths) > 0:
+      graphNetConnected = True
+      startPath = set(uniquePaths.pop())
+      for otherPath in uniquePaths:
+        if startPath.isdisjoint(otherPath):
+          graphNetConnected = False
+          break
+    return graphNetConnected
+
+  def findAllUniquePaths(self):
+    """
+      This method finds all the unique paths in the graph
+      N.B. This method is not super efficient but since it is used generally at construction stage
+      of the graph, it is not a big problem
+      @ In, None
+      @ Out, uniquePaths,list, list of unique paths (verteces)
+    """
+    paths = []
+    for vert in self.vertices():
+      for vertex in self.vertices():
+        if vertex not in vert: paths.extend(self.findAllPaths(vertex, vert))
+    uniquePaths = list(utils.filterAllSubSets(paths))
+    return uniquePaths
+
+  def createSingleListOfVertices(self,uniquePaths=None):
+
+    if uniquePaths is None: uniquePaths = self.findAllUniquePaths()
+    singleList = []
+    maxLenght = max([len(path) for path in uniquePaths])
+    for level in range(maxLenght):
+      for listVert in uniquePaths:
+        if len(listVert) >= level+1:
+          if listVert[level] not in singleList: singleList.append(listVert[level])
+    return singleList
+
 
   def vertexDegree(self, vertex):
     """
@@ -285,8 +336,9 @@ class graphObject(object):
     smallestPaths = []
     for (s,e) in pairs:
       paths = self.findAllPaths(s,e)
-      smallest = sorted(paths, key=len)[0]
-      smallestPaths.append(smallest)
+      sortedPath = sorted(paths, key=len)
+      smallest = sortedPath[0] if len(sortedPath) > 0 else None
+      if smallest is not None: smallestPaths.append(smallest)
     smallestPaths.sort(key=len)
     # longest path is at the end of list,
     # i.e. diameter corresponds to the length of this path
