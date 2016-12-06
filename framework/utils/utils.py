@@ -781,7 +781,7 @@ def typeMatch(var,varTypeStr):
   typeVar = type(var)
   return typeVar.__name__ == varTypeStr or \
     typeVar.__module__+"."+typeVar.__name__ == varTypeStr
-    
+
 def mergeDictionaries(*dictArgs):
     '''
     Given any number of dicts, shallow copy and merge into a new dict,
