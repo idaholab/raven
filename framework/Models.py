@@ -13,11 +13,13 @@ import copy
 import shutil
 import numpy as np
 import abc
+import sys
 import importlib
 import inspect
 import atexit
 import time
 import threading
+from collections import OrderedDict
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -29,6 +31,7 @@ import utils
 import mathUtils
 import TreeStructure
 import Files
+import graphStructure
 import InputData
 import PostProcessors
 #Internal Modules End--------------------------------------------------------------------------------
@@ -51,6 +54,14 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     inputSpecification = super(Model, cls).getInputSpecification()
     inputSpecification.addParam("subType", InputData.StringType, True)
+
+    ## Begin alias tag
+    AliasInput = InputData.parameterInputFactory("alias", contentType=InputData.StringType)
+    AliasInput.addParam("variable", InputData.StringType, True)
+    AliasTypeInput = InputData.makeEnumType("aliasType","aliasTypeType",["input","output"])
+    AliasInput.addParam("type", AliasTypeInput, True)
+    inputSpecification.addSub(AliasInput)
+    ## End alias tag
 
     return inputSpecification
 
@@ -178,10 +189,12 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     BaseType.__init__(self)
     Assembler.__init__(self)
+    #if alias are defined in the input it defines a mapping between the variable names in the framework and the one for the generation of the input
+    #self.alias[framework variable name] = [input code name]. For Example, for a MooseBasedApp, the alias would be self.alias['internal_variable_name'] = 'Material|Fuel|thermal_conductivity'
+    self.alias    = {'input':{},'output':{}}
     self.subType  = ''
     self.runQueue = []
     self.printTag = 'MODEL'
-
 
   def _readMoreXML(self,xmlNode):
     """
@@ -195,8 +208,45 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     except KeyError:
       self.raiseADebug(" Failed in Node: "+str(xmlNode),verbostiy='silent')
       self.raiseAnError(IOError,'missed subType for the model '+self.name)
+    for child in xmlNode:
+      if child.tag =='alias':
+        # the input would be <alias variable='internal_variable_name'>Material|Fuel|thermal_conductivity</alias>
+        if 'variable' in child.attrib.keys():
+          if 'type' in child.attrib.keys():
+            if child.attrib['type'].lower() not in ['input','output']: self.raiseAnError(IOError,'the type of alias can be either "input" or "output". Got '+child.attrib['type'].lower())
+            aliasType           = child.attrib['type'].lower().strip()
+            complementAliasType = 'output' if aliasType == 'input' else 'input'
+          else: self.raiseAnError(IOError,'not found the attribute "type" in the definition of one of the alias for model '+str(self.name) +' of type '+self.type)
+          varFramework, varModel = child.attrib['variable'], child.text.strip()
+          if varFramework in self.alias[aliasType].keys(): self.raiseAnError(IOError,' The alias for variable ' +varFramework+' has been already inputted in model '+str(self.name) +' of type '+self.type)
+          if varModel in self.alias[aliasType].values()  : self.raiseAnError(IOError,' The alias ' +varModel+' has been already used for another variable in model '+str(self.name) +' of type '+self.type)
+          if varFramework in self.alias[complementAliasType].keys(): self.raiseAnError(IOError,' The alias for variable ' +varFramework+' has been already inputted ('+complementAliasType+') in model '+str(self.name) +' of type '+self.type)
+          if varModel in self.alias[complementAliasType].values()  : self.raiseAnError(IOError,' The alias ' +varModel+' has been already used ('+complementAliasType+') for another variable in model '+str(self.name) +' of type '+self.type)
+          self.alias[aliasType][varFramework] = child.text.strip()
+        else: self.raiseAnError(IOError,'not found the attribute "variable" in the definition of one of the alias for model '+str(self.name) +' of type '+self.type)
     # read local information
     self.localInputAndChecks(xmlNode)
+
+  def _replaceVariablesNamesWithAliasSystem(self, sampledVars, aliasType='input', fromModelToFramework=False):
+    """
+      Method to convert kwargs Sampled vars with the alias system
+      @ In , sampledVars, dict, dictionary that are going to be modified
+      @ In, aliasType, str, optional, type of alias to be replaced
+      @ In, fromModelToFramework, bool, optional, True if we need to replace the variable name from the model to the framework, False if opposite
+      @ Out, originalVariables, dict, dictionary of the original sampled variables
+    """
+    if aliasType =='inout': listAliasType = ['input','output']
+    else                  : listAliasType = [aliasType]
+    originalVariables = copy.deepcopy(sampledVars)
+    for aliasTyp in listAliasType:
+      if len(self.alias[aliasTyp].keys()) != 0:
+        for varFramework,varModel in self.alias[aliasTyp].items():
+          whichVar =  varModel if fromModelToFramework else varFramework
+          found = sampledVars.pop(whichVar,[sys.maxint])
+          if not np.array_equal(np.asarray(found), [sys.maxint]):
+            if fromModelToFramework: sampledVars[varFramework] = originalVariables[varModel]
+            else                   : sampledVars[varModel]     = originalVariables[varFramework]
+    return originalVariables
 
   def _handleInput(self, paramInput):
     """
@@ -209,7 +259,6 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     else:
       self.raiseADebug(" Failed in Node: "+str(xmlNode),verbostiy='silent')
       self.raiseAnError(IOError,'missed subType for the model '+self.name)
-
 
   def localInputAndChecks(self,xmlNode):
     """
@@ -231,6 +280,10 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     paramDict = {}
     paramDict['subType'] = self.subType
+    for key, value in self.alias['input'].items():
+      paramDict['The model input variable '+str(value)+' is filled using the framework variable '] = key
+    for key, value in self.alias['output'].items():
+      paramDict['The model output variable '+str(value)+' is filled using the framework variable '] = key
     return paramDict
 
   def finalizeModelOutput(self,finishedJob):
@@ -292,11 +345,12 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     pass
 
-  def collectOutput(self,collectFrom,storeTo):
+  def collectOutput(self,collectFrom,storeTo,options=None):
     """
       Method that collects the outputs from the previous run
       @ In, collectFrom, InternalRunner object, instance of the run just finished
       @ In, storeTo, "DataObjects" object, output where the results of the calculation needs to be stored
+      @ In, options, dict, optional, dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
     #if a addOutput is present in nameSpace of storeTo it is used
@@ -390,17 +444,22 @@ class Dummy(Model):
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
       @ Out, ([(inputDict)],copy.deepcopy(Kwargs)), tuple, return the new input in a tuple form
     """
-    if len(myInput)>1: self.raiseAnError(IOError,'Only one input is accepted by the model type '+self.type+' with name'+self.name)
-    inputDict = self._inputToInternal(myInput[0])
-    #test if all sampled variables are in the inputs category of the data
-    # fixme? -congjian
-    #if set(list(Kwargs['SampledVars'].keys())+list(inputDict.keys())) != set(list(inputDict.keys())):
-    #  self.raiseAnError(IOError,'When trying to sample the input for the model '+self.name+' of type '+self.type+' the sampled variable are '+str(Kwargs['SampledVars'].keys())+' while the variable in the input are'+str(inputDict.keys()))
-    for key in Kwargs['SampledVars'].keys(): inputDict[key] = np.atleast_1d(Kwargs['SampledVars'][key])
+    if len(myInput)>1:
+      self.raiseAnError(IOError,'Only one input is accepted by the model type '+self.type+' with name'+self.name)
+
+    inputDict   = self._inputToInternal(myInput[0])
+    self._replaceVariablesNamesWithAliasSystem(inputDict,'input',False)
+
+    if 'SampledVars' in Kwargs.keys():
+      sampledVars = self._replaceVariablesNamesWithAliasSystem(Kwargs['SampledVars'],'input',False)
+
+    for key in Kwargs['SampledVars'].keys():
+      inputDict[key] = np.atleast_1d(Kwargs['SampledVars'][key])
     for val in inputDict.values():
       if val is None: self.raiseAnError(IOError,'While preparing the input for the model '+self.type+' with name '+self.name+' found a None input variable '+ str(inputDict.items()))
     #the inputs/outputs should not be store locally since they might be used as a part of a list of input for the parallel runs
     #same reason why it should not be used the value of the counter inside the class but the one returned from outside as a part of the input
+    if 'SampledVars' in Kwargs.keys() and len(self.alias['input'].keys()) != 0: Kwargs['SampledVars'] = sampledVars
     return [(inputDict)],copy.deepcopy(Kwargs)
 
   def updateInputFromOutside(self, Input, externalDict):
@@ -415,6 +474,8 @@ class Dummy(Model):
       inputOut[0][0][key] =  externalDict[key]
       inputOut[1]["SampledVars"  ][key] =  externalDict[key]
       inputOut[1]["SampledVarsPb"][key] =  1.0    #FIXME it is a mistake (Andrea). The SampledVarsPb for this variable should be transfred from outside
+      self._replaceVariablesNamesWithAliasSystem(inputOut[1]["SampledVars"  ],'input',False)
+      self._replaceVariablesNamesWithAliasSystem(inputOut[1]["SampledVarsPb"],'input',False)
     return inputOut
 
   def run(self,Input,jobHandler):
@@ -437,13 +498,14 @@ class Dummy(Model):
       return {'OutputPlaceHolder':np.atleast_1d(np.float(prefix))}
 
     uniqueHandler = Input[1]['uniqueHandler'] if 'uniqueHandler' in Input[1].keys() else 'any'
-    jobHandler.submitDict['Internal']((inRun,Input[1]['prefix']),lambdaReturnOut,str(Input[1]['prefix']),metadata=Input[1], modulesToImport = self.mods, uniqueHandler=uniqueHandler)
+    jobHandler.addInternal((inRun,Input[1]['prefix']),lambdaReturnOut,str(Input[1]['prefix']),metadata=Input[1], modulesToImport = self.mods, uniqueHandler=uniqueHandler)
 
-  def collectOutput(self,finishedJob,output):
+  def collectOutput(self,finishedJob,output,options=None):
     """
       Method that collects the outputs from the previous run
       @ In, finishedJob, InternalRunner object, instance of the run just finished
       @ In, output, "DataObjects" object, output where the results of the calculation needs to be stored
+      @ In, options, dict, optional, dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
     if finishedJob.getEvaluation() == -1:
@@ -454,15 +516,21 @@ class Dummy(Model):
     else:
       outputeval = evaluation[1]
     exportDict = copy.deepcopy({'inputSpaceParams':evaluation[0],'outputSpaceParams':outputeval,'metadata':finishedJob.getMetadata()})
-    if output.type == 'HDF5': output.addGroupDataObjects({'group':self.name+str(finishedJob.identifier)},exportDict,False)
+    self._replaceVariablesNamesWithAliasSystem(exportDict['inputSpaceParams'], 'input',True)
+    if output.type == 'HDF5':
+      optionsIn = {'group':self.name+str(finishedJob.identifier)}
+      if options is not None: optionsIn.update(options)
+      self._replaceVariablesNamesWithAliasSystem(exportDict['inputSpaceParams'], 'input',True)
+      output.addGroupDataObjects(optionsIn,exportDict,False)
     else:
-      self.collectOutputFromDict(exportDict,output)
+      self.collectOutputFromDict(exportDict,output,options)
 
-  def collectOutputFromDict(self,exportDict,output):
+  def collectOutputFromDict(self,exportDict,output,options=None):
     """
       Collect results from a dictionary
       @ In, exportDict, dict, contains 'inputSpaceParams','outputSpaceParams','metadata'
       @ In, output, DataObject, to whom we write the data
+      @ In, options, dict, optional, dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
     #prefix is not generally useful for dummy-related models, so we remove it but store it
@@ -480,7 +548,7 @@ class Dummy(Model):
       self.raiseAnError(RuntimeError,"the model "+ self.name+" does not generate all the outputs requested in output object "+ output.name +". Missing parameters are: " + ','.join(list(missingParameters)) +".")
     for key in exportDict[inKey ]:
       if key in output.getParaKeys('inputs'):
-        output.updateInputValue (key,exportDict[inKey][key])
+        output.updateInputValue (key,exportDict[inKey][key],options)
     for key in exportDict[outKey]:
       if key in output.getParaKeys('outputs'):
         output.updateOutputValue(key,exportDict[outKey][key])
@@ -722,8 +790,8 @@ class ROM(Dummy):
     def tryStrParse(s):
       """
         Trys to parse if it is stringish
-        @ In, s, possible string
-        @ Out, s, original type, or possibly parsed string
+        @ In, s, string, possible string
+        @ Out, s, string, original type, or possibly parsed string
       """
       if type(s).__name__ in ['str','unicode']:
         return utils.tryParse(s)
@@ -731,6 +799,7 @@ class ROM(Dummy):
 
     for child in paramInput.subparts:
       if len(child.parameterValues) > 0:
+        if child.getName() == 'alias': continue
         if child.getName() not in self.initializationOptionDict.keys():
           self.initializationOptionDict[child.getName()]={}
         self.initializationOptionDict[child.getName()][child.value]=child.parameterValues
@@ -909,6 +978,7 @@ class ROM(Dummy):
             newRom[target] =  copy.deepcopy(origRomCopies[target])
           for target,instrom in newRom.items():
             # train the ROM
+            self._replaceVariablesNamesWithAliasSystem(self.trainingSet[ts], 'inout', False)
             instrom.train(self.trainingSet[ts])
             self.amITrained = self.amITrained and instrom.amITrained
           self.SupervisedEngine.append(newRom)
@@ -916,6 +986,7 @@ class ROM(Dummy):
       else:
         self.trainingSet = copy.copy(self._inputToInternal(trainingSet,full=True))
         if type(self.trainingSet) is dict:
+          self._replaceVariablesNamesWithAliasSystem(self.trainingSet, 'inout', False)
           self.amITrained = True
           for instrom in self.SupervisedEngine.values():
             instrom.train(self.trainingSet)
@@ -992,6 +1063,8 @@ class ROM(Dummy):
     else:
       for target in self.SupervisedEngine.keys():
         returnDict[target] = self.evaluate(inRun,target)
+    self._replaceVariablesNamesWithAliasSystem(returnDict, 'output',True)
+    self._replaceVariablesNamesWithAliasSystem(inRun, 'input',True)
     return returnDict
 
   def run(self,Input,jobHandler):
@@ -1003,7 +1076,10 @@ class ROM(Dummy):
     """
     inRun = self._manipulateInput(Input[0])
     uniqueHandler = Input[1]['uniqueHandler'] if 'uniqueHandler' in Input[1].keys() else 'any'
-    jobHandler.submitDict['Internal']((inRun,), self.__externalRun, str(Input[1]['prefix']), metadata=Input[1], modulesToImport=self.mods, uniqueHandler=uniqueHandler)
+    jobHandler.addInternal((inRun,), self.__externalRun, str(Input[1]['prefix']), metadata=Input[1], modulesToImport=self.mods, uniqueHandler=uniqueHandler)
+#
+#
+#
 
 class ExternalModel(Dummy):
   """
@@ -1078,12 +1154,17 @@ class ExternalModel(Dummy):
       @ Out, ([(inputDict)],copy.deepcopy(Kwargs)), tuple, return the new input in a tuple form
     """
     modelVariableValues ={}
-    for key in Kwargs['SampledVars'].keys(): modelVariableValues[key] = Kwargs['SampledVars'][key]
     if 'createNewInput' in dir(self.sim):
+      if 'SampledVars' in Kwargs.keys(): sampledVars = self._replaceVariablesNamesWithAliasSystem(Kwargs['SampledVars'],'input',False)
       extCreateNewInput = self.sim.createNewInput(self,myInput,samplerType,**Kwargs)
       if extCreateNewInput== None: self.raiseAnError(AttributeError,'in external Model '+self.ModuleToLoad+' the method createNewInput must return something. Got: None')
-      return ([(extCreateNewInput)],copy.deepcopy(Kwargs)),copy.copy(modelVariableValues)
-    else: return Dummy.createNewInput(self, myInput,samplerType,**Kwargs),copy.copy(modelVariableValues)
+      if 'SampledVars' in Kwargs.keys() and len(self.alias['input'].keys()) != 0: Kwargs['SampledVars'] = sampledVars
+      newInput = ([(extCreateNewInput)],copy.deepcopy(Kwargs))
+      #return ([(extCreateNewInput)],copy.deepcopy(Kwargs)),copy.copy(modelVariableValues)
+    else:
+      newInput =  Dummy.createNewInput(self, myInput,samplerType,**Kwargs)
+    for key in Kwargs['SampledVars'].keys(): modelVariableValues[key] = Kwargs['SampledVars'][key]
+    return newInput, copy.copy(modelVariableValues)
 
   def updateInputFromOutside(self, Input, externalDict):
     """
@@ -1093,8 +1174,10 @@ class ExternalModel(Dummy):
       @ Out, inputOut, list, updated list of inputs
     """
     dummyReturn =  Dummy.updateInputFromOutside(self,Input[0], externalDict)
+    self._replaceVariablesNamesWithAliasSystem(dummyReturn[0][0],'input',False)
     inputOut = (dummyReturn,Input[1])
     for key, value in externalDict.items(): inputOut[1][key] =  externalDict[key]
+    self._replaceVariablesNamesWithAliasSystem(inputOut[1],'input',False)
     return inputOut
 
   def localInputAndChecks(self,xmlNode):
@@ -1122,7 +1205,7 @@ class ExternalModel(Dummy):
         for var in child.value.split(','):
           var = var.strip()
           self.modelVariableType[var] = None
-          self.listOfRavenAwareVars.append(var)
+    self.listOfRavenAwareVars.extend(self.modelVariableType.keys())
     # check if there are other information that the external module wants to load
     #TODO this needs to be converted to work with paramInput
     if '_readMoreXML' in dir(self.sim): self.sim._readMoreXML(self.initExtSelf,xmlNode)
@@ -1167,6 +1250,11 @@ class ExternalModel(Dummy):
           self.raiseADebug('variable '+ key+' has an unsupported type -> '+ self.modelVariableType[key],verbosity='silent')
       if errorFound: self.raiseAnError(RuntimeError,'Errors detected. See above!!')
     outcomes = dict((k, modelVariableValues[k]) for k in self.listOfRavenAwareVars)
+    # check type consistency... This is needed in order to keep under control the external model... In order to avoid problems in collecting the outputs in our internal structures
+    for key in self.modelVariableType.keys():
+      if not (utils.typeMatch(outcomes[key],self.modelVariableType[key])):
+        self.raiseAnError(RuntimeError,'type of variable '+ key + ' is ' + str(type(outcomes[key]))+' and mismatches with respect to the input ones (' + self.modelVariableType[key] +')!!!')
+    self._replaceVariablesNamesWithAliasSystem(outcomes,'inout',True)
     return outcomes,self
 
   def run(self,Input,jobHandler):
@@ -1178,36 +1266,30 @@ class ExternalModel(Dummy):
     """
     inRun = copy.copy(self._manipulateInput(Input[0][0]))
     uniqueHandler = Input[0][1]['uniqueHandler'] if 'uniqueHandler' in Input[0][1].keys() else 'any'
-    jobHandler.submitDict['Internal']((inRun,Input[1],),self.__externalRun,str(Input[0][1]['prefix']),metadata=Input[0][1], modulesToImport = self.mods,uniqueHandler=uniqueHandler)
+    jobHandler.addInternal((inRun,Input[1],),self.__externalRun,str(Input[0][1]['prefix']),metadata=Input[0][1], modulesToImport = self.mods,uniqueHandler=uniqueHandler)
 
-  def collectOutput(self,finishedJob,output):
+  def collectOutput(self,finishedJob,output,options=None):
     """
       Method that collects the outputs from the previous run
       @ In, finishedJob, InternalRunner object, instance of the run just finished
       @ In, output, "DataObjects" object, output where the results of the calculation needs to be stored
+      @ In, options, dict, optional, dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
-    if finishedJob.getEvaluation() == -1:
-      #is it still possible for the run to not be finished yet?  Should we be erroring out if so?
-      self.raiseAnError(RuntimeError,"No available Output to collect")
-    def typeMatch(var,varTypeStr):
-      """
-        This method is aimed to check if a variable changed datatype
-        @ In, var, python datatype, the first variable to compare
-        @ In, varTypeStr, string, the type that this variable should have
-        @ Out, typeMatch, bool, is the datatype changed?
-      """
-      typeVar = type(var)
-      return typeVar.__name__ == varTypeStr or \
-        typeVar.__module__+"."+typeVar.__name__ == varTypeStr
-    # check type consistency... This is needed in order to keep under control the external model... In order to avoid problems in collecting the outputs in our internal structures
+    if finishedJob.getEvaluation() == -1: self.raiseAnError(RuntimeError,"No available Output to collect")
     instanciatedSelf = finishedJob.getEvaluation()[1][1]
     outcomes         = finishedJob.getEvaluation()[1][0]
-    for key in instanciatedSelf.modelVariableType.keys():
-      if not (typeMatch(outcomes[key],instanciatedSelf.modelVariableType[key])):
-        self.raiseAnError(RuntimeError,'type of variable '+ key + ' is ' + str(type(outcomes[key]))+' and mismatches with respect to the input ones (' + instanciatedSelf.modelVariableType[key] +')!!!')
-    Dummy.collectOutput(self, finishedJob, output)
-
+    if output.type in ['HistorySet']:
+      outputSize = -1
+      for key in output.getParaKeys('outputs'):
+        if key in instanciatedSelf.modelVariableType.keys():
+          if outputSize == -1: outputSize = len(np.atleast_1d(outcomes[key]))
+          if not utils.sizeMatch(outcomes[key],outputSize): self.raiseAnError(Exception,"the time series size needs to be the same for the output space in a HistorySet!")
+    Dummy.collectOutput(self, finishedJob, output, options)
+#
+#
+#
+#
 class Code(Model):
   """
     This is the generic class that import an external code into the framework
@@ -1226,12 +1308,6 @@ class Code(Model):
     inputSpecification = super(Code, cls).getInputSpecification()
     inputSpecification.addSub(InputData.parameterInputFactory("executable", contentType=InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("preexec", contentType=InputData.StringType))
-
-    ## Begin alias tag
-    AliasInput = InputData.parameterInputFactory("alias", contentType=InputData.StringType)
-    AliasInput.addParam("variable", InputData.StringType, True)
-    inputSpecification.addSub(AliasInput)
-    ## End alias tag
 
     ## Begin command line arguments tag
     ClargsInput = InputData.parameterInputFactory("clargs")
@@ -1286,9 +1362,6 @@ class Code(Model):
     self.outFileRoot        = ''   #root to be used to generate the sequence of output files
     self.currentInputFiles  = []   #list of the modified (possibly) input files (abs path)
     self.codeFlags          = None #flags that need to be passed into code interfaces(if present)
-    #if alias are defined in the input it defines a mapping between the variable names in the framework and the one for the generation of the input
-    #self.alias[framework variable name] = [input code name]. For Example, for a MooseBasedApp, the alias would be self.alias['internal_variable_name'] = 'Material|Fuel|thermal_conductivity'
-    self.alias              = {}
     self.printTag           = 'CODE MODEL'
     self.lockedFileName     = "ravenLocked.raven"
 
@@ -1309,12 +1382,6 @@ class Code(Model):
         self.executable = child.value
       if child.getName() =='preexec':
         self.preExec = child.value
-      elif child.getName() =='alias':
-        # the input would be <alias variable='internal_variable_name'>Material|Fuel|thermal_conductivity</alias>
-        if 'variable' in child.parameterValues:
-          self.alias[child.parameterValues['variable']] = child.value
-        else:
-          self.raiseAnError(IOError,'the attribute variable was not found in the definition of one of the alias for code model '+str(self.name))
       elif child.getName() == 'clargs':
         argtype = child.parameterValues['type']      if 'type'      in child.parameterValues else None
         arg     = child.parameterValues['arg']       if 'arg'       in child.parameterValues else None
@@ -1389,8 +1456,6 @@ class Code(Model):
     """
     paramDict = Model.getInitParams(self)
     paramDict['executable']=self.executable
-    for key, value in self.alias.items():
-      paramDict['The code variable '+str(value)+' it is filled using the framework variable '] = key
     return paramDict
 
   def getCurrentSetting(self):
@@ -1477,16 +1542,10 @@ class Code(Model):
       newInputSet[index].setPath(subDirectory)
       shutil.copy(self.oriInputFiles[index].getAbsFile(),subDirectory)
     Kwargs['subDirectory'] = subDirectory
-    if len(self.alias.keys()) != 0:
-      if 'SampledVars' in Kwargs.keys():
-        sampledVars = Kwargs.pop('SampledVars')
-        Kwargs['SampledVars'] = copy.deepcopy(sampledVars)
-        for varFramework,varCode in self.alias.items():
-          Kwargs['SampledVars'].pop(varFramework)
-          Kwargs['SampledVars'][varCode] = sampledVars[varFramework]
-      #Kwargs['alias']   = self.alias
-    newInput = self.code.createNewInput(newInputSet,self.oriInputFiles,samplerType,**copy.deepcopy(Kwargs))
-    if 'SampledVars' in Kwargs.keys() and len(self.alias.keys()) != 0: Kwargs['SampledVars'] = sampledVars
+    if 'SampledVars' in Kwargs.keys():
+      sampledVars = self._replaceVariablesNamesWithAliasSystem(Kwargs['SampledVars'],'input',False)
+    newInput    = self.code.createNewInput(newInputSet,self.oriInputFiles,samplerType,**copy.deepcopy(Kwargs))
+    if 'SampledVars' in Kwargs.keys() and len(self.alias['input'].keys()) != 0: Kwargs['SampledVars'] = sampledVars
     return (newInput,Kwargs)
 
   def updateInputFromOutside(self, Input, externalDict):
@@ -1499,9 +1558,10 @@ class Code(Model):
     newKwargs = Input[1]
     newKwargs['SampledVars'].update(externalDict)
     # the following update should be done with the Pb value coming from the previous (in the model chain) model
-    newKwargs['SampledVarsPb'].update(dict.fromkeys(externalDict.keys(),0.0))
+    newKwargs['SampledVarsPb'].update(dict.fromkeys(externalDict.keys(),1.0))
+    self._replaceVariablesNamesWithAliasSystem(newKwargs['SampledVars'  ],'input',False)
+    self._replaceVariablesNamesWithAliasSystem(newKwargs['SampledVarsPb'],'input',False)
     inputOut = self.createNewInput(Input[1]['originalInput'], Input[1]['SamplerType'], **newKwargs)
-
     return inputOut
 
   def run(self,inputFiles,jobHandler):
@@ -1518,7 +1578,7 @@ class Code(Model):
     executeCommand, self.outFileRoot = returnedCommand
     uniqueHandler = inputFiles[1]['uniqueHandler'] if 'uniqueHandler' in inputFiles[1].keys() else 'any'
     identifier    = inputFiles[1]['prefix'] if 'prefix' in inputFiles[1].keys() else None
-    jobHandler.submitDict['External'](executeCommand,self.outFileRoot,metaData.pop('subDirectory'),identifier=identifier,metadata=metaData,codePointer=self.code,uniqueHandler = uniqueHandler)
+    jobHandler.addExternal(executeCommand,self.outFileRoot,metaData.pop('subDirectory'),identifier=identifier,metadata=metaData,codePointer=self.code,uniqueHandler = uniqueHandler)
     found = False
     for index, inputFile in enumerate(self.currentInputFiles):
       if inputFile.getExt() in self.code.getInputExtension():
@@ -1538,15 +1598,17 @@ class Code(Model):
       out = self.code.finalizeCodeOutput(finishedJob.command,finishedJob.output,finishedJob.getWorkingDir())
       if out: finishedJob.output = out
 
-  def collectOutput(self,finishedjob,output):
+  def collectOutput(self,finishedjob,output,options=None):
     """
       Method that collects the outputs from the previous run
       @ In, finishedJob, InternalRunner object, instance of the run just finished
       @ In, output, "DataObjects" object, output where the results of the calculation needs to be stored
+      @ In, options, dict, optional, dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
     outputFilelocation = finishedjob.getWorkingDir()
     attributes={"inputFile":self.currentInputFiles,"type":"csv","name":os.path.join(outputFilelocation,finishedjob.output+'.csv')}
+    attributes['alias'] = self.alias
     metadata = finishedjob.getMetadata()
     if metadata: attributes['metadata'] = metadata
     if output.type == "HDF5"        : output.addGroup(attributes,attributes)
@@ -1558,11 +1620,12 @@ class Code(Model):
         for key,value in metadata.items(): output.updateMetadata(key,value,attributes)
     else: self.raiseAnError(ValueError,"output type "+ output.type + " unknown for Model Code "+self.name)
 
-  def collectOutputFromDict(self,exportDict,output):
+  def collectOutputFromDict(self,exportDict,output,options=None):
     """
       Collect results from dictionary
       @ In, exportDict, dict, contains 'inputs','outputs','metadata'
-      @ In, output, the place to write to
+      @ In, output, instance, the place to write to
+      @ In, options, dict, optional, dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
     prefix = exportDict.pop('prefix')
@@ -1578,7 +1641,7 @@ class Code(Model):
     else: #point set
       for key in exportDict['inputSpaceParams']:
         if key in output.getParaKeys('inputs'):
-          output.updateInputValue(key,exportDict['inputSpaceParams'][key])
+          output.updateInputValue(key,exportDict['inputSpaceParams'][key],options)
       for key in exportDict['outputSpaceParams']:
         if key in output.getParaKeys('outputs'):
           output.updateOutputValue(key,exportDict['outputSpaceParams'][key])
@@ -1726,14 +1789,17 @@ class PostProcessor(Model, Assembler):
       @ In,  jobHandler, JobHandler instance, the global job handler instance
       @ Out, None
     """
-    if len(Input) > 0 : jobHandler.submitDict['Internal']((Input,),self.interface.run,str(0),modulesToImport = self.mods, forceUseThreads = True)
-    else: jobHandler.submitDict['Internal']((None,),self.interface.run,str(0),modulesToImport = self.mods, forceUseThreads = True)
+    if len(Input) > 0:
+      jobHandler.addInternal((Input,),self.interface.run,str(0),modulesToImport = self.mods, forceUseThreads = True)
+    else:
+      jobHandler.addInternal((None,),self.interface.run,str(0),modulesToImport = self.mods, forceUseThreads = True)
 
-  def collectOutput(self,finishedjob,output):
+  def collectOutput(self,finishedjob,output,options=None):
     """
       Method that collects the outputs from the previous run
       @ In, finishedJob, InternalRunner object, instance of the run just finished
       @ In, output, "DataObjects" object, output where the results of the calculation needs to be stored
+      @ In, options, dict, optional, dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
     self.interface.collectOutput(finishedjob,output)
@@ -1792,9 +1858,12 @@ class EnsembleModel(Dummy, Assembler):
     self.printTag = 'EnsembleModel MODEL'
     self.addAssemblerObject('Model','n',True)
     self.addAssemblerObject('TargetEvaluation','n')
+    self.addAssemblerObject('Input','n')
     self.tempTargetEvaluations = {}
     self.maxIterations         = 30
     self.convergenceTol        = 1.e-3
+    self.initialConditions     = {}
+    self.ensembleModelGraph    = None
     self.lockSystem = threading.RLock()
 
   def localInputAndChecks(self,xmlNode):
@@ -1806,15 +1875,19 @@ class EnsembleModel(Dummy, Assembler):
     """
     Dummy.localInputAndChecks(self, xmlNode)
     for child in xmlNode:
-      if child.tag not in  ["Model"]: self.raiseAnError(IOError, "Expected Model tag. Got "+child.tag)
+      if child.tag not in  ["Model","settings"]: self.raiseAnError(IOError, "Expected <Model> or <settings> tag. Got "+child.tag)
       if child.tag == 'Model':
-        self.modelsDictionary[child.text.strip()] = {'TargetEvaluation':None,'Instance':None}
+        modelName = child.text.strip()
+        self.modelsDictionary[modelName] = {'TargetEvaluation':None,'Instance':None,'Input':[]}
         for childChild in child:
-          self.modelsDictionary[child.text.strip()][childChild.tag] = childChild.text.strip()
-        if self.modelsDictionary[child.text.strip()].values().count(None) != 1: self.raiseAnError(IOError, "TargetEvaluation xml block needs to be inputted!")
-        if len(self.modelsDictionary[child.text.strip()].values()) > 2: self.raiseAnError(IOError, "TargetEvaluation xml block is the only XML sub-block allowed!")
-        if 'inputNames' not in child.attrib.keys(): self.raiseAnError(IOError, "inputNames attribute for Model" + child.text.strip() +" has not been inputted!")
-        self.modelsDictionary[child.text.strip()]['inputNames'] = [utils.toStrish(inpName) for inpName in child.attrib["inputNames"].split(",")]
+          try                  : self.modelsDictionary[modelName][childChild.tag].append(childChild.text.strip())
+          except AttributeError: self.modelsDictionary[modelName][childChild.tag] = childChild.text.strip()
+        if self.modelsDictionary[modelName].values().count(None) != 1: self.raiseAnError(IOError, "TargetEvaluation xml block needs to be inputted!")
+        #if len(self.modelsDictionary[child.text.strip()].values()) > 2: self.raiseAnError(IOError, "TargetEvaluation xml block is the only XML sub-block allowed!")
+        #if 'inputNames' not in child.attrib.keys(): self.raiseAnError(IOError, "inputNames attribute for Model" + child.text.strip() +" has not been inputted!")
+        #self.modelsDictionary[modelName]['inputNames'] = [utils.toStrish(inpName) for inpName in child.attrib["inputNames"].split(",")]
+        if len(self.modelsDictionary[modelName]['Input']) == 0 : self.raiseAnError(IOError, "Input XML node for Model" + modelName +" has not been inputted!")
+        if len(self.modelsDictionary[modelName].values()) > 3  : self.raiseAnError(IOError, "TargetEvaluation and Input XML blocks are the only XML sub-blocks allowed!")
       if child.tag == 'settings':
         self.__readSettings(child)
     if len(self.modelsDictionary.keys()) < 2: self.raiseAnError(IOError, "The EnsembleModel needs at least 2 models to be constructed!")
@@ -1825,10 +1898,18 @@ class EnsembleModel(Dummy, Assembler):
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None
     """
-    for childChild in child:
-      if childChild.tag == 'maxIterations': self.maxIterations  = int(childChild.text)
-      if childChild.tag == 'tolerance'    : self.convergenceTol = float(childChild.text)
-
+    for child in xmlNode:
+      if child.tag == 'maxIterations'    : self.maxIterations  = int(child.text)
+      if child.tag == 'tolerance'        : self.convergenceTol = float(child.text)
+      if child.tag == 'initialConditions':
+        for var in child:
+          if "repeat" in var.attrib.keys():
+            self.initialConditions[var.tag] = np.repeat([float(var.text.split()[0])], int(var.attrib['repeat'])) #np.array([float(var.text.split()[0]) for _ in range(int(var.attrib['repeat']))])
+          else:
+            try:
+              values = var.text.split()
+              self.initialConditions[var.tag] = float(values[0]) if len(values) == 1 else np.asarray([float(varValue) for varValue in values])
+            except: self.raiseAnError(IOError,"unable to read text from XML node "+var.tag)
 
   def __findMatchingModel(self,what,subWhat):
     """
@@ -1843,6 +1924,67 @@ class EnsembleModel(Dummy, Assembler):
     if len(models) == 0: models = None
     return models
 
+#   def __getExecutionList(self, orderedNodes, allPath):
+#     """
+#       Method to get the execution list
+#       @ In, orderedNodes, list, list of models ordered based on the input/output relationships
+#       @ In, allPath, list, list of lists containing all the path from orderedNodes[0] to orderedNodes[-1]
+#       @ Out, executionList, list, list of lists with the execution order (e.g. [[model1],[model2.1,model2.2],[model3], etc.]
+#     """
+#     numberPath = len(allPath)
+#     maxComponents = 0
+#     for path in allPath:
+#       if len(path) > maxComponents: maxComponents = len(path)
+#     executionList = [ [] for _ in range(maxComponents)]
+#     executionCounter = -1
+#     for node in orderedNodes:
+#       nodeCtn = 0
+#       for path in allPath:
+#         if node in path: nodeCtn +=1
+#       if nodeCtn == numberPath:
+#         executionCounter+=1
+#         executionList[executionCounter] = [node]
+#       else:
+#         previousNodesInPath = []
+#         for path in allPath:
+#           if path.count(node) > 0: previousNodesInPath.append(path[path.index(node)-1])
+#         for previousNode in previousNodesInPath:
+#           if previousNode in executionList[executionCounter]:
+#             executionCounter+=1
+#             break
+#         executionList[executionCounter].append(node)
+#     return executionList
+
+  def __getExecutionList(self, orderedNodes, allPath):
+    """
+      Method to get the execution list
+      @ In, orderedNodes, list, list of models ordered based on the input/output relationships
+      @ In, allPath, list, list of lists containing all the path from orderedNodes[0] to orderedNodes[-1]
+      @ Out, executionList, list, list of lists with the execution order (e.g. [[model1],[model2.1,model2.2],[model3], etc.]
+    """
+    numberPath    = len(allPath)
+    maxComponents = max([len(path) for path in allPath])
+
+    executionList = [ [] for _ in range(maxComponents)]
+    executionCounter = -1
+    for node in orderedNodes:
+      nodeCtn = 0
+      for path in allPath:
+        if node in path: nodeCtn +=1
+      if nodeCtn == numberPath:
+        executionCounter+=1
+        executionList[executionCounter] = [node]
+      else:
+        previousNodesInPath = []
+        for path in allPath:
+          if path.count(node) > 0: previousNodesInPath.append(path[path.index(node)-1])
+        for previousNode in previousNodesInPath:
+          if previousNode in executionList[executionCounter]:
+            executionCounter+=1
+            break
+        executionList[executionCounter].append(node)
+    return executionList
+
   def initialize(self,runInfo,inputs,initDict=None):
     """
       Method to initialize the EnsembleModel
@@ -1851,74 +1993,96 @@ class EnsembleModel(Dummy, Assembler):
       @ In, initDict, optional, dictionary of all objects available in the step is using this model
       @ Out, None
     """
-    self.tree = TreeStructure.NodeTree(self.messageHandler,TreeStructure.Node(self.messageHandler,self.name))
-    rootNode = self.tree.getrootnode()
+    #moldelNodes = {}
     for modelIn in self.assemblerDict['Model']:
       self.modelsDictionary[modelIn[2]]['Instance'] = modelIn[3]
-      inputForModel = []
-      for input in inputs:
-        if input.name in self.modelsDictionary[modelIn[2]]['inputNames']: inputForModel.append(input)
-      self.modelsDictionary[modelIn[2]]['Instance'].initialize(runInfo,inputForModel,initDict)
+      inputInstancesForModel = []
+      for input in self.modelsDictionary[modelIn[2]]['Input']: inputInstancesForModel.append( self.retrieveObjectFromAssemblerDict('Input',input))
+      self.modelsDictionary[modelIn[2]]['InputObject'] = inputInstancesForModel
+      self.modelsDictionary[modelIn[2]]['Instance'].initialize(runInfo,inputInstancesForModel,initDict)
       for mm in self.modelsDictionary[modelIn[2]]['Instance'].mods:
         if mm not in self.mods: self.mods.append(mm)
-    for targetEval in self.assemblerDict['TargetEvaluation']:
-      for modelIn in self.modelsDictionary.keys():
-        if targetEval[2] == self.modelsDictionary[modelIn]['TargetEvaluation']:
-          self.modelsDictionary[modelIn]['TargetEvaluation'] = targetEval[3]
-          self.tempTargetEvaluations[modelIn]                = copy.deepcopy(targetEval[3])
-          if type(targetEval[3]).__name__ != 'PointSet': self.raiseAnError(IOError, "The TargetEvaluation needs to be an instance of PointSet. Got "+type(targetEval[3]).__name__)
-          self.modelsDictionary[modelIn]['Input'] = targetEval[3].getParaKeys("inputs")
-          self.modelsDictionary[modelIn]['Output'] = targetEval[3].getParaKeys("outputs")
-          modelNode = TreeStructure.Node(self.messageHandler,modelIn)
-          modelNode.add( 'inputs', targetEval[3].getParaKeys("inputs"))
-          modelNode.add('outputs', targetEval[3].getParaKeys("outputs"))
-          rootNode.appendBranch(modelNode)
-          break
+      self.modelsDictionary[modelIn[2]]['TargetEvaluation'] = self.retrieveObjectFromAssemblerDict('TargetEvaluation',self.modelsDictionary[modelIn[2]]['TargetEvaluation'])
+      self.tempTargetEvaluations[modelIn[2]]                 = copy.deepcopy(self.modelsDictionary[modelIn[2]]['TargetEvaluation'])
+      #if type(self.tempTargetEvaluations[modelIn[2]]).__name__ != 'PointSet': self.raiseAnError(IOError, "The TargetEvaluation needs to be an instance of PointSet. Got "+type(self.tempTargetEvaluations[modelIn[2]]).__name__)
+      self.modelsDictionary[modelIn[2]]['Input' ] = self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getParaKeys("inputs")
+      self.modelsDictionary[modelIn[2]]['Output'] = self.modelsDictionary[modelIn[2]]['TargetEvaluation'].getParaKeys("outputs")
     # construct chain connections
-    self.orderList        = self.modelsDictionary.keys()
-    self.isConnected      = {}
+    modelsToOutputModels  = dict.fromkeys(self.modelsDictionary.keys(),None)
+
     for modelIn in self.modelsDictionary.keys():
-      topModelNode = self.tree.find(modelIn)
+      outputMatch = []
+      for i in range(len(self.modelsDictionary[modelIn]['Output'])):
+        match = self.__findMatchingModel('Input',self.modelsDictionary[modelIn]['Output'][i])
+        outputMatch.extend(match if match is not None else [])
+      outputMatch = list(set(outputMatch))
+      modelsToOutputModels[modelIn] = outputMatch
+    orderList        = self.modelsDictionary.keys()
+    for modelIn in self.modelsDictionary.keys():
       for i in range(len(self.modelsDictionary[modelIn]['Input'])):
         inputMatch   = self.__findMatchingModel('Output',self.modelsDictionary[modelIn]['Input'][i])
         if inputMatch is not None:
           for match in inputMatch:
-            if not topModelNode.isAnActualBranch(match):
-              topModelNode.appendBranch(self.tree.getrootnode().findBranch(match),True)
-            indexModelIn = self.orderList.index(modelIn)
-            self.orderList.pop(self.orderList.index(modelIn))
-            self.orderList.insert(int(max(self.orderList.index(match)+1,indexModelIn)), modelIn)
+            indexModelIn = orderList.index(modelIn)
+            orderList.pop(indexModelIn)
+            orderList.insert(int(max(orderList.index(match)+1,indexModelIn)), modelIn)
+    # construct the ensemble model directed graph
+    self.ensembleModelGraph = graphStructure.graphObject(modelsToOutputModels)
+    # make some checks
+    if not self.ensembleModelGraph.isConnectedNet():
+      isolatedModels = self.ensembleModelGraph.findIsolatedVertices()
+      self.raiseAnError(IOError, "Some models are not connected. Possible candidates are: "+' '.join(isolatedModels))
+    # get all paths
+    allPath = self.ensembleModelGraph.findAllUniquePaths()
+    ###################################################
+    # to be removed once executionList can be handled #
+    self.orderList = self.ensembleModelGraph.createSingleListOfVertices(allPath)                        #
+    ###################################################
+
+    #orderList = self.ensembleModelGraph.createSingleListOfVertices(allPath)
+
+    if len(allPath) > 1: self.executionList = self.__getExecutionList(orderList,allPath)
+    else               : self.executionList = allPath[-1]
     # check if Picard needs to be activated
-    for modelIn in self.modelsDictionary.keys():
-      if not self.activatePicard:
-        branch, testDict = self.tree.getrootnode().findBranch(modelIn), dict.fromkeys(self.modelsDictionary.keys(),-1)
-        for node in branch.iter():
-          testDict[node.name] +=1
-          if testDict[node.name] > 0:
-            self.activatePicard = True
-            break
-    if self.activatePicard: self.raiseAMessage("Multi-model connections determined a non-linear system. Picard's iterations activated!")
-    else                  : self.raiseAMessage("Multi-model connections determined a linear system. Picard's iterations not activated!")
+    self.activatePicard = self.ensembleModelGraph.isALoop()
+    if self.activatePicard:
+      self.raiseAMessage("EnsembleModel connections determined a non-linear system. Picard's iterations activated!")
+      if len(self.initialConditions.keys()) == 0: self.raiseAnError(IOError,"Picard's iterations mode activated but no intial conditions provided!")
+    else                  : self.raiseAMessage("EnsembleModel connections determined a linear system. Picard's iterations not activated!")
 
     self.allOutputs = []
-    self.needToCheckInputs = True
-    #if self.activatePicard:
     for modelIn in self.modelsDictionary.keys():
-      for modelCheck in self.modelsDictionary.keys():
-        for modelInOut in self.modelsDictionary[modelIn]['Output']:
-          if modelInOut not in self.allOutputs: self.allOutputs.append(modelInOut)
-          if modelInOut not in self.isConnected.keys(): self.isConnected[modelInOut] = {'input':[],'output':None}
-          if modelInOut in self.modelsDictionary[modelCheck]['Input']:
-            self.isConnected[modelInOut]['input' ].append(modelCheck)
-            self.isConnected[modelInOut]['output'] = modelIn
+      for modelInOut in self.modelsDictionary[modelIn]['Output']:
+        if modelInOut not in self.allOutputs: self.allOutputs.append(modelInOut)
+    self.needToCheckInputs = True
 
-  def localAddInitParams(self,tempDict):
+    # write debug statements
+    self.raiseAMessage("Specs of directed Graph formed by EnsembleModel:")
+    self.raiseAMessage("Graph Degree Sequence is    : "+str(self.ensembleModelGraph.degreeSequence()))
+    self.raiseAMessage("Graph Minimum/Maximum degree: "+str( (self.ensembleModelGraph.minDelta(), self.ensembleModelGraph.maxDelta())))
+    self.raiseAMessage("Graph density/diameter      : "+str( (self.ensembleModelGraph.density(),  self.ensembleModelGraph.diameter())))
+
+  def getInitParams(self):
     """
       Method used to export to the printer in the base class the additional PERMANENT your local class have
-      @ In, tempDict, dict, dictionary to be updated. {'attribute name':value}
-      @ Out, None
+      @ In, None
+      @ Out, tempDict, dict, dictionary to be updated. {'attribute name':value}
     """
+    tempDict = OrderedDict()
     tempDict['Models contained in EnsembleModel are '] = self.modelsDictionary.keys()
+    for modelIn in self.modelsDictionary.keys():
+      tempDict['Model '+modelIn+' TargetEvaluation is '] = self.modelsDictionary[modelIn]['TargetEvaluation']
+      tempDict['Model '+modelIn+' Inputs are '] = self.modelsDictionary[modelIn]['Input']
+    return tempDict
+
+  def getCurrentSetting(self):
+    """
+      Function to inject the name and values of the parameters that might change during the simulation
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys and each parameter's initial value as the dictionary values
+    """
+    paramDict = self.getInitParams()
+    return paramDict
 
   def __selectInputSubset(self,modelName, kwargs ):
     """
@@ -1965,16 +2129,12 @@ class EnsembleModel(Dummy, Assembler):
     for modelIn, specs in self.modelsDictionary.items():
       if self.needToCheckInputs:
         for inp in specs['Input']:
-          if inp not in allCoveredVariables: self.raiseAnError(RuntimeError,"for sub-model "+ modelIn + "the input "+inp+" has not been found among other models' outputs and sampled variables!")
+          if inp not in allCoveredVariables:
+            self.raiseAnError(RuntimeError,"for sub-model "+ modelIn + " the input "+inp+" has not been found among other models' outputs and sampled variables!")
       newKwargs = self.__selectInputSubset(modelIn,Kwargs)
-      inputForModel = []
-      for input in myInput:
-        if input.name in self.modelsDictionary[modelIn]['inputNames']: inputForModel.append(input)
-      if len(inputForModel) == 0: self.raiseAnError(IOError,"inputs " + " ".join(self.modelsDictionary[modelIn]['inputNames']) + " has not been found!")
-      inputDict = [self._inputToInternal(inputForModel[0],newKwargs['SampledVars'].keys())] if specs['Instance'].type != 'Code' else  inputForModel
+      inputDict = [self._inputToInternal(self.modelsDictionary[modelIn]['InputObject'][0],newKwargs['SampledVars'].keys())] if specs['Instance'].type != 'Code' else  self.modelsDictionary[modelIn]['InputObject']
       newInputs[modelIn] = specs['Instance'].createNewInput(inputDict,samplerType,**newKwargs)
-      if specs['Instance'].type == 'Code':
-        newInputs[modelIn][1]['originalInput'] = inputDict
+      if specs['Instance'].type == 'Code': newInputs[modelIn][1]['originalInput'] = inputDict
     self.needToCheckInputs = False
     return copy.deepcopy(newInputs)
 
@@ -1991,25 +2151,40 @@ class EnsembleModel(Dummy, Assembler):
     outcomes, targetEvaluations = out
     for modelIn in self.modelsDictionary.keys():
       # update TargetEvaluation
-      inputsValues  = targetEvaluations[modelIn].getParametersValues('inputs', nodeId = 'RecontructEnding')
-      outputsValues = targetEvaluations[modelIn].getParametersValues('outputs', nodeId = 'RecontructEnding')
-      metadataValues= targetEvaluations[modelIn].getAllMetadata(nodeId = 'RecontructEnding')
+      inputsValues               = targetEvaluations[modelIn].getParametersValues('inputs', nodeId = 'RecontructEnding')
+      unstructuredInputsValues   = targetEvaluations[modelIn].getParametersValues('unstructuredInputs', nodeId = 'RecontructEnding')
+      outputsValues              = targetEvaluations[modelIn].getParametersValues('outputs', nodeId = 'RecontructEnding')
+      metadataValues             = targetEvaluations[modelIn].getAllMetadata(nodeId = 'RecontructEnding')
+      inputsValues  = inputsValues if targetEvaluations[modelIn].type != 'HistorySet' else inputsValues.values()[-1]
+
+      if len(unstructuredInputsValues.keys()) > 0:
+        if targetEvaluations[modelIn].type != 'HistorySet':
+          castedUnstructuredInputsValues = {}
+          for key in unstructuredInputsValues.keys():
+            castedUnstructuredInputsValues[key] = copy.copy(unstructuredInputsValues[key][-1])
+        else: castedUnstructuredInputsValues  =  unstructuredInputsValues.values()[-1]
+        inputsValues.update(castedUnstructuredInputsValues)
+      outputsValues  = outputsValues if targetEvaluations[modelIn].type != 'HistorySet' else outputsValues.values()[-1]
+      print(inputsValues)
+      print(outputsValues)
       for key in targetEvaluations[modelIn].getParaKeys('inputs'):
+        if key not in inputsValues.keys(): self.raiseAnError(Exception,"the variable "+key+" is not in the input space of the model! Vars are:"+' '.join(inputsValues.keys()))
         self.modelsDictionary[modelIn]['TargetEvaluation'].updateInputValue (key,inputsValues[key])
       for key in targetEvaluations[modelIn].getParaKeys('outputs'):
+        if key not in outputsValues.keys(): self.raiseAnError(Exception,"the variable "+key+" is not in the output space of the model! Vars are:"+' '.join(outputsValues.keys()))
         self.modelsDictionary[modelIn]['TargetEvaluation'].updateOutputValue (key,outputsValues[key])
       for key in metadataValues.keys():
         self.modelsDictionary[modelIn]['TargetEvaluation'].updateMetadata(key,metadataValues[key])
       # end of update of TargetEvaluation
       for typeInfo,values in outcomes[modelIn].items():
-        for key in values.keys(): exportDict[typeInfo][key] = values[key]
+        for key in values.keys(): exportDict[typeInfo][key] = np.asarray(values[key])
       if output.name == self.modelsDictionary[modelIn]['TargetEvaluation'].name: self.raiseAnError(RuntimeError, "The Step output can not be one of the target evaluation outputs!")
     if output.type == 'HDF5': output.addGroupDataObjects({'group':self.name+str(finishedJob.identifier)},exportDict,False)
     else:
       for key in exportDict['inputSpaceParams' ] :
-        if key in output.getParaKeys('inputs') : output.updateInputValue (key,exportDict['inputSpaceParams' ][key][-1])
+        if key in output.getParaKeys('inputs') : output.updateInputValue (key,exportDict['inputSpaceParams' ][key])
       for key in exportDict['outputSpaceParams'] :
-        if key in output.getParaKeys('outputs'): output.updateOutputValue(key,exportDict['outputSpaceParams'][key][-1])
+        if key in output.getParaKeys('outputs'): output.updateOutputValue(key,exportDict['outputSpaceParams'][key])
       for key in exportDict['metadata'] :  output.updateMetadata(key,exportDict['metadata'][key][-1])
 
   def getAdditionalInputEdits(self,inputInfo):
@@ -2030,9 +2205,9 @@ class EnsembleModel(Dummy, Assembler):
     """
     for mm in utils.returnImportModuleString(jobHandler):
       if mm not in self.mods: self.mods.append(mm)
-    jobHandler.submitDict['InternalClient'](((copy.deepcopy(Input),jobHandler),), self.__externalRun,str(Input['prefix']))
+    jobHandler.addInternalClient(((copy.deepcopy(Input),jobHandler),), self.__externalRun,str(Input['prefix']))
 
-  def __retrieveDependentOutput(self,modelIn,listOfOutputs):
+  def __retrieveDependentOutput(self,modelIn,listOfOutputs, typeOutputs):
     """
       This method is aimed to retrieve the values of the output of the models on which the modelIn depends on
       @ In, modelIn, string, name of the model for which the dependent outputs need to be
@@ -2040,11 +2215,11 @@ class EnsembleModel(Dummy, Assembler):
       @ Out, dependentOutputs, dict, the dictionary of outputs the modelIn needs
     """
     dependentOutputs = {}
-    for previousOutputs in listOfOutputs:
+    for previousOutputs, outputType in zip(listOfOutputs,typeOutputs):
       if len(previousOutputs.values()) > 0:
         for input in self.modelsDictionary[modelIn]['Input']:
-          # since we support only PointSet we get the last entry of the array (the current history)
-          if input in previousOutputs.keys(): dependentOutputs[input] =  previousOutputs[input][-1]
+          if input in previousOutputs.keys(): dependentOutputs[input] =  previousOutputs[input][-1] if outputType != 'HistorySet' else np.asarray(previousOutputs[input])
+          #if input in previousOutputs.keys(): dependentOutputs[input] =  previousOutputs[input] if outputType != 'HistorySet' else np.asarray(previousOutputs[input])
     return dependentOutputs
 
   def __externalRun(self,inRun):
@@ -2058,17 +2233,19 @@ class EnsembleModel(Dummy, Assembler):
     Input, jobHandler = inRun[0], inRun[1]
     identifier = Input.pop('prefix')
     #with self.lockSystem:
+
     for modelIn in self.orderList:
       self.tempTargetEvaluations[modelIn].resetData()
     tempTargetEvaluations = copy.deepcopy(self.tempTargetEvaluations)
     #modelsTargetEvaluations[modelIn] = copy.deepcopy(self.modelsDictionary[modelIn]['TargetEvaluation'])
     residueContainer = dict.fromkeys(self.modelsDictionary.keys())
-    gotOutputs = [{}]*len(self.orderList)
+    gotOutputs  = [{}]*len(self.orderList)
+    typeOutputs = ['']*len(self.orderList)
     if self.activatePicard:
       for modelIn in self.orderList:
         residueContainer[modelIn] = {'residue':{},'iterValues':[{}]*2}
         for out in self.modelsDictionary[modelIn]['Output']:
-          residueContainer[modelIn]['residue'][out], residueContainer[modelIn]['iterValues'][0][out], residueContainer[modelIn]['iterValues'][1][out] = 0.0, 0.0, 0.0
+          residueContainer[modelIn]['residue'][out], residueContainer[modelIn]['iterValues'][0][out], residueContainer[modelIn]['iterValues'][1][out] = np.zeros(1), np.zeros(1), np.zeros(1)
     maxIterations, iterationCount = (self.maxIterations, 0) if self.activatePicard else (1 , 0)
     #if self.activatePicard: maxIterations, iterationCount = self.maxIterations, 0 if self.activatePicard else 1 , 0
     #else                  : maxIterations, iterationCount = 1 , 0
@@ -2077,45 +2254,63 @@ class EnsembleModel(Dummy, Assembler):
       iterationCount += 1
       if self.activatePicard: self.raiseAMessage("Picard's Iteration "+ str(iterationCount))
       for modelCnt, modelIn in enumerate(self.orderList):
-        #with self.lockSystem:
-        dependentOutput = self.__retrieveDependentOutput(modelIn, gotOutputs)
+        tempTargetEvaluations[modelIn].resetData()
+        dependentOutput = self.__retrieveDependentOutput(modelIn, gotOutputs, typeOutputs)
         if iterationCount == 1  and self.activatePicard:
           try              : sampledVars = Input[modelIn][0][1]['SampledVars'].keys()
-          except IndexError: sampledVars = Input[modelIn][1]['SampledVars'].keys()
+          except           : sampledVars = Input[modelIn][1]['SampledVars'].keys()
           for initCondToSet in [x for x in self.modelsDictionary[modelIn]['Input'] if x not in set(dependentOutput.keys()+sampledVars)]:
-            dependentOutput[initCondToSet] = np.asarray([1.0])[-1]
-        #with self.lockSystem:
+            if initCondToSet in self.initialConditions.keys(): dependentOutput[initCondToSet] = self.initialConditions[initCondToSet]
+            else                                             : self.raiseAnError(IOError,"No initial conditions provided for variable "+ initCondToSet)
         Input[modelIn]  = self.modelsDictionary[modelIn]['Instance'].updateInputFromOutside(Input[modelIn], dependentOutput)
         try              : Input[modelIn][0][1]['prefix'], Input[modelIn][0][1]['uniqueHandler'] = modelIn+"|"+identifier, self.name+identifier
-        except IndexError: Input[modelIn][1]['prefix'   ], Input[modelIn][1]['uniqueHandler'   ] = modelIn+"|"+identifier, self.name+identifier
+        except           : Input[modelIn][1]['prefix'   ], Input[modelIn][1]['uniqueHandler'   ] = modelIn+"|"+identifier, self.name+identifier
         nextModel = False
         while not nextModel:
           moveOn = False
           while not moveOn:
-            if jobHandler.howManyFreeSpots() > 0:
+            if jobHandler.availability() > 0:
               #with self.lockSystem:
               self.modelsDictionary[modelIn]['Instance'].run(copy.deepcopy(Input[modelIn]),jobHandler)
               while not jobHandler.isThisJobFinished(modelIn+"|"+identifier): time.sleep(1.e-3)
               nextModel, moveOn = True, True
             else: time.sleep(1.e-3)
           # get job that just finished
-          #with self.lockSystem:
           finishedRun = jobHandler.getFinished(jobIdentifier = modelIn+"|"+identifier, uniqueHandler=self.name+identifier)
           if finishedRun[0].getEvaluation() == -1:
             for modelToRemove in self.orderList:
               if modelToRemove != modelIn: jobHandler.getFinished(jobIdentifier = modelToRemove + "|" + identifier, uniqueHandler = self.name + identifier)
             self.raiseAnError(RuntimeError,"The Model "+modelIn + " failed!")
           # get back the output in a general format
+          self.modelsDictionary[modelIn]['Instance'].finalizeModelOutput(finishedRun[0])
           self.modelsDictionary[modelIn]['Instance'].collectOutput(finishedRun[0],tempTargetEvaluations[modelIn])
-          gotOutputs[modelCnt] = tempTargetEvaluations[modelIn].getParametersValues('outputs', nodeId = 'RecontructEnding')
+          returnDict[modelIn]  = {}
+          responseSpace = tempTargetEvaluations[modelIn].getParametersValues('outputs', nodeId = 'RecontructEnding')
+          inputSpace = tempTargetEvaluations[modelIn].getParametersValues('inputs', nodeId = 'RecontructEnding')
+          #inputSpaceOut = tempTargetEvaluations[modelIn].getParametersValues('inputs', nodeId = 'RecontructEnding')
+          typeOutputs[modelCnt] = tempTargetEvaluations[modelIn].type
+#           if typeOutputs[modelCnt] != 'HistorySet':
+#             gotOutputs[modelCnt], inputSpace = {}, {}
+#             for key,value in responseSpace.items(): gotOutputs[modelCnt][key] = np.atleast_1d(value[-1])
+#             for key,value in inputSpace.items()   : inputSpace[key]           = np.atleast_1d(value[-1])
+#           else:
+#             gotOutputs[modelCnt], inputSpace = responseSpace.values()[-1], inputSpace.values()[-1]
+          gotOutputs[modelCnt]  = responseSpace if typeOutputs[modelCnt] != 'HistorySet' else responseSpace.values()[-1]
           #store the result in return dictionary
-          returnDict[modelIn] = {'outputSpaceParams':gotOutputs[modelCnt],'inputSpaceParams':tempTargetEvaluations[modelIn].getParametersValues('inputs', nodeId = 'RecontructEnding'),'metadata':tempTargetEvaluations[modelIn].getAllMetadata()}
+          returnDict[modelIn]['outputSpaceParams'] = gotOutputs[modelCnt]
+          returnDict[modelIn]['inputSpaceParams' ] = inputSpace if typeOutputs[modelCnt] != 'HistorySet' else inputSpace.values()[-1]
+          returnDict[modelIn]['metadata'         ] = tempTargetEvaluations[modelIn].getAllMetadata()
+          #returnDict[modelIn] = {'outputSpaceParams':gotOutputs[modelCnt],'inputSpaceParams':tempTargetEvaluations[modelIn].getParametersValues('inputs', nodeId = 'RecontructEnding'),'metadata':tempTargetEvaluations[modelIn].getAllMetadata()}
           if self.activatePicard:
             # compute residue
             residueContainer[modelIn]['iterValues'][1] = copy.copy(residueContainer[modelIn]['iterValues'][0])
-            for out in gotOutputs[modelCnt].keys(): residueContainer[modelIn]['iterValues'][0][out] = copy.copy(gotOutputs[modelCnt][out][-1])
             for out in gotOutputs[modelCnt].keys():
-              residueContainer[modelIn]['residue'][out] = abs(residueContainer[modelIn]['iterValues'][0][out] - residueContainer[modelIn]['iterValues'][1][out])
+              residueContainer[modelIn]['iterValues'][0][out] = copy.copy(gotOutputs[modelCnt][out])
+              if iterationCount == 1: residueContainer[modelIn]['iterValues'][1][out] = np.zeros(len(residueContainer[modelIn]['iterValues'][0][out]))
+            for out in gotOutputs[modelCnt].keys():
+              if np.asarray(residueContainer[modelIn]['iterValues'][0][out]).shape != np.asarray(residueContainer[modelIn]['iterValues'][1][out]).shape:
+                pass
+              residueContainer[modelIn]['residue'][out] = abs(np.asarray(residueContainer[modelIn]['iterValues'][0][out]) - np.asarray(residueContainer[modelIn]['iterValues'][1][out]))
             residueContainer[modelIn]['Norm'] =  np.linalg.norm(np.asarray(residueContainer[modelIn]['iterValues'][1].values())-np.asarray(residueContainer[modelIn]['iterValues'][0].values()))
       if self.activatePicard:
         iterZero, iterOne = [],[]

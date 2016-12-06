@@ -12,6 +12,7 @@ import sys, os, errno
 import inspect
 import subprocess
 import platform
+import numpy
 
 class Object(object):pass
 
@@ -297,6 +298,34 @@ def toBytesIterative(s):
     for key,value in s.items(): tempdict[toBytes(key)] = toBytesIterative(value)
     return tempdict
   else: return toBytes(s)
+
+def toListFromNumpyOrC1array(array):
+  """
+    This method converts a numpy or c1darray into list
+    @ In, array, numpy or c1array,  array to be converted
+    @ Out, response, list, the casted value
+  """
+  response = array
+  if type(array).__name__ == 'ndarray':
+    response = array.tolist()
+  elif type(array).__name__.split(".")[0] == 'c1darray':
+    response = numpy.asarray(array).tolist()
+  return response
+
+def toListFromNumpyOrC1arrayIterative(array):
+  """
+    Method aimed to convert all the string-compatible content of
+    an object (dict, list, or string) in type list from numpy and c1darray types (recursively call toBytes(s))
+    @ In, array, object,  object whose content needs to be converted
+    @ Out, response, object, a copy of the object in which the string-compatible has been converted
+  """
+  if type(array) == list: return [toListFromNumpyOrC1array(x) for x in array]
+  elif type(array) == dict:
+    if len(array.keys()) == 0: return None
+    tempdict = {}
+    for key,value in array.items(): tempdict[toBytes(key)] = toListFromNumpyOrC1arrayIterative(value)
+    return tempdict
+  else: return toBytes(array)
 
 def toStrish(s):
   """
@@ -746,7 +775,6 @@ class pickleSafeSubprocessPopen(subprocess.Popen):
       self.__dict__ = d
       self._handle = None
 
-
 def removeDuplicates(objectList):
   """
     Method to efficiently remove duplicates from a list and maintain their
@@ -770,5 +798,62 @@ def removeDuplicates(objectList):
   ## but efficient computation.
   uniqueObjectList = [x for x in objectList if not (x in seen or seen_add(x))]
   return uniqueObjectList
+
+def typeMatch(var,varTypeStr):
+  """
+    This method is aimed to check if a variable changed datatype
+    @ In, var, python datatype, the first variable to compare
+    @ In, varTypeStr, string, the type that this variable should have
+    @ Out, match, bool, is the datatype changed?
+  """
+  typeVar = type(var)
+  match = typeVar.__name__ == varTypeStr or typeVar.__module__+"."+typeVar.__name__ == varTypeStr
+  if not match:
+    # check if the types start with the same root
+    if len(typeVar.__name__) <= len(varTypeStr):
+      if varTypeStr.startswith(typeVar.__name__): match = True
+    else:
+      if typeVar.__name__.startswith(varTypeStr): match = True
+  return match
+
+def sizeMatch(var,sizeToCheck):
+  """
+    This method is aimed to check if a variable has an expected size
+    @ In, var, python datatype, the first variable to compare
+    @ In, sizeToCheck, int, the size this variable should have
+    @ Out, sizeMatched, bool, is the size ok?
+  """
+  sizeMatched = True
+  if len(numpy.atleast_1d(var)) != sizeToCheck: sizeMatched = False
+  return sizeMatched
+
+
+def isASubset(setToTest,pileList):
+  """
+     Check if setToTest is ordered subset of pileList in O(n)
+     @ In, setToTest, list, set that needs to be tested
+     @ In, pileList, list, pile of sets
+     @ Out, isASubset, bool, True if setToTest is a subset
+  """
+
+  if len(pileList) < len(setToTest): return False
+
+  index = 0
+  for element in setToTest:
+    try              : index = pileList.index(element, index) + 1
+    except ValueError: return False
+  else:
+    return True
+
+def filterAllSubSets(listOfLists):
+  """
+    Given list of listOfLists, return new list of listOfLists without subsets
+    @ In, listOfLists, list of lists, all lists to check
+    @ Out, setToTest, iterator, iterator over the list without subsets
+  """
+  for setToTest in listOfLists:
+    if not any(isASubset(setToTest, pileList) for pileList in listOfLists
+      if setToTest is not pileList):
+      yield setToTest
 
 

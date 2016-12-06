@@ -22,13 +22,6 @@ import abc
 #Internal Modules------------------------------------------------------------------------------------
 import utils
 from BaseClasses import BaseType
-# for internal parallel
-if sys.version_info.major == 2:
-  import pp
-  import ppserver
-else:
-  print("pp does not support python3")
-# end internal parallel module
 import MessageHandler
 from .InternalRunner import InternalRunner
 #Internal Modules End--------------------------------------------------------------------------------
@@ -67,7 +60,12 @@ class DistributedMemoryRunner(InternalRunner):
     ## First, allow the base class to handle the commonalities
     ##   We keep the command here, in order to have the hook for running exec
     ##   code into internal models
-    super(DistributedMemoryRunner, self).__init__(messageHandler, Input, functionToRun, frameworkModules, identifier, metadata, functionToSkip, uniqueHandler)
+    super(DistributedMemoryRunner, self).__init__(messageHandler, Input, functionToRun, identifier, metadata, uniqueHandler)
+
+    ## Just in case, remove duplicates before storing to save on computation
+    ## later
+    self.frameworkMods  = utils.removeDuplicates(frameworkModules)
+    self.functionToSkip = utils.removeDuplicates(functionToSkip)
 
     ## Other parameters passed at initialization
     self.__ppserver = ppserver
