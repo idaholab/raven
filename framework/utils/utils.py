@@ -794,7 +794,7 @@ def mergeDictionaries(dictA,dictB):
   intersection = setA.intersection(setB)
 
   if intersection:
-    caller.raiseAnError(IOError,'Utils, mergeDictionaries: the two dictionaries have common keys')
+    caller.raiseAnError(IOError,'Utils, mergeDictionaries: the two dictionaries have keys in common')
   else:
     mergedDict = {}
     for key in dictA.keys():
