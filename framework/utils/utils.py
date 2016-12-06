@@ -784,7 +784,7 @@ def typeMatch(var,varTypeStr):
 
 def mergeDictionaries(dictA,dictB):
   """
-    This method imerge two dictionaries
+    This method merge two dictionaries
     @ In, dictA, dict, first dictionary
     @ In, dictA, dict, second dictionary
     @ Out, mergedDict, dict, merged dictionary: dictA union dictB
