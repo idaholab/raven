@@ -867,10 +867,9 @@ def mergeDictionaries(*dictArgs):
     '''
     mergedDict = {}
     for dictionary in dictArgs:
-      if len(set(dictionary.keys()).intersection(mergedDict.keys())):
-        keysDictSet = set(dictionary.keys())
-        mergedDictSet  = set(mergedDict.keys())
-        commonKeys = ', '.join(keysDictSet.intersection(mergedDictSet))
+      overlap = set(dictionary.keys()).intersection(mergedDict.keys())
+      if len(overlap):
+        commonKeys = ', '.join(overlap)
         caller.raiseAnError(IOError,'Utils, mergeDictionaries: the dictionaries being merged have the following overlapping keys: ' + str(commonKeys))
       mergedDict.update(dictionary)
     return mergedDict
