@@ -45,7 +45,6 @@ class SKL(Metric):
         self.metricType = child.text
       else:
         self.distParams[str(child.tag)] = utils.tryParse(child.text)
-
     availableMetrics = pairwise.kernel_metrics().keys() + pairwise.distance_metrics().keys()
     if self.metricType not in availableMetrics:
       metricList = ', '.join(availableMetrics[:-1]) + ', or ' + availableMetrics[-1]
@@ -60,8 +59,6 @@ class SKL(Metric):
     """
     if y is not None:
       if isinstance(x,np.ndarray) and isinstance(y,np.ndarray):
-      # To the reviewer: double check the following line
-      # I am not sure if this is correct/optimal. Maybe Josh can have give some directions
         dictTemp = utils.mergeDictionaries(kwargs,self.distParams)
         if self.metricType in pairwise.kernel_metrics().keys():
           value = pairwise.kernel_metrics(X=x, Y=y, metric=self.metricType, **dictTemp)
@@ -74,8 +71,6 @@ class SKL(Metric):
       if self.metricType == 'mahalanobis':
         covMAtrix = np.cov(x.T)
         kwargs['VI'] = np.linalg.inv(covMAtrix)
-      # To the reviewer: double check the following line
-      # I am not sure if this is correct/optimal. Maybe Josh can have give some directions
       dictTemp = utils.mergeDictionaries(kwargs,self.distParams)
       if self.metricType in pairwise.kernel_metrics().keys():
         value = pairwise.pairwise_kernels(X=x, metric=self.metricType, **dictTemp)
