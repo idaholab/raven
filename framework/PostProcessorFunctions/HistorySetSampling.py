@@ -1,6 +1,7 @@
 """
 Created on October 28, 2015
 
+@author: mandd
 """
 
 from __future__ import division, print_function, unicode_literals, absolute_import

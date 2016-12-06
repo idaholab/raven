@@ -4,29 +4,25 @@
  [./MC]
   type = 'RavenFramework'
   input = 'test_restart_MC.xml'
-  UnorderedXml = 'mc/coarse.xml mc/restart.xml mc/fine.xml'
-  csv = 'mc/coarse.csv mc/restart.csv mc/fine.csv'
+  UnorderedCsv = 'mc/coarse.csv mc/restart.csv mc/fine.csv'
  [../]
 
  [./StochPoly]
   type = 'RavenFramework'
   input = 'test_restart_stochpoly.xml'
-  csv = 'sparsegrid/fine.csv sparsegrid/coarse.csv sparsegrid/restart.csv'
-  UnorderedXml = 'sparsegrid/romFine.xml sparsegrid/romRestart.xml sparsegrid/coarse.xml sparsegrid/fine.xml sparsegrid/restart.xml'
+  UnorderedCsv = 'sparsegrid/fine.csv sparsegrid/coarse.csv sparsegrid/restart.csv'
  [../]
 
  [./Sobol]
   type = 'RavenFramework'
   input = 'test_restart_sobol.xml'
-  csv = 'sobol/fine.csv sobol/coarse.csv sobol/restart.csv'
-  UnorderedXml = 'sobol/romFine.xml sobol/romRestart.xml sobol/coarse.xml sobol/fine.xml sobol/restart.xml'
+  UnorderedCsv = 'sobol/fine.csv sobol/coarse.csv sobol/restart.csv'
  [../]
 
  [./Grid]
   type = 'RavenFramework'
   input = 'test_restart_Grid.xml'
-  UnorderedXml = 'grid/coarse.xml grid/restart.xml grid/fine.xml'
-  csv = 'grid/coarse.csv grid/restart.csv grid/fine.csv'
+  UnorderedCsv = 'grid/coarse.csv grid/restart.csv grid/fine.csv'
   remove_unicode_identifier = true
  [../]
 
@@ -34,7 +30,7 @@
   type = 'RavenFramework'
   input = 'test_restart_csv.xml'
   output = 'csv/CSVdump.xml'
-  csv = 'csv/CSVdump.csv'
+  UnorderedCsv = 'csv/CSVdump.csv'
   prereq = MC
  [../]
 
@@ -42,6 +38,6 @@
   type = 'RavenFramework'
   input = 'large_load_from_csv.xml'
   output = 'large/large_restart.xml'
-  csv = 'large/large_restart.csv'
+  UnorderedCsv = 'large/large_restart.csv'
  [../]
 []
