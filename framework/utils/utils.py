@@ -781,27 +781,21 @@ def typeMatch(var,varTypeStr):
   typeVar = type(var)
   return typeVar.__name__ == varTypeStr or \
     typeVar.__module__+"."+typeVar.__name__ == varTypeStr
-
-def mergeDictionaries(dictA,dictB):
-  """
-    This method merge two dictionaries
-    @ In, dictA, dict, first dictionary
-    @ In, dictA, dict, second dictionary
-    @ Out, mergedDict, dict, merged dictionary: dictA union dictB
-  """
-  setA = set(dictA.keys())
-  setB = set(dictB.keys())
-  intersection = setA.intersection(setB)
-
-  if intersection:
-    caller.raiseAnError(IOError,'Utils, mergeDictionaries: the two dictionaries have keys in common')
-  else:
+    
+def mergeDictionaries(*dictArgs):
+    '''
+    Given any number of dicts, shallow copy and merge into a new dict,
+    precedence goes to key value pairs in latter dicts.
+    Adapted from: http://stackoverflow.com/questions/38987/how-to-merge-two-python-dictionaries-in-a-single-expression
+    @ In, dictArgs, dict, a list of dictionaries to merge
+    @ Out, mergedDict, dict, merged dictionary including keys from everything in dictArgs.
+    '''
     mergedDict = {}
-    for key in dictA.keys():
-      mergedDict[key] = copy.deepcopy(dictA[key])
-    for key in dictB.keys():
-      mergedDict[key] = copy.deepcopy(dictB[key])
-    return(mergedDict)
+    for dictionary in dictArgs:
+      if len(set(dictionary.keys()).intersection(mergedDict.keys())):
+        caller.raiseAnError(IOError,'Utils, mergeDictionaries: the dictionaries being merged have overlapping keys.')
+      mergedDict.update(dictionary)
+    return mergedDict
 
 
 

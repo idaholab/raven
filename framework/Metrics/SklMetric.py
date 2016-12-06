@@ -48,8 +48,8 @@ class SKL(Metric):
 
     availableMetrics = pairwise.kernel_metrics().keys() + pairwise.distance_metrics().keys()
     if self.metricType not in availableMetrics:
-      self.raiseAnError(IOError,'Metric SKL error: metricType ' + str(self.metricType) + ' is not available: Available metrics are: ' + str(pairwise.distance_metrics().keys()) + ' and ' + str(pairwise.kernel_metrics().keys()))
-
+      metricList = ', '.join(availableMetrics[:-1]) + ', or ' + availableMetrics[-1]
+      self.raiseAnError(IOError,'Metric SKL error: metricType ' + str(self.metricType) + ' is not available. Available metrics are: ' + metricList + '.')
 
   def distance(self, x, y=None, **kwargs):
     """
