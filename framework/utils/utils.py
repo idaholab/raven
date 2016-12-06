@@ -804,7 +804,7 @@ def typeMatch(var,varTypeStr):
     This method is aimed to check if a variable changed datatype
     @ In, var, python datatype, the first variable to compare
     @ In, varTypeStr, string, the type that this variable should have
-    @ Out, typeMatch, bool, is the datatype changed?
+    @ Out, match, bool, is the datatype changed?
   """
   typeVar = type(var)
   match = typeVar.__name__ == varTypeStr or typeVar.__module__+"."+typeVar.__name__ == varTypeStr
@@ -855,6 +855,5 @@ def filterAllSubSets(listOfLists):
     if not any(isASubset(setToTest, pileList) for pileList in listOfLists
       if setToTest is not pileList):
       yield setToTest
-
 
 
