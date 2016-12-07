@@ -1084,10 +1084,10 @@ class ROM(Dummy):
 
   def run(self,Input,jobHandler):
     """
-       This method executes the model ROM.
-       @ In,  Input, object, object contained the data to process. (inputToInternal output)
-       @ In,  jobHandler, JobHandler instance, the global job handler instance
-       @ Out, None
+      This method executes the model ROM.
+      @ In,  Input, object, object contained the data to process. (inputToInternal output)
+      @ In,  jobHandler, JobHandler instance, the global job handler instance
+      @ Out, None
     """
     inRun = self._manipulateInput(Input[0])
     uniqueHandler = Input[1]['uniqueHandler'] if 'uniqueHandler' in Input[1].keys() else 'any'
