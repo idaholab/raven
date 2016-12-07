@@ -12,6 +12,7 @@ import sys, os, errno
 import inspect
 import subprocess
 import platform
+import copy
 import numpy
 
 class Object(object):pass
@@ -855,5 +856,24 @@ def filterAllSubSets(listOfLists):
     if not any(isASubset(setToTest, pileList) for pileList in listOfLists
       if setToTest is not pileList):
       yield setToTest
+
+def mergeDictionaries(*dictArgs):
+    '''
+    Given any number of dicts, shallow copy and merge into a new dict,
+    precedence goes to key value pairs in latter dicts.
+    Adapted from: http://stackoverflow.com/questions/38987/how-to-merge-two-python-dictionaries-in-a-single-expression
+    @ In, dictArgs, dict, a list of dictionaries to merge
+    @ Out, mergedDict, dict, merged dictionary including keys from everything in dictArgs.
+    '''
+    mergedDict = {}
+    for dictionary in dictArgs:
+      overlap = set(dictionary.keys()).intersection(mergedDict.keys())
+      if len(overlap):
+        commonKeys = ', '.join(overlap)
+        caller.raiseAnError(IOError,'Utils, mergeDictionaries: the dictionaries being merged have the following overlapping keys: ' + str(commonKeys))
+      mergedDict.update(dictionary)
+    return mergedDict
+
+
 
 

@@ -1880,7 +1880,7 @@ class SciKitLearn(superVisedLearning):
 
   def __init__(self,messageHandler,**kwargs):
     """
-      A constructor that will appropriately intialize a supervised learning object
+      A constructor that will appropriately initialize a supervised learning object
       @ In, messageHandler, MessageHandler object, it is in charge of raising errors, and printing messages
       @ In, kwargs, dict, an arbitrary list of kwargs
       @ Out, None
