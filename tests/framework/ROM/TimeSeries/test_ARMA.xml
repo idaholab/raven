@@ -22,7 +22,7 @@
 			</samplerInit>
 			<variable name="scaling">
 				<distribution>uniDist</distribution>
-                <grid type='value' construction='equal' steps='1'>1.0 2.0</grid>
+      <grid type='value' construction='equal' steps='1'>1.0 2.0</grid>
 			</variable>
         </Grid>
 	</Samplers> 
@@ -43,8 +43,8 @@
     </Models>
     <Steps>
         <IOStep name='readIn' pauseAtEnd = 'True'>
-            <Input    class = 'Files'             type = ''              >rawDataFile</Input>
-            <Output   class = 'DataObjects'       type = 'HistorySet'       >rawData</Output>          
+       <Input    class = 'Files'        type = ''    >rawDataFile</Input>
+       <Output   class = 'DataObjects'       type = 'HistorySet'       >rawData</Output>     
         </IOStep>
 		<RomTrainer name='ARMATrain'>
 			<Input    class = 'DataObjects'       type = 'HistorySet'       >rawData</Input>
@@ -58,14 +58,14 @@
 		</MultiRun>
         <IOStep name='writeOut' pauseAtEnd = 'True'>
 			<Input    class = 'DataObjects'       type = 'HistorySet'    >synData</Input>		 			
-			<Output   class = 'OutStreams'  type = 'Print'         >writeSynDataOut</Output>
-			<Output   class = 'OutStreams'  type = 'Plot'         >plotSynData</Output> 
+			<Output   class = 'OutStreams'  type = 'Print'    >writeSynDataOut</Output>
+			<Output   class = 'OutStreams'  type = 'Plot'    >plotSynData</Output> 
 		</IOStep>	
     </Steps>
     <OutStreams>		
         <Print name = 'writeSynDataOut'>
-            <type>csv</type>
-            <source>synData</source>
+       <type>csv</type>
+       <source>synData</source>
         </Print>	
 		<Plot name="plotSynData" overwrite="false" >
 			<plotSettings>
@@ -84,16 +84,16 @@
 	
     <DataObjects>
         <HistorySet name="rawData">
-            <Input>scaling</Input>
-            <Output>Time,Speed</Output>
+       <Input>scaling</Input>
+       <Output>Time,Speed</Output>
         </HistorySet>
 		<PointSet name="dataIn">
-            <Input>scaling</Input>
-            <Output>OutputPlaceHolder</Output>
+       <Input>scaling</Input>
+       <Output>OutputPlaceHolder</Output>
         </PointSet>
 		<HistorySet name="synData">
-            <Input>scaling</Input>
-            <Output>Time,Speed</Output>
+       <Input>scaling</Input>
+       <Output>Time,Speed</Output>
         </HistorySet>
     </DataObjects>
 </Simulation>

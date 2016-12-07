@@ -417,16 +417,27 @@ class Dummy(Model):
     #self.raiseADebug('wondering if a dictionary compatibility should be kept','FIXME')
     if  type(dataIN).__name__ !='dict':
       if dataIN.type not in self.admittedData: self.raiseAnError(IOError,self,'type "'+dataIN.type+'" is not compatible with the model "' + self.type + '" named "' + self.name+'"!')
-    if full==True:  length = 0
-    if full==False: length = -1
-    localInput = {}
     if type(dataIN)!=dict:
-      for entries in dataIN.getParaKeys('inputs' ):
-        if not dataIN.isItEmpty(): localInput[entries] = copy.copy(np.array(dataIN.getParam('input' ,entries))[length:])
-        else:                      localInput[entries] = None
-      for entries in dataIN.getParaKeys('outputs'):
-        if not dataIN.isItEmpty(): localInput[entries] = copy.copy(np.array(dataIN.getParam('output',entries))[length:])
-        else:                      localInput[entries] = None
+      localInput = dict.fromkeys(dataIN.getParaKeys('inputs' )+dataIN.getParaKeys('outputs' ),None)
+      if not dataIN.isItEmpty():
+        if self.type == 'PointSet':
+          for entries in dataIN.getParaKeys('inputs' ): localInput[entries] = copy.copy(np.array(dataIN.getParam('input' ,entries))[0 if full else -1:])
+          for entries in dataIN.getParaKeys('outputs'): localInput[entries] = copy.copy(np.array(dataIN.getParam('output',entries))[0 if full else -1:])
+        else:
+          if full: 
+            for hist in range(len(dataIN)):
+              realization = dataIN.getRealization(hist)
+              for entries in dataIN.getParaKeys('inputs' ):
+                if localInput[entries] is None: localInput[entries] = []
+                localInput[entries].append(realization['inputs'][entries])  
+              for entries in dataIN.getParaKeys('outputs' ):
+                if localInput[entries] is None: localInput[entries] = []
+                localInput[entries].append(realization['outputs'][entries])  
+          else: 
+            realization = dataIn.getRealization(len(dataIn)-1)
+            for entries in dataIN.getParaKeys('inputs' ):  localInput[entries] = [realization['inputs'][entries]]   
+            for entries in dataIN.getParaKeys('outputs' ): localInput[entries] = [realization['outputs'][entries]]  
+            
       #Now if an OutputPlaceHolder is used it is removed, this happens when the input data is not representing is internally manufactured
       if 'OutputPlaceHolder' in dataIN.getParaKeys('outputs'): localInput.pop('OutputPlaceHolder') # this remove the counter from the inputs to be placed among the outputs
     else: localInput = dataIN #here we do not make a copy since we assume that the dictionary is for just for the model usage and any changes are not impacting outside
@@ -933,6 +944,10 @@ class ROM(Dummy):
     else:
       if self.subType == 'ARMA':
         localInput = {}
+        
+        
+        lupo = self._inputToInternal(trainingSet, full=True)
+        aaaa = mathUtils.historySetWindow(trainingSet,2017)
         if type(trainingSet)!=dict:
           for entries in trainingSet.getParaKeys('inputs' ):
             if not trainingSet.isItEmpty(): localInput[entries] = copy.copy(np.array(trainingSet.getParam('input' ,1)[entries]))

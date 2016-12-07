@@ -2163,7 +2163,7 @@ class ARMA(superVisedLearning):
         if p is 0 and q is 0:     continue          # dump case so we pass
         init = [0.0]*(p+q)*self.armaPara['dimension']**2
         init_S = np.identity(self.armaPara['dimension'])
-        for n1 in range(self.armaPara['dimension']):      init.append(init_S[n1,n1])
+        for n1 in range(self.armaPara['dimension']): init.append(init_S[n1,n1])
 
         rOpt = {}
         rOpt = optimize.fmin(self.__computeARMALikelihood__,init, args=(p,q) ,full_output = True)
