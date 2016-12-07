@@ -942,6 +942,9 @@ class ROM(Dummy):
       self.historyPivotParameter    = copy.deepcopy(getattr(trainingSet,self.historyPivotParameter,'time'))
       self.historySteps             = copy.deepcopy(trainingSet.historySteps)
     else:
+      
+      self.trainingSet = copy.copy(self._inputToInternal(trainingSet, full=True))
+      
       if self.subType == 'ARMA':
         localInput = {}
         
