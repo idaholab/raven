@@ -41,7 +41,7 @@ def linakgeToTree(*linkages):
       rightChildIdx = int(rightChildIdx)
       size = int(size)
 
-      print('%d %d %d %f %d' % (newIdx, leftChildIdx, rightChildIdx, level, size))
+      # print('%d %d %d %f %d' % (newIdx, leftChildIdx, rightChildIdx, level, size))
 
       node = root.getNode(newIdx)
 
@@ -69,8 +69,8 @@ class DendrogramView(ZoomableGraphicsView,BaseView):
   """
     A view that shows a hierarchical data object.
   """
-  maxDiameterMultiplier = 0.1
-  minDiameterMultiplier = 0.001
+  maxDiameterMultiplier = 0.05
+  # minDiameterMultiplier = 0.001
   def __init__(self, linkage, parent=None, level=None, debug=False):
     """
     """
@@ -96,7 +96,7 @@ class DendrogramView(ZoomableGraphicsView,BaseView):
 
     self.edgeAction = self.rightClickMenu.addAction('Smooth Edges')
     self.edgeAction.setCheckable(True)
-    self.edgeAction.setChecked(False)
+    self.edgeAction.setChecked(True)
     self.edgeAction.triggered.connect(self.createScene)
 
     self.scene().selectionChanged.connect(self.select)
@@ -162,6 +162,8 @@ class DendrogramView(ZoomableGraphicsView,BaseView):
     """
     """
     # level = self.level
+    # # totalCount = self.tree.size
+    # totalCount = self.tree.getLeafCount()
 
     # self.animation = qtg.QGraphicsItemAnimation()
     # self.animation.setItem(self.items["Threshold"])
@@ -172,7 +174,7 @@ class DendrogramView(ZoomableGraphicsView,BaseView):
     # width = self.scene().width()
     # height = self.scene().height()
     # minDim = min([width,height])
-    # minDiameter = DendrogramView.minDiameterMultiplier*minDim
+    # minDiameter = minDim/float(totalCount)
     # maxDiameter = DendrogramView.maxDiameterMultiplier*minDim
     # self.padding = maxDiameter/2.
     # usableHeight = height-2*self.padding
@@ -183,8 +185,6 @@ class DendrogramView(ZoomableGraphicsView,BaseView):
     # self.animation.setScaleAt(0, 1, 1)
     # self.animation.setScaleAt(1, 1, finalScale)
 
-    # # totalCount = self.tree.size
-    # totalCount = self.tree.getLeafCount()
     # self.animatingItems = {}
     # for key,item in self.items.iteritems():
     #   if key == 'Threshold':
@@ -255,7 +255,17 @@ class DendrogramView(ZoomableGraphicsView,BaseView):
     height = scene.height()
     minDim = min([width,height])
 
-    minDiameter = DendrogramView.minDiameterMultiplier*minDim
+    white = qtg.QColor('#FFFFFF')
+    gray = qtg.QColor('#999999')
+    black = qtg.QColor('#000000')
+    transparentGray = gray.lighter()
+    transparentGray.setAlpha(127)
+
+    root = self.tree
+
+    totalCount = root.getLeafCount()
+
+    minDiameter = minDim/float(totalCount)
     maxDiameter = DendrogramView.maxDiameterMultiplier*minDim
 
     self.padding = maxDiameter/2.
@@ -263,23 +273,16 @@ class DendrogramView(ZoomableGraphicsView,BaseView):
     usableWidth = width-2*self.padding
     usableHeight = height-2*self.padding
 
-    white = qtg.QColor('#FFFFFF')
-    gray = qtg.QColor('#999999')
-    black = qtg.QColor('#000000')
-    transparentGray = gray.lighter()
-    transparentGray.setAlpha(127)
 
     scene.addRect(0,0,width,height,qtg.QPen(qtc.Qt.black))
     level = height - usableHeight*level/maxLevel-self.padding
     self.items['Threshold'] = scene.addRect(0,0,width,level,qtg.QPen(gray),qtg.QBrush(transparentGray))
 
-    root = self.tree
-
-    totalCount = root.getLeafCount()
     xOffset = 0
     ids = []
     points = []
     edges = []
+
     for node in root.children:
       count = node.getLeafCount()
       myWidth = float(count)/totalCount*usableWidth
@@ -304,7 +307,26 @@ class DendrogramView(ZoomableGraphicsView,BaseView):
       path = qtg.QPainterPath()
       path.moveTo(x1,y1)
       if self.edgeAction.isChecked():
-        path.cubicTo(x1,y1+(y2-y1)*0.25, x2,y2-(y2-y1)*0.25,x2,y2)
+        # path.cubicTo(x1,y1+(y2-y1)*0.25, x2,y2-(y2-y1)*0.25,x2,y2)
+        # if y1 < y2:
+        #   parent = root.getNode(idx1)
+        # else:
+        #   parent = root.getNode(idx2)
+
+        ## edge[0] should always be the parent
+        parent = root.getNode(edge[0])
+        maxChild = parent.maximumChild()
+        if maxChild is None:
+          maxChildLevel = y2
+        else:
+          maxChildLevel = points[ids.index(maxChild.id)][1]
+          ## or
+          maxChildLevel = maxChild.level
+
+        intermediateY = height - usableHeight*maxChildLevel/maxLevel-self.padding
+
+        path.cubicTo(x1,y1+(intermediateY-y1)*0.33, x2,intermediateY-(intermediateY-y1)*0.33,x2,intermediateY)
+        path.lineTo(x2,y2)
       else:
         path.lineTo(x2,y1)
         path.lineTo(x2,y2)

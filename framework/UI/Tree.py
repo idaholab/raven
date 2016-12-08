@@ -34,6 +34,15 @@ class Node(object):
       count += child.getLeafCount()
     return count
 
+  def maximumChild(self):
+    maxChild = None
+    for child in self.children:
+      if maxChild is None or maxChild.level < child.level:
+        maxChild = child
+
+    return maxChild
+
+
   def Layout(self,xoffset,width):
     ids = [self.id]
     points = [(xoffset+width/2.,self.level)]
