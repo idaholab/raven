@@ -69,7 +69,6 @@ class DendrogramView(ZoomableGraphicsView,BaseView):
   """
     A view that shows a hierarchical data object.
   """
-  maxDiameterMultiplier = 0.05
   # minDiameterMultiplier = 0.001
   def __init__(self, linkage, parent=None, level=None, debug=False):
     """
@@ -87,12 +86,26 @@ class DendrogramView(ZoomableGraphicsView,BaseView):
 
     self.colorMap = {}
 
+    self.truncationSize = 1
+    self.truncationLevel = 0
+
+    self.maxDiameterMultiplier = 0.05
+
+    self.rightClickMenu.addSeparator()
+
     levelAction = self.rightClickMenu.addAction('Set Level')
     levelAction.triggered.connect(self.setLevel)
     incAction = self.rightClickMenu.addAction('Raise Threshold Level')
     incAction.triggered.connect(self.increaseLevel)
     decAction = self.rightClickMenu.addAction('Lower Threshold Level')
     decAction.triggered.connect(self.decreaseLevel)
+
+    self.rightClickMenu.addSeparator()
+
+    setTruncationAction = self.rightClickMenu.addAction('Truncate...')
+    setTruncationAction.triggered.connect(self.setTruncation)
+    resizePointsAction = self.rightClickMenu.addAction('Resize Points')
+    resizePointsAction.triggered.connect(self.setAdjustDiameterMultiplier)
 
     self.edgeAction = self.rightClickMenu.addAction('Smooth Edges')
     self.edgeAction.setCheckable(True)
@@ -101,6 +114,93 @@ class DendrogramView(ZoomableGraphicsView,BaseView):
 
     self.scene().selectionChanged.connect(self.select)
     self.createScene()
+
+  def setTruncation(self):
+    """
+    """
+    dialog = qtg.QDialog(self)
+    layout = qtg.QVBoxLayout()
+
+    sublayout = qtg.QHBoxLayout()
+    sublayout.addWidget(qtg.QLabel('Minimum Node Size:'))
+    nodeSize = qtg.QLabel('%d' % self.truncationSize)
+    sublayout.addWidget(nodeSize)
+    layout.addLayout(sublayout)
+
+    minNodeSizeSlider = qtg.QSlider(qtc.Qt.Horizontal)
+    minNodeSizeSlider.setMinimum(1)
+    minNodeSizeSlider.setMaximum(self.tree.size)
+    minNodeSizeSlider.valueChanged.connect(lambda: nodeSize.setText('%d' % minNodeSizeSlider.value()))
+    layout.addWidget(minNodeSizeSlider)
+
+    sublayout = qtg.QHBoxLayout()
+    sublayout.addWidget(qtg.QLabel('Minimum Level:'))
+
+    minLevelSlider = qtg.QSlider(qtc.Qt.Horizontal)
+    for i,lvl in enumerate(reversed(self.levels)):
+      if lvl < self.truncationLevel:
+        break
+    idx = len(self.levels)-1-i
+
+    minLevel = qtg.QLabel('%f' % lvl)
+    sublayout.addWidget(minLevel)
+    layout.addLayout(sublayout)
+
+    minLevelSlider.setMinimum(0)
+    minLevelSlider.setMaximum(len(self.levels)-1)
+    minLevelSlider.setSliderPosition(idx)
+    minLevelSlider.valueChanged.connect(lambda: minLevel.setText('%f' % self.levels[minLevelSlider.value()]))
+    layout.addWidget(minLevelSlider)
+
+    buttons = qtg.QDialogButtonBox(qtg.QDialogButtonBox.Ok|qtg.QDialogButtonBox.Cancel, qtc.Qt.Horizontal, dialog)
+
+    def localAccept():
+      self.truncationSize = int(nodeSize.text())
+      self.truncationLevel = float(minLevel.text())
+      self.createScene()
+
+    buttons.accepted.connect(localAccept)
+    buttons.accepted.connect(dialog.accept)
+    buttons.rejected.connect(dialog.reject)
+    layout.addWidget(buttons)
+
+    dialog.setLayout(layout)
+    dialog.open()
+
+    if dialog.result() != qtg.QDialog.Accepted:
+      return
+
+  def setAdjustDiameterMultiplier(self):
+    """
+    """
+    dialog = qtg.QDialog(self)
+    layout = qtg.QVBoxLayout()
+
+    sublayout = qtg.QHBoxLayout()
+    sublayout.addWidget(qtg.QLabel('Maximum Point Diameter (% of Window Width):'))
+
+    pointSizeSpinner = qtg.QDoubleSpinBox()
+    pointSizeSpinner.setMinimum(0.01)
+    pointSizeSpinner.setMaximum(0.25)
+    pointSizeSpinner.setSingleStep(0.01)
+    pointSizeSpinner.setValue(self.maxDiameterMultiplier)
+    sublayout.addWidget(pointSizeSpinner)
+
+    layout.addLayout(sublayout)
+
+    buttons = qtg.QDialogButtonBox(qtg.QDialogButtonBox.Ok|qtg.QDialogButtonBox.Cancel, qtc.Qt.Horizontal, dialog)
+
+    def localAccept():
+      self.maxDiameterMultiplier = pointSizeSpinner.value()
+      self.createScene()
+
+    buttons.accepted.connect(localAccept)
+    buttons.accepted.connect(dialog.accept)
+    buttons.rejected.connect(dialog.reject)
+    layout.addWidget(buttons)
+
+    dialog.setLayout(layout)
+    dialog.open()
 
   def increaseLevel(self):
     """
@@ -175,7 +275,7 @@ class DendrogramView(ZoomableGraphicsView,BaseView):
     # height = self.scene().height()
     # minDim = min([width,height])
     # minDiameter = minDim/float(totalCount)
-    # maxDiameter = DendrogramView.maxDiameterMultiplier*minDim
+    # maxDiameter = self.maxDiameterMultiplier*minDim
     # self.padding = maxDiameter/2.
     # usableHeight = height-2*self.padding
 
@@ -265,8 +365,8 @@ class DendrogramView(ZoomableGraphicsView,BaseView):
 
     totalCount = root.getLeafCount()
 
-    minDiameter = minDim/float(totalCount)
-    maxDiameter = DendrogramView.maxDiameterMultiplier*minDim
+    minDiameter = min(minDim/float(totalCount),0.01*minDim)
+    maxDiameter = self.maxDiameterMultiplier*minDim
 
     self.padding = maxDiameter/2.
 
@@ -286,7 +386,7 @@ class DendrogramView(ZoomableGraphicsView,BaseView):
     for node in root.children:
       count = node.getLeafCount()
       myWidth = float(count)/totalCount*usableWidth
-      (myIds,myPoints,myEdges) = node.Layout(xOffset,myWidth)
+      (myIds,myPoints,myEdges) = node.Layout(xOffset,myWidth, self.truncationSize, self.truncationLevel)
       ids.extend(myIds)
       points.extend(myPoints)
       edges.extend(myEdges)

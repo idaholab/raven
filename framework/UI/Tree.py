@@ -26,12 +26,18 @@ class Node(object):
           return node
       return None
 
-  def getLeafCount(self):
+  def getLeafCount(self, truncationSize=0, truncationLevel=0):
     if len(self.children) == 0:
       return 1
+
     count = 0
     for child in self.children:
-      count += child.getLeafCount()
+      if child.level >= truncationLevel and child.size >= truncationSize:
+        count += child.getLeafCount(truncationSize, truncationLevel)
+
+    if count == 0:
+      return 1
+
     return count
 
   def maximumChild(self):
@@ -43,12 +49,14 @@ class Node(object):
     return maxChild
 
 
-  def Layout(self,xoffset,width):
+  def Layout(self,xoffset,width, truncationSize=0, truncationLevel=0):
     ids = [self.id]
     points = [(xoffset+width/2.,self.level)]
     edges = []
-    if len(self.children) > 0:
-      totalCount = self.getLeafCount()
+
+    totalCount = self.getLeafCount(truncationSize,truncationLevel)
+    if totalCount > 0:
+
       myOffset = xoffset
 
       def cmp(a,b):
@@ -58,13 +66,14 @@ class Node(object):
 
       children = sorted(self.children, cmp=cmp)
       for child in children:
-        edges.append((self.id,child.id))
+        if child.level >= truncationLevel and child.size >= truncationSize:
+          edges.append((self.id,child.id))
 
-        count = child.getLeafCount()
-        myWidth = float(count)/totalCount*width
-        (childIds,childPoints,childEdges) = child.Layout(myOffset,myWidth)
-        ids.extend(childIds)
-        points.extend(childPoints)
-        edges.extend(childEdges)
-        myOffset += myWidth
+          count = child.getLeafCount()
+          myWidth = float(count)/totalCount*width
+          (childIds,childPoints,childEdges) = child.Layout(myOffset,myWidth)
+          ids.extend(childIds)
+          points.extend(childPoints)
+          edges.extend(childEdges)
+          myOffset += myWidth
     return (ids,points,edges)
