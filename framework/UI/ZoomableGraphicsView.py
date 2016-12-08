@@ -1,25 +1,25 @@
 from PySide import QtCore as qtc
 from PySide import QtGui as qtg
-import qtawesome as qta
+import os
+
+################################################################################
+## This adds another library, but makes pretty buttons, we can probably
+## accomplish the same thing with small pngs that are stored in a resources
+## directory
+# import os
+# os.environ['QT_API'] = 'pyside'
+# import qtawesome as qta
+## These icons can be generated from here: http://fa2png.io/
+## I choose to do 32 pixels as it is the smallest power of 2 that provides a
+## large enough button to select with relative ease.
+################################################################################
+
 from PySide import QtSvg as qts
 
 class OverlayButton(qtg.QPushButton):
-  # def __init__(self,parent=None):
-  #   super(OverlayButton, self).__init__(parent)
-  #   self.setDefaults()
-
-  def __init__(self, icon=None, text=None, parent=None):
-    if icon is None and text is None:
-      super(OverlayButton, self).__init__(parent)
-    elif icon is None:
-      super(OverlayButton, self).__init__(text, parent)
-    else:
-      super(OverlayButton, self).__init__(icon, text, parent)
+  def __init__(self, *args, **kwargs):
+    super(OverlayButton, self).__init__(*args, **kwargs)
     self.setDefaults()
-
-  # def __init__(self, text, parent=None):
-  #   super(OverlayButton, self).__init__(text, parent)
-  #   self.setDefaults()
 
   def setDefaults(self):
     self.setStyleSheet("background-color: rgba( 51, 73, 96, 25%); color: rgba(236,240,241, 75%);  opacity: 0.25;")
@@ -32,15 +32,23 @@ class OverlayButton(qtg.QPushButton):
     super(OverlayButton, self).leaveEvent(event)
     self.setDefaults()
 
+################################################################################
+## Defining the qtawesome icons is no simpler than loading the images from files
+# defaultIconColor = 'white'
+# resetIcon = qta.icon('fa.rotate-left', color=defaultIconColor)
+# handIcon = qta.icon('fa.hand-paper-o', color=defaultIconColor)
+# mouseIcon = qta.icon('fa.mouse-pointer', color=defaultIconColor)
+# screenshotIcon = qta.icon('fa.camera', color=defaultIconColor)
+resourceLocation = os.path.join(os.path.dirname(os.path.abspath(__file__)),'resources')
+
+resetIcon      = qtg.QIcon(os.path.join(resourceLocation,'fa-rotate-left_32.png'))
+handIcon       = qtg.QIcon(os.path.join(resourceLocation,'fa-hand-paper-o_32.png'))
+mouseIcon      = qtg.QIcon(os.path.join(resourceLocation,'fa-mouse-pointer_32.png'))
+screenshotIcon = qtg.QIcon(os.path.join(resourceLocation,'fa-camera_32.png'))
+################################################################################
+
 class ZoomableGraphicsView(qtg.QGraphicsView):
   defaultSceneDimension = 1000
-
-  resetIconName = 'fa.rotate-left'
-  handIconName = 'fa.hand-paper-o'
-  mouseIconName = 'fa.mouse-pointer'
-  screenshotIconName = 'fa.camera'
-
-  defaultIconColor = 'white'
 
   def __init__(self, parent):
     super(ZoomableGraphicsView, self).__init__(parent)
@@ -56,11 +64,6 @@ class ZoomableGraphicsView(qtg.QGraphicsView):
     self.setRenderHints(qtg.QPainter.Antialiasing |
                         qtg.QPainter.SmoothPixmapTransform)
 
-    resetIcon = qta.icon(ZoomableGraphicsView.resetIconName, color=ZoomableGraphicsView.defaultIconColor)
-    handIcon = qta.icon(ZoomableGraphicsView.handIconName, color=ZoomableGraphicsView.defaultIconColor)
-    mouseIcon = qta.icon(ZoomableGraphicsView.mouseIconName, color=ZoomableGraphicsView.defaultIconColor)
-    screenshotIcon = qta.icon(ZoomableGraphicsView.screenshotIconName, color=ZoomableGraphicsView.defaultIconColor)
-
     scene = qtg.QGraphicsScene(self)
     scene.setSceneRect(0,0,ZoomableGraphicsView.defaultSceneDimension,ZoomableGraphicsView.defaultSceneDimension)
     self.setScene(scene)
@@ -72,24 +75,30 @@ class ZoomableGraphicsView(qtg.QGraphicsView):
     self.fillAction.setChecked(False)
     # self.fillAction.triggered.connect(self.createScene)
 
-    self.resetButton = OverlayButton(parent=self)
+    self.resetButton = OverlayButton(self)
     self.resetButton.setToolTip('Reset View')
     self.resetButton.setIcon(resetIcon)
+    self.resetButton.clicked.connect(self.resetView)
+
+    resetAction = self.rightClickMenu.addAction('Reset View')
+    resetAction.triggered.connect(self.resetView)
 
     self.modeButton = OverlayButton(parent=self)
     self.modeButton.setToolTip('Switch to Selection Mode')
     self.modeButton.setIcon(handIcon)
+    self.modeButton.clicked.connect(self.toggleMouseMode)
+    self.modeAction = self.rightClickMenu.addAction('Toggle Mouse Mode')
+    self.modeAction.triggered.connect(self.toggleMouseMode)
 
     self.cameraButton = OverlayButton(parent=self)
-    self.cameraButton.setToolTip('Screenshot')
+    self.cameraButton.setToolTip('Capture Image')
     self.cameraButton.setIcon(screenshotIcon)
+    self.cameraButton.clicked.connect(self.saveImage)
+    cameraAction = self.rightClickMenu.addAction('Capture Image')
+    cameraAction.triggered.connect(self.saveImage)
 
     x = self.width()
     self.placeButtons()
-
-    self.resetButton.clicked.connect(self.resetView)
-    self.modeButton.clicked.connect(self.toggleMouseMode)
-    self.cameraButton.clicked.connect(self.saveImage)
 
   # def fitInView(self,rect):
   #   if not rect.isNull():
@@ -117,9 +126,7 @@ class ZoomableGraphicsView(qtg.QGraphicsView):
         svgGen.setSize(self.sceneRect().size().toSize())
         svgGen.setViewBox(self.sceneRect())
         svgGen.setTitle("Screen capture of " + self.__class__.__name__)
-        # Potential name of this software: Quetzal: It is a pretty and colorful
-        # bird and esoteric enough to interest people
-        svgGen.setDescription("Generated from Quetzal.")
+        svgGen.setDescription("Generated from RAVEN.")
         painter = qtg.QPainter(svgGen)
       else:
         image = qtg.QImage(self.sceneRect().size().toSize(), qtg.QImage.Format_ARGB32)
@@ -158,12 +165,11 @@ class ZoomableGraphicsView(qtg.QGraphicsView):
     if self.dragMode() == qtg.QGraphicsView.ScrollHandDrag:
       self.setDragMode(qtg.QGraphicsView.RubberBandDrag)
       toolTipText = 'Switch to Pan and Zoom'
-      iconName = ZoomableGraphicsView.mouseIconName
+      icon = mouseIcon
     else:
       self.setDragMode(qtg.QGraphicsView.ScrollHandDrag)
       toolTipText = 'Switch to Selection Mode'
-      iconName = ZoomableGraphicsView.handIconName
-    icon = qta.icon(iconName, color=ZoomableGraphicsView.defaultIconColor)
+      icon = handIcon
 
     self.modeButton.setToolTip(toolTipText)
     self.modeButton.setIcon(icon)

@@ -1267,7 +1267,6 @@ class Scipy(unSupervisedLearning):
     self.outputDict['inputs' ] = self.normValues
     if hasattr(self.Method, 'linkage'):
       self.linkage = self.Method.linkage(self.normValues,self.initOptionDict['method'],self.initOptionDict['metric'])
-      self.tree = self.Method.to_tree(self.linkage)
 
       if 'dendrogram' in self.initOptionDict and self.initOptionDict['dendrogram'] == 'true':
         self.ddata = self.advDendrogram(self.linkage,

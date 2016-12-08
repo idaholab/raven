@@ -3,36 +3,37 @@
 from PySide.QtCore import QSize
 from PySide.QtGui import QWidget
 
+from ZoomableGraphicsView import ZoomableGraphicsView
+
 class BaseView(QWidget):
   """ A base class for all widgets in this package.
   """
-  def __init__(self,parent=None, title=None, **kwargs):
+  def __init__(self,parent=None, title=None):
     """ Initialization method that can optionally specify the parent widget,
         a title for this widget, and specific data used by this view.
         @ In, parent, an optional QWidget that will be the parent of this widget
         @ In, title, an optional string specifying the title of this widget.
-        @ In, kwargs, a dictionary holding any specific data needed by this
-          view
     """
-    super(BaseView, self).__init__(parent)
+
+    ## This is a stupid hack around the problem of multiple inheritance, maybe
+    ## I should rethink the class hierarchy here?
+    if not isinstance(self, ZoomableGraphicsView):
+      super(BaseView, self).__init__(parent)
+
     if title is None:
       self.setWindowTitle(self.__class__.__name__)
     else:
       self.setWindowTitle(title)
     self.scrollable = False
-    self.Reinitialize(parent,title)
 
-  def Reinitialize(self, obj):
+  def sizeHint(self):
     """
-      Will restore defaults and clear internal data structures on this widget.
-      @ In, obj, an optional object that holds the state of the data being
-        manipulated.
+      Specifies the default size hint for this widget
     """
-    pass
+    return QSize(200,200)
 
   def clearLayout(self, layout):
-    """
-      Clears the layout and marks each child widget for deletion.
+    """ Clears the layout and marks each child widget for deletion.
     """
     if layout is not None:
       while layout.count():
@@ -42,21 +43,3 @@ class BaseView(QWidget):
             widget.deleteLater()
         else:
             self.clearLayout(item.layout())
-
-  def sizeHint(self):
-    """
-      Specifies the default size hint for this widget
-    """
-    return QSize(200,200)
-
-  def dataChanged(self):
-    """
-      Fired when the data being visualized changes
-    """
-    self.Reinitialize()
-
-  def selectionChanged(self):
-    """
-      Fired when the user changes the selected data
-    """
-    pass

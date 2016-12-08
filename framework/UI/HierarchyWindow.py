@@ -39,17 +39,17 @@ class HierarchyWindow(qtg.QMainWindow):
       self.debug = kwargs['debug']
 
     self.fileMenu = self.menuBar().addMenu('File')
-    self.optionsMenu = self.menuBar().addMenu('Options')
+    # self.optionsMenu = self.menuBar().addMenu('Options')
     self.viewMenu = self.menuBar().addMenu('View')
     newMenu = self.viewMenu.addMenu('New...')
     if 'views' in kwargs:
       views = kwargs.pop('views')
       for view in views:
-        self.addNewView(view, kwargs)
+        self.addNewView(view, **kwargs)
 
     for subclass in BaseView.__subclasses__():
       action = newMenu.addAction(subclass.__name__)
-      action.triggered.connect(functools.partial(self.addNewView,action.text(), kwargs))
+      action.triggered.connect(functools.partial(self.addNewView,action.text(), **kwargs))
 
   def createDockWidget(self,view):
     """
@@ -68,9 +68,10 @@ class HierarchyWindow(qtg.QMainWindow):
     else:
       dockWidget.setWidget(view)
 
+    self.addDockWidget(qtc.Qt.TopDockWidgetArea,dockWidget)
     self.viewMenu.addAction(dockWidget.toggleViewAction())
 
-  def addNewView(self,viewType, **kwargs):
+  def addNewView(self, viewType, **kwargs):
     """
       Method to create a new child view which will be added as a dock widget
       and thus will call createDockWidget()
@@ -89,10 +90,7 @@ class HierarchyWindow(qtg.QMainWindow):
         if idx > 0:
           defaultWidgetName += ' ' + str(idx)
 
-        self.views.append(subclass(self,
-                                   parent=None,
-                                   title=defaultWidgetName,
-                                   **kwargs))
+        self.views.append(subclass(parent=self, **kwargs))
         view = self.views[-1]
 
         self.createDockWidget(view)

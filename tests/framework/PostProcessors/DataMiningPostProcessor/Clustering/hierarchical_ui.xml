@@ -19,12 +19,6 @@
         <level>0.3</level>
         <criterion>distance</criterion>
         <interactive />
-        <!-- <dendrogram>true</dendrogram> -->
-        <truncationMode>lastp</truncationMode>
-        <p>20</p>
-        <leafCounts>True</leafCounts>
-        <showContracted>True</showContracted>
-        <annotatedAbove>10</annotatedAbove>
       </KDD>
     </PostProcessor>
   </Models>

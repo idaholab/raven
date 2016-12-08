@@ -4683,7 +4683,7 @@ try:
         ## Send the request for a UI thread to the main application
         self.requestUI.emit('HierarchyWindow', uiID,
                             {'views': ['DendrogramView'],
-                             'tree': self.unSupervisedEngine.tree,
+                             'linkage': self.unSupervisedEngine.linkage,
                              'debug': False,
                              'level': self.initializationOptionDict['KDD']['level']})
 

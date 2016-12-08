@@ -1,17 +1,20 @@
 #!/usr/bin/env python
 
 class Node(object):
-  def __init__(self, _id, parent=None, level=0):
+  def __init__(self, _id, parent=None, level=0, size=1):
     self.id = _id
     if parent is None:
       self.parent = self
     else:
       self.parent = parent
     self.level = level
+    self.size = size
     self.children = []
 
-  def addChild(self,_id,level=0):
-    self.children.append(Node(_id,self,level))
+  def addChild(self,_id, level=0, size=1):
+    node = Node(_id,self,level,size)
+    self.children.append(node)
+    return node
 
   def getNode(self,_id):
     if _id == self.id:
