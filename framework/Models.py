@@ -34,6 +34,7 @@ import Files
 import graphStructure
 import InputData
 import PostProcessors
+import supervisedLearningGate
 #Internal Modules End--------------------------------------------------------------------------------
 
 
@@ -821,7 +822,9 @@ class ROM(Dummy):
             self.initializationOptionDict[child.getName()][node.getName()] = tryStrParse(node.value)
         else:
           self.initializationOptionDict[child.getName()] = tryStrParse(child.value)
-
+    
+    self.supervisedEngine = supervisedLearningGate.returnInstance(self.subType, self)
+    
     #the ROM is instanced and initialized
     # check how many targets
     if not 'Target' in self.initializationOptionDict.keys(): self.raiseAnError(IOError,'No Targets specified!!!')
