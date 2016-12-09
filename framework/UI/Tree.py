@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import numpy as np
 
 class Node(object):
   def __init__(self, _id, parent=None, level=0, size=1):
@@ -40,11 +41,12 @@ class Node(object):
 
     return count
 
-  def maximumChild(self):
+  def maximumChild(self, truncationSize=0, truncationLevel=0):
     maxChild = None
     for child in self.children:
-      if maxChild is None or maxChild.level < child.level:
-        maxChild = child
+      if child.level >= truncationLevel and child.size >= truncationSize:
+        if maxChild is None or maxChild.level < child.level:
+          maxChild = child
 
     return maxChild
 
@@ -55,7 +57,7 @@ class Node(object):
     edges = []
 
     totalCount = self.getLeafCount(truncationSize,truncationLevel)
-    if totalCount > 0:
+    if len(self.children) > 0 and totalCount > 1:
 
       myOffset = xoffset
 
@@ -65,15 +67,24 @@ class Node(object):
         return 1
 
       children = sorted(self.children, cmp=cmp)
+      immediateDescendantXs = []
       for child in children:
         if child.level >= truncationLevel and child.size >= truncationSize:
           edges.append((self.id,child.id))
 
-          count = child.getLeafCount()
+          count = child.getLeafCount(truncationSize,truncationLevel)
           myWidth = float(count)/totalCount*width
-          (childIds,childPoints,childEdges) = child.Layout(myOffset,myWidth)
+          (childIds,childPoints,childEdges) = child.Layout(myOffset,myWidth,truncationSize,truncationLevel)
           ids.extend(childIds)
           points.extend(childPoints)
           edges.extend(childEdges)
+
+          if len(childPoints) > 0:
+            immediateDescendantXs.append(childPoints[0][0])
           myOffset += myWidth
+
+      ## If this guy has children, then we will readjust its X location to be
+      ## the average of its immediate descendants
+      if len(immediateDescendantXs) > 0:
+        points[0] = (np.average(immediateDescendantXs),self.level)
     return (ids,points,edges)

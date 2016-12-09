@@ -386,6 +386,7 @@ class DendrogramView(ZoomableGraphicsView,BaseView):
     for node in root.children:
       count = node.getLeafCount()
       myWidth = float(count)/totalCount*usableWidth
+
       (myIds,myPoints,myEdges) = node.Layout(xOffset,myWidth, self.truncationSize, self.truncationLevel)
       ids.extend(myIds)
       points.extend(myPoints)
@@ -415,7 +416,7 @@ class DendrogramView(ZoomableGraphicsView,BaseView):
 
         ## edge[0] should always be the parent
         parent = root.getNode(edge[0])
-        maxChild = parent.maximumChild()
+        maxChild = parent.maximumChild(self.truncationSize, self.truncationLevel)
         if maxChild is None:
           maxChildLevel = y2
         else:
@@ -441,9 +442,11 @@ class DendrogramView(ZoomableGraphicsView,BaseView):
 
       if _id not in self.colorMap:
         self.colorMap[_id] = qtg.QColor(colors.colorCycle.next()) # qtg.QColor(*tuple(255*np.random.rand(3)))
-        # color = gray
-      # else:
-      color = self.colorMap[_id]
+
+      color = qtg.QColor(self.colorMap[_id])
+      if node.level < self.level:
+        color.setAlpha(64)
+        diameter = minDiameter
 
       x = point[0]+self.padding
       y = height - usableHeight*point[1]/maxLevel-self.padding
