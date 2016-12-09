@@ -180,23 +180,25 @@ class hdf5Database(MessageHandler.MessageUser):
       @ In, upGroup, bool, optional, updated group?
       @ Out, None
     """
+    groupNameInit = groupName+"_"+datetime.now().strftime("%m-%d-%Y-%H")
     if not upGroup:
       for index in xrange(len(self.allGroupPaths)):
         comparisonName = self.allGroupPaths[index]
         splittedPath=comparisonName.split('/')
         if len(splittedPath) > 0:
-          if groupName+"_"+datetime.now().strftime("%m-%d-%Y-%H") == splittedPath[0]: return
+          if groupNameInit in splittedPath[0]: 
+            return
             # self.raiseAnError(IOError,"Group named " + groupName + " already present as root group in database " + self.name + ". new group " + groupName + " is equal to old group " + splittedPath[0])
-    self.parentGroupName = "/" + groupName+"_"+datetime.now().strftime("%m_%d_%Y_%H")
+    self.parentGroupName = "/" + groupNameInit
     # Create the group
-    grp = self.h5FileW.create_group(groupName+"_"+datetime.now().strftime("%m_%d_%Y_%H"))
+    grp = self.h5FileW.create_group(groupNameInit)
     # Add metadata
     if attributes:
       for key in attributes.keys(): grp.attrs[key] = attributes[key]
     grp.attrs['rootname'] = True
     grp.attrs['EndGroup'] = False
-    self.allGroupPaths.append("/" + groupName+"_"+datetime.now().strftime("%m_%d_%Y_%H"))
-    self.allGroupEnds["/" + groupName+"_"+datetime.now().strftime("%m_%d_%Y_%H")] = False
+    self.allGroupPaths.append("/" + groupNameInit)
+    self.allGroupEnds["/" + groupNameInit] = False
     self.h5FileW.flush()
 
   def __addGroupRootLevel(self,groupName,attributes,source,upGroup=False):

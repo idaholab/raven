@@ -1251,7 +1251,8 @@ class ExternalModel(Dummy):
       for key in output.getParaKeys('outputs'):
         if key in instanciatedSelf.modelVariableType.keys():
           if outputSize == -1: outputSize = len(np.atleast_1d(outcomes[key]))
-          if not utils.sizeMatch(outcomes[key],outputSize): self.raiseAnError(Exception,"the time series size needs to be the same for the output space in a HistorySet!")
+          if not utils.sizeMatch(outcomes[key],outputSize): 
+            self.raiseAnError(Exception,"the time series size needs to be the same for the output space in a HistorySet! Variable:"+key+". Size in the HistorySet="+str(outputSize)+".Size outputed="+str(len(np.atleast_1d(outcomes[key]))))
     Dummy.collectOutput(self, finishedJob, output, options)
 #
 #

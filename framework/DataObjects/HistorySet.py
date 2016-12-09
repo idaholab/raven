@@ -89,7 +89,7 @@ class HistorySet(Data):
         if(lenMustHave != len(self._dataContainer['inputs'].keys())):
           self.raiseAnError(NotConsistentData,'Number of HistorySet contained in HistorySet data ' + self.name + ' != number of loading sources!!! ' + str(lenMustHave) + ' !=' + str(len(self._dataContainer['inputs'].keys())))
       else:
-        if(len(self._toLoadFromList) != len(self._dataContainer['inputs'].keys())):
+        if(lenMustHave != len(self._dataContainer['inputs'].keys())):
           self.raiseAnError(NotConsistentData,'Number of HistorySet contained in HistorySet data ' + self.name + ' != number of loading sources!!! ' + str(len(self._toLoadFromList)) + ' !=' + str(len(self._dataContainer['inputs'].keys())))
       for key in self._dataContainer['inputs'].keys():
         for key2 in self._dataContainer['inputs'][key].keys():

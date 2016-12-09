@@ -15,4 +15,4 @@ def run(self, Input):
     self.pipe1_Hw[i] = time+20.0
     self.pipe1_Dh[i] = time*3.0 + 40.0
     self.pipe1_Area[i] = time*2.0 + 10.0 + zeroToOne
-    self.pump_mass_flow_rate = time*3.0 + zeroToOne + 1.0
+    self.pump_mass_flow_rate[i] = time*3.0 + zeroToOne + 1.0
