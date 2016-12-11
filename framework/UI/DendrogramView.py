@@ -41,8 +41,6 @@ def linakgeToTree(*linkages):
       rightChildIdx = int(rightChildIdx)
       size = int(size)
 
-      # print('%d %d %d %f %d' % (newIdx, leftChildIdx, rightChildIdx, level, size))
-
       node = root.getNode(newIdx)
 
       if node is None:
@@ -78,19 +76,21 @@ class DendrogramView(ZoomableGraphicsView,BaseView):
 
     self.tree = linakgeToTree(linkage)
 
-    self.level = level
+
+    ## Data for internal drawing
+    self.colorMap = {}
+    self.nodes = {}
+    self.arcs = {}
     self.levels = sorted(set(linkage[:,2]))
 
-    if self.level is None:
-      self.level = 0
-
-    self.colorMap = {}
-
+    ## User-editable parameters
     self.truncationSize = 1
     self.truncationLevel = 0
-
     self.maxDiameterMultiplier = 0.05
+    ## Just a shorthand that will set the level to zero if None is specified
+    self.level = level or 0
 
+    ## Setup right click menu for user customization
     self.rightClickMenu.addSeparator()
 
     levelAction = self.rightClickMenu.addAction('Set Level')
@@ -110,74 +110,112 @@ class DendrogramView(ZoomableGraphicsView,BaseView):
     self.edgeAction = self.rightClickMenu.addAction('Smooth Edges')
     self.edgeAction.setCheckable(True)
     self.edgeAction.setChecked(True)
-    self.edgeAction.triggered.connect(self.createScene)
+    self.edgeAction.triggered.connect(self.updateScene)
 
     self.scene().selectionChanged.connect(self.select)
+
+    ## Okay, let's draw the thing
     self.createScene()
 
   def setTruncation(self):
     """
+      Opens a dialog box that allows the user to set the truncation of the
+      dendrogram by setting both the minimum node size (count), and the minimum
+      level used.
+      @In, None
+      @Out, None
     """
     dialog = qtg.QDialog(self)
     layout = qtg.QVBoxLayout()
+    dialog.setLayout(layout)
 
+    ## Put the label and its associated value label in one row using a sublayout
     sublayout = qtg.QHBoxLayout()
+    layout.addLayout(sublayout)
+
     sublayout.addWidget(qtg.QLabel('Minimum Node Size:'))
     nodeSize = qtg.QLabel('%d' % self.truncationSize)
     sublayout.addWidget(nodeSize)
-    layout.addLayout(sublayout)
 
+    ## Next place the associated slider underneath that
     minNodeSizeSlider = qtg.QSlider(qtc.Qt.Horizontal)
     minNodeSizeSlider.setMinimum(1)
     minNodeSizeSlider.setMaximum(self.tree.size)
-    minNodeSizeSlider.valueChanged.connect(lambda: nodeSize.setText('%d' % minNodeSizeSlider.value()))
+    ## Use a lambda function to keep the label in sync with the slider
+    updateNodeLabel = lambda: nodeSize.setText('%d' % minNodeSizeSlider.value())
+    minNodeSizeSlider.valueChanged.connect(updateNodeLabel)
     layout.addWidget(minNodeSizeSlider)
 
+    ## Next item, do the same thing, first put the two labels on one row.
     sublayout = qtg.QHBoxLayout()
-    sublayout.addWidget(qtg.QLabel('Minimum Level:'))
+    layout.addLayout(sublayout)
 
-    minLevelSlider = qtg.QSlider(qtc.Qt.Horizontal)
+    sublayout.addWidget(qtg.QLabel('Minimum Level:'))
     for i,lvl in enumerate(reversed(self.levels)):
       if lvl < self.truncationLevel:
         break
     idx = len(self.levels)-1-i
-
     minLevel = qtg.QLabel('%f' % lvl)
     sublayout.addWidget(minLevel)
-    layout.addLayout(sublayout)
 
+    ## Next, create the slider to go underneath them
+    minLevelSlider = qtg.QSlider(qtc.Qt.Horizontal)
     minLevelSlider.setMinimum(0)
     minLevelSlider.setMaximum(len(self.levels)-1)
     minLevelSlider.setSliderPosition(idx)
-    minLevelSlider.valueChanged.connect(lambda: minLevel.setText('%f' % self.levels[minLevelSlider.value()]))
+    ## Use a lambda function to keep the label in sync with the slider
+    updateLevelSlider = lambda: minLevel.setText('%f' % self.levels[minLevelSlider.value()])
+    minLevelSlider.valueChanged.connect(updateLevelSlider)
     layout.addWidget(minLevelSlider)
 
-    buttons = qtg.QDialogButtonBox(qtg.QDialogButtonBox.Ok|qtg.QDialogButtonBox.Cancel, qtc.Qt.Horizontal, dialog)
+    ## Add the buttons for accepting/rejecting the proposed values
+    buttons = qtg.QDialogButtonBox(qtg.QDialogButtonBox.Ok |
+                                   qtg.QDialogButtonBox.Cancel,
+                                   qtc.Qt.Horizontal, dialog)
 
     def localAccept():
+      """
+        This callback will be registered to when the user selects "OK" and will
+        update the truncation values. Otherwise, this will never get called and
+        the results of the dialog created here will be destroyed.
+        @In, None
+        @Out, None
+      """
       self.truncationSize = int(nodeSize.text())
       self.truncationLevel = float(minLevel.text())
-      self.createScene()
+      self.updateScene()
 
+    ## Register the buttons within the dialog itself, and our own method for
+    ## updating the dendrogram.
     buttons.accepted.connect(localAccept)
     buttons.accepted.connect(dialog.accept)
     buttons.rejected.connect(dialog.reject)
     layout.addWidget(buttons)
 
-    dialog.setLayout(layout)
+    ## Using .open() creates a modal window, but does not block, so thus why
+    ## we have registered the callback above, otherwise we could call exec_(),
+    ## and then have something like: if dialog.result() == qtg.QDialog.Accepted:
+    ## that has the same code as localAccept.
     dialog.open()
-
-    if dialog.result() != qtg.QDialog.Accepted:
-      return
 
   def setAdjustDiameterMultiplier(self):
     """
+      Opens a dialog box that allows the user to set the maximum point size of
+      the dendrogram.
+      @In, None
+      @Out, None
     """
+
+    ## The code here is going to be very similar to that used in to create the
+    ## dialog in setTruncation, so use that function as a model, and I will
+    ## forego the verbosity here.
+
     dialog = qtg.QDialog(self)
     layout = qtg.QVBoxLayout()
 
     sublayout = qtg.QHBoxLayout()
-    sublayout.addWidget(qtg.QLabel('Maximum Point Diameter (% of Window Width):'))
+    staticLabel = qtg.QLabel('Maximum Point Diameter (%% of Window Width):')
+    sublayout.addWidget(staticLabel)
 
     pointSizeSpinner = qtg.QDoubleSpinBox()
     pointSizeSpinner.setMinimum(0.01)
@@ -188,11 +226,20 @@ class DendrogramView(ZoomableGraphicsView,BaseView):
 
     layout.addLayout(sublayout)
 
-    buttons = qtg.QDialogButtonBox(qtg.QDialogButtonBox.Ok|qtg.QDialogButtonBox.Cancel, qtc.Qt.Horizontal, dialog)
+    buttons = qtg.QDialogButtonBox(qtg.QDialogButtonBox.Ok |
+                                   qtg.QDialogButtonBox.Cancel,
+                                   qtc.Qt.Horizontal, dialog)
 
     def localAccept():
+      """
+        This callback will be registered to when the user selects "OK" and will
+        update the maximum node size. Otherwise, this will never get called and
+        the results of the dialog created here will be destroyed.
+        @In, None
+        @Out, None
+      """
       self.maxDiameterMultiplier = pointSizeSpinner.value()
-      self.createScene()
+      self.updateScene()
 
     buttons.accepted.connect(localAccept)
     buttons.accepted.connect(dialog.accept)
@@ -220,15 +267,6 @@ class DendrogramView(ZoomableGraphicsView,BaseView):
         self.levelChanged()
         return
 
-  def select(self):
-    """
-    """
-    selectedKeys = []
-    for key,graphic in self.items.iteritems():
-      if graphic in self.scene().selectedItems():
-        selectedKeys.append(key)
-    # self.tree.SetSelection(selectedKeys)
-
   def setLevel(self):
     """
     """
@@ -243,6 +281,15 @@ class DendrogramView(ZoomableGraphicsView,BaseView):
 
     self.level = np.clip(wy,minLevel,maxLevel)
     self.levelChanged()
+
+  def select(self):
+    """
+    """
+    selectedKeys = []
+    for key,graphic in self.items.iteritems():
+      if graphic in self.scene().selectedItems():
+        selectedKeys.append(key)
+    # self.tree.SetSelection(selectedKeys)
 
   def selectionChanged(self):
     ## Disable the communication so we don't end up in infinite callbacks
@@ -269,7 +316,7 @@ class DendrogramView(ZoomableGraphicsView,BaseView):
     # self.animation.setItem(self.items["Threshold"])
     # self.animation.setTimeLine(self.timer)
     # self.timer.valueChanged.connect(self.animate)
-    # self.timer.finished.connect(self.createScene)
+    # self.timer.finished.connect(self.updateScene)
 
     # width = self.scene().width()
     # height = self.scene().height()
@@ -316,7 +363,7 @@ class DendrogramView(ZoomableGraphicsView,BaseView):
 
     ## Disabling animation as it can cause a segfault
     # self.timer.start()
-    self.createScene()
+    self.updateScene()
 
   def animate(self):
     """
@@ -330,39 +377,18 @@ class DendrogramView(ZoomableGraphicsView,BaseView):
       item.setRect(x,y,diameter,diameter)
     # self.scene().update()
 
-  def createScene(self):
+  def updateScene(self):
     """
     """
-    self.items = {}
     scene = self.scene()
-    scene.clear()
-
-    selected = []
-    level = self.level
-    maxLevel = self.levels[-1]
-
-    if self.fillAction.isChecked():
-      aspectRatio = float(self.width())/float(self.height())
-      scene.setSceneRect(0, 0,
-                         ZoomableGraphicsView.defaultSceneDimension*aspectRatio,
-                         ZoomableGraphicsView.defaultSceneDimension)
-    else:
-      scene.setSceneRect(0, 0,
-                         ZoomableGraphicsView.defaultSceneDimension,
-                         ZoomableGraphicsView.defaultSceneDimension)
-
     width = scene.width()
     height = scene.height()
     minDim = min([width,height])
 
-    white = qtg.QColor('#FFFFFF')
-    gray = qtg.QColor('#999999')
-    black = qtg.QColor('#000000')
-    transparentGray = gray.lighter()
-    transparentGray.setAlpha(127)
+    level = self.level
+    maxLevel = self.levels[-1]
 
     root = self.tree
-
     totalCount = root.getLeafCount()
 
     minDiameter = min(minDim/float(totalCount),0.01*minDim)
@@ -373,10 +399,111 @@ class DendrogramView(ZoomableGraphicsView,BaseView):
     usableWidth = width-2*self.padding
     usableHeight = height-2*self.padding
 
-
-    scene.addRect(0,0,width,height,qtg.QPen(qtc.Qt.black))
     level = height - usableHeight*level/maxLevel-self.padding
-    self.items['Threshold'] = scene.addRect(0,0,width,level,qtg.QPen(gray),qtg.QBrush(transparentGray))
+
+    ## Update the bounding box
+    self.updateActiveBox()
+    self.updateNodes()
+    self.updateArcs()
+
+  def updateNodes(self):
+    """
+    """
+    for _id in self.items:
+      node = self.tree.getNode(_id)
+      count = node.size
+      diameter = float(count)/totalCount*(maxDiameter-minDiameter)+minDiameter
+
+      if _id not in self.colorMap:
+        self.colorMap[_id] = qtg.QColor(colors.colorCycle.next()) # qtg.QColor(*tuple(255*np.random.rand(3)))
+
+      color = qtg.QColor(self.colorMap[_id])
+      if node.level < self.level:
+        color.setAlpha(64)
+        diameter = minDiameter
+
+      x = point[0]+self.padding
+      y = height - usableHeight*point[1]/maxLevel-self.padding
+      brush = qtg.QBrush(color)
+      if _id in selected:
+        pen = qtg.QPen(black)
+      else:
+        pen = qtc.Qt.NoPen
+      self.items[_id] = scene.addEllipse(x-diameter/2.,y-diameter/2.,diameter,diameter,pen,brush)
+      self.items[_id].setFlag(qtg.QGraphicsItem.ItemIsSelectable)
+      self.items[_id].setToolTip('   id: %d\ncount: %d\nlevel: %f' %(_id,int(count),node.level))
+      if diameter == 0:
+        self.items[_id].setZValue(sys.float_info.max)
+      else:
+        self.items[_id].setZValue(1./diameter)
+
+  def updateArcs(self):
+    """
+    """
+    pass
+
+  def updateActiveBox(self):
+    """
+    """
+    minDim = min([self.scene().width(),self.scene().height()])
+
+    maxDiameter = self.maxDiameterMultiplier*minDim
+    levelRatio = self.level/self.levels[-1]
+    usableHeight = self.scene().height()-2*self.padding
+
+    level = height - usableHeight*level/maxLevel-self.padding
+
+    ## Update the bounding box
+    rect = self.activeBox.rect()
+    rect.setHeight(level)
+    self.activeBox.setRect(rect)
+
+  def createScene(self):
+    """
+    """
+    scene = self.scene()
+    scene.clear()
+
+    selected = []
+    level = self.level
+    maxLevel = self.levels[-1]
+
+    scene.setSceneRect(0, 0,
+                       ZoomableGraphicsView.defaultSceneDimension,
+                       ZoomableGraphicsView.defaultSceneDimension)
+
+    # if self.fillAction.isChecked():
+    #   aspectRatio = float(self.width())/float(self.height())
+    #   scene.setSceneRect(0, 0,
+    #                      ZoomableGraphicsView.defaultSceneDimension*aspectRatio,
+    #                      ZoomableGraphicsView.defaultSceneDimension)
+    # else:
+    #   scene.setSceneRect(0, 0,
+    #                      ZoomableGraphicsView.defaultSceneDimension,
+    #                      ZoomableGraphicsView.defaultSceneDimension)
+
+    width = scene.width()
+    height = scene.height()
+    minDim = min([width,height])
+
+    gray = qtg.QColor('#999999')
+    black = qtg.QColor('#000000')
+    transparentGray = gray.lighter()
+    transparentGray.setAlpha(127)
+
+    root = self.tree
+    totalCount = root.getLeafCount()
+
+    minDiameter = min(minDim/float(totalCount),0.01*minDim)
+    maxDiameter = self.maxDiameterMultiplier*minDim
+
+    self.padding = maxDiameter/2.
+
+    usableWidth = width-2*self.padding
+    usableHeight = height-2*self.padding
+
+    self.boundingBox = scene.addRect(0,0,width,height,qtg.QPen(qtc.Qt.black))
+    self.activeBox   = scene.addRect(0,0,width,height,qtg.QPen(gray),qtg.QBrush(transparentGray))
 
     xOffset = 0
     ids = []
@@ -432,7 +559,7 @@ class DendrogramView(ZoomableGraphicsView,BaseView):
         path.lineTo(x2,y1)
         path.lineTo(x2,y2)
 
-      scene.addPath(path,qtg.QPen(gray))
+      self.arcs[edge] = scene.addPath(path,qtg.QPen(gray))
 
 
     for _id,point in zip(ids,points):
@@ -455,12 +582,12 @@ class DendrogramView(ZoomableGraphicsView,BaseView):
         pen = qtg.QPen(black)
       else:
         pen = qtc.Qt.NoPen
-      self.items[_id] = scene.addEllipse(x-diameter/2.,y-diameter/2.,diameter,diameter,pen,brush)
+      self.nodes[_id] = scene.addEllipse(x-diameter/2.,y-diameter/2.,diameter,diameter,pen,brush)
       self.items[_id].setFlag(qtg.QGraphicsItem.ItemIsSelectable)
-      self.items[_id].setToolTip('   id: %d\ncount: %d\nlevel: %f' %(_id,int(count),node.level))
+      self.nodes[_id].setToolTip('   id: %d\ncount: %d\nlevel: %f' %(_id,int(count),node.level))
       if diameter == 0:
-        self.items[_id].setZValue(sys.float_info.max)
+        self.nodes[_id].setZValue(sys.float_info.max)
       else:
-        self.items[_id].setZValue(1./diameter)
+        self.nodes[_id].setZValue(1./diameter)
 
     self.fitInView(scene.sceneRect(),qtc.Qt.KeepAspectRatio)
