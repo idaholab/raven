@@ -68,16 +68,9 @@ class HistorySet(Data):
       @ In,  None
       @ Out, None
     """
-#    lenMustHave = 0
     sourceType = self._toLoadFromList[-1].type
     lenMustHave = self.numAdditionalLoadPoints
     # here we assume that the outputs are all read....so we need to compute the total number of time point sets
-#     for sourceLoad in self._toLoadFromList:
-#       if'HDF5' == sourceLoad.type:  lenMustHave = lenMustHave + len(sourceLoad.getEndingGroupNames())
-#       elif isinstance(sourceLoad,Files.File): lenMustHave += 1
-#       else:
-#         self.raiseAnError(Exception,'The type ' + sourceLoad.type + ' is unknown!')
-
     if self._dataParameters['hierarchical']:
       for key in self._dataContainer['inputs'].keys():
         if (self._dataContainer['inputs'][key].size) != 1:
@@ -88,9 +81,6 @@ class HistorySet(Data):
     else:
       if(lenMustHave != len(self._dataContainer['inputs'].keys())):
         self.raiseAnError(NotConsistentData,'Number of HistorySet contained in HistorySet data ' + self.name + ' != number of loading sources!!! ' + str(lenMustHave) + ' !=' + str(len(self._dataContainer['inputs'].keys())))
-#       else:
-#         if(lenMustHave != len(self._dataContainer['inputs'].keys())):
-#           self.raiseAnError(NotConsistentData,'Number of HistorySet contained in HistorySet data ' + self.name + ' != number of loading sources!!! ' + str(len(lenMustHave)) + ' !=' + str(len(self._dataContainer['inputs'].keys())))
       for key in self._dataContainer['inputs'].keys():
         for key2 in self._dataContainer['inputs'][key].keys():
           if (self._dataContainer['inputs'][key][key2].size) != 1:
