@@ -62,6 +62,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ Out, None
     """
     BaseType.__init__(self)
+    self.numAdditionalLoadPoints         = 0                          # if points are loaded into csv, this will help keep tally
     self._dataParameters                 = {}                         # in here we store all the data parameters (inputs params, output params,etc)
     self._dataParameters['inParam'     ] = []                         # inParam list
     self._dataParameters['outParam'    ] = []                         # outParam list
@@ -131,7 +132,10 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
         if parentID and self._dataParameters['hierarchical']:
           self.raiseAWarning('-> Data storing in hierarchical fashion from HDF5 not yet implemented!')
           self._dataParameters['hierarchical'] = False
-    elif (isinstance(self._toLoadFromList[-1],Files.File)): tupleVar = ld(self.messageHandler).csvLoadData([toLoadFrom],self._dataParameters)
+      self.numAdditionalLoadPoints += len(self._toLoadFromList[-1].getEndingGroupNames())     
+    elif (isinstance(self._toLoadFromList[-1],Files.File)): 
+      tupleVar = ld(self.messageHandler).csvLoadData([toLoadFrom],self._dataParameters)
+      self.numAdditionalLoadPoints += 1
     else: self.raiseAnError(ValueError, "Type "+self._toLoadFromList[-1].type+ "from which the DataObject "+ self.name +" should be constructed is unknown!!!")
 
     for hist in tupleVar[0].keys():

@@ -318,6 +318,15 @@
    remove_unicode_identifier = true
  [../]
 
+ [./load_and_push_reusing_same_hdf5]
+   type = 'RavenFramework'
+   input = 'test_load_and_push_reusing_same_hdf5.xml'
+   output = 'GridTestRaven/FirstMRun/1/out~clg.massflowrate.3eqn GridTestRaven/outGrid_dump.csv GridTestRaven/outGridMax_dump.csv GridTestRaven/outGridMin_dump.csv GridTestRaven/outGridAverage_dump.csv GridTestRaven/outGridMaxFromHDF5_dump.csv GridTestRaven/outGridMinFromHDF5_dump.csv GridTestRaven/outGridAverageFromHDF5_dump.csv'
+   prereq = testGrid_RELAP7
+   method = 'devel opt'
+   required_executable = '../../RAVEN-%METHOD%'
+ [../]
+
  [./adaptive_sampler_ext_model]
   type = 'RavenFramework'
   input = 'test_adaptive_sampler.xml'
@@ -504,6 +513,10 @@
    output = 'test_categorical/Grid_dump.csv test_categorical/MC_dump.csv test_categorical/output_basicStatistics_Grid.csv test_categorical/output_basicStatistics_MC.csv'
    csv    = 'test_categorical/Grid_dump.csv test_categorical/MC_dump.csv'
  [../]
+
+
+
+
 
 []
 

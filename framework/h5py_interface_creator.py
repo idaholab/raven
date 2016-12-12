@@ -17,6 +17,7 @@ import numpy as np
 import os
 import copy
 import json
+import string
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -186,8 +187,21 @@ class hdf5Database(MessageHandler.MessageUser):
         comparisonName = self.allGroupPaths[index]
         splittedPath=comparisonName.split('/')
         if len(splittedPath) > 0:
-          if groupNameInit in splittedPath[0]: 
-            return
+          if groupNameInit in splittedPath[0]:
+            alphabetCounter, movingCounter = 0, 0 
+            asciiAlphabet   = list(string.ascii_uppercase)
+            prefixLetter          = ''
+            while True:
+              testGroup = groupNameInit +"_"+prefixLetter+asciiAlphabet[alphabetCounter] 
+              if testGroup not in self.allGroupPaths:
+                groupNameInit = testGroup
+                break
+              alphabetCounter+=1
+              if alphabetCounter >= len(asciiAlphabet):
+                prefix = asciiAlphabet[movingCounter] 
+                alphabetCounter = 0
+                movingCounter  += 1
+            break 
             # self.raiseAnError(IOError,"Group named " + groupName + " already present as root group in database " + self.name + ". new group " + groupName + " is equal to old group " + splittedPath[0])
     self.parentGroupName = "/" + groupNameInit
     # Create the group
