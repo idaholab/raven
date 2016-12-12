@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <RunInfo>
-    <WorkingDir>GridTestRaven</WorkingDir>
+    <WorkingDir>GridTestRavenSameHDF5</WorkingDir>
     <Sequence>test_extract,MonteCarloRestarted,test_push</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
@@ -83,7 +83,7 @@
   </Steps>
 
   <Databases>
-    <HDF5 name="testGridRavenDatabase" readMode="read"/>
+    <HDF5 name="testGridRavenDatabase" directory="GridTestRaven/DatabaseStorage" readMode="read"/>
   </Databases>
 
   <OutStreams>
