@@ -132,8 +132,8 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
         if parentID and self._dataParameters['hierarchical']:
           self.raiseAWarning('-> Data storing in hierarchical fashion from HDF5 not yet implemented!')
           self._dataParameters['hierarchical'] = False
-      self.numAdditionalLoadPoints += len(self._toLoadFromList[-1].getEndingGroupNames())     
-    elif (isinstance(self._toLoadFromList[-1],Files.File)): 
+      self.numAdditionalLoadPoints += len(self._toLoadFromList[-1].getEndingGroupNames())
+    elif (isinstance(self._toLoadFromList[-1],Files.File)):
       tupleVar = ld(self.messageHandler).csvLoadData([toLoadFrom],self._dataParameters)
       self.numAdditionalLoadPoints += 1
     else: self.raiseAnError(ValueError, "Type "+self._toLoadFromList[-1].type+ "from which the DataObject "+ self.name +" should be constructed is unknown!!!")

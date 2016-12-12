@@ -77,7 +77,7 @@ class HistorySet(Data):
 #       elif isinstance(sourceLoad,Files.File): lenMustHave += 1
 #       else:
 #         self.raiseAnError(Exception,'The type ' + sourceLoad.type + ' is unknown!')
-    
+
     if self._dataParameters['hierarchical']:
       for key in self._dataContainer['inputs'].keys():
         if (self._dataContainer['inputs'][key].size) != 1:
@@ -512,7 +512,7 @@ class HistorySet(Data):
       self._dataContainer['inputs'][mainKey] = subInput
       self._dataContainer['outputs'][mainKey] = subOutput
     #extend the expected size of this point set
-    self.numAdditionalLoadPoints = len(allLines) #used in checkConsistency    
+    self.numAdditionalLoadPoints = len(allLines) #used in checkConsistency
 
     self.checkConsistency()
 
