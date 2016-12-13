@@ -54,9 +54,11 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     This is the general interface to any superVisedLearning learning method.
     Essentially it contains a train method and an evaluate method
   """
-  returnType      = '' #this describe the type of information generated the possibility are 'boolean', 'integer', 'float'
-  qualityEstType  = [] #this describe the type of estimator returned known type are 'distance', 'probability'. The values are returned by the self.__confidenceLocal__(Features)
-  ROMtype         = '' #the broad class of the interpolator
+  returnType       = ''    # this describe the type of information generated the possibility are 'boolean', 'integer', 'float'
+  qualityEstType   = []    # this describe the type of estimator returned known type are 'distance', 'probability'. The values are returned by the self.__confidenceLocal__(Features)
+  ROMtype          = ''    # the broad class of the interpolator
+  ROMmultiTarget   = False # 
+  ROMtimeDependent = False # is this ROM able to treat time-like (any monotonic variable) explicitly in its formulation?
 
   @staticmethod
   def checkArrayConsistency(arrayIn):
@@ -2468,6 +2470,12 @@ __interfaceDict['HDMRRom'             ] = HDMRRom
 __interfaceDict['MSR'                 ] = MSR
 __interfaceDict['ARMA'                ] = ARMA
 __base                                  = 'superVisedLearning'
+
+def returnStaticCharacteristics(infoType,ROMclass,caller,**kwargs):
+  """
+    This method is aimed to get the static characteristics of a certain ROM (e.g. multi-target, dynamic, etc.)
+  """
+
 
 def returnInstance(ROMclass,caller,**kwargs):
   """

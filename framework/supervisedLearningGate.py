@@ -11,6 +11,7 @@ warnings.simplefilter('default',DeprecationWarning)
 
 #External Modules------------------------------------------------------------------------------------
 import inspect
+import abc
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -18,6 +19,7 @@ from BaseClasses import BaseType
 import mathUtils
 import utils
 import SupervisedLearning
+import MessageHandler
 #Internal Modules End--------------------------------------------------------------------------------
 class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),MessageHandler.MessageUser):
   """
@@ -25,10 +27,11 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
     It is a utility class needed to hide the discernment between time-dependent and static 
     surrogate models
   """
-  def __init__(self,messageHandler,**kwargs):
+  def __init__(self, ROMclass, messageHandler, **kwargs):
     """
       A constructor that will appropriately initialize a supervised learning object (static or time-dependent)
       @ In, messageHandler, MessageHandler object, it is in charge of raising errors, and printing messages
+      @ In, ROMclass, string, the surrogate model type
       @ In, kwargs, dict, an arbitrary list of kwargs
       @ Out, None
     """
@@ -148,7 +151,7 @@ __interfaceDict                         = {}
 __interfaceDict['SupervisedGate'      ] = supervisedLearningGate
 __base                                  = 'supervisedGate'
 
-def returnInstance(ROMclass,caller,**kwargs):
+def returnInstance(gateType, ROMclass, caller, **kwargs):
   """
     This function return an instance of the request model type
     @ In, ROMclass, string, string representing the instance to create
@@ -156,8 +159,8 @@ def returnInstance(ROMclass,caller,**kwargs):
     @ In, kwargs, dict, a dictionary specifying the keywords and values needed to create the instance.
     @ Out, returnInstance, instance, an instance of a ROM
   """
-  try: return __interfaceDict[ROMclass](caller.messageHandler,**kwargs)
-  except KeyError as ae: caller.raiseAnError(NameError,'not known '+__base+' type '+str(ROMclass))
+  try: return __interfaceDict[gateType](ROMclass, caller.messageHandler,**kwargs)
+  except KeyError as ae: caller.raiseAnError(NameError,'not known '+__base+' type '+str(gateType))
 
 def returnClass(ROMclass,caller):
   """

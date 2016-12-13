@@ -823,7 +823,7 @@ class ROM(Dummy):
         else:
           self.initializationOptionDict[child.getName()] = tryStrParse(child.value)
     
-    self.supervisedEngine = supervisedLearningGate.returnInstance(self.subType, self)
+    self.supervisedEngine = supervisedLearningGate.returnInstance('SupervisedGate', self.subType, self,**self.initializationOptionDict)
     
     #the ROM is instanced and initialized
     # check how many targets
