@@ -876,18 +876,29 @@ def mergeDictionaries(*dictArgs):
     return mergedDict
 
 def mergeSequences(seq1,seq2):
+  """
+    This method has been taken from "http://stackoverflow.com"
+    It is aimed to merge two sequences (lists) into one preserving the order in the two lists
+    e.g. ['A', 'B', 'C', 'D', 'E',           'H', 'I']
+         ['A', 'B',           'E', 'F', 'G', 'H',      'J', 'K']
+    will become
+         ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K']
+    @ In, seq1, list, the first sequence to be merged
+    @ In, seq2, list, the second sequence to be merged
+    @ Out, merged, list, the merged list of elements
+  """
   sm=SequenceMatcher(a=seq1,b=seq2)
-  res = []
+  merged = []
   for (op, start1, end1, start2, end2) in sm.get_opcodes():
     if op == 'equal' or op=='delete':
       #This range appears in both sequences, or only in the first one.
-      res += seq1[start1:end1]
+      merged += seq1[start1:end1]
     elif op == 'insert':
       #This range appears in only the second sequence.
-      res += seq2[start2:end2]
+      merged += seq2[start2:end2]
     elif op == 'replace':
       #There are different ranges in each sequence - add both.
-      res += seq1[start1:end1]
-      res += seq2[start2:end2]
-  return res
+      merged += seq1[start1:end1]
+      merged += seq2[start2:end2]
+  return merged
 
