@@ -66,12 +66,12 @@ class Metric(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     self._localReadMoreXML(xmlNode)
 
 
-  def distance(self,x,y,weights=None,paramDict=None):
+  def distance(self,x,y,**kwargs):
     """
-      This method actually calculates the distance between two dataObects x and y
+      This method actually calculates the distance between two dataObjects x and y
       @ In, x, dict, dictionary containing data of x
       @ In, y, dict, dictionary containing data of y
-      @ In, weights, dictionary of probably weights
+      @ In, kwargs, dictionary of parameters characteristic of each metric (e.g., weights)
       @ Out, value, float, distance between x and y
     """
     pass

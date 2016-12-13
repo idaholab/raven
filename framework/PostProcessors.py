@@ -4414,7 +4414,6 @@ class DataMining(BasePostProcessor):
 
             if 'explainedVarianceRatio' in solutionExportDict:
               self.solutionExport.updateOutputValue('ExplainedVarianceRatio',solutionExportDict['explainedVarianceRatio'][row])
-
     return outputDict
 
 
@@ -4784,8 +4783,10 @@ class RavenOutput(BasePostProcessor):
     realizations = finishedJob.getEvaluation()[1]['realizations']
     for real in realizations:
       for key in output.getParaKeys('inputs'):
+        if key not in real['inputs'].keys(): self.raiseAnError(RuntimeError, 'Requested input variable '+key+' has not been extracted. Check the consistency of your input')
         output.updateInputValue(key,real['inputs'][key])
       for key in output.getParaKeys('outputs'):
+        if key not in real['outputs'].keys(): self.raiseAnError(RuntimeError, 'Requested output variable '+key+' has not been extracted. Check the consistency of your input')
         output.updateOutputValue(key,real['outputs'][key])
       for key,val in real['metadata'].items():
         output.updateMetadata(key,val)
