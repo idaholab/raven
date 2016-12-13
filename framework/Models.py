@@ -2005,7 +2005,7 @@ class EnsembleModel(Dummy, Assembler):
     ###################################################
     # to be removed once executionList can be handled #
     self.orderList = self.ensembleModelGraph.createSingleListOfVertices(allPath)
-    self.raiseAMessage("Model Execution list: "+'***'.join(self.orderList))
+    self.raiseAMessage("Model Execution list: "+' -> '.join(self.orderList))
     ###################################################
 
     #orderList = self.ensembleModelGraph.createSingleListOfVertices(allPath)
