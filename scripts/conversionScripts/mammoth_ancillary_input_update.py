@@ -4,7 +4,7 @@ import os
 
 def convert(tree,fileName=None):
   """
-    Converts the file type of miscellaneous inputs in MAMMOTH interface MultiRun to 
+    Converts the file type of miscellaneous inputs in MAMMOTH interface MultiRun to
     ancillary input as of merge request 728.
     @ In, tree, xml.etree.ElementTree.ElementTree object, the contents of a RAVEN input file
     @ In, fileName, the name for the raven input file
@@ -21,16 +21,16 @@ def convert(tree,fileName=None):
       mammothInput = True
       mammothMultiRunNames.append(code.attrib['name'])
     for codeChild in code:
-      if codeChild.tag == 'alias'
-      checkAliases = True
-      break
+      if codeChild.tag == 'alias':
+        checkAliases = True
+        break
   if not mammothInput:
     return tree
   # Find all Inputs with class=Files from Mammoth MultiRun
   inputFileNames = []
   for mammothMultiRun in mammothMultiRunNames:
     for iput in simulation.findall("./Steps/MultiRun/[Model='"+mammothMultiRun+"']/Input"):
-      if iput.attrib[class] == 'Files':
+      if iput.attrib['class'] == 'Files':
         inputFileNames.append(iput.text)
   # Change any found Mammoth MultiRun Input Files' with no type to ancillaryInput
   for inputFileName in inputFileNames:
