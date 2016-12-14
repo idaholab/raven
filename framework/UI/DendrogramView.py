@@ -82,12 +82,6 @@ class DendrogramView(ZoomableGraphicsView,BaseView):
     self.mainWindow = mainWindow
     self.tree = linakgeToTree(self.mainWindow.engine.linkage)
 
-    ## Data for internal drawing
-    self.colorMap = {}
-    self.nodes = {}
-    self.arcs = {}
-    self.activeBox = None
-
     ## User-editable parameters
     self.truncationSize = 1
     self.truncationLevel = 0
@@ -187,7 +181,7 @@ class DendrogramView(ZoomableGraphicsView,BaseView):
       """
       self.truncationSize = int(nodeSize.text())
       self.truncationLevel = float(minLevel.text())
-      self.updateScene()
+      self.createScene()
 
     ## Register the buttons within the dialog itself, and our own method for
     ## updating the dendrogram.
@@ -522,6 +516,12 @@ class DendrogramView(ZoomableGraphicsView,BaseView):
   def createScene(self):
     """
     """
+    ## Clear data for saving state
+    self.colorMap = {}
+    self.nodes = {}
+    self.arcs = {}
+    self.activeBox = None
+
     scene = self.scene()
     scene.clear()
     sz = ZoomableGraphicsView.defaultSceneDimension
