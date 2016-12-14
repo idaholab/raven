@@ -246,13 +246,8 @@ class graphObject(object):
     """
     if uniquePaths is None: uniquePaths = self.findAllUniquePaths()
     singleList = []
-    maxLenght = max([len(path) for path in uniquePaths])
-    for level in range(maxLenght):
-      for listVert in uniquePaths:
-        if len(listVert) >= level+1:
-          if listVert[level] not in singleList: singleList.append(listVert[level])
+    for pathCnt in range(len(uniquePaths)): singleList = utils.mergeSequences(singleList,uniquePaths[pathCnt])
     return singleList
-
 
   def vertexDegree(self, vertex):
     """
