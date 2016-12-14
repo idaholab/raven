@@ -712,7 +712,7 @@ class hdf5Database(MessageHandler.MessageUser):
         except:
           try:    attrs["inputSpaceHeaders"]  = gbAttrs[0]["inputSpaceHeaders"]
           except: pass
-        try:    attrs["inputSpaceValues"]     = list(utils.toListFromNumpyOrC1arrayIterative(list(json.loads(gbAttrs[0]["inputSpaceValues"]).tolist())))  #json.loads(list(utils.toListFromNumpyOrC1arrayIterative(list(gbAttrs[0]["inputSpaceValues"].tolist())))) #json.dumps(list(utils.toListFromNumpyOrC1arrayIterative(list(gbAttrs[0]["inputSpaceValues"].tolist()))))
+        try:    attrs["inputSpaceValues"]     = list(utils.toListFromNumpyOrC1arrayIterative(list(gbAttrs[0]["inputSpaceValues"].tolist())))  #json.loads(list(utils.toListFromNumpyOrC1arrayIterative(list(gbAttrs[0]["inputSpaceValues"].tolist())))) #json.dumps(list(utils.toListFromNumpyOrC1arrayIterative(list(gbAttrs[0]["inputSpaceValues"].tolist()))))
         except:
           try:    attrs["inputSpaceValues"]   = list(utils.toListFromNumpyOrC1arrayIterative(list(json.loads(gbAttrs[0]["inputSpaceValues"]))))
           except: pass
@@ -791,9 +791,9 @@ class hdf5Database(MessageHandler.MessageUser):
           except:
             try:    attrs["inputSpaceHeaders"]  = gbAttrs[0]["inputSpaceHeaders"]
             except: pass
-          try:    attrs["inputSpaceValues"]     = json.dumps(list(utils.toListFromNumpyOrC1arrayIterative(list( gbAttrs[0]["inputSpaceValues"].tolist()))))
+          try:    attrs["inputSpaceValues"]     = list(utils.toListFromNumpyOrC1arrayIterative(list(gbAttrs[0]["inputSpaceValues"].tolist())))  #json.loads(list(utils.toListFromNumpyOrC1arrayIterative(list(gbAttrs[0]["inputSpaceValues"].tolist())))) #json.dumps(list(utils.toListFromNumpyOrC1arrayIterative(list(gbAttrs[0]["inputSpaceValues"].tolist()))))
           except:
-            try:    attrs["inputSpaceValues"]   = json.dumps(list(utils.toListFromNumpyOrC1arrayIterative(list( gbAttrs[0]["inputSpaceValues"]))))
+            try:    attrs["inputSpaceValues"]   = list(utils.toListFromNumpyOrC1arrayIterative(list(json.loads(gbAttrs[0]["inputSpaceValues"]))))
             except: pass
           attrs["nParams"]        = gbAttrs[0]["nParams"]
           attrs["parent"]          = whereList[0]
