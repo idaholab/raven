@@ -53,7 +53,7 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
     else:
       for target in targets:
         self.initializationOptions['Target'] = target
-        self.SupervisedEngine[target] =  SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptions)
+        self.SupervisedEngine[target] =  SupervisedLearning.returnInstance(ROMclass,self,**self.initializationOptions)
     # extend the list of modules this ROM depen on
     self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(utils.first(self.SupervisedEngine.values())),True)) - set(self.mods))
     self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(SupervisedLearning),True)) - set(self.mods))
