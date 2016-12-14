@@ -88,7 +88,7 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     if 'Features' not in self.initOptionDict.keys(): self.raiseAnError(IOError,'Feature names not provided')
     if 'Target'   not in self.initOptionDict.keys(): self.raiseAnError(IOError,'Target name not provided')
     self.features = self.initOptionDict['Features'].split(',')
-    self.target   = self.initOptionDict['Target'  ]
+    self.target   = self.initOptionDict['Target'  ].split(',')
     self.initOptionDict.pop('Target')
     self.initOptionDict.pop('Features')
     self.verbosity = self.initOptionDict['verbosity'] if 'verbosity' in self.initOptionDict else None
