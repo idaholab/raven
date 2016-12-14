@@ -190,10 +190,11 @@ class ZoomableGraphicsView(qtg.QGraphicsView):
       self.fitInView(self.sceneRect(),qtc.Qt.KeepAspectRatio)
     else:
       self._zoom = 0
+      self.fitInView(self.sceneRect(),qtc.Qt.KeepAspectRatio)
 
   def contextMenuEvent(self,event):
     # if self.dragMode() == qtg.QGraphicsView.ScrollHandDrag:
     #   ## Do something else with the right clicks
     #   pass
     # else:
-      self.rightClickMenu.popup(event.globalPos())
+    self.rightClickMenu.popup(event.globalPos())

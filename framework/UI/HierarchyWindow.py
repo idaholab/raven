@@ -17,39 +17,37 @@ import numpy as np
 
 class HierarchyWindow(qtg.QMainWindow):
   """
-    A Main Window container for holding various subwindows related to the
-    visualization and analysis of a dataset according to the approximate
-    Morse-Smale complex.
+
   """
   closed = qtc.Signal(qtc.QObject)
-  def __init__(self, **kwargs):
+  sigLevelChanged = qtc.Signal(qtc.QObject)
+  def __init__(self, engine, level=None, debug=None, views=None):
     """
-      Initialization method that can optionally specify all of the parameters
-      needed for building an underlying AMSC_Object to be used internally by
-      this window and its child views.
-      @ In, kwargs, a dictionary that will hand the requested data to the
-        views.
+
     """
     super(HierarchyWindow,self).__init__()
     self.views = []
     self.resize(800,600)
     self.setCentralWidget(None)
     self.setDockOptions(qtg.QMainWindow.AllowNestedDocks)
-    if 'debug' in kwargs:
-      self.debug = kwargs['debug']
+
+    self.debug = debug
+    self.engine = engine
+
+    self.levels = sorted(set(self.engine.linkage[:,2]))
+    self.level = level or 0
 
     self.fileMenu = self.menuBar().addMenu('File')
     # self.optionsMenu = self.menuBar().addMenu('Options')
     self.viewMenu = self.menuBar().addMenu('View')
     newMenu = self.viewMenu.addMenu('New...')
-    if 'views' in kwargs:
-      views = kwargs.pop('views')
-      for view in views:
-        self.addNewView(view, **kwargs)
+
+    for view in views:
+      self.addNewView(view)
 
     for subclass in BaseView.__subclasses__():
       action = newMenu.addAction(subclass.__name__)
-      action.triggered.connect(functools.partial(self.addNewView,action.text(), **kwargs))
+      action.triggered.connect(functools.partial(self.addNewView,action.text()))
 
   def createDockWidget(self,view):
     """
@@ -71,7 +69,7 @@ class HierarchyWindow(qtg.QMainWindow):
     self.addDockWidget(qtc.Qt.TopDockWidgetArea,dockWidget)
     self.viewMenu.addAction(dockWidget.toggleViewAction())
 
-  def addNewView(self, viewType, **kwargs):
+  def addNewView(self, viewType):
     """
       Method to create a new child view which will be added as a dock widget
       and thus will call createDockWidget()
@@ -90,13 +88,13 @@ class HierarchyWindow(qtg.QMainWindow):
         if idx > 0:
           defaultWidgetName += ' ' + str(idx)
 
-        self.views.append(subclass(parent=self, **kwargs))
+        self.views.append(subclass(mainWindow=self))
         view = self.views[-1]
 
         self.createDockWidget(view)
 
-        #self.amsc.sigSelectionChanged.connect(view.selectionChanged)
-        #self.amsc.sigFilterChanged.connect(view.filterChanged)
+        self.sigLevelChanged.connect(view.levelChanged)
+        #self.sigSelectionChanged.connect(view.selectionChanged)
         #self.amsc.sigDataChanged.connect(view.dataChanged)
 
   def closeEvent(self,event):
@@ -106,3 +104,32 @@ class HierarchyWindow(qtg.QMainWindow):
     """
     self.closed.emit(self)
     return super(HierarchyWindow,self).closeEvent(event)
+
+  def increaseLevel(self):
+    """
+    """
+    for lvl in self.levels:
+      if lvl > self.level:
+        self.level = lvl
+        self.levelChanged()
+        return
+
+  def decreaseLevel(self):
+    """
+    """
+    for lvl in reversed(self.levels):
+      if lvl < self.level:
+        self.level = lvl
+        self.levelChanged()
+        return
+
+  def setLevel(self, newLevel):
+    """
+    """
+    self.level = newLevel
+    self.levelChanged()
+
+  def levelChanged(self):
+    """
+    """
+    self.sigLevelChanged.emit(self)

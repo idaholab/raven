@@ -4683,8 +4683,8 @@ try:
         ## Send the request for a UI thread to the main application
         self.requestUI.emit('HierarchyWindow', uiID,
                             {'views': ['DendrogramView'],
-                             'linkage': self.unSupervisedEngine.linkage,
                              'debug': False,
+                             'engine': self.unSupervisedEngine,
                              'level': self.initializationOptionDict['KDD']['level']})
 
         ## Spinlock will wait until this instance's window has been closed
