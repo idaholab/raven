@@ -265,8 +265,31 @@ class DendrogramView(ZoomableGraphicsView,BaseView):
       this callback
       @ Out, None
     """
+
     self.currentY = event.y()
-    super(DendrogramView,self).contextMenuEvent(event)
+
+    mousePt = self.mapToScene(event.pos())
+
+    onSomething = False
+    for idx,graphic in self.nodes.items():
+      if graphic.contains(mousePt):
+        menu = qtg.QMenu()
+        colorAction = menu.addAction('Change Color')
+
+        def pickColor():
+          dialog = qtg.QColorDialog()
+          dialog.setCurrentColor(self.colorMap[idx])
+          dialog.exec_()
+          if dialog.result() == qtg.QDialog.Accepted:
+            self.colorMap[idx] = dialog.currentColor()
+            self.updateScene()
+
+        colorAction.triggered.connect(pickColor)
+        menu.exec_(event.globalPos())
+        return
+
+    if not onSomething:
+      super(DendrogramView,self).contextMenuEvent(event)
 
   def setLevel(self):
     """
@@ -372,6 +395,11 @@ class DendrogramView(ZoomableGraphicsView,BaseView):
     self.usableWidth = width - 2 * self.padding
     self.usableHeight = height - 2 * self.padding
 
+  def test(self):
+    """
+    """
+    print('here')
+
   def updateNodes(self, newNodes=None):
     """
     """
@@ -397,7 +425,6 @@ class DendrogramView(ZoomableGraphicsView,BaseView):
         self.nodes[idx].rawX = x
         self.nodes[idx].rawY = y / maxLevel
 
-
     totalCount = self.tree.getLeafCount()
     ## Needed in order to invert the y-axis
     height = self.scene().height()
@@ -410,7 +437,7 @@ class DendrogramView(ZoomableGraphicsView,BaseView):
 
       oldRect = glyph.rect()
 
-      color = glyph.brush().color()
+      color = self.colorMap[idx]
       if node.level < self.getCurrentLevel():
         color.setAlpha(64)
         diameter = self.minDiameter
