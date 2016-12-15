@@ -71,8 +71,8 @@
   <Steps>
     <IOStep name="importPrevResults">
       <Input class="Databases" type="HDF5">lssRIAResultsDB</Input>
-      <Output class="DataObjects" type="PointSet">max_clad_results</Output>
       <Input class="Databases" type="HDF5">lssRIAResultsDB</Input>
+      <Output class="DataObjects" type="PointSet">max_clad_results</Output>
       <Output class="DataObjects" type="HistorySet">max_clad_results_history</Output>
     </IOStep>
     <MultiRun name="riaRun1">
