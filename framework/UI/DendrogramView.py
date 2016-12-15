@@ -10,7 +10,6 @@ from PySide import QtSvg as qts
 from BaseView import BaseView
 from ZoomableGraphicsView import ZoomableGraphicsView
 from Tree import Node
-import colors
 
 gray = qtg.QColor('#999999')
 black = qtg.QColor('#000000')
@@ -79,7 +78,6 @@ class DendrogramView(ZoomableGraphicsView,BaseView):
     ZoomableGraphicsView.__init__(self, mainWindow)
     BaseView.__init__(self, mainWindow)
 
-    self.mainWindow = mainWindow
     self.tree = linakgeToTree(self.mainWindow.engine.linkage)
 
     ## User-editable parameters
@@ -278,10 +276,10 @@ class DendrogramView(ZoomableGraphicsView,BaseView):
 
         def pickColor():
           dialog = qtg.QColorDialog()
-          dialog.setCurrentColor(self.colorMap[idx])
+          dialog.setCurrentColor(self.getColor(idx))
           dialog.exec_()
           if dialog.result() == qtg.QDialog.Accepted:
-            self.colorMap[idx] = dialog.currentColor()
+            self.setColor(idx, dialog.currentColor())
             self.updateScene()
 
         colorAction.triggered.connect(pickColor)
@@ -334,7 +332,7 @@ class DendrogramView(ZoomableGraphicsView,BaseView):
       @ Out, level, list, an ordered list of the levels available in increasing
         value
     """
-    return self.mainWindow.level
+    return self.mainWindow.getLevel()
 
   def maxLevel(self):
     """
@@ -358,11 +356,6 @@ class DendrogramView(ZoomableGraphicsView,BaseView):
 
     ## Re-enable the communication
     self.scene().selectionChanged.connect(self.select)
-
-  def levelChanged(self):
-    """
-    """
-    self.updateScene()
 
   def updateScene(self):
     """
@@ -395,23 +388,26 @@ class DendrogramView(ZoomableGraphicsView,BaseView):
     self.usableWidth = width - 2 * self.padding
     self.usableHeight = height - 2 * self.padding
 
-  def test(self):
+  def setColor(self,idx, color):
     """
     """
-    print('here')
+    self.mainWindow.setColor(idx, color)
+
+  def getColor(self,idx):
+    """
+    """
+    return self.mainWindow.getColor(idx)
 
   def updateNodes(self, newNodes=None):
     """
     """
     maxLevel = self.maxLevel()
+    currentLevel = self.getCurrentLevel()
 
     if newNodes is not None:
       for idx,(x,y) in newNodes:
-        if idx not in self.colorMap:
-          # self.colorMap[idx] = qtg.QColor(*tuple(255*np.random.rand(3)))
-          self.colorMap[idx] = qtg.QColor(colors.colorCycle.next())
-
-        brush = qtg.QBrush(self.colorMap[idx])
+        color = self.getColor(idx)
+        brush = qtg.QBrush(color)
         pen = qtc.Qt.NoPen
 
         ## Don't worry about placing or sizing the ellipse, we will do that
@@ -437,14 +433,15 @@ class DendrogramView(ZoomableGraphicsView,BaseView):
 
       oldRect = glyph.rect()
 
-      color = self.colorMap[idx]
-      if node.level < self.getCurrentLevel():
+      color = self.getColor(idx)
+      if node.parent != self.tree and node.parent.level < currentLevel or node.level >= self.getCurrentLevel():
         color.setAlpha(64)
         diameter = self.minDiameter
-        glyph.setFlag(qtg.QGraphicsItem.ItemIsSelectable)
+        glyph.setFlag(qtg.QGraphicsItem.ItemIsSelectable, False)
         glyph.setToolTip('   id: %d\nlevel: %f\nInactive' %(idx, node.level))
       else:
         color.setAlpha(255)
+        glyph.setFlag(qtg.QGraphicsItem.ItemIsSelectable, True)
         glyph.setToolTip('   id: %d\nlevel: %f\ncount: %d' %(idx, node.level, int(count)))
       brush = qtg.QBrush(color)
 
@@ -454,6 +451,8 @@ class DendrogramView(ZoomableGraphicsView,BaseView):
         pen = qtc.Qt.NoPen
 
       newX = glyph.rawX*self.usableWidth + self.padding - diameter/2.
+
+
       newY = height - self.usableHeight * glyph.rawY - self.padding - diameter/2.
 
       glyph.setRect(newX, newY, diameter, diameter)
@@ -478,6 +477,7 @@ class DendrogramView(ZoomableGraphicsView,BaseView):
         self.arcs[edge].setZValue(0)
 
     maxLevel = self.maxLevel()
+    currentLevel = self.getCurrentLevel()
 
     ## Needed in order to invert the y-axis
     height = self.scene().height()
@@ -514,19 +514,23 @@ class DendrogramView(ZoomableGraphicsView,BaseView):
         path.lineTo(x2,y1)
         path.lineTo(x2,y2)
 
+      parent = self.tree.getNode(idx1)
+      child = self.tree.getNode(idx2)
+      if parent.level >= currentLevel and child.level < currentLevel:
+        pathGraphic.setPen(qtg.QPen(self.getColor(idx2),min(2,rect2.width()),c=qtc.Qt.RoundCap))
+      else:
+        pathGraphic.setPen(qtg.QPen(gray,0))
       pathGraphic.setPath(path)
 
   def updateActiveBox(self):
     """
     """
-
+    width = self.scene().width()
     ## If the active box does not exist yet, then create it, don't worry about
     ## the height, we will calculate that in the remainder of this function
-    if self.activeBox is None:
+    if self.activeLine is None:
       pen = qtg.QPen(gray)
-      brush = qtg.QBrush(transparentGray)
-      width = self.scene().width()
-      self.activeBox = self.scene().addRect(0, 0, width, 0, pen, brush)
+      self.activeLine = self.scene().addLine(0, 0, width, 0, pen)
 
     height = self.scene().height()
     minDim = min([self.scene().width(),self.scene().height()])
@@ -536,18 +540,15 @@ class DendrogramView(ZoomableGraphicsView,BaseView):
 
     level = height - self.usableHeight*levelRatio-self.padding
 
-    rect = self.activeBox.rect()
-    rect.setHeight(level)
-    self.activeBox.setRect(rect)
+    self.activeLine.setLine(0,level,width,level)
 
   def createScene(self):
     """
     """
     ## Clear data for saving state
-    self.colorMap = {}
     self.nodes = {}
     self.arcs = {}
-    self.activeBox = None
+    self.activeLine = None
 
     scene = self.scene()
     scene.clear()

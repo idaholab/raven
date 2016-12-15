@@ -8,23 +8,24 @@ from ZoomableGraphicsView import ZoomableGraphicsView
 class BaseView(QWidget):
   """ A base class for all widgets in this package.
   """
-  def __init__(self,parent=None, title=None):
+  def __init__(self, mainWindow=None, title=None):
     """ Initialization method that can optionally specify the parent widget,
         a title for this widget, and specific data used by this view.
-        @ In, parent, an optional QWidget that will be the parent of this widget
+        @ In, mainWindow, an optional QWidget that will be the parent of this widget
         @ In, title, an optional string specifying the title of this widget.
     """
 
     ## This is a stupid hack around the problem of multiple inheritance, maybe
     ## I should rethink the class hierarchy here?
     if not isinstance(self, ZoomableGraphicsView):
-      super(BaseView, self).__init__(parent)
+      super(BaseView, self).__init__(mainWindow)
 
     if title is None:
       self.setWindowTitle(self.__class__.__name__)
     else:
       self.setWindowTitle(title)
     self.scrollable = False
+    self.mainWindow = mainWindow
 
   def sizeHint(self):
     """
@@ -43,3 +44,19 @@ class BaseView(QWidget):
             widget.deleteLater()
         else:
             self.clearLayout(item.layout())
+
+
+  def updateScene(self):
+    """
+    """
+    pass
+
+  def colorChanged(self):
+    """
+    """
+    self.updateScene()
+
+  def levelChanged(self):
+    """
+    """
+    self.updateScene()
