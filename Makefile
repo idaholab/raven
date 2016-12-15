@@ -38,7 +38,6 @@ include $(FRAMEWORK_DIR)/moose.mk
 
 ################################## MODULES ####################################
 HEAT_CONDUCTION   := yes
-NAVIER_STOKES     := yes
 MISC              := yes
 FLUID_PROPERTIES  := yes
 include           $(MOOSE_DIR)/modules/modules.mk
