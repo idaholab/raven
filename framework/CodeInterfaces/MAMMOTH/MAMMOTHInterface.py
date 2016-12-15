@@ -147,6 +147,9 @@ class MAMMOTHInterface(CodeInterfaceBase):
       elif appName == 'relap7':
         relap7Args['SampledVars'][baseVarName] = varValue
         perturbRelap7 = True
+      elif appName == None:
+        # It's a dummy variable. Doesn't need to be added to any argument lists, just continue.
+        pass
       else:
         errorMessage = appName+' is not an App supported by the MAMMOTH Code Interface!\n'
         errorMessage += 'Please specify a supported App in which to send \n'
