@@ -153,7 +153,7 @@ class HierarchyWindow(qtg.QMainWindow):
     for i in range(linkage.shape[0]):
       newIdx = n+i
       leftChildIdx,rightChildIdx,level,size = linkage[i,:]
-      if level < newLevel:
+      if level <= newLevel:
         heads[newIdx] = heads.pop(leftChildIdx) + heads.pop(rightChildIdx)
       else:
         break
