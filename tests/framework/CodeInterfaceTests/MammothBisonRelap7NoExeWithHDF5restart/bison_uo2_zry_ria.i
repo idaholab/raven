@@ -9,9 +9,9 @@
 []
 [Problem]
   solution_variables = 'disp_x disp_y temp'
-  acceptable_iterations =  10   
+  acceptable_iterations =  10
   reference_residual_variables = 'saved_x saved_y saved_t'
-  acceptable_multiplier =  10   
+  acceptable_multiplier =  10
   coord_type = RZ
   type = ReferenceResidualProblem
 []
@@ -464,13 +464,13 @@
 [Burnup]
   [./burnup]
     #    fuel_volume_ratio = 0.987775 # for use with dished pellets (ratio of actual volume to cylinder volume)
-    axial_power_profile =  axial_peaking_factors     
+    axial_power_profile =  axial_peaking_factors
     family = MONOMIAL
     num_axial = 11
     fuel_pin_geometry = pin_geometry
     RPF = RPF
     num_radial = 80
-    rod_ave_lin_pow =  power_history          
+    rod_ave_lin_pow =  power_history
     order = CONSTANT
     block = 3
   [../]
@@ -480,7 +480,7 @@
     #    function = fast_flux_history
     rod_ave_lin_pow = power_history
     execute_on = timestep_begin
-    factor =  3e13 
+    factor =  3e13
     variable = fast_neutron_flux
     axial_power_profile = axial_peaking_factors
     type = FastNeutronFluxAux
@@ -496,7 +496,7 @@
   [./stress_hoop]
     # computes stress components for output
     variable = stress_hoop
-    execute_on =  timestep_end     
+    execute_on =  timestep_end
     type = MaterialTensorAux
     tensor = stress
     quantity = Hoop
@@ -519,7 +519,7 @@
     # computes stress components for output
     tensor = total_strain
     variable = total_hoop_strain
-    execute_on =  timestep_end     
+    execute_on =  timestep_end
     type = MaterialTensorAux
     block = '1'
     quantity = Hoop
@@ -528,7 +528,7 @@
     # computes stress components for output
     tensor = total_strain
     variable = total_axial_strain
-    execute_on =  timestep_end     
+    execute_on =  timestep_end
     type = MaterialTensorAux
     block = '1'
     quantity = Axial
@@ -571,7 +571,7 @@
     #    emissivity_1 = 0.797698     #Emissivity for fuel
     #    emissivity_2 = 0.325        #Emissivity for clad
     slave = 10
-    meyer_hardness =  3.4e8     
+    meyer_hardness =  3.4e8
     roughness_clad = 0.5e-6
     jump_distance_model = KENNARD
     roughness_coef = 3.2
@@ -643,13 +643,13 @@
         #      material_input = fis_gas_released          # coupling to post processor to get fission gas added
         startup_time = 0.0
         initial_temperature = 293.15
-        volume =  gas_volume                        
+        volume =  gas_volume
         initial_pressure = 2.0e6
         R = 8.3143
-        temperature =  ave_temp_interior            
-        output =  plenum_pressure                   
+        temperature =  ave_temp_interior
+        output =  plenum_pressure
         boundary = 9
-        output_initial_moles =  initial_moles       
+        output_initial_moles =  initial_moles
     [../]
   [../]
 []
@@ -677,7 +677,7 @@
     large_strain = true
     temp = temp
     poissons_ratio = .345
-    thermal_expansion_function =  Fuel_CTE_function 
+    thermal_expansion_function =  Fuel_CTE_function
     formulation = AxisymmetricRZ
     youngs_modulus = 2.e11
     type = Elastic
@@ -705,12 +705,12 @@
     youngs_modulus = 7.5e10
     type = SolidModel
     block = '1'
-    youngs_modulus_function =  YM_function  
+    youngs_modulus_function =  YM_function
   [../]
   [./plasticity]
     stress_free_temperature = 297
     temp = temp
-    yield_stress_function =  YS_function 
+    yield_stress_function =  YS_function
     max_its = 100
     thermal_expansion_function = Clad_CTE_function
     hardening_constant = 2.5e9
@@ -858,7 +858,7 @@
   [../]
   [./rod_input_power]
     function = power_history
-    scale_factor =  4.2672 
+    scale_factor =  4.2672
     type = FunctionValuePostprocessor
   [../]
 []
@@ -891,7 +891,7 @@
   show_material_props = true
   show_var_residual_norms = true
   show_var_residual = 'temp'
-  show_actions =  true                           
+  show_actions =  true
 []
 [MultiApps]
   [./relap]
@@ -977,7 +977,7 @@
     multi_app = relap
   [../]
   [./Hw_liquid_from_multiapp]
-    #    type = MultiAppInterpolationTransfer 
+    #    type = MultiAppInterpolationTransfer
     #    fixed_meshes = true
     source_variable = Hw_liquid
     direction = from_multiapp
