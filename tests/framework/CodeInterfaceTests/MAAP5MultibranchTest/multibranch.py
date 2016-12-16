@@ -25,8 +25,8 @@ def TIMELOCA(self,data):
 
  #a dictionary is defined where each item is {probabilityBranch#:branchDitc#}
   self.dictTIMELOCA={'0.1':branchDict1,'0.4':branchDict2,'0.5':branchDict3}
-    
-  for var in modifiedVariables: 
+
+  for var in modifiedVariables:
     newValue=[]
     for dictBranch in self.dictTIMELOCA.values():
       oldValue=str(data[var][0])
@@ -35,7 +35,7 @@ def TIMELOCA(self,data):
 
     branch={'name':var, 'type':'auxiliary','old_value': oldValue, 'new_value': ' '.join(newValue), 'associated_pb':' '.join(probability)}
     listDict.append(branch)
-  
+
   return listDict
 
 
