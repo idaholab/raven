@@ -37,6 +37,9 @@ class MAAP5(GenericCode):
     self.printInterval = ''  #value of the print interval
     self.boolOutputVariables=[] #list of MAAP5 boolean variables of interest
     self.contOutputVariables=[] #list of MAAP5 continuous variables of interest
+###########
+    self.multiBranchOccurred=[]
+###########
     for child in xmlNode:
       if child.tag == 'includeForTimer':
         if child.text != None:
@@ -67,12 +70,14 @@ class MAAP5(GenericCode):
     if 'DynamicEventTree' in samplerType:
       if Kwargs['parentID'] == 'root': self.oriInput(oriInputFiles) #original input files are checked only the first time
       self.stopSimulation(currentInputFiles, Kwargs)
-########################
+###########
       if Kwargs['parentID'] != 'root':
         print('Kwargs',Kwargs)
         self.restart(currentInputFiles, Kwargs['parentID'])
+###########
+        if len(self.multiBranchOccurred)>0: self.multiBranchMethod(currentInputFiles, Kwargs)
+###########
         if str(Kwargs['prefix'].split('-')[-1]) != '1': self.modifyBranch(currentInputFiles, Kwargs)
-########################
     return GenericCode.createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs)
 
   def oriInput(self, oriInputFiles):
@@ -108,6 +113,7 @@ class MAAP5(GenericCode):
     lines=fileobject.readlines()
     fileobject.close()
     branching=[]
+
     for line in lines:
       if 'PRINT INTERVAL' in line:
         for digit in line.split():
@@ -234,9 +240,7 @@ class MAAP5(GenericCode):
     for line in lines:
       lineNumber=lineNumber+1
       if 'START TIME' in line:
-########################
         restartTimeNew=max(0,math.floor(float(tilast)-float(self.printInterval)))
-########################
         correctRestart= 'RESTART TIME IS '+str(restartTimeNew)+'\n'
         if line == correctRestart:
           restartTime=True
@@ -310,6 +314,8 @@ class MAAP5(GenericCode):
             fileobject.write(linesNewInput)
             fileobject.close()
             n=n+1
+
+
 ########################
 
   def finalizeCodeOutput(self, command, output, workingDir):
@@ -470,13 +476,14 @@ class MAAP5(GenericCode):
           listDict.append(branch)
         detU.writeXmlForDET(filename,variableBranch,listDict,stopInfo) #this function writes the xml file for DET
     else:
+###########
+      self.multiBranchOccurred.append(variableBranch)
+###########
       methodToCall=getattr(multi,variableBranch)
       listDict=methodToCall(self,dataDict)
       detU.writeXmlForDET(filename,variableBranch,listDict,stopInfo) #this function writes the xml file for DET
 
 ######################################################"
-
-
 #  def branchXml(self, tilast,Dict,inputFile,dataDict):
 #    """
 #      ONLY FOR DET SAMPLER!
@@ -539,6 +546,7 @@ class MAAP5(GenericCode):
         if ('END' in line) and block:
           block = False
       self.DictAllVars["Dict{0}".format(var)]= DictVar #with Dict{0}.format(var) dictionary referred to each single sampled variable is called DictVar (e.g., 'DictTIMELOCA', 'DictAFWOFF')
+      print('self.DictAllVars',self.DictAllVars)
 
   def stopSimulation(self,currentInputFiles, Kwargs):
     """
@@ -617,4 +625,30 @@ class MAAP5(GenericCode):
       fileobject.write(linesNewInput)
       fileobject.close()
 
+###########
+  def multiBranchMethod(self,currentInputFiles,Kwargs):
+    for filename in currentInputFiles:
+      if '.inp' in str(filename): inp=filename.getAbsFile() #input file name with full path
+    fileobject = open(inp, "r")
+    linesCurrent=fileobject.readlines()
+    fileobject.close()
 
+    parentInput=str(inp).replace(str(Kwargs['prefix']),str(Kwargs['parentID']))
+    fileobject = open(parentInput, "r")
+    linesParent=fileobject.readlines()
+    fileobject.close()
+
+    indexStartParent=linesParent.index('C End HYBRID Sampled Variables\n')
+    indexEndParent=linesParent.index('C Stop Simulation condition\n')
+    diff=indexEndParent-indexStartParent
+
+    indexStartCurrent=linesCurrent.index('C End HYBRID Sampled Variables\n')
+    indexEndCurrent=indexStartCurrent+diff
+
+    linesCurrent[indexStartCurrent:indexEndCurrent]=linesParent[indexStartParent:indexEndParent]
+
+    fileobject = open(inp, "w")
+    linesNewInput = "".join(linesCurrent)
+    fileobject.write(linesNewInput)
+    fileobject.close()
+###########
