@@ -260,6 +260,15 @@
    test_interface_only = True
    rel_err = 0.0001
  [../]
+ [./MAAP5interfaceDETSamplingMultiBranch]
+   type = 'RavenFramework'
+   input = 'test_maap5_code_interface_det_multibranch.xml'
+   output = 'MAAP5MultibranchTest/6-plotWWBBN_line.png MAAP5MultibranchTest/test_dataobject_7.csv'
+   UnorderedCsv = 'MAAP5MultibranchTest/test_dataobject.csv'
+   UnorderedXml = 'MAAP5MultibranchTest/test_dataobject.xml'
+   test_interface_only = True
+   rel_err = 0.0001
+ [../]
  [./INSSrelap5JapanInterfaceSampling]
    type = 'RavenFramework'
    input = 'test_relap5_code_inss.xml'
