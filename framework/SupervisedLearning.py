@@ -35,7 +35,6 @@ from collections import OrderedDict
 import utils
 import mathUtils
 import MessageHandler
-import TreeStructure
 interpolationND = utils.find_interpolationND()
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -1071,7 +1070,7 @@ class HDMRRom(GaussPolynomialRom):
     tot = 0
     for term,mult in self.reducedTerms.items():
       if term == ():
-        tot += self.refSoln
+        tot += self.refSoln*mult
       else:
         cutVals = [list(featureVals[0][self.features.index(j)] for j in term)]
         tot += self.ROMs[term].__evaluateLocal__(cutVals)*mult
@@ -1881,7 +1880,7 @@ class SciKitLearn(superVisedLearning):
 
   def __init__(self,messageHandler,**kwargs):
     """
-      A constructor that will appropriately intialize a supervised learning object
+      A constructor that will appropriately initialize a supervised learning object
       @ In, messageHandler, MessageHandler object, it is in charge of raising errors, and printing messages
       @ In, kwargs, dict, an arbitrary list of kwargs
       @ Out, None

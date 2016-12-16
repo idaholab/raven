@@ -25,12 +25,14 @@
       <variables>A,B,C,D,sum</variables>
     </ExternalModel>
     <EnsembleModel name="codeAndExtModel" subType="">
-      <Model class="Models" inputNames="inputPlaceHolderForInternalObjects" type="ExternalModel">
+      <Model class="Models" type="ExternalModel">
         sumOfABCD
+        <Input class="DataObjects" type="PointSet">inputPlaceHolderForInternalObjects</Input>
         <TargetEvaluation class="DataObjects" type="PointSet">sumData</TargetEvaluation>
       </Model>
-      <Model class="Models" inputNames="referenceInput.xml" type="Code">
+      <Model class="Models" type="Code">
           testModel
+        <Input class="Files" type="">referenceInput.xml</Input>
         <TargetEvaluation class="DataObjects" type="PointSet">samplesMC</TargetEvaluation>
       </Model>
     </EnsembleModel>

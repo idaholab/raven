@@ -16,7 +16,8 @@
       <KDD lib='SciKitLearn' labelFeature='labels'>
         <SKLtype>cluster|SpectralClustering</SKLtype>
         <Features>x1,x2</Features>
-        <n_clusters>3</n_clusters>
+        <n_clusters>2</n_clusters>
+        <random_state>0</random_state>
       </KDD>
       <pivotParameter>Time</pivotParameter>
     </PostProcessor>

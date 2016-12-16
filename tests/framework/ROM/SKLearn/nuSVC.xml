@@ -22,9 +22,11 @@
       <Target>Z</Target>
       <nu>0.5</nu>
       <kernel>rbf</kernel>
-      <degree>3.0</degree>
+      <degree>3</degree>
       <!-- This does not work with 0.15.2 of sklearn -->
-      <!-- <gamma>auto</gamma> -->
+      <!--
+        <gamma>auto</gamma>
+      -->
       <coef0>0.0</coef0>
       <probability>False</probability>
       <shrinking>True</shrinking>
@@ -39,7 +41,6 @@
   <ExternalXML node="Distributions" xmlToLoad="sharedDistributions.xml"/>
   <ExternalXML node="Samplers" xmlToLoad="sharedSamplers.xml"/>
   <ExternalXML node="Steps" xmlToLoad="sharedSteps.xml"/>
-
   <OutStreams>
     <!-- A csv file containing the output of the example -->
     <Print name="outData">
@@ -50,5 +51,4 @@
   </OutStreams>
 
   <ExternalXML node="DataObjects" xmlToLoad="sharedDataObjects.xml"/>
-
 </Simulation>

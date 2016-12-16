@@ -1,0 +1,81 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
+    <WorkingDir>historySamplingIntervalAve</WorkingDir>
+    <Sequence>readIn,pp,plot</Sequence> 
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="windTypDataFile">./writeTypData.csv</Input>
+  </Files>
+
+  <Steps>
+    <IOStep name='readIn' pauseAtEnd = 'True'>
+      <Input    class = 'Files'             type = ''              >windTypDataFile</Input>
+      <Output   class = 'DataObjects'       type = 'HistorySet'       >windTypData</Output>        
+	</IOStep>
+	<PostProcess name="pp">
+      <Input   class="DataObjects"  type="HistorySet"    >windTypData</Input>
+      <Model   class="Models"       type="PostProcessor" >historySamplingPP</Model>
+      <Output  class="DataObjects"  type="HistorySet"    >windTypDataResampled</Output>
+      <Output  class="OutStreams"   type="Print"         >dump_interval_average</Output>
+    </PostProcess>
+    <IOStep name="plot">
+      <Input   class="DataObjects"  type="HistorySet"    >windTypData</Input>
+      <Input   class="DataObjects"  type="HistorySet"    >windTypDataResampled</Input>
+      <Output  class="OutStreams"   type="Plot"          >plot_interval_average</Output>
+    </IOStep>
+  </Steps>
+ 
+  <Models>
+    <PostProcessor name="historySamplingPP" subType="InterfacedPostProcessor">
+      <method>HistorySetSampling</method>
+      <samplingType>uniform</samplingType>
+      <numberOfSamples>24</numberOfSamples>
+      <pivotParameter>Time</pivotParameter>
+      <interpolation>intervalAverage</interpolation>
+    </PostProcessor>
+  </Models>
+ 
+  <OutStreams>
+    <Print name="dump_interval_average">
+      <type>csv</type>
+      <source>windTypDataResampled</source>
+    </Print>
+    <Plot  name="plot_interval_average" overwrite="False">
+      <plotSettings>
+        <plot>
+          <type>line</type>
+          <interpolationType>cubic</interpolationType>
+          <interpPointsX>100</interpPointsX>
+          <x>windTypData|Output|Time</x>
+          <y>windTypData|Output|Speed</y>
+        </plot>
+        <plot>
+          <type>scatter</type>
+          <x>windTypDataResampled|Output|Time</x>
+          <y>windTypDataResampled|Output|Speed</y>
+        </plot>
+      </plotSettings>
+      <actions>
+        <how>pdf</how>
+        <title>
+          <text>Plot History</text>
+        </title>
+      </actions>
+    </Plot>
+  </OutStreams>
+ 
+  <DataObjects>
+	<HistorySet name="windTypData">
+	  <Input>x</Input>
+      <Output>Time,Speed</Output>
+    </HistorySet>  
+	<HistorySet name="windTypDataResampled">
+      <Input>x</Input>
+      <Output>Time,Speed</Output>
+    </HistorySet>
+  </DataObjects>
+
+</Simulation>

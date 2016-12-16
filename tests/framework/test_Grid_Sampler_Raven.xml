@@ -2,12 +2,12 @@
 <Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>GridTestRaven</WorkingDir>
-    <Sequence>FirstMRun</Sequence>
+    <Sequence>FirstMRun,maxFromHDF5</Sequence>
     <batchSize>4</batchSize>
   </RunInfo>
 
   <Files>
-    <Input name="clg_massflowrate_3eqn.i" type="">clg_massflowrate_3eqn.i</Input>
+    <Input name="clg_massflowrate_3eqn.i" type="">clg.massflowrate.3eqn.i</Input>
     <Input name="clg_massflowrate_3eqn_control.py" type="">clg_massflowrate_3eqn_control.py</Input>
   </Files>
 
@@ -25,8 +25,8 @@
       <upperBound>320</upperBound>
     </Normal>
     <Normal name="ANormalDistribution">
-      <mean>-4</mean>
-      <sigma>2</sigma>
+      <mean>2</mean>
+      <sigma>1</sigma>
     </Normal>
   </Distributions>
 
@@ -37,11 +37,11 @@
       </samplerInit>
       <variable name="Components|pipe|Tw">
         <distribution>Gauss1</distribution>
-        <grid construction="equal" steps="1" type="value">300 303</grid>
+        <grid construction="equal" steps="1" type="value">300 330</grid>
       </variable>
       <Distribution name="Dummy1">
         <distribution>ANormalDistribution</distribution>
-        <grid construction="equal" steps="2" type="CDF">0.88 0.9</grid>
+        <grid construction="equal" steps="5" type="CDF">0.1 0.9</grid>
       </Distribution>
     </Grid>
   </Samplers>
@@ -52,14 +52,28 @@
       <Input class="Files" type="">clg_massflowrate_3eqn_control.py</Input>
       <Model class="Models" type="Code">MyRAVEN</Model>
       <Sampler class="Samplers" type="Grid">myGrid</Sampler>
-      <!--
-        <Databases class="Databases" type="">testMPIDatabase</Databases>
-      -->
       <Output class="Databases" type="HDF5">testGridRavenDatabase</Output>
       <Output class="DataObjects" type="HistorySet">stories</Output>
       <Output class="DataObjects" type="PointSet">outGrid</Output>
+      <Output class="DataObjects" type="PointSet">outGridMax</Output>
+      <Output class="DataObjects" type="PointSet">outGridMin</Output>
+      <Output class="DataObjects" type="PointSet">outGridAverage</Output>
       <Output class="OutStreams" type="Print">outGrid_dump</Output>
+      <Output class="OutStreams" type="Print">outGridMax_dump</Output>
+      <Output class="OutStreams" type="Print">outGridMin_dump</Output>
+      <Output class="OutStreams" type="Print">outGridAverage_dump</Output>
     </MultiRun>
+    <IOStep name="maxFromHDF5">
+      <Input class="Databases" type="HDF5">testGridRavenDatabase</Input>
+      <Input class="Databases" type="HDF5">testGridRavenDatabase</Input>
+      <Input class="Databases" type="HDF5">testGridRavenDatabase</Input> 
+      <Output class="DataObjects" type="PointSet">outGridMaxFromHDF5</Output>
+      <Output class="DataObjects" type="PointSet">outGridMinFromHDF5</Output>
+      <Output class="DataObjects" type="PointSet">outGridAverageFromHDF5</Output>
+      <Output class="OutStreams" type="Print">outGridMaxFromHDF5_dump</Output>
+      <Output class="OutStreams" type="Print">outGridMinFromHDF5_dump</Output>
+      <Output class="OutStreams" type="Print">outGridAverageFromHDF5_dump</Output>
+    </IOStep>
   </Steps>
 
   <Databases>
@@ -71,16 +85,82 @@
       <type>csv</type>
       <source>outGrid</source>
     </Print>
+    <Print name="outGridMax_dump">
+      <type>csv</type>
+      <source>outGridMax</source>
+    </Print>
+    <Print name="outGridMin_dump">
+      <type>csv</type>
+      <source>outGridMin</source>
+    </Print>
+    <Print name="outGridAverage_dump">
+      <type>csv</type>
+      <source>outGridAverage</source>
+    </Print>
+     <Print name="outGridMaxFromHDF5_dump">
+      <type>csv</type>
+      <source>outGridMaxFromHDF5</source>
+    </Print>
+    <Print name="outGridMinFromHDF5_dump">
+      <type>csv</type>
+      <source>outGridMinFromHDF5</source>
+    </Print>
+    <Print name="outGridAverageFromHDF5_dump">
+      <type>csv</type>
+      <source>outGridAverageFromHDF5</source>
+    </Print>
   </OutStreams>
 
   <DataObjects>
     <PointSet name="outGrid">
       <Input>pipe_Area,Dummy1</Input>
-      <Output>pipe_Hw,pipe_Tw,time</Output>
+      <Output>pipe_Hw,pipe_Tw,time,func</Output>
+    </PointSet>
+    <PointSet name="outGridMaxFromHDF5">
+      <Input>pipe_Area,Dummy1</Input>
+      <Output>pipe_Hw,pipe_Tw,time,func</Output>
+      <options>
+        <operator>max</operator>
+      </options>
+    </PointSet>
+    <PointSet name="outGridMinFromHDF5">
+      <Input>pipe_Area,Dummy1</Input>
+      <Output>pipe_Hw,pipe_Tw,time,func</Output>
+      <options>
+        <operator>min</operator>
+      </options>
+    </PointSet>
+    <PointSet name="outGridAverageFromHDF5">
+      <Input>pipe_Area,Dummy1</Input>
+      <Output>pipe_Hw,pipe_Tw,time,func</Output>
+      <options>
+        <operator>average</operator>
+      </options>
+    </PointSet>
+    <PointSet name="outGridMax">
+      <Input>pipe_Area,Dummy1</Input>
+      <Output>pipe_Hw,pipe_Tw,time,func</Output>
+      <options>
+        <operator>max</operator>
+      </options>
+    </PointSet>
+    <PointSet name="outGridMin">
+      <Input>pipe_Area,Dummy1</Input>
+      <Output>pipe_Hw,pipe_Tw,time,func</Output>
+      <options>
+        <operator>min</operator>
+      </options>
+    </PointSet>
+    <PointSet name="outGridAverage">
+      <Input>pipe_Area,Dummy1</Input>
+      <Output>pipe_Hw,pipe_Tw,time,func</Output>
+      <options>
+        <operator>average</operator>
+      </options>
     </PointSet>
     <HistorySet name="stories">
       <Input>pipe_Area</Input>
-      <Output>pipe_Hw,pipe_Tw,time</Output>
+      <Output>pipe_Hw,pipe_Tw,time,func</Output>
     </HistorySet>
   </DataObjects>
 

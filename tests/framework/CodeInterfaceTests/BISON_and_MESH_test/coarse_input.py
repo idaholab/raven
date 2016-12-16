@@ -39,7 +39,7 @@ pellets = [Pellet1]
 pellet_stack = {}
 pellet_stack['default_parameters'] = False
 
-pellet_stack['merge_pellets'] = 'point'   # choose between 'yes', 'no', 'point' or 'surface'
+pellet_stack['interface_merge'] = 'point'   # choose between 'yes', 'no', 'point' or 'surface'
 pellet_stack['higher_order'] = True
 pellet_stack['angle'] = 0
 

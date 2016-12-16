@@ -17,6 +17,7 @@ import numpy as np
 import os
 import copy
 import json
+import string
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -180,23 +181,38 @@ class hdf5Database(MessageHandler.MessageUser):
       @ In, upGroup, bool, optional, updated group?
       @ Out, None
     """
+    groupNameInit = groupName+"_"+datetime.now().strftime("%m-%d-%Y-%H")
     if not upGroup:
       for index in xrange(len(self.allGroupPaths)):
         comparisonName = self.allGroupPaths[index]
         splittedPath=comparisonName.split('/')
         if len(splittedPath) > 0:
-          if groupName+"_"+datetime.now().strftime("%m-%d-%Y-%H") == splittedPath[0]: return
+          if groupNameInit in splittedPath[0]:
+            alphabetCounter, movingCounter = 0, 0
+            asciiAlphabet   = list(string.ascii_uppercase)
+            prefixLetter          = ''
+            while True:
+              testGroup = groupNameInit +"_"+prefixLetter+asciiAlphabet[alphabetCounter]
+              if testGroup not in self.allGroupPaths:
+                groupNameInit = testGroup
+                break
+              alphabetCounter+=1
+              if alphabetCounter >= len(asciiAlphabet):
+                prefix = asciiAlphabet[movingCounter]
+                alphabetCounter = 0
+                movingCounter  += 1
+            break
             # self.raiseAnError(IOError,"Group named " + groupName + " already present as root group in database " + self.name + ". new group " + groupName + " is equal to old group " + splittedPath[0])
-    self.parentGroupName = "/" + groupName+"_"+datetime.now().strftime("%m_%d_%Y_%H")
+    self.parentGroupName = "/" + groupNameInit
     # Create the group
-    grp = self.h5FileW.create_group(groupName+"_"+datetime.now().strftime("%m_%d_%Y_%H"))
+    grp = self.h5FileW.create_group(groupNameInit)
     # Add metadata
     if attributes:
       for key in attributes.keys(): grp.attrs[key] = attributes[key]
     grp.attrs['rootname'] = True
     grp.attrs['EndGroup'] = False
-    self.allGroupPaths.append("/" + groupName+"_"+datetime.now().strftime("%m_%d_%Y_%H"))
-    self.allGroupEnds["/" + groupName+"_"+datetime.now().strftime("%m_%d_%Y_%H")] = False
+    self.allGroupPaths.append("/" + groupNameInit)
+    self.allGroupEnds["/" + groupNameInit] = False
     self.h5FileW.flush()
 
   def __addGroupRootLevel(self,groupName,attributes,source,upGroup=False):
@@ -224,6 +240,16 @@ class hdf5Database(MessageHandler.MessageUser):
       firstRow = f.readline().strip(b"\r\n")
       #firstRow = f.readline().translate(None,"\r\n")
       headers = firstRow.split(b",")
+      # if there is the alias system, replace the variable name
+      if 'alias' in attributes.keys():
+        for aliasType in attributes['alias'].keys():
+          for var in attributes['alias'][aliasType].keys():
+            if attributes['alias'][aliasType][var].strip() in headers:
+              headers[headers.index(attributes['alias'][aliasType][var].strip())] = var.strip()
+            else:
+              metadataPresent = True if 'metadata' in attributes.keys() and 'SampledVars' in attributes['metadata'].keys() else False
+              if not (metadataPresent and var.strip() in attributes['metadata']['SampledVars'].keys()):
+                self.raiseAWarning('the ' + aliasType +' alias"'+var.strip()+'" has been defined but has not been found among the variables!')
       # Load the csv into a numpy array(n time steps, n parameters)
       data = np.loadtxt(f,dtype='float',delimiter=',',ndmin=2)
       # First parent group is the root name
@@ -265,7 +291,7 @@ class hdf5Database(MessageHandler.MessageUser):
                 inpValues.append(invalue)
             if len(inpHeaders) > 0:
               grp.attrs[b'inputSpaceHeaders'] = inpHeaders
-              grp.attrs[b'inputSpaceValues' ] = inpValues
+              grp.attrs[b'inputSpaceValues' ] = json.dumps(list(utils.toListFromNumpyOrC1arrayIterative(list( inpValues))))
         objectToConvert = mathUtils.convertNumpyToLists(attributes[attr])
         for o,obj in enumerate(objectToConvert):
           if isinstance(obj,Files.File): objectToConvert[o]=obj.getFilename()
@@ -324,7 +350,8 @@ class hdf5Database(MessageHandler.MessageUser):
       # I keep this structure here because I want to maintain the possibility to add a whatever dictionary even if not prepared and divided into output and input sub-sets. A.A.
       if set(['inputSpaceParams']).issubset(set(source['name'].keys())):
         groups.attrs[b'inputSpaceHeaders' ] = list(utils.toBytesIterative(source['name']['inputSpaceParams'].keys()))
-        groups.attrs[b'inputSpaceValues'  ] = list(utils.toBytesIterative(source['name']['inputSpaceParams'].values()))
+
+        groups.attrs[b'inputSpaceValues'  ] = json.dumps(list(utils.toListFromNumpyOrC1arrayIterative(list(utils.toBytesIterative(source['name']['inputSpaceParams'].values())))))
       if set(['outputSpaceParams']).issubset(set(source['name'].keys())): outDict = source['name']['outputSpaceParams']
       else: outDict = dict((key,value) for (key,value) in source['name'].iteritems() if key not in ['inputSpaceParams'])
       outHeaders = utils.toBytesIterative(list(outDict.keys()))
@@ -343,7 +370,7 @@ class hdf5Database(MessageHandler.MessageUser):
       groups.attrs[b'nTimeSteps'  ] = maxSize
       dataout = np.zeros((maxSize,len(outHeaders)))
       for index in range(len(outHeaders)):
-        if type(outValues[index]) == np.ndarray or type(value).__name__ == 'c1darray':  dataout[0:outValues[index].size,index] =  outValues[index][:]
+        if type(outValues[index]) == np.ndarray or type(value).__name__ == 'c1darray':  dataout[0:outValues[index].size,index] =  np.ravel(outValues[index])[:]
         else: dataout[0,index] = outValues[index]
       # create the data set
       groups.create_dataset(groupName + "_data", dtype="float", data=dataout)
@@ -361,11 +388,13 @@ class hdf5Database(MessageHandler.MessageUser):
     else:
       # Data(structure)
       # Retrieve the headers from the data (inputs and outputs)
-      headersIn  = list(source['name'].getInpParametersValues().keys())
-      headersOut = list(source['name'].getOutParametersValues().keys())
+      headersIn              = list(source['name'].getInpParametersValues().keys())
+      headersOut             = list(source['name'].getOutParametersValues().keys())
       # for a "HistorySet" type we create a number of groups = number of HistorySet (compatibility with loading structure)
       dataIn  = list(source['name'].getInpParametersValues().values())
       dataOut = list(source['name'].getOutParametersValues().values())
+      headersInUnstructured = list(source['name'].getInpParametersValues(self,unstructuredInputs=True).keys())
+      dataInUnstructured    = list(source['name'].getInpParametersValues(self,unstructuredInputs=True).values())
       metadata = source['name'].getAllMetadata()
       if source['name'].type in ['HistorySet','PointSet']:
         groups = []
@@ -385,7 +414,8 @@ class hdf5Database(MessageHandler.MessageUser):
           if source['name'].type == 'HistorySet':
             groups[run].attrs[b'inputSpaceHeaders' ] = [utils.toBytes(list(dataIn[run].keys())[i])  for i in range(len(dataIn[run].keys()))]
             groups[run].attrs[b'outputSpaceHeaders'] = [utils.toBytes(list(dataOut[run].keys())[i])  for i in range(len(dataOut[run].keys()))]
-            groups[run].attrs[b'inputSpaceValues'  ] = list(dataIn[run].values())
+            json.dumps(list(utils.toListFromNumpyOrC1arrayIterative(list(dataIn[run].values()))))
+            groups[run].attrs[b'inputSpaceValues'  ] = json.dumps(list(utils.toListFromNumpyOrC1arrayIterative(list(dataIn[run].values()))))
             groups[run].attrs[b'nParams'            ] = len(dataOut[run].keys())
             #collect the outputs
             dataout = np.zeros((next(iter(dataOut[run].values())).size,len(dataOut[run].values())))
@@ -395,7 +425,7 @@ class hdf5Database(MessageHandler.MessageUser):
           else:
             groups[run].attrs[b'inputSpaceHeaders' ] = [utils.toBytes(headersIn[i])  for i in range(len(headersIn))]
             groups[run].attrs[b'outputSpaceHeaders'] = [utils.toBytes(headersOut[i])  for i in range(len(headersOut))]
-            groups[run].attrs[b'inputSpaceValues'  ] = [np.atleast_1d(np.array(dataIn[x][run])) for x in range(len(dataIn))]
+            groups[run].attrs[b'inputSpaceValues'  ] = json.dumps([list(utils.toListFromNumpyOrC1arrayIterative(np.atleast_1d(np.array(dataIn[x][run])).tolist())) for x in range(len(dataIn))])
             groups[run].attrs[b'nParams'            ] = len(headersOut)
             groups[run].attrs[b'nTimeSteps'                ] = 1
             #collect the outputs
@@ -490,7 +520,7 @@ class hdf5Database(MessageHandler.MessageUser):
                 inpValues.append(invalue)
             if len(inpHeaders) > 0:
               sgrp.attrs[b'inputSpaceHeaders'] = inpHeaders
-              sgrp.attrs[b'inputSpaceValues' ] = inpValues
+              sgrp.attrs[b'inputSpaceValues' ] = json.dumps(list(utils.toListFromNumpyOrC1arrayIterative(list(inpValues))))
         #Files objects are not JSON serializable, so we have to cover that.
         #this doesn't cover all possible circumstance, but it covers the DET case.
         if attr == 'inputFile' and isinstance(attributes[attr][0],Files.File):
@@ -682,9 +712,9 @@ class hdf5Database(MessageHandler.MessageUser):
         except:
           try:    attrs["inputSpaceHeaders"]  = gbAttrs[len(whereList)-1]["inputSpaceHeaders"]
           except: pass
-        try:    attrs["inputSpaceValues"]     = gbAttrs[len(whereList)-1]["inputSpaceValues"].tolist()
+        try:    attrs["inputSpaceValues"]     = list(utils.toListFromNumpyOrC1arrayIterative(list(json.loads(gbAttrs[len(whereList)-1]["inputSpaceValues"]).tolist())))  #json.loads(list(utils.toListFromNumpyOrC1arrayIterative(list(gbAttrs[0]["inputSpaceValues"].tolist())))) #json.dumps(list(utils.toListFromNumpyOrC1arrayIterative(list(gbAttrs[0]["inputSpaceValues"].tolist()))))
         except:
-          try:    attrs["inputSpaceValues"]   = gbAttrs[len(whereList)-1]["inputSpaceValues"]
+          try:    attrs["inputSpaceValues"]   = list(utils.toListFromNumpyOrC1arrayIterative(list(json.loads(gbAttrs[len(whereList)-1]["inputSpaceValues"]))))
           except: pass
         attrs["nParams"]        = gbAttrs[len(whereList)-1]["nParams"]
         attrs["parentID"]       = whereList[0]
@@ -761,9 +791,9 @@ class hdf5Database(MessageHandler.MessageUser):
           except:
             try:    attrs["inputSpaceHeaders"]  = gbAttrs[len(whereList)-1]["inputSpaceHeaders"]
             except: pass
-          try:    attrs["inputSpaceValues"]     = gbAttrs[len(whereList)-1]["inputSpaceValues"].tolist()
+          try:    attrs["inputSpaceValues"]     = json.dumps(list(utils.toListFromNumpyOrC1arrayIterative(list( gbAttrs[len(whereList)-1]["inputSpaceValues"].tolist()))))
           except:
-            try:    attrs["inputSpaceValues"]   = gbAttrs[len(whereList)-1]["inputSpaceValues"]
+            try:    attrs["inputSpaceValues"]   = json.dumps(list(utils.toListFromNumpyOrC1arrayIterative(list( gbAttrs[len(whereList)-1]["inputSpaceValues"]))))
             except: pass
           attrs["nParams"]        = gbAttrs[len(whereList)-1]["nParams"]
           attrs["parent"]         = whereList[0]

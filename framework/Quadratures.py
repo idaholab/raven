@@ -463,12 +463,12 @@ class SmolyakSparseGrid(SparseGrid):
         else:
           self.raiseAMessage('Sparse quad generation (tensor) '+job.identifier+' failed...')
       if j<numRunsNeeded-1:
-        for _ in range(min(numRunsNeeded-1-j,handler.howManyFreeSpots())):
+        for _ in range(min(numRunsNeeded-1-j,handler.numFreeSpots())):
           j+=1
           cof=self.c[j]
           idx = self.indexSet[j]
           m=self.quadRule(idx)+1
-          handler.submitDict['Internal']((m,),self.tensorGrid,prefix+str(cof),modulesToImport = self.mods)
+          handler.addInternal((m,),self.tensorGrid,prefix+str(cof),modulesToImport = self.mods)
       else:
         if handler.isFinished() and len(handler.getFinishedNoPop())==0:break #FIXME this is significantly the second-most expensive line in this method
       import time
@@ -517,9 +517,9 @@ class SmolyakSparseGrid(SparseGrid):
         else:
           self.raiseAMessage('Sparse grid index '+job.identifier+' failed...')
       if i<N-1: #load new inputs, up to 100 at a time
-        for k in range(min(handler.howManyFreeSpots(),N-1-i)):
+        for k in range(min(handler.numFreeSpots(),N-1-i)):
           i+=1
-          handler.submitDict['Internal']((N,i,self.indexSet[i],self.indexSet[:]),makeSingleCoeff,prefix+str(i),modulesToImport = self.mods)
+          handler.addInternal((N,i,self.indexSet[i],self.indexSet[:]),makeSingleCoeff,prefix+str(i),modulesToImport = self.mods)
       else:
         if handler.isFinished() and len(handler.getFinishedNoPop())==0:break
       #TODO optimize this with a sleep time
