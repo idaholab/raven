@@ -336,7 +336,7 @@ class MAAP5(GenericCode):
     realOutput=output.split("out~")[1] #rootname of the simulation files
     inp = os.path.join(workingDir,realOutput + ".inp") #input file of the simulation with the full path
     filePrefixWithPath=os.path.join(workingDir,realOutput) #rootname of the simulation files with the full path
-    csvSimulationFiles=glob.glob(filePrefixWithPath+".d"+"*.csv") #list of MAAP output files with the evolution of continuos variables
+    csvSimulationFiles=glob.glob(filePrefixWithPath+".d"+"*.csv") #list of MAAP output files with the evolution of continuous variables
     mergeCSV=csvU.csvUtilityClass(csvSimulationFiles,1,";",True)
     dataDict={}
     dataDict=mergeCSV.mergeCsvAndReturnOutput({'variablesToExpandFrom':['TIME'],'returnAsDict':True})
