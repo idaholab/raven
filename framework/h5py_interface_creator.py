@@ -257,9 +257,9 @@ class hdf5Database(MessageHandler.MessageUser):
       # Create the group
       if parentName != '/':
         parentGroupName = self.__returnParentGroupPath(parentName)
-        # Retrieve the parent group from the HDF5 database
+        # Retrieve the parent group from the HDF5 databaseValueError,'NOT FOUND group named ' + parentGroupName
         if parentGroupName in self.h5FileW: rootgrp = self.h5FileW.require_group(parentGroupName)
-        else: self.raiseAnError(ValueError,'NOT FOUND group named ' + parentGroupName)
+        else: self.raiseAnError(ValueError,'NOT FOUND group named "' + parentGroupName+'" for loading file '+source['name'])
         if upGroup:
           grp = rootgrp.require_group(groupName)
           del grp[groupName+"_data"]
@@ -489,7 +489,7 @@ class hdf5Database(MessageHandler.MessageUser):
       # Retrieve the parent group from the HDF5 database
       if parentGroupName in self.h5FileW: grp = self.h5FileW.require_group(parentGroupName)
       else:
-        self.raiseAnError(ValueError,'NOT FOUND group named ' + parentGroupName)
+        self.raiseAnError(ValueError,'NOT FOUND group named "' + parentGroupName+'" for loading file '+source['name'])
       # The parent group is not the endgroup for this branch
       self.allGroupEnds[parentGroupName] = False
       grp.attrs["EndGroup"]   = False

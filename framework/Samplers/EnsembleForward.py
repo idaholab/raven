@@ -133,7 +133,7 @@ class EnsembleForwardSampler(ForwardSampler):
       self.instanciatedSamplers[samplingStrategy].initialize(externalSeeding=self.initSeed,solutionExport=None)
       self.samplersCombinations[samplingStrategy] = []
       self.limit *= self.instanciatedSamplers[samplingStrategy].limit
-      lowerBounds[samplingStrategy],upperBounds[samplingStrategy] = 0, self.instanciatedSamplers[samplingStrategy].limit -1
+      lowerBounds[samplingStrategy],upperBounds[samplingStrategy] = -1, self.instanciatedSamplers[samplingStrategy].limit -1
       while self.instanciatedSamplers[samplingStrategy].amIreadyToProvideAnInput():
         self.instanciatedSamplers[samplingStrategy].counter +=1
         self.instanciatedSamplers[samplingStrategy].localGenerateInput(None,None)
