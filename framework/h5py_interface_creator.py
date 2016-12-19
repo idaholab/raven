@@ -17,6 +17,7 @@ import numpy as np
 import os
 import copy
 import json
+import string
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -180,23 +181,38 @@ class hdf5Database(MessageHandler.MessageUser):
       @ In, upGroup, bool, optional, updated group?
       @ Out, None
     """
+    groupNameInit = groupName+"_"+datetime.now().strftime("%m-%d-%Y-%H")
     if not upGroup:
       for index in xrange(len(self.allGroupPaths)):
         comparisonName = self.allGroupPaths[index]
         splittedPath=comparisonName.split('/')
         if len(splittedPath) > 0:
-          if groupName+"_"+datetime.now().strftime("%m-%d-%Y-%H") == splittedPath[0]: return
+          if groupNameInit in splittedPath[0]:
+            alphabetCounter, movingCounter = 0, 0
+            asciiAlphabet   = list(string.ascii_uppercase)
+            prefixLetter          = ''
+            while True:
+              testGroup = groupNameInit +"_"+prefixLetter+asciiAlphabet[alphabetCounter]
+              if testGroup not in self.allGroupPaths:
+                groupNameInit = testGroup
+                break
+              alphabetCounter+=1
+              if alphabetCounter >= len(asciiAlphabet):
+                prefix = asciiAlphabet[movingCounter]
+                alphabetCounter = 0
+                movingCounter  += 1
+            break
             # self.raiseAnError(IOError,"Group named " + groupName + " already present as root group in database " + self.name + ". new group " + groupName + " is equal to old group " + splittedPath[0])
-    self.parentGroupName = "/" + groupName+"_"+datetime.now().strftime("%m_%d_%Y_%H")
+    self.parentGroupName = "/" + groupNameInit
     # Create the group
-    grp = self.h5FileW.create_group(groupName+"_"+datetime.now().strftime("%m_%d_%Y_%H"))
+    grp = self.h5FileW.create_group(groupNameInit)
     # Add metadata
     if attributes:
       for key in attributes.keys(): grp.attrs[key] = attributes[key]
     grp.attrs['rootname'] = True
     grp.attrs['EndGroup'] = False
-    self.allGroupPaths.append("/" + groupName+"_"+datetime.now().strftime("%m_%d_%Y_%H"))
-    self.allGroupEnds["/" + groupName+"_"+datetime.now().strftime("%m_%d_%Y_%H")] = False
+    self.allGroupPaths.append("/" + groupNameInit)
+    self.allGroupEnds["/" + groupNameInit] = False
     self.h5FileW.flush()
 
   def __addGroupRootLevel(self,groupName,attributes,source,upGroup=False):
@@ -696,7 +712,7 @@ class hdf5Database(MessageHandler.MessageUser):
         except:
           try:    attrs["inputSpaceHeaders"]  = gbAttrs[0]["inputSpaceHeaders"]
           except: pass
-        try:    attrs["inputSpaceValues"]     = list(utils.toListFromNumpyOrC1arrayIterative(list(json.loads(gbAttrs[0]["inputSpaceValues"]).tolist())))  #json.loads(list(utils.toListFromNumpyOrC1arrayIterative(list(gbAttrs[0]["inputSpaceValues"].tolist())))) #json.dumps(list(utils.toListFromNumpyOrC1arrayIterative(list(gbAttrs[0]["inputSpaceValues"].tolist()))))
+        try:    attrs["inputSpaceValues"]     = list(utils.toListFromNumpyOrC1arrayIterative(list(gbAttrs[0]["inputSpaceValues"].tolist())))
         except:
           try:    attrs["inputSpaceValues"]   = list(utils.toListFromNumpyOrC1arrayIterative(list(json.loads(gbAttrs[0]["inputSpaceValues"]))))
           except: pass
@@ -775,9 +791,9 @@ class hdf5Database(MessageHandler.MessageUser):
           except:
             try:    attrs["inputSpaceHeaders"]  = gbAttrs[0]["inputSpaceHeaders"]
             except: pass
-          try:    attrs["inputSpaceValues"]     = json.dumps(list(utils.toListFromNumpyOrC1arrayIterative(list( gbAttrs[0]["inputSpaceValues"].tolist()))))
+          try:    attrs["inputSpaceValues"]     = list(utils.toListFromNumpyOrC1arrayIterative(list(gbAttrs[0]["inputSpaceValues"].tolist())))
           except:
-            try:    attrs["inputSpaceValues"]   = json.dumps(list(utils.toListFromNumpyOrC1arrayIterative(list( gbAttrs[0]["inputSpaceValues"]))))
+            try:    attrs["inputSpaceValues"]   = list(utils.toListFromNumpyOrC1arrayIterative(list(json.loads(gbAttrs[0]["inputSpaceValues"]))))
             except: pass
           attrs["nParams"]        = gbAttrs[0]["nParams"]
           attrs["parent"]          = whereList[0]

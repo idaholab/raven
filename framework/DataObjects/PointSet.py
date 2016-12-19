@@ -35,7 +35,6 @@ class PointSet(Data):
       @ Out, None
     """
     Data.__init__(self)
-    self.numAdditionalLoadPoints = 0 #if points are loaded into csv, this will help keep tally
 
   def addSpecializedReadingSettings(self):
     """
@@ -72,11 +71,6 @@ class PointSet(Data):
     lenMustHave = self.numAdditionalLoadPoints
     sourceType = self._toLoadFromList[-1].type
     # here we assume that the outputs are all read....so we need to compute the total number of time point sets
-    for sourceLoad in self._toLoadFromList:
-      if'HDF5' == sourceLoad.type:  lenMustHave = lenMustHave + len(sourceLoad.getEndingGroupNames())
-      elif isinstance(sourceLoad,Files.File): lenMustHave += 1
-      else: self.raiseAnError(Exception,'The type ' + sourceLoad.type + ' is unknown!')
-
     if'HDF5' == self._toLoadFromList[-1].type:
       for key in self._dataContainer['inputs'].keys():
         if (self._dataContainer['inputs'][key].size) != lenMustHave:

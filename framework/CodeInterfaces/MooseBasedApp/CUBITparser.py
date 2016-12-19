@@ -62,7 +62,7 @@ class CUBITparser():
       @ Out, None
     """
     for keyword, newvalue in inDictionary.items():
-      _, keyword = keyword.split('|')
+      _, keyword = keyword.split('@')
       self.keywordDictionary[keyword] = newvalue
 
   def writeNewInput(self,outFile=None):

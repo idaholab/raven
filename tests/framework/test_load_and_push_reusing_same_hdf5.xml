@@ -1,0 +1,183 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
+    <WorkingDir>GridTestRavenSameHDF5</WorkingDir>
+    <Sequence>test_extract,MonteCarloRestarted,test_push</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="clg_massflowrate_3eqn.i" type="">clg.massflowrate.3eqn.i</Input>
+    <Input name="clg_massflowrate_3eqn_control.py" type="">clg_massflowrate_3eqn_control.py</Input>
+  </Files>
+
+  <Models>
+    <Code name="MyRAVEN" subType="RELAP7">
+      <executable>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</executable>
+    </Code>
+  </Models>
+
+  <Distributions>
+    <Normal name="Gauss1">
+      <mean>310</mean>
+      <sigma>3</sigma>
+      <lowerBound>300</lowerBound>
+      <upperBound>320</upperBound>
+    </Normal>
+    <Normal name="ANormalDistribution">
+      <mean>2</mean>
+      <sigma>1</sigma>
+    </Normal>
+  </Distributions>
+
+  <Samplers>
+    <Grid name="myGrid">
+      <samplerInit>
+        <initialSeed>1</initialSeed>
+      </samplerInit>
+      <variable name="Components|pipe|Tw">
+        <distribution>Gauss1</distribution>
+        <grid construction="equal" steps="1" type="value">300 305</grid>
+      </variable>
+      <Distribution name="Dummy1">
+        <distribution>ANormalDistribution</distribution>
+        <grid construction="equal" steps="5" type="CDF">0.3 0.75</grid>
+      </Distribution>
+    </Grid>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="MonteCarloRestarted">
+      <Input class="Files" type="">clg_massflowrate_3eqn.i</Input>
+      <Input class="Files" type="">clg_massflowrate_3eqn_control.py</Input>
+      <Model class="Models" type="Code">MyRAVEN</Model>
+      <Sampler class="Samplers" type="Grid">myGrid</Sampler>
+      <Output class="Databases" type="HDF5">testGridRavenDatabase</Output>
+      <Output class="DataObjects" type="HistorySet">stories</Output>
+      <Output class="DataObjects" type="PointSet">outGrid</Output>
+      <Output class="DataObjects" type="PointSet">outGridMax</Output>
+      <Output class="DataObjects" type="PointSet">outGridMin</Output>
+      <Output class="DataObjects" type="PointSet">outGridAverage</Output>
+    </MultiRun>
+    <IOStep name="test_extract">
+      <Input class="Databases" type="HDF5">testGridRavenDatabase</Input>
+      <Input class="Databases" type="HDF5">testGridRavenDatabase</Input>
+      <Input class="Databases" type="HDF5">testGridRavenDatabase</Input>
+      <Input class="Databases" type="HDF5">testGridRavenDatabase</Input>
+      <Input class="Databases" type="HDF5">testGridRavenDatabase</Input>
+      <Output class="DataObjects" type="HistorySet">stories</Output>
+      <Output class="DataObjects" type="PointSet">outGrid</Output>
+      <Output class="DataObjects" type="PointSet">outGridMax</Output>
+      <Output class="DataObjects" type="PointSet">outGridMin</Output>
+      <Output class="DataObjects" type="PointSet">outGridAverage</Output>
+      <Output class="OutStreams" type="Print">outGrid_dump</Output>
+      <Output class="OutStreams" type="Print">outGridMax_dump</Output>
+      <Output class="OutStreams" type="Print">outGridMin_dump</Output>
+      <Output class="OutStreams" type="Print">outGridAverage_dump</Output>
+    </IOStep>
+    <IOStep name="test_push">
+        <Input class="Databases" type="HDF5">testGridRavenDatabase</Input>
+        <Output class="DataObjects" type="HistorySet">stories2</Output>
+        <Output class="OutStreams" type="Print">stories2_dump</Output>
+    </IOStep>
+  </Steps>
+
+  <Databases>
+    <HDF5 name="testGridRavenDatabase" directory="GridTestRaven/DatabaseStorage" readMode="read"/>
+  </Databases>
+
+  <OutStreams>
+    <Print name="outGrid_dump">
+      <type>csv</type>
+      <source>outGrid</source>
+    </Print>
+    <Print name="outGridMax_dump">
+      <type>csv</type>
+      <source>outGridMax</source>
+    </Print>
+    <Print name="outGridMin_dump">
+      <type>csv</type>
+      <source>outGridMin</source>
+    </Print>
+    <Print name="outGridAverage_dump">
+      <type>csv</type>
+      <source>outGridAverage</source>
+    </Print>
+     <Print name="outGridMaxFromHDF5_dump">
+      <type>csv</type>
+      <source>outGridMaxFromHDF5</source>
+    </Print>
+    <Print name="outGridMinFromHDF5_dump">
+      <type>csv</type>
+      <source>outGridMinFromHDF5</source>
+    </Print>
+    <Print name="outGridAverageFromHDF5_dump">
+      <type>csv</type>
+      <source>outGridAverageFromHDF5</source>
+    </Print>
+    <Print name="stories2_dump">
+        <type>csv</type>
+        <source>stories2</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="outGrid">
+      <Input>pipe_Area,Dummy1</Input>
+      <Output>pipe_Hw,pipe_Tw,time,func</Output>
+    </PointSet>
+    <PointSet name="outGridMaxFromHDF5">
+      <Input>pipe_Area,Dummy1</Input>
+      <Output>pipe_Hw,pipe_Tw,time,func</Output>
+      <options>
+        <operator>max</operator>
+      </options>
+    </PointSet>
+    <PointSet name="outGridMinFromHDF5">
+      <Input>pipe_Area,Dummy1</Input>
+      <Output>pipe_Hw,pipe_Tw,time,func</Output>
+      <options>
+        <operator>min</operator>
+      </options>
+    </PointSet>
+    <PointSet name="outGridAverageFromHDF5">
+      <Input>pipe_Area,Dummy1</Input>
+      <Output>pipe_Hw,pipe_Tw,time,func</Output>
+      <options>
+        <operator>average</operator>
+      </options>
+    </PointSet>
+    <PointSet name="outGridMax">
+      <Input>pipe_Area,Dummy1</Input>
+      <Output>pipe_Hw,pipe_Tw,time,func</Output>
+      <options>
+        <operator>max</operator>
+      </options>
+    </PointSet>
+    <PointSet name="outGridMin">
+      <Input>pipe_Area,Dummy1</Input>
+      <Output>pipe_Hw,pipe_Tw,time,func</Output>
+      <options>
+        <operator>min</operator>
+      </options>
+    </PointSet>
+    <PointSet name="outGridAverage">
+      <Input>pipe_Area,Dummy1</Input>
+      <Output>pipe_Hw,pipe_Tw,time,func</Output>
+      <options>
+        <operator>average</operator>
+      </options>
+    </PointSet>
+    <HistorySet name="stories">
+      <Input>pipe_Area</Input>
+      <Output>pipe_Hw,pipe_Tw,time,func</Output>
+    </HistorySet>
+    <HistorySet name="stories2">
+        <Input>pipe_Area</Input>
+        <Output>pipe_Hw,pipe_Tw,time,func</Output>
+    </HistorySet>
+    
+    
+  </DataObjects>
+
+</Simulation>

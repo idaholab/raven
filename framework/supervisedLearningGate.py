@@ -23,8 +23,8 @@ import MessageHandler
 #Internal Modules End--------------------------------------------------------------------------------
 class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),MessageHandler.MessageUser):
   """
-    This class represents an interface with all the supervised learning algorithms 
-    It is a utility class needed to hide the discernment between time-dependent and static 
+    This class represents an interface with all the supervised learning algorithms
+    It is a utility class needed to hide the discernment between time-dependent and static
     surrogate models
   """
   def __init__(self, ROMclass, messageHandler, **kwargs):
@@ -38,7 +38,7 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
     self.printTag                = 'SupervisedGate'
     self.messageHandler          = messageHandler
     self.initializationOptions   = kwargs
-    
+
     #the ROM is instanced and initialized
     # check how many targets
     if not 'Target' in self.initializationOptions.keys(): self.raiseAnError(IOError,'No Targets specified!!!')
@@ -57,25 +57,25 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
     # extend the list of modules this ROM depen on
     self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(utils.first(self.SupervisedEngine.values())),True)) - set(self.mods))
     self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(SupervisedLearning),True)) - set(self.mods))
-    
+
     SupervisedLearning.returnInstance()
-  
+
   def reset(self):
     pass
-  
+
   def reset(self):
     pass
-  
+
   def getInitParams(self):
     pass
-  
+
   def train(self,trainingSet):
 
 
       if self.subType == 'ARMA':
         localInput = {}
-        
-        
+
+
         lupo = self._inputToInternal(trainingSet, full=True)
         aaaa = mathUtils.historySetWindow(trainingSet,2017)
         if type(trainingSet)!=dict:
@@ -137,13 +137,13 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
             instrom.train(self.trainingSet)
             self.amITrained = self.amITrained and instrom.amITrained
           self.raiseADebug('add self.amITrained to currentParamters','FIXME')
-  
+
   def confidence(self,request,target = None):
     pass
-  
+
   def evaluate(self,request, target = None, timeInst = None):
     pass
-  
+
   def run(self,Input):
     pass
 
@@ -171,4 +171,4 @@ def returnClass(ROMclass,caller):
   """
   try: return __interfaceDict[ROMclass]
   except KeyError: caller.raiseAnError(NameError,'not known '+__base+' type '+ROMclass)
- 
+

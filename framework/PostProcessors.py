@@ -4413,7 +4413,6 @@ class DataMining(BasePostProcessor):
 
             if 'explainedVarianceRatio' in solutionExportDict:
               self.solutionExport.updateOutputValue('ExplainedVarianceRatio',solutionExportDict['explainedVarianceRatio'][row])
-
     return outputDict
 
 

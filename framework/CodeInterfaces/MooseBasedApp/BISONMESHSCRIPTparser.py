@@ -122,7 +122,7 @@ class BISONMESHSCRIPTparser():
       @ Out, None
     """
     for keyword, newvalue in inDictionary.items():
-      _, keyword1, keyword2 = keyword.split('|')
+      keyword1, keyword2 = keyword.split('@')[-1].split('|')
       self.AllVarDict[keyword1][keyword2] = newvalue
 
   def writeNewInput(self,outfile=None):

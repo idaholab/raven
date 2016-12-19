@@ -17,6 +17,14 @@
    test_interface_only = True
  [../]
 
+ [./testMCMammothNoExecutableBisonRelap7WithHDF5restart]
+   type = 'RavenFramework'
+   input = test_mammoth_r7_bison_no_exe_hdf5_restart.xml
+   output = 'MammothBisonRelap7NoExeWithHDF5restart/maxCladOutTempResultsHistory_8.csv MammothBisonRelap7NoExeWithHDF5restart/maxCladOutTempResults.csv'
+   test_interface_only = True
+ [../]
+
+
 [./testMCMAMMOTHNoExecutable_RattlesnakeBison]
    type = 'RavenFramework'
    input = 'test_perturb_all_rattlesnake_bison.xml'

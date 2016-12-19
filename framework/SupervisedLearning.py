@@ -57,7 +57,7 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
   returnType       = ''    # this describe the type of information generated the possibility are 'boolean', 'integer', 'float'
   qualityEstType   = []    # this describe the type of estimator returned known type are 'distance', 'probability'. The values are returned by the self.__confidenceLocal__(Features)
   ROMtype          = ''    # the broad class of the interpolator
-  ROMmultiTarget   = False # 
+  ROMmultiTarget   = False #
   ROMtimeDependent = False # is this ROM able to treat time-like (any monotonic variable) explicitly in its formulation?
 
   @staticmethod
@@ -1894,7 +1894,7 @@ class SciKitLearn(superVisedLearning):
 
   def __init__(self,messageHandler,**kwargs):
     """
-      A constructor that will appropriately intialize a supervised learning object
+      A constructor that will appropriately initialize a supervised learning object
       @ In, messageHandler, MessageHandler object, it is in charge of raising errors, and printing messages
       @ In, kwargs, dict, an arbitrary list of kwargs
       @ Out, None

@@ -67,15 +67,9 @@ class HistorySet(Data):
       @ In,  None
       @ Out, None
     """
-    lenMustHave = 0
     sourceType = self._toLoadFromList[-1].type
+    lenMustHave = self.numAdditionalLoadPoints
     # here we assume that the outputs are all read....so we need to compute the total number of time point sets
-    for sourceLoad in self._toLoadFromList:
-      if'HDF5' == sourceLoad.type:  lenMustHave = lenMustHave + len(sourceLoad.getEndingGroupNames())
-      elif isinstance(sourceLoad,Files.File): lenMustHave += 1
-      else:
-        self.raiseAnError(Exception,'The type ' + sourceLoad.type + ' is unknown!')
-
     if self._dataParameters['hierarchical']:
       for key in self._dataContainer['inputs'].keys():
         if (self._dataContainer['inputs'][key].size) != 1:
@@ -84,12 +78,8 @@ class HistorySet(Data):
         if (self._dataContainer['outputs'][key].ndim) != 1:
           self.raiseAnError(NotConsistentData,'The output parameter value, for key ' + key + ' has not a consistent shape for History in HistorySet ' + self.name + '!! It should be an 1D array since we are in hierarchical mode.' + '.Actual dimension is ' + str(self._dataContainer['outputs'][key].ndim))
     else:
-      if('HDF5' == sourceType):
-        if(lenMustHave != len(self._dataContainer['inputs'].keys())):
-          self.raiseAnError(NotConsistentData,'Number of HistorySet contained in HistorySet data ' + self.name + ' != number of loading sources!!! ' + str(lenMustHave) + ' !=' + str(len(self._dataContainer['inputs'].keys())))
-      else:
-        if(len(self._toLoadFromList) != len(self._dataContainer['inputs'].keys())):
-          self.raiseAnError(NotConsistentData,'Number of HistorySet contained in HistorySet data ' + self.name + ' != number of loading sources!!! ' + str(len(self._toLoadFromList)) + ' !=' + str(len(self._dataContainer['inputs'].keys())))
+      if(lenMustHave != len(self._dataContainer['inputs'].keys())):
+        self.raiseAnError(NotConsistentData,'Number of HistorySet contained in HistorySet data ' + self.name + ' != number of loading sources!!! ' + str(lenMustHave) + ' !=' + str(len(self._dataContainer['inputs'].keys())))
       for key in self._dataContainer['inputs'].keys():
         for key2 in self._dataContainer['inputs'][key].keys():
           if (self._dataContainer['inputs'][key][key2].size) != 1:
@@ -472,9 +462,10 @@ class HistorySet(Data):
     header = myFile.readline().rstrip()
     inpKeys = header.split(",")[:-1]
     inpValues = []
-    outKeys = []
+    outKeys   = []
     outValues = []
-    for mainLine in myFile.readlines():
+    allLines  = myFile.readlines()
+    for mainLine in allLines:
       mainLineList = mainLine.rstrip().split(",")
       inpValues_h = [utils.partialEval(a) for a in mainLineList[:-1]]
       inpValues.append(inpValues_h)
@@ -509,6 +500,9 @@ class HistorySet(Data):
           subOutput[key] = c1darray(values=np.array(value))
       self._dataContainer['inputs'][mainKey] = subInput
       self._dataContainer['outputs'][mainKey] = subOutput
+    #extend the expected size of this point set
+    self.numAdditionalLoadPoints = len(allLines) #used in checkConsistency
+
     self.checkConsistency()
 
 #   COMMENTED BECUASE NOT USED. NEED TO BE REMOVED IN THE FUTURE

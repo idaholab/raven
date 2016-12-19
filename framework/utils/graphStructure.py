@@ -159,9 +159,7 @@ class graphObject(object):
         if neighbour in path or visit(neighbour): return True
       path.remove(vertex)
       return False
-
     return any(visit(v) for v in g)
-
 
   def findAllPaths(self, startVertex, endVertex, path=[]):
     """
@@ -240,16 +238,16 @@ class graphObject(object):
     return uniquePaths
 
   def createSingleListOfVertices(self,uniquePaths=None):
-
+    """
+      This method is aimed to create a list of vertices from all the unique
+      paths present in this graph
+      @ In, uniquePaths, list of list, optional, list of unique paths. If not present, the unique paths are going to be determined
+      @ Out, singleList, list, list of vertices in "ascending" order
+    """
     if uniquePaths is None: uniquePaths = self.findAllUniquePaths()
     singleList = []
-    maxLenght = max([len(path) for path in uniquePaths])
-    for level in range(maxLenght):
-      for listVert in uniquePaths:
-        if len(listVert) >= level+1:
-          if listVert[level] not in singleList: singleList.append(listVert[level])
+    for pathCnt in range(len(uniquePaths)): singleList = utils.mergeSequences(singleList,uniquePaths[pathCnt])
     return singleList
-
 
   def vertexDegree(self, vertex):
     """

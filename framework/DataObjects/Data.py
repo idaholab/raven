@@ -62,6 +62,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ Out, None
     """
     BaseType.__init__(self)
+    self.numAdditionalLoadPoints         = 0                          # if points are loaded into csv, this will help keep tally
     self._dataParameters                 = {}                         # in here we store all the data parameters (inputs params, output params,etc)
     self._dataParameters['inParam'     ] = []                         # inParam list
     self._dataParameters['outParam'    ] = []                         # outParam list
@@ -71,7 +72,6 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     #self._unstructuredInputContainer     = {}                         # Dict that contains the input space in unstrctured form (e.g. 1-D arrays)
     self._dataContainer['metadata'     ] = {}                         # In this dictionary we store metadata (For example, probability,input file names, etc)
     self.metaAdditionalInOrOut           = ['PointProbability','ProbabilityWeight']            # list of metadata keys that will be printed in the CSV one
-    self.acceptHierarchy                 = False                      # flag to tell if a sub-type accepts hierarchy
     self.inputKDTree                     = None                       # KDTree for speedy querying of input space
     self.treeScalingFactors = {}                                      # dictionary of means, scaling factors for KDTree searches
     self.notAllowedInputs  = []                                       # this is a list of keyword that are not allowed as Inputs
@@ -121,7 +121,10 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
         if parentID and self._dataParameters['hierarchical']:
           self.raiseAWarning('-> Data storing in hierarchical fashion from HDF5 not yet implemented!')
           self._dataParameters['hierarchical'] = False
-    elif (isinstance(self._toLoadFromList[-1],Files.File)): tupleVar = ld(self.messageHandler).csvLoadData([toLoadFrom],self._dataParameters)
+      self.numAdditionalLoadPoints += len(self._toLoadFromList[-1].getEndingGroupNames())
+    elif (isinstance(self._toLoadFromList[-1],Files.File)):
+      tupleVar = ld(self.messageHandler).csvLoadData([toLoadFrom],self._dataParameters)
+      self.numAdditionalLoadPoints += 1
     else: self.raiseAnError(ValueError, "Type "+self._toLoadFromList[-1].type+ "from which the DataObject "+ self.name +" should be constructed is unknown!!!")
 
     for hist in tupleVar[0].keys():
@@ -130,14 +133,15 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       else:
         if self.type in ['PointSet']:
           for index in range(len(tupleVar[0][hist])):
-            self.updateInputValue(hist, tupleVar[0][hist][index], options)
+            if hist in self.getParaKeys('input'): self.updateInputValue(hist, tupleVar[0][hist][index], options)
         else: self.updateInputValue(hist, tupleVar[0][hist], options)
     for hist in tupleVar[1].keys():
       if type(tupleVar[1][hist]) == dict:
         for key in tupleVar[1][hist].keys(): self.updateOutputValue(key, tupleVar[1][hist][key], options)
       else:
         if self.type in ['PointSet']:
-          for index in range(np.asarray(tupleVar[1][hist]).size): self.updateOutputValue(hist, tupleVar[1][hist][index], options)
+          for index in range(np.asarray(tupleVar[1][hist]).size):
+            if hist in self.getParaKeys('output'): self.updateOutputValue(hist, tupleVar[1][hist][index], options)
         else: self.updateOutputValue(hist, tupleVar[1][hist], options)
     if len(tupleVar) > 2:
       #metadata

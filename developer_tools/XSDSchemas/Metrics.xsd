@@ -5,6 +5,7 @@
         <xsd:choice minOccurs="1"  maxOccurs="unbounded">
             <xsd:element name="Minkowski"  type="MinkowskiMetrics"   minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="DTW"        type="DtwMetrics"         minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="SKL"        type="SKLMetrics"         minOccurs="0" maxOccurs="unbounded"/>
         </xsd:choice>
     </xsd:complexType>
     
@@ -24,4 +25,15 @@
         </xsd:all>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
     </xsd:complexType>
+    
+    <xsd:complexType name="SKLMetrics">
+        <xsd:all>
+            <xsd:element name="metricType"       type="xsd:string"    minOccurs="1"/>
+            <xsd:element name="gamma"            type="xsd:string"    minOccurs="0"/>
+            <xsd:element name="degree"           type="xsd:string"    minOccurs="0"/>
+            <xsd:element name="coef0"            type="xsd:string"    minOccurs="0"/>
+        </xsd:all>
+        <xsd:attribute name="name" type="xsd:string" use="required"/>
+    </xsd:complexType>
+    
 </xsd:schema>

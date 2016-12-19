@@ -12,7 +12,9 @@ import sys, os, errno
 import inspect
 import subprocess
 import platform
+import copy
 import numpy
+from difflib import SequenceMatcher
 
 class Object(object):pass
 
@@ -856,4 +858,47 @@ def filterAllSubSets(listOfLists):
       if setToTest is not pileList):
       yield setToTest
 
+def mergeDictionaries(*dictArgs):
+    '''
+    Given any number of dicts, shallow copy and merge into a new dict,
+    precedence goes to key value pairs in latter dicts.
+    Adapted from: http://stackoverflow.com/questions/38987/how-to-merge-two-python-dictionaries-in-a-single-expression
+    @ In, dictArgs, dict, a list of dictionaries to merge
+    @ Out, mergedDict, dict, merged dictionary including keys from everything in dictArgs.
+    '''
+    mergedDict = {}
+    for dictionary in dictArgs:
+      overlap = set(dictionary.keys()).intersection(mergedDict.keys())
+      if len(overlap):
+        commonKeys = ', '.join(overlap)
+        caller.raiseAnError(IOError,'Utils, mergeDictionaries: the dictionaries being merged have the following overlapping keys: ' + str(commonKeys))
+      mergedDict.update(dictionary)
+    return mergedDict
+
+def mergeSequences(seq1,seq2):
+  """
+    This method has been taken from "http://stackoverflow.com"
+    It is aimed to merge two sequences (lists) into one preserving the order in the two lists
+    e.g. ['A', 'B', 'C', 'D', 'E',           'H', 'I']
+         ['A', 'B',           'E', 'F', 'G', 'H',      'J', 'K']
+    will become
+         ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K']
+    @ In, seq1, list, the first sequence to be merged
+    @ In, seq2, list, the second sequence to be merged
+    @ Out, merged, list, the merged list of elements
+  """
+  sm=SequenceMatcher(a=seq1,b=seq2)
+  merged = []
+  for (op, start1, end1, start2, end2) in sm.get_opcodes():
+    if op == 'equal' or op=='delete':
+      #This range appears in both sequences, or only in the first one.
+      merged += seq1[start1:end1]
+    elif op == 'insert':
+      #This range appears in only the second sequence.
+      merged += seq2[start2:end2]
+    elif op == 'replace':
+      #There are different ranges in each sequence - add both.
+      merged += seq1[start1:end1]
+      merged += seq2[start2:end2]
+  return merged
 

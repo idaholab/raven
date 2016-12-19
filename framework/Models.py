@@ -425,20 +425,20 @@ class Dummy(Model):
           for entries in dataIN.getParaKeys('inputs' ): localInput[entries] = copy.copy(np.array(dataIN.getParam('input' ,entries))[0 if full else -1:])
           for entries in dataIN.getParaKeys('outputs'): localInput[entries] = copy.copy(np.array(dataIN.getParam('output',entries))[0 if full else -1:])
         else:
-          if full: 
+          if full:
             for hist in range(len(dataIN)):
               realization = dataIN.getRealization(hist)
               for entries in dataIN.getParaKeys('inputs' ):
                 if localInput[entries] is None: localInput[entries] = []
-                localInput[entries].append(realization['inputs'][entries])  
+                localInput[entries].append(realization['inputs'][entries])
               for entries in dataIN.getParaKeys('outputs' ):
                 if localInput[entries] is None: localInput[entries] = []
-                localInput[entries].append(realization['outputs'][entries])  
-          else: 
+                localInput[entries].append(realization['outputs'][entries])
+          else:
             realization = dataIn.getRealization(len(dataIn)-1)
-            for entries in dataIN.getParaKeys('inputs' ):  localInput[entries] = [realization['inputs'][entries]]   
-            for entries in dataIN.getParaKeys('outputs' ): localInput[entries] = [realization['outputs'][entries]]  
-            
+            for entries in dataIN.getParaKeys('inputs' ):  localInput[entries] = [realization['inputs'][entries]]
+            for entries in dataIN.getParaKeys('outputs' ): localInput[entries] = [realization['outputs'][entries]]
+
       #Now if an OutputPlaceHolder is used it is removed, this happens when the input data is not representing is internally manufactured
       if 'OutputPlaceHolder' in dataIN.getParaKeys('outputs'): localInput.pop('OutputPlaceHolder') # this remove the counter from the inputs to be placed among the outputs
     else: localInput = dataIN #here we do not make a copy since we assume that the dictionary is for just for the model usage and any changes are not impacting outside
@@ -822,9 +822,9 @@ class ROM(Dummy):
             self.initializationOptionDict[child.getName()][node.getName()] = tryStrParse(node.value)
         else:
           self.initializationOptionDict[child.getName()] = tryStrParse(child.value)
-    
+
     self.supervisedEngine = supervisedLearningGate.returnInstance('SupervisedGate', self.subType, self,**self.initializationOptionDict)
-    
+
     #the ROM is instanced and initialized
     # check how many targets
     if not 'Target' in self.initializationOptionDict.keys(): self.raiseAnError(IOError,'No Targets specified!!!')
@@ -945,13 +945,13 @@ class ROM(Dummy):
       self.historyPivotParameter    = copy.deepcopy(getattr(trainingSet,self.historyPivotParameter,'time'))
       self.historySteps             = copy.deepcopy(trainingSet.historySteps)
     else:
-      
+
       self.trainingSet = copy.copy(self._inputToInternal(trainingSet, full=True))
-      
+
       if self.subType == 'ARMA':
         localInput = {}
-        
-        
+
+
         lupo = self._inputToInternal(trainingSet, full=True)
         aaaa = mathUtils.historySetWindow(trainingSet,2017)
         if type(trainingSet)!=dict:
@@ -1305,7 +1305,8 @@ class ExternalModel(Dummy):
       for key in output.getParaKeys('outputs'):
         if key in instanciatedSelf.modelVariableType.keys():
           if outputSize == -1: outputSize = len(np.atleast_1d(outcomes[key]))
-          if not utils.sizeMatch(outcomes[key],outputSize): self.raiseAnError(Exception,"the time series size needs to be the same for the output space in a HistorySet!")
+          if not utils.sizeMatch(outcomes[key],outputSize):
+            self.raiseAnError(Exception,"the time series size needs to be the same for the output space in a HistorySet! Variable:"+key+". Size in the HistorySet="+str(outputSize)+".Size outputed="+str(len(np.atleast_1d(outcomes[key]))))
     Dummy.collectOutput(self, finishedJob, output, options)
 #
 #
@@ -2057,7 +2058,8 @@ class EnsembleModel(Dummy, Assembler):
     allPath = self.ensembleModelGraph.findAllUniquePaths()
     ###################################################
     # to be removed once executionList can be handled #
-    self.orderList = self.ensembleModelGraph.createSingleListOfVertices(allPath)                        #
+    self.orderList = self.ensembleModelGraph.createSingleListOfVertices(allPath)
+    self.raiseAMessage("Model Execution list: "+' -> '.join(self.orderList))
     ###################################################
 
     #orderList = self.ensembleModelGraph.createSingleListOfVertices(allPath)
@@ -2186,8 +2188,6 @@ class EnsembleModel(Dummy, Assembler):
         else: castedUnstructuredInputsValues  =  unstructuredInputsValues.values()[-1]
         inputsValues.update(castedUnstructuredInputsValues)
       outputsValues  = outputsValues if targetEvaluations[modelIn].type != 'HistorySet' else outputsValues.values()[-1]
-      print(inputsValues)
-      print(outputsValues)
       for key in targetEvaluations[modelIn].getParaKeys('inputs'):
         if key not in inputsValues.keys(): self.raiseAnError(Exception,"the variable "+key+" is not in the input space of the model! Vars are:"+' '.join(inputsValues.keys()))
         self.modelsDictionary[modelIn]['TargetEvaluation'].updateInputValue (key,inputsValues[key])
