@@ -26,6 +26,7 @@ git checkout $RAVEN_REV -- tests/cluster_tests
 git checkout $RAVEN_REV -- run_tests
 git checkout $RAVEN_REV -- backend_run_tests
 git checkout $RAVEN_REV -- run_framework_tests
+git checkout $RAVEN_REV -- build_framework
 git checkout $RAVEN_REV -- scripts
 git checkout $RAVEN_REV -- doc/user_manual
 git checkout $RAVEN_REV -- doc/user_guide
