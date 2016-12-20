@@ -1633,10 +1633,7 @@ class Categorical(Distribution):
       @ In, x, float/string, value to get the cdf at
       @ Out, cumulative, float, requested cdf
     """
-    if type(self.mapping.keys()[0]).__name__ == 'float':
-      sortedMapping = sorted(self.mapping.items(), key=operator.itemgetter(0))
-    else:
-      sortedMapping = self.mapping.items()
+    sortedMapping = sorted(self.mapping.items(), key=operator.itemgetter(0))
     if x in self.values:
       cumulative=0.0
       for element in sortedMapping:
@@ -1651,10 +1648,7 @@ class Categorical(Distribution):
       @ In, x, float, value to get the ppf at
       @ Out, element[0], float/string, requested inverse cdf
     """
-    if type(self.mapping.keys()[0]).__name__ == 'float':
-      sortedMapping = sorted(self.mapping.items(), key=operator.itemgetter(0))
-    else:
-      sortedMapping = self.mapping.items()
+    sortedMapping = sorted(self.mapping.items(), key=operator.itemgetter(0))
     cumulative=0.0
     for element in sortedMapping:
       cumulative += element[1]

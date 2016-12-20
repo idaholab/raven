@@ -285,6 +285,13 @@ class MAAP5(GenericCode):
 
 ########################
   def modifyBranch(self,currentInputFiles,Kwargs):
+    """
+      This method is aimed to modify the branch in order to reflect the info
+      coming from the DET-based sampler
+      @ In, currentInputFiles, list, list of input files
+      @ In, Kwargs, dict, dictionary of kwarded values
+      @ Out, None
+    """
     block=False
     lineNumber=0
     n=0
@@ -314,7 +321,6 @@ class MAAP5(GenericCode):
             fileobject.write(linesNewInput)
             fileobject.close()
             n=n+1
-
 
 ########################
 
@@ -400,7 +406,6 @@ class MAAP5(GenericCode):
       dictTimeHappened = []
       for value in dictTimer.values():
         if value != -1: dictTimeHappened.append(value)
-      print ('finalizeCodeOutput', workingDir)
       print('DictTimer =', dictTimer)
       print('Events occur at: ', dictTimeHappened)
       #if any([dictTimeHappened.count(value) > 1 for value in dictTimer.values()]): raise IOError('Branch must occur at different times')
@@ -583,7 +588,6 @@ class MAAP5(GenericCode):
         for line in lineStopList:
           if timer in lines[line]: found[cont]=True
       if all(i for i in found) == False:
-#      if all(str(i) in lines[lineStop] for i in self.lineTimerComplete) == False:
 ####################
         raise IOError('All TIMER must be considered for the first simulation') #in the original input file all the timer must be mentioned
     else: #Kwargs['parentID'] != 'root'
@@ -627,6 +631,12 @@ class MAAP5(GenericCode):
 
 ###########
   def multiBranchMethod(self,currentInputFiles,Kwargs):
+    """
+      This method is aimed to handle the multi branch strategy
+      @ In, currentInputFiles, list, list of input files
+      @ In, Kwargs, dict, dictionary of kwarded values
+      @ Out, None
+    """
     for filename in currentInputFiles:
       if '.inp' in str(filename): inp=filename.getAbsFile() #input file name with full path
     fileobject = open(inp, "r")

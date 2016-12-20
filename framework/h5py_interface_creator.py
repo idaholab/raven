@@ -496,7 +496,7 @@ class hdf5Database(MessageHandler.MessageUser):
         else:
           closestGroup = difflib.get_close_matches(parentName, self.allGroupPaths, n=1, cutoff=0.01)
           errorString = ' NOT FOUND parent group named "' + str(parentName)+'" for loading file '+str(source['name'])
-          errorString+= '\n Tried '+str(tail[:-2])+ ' but not found as well. All group paths are:\n'+'\n'.join(self.allGroupPaths)
+          errorString+= '\n Tried '+str(tail[:-2])+ ' but not found as well. All group paths are:\n -'+'\n -'.join(self.allGroupPaths)
           errorString+= '\n Closest parent group found is "'+str(closestGroup[0] if len(closestGroup) > 0 else 'None')+'"!'
           self.raiseAnError(ValueError,errorString)
       # The parent group is not the endgroup for this branch

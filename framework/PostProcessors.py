@@ -2914,7 +2914,7 @@ class LimitSurface(BasePostProcessor):
       for key in self.parameters['targets']:
         self.bounds["lowerBounds"][key], self.bounds["upperBounds"][key] = min(self.inputs[self.indexes].getParam(self.paramType[key],key,nodeId = 'RecontructEnding')), max(self.inputs[self.indexes].getParam(self.paramType[key],key,nodeId = 'RecontructEnding'))
         if utils.compare(round(self.bounds["lowerBounds"][key],14),round(self.bounds["upperBounds"][key],14)):
-          self.bounds["upperBounds"][key]+=self.bounds["upperBounds"][key]/1.e7
+          self.bounds["upperBounds"][key]+= abs(self.bounds["upperBounds"][key]/1.e7)
     self.gridEntity.initialize(initDictionary={"rootName":self.name,'constructTensor':True, "computeCells":initDict['computeCells'] if 'computeCells' in initDict.keys() else False,
                                                "dimensionNames":self.parameters['targets'], "lowerBounds":self.bounds["lowerBounds"],"upperBounds":self.bounds["upperBounds"],
                                                "volumetricRatio":self.tolerance   ,"transformationMethods":self.transfMethods})
