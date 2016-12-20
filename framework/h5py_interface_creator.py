@@ -496,9 +496,9 @@ class hdf5Database(MessageHandler.MessageUser):
         if testParentName in self.h5FileW: grp = self.h5FileW.require_group(testParentName)
         else:
           closestGroup = difflib.get_close_matches(parentName, self.allGroupPaths, n=1, cutoff=0.01)
-          errorString = 'NOT FOUND parent group named "' + parentName+'" for loading file '+str(source['name'])
-          errorString+= 'Tried '+tail[:-2]+ + ' but not found as well. All group paths are:'+'\n'.join(self.allGroupPaths)
-          errorString+= ' Closest parent group found is "'+closestGroup[0] if len(closestGroup) > 0 else 'None'+'"!'
+          errorString = ' NOT FOUND parent group named "' + parentName+'" for loading file '+str(source['name'])
+          errorString+= '\n Tried '+tail[:-2]+ + ' but not found as well. All group paths are:'+'\n'.join(self.allGroupPaths)
+          errorString+= '\n Closest parent group found is "'+closestGroup[0] if len(closestGroup) > 0 else 'None'+'"!'
           self.raiseAnError(ValueError,errorString)
       # The parent group is not the endgroup for this branch
       self.allGroupEnds[parentGroupName] = False
