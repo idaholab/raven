@@ -18,6 +18,7 @@ import os
 import copy
 import json
 import string
+import difflib
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -259,7 +260,7 @@ class hdf5Database(MessageHandler.MessageUser):
         parentGroupName = self.__returnParentGroupPath(parentName)
         # Retrieve the parent group from the HDF5 database
         if parentGroupName in self.h5FileW: rootgrp = self.h5FileW.require_group(parentGroupName)
-        else: self.raiseAnError(ValueError,'NOT FOUND group named ' + parentGroupName)
+        else: self.raiseAnError(ValueError,'NOT FOUND group named "' + parentGroupName+'" for loading file '+str(source['name']))
         if upGroup:
           grp = rootgrp.require_group(groupName)
           del grp[groupName+"_data"]
@@ -476,7 +477,6 @@ class hdf5Database(MessageHandler.MessageUser):
       parentID = None
       if 'metadata' in attributes.keys():
         if 'parentID' in attributes['metadata'].keys(): parentID = attributes['metadata']['parentID']
-        if 'parentID' in attributes.keys(): parentID = attributes['parentID']
       else:
         if 'parentID' in attributes.keys(): parentID = attributes['parentID']
 
@@ -489,7 +489,16 @@ class hdf5Database(MessageHandler.MessageUser):
       # Retrieve the parent group from the HDF5 database
       if parentGroupName in self.h5FileW: grp = self.h5FileW.require_group(parentGroupName)
       else:
-        self.raiseAnError(ValueError,'NOT FOUND group named ' + parentGroupName)
+        # try to guess the parentID from the file name
+        head,tail = os.path.split(os.path.dirname(source['name']))
+        testParentName = self.__returnParentGroupPath(tail[:-2])
+        if testParentName in self.h5FileW: grp = self.h5FileW.require_group(testParentName)
+        else:
+          closestGroup = difflib.get_close_matches(parentName, self.allGroupPaths, n=1, cutoff=0.01)
+          errorString = ' NOT FOUND parent group named "' + str(parentName)+'" for loading file '+str(source['name'])
+          errorString+= '\n Tried '+str(tail[:-2])+ ' but not found as well. All group paths are:\n -'+'\n -'.join(self.allGroupPaths)
+          errorString+= '\n Closest parent group found is "'+str(closestGroup[0] if len(closestGroup) > 0 else 'None')+'"!'
+          self.raiseAnError(ValueError,errorString)
       # The parent group is not the endgroup for this branch
       self.allGroupEnds[parentGroupName] = False
       grp.attrs["EndGroup"]   = False
@@ -706,22 +715,22 @@ class hdf5Database(MessageHandler.MessageUser):
           result[ts:ts+arr[:,0].size,:] = arr
           ts = ts + arr[:,0].size
           # must be checked if overlapping of time (branching for example)
-        try:    attrs["outputSpaceHeaders"]   = gbAttrs[0]["outputSpaceHeaders"].tolist()
-        except: attrs["outputSpaceHeaders"]   = gbAttrs[0]["outputSpaceHeaders"]
-        try:    attrs["inputSpaceHeaders"]    = gbAttrs[0]["inputSpaceHeaders"].tolist()
+        try:    attrs["outputSpaceHeaders"]   = gbAttrs[len(whereList)-1]["outputSpaceHeaders"].tolist()
+        except: attrs["outputSpaceHeaders"]   = gbAttrs[len(whereList)-1]["outputSpaceHeaders"]
+        try:    attrs["inputSpaceHeaders"]    = gbAttrs[len(whereList)-1]["inputSpaceHeaders"].tolist()
         except:
-          try:    attrs["inputSpaceHeaders"]  = gbAttrs[0]["inputSpaceHeaders"]
+          try:    attrs["inputSpaceHeaders"]  = gbAttrs[len(whereList)-1]["inputSpaceHeaders"]
           except: pass
         try:    attrs["inputSpaceValues"]     = list(utils.toListFromNumpyOrC1arrayIterative(list(gbAttrs[0]["inputSpaceValues"].tolist())))
         except:
-          try:    attrs["inputSpaceValues"]   = list(utils.toListFromNumpyOrC1arrayIterative(list(json.loads(gbAttrs[0]["inputSpaceValues"]))))
+          try:    attrs["inputSpaceValues"]   = list(utils.toListFromNumpyOrC1arrayIterative(list(json.loads(gbAttrs[len(whereList)-1]["inputSpaceValues"]))))
           except: pass
-        attrs["nParams"]        = gbAttrs[0]["nParams"]
+        attrs["nParams"]        = gbAttrs[len(whereList)-1]["nParams"]
         attrs["parentID"]       = whereList[0]
         attrs["startTime"]      = result[0,0]
-        attrs["end_time"]        = result[result[:,0].size-1,0]
-        attrs["nTimeSteps"]            = result[:,0].size
-        attrs["sourceType"]     = gbAttrs[0]["sourceType"]
+        attrs["end_time"]       = result[result[:,0].size-1,0]
+        attrs["nTimeSteps"]     = result[:,0].size
+        attrs["sourceType"]     = gbAttrs[len(whereList)-1]["sourceType"]
         attrs["inputFile"]      = []
         attrs["sourceFile"]     = []
         for key in gbRes.keys():
@@ -785,22 +794,22 @@ class hdf5Database(MessageHandler.MessageUser):
             result[ts:ts+arr[:,0].size,:] = arr[:,:]
             ts = ts + arr[:,0].size
             # must be checked if overlapping of time (branching for example)
-          try:    attrs["outputSpaceHeaders"]   = gbAttrs[0]["outputSpaceHeaders"].tolist()
-          except: attrs["outputSpaceHeaders"]   = gbAttrs[0]["outputSpaceHeaders"]
-          try:    attrs["inputSpaceHeaders"]    = gbAttrs[0]["inputSpaceHeaders"].tolist()
+          try:    attrs["outputSpaceHeaders"]   = gbAttrs[len(whereList)-1]["outputSpaceHeaders"].tolist()
+          except: attrs["outputSpaceHeaders"]   = gbAttrs[len(whereList)-1]["outputSpaceHeaders"]
+          try:    attrs["inputSpaceHeaders"]    = gbAttrs[len(whereList)-1]["inputSpaceHeaders"].tolist()
           except:
-            try:    attrs["inputSpaceHeaders"]  = gbAttrs[0]["inputSpaceHeaders"]
+            try:    attrs["inputSpaceHeaders"]  = gbAttrs[len(whereList)-1]["inputSpaceHeaders"]
             except: pass
           try:    attrs["inputSpaceValues"]     = list(utils.toListFromNumpyOrC1arrayIterative(list(gbAttrs[0]["inputSpaceValues"].tolist())))
           except:
             try:    attrs["inputSpaceValues"]   = list(utils.toListFromNumpyOrC1arrayIterative(list(json.loads(gbAttrs[0]["inputSpaceValues"]))))
             except: pass
-          attrs["nParams"]        = gbAttrs[0]["nParams"]
-          attrs["parent"]          = whereList[0]
+          attrs["nParams"]        = gbAttrs[len(whereList)-1]["nParams"]
+          attrs["parent"]         = whereList[0]
           attrs["startTime"]      = result[0,0]
-          attrs["end_time"]        = result[result[:,0].size-1,0]
-          attrs["nTimeSteps"]            = result[:,0].size
-          attrs["sourceType"]     = gbAttrs[0]["sourceType"]
+          attrs["end_time"]       = result[result[:,0].size-1,0]
+          attrs["nTimeSteps"]     = result[:,0].size
+          attrs["sourceType"]     = gbAttrs[len(whereList)-1]["sourceType"]
           attrs["inputFile"]      = []
           attrs["sourceFile"]     = []
           for key in gbRes.keys():
@@ -848,10 +857,10 @@ class hdf5Database(MessageHandler.MessageUser):
       parentGroupName = '-$' # control variable
       for index in xrange(len(self.allGroupPaths)):
         testList = self.allGroupPaths[index].split('/')
-        if testList[len(testList)-1] == parentName:
+        if testList[-1] == parentName:
           parentGroupName = self.allGroupPaths[index]
           break
-    else: parentGroupName = None
+    else: parentGroupName = '/'
     return parentGroupName
 
 def is_number(s):
