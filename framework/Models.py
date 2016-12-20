@@ -827,24 +827,28 @@ class ROM(Dummy):
 
     #the ROM is instanced and initialized
     # check how many targets
-    if not 'Target' in self.initializationOptionDict.keys(): self.raiseAnError(IOError,'No Targets specified!!!')
-    targets = self.initializationOptionDict['Target'].split(',')
-    self.howManyTargets = len(targets)
-
-    if 'SKLtype' in self.initializationOptionDict and 'MultiTask' in self.initializationOptionDict['SKLtype']:
-      self.initializationOptionDict['Target'] = targets
-      model = SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
-      for target in targets:
-        self.SupervisedEngine[target] = model
-    else:
-      for target in targets:
-        self.initializationOptionDict['Target'] = target
-        self.SupervisedEngine[target] =  SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
+#     if not 'Target' in self.initializationOptionDict.keys(): self.raiseAnError(IOError,'No Targets specified!!!')
+#     targets = self.initializationOptionDict['Target'].split(',')
+#     self.howManyTargets = len(targets)
+# 
+#     if 'SKLtype' in self.initializationOptionDict and 'MultiTask' in self.initializationOptionDict['SKLtype']:
+#       self.initializationOptionDict['Target'] = targets
+#       model = SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
+#       for target in targets:
+#         self.SupervisedEngine[target] = model
+#     else:
+#       for target in targets:
+#         self.initializationOptionDict['Target'] = target
+#         self.SupervisedEngine[target] =  SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
     # extend the list of modules this ROM depen on
-    self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(utils.first(self.SupervisedEngine.values())),True)) - set(self.mods))
+#     self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(utils.first(self.SupervisedEngine.values())),True)) - set(self.mods))
+#     self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(SupervisedLearning),True)) - set(self.mods))
+    
+    self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(self.SupervisedEngine),True)) - set(self.mods))
     self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(SupervisedLearning),True)) - set(self.mods))
+    self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(supervisedLearningGate),True)) - set(self.mods))
     #restore targets to initialization option dict
-    self.initializationOptionDict['Target'] = ','.join(targets)
+#     self.initializationOptionDict['Target'] = ','.join(targets)
 
   def printXML(self,options={}):
     """
@@ -947,7 +951,8 @@ class ROM(Dummy):
     else:
 
       self.trainingSet = copy.copy(self._inputToInternal(trainingSet, full=True))
-
+      self.supervisedEngine.train(self.trainingSet)
+      
       if self.subType == 'ARMA':
         localInput = {}
 

@@ -80,8 +80,9 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
       @ In, kwargs, dict, an arbitrary list of kwargs
       @ Out, None
     """
-    self.printTag = 'Supervised'
-    self.messageHandler = messageHandler
+    self.printTag          = 'Supervised'
+    self.messageHandler    = messageHandler
+    self.__dynamicHandling = False
     #booleanFlag that controls the normalization procedure. If true, the normalization is performed. Default = True
     if kwargs != None: self.initOptionDict = kwargs
     else             : self.initOptionDict = {}
@@ -92,7 +93,8 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     self.initOptionDict.pop('Target')
     self.initOptionDict.pop('Features')
     self.verbosity = self.initOptionDict['verbosity'] if 'verbosity' in self.initOptionDict else None
-    if self.features.count(self.target) > 0: self.raiseAnError(IOError,'The target and one of the features have the same name!')
+    for target in self.target:
+      if self.features.count(target) > 0: self.raiseAnError(IOError,'The target "'+target+'" is also in the feature space!')
     #average value and sigma are used for normalization of the feature data
     #a dictionary where for each feature a tuple (average value, sigma)
     self.muAndSigmaFeatures = {}
@@ -259,7 +261,16 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
       @ Out, None
     """
     node.addText('ROM of type '+str(self.printTag.strip())+' has no special output options.')
-
+  
+  def isDynamic(self):
+    """
+      This method is a utility function that tells if the relative ROM is able to
+      treat dynamic data (e.g. time-series) on its own or not (Primarly called by supervisedLearningGate)
+      @ In, None
+      @ Out, isDynamic, bool, True if the ROM is able to treat dynamic data, False otherwise 
+    """
+    return self.__dynamicHandling
+  
   @abc.abstractmethod
   def __trainLocal__(self,featureVals,targetVals):
     """
@@ -2043,8 +2054,10 @@ class ARMA(superVisedLearning):
       @ In, kwargs: an arbitrary dictionary of keywords and values
     """
     superVisedLearning.__init__(self,messageHandler,**kwargs)
-    self.printTag = 'ARMA'
-    self.armaPara = {}
+    self.printTag          = 'ARMA'
+    self.__dynamicHandling = True                                    # This ROM is able to manage the time-series on its own. No need for special treatment outside
+    self.armaPara          = {}
+    
     self.armaPara['Pmax'] = kwargs.get('Pmax', 3)
     self.armaPara['Pmin'] = kwargs.get('Pmin', 0)
     self.armaPara['Qmax'] = kwargs.get('Qmax', 3)

@@ -38,30 +38,32 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
     self.printTag                = 'SupervisedGate'
     self.messageHandler          = messageHandler
     self.initializationOptions   = kwargs
-
     #the ROM is instanced and initialized
     # check how many targets
     if not 'Target' in self.initializationOptions.keys(): self.raiseAnError(IOError,'No Targets specified!!!')
-    targets = self.initializationOptions['Target'].split(',')
-    self.howManyTargets = len(targets)
+    #targets = self.initializationOptions['Target'].split(',')
+    #self.howManyTargets = len(targets)
+    # return instance of the ROMclass
+    modelInstance         = SupervisedLearning.returnInstance(ROMclass,self,**self.initializationOptions)
+    # check if it is dynamic
+    self.isADynamicModel  = modelInstance.isDynamic()
+    # if it is dynamic and time series are passed in, self.SupervisedEngine is not going to be expanded, else it is going to 
+    self.SupervisedEngine = [modelInstance]
+ 
+    
+#     if 'SKLtype' in self.initializationOptions and 'MultiTask' in self.initializationOptions['SKLtype']:
+#       self.initializationOptions['Target'] = targets
+#       model = SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptions)
+#       for target in targets:
+#         self.SupervisedEngine[target] = model
+#     else:
+#       for target in targets:
+#         self.initializationOptions['Target'] = target
+#         self.SupervisedEngine[target] =  SupervisedLearning.returnInstance(ROMclass,self,**self.initializationOptions)
+#     # extend the list of modules this ROM depen on
+#     self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(self.SupervisedEngine,True)) - set(self.mods)))
+#     self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(SupervisedLearning),True)) - set(self.mods))
 
-    if 'SKLtype' in self.initializationOptions and 'MultiTask' in self.initializationOptions['SKLtype']:
-      self.initializationOptions['Target'] = targets
-      model = SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptions)
-      for target in targets:
-        self.SupervisedEngine[target] = model
-    else:
-      for target in targets:
-        self.initializationOptions['Target'] = target
-        self.SupervisedEngine[target] =  SupervisedLearning.returnInstance(ROMclass,self,**self.initializationOptions)
-    # extend the list of modules this ROM depen on
-    self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(utils.first(self.SupervisedEngine.values())),True)) - set(self.mods))
-    self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(SupervisedLearning),True)) - set(self.mods))
-
-    SupervisedLearning.returnInstance()
-
-  def reset(self):
-    pass
 
   def reset(self):
     pass
@@ -70,8 +72,15 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
     pass
 
   def train(self,trainingSet):
-
-
+    
+    if type(trainingSet).__name__ == 'list':
+      # we need to build a "time-dependent" ROM
+      if self.isADynamicModel: self.SupervisedEngine[0].train(trainingSet)
+      else                   : print("")
+    else:
+     
+    
+  
       if self.subType == 'ARMA':
         localInput = {}
 
