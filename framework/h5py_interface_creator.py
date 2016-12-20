@@ -476,7 +476,6 @@ class hdf5Database(MessageHandler.MessageUser):
       parentID = None
       if 'metadata' in attributes.keys():
         if 'parentID' in attributes['metadata'].keys(): parentID = attributes['metadata']['parentID']
-        if 'parentID' in attributes.keys(): parentID = attributes['parentID']
       else:
         if 'parentID' in attributes.keys(): parentID = attributes['parentID']
 
@@ -489,7 +488,12 @@ class hdf5Database(MessageHandler.MessageUser):
       # Retrieve the parent group from the HDF5 database
       if parentGroupName in self.h5FileW: grp = self.h5FileW.require_group(parentGroupName)
       else:
-        self.raiseAnError(ValueError,'NOT FOUND group named "' + parentGroupName+'" for loading file '+str(source['name']))
+        # try to guess the parentID from the file name
+        head,tail = os.path.split(os.path.dirname(source['name']))
+        testParentName = self.__returnParentGroupPath(tail[:-2])
+        if testParentName in self.h5FileW: grp = self.h5FileW.require_group(testParentName)
+        else:
+          self.raiseAnError(ValueError,'NOT FOUND group named "' + parentName+'" for loading file '+str(source['name'])+'Tried '+tail[:-2]+ + ' but not found as well!')
       # The parent group is not the endgroup for this branch
       self.allGroupEnds[parentGroupName] = False
       grp.attrs["EndGroup"]   = False
@@ -848,10 +852,10 @@ class hdf5Database(MessageHandler.MessageUser):
       parentGroupName = '-$' # control variable
       for index in xrange(len(self.allGroupPaths)):
         testList = self.allGroupPaths[index].split('/')
-        if testList[len(testList)-1] == parentName:
+        if testList[-1] == parentName:
           parentGroupName = self.allGroupPaths[index]
           break
-    else: parentGroupName = None
+    else: parentGroupName = '/'
     return parentGroupName
 
 def is_number(s):
