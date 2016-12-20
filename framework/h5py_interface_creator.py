@@ -487,7 +487,7 @@ class hdf5Database(MessageHandler.MessageUser):
         parentGroupName = self.__returnParentGroupPath(parentName)
       else: parentGroupName = parentName
       # Retrieve the parent group from the HDF5 database
-      #closestGroup = difflib.get_close_matches(parentName, self.allGroupPaths, n=1, cutoff=0.00001)
+      #closestGroup = difflib.get_close_matches(parentName, self.allGroupPaths, n=1, cutoff=0.01)
       if parentGroupName in self.h5FileW: grp = self.h5FileW.require_group(parentGroupName)
       else:
         # try to guess the parentID from the file name
@@ -495,10 +495,10 @@ class hdf5Database(MessageHandler.MessageUser):
         testParentName = self.__returnParentGroupPath(tail[:-2])
         if testParentName in self.h5FileW: grp = self.h5FileW.require_group(testParentName)
         else:
-          closestGroup = difflib.get_close_matches(parentName, self.allGroupPaths, n=1, cutoff=0.00001)
+          closestGroup = difflib.get_close_matches(parentName, self.allGroupPaths, n=1, cutoff=0.01)
           errorString = 'NOT FOUND parent group named "' + parentName+'" for loading file '+str(source['name'])
           errorString+= 'Tried '+tail[:-2]+ + ' but not found as well. All group paths are:'+'\n'.join(self.allGroupPaths)
-          errorString+= ' Closest parent group found is "'+closestGroup+'"!'
+          errorString+= ' Closest parent group found is "'+closestGroup[0] if len(closestGroup) > 0 else 'None'+'"!'
           self.raiseAnError(ValueError,errorString)
       # The parent group is not the endgroup for this branch
       self.allGroupEnds[parentGroupName] = False
