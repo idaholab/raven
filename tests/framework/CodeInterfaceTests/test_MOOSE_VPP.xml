@@ -51,8 +51,8 @@
     <Code name="MOOSETestApp" subType="MooseBasedApp">
       <executable>%FRAMEWORK_DIR%/../../moose/modules/combined/modules-%METHOD%</executable>
       <fileargs arg="_J_1_" type="MooseVPP"/>
-      <alias variable="poissonsRatio">Materials|stiffStuff|poissons_ratio</alias>
-      <alias variable="youngModulus">Materials|stiffStuff|youngs_modulus</alias>
+      <alias variable="poissonsRatio" type="input">Materials|stiffStuff|poissons_ratio</alias>
+      <alias variable="youngModulus" type="input">Materials|stiffStuff|youngs_modulus</alias>
     </Code>
   </Models>
 

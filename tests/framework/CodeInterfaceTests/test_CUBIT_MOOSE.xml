@@ -59,8 +59,8 @@
     <Code name="moose-modules" subType="CubitMoose">
       <executable>%FRAMEWORK_DIR%/../../moose/test/moose_test-%METHOD%</executable>
       <preexec>/hpc-common/apps/local/cubit/13.2/bin/cubit</preexec>
-      <alias variable="length">Cubit@y</alias>
-      <alias variable="bot_BC">BCs|bottom|value</alias>
+      <alias variable="length" type="input">Cubit@y</alias>
+      <alias variable="bot_BC" type="input">BCs|bottom|value</alias>
     </Code>
   </Models>
 
