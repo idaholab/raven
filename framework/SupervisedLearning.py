@@ -69,8 +69,16 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     """
     #checking if None provides a more clear message about the problem
     if arrayIn is None: return (False,' The object is None, and contains no entries!')
-    if type(arrayIn) != np.ndarray: return (False,' The object is not a numpy array')
-    if len(arrayIn.shape) > 1: return(False, ' The array must be 1-d')
+    if type(arrayIn).__name__ == 'list':
+      if self.isDynamic():
+        for cnt, elementArray in enumerate(arrayIn):
+          resp = checkArrayConsistency(elementArray)
+          if not resp[0]: return (False,' The element number '+str(cnt)+' is not a consistent array. Error: '+resp[1])
+      else:
+        return (False,' The list type is allowed for dynamic ROMs only')
+    else:
+      if type(arrayIn).__name__ not in ['ndarray','c1darray']: return (False,' The object is not a numpy array. Got type: '+type(arrayIn).__name__)
+      if len(np.asarray(arrayIn).shape) > 1                  : return(False, ' The array must be 1-d. Got shape: '+str(np.asarray(arrayIn).shape))
     return (True,'')
 
   def __init__(self,messageHandler,**kwargs):
@@ -82,7 +90,7 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     """
     self.printTag          = 'Supervised'
     self.messageHandler    = messageHandler
-    self.__dynamicHandling = False
+    self._dynamicHandling = False
     #booleanFlag that controls the normalization procedure. If true, the normalization is performed. Default = True
     if kwargs != None: self.initOptionDict = kwargs
     else             : self.initOptionDict = {}
@@ -130,35 +138,36 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
           if targetValues is None:
             targetValues = values[names.index(target)]
           else:
-            targetValues = np.column_stack((targetValues,values[names.index(target)]))
+            targetValues = np.dstack((targetValues,values[names.index(target)]))
         else:
           self.raiseAnError(IOError,'The target '+target+' is not in the training set')
       # construct the evaluation matrixes
       featureValues = np.zeros(shape=(len(targetValues),len(self.features)))
-    else:
-      if self.target in names:
-        targetValues = values[names.index(self.target)]
-      else:
-        self.raiseAnError(IOError,'The target ' + self.target + ' is not in the training set')
-      # check if the targetValues are consistent with the expected structure
-      resp = self.checkArrayConsistency(targetValues)
-      if not resp[0]:
-        self.raiseAnError(IOError,'In training set for target '+self.target+':'+resp[1])
-      # construct the evaluation matrixes
-      featureValues = np.zeros(shape=(targetValues.size,len(self.features)))
+#     else:
+#       if self.target in names:
+#         targetValues = values[names.index(self.target)]
+#       else:
+#         self.raiseAnError(IOError,'The target ' + self.target + ' is not in the training set')
+#       # check if the targetValues are consistent with the expected structure
+#       resp = self.checkArrayConsistency(targetValues)
+#       if not resp[0]:
+#         self.raiseAnError(IOError,'In training set for target '+self.target+':'+resp[1])
+#       # construct the evaluation matrixes
+#       featureValues = np.zeros(shape=(targetValues.size,len(self.features)))
     for cnt, feat in enumerate(self.features):
       if feat not in names:
         self.raiseAnError(IOError,'The feature sought '+feat+' is not in the training set')
       else:
-        resp = self.checkArrayConsistency(values[names.index(feat)])
-        if not resp[0]:
-          self.raiseAnError(IOError,'In training set for feature '+feat+':'+resp[1])
-        if values[names.index(feat)].size != featureValues[:,0].size:
+        valueToUse = values[names.index(feat)]
+        resp = self.checkArrayConsistency(valueToUse)
+        if not resp[0]: self.raiseAnError(IOError,'In training set for feature '+feat+':'+resp[1])
+        valueToUse = np.asarray(valueToUse)
+        if valueToUse.size != featureValues[:,0].size:
           self.raiseAWarning('feature values:',featureValues[:,0].size,tag='ERROR')
-          self.raiseAWarning('target values:',values[names.index(feat)].size,tag='ERROR')
+          self.raiseAWarning('target values:',valueToUse.size,tag='ERROR')
           self.raiseAnError(IOError,'In training set, the number of values provided for feature '+feat+' are != number of target outcomes!')
         self._localNormalizeData(values,names,feat)
-        featureValues[:,cnt] = (values[names.index(feat)] - self.muAndSigmaFeatures[feat][0])/self.muAndSigmaFeatures[feat][1]
+        featureValues[:,cnt] = (valueToUse - self.muAndSigmaFeatures[feat][0])/self.muAndSigmaFeatures[feat][1]
     self.__trainLocal__(featureValues,targetValues)
     self.amITrained = True
 
@@ -261,16 +270,16 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
       @ Out, None
     """
     node.addText('ROM of type '+str(self.printTag.strip())+' has no special output options.')
-  
+
   def isDynamic(self):
     """
       This method is a utility function that tells if the relative ROM is able to
       treat dynamic data (e.g. time-series) on its own or not (Primarly called by supervisedLearningGate)
       @ In, None
-      @ Out, isDynamic, bool, True if the ROM is able to treat dynamic data, False otherwise 
+      @ Out, isDynamic, bool, True if the ROM is able to treat dynamic data, False otherwise
     """
-    return self.__dynamicHandling
-  
+    return self._dynamicHandling
+
   @abc.abstractmethod
   def __trainLocal__(self,featureVals,targetVals):
     """
@@ -2055,17 +2064,19 @@ class ARMA(superVisedLearning):
     """
     superVisedLearning.__init__(self,messageHandler,**kwargs)
     self.printTag          = 'ARMA'
-    self.__dynamicHandling = True                                    # This ROM is able to manage the time-series on its own. No need for special treatment outside
+    self._dynamicHandling  = True                                    # This ROM is able to manage the time-series on its own. No need for special treatment outside
     self.armaPara          = {}
-    
-    self.armaPara['Pmax'] = kwargs.get('Pmax', 3)
-    self.armaPara['Pmin'] = kwargs.get('Pmin', 0)
-    self.armaPara['Qmax'] = kwargs.get('Qmax', 3)
-    self.armaPara['Qmin'] = kwargs.get('Qmin', 0)
+    self.armaPara['Pmax']      = kwargs.get('Pmax', 3)
+    self.armaPara['Pmin']      = kwargs.get('Pmin', 0)
+    self.armaPara['Qmax']      = kwargs.get('Qmax', 3)
+    self.armaPara['Qmin']      = kwargs.get('Qmin', 0)
     self.armaPara['dimension'] = len(self.features)
-    self.outTruncation = kwargs.get('outTruncation', None)            # Additional parameters to allow user to specify the time series to be all positive or all negative
-    self.pivotParameterID = kwargs.get('pivotParameter', 'Time')
-
+    self.outTruncation         = kwargs.get('outTruncation', None)     # Additional parameters to allow user to specify the time series to be all positive or all negative
+    self.pivotParameterID      = kwargs.get('pivotParameter', 'Time')
+    self.pivotParameterValues  = None                                  # In here we store the values of the pivot parameter (e.g. Time)
+    # check if the pivotParameter is among the targetValues
+    if self.pivotParameterID not in self.target: self.raiseAnError(IOError,"The pivotParameter "+self.pivotParameterID+" must be part of the Target space!")
+    if len(self.target) > 2: self.raiseAnError(IOError,"Multi-target ARMA not available yet!")
     # Initialize parameters for Fourier detrending
     if 'Fourier' not in self.initOptionDict.keys():
       self.hasFourierSeries = False
@@ -2101,8 +2112,12 @@ class ARMA(superVisedLearning):
       @ In, featureVals, array, shape=[n_timeStep, n_dimensions], an array of input data # Not use for ARMA training
       @ In, targetVals, array, shape = [n_timeStep, n_dimensions], an array of time series data
     """
-
-    self.timeSeriesDatabase = copy.deepcopy(targetVals)
+    self.pivotParameterValues = targetVals[:,:,self.target.index(self.pivotParameterID)]
+    if len(self.pivotParameterValues) > 1: self.raiseAnError(Exception,self.printTag +" does not handle multiple histories data yet! # histories: "+str(len(self.pivotParameterValues)))
+    self.pivotParameterValues.shape = (self.pivotParameterValues.size,)
+    self.timeSeriesDatabase         = copy.deepcopy(np.delete(targetVals,self.target.index(self.pivotParameterID),2))
+    self.timeSeriesDatabase.shape   = (self.timeSeriesDatabase.size,)
+    self.target.pop(self.target.index(self.pivotParameterID))
     # Fit fourier seires
     if self.hasFourierSeries:
       self.__trainFourier__()
@@ -2126,7 +2141,7 @@ class ARMA(superVisedLearning):
       @ In, none,
       @ Out, none,
     """
-    fourierSeriesAll = self.__generateFourierSignal__(self.pivotParameter, self.fourierPara['basePeriod'], self.fourierPara['FourierOrder'])
+    fourierSeriesAll = self.__generateFourierSignal__(self.pivotParameterValues, self.fourierPara['basePeriod'], self.fourierPara['FourierOrder'])
     fourierEngine = linear_model.LinearRegression()
     temp = {}
     for bp in self.fourierPara['FourierOrder'].keys():
@@ -2140,7 +2155,7 @@ class ARMA(superVisedLearning):
     self.fourierResult['fOrder'] = []
 
     for fOrder in fourOrders:
-      fSeries = np.zeros(shape=(self.pivotParameter.size,2*sum(fOrder)))
+      fSeries = np.zeros(shape=(self.pivotParameterValues.size,2*sum(fOrder)))
       indexTemp = 0
       for index,bp in enumerate(self.fourierPara['FourierOrder'].keys()):
         fSeries[:,indexTemp:indexTemp+fOrder[index]*2] = fourierSeriesAll[bp][:,0:fOrder[index]*2]
@@ -2148,7 +2163,7 @@ class ARMA(superVisedLearning):
       fourierEngine.fit(fSeries,self.timeSeriesDatabase)
       r = (fourierEngine.predict(fSeries)-self.timeSeriesDatabase)**2
       if r.size > 1:    r = sum(r)
-      r = r/self.pivotParameter.size
+      r = r/self.pivotParameterValues.size
       criterionCurrent = copy.copy(r)
       if  criterionCurrent< criterionBest:
         self.fourierResult['fOrder'] = copy.deepcopy(fOrder)
@@ -2182,7 +2197,7 @@ class ARMA(superVisedLearning):
 
         rOpt = {}
         rOpt = optimize.fmin(self.__computeARMALikelihood__,init, args=(p,q) ,full_output = True)
-        tmp = (p+q)*self.armaPara['dimension']**2/self.pivotParameter.size
+        tmp = (p+q)*self.armaPara['dimension']**2/self.pivotParameterValues.size
         criterionCurrent = self.__computeAICorBIC(self.armaResult['sigHat'],noPara=tmp,cType='BIC',obj='min')
         if criterionCurrent < criterionBest or 'P' not in self.armaResult.keys(): # to save the first iteration results
           self.armaResult['P'] = p
@@ -2392,7 +2407,7 @@ class ARMA(superVisedLearning):
     """
     if obj == 'min':        flag = -1
     else:                   flag = 1
-    if cType == 'BIC':      criterionValue = -1*flag*np.log(maxL)+noPara*np.log(self.pivotParameter.size)
+    if cType == 'BIC':      criterionValue = -1*flag*np.log(maxL)+noPara*np.log(self.pivotParameterValues.size)
     elif cType == 'AIC':    criterionValue = -1*flag*np.log(maxL)+noPara*2
     else:                   criterionValue = maxL
     return criterionValue
@@ -2411,7 +2426,7 @@ class ARMA(superVisedLearning):
     normEvaluateEngine.upperBoundUsed, normEvaluateEngine.lowerBoundUsed = False, False
     normEvaluateEngine.initializeDistribution()
 
-    numTimeStep = len(self.pivotParameter)
+    numTimeStep = len(self.pivotParameterValues)
     tSeriesNoise = np.zeros(shape=self.armaPara['rSeriesNorm'].shape)
     for t in range(numTimeStep):
       for n in range(self.armaPara['dimension']):
@@ -2442,7 +2457,7 @@ class ARMA(superVisedLearning):
       elif self.outTruncation == 'negative':    tSeries = -np.absolute(tSeries)
 
     generatedData = np.zeros(shape=[numTimeStep,self.armaPara['dimension']+1])
-    generatedData[:,0] = self.pivotParameter[0:numTimeStep]
+    generatedData[:,0] = self.pivotParameterValues[0:numTimeStep]
     generatedData[:,1:] = tSeries*featureVals
 
     return generatedData

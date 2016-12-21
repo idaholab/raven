@@ -47,10 +47,11 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
     modelInstance         = SupervisedLearning.returnInstance(ROMclass,self,**self.initializationOptions)
     # check if it is dynamic
     self.isADynamicModel  = modelInstance.isDynamic()
-    # if it is dynamic and time series are passed in, self.SupervisedEngine is not going to be expanded, else it is going to 
+    # if it is dynamic and time series are passed in, self.SupervisedEngine is not going to be expanded, else it is going to
     self.SupervisedEngine = [modelInstance]
- 
-    
+    # check if pivotParameter is specified and in case store it
+    self.pivotParameterId = self.initializationOptions.pop("pivotParameter",'time')
+
 #     if 'SKLtype' in self.initializationOptions and 'MultiTask' in self.initializationOptions['SKLtype']:
 #       self.initializationOptions['Target'] = targets
 #       model = SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptions)
@@ -72,15 +73,20 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
     pass
 
   def train(self,trainingSet):
-    
-    if type(trainingSet).__name__ == 'list':
+
+    if len(trainingSet.keys()) == 0: self.raiseAnError(IOError,"The training set is empty!")
+    if type(trainingSet.values()[-1]).__name__ == 'list':
       # we need to build a "time-dependent" ROM
-      if self.isADynamicModel: self.SupervisedEngine[0].train(trainingSet)
-      else                   : print("")
+      if self.isADynamicModel:
+        # the ROM is able to manage the time dependency on its own
+        self.SupervisedEngine[0].train(trainingSet)
+      else:
+        # we need to construct a chain of ROMs
+        pass
     else:
-     
-    
-  
+      pass
+
+
       if self.subType == 'ARMA':
         localInput = {}
 
