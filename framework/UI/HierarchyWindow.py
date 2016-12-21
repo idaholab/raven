@@ -5,8 +5,10 @@ from PySide import QtGui as qtg
 
 from sys import path
 
-from DendrogramView import DendrogramView
 from BaseView import BaseView
+from DendrogramView import DendrogramView
+from ScatterView import ScatterView
+import colors
 
 import time
 import sys
@@ -21,7 +23,8 @@ class HierarchyWindow(qtg.QMainWindow):
   """
   closed = qtc.Signal(qtc.QObject)
   sigLevelChanged = qtc.Signal(qtc.QObject)
-  def __init__(self, engine, level=None, debug=None, views=None):
+  sigColorChanged = qtc.Signal(qtc.QObject)
+  def __init__(self, engine, debug=None, views=None):
     """
 
     """
@@ -35,12 +38,14 @@ class HierarchyWindow(qtg.QMainWindow):
     self.engine = engine
 
     self.levels = sorted(set(self.engine.linkage[:,2]))
-    self.level = level or 0
+    self.colorMap = {}
 
     self.fileMenu = self.menuBar().addMenu('File')
     # self.optionsMenu = self.menuBar().addMenu('Options')
     self.viewMenu = self.menuBar().addMenu('View')
     newMenu = self.viewMenu.addMenu('New...')
+
+    self.setLevel(self.engine.initOptionDict['level'])
 
     for view in views:
       self.addNewView(view)
@@ -94,6 +99,7 @@ class HierarchyWindow(qtg.QMainWindow):
         self.createDockWidget(view)
 
         self.sigLevelChanged.connect(view.levelChanged)
+        self.sigColorChanged.connect(view.colorChanged)
         #self.sigSelectionChanged.connect(view.selectionChanged)
         #self.amsc.sigDataChanged.connect(view.dataChanged)
 
@@ -108,28 +114,94 @@ class HierarchyWindow(qtg.QMainWindow):
   def increaseLevel(self):
     """
     """
-    for lvl in self.levels:
-      if lvl > self.level:
-        self.level = lvl
-        self.levelChanged()
+    level = self.engine.initOptionDict['level']
+    for newLevel in self.levels:
+      if newLevel > level:
+        self.setLevel(newLevel)
         return
 
   def decreaseLevel(self):
     """
     """
-    for lvl in reversed(self.levels):
-      if lvl < self.level:
-        self.level = lvl
-        self.levelChanged()
+    level = self.engine.initOptionDict['level']
+    for newLevel in reversed(self.levels):
+      if newLevel < level:
+        self.setLevel(newLevel)
         return
+
+  def getLevel(self):
+    """
+    """
+    return self.engine.initOptionDict['level']
 
   def setLevel(self, newLevel):
     """
     """
-    self.level = newLevel
+    self.engine.initOptionDict['level'] = newLevel
+
+    linkage = self.engine.linkage
+
+    self.labels = np.zeros(len(self.engine.features.values()[0]))
+
+    heads = {}
+
+    for i in range(len(self.labels)):
+      heads[i] = [i]
+      self.labels[i] = i
+
+    n = linkage.shape[0]+1
+    for i in range(linkage.shape[0]):
+      newIdx = n+i
+      leftChildIdx,rightChildIdx,level,size = linkage[i,:]
+      if level <= newLevel:
+        heads[newIdx] = heads.pop(leftChildIdx) + heads.pop(rightChildIdx)
+      else:
+        break
+
+      for head,children in heads.items():
+        for idx in children:
+          self.labels[idx] = head
+
+
     self.levelChanged()
 
   def levelChanged(self):
     """
     """
     self.sigLevelChanged.emit(self)
+
+  def setColor(self,idx,color):
+    """
+    """
+    self.colorMap[idx] = color
+    self.sigColorChanged.emit(self)
+
+  def getColor(self,idx):
+    """
+    """
+    if idx not in self.colorMap:
+      # self.colorMap[idx] = qtg.QColor(*tuple(255*np.random.rand(3)))
+      self.colorMap[idx] = qtg.QColor(colors.colorCycle.next())
+
+    return self.colorMap[idx]
+
+  def getData(self):
+    """
+    """
+    data = np.zeros((len(self.engine.features.values()[0]),len(self.engine.features.keys())))
+    for col,value in enumerate(self.engine.features.values()):
+      data[:,col] = value
+    return data
+
+  def getDimensions(self):
+    """
+    """
+    return self.engine.features.keys()
+
+  def getSelectedIndices(self):
+    return []
+
+  def getLabels(self):
+    """
+    """
+    return self.labels
