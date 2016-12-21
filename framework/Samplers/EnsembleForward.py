@@ -133,7 +133,7 @@ class EnsembleForwardSampler(ForwardSampler):
       self.instanciatedSamplers[samplingStrategy].initialize(externalSeeding=self.initSeed,solutionExport=None)
       self.samplersCombinations[samplingStrategy] = []
       self.limit *= self.instanciatedSamplers[samplingStrategy].limit
-      lowerBounds[samplingStrategy],upperBounds[samplingStrategy] = 0, self.instanciatedSamplers[samplingStrategy].limit -1
+      lowerBounds[samplingStrategy],upperBounds[samplingStrategy] = 0, self.instanciatedSamplers[samplingStrategy].limit
       while self.instanciatedSamplers[samplingStrategy].amIreadyToProvideAnInput():
         self.instanciatedSamplers[samplingStrategy].counter +=1
         self.instanciatedSamplers[samplingStrategy].localGenerateInput(None,None)
@@ -143,7 +143,13 @@ class EnsembleForwardSampler(ForwardSampler):
     self.raiseAMessage('Number of Combined Samples are ' + str(self.limit) + '!')
     # create a grid of combinations (no tensor)
     self.gridEnsemble = GridEntities.GridEntity(self.messageHandler)
-    initDict = {'dimensionNames':self.instanciatedSamplers.keys(),'stepLength':dict.fromkeys(self.instanciatedSamplers.keys(),[1]), 'lowerBounds':lowerBounds,'upperBounds':upperBounds,'computeCells':False,'constructTensor':False}
+    initDict = {'dimensionNames':self.instanciatedSamplers.keys(),
+                'stepLength':dict.fromkeys(self.instanciatedSamplers.keys(),[1]),
+                'lowerBounds':lowerBounds,
+                'upperBounds':upperBounds,
+                'computeCells':False,
+                'constructTensor':False,
+                'excludeBounds':{'lowerBounds':False,'upperBounds':True}}
     self.gridEnsemble.initialize(initDict)
 
   def localGenerateInput(self,model,myInput):

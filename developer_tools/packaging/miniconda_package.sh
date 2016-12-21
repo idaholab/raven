@@ -38,21 +38,21 @@ rm -Rf /opt/raven_libs/
 PREFLIGHT
 chmod +x $HOME/raven_libs/scripts/preflight
 
-cat - > $HOME/raven_libs/scripts/postinstall <<POSTINSTALL
-#!/bin/bash
-echo Running Raven libs postinstall
-echo HOME = \$HOME
-if grep '. /opt/raven_libs/environments/raven_libs_profile'  \$HOME/.bash_profile; then echo Already sourcing /opt/raven_libs/environments/raven_libs_profile; else
-cat - >> \$HOME/.bash_profile <<EOF
-#source raven libs environment
-if [ -f /opt/raven_libs/environments/raven_libs_profile ]; then
-        . /opt/raven_libs/environments/raven_libs_profile
-fi
-EOF
-fi
-POSTINSTALL
+#cat - > $HOME/raven_libs/scripts/postinstall <<POSTINSTALL
+##!/bin/bash
+#echo Running Raven libs postinstall
+#echo HOME = \$HOME
+#if grep '. /opt/raven_libs/environments/raven_libs_profile'  \$HOME/.bash_profile; then echo Already sourcing /opt/raven_libs/environments/raven_libs_profile; else
+#cat - >> \$HOME/.bash_profile <<EOF
+##source raven libs environment
+#if [ -f /opt/raven_libs/environments/raven_libs_profile ]; then
+#        . /opt/raven_libs/environments/raven_libs_profile
+#fi
+#EOF
+#fi
+#POSTINSTALL
 
-chmod +x $HOME/raven_libs/scripts/postinstall
+#chmod +x $HOME/raven_libs/scripts/postinstall
 
 rm -Rf raven_miniconda.pkg
 pkgbuild --root $HOME/raven_libs/root --identifier raven_libs  --scripts $HOME/raven_libs/scripts raven_miniconda.pkg

@@ -68,15 +68,9 @@ class HistorySet(Data):
       @ In,  None
       @ Out, None
     """
-    lenMustHave = 0
     sourceType = self._toLoadFromList[-1].type
+    lenMustHave = self.numAdditionalLoadPoints
     # here we assume that the outputs are all read....so we need to compute the total number of time point sets
-    for sourceLoad in self._toLoadFromList:
-      if'HDF5' == sourceLoad.type:  lenMustHave = lenMustHave + len(sourceLoad.getEndingGroupNames())
-      elif isinstance(sourceLoad,Files.File): lenMustHave += 1
-      else:
-        self.raiseAnError(Exception,'The type ' + sourceLoad.type + ' is unknown!')
-
     if self._dataParameters['hierarchical']:
       for key in self._dataContainer['inputs'].keys():
         if (self._dataContainer['inputs'][key].size) != 1:
@@ -85,12 +79,8 @@ class HistorySet(Data):
         if (self._dataContainer['outputs'][key].ndim) != 1:
           self.raiseAnError(NotConsistentData,'The output parameter value, for key ' + key + ' has not a consistent shape for History in HistorySet ' + self.name + '!! It should be an 1D array since we are in hierarchical mode.' + '.Actual dimension is ' + str(self._dataContainer['outputs'][key].ndim))
     else:
-      if('HDF5' == sourceType):
-        if(lenMustHave != len(self._dataContainer['inputs'].keys())):
-          self.raiseAnError(NotConsistentData,'Number of HistorySet contained in HistorySet data ' + self.name + ' != number of loading sources!!! ' + str(lenMustHave) + ' !=' + str(len(self._dataContainer['inputs'].keys())))
-      else:
-        if(len(self._toLoadFromList) != len(self._dataContainer['inputs'].keys())):
-          self.raiseAnError(NotConsistentData,'Number of HistorySet contained in HistorySet data ' + self.name + ' != number of loading sources!!! ' + str(len(self._toLoadFromList)) + ' !=' + str(len(self._dataContainer['inputs'].keys())))
+      if(lenMustHave != len(self._dataContainer['inputs'].keys())):
+        self.raiseAnError(NotConsistentData,'Number of HistorySet contained in HistorySet data ' + self.name + ' != number of loading sources!!! ' + str(lenMustHave) + ' !=' + str(len(self._dataContainer['inputs'].keys())))
       for key in self._dataContainer['inputs'].keys():
         for key2 in self._dataContainer['inputs'][key].keys():
           if (self._dataContainer['inputs'][key][key2].size) != 1:
@@ -109,11 +99,16 @@ class HistorySet(Data):
       @ In, value, newer value
       @ Out, None
     """
+    # if this flag is true, we accept realizations in the input space that are not only scalar but can be 1-D arrays!
+    #acceptArrayRealizations = False if options == None else options.get('acceptArrayRealizations',False)
+    unstructuredInput = False
     if (not isinstance(value,(float,int,bool,np.ndarray,c1darray))):
-      self.raiseAnError(NotConsistentData,'HistorySet Data accepts only a numpy array (dim 1) or a single value for method <_updateSpecializedInputValue>. Got type ' + str(type(value)))
+      self.raiseAnError(NotConsistentData,'HistorySet Data accepts only a numpy array  or a single value for method <_updateSpecializedInputValue>. Got type ' + str(type(value)))
     if isinstance(value,(np.ndarray,c1darray)):
-      if value.size != 1: self.raiseAnError(NotConsistentData,'HistorySet Data accepts only a numpy array of dim 1 or a single value for method <_updateSpecializedInputValue>. Size is ' + str(value.size))
-
+      if np.asarray(value).ndim > 1 and max(value.shape) != np.asarray(value).size: self.raiseAnError(NotConsistentData,'HistorySet Data accepts only a 1 Dimensional numpy array or a single value for method <_updateSpecializedInputValue>. Array shape is ' + str(value.shape))
+      #if value.size != 1 and not acceptArrayRealizations: self.raiseAnError(NotConsistentData,'HistorySet Data accepts only a numpy array of dim 1 or a single value for method <_updateSpecializedInputValue>. Size is ' + str(value.size))
+      unstructuredInput = True if value.size > 1 else False
+    containerType = 'inputs' if not unstructuredInput else 'unstructuredInputs'
     if options and self._dataParameters['hierarchical']:
       # we retrieve the node in which the specialized 'History' has been stored
       parentID = None
@@ -139,31 +134,31 @@ class HistorySet(Data):
       else:         tsnode = self.retrieveNodeInTreeMode(nodeId)
       self._dataContainer = tsnode.get('dataContainer')
       if not self._dataContainer:
-        tsnode.add('dataContainer',{'inputs':{},'outputs':{}})
+        tsnode.add('dataContainer',{'inputs':{},'unstructuredInputs':{},'outputs':{}})
         self._dataContainer = tsnode.get('dataContainer')
-      if namep in self._dataContainer['inputs'].keys():
-        self._dataContainer['inputs'].pop(name)
+      if namep in self._dataContainer[containerType].keys():
+        self._dataContainer[containerType].pop(name)
       if namep not in self._dataParameters['inParam']: self._dataParameters['inParam'].append(namep)
-      self._dataContainer['inputs'][namep] = c1darray(values=np.atleast_1d(value)) # np.atleast_1d(np.array(value))
+      self._dataContainer[containerType][namep] = c1darray(values=np.ravel(value)) # np.atleast_1d(np.array(value))
       self.addNodeInTreeMode(tsnode,options)
     else:
       if type(name) == list:
         # there are info regarding the history number
-        if name[0] in self._dataContainer['inputs'].keys():
-          gethistory = self._dataContainer['inputs'].pop(name[0])
-          gethistory[name[1]] = c1darray(values=np.atleast_1d(np.array(value,dtype=float)))
-          self._dataContainer['inputs'][name[0]] = gethistory
+        if name[0] in self._dataContainer[containerType].keys():
+          gethistory = self._dataContainer[containerType].pop(name[0])
+          gethistory[name[1]] = c1darray(values=np.ravel(np.array(value,dtype=float)))
+          self._dataContainer[containerType][name[0]] = gethistory
         else:
-          self._dataContainer['inputs'][name[0]] = {name[1]:c1darray(values=np.atleast_1d(np.array(value,dtype=float)))}
+          self._dataContainer[containerType][name[0]] = {name[1]:c1darray(values=np.ravel(np.array(value,dtype=float)))}
       else:
         # no info regarding the history number => use internal counter
-        if len(self._dataContainer['inputs'].keys()) == 0: self._dataContainer['inputs'][1] = {name:c1darray(values=np.atleast_1d(np.array(value,dtype=float)))}
+        if len(self._dataContainer[containerType].keys()) == 0: self._dataContainer[containerType][1] = {name:c1darray(values=np.ravel(np.array(value,dtype=float)))}
         else:
-          hisn = max(self._dataContainer['inputs'].keys())
-          if name in list(self._dataContainer['inputs'].values())[-1]:
+          hisn = max(self._dataContainer[containerType].keys())
+          if name in list(self._dataContainer[containerType].values())[-1]:
             hisn += 1
-            self._dataContainer['inputs'][hisn] = {}
-          self._dataContainer['inputs'][hisn][name] = c1darray(values=np.atleast_1d(np.array(value,dtype=float))) # np.atleast_1d(np.array(value))
+            self._dataContainer[containerType][hisn] = {}
+          self._dataContainer[containerType][hisn][name] = c1darray(values=np.ravel(np.array(value,dtype=float))) # np.atleast_1d(np.array(value))
 
   def _updateSpecializedMetadata(self,name,value,options=None):
     """
@@ -302,12 +297,14 @@ class HistorySet(Data):
             variableName = "|".join(splitted[1:])
             varType = splitted[0]
             if varType == 'input':
+              if variableName not in self.getParaKeys('input'): self.raiseAnError(Exception,"variable named "+variableName+" is not among the "+varType+"s!")
               inpKeys[-1].append(variableName)
               axa = np.zeros(len(O_o[key]))
               for index in range(len(O_o[key])):
                 axa[index] = O_o[key][index]['inputs'][variableName][0]
               inpValues[-1].append(axa)
             if varType == 'output':
+              if variableName not in self.getParaKeys('output'): self.raiseAnError(Exception,"variable named "+variableName+" is not among the "+varType+"s!")
               outKeys[-1].append(variableName)
               axa = O_o[key][0]['outputs'][variableName]
               for index in range(len(O_o[key])-1): axa = np.concatenate((axa,O_o[key][index+1]['outputs'][variableName]))
@@ -361,37 +358,57 @@ class HistorySet(Data):
       inpValues = list(self._dataContainer['inputs'].values())
       outKeys   = self._dataContainer['outputs'].keys()
       outValues = list(self._dataContainer['outputs'].values())
+      unstructuredInpKeys   = self._dataContainer['unstructuredInputs'].keys()
+      unstructuredInpValues = list(self._dataContainer['unstructuredInputs'].values())
       #Create Input file
       myFile = open(filenameLocal + '.csv','w')
+      if len(unstructuredInpValues) > 0 and len(unstructuredInpValues[0].keys())>0:
+        unstructuredInpKeysFiltered, unstructuredInpValuesFiltered = [], []
+      else: unstructuredInpKeysFiltered, unstructuredInpValuesFiltered = None, None
       for n in range(len(outKeys)):
         inpKeys_h   = []
         inpValues_h = []
         outKeys_h   = []
         outValues_h = []
+        if unstructuredInpKeysFiltered is not None:
+          unstructuredInpKeysFiltered.append([])
+          unstructuredInpValuesFiltered.append([])
+
         if 'what' in options.keys():
           for var in options['what']:
             splitted = var.split('|')
             variableName = "|".join(splitted[1:])
             varType = splitted[0]
             if varType == 'input':
-              inpKeys_h.append(variableName)
-              inpValues_h.append(inpValues[n][variableName])
+              if variableName not in self.getParaKeys('input'): self.raiseAnError(Exception,"variable named "+variableName+" is not among the "+varType+"s!")
+              if variableName in inpValues[n].keys():
+                inpKeys_h.append(variableName)
+                inpValues_h.append(inpValues[n][variableName])
+              else:
+                if unstructuredInpKeysFiltered is not None:
+                  unstructuredInpKeysFiltered[n].append(variableName)
+                  unstructuredInpValuesFiltered[n].append(unstructuredInpValues[n][variableName])
+                else: self.raiseAnError(Exception,"variable named "+variableName+" is not among the "+varType+"s!")
             if varType == 'output':
-              outKeys_h.append(var.split('|')[1])
+              if variableName not in self.getParaKeys('output'): self.raiseAnError(Exception,"variable named "+variableName+" is not among the "+varType+"s!")
+              outKeys_h.append(variableName)
               outValues_h.append(outValues[n][variableName])
         else:
-          inpKeys_h   = list(inpValues[n].keys())   #sorted(list(inpValues[n].keys()))
-          inpValues_h = list(inpValues[n].values()) # [inpValues[n][key] for key in inpKeys_h]
-          outKeys_h   = list(outValues[n].keys())   # sorted(list(outValues[n].keys()))
-          outValues_h = list(outValues[n].values()) # [outValues[n][key] for key in outKeys_h]
+          inpKeys_h   = list(inpValues[n].keys())
+          inpValues_h = list(inpValues[n].values())
+          if unstructuredInpKeysFiltered is not None:
+            unstructuredInpKeysFiltered[n] = list(unstructuredInpValues[n].keys())
+            unstructuredInpValuesFiltered[n] =  list(unstructuredInpValues[n].values())
+          outKeys_h   = list(outValues[n].keys())
+          outValues_h = list(outValues[n].values())
 
         dataFilename = filenameLocal + '_'+ str(n) + '.csv'
         if len(inpKeys_h) > 0 or len(outKeys_h) > 0: myDataFile = open(dataFilename, 'w')
         else: return #XXX should this just skip this iteration?
+
         #Write header for main file
         if n == 0:
-          myFile.write(','.join([item for item in
-                                  itertools.chain(inpKeys_h,['filename'])]))
+          myFile.write(','.join([item for item in itertools.chain(inpKeys_h,['filename'])]))
           myFile.write('\n')
           self._createXMLFile(filenameLocal,'HistorySet',inpKeys_h,outKeys_h)
         myFile.write(','.join([str(item[0]) for item in
@@ -408,6 +425,9 @@ class HistorySet(Data):
             myDataFile.write('\n')
         myDataFile.close()
       myFile.close()
+      if unstructuredInpKeysFiltered is not None and len(unstructuredInpKeysFiltered) > 0:
+        # write unstructuredData
+        self._writeUnstructuredInputInXML(filenameLocal +'_unstructured_inputs',unstructuredInpKeysFiltered,unstructuredInpValuesFiltered)
 
   def _specializedLoadXMLandCSV(self, filenameRoot, options):
     """
@@ -443,9 +463,10 @@ class HistorySet(Data):
     header = myFile.readline().rstrip()
     inpKeys = header.split(",")[:-1]
     inpValues = []
-    outKeys = []
+    outKeys   = []
     outValues = []
-    for mainLine in myFile.readlines():
+    allLines  = myFile.readlines()
+    for mainLine in allLines:
       mainLineList = mainLine.rstrip().split(",")
       inpValues_h = [utils.partialEval(a) for a in mainLineList[:-1]]
       inpValues.append(inpValues_h)
@@ -480,60 +501,64 @@ class HistorySet(Data):
           subOutput[key] = c1darray(values=np.array(value))
       self._dataContainer['inputs'][mainKey] = subInput
       self._dataContainer['outputs'][mainKey] = subOutput
+    #extend the expected size of this point set
+    self.numAdditionalLoadPoints = len(allLines) #used in checkConsistency
+
     self.checkConsistency()
 
-  def __extractValueLocal__(self,inOutType,varTyp,varName,varID=None,stepID=None,nodeId='root'):
-    """
-      specialization of extractValue for this data type
-      @ In, inOutType, string, the type of data to extract (input or output)
-      @ In, varTyp, string, is the requested type of the variable to be returned (bool, int, float, numpy.ndarray, etc)
-      @ In, varName, string, is the name of the variable that should be recovered
-      @ In, varID, tuple or int, optional, is the ID of the value that should be retrieved within a set
-        if varID.type!=tuple only one point along sampling of that variable is retrieved
-          else:
-            if varID=(int,int) the slicing is [varID[0]:varID[1]]
-            if varID=(int,None) the slicing is [varID[0]:]
-      @ In, stepID, tuple or int, optional, it  determines the slicing of an history.
-          if stepID.type!=tuple only one point along the history is retrieved
-          else:
-            if stepID=(int,int) the slicing is [stepID[0]:stepID[1]]
-            if stepID=(int,None) the slicing is [stepID[0]:]
-      @ In, nodeId, string, in hierarchical mode, is the node from which the value needs to be extracted... by default is the root
-      @ Out, value, varTyp, the requested value
-    """
-    if varTyp!='numpy.ndarray':
-      if varName in self._dataParameters['inParam']:
-        if varID!=None: exec ('return varTyp(self.getParam('+inOutType+','+str(varID)+')[varName]')
-        else: self.raiseAnError(RuntimeError,'to extract a scalar ('+varName+') form the data '+self.name+', it is needed an ID to identify the history (varID missed)')
-      else:
-        if varID!=None:
-          if stepID!=None and type(stepID)!=tuple: exec ('return varTyp(self.getParam('+inOutType+','+str(varID)+')[varName][stepID]')
-          else: self.raiseAnError(RuntimeError,'to extract a scalar ('+varName+') form the data '+self.name+', it is needed an ID of the input set used and a time coordinate (time or timeID missed or tuple)')
-        else: self.raiseAnError(RuntimeError,'to extract a scalar ('+varName+') form the data '+self.name+', it is needed an ID of the input set used (varID missed)')
-    else:
-      if varName in self._dataParameters['inParam']:
-        myOut=np.zeros(len(self.getInpParametersValues().keys()))
-        for key in self.getInpParametersValues().keys():
-          myOut[int(key)]=self.getParam(inOutType,key)[varName][0]
-        return myOut
-      else:
-        if varID!=None:
-          if stepID==None:
-            return self.getParam(inOutType,varID)[varName]
-          elif type(stepID)==tuple:
-            if stepID[1]==None: return self.getParam(inOutType,varID)[varName][stepID[0]:]
-            else: return self.getParam(inOutType,varID)[varName][stepID[0]:stepID[1]]
-          else: return self.getParam(inOutType,varID)[varName][stepID]
-        else:
-          if stepID==None: self.raiseAnError(RuntimeError,'more info needed trying to extract '+varName+' from data '+self.name)
-          elif type(stepID)==tuple:
-            if stepID[1]!=None:
-              myOut=np.zeros((len(self.getOutParametersValues().keys()),stepID[1]-stepID[0]))
-              for key in self.getOutParametersValues().keys():
-                myOut[int(key),:]=self.getParam(inOutType,key)[varName][stepID[0]:stepID[1]]
-            else: self.raiseAnError(RuntimeError,'more info needed trying to extract '+varName+' from data '+self.name)
-          else:
-            myOut=np.zeros(len(self.getOutParametersValues().keys()))
-            for key in self.getOutParametersValues().keys():
-              myOut[int(key)]=self.getParam(inOutType,key)[varName][stepID]
-            return myOut
+#   COMMENTED BECUASE NOT USED. NEED TO BE REMOVED IN THE FUTURE
+#   def __extractValueLocal__(self,inOutType,varTyp,varName,varID=None,stepID=None,nodeId='root'):
+#     """
+#       specialization of extractValue for this data type
+#       @ In, inOutType, string, the type of data to extract (input or output)
+#       @ In, varTyp, string, is the requested type of the variable to be returned (bool, int, float, numpy.ndarray, etc)
+#       @ In, varName, string, is the name of the variable that should be recovered
+#       @ In, varID, tuple or int, optional, is the ID of the value that should be retrieved within a set
+#         if varID.type!=tuple only one point along sampling of that variable is retrieved
+#           else:
+#             if varID=(int,int) the slicing is [varID[0]:varID[1]]
+#             if varID=(int,None) the slicing is [varID[0]:]
+#       @ In, stepID, tuple or int, optional, it  determines the slicing of an history.
+#           if stepID.type!=tuple only one point along the history is retrieved
+#           else:
+#             if stepID=(int,int) the slicing is [stepID[0]:stepID[1]]
+#             if stepID=(int,None) the slicing is [stepID[0]:]
+#       @ In, nodeId, string, in hierarchical mode, is the node from which the value needs to be extracted... by default is the root
+#       @ Out, value, varTyp, the requested value
+#     """
+#     if varTyp!='numpy.ndarray':
+#       if varName in self._dataParameters['inParam']:
+#         if varID!=None: exec ('return varTyp(self.getParam('+inOutType+','+str(varID)+')[varName]')
+#         else: self.raiseAnError(RuntimeError,'to extract a scalar ('+varName+') form the data '+self.name+', it is needed an ID to identify the history (varID missed)')
+#       else:
+#         if varID!=None:
+#           if stepID!=None and type(stepID)!=tuple: exec ('return varTyp(self.getParam('+inOutType+','+str(varID)+')[varName][stepID]')
+#           else: self.raiseAnError(RuntimeError,'to extract a scalar ('+varName+') form the data '+self.name+', it is needed an ID of the input set used and a time coordinate (time or timeID missed or tuple)')
+#         else: self.raiseAnError(RuntimeError,'to extract a scalar ('+varName+') form the data '+self.name+', it is needed an ID of the input set used (varID missed)')
+#     else:
+#       if varName in self._dataParameters['inParam']:
+#         myOut=np.zeros(len(self.getInpParametersValues().keys()))
+#         for key in self.getInpParametersValues().keys():
+#           myOut[int(key)]=self.getParam(inOutType,key)[varName][0]
+#         return myOut
+#       else:
+#         if varID!=None:
+#           if stepID==None:
+#             return self.getParam(inOutType,varID)[varName]
+#           elif type(stepID)==tuple:
+#             if stepID[1]==None: return self.getParam(inOutType,varID)[varName][stepID[0]:]
+#             else: return self.getParam(inOutType,varID)[varName][stepID[0]:stepID[1]]
+#           else: return self.getParam(inOutType,varID)[varName][stepID]
+#         else:
+#           if stepID==None: self.raiseAnError(RuntimeError,'more info needed trying to extract '+varName+' from data '+self.name)
+#           elif type(stepID)==tuple:
+#             if stepID[1]!=None:
+#               myOut=np.zeros((len(self.getOutParametersValues().keys()),stepID[1]-stepID[0]))
+#               for key in self.getOutParametersValues().keys():
+#                 myOut[int(key),:]=self.getParam(inOutType,key)[varName][stepID[0]:stepID[1]]
+#             else: self.raiseAnError(RuntimeError,'more info needed trying to extract '+varName+' from data '+self.name)
+#           else:
+#             myOut=np.zeros(len(self.getOutParametersValues().keys()))
+#             for key in self.getOutParametersValues().keys():
+#               myOut[int(key)]=self.getParam(inOutType,key)[varName][stepID]
+#             return myOut

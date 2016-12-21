@@ -17,6 +17,14 @@
    test_interface_only = True
  [../]
 
+ [./testMCMammothNoExecutableBisonRelap7WithHDF5restart]
+   type = 'RavenFramework'
+   input = test_mammoth_r7_bison_no_exe_hdf5_restart.xml
+   output = 'MammothBisonRelap7NoExeWithHDF5restart/maxCladOutTempResultsHistory_8.csv MammothBisonRelap7NoExeWithHDF5restart/maxCladOutTempResults.csv'
+   test_interface_only = True
+ [../]
+
+
 [./testMCMAMMOTHNoExecutable_RattlesnakeBison]
    type = 'RavenFramework'
    input = 'test_perturb_all_rattlesnake_bison.xml'
@@ -100,6 +108,16 @@
   test_interface_only = True
  [../]
 
+ [./RELAP5interfaceTestAliasAliasNoExecutable]
+  type = 'RavenFramework'
+  input = 'test_relap5_code_interface_alias.xml'
+  output = 'RELAP5interfaceTestAlias/testDummyStep/1/snc01.i RELAP5interfaceTestAlias/testDummyStep/2/snc01.i RELAP5interfaceTestAlias/testDummyStep/3/snc01.i RELAP5interfaceTestAlias/testDummyStep/4/snc01.i RELAP5interfaceTestAlias/testDummyStep/5/snc01.i RELAP5interfaceTestAlias/testDummyStep/1/out~snc01.csv RELAP5interfaceTestAlias/testDummyStep/2/out~snc01.csv RELAP5interfaceTestAlias/testDummyStep/3/out~snc01.csv RELAP5interfaceTestAlias/testDummyStep/4/out~snc01.csv RELAP5interfaceTestAlias/testDummyStep/5/out~snc01.csv'
+  csv = 'RELAP5interfaceTestAlias/testDummyStep/1/out~snc01.csv RELAP5interfaceTestAlias/testDummyStep/2/out~snc01.csv RELAP5interfaceTestAlias/testDummyStep/3/out~snc01.csv RELAP5interfaceTestAlias/testDummyStep/4/out~snc01.csv RELAP5interfaceTestAlias/testDummyStep/5/out~snc01.csv'
+  text = 'RELAP5interfaceTestAlias/testDummyStep/1/snc01.i RELAP5interfaceTestAlias/testDummyStep/2/snc01.i'
+  test_interface_only = True
+ [../]
+
+
  [./RELAP5interfaceMultDeckTestNoExecutable]
   type = 'RavenFramework'
   input = 'test_relap5_code_interface_multideck.xml'
@@ -137,6 +155,15 @@
   input = 'test_Dymola_code_interface.xml'
   output = 'DMInterfaceTest/testDummyStep/1/dsin.txt DMInterfaceTest/testDummyStep/2/dsin.txt DMInterfaceTest/testDummyStep/3/dsin.txt DMInterfaceTest/testDummyStep/4/dsin.txt DMInterfaceTest/testDummyStep/5/dsin.txt DMInterfaceTest/testDummyStep/1/out~dsin.csv DMInterfaceTest/testDummyStep/2/out~dsin.csv DMInterfaceTest/testDummyStep/3/out~dsin.csv DMInterfaceTest/testDummyStep/4/out~dsin.csv DMInterfaceTest/testDummyStep/5/out~dsin.csv'
   csv = 'DMInterfaceTest/testDummyStep/1/out~dsin.csv DMInterfaceTest/testDummyStep/2/out~dsin.csv DMInterfaceTest/testDummyStep/3/out~dsin.csv DMInterfaceTest/testDummyStep/4/out~dsin.csv DMInterfaceTest/testDummyStep/5/out~dsin.csv'
+  test_interface_only = True
+ [../]
+
+ [./DymolaInterfaceTestTimeDepNoExecutable]
+  type = 'RavenFramework'
+  input = 'test_Dymola_code_interface_timedep.xml'
+  output = 'DMInterfaceTestTimedep/testDummyStep/1/dsin.txt DMInterfaceTestTimedep/testDummyStep/2/dsin.txt DMInterfaceTestTimedep/testDummyStep/3/dsin.txt DMInterfaceTestTimedep/testDummyStep/4/dsin.txt DMInterfaceTestTimedep/testDummyStep/5/dsin.txt DMInterfaceTestTimedep/testDummyStep/1/out~dsin.csv DMInterfaceTestTimedep/testDummyStep/2/out~dsin.csv DMInterfaceTestTimedep/testDummyStep/3/out~dsin.csv DMInterfaceTestTimedep/testDummyStep/4/out~dsin.csv DMInterfaceTestTimedep/testDummyStep/5/out~dsin.csv DMInterfaceTestTimedep/DB_BouncingBallDump_unstructured_inputs.xml'
+  csv = 'DMInterfaceTestTimedep/testDummyStep/1/out~dsin.csv DMInterfaceTestTimedep/testDummyStep/2/out~dsin.csv DMInterfaceTestTimedep/testDummyStep/3/out~dsin.csv DMInterfaceTestTimedep/testDummyStep/4/out~dsin.csv DMInterfaceTestTimedep/testDummyStep/5/out~dsin.csv'
+   UnorderedXml= 'DMInterfaceTestTimedep/DB_BouncingBallDump_unstructured_inputs.xml'
   test_interface_only = True
  [../]
 
@@ -220,6 +247,33 @@
    output = 'MAAP5_HybridDET_test/7-plotAFW_line.png MAAP5_HybridDET_test/7-plotAFW_line.png MAAP5_HybridDET_test/test_dataobject.csv'
    csv = 'MAAP5_HybridDET_test/test_dataobject_3.csv'
    UnorderedXml = 'MAAP5_HybridDET_test/test_dataobject.xml'
+   test_interface_only = True
+   rel_err = 0.0001
+ [../]
+ [./MAAP5interfaceADETSampling]
+   type = 'RavenFramework'
+   input = 'test_maap5_code_interface_adaptive_det.xml'
+   output = 'MAAP5_adaptiveDET_test/limitSurfDump.csv MAAP5_adaptiveDET_test/limitSurfDump.xml'
+   UnorderedCsv = 'MAAP5_adaptiveDET_test/limitSurfDump.csv'
+   UnorderedXml = 'MAAP5_adaptiveDET_test/limitSurfDump.xml'
+   test_interface_only = True
+   rel_err = 0.0001
+ [../]
+ [./MAAP5interfaceAHDETSampling]
+   type = 'RavenFramework'
+   input = 'test_maap5_code_interface_adaptive_hybrid_det.xml'
+   output = 'MAAP5_adaptiveHybridDET_test/limitSurfDump.csv MAAP5_adaptiveHybridDET_test/limitSurfDump.xml'
+   UnorderedCsv = 'MAAP5_adaptiveHybridDET_test/limitSurfDump.csv'
+   UnorderedXml = 'MAAP5_adaptiveHybridDET_test/limitSurfDump.xml'
+   test_interface_only = True
+   rel_err = 0.0001
+ [../]
+ [./MAAP5interfaceDETSamplingMultiBranch]
+   type = 'RavenFramework'
+   input = 'test_maap5_code_interface_det_multibranch.xml'
+   output = 'MAAP5MultibranchTest/6-plotWWBBN_line.png MAAP5MultibranchTest/test_dataobject_7.csv'
+   UnorderedCsv = 'MAAP5MultibranchTest/test_dataobject.csv'
+   UnorderedXml = 'MAAP5MultibranchTest/test_dataobject.xml'
    test_interface_only = True
    rel_err = 0.0001
  [../]

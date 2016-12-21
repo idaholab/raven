@@ -19,6 +19,29 @@
   \nb As with other objects, this identifier can be used to reference this
   specific entity from other input blocks in the XML.
 }
+
+
+\newcommand{\aliasSystemDescription}[1]
+{
+  \xmlNode{alias} \xmlDesc{string, optional field} specifies alias for
+  any variable of interest in the input or output space for the #1.
+  %
+  These aliases can be used anywhere in the RAVEN input to refer to the #1
+  variables.
+  %
+  In the body of this node the user specifies the name of the variable that the model is going to use 
+  (during its execution).
+  %
+  The actual alias, usable throughout the RAVEN input, is instead defined in the
+  \xmlAttr{variable} attribute of this tag. 
+  \\The user can specify aliases for both the input and the output space. As sanity check, RAVEN
+  requires an additional required attribute \xmlAttr{type}. This attribute can be either ``input'' or ``output''. 
+  %
+  \nb The user can specify as many aliases as needed.
+  %
+  \default{None}
+}
+
 \renewcommand{\specBlock}[2]{
   The specifications of this model must be defined within #1 \xmlNode{#2} XML
   block.
@@ -739,21 +762,7 @@ to couple a new code.
   of the executable to be used.
   %
   \nb Either an absolute or relative path can be used.
-  \item \xmlNode{alias} \xmlDesc{string, optional field} specifies aliases for
-  any variables of interest coming from the code to which this model refers.
-  %
-  These aliases can be used anywhere in the RAVEN input to refer to the code
-  variables.
-  %
-  In the body of this node the user specifies the name of the variable that
-  RAVEN will look for in the output files of the code.
-  %
-  The actual alias, usable throughout the input, is instead defined in the
-  \xmlAttr{variable} attribute of this tag.
-  %
-  \nb The user can specify as many aliases as needed.
-  %
-  \default{None}
+  \item \aliasSystemDescription{Code}
   %
   \item \xmlNode{clargs} \xmlDesc{string, optional field} allows addition of
   command-line arguments to the execution command.  If the code interface
@@ -822,11 +831,14 @@ to couple a new code.
     ...
     <Code name='aUserDefinedName' subType='RAVEN_Driven_code'>
       <executable>path_to_executable</executable>
-      <alias variable='internal_variable_name1'>
-         External_Code_Variable_Name_1
+      <alias variable='internal_RAVEN_input_variable_name1' type="input">
+         External_Code_input_Variable_Name_1
       </alias>
-      <alias variable='internal_variable_name2'>
-         External_Code_Variable_Name_2
+      <alias variable='internal_RAVEN_input_variable_name2' type='input'>
+         External_Code_input_Variable_Name_2
+      </alias>
+      <alias variable='internal_RAVEN__output_variable_name' type='output'>
+         External_Code_output_Variable_Name_2
       </alias>
       <clargs type='prepend' arg='python'/>
       <clargs type='input' arg='-i' extension='.i'/>
@@ -868,6 +880,14 @@ requested.
   must be kept empty.
 \end{itemize}
 \vspace{-5mm}
+
+\subnodesIntro
+%
+\begin{itemize}
+  \item \aliasSystemDescription{Dummy}
+  \\Since the \textbf{Dummy} model represents a transfer function only, the usage of the alias is relatively meaningless.
+\end{itemize}
+
 Given a particular \textit{Step} using this model, if this model is linked to
 a \textit{Data} with the role of \textbf{Output}, it expects one of the output
 parameters will be identified by the keyword ``OutputPlaceHolder'' (see
@@ -879,7 +899,13 @@ Section~\ref{sec:steps}).
   ...
   <Models>
     ...
-    <Dummy name='aUserDefinedName' subType=''/>
+    <Dummy name='aUserDefinedName1' subType=''/>
+    
+    <Dummy name='aUserDefinedName2' subType=''>
+      <alias variable="a_RAVEN_input_variable" type="input">
+      another_name_for_this_variable_in_the_model
+      </alias>
+    </Dummy>
     ...
   </Models>
   ...
@@ -955,6 +981,12 @@ These variables are specified within a \xmlNode{variables} block:
   model.
   %
 \end{itemize}
+
+In addition, if the user wants to use the alias system, the following XML block can be inputted:
+\begin{itemize}
+  \item \aliasSystemDescription{ExternalModel}
+\end{itemize}
+
 
 When the external function variables are defined, at run time, RAVEN initializes
 them and tracks their values during the simulation.
@@ -1267,13 +1299,11 @@ here specified need to be inputted in the\xmlNode{Models} main XML block) :
   %
   \item \xmlAttr{type}, \xmlDesc{required string attribute}, the sub-type of this Model (e.g. ExternalModel, ROM, Code)
   %
-  \item \xmlAttr{inputNames}, \xmlDesc{required comma separated list attribute}, the inputs' names that are required by
-  this sub-model
 \end{itemize}
 \vspace{-5mm}
 
   %
-  In addition the following XML sub-node need to be inputted:
+  In addition the following XML sub-nodes need to be inputted:
   \begin{itemize}
      \item \xmlNode{TargetEvaluation}, \xmlDesc{string, required field},
         represents the container where the output of this Model are stored.
@@ -1282,34 +1312,112 @@ here specified need to be inputted in the\xmlNode{Models} main XML block) :
         a data object defined in the \xmlNode{DataObjects} block (see
         Section~\ref{sec:DataObjects}).
         %
+        Currently, the  \xmlNode{EnsembleModel} accept ``DataObjects''  both of type
+        ``PointSet'' and ``HistorySet''.
+     \item \xmlNode{Input}, \xmlDesc{string, required field},
+        represents the input entities that need to be passed to this sub-model
+        %
+        The user can specify as many \xmlNode{Input} as required by the sub-model.
+        \nb All the inputs here specified need to be listed in the Steps where the EnsembleModel
+        is used.
+        %
         Currently, the  \xmlNode{EnsembleModel} accepts ``DataObjects'' of type
         ``PointSet'' only.
     \end{itemize}
   %
 \end{itemize}
 
-It is important to notice that when the EnsembleModel detects a chain of models that evolve in a non-linear system, a Picard's
-Iteration scheme is activated.
 
-
-\textbf{Example:}
+It is important to notice that when the EnsembleModel detects a chain of models that evolve in a non-linear system, a Picard's Iteration scheme is activated. In this case, an additional XML sub-node within the main \xmlNode{EnsembleModel} XML node needs to be specified:
+\begin{itemize}
+  \item \xmlNode{settings}, \xmlDesc{XML node, required parameter (if Picard's activated)}.
+  %
+  The body of this sub-node  contains the following XML sub-nodes:
+  %
+  \begin{itemize}
+     \item \xmlNode{maxIterations}, \xmlDesc{integer, optional field},
+        maximum number of Picard's iteration to be performed (in case the iteration scheme does 
+        not previously converge). \default{30};
+     \item \xmlNode{tolerance}, \xmlDesc{float, optional field},
+        convergence criterion. It represents the L2 norm residue below which the Picard's iterative scheme is 
+        considered converged. \default{0.001};
+     \item \xmlNode{initialConditions}, \xmlDesc{XML node, required parameter  (if Picard's activated)},
+        Within this sub-node, the initial conditions for the input variables (that are part of a loop)  need to
+        be specified in sub-nodes named with the variable name (e.g. \xmlNode{varName}). The body of the
+        \xmlNode{varName} contains the value of the initial conditions (scalar or arrays, depending of the 
+        type of variable). If an array needs to be inputted, the user can specify the attribute  \xmlAttr{repeat} 
+        and the code is going to repeat for  \xmlAttr{repeat}-times the value inputted in the body.
+    \end{itemize}
+\end{itemize}
+\textbf{Example (Linear System):}
 \begin{lstlisting}[style=XML,morekeywords={subType,debug,name,class,type}]
 <Simulation>
   ...
   <Models>
     ...
     <EnsembleModel name="heatTransferEnsembleModel" subType="">
-      <Model class="Models" type="ExternalModel" inputNames="inputHolder">
+      <Model class="Models" type="ExternalModel">
         thermalConductivityComputation
         <TargetEvaluation class="DataObjects" type="PointSet">
           thermalConductivityComputationContainer
         </TargetEvaluation>
+        <Input class="DataObjects" type="PointSet">
+          inputHolder
+        </Input>
       </Model>
-      <Model class="Models" type="ExternalModel" inputNames="inputHolder">
+      <Model class="Models" type="ExternalModel" >
           heatTransfer
           <TargetEvaluation class="DataObjects" type="PointSet">
             heatTransferContainer
           </TargetEvaluation>
+        <Input class="DataObjects" type="PointSet">
+          inputHolder
+        </Input>
+      </Model>
+    </EnsembleModel>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+
+\textbf{Example (Non-Linear System):}
+\begin{lstlisting}[style=XML,morekeywords={subType,debug,repeat,name,class,type}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <EnsembleModel name="heatTransferEnsembleModel" subType="">
+      <settings>
+        <maxIterations>8</maxIterations>
+         <tolerance>0.01</tolerance>
+         <initialConditions>
+           <!-- the value 0.7 is going to be repeated 10 times in order to create  an array for var1 -->
+           <var1 repeat="10">0.7</var1>
+           <!-- an array for var2 has been inputted -->
+           <var2> 0.5 0.3 0.4</var2>
+           <!-- a scalar for var3 has been inputted -->
+           <var3> 45.0</var3>
+         </initialConditions>
+      </settings>
+          
+      <Model class="Models" type="ExternalModel">
+        thermalConductivityComputation
+        <TargetEvaluation class="DataObjects" type="PointSet">
+          thermalConductivityComputationContainer
+        </TargetEvaluation>
+        <Input class="DataObjects" type="PointSet">
+          inputHolder
+        </Input>
+      </Model>
+      <Model class="Models" type="ExternalModel" >
+          heatTransfer
+          <TargetEvaluation class="DataObjects" type="PointSet">
+            heatTransferContainer
+          </TargetEvaluation>
+        <Input class="DataObjects" type="PointSet">
+          inputHolder
+        </Input>
       </Model>
     </EnsembleModel>
     ...
