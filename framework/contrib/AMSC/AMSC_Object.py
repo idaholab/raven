@@ -1236,5 +1236,6 @@ try:
       return True
 
 except ImportError as e:
-  sys.stderr.write(str(e) +'\n')
-  sys.exit(1)
+  pass
+  # sys.stderr.write(str(e) +'\n')
+  # sys.exit(1)
