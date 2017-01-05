@@ -447,7 +447,9 @@ class DendrogramView(ZoomableGraphicsView,BaseView):
       oldRect = glyph.rect()
 
       color = self.getColor(idx)
-      if node.parent != self.tree and node.parent.level <= currentLevel or node.level > currentLevel:
+      ## If the node's parent is less than the current level, or if this node
+      ## is above the current level
+      if node.parent != self.tree and node.parent.level <= currentLevel or (node.level > currentLevel and node.getLeafCount(self.truncationSize, self.truncationLevel) > 1):
         color.setAlpha(64)
         diameter = self.minDiameter
         glyph.setFlag(qtg.QGraphicsItem.ItemIsSelectable, False)

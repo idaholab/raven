@@ -31,9 +31,15 @@ class Node(object):
     if len(self.children) == 0:
       return 1
 
-    count = 0
+    truncated = True
+
     for child in self.children:
       if child.level >= truncationLevel and child.size >= truncationSize:
+        truncated = False
+
+    count = 0
+    for child in self.children:
+      if not truncated:
         count += child.getLeafCount(truncationSize, truncationLevel)
 
     if count == 0:
@@ -43,13 +49,18 @@ class Node(object):
 
   def maximumChild(self, truncationSize=0, truncationLevel=0):
     maxChild = None
+
+    truncated = True
     for child in self.children:
       if child.level >= truncationLevel and child.size >= truncationSize:
+        truncated = False
+
+    for child in self.children:
+      if not truncated:
         if maxChild is None or maxChild.level < child.level:
           maxChild = child
 
     return maxChild
-
 
   def Layout(self,xoffset,width, truncationSize=0, truncationLevel=0):
     ids = [self.id]
@@ -68,8 +79,14 @@ class Node(object):
 
       children = sorted(self.children, cmp=cmp)
       immediateDescendantXs = []
+      truncated = True
+
       for child in children:
         if child.level >= truncationLevel and child.size >= truncationSize:
+          truncated = False
+
+      for child in children:
+        if not truncated:
           edges.append((self.id,child.id))
 
           count = child.getLeafCount(truncationSize,truncationLevel)
