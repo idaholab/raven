@@ -223,7 +223,7 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
     validBranch   = None
     idOfBranches  = branchSet[1][-1]
     for closestBranch in idOfBranches:
-      if not mapping[closestBranch+1].get('completedHistory'):
+      if not mapping[closestBranch+1].get('completedHistory') and not mapping[closestBranch+1].get('happenedEvent'):
         validBranch = mapping[closestBranch+1]
         break
     return validBranch
@@ -269,11 +269,17 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
 
     # Loop over  branchChangedParams (events) and start storing information,
     # such as conditional pb, variable values, into the xml tree object
+    branchChangedParamValue = []
+    branchChangedParamPb    = []
+    branchParams            = []
     if endInfo:
       for key in endInfo['branchChangedParams'].keys():
-        subGroup.add('branchChangedParam',key)
-        subGroup.add('branchChangedParamValue',endInfo['branchChangedParams'][key]['oldValue'][0])
-        subGroup.add('branchChangedParamPb',endInfo['branchChangedParams'][key]['associatedProbability'][0])
+        branchParams.append(key)
+        branchChangedParamPb.append(endInfo['branchChangedParams'][key]['associatedProbability'][0])
+        branchChangedParamValue.append(endInfo['branchChangedParams'][key]['oldValue'][0])
+      subGroup.add('branchChangedParam',branchParams)
+      subGroup.add('branchChangedParamValue',branchChangedParamValue)
+      subGroup.add('branchChangedParamPb',branchChangedParamPb)
     else:
       pass
     #condPbC = condPbC + copy.deepcopy(endInfo['branchChangedParams'][key]['unchangedConditionalPb'])
@@ -296,9 +302,9 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
     # Fill the values dictionary that will be passed into the model in order to create an input
     # In this dictionary the info for changing the original input is stored
     self.inputInfo = {'prefix':rname,'endTimeStep':info['parentNode'].get('actualEndTimeStep'),
-              'branchChangedParam':[subGroup.get('branchChangedParam')],
-              'branchChangedParamValue':[subGroup.get('branchChangedParamValue')],
-              'conditionalPb':[subGroup.get('conditionalPbr')],
+              'branchChangedParam':subGroup.get('branchChangedParam'),
+              'branchChangedParamValue':subGroup.get('branchChangedParamValue'),
+              'conditionalPb':subGroup.get('conditionalPbr'),
               'startTime':info['parentNode'].get('endTime'),
               'parentID':subGroup.get('parent')}
     # add the newer branch name to the map
@@ -384,8 +390,8 @@ class AdaptiveDET(DynamicEventTree, LimitSurfaceSearch):
         self.raiseAMessage("Completed full histories are "+str(self.completedHistCnt))
       else: ready = False
       self.adaptiveReady = ready
-      if ready or detReady and self.persistence > self.repetition : return True
-      else: return False
+      if ready or detReady: return True
+      else                : return False
     return detReady
 
   def localGenerateInput(self,model,myInput):
