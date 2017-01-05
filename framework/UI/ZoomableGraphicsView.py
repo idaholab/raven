@@ -17,18 +17,45 @@ import os
 from PySide import QtSvg as qts
 
 class OverlayButton(qtg.QPushButton):
+  """
+    A UI element that can be overlayed on top of other UI elements and will
+    render transparently until a user's mouse hovers over it.
+  """
   def __init__(self, *args, **kwargs):
+    """
+      Initializer for the Overlay Button that will apply a default style,
+      otherwise this is the same as a QPushButton.
+    """
     super(OverlayButton, self).__init__(*args, **kwargs)
     self.setDefaults()
 
   def setDefaults(self):
+    """
+      Applies a look and feel to the button that includes color and transparency
+      @ In, None
+      @ Out, None
+    """
     self.setStyleSheet("background-color: rgba( 51, 73, 96, 25%); color: rgba(236,240,241, 75%);  opacity: 0.25;")
 
   def enterEvent(self, event):
+    """
+      When the user hovers over the button this callback will remove the
+      transparency from the button
+      @ In, event, PySide.QtCore.QEvent, the event that triggers this callback,
+        namely a mouse over event.
+      @ Out, None
+    """
     super(OverlayButton, self).enterEvent(event)
     self.setStyleSheet("background-color: rgba( 51, 73, 96, 75%); color: rgba(236,240,241, 100%);  opacity: 0.75;")
 
   def leaveEvent(self, event):
+    """
+      When the user's mouse leave the button this callback will remove the
+      transparency from the button
+      @ In, event, PySide.QtCore.QEvent, the event that triggers this callback,
+        namely a mouse over event.
+      @ Out, None
+    """
     super(OverlayButton, self).leaveEvent(event)
     self.setDefaults()
 
@@ -48,9 +75,18 @@ screenshotIcon = qtg.QIcon(os.path.join(resourceLocation,'fa-camera_32.png'))
 ################################################################################
 
 class ZoomableGraphicsView(qtg.QGraphicsView):
+  """
+    This is a generic class for providing some basic UI functionality that can
+    be inherited by other classes. It provides functionality such as
+    zooming/panning, selecting, and taking screen captures of a QGraphicsScene.
+  """
   defaultSceneDimension = 1000
 
   def __init__(self, parent):
+    """
+      Initializer that will set L&F defaults and initialize the UI elements
+      @ In, parent, PySide.QtGui.QWidget, the parent widget of this widget.
+    """
     super(ZoomableGraphicsView, self).__init__(parent)
     self._zoom = 0
     self.padding = 10
@@ -113,6 +149,11 @@ class ZoomableGraphicsView(qtg.QGraphicsView):
   #     self._zoom = 0
 
   def saveImage(self):
+    """
+      Method for saving the contents of this view to an image file.
+      @ In, None
+      @ Out, None
+    """
     dialog = qtg.QFileDialog(self)
     dialog.setFileMode(qtg.QFileDialog.AnyFile)
     dialog.setAcceptMode(qtg.QFileDialog.AcceptSave)
@@ -138,6 +179,12 @@ class ZoomableGraphicsView(qtg.QGraphicsView):
       del painter
 
   def placeButtons(self):
+    """
+      This function will position the overlay buttons in the correct place on
+      the view which should be the upper left corner.
+      @ In, None
+      @ Out, None
+    """
     xPos = 0
     self.resetButton.move(0, 0)
     xPos += self.resetButton.width()
@@ -146,6 +193,12 @@ class ZoomableGraphicsView(qtg.QGraphicsView):
     self.cameraButton.move(xPos, 0)
 
   def resizeEvent(self, event):
+    """
+      A callback function that will be triggered when this view is resized.
+      @ In, event, PySide.QtGui.QResizeEvent, the resize event that triggered
+        this callback.
+      @ Out, None
+    """
     super(ZoomableGraphicsView, self).resizeEvent(event)
     self._zoom = 0
     self.fitInView(self.sceneRect(),qtc.Qt.KeepAspectRatio)
@@ -154,14 +207,32 @@ class ZoomableGraphicsView(qtg.QGraphicsView):
     self.placeButtons()
 
   def zoomFactor(self):
+    """
+      Returns the zoom level of this view.
+      @ In, None
+      @ Out, self._zoom, int, the level of zoom currently being used by this
+        view.
+    """
     return self._zoom
 
   def resetView(self):
+    """
+      Resets this view to its default viewing settings. This will typically
+      fit everything on the scene onscreen.
+      @ In, None
+      @ Out, None
+    """
     self._zoom = 0
     self.fitInView(self.sceneRect(),qtc.Qt.KeepAspectRatio)
     self.placeButtons()
 
   def toggleMouseMode(self):
+    """
+      Function that will switch the mouse mode from pan/zoom to selection mode
+      or vice versa
+      @ In, None
+      @ Out, None
+    """
     if self.dragMode() == qtg.QGraphicsView.ScrollHandDrag:
       self.setDragMode(qtg.QGraphicsView.RubberBandDrag)
       toolTipText = 'Switch to Pan and Zoom'
@@ -175,6 +246,11 @@ class ZoomableGraphicsView(qtg.QGraphicsView):
     self.modeButton.setIcon(icon)
 
   def wheelEvent(self, event):
+    """
+      Callback for handling a mouse wheel event
+      @ In, event, PySide.QtGui.QWheelEvent, event that triggered this callback
+      @ Out, None
+    """
     if self.dragMode() != qtg.QGraphicsView.ScrollHandDrag:
       return ## Ignore if we are not in pan and zoom mode
     if event.delta() > 0:
@@ -193,6 +269,11 @@ class ZoomableGraphicsView(qtg.QGraphicsView):
       self.fitInView(self.sceneRect(),qtc.Qt.KeepAspectRatio)
 
   def contextMenuEvent(self,event):
+    """
+      Callback for initiating the context menu traditionally this is through a
+      right mouse button click.
+      @ In, event, PySide.QtGui.QContextMenuEvent, the triggering event
+    """
     # if self.dragMode() == qtg.QGraphicsView.ScrollHandDrag:
     #   ## Do something else with the right clicks
     #   pass

@@ -19,10 +19,13 @@ import colors
 
 class ScatterView(BaseView):
   """
-     A view widget for visualizing scatterplots of data utilizing matplotlib.
+    A view widget for visualizing scatterplots of data utilizing matplotlib.
   """
   def __init__(self, mainWindow=None):
     """
+      Constructor for the Scatter plot view
+      @ In, mainWindow, MainWindow, the main window associated to this dependent
+        view
     """
     BaseView.__init__(self, mainWindow)
 
@@ -97,22 +100,31 @@ class ScatterView(BaseView):
     self.updateScene()
 
   def sizeHint(self):
-    """ This property holds the recommended size for the widget. If the value of
-        this property is an invalid size, no size is recommended. The default
-        implementation of PySide.QtGui.QWidget.sizeHint() returns an invalid
-        size if there is no layout for this widget, and returns the layout's
-        preferred size otherwise. (Copied from base class text)
+    """
+      This property holds the recommended size for the widget. If the value of
+      this property is an invalid size, no size is recommended. The default
+      implementation of PySide.QtGui.QWidget.sizeHint() returns an invalid
+      size if there is no layout for this widget, and returns the layout's
+      preferred size otherwise. (Copied from base class text)
+      @ In, None
+      @ Out, QSize, the recommended size of this widget
     """
     return qtc.QSize(300,600)
 
   def selectionChanged(self):
-    """ An event handler triggered when the user changes the selection of the
-        data.
+    """
+      An event handler triggered when the user changes the selection of the
+      data.
+      @ In, None
+      @ Out, None
     """
     self.updateScene()
 
   def updateScene(self):
-    """ A method for drawing the scene of this view.
+    """
+      A method for drawing the scene of this view.
+      @ In, None
+      @ Out, None
     """
     fontSize=16
     smallFontSize=12
