@@ -1,5 +1,19 @@
+"""
+  This file contains the Zoomable graphics view which can be inherited by
+  others. This generic class provides some common UI elements that would
+  otherwise need to be replicated, such as zooming, panning, saving the UI scene
+  to an image, and selecting things on the scene.
+"""
+
+#For future compatibility with Python 3
+from __future__ import division, print_function, absolute_import
+import warnings
+warnings.simplefilter('default',DeprecationWarning)
+#End compatibility block for Python 3
+
 from PySide import QtCore as qtc
 from PySide import QtGui as qtg
+from PySide import QtSvg as qts
 import os
 
 ################################################################################
@@ -13,8 +27,6 @@ import os
 ## I choose to do 32 pixels as it is the smallest power of 2 that provides a
 ## large enough button to select with relative ease.
 ################################################################################
-
-from PySide import QtSvg as qts
 
 class OverlayButton(qtg.QPushButton):
   """

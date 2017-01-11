@@ -1,14 +1,25 @@
 #!/usr/bin/env python
 
+"""
+  A UI for visualizing hierarchical objects, specifically the hierarchical
+  clustering made available from scipy.
+"""
+
+#For future compatibility with Python 3
+from __future__ import division, print_function, absolute_import
+import warnings
+warnings.simplefilter('default',DeprecationWarning)
+#End compatibility block for Python 3
+
 from PySide import QtCore as qtc
 from PySide import QtGui as qtg
 
 from sys import path
 
-from BaseView import BaseView
-from DendrogramView import DendrogramView
-from ScatterView import ScatterView
-import colors
+from .BaseHierarchicalView import BaseHierarchicalView
+from .DendrogramView import DendrogramView
+from .ScatterView import ScatterView
+from . import colors
 
 import time
 import sys
@@ -19,14 +30,21 @@ import numpy as np
 
 class HierarchyWindow(qtg.QMainWindow):
   """
-
+    A UI for visualizing hierarchical objects, specifically the hierarchical
+    clustering made available from scipy.
   """
   closed = qtc.Signal(qtc.QObject)
   sigLevelChanged = qtc.Signal(qtc.QObject)
   sigColorChanged = qtc.Signal(qtc.QObject)
   def __init__(self, engine, debug=None, views=None):
     """
-
+      The initialization method for this window.
+      @ In, engine, unSupervisedLearning, the object containing the hierarchy
+      @ In, debug, boolean, whether we are in debug mode which increases the
+        verbosity of this code.
+      @ In, views, list(string), list of strings which will be interpretted to
+        view class instances based on the class name.
+      @ Out, None
     """
     super(HierarchyWindow,self).__init__()
     self.views = []
@@ -50,15 +68,16 @@ class HierarchyWindow(qtg.QMainWindow):
     for view in views:
       self.addNewView(view)
 
-    for subclass in BaseView.__subclasses__():
+    for subclass in BaseHierarchicalView.__subclasses__():
       action = newMenu.addAction(subclass.__name__)
       action.triggered.connect(functools.partial(self.addNewView,action.text()))
 
   def createDockWidget(self,view):
     """
       Method to create a new child dock widget of a specified type.
-      @ In, view, an object belonging to a subclass of BaseView that will
-        be added to this window.
+      @ In, view, an object belonging to a subclass of BaseHierarchicalView
+        that will be added to this window.
+      @ Out, None
     """
     dockWidget = qtg.QDockWidget()
     dockWidget.setWindowTitle(view.windowTitle())
@@ -78,11 +97,12 @@ class HierarchyWindow(qtg.QMainWindow):
     """
       Method to create a new child view which will be added as a dock widget
       and thus will call createDockWidget()
-      @ In, viewType, a string specifying a subclass of BaseView that will
-        be added to this window.
+      @ In, viewType, a string specifying a subclass of BaseHierarchicalView
+        that will be added to this window.
+      @ Out, None
     """
     defaultWidgetName = ''
-    for subclass in BaseView.__subclasses__():
+    for subclass in BaseHierarchicalView.__subclasses__():
       if subclass.__name__ == viewType:
         idx = 0
         for view in self.views:
@@ -107,12 +127,16 @@ class HierarchyWindow(qtg.QMainWindow):
     """
       Event handler triggered when this window is closed.
       @ In, event, a QCloseEvent specifying the context of this event.
+      @ Out, None
     """
     self.closed.emit(self)
     return super(HierarchyWindow,self).closeEvent(event)
 
   def increaseLevel(self):
     """
+      Function to increase the level of the underlying data object.
+      @ In, None
+      @ Out, None
     """
     level = self.engine.initOptionDict['level']
     for newLevel in self.levels:
@@ -122,6 +146,9 @@ class HierarchyWindow(qtg.QMainWindow):
 
   def decreaseLevel(self):
     """
+      Function to decrease the level of the underlying data object.
+      @ In, None
+      @ Out, None
     """
     level = self.engine.initOptionDict['level']
     for newLevel in reversed(self.levels):
@@ -131,11 +158,19 @@ class HierarchyWindow(qtg.QMainWindow):
 
   def getLevel(self):
     """
+      Function to retrieve the level of the underlying data object.
+      @ In, None
+      @ Out, level, float, the current level being used by the unsupervised
+        engine.
     """
     return self.engine.initOptionDict['level']
 
   def setLevel(self, newLevel):
     """
+      Function to set the level of the underlying data object.
+      @ In, level, float, the new level to be used by the unsupervised
+        engine.
+      @ Out, None
     """
     self.engine.initOptionDict['level'] = newLevel
 
@@ -167,17 +202,27 @@ class HierarchyWindow(qtg.QMainWindow):
 
   def levelChanged(self):
     """
+      Function that will propagate the changes to the level to its child views.
+      @ In, None
+      @ Out, None
     """
     self.sigLevelChanged.emit(self)
 
   def setColor(self,idx,color):
     """
+      Set the color of a specified index in the tree.
+      @ In, idx, int, the index to be updated
+      @ In, color, QColor, the new color for the index.
+      @ Out, None
     """
     self.colorMap[idx] = color
     self.sigColorChanged.emit(self)
 
   def getColor(self,idx):
     """
+      Get the color of a specified index in the tree.
+      @ In, idx, int, the index to be updated.
+      @ Out, color, QColor, the color for the index.
     """
     if idx not in self.colorMap:
       # self.colorMap[idx] = qtg.QColor(*tuple(255*np.random.rand(3)))
@@ -187,6 +232,9 @@ class HierarchyWindow(qtg.QMainWindow):
 
   def getData(self):
     """
+      Retrieve all of the data associated to this window.
+      @ In, None
+      @ Out, data, nparray, the data being used by this window.
     """
     data = np.zeros((len(self.engine.features.values()[0]),len(self.engine.features.keys())))
     for col,value in enumerate(self.engine.features.values()):
@@ -195,13 +243,24 @@ class HierarchyWindow(qtg.QMainWindow):
 
   def getDimensions(self):
     """
+      Get the dimensionality of the underlying data.
+      @ In, None
+      @ Out, dimensionality, int, the dimensionality of the data being used.
     """
     return self.engine.features.keys()
 
   def getSelectedIndices(self):
+    """
+      Get the currently selected indices
+      @ In, None
+      @ Out, None
+    """
     return []
 
   def getLabels(self):
     """
+      Get the labels of this data
+      @ In, None
+      @ Out, None
     """
     return self.labels

@@ -1,9 +1,19 @@
 #!/usr/bin/env python
 
+"""
+  A view widget for visualizing 2D scatterplots of data utilizing matplotlib.
+"""
+
+#For future compatibility with Python 3
+from __future__ import division, print_function, absolute_import
+import warnings
+warnings.simplefilter('default',DeprecationWarning)
+#End compatibility block for Python 3
+
 from PySide import QtCore as qtc
 from PySide import QtGui as qtg
 
-from GenericView import GenericView
+from .BaseTopologicalView import BaseTopologicalView
 
 from matplotlib.collections import LineCollection
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
@@ -13,9 +23,9 @@ import matplotlib.pyplot
 
 
 import numpy as np
-import colors
+from . import colors
 
-class ScatterView2D(GenericView):
+class ScatterView2D(BaseTopologicalView):
   """
      A view widget for visualizing 2D scatterplots of data utilizing matplotlib.
   """

@@ -1,4 +1,15 @@
-from matplotlib import cm, colors
+"""
+    This provides some convenient colors to be used in different UIs including
+    a color-blind safe color map and consistent and aesthetically pleasing cool
+    and warm (blue and red) colors.
+"""
+
+#For future compatibility with Python 3
+from __future__ import division, print_function, absolute_import
+import warnings
+warnings.simplefilter('default',DeprecationWarning)
+#End compatibility block for Python 3
+
 import numpy as np
 import itertools
 from PySide.QtGui import QColor

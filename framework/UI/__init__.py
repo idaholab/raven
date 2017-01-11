@@ -10,15 +10,17 @@ from __future__ import absolute_import
 ## These lines ensure that we do not have to do something like:
 ## 'from UI.Window import Window' outside
 ## of this submodule
-from .HierarchyWindow import HierarchyWindow
-from .TopologyWindow import TopologyWindow
+from .ZoomableGraphicsView import ZoomableGraphicsView
+from .BaseHierarchicalView import BaseHierarchicalView
 from .DendrogramView import DendrogramView
-from .colors import colors
+from . import colors
 from .FitnessView import FitnessView
 from .ScatterView2D import ScatterView2D
 from .ScatterView3D import ScatterView3D
 from .SensitivityView import SensitivityView
 from .TopologyMapView import TopologyMapView
+from .HierarchyWindow import HierarchyWindow
+from .TopologyWindow import TopologyWindow
 
 ## As these are not exposed to the user, we do not need a factory to dynamically
 ## allocate them. They will be explicitly called when needed everywhere in the

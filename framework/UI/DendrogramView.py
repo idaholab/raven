@@ -1,5 +1,15 @@
 #!/usr/bin/env python
 
+"""
+    This file contains the Dendrogram view that visualizes trees and hierarchies
+"""
+
+#For future compatibility with Python 3
+from __future__ import division, print_function, absolute_import
+import warnings
+warnings.simplefilter('default',DeprecationWarning)
+#End compatibility block for Python 3
+
 import numpy as np
 import sys
 
@@ -7,9 +17,9 @@ from PySide import QtCore as qtc
 from PySide import QtGui as qtg
 from PySide import QtSvg as qts
 
-from BaseView import BaseView
-from ZoomableGraphicsView import ZoomableGraphicsView
-from Tree import Node
+from .BaseHierarchicalView import BaseHierarchicalView
+from .ZoomableGraphicsView import ZoomableGraphicsView
+from .Tree import Node
 
 # import timeit
 
@@ -22,7 +32,7 @@ def linakgeToTree(*linkages):
   """
     Convert a linkage matrix into a tree that knows how to perform its own
     layout.
-    In @ linkages, np.array(s), one or more linkage matrices that will each be
+    @ In, linkages, np.array(s), one or more linkage matrices that will each be
     made into a single tree with a null node used to connect them allowing
     them to be tied together into a single data structure.
   """
@@ -69,16 +79,20 @@ def linakgeToTree(*linkages):
 
   return root
 
-class DendrogramView(ZoomableGraphicsView,BaseView):
+class DendrogramView(ZoomableGraphicsView,BaseHierarchicalView):
   """
     A view that shows a hierarchical data object.
   """
   # minDiameterMultiplier = 0.001
   def __init__(self, mainWindow=None):
     """
+      The initialization method for the DendrogramView that sets some default
+      parameters, initializes the UI, and constructs the scene
+      @In, mainWindow, HierarchicalWindow, the parent window of this view
+      @Out, None
     """
     ZoomableGraphicsView.__init__(self, mainWindow)
-    BaseView.__init__(self, mainWindow)
+    BaseHierarchicalView.__init__(self, mainWindow)
 
     self.tree = linakgeToTree(self.mainWindow.engine.linkage)
 
@@ -250,11 +264,21 @@ class DendrogramView(ZoomableGraphicsView,BaseView):
 
   def increaseLevel(self):
     """
+      Callback function that will trigger when the data oject's current level is
+      increased. This function will propagate this information to the
+      mainWindow.
+      @ In, None
+      @ Out, None
     """
     self.mainWindow.increaseLevel()
 
   def decreaseLevel(self):
     """
+      Callback function that will trigger when the data oject's current level is
+      decreased. This function will propagate this information to the
+      mainWindow.
+      @ In, None
+      @ Out, None
     """
     self.mainWindow.decreaseLevel()
 
@@ -278,6 +302,12 @@ class DendrogramView(ZoomableGraphicsView,BaseView):
         colorAction = menu.addAction('Change Color')
 
         def pickColor():
+          """
+            A function that will execute a dialog and if accepted will update
+            the color of the currently selected item.
+            @ In, None
+            @ Out, None
+          """
           dialog = qtg.QColorDialog()
           dialog.setCurrentColor(self.getColor(idx))
           dialog.exec_()
@@ -294,6 +324,11 @@ class DendrogramView(ZoomableGraphicsView,BaseView):
 
   def setLevel(self):
     """
+      Callback function that will trigger when the data oject's current level is
+      set to a specified level. This function will propagate this information
+      to the mainWindow.
+      @ In, None
+      @ Out, None
     """
     # position = self.mapFromGlobal(self.rightClickMenu.pos())
     # mousePt = self.mapToScene(position.x(),position.y()).y()
@@ -310,6 +345,9 @@ class DendrogramView(ZoomableGraphicsView,BaseView):
 
   def select(self):
     """
+      Function for registering a user's selection.
+      @ In, None
+      @ Out, None
     """
     selectedKeys = []
     for key,graphic in self.nodes.iteritems():
@@ -347,6 +385,11 @@ class DendrogramView(ZoomableGraphicsView,BaseView):
     return self.mainWindow.levels[-1]
 
   def selectionChanged(self):
+    """
+      A callback function that will trigger when the
+      @ In, None
+      @ Out, None
+    """
     ## Disable the communication so we don't end up in infinite callbacks
     self.scene().selectionChanged.disconnect(self.select)
 
@@ -362,6 +405,9 @@ class DendrogramView(ZoomableGraphicsView,BaseView):
 
   def updateScene(self):
     """
+      This will update the scene given changes to the underlying data object.
+      @ In, None
+      @ Out, None
     """
     # x = timeit.timeit(self.updateScreenParameters, number=5)
     # print('updateScreenParameters: %f' % x)
@@ -382,6 +428,9 @@ class DendrogramView(ZoomableGraphicsView,BaseView):
 
   def updateScreenParameters(self):
     """
+      This will update the scene parameters such as width and height.
+      @ In, None
+      @ Out, None
     """
     scene = self.scene()
     width = scene.width()
@@ -403,16 +452,27 @@ class DendrogramView(ZoomableGraphicsView,BaseView):
 
   def setColor(self,idx, color):
     """
+      This will set the color of a given index.
+      @ In, idx, int, the unique id to update
+      @ In, color, QColor, the color you are setting for the associated id.
+      @ Out, None
     """
     self.mainWindow.setColor(idx, color)
 
   def getColor(self,idx):
     """
+      Returns the color of the specified index.
+      @ In, idx, int, the unique id of this color.
+      @ Out, None
     """
     return self.mainWindow.getColor(idx)
 
   def updateNodes(self, newNodes=None):
     """
+      Update the drawing of the nodes.
+      @ In, newNodes, list(Node), a list of potentially new ndoes that will be
+        added to the drawing.
+      @ Out, None
     """
     maxLevel = self.maxLevel()
     currentLevel = self.getCurrentLevel()
@@ -481,6 +541,10 @@ class DendrogramView(ZoomableGraphicsView,BaseView):
 
   def updateArcs(self, newEdges = None):
     """
+      Update the drawing of the arcs.
+      @ In, newEdges, list((int,int))), a list of potentially new edges that
+        will be added to the drawing.
+      @ Out, None
     """
 
     if newEdges is not None:
@@ -541,6 +605,10 @@ class DendrogramView(ZoomableGraphicsView,BaseView):
 
   def updateActiveLine(self):
     """
+      Update the drawing of the actively set level line, everything below this
+      will be considered inactive.
+      @ In, None
+      @ Out, None
     """
     width = self.scene().width()
     ## If the active box does not exist yet, then create it, don't worry about
@@ -561,6 +629,10 @@ class DendrogramView(ZoomableGraphicsView,BaseView):
 
   def createScene(self):
     """
+      Function to create the scene including initialization of ui element data
+      structures.
+      @ In, None
+      @ Out, None
     """
     ## Clear data for saving state
     self.nodes = {}

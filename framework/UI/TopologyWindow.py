@@ -1,17 +1,29 @@
 #!/usr/bin/env python
 
+"""
+  A Main Window container for holding various subwindows related to the
+  visualization and analysis of a dataset according to the approximate
+  Morse-Smale complex.
+"""
+
+#For future compatibility with Python 3
+from __future__ import division, print_function, absolute_import
+import warnings
+warnings.simplefilter('default',DeprecationWarning)
+#End compatibility block for Python 3
+
 from PySide import QtCore as qtc
 from PySide import QtGui as qtg
 
 from sys import path
 
 from AMSC_Object import QAMSC_Object
-from GenericView import GenericView
-from TopologyMapView import TopologyMapView
-from SensitivityView import SensitivityView
-from FitnessView import FitnessView
-from ScatterView2D import ScatterView2D
-from ScatterView3D import ScatterView3D
+from .BaseTopologicalView import BaseTopologicalView
+from .TopologyMapView import TopologyMapView
+from .SensitivityView import SensitivityView
+from .FitnessView import FitnessView
+from .ScatterView2D import ScatterView2D
+from .ScatterView3D import ScatterView3D
 
 import time
 import sys
@@ -87,7 +99,7 @@ class TopologyWindow(qtg.QMainWindow):
     self.addNewView('TopologyMapView')
     # self.addNewView('ProjectionView')
 
-    for subclass in GenericView.__subclasses__():
+    for subclass in BaseTopologicalView.__subclasses__():
       action = newMenu.addAction(subclass.__name__)
       action.triggered.connect(functools.partial(self.addNewView,action.text()))
 
@@ -157,8 +169,8 @@ class TopologyWindow(qtg.QMainWindow):
 
   def createDockWidget(self,view):
     """ Method to create a new child dock widget of a specified type.
-        @ In, view, an object belonging to a subclass of GenericView that will
-          be added to this window.
+        @ In, view, an object belonging to a subclass of BaseTopologicalView
+          that will be added to this window.
     """
     dockWidget = qtg.QDockWidget()
     dockWidget.setWindowTitle(view.windowTitle())
@@ -186,11 +198,11 @@ class TopologyWindow(qtg.QMainWindow):
   def addNewView(self,viewType):
     """ Method to create a new child view which will be added as a dock widget
         and thus will call createDockWidget()
-        @ In, viewType, a string specifying a subclass of GenericView that will
-          be added to this window.
+        @ In, viewType, a string specifying a subclass of BaseTopologicalView
+          that will be added to this window.
     """
     defaultWidgetName = ''
-    for subclass in GenericView.__subclasses__():
+    for subclass in BaseTopologicalView.__subclasses__():
       if subclass.__name__ == viewType:
         idx = 0
         for view in self.views:

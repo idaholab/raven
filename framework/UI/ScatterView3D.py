@@ -1,9 +1,19 @@
 #!/usr/bin/env python
 
+"""
+  A view widget for visualizing 3D scatterplots of data utilizing matplotlib.
+"""
+
+#For future compatibility with Python 3
+from __future__ import division, print_function, absolute_import
+import warnings
+warnings.simplefilter('default',DeprecationWarning)
+#End compatibility block for Python 3
+
 from PySide import QtCore as qtc
 from PySide import QtGui as qtg
 
-from GenericView import GenericView
+from .BaseTopologicalView import BaseTopologicalView
 
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
@@ -13,9 +23,9 @@ import matplotlib.pyplot
 import matplotlib.ticker
 
 import numpy as np
-import colors
+from . import colors
 
-class ScatterView3D(GenericView):
+class ScatterView3D(BaseTopologicalView):
   """
      A view widget for visualizing 3D scatterplots of data utilizing matplotlib.
   """

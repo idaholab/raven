@@ -1,10 +1,21 @@
 #!/usr/bin/env python
 
+"""
+   A view widget for visualizing the sensitivity coefficients of each locally
+   constructed model of the data.
+"""
+
+#For future compatibility with Python 3
+from __future__ import division, print_function, absolute_import
+import warnings
+warnings.simplefilter('default',DeprecationWarning)
+#End compatibility block for Python 3
+
 from PySide import QtCore as qtc
 from PySide import QtGui as qtg
 from PySide import QtSvg as qts
 
-from GenericView import GenericView
+from .BaseTopologicalView import BaseTopologicalView
 
 import math
 import numpy as np
@@ -12,7 +23,7 @@ import numpy as np
 ## TODO: Fix the fonts
 ## TODO: Make scale make sense
 ## TODO: Place labels better
-class SensitivityView(GenericView):
+class SensitivityView(BaseTopologicalView):
   """
      A view widget for visualizing the sensitivity coefficients of each locally
      constructed model of the data.

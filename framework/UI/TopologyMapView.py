@@ -1,15 +1,33 @@
 #!/usr/bin/env python
 
+"""
+  A view that shows the topological skeleton, that is, which minima are
+  connected to which maxima.  Point locations are determined by persistence
+  on the horizontal axis and function value on the y-axis, so that minima
+  will tend to occur at the bottom and maxima will occur toward the top. The
+  point size of extrema is determined by how many samples flow toward them.
+  Color is used to distinguish maxima from minima.
+
+  Lines connecting maxima and minima are given a width based on the number
+  of samples occurring in that flow segment.
+"""
+
+#For future compatibility with Python 3
+from __future__ import division, print_function, absolute_import
+import warnings
+warnings.simplefilter('default',DeprecationWarning)
+#End compatibility block for Python 3
+
 import PySide.QtCore as qtc
 import PySide.QtGui as qtg
 import PySide.QtSvg as qts
 
-from GenericView import GenericView
+from .BaseTopologicalView import BaseTopologicalView
 
 import numpy as np
 import math
 import time
-import colors
+from . import colors
 
 class CustomGraphicsView(qtg.QGraphicsView):
   """
@@ -203,6 +221,15 @@ class CustomPathItem(qtg.QGraphicsPathItem):
       graphic.setZValue(10)
 
   def paint(self,painter,option,widget=None):
+    """
+      A method for painting this item
+      @ In, painter, QPainter, the painter responsible for drawing this thing
+      @ In, option, QStyleOptionGraphicsItem, the option parameter provides
+        style options for the item, such as its state, exposed area and its
+        level-of-detail hints (quoted from PySide documentation)
+      @ In, widget, QWidget, the widget attached to this.
+      @ Out, None
+    """
     if self.isSelected():
       selectedOption = qtg.QStyleOptionGraphicsItem(option)
       selectedOption.state &=  (not qtg.QStyle.State_Selected)
@@ -222,6 +249,7 @@ class CustomPathItem(qtg.QGraphicsPathItem):
         detection, hit tests, and for the QGraphicsScene.items() functions.
         This subclass reimplements this function to return a more accurate
         shape than the default bounding box.
+        @ In, None
         @ Out, QPainterPath speciyfing the shape of this object in local
           coordinates.
     """
@@ -245,6 +273,7 @@ class CustomPathItem(qtg.QGraphicsPathItem):
         on top of this item.
         @ In, event, a QGraphicsSceneHoverEvent specifying the context of this
         event.
+        @ Out, None
     """
     scene = self.scene()
     mouse = event.scenePos()
@@ -260,6 +289,7 @@ class CustomPathItem(qtg.QGraphicsPathItem):
         the mouse is on top of this item, and disable it otherwise.
         @ In, event, a QGraphicsSceneHoverEvent specifying the context of this
         event.
+        @ Out, None
     """
     scene = self.scene()
     mouse = event.scenePos()
@@ -274,6 +304,7 @@ class CustomPathItem(qtg.QGraphicsPathItem):
         leaves this item.
         @ In, event, a QGraphicsSceneHoverEvent specifying the context of this
         event.
+        @ Out, None
     """
     #Hide the popup widget
     if not self.isSelected():
@@ -285,6 +316,7 @@ class CustomPathItem(qtg.QGraphicsPathItem):
     """ Sets the pen for this item to pen. The pen is used to draw the item's
         outline.
         @ In, pen, a QPen specifying the drawing characteristics of this path.
+        @ Out, None
     """
     super(CustomPathItem,self).setPen(pen)
     bgColor = pen.color()
@@ -312,7 +344,7 @@ class CustomPathItem(qtg.QGraphicsPathItem):
 #TODO We can encode glyphs on the extrema to denote spatial location?
 #TODO We can encode information on the darkness of the boundary on the points
 #     and the lines
-class TopologyMapView(GenericView):
+class TopologyMapView(BaseTopologicalView):
   """
       A view that shows the topological skeleton, that is, which minima are
       connected to which maxima.  Point locations are determined by persistence
@@ -463,6 +495,13 @@ class TopologyMapView(GenericView):
     ## These two functions should be promoted or I should find a better way to
     ## translate from persistence to screen coordinates
     def scaleFromScene(sx,sy):
+      """
+      Scales a point from scene coordinates to global (world) coordinates.
+      @ In, sx, float, the scene x position
+      @ In, sy, float, the scene y position
+      @ Out, wx, float, the world x position
+      @ Out, wy, float, the world y position
+      """
       effectiveWidth = self.scene.width()-2*self.padding
       effectiveHeight = self.scene.height()-2*self.padding
 
@@ -660,6 +699,11 @@ class TopologyMapView(GenericView):
     effectiveHeight = height-2*self.padding
     # self.scene.addRect(padding,padding,effectiveWidth,effectiveHeight,qtg.QPen(qtc.Qt.black))
     def scaleDiameter(x):
+      """
+        Scales the diameter to an appropriate size
+        @ In, x, float, unscaled diameter
+        @ Out, diameter, float, scaled diameter
+      """
       bounds = (0,self.amsc.X.shape[0])
       t = float(x-bounds[0])/float(bounds[1]-bounds[0])
       return (self.maxDiameter-self.minDiameter)*t + self.minDiameter
@@ -669,6 +713,15 @@ class TopologyMapView(GenericView):
     ##  promoted or I should find a better way to translate from persistence to
     ##  screen coordinates. This wouldn't be necessary except for the padding.
     def scaleToScene(wx,wy):
+      """
+        Function that converts global (world) coordinates into scene
+        coordinates.
+        @ In, wx, float, world x position
+        @ In, wy, float, world y position
+
+         @ Out, sx, float, scene x position
+        @ Out, sy, float, scene y position
+      """
       xBounds = (0,max(self.amsc.Y)-min(self.amsc.Y))
       yBounds = (min(self.amsc.Y),max(self.amsc.Y))
 

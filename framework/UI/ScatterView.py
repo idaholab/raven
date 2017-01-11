@@ -1,9 +1,19 @@
 #!/usr/bin/env python
 
+"""
+  A view widget for visualizing scatterplots of data utilizing matplotlib.
+"""
+
+#For future compatibility with Python 3
+from __future__ import division, print_function, absolute_import
+import warnings
+warnings.simplefilter('default',DeprecationWarning)
+#End compatibility block for Python 3
+
 from PySide import QtCore as qtc
 from PySide import QtGui as qtg
 
-from BaseView import BaseView
+from .BaseHierarchicalView import BaseHierarchicalView
 
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
@@ -15,9 +25,9 @@ import matplotlib.ticker
 
 
 import numpy as np
-import colors
+from . import colors
 
-class ScatterView(BaseView):
+class ScatterView(BaseHierarchicalView):
   """
     A view widget for visualizing scatterplots of data utilizing matplotlib.
   """
@@ -27,7 +37,7 @@ class ScatterView(BaseView):
       @ In, mainWindow, MainWindow, the main window associated to this dependent
         view
     """
-    BaseView.__init__(self, mainWindow)
+    BaseHierarchicalView.__init__(self, mainWindow)
 
     self.setLayout(qtg.QVBoxLayout())
     layout = self.layout()
