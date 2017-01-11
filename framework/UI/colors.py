@@ -10,6 +10,7 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3
 
+from matplotlib import cm, colors
 import numpy as np
 import itertools
 from PySide.QtGui import QColor
