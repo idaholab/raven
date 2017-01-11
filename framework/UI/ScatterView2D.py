@@ -10,6 +10,9 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3
 
+import matplotlib
+matplotlib.rcParams['backend.qt4']='PySide'
+
 from PySide import QtCore as qtc
 from PySide import QtGui as qtg
 

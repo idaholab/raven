@@ -15,6 +15,10 @@ from PySide import QtGui as qtg
 
 from .BaseTopologicalView import BaseTopologicalView
 
+import matplotlib
+matplotlib.use('Qt4Agg')
+matplotlib.rcParams['backend.qt4']='PySide'
+
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
