@@ -1408,7 +1408,7 @@ class Code(Model):
     self.fargs={'input':{}, 'output':'', 'moosevpp':''}
     for child in paramInput.subparts:
       if child.getName() =='executable':
-        self.executable = child.value
+        self.executable = str(child.value)
       if child.getName() =='preexec':
         self.preExec = child.value
       elif child.getName() == 'clargs':
@@ -1458,7 +1458,7 @@ class Code(Model):
         else: self.raiseAnError(IOError,'filearg type '+argtype+' not recognized!')
     if self.executable == '': self.raiseAnError(IOError,'not found the node <executable> in the body of the code model '+str(self.name))
     if '~' in self.executable: self.executable = os.path.expanduser(self.executable)
-    abspath = os.path.abspath(self.executable)
+    abspath = os.path.abspath(str(self.executable))
     if os.path.exists(abspath):
       self.executable = abspath
     else: self.raiseAMessage('not found executable '+self.executable,'ExceptedError')

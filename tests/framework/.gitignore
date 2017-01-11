@@ -118,3 +118,6 @@ Samplers/Restart/Truncated/scale/makeRestart/
 CodeInterfaceTests/DMInterfaceTestTimedep/testDummyStep/
 CodeInterfaceTests/RELAP5interfaceTestAlias/testDummyStep/
 GridTestRavenSameHDF5/MonteCarloRestarted/
+CodeInterfaceTests/MammothBisonRelap7NoExeWithHDF5restart/riaRun1
+CodeInterfaceTests/MammothBisonRelap7NoExeWithHDF5restart/riaRun2
+CodeInterfaceTests/MammothBisonRelap7NoExeWithHDF5restart/riaRun3

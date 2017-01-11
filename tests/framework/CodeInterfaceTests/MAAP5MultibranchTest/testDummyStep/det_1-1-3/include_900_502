@@ -1,0 +1,18 @@
+PARAMETER CHANGE
+   TIMELOCA = -1
+   TIM100=-1
+END
+
+C ******************************************************************************
+C **************************  TIMER definition  ********************************
+C ******************************************************************************
+
+C Branching TIMELOCA
+WHEN (TIM>TIMELOCA) AND (TIMELOCA /= -1)
+   SET TIMER 100
+END
+
+WHEN IEVNT(691)==1
+  SET TIMER 99
+END
+

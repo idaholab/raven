@@ -283,7 +283,8 @@ class LimitSurfaceIntegral(BasePostProcessor):
       for index, varName in enumerate(self.variableDist.keys()):
         if self.variableDist[varName] == None: randomMatrix[:, index] = randomMatrix[:, index] * (self.lowerUpperDict[varName]['upperBound'] - self.lowerUpperDict[varName]['lowerBound']) + self.lowerUpperDict[varName]['lowerBound']
         else:
-          for samples in range(randomMatrix.shape[0]): randomMatrix[samples, index] = self.variableDist[varName].ppf(randomMatrix[samples, index])
+          f = np.vectorize(self.variableDist[varName].ppf, otypes=[np.float])
+          randomMatrix[:, index] = f(randomMatrix[:, index])
         tempDict[varName] = randomMatrix[:, index]
       pb = self.stat.run({'targets':{self.target:self.functionS.evaluate(tempDict)}})['expectedValue'][self.target]
     else: self.raiseAnError(NotImplemented, "quadrature not yet implemented")
@@ -2909,7 +2910,10 @@ class LimitSurface(BasePostProcessor):
         else:                self.paramType[param] = 'outputs'
     if self.bounds == None:
       self.bounds = {"lowerBounds":{},"upperBounds":{}}
-      for key in self.parameters['targets']: self.bounds["lowerBounds"][key], self.bounds["upperBounds"][key] = min(self.inputs[self.indexes].getParam(self.paramType[key],key,nodeId = 'RecontructEnding')), max(self.inputs[self.indexes].getParam(self.paramType[key],key,nodeId = 'RecontructEnding'))
+      for key in self.parameters['targets']:
+        self.bounds["lowerBounds"][key], self.bounds["upperBounds"][key] = min(self.inputs[self.indexes].getParam(self.paramType[key],key,nodeId = 'RecontructEnding')), max(self.inputs[self.indexes].getParam(self.paramType[key],key,nodeId = 'RecontructEnding'))
+        if utils.compare(round(self.bounds["lowerBounds"][key],14),round(self.bounds["upperBounds"][key],14)):
+          self.bounds["upperBounds"][key]+= abs(self.bounds["upperBounds"][key]/1.e7)
     self.gridEntity.initialize(initDictionary={"rootName":self.name,'constructTensor':True, "computeCells":initDict['computeCells'] if 'computeCells' in initDict.keys() else False,
                                                "dimensionNames":self.parameters['targets'], "lowerBounds":self.bounds["lowerBounds"],"upperBounds":self.bounds["upperBounds"],
                                                "volumetricRatio":self.tolerance   ,"transformationMethods":self.transfMethods})
