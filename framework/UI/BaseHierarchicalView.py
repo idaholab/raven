@@ -49,7 +49,7 @@ class BaseHierarchicalView(QWidget):
   def clearLayout(self, layout):
     """
       Clears the layout and marks each child widget for deletion.
-      @ In, layout, the layout to clear
+      @ In, layout, QLayout, the layout to clear
       @ Out, None
     """
     if layout is not None:

@@ -34,7 +34,15 @@ def linakgeToTree(*linkages):
     layout.
     @ In, linkages, np.array(s), one or more linkage matrices that will each be
     made into a single tree with a null node used to connect them allowing
-    them to be tied together into a single data structure.
+    them to be tied together into a single data structure. The columns of this
+    linkage matrix are described here:
+    https://docs.scipy.org/doc/scipy/reference/generated/scipy.cluster.hierarchy.linkage.html
+
+    The first two columns represent the clusters being merged.
+    The third column represents the level at where the first two columns merge.
+    The fourth column is the size of the newly formed cluster.
+    The implicit fifth number is the row which when combined with the original
+    size of the data yields the the new cluster's identifier.
   """
 
   maxLevel = 0
@@ -386,7 +394,8 @@ class DendrogramView(ZoomableGraphicsView,BaseHierarchicalView):
 
   def selectionChanged(self):
     """
-      A callback function that will trigger when the
+      A callback function that will trigger when the user changes the onscreen
+      selection of nodes.
       @ In, None
       @ Out, None
     """
@@ -618,7 +627,7 @@ class DendrogramView(ZoomableGraphicsView,BaseHierarchicalView):
       self.activeLine = self.scene().addLine(0, 0, width, 0, pen)
 
     height = self.scene().height()
-    minDim = min([self.scene().width(),self.scene().height()])
+    minDim = min(width,height)
 
     maxDiameter = self.maxDiameterMultiplier*minDim
     levelRatio = self.getCurrentLevel()/self.maxLevel()

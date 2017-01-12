@@ -3747,6 +3747,8 @@ class TopologicalDecomposition(BasePostProcessor):
     """
       A placeholder for allowing user's to interact and tweak the model in-situ
       before saving the analysis results
+      @ In, None
+      @ Out, None
     """
     pass
 
@@ -3823,12 +3825,12 @@ try:
       Morse-Smale decomposition from an input point cloud consisting of an
       arbitrary number of input parameters and a response value per input point
     """
-    # __metaclass__ = qtPostProcessorMetaclass
     requestUI = qtc.Signal(str,str,dict)
     def __init__(self, messageHandler):
       """
        Constructor
        @ In, messageHandler, message handler object
+       @ Out, None
       """
 
       TopologicalDecomposition.__init__(self, messageHandler)
@@ -3839,18 +3841,18 @@ try:
 
     def _localWhatDoINeed(self):
       """
-      This method is a local mirror of the general whatDoINeed method.
-      It is implemented by the samplers that need to request special objects
-      @ In , None, None
-      @ Out, needDict, list of objects needed
+        This method is a local mirror of the general whatDoINeed method.
+        It is implemented by the samplers that need to request special objects
+        @ In , None, None
+        @ Out, needDict, list of objects needed
       """
       return {'internal':[(None,'app')]}
 
     def _localGenerateAssembler(self,initDict):
       """
-      Generates the assembler.
-      @ In, initDict, dict of init objects
-      @ Out, None
+        Generates the assembler.
+        @ In, initDict, dict of init objects
+        @ Out, None
       """
       self.app = initDict['internal']['app']
       if self.app is None:
@@ -3872,6 +3874,8 @@ try:
       """
         Launches an interface allowing the user to tweak specific model
         parameters before saving the results to the output object(s).
+        @ In, None
+        @ Out, None
       """
       self.uiDone = not self.interactive
 
@@ -3964,17 +3968,17 @@ class DataMining(BasePostProcessor):
 
   def _localWhatDoINeed(self):
     """
-    This method is a local mirror of the general whatDoINeed method.
-    It is implemented by the samplers that need to request special objects
-    @ In , None, None
-    @ Out, dict, dictionary of objects needed
+      This method is a local mirror of the general whatDoINeed method.
+      It is implemented by the samplers that need to request special objects
+      @ In , None, None
+      @ Out, dict, dictionary of objects needed
     """
     return {'internal':[(None,'jobHandler')]}
 
   def _localGenerateAssembler(self,initDict):
     """Generates the assembler.
-    @ In, initDict, dict, init objects
-    @ Out, None
+      @ In, initDict, dict, init objects
+      @ Out, None
     """
     self.jobHandler = initDict['internal']['jobHandler']
 
@@ -4274,6 +4278,8 @@ class DataMining(BasePostProcessor):
     """
       A placeholder for allowing user's to interact and tweak the model in-situ
       before saving the analysis results
+      @ In, None
+      @ Out, None
     """
     pass
 
@@ -4600,25 +4606,17 @@ class DataMining(BasePostProcessor):
 try:
   import PySide.QtCore as qtc
 
-  # class qtPostProcessorMetaclass(type(qtc.Qt), type(Scipy)):
-  #   """
-  #     This is a metaclass that combines the metaclass of QObject and Scipy
-  #     allowing them to be compatible for multiple inheritance below. The
-  #     purpose is to resolve the order of inheritance, I believe.
-  #   """
-  #   pass
-
   class QDataMining(DataMining,qtc.QObject):
     """
       DataMining class - Computes a hierarchical clustering from an input point
       cloud consisting of an arbitrary number of input parameters
     """
-    # __metaclass__ = qtPostProcessorMetaclass
     requestUI = qtc.Signal(str,str,dict)
     def __init__(self, messageHandler):
       """
        Constructor
        @ In, messageHandler, message handler object
+       @ Out, None
       """
       DataMining.__init__(self, messageHandler)
       qtc.QObject.__init__(self)
@@ -4639,10 +4637,10 @@ try:
 
     def _localWhatDoINeed(self):
       """
-      This method is a local mirror of the general whatDoINeed method.
-      It is implemented by the samplers that need to request special objects
-      @ In , None, None
-      @ Out, needDict, list of objects needed
+        This method is a local mirror of the general whatDoINeed method.
+        It is implemented by the samplers that need to request special objects
+        @ In , None, None
+        @ Out, needDict, list of objects needed
       """
       needDict = DataMining._localWhatDoINeed(self)
       needDict['internal'].append((None,'app'))
@@ -4650,9 +4648,9 @@ try:
 
     def _localGenerateAssembler(self,initDict):
       """
-      Generates the assembler.
-      @ In, initDict, dict of init objects
-      @ Out, None
+        Generates the assembler.
+        @ In, initDict, dict of init objects
+        @ Out, None
       """
       DataMining._localGenerateAssembler(self, initDict)
       self.app = initDict['internal']['app']
@@ -4663,6 +4661,8 @@ try:
       """
         Launches an interface allowing the user to tweak specific model
         parameters before saving the results to the output object(s).
+        @ In, None
+        @ Out, None
       """
 
       ## If it has not been requested, then we are not waiting for a UI,
