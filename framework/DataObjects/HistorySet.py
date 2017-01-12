@@ -168,8 +168,7 @@ class HistorySet(Data):
       @ Out, None
       NB. This method, if the metadata name is already present, replaces it with the new value. No appending here, since the metadata are dishomogenius and a common updating strategy is not feasable.
     """
-    valueType = None if type(value).__name__ not in ['str','unicode','bytes'] else object
-
+    valueType = None if utils.checkTypeRecursively(value) not in ['str','unicode','bytes'] else object
     if options and self._dataParameters['hierarchical']:
       # we retrieve the node in which the specialized 'Point' has been stored
       parentID = None
@@ -190,8 +189,6 @@ class HistorySet(Data):
           nodeId = options['prefix']
           if 'parentID' in options.keys(): parentID = options['parentID']
       if parentID: tsnode = self.retrieveNodeInTreeMode(nodeId, parentID)
-      #if 'parentID' in options.keys(): tsnode = self.retrieveNodeInTreeMode(options['prefix'], options['parentID'])
-      #else:                             tsnode = self.retrieveNodeInTreeMode(options['prefix'])
       self._dataContainer = tsnode.get('dataContainer')
       if not self._dataContainer:
         tsnode.add('dataContainer',{'metadata':{}})
