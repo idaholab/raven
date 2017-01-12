@@ -75,7 +75,8 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
   def train(self,trainingSet):
 
     if len(trainingSet.keys()) == 0: self.raiseAnError(IOError,"The training set is empty!")
-    if type(trainingSet.values()[-1]).__name__ == 'list':
+    print(type(trainingSet.values()[-1]).__name__)
+    if type(trainingSet.values()[-1]).__name__ in 'list':
       # we need to build a "time-dependent" ROM
       if self.isADynamicModel:
         # the ROM is able to manage the time dependency on its own
@@ -84,23 +85,10 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
         # we need to construct a chain of ROMs
         pass
     else:
-      pass
+      print("lupo")
 
 
       if self.subType == 'ARMA':
-        localInput = {}
-
-
-        lupo = self._inputToInternal(trainingSet, full=True)
-        aaaa = mathUtils.historySetWindow(trainingSet,2017)
-        if type(trainingSet)!=dict:
-          for entries in trainingSet.getParaKeys('inputs' ):
-            if not trainingSet.isItEmpty(): localInput[entries] = copy.copy(np.array(trainingSet.getParam('input' ,1)[entries]))
-            else:                      localInput[entries] = None
-          for entries in trainingSet.getParaKeys('outputs'):
-            if not trainingSet.isItEmpty(): localInput[entries] = copy.copy(np.array(trainingSet.getParam('output',1)[entries]))
-            else:                      localInput[entries] = None
-        self.trainingSet = copy.copy(localInput)
         if type(self.trainingSet) is dict:
           self.amITrained = True
           for instrom in self.SupervisedEngine.values():

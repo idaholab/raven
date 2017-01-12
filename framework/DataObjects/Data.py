@@ -723,7 +723,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     """
     outcome   = 0
     if self.isItEmpty(): return outcome
-    if self.type == 'PointSet': outcome = len(self.getParam('input',self.getParaKeys('input')[-1]),nodeId = 'RecontructEnding')
+    if self.type == 'PointSet': outcome = len(self.getParam('input',self.getParaKeys('input')[-1],nodeId = 'RecontructEnding'))
     else                      : outcome = len(self.getParametersValues('input', nodeId='RecontructEnding').keys())
     return outcome
 

@@ -422,7 +422,7 @@ class Dummy(Model):
     if type(dataIN)!=dict:
       localInput = dict.fromkeys(dataIN.getParaKeys('inputs' )+dataIN.getParaKeys('outputs' ),None)
       if not dataIN.isItEmpty():
-        if self.type == 'PointSet':
+        if dataIN.type == 'PointSet':
           for entries in dataIN.getParaKeys('inputs' ): localInput[entries] = copy.copy(np.array(dataIN.getParam('input' ,entries))[0 if full else -1:])
           for entries in dataIN.getParaKeys('outputs'): localInput[entries] = copy.copy(np.array(dataIN.getParam('output',entries))[0 if full else -1:])
         else:
@@ -956,26 +956,27 @@ class ROM(Dummy):
       self.supervisedEngine.train(self.trainingSet)
 
       if self.subType == 'ARMA':
-        localInput = {}
-
-
-        lupo = self._inputToInternal(trainingSet, full=True)
-        aaaa = mathUtils.historySetWindow(trainingSet,2017)
-        if type(trainingSet)!=dict:
-          for entries in trainingSet.getParaKeys('inputs' ):
-            if not trainingSet.isItEmpty(): localInput[entries] = copy.copy(np.array(trainingSet.getParam('input' ,1)[entries]))
-            else:                      localInput[entries] = None
-          for entries in trainingSet.getParaKeys('outputs'):
-            if not trainingSet.isItEmpty(): localInput[entries] = copy.copy(np.array(trainingSet.getParam('output',1)[entries]))
-            else:                      localInput[entries] = None
-        self.trainingSet = copy.copy(localInput)
-        if type(self.trainingSet) is dict:
-          self.amITrained = True
-          for instrom in self.SupervisedEngine.values():
-            instrom.pivotParameter = np.asarray(trainingSet.getParam('output',1)[instrom.pivotParameterID])
-            instrom.train(self.trainingSet)
-            self.amITrained = self.amITrained and instrom.amITrained
-          self.raiseADebug('add self.amITrained to currentParamters','FIXME')
+        pass
+#         localInput = {}
+# 
+# 
+#         lupo = self._inputToInternal(trainingSet, full=True)
+#         aaaa = mathUtils.historySetWindow(trainingSet,2017)
+#         if type(trainingSet)!=dict:
+#           for entries in trainingSet.getParaKeys('inputs' ):
+#             if not trainingSet.isItEmpty(): localInput[entries] = copy.copy(np.array(trainingSet.getParam('input' ,1)[entries]))
+#             else:                      localInput[entries] = None
+#           for entries in trainingSet.getParaKeys('outputs'):
+#             if not trainingSet.isItEmpty(): localInput[entries] = copy.copy(np.array(trainingSet.getParam('output',1)[entries]))
+#             else:                      localInput[entries] = None
+#         self.trainingSet = copy.copy(localInput)
+#         if type(self.trainingSet) is dict:
+#           self.amITrained = True
+#           for instrom in self.SupervisedEngine.values():
+#             instrom.pivotParameter = np.asarray(trainingSet.getParam('output',1)[instrom.pivotParameterID])
+#             instrom.train(self.trainingSet)
+#             self.amITrained = self.amITrained and instrom.amITrained
+#           self.raiseADebug('add self.amITrained to currentParamters','FIXME')
 
       elif 'HistorySet' in type(trainingSet).__name__:
         #get the pivot parameter if specified
