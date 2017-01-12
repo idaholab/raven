@@ -128,12 +128,14 @@ class Node(object):
       @ In, truncationSize, int, a minimum size for the maximum child.
       @ In, truncationLevel, float, a minimum vertical level for the maximum
         child.
-      @ Out, ids, list(object), the mapping of ids to array position.
-      @ Out, points, list((float,float)), the corresponding locations of the
-        aforementioned ids list.
-      @ Out, edges, list((object,object))), a list of edges that connect one
-        id to another, where the first item in the tuple is the id of the
-        ancestor and the second is the id of the descendant.
+      @ Out, (ids,points,edges), tuple where each of the outputs is described
+        below:
+          ids, list(object), the mapping of ids to array position.
+          points, list((float,float)), the corresponding locations of the
+            aforementioned ids list.
+          edges, list((object,object))), a list of edges that connect one id
+            to another, where the first item in the tuple is the id of the
+            ancestor and the second is the id of the descendant.
     """
     ids = [self.id]
     points = [(xoffset+width/2.,self.level)]
