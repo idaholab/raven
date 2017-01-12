@@ -51,6 +51,8 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
     self.SupervisedEngine = [modelInstance]
     # check if pivotParameter is specified and in case store it
     self.pivotParameterId = self.initializationOptions.pop("pivotParameter",'time')
+    # 
+    self.historySteps = []
 
 #     if 'SKLtype' in self.initializationOptions and 'MultiTask' in self.initializationOptions['SKLtype']:
 #       self.initializationOptions['Target'] = targets
@@ -73,11 +75,15 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
     pass
 
   def train(self,trainingSet):
+    
+    if type(trainingSet).__name__ not in  'dict': self.raiseAnError(IOError,"The training set is not a dictionary!")
+    if len(trainingSet.keys()) == 0             : self.raiseAnError(IOError,"The training set is empty!")
 
-    if len(trainingSet.keys()) == 0: self.raiseAnError(IOError,"The training set is empty!")
-    print(type(trainingSet.values()[-1]).__name__)
-    if type(trainingSet.values()[-1]).__name__ in 'list':
+    if any(type(x).__name__ == 'list' for x in trainingSet.values()):
       # we need to build a "time-dependent" ROM
+      if self.pivotParameterId not in trainingSet.keys()            : self.raiseAnError(IOError,"the pivot parameter "+ self.pivotParameterId +" is not present in the training set. A time-dependent-like ROM cannot be created!")
+      if type(trainingSet[self.pivotParameterId]).__name__ != 'list': self.raiseAnError(IOError,"the pivot parameter "+ self.pivotParameterId +" is not a list. Are you sure it is part of the output space of the training set?")
+      self.historySteps = trainingSet.get(self.pivotParameterId)[-1]
       if self.isADynamicModel:
         # the ROM is able to manage the time dependency on its own
         self.SupervisedEngine[0].train(trainingSet)
@@ -85,7 +91,9 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
         # we need to construct a chain of ROMs
         pass
     else:
-      print("lupo")
+      #self._replaceVariablesNamesWithAliasSystem(self.trainingSet, 'inout', False)
+      self.SupervisedEngine[0].train(trainingSet)
+
 
 
       if self.subType == 'ARMA':

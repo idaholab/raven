@@ -953,6 +953,7 @@ class ROM(Dummy):
     else:
 
       self.trainingSet = copy.copy(self._inputToInternal(trainingSet, full=True))
+      self._replaceVariablesNamesWithAliasSystem(self.trainingSet, 'inout', False)
       self.supervisedEngine.train(self.trainingSet)
 
       if self.subType == 'ARMA':
