@@ -1,17 +1,29 @@
 #!/usr/bin/env python
 
+"""
+  A Main Window container for holding various subwindows related to the
+  visualization and analysis of a dataset according to the approximate
+  Morse-Smale complex.
+"""
+
+#For future compatibility with Python 3
+from __future__ import division, print_function, absolute_import
+import warnings
+warnings.simplefilter('default',DeprecationWarning)
+#End compatibility block for Python 3
+
 from PySide import QtCore as qtc
 from PySide import QtGui as qtg
 
 from sys import path
 
 from AMSC_Object import QAMSC_Object
-from GenericView import GenericView
-from TopologyMapView import TopologyMapView
-from SensitivityView import SensitivityView
-from FitnessView import FitnessView
-from ScatterView2D import ScatterView2D
-from ScatterView3D import ScatterView3D
+from .BaseTopologicalView import BaseTopologicalView
+from .TopologyMapView import TopologyMapView
+from .SensitivityView import SensitivityView
+from .FitnessView import FitnessView
+from .ScatterView2D import ScatterView2D
+from .ScatterView3D import ScatterView3D
 
 import time
 import sys
@@ -20,7 +32,7 @@ import re
 import random
 import numpy as np
 
-class MainWindow(qtg.QMainWindow):
+class TopologyWindow(qtg.QMainWindow):
   """
       A Main Window container for holding various subwindows related to the
       visualization and analysis of a dataset according to the approximate
@@ -67,7 +79,7 @@ class MainWindow(qtg.QMainWindow):
         @ In, debug, an optional boolean flag for whether debugging output
           should be enabled.
     """
-    super(MainWindow,self).__init__()
+    super(TopologyWindow,self).__init__()
     self.resize(800,600)
     self.setCentralWidget(None)
     self.setDockOptions(qtg.QMainWindow.AllowNestedDocks)
@@ -85,9 +97,9 @@ class MainWindow(qtg.QMainWindow):
     self.viewMenu = self.menuBar().addMenu('View')
     newMenu = self.viewMenu.addMenu('New...')
     self.addNewView('TopologyMapView')
-    self.addNewView('ProjectionView')
+    # self.addNewView('ProjectionView')
 
-    for subclass in GenericView.__subclasses__():
+    for subclass in BaseTopologicalView.__subclasses__():
       action = newMenu.addAction(subclass.__name__)
       action.triggered.connect(functools.partial(self.addNewView,action.text()))
 
@@ -157,8 +169,8 @@ class MainWindow(qtg.QMainWindow):
 
   def createDockWidget(self,view):
     """ Method to create a new child dock widget of a specified type.
-        @ In, view, an object belonging to a subclass of GenericView that will
-          be added to this window.
+        @ In, view, an object belonging to a subclass of BaseTopologicalView
+          that will be added to this window.
     """
     dockWidget = qtg.QDockWidget()
     dockWidget.setWindowTitle(view.windowTitle())
@@ -186,11 +198,11 @@ class MainWindow(qtg.QMainWindow):
   def addNewView(self,viewType):
     """ Method to create a new child view which will be added as a dock widget
         and thus will call createDockWidget()
-        @ In, viewType, a string specifying a subclass of GenericView that will
-          be added to this window.
+        @ In, viewType, a string specifying a subclass of BaseTopologicalView
+          that will be added to this window.
     """
     defaultWidgetName = ''
-    for subclass in GenericView.__subclasses__():
+    for subclass in BaseTopologicalView.__subclasses__():
       if subclass.__name__ == viewType:
         idx = 0
         for view in self.views:
@@ -217,16 +229,17 @@ class MainWindow(qtg.QMainWindow):
         @ In, event, a QCloseEvent specifying the context of this event.
     """
     self.closed.emit(self)
-    return super(MainWindow,self).closeEvent(event)
+    return super(TopologyWindow,self).closeEvent(event)
 
-if __name__ == '__main__':
-  app = qtg.QApplication(sys.argv)
+## We will not support external running of this UI, it shall be run from RAVEN
+# if __name__ == '__main__':
+#   app = qtg.QApplication(sys.argv)
 
-  X = None
-  Y = None
-  if len(sys.argv) > 1:
-    print('\tYou probably want me to load a file...')
-    print('\tThe Maker has not included this in my programming.')
-  main = MainWindow(X,Y)
-  main.show()
-  sys.exit(app.exec_())
+#   X = None
+#   Y = None
+#   if len(sys.argv) > 1:
+#     print('\tYou probably want me to load a file...')
+#     print('\tThe Maker has not included this in my programming.')
+#   main = TopologyWindow(X,Y)
+#   main.show()
+#   sys.exit(app.exec_())

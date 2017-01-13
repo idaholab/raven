@@ -1,15 +1,26 @@
 #!/usr/bin/env python
 
+"""
+  A view widget for visualizing the R^2 fitness of the local stepwise
+  regression results.
+"""
+
+#For future compatibility with Python 3
+from __future__ import division, print_function, absolute_import
+import warnings
+warnings.simplefilter('default',DeprecationWarning)
+#End compatibility block for Python 3
+
 from PySide import QtCore as qtc
 from PySide import QtGui as qtg
 from PySide import QtSvg as qts
 
-from GenericView import GenericView
+from .BaseTopologicalView import BaseTopologicalView
 
 import math
 import numpy as np
 
-class FitnessView(GenericView):
+class FitnessView(BaseTopologicalView):
   """
      A view widget for visualizing the R^2 fitness of the local stepwise
      regression results.
