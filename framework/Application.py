@@ -61,8 +61,8 @@ try:
 
         message = 'The requested interactive UI is unavailable. '
         message += 'RAVEN will continue in non-interactive mode for this step. '
-        message += 'Please send the following debug information to the '
-        message += 'developer list:\n\t' + str(e) + '\n'
+        message += 'Please file an issue on gitlab with the following debug '
+        message += 'information:\n\t' + str(e) + '\n'
 
         ## This will ensure that the waiting threads are released.
         self.windowClosed.emit(uiID)
