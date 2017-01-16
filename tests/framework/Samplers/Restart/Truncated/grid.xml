@@ -7,7 +7,7 @@
   </RunInfo>
   <TestInfo>
     <name>framework/Samplers/Restart/Truncated/Grid</name>
-    <author>@talbpaul</author>
+    <author>talbpaul</author>
     <created>2016-04-05</created>
     <classesTested>Samplers.Grid</classesTested>
     <description>

@@ -5,6 +5,15 @@
     <Sequence>BNmake,BNtrain,BNtest,BNprint</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+  <TestInfo>
+    <name>framework/Samplers/SparseGrid/betanorm</name>
+    <author>talbpaul</author>
+    <created>2015-09-11</created>
+    <classesTested>Samplers.SparseGridCollocation</classesTested>
+    <description>
+      This tests using SparseGridCollocation with truncated-normal-beta distributed inputs.
+    </description>
+  </TestInfo>
 
   <Distributions>
     <Beta name="BetaNorm">
