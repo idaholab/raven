@@ -1,8 +1,18 @@
 <?xml version="1.0" ?>
-<!--
- This  test is aimed to test the capability of RAVEN to employ the Adaptive Dynamic Event Tree Sampling strategy (using RELAP7 as system code)
- -->
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/testAdaptiveDynamicEventTreeRAVEN</name>
+    <author>@alfoa</author>
+    <created>2015-01-26</created>
+    <revisions>
+        <revision date="2016-04-27" author="@alfoa">Updating the test in order to accept the new subdirectories' structure</revision>
+    </revisions>
+    <classesTested>Samplers.AdaptiveDET</classesTested>
+    <description>
+        This  test is aimed to test the capability of RAVEN to employ the Adaptive Dynamic Event Tree Sampling strategy (using RELAP7 as system code)
+    </description>
+  </TestInfo>
+
   <!-- RunInfo. 1 Step is performed in this case -->
   <RunInfo>
     <WorkingDir>AdaptiveDET</WorkingDir>
