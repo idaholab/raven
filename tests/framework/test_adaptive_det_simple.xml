@@ -1,5 +1,6 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <!-- TestInfo -->
   <TestInfo>
     <name>framework/testAdaptiveDynamicEventTreeRAVEN</name>
     <author>@alfoa</author>

@@ -1,5 +1,6 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <!-- TestInfo -->
   <TestInfo>
     <name>framework/2steps_same_db</name>
     <author>@alfoa</author>
@@ -121,6 +122,7 @@
   <DataObjects>
     <PointSet name="inputHolder">
       <Input>Gauss1,auxBackupTimeDist,Gauss2,CladFailureDist</Input>
+      <Output>OutputPlaceHolder</Output>
     </PointSet>
     <HistorySet name="stories">
       <Input>Gauss1,auxBackupTimeDist,Gauss2,CladFailureDist</Input>
