@@ -5,6 +5,15 @@
     <Sequence>Emake,Etrain,Etest,Eprint</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+  <TestInfo>
+    <name>framework/Samplers/SparseGrid/exponential</name>
+    <author>talbpaul</author>
+    <created>2015-09-11</created>
+    <classesTested>Samplers.SparseGridCollocation</classesTested>
+    <description>
+      This tests using SparseGridCollocation with exponential-distributed inputs.
+    </description>
+  </TestInfo>
 
   <Distributions>
     <Exponential name="ExpDist">
