@@ -7,9 +7,11 @@
   </RunInfo>
   <TestInfo>
     <name>Samplers/Restart/MC</name>
-    <author>Paul Talbot</author>
+    <author>@talbpaul</author>
     <created>2015-07-07</created>
-    <revised>2016-06-01</revised>
+    <revisions>
+      <revision date="2016-06-01" author="@talbpaul"></revision>
+    </revisions>
     <classesTested>Samplers.MonteCarlo</classesTested>
     <description>
       Tests restarting a Monte Carlo sampling from restart.  \texttt{makeCoarse} samples initial data, then \texttt{makeRestart}
