@@ -5,6 +5,18 @@
     <Sequence>makeCoarse,makeRestart,makeFine,print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+  <TestInfo>
+    <name>Samplers/Restart/MC</name>
+    <author>Paul Talbot</author>
+    <created>2015-07-07</created>
+    <revised>2016-06-01</revised>
+    <classesTested>Samplers.MonteCarlo</classesTested>
+    <description>
+      Tests restarting a Monte Carlo sampling from restart.  \texttt{makeCoarse} samples initial data, then \texttt{makeRestart}
+      makes additional samples, restarting from the first set of samples.  \texttt{makeFine} does all the samples without restart
+      for comparison.
+    </description>
+  </TestInfo>
 
   <Steps>
     <MultiRun name="makeCoarse">
