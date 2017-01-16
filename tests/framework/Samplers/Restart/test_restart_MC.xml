@@ -6,8 +6,8 @@
     <batchSize>1</batchSize>
   </RunInfo>
   <TestInfo>
-    <name>Samplers/Restart/MC</name>
-    <author>@talbpaul</author>
+    <name>framework/Samplers/Restart/MC</name>
+    <author>talbpaul</author>
     <created>2015-07-07</created>
     <revisions>
       <revision date="2016-06-01" author="@talbpaul"></revision>
@@ -16,7 +16,8 @@
     <description>
       Tests restarting a Monte Carlo sampling from restart.  \texttt{makeCoarse} samples initial data, then \texttt{makeRestart}
       makes additional samples, restarting from the first set of samples.  \texttt{makeFine} does all the samples without restart
-      for comparison.
+      for comparison.  The model for "coarse" always returns a value of 1, while the model for "restart" returns a value of 2, so
+      you can tell which samples came from which sampling strategy.
     </description>
   </TestInfo>
 

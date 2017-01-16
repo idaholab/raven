@@ -5,6 +5,17 @@
     <Sequence>make1k,print,load,print2</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+  <TestInfo>
+    <name>framework/Samplers/Restart/LoadFromLargeCSV</name>
+    <author>talbpaul</author>
+    <created>2016-06-30</created>
+    <classesTested>Samplers.Grid</classesTested>
+    <description>
+      At one point there was performance issues restarting from a large amount of data
+      that is loaded from a CSV.  This test exists to ensure loading from a large CSV
+      behaves consistently.
+    </description>
+  </TestInfo>
 
   <Steps>
     <MultiRun name="make1k" sleepTime="1e-4">

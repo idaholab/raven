@@ -5,6 +5,17 @@
     <Sequence>makeCoarse,printCoarse,load,makeRestart,printRestart</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+  <TestInfo>
+    <name>framework/Samplers/Restart/Truncated/Grid</name>
+    <author>@talbpaul</author>
+    <created>2016-04-05</created>
+    <classesTested>Samplers.Grid</classesTested>
+    <description>
+      This is similar to the restart tests in the parent directory, but in this one we test the use of the
+      restartTolerance to recover restart points from a code that produces finite precision when reporting input
+      values.  As with the other restart tests, "coarse" returns a 1 and "fine" returns a 2.
+    </description>
+  </TestInfo>
 
   <Files>
     <Input name="inp" type="">input_truncated.i</Input>
