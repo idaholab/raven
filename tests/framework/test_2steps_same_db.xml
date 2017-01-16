@@ -1,20 +1,24 @@
 <?xml version="1.0" ?>
+<!-- 
+  This  test is aimed to test the capability of the RAVEN database strucuture to use the same database (HDF5) for subsequential analyses
+  in order to collect all the results in the same HDF5 container
+-->
 <Simulation verbosity="debug">
+  <!-- RunInfo. 2 Steps are performed in this case -->
   <RunInfo>
     <WorkingDir>test_2steps</WorkingDir>
     <Sequence>FirstStep,SecondStep</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
-
-  <Files>
-  </Files>
-
+  
+  <!-- Models. One single external model -->
   <Models>
     <ExternalModel ModuleToLoad="two_steps" name="TwoStep" subType="">
       <variables>Gauss1,auxBackupTimeDist,Gauss2,CladFailureDist,time,out1,out2,time</variables>
     </ExternalModel>
   </Models>
-
+  
+  <!-- Distributions. 4 Distributions -->
   <Distributions>
     <Normal name="Gauss1">
       <mean>1</mean>
@@ -40,7 +44,8 @@
       <max>3</max>
     </Triangular>
   </Distributions>
-
+  
+  <!-- Samplers. 2 different samplers since we want to test the possibility to add different data in the same HDF5 -->
   <Samplers>
     <MonteCarlo name="RAVENmc6">
       <samplerInit>
@@ -77,7 +82,8 @@
       </variable>
     </MonteCarlo>
   </Samplers>
-
+  
+  <!-- Steps. 2 steps that dump the results in the same HDF5 -->
   <Steps>
     <MultiRun name="FirstStep" re-seeding="200286">
       <Input class="DataObjects" type="PointSet">inputHolder</Input>
@@ -95,22 +101,24 @@
       <Output class="OutStreams" type="Print">fullprint_HistorySet</Output>
     </MultiRun>
   </Steps>
-
+  
+  <!-- Databases. 1 database used as dumper -->
   <Databases>
     <HDF5 name="test2StepsDatabase" readMode="overwrite"/>
   </Databases>
-
+  
+  <!-- DataObjects. 1 input data object and 1 output dataobject -->
   <DataObjects>
     <PointSet name="inputHolder">
       <Input>Gauss1,auxBackupTimeDist,Gauss2,CladFailureDist</Input>
-      <Output>OutputPlaceHolder</Output>
     </PointSet>
     <HistorySet name="stories">
       <Input>Gauss1,auxBackupTimeDist,Gauss2,CladFailureDist</Input>
       <Output>out1,out2,time</Output>
     </HistorySet>
   </DataObjects>
-
+  
+  <!-- OutStreams. Print object (dataobject dumping) -->
   <OutStreams>
     <Print name="fullprint_HistorySet">
       <type>csv</type>
