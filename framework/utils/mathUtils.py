@@ -240,6 +240,30 @@ def calculateStats(data):
   ret["kurtosis"] = stats.kurtosis(data)
   return ret
 
+def historySnapShoots(valueDict, numberOfTimeStep):
+  
+  outDict = []
+  numberOfRealizations = len(valueDict.values()[-1])
+  outPortion, inPortion = {}, {}
+  numberSteps = - 1
+  # check consistency of the dictionary
+  for variable, value in valueDict.items():
+    if len(value) != numberOfRealizations: return "historySnapShoots method: number of realizations are not consistent among the different parameters!!!!"
+    if type(value).__name__ in 'list':
+      # check the time-step size
+      outPortion[variable] = np.asarray(value)
+      if numberSteps == -1: numberSteps = reduce(lambda x, y: x*y, list(outPortion.values()[-1].shape))/numberOfRealizations
+      if len(list(outPortion[variable].shape)) != 2: return "historySnapShoots method: number of time steps are not consistent among the different histories for variable "+variable
+      if reduce(lambda x, y: x*y, list(outPortion.values()[-1].shape))/numberOfRealizations != numberSteps : 
+        return "historySnapShoots method: number of time steps are not consistent among the different histories for variable "+variable+". Expected "+str(numberSteps)+" /= "+ sum(list(outPortion[variable].shape))/numberOfRealizations
+    else                             : inPortion [variable] = np.asarray(value)
+  for ts in range(numberOfTimeStep):
+    realizationSnap = {} 
+    realizationSnap.update(inPortion)
+    for variable in outPortion.keys(): realizationSnap[variable] = outPortion[variable][:,ts]
+    outDict.append(realizationSnap)
+  return outDict
+  
 def historySetWindow(vars,numberOfTimeStep):
   """
     Method do to compute the temporal slices of each history

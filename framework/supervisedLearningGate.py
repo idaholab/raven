@@ -12,6 +12,7 @@ warnings.simplefilter('default',DeprecationWarning)
 #External Modules------------------------------------------------------------------------------------
 import inspect
 import abc
+import copy
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -84,12 +85,27 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
       if self.pivotParameterId not in trainingSet.keys()            : self.raiseAnError(IOError,"the pivot parameter "+ self.pivotParameterId +" is not present in the training set. A time-dependent-like ROM cannot be created!")
       if type(trainingSet[self.pivotParameterId]).__name__ != 'list': self.raiseAnError(IOError,"the pivot parameter "+ self.pivotParameterId +" is not a list. Are you sure it is part of the output space of the training set?")
       self.historySteps = trainingSet.get(self.pivotParameterId)[-1]
+      if len(self.historySteps) == 0: self.raiseAnError(IOError,"the training set is empty!")
       if self.isADynamicModel:
         # the ROM is able to manage the time dependency on its own
         self.SupervisedEngine[0].train(trainingSet)
       else:
         # we need to construct a chain of ROMs
-        pass
+        # the check on the number of time steps (consistency) is performed inside the historySnapShoots method
+        # get the time slices
+        newTrainingSet = mathUtils.historySnapShoots(trainingSet, len(self.historySteps))
+        if type(newTrainingSet).__name__ != 'list': self.raiseAnError(IOError,newTrainingSet)
+        # copy the original ROM
+        originalROM = copy.deepcopy(self.SupervisedEngine[0])
+        # start creating and training the time-dep ROMs
+        self.SupervisedEngine = [] # [copy.deepcopy(originalROM) for _ in range(len(self.historySteps))]
+        # train
+        for ts in range(len(self.historySteps)):
+          self.SupervisedEngine.append(copy.deepcopy(originalROM))
+          self.SupervisedEngine[-1].train(newTrainingSet[ts])
+  
+        print("ok")
+        
     else:
       #self._replaceVariablesNamesWithAliasSystem(self.trainingSet, 'inout', False)
       self.SupervisedEngine[0].train(trainingSet)
