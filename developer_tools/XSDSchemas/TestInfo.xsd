@@ -3,11 +3,13 @@
 
     <xsd:complexType name="TestInfoData">
         <xsd:all>
-            <xsd:element name="name" type="xsd:string"        minOccurs="1"/>
-            <xsd:element name="author" type="xsd:string"      minOccurs="1"/>
-            <xsd:element name="created" type="xsd:date"       minOccurs="0"/>
-            <xsd:element name="description" type="xsd:string" minOccurs="1"/>
+            <xsd:element name="name" type="xsd:string"          minOccurs="1"/>
+            <xsd:element name="author" type="xsd:string"        minOccurs="1"/>
+            <xsd:element name="created" type="xsd:date"         minOccurs="0"/>
+            <xsd:element name="description" type="xsd:string"   minOccurs="1"/>
             <xsd:element name="classesTested" type="xsd:string" minOccurs="1"/>
+            <xsd:element name="analytic" type="xsd:string"      minOccurs="0"/>
+            <xsd:element name="requirements" type="xsd:string"  minOccurs="0"/>
             <xsd:element name="revisions" type="testInfoRevisionsType" minOccurs="0"/>
         </xsd:all>
     </xsd:complexType>

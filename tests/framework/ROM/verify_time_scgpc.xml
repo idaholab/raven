@@ -5,6 +5,15 @@
     <Sequence>load,sampleRom,sampleModel,print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+  <TestInfo>
+    <name>framework/Samplers/ROM/verifyGaussPolyRom</name>
+    <author>talbpaul</author>
+    <created>2016-03-09</created>
+    <classesTested>SupervisedLearning.GaussPolynomialROM</classesTested>
+    <description>
+      This tests validates the time-dependent GaussPolynomialROM by sampling it and comparing to the original model.
+    </description>
+  </TestInfo>
 
   <Files>
     <Input name="rom_pk" type="">rom.pk</Input>
