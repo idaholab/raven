@@ -947,7 +947,7 @@ class ROM(Dummy):
       self.initializationOptionDict = copy.deepcopy(trainingSet.initializationOptionDict)
       self.trainingSet              = copy.copy(trainingSet.trainingSet)
       self.amITrained               = copy.deepcopy(trainingSet.amITrained)
-      self.SupervisedEngine         = copy.deepcopy(trainingSet.SupervisedEngine)
+      self.supervisedEngine         = copy.deepcopy(trainingSet.supervisedEngine)
       self.historyPivotParameter    = copy.deepcopy(getattr(trainingSet,self.historyPivotParameter,'time'))
       self.historySteps             = copy.deepcopy(trainingSet.historySteps)
     else:
@@ -956,11 +956,11 @@ class ROM(Dummy):
       self._replaceVariablesNamesWithAliasSystem(self.trainingSet, 'inout', False)
       self.supervisedEngine.train(self.trainingSet)
 
-      if self.subType == 'ARMA':
-        pass
+#       if self.subType == 'ARMA':
+#         pass
 #         localInput = {}
-# 
-# 
+#
+#
 #         lupo = self._inputToInternal(trainingSet, full=True)
 #         aaaa = mathUtils.historySetWindow(trainingSet,2017)
 #         if type(trainingSet)!=dict:
@@ -978,50 +978,50 @@ class ROM(Dummy):
 #             instrom.train(self.trainingSet)
 #             self.amITrained = self.amITrained and instrom.amITrained
 #           self.raiseADebug('add self.amITrained to currentParamters','FIXME')
-
-      elif 'HistorySet' in type(trainingSet).__name__:
-        #get the pivot parameter if specified
-        self.historyPivotParameter = trainingSet._dataParameters.get('pivotParameter','time')
-        #get the list of history steps if specified
-        self.historySteps = trainingSet.getParametersValues('outputs').values()[0].get(self.historyPivotParameter,[])
-        #store originals for future copying
-        origRomCopies = {}
-        for target,engine in self.SupervisedEngine.items():
-          origRomCopies[target] = copy.deepcopy(engine)
-        #clear engines for time-based storage
-        self.SupervisedEngine = []
-        outKeys = trainingSet.getParaKeys('outputs')
-        targets = origRomCopies.keys()
-        # check that all histories have the same length
-        tmp = trainingSet.getParametersValues('outputs')
-        for t in tmp:
-          if t==1:
-            self.numberOfTimeStep = len(tmp[t][outKeys[0]])
-          else:
-            if self.numberOfTimeStep != len(tmp[t][outKeys[0]]):
-              self.raiseAnError(IOError,'DataObject can not be used to train a ROM: length of HistorySet is not consistent')
-        # train the ROM
-        self.trainingSet = mathUtils.historySetWindow(trainingSet,self.numberOfTimeStep)
-        for ts in range(self.numberOfTimeStep):
-          newRom = {}
-          for target in targets:
-            newRom[target] =  copy.deepcopy(origRomCopies[target])
-          for target,instrom in newRom.items():
-            # train the ROM
-            self._replaceVariablesNamesWithAliasSystem(self.trainingSet[ts], 'inout', False)
-            instrom.train(self.trainingSet[ts])
-            self.amITrained = self.amITrained and instrom.amITrained
-          self.SupervisedEngine.append(newRom)
-        self.amITrained = True
-      else:
-        self.trainingSet = copy.copy(self._inputToInternal(trainingSet,full=True))
-        if type(self.trainingSet) is dict:
-          self._replaceVariablesNamesWithAliasSystem(self.trainingSet, 'inout', False)
-          self.amITrained = True
-          for instrom in self.SupervisedEngine.values():
-            instrom.train(self.trainingSet)
-            self.amITrained = self.amITrained and instrom.amITrained
-          self.raiseADebug('add self.amITrained to currentParamters','FIXME')
+#
+#       elif 'HistorySet' in type(trainingSet).__name__:
+#         #get the pivot parameter if specified
+#         self.historyPivotParameter = trainingSet._dataParameters.get('pivotParameter','time')
+#         #get the list of history steps if specified
+#         self.historySteps = trainingSet.getParametersValues('outputs').values()[0].get(self.historyPivotParameter,[])
+#         #store originals for future copying
+#         origRomCopies = {}
+#         for target,engine in self.SupervisedEngine.items():
+#           origRomCopies[target] = copy.deepcopy(engine)
+#         #clear engines for time-based storage
+#         self.SupervisedEngine = []
+#         outKeys = trainingSet.getParaKeys('outputs')
+#         targets = origRomCopies.keys()
+#         # check that all histories have the same length
+#         tmp = trainingSet.getParametersValues('outputs')
+#         for t in tmp:
+#           if t==1:
+#             self.numberOfTimeStep = len(tmp[t][outKeys[0]])
+#           else:
+#             if self.numberOfTimeStep != len(tmp[t][outKeys[0]]):
+#               self.raiseAnError(IOError,'DataObject can not be used to train a ROM: length of HistorySet is not consistent')
+#         # train the ROM
+#         self.trainingSet = mathUtils.historySetWindow(trainingSet,self.numberOfTimeStep)
+#         for ts in range(self.numberOfTimeStep):
+#           newRom = {}
+#           for target in targets:
+#             newRom[target] =  copy.deepcopy(origRomCopies[target])
+#           for target,instrom in newRom.items():
+#             # train the ROM
+#             self._replaceVariablesNamesWithAliasSystem(self.trainingSet[ts], 'inout', False)
+#             instrom.train(self.trainingSet[ts])
+#             self.amITrained = self.amITrained and instrom.amITrained
+#           self.SupervisedEngine.append(newRom)
+#         self.amITrained = True
+#       else:
+#         self.trainingSet = copy.copy(self._inputToInternal(trainingSet,full=True))
+#         if type(self.trainingSet) is dict:
+#           self._replaceVariablesNamesWithAliasSystem(self.trainingSet, 'inout', False)
+#           self.amITrained = True
+#           for instrom in self.SupervisedEngine.values():
+#             instrom.train(self.trainingSet)
+#             self.amITrained = self.amITrained and instrom.amITrained
+#           self.raiseADebug('add self.amITrained to currentParamters','FIXME')
 
   def confidence(self,request,target = None):
     """

@@ -52,7 +52,7 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
     self.SupervisedEngine = [modelInstance]
     # check if pivotParameter is specified and in case store it
     self.pivotParameterId = self.initializationOptions.pop("pivotParameter",'time')
-    # 
+    #
     self.historySteps = []
 
 #     if 'SKLtype' in self.initializationOptions and 'MultiTask' in self.initializationOptions['SKLtype']:
@@ -76,7 +76,7 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
     pass
 
   def train(self,trainingSet):
-    
+
     if type(trainingSet).__name__ not in  'dict': self.raiseAnError(IOError,"The training set is not a dictionary!")
     if len(trainingSet.keys()) == 0             : self.raiseAnError(IOError,"The training set is empty!")
 
@@ -103,67 +103,64 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
         for ts in range(len(self.historySteps)):
           self.SupervisedEngine.append(copy.deepcopy(originalROM))
           self.SupervisedEngine[-1].train(newTrainingSet[ts])
-  
-        print("ok")
-        
     else:
       #self._replaceVariablesNamesWithAliasSystem(self.trainingSet, 'inout', False)
       self.SupervisedEngine[0].train(trainingSet)
+    self.amITrained = True
 
 
-
-      if self.subType == 'ARMA':
-        if type(self.trainingSet) is dict:
-          self.amITrained = True
-          for instrom in self.SupervisedEngine.values():
-            instrom.pivotParameter = np.asarray(trainingSet.getParam('output',1)[instrom.pivotParameterID])
-            instrom.train(self.trainingSet)
-            self.amITrained = self.amITrained and instrom.amITrained
-          self.raiseADebug('add self.amITrained to currentParamters','FIXME')
-
-      elif 'HistorySet' in type(trainingSet).__name__:
-        #get the pivot parameter if specified
-        self.historyPivotParameter = trainingSet._dataParameters.get('pivotParameter','time')
-        #get the list of history steps if specified
-        self.historySteps = trainingSet.getParametersValues('outputs').values()[0].get(self.historyPivotParameter,[])
-        #store originals for future copying
-        origRomCopies = {}
-        for target,engine in self.SupervisedEngine.items():
-          origRomCopies[target] = copy.deepcopy(engine)
-        #clear engines for time-based storage
-        self.SupervisedEngine = []
-        outKeys = trainingSet.getParaKeys('outputs')
-        targets = origRomCopies.keys()
-        # check that all histories have the same length
-        tmp = trainingSet.getParametersValues('outputs')
-        for t in tmp:
-          if t==1:
-            self.numberOfTimeStep = len(tmp[t][outKeys[0]])
-          else:
-            if self.numberOfTimeStep != len(tmp[t][outKeys[0]]):
-              self.raiseAnError(IOError,'DataObject can not be used to train a ROM: length of HistorySet is not consistent')
-        # train the ROM
-        self.trainingSet = mathUtils.historySetWindow(trainingSet,self.numberOfTimeStep)
-        for ts in range(self.numberOfTimeStep):
-          newRom = {}
-          for target in targets:
-            newRom[target] =  copy.deepcopy(origRomCopies[target])
-          for target,instrom in newRom.items():
-            # train the ROM
-            self._replaceVariablesNamesWithAliasSystem(self.trainingSet[ts], 'inout', False)
-            instrom.train(self.trainingSet[ts])
-            self.amITrained = self.amITrained and instrom.amITrained
-          self.SupervisedEngine.append(newRom)
-        self.amITrained = True
-      else:
-        self.trainingSet = copy.copy(self._inputToInternal(trainingSet,full=True))
-        if type(self.trainingSet) is dict:
-          self._replaceVariablesNamesWithAliasSystem(self.trainingSet, 'inout', False)
-          self.amITrained = True
-          for instrom in self.SupervisedEngine.values():
-            instrom.train(self.trainingSet)
-            self.amITrained = self.amITrained and instrom.amITrained
-          self.raiseADebug('add self.amITrained to currentParamters','FIXME')
+#       if self.subType == 'ARMA':
+#         if type(self.trainingSet) is dict:
+#           self.amITrained = True
+#           for instrom in self.SupervisedEngine.values():
+#             instrom.pivotParameter = np.asarray(trainingSet.getParam('output',1)[instrom.pivotParameterID])
+#             instrom.train(self.trainingSet)
+#             self.amITrained = self.amITrained and instrom.amITrained
+#           self.raiseADebug('add self.amITrained to currentParamters','FIXME')
+#
+#       elif 'HistorySet' in type(trainingSet).__name__:
+#         #get the pivot parameter if specified
+#         self.historyPivotParameter = trainingSet._dataParameters.get('pivotParameter','time')
+#         #get the list of history steps if specified
+#         self.historySteps = trainingSet.getParametersValues('outputs').values()[0].get(self.historyPivotParameter,[])
+#         #store originals for future copying
+#         origRomCopies = {}
+#         for target,engine in self.SupervisedEngine.items():
+#           origRomCopies[target] = copy.deepcopy(engine)
+#         #clear engines for time-based storage
+#         self.SupervisedEngine = []
+#         outKeys = trainingSet.getParaKeys('outputs')
+#         targets = origRomCopies.keys()
+#         # check that all histories have the same length
+#         tmp = trainingSet.getParametersValues('outputs')
+#         for t in tmp:
+#           if t==1:
+#             self.numberOfTimeStep = len(tmp[t][outKeys[0]])
+#           else:
+#             if self.numberOfTimeStep != len(tmp[t][outKeys[0]]):
+#               self.raiseAnError(IOError,'DataObject can not be used to train a ROM: length of HistorySet is not consistent')
+#         # train the ROM
+#         self.trainingSet = mathUtils.historySetWindow(trainingSet,self.numberOfTimeStep)
+#         for ts in range(self.numberOfTimeStep):
+#           newRom = {}
+#           for target in targets:
+#             newRom[target] =  copy.deepcopy(origRomCopies[target])
+#           for target,instrom in newRom.items():
+#             # train the ROM
+#             self._replaceVariablesNamesWithAliasSystem(self.trainingSet[ts], 'inout', False)
+#             instrom.train(self.trainingSet[ts])
+#             self.amITrained = self.amITrained and instrom.amITrained
+#           self.SupervisedEngine.append(newRom)
+#         self.amITrained = True
+#       else:
+#         self.trainingSet = copy.copy(self._inputToInternal(trainingSet,full=True))
+#         if type(self.trainingSet) is dict:
+#           self._replaceVariablesNamesWithAliasSystem(self.trainingSet, 'inout', False)
+#           self.amITrained = True
+#           for instrom in self.SupervisedEngine.values():
+#             instrom.train(self.trainingSet)
+#             self.amITrained = self.amITrained and instrom.amITrained
+#           self.raiseADebug('add self.amITrained to currentParamters','FIXME')
 
   def confidence(self,request,target = None):
     pass
