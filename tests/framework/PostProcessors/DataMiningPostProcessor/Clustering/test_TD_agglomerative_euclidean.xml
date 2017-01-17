@@ -1,5 +1,14 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/PostProcessors/DataMiningPostProcessor/Clustering/agglomerativeEuclidean</name>
+    <author>mandd</author>
+    <created>2016-10-10</created>
+    <classesTested>DataMining</classesTested>
+    <description>
+      Tests clustering with Agglomerative model with Minkowski metric.
+    </description>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>agglomerative_euclidean</WorkingDir>
     <Sequence>FirstMRun,plotAllHists,clustering,filter0,filter1</Sequence>
@@ -35,11 +44,11 @@
 
   <Metrics>
     <Minkowski name="example">
-	    <p>2</p>
-	    <pivotParameter>time</pivotParameter>
+            <p>2</p>
+            <pivotParameter>time</pivotParameter>
     </Minkowski>
   </Metrics>
-      
+
   <Steps>
     <MultiRun name="FirstMRun">
       <Input    class="DataObjects"      type="PointSet"       >inputPlaceHolder</Input>
@@ -97,7 +106,7 @@
       <plotSettings>
         <plot>
           <type>line</type>
-          <interpolationType>cubic</interpolationType>         
+          <interpolationType>cubic</interpolationType>
           <interpPointsX>1000</interpPointsX>
           <x>outMC|Output|time</x>
           <y>outMC|Output|y</y>
@@ -124,7 +133,7 @@
       <plotSettings>
         <plot>
           <type>line</type>
-          <interpolationType>cubic</interpolationType>         
+          <interpolationType>cubic</interpolationType>
           <interpPointsX>1000</interpPointsX>
           <x>outMC0|Output|time</x>
           <y>outMC0|Output|y</y>
@@ -151,7 +160,7 @@
       <plotSettings>
         <plot>
           <type>line</type>
-          <interpolationType>cubic</interpolationType>         
+          <interpolationType>cubic</interpolationType>
           <interpPointsX>1000</interpPointsX>
           <x>outMC1|Output|time</x>
           <y>outMC1|Output|y</y>
@@ -209,7 +218,7 @@
       <sigma>1</sigma>
     </Normal>
   </Distributions>
-  
+
   <Samplers>
     <MonteCarlo name="MC_external">
       <samplerInit>
@@ -227,5 +236,5 @@
       </variable>
     </MonteCarlo>
   </Samplers>
-  
+
 </Simulation>

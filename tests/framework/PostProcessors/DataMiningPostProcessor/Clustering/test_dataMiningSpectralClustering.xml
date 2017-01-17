@@ -1,5 +1,14 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="silent">
+  <TestInfo>
+    <name>framework/PostProcessors/DataMiningPostProcessor/Clustering/SpectralClustering</name>
+    <author>senrs</author>
+    <created>2015-11-24</created>
+    <classesTested>DataMining</classesTested>
+    <description>
+      Tests clustering with SpectralClustering model.
+    </description>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>SpectralClustering</WorkingDir>
     <Sequence>readIn,SpectralCircles,output</Sequence>

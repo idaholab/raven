@@ -1,5 +1,14 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/PostProcessors/DataMiningPostProcessor/Clustering/HierarchicalScipy_SKL</name>
+    <author>mandd</author>
+    <created>2016-12-05</created>
+    <classesTested>DataMining</classesTested>
+    <description>
+      Tests clustering with the Hierarchical model with the SKL metric.
+    </description>
+  </TestInfo>
   <RunInfo>
     <internalParallel>False</internalParallel>
     <WorkingDir>Hierarchical</WorkingDir>
@@ -10,7 +19,7 @@
   <Files>
     <Input name="DataSetsFile">./data.csv</Input>
   </Files>
-  
+
   <Metrics>
     <SKL name="euclidean">
       <metricType>euclidean</metricType>
@@ -24,7 +33,7 @@
       <gamma>1.0</gamma>
       <degree>2.0</degree>
       <coef0>1.0</coef0>
-    </SKL> 
+    </SKL>
   </Metrics>
 
   <Models>
@@ -113,7 +122,7 @@
       <Input    class="DataObjects"   type="PointSet"       >DataSets_SKL_1</Input>
       <Output   class="OutStreams"    type="Plot"           >PlotHierarchical_1</Output>
     </IOStep>
-    
+
     <IOStep name="readIn2" pauseAtEnd="True">
       <Input    class="Files"         type=""               >DataSetsFile</Input>
       <Output   class="DataObjects"   type="PointSet"       >DataSets_SKL_2</Output>
@@ -128,7 +137,7 @@
       <Input    class="DataObjects"   type="PointSet"       >DataSets_SKL_2</Input>
       <Output   class="OutStreams"    type="Plot"           >PlotHierarchical_2</Output>
     </IOStep>
-    
+
     <IOStep name="readIn3" pauseAtEnd="True">
       <Input    class="Files"         type=""               >DataSetsFile</Input>
       <Output   class="DataObjects"   type="PointSet"       >DataSets_SKL_3</Output>
@@ -143,7 +152,7 @@
       <Input    class="DataObjects"   type="PointSet"       >DataSets_SKL_3</Input>
       <Output   class="OutStreams"    type="Plot"           >PlotHierarchical_3</Output>
     </IOStep>
-    
+
     <IOStep name="readIn4" pauseAtEnd="True">
       <Input    class="Files"         type=""               >DataSetsFile</Input>
       <Output   class="DataObjects"   type="PointSet"       >DataSets_SKL_4</Output>
