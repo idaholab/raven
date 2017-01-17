@@ -1,7 +1,17 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
-  <!-- Here we are testing whether using the same external processor on multiple
-       data objects does not cause naming issues -->
+  <TestInfo>
+    <name>framework/PostProcessors/ExternalPostProcessor.multiple_usage</name>
+    <author>maljdan</author>
+    <created>2015-06-28</created>
+    <classesTested>PostProcessors.ExternalPostProcessor</classesTested>
+    <description>
+      A simple example of writing an external python function and using it
+      inside RAVEN. Here we are testing whether using the same external
+      processor on multiple data objects does not cause naming issues.
+    </description>
+    <revisions></revisions>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>externalPostProcessor</WorkingDir>
     <Sequence>
