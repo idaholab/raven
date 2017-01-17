@@ -1,8 +1,29 @@
 <?xml version="1.0" ?>
 <Simulation>
-  <!-- A simple example of the approximate Morse-Smale complex (AMSC) interface
-       where each of the examples will showcase different partitions using
-       different persistence simplfication metrics -->
+  <TestInfo>
+    <name>framework/PostProcessors/TopologicalPostProcessor.persistence_prob</name>
+    <author>maljdan</author>
+    <created>2015-09-21</created>
+    <classesTested>PostProcessors.TopologicalDecomposition</classesTested>
+    <description>
+       A simple example of the approximate Morse-Smale complex (AMSC) interface
+       where we select a persistence level based on a minimum amount of
+       probability. That is, if the total probability weight of a partition is
+       too small, then that partition will be merged into a neighboring
+       partition given the normal rules of persistence simplification. Note,
+       that all of the "persistence" tests will use the Schwefel function for
+       testing.
+    </description>
+    <revisions>
+      <revision author="cogljj" date="2015-09-29">Modifying external modules to use relative to working directory.</revision>
+      <revision author="maljdan" date="2015-10-05">Removing the local fits from the topology PP and reducing the problem sizes for the persistence tests.</revision>
+      <revision author="maljdan" date="2015-10-05">Adjusting the Schwefel function's domain to fit better with fewer data points.</revision>
+      <revision author="maljdan" date="2015-10-06">Correcting the user manual and reducing the sleepTime on these tests to reduce their total run time to ~15 s on my local machine.</revision>
+      <revision author="talbpaul" date="2016-02-08">Converted failing tests.</revision>
+      <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
+      <revision author="maljdan" date="2017-01-17">Adding test description.</revision>
+    </revisions>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>data</WorkingDir>
     <Sequence>
