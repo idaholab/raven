@@ -5,6 +5,15 @@
     <Sequence>make,train,test,print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+  <TestInfo>
+    <name>framework/Samplers/ROM/Sobol/staticSobolRomSmolyak</name>
+    <author>talbpaul</author>
+    <created>2016-03-03</created>
+    <classesTested>Samplers.Sobol,SupervisedLearning.HDMRRom</classesTested>
+    <description>
+      This test checks the operation of the sampler and ROM together.
+    </description>
+  </TestInfo>
 
   <Distributions>
     <Uniform name="xd">

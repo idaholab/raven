@@ -5,6 +5,19 @@
     <Sequence>load,sampleRom,sampleModel,print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+  <TestInfo>
+    <name>framework/Samplers/ROM/Sobol/verifyHDMRRom</name>
+    <author>talbpaul</author>
+    <created>2016-11-08</created>
+    <classesTested>SupervisedLearning.HDMRRom</classesTested>
+    <description>
+      This analytic test checks that the time-dependent HDMRRom performs the same as the model it's representing.
+    </description>
+    <analytic>
+      This test uses "projectile.py" as documented in the analytic tests document, and makes several evaluations
+      of position based on time.
+    </analytic>
+  </TestInfo>
 
   <Files>
     <Input name="rom_pk" type="">rom.pk</Input>
