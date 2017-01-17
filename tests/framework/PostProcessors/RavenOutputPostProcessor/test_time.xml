@@ -4,6 +4,15 @@
     <WorkingDir>dynamic</WorkingDir>
     <Sequence>sample,stats,read,print</Sequence>
   </RunInfo>
+  <TestInfo>
+    <name>framework/PostProcessors/RavenOutputPostProcessor/dynamic</name>
+    <author>talbpaul</author>
+    <created>2016-06-22</created>
+    <classesTested>PostProcessors.RavenOutput</classesTested>
+    <description>
+      This test checks using the RavenOutput postprocessor to read a dynamic RAVEN XML output file.
+    </description>
+  </TestInfo>
 
   <Files>
     <Input name="model.py" type="">time_model.py</Input>

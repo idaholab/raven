@@ -5,6 +5,16 @@
     <Sequence>SamplingMirrowModelGrid,PP1grid</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+  <TestInfo>
+    <name>framework/PostProcessors/BasicStatistics/grid_analytic</name>
+    <author>alfoa</author>
+    <created>2015-11-21</created>
+    <classesTested>PostProcessors.BasicStatistics</classesTested>
+    <description>
+      This test checks all the basic statistics on analytic values using a grid sampling; however, the analytic models are not
+      yet documented.
+    </description>
+  </TestInfo>
 
   <Files>
     <Input name="output_basicStatistics_PP1grid.csv" type="">output_basicStatistics_PP1grid.csv</Input>

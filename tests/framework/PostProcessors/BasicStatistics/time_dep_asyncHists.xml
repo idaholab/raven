@@ -5,6 +5,15 @@
     <Sequence>FirstMRun,syncronizeHistorySetStep,timeDepBasicStatPP,FirstMRunEnsemble,syncronizeHistorySetStepEnsemble,timeDepBasicStatPPEnsemble</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+  <TestInfo>
+    <name>framework/PostProcessors/BasicStatistics/timeDependentAsyncHistories</name>
+    <author>alfoa</author>
+    <created>2016-06-21</created>
+    <classesTested>PostProcessors.BasicStatistics</classesTested>
+    <description>
+      This test checks time-dependent basic statistics with histories that are not synchronized a priori.
+    </description>
+  </TestInfo>
 
   <Files>
     <Input name="basicStatisticsExternalModelTest.py" type="">basicStatisticsExternalModelTest.py</Input>

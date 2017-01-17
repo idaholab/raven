@@ -5,12 +5,17 @@
     <Sequence>FirstMRun,PP</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
-
-  <!--
-    This test is used to test the defect mentioned in issue #666
-    This test will make sure the expectedValue and the variationCoefficient are correctly computed.
-    If the expectedValues are zero, the variationCoefficient will be INF.
-  -->
+  <TestInfo>
+    <name>framework/PostProcessors/BasicStatistics/variationCoefficient</name>
+    <author>wangc</author>
+    <created>2015-11-21</created>
+    <classesTested>PostProcessors.BasicStatistics</classesTested>
+    <description>
+			This test is used to test the defect mentioned in issue #666
+			This test will make sure the expectedValue and the variationCoefficient are correctly computed.
+			If the expectedValues are zero, the variationCoefficient will be INF.
+    </description>
+  </TestInfo>
 
   <Files>
     <Input name="output.csv" type="">output_variation_coefficient.csv</Input>
