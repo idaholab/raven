@@ -5,6 +5,15 @@
     <Sequence>gridRun,Dump</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+  <TestInfo>
+    <name>framework/pcaSampler/gridPCA</name>
+    <author>wangc</author>
+    <created>2016-02-16</created>
+    <classesTested>Distributions.MultivariateNormal,Samplers.Grid</classesTested>
+    <description>
+      Tests use of the PCA method to sample in gridded surrogate input space.
+    </description>
+  </TestInfo>
 
   <Files>
     <Input name="lorentzAttractor_noK.py" type="">lorentzAttractor_noK.py</Input>

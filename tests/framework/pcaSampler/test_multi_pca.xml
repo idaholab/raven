@@ -5,6 +5,15 @@
     <Sequence>FirstMRun,Dump</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+  <TestInfo>
+    <name>framework/pcaSampler/multiPCA</name>
+    <author>wangc</author>
+    <created>2016-02-16</created>
+    <classesTested>Distributions.MultivariateNormal,Samplers.MonteCarlo</classesTested>
+    <description>
+      Tests use of multiple PCA surrogates in one sampling scheme.
+    </description>
+  </TestInfo>
 
   <Files>
     <Input name="lorentzAttractor_noK.py" type="">lorentzAttractor_noK.py</Input>
