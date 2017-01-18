@@ -5,6 +5,16 @@
     <batchSize>4</batchSize>
     <Sequence>sample,train,print,stats</Sequence>
   </RunInfo>
+  <TestInfo>
+    <name>framework/pca_adaptive_sgc/test_adaptive_sgc_poly_analytic</name>
+    <author>wangc</author>
+    <created>2015-11-20</created>
+    <classesTested>Distributions.MultivariateNormal,Samplers.AdaptiveSparseGrid,SupervisedLearning.GaussPolynomialROM<
+    <description>
+      Tests use of the PCA method for adaptive sparse grids on polynomial models.
+    </description>
+    <analytic>"Tensor Polynomial (First-Order) with Multivariate Normal Distribution"</analytic>
+  </TestInfo>
 
   <DataObjects>
     <PointSet name="dummyIN">
