@@ -9,7 +9,7 @@
     <name>framework/pca_adaptive_sgc/test_adaptive_sgc_attenuation</name>
     <author>wangc</author>
     <created>2015-11-18</created>
-    <classesTested>Distributions.MultivariateNormal,Samplers.AdaptiveSparseGrid,SupervisedLearning.GaussPolynomialROM<
+    <classesTested>Distributions.MultivariateNormal,Samplers.AdaptiveSparseGrid,SupervisedLearning.GaussPolynomialROM</classesTested>
     <description>
       Tests use of the PCA method for adaptive sparse grids on exponential decay models with uncorrelated inputs.
     </description>
