@@ -1,5 +1,29 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="quiet">
+
+  <TestInfo>
+    <name>framework/Samplers/AdaptiveBatch.InvalidPostRankingSimplification</name>
+    <author>maljdan</author>
+    <created>2015-11-03</created>
+    <classesTested>Samplers.LimitSurfaceSearch</classesTested>
+    <description>
+       An example of using the limit surface post-processor with an invalid
+       threshold value. This should degrade gracefully by defaulting to a
+       threshold of 0 and warning the user of the change made to the
+       execution.
+
+       Note, all of the tests in AdaptiveBatch operate on a 2D input domain with
+       the goal of extracting a circular limit surface with radius 0.5 and
+       centered at the origin, (0,0).
+    </description>
+    <revisions>
+      <revision author="maljdan" date="2015-11-20">Collapsing the batch sampling into the limit surface class, updating documentation, XSD, and the test cases to reflect this change.</revision>
+      <revision author="talbpaul" date="2016-02-08">First update, looking for more failing tests to add.</revision>
+      <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
+      <revision author="maljdan" date="2017-01-18">Adding test description.</revision>
+    </revisions>
+  </TestInfo>
+
   <RunInfo>
     <WorkingDir>circle</WorkingDir>
     <Sequence>sample,adapt,dump</Sequence>
