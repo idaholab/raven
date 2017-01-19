@@ -1,5 +1,15 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="silent">
+  <TestInfo>
+    <name>framework/PostProcessors/DataMiningPostProcessor/DimensionalityReduction/ExactPCA</name>
+    <author>senrs</author>
+    <created>2015-11-24</created>
+    <classesTested>DataMining</classesTested>
+    <description>
+      Tests decomposition with PCA model.
+    </description>
+    <requirements>R-RA-6</requirements>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>ExactPCA</WorkingDir>
     <Sequence>readIn,PCAIris,output</Sequence>

@@ -1,7 +1,19 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/PostProcessors/ExternalPostProcessor.history_set_deleting_histories</name>
+    <author>alfoa</author>
+    <created>2016-10-04</created>
+    <classesTested>PostProcessors.ExternalPostProcessor</classesTested>
+    <description>
+      An example of using the External Post-Processor to remove some data points
+      from a History Set. This differs from test_history_set_partitioning.xml
+      as that test removed output points only in the time series, whereas this
+      one will remove them from the input space.
+    </description>
+    <revisions></revisions>
+  </TestInfo>
   <!-- RUNINFO -->
-
   <RunInfo>
     <WorkingDir>testHistorySetDeletingHistories</WorkingDir>
     <Sequence>FirstMRun,applyFunctions</Sequence>
@@ -47,7 +59,7 @@
       <customNode1>It is a string that is read in the external model directly</customNode1>
       <customNode2>20021986</customNode2>
     </ExternalModel>
-    
+
     <!-- This post-processor will call methods defined in two external python
      scripts compatible with RAVEN -->
     <PostProcessor name="functionPP" subType="External" verbosity="debug">

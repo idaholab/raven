@@ -1,7 +1,21 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
-  <!-- RUNINFO -->
+  <TestInfo>
+    <name>framework/PostProcessors/ExternalPostProcessor.history_set_partitioning</name>
+    <author>alfoa</author>
+    <created>2016-09-15</created>
+    <classesTested>PostProcessors.ExternalPostProcessor</classesTested>
+    <description>
+      An example of using the External Post-Processor to partition a history
+      set by creating a new data object that removes data where the time is less
+      than 0.0001.
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2016-10-04">Adding an additional example that addresses Josh's comment.</revision>
+    </revisions>
+  </TestInfo>
 
+  <!-- RUNINFO -->
   <RunInfo>
     <WorkingDir>testHistorySet</WorkingDir>
     <Sequence>FirstMRun,applyFunctions</Sequence>
@@ -44,9 +58,9 @@
       <customNode1>It is a string that is read in the external model directly</customNode1>
       <customNode2>20021986</customNode2>
     </ExternalModel>
-    
-    <!-- This post-processor will call methods defined in two external python
-     scripts compatible with RAVEN -->
+
+    <!-- This post-processor will call methods defined in an external python
+     script compatible with RAVEN -->
     <PostProcessor name="functionPP" subType="External" verbosity="debug">
         <method>time,x,y,z</method>
         <Function class="Functions" type="External">partitionHistorySet</Function>

@@ -1,5 +1,15 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/PostProcessors/InterfacedPostProcessor/HistorySetSnapShot</name>
+    <author>mandd</author>
+    <created>2016-02-09</created>
+    <classesTested>InterfacedPostProcessor</classesTested>
+    <description>
+      Tests of the HistorySetSnapShot interfaced post-processor    
+    </description>
+  </TestInfo>
+  
   <RunInfo>
     <WorkingDir>HistorySetSnapShot</WorkingDir>
     <Sequence>FirstMRun,PP,PP1,plot1,PP2,plot2,PP3,plot3,PP4,plot4</Sequence>

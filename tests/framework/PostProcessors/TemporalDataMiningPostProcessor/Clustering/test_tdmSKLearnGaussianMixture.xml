@@ -1,5 +1,14 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="silent">
+  <TestInfo>
+    <name>framework/PostProcessors/TemporalDataMiningPostProcessor/Clustering/GaussianMixture</name>
+    <author>chenj</author>
+    <created>2016-02-26</created>
+    <classesTested>DataMining</classesTested>
+    <description>
+      Tests mixtures with Gaussian Mixture Model and a pivot parameter.
+    </description>
+  </TestInfo>
 
   <RunInfo>
     <WorkingDir>GaussianMixture</WorkingDir>

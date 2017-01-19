@@ -1,5 +1,14 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="silent">
+  <TestInfo>
+    <name>framework/PostProcessors/TemporalDataMiningPostProcessor/Clustering/AffinityPropogation</name>
+    <author>chenj</author>
+    <created>2016-02-26</created>
+    <classesTested>DataMining</classesTested>
+    <description>
+      Tests clustering with AffinityPropogation and a pivot parameter.
+    </description>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>AffinityPropogation</WorkingDir>
     <Sequence>readIn,pp1,writeOut</Sequence>

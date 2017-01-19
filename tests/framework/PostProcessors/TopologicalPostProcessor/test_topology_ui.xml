@@ -16,7 +16,7 @@
        to be included in the automated system.
     </description>
     <revisions>
-      <revision author="maljdan" date="2016-06-17">Working on updating the syntax of test_topology_ui to match current devel.</revision>
+      <revision author="maljdan" date="2016-07-17">Working on updating the syntax of test_topology_ui to match current devel.</revision>
       <revision author="maljdan" date="2017-01-17">Adding test description.</revision>
     </revisions>
   </TestInfo>

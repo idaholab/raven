@@ -1,5 +1,14 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="silent">
+  <TestInfo>
+    <name>framework/PostProcessors/DataMiningPostProcessor/Clustering/VariationalGMM</name>
+    <author>senrs</author>
+    <created>2015-11-24</created>
+    <classesTested>DataMining</classesTested>
+    <description>
+      Tests clustering with VBGMM (Variational Bayesian Gaussian Mixture Model).
+    </description>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>VariationalGMM</WorkingDir>
     <Sequence>readIn,VariationalGMMBlobs,output</Sequence>

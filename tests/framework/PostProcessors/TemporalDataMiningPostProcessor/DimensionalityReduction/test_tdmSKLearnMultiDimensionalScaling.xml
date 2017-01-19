@@ -1,5 +1,14 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="silent">
+  <TestInfo>
+    <name>framework/PostProcessors/TemporalDataMiningPostProcessor/DimensionalityReduction/MultiDimensionalScaling</name>
+    <author>chenj</author>
+    <created>2016-02-29</created>
+    <classesTested>DataMining</classesTested>
+    <description>
+      Tests manifold with MDS (MultiDimensionalScaling) and a pivot parameter.
+    </description>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>MultiDimensionalScaling</WorkingDir>
     <Sequence>sampleGen,pp1</Sequence>
