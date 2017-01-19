@@ -13,6 +13,10 @@
     <description>
       This tests validates the time-dependent GaussPolynomialROM by sampling it and comparing to the original model.
     </description>
+    <analytic>
+      This test uses the "projectile.py" ballistic model and tracks position in time.  The evaluations of this model
+      as well as the ROMs should match the results documented there.
+    </analytic>
   </TestInfo>
 
   <Files>
