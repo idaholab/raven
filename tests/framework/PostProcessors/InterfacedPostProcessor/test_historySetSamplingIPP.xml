@@ -1,5 +1,15 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/PostProcessors/InterfacedPostProcessor/historySampling</name>
+    <author>mandd</author>
+    <created>2016-2-9</created>
+    <classesTested>InterfacedPostProcessor</classesTested>
+    <description>
+      Tests of the HistorySetSampling interfaced post-processor and all its sampling types
+    </description>
+  </TestInfo>
+  
   <RunInfo>
     <WorkingDir>historySampling</WorkingDir>
     <Sequence>FirstMRun,PP1,plot1,PP2,plot2,PP3,plot3,PP4,plot4,PP5,plot5</Sequence>
