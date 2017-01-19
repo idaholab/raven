@@ -3,7 +3,7 @@
   <TestInfo>
     <name>framework/PostProcessors/InterfacedPostProcessor/TypicalHistoryFromHS</name>
     <author>chenj</author>
-    <created>2016-7-7</created>
+    <created>2016-07-07</created>
     <classesTested>InterfacedPostProcessor</classesTested>
     <description>
       Tests of the TypicalHistoryFromHistorySet interfaced post-processor

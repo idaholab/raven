@@ -3,7 +3,7 @@
   <TestInfo>
     <name>framework/PostProcessors/InterfacedPostProcessor/interfacedPostProcessor_PointSet</name>
     <author>mandd</author>
-    <created>2019-1-16</created>
+    <created>2019-01-16</created>
     <classesTested>InterfacedPostProcessor</classesTested>
     <description>
       Test of the interfaced post-processor interface to deal with pointSet
