@@ -6,7 +6,7 @@
     <created>2016-10-21</created>
     <classesTested>DataMining</classesTested>
     <description>
-      Tests clustering with Hierarchical model and DTW metric.
+      Tests clustering with Hierarchical model and derivative DTW metric.
     </description>
   </TestInfo>
   <RunInfo>

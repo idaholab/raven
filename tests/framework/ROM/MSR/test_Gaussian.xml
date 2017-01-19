@@ -1,8 +1,27 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="silent">
-  <!-- A simple example of the approximate Morse-Smale complex being used for
-       regression on a 2D function with one single global maximum. This example
-       should thoroughly test all of the features associated to the MSR. -->
+  <TestInfo>
+    <name>framework/ROM/MSR.Gaussian</name>
+    <author>maljdan</author>
+    <created>2015-10-06</created>
+    <classesTested>SupervisedLearning.MSR</classesTested>
+    <description>
+       An example of using the Morse-Smale regression reduced order model with
+       a Gaussian kernel function for the kernel density estimator.
+
+       Note, all of the tests in MSR operate on a 2D input domain with
+       the goal of fitting a single Gaussian bump. The input dimensions are
+       of largely different scales and one dimension is off-centered from the
+       origin to ensure that normalization is being handled correctly.
+    </description>
+    <revisions>
+      <revision author="maljdan" date="2015-10-21">    Converting AMSR test files using the provided conversion script.</revision>
+      <revision author="talbpaul" date="2016-02-08">    first update, looking for more failing tests to add</revision>
+      <revision author="maljdan" date="2016-02-10">    Adding functionality to allow a user to specify a filename for an Outstream object that is potentially different than its variable name in the RAVEN input file. Adjusting test cases to exercise this functionality.</revision>
+      <revision author="maljdan" date="2016-04-06">    Updating test cases to reflect the changes to the user input.</revision>
+      <revision author="maljdan" date="2017-01-19">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>data</WorkingDir>
     <Sequence>

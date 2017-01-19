@@ -1,8 +1,5 @@
 <?xml version="1.0" ?>
 <Simulation>
-  <!-- A simple example of the approximate Morse-Smale complex being used for
-       regression on a 2D function with one single global maximum. This example
-       should thoroughly test all of the features associated to the MSR. -->
   <RunInfo>
     <WorkingDir>data</WorkingDir>
     <Sequence>

@@ -1,8 +1,28 @@
 <?xml version="1.0" ?>
 <Simulation>
-  <!-- A simple example of the approximate Morse-Smale complex being used for
-       regression on a 2D function with one single global maximum. This example
-       should thoroughly test all of the features associated to the MSR. -->
+  <TestInfo>
+    <name>framework/ROM/SKLearn.linearPAC</name>
+    <author>maljdan</author>
+    <created>2016-04-28</created>
+    <classesTested>SupervisedLearning.SciKitLearn</classesTested>
+    <description>
+       An example exercising supervised sklearn methods, specifically
+       the linear_model|PassiveAggressiveClassifier model is tested here.
+
+       Note, all of the tests in SKLearn operate on a 2D input domain with
+       the goal of fitting a paraboloid function. The input dimensions are
+       of largely different scales and one dimension is off-centered from
+       the origin to ensure that normalization is being handled correctly.
+       Classifiers will use this same function to determine if a point is
+       above 0.25, and multitask methods will additionally fit an additive
+       model (x+y).
+    </description>
+    <revisions>
+      <revision author="maljdan" date="2016-05-02">    Adding a fixed random_state value to a few of the ROM tests to ensure reproducibility.</revision>
+      <revision author="talbpaul" date="2016-09-15">    other test updates</revision>
+      <revision author="maljdan" date="2017-01-19">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>data</WorkingDir>
     <Sequence>
