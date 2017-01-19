@@ -5,6 +5,15 @@
     <Sequence>stratifiedRun,Dump</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+  <TestInfo>
+    <name>framework/pca_LHS/stratifiedCdf</name>
+    <author>wangc</author>
+    <created>2015-11-18</created>
+    <classesTested>Distributions.MultivariateNormal,Samplers.Stratified</classesTested>
+    <description>
+      Tests use of the PCA method to sample in LHS surrogate input space with grid by CDF.
+    </description>
+  </TestInfo>
 
   <Files>
     <Input name="lorentzAttractor_noK.py" type="">lorentzAttractor_noK.py</Input>
