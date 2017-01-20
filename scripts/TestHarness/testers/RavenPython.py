@@ -29,7 +29,7 @@ class RavenPython(Tester):
 
     return params
 
-  def prepare(self):
+  def prepare(self, options = None):
     """
       Copied from RavenFramework since we should still clean out test files
       before running an external tester, though we will not test if they
