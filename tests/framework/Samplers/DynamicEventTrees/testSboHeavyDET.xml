@@ -1,5 +1,22 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/Samplers/DynamicEventTrees.testClassicDETheavyRAVEN</name>
+    <author>alfoa</author>
+    <created>2015-10-05</created>
+    <classesTested>Samplers.DynamicEventTree, Models.Code</classesTested>
+    <description>
+       An example of using the Dynamic Event Tree Methodology with an external Code (RELAP7 in this case).
+       This test is a long executing one that is aimed to check the mechanics of the DET methodology in a 
+       realistic case (several branches)
+    </description>
+    <revisions>
+      <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
+      <revision author="talbpaul" date="2016-04-26">Added check for pre-existing backup files when validating</revision>
+      <revision author="alfoa" date="2016-04-27">New subdirectories structure</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>SboDET</WorkingDir>
     <Sequence>DET,test_extract</Sequence>

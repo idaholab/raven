@@ -1,5 +1,24 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/Samplers/EnsembledSampler.EnsembleSamplerDummy</name>
+    <author>alfoa</author>
+    <created>2016-04-20</created>
+    <classesTested>Samplers.EnsembleForward, Models.Dummy</classesTested>
+    <description>
+       An example of using the EnsembleForward sampler aimed to combine multiple
+       forward sampling tecniques (MonteCarlo, Grid, Stratified, etc.). This test
+       uses a Dummy Model in order to check that the sampled values are correcly 
+       passed to the Model entity.
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2016-04-20">Finalized EnsembleSampler</revision>
+      <revision author="alfoa" date="2016-05-25">Finalized merge request. Closes #559</revision>
+      <revision author="talbpaul" date="2016-09-15">Test updates</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
+  
   <RunInfo>
     <WorkingDir>EnsembleForwardTest</WorkingDir>
     <Sequence>EnsembleForwardStep,EnsembleForwardOutstreamStep</Sequence>

@@ -1,5 +1,19 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/CodeInterfaceTests.MAAP5interfaceDETSamplingMultiBranch</name>
+    <author>alfoa</author>
+    <created>2016-12-16</created>
+    <classesTested>Models.Code.MAAP5, Samplers.DynamicEventTree</classesTested>
+    <description>
+       An example of using the the Model Code of type MAAP5.
+       This test is aimed to test the mechanics of the MAAP5 interface when used with 
+       the Dynamic Event Tree methodology, characterized my a Multi-Branch sampling approach.
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>MAAP5MultibranchTest</WorkingDir>
     <Sequence>testDummyStep</Sequence>

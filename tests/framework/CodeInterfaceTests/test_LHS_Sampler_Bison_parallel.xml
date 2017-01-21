@@ -1,5 +1,23 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/CodeInterfaceTests.testLHSBisonParallel</name>
+    <author>senrs</author>
+    <created>2015-10-06</created>
+    <classesTested>Models.Code.MooseBasedApp, Samplers.Grid</classesTested>
+    <description>
+       An example of using the MooseBasedApp code interface.
+       This test is designed to ensure the MooseBasedApp interface runs correctly, when used with a Stratified sampling approach.
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2015-10-15">merged devel and resolved conflicts</revision>
+      <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
+      <revision author="talbpaul" date="2016-04-26">added check for pre-existing backup files when validating</revision>
+      <revision author="alfoa" date="2016-10-20">modified XSD and removed dim attribute from all the tests</revision>
+      <revision author="talbpaul" date="2016-10-25">removed dim for validation purposes</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>LHStestBisonParallel</WorkingDir>
     <Sequence>myLHS</Sequence>

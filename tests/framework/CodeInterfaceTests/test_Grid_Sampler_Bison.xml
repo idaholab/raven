@@ -1,5 +1,20 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/CodeInterfaceTests.testGridBison</name>
+    <author>senrs</author>
+    <created>2015-10-06</created>
+    <classesTested>Models.Code.MooseBasedApp, Samplers.Grid</classesTested>
+    <description>
+       An example of using the MooseBasedApp code interface.
+       This test is designed to ensure the MooseBasedApp interface runs correctly, when used with a Grid sampling approach.
+    </description>
+    <revisions>
+      <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
+      <revision author="talbpaul" date="2016-04-26">Added check for pre-existing backup files when validating</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>GridTestBison</WorkingDir>
     <Sequence>CustomSampler,IOStepTest</Sequence>

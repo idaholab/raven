@@ -2,7 +2,7 @@
 <Simulation verbosity="debug">
   <TestInfo>
     <name>framework/CodeInterfaceTests/DymolaInterfaceTestTimeDepNoExecutable</name>
-    <author>@alfoa</author>
+    <author>alfoa</author>
     <created>2016-11-11</created>
     <revisions>
       <revision date="2016-12-01" author="@alfoa">Fixed order of test inputs to respect XSD schema</revision>
