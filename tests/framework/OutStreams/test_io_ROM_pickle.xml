@@ -1,5 +1,18 @@
 <?xml version="1.0" ?>
 <Simulation>
+  <TestInfo>
+    <name>framework/OutStreams.io_ROM_pickle</name>
+    <author>maljdan</author>
+    <created>2016-04-26</created>
+    <classesTested>Models.ROM, DataObjects.PointSet, DataObjects.HistorySet, OutStreams.Print</classesTested>
+    <description>
+       Test to check the functionalities of OutStreams system in RAVEN to Print out the information
+       contained in DataObjects. In addition, it checks the capability of RAVEN to construct a ROM from a pickle file.
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>IO_ROM_PICKLE</WorkingDir>
     <Sequence>step1,step2,step3,step4,step5,step6,step7</Sequence>
