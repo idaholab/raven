@@ -1,5 +1,19 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>Optimizers/GradientBasedOptimizers.SPSAParallel</name>
+    <author>chenj</author>
+    <created>2016-11-03</created>
+    <classesTested>Optimizers.SPSA</classesTested>
+    <description>
+       Example of usage of the GradientBased Optimizer of type SPSA within the RAVEN framework in a unconstrained problem,
+       with multiple evaluation of the gradient per iteration in order to reduce the noise of an intrinsic stochastic system.
+    </description>
+    <revisions>
+      <revision author="chenj" date="2016-11-04">XSD</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
   <RunInfo>
 	<WorkingDir>SPSAParallel</WorkingDir>
     <Sequence>optimization,optimizationdump</Sequence>

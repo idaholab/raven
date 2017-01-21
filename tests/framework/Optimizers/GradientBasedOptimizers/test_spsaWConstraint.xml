@@ -1,5 +1,21 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>Optimizers/GradientBasedOptimizers.SPSAwConstraint</name>
+    <author>chenj</author>
+    <created>2016-09-01</created>
+    <classesTested>Optimizers.SPSA</classesTested>
+    <description>
+       Example of usage of the GradientBased Optimizer of type SPSA within the RAVEN framework in a constrained problem,
+       with a single evaluation of the gradient per iteration.
+    </description>
+    <revisions>
+      <revision author="chenj" date="2016-09-07">Added Constraint</revision>>
+      <revision author="alfoa" date="2016-10-20">Modified XSD and removed dim attribute from all the tests</revision>
+      <revision author="chenj" date="2016-10-31">Regold since change in the algorithm</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
   <RunInfo>
 	<WorkingDir>SPSAwConstraint</WorkingDir>
     <Sequence>optimization,optimizationdump</Sequence>
