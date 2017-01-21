@@ -11,7 +11,10 @@
       as that test removed output points only in the time series, whereas this
       one will remove them from the input space.
     </description>
-    <revisions></revisions>
+    <revisions>
+      <revision author="maljdan" date="2017-01-17">Added an additional example that addresses Josh's comment</revision>
+      <revision author="alfoa" date="2016-10-04">Adding test descriptions for the tests related to the ExternalPostProcessor</revision>
+    </revisions>
   </TestInfo>
   <!-- RUNINFO -->
   <RunInfo>

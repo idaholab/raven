@@ -10,7 +10,6 @@
       inside RAVEN. Here we are testing whether using the same external
       processor on multiple data objects does not cause naming issues.
     </description>
-    <revisions></revisions>
   </TestInfo>
   <RunInfo>
     <WorkingDir>externalPostProcessor</WorkingDir>
