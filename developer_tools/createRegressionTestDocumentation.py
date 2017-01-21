@@ -1,3 +1,8 @@
+"""
+ Created on Jan 20, 2017
+
+ @author: alfoa
+"""
 import os
 from glob import glob
 import inspect
@@ -12,9 +17,14 @@ class testDescription(object):
     Class that handles the checks on the description of the tests
   """
   def __init__(self):
+    """
+      Constructor
+    """
     self.__undescribedFiles ,self.__describedFiles = self.noDescriptionTestsAndInformationOnTheOther()
     self.__totTestFiles = len(self.__undescribedFiles) + len(self.__describedFiles.keys())
     self.__allDescribed = len(self.__undescribedFiles) == 0
+    self.__ravenDir     = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+    self.__userPath     = os.path.abspath(os.path.join(self.__ravenDir,".."))
 
   def areAllTestDescribed(self):
     """
@@ -23,6 +33,19 @@ class testDescription(object):
       @ Out, __allDescribed, bool, all described?
     """
     return self.__allDescribed
+
+  def getFoldersOfUndocumentedTests(self):
+    """
+      Method to get all the folders of tests that contain
+      undocumented tests
+      @ In, None
+      @ Out, undocumentedFolders, list, list containing folders with undocumented tests
+    """
+    undocumentedFolders = []
+    for testName in self.__undescribedFiles:
+      dirName = os.path.dirname(testName)
+      if dirName not in undocumentedFolders: undocumentedFolders.append(dirName)
+    return undocumentedFolders
 
   def getTotalNumberOfTests(self):
     """
@@ -117,8 +140,8 @@ class testDescription(object):
     if classTestedNode is not None: classTested = classTestedNode.text
     else                          : raise IOError("XML node <classTested> not found for test "+ fileName)
 
-    nameChapter = name.replace("/", " ").replace("_", " ")
-    fileLocation = '.'+os.path.sep+'raven'+fileName.split("raven")[-1]
+    nameChapter = name.replace("/", " ").replace("_", " ").upper()
+    fileLocation = '.'+fileName.replace(self.__userPath,"")
     latexString =  "This test can be found at ``\path{"+fileLocation+"}''.\n"
     latexString += " This test can be called executing the following command:"
     latexString += " \\begin{lstlisting}[language=bash]\n"
@@ -324,30 +347,36 @@ class testDescription(object):
         fileObject.write(latexString)
     # section regarding undocumented tests
     if not self.areAllTestDescribed():
+      undocumentedFolders = self.getFoldersOfUndocumentedTests()
       fileObject.write("\section{Undocumented tests}\n")
       fileObject.write("Currently, There are "+str(len(self.__undescribedFiles))+" undocumented tests:\n")
       fileObject.write("\\begin{enumerate}\n")
-      for fileName in self.__undescribedFiles:
-        fileObject.write("  \item \\path{"+fileName+"} \n")
-      fileObject.write("\end{enumerate}\n")
+      for folderName in undocumentedFolders:
+        fileObject.write("  \\item Folder: \\path{"+folderName+"}. Tests: \n")
+        fileObject.write("  \\begin{itemize}\n")
+        fileNameWithFolderRoot = [fileName for fileName in self.__undescribedFiles if folderName.strip() == os.path.dirname(fileName)]
+        for fileName in fileNameWithFolderRoot:
+          fileLocation = '.'+fileName.replace(self.__userPath,"")
+          fileObject.write("  \\item \\path{"+fileLocation+"} \n")
+        fileObject.write("   \\end{itemize}\n")
+      fileObject.write("\\end{enumerate}\n")
     fileObject.write("\end{document}")
     fileObject.close()
-
-
 
 
 if __name__ == '__main__':
   descriptionClass = testDescription()
   noDescriptionFiles, filesWithDescription = descriptionClass.noDescriptionTestsAndInformationOnTheOther()
-  if len(noDescriptionFiles) > 0:
+  if not descriptionClass.areAllTestDescribed():
     print("There are "+str(len(noDescriptionFiles))+" test files without a test description.")
     print("Files without test description are:")
-    for fileName in noDescriptionFiles:
-      print(fileName)
-  totFile = len(noDescriptionFiles) + len(filesWithDescription.keys())
-  print("\nTotal framework test files are   : "+str(descriptionClass.getTotalNumberOfTests()))
+    for fileName in noDescriptionFiles: print(fileName)
+  totFile                = descriptionClass.getTotalNumberOfTests()
   totFileWithDescription = len(filesWithDescription.keys())
+  print("\nTotal framework test files are   : "+str(totFile))
   print("\n% of tests that got commented is : "+str(descriptionClass.getDescriptionCoverage())+" %")
+  print("\nFolders that contain undocumented tests are:\n")
+  for folderName in descriptionClass.getFoldersOfUndocumentedTests(): print(folderName)
   descriptionClass.createLatexFile("regression_tests_documentation.tex")
 
 
