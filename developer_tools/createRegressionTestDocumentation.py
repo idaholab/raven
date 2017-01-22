@@ -100,14 +100,33 @@ class testDescription(object):
           fileName = os.path.join(dirName,fileName)
           if os.path.split(fileName)[-1].lower().endswith('xml'):
             __testList.append(os.path.abspath(fileName))
+          if os.path.split(fileName)[-1].lower().endswith('py'):
+            __testList.append(os.path.abspath(fileName))
       fileObject.close()
     for testFile in __testList:
-      try: root = ET.parse(testFile).getroot()
-      except ET.ParseError as e: print('file :'+testFile+'\nXML Parsing error!',e,'\n')
-      if root.tag != 'Simulation': print('\nThe root node is not Simulation for file '+testFile+'\n')
-      testInfoNode = root.find("TestInfo")
-      if testInfoNode is None and root.tag == 'Simulation': noDescriptionFiles.append(testFile)
-      else: filesWithDescription[testFile] = copy.deepcopy(testInfoNode)
+      if testFile.endswith('xml'):
+        try: root = ET.parse(testFile).getroot()
+        except ET.ParseError as e: print('file :'+testFile+'\nXML Parsing error!',e,'\n')
+        if root.tag != 'Simulation': print('\nThe root node is not Simulation for file '+testFile+'\n')
+        testInfoNode = root.find("TestInfo")
+        if testInfoNode is None and root.tag == 'Simulation': noDescriptionFiles.append(testFile)
+        else: filesWithDescription[testFile] = copy.deepcopy(testInfoNode)
+      else:
+        fileLines = open(testFile,"r+").readlines()
+        xmlPortion = []
+        startReading = False
+        for line in fileLines:
+          if startReading: 
+            xmlPortion.append(line)
+          if '<TestInfo' in line:
+            startReading = True
+            xmlPortion.append("<TestInfo>")
+          if '</TestInfo' in line:
+            startReading = False
+        if len(xmlPortion) >0: testInfoNode = ET.fromstringlist(xmlPortion)
+        else                 : testInfoNode = None
+        if testInfoNode is None: noDescriptionFiles.append(testFile)
+        else: filesWithDescription[testFile] = copy.deepcopy(testInfoNode)
     outputTuple = noDescriptionFiles, filesWithDescription
     return outputTuple
 

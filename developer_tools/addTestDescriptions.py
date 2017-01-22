@@ -5,8 +5,8 @@ testDict = {}
 
 testFile = open('tests')
 
-prefix = 'framework/ROM/MSR.'
-
+prefix = 'framework.'
+#/Users/alfoa/projects/raven/tests/framework/ErrorChecks
 authors = {
 'aaron.epiney': 'epinas',
 'andrea.alfonsi': 'alfoa',
@@ -77,7 +77,8 @@ for key,value in testDict.items():
 		kernel = tokens[2]
 	else:
 		smooth = False
-		kernel = tokens[1]
+		try: kernel = tokens[1]
+                except: kernel = "None"
 	text = os.popen('git log %s' % key).read()
 
 	revisions = []
@@ -105,45 +106,42 @@ for key,value in testDict.items():
 			revisions.append((author,date,description))
 		i += 1
 
-	author,date,description = revisions.pop()
+	try: author,date,description = revisions.pop()
+        except: pass
 	revisions.reverse()
-	inputFile = open(key,'r')
+	inputFile = open(key.split()[0],'r')
 	lines = [line for line in inputFile]
 	inputFile.close()
-	for i,line in enumerate(lines):
-		if 'Simulation' in line:
-			break
+        foundTestDescription = False
+        for line in lines:
+            if 'TestInfo' in line:
+                foundTestDescription = True
+                break
+        if not foundTestDescription:
+            for i,line in enumerate(lines):
+                    if 'Simulation' in line:
+                            break
 
-	newLines = []
-	newLines.append('  <TestInfo>\n')
-	newLines.append('    <name>%s</name>\n' % value)
-	newLines.append('    <author>%s</author>\n' % author)
-	newLines.append('    <created>%s</created>\n' % date)
-	newLines.append('    <classesTested>SupervisedLearning.MSR</classesTested>\n')
-	newLines.append('    <description>\n')
-	newLines.append('       An example of using the Morse-Smale regression reduced order model with\n')
-	if kernel == 'SVM':
-		newLines.append('       a support vector machine.\n')
-	else:
-		newLines.append('       a %s kernel function for the kernel density estimator.\n' % kernel)
-	if smooth:
-		newLines.append('       This is a smoothed version of MSR where local models are blended\n')
-		newLines.append('       together.\n')
-	newLines.append('\n')
-	newLines.append('       Note, all of the tests in MSR operate on a 2D input domain with\n')
-	newLines.append('       the goal of fitting a single Gaussian bump. The input dimensions are\n')
-	newLines.append('       of largely different scales and one dimension is off-centered from the\n')
-	newLines.append('       origin to ensure that normalization is being handled correctly.\n')
-	newLines.append('    </description>\n')
-	newLines.append('    <revisions>\n')
-	for author,date,description in revisions:
-		newLines.append('      <revision author="%s" date="%s">%s</revision>\n' % (author,date,description))
-	newLines.append('      <revision author="maljdan" date="2017-01-19">Adding this test description.</revision>\n')
-	newLines.append('    </revisions>\n')
-	newLines.append('  </TestInfo>\n')
+            newLines = []
+            if key.split()[0].strip().endswith("py"): newLines.append('  """\n')
+            newLines.append('  <TestInfo>\n')
+            newLines.append('    <name>%s</name>\n' % value)
+            newLines.append('    <author>%s</author>\n' % author)
+            newLines.append('    <created>%s</created>\n' % date)
+            newLines.append('    <classesTested> </classesTested>\n')
+            newLines.append('    <description>\n')
+            newLines.append('       This test is aimed to check .\n')
+            newLines.append('    </description>\n')
+            newLines.append('    <revisions>\n')
+            if len(revisions)>0:
+                for author,date,description in revisions:
+                        newLines.append('      <revision author="%s" date="%s">%s</revision>\n' % (author,date,description.strip()))
+                newLines.append('      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>\n')
+                newLines.append('    </revisions>\n')
+            newLines.append('  </TestInfo>\n')
+            if key.split()[0].strip().endswith("py"): newLines.append('  """\n')
+            lines = lines[:(i+1)] + newLines + lines[(i+1):]
 
-	lines = lines[:(i+1)] + newLines + lines[(i+1):]
-
-	inputFile = open(key,'w')
-	inputFile.write(''.join(lines))
-	inputFile.close()
+            inputFile = open(key,'w')
+            inputFile.write(''.join(lines))
+            inputFile.close()
