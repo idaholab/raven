@@ -116,7 +116,7 @@ class testDescription(object):
         xmlPortion = []
         startReading = False
         for line in fileLines:
-          if startReading: 
+          if startReading:
             xmlPortion.append(line)
           if '<TestInfo' in line:
             startReading = True

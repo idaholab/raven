@@ -1097,6 +1097,6 @@ sys.exit(results["fail"])
       <revision author="cogljj" date="2016-04-12">Converting Distributions to use the new input system. All distributions have been converted.</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
-    <requirements?>R-RE-1</requirements>
+    <requirements>R-RE-1</requirements>
   </TestInfo>
 """
