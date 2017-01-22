@@ -83,19 +83,3 @@ except ImportError:
 
 print("passes",passFails[0],"fails",passFails[1])
 sys.exit(passFails[1])
-  <TestInfo>
-    <name>framework.test_xsd_input_data</name>
-    <author>cogljj</author>
-    <created>2016-04-11</created>
-    <classesTested> </classesTested>
-    <description>
-       This test is aimed to check .
-    </description>
-    <revisions>
-      <revision author="cogljj" date="2016-04-12">Adding a findFirst function to the xml reader.</revision>
-      <revision author="cogljj" date="2016-04-12">Renaming text to value in ParameterInput</revision>
-      <revision author="cogljj" date="2016-07-05">Add ability to run without lxml.        The first checkes for lxml and skips the test if missing.    The second checkes for lxml before running part of the test.</revision>
-      <revision author="cogljj" date="2016-07-11">Fixing issues found in review.</revision>
-      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
-    </revisions>
-  </TestInfo>

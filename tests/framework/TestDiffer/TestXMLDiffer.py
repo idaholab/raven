@@ -67,13 +67,3 @@ checkAnswer("whitespace with remove unordered",same,True)
 
 
 sys.exit(results["fail"])
-  <TestInfo>
-    <name>framework.test_xml_differ</name>
-    <author>cogljj</author>
-    <created>2016-10-21</created>
-    <classesTested> </classesTested>
-    <description>
-       This test is aimed to check .
-    </description>
-    <revisions>
-  </TestInfo>
