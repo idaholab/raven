@@ -10,7 +10,7 @@
        with a single evaluation of the gradient per iteration.
     </description>
     <revisions>
-      <revision author="chenj" date="2016-09-07">Added Constraint</revision>>
+      <revision author="chenj" date="2016-09-07">Added Constraint</revision>
       <revision author="alfoa" date="2016-10-20">Modified XSD and removed dim attribute from all the tests</revision>
       <revision author="chenj" date="2016-10-31">Regold since change in the algorithm</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>

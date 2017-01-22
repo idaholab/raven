@@ -1,5 +1,20 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework.test_bison_mc_simple_and_alias_system</name>
+    <author>cogljj</author>
+    <created>2013-12-03</created>
+    <classesTested>Samplers.MonteCarlo, Models.Code.MooseBasedApp, Models.AliasSystem</classesTested>
+    <description>
+       This test is aimed to check the functionality of RAVEN to perform random sampling (MonteCarlo) on simple 1Dimensional distributions,
+       when using a MooseBased application (in this case, BISON). In addition, it tests the usage of the alias system with such code.
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2015-06-18">Changed Name of all DataObjects</revision>
+      <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>MCTestBison</WorkingDir>
     <Sequence>CustomSampler,CustomSampler_noalias</Sequence>

@@ -1,5 +1,17 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework.categorical</name>
+    <author>mandd</author>
+    <created>2016-11-02</created>
+    <classesTested>Distributions.Categorical</classesTested>
+    <description>
+       This test is aimed to test the capability of RAVEN to use 1D Categorical distributions.
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
 
   <RunInfo>
     <WorkingDir>test_categorical/</WorkingDir>

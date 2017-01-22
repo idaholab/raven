@@ -1,5 +1,30 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework.test_iostep_load</name>
+    <author>cogljj</author>
+    <created>2014-09-29</created>
+    <classesTested>Steps.IOStep, DataObjects.PointSet, DataObjects.HistorySet, Databases.HDF5</classesTested>
+    <description>
+       This test is aimed to check the capability of RAVEN to perform IO operation on its own object.
+       This case checks the capability to create DataObjects from a folder containing CSVs and to dump them into HDF5 (and viceversa)
+    </description>
+    <revisions>
+      <revision author="cogljj" date="2014-10-06">Renaming blocks with IODataBase and OutStreamStep to IOStep. The two different steps were combined. SVN r29902</revision>
+      <revision author="cogljj" date="2014-10-08">Modify input to use its own unique database. SVN r29924</revision>
+      <revision author="cogljj" date="2015-02-27">Adding documentation to the manual about relative working directory. Also changing one of tests to do this.</revision>
+      <revision author="alfoa" date="2015-03-04">Modified batch sizes because sometimes, if we run the tests in parallel, the order of values in csv can be different</revision>
+      <revision author="mandd" date="2015-04-17">conversion to Database and DataObjects</revision>
+      <revision author="cogljj" date="2015-04-23">Switching to relative directories for working directory and database directory.        Switching to default to relative to the xml file, not relative to the run dir.    Passing the run info to the DataBases so that the working directory is known.</revision>
+      <revision author="maljdan" date="2015-06-16">Fixing the input files to pass the validation</revision>
+      <revision author="alfoa" date="2015-06-18">Changed Name of all DataObjects</revision>
+      <revision author="talbpaul" date="2015-07-07">updated to restrict partial-node comments</revision>
+      <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
+      <revision author="maljdan" date="2016-05-20">Updating the test cases to remove references to Point or History.</revision>
+      <revision author="maljdan" date="2016-06-27">Adjusting the inputs and outputs of two test cases to match what the loaded files read.</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
   <RunInfo>
     <WorkingDir runRelative="True">test_iostep_load</WorkingDir>
     <Sequence>test_read_in,test_rewrite</Sequence>

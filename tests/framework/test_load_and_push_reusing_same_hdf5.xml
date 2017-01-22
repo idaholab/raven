@@ -1,5 +1,18 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework.load_and_push_reusing_same_hdf5</name>
+    <author>alfoa</author>
+    <created>2016-12-12</created>
+    <classesTested>Databases.HDF5</classesTested>
+    <description>
+       This test is aimed to check the possiblity in RAVEN to load an HDF5 (pre-generated) and use the same database to store new results.
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2016-12-12">Added test</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>GridTestRavenSameHDF5</WorkingDir>
     <Sequence>test_extract,MonteCarloRestarted,test_push</Sequence>

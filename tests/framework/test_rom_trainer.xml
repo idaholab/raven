@@ -1,5 +1,28 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework.test_rom_trainer</name>
+    <author>alfoa</author>
+    <created>2013-09-26</created>
+    <classesTested>Steps.RomTrainer, Models.ROM</classesTested>
+    <description>
+       This test is aimed to test the capability of RAVEN to train ROMs based on the data sets constructed by whatever sampling strategy
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2014-03-06">changed name of DataBase handling, modified all tests were using it, improved Step output handling etc        r25347</revision>
+      <revision author="alfoa" date="2014-07-15">2) eliminated redondancy type for distribution specification in samplers... all inputs and tests found in repository have been modified as well        r28610</revision>
+      <revision author="cogljj" date="2014-10-06">Renaming blocks with IODataBase and OutStreamStep to IOStep.        The two different steps were combined.        r29902</revision>
+      <revision author="alfoa" date="2014-10-22">added variable samping MC for RAVEN code interface + eliminated need to specify variable type for Functions and ExternalModels        r30198</revision>
+      <revision author="alfoa" date="2015-05-19">Closes #171</revision>
+      <revision author="alfoa" date="2015-06-18">Changed Name of all DataObjects</revision>
+      <revision author="alfoa" date="2015-09-12">removed syntax inconsistency with respect standards for Samplers (underscores instead of camelBack) + created conversion script</revision>
+      <revision author="cogljj" date="2015-10-12">Moving test_rom_trainer to test_rom_trainer_raven.</revision>
+      <revision author="cogljj" date="2015-10-12">Made a test rom trainer with an external model.</revision>
+      <revision author="cogljj" date="2015-11-17">Updating to work with scikit-learn 0.17. In the new version of sklearn the rom can not use a classifier anymore.</revision>
+      <revision author="maljdan" date="2016-05-20">Updating the test cases to remove references to Point or History.</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>test_rom_trainer</WorkingDir>
     <Sequence>MC_for_rom_trainer,test_extract_for_rom_trainer,test_rom_trainer,rom_MC,test_rom_trainer_nd_interp,rom_MC_nd_interpolator</Sequence>

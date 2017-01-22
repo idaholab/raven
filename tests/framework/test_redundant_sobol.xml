@@ -1,5 +1,22 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework.redundantInputsSobol</name>
+    <author>talbpaul</author>
+    <created>2016-01-07</created>
+    <classesTested>Samplers.Sobol, Functions.External</classesTested>
+    <description>
+       This test is aimed to check the capability of RAVEN to treat redundant input variables, when the Sampler of type ``Sobol'' is used.
+       This test shows how some of the
+       variables defined in the Sampler, can be associated to Functions (External) instead of Distributions. In this way,
+       the user can ``sample'' the variable as combination of the other variables.
+    </description>
+    <revisions>
+      <revision author="cogljj" date="2016-01-15">Rename step in sobol test to avoid directry name collision. Closes #400. Both test_redundant_scgpc and test_redundant_sobol were using the directory RedundantInputs/sim_py_SC which could cause test failures. This renames the one that redundant_sobol uses.</revision>
+      <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>RedundantInputs</WorkingDir>
     <Sequence>sobol_redundant</Sequence>

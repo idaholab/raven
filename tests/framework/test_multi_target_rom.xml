@@ -1,5 +1,25 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework.test_multi_target_rom</name>
+    <author>alfoa</author>
+    <created>2014-11-30</created>
+    <classesTested>Steps.RomTrainer, Models.ROM</classesTested>
+    <description>
+       This test is aimed to test the capability of RAVEN to train ROMs that can predict multiple targets at the same time (multiple FOMs)     
+    </description>
+    <revisions>
+      <revision author="mandd" date="2015-04-17">conversion to Database and DataObjects</revision>
+      <revision author="mandd" date="2015-04-20">Merge remote-tracking branch 'origin/devel' into mandd/DataRename</revision>
+      <revision author="alfoa" date="2015-06-18">Changed Name of all DataObjects</revision>
+      <revision author="alfoa" date="2015-06-21">modified Names + added new capabilities and flexibility in DataObjects + added options block. Modified XSD schema and manual to reflect the modifications</revision>
+      <revision author="alfoa" date="2015-09-12">removed syntax inconsistency with respect standards for Samplers (underscores instead of camelBack) + created conversion script</revision>
+      <revision author="cogljj" date="2015-10-13">Updating test_multi_target_rom to use external models.</revision>
+      <revision author="cogljj" date="2015-11-17">Updating to work with scikit-learn 0.17. In the new version of sklearn the rom can not use a classifier anymore.</revision>
+      <revision author="maljdan" date="2016-05-20">Updating the test cases to remove references to Point or History.</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>test_rom_trainer</WorkingDir>
     <Sequence>MC_for_rom_trainer,test_extract_for_rom_trainer,test_rom_trainer,rom_MC,test_rom_trainer_nd_interp,rom_MC_nd_interpolator</Sequence>

@@ -1,5 +1,20 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework.simple_framework</name>
+    <author>cogljj</author>
+    <created>2013-07-23</created>
+    <classesTested>Samplers.MonteCarlo, Models.Code</classesTested>
+    <description>
+       This test is aimed to check the functionality of RAVEN to perform random sampling (MonteCarlo) generating random numbers that are going
+       to be directly used in RELAP7 for seeding the internal random number generator.
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2015-06-18">Changed Name of all DataObjects</revision>
+      <revision author="alfoa" date="2016-04-27">New subdirectories structure</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>revirD_tset</WorkingDir>
     <Sequence>FirstMRun</Sequence>

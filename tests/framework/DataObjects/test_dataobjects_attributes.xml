@@ -7,7 +7,7 @@
     <classesTested>DataObjects.PointSet, DataObjects.HistorySet</classesTested>
     <description>
        Test to check the functionalities of DataObjects preprocess the data applying simple 
-       operator (e.g. max value, average, min value, etc.), in the $<options>$ XML node.
+       operator (e.g. max value, average, min value, etc.), in the $options$ XML node.
     </description>
     <revisions>
       <revision author="cogljj" date="2016-08-23">Converting test dataobjects attributes to external model. Refs #94</revision>
@@ -19,9 +19,6 @@
     <Sequence>TestDataObjectAttributes,TestDataObjectAttributesFromDataBase</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
-
-  <Files>
-  </Files>
 
   <Models>
     <ExternalModel ModuleToLoad="massflowrate_fake" name="PythonModule" subType="">

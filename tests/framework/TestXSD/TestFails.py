@@ -53,3 +53,13 @@ for xmlFile in ["test_fail_no_required_attr.xml","test_fail_wrong_content.xml",
 
 print("passes",passFails[0],"fails",passFails[1])
 sys.exit(passFails[1])
+  <TestInfo>
+    <name>framework.test_xsd_input_fails</name>
+    <author>cogljj</author>
+    <created>2016-04-11</created>
+    <classesTested> </classesTested>
+    <description>
+       This test is aimed to check .
+    </description>
+    <revisions>
+  </TestInfo>
