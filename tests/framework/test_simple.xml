@@ -14,6 +14,7 @@
       <revision author="alfoa" date="2016-04-27">New subdirectories structure</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
+    <requirements>R-IS-2</requirements>
   </TestInfo>
   <RunInfo>
     <WorkingDir>revirD_tset</WorkingDir>

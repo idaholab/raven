@@ -14,6 +14,7 @@
       <revision author="cogljj" date="2015-09-29">Modifing external modules to use relative to working directory.</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
+    <requirements>R-IS-4</requirements>
   </TestInfo>
   <!-- RUNINFO -->
   <RunInfo>

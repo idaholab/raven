@@ -17,6 +17,7 @@
       <revision author="talbpaul" date="2016-10-25">removed dim for validation purposes</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
+    <requirements>R-IS-1</requirements>
   </TestInfo>
   <RunInfo>
     <WorkingDir>LHStestBisonParallel</WorkingDir>

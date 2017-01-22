@@ -13,6 +13,7 @@
         This  test is aimed to test the capability of the RAVEN database strucuture to use the same database (HDF5) for
         subsequential analyses in order to collect all the results in the same HDF5 container
     </description>
+    <requirements>R-IS-3</requirements>
   </TestInfo>
     
   <!-- RunInfo. 2 Steps are performed in this case -->

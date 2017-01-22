@@ -16,6 +16,7 @@
       <revision author="chenj" date="2016-10-31">solutionexport as historyset and regold one test</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
+    <requirements>R-RM-1</requirements>
   </TestInfo>
   <RunInfo>
     <WorkingDir>SPSA</WorkingDir>
