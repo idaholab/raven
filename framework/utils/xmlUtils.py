@@ -11,24 +11,81 @@ import numpy as np
 import xml.etree.ElementTree as ET
 import xml.dom.minidom as pxml
 import re
+import os
 
-def prettify(tree):
+#define type checking
+def isComment(node):
+  """
+    Determines if a node is a comment type (by checking its tag).
+    @ In, node, xml.etree.ElementTree.Element, node to check
+    @ Out, isComment, bool, True if comment type
+  """
+  if type(node.tag).__name__ == 'function':
+    return True
+  return False
+
+def prettify(tree,doc=False,docLevel=0):
   """
     Script for turning XML tree into something mostly RAVEN-preferred.  Does not align attributes as some devs like (yet).
     The output can be written directly to a file, as file('whatever.who','w').writelines(prettify(mytree))
     @ In, tree, xml.etree.ElementTree object, the tree form of an input file
+    @ In, doc, bool, optional, if True treats the XML as being prepared for documentation instead of full printing
+    @ In, docLevel, int, optional, if doc then only this many levels of tabs will use ellipses documentation
     @Out, towrite, string, the entire contents of the desired file to write, including newlines
   """
+  def prettifyNode(node,tabs=0):
+    child = None #putting it in namespace
+    space = ' '*2*tabs
+    newlineAndTab = os.linesep+space
+    if node.text is None:
+      node.text = ''
+    if len(node)>0:
+      node.text = node.text.strip()
+      if doc and tabs<docLevel and node.text=='...':
+        node.text = newlineAndTab+'  '+node.text+newlineAndTab+'  '
+      else:
+        node.text = node.text + newlineAndTab+'  '
+      for child in node:
+        prettifyNode(child,tabs+1)
+      #remove extra tab from last child
+      child.tail = child.tail[:-2]
+    if node.tail is None:
+      node.tail = ''
+      if doc and tabs!=0 and tabs<docLevel+1:
+        node.tail = newlineAndTab + '...'
+    else:
+      node.tail = node.tail.strip()
+      if doc and tabs<docLevel+1:
+        node.tail += newlineAndTab + '...'
+    #custom: RAVEN likes spaces between first-level tab objects
+    if tabs == 1 and not isComment(node):
+      lines = os.linesep + os.linesep
+    else:
+      lines = os.linesep
+    node.tail = node.tail + lines + space
+    #custom: except if you're the last child
+    if tabs == 0 and child is not None:
+      child.tail = child.tail.replace(os.linesep+os.linesep,os.linesep)
+  #end prettifyNode
+  if isinstance(tree,ET.ElementTree):
+    prettifyNode(tree.getroot())
+    return ET.tostring(tree.getroot())
+  else:
+    prettifyNode(tree)
+    return ET.tostring(tree)
+
+
+  #### OLD WAY ####
   #make the first pass at pretty.  This will insert way too many newlines, because of how we maintain XML format.
-  pretty = pxml.parseString(ET.tostring(tree.getroot())).toprettyxml(indent='  ')
+  #pretty = pxml.parseString(ET.tostring(tree.getroot())).toprettyxml(indent='  ')
   #loop over each "line" and toss empty ones, but for ending main nodes, insert a newline after.
-  toWrite=''
-  for line in pretty.split('\n'):
-    if line.strip()=='':
-      continue
-    toWrite += line.rstrip()+'\n'
-    if line.startswith('  </'):
-      toWrite+='\n'
+  #toWrite=''
+  #for line in pretty.split('\n'):
+  #  if line.strip()=='':
+  #    continue
+  #  toWrite += line.rstrip()+'\n'
+  #  if line.startswith('  </'):
+  #    toWrite+='\n'
   return toWrite
 
 def newNode(tag,text='',attrib={}):
@@ -77,6 +134,32 @@ def findPath(root,path):
       return None
   else:
     return root.find(path[-1])
+
+def findPathEllipsesParents(root,path,docLevel=0):
+  """
+    As with findPath, but the parent nodes are kept and ellipses text are used to replace siblings in the resulting tree.
+    @ In, root, xml.etree.ElementTree.Element, the node to start searching along
+    @ In, path, string, |-seperated xml path (as "Simulation|RunInfo|JobName")
+    @ In, docLevel, int, optional, if doc then only this many levels of tabs will use ellipses documentation
+    @ Out, newRoot, None or xml.etree.ElementTree.Element, None if not found or element if found
+  """
+  foundNode = findPath(root,path)
+  if foundNode is None: return None
+  newRoot = newNode(root.tag,text='...')
+  curNode = newRoot
+  path = path.split('|')[:-1]
+  for e,entry in enumerate(path):
+    print('e,entry:',e,entry)
+    text = ''
+    if e < docLevel:
+      text = '...'
+    nNode = newNode(entry,text=text)
+    curNode.append(nNode)
+    curNode = nNode
+  curNode.append(foundNode)
+  return newRoot
+
+
 
 def loadToTree(filename):
   """

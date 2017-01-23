@@ -106,7 +106,7 @@ toRemove = attemptFileClear(inFileName,toRemove)
 
 # test prettify
 pretty = xmlUtils.prettify(xmlTree)
-prettyFileName = 'testXMLPretty.xml'
+prettyFileName = os.path.join('xml','testXMLPretty.xml')
 file(prettyFileName,'w').writelines(pretty)
 gold = ''.join(line for line in file(os.path.join(os.path.dirname(__file__),'gold',prettyFileName),'r'))
 test = ''.join(line for line in file(                    prettyFileName ,'r'))
@@ -197,6 +197,11 @@ for f in toRemove:
       os.remove(f)
     except OSError:
       print('WARNING: In cleaning up, could not remove file',f)
+
+#test findPathEllipsesParents
+found = xmlUtils.findPathEllipsesParents(xmlTree.getroot(),'child|cchild')
+print ('ellipses')
+print(xmlUtils.prettify(found,doc=True))
 
 #test bad XML tags
 # rule 1: only start with letter or underscore, can't start with xml
