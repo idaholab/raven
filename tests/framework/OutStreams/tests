@@ -18,7 +18,7 @@
 
 [./colorbar_plot]
   type = 'RavenPython'
-  input = 'testImageGeneration.py'
+  input = 'testImageColorbar.py'
   #input = 'test_colorbar.xml'
   required_executable = 'compare'
   required_executable_check_flags='gold/plot/colorbarTest.png gold/plot/colorbarTest.png -metric ae null:'
