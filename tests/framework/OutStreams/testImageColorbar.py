@@ -1,4 +1,4 @@
-'''
+"""
 Created on 8/1/16
 
 @author: maljdan
@@ -25,7 +25,7 @@ Created on 8/1/16
 (possibly promote to a diff class at some point, but relies on an external
  application, namely ImageMagick) This test was created in reference to issue
 #639
-'''
+"""
 import subprocess
 import sys
 import os
