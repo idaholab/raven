@@ -5,4 +5,4 @@ SCRIPT_DIR=`(cd $SCRIPT_DIRNAME; pwd)`
 
 cd $SCRIPT_DIR/..
 
-pylint --disable=all --enable=missing-docstring --enable=no-absolute-import framework/
+pylint --disable=all --enable=missing-docstring --enable=no-absolute-import --enable=old-division --enable=print-statement --enable=file-builtin framework/
