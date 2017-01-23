@@ -16,13 +16,13 @@
   required_executable_check_flags='gold/plot/1-test_scatter.png gold/plot/1-test_scatter.png -metric ae null:'
  [../]
 
-[./colorbar_plot]
-  type = 'RavenPython'
-  input = 'testImageColorbar.py'
-  #input = 'test_colorbar.xml'
-  required_executable = 'compare'
-  required_executable_check_flags='gold/plot/colorbarTest.png gold/plot/colorbarTest.png -metric ae null:'
- [../]
+# [./colorbar_plot]
+#   type = 'RavenPython'
+#   input = 'testImageColorbar.py'
+#  #input = 'test_colorbar.xml'
+#  required_executable = 'compare'
+#  required_executable_check_flags='gold/plot/colorbarTest.png gold/plot/colorbarTest.png -metric ae null:'
+# [../]
 
  [./interactive_plotting]
   type = 'RavenFramework'
