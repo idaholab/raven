@@ -759,7 +759,7 @@ class IOStep(Step):
       elif self.actionType[i] == 'FILES-ROM':
         #inDictionary['Input'][i] is a Files, outputs[i] is ROM
         fileobj = inDictionary['Input'][i]
-        unpickledObj = pickle.load(file(fileobj.getAbsFile(),'rb+'))
+        unpickledObj = pickle.load(open(fileobj.getAbsFile(),'rb+'))
         outputs[i].train(unpickledObj)
       elif self.actionType[i] == 'FILES-dataObjects':
         #inDictionary['Input'][i] is a Files, outputs[i] is PointSet
