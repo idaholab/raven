@@ -106,7 +106,7 @@ class testDescription(object):
     for testFile in __testList:
       if testFile.endswith('xml'):
         try: root = ET.parse(testFile).getroot()
-        except ET.ParseError as e: print('file :'+testFile+'\nXML Parsing error!',e,'\n')
+        except Exception as e: print('file :'+testFile+'\nXML Parsing error!',e,'\n')
         if root.tag != 'Simulation': print('\nThe root node is not Simulation for file '+testFile+'\n')
         testInfoNode = root.find("TestInfo")
         if testInfoNode is None and root.tag == 'Simulation': noDescriptionFiles.append(testFile)
@@ -123,7 +123,9 @@ class testDescription(object):
             xmlPortion.append("<TestInfo>")
           if '</TestInfo' in line:
             startReading = False
-        if len(xmlPortion) >0: testInfoNode = ET.fromstringlist(xmlPortion)
+        if len(xmlPortion) >0: 
+          try: testInfoNode = ET.fromstringlist(xmlPortion)
+          except ET.ParseError as e: print('file :'+testFile+'\nXML Parsing error!',e,'\n')
         else                 : testInfoNode = None
         if testInfoNode is None: noDescriptionFiles.append(testFile)
         else: filesWithDescription[testFile] = copy.deepcopy(testInfoNode)
