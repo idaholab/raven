@@ -131,18 +131,13 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     ## This is for handling the special case needed by SKLtype=*MultiTask* that
     ## requires multiple targets.
 
-    if isinstance(self.target,list):
-      targetValues = None
-      for target in self.target:
-        if target in names:
-          if targetValues is None:
-            targetValues = values[names.index(target)]
-          else:
-            targetValues = np.dstack((targetValues,values[names.index(target)]))
-        else:
-          self.raiseAnError(IOError,'The target '+target+' is not in the training set')
+    targetValues = []
+    for target in self.target:
+      if target in names: targetValues.append(values[names.index(target)])
+      else              : self.raiseAnError(IOError,'The target '+target+' is not in the training set')
+    targetValues = np.stack(targetValues, axis=-1)
       # construct the evaluation matrixes
-      featureValues = np.zeros(shape=(len(targetValues),len(self.features)))
+    featureValues = np.zeros(shape=(len(targetValues),len(self.features)))
 #     else:
 #       if self.target in names:
 #         targetValues = values[names.index(self.target)]
@@ -344,7 +339,7 @@ class NDinterpolatorRom(superVisedLearning):
       @ Out, None
     """
     superVisedLearning.__init__(self,messageHandler,**kwargs)
-    self.interpolator = None  # pointer to the C++ (crow) interpolator
+    self.interpolator = []    # pointer to the C++ (crow) interpolator (list of targets)
     self.featv        = None  # list of feature variables
     self.targv        = None  # list of target variables
     self.printTag = 'ND Interpolation ROM'
@@ -388,9 +383,9 @@ class NDinterpolatorRom(superVisedLearning):
     """
     self.featv, self.targv = featureVals,targetVals
     featv = interpolationND.vectd2d(featureVals[:][:])
-    targv = interpolationND.vectd(targetVals)
-
-    self.interpolator.fit(featv,targv)
+    for index, target in enumerate(self.target):
+      targv = interpolationND.vectd(targetVals[:,index])
+      self.interpolator[index].fit(featv,targv)
 
   def __confidenceLocal__(self,featureVals):
     """
@@ -1780,7 +1775,8 @@ class NDsplineRom(NDinterpolatorRom):
     """
     NDinterpolatorRom.__init__(self,messageHandler,**kwargs)
     self.printTag = 'ND-SPLINE ROM'
-    self.interpolator = interpolationND.NDspline()
+    for _ in range(len(self.target)):
+      self.interpolator.append(interpolationND.NDspline())
 
   def __resetLocal__(self):
     """
@@ -1788,7 +1784,8 @@ class NDsplineRom(NDinterpolatorRom):
       @ In, None
       @ Out, None
     """
-    self.interpolator.reset()
+    for index in range(len(self.target)):
+      self.interpolator[index].reset()
 #
 #
 #
@@ -1816,7 +1813,9 @@ class NDinvDistWeight(NDinterpolatorRom):
       @ In, None
       @ Out, None
     """
-    self.interpolator = interpolationND.InverseDistanceWeighting(float(self.initOptionDict['p']))
+    self.interpolator = []
+    for _ in range(len(self.target)):
+      self.interpolator.append(interpolationND.InverseDistanceWeighting(float(self.initOptionDict['p'])))
 
   def __resetLocal__(self):
     """
@@ -1824,7 +1823,8 @@ class NDinvDistWeight(NDinterpolatorRom):
       @ In, None
       @ Out, None
     """
-    self.interpolator.reset(float(self.initOptionDict['p']))
+    for index in range(len(self.target)):
+      self.interpolator[index].reset(float(self.initOptionDict['p']))
 #
 #
 #

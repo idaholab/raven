@@ -240,35 +240,64 @@ def calculateStats(data):
   ret["kurtosis"] = stats.kurtosis(data)
   return ret
 
-def historySetWindow(vars,numberOfTimeStep):
+def historySnapShoots(valueDict, numberOfTimeStep):
   """
     Method do to compute the temporal slices of each history
-    @ In, vars, HistorySet, is an historySet
+    @ In, valueDict, dict, the dictionary containing the data to be sliced {'varName':[history1Values,history2Values, etc.]}
     @ In, numberOfTimeStep, int, number of time samples of each history
     @ Out, outDic, list, it contains the temporal slice of all histories
   """
+  outDict = []
+  numberOfRealizations = len(valueDict.values()[-1])
+  outPortion, inPortion = {}, {}
+  numberSteps = - 1
+  # check consistency of the dictionary
+  for variable, value in valueDict.items():
+    if len(value) != numberOfRealizations: return "historySnapShoots method: number of realizations are not consistent among the different parameters!!!!"
+    if type(value).__name__ in 'list':
+      # check the time-step size
+      outPortion[variable] = np.asarray(value)
+      if numberSteps == -1: numberSteps = reduce(lambda x, y: x*y, list(outPortion.values()[-1].shape))/numberOfRealizations
+      if len(list(outPortion[variable].shape)) != 2: return "historySnapShoots method: number of time steps are not consistent among the different histories for variable "+variable
+      if reduce(lambda x, y: x*y, list(outPortion.values()[-1].shape))/numberOfRealizations != numberSteps :
+        return "historySnapShoots method: number of time steps are not consistent among the different histories for variable "+variable+". Expected "+str(numberSteps)+" /= "+ sum(list(outPortion[variable].shape))/numberOfRealizations
+    else                             : inPortion [variable] = np.asarray(value)
+  for ts in range(numberOfTimeStep):
+    realizationSnap = {}
+    realizationSnap.update(inPortion)
+    for variable in outPortion.keys(): realizationSnap[variable] = outPortion[variable][:,ts]
+    outDict.append(realizationSnap)
+  return outDict
 
-  outKeys = vars.getParaKeys('outputs')
-  inpKeys = vars.getParaKeys('inputs')
-
-  outDic = []
-
-  for t in range(numberOfTimeStep):
-    newVars={}
-    for key in inpKeys+outKeys:
-      newVars[key]=np.zeros(0)
-
-    hs = vars.getParametersValues('outputs')
-    for history in hs:
-      for key in inpKeys:
-        newVars[key] = np.append(newVars[key],vars.getParametersValues('inputs')[history][key])
-
-      for key in outKeys:
-        newVars[key] = np.append(newVars[key],vars.getParametersValues('outputs')[history][key][t])
-
-    outDic.append(newVars)
-
-  return outDic
+# def historySetWindow(vars,numberOfTimeStep):
+#   """
+#     Method do to compute the temporal slices of each history
+#     @ In, vars, HistorySet, is an historySet
+#     @ In, numberOfTimeStep, int, number of time samples of each history
+#     @ Out, outDic, list, it contains the temporal slice of all histories
+#   """
+#
+#   outKeys = vars.getParaKeys('outputs')
+#   inpKeys = vars.getParaKeys('inputs')
+#
+#   outDic = []
+#
+#   for t in range(numberOfTimeStep):
+#     newVars={}
+#     for key in inpKeys+outKeys:
+#       newVars[key]=np.zeros(0)
+#
+#     hs = vars.getParametersValues('outputs')
+#     for history in hs:
+#       for key in inpKeys:
+#         newVars[key] = np.append(newVars[key],vars.getParametersValues('inputs')[history][key])
+#
+#       for key in outKeys:
+#         newVars[key] = np.append(newVars[key],vars.getParametersValues('outputs')[history][key][t])
+#
+#     outDic.append(newVars)
+#
+#   return outDic
 
 def normalizationFactors(values, mode='z'):
   """
