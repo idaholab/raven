@@ -941,11 +941,7 @@ class OutStreamPlot(OutStreamManager):
     self.fig = self.plt.figure(self.name)
     self.counter += 1
     if self.counter > 1:
-      if self.dim == 2:
-        self.fig.clear()
-      else:
-        if self.actPlot:
-          self.plt3D.cla()
+      self.fig.clear()
     # execute the actions again (we just cleared the figure)
     self.__executeActions()
     # start plotting.... we are here fort that...aren't we?
@@ -987,6 +983,8 @@ class OutStreamPlot(OutStreamManager):
             self.plt.subplot(self.gridSpace[x[0]:x[-1], y[0]:y[-1]])
           else:
             self.plt3D = self.plt.subplot(self.gridSpace[x[0]:x[-1], y[0]:y[-1]], projection = '3d')
+      else:
+        self.plt3D = self.plt.subplot(111, projection='3d')
       # If the number of plots to be shown in this figure > 1, hold the old ones (They are going to be shown together... because unity is much better than separation)
       if len(self.outStreamTypes) > 1:
         self.plt.hold(True)
