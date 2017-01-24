@@ -1058,7 +1058,7 @@ class ROM(Dummy):
     """
     inputToROM       = self._inputToInternal(request)
     outputEvaluation = self.supervisedEngine.evaluate(inputToROM)
-    
+    return outputEvaluation
     if target != None:
       if timeInst == None:
         return self.SupervisedEngine[target].evaluate(inputToROM)
@@ -1077,16 +1077,16 @@ class ROM(Dummy):
       @ Out, returnDict, dict, the return dictionary containing the results
     """
     returnDict = {}
-    
+
     returnDict = self.evaluate(inRun)
-    
+
 #     if self.subType == 'ARMA':
 #       evalDict = self.evaluate(inRun,self.SupervisedEngine.keys()[0])
 #       returnDict[self.SupervisedEngine.values()[0].pivotParameterID] = evalDict[:,0]
 #       for index,key in enumerate(self.initializationOptionDict['Target'].split(',')):
 #         returnDict[key] = evalDict[:,index+1]
 #       return returnDict
-# 
+#
 #     if type(self.SupervisedEngine).__name__ == 'list':
 #       targets = self.SupervisedEngine[0].keys()
 #       for target in targets:

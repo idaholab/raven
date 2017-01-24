@@ -13,6 +13,7 @@ warnings.simplefilter('default',DeprecationWarning)
 import inspect
 import abc
 import copy
+import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -108,67 +109,23 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
       self.SupervisedEngine[0].train(trainingSet)
     self.amITrained = True
 
-
-#       if self.subType == 'ARMA':
-#         if type(self.trainingSet) is dict:
-#           self.amITrained = True
-#           for instrom in self.SupervisedEngine.values():
-#             instrom.pivotParameter = np.asarray(trainingSet.getParam('output',1)[instrom.pivotParameterID])
-#             instrom.train(self.trainingSet)
-#             self.amITrained = self.amITrained and instrom.amITrained
-#           self.raiseADebug('add self.amITrained to currentParamters','FIXME')
-#
-#       elif 'HistorySet' in type(trainingSet).__name__:
-#         #get the pivot parameter if specified
-#         self.historyPivotParameter = trainingSet._dataParameters.get('pivotParameter','time')
-#         #get the list of history steps if specified
-#         self.historySteps = trainingSet.getParametersValues('outputs').values()[0].get(self.historyPivotParameter,[])
-#         #store originals for future copying
-#         origRomCopies = {}
-#         for target,engine in self.SupervisedEngine.items():
-#           origRomCopies[target] = copy.deepcopy(engine)
-#         #clear engines for time-based storage
-#         self.SupervisedEngine = []
-#         outKeys = trainingSet.getParaKeys('outputs')
-#         targets = origRomCopies.keys()
-#         # check that all histories have the same length
-#         tmp = trainingSet.getParametersValues('outputs')
-#         for t in tmp:
-#           if t==1:
-#             self.numberOfTimeStep = len(tmp[t][outKeys[0]])
-#           else:
-#             if self.numberOfTimeStep != len(tmp[t][outKeys[0]]):
-#               self.raiseAnError(IOError,'DataObject can not be used to train a ROM: length of HistorySet is not consistent')
-#         # train the ROM
-#         self.trainingSet = mathUtils.historySetWindow(trainingSet,self.numberOfTimeStep)
-#         for ts in range(self.numberOfTimeStep):
-#           newRom = {}
-#           for target in targets:
-#             newRom[target] =  copy.deepcopy(origRomCopies[target])
-#           for target,instrom in newRom.items():
-#             # train the ROM
-#             self._replaceVariablesNamesWithAliasSystem(self.trainingSet[ts], 'inout', False)
-#             instrom.train(self.trainingSet[ts])
-#             self.amITrained = self.amITrained and instrom.amITrained
-#           self.SupervisedEngine.append(newRom)
-#         self.amITrained = True
-#       else:
-#         self.trainingSet = copy.copy(self._inputToInternal(trainingSet,full=True))
-#         if type(self.trainingSet) is dict:
-#           self._replaceVariablesNamesWithAliasSystem(self.trainingSet, 'inout', False)
-#           self.amITrained = True
-#           for instrom in self.SupervisedEngine.values():
-#             instrom.train(self.trainingSet)
-#             self.amITrained = self.amITrained and instrom.amITrained
-#           self.raiseADebug('add self.amITrained to currentParamters','FIXME')
-
-  def confidence(self,request,target = None):
+  def confidence(self):
     pass
 
-  def evaluate(self,request, target = None, timeInst = None):
-    result = []
+  def evaluate(self,request):
+    """
+      Method to perform the evaluation of a point or a set of points through the linked surrogate model
+      @ In, request, dict, realizations request ({'feature1':np.array(n_realizations),'feature2',np.array(n_realizations)})
+      @ Out, resultsDict, dict, dictionary of results ({target1:np.array,'target2':np.array}).
+    """
+    resultsDict = {}
     for rom in self.SupervisedEngine:
-      result.append(rom.evaluate(request))
+      sliceEvaluation = rom.evaluate(request)
+      if len(resultsDict.keys()) == 0:
+        resultsDict.update(sliceEvaluation)
+      else:
+        for key in resultsDict.keys(): resultsDict[key] = np.append(resultsDict[key],sliceEvaluation[key])
+    return resultsDict
 
   def run(self,Input):
     pass
