@@ -829,23 +829,6 @@ class ROM(Dummy):
 
     #the ROM is instanced and initialized
     # check how many targets
-#     if not 'Target' in self.initializationOptionDict.keys(): self.raiseAnError(IOError,'No Targets specified!!!')
-#     targets = self.initializationOptionDict['Target'].split(',')
-#     self.howManyTargets = len(targets)
-#
-#     if 'SKLtype' in self.initializationOptionDict and 'MultiTask' in self.initializationOptionDict['SKLtype']:
-#       self.initializationOptionDict['Target'] = targets
-#       model = SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
-#       for target in targets:
-#         self.SupervisedEngine[target] = model
-#     else:
-#       for target in targets:
-#         self.initializationOptionDict['Target'] = target
-#         self.SupervisedEngine[target] =  SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
-    # extend the list of modules this ROM depen on
-#     self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(utils.first(self.SupervisedEngine.values())),True)) - set(self.mods))
-#     self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(SupervisedLearning),True)) - set(self.mods))
-
     self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(self.SupervisedEngine),True)) - set(self.mods))
     self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(SupervisedLearning),True)) - set(self.mods))
     self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(supervisedLearningGate),True)) - set(self.mods))
@@ -913,14 +896,8 @@ class ROM(Dummy):
       @ In,  None
       @ Out, None
     """
-    if type(self.SupervisedEngine).__name__ == 'list':
-      for ts in self.SupervisedEngine:
-        for instrom in ts.values():
-          instrom.reset()
-    else:
-      for instrom in self.SupervisedEngine.values():
-        instrom.reset()
-      self.amITrained   = False
+    self.supervisedEngine.reset()
+    self.amITrained   = False
 
   def getInitParams(self):
     """
@@ -951,77 +928,9 @@ class ROM(Dummy):
       self.historyPivotParameter    = copy.deepcopy(getattr(trainingSet,self.historyPivotParameter,'time'))
       self.historySteps             = copy.deepcopy(trainingSet.historySteps)
     else:
-
       self.trainingSet = copy.copy(self._inputToInternal(trainingSet, full=True))
       self._replaceVariablesNamesWithAliasSystem(self.trainingSet, 'inout', False)
       self.supervisedEngine.train(self.trainingSet)
-
-#       if self.subType == 'ARMA':
-#         pass
-#         localInput = {}
-#
-#
-#         lupo = self._inputToInternal(trainingSet, full=True)
-#         aaaa = mathUtils.historySetWindow(trainingSet,2017)
-#         if type(trainingSet)!=dict:
-#           for entries in trainingSet.getParaKeys('inputs' ):
-#             if not trainingSet.isItEmpty(): localInput[entries] = copy.copy(np.array(trainingSet.getParam('input' ,1)[entries]))
-#             else:                      localInput[entries] = None
-#           for entries in trainingSet.getParaKeys('outputs'):
-#             if not trainingSet.isItEmpty(): localInput[entries] = copy.copy(np.array(trainingSet.getParam('output',1)[entries]))
-#             else:                      localInput[entries] = None
-#         self.trainingSet = copy.copy(localInput)
-#         if type(self.trainingSet) is dict:
-#           self.amITrained = True
-#           for instrom in self.SupervisedEngine.values():
-#             instrom.pivotParameter = np.asarray(trainingSet.getParam('output',1)[instrom.pivotParameterID])
-#             instrom.train(self.trainingSet)
-#             self.amITrained = self.amITrained and instrom.amITrained
-#           self.raiseADebug('add self.amITrained to currentParamters','FIXME')
-#
-#       elif 'HistorySet' in type(trainingSet).__name__:
-#         #get the pivot parameter if specified
-#         self.historyPivotParameter = trainingSet._dataParameters.get('pivotParameter','time')
-#         #get the list of history steps if specified
-#         self.historySteps = trainingSet.getParametersValues('outputs').values()[0].get(self.historyPivotParameter,[])
-#         #store originals for future copying
-#         origRomCopies = {}
-#         for target,engine in self.SupervisedEngine.items():
-#           origRomCopies[target] = copy.deepcopy(engine)
-#         #clear engines for time-based storage
-#         self.SupervisedEngine = []
-#         outKeys = trainingSet.getParaKeys('outputs')
-#         targets = origRomCopies.keys()
-#         # check that all histories have the same length
-#         tmp = trainingSet.getParametersValues('outputs')
-#         for t in tmp:
-#           if t==1:
-#             self.numberOfTimeStep = len(tmp[t][outKeys[0]])
-#           else:
-#             if self.numberOfTimeStep != len(tmp[t][outKeys[0]]):
-#               self.raiseAnError(IOError,'DataObject can not be used to train a ROM: length of HistorySet is not consistent')
-#         # train the ROM
-#         self.trainingSet = mathUtils.historySetWindow(trainingSet,self.numberOfTimeStep)
-#         for ts in range(self.numberOfTimeStep):
-#           newRom = {}
-#           for target in targets:
-#             newRom[target] =  copy.deepcopy(origRomCopies[target])
-#           for target,instrom in newRom.items():
-#             # train the ROM
-#             self._replaceVariablesNamesWithAliasSystem(self.trainingSet[ts], 'inout', False)
-#             instrom.train(self.trainingSet[ts])
-#             self.amITrained = self.amITrained and instrom.amITrained
-#           self.SupervisedEngine.append(newRom)
-#         self.amITrained = True
-#       else:
-#         self.trainingSet = copy.copy(self._inputToInternal(trainingSet,full=True))
-#         if type(self.trainingSet) is dict:
-#           self._replaceVariablesNamesWithAliasSystem(self.trainingSet, 'inout', False)
-#           self.amITrained = True
-#           for instrom in self.SupervisedEngine.values():
-#             instrom.train(self.trainingSet)
-#             self.amITrained = self.amITrained and instrom.amITrained
-#           self.raiseADebug('add self.amITrained to currentParamters','FIXME')
 
   def confidence(self,request,target = None):
     """
@@ -1049,7 +958,7 @@ class ROM(Dummy):
       else:
         return self.SupervisedEngine.values()[0].confidence(inputToROM)
 
-  def evaluate(self,request, target = None, timeInst = None):
+  def evaluate(self,request):
     """
       When the ROM is used directly without need of having the sampler passing in the new values evaluate instead of run should be used
       @ In, request, datatype, feature coordinates (request)
@@ -1059,16 +968,6 @@ class ROM(Dummy):
     inputToROM       = self._inputToInternal(request)
     outputEvaluation = self.supervisedEngine.evaluate(inputToROM)
     return outputEvaluation
-    if target != None:
-      if timeInst == None:
-        return self.SupervisedEngine[target].evaluate(inputToROM)
-      else:
-        return self.SupervisedEngine[timeInst][target].evaluate(inputToROM)
-    else:
-      if timeInst == None:
-        return utils.first(self.SupervisedEngine.values()).evaluate(inputToROM)
-      else:
-        return self.SupervisedEngine[timeInst].values()[0].evaluate(inputToROM)
 
   def __externalRun(self,inRun):
     """
@@ -1076,27 +975,7 @@ class ROM(Dummy):
       @ In, inRun, datatype, feature coordinates
       @ Out, returnDict, dict, the return dictionary containing the results
     """
-    returnDict = {}
-
     returnDict = self.evaluate(inRun)
-
-#     if self.subType == 'ARMA':
-#       evalDict = self.evaluate(inRun,self.SupervisedEngine.keys()[0])
-#       returnDict[self.SupervisedEngine.values()[0].pivotParameterID] = evalDict[:,0]
-#       for index,key in enumerate(self.initializationOptionDict['Target'].split(',')):
-#         returnDict[key] = evalDict[:,index+1]
-#       return returnDict
-#
-#     if type(self.SupervisedEngine).__name__ == 'list':
-#       targets = self.SupervisedEngine[0].keys()
-#       for target in targets:
-#         returnDict[target] = np.zeros(0)
-#       for ts in range(len(self.SupervisedEngine)):
-#         for target in targets:
-#           returnDict[target] = np.append(returnDict[target],self.evaluate(inRun,target,ts))
-#     else:
-#       for target in self.SupervisedEngine.keys():
-#         returnDict[target] = self.evaluate(inRun,target)
     self._replaceVariablesNamesWithAliasSystem(returnDict, 'output',True)
     self._replaceVariablesNamesWithAliasSystem(inRun, 'input',True)
     return returnDict
