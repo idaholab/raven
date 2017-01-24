@@ -983,7 +983,7 @@ class OutStreamPlot(OutStreamManager):
             self.plt.subplot(self.gridSpace[x[0]:x[-1], y[0]:y[-1]])
           else:
             self.plt3D = self.plt.subplot(self.gridSpace[x[0]:x[-1], y[0]:y[-1]], projection = '3d')
-      else:
+      elif self.dim == 3:
         self.plt3D = self.plt.subplot(111, projection='3d')
       # If the number of plots to be shown in this figure > 1, hold the old ones (They are going to be shown together... because unity is much better than separation)
       if len(self.outStreamTypes) > 1:
