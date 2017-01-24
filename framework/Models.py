@@ -1056,7 +1056,9 @@ class ROM(Dummy):
       @ In, target, string, optional, target name (by default the first target entered in the input file)
       @ In, timeInst, int, element of the temporal ROM to evaluate
     """
-    inputToROM = self._inputToInternal(request)
+    inputToROM       = self._inputToInternal(request)
+    outputEvaluation = self.supervisedEngine.evaluate(inputToROM)
+    
     if target != None:
       if timeInst == None:
         return self.SupervisedEngine[target].evaluate(inputToROM)
@@ -1075,24 +1077,26 @@ class ROM(Dummy):
       @ Out, returnDict, dict, the return dictionary containing the results
     """
     returnDict = {}
-
-    if self.subType == 'ARMA':
-      evalDict = self.evaluate(inRun,self.SupervisedEngine.keys()[0])
-      returnDict[self.SupervisedEngine.values()[0].pivotParameterID] = evalDict[:,0]
-      for index,key in enumerate(self.initializationOptionDict['Target'].split(',')):
-        returnDict[key] = evalDict[:,index+1]
-      return returnDict
-
-    if type(self.SupervisedEngine).__name__ == 'list':
-      targets = self.SupervisedEngine[0].keys()
-      for target in targets:
-        returnDict[target] = np.zeros(0)
-      for ts in range(len(self.SupervisedEngine)):
-        for target in targets:
-          returnDict[target] = np.append(returnDict[target],self.evaluate(inRun,target,ts))
-    else:
-      for target in self.SupervisedEngine.keys():
-        returnDict[target] = self.evaluate(inRun,target)
+    
+    returnDict = self.evaluate(inRun)
+    
+#     if self.subType == 'ARMA':
+#       evalDict = self.evaluate(inRun,self.SupervisedEngine.keys()[0])
+#       returnDict[self.SupervisedEngine.values()[0].pivotParameterID] = evalDict[:,0]
+#       for index,key in enumerate(self.initializationOptionDict['Target'].split(',')):
+#         returnDict[key] = evalDict[:,index+1]
+#       return returnDict
+# 
+#     if type(self.SupervisedEngine).__name__ == 'list':
+#       targets = self.SupervisedEngine[0].keys()
+#       for target in targets:
+#         returnDict[target] = np.zeros(0)
+#       for ts in range(len(self.SupervisedEngine)):
+#         for target in targets:
+#           returnDict[target] = np.append(returnDict[target],self.evaluate(inRun,target,ts))
+#     else:
+#       for target in self.SupervisedEngine.keys():
+#         returnDict[target] = self.evaluate(inRun,target)
     self._replaceVariablesNamesWithAliasSystem(returnDict, 'output',True)
     self._replaceVariablesNamesWithAliasSystem(inRun, 'input',True)
     return returnDict

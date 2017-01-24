@@ -166,7 +166,9 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
     pass
 
   def evaluate(self,request, target = None, timeInst = None):
-    pass
+    result = []
+    for rom in self.SupervisedEngine:
+      result.append(rom.evaluate(request))
 
   def run(self,Input):
     pass

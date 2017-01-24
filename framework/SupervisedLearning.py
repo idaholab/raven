@@ -402,11 +402,13 @@ class NDinterpolatorRom(superVisedLearning):
       @ In, featureVals, numpy.array 2-D, features
       @ Out, prediction, numpy.array 1-D, predicted values
     """
-    prediction = np.zeros(featureVals.shape[0])
-    for n_sample in range(featureVals.shape[0]):
-      featv = interpolationND.vectd(featureVals[n_sample][:])
-      prediction[n_sample] = self.interpolator.interpolateAt(featv)
-      self.raiseAMessage('NDinterpRom   : Prediction by ' + self.__class__.ROMtype + '. Predicted value is ' + str(prediction[n_sample]))
+    prediction = {} #np.zeros((featureVals.shape[0]))
+    for index, target in enumerate(self.target):
+      prediction[target] = np.zeros((featureVals.shape[0]))
+      for n_sample in range(featureVals.shape[0]):
+        featv = interpolationND.vectd(featureVals[n_sample][:])
+        prediction[target][n_sample] = self.interpolator[index].interpolateAt(featv)
+      self.raiseAMessage('NDinterpRom   : Prediction by ' + self.__class__.ROMtype + ' for target '+target+'. Predicted value is ' + str(prediction[target][n_sample]))
     return prediction
 
   def __returnInitialParametersLocal__(self):
