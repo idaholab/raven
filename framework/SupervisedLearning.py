@@ -1937,25 +1937,24 @@ class SciKitLearn(superVisedLearning):
     self.__class__.returnType     = self.__class__.availImpl[SKLtype][SKLsubType][1]
     self.externalNorm             = self.__class__.availImpl[SKLtype][SKLsubType][2]
     self.__class__.qualityEstType = self.__class__.qualityEstTypeDict[SKLtype][SKLsubType]
-    self.intrinsicMultiTarget     = False
+    self.intrinsicMultiTarget     = 'MultiTask' in self.initOptionDict['SKLtype']
     
     if 'estimator' in self.initOptionDict.keys():
-      self.intrinsicMultiTarget = True
       estimatorDict = self.initOptionDict['estimator']
       self.initOptionDict.pop('estimator')
       estimatorSKLtype, estimatorSKLsubType = estimatorDict['SKLtype'].split('|')
       estimator = self.__class__.availImpl[estimatorSKLtype][estimatorSKLsubType][0]()
-      self.ROM = [self.__class__.availImpl[SKLtype][SKLsubType][0](estimator)]
+      if self.intrinsicMultiTarget: self.ROM = [self.__class__.availImpl[SKLtype][SKLsubType][0](estimator)]
+      else                        : self.ROM = [self.__class__.availImpl[SKLtype][SKLsubType][0](estimator) for _ in range(len(self.target))]
     else:
-      self.ROM =[]
-      for _ in range(len(self.target)):
-        self.ROM.append(self.__class__.availImpl[SKLtype][SKLsubType][0]())
+      if self.intrinsicMultiTarget: self.ROM = [self.__class__.availImpl[SKLtype][SKLsubType][0]()]
+      else                        : self.ROM = [self.__class__.availImpl[SKLtype][SKLsubType][0]() for _ in range(len(self.target))]
 
     for key,value in self.initOptionDict.items():
-      try:self.initOptionDict[key] = ast.literal_eval(value)
+      try   : self.initOptionDict[key] = ast.literal_eval(value)
       except: pass
-    for index in range(len(self.ROM)):
-      self.ROM[index].set_params(**self.initOptionDict)
+    
+    for index in range(len(self.ROM)): self.ROM[index].set_params(**self.initOptionDict)
 
   def _readdressEvaluateConstResponse(self,edict):
     """
