@@ -909,7 +909,7 @@ class ROM(Dummy):
         and each parameter's initial value as the dictionary values
     """
     paramDict = self.supervisedEngine.getInitParams()
-    
+
     #for target, instrom in self.SupervisedEngine.items():
     #  paramDict[self.name + '|' + target] = instrom.returnInitialParameters()
     return paramDict

@@ -1674,7 +1674,7 @@ class MSR(NDinterpolatorRom):
             weights[key] += self.__kernel(dists[:,idx]/h)
           weights[key]
           #############
-  
+
         if self.blending:
           weightedPredictions = np.zeros(featureVals.shape[0])
           sumW = 0
@@ -1706,7 +1706,7 @@ class MSR(NDinterpolatorRom):
         svc = svm.SVC(probability=True,random_state=np.random.RandomState(8),tol=1e-15)
         svc.fit(self.X,labels)
         probabilities = svc.predict_proba(featureVals)
-  
+
         classIdxs = list(svc.classes_)
         if self.blending:
           weightedPredictions = np.zeros(len(featureVals))
@@ -1727,7 +1727,7 @@ class MSR(NDinterpolatorRom):
             if self.blending:
               weightedPredictions = weightedPredictions + fx*wx
               sumW += wx
-  
+
           returnDict[target] = weightedPredictions/sumW
         else:
           predictions = np.zeros(featureVals.shape[0])
@@ -1941,7 +1941,7 @@ class SciKitLearn(superVisedLearning):
     self.__class__.returnType     = self.__class__.availImpl[SKLtype][SKLsubType][1]
     self.externalNorm             = self.__class__.availImpl[SKLtype][SKLsubType][2]
     self.__class__.qualityEstType = self.__class__.qualityEstTypeDict[SKLtype][SKLsubType]
-    
+
     if 'estimator' in self.initOptionDict.keys():
       estimatorDict = self.initOptionDict['estimator']
       self.initOptionDict.pop('estimator')
@@ -1956,7 +1956,7 @@ class SciKitLearn(superVisedLearning):
     for key,value in self.initOptionDict.items():
       try   : self.initOptionDict[key] = ast.literal_eval(value)
       except: pass
-    
+
     for index in range(len(self.ROM)): self.ROM[index].set_params(**self.initOptionDict)
 
   def _readdressEvaluateConstResponse(self,edict):
@@ -1995,7 +1995,7 @@ class SciKitLearn(superVisedLearning):
     else:
       if all([len(np.unique(targetVals[:,index]))>1 for index in range(len(self.ROM))]):
         self.myNumber = [np.unique(targetVals[:,index])[0] for index in range(len(self.ROM)) ]
-        self.evaluate = self._readdressEvaluateConstResponse  
+        self.evaluate = self._readdressEvaluateConstResponse
       else:
         for index in range(len(self.ROM)):
           self.ROM[index].fit(featureVals,targetVals[:,index])
@@ -2008,12 +2008,12 @@ class SciKitLearn(superVisedLearning):
       @ Out, confidenceDict, dict, dict of the dictionary for each target
     """
     confidenceDict = {}
-    if  'probability' in self.__class__.qualityEstType: 
+    if  'probability' in self.__class__.qualityEstType:
       for index, target in enumerate(self.ROM):
         confidenceDict[target] =  self.ROM[index].predict_proba(featureVals)
     else            : self.raiseAnError(IOError,'the ROM '+str(self.initOptionDict['name'])+'has not the an method to evaluate the confidence of the prediction')
     return confidenceDict
-    
+
   def __evaluateLocal__(self,featureVals):
     """
       Evaluates a point.

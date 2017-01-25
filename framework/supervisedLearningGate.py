@@ -86,7 +86,7 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
       @ In, None
       @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
-    """ 
+    """
     paramDict = self.SupervisedEngine[-1].returnInitialParameters()
     return paramDict
 
