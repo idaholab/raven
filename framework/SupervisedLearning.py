@@ -1683,9 +1683,7 @@ class MSR(NDinterpolatorRom):
             wx = weights[key]
             sumW += wx
             weightedPredictions += fx*wx
-          if sumW == 0:
-            returnDict[target] = weightedPredictions
-          returnDict[target] = weightedPredictions / sumW
+          returnDict[target] = weightedPredictions if sumW == 0 else weightedPredictions / sumW
         else:
           predictions = np.zeros(featureVals.shape[0])
           maxWeights = np.zeros(featureVals.shape[0])
@@ -1727,8 +1725,7 @@ class MSR(NDinterpolatorRom):
             if self.blending:
               weightedPredictions = weightedPredictions + fx*wx
               sumW += wx
-
-          returnDict[target] = weightedPredictions/sumW
+          returnDict[target] = weightedPredictions if sumW == 0 else weightedPredictions / sumW
         else:
           predictions = np.zeros(featureVals.shape[0])
           maxWeights = np.zeros(featureVals.shape[0])
@@ -1747,7 +1744,7 @@ class MSR(NDinterpolatorRom):
               wx = probabilities[:,realIdx]
             predictions[wx > maxWeights] = fx
             maxWeights[wx > maxWeights] = wx
-        returnDict[target] = predictions
+          returnDict[target] = predictions
       return returnDict
 
 
