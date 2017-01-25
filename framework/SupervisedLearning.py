@@ -477,7 +477,7 @@ class GaussPolynomialRom(superVisedLearning):
     superVisedLearning.__init__(self,messageHandler,**kwargs)
     self.initialized   = False #only True once self.initialize has been called
     self.interpolator  = None #FIXME what's this?
-    self.printTag      = 'GAUSSgpcROM('+self.target+')'
+    self.printTag      = 'GAUSSgpcROM('+'-'.join(self.target)+')'
     self.indexSetType  = None #string of index set type, TensorProduct or TotalDegree or HyperbolicCross
     self.indexSetVals  = []   #list of tuples, custom index set to use if CustomSet is the index set type
     self.maxPolyOrder  = None #integer of relative maximum polynomial order to use in any one dimension

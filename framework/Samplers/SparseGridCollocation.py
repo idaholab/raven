@@ -192,7 +192,7 @@ class SparseGridCollocation(Grid):
     self.raiseADebug('Finished sampler generation.')
 
     self.raiseADebug('indexset:',self.indexSet)
-    for SVL in self.ROM.SupervisedEngine.values():
+    for SVL in self.ROM.supervisedEngine.SupervisedEngine:
       SVL.initialize({'SG':self.sparseGrid,
                       'dists':self.dists,
                       'quads':self.quadDict,
@@ -312,7 +312,7 @@ class SparseGridCollocation(Grid):
       @ Out, SVL, supervisedLearning object, SVL object
     """
     self.ROM = self.assemblerDict['ROM'][0][3]
-    SVLs = self.ROM.SupervisedEngine.values()
+    SVLs = self.ROM.supervisedEngine.SupervisedEngine
     SVL = utils.first(SVLs)
     self.features = SVL.features
     self.sparseGridType = SVL.sparseGridType.lower()
