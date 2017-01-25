@@ -2440,7 +2440,7 @@ class ARMA(superVisedLearning):
   def __evaluateLocal__(self,featureVals):
     """
       @ In, featureVals, float, a scalar feature value is passed as scaling factor
-      @ Out, generatedData , n-D numpy array [n_timeStep, n_dimension+1]
+      @ Out, returnEvaluation , dict, dictionary of values for each target (and pivot parameter)
     """
     if featureVals.size > 1:
       self.raiseAnError(ValueError, 'The input feature for ARMA for evaluation cannot have size greater than 1. ')
@@ -2480,12 +2480,11 @@ class ARMA(superVisedLearning):
     if self.outTruncation is not None:
       if self.outTruncation == 'positive':      tSeries = np.absolute(tSeries)
       elif self.outTruncation == 'negative':    tSeries = -np.absolute(tSeries)
-
-    generatedData = np.zeros(shape=[numTimeStep,self.armaPara['dimension']+1])
-    generatedData[:,0] = self.pivotParameterValues[0:numTimeStep]
-    generatedData[:,1:] = tSeries*featureVals
-
-    return generatedData
+    returnEvaluation = {}
+    returnEvaluation[self.pivotParameterID] = self.pivotParameterValues[0:numTimeStep]
+    evaluation = tSeries*featureVals
+    for index, target in enumerate(self.target): returnEvaluation[target] = evaluation[:,index]
+    return returnEvaluation
 
   def __confidenceLocal__(self,featureVals):
     """

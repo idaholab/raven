@@ -29,7 +29,7 @@
 	
 	<Models>			
 		<ROM name='ARMA' subType='ARMA'>
-			<Target>Speed</Target>
+			<Target>Speed,Time</Target>
 			<Features>scaling</Features>
 			<pivotParameter>Time</pivotParameter>
 			<Pmax>2</Pmax>
@@ -97,4 +97,5 @@
         </HistorySet>
     </DataObjects>
 </Simulation>
+
 
