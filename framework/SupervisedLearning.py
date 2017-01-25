@@ -1937,20 +1937,25 @@ class SciKitLearn(superVisedLearning):
     self.__class__.returnType     = self.__class__.availImpl[SKLtype][SKLsubType][1]
     self.externalNorm             = self.__class__.availImpl[SKLtype][SKLsubType][2]
     self.__class__.qualityEstType = self.__class__.qualityEstTypeDict[SKLtype][SKLsubType]
-
+    self.intrinsicMultiTarget     = False
+    
     if 'estimator' in self.initOptionDict.keys():
+      self.intrinsicMultiTarget = True
       estimatorDict = self.initOptionDict['estimator']
       self.initOptionDict.pop('estimator')
       estimatorSKLtype, estimatorSKLsubType = estimatorDict['SKLtype'].split('|')
       estimator = self.__class__.availImpl[estimatorSKLtype][estimatorSKLsubType][0]()
-      self.ROM = self.__class__.availImpl[SKLtype][SKLsubType][0](estimator)
+      self.ROM = [self.__class__.availImpl[SKLtype][SKLsubType][0](estimator)]
     else:
-      self.ROM  = self.__class__.availImpl[SKLtype][SKLsubType][0]()
+      self.ROM =[]
+      for _ in range(len(self.target)):
+        self.ROM.append(self.__class__.availImpl[SKLtype][SKLsubType][0]())
 
     for key,value in self.initOptionDict.items():
       try:self.initOptionDict[key] = ast.literal_eval(value)
       except: pass
-    self.ROM.set_params(**self.initOptionDict)
+    for index in range(len(self.ROM)):
+      self.ROM[index].set_params(**self.initOptionDict)
 
   def _readdressEvaluateConstResponse(self,edict):
     """
@@ -1959,9 +1964,11 @@ class SciKitLearn(superVisedLearning):
       and the 10 outcomes are all == to 1, this method returns one without the need of an
       evaluation)
       @ In, edict, dict, prediction request. Not used in this method (kept the consistency with evaluate method)
-      @ Out, myNumber, float, the evaluation
+      @ Out, returnDict, dict, dictionary with the evaluation (in this case, the constant number)
     """
-    return self.myNumber
+    returnDict = {}
+    for index,target in enumerate(self.target): returnDict[target] = self.myNumber[index]
+    return returnDict
 
   def _readdressEvaluateRomResponse(self,edict):
     """
@@ -1977,34 +1984,47 @@ class SciKitLearn(superVisedLearning):
       For an one-class model, +1 or -1 is returned.
       @ In, featureVals, {array-like, sparse matrix}, shape=[n_samples, n_features],
         an array of input feature values
-      @ Out, targetVals, array, shape = [n_samples], an array of output target
+      @ Out, targetVals, array, shape = [n_samples,n_targets], an array of output target
         associated with the corresponding points in featureVals
     """
     #If all the target values are the same no training is needed and the moreover the self.evaluate could be re-addressed to this value
-    if len(np.unique(targetVals))>1:
-      self.ROM.fit(featureVals,targetVals)
-      self.evaluate = self._readdressEvaluateRomResponse
-      #self.evaluate = lambda edict : self.__class__.evaluate(self,edict)
+    if self.intrinsicMultiTarget:
+      self.ROM[0].fit(featureVals,targetVals)
     else:
-      self.myNumber = np.unique(targetVals)[0]
-      self.evaluate = self._readdressEvaluateConstResponse
+      if all([len(np.unique(targetVals[:,index]))>1 for index in range(len(self.ROM))]):
+        self.myNumber = [np.unique(targetVals[:,index])[0] for index in range(len(self.ROM)) ]
+        self.evaluate = self._readdressEvaluateConstResponse  
+      else:
+        for index in range(len(self.ROM)):
+          self.ROM[index].fit(featureVals,targetVals[:,index])
+        self.evaluate = self._readdressEvaluateRomResponse
 
   def __confidenceLocal__(self,featureVals):
     """
       This should return an estimation of the quality of the prediction.
       @ In, featureVals, 2-D numpy array, [n_samples,n_features]
-      @ Out, predict_proba, float, the confidence
+      @ Out, confidenceDict, dict, dict of the dictionary for each target
     """
-    if  'probability' in self.__class__.qualityEstType: return self.ROM.predict_proba(featureVals)
+    confidenceDict = {}
+    if  'probability' in self.__class__.qualityEstType: 
+      for index, target in enumerate(self.ROM):
+        confidenceDict[target] =  self.ROM[index].predict_proba(featureVals)
     else            : self.raiseAnError(IOError,'the ROM '+str(self.initOptionDict['name'])+'has not the an method to evaluate the confidence of the prediction')
-
+    return confidenceDict
+    
   def __evaluateLocal__(self,featureVals):
     """
       Evaluates a point.
       @ In, featureVals, np.array, list of values at which to evaluate the ROM
-      @ Out, predict, float, the evaluated value
+      @ Out, returnDict, dict, dict of all the target results
     """
-    return self.ROM.predict(featureVals)
+    returnDict = {}
+    if not self.intrinsicMultiTarget:
+      for index, target in enumerate(self.target): returnDict[target] = self.ROM[index].predict(featureVals)
+    else:
+      outcome = self.ROM[0].predict(featureVals)
+      for index, target in enumerate(self.target): returnDict[target] = outcome[index]
+    return returnDict
 
   def __resetLocal__(self):
     """
@@ -2012,7 +2032,8 @@ class SciKitLearn(superVisedLearning):
       @ In, None
       @ Out, None
     """
-    self.ROM = self.ROM.__class__(**self.initOptionDict)
+    for index in range(len(self.ROM)):
+      self.ROM[index] = self.ROM[index].__class__(**self.initOptionDict)
 
   def __returnInitialParametersLocal__(self):
     """
@@ -2020,7 +2041,7 @@ class SciKitLearn(superVisedLearning):
       @ In, None
       @ Out, params, dict,  dictionary of parameter names and initial values
     """
-    params = self.ROM.get_params()
+    params = self.ROM[-1].get_params()
     return params
 
   def __returnCurrentSettingLocal__(self):

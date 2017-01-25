@@ -908,9 +908,10 @@ class ROM(Dummy):
       @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
     """
-    paramDict = {}
-    for target, instrom in self.SupervisedEngine.items():
-      paramDict[self.name + '|' + target] = instrom.returnInitialParameters()
+    paramDict = self.supervisedEngine.getInitParams()
+    
+    #for target, instrom in self.SupervisedEngine.items():
+    #  paramDict[self.name + '|' + target] = instrom.returnInitialParameters()
     return paramDict
 
   def train(self,trainingSet):

@@ -40,11 +40,10 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
     self.printTag                = 'SupervisedGate'
     self.messageHandler          = messageHandler
     self.initializationOptions   = kwargs
+    self.amITrained              = False
     #the ROM is instanced and initialized
     # check how many targets
     if not 'Target' in self.initializationOptions.keys(): self.raiseAnError(IOError,'No Targets specified!!!')
-    #targets = self.initializationOptions['Target'].split(',')
-    #self.howManyTargets = len(targets)
     # return instance of the ROMclass
     modelInstance         = SupervisedLearning.returnInstance(ROMclass,self,**self.initializationOptions)
     # check if it is dynamic
@@ -71,13 +70,32 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
 
 
   def reset(self):
-    pass
+    """
+      This method is aimed to reset the ROM
+      @ In, None
+      @ Out, None
+    """
+    for rom in self.SupervisedEngine: rom.reset()
+    self.amITrained = False
 
   def getInitParams(self):
-    pass
+    """
+      This function is called from the base class to print some of the information inside the class.
+      Whatever is permanent in the class and not inherited from the parent class should be mentioned here
+      The information is passed back in the dictionary. No information about values that change during the simulation are allowed
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
+    """ 
+    paramDict = self.SupervisedEngine[-1].returnInitialParameters()
+    return paramDict
 
   def train(self,trainingSet):
-
+    """
+      This function train the ROM this gate is linked to. This method is aimed to agnostically understand if a "time-dependent-like" ROM needs to be constructed.
+      @ In, trainingSet, dict or list, data used to train the ROM; if a list is provided a temporal ROM is generated.
+      @ Out, None
+    """
     if type(trainingSet).__name__ not in  'dict': self.raiseAnError(IOError,"The training set is not a dictionary!")
     if len(trainingSet.keys()) == 0             : self.raiseAnError(IOError,"The training set is empty!")
 
@@ -109,8 +127,23 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
       self.SupervisedEngine[0].train(trainingSet)
     self.amITrained = True
 
-  def confidence(self):
-    pass
+  def confidence(self, request):
+    """
+      This is to get a value that is inversely proportional to the confidence that we have
+      forecasting the target value for the given set of features. The reason to chose the inverse is because
+      in case of normal distance this would be 1/distance that could be infinity
+      @ In, request, dict, realizations request ({'feature1':np.array(n_realizations),'feature2',np.array(n_realizations)})
+      @ Out, confidenceDict, dict, the dictionary where the confidence is stored for each target
+    """
+    if not self.amITrained: self.raiseAnError(RuntimeError, "ROM "+self.initializationOptions['name']+" has not been trained yet and, consequentially, can not be evaluated!")
+    confidenceDict = {}
+    for rom in self.SupervisedEngine:
+      sliceEvaluation = rom.confidence(request)
+      if len(confidenceDict.keys()) == 0:
+        confidenceDict.update(sliceEvaluation)
+      else:
+        for key in confidenceDict.keys(): confidenceDict[key] = np.append(confidenceDict[key],sliceEvaluation[key])
+    return confidenceDict
 
   def evaluate(self,request):
     """
@@ -118,6 +151,7 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
       @ In, request, dict, realizations request ({'feature1':np.array(n_realizations),'feature2',np.array(n_realizations)})
       @ Out, resultsDict, dict, dictionary of results ({target1:np.array,'target2':np.array}).
     """
+    if not self.amITrained: self.raiseAnError(RuntimeError, "ROM "+self.initializationOptions['name']+" has not been trained yet and, consequentially, can not be evaluated!")
     resultsDict = {}
     for rom in self.SupervisedEngine:
       sliceEvaluation = rom.evaluate(request)
@@ -127,8 +161,6 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
         for key in resultsDict.keys(): resultsDict[key] = np.append(resultsDict[key],sliceEvaluation[key])
     return resultsDict
 
-  def run(self,Input):
-    pass
 
 __interfaceDict                         = {}
 __interfaceDict['SupervisedGate'      ] = supervisedLearningGate
