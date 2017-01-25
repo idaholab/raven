@@ -1446,7 +1446,7 @@ class MSR(NDinterpolatorRom):
     if self.knn <= 0:
       self.knn = self.X.shape[0]
 
-    names = [name.encode('ascii') for name in self.features + [self.target]]
+    names = [name.encode('ascii') for name in self.features + self.target]
     # Data is already normalized, so ignore this parameter
     ### Comment replicated from the post-processor version, not sure what it
     ### means (DM)
@@ -1456,13 +1456,15 @@ class MSR(NDinterpolatorRom):
     #        SupervisedLearning, which requires features and targets by
     #        default, which we don't have here. When the NearestNeighbor is
     #        implemented in unSupervisedLearning switch to it.
-    self.__amsc = AMSC_Object(X=self.X, Y=self.Y, w=weights, names=names,
+    self.__amsc = []
+    for index in range(len(self.target)):
+      self.__amsc.append( AMSC_Object(X=self.X, Y=self.Y[:,index], w=weights, names=names,
                               graph=self.graph, gradient=self.gradient,
                               knn=self.knn, beta=self.beta,
                               normalization=None,
-                              persistence=self.persistence)
-    self.__amsc.Persistence(self.simplification)
-    self.__amsc.BuildLinearModels(self.simplification)
+                              persistence=self.persistence) )
+      self.__amsc[index].Persistence(self.simplification)
+      self.__amsc[index].BuildLinearModels(self.simplification)
 
     # We need a KD-Tree for querying neighbors
     self.kdTree = neighbors.KDTree(self.X)
