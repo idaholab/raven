@@ -1240,7 +1240,7 @@ class MSR(NDinterpolatorRom):
                                 'biweight', 'quartic', 'triweight', 'tricube',
                                 'gaussian', 'cosine', 'logistic', 'silverman',
                                 'exponential']
-
+    self.__amsc = []                      # AMSC object
     # Some sensible default arguments
     self.gradient = 'steepest'            # Gradient estimate methodology
     self.graph = 'beta skeleton'          # Neighborhood graph used
@@ -1418,7 +1418,7 @@ class MSR(NDinterpolatorRom):
     for key, value in newState.iteritems():
         setattr(self, key, value)
     self.kdTree             = None
-    self.__amsc             = None
+    self.__amsc             = []
     self.__trainLocal__(self.X,self.Y)
 
   def __trainLocal__(self,featureVals,targetVals):
@@ -1446,7 +1446,7 @@ class MSR(NDinterpolatorRom):
     if self.knn <= 0:
       self.knn = self.X.shape[0]
 
-    names = [name.encode('ascii') for name in self.features + [self.target]]
+    names = [name.encode('ascii') for name in self.features + self.target]
     # Data is already normalized, so ignore this parameter
     ### Comment replicated from the post-processor version, not sure what it
     ### means (DM)
@@ -1456,13 +1456,14 @@ class MSR(NDinterpolatorRom):
     #        SupervisedLearning, which requires features and targets by
     #        default, which we don't have here. When the NearestNeighbor is
     #        implemented in unSupervisedLearning switch to it.
-    self.__amsc = AMSC_Object(X=self.X, Y=self.Y, w=weights, names=names,
-                              graph=self.graph, gradient=self.gradient,
-                              knn=self.knn, beta=self.beta,
-                              normalization=None,
-                              persistence=self.persistence)
-    self.__amsc.Persistence(self.simplification)
-    self.__amsc.BuildLinearModels(self.simplification)
+    for index in range(len(self.target)):
+      self.__amsc.append( AMSC_Object(X=self.X, Y=self.Y[:,index], w=weights, names=names,
+                                      graph=self.graph, gradient=self.gradient,
+                                      knn=self.knn, beta=self.beta,
+                                      normalization=None,
+                                      persistence=self.persistence) )
+      self.__amsc[index].Persistence(self.simplification)
+      self.__amsc[index].BuildLinearModels(self.simplification)
 
     # We need a KD-Tree for querying neighbors
     self.kdTree = neighbors.KDTree(self.X)
@@ -1638,114 +1639,116 @@ class MSR(NDinterpolatorRom):
       This will use the local predictor of each neighboring point weighted by its
       distance to that point.
       @ In, featureVals, numpy.array 2-D, features
-      @ Out, predictions, numpy.array 1-D, predicted values
+      @ Out, returnDict, dict, dict of predicted values for each target ({'target1':numpy.array 1-D,'target2':numpy.array 1-D}
     """
-    if self.partitionPredictor == 'kde':
-      partitions = self.__amsc.Partitions(self.simplification)
-      weights = {}
-      dists = np.zeros((featureVals.shape[0],self.X.shape[0]))
-      for i,row in enumerate(featureVals):
-        dists[i] = np.sqrt(((row-self.X)**2).sum(axis=-1))
-      # This is a variable-based bandwidth that will adjust to the density
-      # around the given query point
-      if self.bandwidth == 'variable':
-        h = sorted(dists)[self.knn-1]
-      else:
-        h = self.bandwidth
-      for key,indices in partitions.iteritems():
-        #############
-        ## Using SciKit Learn, we have a limited number of kernel functions to
-        ## choose from.
-        # kernel = self.kernel
-        # if kernel == 'uniform':
-        #   kernel = 'tophat'
-        # if kernel == 'triangular':
-        #   kernel = 'linear'
-        # kde = KernelDensity(kernel=kernel, bandwidth=h).fit(self.X[indices,])
-        # weights[key] = np.exp(kde.score_samples(featureVals))
-        #############
-        ## OR
-        #############
-        weights[key] = 0
-        for idx in indices:
-          weights[key] += self.__kernel(dists[:,idx]/h)
-        weights[key]
-        #############
-
-      if self.blending:
-        weightedPredictions = np.zeros(featureVals.shape[0])
-        sumW = 0
-        for key in partitions.keys():
-          fx = self.__amsc.Predict(featureVals,key)
-          wx = weights[key]
-          sumW += wx
-          weightedPredictions += fx*wx
-        if sumW == 0:
-          return weightedPredictions
-        return weightedPredictions / sumW
-      else:
-        predictions = np.zeros(featureVals.shape[0])
-        maxWeights = np.zeros(featureVals.shape[0])
-        for key in partitions.keys():
-          fx = self.__amsc.Predict(featureVals,key)
-          wx = weights[key]
-          predictions[wx > maxWeights] = fx
-          maxWeights[wx > maxWeights] = wx
-        return predictions
-    elif self.partitionPredictor == 'svm':
-      partitions = self.__amsc.Partitions(self.simplification)
-      labels = np.zeros(self.X.shape[0])
-      for idx,(key,indices) in enumerate(partitions.iteritems()):
-        labels[np.array(indices)] = idx
-      # In order to make this deterministic for testing purposes, let's fix
-      # the random state of the SVM object. Maybe, this could be exposed to the
-      # user, but it shouldn't matter too much what the seed is for this.
-      svc = svm.SVC(probability=True,random_state=np.random.RandomState(8),tol=1e-15)
-      svc.fit(self.X,labels)
-      probabilities = svc.predict_proba(featureVals)
-
-      classIdxs = list(svc.classes_)
-      if self.blending:
-        weightedPredictions = np.zeros(len(featureVals))
-        sumW = 0
-        for idx,key in enumerate(partitions.keys()):
-          fx = self.__amsc.Predict(featureVals,key)
-          # It could be that a particular partition consists of only the extrema
-          # and they themselves point to cells with different opposing extrema.
-          # That is, a maximum points to a different minimum than the minimum in
-          # the two point partition. Long story short, we need to be prepared for
-          # an empty partition which will thus not show up in the predictions of
-          # the SVC, since no point has it as a label.
-          if idx not in classIdxs:
-            wx = np.zeros(probabilities.shape[0])
-          else:
-            realIdx = list(svc.classes_).index(idx)
-            wx = probabilities[:,realIdx]
-          if self.blending:
-            weightedPredictions = weightedPredictions + fx*wx
+    returnDict = {}
+    for index, target in enumerate(self.target):
+      if self.partitionPredictor == 'kde':
+        partitions = self.__amsc[index].Partitions(self.simplification)
+        weights = {}
+        dists = np.zeros((featureVals.shape[0],self.X.shape[0]))
+        for i,row in enumerate(featureVals):
+          dists[i] = np.sqrt(((row-self.X)**2).sum(axis=-1))
+        # This is a variable-based bandwidth that will adjust to the density
+        # around the given query point
+        if self.bandwidth == 'variable':
+          h = sorted(dists)[self.knn-1]
+        else:
+          h = self.bandwidth
+        for key,indices in partitions.iteritems():
+          #############
+          ## Using SciKit Learn, we have a limited number of kernel functions to
+          ## choose from.
+          # kernel = self.kernel
+          # if kernel == 'uniform':
+          #   kernel = 'tophat'
+          # if kernel == 'triangular':
+          #   kernel = 'linear'
+          # kde = KernelDensity(kernel=kernel, bandwidth=h).fit(self.X[indices,])
+          # weights[key] = np.exp(kde.score_samples(featureVals))
+          #############
+          ## OR
+          #############
+          weights[key] = 0
+          for idx in indices:
+            weights[key] += self.__kernel(dists[:,idx]/h)
+          weights[key]
+          #############
+  
+        if self.blending:
+          weightedPredictions = np.zeros(featureVals.shape[0])
+          sumW = 0
+          for key in partitions.keys():
+            fx = self.__amsc[index].Predict(featureVals,key)
+            wx = weights[key]
             sumW += wx
-
-        return weightedPredictions/sumW
-      else:
-        predictions = np.zeros(featureVals.shape[0])
-        maxWeights = np.zeros(featureVals.shape[0])
-        for idx,key in enumerate(partitions.keys()):
-          fx = self.__amsc.Predict(featureVals,key)
-          # It could be that a particular partition consists of only the extrema
-          # and they themselves point to cells with different opposing extrema.
-          # That is, a maximum points to a different minimum than the minimum in
-          # the two point partition. Long story short, we need to be prepared for
-          # an empty partition which will thus not show up in the predictions of
-          # the SVC, since no point has it as a label.
-          if idx not in classIdxs:
-            wx = np.zeros(probabilities.shape[0])
-          else:
-            realIdx = list(svc.classes_).index(idx)
-            wx = probabilities[:,realIdx]
-          predictions[wx > maxWeights] = fx
-          maxWeights[wx > maxWeights] = wx
-
-        return predictions
+            weightedPredictions += fx*wx
+          if sumW == 0:
+            returnDict[target] = weightedPredictions
+          returnDict[target] = weightedPredictions / sumW
+        else:
+          predictions = np.zeros(featureVals.shape[0])
+          maxWeights = np.zeros(featureVals.shape[0])
+          for key in partitions.keys():
+            fx = self.__amsc[index].Predict(featureVals,key)
+            wx = weights[key]
+            predictions[wx > maxWeights] = fx
+            maxWeights[wx > maxWeights] = wx
+          returnDict[target] = predictions
+      elif self.partitionPredictor == 'svm':
+        partitions = self.__amsc[index].Partitions(self.simplification)
+        labels = np.zeros(self.X.shape[0])
+        for idx,(key,indices) in enumerate(partitions.iteritems()):
+          labels[np.array(indices)] = idx
+        # In order to make this deterministic for testing purposes, let's fix
+        # the random state of the SVM object. Maybe, this could be exposed to the
+        # user, but it shouldn't matter too much what the seed is for this.
+        svc = svm.SVC(probability=True,random_state=np.random.RandomState(8),tol=1e-15)
+        svc.fit(self.X,labels)
+        probabilities = svc.predict_proba(featureVals)
+  
+        classIdxs = list(svc.classes_)
+        if self.blending:
+          weightedPredictions = np.zeros(len(featureVals))
+          sumW = 0
+          for idx,key in enumerate(partitions.keys()):
+            fx = self.__amsc[index].Predict(featureVals,key)
+            # It could be that a particular partition consists of only the extrema
+            # and they themselves point to cells with different opposing extrema.
+            # That is, a maximum points to a different minimum than the minimum in
+            # the two point partition. Long story short, we need to be prepared for
+            # an empty partition which will thus not show up in the predictions of
+            # the SVC, since no point has it as a label.
+            if idx not in classIdxs:
+              wx = np.zeros(probabilities.shape[0])
+            else:
+              realIdx = list(svc.classes_).index(idx)
+              wx = probabilities[:,realIdx]
+            if self.blending:
+              weightedPredictions = weightedPredictions + fx*wx
+              sumW += wx
+  
+          returnDict[target] = weightedPredictions/sumW
+        else:
+          predictions = np.zeros(featureVals.shape[0])
+          maxWeights = np.zeros(featureVals.shape[0])
+          for idx,key in enumerate(partitions.keys()):
+            fx = self.__amsc[index].Predict(featureVals,key)
+            # It could be that a particular partition consists of only the extrema
+            # and they themselves point to cells with different opposing extrema.
+            # That is, a maximum points to a different minimum than the minimum in
+            # the two point partition. Long story short, we need to be prepared for
+            # an empty partition which will thus not show up in the predictions of
+            # the SVC, since no point has it as a label.
+            if idx not in classIdxs:
+              wx = np.zeros(probabilities.shape[0])
+            else:
+              realIdx = list(svc.classes_).index(idx)
+              wx = probabilities[:,realIdx]
+            predictions[wx > maxWeights] = fx
+            maxWeights[wx > maxWeights] = wx
+        returnDict[target] = predictions
+      return returnDict
 
 
   def __resetLocal__(self):
@@ -1756,7 +1759,7 @@ class MSR(NDinterpolatorRom):
     """
     self.X      = []
     self.Y      = []
-    self.__amsc = None
+    self.__amsc = []
     self.kdTree = None
 
 
