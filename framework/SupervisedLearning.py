@@ -1928,6 +1928,7 @@ class SciKitLearn(superVisedLearning):
       self.raiseAnError(IOError,'to define a scikit learn ROM the SKLtype keyword is needed (from ROM "'+name+'")')
     SKLtype, SKLsubType = self.initOptionDict['SKLtype'].split('|')
     self.subType = SKLsubType
+    self.intrinsicMultiTarget     = 'MultiTask' in self.initOptionDict['SKLtype']
     self.initOptionDict.pop('SKLtype')
     if not SKLtype in self.__class__.availImpl.keys():
       self.raiseAnError(IOError,'not known SKLtype "' + SKLtype +'" (from ROM "'+name+'")')
@@ -1937,7 +1938,6 @@ class SciKitLearn(superVisedLearning):
     self.__class__.returnType     = self.__class__.availImpl[SKLtype][SKLsubType][1]
     self.externalNorm             = self.__class__.availImpl[SKLtype][SKLsubType][2]
     self.__class__.qualityEstType = self.__class__.qualityEstTypeDict[SKLtype][SKLsubType]
-    self.intrinsicMultiTarget     = 'MultiTask' in self.initOptionDict['SKLtype']
     
     if 'estimator' in self.initOptionDict.keys():
       estimatorDict = self.initOptionDict['estimator']
