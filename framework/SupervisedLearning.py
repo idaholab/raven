@@ -2022,7 +2022,7 @@ class SciKitLearn(superVisedLearning):
       for index, target in enumerate(self.target): returnDict[target] = self.ROM[index].predict(featureVals)
     else:
       outcome = self.ROM[0].predict(featureVals)
-      for index, target in enumerate(self.target): returnDict[target] = outcome[index]
+      for index, target in enumerate(self.target): returnDict[target] = outcome[:,index]
     return returnDict
 
   def __resetLocal__(self):
