@@ -1,9 +1,9 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <RunInfo>
-    <JobName>ChapterVII-I/MonteCarlo</JobName>
+    <JobName>RunDir/MonteCarlo</JobName>
     <Sequence>sample,writeHistories</Sequence>
-    <WorkingDir>ChapterVII-I/MonteCarlo</WorkingDir>
+    <WorkingDir>RunDir/MonteCarlo</WorkingDir>
     <batchSize>12</batchSize>
   </RunInfo>
 
@@ -36,6 +36,7 @@
     <MonteCarlo name="monteCarlo">
         <samplerInit>
             <limit>100</limit>
+            <reseedEachIteration>True</reseedEachIteration>
         </samplerInit>
       <variable name="sigma-A">
         <distribution>sigma</distribution>
@@ -157,13 +158,13 @@
 
         </plotSettings>
         <actions>
-            <how>png,screen</how>
+            <how>png</how>
             <title>
                 <text> </text>
             </title>
         </actions>
     </Plot>
-    <Plot dim="3" name="samplesPlot3D" overwrite="false" verbosity="debug">
+    <Plot name="samplesPlot3D" overwrite="false" verbosity="debug">
          sigma-A,sigma-B,sigma-C,sigma-D,decay-A,decay-B,decay-C,decay-D
         <plotSettings>
             <gridSpace>2 2</gridSpace>
@@ -229,7 +230,7 @@
             <zlabel>final response</zlabel>
         </plotSettings>
         <actions>
-            <how>png,screen</how>
+            <how>png</how>
             <title>
                 <text> </text>
             </title>

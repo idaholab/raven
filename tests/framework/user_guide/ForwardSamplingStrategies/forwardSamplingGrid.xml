@@ -1,9 +1,9 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <RunInfo>
-    <JobName>ChapterVII-I/Grid</JobName>
+    <JobName>RunDir/Grid</JobName>
     <Sequence>sample,writeHistories</Sequence>
-    <WorkingDir>ChapterVII-I/Grid</WorkingDir>
+    <WorkingDir>RunDir/Grid</WorkingDir>
     <batchSize>12</batchSize>
   </RunInfo>
 
@@ -159,16 +159,16 @@
                 <xlabel>time (s)</xlabel>
                 <ylabel>evolution D(kg)</ylabel>
             </plot>
-            
+
         </plotSettings>
         <actions>
-            <how>png,screen</how>
+            <how>png</how>
             <title>
                 <text> </text>
             </title>
         </actions>
     </Plot>
-    <Plot dim="3" name="samplesPlot3D" overwrite="false" verbosity="debug">
+    <Plot name="samplesPlot3D" overwrite="false" verbosity="debug">
         sigma-A,sigma-B,sigma-C,sigma-D,decay-A,decay-B,decay-C,decay-D
         <plotSettings>
             <gridSpace>2 2</gridSpace>
@@ -234,7 +234,7 @@
             <zlabel>final response</zlabel>
         </plotSettings>
         <actions>
-            <how>png,screen</how>
+            <how>png</how>
             <title>
                 <text> </text>
             </title>
