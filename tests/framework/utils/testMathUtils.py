@@ -18,6 +18,18 @@ print (mathUtils)
 
 results = {"pass":0,"fail":0}
 
+def checkTrue(comment,value,expected):
+  """
+    Takes a boolean and checks it against True or False.
+  """
+  if value == expected:
+    results["pass"] += 1
+    return True
+  else:
+    print("checking answer",comment,value,"!=",expected)
+    results["fail"] += 1
+    return False
+
 def checkAnswer(comment,value,expected,tol=1e-10,updateResults=True):
   """
     This method is aimed to compare two floats given a certain tolerance
@@ -211,6 +223,18 @@ for i,f in enumerate(find):
   idx,ary = mathUtils.numpyNearestMatch(findIn,f)
   checkAnswer('numpyNearersMatch %s' %str(f),idx,idcs[i],1e-5)
   checkArray('numpyNearersMatch %s' %str(f),ary,correct[i],1e-5)
+
+### check float comparison
+#moderate order of magnitude
+checkTrue('compareFloats moderate OoM match',mathUtils.compareFloats(3.141592,3.141593,tol=1e-6),True)
+checkTrue('compareFloats moderate OoM mismatch',mathUtils.compareFloats(3.141592,3.141593,tol=1e-8),False)
+#small order of magnitude
+checkTrue('compareFloats small OoM match',mathUtils.compareFloats(3.141592e-15,3.141593e-15,tol=1e-6),True)
+checkTrue('compareFloats small OoM mismatch',mathUtils.compareFloats(3.141592e-15,3.141593e-15,tol=1e-8),False)
+#small order of magnitude
+checkTrue('compareFloats large OoM match',mathUtils.compareFloats(3.141592e15,3.141593e15,tol=1e-6),True)
+checkTrue('compareFloats large OoM mismatch',mathUtils.compareFloats(3.141592e15,3.141593e15,tol=1e-8),False)
+
 
 ### check "NDinArray"
 points = np.array([(0.61259532,0.27325707,0.81182424),

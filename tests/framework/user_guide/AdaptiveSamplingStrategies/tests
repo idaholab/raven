@@ -1,0 +1,8 @@
+[Tests]
+  [./limitSurfaceSearch]
+    type = 'RavenFramework'
+    input = ''
+    csv = ''
+    rel_err = 0.001
+  [../]
+[]
