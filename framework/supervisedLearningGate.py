@@ -45,15 +45,17 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
     # check how many targets
     if not 'Target' in self.initializationOptions.keys(): self.raiseAnError(IOError,'No Targets specified!!!')
     # return instance of the ROMclass
-    modelInstance         = SupervisedLearning.returnInstance(ROMclass,self,**self.initializationOptions)
-    # check if it is dynamic
-    self.isADynamicModel  = modelInstance.isDynamic()
+    modelInstance             = SupervisedLearning.returnInstance(ROMclass,self,**self.initializationOptions)
+    # check if the model can autonomously handle the time-dependency (if not and time-dep data are passed in, a list of ROMs are constructed)
+    self.canHandleDynamicData = modelInstance.isDynamic()
+    # is this ROM  time-dependent ?
+    self.isADynamicModel      = False
     # if it is dynamic and time series are passed in, self.SupervisedEngine is not going to be expanded, else it is going to
-    self.SupervisedEngine = [modelInstance]
+    self.SupervisedEngine     = [modelInstance]
     # check if pivotParameter is specified and in case store it
-    self.pivotParameterId = self.initializationOptions.pop("pivotParameter",'time')
+    self.pivotParameterId     = self.initializationOptions.pop("pivotParameter",'time')
     #
-    self.historySteps = []
+    self.historySteps         = []
 
 #     if 'SKLtype' in self.initializationOptions and 'MultiTask' in self.initializationOptions['SKLtype']:
 #       self.initializationOptions['Target'] = targets
@@ -101,11 +103,12 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta,BaseType),Messag
 
     if any(type(x).__name__ == 'list' for x in trainingSet.values()):
       # we need to build a "time-dependent" ROM
+      self.isADynamicModel = True
       if self.pivotParameterId not in trainingSet.keys()            : self.raiseAnError(IOError,"the pivot parameter "+ self.pivotParameterId +" is not present in the training set. A time-dependent-like ROM cannot be created!")
       if type(trainingSet[self.pivotParameterId]).__name__ != 'list': self.raiseAnError(IOError,"the pivot parameter "+ self.pivotParameterId +" is not a list. Are you sure it is part of the output space of the training set?")
       self.historySteps = trainingSet.get(self.pivotParameterId)[-1]
       if len(self.historySteps) == 0: self.raiseAnError(IOError,"the training set is empty!")
-      if self.isADynamicModel:
+      if self.canHandleDynamicData:
         # the ROM is able to manage the time dependency on its own
         self.SupervisedEngine[0].train(trainingSet)
       else:

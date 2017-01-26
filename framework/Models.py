@@ -731,7 +731,7 @@ class ROM(Dummy):
     self.initializationOptionDict = {}          # ROM initialization options
     self.amITrained                = False      # boolean flag, is the ROM trained?
     self.howManyTargets            = 0          # how many targets?
-    self.SupervisedEngine          = {}         # dict of ROM instances (== number of targets => keys are the targets)
+    self.supervisedEngine          = None       # dict of ROM instances (== number of targets => keys are the targets)
     self.printTag = 'ROM MODEL'
     self.numberOfTimeStep          = 1
     self.historyPivotParameter     = 'none'     #time-like pivot parameter for data object on which ROM was trained
@@ -842,12 +842,7 @@ class ROM(Dummy):
       @ Out, None
     """
     #determine dynamic or static
-    if type(self.SupervisedEngine) == list:
-      dynamic = True
-    elif type(self.SupervisedEngine) == dict:
-      dynamic = False
-    else:
-      self.raiseAnError(RuntimeError,'Unrecognized structure for self.SupervisedEngine:',type(self.SupervisedEnging))
+    dynamic = self.supervisedEngine.isADynamicModel
     # establish file
     if 'filenameroot' in options.keys():
       filenameLocal = options['filenameroot']
