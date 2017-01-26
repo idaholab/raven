@@ -755,7 +755,7 @@ class ROM(Dummy):
     # capture what is normally pickled
     state = self.__dict__.copy()
     if not self.amITrained:
-      a = state.pop("SupervisedEngine")
+      a = state.pop("supervisedEngine")
       del a
     return state
 
