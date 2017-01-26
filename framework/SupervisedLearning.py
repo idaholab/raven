@@ -688,11 +688,11 @@ class GaussPolynomialRom(superVisedLearning):
       self.raiseAnError(RuntimeError,'ROM has not yet been initialized!  Has the Sampler associated with this ROM been used?')
     self.raiseADebug('training',self.features,'->',self.target)
     self.featv, self.targv = featureVals,targetVals
-    self.polyCoeffDict={}
+    self.polyCoeffDict=dict.fromkeys(self.target,{})
     #check equality of point space
     self.raiseADebug('...checking required points are available...')
     fvs = []
-    tvs=[]
+    tvs = dict.fromkeys(self.target,[])
     sgs = list(self.sparseGrid.points())
     missing=[]
     kdTree = spatial.KDTree(featureVals)
@@ -712,7 +712,7 @@ class GaussPolynomialRom(superVisedLearning):
       #end brute way
       if found:
         fvs.append(point)
-        tvs.append(targetVals[idx])
+        for target in self.target: tvs[target].append(targetVals[idx])
       else:
         missing.append(pt)
     if len(missing)>0:
@@ -741,14 +741,15 @@ class GaussPolynomialRom(superVisedLearning):
     self.norm = np.prod(list(self.distDict[v].measureNorm(self.quads[v].type) for v in self.distDict.keys()))
     for i,idx in enumerate(self.indexSet):
       idx=tuple(idx)
-      self.polyCoeffDict[idx]=0
-      wtsum=0
-      for pt,soln in zip(fvs,tvs):
-        tupPt = tuple(pt)
-        stdPt = standardPoints[tupPt]
-        wt = self.sparseGrid.weights(translate[tupPt])
-        self.polyCoeffDict[idx]+=soln*self._multiDPolyBasisEval(idx,stdPt)*wt
-      self.polyCoeffDict[idx]*=self.norm
+      for target in self.target:
+        self.polyCoeffDict[target][idx]=0
+        wtsum=0
+        for pt,soln in zip(fvs,tvs[target]):
+          tupPt = tuple(pt)
+          stdPt = standardPoints[tupPt]
+          wt = self.sparseGrid.weights(translate[tupPt])
+          self.polyCoeffDict[target][idx]+=soln*self._multiDPolyBasisEval(idx,stdPt)*wt
+        self.polyCoeffDict[target][idx]*=self.norm
     self.amITrained=True
     self.raiseADebug('...training complete!')
 
@@ -758,56 +759,62 @@ class GaussPolynomialRom(superVisedLearning):
       @ In, printZeros, bool, optional, optional flag for printing even zero coefficients
       @ Out, None
     """
-    data=[]
-    for idx,val in self.polyCoeffDict.items():
-      if abs(val) > 1e-12 or printZeros:
-        data.append([idx,val])
-    data.sort()
-    self.raiseADebug('polyDict for ['+self.target+'] with inputs '+str(self.features)+':')
-    for idx,val in data:
-      self.raiseADebug('    '+str(idx)+' '+str(val))
+    for target in self.target:
+      data=[]
+      for idx,val in self.polyCoeffDict[target].items():
+        if abs(val) > 1e-12 or printZeros:
+          data.append([idx,val])
+      data.sort()
+      self.raiseADebug('polyDict for ['+target+'] with inputs '+str(self.features)+':')
+      for idx,val in data:
+        self.raiseADebug('    '+str(idx)+' '+str(val))
 
   def checkForNonzeros(self,tol=1e-12):
     """
       Checks poly coefficient dictionary for nonzero entries.
       @ In, tol, float, optional, the tolerance under which is zero (default 1e-12)
-      @ Out, data, list(tuple), the indices and values of the nonzero coefficients
+      @ Out, data, dict, {'target1':list(tuple),'target2':list(tuple)}: the indices and values of the nonzero coefficients for each target
     """
-    data=[]
-    for idx,val in self.polyCoeffDict.items():
-      if round(val,11) !=0:
-        data.append([idx,val])
+    data = dict.fromkeys(self.target,[])
+    for target in self.target:
+      for idx,val in self.polyCoeffDict[target].items():
+        if round(val,11) !=0:
+          data[target].append([idx,val])
     return data
 
-  def __mean__(self):
+  def __mean__(self, targ=None):
     """
       Returns the mean of the ROM.
       @ In, None
+      @ In, targ, str, optional, the target for which the __mean__ needs to be computed
       @ Out, __mean__, float, the mean
     """
-    return self.__evaluateMoment__(1)
+    return self.__evaluateMoment__(1,targ)
 
-  def __variance__(self):
+  def __variance__(self, targ=None):
     """
       returns the variance of the ROM.
       @ In, None
+      @ In, targ, str, optional, the target for which the __variance__ needs to be computed
       @ Out, __variance__, float, variance
     """
-    mean = self.__evaluateMoment__(1)
-    return self.__evaluateMoment__(2) - mean*mean
+    mean = self.__evaluateMoment__(1,targ)
+    return self.__evaluateMoment__(2,targ) - mean*mean
 
-  def __evaluateMoment__(self,r):
+  def __evaluateMoment__(self,r, targ=None):
     """
       Use the ROM's built-in method to calculate moments.
-      @ In r, int, moment to calculate
+      @ In, r, int, moment to calculate
+      @ In, targ, str, optional, the target for which the moment needs to be computed
       @ Out, tot, float, evaluation of moment
     """
+    target = self.target[0] if targ is None else targ
     #TODO is there a faster way still to do this?
-    if r==1: return self.polyCoeffDict[tuple([0]*len(self.features))]
-    elif r==2: return sum(s**2 for s in self.polyCoeffDict.values())
+    if r==1: return self.polyCoeffDict[target][tuple([0]*len(self.features))]
+    elif r==2: return sum(s**2 for s in self.polyCoeffDict[target].values())
     tot=0
     for pt,wt in self.sparseGrid:
-      tot+=self.__evaluateLocal__([pt])**r*wt
+      tot+=self.__evaluateLocal__([pt])[target]**r*wt
     tot*=self.norm
     return tot
 
@@ -815,17 +822,20 @@ class GaussPolynomialRom(superVisedLearning):
     """
       Evaluates a point.
       @ In, featureVals, list, of values at which to evaluate the ROM
-      @ Out, tot, float, the evaluated point
+      @ Out, returnDict, dict, the evaluated point for each target
     """
     featureVals=featureVals[0]
-    tot=0
+    returnDict={}
     stdPt = np.zeros(len(featureVals))
     for p,pt in enumerate(featureVals):
       varName = self.sparseGrid.varNames[p]
       stdPt[p] = self.distDict[varName].convertToQuad(self.quads[varName].type,pt)
-    for idx,coeff in self.polyCoeffDict.items():
-      tot+=coeff*self._multiDPolyBasisEval(idx,stdPt)
-    return tot
+    for target in self.target:
+      tot=0
+      for idx,coeff in self.polyCoeffDict.items():
+        tot+=coeff*self._multiDPolyBasisEval(idx,stdPt)
+      returnDict[target] = tot  
+    return returnDict
 
   def _printPolynomial(self):
     """
@@ -833,13 +843,14 @@ class GaussPolynomialRom(superVisedLearning):
       @ In, None
       @ Out, None
     """
-    self.raiseADebug('Coeff Idx')
-    for idx,coeff in self.polyCoeffDict.items():
-      if abs(coeff)<1e-12: continue
-      self.raiseADebug(str(idx))
-      for i,ix in enumerate(idx):
-        var = self.features[i]
-        self.raiseADebug(self.polys[var][ix]*coeff,'|',var)
+    for target in self.target: 
+      self.raiseADebug('Target:'+target+'.Coeff Idx:')
+      for idx,coeff in self.polyCoeffDict[target].items():
+        if abs(coeff)<1e-12: continue
+        self.raiseADebug(str(idx))
+        for i,ix in enumerate(idx):
+          var = self.features[i]
+          self.raiseADebug(self.polys[var][ix]*coeff,'|',var)
 
   def __returnInitialParametersLocal__(self):
     """
