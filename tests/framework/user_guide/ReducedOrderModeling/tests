@@ -1,0 +1,8 @@
+[Tests]
+  [./ROMConstruction]
+    type = 'RavenFramework'
+    input = 'reducedOrderModeling.xml'
+    csv = 'ROMConstruction/histories_0.csv'
+    heavy = true
+  [../]
+[]
