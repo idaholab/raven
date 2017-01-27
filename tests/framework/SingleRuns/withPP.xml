@@ -1,0 +1,37 @@
+<Simulation color="True" verbosity="debug">
+  <RunInfo>
+    <WorkingDir>run</WorkingDir>
+    <Sequence>sample</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <SingleRun name="sample">
+      <Input class="DataObjects" type="PointSet">dummyIn</Input>
+      <Model class="Models" type="Dummy">dummy</Model>
+      <Output class="DataObjects" type="PointSet">sample</Output>
+    </SingleRun>
+  </Steps>
+
+  <Models>
+    <Dummy name="dummy" subType=""/>
+  </Models>
+
+  <DataObjects>
+    <PointSet name="dummyIn">
+      <Input>a,b,c</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="sample">
+      <Input>a,b,c</Input>
+      <Output>x,y,z</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="sample">
+      <type>csv</type>
+      <source>sample</source>
+    </Print>
+  </OutStreams>
+</Simulation>

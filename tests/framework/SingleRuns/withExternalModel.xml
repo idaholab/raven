@@ -1,0 +1,39 @@
+<Simulation color="True" verbosity="debug">
+  <RunInfo>
+    <WorkingDir>run</WorkingDir>
+    <Sequence>sample</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <SingleRun name="sample">
+      <Input class="DataObjects" type="PointSet">dummyIn</Input>
+      <Model class="Models" type="ExternalModel">projectile</Model>
+      <Output class="DataObjects" type="PointSet">sample</Output>
+    </SingleRun>
+  </Steps>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../../AnalyticModels/projectile" name="projectile" subType="">
+      <variables>v,ang,r</variables>
+    </ExternalModel>
+  </Models>
+
+  <DataObjects>
+    <PointSet name="dummyIn">
+      <Input>v,ang</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="sample">
+      <Input>v,ang</Input>
+      <Output>r</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="sample">
+      <type>csv</type>
+      <source>sample</source>
+    </Print>
+  </OutStreams>
+</Simulation>

@@ -1,0 +1,30 @@
+[Tests]
+  #[./codeModel]
+  #  type = 'RavenFramework'
+  #  input = 'withCode.xml'
+  #  csv = ''
+  #[../]
+
+  [./externalModel]
+    type = 'RavenErrors'
+    input = 'withExternalModel.xml'
+    expect_err = 'IOError: <SingleRun> steps only support running "Code" model types!'
+  [../]
+  [./ROM]
+    type = 'RavenErrors'
+    input = 'withROM.xml'
+    expect_err = 'IOError: <SingleRun> steps only support running "Code" model types!'
+  [../]
+  [./postProcessor]
+    type = 'RavenErrors'
+    input = 'withPP.xml'
+    expect_err = 'IOError: <SingleRun> steps only support running "Code" model types!'
+  [../]
+  [./dummy]
+    type = 'RavenErrors'
+    input = 'withDummy.xml'
+    expect_err = 'IOError: <SingleRun> steps only support running "Code" model types!'
+  [../]
+[]
+
+
