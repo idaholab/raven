@@ -567,6 +567,8 @@ class GaussPolynomialRom(superVisedLearning):
       requests = list(o.strip() for o in options['what'].split(','))
     else:
       requests =['all']
+    # Target
+    target = options.get('Target',self.target[0])
     #handle "all" option
     if 'all' in requests:
       requests = canDo
@@ -577,29 +579,29 @@ class GaussPolynomialRom(superVisedLearning):
         if request.lower() in ['mean','expectedvalue']:
           #only calculate the mean once per printing
           if self.mean is None:
-            self.mean = self.__mean__()
+            self.mean = self.__mean__(target)
           val = self.mean
         elif request.lower() == 'variance':
           if variance is None:
-            variance = self.__variance__()
+            variance = self.__variance__(target)
           val = variance
         elif request.lower() == 'samples':
           if self.numRuns!=None:
             val = self.numRuns
           else:
             val = len(self.sparseGrid)
-        outFile.addScalar(self.target,request,val,pivotVal=pivotVal)
+        outFile.addScalar(target,request,val,pivotVal=pivotVal)
       elif request.lower() in vectors:
         if request.lower() == 'polycoeffs':
           valueDict = OrderedDict()
           valueDict['inputVariables'] = ','.join(self.features)
-          keys = self.polyCoeffDict.keys()
+          keys = self.polyCoeffDict[target].keys()
           keys.sort()
           for key in keys:
-            valueDict['_'+'_'.join(str(k) for k in key)+'_'] = self.polyCoeffDict[key]
+            valueDict['_'+'_'.join(str(k) for k in key)+'_'] = self.polyCoeffDict[target][key]
         elif request.lower() in ['partialvariance','sobolindices','soboltotalindices']:
           if sobolIndices is None or partialVars is None:
-            sobolIndices,partialVars = self.getSensitivities()
+            sobolIndices,partialVars = self.getSensitivities(target)
           if sobolTotals is None:
             sobolTotals = self.getTotalSensitivities(sobolIndices)
           #sort by value
@@ -621,7 +623,7 @@ class GaussPolynomialRom(superVisedLearning):
               valueDict[name] = sobolIndices[key]
             elif request.lower() == 'soboltotalindices':
               valueDict[name] = sobolTotals[key]
-        outFile.addVector(self.target,request,valueDict,pivotVal=pivotVal)
+        outFile.addVector(target,request,valueDict,pivotVal=pivotVal)
       else:
         self.raiseAWarning('ROM does not know how to return "'+request+'".  Skipping...')
 
@@ -748,7 +750,7 @@ class GaussPolynomialRom(superVisedLearning):
           tupPt = tuple(pt)
           stdPt = standardPoints[tupPt]
           wt = self.sparseGrid.weights(translate[tupPt])
-          self.polyCoeffDict[target][idx]+=soln*self._multiDPolyBasisEval(idx,stdPt)*wt
+          self.polyCoeffDict[target][idx]+=soln[0]*self._multiDPolyBasisEval(idx,stdPt)*wt
         self.polyCoeffDict[target][idx]*=self.norm
     self.amITrained=True
     self.raiseADebug('...training complete!')
@@ -861,17 +863,19 @@ class GaussPolynomialRom(superVisedLearning):
     params = {}
     return params
 
-  def getSensitivities(self):
+  def getSensitivities(self,targ=None):
     """
       Calculates the Sobol indices (percent partial variances) of the terms in this expansion.
       @ In, None
+      @ In, targ, str, optional, the target for which the moment needs to be computed
       @ Out, getSensitivities, tuple(dict), Sobol indices and partial variances keyed by subset
     """
-    totVar = self.__variance__()
+    target = self.target[0] if targ is None else targ
+    totVar = self.__variance__(target)
     partials = {}
     #calculate partial variances
     self.raiseADebug('Calculating partial variances...')
-    for poly,coeff in self.polyCoeffDict.items():
+    for poly,coeff in self.polyCoeffDict[target].items():
       #use poly to determine subset
       subset = self._polyToSubset(poly)
       # skip mean

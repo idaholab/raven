@@ -730,12 +730,8 @@ class ROM(Dummy):
     Dummy.__init__(self,runInfoDict)
     self.initializationOptionDict = {}          # ROM initialization options
     self.amITrained                = False      # boolean flag, is the ROM trained?
-    self.howManyTargets            = 0          # how many targets?
     self.supervisedEngine          = None       # dict of ROM instances (== number of targets => keys are the targets)
     self.printTag = 'ROM MODEL'
-    self.numberOfTimeStep          = 1
-    self.historyPivotParameter     = 'none'     #time-like pivot parameter for data object on which ROM was trained
-    self.historySteps              = []
 
   def updateInputFromOutside(self, Input, externalDict):
     """
@@ -755,8 +751,8 @@ class ROM(Dummy):
     # capture what is normally pickled
     state = self.__dict__.copy()
     if not self.amITrained:
-      a = state.pop("supervisedEngine")
-      del a
+      supervisedEngineObj = state.pop("supervisedEngine")
+      del supervisedEngineObj
     return state
 
   def __setstate__(self, newstate):
@@ -767,28 +763,7 @@ class ROM(Dummy):
     """
     self.__dict__.update(newstate)
     if not self.amITrained:
-      if self.numberOfTimeStep > 1:
-        targets = self.initializationOptionDict['Target'].split(',')
-        self.howManyTargets = len(targets)
-        self.SupervisedEngine = []
-        for t in range(self.numberOfTimeStep):
-          tempSupervisedEngine = {}
-          for target in targets:
-            self.initializationOptionDict['Target'] = target
-            tempSupervisedEngine[target] =  SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
-            self.initializationOptionDict['Target'] = ','.join(targets)
-          self.SupervisedEngine.append(tempSupervisedEngine)
-      else:
-        #this can't be accurate, since in readXML the 'Target' keyword is set to a single target
-        targets = self.initializationOptionDict['Target'].split(',')
-        self.howManyTargets = len(targets)
-        self.SupervisedEngine = {}
-
-        for target in targets:
-          self.initializationOptionDict['Target'] = target
-          self.SupervisedEngine[target] =  SupervisedLearning.returnInstance(self.subType,self,**self.initializationOptionDict)
-          #restore targets to initialization option dict
-          self.initializationOptionDict['Target'] = ','.join(targets)
+      self.supervisedEngine = supervisedLearningGate.returnInstance('SupervisedGate', self.subType, self,**self.initializationOptionDict)
 
   def _readMoreXML(self,xmlNode):
     """
@@ -807,29 +782,22 @@ class ROM(Dummy):
         @ In, s, string, possible string
         @ Out, s, string, original type, or possibly parsed string
       """
-      if type(s).__name__ in ['str','unicode']:
-        return utils.tryParse(s)
-      return s
+      return utils.tryParse(s) if type(s).__name__ in ['str','unicode'] else s
 
     for child in paramInput.subparts:
       if len(child.parameterValues) > 0:
         if child.getName() == 'alias': continue
-        if child.getName() not in self.initializationOptionDict.keys():
-          self.initializationOptionDict[child.getName()]={}
+        if child.getName() not in self.initializationOptionDict.keys(): self.initializationOptionDict[child.getName()]={}
         self.initializationOptionDict[child.getName()][child.value]=child.parameterValues
       else:
         if child.getName() == 'estimator':
           self.initializationOptionDict[child.getName()] = {}
-          for node in child.subparts:
-            self.initializationOptionDict[child.getName()][node.getName()] = tryStrParse(node.value)
-        else:
-          self.initializationOptionDict[child.getName()] = tryStrParse(child.value)
-
+          for node in child.subparts: self.initializationOptionDict[child.getName()][node.getName()] = tryStrParse(node.value)
+        else: self.initializationOptionDict[child.getName()] = tryStrParse(child.value)
     self.supervisedEngine = supervisedLearningGate.returnInstance('SupervisedGate', self.subType, self,**self.initializationOptionDict)
-
     #the ROM is instanced and initialized
     # check how many targets
-    self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(self.SupervisedEngine),True)) - set(self.mods))
+    #self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(self.SupervisedEngine),True)) - set(self.mods))
     self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(SupervisedLearning),True)) - set(self.mods))
     self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(supervisedLearningGate),True)) - set(self.mods))
     #restore targets to initialization option dict
@@ -842,7 +810,9 @@ class ROM(Dummy):
       @ Out, None
     """
     #determine dynamic or static
-    dynamic = self.supervisedEngine.isADynamicModel
+    dynamic          = self.supervisedEngine.isADynamicModel
+    # get pivot parameter
+    pivotParameterId = self.supervisedEngine.pivotParameterId
     # establish file
     if 'filenameroot' in options.keys():
       filenameLocal = options['filenameroot']
@@ -853,34 +823,31 @@ class ROM(Dummy):
     else:
       outFile = Files.returnInstance('StaticXMLOutput',self)
     outFile.initialize(filenameLocal+'.xml',self.messageHandler)
-    outFile.newTree('ROM',pivotParam=self.historyPivotParameter)
+    outFile.newTree('ROM',pivotParam=pivotParameterId)
+    #get all the targets the ROMs have
+    ROMtargets = self.supervisedEngine.initializationOptions['Target'].split(",")
     #establish targets
-    if 'target' in options.keys():
-      targets = options['target'].split(',')
-    else:
-      targets = ['all']
+    targets = options['target'].split(',') if 'target' in options.keys() else ROMtargets
     #establish sets of engines to work from
-    if dynamic:
-      engines = self.SupervisedEngine
-    else:
-      engines = [self.SupervisedEngine]
+    engines = self.supervisedEngine.SupervisedEngine
     #handle 'all' case
-    if 'all' in targets:
-      targets = engines[0].keys()
+    #if 'all' in targets:
+    #  targets = ROMtargets
     #this loop is only 1 entry long if not dynamic
-    for s,step in enumerate(engines):
+    for s,rom in enumerate(engines):
       if dynamic:
-        pivotValue = self.historySteps[s]
+        pivotValue = self.supervisedEngine.historySteps[s]
       else:
         pivotValue = 0
-      for key,target in step.items():
+      for target in targets:
+        #for key,target in step.items():
         #skip the pivot param
-        if key == self.historyPivotParameter:
-          continue
+        if target == pivotParameterId: continue
         #otherwise, if this is one of the requested keys, call engine's print method
-        if key in targets:
-          self.raiseAMessage('Printing time',pivotValue,'target',key,'ROM XML')
-          target.printXML(outFile,pivotValue,options)
+        if target in ROMtargets:
+          options['Target'] = target
+          self.raiseAMessage('Printing time-like',pivotValue,'target',target,'ROM XML')
+          rom.printXML(outFile,pivotValue,options)
     self.raiseADebug('Writing to XML file...')
     outFile.writeFile()
     self.raiseAMessage('ROM XML printed to "'+filenameLocal+'.xml"')
@@ -904,9 +871,6 @@ class ROM(Dummy):
         and each parameter's initial value as the dictionary values
     """
     paramDict = self.supervisedEngine.getInitParams()
-
-    #for target, instrom in self.SupervisedEngine.items():
-    #  paramDict[self.name + '|' + target] = instrom.returnInitialParameters()
     return paramDict
 
   def train(self,trainingSet):
@@ -916,13 +880,10 @@ class ROM(Dummy):
       @ Out, None
     """
     if type(trainingSet).__name__ == 'ROM':
-      self.howManyTargets           = copy.deepcopy(trainingSet.howManyTargets)
       self.initializationOptionDict = copy.deepcopy(trainingSet.initializationOptionDict)
       self.trainingSet              = copy.copy(trainingSet.trainingSet)
       self.amITrained               = copy.deepcopy(trainingSet.amITrained)
       self.supervisedEngine         = copy.deepcopy(trainingSet.supervisedEngine)
-      self.historyPivotParameter    = copy.deepcopy(getattr(trainingSet,self.historyPivotParameter,'time'))
-      self.historySteps             = copy.deepcopy(trainingSet.historySteps)
     else:
       self.trainingSet = copy.copy(self._inputToInternal(trainingSet, full=True))
       self._replaceVariablesNamesWithAliasSystem(self.trainingSet, 'inout', False)
@@ -934,32 +895,17 @@ class ROM(Dummy):
       forecasting the target value for the given set of features. The reason to chose the inverse is because
       in case of normal distance this would be 1/distance that could be infinity
       @ In, request, datatype, feature coordinates (request)
-      @ In, target, string, optional, target name (by default the first target entered in the input file)
+      @ Out, confidenceDict, dict, the dict containing the confidence on each target ({'target1':np.array(size 1 or n_ts),'target2':np.array(...)}
     """
     inputToROM = self._inputToInternal(request)
-    if target != None:
-      if type(self.SupervisedEngine) is list:
-        confDic = {}
-        for ts in self.SupervisedEngine:
-          confDic[ts] = ts[target].confidence(inputToROM)
-        return confDic
-      else:
-        return self.SupervisedEngine[target].confidence(inputToROM)
-    else:
-      if type(self.SupervisedEngine) is list:
-        confDic = {}
-        for ts in self.SupervisedEngine:
-          confDic[ts] = ts.values()[0].confidence(inputToROM)
-        return confDic
-      else:
-        return self.SupervisedEngine.values()[0].confidence(inputToROM)
+    confidenceDict = self.supervisedEngine.confidence(inputToROM)
+    return confidenceDict
 
   def evaluate(self,request):
     """
       When the ROM is used directly without need of having the sampler passing in the new values evaluate instead of run should be used
       @ In, request, datatype, feature coordinates (request)
-      @ In, target, string, optional, target name (by default the first target entered in the input file)
-      @ In, timeInst, int, element of the temporal ROM to evaluate
+      @ Out, outputEvaluation, dict, the dict containing the outputs for each target ({'target1':np.array(size 1 or n_ts),'target2':np.array(...)}
     """
     inputToROM       = self._inputToInternal(request)
     outputEvaluation = self.supervisedEngine.evaluate(inputToROM)
