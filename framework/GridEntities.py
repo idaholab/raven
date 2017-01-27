@@ -441,15 +441,15 @@ class GridEntity(GridBase):
         for stepLengthi in stepLength[varId]: gridMesh.append(round(gridMesh[-1],14)+round(stepLengthi,14))
         if len(gridMesh) == 1: checkBounds = False
         self.gridContainer['gridVectors'][varName] = np.asarray(gridMesh)
-      if checkBounds and compare(round(self.gridContainer['bounds']["lowerBounds" ][varName],14), round(self.gridContainer['bounds']["upperBounds" ][varName],14)):
+      if checkBounds and compare(self.gridContainer['bounds']["lowerBounds" ][varName], self.gridContainer['bounds']["upperBounds" ][varName]):
         self.raiseAnError(IOError,"the lowerBound and upperBound for dimension named " + varName + " are the same!. lowerBound = "+ str(self.gridContainer['bounds']["lowerBounds" ][varName]) +
                                   " and upperBound = "+ str(self.gridContainer['bounds']["upperBounds" ][varName]))
       lowerBound = self.gridContainer['bounds']["lowerBounds"][varName] if not excludeBounds['lowerBounds'] else self.gridContainer['bounds']["lowerBounds"][varName] + stepLength[varId][-1]
       upperBound = self.gridContainer['bounds']["upperBounds"][varName] if not excludeBounds['upperBounds'] else self.gridContainer['bounds']["upperBounds"][varName] - stepLength[varId][-1]
-      if not compare(round(max(self.gridContainer['gridVectors'][varName]),14), round(upperBound,14)) and self.volumetricRatio == None:
+      if not compare(max(self.gridContainer['gridVectors'][varName]), upperBound) and self.volumetricRatio == None:
         self.raiseAnError(IOError,"the maximum value in the grid is different than the upperBound! upperBound: "+str(upperBound) +
                                   " != maxValue in grid: "+str(max(self.gridContainer['gridVectors'][varName])))
-      if not compare(round(min(self.gridContainer['gridVectors'][varName]),14),round(lowerBound,14)):
+      if not compare(min(self.gridContainer['gridVectors'][varName]),lowerBound):
         self.raiseAnError(IOError,"the minimum value in the grid is different than the lowerBound! lowerBound: "+str(lowerBound) +
                                   " != minValue in grid: "+str(min(self.gridContainer['gridVectors'][varName])))
       if self.gridContainer['transformationMethods'] != None:
