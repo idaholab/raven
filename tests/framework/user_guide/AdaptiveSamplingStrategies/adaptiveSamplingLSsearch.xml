@@ -180,10 +180,10 @@
                 <xlabel>time (s)</xlabel>
                 <ylabel>evolution D(kg)</ylabel>
             </plot>
-            
+
         </plotSettings>
         <actions>
-            <how>png,screen</how>
+            <how>png</how>
             <title>
                 <text> </text>
             </title>
@@ -200,7 +200,7 @@
             <ylabel>sigma-A</ylabel>
           </plotSettings>
         <actions>
-            <how>screen</how>
+            <how>png</how>
             <range>
               <xmin>0.00000000</xmin>
               <xmax>0.0000001</xmax>
@@ -246,7 +246,7 @@
             <zlabel>final response</zlabel>
         </plotSettings>
         <actions>
-            <how>png,screen</how>
+            <how>png</how>
             <title>
                 <text> </text>
             </title>

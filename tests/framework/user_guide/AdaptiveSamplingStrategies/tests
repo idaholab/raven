@@ -1,8 +1,10 @@
 [Tests]
   [./limitSurfaceSearch]
     type = 'RavenFramework'
-    input = ''
-    csv = ''
-    rel_err = 0.001
+    input = 'adaptiveSamplingLSsearch.xml'
+    csv = 'LSsearch/LSintegral.csv'
+    rel_err = 0.0001
+    heavy = true
+    max_time = 1000
   [../]
 []
