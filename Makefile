@@ -33,21 +33,21 @@ endif
 CURR_DIR    := $(CURDIR)
 
 # framework
-include $(FRAMEWORK_DIR)/build.mk
-include $(FRAMEWORK_DIR)/moose.mk
+#include $(FRAMEWORK_DIR)/build.mk
+#include $(FRAMEWORK_DIR)/moose.mk
 
 ################################## MODULES ####################################
-HEAT_CONDUCTION   := yes
-MISC              := yes
-FLUID_PROPERTIES  := yes
-include           $(MOOSE_DIR)/modules/modules.mk
+#HEAT_CONDUCTION   := yes
+#MISC              := yes
+#FLUID_PROPERTIES  := yes
+#include           $(MOOSE_DIR)/modules/modules.mk
 ###############################################################################
 
 # RELAP-7
-APPLICATION_DIR    := $(RELAP7_DIR)
-APPLICATION_NAME   := relap-7
-DEP_APPS           := $(shell $(FRAMEWORK_DIR)/scripts/find_dep_apps.py $(APPLICATION_NAME))
-include            $(FRAMEWORK_DIR)/app.mk
+#APPLICATION_DIR    := $(RELAP7_DIR)
+#APPLICATION_NAME   := relap-7
+#DEP_APPS           := $(shell $(FRAMEWORK_DIR)/scripts/find_dep_apps.py $(APPLICATION_NAME))
+#include            $(FRAMEWORK_DIR)/app.mk
 
 # CROW
 CROW_SUBMODULE     := $(CURR_DIR)/crow
@@ -56,6 +56,8 @@ ifneq ($(wildcard $(CROW_SUBMODULE)/Makefile),)
 else
   CROW_DIR         ?= $(HERD_TRUNK_DIR)/crow
 endif
+
+all::
 
 APPLICATION_DIR    := $(CROW_DIR)
 APPLICATION_NAME   := CROW
