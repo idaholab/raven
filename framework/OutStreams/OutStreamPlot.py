@@ -1837,7 +1837,7 @@ class OutStreamPlot(OutStreamManager):
       ## since we are sure we have an interactive backend and access to the
       ## correct type of canvas and figure.
       self.fig.canvas.draw()
-      self.plt.show(block=False)
+      plt.show(block=False)
       ## If your graphs are unresponsive to user input, you may want to consider
       ## adjusting this timeout, to allow more time for the input to be handled.
       self.fig.canvas.start_event_loop(1e-3)
