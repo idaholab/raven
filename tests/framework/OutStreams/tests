@@ -17,13 +17,13 @@
   minimum_library_versions = 'matplotlib 2.0'
  [../]
 
-[./colorbar_plot]
-  type = 'RavenPython'
-  input = 'testImageGeneration.py'
-  #input = 'test_colorbar.xml'
-  required_executable = 'compare'
-  required_executable_check_flags='gold/plot/colorbarTest.png gold/plot/colorbarTest.png -metric ae null:'
- [../]
+# [./colorbar_plot]
+#   type = 'RavenPython'
+#   input = 'testImageColorbar.py'
+#   #input = 'test_colorbar.xml'
+#   required_executable = 'compare'
+#   required_executable_check_flags='gold/plot/colorbarTest.png gold/plot/colorbarTest.png -metric ae null:'
+# [../]
 
  [./interactive_plotting]
   type = 'RavenFramework'
