@@ -32,7 +32,7 @@ clean::
           $(RAVEN_app_objects) \
           $(RAVEN_APP) \
           $(RAVEN_plugins)
-	@rm -Rf $(RAVEN_DIR)/build/temp.* $(RAVEN_DIR)/build/lib.*
+	@rm -Rf $(RAVEN_DIR)/build
 	@find $(RAVEN_DIR)/framework  -name '*.pyc' -exec rm '{}' \;
 
 cleanall::
