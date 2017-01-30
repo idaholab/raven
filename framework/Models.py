@@ -1231,6 +1231,7 @@ class ExternalModel(Dummy):
        @ In,  jobHandler, JobHandler instance, the global job handler instance
        @ Out, None
     """
+    print('DEBUGG extmod.run Input:',Input)
     inRun = copy.copy(self._manipulateInput(Input[0][0]))
     uniqueHandler = Input[0][1]['uniqueHandler'] if 'uniqueHandler' in Input[0][1].keys() else 'any'
     jobHandler.addInternal((inRun,Input[1],),self.__externalRun,str(Input[0][1]['prefix']),metadata=Input[0][1], modulesToImport = self.mods,uniqueHandler=uniqueHandler)
