@@ -73,33 +73,6 @@
   </Distributions>
 
   <Samplers>
-    <SparseGridCollocation name="SG">
-      <variable name="sigma-A">
-        <distribution>sigmaA</distribution>
-      </variable>
-      <variable name="sigma-B">
-        <distribution>sigmaB</distribution>
-      </variable>
-      <variable name="sigma-C">
-        <distribution>sigmaC</distribution>
-      </variable>
-      <variable name="sigma-D">
-        <distribution>sigmaD</distribution>
-      </variable>
-      <variable name="decay-A">
-        <distribution>decayConstantA</distribution>
-      </variable>
-      <variable name="decay-B">
-        <distribution>decayConstantB</distribution>
-      </variable>
-      <variable name="decay-C">
-        <distribution>decayConstantC</distribution>
-      </variable>
-      <variable name="decay-D">
-        <distribution>decayConstantD</distribution>
-      </variable>
-      <ROM class="Models" type="ROM">rom</ROM>
-    </SparseGridCollocation>
     <MonteCarlo name="mc">
       <samplerInit>
         <limit>20</limit>
@@ -131,6 +104,33 @@
         <distribution>decayConstantD</distribution>
       </variable>
     </MonteCarlo>
+    <SparseGridCollocation name="SG">
+      <variable name="sigma-A">
+        <distribution>sigmaA</distribution>
+      </variable>
+      <variable name="sigma-B">
+        <distribution>sigmaB</distribution>
+      </variable>
+      <variable name="sigma-C">
+        <distribution>sigmaC</distribution>
+      </variable>
+      <variable name="sigma-D">
+        <distribution>sigmaD</distribution>
+      </variable>
+      <variable name="decay-A">
+        <distribution>decayConstantA</distribution>
+      </variable>
+      <variable name="decay-B">
+        <distribution>decayConstantB</distribution>
+      </variable>
+      <variable name="decay-C">
+        <distribution>decayConstantC</distribution>
+      </variable>
+      <variable name="decay-D">
+        <distribution>decayConstantD</distribution>
+      </variable>
+      <ROM class="Models" type="ROM">rom</ROM>
+    </SparseGridCollocation>
   </Samplers>
 
   <DataObjects>
@@ -220,7 +220,12 @@
       <type>csv</type>
       <source>histories</source>
     </Print>
-    <Plot   name="historyPlot" overwrite="false" verbosity="debug">
+    <Print name="rom_output">
+      <type>xml</type>
+      <source>rom</source>
+      <what>all</what>
+    </Print>
+    <Plot name="historyPlot" overwrite="false" verbosity="debug">
         <plotSettings>
             <gridSpace>2 2</gridSpace>
             <plot>
@@ -281,154 +286,145 @@
         </actions>
     </Plot>
     <Plot name="samplesModelPlot3D" overwrite="false" verbosity="debug">
-         sigma-A,sigma-B,sigma-C,sigma-D,decay-A,decay-B,decay-C,decay-D
-        <plotSettings>
-            <gridSpace>2 2</gridSpace>
-            <plot>
-                <type>scatter</type>
-                <x>samplesModel|Input|sigma-A</x>
-                <y>samplesModel|Input|decay-A</y>
-                <z>samplesModel|Output|A</z>
-                <color>blue</color>
-                <gridLocation>
-                  <x>0</x>
-                  <y>0</y>
-                </gridLocation>
-                <xlabel>sigma</xlabel>
-                <ylabel>decay</ylabel>
-                <zlabel>final A</zlabel>
-            </plot>
-            <plot>
-                <type>scatter</type>
-                <x>samplesModel|Input|sigma-B</x>
-                <y>samplesModel|Input|decay-B</y>
-                <z>samplesModel|Output|B</z>
-                <color>red</color>
-                <gridLocation>
-                    <x>1</x>
-                    <y>0</y>
-                </gridLocation>
-                <xlabel>sigma</xlabel>
-                <ylabel>decay</ylabel>
-                <zlabel>final B</zlabel>
-            </plot>
-            <plot>
-                <type>scatter</type>
-                <type>scatter</type>
-                <x>samplesModel|Input|sigma-C</x>
-                <y>samplesModel|Input|decay-C</y>
-                <z>samplesModel|Output|C</z>
-                <color>yellow</color>
-                <gridLocation>
-                    <x>0</x>
-                    <y>1</y>
-                </gridLocation>
-                <xlabel>sigma</xlabel>
-                <ylabel>decay</ylabel>
-                <zlabel>final C</zlabel>
-            </plot>
-            <plot>
-                <type>scatter</type>
-                <x>samplesModel|Input|sigma-D</x>
-                <y>samplesModel|Input|decay-D</y>
-                <z>samplesModel|Output|D</z>
-                <color>black</color>
-                <gridLocation>
-                    <x>1</x>
-                    <y>1</y>
-                </gridLocation>
-                <xlabel>sigma</xlabel>
-                <ylabel>decay</ylabel>
-                <zlabel>final D</zlabel>
-            </plot>
-            <xlabel>sigma</xlabel>
-            <ylabel>decay</ylabel>
-            <zlabel>final response</zlabel>
-        </plotSettings>
-        <actions>
-            <how>png</how>
-            <title>
-                <text> </text>
-            </title>
-        </actions>
+      <plotSettings>
+        <gridSpace>2 2</gridSpace>
+        <plot>
+          <type>scatter</type>
+          <x>samplesModel|Input|sigma-A</x>
+          <y>samplesModel|Input|decay-A</y>
+          <z>samplesModel|Output|A</z>
+          <color>blue</color>
+          <gridLocation>
+            <x>0</x>
+            <y>0</y>
+          </gridLocation>
+          <xlabel>sigma</xlabel>
+          <ylabel>decay</ylabel>
+          <zlabel>final A</zlabel>
+        </plot>
+        <plot>
+          <type>scatter</type>
+          <x>samplesModel|Input|sigma-B</x>
+          <y>samplesModel|Input|decay-B</y>
+          <z>samplesModel|Output|B</z>
+          <color>red</color>
+          <gridLocation>
+            <x>1</x>
+            <y>0</y>
+          </gridLocation>
+          <xlabel>sigma</xlabel>
+          <ylabel>decay</ylabel>
+          <zlabel>final B</zlabel>
+        </plot>
+        <plot>
+          <type>scatter</type>
+          <x>samplesModel|Input|sigma-C</x>
+          <y>samplesModel|Input|decay-C</y>
+          <z>samplesModel|Output|C</z>
+          <color>yellow</color>
+          <gridLocation>
+            <x>0</x>
+            <y>1</y>
+          </gridLocation>
+          <xlabel>sigma</xlabel>
+          <ylabel>decay</ylabel>
+          <zlabel>final C</zlabel>
+        </plot>
+        <plot>
+          <type>scatter</type>
+          <x>samplesModel|Input|sigma-D</x>
+          <y>samplesModel|Input|decay-D</y>
+          <z>samplesModel|Output|D</z>
+          <color>black</color>
+          <gridLocation>
+            <x>1</x>
+            <y>1</y>
+          </gridLocation>
+          <xlabel>sigma</xlabel>
+          <ylabel>decay</ylabel>
+          <zlabel>final D</zlabel>
+        </plot>
+        <xlabel>sigma</xlabel>
+        <ylabel>decay</ylabel>
+        <zlabel>final response</zlabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+        <title>
+          <text> </text>
+        </title>
+      </actions>
     </Plot>
     <Plot name="samplesROMPlot3D" overwrite="false" verbosity="debug">
-         sigma-A,sigma-B,sigma-C,sigma-D,decay-A,decay-B,decay-C,decay-D
-        <plotSettings>
-            <gridSpace>2 2</gridSpace>
-            <plot>
-                <type>scatter</type>
-                <x>samplesROM|Input|sigma-A</x>
-                <y>samplesROM|Input|decay-A</y>
-                <z>samplesROM|Output|A</z>
-                <color>blue</color>
-                <gridLocation>
-                  <x>0</x>
-                  <y>0</y>
-                </gridLocation>
-                <xlabel>sigma</xlabel>
-                <ylabel>decay</ylabel>
-                <zlabel>final A</zlabel>
-            </plot>
-            <plot>
-                <type>scatter</type>
-                <x>samplesROM|Input|sigma-B</x>
-                <y>samplesROM|Input|decay-B</y>
-                <z>samplesROM|Output|B</z>
-                <color>red</color>
-                <gridLocation>
-                    <x>1</x>
-                    <y>0</y>
-                </gridLocation>
-                <xlabel>sigma</xlabel>
-                <ylabel>decay</ylabel>
-                <zlabel>final B</zlabel>
-            </plot>
-            <plot>
-                <type>scatter</type>
-                <type>scatter</type>
-                <x>samplesROM|Input|sigma-C</x>
-                <y>samplesROM|Input|decay-C</y>
-                <z>samplesROM|Output|C</z>
-                <color>yellow</color>
-                <gridLocation>
-                    <x>0</x>
-                    <y>1</y>
-                </gridLocation>
-                <xlabel>sigma</xlabel>
-                <ylabel>decay</ylabel>
-                <zlabel>final C</zlabel>
-            </plot>
-            <plot>
-                <type>scatter</type>
-                <x>samplesROM|Input|sigma-D</x>
-                <y>samplesROM|Input|decay-D</y>
-                <z>samplesROM|Output|D</z>
-                <color>black</color>
-                <gridLocation>
-                    <x>1</x>
-                    <y>1</y>
-                </gridLocation>
-                <xlabel>sigma</xlabel>
-                <ylabel>decay</ylabel>
-                <zlabel>final D</zlabel>
-            </plot>
-            <xlabel>sigma</xlabel>
-            <ylabel>decay</ylabel>
-            <zlabel>final response</zlabel>
-        </plotSettings>
-        <actions>
-            <how>png</how>
-            <title>
-                <text> </text>
-            </title>
-        </actions>
+      <plotSettings>
+        <gridSpace>2 2</gridSpace>
+        <plot>
+          <type>scatter</type>
+          <x>samplesROM|Input|sigma-A</x>
+          <y>samplesROM|Input|decay-A</y>
+          <z>samplesROM|Output|A</z>
+          <color>blue</color>
+          <gridLocation>
+            <x>0</x>
+            <y>0</y>
+          </gridLocation>
+          <xlabel>sigma</xlabel>
+          <ylabel>decay</ylabel>
+          <zlabel>final A</zlabel>
+        </plot>
+        <plot>
+          <type>scatter</type>
+          <x>samplesROM|Input|sigma-B</x>
+          <y>samplesROM|Input|decay-B</y>
+          <z>samplesROM|Output|B</z>
+          <color>red</color>
+          <gridLocation>
+              <x>1</x>
+              <y>0</y>
+          </gridLocation>
+          <xlabel>sigma</xlabel>
+          <ylabel>decay</ylabel>
+          <zlabel>final B</zlabel>
+        </plot>
+        <plot>
+          <type>scatter</type>
+          <x>samplesROM|Input|sigma-C</x>
+          <y>samplesROM|Input|decay-C</y>
+          <z>samplesROM|Output|C</z>
+          <color>yellow</color>
+          <gridLocation>
+            <x>0</x>
+            <y>1</y>
+          </gridLocation>
+          <xlabel>sigma</xlabel>
+          <ylabel>decay</ylabel>
+          <zlabel>final C</zlabel>
+        </plot>
+        <plot>
+          <type>scatter</type>
+          <x>samplesROM|Input|sigma-D</x>
+          <y>samplesROM|Input|decay-D</y>
+          <z>samplesROM|Output|D</z>
+          <color>black</color>
+          <gridLocation>
+            <x>1</x>
+            <y>1</y>
+          </gridLocation>
+          <xlabel>sigma</xlabel>
+          <ylabel>decay</ylabel>
+          <zlabel>final D</zlabel>
+        </plot>
+        <xlabel>sigma</xlabel>
+        <ylabel>decay</ylabel>
+        <zlabel>final response</zlabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+        <title>
+          <text> </text>
+        </title>
+      </actions>
     </Plot>
-    <Print name="rom_output">
-      <type>xml</type>
-      <source>rom</source>
-      <what>all</what>
-    </Print>
   </OutStreams>
 
 </Simulation>

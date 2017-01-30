@@ -106,7 +106,7 @@
         <type>csv</type>
         <source>histories</source>
     </Print>
-    <Plot   name="historyPlot" overwrite="false" verbosity="debug">
+    <Plot name="historyPlot" overwrite="false" verbosity="debug">
         <plotSettings>
             <gridSpace>2 2</gridSpace>
             <plot>
@@ -160,14 +160,13 @@
 
         </plotSettings>
         <actions>
-            <how>png</how>
-            <title>
-                <text> </text>
-            </title>
+          <how>png</how>
+          <title>
+            <text> </text>
+          </title>
         </actions>
     </Plot>
     <Plot name="samplesPlot3D" overwrite="false" verbosity="debug">
-        sigma-A,sigma-B,sigma-C,sigma-D,decay-A,decay-B,decay-C,decay-D
         <plotSettings>
             <gridSpace>2 2</gridSpace>
             <plot>
@@ -199,7 +198,6 @@
                 <zlabel>final B</zlabel>
             </plot>
             <plot>
-                <type>scatter</type>
                 <type>scatter</type>
                 <x>samples|Input|sigma-C</x>
                 <y>samples|Input|decay-C</y>

@@ -130,7 +130,6 @@
     <Plot   name="historyPlot" overwrite="false" verbosity="debug">
         <plotSettings>
             <gridSpace>2 2</gridSpace>
-            <interpPointsX>60</interpPointsX>
             <plot>
                 <type>line</type>
                 <x>histories|Output|time</x>
@@ -209,7 +208,7 @@
             </title>
         </actions>
     </Plot>
-    <Plot dim="3" name="samplesPlot3D" overwrite="false" verbosity="debug">
+    <Plot name="samplesPlot3D" overwrite="false" verbosity="debug">
         <plotSettings>
             <gridSpace>2 1</gridSpace>
             <plot>
