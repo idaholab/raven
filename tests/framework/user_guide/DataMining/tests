@@ -1,0 +1,9 @@
+[Tests]
+  [./dataMiningAnalysis]
+    type = 'RavenFramework'
+    input = 'dataMiningAnalysis.xml'
+    UnorderedCsv = 'dataMiningAnalysis/samplesDump.csv'
+    heavy = true
+    rel_err = 1e-6
+  [../]
+[]

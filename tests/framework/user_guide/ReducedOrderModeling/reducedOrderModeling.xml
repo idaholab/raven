@@ -21,7 +21,6 @@
       <clargs arg="python" type="prepend"/>
       <clargs arg="" extension=".xml" type="input"/>
       <clargs arg=" " extension=".csv" type="output"/>
-      <prepend>python</prepend>
     </Code>
     <ROM name="ROMGaussianProcess" subType="SciKitLearn">
       <Features>sigma-A,sigma-B,decay-A,decay-B</Features>

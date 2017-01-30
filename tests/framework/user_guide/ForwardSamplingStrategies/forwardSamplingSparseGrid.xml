@@ -17,7 +17,6 @@
       <clargs arg="python" type="prepend"/>
       <clargs arg="" extension=".xml" type="input"/>
       <clargs arg="" extension=".csv" type="output"/>
-      <prepend>python</prepend>
     </Code>
     <ROM name="rom" subType="GaussPolynomialRom">
       <Target>A,B,C,D</Target>

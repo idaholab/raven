@@ -18,7 +18,6 @@
       <clargs arg="python" type="prepend"/>
       <clargs arg="" extension=".xml" type="input"/>
       <clargs arg=" " extension=".csv" type="output"/>
-      <prepend>python</prepend>
     </Code>
     <ROM name="AccelerationROM" subType="SciKitLearn">
         <Features>sigma-A,decay-A</Features>

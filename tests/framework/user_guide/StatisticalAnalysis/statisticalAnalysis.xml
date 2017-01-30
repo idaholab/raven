@@ -20,7 +20,6 @@
       <clargs arg="python" type="prepend"/>
       <clargs arg="" extension=".xml" type="input"/>
       <clargs arg=" " extension=".csv" type="output"/>
-      <prepend>python</prepend>
     </Code>
     <PostProcessor name="statisticalAnalysis" subType="BasicStatistics">
       <all>
