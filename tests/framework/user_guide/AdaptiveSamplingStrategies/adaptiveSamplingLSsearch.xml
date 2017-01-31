@@ -119,10 +119,6 @@
         <type>csv</type>
         <source>samples</source>
     </Print>
-    <Print name="samplesROM">
-        <type>csv</type>
-        <source>samplesROM</source>
-    </Print>
     <Print name="histories">
         <type>csv</type>
         <source>histories</source>
