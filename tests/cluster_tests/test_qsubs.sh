@@ -1,12 +1,12 @@
 #!/bin/bash
 
 num_fails=0
+fails=''
 
 pushd ../../framework
 RAVEN_FRAMEWORK_DIR=$(pwd)
 popd
 
-fails=''
 
 wait_lines ()
 {
