@@ -28,5 +28,7 @@ retCode = subprocess.call(['python','../../../framework/Driver.py',inputFile])
 if retCode == 0:
   proc = subprocess.Popen(['compare', '-metric', differenceMetric, '-fuzz',fuzzAmount, testImage,goldImage,'null:'],stderr=subprocess.PIPE)
   retCode = int(proc.stderr.read())
+else:
+  print(inputFile+" failed with "+str(retCode))
 
 sys.exit(retCode)

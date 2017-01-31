@@ -111,7 +111,7 @@ class RavenFramework(Tester):
       return (False,'skipped (Error when trying executable: "'+self.required_executable+'")')
     return (True, '')
 
-  def prepare(self):
+  def prepare(self, options = None):
     if self.specs['output'].strip() != '':
       self.check_files = [os.path.join(self.specs['test_dir'],filename)  for filename in self.specs['output'].split(" ")]
     else:
