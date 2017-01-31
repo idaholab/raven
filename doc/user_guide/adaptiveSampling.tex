@@ -684,11 +684,24 @@ def __residuumSign(self):
 
    \item \textbf{\textit{DataObjects}}:
      \xmlExample[arg,extension,pauseAtEnd,overwrite]{framework/user_guide/AdaptiveSamplingStrategies/adaptiveSamplingLSsearch.xml}{DataObjects}
-  In this block, three \textit{DataObjects} are defined: 1) PointSet
-  named ``samples'' used to collect the final outcomes of the code, 2)
-  HistorySet named ``histories'' in which the full time responses of the
-  variables $A,B,C,D$ are going to be stored, 3) PointSet named
-  ``limitSurface'' used  to export the LS location (in the uncertain space) during the employment of the sampling strategy.
+      In this block, three \textit{DataObjects} are defined: 1) PointSet
+      named ``samples'' used to collect the final outcomes of the code, 2)
+      HistorySet named ``histories'' in which the full time responses of the
+      variables $A,B,C,D$ are going to be stored, 3) PointSet named
+      ``limitSurface'' used  to export the LS location (in the uncertain space) during the employment of the sampling strategy.
+   \item \textbf{\textit{OutStreams}}:
+     \xmlExample[arg,extension,pauseAtEnd,overwrite]{framework/user_guide/AdaptiveSamplingStrategies/adaptiveSamplingLSsearch.xml}{OutStreams}
+     Several out streams are included in this workflow, two for printing and three for plotting:
+     \begin{itemize}
+       \item ``samples'', which writes the validation sample contents of the \xmlString{samples} PointSet DataObject to a CSV file,
+       \item ``histories'', which writes the sampling contents of the \xmlString{histories} HistorySet DataObject to a
+         set of connected CSV files,
+       \item ``historyPlot'', which plots the evolution of the samples taken,
+       \item ``limitSurfacePlot'', which plots the limit surface discovered by the PostProcessor,
+       \item ``samplesPlot3D'', which plots the final state of the samples taken against the figures of merit.
+     \end{itemize}
+     The plots demonstrate how visualization of three-dimensional data, time-dependent data, and limit
+     surfaces can be realized using RAVEN.
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  %figure samples

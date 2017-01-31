@@ -322,6 +322,20 @@ performed on all the output FOMs used in this example ( $A,\, B,\, C \, and \, D
   \caption{K-means clustering on original dataset.}
   \label{fig:KmeanOrigData}
  \end{figure}
+   \item \textbf{\textit{OutStreams}}:
+     \xmlExample{framework/user_guide/DataMining/dataMiningAnalysis.xml}{OutStreams}
+     This workflow uses one Print OutStream and three Plot OutStreams:
+     \begin{itemize}
+       \item ``samplesDump'', which writes the original sample set with the additional columns from the
+         PostProcess steps,
+       \item ``PlotKMeans1'', which plots the samples against the Figures of Merit with coloring according to
+         the KMeans clustering,
+       \item ``PlotLabels'', which plots all the samples and colors them according to the KMeans clustering,
+       \item ``PlotPCA1,'' which plots the surrogate principal component dimensions and their associated clustering.
+     \end{itemize}
+     Note that a special kind of plot, the ``dataMining'' \xmlNode{type}, has been implemented to simplify
+     plotting complicated results using RAVEN, and is used in all three of the plots in this workflow.  Also
+     note the use of the \xmlNode{range} block to define the data range of the plots created.
    \item \textbf{\textit{Steps}}:
      \xmlExample{framework/user_guide/DataMining/dataMiningAnalysis.xml}{Steps}
 

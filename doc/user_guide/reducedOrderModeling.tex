@@ -389,6 +389,21 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
  \end{figure}
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+   \item \textbf{\textit{OutStreams}}:
+     \xmlExample{framework/user_guide/ReducedOrderModeling/reducedOrderModeling.xml}{OutStreams}
+     This model makes use of two Print OutStreams and five Plot OutStreams:
+     \begin{itemize}
+       \item ``samples,'' which writes the contents of the point-wise training samples to CSV,
+       \item ``histories,'' which writes the contents of the history-wise training samples to linked CSVs,
+       \item ``historyPlot,'' which plots the evolution of the training samples,
+       \item ``samplesPlot3D,'' which plots the final state of the training samples with relation to the
+         outputs of interest,
+       \item ``samplesPlot3DROMgp,'' which plots the validation samples of the Gaussian Process ROM,
+       \item ``samplesPlot3DROMsvm,'' which plots the validation samples of the Support-Vector Machine ROM,
+       \item ``samplesPlot3Dinverse,'' which plots the validation samples of the multidimensional Inverse
+         Weight ROM.
+     \end{itemize}
+     The 3D plots of the samples as well as the ROM samples can be used as a view-norm validation of the ROMs.
    \item \textbf{\textit{Steps}}:
      \xmlExample{framework/user_guide/ReducedOrderModeling/reducedOrderModeling.xml}{Steps}
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
