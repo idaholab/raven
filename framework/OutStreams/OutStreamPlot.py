@@ -678,9 +678,9 @@ class OutStreamPlot(OutStreamManager):
               kwargs[kk] = self.options[key][kk]
         try:
           if self.dim == 2:
-            customFunctionCall = getattr(plt, self.outStreamTypes[pltindex])
+            customFunctionCall = getattr(plt, key)
           else:
-            customFunctionCall = getattr(self.plt3D, self.outStreamTypes[pltindex])
+            customFunctionCall = getattr(self.plt3D, key)
           self.actPlot = customFunctionCall(**kwargs)
         except AttributeError as ae:
           self.raiseAnError(RuntimeError, '<' + str(ae) + '> -> in execution custom action "' + key + '" in Plot ' + self.name + '.\n ' + self.printTag + ' command has been called in the following way: ' + 'plt.' + key + '(' + commandArgs + ')')
