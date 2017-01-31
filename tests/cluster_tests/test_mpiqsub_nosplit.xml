@@ -21,18 +21,17 @@
       <NoSplitNode maxOnNode="4"/>
     </mode>
     <NumMPI>2</NumMPI>
-    <expectedTime>10:00:00</expectedTime>
+    <expectedTime>0:10:00</expectedTime>
     <JobName>test_qsub</JobName>
   </RunInfo>
 
   <Files>
-    <Input name="clg_massflowrate_3eqn.i" type="">clg_massflowrate_3eqn.i</Input>
-    <Input name="clg_massflowrate_3eqn_control.py" type="">clg_massflowrate_3eqn_control.py</Input>
+    <Input name="simple_gp_test.i" type="">simple_gp_test.i</Input>
   </Files>
 
   <Models>
     <Code name="MyRAVEN" subType="RELAP7">
-      <executable>%FRAMEWORK_DIR%/../RAVEN-%METHOD% </executable>
+      <executable>%FRAMEWORK_DIR%/../tests/cluster_tests/simple_gp.py </executable>
     </Code>
   </Models>
 
@@ -78,8 +77,7 @@
 
   <Steps>
     <MultiRun name="FirstMNRun">
-      <Input class="Files" type="">clg_massflowrate_3eqn.i</Input>
-      <Input class="Files" type="">clg_massflowrate_3eqn_control.py</Input>
+      <Input class="Files" type="">simple_gp_test.i</Input>
       <Model class="Models" type="Code">MyRAVEN</Model>
       <Sampler class="Samplers" type="MonteCarlo">RAVENmc6</Sampler>
       <Output class="Databases" type="HDF5">testDatabase</Output>
