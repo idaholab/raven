@@ -670,7 +670,7 @@ class OutStreamPlot(OutStreamManager):
       else:
         self.raiseAWarning('Try to perform not-predifined action ' + key + '. If it does not work check manual and/or relavite matplotlib method specification.')
         commandArgs = ' '
-        import CustomCommandExecuter as execcommand
+        kwargs = {}
         for kk in self.options[key]:
           if kk != 'attributes' and kk != key:
             if commandArgs != ' ':
@@ -679,16 +679,18 @@ class OutStreamPlot(OutStreamManager):
               prefix = ''
             try:
               commandArgs = commandArgs + prefix + kk + '=' + str(ast.literal_eval(self.options[key][kk]))
+              kwargs[kk] = ast.literal_eval(self.options[key][kk])
             except:
               commandArgs = commandArgs + prefix + kk + '="' + str(self.options[key][kk]) + '"'
+              kwargs[kk] = self.options[key][kk]
         try:
-          if self.dim == 2:
-            execcommand.execCommand('plt.' + key + '(' + commandArgs + ')', self)
-          elif self.dim == 3:
-            execcommand.execCommand('plt.' + key + '(' + commandArgs + ')', self)
-          # if self.dim == 2:  exec('plt.' + key + '(' + commandArgs + ')')
-          # elif self.dim == 3:exec('self.plt3D.' + key + '(' + commandArgs + ')')
-        except ValueError as ae:
+          customFunctionCall = getattr(plt, key)
+          self.actPlot = customFunctionCall(**kwargs)
+          # if self.dim == 2:
+          #   execcommand.execCommand('plt.' + key + '(' + commandArgs + ')', self)
+          # elif self.dim == 3:
+          #   execcommand.execCommand('plt.' + key + '(' + commandArgs + ')', self)
+        except AttributeError as ae:
           self.raiseAnError(RuntimeError, '<' + str(ae) + '> -> in execution custom action "' + key + '" in Plot ' + self.name + '.\n ' + self.printTag + ' command has been called in the following way: ' + 'plt.' + key + '(' + commandArgs + ')')
 
   ####################
@@ -1793,7 +1795,8 @@ class OutStreamPlot(OutStreamManager):
         # Let's try to "write" the code for the plot on the fly
         self.raiseAWarning('Trying to create a non-predefined plot of type ' + self.outStreamTypes[pltindex] + '. If this fails, please refer to the and/or the related matplotlib method specification.')
         commandArgs = ' '
-        import CustomCommandExecuter as execcommand
+        kwargs = {}
+        # import CustomCommandExecuter as execcommand
         for kk in plotSettings:
           if kk != 'attributes' and kk != self.outStreamTypes[pltindex]:
             if commandArgs != ' ':
@@ -1802,14 +1805,19 @@ class OutStreamPlot(OutStreamManager):
               prefix = ''
             try:
               commandArgs = commandArgs + prefix + kk + '=' + str(ast.literal_eval(plotSettings[kk]))
+              kwargs[kk] = ast.literal_eval(plotSettings[kk])
             except:
               commandArgs = commandArgs + prefix + kk + '="' + str(plotSettings[kk]) + '"'
+              kwargs[kk] = plotSettings[kk]
+
         try:
-          if self.dim == 2:
-            execcommand.execCommand('self.actPlot = self.plt3D.' + self.outStreamTypes[pltindex] + '(' + commandArgs + ')', self)
-          elif self.dim == 3:
-            execcommand.execCommand('self.actPlot = self.plt3D.' + self.outStreamTypes[pltindex] + '(' + commandArgs + ')', self)
-        except ValueError as ae:
+          customFunctionCall = getattr(plt, self.outStreamTypes[pltindex])
+          self.actPlot = customFunctionCall(**kwargs)
+          # if self.dim == 2:
+          #   execcommand.execCommand('self.actPlot = self.plt3D.' + self.outStreamTypes[pltindex] + '(' + commandArgs + ')', self)
+          # elif self.dim == 3:
+          #   execcommand.execCommand('self.actPlot = self.plt3D.' + self.outStreamTypes[pltindex] + '(' + commandArgs + ')', self)
+        except AttributeError as ae:
           self.raiseAnError(RuntimeError, '<' + str(ae) + '> -> in execution custom plot "' + self.outStreamTypes[pltindex] + '" in Plot ' + self.name + '.\nSTREAM MANAGER: ERROR -> command has been called in the following way: ' + 'plt.' + self.outStreamTypes[pltindex] + '(' + commandArgs + ')')
 
     # SHOW THE PICTURE
