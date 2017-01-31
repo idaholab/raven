@@ -669,27 +669,19 @@ class OutStreamPlot(OutStreamManager):
           self.plt3D.grid(b = self.options[key]['b'], **self.options[key].get('attributes', {}))
       else:
         self.raiseAWarning('Try to perform not-predifined action ' + key + '. If it does not work check manual and/or relavite matplotlib method specification.')
-        commandArgs = ' '
         kwargs = {}
         for kk in self.options[key]:
           if kk != 'attributes' and kk != key:
-            if commandArgs != ' ':
-              prefix = ','
-            else:
-              prefix = ''
             try:
-              commandArgs = commandArgs + prefix + kk + '=' + str(ast.literal_eval(self.options[key][kk]))
               kwargs[kk] = ast.literal_eval(self.options[key][kk])
-            except:
-              commandArgs = commandArgs + prefix + kk + '="' + str(self.options[key][kk]) + '"'
+            except ValueError:
               kwargs[kk] = self.options[key][kk]
         try:
-          customFunctionCall = getattr(plt, key)
+          if self.dim == 2:
+            customFunctionCall = getattr(plt, self.outStreamTypes[pltindex])
+          else:
+            customFunctionCall = getattr(self.plt3D, self.outStreamTypes[pltindex])
           self.actPlot = customFunctionCall(**kwargs)
-          # if self.dim == 2:
-          #   execcommand.execCommand('plt.' + key + '(' + commandArgs + ')', self)
-          # elif self.dim == 3:
-          #   execcommand.execCommand('plt.' + key + '(' + commandArgs + ')', self)
         except AttributeError as ae:
           self.raiseAnError(RuntimeError, '<' + str(ae) + '> -> in execution custom action "' + key + '" in Plot ' + self.name + '.\n ' + self.printTag + ' command has been called in the following way: ' + 'plt.' + key + '(' + commandArgs + ')')
 
@@ -1775,7 +1767,7 @@ class OutStreamPlot(OutStreamManager):
                   if self.dim == 2:
                     for k, col in zip(range(clusterDict[pltindex]['noClusters']), colors):
                       myMembers = self.clusterValues[pltindex][1][0] == k
-                      self.actPLot = plt.scatter(decompositionValues[myMembers, 0], decompositionValues[myMembers, 1], color = col, **dataMiningPlotOptions)
+                      self.actPlot = plt.scatter(decompositionValues[myMembers, 0], decompositionValues[myMembers, 1], color = col, **dataMiningPlotOptions)
                   elif self.dim == 3:
                     dataMiningPlotOptions['rasterized'] = True
                     for zIndex in range(len(self.zValues[pltindex][key])):
@@ -1785,7 +1777,7 @@ class OutStreamPlot(OutStreamManager):
                       self.actPlot = self.plt3D.scatter(decompositionValues[myMembers, 0], decompositionValues[myMembers, 1], decompositionValues[myMembers, 2], color = col, **dataMiningPlotOptions)
                 else:  # no ClusterLabels
                   if self.dim == 2:
-                    self.actPLot = plt.scatter(decompositionValues[:, 0], decompositionValues[:, 1], **dataMiningPlotOptions)
+                    self.actPlot = plt.scatter(decompositionValues[:, 0], decompositionValues[:, 1], **dataMiningPlotOptions)
                   elif self.dim == 3:
                     dataMiningPlotOptions['rasterized'] = True
                     for zIndex in range(len(self.zValues[pltindex][key])):
@@ -1794,29 +1786,19 @@ class OutStreamPlot(OutStreamManager):
       else:
         # Let's try to "write" the code for the plot on the fly
         self.raiseAWarning('Trying to create a non-predefined plot of type ' + self.outStreamTypes[pltindex] + '. If this fails, please refer to the and/or the related matplotlib method specification.')
-        commandArgs = ' '
         kwargs = {}
-        # import CustomCommandExecuter as execcommand
         for kk in plotSettings:
           if kk != 'attributes' and kk != self.outStreamTypes[pltindex]:
-            if commandArgs != ' ':
-              prefix = ','
-            else:
-              prefix = ''
             try:
-              commandArgs = commandArgs + prefix + kk + '=' + str(ast.literal_eval(plotSettings[kk]))
               kwargs[kk] = ast.literal_eval(plotSettings[kk])
-            except:
-              commandArgs = commandArgs + prefix + kk + '="' + str(plotSettings[kk]) + '"'
+            except ValueError:
               kwargs[kk] = plotSettings[kk]
-
         try:
-          customFunctionCall = getattr(plt, self.outStreamTypes[pltindex])
+          if self.dim == 2:
+            customFunctionCall = getattr(plt, self.outStreamTypes[pltindex])
+          else:
+            customFunctionCall = getattr(self.plt3D, self.outStreamTypes[pltindex])
           self.actPlot = customFunctionCall(**kwargs)
-          # if self.dim == 2:
-          #   execcommand.execCommand('self.actPlot = self.plt3D.' + self.outStreamTypes[pltindex] + '(' + commandArgs + ')', self)
-          # elif self.dim == 3:
-          #   execcommand.execCommand('self.actPlot = self.plt3D.' + self.outStreamTypes[pltindex] + '(' + commandArgs + ')', self)
         except AttributeError as ae:
           self.raiseAnError(RuntimeError, '<' + str(ae) + '> -> in execution custom plot "' + self.outStreamTypes[pltindex] + '" in Plot ' + self.name + '.\nSTREAM MANAGER: ERROR -> command has been called in the following way: ' + 'plt.' + self.outStreamTypes[pltindex] + '(' + commandArgs + ')')
 
