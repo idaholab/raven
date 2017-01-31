@@ -1,0 +1,11 @@
+#!/bin/bash
+
+SCRIPT_DIRNAME=`dirname $0`
+SCRIPT_DIR=`(cd $SCRIPT_DIRNAME; pwd)`
+
+cd $SCRIPT_DIR/..
+
+#This is intended to be a useful list for things to fix, but cannot be
+# mandatory because they are too common, or are occasionally needed.
+
+pylint --indent-string="  " --disable=invalid-name --disable=bad-whitespace --disable=line-too-long --disable=multiple-statements --disable=multiple-imports --disable=import-error --disable=wrong-import-position --disable=unused-import --disable=wrong-import-order --disable=attribute-defined-outside-init --disable=too-many-branches --disable=too-many-locals --disable=too-many-statements --disable=too-many-nested-blocks --disable=too-many-instance-attributes --enable=missing-docstring --enable=no-absolute-import --enable=old-division --enable=print-statement --enable=file-builtin framework/
