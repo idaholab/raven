@@ -243,7 +243,7 @@ class LimitSurfaceIntegral(BasePostProcessor):
     if self.integralType in ['montecarlo']:
       self.stat.toDo = {'expectedValue':set([self.target])}
       self.stat.initialize(runInfo, inputs, initDict)
-    self.functionS = SupervisedLearning.returnInstance('SciKitLearn', self, **{'SKLtype':'neighbors|KNeighborsClassifier', 'Features':','.join(list(self.variableDist.keys())), 'Target':self.target})
+    self.functionS = SupervisedLearning.returnInstance('SupervisedGate','SciKitLearn', self, **{'SKLtype':'neighbors|KNeighborsClassifier', 'Features':','.join(list(self.variableDist.keys())), 'Target':self.target})
     self.functionS.train(self.matrixDict)
     self.raiseADebug('DATA SET MATRIX:')
     self.raiseADebug(self.matrixDict)
@@ -286,7 +286,7 @@ class LimitSurfaceIntegral(BasePostProcessor):
           f = np.vectorize(self.variableDist[varName].ppf, otypes=[np.float])
           randomMatrix[:, index] = f(randomMatrix[:, index])
         tempDict[varName] = randomMatrix[:, index]
-      pb = self.stat.run({'targets':{self.target:self.functionS.evaluate(tempDict)}})['expectedValue'][self.target]
+      pb = self.stat.run({'targets':{self.target:self.functionS.evaluate(tempDict)[self.target]}})['expectedValue'][self.target]
     else: self.raiseAnError(NotImplemented, "quadrature not yet implemented")
     return pb
 

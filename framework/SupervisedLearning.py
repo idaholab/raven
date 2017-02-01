@@ -836,7 +836,7 @@ class GaussPolynomialRom(superVisedLearning):
       tot=0
       for idx,coeff in self.polyCoeffDict.items():
         tot+=coeff*self._multiDPolyBasisEval(idx,stdPt)
-      returnDict[target] = tot  
+      returnDict[target] = tot
     return returnDict
 
   def _printPolynomial(self):
@@ -845,7 +845,7 @@ class GaussPolynomialRom(superVisedLearning):
       @ In, None
       @ Out, None
     """
-    for target in self.target: 
+    for target in self.target:
       self.raiseADebug('Target:'+target+'.Coeff Idx:')
       for idx,coeff in self.polyCoeffDict[target].items():
         if abs(coeff)<1e-12: continue
