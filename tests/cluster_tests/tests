@@ -29,7 +29,7 @@
    skip = 'not real test'
    type = RavenFramework
  [../]
- [./test_mpi]
+ [./test_mpi_fake]
    input=test_mpi.xmll
    skip = 'not real test'
    type = RavenFramework
