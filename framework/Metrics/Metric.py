@@ -24,7 +24,6 @@ import atexit
 #Internal Modules------------------------------------------------------------------------------------
 from BaseClasses import BaseType
 from Assembler import Assembler
-import SupervisedLearning
 import PostProcessors #import returnFilterInterface
 import CustomCommandExecuter
 import utils
