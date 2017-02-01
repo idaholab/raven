@@ -123,7 +123,7 @@ class testDescription(object):
             xmlPortion.append("<TestInfo>")
           if '</TestInfo' in line:
             startReading = False
-        if len(xmlPortion) >0: 
+        if len(xmlPortion) >0:
           try: testInfoNode = ET.fromstringlist(xmlPortion)
           except ET.ParseError as e: print('file :'+testFile+'\nXML Parsing error!',e,'\n')
         else                 : testInfoNode = None

@@ -17,18 +17,18 @@ for folder,files in tests.items():
         ok.append(f)
       else:
         bad.append(f)
-    except: 
+    except:
         error.append(f)
 
-  if (len(bad) > 0) or (len(error) > 0): 
+  if (len(bad) > 0) or (len(error) > 0):
     needDirs.append(folder)
 
-  if len(bad) > 0: 
+  if len(bad) > 0:
     print '  not documented:'
     for f in bad:
       print '    ',f
 
-  if len(error) > 0: 
+  if len(error) > 0:
     print '  XML Parse Errors Found:'
     for f in error:
       print '    ',f
