@@ -5,6 +5,20 @@
     <batchSize>1</batchSize>
     <Sequence>sample,train,print,stats</Sequence>
   </RunInfo>
+  <TestInfo>
+    <name>framework/pca_adaptive_sgc</name>
+    <author>wangc</author>
+    <created>2015-12-01</created>
+    <classesTested>Samplers.AdaptiveSparseGrid,SupervisedLearning.GaussPolynomialROM</classesTested>
+    <description>
+      Tests the SparseGridCollocation sampler combined with input reductions via PCA method,
+      using uncorrelated multivariate normal distributions.
+    </description>
+    <analytic>
+      This test is analytic in mean and variance using the "tensor polynomial" analytic model
+      documented in the analytic tests.
+    </analytic>
+  </TestInfo>
 
   <DataObjects>
     <PointSet name="dummyIN">
