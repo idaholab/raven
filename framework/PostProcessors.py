@@ -29,7 +29,7 @@ import xmlUtils
 import InputData
 import DataObjects
 from Assembler import Assembler
-import SupervisedLearning
+import supervisedLearningGate
 import MessageHandler
 import GridEntities
 import Files
@@ -2891,7 +2891,7 @@ class LimitSurface(BasePostProcessor):
     self.__workingDir     = runInfo['WorkingDir']
     self.externalFunction = self.assemblerDict['Function'][0][3]
     if 'ROM' not in self.assemblerDict.keys():
-      self.ROM = SupervisedLearning.returnInstance('SciKitLearn', self, **{'SKLtype':'neighbors|KNeighborsClassifier',"n_neighbors":1, 'Features':','.join(list(self.parameters['targets'])), 'Target':self.externalFunction.name})
+      self.ROM = supervisedLearningGate.returnInstance('SupervisedGate','SciKitLearn', self, **{'SKLtype':'neighbors|KNeighborsClassifier',"n_neighbors":1, 'Features':','.join(list(self.parameters['targets'])), 'Target':[self.externalFunction.name]})
     else: self.ROM = self.assemblerDict['ROM'][0][3]
     self.ROM.reset()
     self.indexes = -1
@@ -3100,7 +3100,7 @@ class LimitSurface(BasePostProcessor):
       tempDict ={}
       for  varId, varName in enumerate(self.axisName): tempDict[varName] = self.gridCoord[nodeName][:,varId]
       self.testMatrix[nodeName].shape     = (self.gridCoord[nodeName].shape[0])                       #rearrange the grid matrix such as is an array of values
-      self.testMatrix[nodeName][:]        = self.ROM.evaluate(tempDict)                               #get the prediction on the testing grid
+      self.testMatrix[nodeName][:]        = self.ROM.evaluate(tempDict)[self.externalFunction.name]   #get the prediction on the testing grid
       self.testMatrix[nodeName].shape     = self.gridEntity.returnParameter("gridShape",nodeName)     #bring back the grid structure
       self.gridCoord[nodeName].shape      = self.gridEntity.returnParameter("gridCoorShape",nodeName) #bring back the grid structure
       self.raiseADebug('LimitSurface: Prediction performed')
