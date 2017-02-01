@@ -5,6 +5,16 @@
     <Sequence>gridRun,Dump</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+  <TestInfo>
+    <name>framework/pca_grid/gridPCACdf</name>
+    <author>wangc</author>
+    <created>2015-10-28</created>
+    <classesTested>Samplers.Grid</classesTested>
+    <description>
+      Tests the CDF-generated Grid sampler combined with input reductions via PCA method,
+      using multivariate normal distributions.
+    </description>
+  </TestInfo>
 
   <Files>
     <Input name="lorentzAttractor_noK.py" type="">lorentzAttractor_noK.py</Input>
