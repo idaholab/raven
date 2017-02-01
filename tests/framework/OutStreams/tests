@@ -5,7 +5,7 @@
   output = 'plot/1-test_scatter.ps'
   text = 'plot/1-test_scatter.ps'
   comment = '%'
-  minimum_library_versions = 'matplotlib 1.5'
+  minimum_library_versions = 'matplotlib 2.0'
  [../]
 
  [./image_generation_raw]
@@ -14,14 +14,15 @@
   #input = 'imageGeneration_png.xml'
   required_executable = 'compare'
   required_executable_check_flags='gold/plot/1-test_scatter.png gold/plot/1-test_scatter.png -metric ae null:'
+  minimum_library_versions = 'matplotlib 2.0'
  [../]
 
 # [./colorbar_plot]
 #   type = 'RavenPython'
 #   input = 'testImageColorbar.py'
-#  #input = 'test_colorbar.xml'
-#  required_executable = 'compare'
-#  required_executable_check_flags='gold/plot/colorbarTest.png gold/plot/colorbarTest.png -metric ae null:'
+#   #input = 'test_colorbar.xml'
+#   required_executable = 'compare'
+#   required_executable_check_flags='gold/plot/colorbarTest.png gold/plot/colorbarTest.png -metric ae null:'
 # [../]
 
  [./interactive_plotting]
