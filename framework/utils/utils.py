@@ -241,7 +241,7 @@ def compare(s1,s2,relTolerance = 1e-14):
   if   type(w1) == type(w2) and type(w1) != float: return s1 == s2
   elif type(w1) == type(w2) and type(w1) == float:
     import mathUtils #if imported at top, has recursive problem, so import it when we need it
-    return mathUtils.compareFloats(w1,w2,10.**(-sig_fig))
+    return mathUtils.compareFloats(w1,w2,relTolerance)
   elif type(w1) != type(w2) and type(w1) in [float,int] and type(w2) in [float,int]:
     w1, w2 = float(w1), float(w2)
     return compare(w1,w2)
