@@ -5,6 +5,15 @@
     <Sequence>uqWithCov,Dump</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+  <TestInfo>
+    <name>framework/pca_rom/ROM</name>
+    <author>wangc</author>
+    <created>2015-09-14</created>
+    <classesTested>Distributions.MultivariateNormal</classesTested>
+    <description>
+      Tests a high-input-dimensionality case to demonstrate input reduction.
+    </description>
+  </TestInfo>
 
   <Files>
     <Input name="Functions.py" type="">Functions.py</Input>

@@ -5,6 +5,15 @@
     <Sequence>FirstMRun,Dump</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+  <TestInfo>
+    <name>framework/pca_rom/oneDim</name>
+    <author>wangc</author>
+    <created>2015-09-14</created>
+    <classesTested>Distributions.MultivariateNormal</classesTested>
+    <description>
+      Tests fix for Issue #389 where the code errored when the problem is reduced to 1 dimension.
+    </description>
+  </TestInfo>
 
   <Files>
     <Input name="lorentzAttractor_noK.py" type="">lorentzAttractor_noK.py</Input>
