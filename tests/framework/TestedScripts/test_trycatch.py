@@ -30,6 +30,5 @@ except RuntimeError:
        It can not be considered as active part of the code but of the regression
        test system
     </description>
-    <revisions>
   </TestInfo>
 """
