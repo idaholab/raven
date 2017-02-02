@@ -961,7 +961,7 @@ class HDMRRom(GaussPolynomialRom):
     """
     GaussPolynomialRom.__init__(self,messageHandler,**kwargs)
     self.initialized   = False #true only when self.initialize has been called
-    self.printTag      = 'HDMR_ROM('+self.target+')'
+    self.printTag      = 'HDMR_ROM('+'-'.join(self.target)+')'
     self.sobolOrder    = None #depth of HDMR/Sobol expansion
     self.ROMs          = {}   #dict of GaussPolyROM objects keyed by combination of vars that make them up
     self.sdx           = None #dict of sobol sensitivity coeffs, keyed on order and tuple(varnames)
