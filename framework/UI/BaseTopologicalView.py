@@ -1,10 +1,22 @@
 #!/usr/bin/env python
 
+"""
+  A base class for all widgets associated to the TopologicalWindow.
+"""
+
+#For future compatibility with Python 3
+from __future__ import division, print_function, absolute_import
+import warnings
+warnings.simplefilter('default',DeprecationWarning)
+#End compatibility block for Python 3
+
+
 from PySide.QtCore import QSize
 from PySide.QtGui import QWidget
 
-class GenericView(QWidget):
-  """ A base class for all widgets in this package.
+class BaseTopologicalView(QWidget):
+  """
+    A base class for all widgets associated to the TopologicalWindow.
   """
   def __init__(self,parent=None,amsc=None,title=None):
     """ Initialization method that can optionally specify the parent widget,
@@ -14,7 +26,7 @@ class GenericView(QWidget):
           object for this widget to use.
         @ In, title, an optional string specifying the title of this widget.
     """
-    super(GenericView, self).__init__(parent)
+    super(BaseTopologicalView, self).__init__(parent)
     self.amsc = amsc
     if title is None:
       self.setWindowTitle(self.__class__.__name__)

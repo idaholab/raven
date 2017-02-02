@@ -6,6 +6,15 @@
     <batchSize>1</batchSize>
     <internalParallel>True</internalParallel>
   </RunInfo>
+  <TestInfo>
+    <name>framework/Samplers/ROM/timeDepRom</name>
+    <author>talbpaul</author>
+    <created>2015-11-30</created>
+    <classesTested>Models.ROM</classesTested>
+    <description>
+      This tests using a general time-dependent reduced-order model.
+    </description>
+  </TestInfo>
 
   <Files>
     <Input name="lorentzAttractor.py" type="">lorentzAttractor.py</Input>

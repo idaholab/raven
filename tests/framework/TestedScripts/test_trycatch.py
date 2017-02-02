@@ -19,3 +19,16 @@ try:
   user.raiseAnError(RuntimeError,'An example error')
 except RuntimeError:
   user.raiseAMessage('Error catching works as expected.')
+"""
+  <TestInfo>
+    <name>framework.test_trycatch</name>
+    <author>talbpaul</author>
+    <created>2016-02-26</created>
+    <classesTested>MessageHandler</classesTested>
+    <description>
+       This test is aimed to perform Unit test on the MessageHandler
+       It can not be considered as active part of the code but of the regression
+       test system
+    </description>
+  </TestInfo>
+"""

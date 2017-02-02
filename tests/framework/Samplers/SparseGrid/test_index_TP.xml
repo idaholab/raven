@@ -5,6 +5,15 @@
     <Sequence>TPmake,TPtrain,TPtest,TPprint</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+  <TestInfo>
+    <name>framework/Samplers/SparseGrid/tensorPrductGrid</name>
+    <author>talbpaul</author>
+    <created>2015-09-11</created>
+    <classesTested>IndexSets.TensorProduct</classesTested>
+    <description>
+      This tests the creation of a TensorProduct construction sparse grid.
+    </description>
+  </TestInfo>
 
   <Distributions>
     <Uniform name="UniDist">

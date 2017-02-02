@@ -1,5 +1,21 @@
 <?xml version="1.0" ?>
 <Simulation>
+  <TestInfo>
+    <name>framework.NDGridProbabilityWeightValue</name>
+    <author>wangc</author>
+    <created>2015-09-30</created>
+    <classesTested>Distributions.NDInverseWeight, Distrubtions.NDCartesianSpline, Samplers.Grid</classesTested>
+    <description>
+       This test is aimed to check the capability of RAVEN to handle ND probability density functions (distributions), when 
+       a Grid sampling strategy is performed. In this case, the capability to construct marginal distributions (for each uncertanties of
+       the ND distribution domain), when the discretization is performed in VALUE.
+    </description>
+    <revisions>
+      <revision author="talbpaul" date="2016-02-08">first update, looking for more failing tests to add</revision>
+      <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>NDGridPWvalue</WorkingDir>
     <Sequence>FirstMRun</Sequence>

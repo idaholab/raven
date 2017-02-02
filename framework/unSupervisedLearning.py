@@ -1260,9 +1260,8 @@ class Scipy(unSupervisedLearning):
     self.outputDict['inputs' ] = self.normValues
     if hasattr(self.Method, 'linkage'):
       self.linkage = self.Method.linkage(self.normValues,self.initOptionDict['method'],self.initOptionDict['metric'])
-      self.tree = self.Method.to_tree(self.linkage)
 
-      if self.initOptionDict['dendrogram'] == 'true':
+      if 'dendrogram' in self.initOptionDict and self.initOptionDict['dendrogram'] == 'true':
         self.ddata = self.advDendrogram(self.linkage,
                                         p                = float(self.initOptionDict['p']),
                                         leaf_rotation    = 90.,
@@ -1276,7 +1275,7 @@ class Scipy(unSupervisedLearning):
 
       self.labels_ = hier.hierarchy.fcluster(self.linkage, self.initOptionDict['level'],self.initOptionDict['criterion'])
       self.outputDict['outputs']['labels'] = self.labels_
-      return self.labels_
+    return self.labels_
 
   def advDendrogram(self,*args, **kwargs):
     """
@@ -1325,7 +1324,6 @@ class Scipy(unSupervisedLearning):
   def __confidenceLocal__(self):
     pass
 
-
   def getDataMiningType(self):
     """
       This method is used to return the type of data mining algorithm to be employed
@@ -1334,11 +1332,11 @@ class Scipy(unSupervisedLearning):
     """
     return self.SCIPYtype
 
-
 __interfaceDict = {}
 __interfaceDict['SciKitLearn'] = SciKitLearn
 __interfaceDict['temporalSciKitLearn'] = temporalSciKitLearn
 __interfaceDict['Scipy'] = Scipy
+
 __base = 'unSuperVisedLearning'
 
 def returnInstance(modelClass, caller, **kwargs):
@@ -1352,7 +1350,7 @@ def returnInstance(modelClass, caller, **kwargs):
   try:
     return __interfaceDict[modelClass](caller.messageHandler, **kwargs)
   except KeyError as ae:  # except Exception as(ae):
-    caller.raiseAnError(NameError, 'unSuperVisedLEarning', 'Unknown ' + __base + ' type ' + str(modelClass)+'.Error: '+ str(ae))
+    caller.raiseAnError(NameError, 'unSupervisedLearning', 'Unknown ' + __base + ' type ' + str(modelClass)+'.Error: '+ str(ae))
 
 def returnClass(modelClass, caller):
   """
@@ -1364,4 +1362,4 @@ def returnClass(modelClass, caller):
   try:
     return __interfaceDict[modelClass]
   except KeyError:
-    caller.raiseanError(NameError, 'unSuperVisedLEarning', 'not known ' + __base + ' type ' + modelClass)
+    caller.raiseanError(NameError, 'unSupervisedLearning', 'not known ' + __base + ' type ' + modelClass)

@@ -1,5 +1,14 @@
 <?xml version="1.0" ?>
 <Simulation>
+  <TestInfo>
+    <name>cluster_tests/test_mpiqsub_limitnode</name>
+    <author>cogljj</author>
+    <created>2016-05-26</created>
+    <classesTested>MPISimulationMode</classesTested>
+    <description>
+      Tests using the limit node with a max on node.
+    </description>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>.</WorkingDir>
     <Sequence>FirstMLRun</Sequence>

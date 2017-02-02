@@ -3742,6 +3742,15 @@ class TopologicalDecomposition(BasePostProcessor):
     else:
       self.raiseAnError(IOError,'Unknown output type:',output.type)
 
+  def userInteraction(self):
+    """
+      A placeholder for allowing user's to interact and tweak the model in-situ
+      before saving the analysis results
+      @ In, None
+      @ Out, None
+    """
+    pass
+
   def run(self, inputIn):
     """
       Function to finalize the filter => execute the filtering
@@ -3749,35 +3758,41 @@ class TopologicalDecomposition(BasePostProcessor):
       @ Out, outputDict, dict, Dictionary containing the post-processed results
     """
 
-    input = self.inputToInternal(inputIn)
+    internalInput = self.inputToInternal(inputIn)
     outputDict = {}
 
-    myDataIn = input['features']
-    myDataOut = input['targets']
-    outputData = myDataOut[self.parameters['targets'].encode('UTF-8')]
-    self.pointCount = len(outputData)
+    myDataIn = internalInput['features']
+    myDataOut = internalInput['targets']
+
+    self.outputData = myDataOut[self.parameters['targets'].encode('UTF-8')]
+    self.pointCount = len(self.outputData)
     self.dimensionCount = len(self.parameters['features'])
 
-    inputData = np.zeros((self.pointCount, self.dimensionCount))
+    self.inputData = np.zeros((self.pointCount, self.dimensionCount))
     for i, lbl in enumerate(self.parameters['features']):
-      inputData[:, i] = myDataIn[lbl.encode('UTF-8')]
+      self.inputData[:, i] = myDataIn[lbl.encode('UTF-8')]
 
     if self.weighted:
-      weights = inputIn[0].getMetadata('PointProbability')
+      self.weights = inputIn[0].getMetadata('PointProbability')
     else:
-      weights = None
+      self.weights = None
 
-    names = self.parameters['features'] + [self.parameters['targets']]
+    self.names = self.parameters['features'] + [self.parameters['targets']]
+
+    self.__amsc = None
+    self.userInteraction()
 
     ## Possibly load this here in case people have trouble building it, so it
     ## only errors if they try to use it?
     from AMSC_Object import AMSC_Object
 
-    self.__amsc = AMSC_Object(X=inputData, Y=outputData, w=weights,
-                              names=names, graph=self.graph,
-                              gradient=self.gradient, knn=self.knn,
-                              beta=self.beta, normalization=self.normalization,
-                              persistence=self.persistence, debug=False)
+    if self.__amsc is None:
+      self.__amsc = AMSC_Object(X=self.inputData, Y=self.outputData,
+                                w=self.weights, names=self.names,
+                                graph=self.graph, gradient=self.gradient,
+                                knn=self.knn, beta=self.beta,
+                                normalization=self.normalization,
+                                persistence=self.persistence, debug=False)
 
     self.__amsc.Persistence(self.simplification)
     partitions = self.__amsc.Partitions()
@@ -3801,10 +3816,6 @@ class TopologicalDecomposition(BasePostProcessor):
 
     return outputDict
 
-#
-#
-#
-#
 try:
   import PySide.QtCore as qtc
   class QTopologicalDecomposition(TopologicalDecomposition,qtc.QObject):
@@ -3818,6 +3829,7 @@ try:
       """
        Constructor
        @ In, messageHandler, message handler object
+       @ Out, None
       """
 
       TopologicalDecomposition.__init__(self, messageHandler)
@@ -3828,18 +3840,18 @@ try:
 
     def _localWhatDoINeed(self):
       """
-      This method is a local mirror of the general whatDoINeed method.
-      It is implemented by the samplers that need to request special objects
-      @ In , None, None
-      @ Out, needDict, list of objects needed
+        This method is a local mirror of the general whatDoINeed method.
+        It is implemented by the samplers that need to request special objects
+        @ In , None, None
+        @ Out, needDict, list of objects needed
       """
       return {'internal':[(None,'app')]}
 
     def _localGenerateAssembler(self,initDict):
       """
-      Generates the assembler.
-      @ In, initDict, dict of init objects
-      @ Out, None
+        Generates the assembler.
+        @ In, initDict, dict of init objects
+        @ Out, None
       """
       self.app = initDict['internal']['app']
       if self.app is None:
@@ -3857,93 +3869,47 @@ try:
         if child.tag == 'interactive':
           self.interactive = True
 
-    def run(self, InputIn):
+    def userInteraction(self):
       """
-       Function to finalize the filter => execute the filtering
-       @ In, InputIn, dictionary, dictionary of data to process
-       @ Out, outputDict, dictionary, dictionary with results
+        Launches an interface allowing the user to tweak specific model
+        parameters before saving the results to the output object(s).
+        @ In, None
+        @ Out, None
       """
-      Input = self.inputToInternal(InputIn)
-      outputDict = {}
+      self.uiDone = not self.interactive
 
-      myDataIn = Input['features']
-      myDataOut = Input['targets']
-      outputData = myDataOut[self.parameters['targets'].encode('UTF-8')]
-      self.pointCount = len(outputData)
-      self.dimensionCount = len(self.parameters['features'])
-
-      inputData = np.zeros((self.pointCount, self.dimensionCount))
-      for i, lbl in enumerate(self.parameters['features']):
-        inputData[:, i] = myDataIn[lbl.encode('UTF-8')]
-
-      if self.weighted:
-        weights = InputIn[0].getMetadata('PointProbability')
-      else:
-        weights = None
-
-      names = self.parameters['features'] + [self.parameters['targets']]
-
-      self.__amsc = None
       if self.interactive:
         ## Connect our own signal to the slot on the main thread
         self.requestUI.connect(self.app.createUI)
+
         ## Connect our own slot to listen for whenver the main thread signals a
         ## window has been closed
         self.app.windowClosed.connect(self.signalDone)
+
         ## Give this UI a unique id in case other threads are requesting UI
         ##  elements
         uiID = unicode(id(self))
-        ## Set the flag to false before requesting the UI
-        self.uiDone = False
+
         ## Send the request for a UI thread to the main application
-        self.requestUI.emit('MainWindow', uiID,
-                            {'X':inputData, 'Y':outputData, 'w':weights,
-                             'names':names, 'graph':self.graph,
-                             'gradient': self.gradient, 'knn':self.knn,
-                             'beta':self.beta, 'normalization':self.normalization,
-                             'debug':False})
+        self.requestUI.emit('TopologyWindow', uiID,
+                            {'X':self.inputData, 'Y':self.outputData,
+                             'w':self.weights, 'names':self.names,
+                             'graph':self.graph, 'gradient': self.gradient,
+                             'knn':self.knn, 'beta':self.beta,
+                             'normalization':self.normalization, 'debug':False})
+
         ## Spinlock will wait until this instance's window has been closed
         while(not self.uiDone):
           time.sleep(1)
 
-        if hasattr(self.app.UIs[uiID],'amsc'):
+        ## First check that the requested UI exists, and then if that UI has the
+        ## requested information, if not proceed as if it were not an
+        ## interactive session.
+        if uiID in self.app.UIs and hasattr(self.app.UIs[uiID],'amsc'):
           self.__amsc = self.app.UIs[uiID].amsc
           self.simplification = self.app.UIs[uiID].amsc.Persistence()
         else:
           self.__amsc = None
-
-      if self.__amsc is None:
-        ## Possibly load this here in case people have trouble building it, so it
-        ## only errors if they try to use it?
-        from AMSC_Object import AMSC_Object
-
-        self.__amsc = AMSC_Object(X=inputData, Y=outputData, w=weights,
-                                  names=names, graph=self.graph,
-                                  gradient=self.gradient, knn=self.knn,
-                                  beta=self.beta, normalization=self.normalization,
-                                  persistence=self.persistence, debug=False)
-
-      self.__amsc.Persistence(self.simplification)
-      partitions = self.__amsc.Partitions()
-
-      outputDict['minLabel'] = np.zeros(self.pointCount)
-      outputDict['maxLabel'] = np.zeros(self.pointCount)
-      for extPair, indices in partitions.iteritems():
-        for idx in indices:
-          outputDict['minLabel'][idx] = extPair[0]
-          outputDict['maxLabel'][idx] = extPair[1]
-      outputDict['hierarchy'] = self.__amsc.PrintHierarchy()
-      self.__amsc.BuildModels()
-      linearFits = self.__amsc.SegmentFitCoefficients()
-      linearFitnesses = self.__amsc.SegmentFitnesses()
-
-      for key in linearFits.keys():
-        coefficients = linearFits[key]
-        rSquared = linearFitnesses[key]
-        outputDict['coefficients_%d_%d' % (key[0], key[1])] = coefficients
-        outputDict['R2_%d_%d' % (key[0], key[1])] = rSquared
-
-      return outputDict
 
     def signalDone(self,uiID):
       """
@@ -4001,20 +3967,19 @@ class DataMining(BasePostProcessor):
 
   def _localWhatDoINeed(self):
     """
-    This method is a local mirror of the general whatDoINeed method.
-    It is implemented by the samplers that need to request special objects
-    @ In , None, None
-    @ Out, dict, dictionary of objects needed
+      This method is a local mirror of the general whatDoINeed method.
+      It is implemented by the samplers that need to request special objects
+      @ In , None, None
+      @ Out, dict, dictionary of objects needed
     """
     return {'internal':[(None,'jobHandler')]}
 
   def _localGenerateAssembler(self,initDict):
     """Generates the assembler.
-    @ In, initDict, dict, init objects
-    @ Out, None
+      @ In, initDict, dict, init objects
+      @ Out, None
     """
     self.jobHandler = initDict['internal']['jobHandler']
-
 
   def inputToInternal(self, currentInp):
     """
@@ -4308,6 +4273,15 @@ class DataMining(BasePostProcessor):
     else:
       return self.__runSciKitLearn(Input)
 
+  def userInteraction(self):
+    """
+      A placeholder for allowing user's to interact and tweak the model in-situ
+      before saving the analysis results
+      @ In, None
+      @ Out, None
+    """
+    pass
+
   def __runSciKitLearn(self, Input):
     """
       This method executes the postprocessor action. In this case it loads the
@@ -4319,6 +4293,8 @@ class DataMining(BasePostProcessor):
     if not self.unSupervisedEngine.amITrained:
       self.unSupervisedEngine.train(Input['Features'], self.metric)
     self.unSupervisedEngine.confidence()
+
+    self.userInteraction()
 
     outputDict = self.unSupervisedEngine.outputDict
 
@@ -4419,7 +4395,6 @@ class DataMining(BasePostProcessor):
               self.solutionExport.updateOutputValue('ExplainedVarianceRatio',solutionExportDict['explainedVarianceRatio'][row])
     return outputDict
 
-
   def __runTemporalSciKitLearn(self, Input):
     """
       This method executes the postprocessor action. In this case it loads the
@@ -4433,6 +4408,9 @@ class DataMining(BasePostProcessor):
     if not self.unSupervisedEngine.amITrained:
       self.unSupervisedEngine.train(Input['Features'])
     self.unSupervisedEngine.confidence()
+
+    self.userInteraction()
+
     outputDict = self.unSupervisedEngine.outputDict
 
     numberOfHistoryStep = self.unSupervisedEngine.numberOfHistoryStep
@@ -4623,10 +4601,118 @@ class DataMining(BasePostProcessor):
               self.solutionExport.updateOutputValue('ExplainedVarianceRatio',evrArray[:,componentIdx])
 
     return outputDict
-#
-#
-#
-#
+
+try:
+  import PySide.QtCore as qtc
+
+  class QDataMining(DataMining,qtc.QObject):
+    """
+      DataMining class - Computes a hierarchical clustering from an input point
+      cloud consisting of an arbitrary number of input parameters
+    """
+    requestUI = qtc.Signal(str,str,dict)
+    def __init__(self, messageHandler):
+      """
+       Constructor
+       @ In, messageHandler, message handler object
+       @ Out, None
+      """
+      DataMining.__init__(self, messageHandler)
+      qtc.QObject.__init__(self)
+      self.interactive = False
+
+    def _localReadMoreXML(self, xmlNode):
+      """
+        Function to grab the names of the methods this post-processor will be
+        using
+        @ In, xmlNode    : Xml element node
+        @ Out, None
+      """
+      DataMining._localReadMoreXML(self, xmlNode)
+      for child in xmlNode:
+        for grandchild in child:
+          if grandchild.tag == 'interactive':
+            self.interactive = True
+
+    def _localWhatDoINeed(self):
+      """
+        This method is a local mirror of the general whatDoINeed method.
+        It is implemented by the samplers that need to request special objects
+        @ In , None, None
+        @ Out, needDict, list of objects needed
+      """
+      needDict = DataMining._localWhatDoINeed(self)
+      needDict['internal'].append((None,'app'))
+      return needDict
+
+    def _localGenerateAssembler(self,initDict):
+      """
+        Generates the assembler.
+        @ In, initDict, dict of init objects
+        @ Out, None
+      """
+      DataMining._localGenerateAssembler(self, initDict)
+      self.app = initDict['internal']['app']
+      if self.app is None:
+        self.interactive = False
+
+    def userInteraction(self):
+      """
+        Launches an interface allowing the user to tweak specific model
+        parameters before saving the results to the output object(s).
+        @ In, None
+        @ Out, None
+      """
+
+      ## If it has not been requested, then we are not waiting for a UI,
+      ## otherwise the UI has been requested, and we are going to need to wait
+      ## for it.
+      self.uiDone = not self.interactive
+
+      if self.interactive:
+
+        ## Connect our own signal to the slot on the main thread
+        self.requestUI.connect(self.app.createUI)
+
+        ## Connect our own slot to listen for whenver the main thread signals a
+        ## window has been closed
+        self.app.windowClosed.connect(self.signalDone)
+
+        ## Give this UI a unique id in case other threads are requesting UI
+        ##  elements
+        uiID = unicode(id(self))
+
+        ## Send the request for a UI thread to the main application
+        self.requestUI.emit('HierarchyWindow', uiID,
+                            {'views': ['DendrogramView','ScatterView'],
+                             'debug': False,
+                             'engine': self.unSupervisedEngine})
+
+        ## Spinlock will wait until this instance's window has been closed
+        while(not self.uiDone):
+          time.sleep(1)
+
+        ## First check that the requested UI exists, and then if that UI has the
+        ## requested information, if not proceed as if it were not an
+        ## interactive session.
+        if uiID in self.app.UIs and hasattr(self.app.UIs[uiID],'level') and self.app.UIs[uiID].level is not None:
+          self.initializationOptionDict['KDD']['level'] = self.app.UIs[uiID].level
+
+    def signalDone(self,uiID):
+      """
+        In Qt language, this is a slot that will accept a signal from the UI
+        saying that it has completed, thus allowing the computation to begin
+        again with information updated by the user in the UI.
+        @In, uiID, string, the ID of the user interface that signaled its
+            completion. Thus, if several UI windows are open, we don't proceed,
+            until the correct one has signaled it is done.
+        @Out, None
+      """
+      if uiID == unicode(id(self)):
+        self.uiDone = True
+except ImportError as e:
+  pass
+
 class RavenOutput(BasePostProcessor):
   """
     This postprocessor collects the outputs of RAVEN runs (XML format) and turns entries into a PointSet
@@ -4829,7 +4915,12 @@ try:
   __interFaceDict['TopologicalDecomposition' ] = QTopologicalDecomposition
 except NameError:
   __interFaceDict['TopologicalDecomposition' ] = TopologicalDecomposition
-__interFaceDict['DataMining'               ] = DataMining
+
+try:
+  __interFaceDict['DataMining'               ] = QDataMining
+except NameError:
+  __interFaceDict['DataMining'               ] = DataMining
+
 __interFaceDict['ImportanceRank'           ] = ImportanceRank
 __interFaceDict['RavenOutput'              ] = RavenOutput
 __knownTypes = __interFaceDict.keys()

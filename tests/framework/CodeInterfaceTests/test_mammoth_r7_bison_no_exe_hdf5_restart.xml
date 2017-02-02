@@ -1,4 +1,19 @@
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/CodeInterfaceTests.testMCMammothNoExecutableBisonRelap7WithHDF5restart</name>
+    <author>alfoa</author>
+    <created>2016-12-15</created>
+    <classesTested>Models.Code.MAMMOTH, Model.AliasSystem</classesTested>
+    <description>
+       An example of using the MAMMOTH code interface (no executable). 
+       This test is designed to ensure the MAMMOTH interface mechanics is correctly functional.
+       In addition, the alias system is used
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2016-12-15">modified test in order to be validable by XSD schema</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>MammothBisonRelap7NoExeWithHDF5restart</WorkingDir>
     <Sequence>riaRun1,importPrevResults,riaRun2</Sequence>

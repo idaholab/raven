@@ -1,25 +1,38 @@
 #!/usr/bin/env python
 
+"""
+  A view widget for visualizing 2D scatterplots of data utilizing matplotlib.
+"""
+
+#For future compatibility with Python 3
+from __future__ import division, print_function, absolute_import
+import warnings
+warnings.simplefilter('default',DeprecationWarning)
+#End compatibility block for Python 3
+
+import matplotlib
+matplotlib.rcParams['backend.qt4']='PySide'
+
 from PySide import QtCore as qtc
 from PySide import QtGui as qtg
 
-from GenericView import GenericView
+from .BaseTopologicalView import BaseTopologicalView
 
-from mpl_toolkits.mplot3d import Axes3D
+from matplotlib.collections import LineCollection
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
-import mpl_toolkits
+
 import matplotlib.pyplot
-import matplotlib.ticker
+
 
 import numpy as np
-import colors
+from . import colors
 
-class ScatterView3D(GenericView):
+class ScatterView2D(BaseTopologicalView):
   """
-     A view widget for visualizing 3D scatterplots of data utilizing matplotlib.
+     A view widget for visualizing 2D scatterplots of data utilizing matplotlib.
   """
-  def __init__(self, parent=None, amsc=None, title="3D Projection"):
+  def __init__(self, parent=None, amsc=None, title="2D Projection"):
     """ Initialization method that can optionally specify the parent widget,
         an AMSC object to reference, and a title for this widget.
         @ In, parent, an optional QWidget that will be the parent of this widget
@@ -27,9 +40,9 @@ class ScatterView3D(GenericView):
           object for this widget to use.
         @ In, title, an optional string specifying the title of this widget.
     """
-    super(ScatterView3D, self).__init__(parent,amsc,title)
+    super(ScatterView2D, self).__init__(parent,amsc,title)
 
-  def Reinitialize(self, parent=None, amsc=None, title="3D Projection"):
+  def Reinitialize(self, parent=None, amsc=None, title="2D Projection"):
     """ Reinitialization method that resets this widget and can optionally
         specify the parent widget, an AMSC object to reference, and a title for
         this widget.
@@ -50,7 +63,7 @@ class ScatterView3D(GenericView):
 
     self.fig = Figure(facecolor='white')
     self.mplCanvas = FigureCanvas(self.fig)
-    self.mplCanvas.axes = self.fig.add_subplot(111, projection='3d')
+    self.mplCanvas.axes = self.fig.add_subplot(111)
     # We want the axes cleared every time plot() is called
     self.mplCanvas.axes.hold(False)
     self.colorbar = None
@@ -85,7 +98,7 @@ class ScatterView3D(GenericView):
     col = 0
 
     self.cmbVars = {}
-    for i,name in enumerate(['X','Y','Z','Color']):
+    for i,name in enumerate(['X','Y','Color']):
       varLabel = name + ' variable:'
       self.cmbVars[name] = qtg.QComboBox()
       dimNames = self.amsc.GetNames()
@@ -109,7 +122,6 @@ class ScatterView3D(GenericView):
       subLayout.addWidget(self.cmbVars[name],row,col)
       row += 1
       col = 0
-
     self.cmbColorMaps = qtg.QComboBox()
     self.cmbColorMaps.addItems(matplotlib.pyplot.colormaps())
     self.cmbColorMaps.setCurrentIndex(self.cmbColorMaps.findText('coolwarm'))
@@ -166,8 +178,8 @@ class ScatterView3D(GenericView):
   def updateScene(self):
     """ A method for drawing the scene of this view.
     """
-    fontSize=24
-    smallFontSize=20
+    fontSize=16
+    smallFontSize=12
     rows = self.amsc.GetSelectedIndices()
     names = self.amsc.GetNames()
     self.mplCanvas.axes.clear()
@@ -289,25 +301,12 @@ class ScatterView3D(GenericView):
     if self.chkEdges.isChecked():
       lines  = []
       lineColors = []
-      lines2 = []
-      lineIdxs = []
       for row in rows + minIdxs + maxIdxs:
         cols = self.amsc.GetNeighbors(row)
         for col in cols:
           if col in rows + minIdxs + maxIdxs:
-            if row < col:
-              A = row
-              B = col
-            elif col > row:
-              B = row
-              A = col
-            lineIdxs.append((A,B))
-            lines.append([(allValues['X'][row],
-                           allValues['Y'][row],
-                           allValues['Z'][row]),
-                          (allValues['X'][col],
-                           allValues['Y'][col],
-                           allValues['Z'][col])])
+            lines.append([(allValues['X'][row], allValues['Y'][row]),
+                          (allValues['X'][col], allValues['Y'][col])])
             if self.cmbVars['Color'].currentText() not in specialColorKeywords:
               lineColors.append(myColormap(((allValues['Color'][row]+allValues['Color'][col])/2.-mins['Color'])/(maxs['Color']-mins['Color'])))
             elif allValues['Color'][row] == allValues['Color'][col]:
@@ -315,36 +314,24 @@ class ScatterView3D(GenericView):
             else:
               lineColors.append('#CCCCCC')
 
-      print(list(set(lineIdxs)))
-      lc = mpl_toolkits.mplot3d.art3d.Line3DCollection(lines,colors=lineColors,linewidths=1)
-      self.mplCanvas.axes.add_collection(lc)
       self.mplCanvas.axes.hold(True)
+      lc = LineCollection(lines,colors=lineColors,linewidths=1)
+      self.mplCanvas.axes.add_collection(lc)
 
     if self.cmbVars['Color'].currentText() not in specialColorKeywords:
       myPlot = self.mplCanvas.axes.scatter(values['X'], values['Y'],
-                                           values['Z'], c=values['Color'],
+                                           c=values['Color'],
                                            cmap=myColormap,
                                            vmin=mins['Color'],
                                            vmax=maxs['Color'],
                                            edgecolors='none')
 
-      if self.colorbar is None:
-        self.colorbar = self.fig.colorbar(myPlot)
-      else:
-        # This is intended to be a deprecated feature, but how else can we
-        # force matplotlib to rescale the axis on the colorbar?
-        self.colorbar.update_bruteforce(myPlot)
-        ## Here is its replacement, but this guy will not rescale the colorbar
-        #self.colorbar.update_normal(myPlot)
-      self.colorbar.set_label(self.cmbVars['Color'].currentText(),size=fontSize,labelpad=10)
-      self.colorbar.set_ticks(np.linspace(mins['Color'],maxs['Color'],5))
-      self.colorbar.ax.tick_params(labelsize=smallFontSize)
       self.mplCanvas.axes.hold(True)
       if self.chkExts.checkState() == qtc.Qt.PartiallyChecked:
         maxValues['Color'] = colors.maxBrushColor.name()
         minValues['Color'] = colors.minBrushColor.name()
       self.mplCanvas.axes.scatter(maxValues['X'], maxValues['Y'],
-                                  maxValues['Z'], c=maxValues['Color'],
+                                  c=maxValues['Color'],
                                   cmap=myColormap,
                                   marker=maxDrawParams['marker'],
                                   s=maxDrawParams['s'],
@@ -352,16 +339,16 @@ class ScatterView3D(GenericView):
                                   vmin=mins['Color'], vmax=maxs['Color'],
                                   edgecolors=maxDrawParams['edgecolors'])
       self.mplCanvas.axes.scatter(minValues['X'], minValues['Y'],
-                                  minValues['Z'], c=minValues['Color'],
+                                  c=minValues['Color'],
                                   cmap=myColormap,
                                   marker=minDrawParams['marker'],
                                   s=minDrawParams['s'],
                                   zorder=minDrawParams['zorder'],
                                   vmin=mins['Color'], vmax=maxs['Color'],
-                                  edgecolors=minDrawParams['edgecolors'])
+                                edgecolors=minDrawParams['edgecolors'])
     else:
       myPlot = self.mplCanvas.axes.scatter(values['X'], values['Y'],
-                                           values['Z'], c=values['Color'],
+                                           c=values['Color'],
                                            edgecolors='none')
 
       self.mplCanvas.axes.hold(True)
@@ -369,42 +356,32 @@ class ScatterView3D(GenericView):
         maxValues['Color'] = colors.maxBrushColor.name()
         minValues['Color'] = colors.minBrushColor.name()
       self.mplCanvas.axes.scatter(maxValues['X'], maxValues['Y'],
-                                  maxValues['Z'], c=maxValues['Color'],
+                                  c=maxValues['Color'],
                                   marker=maxDrawParams['marker'],
                                   s=maxDrawParams['s'],
                                   zorder=maxDrawParams['zorder'],
                                   edgecolors=maxDrawParams['edgecolors'])
       self.mplCanvas.axes.scatter(minValues['X'], minValues['Y'],
-                                  minValues['Z'], c=minValues['Color'],
+                                  c=minValues['Color'],
                                   marker=minDrawParams['marker'],
                                   s=minDrawParams['s'],
                                   zorder=minDrawParams['zorder'],
                                   edgecolors=minDrawParams['edgecolors'])
 
     if self.axesLabelAction.isChecked():
-      self.mplCanvas.axes.set_xlabel(self.cmbVars['X'].currentText(),size=fontSize,labelpad=20)
-      self.mplCanvas.axes.set_ylabel(self.cmbVars['Y'].currentText(),size=fontSize,labelpad=20)
-      self.mplCanvas.axes.set_zlabel(self.cmbVars['Z'].currentText(),size=fontSize,labelpad=20)
+      self.mplCanvas.axes.set_xlabel(self.cmbVars['X'].currentText(),size=fontSize,labelpad=10)
+      self.mplCanvas.axes.set_ylabel(self.cmbVars['Y'].currentText(),size=fontSize,labelpad=10)
 
-    #Doesn't do anything
-    self.mplCanvas.axes.set_axisbelow(True)
-
-    ticks = np.linspace(mins['X'],maxs['X'],3)
+    ticks = np.linspace(mins['X'],maxs['X'],5)
     self.mplCanvas.axes.set_xticks(ticks)
     self.mplCanvas.axes.set_xlim([ticks[0],ticks[-1]])
-    ticks = np.linspace(mins['Y'],maxs['Y'],3)
+    self.mplCanvas.axes.xaxis.set_ticklabels([])
+    self.mplCanvas.axes.yaxis.set_ticklabels([])
+    ticks = np.linspace(mins['Y'],maxs['Y'],5)
     self.mplCanvas.axes.set_yticks(ticks)
     self.mplCanvas.axes.set_ylim([ticks[0],ticks[-1]])
-    ticks = np.linspace(mins['Z'],maxs['Z'],3)
-    # ticks = np.linspace(0, 2, 5)
-    self.mplCanvas.axes.set_zticks(ticks)
-    self.mplCanvas.axes.set_zlim([ticks[0],ticks[-1]])
 
-    self.mplCanvas.axes.xaxis.set_major_formatter(matplotlib.ticker.FormatStrFormatter('%.2g'))
-    self.mplCanvas.axes.yaxis.set_major_formatter(matplotlib.ticker.FormatStrFormatter('%.2g'))
-    self.mplCanvas.axes.zaxis.set_major_formatter(matplotlib.ticker.FormatStrFormatter('%.2g'))
-
-    for label in  (self.mplCanvas.axes.get_xticklabels()+self.mplCanvas.axes.get_yticklabels()+self.mplCanvas.axes.get_zticklabels()):
+    for label in  (self.mplCanvas.axes.get_xticklabels()+self.mplCanvas.axes.get_yticklabels()):
       label.set_fontsize(smallFontSize)
 
     self.mplCanvas.axes.hold(False)

@@ -1,5 +1,19 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/metaModelsTests.testEnsembleModelLateralInsertions</name>
+    <author>alfoa</author>
+    <created>2016-12-13</created>
+    <classesTested>Models.EnsembleModel, Models.ExternalModel, JobHandler.ParallelPython</classesTested>
+    <description>
+       Example of usage of the Ensemble Model capability in RAVEN, connecting multiple External Models.
+       This test is aimed to check the functionality of assembling multiple Models, when multiple chains of Models are
+       connected ``laterly''.
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>metaModelWithLateralInsertions</WorkingDir>
     <Sequence>testMetamodelHeatTransfer,dumpResults</Sequence>

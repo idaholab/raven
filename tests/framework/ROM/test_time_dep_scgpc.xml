@@ -5,6 +5,15 @@
     <Sequence>sample,train,dump,print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+  <TestInfo>
+    <name>framework/Samplers/ROM/timeDepGuassPoly</name>
+    <author>talbpaul</author>
+    <created>2016-03-09</created>
+    <classesTested>SupervisedLearning.GaussPolynomialROM</classesTested>
+    <description>
+      This tests using a time-dependent GaussPolynomialROM.
+    </description>
+  </TestInfo>
 
   <Files>
     <Input name="rom_pk" type="">rom.pk</Input>

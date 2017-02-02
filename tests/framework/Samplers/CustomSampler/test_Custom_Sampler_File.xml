@@ -1,5 +1,21 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/Samplers/CustomSampler.customSamplerFromFile</name>
+    <author>alfoa</author>
+    <created>2016-05-24</created>
+    <classesTested>Samplers.CustomSampler, Files.Input</classesTested>
+    <description>
+       An example of using the Custom Sampler object. In this test
+       the realization coordinates are collected from a Files object of type CSV.
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2016-05-25">Fixed absolute path</revision>
+      <revision author="talbpaul" date="2016-09-15">Test updates</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
+
   <RunInfo>
     <WorkingDir>CustomSamplerFromFile</WorkingDir>
     <Sequence>CustomSampler</Sequence>

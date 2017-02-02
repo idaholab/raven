@@ -5,6 +5,15 @@
     <Sequence>TDmake,TDtrain,TDtest,TDprint</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+  <TestInfo>
+    <name>framework/Samplers/SparseGrid/totalDegreeGrid</name>
+    <author>talbpaul</author>
+    <created>2015-09-11</created>
+    <classesTested>IndexSets.TotalDegree</classesTested>
+    <description>
+      This tests the creation of a TotalDegree construction sparse grid.
+    </description>
+  </TestInfo>
 
   <Distributions>
     <Uniform name="UniDist">

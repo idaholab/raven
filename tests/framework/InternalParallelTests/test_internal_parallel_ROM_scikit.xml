@@ -1,5 +1,22 @@
 <?xml version="1.0" ?>
 <Simulation>
+  <TestInfo>
+    <name>framework/InternalParallelTests.ROMscikit</name>
+    <author>alfoa</author>
+    <created>2015-10-07</created>
+    <classesTested>JobHandler.ParallelPython, Models.ROM.SKLearn</classesTested>
+    <description>
+       This test is aimed to check the functionality of the RAVEN parallelization scheme for Internal Objects.
+       In this case the functionality of the parallelization is tested for the Model ROM of type SKLearn
+    </description>
+    <revisions>
+      <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
+      <revision author="maljdan" date="2016-04-25">Fixing the internal parallel tests to use support vector regression and making the step sizes look the same in the cluster and local test cases. This creates a more robust test case since the data points will be floating point values.</revision>
+      <revision author="maljdan" date="2016-04-25">Switching to a different regressor that yields more consistent results.</revision>
+      <revision author="maljdan" date="2016-04-25">Regolding based on 1-nearest neighbor regression. This should effectively report the same information as the training data.</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>InternalParallelScikit</WorkingDir>
     <Sequence>step1,step2,step3,step4</Sequence>

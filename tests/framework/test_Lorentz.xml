@@ -1,5 +1,21 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework.testExternalModel</name>
+    <author>mandd</author>
+    <created>2013-10-24</created>
+    <classesTested>Models.ExternalModel</classesTested>
+    <description>
+       This test is aimed to check the functionality of RAVEN to use ExternalModel entities.     
+    </description>
+    <revisions>
+      <revision author="mandd" date="2015-04-17">conversion to Database and DataObjects</revision>
+      <revision author="alfoa" date="2015-04-21">Closes #122</revision>
+      <revision author="cogljj" date="2015-09-29">Modifing external modules to use relative to working directory.</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+    <requirements>R-IS-4</requirements>
+  </TestInfo>
   <!-- RUNINFO -->
   <RunInfo>
     <WorkingDir>externalModel</WorkingDir>

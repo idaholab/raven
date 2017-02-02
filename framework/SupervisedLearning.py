@@ -20,9 +20,13 @@ from sklearn import svm
 from sklearn import multiclass
 from sklearn import naive_bayes
 from sklearn import neighbors
+
 from sklearn import qda
-from sklearn import tree
 from sklearn import lda
+# from sklearn import discriminant_analysis
+
+from sklearn import tree
+
 from sklearn import gaussian_process
 import numpy as np
 import abc
@@ -1852,9 +1856,33 @@ class SciKitLearn(superVisedLearning):
   # the normalization strategy is defined through the Boolean value in the dictionary below:
   # {mainClass:{subtype:(classPointer,Output type (float or int), boolean -> External Z-normalization needed)}
   ROMtype = 'SciKitLearn'
+
+  ## This seems more manual than it needs to be, why not use something like:
+  # import os, sys, pkgutil, inspect
+  # import sklearn
+
+  # # sys.modules['sklearn']
+  # sklearnSubmodules = [name for _,name,_ in pkgutil.iter_modules([os.path.dirname(sklearn.__file__)])]
+  # loadedSKL = []
+
+  # sklLibrary = {}
+  # for key,mod in globals().items():
+  #   if key in sklearnSubmodules:
+  #     members = inspect.getmembers(mod, inspect.isclass)
+  #     for mkey,member in members:
+  #       sklLibrary[key+'|'+mkey] = member
+
+  ## Now sklLibrary holds keys that are the same as what the user inputs, and
+  ## the values are the classes that can be directly instantiated. One would
+  ## still need the float/int and boolean designations, but my suspicion is that
+  ## these "special" cases are just not being handled in a generic enough
+  ## fashion. This doesn't seem like something we should be tracking.
+
+
   availImpl                                                 = {}                                                            # dictionary of available ROMs {mainClass:{subtype:(classPointer,Output type (float or int), boolean -> External Z-normalization needed)}
   availImpl['lda']                                          = {}                                                            #Linear Discriminant Analysis
   availImpl['lda']['LDA']                                   = (lda.LDA                                  , 'int'    , False) #Quadratic Discriminant Analysis (QDA)
+  # availImpl['lda']['LDA']                                   = (discriminant_analysis.LinearDiscriminantAnalysis, 'int'    , False) #Quadratic Discriminant Analysis (QDA)
   availImpl['linear_model']                                 = {}                                                            #Generalized Linear Models
   availImpl['linear_model']['ARDRegression'               ] = (linear_model.ARDRegression               , 'float'  , False) #Bayesian ARD regression.
   availImpl['linear_model']['BayesianRidge'               ] = (linear_model.BayesianRidge               , 'float'  , False) #Bayesian ridge regression
@@ -1910,6 +1938,7 @@ class SciKitLearn(superVisedLearning):
 
   availImpl['qda'] = {}
   availImpl['qda']['QDA'                                  ] = (qda.QDA                                  , 'int'   ,  False) #Quadratic Discriminant Analysis (QDA)
+  # availImpl['qda']['QDA'                                  ] = (discriminant_analysis.QuadraticDiscriminantAnalysis, 'int'   ,  False) #Quadratic Discriminant Analysis (QDA)
 
   availImpl['tree'] = {}
   availImpl['tree']['DecisionTreeClassifier'              ] = (tree.DecisionTreeClassifier              , 'int'   ,  True )# A decision tree classifier.

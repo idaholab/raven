@@ -59,7 +59,7 @@
   csv = 'AdaptiveDET/limitSurfDump.csv'
   required_executable = '../../RAVEN-%METHOD%'
   rel_err = 0.0001
-  max_time = 400
+  max_time = 800
  [../]
 
  [./testAdaptiveHybridDynamicEventTreeRAVEN]
@@ -69,7 +69,7 @@
   csv = 'AdaptiveHybridDET/limitsurfaceDump.csv'
   required_executable = '../../RAVEN-%METHOD%'
   rel_err = 0.0001
-  max_time = 400
+  max_time = 800
  [../]
 
  [./test_mpi]
@@ -263,7 +263,7 @@
   rel_err = 0.0001
  [../]
 
- [./test_bison_mc_simple_&_alias_system]
+ [./test_bison_mc_simple_and_alias_system]
   #REQUIREMENT_TEST R-IS-6
   type = 'RavenFramework'
   input = 'test_bison_mc_simple.xml'

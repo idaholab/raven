@@ -1,11 +1,19 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
-  <!-- tests order preservation in variable groups -->
   <RunInfo>
     <WorkingDir>Ordered</WorkingDir>
     <printInput/>
     <Sequence>sample,print</Sequence>
   </RunInfo>
+  <TestInfo>
+    <name>framework/VariableGroups/OrderedVariables</name>
+    <author>talbpaul</author>
+    <created>2016-02-08</created>
+    <classesTested>VariableGroups</classesTested>
+    <description>
+      tests order preservation of variables in variable groups
+    </description>
+  </TestInfo>
 
   <VariableGroups>
     <Group name="x_odd">x1,x3,x5</Group>

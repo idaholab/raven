@@ -5,6 +5,20 @@
     <batchSize>1</batchSize>
     <Sequence>sample,train,print</Sequence>
   </RunInfo>
+  <TestInfo>
+    <name>framework/pca_sobol/test_sobol_poly_correlation</name>
+    <author>wangc</author>
+    <created>2016-01-06</created>
+    <classesTested>Samplers.Sobol,SupervisedLearning.HDMRRom</classesTested>
+    <description>
+      Tests the Sobol sampler combined wit input reductions via PCA method,
+      using correlated multivariate normal distributions.
+    </description>
+    <analytic>
+      This test is analytic in mean and variance using the "attenuation" and "tensor polynomial" analytic models
+      documented in the analytic tests.
+    </analytic>
+  </TestInfo>
 
   <DataObjects>
     <PointSet name="dummyIN">
