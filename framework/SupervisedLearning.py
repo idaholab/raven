@@ -700,11 +700,14 @@ class GaussPolynomialRom(superVisedLearning):
       self.raiseAnError(RuntimeError,'ROM has not yet been initialized!  Has the Sampler associated with this ROM been used?')
     self.raiseADebug('training',self.features,'->',self.target)
     self.featv, self.targv = featureVals,targetVals
-    self.polyCoeffDict=dict.fromkeys(self.target,{})
+    self.polyCoeffDict = {key: dict({}) for key in self.target}
+    #self.polyCoeffDict=dict.fromkeys(self.target,{})
     #check equality of point space
     self.raiseADebug('...checking required points are available...')
     fvs = []
-    tvs = dict.fromkeys(self.target,[])
+    tvs = {key: list({}) for key in self.target}
+    #for target in self.target: tvs[target] = []
+    #tvs = dict.fromkeys(self.target,[])
     sgs = list(self.sparseGrid.points())
     missing=[]
     kdTree = spatial.KDTree(featureVals)
@@ -724,7 +727,7 @@ class GaussPolynomialRom(superVisedLearning):
       #end brute way
       if found:
         fvs.append(point)
-        for target in self.target: tvs[target].append(targetVals[idx])
+        for cnt, target in enumerate(self.target):  tvs[target].append(targetVals[idx,cnt])
       else:
         missing.append(pt)
     if len(missing)>0:
@@ -760,7 +763,7 @@ class GaussPolynomialRom(superVisedLearning):
           tupPt = tuple(pt)
           stdPt = standardPoints[tupPt]
           wt = self.sparseGrid.weights(translate[tupPt])
-          self.polyCoeffDict[target][idx]+=soln[0]*self._multiDPolyBasisEval(idx,stdPt)*wt
+          self.polyCoeffDict[target][idx]+=soln*self._multiDPolyBasisEval(idx,stdPt)*wt
         self.polyCoeffDict[target][idx]*=self.norm
     self.amITrained=True
     self.raiseADebug('...training complete!')
@@ -876,7 +879,6 @@ class GaussPolynomialRom(superVisedLearning):
   def getSensitivities(self,targ=None):
     """
       Calculates the Sobol indices (percent partial variances) of the terms in this expansion.
-      @ In, None
       @ In, targ, str, optional, the target for which the moment needs to be computed
       @ Out, getSensitivities, tuple(dict), Sobol indices and partial variances keyed by subset
     """
@@ -1044,7 +1046,9 @@ class HDMRRom(GaussPolynomialRom):
     for cnt, target in enumerate(self.target):
       self.refSoln[target] = ft[self.refpt][cnt]
     for combo,rom in self.ROMs.items():
-      subtdict=dict.fromkeys(self.target,[])
+      subtdict = {}
+      for target in self.target: subtdict[target]=[]
+      #subtdict=dict.fromkeys(self.target,[])
       for c in combo: subtdict[c]=[]
       SG = rom.sparseGrid
       fvals=np.zeros([len(SG),len(combo)])
@@ -1135,37 +1139,38 @@ class HDMRRom(GaussPolynomialRom):
         else:
           cutVals = [list(featureVals[0][self.features.index(j)] for j in term)]
           tot += self.ROMs[term].__evaluateLocal__(cutVals)[target]*mult
-      returnDict[target] = tot    
+      returnDict[target] = tot
     return returnDict
 
-  def __mean__(self):
+  def __mean__(self,targ=None):
     """
       The Cut-HDMR approximation can return its mean easily.
-      @ In, None
+      @ In, targ, str, optional, the target for which the __mean__ needs to be computed
       @ Out, __mean__, float, the mean
     """
     if not self.amITrained: self.raiseAnError(IOError,'Cannot evaluate mean, as ROM is not trained!')
-    return self._calcMean(self.reducedTerms)
+    return self._calcMean(self.reducedTerms,targ)
 
-  def __variance__(self):
+  def __variance__(self,targ=None):
     """
       The Cut-HDMR approximation can return its variance somewhat easily.
-      @ In, None
+      @ In, targ, str, optional, the target for which the __mean__ needs to be computed
       @ Out, __variance__, float, the variance
     """
     if not self.amITrained: self.raiseAnError(IOError,'Cannot evaluate variance, as ROM is not trained!')
-    self.getSensitivities()
+    self.getSensitivities(targ)
     return sum(val for val in self.partialVariances.values())
 
-  def _calcMean(self,fromDict):
+  def _calcMean(self,fromDict,targ=None):
     """
       Given a subset, calculate mean from terms
       @ In, fromDict, dict{string:int}, ROM subsets and their multiplicity
+      @ In, targ, str, optional, the target for which the __mean__ needs to be computed
       @ Out, tot, float, mean
     """
     tot = 0
     for term,mult in fromDict.items():
-      tot += self._evaluateIntegral(term)*mult
+      tot += self._evaluateIntegral(term,targ)*mult
     return tot
 
   def _collectTerms(self,a,targetDict,sign=1,depth=0):
@@ -1182,18 +1187,19 @@ class HDMRRom(GaussPolynomialRom):
     for sub in self.terms[a]:
       self._collectTerms(sub,targetDict,sign*-1,depth+1)
 
-  def _evaluateIntegral(self,term):
+  def _evaluateIntegral(self,term, targ=None):
     """
       Uses properties of orthonormal gPC to algebraically evaluate integrals gPC
       This does assume the integral is over all the constituent variables in the the term
       @ In, term, string, subset term to integrate
+      @ In, targ, str, optional, the target for which the __mean__ needs to be computed
       @ Out, _evaluateIntegral, float, evaluation
 
     """
     if term in [(),'',None]:
-      return self.refSoln
+      return self.refSoln[targ if targ is not None else self.target[0]]
     else:
-      return self.ROMs[term].__evaluateMoment__(1)
+      return self.ROMs[term].__evaluateMoment__(1,targ)
 
   def _removeZeroTerms(self,d):
     """
@@ -1207,12 +1213,13 @@ class HDMRRom(GaussPolynomialRom):
     for rem in toRemove:
       del d[rem]
 
-  def getSensitivities(self):
+  def getSensitivities(self,targ=None):
     """
       Calculates the Sobol indices (percent partial variances) of the terms in this expansion.
-      @ In, None
+      @ In, targ, str, optional, the target for which the moment needs to be computed
       @ Out, getSensitivities, tuple(dict), Sobol indices and partial variances keyed by subset
     """
+    target = self.target[0] if targ is None else targ
     if self.sdx is not None and self.partialVariances is not None:
       self.raiseADebug('Using previously-constructed ANOVA terms...')
       return self.sdx,self.partialVariances
@@ -1223,7 +1230,7 @@ class HDMRRom(GaussPolynomialRom):
     for subset,mult in self.reducedTerms.items():
       #skip mean, since it will be subtracted off in the end
       if subset == (): continue
-      for poly,coeff in self.ROMs[subset].polyCoeffDict.items():
+      for poly,coeff in self.ROMs[subset].polyCoeffDict[target].items():
         #skip mean terms
         if sum(poly) == 0: continue
         poly = self.__fillIndexWithRef(subset,poly)
