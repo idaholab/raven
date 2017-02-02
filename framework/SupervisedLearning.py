@@ -834,7 +834,7 @@ class GaussPolynomialRom(superVisedLearning):
       stdPt[p] = self.distDict[varName].convertToQuad(self.quads[varName].type,pt)
     for target in self.target:
       tot=0
-      for idx,coeff in self.polyCoeffDict.items():
+      for idx,coeff in self.polyCoeffDict[target].items():
         tot+=coeff*self._multiDPolyBasisEval(idx,stdPt)
       returnDict[target] = tot
     return returnDict
