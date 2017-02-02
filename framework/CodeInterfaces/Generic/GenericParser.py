@@ -94,7 +94,7 @@ class GenericParser():
       @ Out, None
     """
     modDict = Kwargs['SampledVars']
-    self.adlDict = Kwargs['additionalEdits']
+    self.adlDict = Kwargs.get('additionalEdits',{})
     ioVars = []
     for value in self.adlDict.values():
       if type(value)==dict:

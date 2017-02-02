@@ -73,7 +73,7 @@ class ExternalRunner(Runner):
         else:
           ## Lastly, try to find the identifier in the folder name
           ## if the identifier was passed from outside
-          splitPaths = utils.splitPath(str(output))
+          splitPaths = os.path.split(str(output))
           if len(splitPaths) >= 2:
             self.identifier = splitPaths[-2]
     else:

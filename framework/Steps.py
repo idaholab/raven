@@ -316,7 +316,9 @@ class SingleRun(Step):
     outputs        = inDictionary['Output'    ]
 
     # the input provided by a SingleRun is simply the file to be run.  model.run, however, expects stuff to perturb.
-    model.run(inputs,jobHandler)
+    # get an input to run
+    newInput = model.createNewInput(inputs,'None',**{'SampledVars':{},'additionalEdits':{}})
+    model.run(newInput,jobHandler) #empty dictionary corresponds to sampling data in multirun
     while True:
       finishedJobs = jobHandler.getFinished()
       for finishedJob in finishedJobs:
@@ -335,7 +337,6 @@ class SingleRun(Step):
     if sampler is not None: sampler.handleFailedRuns(self.failedRuns)
     else:
       if len(self.failedRuns)>0: self.raiseAWarning('There were %i failed runs!' %len(self.failedRuns))
-
 
   def _localGetInitParams(self):
     """

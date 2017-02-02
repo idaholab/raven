@@ -1231,7 +1231,6 @@ class ExternalModel(Dummy):
        @ In,  jobHandler, JobHandler instance, the global job handler instance
        @ Out, None
     """
-    print('DEBUGG extmod.run Input:',Input)
     inRun = copy.copy(self._manipulateInput(Input[0][0]))
     uniqueHandler = Input[0][1]['uniqueHandler'] if 'uniqueHandler' in Input[0][1].keys() else 'any'
     jobHandler.addInternal((inRun,Input[1],),self.__externalRun,str(Input[0][1]['prefix']),metadata=Input[0][1], modulesToImport = self.mods,uniqueHandler=uniqueHandler)
@@ -1488,7 +1487,8 @@ class Code(Model):
       @ In, currentInput, list, the inputs (list) to start from to generate the new one
       @ In, samplerType, string, is the type of sampler that is calling to generate a new input
       @ In, **Kwargs, dict,  is a dictionary that contains the information coming from the sampler,
-           a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
+           a mandatory key is the SampledVars'that contains a dictionary {'name variable':value}
+           also 'additionalEdits', similar dictionary for non-variables
       @ Out, createNewInput, tuple, return the new input in a tuple form
     """
     Kwargs['executable'] = self.executable
