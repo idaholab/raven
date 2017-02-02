@@ -888,6 +888,7 @@ class ROM(Dummy):
       self.trainingSet = copy.copy(self._inputToInternal(trainingSet, full=True))
       self._replaceVariablesNamesWithAliasSystem(self.trainingSet, 'inout', False)
       self.supervisedEngine.train(self.trainingSet)
+      self.amITrained = self.supervisedEngine.amITrained
 
   def confidence(self,request,target = None):
     """
