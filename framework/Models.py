@@ -1785,7 +1785,7 @@ class PostProcessor(Model, Assembler):
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
       @ Out, createNewInput, tuple, return the new input in a tuple form
     """
-    return self.interface.inputToInternal(self,myInput)
+    return self.interface.inputToInternal(myInput)
 
 class EnsembleModel(Dummy, Assembler):
   """

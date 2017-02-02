@@ -316,8 +316,11 @@ class SingleRun(Step):
     outputs        = inDictionary['Output'    ]
 
     # the input provided by a SingleRun is simply the file to be run.  model.run, however, expects stuff to perturb.
-    # get an input to run
-    newInput = model.createNewInput(inputs,'None',**{'SampledVars':{},'additionalEdits':{}})
+    # get an input to run -> different between SingleRun and PostProcessor runs
+    if self.type == 'SingleRun':
+      newInput = model.createNewInput(inputs,'None',**{'SampledVars':{},'additionalEdits':{}})
+    else:
+      newInput = inputs
     model.run(newInput,jobHandler) #empty dictionary corresponds to sampling data in multirun
     while True:
       finishedJobs = jobHandler.getFinished()
