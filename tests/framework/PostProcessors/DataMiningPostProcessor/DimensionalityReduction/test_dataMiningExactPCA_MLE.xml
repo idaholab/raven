@@ -1,5 +1,16 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="silent">
+  <TestInfo>
+    <name>framework/PostProcessors/DataMiningPostProcessor/DimensionalityReduction/ExactPCA_MLE</name>
+    <author>maljdan</author>
+    <created>2016-08-11</created>
+    <classesTested>DataMining</classesTested>
+    <description>
+      Tests decomposition with PCA and MLE.
+      This test exercises our ability to accept a string for n_components
+      See Issue #649
+    </description>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>ExactPCA</WorkingDir>
     <Sequence>readIn,PCAIris,output</Sequence>

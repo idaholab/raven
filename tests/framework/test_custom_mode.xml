@@ -1,5 +1,21 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework.test_custom_mode</name>
+    <author>cogljj</author>
+    <created>2014-04-02</created>
+    <classesTested>JobHandler.ExternalRunner</classesTested>
+    <description>
+       This test is aimed to check the capability of RAVEN to load external Custom dispatching recepies. RunInfo.CustomMode.
+    </description>
+    <revisions>
+      <revision author="mandd" date="2015-04-17">conversion to Database and DataObjects</revision>
+      <revision author="alfoa" date="2015-05-18">Closes #167</revision>
+      <revision author="alfoa" date="2015-06-18">Changed Name of all DataObjects</revision>
+      <revision author="alfoa" date="2016-04-27">New subdirectories structure</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>./mode_test</WorkingDir>
     <Sequence>FirstMRun</Sequence>

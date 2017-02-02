@@ -1,5 +1,20 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/aliasSystemTests.testExternalModelAliased</name>
+    <author>alfoa</author>
+    <created>2016-11-18</created>
+    <classesTested>Models.ExternalModel, Models.AliasSystem</classesTested>
+    <description>
+       An example of using the the alias system in RAVEN with an External Model.
+       This capability allows the user to alias Models variables within the RAVEN framework
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2016-11-22">Closes #754</revision>
+      <revision author="alfoa" date="2016-11-28">Added XSD schema and Closes #756</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
   <!-- RUNINFO -->
   <RunInfo>
     <WorkingDir>externalModel</WorkingDir>

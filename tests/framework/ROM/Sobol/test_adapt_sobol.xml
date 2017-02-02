@@ -5,6 +5,19 @@
     <Sequence>make,train,print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+  <TestInfo>
+    <name>framework/Samplers/ROM/Sobol/AdaptiveSobol</name>
+    <author>talbpaul</author>
+    <created>2016-02-08</created>
+    <classesTested>Samplers.AdaptiveSobol,SupervisedLearning.HDMRRom</classesTested>
+    <description>
+      This tests using the AdaptiveSobol sampler to construct HDMRRom ROMs.
+    </description>
+    <analytic>
+      dumprom.xml has analytic results for mean and variance in that are documented in the Attenuation
+      section of the analytic tests manual.
+    </analytic>
+  </TestInfo>
 
   <Steps>
     <MultiRun name="make" pauseAtEnd="False">

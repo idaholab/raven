@@ -5,6 +5,15 @@
     <Sequence>sample,train,dump,print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+  <TestInfo>
+    <name>framework/Samplers/ROM/Sobol/TimeDependent</name>
+    <author>talbpaul</author>
+    <created>2016-03-09</created>
+    <classesTested>SupervisedLearning.HDMRRom</classesTested>
+    <description>
+      This test checks the construction of a time-dependent HDMRRom.
+    </description>
+  </TestInfo>
 
   <Files>
     <Input name="rom_pk" type="">rom.pk</Input>

@@ -1,5 +1,25 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/Samplers/DynamicEventTrees.testHybridDETshortRAVEN</name>
+    <author>alfoa</author>
+    <created>2015-10-05</created>
+    <classesTested>Samplers.DynamicEventTree, Models.Code</classesTested>
+    <description>
+       An example of using the Dynamic Event Tree Methodology (Hybrid Dynamic Event Tree) with an external Code (RELAP7 in this case).
+       This test is a fast executing one that is aimed to check the mechanics of the DET methodology, when epistemic uncertanties 
+       need to be modeled.
+    </description>
+    <revisions>
+      <revision author="cogljj" date="2016-03-21">Fixing dynamic event tree RELAP-7 inputs.</revision>
+      <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
+      <revision author="talbpaul" date="2016-04-26">Added check for pre-existing backup files when validating</revision>
+      <revision author="alfoa" date="2016-04-27">New subdirectories structure</revision>
+      <revision author="maljdan" date="2016-08-03">Removing PrintCSV PostProcessor from the DET test cases.</revision>
+      <revision author="alfoa" date="2016-10-20">Modified XSD and removed dim attribute from all the tests</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>HybridDynamicEventTree</WorkingDir>
     <Sequence>HybridDETrunTest,testOutstreamStep</Sequence>

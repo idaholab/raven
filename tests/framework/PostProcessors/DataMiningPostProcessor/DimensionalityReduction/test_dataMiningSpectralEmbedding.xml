@@ -1,5 +1,14 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="silent">
+  <TestInfo>
+    <name>framework/PostProcessors/DataMiningPostProcessor/DimensionalityReduction/SpectralEmbedding</name>
+    <author>senrs</author>
+    <created>2015-11-24</created>
+    <classesTested>DataMining</classesTested>
+    <description>
+      Tests manifold with SpectralEmbedding.
+    </description>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>SpectralEmbedding</WorkingDir>
     <Sequence>readIn,PCAIris,output</Sequence>

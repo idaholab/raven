@@ -5,6 +5,15 @@
     <Sequence>SamplingMirrowModelStratified,PP1Stratified</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+  <TestInfo>
+    <name>framework/PostProcessors/BasicStatistics/grid_analytic</name>
+    <author>alfoa</author>
+    <created>2015-11-22</created>
+    <classesTested>PostProcessors.BasicStatistics</classesTested>
+    <description>
+      This test checks basic statistics on Stratified samples
+    </description>
+  </TestInfo>
 
   <Files>
     <Input name="output_basicStatistics_PP1Stratified.csv" type="">output_basicStatistics_PP1Stratified.csv</Input>

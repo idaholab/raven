@@ -24,6 +24,19 @@
       <Output class="Models" type="ROM">rom</Output>
     </RomTrainer>
   </Steps>
+  <TestInfo>
+    <name>framework/Samplers/ROM/Sobol/sobolIshigamiAnalytic</name>
+    <author>talbpaul</author>
+    <created>2016-03-08</created>
+    <classesTested>SupervisedLearning.HDMRRom</classesTested>
+    <description>
+      This analytic test checks the performance of HDMRRom against the sinusoidal Ishigami function.
+    </description>
+    <analytic>
+      dumprom.xml has analytic mean and variance, and is documented in the analytic test document
+      under "Global Sobol Sensitivity: Ishigami".
+    </analytic>
+  </TestInfo>
 
   <Distributions>
     <Uniform name="UniDist">

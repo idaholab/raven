@@ -1,5 +1,14 @@
 <?xml version="1.0" ?>
 <Simulation>
+  <TestInfo>
+    <name>framework/PostProcessors/DataMiningPostProcessor/Clustering/KMeansPCA</name>
+    <author>senrs</author>
+    <created>2015-11-24</created>
+    <classesTested>DataMining</classesTested>
+    <description>
+      Tests clustering with KMeans followed by data reduction with PCA.
+    </description>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>KMeansPCA</WorkingDir>
     <Sequence>read_in_csv1,pp1,pp2</Sequence>

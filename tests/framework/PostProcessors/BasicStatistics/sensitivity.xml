@@ -5,6 +5,15 @@
     <batchSize>1</batchSize>
     <Sequence>sample,PP</Sequence>
   </RunInfo>
+  <TestInfo>
+    <name>framework/PostProcessors/BasicStatistics/sensitivity</name>
+    <author>wangc</author>
+    <created>2015-12-10</created>
+    <classesTested>PostProcessors.BasicStatistics</classesTested>
+    <description>
+      This test checks the sensitivities (and other metrics) calculated by basic statistics PP
+    </description>
+  </TestInfo>
 
   <Files>
     <Input name="output_basicStatistics.csv" type="">output_basicStatistics.csv</Input>

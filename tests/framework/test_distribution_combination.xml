@@ -1,5 +1,25 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework.dists_vars</name>
+    <author>mandd</author>
+    <created>2015-05-13</created>
+    <classesTested>Distributions.Exponential, Distributions.NDCartesianSpline, Sampler.MonteCarlo</classesTested>
+    <description>
+       This test is aimed to check the capability in RAVEN to combine 1Dimensional and NDimensional probability density functions
+       in the same sampling strategy. In this test a NDimensional distribution (Custom) is used in conjunction with 3 1Dimensional Exponential distributions,
+       in a MonteCarlo sampling strategy.
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2015-06-18">Changed Name of all DataObjects</revision>
+      <revision author="maljdan" date="2015-06-24">Adding DataObjects and fixing Distributions in the XSD.</revision>
+      <revision author="alfoa" date="2015-09-12">removed syntax inconsistency with respect standards for Samplers (underscores instead of camelBack) + created conversion script</revision>
+      <revision author="cogljj" date="2015-09-29">Modifing external modules to use relative to working directory.</revision>
+      <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
+      <revision author="maljdan" date="2016-05-20">Updating the test cases to remove references to Point or History.</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>dists_vars/</WorkingDir>
     <Sequence>FirstMRun</Sequence>

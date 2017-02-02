@@ -1,11 +1,20 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/PostProcessors/DataMiningPostProcessor/Clustering/agglomerativeDTW</name>
+    <author>mandd</author>
+    <created>2016-10-10</created>
+    <classesTested>DataMining</classesTested>
+    <description>
+      Tests clustering with Agglomerative model with DTW metric.
+    </description>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>agglomerative_dtw</WorkingDir>
     <Sequence>FirstMRun,plotAllHists,clustering,filter0,filter1</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
-  
+
   <Steps>
     <MultiRun name="FirstMRun" pauseAtEnd="True">
       <Input     class="DataObjects"      type="PointSet"       >inputPlaceHolder</Input>
@@ -35,7 +44,7 @@
       <Output    class="DataObjects"      type="HistorySet"     >outMC1</Output>
       <Output    class="OutStreams"       type="Plot"           >Cluster_1</Output>
     </PostProcess>
-  </Steps>  
+  </Steps>
 
   <Models>
     <ExternalModel ModuleToLoad="lorentzAttractor_disc_diffTimeScale" name="PythonModule" subType="">
@@ -63,7 +72,7 @@
        <clusterIDs>1</clusterIDs>
     </PostProcessor>
   </Models>
-  
+
   <Samplers>
     <MonteCarlo name="MC_external">
       <samplerInit>
@@ -81,7 +90,7 @@
       </variable>
     </MonteCarlo>
   </Samplers>
-   
+
   <DataObjects>
     <PointSet name="inputPlaceHolder">
       <Input>x0,y0,z0</Input>
@@ -100,7 +109,7 @@
       <Output>time,x,y,z</Output>
     </HistorySet>
   </DataObjects>
-  
+
   <Distributions>
     <Normal name="x0_distrib">
       <mean>4</mean>
@@ -142,7 +151,7 @@
       <plotSettings>
         <plot>
           <type>line</type>
-          <interpolationType>cubic</interpolationType>         
+          <interpolationType>cubic</interpolationType>
           <interpPointsX>1000</interpPointsX>
           <x>outMC|Output|time</x>
           <y>outMC|Output|y</y>
@@ -169,7 +178,7 @@
       <plotSettings>
         <plot>
           <type>line</type>
-          <interpolationType>cubic</interpolationType>         
+          <interpolationType>cubic</interpolationType>
           <interpPointsX>1000</interpPointsX>
           <x>outMC0|Output|time</x>
           <y>outMC0|Output|y</y>
@@ -187,7 +196,7 @@
       <plotSettings>
         <plot>
           <type>line</type>
-          <interpolationType>cubic</interpolationType>         
+          <interpolationType>cubic</interpolationType>
           <interpPointsX>1000</interpPointsX>
           <x>outMC1|Output|time</x>
           <y>outMC1|Output|y</y>
@@ -203,7 +212,7 @@
     </Plot>
   </OutStreams>
 
-  
+
   <Metrics>
     <DTW name="example">
       <order>0</order>
@@ -211,5 +220,5 @@
       <localDistance>euclidean</localDistance>
     </DTW>
   </Metrics>
-  
+
 </Simulation>

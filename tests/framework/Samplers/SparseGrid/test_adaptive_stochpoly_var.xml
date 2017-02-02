@@ -5,6 +5,15 @@
     <Sequence>make,train,print,print2</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+  <TestInfo>
+    <name>framework/Samplers/SparseGrid/AdaptiveOnVariance</name>
+    <author>talbpaul</author>
+    <created>2015-07-07</created>
+    <classesTested>Samplers.AdaptiveSparseGrid</classesTested>
+    <description>
+      This tests the adaptive sparse grid with adaptive samples chosen and converged according to variance.
+    </description>
+  </TestInfo>
 
   <Steps>
     <MultiRun name="make" sleepTime="1e-4" verbosity="silent">

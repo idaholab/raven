@@ -1,5 +1,14 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/PostProcessors/DataMiningPostProcessor/Clustering/KMeans</name>
+    <author>maljdan</author>
+    <created>2016-09-09</created>
+    <classesTested>DataMining</classesTested>
+    <description>
+      Tests clustering with the KMeans model.
+    </description>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>KMeans</WorkingDir>
     <Sequence>input,cluster,output</Sequence>

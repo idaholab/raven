@@ -1,5 +1,18 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/aliasSystemTests.testEnsembleModelAliased</name>
+    <author>alfoa</author>
+    <created>2016-11-30</created>
+    <classesTested>Models.EnsembleModel, Models.AliasSystem</classesTested>
+    <description>
+       An example of using the the alias system in RAVEN with an Ensemble Model.
+       This capability allows the user to alias Models variables within the RAVEN framework
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>ensembleModelAliased</WorkingDir>
     <Sequence>testMetamodelHeatTransfer,dumpResults</Sequence>

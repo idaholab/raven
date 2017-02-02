@@ -1,5 +1,29 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework.testLHS</name>
+    <author>crisr</author>
+    <created>2013-10-15</created>
+    <classesTested>Samplers.Stratified, Models.Dummy, Steps.MultiRun</classesTested>
+    <description>
+       This test is aimed to check the functionality of the Stratified sampling. In order to check this sampling strategy
+       a Model of type Dummy.
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2014-01-21">fixed tests, added new capability in OutStreamPrint + modified check_output test, bug fixes in Datas.py and Steps... Deletede Plotting Step... Not needed SVN r24086</revision>
+      <revision author="alfoa" date="2015-03-04">modified batch sizes because sometimes, if we run the tests in parallel, the order of values in csv can be different</revision>
+      <revision author="mandd" date="2015-04-17">conversion to Database and DataObjects</revision>
+      <revision author="alfoa" date="2015-04-24">From LHS to Stratified. Closes #130</revision>
+      <revision author="alfoa" date="2015-05-18">Closes #167</revision>
+      <revision author="alfoa" date="2015-05-18">Closes #169</revision>
+      <revision author="alfoa" date="2015-06-18">Changed Name of all DataObjects</revision>
+      <revision author="maljdan" date="2015-08-20">Fixing a bug associated with the grid construction used by the LHS sampler. (See issue #266)</revision>
+      <revision author="wangc" date="2015-09-10">update validate_xml.sh, convert some test inputs into something mostly RAVEN-preferred</revision>
+      <revision author="alfoa" date="2015-09-12">removed syntax inconsistency with respect standards for Samplers (underscores instead of camelBack) + created conversion script</revision>
+      <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>LHStest</WorkingDir>
     <Sequence>myLHS,LHS_1D</Sequence>

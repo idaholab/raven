@@ -1,5 +1,15 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="silent">
+  <TestInfo>
+    <name>framework/PostProcessors/DataMiningPostProcessor/DimensionalityReduction/LocallyLinearEmbedding</name>
+    <author>senrs</author>
+    <created>2015-11-24</created>
+    <classesTested>DataMining</classesTested>
+    <description>
+      Tests manifold with LocallyLinearEmbedding.
+    </description>
+  </TestInfo>
+
   <RunInfo>
     <WorkingDir>LocallyLinearEmbedding</WorkingDir>
     <Sequence>readIn,PCAIris,output</Sequence>

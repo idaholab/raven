@@ -5,6 +5,15 @@
     <Sequence>sample,print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+  <TestInfo>
+    <name>framework/VariableGroups/ExternalNodes</name>
+    <author>talbpaul</author>
+    <created>2016-02-08</created>
+    <classesTested>VariableGroups</classesTested>
+    <description>
+      tests variable groups used in external XML
+    </description>
+  </TestInfo>
 
   <ExternalXML node="VariableGroups" xmlToLoad="ExternalNodes/vargroups.xml"/>
   <ExternalXML node="DataObjects" xmlToLoad="ExternalNodes/dataobjects.xml"/>

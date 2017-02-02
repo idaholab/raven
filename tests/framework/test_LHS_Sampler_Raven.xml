@@ -1,5 +1,28 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework.testLHS_RELAP7</name>
+    <author>cogljj</author>
+    <created>2014-03-05</created>
+    <classesTested>Sampler.Stratified</classesTested>
+    <description>
+       This test is aimed to check the capability in RAVEN to employ a Stratified sampling strategy, using as driven code RELAP7.
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2014-03-31">modified executable syntax plus improved stability of outstream system when adaptive is on...        r26112</revision>
+      <revision author="mandd" date="2015-04-17">conversion to Database and DataObjects</revision>
+      <revision author="alfoa" date="2015-04-24">From LHS to Stratified. Closes #130</revision>
+      <revision author="alfoa" date="2015-05-18">Closes #167</revision>
+      <revision author="alfoa" date="2015-06-18">Changed Name of all DataObjects</revision>
+      <revision author="alfoa" date="2015-09-12">removed syntax inconsistency with respect standards for Samplers (underscores instead of camelBack) + created conversion script</revision>
+      <revision author="cogljj" date="2016-03-22">Updating samplers to new RELAP-7 inputs.</revision>
+      <revision author="alfoa" date="2016-03-24">removed controlled variable pipe_Dh since was not set in the input file and consequentially was getting garbage from the memory. In addition, set the raven_init to false in order to avoid to have the init csv into the GridRaven folder that is used to construct a data with the pp LoadIntoInternlaDataObject</revision>
+      <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
+      <revision author="talbpaul" date="2016-04-26">Added check for pre-existing backup files when validating</revision>
+      <revision author="alfoa" date="2016-04-27">New subdirectories structure</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>LHStestRaven</WorkingDir>
     <Sequence>FirstMRun</Sequence>

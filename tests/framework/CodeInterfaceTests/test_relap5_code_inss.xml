@@ -1,5 +1,22 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/CodeInterfaceTests.INSSrelap5JapanInterfaceSampling</name>
+    <author>alfoa</author>
+    <created>2016-07-21</created>
+    <classesTested>Models.Code.Relap5inssJp</classesTested>
+    <description>
+       An example of using the RELAP5 code interface (modified version of INSS (Japan)). 
+       This test is aimed to test the mechanics of the interface (no executable), that perturbs the RELAP5 input deck
+       and the auxiliary file that the RELAP5 version by INSS reads.
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2016-10-24">finalized branch</revision>
+      <revision author="alfoa" date="2016-10-25">added xsd</revision>
+      <revision author="alfoa" date="2016-10-25">ok</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>RELAP5interfaceTestModifiedVersionINSS</WorkingDir>
     <Sequence>INSS_RELAP5_step,io_test</Sequence>

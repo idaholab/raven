@@ -1,11 +1,19 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
-  <!-- tests set operations and data objects -->
   <RunInfo>
     <WorkingDir>Sets</WorkingDir>
     <Sequence>sample,print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+  <TestInfo>
+    <name>framework/VariableGroups/SetOperations</name>
+    <author>talbpaul</author>
+    <created>2016-02-08</created>
+    <classesTested>VariableGroups</classesTested>
+    <description>
+      tests set operations and data objects for using variable groups
+    </description>
+  </TestInfo>
 
   <VariableGroups>
     <Group name="x_odd">x1,x3,x5</Group>

@@ -1,5 +1,14 @@
 <?xml version="1.0" ?>
 <Simulation>
+  <TestInfo>
+    <name>cluster_tests/test_mpiqsub</name>
+    <author>cogljj</author>
+    <created>2015-02-26</created>
+    <classesTested>MPISimulationMode</classesTested>
+    <description>
+      This tests running with mpi and a qsub.
+    </description>
+  </TestInfo>
   <RunInfo>
     <WorkingDir>.</WorkingDir>
     <Sequence>FirstMQRun</Sequence>

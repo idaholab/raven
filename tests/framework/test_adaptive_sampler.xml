@@ -1,5 +1,17 @@
 <?xml version="1.0" ?>
 <Simulation>
+  <!-- TestInfo -->  
+  <TestInfo>
+    <name>framework/adaptive_sampler_ext_model</name>
+    <author>@alfoa</author>
+    <created>2015-04-09</created>
+    <classesTested>Samplers.LimitSurfaceSearch, Models.ExternalModel, Models.ROM</classesTested>
+    <description>
+        This  test is aimed to test the capability of RAVEN to employ a goal oriented sampling. It tests the
+        LimitSurfaceSearch algorithm using an external model as ``system code''
+    </description>
+  </TestInfo>
+
   <RunInfo>
     <WorkingDir>Adapt</WorkingDir>
     <Sequence>adapt,adaptdump</Sequence>

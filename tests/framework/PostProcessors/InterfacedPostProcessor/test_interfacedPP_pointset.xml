@@ -1,5 +1,15 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/PostProcessors/InterfacedPostProcessor/interfacedPostProcessor_PointSet</name>
+    <author>mandd</author>
+    <created>2019-01-16</created>
+    <classesTested>InterfacedPostProcessor</classesTested>
+    <description>
+      Test of the interfaced post-processor interface to deal with pointSet
+    </description>
+  </TestInfo>
+  
   <RunInfo>
     <WorkingDir>interfacedPostProcessor_PointSet</WorkingDir>
     <Sequence>FirstMRun,PP</Sequence>

@@ -5,6 +5,15 @@
     <Sequence>Tmake,Ttrain,Ttest,Tprint</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+  <TestInfo>
+    <name>framework/Samplers/SparseGrid/triang</name>
+    <author>talbpaul</author>
+    <created>2015-09-11</created>
+    <classesTested>Samplers.SparseGridCollocation</classesTested>
+    <description>
+      This tests using SparseGridCollocation with triangular-distributed inputs.
+    </description>
+  </TestInfo>
 
   <Distributions>
     <Triangular name="TriDist">
