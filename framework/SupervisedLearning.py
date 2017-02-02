@@ -144,8 +144,8 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     if int(np.__version__.split('.')[1]) >= 10:
       targetValues = np.stack(targetValues, axis=-1)
     else:
-      sl = (slice(None),) * targetValues[0].ndim + (np.newaxis,)
-      targetValues = np.concatenate([arr[sl] for arr in targetValues], axis=targetValues[0].ndim)
+      sl = (slice(None),) * np.asarray(targetValues[0]).ndim + (np.newaxis,)
+      targetValues = np.concatenate([np.asarray(arr)[sl] for arr in targetValues], axis=np.asarray(targetValues[0]).ndim)
     # construct the evaluation matrixes
     featureValues = np.zeros(shape=(len(targetValues),len(self.features)))
 #     else:
@@ -1035,27 +1035,30 @@ class HDMRRom(GaussPolynomialRom):
     if not self.initialized:
       self.raiseAnError(RuntimeError,'ROM has not yet been initialized!  Has the Sampler associated with this ROM been used?')
     ft={}
+    self.refSoln = dict.fromkeys(self.target,{})
     for i in range(len(featureVals)):
-      ft[tuple(featureVals[i])]=targetVals[i]
+      ft[tuple(featureVals[i])]=targetVals[i,:]
+
     #get the reference case
     self.refpt = tuple(self.__fillPointWithRef((),[]))
-    self.refSoln = ft[self.refpt]
+    for cnt, target in enumerate(self.target):
+      self.refSoln[target] = ft[self.refpt][cnt]
     for combo,rom in self.ROMs.items():
-      subtdict={}
+      subtdict=dict.fromkeys(self.target,[])
       for c in combo: subtdict[c]=[]
-      subtdict[self.target]=[]
       SG = rom.sparseGrid
       fvals=np.zeros([len(SG),len(combo)])
-      tvals=np.zeros(len(SG))
+      tvals=np.zeros((len(SG),len(self.target)))
       for i in range(len(SG)):
         getpt=tuple(self.__fillPointWithRef(combo,SG[i][0]))
         #the 1e-10 is to be consistent with RAVEN's CSV print precision
-        tvals[i] = ft[tuple(mathUtils.NDInArray(np.array(ft.keys()),getpt,tol=1e-10)[2])]
+        tvals[i,:] = ft[tuple(mathUtils.NDInArray(np.array(ft.keys()),getpt,tol=1e-10)[2])]
         for fp,fpt in enumerate(SG[i][0]):
           fvals[i][fp] = fpt
       for i,c in enumerate(combo):
         subtdict[c] = fvals[:,i]
-      subtdict[self.target] = tvals
+      for cnt, target in enumerate(self.target):
+        subtdict[target] = tvals[:,cnt]
       rom.train(subtdict)
 
     #make ordered list of combos for use later
@@ -1122,15 +1125,18 @@ class HDMRRom(GaussPolynomialRom):
       @ Out, tot, float, the evaluated point
     """
     #am I trained?
+    returnDict = dict.fromkeys(self.target,None)
     if not self.amITrained: self.raiseAnError(IOError,'Cannot evaluate, as ROM is not trained!')
-    tot = 0
-    for term,mult in self.reducedTerms.items():
-      if term == ():
-        tot += self.refSoln*mult
-      else:
-        cutVals = [list(featureVals[0][self.features.index(j)] for j in term)]
-        tot += self.ROMs[term].__evaluateLocal__(cutVals)*mult
-    return tot
+    for target in self.target:
+      tot = 0
+      for term,mult in self.reducedTerms.items():
+        if term == ():
+          tot += self.refSoln[target]*mult
+        else:
+          cutVals = [list(featureVals[0][self.features.index(j)] for j in term)]
+          tot += self.ROMs[term].__evaluateLocal__(cutVals)[target]*mult
+      returnDict[target] = tot    
+    return returnDict
 
   def __mean__(self):
     """
