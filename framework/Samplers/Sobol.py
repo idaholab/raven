@@ -116,16 +116,12 @@ class Sobol(SparseGridCollocation):
     """
     SVL = self.readFromROM()
     #make combination of ROMs that we need
-    #self.targets  = self.ROM.SupervisedEngine.keys()
-    #SVLs = self.ROM.SupervisedEngine.values()
     self.sobolOrder = SVL.sobolOrder
     self._generateQuadsAndPolys(SVL)
     self.features = SVL.features
-    self.targets  = SVL.target  
     needCombos = itertools.chain.from_iterable(itertools.combinations(self.features,r) for r in range(self.sobolOrder+1))
     self.SQs={}
     self.ROMs={} #keys are [combo]
-    #for t in self.targets: self.ROMs[t]={}
     for combo in needCombos:
       if len(combo)==0:
         continue
@@ -143,20 +139,17 @@ class Sobol(SparseGridCollocation):
       iset.initialize(combo,imptDict,SVL.maxPolyOrder)
       self.SQs[combo] = Quadratures.returnInstance(self.sparseGridType,self)
       self.SQs[combo].initialize(combo,iset,distDict,quadDict,self.jobHandler,self.messageHandler)
-      # initDict is for SVL.__init__()
       initDict={'IndexSet'       :iset.type,             # type of index set
                 'PolynomialOrder':SVL.maxPolyOrder,      # largest polynomial
                 'Interpolation'  :SVL.itpDict,           # polys, quads per input
                 'Features'       :','.join(combo),       # input variables
-                'Target'         :','.join(self.targets)}# set below, per-case basis
+                'Target'         :','.join(SVL.target)}# set below, per-case basis
       #initializeDict is for SVL.initialize()
       initializeDict={'SG'   :self.SQs[combo],      # sparse grid
                       'dists':distDict,             # distributions
                       'quads':quadDict,             # quadratures
                       'polys':polyDict,             # polynomials
                       'iSet' :iset}                 # index set
-      #for name,SVL in self.ROM.SupervisedEngine.items():
-      #initDict['Target']     = SVL.target
       self.ROMs[combo] = SupervisedLearning.returnInstance('GaussPolynomialRom',self,**initDict)
       self.ROMs[combo].initialize(initializeDict)
       self.ROMs[combo].messageHandler = self.messageHandler
@@ -187,7 +180,7 @@ class Sobol(SparseGridCollocation):
           self.pointsToRun.append(newpt)
     self.limit = len(self.pointsToRun)
     self.raiseADebug('Needed points: %i' %self.limit)
-    initdict={'ROMs':None,
+    initdict={'ROMs':self.ROMs,
               'SG':self.SQs,
               'dists':self.dists,
               'quads':self.quadDict,
@@ -195,7 +188,6 @@ class Sobol(SparseGridCollocation):
               'refs':self.references,
               'numRuns':len(self.distinctPoints)}
     #for target in self.targets:
-    initdict['ROMs'] = self.ROMs
     self.ROM.supervisedEngine.SupervisedEngine[0].initialize(initdict)
 
   def localGenerateInput(self,model,myInput):

@@ -139,8 +139,14 @@ class superVisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     for target in self.target:
       if target in names: targetValues.append(values[names.index(target)])
       else              : self.raiseAnError(IOError,'The target '+target+' is not in the training set')
-    targetValues = np.stack(targetValues, axis=-1)
-      # construct the evaluation matrixes
+
+    #FIXME: when we do not support anymore numpy <1.10, remove this IF STATEMENT
+    if int(np.__version__.split('.')[1]) >= 10:
+      targetValues = np.stack(targetValues, axis=-1)
+    else:
+      sl = (slice(None),) * targetValues[0].ndim + (np.newaxis,)
+      targetValues = np.concatenate([arr[sl] for arr in targetValues], axis=targetValues[0].ndim)
+    # construct the evaluation matrixes
     featureValues = np.zeros(shape=(len(targetValues),len(self.features)))
 #     else:
 #       if self.target in names:
