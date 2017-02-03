@@ -196,14 +196,14 @@ class HistorySet(Data):
       else:
         if 'metadata' not in self._dataContainer.keys(): self._dataContainer['metadata'] ={}
       if name in self._dataContainer['metadata'].keys():
-        self._dataContainer['metadata'][name].append(np.atleast_1d(np.array(value))) #= copy.copy(np.concatenate((self._dataContainer['metadata'][name],np.atleast_1d(value))))
+        self._dataContainer['metadata'][name].append(np.atleast_1d(np.array(value)))
       else:
         valueToAdd = np.array(value,dtype=valueType) if valueType is not None else np.array(value)
         self._dataContainer['metadata'][name] = copy.copy(c1darray(values=np.atleast_1d(valueToAdd)))
       self.addNodeInTreeMode(tsnode,options)
     else:
       if name in self._dataContainer['metadata'].keys():
-        self._dataContainer['metadata'][name].append(np.atleast_1d(value)) # = copy.copy(np.concatenate((self._dataContainer['metadata'][name],np.atleast_1d(value))))
+        self._dataContainer['metadata'][name].append(np.atleast_1d(value))
       else:
         valueToAdd = np.array(value,dtype=valueType) if valueType is not None else np.array(value)
         self._dataContainer['metadata'][name] = copy.copy(c1darray(values=np.atleast_1d(valueToAdd)))

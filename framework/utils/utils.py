@@ -911,7 +911,6 @@ def checkTypeRecursively(inObject):
 
   """
   returnType = type(inObject).__name__
-  # hasattr(inObject, '__iter__') would be more elegant, but it is slower than just the try
   try:
     for val in inObject:
       returnType = checkTypeRecursively(val)
